@@ -1,6 +1,6 @@
 ;;; internal.el --- support for PC internal terminal
 
-;; Copyright (C) 1993-1994, 1998-1999, 2001-2011
+;; Copyright (C) 1993-1994, 1998-1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -68,7 +68,7 @@
 ;;   MULE charset, Emacs can display a single MULE charset with the
 ;;   glyphs of the current codepage.  When Emacs starts on DOS, it
 ;;   automatically sets its default coding systems for file I/O and
-;;   terminal output according to the currend DOS codepage, given by
+;;   terminal output according to the current DOS codepage, given by
 ;;   the `dos-codepage' variable.
 ;;
 ;;   This leaves us with the problem of displaying character sets

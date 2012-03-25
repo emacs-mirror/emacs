@@ -1,6 +1,6 @@
 /* System description header for FreeBSD systems.
 
-Copyright (C) 1994-2011  Free Software Foundation, Inc.
+Copyright (C) 1994-2012  Free Software Foundation, Inc.
 
 Author: Shawn M. Carey
 (according to authors.el)

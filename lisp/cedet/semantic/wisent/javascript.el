@@ -1,6 +1,6 @@
 ;;; semantic/wisent/javascript.el --- javascript parser support
 
-;; Copyright (C) 2005, 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -74,6 +74,10 @@ This function overrides `get-local-variables'."
 ;;; Setup Function
 ;;
 ;; This sets up the javascript parser
+
+;; Since javascript-mode is an alias for js-mode, let it inherit all
+;; the overrides.
+(define-child-mode js-mode javascript-mode)
 
 ;; In semantic-imenu.el, not part of Emacs.
 (defvar semantic-imenu-summary-function)

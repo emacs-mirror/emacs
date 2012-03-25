@@ -1,6 +1,6 @@
 ;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@xemacs.org>
 ;; Maintainer:    Didier Verna <didier@xemacs.org>
@@ -157,7 +157,7 @@ There are currently two built-in format functions:
 ;; I just ignore it.
 ;;;###autoload
 (defun gnus-user-format-function-d (header)
-  ;; Returns an aproximative delay string for the next occurrence of this
+  ;; Return an approximate delay string for the next occurrence of this
   ;; message. The delay is given only in the first non zero unit.
   ;; Code partly stolen from article-make-date-line
   (let* ((extras (mail-header-extra header))

@@ -1,5 +1,5 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2011
+   Copyright (C) 1985-1988, 1993-1995, 1999-2012
 		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -164,7 +164,8 @@ The remaining arguments are optional.
 The program's input comes from file INFILE (nil means `/dev/null').
 Insert output in BUFFER before point; t means current buffer; nil for BUFFER
  means discard it; 0 means discard and don't wait; and `(:file FILE)', where
- FILE is a file name string, means that it should be written to that file.
+ FILE is a file name string, means that it should be written to that file
+ \(if the file already exists it is overwritten).
 BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 REAL-BUFFER says what to do with standard output, as above,
 while STDERR-FILE says what to do with standard error in the child.
@@ -252,7 +253,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  val = Qraw_text;
 	else
 	  {
-	    SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+	    SAFE_NALLOCA (args2, 1, nargs + 1);
 	    args2[0] = Qcall_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
@@ -603,6 +604,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     /* vfork, and prevent local vars from being clobbered by the vfork.  */
     {
+      Lisp_Object volatile buffer_volatile = buffer;
+      Lisp_Object volatile coding_systems_volatile = coding_systems;
+      Lisp_Object volatile current_dir_volatile = current_dir;
+      int volatile fd1_volatile = fd1;
       int volatile fd_error_volatile = fd_error;
       int volatile fd_output_volatile = fd_output;
       int volatile output_to_buffer_volatile = output_to_buffer;
@@ -610,6 +615,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
       pid = vfork ();
 
+      buffer = buffer_volatile;
+      coding_systems = coding_systems_volatile;
+      current_dir = current_dir_volatile;
+      fd1 = fd1_volatile;
       fd_error = fd_error_volatile;
       fd_output = fd_output_volatile;
       output_to_buffer = output_to_buffer_volatile;
@@ -683,7 +692,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* Enable sending signal if user quits below.  */
   call_process_exited = 0;
 
-#if defined(MSDOS)
+#if defined (MSDOS)
   /* MSDOS needs different cleanup information.  */
   record_unwind_protect (call_process_cleanup,
 			 Fcons (Fcurrent_buffer (),
@@ -704,6 +713,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       /* If BUFFER is nil, we must read process output once and then
 	 discard it, so setup coding system but with nil.  */
       setup_coding_system (Qnil, &process_coding);
+      process_coding.dst_multibyte = 0;
     }
   else
     {
@@ -718,7 +728,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    {
 	      ptrdiff_t i;
 
-	      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+	      SAFE_NALLOCA (args2, 1, nargs + 1);
 	      args2[0] = Qcall_process;
 	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	      coding_systems
@@ -739,7 +749,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  && !NILP (val))
 	val = raw_text_coding_system (val);
       setup_coding_system (val, &process_coding);
+      process_coding.dst_multibyte
+	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
     }
+  process_coding.src_multibyte = 0;
 
   immediate_quit = 1;
   QUIT;
@@ -928,7 +941,7 @@ Delete the text if fourth arg DELETE is non-nil.
 Insert output in BUFFER before point; t means current buffer; nil for
  BUFFER means discard it; 0 means discard and don't wait; and `(:file
  FILE)', where FILE is a file name string, means that it should be
- written to that file.
+ written to that file (if the file already exists it is overwritten).
 BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 REAL-BUFFER says what to do with standard output, as above,
 while STDERR-FILE says what to do with standard error in the child.
@@ -1016,7 +1029,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   else
     {
       USE_SAFE_ALLOCA;
-      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+      SAFE_NALLOCA (args2, 1, nargs + 1);
       args2[0] = Qcall_process_region;
       for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
       coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
@@ -1145,7 +1158,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
      cleaned up in the usual way. */
   {
     register char *temp;
-    register int i;
+    size_t i; /* size_t, because ptrdiff_t might overflow here!  */
 
     i = SBYTES (current_dir);
 #ifdef MSDOS
@@ -1307,7 +1320,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
   if (err != in && err != out)
     emacs_close (err);
 
-#if defined(USG)
+#if defined (USG)
 #ifndef SETPGRP_RELEASES_CTTY
   setpgrp ();			/* No arguments but equivalent in this case */
 #endif

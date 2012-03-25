@@ -1,6 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents.
 
-;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
 ;; Authors: Martin Blais <blais@furius.ca>,
 ;;          Stefan Merten <smerten@oekonux.de>,
@@ -243,7 +243,7 @@
     (define-key map [(control ?=)] 'rst-adjust) ;; (Does not work on the Mac OSX.)
     ;; Display the hierarchy of decorations implied by the current document contents.
     (define-key map [(control c) (control h)] 'rst-display-decorations-hierarchy)
-    ;; Homogeneize the decorations in the document.
+    ;; Homogenize the decorations in the document.
     (define-key map [(control c) (control s)] 'rst-straighten-decorations)
 ;;    (define-key map [(control c) (control s)] 'rst-straighten-deco-spacing)
 
@@ -442,11 +442,10 @@ font-locking of blocks.
 
 ;;;###autoload
 (define-minor-mode rst-minor-mode
-  "ReST Minor Mode.
-Toggle ReST minor mode.
-With no argument, this command toggles the mode.
-Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
+  "Toggle ReST minor mode.
+With a prefix argument ARG, enable ReST minor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 When ReST minor mode is enabled, the ReST mode keybindings
 are installed on top of the major mode bindings.  Use this
@@ -477,8 +476,8 @@ for modes derived from Text mode, like Mail mode."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Section Decoration Adjusment
-;; ============================
+;; Section Decoration Adjustment
+;; =============================
 ;;
 ;; The following functions implement a smart automatic title sectioning feature.
 ;; The idea is that with the cursor sitting on a section title, we try to get as
@@ -1535,7 +1534,7 @@ is a regular expression for matching the lines with items."
 
 (defvar rst-preferred-bullets
   '(?- ?* ?+)
-  "List of favourite bullets to set for straightening bullets.")
+  "List of favorite bullets to set for straightening bullets.")
 
 (defun rst-straighten-bullets-region (beg end)
   "Make all the bulleted list items in the region consistent.
@@ -2324,7 +2323,7 @@ of (COLUMN-NUMBER . LINE) pairs."
     (indent-rigidly
      mbeg mend
 
-     ;; Find the next tab after the leftmost columnt.
+     ;; Find the next tab after the leftmost column.
      (let ((tab (funcall find-next-fun tabs leftmostcol)))
 
        (if tab
@@ -2349,7 +2348,7 @@ of (COLUMN-NUMBER . LINE) pairs."
     ))
 
 (defun rst-shift-region-right (pfxarg)
-  "Indent region ridigly, by a few characters to the right.
+  "Indent region rigidly, by a few characters to the right.
 This function first computes all possible alignment columns by
 inspecting the lines preceding the region for bulleted or
 enumerated list items.  If the leftmost column is beyond the
@@ -2476,7 +2475,7 @@ first of a paragraph."
 ;;------------------------------------------------------------------------------
 
 ;; FIXME: these next functions should become part of a larger effort to redo the
-;; bullets in bulletted lists.  The enumerate would just be one of the possible
+;; bullets in bulleted lists.  The enumerate would just be one of the possible
 ;; outputs.
 ;;
 ;; FIXME: TODO we need to do the enumeration removal as well.
@@ -2717,7 +2716,7 @@ general but you do not like the details."
        (rst-define-level-faces)))
 
 ;; Faces for displaying items on several levels; these definitions define
-;; different shades of grey where the lightest one (i.e. least contrasting) is
+;; different shades of gray where the lightest one (i.e. least contrasting) is
 ;; used for level 1
 (defcustom rst-level-face-max 6
   "Maximum depth of levels for which section title faces are defined."

@@ -1,6 +1,6 @@
 ;;; wid-browse.el --- functions for browsing widgets
 ;;
-;; Copyright (C) 1997, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
@@ -270,8 +270,10 @@ VALUE is assumed to be a list of widgets."
 
 ;;;###autoload
 (define-minor-mode widget-minor-mode
-  "Togle minor mode for traversing widgets.
-With arg, turn widget mode on if and only if arg is positive."
+  "Minor mode for traversing widgets.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :lighter " Widget")
 
 ;;; The End:

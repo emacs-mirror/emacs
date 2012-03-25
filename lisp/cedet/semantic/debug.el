@@ -1,6 +1,6 @@
 ;;; semantic/debug.el --- Language Debugger framework
 
-;; Copyright (C) 2003-2005, 2008-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2008-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -175,7 +175,7 @@ TOKEN is a lexical token."
   "For IFACE, highlight NONTERM in the parser buffer.
 NONTERM is the name of the rule currently being processed that shows up
 as a nonterminal (or tag) in the source buffer.
-If RULE and MATCH indicies are specified, highlight those also."
+If RULE and MATCH indices are specified, highlight those also."
   (set-buffer (oref iface :parser-buffer))
 
   (let* ((rules (semantic-find-tags-by-class 'nonterminal (current-buffer)))
@@ -519,22 +519,22 @@ down to your parser later."
   )
 
 (defmethod semantic-debug-parser-go ((parser semantic-debug-parser))
-  "Continue executiong in this PARSER until the next breakpoint."
+  "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'go)
   )
 
 (defmethod semantic-debug-parser-fail ((parser semantic-debug-parser))
-  "Continue executiong in this PARSER until the next breakpoint."
+  "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'fail)
   )
 
 (defmethod semantic-debug-parser-quit ((parser semantic-debug-parser))
-  "Continue executiong in this PARSER until the next breakpoint."
+  "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'quit)
   )
 
 (defmethod semantic-debug-parser-abort ((parser semantic-debug-parser))
-  "Continue executiong in this PARSER until the next breakpoint."
+  "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'abort)
   )
 

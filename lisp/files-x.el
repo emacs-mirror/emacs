@@ -1,6 +1,6 @@
 ;;; files-x.el --- extended file handling commands
 
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Maintainer: FSF
@@ -149,7 +149,7 @@ from the Local Variables list ignoring the input argument VALUE."
 
 	(goto-char (point-max))
 	(let ((comment-style 'plain)
-	      (comment-start (or comment-start ";;; ")))
+	      (comment-start (or comment-start ";; ")))
 	  (comment-region
 	   (prog1 (setq beg (point))
 	     (insert "\nLocal Variables:\nEnd:\n"))

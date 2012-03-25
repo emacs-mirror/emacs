@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft W32 API.
 
-Copyright (C) 1989, 1992-2011  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -140,8 +140,8 @@ struct MONITOR_INFO
     DWORD   dwFlags;
 };
 
-/* Reportedly, VS 6 does not have this in its headers.  */
-#if defined (_MSC_VER) && _MSC_VER < 1300
+/* Reportedly, MSVC does not have this in its headers.  */
+#ifdef _MSC_VER
 DECLARE_HANDLE(HMONITOR);
 #endif
 
@@ -635,9 +635,8 @@ colormap_t w32_color_map[] =
   {"LightGreen"                , PALETTERGB (144,238,144)},
 };
 
-DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
-       0, 0, 0, doc: /* Return the default color map.  */)
-  (void)
+static Lisp_Object
+w32_default_color_map (void)
 {
   int i;
   colormap_t *pc = w32_color_map;
@@ -656,6 +655,13 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
   UNBLOCK_INPUT;
 
   return (cmap);
+}
+
+DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
+       0, 0, 0, doc: /* Return the default color map.  */)
+  (void)
+{
+  return w32_default_color_map ();
 }
 
 static Lisp_Object
@@ -682,7 +688,6 @@ w32_color_map_lookup (char *colorname)
 
       QUIT;
     }
-
 
   UNBLOCK_INPUT;
 
@@ -2083,7 +2088,7 @@ w32_key_to_modifier (int key)
       key_mapping = Qnil;
     }
 
-  /* NB. This code runs in the input thread, asychronously to the lisp
+  /* NB. This code runs in the input thread, asynchronously to the lisp
      thread, so we must be careful to ensure access to lisp data is
      thread-safe.  The following code is safe because the modifier
      variable values are updated atomically from lisp and symbols are
@@ -2257,7 +2262,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  some third party shell extensions can cause it to be used in
                  system dialogs, which causes a crash if it is not initialized.
                  This is a known bug in Windows, which was fixed long ago, but
-                 the patch for XP is not publically available until XP SP3,
+                 the patch for XP is not publicly available until XP SP3,
                  and older versions will never be patched.  */
               CoInitialize (NULL);
 	      w32_createwindow ((struct frame *) msg.wParam);
@@ -2412,7 +2417,7 @@ complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
   deferred_msg * msg_buf = find_deferred_msg (hwnd, msg);
 
   if (msg_buf == NULL)
-    /* Message may have been cancelled, so don't abort.  */
+    /* Message may have been canceled, so don't abort.  */
     return;
 
   msg_buf->result = result;
@@ -2474,6 +2479,10 @@ signal_user_input (void)
   if (!NILP (Vthrow_on_input))
     {
       Vquit_flag = Vthrow_on_input;
+      /* Doing a QUIT from this thread is a bad idea, since this
+	 unwinds the stack of the Lisp thread, and the Windows runtime
+	 rightfully barfs.  Disabled.  */
+#if 0
       /* If we're inside a function that wants immediate quits,
 	 do it now.  */
       if (immediate_quit && NILP (Vinhibit_quit))
@@ -2481,6 +2490,7 @@ signal_user_input (void)
 	  immediate_quit = 0;
 	  QUIT;
 	}
+#endif
     }
 }
 
@@ -2533,7 +2543,7 @@ post_character_message (HWND hwnd, UINT msg,
            the lisp thread to respond.
 
 	   Note that we don't want to block the input thread waiting for
-	   a reponse from the lisp thread (although that would at least
+	   a response from the lisp thread (although that would at least
 	   solve the deadlock problem above), because we want to be able
 	   to receive C-g to interrupt the lisp thread.  */
 	cancel_all_deferred_msgs ();
@@ -2875,7 +2885,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		      key.dwControlKeyState = modifiers;
 
 		      add = w32_kbd_patch_key (&key);
-		      /* 0 means an unrecognised keycode, negative means
+		      /* 0 means an unrecognized keycode, negative means
 			 dead key.  Ignore both.  */
 		      while (--add >= 0)
 			{
@@ -2938,7 +2948,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       break;
 
     case WM_IME_CHAR:
-      /* If we can't get the IME result as unicode, use default processing,
+      /* If we can't get the IME result as Unicode, use default processing,
          which will at least allow characters decodable in the system locale
          get through.  */
       if (!get_composition_string_fn)
@@ -3706,7 +3716,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if (w32_system_caret_hwnd == NULL)
 	{
 	  /* Use the default caret width, and avoid changing it
-	     unneccesarily, as it confuses screen reader software.  */
+	     unnecessarily, as it confuses screen reader software.  */
 	  w32_system_caret_hwnd = hwnd;
 	  CreateCaret (hwnd, NULL, 0,
 		       w32_system_caret_height);
@@ -3744,7 +3754,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  flags |= TPM_RIGHTBUTTON;
 
 	/* Remember we did a SetCapture on the initial mouse down event,
-	   so for safety, we make sure the capture is cancelled now.  */
+	   so for safety, we make sure the capture is canceled now.  */
 	ReleaseCapture ();
 	button_state = 0;
 
@@ -3972,7 +3982,7 @@ x_make_gc (struct frame *f)
 
 
 /* Handler for signals raised during x_create_frame and
-   x_create_top_frame.  FRAME is the frame which is partially
+   x_create_tip_frame.  FRAME is the frame which is partially
    constructed.  */
 
 static Lisp_Object
@@ -3981,13 +3991,14 @@ unwind_create_frame (Lisp_Object frame)
   struct frame *f = XFRAME (frame);
 
   /* If frame is ``official'', nothing to do.  */
-  if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
+  if (NILP (Fmemq (frame, Vframe_list)))
     {
 #if GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
+      free_glyphs (f);
 
 #if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
@@ -4129,7 +4140,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
 
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
 
   f->output_method = output_w32;
   f->output_data.w32 =
@@ -4148,7 +4158,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
 #if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
 
@@ -4281,6 +4292,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_make_gc (f);
 
   /* Now consider the frame official.  */
+  f->terminal->reference_count++;
   FRAME_W32_DISPLAY_INFO (f)->reference_count++;
   Vframe_list = Fcons (frame, Vframe_list);
 
@@ -4768,7 +4780,7 @@ terminate Emacs if we can't open the connection.
     UNGCPRO;
   }
   if (NILP (Vw32_color_map))
-    Vw32_color_map = Fw32_default_color_map ();
+    Vw32_color_map = w32_default_color_map ();
 
   /* Merge in system logical colors.  */
   add_system_logical_colors_to_map (&Vw32_color_map);
@@ -4944,7 +4956,7 @@ If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retreiving it.
+If DELETE_P is non-nil, delete the property after retrieving it.
 If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
@@ -5004,7 +5016,8 @@ no value of TYPE (always string in the MS Windows case).  */)
    cursor.  Duplicated from xdisp.c, but cannot use the version there
    due to lack of atimers on w32.  */
 #define DEFAULT_HOURGLASS_DELAY 1
-/* Return non-zero if houglass timer has been started or hourglass is shown.  */
+/* Return non-zero if hourglass timer has been started or hourglass is
+   shown.  */
 /* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
    	    xdisp.c could be used. */
 
@@ -5223,7 +5236,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
   f->output_method = output_w32;
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
@@ -5233,7 +5245,8 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   f->icon_name = Qnil;
 
 #if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
   FRAME_KBOARD (f) = kb;
@@ -5374,14 +5387,15 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 
   UNGCPRO;
 
+  /* Now that the frame is official, it counts as a reference to
+     its display.  */
+  FRAME_W32_DISPLAY_INFO (f)->reference_count++;
+  f->terminal->reference_count++;
+
   /* It is now ok to make the frame official even if we get an error
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
-
-  /* Now that the frame is official, it counts as a reference to
-     its display.  */
-  FRAME_W32_DISPLAY_INFO (f)->reference_count++;
 
   /* Setting attributes of faces of the tooltip frame from resources
      and similar will increment face_change_count, which leads to the
@@ -6023,7 +6037,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 	file = DECODE_FILE (build_string (filename));
       }
-    /* User cancelled the dialog without making a selection.  */
+    /* User canceled the dialog without making a selection.  */
     else if (!CommDlgExtendedError ())
       file = Qnil;
     /* An error occurred, fallback on reading from the mini-buffer.  */
@@ -6701,7 +6715,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
       ClosePrinter (hPrn);
       return Qnil;
     }
-  /* Call GetPrinter again with big enouth memory block */
+  /* Call GetPrinter again with big enough memory block.  */
   err = GetPrinter (hPrn, 2, (LPBYTE)ppi2, dwNeeded, &dwReturned);
   ClosePrinter (hPrn);
   if (!err)

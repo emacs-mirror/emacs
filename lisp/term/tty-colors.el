@@ -1,6 +1,6 @@
 ;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: FSF
@@ -76,7 +76,7 @@
 ;; defined for the MS-DOS and MS-Windows consoles, because the users
 ;; on those systems expect these colors to be available.
 ;;
-;; For these reasons, package maintaners are advised NOT to use color
+;; For these reasons, package maintainers are advised NOT to use color
 ;; names such as "lightred" or "lightblue", because they will have
 ;; different effect on different displays.  Instead, use "red1" and
 ;; "blue1", respectively.

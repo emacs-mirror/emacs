@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2011
+   Copyright (C) 1985-1986, 1993-1995, 1997-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -329,7 +329,7 @@ adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
      - disordered overlays in the slot `overlays_before' of current_buffer.  */
   if (adjusted)
     {
-      fix_start_end_in_overlays(from, to);
+      fix_start_end_in_overlays (from, to);
       fix_overlays_before (current_buffer, from, to);
     }
 }
@@ -1316,7 +1316,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
 
   UNGCPRO;
 
-  /* Make args be valid */
+  /* Make args be valid.  */
   if (from < BEGV)
     from = BEGV;
   if (to > ZV)
@@ -1606,7 +1606,7 @@ del_range_1 (EMACS_INT from, EMACS_INT to, int prepare, int ret_string)
   to_byte = CHAR_TO_BYTE (to);
 
   deletion = del_range_2 (from, from_byte, to, to_byte, ret_string);
-  GCPRO1(deletion);
+  GCPRO1 (deletion);
   signal_after_change (from, to - from, 0);
   update_compositions (from, from, CHECK_HEAD);
   UNGCPRO;

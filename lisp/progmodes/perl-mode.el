@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -304,11 +304,12 @@ The expansion is entirely correct because it uses the C preprocessor."
              (put-text-property (match-beginning 2) (match-end 2)
                                 'syntax-table (string-to-syntax "\""))
              (perl-syntax-propertize-special-constructs end)))))
-      ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+      ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\(?:\\([^])}>= \n\t]\\)\\|\\(?3:=\\)[^>]\\)"
        ;; Nasty cases:
        ;; /foo/m  $a->m  $#m $m @m %m
        ;; \s (appears often in regexps).
        ;; -s file
+       ;; y => 3
        ;; sub tr {...}
        (3 (ignore
            (if (save-excursion (goto-char (match-beginning 0))
@@ -387,7 +388,11 @@ The expansion is entirely correct because it uses the C preprocessor."
                       ;; In case of error, make sure we don't move backward.
 		      (scan-error (goto-char startpos) nil))
 		  (not (or (nth 8 (parse-partial-sexp
-				   (point) limit nil nil state 'syntax-table))
+				   ;; Since we don't know if point is within
+				   ;; the first or the scond arg, we have to
+				   ;; start from the beginning.
+				   (if twoargs (1+ (nth 8 state)) (point))
+				   limit nil nil state 'syntax-table))
 			   ;; If we have a self-paired opener and a twoargs
 			   ;; command, the form is s/../../ so we have to skip
 			   ;; a second time.
@@ -632,8 +637,8 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
 
 (defalias 'electric-perl-terminator 'perl-electric-terminator)
 (defun perl-electric-terminator (arg)
-  "Insert character and adjust indentation.
-If at end-of-line, and not in a comment or a quote, correct the's indentation."
+  "Insert character and maybe adjust indentation.
+If at end-of-line, and not in a comment or a quote, correct the indentation."
   (interactive "P")
   (let ((insertpos (point)))
     (and (not arg)			; decide whether to indent
@@ -831,7 +836,11 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 		  (save-excursion
 		    (beginning-of-line)
 		    (looking-at "\\s-+sub\\>"))
-		  (> indent-point (save-excursion (forward-sexp 1) (point))))
+		  (> indent-point (save-excursion
+				    (condition-case nil
+					(forward-sexp 1)
+				      (scan-error nil))
+				    (point))))
 	(perl-beginning-of-function))
       (while (< (point) indent-point)	;repeat until right sexp
 	(setq state (parse-partial-sexp (point) indent-point 0))

@@ -1,6 +1,6 @@
 ;;; iso-acc.el --- minor mode providing electric accent keys
 
-;; Copyright (C) 1993-1994, 1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans
 ;; Maintainer: FSF
@@ -32,7 +32,7 @@
 ;; In `iso-accents-mode', pseudo accent characters are used to
 ;; introduce accented keys.  The pseudo-accent characters are:
 ;;
-;;   '  (minute)    -> actue accent
+;;   '  (minute)    -> acute accent
 ;;   `  (backtick)  -> grave accent
 ;;   "  (second)    -> diaeresis
 ;;   ^  (caret)     -> circumflex

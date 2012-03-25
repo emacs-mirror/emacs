@@ -1,6 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu
 
-;; Copyright (C) 1994, 1996, 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998-2012 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -99,7 +99,7 @@ KEYS is expanded with `substitute-command-keys' before it is used.
 
 KEYS is nil, a string or a vector; nil or a keyboard equivalent to this
 menu item.
-This is a hint that will considerably speed up Emacs' first display of
+This is a hint that will considerably speed up Emacs's first display of
 a menu.  Use `:key-sequence nil' when you know that this menu item has no
 keyboard equivalent.
 

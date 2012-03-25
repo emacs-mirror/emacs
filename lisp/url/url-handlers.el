@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
-;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2012  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -100,7 +100,10 @@ particularly bad at this\).")
 
 ;;;###autoload
 (define-minor-mode url-handler-mode
-  "Use URL to handle URL-like file names."
+  "Toggle using `url' library for URL filenames (URL Handler mode).
+With a prefix argument ARG, enable URL Handler mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t :group 'url
   (if (not (boundp 'file-name-handler-alist))
       ;; Can't be turned ON anyway.

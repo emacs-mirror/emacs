@@ -1,6 +1,6 @@
 ;;; gnus-setup.el --- Initialization & Setup for Gnus 5
 
-;; Copyright (C) 1995-1996, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Steven L. Baur <steve@miranova.com>
 ;; Keywords: news

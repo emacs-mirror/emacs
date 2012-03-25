@@ -1,6 +1,6 @@
 ;;; vc-rcs.el --- support for RCS version-control
 
-;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -41,13 +41,18 @@
   (require 'cl)
   (require 'vc))
 
+(defgroup vc-rcs nil
+  "VC RCS backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-rcs-release nil
   "The release number of your RCS installation, as a string.
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
 		 (string :tag "Specified")
 		 (const :tag "Unknown" unknown))
-  :group 'vc)
+  :group 'vc-rcs)
 
 (defcustom vc-rcs-register-switches nil
   "Switches for registering a file in RCS.
@@ -59,7 +64,7 @@ If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-rcs)
 
 (defcustom vc-rcs-diff-switches nil
   "String or list of strings specifying switches for RCS diff under VC.
@@ -69,20 +74,20 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-rcs)
 
 (defcustom vc-rcs-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
-  :group 'vc)
+  :group 'vc-rcs)
 
 (defcustom vc-rcsdiff-knows-brief nil
   "Indicates whether rcsdiff understands the --brief option.
 The value is either `yes', `no', or nil.  If it is nil, VC tries
 to use --brief and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
-  :group 'vc)
+  :group 'vc-rcs)
 
 ;;;###autoload
 (defcustom vc-rcs-master-templates
@@ -95,7 +100,7 @@ For a description of possible values, see `vc-check-master-templates'."
 			 (choice string
 				 function)))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-rcs)
 
 
 ;;; Properties of the backend
@@ -314,7 +319,10 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 (defun vc-rcs-responsible-p (file)
   "Return non-nil if RCS thinks it would be responsible for registering FILE."
   ;; TODO: check for all the patterns in vc-rcs-master-templates
-  (file-directory-p (expand-file-name "RCS" (file-name-directory file))))
+  (file-directory-p (expand-file-name "RCS"
+                                      (if (file-directory-p file)
+                                          file
+                                        (file-name-directory file)))))
 
 (defun vc-rcs-receive-file (file rev)
   "Implementation of receive-file for RCS."
@@ -806,9 +814,9 @@ systime, or nil if there is none.  Also, reposition point."
 ;;; Tag system
 ;;;
 
-(defun vc-rcs-create-tag (backend dir name branchp)
+(defun vc-rcs-create-tag (dir name branchp)
   (when branchp
-    (error "RCS backend %s does not support module branches" backend))
+    (error "RCS backend does not support module branches"))
   (let ((result (vc-tag-precondition dir)))
     (if (stringp result)
 	(error "File %s is not up-to-date" result)
@@ -1396,7 +1404,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
               ;; `incg' or `buffer-substring-no-properties'.  (This is
               ;; for speed; strictly speaking, it is sufficient to use
               ;; only the former since it behaves identically to the
-              ;; latter in the absense of "@@".)
+              ;; latter in the absence of "@@".)
               sub)
           (flet ((incg (beg end) (let ((b beg) (e end) @-holes)
                                    (while (and asc (< (car asc) e))

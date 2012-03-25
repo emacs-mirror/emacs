@@ -1,6 +1,6 @@
 ;; idlw-shell.el --- run IDL as an inferior process of Emacs.
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -227,7 +227,7 @@ window, but is useful for stepping, etc."
   "Obsolete variable.  See `idlwave-shell-debug-modifiers'.")
 
 (defcustom idlwave-shell-use-truename nil
-  "*Non-nil means, use use `file-truename' when looking for buffers.
+  "*Non-nil means, use `file-truename' when looking for buffers.
 If this variable is non-nil, Emacs will use the function `file-truename' to
 resolve symbolic links in the file paths printed by e.g., STOP commands.
 This means, unvisited files will be loaded under their truename.
@@ -925,7 +925,7 @@ IDL has currently stepped.")
    \\[idlwave-shell-print] or \\[idlwave-shell-mouse-print] with the
    mouse, help, \\[idlwave-shell-help-expression] or
    \\[idlwave-shell-mouse-help] with the mouse, or with a
-   configureable set of custom examine commands using
+   configurable set of custom examine commands using
    \\[idlwave-shell-examine-select].  The mouse examine commands can
    also work by click and drag, to select an expression for
    examination.
@@ -939,7 +939,7 @@ IDL has currently stepped.")
    -------------------------------
    Info documentation for this package is available.  Use \\[idlwave-info]
    to display (complain to your sysadmin if that does not work).
-   For Postscript and HTML versions of the documentation, check IDLWAVE's
+   For PostScript and HTML versions of the documentation, check IDLWAVE's
    homepage at URL `http://idlwave.org'.
    IDLWAVE has customize support - see the group `idlwave'.
 
@@ -959,7 +959,7 @@ IDL has currently stepped.")
   ;; Can not use history expansion because "!" is used for system variables.
   (setq comint-input-autoexpand nil)
   ;; (setq comint-input-ring-size 64)
-  
+
   (set (make-local-variable 'completion-ignore-case) t)
   (set (make-local-variable 'comint-completion-addsuffix) '("/" . ""))
   (setq comint-input-ignoredups t)
@@ -1844,7 +1844,7 @@ file name."
     (cond
      ((file-regular-p file2) file2)
      ((file-regular-p file1) file1)
-     ;; If we cannot veryfy the existence of the file, we return the shorter
+     ;; If we cannot verify the existence of the file, we return the shorter
      ;; name.  The idea behind this is that this may be a relative file name
      ;; and our idea about the current working directory may be wrong.
      ;; If it is a relative file name, it hopefully is short.
@@ -2903,7 +2903,7 @@ from `idlwave-shell-examine-alist' via mini-buffer shortcut key."
 	 ;; Move to beginning of current or previous expression
 	 (if (looking-at "\\<\\|(")
 	     ;; At beginning of expression, don't move backwards unless
-	     ;; this is at the end of an indentifier.
+	     ;; this is at the end of an identifier.
 	     (if (looking-at "\\>")
 		 (backward-sexp))
 	   (backward-sexp))
@@ -3707,7 +3707,7 @@ Existing overlays are recycled, in order to minimize consumption."
 (defun idlwave-shell-make-new-bp-overlay (&optional type disabled)
   "Make a new overlay for highlighting breakpoints.
 
-This stuff is strongly dependant upon the version of Emacs.  If TYPE
+This stuff is strongly dependent upon the version of Emacs.  If TYPE
 is passed, make an overlay of that type ('bp or 'bp-cond, currently
 only for glyphs)."
   (let ((ov (make-overlay 1 1))
@@ -4277,16 +4277,14 @@ Otherwise, just expand the file name."
 (defvar idlwave-shell-electric-debug-buffers nil)
 
 (define-minor-mode idlwave-shell-electric-debug-mode
-  "Toggle Electric Debug mode.
-With no argument, this command toggles the mode.
-Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
+  "Toggle Idlwave Shell Electric Debug mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
-When Electric Debug mode is enabled, the many debugging commands are
-available as single key sequences."
-nil
-" *Debugging*"
-idlwave-shell-electric-debug-mode-map)
+When Idlwave Shell Electric Debug mode is enabled, the Idlwave
+Shell debugging commands are available as single key sequences."
+  nil " *Debugging*" idlwave-shell-electric-debug-mode-map)
 
 (add-hook
  'idlwave-shell-electric-debug-mode-on-hook

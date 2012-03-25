@@ -1,6 +1,6 @@
 ;;; tibetan.el --- Quail package for inputting Tibetan characters -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -28,7 +28,7 @@
 ;; Created: Feb. 17. 1997
 
 ;; History:
-;; 1997.03.13 Support for inputting special signs and punctuations added.
+;; 1997.03.13 Support for inputting special signs and punctuation added.
 ;;            (Only Ext. Wylie input)
 
 ;;; Commentary:
@@ -56,7 +56,7 @@
     (if (string-match "^-[dy]" quail-current-key)
 	(setq quail-current-key (substring quail-current-key 1)))
     (let ((str (tibetan-transcription-to-tibetan quail-current-key)))
-      ;; If quail-current-key is for punctuations, it can't be
+      ;; If quail-current-key is for punctuation, it can't be
       ;; transcribed by tibetan-transcription-to-tibetan, thus STR
       ;; contains ASCII string now.  In that case, use the current
       ;; characters set in quail-current-str.
@@ -80,7 +80,7 @@
   '(("-d" . "$(7"2(B")
     ("-y" . "$(7"B(B")))
 
-;; Punctuations are not transcribed.
+;; Punctuation characters are not transcribed.
 
 (defconst tibetan-wylie-punctuation-alist
    '(("."  . " ")
@@ -159,7 +159,7 @@
  nil nil nil nil nil nil nil nil
  'quail-tibetan-update-translation)
 
-;; Here we build up a Quail map for a Tibtan sequence the whole of
+;; Here we build up a Quail map for a Tibetan sequence the whole of
 ;; which can be one composition.
 ;;
 ;; A Tibetan syllable is typically structured as follows:
@@ -224,7 +224,7 @@
     ("F" . "M")				; anusvara
     ("g" . "u")				; zhabs kyu
     ("G" . "i")				; gi gu
-    ("H" . ",")				; viraama
+    ("H" . ",")				; virama
     ("j" . "o")				; naro
     ("J" . "e")				; 'greng bu
     ("k" . "ts")			; tsa
@@ -337,7 +337,7 @@
     ("(" . "$(7!l(B")
     ("0" . "$(7!P(B")
     (")" . "$(7!m(B")
-;;; ("-" ) ; enphatic, not yet supported
+;;; ("-" ) ; emphatic, not yet supported
 ;;; ("_" ) ; id.
 ;;; ("=" ) ; special sign, not yet supported
     ("+" . "$(7!A(B")
@@ -427,7 +427,7 @@
 
     1. Vowel 'a' should be typed explicitly by the key 'A'.
        This is really inconvenient. But to make the coding
-       scheme clear, it is desirable to have an explicite
+       scheme clear, it is desirable to have an explicit
        vowel sign for 'a'.
     2. Tsheg is assigned to SPC key. You can input a space
        by typing '>'.

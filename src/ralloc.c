@@ -1,5 +1,5 @@
 /* Block-relocating memory allocator.
-   Copyright (C) 1993, 1995, 2000-2011  Free Software Foundation, Inc.
+   Copyright (C) 1993, 1995, 2000-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -100,7 +100,7 @@ static int extra_bytes;
 		       & ~(page_size - 1))
 #define ROUND_TO_PAGE(addr) (addr & (~(page_size - 1)))
 
-#define MEM_ALIGN sizeof(double)
+#define MEM_ALIGN sizeof (double)
 #define MEM_ROUNDUP(addr) (((unsigned long int)(addr) + MEM_ALIGN - 1) \
 				   & ~(MEM_ALIGN - 1))
 
@@ -219,13 +219,13 @@ find_heap (POINTER address)
    If enough space is not presently available in our reserve, this means
    getting more page-aligned space from the system.  If the returned space
    is not contiguous to the last heap, allocate a new heap, and append it
+   to the heap list.
 
-   obtain does not try to keep track of whether space is in use
-   or not in use.  It just returns the address of SIZE bytes that
-   fall within a single heap.  If you call obtain twice in a row
-   with the same arguments, you typically get the same value.
-   to the heap list.  It's the caller's responsibility to keep
-   track of what space is in use.
+   obtain does not try to keep track of whether space is in use or not
+   in use.  It just returns the address of SIZE bytes that fall within a
+   single heap.  If you call obtain twice in a row with the same arguments,
+   you typically get the same value.  It's the caller's responsibility to
+   keep track of what space is in use.
 
    Return the address of the space if all went well, or zero if we couldn't
    allocate the memory.  */
@@ -389,7 +389,7 @@ find_bloc (POINTER *ptr)
   while (p != NIL_BLOC)
     {
       /* Consistency check. Don't return inconsistent blocs.
-	 Don't abort here, as callers might be expecting this,  but
+	 Don't abort here, as callers might be expecting this, but
 	 callers that always expect a bloc to be returned should abort
 	 if one isn't to avoid a memory corruption bug that is
 	 difficult to track down.  */
@@ -468,7 +468,7 @@ relocate_blocs (bloc_ptr bloc, heap_ptr heap, POINTER address)
 
   /* No need to ever call this if arena is frozen, bug somewhere!  */
   if (r_alloc_freeze_level)
-    abort();
+    abort ();
 
   while (b)
     {
@@ -592,7 +592,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
 
   /* No need to ever call this if arena is frozen, bug somewhere!  */
   if (r_alloc_freeze_level)
-    abort();
+    abort ();
 
   if (bloc == NIL_BLOC || size == bloc->size)
     return 1;
@@ -636,7 +636,8 @@ resize_bloc (bloc_ptr bloc, SIZE size)
             }
 	  else
 	    {
-	      memmove (b->new_data, b->data, b->size);
+	      if (b->new_data != b->data)
+		memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
             }
 	}
@@ -647,7 +648,8 @@ resize_bloc (bloc_ptr bloc, SIZE size)
 	}
       else
 	{
-	  memmove (bloc->new_data, bloc->data, old_size);
+	  if (bloc->new_data != bloc->data)
+	    memmove (bloc->new_data, bloc->data, old_size);
 	  memset ((char *) bloc->new_data + old_size, 0, size - old_size);
 	  *bloc->variable = bloc->data = bloc->new_data;
 	}
@@ -663,7 +665,8 @@ resize_bloc (bloc_ptr bloc, SIZE size)
             }
 	  else
 	    {
-	      memmove (b->new_data, b->data, b->size);
+	      if (b->new_data != b->data)
+		memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 	}
@@ -816,7 +819,8 @@ r_alloc_sbrk (long int size)
 	     header.  */
 	  for (b = last_bloc; b != NIL_BLOC; b = b->prev)
 	    {
-	      memmove (b->new_data, b->data, b->size);
+	      if (b->new_data != b->data)
+		memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 
@@ -862,7 +866,8 @@ r_alloc_sbrk (long int size)
 
 	  for (b = first_bloc; b != NIL_BLOC; b = b->next)
 	    {
-	      memmove (b->new_data, b->data, b->size);
+	      if (b->new_data != b->data)
+		memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 	}
@@ -1079,7 +1084,7 @@ r_alloc_reinit (void)
 #include <assert.h>
 
 void
-r_alloc_check ()
+r_alloc_check (void)
 {
   int found = 0;
   heap_ptr h, ph = 0;
@@ -1180,7 +1185,7 @@ r_alloc_reset_variable (POINTER *old, POINTER *new)
 
   /* Find the bloc that corresponds to the data pointed to by pointer.
      find_bloc cannot be used, as it has internal consistency checks
-     which fail when the variable needs reseting.  */
+     which fail when the variable needs resetting.  */
   while (bloc != NIL_BLOC)
     {
       if (bloc->data == *new)

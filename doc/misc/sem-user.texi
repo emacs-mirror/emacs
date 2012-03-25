@@ -1,6 +1,6 @@
 @c This file is included by semantic.texi
 
-@c Copyright (C) 1999-2005, 2007, 2009-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1999-2005, 2007, 2009-2012 Free Software Foundation, Inc.
 
 @c Permission is granted to copy, distribute and/or modify this
 @c document under the terms of the GNU Free Documentation License,
@@ -31,7 +31,7 @@ File,,,emacs,Emacs manual}.
 * Analyzer::            Semantic tools for analyzing code.
 * Speedbar::            Using @semantic{} with the Speedbar.
 * SymRef::              Interface to symbol reference tools.
-* MRU Bookmarks::       Managing tag ``bookmarks''.
+* MRU Bookmarks::       Managing tag "bookmarks".
 * Sticky Func Mode::    Showing declarations in the header line.
 * Highlight Func Mode:: Highlight the current function declaration.
 * Tag Decoration Mode:: Minor mode to decorate tags.
@@ -176,7 +176,7 @@ Copy the current tag into a register
 kill it as well.  This allows you to insert or jump to that tag with
 the usual register commands.  @xref{Registers,,,emacs,Emacs manual}.
 
-@item \C-c , @kbd{up}
+@item C-c , @kbd{up}
 Transpose the current tag with the previous one
 (@code{senator-transpose-tags-up}).
 
@@ -382,7 +382,7 @@ them yourself.
 @deffn Option semanticdb-project-roots
 The value of this variable is a list of directories (strings) that are
 project roots.  All subdirectories of a project root are considered
-part of the same project.  This variable can be overriden by
+part of the same project.  This variable can be overridden by
 @code{semanticdb-project-root-functions}.
 @end deffn
 
@@ -547,7 +547,7 @@ reparsed regardless of their size.
 @end deffn
 
 @deffn Option semantic-idle-scheduler-no-working-message
-If non-@code{nil}, disable display of working messages whie reparsing.
+If non-@code{nil}, disable display of working messages while reparsing.
 @end deffn
 
 @deffn Option semantic-idle-scheduler-working-in-modeline-flag
@@ -608,7 +608,7 @@ of parsing.  The default is @code{t}.
 @node Debugging Idle Time Issues
 @subsection Debugging Idle Time Issues
 
-If you see an error signalled during idle time, it could be an
+If you see an error signaled during idle time, it could be an
 indication of a more serious issue elsewhere.  It is not enough to
 enable @code{debug-on-error}, because the idle scheduler inhibits the
 debugger.  Instead, use the following commands to debug the error:
@@ -880,7 +880,7 @@ command, like this:
 @end example
 @end defun
 
-These commands are often more accurate than than the @code{find-tag}
+These commands are often more accurate than the @code{find-tag}
 command (@pxref{Tags,,,emacs,Emacs manual}), because the Semantic
 Analyzer is context-sensitive.
 

@@ -1,6 +1,6 @@
 ;;; url-cookie.el --- URL cookie support
 
-;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2012  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -156,7 +156,8 @@ telling Microsoft that."
 (defun url-cookie-expired-p (cookie)
   "Return non-nil if COOKIE is expired."
   (let ((exp (url-cookie-expires cookie)))
-    (and exp (> (float-time) (float-time (date-to-time exp))))))
+    (and (> (length exp) 0)
+	 (> (float-time) (float-time (date-to-time exp))))))
 
 (defun url-cookie-retrieve (host &optional localpart secure)
   "Retrieve all cookies for a specified HOST and LOCALPART."
@@ -315,7 +316,7 @@ telling Microsoft that."
 	 (set (if (> trusted untrusted) 'untrusted 'trusted) nil))
     (cond
      (untrusted
-      ;; The site was explicity marked as untrusted by the user.
+      ;; The site was explicitly marked as untrusted by the user.
       nil)
      ((or (eq url-privacy-level 'paranoid)
 	  (and (listp url-privacy-level) (memq 'cookies url-privacy-level)))

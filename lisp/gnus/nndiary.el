@@ -1,6 +1,6 @@
 ;;; nndiary.el --- A diary back end for Gnus
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@xemacs.org>
 ;; Maintainer:    Didier Verna <didier@xemacs.org>
@@ -55,7 +55,7 @@
 
 ;; * nnoo. NNDiary is very similar to nnml. This makes the idea of using nnoo
 ;;   (to derive nndiary from nnml) natural. However, my experience with nnoo
-;;   is that for reasonably complex back ends like this one, noo is a burden
+;;   is that for reasonably complex back ends like this one, nnoo is a burden
 ;;   rather than an help. It's tricky to use, not everything can be inherited,
 ;;   what can be inherited and when is not very clear, and you've got to be
 ;;   very careful because a little mistake can fuck up your other back ends,
@@ -71,8 +71,8 @@
 
 ;; * nndiary-get-new-mail, nndiary-mail-source and nndiary-split-methods:
 ;;   NNDiary has some experimental parts, in the sense Gnus normally uses only
-;;   one mail back ends for mail retreival and splitting. This back end is
-;;   also an attempt to make it behave differently. For Gnus developpers: as
+;;   one mail back ends for mail retrieval and splitting. This back end is
+;;   also an attempt to make it behave differently. For Gnus developers: as
 ;;   you can see if you snarf into the code, that was not a very difficult
 ;;   thing to do. Something should be done about the respooling breakage
 ;;   though.
@@ -224,7 +224,7 @@ The hooks will be called with the article in the current buffer."
 (defvoo nndiary-get-new-mail nil
   "Whether nndiary gets new mail and split it.
 Contrary to traditional mail back ends, this variable can be set to t
-even if your primary mail back end also retreives mail. In such a case,
+even if your primary mail back end also retrieves mail. In such a case,
 NDiary uses its own mail-sources and split-methods.")
 
 (defvoo nndiary-nov-is-evil nil
@@ -353,7 +353,7 @@ all.  This may very well take some time.")
   ;; List of NNDiary headers that specify the time spec. Each header name is
   ;; followed by either two integers (specifying a range of possible values
   ;; for this header) or one list (specifying all the possible values for this
-  ;; header). In the latter case, the list does NOT include the unspecifyed
+  ;; header). In the latter case, the list does NOT include the unspecified
   ;; spec (*).
   ;; For time zone values, we have symbolic time zone names associated with
   ;; the (relative) number of seconds ahead GMT.
@@ -1161,11 +1161,11 @@ all.  This may very well take some time.")
 
 (defun nndiary-parse-schedule-value (str min-or-values max)
   ;; Parse the schedule string STR, or signal an error.
-  ;; Signals are caught by `nndary-schedule'.
+  ;; Signals are caught by `nndiary-schedule'.
   (if (string-match "[ \t]*\\*[ \t]*" str)
-      ;; unspecifyed
+      ;; unspecified
       nil
-    ;; specifyed
+    ;; specified
     (if (listp min-or-values)
 	;; min-or-values is values
 	;; #### NOTE: this is actually only a hack for time zones.
@@ -1204,7 +1204,7 @@ all.  This may very well take some time.")
   ;; - Returns nil if `*'
   ;; - Otherwise returns a list of integers and/or ranges (BEG . END)
   ;; The exception is the Timze-Zone value which is always of the form (STR).
-  ;; Signals are caught by `nndary-schedule'.
+  ;; Signals are caught by `nndiary-schedule'.
   (let ((header (format "^X-Diary-%s: \\(.*\\)$" head)))
     (goto-char (point-min))
     (if (not (re-search-forward header nil t))
@@ -1320,7 +1320,7 @@ all.  This may very well take some time.")
       (or minute (setq minute 59))
       (or hour (setq hour 23))
       ;; I'll just compute all possible values and test them by decreasing
-      ;; order until one succeeds. This is probably quide rude, but I got
+      ;; order until one succeeds. This is probably quite rude, but I got
       ;; bored in finding a good algorithm for doing that ;-)
       ;; ### FIXME: remove identical entries.
       (let ((dom-list (nth 2 sched))

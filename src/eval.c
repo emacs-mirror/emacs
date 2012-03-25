@@ -1,5 +1,5 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1987, 1993-1995, 1999-2011  Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993-1995, 1999-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -124,6 +124,12 @@ Lisp_Object Vsignaling_function;
 
 int handling_signal;
 
+/* If non-nil, Lisp code must not be run since some part of Emacs is
+   in an inconsistent state.  Currently, x-create-frame uses this to
+   avoid triggering window-configuration-change-hook while the new
+   frame is half-initialized.  */
+Lisp_Object inhibit_lisp_code;
+
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
@@ -133,8 +139,9 @@ static Lisp_Object Ffetch_bytecode (Lisp_Object);
 void
 init_eval_once (void)
 {
-  specpdl_size = 50;
-  specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
+  enum { size = 50 };
+  specpdl = (struct specbinding *) xmalloc (size * sizeof (struct specbinding));
+  specpdl_size = size;
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
   max_specpdl_size = 1300; /* 1000 is not enough for CEDET's c-by.el.  */
@@ -192,7 +199,7 @@ call_debugger (Lisp_Object arg)
   if (lisp_eval_depth + 40 > max_lisp_eval_depth)
     max_lisp_eval_depth = lisp_eval_depth + 40;
 
-  if (SPECPDL_INDEX () + 100 > max_specpdl_size)
+  if (max_specpdl_size - 100 < SPECPDL_INDEX ())
     max_specpdl_size = SPECPDL_INDEX () + 100;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -466,7 +473,7 @@ usage: (setq [SYM VAL]...)  */)
 
       args_left = Fcdr (Fcdr (args_left));
     }
-  while (!NILP(args_left));
+  while (!NILP (args_left));
 
   UNGCPRO;
   return val;
@@ -474,6 +481,14 @@ usage: (setq [SYM VAL]...)  */)
 
 DEFUN ("quote", Fquote, Squote, 1, UNEVALLED, 0,
        doc: /* Return the argument, without evaluating it.  `(quote x)' yields `x'.
+Warning: `quote' does not construct its return value, but just returns
+the value that was pre-constructed by the Lisp reader (see info node
+`(elisp)Printed Representation').
+This means that '(a . b) is not identical to (cons 'a 'b): the former
+does not cons.  Quoting should be reserved for constants that will
+never be modified by side-effects, unless you like self-modifying code.
+See the common pitfall in info node `(elisp)Rearrangement' for an example
+of unexpected results when a quoted object is modified.
 usage: (quote ARG)  */)
   (Lisp_Object args)
 {
@@ -771,17 +786,15 @@ The return value is BASE-VARIABLE.  */)
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
        doc: /* Define SYMBOL as a variable, and return SYMBOL.
-You are not required to define a variable in order to use it,
-but the definition can supply documentation and an initial value
-in a way that tags can recognize.
+You are not required to define a variable in order to use it, but
+defining it lets you supply an initial value and documentation, which
+can be referred to by the Emacs help facilities and other programming
+tools.  The `defvar' form also declares the variable as \"special\",
+so that it is always dynamically bound even if `lexical-binding' is t.
 
-INITVALUE is evaluated, and used to set SYMBOL, only if SYMBOL's value is void.
-If SYMBOL is buffer-local, its default value is what is set;
- buffer-local values are not affected.
-INITVALUE and DOCSTRING are optional.
-If DOCSTRING starts with *, this variable is identified as a user option.
- This means that M-x set-variable recognizes it.
- See also `user-variable-p'.
+The optional argument INITVALUE is evaluated, and used to set SYMBOL,
+only if SYMBOL's value is void.  If SYMBOL is buffer-local, its
+default value is what is set; buffer-local values are not affected.
 If INITVALUE is missing, SYMBOL's value is not set.
 
 If SYMBOL has a local binding, then this form affects the local
@@ -790,6 +803,13 @@ load a file defining variables, with this form or with `defconst' or
 `defcustom', you should always load that file _outside_ any bindings
 for these variables.  \(`defconst' and `defcustom' behave similarly in
 this respect.)
+
+The optional argument DOCSTRING is a documentation string for the
+variable.
+
+To define a user option, use `defcustom' instead of `defvar'.
+The function `user-variable-p' also identifies a variable as a user
+option if its DOCSTRING starts with *, but this behavior is obsolete.
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   (Lisp_Object args)
 {
@@ -864,15 +884,19 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 
 DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
        doc: /* Define SYMBOL as a constant variable.
-The intent is that neither programs nor users should ever change this value.
-Always sets the value of SYMBOL to the result of evalling INITVALUE.
-If SYMBOL is buffer-local, its default value is what is set;
- buffer-local values are not affected.
-DOCSTRING is optional.
+This declares that neither programs nor users should ever change the
+value.  This constancy is not actually enforced by Emacs Lisp, but
+SYMBOL is marked as a special variable so that it is never lexically
+bound.
 
-If SYMBOL has a local binding, then this form sets the local binding's
-value.  However, you should normally not make local bindings for
-variables defined with this form.
+The `defconst' form always sets the value of SYMBOL to the result of
+evalling INITVALUE.  If SYMBOL is buffer-local, its default value is
+what is set; buffer-local values are not affected.  If SYMBOL has a
+local binding, then this form sets the local binding's value.
+However, you should normally not make local bindings for variables
+defined with this form.
+
+The optional DOCSTRING specifies the variable's documentation string.
 usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   (Lisp_Object args)
 {
@@ -917,13 +941,14 @@ lisp_indirect_variable (Lisp_Object sym)
 DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
        doc: /* Return t if VARIABLE is intended to be set and modified by users.
 \(The alternative is a variable used internally in a Lisp program.)
-A variable is a user variable if
-\(1) the first character of its documentation is `*', or
-\(2) it is customizable (its property list contains a non-nil value
-    of `standard-value' or `custom-autoload'), or
-\(3) it is an alias for another user variable.
-Return nil if VARIABLE is an alias and there is a loop in the
-chain of symbols.  */)
+
+This function returns t if (i) the first character of its
+documentation is `*', or (ii) it is customizable (its property list
+contains a non-nil value of `standard-value' or `custom-autoload'), or
+\(iii) it is an alias for a user variable.
+
+But condition (i) is considered obsolete, so for most purposes this is
+equivalent to `custom-variable-p'.  */)
   (Lisp_Object variable)
 {
   Lisp_Object documentation;
@@ -1357,8 +1382,12 @@ A handler is applicable to an error
 if CONDITION-NAME is one of the error's condition names.
 If an error happens, the first applicable handler is run.
 
-The car of a handler may be a list of condition names
-instead of a single condition name.  Then it handles all of them.
+The car of a handler may be a list of condition names instead of a
+single condition name; then it handles all of them.  If the special
+condition name `debug' is present in this list, it allows another
+condition in the list to run the debugger if `debug-on-error' and the
+other usual mechanisms says it should (otherwise, `condition-case'
+suppresses the debugger).
 
 When a handler handles an error, control returns to the `condition-case'
 and it executes the handler's BODY...
@@ -1461,13 +1490,6 @@ internal_condition_case (Lisp_Object (*bfun) (void), Lisp_Object handlers,
   struct catchtag c;
   struct handler h;
 
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
-
   c.tag = Qnil;
   c.val = Qnil;
   c.backlist = backtrace_list;
@@ -1505,13 +1527,6 @@ internal_condition_case_1 (Lisp_Object (*bfun) (Lisp_Object), Lisp_Object arg,
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
-
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -1555,13 +1570,6 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
   struct catchtag c;
   struct handler h;
 
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
-
   c.tag = Qnil;
   c.val = Qnil;
   c.backlist = backtrace_list;
@@ -1604,13 +1612,6 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
   struct catchtag c;
   struct handler h;
 
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
-
   c.tag = Qnil;
   c.val = Qnil;
   c.backlist = backtrace_list;
@@ -1643,6 +1644,18 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
 static int maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
 				Lisp_Object data);
+
+void
+process_quit_flag (void)
+{
+  Lisp_Object flag = Vquit_flag;
+  Vquit_flag = Qnil;
+  if (EQ (flag, Qkill_emacs))
+    Fkill_emacs (Qnil);
+  if (EQ (Vthrow_on_input, flag))
+    Fthrow (Vthrow_on_input, Qt);
+  Fsignal (Qquit, Qnil);
+}
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
@@ -1727,6 +1740,10 @@ See also the function `condition-case'.  */)
       && (!NILP (Vdebug_on_signal)
 	  /* If no handler is present now, try to run the debugger.  */
 	  || NILP (clause)
+	  /* A `debug' symbol in the handler list disables the normal
+	     suppression of the debugger.  */
+	  || (CONSP (clause) && CONSP (XCAR (clause))
+	      && !NILP (Fmemq (Qdebug, XCAR (clause))))
 	  /* Special handler that means "print a message and run debugger
 	     if requested".  */
 	  || EQ (h->handler, Qerror)))
@@ -1968,37 +1985,13 @@ void
 verror (const char *m, va_list ap)
 {
   char buf[4000];
-  size_t size = sizeof buf;
-  size_t size_max = STRING_BYTES_BOUND + 1;
-  size_t mlen = strlen (m);
+  ptrdiff_t size = sizeof buf;
+  ptrdiff_t size_max = STRING_BYTES_BOUND + 1;
   char *buffer = buf;
-  size_t used;
+  ptrdiff_t used;
   Lisp_Object string;
 
-  while (1)
-    {
-      va_list ap_copy;
-      va_copy (ap_copy, ap);
-      used = doprnt (buffer, size, m, m + mlen, ap_copy);
-      va_end (ap_copy);
-
-      /* Note: the -1 below is because `doprnt' returns the number of bytes
-	 excluding the terminating null byte, and it always terminates with a
-	 null byte, even when producing a truncated message.  */
-      if (used < size - 1)
-	break;
-      if (size <= size_max / 2)
-	size *= 2;
-      else if (size < size_max)
-	size = size_max;
-      else
-	break;	/* and leave the message truncated */
-
-      if (buffer != buf)
-	xfree (buffer);
-      buffer = (char *) xmalloc (size);
-    }
-
+  used = evxprintf (&buffer, &size, buf, size_max, m, ap);
   string = make_string (buffer, used);
   if (buffer != buf)
     xfree (buffer);
@@ -3274,17 +3267,21 @@ static void
 grow_specpdl (void)
 {
   register int count = SPECPDL_INDEX ();
-  if (specpdl_size >= max_specpdl_size)
+  int max_size =
+    min (max_specpdl_size,
+	 min (max (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct specbinding),
+	      INT_MAX));
+  int size;
+  if (max_size <= specpdl_size)
     {
       if (max_specpdl_size < 400)
-	max_specpdl_size = 400;
-      if (specpdl_size >= max_specpdl_size)
+	max_size = max_specpdl_size = 400;
+      if (max_size <= specpdl_size)
 	signal_error ("Variable binding depth exceeds max-specpdl-size", Qnil);
     }
-  specpdl_size *= 2;
-  if (specpdl_size > max_specpdl_size)
-    specpdl_size = max_specpdl_size;
-  specpdl = (struct specbinding *) xrealloc (specpdl, specpdl_size * sizeof (struct specbinding));
+  size = specpdl_size < max_size / 2 ? 2 * specpdl_size : max_size;
+  specpdl = xnrealloc (specpdl, size, sizeof *specpdl);
+  specpdl_size = size;
   specpdl_ptr = specpdl + count;
 }
 
@@ -3764,7 +3761,7 @@ When lexical binding is not being used, this variable is nil.
 A value of `(t)' indicates an empty environment, otherwise it is an
 alist of active lexical bindings.  */);
   Vinternal_interpreter_environment = Qnil;
-  /* Don't export this variable to Elisp, so noone can mess with it
+  /* Don't export this variable to Elisp, so no one can mess with it
      (Just imagine if someone makes it buffer-local).  */
   Funintern (Qinternal_interpreter_environment, Qnil);
 
@@ -3774,6 +3771,8 @@ alist of active lexical bindings.  */);
   Vautoload_queue = Qnil;
   staticpro (&Vsignaling_function);
   Vsignaling_function = Qnil;
+
+  inhibit_lisp_code = Qnil;
 
   defsubr (&Sor);
   defsubr (&Sand);

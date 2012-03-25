@@ -1,6 +1,6 @@
 ;;; cedet-files.el --- Common routines dealing with file names.
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Package: cedet
@@ -83,7 +83,7 @@ specific conversions during tests."
 	  (setq file (concat driveletter ":"
 			     (substring file (match-end 1))))))
 
-      ;; Handle the \\file\name nomenclature on some windows boxes.
+      ;; Handle the \\file\name nomenclature on some Windows boxes.
       (when (string-match "^!" file)
 	(setq file (concat "//" (substring file 1)))))
     file))

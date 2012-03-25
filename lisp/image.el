@@ -1,6 +1,6 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia
@@ -163,7 +163,7 @@ compatibility with versions of Emacs that lack the variable
                 dir (expand-file-name "../" dir))))
       (setq image-directory-load-path dir))
 
-    ;; If `image-directory-load-path' isn't Emacs' image directory,
+    ;; If `image-directory-load-path' isn't Emacs's image directory,
     ;; it's probably a user preference, so use it. Then use a
     ;; relative setting if possible; otherwise, use
     ;; `image-directory-load-path'.
@@ -194,7 +194,7 @@ compatibility with versions of Emacs that lack the variable
               ;; Set it to nil if image is not found.
               (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
                     ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
-     ;; Use Emacs' image directory.
+     ;; Use Emacs's image directory.
      (image-directory-load-path
       (setq image-directory image-directory-load-path))
      (no-error
@@ -207,6 +207,8 @@ compatibility with versions of Emacs that lack the variable
            (delete image-directory (copy-sequence (or path load-path))))))
 
 
+;; Used to be in image-type-header-regexps, but now not used anywhere
+;; (since 2009-08-28).
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
@@ -329,6 +331,10 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
   type)
 
 
+(if (fboundp 'image-metadata)           ; eg not --without-x
+    (define-obsolete-function-alias 'image-extension-data
+      'image-metadata' "24.1"))
+
 (define-obsolete-variable-alias
     'image-library-alist
     'dynamic-library-alist "24.1")
@@ -389,6 +395,7 @@ IMAGE must be an image created with `create-image' or `defimage'.
 IMAGE is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is the
 image.  STRING is defaulted if you omit it.
+The overlay created will have the `put-image' property set to t.
 POS may be an integer or marker.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
@@ -412,8 +419,8 @@ means display it in the right marginal area."
 (defun insert-image (image &optional string area slice)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
-with a `display' property whose value is the image.  STRING is
-defaulted if you omit it.
+with a `display' property whose value is the image.  STRING
+defaults to the empty string if you omit it.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
@@ -594,13 +601,15 @@ Example:
   "List of supported animated image types.")
 
 (defun image-animated-p (image)
-  "Return non-nil if image can be animated.
-Actually, the return value is a cons (NIMAGES . DELAY), where
-NIMAGES is the number of sub-images in the animated image and
-DELAY is the delay in second until the next sub-image shall be
-displayed."
+  "Return non-nil if IMAGE can be animated.
+To be capable of being animated, an image must be of a type
+listed in `image-animated-types', and contain more than one
+sub-image, with a specified animation delay.  The actual return
+value is a cons (NIMAGES . DELAY), where NIMAGES is the number
+of sub-images in the animated image and DELAY is the delay in
+seconds until the next sub-image should be displayed."
   (cond
-   ((eq (plist-get (cdr image) :type) 'gif)
+   ((memq (plist-get (cdr image) :type) image-animated-types)
     (let* ((metadata (image-metadata image))
 	   (images (plist-get metadata 'count))
 	   (delay (plist-get metadata 'delay)))
@@ -608,6 +617,7 @@ displayed."
 	(if (< delay 0) (setq delay 0.1))
 	(cons images delay))))))
 
+;; "Destructively"?
 (defun image-animate (image &optional index limit)
   "Start animating IMAGE.
 Animation occurs by destructively altering the IMAGE spec list.
@@ -638,16 +648,20 @@ number, play until that number of seconds has elapsed."
 	(setq timer nil)))
     timer))
 
+;; FIXME? The delay may not be the same for different sub-images,
+;; hence we need to call image-animated-p to return it.
+;; But it also returns count, so why do we bother passing that as an
+;; argument?
 (defun image-animate-timeout (image n count time-elapsed limit)
   "Display animation frame N of IMAGE.
 N=0 refers to the initial animation frame.
 COUNT is the total number of frames in the animation.
-DELAY is the time between animation frames, in seconds.
 TIME-ELAPSED is the total time that has elapsed since
 `image-animate-start' was called.
 LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
- after LIMIT seconds have elapsed."
+ after LIMIT seconds have elapsed.
+The minimum delay between successive frames is 0.01s."
   (plist-put (cdr image) :index n)
   (force-window-update)
   (setq n (1+ n))
@@ -674,13 +688,16 @@ LIMIT determines when to stop.  If t, loop forever.  If nil, stop
   '(C HTML HTM TXT PDF)
   "ImageMagick types that Emacs should not use ImageMagick to handle.
 This should be a list of symbols, each of which has the same
-names as one of the format tags used internally by ImageMagick;
+name as one of the format tags used internally by ImageMagick;
 see `imagemagick-types'.  Entries in this list are excluded from
-being registered by `imagemagick-register-types'.
+being registered by `imagemagick-register-types', so if you change
+this variable you must do so before you call that function.
 
 If Emacs is compiled without ImageMagick, this variable has no effect."
   :type '(choice (const :tag "Let ImageMagick handle all types it can" nil)
 		 (repeat symbol))
+  ;; Ideally, would have a :set function that checks if we already did
+  ;; imagemagick-register-types, and if so undoes it, then redoes it.
   :version "24.1"
   :group 'image)
 
@@ -694,16 +711,14 @@ Emacs visits them in Image mode.
 
 If Emacs is compiled without ImageMagick support, do nothing."
   (when (fboundp 'imagemagick-types)
-    (let ((im-types (imagemagick-types)))
-      (dolist (im-inhibit imagemagick-types-inhibit)
-	(setq im-types (delq im-inhibit im-types)))
-      (dolist (im-type im-types)
-	(let ((extension
-	       (concat "\\." (downcase (symbol-name im-type))
-		       "\\'")))
-	  (push (cons extension 'image-mode) auto-mode-alist)
-	  (push (cons extension 'imagemagick)
-		image-type-file-name-regexps))))))
+    (let ((im-types '()))
+      (dolist (im-type (imagemagick-types))
+        (unless (memq im-type imagemagick-types-inhibit)
+          (push (downcase (symbol-name im-type)) im-types)))
+      (let ((extension (concat "\\." (regexp-opt im-types) "\\'")))
+        (push (cons extension 'image-mode) auto-mode-alist)
+        (push (cons extension 'imagemagick)
+              image-type-file-name-regexps)))))
 
 (provide 'image)
 

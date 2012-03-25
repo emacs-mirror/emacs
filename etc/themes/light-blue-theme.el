@@ -1,6 +1,6 @@
 ;;; light-blue-theme.el --- Custom theme for faces
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Drew Adams <drew.adams@oracle.com>
 
@@ -26,7 +26,7 @@
 ;;; Code:
 
 (deftheme light-blue
-  "Face colors utilizing a light blue backgound.")
+  "Face colors utilizing a light blue background.")
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

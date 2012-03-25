@@ -1,6 +1,6 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -285,11 +285,11 @@ Should be called narrowed to the head of the message."
 		       mail-parse-charset)
 		  (mm-encode-coding-region (point) (point-max)
 					   mail-parse-charset)))
-	     ;; We get this when CC'ing messsages to newsgroups with
+	     ;; We get this when CC'ing messages to newsgroups with
 	     ;; 8-bit names.  The group name mail copy just got
 	     ;; unconditionally encoded.  Previously, it would ask
 	     ;; whether to encode, which was quite confusing for the
-	     ;; user.  If the new behavior is wrong, tell me. I have
+	     ;; user.  If the new behavior is wrong, tell me.  I have
 	     ;; left the old code commented out below.
 	     ;; -- Per Abrahamsen <abraham@dina.kvl.dk> Date: 2001-10-07.
 	     ;; Modified by Dave Love, with the commented-out code changed
@@ -362,7 +362,7 @@ The buffer may be narrowed."
     (modify-syntax-entry ?@ "." table)
     table))
 
-(defun rfc2047-encode-region (b e)
+(defun rfc2047-encode-region (b e &optional dont-fold)
   "Encode words in region B to E that need encoding.
 By default, the region is treated as containing RFC2822 addresses.
 Dynamically bind `rfc2047-encoding-type' to change that."
@@ -546,16 +546,17 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 		 (signal (car err) (cdr err))
 	       (error "Invalid data for rfc2047 encoding: %s"
 		      (mm-replace-in-string orig-text "[ \t\n]+" " "))))))))
-    (rfc2047-fold-region b (point))
+    (unless dont-fold
+      (rfc2047-fold-region b (point)))
     (goto-char (point-max))))
 
-(defun rfc2047-encode-string (string)
+(defun rfc2047-encode-string (string &optional dont-fold)
   "Encode words in STRING.
 By default, the string is treated as containing addresses (see
 `rfc2047-encoding-type')."
   (mm-with-multibyte-buffer
     (insert string)
-    (rfc2047-encode-region (point-min) (point-max))
+    (rfc2047-encode-region (point-min) (point-max) dont-fold)
     (buffer-string)))
 
 ;; From RFC 2047:
@@ -586,7 +587,7 @@ should not change this value.")
 	((>= column rfc2047-encode-max-chars)
 	 (when eword
 	   (cond ((string-match "\n[ \t]+\\'" eword)
-		  ;; Reomove a superfluous empty line.
+		  ;; Remove a superfluous empty line.
 		  (setq eword (substring eword 0 (match-beginning 0))))
 		 ((string-match "(+\\'" eword)
 		  ;; Break the line before the open parenthesis.
@@ -639,7 +640,7 @@ should not change this value.")
 	       (setq crest " "
 		     eword (concat eword next)))
 	     (when (string-match "\n[ \t]+\\'" eword)
-	       ;; Reomove a superfluous empty line.
+	       ;; Remove a superfluous empty line.
 	       (setq eword (substring eword 0 (match-beginning 0))))
 	     (rfc2047-encode-1 (length crest) (substring string index)
 			       cs encoder start " " tail
@@ -850,7 +851,7 @@ This is a substitution for the `rfc2231-encode-string' function, that
 is the standard but many mailers don't support it."
   (let ((rfc2047-encoding-type 'mime)
 	(rfc2047-encode-max-chars nil))
-    (rfc2045-encode-string param (rfc2047-encode-string value))))
+    (rfc2045-encode-string param (rfc2047-encode-string value t))))
 
 ;;;
 ;;; Functions for decoding RFC2047 messages

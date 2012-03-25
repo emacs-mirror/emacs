@@ -1,6 +1,6 @@
 ;;; ede/proj.el --- EDE Generic Project file driver
 
-;; Copyright (C) 1998-2003, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2003, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -546,7 +546,7 @@ You may need to add support for this type of file."
 		       (file-name-extension (car sources))
 		     "")))
 	  ))
-      ;; Return the disovered compilers
+      ;; Return the discovered compilers.
       comp)))
 
 (defmethod ede-proj-linkers ((obj ede-proj-target))
@@ -580,11 +580,11 @@ Converts all symbols into the objects to be used."
 	    (while (and avail (not (eieio-instance-inheritor-slot-boundp (car avail) 'sourcetype)))
 	      (setq avail (cdr avail)))
 	    (setq link (cdr avail)))))
-      ;; Return the disovered linkers
+      ;; Return the discovered linkers.
       link)))
 
 
-;;; Target type specific autogenerating gobbldegook.
+;;; Target type specific autogenerating gobbledygook.
 ;;
 
 (defun ede-proj-makefile-type (&optional proj)

@@ -1,5 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000-2011 Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 #
 # Top level makefile for building GNU Emacs on Windows NT
 #
@@ -22,7 +22,7 @@
 # FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
 #        (and remove or replace this comment).
 
-VERSION		= 24.0.50
+VERSION		= 24.0.94
 
 TMP_DIST_DIR 	= emacs-$(VERSION)
 
@@ -257,20 +257,32 @@ install-other-dirs-gmake:
 install-shortcuts:
 	"$(INSTALL_DIR)/bin/addpm" -q
 
-dist: install-bin
-	mkdir $(TMP_DIST_DIR)
+maybe-copy-distfiles: maybe-copy-distfiles-$(SHELLTYPE)
+
+maybe-copy-distfiles-CMD: doit
+	@if not $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE)=="" $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
+
+maybe-copy-distfiles-SH: doit
+	@if [ ! $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE)=="" ] ; then \
+	  $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin ; \
+	fi
+
+create-tmp-dist-dir:
+	mkdir "$(TMP_DIST_DIR)"
+# Also create bin directory for dist files.
+	mkdir "$(TMP_DIST_DIR)/bin"
+
+dist: install-bin create-tmp-dist-dir maybe-copy-distfiles
 	$(CP) "$(INSTALL_DIR)/BUGS" $(TMP_DIST_DIR)
 	$(CP) "$(INSTALL_DIR)/COPYING" $(TMP_DIST_DIR)
 	$(CP) "$(INSTALL_DIR)/README" $(TMP_DIST_DIR)
 	$(CP) "$(INSTALL_DIR)/README.W32" $(TMP_DIST_DIR)
-	$(CP) "$(INSTALL_DIR)/INSTALL" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/bin" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/etc" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/info" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/lisp" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/leim" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/site-lisp" $(TMP_DIST_DIR)
-	$(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
 	$(COMSPEC)$(ComSpec) /c $(ARGQUOTE)zipdist.bat $(VERSION)$(ARGQUOTE)
 	$(DEL_TREE) $(TMP_DIST_DIR)
 
@@ -314,15 +326,15 @@ clean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) clean
 	cd ..\doc\lispintro
 	$(MAKE) $(MFLAGS) clean
-	cd ..\doc\lispref
+	cd ..\lispref
 	$(MAKE) $(MFLAGS) clean
-	cd ..\leim
+	cd ..\..\leim
 	$(MAKE) $(MFLAGS) clean
 	cd ..\doc\emacs
 	$(MAKE) $(MFLAGS) clean
-	cd ..\doc\misc
+	cd ..\misc
 	$(MAKE) $(MFLAGS) clean
-	cd ..\nt
+	cd ..\..\nt
 
 clean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean
@@ -382,13 +394,13 @@ distclean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) distclean
 	cd ..\doc\emacs
 	$(MAKE) $(MFLAGS) distclean
-	cd ..\doc\misc
+	cd ..\misc
 	$(MAKE) $(MFLAGS) distclean
-	cd ..\doc\lispintro
+	cd ..\lispintro
 	$(MAKE) $(MFLAGS) distclean
-	cd ..\doc\lispref
+	cd ..\lispref
 	$(MAKE) $(MFLAGS) distclean
-	cd ..\nt
+	cd ..\..\nt
 
 distclean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib distclean
@@ -416,13 +428,13 @@ maintainer-clean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) maintainer-clean
 	cd ..\doc\emacs
 	$(MAKE) $(MFLAGS) maintainer-clean
-	cd ..\doc\misc
+	cd ..\misc
 	$(MAKE) $(MFLAGS) maintainer-clean
-	cd ..\doc\lispintro
+	cd ..\lispintro
 	$(MAKE) $(MFLAGS) maintainer-clean
-	cd ..\doc\lispref
+	cd ..\lispref
 	$(MAKE) $(MFLAGS) maintainer-clean
-	cd ..\nt
+	cd ..\..\nt
 
 maintainer-clean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib maintainer-clean

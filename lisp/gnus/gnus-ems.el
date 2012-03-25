@@ -1,6 +1,6 @@
 ;;; gnus-ems.el --- functions for making Gnus work under different Emacsen
 
-;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -208,6 +208,11 @@
 	(unless (= end (point-max))
 	  (setq start end
 		end nil))))))
+
+(defmacro gnus-string-mark-left-to-right (string)
+  (if (fboundp 'bidi-string-mark-left-to-right)
+      `(bidi-string-mark-left-to-right ,string)
+    string))
 
 (eval-and-compile
   ;; XEmacs does not have window-inside-pixel-edges

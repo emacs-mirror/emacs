@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -747,7 +747,7 @@ If kbd macro currently being defined end it before activating it."
 ;; Create a separate keymap installed as a minor-mode keymap (e.g. in
 ;; the emulation-mode-map-alists) in which macro bindings are made
 ;; independent of any other bindings.  When first binding is made,
-;; the kemap is created, installed, and enabled.  Key seq. C-x C-k +
+;; the keymap is created, installed, and enabled.  Key seq. C-x C-k +
 ;; can then be used to toggle the use of this keymap on and off.
 ;; This means that it would be safe(r) to bind ordinary keys like
 ;; letters and digits, provided that we inhibit the keymap while
@@ -1020,7 +1020,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	  (setq executing-kbd-macro-index (- executing-kbd-macro-index (length unread-command-events))
 		next-index executing-kbd-macro-index)))))
 
-    ;; Query the user; stop macro exection temporarily
+    ;; Query the user; stop macro execution temporarily.
     (let ((macro executing-kbd-macro)
 	  (executing-kbd-macro nil)
 	  (defining-kbd-macro nil))

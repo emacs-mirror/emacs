@@ -1,5 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -35,7 +35,7 @@ way."
   :type 'boolean
   :group 'epa-file)
 
-(defcustom epa-file-select-keys 'silent
+(defcustom epa-file-select-keys nil
   "Control whether or not to pop up the key selection dialog.
 
 If t, always asks user to select recipients.
@@ -137,8 +137,10 @@ encryption is used."
      context
      (cons #'epa-file-passphrase-callback-function
 	   local-file))
-    (epg-context-set-progress-callback context
-				       #'epa-progress-callback-function)
+    (epg-context-set-progress-callback
+     context
+     (cons #'epa-progress-callback-function
+	   (format "Decrypting %s" file)))
     (unwind-protect
 	(progn
 	  (if replace
@@ -211,8 +213,10 @@ encryption is used."
      context
      (cons #'epa-file-passphrase-callback-function
 	   file))
-    (epg-context-set-progress-callback context
-				       #'epa-progress-callback-function)
+    (epg-context-set-progress-callback
+     context
+     (cons #'epa-progress-callback-function
+	   (format "Encrypting %s" file)))
     (epg-context-set-armor context epa-armor)
     (condition-case error
 	(setq string
@@ -231,7 +235,7 @@ encryption is used."
 						   (current-buffer)))))
 		   (epa-select-keys
 		    context
-		    "Select recipents for encryption.
+		    "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "
 		    recipients)
 		 (if epa-file-encrypt-to
@@ -269,7 +273,7 @@ If no one is selected, symmetric encryption will be performed.  "
 	   (epg-sub-key-id (car (epg-key-sub-key-list key))))
 	(epa-select-keys
 	 (epg-make-context)
-	 "Select recipents for encryption.
+	 "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "))))
 
 ;;;###autoload

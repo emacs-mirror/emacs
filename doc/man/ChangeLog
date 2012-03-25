@@ -1,3 +1,19 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* etags.1: Fix typo.
+
+2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacsclient.1: Document how -a "" starts the daemon.
+
+2011-09-17  Sven Joachim  <svenjoac@gmx.de>
+
+	* emacs.1: Escape a dash.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacsclient.1: Document exit status.
+
 2011-06-25  Andreas Rottmann  <a.rottmann@gmx.at>
 
 	* emacsclient.1: Mention --frame-parameters.
@@ -6,7 +22,7 @@
 
 	* Version 23.3 released.
 
-2011-01-02  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
+2011-01-02  Jari Aalto  <jari.aalto@cante.net>
 
 	* emacsclient.1: Arrange options alphabetically (Bug#7620).
 
@@ -118,7 +134,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007-2011  Free Software Foundation, Inc.
+    Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

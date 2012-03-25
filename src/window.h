@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985-1986, 1993, 1995, 1997-2011
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -258,13 +258,8 @@ struct window
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
 
-    /* Non-nil means deleting or resizing this window distributes
-       space among all windows in the same combination.  */
-    Lisp_Object splits;
-
-    /* Non-nil means this window's child windows are never
-       (re-)combined.  */
-    Lisp_Object nest;
+    /* t means this window's child windows are not (re-)combined.  */
+    Lisp_Object combination_limit;
 
     /* Alist of <buffer, window-start, window-point> triples listing
        buffers previously shown in this window.  */
@@ -273,7 +268,7 @@ struct window
     /* List of buffers re-shown in this window.  */
     Lisp_Object next_buffers;
 
-    /* An alist with parameteres.  */
+    /* An alist with parameters.  */
     Lisp_Object window_parameters;
 
     /* No Lisp data may follow below this point without changing
@@ -824,7 +819,7 @@ extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, int);
 EXFUN (Fwindow_dedicated_p, 1);
 extern void resize_frame_windows (struct frame *, int, int);
-extern void delete_all_subwindows (Lisp_Object);
+extern void delete_all_child_windows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
@@ -847,11 +842,11 @@ extern Lisp_Object echo_area_window;
 
 /* Depth in recursive edits.  */
 
-extern int command_loop_level;
+extern EMACS_INT command_loop_level;
 
 /* Depth in minibuffer invocations.  */
 
-extern int minibuf_level;
+extern EMACS_INT minibuf_level;
 
 /* true if we should redraw the mode lines on the next redisplay.  */
 
@@ -882,7 +877,7 @@ extern int buffer_shared;
 extern void check_frame_size (struct frame *frame, int *rows, int *cols);
 
 /* Return a pointer to the glyph W's physical cursor is on.  Value is
-   null if W's current matrix is invalid, so that no meaningfull glyph
+   null if W's current matrix is invalid, so that no meaningful glyph
    can be returned.  */
 
 struct glyph *get_phys_cursor_glyph (struct window *w);

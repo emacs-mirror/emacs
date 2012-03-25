@@ -1,6 +1,6 @@
 ;;; gametree.el --- manage game analysis trees in Emacs
 
-;; Copyright (C) 1997, 1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Ian T Zimmerman <itz@rahul.net>
 ;; Created: Wed Dec 10 07:41:46 PST 1997
@@ -549,7 +549,7 @@ Argument is a character, naming the register."
 (defun gametree-save-and-hack-layout ()
   "Save the current tree layout and hack the file local variable spec.
 This function saves the current layout in `gametree-local-layout' and,
-if a local file varible specification for this variable exists in the
+if a local file variable specification for this variable exists in the
 buffer, it is replaced by the new value.  See the documentation for
 `gametree-local-layout' for more information."
   (interactive)

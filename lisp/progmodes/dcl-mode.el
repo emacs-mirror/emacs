@@ -1,6 +1,6 @@
 ;;; dcl-mode.el --- major mode for editing DCL command files
 
-;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Odd Gripenstam <gripenstamol@decus.se>
 ;; Maintainer: Odd Gripenstam <gripenstamol@decus.se>
@@ -512,7 +512,7 @@ Variables controlling indentation style and extra features:
  dcl-block-begin-regexp
  dcl-block-end-regexp
     Regexps that match command lines that begin and end, respectively,
-    a block of commmand lines that will be given extra indentation.
+    a block of command lines that will be given extra indentation.
     Command lines between THEN-ELSE-ENDIF are always indented; these variables
     make it possible to define other places to indent.
     Set to nil to disable this feature.
@@ -708,7 +708,7 @@ Returns point of the found command line or nil if not able to move."
 	    (setq done t)		; not a label-only line, exit the loop
 	    (setq retval (point))))
 	;; We couldn't go further back, and we haven't found a command yet.
-	;; Return to the start positionn
+	;; Return to the start position.
 	(goto-char start)
 	(setq done t)
 	(setq retval nil)))
@@ -756,7 +756,7 @@ Returns point of the found command line or nil if not able to move."
 	      (setq done t)		; not a label-only line, exit the loop
 	      (setq retval (point)))))
 	;; We couldn't go further back, and we haven't found a command yet.
-	;; Return to the start positionn
+	;; Return to the start position.
 	(goto-char start)
 	(setq done t)
 	(setq retval nil)))

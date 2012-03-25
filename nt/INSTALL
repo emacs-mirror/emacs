@@ -1,7 +1,7 @@
 		    Building and Installing Emacs on Windows
                           (from 95 to 7 and beyond)
 
-  Copyright (C) 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 2001-2012  Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 * For the impatient
@@ -21,19 +21,32 @@
 
        cd nt
 
-  2. Run configure.bat.  From the COMMAND.COM/CMD.EXE command prompt:
+  2. Run configure.bat.
+
+  2a.If you use MSVC, set up the build environment by running the
+     SetEnv.cmd batch file from the appropriate SDK directory.  (Skip
+     this step if you are using MinGW.)  For example:
+
+       "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /Debug
+
+      if you are going to compile a debug version, or
+
+       "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /Release
+
+      if you are going to compile an optimized version.
+
+  2b.From the COMMAND.COM/CMD.EXE command prompt type:
 
        configure
 
-     from a Unixy shell prompt:
+     From a Unixy shell prompt:
 
        cmd /c configure.bat
      or
        command.com /c configure.bat
 
   3. Run the Make utility suitable for your environment.  If you build
-     with the Microsoft's Visual C compiler (but see notes about using
-     VC++ 8.0 and later below):
+     with the Microsoft's Visual C compiler:
 
        nmake
 
@@ -55,13 +68,19 @@
      With GNU Make, you can use the -j command-line option to have
      Make execute several commands at once, like this:
 
+       gmake -j 2
+
+     (With versions of GNU Make before 3.82, you need also set the
+     XMFLAGS variable, like this:
+
        gmake -j 2 XMFLAGS="-j 2"
 
-     The XMFLAGS variable overrides the default behavior of GNU Make
-     on Windows, whereby recursive Make invocations reset the maximum
-     number of simultaneous commands to 1.  The above command allows
-     up to 4 simultaneous commands at once in the top-level Make, and
-     up to 3 in each one of the recursive Make's.
+     The XMFLAGS variable overrides the default behavior of version
+     3.82 and older of GNU Make on Windows, whereby recursive Make
+     invocations reset the maximum number of simultaneous commands to
+     1.  The above command allows up to 4 simultaneous commands at
+     once in the top-level Make, and up to 3 in each one of the
+     recursive Make's.)
 
   4. Generate the Info manuals (only if you are building out of Bazaar,
      and if you have makeinfo.exe installed):
@@ -101,24 +120,21 @@
 * Supported development environments
 
   To compile Emacs, you will need either Microsoft Visual C++ 2.0, or
-  later up to 7.0, and nmake, or a Windows port of GCC 2.95 or later
-  with MinGW and W32 API support and a port of GNU Make.  You can use
-  the Cygwin ports of GCC, but Emacs requires the MinGW headers and
-  libraries to build (latest versions of the Cygwin toolkit, at least
-  since v1.3.3, include the MinGW headers and libraries as an integral
-  part).
-
-  Note that building Emacs with Visual Studio 2005 (VC++ 8.0) and
-  later is not supported at this time, due to changes introduced by
-  Microsoft into the libraries shipped with the compiler.
+  later and nmake, or a Windows port of GCC 2.95 or later with MinGW
+  and W32 API support and a port of GNU Make.  You can use the Cygwin
+  ports of GCC, but Emacs requires the MinGW headers and libraries to
+  build (latest versions of the Cygwin toolkit, at least since v1.3.3,
+  include the MinGW headers and libraries as an integral part).
 
   The rest of this file assumes you have a working development
-  environment.  If you just installed  such an environment, try
+  environment.  If you just installed such an environment, try
   building a trivial C "Hello world" program, and see if it works.  If
   it doesn't work, resolve that problem first!  If you use Microsoft
   Visual Studio .NET 2003, don't forget to run the VCVARS32.BAT batch
   file from the `Bin' subdirectory of the directory where you have
-  installed VS.NET.
+  installed VS.NET.  With other versions of MSVC, run the SetEnv.cmd
+  batch file from the `Bin' subdirectory of the directory where you
+  have the SDK installed.
 
   If you use the MinGW port of GCC and GNU Make to build Emacs, there
   are some compatibility issues wrt Make and the shell that is run by
@@ -258,7 +274,7 @@
   "Error in --cflags argument: ... Backslashes and quotes cannot be
   used with --cflags.  Please use forward slashes for filenames and
   paths (e.g. when passing directories to -I)."
-  
+
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
   suppressed because of limitations in the Windows 9X command.com shell.
@@ -323,7 +339,7 @@
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
   precompiled libraries and headers on the GTK download page for
-  Windows (http://www.gtk.org/download-windows.html).
+  Windows (http://www.gtk.org/download/win32.php).
 
   Versions 1.4.0 and later of libpng are binary incompatible with
   earlier versions, so Emacs will only look for libpng libraries which
@@ -349,7 +365,7 @@
   session.
 
   You can get pre-built binaries (including any required DLL and the
-  gnutls.h file) and an installer at http://josefsson.org/gnutls4win/.
+  header files) at http://sourceforge.net/projects/ezwinports/files/.
 
 * Experimental SVG support
 
@@ -385,6 +401,17 @@
   text, they seem to be a problem in the Windows port of Pango, or
   maybe a problem with the way Cairo or librsvg is using it that
   doesn't show up on other platforms.
+
+* Optional extra runtime checks
+
+  The configure.bat option --enable-checking builds Emacs with some
+  optional extra runtime checks and assertions enabled.  This may be
+  useful for debugging.
+
+* Optional extra libraries
+
+  You can pass --lib LIBNAME option to configure.bat to cause Emacs to
+  link with the specified library.  You can use this option more than once.
 
 * Building
 
@@ -588,6 +615,30 @@
   only then click YES on the abort dialog.  This will pass control to
   the debugger, and you will be able to debug the cause of the fatal
   error.
+
+  The single most important thing to find out when Emacs aborts or
+  crashes is where did that happen in the Emacs code.  This is called
+  "backtrace".
+
+  Emacs on Windows uses more than one thread.  When Emacs aborts due
+  to a fatal error, the current thread may not be the application
+  thread running Emacs code.  Therefore, to produce a meaningful
+  backtrace from a debugger, you need to instruct it to show the
+  backtrace for every thread.  With GDB, you do it like this:
+
+   (gdb) thread apply all backtrace
+
+  To run Emacs under a debugger to begin with, simply start it from
+  the debugger.  With GDB, chdir to the `src' directory (if you have
+  the source tree) or to a directory with the `.gdbinit' file (if you
+  don't have the source tree), and type these commands:
+
+    C:\whatever\src> gdb x:\path\to\emacs.exe
+    (gdb) run <ARGUMENTS TO EMACS>
+
+  Thereafter, use Emacs as usual; you can minimize the debugger
+  window, if you like.  The debugger will take control if and when
+  Emacs crashes.
 
   Emacs functions implemented in C use a naming convention that reflects
   their names in lisp.  The names of the C routines are the lisp names

@@ -1,6 +1,6 @@
 /* Header file: Caching facts about regions of the buffer, for optimization.
 
-Copyright (C) 1985-1986, 1993, 1995, 2001-2011
+Copyright (C) 1985-1986, 1993, 1995, 2001-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -72,7 +72,7 @@ void free_region_cache (struct region_cache *);
    no newlines", in the case of the line cache).  */
 extern void know_region_cache (struct buffer *BUF,
                                struct region_cache *CACHE,
-                               EMACS_INT START, EMACS_INT END);
+                               ptrdiff_t START, ptrdiff_t END);
 
 /* Indicate that a section of BUF has changed, to invalidate CACHE.
    HEAD is the number of chars unchanged at the beginning of the buffer.
@@ -84,7 +84,7 @@ extern void know_region_cache (struct buffer *BUF,
    args to pass are the same before and after such an operation.)  */
 extern void invalidate_region_cache (struct buffer *BUF,
                                      struct region_cache *CACHE,
-                                     EMACS_INT HEAD, EMACS_INT TAIL);
+                                     ptrdiff_t HEAD, ptrdiff_t TAIL);
 
 /* The scanning functions.
 
@@ -97,16 +97,16 @@ extern void invalidate_region_cache (struct buffer *BUF,
 
 /* Return true if the text immediately after POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
-   position after POS where the knownness changes.  */
+   position after POS where the knowledge changes.  */
 extern int region_cache_forward (struct buffer *BUF,
                                  struct region_cache *CACHE,
-                                 EMACS_INT POS,
-                                 EMACS_INT *NEXT);
+                                 ptrdiff_t POS,
+                                 ptrdiff_t *NEXT);
 
 /* Return true if the text immediately before POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
-   position before POS where the knownness changes.  */
+   position before POS where the knowledge changes.  */
 extern int region_cache_backward (struct buffer *BUF,
                                   struct region_cache *CACHE,
-                                  EMACS_INT POS,
-                                  EMACS_INT *NEXT);
+                                  ptrdiff_t POS,
+                                  ptrdiff_t *NEXT);

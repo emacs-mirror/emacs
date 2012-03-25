@@ -1,6 +1,6 @@
 ;;; ediff-wind.el --- window manipulation utilities
 
-;; Copyright (C) 1994-1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -1127,7 +1127,7 @@ It assumes that it is called from within the control buffer."
 
 ;; Revise the mode line to display which difference we have selected
 ;; Also resets modelines of buffers A/B, since they may be clobbered by
-;; anothe invocations of Ediff.
+;; other invocations of Ediff.
 (defun ediff-refresh-mode-lines ()
   (let (buf-A-state-diff buf-B-state-diff buf-C-state-diff buf-C-state-merge)
 

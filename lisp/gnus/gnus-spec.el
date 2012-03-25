@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -52,7 +52,7 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
 (defvar gnus-group-indentation "")
 
 ;; Format specs.  The chunks below are the machine-generated forms
-;; that are to be evaled as the result of the default format strings.
+;; that are to be evalled as the result of the default format strings.
 ;; We write them in here to get them byte-compiled.  That way the
 ;; default actions will be quite fast, while still retaining the full
 ;; flexibility of the user-defined format specs.
@@ -90,6 +90,17 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
 (declare-function gnus-summary-from-or-to-or-newsgroups "gnus-sum"
                   (header gnus-tmp-from))
 
+(defmacro gnus-lrm-string-p (string)
+  (if (fboundp 'bidi-string-mark-left-to-right)
+      ;; LRM, RLM, PDF characters as integers to avoid breaking Emacs
+      ;; 23.
+      `(memq (aref ,string (1- (length ,string))) '(8206 8207 8236))
+    nil))
+
+(defvar gnus-lrm-string (if (ignore-errors (string 8206))
+			    (propertize (string 8206) 'invisible t)
+			  ""))
+
 (defun gnus-summary-line-format-spec ()
   (insert gnus-tmp-unread gnus-tmp-replied
 	  gnus-tmp-score-char gnus-tmp-indentation)
@@ -103,7 +114,9 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
 		       (gnus-summary-from-or-to-or-newsgroups
 			gnus-tmp-header gnus-tmp-from))))
 		(if (> (length val) 23)
-		    (substring val 0 23)
+		    (if (gnus-lrm-string-p val)
+			(concat (substring val 0 23) gnus-lrm-string)
+		      (substring val 0 23))
 		  val))
 	      gnus-tmp-closing-bracket))
      (point))
@@ -253,11 +266,30 @@ Return a list of updated types."
       (push (cons 'version emacs-version) gnus-format-specs))
     updated))
 
-(defvar gnus-mouse-face-0 'highlight)
-(defvar gnus-mouse-face-1 'highlight)
-(defvar gnus-mouse-face-2 'highlight)
-(defvar gnus-mouse-face-3 'highlight)
-(defvar gnus-mouse-face-4 'highlight)
+(defcustom gnus-mouse-face-0 'highlight
+  "The \"%(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-mouse-face-1 'highlight
+  "The \"%1(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-mouse-face-2 'highlight
+  "The \"%2(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-mouse-face-3 'highlight
+  "The \"%3(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-mouse-face-4 'highlight
+  "The \"%4(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
 
 (defun gnus-mouse-face-function (form type)
   `(gnus-put-text-property
@@ -267,11 +299,30 @@ Return a list of updated types."
 	 'gnus-mouse-face
        `(quote ,(symbol-value (intern (format "gnus-mouse-face-%d" type)))))))
 
-(defvar gnus-face-0 'bold)
-(defvar gnus-face-1 'italic)
-(defvar gnus-face-2 'bold-italic)
-(defvar gnus-face-3 'bold)
-(defvar gnus-face-4 'bold)
+(defcustom gnus-face-0 'bold
+  "The \"%{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-face-1 'italic
+  "The \"%1{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-face-2 'bold-italic
+  "The \"%2{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-face-3 'bold
+  "The \"%3{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-face-4 'bold
+  "The \"%4{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
 
 (defun gnus-face-face-function (form type)
   `(gnus-add-text-properties
@@ -351,13 +402,17 @@ Return a list of updated types."
 	`(if (> (,length-fun ,el) ,max)
 	     ,(if (< max-width 0)
 		  `(,substring-fun ,el (- (,length-fun ,el) ,max))
-		`(,substring-fun ,el 0 ,max))
+		`(if (gnus-lrm-string-p ,el)
+		     (concat (,substring-fun ,el 0 ,max) ,gnus-lrm-string)
+		   (,substring-fun ,el 0 ,max)))
 	   ,el)
       `(let ((val (eval ,el)))
 	 (if (> (,length-fun val) ,max)
 	     ,(if (< max-width 0)
 		  `(,substring-fun val (- (,length-fun val) ,max))
-		`(,substring-fun val 0 ,max))
+		`(if (gnus-lrm-string-p val)
+		     (concat (,substring-fun val 0 ,max) ,gnus-lrm-string)
+		   (,substring-fun val 0 ,max)))
 	   val)))))
 
 (defun gnus-tilde-cut-form (el cut-width)
@@ -635,7 +690,7 @@ are supported for %s."
 		     (not (and (featurep 'xemacs)
 			       gnus-use-correct-string-widths)))
 	    (insert (number-to-string pad-width)))
-	  ;; Create the form to be evaled.
+	  ;; Create the form to be evalled.
 	  (if (or max-width cut-width ignore-value
 		  (and (featurep 'xemacs)
 		       gnus-use-correct-string-widths))

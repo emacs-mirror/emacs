@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -125,15 +125,15 @@ See `run-hooks'."
 		  :enable (not (vc-dir-busy))
 		  :help "Refresh the contents of the directory buffer"))
     (define-key map [remup]
-      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
+      '(menu-item "Hide Up-to-date" vc-dir-hide-up-to-date
 		  :help "Hide up-to-date items from display"))
     ;; Movement.
     (define-key map [sepmv] '("--"))
     (define-key map [next-line]
-      '(menu-item "Next line" vc-dir-next-line
+      '(menu-item "Next Line" vc-dir-next-line
 		  :help "Go to the next line" :keys "n"))
     (define-key map [previous-line]
-      '(menu-item "Previous line" vc-dir-previous-line
+      '(menu-item "Previous Line" vc-dir-previous-line
 		  :help "Go to the previous line"))
     ;; Marking.
     (define-key map [sepmrk] '("--"))
@@ -142,7 +142,7 @@ See `run-hooks'."
 		  :help "Unmark all files that are in the same state as the current file\
 \nWith prefix argument unmark all files"))
     (define-key map [unmark-previous]
-      '(menu-item "Unmark previous " vc-dir-unmark-file-up
+      '(menu-item "Unmark Previous " vc-dir-unmark-file-up
 		  :help "Move to the previous line and unmark the file"))
 
     (define-key map [mark-all]
@@ -171,10 +171,10 @@ See `run-hooks'."
       '(menu-item "Isearch Files..." vc-dir-isearch
 		  :help "Incremental search a string in the marked files"))
     (define-key map [open-other]
-      '(menu-item "Open in other window" vc-dir-find-file-other-window
+      '(menu-item "Open in Other Window" vc-dir-find-file-other-window
 		  :help "Find the file on the current line, in another window"))
     (define-key map [open]
-      '(menu-item "Open file" vc-dir-find-file
+      '(menu-item "Open File" vc-dir-find-file
 		  :help "Find the file on the current line"))
     (define-key map [sepvcdet] '("--"))
     ;; FIXME: This needs a key binding.  And maybe a better name
@@ -203,10 +203,10 @@ See `run-hooks'."
     ;; VC commands.
     (define-key map [sepvccmd] '("--"))
     (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
+      '(menu-item "Update to Latest Version" vc-update
 		  :help "Update the current fileset's files to their tip revisions"))
     (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
+      '(menu-item "Revert to Base Version" vc-revert
 		  :help "Revert working copies of the selected fileset to their repository contents."))
     (define-key map [next-action]
       ;; FIXME: This really really really needs a better name!
@@ -534,57 +534,71 @@ If a prefix argument is given, move by that many lines."
 	(save-excursion
 	  (goto-char (region-beginning))
 	  (while (<= (line-number-at-pos) lastl)
-	    (funcall mark-unmark-function))))
+	    (condition-case nil
+		(funcall mark-unmark-function)
+	      ;; `vc-dir-mark-file' signals an error if we try marking
+	      ;; a directory containing marked files in its tree, or a
+	      ;; file in a marked directory tree.  Just continue.
+	      (error (vc-dir-next-line 1))))))
     (funcall mark-unmark-function)))
 
 (defun vc-dir-parent-marked-p (arg)
-  ;; Return nil if none of the parent directories of arg is marked.
+  ;; Non-nil iff a parent directory of arg is marked.
+  ;; Return value, if non-nil is the `ewoc-data' for the marked parent.
   (let* ((argdir (vc-dir-node-directory arg))
 	 (arglen (length argdir))
 	 (crt arg)
-	 data dir)
+	 (found nil))
     ;; Go through the predecessors, checking if any directory that is
     ;; a parent is marked.
-    (while (setq crt (ewoc-prev vc-ewoc crt))
-      (setq data (ewoc-data crt))
-      (setq dir (vc-dir-node-directory crt))
-      (when (and (vc-dir-fileinfo->directory data)
-		 (vc-string-prefix-p dir argdir))
-	(when (vc-dir-fileinfo->marked data)
-	  (error "Cannot mark `%s', parent directory `%s' marked"
-		 (vc-dir-fileinfo->name (ewoc-data arg))
-		 (vc-dir-fileinfo->name data)))))
-    nil))
+    (while (and (null found)
+		(setq crt (ewoc-prev vc-ewoc crt)))
+      (let ((data (ewoc-data crt))
+	    (dir (vc-dir-node-directory crt)))
+	(and (vc-dir-fileinfo->directory data)
+	     (vc-string-prefix-p dir argdir)
+	     (vc-dir-fileinfo->marked data)
+	     (setq found data))))
+    found))
 
 (defun vc-dir-children-marked-p (arg)
-  ;; Return nil if none of the children of arg is marked.
+  ;; Non-nil iff a child of ARG is marked.
+  ;; Return value, if non-nil, is the `ewoc-data' for the marked child.
   (let* ((argdir-re (concat "\\`" (regexp-quote (vc-dir-node-directory arg))))
 	 (is-child t)
 	 (crt arg)
-	 data dir)
-    (while (and is-child (setq crt (ewoc-next vc-ewoc crt)))
-      (setq data (ewoc-data crt))
-      (setq dir (vc-dir-node-directory crt))
-      (if (string-match argdir-re dir)
-	  (when (vc-dir-fileinfo->marked data)
-	    (error "Cannot mark `%s', child `%s' marked"
-		   (vc-dir-fileinfo->name (ewoc-data arg))
-		   (vc-dir-fileinfo->name data)))
-	;; We are done, we got to an entry that is not a child of `arg'.
-	(setq is-child nil)))
-    nil))
+	 (found nil))
+    (while (and is-child
+		(null found)
+		(setq crt (ewoc-next vc-ewoc crt)))
+      (let ((data (ewoc-data crt))
+	    (dir (vc-dir-node-directory crt)))
+	(if (string-match argdir-re dir)
+	    (if (vc-dir-fileinfo->marked data)
+		(setq found data))
+	  ;; We are done, we got to an entry that is not a child of `arg'.
+	  (setq is-child nil))))
+    found))
 
 (defun vc-dir-mark-file (&optional arg)
   ;; Mark ARG or the current file and move to the next line.
   (let* ((crt (or arg (ewoc-locate vc-ewoc)))
          (file (ewoc-data crt))
-	 (isdir (vc-dir-fileinfo->directory file)))
-    (when (or (and isdir (not (vc-dir-children-marked-p crt)))
-	      (and (not isdir) (not (vc-dir-parent-marked-p crt))))
-      (setf (vc-dir-fileinfo->marked file) t)
-      (ewoc-invalidate vc-ewoc crt)
-      (unless (or arg (mouse-event-p last-command-event))
-	(vc-dir-next-line 1)))))
+	 (isdir (vc-dir-fileinfo->directory file))
+	 ;; Forbid marking a directory containing marked files in its
+	 ;; tree, or a file in a marked directory tree.
+	 (conflict (if isdir
+		       (vc-dir-children-marked-p crt)
+		     (vc-dir-parent-marked-p crt))))
+    (when conflict
+      (error (if isdir
+		 "File `%s' in this directory is already marked"
+	       "Parent directory `%s' is already marked")
+	     (vc-dir-fileinfo->name conflict)))
+    (setf (vc-dir-fileinfo->marked file) t)
+    (ewoc-invalidate vc-ewoc crt)
+    (unless (or arg (mouse-event-p last-command-event))
+      (vc-dir-next-line 1))))
 
 (defun vc-dir-mark ()
   "Mark the current file or all files in the region.
@@ -621,19 +635,19 @@ share the same state."
 	     (setf (vc-dir-fileinfo->marked filearg) t)
 	     t))
 	 vc-ewoc))
-    (let ((data (ewoc-data (ewoc-locate vc-ewoc))))
+    (let* ((crt  (ewoc-locate vc-ewoc))
+	   (data (ewoc-data crt)))
       (if (vc-dir-fileinfo->directory data)
 	  ;; It's a directory, mark child files.
-	  (let ((crt (ewoc-locate vc-ewoc)))
-	    (unless (vc-dir-children-marked-p crt)
-	      (while (setq crt (ewoc-next vc-ewoc crt))
-		(let ((crt-data (ewoc-data crt)))
-		  (unless (vc-dir-fileinfo->directory crt-data)
-		    (setf (vc-dir-fileinfo->marked crt-data) t)
-		    (ewoc-invalidate vc-ewoc crt))))))
+	  (let (crt-data)
+	    (while (and (setq crt (ewoc-next vc-ewoc crt))
+			(setq crt-data (ewoc-data crt))
+			(not (vc-dir-fileinfo->directory crt-data)))
+	      (setf (vc-dir-fileinfo->marked crt-data) t)
+	      (ewoc-invalidate vc-ewoc crt)))
 	;; It's a file
-	(let ((state (vc-dir-fileinfo->state data))
-	      (crt (ewoc-nth vc-ewoc 0)))
+	(let ((state (vc-dir-fileinfo->state data)))
+	  (setq crt (ewoc-nth vc-ewoc 0))
 	  (while crt
 	    (let ((crt-data (ewoc-data crt)))
 	      (when (and (not (vc-dir-fileinfo->marked crt-data))
@@ -992,8 +1006,8 @@ specific headers."
   (let ((def-dir default-directory)
 	(backend vc-dir-backend))
     (vc-set-mode-line-busy-indicator)
-    ;; Call the `dir-status-file' backend function.
-    ;; `dir-status-file' is supposed to be asynchronous.
+    ;; Call the `dir-status-files' backend function.
+    ;; `dir-status-files' is supposed to be asynchronous.
     ;; It should compute the results, and then call the function
     ;; passed as an argument in order to update the vc-dir buffer
     ;; with the results.
@@ -1021,7 +1035,7 @@ specific headers."
                             (lambda (info)
 			      ;; The state for directory entries might
 			      ;; have been changed to 'up-to-date,
-			      ;; reset it, othewise it will be removed when doing 'x'
+			      ;; reset it, otherwise it will be removed when doing 'x'
 			      ;; next time.
 			      ;; FIXME: There should be a more elegant way to do this.
 			      (when (and (vc-dir-fileinfo->directory info)

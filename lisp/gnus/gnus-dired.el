@@ -1,6 +1,6 @@
 ;;; gnus-dired.el --- utility functions where gnus and dired meet
 
-;; Copyright (C) 1996-1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -251,7 +251,7 @@ file to save in."
 	  (if (eq gnus-dired-mail-mode 'gnus-user-agent)
 	      (gnus-print-buffer)
 	    ;; FIXME:
-	    (error "MIME print only implemeted via Gnus")))
+	    (error "MIME print only implemented via Gnus")))
 	(ps-despool print-to))))
    ((file-symlink-p file-name)
      (error "File is a symlink to a nonexistent target"))

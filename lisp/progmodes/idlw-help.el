@@ -1,6 +1,6 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 ;;
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -226,8 +226,8 @@ support."
     (define-key map "\C-m" (lambda (arg)
                              (interactive "p")
                              (scroll-up arg)))
-    (define-key map " " 'scroll-up)
-    (define-key map [delete] 'scroll-down)
+    (define-key map " " 'scroll-up-command)
+    (define-key map [delete] 'scroll-down-command)
     (define-key map "h" 'idlwave-help-find-header)
     (define-key map "H" 'idlwave-help-find-first-header)
     (define-key map "." 'idlwave-help-toggle-header-match-and-def)
@@ -705,7 +705,8 @@ Those words in `idlwave-completion-help-links' have links.  The
 	     ;; we kill the help frame before the return-frame is selected.
 	     ;; To protect the workings, we wait for up to one second
 	     ;; and check if the return-frame *is* now selected.
-	     ;; This is marked "eperimental" since we are not sure when its OK.
+	     ;; This is marked "experimental" since we are not sure when
+	     ;; it's OK.
 	     (let ((maxtime 1.0) (time 0.) (step 0.1))
 	       (select-frame idlwave-help-return-frame)
 	       (while (and (sit-for step)
@@ -985,12 +986,12 @@ describes the correct routine - even if the keyword description cannot
 be found.  TYPE is ignored.
 
 This function expects a more or less standard routine header.  In
-particlar it looks for the `NAME:' tag, either with a colon, or alone
+particular it looks for the `NAME:' tag, either with a colon, or alone
 on a line.  Then `NAME:' must be followed by the routine name on the
 same or the next line.  When KEYWORD is non-nil, looks first for a
-`KEYWORDS' section.  It is amazing how inconsisten this is through
+`KEYWORDS' section.  It is amazing how inconsistent this is through
 some IDL libraries I have seen.  We settle for a line containing an
-upper case \"KEYWORD\" string.  If this line is not fould we search
+upper case \"KEYWORD\" string.  If this line is not found we search
 for the keyword anyway to increase the hit-rate
 
 When one of these sections exists we check for a line starting with any of

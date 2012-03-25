@@ -1,6 +1,6 @@
 ;;; crisp.el --- CRiSP/Brief Emacs emulator
 
-;; Copyright (C) 1997-1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp
@@ -34,7 +34,7 @@
 ;; you put (setq crisp-load-scroll-all t) in your .emacs before
 ;; loading this package.  If this feature is enabled, it will bind
 ;; meta-f1 to the scroll-all mode toggle.  The scroll-all package
-;; duplicates the scroll-alling feature in CRiSP.
+;; duplicates the scroll-all feature in CRiSP.
 
 ;; Also, the default keybindings for brief/CRiSP override the M-x
 ;; key to exit the editor.  If you don't like this functionality, you
@@ -71,8 +71,8 @@
     (define-key map [(f2) (left)]    'shrink-window-horizontally)
     (define-key map [(f2) (right)]   'enlarge-window-horizontally)
     (define-key map [(f2) (up)]      'shrink-window)
-    (define-key map [(f3) (down)]    'split-window-vertically)
-    (define-key map [(f3) (right)]   'split-window-horizontally)
+    (define-key map [(f3) (down)]    'split-window-below)
+    (define-key map [(f3) (right)]   'split-window-right)
 
     (define-key map [(f4)]           'delete-window)
     (define-key map [(control f4)]   'delete-other-windows)
@@ -349,8 +349,10 @@ normal CRiSP binding) and when it is nil M-x will run
 
 ;;;###autoload
 (define-minor-mode crisp-mode
-  "Toggle CRiSP/Brief emulation minor mode.
-With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
+  "Toggle CRiSP/Brief emulation (CRiSP mode).
+With a prefix argument ARG, enable CRiSP mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :keymap crisp-mode-map
   :lighter crisp-mode-modeline-string
   (when crisp-mode

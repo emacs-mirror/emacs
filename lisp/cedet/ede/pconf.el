@@ -1,6 +1,6 @@
 ;;; ede/pconf.el --- configure.ac maintenance for EDE
 
-;;; Copyright (C) 1998-2000, 2005, 2008-2011  Free Software Foundation, Inc.
+;;; Copyright (C) 1998-2000, 2005, 2008-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project
@@ -82,7 +82,7 @@ don't do it.  A value of nil means to just do it.")
 		      (directory-file-name
 		       (ede-subproject-relative-path sp top-level-project-local)))))
 	    (when (string= dir "./") (setq dir ""))
-	    ;; Use concat, because expand-file-name removes the relativeness.
+	    ;; Use concat, because expand-file-name removes the relativity.
 	    (concat dir "Makefile") )))))
     ;;
     ;; NOTE TO SELF.  TURN THIS INTO THE OFFICIAL LIST
@@ -149,7 +149,7 @@ don't do it.  A value of nil means to just do it.")
 	  ))))
 
 (defmethod ede-proj-configure-recreate ((this ede-proj-project))
-  "Delete project THISes configure script and start over."
+  "Delete project THIS's configure script and start over."
   (if (not (ede-proj-configure-file this))
       (error "Could not determine configure.ac for %S" (object-name this)))
   (let ((b (get-file-buffer (ede-proj-configure-file this))))

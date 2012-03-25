@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2011  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -105,7 +105,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "../lwlib/xlwmenu.h"
 #endif
 
-#if !defined(NO_EDITRES)
+#if !defined (NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif /* not defined NO_EDITRES */
@@ -145,7 +145,8 @@ static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
 #if GLYPH_DEBUG
-static int image_cache_refcount, dpyinfo_refcount;
+static ptrdiff_t image_cache_refcount;
+static int dpyinfo_refcount;
 #endif
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
@@ -1470,7 +1471,8 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
    the result should be `COMPOUND_TEXT'.  */
 
 static unsigned char *
-x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp, int *text_bytes, int *stringp, int *freep)
+x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp,
+	       ptrdiff_t *text_bytes, int *stringp, int *freep)
 {
   int result = string_xstring_p (string);
   struct coding_system coding;
@@ -1488,8 +1490,8 @@ x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp, in
   coding.mode |= (CODING_MODE_SAFE_ENCODING | CODING_MODE_LAST_BLOCK);
   /* We suppress producing escape sequences for composition.  */
   coding.common_flags &= ~CODING_ANNOTATION_MASK;
+  coding.destination = xnmalloc (SCHARS (string), 2);
   coding.dst_bytes = SCHARS (string) * 2;
-  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
   encode_coding_object (&coding, string, 0, 0,
 			SCHARS (string), SBYTES (string), Qnil);
   *text_bytes = coding.produced;
@@ -1511,7 +1513,8 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
       BLOCK_INPUT;
       {
 	XTextProperty text, icon;
-	int bytes, stringp;
+	ptrdiff_t bytes;
+	int stringp;
         int do_free_icon_value = 0, do_free_text_value = 0;
 	Lisp_Object coding_system;
 	Lisp_Object encoded_name;
@@ -1550,6 +1553,8 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
 	text.nitems = bytes;
+	if (text.nitems != bytes)
+	  error ("Window name too large");
 
 	if (!STRINGP (f->icon_name))
 	  {
@@ -1565,6 +1570,8 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	    icon.format = 8;
 	    icon.nitems = bytes;
+	    if (icon.nitems != bytes)
+	      error ("Icon name too large");
 
 	    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
 	  }
@@ -1870,7 +1877,7 @@ static XIMStyle supported_xim_styles[] =
 #if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
-static const char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+static const char xic_default_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
 
 /* Create an Xt fontset spec from the name of a base font.
    If `motif' is True use the Motif syntax.  */
@@ -1881,7 +1888,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
   char *fontsetname;
 
   /* Make a fontset name from the base font name.  */
-  if (xic_defaut_fontset == base_fontname)
+  if (xic_default_fontset == base_fontname)
     { /* There is no base font name, use the default.  */
       ptrdiff_t len = strlen (base_fontname) + 2;
       fontsetname = xmalloc (len);
@@ -1905,12 +1912,12 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
 	  ptrdiff_t len =
-	    strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
+	    strlen (base_fontname) + strlen (xic_default_fontset) + 3;
 	  fontsetname = xmalloc (len);
 	  memset (fontsetname, 0, len);
 	  strcpy (fontsetname, base_fontname);
 	  strcat (fontsetname, sep);
-	  strcat (fontsetname, xic_defaut_fontset);
+	  strcat (fontsetname, xic_default_fontset);
 	}
       else
 	{
@@ -2001,11 +2008,8 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
 #ifdef DEBUG_XIC_FONTSET
 static void
-print_fontset_result (xfs, name, missing_list, missing_count)
-     XFontSet xfs;
-     char *name;
-     char **missing_list;
-     int missing_count;
+print_fontset_result (XFontSet xfs, char *name, char **missing_list,
+		      int missing_count)
 {
   if (xfs)
     fprintf (stderr, "XIC Fontset created: %s\n", name);
@@ -2436,7 +2440,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
   /* Do some needed geometry management.  */
   {
     ptrdiff_t len;
-    char *tem, shell_position[32];
+    char *tem, shell_position[sizeof "=x++" + 4 * INT_STRLEN_BOUND (int)];
     Arg gal[10];
     int gac = 0;
     int extra_borders = 0;
@@ -2910,7 +2914,7 @@ x_free_gcs (struct frame *f)
 
 
 /* Handler for signals raised during x_create_frame and
-   x_create_top_frame.  FRAME is the frame which is partially
+   x_create_tip_frame.  FRAME is the frame which is partially
    constructed.  */
 
 static Lisp_Object
@@ -2925,18 +2929,19 @@ unwind_create_frame (Lisp_Object frame)
     return Qnil;
 
   /* If frame is ``official'', nothing to do.  */
-  if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
+  if (NILP (Fmemq (frame, Vframe_list)))
     {
 #if GLYPH_DEBUG && XASSERTS
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
+      free_glyphs (f);
 
 #if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }
@@ -2944,6 +2949,12 @@ unwind_create_frame (Lisp_Object frame)
   return Qnil;
 }
 
+static Lisp_Object
+unwind_create_frame_1 (Lisp_Object val)
+{
+  inhibit_lisp_code = val;
+  return Qnil;
+}
 
 static void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
@@ -2957,7 +2968,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
   if (NILP (font_param))
     {
-      /* System font should take precedendce over X resources.  We suggest this
+      /* System font should take precedence over X resources.  We suggest this
          regardless of font-use-system-font because .emacs may not have been
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
@@ -3133,7 +3144,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
 
   f->output_method = output_x_window;
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
@@ -3162,7 +3172,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      to get the color reference counts right, so initialize them!  */
   {
     Lisp_Object black;
-    struct gcpro inner_gcpro1;
+    struct gcpro gcpro1;
 
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
@@ -3175,7 +3185,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
-    GCPRO1_VAR (black, inner_gcpro);
+    GCPRO1 (black);
     FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_BACKGROUND_PIXEL (f)
@@ -3188,7 +3198,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->mouse_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    UNGCPRO_VAR (inner_gcpro);
+    UNGCPRO;
   }
 
   /* Specify the parent under which to make this X window.  */
@@ -3270,7 +3280,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qvertical_scroll_bars,
-#if defined(USE_GTK) && defined(USE_TOOLKIT_SCROLL_BARS)
+#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
 		       Qright,
 #else
 		       Qleft,
@@ -3303,6 +3313,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
 					"scrollBarBackground",
 					"ScrollBarBackground", 0);
 
+#if GLYPH_DEBUG
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
+
   /* Init faces before x_default_parameter is called for scroll-bar
      parameters because that function calls x_set_scroll_bar_width,
      which calls change_frame_size, which calls Fset_window_buffer,
@@ -3311,22 +3327,30 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-#if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
+  /* Set the menu-bar-lines and tool-bar-lines parameters.  We don't
+     look up the X resources controlling the menu-bar and tool-bar
+     here; they are processed specially at startup, and reflected in
+     the values of the mode variables.
 
-  /* The X resources controlling the menu-bar and tool-bar are
-     processed specially at startup, and reflected in the mode
-     variables; ignore them here.  */
-  x_default_parameter (f, parms, Qmenu_bar_lines,
-		       NILP (Vmenu_bar_mode)
-		       ? make_number (0) : make_number (1),
-		       NULL, NULL, RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines,
-		       NILP (Vtool_bar_mode)
-		       ? make_number (0) : make_number (1),
-		       NULL, NULL, RES_TYPE_NUMBER);
+     Avoid calling window-configuration-change-hook; otherwise we
+     could get an infloop in next_frame since the frame is not yet in
+     Vframe_list.  */
+  {
+    int count2 = SPECPDL_INDEX ();
+    record_unwind_protect (unwind_create_frame_1, inhibit_lisp_code);
+    inhibit_lisp_code = Qt;
+
+    x_default_parameter (f, parms, Qmenu_bar_lines,
+			 NILP (Vmenu_bar_mode)
+			 ? make_number (0) : make_number (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
+    x_default_parameter (f, parms, Qtool_bar_lines,
+			 NILP (Vtool_bar_mode)
+			 ? make_number (0) : make_number (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
+
+    unbind_to (count2, Qnil);
+  }
 
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate",
@@ -3359,13 +3383,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_make_gc (f);
 
   /* Now consider the frame official.  */
+  f->terminal->reference_count++;
   FRAME_X_DISPLAY_INFO (f)->reference_count++;
   Vframe_list = Fcons (frame, Vframe_list);
 
   /* We need to do this after creating the X window, so that the
      icon-creation functions can say whose icon they're describing.  */
   x_default_parameter (f, parms, Qicon_type, Qt,
-		       "bitmapIcon", "BitmapIcon", RES_TYPE_SYMBOL);
+		       "bitmapIcon", "BitmapIcon", RES_TYPE_BOOLEAN);
 
   x_default_parameter (f, parms, Qauto_raise, Qnil,
 		       "autoRaise", "AutoRaiseLower", RES_TYPE_BOOLEAN);
@@ -3439,7 +3464,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   BLOCK_INPUT;
 
   /* Set machine name and pid for the purpose of window managers.  */
-  set_machine_and_pid_properties(f);
+  set_machine_and_pid_properties (f);
 
   /* Set the WM leader property.  GTK does this itself, so this is not
      needed when using GTK.  */
@@ -3513,9 +3538,21 @@ FRAME nil means use the selected frame.  */)
 
   BLOCK_INPUT;
   x_catch_errors (dpy);
-  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  RevertToParent, CurrentTime);
-  x_ewmh_activate_frame (f);
+
+  if (FRAME_X_EMBEDDED_P (f))
+    {
+      /* For Xembedded frames, normally the embedder forwards key
+	 events.  See XEmbed Protocol Specification at
+	 http://freedesktop.org/wiki/Specifications/xembed-spec  */
+      xembed_request_focus (f);
+    }
+  else
+    {
+      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      RevertToParent, CurrentTime);
+      x_ewmh_activate_frame (f);
+    }
+
   x_uncatch_errors ();
   UNBLOCK_INPUT;
 
@@ -3685,7 +3722,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
        doc: /* Return the "vendor ID" string of the X server of display TERMINAL.
-\(Labelling every distributor as a "vendor" embodies the false assumption
+\(Labeling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
@@ -4196,21 +4233,19 @@ FRAME.  Default is to change on the edit X window.  */)
 
   if (CONSP (value))
     {
+      ptrdiff_t elsize;
+
       nelements = x_check_property_data (value);
       if (nelements == -1)
         error ("Bad data in VALUE, must be number, string or cons");
 
-      if (element_format == 8)
-        data = (unsigned char *) xmalloc (nelements);
-      else if (element_format == 16)
-        data = (unsigned char *) xmalloc (nelements*2);
-      else /* format == 32 */
-        /* The man page for XChangeProperty:
-               "If the specified format is 32, the property data must be a
-                long array."
-           This applies even if long is more than 64 bits.  The X library
-           converts to 32 bits before sending to the X server.  */
-        data = (unsigned char *) xmalloc (nelements * sizeof(long));
+      /* The man page for XChangeProperty:
+	     "If the specified format is 32, the property data must be a
+	      long array."
+	 This applies even if long is more than 32 bits.  The X library
+	 converts to 32 bits before sending to the X server.  */
+      elsize = element_format == 32 ? sizeof (long) : element_format >> 3;
+      data = xnmalloc (nelements, elsize);
 
       x_fill_property_data (FRAME_X_DISPLAY (f), value, data, element_format);
     }
@@ -4218,7 +4253,9 @@ FRAME.  Default is to change on the edit X window.  */)
     {
       CHECK_STRING (value);
       data = SDATA (value);
-      nelements = SCHARS (value);
+      if (INT_MAX < SBYTES (value))
+	error ("VALUE too long");
+      nelements = SBYTES (value);
     }
 
   BLOCK_INPUT;
@@ -4280,7 +4317,7 @@ If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retreiving it.
+If DELETE_P is non-nil, delete the property after retrieving it.
 If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
@@ -4589,7 +4626,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
 
   /* By setting the output method, we're essentially saying that
      the frame is live, as per FRAME_LIVE_P.  If we get a signal
@@ -4615,7 +4651,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      to get the color reference counts right, so initialize them!  */
   {
     Lisp_Object black;
-    struct gcpro inner_gcpro1;
+    struct gcpro gcpro1;
 
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
@@ -4628,7 +4664,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
-    GCPRO1_VAR (black, inner_gcpro);
+    GCPRO1 (black);
     FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_BACKGROUND_PIXEL (f)
@@ -4641,7 +4677,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->mouse_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    UNGCPRO_VAR (inner_gcpro);
+    UNGCPRO;
   }
 
   /* Set the name; the functions to which we pass f expect the name to
@@ -4711,6 +4747,12 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
 
+#if GLYPH_DEBUG
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
+
   /* Init faces before x_default_parameter is called for scroll-bar
      parameters because that function calls x_set_scroll_bar_width,
      which calls change_frame_size, which calls Fset_window_buffer,
@@ -4718,11 +4760,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
-
-#if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
@@ -4829,14 +4866,16 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   UNGCPRO;
 
+  /* Now that the frame will be official, it counts as a reference to
+     its display and terminal.  */
+  FRAME_X_DISPLAY_INFO (f)->reference_count++;
+  f->terminal->reference_count++;
+
   /* It is now ok to make the frame official even if we get an error
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
 
-  /* Now that the frame is official, it counts as a reference to
-     its display.  */
-  FRAME_X_DISPLAY_INFO (f)->reference_count++;
 
   /* Setting attributes of faces of the tooltip frame from resources
      and similar will increment face_change_count, which leads to the
@@ -5590,7 +5629,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 
   BLOCK_INPUT;
 
-  GCPRO2(font_param, font);
+  GCPRO2 (font_param, font);
 
   XSETFONT (font, FRAME_FONT (f));
   font_param = Ffont_get (font, intern (":name"));
@@ -5906,7 +5945,7 @@ the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
 
   DEFVAR_BOOL ("x-gtk-use-system-tooltips", x_gtk_use_system_tooltips,
-    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ toolip is used.
+    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ tooltip is used.
 Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
   x_gtk_use_system_tooltips = 1;

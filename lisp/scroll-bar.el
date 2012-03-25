@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support
 
-;; Copyright (C) 1993-1995, 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware
@@ -81,7 +81,8 @@ SIDE must be the symbol `left' or `right'."
 This is nil while loading `scroll-bar.el', and t afterward.")
 
 (defun set-scroll-bar-mode (value)
-  "Set `scroll-bar-mode' to VALUE and put the new value into effect."
+  "Set the scroll bar mode to VALUE and put the new value into effect.
+See the `scroll-bar-mode' variable for possible values to use."
   (if scroll-bar-mode
       (setq previous-scroll-bar-mode scroll-bar-mode))
 
@@ -113,12 +114,15 @@ Setting the variable with a customization buffer also takes effect."
 
 (defun get-scroll-bar-mode () scroll-bar-mode)
 (defsetf get-scroll-bar-mode set-scroll-bar-mode)
+
 (define-minor-mode scroll-bar-mode
-  "Toggle display of vertical scroll bars on all frames.
+  "Toggle vertical scroll bars on all frames (Scroll Bar mode).
+With a prefix argument ARG, enable Scroll Bar mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 This command applies to all frames that exist and frames to be
-created in the future.
-With a numeric argument, if the argument is positive
-turn on scroll bars; otherwise turn off scroll bars."
+created in the future."
   :variable (eq (get-scroll-bar-mode)
                 (or previous-scroll-bar-mode
                     default-frame-scroll-bars)))

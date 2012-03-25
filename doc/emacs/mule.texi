@@ -1,7 +1,7 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node International, Major Modes, Frames, Top
+@node International, Modes, Frames, Top
 @chapter International Character Set Support
 @c This node is referenced in the tutorial.  When renaming or deleting
 @c it, the tutorial needs to be adjusted.  (TUTORIAL.de)
@@ -81,8 +81,8 @@ appropriate keyboard coding system (@pxref{Terminal Coding}), and Emacs
 will accept those characters.  Latin-1 characters can also be input by
 using the @kbd{C-x 8} prefix, see @ref{Unibyte Mode}.
 
-On X Window systems, your locale should be set to an appropriate value
-to make sure Emacs interprets keyboard input correctly; see
+On the X Window System, your locale should be set to an appropriate
+value to make sure Emacs interprets keyboard input correctly; see
 @ref{Language Environments, locales}.
 @end itemize
 
@@ -137,8 +137,8 @@ writing files, and when exchanging data with subprocesses.
 @cindex undisplayable characters
 @cindex @samp{?} in display
   The command @kbd{C-h h} (@code{view-hello-file}) displays the file
-@file{etc/HELLO}, which shows how to say ``hello'' in many languages.
-This illustrates various scripts.  If some characters can't be
+@file{etc/HELLO}, which illustrates various scripts by showing
+how to say ``hello'' in many languages.  If some characters can't be
 displayed on your terminal, they appear as @samp{?} or as hollow boxes
 (@pxref{Undisplayable Characters}).
 
@@ -1703,14 +1703,13 @@ Annex #9, for reordering of bidirectional text for display.
 whether text in the buffer is reordered for display.  If its value is
 non-@code{nil}, Emacs reorders characters that have right-to-left
 directionality when they are displayed.  The default value is
-@code{nil}.
+@code{t}.
 
   Each paragraph of bidirectional text can have its own @dfn{base
 direction}, either right-to-left or left-to-right.  (Paragraph
-boundaries are defined by the regular expressions
-@code{paragraph-start} and @code{paragraph-separate}, see
-@ref{Paragraphs}.)  Text in left-to-right paragraphs begins at the
-left margin of the window and is truncated or continued when it
+boundaries are empty lines, i.e.@: lines consisting entirely of
+whitespace characters.)  Text in left-to-right paragraphs begins at
+the left margin of the window and is truncated or continued when it
 reaches the right margin.  By contrast, text in right-to-left
 paragraphs begins at the right margin and is continued or truncated at
 the left margin.
@@ -1734,8 +1733,8 @@ The special character @code{RIGHT-TO-LEFT MARK}, or @sc{rlm}, forces
 the right-to-left direction on the following paragraph, while
 @code{LEFT-TO-RIGHT MARK}, or @sc{lrm} forces the left-to-right
 direction.  (You can use @kbd{C-x 8 RET} to insert these characters.)
-In a GUI session, the @sc{lrm} and @sc{rlm} characters display as
-blanks.
+In a GUI session, the @sc{lrm} and @sc{rlm} characters display as very
+thin blank characters; on text terminals they display as blanks.
 
   Because characters are reordered for display, Emacs commands that
 operate in the logical order or on stretches of buffer positions may

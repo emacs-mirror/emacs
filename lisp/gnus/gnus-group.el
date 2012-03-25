@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -362,7 +362,7 @@ If you want to modify the group buffer, you can use this hook."
      gnus-group-news-low))
   "*Controls the highlighting of group buffer lines.
 
-Below is a list of `Form'/`Face' pairs.  When deciding how a a
+Below is a list of `Form'/`Face' pairs.  When deciding how a
 particular group line should be displayed, each form is
 evaluated.  The content of the face field after the first true form is
 used.  You can change how those group lines are displayed by
@@ -710,7 +710,8 @@ simple manner.")
   "M"  gnus-group-list-limit
   "l"  gnus-group-list-limit
   "c"  gnus-group-list-limit
-  "?"  gnus-group-list-limit)
+  "?"  gnus-group-list-limit
+  "!"  gnus-group-list-limit)
 
 (gnus-define-keys (gnus-group-list-flush-map "f" gnus-group-list-map)
   "k"  gnus-group-list-flush
@@ -722,7 +723,8 @@ simple manner.")
   "M"  gnus-group-list-flush
   "l"  gnus-group-list-flush
   "c"  gnus-group-list-flush
-  "?"  gnus-group-list-flush)
+  "?"  gnus-group-list-flush
+  "!"  gnus-group-list-flush)
 
 (gnus-define-keys (gnus-group-list-plus-map "p" gnus-group-list-map)
   "k"  gnus-group-list-plus
@@ -734,7 +736,8 @@ simple manner.")
   "M"  gnus-group-list-plus
   "l"  gnus-group-list-plus
   "c"  gnus-group-list-plus
-  "?"  gnus-group-list-plus)
+  "?"  gnus-group-list-plus
+  "!"  gnus-group-list-plus)
 
 (gnus-define-keys (gnus-group-score-map "W" gnus-group-mode-map)
   "f" gnus-score-flush-cache
@@ -989,7 +992,7 @@ Setter function for custom variables."
 				 'gnus-group-tool-bar-retro)
   "Specifies the Gnus group tool bar.
 
-It can be either a list or a symbol refering to a list.  See
+It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `gnus-group-mode-map'.
 
@@ -1008,10 +1011,10 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
   '((gnus-group-post-news "mail/compose")
     ;; Some useful agent icons?  I don't use the agent so agent users should
     ;; suggest useful commands:
-    (gnus-agent-toggle-plugged "disconnect" t
+    (gnus-agent-toggle-plugged "unplugged" t
 			       :help "Gnus is currently unplugged.  Click to work online."
      			       :visible (and gnus-agent (not gnus-plugged)))
-    (gnus-agent-toggle-plugged "connect" t
+    (gnus-agent-toggle-plugged "plugged" t
 			       :help "Gnus is currently plugged.  Click to work offline."
      			       :visible (and gnus-agent gnus-plugged))
     ;; FIXME: gnus-agent-toggle-plugged (in gnus-agent-group-make-menu-bar)
@@ -1194,21 +1197,27 @@ The following commands are available:
     (gnus-group-mode)))
 
 (defun gnus-group-name-charset (method group)
-  (if (null method)
-      (setq method (gnus-find-method-for-group group)))
-  (let ((item (or (assoc method gnus-group-name-charset-method-alist)
-		  (and (consp method)
-		       (assoc (list (car method) (cadr method))
-			      gnus-group-name-charset-method-alist))))
-	(alist gnus-group-name-charset-group-alist)
-	result)
-    (if item
-	(cdr item)
-      (while (setq item (pop alist))
-	(if (string-match (car item) group)
-	    (setq alist nil
-		  result (cdr item))))
-      result)))
+  (unless method
+    (setq method (gnus-find-method-for-group group)))
+  (when (stringp method)
+    (setq method (gnus-server-to-method method)))
+  (if (eq (car method) 'nnimap)
+      ;; IMAP groups should not be encoded, since they do the encoding
+      ;; in utf7 in the protocol.
+      'utf-8
+    (let ((item (or (assoc method gnus-group-name-charset-method-alist)
+		    (and (consp method)
+			 (assoc (list (car method) (cadr method))
+				gnus-group-name-charset-method-alist))))
+	  (alist gnus-group-name-charset-group-alist)
+	  result)
+      (if item
+	  (cdr item)
+	(while (setq item (pop alist))
+	  (if (string-match (car item) group)
+	      (setq alist nil
+		    result (cdr item))))
+	result))))
 
 (defun gnus-group-name-decode (string charset)
   ;; Fixme: Don't decode in unibyte mode.
@@ -1345,14 +1354,14 @@ if it is a string, only list groups matching REGEXP."
 		     (predicate t)	; We list all groups?
 		     (t
 		      (or
-		       (if (eq unread t) ; Unactivated?
+		       (if (eq unread t) ; Inactive?
 			   gnus-group-list-inactive-groups
-					; We list unactivated
+					; We list inactive
 			 (and (numberp unread) (> unread 0)))
 					; We list groups with unread articles
 		       (and gnus-list-groups-with-ticked-articles
 			    (cdr (assq 'tick (gnus-info-marks info))))
-					; And groups with tickeds
+					; And groups with ticked articles
 		       ;; Check for permanent visibility.
 		       (and gnus-permanently-visible-groups
 			    (string-match gnus-permanently-visible-groups
@@ -2268,8 +2277,8 @@ confirmation is required."
 					      number)
   "Read GROUP from METHOD as an ephemeral group.
 If ACTIVATE, request the group first.
-If QUIT-CONFIG, use that window configuration when exiting from the
-ephemeral group.
+If QUIT-CONFIG, use that Gnus window configuration name when
+exiting from the ephemeral group.
 If REQUEST-ONLY, don't actually read the group; just request it.
 If SELECT-ARTICLES, only select those articles.
 If PARAMETERS, use those as the group parameters.
@@ -2282,12 +2291,19 @@ Return the name of the group if selection was successful."
     (gnus-group-completing-read)
     (gnus-read-method "From method")))
   ;; Transform the select method into a unique server.
+  (unless (gnus-alive-p)
+    (gnus-no-server))
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
-  (setq method
-	`(,(car method) ,(concat (cadr method) "-ephemeral")
-	  (,(intern (format "%s-address" (car method))) ,(cadr method))
-	  ,@(cddr method)))
+  (let ((address-slot
+	 (intern (format "%s-address" (car method)))))
+    (setq method
+	  (if (assq address-slot (cddr method))
+	      `(,(car method) ,(concat (cadr method) "-ephemeral")
+		,@(cddr method))
+	    `(,(car method) ,(concat (cadr method) "-ephemeral")
+	      (,address-slot ,(cadr method))
+	      ,@(cddr method)))))
   (let ((group (if (gnus-group-foreign-p group) group
 		 (gnus-group-prefixed-name (gnus-group-real-name group)
 					   method))))
@@ -2296,11 +2312,14 @@ Return the name of the group if selection was successful."
      `(-1 nil (,group
 	       ,gnus-level-default-subscribed nil nil ,method
 	       ,(cons
-		 (if quit-config
-		     (cons 'quit-config quit-config)
+		 (cond
+		  (quit-config
+		   (cons 'quit-config quit-config))
+		  ((assq gnus-current-window-configuration
+			 gnus-buffer-configuration)
 		   (cons 'quit-config
 			 (cons gnus-summary-buffer
-			       gnus-current-window-configuration)))
+			       gnus-current-window-configuration))))
 		 parameters)))
      gnus-newsrc-hashtb)
     (push method gnus-ephemeral-servers)
@@ -2415,7 +2434,7 @@ Valid input formats include:
     (gnus-read-ephemeral-gmane-group group start range)))
 
 (defcustom gnus-bug-group-download-format-alist
-  '((emacs . "http://debbugs.gnu.org/%s;mboxstat=yes")
+  '((emacs . "http://debbugs.gnu.org/%s;mboxmaint=yes;mboxstat=yes")
     (debian
      . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes;mboxmaint=yes"))
   "Alist of symbols for bug trackers and the corresponding URL format string.
@@ -2469,7 +2488,7 @@ the bug number, and browsing the URL must return mbox output."
    number
    (cdr (assoc 'debian gnus-bug-group-download-format-alist))))
 
-(defvar debbugs-bug-number)		; debbugs-gnu
+(defvar debbugs-gnu-bug-number)		; debbugs-gnu
 
 (defun gnus-read-ephemeral-emacs-bug-group (ids &optional window-conf)
   "Browse Emacs bugs IDS as an ephemeral group."
@@ -2482,10 +2501,10 @@ the bug number, and browsing the URL must return mbox output."
    ids
    (cdr (assoc 'emacs gnus-bug-group-download-format-alist))
    window-conf)
-  (when (fboundp 'debbugs-summary-mode)
+  (when (fboundp 'debbugs-gnu-summary-mode)
     (with-current-buffer (window-buffer (selected-window))
-      (debbugs-summary-mode 1)
-      (set (make-local-variable 'debbugs-bug-number) (car ids)))))
+      (debbugs-gnu-summary-mode 1)
+      (set (make-local-variable 'debbugs-gnu-bug-number) (car ids)))))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.
@@ -3466,13 +3485,14 @@ sort in reverse order."
   "Clear all marks and read ranges from the current group.
 Obeys the process/prefix convention."
   (interactive "P")
-  (gnus-group-iterate arg
-    (lambda (group)
-      (let (info)
-	(gnus-info-clear-data (setq info (gnus-get-info group)))
-	(gnus-get-unread-articles-in-group info (gnus-active group) t)
-	(when (gnus-group-goto-group group)
-	  (gnus-group-update-group-line))))))
+  (when (gnus-y-or-n-p "Really clear data? ")
+    (gnus-group-iterate arg
+      (lambda (group)
+	(let (info)
+	  (gnus-info-clear-data (setq info (gnus-get-info group)))
+	  (gnus-get-unread-articles-in-group info (gnus-active group) t)
+	  (when (gnus-group-goto-group group)
+	    (gnus-group-update-group-line)))))))
 
 (defun gnus-group-clear-data-on-native-groups ()
   "Clear all marks and read ranges from all native groups."
@@ -4055,10 +4075,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	      (gnus-agent-save-group-info
 	       method (gnus-group-real-name group) active))
 	    (gnus-group-update-group group nil t))
-	(if (eq (gnus-server-status (gnus-find-method-for-group group))
-		'denied)
-	    (gnus-error 3 "Server denied access")
-	  (gnus-error 3 "%s error: %s" group (gnus-status-message group)))))
+	(gnus-error 3 "%s error: %s" group (gnus-status-message group))))
     (when beg
       (goto-char beg))
     (when gnus-goto-next-group-when-activating
@@ -4624,7 +4641,12 @@ This command may read the active file."
     (gnus-group-list-plus args)))
 
 (defun gnus-group-list-limit (&optional args)
-  "List groups limited within the current selection."
+  "List groups limited within the current selection.
+If you've limited the groups, you can further limit the selection
+with this command.  If you've first limited to groups with
+dormant articles with `A ?', you can then further limit with
+`A / c', which will then limit to groups with cached articles, giving
+you the groups that have both dormant articles and cached articles."
   (interactive "P")
   (let ((gnus-group-list-option 'limit))
     (gnus-group-list-plus args)))

@@ -39,13 +39,13 @@
 (defmacro emerge-defvar-local (var value doc)
   "Defines SYMBOL as an advertised variable.
 Performs a defvar, then executes `make-variable-buffer-local' on
-the variable.  Also sets the `preserved' property, so that
+the variable.  Also sets the `permanent-local' property, so that
 `kill-all-local-variables' (called by major-mode setting commands)
 won't destroy Emerge control variables."
   `(progn
     (defvar ,var ,value ,doc)
     (make-variable-buffer-local ',var)
-    (put ',var 'preserved t)))
+    (put ',var 'permanent-local t)))
 
 ;; Add entries to minor-mode-alist so that emerge modes show correctly
 (defvar emerge-minor-modes-list
@@ -1354,8 +1354,8 @@ Otherwise, the A or B file present is copied to the output file."
   (delete-other-windows)
   (switch-to-buffer merge-buffer)
   (emerge-refresh-mode-line)
-  (split-window-vertically)
-  (split-window-horizontally)
+  (split-window-below)
+  (split-window-right)
   (switch-to-buffer buffer-A)
   (if pos
       (goto-char (point-min)))
@@ -1754,7 +1754,7 @@ to the left margin, if they are in windows."
 ;; If there are min-lines lines above and below the region, then don't do
 ;; anything.
 ;; If not, recenter the region to make it so.
-;; If that isn't possible, remove context lines balancedly from top and bottom
+;; If that isn't possible, remove context lines evenly from top and bottom
 ;; so the entire region shows.
 ;; If that isn't possible, show the top of the region.
 ;; BEG must be at the beginning of a line.
@@ -2121,7 +2121,7 @@ Use C-u l to reset the windows afterward."
   (delete-other-windows)
   (let ((temp-buffer-show-function
 	 (lambda (buf)
-	   (split-window-vertically)
+	   (split-window-below)
 	   (switch-to-buffer buf)
 	   (other-window 1))))
     (with-output-to-temp-buffer "*Help*"

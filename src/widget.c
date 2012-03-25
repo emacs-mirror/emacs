@@ -1,5 +1,5 @@
 /* The emacs frame widget.
-   Copyright (C) 1992-1993, 2000-2011  Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 2000-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -86,12 +86,12 @@ static XtGeometryResult EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry
 #undef XtOffset
 #define XtOffset(p_type,field) \
 	((Cardinal) (((char *) (&(((p_type)0)->field))) - ((char *)0)))
-#define offset(field) XtOffset(EmacsFrame, emacs_frame.field)
+#define offset(field) XtOffset (EmacsFrame, emacs_frame.field)
 
 static XtResource resources[] = {
-  {XtNgeometry, XtCGeometry, XtRString, sizeof(String),
+  {XtNgeometry, XtCGeometry, XtRString, sizeof (String),
      offset (geometry), XtRString, (XtPointer) 0},
-  {XtNiconic, XtCIconic, XtRBoolean, sizeof(Boolean),
+  {XtNiconic, XtCIconic, XtRBoolean, sizeof (Boolean),
      offset (iconic), XtRImmediate, (XtPointer) False},
 
   {XtNemacsFrame, XtCEmacsFrame, XtRPointer, sizeof (XtPointer),
@@ -105,12 +105,12 @@ static XtResource resources[] = {
      offset (internal_border_width), XtRImmediate, (XtPointer)4},
   {XtNinterline, XtCInterline, XtRInt, sizeof (int),
      offset (interline), XtRImmediate, (XtPointer)0},
-  {XtNfont,  XtCFont, XtRFontStruct, sizeof(struct font *),
-     offset(font),XtRString, DEFAULT_FACE_FONT},
-  {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
-     offset(foreground_pixel), XtRString, "XtDefaultForeground"},
-  {XtNcursorColor, XtCForeground, XtRPixel, sizeof(Pixel),
-     offset(cursor_color), XtRString, "XtDefaultForeground"},
+  {XtNfont,  XtCFont, XtRFontStruct, sizeof (struct font *),
+     offset (font),XtRString, DEFAULT_FACE_FONT},
+  {XtNforeground, XtCForeground, XtRPixel, sizeof (Pixel),
+     offset (foreground_pixel), XtRString, "XtDefaultForeground"},
+  {XtNcursorColor, XtCForeground, XtRPixel, sizeof (Pixel),
+     offset (cursor_color), XtRString, "XtDefaultForeground"},
   {XtNbarCursor, XtCBarCursor, XtRBoolean, sizeof (Boolean),
      offset (bar_cursor), XtRImmediate, (XtPointer)0},
   {XtNvisualBell, XtCVisualBell, XtRBoolean, sizeof (Boolean),
@@ -141,7 +141,7 @@ static EmacsFrameClassRec emacsFrameClassRec = {
     { /* core fields */
     /* superclass		*/	&widgetClassRec,
     /* class_name		*/	"EmacsFrame",
-    /* widget_size		*/	sizeof(EmacsFrameRec),
+    /* widget_size		*/	sizeof (EmacsFrameRec),
     /* class_initialize		*/	0,
     /* class_part_initialize	*/	0,
     /* class_inited		*/	FALSE,
@@ -151,7 +151,7 @@ static EmacsFrameClassRec emacsFrameClassRec = {
     /* actions			*/	0, /*emacsFrameActionsTable*/
     /* num_actions		*/	0, /*XtNumber (emacsFrameActionsTable)*/
     /* resources		*/	resources,
-    /* resource_count		*/	XtNumber(resources),
+    /* resource_count		*/	XtNumber (resources),
     /* xrm_class		*/	NULLQUARK,
     /* compress_motion		*/	TRUE,
     /* compress_exposure	*/	TRUE,
@@ -224,8 +224,7 @@ get_wm_shell (Widget w)
 #if 0 /* Currently not used.  */
 
 static void
-mark_shell_size_user_specified (wmshell)
-     Widget wmshell;
+mark_shell_size_user_specified (Widget wmshell)
 {
   if (! XtIsWMShell (wmshell)) abort ();
   /* This is kind of sleazy, but I can't see how else to tell it to make it
@@ -477,6 +476,9 @@ update_wm_hints (EmacsFrame ew)
   int base_height;
   int min_rows = 0, min_cols = 0;
 
+  /* This happens when the frame is just created.  */
+  if (! wmshell) return;
+
 #if 0
   check_frame_size (ew->emacs_frame.frame, &min_rows, &min_cols);
 #endif
@@ -507,11 +509,18 @@ update_wm_hints (EmacsFrame ew)
 		 NULL);
 }
 
+void
+widget_update_wm_size_hints (Widget widget)
+{
+  EmacsFrame ew = (EmacsFrame)widget;
+  update_wm_hints (ew);
+}
+
+
 #if 0
 
 static void
-create_frame_gcs (ew)
-     EmacsFrame ew;
+create_frame_gcs (EmacsFrame ew)
 {
   struct frame *s = ew->emacs_frame.frame;
 
@@ -576,7 +585,7 @@ setup_frame_gcs (EmacsFrame ew)
      never actually get used as a background tile!
    */
   blank_tile
-    = XCreatePixmapFromBitmapData (XtDisplay(ew),
+    = XCreatePixmapFromBitmapData (XtDisplay (ew),
 				   RootWindowOfScreen (XtScreen (ew)),
 				   setup_frame_cursor_bits, 2, 2,
 				   0, 1, ew->core.depth);
@@ -810,7 +819,7 @@ EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeome
   return result->request_mode ? XtGeometryAlmost : XtGeometryYes;
 }
 
-/* Special entrypoints */
+/* Special entry points */
 void
 EmacsFrameSetCharSize (Widget widget, int columns, int rows)
 {

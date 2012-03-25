@@ -288,7 +288,7 @@
 	* emacs-lisp/ewoc.el (ewoc-goto-next): Give a more explicit error
 	if there is no node.  (Bug#3261)
 
-2011-03-04  Leo  <sdl.web@gmail.com>
+2011-03-04  Leo Liu  <sdl.web@gmail.com>
 
 	* vc/diff-mode.el (diff-mode): Fix whitespace-style.  (Bug#8139)
 
@@ -779,9 +779,9 @@
 
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* lisp/allout-widgets.el (allout-widgets-icons-light-subdir)
+	* allout-widgets.el (allout-widgets-icons-light-subdir)
 	(allout-widgets-icons-dark-subdir): Track relocations of icons.
-	* lisp/allout.el: Remove commentary about remove encryption
+	* allout.el: Remove commentary about remove encryption
 	passphrase mnemonic support and verification.
 	(allout-encrypt-string): Recognize epg failure to decrypt gpg2
 	armored text using gpg1, and indicate that the gpg version *might*
@@ -866,7 +866,7 @@
 	* net/soap-client.el:
 	* net/soap-inspect.el: New files.
 
-2011-02-16  Leo  <sdl.web@gmail.com>
+2011-02-16  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-x.el (dired-mode-map, dired-extra-startup):
 	Remove dired-copy-filename-as-kill since it's already in dired.el.
@@ -1586,7 +1586,7 @@
 	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch):
 	Callers changed.
 
-2011-01-28  Leo  <sdl.web@gmail.com>
+2011-01-28  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/advice.el (ad-make-advised-docstring): Don't apply
 	highlighting to the "this function is advised" message.
@@ -2252,7 +2252,7 @@
 	Use define-derived-mode.
 	* textmodes/reftex-index.el (reftex-index-phrases-mode-map)
 	(reftex-index-mode-map): Rename from reftex-index(-phrases)-map.
-	Move init into delcaration.
+	Move init into declaration.
 	(reftex-index-mode, reftex-index-phrases-mode):
 	Use define-derived-mode.
 	* speedbar.el (speedbar-mode-syntax-table): Renaqme from
@@ -2668,7 +2668,7 @@
 	* mail/rmail.el (rmail-show-message-1): If rmail-enable-mime is
 	non-nil, handle the header in rmail-show-mime-function.
 
-2011-01-02  Leo  <sdl.web@gmail.com>
+2011-01-02  Leo Liu  <sdl.web@gmail.com>
 
 	* help-fns.el (describe-variable): Fix previous change.
 
@@ -2699,7 +2699,7 @@
 	* mail/smtpmail.el (smtpmail-send-it): Write queued mail body with
 	Unix EOLs.  (Bug#7589)
 
-2011-01-02  Leo  <sdl.web@gmail.com>
+2011-01-02  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/em-hist.el (eshell-previous-matching-input): Signal error
 	if point is not behind eshell-last-output-end (Bug#7585).
@@ -2790,13 +2790,13 @@
 	* net/tramp-gw.el:
 	* net/tramp-imap.el:
 	* net/tramp-sh.el:
-	* net/tramp-smb.el: Add tramp-autoload cookie for initialisation
+	* net/tramp-smb.el: Add tramp-autoload cookie for initialization
 	code of `tramp-default-method-alist' and `tramp-default-user-alist'.
 
 2010-12-29  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el (save-place-alist-to-file): Save list sorted and
-	pretty-printed, so that it is mergeable by line-based text merging,
+	pretty-printed, so that it is mergable by line-based text merging,
 	as suggested by Iain Dalton <iain.dalton {_AT_} gmail.com>.
 
 2010-12-28  Ken Manheimer  <ken.manheimer@gmail.com>
@@ -2809,7 +2809,7 @@
 	Consolidate layout provisions coce directly into the activation
 	condition branch, now that we've removed those provisions.
 	(allout-unload-function): Explicitly activate the mode before
-	deactivating, if it's initially deactivated.
+	deactivating, if it's initially inactive.
 	(allout-set-buffer-multibyte): Properly prevent byte-compiler
 	warnings for version of function used only where
 	set-buffer-multibyte is unavailable.
@@ -2818,7 +2818,7 @@
 
 	* tool-bar.el (tool-bar-setup): Remove :enable conditions, which
 	are handled by the menu-bar entries.  As before, don't use
-	:visibile to avoid changing the tool-bar.
+	:visible to avoid changing the tool-bar.
 
 2010-12-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -2867,7 +2867,7 @@
 	* obsolete/pgg-gpg.el, obsolete/pgg-def.el, obsolete/pgg.el:
 	Move from lisp/.
 
-2010-12-20  Leo  <sdl.web@gmail.com>
+2010-12-20  Leo Liu  <sdl.web@gmail.com>
 
 	* dnd.el (dnd-get-local-file-name): Unhex of file name shall
 	always be performed (Bug#7680).
@@ -2953,7 +2953,7 @@
 	* epa-file.el (epa-file-select-keys): Accept 'silent to inhibit
 	key selection prompt; make 'silent as default (Bug#7487).
 
-2010-12-16  Leo  <sdl.web@gmail.com>
+2010-12-16  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/eshell.el (eshell-directory-name):
 	Use locate-user-emacs-file (Bug#7578).
@@ -3058,7 +3058,7 @@
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
 	Protect buffer-modified value.  (Bug#7557)
 
-2010-12-13   Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
+2010-12-13  Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
 
 	* log-edit.el (log-edit-changelog-entries):
 	Regexp quote filename.  (Bug#7505)
@@ -3081,7 +3081,7 @@
 	* diff-mode.el (diff-refine-hunk): Make it work when the hunk contains
 	empty lines without a leading space.
 
-2010-12-13  Leo  <sdl.web@gmail.com>
+2010-12-13  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-aux.el (dired-do-redisplay): Postpone dired-after-readin-hook
 	while mapping over marks (Bug#6810).
@@ -3155,7 +3155,7 @@
 	(rmail-search-mime-message-function): Set to
 	rmail-search-mime-message.
 
-2010-12-13  Leo  <sdl.web@gmail.com>
+2010-12-13  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-common-initialization): New function.  (bug#3274)
 	(ido-mode): Use it.
@@ -3573,7 +3573,7 @@
 	* locate.el (locate-default-make-command-line): Don't consider
 	drive letter and root directory part of
 	`directory-listing-before-filename-regexp'.  (Bug#7308)
-	(locate-post-command-hook, locate-post-command-hook): New defcustoms.
+	(locate-post-command-hook, locate-mode-hook): New defcustoms.
 
 2010-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -4990,7 +4990,7 @@
 	(minibuffer-force-complete): Set completion-cycling.
 	(completion-all-sorted-completions): Move declaration before first use.
 
-2010-10-28  Leo  <sdl.web@gmail.com>
+2010-10-28  Leo Liu  <sdl.web@gmail.com>
 
 	* iswitchb.el (iswitchb-kill-buffer): Avoid `iswitchb-make-buflist'
 	which changes the order of matches seen by users (bug#7231).
@@ -5279,7 +5279,7 @@
 	(set-cursor-color, set-mouse-color, set-border-color):
 	Use read-color.
 
-2010-10-24  Leo  <sdl.web@gmail.com>
+2010-10-24  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/em-unix.el (eshell-remove-entries): Use the TRASH
 	argument of delete-file and delete-directory (Bug#7011).
@@ -5376,7 +5376,7 @@
 
 2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* newcomment.el (comment-dwim): Fix the intentation in the doc string.
+	* newcomment.el (comment-dwim): Fix the indentation in the doc string.
 
 2010-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -5815,7 +5815,7 @@
 	querying the password for.
 
 	* ibuffer.el (ibuffer-visit-buffer): To mimick list-buffers
-	behaviour, don't bury the ibuffer buffer when visiting other buffers.
+	behavior, don't bury the ibuffer buffer when visiting other buffers.
 
 2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -5876,7 +5876,7 @@
 
 	* vc-svn.el (vc-svn-merge-news): Use --non-interactive.  (Bug#7152)
 
-2010-10-08  Leo  <sdl.web@gmail.com>
+2010-10-08  Leo Liu  <sdl.web@gmail.com>
 
 	* dnd.el (dnd-get-local-file-name): If MUST-EXIST is non-nil, only
 	return non-nil if the file exists (Bug#7090).
@@ -6065,7 +6065,7 @@
 
 2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* net/gnutls.el: Improve docs.  Remove starttls and ssl emulation.
+	* net/gnutls.el: Improve docs.  Remove STARTTLS and SSL emulation.
 	Provide only `open-gnutls-stream' (formerly `open-ssl-stream') and
 	`gnutls-negotiate' (formerly `starttls-negotiate').
 	Remove trivial wrapper `starttls-open-stream'.
@@ -6217,7 +6217,7 @@
 
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/tls.el (tls-starttls-switches): Give up on using starttls with
+	* net/tls.el (tls-starttls-switches): Give up on using STARTTLS with
 	gnutls-cli.
 	(tls-program): Add --insecure to be consistent with the defaults from
 	openssl s_client.  Now all three commands are insecure.
@@ -7038,7 +7038,7 @@
 
 	* subr.el (y-or-n-p): New function, moved from src/fns.c; use read-key.
 
-2010-09-12  Leo  <sdl.web@gmail.com>
+2010-09-12  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-server-commands, rcirc-client-commands)
 	(rcirc-completion-start): New variables.
@@ -7086,7 +7086,7 @@
 	(sql-mode-oracle-font-lock-keywords): Improve SQL*Plus REMARK
 	syntax pattern.
 	(sql-mode-postgres-font-lock-keywords): Support Postgres V9.
-	(sql-mode-sqlite-font-lock-keywords): Hilight sqlite commands.
+	(sql-mode-sqlite-font-lock-keywords): Highlight sqlite commands.
 
 2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -7632,7 +7632,7 @@
 	(post-self-insert-hook): Use it.
 
 	* emacs-lisp/pcase.el (pcase-split-memq):
-	Fix overenthusiastic optimisation.
+	Fix overenthusiastic optimization.
 	(pcase-u1): Handle the case of a lambda pred.
 
 2010-08-31  Kenichi Handa  <handa@m17n.org>
@@ -7961,7 +7961,7 @@
 	* startup.el (command-line-1): Issue warning for ignored arguments
 	--unibyte, etc (Bug#6886).
 
-2010-08-22  Leo  <sdl.web@gmail.com>
+2010-08-22  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-add-or-remove): Accept a list of elements.
 	(ignore, bright, dim, keyword): Split list of nicknames before
@@ -7971,7 +7971,7 @@
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix (Bug#6880).
 
-2010-08-22  Leo  <sdl.web@gmail.com>
+2010-08-22  Leo Liu  <sdl.web@gmail.com>
 
 	Fix buffer-list rename&refresh after killing a buffer in ido.
 	* ido.el: Revert Óscar's.
@@ -8429,7 +8429,7 @@
 	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos):
 	Fix typo in docstring (bug#6747).
 
-2010-08-08  Leo  <sdl.web@gmail.com>
+2010-08-08  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/esh-io.el (eshell-get-target): Better detection of
 	read-only file (Bug#6762).
@@ -8535,7 +8535,7 @@
 	(tramp-handle-start-file-process): Use it, in order to invalidate
 	file caches.
 
-2010-08-03  Leo  <sdl.web@gmail.com>
+2010-08-03  Leo Liu  <sdl.web@gmail.com>
 
 	* server.el (server-start): Simplify loop.
 
@@ -8618,7 +8618,7 @@
 	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-top): New functions
-	(menu-bar-showhide-tool-bar-menu): If tool bar is moveable,
+	(menu-bar-showhide-tool-bar-menu): If tool bar is movable,
 	make a menu for Options => toolbar that can move it.
 
 2010-07-29  Chong Yidong  <cyd@stupidchicken.com>
@@ -9336,7 +9336,7 @@
 
 	* xml.el (xml-parse-region): Avoid infloop (Bug#5281).
 
-2010-06-29  Leo  <sdl.web@gmail.com>
+2010-06-29  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/rx.el (rx): Doc fix.  (Bug#6537)
 
@@ -9381,7 +9381,7 @@
 
 	Fix an indentation bug:
 
-	* progmodes/cc-mode.el (c-common-init): Initialise c-new-BEG/END.
+	* progmodes/cc-mode.el (c-common-init): Initialize c-new-BEG/END.
 	(c-neutralize-syntax-in-and-mark-CPP): c-new-BEG/END: Take account
 	of existing values.
 
@@ -11215,7 +11215,7 @@
 	* bindings.el (complete-symbol): Move into minibuffer.el.
 
 	* minibuffer.el (complete-tag): Move from etags.el.  If tags
-	completion cannot be performed, return nil instead of signalling
+	completion cannot be performed, return nil instead of signaling
 	an error.
 	(completion-at-point): Make it an alias for complete-symbol.
 	(complete-symbol): Move from bindings.el, and replace with the
@@ -11908,7 +11908,7 @@
 	Add new VC methods: vc-log-incoming and vc-log-outgoing.
 	* vc.el (vc-print-log-setup-buttons): New function split out from
 	vc-print-log-internal.
-	(vc-log-internal-common): New function, a parametrized version of
+	(vc-log-internal-common): New function, a parameterized version of
 	vc-print-log-internal.
 	(vc-print-log-internal): Just call vc-log-internal-common with the
 	right arguments.
@@ -12221,7 +12221,7 @@
 
 2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
 
-	Restore GDB/MI fuctionality removed by r99212.
+	Restore GDB/MI functionality removed by r99212.
 	* progmodes/gdb-mi.el: Restore.
 	* progmodes/gdb-ui.el: Remove.
 	* progmodes/gud.el: Re-accommodate for gdb-mi.el.
@@ -12985,7 +12985,7 @@
 	file has no read permissions for the owner, there might be
 	problems otherwise.  Reported by Ole Laursen <olau@iola.dk>.
 
-22010-02-18  Glenn Morris  <rgm@gnu.org>
+2010-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-renamed-files-alist):
 	Add entries for INSTALL.CVS.
@@ -13225,7 +13225,7 @@
 2010-02-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dired.el (dired-revert): If DIRED-DIRECTORY is a cons cell, call
-	`dired-uncache' for every elemnt which is an absolute file name.
+	`dired-uncache' for every element which is an absolute file name.
 
 	* net/tramp.el (tramp-handle-dired-uncache): When DIR is not a
 	directory, handle its directory component.
@@ -13311,7 +13311,7 @@
 
 2010-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
-	* dirtrack.el (dirtrack): Warn instead of signalling error if the
+	* dirtrack.el (dirtrack): Warn instead of signaling error if the
 	regexp is incorrect (Bug#5476).
 
 2010-01-29  Michael Albinus  <michael.albinus@gmx.de>
@@ -13597,7 +13597,7 @@
 	* textmodes/artist.el (artist-compute-popup-menu-table):
 	Remove duplicated words in doc-strings.
 
-2010-01-15   David Abrahams  <dave@boostpro.com>  (tiny change)
+2010-01-15  David Abrahams  <dave@boostpro.com>  (tiny change)
 
 	* net/mairix.el (mairix-widget-send-query): Send -1 instead of nil
 	to mairix-search to suppress threading (Bug#5342).
@@ -14596,7 +14596,7 @@
 2009-12-05  Kevin Ryde  <user42@zip.com.au>
 
 	* textmodes/sgml-mode.el (sgml-lexical-context):
-	Recognise comment-start-skip to comment-end-skip as comment (Bug#4781).
+	Recognize comment-start-skip to comment-end-skip as comment (Bug#4781).
 
 2009-12-05  Juri Linkov  <juri@jurta.org>
 
@@ -14934,7 +14934,7 @@
 	* woman.el (woman-make-bufname): Handle man-pages with "." in the
 	name.  (Bug#5038)
 
-2009-12-02  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+2009-12-02  Andreas Politz  <politza@fh-trier.de>
 
 	* ido.el (ido-file-internal): Handle filenames at point that do
 	not have a directory part.  (Bug#5049)
@@ -17621,7 +17621,7 @@
 	(batch-update-autoloads): Handle autoload-excludes on windows-nt.
 
 	* mail/rmailedit.el (rmail-cease-edit): Give an error if the end of
-	the headers cannot be located.  Simplify, subtracting superflous
+	the headers cannot be located.  Simplify, subtracting superfluous
 	save-excursions.
 
 2009-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -19360,7 +19360,7 @@
 	* eshell/em-dirs.el (eshell-complete-user-reference):
 	Declare pcomplete functions and variables to avoid compiler warnings.
 
-2009-09-13  Leo  <sdl.web@gmail.com>  (tiny change)
+2009-09-13  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* eshell/em-script.el (eshell-login-script, eshell-rc-script):
 	* eshell/em-dirs.el (eshell-last-dir-ring-file-name):
@@ -19488,7 +19488,7 @@
 	(elint-log-message): Add optional argument.  Use elint-output.
 	(elint-set-mode-line): New function.
 
-2009-09-12  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+2009-09-12  Andreas Politz  <politza@fh-trier.de>
 
 	* emacs-lisp/elp.el (elp-not-profilable): Add more
 	functions (Bug#4233).
@@ -19823,7 +19823,7 @@
 	* files.el (locate-file-completion-table): Make it provide boundary
 	information, so partial-completion works better.
 
-2009-09-04  Leo  <sdl.web@gmail.com>  (tiny change)
+2009-09-04  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* mail/footnote.el (Footnote-text-under-cursor):
 	Check footnote-text-marker-alist before using it (bug#4324).
@@ -22676,7 +22676,7 @@
 	(vc-next-action, vc-transfer-file, vc-rename-file): Also pass the
 	backend when calling vc-mode-line.
 	(vc-register): Do not create a closure for calling the vc register
-	function, call it directly.
+	function, call it directly.  No longer obey vc-initial-comment.
 
 2009-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -22792,7 +22792,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009-2011  Free Software Foundation, Inc.
+  Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

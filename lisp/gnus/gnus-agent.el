@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -186,7 +186,7 @@ When found, offer to remove them."
 (defcustom gnus-agent-auto-agentize-methods nil
   "Initially, all servers from these methods are agentized.
 The user may remove or add servers using the Server buffer.
-See Info node `(gnus)Server Buffer'."
+See Info nodes `(gnus)Server Buffer', `(gnus)Agent Variables'."
   :version "22.1"
   :type '(repeat symbol)
   :group 'gnus-agent)
@@ -602,7 +602,7 @@ manipulated as follows:
 		  (make-mode-line-mouse-map mouse-button mouse-func)
 		  'mouse-face
 		  (if (and (featurep 'xemacs)
-			   ;; XEmacs' `facep' only checks for a face
+			   ;; XEmacs's `facep' only checks for a face
 			   ;; object, not for a face name, so it's useless
 			   ;; to check with `facep'.
 			   (find-face 'modeline))
@@ -1130,7 +1130,7 @@ article's mark is toggled."
 		   (setq alist (cdr alist)))
 		  ((> a h)
                    ;; Headers that are not in the alist should be
-                   ;; fictious (see nnagent-retrieve-headers); they
+                   ;; fictitious (see nnagent-retrieve-headers); they
                    ;; imply that this article isn't in the agent.
 		   (gnus-agent-append-to-list tail-undownloaded h)
 		   (gnus-agent-append-to-list tail-unfetched    h)
@@ -1181,6 +1181,7 @@ downloadable."
     (gnus-summary-position-point)))
 
 (defun gnus-agent-summary-fetch-series ()
+  "Fetch the process-marked articles into the Agent."
   (interactive)
   (when gnus-newsgroup-processable
     (setq gnus-newsgroup-downloadable
@@ -1228,8 +1229,9 @@ Optional arg ALL, if non-nil, means to fetch all articles."
             (cond (gnus-agent-mark-unread-after-downloaded
                    (setq gnus-newsgroup-downloadable
                          (delq article gnus-newsgroup-downloadable))
-
-                   (gnus-summary-mark-article article gnus-unread-mark))
+		   (when (and (not (member article gnus-newsgroup-dormant))
+			      (not (member article gnus-newsgroup-marked)))
+		     (gnus-summary-mark-article article gnus-unread-mark)))
                   (was-marked-downloadable
                    (gnus-summary-set-agent-mark article t)))
             (when (gnus-summary-goto-subject article nil t)
@@ -1368,7 +1370,7 @@ downloaded into the agent."
           ;; disable the set read each time this server is opened.
           ;; NOTE: Opening this group will restore the valid local
           ;; range but it will also expand the local range to
-          ;; incompass the new active range.
+          ;; encompass the new active range.
           (gnus-agent-set-local group agent-min (1- active-min)))))))
 
 (defun gnus-agent-save-group-info (method group active)
@@ -1933,7 +1935,7 @@ article numbers will be returned."
       (with-current-buffer nntp-server-buffer
         (if articles
             (progn
-	      (gnus-message 7 "Fetching headers for %s..."
+	      (gnus-message 8 "Fetching headers for %s..."
 			    (gnus-agent-decoded-group-name group))
 
               ;; Fetch them.
@@ -2229,7 +2231,10 @@ doesn't exist, to valid the overview buffer."
 article counts for each of the method's subscribed groups."
   (let ((gnus-command-method (or method gnus-command-method)))
     (when (or (null gnus-agent-article-local-times)
-	      (zerop gnus-agent-article-local-times))
+	      (zerop gnus-agent-article-local-times)
+	      (not (gnus-methods-equal-p
+		    gnus-command-method
+		    (symbol-value (intern "+method" gnus-agent-article-local)))))
       (setq gnus-agent-article-local
 	    (gnus-cache-file-contents
 	     (gnus-agent-lib-file "local")
@@ -3232,7 +3237,7 @@ FORCE is equivalent to setting the expiration predicates to true."
 
 	 ;; Convert the keep lists to elements that look like (article#
 	 ;; nil keep_flag nil) then append it to the expanded dlist
-	 ;; These statements are sorted by ascending precidence of the
+	 ;; These statements are sorted by ascending precedence of the
 	 ;; keep_flag.
 	 (setq dlist (nconc dlist
 			    (mapcar (lambda (e)
@@ -3560,7 +3565,7 @@ articles in every agentized group? "))
                 units (cdr units)))
 
         (format "Expiry recovered %d NOV entries, deleted %d files,\
- and freed %f %s."
+ and freed %.f %s."
                 (nth 0 stats)
                 (nth 1 stats)
                 size (car units)))
@@ -3613,7 +3618,7 @@ articles in every agentized group? "))
                                 (setq r d
                                       d (directory-file-name d)))
                               ;; if ANY ancestor was NOT in keep hash and
-                              ;; it it's already in to-remove, add it to
+                              ;; it's not already in to-remove, add it to
                               ;; to-remove.
                               (if (and r
                                        (not (member r to-remove)))
@@ -3885,7 +3890,12 @@ has been fetched."
 	 (coding-system-for-write gnus-cache-coding-system))
     (when (not (file-exists-p file))
       (gnus-make-directory (file-name-directory file))
-      (write-region (point-min) (point-max) file nil 'silent))))
+      (write-region (point-min) (point-max) file nil 'silent)
+      ;; Tell the Agent when the article was fetched, so that it can
+      ;; be expired later.
+      (gnus-agent-load-alist group)
+      (gnus-agent-save-alist group (list article)
+			     (time-to-days (current-time))))))
 
 (defun gnus-agent-regenerate-group (group &optional reread)
   "Regenerate GROUP.
@@ -4031,7 +4041,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
 	;; gnus-agent-regenerate-group can remove the article ID of every
 	;; article (with the exception of the last ID in the list - it's
 	;; special) that no longer appears in the overview.  In this
-	;; situtation, the last article ID in the list implies that it,
+	;; situation, the last article ID in the list implies that it,
 	;; and every article ID preceding it, have been fetched from the
 	;; server.
 

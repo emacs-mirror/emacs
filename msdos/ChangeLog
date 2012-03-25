@@ -1,3 +1,60 @@
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (insrcdir): Use $(<F) rather than $<, as
+	command.com's "if not exist" doesn't grok forward slashes in file
+	names.
+
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed4.inp (PATH_DUMPLOADSEARCH): Edit to "../lisp", for when the
+	default in src/epaths.in will change, maybe.
+
+2011-10-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (insrcdir): Comment out definition.
+	$(insrcdir): Edit into MS-DOS existence test.
+
+2011-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (boot): Condition the value on the existence of
+	autogen/README, not admin/admin.el, since the latter is now part
+	of the release tarball.
+	(install): Don't copy lib-src/fns.el, as that file is no longer
+	generated in that directory.
+
+	* sed1v2.inp (LIB_PTHREAD, LIB_PTHREAD_SIGMASK): Edit to empty.
+	(SETTINGS_CFLAGS, SETTINGS_LIBS): Edit these instead of
+	GCONF_CFLAGS and GCONF_LIBS.
+
+	* sedlibmk.inp (ALLOCA_H, AR, ARFLAGS, GNULIB_CHDIR, GNULIB_DUP)
+	(GNULIB_FDATASYNC, GNULIB_FDOPEN, GNULIB_FSTAT, GNULIB_PCLOSE)
+	(GNULIB_PTHREAD_SIGMASK, GNULIB_RAISE, GNULIB_SIGACTION)
+	(GNULIB_SIGPROCMASK, GNULIB_SIGNAL_H_SIGPIPE, HAVE_FDATASYNC)
+	(HAVE_PCLOSE, HAVE_POPEN, HAVE_POSIX_SIGNALBLOCKING)
+	(HAVE_PTHREAD_SIGMASK, HAVE_RAISE, HAVE_SIGACTION)
+	(HAVE_SIGHANDLER_T, HAVE_SIGINFO_T, HAVE_SIGSET_T)
+	(HAVE_STRUCT_SIGACTION_SA_SIGACTION)
+	(HAVE_TYPE_VOLATILE_SIG_ATOMIC_T, LIB_PTHREAD)
+	(LIB_PTHREAD_SIGMASK, NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H)
+	(NEXT_SIGNAL_H, REPLACE_FDOPEN, REPLACE_PTHREAD_SIGMASK)
+	(REPLACE_RAISE): New edits.
+	(gl_LIBOBJS): Remove md5.o, filemode.o, and sha1.o.  Add
+	pthread_sigmask.o.
+	(@GL_GENERATE_ALLOCA_H_TRUE@, @GL_GENERATE_ALLOCA_H_FALSE@): Edit
+	to comment out unneeded lines.
+	(warn-on-use.h): Edit the recipe commands to work with DJGPP
+	without requiring a Unixy shell.
+
+	* inttypes.h (strtoimax) [DJGPP < 2.04]: New macro.
+
+	* sed2v2.inp (HAVE_ALLOCA, HAVE_DECL_STRTOLL, HAVE_DECL_STRTOIMAX)
+	(HAVE_STRTOLL, HAVE_SIGSET_T, HAVE_SNPRINTF): New edits.
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sedlibmk.inp (CONFIG_CLEAN_VPATH_FILES): Adjust to snippet moves
+	from top level to build-aux/snippet (Bug#9169).
+
 2011-06-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (PTRDIFF_T_SUFFIX): Edit to nothing.
@@ -591,7 +648,7 @@
 	b-emacs.exe to 3072K.
 
 	* mainmake.v2 (emacs lispref lispintro): Chdir under doc/.
-	(emacs): Renamed from `man', to reflect changes in doc directory
+	(emacs): Rename from `man', to reflect changes in doc directory
 	structure.  All callers changed.
 	(clean mostlyclean distclean maintainer-clean extraclean): Chdir
 	into doc/ for manuals.  Add misc subdirectory.
@@ -1046,7 +1103,7 @@
 
 1996-08-04  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
-	* is_exec.c: Renamed from is-exec.c.
+	* is_exec.c: Rename from is-exec.c.
 
 1996-07-27  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -1081,7 +1138,7 @@
 
 	* mainmake.v2 (src): Create a file with sed commands instead of using
 	a long sed command line (some versions of Sed don't handle that).
-	(gdb): Merged back into src, undoing April 13 change.
+	(gdb): Merge back into src, undoing April 13 change.
 	(install): Do use if statements, but not a loop.
 
 1996-04-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -1251,7 +1308,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1994-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1994-1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

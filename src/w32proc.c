@@ -1,5 +1,5 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1995, 1999-2011  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -122,12 +122,12 @@ new_child (void)
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
     if (!CHILD_ACTIVE (cp))
-      goto Initialise;
+      goto Initialize;
   if (child_proc_count == MAX_CHILDREN)
     return NULL;
   cp = &child_procs[child_proc_count++];
 
- Initialise:
+ Initialize:
   memset (cp, 0, sizeof (*cp));
   cp->fd = -1;
   cp->pid = -1;
@@ -174,7 +174,7 @@ delete_child (child_process *cp)
 	  cp->status = STATUS_READ_ERROR;
 	  SetEvent (cp->char_consumed);
 #if 0
-          /* We used to forceably terminate the thread here, but it
+          /* We used to forcibly terminate the thread here, but it
              is normally unnecessary, and in abnormal cases, the worst that
              will happen is we have an extra idle thread hanging around
              waiting for the zombie process.  */
@@ -241,7 +241,8 @@ reader_thread (void *arg)
 
   /* We have to wait for the go-ahead before we can start */
   if (cp == NULL
-      || WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
+      || WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0
+      || cp->fd < 0)
     return 1;
 
   for (;;)
@@ -820,7 +821,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 
      The w32 GNU-based library from Cygnus doubles quotes to escape
      them, while MSVC uses backslash for escaping.  (Actually the MSVC
-     startup code does attempt to recognise doubled quotes and accept
+     startup code does attempt to recognize doubled quotes and accept
      them, but gets it wrong and ends up requiring three quotes to get a
      single embedded quote!)  So by default we decide whether to use
      quote or backslash as the escape character based on whether the
@@ -2066,8 +2067,8 @@ DEFUN ("w32-get-console-codepage", Fw32_get_console_codepage,
 
 DEFUN ("w32-set-console-codepage", Fw32_set_console_codepage,
        Sw32_set_console_codepage, 1, 1, 0,
-       doc: /* Make Windows codepage CP be the current codepage setting for Emacs.
-The codepage setting affects keyboard input and display in tty mode.
+       doc: /* Make Windows codepage CP be the codepage for Emacs tty keyboard input.
+This codepage setting affects keyboard input in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
   (Lisp_Object cp)
 {
@@ -2094,8 +2095,8 @@ DEFUN ("w32-get-console-output-codepage", Fw32_get_console_output_codepage,
 
 DEFUN ("w32-set-console-output-codepage", Fw32_set_console_output_codepage,
        Sw32_set_console_output_codepage, 1, 1, 0,
-       doc: /* Make Windows codepage CP be the current codepage setting for Emacs.
-The codepage setting affects keyboard input and display in tty mode.
+       doc: /* Make Windows codepage CP be the codepage for Emacs console output.
+This codepage setting affects display in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
   (Lisp_Object cp)
 {
@@ -2113,7 +2114,7 @@ If successful, the new CP is returned, otherwise nil.  */)
 
 DEFUN ("w32-get-codepage-charset", Fw32_get_codepage_charset,
        Sw32_get_codepage_charset, 1, 1, 0,
-       doc: /* Return charset of codepage CP.
+       doc: /* Return charset ID corresponding to codepage CP.
 Returns nil if the codepage is not valid.  */)
   (Lisp_Object cp)
 {
@@ -2295,7 +2296,7 @@ filesystems via ange-ftp.  */);
 	       doc: /* Non-nil means attempt to fake realistic inode values.
 This works by hashing the truename of files, and should detect
 aliasing between long and short (8.3 DOS) names, but can have
-false positives because of hash collisions.  Note that determing
+false positives because of hash collisions.  Note that determining
 the truename of a file can be slow.  */);
   Vw32_generate_fake_inodes = Qnil;
 #endif
@@ -2319,4 +2320,3 @@ where the performance impact may be noticeable even on modern hardware.  */);
   staticpro (&Vw32_valid_codepages);
 }
 /* end of w32proc.c */
-

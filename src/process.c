@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2011
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -54,9 +54,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <sys/ioctl.h>
-#if defined(HAVE_NET_IF_H)
+#if defined (HAVE_NET_IF_H)
 #include <net/if.h>
 #endif /* HAVE_NET_IF_H */
+
+#if defined (HAVE_IFADDRS_H)
+/* Must be after net/if.h */
+#include <ifaddrs.h>
+
+/* We only use structs from this header when we use getifaddrs.  */
+#if defined (HAVE_NET_IF_DL_H)
+#include <net/if_dl.h>
+#endif
+
+#endif
 
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
@@ -245,7 +256,7 @@ static void create_pty (Lisp_Object);
 
 /* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
-#ifdef HAVE_WINDOW_SYSTEM
+#if defined (HAVE_WINDOW_SYSTEM) && !defined (USE_ASYNC_EVENTS)
 #define POLL_FOR_INPUT
 #endif
 
@@ -605,8 +616,8 @@ make_process (Lisp_Object name)
 {
   register Lisp_Object val, tem, name1;
   register struct Lisp_Process *p;
-  char suffix[10];
-  register int i;
+  char suffix[sizeof "<>" + INT_STRLEN_BOUND (printmax_t)];
+  printmax_t i;
 
   p = allocate_process ();
 
@@ -631,6 +642,9 @@ make_process (Lisp_Object name)
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
   p->gnutls_log_level = 0;
   p->gnutls_p = 0;
+  p->gnutls_state = NULL;
+  p->gnutls_x509_cred = NULL;
+  p->gnutls_anon_cred = NULL;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */
@@ -640,7 +654,7 @@ make_process (Lisp_Object name)
     {
       tem = Fget_process (name1);
       if (NILP (tem)) break;
-      sprintf (suffix, "<%d>", i);
+      sprintf (suffix, "<%"pMd">", i);
       name1 = concat2 (name, build_string (suffix));
     }
   name = name1;
@@ -1400,7 +1414,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	  val = XCDR (Vdefault_process_coding_system);
       }
     XPROCESS (proc)->encode_coding_system = val;
-    /* Note: At this momemnt, the above coding system may leave
+    /* Note: At this moment, the above coding system may leave
        text-conversion or eol-conversion unspecified.  They will be
        decided after we read output from the process and decode it by
        some coding system, or just before we actually send a text to
@@ -1507,8 +1521,9 @@ start_process_unwind (Lisp_Object proc)
   if (!PROCESSP (proc))
     abort ();
 
-  /* Was PROC started successfully?  */
-  if (XPROCESS (proc)->pid == -1)
+  /* Was PROC started successfully?
+     -2 is used for a pty with no process, eg for gdb.  */
+  if (XPROCESS (proc)->pid <= 0 && XPROCESS (proc)->pid != -2)
     remove_process (proc);
 
   return Qnil;
@@ -1632,7 +1647,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   XPROCESS (process)->pty_flag = pty_flag;
   XPROCESS (process)->status = Qrun;
-  setup_process_coding_systems (process);
 
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
@@ -1666,6 +1680,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
      it might cause call-process to hang and subsequent asynchronous
      processes to get their return values scrambled.  */
   XPROCESS (process)->pid = -1;
+
+  /* This must be called after the above line because it may signal an
+     error. */
+  setup_process_coding_systems (process);
 
   BLOCK_INPUT;
 
@@ -2907,7 +2925,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       /* Don't support network sockets when non-blocking mode is
 	 not available, since a blocked Emacs is not useful.  */
-#if !defined(O_NONBLOCK) && !defined(O_NDELAY)
+#if !defined (O_NONBLOCK) && !defined (O_NDELAY)
       error ("Network servers not supported");
 #else
       is_server = 1;
@@ -2961,7 +2979,7 @@ usage: (make-network-process &rest ARGS)  */)
   tem = Fplist_get (contact, QCfamily);
   if (NILP (tem))
     {
-#if defined(HAVE_GETADDRINFO) && defined(AF_INET6)
+#if defined (HAVE_GETADDRINFO) && defined (AF_INET6)
       family = AF_UNSPEC;
 #else
       family = AF_INET;
@@ -3103,7 +3121,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       struct hostent *host_info_ptr;
 
-      /* gethostbyname may fail with TRY_AGAIN, but we don't honour that,
+      /* gethostbyname may fail with TRY_AGAIN, but we don't honor that,
 	 as it may `hang' Emacs for a very long time.  */
       immediate_quit = 1;
       QUIT;
@@ -3457,7 +3475,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   {
     /* Setup coding systems for communicating with the network stream.  */
-    struct gcpro inner_gcpro1;
+    struct gcpro gcpro1;
     /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
     Lisp_Object coding_systems = Qt;
     Lisp_Object fargs[5], val;
@@ -3474,7 +3492,7 @@ usage: (make-network-process &rest ARGS)  */)
 	     || (NILP (buffer) && NILP (BVAR (&buffer_defaults, enable_multibyte_characters))))
       /* We dare not decode end-of-line format by setting VAL to
 	 Qraw_text, because the existing Emacs Lisp libraries
-	 assume that they receive bare code including a sequene of
+	 assume that they receive bare code including a sequence of
 	 CR LF.  */
       val = Qnil;
     else
@@ -3485,9 +3503,9 @@ usage: (make-network-process &rest ARGS)  */)
 	  {
 	    fargs[0] = Qopen_network_stream, fargs[1] = name,
 	      fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
-	    GCPRO1_VAR (proc, inner_gcpro);
+	    GCPRO1 (proc);
 	    coding_systems = Ffind_operation_coding_system (5, fargs);
-	    UNGCPRO_VAR (inner_gcpro);
+	    UNGCPRO;
 	  }
 	if (CONSP (coding_systems))
 	  val = XCAR (coding_systems);
@@ -3518,9 +3536,9 @@ usage: (make-network-process &rest ARGS)  */)
 	      {
 		fargs[0] = Qopen_network_stream, fargs[1] = name,
 		  fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
-		GCPRO1_VAR (proc, inner_gcpro);
+		GCPRO1 (proc);
 		coding_systems = Ffind_operation_coding_system (5, fargs);
-		UNGCPRO_VAR (inner_gcpro);
+		UNGCPRO;
 	      }
 	  }
 	if (CONSP (coding_systems))
@@ -3546,7 +3564,7 @@ usage: (make-network-process &rest ARGS)  */)
 }
 
 
-#if defined(HAVE_NET_IF_H)
+#if defined (HAVE_NET_IF_H)
 
 #ifdef SIOCGIFCONF
 DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_list, 0, 0, 0,
@@ -3557,46 +3575,53 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   (void)
 {
   struct ifconf ifconf;
-  struct ifreq *ifreqs = NULL;
-  int ifaces = 0;
-  int buf_size, s;
+  struct ifreq *ifreq;
+  void *buf = NULL;
+  ptrdiff_t buf_size = 512;
+  int s, i;
   Lisp_Object res;
 
   s = socket (AF_INET, SOCK_STREAM, 0);
   if (s < 0)
     return Qnil;
 
- again:
-  ifaces += 25;
-  buf_size = ifaces * sizeof (ifreqs[0]);
-  ifreqs = (struct ifreq *)xrealloc(ifreqs, buf_size);
-  if (!ifreqs)
+  do
     {
-      close (s);
-      return Qnil;
+      buf = xpalloc (buf, &buf_size, 1, INT_MAX, 1);
+      ifconf.ifc_buf = buf;
+      ifconf.ifc_len = buf_size;
+      if (ioctl (s, SIOCGIFCONF, &ifconf))
+	{
+	  close (s);
+	  xfree (buf);
+	  return Qnil;
+	}
     }
-
-  ifconf.ifc_len = buf_size;
-  ifconf.ifc_req = ifreqs;
-  if (ioctl (s, SIOCGIFCONF, &ifconf))
-    {
-      close (s);
-      return Qnil;
-    }
-
-  if (ifconf.ifc_len == buf_size)
-    goto again;
+  while (ifconf.ifc_len == buf_size);
 
   close (s);
-  ifaces = ifconf.ifc_len / sizeof (ifreqs[0]);
 
   res = Qnil;
-  while (--ifaces >= 0)
+  ifreq = ifconf.ifc_req;
+  while ((char *) ifreq < (char *) ifconf.ifc_req + ifconf.ifc_len)
     {
-      struct ifreq *ifq = &ifreqs[ifaces];
+      struct ifreq *ifq = ifreq;
+#ifdef HAVE_STRUCT_IFREQ_IFR_ADDR_SA_LEN
+#define SIZEOF_IFREQ(sif)						\
+      ((sif)->ifr_addr.sa_len < sizeof (struct sockaddr)		\
+       ? sizeof (*(sif)) : sizeof ((sif)->ifr_name) + (sif)->ifr_addr.sa_len)
+
+      int len = SIZEOF_IFREQ (ifq);
+#else
+      int len = sizeof (*ifreq);
+#endif
       char namebuf[sizeof (ifq->ifr_name) + 1];
+      i += len;
+      ifreq = (struct ifreq *) ((char *) ifreq + len);
+
       if (ifq->ifr_addr.sa_family != AF_INET)
 	continue;
+
       memcpy (namebuf, ifq->ifr_name, sizeof (ifq->ifr_name));
       namebuf[sizeof (ifq->ifr_name)] = 0;
       res = Fcons (Fcons (build_string (namebuf),
@@ -3605,11 +3630,12 @@ format; see the description of ADDRESS in `make-network-process'.  */)
 		   res);
     }
 
+  xfree (buf);
   return res;
 }
 #endif /* SIOCGIFCONF */
 
-#if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
+#if defined (SIOCGIFADDR) || defined (SIOCGIFHWADDR) || defined (SIOCGIFFLAGS)
 
 struct ifflag_def {
   int flag_bit;
@@ -3642,7 +3668,12 @@ static const struct ifflag_def ifflag_table[] = {
   { IFF_PROMISC,	"promisc" },
 #endif
 #ifdef IFF_NOTRAILERS
+#ifdef NS_IMPL_COCOA
+  /* Really means smart, notrailers is obsolete */
+  { IFF_NOTRAILERS,	"smart" },
+#else
   { IFF_NOTRAILERS,	"notrailers" },
+#endif
 #endif
 #ifdef IFF_ALLMULTI
   { IFF_ALLMULTI,	"allmulti" },
@@ -3687,7 +3718,7 @@ DEFUN ("network-interface-info", Fnetwork_interface_info, Snetwork_interface_inf
        doc: /* Return information about network interface named IFNAME.
 The return value is a list (ADDR BCAST NETMASK HWADDR FLAGS),
 where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
-NETMASK is the layer 3 network mask, HWADDR is the layer 2 addres, and
+NETMASK is the layer 3 network mask, HWADDR is the layer 2 address, and
 FLAGS is the current flags of the interface.  */)
   (Lisp_Object ifname)
 {
@@ -3696,6 +3727,10 @@ FLAGS is the current flags of the interface.  */)
   Lisp_Object elt;
   int s;
   int any = 0;
+#if (! (defined SIOCGIFHWADDR && defined HAVE_STRUCT_IFREQ_IFR_HWADDR)	\
+     && defined HAVE_GETIFADDRS && defined LLADDR)
+  struct ifaddrs *ifap;
+#endif
 
   CHECK_STRING (ifname);
 
@@ -3707,12 +3742,18 @@ FLAGS is the current flags of the interface.  */)
     return Qnil;
 
   elt = Qnil;
-#if defined(SIOCGIFFLAGS) && defined(HAVE_STRUCT_IFREQ_IFR_FLAGS)
+#if defined (SIOCGIFFLAGS) && defined (HAVE_STRUCT_IFREQ_IFR_FLAGS)
   if (ioctl (s, SIOCGIFFLAGS, &rq) == 0)
     {
       int flags = rq.ifr_flags;
       const struct ifflag_def *fp;
       int fnum;
+
+      /* If flags is smaller than int (i.e. short) it may have the high bit set
+         due to IFF_MULTICAST.  In that case, sign extending it into
+         an int is wrong.  */
+      if (flags < 0 && sizeof (rq.ifr_flags) < sizeof (flags))
+        flags = (unsigned short) rq.ifr_flags;
 
       any = 1;
       for (fp = ifflag_table; flags != 0 && fp->flag_sym; fp++)
@@ -3735,7 +3776,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFHWADDR) && defined(HAVE_STRUCT_IFREQ_IFR_HWADDR)
+#if defined (SIOCGIFHWADDR) && defined (HAVE_STRUCT_IFREQ_IFR_HWADDR)
   if (ioctl (s, SIOCGIFHWADDR, &rq) == 0)
     {
       Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
@@ -3747,11 +3788,42 @@ FLAGS is the current flags of the interface.  */)
 	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
       elt = Fcons (make_number (rq.ifr_hwaddr.sa_family), hwaddr);
     }
+#elif defined (HAVE_GETIFADDRS) && defined (LLADDR)
+  if (getifaddrs (&ifap) != -1)
+    {
+      Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
+      register struct Lisp_Vector *p = XVECTOR (hwaddr);
+      struct ifaddrs *it;
+
+      for (it = ifap; it != NULL; it = it->ifa_next)
+        {
+          struct sockaddr_dl *sdl = (struct sockaddr_dl*) it->ifa_addr;
+          unsigned char linkaddr[6];
+          int n;
+
+          if (it->ifa_addr->sa_family != AF_LINK
+              || strcmp (it->ifa_name, SSDATA (ifname)) != 0
+              || sdl->sdl_alen != 6)
+            continue;
+
+          memcpy (linkaddr, LLADDR (sdl), sdl->sdl_alen);
+          for (n = 0; n < 6; n++)
+            p->contents[n] = make_number (linkaddr[n]);
+
+          elt = Fcons (make_number (it->ifa_addr->sa_family), hwaddr);
+          break;
+        }
+    }
+#ifdef HAVE_FREEIFADDRS
+  freeifaddrs (ifap);
 #endif
+
+#endif /* HAVE_GETIFADDRS && LLADDR */
+
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFNETMASK) && (defined(HAVE_STRUCT_IFREQ_IFR_NETMASK) || defined(HAVE_STRUCT_IFREQ_IFR_ADDR))
+#if defined (SIOCGIFNETMASK) && (defined (HAVE_STRUCT_IFREQ_IFR_NETMASK) || defined (HAVE_STRUCT_IFREQ_IFR_ADDR))
   if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
     {
       any = 1;
@@ -3765,7 +3837,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFBRDADDR) && defined(HAVE_STRUCT_IFREQ_IFR_BROADADDR)
+#if defined (SIOCGIFBRDADDR) && defined (HAVE_STRUCT_IFREQ_IFR_BROADADDR)
   if (ioctl (s, SIOCGIFBRDADDR, &rq) == 0)
     {
       any = 1;
@@ -3775,7 +3847,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFADDR) && defined(HAVE_STRUCT_IFREQ_IFR_ADDR)
+#if defined (SIOCGIFADDR) && defined (HAVE_STRUCT_IFREQ_IFR_ADDR)
   if (ioctl (s, SIOCGIFADDR, &rq) == 0)
     {
       any = 1;
@@ -3789,7 +3861,7 @@ FLAGS is the current flags of the interface.  */)
   return any ? res : Qnil;
 }
 #endif
-#endif	/* defined(HAVE_NET_IF_H) */
+#endif	/* defined (HAVE_NET_IF_H) */
 
 /* Turn off input and output for process PROC.  */
 
@@ -3798,6 +3870,11 @@ deactivate_process (Lisp_Object proc)
 {
   register int inchannel, outchannel;
   register struct Lisp_Process *p = XPROCESS (proc);
+
+#ifdef HAVE_GNUTLS
+  /* Delete GnuTLS structures in PROC, if any.  */
+  emacs_gnutls_deinit (proc);
+#endif /* HAVE_GNUTLS */
 
   inchannel  = p->infd;
   outchannel = p->outfd;
@@ -4544,15 +4621,46 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
              some data in the TCP buffers so that select works, but
              with custom pull/push functions we need to check if some
              data is available in the buffers manually.  */
-          if (nfds == 0 &&
-              wait_proc && wait_proc->gnutls_p /* Check for valid process.  */
-              /* Do we have pending data?  */
-              && emacs_gnutls_record_check_pending (wait_proc->gnutls_state) > 0)
-          {
-              nfds = 1;
-              /* Set to Available.  */
-              FD_SET (wait_proc->infd, &Available);
-          }
+          if (nfds == 0)
+	    {
+	      if (! wait_proc)
+		{
+		  /* We're not waiting on a specific process, so loop
+		     through all the channels and check for data.
+		     This is a workaround needed for some versions of
+		     the gnutls library -- 2.12.14 has been confirmed
+		     to need it.  See
+		     http://comments.gmane.org/gmane.emacs.devel/145074 */
+		  for (channel = 0; channel < MAXDESC; ++channel)
+		    if (! NILP (chan_process[channel]))
+		      {
+			struct Lisp_Process *p =
+			  XPROCESS (chan_process[channel]);
+			if (p && p->gnutls_p && p->infd
+			    && ((emacs_gnutls_record_check_pending
+				 (p->gnutls_state))
+				> 0))
+			  {
+			    nfds++;
+			    FD_SET (p->infd, &Available);
+			  }
+		      }
+		}
+	      else
+		{
+		  /* Check this specific channel. */
+		  if (wait_proc->gnutls_p /* Check for valid process.  */
+		      /* Do we have pending data?  */
+		      && ((emacs_gnutls_record_check_pending
+			   (wait_proc->gnutls_state))
+			  > 0))
+		    {
+		      nfds = 1;
+		      /* Set to Available.  */
+		      FD_SET (wait_proc->infd, &Available);
+		    }
+		}
+	    }
 #endif
 	}
 
@@ -4780,20 +4888,20 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
 		{
-		  /* Clear the descriptor now, so we only raise the
-		     signal once.  Don't do this if `process' is only
-		     a pty.  */
-		  if (XPROCESS (proc)->pid != -2)
-		    {
-		      FD_CLR (channel, &input_wait_mask);
-		      FD_CLR (channel, &non_keyboard_wait_mask);
-
-		      kill (getpid (), SIGCHLD);
-		    }
+                  /* Don't do anything if only a pty, with no associated
+		     process (bug#10933).  */
+                  if (XPROCESS (proc)->pid != -2) {
+                    /* Clear the descriptor now, so we only raise the signal
+		       once.  */
+                    FD_CLR (channel, &input_wait_mask);
+                    FD_CLR (channel, &non_keyboard_wait_mask);
+                    
+                    kill (getpid (), SIGCHLD);
+                  }
 		}
 #endif /* HAVE_PTYS */
-	      /* If we can detect process termination, don't consider the process
-		 gone just because its pipe is closed.  */
+	      /* If we can detect process termination, don't consider the
+		 process gone just because its pipe is closed.  */
 #ifdef SIGCHLD
 	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc))
 		;
@@ -4957,9 +5065,8 @@ read_process_output (Lisp_Object proc, register int channel)
 	  proc_buffered_char[channel] = -1;
 	}
 #ifdef HAVE_GNUTLS
-      if (XPROCESS (proc)->gnutls_p)
-	nbytes = emacs_gnutls_read (XPROCESS (proc),
-				    chars + carryover + buffered,
+      if (p->gnutls_p)
+	nbytes = emacs_gnutls_read (p, chars + carryover + buffered,
 				    readmax - buffered);
       else
 #endif
@@ -5093,6 +5200,9 @@ read_process_output (Lisp_Object proc, register int channel)
 	  p->decoding_carryover = coding->carryover_bytes;
 	}
       if (SBYTES (text) > 0)
+	/* FIXME: It's wrong to wrap or not based on debug-on-error, and
+	   sometimes it's simply wrong to wrap (e.g. when called from
+	   accept-process-output).  */
 	internal_condition_case_1 (read_process_output_call,
 				   Fcons (outstream,
 					  Fcons (proc, Fcons (text, Qnil))),
@@ -5303,8 +5413,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	     sending a multibyte text, thus we must encode it by the
 	     original coding system specified for the current process.
 
-	     Another reason we comming here is that the coding system
-	     was just complemented and new one was returned by
+	     Another reason we come here is that the coding system
+	     was just complemented and a new one was returned by
 	     complement_process_encoding_system.  */
 	  setup_coding_system (p->encode_coding_system, coding);
 	  Vlast_coding_system_used = p->encode_coding_system;
@@ -5313,6 +5423,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
     }
   else
     {
+      coding->src_multibyte = 0;
       /* For sending a unibyte text, character code conversion should
 	 not take place but EOL conversion should.  So, setup raw-text
 	 or one of the subsidiary if we have not yet done it.  */
@@ -5420,9 +5531,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 #endif
 		{
 #ifdef HAVE_GNUTLS
-		  if (XPROCESS (proc)->gnutls_p)
-		    written = emacs_gnutls_write (XPROCESS (proc),
-                                                  buf, this);
+		  if (p->gnutls_p)
+		    written = emacs_gnutls_write (p, buf, this);
 		  else
 #endif
 		    written = emacs_write (outfd, buf, this);
@@ -7209,7 +7319,7 @@ init_process (void)
 #ifdef HAVE_GETSOCKNAME
    ADD_SUBFEATURE (QCservice, Qt);
 #endif
-#if defined(O_NONBLOCK) || defined(O_NDELAY)
+#if defined (O_NONBLOCK) || defined (O_NDELAY)
    ADD_SUBFEATURE (QCserver, Qt);
 #endif
 
@@ -7401,14 +7511,14 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
-#if defined(HAVE_NET_IF_H)
+#if defined (HAVE_NET_IF_H)
 #ifdef SIOCGIFCONF
   defsubr (&Snetwork_interface_list);
 #endif
-#if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
+#if defined (SIOCGIFADDR) || defined (SIOCGIFHWADDR) || defined (SIOCGIFFLAGS)
   defsubr (&Snetwork_interface_info);
 #endif
-#endif /* defined(HAVE_NET_IF_H) */
+#endif /* defined (HAVE_NET_IF_H) */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
   defsubr (&Sset_process_datagram_address);

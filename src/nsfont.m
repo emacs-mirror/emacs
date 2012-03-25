@@ -1,6 +1,6 @@
 /* Font back-end driver for the NeXT/Open/GNUstep and MacOSX window system.
    See font.h
-   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -126,8 +126,8 @@ ns_attribute_fvalue (NSFontDescriptor *fdesc, NSString *trait)
 /* Converts FONT_WEIGHT, FONT_SLANT, FONT_WIDTH, plus family and script/lang
    to NSFont descriptor.  Information under extra only needed for matching. */
 #define STYLE_REF 100
-static NSFontDescriptor
-*ns_spec_to_descriptor(Lisp_Object font_spec)
+static NSFontDescriptor *
+ns_spec_to_descriptor (Lisp_Object font_spec)
 {
     NSFontDescriptor *fdesc;
     NSMutableDictionary *fdAttrs = [NSMutableDictionary new];
@@ -152,8 +152,13 @@ static NSFontDescriptor
 	[fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
 
     fdesc = [NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs];
-    if (family != nil)
+    if (family != nil) 
+      {
 	fdesc = [fdesc fontDescriptorWithFamily: family];
+      }
+
+    [fdAttrs release];
+    [tdict release];
     return fdesc;
 }
 
@@ -256,7 +261,7 @@ ns_char_width (NSFont *sfont, int c)
 
 
 /* Return whether set1 covers set2 to a reasonable extent given by pct.
-   We check, out of each 16 unicode char range containing chars in set2,
+   We check, out of each 16 Unicode char range containing chars in set2,
    whether at least one character is present in set1.
    This must be true for pct of the pairs to consider it covering. */
 static BOOL
@@ -297,13 +302,13 @@ static NSString
 
 
 /* Convert OTF 4-letter script code to emacs script name.  (Why can't
-   everyone just use some standard unicode names for these?) */
+   everyone just use some standard Unicode names for these?) */
 static NSString
 *ns_otf_to_script (Lisp_Object otf)
 {
     Lisp_Object script = assq_no_quit (XCAR (otf), Votf_script_alist);
     return CONSP (script)
-	? [NSString stringWithUTF8String: SDATA (SYMBOL_NAME XCDR ((script)))]
+	? [NSString stringWithUTF8String: SDATA (SYMBOL_NAME (XCDR ((script))))]
 	: @"";
 }
 
@@ -329,7 +334,7 @@ static NSString
 
 /* Searches the :script, :lang, and :otf extra-bundle properties of the spec,
    plus registry regular property, for something that can be mapped to a
-   unicode script.  Empty string returned if no script spec found. */
+   Unicode script.  Empty string returned if no script spec found. */
 static NSString
 *ns_get_req_script (Lisp_Object font_spec)
 {
@@ -385,7 +390,7 @@ accumulate_script_ranges (Lisp_Object arg, Lisp_Object range, Lisp_Object val)
 }
 
 
-/* Use the unicode range information in Vchar_script_table to convert a script
+/* Use the Unicode range information in Vchar_script_table to convert a script
    name into an NSCharacterSet. */
 static NSCharacterSet
 *ns_script_to_charset (NSString *scriptName)
@@ -426,7 +431,7 @@ static NSCharacterSet
    If none are found, we reduce the percentage and try again, until 5%.
    This provides a font with at least some characters if such can be found.
    We don't use isSupersetOfSet: because (a) it doesn't work on Tiger, and
-   (b) need approximate match as fonts covering full unicode ranges are rare. */
+   (b) need approximate match as fonts covering full Unicode ranges are rare. */
 static NSSet
 *ns_get_covering_families (NSString *script, float pct)
 {
@@ -469,6 +474,7 @@ static NSSet
 		if ([families count] > 0 || pct < 0.05)
 		    break;
 	      }
+            [charset release];
 	  }
 #ifdef NS_IMPL_COCOA
 	if ([families count] == 0)
@@ -536,12 +542,14 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
     family = [fdesc objectForKey: NSFontFamilyAttribute];
     if (family != nil && !foundItal && XINT (Flength (list)) > 0)
       {
-	NSFontDescriptor *sDesc = [[[NSFontDescriptor new]
-	    fontDescriptorWithSymbolicTraits: NSFontItalicTrait]
-	    fontDescriptorWithFamily: family];
+        NSFontDescriptor *s1 = [NSFontDescriptor new];
+        NSFontDescriptor *sDesc
+          = [[s1 fontDescriptorWithSymbolicTraits: NSFontItalicTrait]
+              fontDescriptorWithFamily: family];
 	list = Fcons (ns_descriptor_to_entity (sDesc,
 					 AREF (font_spec, FONT_EXTRA_INDEX),
 					 "synthItal"), list);
+        [s1 release];
       }
 
     /* Return something if was a match and nothing found. */
@@ -630,7 +638,7 @@ nsfont_list (Lisp_Object frame, Lisp_Object font_spec)
 }
 
 
-/* Return a font entity most closely maching with FONT_SPEC on
+/* Return a font entity most closely matching with FONT_SPEC on
    FRAME.  The closeness is determined by the font backend, thus
    `face-font-selection-order' is ignored here.
    Properties to be considered are same as for list(). */
@@ -804,8 +812,6 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font->props[FONT_FILE_INDEX] = Qnil;
 
   {
-    double expand, hshrink;
-    float full_height, min_height, hd;
     const char *fontName = [[nsfont fontName] UTF8String];
     int len = strlen (fontName);
 
@@ -837,26 +843,16 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
       [sfont maximumAdvancement].width : ns_char_width (sfont, '0');
 
     brect =  [sfont boundingRectForFont];
-    full_height = brect.size.height;
-    min_height = [sfont ascender] - adjusted_descender;
-    hd = full_height - min_height;
 
-    /* standard height, similar to Carbon. Emacs.app: was 0.5 by default. */
-    expand = 0.0;
-    hshrink = 1.0;
-
-    font_info->underpos = 2; /*[sfont underlinePosition] is often clipped out */
+    font_info->underpos = [sfont underlinePosition];
     font_info->underwidth = [sfont underlineThickness];
     font_info->size = font->pixel_size;
-    font_info->voffset = lrint (hshrink * [sfont ascender] + expand * hd / 2);
 
     /* max bounds */
-    font_info->max_bounds.ascent =
-      lrint (hshrink * [sfont ascender] + expand * hd/2);
+    font_info->max_bounds.ascent = lrint ([sfont ascender]);
     /* Descender is usually negative.  Use floor to avoid
        clipping descenders. */
-    font_info->max_bounds.descent =
-      -lrint (floor(hshrink* adjusted_descender - expand*hd/2));
+    font_info->max_bounds.descent = -lrint (floor(adjusted_descender));
     font_info->height =
       font_info->max_bounds.ascent + font_info->max_bounds.descent;
     font_info->max_bounds.width = lrint (font_info->width);
@@ -1165,7 +1161,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
 
   /* set up for character rendering */
-  r.origin.y += font->voffset + (s->height - font->height)/2;
+  r.origin.y = s->ybase;
 
   col = (NS_FACE_FOREGROUND (face) != 0
          ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
@@ -1196,20 +1192,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 /*[context GSSetTextDrawingMode: GSTextFill]; /// not implemented yet */
       }
 
-    /* do underline */
-    if (face->underline_p)
-      {
-        if (face->underline_color != 0)
-          [ns_lookup_indexed_color (face->underline_color, s->f) set];
-        else
-          [col set];
-        DPSmoveto (context, r.origin.x, r.origin.y + font->underpos);
-        DPSlineto (context, r.origin.x+r.size.width, r.origin.y+font->underpos);
-        if (face->underline_color != 0)
-          [col set];
-      }
-    else
-      [col set];
+    [col set];
 
     /* draw with DPSxshow () */
     DPSmoveto (context, r.origin.x, r.origin.y);
@@ -1255,23 +1238,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         CGContextSetTextDrawingMode (gcontext, kCGTextFill);
       }
 
-    if (face->underline_p)
-      {
-        if (face->underline_color != 0)
-          [ns_lookup_indexed_color (face->underline_color, s->f) set];
-        else
-          [col set];
-        CGContextBeginPath (gcontext);
-        CGContextMoveToPoint (gcontext,
-                              r.origin.x, r.origin.y + font->underpos);
-        CGContextAddLineToPoint (gcontext, r.origin.x + r.size.width,
-                                r.origin.y + font->underpos);
-        CGContextStrokePath (gcontext);
-        if (face->underline_color != 0)
-          [col set];
-      }
-    else
-      [col set];
+    [col set];
 
     CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
     CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
@@ -1287,6 +1254,10 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     CGContextRestoreGState (gcontext);
   }
 #endif  /* NS_IMPL_COCOA */
+
+  /* Draw underline, overline, strike-through. */
+  ns_draw_text_decoration (s, face, col, r.size.width, r.origin.x);
+
   return to-from;
 }
 
@@ -1329,8 +1300,8 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
   if (!unichars || !(font_info->glyphs[block]))
     abort ();
 
-  /* create a string containing all unicode characters in this block */
-  for (idx = block<<8, i =0; i<0x100; idx++, i++)
+  /* create a string containing all Unicode characters in this block */
+  for (idx = block<<8, i = 0; i < 0x100; idx++, i++)
     if (idx < 0xD800 || idx > 0xDFFF)
       unichars[i] = idx;
     else
@@ -1346,7 +1317,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
     NSGlyphGenerator *glyphGenerator = [NSGlyphGenerator sharedGlyphGenerator];
     /*NSCharacterSet *coveredChars = [nsfont coveredCharacterSet]; */
     unsigned int numGlyphs = [font_info->nsfont numberOfGlyphs];
-    NSUInteger gInd =0, cInd =0;
+    NSUInteger gInd = 0, cInd = 0;
 
     [glyphStorage setString: allChars font: font_info->nsfont];
     [glyphGenerator generateGlyphsForGlyphStorage: glyphStorage
@@ -1354,7 +1325,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
                                        glyphIndex: &gInd characterIndex: &cInd];
 #endif
     glyphs = font_info->glyphs[block];
-    for (i =0; i<0x100; i++, glyphs++)
+    for (i = 0; i < 0x100; i++, glyphs++)
       {
 #ifdef NS_IMPL_GNUSTEP
         g = unichars[i];
@@ -1462,6 +1433,8 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
 - (void) setString: (NSString *)str font: (NSFont *)font
 {
   [dict setObject: font forKey: NSFontAttributeName];
+  if (attrStr != nil)
+    [attrStr release];
   attrStr = [[NSAttributedString alloc] initWithString: str attributes: dict];
   maxChar = [str length];
   maxGlyph = 0;
@@ -1524,5 +1497,5 @@ syms_of_nsfont (void)
   DEFSYM (Qroman, "roman");
   DEFSYM (Qmedium, "medium");
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
-               doc: /* Internal use: maps font registry to unicode script. */);
+               doc: /* Internal use: maps font registry to Unicode script. */);
 }

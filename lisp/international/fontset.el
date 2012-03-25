@@ -1,6 +1,6 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -58,6 +58,7 @@
 	("jisx0208" . japanese-jisx0208)
 	("jisx0201" . jisx0201)
 	("jisx0212" . japanese-jisx0212)
+	("ksx1001" . korean-ksc5601)
 	("ksc5601.1987" . korean-ksc5601)
 	("cns11643.1992.*1" . chinese-cns11643-1)
 	("cns11643.1992.*2" . chinese-cns11643-2)
@@ -700,7 +701,7 @@ Internal use only.  Should be called at startup time."
 ;;         HPHEBREW8 8-bit character set
 ;; "HP-Japanese15"                                 [36]
 ;;         HPJAPAN15 15-bit character set,
-;;         modified from industry defacto
+;;         modified from industry de facto
 ;;         standard Shift-JIS
 ;; "HP-Kana8"                                      [36]
 ;;         HPKANA8 8-bit character set
@@ -858,9 +859,9 @@ Internal use only.  Should be called at startup time."
 (defun x-decompose-font-name (pattern)
   "Decompose PATTERN into XLFD fields and return a vector of the fields.
 The length of the vector is 12.
-The FOUNDRY and FAMILY fields are concatinated and stored in the first
+The FOUNDRY and FAMILY fields are concatenated and stored in the first
 element of the vector.
-The REGISTRY and ENCODING fields are concatinated and stored in the last
+The REGISTRY and ENCODING fields are concatenated and stored in the last
 element of the vector.
 
 Return nil if PATTERN doesn't conform to XLFD."

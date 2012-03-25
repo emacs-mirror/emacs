@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2011
+;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -309,15 +309,15 @@ this argument instead of explicitly setting `view-exit-action'.
 Do not set EXIT-ACTION to `kill-buffer' when BUFFER visits a
 file: Users may suspend viewing in order to modify the buffer.
 Exiting View mode will then discard the user's edits.  Setting
-EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
+EXIT-ACTION to `kill-buffer-if-not-modified' avoids this.
+
+This function does not enable View mode if the buffer's major-mode
+has a `special' mode-class, because such modes usually have their
+own View-like bindings."
   (interactive "bView buffer: ")
-  (if (eq (with-current-buffer buffer
-	    (get major-mode 'mode-class))
-	  'special)
-      (progn
-	(switch-to-buffer buffer)
-	(message "Not using View mode because the major mode is special"))
-    (pop-to-buffer-same-window buffer)
+  (switch-to-buffer buffer)
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload
@@ -335,10 +335,17 @@ Optional argument NOT-RETURN is ignored.
 
 Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
-this argument instead of explicitly setting `view-exit-action'."
+this argument instead of explicitly setting `view-exit-action'.
+
+This function does not enable View mode if the buffer's major-mode
+has a `special' mode-class, because such modes usually have their
+own View-like bindings."
   (interactive "bIn other window view buffer:\nP")
-  (pop-to-buffer-other-window buffer)
-  (view-mode-enter nil exit-action))
+  (let ((pop-up-windows t))
+    (pop-to-buffer buffer t))
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
+    (view-mode-enter nil exit-action)))
 
 ;;;###autoload
 (defun view-buffer-other-frame (buffer &optional not-return exit-action)
@@ -355,10 +362,17 @@ Optional argument NOT-RETURN is ignored.
 
 Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
-this argument instead of explicitly setting `view-exit-action'."
+this argument instead of explicitly setting `view-exit-action'.
+
+This function does not enable View mode if the buffer's major-mode
+has a `special' mode-class, because such modes usually have their
+own View-like bindings."
   (interactive "bView buffer in other frame: \nP")
-  (pop-to-buffer-other-frame buffer)
-  (view-mode-enter nil exit-action))
+  (let ((pop-up-frames t))
+    (pop-to-buffer buffer t))
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
+    (view-mode-enter nil exit-action)))
 
 ;;;###autoload
 (define-minor-mode view-mode
@@ -366,19 +380,24 @@ this argument instead of explicitly setting `view-exit-action'."
   ;; bindings instead of using the \\[] construction.  The reason for this
   ;; is that most commands have more than one key binding.
   "Toggle View mode, a minor mode for viewing text but not editing it.
-With prefix argument ARG, turn View mode on if ARG is positive, otherwise
-turn it off.
+With a prefix argument ARG, enable View mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable View mode
+if ARG is omitted or nil.
 
-Emacs commands that do not change the buffer contents are available as usual.
-Kill commands insert text in kill buffers but do not delete.  Other commands
-\(among them most letters and punctuation) beep and tell that the buffer is
-read-only.
+When View mode is enabled, commands that do not change the buffer
+contents are available as usual.  Kill commands insert text in
+kill buffers but do not delete.  Most other commands beep and
+tell the user that the buffer is read-only.
+
 \\<view-mode-map>
-The following additional commands are provided.  Most commands take prefix
-arguments.  Page commands default to \"page size\" lines which is almost a whole
-window full, or number of lines set by \\[View-scroll-page-forward-set-page-size] or \\[View-scroll-page-backward-set-page-size].  Half page commands default to
-and set \"half page size\" lines which initially is half a window full.  Search
-commands default to a repeat count of one.
+
+The following additional commands are provided.  Most commands
+take prefix arguments.  Page commands default to \"page size\"
+lines which is almost a whole window, or number of lines set by
+\\[View-scroll-page-forward-set-page-size] or \\[View-scroll-page-backward-set-page-size].
+Half page commands default to and set \"half page size\" lines
+which initially is half a window full.  Search commands default
+to a repeat count of one.
 
 H, h, ?	 This message.
 Digits	provide prefix arguments.
@@ -474,7 +493,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   ;; sets view-read-only to t as a buffer-local variable
   ;; after exiting View mode.  That arranges that the next toggle-read-only
   ;; will reenable View mode.
-  ;; Cancelling View mode in any other way should cancel that, too,
+  ;; Canceling View mode in any other way should cancel that, too,
   ;; so that View mode stays off if toggle-read-only is called.
   (if (local-variable-p 'view-read-only)
       (kill-local-variable 'view-read-only))
@@ -489,7 +508,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   "Update `view-return-to-alist' of buffer BUFFER.
 Remove from `view-return-to-alist' all entries referencing dead
 windows.  Optional argument ITEM non-nil means add ITEM to
-`view-return-to-alist' after purging.  For a decsription of items
+`view-return-to-alist' after purging.  For a description of items
 that can be added see the RETURN-TO-ALIST argument of the
 function `view-mode-exit'.  If `view-return-to-alist' contains an
 entry for the selected window, purge that entry from
@@ -575,9 +594,9 @@ current buffer. "
 	(cond
 	 ((or all-windows view-exits-all-viewing-windows)
 	  (dolist (window (get-buffer-window-list))
-	    (quit-restore-window window)))
+	    (quit-window nil window)))
 	 ((eq (window-buffer) (current-buffer))
-	  (quit-restore-window)))
+	  (quit-window)))
 
 	(when exit-action
 	  (funcall exit-action buffer))
@@ -917,7 +936,7 @@ for highlighting the match that is found."
 
 (defun view-search (times regexp)
   ;; This function does the job for all the View-search- commands.
-  ;; Search for the TIMESt match for REGEXP.  If TIMES is negative
+  ;; Search for the TIMESth match for REGEXP.  If TIMES is negative
   ;; search backwards.  If REGEXP is nil use `view-last-regexp'.
   ;; Characters "!" and "@" have a special meaning at the beginning of
   ;; REGEXP and are removed from REGEXP before the search "!" means

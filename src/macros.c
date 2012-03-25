@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@ static Lisp_Object Qkbd_macro_termination_hook;
    This is not bound at each level,
    so after an error, it describes the innermost interrupted macro.  */
 
-int executing_kbd_macro_iterations;
+EMACS_INT executing_kbd_macro_iterations;
 
 /* This is the macro that was executing.
    This is not bound at each level,
@@ -62,9 +62,9 @@ macro before appending to it. */)
 
   if (!current_kboard->kbd_macro_buffer)
     {
-      current_kboard->kbd_macro_bufsize = 30;
       current_kboard->kbd_macro_buffer
 	= (Lisp_Object *)xmalloc (30 * sizeof (Lisp_Object));
+      current_kboard->kbd_macro_bufsize = 30;
     }
   update_mode_lines++;
   if (NILP (append))
@@ -175,11 +175,11 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
   if (XFASTINT (repeat) == 0)
     Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro), repeat, loopfunc);
-  else
+  else if (XINT (repeat) > 1)
     {
       XSETINT (repeat, XINT (repeat)-1);
-      if (XINT (repeat) > 0)
-	Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro), repeat, loopfunc);
+      Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
+			  repeat, loopfunc);
     }
   return Qnil;
 }
@@ -202,7 +202,7 @@ store_kbd_macro_char (Lisp_Object c)
 	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *kb->kbd_macro_buffer / 2
 	      < kb->kbd_macro_bufsize)
 	    memory_full (SIZE_MAX);
-	  nbytes = kb->kbd_macro_bufsize * 2 * sizeof *kb->kbd_macro_buffer;
+	  nbytes = kb->kbd_macro_bufsize * (2 * sizeof *kb->kbd_macro_buffer);
 	  kb->kbd_macro_buffer
 	    = (Lisp_Object *) xrealloc (kb->kbd_macro_buffer, nbytes);
 	  kb->kbd_macro_bufsize *= 2;
@@ -302,9 +302,9 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   Lisp_Object final;
   Lisp_Object tem;
   int pdlcount = SPECPDL_INDEX ();
-  int repeat = 1;
+  EMACS_INT repeat = 1;
   struct gcpro gcpro1, gcpro2;
-  int success_count = 0;
+  EMACS_INT success_count = 0;
 
   executing_kbd_macro_iterations = 0;
 

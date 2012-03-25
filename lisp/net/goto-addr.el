@@ -1,6 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: FSF
@@ -275,7 +275,10 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 ;;;###autoload
 (define-minor-mode goto-address-mode
-  "Minor mode to buttonize URLs and e-mail addresses in the current buffer."
+  "Minor mode to buttonize URLs and e-mail addresses in the current buffer.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   nil
   ""
   nil
@@ -288,7 +291,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 ;;;###autoload
 (define-minor-mode goto-address-prog-mode
-  "Turn on `goto-address-mode', but only in comments and strings."
+  "Like `goto-address-mode', but only for comments and strings."
   nil
   ""
   nil

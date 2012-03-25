@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999, 2001-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -198,13 +198,21 @@ set to nil, as the value is no longer rogue."
   (run-hooks 'custom-define-hook)
   symbol)
 
-(defmacro defcustom (symbol value doc &rest args)
-  "Declare SYMBOL as a customizable variable that defaults to VALUE.
+(defmacro defcustom (symbol standard doc &rest args)
+  "Declare SYMBOL as a customizable variable.
+SYMBOL is the variable name; it should not be quoted.
+STANDARD is an expression specifying the variable's standard
+value.  It should not be quoted.  It is evaluated once by
+`defcustom', and the value is assigned to SYMBOL if the variable
+is unbound.  The expression itself is also stored, so that
+Customize can re-evaluate it later to get the standard value.
 DOC is the variable documentation.
 
-Neither SYMBOL nor VALUE need to be quoted.
-If SYMBOL is not already bound, initialize it to VALUE.
-The remaining arguments should have the form
+This macro uses `defvar' as a subroutine, which also marks the
+variable as \"special\", so that it is always dynamically bound
+even when `lexical-binding' is t.
+
+The remaining arguments to `defcustom' should have the form
 
    [KEYWORD VALUE]...
 
@@ -229,8 +237,12 @@ The following keywords are meaningful:
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,
 	it does (require VALUE) first.
+:set-after VARIABLES
+	Specifies that SYMBOL should be set after the list of variables
+        VARIABLES when both have been customized.
 :risky	Set SYMBOL's `risky-local-variable' property to VALUE.
 :safe	Set SYMBOL's `safe-local-variable' property to VALUE.
+        See Info node `(elisp) File Local Variables'.
 
 The following common keywords are also meaningful.
 
@@ -299,9 +311,6 @@ The following common keywords are also meaningful.
         Load file FILE (a string) before displaying this customization
         item.  Loading is done with `load', and only if the file is
         not already loaded.
-:set-after VARIABLES
-	Specifies that SYMBOL should be set after the list of variables
-        VARIABLES when both have been customized.
 
 If SYMBOL has a local binding, then this form affects the local
 binding.  This is normally not what you want.  Thus, if you need
@@ -319,14 +328,15 @@ for more information."
   `(custom-declare-variable
     ',symbol
     ,(if lexical-binding    ;FIXME: This is not reliable, but is all we have.
-         ;; The `default' arg should be an expression that evaluates to
-         ;; the value to use.  The use of `eval' for it is spread over
-         ;; many different places and hence difficult to eliminate, yet
-         ;; we want to make sure that the `value' expression is checked by the
-         ;; byte-compiler, and that lexical-binding is obeyed, so quote the
-         ;; expression with `lambda' rather than with `quote'.
-         `(list (lambda () ,value))
-       `',value)
+         ;; The STANDARD arg should be an expression that evaluates to
+         ;; the standard value.  The use of `eval' for it is spread
+         ;; over many different places and hence difficult to
+         ;; eliminate, yet we want to make sure that the `standard'
+         ;; expression is checked by the byte-compiler, and that
+         ;; lexical-binding is obeyed, so quote the expression with
+         ;; `lambda' rather than with `quote'.
+         `(list (lambda () ,standard))
+       `',standard)
     ,doc
     ,@args))
 
@@ -591,8 +601,10 @@ If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
 
 ;; This test is also in the C code of `user-variable-p'.
 (defun custom-variable-p (variable)
-  "Return non-nil if VARIABLE is a custom variable.
-This recursively follows aliases."
+  "Return non-nil if VARIABLE is a customizable variable.
+A customizable variable is either (i) a variable whose property
+list contains a non-nil `standard-value' or `custom-autoload'
+property, or (ii) an alias for another customizable variable."
   (setq variable (indirect-variable variable))
   (or (get variable 'standard-value)
       (get variable 'custom-autoload)))
@@ -1104,13 +1116,19 @@ property `theme-feature' (which is usually a symbol created by
   (provide (get theme 'theme-feature)))
 
 (defcustom custom-safe-themes '(default)
-  "List of themes that are considered safe to load.
-Each list element should be the `sha1' hash of a theme file, or
-the symbol `default', which stands for any theme in the built-in
-Emacs theme directory (a directory named \"themes\" in
-`data-directory')."
-  :type '(repeat
-	  (choice string (const :tag "Built-in themes" default)))
+  "Themes that are considered safe to load.
+If the value is a list, each element should be either the SHA-256
+hash of a safe theme file, or the symbol `default', which stands
+for any theme in the built-in Emacs theme directory (a directory
+named \"themes\" in `data-directory').
+
+If the value is t, Emacs treats all themes as safe.
+
+This variable cannot be set in a Custom theme."
+  :type '(choice (repeat :tag "List of safe themes"
+			 (choice string
+				 (const :tag "Built-in themes" default)))
+		 (const :tag "All themes" t))
   :group 'customize
   :risky t
   :version "24.1")
@@ -1120,8 +1138,10 @@ Emacs theme directory (a directory named \"themes\" in
 The theme file is named THEME-theme.el, in one of the directories
 specified by `custom-theme-load-path'.
 
-If THEME is not in `custom-safe-themes', prompt the user for
-confirmation, unless optional arg NO-CONFIRM is non-nil.
+If the theme is not considered safe by `custom-safe-themes',
+prompt the user for confirmation before loading it.  But if
+optional arg NO-CONFIRM is non-nil, load the theme without
+prompting.
 
 Normally, this function also enables THEME; if optional arg
 NO-ENABLE is non-nil, load the theme but don't enable it.
@@ -1154,10 +1174,11 @@ Return t if THEME was successfully loaded, nil otherwise."
       (error "Unable to find theme file for `%s'" theme))
     (with-temp-buffer
       (insert-file-contents fn)
-      (setq hash (sha1 (current-buffer)))
+      (setq hash (secure-hash 'sha256 (current-buffer)))
       ;; Check file safety with `custom-safe-themes', prompting the
       ;; user if necessary.
       (when (or no-confirm
+		(eq custom-safe-themes t)
 		(and (memq 'default custom-safe-themes)
 		     (equal (file-name-directory fn)
 			    (expand-file-name "themes/" data-directory)))
@@ -1279,8 +1300,8 @@ precedence (after `user')."
 	 ((eq prop 'theme-face)
 	  (custom-theme-recalc-face symbol))
 	 ((eq prop 'theme-value)
-	  ;; Don't change `custom-enabled-themes'; that's special.
-	  (unless (eq symbol 'custom-enabled-themes)
+	  ;; Ignore `custom-enabled-themes' and `custom-safe-themes'.
+	  (unless (memq symbol '(custom-enabled-themes custom-safe-themes))
 	    (custom-theme-recalc-variable symbol)))))))
   (unless (eq theme 'user)
     (setq custom-enabled-themes

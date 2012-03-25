@@ -1,7 +1,7 @@
 /* The lwlib interface to Athena widgets.
 
 Copyright (C) 1993 Chuck Thompson <cthomp@cs.uiuc.edu>
-Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -136,7 +136,7 @@ openFont (Widget widget, char *name)
     }
 
   fn = XftFontOpenName (XtDisplay (widget), screen, fname);
-  if (fname != name) free (fname);
+  if (fname != name) xfree (fname);
 
   return fn;
 }
@@ -384,7 +384,7 @@ xaw_destroy_instance (widget_instance *instance)
       if (instance->xft_data[0].xft_font)
         XftFontClose (XtDisplay (instance->widget),
                       instance->xft_data[0].xft_font);
-      free (instance->xft_data);
+      xfree (instance->xft_data);
     }
 #endif
   if (XtIsSubclass (instance->widget, dialogWidgetClass))

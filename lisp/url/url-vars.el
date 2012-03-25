@@ -1,6 +1,6 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
-;; Copyright (C) 1996-1999, 2001, 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2012  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -62,7 +62,6 @@
 (mapc 'make-variable-buffer-local
       '(
 	url-current-object
-	url-current-referer
 	url-current-mime-headers
 	))
 
@@ -335,7 +334,7 @@ Currently supported methods:
 `socks': Connect through a socks server;
 `tls': Connect with TLS;
 `ssl': Connect with SSL (deprecated, use `tls' instead);
-`native': Connect directy."
+`native': Connect directly."
   :type '(radio (const :tag "Telnet to gateway host" :value telnet)
 		(const :tag "Rlogin to gateway host" :value rlogin)
 		(const :tag "Use SOCKS proxy" :value socks)

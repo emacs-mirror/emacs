@@ -1,6 +1,6 @@
 /* System description header file for Cygwin.
 
-Copyright (C) 1985-1986, 1992, 1999, 2002-2011 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1992, 1999, 2002-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -90,9 +90,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    it, feel free to change this setting, but please add a comment here about
    why it needed to be changed.  */
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-
-/* Virtual addresses of pure and impure space can vary, as on Windows.  */
-#define VIRT_ADDR_VARIES
 
 /* Emacs supplies its own malloc, but glib (part of Gtk+) calls
    memalign and on Cygwin, that becomes the Cygwin-supplied memalign.

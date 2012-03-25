@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985-1988, 1993-1995, 1998-2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1998-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -148,17 +148,6 @@ in case you use it as a menu with `x-popup-menu'.  */)
       return Fcons (Qkeymap, Fcons (string, Qnil));
     }
   return Fcons (Qkeymap, Qnil);
-}
-
-DEFUN ("make-composed-keymap", Fmake_composed_keymap, Smake_composed_keymap,
-       0, MANY, 0,
-       doc: /* Construct and return a new keymap composed of KEYMAPS.
-When looking up a key in the returned map, the key is looked in each
-keymap in turn until a binding is found.
-usage: (make-composed-keymap &rest KEYMAPS)  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
-{
-  return Fcons (Qkeymap, Flist (nargs, args));
 }
 
 /* This function is used for installing the standard key bindings
@@ -1009,7 +998,7 @@ copy_keymap_item (Lisp_Object elt)
     }
   else
     {
-      /* It may be an old fomat menu item.
+      /* It may be an old format menu item.
 	 Skip the optional menu string.  */
       if (STRINGP (XCAR (tem)))
 	{
@@ -1216,13 +1205,20 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
       keymap = get_keymap (cmd, 0, 1);
       if (!CONSP (keymap))
-	/* We must use Fkey_description rather than just passing key to
-	   error; key might be a vector, not a string.  */
-	error ("Key sequence %s starts with non-prefix key %s",
-	       SDATA (Fkey_description (key, Qnil)),
-	       SDATA (Fkey_description (Fsubstring (key, make_number (0),
-						    make_number (idx)),
-					Qnil)));
+	{
+	  const char *trailing_esc = ((EQ (c, meta_prefix_char) && metized)
+				      ? (idx == 0 ? "ESC" : " ESC")
+				      : "");
+
+	  /* We must use Fkey_description rather than just passing key to
+	     error; key might be a vector, not a string.  */
+	  error ("Key sequence %s starts with non-prefix key %s%s",
+		 SDATA (Fkey_description (key, Qnil)),
+		 SDATA (Fkey_description (Fsubstring (key, make_number (0),
+						      make_number (idx)),
+					  Qnil)),
+		 trailing_esc);
+	}
     }
 }
 
@@ -1403,7 +1399,7 @@ silly_event_symbol_error (Lisp_Object c)
    some systems, static gets macro-defined to be the empty string.
    Ickypoo.  */
 static Lisp_Object *cmm_modes = NULL, *cmm_maps = NULL;
-static int cmm_size = 0;
+static ptrdiff_t cmm_size = 0;
 
 /* Store a pointer to an array of the currently active minor modes in
    *modeptr, a pointer to an array of the keymaps of the currently
@@ -1423,10 +1419,10 @@ static int cmm_size = 0;
    loop.  Instead, we'll use realloc/malloc and silently truncate the
    list, let the key sequence be read, and hope some other piece of
    code signals the error.  */
-int
+ptrdiff_t
 current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 {
-  int i = 0;
+  ptrdiff_t i = 0;
   int list_number = 0;
   Lisp_Object alist, assoc, var, val;
   Lisp_Object emulation_alists;
@@ -1469,8 +1465,15 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 
 	    if (i >= cmm_size)
 	      {
-		int newsize, allocsize;
+		ptrdiff_t newsize, allocsize;
 		Lisp_Object *newmodes, *newmaps;
+
+		/* Check for size calculation overflow.  Other code
+		   (e.g., read_key_sequence) adds 3 to the count
+		   later, so subtract 3 from the limit here.  */
+		if (min (PTRDIFF_MAX, SIZE_MAX) / (2 * sizeof *newmodes) - 3
+		    < cmm_size)
+		  break;
 
 		newsize = cmm_size == 0 ? 30 : cmm_size * 2;
 		allocsize = newsize * sizeof *newmodes;
@@ -2040,8 +2043,9 @@ static Lisp_Object Qsingle_key_description, Qkey_description;
 DEFUN ("key-description", Fkey_description, Skey_description, 1, 2, 0,
        doc: /* Return a pretty description of key-sequence KEYS.
 Optional arg PREFIX is the sequence of keys leading up to KEYS.
-Control characters turn into "C-foo" sequences, meta into "M-foo",
-spaces are put between sequence elements, etc.  */)
+For example, [?\C-x ?l] is converted into the string \"C-x l\".
+
+The `kbd' macro is an approximate inverse of this.  */)
   (Lisp_Object keys, Lisp_Object prefix)
 {
   int len = 0;
@@ -2140,12 +2144,12 @@ spaces are put between sequence elements, etc.  */)
 
 
 char *
-push_key_description (register unsigned int c, register char *p, int force_multibyte)
+push_key_description (EMACS_INT ch, char *p, int force_multibyte)
 {
-  unsigned c2;
+  int c, c2;
 
   /* Clear all the meaningless bits above the meta bit.  */
-  c &= meta_modifier | ~ - meta_modifier;
+  c = ch & (meta_modifier | ~ - meta_modifier);
   c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
 	     | meta_modifier | shift_modifier | super_modifier);
 
@@ -2267,23 +2271,35 @@ around function keys and event symbols.  */)
   if (CONSP (key) && lucid_event_type_list_p (key))
     key = Fevent_convert_list (key);
 
+  if (CONSP (key) && INTEGERP (XCAR (key)) && INTEGERP (XCDR (key)))
+    /* An interval from a map-char-table.  */
+    return concat3 (Fsingle_key_description (XCAR (key), no_angles),
+		    build_string (".."),
+		    Fsingle_key_description (XCDR (key), no_angles));
+
   key = EVENT_HEAD (key);
 
-  if (INTEGERP (key))		/* Normal character */
+  if (INTEGERP (key))		/* Normal character.  */
     {
-      char tem[KEY_DESCRIPTION_SIZE];
+      char tem[KEY_DESCRIPTION_SIZE], *p;
 
-      *push_key_description (XINT (key), tem, 1) = 0;
-      return build_string (tem);
+      p = push_key_description (XINT (key), tem, 1);
+      *p = 0;
+      return make_specified_string (tem, -1, p - tem, 1);
     }
-  else if (SYMBOLP (key))	/* Function key or event-symbol */
+  else if (SYMBOLP (key))	/* Function key or event-symbol.  */
     {
       if (NILP (no_angles))
 	{
-	  char *buffer
-	    = (char *) alloca (SBYTES (SYMBOL_NAME (key)) + 5);
-	  sprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
-	  return build_string (buffer);
+	  char *buffer;
+	  Lisp_Object result;
+	  USE_SAFE_ALLOCA;
+	  SAFE_ALLOCA (buffer, char *,
+		       sizeof "<>" + SBYTES (SYMBOL_NAME (key)));
+	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
+	  result = build_string (buffer);
+	  SAFE_FREE ();
+	  return result;
 	}
       else
 	return Fsymbol_name (key);
@@ -2615,11 +2631,11 @@ remapped command in the returned list.  */)
       /* We have a list of advertised bindings.  */
       while (CONSP (tem))
 	if (EQ (shadow_lookup (keymaps, XCAR (tem), Qnil, 0), definition))
-	  return XCAR (tem);
+	  RETURN_UNGCPRO (XCAR (tem));
 	else
 	  tem = XCDR (tem);
       if (EQ (shadow_lookup (keymaps, tem, Qnil, 0), definition))
-	return tem;
+	RETURN_UNGCPRO (tem);
     }
 
   sequences = Freverse (where_is_internal (definition, keymaps,
@@ -3712,11 +3728,11 @@ the same way.  The "active" keymaps in each alist are used before
   Vemulation_mode_map_alists = Qnil;
 
   DEFVAR_LISP ("where-is-preferred-modifier", Vwhere_is_preferred_modifier,
-	       doc: /* Preferred modifier to use for `where-is'.
+	       doc: /* Preferred modifier key to use for `where-is'.
 When a single binding is requested, `where-is' will return one that
-uses this modifier if possible.  If nil, or if no such binding exists,
-bindings using keys without modifiers (or only with meta) will be
-preferred.  */);
+uses this modifier key if possible.  If nil, or if no such binding
+exists, bindings using keys without modifiers (or only with meta) will
+be preferred.  */);
   Vwhere_is_preferred_modifier = Qnil;
   where_is_preferred_modifier = 0;
 
@@ -3754,7 +3770,6 @@ preferred.  */);
   defsubr (&Sset_keymap_parent);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
-  defsubr (&Smake_composed_keymap);
   defsubr (&Smap_keymap_internal);
   defsubr (&Smap_keymap);
   defsubr (&Scopy_keymap);

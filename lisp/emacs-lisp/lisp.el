@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs
 
-;; Copyright (C) 1985-1986, 1994, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1994, 2000-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -257,9 +257,8 @@ is called as a function to find the defun's beginning."
        (if (> arg 0)
            (dotimes (i arg)
              (funcall beginning-of-defun-function))
-         ;; Better not call end-of-defun-function directly, in case
-         ;; it's not defined.
-         (end-of-defun (- arg))))))
+	 (dotimes (i (- arg))
+	   (funcall end-of-defun-function))))))
 
    ((or defun-prompt-regexp open-paren-in-column-0-is-defun-start)
     (and (< arg 0) (not (eobp)) (forward-char 1))

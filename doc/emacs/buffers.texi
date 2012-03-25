@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Buffers, Windows, Files, Top
@@ -7,11 +7,11 @@
 
 @cindex buffers
   The text you are editing in Emacs resides in an object called a
-@dfn{buffer}.  Each time you visit a file, a buffer is created to hold the
-file's text.  Each time you invoke Dired, a buffer is created to hold the
-directory listing.  If you send a message with @kbd{C-x m}, a buffer named
-@samp{*mail*} is used to hold the text of the message.  When you ask for a
-command's documentation, that appears in a buffer called @samp{*Help*}.
+@dfn{buffer}.  Each time you visit a file, a buffer is used to hold
+the file's text.  Each time you invoke Dired, a buffer is used to hold
+the directory listing.  If you send a message with @kbd{C-x m}, a
+buffer is used to hold the text of the message.  When you ask for a
+command's documentation, that appears in a buffer named @samp{*Help*}.
 
   Each buffer has a unique name, which can be of any length.  When a
 buffer is displayed in a window, its name is shown in the mode line
@@ -19,35 +19,34 @@ buffer is displayed in a window, its name is shown in the mode line
 matters in buffer names.  Most buffers are made by visiting files, and
 their names are derived from the files' names; however, you can also
 create an empty buffer with any name you want.  A newly started Emacs
-has a buffer named @samp{*scratch*}, which is not associated with any
-file and can be used for evaluating Lisp expressions in Emacs
-(@pxref{Lisp Interaction}).
+has several buffers, including one named @samp{*scratch*}, which can
+be used for evaluating Lisp expressions and is not associated with any
+file (@pxref{Lisp Interaction}).
 
 @cindex selected buffer
 @cindex current buffer
-  At any time, one and only one buffer is @dfn{current}.  This is also
-called the @dfn{selected buffer}.  We often say that a command
-operates on ``the buffer''; this really means that the command
-operates on the current buffer (most commands do).  When there is only
-one Emacs window, the buffer displayed in that window is current.
-When there are multiple windows present, the buffer displayed in the
-@dfn{selected window} is current.  @xref{Windows}.
+  At any time, one and only one buffer is @dfn{selected}; we call it
+the @dfn{current buffer}.  We sometimes say that a command operates on
+``the buffer''; this really means that it operates on the current
+buffer.  When there is only one Emacs window, the buffer displayed in
+that window is current.  When there are multiple windows, the buffer
+displayed in the @dfn{selected window} is current.  @xref{Windows}.
 
-  Each buffer records individually what file it is visiting (if any),
-whether it is modified, and what major mode and minor modes are in
-effect (@pxref{Major Modes}).  Any Emacs variable can be made
-@dfn{local to} a particular buffer, meaning its value in that buffer
-can be different from the value in other buffers.  @xref{Locals}.
+  Aside from its textual contents, each buffer records several pieces
+of information, such as what file it is visiting (if any), whether it
+is modified, and what major mode and minor modes are in effect
+(@pxref{Modes}).  These are stored in @dfn{buffer-local
+variables}---variables that can have a different value in each buffer.
+@xref{Locals}.
 
 @cindex buffer size, maximum
   A buffer's size cannot be larger than some maximum, which is defined
-by the largest buffer position representable by the @dfn{Emacs
-integer} data type.  This is because Emacs tracks buffer positions
-using that data type.  For typical 64-bit machines, the maximum buffer size
-enforced by the data types is @math{2^61 - 2} bytes, or about 2 EiB.
-For typical 32-bit machines, the maximum is @math{2^29 - 2} bytes, or
-about 512 MiB.  Buffer sizes are also limited by the size of Emacs's
-virtual memory.
+by the largest buffer position representable by @dfn{Emacs integers}.
+This is because Emacs tracks buffer positions using that data type.
+For typical 64-bit machines, this maximum buffer size is @math{2^61 -
+2} bytes, or about 2 EiB.  For typical 32-bit machines, the maximum is
+usually @math{2^29 - 2} bytes, or about 512 MiB.  Buffer sizes are
+also limited by the amount of memory present in the system.
 
 @menu
 * Select Buffer::       Creating a new buffer or reselecting an old one.
@@ -76,9 +75,9 @@ Similar, but select @var{buffer} in another window
 Similar, but select @var{buffer} in a separate frame
 (@code{switch-to-buffer-other-frame}).
 @item C-x @key{LEFT}
-Select the previous buffer in the list of existing buffers.
+Select the previous buffer in the buffer list (@code{previous-buffer}).
 @item C-x @key{RIGHT}
-Select the next buffer in the list of existing buffers.
+Select the next buffer in the buffer list (@code{next-buffer}).
 @item C-u M-g M-g
 @itemx C-u M-g g
 Read a number @var{n} and move to line @var{n} in the most recently
@@ -87,84 +86,62 @@ selected buffer other than the current buffer.
 
 @kindex C-x b
 @findex switch-to-buffer
-  To select the buffer named @var{bufname}, type @kbd{C-x b
-@var{bufname} @key{RET}}.  This runs the command
-@code{switch-to-buffer} with argument @var{bufname}.  While entering
-the buffer name, you can use the usual minibuffer completion and
-history commands (@pxref{Minibuffer}).  An empty argument to @kbd{C-x
-b} specifies the buffer that was current most recently among those not
+  The @kbd{C-x b} (@code{switch-to-buffer}) command reads a buffer
+name using the minibuffer.  Then it makes that buffer current, and
+displays it in the currently-selected window.  An empty input
+specifies the buffer that was current most recently among those not
 now displayed in any window.
 
-@cindex minibuffer confirmation
-@cindex confirming in the minibuffer
+  While entering the buffer name, you can use the usual completion and
+history commands (@pxref{Minibuffer}).  Note that @kbd{C-x b}, and
+related commands, use ``permissive completion with confirmation'' for
+minibuffer completion: if you type @key{RET} immediately after
+completing up to a nonexistent buffer name, Emacs prints
+@samp{[Confirm]} and you must type a second @key{RET} to submit that
+buffer name.  @xref{Completion Exit}, for details.
+
   If you specify a buffer that does not exist, @kbd{C-x b} creates a
 new, empty buffer that is not visiting any file, and selects it for
-editing.  First, however, Emacs might prompt you for confirmation, in
-case you entered the wrong buffer name.  Emacs asks for confirmation
-only if the last key you typed, before submitting the minibuffer input
-with @key{RET}, was @key{TAB} (@code{minibuffer-complete}).  This
-catches a common mistake, in which one types @key{RET} before
-realizing that @key{TAB} did not complete far enough to yield the
-desired buffer name (@pxref{Completion}).  Emacs asks for confirmation
-by putting the message @samp{[Confirm]} in the minibuffer; type
-@key{RET} again to confirm and visit the buffer.
-
-@vindex confirm-nonexistent-file-or-buffer
-  The variable @code{confirm-nonexistent-file-or-buffer} controls
-whether Emacs asks for confirmation before visiting a buffer that did
-not previously exist.  The default value, @code{after-completion},
-gives the behavior we have just described.  If the value is
-@code{nil}, Emacs never asks for confirmation; for any other
-non-@code{nil} value, Emacs always asks for confirmation.  This
-variable also affects the @code{find-file} command (@pxref{Visiting}).
-
-  One reason to create a new buffer is to use it for making temporary
-notes.  If you try to save it, Emacs asks for the file name to use.
-The default value of the variable @code{major-mode} determines the new
-buffer's major mode; the default value is Fundamental mode.  @xref{Major
-Modes}.
+editing.  The default value of the variable @code{major-mode}
+determines the new buffer's major mode; the default value is
+Fundamental mode.  @xref{Major Modes}.  One reason to create a new
+buffer is to use it for making temporary notes.  If you try to save
+it, Emacs asks for the file name to use, and the buffer's major mode
+is re-established taking that file name into account (@pxref{Choosing
+Modes}).
 
 @kindex C-x @key{LEFT}
 @kindex C-x @key{RIGHT}
 @findex next-buffer
 @findex previous-buffer
   For conveniently switching between a few buffers, use the commands
-@kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{RIGHT}}
-(@code{previous-buffer}) selects the previous buffer (following the order
-of most recent selection in the current frame), while @kbd{C-x @key{LEFT}}
-(@code{next-buffer}) moves through buffers in the reverse direction.
+@kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{LEFT}}
+(@code{previous-buffer}) selects the previous buffer (following the
+order of most recent selection in the current frame), while @kbd{C-x
+@key{RIGHT}} (@code{next-buffer}) moves through buffers in the reverse
+direction.
 
 @kindex C-x 4 b
 @findex switch-to-buffer-other-window
-@vindex even-window-heights
   To select a buffer in a window other than the current one, type
 @kbd{C-x 4 b} (@code{switch-to-buffer-other-window}).  This prompts
 for a buffer name using the minibuffer, displays that buffer in
-another window, and selects that window.  By default, if displaying
-the buffer causes two vertically adjacent windows to be displayed, the
-heights of those windows are evened out; to countermand that and
-preserve the window configuration, set the variable
-@code{even-window-heights} to @code{nil}.
+another window, and selects that window.
 
 @kindex C-x 5 b
 @findex switch-to-buffer-other-frame
   Similarly, @kbd{C-x 5 b} (@code{switch-to-buffer-other-frame})
 prompts for a buffer name, displays that buffer in another frame, and
-selects that frame.
+selects that frame.  If the buffer is already being shown in a window
+on another frame, Emacs selects that window and frame instead of
+creating a new frame.
+
+  @xref{Displaying Buffers}, for how the @kbd{C-x 4 b} and @kbd{C-x 5
+b} commands get the window and/or frame to display in.
 
   In addition, @kbd{C-x C-f}, and any other command for visiting a
 file, can also be used to switch to an existing file-visiting buffer.
 @xref{Visiting}.
-
-@vindex display-buffer-reuse-frames
-  You can control how certain buffers are handled by these commands by
-customizing the variables @code{special-display-buffer-names},
-@code{special-display-regexps}, @code{same-window-buffer-names}, and
-@code{same-window-regexps}.  See @ref{Force Same Window}, and
-@ref{Special Buffer Frames}, for more about these variables.  In
-addition, if the value of @code{display-buffer-reuse-frames} is
-non-@code{nil}, and the buffer you want to switch to is already
-displayed in some frame, Emacs will just raise that frame.
 
 @findex goto-line
   @kbd{C-u M-g M-g}, that is @code{goto-line} with a plain prefix
@@ -241,7 +218,7 @@ Change the name of the current buffer.
 @item M-x rename-uniquely
 Rename the current buffer by adding @samp{<@var{number}>} to the end.
 @item M-x view-buffer @key{RET} @var{buffer} @key{RET}
-Scroll through buffer @var{buffer}.
+Scroll through buffer @var{buffer}.  @xref{View Mode}.
 @end table
 
 @kindex C-x C-q
@@ -255,15 +232,11 @@ have special commands to operate on the text; also by visiting a file
 whose access control says you cannot write it.
 
 @findex toggle-read-only
-  If you wish to make changes in a read-only buffer, use the command
-@kbd{C-x C-q} (@code{toggle-read-only}).  It makes a read-only buffer
-writable, and makes a writable buffer read-only.  This
-works by setting the variable @code{buffer-read-only}, which has a local
-value in each buffer and makes the buffer read-only if its value is
-non-@code{nil}.  If you have files under version control, you may find
-it convenient to bind @kbd{C-x C-q} to @code{vc-toggle-read-only}
-instead.  This will guard you against an operation that will confuse
-most modern version-conmtrol systems. @xref{Version Control}.
+ The command @kbd{C-x C-q} (@code{toggle-read-only}) makes a read-only
+buffer writable, and makes a writable buffer read-only.  This works by
+setting the variable @code{buffer-read-only}, which has a local value
+in each buffer and makes the buffer read-only if its value is
+non-@code{nil}.
 
 @findex rename-buffer
   @kbd{M-x rename-buffer} changes the name of the current buffer.  You
@@ -281,23 +254,13 @@ do @kbd{M-x shell} again, it makes a new shell buffer named
 under its new name.  This method is also good for mail buffers,
 compilation buffers, and most Emacs features that create special
 buffers with particular names.  (With some of these features, such as
-@kbd{M-x compile}, @kbd{M-x grep} an @kbd{M-x info}, you need to
-switch to some other buffer before using the command, in order for it
-to make a different buffer.)
-
-@findex view-buffer
-  @kbd{M-x view-buffer} is much like @kbd{M-x view-file} (@pxref{Misc
-File Ops}) except that it examines an already existing Emacs buffer.
-View mode provides commands for scrolling through the buffer
-conveniently but not for changing it.  When you exit View mode with
-@kbd{q}, that switches back to the buffer (and the position) which was
-previously displayed in the window.  Alternatively, if you exit View
-mode with @kbd{e}, the buffer and the value of point that resulted from
-your perusal remain in effect.
+@kbd{M-x compile}, @kbd{M-x grep}, you need to switch to some other
+buffer before using the command again, otherwise it will reuse the
+current buffer despite the name change.)
 
   The commands @kbd{M-x append-to-buffer} and @kbd{M-x insert-buffer}
-can be used to copy text from one buffer to another.  @xref{Accumulating
-Text}.
+can also be used to copy text from one buffer to another.
+@xref{Accumulating Text}.
 
 @node Kill Buffer
 @section Killing Buffers

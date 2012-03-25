@@ -1,7 +1,7 @@
 /* A general interface to the widgets of different toolkits.
 
 Copyright (C) 1992, 1993 Lucid, Inc.
-Copyright (C) 1994-1996, 1999-2011  Free Software Foundation, Inc.
+Copyright (C) 1994-1996, 1999-2012  Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -138,7 +138,7 @@ my_strcasecmp (const char *s1, const char *s2)
 static void
 safe_free_str (char *s)
 {
-  free (s);
+  xfree (s);
 }
 
 static widget_value *widget_value_free_list = 0;
@@ -176,7 +176,7 @@ free_widget_value (widget_value *wv)
     {
       /* When the number of already allocated cells is too big,
 	 We free it.  */
-      free (wv);
+      xfree (wv);
       malloc_cpt--;
     }
   else
@@ -192,9 +192,9 @@ free_widget_value_tree (widget_value *wv)
   if (!wv)
     return;
 
-  free (wv->name);
-  free (wv->value);
-  free (wv->key);
+  xfree (wv->name);
+  xfree (wv->value);
+  xfree (wv->key);
 
   wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
 
@@ -281,7 +281,7 @@ free_widget_info (widget_info *info)
   safe_free_str (info->name);
   free_widget_value_tree (info->val);
   memset ((void*)info, 0xDEADBEEF, sizeof (widget_info));
-  free (info);
+  xfree (info);
 }
 
 static void
@@ -317,7 +317,7 @@ static void
 free_widget_instance (widget_instance *instance)
 {
   memset ((void*)instance, 0xDEADBEEF, sizeof (widget_instance));
-  free (instance);
+  xfree (instance);
 }
 
 static widget_info *
@@ -602,7 +602,7 @@ name_to_widget (widget_instance *instance, const char *name)
 
       widget = XtNameToWidget (instance->widget, real_name);
 
-      free (real_name);
+      xfree (real_name);
     }
   return widget;
 }
@@ -1156,9 +1156,9 @@ lw_get_widget_value_for_widget (widget_instance *instance, Widget w)
 /* To forbid recursive calls */
 static Boolean lwlib_updating;
 
-/* This function can be used as a an XtCallback for the widgets that get
-  modified to update other instances of the widgets.  Closure should be the
-  widget_instance. */
+/* This function can be used as an XtCallback for the widgets that get
+   modified to update other instances of the widgets.  Closure should be the
+   widget_instance. */
 void
 lw_internal_update_other_instances (Widget widget,
                                     XtPointer closure,

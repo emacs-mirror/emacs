@@ -1,7 +1,7 @@
 /* Implements a lightweight menubar widget.
 
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994-1995, 1997, 1999-2011  Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 1997, 1999-2012  Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -113,7 +113,7 @@ xlwMenuTranslations [] =
 <KeyUp>:          key()\n\
 ";
 
-/* FIXME: Space should toggle toggleable menu item but not remove the menu
+/* FIXME: Space should toggle togglable menu item but not remove the menu
    so you can toggle the next one without entering the menu again.  */
 
 /* FIXME: Should ESC close one level of menu structure or the complete menu?  */
@@ -1486,7 +1486,7 @@ remap_menubar (XlwMenuWidget mw)
   if (new_selection && !new_selection->enabled)
     new_selection = NULL;
 
-  /* Call callback when the hightlighted item changes.  */
+  /* Call callback when the highlighted item changes.  */
   if (old_selection || new_selection)
     XtCallCallbackList ((Widget)mw, mw->menu.highlight,
 			(XtPointer) new_selection);
@@ -1891,7 +1891,7 @@ openXftFont (XlwMenuWidget mw)
         }
     }
 
-  if (fname != mw->menu.fontName) free (fname);
+  if (fname != mw->menu.fontName) xfree (fname);
 
   return mw->menu.xft_font != 0;
 }

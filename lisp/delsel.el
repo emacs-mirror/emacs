@@ -1,6 +1,6 @@
 ;;; delsel.el --- delete selection if you insert
 
-;; Copyright (C) 1992, 1997-1998, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997-1998, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF
@@ -56,8 +56,9 @@
 ;;;###autoload
 (define-minor-mode delete-selection-mode
   "Toggle Delete Selection mode.
-With prefix ARG, turn Delete Selection mode on if ARG is
-positive, off if ARG is not positive.
+With a prefix argument ARG, enable Delete Selection mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
 When Delete Selection mode is enabled, Transient Mark mode is also
 enabled and typed text replaces the selection if the selection is
@@ -143,7 +144,7 @@ any selection."
 (put 'newline 'delete-selection t)
 (put 'open-line 'delete-selection 'kill)
 
-;; This is very useful for cancelling a selection in the minibuffer without
+;; This is very useful for canceling a selection in the minibuffer without
 ;; aborting the minibuffer.
 (defun minibuffer-keyboard-quit ()
   "Abort recursive edit.

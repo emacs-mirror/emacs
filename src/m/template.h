@@ -1,6 +1,6 @@
 /* machine description file template.
 
-Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,14 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.
    Ones defined so far include m68k and many others */
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-#define VIRT_ADDR_VARIES
 
 /* After adding support for a new machine, modify the large case
    statement in configure.in to recognize reasonable

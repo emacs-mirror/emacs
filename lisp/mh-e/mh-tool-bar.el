@@ -1,6 +1,6 @@
 ;;; mh-tool-bar.el --- MH-E tool bar support
 
-;; Copyright (C) 2002-2003, 2005-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2012  Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -127,7 +127,7 @@ where,
   first line is useful and complete without the rest of the string.
 
   Optional item ENABLE-EXPR is an arbitrary lisp expression. If it
-  evaluates to nil, then the button is deactivated, otherwise it is
+  evaluates to nil, then the button is inactive, otherwise it is
   active. If it isn't present then the button is always active."
   ;; The following variable names have been carefully chosen to make code
   ;; generation easier. Modifying the names should be done carefully.

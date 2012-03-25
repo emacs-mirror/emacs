@@ -1,6 +1,6 @@
 /* GNU Emacs routines to deal with category tables.
 
-Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1998, 2001-2012  Free Software Foundation, Inc.
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -67,7 +67,7 @@ static Lisp_Object
 hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
 {
   struct Lisp_Hash_Table *h;
-  EMACS_INT i;
+  ptrdiff_t i;
   EMACS_UINT hash;
 
   if (NILP (XCHAR_TABLE (table)->extras[1]))

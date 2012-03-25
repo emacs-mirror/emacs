@@ -1,6 +1,6 @@
 ;;; erc-join.el --- autojoin channels on connect and reconnects
 
-;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: irc
@@ -75,6 +75,7 @@ If the value is `ident', autojoin after successful NickServ
 identification, or after `erc-autojoin-delay' seconds.
 Any other value means the same as `connect'."
   :group 'erc-autojoin
+  :version "24.1"
   :type  '(choice (const :tag "On Connection" 'connect)
 		  (const :tag "When Identified" 'ident)))
 
@@ -84,6 +85,7 @@ This only takes effect if `erc-autojoin-timing' is `ident'.
 If NickServ identification occurs before this delay expires, ERC
 autojoins immediately at that time."
   :group 'erc-autojoin
+  :version "24.1"
   :type  'integer)
 
 (defcustom erc-autojoin-domain-only t

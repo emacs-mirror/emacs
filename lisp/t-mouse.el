@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: mouse gpm linux
 
-;; Copyright (C) 1994-1995, 1998, 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1998, 2006-2012  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 ;; mev.  Now the interface with gpm is directly through a Unix socket, so this
 ;; file is reduced to a single minor mode macro call.
 
-;; 
+;;
 
 ;;; Code:
 
@@ -65,9 +65,10 @@
 (define-obsolete-function-alias 't-mouse-mode 'gpm-mouse-mode "23.1")
 ;;;###autoload
 (define-minor-mode gpm-mouse-mode
-  "Toggle gpm-mouse mode to use the mouse in GNU/Linux consoles.
-With prefix arg, turn gpm-mouse mode on if arg is positive,
-otherwise turn it off.
+  "Toggle mouse support in GNU/Linux consoles (GPM Mouse mode).
+With a prefix argument ARG, enable GPM Mouse mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 This allows the use of the mouse when operating on a GNU/Linux console,
 in the same way as you can use the mouse under X11.

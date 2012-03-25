@@ -1,6 +1,6 @@
 ;;; animate.el --- make text dance
 
-;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Keywords: games
@@ -93,7 +93,7 @@
 
 (defvar animation-buffer-name nil
   "*String naming the default buffer for animations.
-When nil animations dipslayed in the buffer named *Animation*.")
+When nil animations displayed in the buffer named *Animation*.")
 
 ;;;###autoload
 (defun animate-string (string vpos &optional hpos)

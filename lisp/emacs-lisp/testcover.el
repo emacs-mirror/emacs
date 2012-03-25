@@ -1,6 +1,6 @@
 ;;;; testcover.el -- Visual code-coverage tool
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -28,7 +28,7 @@
 ;; * Use `testcover-mark-all' to add overlay "splotches" to the Lisp file's
 ;;   buffer to show where coverage is lacking.  Normally, a red splotch
 ;;   indicates the form was never evaluated; a brown splotch means it always
-;;   evaluted to the same value.
+;;   evaluated to the same value.
 ;; * Use `testcover-next-mark' (bind it to a key!) to jump to the next spot
 ;;   that has a splotch.
 
@@ -220,7 +220,7 @@ non-nil, byte-compiles each function after instrumenting."
 (defun testcover-reinstrument (form)
   "Reinstruments FORM to use testcover instead of edebug.  This
 function modifies the list that FORM points to.  Result is nil if
-FORM should return multiple vlues, t if should always return same
+FORM should return multiple values, t if should always return same
 value, 'maybe if either is acceptable."
   (let ((fun (car-safe form))
 	id val)
@@ -509,7 +509,7 @@ eliminated by adding more test cases."
       (set-buffer-modified-p changed))))
 
 (defun testcover-mark-all (&optional buffer)
-  "Mark all forms in BUFFER that did not get completley tested during
+  "Mark all forms in BUFFER that did not get completely tested during
 coverage tests.  This function creates many overlays."
   (interactive "bMark forms in buffer: ")
   (if buffer

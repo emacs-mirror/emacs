@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2007-2011 Free Software Foundation, Inc.
+Copyright (C) 2007-2012 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -24,12 +24,22 @@ require version 1.14 or later.  See README.W32 and nt/INSTALL for
 details and pointers to URLs where the latest libpng can be
 downloaded.
 
-
+* Changes in Specialized Modes and Packages in Emacs 23.4
+
+** EDE
+
+*** New variable `ede-project-directories'.
+EDE now refuses to automatically load a project file (Project.ede)
+unless the file is in one of the directories specified by this
+variable.  This reduces the risk of inadvertently loading malicious
+project files.  The commands `M-x ede-new' and `M-x ede' now offer to
+save directories to `ede-project-directories'.
+
 * Changes in Emacs 23.4 on non-free operating systems
 
 ** The MS-Windows port can now use more than 500MB of heap.
 Depending on the available virtual memory, Emacs on Windows can now
-have up to 2GB of heap space.  This allows, e.g., to visit several
+have up to 2GB of heap space.  This allows, e.g., visiting several
 large (> 256MB) files in the same session.
 
 
@@ -793,7 +803,7 @@ starts the server.  Clients can connect and create graphical or
 terminal frames using emacsclient.
 
 **** emacsclient starts emacs in daemon mode and connects to it when
---alternate-editor="" is used (or when the evironment variable
+--alternate-editor="" is used (or when the environment variable
 ALTERNATE_EDITOR is set to "") and emacsclient cannot connect to an
 emacs server.
 
@@ -843,7 +853,7 @@ shared with older Emacsen.
 
 *** There is a new charset implementation with many new charsets.
 See M-x list-character-sets.  New charsets can be defined conveniently
-as tables of unicodes.
+as tables of Unicode code points.
 
 *** There are new language environments for Chinese-GBK,
 Chinese-GB18030, Khmer, Bengali, Punjabi, Gujarati, Oriya, Telugu,
@@ -903,7 +913,7 @@ mode-line information (e.g. waiting for a VC command to finish).
 
 *** The mode-line tooltips have been improved to provide more details.
 
-*** The VC, line/colum number and minor mode indicators on the mode
+*** The VC, line/column number and minor mode indicators on the mode
 line are now interactive: mouse-1 can be used on them to pop up a menu.
 
 ** File deletion can make use of the Recycle Bin or system Trash folder.
@@ -1027,8 +1037,8 @@ motion keys (e.g. S-left and S-down) activate and extend a temporary
 region, similar to mouse-selection.
 
 *** Temporarily active regions, created using shift-selection or
-mouse-selection, are not necessarily deactivated in the next command.
-They are only deactivated after point motion commands that are not
+mouse-selection, are not necessarily deactivated after the next command.
+They are deactivated only after point motion commands that are not
 shift-translated, or after commands that would ordinarily deactivate
 the mark in Transient Mark mode (e.g., any command that modifies the
 buffer).
@@ -1182,7 +1192,7 @@ run processes remotely.
 matches a regexp.
 
 *** The value of comment-style now defaults to `indent'.
-Thefore, comment-start markers are inserted at the current indentation
+Therefore, comment-start markers are inserted at the current indentation
 of the region to comment, rather than the leftmost column.
 
 *** The new commands `pp-macroexpand-expression' and
@@ -1235,8 +1245,8 @@ details, see the commentary in doc-view.el.
 
 PDF and DVI files are now opened in Doc View mode by default.
 
-In Postcript mode, C-c C-c launches Doc View minor mode for viewing
-the postscript file.
+In PostScript mode, C-c C-c launches Doc View minor mode for viewing
+the PostScript file.
 
 ** EasyPG provides an interface to the GNU Privacy Guard (GnuPG).
 It includes a GnuPG keyring browser, cryptographic operations on
@@ -1677,7 +1687,7 @@ Running processes on a remote host can be controlled by settings in
 When the variable `file-precious-flag' is set, the success of a remote
 file copy is checked via the file's checksum.
 
-*** Passwords can be read from an authentification file.
+*** Passwords can be read from an authentication file.
 Tramp uses the package `auth-source' to read passwords from a file, if
 necessary.
 
@@ -1837,7 +1847,7 @@ for the list of extra keys that are available.
 
 ** BDF fonts no longer supported on MS-Windows.
 The font backend was completely rewritten for this release.  The focus
-on Windows has been getting acceptable performance and full unicode
+on Windows has been getting acceptable performance and full Unicode
 support, including complex script shaping for native Windows fonts.  A
 rewrite of the BDF font support has not happened due to lack of time
 and developers.  If demand still exists for such a backend even with
@@ -2102,7 +2112,7 @@ function to use for searching in `query-replace-regexp',
 *** New keymap `search-map' bound to `M-s' provides global bindings
 for search related commands.
 
-*** New keymap `multi-query-replace-map' contains additonal keys bound
+*** New keymap `multi-query-replace-map' contains additional keys bound
 to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
@@ -2529,4 +2539,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-

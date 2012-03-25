@@ -1,3 +1,114 @@
+2012-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Change the default
+	values of name and old-name to nil.
+	(unidata-get-name): Return nil for the default value.
+
+2012-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-find-files, cusver-scan, cusver-goto-xref)
+	(cusver-check): New functions.
+
+2012-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-missing): Allow a definitive "no" answer to the
+	"skip?" question, since there can be multiple such for any revision.
+
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* FOR-RELEASE (Check the Emacs Tutorial): Mark TUTORIAL.he as
+	updated and checked.
+
+2011-11-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* grammars/bovine-grammar.el (bovine--grammar-newstyle-unquote):
+	Avoid warning about old-style backquote.
+
+	* grammars/wisent-grammar.el (auto-mode-alist): Change `$' to `\''
+	in regexp.
+	(wisent-make-parsers): Likewise.  Quote `.'.
+
+	* grammars/bovine-grammar.el (auto-mode-alist): Change `$' to `\''
+	in regexp.
+	(bovine-make-parsers): Likewise.  Quote `.'.
+
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* CPP-DEFINES (VIRT_ADDR_VARIES): Remove.
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* admin.el (manual-dvi): Fix typo.
+
+2011-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/README-ftp-server: Update the information about PNG libraries.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-emacs: Fix typo.
+
+2011-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/makefile.w32-in (clean): Remove bidimirror.h and biditype.h.
+
+2011-10-31  David Engster  <deng@randomsample.de>
+
+	* grammars/bovine-grammar.el: Avoid using old-style backquotes.
+
+2011-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/README-ftp-server: Mention UNICOWS.DLL as prerequisite for
+	running Emacs on Windows 9X.
+
+2011-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* admin.el (set-version): Fix regexps for config.nt and
+	sed2v2.inp.
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib (Bug#9169).
+	* notes/copyright: The files compile, config.guess, config.sub,
+	depcomp, install-sh, missing, and move-if-change are now in the
+	new build-aux subdirectory.  The files arg-nonnull.h, c++defs.h,
+	and warn-on-use.h are now in build-aux/snippets.  New file
+	build-aux/snippets/_Noreturn.h.
+
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Update the default
+	values of bidi-class according to DerivedBidiClass.txt from the
+	latest UCD.
+
+2011-08-23  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Provide default
+	values for name, general-category, canonical-combining-class,
+	mirrored, and bidi-class.  Describe the meaning of value nil for
+	decimal-digit-value, digit-value, numeric-value, uppercase,
+	lowercase, titlecase, and mirroring.
+	(unidata-gen-table): Handle the case that default-value is a
+	list.  Set default values of characters not listed in a table.
+	(unidata-get-name): Return an empty string if a value in a
+	char-table is nil.
+	(unidata-get-decomposition): Return a list of character itself if
+	a value in a char-table is nil.
+
+2011-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/bidimirror.awk: File removed.
+
+	* unidata/biditype.awk: File removed.
+
+	* unidata/makefile.w32-in (all): Remove src/biditype.h and
+	src/bidimirror.h.
+	(../../src/biditype.h, ../../src/bidimirror.h): Deleted.
+
+	* unidata/Makefile.in (all): Remove src/biditype.h and
+	src/bidimirror.h.
+	(../../src/biditype.h, ../../src/bidimirror.h): Deleted.
+
 2011-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/makefile.w32-in (charprop-SH, charprop-CMD):
@@ -325,7 +436,7 @@
 
 2009-06-24  Kenichi Handa  <handa@m17n.org>
 
-	* charsets/mapconv: For the UNICODE format files, do reverse sort
+	* charsets/mapconv: For the Unicode format files, do reverse sort
 	and don't compact the map.  This is to prefer the first one in the
 	duplicated mappings (e.g. 0x20->U+0020, 0x20->U+00A0).
 
@@ -820,11 +931,11 @@
 
 	* FOR-RELEASE (NEW FEATURES): Completed work on this item:
 	Rework how fringe bitmaps are defined and used.
-	Currently, bitmap usage and bitmap appearence are "mixed-up" in a
+	Currently, bitmap usage and bitmap appearance are "mixed-up" in a
 	one-level representation.  It would be cleaner to split the
 	representation into a two-level model where first level maps
 	bitmap usage to a bitmap name, and second level maps bitmap name to
-	a bitmap appearence.
+	a bitmap appearance.
 
 2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1136,7 +1247,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

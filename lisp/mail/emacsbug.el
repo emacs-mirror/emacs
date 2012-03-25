@@ -1,6 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2011
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -31,6 +31,9 @@
 ;; Emacs then paste it into your normal mail client.
 
 ;;; Code:
+
+(require 'sendmail)
+(require 'message)
 
 (defgroup emacsbug nil
   "Sending Emacs bug reports."
@@ -78,13 +81,16 @@ Used for querying duplicates and linking to existing bugs.")
 (defvar message-strip-special-text-properties)
 
 (defun report-emacs-bug-can-use-osx-open ()
-  "Check if OSX open can be used to insert bug report into mailer"
+  "Return non-nil if the OS X \"open\" command is available for mailing."
   (and (featurep 'ns)
        (equal (executable-find "open") "/usr/bin/open")
        (memq system-type '(darwin))))
 
+;; FIXME this duplicates much of the logic from browse-url-can-use-xdg-open.
 (defun report-emacs-bug-can-use-xdg-email ()
-  "Check if xdg-email can be used, i.e. we are on Gnome, KDE or xfce4."
+  "Return non-nil if the \"xdg-email\" command can be used.
+xdg-email is a desktop utility that calls your preferred mail client.
+This requires you to be running either Gnome, KDE, or Xfce4."
   (and (getenv "DISPLAY")
        (executable-find "xdg-email")
        (or (getenv "GNOME_DESKTOP_SESSION_ID")
@@ -98,16 +104,23 @@ Used for querying duplicates and linking to existing bugs.")
 				  "org.gnome.SessionManager.CanShutdown"))
 	     (error nil))
 	   (equal (getenv "KDE_FULL_SESSION") "true")
+	   ;; FIXME? browse-url-can-use-xdg-open also accepts LXDE.
+	   ;; Is that no good here, or just overlooked?
 	   (condition-case nil
 	       (eq 0 (call-process
 		      "/bin/sh" nil nil nil
 		      "-c"
+		      ;; FIXME use string-match rather than grep.
 		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
 	     (error nil)))))
 
 (defun report-emacs-bug-insert-to-mailer ()
+  "Send the message to your preferred mail client.
+This requires either the OS X \"open\" command, or the freedesktop
+\"xdg-email\" command to be available."
   (interactive)
   (save-excursion
+    ;; FIXME? use mail-fetch-field?
     (let* ((to (progn
 		 (goto-char (point-min))
 		 (forward-line)
@@ -231,10 +244,11 @@ usually do not have translators for other languages.\n\n")))
                     "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
-    (if (and system-configuration-options
-	     (not (equal system-configuration-options "")))
-	(insert "configured using `configure "
-		system-configuration-options "'\n\n"))
+    (when (and system-configuration-options
+	       (not (equal system-configuration-options "")))
+      (insert "Configured using:\n `configure "
+	      system-configuration-options "'\n\n")
+      (fill-region (line-beginning-position -1) (point)))
     (insert "Important settings:\n")
     (mapc
      (lambda (var)
@@ -318,7 +332,7 @@ usually do not have translators for other languages.\n\n")))
 		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
 	(if can-insert-mail
 	    (princ (substitute-command-keys
-		    "  Type \\[report-emacs-bug-insert-to-mailer] to insert text to you preferred mail program.\n")))
+		    "  Type \\[report-emacs-bug-insert-to-mailer] to copy text to your preferred mail program.\n")))
 	(terpri)
 	(princ (substitute-command-keys
 		"  Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
@@ -354,26 +368,7 @@ usually do not have translators for other languages.\n\n")))
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-    (or report-emacs-bug-no-confirmation
-	;; mailclient.el does not handle From (at present).
-	(if (derived-mode-p 'message-mode)
-	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
-	  (eq send-mail-function 'mailclient-send-it))
-	;; Not narrowing to the headers, but that's OK.
-	(let ((from (mail-fetch-field "From")))
-	  (and (or (not from)
-		   (message-bogus-recipient-p from)
-		   ;; This is the default user-mail-address.  On today's
-		   ;; systems, it seems more likely to be wrong than right,
-		   ;; since most people don't run their own mail server.
-		   (string-match (format "\\<%s@%s\\>"
-					 (regexp-quote (user-login-name))
-					 (regexp-quote (system-name)))
-				 from))
-	       (not (yes-or-no-p
-		     (format "Is `%s' really your email address? " from)))
-	       (error "Please edit the From address and try again"))))
-    ;; The last warning for novice users.
+    ;; Warning for novice users.
     (unless (or report-emacs-bug-no-confirmation
 		(yes-or-no-p
 		 "Send this bug report to the Emacs maintainers? "))
@@ -396,7 +391,35 @@ and send the mail again%s."
                                     report-emacs-bug-send-command)
                           "")))))
       (error "M-x report-emacs-bug was cancelled, please read *Bug Help* buffer"))
-
+    ;; Query the user for the SMTP method, so that we can skip
+    ;; questions about From header validity if the user is going to
+    ;; use mailclient, anyway.
+    (when (or (and (derived-mode-p 'message-mode)
+		   (eq message-send-mail-function 'sendmail-query-once))
+	      (and (not (derived-mode-p 'message-mode))
+		   (eq send-mail-function 'sendmail-query-once)))
+      (sendmail-query-user-about-smtp)
+      (when (derived-mode-p 'message-mode)
+	(setq message-send-mail-function (message-default-send-mail-function))))
+    (or report-emacs-bug-no-confirmation
+	;; mailclient.el does not need a valid From
+	(if (derived-mode-p 'message-mode)
+	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
+	  (eq send-mail-function 'mailclient-send-it))
+	;; Not narrowing to the headers, but that's OK.
+	(let ((from (mail-fetch-field "From")))
+	  (and (or (not from)
+		   (message-bogus-recipient-p from)
+		   ;; This is the default user-mail-address.  On today's
+		   ;; systems, it seems more likely to be wrong than right,
+		   ;; since most people don't run their own mail server.
+		   (string-match (format "\\<%s@%s\\>"
+					 (regexp-quote (user-login-name))
+					 (regexp-quote (system-name)))
+				 from))
+	       (not (yes-or-no-p
+		     (format "Is `%s' really your email address? " from)))
+	       (error "Please edit the From address and try again"))))
     ;; Delete the uninteresting text that was just to help fill out the report.
     (rfc822-goto-eoh)
     (forward-line 1)
@@ -437,7 +460,7 @@ and send the mail again%s."
 				(car bug))
 			       items))
 		       (nreverse items))))
-      (widget-insert "No bugs maching your keywords found.\n"))
+      (widget-insert "No bugs matching your keywords found.\n"))
     (widget-insert "\n")
     (widget-create 'push-button
 		   :notify (lambda (&rest ignore)
@@ -479,6 +502,7 @@ and send the mail again%s."
 		buglist))))
     (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist) keywords)))
 
+;;;###autoload
 (defun report-emacs-bug-query-existing-bugs (keywords)
   "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
 The result is an alist with items of the form (URL SUBJECT NO)."

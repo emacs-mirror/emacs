@@ -1,6 +1,6 @@
 ;;; pgg-gpg.el --- GnuPG support for PGG.
 
-;; Copyright (C) 1999-2000, 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Symmetric encryption and gpg-agent support added by:
@@ -384,7 +384,7 @@ passphrase cache or user."
     (pgg-process-when-success)))
 
 (defun pgg-gpg-update-agent ()
-  "Try to connet to gpg-agent and send UPDATESTARTUPTTY."
+  "Try to connect to gpg-agent and send UPDATESTARTUPTTY."
   (if (fboundp 'make-network-process)
       (let* ((agent-info (getenv "GPG_AGENT_INFO"))
 	     (socket (and agent-info

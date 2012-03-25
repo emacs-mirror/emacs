@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985-1987, 1993-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -73,7 +73,8 @@ in seconds, or until the next command is executed.
 If t, highlight the locus until the next command is executed, or until
 some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
-If `fringe-arrow', indicate the locus by the fringe arrow."
+If `fringe-arrow', indicate the locus by the fringe arrow
+indefinitely until some other locus replaces it."
   :type '(choice (number :tag "Highlight for specified time")
                  (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
@@ -86,7 +87,8 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
 If number, highlight the locus in `next-error' face for given time in seconds.
 If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
-If `fringe-arrow', indicate the locus by the fringe arrow."
+If `fringe-arrow', indicate the locus by the fringe arrow
+indefinitely until some other locus replaces it."
   :type '(choice (number :tag "Highlight for specified time")
                  (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
@@ -319,9 +321,11 @@ select the source buffer."
 
 (define-minor-mode next-error-follow-minor-mode
   "Minor mode for compilation, occur and diff modes.
+With a prefix argument ARG, enable mode if ARG is positive, and
+disable it otherwise.  If called from Lisp, enable mode if ARG is
+omitted or nil.
 When turned on, cursor motion in the compilation, grep, occur or diff
-buffer causes automatic display of the corresponding source code
-location."
+buffer causes automatic display of the corresponding source code location."
   :group 'next-error :init-value nil :lighter " Fol"
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
@@ -347,7 +351,8 @@ location."
 Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables)
-  (run-mode-hooks 'fundamental-mode-hook))
+  (unless delay-mode-hooks
+    (run-hooks 'after-change-major-mode-hook)))
 
 ;; Special major modes to view specially formatted data rather than files.
 
@@ -355,8 +360,8 @@ Other major modes are defined by comparison with this one."
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (define-key map "q" 'quit-window)
-    (define-key map " " 'scroll-up)
-    (define-key map "\C-?" 'scroll-down)
+    (define-key map " " 'scroll-up-command)
+    (define-key map "\C-?" 'scroll-down-command)
     (define-key map "?" 'describe-mode)
     (define-key map "h" 'describe-mode)
     (define-key map ">" 'end-of-buffer)
@@ -566,6 +571,7 @@ On nonblank line, delete any immediately following blank lines."
 All whitespace after the last non-whitespace character in a line is deleted.
 This respects narrowing, created by \\[narrow-to-region] and friends.
 A formfeed is not considered whitespace by this function.
+If END is nil, also delete all trailing lines at the end of the buffer.
 If the region is active, only delete whitespace within the region."
   (interactive (progn
                  (barf-if-buffer-read-only)
@@ -578,12 +584,18 @@ If the region is active, only delete whitespace within the region."
             (start (or start (point-min))))
         (goto-char start)
         (while (re-search-forward "\\s-$" end-marker t)
-          (skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
+          (skip-syntax-backward "-" (line-beginning-position))
           ;; Don't delete formfeeds, even if they are considered whitespace.
-          (save-match-data
-            (if (looking-at ".*\f")
-                (goto-char (match-end 0))))
+          (if (looking-at-p ".*\f")
+              (goto-char (match-end 0)))
           (delete-region (point) (match-end 0)))
+        ;; Delete trailing empty lines.
+        (goto-char end-marker)
+        (when (and (not end)
+                   ;; Really the end of buffer.
+                   (save-restriction (widen) (eobp))
+                   (<= (skip-chars-backward "\n") -2))
+          (delete-region (1+ (point)) end-marker))
         (set-marker end-marker nil))))
   ;; Return nil for the benefit of `write-file-functions'.
   nil)
@@ -868,6 +880,7 @@ KILLFLAG is set if N was explicitly specified."
 
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
+If narrowing is in effect, only uses the accessible part of the buffer.
 You probably should not use this function in Lisp programs;
 it is usually a mistake for a Lisp function to use any subroutine
 that uses or sets the mark."
@@ -880,16 +893,23 @@ that uses or sets the mark."
 ;; Counting lines, one way or another.
 
 (defun goto-line (line &optional buffer)
-  "Goto LINE, counting from line 1 at beginning of buffer.
-Normally, move point in the current buffer, and leave mark at the
-previous position.  With just \\[universal-argument] as argument,
-move point in the most recently selected other buffer, and switch to it.
+  "Go to LINE, counting from line 1 at beginning of buffer.
+If called interactively, a numeric prefix argument specifies
+LINE; without a numeric prefix argument, read LINE from the
+minibuffer.
 
-If there's a number in the buffer at point, it is the default for LINE.
+If optional argument BUFFER is non-nil, switch to that buffer and
+move to line LINE there.  If called interactively with \\[universal-argument]
+as argument, BUFFER is the most recently selected other buffer.
+
+Prior to moving point, this function sets the mark (without
+activating it), unless Transient Mark mode is enabled and the
+mark is already active.
 
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want instead is something like:
-  (goto-char (point-min)) (forward-line (1- N))
+  (goto-char (point-min))
+  (forward-line (1- N))
 If at all possible, an even better solution is to use char counts
 rather than line counts."
   (interactive
@@ -900,10 +920,11 @@ rather than line counts."
 	      (save-excursion
 		(skip-chars-backward "0-9")
 		(if (looking-at "[0-9]")
-		    (buffer-substring-no-properties
-		     (point)
-		     (progn (skip-chars-forward "0-9")
-			    (point))))))
+		    (string-to-number
+		     (buffer-substring-no-properties
+		      (point)
+		      (progn (skip-chars-forward "0-9")
+			     (point)))))))
 	    ;; Decide if we're switching buffers.
 	    (buffer
 	     (if (consp current-prefix-arg)
@@ -935,25 +956,51 @@ rather than line counts."
       (forward-line (1- line)))))
 
 (defun count-words-region (start end)
-  "Print the number of words in the region.
-When called interactively, the word count is printed in echo area."
+  "Count the number of words in the region.
+If called interactively, print a message reporting the number of
+lines, words, and chars in the region.
+If called from Lisp, return the number of words between positions
+START and END."
   (interactive "r")
-  (let ((count 0))
-    (save-excursion
-      (save-restriction
-        (narrow-to-region start end)
-        (goto-char (point-min))
-        (while (forward-word 1)
-          (setq count (1+ count)))))
-    (if (called-interactively-p 'interactive)
-        (message "Region has %d words" count))
-    count))
+  (if (called-interactively-p 'any)
+      (count-words--message "Region" start end)
+    (count-words start end)))
 
-(defun count-lines-region (start end)
-  "Print number of lines and characters in the region."
-  (interactive "r")
-  (message "Region has %d lines, %d characters"
-	   (count-lines start end) (- end start)))
+(defun count-words (start end)
+  "Count words between START and END.
+If called interactively, START and END are normally the start and
+end of the buffer; but if the region is active, START and END are
+the start and end of the region.  Print a message reporting the
+number of lines, words, and chars.
+
+If called from Lisp, return the number of words between START and
+END, without printing any message."
+  (interactive (list nil nil))
+  (cond ((not (called-interactively-p 'any))
+	 (let ((words 0))
+	   (save-excursion
+	     (save-restriction
+	       (narrow-to-region start end)
+	       (goto-char (point-min))
+	       (while (forward-word 1)
+		 (setq words (1+ words)))))
+	   words))
+	((use-region-p)
+	 (call-interactively 'count-words-region))
+	(t
+	 (count-words--message "Buffer" (point-min) (point-max)))))
+
+(defun count-words--message (str start end)
+  (let ((lines (count-lines start end))
+	(words (count-words start end))
+	(chars (- end start)))
+    (message "%s has %d line%s, %d word%s, and %d character%s."
+	     str
+	     lines (if (= lines 1) "" "s")
+	     words (if (= words 1) "" "s")
+	     chars (if (= chars 1) "" "s"))))
+
+(define-obsolete-function-alias 'count-lines-region 'count-words-region "24.1")
 
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
@@ -980,12 +1027,12 @@ and the greater of them is not at the start of a line."
       (if (eq selective-display t)
 	  (save-match-data
 	    (let ((done 0))
-	      (while (re-search-forward "[\n\C-m]" nil t 40)
-		(setq done (+ 40 done)))
-	      (while (re-search-forward "[\n\C-m]" nil t 1)
-		(setq done (+ 1 done)))
-	      (goto-char (point-max))
-	      (if (and (/= start end)
+                     (while (re-search-forward "[\n\C-m]" nil t 40)
+                       (setq done (+ 40 done)))
+                     (while (re-search-forward "[\n\C-m]" nil t 1)
+                       (setq done (+ 1 done)))
+                     (goto-char (point-max))
+                     (if (and (/= start end)
 		       (not (bolp)))
 		  (1+ done)
 		done)))
@@ -1019,6 +1066,23 @@ In addition, with prefix argument, show details about that character
 in *Help* buffer.  See also the command `describe-char'."
   (interactive "P")
   (let* ((char (following-char))
+	 (bidi-fixer
+	  (cond ((memq char '(?\x202a ?\x202b ?\x202d ?\x202e))
+		 ;; If the character is one of LRE, LRO, RLE, RLO, it
+		 ;; will start a directional embedding, which could
+		 ;; completely disrupt the rest of the line (e.g., RLO
+		 ;; will display the rest of the line right-to-left).
+		 ;; So we put an invisible PDF character after these
+		 ;; characters, to end the embedding, which eliminates
+		 ;; any effects on the rest of the line.
+		 (propertize (string ?\x202c) 'invisible t))
+		;; Strong right-to-left characters cause reordering of
+		;; the following numerical characters which show the
+		;; codepoint, so append LRM to countermand that.
+		((memq (get-char-code-property char 'bidi-class) '(R AL))
+		 (propertize (string ?\x200e) 'invisible t))
+		(t
+		 "")))
 	 (beg (point-min))
 	 (end (point-max))
          (pos (point))
@@ -1048,9 +1112,9 @@ in *Help* buffer.  See also the command `describe-char'."
 	  ;; Check if the character is displayed with some `display'
 	  ;; text property.  In that case, set under-display to the
 	  ;; buffer substring covered by that property.
-	  (setq display-prop (get-text-property pos 'display))
+	  (setq display-prop (get-char-property pos 'display))
 	  (if display-prop
-	      (let ((to (or (next-single-property-change pos 'display)
+	      (let ((to (or (next-single-char-property-change pos 'display)
 			    (point-max))))
 		(if (< to (+ pos 4))
 		    (setq under-display "")
@@ -1078,18 +1142,19 @@ in *Help* buffer.  See also the command `describe-char'."
 	    ;; We show the detailed information about CHAR.
 	    (describe-char (point)))
 	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "Char: %s %s point=%d of %d (%d%%) <%d-%d> column=%d%s"
+	    (message "Char: %s%s %s point=%d of %d (%d%%) <%d-%d> column=%d%s"
 		     (if (< char 256)
 			 (single-key-description char)
 		       (buffer-substring-no-properties (point) (1+ (point))))
+		     bidi-fixer
 		     encoding-msg pos total percent beg end col hscroll)
-	  (message "Char: %s %s point=%d of %d (%d%%) column=%d%s"
+	  (message "Char: %s%s %s point=%d of %d (%d%%) column=%d%s"
 		   (if enable-multibyte-characters
 		       (if (< char 128)
 			   (single-key-description char)
 			 (buffer-substring-no-properties (point) (1+ (point))))
 		     (single-key-description char))
-		   encoding-msg pos total percent col hscroll))))))
+		   bidi-fixer encoding-msg pos total percent col hscroll))))))
 
 ;; Initialize read-expression-map.  It is defined at C level.
 (let ((m (make-sparse-keymap)))
@@ -1152,6 +1217,8 @@ display the result of expression evaluation."
 (defun eval-expression (eval-expression-arg
 			&optional eval-expression-insert-value)
   "Evaluate EVAL-EXPRESSION-ARG and print value in the echo area.
+When called interactively, read an Emacs Lisp expression and
+evaluate it.
 Value is also consed on to front of the variable `values'.
 Optional argument EVAL-EXPRESSION-INSERT-VALUE non-nil (interactively,
 with prefix argument) means insert the result into the current buffer
@@ -1172,11 +1239,11 @@ this command arranges for all errors to enter the debugger."
       (push (eval eval-expression-arg lexical-binding) values)
     (let ((old-value (make-symbol "t")) new-value)
       ;; Bind debug-on-error to something unique so that we can
-      ;; detect when evaled code changes it.
+      ;; detect when evalled code changes it.
       (let ((debug-on-error old-value))
 	(push (eval eval-expression-arg lexical-binding) values)
 	(setq new-value debug-on-error))
-      ;; If evaled code has changed the value of debug-on-error,
+      ;; If evalled code has changed the value of debug-on-error,
       ;; propagate that change to the global binding.
       (unless (eq old-value new-value)
 	(setq debug-on-error new-value))))
@@ -1537,7 +1604,7 @@ by the new completion."
      n)
     ;; next-matching-history-element always puts us at (point-min).
     ;; Move to the position we were at before changing the buffer contents.
-    ;; This is still sensical, because the text before point has not changed.
+    ;; This is still sensible, because the text before point has not changed.
     (goto-char point-at-start)))
 
 (defun previous-complete-history-element (n)
@@ -2364,7 +2431,7 @@ and only used if a buffer is displayed."
 					    1))
 				   1)))
 			 ;; Don't use the echo area if the output buffer is
-			 ;; already dispayed in the selected frame.
+			 ;; already displayed in the selected frame.
 			 (not (get-buffer-window (current-buffer))))
 		    ;; Echo area
 		    (goto-char (point-max))
@@ -2613,7 +2680,7 @@ value passed."
 Per default, this variable is always set to `t', meaning that a
 call of `process-file' could potentially change any file on a
 remote host.  When set to `nil', a file handler could optimize
-its behaviour with respect to remote file attributes caching.
+its behavior with respect to remote file attributes caching.
 
 This variable should never be changed by `setq'.  Instead of, it
 shall be set only by let-binding.")
@@ -2660,47 +2727,50 @@ support pty association, if PROGRAM is nil."
   (tabulated-list-init-header))
 
 (defun list-processes--refresh ()
-  "Recompute the list of processes for the Process List buffer."
+  "Recompute the list of processes for the Process List buffer.
+Also, delete any process that is exited or signaled."
   (setq tabulated-list-entries nil)
   (dolist (p (process-list))
-    (when (or (not process-menu-query-only)
-	      (process-query-on-exit-flag p))
-      (let* ((buf (process-buffer p))
-	     (type (process-type p))
-	     (name (process-name p))
-	     (status (symbol-name (process-status p)))
-	     (buf-label (if (buffer-live-p buf)
-			    `(,(buffer-name buf)
-			      face link
-			      help-echo ,(concat "Visit buffer `"
-						 (buffer-name buf) "'")
-			      follow-link t
-			      process-buffer ,buf
-			      action process-menu-visit-buffer)
-			  "--"))
-	     (tty (or (process-tty-name p) "--"))
-	     (cmd
-	      (if (memq type '(network serial))
-		  (let ((contact (process-contact p t)))
-		    (if (eq type 'network)
-			(format "(%s %s)"
-				(if (plist-get contact :type)
-				    "datagram"
-				  "network")
-				(if (plist-get contact :server)
-				    (format "server on %s"
-					    (plist-get contact :server))
-				  (format "connection to %s"
-					  (plist-get contact :host))))
-		      (format "(serial port %s%s)"
-			      (or (plist-get contact :port) "?")
-			      (let ((speed (plist-get contact :speed)))
-				(if speed
-				    (format " at %s b/s" speed)
-				  "")))))
-		(mapconcat 'identity (process-command p) " "))))
-	(push (list p (vector name status buf-label tty cmd))
-	      tabulated-list-entries)))))
+    (cond ((memq (process-status p) '(exit signal closed))
+	   (delete-process p))
+	  ((or (not process-menu-query-only)
+	       (process-query-on-exit-flag p))
+	   (let* ((buf (process-buffer p))
+		  (type (process-type p))
+		  (name (process-name p))
+		  (status (symbol-name (process-status p)))
+		  (buf-label (if (buffer-live-p buf)
+				 `(,(buffer-name buf)
+				   face link
+				   help-echo ,(concat "Visit buffer `"
+						      (buffer-name buf) "'")
+				   follow-link t
+				   process-buffer ,buf
+				   action process-menu-visit-buffer)
+			       "--"))
+		  (tty (or (process-tty-name p) "--"))
+		  (cmd
+		   (if (memq type '(network serial))
+		       (let ((contact (process-contact p t)))
+			 (if (eq type 'network)
+			     (format "(%s %s)"
+				     (if (plist-get contact :type)
+					 "datagram"
+				       "network")
+				     (if (plist-get contact :server)
+					 (format "server on %s"
+						 (plist-get contact :server))
+				       (format "connection to %s"
+					       (plist-get contact :host))))
+			   (format "(serial port %s%s)"
+				   (or (plist-get contact :port) "?")
+				   (let ((speed (plist-get contact :speed)))
+				     (if speed
+					 (format " at %s b/s" speed)
+				       "")))))
+		     (mapconcat 'identity (process-command p) " "))))
+	     (push (list p (vector name status buf-label tty cmd))
+		   tabulated-list-entries))))))
 
 (defun process-menu-visit-buffer (button)
   (display-buffer (button-get button 'process-buffer)))
@@ -2861,28 +2931,46 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 
 
 (defvar filter-buffer-substring-functions nil
-  "Wrapper hook around `filter-buffer-substring'.
-The functions on this special hook are called with 4 arguments:
-  NEXT-FUN BEG END DELETE
-NEXT-FUN is a function of 3 arguments (BEG END DELETE)
-that performs the default operation.  The other 3 arguments are like
-the ones passed to `filter-buffer-substring'.")
+  "This variable is a wrapper hook around `filter-buffer-substring'.
+Each member of the hook should be a function accepting four arguments:
+\(FUN BEG END DELETE), where FUN is itself a function of three arguments
+\(BEG END DELETE).  The arguments BEG, END, and DELETE are the same
+as those of `filter-buffer-substring' in each case.
+
+The first hook function to be called receives a FUN equivalent
+to the default operation of `filter-buffer-substring',
+i.e. one that returns the buffer-substring between BEG and
+END (processed by any `buffer-substring-filters').  Normally,
+the hook function will call FUN and then do its own processing
+of the result.  The next hook function receives a FUN equivalent
+to the previous hook function, calls it, and does its own
+processing, and so on.  The overall result is that of all hook
+functions acting in sequence.
+
+Any hook may choose not to call FUN though, in which case it
+effectively replaces the default behavior with whatever it chooses.
+Of course, a later hook function may do the same thing.")
 
 (defvar buffer-substring-filters nil
   "List of filter functions for `filter-buffer-substring'.
 Each function must accept a single argument, a string, and return
 a string.  The buffer substring is passed to the first function
 in the list, and the return value of each function is passed to
-the next.  The return value of the last function is used as the
-return value of `filter-buffer-substring'.
+the next.  The final result (if `buffer-substring-filters' is
+nil, this is the unfiltered buffer-substring) is passed to the
+first function on `filter-buffer-substring-functions'.
 
-If this variable is nil, no filtering is performed.")
+As a special convention, point is set to the start of the buffer text
+being operated on (i.e., the first argument of `filter-buffer-substring')
+before these functions are called.")
 (make-obsolete-variable 'buffer-substring-filters
                         'filter-buffer-substring-functions "24.1")
 
 (defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
-The filtering is performed by `filter-buffer-substring-functions'.
+The wrapper hook `filter-buffer-substring-functions' performs
+the actual filtering.  The obsolete variable `buffer-substring-filters'
+is also consulted.  If both of these are nil, no filtering is done.
 
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.
@@ -2981,7 +3069,8 @@ before the Emacs kill and one can still paste it using \\[yank] \\[yank-pop]."
   :version "23.2")
 
 (defcustom kill-do-not-save-duplicates nil
-  "Do not add a new string to `kill-ring' when it is the same as the last one."
+  "Do not add a new string to `kill-ring' if it duplicates the last one.
+The comparison is done using `equal-including-properties'."
   :type 'boolean
   :group 'killing
   :version "23.2")
@@ -3009,7 +3098,10 @@ argument should still be a \"useful\" string for such uses."
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
   (unless (and kill-do-not-save-duplicates
-	       (equal string (car kill-ring)))
+	       ;; Due to text properties such as 'yank-handler that
+	       ;; can alter the contents to yank, comparison using
+	       ;; `equal' is unsafe.
+	       (equal-including-properties string (car kill-ring)))
     (if (fboundp 'menu-bar-update-yank-menu)
 	(menu-bar-update-yank-menu string (and replace (car kill-ring)))))
   (when save-interprogram-paste-before-kill
@@ -3020,10 +3112,10 @@ argument should still be a \"useful\" string for such uses."
 		       (nreverse interprogram-paste)
 		     (list interprogram-paste)))
 	  (unless (and kill-do-not-save-duplicates
-		       (equal s (car kill-ring)))
+		       (equal-including-properties s (car kill-ring)))
 	    (push s kill-ring))))))
   (unless (and kill-do-not-save-duplicates
-	       (equal string (car kill-ring)))
+	       (equal-including-properties string (car kill-ring)))
     (if (and replace kill-ring)
 	(setcar kill-ring string)
       (push string kill-ring)
@@ -3054,10 +3146,11 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
-If N is zero, `interprogram-paste-function' is set, and calling
-it returns a string or list of strings, then that string (or
-list) is added to the front of the kill ring and the string (or
-first string in the list) is returned as the latest kill.
+If N is zero and `interprogram-paste-function' is set to a
+function that returns a string or a list of strings, and if that
+function doesn't return nil, then that string (or list) is added
+to the front of the kill ring and the string (or first string in
+the list) is returned as the latest kill.
 
 If N is not zero, and if `yank-pop-change-selection' is
 non-nil, use `interprogram-cut-function' to transfer the
@@ -3381,8 +3474,10 @@ and KILLP is t if a prefix arg was specified."
                      ((eq backward-delete-char-untabify-method 'all)
                       " \t\n\r")))
          (n (if skip
-                (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
-                                                     (point)))))
+                (let* ((oldpt (point))
+                       (wh (- oldpt (save-excursion
+                                      (skip-chars-backward skip)
+                                      (constrain-to-field nil oldpt)))))
                   (+ arg (if (zerop wh) 0 (1- wh))))
               arg)))
     ;; Avoid warning about delete-backward-char
@@ -3420,6 +3515,10 @@ a number counts as a prefix arg.
 
 To kill a whole line, when point is not at the beginning, type \
 \\[move-beginning-of-line] \\[kill-line] \\[kill-line].
+
+If `show-trailing-whitespace' is non-nil, this command will just
+kill the rest of the current line, even if there are only
+nonblanks there.
 
 If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line
@@ -3589,7 +3688,8 @@ If ARG is zero, move to the beginning of the current line."
 			(assq prop buffer-invisibility-spec))))))
     (skip-chars-forward "^\n")
     (if (get-text-property (point) 'invisible)
-	(goto-char (next-single-property-change (point) 'invisible))
+	(goto-char (or (next-single-property-change (point) 'invisible)
+		       (point-max)))
       (goto-char (next-overlay-change (point))))
     (end-of-line)))
 
@@ -3693,10 +3793,18 @@ a mistake; see the documentation of `set-mark'."
     (signal 'mark-inactive nil)))
 
 (defsubst deactivate-mark (&optional force)
-  "Deactivate the mark by setting `mark-active' to nil.
-Unless FORCE is non-nil, this function does nothing if Transient
-Mark mode is disabled.
-This function also runs `deactivate-mark-hook'."
+  "Deactivate the mark.
+If Transient Mark mode is disabled, this function normally does
+nothing; but if FORCE is non-nil, it deactivates the mark anyway.
+
+Deactivating the mark sets `mark-active' to nil, updates the
+primary selection according to `select-active-regions', and runs
+`deactivate-mark-hook'.
+
+If Transient Mark mode was temporarily enabled, reset the value
+of the variable `transient-mark-mode'; if this causes Transient
+Mark mode to be disabled, don't change `mark-active' to nil or
+run `deactivate-mark-hook'."
   (when (or transient-mark-mode force)
     (when (and (if (eq select-active-regions 'only)
 		   (eq (car-safe transient-mark-mode) 'only)
@@ -4038,13 +4146,15 @@ its earlier value."
 
 (define-minor-mode transient-mark-mode
   "Toggle Transient Mark mode.
-With ARG, turn Transient Mark mode on if ARG is positive, off otherwise.
+With a prefix argument ARG, enable Transient Mark mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Transient Mark mode if ARG is omitted or nil.
 
-In Transient Mark mode, when the mark is active, the region is highlighted.
-Changing the buffer \"deactivates\" the mark.
-So do certain other operations that set the mark
-but whose main purpose is something else--for example,
-incremental search, \\[beginning-of-buffer], and \\[end-of-buffer].
+Transient Mark mode is a global minor mode.  When enabled, the
+region is highlighted whenever the mark is active.  The mark is
+\"deactivated\" by changing the buffer, and after certain other
+operations that set the mark but whose main purpose is something
+else--for example, incremental search, \\[beginning-of-buffer], and \\[end-of-buffer].
 
 You can also deactivate the mark by typing \\[keyboard-quit] or
 \\[keyboard-escape-quit].
@@ -4125,7 +4235,9 @@ a semipermanent goal column for this command.
 Then instead of trying to move exactly vertically (or as close as possible),
 this command moves to the specified goal column (or as close as possible).
 The goal column is stored in the variable `goal-column', which is nil
-when there is no goal column.
+when there is no goal column.  Note that setting `goal-column'
+overrides `line-move-visual' and causes this command to move by buffer
+lines rather than by display lines.
 
 If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
@@ -4163,7 +4275,9 @@ a semipermanent goal column for this command.
 Then instead of trying to move exactly vertically (or as close as possible),
 this command moves to the specified goal column (or as close as possible).
 The goal column is stored in the variable `goal-column', which is nil
-when there is no goal column.
+when there is no goal column.  Note that setting `goal-column'
+overrides `line-move-visual' and causes this command to move by buffer
+lines rather than by display lines.
 
 If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
@@ -4187,7 +4301,8 @@ This has no effect when `line-move-visual' is non-nil."
   :group 'editing-basics)
 
 (defcustom goal-column nil
-  "Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil."
+  "Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil.
+A non-nil setting overrides `line-move-visual', which see."
   :type '(choice integer
 		 (const :tag "None" nil))
   :group 'editing-basics)
@@ -4217,7 +4332,11 @@ Outline mode sets this."
 This movement is based on where the cursor is displayed on the
 screen, instead of relying on buffer contents alone.  It takes
 into account variable-width characters and line continuation.
-If nil, `line-move' moves point by logical lines."
+If nil, `line-move' moves point by logical lines.
+A non-nil setting of `goal-column' overrides the value of this variable
+and forces movement by logical lines.
+A window that is  horizontally scrolled also forces movement by logical
+lines."
   :type 'boolean
   :group 'editing-basics
   :version "23.1")
@@ -4263,7 +4382,7 @@ If nil, `line-move' moves point by logical lines."
 	  (when (> rbot 0)
 	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
-	 ;; but also vscroll one line so redisplay wont recenter.
+	 ;; but also vscroll one line so redisplay won't recenter.
 	 ((and (> vpos 0)
 	       (= py (min (- (window-text-height) scroll-margin 1)
 			  (1- vpos))))
@@ -4294,7 +4413,13 @@ If nil, `line-move' moves point by logical lines."
 	       (not executing-kbd-macro)
 	       (line-move-partial arg noerror to-end))
     (set-window-vscroll nil 0 t)
-    (if line-move-visual
+    (if (and line-move-visual
+	     ;; Display-based column are incompatible with goal-column.
+	     (not goal-column)
+	     ;; When the text in the window is scrolled to the left,
+	     ;; display-based motion doesn't make sense (because each
+	     ;; logical line occupies exactly one screen line).
+	     (not (> (window-hscroll) 0)))
 	(line-move-visual arg noerror)
       (line-move-1 arg noerror to-end))))
 
@@ -4654,7 +4779,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 	(let ((line-move-visual nil))
 	  (line-move (1- arg) t)))
 
-    ;; Move to beginning-of-line, ignoring fields and invisibles.
+    ;; Move to beginning-of-line, ignoring fields and invisible text.
     (skip-chars-backward "^\n")
     (while (and (not (bobp)) (invisible-p (1- (point))))
       (goto-char (previous-char-property-change (point)))
@@ -4841,8 +4966,15 @@ other purposes."
 (defvar visual-line--saved-state nil)
 
 (define-minor-mode visual-line-mode
-  "Redefine simple editing commands to act on visual lines, not logical lines.
-This also turns on `word-wrap' in the buffer."
+  "Toggle visual line based editing (Visual Line mode).
+With a prefix argument ARG, enable Visual Line mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+When Visual Line mode is enabled, `word-wrap' is turned on in
+this buffer, and simple editing commands are redefined to act on
+visual lines, not logical lines.  See Info node `Visual Line
+Mode' for details."
   :keymap visual-line-mode-map
   :group 'visual-line
   :lighter " Wrap"
@@ -5234,13 +5366,19 @@ Some major modes set this.")
 ;; auto-fill-function to nil in a file-local setting is safe and
 ;; can be useful to prevent auto-filling.
 (put 'auto-fill-function 'safe-local-variable 'null)
-;; FIXME: turn into a proper minor mode.
-;; Add a global minor mode version of it.
+
 (define-minor-mode auto-fill-mode
-  "Toggle Auto Fill mode.
-With ARG, turn Auto Fill mode on if and only if ARG is positive.
-In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
-automatically breaks the line at a previous space.
+  "Toggle automatic line breaking (Auto Fill mode).
+With a prefix argument ARG, enable Auto Fill mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+When Auto Fill mode is enabled, inserting a space at a column
+beyond `current-fill-column' automatically breaks the line at a
+previous space.
+
+When `auto-fill-mode' is on, the `auto-fill-function' variable is
+non-`nil'.
 
 The value of `normal-auto-fill-function' specifies the function to use
 for `auto-fill-function' when turning Auto Fill mode on."
@@ -5303,11 +5441,12 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'indicate-unused-lines 'indicate-empty-lines)
 
 (defun toggle-truncate-lines (&optional arg)
-  "Toggle whether to fold or truncate long lines for the current buffer.
+  "Toggle truncating of long lines for the current buffer.
+When truncating is off, long lines are folded.
 With prefix argument ARG, truncate long lines if ARG is positive,
-otherwise don't truncate them.  Note that in side-by-side windows,
-this command has no effect if `truncate-partial-width-windows'
-is non-nil."
+otherwise fold them.  Note that in side-by-side windows, this
+command has no effect if `truncate-partial-width-windows' is
+non-nil."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
@@ -5344,36 +5483,44 @@ if long lines are truncated."
   "The string displayed in the mode line when in binary overwrite mode.")
 
 (define-minor-mode overwrite-mode
-  "Toggle overwrite mode.
-With prefix argument ARG, turn overwrite mode on if ARG is positive,
-otherwise turn it off.  In overwrite mode, printing characters typed
-in replace existing text on a one-for-one basis, rather than pushing
-it to the right.  At the end of a line, such characters extend the line.
-Before a tab, such characters insert until the tab is filled in.
-\\[quoted-insert] still inserts characters in overwrite mode; this
-is supposed to make it easier to insert characters when necessary."
+  "Toggle Overwrite mode.
+With a prefix argument ARG, enable Overwrite mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+When Overwrite mode is enabled, printing characters typed in
+replace existing text on a one-for-one basis, rather than pushing
+it to the right.  At the end of a line, such characters extend
+the line.  Before a tab, such characters insert until the tab is
+filled in.  \\[quoted-insert] still inserts characters in
+overwrite mode; this is supposed to make it easier to insert
+characters when necessary."
   :variable (eq overwrite-mode 'overwrite-mode-textual))
 
 (define-minor-mode binary-overwrite-mode
-  "Toggle binary overwrite mode.
-With prefix argument ARG, turn binary overwrite mode on if ARG is
-positive, otherwise turn it off.  In binary overwrite mode, printing
-characters typed in replace existing text.  Newlines are not treated
-specially, so typing at the end of a line joins the line to the next,
-with the typed character between them.  Typing before a tab character
-simply replaces the tab with the character typed.  \\[quoted-insert]
-replaces the text at the cursor, just as ordinary typing characters do.
+  "Toggle Binary Overwrite mode.
+With a prefix argument ARG, enable Binary Overwrite mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
-Note that binary overwrite mode is not its own minor mode; it is a
-specialization of overwrite mode, entered by setting the
+When Binary Overwrite mode is enabled, printing characters typed
+in replace existing text.  Newlines are not treated specially, so
+typing at the end of a line joins the line to the next, with the
+typed character between them.  Typing before a tab character
+simply replaces the tab with the character typed.
+\\[quoted-insert] replaces the text at the cursor, just as
+ordinary typing characters do.
+
+Note that Binary Overwrite mode is not its own minor mode; it is
+a specialization of overwrite mode, entered by setting the
 `overwrite-mode' variable to `overwrite-mode-binary'."
   :variable (eq overwrite-mode 'overwrite-mode-binary))
 
 (define-minor-mode line-number-mode
-  "Toggle Line Number mode.
-With ARG, turn Line Number mode on if ARG is positive, otherwise
-turn it off.  When Line Number mode is enabled, the line number
-appears in the mode line.
+  "Toggle line number display in the mode line (Line Number mode).
+With a prefix argument ARG, enable Line Number mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
@@ -5381,22 +5528,27 @@ and `line-number-display-limit-width'."
   :init-value t :global t :group 'mode-line)
 
 (define-minor-mode column-number-mode
-  "Toggle Column Number mode.
-With ARG, turn Column Number mode on if ARG is positive,
-otherwise turn it off.  When Column Number mode is enabled, the
-column number appears in the mode line."
+  "Toggle column number display in the mode line (Column Number mode).
+With a prefix argument ARG, enable Column Number mode if ARG is
+positive, and disable it otherwise.
+
+If called from Lisp, enable the mode if ARG is omitted or nil."
   :global t :group 'mode-line)
 
 (define-minor-mode size-indication-mode
-  "Toggle Size Indication mode.
-With ARG, turn Size Indication mode on if ARG is positive,
-otherwise turn it off.  When Size Indication mode is enabled, the
-size of the accessible part of the buffer appears in the mode line."
+  "Toggle buffer size display in the mode line (Size Indication mode).
+With a prefix argument ARG, enable Size Indication mode if ARG is
+positive, and disable it otherwise.
+
+If called from Lisp, enable the mode if ARG is omitted or nil."
   :global t :group 'mode-line)
 
 (define-minor-mode auto-save-mode
-  "Toggle auto-saving of contents of current buffer.
-With prefix argument ARG, turn auto-saving on if positive, else off."
+  "Toggle auto-saving in the current buffer (Auto Save mode).
+With a prefix argument ARG, enable Auto Save mode if ARG is
+positive, and disable it otherwise.
+
+If called from Lisp, enable the mode if ARG is omitted or nil."
   :variable ((and buffer-auto-save-file-name
                   ;; If auto-save is off because buffer has shrunk,
                   ;; then toggling should turn it on.
@@ -5520,8 +5672,8 @@ The function should return non-nil if the two tokens do not match.")
                 (minibuffer-message "Mismatched parentheses")
               (message "Mismatched parentheses"))
           (if (minibufferp)
-              (minibuffer-message "Unmatched parenthesis")
-            (message "Unmatched parenthesis"))))
+              (minibuffer-message "No matching parenthesis found")
+            (message "No matching parenthesis found"))))
        ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only
@@ -5610,7 +5762,7 @@ At top-level, as an editor command, this simply beeps."
 (defvar buffer-quit-function nil
   "Function to call to \"quit\" the current buffer, or nil if none.
 \\[keyboard-escape-quit] calls this function when its more local actions
-\(such as cancelling a prefix argument, minibuffer or region) do not apply.")
+\(such as canceling a prefix argument, minibuffer or region) do not apply.")
 
 (defun keyboard-escape-quit ()
   "Exit the current \"mode\" (in a generalized sense of the word).
@@ -5677,8 +5829,8 @@ Valid values include:
   `mh-e-user-agent'     -- use the Emacs interface to the MH mail system.
                            See Info node `(mh-e)'.
   `gnus-user-agent'     -- like `message-user-agent', but with Gnus
-                           paraphernalia, particularly the Gcc: header for
-                           archiving.
+                           paraphernalia if Gnus is running, particularly
+                           the Gcc: header for archiving.
 
 Additional valid symbols may be available; check with the author of
 your package for details.  The function should return non-nil if it
@@ -5719,6 +5871,11 @@ else the end of the last line.  This function obeys RFC822."
   (when (re-search-forward
 	 "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
     (goto-char (match-beginning 0))))
+
+;; Used by Rmail (e.g., rmail-forward).
+(defvar mail-encode-mml nil
+  "If non-nil, mail-user-agent's `sendfunc' command should mml-encode
+the outgoing message before sending it.")
 
 (defun compose-mail (&optional to subject other-headers continue
 		     switch-function yank-action send-actions
@@ -5916,7 +6073,7 @@ of the text to replace.  If END is nil, point is used instead.")
 
 (defvar completion-list-insert-choice-function #'completion--replace
   "Function to use to insert the text chosen in *Completions*.
-Called with 3 arguments (BEG END TEXT), it should replace the text
+Called with three arguments (BEG END TEXT), it should replace the text
 between BEG and END with TEXT.  Expected to be set buffer-locally
 in the *Completions* buffer.")
 
@@ -6110,7 +6267,7 @@ BASE-POSITION, says where to insert the completion."
 	       choice buffer base-position nil)
         ;; This remove-text-properties should be unnecessary since `choice'
         ;; comes from buffer-substring-no-properties.
-        ;;(remove-text-properties 0 (lenth choice) '(mouse-face nil) choice)
+        ;;(remove-text-properties 0 (length choice) '(mouse-face nil) choice)
 	;; Insert the completion into the buffer where it was requested.
         (funcall (or insert-function completion-list-insert-choice-function)
                  (or (car base-position) (point))
@@ -6561,8 +6718,9 @@ call `normal-erase-is-backspace-mode' (which see) instead."
 
 (define-minor-mode normal-erase-is-backspace-mode
   "Toggle the Erase and Delete mode of the Backspace and Delete keys.
-
-With numeric ARG, turn the mode on if and only if ARG is positive.
+With a prefix argument ARG, enable this feature if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 On window systems, when this mode is on, Delete is mapped to C-d
 and Backspace is mapped to DEL; when this mode is off, both
@@ -6636,13 +6794,13 @@ See also `normal-erase-is-backspace'."
   "Saved value of `buffer-invisibility-spec' when Visible mode is on.")
 
 (define-minor-mode visible-mode
-  "Toggle Visible mode.
-With argument ARG turn Visible mode on if ARG is positive, otherwise
-turn it off.
+  "Toggle making all invisible text temporarily visible (Visible mode).
+With a prefix argument ARG, enable Visible mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-Enabling Visible mode makes all invisible text temporarily visible.
-Disabling Visible mode turns off that effect.  Visible mode works by
-saving the value of `buffer-invisibility-spec' and setting it to nil."
+This mode works by saving the value of `buffer-invisibility-spec'
+and setting it to nil."
   :lighter " Vis"
   :group 'editing-basics
   (when (local-variable-p 'vis-mode-saved-buffer-invisibility-spec)

@@ -1,6 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991-1995, 1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: maint, tools
@@ -85,7 +85,7 @@ The second \\( \\) construct must match the years."
   "Non-nil if individual consecutive years should be replaced with a range.
 For example: 2005, 2006, 2007, 2008 might be replaced with 2005-2008.
 If you use ranges, you should add an explanatory note in a README file.
-The function `copyright-fix-year' respects this variable."
+The function `copyright-fix-years' respects this variable."
   :group 'copyright
   :type 'boolean
   :version "24.1")

@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2011
+   Copyright (C) 1985-1988, 1993-1995, 1999-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -26,9 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pwd.h>
 #include <grp.h>
 #endif /* HAVE_PWD_H */
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#endif /* HAVE_LIMITS_H */
 #include <unistd.h>
 
 #include <allocator.h>
@@ -302,7 +300,7 @@ wait_for_termination_1 (int pid, int interruptible)
 {
   while (1)
     {
-#if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined(__GNU__)
+#if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined (__GNU__)
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
 	 and child_sig will do wait3 and make the process go away. */
@@ -435,7 +433,7 @@ child_setup_tty (int out)
 #endif /* AIX */
 
   /* We originally enabled ICANON (and set VEOF to 04), and then had
-     proces.c send additional EOF chars to flush the output when faced
+     process.c send additional EOF chars to flush the output when faced
      with long lines, but this leads to weird effects when the
      subprocess has disabled ICANON and ends up seeing those spurious
      extra EOFs.  So we don't send EOFs any more in
@@ -856,6 +854,7 @@ void
 init_sys_modes (struct tty_display_info *tty_out)
 {
   struct emacs_tty tty;
+  Lisp_Object terminal;
 
   Vtty_erase_char = Qnil;
 
@@ -909,7 +908,9 @@ init_sys_modes (struct tty_display_info *tty_out)
       tty.main.c_cflag &= ~PARENB;/* Don't check parity */
     }
 #endif
-  if (tty_out->input == stdin)
+
+  XSETTERMINAL(terminal, tty_out->terminal);
+  if (!NILP (Fcontrolling_tty_p (terminal)))
     {
       tty.main.c_cc[VINTR] = quit_char;	/* C-g (usually) gives SIGINT */
       /* Set up C-g for both SIGQUIT and SIGINT.
@@ -1328,7 +1329,7 @@ setup_pty (int fd)
      Since the latter lossage is more benign, we may as well
      lose that way.  -- cph */
 #ifdef FIONBIO
-#if defined(UNIX98_PTYS)
+#if defined (UNIX98_PTYS)
   {
     int on = 1;
     ioctl (fd, FIONBIO, &on);
@@ -1501,7 +1502,7 @@ sys_signal (int signal_number, signal_handler_t action)
      after a signal that sets the interrupt_input_pending flag.  */
   /* Non-interactive keyboard input goes through stdio, where we always
      want restartable system calls.  */
-# if defined (BROKEN_SA_RESTART) || defined(SYNC_INPUT)
+# if defined (BROKEN_SA_RESTART) || defined (SYNC_INPUT)
   if (noninteractive)
 # endif
     new_action.sa_flags = SA_RESTART;
@@ -1662,7 +1663,7 @@ init_signals (void)
       sys_siglist[SIGQUIT] = "Quit";
 # endif
 # ifdef SIGRETRACT
-      sys_siglist[SIGRETRACT] = "Need to relinguish monitor mode";
+      sys_siglist[SIGRETRACT] = "Need to relinquish monitor mode";
 # endif
 # ifdef SIGSAK
       sys_siglist[SIGSAK] = "Secure attention";
@@ -1802,8 +1803,7 @@ get_random (void)
 #ifndef HAVE_STRERROR
 #ifndef WINDOWSNT
 char *
-strerror (errnum)
-     int errnum;
+strerror (int errnum)
 {
   extern char *sys_errlist[];
   extern int sys_nerr;
@@ -1814,6 +1814,49 @@ strerror (errnum)
 }
 #endif /* not WINDOWSNT */
 #endif /* ! HAVE_STRERROR */
+
+#ifndef HAVE_SNPRINTF
+/* Approximate snprintf as best we can on ancient hosts that lack it.  */
+int
+snprintf (char *buf, size_t bufsize, char const *format, ...)
+{
+  ptrdiff_t size = min (bufsize, PTRDIFF_MAX);
+  ptrdiff_t nbytes = size - 1;
+  va_list ap;
+
+  if (size)
+    {
+      va_start (ap, format);
+      nbytes = doprnt (buf, size, format, 0, ap);
+      va_end (ap);
+    }
+
+  if (nbytes == size - 1)
+    {
+      /* Calculate the length of the string that would have been created
+	 had the buffer been large enough.  */
+      char stackbuf[4000];
+      char *b = stackbuf;
+      ptrdiff_t bsize = sizeof stackbuf;
+      va_start (ap, format);
+      nbytes = evxprintf (&b, &bsize, stackbuf, -1, format, ap);
+      va_end (ap);
+      if (b != stackbuf)
+	xfree (b);
+    }
+
+  if (INT_MAX < nbytes)
+    {
+#ifdef EOVERFLOW
+      errno = EOVERFLOW;
+#else
+      errno = EDOM;
+#endif
+      return -1;
+    }
+  return nbytes;
+}
+#endif
 
 int
 emacs_open (const char *path, int oflag, int mode)
@@ -2004,7 +2047,7 @@ rename (const char *from, const char *to)
 #endif
 
 
-#if defined(HPUX) && !defined(HAVE_PERROR)
+#if defined (HPUX) && !defined (HAVE_PERROR)
 
 /* HPUX curses library references perror, but as far as we know
    it won't be called.  Anyway this definition will do for now.  */
@@ -2215,59 +2258,6 @@ rmdir (char *dpath)
 }
 #endif /* !HAVE_RMDIR */
 
-
-#ifndef HAVE_MEMSET
-void *
-memset (void *b, int n, size_t length)
-{
-  unsigned char *p = b;
-  while (length-- > 0)
-    *p++ = n;
-  return b;
-}
-#endif /* !HAVE_MEMSET */
-
-#ifndef HAVE_MEMCPY
-void *
-memcpy (void *b1, void *b2, size_t length)
-{
-  unsigned char *p1 = b1, *p2 = b2;
-  while (length-- > 0)
-    *p1++ = *p2++;
-  return b1;
-}
-#endif /* !HAVE_MEMCPY */
-
-#ifndef HAVE_MEMMOVE
-void *
-memmove (void *b1, void *b2, size_t length)
-{
-  unsigned char *p1 = b1, *p2 = b2;
-  if (p1 < p2 || p1 >= p2 + length)
-    while (length-- > 0)
-      *p1++ = *p2++;
-  else
-    {
-      p1 += length;
-      p2 += length;
-      while (length-- > 0)
-	*--p1 = *--p2;
-    }
-  return b1;
-}
-#endif /* !HAVE_MEMCPY */
-
-#ifndef HAVE_MEMCMP
-int
-memcmp (void *b1, void *b2, size_t length)
-{
-  unsigned char *p1 = b1, *p2 = b2;
-  while (length-- > 0)
-    if (*p1++ != *p2++)
-      return p1[-1] < p2[-1] ? -1 : 1;
-  return 0;
-}
-#endif /* !HAVE_MEMCMP */
 
 #ifndef HAVE_STRSIGNAL
 char *
@@ -2696,7 +2686,7 @@ system_process_attributes (Lisp_Object pid)
   ssize_t nread;
   const char *cmd = NULL;
   char *cmdline = NULL;
-  size_t cmdsize = 0, cmdline_size;
+  ptrdiff_t cmdsize = 0, cmdline_size;
   unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
   unsigned long long u_time, s_time, cutime, cstime, start;
@@ -2878,8 +2868,10 @@ system_process_attributes (Lisp_Object pid)
   if (fd >= 0)
     {
       char ch;
-      for (cmdline_size = 0; emacs_read (fd, &ch, 1) == 1; cmdline_size++)
+      for (cmdline_size = 0; cmdline_size < STRING_BYTES_BOUND; cmdline_size++)
 	{
+	  if (emacs_read (fd, &ch, 1) != 1)
+	    break;
 	  c = ch;
 	  if (isspace (c) || c == '\\')
 	    cmdline_size++;	/* for later quoting, see below */
@@ -2900,7 +2892,7 @@ system_process_attributes (Lisp_Object pid)
 	      nread = 0;
 	    }
 	  /* We don't want trailing null characters.  */
-	  for (p = cmdline + nread - 1; p > cmdline && !*p; p--)
+	  for (p = cmdline + nread; p > cmdline + 1 && !p[-1]; p--)
 	    nread--;
 	  for (p = cmdline; p < cmdline + nread; p++)
 	    {

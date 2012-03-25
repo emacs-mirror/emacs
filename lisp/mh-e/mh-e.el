@@ -1,11 +1,11 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2011
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 8.2
+;; Version: 8.3.1
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -27,7 +27,7 @@
 
 ;; MH-E is an Emacs interface to the MH mail system.
 
-;; MH-E is supported in GNU Emacs 21 and 22, as well as XEmacs 21
+;; MH-E is supported in GNU Emacs 21 and higher, as well as XEmacs 21
 ;; (except for versions 21.5.9-21.5.16). It is compatible with MH
 ;; versions 6.8.4 and higher, all versions of nmh, and GNU mailutils
 ;; 1.0 and higher. Gnus is also required; version 5.10 or higher is
@@ -127,7 +127,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "8.2" "Version number of MH-E.")
+(defconst mh-version "8.3.1" "Version number of MH-E.")
 
 ;; Variants
 
@@ -342,7 +342,7 @@ Name of the Previous sequence.")
   "Non-nil means that we have \"flists\".")
 
 (defvar mh-index-data-file ".mhe_index"
-  "MH-E specific file where index seach info is stored.")
+  "MH-E specific file where index search info is stored.")
 
 (defvar mh-letter-header-field-regexp "^\\([A-Za-z][A-Za-z0-9-]*\\):")
 
@@ -2447,7 +2447,7 @@ of citations entirely, choose \"None\"."
     "Followup-To:"                      ; RFC 1036
     "For-Approval:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "For-Comment:"                      ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "For-Handdling:"                    ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "For-Handling:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Forwarded:"                        ; MH
     "From "                             ; sendmail
     "Generate-Delivery-Report:"         ; RFC 2156
@@ -2478,7 +2478,7 @@ of citations entirely, choose \"None\"."
     "Original-NNTP-"                    ; mail to news
     "Original-Path:"                    ; mail to news
     "Original-Received:"                ; mail to news
-    "Original-Recipt:"                  ; RFC 2298
+    "Original-Recipient:"               ; RFC 2298
     "Original-To:"                      ; mail to news
     "Original-X-"                       ; mail to news
     "Origination-Client:"               ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2508,7 +2508,7 @@ of citations entirely, choose \"None\"."
     "Seal-Send-Time:"
     "See-Also:"                         ; H. Spencer: News Article Format and Transmission, June 1994
     "Sensitivity:"                      ; RFC 2156, 2421
-    "Speach-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "Speech-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Status:"                           ; sendmail
     "Supersedes:"                       ; H. Spencer: News Article Format and Transmission, June 1994
     "Telefax:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/

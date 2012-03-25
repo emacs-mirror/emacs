@@ -1,6 +1,6 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1988, 1993-1994, 1999, 2001-2011
+Copyright (C) 1988, 1993-1994, 1999, 2001-2012
   Free Software Foundation, Inc.
 
 Author: Wolfgang Rupprecht
@@ -53,10 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "syssignal.h"
 
-#if STDC_HEADERS
 #include <float.h>
-#endif
-
 /* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*. */
 #ifndef IEEE_FLOATING_POINT
 #if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
@@ -74,7 +71,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern double logb (double);
 #endif /* not HPUX and HAVE_LOGB and no logb macro */
 
-#if defined(DOMAIN) && defined(SING) && defined(OVERFLOW)
+#if defined (DOMAIN) && defined (SING) && defined (OVERFLOW)
     /* If those are defined, then this is probably a `matherr' machine. */
 # ifndef HAVE_MATHERR
 #  define HAVE_MATHERR
@@ -285,7 +282,9 @@ DEFUN ("tan", Ftan, Stan, 1, 1, 0,
   return make_float (d);
 }
 
-#if defined HAVE_ISNAN && defined HAVE_COPYSIGN
+#undef isnan
+#define isnan(x) ((x) != (x))
+
 DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
        doc: /* Return non nil iff argument X is a NaN.  */)
   (Lisp_Object x)
@@ -294,7 +293,8 @@ DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
   return isnan (XFLOAT_DATA (x)) ? Qt : Qnil;
 }
 
-DEFUN ("copysign", Fcopysign, Scopysign, 1, 2, 0,
+#ifdef HAVE_COPYSIGN
+DEFUN ("copysign", Fcopysign, Scopysign, 2, 2, 0,
        doc: /* Copy sign of X2 to value of X1, and return the result.
 Cause an error if X1 or X2 is not a float.  */)
   (Lisp_Object x1, Lisp_Object x2)
@@ -519,7 +519,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   if (f1 == 0.0 && f2 == 0.0)
     f1 = 1.0;
 #ifdef FLOAT_CHECK_DOMAIN
-  else if ((f1 == 0.0 && f2 < 0.0) || (f1 < 0 && f2 != floor(f2)))
+  else if ((f1 == 0.0 && f2 < 0.0) || (f1 < 0 && f2 != floor (f2)))
     domain_error2 ("expt", arg1, arg2);
 #endif
   IN_FLOAT2 (f3 = pow (f1, f2), "expt", arg1, arg2);
@@ -961,8 +961,7 @@ Rounds the value toward zero.  */)
 
 #ifdef FLOAT_CATCH_SIGILL
 static void
-float_error (signo)
-     int signo;
+float_error (int signo)
 {
   if (! in_float)
     fatal_error_signal (signo);
@@ -1034,8 +1033,8 @@ syms_of_floatfns (void)
   defsubr (&Scos);
   defsubr (&Ssin);
   defsubr (&Stan);
-#if defined HAVE_ISNAN && defined HAVE_COPYSIGN
   defsubr (&Sisnan);
+#ifdef HAVE_COPYSIGN
   defsubr (&Scopysign);
   defsubr (&Sfrexp);
   defsubr (&Sldexp);

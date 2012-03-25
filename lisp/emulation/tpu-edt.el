@@ -1,6 +1,6 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
-;; Copyright (C) 1993-1995, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -89,7 +89,7 @@
 ;;    details.
 
 ;;    Like TPU, Emacs uses multiple buffers.  Some buffers are used to hold
-;;    files you are editing; other "internal" buffers are used for Emacs' own
+;;    files you are editing; other "internal" buffers are used for Emacs's own
 ;;    purposes (like showing you help).  Here are some commands for dealing
 ;;    with buffers.
 
@@ -197,7 +197,7 @@
 
 ;;    ; Emacs uses Control-s and Control-q.  Problems can occur when using
 ;;    ; Emacs on terminals that use these codes for flow control (Xon/Xoff
-;;    ; flow control).  These lines disable Emacs' use of these characters.
+;;    ; flow control).  These lines disable Emacs's use of these characters.
 ;;    (global-unset-key "\C-s")
 ;;    (global-unset-key "\C-q")
 
@@ -459,7 +459,7 @@ Otherwise, use `spell-region'."
     ;; (define-key map "\\" nil)			; \
     (define-key map "]" 'blink-matching-open)		; ]
     (define-key map "^" 'tpu-add-at-bol)		; ^
-    (define-key map "_" 'split-window-vertically)	; -
+    (define-key map "_" 'split-window-below)	        ; -
     (define-key map "`" 'what-line)			; `
     (define-key map "a" 'tpu-toggle-newline-and-indent)	; a
     (define-key map "b" 'tpu-next-buffer)		; b
@@ -487,7 +487,7 @@ Otherwise, use `spell-region'."
     (define-key map "y" 'copy-region-as-kill)		; y
     (define-key map "z" 'suspend-emacs)			; z
     ;; (define-key map "{" nil)				; {
-    (define-key map "|" 'split-window-horizontally)	; |
+    (define-key map "|" 'split-window-right)	        ; |
     ;; (define-key map "}" nil)				; }
     (define-key map "~" 'exchange-point-and-mark)	; ~
     (define-key map "\177" 'delete-window)		; <X]
@@ -979,7 +979,10 @@ and the total number of lines in the buffer."
 ;;;
 ;;;###autoload
 (define-minor-mode tpu-edt-mode
-  "TPU/edt emulation."
+  "Toggle TPU/edt emulation on or off.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :global t
   (if tpu-edt-mode (tpu-edt-on) (tpu-edt-off)))
 
@@ -2437,11 +2440,14 @@ If FILE is nil, try to load a default file.  The default file names are
 
 
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
-;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "0d2f0cd1c728d2eb9028a6e01b1a5df1")
+;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "76f06905db4c5bfb3b86491a51512a0e")
 ;;; Generated autoloads from tpu-extras.el
 
 (autoload 'tpu-cursor-free-mode "tpu-extras" "\
 Minor mode to allow the cursor to move freely about the screen.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
 \(fn &optional ARG)" t nil)
 

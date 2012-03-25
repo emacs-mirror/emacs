@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm
 
-;; Copyright (C) 1994, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -120,10 +120,17 @@
 
 ;; read xterm sequences above ascii 127 (#x7f)
 (defun xterm-mouse-event-read ()
+  ;; We get the characters decoded by the keyboard coding system.  Try
+  ;; to recover the raw character.
   (let ((c (read-char)))
-    (if (> c #x3FFF80)
-        (+ 128 (- c #x3FFF80))
-      c)))
+    (cond ;; If meta-flag is t we get a meta character
+	  ((>= c ?\M-\^@)
+	   (- c (- ?\M-\^@ 128)))
+	  ;; Reencode the character in the keyboard coding system, if
+	  ;; this is a non-ASCII character.
+	  ((>= c #x80)
+	   (aref (encode-coding-string (string c) (keyboard-coding-system)) 0))
+	  (t c))))
 
 (defun xterm-mouse-truncate-wrap (f)
   "Truncate with wrap-around."
@@ -192,8 +199,9 @@
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
   "Toggle XTerm mouse mode.
-With prefix arg, turn XTerm mouse mode on if arg is positive, otherwise turn
-it off.
+With a prefix argument ARG, enable XTerm mouse mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 Turn it on to use Emacs mouse commands, and off to use xterm mouse commands.
 This works in terminal emulators compatible with xterm.  It only

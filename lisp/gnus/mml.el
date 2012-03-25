@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -461,20 +461,26 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 (defvar mml-boundary nil)
 (defvar mml-base-boundary "-=-=")
 (defvar mml-multipart-number 0)
+(defvar mml-inhibit-compute-boundary nil)
 
 (defun mml-generate-mime ()
   "Generate a MIME message based on the current MML document."
   (let ((cont (mml-parse))
-	(mml-multipart-number mml-multipart-number))
+	(mml-multipart-number mml-multipart-number)
+	(options message-options))
     (if (not cont)
 	nil
-      (mm-with-multibyte-buffer
-	(if (and (consp (car cont))
-		 (= (length cont) 1))
-	    (mml-generate-mime-1 (car cont))
-	  (mml-generate-mime-1 (nconc (list 'multipart '(type . "mixed"))
-				      cont)))
-	(buffer-string)))))
+      (prog1
+	  (mm-with-multibyte-buffer
+	    (setq message-options options)
+	    (if (and (consp (car cont))
+		     (= (length cont) 1))
+		(mml-generate-mime-1 (car cont))
+	      (mml-generate-mime-1 (nconc (list 'multipart '(type . "mixed"))
+					  cont)))
+	    (setq options message-options)
+	    (buffer-string))
+	(setq message-options options)))))
 
 (defun mml-generate-mime-1 (cont)
   (let ((mm-use-ultra-safe-encoding
@@ -524,7 +530,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		      ;; Remove quotes from quoted tags.
 		      (goto-char (point-min))
 		      (while (re-search-forward
-			      "<#!+/?\\(part\\|multipart\\|external\\|mml\\)"
+			      "<#!+/?\\(part\\|multipart\\|external\\|mml\\|secure\\)"
 			      nil t)
 			(delete-region (+ (match-beginning 0) 2)
 				       (+ (match-beginning 0) 3))))))
@@ -539,7 +545,8 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		      (mml-to-mime)
 		      ;; Update handle so mml-compute-boundary can
 		      ;; detect collisions with the nested parts.
-		      (setcdr (assoc 'contents cont) (buffer-string)))
+		      (unless mml-inhibit-compute-boundary
+			(setcdr (assoc 'contents cont) (buffer-string))))
 		    (let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
 		      ;; ignore 0x1b, it is part of iso-2022-jp
 		      (setq encoding (mm-body-7-or-8))))
@@ -710,34 +717,30 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
   "Return a unique boundary that does not exist in CONT."
   (let ((mml-boundary (funcall mml-boundary-function
 			       (incf mml-multipart-number))))
-    ;; This function tries again and again until it has found
-    ;; a unique boundary.
-    (while (not (catch 'not-unique
-		  (mml-compute-boundary-1 cont))))
+    (unless mml-inhibit-compute-boundary
+      ;; This function tries again and again until it has found
+      ;; a unique boundary.
+      (while (not (catch 'not-unique
+		    (mml-compute-boundary-1 cont)))))
     mml-boundary))
 
 (defun mml-compute-boundary-1 (cont)
-  (let (filename)
-    (cond
-     ((member (car cont) '(part mml))
-      (with-temp-buffer
-	(cond
-	 ((cdr (assq 'buffer cont))
-	  (insert-buffer-substring (cdr (assq 'buffer cont))))
-	 ((and (setq filename (cdr (assq 'filename cont)))
-	       (not (equal (cdr (assq 'nofile cont)) "yes")))
-	  (mm-insert-file-contents filename nil nil nil nil t))
-	 (t
-	  (insert (cdr (assq 'contents cont)))))
-	(goto-char (point-min))
-	(when (re-search-forward (concat "^--" (regexp-quote mml-boundary))
-				 nil t)
-	  (setq mml-boundary (funcall mml-boundary-function
-				      (incf mml-multipart-number)))
-	  (throw 'not-unique nil))))
-     ((eq (car cont) 'multipart)
-      (mapc 'mml-compute-boundary-1 (cddr cont))))
-    t))
+  (cond
+   ((member (car cont) '(part mml))
+    (mm-with-multibyte-buffer
+      (let ((mml-inhibit-compute-boundary t)
+	    (mml-multipart-number 0)
+	    mml-sign-alist mml-encrypt-alist)
+	(mml-generate-mime-1 cont))
+      (goto-char (point-min))
+      (when (re-search-forward (concat "^--" (regexp-quote mml-boundary))
+			       nil t)
+	(setq mml-boundary (funcall mml-boundary-function
+				    (incf mml-multipart-number)))
+	(throw 'not-unique nil))))
+   ((eq (car cont) 'multipart)
+    (mapc 'mml-compute-boundary-1 (cddr cont))))
+  t)
 
 (defun mml-make-boundary (number)
   (concat (make-string (% number 60) ?=)
@@ -897,6 +900,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
 (autoload 'message-encode-message-body "message")
 (declare-function message-narrow-to-headers-or-head "message" ())
 
+;;;###autoload
 (defun mml-to-mime ()
   "Translate the current buffer from MML to MIME."
   ;; `message-encode-message-body' will insert an encoded Content-Description
@@ -1233,7 +1237,7 @@ If not set, `default-directory' will be used."
       (goto-char (point-min))
       ;; Quote parts.
       (while (re-search-forward
-	      "<#!*/?\\(multipart\\|part\\|external\\|mml\\)" nil t)
+	      "<#!*/?\\(multipart\\|part\\|external\\|mml\\|secure\\)" nil t)
 	;; Insert ! after the #.
 	(goto-char (+ (match-beginning 0) 2))
 	(insert "!")))))
@@ -1294,6 +1298,7 @@ to specify options."
   :version "22.1" ;; Gnus 5.10.9
   :group 'message)
 
+;;;###autoload
 (defun mml-attach-file (file &optional type description disposition)
   "Attach a file to the outgoing MIME message.
 The file is not inserted or encoded until you send the message with
@@ -1454,7 +1459,7 @@ Should be adopted if code in `message-send-mail' is changed."
   "Display current buffer with Gnus, in a new buffer.
 If RAW, display a raw encoded MIME message.
 
-The window layout for the preview buffer is controled by the variables
+The window layout for the preview buffer is controlled by the variables
 `special-display-buffer-names', `special-display-regexps', or
 `gnus-buffer-configuration' (the first match made will be used),
 or the `pop-to-buffer' function."

@@ -1,6 +1,6 @@
 ;;; epa.el --- the EasyPG Assistant -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -214,8 +214,8 @@ You should bind this variable with `let', but do not set it globally.")
     (define-key keymap "g" 'revert-buffer)
     (define-key keymap "n" 'next-line)
     (define-key keymap "p" 'previous-line)
-    (define-key keymap " " 'scroll-up)
-    (define-key keymap [delete] 'scroll-down)
+    (define-key keymap " " 'scroll-up-command)
+    (define-key keymap [delete] 'scroll-down-command)
     (define-key keymap "q" 'epa-exit-buffer)
     (define-key keymap [menu-bar epa-key-list-mode] (cons "Keys" menu-map))
     (define-key menu-map [epa-key-list-unmark-key]
@@ -239,7 +239,7 @@ You should bind this variable with `let', but do not set it globally.")
 		  :help "Encrypt FILE for RECIPIENTS"))
     (define-key menu-map [separator-epa-key-list] '(menu-item "--"))
     (define-key menu-map [epa-key-list-delete-keys]
-      '(menu-item "Delete keys" epa-delete-keys
+      '(menu-item "Delete Keys" epa-delete-keys
 		  :help "Delete Marked Keys"))
     (define-key menu-map [epa-key-list-import-keys]
       '(menu-item "Import Keys" epa-import-keys
@@ -651,10 +651,17 @@ If SECRET is non-nil, list secret keys instead of public keys."
 
 (defun epa-progress-callback-function (_context what _char current total
 					       handback)
-  (message "%s%d%% (%d/%d)" (or handback
-				(concat what ": "))
-	   (if (> total 0) (floor (* (/ current (float total)) 100)) 0)
-	   current total))
+  (let ((prompt (or handback
+		    (format "Processing %s: " what))))
+    ;; According to gnupg/doc/DETAIL: a "total" of 0 indicates that
+    ;; the total amount is not known. The condition TOTAL && CUR ==
+    ;; TOTAL may be used to detect the end of an operation.
+    (if (> total 0)
+	(if (= current total)
+	    (message "%s...done" prompt)
+	  (message "%s...%d%%" prompt
+		   (floor (* (/ current (float total)) 100))))
+      (message "%s..." prompt))))
 
 ;;;###autoload
 (defun epa-decrypt-file (file)
@@ -796,10 +803,15 @@ If no one is selected, symmetric encryption will be performed.  ")))
 	     (file-name-nondirectory cipher))))
 
 ;;;###autoload
-(defun epa-decrypt-region (start end)
+(defun epa-decrypt-region (start end &optional make-buffer-function)
   "Decrypt the current region between START and END.
 
-Don't use this command in Lisp programs!
+If MAKE-BUFFER-FUNCTION is non-nil, call it to prepare an output buffer.
+It should return that buffer.  If it copies the input, it should
+delete the text now being decrypted.  It should leave point at the
+proper place to insert the plaintext.
+
+Be careful about using this command in Lisp programs!
 Since this function operates on regions, it does some tricks such
 as coding-system detection and unibyte/multibyte conversion.  If
 you are sure how the data in the region should be treated, you
@@ -831,16 +843,19 @@ For example:
 		   (or coding-system-for-read
 		       (get-text-property start 'epa-coding-system-used)
 		       'undecided)))
-      (if (y-or-n-p "Replace the original text? ")
-	  (let ((inhibit-read-only t)
-		buffer-read-only)
-	    (delete-region start end)
-	    (goto-char start)
-	    (insert plain))
-	(with-output-to-temp-buffer "*Temp*"
-	  (set-buffer standard-output)
-	  (insert plain)
-	  (epa-info-mode)))
+      (if make-buffer-function
+	  (with-current-buffer (funcall make-buffer-function)
+	    (let ((inhibit-read-only t))
+	      (insert plain)))
+	(if (y-or-n-p "Replace the original text? ")
+	    (let ((inhibit-read-only t))
+	      (delete-region start end)
+	      (goto-char start)
+	      (insert plain))
+	  (with-output-to-temp-buffer "*Temp*"
+	    (set-buffer standard-output)
+	      (insert plain)
+	      (epa-info-mode))))
       (if (epg-context-result-for context 'verify)
 	  (epa-display-info (epg-verify-result-to-string
 			     (epg-context-result-for context 'verify)))))))
@@ -849,12 +864,13 @@ For example:
   (if (featurep 'xemacs)
       (if (fboundp 'find-coding-system)
 	  (find-coding-system mime-charset))
+    ;; Find the first coding system which corresponds to MIME-CHARSET.
     (let ((pointer (coding-system-list)))
       (while (and pointer
-		  (eq (coding-system-get (car pointer) 'mime-charset)
-		      mime-charset))
+		  (not (eq (coding-system-get (car pointer) 'mime-charset)
+			   mime-charset)))
 	(setq pointer (cdr pointer)))
-      pointer)))
+      (car pointer))))
 
 ;;;###autoload
 (defun epa-decrypt-armor-in-region (start end)
@@ -873,7 +889,7 @@ See the reason described in the `epa-decrypt-region' documentation."
 		armor-end (re-search-forward "^-----END PGP MESSAGE-----$"
 					     nil t))
 	  (unless armor-end
-	    (error "No armor tail"))
+	    (error "Encryption armor beginning has no matching end"))
 	  (goto-char armor-start)
 	  (let ((coding-system-for-read
 		 (or coding-system-for-read

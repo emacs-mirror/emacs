@@ -1,7 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects
-;;;              or maybe Eric's Implementation of Emacs Intrepreted Objects
+;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-1996, 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.3
@@ -57,7 +57,7 @@
 
 (eval-and-compile
 ;; About the above.  EIEIO must process its own code when it compiles
-;; itself, thus, by eval-and-compiling outselves, we solve the problem.
+;; itself, thus, by eval-and-compiling ourselves, we solve the problem.
 
 ;; Compatibility
 (if (fboundp 'compiled-function-arglist)
@@ -395,7 +395,7 @@ It creates an autoload function for CNAME's constructor."
 	  (aset newc class-parent (cons SC (aref newc class-parent)))
 	  )
 
-	;; turn this into a useable self-pointing symbol
+	;; turn this into a usable self-pointing symbol
 	(set cname cname)
 
 	;; Store the new class vector definition into the symbol.  We need to
@@ -509,7 +509,7 @@ See `defclass' for more information."
 	;; save parent in child
 	(aset newc class-parent (list eieio-default-superclass))))
 
-    ;; turn this into a useable self-pointing symbol
+    ;; turn this into a usable self-pointing symbol
     (set cname cname)
 
     ;; These two tests must be created right away so we can have self-
@@ -553,7 +553,7 @@ See `defclass' for more information."
       (put cname 'cl-deftype-handler
 	   (list 'lambda () `(list 'satisfies (quote ,csym)))))
 
-    ;; before adding new slots, lets add all the methods and classes
+    ;; before adding new slots, let's add all the methods and classes
     ;; in from the parent class
     (eieio-copy-parents-into-subclass newc superclasses)
 
@@ -826,7 +826,7 @@ if default value is nil."
   ;; Make sure we duplicate those items that are sequences.
   (condition-case nil
       (if (sequencep d) (setq d (copy-sequence d)))
-    ;; This copy can fail on a cons cell with a non-cons in the cdr.  Lets skip it if it doesn't work.
+    ;; This copy can fail on a cons cell with a non-cons in the cdr.  Let's skip it if it doesn't work.
     (error nil))
   (if (sequencep type) (setq type (copy-sequence type)))
   (if (sequencep cust) (setq cust (copy-sequence cust)))
@@ -958,7 +958,7 @@ if default value is nil."
 	  (progn
 	    (eieio-perform-slot-validation-for-default a type value skipnil)
 	    ;; Here we have found a :class version of a slot.  This
-	    ;; requires a very different aproach.
+	    ;; requires a very different approach.
 	    (aset newc class-class-allocation-a (cons a (aref newc class-class-allocation-a)))
 	    (aset newc class-class-allocation-doc (cons doc (aref newc class-class-allocation-doc)))
 	    (aset newc class-class-allocation-type (cons type (aref newc class-class-allocation-type)))
@@ -992,7 +992,7 @@ if default value is nil."
 	      ;; EML - Note: the only reason to override a class bound slot
 	      ;;       is to change the default, so allow unbound in.
 
-	      ;; If we have a repeat, only update the vlaue...
+	      ;; If we have a repeat, only update the value...
 	      (eieio-perform-slot-validation-for-default a tp value skipnil)
 	      (setcar dp value))
 
@@ -1312,20 +1312,20 @@ Summary:
 (defun eieio--defmethod (method kind argclass code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
   (let ((key
-    ;; find optional keys
+         ;; find optional keys
          (cond ((or (eq ':BEFORE kind)
                     (eq ':before kind))
-		 method-before)
+                method-before)
                ((or (eq ':AFTER kind)
                     (eq ':after kind))
-		 method-after)
+                method-after)
                ((or (eq ':PRIMARY kind)
                     (eq ':primary kind))
-		 method-primary)
+                method-primary)
                ((or (eq ':STATIC kind)
                     (eq ':static kind))
-		 method-static)
-		;; Primary key
+                method-static)
+               ;; Primary key
                (t method-primary))))
     ;; Make sure there is a generic (when called from defclass).
     (eieio--defalias
@@ -1338,8 +1338,8 @@ Summary:
     ;; under the type `primary' which is a non-specific calling of the
     ;; function.
     (if argclass
-	  (if (not (class-p argclass))
-	      (error "Unknown class type %s in method parameters"
+        (if (not (class-p argclass))
+            (error "Unknown class type %s in method parameters"
                    argclass))
       (if (= key -1)
 	  (signal 'wrong-type-argument (list :static 'non-class-arg)))
@@ -1470,7 +1470,7 @@ created by the :initarg tag."
 	 (c (eieio-slot-name-index class obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
-	;; Lets check that info out.
+	;; Let's check that info out.
 	(if (setq c (eieio-class-slot-name-index class slot))
 	    ;; Oref that slot.
 	    (aref (aref (class-v class) class-class-allocation-values) c)
@@ -1503,7 +1503,7 @@ Fills in OBJ's SLOT with its default value."
 	 (c (eieio-slot-name-index cl obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
-	;; Lets check that info out.
+	;; Let's check that info out.
 	(if (setq c
 		  (eieio-class-slot-name-index cl slot))
 	    ;; Oref that slot.
@@ -1549,7 +1549,7 @@ Fills in OBJ's SLOT with VALUE."
   (let ((c (eieio-slot-name-index (object-class-fast obj) obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
-	;; Lets check that info out.
+	;; Let's check that info out.
 	(if (setq c
 		  (eieio-class-slot-name-index (aref obj object-class) slot))
 	    ;; Oset that slot.
@@ -1581,7 +1581,7 @@ Fills in the default value in CLASS' in SLOT with VALUE."
 	 (c (eieio-slot-name-index class nil slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
-	;; Lets check that info out.
+	;; Let's check that info out.
 	(if (setq c (eieio-class-slot-name-index class slot))
 	    (progn
 	      ;; Oref that slot.
@@ -2563,7 +2563,7 @@ This is usually a symbol that starts with `:'."
 
 ;;;
 ;; We want all objects created by EIEIO to have some default set of
-;; behaviours so we can create object utilities, and allow various
+;; behaviors so we can create object utilities, and allow various
 ;; types of error checking.  To do this, create the default EIEIO
 ;; class, and when no parent class is specified, use this as the
 ;; default.  (But don't store it in the other classes as the default,
@@ -2864,6 +2864,106 @@ of `eq'."
 )
 
 
+;;; Obsolete backward compatibility functions.
+;; Needed to run byte-code compiled with the EIEIO of Emacs-23.
+
+(defun eieio-defmethod (method args)
+  "Obsolete work part of an old version of the `defmethod' macro."
+  (let ((key nil) (body nil) (firstarg nil) (argfix nil) (argclass nil) loopa)
+    ;; find optional keys
+    (setq key
+	  (cond ((or (eq ':BEFORE (car args))
+		     (eq ':before (car args)))
+		 (setq args (cdr args))
+		 method-before)
+		((or (eq ':AFTER (car args))
+		     (eq ':after (car args)))
+		 (setq args (cdr args))
+		 method-after)
+		((or (eq ':PRIMARY (car args))
+		     (eq ':primary (car args)))
+		 (setq args (cdr args))
+		 method-primary)
+		((or (eq ':STATIC (car args))
+		     (eq ':static (car args)))
+		 (setq args (cdr args))
+		 method-static)
+		;; Primary key
+		(t method-primary)))
+    ;; get body, and fix contents of args to be the arguments of the fn.
+    (setq body (cdr args)
+	  args (car args))
+    (setq loopa args)
+    ;; Create a fixed version of the arguments
+    (while loopa
+      (setq argfix (cons (if (listp (car loopa)) (car (car loopa)) (car loopa))
+			 argfix))
+      (setq loopa (cdr loopa)))
+    ;; make sure there is a generic
+    (eieio-defgeneric
+     method
+     (if (stringp (car body))
+	 (car body) (format "Generically created method `%s'." method)))
+    ;; create symbol for property to bind to.  If the first arg is of
+    ;; the form (varname vartype) and `vartype' is a class, then
+    ;; that class will be the type symbol.  If not, then it will fall
+    ;; under the type `primary' which is a non-specific calling of the
+    ;; function.
+    (setq firstarg (car args))
+    (if (listp firstarg)
+	(progn
+	  (setq argclass  (nth 1 firstarg))
+	  (if (not (class-p argclass))
+	      (error "Unknown class type %s in method parameters"
+		     (nth 1 firstarg))))
+      (if (= key -1)
+	  (signal 'wrong-type-argument (list :static 'non-class-arg)))
+      ;; generics are higher
+      (setq key (eieio-specialized-key-to-generic-key key)))
+    ;; Put this lambda into the symbol so we can find it
+    (if (byte-code-function-p (car-safe body))
+	(eieiomt-add method (car-safe body) key argclass)
+      (eieiomt-add method (append (list 'lambda (reverse argfix)) body)
+		   key argclass))
+    )
+
+  (when eieio-optimize-primary-methods-flag
+    ;; Optimizing step:
+    ;;
+    ;; If this method, after this setup, only has primary methods, then
+    ;; we can setup the generic that way.
+    (if (generic-primary-only-p method)
+	;; If there is only one primary method, then we can go one more
+	;; optimization step.
+	(if (generic-primary-only-one-p method)
+	    (eieio-defgeneric-reset-generic-form-primary-only-one method)
+	  (eieio-defgeneric-reset-generic-form-primary-only method))
+      (eieio-defgeneric-reset-generic-form method)))
+
+  method)
+(make-obsolete 'eieio-defmethod 'eieio--defmethod "24.1")
+
+(defun eieio-defgeneric (method doc-string)
+  "Obsolete work part of an old version of the `defgeneric' macro."
+  (if (and (fboundp method) (not (generic-p method))
+	   (or (byte-code-function-p (symbol-function method))
+	       (not (eq 'autoload (car (symbol-function method)))))
+	   )
+      (error "You cannot create a generic/method over an existing symbol: %s"
+	     method))
+  ;; Don't do this over and over.
+  (unless (fboundp 'method)
+    ;; This defun tells emacs where the first definition of this
+    ;; method is defined.
+    `(defun ,method nil)
+    ;; Make sure the method tables are installed.
+    (eieiomt-install method)
+    ;; Apply the actual body of this function.
+    (fset method (eieio-defgeneric-form method doc-string))
+    ;; Return the method
+    'method))
+(make-obsolete 'eieio-defgeneric nil "24.1")
+
 ;;; Interfacing with edebug
 ;;
 (defun eieio-edebug-prin1-to-string (object &optional noescape)
@@ -2938,7 +3038,7 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (customize-object) "eieio-custom" "eieio-custom.el"
-;;;;;;  "cf1bd64c76a6e6406545e8c5a5530d43")
+;;;;;;  "9cf80224540c52045d515a4c2c833543")
 ;;; Generated autoloads from eieio-custom.el
 
 (autoload 'customize-object "eieio-custom" "\
@@ -2951,7 +3051,7 @@ Optional argument GROUP is the sub-group of slots to display.
 
 ;;;### (autoloads (eieio-help-mode-augmentation-maybee eieio-describe-generic
 ;;;;;;  eieio-describe-constructor eieio-describe-class eieio-browse)
-;;;;;;  "eieio-opt" "eieio-opt.el" "1bed0a56310f402683419139ebc18d7f")
+;;;;;;  "eieio-opt" "eieio-opt.el" "e2814881441ad23759409687502f0ee1")
 ;;; Generated autoloads from eieio-opt.el
 
 (autoload 'eieio-browse "eieio-opt" "\

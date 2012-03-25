@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: rcs, sccs, cvs, log, vc, tools
@@ -376,6 +376,8 @@ log entries."
       marked-list)))
 
 (defun log-view-toggle-entry-display ()
+  "If possible, expand the current Log View entry.
+This calls `log-view-expanded-log-entry-function' to do the work."
   (interactive)
   ;; Don't do anything unless `log-view-expanded-log-entry-function'
   ;; is defined in this mode.
@@ -558,9 +560,6 @@ changeset that affected the currently considered file(s)."
 		 (list (log-view-current-file))
 	       log-view-vc-fileset))
      to fr)))
-
-(declare-function vc-diff-internal "vc"
-		  (async vc-fileset rev1 rev2 &optional verbose))
 
 (defun log-view-diff-changeset (beg end)
   "Get the diff between two revisions.

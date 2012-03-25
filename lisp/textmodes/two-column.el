@@ -1,6 +1,6 @@
 ;;; two-column.el --- minor mode for editing of two-column text
 
-;; Copyright (C) 1992-1995, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1995, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
@@ -333,7 +333,7 @@ first and the associated buffer to its right."
   ;; first go to full width, so that we can certainly split into two windows
   (unless (window-full-width-p)
     (enlarge-window 99999 t))
-  (split-window-horizontally
+  (split-window-right
    (max window-min-width (min 2C-window-width
 			      (- (frame-width) window-min-width))))
   (if (2C-other)

@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988-1995, 1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -41,7 +41,7 @@
 ;; can be translated from the (usual) Gregorian calendar to the day of
 ;; the year/days remaining in year, to the ISO commercial calendar, to
 ;; the Julian (old style) calendar, to the Hebrew calendar, to the
-;; Islamic calendar, to the Baha'i calendar, to the French
+;; Islamic calendar, to the Bahá'í calendar, to the French
 ;; Revolutionary calendar, to the Mayan calendar, to the Chinese
 ;; calendar, to the Coptic calendar, to the Ethiopic calendar, and to
 ;; the astronomical (Julian) day number.  Times of sunrise/sunset can
@@ -52,7 +52,7 @@
 ;; The following files are part of the calendar/diary code:
 
 ;;    appt.el                    Appointment notification
-;;    cal-bahai.el               Baha'i calendar
+;;    cal-bahai.el               Bahá'í calendar
 ;;    cal-china.el               Chinese calendar
 ;;    cal-coptic.el              Coptic/Ethiopic calendars
 ;;    cal-dst.el                 Daylight saving time rules
@@ -642,7 +642,7 @@ causes the diary entry \"Vacation\" to appear from November 1 through
 November 10, 1990.  See the documentation for the function
 `diary-list-sexp-entries' for more details.
 
-Diary entries based on the Hebrew, the Islamic and/or the Baha'i
+Diary entries based on the Hebrew, the Islamic and/or the Bahá'í
 calendar are also possible, but because these are somewhat slow, they
 are ignored unless you set the `diary-nongregorian-listing-hook' and
 the `diary-nongregorian-marking-hook' appropriately.  See the
@@ -679,7 +679,7 @@ details, see the documentation for the variable `diary-list-entries-hook'."
   'diary-bahai-entry-symbol "23.1")
 
 (defcustom diary-bahai-entry-symbol "B"
-  "Symbol indicating a diary entry according to the Baha'i calendar."
+  "Symbol indicating a diary entry according to the Bahá'í calendar."
   :type 'string
   :group 'diary)
 
@@ -1005,9 +1005,9 @@ calendar."
   'calendar-bahai-all-holidays-flag "23.1")
 
 (defcustom calendar-bahai-all-holidays-flag nil
-  "If nil, show only major holidays from the Baha'i calendar.
+  "If nil, show only major holidays from the Bahá'í calendar.
 These are the days on which work and school must be suspended.
-Otherwise, show all the holidays that would appear in a complete Baha'i
+Otherwise, show all the holidays that would appear in a complete Bahá'í
 calendar."
   :type 'boolean
   :group 'holidays)
@@ -1330,12 +1330,12 @@ display the generated calendar."
         ;; the right thing in that case.
         ;;
         ;; Is this a wide frame?  If so, split it horizontally.
-        (if (window-splittable-p t) (split-window-horizontally))
+        (if (window-splittable-p t) (split-window-right))
         (pop-to-buffer calendar-buffer)
         ;; Has the window already been split vertically?
         (when (and (not (window-dedicated-p))
                    (window-full-height-p))
-          (let ((win (split-window-vertically)))
+          (let ((win (split-window-below)))
             ;; In the upper window, show whatever was visible before.
             ;; This looks better than using other-buffer.
             (switch-to-buffer buff)
@@ -1373,7 +1373,7 @@ Optional integers MON and YR are used instead of today's date."
     ;; Don't do any window-related stuff if we weren't called from a
     ;; window displaying the calendar.
     (when in-calendar-window
-      (if (window-iso-combined-p)
+      (if (window-combined-p)
 	  ;; Adjust the window to exactly fit the displayed calendar.
 	  (fit-window-to-buffer nil nil calendar-minimum-window-height)
 	;; For a full height window or a window that is horizontally
@@ -1424,16 +1424,24 @@ Optional integers MON and YR are used instead of today's date."
   "Move to column INDENT, adding spaces as needed.
 Inserts STRING so that it ends at INDENT.  STRING is either a
 literal string, or a sexp to evaluate to return such.  Truncates
-STRING to length TRUNCATE, ensure a trailing space."
+STRING to length TRUNCATE, and ensures a trailing space."
   (if (not (ignore-errors (stringp (setq string (eval string)))))
       (calendar-move-to-column indent)
-    (if (> (length string) truncate)
-        (setq string (substring string 0 truncate)))
+    (if (> (string-width string) truncate)
+        (setq string (truncate-string-to-width string truncate)))
     (or (string-match " $" string)
-        (if (= (length string) truncate)
-            (aset string (1- truncate) ?\s)
-          (setq string (concat string " "))))
-    (calendar-move-to-column (- indent (length string)))
+        (setq string (concat (if (= (string-width string) truncate)
+                                 (substring string 0 -1)
+                               string)
+                             ;; Avoid inserting text properties unless
+                             ;; we have to (ie, non-unit-width chars).
+                             ;; This is by no means essential.
+                             (if (= (string-width string) (length string))
+                                 " "
+                               ;; Cribbed from buff-menu.el.
+                               (propertize
+                                " " 'display `(space :align-to ,indent))))))
+    (calendar-move-to-column (- indent (string-width string)))
     (insert string)))
 
 (defun calendar-generate-month (month year indent)
@@ -1730,6 +1738,7 @@ For a complete description, see the info node `Calendar/Diary'.
   (setq buffer-read-only t
         buffer-undo-list t
         indent-tabs-mode nil)
+  (set (make-local-variable 'scroll-margin) 0) ; bug#10379
   (calendar-update-mode-line)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month) ; month in middle of window
@@ -1755,8 +1764,8 @@ the STRINGS are just concatenated and the result truncated."
                           (if (< (length strings) 2)
                               (append (list "") strings (list ""))
                             strings)))
-         (n (- length (length (apply 'concat strings))))
-         (m (1- (length strings)))
+         (n (- length (string-width (apply 'concat strings))))
+         (m (* (1- (length strings)) (char-width char)))
          (s (car strings))
          (strings (cdr strings))
          (i 0))
@@ -1765,7 +1774,7 @@ the STRINGS are just concatenated and the result truncated."
                       (make-string (max 0 (/ (+ n i) m)) char)
                       string)
             i (1+ i)))
-    (substring s 0 length)))
+    (truncate-string-to-width s length)))
 
 (defun calendar-update-mode-line ()
   "Update the calendar mode line with the current date and date style."
@@ -2551,7 +2560,7 @@ DATE is (month day year).  Calendars that do not apply are omitted."
            (unless (string-equal
                     (setq odate (calendar-bahai-date-string date))
                     "")
-             (format "Baha'i date: %s" odate))
+             (format "Bahá'í date: %s" odate))
            (format "Chinese date: %s"
                    (calendar-chinese-date-string date))
            (unless (string-equal
@@ -2601,7 +2610,7 @@ If called by a mouse-event, pops up a menu with the result."
     ;; If no frame exists yet, we have no idea what width to use.
     (and (= width 10)
          (not window-system)
-         (setq width (or (getenv "COLUMNS") 80)))
+         (setq width (string-to-number (or (getenv "COLUMNS") "80"))))
     (setq mode-line-format
           (if buffer-file-name
               `("-" mode-line-modified
@@ -2623,6 +2632,7 @@ If called by a mouse-event, pops up a menu with the result."
 
 ;; Local variables:
 ;; byte-compile-dynamic: t
+;; coding: utf-8
 ;; End:
 
 ;;; calendar.el ends here

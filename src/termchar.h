@@ -1,5 +1,5 @@
 /* Flags and parameters describing terminal's characteristics.
-   Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -207,6 +207,6 @@ extern struct tty_display_info *tty_list;
   (((f)->output_method == output_termcap	\
     || (f)->output_method == output_msdos_raw)	\
    ? (f)->terminal->display_info.tty            \
-   : (abort(), (struct tty_display_info *) 0))
+   : (abort (), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())

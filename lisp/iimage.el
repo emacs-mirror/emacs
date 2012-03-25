@@ -1,6 +1,6 @@
 ;;; iimage.el --- Inline image minor mode.
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
 ;; Author: KOSEKI Yoshinori <kose@meadowy.org>
 ;; Maintainer: KOSEKI Yoshinori <kose@meadowy.org>
@@ -137,8 +137,7 @@ Examples of image filename patterns to match:
                                         '(display modification-hooks))))))))))
 
 ;;;###autoload
-(define-minor-mode iimage-mode
-  "Toggle inline image minor mode."
+(define-minor-mode iimage-mode nil
   :group 'iimage :lighter " iImg" :keymap iimage-mode-map
   (iimage-mode-buffer iimage-mode))
 

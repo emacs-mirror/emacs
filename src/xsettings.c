@@ -1,6 +1,6 @@
 /* Functions for handling font and other changes dynamically.
 
-Copyright (C) 2009-2011  Free Software Foundation, Inc.
+Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -83,7 +83,7 @@ dpyinfo_valid (struct x_display_info *dpyinfo)
 
 /* Store a monospace font change event if the monospaced font changed.  */
 
-#ifdef HAVE_XFT
+#if defined HAVE_XFT && (defined HAVE_GSETTINGS || defined HAVE_GCONF)
 static void
 store_monospaced_changed (const char *newfont)
 {
@@ -99,9 +99,11 @@ store_monospaced_changed (const char *newfont)
                                   XCAR (first_dpyinfo->name_list_element));
     }
 }
+#endif
 
 /* Store a font name change event if the font name changed.  */
 
+#ifdef HAVE_XFT
 static void
 store_font_name_changed (const char *newfont)
 {
@@ -119,7 +121,7 @@ store_font_name_changed (const char *newfont)
 }
 #endif /* HAVE_XFT */
 
-/* Map TOOL_BAR_STYLE from a string to its correspinding Lisp value.
+/* Map TOOL_BAR_STYLE from a string to its corresponding Lisp value.
    Return Qnil if TOOL_BAR_STYLE is not known.  */
 
 static Lisp_Object
@@ -252,7 +254,7 @@ something_changed_gsettingsCB (GSettings *settings,
           g_variant_unref (val);
         }
     }
-#endif /* HAVE_XFT */  
+#endif /* HAVE_XFT */
 }
 
 #endif /* HAVE_GSETTINGS */
@@ -441,14 +443,14 @@ parse_settings (unsigned char *prop,
       bytes_parsed += 4; /* Skip serial for this value */
       if (bytes_parsed > bytes) return BadLength;
 
-      want_this = 
+      want_this =
 #ifdef HAVE_XFT
         (nlen > 6 && strncmp (name, "Xft/", 4) == 0)
         || strcmp (XSETTINGS_FONT_NAME, name) == 0
         ||
 #endif
         strcmp (XSETTINGS_TOOL_BAR_STYLE, name) == 0;
-  
+
       switch (type)
         {
         case 0: /* Integer */
@@ -810,7 +812,7 @@ init_gsettings (void)
   g_type_init ();
 #endif
 
-  schemas = g_settings_list_schemas();
+  schemas = g_settings_list_schemas ();
   if (schemas == NULL) return;
   while (! schema_found && *schemas != NULL)
     schema_found = strcmp (*schemas++, GSETTINGS_SCHEMA) == 0;

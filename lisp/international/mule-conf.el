@@ -1,6 +1,6 @@
 ;;; mule-conf.el --- configure multilingual environment
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -218,7 +218,7 @@
 (fmakunbound 'define-iso-single-byte-charset)
 
 ;; Can this be shared with 8859-11?
-;; N.b. not all of these are defined unicodes.
+;; N.b. not all of these are defined in Unicode.
 (define-charset 'thai-tis620
   "TIS620.2533"
   :short-name "TIS620.2533"
@@ -708,7 +708,7 @@
 (define-charset-alias 'cp866u 'cp1125)
 
 ;; Fixme: C.f. iconv, http://czyborra.com/charsets/codepages.html
-;; shows this as not ASCII comptaible, with various graphics in
+;; shows this as not ASCII compatible, with various graphics in
 ;; 0x01-0x1F.
 (define-charset 'cp437
   "CP437 (MS-DOS United States, Australia, New Zealand, South Africa)"
@@ -865,7 +865,7 @@
 
 ;; Lao script.
 ;; Codes 0x21..0x7E are mapped to Unicode U+0E81..U+0EDF.
-;; Not all of them are defined unicodes.
+;; Not all of them are defined in Unicode.
 (define-charset 'lao
   "Lao characters (ISO10646 0E81..0EDF)"
   :short-name "Lao"

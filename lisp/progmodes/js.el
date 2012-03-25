@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -61,6 +61,7 @@
 (defvar inferior-moz-buffer)
 (defvar moz-repl-name)
 (defvar ido-cur-list)
+(defvar electric-layout-rules)
 (declare-function ido-mode "ido")
 (declare-function inferior-moz-process "ext:mozrepl" ())
 
@@ -368,7 +369,8 @@ Match group 1 is the name of the macro.")
 ;; must be h-end.
 ;;
 ;; js--pitem instances are never modified (with the exception
-;; of the b-end field). Instead, modified copies are added at subseqnce parse points.
+;; of the b-end field). Instead, modified copies are added at
+;; subsequence parse points.
 ;; (The exception for b-end and its caveats is described below.)
 ;;
 
@@ -507,9 +509,6 @@ getting timeout messages."
 
 (defvar js-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (mapc (lambda (key)
-	    (define-key keymap key #'js-insert-and-indent))
-	  '("{" "}" "(" ")" ":" ";" ","))
     (define-key keymap [(control ?c) (meta ?:)] #'js-eval)
     (define-key keymap [(control ?c) (control ?j)] #'js-set-js-context)
     (define-key keymap [(control meta ?x)] #'js-eval-defun)
@@ -524,21 +523,6 @@ getting timeout messages."
          (fboundp #'inferior-moz-process)]))
     keymap)
   "Keymap for `js-mode'.")
-
-(defun js-insert-and-indent (key)
-  "Run the command bound to KEY, and indent if necessary.
-Indentation does not take place if point is in a string or
-comment."
-  (interactive (list (this-command-keys)))
-  (call-interactively (lookup-key (current-global-map) key))
-  (let ((syntax (save-restriction (widen) (syntax-ppss))))
-    (when (or (and (not (nth 8 syntax))
-                   js-auto-indent-flag)
-              (and (nth 4 syntax)
-                   (eq (current-column)
-                       (1+ (current-indentation)))))
-      (indent-according-to-mode))))
-
 
 ;;; Syntax table and parsing
 
@@ -1312,7 +1296,7 @@ LIMIT defaults to point."
 ;; Like (up-list -1), but only considers lists that end nearby"
 (defun js--up-nearby-list ()
   (save-restriction
-    ;; Look at a very small region so our compuation time doesn't
+    ;; Look at a very small region so our computation time doesn't
     ;; explode in pathological cases.
     (narrow-to-region (max (point-min) (- (point) 500)) (point))
     (up-list -1)))
@@ -1616,7 +1600,7 @@ will be returned."
 
 (defun js-syntactic-context ()
   "Return the JavaScript syntactic context at point.
-When called interatively, also display a message with that
+When called interactively, also display a message with that
 context."
   (interactive)
   (let* ((syntactic-context (js--syntactic-context-from-pstate
@@ -1653,21 +1637,35 @@ This performs fontification according to `js--class-styles'."
                                    js--font-lock-keywords-3)
   "Font lock keywords for `js-mode'.  See `font-lock-keywords'.")
 
-;; XXX: Javascript can continue a regexp literal across lines so long
-;; as the newline is escaped with \. Account for that in the regexp
-;; below.
-(eval-and-compile
-  (defconst js--regexp-literal
-    "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\.\\|[^/*\\]\\)\\(?:\\\\.\\|[^/\\]\\)*\\(/\\)"
-  "Regexp matching a JavaScript regular expression literal.
-Match groups 1 and 2 are the characters forming the beginning and
-end of the literal."))
+(defun js-syntax-propertize-regexp (end)
+  (when (eq (nth 3 (syntax-ppss)) ?/)
+    ;; A /.../ regexp.
+    (when (re-search-forward "\\(?:\\=\\|[^\\]\\)\\(?:\\\\\\\\\\)*/" end 'move)
+      (put-text-property (1- (point)) (point)
+                         'syntax-table (string-to-syntax "\"/")))))
 
-(defconst js-syntax-propertize-function
-  (syntax-propertize-rules
-   ;; We want to match regular expressions only at the beginning of
-   ;; expressions.
-   (js--regexp-literal (1 "\"") (2 "\""))))
+(defun js-syntax-propertize (start end)
+  ;; Javascript allows immediate regular expression objects, written /.../.
+  (goto-char start)
+  (js-syntax-propertize-regexp end)
+  (funcall
+   (syntax-propertize-rules
+    ;; Distinguish /-division from /-regexp chars (and from /-comment-starter).
+    ("\\(?:^\\|[=([{,:;]\\)\\(?:[ \t]\\)*\\(/\\)[^/*]"
+     (1 (ignore
+	 (forward-char -1)
+         (when (or (not (memq (char-after (match-beginning 0)) '(?\s ?\t)))
+                   ;; If the / is at the beginning of line, we have to check
+                   ;; the end of the previous text.
+                   (save-excursion
+                     (goto-char (match-beginning 0))
+                     (forward-comment (- (point)))
+                     (memq (char-before)
+                           (eval-when-compile (append "=({[,:;" '(nil))))))
+           (put-text-property (match-beginning 1) (match-end 1)
+                              'syntax-table (string-to-syntax "\"/"))
+           (js-syntax-propertize-regexp end))))))
+   (point) end))
 
 ;;; Indentation
 
@@ -3003,7 +3001,7 @@ browser, respectively."
                       '(js> ((fifth hitab) "selectedTab") (fourth hitab))
                       cmds)))
 
-                  ;; Hilighting whole window
+                  ;; Highlighting whole window
                   ((third hitab)
                    (push '(js! ((third hitab) "document"
                                 "documentElement" "setAttribute")
@@ -3298,7 +3296,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   (set (make-local-variable 'font-lock-defaults)
        (list js--font-lock-keywords))
   (set (make-local-variable 'syntax-propertize-function)
-       js-syntax-propertize-function)
+       #'js-syntax-propertize)
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
@@ -3331,6 +3329,11 @@ If one hasn't been set, or if it's stale, prompt for a new one."
         c-comment-start-regexp "/[*/]\\|\\s!"
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
 
+  (set (make-local-variable 'electric-indent-chars)
+       (append "{}():;," electric-indent-chars))
+  (set (make-local-variable 'electric-layout-rules)
+       '((?\; . after) (?\{ . after) (?\} . before)))
+
   (let ((c-buffer-is-cc-mode t))
     ;; FIXME: These are normally set by `c-basic-common-init'.  Should
     ;; we call it instead?  (Bug#6071)
@@ -3350,7 +3353,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; etc. and produce maddening "unbalanced parenthesis" errors.
   ;; When we attempt to find the error and scroll to the portion of
   ;; the buffer containing the problem, JIT-lock will apply the
-  ;; correct syntax to the regular expresion literal and the problem
+  ;; correct syntax to the regular expression literal and the problem
   ;; will mysteriously disappear.
   ;; FIXME: We should actually do this fontification lazily by adding
   ;; calls to syntax-propertize wherever it's really needed.

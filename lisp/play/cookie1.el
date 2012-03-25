@@ -1,6 +1,6 @@
 ;;; cookie1.el --- retrieve random phrases from fortune cookie files
 
-;; Copyright (C) 1993, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -46,7 +46,7 @@
 ;; In order to achieve total compatibility with strfile(1), cookie files
 ;; should start with two consecutive delimiters (and no comment).
 ;;
-;; This code derives from Steve Strassman's 1987 spook.el package, but
+;; This code derives from Steve Strassmann's 1987 spook.el package, but
 ;; has been generalized so that it supports multiple simultaneous
 ;; cookie databases and fortune files.  It is intended to be called
 ;; from other packages such as yow.el and spook.el.

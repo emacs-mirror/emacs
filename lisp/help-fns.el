@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -65,7 +65,9 @@
 
 (defun help-split-fundoc (docstring def)
   "Split a function DOCSTRING into the actual doc and the usage info.
-Return (USAGE . DOC) or nil if there's no usage info.
+Return (USAGE . DOC) or nil if there's no usage info, where USAGE info
+is a string describing the argument list of DEF, such as
+\"(apply FUNCTION &rest ARGUMENTS)\".
 DEF is the function whose usage we're looking for in DOCSTRING."
   ;; Functions can get the calling sequence at the end of the doc string.
   ;; In cases where `function' has been fset to a subr we can't search for
@@ -156,12 +158,7 @@ the same names as used in the original source code, when possible."
 (defun help-make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
 	(mapcar (lambda (arg)
-		  (if (not (symbolp arg))
-		      (if (and (consp arg) (symbolp (car arg)))
-			  ;; CL style default values for optional args.
-			  (cons (intern (upcase (symbol-name (car arg))))
-				(cdr arg))
-			arg)
+		  (if (not (symbolp arg)) arg
 		    (let ((name (symbol-name arg)))
 		      (cond
                        ((string-match "\\`&" name) arg)
@@ -259,7 +256,7 @@ if the variable `help-downcase-arguments' is non-nil."
               ;; so let's skip over it
               (search-backward "(")
               (goto-char (scan-sexps (point) 1)))))
-        ;; Highlight aguments in the USAGE string
+        ;; Highlight arguments in the USAGE string
         (setq usage (help-do-arg-highlight (buffer-string) args))
         ;; Highlight arguments in the DOC string
         (setq doc (and doc (help-do-arg-highlight doc args))))))
@@ -485,12 +482,14 @@ suitable file is found, return nil."
 		  (if (member (event-modifiers (aref key 0)) '(nil (shift)))
 		      (push key non-modified-keys)))
 		(when remapped
-		  (princ "It is remapped to `")
+		  (princ "Its keys are remapped to `")
 		  (princ (symbol-name remapped))
-		  (princ "'"))
+		  (princ "'.\n"))
 
 		(when keys
-		  (princ (if remapped ", which is bound to " "It is bound to "))
+		  (princ (if remapped
+			     "Without this remapping, it would be bound to "
+			   "It is bound to "))
 		  ;; If lots of ordinary text characters run this command,
 		  ;; don't mention them one by one.
 		  (if (< (length non-modified-keys) 10)
@@ -710,12 +709,19 @@ it is displayed along with the global value."
 	      (with-current-buffer standard-output
 		(setq val-start-pos (point))
 		(princ "value is ")
-		(let ((from (point)))
-		  (terpri)
-		  (pp val)
-		  (if (< (point) (+ 68 (line-beginning-position 0)))
-		      (delete-region from (1+ from))
-		    (delete-region (1- from) from))
+		(let ((from (point))
+		      (line-beg (line-beginning-position))
+		      ;;
+		      (print-rep
+		       (let ((print-quoted t))
+			 (prin1-to-string val))))
+		  (if (< (+ (length print-rep) (point) (- line-beg)) 68)
+		      (insert print-rep)
+		    (terpri)
+		    (pp val)
+		    (if (< (point) (+ 68 (line-beginning-position 0)))
+			(delete-region from (1+ from))
+		      (delete-region (1- from) from)))
 		  (let* ((sv (get variable 'standard-value))
 			 (origval (and (consp sv)
 				       (condition-case nil

@@ -1,5 +1,5 @@
 /* Functions taken directly from X sources for use with the Microsoft W32 API.
-   Copyright (C) 1989, 1992-1995, 1999, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1989, 1992-1995, 1999, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -188,7 +188,7 @@ get_next_msg (W32Msg * lpmsg, BOOL bWait)
       }
 
       nQueue--;
-      /* Consolidate WM_PAINT messages to optimise redrawing.  */
+      /* Consolidate WM_PAINT messages to optimize redrawing.  */
       if (lpmsg->msg.message == WM_PAINT && nQueue)
         {
           int_msg * lpCur = lpHead;
@@ -441,4 +441,3 @@ void
 x_sync (void *f)
 {
 }
-

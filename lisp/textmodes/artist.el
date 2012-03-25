@@ -1,6 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -535,7 +535,8 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 		  ("Text" artist-select-op-text-overwrite text-ovwrt)
 		  ("Ellipse" artist-select-op-circle circle)
 		  ("Poly-line" artist-select-op-straight-poly-line spolyline)
-		  ("Rectangle" artist-select-op-square square)
+		  ("Square" artist-select-op-square square)
+		  ("Rectangle" artist-select-op-rectangle rectangle)
     		  ("Line" artist-select-op-straight-line s-line)
     		  ("Pen" artist-select-op-pen-line pen-line)))
       (define-key map (vector (nth 2 op))
@@ -1985,7 +1986,7 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
   "Retrieve a replacement for character C from `artist-replacement-table'.
 The replacement is used to convert tabs and new-lines to spaces."
   ;; Characters may be outside the range of the `artist-replacement-table',
-  ;; for example if they are unicode code points >= 256.
+  ;; for example if they are Unicode code points >= 256.
   ;; Check so we don't attempt to access the array out of its bounds,
   ;; assuming no such character needs to be replaced.
   (if (< c (length artist-replacement-table))
@@ -2263,7 +2264,7 @@ Returns a DIRECTION, a number 0--7, coded as follows:
 
 
 ;; Things for drawing lines in all directions.
-;; The line drawing engine is the eight-point alrogithm.
+;; The line drawing engine is the eight-point algorithm.
 ;;
 ;; A line is here a list of (x y saved-char new-char)s.
 ;;
@@ -2338,7 +2339,7 @@ Octant are numbered 1--8, anti-clockwise as:
 	  5
 	6))))
 
-;; Some inline funtions for creating, setting and reading
+;; Some inline functions for creating, setting and reading
 ;; members of a coordinate
 ;;
 
@@ -2437,7 +2438,7 @@ in the coord."
     point-list))
 
 ;; artist-save-chars-under-point-list
-;; Remebers the chars that were there before we did draw the line.
+;; Remembers the chars that were there before we did draw the line.
 ;; Returns point-list.
 ;;
 (defun artist-save-chars-under-point-list (point-list)
@@ -2514,7 +2515,7 @@ This function returns a point-list."
 
 
 ;;
-;; functions for accessing endoints and elements in object requiring
+;; functions for accessing endpoints and elements in object requiring
 ;; 2 endpoints
 ;;
 
@@ -3215,7 +3216,7 @@ X1, Y1.  An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
 ;;         2|     |
 ;;         3+-----+
 ;;
-;;   We will then pop (0,0) and remove the left-most vertival line while
+;;   We will then pop (0,0) and remove the left-most vertical line while
 ;;   pushing the lower left corner (0,3) on the stack, and so on until
 ;;   the entire rectangle is vaporized.
 ;;
@@ -3582,7 +3583,7 @@ FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE]."
          (width (abs (- x2 x1)))
 	 (height (abs (- y2 y1)))
 	 ;; When drawing our circle, we want it to through the cursor
-	 ;; just as when drawing the ellispe, but we have to take
+	 ;; just as when drawing the ellipse, but we have to take
 	 ;; care for the aspect-ratio.
 	 ;; The equation for the ellipse  (where a is the x-radius and
 	 ;; b is the y-radius):
@@ -3960,11 +3961,11 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 ;; Implementation note: This really should honor the interval-fn entry
 ;; in the master table, `artist-mt', which would mean leaving a timer
 ;; that calls `draw-fn' every now and then. That timer would then have
-;; to be cancelled and reinstalled whenever the user moves the cursor.
+;; to be canceled and reinstalled whenever the user moves the cursor.
 ;; This could be done, but what if the user suddenly switches to another
 ;; drawing mode, or even kills the buffer! In the mouse case, it is much
 ;; simpler: when at the end of `artist-mouse-draw-continously', the
-;; user has released the button, so the timer will always be cancelled
+;; user has released the button, so the timer will always be canceled
 ;; at that point.
 (defun artist-key-draw-continously (x y)
   "Draw current continuous shape at X,Y."
@@ -4455,7 +4456,7 @@ If N is negative, move backward."
   "Set current fill character to be C."
   (interactive "cType fill char (type RET to turn off): ")
   (cond ((eq c ?\r) (setq artist-fill-char-set nil)
-		    (message "Fill cancelled"))
+		    (message "Fill canceled"))
 	(t	    (setq artist-fill-char-set t)
 		    (setq artist-fill-char c)
 		    (message "Fill set to \"%c\"" c))))
@@ -5589,7 +5590,7 @@ The event, EV, is the mouse event."
 ;;         of drawing mode.
 ;;
 ;;         You should provide these functions. You might think that
-;;         only you is using your type of mode, so noone will be able
+;;         only you is using your type of mode, so no one will be able
 ;;         to switch to another operation of the same type of mode,
 ;;         but someone else might base a new drawing mode upon your
 ;;         work.

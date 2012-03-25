@@ -1,6 +1,6 @@
 /* Functions for the NeXT/Open/GNUstep and MacOSX window system.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2011
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -97,6 +97,13 @@ Lisp_Object Fx_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);
 
 extern BOOL ns_in_resize;
 
+/* Static variables to handle applescript execution.  */
+static Lisp_Object as_script, *as_result;
+static int as_status;
+
+#if GLYPH_DEBUG
+static ptrdiff_t image_cache_refcount;
+#endif
 
 /* ==========================================================================
 
@@ -321,6 +328,7 @@ static void
 x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSColor *col;
+  CGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -331,6 +339,10 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   [col retain];
   [f->output_data.ns->foreground_color release];
   f->output_data.ns->foreground_color = col;
+
+  [col getRed: &r green: &g blue: &b alpha: &alpha];
+  FRAME_FOREGROUND_PIXEL (f) =
+    ARGB_TO_ULONG ((int)(alpha*0xff), (int)(r*0xff), (int)(g*0xff), (int)(b*0xff));
 
   if (FRAME_NS_VIEW (f))
     {
@@ -348,7 +360,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   struct face *face;
   NSColor *col;
   NSView *view = FRAME_NS_VIEW (f);
-  float alpha;
+  CGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -364,10 +376,14 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   [col retain];
   [f->output_data.ns->background_color release];
   f->output_data.ns->background_color = col;
+
+  [col getRed: &r green: &g blue: &b alpha: &alpha];
+  FRAME_BACKGROUND_PIXEL (f) =
+    ARGB_TO_ULONG ((int)(alpha*0xff), (int)(r*0xff), (int)(g*0xff), (int)(b*0xff));
+
   if (view != nil)
     {
       [[view window] setBackgroundColor: col];
-      alpha = [col alphaComponent];
 
       if (alpha != 1.0)
           [[view window] setOpaque: NO];
@@ -378,9 +394,8 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (face)
         {
           col = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f);
-          face->background
-	     = (EMACS_UINT) [[col colorWithAlphaComponent: alpha] retain];
-          [col release];
+          face->background = ns_index_color
+            ([col colorWithAlphaComponent: alpha], f);
 
           update_face_from_frame_parameter (f, Qbackground_color, arg);
         }
@@ -754,7 +769,7 @@ ns_implicitly_set_icon_type (struct frame *f)
 {
   Lisp_Object tem;
   EmacsView *view = FRAME_NS_VIEW (f);
-  id image =nil;
+  id image = nil;
   Lisp_Object chain, elt;
   NSAutoreleasePool *pool;
   BOOL setMini = YES;
@@ -781,7 +796,7 @@ ns_implicitly_set_icon_type (struct frame *f)
     }
 
   for (chain = Vns_icon_type_alist;
-       (image = nil) && CONSP (chain);
+       image == nil && CONSP (chain);
        chain = XCDR (chain))
     {
       elt = XCAR (chain);
@@ -1026,6 +1041,75 @@ frame_parm_handler ns_frame_parm_handlers[] =
 };
 
 
+/* Handler for signals raised during x_create_frame.
+   FRAME is the frame which is partially constructed.  */
+
+static Lisp_Object
+unwind_create_frame (Lisp_Object frame)
+{
+  struct frame *f = XFRAME (frame);
+
+  /* If frame is already dead, nothing to do.  This can happen if the
+     display is disconnected after the frame has become official, but
+     before x_create_frame removes the unwind protect.  */
+  if (!FRAME_LIVE_P (f))
+    return Qnil;
+
+  /* If frame is ``official'', nothing to do.  */
+  if (NILP (Fmemq (frame, Vframe_list)))
+    {
+#if GLYPH_DEBUG && XASSERTS
+      struct ns_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+#endif
+
+      x_free_frame_resources (f);
+      free_glyphs (f);
+
+#if GLYPH_DEBUG
+      /* Check that reference counts are indeed correct.  */
+      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
+#endif
+      return Qt;
+    }
+
+  return Qnil;
+}
+
+/*
+ * Read geometry related parameters from preferences if not in PARMS.
+ * Returns the union of parms and any preferences read.
+ */
+
+static Lisp_Object
+get_geometry_from_preferences (struct ns_display_info *dpyinfo,
+                               Lisp_Object parms)
+{
+  struct {
+    const char *val;
+    const char *cls;
+    Lisp_Object tem;
+  } r[] = {
+    { "width",  "Width", Qwidth },
+    { "height", "Height", Qheight },
+    { "left", "Left", Qleft },
+    { "top", "Top", Qtop },
+  };
+
+  int i;
+  for (i = 0; i < sizeof (r)/sizeof (r[0]); ++i)
+    {
+      if (NILP (Fassq (r[i].tem, parms)))
+        {
+          Lisp_Object value
+            = x_get_arg (dpyinfo, parms, r[i].tem, r[i].val, r[i].cls,
+                         RES_TYPE_NUMBER);
+          if (! EQ (value, Qunbound))
+            parms = Fcons (Fcons (r[i].tem, value), parms);
+        }
+    }
+
+  return parms;
+}
 
 /* ==========================================================================
 
@@ -1035,45 +1119,49 @@ frame_parm_handler ns_frame_parm_handlers[] =
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
-       doc: /* Make a new Nextstep window, called a \"frame\" in Emacs terms.
+       doc: /* Make a new Nextstep window, called a "frame" in Emacs terms.
 Return an Emacs frame object.
 PARMS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
 then `default-minibuffer-frame' must be a frame whose minibuffer can
-be shared by the new frame.  */)
+be shared by the new frame.
+
+This function is an internal primitive--use `make-frame' instead.  */)
      (Lisp_Object parms)
 {
-  static int desc_ctr = 1;
   struct frame *f;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object frame, tem;
   Lisp_Object name;
   int minibuffer_only = 0;
+  int window_prompting = 0;
+  int width, height;
   int count = specpdl_ptr - specpdl;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct ns_display_info *dpyinfo = NULL;
   Lisp_Object parent;
   struct kboard *kb;
   Lisp_Object tfont, tfontsize;
-  int window_prompting = 0;
-  int width, height;
+  static int desc_ctr = 1;
 
   check_ns ();
 
-  /* Seems a little strange, but other terms do it. Perhaps the code below
-     is modifying something? */
+  /* x_get_arg modifies parms.  */
   parms = Fcopy_alist (parms);
+
+  /* Use this general default value to start with
+     until we know if this frame has a specified name.  */
+  Vx_resource_name = Vinvocation_name;
 
   display = x_get_arg (dpyinfo, parms, Qterminal, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_ns_display_info (display);
+  kb = dpyinfo->terminal->kboard;
 
   if (!dpyinfo->terminal->name)
     error ("Terminal is not live, can't create new frames on it");
-
-  kb = dpyinfo->terminal->kboard;
 
   name = x_get_arg (dpyinfo, parms, Qname, 0, 0, RES_TYPE_STRING);
   if (!STRINGP (name)
@@ -1083,8 +1171,6 @@ be shared by the new frame.  */)
 
   if (STRINGP (name))
     Vx_resource_name = name;
-  else
-    Vx_resource_name = Vinvocation_name;
 
   parent = x_get_arg (dpyinfo, parms, Qparent_id, 0, 0, RES_TYPE_NUMBER);
   if (EQ (parent, Qunbound))
@@ -1092,56 +1178,35 @@ be shared by the new frame.  */)
   if (! NILP (parent))
     CHECK_NUMBER (parent);
 
+  /* make_frame_without_minibuffer can run Lisp code and garbage collect.  */
+  /* No need to protect DISPLAY because that's not used after passing
+     it to make_frame_without_minibuffer.  */
   frame = Qnil;
   GCPRO4 (parms, parent, name, frame);
-
   tem = x_get_arg (dpyinfo, parms, Qminibuffer, "minibuffer", "Minibuffer",
                   RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
-    {
       f = make_frame_without_minibuffer (Qnil, kb, display);
-    }
   else if (EQ (tem, Qonly))
     {
       f = make_minibuffer_frame ();
       minibuffer_only = 1;
     }
   else if (WINDOWP (tem))
-    {
       f = make_frame_without_minibuffer (tem, kb, display);
-    }
   else
-    {
       f = make_frame (1);
-    }
-
-  /* Set the name; the functions to which we pass f expect the name to
-     be set.  */
-  if (EQ (name, Qunbound) || NILP (name) || (XTYPE (name) != Lisp_String))
-    {
-      f->name = build_string ([ns_app_name UTF8String]);
-      f->explicit_name =0;
-    }
-  else
-    {
-      f->name = name;
-      f->explicit_name = 1;
-      specbind (Qx_resource_name, name);
-    }
 
   XSETFRAME (frame, f);
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
 
   f->output_method = output_ns;
   f->output_data.ns = (struct ns_output *)xmalloc (sizeof *(f->output_data.ns));
-  memset (f->output_data.ns, 0, sizeof (*(f->output_data.ns)));
+  memset (f->output_data.ns, 0, sizeof *(f->output_data.ns));
 
   FRAME_FONTSET (f) = -1;
-
-  /* record_unwind_protect (unwind_create_frame, frame); safety; maybe later? */
 
   f->icon_name = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
                             RES_TYPE_STRING);
@@ -1149,6 +1214,9 @@ be shared by the new frame.  */)
     f->icon_name = Qnil;
 
   FRAME_NS_DISPLAY_INFO (f) = dpyinfo;
+
+  /* With FRAME_NS_DISPLAY_INFO set up, this unwind-protect is safe.  */
+  record_unwind_protect (unwind_create_frame, frame);
 
   f->output_data.ns->window_desc = desc_ctr++;
   if (!NILP (parent))
@@ -1160,6 +1228,20 @@ be shared by the new frame.  */)
     {
       f->output_data.ns->parent_desc = FRAME_NS_DISPLAY_INFO (f)->root_window;
       f->output_data.ns->explicit_parent = 0;
+    }
+
+  /* Set the name; the functions to which we pass f expect the name to
+     be set.  */
+  if (EQ (name, Qunbound) || NILP (name) || ! STRINGP (name))
+    {
+      f->name = build_string ([ns_app_name UTF8String]);
+      f->explicit_name = 0;
+    }
+  else
+    {
+      f->name = name;
+      f->explicit_name = 1;
+      specbind (Qx_resource_name, name);
     }
 
   f->resx = dpyinfo->resx;
@@ -1204,18 +1286,22 @@ be shared by the new frame.  */)
                       "foreground", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qbackground_color, build_string ("White"),
                       "background", "Background", RES_TYPE_STRING);
-  /* FIXME: not suppported yet in Nextstep */
+  /* FIXME: not supported yet in Nextstep */
   x_default_parameter (f, parms, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qleft_fringe, Qnil,
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
-  /* end PENDING */
+
+#if GLYPH_DEBUG
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+#endif
 
   init_frame_faces (f);
 
-  /* The X resources controlling the menu-bar and tool-bar are
+  /* The resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
      variables; ignore them here.  */
   x_default_parameter (f, parms, Qmenu_bar_lines,
@@ -1232,38 +1318,7 @@ be shared by the new frame.  */)
   x_default_parameter (f, parms, Qtitle, Qnil, "title", "Title",
                        RES_TYPE_STRING);
 
-/* TODO: other terms seem to get away w/o this complexity.. */
-  if (NILP (Fassq (Qwidth, parms)))
-    {
-      Lisp_Object value
-	 = x_get_arg (dpyinfo, parms, Qwidth, "width", "Width",
-		      RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
-	parms = Fcons (Fcons (Qwidth, value), parms);
-    }
-  if (NILP (Fassq (Qheight, parms)))
-    {
-      Lisp_Object value
-	 = x_get_arg (dpyinfo, parms, Qheight, "height", "Height",
-		      RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
-	parms = Fcons (Fcons (Qheight, value), parms);
-    }
-  if (NILP (Fassq (Qleft, parms)))
-    {
-      Lisp_Object value
-	 = x_get_arg (dpyinfo, parms, Qleft, "left", "Left", RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
-	parms = Fcons (Fcons (Qleft, value), parms);
-    }
-  if (NILP (Fassq (Qtop, parms)))
-    {
-      Lisp_Object value
-	 = x_get_arg (dpyinfo, parms, Qtop, "top", "Top", RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
-	parms = Fcons (Fcons (Qtop, value), parms);
-    }
-
+  parms = get_geometry_from_preferences (dpyinfo, parms);
   window_prompting = x_figure_window_size (f, parms, 1);
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
@@ -1285,23 +1340,27 @@ be shared by the new frame.  */)
 
   x_icon (f, parms);
 
+  /* ns_display_info does not have a reference_count.  */
+  f->terminal->reference_count++;
+
   /* It is now ok to make the frame official even if we get an error below.
      The frame needs to be on Vframe_list or making it visible won't work. */
   Vframe_list = Fcons (frame, Vframe_list);
-  /*FRAME_NS_DISPLAY_INFO (f)->reference_count++; */
 
-  x_default_parameter (f, parms, Qicon_type, Qnil, "bitmapIcon", "BitmapIcon",
-                      RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qauto_raise, Qnil, "autoRaise", "AutoRaiseLower",
-                      RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qauto_lower, Qnil, "autoLower", "AutoLower",
-                      RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qcursor_type, Qbox, "cursorType", "CursorType",
-                      RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qscroll_bar_width, Qnil, "scrollBarWidth",
-                      "ScrollBarWidth", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qalpha, Qnil, "alpha", "Alpha",
-                      RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qicon_type, Qnil,
+                       "bitmapIcon", "BitmapIcon", RES_TYPE_SYMBOL);
+
+  x_default_parameter (f, parms, Qauto_raise, Qnil,
+                       "autoRaise", "AutoRaiseLower", RES_TYPE_BOOLEAN);
+  x_default_parameter (f, parms, Qauto_lower, Qnil,
+                       "autoLower", "AutoLower", RES_TYPE_BOOLEAN);
+  x_default_parameter (f, parms, Qcursor_type, Qbox,
+                       "cursorType", "CursorType", RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
+                       "scrollBarWidth", "ScrollBarWidth",
+                       RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qalpha, Qnil,
+                       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
@@ -1312,20 +1371,24 @@ be shared by the new frame.  */)
 
   if (! f->output_data.ns->explicit_parent)
     {
-      tem = x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
-      if (EQ (tem, Qunbound))
-	tem = Qt;
-      x_set_visibility (f, tem, Qnil);
-      if (EQ (tem, Qicon))
+      Lisp_Object visibility;
+
+      visibility = x_get_arg (dpyinfo, parms, Qvisibility, 0, 0,
+                              RES_TYPE_SYMBOL);
+      if (EQ (visibility, Qunbound))
+	visibility = Qt;
+
+      if (EQ (visibility, Qicon))
 	x_iconify_frame (f);
-      else if (! NILP (tem))
+      else if (! NILP (visibility))
 	{
 	  x_make_frame_visible (f);
-	  f->async_visible = 1;
 	  [[FRAME_NS_VIEW (f) window] makeKeyWindow];
 	}
       else
-	  f->async_visible = 0;
+        {
+	  /* Must have been Qnil.  */
+        }
     }
 
   if (FRAME_HAS_MINIBUF_P (f)
@@ -1340,6 +1403,9 @@ be shared by the new frame.  */)
       f->param_alist = Fcons (XCAR (tem), f->param_alist);
 
   UNGCPRO;
+
+  /* Make sure windows on this frame appear in calls to next-window
+     and similar functions.  */
   Vwindow_list = Qnil;
 
   return unbind_to (count, frame);
@@ -1479,6 +1545,17 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   return ret ? fname : Qnil;
 }
 
+const char *
+ns_get_defaults_value (const char *key)
+{
+  NSObject *obj = [[NSUserDefaults standardUserDefaults]
+                    objectForKey: [NSString stringWithUTF8String: key]];
+
+  if (!obj) return NULL;
+
+  return [[NSString stringWithFormat: @"%@", obj] UTF8String];
+}
+
 
 DEFUN ("ns-get-resource", Fns_get_resource, Sns_get_resource, 2, 2, 0,
        doc: /* Return the value of the property NAME of OWNER from the defaults database.
@@ -1493,9 +1570,7 @@ If OWNER is nil, Emacs is assumed.  */)
   CHECK_STRING (name);
 /*fprintf (stderr, "ns-get-resource checking resource '%s'\n", SDATA (name)); */
 
-  value =[[[NSUserDefaults standardUserDefaults]
-            objectForKey: [NSString stringWithUTF8String: SDATA (name)]]
-           UTF8String];
+  value = ns_get_defaults_value (SDATA (name));
 
   if (value)
     return build_string (value);
@@ -1624,7 +1699,7 @@ If omitted or nil, the selected frame's display is used.  */)
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Return whether the Nexstep display DISPLAY supports backing store.
+       doc: /* Return whether the Nextstep display DISPLAY supports backing store.
 The value may be `buffered', `retained', or `non-retained'.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
@@ -1814,7 +1889,7 @@ DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
 
 
 DEFUN ("ns-font-name", Fns_font_name, Sns_font_name, 1, 1, 0,
-       doc: /* Determine font postscript or family name for font NAME.
+       doc: /* Determine font PostScript or family name for font NAME.
 NAME should be a string containing either the font name or an XLFD
 font descriptor.  If string contains `fontset' and not
 `fontset-startup', it is left alone. */)
@@ -2043,6 +2118,15 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
   return 0;
 }
 
+/* Helper function called from sendEvent to run applescript
+   from within the main event loop.  */
+
+void
+ns_run_ascript (void)
+{
+  as_status = ns_do_applescript (as_script, as_result);
+}
+
 DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
        doc: /* Execute AppleScript SCRIPT and return the result.
 If compilation and execution are successful, the resulting script value
@@ -2052,12 +2136,37 @@ In case the execution fails, an error is signaled. */)
 {
   Lisp_Object result;
   int status;
+  NSEvent *nxev;
 
   CHECK_STRING (script);
   check_ns ();
 
   BLOCK_INPUT;
-  status = ns_do_applescript (script, &result);
+
+  as_script = script;
+  as_result = &result;
+
+  /* executing apple script requires the event loop to run, otherwise
+     errors aren't returned and executeAndReturnError hangs forever.
+     Post an event that runs applescript and then start the event loop.
+     The event loop is exited when the script is done.  */
+  nxev = [NSEvent otherEventWithType: NSApplicationDefined
+                            location: NSMakePoint (0, 0)
+                       modifierFlags: 0
+                           timestamp: 0
+                        windowNumber: [[NSApp mainWindow] windowNumber]
+                             context: [NSApp context]
+                             subtype: 0
+                               data1: 0
+                               data2: NSAPP_DATA2_RUNASSCRIPT];
+
+  [NSApp postEvent: nxev atStart: NO];
+  [NSApp run];
+
+  status = as_status;
+  as_status = 0;
+  as_script = Qnil;
+  as_result = 0;
   UNBLOCK_INPUT;
   if (status == 0)
     return result;
@@ -2116,8 +2225,7 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
     /* --quick was passed, so this is a no-op.  */
     return NULL;
 
-  res = [[[NSUserDefaults standardUserDefaults] objectForKey:
-            [NSString stringWithUTF8String: toCheck]] UTF8String];
+  res = ns_get_defaults_value (toCheck);
   return !res ? NULL :
       (!strncasecmp (res, "YES", 3) ? "true" :
           (!strncasecmp (res, "NO", 2) ? "false" : res));
@@ -2661,4 +2769,7 @@ be used as the image of the icon representing the frame.  */);
   /* used only in fontset.c */
   check_window_system_func = check_ns;
 
+  as_status = 0;
+  as_script = Qnil;
+  as_result = 0;
 }

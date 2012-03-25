@@ -1,6 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -195,7 +195,7 @@ before the external MIME handler is invoked."
     ("image/tiff"
      mm-inline-image
      (lambda (handle)
-       (mm-valid-and-fit-image-p 'tiff handle)) )
+       (mm-valid-and-fit-image-p 'tiff handle)))
     ("image/xbm"
      mm-inline-image
      (lambda (handle)
@@ -265,6 +265,20 @@ before the external MIME handler is invoked."
     ("multipart/alternative" ignore identity)
     ("multipart/mixed" ignore identity)
     ("multipart/related" ignore identity)
+    ("image/.*"
+     mm-inline-image
+     (lambda (handle)
+       (and (mm-valid-image-format-p 'imagemagick)
+	    (mm-with-unibyte-buffer
+	      (mm-insert-part handle)
+	      (let ((image
+		     (ignore-errors
+		       (if (fboundp 'create-image)
+			   (create-image (buffer-string) 'imagemagick 'data-p)
+			 (mm-create-image-xemacs (mm-handle-media-subtype handle))))))
+		(when image
+		  (setcar (cdr handle) (list "image/imagemagick"))
+		  (mm-image-fit-p handle)))))))
     ;; Disable audio and image
     ("audio/.*" ignore ignore)
     ("image/.*" ignore ignore)
@@ -346,7 +360,7 @@ to:
  (\"text/html\" \"text/richtext\")
 
 Adding \"image/.*\" might also be useful.  Spammers use it as the
-prefered part of multipart/alternative messages.  See also
+preferred part of multipart/alternative messages.  See also
 `gnus-buttonized-mime-types', to which adding \"multipart/alternative\"
 enables you to choose manually one of two types those mails include."
   :type '(repeat regexp) ;; See `mm-preferred-alternative-precedence'.
@@ -564,7 +578,13 @@ Postpone undisplaying of viewers for types in
 	  (setq ct (mail-fetch-field "content-type")
 		ctl (and ct (mail-header-parse-content-type ct))
 		cte (mail-fetch-field "content-transfer-encoding")
-		cd (mail-fetch-field "content-disposition")
+                cd (or (mail-fetch-field "content-disposition")
+                       (when (and ctl
+                                  (eq 'mm-inline-text
+                                      (cadr (mm-assoc-string-match
+                                             mm-inline-media-tests
+                                             (car ctl)))))
+                         "inline"))
 		;; Newlines in description should be stripped so as
 		;; not to break the MIME tag into two or more lines.
 		description (message-fetch-field "content-description")
@@ -922,7 +942,7 @@ external if displayed external."
 			  ;; In particular, the timer object (which is
 			  ;; a vector in Emacs but is a list in XEmacs)
 			  ;; requires that it is lexically scoped.
-			  (timer (run-at-time 2.0 nil 'ignore)))
+			  (timer (run-at-time 30.0 nil 'ignore)))
 		       (if (featurep 'xemacs)
 			   (lambda (process state)
 			     (when (eq 'exit (process-status process))
@@ -1333,7 +1353,7 @@ Use CMD as the process."
 		  (mailcap-mime-info type 'all)))
 	 (method (let ((minibuffer-local-completion-map
 			mm-viewer-completion-map))
-		   (gnus-completing-read "Viewer" methods))))
+		   (completing-read "Viewer: " methods))))
     (when (string= method "")
       (error "No method given"))
     (if (string-match "^[^% \t]+$" method)
@@ -1473,8 +1493,8 @@ be determined."
   (let ((image (mm-get-image handle)))
     (or (not image)
 	(if (featurep 'xemacs)
-	    ;; XEmacs' glyphs can actually tell us about their width, so
-	    ;; lets be nice and smart about them.
+	    ;; XEmacs's glyphs can actually tell us about their width, so
+	    ;; let's be nice and smart about them.
 	    (or mm-inline-large-images
 		(and (<= (glyph-width image) (window-pixel-width))
 		     (<= (glyph-height image) (window-pixel-height))))
@@ -1704,6 +1724,7 @@ If RECURSIVE, search recursively."
 				      (buffer-string))))))
 	shr-inhibit-images shr-blocked-images charset char)
     (if (and (boundp 'gnus-summary-buffer)
+	     (bufferp gnus-summary-buffer)
 	     (buffer-name gnus-summary-buffer))
 	(with-current-buffer gnus-summary-buffer
 	  (setq shr-inhibit-images gnus-inhibit-images
@@ -1736,6 +1757,10 @@ If RECURSIVE, search recursively."
 				    (string-to-number (match-string 2)))
 				  mm-extra-numeric-entities)))
 	     (replace-match (char-to-string char))))
+	 ;; Remove "soft hyphens".
+	 (goto-char (point-min))
+	 (while (search-forward "­" nil t)
+	   (replace-match "" t t))
 	 (libxml-parse-html-region (point-min) (point-max))))
       (mm-handle-set-undisplayer
        handle

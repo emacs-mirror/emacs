@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Glossary, Key Index, Intro, Top
@@ -509,11 +509,6 @@ character sets and which font to use to display each of them.  Fontsets
 make it easy to change several fonts at once by specifying the name of a
 fontset, rather than changing each font separately.  @xref{Fontsets}.
 
-@item Formatted Text
-Formatted text is text that displays with formatting information while
-you edit.  Formatting information includes fonts, colors, and specified
-margins.  @xref{Formatted Text}.
-
 @item Formfeed Character
 See `page.'
 
@@ -702,9 +697,8 @@ that someone else is already editing.
 See `incremental search.'
 
 @item Justification
-Justification means adding extra spaces within lines of text
-in order to adjust the position of the text edges.
-@xref{Format Justification}.
+Justification means adding extra spaces within lines of text in order
+to adjust the position of the text edges.  @xref{Fill Commands}.
 
 @item Key Binding
 See `binding.'
@@ -962,7 +956,7 @@ special Emacs commands for moving over and operating on paragraphs.
 @item Parsing
 We say that certain Emacs commands parse words or expressions in the
 text being edited.  Really, all they know how to do is find the other
-end of a word or expression.  @xref{Syntax}.
+end of a word or expression.
 
 @item Point
 Point is the place in the buffer at which insertion and deletion
@@ -1212,7 +1206,8 @@ See `font lock.'
 @item Syntax Table
 The syntax table tells Emacs which characters are part of a word,
 which characters balance each other like parentheses, etc.
-@xref{Syntax}.
+@xref{Syntax Tables,, Syntax Tables, elisp, The Emacs Lisp Reference
+Manual}.
 
 @item Super
 Super is the name of a modifier bit that a keyboard input character may
@@ -1360,12 +1355,6 @@ See `abbrev.'
 @item Word Search
 Word search is searching for a sequence of words, considering the
 punctuation between them as insignificant.  @xref{Word Search}.
-
-@item WYSIWYG
-WYSIWYG stands for ``What you see is what you get.''  Emacs generally
-provides WYSIWYG editing for files of characters; in Enriched mode
-(@pxref{Formatted Text}), it provides WYSIWYG editing for files that
-include text formatting information.
 
 @item Yanking
 Yanking means reinserting text previously killed (q.v.@:).  It can be

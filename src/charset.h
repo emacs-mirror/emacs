@@ -1,5 +1,5 @@
 /* Header for charset handler.
-   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -148,12 +148,12 @@ struct charset
   int id;
 
   /* Index to Vcharset_hash_table.  */
-  EMACS_INT hash_index;
+  ptrdiff_t hash_index;
 
   /* Dimension of the charset: 1, 2, 3, or 4.  */
   int dimension;
 
-  /* Byte code range of each dimension.  <code_space>[4N] is a mininum
+  /* Byte code range of each dimension.  <code_space>[4N] is a minimum
      byte code of the (N+1)th dimension, <code_space>[4N+1] is a
      maximum byte code of the (N+1)th dimension, <code_space>[4N+2] is
      (<code_space>[4N+1] - <code_space>[4N] + 1), <code_space>[4N+3]
@@ -199,14 +199,14 @@ struct charset
   /* The method for encoding/decoding characters of the charset.  */
   enum charset_method method;
 
-  /* Mininum and Maximum code points of the charset.  */
+  /* Minimum and Maximum code points of the charset.  */
   unsigned min_code, max_code;
 
   /* Offset value used by macros CODE_POINT_TO_INDEX and
       INDEX_TO_CODE_POINT. .  */
   unsigned char_index_offset;
 
-  /* Mininum and Maximum character codes of the charset.  If the
+  /* Minimum and Maximum character codes of the charset.  If the
      charset is compatible with ASCII, min_char is a minimum non-ASCII
      character of the charset.  If the method of charset is
      CHARSET_METHOD_OFFSET, even if the charset is unified, min_char
@@ -238,7 +238,7 @@ struct charset
   int unified_p;
 };
 
-/* Hash table of charset symbols vs. the correponding attribute
+/* Hash table of charset symbols vs. the corresponding attribute
    vectors.  */
 extern Lisp_Object Vcharset_hash_table;
 
@@ -341,7 +341,7 @@ extern int emacs_mule_charset[256];
    number of the charset.  Otherwise, signal an error. */
 #define CHECK_CHARSET_GET_ID(x, id)					\
   do {									\
-    int idx;								\
+    ptrdiff_t idx;							\
 									\
     if (! SYMBOLP (x) || (idx = CHARSET_SYMBOL_HASH_INDEX (x)) < 0)	\
       wrong_type_argument (Qcharsetp, (x));				\
@@ -389,7 +389,7 @@ extern Lisp_Object Vchar_charset_set;
 #endif
 
 
-/* Return a character correponding to the code-point CODE of CHARSET.
+/* Return a character corresponding to the code-point CODE of CHARSET.
    Try some optimization before calling decode_char.  */
 
 #define DECODE_CHAR(charset, code)					\

@@ -1,11 +1,10 @@
 ;;; ob-keys.el --- key bindings for org-babel
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -73,10 +72,16 @@ functions which are assigned key bindings, and see
     ("t" . org-babel-tangle)
     ("\C-f" . org-babel-tangle-file)
     ("f" . org-babel-tangle-file)
+    ("\C-c" . org-babel-check-src-block)
+    ("c" . org-babel-check-src-block)
+    ("\C-j" . org-babel-insert-header-arg)
+    ("j" . org-babel-insert-header-arg)
     ("\C-l" . org-babel-load-in-session)
     ("l" . org-babel-load-in-session)
     ("\C-i" . org-babel-lob-ingest)
     ("i" . org-babel-lob-ingest)
+    ("\C-I" . org-babel-view-src-block-info)
+    ("I" . org-babel-view-src-block-info)
     ("\C-z" . org-babel-switch-to-session)
     ("z" . org-babel-switch-to-session-with-code)
     ("\C-a" . org-babel-sha1-hash)
@@ -92,6 +97,7 @@ with keys.  Each element of this list will add an entry to the
 a-list placed behind the generic `org-babel-key-prefix'.")
 
 (provide 'ob-keys)
+
 
 
 ;;; ob-keys.el ends here

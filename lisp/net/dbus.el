@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus.
 
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -101,7 +101,7 @@ Otherwise, return result of last form in BODY, or all other errors."
 (defvar dbus-event-error-hooks nil
   "Functions to be called when a D-Bus error happens in the event handler.
 Every function must accept two arguments, the event and the error variable
-catched in `condition-case' by `dbus-error'.")
+caught in `condition-case' by `dbus-error'.")
 
 
 ;;; Hash table of registered functions.
@@ -140,43 +140,52 @@ association to the service from D-Bus."
 
   ;; Find the corresponding entry in the hash table.
   (let* ((key (car object))
-	 (value (cdr object))
+	 (value (cadr object))
+	 (bus (car key))
+	 (service (car value))
 	 (entry (gethash key dbus-registered-objects-table))
 	 ret)
-    ;; entry has the structure ((UNAME SERVICE PATH MEMBER) ...).
-    ;; value has the structure ((SERVICE PATH [HANDLER]) ...).
+    ;; key has the structure (BUS INTERFACE MEMBER).
+    ;; value has the structure (SERVICE PATH [HANDLER]).
+    ;; entry has the structure ((UNAME SERVICE PATH MEMBER [RULE]) ...).
     ;; MEMBER is either a string (the handler), or a cons cell (a
     ;; property value).  UNAME and property values are not taken into
-    ;; account for comparision.
+    ;; account for comparison.
 
     ;; Loop over the registered functions.
     (dolist (elt entry)
       (when (equal
-	     (car value)
-	     (butlast (cdr elt) (- (length (cdr elt)) (length (car value)))))
+	     value
+	     (butlast (cdr elt) (- (length (cdr elt)) (length value))))
+	(setq ret t)
 	;; Compute new hash value.  If it is empty, remove it from the
 	;; hash table.
 	(unless (puthash key (delete elt entry) dbus-registered-objects-table)
 	  (remhash key dbus-registered-objects-table))
-	(setq ret t)))
+	;; Remove match rule of signals.
+	(let ((rule (nth 4 elt)))
+	  (when (stringp rule)
+	    (setq service nil) ; We do not need to unregister the service.
+	    (dbus-call-method
+	     bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+	     "RemoveMatch" rule)))))
     ;; Check, whether there is still a registered function or property
     ;; for the given service.  If not, unregister the service from the
     ;; bus.
-    (dolist (elt entry)
-      (let ((service (cadr elt))
-	    (bus (car key))
-	    found)
-	(maphash
-	 (lambda (k v)
-	   (dolist (e v)
-	     (ignore-errors
-	       (when (and (equal bus (car k)) (string-equal service (cadr e)))
-		 (setq found t)))))
-	 dbus-registered-objects-table)
-	(unless found
-	  (dbus-call-method
-	   bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-	   "ReleaseName" service))))
+    (when service
+      (dolist (elt entry)
+	(let (found)
+	  (maphash
+	   (lambda (k v)
+	     (dolist (e v)
+	       (ignore-errors
+		 (when (and (equal bus (car k)) (string-equal service (cadr e)))
+		   (setq found t)))))
+	   dbus-registered-objects-table)
+	  (unless found
+	    (dbus-call-method
+	     bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+	     "ReleaseName" service)))))
     ;; Return.
     ret))
 
@@ -496,7 +505,7 @@ not well formed."
 
 (defun dbus-event-member-name (event)
   "Return the member name the event is coming from.
-It is either a signal name or a method name. The result is is a
+It is either a signal name or a method name. The result is a
 string.  EVENT is a D-Bus event, see `dbus-check-event'.  This
 function raises a `dbus-error' signal in case the event is not
 well formed."
@@ -1030,7 +1039,8 @@ It will be registered for all objects created by `dbus-register-object'."
 		    (car (last key))
 		    (list :variant (cdar (last (car val))))))))
 	 dbus-registered-objects-table)
-	(list result))))))
+	;; Return the result, or an empty array.
+	(list :array (or result '(:signature "{sv}"))))))))
 
  
 ;; Initialize :system and :session buses.  This adds their file

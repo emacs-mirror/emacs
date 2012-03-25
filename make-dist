@@ -1,7 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2011  Free Software Foundation, Inc.
+## Copyright (C) 1995, 1997-1998, 2000-2012  Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -283,28 +283,25 @@ mkdir ${tempdir}
 ### tar file; this means that people can start reading the INSTALL and
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
-ln INSTALL README BUGS move-if-change ${tempdir}
+ln INSTALL README BUGS ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
-ln config.sub config.guess install-sh ${tempdir}
 ln aclocal.m4 ${tempdir}
-ln compile depcomp missing ${tempdir}
-ln arg-nonnull.h c++defs.h warn-on-use.h ${tempdir}
 
 echo "Creating subdirectories"
 for subdir in site-lisp \
 	      leim leim/CXTERM-DIC leim/MISC-DIC \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
+	      build-aux build-aux/snippet \
 	      src src/m src/s src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      `find etc lisp -type d` \
+	      `find etc lisp admin -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
 	      info m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj \
-	      nextstep/Cocoa/Emacs.xcodeproj \
 	      nextstep/GNUstep \
 	      nextstep/GNUstep/Emacs.base \
 	      nextstep/GNUstep/Emacs.base/Resources
@@ -346,6 +343,15 @@ echo "Making links to \`leim' and its subdirectories"
  rm -f ../${tempdir}/leim/quail/tsang-b5.*
  rm -f ../${tempdir}/leim/quail/tsang-cns.*)
 
+echo "Making links to \`build-aux'"
+(cd build-aux
+ ln compile config.guess config.sub depcomp ../${tempdir}/build-aux
+ ln install-sh missing move-if-change ../${tempdir}/build-aux)
+
+echo "Making links to \`build-aux/snippet'"
+(cd build-aux/snippet
+ ln *.h ../../${tempdir}/build-aux/snippet)
+
 echo "Making links to \`src'"
 ### Don't distribute the configured versions of
 ### config.in, paths.in, buildobj.h, or Makefile.in.
@@ -373,12 +379,13 @@ echo "Making links to \`src/s'"
  ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/s)
 
 echo "Making links to \`lib'"
-(build_aux_h=`(ls *.h)`
+(snippet_h=`(cd build-aux/snippet && ls *.h)`
  cd lib
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib
- ln gnulib.mk Makefile.am Makefile.in ../${tempdir}/lib
+ ln gnulib.mk Makefile.am Makefile.in makefile.w32-in ../${tempdir}/lib
  cd ../${tempdir}/lib
- rm -f `(echo "$build_aux_h"; ls *.in.h) | sed '/[*]/d; s/.in.h$/.h/'`)
+ script='/[*]/d; s/\.in\.h$/.h/'
+ rm -f `(echo "$snippet_h"; ls *.in.h) | sed "$script"`)
 
 echo "Making links to \`lib-src'"
 (cd lib-src
@@ -391,13 +398,12 @@ echo "Making links to \`m4'"
 (cd m4
  ln *.m4 ../${tempdir}/m4)
 
-## Exclude README.W32 because it is specific to pre-built binaries(?).
 echo "Making links to \`nt'"
 (cd nt
  ln emacs.manifest emacs.rc emacsclient.rc config.nt ../${tempdir}/nt
  ln emacs-src.tags nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
- ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
+ ln ChangeLog INSTALL README README.W32 makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc' and its subdirectories"
 for f in `find nt/inc -type f -name '[a-z]*.h'`; do
@@ -412,6 +418,7 @@ echo "Making links to \`nt/icons'"
 echo "Making links to \`msdos'"
 (cd msdos
  ln ChangeLog INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos
+ ln depfiles.bat inttypes.h ../${tempdir}/msdos
  ln is_exec.c sigaction.c mainmake.v2 sed*.inp ../${tempdir}/msdos)
 
 echo "Making links to \`nextstep'"
@@ -430,10 +437,6 @@ echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources/English.lpr
 (cd nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
  ln InfoPlist.strings ../../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj)
 
-echo "Making links to \`nextstep/Cocoa/Emacs.xcodeproj'"
-(cd nextstep/Cocoa/Emacs.xcodeproj
- ln project.pbxproj ../../../${tempdir}/nextstep/Cocoa/Emacs.xcodeproj)
-
 echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources'"
 (cd nextstep/GNUstep/Emacs.base/Resources
  ln Emacs.desktop Info-gnustep.plist README emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
@@ -447,6 +450,11 @@ echo "Making links to \`lwlib'"
 (cd lwlib
  ln *.[ch] *.in ../${tempdir}/lwlib
  ln README ChangeLog ../${tempdir}/lwlib)
+
+echo "Making links to \`admin' and its subdirectories"
+for f in `find admin -type f`; do
+  ln $f $tempdir/$f
+done
 
 echo "Making links to \`etc' and its subdirectories"
 for f in `find etc -type f`; do

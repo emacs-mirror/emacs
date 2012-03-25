@@ -1,6 +1,6 @@
 ;;; esh-test.el --- Eshell test suite
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -396,7 +396,7 @@
   (eshell-command-result-p "+ ${+ 1 2} 3" "6\n"))
 
 (eshell-deftest var interp-lisp
-  "Interpolate Lisp form evalution"
+  "Interpolate Lisp form evaluation"
   (eshell-command-result-p "+ $(+ 1 2) 3" "6\n"))
 
 (eshell-deftest var interp-concat

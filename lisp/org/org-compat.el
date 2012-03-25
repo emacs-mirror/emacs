@@ -1,11 +1,10 @@
 ;;; org-compat.el --- Compatibility code for Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -246,6 +245,19 @@ Works on both Emacs and XEmacs."
 	     (> (point) (region-beginning)))
     (exchange-point-and-mark)))
 
+;; Emacs 22 misses `activate-mark'
+(if (fboundp 'activate-mark)
+    (defalias 'org-activate-mark 'activate-mark)
+  (defun org-activate-mark ()
+    (when (mark t)
+      (setq mark-active t)
+      (when (and (boundp 'transient-mark-mode)
+		 (not transient-mark-mode))
+	(setq transient-mark-mode 'lambda))
+      (when (boundp 'zmacs-regions)
+	(setq zmacs-regions t)))))
+
+
 ;; Invisibility compatibility
 
 (defun org-remove-from-invisibility-spec (arg)
@@ -263,7 +275,7 @@ Works on both Emacs and XEmacs."
     nil))
 
 (defmacro org-xemacs-without-invisibility (&rest body)
-  "Turn off exents with invisibility while executing BODY."
+  "Turn off extents with invisibility while executing BODY."
   `(let ((ext-inv (extent-list nil (point-at-bol) (point-at-eol)
 			       'all-extents-closed-open 'invisible))
 	 ext-inv-specs)
@@ -276,6 +288,7 @@ Works on both Emacs and XEmacs."
      (dolist (ext-inv-spec ext-inv-specs)
        (set-extent-property (car ext-inv-spec) 'invisible
 			    (cadr ext-inv-spec)))))
+(def-edebug-spec org-xemacs-without-invisibility (body))
 
 (defun org-indent-to-column (column &optional minimum buffer)
   "Work around a bug with extents with invisibility in XEmacs."
@@ -423,7 +436,15 @@ With two arguments, return floor and remainder of their quotient."
   (let ((q (floor x y)))
     (list q (- x (if y (* y q) q)))))
 
-(provide 'org-compat)
+;; `pop-to-buffer-same-window' has been introduced with Emacs 24.1.
+(defun org-pop-to-buffer-same-window
+  (&optional buffer-or-name norecord label)
+  "Pop to buffer specified by BUFFER-OR-NAME in the selected window."
+  (if (fboundp 'pop-to-buffer-same-window)
+      (funcall
+       'pop-to-buffer-same-window buffer-or-name norecord)
+    (funcall 'switch-to-buffer buffer-or-name norecord)))
 
+(provide 'org-compat)
 
 ;;; org-compat.el ends here

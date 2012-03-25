@@ -1,6 +1,6 @@
 ;;; pcvs.el --- a front-end to CVS
 
-;; Copyright (C) 1991-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2012 Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
 ;;	(Per Cederqvist) ceder@lysator.liu.se
@@ -31,19 +31,19 @@
 
 ;;; Commentary:
 
-;; PCL-CVS is a front-end to the CVS version control system.  For people
-;; familiar with VC, it is somewhat like VC-dired: it presents the status of
-;; all the files in your working area and allows you to commit/update several
-;; of them at a time.  Compared to VC-dired, it is considerably better and
-;; faster (but only for CVS).
+;; PCL-CVS is a front-end to the CVS version control system.
+;; It presents the status of all the files in your working area and
+;; allows you to commit/update several of them at a time.
+;; Compare with the general Emacs utility vc-dir, which tries
+;; to be VCS-agnostic.  You may find PCL-CVS better/faster for CVS.
 
 ;; PCL-CVS was originally written by Per Cederqvist many years ago.  This
 ;; version derives from the XEmacs-21 version, itself based on the 2.0b2
 ;; version (last release from Per).  It is a thorough rework.
 
-;; Contrary to what you'd expect, PCL-CVS is not a replacement for VC but only
-;; for VC-dired.  As such, I've tried to make PCL-CVS and VC interoperate
-;; seamlessly (I also use VC).
+;; PCL-CVS is not a replacement for VC, but adds extra functionality.
+;; As such, I've tried to make PCL-CVS and VC interoperate seamlessly
+;; (I also use VC).
 
 ;; To use PCL-CVS just use `M-x cvs-examine RET <dir> RET'.
 ;; There is a TeXinfo manual, which can be helpful to get started.
@@ -322,7 +322,7 @@ The argument is added (or not) to the list of FLAGS and is constructed
 by appending the branch to ARG which defaults to \"-r\".
 Since the `cvs-secondary-branch-prefix' is only active if the primary
 prefix is active, it is important to read the secondary prefix before
-the primay since reading the primary can deactivate it."
+the primary since reading the primary can deactivate it."
   (let ((branch (and (cvs-prefix-get 'cvs-branch-prefix 'read-only)
 		     (cvs-prefix-get 'cvs-secondary-branch-prefix))))
     (if branch (cons (concat (or arg "-r") branch) flags) flags)))
@@ -620,7 +620,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	 (str (car hf))
 	 (done "")
 	 (tin (ewoc-nth cvs-cookies 0)))
-    ;; look for the first *real* fileinfo (to determine emptyness)
+    ;; look for the first *real* fileinfo (to determine emptiness)
     (while
 	(and tin
 	     (memq (cvs-fileinfo->type (ewoc-data tin))

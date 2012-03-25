@@ -1,4 +1,4 @@
-Copyright (C) 2007-2011  Free Software Foundation, Inc.
+Copyright (C) 2007-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -24,9 +24,8 @@ the file.
 
 2. When installing code written by someone else, the ChangeLog entry
 should be in the name of the author of the code, not the person who
-installs it.  I think it is helpful to put the author (if not yourself)
-in the commit log as well (you can also use bzr commit's "--author"
-option); and to not install any of your own changes in the same commit.
+installs it.  Also use bzr commit's "--author" option.
+Do not install any of your own changes in the same commit.
 
 3. With images, add the legal info to a README file in the directory
 containing the image.
@@ -143,7 +142,7 @@ m4/*.m4
 lib/Makefile.in
  - copyright FSF, with MIT-like license
 
-install-sh
+build-aux/install-sh
  - this file is copyright MIT, which is OK. Leave the copyright alone.
 
 etc/refcards/*.tex
@@ -545,16 +544,17 @@ of writing) GPL >= 2. rms says may as well leave the licenses of these
 alone (may import them from Gnulib again). These are:
 
     Gnulib:
-    arg-nonnull.h
-    c++defs.h
-    compile
-    config.guess
-    config.sub
-    depcomp
+    build-aux/compile
+    build-aux/config.guess
+    build-aux/config.sub
+    build-aux/depcomp
+    build-aux/missing
+    build-aux/move-if-change
+    build-aux/snippet/_Noreturn.h
+    build-aux/snippet/arg-nonnull.h
+    build-aux/snippet/c++defs.h
+    build-aux/snippet/warn-on-use.h
     doc/man/texinfo.tex
-    missing
-    move-if-change
-    warn-on-use.h
     lib/*.[ch]
     lib/gnulib.mk
     src/gmalloc.c

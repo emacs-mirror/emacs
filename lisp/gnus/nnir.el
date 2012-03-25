@@ -1,6 +1,6 @@
 ;;; nnir.el --- search mail with various search engines -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Kai Groﬂjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
@@ -289,12 +289,14 @@ is `(valuefunc member)'."
   (autoload 'nnimap-buffer "nnimap")
   (autoload 'nnimap-command "nnimap")
   (autoload 'nnimap-possibly-change-group "nnimap")
-  (autoload 'gnus-registry-action "gnus-registry")
-  (defvar gnus-registry-install))
-
+  (autoload 'nnimap-make-thread-query "nnimap")
+  (autoload 'gnus-registry-action "gnus-registry"))
 
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
+
+(defvoo nnir-address nil
+  "The address of the nnir server.")
 
 (gnus-declare-backend "nnir" 'mail)
 
@@ -302,12 +304,13 @@ is `(valuefunc member)'."
 ;;; User Customizable Variables:
 
 (defgroup nnir nil
-  "Search groups in Gnus with assorted seach engines."
+  "Search groups in Gnus with assorted search engines."
   :group 'gnus)
 
 (defcustom nnir-ignored-newsgroups ""
   "*A regexp to match newsgroups in the active file that should
   be skipped when searching."
+  :version "24.1"
   :type '(regexp)
   :group 'nnir)
 
@@ -322,6 +325,7 @@ with three items unique to nnir summary buffers:
 %g    Article original short group name (string)
 
 If nil this will use `gnus-summary-line-format'."
+  :version "24.1"
   :type '(string)
   :group 'nnir)
 
@@ -333,6 +337,7 @@ retrieved header format.
 
 If this variable is nil, or if the provided function returns nil for a search
 result, `gnus-retrieve-headers' will be called instead."
+  :version "24.1"
   :type '(function)
   :group 'nnir)
 
@@ -340,6 +345,7 @@ result, `gnus-retrieve-headers' will be called instead."
   "*The default IMAP search key for an nnir search. Must be one of
   the keys in `nnir-imap-search-arguments'. To use raw imap queries
   by default set this to \"Imap\"."
+  :version "24.1"
   :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
 			   nnir-imap-search-arguments))
   :group 'nnir)
@@ -501,6 +507,7 @@ arrive at the correct group name, \"mail.misc\"."
 
 (defcustom nnir-notmuch-program "notmuch"
   "*Name of notmuch search executable."
+  :version "24.1"
   :type '(string)
   :group 'nnir)
 
@@ -511,6 +518,7 @@ Note that this should be a list.  Ie, do NOT use the following:
     (setq nnir-notmuch-additional-switches \"-i -w\") ; wrong
 Instead, use this:
     (setq nnir-notmuch-additional-switches '(\"-i\" \"-w\"))"
+  :version "24.1"
   :type '(repeat (string))
   :group 'nnir)
 
@@ -521,6 +529,7 @@ regular expression.
 
 This variable is very similar to `nnir-namazu-remove-prefix', except
 that it is for notmuch, not Namazu."
+  :version "24.1"
   :type '(regexp)
   :group 'nnir)
 
@@ -571,6 +580,7 @@ Add an entry here when adding a new search engine.")
   '((nnimap . imap)
     (nntp . gmane))
   "*Alist of default search engines keyed by server method."
+  :version "24.1"
   :type `(repeat (cons (choice (const nnimap) (const nttp) (const nnspool)
 			       (const nneething) (const nndir) (const nnmbox)
 			       (const nnml) (const nnmh) (const nndraft)
@@ -582,18 +592,17 @@ Add an entry here when adding a new search engine.")
 
 ;; Gnus glue.
 
-(defun gnus-group-make-nnir-group (nnir-extra-parms)
+(defun gnus-group-make-nnir-group (nnir-extra-parms &optional parms)
   "Create an nnir group.  Asks for query."
   (interactive "P")
   (setq nnir-current-query nil
 	nnir-current-server nil
 	nnir-current-group-marked nil
 	nnir-artlist nil)
-  (let* ((query (read-string "Query: " nil 'nnir-search-history))
-	 (parms (list (cons 'query query)))
-	 (srv (if (gnus-server-server-name)
-		  "all"	"")))
-    (add-to-list 'parms (cons 'unique-id (message-unique-id)) t)
+  (let* ((query (unless parms (read-string "Query: " nil 'nnir-search-history)))
+	 (parms (or parms (list (cons 'query query))))
+	 (srv (or (cdr (assq 'server parms)) (gnus-server-server-name) "nnir")))
+   (add-to-list 'parms (cons 'unique-id (message-unique-id)) t)
     (gnus-group-read-ephemeral-group
      (concat "nnir:" (prin1-to-string parms)) (list 'nnir srv) t
      (cons (current-buffer) gnus-current-window-configuration)
@@ -617,7 +626,7 @@ Add an entry here when adding a new search engine.")
                (equal server nnir-current-server)))
       nnir-artlist
     ;; Cache miss.
-    (setq nnir-artlist (nnir-run-query group server)))
+    (setq nnir-artlist (nnir-run-query group)))
   (with-current-buffer nntp-server-buffer
     (setq nnir-current-query group)
     (when server (setq nnir-current-server server))
@@ -669,7 +678,8 @@ Add an entry here when adding a new search engine.")
 	  (goto-char (point-min))
 	  (while (not (eobp))
 	    (let* ((novitem (funcall parsefunc))
-		   (artno (mail-header-number novitem))
+		   (artno (and novitem
+			       (mail-header-number novitem)))
 		   (art (car (rassq artno articleids))))
 	      (when art
 		(mail-header-set-number novitem art)
@@ -764,11 +774,18 @@ Add an entry here when adding a new search engine.")
 (deffoo nnir-warp-to-article ()
   (let* ((cur (if (> (gnus-summary-article-number) 0)
 		  (gnus-summary-article-number)
-		(error "This is not a real article.")))
-	 (gnus-newsgroup-name (nnir-article-group cur))
-         (backend-number (nnir-article-number cur)))
-    (gnus-summary-read-group-1 gnus-newsgroup-name t t gnus-summary-buffer
-			       nil (list backend-number))))
+		(error "This is not a real article")))
+	 (backend-article-group (nnir-article-group cur))
+         (backend-article-number (nnir-article-number cur))
+	 (quit-config (gnus-ephemeral-group-p gnus-newsgroup-name)))
+    ;; first exit from the nnir summary buffer.
+    (gnus-summary-exit)
+    ;; and if the nnir summary buffer in turn came from another
+    ;; summary buffer we have to clean that summary up too.
+    (when (eq (cdr quit-config) 'summary)
+      (gnus-summary-exit))
+    (gnus-summary-read-group-1 backend-article-group t t  nil
+			       nil (list backend-article-number))))
 
 (nnoo-define-skeleton nnir)
 
@@ -796,7 +813,7 @@ ready to be added to the list of search results."
     ;; remove trailing slash and, for nnmaildir, cur/new/tmp
     (setq dirnam
 	  (substring dirnam 0
-		     (if (string= (gnus-group-server server) "nnmaildir")
+		     (if (string-match "^nnmaildir:" (gnus-group-server server))
 			 -5 -1)))
 
     ;; Set group to dirnam without any leading dots or slashes,
@@ -806,7 +823,7 @@ ready to be added to the list of search results."
                  "[/\\]" "." t)))
 
     (vector (gnus-group-full-name group server)
-	    (if (string= (gnus-group-server server) "nnmaildir")
+	    (if (string-match "^nnmaildir:" (gnus-group-server server))
 		(nnmaildir-base-name-to-article-number
 		 (substring article 0 (string-match ":" article))
 		 group nil)
@@ -1063,7 +1080,8 @@ Windows NT 4.0."
 	   ;; is sufficient.  Note that we can't only use the value of
 	   ;; nnml-use-compressed-files because old articles might have been
 	   ;; saved with a different value.
-	   (article-pattern (if (string= (gnus-group-server server) "nnmaildir")
+	   (article-pattern (if (string-match "^nnmaildir:"
+					      (gnus-group-server server))
 				":[0-9]+"
 			      "^[0-9]+\\(\\.[a-z0-9]+\\)?$"))
            score artno dirnam filenam)
@@ -1260,12 +1278,12 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
           ;; nnir-search failure reason is in this buffer, show it if
           ;; the user wants it.
           (when (> gnus-verbose 6)
-            (display-buffer nnir-tmp-buffer)))) ;; FIXME: Dont clear buffer !
+            (display-buffer nnir-tmp-buffer)))) ;; FIXME: Don't clear buffer !
       (message "Doing hyrex-search query \"%s\"...done" qstring)
       (sit-for 0)
       ;; nnir-search returns:
-      ;;   for nnml/nnfolder: "filename mailid weigth"
-      ;;   for nnimap:        "group mailid weigth"
+      ;;   for nnml/nnfolder: "filename mailid weight"
+      ;;   for nnimap:        "group mailid weight"
       (goto-char (point-min))
       (delete-non-matching-lines "^\\S + [0-9]+ [0-9]+$")
       ;; HyREX doesn't search directly in groups -- so filter out here.
@@ -1305,7 +1323,8 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
   ;; (when group
   ;;   (error "The Namazu backend cannot search specific groups"))
   (save-excursion
-    (let ((article-pattern (if (string= (gnus-group-server server) "nnmaildir")
+    (let ((article-pattern (if (string-match "^nnmaildir:"
+					     (gnus-group-server server))
 			       ":[0-9]+"
 			     "^[0-9]+$"))
           artlist
@@ -1378,7 +1397,8 @@ actually)."
 	   (groupspec (cdr (assq 'group query)))
 	   (prefix (nnir-read-server-parm 'nnir-notmuch-remove-prefix server))
            artlist
-           (article-pattern (if (string= (gnus-group-server server) "nnmaildir")
+	   (article-pattern (if (string-match "^nnmaildir:"
+					      (gnus-group-server server))
 			       ":[0-9]+"
 			     "^[0-9]+$"))
            artno dirnam filenam)
@@ -1594,14 +1614,13 @@ actually)."
 
 (autoload 'gnus-group-topic-name "gnus-topic")
 
-(defun nnir-run-query (query nserver)
+(defun nnir-run-query (query)
   "Invoke appropriate search engine function (see `nnir-engines').
   If some groups were process-marked, run the query for each of the groups
   and concat the results."
   (let ((q (car (read-from-string query)))
-        (groups (if (string= "all-ephemeral" nserver)
-		    (with-current-buffer gnus-server-buffer
-		      (list (list (gnus-server-server-name))))
+        (groups (if (not (string= "nnir" nnir-address))
+		    (list (list nnir-address))
 		  (nnir-categorize
 		   (or gnus-group-marked
 		       (if (gnus-group-group-name)
@@ -1615,7 +1634,7 @@ actually)."
 	      (let* ((server (car x))
 		     (nnir-search-engine
 		      (or (nnir-read-server-parm 'nnir-search-engine
-						 server)
+						 server t)
 			  (cdr (assoc (car
 				       (gnus-server-to-method server))
 				      nnir-method-default-engines))))
@@ -1634,19 +1653,33 @@ actually)."
 		  nil)))
 	    groups))))
 
-(defun nnir-read-server-parm (key server)
-  "Returns the parameter value of key for the given server, where
-server is of form 'backend:name'."
+(defun nnir-read-server-parm (key server &optional not-global)
+  "Returns the parameter value corresponding to `key' for
+`server'. If no server-specific value is found consult the global
+environment unless `not-global' is non-nil."
   (let ((method (gnus-server-to-method server)))
     (cond ((and method (assq key (cddr method)))
-    	   (nth 1 (assq key (cddr method))))
-    	  (t nil))))
+           (nth 1 (assq key (cddr method))))
+          ((and (not not-global) (boundp key)) (symbol-value key))
+          (t nil))))
+
 
 (defun nnir-possibly-change-server (server)
   (unless (and server (nnir-server-opened server))
     (nnir-open-server server)))
 
 
+(defun nnir-search-thread (header)
+  "Make an nnir group based on the thread containing the article header"
+  (let ((parm (list
+	       (cons 'query
+		     (nnimap-make-thread-query header))
+	       (cons 'criteria "")
+	       (cons 'server (gnus-method-to-server
+			      (gnus-find-method-for-group
+			       gnus-newsgroup-name))))))
+    (gnus-group-make-nnir-group nil parm)
+    (gnus-summary-goto-subject (gnus-id-to-article (mail-header-id header)))))
 
 ;; unused?
 (defun nnir-artlist-groups (artlist)
@@ -1715,8 +1748,7 @@ server is of form 'backend:name'."
   (when (eq (car (gnus-find-method-for-group gnus-newsgroup-name)) 'nnir)
     (setq gnus-summary-line-format
 	  (or nnir-summary-line-format gnus-summary-line-format))
-    (when (and (boundp 'gnus-registry-install)
-		       (eq gnus-registry-install t))
+    (when (gnus-bound-and-true-p 'gnus-registry-enabled)
       (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action t)
       (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action t)
       (remove-hook 'gnus-summary-article-expire-hook 'gnus-registry-action t)

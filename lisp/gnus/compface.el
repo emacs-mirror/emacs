@@ -1,6 +1,6 @@
 ;;; compface.el --- functions for converting X-Face headers
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -42,7 +42,8 @@ or `faces-xface' and `netpbm' or `libgr-progs', for instance."
 			'delete '(t nil) nil))
 	   (progn
 	     (goto-char (point-min))
-	     (insert "/* Width=48, Height=48 */\n")
+	     (insert "/* Format_version=1, Width=48, Height=48, Depth=1,\
+ Valid_bits_per_item=16 */\n")
 	     ;; I just can't get "icontopbm" to work correctly on its
 	     ;; own in XEmacs.  And Emacs doesn't understand un-raw pbm
 	     ;; files.

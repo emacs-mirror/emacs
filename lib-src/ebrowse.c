@@ -1,6 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2011  Free Software Foundation, Inc.
+Copyright (C) 1992-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,11 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
@@ -49,16 +45,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* The character used as a separator in path lists (like $PATH).  */
 
-#if defined(__MSDOS__)
+#if defined (__MSDOS__)
 #define PATH_LIST_SEPARATOR ';'
-#define FILENAME_EQ(X,Y)    (strcasecmp(X,Y) == 0)
+#define FILENAME_EQ(X,Y)    (strcasecmp (X,Y) == 0)
 #else
-#if defined(WINDOWSNT)
+#if defined (WINDOWSNT)
 #define PATH_LIST_SEPARATOR ';'
-#define FILENAME_EQ(X,Y)    (stricmp(X,Y) == 0)
+#define FILENAME_EQ(X,Y)    (stricmp (X,Y) == 0)
 #else
 #define PATH_LIST_SEPARATOR ':'
-#define FILENAME_EQ(X,Y)    (streq(X,Y))
+#define FILENAME_EQ(X,Y)    (streq (X,Y))
 #endif
 #endif
 /* The default output file name.  */
@@ -985,7 +981,7 @@ make_namespace (char *name, struct sym *context)
 }
 
 
-/* Find the symbol for namespace NAME.  If not found, retrun NULL */
+/* Find the symbol for namespace NAME.  If not found, return NULL */
 
 static struct sym *
 check_namespace (char *name, struct sym *context)
@@ -2515,7 +2511,7 @@ member (struct sym *cls, int vis)
 
           /* A function or class may follow.  */
         case TEMPLATE:
-          MATCH();
+          MATCH ();
           SET_FLAG (flags, F_TEMPLATE);
           /* Skip over template argument list */
           SKIP_MATCHING_IF ('<');
@@ -2934,7 +2930,7 @@ parse_qualified_ident_or_type (char **last_id)
     }
 
   while (enter--)
-    leave_namespace();
+    leave_namespace ();
 
   return cls;
 }
@@ -3530,7 +3526,7 @@ static void
 version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);

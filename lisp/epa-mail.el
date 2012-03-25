@@ -1,5 +1,5 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
@@ -47,11 +47,15 @@
 
 ;;;###autoload
 (define-minor-mode epa-mail-mode
-  "A minor-mode for composing encrypted/clearsigned mails."
+  "A minor-mode for composing encrypted/clearsigned mails.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   nil " epa-mail" epa-mail-mode-map)
 
 (defun epa-mail--find-usable-key (keys usage)
-  "Find a usable key from KEYS for USAGE."
+  "Find a usable key from KEYS for USAGE.
+USAGE would be `sign' or `encrypt'."
   (catch 'found
     (while keys
       (let ((pointer (epg-key-sub-key-list (car keys))))
@@ -116,6 +120,7 @@ Don't use this command in Lisp programs!"
   (interactive
    (save-excursion
      (let ((verbose current-prefix-arg)
+	   (config (epg-configuration))
 	   (context (epg-make-context epa-protocol))
 	   recipients-string recipients recipient-key sign)
        (goto-char (point-min))
@@ -140,6 +145,17 @@ Don't use this command in Lisp programs!"
 	   (setq recipients (delete ""
 				    (split-string recipients
 						  "[ \t\n]*,[ \t\n]*"))))
+
+       ;; Process all the recipients thru the list of GnuPG groups.
+       ;; Expand GnuPG group names to what they stand for.
+       (setq recipients
+	     (apply #'nconc
+		    (mapcar
+		     (lambda (recipient)
+		       (or (epg-expand-group config recipient)
+			   (list recipient)))
+		     recipients)))
+
        (goto-char (point-min))
        (if (search-forward mail-header-separator nil t)
 	   (forward-line))
@@ -176,7 +192,9 @@ If no one is selected, symmetric encryption will be performed.  "
 	     (if sign
 		 (epa-select-keys context
 				  "Select keys for signing.  "))))))
-  (epa-encrypt-region start end recipients sign signers))
+  ;; Don't let some read-only text stop us from encrypting.
+  (let ((inhibit-read-only t))
+    (epa-encrypt-region start end recipients sign signers)))
 
 ;;;###autoload
 (defun epa-mail-import-keys ()
@@ -189,7 +207,10 @@ Don't use this command in Lisp programs!"
 
 ;;;###autoload
 (define-minor-mode epa-global-mail-mode
-  "Minor mode to hook EasyPG into Mail mode."
+  "Minor mode to hook EasyPG into Mail mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :global t :init-value nil :group 'epa-mail :version "23.1"
   (remove-hook 'mail-mode-hook 'epa-mail-mode)
   (if epa-global-mail-mode

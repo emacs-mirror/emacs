@@ -1,6 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (C) 1996-1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
@@ -210,7 +210,7 @@
 
 (defface landmark-font-lock-face-O '((((class color)) :foreground "red")
 			       (t :weight bold))
-  "Face to use for Emacs' O."
+  "Face to use for Emacs's O."
   :version "22.1"
   :group 'landmark)
 
@@ -385,7 +385,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 		  best-square square
 		  score-max   score)
 	    (aset landmark-score-table square -1))) ; no: kill it !
-       ;; If score is equally good, choose randomly. But first check freeness:
+       ;; If score is equally good, choose randomly. But first check freedom:
        ((not (zerop (aref landmark-board square)))
 	(aset landmark-score-table square -1))
        ((zerop (random (setq count (1+ count))))
@@ -1584,7 +1584,7 @@ If the game is finished, this command requests for another game."
 
 ;;;_  - something which doesn't work
 ; no-a-worka!!
-;(defum landmark-sum-list (list)
+;(defun landmark-sum-list (list)
 ;  (if (> (length list) 0)
 ;      (+ (car list) (landmark-sum-list (cdr list)))
 ;    0))

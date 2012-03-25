@@ -1,5 +1,5 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -191,8 +191,8 @@ extern KBOARD *current_kboard;
 /* A list of all kboard objects, linked through next_kboard.  */
 extern KBOARD *all_kboards;
 
-/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
-extern size_t num_input_events;
+/* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
+extern uintmax_t num_input_events;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
@@ -440,7 +440,7 @@ struct input_event;
 
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
-extern Lisp_Object read_char (int, int, Lisp_Object *, Lisp_Object,
+extern Lisp_Object read_char (int, ptrdiff_t, Lisp_Object *, Lisp_Object,
                               int *, EMACS_TIME *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 

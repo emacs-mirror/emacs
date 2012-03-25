@@ -1,9 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003
-rem   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation,
-rem   Inc.
+rem   Copyright (C) 1994-1999, 2001-2012  Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -156,9 +154,11 @@ rm -f epaths.tmp
 
 rem   Create "config.h"
 rm -f config.h2 config.tmp
-sed -e '' ../autogen/config.in > config.tmp
+if exist config.in sed -e '' config.in > config.tmp
+if exist ..\autogen\config.in sed -e '' ../autogen/config.in > config.tmp
 if "%X11%" == "" goto src4
-sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
+if exist config.in sed -f ../msdos/sed2x.inp < config.in > config.tmp
+if exist ..\autogen\config.in sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
 :src4
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
 Rem See if DECL_ALIGN can be supported with this GCC
@@ -275,12 +275,14 @@ for %%d in (emacs lispref lispintro lispintr misc) do sed -f ../msdos/sed6.inp <
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lib directory...
-If Exist c++defs.h update c++defs.h cxxdefs.h
+If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
-If Exist c++defs.h update c++defs.h cxxdefs.h
+If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
+If Exist alloca.in.h update alloca.in.h alloca.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
 If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
+If Exist signal.in.h update signal.in.h signal.in-h
 If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h
@@ -288,7 +290,8 @@ If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
 If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
-sed -f ../msdos/sedlibcf.inp < ..\autogen\Makefile.in > makefile.tmp
+If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
+If Exist ..\autogen\Makefile.in sed -f ../msdos/sedlibcf.inp < ..\autogen\Makefile.in > makefile.tmp
 sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
 rm -f makefile.tmp
 Rem Create .Po files for new files in lib/
@@ -326,6 +329,8 @@ Echo Then run CONFIG.BAT again with the same arguments you did now.
 goto End
 :gdbinitOk
 Echo Looking for the GDB init file...found
+rem GNUMakefile is not appropriate for MS-DOS so move it out of the way
+If Exist GNUmakefile mv -f GNUmakefile GNUmakefile.unix
 copy msdos\mainmake.v2 Makefile >nul
 rem   ----------------------------------------------------------------------
 goto End

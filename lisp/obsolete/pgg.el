@@ -1,6 +1,6 @@
 ;;; pgg.el --- glue for the various PGP implementations.
 
-;; Copyright (C) 1999-2000, 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Symmetric encryption added by: Sascha Wilde <wilde@sha-bang.de>
@@ -174,7 +174,7 @@ is true, or else the output buffer is displayed."
 (defvar pgg-pending-timers (make-vector 7 0)
   "Hash table for managing scheduled pgg cache management timers.
 
-We associate key and timer, so the timer can be cancelled if a new
+We associate key and timer, so the timer can be canceled if a new
 timeout for the key is set while an old one is still pending.")
 
 (defun pgg-read-passphrase (prompt &optional key notruncate)

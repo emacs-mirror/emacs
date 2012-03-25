@@ -1,11 +1,10 @@
 ;;; ob-sass.el --- org-babel functions for the sass css generation language
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -40,6 +39,7 @@
 
 ;;; Code:
 (require 'ob)
+(require 'ob-eval)
 
 (defvar org-babel-default-header-args:sass '())
 
@@ -55,14 +55,18 @@ This function is called by `org-babel-execute-src-block'."
 		      " " (org-babel-process-file-name in-file)
 		      " " (org-babel-process-file-name out-file))))
     (with-temp-file in-file
-      (insert (org-babel-expand-body:generic body params))) (shell-command cmd)
-    (or file (with-temp-buffer (insert-file-contents out-file) (buffer-string)))))
+      (insert (org-babel-expand-body:generic body params)))
+    (org-babel-eval cmd "")
+    (if file
+	nil ;; signal that output has already been written to file
+      (with-temp-buffer (insert-file-contents out-file) (buffer-string)))))
 
 (defun org-babel-prep-session:sass (session params)
   "Raise an error because sass does not support sessions."
   (error "Sass does not support sessions"))
 
 (provide 'ob-sass)
+
 
 
 ;;; ob-sass.el ends here

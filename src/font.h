@@ -1,5 +1,5 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2012 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -506,7 +506,7 @@ struct font_driver
   Lisp_Object type;
 
   /* 1 iff the font's foundry, family, and adstyle names are case
-     sensitve.  */
+     sensitive.  */
   int case_sensitive;
 
   /* Return a cache of font-entities on frame F.  The cache must be a
@@ -599,7 +599,7 @@ struct font_driver
 
   /* Optional.
      Store bitmap data for glyph-code CODE of FONT in BITMAP.  It is
-     intended that this method is callled from the other font-driver
+     intended that this method is called from the other font-driver
      for actual drawing.  */
   int (*get_bitmap) (struct font *font, unsigned code,
                      struct font_bitmap *bitmap,
@@ -621,7 +621,7 @@ struct font_driver
   /* Optional.
      Get coordinates of the INDEXth anchor point of the glyph whose
      code is CODE.  Store the coordinates in *X and *Y.  Return 0 if
-     the operations was successfull.  Otherwise return -1.  */
+     the operations was successful.  Otherwise return -1.  */
   int (*anchor_point) (struct font *font, unsigned code, int index,
                        int *x, int *y);
 
@@ -705,7 +705,7 @@ struct font_driver
 
 
 /* Chain of font drivers.  There's one global font driver list
-   (font_driver_list in font.c).  In addition, each frame has it's own
+   (font_driver_list in font.c).  In addition, each frame has its own
    font driver list at FRAME_PTR->font_driver_list.  */
 
 struct font_driver_list
@@ -721,7 +721,7 @@ struct font_driver_list
 
 
 /* Chain of arbitrary data specific to each font driver.  Each frame
-   has it's own font data list at FRAME_PTR->font_data_list.  */
+   has its own font data list at FRAME_PTR->font_data_list.  */
 
 struct font_data_list
 {

@@ -1,3 +1,20 @@
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* Cocoa/Emacs.base/Contents/Info.plist:
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	Update short copyright year to 2012.
+
+2011-10-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* INSTALL: Remove XCode part.
+
+2011-10-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Cocoa/Emacs.xcodeproj:
+	* Cocoa/Emacs.xcodeproj/project.pbxproj:
+	Removed.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.
@@ -82,8 +99,8 @@
 
 2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* Cocoa/Emacs.base/Contents/Resources/preferences.nib: Remove
-	cursor blink slider, add confirm quit checkbox.
+	* Cocoa/Emacs.base/Contents/Resources/preferences.nib:
+	Remove cursor blink slider, add confirm quit checkbox.
 
 2009-01-05  Glenn Morris  <rgm@gnu.org>
 
@@ -206,7 +223,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2008-2011  Free Software Foundation, Inc.
+  Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

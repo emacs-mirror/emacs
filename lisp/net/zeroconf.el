@@ -1,6 +1,6 @@
 ;;; zeroconf.el --- Service browser using Avahi.
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -82,7 +82,7 @@
 
 ;; The function `zeroconf-publish-service' publishes a new service to
 ;; the Avahi daemon.  Although the domain, where to the service is
-;; published, can be specified by this function, it is usally the
+;; published, can be specified by this function, it is usually the
 ;; default domain "local" (also written as nil or "").
 
 ;;   (zeroconf-publish-service
@@ -249,7 +249,7 @@ qualified name, i.e., it contains DOMAIN.
 APROTOCOL stands for the network protocol family ADDRESS is
 encoded (`zeroconf-avahi-protocol-inet4' means INET4,
 `zeroconf-avahi-protocol-inet6' means INET6).  It can be
-different from PROTOCOL, when an adrress resolution has been
+different from PROTOCOL, when an address resolution has been
 requested for another protocol family but the default one.
 
 ADDRESS is the service address, encoded according to the
@@ -486,7 +486,7 @@ TYPE. The resulting list has the format
   (nth 9 (zeroconf-resolve-service service)))
 
 
-;;; Services signalling.
+;;; Services signaling.
 
 ;; Register for the service type browser.  Service registrations will
 ;; happen in `zeroconf-service-type-browser-handler', when there is an

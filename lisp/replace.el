@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2011
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -786,6 +786,9 @@ a previously found match."
     (define-key map [occur-rename-buffer]
       `(menu-item ,(purecopy "Rename Occur Buffer") occur-rename-buffer
 		  :help ,(purecopy "Rename the current *Occur* buffer to *Occur: original-buffer-name*.")))
+    (define-key map [occur-edit-buffer]
+      `(menu-item ,(purecopy "Edit Occur Buffer") occur-edit-mode
+		  :help ,(purecopy "Edit the *Occur* buffer and apply changes to the original buffers.")))
     (define-key map [separator-2] menu-bar-separator)
     (define-key map [occur-mode-goto-occurrence-other-window]
       `(menu-item ,(purecopy "Go To Occurrence Other Window") occur-mode-goto-occurrence-other-window
@@ -810,7 +813,7 @@ a previously found match."
     ;; We use this alternative name, so we can use \\[occur-mode-mouse-goto].
     (define-key map [mouse-2] 'occur-mode-mouse-goto)
     (define-key map "\C-c\C-c" 'occur-mode-goto-occurrence)
-    (define-key map "\C-x\C-q" 'occur-edit-mode)
+    (define-key map "e" 'occur-edit-mode)
     (define-key map "\C-m" 'occur-mode-goto-occurrence)
     (define-key map "o" 'occur-mode-goto-occurrence-other-window)
     (define-key map "\C-o" 'occur-mode-display-occurrence)
@@ -826,6 +829,8 @@ a previously found match."
 (defvar occur-revert-arguments nil
   "Arguments to pass to `occur-1' to revert an Occur mode buffer.
 See `occur-revert-function'.")
+(make-variable-buffer-local 'occur-revert-arguments)
+(put 'occur-revert-arguments 'permanent-local t)
 
 (defcustom occur-mode-hook '(turn-on-font-lock)
   "Hook run when entering Occur mode."
@@ -853,8 +858,6 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 \\{occur-mode-map}"
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
-  (make-local-variable 'occur-revert-arguments)
-  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (setq next-error-function 'occur-next-error))
 
 
@@ -864,8 +867,8 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map text-mode-map)
     (define-key map [mouse-2] 'occur-mode-mouse-goto)
-    (define-key map "\C-c\C-c" 'occur-mode-goto-occurrence)
-    (define-key map "\C-x\C-q" 'occur-mode)
+    (define-key map "\C-c\C-c" 'occur-cease-edit)
+    (define-key map "\C-o" 'occur-mode-display-occurrence)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
     (define-key map [menu-bar occur] (cons (purecopy "Occur") occur-menu-map))
     map)
@@ -876,42 +879,56 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 In this mode, changes to the *Occur* buffer are also applied to
 the originating buffer.
 
-To return to ordinary Occur mode, use \\[occur-mode]."
+To return to ordinary Occur mode, use \\[occur-cease-edit]."
   (setq buffer-read-only nil)
-  (add-hook 'after-change-functions 'occur-after-change-function nil t))
+  (add-hook 'after-change-functions 'occur-after-change-function nil t)
+  (message (substitute-command-keys
+	    "Editing: Type \\[occur-cease-edit] to return to Occur mode.")))
+
+(defun occur-cease-edit ()
+  "Switch from Occur Edit mode to Occur mode."
+  (interactive)
+  (when (derived-mode-p 'occur-edit-mode)
+    (occur-mode)
+    (message "Switching to Occur mode.")))
 
 (defun occur-after-change-function (beg end length)
   (save-excursion
     (goto-char beg)
-    (let* ((m (get-text-property (line-beginning-position) 'occur-target))
+    (let* ((line-beg (line-beginning-position))
+	   (m (get-text-property line-beg 'occur-target))
 	   (buf (marker-buffer m))
-	   (col (current-column)))
-      (when (= length 0)
-	;; Apply occur-target property to inserted (e.g. yanked) text.
-	(put-text-property beg end 'occur-target m)
-	;; Did we insert a newline?  Occur Edit mode can't create new
-	;; Occur entries; just discard everything after the newline.
-	(save-excursion
-	  (and (search-forward "\n" end t)
-	       (delete-region (1- (point)) end))))
-      (let ((line (- (line-number-at-pos)
-		     (line-number-at-pos (window-start))))
-	    (readonly (with-current-buffer buf buffer-read-only))
-	    (win (or (get-buffer-window buf)
-		     (display-buffer buf t)))
-	    (text (save-excursion
-		    (forward-line 0)
-		    (search-forward ":" nil t)
-		    (setq col (- col (current-column)))
-		    (buffer-substring-no-properties (point) (line-end-position)))))
-	(with-selected-window win
-	  (goto-char m)
-	  (recenter line)
-	  (if readonly
-	      (message "Buffer `%s' is read only." buf)
-	    (delete-region (line-beginning-position) (line-end-position))
-	    (insert text))
-	  (move-to-column col))))))
+	   col)
+      (when (and (get-text-property line-beg 'occur-prefix)
+		 (not (get-text-property end 'occur-prefix)))
+	(when (= length 0)
+	  ;; Apply occur-target property to inserted (e.g. yanked) text.
+	  (put-text-property beg end 'occur-target m)
+	  ;; Did we insert a newline?  Occur Edit mode can't create new
+	  ;; Occur entries; just discard everything after the newline.
+	  (save-excursion
+	    (and (search-forward "\n" end t)
+		 (delete-region (1- (point)) end))))
+	(let* ((line (- (line-number-at-pos)
+			(line-number-at-pos (window-start))))
+	       (readonly (with-current-buffer buf buffer-read-only))
+	       (win (or (get-buffer-window buf)
+			(display-buffer buf t)))
+	       (line-end (line-end-position))
+	       (text (save-excursion
+		       (goto-char (next-single-property-change
+				   line-beg 'occur-prefix nil
+				   line-end))
+		       (setq col (- (point) line-beg))
+		       (buffer-substring-no-properties (point) line-end))))
+	  (with-selected-window win
+	    (goto-char m)
+	    (recenter line)
+	    (if readonly
+		(message "Buffer `%s' is read only." buf)
+	      (delete-region (line-beginning-position) (line-end-position))
+	      (insert text))
+	    (move-to-column col)))))))
 
 
 (defun occur-revert-function (_ignore1 _ignore2)
@@ -928,7 +945,7 @@ To return to ordinary Occur mode, use \\[occur-mode]."
 
 (defalias 'occur-mode-mouse-goto 'occur-mode-goto-occurrence)
 (defun occur-mode-goto-occurrence (&optional event)
-  "Go to the occurrence the current line describes."
+  "Go to the occurrence on the current line."
   (interactive (list last-nonmenu-event))
   (let ((pos
          (if (null event)
@@ -939,9 +956,7 @@ To return to ordinary Occur mode, use \\[occur-mode]."
            (with-current-buffer (window-buffer (posn-window (event-end event)))
              (save-excursion
                (goto-char (posn-point (event-end event)))
-               (occur-mode-find-occurrence)))))
-        same-window-buffer-names
-        same-window-regexps)
+               (occur-mode-find-occurrence))))))
     (pop-to-buffer (marker-buffer pos))
     (goto-char pos)
     (run-hooks 'occur-mode-find-occurrence-hook)))
@@ -958,11 +973,8 @@ To return to ordinary Occur mode, use \\[occur-mode]."
   "Display in another window the occurrence the current line describes."
   (interactive)
   (let ((pos (occur-mode-find-occurrence))
-	window
-	;; Bind these to ensure `display-buffer' puts it in another window.
-	same-window-buffer-names
-	same-window-regexps)
-    (setq window (display-buffer (marker-buffer pos)))
+	window)
+    (setq window (display-buffer (marker-buffer pos) t))
     ;; This is the way to set point in the proper window.
     (save-selected-window
       (select-window window)
@@ -1216,7 +1228,7 @@ See also `multi-occur'."
 
     (with-current-buffer occur-buf
       (if (stringp nlines)
-	  (fundamental-mode) ;; This is for collect opeartion.
+	  (fundamental-mode) ;; This is for collect operation.
 	(occur-mode))
       (let ((inhibit-read-only t)
 	    ;; Don't generate undo entries for creation of the initial contents.
@@ -1341,9 +1353,12 @@ See also `multi-occur'."
 				    (when prefix-face
 				      `(font-lock-face prefix-face))
 				    `(occur-prefix t mouse-face (highlight)
-						   occur-target ,marker follow-link t
-						   read-only t
-						   help-echo "mouse-2: go to this occurrence"))))
+				      ;; Allow insertion of text at
+				      ;; the end of the prefix (for
+				      ;; Occur Edit mode).
+				      front-sticky t rear-nonsticky t
+				      occur-target ,marker follow-link t
+				      help-echo "mouse-2: go to this occurrence"))))
 			   (match-str
 			    ;; We don't put `mouse-face' on the newline,
 			    ;; because that loses.  And don't put it
@@ -1651,7 +1666,7 @@ with the `noescape' argument set.
 			      t t)))
 
 (defun replace-loop-through-replacements (data count)
-  ;; DATA is a vector contaning the following values:
+  ;; DATA is a vector containing the following values:
   ;;   0 next-rotate-count
   ;;   1 repeat-count
   ;;   2 next-replacement
@@ -2101,13 +2116,13 @@ make, or the user didn't cancel the call."
   (if query-replace-lazy-highlight
       (let ((isearch-string string)
 	    (isearch-regexp regexp)
+	    ;; Set isearch-word to nil because word-replace is regexp-based,
+	    ;; so `isearch-search-fun' should not use `word-search-forward'.
+	    (isearch-word nil)
 	    (search-whitespace-regexp nil)
 	    (isearch-case-fold-search case-fold)
 	    (isearch-forward t)
 	    (isearch-error nil))
-	;; Set isearch-word to nil because word-replace is regexp-based,
-	;; so `isearch-search-fun' should not use `word-search-forward'.
-	(if (and isearch-word isearch-regexp) (setq isearch-word nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
 (defun replace-dehighlight ()

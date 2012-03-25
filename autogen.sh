@@ -1,7 +1,7 @@
 #!/bin/sh
 ### autogen.sh - tool to help build Emacs from a bzr checkout
 
-## Copyright (C) 2011  Free Software Foundation, Inc.
+## Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 
@@ -67,7 +67,7 @@ minor_version ()
 
 ## $1 = program
 ## $2 = minimum version.
-## Return 0 if program is present with version >= minumum version.
+## Return 0 if program is present with version >= minimum version.
 ## Return 1 if program is missing.
 ## Return 2 if program is present but too old.
 ## Return 3 for unexpected error (eg failed to parse version).

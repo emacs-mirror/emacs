@@ -1,11 +1,10 @@
 ;;; ob-msc.el --- org-babel functions for mscgen evaluation
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Juan Pechiar
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -73,13 +72,14 @@ mscgen supported formats."
       (error "
 ERROR: no output file specified. Add \":file name.png\" to the src header"))
     (org-babel-eval (concat "mscgen -T " filetype " -o " out-file) body)
-    out-file))
+    nil)) ;; signal that output has already been written to file
 
 (defun org-babel-prep-session:mscgen (session params)
   "Raise an error because Mscgen doesn't support sessions."
   (error "Mscgen does not support sessions"))
 
 (provide 'ob-mscgen)
+
 
 
 ;;; ob-msc.el ends here

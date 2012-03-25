@@ -1,6 +1,6 @@
 ;;; gnus-uu.el --- extract (uu)encoded files in Gnus
 
-;; Copyright (C) 1985-1987, 1993-1998, 2000-2011
+;; Copyright (C) 1985-1987, 1993-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -41,7 +41,7 @@
   :group 'gnus)
 
 (defgroup gnus-extract-view nil
-  "Viewwing extracted files."
+  "Viewing extracted files."
   :group 'gnus-extract)
 
 (defgroup gnus-extract-archive nil
@@ -727,7 +727,7 @@ When called interactively, prompt for REGEXP."
 ;; All PostScript functions written by Erik Selberg <speed@cs.washington.edu>.
 
 (defun gnus-uu-decode-postscript (&optional n)
-  "Gets postscript of the current article."
+  "Gets PostScript of the current article."
   (interactive "P")
   (gnus-uu-decode-with-method 'gnus-uu-decode-postscript-article n))
 
@@ -738,7 +738,7 @@ When called interactively, prompt for REGEXP."
     (gnus-uu-decode-postscript n)))
 
 (defun gnus-uu-decode-postscript-and-save (n dir)
-  "Extracts postscript and saves the current article."
+  "Extracts PostScript and saves the current article."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
@@ -1290,6 +1290,7 @@ When called interactively, prompt for REGEXP."
 ;; the process-function has been successful and nil otherwise.
 (defun gnus-uu-grab-articles (articles process-function
 				       &optional sloppy limit no-errors)
+  (require 'gnus-async)
   (let ((state 'first)
 	(gnus-asynchronous nil)
 	(gnus-inhibit-treatment t)

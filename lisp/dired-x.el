@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality
 
-;; Copyright (C) 1993-1994, 1997, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -85,12 +85,12 @@ use \\[customize]."
   :set (lambda (sym val)
          (if (set sym val)
              (progn
-               (define-key global-map "\C-x\C-j" 'dired-jump)
-               (define-key global-map "\C-x4\C-j" 'dired-jump-other-window))
-           (if (eq 'dired-jump (lookup-key global-map "\C-x\C-j"))
-               (define-key global-map "\C-x\C-j" nil))
-           (if (eq 'dired-jump-other-window (lookup-key global-map "\C-x4\C-j"))
-               (define-key global-map "\C-x4\C-j" nil))))
+               (define-key ctl-x-map "\C-j" 'dired-jump)
+               (define-key ctl-x-4-map "\C-j" 'dired-jump-other-window))
+           (if (eq 'dired-jump (lookup-key ctl-x-map "\C-j"))
+               (define-key ctl-x-map "\C-j" nil))
+           (if (eq 'dired-jump-other-window (lookup-key ctl-x-4-map "\C-j"))
+               (define-key ctl-x-4-map "\C-j" nil))))
   :group 'dired-keys)
 
 (defcustom dired-bind-man t
@@ -133,16 +133,20 @@ If nil, there is no maximum size."
   :group 'dired-x)
 
 (define-minor-mode dired-omit-mode
-  "Toggle Dired-Omit mode.
-With numeric ARG, enable Dired-Omit mode if ARG is positive, disable
-otherwise.  Enabling and disabling is buffer-local.
-If enabled, \"uninteresting\" files are not listed.
-Uninteresting files are those whose filenames match regexp `dired-omit-files',
-plus those ending with extensions in `dired-omit-extensions'.
+  "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
+With a prefix argument ARG, enable Dired-Omit mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-To enable omitting in every Dired buffer, you can put in your ~/.emacs
+Dired-Omit mode is a buffer-local minor mode.  When enabled in a
+Dired buffer, Dired does not list files whose filenames match
+regexp `dired-omit-files', nor files ending with extensions in
+`dired-omit-extensions'.
 
-  (add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
+To enable omitting in every Dired buffer, you can put this in
+your init file:
+
+  (add-hook 'dired-mode-hook (lambda () (dired-omit-mode)))
 
 See Info node `(dired-x) Omitting Variables' for more information."
   :group 'dired-x
@@ -168,6 +172,7 @@ files and lock files."
 (defcustom dired-omit-verbose t
   "When non-nil, show messages when omitting files.
 When nil, don't show messages."
+  :version "24.1"
   :type 'boolean
   :group 'dired-x)
 
@@ -959,24 +964,26 @@ replace it with a dir-locals-file `./%s'"
    ;; FIXME "man ./" does not work with dired-do-shell-command,
    ;; because there seems to be no way for us to modify the filename,
    ;; only the command.  Hmph.  `dired-man' works though.
-   (list "\\.\\(?:[0-9]\\|man\\)\\'" '(let ((loc (Man-support-local-filenames)))
-                                        (cond ((eq loc 'man-db) "man -l")
-                                              ((eq loc 'man) "man ./")
-                                              (t
-                                               "cat * | tbl | nroff -man -h"))))
+   (list "\\.\\(?:[0-9]\\|man\\)\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db) "man -l")
+                  ((eq loc 'man) "man ./")
+                  (t
+                   "cat * | tbl | nroff -man -h | col -b"))))
    (list "\\.\\(?:[0-9]\\|man\\)\\.g?z\\'"
          '(let ((loc (Man-support-local-filenames)))
             (cond ((eq loc 'man-db)
                    "man -l")
                   ((eq loc 'man)
                    "man ./")
-                  (t "gunzip -qc * | tbl | nroff -man -h")))
+                  (t "gunzip -qc * | tbl | nroff -man -h | col -b")))
 	 ;; Optional decompression.
 	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.[0-9]\\.Z\\'" '(let ((loc (Man-support-local-filenames)))
-                              (cond ((eq loc 'man-db) "man -l")
-                                    ((eq loc 'man) "man ./")
-                                    (t "zcat * | tbl | nroff -man -h")))
+   (list "\\.[0-9]\\.Z\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db) "man -l")
+                  ((eq loc 'man) "man ./")
+                  (t "zcat * | tbl | nroff -man -h | col -b")))
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))
@@ -1056,12 +1063,11 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
 `.foo' and `.bar' files, write
 
  \(setq dired-guess-shell-alist-user
-       (list (list \"\\\\.foo\\\\'\" \"FOO-COMMAND\");; fixed rule
-              ;; possibly more rules ...
-              (list \"\\\\.bar\\\\'\";; rule with condition test
-                    '(if condition
-                          \"BAR-COMMAND-1\"
-                        \"BAR-COMMAND-2\")))\)"
+        '((\"\\\\.foo\\\\'\" \"FOO-COMMAND\")
+          (\"\\\\.bar\\\\'\"
+           (if condition
+              \"BAR-COMMAND-1\"
+            \"BAR-COMMAND-2\"))))"
   :group 'dired-x
   :type '(alist :key-type regexp :value-type (repeat sexp)))
 
@@ -1072,7 +1078,7 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
   :type 'boolean)
 
 (defun dired-guess-default (files)
-  "Guess a shell commands for FILES.  Return command or list of commands.
+  "Return a shell command, or a list of commands, appropriate for FILES.
 See `dired-guess-shell-alist-user'."
 
   (let* ((case-fold-search dired-guess-shell-case-fold-search)
@@ -1104,8 +1110,8 @@ See `dired-guess-shell-alist-user'."
     ;; Return commands or nil if flist is still non-nil.
     ;; Evaluate the commands in order that any logical testing will be done.
     (if (cdr cmds)
-        (mapcar #'eval cmds)
-      (eval (car cmds))))) ; single command
+	(delete-dups (mapcar #'eval cmds))
+      (eval (car cmds)))))		; single command
 
 (defun dired-guess-shell-command (prompt files)
   "Ask user with PROMPT for a shell command, guessing a default from FILES."
@@ -1256,7 +1262,7 @@ Remaining lines go to bottom-most window.  The number of files that can be
 displayed this way is restricted by the height of the current window and
 `window-min-height'.
 
-To keep dired buffer displayed, type \\[split-window-vertically] first.
+To keep dired buffer displayed, type \\[split-window-below] first.
 To display just marked files, type \\[delete-other-windows] first."
   (interactive "P")
   (dired-simultaneous-find-file (dired-get-marked-files) noselect))
@@ -1389,7 +1395,7 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 ;; Apparently people do use it. - lrd 12/22/97.
 
 (with-no-warnings
-  ;; Warnings are suppresed to avoid "global/dynamic var `X' lacks a prefix".
+  ;; Warnings are suppressed to avoid "global/dynamic var `X' lacks a prefix".
   ;; This is unbearably ugly, but not more than having global variables
   ;; named size, time, name or s, however practical it can be while writing
   ;; `dired-mark-sexp' predicates.

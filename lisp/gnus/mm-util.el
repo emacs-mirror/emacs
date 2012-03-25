@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -424,7 +424,7 @@ corresponding number of an iso-8859 charset."
   ;; Cf. http://thread.gmane.org/v9lkng5nwy.fsf@marauder.physik.uni-ulm.de
   "List of IBM codepage numbers.
 
-The codepage mappings slighly differ between IBM and other vendors.
+The codepage mappings slightly differ between IBM and other vendors.
 See \"ftp://ftp.unicode.org/Public/MAPPINGS/VENDORS/IBM/README.TXT\".
 
 If an element is a number corresponding to a supported windows
@@ -956,7 +956,7 @@ This is a no-op in XEmacs."
 
 (defun mm-charset-after (&optional pos)
   "Return charset of a character in current buffer at position POS.
-If POS is nil, it defauls to the current point.
+If POS is nil, it defaults to the current point.
 If POS is out of range, the value is nil.
 If the charset is `composition', return the actual one."
   (let ((char (char-after pos)) charset)

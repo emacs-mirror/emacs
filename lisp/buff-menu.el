@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- buffer menu main function and support functions -*- coding:utf-8 -*-
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2011
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -167,53 +167,53 @@ Auto Revert Mode.")
 		 :help ,(purecopy "Refresh the *Buffer List* buffer contents")))
     (define-key menu-map [s0] menu-bar-separator)
     (define-key menu-map [tf]
-      `(menu-item ,(purecopy "Show only file buffers") Buffer-menu-toggle-files-only
+      `(menu-item ,(purecopy "Show Only File Buffers") Buffer-menu-toggle-files-only
 		  :button (:toggle . Buffer-menu-files-only)
 		  :help ,(purecopy "Toggle whether the current buffer-menu displays only file buffers")))
     (define-key menu-map [s1] menu-bar-separator)
     ;; FIXME: The "Select" entries could use better names...
     (define-key menu-map [sel]
-      `(menu-item ,(purecopy "Select marked") Buffer-menu-select
+      `(menu-item ,(purecopy "Select Marked") Buffer-menu-select
 		 :help ,(purecopy "Select this line's buffer; also display buffers marked with `>'")))
     (define-key menu-map [bm2]
-      `(menu-item ,(purecopy "Select two") Buffer-menu-2-window
+      `(menu-item ,(purecopy "Select Two") Buffer-menu-2-window
 		 :help ,(purecopy "Select this line's buffer, with previous buffer in second window")))
     (define-key menu-map [bm1]
-      `(menu-item ,(purecopy "Select current") Buffer-menu-1-window
+      `(menu-item ,(purecopy "Select Current") Buffer-menu-1-window
 		 :help ,(purecopy "Select this line's buffer, alone, in full frame")))
     (define-key menu-map [ow]
-      `(menu-item ,(purecopy "Select in other window") Buffer-menu-other-window
+      `(menu-item ,(purecopy "Select in Other Window") Buffer-menu-other-window
 		 :help ,(purecopy "Select this line's buffer in other window, leaving buffer menu visible")))
     (define-key menu-map [tw]
-      `(menu-item ,(purecopy "Select in current window") Buffer-menu-this-window
+      `(menu-item ,(purecopy "Select in Current Window") Buffer-menu-this-window
 		 :help ,(purecopy "Select this line's buffer in this window")))
     (define-key menu-map [s2] menu-bar-separator)
     (define-key menu-map [is]
-      `(menu-item ,(purecopy "Regexp Isearch marked buffers") Buffer-menu-isearch-buffers-regexp
+      `(menu-item ,(purecopy "Regexp Isearch Marked Buffers...") Buffer-menu-isearch-buffers-regexp
 		 :help ,(purecopy "Search for a regexp through all marked buffers using Isearch")))
     (define-key menu-map [ir]
-      `(menu-item ,(purecopy "Isearch marked buffers") Buffer-menu-isearch-buffers
+      `(menu-item ,(purecopy "Isearch Marked Buffers...") Buffer-menu-isearch-buffers
 		 :help ,(purecopy "Search for a string through all marked buffers using Isearch")))
     (define-key menu-map [s3] menu-bar-separator)
     (define-key menu-map [by]
       `(menu-item ,(purecopy "Bury") Buffer-menu-bury
 		 :help ,(purecopy "Bury the buffer listed on this line")))
     (define-key menu-map [vt]
-      `(menu-item ,(purecopy "Set unmodified") Buffer-menu-not-modified
+      `(menu-item ,(purecopy "Set Unmodified") Buffer-menu-not-modified
 		 :help ,(purecopy "Mark buffer on this line as unmodified (no changes to save)")))
     (define-key menu-map [ex]
       `(menu-item ,(purecopy "Execute") Buffer-menu-execute
 		 :help ,(purecopy "Save and/or delete buffers marked with s or k commands")))
     (define-key menu-map [s4] menu-bar-separator)
     (define-key menu-map [delb]
-      `(menu-item ,(purecopy "Mark for delete and move backwards") Buffer-menu-delete-backwards
+      `(menu-item ,(purecopy "Mark for Delete and Move Backwards") Buffer-menu-delete-backwards
 		 :help ,(purecopy "Mark buffer on this line to be deleted by x command and move up one line")))
     (define-key menu-map [del]
-      `(menu-item ,(purecopy "Mark for delete") Buffer-menu-delete
+      `(menu-item ,(purecopy "Mark for Delete") Buffer-menu-delete
 		 :help ,(purecopy "Mark buffer on this line to be deleted by x command")))
 
     (define-key menu-map [sv]
-      `(menu-item ,(purecopy "Mark for save") Buffer-menu-save
+      `(menu-item ,(purecopy "Mark for Save") Buffer-menu-save
 		 :help ,(purecopy "Mark buffer on this line to be saved by x command")))
     (define-key menu-map [umk]
       `(menu-item ,(purecopy "Unmark") Buffer-menu-unmark
@@ -266,7 +266,10 @@ Letters do not insert themselves; instead, they are commands.
   (set (make-local-variable 'buffer-stale-function)
        (lambda (&optional _noconfirm) 'fast))
   (setq truncate-lines t)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  ;; Force L2R direction, to avoid messing the display if the first
+  ;; buffer in the list happens to begin with a strong R2L character.
+  (setq bidi-paragraph-direction 'left-to-right))
 
 (define-obsolete-variable-alias 'buffer-menu-mode-hook
   'Buffer-menu-mode-hook "23.1")
@@ -583,22 +586,16 @@ in the selected frame."
   "Make the other window select this line's buffer.
 The current window remains selected."
   (interactive)
-  (let ((pop-up-windows t)
-	same-window-buffer-names
-	same-window-regexps)
-    (display-buffer (Buffer-menu-buffer t))))
+  (display-buffer (Buffer-menu-buffer t) t))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
   (interactive)
   (let ((buff (Buffer-menu-buffer t))
-	(menu (current-buffer))
-	(pop-up-windows t)
-	same-window-buffer-names
-	same-window-regexps)
+	(menu (current-buffer)))
     (delete-other-windows)
     (switch-to-buffer (other-buffer))
-    (pop-to-buffer buff)
+    (switch-to-buffer-other-window buff)
     (bury-buffer menu)))
 
 (defun Buffer-menu-toggle-read-only ()
@@ -813,6 +810,10 @@ For more information, see the function `buffer-menu'."
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq standard-output (current-buffer))
+      ;; Force L2R direction, to avoid messing the display if the
+      ;; first buffer in the list happens to begin with a strong R2L
+      ;; character.
+      (setq bidi-paragraph-direction 'left-to-right)
       (unless Buffer-menu-use-header-line
         ;; Use U+2014 (EM DASH) to underline if possible, else use ASCII
         ;; (i.e. U+002D, HYPHEN-MINUS).

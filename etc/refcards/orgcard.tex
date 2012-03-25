@@ -1,7 +1,7 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{7.4}
-\def\versionyear{2010}          % latest update
-\def\year{2011}                 % latest copyright year
+\def\orgversionnumber{7.8.02}
+\def\versionyear{2011}          % latest update
+\def\year{2012}                 % latest copyright year
 
 %**start of header
 \newcount\columnsperpage
@@ -17,7 +17,7 @@
 \pdflayout=(0l)
 
 % Nothing else needs to be changed below this line.
-% Copyright (C) 1987, 1993, 1996-1997, 2001-2011
+% Copyright (C) 1987, 1993, 1996-1997, 2001-2012
 %   Free Software Foundation, Inc.
 
 % This file is part of GNU Emacs.
@@ -309,6 +309,7 @@ are preserved on all copies.
 \metax{move subtree/list item up/down}{M-S-UP/DOWN}
 \metax{sort subtree/region/plain-list}{C-c \^{}}
 \metax{clone a subtree}{C-c C-x c}
+\metax{copy visible text}{C-c C-x v}
 \metax{kill/copy subtree}{C-c C-x C-w/M-w}
 \metax{yank subtree}{C-c C-x C-y or C-y}
 \metax{narrow buffer to subtree / widen}{C-x n s/w}
@@ -443,7 +444,10 @@ formula, \kbd{:=} a field formula.
 
 \key{execute code block at point}{C-c C-c}
 \key{open results of code block at point}{C-c C-o}
+\key{check code block at point for errors}{C-c C-v c}
+\key{insert a header argument with completion}{C-c C-v j}
 \key{view expanded body of code block at point}{C-c C-v v}
+\key{view information about code block at point}{C-c C-v I}
 \key{go to named code block}{C-c C-v g}
 \key{go to named result}{C-c C-v r}
 \key{go to the head of the current code block}{C-c C-v u}
@@ -457,7 +461,7 @@ formula, \kbd{:=} a field formula.
 \key{tangle code blocks in supplied file}{C-c C-v f}
 \key{ingest all code blocks in supplied file into the Library of Babel}{C-c C-v i}
 \key{switch to the session of the current code block}{C-c C-v z}
-\key{load expanded body of the current code block into a session}{C-c C-v l}
+\key{load the current code block into a session}{C-c C-v l}
 \key{view sha1 hash of the current code block}{C-c C-v a}
 
 \section{Completion}
@@ -522,7 +526,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \section{Timestamps}
 
 \key{prompt for date and insert timestamp}{C-c .}
-\key{like \kbd{C-c} . but insert date and time format}{C-u C-c .}
+\key{like \kbd{C-c .} but insert date and time format}{C-u C-c .}
 \key{like \kbd{C-c .} but make stamp inactive}{C-c !} % FIXME
 \key{insert DEADLINE timestamp}{C-c C-d}
 \key{insert SCHEDULED timestamp}{C-c C-s}
@@ -586,10 +590,10 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{delete other windows}{o}
 \key{view mode dispatcher}{v}
-\key{switch to day/week/month/year view}{d w vm vy}
+\key{switch to day/week/month/year/def view}{d w vm vy vSP}
 \key{toggle diary entries / time grid / habits}{D / G / K}
 \key{toggle entry text / clock report}{E / R}
-\key{toggle display of logbook entries}{l / v l/L}
+\key{toggle display of logbook entries}{l / v l/L/c}
 \key{toggle inclusion of archived trees/files}{v a/A}
 \key{refresh agenda buffer with any changes}{r / g}
 \key{filter with respect to a tag}{/}
@@ -670,7 +674,7 @@ never exported.
 
 \section{Notes}
 [1] This is only a suggestion for a binding of this command.  Choose
-your own key as shown under INSTALLATION.
+your own key as shown under ACTIVATION.
 
 [2] Keybinding affected by {\tt org-support-shift-select} and also
  {\tt org-replace-disputed-keys}.

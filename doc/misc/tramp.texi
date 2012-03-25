@@ -37,7 +37,7 @@
 @end macro
 
 @copying
-Copyright @copyright{} 1999-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1999-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -528,8 +528,8 @@ differ.
 @cindex methods, inline
 @cindex methods, external
 Loading or saving a remote file requires that the content of the file
-be transfered between the two machines.  The content of the file can
-be transfered using one of two methods: the @dfn{inline method} over
+be transferred between the two machines.  The content of the file can
+be transferred using one of two methods: the @dfn{inline method} over
 the same connection used to log in to the remote machine, or the
 @dfn{external method} through another connection using a remote copy
 program such as @command{rcp}, @command{scp} or @command{rsync}.
@@ -866,12 +866,21 @@ Newer versions of @option{ssh} (for example OpenSSH 4) offer an option
 @option{ControlMaster}.  This allows @option{scp} to reuse an existing
 @option{ssh} channel, which increases performance.
 
-Before you use this method, you shall check whether your @option{ssh}
-implementation does support this option.  Try from the command line
+Before you use this method, you should check whether your @option{ssh}
+implementation supports this option.  Try from the command line
 
 @example
-ssh localhost -o ControlMaster=yes
+ssh localhost -o ControlMaster=yes /bin/true
 @end example
+
+If that command succeeds silently, then you can use @option{scpc}; but
+if it fails like
+
+@example
+command-line: line 0: Bad configuration option: ControlMaster
+@end example
+
+then you cannot use it.
 
 This method supports the @samp{-p} argument.
 
@@ -1575,7 +1584,7 @@ password handling. Consider @command{ssh-agent} for @option{ssh}-like
 methods, or @command{pageant} for @option{plink}-like methods.
 
 However, if you cannot apply such native password handling,
-@value{tramp} offers altenatives.
+@value{tramp} offers alternatives.
 
 
 @anchor{Using an authentication file}
@@ -3180,7 +3189,7 @@ names:
  '("^/xy" . "@trampfn{ssh, news, news.my.domain, /opt/news/etc/}"))
 @end lisp
 
-This shortens the file openening command to @kbd{C-x C-f /xy
+This shortens the file opening command to @kbd{C-x C-f /xy
 @key{RET}}.  The disadvantage is, again, that you cannot edit the file
 name, because the expansion happens after entering the file name only.
 
@@ -3573,7 +3582,7 @@ The verbosity levels are
 
 When @code{tramp-verbose} is greater than or equal to 4, the messages
 are also written into a @value{tramp} debug buffer.  This debug buffer
-is useful for analysing problems; sending a @value{tramp} bug report
+is useful for analyzing problems; sending a @value{tramp} bug report
 should be done with @code{tramp-verbose} set to a verbosity level of at
 least 6 (@pxref{Bug Reports}).
 
@@ -3704,4 +3713,4 @@ for @value{emacsothername}.
 @c   host and then send commands to it.
 @c * Use `filename' resp. `file name' consistently.
 @c * Use `host' resp. `machine' consistently.
-@c * Consistent small or capitalized words especially in menues.
+@c * Consistent small or capitalized words especially in menus.

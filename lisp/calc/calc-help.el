@@ -1,6 +1,6 @@
 ;;; calc-help.el --- help display functions for Calc,
 
-;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -683,7 +683,7 @@ C-w  Describe how there is no warranty for Calc."
   (calc-do-prefix-help
    '("Pack, Unpack, Identity, Diagonal, indeX, Build"
      "Row, Column, Subvector; Length; Find; Mask, Expand"
-     "Tranpose, Arrange, reVerse; Head, Kons; rNorm"
+     "Transpose, Arrange, reVerse; Head, Kons; rNorm"
      "SHIFT + Det, & (inverse), LUD, Trace, conJtrn, Cross"
      "SHIFT + Sort, Grade, Histogram; cNorm"
      "SHIFT + Apply, Map, Reduce, accUm, Inner-, Outer-prod"

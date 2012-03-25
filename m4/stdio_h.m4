@@ -1,4 +1,4 @@
-# stdio_h.m4 serial 37
+# stdio_h.m4 serial 40
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -74,7 +74,7 @@ AC_DEFUN([gl_STDIO_H],
   dnl corresponding gnulib module is not in use, and which is not
   dnl guaranteed by C89.
   gl_WARN_ON_USE_PREPARE([[#include <stdio.h>
-    ]], [dprintf fpurge fseeko ftello getdelim getline popen renameat
+    ]], [dprintf fpurge fseeko ftello getdelim getline pclose popen renameat
     snprintf tmpfile vdprintf vsnprintf])
 ])
 
@@ -91,6 +91,7 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
 [
   GNULIB_DPRINTF=0;              AC_SUBST([GNULIB_DPRINTF])
   GNULIB_FCLOSE=0;               AC_SUBST([GNULIB_FCLOSE])
+  GNULIB_FDOPEN=0;               AC_SUBST([GNULIB_FDOPEN])
   GNULIB_FFLUSH=0;               AC_SUBST([GNULIB_FFLUSH])
   GNULIB_FGETC=0;                AC_SUBST([GNULIB_FGETC])
   GNULIB_FGETS=0;                AC_SUBST([GNULIB_FGETS])
@@ -115,6 +116,7 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   GNULIB_GETS=0;                 AC_SUBST([GNULIB_GETS])
   GNULIB_OBSTACK_PRINTF=0;       AC_SUBST([GNULIB_OBSTACK_PRINTF])
   GNULIB_OBSTACK_PRINTF_POSIX=0; AC_SUBST([GNULIB_OBSTACK_PRINTF_POSIX])
+  GNULIB_PCLOSE=0;               AC_SUBST([GNULIB_PCLOSE])
   GNULIB_PERROR=0;               AC_SUBST([GNULIB_PERROR])
   GNULIB_POPEN=0;                AC_SUBST([GNULIB_POPEN])
   GNULIB_PRINTF=0;               AC_SUBST([GNULIB_PRINTF])
@@ -153,11 +155,14 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   HAVE_DPRINTF=1;                AC_SUBST([HAVE_DPRINTF])
   HAVE_FSEEKO=1;                 AC_SUBST([HAVE_FSEEKO])
   HAVE_FTELLO=1;                 AC_SUBST([HAVE_FTELLO])
+  HAVE_PCLOSE=1;                 AC_SUBST([HAVE_PCLOSE])
+  HAVE_POPEN=1;                  AC_SUBST([HAVE_POPEN])
   HAVE_RENAMEAT=1;               AC_SUBST([HAVE_RENAMEAT])
   HAVE_VASPRINTF=1;              AC_SUBST([HAVE_VASPRINTF])
   HAVE_VDPRINTF=1;               AC_SUBST([HAVE_VDPRINTF])
   REPLACE_DPRINTF=0;             AC_SUBST([REPLACE_DPRINTF])
   REPLACE_FCLOSE=0;              AC_SUBST([REPLACE_FCLOSE])
+  REPLACE_FDOPEN=0;              AC_SUBST([REPLACE_FDOPEN])
   REPLACE_FFLUSH=0;              AC_SUBST([REPLACE_FFLUSH])
   REPLACE_FOPEN=0;               AC_SUBST([REPLACE_FOPEN])
   REPLACE_FPRINTF=0;             AC_SUBST([REPLACE_FPRINTF])

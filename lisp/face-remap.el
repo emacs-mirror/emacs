@@ -1,6 +1,6 @@
 ;;; face-remap.el --- Functions for managing `face-remapping-alist'
 ;;
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: faces, face remapping, display, user commands
@@ -106,21 +106,20 @@ The list structure of ENTRY may be destructively modified."
 ;;;###autoload
 (defun face-remap-add-relative (face &rest specs)
   "Add a face remapping entry of FACE to SPECS in the current buffer.
-
-Return a cookie which can be used to delete the remapping with
+Return a cookie which can be used to delete this remapping with
 `face-remap-remove-relative'.
 
-SPECS can be any value suitable for the `face' text property,
-including a face name, a list of face names, or a face-attribute
-property list.  The attributes given by SPECS will be merged with
-any other currently active face remappings of FACE, and with the
-global definition of FACE.  An attempt is made to sort multiple
-entries so that entries with relative face-attributes are applied
-after entries with absolute face-attributes.
+The remaining arguments, SPECS, should be either a list of face
+names, or a property list of face attribute/value pairs.  The
+remapping specified by SPECS takes effect alongside the
+remappings from other calls to `face-remap-add-relative', as well
+as the normal definition of FACE (at lowest priority).  This
+function tries to sort multiple remappings for the same face, so
+that remappings specifying relative face attributes are applied
+after remappings specifying absolute face attributes.
 
-The base (lowest priority) remapping may be set to a specific
-value, instead of the default of the global face definition,
-using `face-remap-set-base'."
+The base (lowest priority) remapping may be set to something
+other than the normal definition of FACE via `face-remap-set-base'."
   (while (and (consp specs) (null (cdr specs)))
     (setq specs (car specs)))
   (make-local-variable 'face-remapping-alist)
@@ -148,7 +147,9 @@ COOKIE should be the return value from that function."
 
 ;;;###autoload
 (defun face-remap-reset-base (face)
-  "Set the base remapping of FACE to inherit from FACE's global definition."
+  "Set the base remapping of FACE to the normal definition of FACE.
+This causes the remappings specified by `face-remap-add-relative'
+to apply on top of the normal definition of FACE."
   (let ((entry (assq face face-remapping-alist)))
     (when entry
       ;; If there's nothing except a base remapping, we simply remove
@@ -163,10 +164,15 @@ COOKIE should be the return value from that function."
 ;;;###autoload
 (defun face-remap-set-base (face &rest specs)
   "Set the base remapping of FACE in the current buffer to SPECS.
-If SPECS is empty, the default base remapping is restored, which
-inherits from the global definition of FACE; note that this is
-different from SPECS containing a single value `nil', which does
-not inherit from the global definition of FACE."
+This causes the remappings specified by `face-remap-add-relative'
+to apply on top of the face specification given by SPECS.  SPECS
+should be either a list of face names, or a property list of face
+attribute/value pairs.
+
+If SPECS is empty, call `face-remap-reset-base' to use the normal
+definition of FACE as the base remapping; note that this is
+different from SPECS containing a single value `nil', which means
+not to inherit from the global definition of FACE at all."
   (while (and (consp specs) (not (null (car specs))) (null (cdr specs)))
     (setq specs (car specs)))
   (if (or (null specs)
@@ -204,7 +210,10 @@ Each positive or negative step scales the default face height by this amount."
 (make-variable-buffer-local 'text-scale-mode-amount)
 
 (define-minor-mode text-scale-mode
-  "Minor mode for displaying buffer text in a larger/smaller font than usual.
+  "Minor mode for displaying buffer text in a larger/smaller font.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
 The amount of scaling is determined by the variable
 `text-scale-mode-amount': one step scales the global default
@@ -334,8 +343,10 @@ plist, etc."
 ;;;###autoload
 (define-minor-mode buffer-face-mode
   "Minor mode for a buffer-specific default face.
-When enabled, the face specified by the variable
-`buffer-face-mode-face' is used to display the buffer text."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.  When enabled, the face specified by the
+variable `buffer-face-mode-face' is used to display the buffer text."
   :lighter " BufFace"
   (when buffer-face-mode-remapping
     (face-remap-remove-relative buffer-face-mode-remapping))

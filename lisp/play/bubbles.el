@@ -1,6 +1,6 @@
 ;;; bubbles.el --- Puzzle game for Emacs
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         http://ulf.epplejasper.de/
@@ -55,7 +55,7 @@
 
 ;; 0.3 (2007-03-11)
 ;;     - Renamed shift modes and thus names of score files. All
-;;       highscores are lost, unless you rename the score files from
+;;       high scores are lost, unless you rename the score files from
 ;;       bubbles-shift-... to bubbles-...!
 ;;     - Bugfixes: Check for successful image creation.
 ;;                 Disable menus and counter when game is over.

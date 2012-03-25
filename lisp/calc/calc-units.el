@@ -1,6 +1,6 @@
 ;;; calc-units.el --- unit conversion functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -415,18 +415,19 @@ If EXPR is nil, return nil."
 
 (defun math-put-default-units (expr)
   "Put the units in EXPR in the default units table."
-  (let* ((units (math-get-units expr))
-         (standard-units (math-get-standard-units expr))
+  (let ((units (math-get-units expr)))
+    (unless (eq units 1)
+      (let* ((standard-units (math-get-standard-units expr))
          (default-units (gethash
                          standard-units
                          math-default-units-table)))
-    (cond
-     ((not default-units)
-      (puthash standard-units (list units) math-default-units-table))
-     ((not (equal units (car default-units)))
-      (puthash standard-units
-               (list units (car default-units))
-               math-default-units-table)))))
+        (cond
+         ((not default-units)
+          (puthash standard-units (list units) math-default-units-table))
+         ((not (equal units (car default-units)))
+          (puthash standard-units
+                   (list units (car default-units))
+                   math-default-units-table)))))))
 
 
 (defun calc-convert-units (&optional old-units new-units)
@@ -1598,7 +1599,7 @@ In symbolic mode, return the list (^ a b)."
                    (or (math-lessp acoeff bcoeff)
                        (math-equal acoeff bcoeff)))
               (calc-record-why "*Improper coefficients" nil)
-            (math-mul 
+            (math-mul
              (if (equal aunit '(var dB var-dB))
                  (let ((coef (if power 10 20)))
                    (math-mul coef
@@ -1681,7 +1682,7 @@ In symbolic mode, return the list (^ a b)."
           (math-simplify
            (math-mul
             (math-add
-             coef 
+             coef
              (math-mul (if power 10 20)
                        (math-conditional-apply 'calcFunc-log10 number)))
             units)))
@@ -1689,7 +1690,7 @@ In symbolic mode, return the list (^ a b)."
           (math-simplify
            (math-mul
             (math-add
-             coef 
+             coef
              (math-div (math-conditional-apply 'calcFunc-ln number) (if power 2 1)))
             units))))
       (calc-record-why "*Improper units" nil))))
@@ -1707,7 +1708,7 @@ In symbolic mode, return the list (^ a b)."
             (math-simplify
              (math-mul
               (math-sub
-               coef 
+               coef
                (math-mul (if power 10 20)
                          (math-conditional-apply 'calcFunc-log10 b)))
               units)))
@@ -1715,7 +1716,7 @@ In symbolic mode, return the list (^ a b)."
           (math-simplify
            (math-mul
             (math-sub
-             coef 
+             coef
              (math-div (math-conditional-apply 'calcFunc-ln b) (if power 2 1)))
             units)))))))))
 
@@ -1762,17 +1763,17 @@ In symbolic mode, return the list (^ a b)."
             (coeff (math-simplify (math-div val units))))
         (math-mul
          (if (equal lunit '(var dB var-dB))
-             (math-mul 
+             (math-mul
               ref
-              (math-conditional-pow 
+              (math-conditional-pow
                10
                (math-div
                 coeff
                 (if power 10 20))))
-           (math-mul 
+           (math-mul
             ref
             (math-conditional-apply 'calcFunc-exp
-             (if power 
+             (if power
                  (math-mul 2 coeff)
                coeff))))
          runits)))))
@@ -1869,7 +1870,7 @@ In symbolic mode, return the list (^ a b)."
   (let* ((n (math-round num))
          (diff (math-abs
                 (math-sub num n))))
-    (if (< (math-compare diff 
+    (if (< (math-compare diff
                          (math-div (math-read-expr calc-note-threshold) 100)) 0)
         n
       num)))
@@ -1927,10 +1928,10 @@ If non-nil, return a list consisting of the note and the cents coefficient."
        (assoc (nth 1 note) math-notes)
        (integerp (nth 2 note))
        (setq rnote note)
-       (or 
+       (or
         (not cents)
         (Math-numberp (setq rcents
-                            (math-simplify 
+                            (math-simplify
                              (math-div cents '(var cents var-cents)))))))
       (list rnote rcents))
      ((and  ;; CENTS is a note, NOTE is cents.
@@ -1938,10 +1939,10 @@ If non-nil, return a list consisting of the note and the cents coefficient."
        (assoc (nth 1 cents) math-notes)
        (integerp (nth 2 cents))
        (setq rnote cents)
-       (or 
+       (or
         (not note)
         (Math-numberp (setq rcents
-                            (math-simplify 
+                            (math-simplify
                              (math-div note '(var cents var-cents)))))))
       (list rnote rcents)))))
 
@@ -1972,7 +1973,7 @@ If non-nil, return a list consisting of the note and the cents coefficient."
   "Return the scientific pitch notation corresponding to midi number MIDI."
   (let (midin cents)
     (if (math-integerp midi)
-        (setq midin midi 
+        (setq midin midi
               cents nil)
       (setq midin (math-floor midi)
             cents (math-mul 100 (math-sub midi midin))))
@@ -1989,7 +1990,7 @@ If non-nil, return a list consisting of the note and the cents coefficient."
            (n (math-sub (car nr) 1))
            (note (car (rassoc (cdr nr) math-notes))))
       (if cents
-          (list '+ (list 'calcFunc-subscr note n) 
+          (list '+ (list 'calcFunc-subscr note n)
                    (list '* cents '(var cents var-cents)))
         (list 'calcFunc-subscr note n)))))
 
@@ -2005,7 +2006,7 @@ If non-nil, return a list consisting of the note and the cents coefficient."
          440
          (math-pow
           2
-          (math-div 
+          (math-div
            (math-sub
             midi
             69)
@@ -2018,7 +2019,7 @@ If non-nil, return a list consisting of the note and the cents coefficient."
 
 (defun calcFunc-spn (expr)
   "Return EXPR written as scientific pitch notation + cents."
-  ;; Get the coeffecient of Hz
+  ;; Get the coefficient of Hz
   (let (note)
     (cond
      ((setq note (math-freqp expr))

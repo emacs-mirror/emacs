@@ -1,6 +1,6 @@
 ;;; mm-encode.el --- Functions for encoding MIME things
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -97,6 +97,7 @@ This variable should never be set directly, but bound before a call to
     (insert "Content-Type: multipart/mixed; boundary=\"" boundary "\"\n")
     boundary))
 
+;;;###autoload
 (defun mm-default-file-encoding (file)
   "Return a default encoding for FILE."
   (if (not (string-match "\\.[^.]+$" file))

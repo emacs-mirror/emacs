@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system
 
-;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -109,6 +109,11 @@
   (require 'vc-dir)
   (require 'grep))
 
+(defgroup vc-git nil
+  "VC Git backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-git-diff-switches t
   "String or list of strings specifying switches for Git diff under VC.
 If nil, use the value of `vc-diff-switches'.  If t, use no switches."
@@ -117,13 +122,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "23.1"
-  :group 'vc)
+  :group 'vc-git)
 
 (defcustom vc-git-program "git"
   "Name of the Git executable (excluding any arguments)."
   :version "24.1"
   :type 'string
-  :group 'vc)
+  :group 'vc-git)
 
 (defcustom vc-git-root-log-format
   '("%d%h..: %an %ad %s"
@@ -143,7 +148,7 @@ format string (which is passed to \"git log\" via the argument
 matching the resulting Git log output, and KEYWORDS is a list of
 `font-lock-keywords' for highlighting the Log View buffer."
   :type '(list string string (repeat sexp))
-  :group 'vc
+  :group 'vc-git
   :version "24.1")
 
 (defvar vc-git-commits-coding-system 'utf-8
@@ -486,16 +491,16 @@ or an empty string if none."
 (defvar vc-git-stash-menu-map
   (let ((map (make-sparse-keymap "Git Stash")))
     (define-key map [de]
-      '(menu-item "Delete stash" vc-git-stash-delete-at-point
+      '(menu-item "Delete Stash" vc-git-stash-delete-at-point
 		  :help "Delete the current stash"))
     (define-key map [ap]
-      '(menu-item "Apply stash" vc-git-stash-apply-at-point
+      '(menu-item "Apply Stash" vc-git-stash-apply-at-point
 		  :help "Apply the current stash and keep it in the stash list"))
     (define-key map [po]
-      '(menu-item "Apply and remove stash (pop)" vc-git-stash-pop-at-point
+      '(menu-item "Apply and Remove Stash (Pop)" vc-git-stash-pop-at-point
 		  :help "Apply the current stash and remove it"))
     (define-key map [sh]
-      '(menu-item "Show stash" vc-git-stash-show-at-point
+      '(menu-item "Show Stash" vc-git-stash-show-at-point
 		  :help "Show the contents of the current stash"))
     map))
 
@@ -933,7 +938,7 @@ or BRANCH^ (where \"^\" can be repeated)."
       '(menu-item "Git grep..." vc-git-grep
 		  :help "Run the `git grep' command"))
     (define-key map [git-sn]
-      '(menu-item "Stash a snapshot" vc-git-stash-snapshot
+      '(menu-item "Stash a Snapshot" vc-git-stash-snapshot
 		  :help "Stash the current state of the tree and keep the current state"))
     (define-key map [git-st]
       '(menu-item "Create Stash..." vc-git-stash
@@ -988,7 +993,8 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	      (setq command nil))
 	(setq dir (file-name-as-directory (expand-file-name dir)))
 	(setq command
-	      (grep-expand-template "git grep -n -e <R> -- <F>" regexp files))
+	      (grep-expand-template "git grep -n -e <R> -- <F>"
+                                    regexp files))
 	(when command
 	  (if (equal current-prefix-arg '(4))
 	      (setq command
@@ -997,7 +1003,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	    (add-to-history 'grep-history command))))
       (when command
 	(let ((default-directory dir)
-	      (compilation-environment '("PAGER=")))
+	      (compilation-environment (cons "PAGER=" compilation-environment)))
 	  ;; Setting process-setup-function makes exit-message-function work
 	  ;; even when async processes aren't supported.
 	  (compilation-start command 'grep-mode))
@@ -1102,8 +1108,11 @@ The difference to vc-do-command is that this function always invokes
 (defun vc-git--call (buffer command &rest args)
   ;; We don't need to care the arguments.  If there is a file name, it
   ;; is always a relative one.  This works also for remote
-  ;; directories.
-  (apply 'process-file vc-git-program nil buffer nil command args))
+  ;; directories.  We enable `inhibit-null-byte-detection', otherwise
+  ;; Tramp's eol conversion might be confused.
+  (let ((inhibit-null-byte-detection t)
+	(process-environment (cons "PAGER=" process-environment)))
+    (apply 'process-file vc-git-program nil buffer nil command args)))
 
 (defun vc-git--out-ok (command &rest args)
   (zerop (apply 'vc-git--call '(t nil) command args)))

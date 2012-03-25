@@ -1,6 +1,6 @@
 /* Machine description file for IBM S390 in 64-bit mode
 
-Copyright (C) 2002-2011  Free Software Foundation, Inc.
+Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
-
-#include "ibms390.h"
 
 #define BITS_PER_LONG 64
 #define BITS_PER_EMACS_INT 64

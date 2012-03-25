@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992-1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -181,7 +181,7 @@
 ;; * working-revision (file)
 ;;
 ;;   Return the working revision of FILE.  This is the revision fetched
-;;   by the last checkout or upate, not necessarily the same thing as the
+;;   by the last checkout or update, not necessarily the same thing as the
 ;;   head or tip revision.  Should return "0" for a file added but not yet
 ;;   committed.
 ;;
@@ -675,6 +675,8 @@
   :type 'boolean
   :group 'vc)
 
+(make-obsolete-variable 'vc-initial-comment "it has no effect." "23.2")
+
 (defcustom vc-default-init-revision "1.1"
   "A string used as the default revision number when a new file is registered.
 This can be overridden by giving a prefix argument to \\[vc-register].  This
@@ -949,13 +951,13 @@ Within directories, only files already under version control are noticed."
 (defun vc-deduce-fileset (&optional observer allow-unregistered
 				    state-model-only-files)
   "Deduce a set of files and a backend to which to apply an operation.
-
 Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
-If we're in VC-dir mode, the fileset is the list of marked files.
-Otherwise, if we're looking at a buffer visiting a version-controlled file,
-the fileset is a singleton containing this file.
-If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
-visited file is not registered, return a singleton fileset containing it.
+
+If we're in VC-dir mode, FILESET is the list of marked files.
+Otherwise, if in a buffer visiting a version-controlled file,
+FILESET is a single-file fileset containing that file.
+Otherwise, if ALLOW-UNREGISTERED is non-nil and the visited file
+is unregistered, FILESET is a single-file fileset containing it.
 Otherwise, throw an error.
 
 STATE-MODEL-ONLY-FILES if non-nil, means that the caller needs
@@ -1046,34 +1048,27 @@ current buffer."
 ;;;###autoload
 (defun vc-next-action (verbose)
   "Do the next logical version control operation on the current fileset.
-This requires that all files in the fileset be in the same state.
+This requires that all files in the current VC fileset be in the
+same state.  If not, signal an error.
 
-For locking systems:
-   If every file is not already registered, this registers each for version
-control.
-   If every file is registered and not locked by anyone, this checks out
-a writable and locked file of each ready for editing.
-   If every file is checked out and locked by the calling user, this
-first checks to see if each file has changed since checkout.  If not,
-it performs a revert on that file.
-   If every file has been changed, this pops up a buffer for entry
-of a log message; when the message has been entered, it checks in the
-resulting changes along with the log message as change commentary.  If
-the variable `vc-keep-workfiles' is non-nil (which is its default), a
-read-only copy of each changed file is left in place afterwards.
-   If the affected file is registered and locked by someone else, you are
-given the option to steal the lock(s).
+For merging-based version control systems:
+  If every file in the VC fileset is not registered for version
+   control, register the fileset (but don't commit).
+  If every work file in the VC fileset is added or changed, pop
+   up a *vc-log* buffer to commit the fileset.
+  For a centralized version control system, if any work file in
+   the VC fileset is out of date, offer to update the fileset.
 
-For merging systems:
-   If every file is not already registered, this registers each one for version
-control.  This does an add, but not a commit.
-   If every file is added but not committed, each one is committed.
-   If every working file is changed, but the corresponding repository file is
-unchanged, this pops up a buffer for entry of a log message; when the
-message has been entered, it checks in the resulting changes along
-with the logmessage as change commentary.  A writable file is retained.
-   If the repository file is changed, you are asked if you want to
-merge in the changes into your working copy."
+For old-style locking-based version control systems, like RCS:
+  If every file is not registered, register the file(s).
+  If every file is registered and unlocked, check out (lock)
+   the file(s) for editing.
+  If every file is locked by you and has changes, pop up a
+   *vc-log* buffer to check in the changes.  If the variable
+   `vc-keep-workfiles' is non-nil (the default), leave a
+   read-only copy of each changed file after checking in.
+  If every file is locked by you and unchanged, unlock them.
+  If every file is locked by someone else, offer to steal the lock."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))
@@ -1118,9 +1113,13 @@ merge in the changes into your working copy."
      ;; Files have local changes
      ((vc-compatible-state state 'edited)
       (let ((ready-for-commit files))
-	;; If files are edited but read-only, give user a chance to correct
+	;; If files are edited but read-only, give user a chance to correct.
 	(dolist (file files)
-	  (unless (file-writable-p file)
+	  ;; If committing a mix of removed and edited files, the
+	  ;; fileset has state = 'edited.  Rather than checking the
+	  ;; state of each individual file in the fileset, it seems
+	  ;; simplest to just check if the file exists.	 Bug#9781.
+	  (when (and (file-exists-p file) (not (file-writable-p file)))
 	    ;; Make the file+buffer read-write.
 	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
 	      (error "Aborted"))
@@ -1605,10 +1604,13 @@ Return t if the buffer had changes, nil otherwise."
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.
       (setq buffer-read-only t)
-      (vc-exec-after `(vc-diff-finish ,(current-buffer) ',(when verbose
-                                                            messages)))
       ;; Display the buffer, but at the end because it can change point.
       (pop-to-buffer (current-buffer))
+      ;; The diff process may finish early, so call `vc-diff-finish'
+      ;; after `pop-to-buffer'; the former assumes the diff buffer is
+      ;; shown in some window.
+      (vc-exec-after `(vc-diff-finish ,(current-buffer)
+				      ',(when verbose messages)))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.
       t)))
@@ -1878,7 +1880,8 @@ The headers are reset to their non-expanded form."
      "Enter a replacement change comment."
      "*vc-log*"
      (lambda () (vc-call-backend backend 'log-edit-mode))
-     (lexical-let ((rev rev))
+     (lexical-let ((rev rev)
+                   (backend backend))
        (lambda (files comment)
          (vc-call-backend backend
                           'modify-change-comment files rev comment))))))
@@ -1886,6 +1889,7 @@ The headers are reset to their non-expanded form."
 ;;;###autoload
 (defun vc-merge ()
   "Perform a version control merge operation.
+You must be visiting a version controlled file, or in a `vc-dir' buffer.
 On a distributed version control system, this runs a \"merge\"
 operation to incorporate changes from another branch onto the
 current branch, prompting for an argument list.
@@ -2299,8 +2303,7 @@ to the working revision (except for keyword expansion)."
 				       (if (= nfiles 1) "" "s"))))))
 	    (error "Revert canceled")))
       (when diff-buffer
-	(delete-windows-on diff-buffer)
-	(kill-buffer diff-buffer)))
+	(quit-windows-on diff-buffer t)))
     (dolist (file files)
       (message "Reverting %s..." (vc-delistify files))
       (vc-revert-file file)
@@ -2346,8 +2349,7 @@ depending on the underlying version-control system."
     ;; Display changes
     (unless (yes-or-no-p "Discard these revisions? ")
       (error "Rollback canceled"))
-    (delete-windows-on "*vc-diff*")
-    (kill-buffer"*vc-diff*")
+    (quit-windows-on "*vc-diff*" t)
     ;; Do the actual reversions
     (message "Rolling back %s..." (vc-delistify files))
     (with-vc-properties
@@ -2365,6 +2367,7 @@ depending on the underlying version-control system."
 ;;;###autoload
 (defun vc-pull (&optional arg)
   "Update the current fileset or branch.
+You must be visiting a version controlled file, or in a `vc-dir' buffer.
 On a distributed version control system, this runs a \"pull\"
 operation to update the current branch, prompting for an argument
 list if required.  Optional prefix ARG forces a prompt.
@@ -2425,7 +2428,7 @@ its name; otherwise return nil."
    (list file)
    (let ((backup-file (vc-version-backup-file file)))
      (when backup-file
-       (copy-file backup-file file 'ok-if-already-exists 'keep-date)
+       (copy-file backup-file file 'ok-if-already-exists)
        (vc-delete-automatic-version-backups file))
      (vc-call revert file backup-file))
    `((vc-state . up-to-date)
@@ -2683,7 +2686,7 @@ log entries should be gathered."
       (substring rev 0 index))))
 
 (defun vc-default-responsible-p (backend file)
-  "Indicate whether BACKEND is reponsible for FILE.
+  "Indicate whether BACKEND is responsible for FILE.
 The default is to return nil always."
   nil)
 

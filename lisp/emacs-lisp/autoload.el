@@ -1,6 +1,6 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el
 
-;; Copyright (C) 1991-1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -446,7 +446,11 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
 		    generated-autoload-load-name
 		  (autoload-file-load-name absfile)))
           (when (and outfile
-                     (not (equal outfile (autoload-generated-file))))
+                     (not
+		      (if (memq system-type '(ms-dos windows-nt))
+			  (equal (downcase outfile)
+				 (downcase (autoload-generated-file)))
+			(equal outfile (autoload-generated-file)))))
             (setq otherbuf t))
           (save-excursion
             (save-restriction
@@ -512,8 +516,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
 
           (when output-start
             (let ((secondary-autoloads-file-buf
-                   (if (local-variable-p 'generated-autoload-file)
-                       (current-buffer))))
+                   (if otherbuf (current-buffer))))
               (with-current-buffer (marker-buffer output-start)
                 (save-excursion
                   ;; Insert the section-header line which lists the file name

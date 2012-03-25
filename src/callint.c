@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2011
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -78,7 +78,7 @@ c -- Character (no input method is used).
 C -- Command name: symbol with interactive function definition.
 d -- Value of point as number.  Does not do I/O.
 D -- Directory name.
-e -- Parametrized event (i.e., one that's a list) that invoked this command.
+e -- Parameterized event (i.e., one that's a list) that invoked this command.
      If used more than once, the Nth `e' returns the Nth parameterized event.
      This skips events that are integers or symbols.
 f -- Existing file name.
@@ -274,8 +274,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   ptrdiff_t i, nargs;
   int foo;
-  char prompt1[100];
-  char *tem1;
   int arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   int key_count;
@@ -339,7 +337,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       Lisp_Object input;
       Lisp_Object funval = Findirect_function (function, Qt);
-      size_t events = num_input_events;
+      uintmax_t events = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);
@@ -491,13 +489,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
   tem = string;
   for (i = 1; *tem; i++)
     {
-      strncpy (prompt1, tem + 1, sizeof prompt1 - 1);
-      prompt1[sizeof prompt1 - 1] = 0;
-      tem1 = strchr (prompt1, '\n');
-      if (tem1) *tem1 = 0;
-
-      visargs[0] = build_string (prompt1);
-      if (strchr (prompt1, '%'))
+      visargs[0] = make_string (tem + 1, strcspn (tem + 1, "\n"));
+      if (strchr (SSDATA (visargs[0]), '%'))
 	callint_message = Fformat (i, visargs);
       else
 	callint_message = visargs[0];
@@ -535,6 +528,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
+	  /* See bug#8479.  */
+	  if (! CHARACTERP (teml)) error ("Non-character input-event");
 	  visargs[i] = Fchar_to_string (teml);
 	  break;
 

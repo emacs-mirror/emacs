@@ -1,6 +1,6 @@
 ;;;; testcover-unsafep.el -- Use testcover to test unsafep's code coverage
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@engineer.com>
 ;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
@@ -100,7 +100,7 @@
       . (risky-local-variable format-alist))
     ( (setq buffer-display-count (delete-file "x"))
       . (function delete-file))
-    ;;These are actualy safe (they signal errors)
+    ;;These are actually safe (they signal errors)
     ( (apply '(x) '(1 2 3))
       . (function (x)))
     ( (let (((x))) 1)

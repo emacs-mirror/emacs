@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2011
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -471,8 +471,7 @@ Like `bury-buffer', but temporarily select EVENT's window."
 (defun mode-line-other-buffer () "\
 Switch to the most recently selected buffer other than the current one."
   (interactive)
-  (with-no-warnings ; We really do want to call `switch-to-buffer' here.
-    (switch-to-buffer (other-buffer))))
+  (switch-to-buffer (other-buffer) nil t))
 
 (defun mode-line-next-buffer (event)
   "Like `next-buffer', but temporarily select EVENT's window."
@@ -594,9 +593,12 @@ is okay.  See `mode-line-format'.")
 	 ".fas" ".lib" ".mem"
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
-         ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
-         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl" ".dfsl"
-	 ".p64fsl" ".d64fsl" ".dx64fsl"
+	 ;; OpenMCL / Clozure CL
+	 ".dfsl" ".pfsl" ".d64fsl" ".p64fsl" ".lx64fsl" ".lx32fsl"
+	 ".dx64fsl" ".dx32fsl" ".fx64fsl" ".fx32fsl" ".sx64fsl"
+	 ".sx32fsl" ".wx64fsl" ".wx32fsl"
+         ;; Other CL implementations (Allegro, LispWorks)
+         ".fasl" ".ufsl" ".fsl" ".dxl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext
@@ -771,7 +773,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "\C-o" 'delete-blank-lines)
 (define-key esc-map " " 'just-one-space)
 (define-key esc-map "z" 'zap-to-char)
-(define-key esc-map "=" 'count-lines-region)
+(define-key esc-map "=" 'count-words-region)
 (define-key ctl-x-map "=" 'what-cursor-position)
 (define-key esc-map ":" 'eval-expression)
 ;; Define ESC ESC : like ESC : for people who type ESC ESC out of habit.
@@ -832,6 +834,7 @@ if `inhibit-field-text-motion' is non-nil."
     (setq i (1+ i))))
 (define-key global-map [?\C-\M--] 'negative-argument)
 
+;; Update tutorial--default-keys if you change these.
 (define-key global-map "\177" 'delete-backward-char)
 (define-key global-map "\C-d" 'delete-char)
 
@@ -847,6 +850,8 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key global-map "\C-@" 'set-mark-command)
 ;; Many people are used to typing C-SPC and getting C-@.
 (define-key global-map [?\C- ] 'set-mark-command)
+(put 'set-mark-command :advertised-binding [?\C- ])
+
 (define-key ctl-x-map "\C-x" 'exchange-point-and-mark)
 (define-key ctl-x-map "\C-@" 'pop-global-mark)
 (define-key ctl-x-map [?\C- ] 'pop-global-mark)
@@ -1098,9 +1103,9 @@ if `inhibit-field-text-motion' is non-nil."
   "Keymap for characters following C-c.")
 (define-key global-map "\C-c" 'mode-specific-command-prefix)
 
-(global-set-key [M-right]  'forward-word)
+(global-set-key [M-right]  'right-word)
 (define-key esc-map [right] 'forward-word)
-(global-set-key [M-left]   'backward-word)
+(global-set-key [M-left]   'left-word)
 (define-key esc-map [left] 'backward-word)
 ;; ilya@math.ohio-state.edu says these bindings are standard on PC editors.
 (global-set-key [C-right]  'right-word)

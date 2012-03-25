@@ -1,6 +1,6 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
 
-Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2011
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2012
   Free Software Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
@@ -34,15 +34,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "ntlib.h"
 #include <winsock.h>
 #undef SOCKET_ERROR
-#define RECV(s,buf,len,flags) recv(s,buf,len,flags)
-#define SEND(s,buf,len,flags) send(s,buf,len,flags)
-#define CLOSESOCKET(s) closesocket(s)
+#define RECV(s,buf,len,flags) recv (s,buf,len,flags)
+#define SEND(s,buf,len,flags) send (s,buf,len,flags)
+#define CLOSESOCKET(s) closesocket (s)
 #else
 #include <netinet/in.h>
 #include <sys/socket.h>
-#define RECV(s,buf,len,flags) read(s,buf,len)
-#define SEND(s,buf,len,flags) write(s,buf,len)
-#define CLOSESOCKET(s) close(s)
+#define RECV(s,buf,len,flags) read (s,buf,len)
+#define SEND(s,buf,len,flags) write (s,buf,len)
+#define CLOSESOCKET(s) close (s)
 #endif
 #include <pop.h>
 
@@ -65,9 +65,7 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <netdb.h>
 #include <errno.h>
 #include <stdio.h>
-#ifdef STDC_HEADERS
 #include <string.h>
-#endif
 #include <unistd.h>
 
 #ifdef KERBEROS
@@ -103,7 +101,7 @@ extern char *krb_realmofhost (/* char * */);
 #endif /* KERBEROS */
 
 #ifndef WINDOWSNT
-#if !defined(HAVE_H_ERRNO) || !defined(HAVE_CONFIG_H)
+#if !defined (HAVE_H_ERRNO) || !defined (HAVE_CONFIG_H)
 extern int h_errno;
 #endif
 #endif
@@ -1069,7 +1067,7 @@ socket_connection (char *host, int flags)
     }
 
 #ifdef HAVE_GETADDRINFO
-  memset (&hints, 0, sizeof(hints));
+  memset (&hints, 0, sizeof (hints));
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_CANONNAME;
   hints.ai_family = AF_INET;
@@ -1161,7 +1159,7 @@ socket_connection (char *host, int flags)
 	    krb5_free_context (kcontext);
 	  strcpy (pop_error, KRB_ERROR);
 	  strncat (pop_error, error_message (rem),
-		   ERROR_MAX - sizeof(KRB_ERROR));
+		   ERROR_MAX - sizeof (KRB_ERROR));
 	  CLOSESOCKET (sock);
 	  return (-1);
 	}
@@ -1214,7 +1212,7 @@ socket_connection (char *host, int flags)
 		       ERROR_MAX - strlen (pop_error) - 1);
 	    }
 #elif defined HAVE_KRB5_ERROR_E_TEXT
-	  if (err_ret && err_ret->e_text && strlen(*err_ret->e_text))
+	  if (err_ret && err_ret->e_text && strlen (*err_ret->e_text))
 	    {
 	      strncat (pop_error, " [server says '",
 		       ERROR_MAX - strlen (pop_error) - 1);

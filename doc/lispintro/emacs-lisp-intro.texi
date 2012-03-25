@@ -11,7 +11,7 @@
 @c ---------
 @c <<<< For hard copy printing, this file is now
 @c      set for smallbook, which works for all sizes
-@c      of paper, and with Postscript figures >>>>
+@c      of paper, and with PostScript figures >>>>
 @set smallbook
 @ifset smallbook
 @smallbook
@@ -228,7 +228,7 @@ people who are not programmers.
 @sp 1
 Edition @value{edition-number}, @value{update-date}
 @sp 1
-Copyright @copyright{} 1990-1995, 1997, 2001-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1990-1995, 1997, 2001-2012 Free Software Foundation, Inc.
 @sp 1
 
 @iftex
@@ -334,6 +334,9 @@ every node in every chapter.
 @c global@pageno = -11
 @c end iftex
 
+@set COUNT-WORDS count-words-example
+@c Length of variable name chosen so that things still line up when expanded.
+
 @menu
 * Preface::                     What to look for.
 * List Processing::             What is Lisp?
@@ -357,7 +360,7 @@ every node in every chapter.
 * Conclusion::                  Now you have the basics.
 * the-the::                     An appendix: how to find reduplicated words.
 * Kill Ring::                   An appendix: how the kill ring works.
-* Full Graph::                  How to create a graph with labelled axes.
+* Full Graph::                  How to create a graph with labeled axes.
 * Free Software and Free Manuals::
 * GNU Free Documentation License::
 * Index::
@@ -702,8 +705,6 @@ Regular Expression Searches
 * fwd-para while::              The forward motion @code{while} loop.
 
 Counting: Repetition and Regexps
-@set COUNT-WORDS count-words-example
-@c Length of variable name chosen so that things still line up when expanded.
 
 * Why Count Words::
 * @value{COUNT-WORDS}::         Use a regexp, but find a problem.
@@ -793,9 +794,9 @@ The @code{current-kill} Function
 * Digression concerning error::  How to mislead humans, but not computers.
 * Determining the Element::
 
-A Graph with Labelled Axes
+A Graph with Labeled Axes
 
-* Labelled Example::
+* Labeled Example::
 * print-graph Varlist::         @code{let} expression in @code{print-graph}.
 * print-Y-axis::                Print a label for the vertical axis.
 * print-X-axis::                Print a horizontal label.
@@ -887,7 +888,7 @@ but in this case, it is best to treat it as a novel or as a travel guide
 to a country not yet visited: interesting, but not the same as being
 there.
 
-Much of this introduction is dedicated to walk-throughs or guided tours
+Much of this introduction is dedicated to walkthroughs or guided tours
 of code used in GNU Emacs.  These tours are designed for two purposes:
 first, to give you familiarity with real, working code (code you use
 every day); and, second, to give you familiarity with the way Emacs
@@ -1014,7 +1015,7 @@ Emacs with the on-line tutorial.  To use it, type @kbd{C-h t}.  (This
 means you press and release the @key{CTRL} key and the @kbd{h} at the
 same time, and then press and release @kbd{t}.)
 
-Also, I often refer to one of Emacs' standard commands by listing the
+Also, I often refer to one of Emacs's standard commands by listing the
 keys which you press to invoke the command and then giving the name of
 the command in parentheses, like this: @kbd{M-C-\}
 (@code{indent-region}).  What this means is that the
@@ -1023,7 +1024,7 @@ the command in parentheses, like this: @kbd{M-C-\}
 invoke the command; this is called @dfn{rebinding}.  @xref{Keymaps, ,
 Keymaps}.)  The abbreviation @kbd{M-C-\} means that you type your
 @key{META} key, @key{CTRL} key and @key{\} key all at the same time.
-(On many modern keyboards the @key{META} key is labelled
+(On many modern keyboards the @key{META} key is labeled
 @key{ALT}.)
 Sometimes a combination like this is called a keychord, since it is
 similar to the way you play a chord on a piano.  If your keyboard does
@@ -1031,7 +1032,7 @@ not have a @key{META} key, the @key{ESC} key prefix is used in place
 of it.  In this case, @kbd{M-C-\} means that you press and release your
 @key{ESC} key and then type the @key{CTRL} key and the @key{\} key at
 the same time.  But usually @kbd{M-C-\} means press the @key{CTRL} key
-along with the key that is labelled @key{ALT} and, at the same time,
+along with the key that is labeled @key{ALT} and, at the same time,
 press the @key{\} key.
 
 In addition to typing a lone keychord, you can prefix what you type
@@ -1324,7 +1325,7 @@ jumps the cursor back to the matching opening parenthesis, so you can
 see which one it is.  This is very useful, since every list you type
 in Lisp must have its closing parenthesis match its opening
 parenthesis.  (@xref{Major Modes, , Major Modes, emacs, The GNU Emacs
-Manual}, for more information about Emacs' modes.)
+Manual}, for more information about Emacs's modes.)
 
 @node Run a Program, Making Errors, Lisp Lists, List Processing
 @comment  node-name,  next,  previous,  up
@@ -1401,7 +1402,7 @@ This is a harmless activity; and indeed, we will often try to generate
 error messages intentionally.  Once you understand the jargon, error
 messages can be informative.  Instead of being called ``error''
 messages, they should be called ``help'' messages.  They are like
-signposts to a traveller in a strange country; deciphering them can be
+signposts to a traveler in a strange country; deciphering them can be
 hard, but once understood, they can point the way.
 
 The error message is generated by a built-in GNU Emacs debugger.  We
@@ -2040,7 +2041,7 @@ the first argument.  This function takes three arguments.  Its first
 argument is the string of characters, the second and third arguments are
 numbers that indicate the beginning and end of the substring.  The
 numbers are a count of the number of characters (including spaces and
-punctuations) from the beginning of the string.
+punctuation) from the beginning of the string.
 
 @need 800
 For example, if you evaluate the following:
@@ -2961,7 +2962,7 @@ have eyes.  When a computer program works on a buffer, that buffer does
 not need to be visible on the screen.
 
 @code{switch-to-buffer} is designed for humans and does two different
-things: it switches the buffer to which Emacs' attention is directed; and
+things: it switches the buffer to which Emacs's attention is directed; and
 it switches the buffer displayed in the window to the new buffer.
 @code{set-buffer}, on the other hand, does only one thing: it switches
 the attention of the computer program to a different buffer.  The buffer
@@ -4641,7 +4642,7 @@ Select a buffer for Emacs to be active in and display it in the current
 window so users can look at it.  Usually bound to @kbd{C-x b}.
 
 @item set-buffer
-Switch Emacs' attention to a buffer on which programs will run.  Don't
+Switch Emacs's attention to a buffer on which programs will run.  Don't
 alter what the window is showing.
 
 @item buffer-size
@@ -4749,7 +4750,7 @@ type in the name of the function whose source code you want to see,
 such as @code{mark-whole-buffer}, and then type @key{RET}.  Emacs will
 switch buffers and display the source code for the function on your
 screen.  To switch back to your current buffer, type @kbd{C-x b
-@key{RET}}.  (On some keyboards, the @key{META} key is labelled
+@key{RET}}.  (On some keyboards, the @key{META} key is labeled
 @key{ALT}.)
 
 @c !!! 22.1.1 tags table location in this paragraph
@@ -5500,7 +5501,7 @@ Written in skeletal form, the workings of the body look like this:
 
 In summary, @code{append-to-buffer} works as follows: it saves the
 value of the current buffer in the variable called @code{oldbuf}.  It
-gets the new buffer (creating one if need be) and switches Emacs'
+gets the new buffer (creating one if need be) and switches Emacs's
 attention to it.  Using the value of @code{oldbuf}, it inserts the
 region of text from the old buffer into the new buffer; and then using
 @code{save-excursion}, it brings you back to your original buffer.
@@ -6008,7 +6009,7 @@ expression in detail.  The expression looks like this:
 @end smallexample
 
 @noindent
-The expression @code{(set-buffer buffer)} changes Emacs' attention
+The expression @code{(set-buffer buffer)} changes Emacs's attention
 from the current buffer to the one from which the text will copied.
 In that buffer, the variables @code{start} and @code{end} are set to
 the beginning and end of the buffer, using the commands
@@ -8200,7 +8201,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
      ;;    it will be set in an error
      (setq this-command 'kill-region)
      ;;    Finally, in the then-part, send a message if you may copy
-     ;;    the text to the kill ring without signally an error, but
+     ;;    the text to the kill ring without signaling an error, but
      ;;    don't if you may not.
 @end group
 @group
@@ -12607,7 +12608,7 @@ four arguments:
 @enumerate
 @item
 The first argument is the regular expression that the function searches
-for.  The regular expression will be a string between quotations marks.
+for.  The regular expression will be a string between quotation marks.
 
 @item
 The optional second argument limits how far the function will search; it is a
@@ -13656,7 +13657,7 @@ list of supported languages.
 
 The @code{etags} program handles more than 20 languages, including
 Emacs Lisp, Common Lisp, Scheme, C, C++, Ada, Fortran, HTML, Java,
-LaTeX, Pascal, Perl, Postscript, Python, TeX, Texinfo, makefiles, and
+LaTeX, Pascal, Perl, PostScript, Python, TeX, Texinfo, makefiles, and
 most assemblers.  The program has no switches for specifying the
 language; it recognizes the language in an input file according to its
 file name and contents.
@@ -13971,10 +13972,9 @@ this is:
 
 @noindent
 The buffer's syntax table determines which characters are and are not
-word constituents.  (@xref{Syntax, , What Constitutes a Word or
-Symbol?}, for more about syntax.  Also, see @ref{Syntax, Syntax, The
-Syntax Table, emacs, The GNU Emacs Manual}, and @ref{Syntax Tables, ,
-Syntax Tables, elisp, The GNU Emacs Lisp Reference Manual}.)
+word constituents.  For more information about syntax,
+@pxref{Syntax Tables, , Syntax Tables, elisp, The GNU Emacs Lisp
+Reference Manual}.
 
 @need 800
 The search expression looks like this:
@@ -14835,8 +14835,7 @@ constituent} characters.  Word constituent characters are members of
 one syntax category.  Other syntax categories include the class of
 punctuation characters, such as the period and the comma, and the
 class of whitespace characters, such as the blank space and the tab
-character.  (For more information, see @ref{Syntax, Syntax, The Syntax
-Table, emacs, The GNU Emacs Manual}, and @ref{Syntax Tables, , Syntax
+character.  (For more information, @pxref{Syntax Tables, , Syntax
 Tables, elisp, The GNU Emacs Lisp Reference Manual}.)
 
 Syntax tables specify which characters belong to which categories.
@@ -15006,13 +15005,13 @@ word and symbol by symbol, and another expression that counts the
 jumps.  The true-or-false-test for the @code{while} loop should test
 true so long as point should jump forward, and false when point is at
 the end of the definition.  We have already redefined the regular
-expression for this (@pxref{Syntax}), so the loop is straightforward:
+expression for this, so the loop is straightforward:
 
 @smallexample
 @group
 (while (and (< (point) end)
             (re-search-forward
-             "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*" end t)
+             "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*" end t))
   (setq count (1+ count)))
 @end group
 @end smallexample
@@ -15285,7 +15284,7 @@ specification.  Since people worry that a computer is broken if they
 don't see anything going on, the first line of the body is a
 message.
 
-The next line contains a @code{save-excursion} that returns Emacs'
+The next line contains a @code{save-excursion} that returns Emacs's
 attention to the current buffer when the function completes.  This is
 useful in case you embed this function in another function that
 presumes point is restored to the original buffer.
@@ -16955,14 +16954,14 @@ Either of these two functions, @code{graph-body-print} or
 @section Need for Printed Axes
 
 A graph needs printed axes, so you can orient yourself.  For a do-once
-project, it may be reasonable to draw the axes by hand using Emacs'
+project, it may be reasonable to draw the axes by hand using Emacs's
 Picture mode; but a graph drawing function may be used more than once.
 
 For this reason, I have written enhancements to the basic
 @code{print-graph-body} function that automatically print labels for
 the horizontal and vertical axes.  Since the label printing functions
 do not contain much new material, I have placed their description in
-an appendix.  @xref{Full Graph, , A Graph with Labelled Axes}.
+an appendix.  @xref{Full Graph, , A Graph with Labeled Axes}.
 
 @node Line Graph Exercise,  , Printed Axes, Readying a Graph
 @section Exercise
@@ -17003,10 +17002,10 @@ expressions in Emacs Lisp you can change or extend Emacs.
 
 @node Default Configuration, Site-wide Init, Emacs Initialization, Emacs Initialization
 @ifnottex
-@unnumberedsec Emacs' Default Configuration
+@unnumberedsec Emacs's Default Configuration
 @end ifnottex
 
-There are those who appreciate Emacs' default configuration.  After
+There are those who appreciate Emacs's default configuration.  After
 all, Emacs starts you in C mode when you edit a C file, starts you in
 Fortran mode when you edit a Fortran file, and starts you in
 Fundamental mode when you edit an unadorned file.  This all makes
@@ -17034,7 +17033,7 @@ you may.  The new format is consistent with the Emacs Lisp file
 naming conventions; the old format saves typing.}
 
 A @file{~/.emacs} file contains Emacs Lisp code.  You can write this
-code yourself; or you can use Emacs' @code{customize} feature to write
+code yourself; or you can use Emacs's @code{customize} feature to write
 the code for you.  You can combine your own expressions and
 auto-written Customize expressions in your @file{.emacs} file.
 
@@ -17099,7 +17098,7 @@ initialization file.
 @findex defcustom
 
 You can specify variables using @code{defcustom} so that you and
-others can then use Emacs' @code{customize} feature to set their
+others can then use Emacs's @code{customize} feature to set their
 values.  (You cannot use @code{customize} to write function
 definitions; but you can write @code{defuns} in your @file{.emacs}
 file.  Indeed, you can write any Lisp expression in your @file{.emacs}
@@ -17766,7 +17765,7 @@ the keys to @code{split-window-quietly}, like this:
 @vindex load-path
 If you load many extensions, as I do, then instead of specifying the
 exact location of the extension file, as shown above, you can specify
-that directory as part of Emacs' @code{load-path}.  Then, when Emacs
+that directory as part of Emacs's @code{load-path}.  Then, when Emacs
 loads a file, it will search that directory as well as its default
 list of directories.  (The default list is specified in @file{paths.h}
 when Emacs is built.)
@@ -19447,7 +19446,7 @@ whether the kill ring is full or empty.  This is an act of
 exploration.
 
 From the human point of view, the act of exploration and discovery is
-not necessarily an error, and therefore should not be labelled as one,
+not necessarily an error, and therefore should not be labeled as one,
 even in the bowels of a computer.  As it is, the code in Emacs implies
 that a human who is acting virtuously, by exploring his or her
 environment, is making an error.  This is bad.  Even though the computer
@@ -19760,25 +19759,25 @@ as @code{kill-ring-yank-pointer} do not use this library, possibly
 because they were written earlier.
 
 @node Full Graph, Free Software and Free Manuals, Kill Ring, Top
-@appendix A Graph with Labelled Axes
+@appendix A Graph with Labeled Axes
 
 Printed axes help you understand a graph.  They convey scale.  In an
 earlier chapter (@pxref{Readying a Graph, ,  Readying a Graph}), we
 wrote the code to print the body of a graph.  Here we write the code
-for printing and labelling vertical and horizontal axes, along with the
+for printing and labeling vertical and horizontal axes, along with the
 body itself.
 
 @menu
-* Labelled Example::
+* Labeled Example::
 * print-graph Varlist::         @code{let} expression in @code{print-graph}.
 * print-Y-axis::                Print a label for the vertical axis.
 * print-X-axis::                Print a horizontal label.
 * Print Whole Graph::           The function to print a complete graph.
 @end menu
 
-@node Labelled Example, print-graph Varlist, Full Graph, Full Graph
+@node Labeled Example, print-graph Varlist, Full Graph, Full Graph
 @ifnottex
-@unnumberedsec Labelled Example Graph
+@unnumberedsec Labeled Example Graph
 @end ifnottex
 
 Since insertions fill a buffer to the right and below point, the new
@@ -19821,9 +19820,9 @@ Here is an example of how a finished graph should look:
 @end smallexample
 
 @noindent
-In this graph, both the vertical and the horizontal axes are labelled
+In this graph, both the vertical and the horizontal axes are labeled
 with numbers.  However, in some graphs, the horizontal axis is time
-and would be better labelled with months, like this:
+and would be better labeled with months, like this:
 
 @smallexample
 @group
@@ -19838,9 +19837,9 @@ and would be better labelled with months, like this:
 @end smallexample
 
 Indeed, with a little thought, we can easily come up with a variety of
-vertical and horizontal labelling schemes.  Our task could become
+vertical and horizontal labeling schemes.  Our task could become
 complicated.  But complications breed confusion.  Rather than permit
-this, it is better choose a simple labelling scheme for our first
+this, it is better choose a simple labeling scheme for our first
 effort, and to modify or replace it later.
 
 @need 1200
@@ -19864,7 +19863,7 @@ These considerations suggest the following outline for the
 We can work on each part of the @code{print-graph} function definition
 in turn.
 
-@node print-graph Varlist, print-Y-axis, Labelled Example, Full Graph
+@node print-graph Varlist, print-Y-axis, Labeled Example, Full Graph
 @comment  node-name,  next,  previous,  up
 @appendixsec The @code{print-graph} Varlist
 @cindex @code{print-graph} varlist
@@ -20391,7 +20390,7 @@ blank spaces and also separated according to the value of the variable
 The value of the variable @code{X-axis-label-spacing} should itself be
 measured in units of @code{symbol-width}, since you may want to change
 the width of the symbols that you are using to print the body of the
-graph without changing the ways the graph is labelled.
+graph without changing the ways the graph is labeled.
 
 @menu
 * Similarities differences::    Much like @code{print-Y-axis}, but not exactly.
@@ -20722,7 +20721,7 @@ Emacs will print the horizontal axis like this:
 Now we are nearly ready to print the whole graph.
 
 The function to print the graph with the proper labels follows the
-outline we created earlier (@pxref{Full Graph, , A Graph with Labelled
+outline we created earlier (@pxref{Full Graph, , A Graph with Labeled
 Axes}), but with additions.
 
 @need 1250
@@ -20857,7 +20856,7 @@ Finally, the code for the @code{print-graph} function:
 ;;; @r{Final version.}
 (defun print-graph
   (numbers-list &optional vertical-step)
-  "Print labelled bar graph of the NUMBERS-LIST.
+  "Print labeled bar graph of the NUMBERS-LIST.
 The numbers-list consists of the Y-axis values.
 @end group
 
@@ -21478,7 +21477,7 @@ each column."
 @group
 (defun print-graph
   (numbers-list &optional vertical-step horizontal-step)
-  "Print labelled bar graph of the NUMBERS-LIST.
+  "Print labeled bar graph of the NUMBERS-LIST.
 The numbers-list consists of the Y-axis values.
 @end group
 
@@ -21979,7 +21978,7 @@ each column."
 @group
 (defun print-graph
   (numbers-list &optional vertical-step horizontal-step)
-  "Print labelled bar graph of the NUMBERS-LIST.
+  "Print labeled bar graph of the NUMBERS-LIST.
 The numbers-list consists of the Y-axis values.
 @end group
 
@@ -22275,4 +22274,3 @@ airplane.
 @c @end iftex
 
 @bye
-

@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft W32 API.
-   Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -68,7 +68,7 @@ struct w32_palette_entry {
 #endif
 };
 
-extern void w32_regenerate_palette(struct frame *f);
+extern void w32_regenerate_palette (struct frame *f);
 
 
 /* For each display (currently only one on w32), we have a structure that
@@ -209,7 +209,7 @@ extern int x_display_pixel_width (struct w32_display_info *);
    the information that is specific to W32 windows.  */
 
 /* Put some things in x_output for compatibility.
-   NTEMACS_TODO: Move all common things here to eliminate unneccesary
+   NTEMACS_TODO: Move all common things here to eliminate unnecessary
    diffs between X and w32 code.  */
 struct x_output
 {
@@ -229,7 +229,7 @@ enum
 {
   /* Values for focus_state, used as bit mask.
      EXPLICIT means we received a FocusIn for the frame and know it has
-     the focus.  IMPLICIT means we recevied an EnterNotify and the frame
+     the focus.  IMPLICIT means we received an EnterNotify and the frame
      may have the focus if no window manager is running.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   FOCUS_NONE     = 0,
@@ -637,7 +637,7 @@ extern void x_delete_display (struct w32_display_info *dpyinfo);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
-   fuction keys), so we define our own.  */
+   function keys), so we define our own.  */
 #define VK_NUMPAD_BEGIN		0x92
 #define VK_NUMPAD_CLEAR		(VK_NUMPAD_BEGIN + 0)
 #define VK_NUMPAD_ENTER		(VK_NUMPAD_BEGIN + 1)

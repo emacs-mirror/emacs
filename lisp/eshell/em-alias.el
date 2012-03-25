@@ -1,6 +1,6 @@
 ;;; em-alias.el --- creation and management of command aliases
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -74,7 +74,7 @@
 ;; session, it is likely that they are experiencing a spelling
 ;; difficulty associated with a certain command.  To combat this,
 ;; Eshell will offer to automatically define an alias for that
-;; mispelled command, once a given tolerance threshold has been
+;; misspelled command, once a given tolerance threshold has been
 ;; reached.
 
 ;; Whenever the same bad command name is encountered

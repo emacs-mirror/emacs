@@ -1,6 +1,6 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
-;; Copyright (C) 1993, 1995, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -349,7 +349,7 @@ See `mh-store-msg' for a description of DIRECTORY."
         (error "Error occurred during execution of %s" command)))))
 
 ;;;###mh-autoload
-(defun mh-undo-folder (&rest _ignored)
+(defun mh-undo-folder (&rest ignored)
   "Undo all refiles and deletes in the current folder.
 Arguments are IGNORED (for `revert-buffer')."
   (interactive)

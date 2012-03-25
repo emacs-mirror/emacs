@@ -1,6 +1,6 @@
 ;;; lao-util.el --- utilities for Lao -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -371,8 +371,8 @@ consonant.  It is a list vowel characters or 0.  The element 0
 indicate the place to embed a consonant.
 
 Optional WITH-MAA-SAKOD-RULE is a rule to re-order and modify VOWEL
-follwoing a consonant and preceding a maa-sakod character.  If it is
-nil, NO-MAA-SAKOD-RULE is used.  The maa-sakod character is alwasy
+following a consonant and preceding a maa-sakod character.  If it is
+nil, NO-MAA-SAKOD-RULE is used.  The maa-sakod character is always
 appended at the tail.
 
 For instance, rule `(\"(1`WM(B\" (?(1`(B t ?(1W(B ?(1M(B))' tells that this vowel
@@ -386,7 +386,7 @@ character MAA-SAKOD-n.")
   "Transcribe a Romanized Lao syllable in the region FROM and TO to Lao string.
 Only the first syllable is transcribed.
 The value has the form: (START END LAO-STRING), where
-START and END are the beggining and end positions of the Roman Lao syllable,
+START and END are the beginning and end positions of the Roman Lao syllable,
 LAO-STRING is the Lao character transcription of it.
 
 Optional 3rd arg STR, if non-nil, is a string to search for Roman Lao

@@ -1,6 +1,6 @@
 ;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver
 
-;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2011
+;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -83,7 +83,7 @@ For example, yacc/lex files need additional chain rules, or inferences.")
 	    :documentation
 	    "The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
-it's rule definition.")
+its rule definition.")
    (autoconf :initarg :autoconf
 	     :initform nil
 	     :type list
@@ -97,8 +97,8 @@ use the same autoconf form.")
    (objectextention :initarg :objectextention
 		    :type string
 		    :documentation
-		    "A string which is the extention used for object files.
-For example, C code uses .o on unix, and Emacs Lisp uses .elc.")
+		    "A string which is the extension used for object files.
+For example, C code uses .o on Unix, and Emacs Lisp uses .elc.")
    )
   "A program used to compile or link a program via a Makefile.
 Contains everything needed to output code into a Makefile, or autoconf
@@ -149,7 +149,7 @@ belonging to the target name.")
 	  :type list
 	  :custom (repeat string)
 	  :documentation "Scripts to execute.
-These scripst will be executed in sh (Unless the SHELL variable is overriden).
+These scripts will be executed in sh (Unless the SHELL variable is overridden).
 Do not prefix with TAB.
 Each individual element of this list can be either a string, or
 a lambda function.  (The custom element does not yet express that.")

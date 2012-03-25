@@ -1,6 +1,6 @@
 ;;; button.el --- clickable buttons
 ;;
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions
@@ -42,7 +42,7 @@
 ;; button face may not be visible.  Using overlays avoids this.
 ;;
 ;; Using `define-button-type' to define default properties for buttons
-;; is not necessary, but it is is encouraged, since doing so makes the
+;; is not necessary, but it is encouraged, since doing so makes the
 ;; resulting code clearer and more efficient.
 ;;
 

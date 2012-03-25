@@ -1,10 +1,10 @@
 ;;; desktop.el --- save partial status of Emacs when killed
 
-;; Copyright (C) 1993-1995, 1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: convenience
-;; Favourite-brand-of-beer: None, I hate beer.
+;; Favorite-brand-of-beer: None, I hate beer.
 
 ;; This file is part of GNU Emacs.
 
@@ -147,11 +147,14 @@ backward compatibility.")
 
 ;;;###autoload
 (define-minor-mode desktop-save-mode
-  "Toggle desktop saving mode.
-With numeric ARG, turn desktop saving on if ARG is positive, off
-otherwise.  If desktop saving is turned on, the state of Emacs is
-saved from one session to another.  See variable `desktop-save'
-and function `desktop-read' for details."
+  "Toggle desktop saving (Desktop Save mode).
+With a prefix argument ARG, enable Desktop Save mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+If Desktop Save mode is enabled, the state of Emacs is saved from
+one session to another.  See variable `desktop-save' and function
+`desktop-read' for details."
   :global t
   :group 'desktop)
 
@@ -699,9 +702,9 @@ is nil, ask the user where to save the desktop."
 ;; ----------------------------------------------------------------------------
 (defun desktop-internal-v2s (value)
   "Convert VALUE to a pair (QUOTE . TXT); (eval (read TXT)) gives VALUE.
-TXT is a string that when read and evaluated yields value.
+TXT is a string that when read and evaluated yields VALUE.
 QUOTE may be `may' (value may be quoted),
-`must' (values must be quoted), or nil (value may not be quoted)."
+`must' (value must be quoted), or nil (value must not be quoted)."
   (cond
     ((or (numberp value) (null value) (eq t value) (keywordp value))
      (cons 'may (prin1-to-string value)))
@@ -1155,7 +1158,7 @@ directory DIRNAME."
       (desktop-load-file desktop-buffer-major-mode)
       (let ((buffer-list (buffer-list))
 	    (result
-	     (condition-case-no-debug err
+	     (condition-case-unless-debug err
 		 (funcall (or (cdr (assq desktop-buffer-major-mode
 					 desktop-buffer-mode-handlers))
 			      'desktop-restore-file-buffer)
@@ -1173,7 +1176,7 @@ directory DIRNAME."
 	  (setq desktop-buffer-fail-count (1+ desktop-buffer-fail-count))
 	  (setq result nil))
 	;; Restore buffer list order with new buffer at end. Don't change
-	;; the order for old desktop files (old desktop module behaviour).
+	;; the order for old desktop files (old desktop module behavior).
 	(unless (< desktop-file-version 206)
 	  (mapc 'bury-buffer buffer-list)
 	  (when result (bury-buffer result)))

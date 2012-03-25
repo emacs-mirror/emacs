@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm
 
-;; Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -33,6 +33,7 @@
   "Set to a list if the XTerm supports modifyOtherKeys or
 reporting the background color.  Set to 'check to check for those
 features.  Set to nil to skip the checks."
+  :version "24.1"
   :group 'xterm
   :type '(choice (const :tag "No" nil)
                  (const :tag "Check" check)
@@ -460,7 +461,7 @@ features.  Set to nil to skip the checks."
   "Terminal initialization function for xterm."
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
   ;; rxvt's keybindings are incompatible with xterm's. It is
-  ;; better in that case to use rxvt's initializion function.
+  ;; better in that case to use rxvt's initialization function.
   (if (and (getenv "COLORTERM" (selected-frame))
 	   (string-match "\\`rxvt" (getenv "COLORTERM" (selected-frame))))
       (tty-run-terminal-initialization (selected-frame) "rxvt")
@@ -637,7 +638,7 @@ versions of xterm."
 	;; 216 non-gray colors first
 	(let ((r 0) (g 0) (b 0))
 	  (while (> ncolors 24)
-	    ;; This and other formulae taken from 256colres.pl and
+	    ;; This and other formulas taken from 256colres.pl and
 	    ;; 88colres.pl in the xterm distribution.
 	    (tty-color-define (format "color-%d" (- 256 ncolors))
 			      (- 256 ncolors)

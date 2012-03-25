@@ -1,6 +1,6 @@
 ;;; vc-dispatcher.el -- generic command-dispatcher facility.
 
-;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Eric S. Raymond <esr@thyrsus.com>
@@ -103,7 +103,7 @@
 ;;
 ;; When the client mode adds a local vc-mode-line-hook to a buffer, it
 ;; will be called with the buffer file name as argument whenever the
-;; dispatcher resynchs the buffer.
+;; dispatcher resyncs the buffer.
 
 ;; To do:
 ;;
@@ -666,18 +666,15 @@ the buffer contents as a comment."
       (funcall log-operation
 	       log-fileset
 	       log-entry))
-    ;; Remove checkin window (after the checkin so that if that fails
-    ;; we don't zap the log buffer and the typing therein).
-    ;; -- IMO this should be replaced with quit-window
-    (cond ((and logbuf vc-delete-logbuf-window)
-	   (delete-windows-on logbuf (selected-frame))
-	   ;; Kill buffer and delete any other dedicated windows/frames.
-	   (kill-buffer logbuf))
-	  (logbuf
-           (with-selected-window (or (get-buffer-window logbuf 0)
-                                     (selected-window))
-             (with-current-buffer logbuf
-               (bury-buffer)))))
+
+    ;; Quit windows on logbuf.
+    (cond
+     ((not logbuf))
+     (vc-delete-logbuf-window
+      (quit-windows-on logbuf t (selected-frame)))
+     (t
+      (quit-windows-on logbuf nil 0)))
+
     ;; Now make sure we see the expanded headers
     (when log-fileset
       (mapc

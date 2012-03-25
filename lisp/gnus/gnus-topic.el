@@ -1,6 +1,6 @@
 ;;; gnus-topic.el --- a folding minor mode for Gnus group buffers
 
-;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Ilja Weis <kult@uni-paderborn.de>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -430,7 +430,7 @@ inheritance."
 					regexp list-topic topic-level)
   "List all newsgroups with unread articles of level LEVEL or lower.
 Use the `gnus-group-topics' to sort the groups.
-If PREDICTE is a function, list groups that the function returns non-nil;
+If PREDICATE is a function, list groups that the function returns non-nil;
 if it is t, list groups that have no unread articles.
 If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
   (set-buffer gnus-group-buffer)
@@ -582,7 +582,7 @@ articles in the topic and its subtopics."
 	       (or gnus-topic-display-empty-topics ;We want empty topics
 		   (not (zerop unread))	;Non-empty
 		   tick			;Ticked articles
-		   (/= point-max (point-max)))) ;Unactivated groups
+		   (/= point-max (point-max)))) ;Inactive groups
       (gnus-extent-start-open (point))
       (gnus-topic-insert-topic-line
        (car type) visiblep
@@ -969,12 +969,15 @@ articles in the topic and its subtopics."
   (if (not group)
       (if (not (memq 'gnus-topic props))
 	  (goto-char (point-max))
-	(gnus-topic-goto-topic (symbol-name (cadr (memq 'gnus-topic props)))))
+	(let ((topic (symbol-name (cadr (memq 'gnus-topic props)))))
+	  (or (gnus-topic-goto-topic topic)
+	      (gnus-topic-goto-topic (gnus-topic-next-topic topic)))))
     (if (gnus-group-goto-group group)
 	t
       ;; The group is no longer visible.
       (let* ((list (assoc (gnus-group-topic group) gnus-topic-alist))
-	     (after (cdr (member group (cdr list)))))
+	     (topic-visible (save-excursion (gnus-topic-goto-topic (car list))))
+	     (after (and topic-visible (cdr (member group (cdr list))))))
 	;; First try to put point on a group after the current one.
 	(while (and after
 		    (not (gnus-group-goto-group (car after))))
@@ -989,7 +992,9 @@ articles in the topic and its subtopics."
 	(if (not (car list))
 	    (goto-char (point-min))
 	  (unless after
-	    (gnus-topic-goto-topic (car list))
+	    (if topic-visible
+		(gnus-goto-char topic-visible)
+	      (gnus-topic-goto-topic (gnus-topic-next-topic (car list))))
 	    (setq after nil)))
 	t))))
 
@@ -1296,6 +1301,8 @@ When used interactively, PARENT will be the topic under point."
 ;;     region, the behavior of move or remove is not right.
 ;;  2. Can't process on several marked groups with a same name,
 ;;     because gnus-group-marked only keeps one copy.
+
+(defvar gnus-topic-history nil)
 
 (defun gnus-topic-move-group (n topic &optional copyp)
   "Move the next N groups to TOPIC.

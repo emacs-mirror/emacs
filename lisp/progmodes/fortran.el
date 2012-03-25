@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993-1995, 1997-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -29,7 +29,7 @@
 ;; form.  For editing Fortran 90 free format source, use `f90-mode'
 ;; (f90.el).  It is meant to support the GNU Fortran language
 ;; implemented by g77 (its extensions to Fortran77 and
-;; interpretations, e.g. of blackslash in strings).
+;; interpretations, e.g. of backslash in strings).
 
 ;;; History:
 
@@ -571,7 +571,7 @@ in the Fortran entry in `hs-special-modes-alist'.")
    ;; An alternative is to match on THEN at a line end, eg:
    ;;   ".*)[ \t]*then[ \t]*\\($\\|!\\)"
    ;; This would also match ELSE branches, though. This does not seem
-   ;; right to me, because then one has neighbouring blocks that are
+   ;; right to me, because then one has neighboring blocks that are
    ;; not nested in each other.
    "\\(if[ \t]*(\\(.*\\|"
    ".*\n\\([^if]*\\([^i].\\|.[^f]\\|.\\>\\)\\)\\)\\<then\\|"
@@ -665,7 +665,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
          ["Reset to Saved" Custom-reset-saved :active t
           :help "Reset all edited or set settings to saved"]
          ["Reset to Standard Settings" Custom-reset-standard :active t
-          :help "Erase all cusomizations in buffer"]
+          :help "Erase all customizations in buffer"]
          )
         "--"
         ["Comment Region" fortran-comment-region mark-active]
@@ -1097,7 +1097,7 @@ See also `fortran-window-create-momentarily'."
            (scroll-bar-width (- (nth 2 window-edges)
                                 (car window-edges)
                                 (window-width))))
-      (split-window-horizontally (+ fortran-line-length scroll-bar-width)))
+      (split-window-right (+ fortran-line-length scroll-bar-width)))
     (other-window 1)
     (switch-to-buffer " fortran-window-extra" t)
     (select-window (previous-window))))
@@ -1462,7 +1462,7 @@ Return point or nil."
 
 (defun fortran-beginning-do ()
   "Search backwards for first unmatched DO [WHILE].
-Return point or nil.  Ignores labelled DO loops (ie DO 10 ... 10 CONTINUE)."
+Return point or nil.  Ignores labeled DO loops (ie DO 10 ... 10 CONTINUE)."
   (let ((case-fold-search t)
         (dostart-re "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[^0-9]"))
     (if (save-excursion
@@ -1482,7 +1482,7 @@ Return point or nil.  Ignores labelled DO loops (ie DO 10 ... 10 CONTINUE)."
             (skip-chars-forward " \t0-9")
             (cond ((looking-at dostart-re)
                    (setq count (1- count)))
-                  ;; Note labelled loop ends not considered.
+                  ;; Note labeled loop ends not considered.
                   ((looking-at "end[ \t]*do\\b")
                    (setq count (1+ count)))))
           (and (zerop count)

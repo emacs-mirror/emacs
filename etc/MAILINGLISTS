@@ -170,7 +170,7 @@ for yourself in particular, you may have to hire someone.  The GNU
 project maintains a list of people providing such services.  It is
 found in <URL:http://www.gnu.org/prep/SERVICE>.
 
-Anything addressed to the implementors and maintainers of a GNU program
+Anything addressed to the implementers and maintainers of a GNU program
 via a bug-* list, should NOT be sent to the corresponding info-* or
 help-* list.
 
@@ -318,7 +318,7 @@ mode: outline
 fill-column: 72
 End:
 
-Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1999, 2001-2012  Free Software Foundation, Inc.
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this file, to deal in the file without restriction, including

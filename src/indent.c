@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2011
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -56,7 +56,7 @@ EMACS_INT last_known_column_point;
 static int last_known_column_modified;
 
 static EMACS_INT current_column_1 (void);
-static EMACS_INT position_indentation (int);
+static EMACS_INT position_indentation (ptrdiff_t);
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -284,7 +284,7 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
     else								\
       {									\
 	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
-	  width = ASIZE (DISP_CHAR_VECTOR (dp, ch));			\
+	  width = sanitize_char_width (ASIZE (DISP_CHAR_VECTOR (dp, ch))); \
 	else								\
 	  width = CHAR_WIDTH (ch);					\
       }									\
@@ -318,15 +318,6 @@ invalidate_current_column (void)
   last_known_column_point = 0;
 }
 
-/* Return a non-outlandish value for the tab width.  */
-
-static int
-sane_tab_width (void)
-{
-  EMACS_INT n = XFASTINT (BVAR (current_buffer, tab_width));
-  return 0 < n && n <= 1000 ? n : 8;
-}
-
 EMACS_INT
 current_column (void)
 {
@@ -335,7 +326,7 @@ current_column (void)
   register int tab_seen;
   EMACS_INT post_tab;
   register int c;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
 
@@ -480,7 +471,7 @@ check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
   if (CONSP (val = get_char_property_and_overlay
 	     (make_number (pos), Qdisplay, Qnil, &overlay))
       && EQ (Qspace, XCAR (val)))
-    { /* FIXME: Use calc_pixel_width_or_height, as in term.c.  */
+    { /* FIXME: Use calc_pixel_width_or_height.  */
       Lisp_Object plist = XCDR (val), prop;
       int width = -1;
 
@@ -515,7 +506,7 @@ check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
 static void
 scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 {
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -725,15 +716,14 @@ current_column_1 (void)
    If END is nil, that stands for the end of STRING.  */
 
 static double
-string_display_width (string, beg, end)
-     Lisp_Object string, beg, end;
+string_display_width (Lisp_Object string, Lisp_Object beg, Lisp_Object end)
 {
   register int col;
   register unsigned char *ptr, *stop;
   register int tab_seen;
   int post_tab;
   register int c;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int b, e;
@@ -809,7 +799,7 @@ The return value is COLUMN.  */)
 {
   EMACS_INT mincol;
   register EMACS_INT fromcol;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
 
   CHECK_NUMBER (column);
   if (NILP (minimum))
@@ -865,10 +855,10 @@ following any initial whitespace.  */)
 }
 
 static EMACS_INT
-position_indentation (register int pos_byte)
+position_indentation (ptrdiff_t pos_byte)
 {
   register EMACS_INT column = 0;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   register unsigned char *p;
   register unsigned char *stop;
   unsigned char *start;
@@ -1117,7 +1107,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   register EMACS_INT pos;
   EMACS_INT pos_byte;
   register int c = 0;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = window_display_table (win);
   EMACS_INT selective
@@ -1433,7 +1423,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
          the text character-by-character.  */
       if (current_buffer->width_run_cache && pos >= next_width_run)
         {
-          EMACS_INT run_end;
+          ptrdiff_t run_end;
           int common_width
             = region_cache_forward (current_buffer,
                                     current_buffer->width_run_cache,
@@ -1553,7 +1543,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 	      n = 1;
 	    }
 
-	  for (i = n - 1; i >= 0; --i)
+	  for (i = 0; i < n; ++i)
 	    {
 	      if (VECTORP (charvec))
 		{
@@ -1685,7 +1675,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
     val_compute_motion.prevhpos = contin_hpos;
   else
     val_compute_motion.prevhpos = prev_hpos;
-  /* We alalways handle all of them here; none of them remain to do.  */
+  /* We always handle all of them here; none of them remain to do.  */
   val_compute_motion.ovstring_chars_done = 0;
 
   /* Nonzero if have just continued a line */
@@ -1986,9 +1976,11 @@ whether or not it is currently displayed in some window.  */)
   struct text_pos pt;
   struct window *w;
   Lisp_Object old_buffer;
-  struct gcpro gcpro1;
+  EMACS_INT old_charpos IF_LINT (= 0), old_bytepos IF_LINT (= 0);
+  struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object lcols = Qnil;
   double cols IF_LINT (= 0);
+  void *itdata = NULL;
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines) && (NUMBERP (XCAR (lines))))
@@ -2006,12 +1998,16 @@ whether or not it is currently displayed in some window.  */)
   w = XWINDOW (window);
 
   old_buffer = Qnil;
-  GCPRO1 (old_buffer);
+  GCPRO3 (old_buffer, old_charpos, old_bytepos);
   if (XBUFFER (w->buffer) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
       old_buffer = w->buffer;
+      old_charpos = XMARKER (w->pointm)->charpos;
+      old_bytepos = XMARKER (w->pointm)->bytepos;
       XSETBUFFER (w->buffer, current_buffer);
+      set_marker_both
+	(w->pointm, w->buffer, BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
   if (noninteractive)
@@ -2023,30 +2019,33 @@ whether or not it is currently displayed in some window.  */)
   else
     {
       EMACS_INT it_start;
-      int first_x, it_overshoot_expected IF_LINT (= 0);
+      int first_x, it_overshoot_count = 0;
+      int overshoot_handled = 0;
 
+      itdata = bidi_shelve_cache ();
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
       first_x = it.first_visible_x;
       it_start = IT_CHARPOS (it);
 
       /* See comments below for why we calculate this.  */
-      if (XINT (lines) > 0)
+      if (it.cmp_it.id >= 0)
+	it_overshoot_count = 0;
+      else if (it.method == GET_FROM_STRING)
 	{
-	  if (it.cmp_it.id >= 0)
-	    it_overshoot_expected = 1;
-	  else if (it.method == GET_FROM_STRING)
+	  const char *s = SSDATA (it.string);
+	  const char *e = s + SBYTES (it.string);
+	  while (s < e)
 	    {
-	      const char *s = SSDATA (it.string);
-	      const char *e = s + SBYTES (it.string);
-	      while (s < e && *s != '\n')
-		++s;
-	      it_overshoot_expected = (s == e) ? -1 : 0;
+	      if (*s++ == '\n')
+		it_overshoot_count++;
 	    }
-	  else
-	    it_overshoot_expected = (it.method == GET_FROM_IMAGE
-				     || it.method == GET_FROM_STRETCH);
+	  if (!it_overshoot_count)
+	    it_overshoot_count = -1;
 	}
+      else
+	it_overshoot_count =
+	  !(it.method == GET_FROM_IMAGE || it.method == GET_FROM_STRETCH);
 
       /* Scan from the start of the line containing PT.  If we don't
 	 do this, we start moving with IT->current_x == 0, while PT is
@@ -2060,55 +2059,58 @@ whether or not it is currently displayed in some window.  */)
 	   tell, and it causes Bug#2694 .  -- cyd */
 	move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 
+      /* IT may move too far if truncate-lines is on and PT lies
+	 beyond the right margin.  IT may also move too far if the
+	 starting point is on a Lisp string that has embedded
+	 newlines.  In these cases, backtrack.  */
+      if (IT_CHARPOS (it) > it_start)
+	{
+	  /* We need to backtrack also if the Lisp string contains no
+	     newlines, but there is a newline right after it.  In this
+	     case, IT overshoots if there is an after-string just
+	     before the newline.  */
+	  if (it_overshoot_count < 0
+	      && it.method == GET_FROM_BUFFER
+	      && it.c == '\n')
+	    it_overshoot_count = 1;
+	  if (it_overshoot_count > 0)
+	    move_it_by_lines (&it, -it_overshoot_count);
+
+	  overshoot_handled = 1;
+	}
       if (XINT (lines) <= 0)
 	{
 	  it.vpos = 0;
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
 	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
-	    move_it_by_lines (&it, XINT (lines));
+	    move_it_by_lines (&it, max (INT_MIN, XINT (lines)));
+	}
+      else if (overshoot_handled)
+	{
+	  it.vpos = 0;
+	  move_it_by_lines (&it, min (INT_MAX, XINT (lines)));
 	}
       else
 	{
-	  if (IT_CHARPOS (it) > it_start)
+	  /* Otherwise, we are at the first row occupied by PT, which
+	     might span multiple screen lines (e.g., if it's on a
+	     multi-line display string).  We want to start from the
+	     last line that it occupies.  */
+	  if (it_start < ZV)
 	    {
-	      /* IT may move too far if truncate-lines is on and PT
-		 lies beyond the right margin.  In that case,
-		 backtrack unless the starting point is on an image,
-		 stretch glyph, composition, or Lisp string.  */
-	      if (!it_overshoot_expected
-		  /* Also, backtrack if the Lisp string contains no
-		     newline, but there is a newline right after it.
-		     In this case, IT overshoots if there is an
-		     after-string just before the newline.  */
-		  || (it_overshoot_expected < 0
-		      && it.method == GET_FROM_BUFFER
-		      && it.c == '\n'))
-		move_it_by_lines (&it, -1);
-	      it.vpos = 0;
-	      move_it_by_lines (&it, XINT (lines));
+	      while (IT_CHARPOS (it) <= it_start)
+		{
+		  it.vpos = 0;
+		  move_it_by_lines (&it, 1);
+		}
+	      if (XINT (lines) > 1)
+		move_it_by_lines (&it, min (INT_MAX, XINT (lines) - 1));
 	    }
 	  else
 	    {
-	      /* Otherwise, we are at the first row occupied by PT,
-		 which might span multiple screen lines (e.g., if it's
-		 on a multi-line display string).  We want to start
-		 from the last line that it occupies.  */
-	      if (it_start < ZV)
-		{
-		  while (IT_CHARPOS (it) <= it_start)
-		    {
-		      it.vpos = 0;
-		      move_it_by_lines (&it, 1);
-		    }
-		  if (XINT (lines) > 1)
-		    move_it_by_lines (&it, XINT (lines) - 1);
-		}
-	      else
-		{
-		  it.vpos = 0;
-		  move_it_by_lines (&it, XINT (lines));
-		}
+	      it.vpos = 0;
+	      move_it_by_lines (&it, min (INT_MAX, XINT (lines)));
 	    }
 	}
 
@@ -2129,10 +2131,14 @@ whether or not it is currently displayed in some window.  */)
 	}
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+      bidi_unshelve_cache (itdata, 0);
     }
 
   if (BUFFERP (old_buffer))
-    w->buffer = old_buffer;
+    {
+      w->buffer = old_buffer;
+      set_marker_both (w->pointm, w->buffer, old_charpos, old_bytepos);
+    }
 
   RETURN_UNGCPRO (make_number (it.vpos));
 }

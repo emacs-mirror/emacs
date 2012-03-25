@@ -1,6 +1,6 @@
 /* machine description file for the IA-64 architecture.
 
-Copyright (C) 2000-2011  Free Software Foundation, Inc.
+Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
      Contributed by David Mosberger <davidm@hpl.hp.com>
 

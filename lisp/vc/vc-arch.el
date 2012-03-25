@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -65,6 +65,11 @@
 ;;; Customization options
 ;;;
 
+(defgroup vc-arch nil
+  "VC Arch backend."
+  :version "24.1"
+  :group 'vc)
+
 ;; It seems Arch diff does not accept many options, so this is not
 ;; very useful.  It exists mainly so that the VC backends are all
 ;; consistent with regards to their treatment of diff switches.
@@ -76,7 +81,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "23.1"
-  :group 'vc)
+  :group 'vc-arch)
 
 (define-obsolete-variable-alias 'vc-arch-command 'vc-arch-program "23.1")
 
@@ -87,7 +92,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
     (or (car candidates) "tla"))
   "Name of the Arch executable."
   :type 'string
-  :group 'vc)
+  :group 'vc-arch)
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -377,7 +382,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
   '(("\\`.*--\\(.*--.*\\)--\\(v?\\).*-\\([0-9]+\\)\\'" . "\\2\\3[\\1]"))
   "Rewrite rules to shorten Arch's revision names on the mode-line."
   :type '(repeat (cons regexp string))
-  :group 'vc)
+  :group 'vc-arch)
 
 (defun vc-arch-mode-line-string (file)
   "Return string for placement in modeline by `vc-mode-line' for FILE."
@@ -398,7 +403,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	 (with-temp-buffer
 	   (insert-file-contents rej)
 	   (goto-char (point-min))
-	   (looking-at "Conflicts occured, diff3 conflict markers left in file\\.")))))
+	   (looking-at "Conflicts occurred, diff3 conflict markers left in file\\.")))))
 
 (defun vc-arch-delete-rej-if-obsolete ()
   "For use in `after-save-hook'."

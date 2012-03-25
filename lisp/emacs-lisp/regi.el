@@ -1,6 +1,6 @@
 ;;; regi.el --- REGular expression Interpreting engine
 
-;; Copyright (C) 1993, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
 ;; Maintainer:    bwarsaw@cen.com
@@ -161,7 +161,7 @@ useful information:
 		(progn (goto-char end) (regi-pos 'bonl))
 		(progn (goto-char start) (regi-pos 'bol)))))
 
-	;; lets find the special tags and remove them from the working
+	;; let's find the special tags and remove them from the working
 	;; frame. note that only the last special tag is used.
 	(mapc
 	 (function

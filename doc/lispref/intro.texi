@@ -1,6 +1,6 @@
 @c -*-coding: iso-latin-1-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2012  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/intro
 
@@ -101,7 +101,7 @@ for other purposes as well, such as writing editing commands.
   Dozens of Lisp implementations have been built over the years, each
 with its own idiosyncrasies.  Many of them were inspired by Maclisp,
 which was written in the 1960s at MIT's Project MAC.  Eventually the
-implementors of the descendants of Maclisp came together and developed a
+implementers of the descendants of Maclisp came together and developed a
 standard for Lisp systems, called Common Lisp.  In the meantime, Gerry
 Sussman and Guy Steele at MIT developed a simplified but very powerful
 dialect of Lisp, called Scheme.
@@ -162,7 +162,7 @@ being described, are formatted like this: @var{first-number}.
 
 @cindex @code{nil}
 @cindex false
-  In Lisp, the symbol @code{nil} has three separate meanings: it
+  In Emacs Lisp, the symbol @code{nil} has three separate meanings: it
 is a symbol with the name @samp{nil}; it is the logical truth value
 @var{false}; and it is the empty list---the list of zero elements.
 When used as a variable, @code{nil} always has the value @code{nil}.
@@ -396,13 +396,14 @@ Form', respectively.  Commands are simply functions that may be called
 interactively; macros process their arguments differently from functions
 (the arguments are not evaluated), but are presented the same way.
 
-  Special form descriptions use a more complex notation to specify
-optional and repeated arguments because they can break the argument
-list down into separate arguments in more complicated ways.
-@samp{@r{[}@var{optional-arg}@r{]}} means that @var{optional-arg} is
-optional and @samp{@var{repeated-args}@dots{}} stands for zero or more
-arguments.  Parentheses are used when several arguments are grouped into
-additional levels of list structure.  Here is an example:
+  The descriptions of macros and special forms use a more complex
+notation to specify optional and repeated arguments, because they can
+break the argument list down into separate arguments in more
+complicated ways.  @samp{@r{[}@var{optional-arg}@r{]}} means that
+@var{optional-arg} is optional and @samp{@var{repeated-args}@dots{}}
+stands for zero or more arguments.  Parentheses are used when several
+arguments are grouped into additional levels of list structure.  Here
+is an example:
 
 @defspec count-loop (@var{var} [@var{from} @var{to} [@var{inc}]]) @var{body}@dots{}
 This imaginary special form implements a loop that executes the
@@ -485,9 +486,9 @@ giving a prefix argument makes @var{here} non-@code{nil}.
 @end deffn
 
 @defvar emacs-build-time
-The value of this variable indicates the time at which Emacs was built
-at the local site.  It is a list of three integers, like the value
-of @code{current-time} (@pxref{Time of Day}).
+The value of this variable indicates the time at which Emacs was
+built.  It is a list of three integers, like the value of
+@code{current-time} (@pxref{Time of Day}).
 
 @example
 @group
@@ -521,16 +522,16 @@ The minor version number of Emacs, as an integer.  For Emacs version
 @node Acknowledgements
 @section Acknowledgements
 
-  This manual was written by Robert Krawitz, Bil Lewis, Dan LaLiberte,
-Richard@tie{}M. Stallman and Chris Welty, the volunteers of the GNU
-manual group, in an effort extending over several years.
+  This manual was originally written by Robert Krawitz, Bil Lewis, Dan
+LaLiberte, Richard@tie{}M. Stallman and Chris Welty, the volunteers of
+the GNU manual group, in an effort extending over several years.
 Robert@tie{}J. Chassell helped to review and edit the manual, with the
 support of the Defense Advanced Research Projects Agency, ARPA Order
 6082, arranged by Warren@tie{}A. Hunt, Jr.@: of Computational Logic,
-Inc.  Additional sections were written by Miles Bader, Lars Brinkhoff,
-Chong Yidong, Kenichi Handa, Lute Kamstra, Juri Linkov, Glenn Morris,
-Thien-Thi Nguyen, Dan Nicolaescu, Martin Rudalics, Kim F. Storm, Luc
-Teirlinck, and Eli Zaretskii.
+Inc.  Additional sections have since been written by Miles Bader, Lars
+Brinkhoff, Chong Yidong, Kenichi Handa, Lute Kamstra, Juri Linkov,
+Glenn Morris, Thien-Thi Nguyen, Dan Nicolaescu, Martin Rudalics, Kim
+F. Storm, Luc Teirlinck, and Eli Zaretskii, and others.
 
   Corrections were supplied by Drew Adams, Juanma Barranquero, Karl
 Berry, Jim Blandy, Bard Bloom, Stephane Boucher, David Boyes, Alan
@@ -545,3 +546,6 @@ Friedrich Pukelsheim, Arnold D. Robbins, Raul Rockwell, Jason Rumney,
 Per Starbäck, Shinichirou Sugou, Kimmo Suominen, Edward Tharp, Bill
 Trost, Rickard Westman, Jean White, Eduard Wiebe, Matthew Wilding,
 Carl Witty, Dale Worley, Rusty Wright, and David D. Zuhn.
+
+  For a more complete list of contributors, please see the relevant
+ChangeLog file in the Emacs sources.

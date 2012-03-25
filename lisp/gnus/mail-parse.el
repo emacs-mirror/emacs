@@ -1,6 +1,6 @@
 ;;; mail-parse.el --- Interface functions for parsing mail
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -22,7 +22,7 @@
 
 ;; This file contains wrapper functions for a wide range of mail
 ;; parsing functions.  The idea is that there are low-level libraries
-;; that impement according to various specs (RFC2231, DRUMS, USEFOR),
+;; that implement according to various specs (RFC2231, DRUMS, USEFOR),
 ;; but that programmers that want to parse some header (say,
 ;; Content-Type) will want to use the latest spec.
 ;;

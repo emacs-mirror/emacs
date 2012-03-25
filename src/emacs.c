@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2011
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -82,6 +82,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/personality.h>
 #endif
 
+#ifdef HAVE_LIBXML2
+#include <libxml/parser.h>
+#endif
+
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
@@ -94,7 +98,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 static const char emacs_version[] = VERSION;
-static const char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
@@ -150,6 +154,8 @@ Lisp_Object Qfile_name_handler_alist;
 
 Lisp_Object Qrisky_local_variable;
 
+Lisp_Object Qkill_emacs;
+
 /* If non-zero, Emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
@@ -158,7 +164,7 @@ int inhibit_window_system;
    data on the first attempt to change it inside asynchronous code.  */
 int running_asynch_code;
 
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
 /* If non-zero, -d was specified, meaning we're using some window system.  */
 int display_arg;
 #endif
@@ -167,11 +173,15 @@ int display_arg;
    Tells GC how to save a copy of the stack.  */
 char *stack_bottom;
 
+#if defined (DOUG_LEA_MALLOC) || defined (GNU_LINUX)
 /* The address where the heap starts (from the first sbrk (0) call).  */
 static void *my_heap_start;
+#endif
 
+#ifdef GNU_LINUX
 /* The gap between BSS end and heap start as far as we can tell.  */
-static unsigned long heap_bss_diff;
+static uprintmax_t heap_bss_diff;
+#endif
 
 /* Nonzero means running Emacs without interactive terminal.  */
 int noninteractive;
@@ -311,6 +321,12 @@ static void (*fatal_error_signal_hook) (void);
 pthread_t main_thread;
 #endif
 
+#ifdef HAVE_NS
+/* NS autrelease pool, for memory management.  */
+static void *ns_pool;
+#endif  
+
+ 
 
 /* Handle bus errors, invalid instruction, etc.  */
 #ifndef FLOAT_CATCH_SIGILL
@@ -354,8 +370,7 @@ fatal_error_signal (int sig)
 
 /* Handler for SIGDANGER.  */
 void
-memory_warning_signal (sig)
-     int sig;
+memory_warning_signal (int sig)
 {
   signal (sig, memory_warning_signal);
   SIGNAL_THREAD_CHECK (sig);
@@ -717,6 +732,7 @@ main (int argc, char **argv)
   setenv ("G_SLICE", "always-malloc", 1);
 #endif
 
+#ifdef GNU_LINUX
   if (!initialized)
     {
       extern char my_endbss[];
@@ -727,6 +743,7 @@ main (int argc, char **argv)
 
       heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
     }
+#endif
 
 #ifdef RUN_TIME_REMAP
   if (initialized)
@@ -799,7 +816,7 @@ main (int argc, char **argv)
     {
       static char heapexec[] = "EMACS_HEAP_EXEC=true";
       /* Set this so we only do this once.  */
-      putenv(heapexec);
+      putenv (heapexec);
 
       /* A flag to turn off address randomization which is introduced
          in linux kernel shipped with fedora core 4 */
@@ -839,7 +856,7 @@ main (int argc, char **argv)
        stack allocation routine for new process that the allocation
        fails if stack limit is not on page boundary.  So, round up the
        new limit to page boundary.  */
-      newlim = (newlim + getpagesize () - 1) / getpagesize () * getpagesize();
+      newlim = (newlim + getpagesize () - 1) / getpagesize () * getpagesize ();
 #endif
       if (newlim > rlim.rlim_max)
 	{
@@ -940,7 +957,7 @@ main (int argc, char **argv)
     }
 
   /* Command line option --no-windows is deprecated and thus not mentioned
-     in the manual and usage informations.  */
+     in the manual and usage information.  */
   if (argmatch (argv, argc, "-nw", "--no-window-system", 6, NULL, &skip_args)
       || argmatch (argv, argc, "-nw", "--no-windows", 6, NULL, &skip_args))
     inhibit_window_system = 1;
@@ -1065,15 +1082,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
         if (!dname_arg || !strchr (dname_arg, '\n'))
           {  /* In orig, child: now exec w/special daemon name. */
             char fdStr[80];
+	    int fdStrlen =
+	      snprintf (fdStr, sizeof fdStr,
+			"--daemon=\n%d,%d\n%s", daemon_pipe[0],
+			daemon_pipe[1], dname_arg ? dname_arg : "");
 
-            if (dname_arg && strlen (dname_arg) > 70)
+	    if (! (0 <= fdStrlen && fdStrlen < sizeof fdStr))
               {
                 fprintf (stderr, "daemon: child name too long\n");
                 exit (1);
               }
 
-            sprintf (fdStr, "--daemon=\n%d,%d\n%s", daemon_pipe[0],
-                     daemon_pipe[1], dname_arg ? dname_arg : "");
             argv[skip_args] = fdStr;
 
             execv (argv[0], argv);
@@ -1086,7 +1105,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
             || strlen (dname_arg) < 1 || strlen (dname_arg) > 70)
           {
             fprintf (stderr, "emacs daemon: daemon name absent or too long\n");
-            exit(1);
+            exit (1);
           }
         dname_arg2[0] = '\0';
         sscanf (dname_arg, "\n%d,%d\n%s", &(daemon_pipe[0]), &(daemon_pipe[1]),
@@ -1104,7 +1123,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       fcntl (daemon_pipe[1], F_SETFD, FD_CLOEXEC);
 
 #ifdef HAVE_SETSID
-      setsid();
+      setsid ();
 #endif
 #else /* DOS_NT */
       fprintf (stderr, "This platform does not support the -daemon flag.\n");
@@ -1117,7 +1136,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #if defined (USG5) && defined (INTERRUPT_INPUT)
       setpgrp ();
 #endif
-#if defined (HAVE_GTK_AND_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
+#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
       {
         extern void malloc_enable_thread (void);
 
@@ -1305,7 +1324,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     = argmatch (argv, argc, "-nsl", "--no-site-lisp", 11, NULL, &skip_args);
 
 #ifdef HAVE_NS
-  ns_alloc_autorelease_pool();
+  ns_pool = ns_alloc_autorelease_pool ();
   if (!noninteractive)
     {
 #ifdef NS_IMPL_COCOA
@@ -1313,12 +1332,12 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
         {
 	  /* FIXME: Do the right thing if getenv returns NULL, or if
 	     chdir fails.  */
-          if (!strncmp(argv[skip_args], "-psn", 4))
+          if (!strncmp (argv[skip_args], "-psn", 4))
             {
               skip_args += 1;
               chdir (getenv ("HOME"));
             }
-          else if (skip_args+1 < argc && !strncmp(argv[skip_args+1], "-psn", 4))
+          else if (skip_args+1 < argc && !strncmp (argv[skip_args+1], "-psn", 4))
             {
               skip_args += 2;
               chdir (getenv ("HOME"));
@@ -1355,24 +1374,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     /* If we have the form --display=NAME,
        convert it into  -d name.
        This requires inserting a new element into argv.  */
-    if (displayname != 0 && skip_args - count_before == 1)
+    if (displayname && count_before < skip_args)
       {
-	char **new = (char **) xmalloc (sizeof (char *) * (argc + 2));
-	int j;
-
-	for (j = 0; j < count_before + 1; j++)
-	  new[j] = argv[j];
-	new[count_before + 1] = (char *) "-d";
-	new[count_before + 2] = displayname;
-	for (j = count_before + 2; j <argc; j++)
-	  new[j + 1] = argv[j];
-	argv = new;
-	argc++;
+	if (skip_args == count_before + 1)
+	  {
+	    memmove (argv + count_before + 3, argv + count_before + 2,
+		     (argc - (count_before + 2)) * sizeof *argv);
+	    argv[count_before + 2] = displayname;
+	    argc++;
+	  }
+	argv[count_before + 1] = (char *) "-d";
       }
-    /* Change --display to -d, when its arg is separate.  */
-    else if (displayname != 0 && skip_args > count_before
-	     && argv[count_before + 1][1] == '-')
-      argv[count_before + 1] = (char *) "-d";
 
     if (! no_site_lisp)
       {
@@ -1398,7 +1410,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
   /* argmatch must not be used after here,
-     except when bulding temacs
+     except when building temacs
      because the -d argument has not been skipped in skip_args.  */
 
 #ifdef MSDOS
@@ -1550,9 +1562,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef MSDOS
       syms_of_xmenu ();
-      syms_of_dosfns();
-      syms_of_msdos();
-      syms_of_win16select();
+      syms_of_dosfns ();
+      syms_of_msdos ();
+      syms_of_win16select ();
 #endif	/* MSDOS */
 
 #ifdef HAVE_NS
@@ -1587,6 +1599,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       /* Initialization that must be done even if the global variable
 	 initialized is non zero.  */
 #ifdef HAVE_NTGUI
+      globals_of_w32font ();
       globals_of_w32fns ();
       globals_of_w32menu ();
       globals_of_w32select ();
@@ -1651,7 +1664,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
      GNU/Linux and MinGW.  It might work on some other systems too.
      Give it a try and tell us if it works on your system.  To compile
      for profiling, use the configure option --enable-profiling.  */
-#if defined (__FreeBSD__) || defined (GNU_LINUX) || defined(__MINGW32__)
+#if defined (__FreeBSD__) || defined (GNU_LINUX) || defined (__MINGW32__)
 #ifdef PROFILING
   if (initialized)
     {
@@ -1835,8 +1848,8 @@ sort_args (int argc, char **argv)
      0 for an option that takes no arguments,
      1 for an option that takes one argument, etc.
      -1 for an ordinary non-option argument.  */
-  int *options = (int *) xmalloc (sizeof (int) * argc);
-  int *priority = (int *) xmalloc (sizeof (int) * argc);
+  int *options = xnmalloc (argc, sizeof *options);
+  int *priority = xnmalloc (argc, sizeof *priority);
   int to = 1;
   int incoming_used = 1;
   int from;
@@ -1989,6 +2002,7 @@ all of which are called before Emacs is actually killed.  */)
 {
   struct gcpro gcpro1;
   Lisp_Object hook;
+  int exit_code;
 
   GCPRO1 (arg);
 
@@ -2007,13 +2021,20 @@ all of which are called before Emacs is actually killed.  */)
 
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
 
+#ifdef HAVE_NS
+  ns_release_autorelease_pool (ns_pool);
+#endif
+
   /* If we have an auto-save list file,
      kill it because we are exiting Emacs deliberately (not crashing).
      Do it after shut_down_emacs, which does an auto-save.  */
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SSDATA (Vauto_save_list_file_name));
 
-  exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
+  exit_code = EXIT_SUCCESS;
+  if (noninteractive && (fflush (stdout) || ferror (stdout)))
+    exit_code = EXIT_FAILURE;
+  exit (INTEGERP (arg) ? XINT (arg) : exit_code);
 }
 
 
@@ -2101,6 +2122,10 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 #ifdef HAVE_NS
   ns_term_shutdown (sig);
 #endif
+
+#ifdef HAVE_LIBXML2
+  xmlCleanupParser ();
+#endif
 }
 
 
@@ -2135,7 +2160,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     {
       fprintf (stderr, "**************************************************\n");
       fprintf (stderr, "Warning: Your system has a gap between BSS and the\n");
-      fprintf (stderr, "heap (%lu bytes).  This usually means that exec-shield\n",
+      fprintf (stderr, "heap (%"pMu" bytes).  This usually means that exec-shield\n",
                heap_bss_diff);
       fprintf (stderr, "or something similar is in effect.  The dump may\n");
       fprintf (stderr, "fail because of this.  See the section about\n");
@@ -2182,7 +2207,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     memory_warnings (my_edata, malloc_warning);
   }
 #endif /* not WINDOWSNT */
-#if defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
+#if defined (HAVE_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless
      loop, because pthread_self (see alloc.c) calls malloc the first time
      it is called on some systems.  */
@@ -2381,6 +2406,7 @@ syms_of_emacs (void)
 {
   DEFSYM (Qfile_name_handler_alist, "file-name-handler-alist");
   DEFSYM (Qrisky_local_variable, "risky-local-variable");
+  DEFSYM (Qkill_emacs, "kill-emacs");
 
 #ifndef CANNOT_DUMP
   defsubr (&Sdump_emacs);
@@ -2454,9 +2480,11 @@ The value is nil if that directory's name is not known.  */);
 
   DEFVAR_LISP ("installation-directory", Vinstallation_directory,
 	       doc: /* A directory within which to look for the `lib-src' and `etc' directories.
-This is non-nil when we can't find those directories in their standard
-installed locations, but we can find them near where the Emacs executable
-was found.  */);
+In an installed Emacs, this is normally nil.  It is non-nil if
+both `lib-src' (on MS-DOS, `info') and `etc' directories are found
+within the variable `invocation-directory' or its parent.  For example,
+this is the case when running an uninstalled Emacs executable from its
+build directory.  */);
   Vinstallation_directory = Qnil;
 
   DEFVAR_LISP ("system-messages-locale", Vsystem_messages_locale,

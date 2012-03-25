@@ -1,6 +1,6 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
-;; Copyright (C) 1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
@@ -32,9 +32,6 @@
 ;; To enable Flyspell in text representing computer programs, type
 ;; M-x flyspell-prog-mode.
 ;; In that mode only text inside comments is checked.
-;;
-;; Note: consider setting the variable ispell-parser to `tex' to
-;; avoid TeX command checking; use `(setq ispell-parser 'tex)'.
 ;;
 ;; Some user variables control the behavior of flyspell.  They are
 ;; those defined under the `User variables' comment.
@@ -469,15 +466,17 @@ See also `flyspell-duplicate-distance'."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-mode ...                                                */
 ;;*---------------------------------------------------------------------*/
-;;;###autoload(defvar flyspell-mode nil)
+;;;###autoload(defvar flyspell-mode nil "Non-nil if Flyspell mode is enabled.")
 ;;;###autoload
 (define-minor-mode flyspell-mode
-  "Minor mode performing on-the-fly spelling checking.
-This spawns a single Ispell process and checks each word.
-The default flyspell behavior is to highlight incorrect words.
-With no argument, this command toggles Flyspell mode.
-With a prefix argument ARG, turn Flyspell minor mode on if ARG is positive,
-otherwise turn it off.
+  "Toggle on-the-fly spell checking (Flyspell mode).
+With a prefix argument ARG, enable Flyspell mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Flyspell mode is a buffer-local minor mode.  When enabled, it
+spawns a single Ispell process and checks each word.  The default
+flyspell behavior is to highlight incorrect words.
 
 Bindings:
 \\[ispell-word]: correct words (using Ispell).
@@ -716,7 +715,7 @@ not the very same deplacement command."
   (remove-hook 'after-change-functions 'flyspell-after-change-function t)
   (remove-hook 'hack-local-variables-hook
 	       (function flyspell-hack-local-variables-hook) t)
-  ;; we remove all the flyspell hilightings
+  ;; we remove all the flyspell highlightings
   (flyspell-delete-all-overlays)
   ;; we have to erase pre cache variables
   (setq flyspell-pre-buffer nil)
@@ -934,49 +933,52 @@ Mostly we check word delimiters."
 ;;*       previous word nor the current word                            */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-post-command-hook ()
-  "The `post-command-hook' used by flyspell to check a word in-the-fly."
+  "The `post-command-hook' used by flyspell to check a word on-the-fly."
   (interactive)
   (when flyspell-mode
-    (let ((command this-command)
-	  ;; Prevent anything we do from affecting the mark.
-	  deactivate-mark)
-      (if (flyspell-check-pre-word-p)
-	  (with-current-buffer flyspell-pre-buffer
-	    '(flyspell-debug-signal-pre-word-checked)
-	    (save-excursion
-	      (goto-char flyspell-pre-point)
-	      (flyspell-word))))
-      (if (flyspell-check-word-p)
-	  (progn
-	    '(flyspell-debug-signal-word-checked)
-	    (flyspell-word)
-	    ;; we remember which word we have just checked.
-	    ;; this will be used next time we will check a word
-	    ;; to compare the next current word with the word
-	    ;; that as been registered in the pre-command-hook
-	    ;; that is these variables are used within the predicate
-	    ;; FLYSPELL-CHECK-PRE-WORD-P
-	    (setq flyspell-pre-pre-buffer (current-buffer))
-	    (setq flyspell-pre-pre-point  (point)))
-	(progn
-	  (setq flyspell-pre-pre-buffer nil)
-	  (setq flyspell-pre-pre-point  nil)
-	  ;; when a word is not checked because of a delayed command
-	  ;; we do not disable the ispell cache.
-	  (if (and (symbolp this-command) (get this-command 'flyspell-delayed))
-	      (progn
-		(setq flyspell-word-cache-end -1)
-		(setq flyspell-word-cache-result '_)))))
-      (while (and (not (input-pending-p)) (consp flyspell-changes))
-	(let ((start (car (car flyspell-changes)))
-	      (stop  (cdr (car flyspell-changes))))
-	  (if (flyspell-check-changed-word-p start stop)
-	      (save-excursion
-		'(flyspell-debug-signal-changed-checked)
-		(goto-char start)
-		(flyspell-word)))
-	  (setq flyspell-changes (cdr flyspell-changes))))
-      (setq flyspell-previous-command command))))
+    (with-local-quit
+      (let ((command this-command)
+            ;; Prevent anything we do from affecting the mark.
+            deactivate-mark)
+        (if (flyspell-check-pre-word-p)
+            (with-current-buffer flyspell-pre-buffer
+              '(flyspell-debug-signal-pre-word-checked)
+              (save-excursion
+                (goto-char flyspell-pre-point)
+                (flyspell-word))))
+        (if (flyspell-check-word-p)
+            (progn
+              '(flyspell-debug-signal-word-checked)
+              ;; FIXME: This should be asynchronous!
+              (flyspell-word)
+              ;; we remember which word we have just checked.
+              ;; this will be used next time we will check a word
+              ;; to compare the next current word with the word
+              ;; that as been registered in the pre-command-hook
+              ;; that is these variables are used within the predicate
+              ;; FLYSPELL-CHECK-PRE-WORD-P
+              (setq flyspell-pre-pre-buffer (current-buffer))
+              (setq flyspell-pre-pre-point  (point)))
+          (progn
+            (setq flyspell-pre-pre-buffer nil)
+            (setq flyspell-pre-pre-point  nil)
+            ;; when a word is not checked because of a delayed command
+            ;; we do not disable the ispell cache.
+            (if (and (symbolp this-command)
+                     (get this-command 'flyspell-delayed))
+                (progn
+                  (setq flyspell-word-cache-end -1)
+                  (setq flyspell-word-cache-result '_)))))
+        (while (and (not (input-pending-p)) (consp flyspell-changes))
+          (let ((start (car (car flyspell-changes)))
+                (stop  (cdr (car flyspell-changes))))
+            (if (flyspell-check-changed-word-p start stop)
+                (save-excursion
+                  '(flyspell-debug-signal-changed-checked)
+                  (goto-char start)
+                  (flyspell-word)))
+            (setq flyspell-changes (cdr flyspell-changes))))
+        (setq flyspell-previous-command command)))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-notify-misspell ...                                     */
@@ -1103,14 +1105,10 @@ misspelling and skips redundant spell-checking step."
                   ;; we mark the ispell process so it can be killed
                   ;; when emacs is exited without query
                   (set-process-query-on-exit-flag ispell-process nil)
-                  ;; Wait until ispell has processed word.  Since this
-                  ;; code is often executed from post-command-hook but
-                  ;; the ispell process may not be responsive, it's
-                  ;; important to make sure we re-enable C-g.
-                  (with-local-quit
-                    (while (progn
-                             (accept-process-output ispell-process)
-                             (not (string= "" (car ispell-filter))))))
+                  ;; Wait until ispell has processed word.
+                  (while (progn
+                           (accept-process-output ispell-process)
+                           (not (string= "" (car ispell-filter)))))
                   ;; (ispell-send-string "!\n")
                   ;; back to terse mode.
                   ;; Remove leading empty element
@@ -1123,7 +1121,7 @@ misspelling and skips redundant spell-checking step."
                       (setq poss (ispell-parse-output (car ispell-filter)))))
               ;; Else, this was a known misspelling to begin with, and
               ;; we should forge an ispell return value.
-              (setq poss (list word 0 '() '())))
+              (setq poss (list word 1 nil nil)))
 	    (let ((res (cond ((eq poss t)
 			      ;; correct
 			      (setq flyspell-word-cache-result t)
@@ -1448,7 +1446,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			     ;; is used, string is a TeX command
 			     ;; (char before beginning of word is
 			     ;; backslash) and none of the previous
-			     ;; contitions match
+			     ;; conditions match.
 			     (and (not ispell-really-aspell)
 				  (save-excursion
 				    (goto-char (- (nth 1 found-list) 1))
@@ -1563,6 +1561,14 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			(list "-p"
 			      (expand-file-name
 			       ispell-current-personal-dictionary)))))
+
+      ;; Check for extended character mode
+      (let ((extended-char-mode (ispell-get-extended-character-mode)))
+        (and extended-char-mode          ; ~ extended character mode
+	     (string-match "[^~]+$" extended-char-mode)
+	     (add-to-list 'args (concat "-T" (match-string 0 extended-char-mode)))))
+
+      ;; Add ispell-extra-args
       (setq args (append args ispell-extra-args))
 
       ;; If we are using recent aspell or hunspell, make sure we use the right encoding

@@ -1,6 +1,6 @@
 ;;; mode-local.el --- Support for mode local facilities
 ;;
-;; Copyright (C) 2004-2005, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2012  Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -36,7 +36,7 @@
 ;;
 ;; You should use a mode-local variable or override to allow extension
 ;; only if you expect a mode author to provide that extension.  If a
-;; user might wish to customize a give variable or function then
+;; user might wish to customize a given variable or function then
 ;; the existing customization mechanism should be used.
 
 ;; To Do:
@@ -55,7 +55,7 @@
 FUNCTION does not have arguments; when it is entered `current-buffer'
 is the currently selected file buffer.
 If optional argument PREDICATE is non nil, only select file buffers
-for which the function PREDICATE return non-nil.
+for which the function PREDICATE returns non-nil.
 If optional argument BUFFERS is non-nil, it is a list of buffers to
 walk through.  It defaults to `buffer-list'."
   (dolist (b (or buffers (buffer-list)))
@@ -146,7 +146,7 @@ local variables have been defined."
   (mode-local-map-mode-buffers #'activate-mode-local-bindings mode))
 
 (defmacro define-child-mode (mode parent &optional docstring)
-  "Make major mode MODE inherits behavior from PARENT mode.
+  "Make major mode MODE inherit behavior from PARENT mode.
 DOCSTRING is optional and not used.
 To work properly, this should be put after PARENT mode local variables
 definition."
@@ -523,11 +523,11 @@ See also the function `define-overload'."
       result)))
 
 (defmacro define-overloadable-function (name args docstring &rest body)
-  "Define a new function, as with `defun' which can be overloaded.
+  "Define a new function, as with `defun', which can be overloaded.
 NAME is the name of the function to create.
 ARGS are the arguments to the function.
 DOCSTRING is a documentation string to describe the function.  The
-docstring will automatically had details about its overload symbol
+docstring will automatically have details about its overload symbol
 appended to the end.
 BODY is code that would be run when there is no override defined.  The
 default is to call the function `NAME-default' with the appropriate
@@ -637,7 +637,7 @@ SYMBOL is a function that can be overridden."
 
 (defun mode-local-print-bindings (table)
   "Print bindings in TABLE."
-  (let (us ;; List of unpecified symbols
+  (let (us ;; List of unspecified symbols
         mc ;; List of mode local constants
         mv ;; List of mode local variables
         ov ;; List of overloaded functions
@@ -656,7 +656,7 @@ SYMBOL is a function that can be overridden."
      table)
     ;; Print symbols by type
     (when us
-      (princ "\n  !! Unpecified symbols\n")
+      (princ "\n  !! Unspecified symbols\n")
       (mapc 'mode-local-print-binding us))
     (when mc
       (princ "\n  ** Mode local constants\n")

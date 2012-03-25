@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2011
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -37,13 +37,13 @@
 ;; --------------------------------------
 ;;
 ;; While the message passing and the colorization surely introduce some
-;; overhead this has became so small that IMHO is surely outweighted by
-;; the benefits you get but, as usual, YMMV
+;; overhead this has became so small that IMHO it is surely outweighed by
+;; the benefits you get but, as usual, YMMV.
 ;;
-;; Important caveat, when deciding the cursor/'grey keys' keycodes I had to
+;; Important caveat, when deciding the cursor/'gray keys' keycodes I had to
 ;; make a choice: on my Linux box this choice allows me to run all the
 ;; ncurses applications without problems but make these keys
-;; uncomprehensible to all the cursesX programs.  Your mileage may vary so
+;; incomprehensible to all the cursesX programs.  Your mileage may vary so
 ;; you may consider changing the default 'emulation'.  Just search for this
 ;; piece of code and modify it as you like:
 ;;
@@ -294,7 +294,7 @@
 ;;   # Notice that the ^[ character is an ESC, not two chars.  You can
 ;;   # get it in various ways, for example by typing
 ;;   # echo -e '\033' > escape.file
-;;   # or by using your favourite editor
+;;   # or by using your favorite editor
 ;;
 ;; 		foreach temp (cd pushd)
 ;; 			alias $temp "$temp \!* ; echo 'AnSiTc' $cwd_hack"
@@ -907,10 +907,9 @@ is buffer-local."
   (define-key map [remap self-insert-command] 'term-send-raw)
   (define-key map "\e" esc-map)
   (setq term-raw-map map)
-  (setq term-raw-escape-map
-	(copy-keymap (lookup-key (current-global-map) "\C-x")))
+  (setq term-raw-escape-map (copy-keymap 'Control-X-prefix))
 
-  ;; Added nearly all the 'grey keys' -mm
+  ;; Added nearly all the 'gray keys' -mm
 
   (if (featurep 'xemacs)
       (define-key term-raw-map [button2] 'term-mouse-paste)
@@ -1227,9 +1226,9 @@ without any interpretation."
 			      (make-string 1 char)
 			    (format "\e%c" char)))))
 
-(defun term-mouse-paste (click arg)
-  "Insert the last stretch of killed text at the position clicked on."
-  (interactive "e\nP")
+(defun term-mouse-paste (click)
+  "Insert the primary selection at the position clicked on."
+  (interactive "e")
   (if (featurep 'xemacs)
       (term-send-raw-string
        (or (condition-case () (x-get-selection) (error ()))
@@ -1238,10 +1237,17 @@ without any interpretation."
     (run-hooks 'mouse-leave-buffer-hook)
     (setq this-command 'yank)
     (mouse-set-point click)
-    (term-send-raw-string (current-kill (cond
-					 ((listp arg) 0)
-					 ((eq arg '-) -1)
-					 (t (1- arg)))))))
+    (term-send-raw-string
+     (or (cond  ; From `mouse-yank-primary':
+	  ((eq system-type 'windows-nt)
+	   (or (x-get-selection 'PRIMARY)
+	       (x-get-selection-value)))
+	  ((fboundp 'x-get-selection-value)
+	   (or (x-get-selection-value)
+	       (x-get-selection 'PRIMARY)))
+	  (t
+	   (x-get-selection 'PRIMARY)))
+	 (error "No selection is available")))))
 
 (defun term-paste ()
   "Insert the last stretch of killed text at point."
@@ -2115,7 +2121,7 @@ If this takes us past the end of the current line, don't skip at all."
   "Is point after the process output marker?"
   ;; Since output could come into the buffer after we looked at the point
   ;; but before we looked at the process marker's value, we explicitly
-  ;; serialise.  This is just because I don't know whether or not Emacs
+  ;; serialize.  This is just because I don't know whether or not Emacs
   ;; services input during execution of lisp commands.
   (let ((proc-pos (marker-position
 		   (process-mark (get-buffer-process (current-buffer))))))
@@ -3883,7 +3889,7 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
   (goto-char (point-max))
   (recenter -1))
 
-;;; Do the user's customisation...
+;;; Do the user's customization...
 
 (defvar term-load-hook nil
   "This hook is run when term is loaded in.
@@ -4242,7 +4248,7 @@ special identifiers such as COM1."
   "History of serial ports used by `serial-read-name'.")
 
 (defvar serial-speed-history
-  ;; Initialised with reasonable values for newbies.
+  ;; Initialized with reasonable values for newbies.
   (list "9600" ;; Given twice because 9600 b/s is the most common speed
         "1200" "2400" "4800" "9600" "14400" "19200"
         "28800" "38400" "57600" "115200")

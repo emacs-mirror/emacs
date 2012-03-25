@@ -1,6 +1,6 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
@@ -96,7 +96,7 @@
 ;; This improves the interaction under Emacs but it still is somewhat
 ;; awkward.
 
-;; Quoted identifiers are not supported for hilighting.  Most
+;; Quoted identifiers are not supported for highlighting.  Most
 ;; databases support the use of double quoted strings in place of
 ;; identifiers; ms (Microsoft SQLServer) also supports identifiers
 ;; enclosed within brackets [].
@@ -219,6 +219,8 @@
 ;; Drew Adams <drew.adams@oracle.com> -- Emacs 20 support
 ;; Harald Maier <maierh@myself.com> -- sql-send-string
 ;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections; code polish
+;; Paul Sleigh <bat@flurf.net> -- MySQL keyword enhancement
+;; Andrew Schein <andrew@andrewschein.com> -- sql-port bug
 
 
 
@@ -283,7 +285,7 @@ Customizing your password will store it in your ~/.emacs file."
   :safe 'stringp)
 
 (defcustom sql-port 0
-  "Default port."
+  "Default port for connecting to a MySQL or Postgres server."
   :version "24.1"
   :type 'number
   :group 'SQL
@@ -611,30 +613,22 @@ settings.")
   '(:font-lock :sqli-program :sqli-options :sqli-login :statement))
 
 (defcustom sql-connection-alist nil
-  "An alist of connection parameters for interacting with a SQL
-  product.
-
+  "An alist of connection parameters for interacting with a SQL product.
 Each element of the alist is as follows:
 
   \(CONNECTION \(SQL-VARIABLE VALUE) ...)
 
 Where CONNECTION is a symbol identifying the connection, SQL-VARIABLE
 is the symbol name of a SQL mode variable, and VALUE is the value to
-be assigned to the variable.
-
-The most common SQL-VARIABLE settings associated with a connection
-are:
-
-  `sql-product'
-  `sql-user'
-  `sql-password'
-  `sql-port'
-  `sql-server'
-  `sql-database'
+be assigned to the variable.  The most common SQL-VARIABLE settings
+associated with a connection are: `sql-product', `sql-user',
+`sql-password', `sql-port', `sql-server', and `sql-database'.
 
 If a SQL-VARIABLE is part of the connection, it will not be
-prompted for during login."
-
+prompted for during login.  The command `sql-connect' starts a
+predefined SQLi session using the parameters from this list.
+Connections defined here appear in the submenu SQL->Start...  for
+making new SQLi sessions."
   :type `(alist :key-type (string :tag "Connection")
                 :value-type
                 (set
@@ -672,7 +666,7 @@ highlighted properly when you open them."
   :safe 'symbolp)
 (defvaralias 'sql-dialect 'sql-product)
 
-;; misc customization of sql.el behaviour
+;; misc customization of sql.el behavior
 
 (defcustom sql-electric-stuff nil
   "Treat some input as electric.
@@ -811,6 +805,15 @@ is changed."
   :type 'hook
   :group 'SQL)
 
+(defcustom sql-login-hook '()
+  "Hook for interacting with a buffer in `sql-interactive-mode'.
+
+This hook is invoked in a buffer once it is ready to accept input
+for the first time."
+  :version "24.1"
+  :type 'hook
+  :group 'SQL)
+
 ;; Customization for ANSI
 
 (defcustom sql-ansi-statement-starters (regexp-opt '(
@@ -822,7 +825,10 @@ is changed."
 
 All products share this list; products should define a regexp to
 identify additional keywords in a variable defined by
-the :statement feature.")
+the :statement feature."
+  :version "24.1"
+  :type 'string
+  :group 'SQL)
 
 ;; Customization for Oracle
 
@@ -849,8 +855,12 @@ You will find the file in your Orant\\bin directory."
   :version "24.1"
   :group 'SQL)
 
-(defcustom sql-oracle-statement-starters (regexp-opt '("declare" "begin" "with"))
-  "Additional statement starting keywords in Oracle.")
+(defcustom sql-oracle-statement-starters
+  (regexp-opt '("declare" "begin" "with"))
+  "Additional statement starting keywords in Oracle."
+  :version "24.1"
+  :type 'string
+  :group 'SQL)
 
 (defcustom sql-oracle-scan-on t
   "Non-nil if placeholders should be replaced in Oracle SQLi.
@@ -865,6 +875,7 @@ You need to issue the following command in SQL*Plus to be safe:
     SET DEFINE OFF
 
 In older versions of SQL*Plus, this was the SET SCAN OFF command."
+  :version "24.1"
   :type 'boolean
   :group 'SQL)
 
@@ -1329,9 +1340,9 @@ statement.  The format of variable should be a valid
 ;; are not followed closely, and most vendors offer significant
 ;; capabilities beyond those defined in the standard specifications.
 
-;; SQL mode provides support for hilighting based on the product.  In
-;; addition to hilighting the product keywords, any ANSI keywords not
-;; used by the product are also hilighted.  This will help identify
+;; SQL mode provides support for highlighting based on the product.  In
+;; addition to highlighting the product keywords, any ANSI keywords not
+;; used by the product are also highlighted.  This will help identify
 ;; keywords that could be restricted in future versions of the product
 ;; or might be a problem if ported to another product.
 
@@ -1594,8 +1605,9 @@ to add functions and PL/SQL keywords.")
 "atan" "atan2" "avg" "bfilename" "bin_to_num" "bitand" "cardinality"
 "cast" "ceil" "chartorowid" "chr" "cluster_id" "cluster_probability"
 "cluster_set" "coalesce" "collect" "compose" "concat" "convert" "corr"
+"connect_by_root" "connect_by_iscycle" "connect_by_isleaf"
 "corr_k" "corr_s" "cos" "cosh" "count" "covar_pop" "covar_samp"
-"cube_table" "cume_dist" "currrent_date" "currrent_timestamp" "cv"
+"cube_table" "cume_dist" "current_date" "current_timestamp" "cv"
 "dataobj_to_partition" "dbtimezone" "decode" "decompose" "deletexml"
 "dense_rank" "depth" "deref" "dump" "empty_blob" "empty_clob"
 "existsnode" "exp" "extract" "extractvalue" "feature_id" "feature_set"
@@ -2279,7 +2291,7 @@ you define your own `sql-mode-solid-font-lock-keywords'.")
 "collation" "column" "columns" "comment" "committed" "concurrent"
 "constraint" "create" "cross" "data" "database" "default"
 "delay_key_write" "delayed" "delete" "desc" "directory" "disable"
-"distinct" "distinctrow" "do" "drop" "dumpfile" "duplicate" "else"
+"distinct" "distinctrow" "do" "drop" "dumpfile" "duplicate" "else" "elseif"
 "enable" "enclosed" "end" "escaped" "exists" "fields" "first" "for"
 "force" "foreign" "from" "full" "fulltext" "global" "group" "handler"
 "having" "heap" "high_priority" "if" "ignore" "in" "index" "infile"
@@ -2506,7 +2518,7 @@ See `sql-product-alist' for a list of products and supported features."
   "Configure font-lock and imenu with product-specific settings.
 
 The KEYWORDS-ONLY flag is passed to font-lock to specify whether
-only keywords should be hilighted and syntactic hilighting
+only keywords should be highlighted and syntactic highlighting
 skipped.  The IMENU flag indicates whether `imenu-mode' should
 also be configured."
 
@@ -2841,8 +2853,11 @@ appended to the SQLi buffer without disturbing your SQL buffer."
   "Read a password using PROMPT.  Optional DEFAULT is password to start with."
   (read-passwd prompt nil default))
 
-(defun sql-get-login-ext (prompt last-value history-var plist)
+(defun sql-get-login-ext (symbol prompt history-var plist)
   "Prompt user with extended login parameters.
+
+The global value of SYMBOL is the last value and the global value 
+of the SYMBOL is set based on the user's input.
 
 If PLIST is nil, then the user is simply prompted for a string
 value.
@@ -2856,38 +2871,41 @@ regexp pattern specified in its value.
 The `:completion' property prompts for a string specified by its
 value.  (The property value is used as the PREDICATE argument to
 `completing-read'.)"
-  (let* ((default (plist-get plist :default))
-         (prompt-def
-          (if default
-              (if (string-match "\\(\\):[ \t]*\\'" prompt)
-                  (replace-match (format " (default \"%s\")" default) t t prompt 1)
-                (replace-regexp-in-string "[ \t]*\\'"
-                                          (format " (default \"%s\") " default)
-                                          prompt t t))
-            prompt))
-         (use-dialog-box nil))
-    (cond
-     ((plist-member plist :file)
-      (expand-file-name
-       (read-file-name prompt
-                       (file-name-directory last-value) default t
-                       (file-name-nondirectory last-value)
-                       (when (plist-get plist :file)
-                         `(lambda (f)
-                            (string-match
-                             (concat "\\<" ,(plist-get plist :file) "\\>")
-                             (file-name-nondirectory f)))))))
+  (set-default 
+   symbol
+   (let* ((default (plist-get plist :default))
+          (last-value (default-value symbol))
+          (prompt-def
+           (if default
+               (if (string-match "\\(\\):[ \t]*\\'" prompt)
+                   (replace-match (format " (default \"%s\")" default) t t prompt 1)
+                 (replace-regexp-in-string "[ \t]*\\'"
+                                           (format " (default \"%s\") " default)
+                                           prompt t t))
+             prompt))
+          (use-dialog-box nil))
+     (cond
+      ((plist-member plist :file)
+       (expand-file-name
+        (read-file-name prompt
+                        (file-name-directory last-value) default t
+                        (file-name-nondirectory last-value)
+                        (when (plist-get plist :file)
+                          `(lambda (f)
+                             (string-match
+                              (concat "\\<" ,(plist-get plist :file) "\\>")
+                              (file-name-nondirectory f)))))))
 
-     ((plist-member plist :completion)
-      (completing-read prompt-def (plist-get plist :completion) nil t
-                       last-value history-var default))
+      ((plist-member plist :completion)
+       (completing-read prompt-def (plist-get plist :completion) nil t
+                        last-value history-var default))
 
-     ((plist-get plist :number)
-      (read-number prompt (or default last-value 0)))
+      ((plist-get plist :number)
+       (read-number prompt (or default last-value 0)))
 
-     (t
-      (let ((r (read-from-minibuffer prompt-def last-value nil nil history-var nil)))
-        (if (string= "" r) (or default "") r))))))
+      (t
+       (let ((r (read-from-minibuffer prompt-def last-value nil nil history-var nil)))
+         (if (string= "" r) (or default "") r)))))))
 
 (defun sql-get-login (&rest what)
   "Get username, password and database from the user.
@@ -2925,28 +2943,20 @@ function like this: (sql-get-login 'user 'password 'database)."
 
      (cond
       ((eq token 'user)		; user
-       (setq sql-user
-             (sql-get-login-ext "User: " sql-user
-                                'sql-user-history plist)))
+       (sql-get-login-ext 'sql-user "User: " 'sql-user-history plist))
 
-      ((eq token 'password)		; password
-       (setq sql-password
-             (sql-read-passwd "Password: " sql-password)))
+      ((eq token 'password)	; password
+       (setq-default sql-password
+                     (sql-read-passwd "Password: " sql-password)))
 
-      ((eq token 'server)		; server
-       (setq sql-server
-             (sql-get-login-ext "Server: " sql-server
-                                'sql-server-history plist)))
+      ((eq token 'server)	; server
+       (sql-get-login-ext 'sql-server "Server: " 'sql-server-history plist))
 
-      ((eq token 'database)		; database
-       (setq sql-database
-             (sql-get-login-ext "Database: " sql-database
-                                'sql-database-history plist)))
+      ((eq token 'database)	; database
+       (sql-get-login-ext 'sql-database "Database: " 'sql-database-history plist))
 
       ((eq token 'port)		; port
-       (setq sql-port
-             (sql-get-login-ext "Port: " sql-port
-                                nil (append '(:number t) plist)))))))
+       (sql-get-login-ext 'sql-port "Port: " nil (append '(:number t) plist))))))
    what))
 
 (defun sql-find-sqli-buffer (&optional product connection)
@@ -3423,7 +3433,7 @@ list of SQLi command strings."
                                                          :prompt-regexp))
           (start nil))
       (with-current-buffer buf
-        (toggle-read-only -1)
+        (setq view-read-only nil)
         (unless save-prior
           (erase-buffer))
         (goto-char (point-max))
@@ -3532,7 +3542,7 @@ buffer is popped into a view window. "
                        (get-lru-window))))
       (with-current-buffer outbuf
         (set-buffer-modified-p nil)
-        (toggle-read-only 1))
+        (setq view-read-only t))
       (view-buffer-other-window outbuf)
       (when one-win
         (shrink-window-if-larger-than-buffer)))))
@@ -3600,12 +3610,12 @@ The list is maintained in SQL interactive buffers.")
                 (setq has-schema (and
                                   (>= (length (car names)) schema-len)
                                   (string= schema-dot
-                                           (downcase (substring (car names) 
+                                           (downcase (substring (car names)
                                                                 0 schema-len))))
                       names (cdr names)))
               (unless has-schema
                 (sql-build-completions schema)))))
-        
+
         ;; Try to find the completion
         (cond
          ((not predicate)
@@ -3636,7 +3646,9 @@ The list is maintained in SQL interactive buffers.")
       (read-from-minibuffer prompt tname))))
 
 (defun sql-list-all (&optional enhanced)
-  "List all database objects."
+  "List all database objects.
+With optional prefix argument ENHANCED, displays additional
+details or extends the listing to include other schemas objects."
   (interactive "P")
   (let ((sqlbuf (sql-find-sqli-buffer)))
     (unless sqlbuf
@@ -3648,7 +3660,9 @@ The list is maintained in SQL interactive buffers.")
       (set (make-local-variable 'sql-buffer) sqlbuf))))
 
 (defun sql-list-table (name &optional enhanced)
-  "List the details of a database table. "
+  "List the details of a database table named NAME.
+Displays the columns in the relation.  With optional prefix argument
+ENHANCED, displays additional details about each column."
   (interactive
    (list (sql-read-table-name "Table name: ")
          current-prefix-arg))
@@ -3807,7 +3821,7 @@ you entered, right above the output it created.
 
   ;; Note that making KEYWORDS-ONLY nil will cause havoc if you try
   ;; SELECT 'x' FROM DUAL with SQL*Plus, because the title of the column
-  ;; will have just one quote.  Therefore syntactic hilighting is
+  ;; will have just one quote.  Therefore syntactic highlighting is
   ;; disabled for interactive buffers.  No imenu support.
   (sql-product-font-lock t nil)
 
@@ -3825,6 +3839,7 @@ you entered, right above the output it created.
   (set (make-local-variable 'sql-server)     sql-server)
   (set (make-local-variable 'sql-port)       sql-port)
   (set (make-local-variable 'sql-connection) sql-connection)
+  (setq-default sql-connection nil)
   ;; Contains the name of database objects
   (set (make-local-variable 'sql-contains-names) t)
   ;; Keep track of existing object names
@@ -3919,43 +3934,50 @@ is specified in the connection settings."
           ;; Settings are defined
           (if connect-set
               ;; Set the desired parameters
-              (eval `(let*
-                         (,@(cdr connect-set)
-                          ;; :sqli-login params variable
-                          (param-var    (sql-get-product-feature sql-product
-                                                                 :sqli-login nil t))
-                          ;; :sqli-login params value
-                          (login-params (sql-get-product-feature sql-product
-                                                                 :sqli-login))
-                          ;; which params are in the connection
-                          (set-params   (mapcar
-                                         (lambda (v)
-                                           (cond
-                                            ((eq (car v) 'sql-user)     'user)
-                                            ((eq (car v) 'sql-password) 'password)
-                                            ((eq (car v) 'sql-server)   'server)
-                                            ((eq (car v) 'sql-database) 'database)
-                                            ((eq (car v) 'sql-port)     'port)
-                                            (t                          (car v))))
-                                         (cdr connect-set)))
-                          ;; the remaining params (w/o the connection params)
-                          (rem-params   (sql-for-each-login
-                                         login-params
-                                         (lambda (token plist)
-                                           (unless (member token set-params)
-                                                    (if plist
-                                                        (cons token plist)
-                                                      token))))))
+              (let (param-var login-params set-params rem-params)
 
-                       ;; Set the remaining parameters and start the
-                       ;; interactive session
-                       (eval `(let ((sql-connection ,connection)
-                                     (,param-var ',rem-params))
-                                (sql-product-interactive sql-product 
-                                                         new-name)))))
+                ;; :sqli-login params variable
+                (setq param-var
+                      (sql-get-product-feature sql-product :sqli-login nil t))
+
+                ;; :sqli-login params value
+                (setq login-params
+                      (sql-get-product-feature sql-product :sqli-login))
+
+                ;; Params in the connection
+                (setq set-params
+                      (mapcar
+                       (lambda (v)
+                         (cond
+                          ((eq (car v) 'sql-user)     'user)
+                          ((eq (car v) 'sql-password) 'password)
+                          ((eq (car v) 'sql-server)   'server)
+                          ((eq (car v) 'sql-database) 'database)
+                          ((eq (car v) 'sql-port)     'port)
+                          (t                          (car v))))
+                       (cdr connect-set)))
+
+                ;; the remaining params (w/o the connection params)
+                (setq rem-params
+                      (sql-for-each-login login-params
+                       (lambda (token plist)
+                         (unless (member token set-params)
+                           (if plist (cons token plist) token)))))
+
+                ;; Set the parameters and start the interactive session
+                (mapc
+                 (lambda (vv)
+                   (set-default (car vv) (eval (cadr vv))))
+                 (cdr connect-set))
+                (setq-default sql-connection connection)
+
+                ;; Start the SQLi session with revised list of login parameters
+                (eval `(let ((,param-var ',rem-params))
+                         (sql-product-interactive sql-product new-name))))
 
             (message "SQL Connection <%s> does not exist" connection)
             nil)))
+
     (message "No SQL Connections defined")
     nil))
 
@@ -3981,16 +4003,16 @@ optionally is saved to the user's init file."
 
     (if connection
         (message "This session was started by a connection; it's already been saved.")
-      
+
       (let ((login (sql-get-product-feature product :sqli-login))
             (alist sql-connection-alist)
             connect)
-        
+
         ;; Remove the existing connection if the user says so
         (when (and (assoc name alist)
                    (yes-or-no-p (format "Replace connection definition <%s>? " name)))
           (setq alist (assq-delete-all name alist)))
-        
+
         ;; Add the new connection if it doesn't exist
         (if (assoc name alist)
             (message "Connection <%s> already exists" name)
@@ -4085,9 +4107,14 @@ the call to \\[sql-product-interactive] with
 
               ;; Connect to database.
               (message "Login...")
-              (funcall (sql-get-product-feature product :sqli-comint-func)
-                       product
-                       (sql-get-product-feature product :sqli-options))
+              (let ((sql-user       (default-value 'sql-user))
+                    (sql-password   (default-value 'sql-password))
+                    (sql-server     (default-value 'sql-server))
+                    (sql-database   (default-value 'sql-database))
+                    (sql-port       (default-value 'sql-port)))
+                (funcall (sql-get-product-feature product :sqli-comint-func)
+                         product
+                         (sql-get-product-feature product :sqli-options)))
 
               ;; Set SQLi mode.
               (let ((sql-interactive-product product))
@@ -4097,7 +4124,8 @@ the call to \\[sql-product-interactive] with
               (setq new-sqli-buffer (current-buffer))
               (when new-name
                 (sql-rename-buffer new-name))
-              (setq sql-buffer (buffer-name new-sqli-buffer))
+              (set (make-local-variable 'sql-buffer)
+                   (buffer-name new-sqli-buffer))
 
               ;; Set `sql-buffer' in the start buffer
               (with-current-buffer start-buffer
@@ -4107,6 +4135,7 @@ the call to \\[sql-product-interactive] with
 
               ;; All done.
               (message "Login...done")
+              (run-hooks 'sql-login-hook)
               (pop-to-buffer new-sqli-buffer)))))
     (message "No default SQL product defined.  Set `sql-product'.")))
 
@@ -4224,7 +4253,7 @@ The default comes from `process-coding-system-alist' and
     "^\\(.+\\) (hex ..)$"
     "SET \\1")
 
-   ;; FEDDBACK ON for 99 or more rows
+   ;; FEEDBACK ON for 99 or more rows
    ;; feedback OFF
    (sql-redirect-value
     sqlbuf
@@ -4725,7 +4754,7 @@ Try to set `comint-output-filter-functions' like this:
     (if (not (string= "" sql-user))
 	(setq params (append (list "-U" sql-user) params)))
     (if (not (= 0 sql-port))
-	(setq params (append (list "-p" sql-port) params)))
+	(setq params (append (list "-p" (number-to-string sql-port)) params)))
     (sql-comint product params)))
 
 (defun sql-postgres-completion-object (sqlbuf schema)
@@ -4747,8 +4776,8 @@ Try to set `comint-output-filter-functions' like this:
     (sql-redirect sqlbuf "\\t off")
     (when (not (string= a "aligned"))
       (sql-redirect sqlbuf "\\a"))
-    
-    ;; Return the list of table names (public schema name can be omitted) 
+
+    ;; Return the list of table names (public schema name can be omitted)
     (mapcar (lambda (tbl)
               (if (string= (car tbl) "public")
                   (cadr tbl)

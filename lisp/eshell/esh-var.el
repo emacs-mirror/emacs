@@ -1,6 +1,6 @@
 ;;; esh-var.el --- handling of variables
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -344,7 +344,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 	      (pcomplete-here))))
 
 (defun eshell/env (&rest args)
-  "Implemention of `env' in Lisp."
+  "Implementation of `env' in Lisp."
   (eshell-init-print-buffer)
   (eshell-eval-using-options
    "env" args

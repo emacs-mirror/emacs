@@ -1,6 +1,6 @@
 ;; erc-goodies.el --- Collection of ERC modules
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 
@@ -60,7 +60,7 @@ argument to `recenter'."
   ((remove-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
-       (remove-hook 'window-scroll-functions 'erc-scroll-to-bottom t)))))
+       (remove-hook 'post-command-hook 'erc-scroll-to-bottom t)))))
 
 (defun erc-add-scroll-to-bottom ()
   "A hook function for `erc-mode-hook' to recenter output at bottom of window.
@@ -70,35 +70,29 @@ the value of `erc-input-line-position'.
 
 This works whenever scrolling happens, so it's added to
 `window-scroll-functions' rather than `erc-insert-post-hook'."
-  ;;(make-local-hook 'window-scroll-functions)
-  (add-hook 'window-scroll-functions 'erc-scroll-to-bottom nil t))
+  (add-hook 'post-command-hook 'erc-scroll-to-bottom nil t))
 
-(defun erc-scroll-to-bottom (window display-start)
+(defun erc-scroll-to-bottom ()
   "Recenter WINDOW so that `point' is on the last line.
 
 This is added to `window-scroll-functions' by `erc-add-scroll-to-bottom'.
 
 You can control which line is recentered to by customizing the
-variable `erc-input-line-position'.
-
-DISPLAY-START is ignored."
-  (if (window-live-p window)
+variable `erc-input-line-position'."
       ;; Temporarily bind resize-mini-windows to nil so that users who have it
       ;; set to a non-nil value will not suffer from premature minibuffer
       ;; shrinkage due to the below recenter call.  I have no idea why this
       ;; works, but it solves the problem, and has no negative side effects.
       ;; (Fran Litterio, 2003/01/07)
-      (let ((resize-mini-windows nil))
-        (erc-with-selected-window window
-          (save-restriction
-            (widen)
-            (when (and erc-insert-marker
-                       ;; we're editing a line. Scroll.
-                       (> (point) erc-insert-marker))
-              (save-excursion
-                (goto-char (point-max))
-                (recenter (or erc-input-line-position -1))
-                (sit-for 0))))))))
+  (let ((resize-mini-windows nil))
+    (save-restriction
+      (widen)
+      (when (and erc-insert-marker
+		 ;; we're editing a line. Scroll.
+		 (> (point) erc-insert-marker))
+	(save-excursion
+	  (goto-char (point-max))
+	  (recenter (or erc-input-line-position -1)))))))
 
 ;;; Make read only
 (define-erc-module readonly nil

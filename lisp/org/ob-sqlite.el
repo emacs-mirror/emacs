@@ -1,11 +1,10 @@
 ;;; ob-sqlite.el --- org-babel functions for sqlite database interaction
 
-;; Copyright (C) 2010-2011  Free Software Foundation
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -89,6 +88,7 @@ This function is called by `org-babel-execute-src-block'."
 	;; body of the code block
 	(org-babel-expand-body:sqlite body params)))
       (if (or (member "scalar" result-params)
+	      (member "verbatim" result-params)
 	      (member "html" result-params)
 	      (member "code" result-params)
 	      (equal (point-min) (point-max)))
@@ -143,6 +143,7 @@ Prepare SESSION according to the header arguments specified in PARAMS."
   (error "sqlite sessions not yet implemented"))
 
 (provide 'ob-sqlite)
+
 
 
 ;;; ob-sqlite.el ends here

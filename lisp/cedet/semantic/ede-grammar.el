@@ -1,6 +1,6 @@
 ;;; semantic/ede-grammar.el --- EDE support for Semantic Grammar Files
 
-;; Copyright (C) 2003-2004, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -71,8 +71,8 @@ parsing different languages.")
      "@for loadpath in . ${LOADPATH}; do \\"
      "   echo \"(add-to-list 'load-path \\\"$$loadpath\\\")\" >> grammar-make-script; \\"
      "done;"
-     "@echo \"(require 'semantic-load)\" >> grammar-make-script"
-     "@echo \"(require 'semantic-grammar)\" >> grammar-make-script"
+     "@echo \"(require 'semantic/load)\" >> grammar-make-script"
+     "@echo \"(require 'semantic/grammar)\" >> grammar-make-script"
      ;; "@echo \"(setq debug-on-error t)\" >> grammar-make-script"
      "\"$(EMACS)\" -batch --no-site-file -l grammar-make-script -f semantic-grammar-batch-build-packages $^"
      )
@@ -101,8 +101,8 @@ parsing different languages.")
      "@for loadpath in . ${LOADPATH}; do \\"
      "   echo \"(add-to-list 'load-path \\\"$$loadpath\\\")\" >> grammar-make-script; \\"
      "done;"
-     "@echo \"(require 'semantic-load)\" >> grammar-make-script"
-     "@echo \"(require 'semantic-grammar)\" >> grammar-make-script"
+     "@echo \"(require 'semantic/load)\" >> grammar-make-script"
+     "@echo \"(require 'semantic/grammar)\" >> grammar-make-script"
      ;; "@echo \"(setq debug-on-error t)\" >> grammar-make-script"
      "\"$(EMACS)\" -batch --no-site-file -l grammar-make-script -f semantic-grammar-batch-build-packages $^"
      )

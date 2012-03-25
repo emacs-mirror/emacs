@@ -1,6 +1,6 @@
 ;;; tango-theme.el --- Tango-based custom theme for faces
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Authors: Chong Yidong <cyd@stupidchicken>
 ;;          Jan Moringen <jan.moringen@uni-bielefeld.de>
@@ -49,7 +49,7 @@ Semantic, and Ansi-Color faces are included.")
   (custom-theme-set-faces
    'tango
    `(default ((,class (:foreground ,alum-6 :background ,alum-1))))
-   `(cursor ((,class (:foreground ,alum-1 :background ,blue-3))))
+   `(cursor ((,class (:background ,blue-3))))
    ;; Highlighting faces
    `(fringe ((,class (:background ,alum-2))))
    `(highlight ((,class (:background ,alum-3))))
@@ -66,6 +66,9 @@ Semantic, and Ansi-Color faces are included.")
    ;; Escape and prompt faces
    `(minibuffer-prompt ((,class (:weight bold :foreground ,blue-3))))
    `(escape-glyph ((,class (:foreground ,red-3))))
+   `(error ((,class (:foreground ,red-3))))
+   `(warning ((,class (:foreground ,orange-3))))
+   `(success ((,class (:foreground ,cham-3))))
    ;; Font lock faces
    `(font-lock-builtin-face ((,class (:foreground ,plum-2))))
    `(font-lock-comment-face ((,class (:slant italic :foreground ,alum-5))))
@@ -75,7 +78,6 @@ Semantic, and Ansi-Color faces are included.")
    `(font-lock-string-face ((,class (:foreground ,plum-3))))
    `(font-lock-type-face ((,class (:foreground ,blue-3))))
    `(font-lock-variable-name-face ((,class (:foreground ,orange-4))))
-   `(font-lock-warning-face ((,class (:foreground ,red-2))))
    ;; Button and link faces
    `(link ((,class (:underline t :foreground ,blue-3))))
    `(link-visited ((,class (:underline t :foreground ,blue-2))))

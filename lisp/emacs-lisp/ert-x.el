@@ -1,6 +1,6 @@
 ;;; ert-x.el --- Staging area for experimental extensions to ERT
 
-;; Copyright (C) 2008, 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Author: Christian Ohler <ohler@gnu.org>
@@ -167,8 +167,9 @@ test for `called-interactively' in the command will fail."
     (run-hooks 'pre-command-hook)
     (setq return-value (apply (car command) (cdr command)))
     (run-hooks 'post-command-hook)
-    (when deferred-action-list
-      (run-hooks 'deferred-action-function))
+    (and (boundp 'deferred-action-list)
+         deferred-action-list
+         (run-hooks 'deferred-action-function))
     (setq real-last-command (car command)
           last-command this-command)
     (when (boundp 'last-repeatable-command)

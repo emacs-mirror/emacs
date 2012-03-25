@@ -142,7 +142,7 @@ command extensions.")
   (define-key vi-com-map "\C-s" 'vi-isearch-forward)  ; extension
   (define-key vi-com-map "\C-t" 'vi-transpose-objects) ; extension
   (define-key vi-com-map "\C-u" 'vi-scroll-up-window)
-  (define-key vi-com-map "\C-v" 'scroll-up) ; extension
+  (define-key vi-com-map "\C-v" 'scroll-up-command) ; extension
   (define-key vi-com-map "\C-w" 'vi-kill-region)   ; extension
   (define-key vi-com-map "\C-x" 'Control-X-prefix) ; extension
   (define-key vi-com-map "\C-y" 'vi-expose-line-above)

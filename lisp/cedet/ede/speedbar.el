@@ -1,6 +1,6 @@
 ;;; ede/speedbar.el --- Speedbar viewing of EDE projects
 
-;; Copyright (C) 1998-2001, 2003, 2005, 2007-2011
+;; Copyright (C) 1998-2001, 2003, 2005, 2007-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -297,7 +297,7 @@ INDENT is the current indentation level."
   (let ((file (ede-find-nearest-file-line)))
     (speedbar-find-file-in-frame file)
     (save-excursion (speedbar-stealthy-updates))
-    ;; Reset the timer with a new timeout when cliking a file
+    ;; Reset the timer with a new timeout when clicking a file
     ;; in case the user was navigating directories, we can cancel
     ;; that other timer.
 ;    (speedbar-set-timer speedbar-update-speed)

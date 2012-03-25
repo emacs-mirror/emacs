@@ -1,6 +1,6 @@
 ;;; footnote.el --- footnote support for message mode  -*- coding: utf-8;-*-
 
-;; Copyright (C) 1997, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org>
 ;; Keywords: mail, news
@@ -294,14 +294,14 @@ Use a range of Latin-1 non-ASCII characters for footnoting."
 ;; Unicode
 
 (defconst footnote-unicode-string "⁰¹²³⁴⁵⁶⁷⁸⁹"
-  "String of unicode footnoting characters.")
+  "String of Unicode footnoting characters.")
 
 (defconst footnote-unicode-regexp (concat "[" footnote-unicode-string "]+")
-  "Regexp for unicode footnoting characters.")
+  "Regexp for Unicode footnoting characters.")
 
 (defun Footnote-unicode (n)
   "Unicode footnote style.
-Use unicode characters for footnoting."
+Use Unicode characters for footnoting."
   (let (modulus result done)
     (while (not done)
       (setq modulus (mod n 10)
@@ -348,7 +348,7 @@ buffer use the command `Footnote-set-style'."
 
 ;;; Style utilities & functions
 (defun Footnote-style-p (style)
-  "Return non-nil if style is a valid style known to footnote-mode."
+  "Return non-nil if style is a valid style known to `footnote-mode'."
   (assq style footnote-style-alist))
 
 (defun Footnote-index-to-string (index)
@@ -788,9 +788,14 @@ being set it is automatically widened."
 
 ;;;###autoload
 (define-minor-mode footnote-mode
-  "Toggle footnote minor mode.
-This minor mode provides footnote support for `message-mode'.  To get
-started, play around with the following keys:
+  "Toggle Footnote mode.
+With a prefix argument ARG, enable Footnote mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Footnode mode is a buffer-local minor mode.  If enabled, it
+provides footnote support for `message-mode'.  To get started,
+play around with the following keys:
 \\{footnote-minor-mode-map}"
   :lighter    footnote-mode-line-string
   :keymap     footnote-minor-mode-map

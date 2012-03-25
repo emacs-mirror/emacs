@@ -1,6 +1,6 @@
 ;;;; srecode/find.el --- Tools for finding templates in the database.
 
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -103,7 +103,7 @@ If TAB is nil, then always return t."
   (let ((proj (oref tab :project)))
     ;; Return t if the project wasn't set.
     (if (not proj) t
-      ;; If the project directory was set, lets check it.
+      ;; If the project directory was set, let's check it.
       (let ((dd (expand-file-name default-directory))
 	    (projexp (regexp-quote (directory-file-name proj))))
 	(if (string-match (concat "^" projexp) dd)
@@ -238,7 +238,7 @@ Optional argument HASH is the hash table to fill in."
 	   (tabs (when mt (oref mt :tables)))
 	   )
       (while tabs
-	;; Exclude templates for a perticular application.
+	;; Exclude templates for a particular application.
 	(when (and (not (oref (car tabs) :application))
 		   (srecode-template-table-in-project-p (car tabs)))
 	  (maphash (lambda (key temp)

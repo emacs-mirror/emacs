@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988-1995, 1997, 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -1285,7 +1285,7 @@ expressions; a `progn' form will be returned enclosing these forms."
   ;; Wrap a form, usually a defining form, but any evaluated one.
   ;; If speclist is non-nil, this is being called by edebug-defining-form.
   ;; Otherwise it is being called from edebug-read-and-maybe-wrap-form1.
-  ;; This is a hack, but I havent figured out a simpler way yet.
+  ;; This is a hack, but I haven't figured out a simpler way yet.
   (let* ((form-data-entry (edebug-get-form-data-entry form-begin form-end))
 	 ;; Set this marker before parsing.
 	 (edebug-form-begin-marker
@@ -1557,7 +1557,7 @@ expressions; a `progn' form will be returned enclosing these forms."
   ;; The first spec is handled and the remainder-handler handles the rest.
   (let ((edebug-matching-depth
 	 (if (> edebug-matching-depth edebug-max-depth)
-	     (error "too deep - perhaps infinite loop in spec?")
+	     (error "Too deep - perhaps infinite loop in spec?")
 	   (1+ edebug-matching-depth))))
     (cond
      ((null specs) nil)
@@ -3201,7 +3201,7 @@ before returning.  The default is one second."
   "Modify the breakpoint for the form at point or after it.
 Set it if FLAG is non-nil, clear it otherwise.  Then move to that point.
 If CONDITION or TEMPORARY are non-nil, add those attributes to
-the breakpoint.  "
+the breakpoint."
   (let ((edebug-stop-point (edebug-find-stop-point)))
     (if edebug-stop-point
 	(let* ((edebug-def-name (car edebug-stop-point))
@@ -3408,7 +3408,7 @@ go to the end of the last sexp, or if that is the same point, then step."
       (message "%s is already instrumented." func)
       func)
      (t
-      (let ((loc (find-function-noselect func)))
+      (let ((loc (find-function-noselect func t)))
 	(unless (cdr loc)
 	  (error "Could not find the definition in its file"))
 	(with-current-buffer (car loc)
@@ -3448,7 +3448,7 @@ instrumented.  Then it does `edebug-on-entry' and switches to `go' mode."
 (defun edebug-on-entry (function &optional flag)
   "Cause Edebug to stop when FUNCTION is called.
 With prefix argument, make this temporary so it is automatically
-cancelled the first time the function is entered."
+canceled the first time the function is entered."
   (interactive "aEdebug on entry to: \nP")
   ;; Could store this in the edebug data instead.
   (put function 'edebug-on-entry (if flag 'temp t)))
@@ -3879,24 +3879,23 @@ Global commands prefixed by `global-edebug-prefix':
 \\{global-edebug-map}
 
 Options:
-edebug-setup-hook
-edebug-all-defs
-edebug-all-forms
-edebug-save-windows
-edebug-save-displayed-buffer-points
-edebug-initial-mode
-edebug-trace
-edebug-test-coverage
-edebug-continue-kbd-macro
-edebug-print-length
-edebug-print-level
-edebug-print-circle
-edebug-on-error
-edebug-on-quit
-edebug-on-signal
-edebug-unwrap-results
-edebug-global-break-condition
-"
+`edebug-setup-hook'
+`edebug-all-defs'
+`edebug-all-forms'
+`edebug-save-windows'
+`edebug-save-displayed-buffer-points'
+`edebug-initial-mode'
+`edebug-trace'
+`edebug-test-coverage'
+`edebug-continue-kbd-macro'
+`edebug-print-length'
+`edebug-print-level'
+`edebug-print-circle'
+`edebug-on-error'
+`edebug-on-quit'
+`edebug-on-signal'
+`edebug-unwrap-results'
+`edebug-global-break-condition'"
   ;; If the user kills the buffer in which edebug is currently active,
   ;; exit to top level, because the edebug command loop can't usefully
   ;; continue running in such a case.

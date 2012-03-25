@@ -1,6 +1,6 @@
-;;; subr.el --- basic lisp subroutines for Emacs
+;;; subr.el --- basic lisp subroutines for Emacs  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2011
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -116,8 +116,6 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
-;; Partial application of functions (similar to "currying").
-;; This function is here rather than in subr.el because it uses CL.
 (defun apply-partially (fun &rest args)
   "Return a function that is a partial application of FUN to ARGS.
 ARGS is a list of the first N arguments to pass to FUN.
@@ -526,6 +524,20 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	  (define-key map (char-to-string loop) 'digit-argument)
 	  (setq loop (1+ loop))))))
 
+(defun make-composed-keymap (maps &optional parent)
+  "Construct a new keymap composed of MAPS and inheriting from PARENT.
+When looking up a key in the returned map, the key is looked in each
+keymap of MAPS in turn until a binding is found.
+If no binding is found in MAPS, the lookup continues in PARENT, if non-nil.
+As always with keymap inheritance, a nil binding in MAPS overrides
+any corresponding binding in PARENT, but it does not override corresponding
+bindings in other keymaps of MAPS.
+MAPS can be a list of keymaps or a single keymap.
+PARENT if non-nil should be a keymap."
+  `(keymap
+    ,@(if (keymapp maps) (list maps) maps)
+    ,@parent))
+
 (defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
 This is like `define-key' except that the binding for KEY is placed
@@ -538,7 +550,8 @@ AFTER should be a single event type--a symbol or a character, not a sequence.
 
 Bindings are always added before any inherited map.
 
-The order of bindings in a keymap matters when it is used as a menu."
+The order of bindings in a keymap only matters when it is used as
+a menu, so this function is not useful for non-menu keymaps."
   (unless after (setq after t))
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))
@@ -611,6 +624,7 @@ Don't call this function; it is for internal use only."
 (defun keymap--menu-item-with-binding (item binding)
   "Build a menu-item like ITEM but with its binding changed to BINDING."
   (cond
+   ((not (consp item)) binding)		;Not a menu-item.
    ((eq 'menu-item (car item))
     (setq item (copy-sequence item))
     (let ((tail (nthcdr 2 item)))
@@ -874,8 +888,8 @@ The elements of the list may include `meta', `control',
 and `down'.
 EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
-in the current Emacs session, then this function can return nil,
-even when EVENT actually has modifiers."
+in the current Emacs session, then this function may fail to include
+the `click' modifier."
   (let ((type event))
     (if (listp type)
 	(setq type (car type)))
@@ -1262,10 +1276,10 @@ unless the optional argument APPEND is non-nil, in which case
 FUNCTION is added at the end.
 
 The optional fourth argument, LOCAL, if non-nil, says to modify
-the hook's buffer-local value rather than its default value.
-This makes the hook buffer-local if needed, and it makes t a member
-of the buffer-local value.  That acts as a flag to run the hook
-functions in the default value as well as in the local value.
+the hook's buffer-local value rather than its global value.
+This makes the hook buffer-local, and it makes t a member of the
+buffer-local value.  That acts as a flag to run the hook
+functions of the global value as well as in the local value.
 
 HOOK should be a symbol, and FUNCTION may be any valid function.  If
 HOOK is void, it is first set to nil.  If HOOK's value is a single
@@ -1351,19 +1365,30 @@ All symbols are bound before the VALUEFORMs are evalled."
      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
      ,@body))
 
-(defmacro with-wrapper-hook (var args &rest body)
-  "Run BODY wrapped with the VAR hook.
-VAR is a special hook: its functions are called with a first argument
-which is the \"original\" code (the BODY), so the hook function can wrap
-the original function, or call it any number of times (including not calling
-it at all).  This is similar to an `around' advice.
-VAR is normally a symbol (a variable) in which case it is treated like
-a hook, with a buffer-local and a global part.  But it can also be an
-arbitrary expression.
-ARGS is a list of variables which will be passed as additional arguments
-to each function, after the initial argument, and which the first argument
-expects to receive when called."
-  (declare (indent 2) (debug t))
+(defmacro with-wrapper-hook (hook args &rest body)
+  "Run BODY, using wrapper functions from HOOK with additional ARGS.
+HOOK is an abnormal hook.  Each hook function in HOOK \"wraps\"
+around the preceding ones, like a set of nested `around' advices.
+
+Each hook function should accept an argument list consisting of a
+function FUN, followed by the additional arguments in ARGS.
+
+The first hook function in HOOK is passed a FUN that, if it is called
+with arguments ARGS, performs BODY (i.e., the default operation).
+The FUN passed to each successive hook function is defined based
+on the preceding hook functions; if called with arguments ARGS,
+it does what the `with-wrapper-hook' call would do if the
+preceding hook functions were the only ones present in HOOK.
+
+Each hook function may call its FUN argument as many times as it wishes,
+including never.  In that case, such a hook function acts to replace
+the default definition altogether, and any preceding hook functions.
+Of course, a subsequent hook function may do the same thing.
+
+Each hook function definition is used to construct the FUN passed
+to the next hook function, if any.  The last (or \"outermost\")
+FUN is then called once."
+  (declare (indent 2) (debug (form sexp body)))
   ;; We need those two gensyms because CL's lexical scoping is not available
   ;; for function arguments :-(
   (let ((funs (make-symbol "funs"))
@@ -1391,11 +1416,11 @@ expects to receive when called."
                    ;; Once there are no more functions on the hook, run
                    ;; the original body.
                    (apply (lambda ,args ,@body) ,argssym)))))
-       (funcall ,runrestofhook ,var
+       (funcall ,runrestofhook ,hook
                 ;; The global part of the hook, if any.
-                ,(if (symbolp var)
-                     `(if (local-variable-p ',var)
-                          (default-value ',var)))
+                ,(if (symbolp hook)
+                     `(if (local-variable-p ',hook)
+                          (default-value ',hook)))
                 (list ,@args)))))
 
 (defun add-to-list (list-var element &optional append compare-fn)
@@ -1509,15 +1534,20 @@ if it is empty or a duplicate."
 (make-variable-buffer-local 'delayed-mode-hooks)
 (put 'delay-mode-hooks 'permanent-local t)
 
+(defvar change-major-mode-after-body-hook nil
+  "Normal hook run in major mode functions, before the mode hooks.")
+
 (defvar after-change-major-mode-hook nil
   "Normal hook run at the very end of major mode functions.")
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
-Execution is delayed if the variable `delay-mode-hooks' is non-nil.
-Otherwise, runs the mode hooks and then `after-change-major-mode-hook'.
-Major mode functions should use this instead of `run-hooks' when running their
-FOO-mode-hook."
+If the variable `delay-mode-hooks' is non-nil, does not run any hooks,
+just adds the HOOKS to the list `delayed-mode-hooks'.
+Otherwise, runs hooks in the sequence: `change-major-mode-after-body-hook',
+`delayed-mode-hooks' (in reverse order), HOOKS, and finally
+`after-change-major-mode-hook'.  Major mode functions should use
+this instead of `run-hooks' when running their FOO-mode-hook."
   (if delay-mode-hooks
       ;; Delaying case.
       (dolist (hook hooks)
@@ -1525,7 +1555,7 @@ FOO-mode-hook."
     ;; Normal case, just run the hook as before plus any delayed hooks.
     (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
     (setq delayed-mode-hooks nil)
-    (apply 'run-hooks hooks)
+    (apply 'run-hooks (cons 'change-major-mode-after-body-hook hooks))
     (run-hooks 'after-change-major-mode-hook)))
 
 (defmacro delay-mode-hooks (&rest body)
@@ -1733,7 +1763,7 @@ Return nil if there isn't one."
 
 (put 'eval-after-load 'lisp-indent-function 1)
 (defun eval-after-load (file form)
-  "Arrange that, if FILE is ever loaded, FORM will be run at that time.
+  "Arrange that if FILE is loaded, FORM will be run immediately afterwards.
 If FILE is already loaded, evaluate FORM right now.
 
 If a matching file is loaded again, FORM will be evaluated again.
@@ -1755,6 +1785,8 @@ this name matching.
 
 Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
 is evaluated at the end of any file that `provide's this feature.
+If the feature is provided when evaluating code not associated with a
+file, FORM is evaluated immediately after the provide statement.
 
 Usually FILE is just a library name like \"font-lock\" or a feature name
 like 'font-lock.
@@ -1772,30 +1804,31 @@ This function makes or adds to an entry on `after-load-alist'."
       (push elt after-load-alist))
     ;; Make sure `form' is evalled in the current lexical/dynamic code.
     (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
-    (when (symbolp regexp-or-feature)
-      ;; For features, the after-load-alist elements get run when `provide' is
-      ;; called rather than at the end of the file.  So add an indirection to
-      ;; make sure that `form' is really run "after-load" in case the provide
-      ;; call happens early.
-      (setq form
-            `(when load-file-name
-               (let ((fun (make-symbol "eval-after-load-helper")))
-                 (fset fun `(lambda (file)
-                              (if (not (equal file ',load-file-name))
-                                  nil
-                                (remove-hook 'after-load-functions ',fun)
-                                ,',form)))
-                 (add-hook 'after-load-functions fun)))))
-    ;; Add FORM to the element unless it's already there.
-    (unless (member form (cdr elt))
-      (nconc elt (purecopy (list form))))
-
     ;; Is there an already loaded file whose name (or `provide' name)
     ;; matches FILE?
-    (if (if (stringp file)
-	    (load-history-filename-element regexp-or-feature)
-	  (featurep file))
-	(eval form))))
+    (prog1 (if (if (stringp file)
+		   (load-history-filename-element regexp-or-feature)
+		 (featurep file))
+	       (eval form))
+      (when (symbolp regexp-or-feature)
+	;; For features, the after-load-alist elements get run when `provide' is
+	;; called rather than at the end of the file.  So add an indirection to
+	;; make sure that `form' is really run "after-load" in case the provide
+	;; call happens early.
+	(setq form
+	      `(if load-file-name
+		   (let ((fun (make-symbol "eval-after-load-helper")))
+		     (fset fun `(lambda (file)
+				  (if (not (equal file ',load-file-name))
+				      nil
+				    (remove-hook 'after-load-functions ',fun)
+				    ,',form)))
+		     (add-hook 'after-load-functions fun))
+		 ;; Not being provided from a file, run form right now.
+		 ,form)))
+      ;; Add FORM to the element unless it's already there.
+      (unless (member form (cdr elt))
+	(nconc elt (purecopy (list form)))))))
 
 (defvar after-load-functions nil
   "Special hook run after loading a file.
@@ -1833,12 +1866,33 @@ FILE should be the name of a library, with no directory name."
 
 (defun display-delayed-warnings ()
   "Display delayed warnings from `delayed-warnings-list'.
-This is the default value of `delayed-warnings-hook'."
+Used from `delayed-warnings-hook' (which see)."
   (dolist (warning (nreverse delayed-warnings-list))
     (apply 'display-warning warning))
   (setq delayed-warnings-list nil))
 
-(defvar delayed-warnings-hook '(display-delayed-warnings)
+(defun collapse-delayed-warnings ()
+  "Remove duplicates from `delayed-warnings-list'.
+Collapse identical adjacent warnings into one (plus count).
+Used from `delayed-warnings-hook' (which see)."
+  (let ((count 1)
+        collapsed warning)
+    (while delayed-warnings-list
+      (setq warning (pop delayed-warnings-list))
+      (if (equal warning (car delayed-warnings-list))
+          (setq count (1+ count))
+        (when (> count 1)
+          (setcdr warning (cons (format "%s [%d times]" (cadr warning) count)
+                                (cddr warning)))
+          (setq count 1))
+        (push warning collapsed)))
+    (setq delayed-warnings-list (nreverse collapsed))))
+
+;; At present this is only really useful for Emacs internals.
+;; Document in the lispref if it becomes generally useful.
+;; Ref http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00085.html
+(defvar delayed-warnings-hook '(collapse-delayed-warnings
+                                display-delayed-warnings)
   "Normal hook run to process delayed warnings.
 Functions in this hook should access the `delayed-warnings-list'
 variable (which see) and remove from it the warnings they process.")
@@ -1890,7 +1944,9 @@ Value is t if a query was formerly required."
     (or (not process)
         (not (memq (process-status process) '(run stop open listen)))
         (not (process-query-on-exit-flag process))
-        (yes-or-no-p "Buffer has a running process; kill it? "))))
+        (yes-or-no-p
+	 (format "Buffer %S has a running process; kill it? "
+		 (buffer-name (current-buffer)))))))
 
 (add-hook 'kill-buffer-query-functions 'process-kill-buffer-query-function)
 
@@ -2145,23 +2201,34 @@ If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
 keyboard-quit events while waiting for a valid input."
   (unless (consp chars)
     (error "Called `read-char-choice' without valid char choices"))
-  (let (char done)
+  (let (char done show-help (helpbuf " *Char Help*"))
     (let ((cursor-in-echo-area t)
           (executing-kbd-macro executing-kbd-macro))
-      (while (not done)
-        (unless (get-text-property 0 'face prompt)
-          (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
-        (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-                     (read-key prompt)))
-        (cond
-         ((not (numberp char)))
-         ((memq char chars)
-          (setq done t))
-         ((and executing-kbd-macro (= char -1))
-          ;; read-event returns -1 if we are in a kbd macro and
-          ;; there are no more events in the macro.  Attempt to
-          ;; get an event interactively.
-          (setq executing-kbd-macro nil)))))
+      (save-window-excursion	      ; in case we call help-form-show
+	(while (not done)
+	  (unless (get-text-property 0 'face prompt)
+	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+		       (read-key prompt)))
+	  (and show-help (buffer-live-p (get-buffer helpbuf))
+	       (kill-buffer helpbuf))
+	  (cond
+	   ((not (numberp char)))
+	   ;; If caller has set help-form, that's enough.
+	   ;; They don't explicitly have to add help-char to chars.
+	   ((and help-form
+		 (eq char help-char)
+		 (setq show-help t)
+		 (help-form-show)))
+	   ((memq char chars)
+	    (setq done t))
+	   ((and executing-kbd-macro (= char -1))
+	    ;; read-event returns -1 if we are in a kbd macro and
+	    ;; there are no more events in the macro.  Attempt to
+	    ;; get an event interactively.
+	    (setq executing-kbd-macro nil))
+	   ((and (not inhibit-keyboard-quit) (eq char ?\C-g))
+	    (keyboard-quit))))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
@@ -2225,11 +2292,25 @@ is nil and `use-dialog-box' is non-nil."
   ;; where all the keys were unbound (i.e. it somehow got triggered
   ;; within read-key, apparently).  I had to kill it.
   (let ((answer 'recenter))
-    (if (and (display-popup-menus-p)
-             (listp last-nonmenu-event)
-             use-dialog-box)
-        (setq answer
-              (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
+    (cond
+     (noninteractive
+      (setq prompt (concat prompt
+                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                               "" " ")
+                           "(y or n) "))
+      (let ((temp-prompt prompt))
+	(while (not (memq answer '(act skip)))
+	  (let ((str (read-string temp-prompt)))
+	    (cond ((member str '("y" "Y")) (setq answer 'act))
+		  ((member str '("n" "N")) (setq answer 'skip))
+		  (t (setq temp-prompt (concat "Please answer y or n.  "
+					       prompt))))))))
+     ((and (display-popup-menus-p)
+	   (listp last-nonmenu-event)
+	   use-dialog-box)
+      (setq answer
+	    (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
+     (t
       (setq prompt (concat prompt
                            (if (eq ?\s (aref prompt (1- (length prompt))))
                                "" " ")
@@ -2251,7 +2332,7 @@ is nil and `use-dialog-box' is non-nil."
              ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
              (t t)))
         (ding)
-        (discard-input)))
+        (discard-input))))
     (let ((ret (eq answer 'act)))
       (unless noninteractive
         (message "%s %s" prompt (if ret "y" "n")))
@@ -2932,8 +3013,9 @@ the buffer list ordering."
   "Execute the forms in BODY with FRAME as the selected frame.
 The value returned is the value of the last form in BODY.
 
-This macro neither changes the order of recently selected windows
-nor the buffer list."
+This macro saves and restores the selected frame, and changes the
+order of neither the recently selected windows nor the buffers in
+the buffer list."
   (declare (indent 1) (debug t))
   (let ((old-frame (make-symbol "old-frame"))
 	(old-buffer (make-symbol "old-buffer")))
@@ -2948,13 +3030,12 @@ nor the buffer list."
 	   (set-buffer ,old-buffer))))))
 
 (defmacro save-window-excursion (&rest body)
-  "Execute BODY, preserving window sizes and contents.
-Return the value of the last form in BODY.
-Restore which buffer appears in which window, where display starts,
-and the value of point and mark for each window.
-Also restore the choice of selected window.
-Also restore which buffer is current.
-Does not restore the value of point in current buffer.
+  "Execute BODY, then restore previous window configuration.
+This macro saves the window configuration on the selected frame,
+executes BODY, then calls `set-window-configuration' to restore
+the saved window configuration.  The return value is the last
+form in BODY.  The window configuration is also restored if BODY
+exits nonlocally.
 
 BEWARE: Most uses of this macro introduce bugs.
 E.g. it should not be used to try and prevent some code from opening
@@ -2975,7 +3056,7 @@ Instead it binds `standard-output' to that buffer, so that output
 generated with `prin1' and similar functions in BODY goes into
 the buffer.
 
-At the end of BODY, this marks buffer BUFNAME unmodifed and displays
+At the end of BODY, this marks buffer BUFNAME unmodified and displays
 it in a window, but does not select it.  The normal way to do this is
 by calling `display-buffer', then running `temp-buffer-show-hook'.
 However, if `temp-buffer-show-function' is non-nil, it calls that
@@ -3072,8 +3153,15 @@ See also `with-temp-file' and `with-output-to-string'."
   "Execute BODY, pretending it does not modify the buffer.
 If BODY performs real modifications to the buffer's text, other
 than cosmetic ones, undo data may become corrupted.
-Typically used around modifications of text-properties which do not really
-affect the buffer's content."
+
+This macro will run BODY normally, but doesn't count its buffer
+modifications as being buffer modifications.  This affects things
+like buffer-modified-p, checking whether the file is locked by
+someone else, running buffer modification hooks, and other things
+of that nature.
+
+Typically used around modifications of text-properties which do
+not really affect the buffer's content."
   (declare (debug t) (indent 0))
   (let ((modified (make-symbol "modified")))
     `(let* ((,modified (buffer-modified-p))
@@ -3134,7 +3222,7 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
 	   (or (input-pending-p)
 	       (progn ,@body)))))))
 
-(defmacro condition-case-no-debug (var bodyform &rest handlers)
+(defmacro condition-case-unless-debug (var bodyform &rest handlers)
   "Like `condition-case' except that it does not catch anything when debugging.
 More specifically if `debug-on-error' is set, then it does not catch any signal."
   (declare (debug condition-case) (indent 2))
@@ -3146,6 +3234,9 @@ More specifically if `debug-on-error' is set, then it does not catch any signal.
              (funcall ,bodysym)
            ,@handlers)))))
 
+(define-obsolete-function-alias 'condition-case-no-debug
+  'condition-case-unless-debug "24.1")
+
 (defmacro with-demoted-errors (&rest body)
   "Run BODY and demote any errors to simple messages.
 If `debug-on-error' is non-nil, run BODY without catching its errors.
@@ -3153,7 +3244,7 @@ This is to be used around code which is not expected to signal an error
 but which should be robust in the unexpected case that an error is signaled."
   (declare (debug t) (indent 0))
   (let ((err (make-symbol "err")))
-    `(condition-case-no-debug ,err
+    `(condition-case-unless-debug ,err
          (progn ,@body)
        (error (message "Error: %S" ,err) nil))))
 
@@ -3217,7 +3308,9 @@ The value returned is the value of the last form in BODY."
 NUM specifies which parenthesized expression in the last regexp.
  Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING."
+STRING should be given if the last search was by `string-match' on STRING.
+If STRING is nil, the current buffer should be the same buffer
+the search/match was performed in."
   (if (match-beginning num)
       (if string
 	  (substring string (match-beginning num) (match-end num))
@@ -3228,7 +3321,9 @@ STRING should be given if the last search was by `string-match' on STRING."
 NUM specifies which parenthesized expression in the last regexp.
  Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING."
+STRING should be given if the last search was by `string-match' on STRING.
+If STRING is nil, the current buffer should be the same buffer
+the search/match was performed in."
   (if (match-beginning num)
       (if string
 	  (substring-no-properties string (match-beginning num)
@@ -3506,6 +3601,24 @@ If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
   (eq t (compare-strings str1 nil nil
                          str2 0 (length str1) ignore-case)))
+
+(defun bidi-string-mark-left-to-right (str)
+  "Return a string that can be safely inserted in left-to-right text.
+
+Normally, inserting a string with right-to-left (RTL) script into
+a buffer may cause some subsequent text to be displayed as part
+of the RTL segment (usually this affects punctuation characters).
+This function returns a string which displays as STR but forces
+subsequent text to be displayed as left-to-right.
+
+If STR contains any RTL character, this function returns a string
+consisting of STR followed by an invisible left-to-right mark
+\(LRM) character.  Otherwise, it returns STR."
+  (unless (stringp str)
+    (signal 'wrong-type-argument (list 'stringp str)))
+  (if (string-match "\\cR" str)
+      (concat str (propertize (string ?\x200e) 'invisible t))
+    str))
 
 ;;;; invisibility specs
 
@@ -3712,7 +3825,7 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 ;;			      MIN-CHANGE
 ;;			      MIN-TIME])
 ;;
-;; This weirdeness is for optimization reasons: we want
+;; This weirdness is for optimization reasons: we want
 ;; `progress-reporter-update' to be as fast as possible, so
 ;; `(car reporter)' is better than `(aref reporter 0)'.
 ;;
@@ -4080,7 +4193,8 @@ If all LST elements are zeros or LST is nil, return zero."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-< (version-to-list v1) (version-to-list v2)))
 
 
@@ -4090,7 +4204,8 @@ which is higher than \"1alpha\"."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-<= (version-to-list v1) (version-to-list v2)))
 
 (defun version= (v1 v2)
@@ -4099,7 +4214,8 @@ which is higher than \"1alpha\"."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 

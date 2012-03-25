@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -140,12 +140,12 @@
 ;;   paragraph wasn't discovered until two months after I wrote the
 ;;   text; it was not intentional).
 ;;
-;; @ Emacs' register and bookmarking facilities can be used for
+;; @ Emacs's register and bookmarking facilities can be used for
 ;;   remembering where you've been, and what you've seen -- to varying
 ;;   levels of persistence.  They could perhaps even be tied to
 ;;   specific "moments" during eshell execution, which would include
 ;;   the environment at that time, as well as other variables.
-;;   Although this would require functionality orthogonal to Emacs'
+;;   Although this would require functionality orthogonal to Emacs's
 ;;   own bookmarking facilities, the interface used could be made to
 ;;   operate very similarly.
 ;;
@@ -344,16 +344,14 @@ With prefix ARG, insert output into the current buffer at point."
   (require 'esh-cmd)
   (unless arg
     (setq arg current-prefix-arg))
-  (unwind-protect
-      (let ((eshell-non-interactive-p t))
-	(add-hook 'minibuffer-setup-hook 'eshell-mode)
-	(add-hook 'minibuffer-exit-hook 'eshell-add-command-to-history)
-	(add-hook 'eshell-mode-hook 'eshell-return-exits-minibuffer)
-	(unless command
-	  (setq command (read-from-minibuffer "Emacs shell command: "))))
-    (remove-hook 'eshell-mode-hook 'eshell-return-exits-minibuffer)
-    (remove-hook 'minibuffer-exit-hook 'eshell-add-command-to-history)
-    (remove-hook 'minibuffer-setup-hook 'eshell-mode))
+  (let ((eshell-non-interactive-p t))
+    ;; Enable `eshell-mode' only in this minibuffer.
+    (minibuffer-with-setup-hook #'(lambda ()
+                                    (eshell-mode)
+                                    (eshell-return-exits-minibuffer))
+      (unless command
+        (setq command (read-from-minibuffer "Emacs shell command: "))
+        (eshell-add-input-to-history command))))
   (unless command
     (error "No command specified!"))
   ;; redirection into the current buffer is achieved by adding an

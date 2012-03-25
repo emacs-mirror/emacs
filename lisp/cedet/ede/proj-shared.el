@@ -1,6 +1,6 @@
 ;;; ede-proj-shared.el --- EDE Generic Project shared library support
 
-;;; Copyright (C) 1998-2000, 2009-2011 Free Software Foundation, Inc.
+;;; Copyright (C) 1998-2000, 2009-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -61,7 +61,7 @@ Use ldlibs to add addition libraries.")
 ;			   "$(CC_SHARED) -shared $(CFLAGS) $(LDFLAGS) -L. -o $@ $^")
 ;			  )
 ;	 :commands '("$(C_SHARED_LINK) %s")
-	 ;; @TODO - addative modification of autoconf.
+	 ;; @TODO - additive modification of autoconf.
 	 :autoconf '("AC_PROG_LIBTOOL")
 	 )
   "Compiler for C sourcecode.")
@@ -108,7 +108,7 @@ Use ldlibs to add addition libraries.")
 	 :variables '(("CXX_SHARED" . "g++")
 		      ("CXX_SHARED_COMPILE" .
 		       "$(CXX_SHARED) -shared $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)"))
-	 ;; @TODO - addative modification of autoconf.
+	 ;; @TODO - additive modification of autoconf.
 	 :autoconf '("AC_PROG_LIBTOOL")
 	 )
   "Compiler for C sourcecode.")
@@ -181,7 +181,7 @@ Results in --add-missing being passed to automake."
 (defmethod ede-proj-makefile-insert-automake-pre-variables
   ((this ede-proj-target-makefile-shared-object))
   "Insert bin_PROGRAMS variables needed by target THIS.
-We aren't acutally inserting SOURCE details, but this is used by the
+We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program."
   (ede-pmake-insert-variable-shared "lib_LTLIBRARIES"
      (insert (concat "lib" (ede-name this) ".la"))))

@@ -1,7 +1,7 @@
 /* Definitions for data structures and routines for the regular
    expression library, version 0.12.
 
-   Copyright (C) 1985, 1989-1993, 1995, 2000-2011
+   Copyright (C) 1985, 1989-1993, 1995, 2000-2012
                  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -415,7 +415,7 @@ struct re_pattern_buffer
 typedef struct re_pattern_buffer regex_t;
 
 /* Type for byte offsets within the string.  POSIX mandates this to be an int,
-   but the Open Group has signalled its intention to change the requirement to
+   but the Open Group has signaled its intention to change the requirement to
    be that regoff_t be at least as wide as ptrdiff_t and ssize_t.  Current
    gnulib sources also use ssize_t, and we need this for supporting buffers and
    strings > 2GB on 64-bit hosts.  */
@@ -582,7 +582,7 @@ extern void regfree _RE_ARGS ((regex_t *__preg));
 }
 #endif	/* C++ */
 
-/* For platform which support the ISO C amendement 1 functionality we
+/* For platform which support the ISO C amendment 1 functionality we
    support user defined character classes.  */
 #if WIDE_CHAR_SUPPORT
 /* Solaris 2.5 has a bug: <wchar.h> must be included before <wctype.h>.  */
@@ -592,7 +592,7 @@ extern void regfree _RE_ARGS ((regex_t *__preg));
 
 #if WIDE_CHAR_SUPPORT
 /* The GNU C library provides support for user-defined character classes
-   and the functions from ISO C amendement 1.  */
+   and the functions from ISO C amendment 1.  */
 # ifdef CHARCLASS_NAME_MAX
 #  define CHAR_CLASS_MAX_LENGTH CHARCLASS_NAME_MAX
 # else

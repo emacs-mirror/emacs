@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
 
-Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1996-1997, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -110,11 +110,11 @@ identify_winoldap_version (void)
                         <> 1700H: AL = Major version number
 				  AH = Minor version number */
   regs.x.ax = 0x1700;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return regs.x.ax;
 }
 
-/* Open the clipboard, return non-zero if successfull.  */
+/* Open the clipboard, return non-zero if successful.  */
 unsigned
 open_clipboard (void)
 {
@@ -133,11 +133,11 @@ open_clipboard (void)
      Return Values   AX == 0: Clipboard already open
 			<> 0: Clipboard opened */
   regs.x.ax = 0x1701;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return regs.x.ax;
 }
 
-/* Empty clipboard, return non-zero if successfull.  */
+/* Empty clipboard, return non-zero if successful.  */
 unsigned
 empty_clipboard (void)
 {
@@ -147,7 +147,7 @@ empty_clipboard (void)
      Return Values   AX == 0: Error occurred
 			<> 0: OK, Clipboard emptied */
   regs.x.ax = 0x1702;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return regs.x.ax;
 }
 
@@ -207,7 +207,7 @@ free_xfer_buf (void)
     }
 }
 
-/* Copy data into the clipboard, return zero if successfull.  */
+/* Copy data into the clipboard, return zero if successful.  */
 unsigned
 set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 {
@@ -294,7 +294,7 @@ set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
   regs.x.cx = truelen & 0xffff;
   regs.x.es = xbuf_addr >> 4;
   regs.x.bx = xbuf_addr & 15;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
 
   free_xfer_buf ();
 
@@ -320,7 +320,7 @@ get_clipboard_data_size (unsigned Format)
 			   the clipboard.  */
   regs.x.ax = 0x1704;
   regs.x.dx = Format;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return ( (((unsigned)regs.x.dx) << 16) | regs.x.ax);
 }
 
@@ -353,7 +353,7 @@ get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
   regs.x.dx = Format;
   regs.x.es = xbuf_addr >> 4;
   regs.x.bx = xbuf_addr & 15;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   if (regs.x.ax != 0)
     {
       unsigned char null_char = '\0';
@@ -405,7 +405,7 @@ get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
   return (unsigned) (dp - (unsigned char *)Data - 1);
 }
 
-/* Close clipboard, return non-zero if successfull.  */
+/* Close clipboard, return non-zero if successful.  */
 unsigned
 close_clipboard (void)
 {
@@ -415,7 +415,7 @@ close_clipboard (void)
      Return Values   AX == 0: Error occurred
                         <> 0: OK */
   regs.x.ax = 0x1708;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return regs.x.ax;
 }
 
@@ -432,7 +432,7 @@ clipboard_compact (unsigned Size)
   regs.x.ax = 0x1709;
   regs.x.si = Size >> 16;
   regs.x.cx = Size & 0xffff;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return ((unsigned)regs.x.dx << 16) | regs.x.ax;
 }
 
@@ -637,14 +637,17 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
 /* Support checking for a clipboard selection. */
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-       0, 1, 0,
-       doc: /* Whether there is an owner for the given X Selection.
-The arg should be the name of the selection in question, typically one of
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)
-For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'.  */)
-  (Lisp_Object selection)
+       0, 2, 0,
+       doc: /* Whether there is an owner for the given X selection.
+SELECTION should be the name of the selection in question, typically
+one of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  (X expects
+these literal upper-case names.)  The symbol nil is the same as
+`PRIMARY', and t is the same as `SECONDARY'.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.  */)
+  (Lisp_Object selection, Lisp_Object terminal)
 {
   CHECK_SYMBOL (selection);
 
@@ -730,4 +733,3 @@ After the communication, this variable is set to nil.  */);
 }
 
 #endif /* MSDOS */
-

@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -84,7 +84,7 @@
 
 ;; If you have just replaced a highlighted region with typed text,
 ;; you can repeat the replace with M-v.  This will search forward
-;; for a streach of text identical to the previous contents of the
+;; for a stretch of text identical to the previous contents of the
 ;; region (i.e. the contents of register 0) and replace it with the
 ;; text you typed to replace the original region.  Repeating M-v will
 ;; replace the next matching region and so on.
@@ -116,7 +116,7 @@
 
 ;; CUA register support
 ;; --------------------
-;; Emacs' standard register support is also based on a separate set of
+;; Emacs's standard register support is also based on a separate set of
 ;; "register commands".
 ;;
 ;; CUA's register support is activated by providing a numeric
@@ -134,7 +134,7 @@
 
 ;; CUA rectangle support
 ;; ---------------------
-;; Emacs' normal rectangle support is based on interpreting the region
+;; Emacs's normal rectangle support is based on interpreting the region
 ;; between the mark and point as a "virtual rectangle", and using a
 ;; completely separate set of "rectangle commands" [C-x r ...] on the
 ;; region to copy, kill, fill a.s.o. the virtual rectangle.
@@ -368,7 +368,7 @@ interpreted as a register number."
 
 (defcustom cua-check-pending-input t
   "If non-nil, don't override prefix key if input pending.
-It is rumoured that `input-pending-p' is unreliable under some window
+It is rumored that `input-pending-p' is unreliable under some window
 managers, so try setting this to nil, if prefix override doesn't work."
   :type 'boolean
   :group 'cua)
@@ -1121,7 +1121,7 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
 	(pop-to-mark-command)))
    ((and cua-toggle-set-mark mark-active)
     (cua--deactivate)
-    (message "Mark Cleared"))
+    (message "Mark cleared"))
    (t
     (push-mark-command nil nil)
     (setq cua--explicit-region-start t)
@@ -1242,7 +1242,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
    ;; Handle shifted cursor keys and other movement commands.
    ;; If region is not active, region is activated if key is shifted.
-   ;; If region is active, region is cancelled if key is unshifted
+   ;; If region is active, region is canceled if key is unshifted
    ;;   (and region not started with C-SPC).
    ;; If rectangle is active, expand rectangle in specified direction and
    ;;   ignore the movement.
@@ -1478,6 +1478,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--region-keymap [remap backward-delete-char]	'cua-delete-region)
   (define-key cua--region-keymap [remap backward-delete-char-untabify] 'cua-delete-region)
   (define-key cua--region-keymap [remap delete-char]		'cua-delete-region)
+  (define-key cua--region-keymap [remap delete-forward-char]    'cua-delete-region)
   ;; kill region
   (define-key cua--region-keymap [remap kill-region]		'cua-cut-region)
   (define-key cua--region-keymap [remap clipboard-kill-region]	'cua-cut-region)
@@ -1531,16 +1532,17 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 ;;;###autoload
 (define-minor-mode cua-mode
-  "Toggle CUA key-binding mode.
-When enabled, using shifted movement keys will activate the
-region (and highlight the region using `transient-mark-mode'),
-and typed text replaces the active selection.
+  "Toggle Common User Access style editing (CUA mode).
+With a prefix argument ARG, enable CUA mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
-Also when enabled, you can use C-z, C-x, C-c, and C-v to undo,
-cut, copy, and paste in addition to the normal Emacs bindings.
-The C-x and C-c keys only do cut and copy when the region is
-active, so in most cases, they do not conflict with the normal
-function of these prefix keys.
+CUA mode is a global minor mode.  When enabled, typed text
+replaces the active selection, and you can use C-z, C-x, C-c, and
+C-v to undo, cut, copy, and paste in addition to the normal Emacs
+bindings.  The C-x and C-c keys only do cut and copy when the
+region is active, so in most cases, they do not conflict with the
+normal function of these prefix keys.
 
 If you really need to perform a command which starts with one of
 the prefix keys even when the region is active, you have three

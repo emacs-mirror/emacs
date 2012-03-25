@@ -1,6 +1,6 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
-;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -1980,8 +1980,8 @@ COLLAPSE non-nil means collapse the branch."
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
     (define-key map "v" 'ebrowse-electric-view-buffer)
-    (define-key map "\C-v" 'scroll-up)
-    (define-key map "\ev" 'scroll-down)
+    (define-key map "\C-v" 'scroll-up-command)
+    (define-key map "\ev" 'scroll-down-command)
     (define-key map "\e\C-v" 'scroll-other-window)
     (define-key map "\e>" 'end-of-buffer)
     (define-key map "\e<" 'beginning-of-buffer)
@@ -3929,8 +3929,8 @@ Prefix arg ARG says how much."
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
     (define-key map "v" 'ebrowse-electric-view-position)
-    (define-key map "\C-v" 'scroll-up)
-    (define-key map "\ev" 'scroll-down)
+    (define-key map "\C-v" 'scroll-up-command)
+    (define-key map "\ev" 'scroll-down-command)
     (define-key map "\e\C-v" 'scroll-other-window)
     (define-key map "\e>" 'end-of-buffer)
     (define-key map "\e<" 'beginning-of-buffer)

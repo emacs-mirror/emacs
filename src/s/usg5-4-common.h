@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on AT&T's System V Release 4
 
-Copyright (C) 1987, 1990, 1999-2011  Free Software Foundation, Inc.
+Copyright (C) 1987, 1990, 1999-2012  Free Software Foundation, Inc.
 
 Written by James Van Artsdalen of Dell Computer Corp. james@bigtex.cactus.org.
 Subsequently improved for Dell 2.2 by Eric S. Raymond <esr@snark.thyrsus.com>.

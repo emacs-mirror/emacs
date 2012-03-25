@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -135,7 +135,7 @@
 ;; We'd have to notice defvars and defconsts, since those variables should
 ;; always be dynamic, and attempting to do a lexical binding of them
 ;; should simply do a dynamic binding instead.
-;; But!  We need to know about variables that were not necessarily defvarred
+;; But!  We need to know about variables that were not necessarily defvared
 ;; in the file being compiled (doing a boundp check isn't good enough.)
 ;; Fdefvar() would have to be modified to add something to the plist.
 ;;
@@ -527,7 +527,7 @@
 	   ;; However, don't actually bother calling `ignore'.
 	   `(prog1 nil . ,(mapcar 'byte-optimize-form (cdr form))))
 
-          ;; Neeeded as long as we run byte-optimize-form after cconv.
+          ;; Needed as long as we run byte-optimize-form after cconv.
           ((eq fn 'internal-make-closure) form)
 
           ((byte-code-function-p fn)
@@ -1574,7 +1574,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
               ;;   stack-set-X+1 stack-ref-X  -->  dup stack-set-X+2
               ;; but this is a very minor gain, since dup is stack-ref-0,
               ;; i.e. it's only better if X>5, and even then it comes
-              ;; at the cost cost of an extra stack slot.  Let's not bother.
+              ;; at the cost of an extra stack slot.  Let's not bother.
 	      ((and (eq 'byte-varref (car lap2))
                     (eq (cdr lap1) (cdr lap2))
                     (memq (car lap1) '(byte-varset byte-varbind)))

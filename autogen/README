@@ -7,12 +7,12 @@ configure    ../           autoconf
 config.in    ../src        autoheader      * also used by MSDOS bzr build
 aclocal.m4   ../           aclocal
 Makefile.in  ../lib        automake
-compile      ../           automake
-config.guess ../           automake
-config.sub   ../           automake
-depcomp      ../           automake
-install-sh   ../           automake
-missing      ../           automake
+compile      ../build-aux  automake
+config.guess ../build-aux  automake
+config.sub   ../build-aux  automake
+depcomp      ../build-aux  automake
+install-sh   ../build-aux  automake
+missing      ../build-aux  automake
 
 There are also some scripts:
 

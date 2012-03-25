@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Keyboard Macros, Files, Fixit, Top
@@ -35,8 +35,10 @@ intelligent or general.  For such things, Lisp must be used.
 * Basic Keyboard Macro::     Defining and running keyboard macros.
 * Keyboard Macro Ring::      Where previous keyboard macros are saved.
 * Keyboard Macro Counter::   Inserting incrementing numbers in macros.
-* Keyboard Macro Query::     Making keyboard macros do different things each time.
-* Save Keyboard Macro::      Giving keyboard macros names; saving them in files.
+* Keyboard Macro Query::     Making keyboard macros do different things each
+                               time.
+* Save Keyboard Macro::      Giving keyboard macros names; saving them in
+                               files.
 * Edit Keyboard Macro::      Editing keyboard macros.
 * Keyboard Macro Step-Edit:: Interactively executing and editing a keyboard
                                macro.
@@ -147,7 +149,7 @@ beginning of the line and then executing the macro.
 @findex kmacro-start-macro
 @findex kmacro-end-macro
   In addition to the @key{F3} and @key{F4} commands described above,
-Emacs also supports an older set of keybindings for defining and
+Emacs also supports an older set of key bindings for defining and
 executing keyboard macros.  To begin a macro definition, type @kbd{C-x
 (} (@code{kmacro-start-macro}); as with @key{F3}, a prefix argument
 appends this definition to the last keyboard macro.  To end a macro
@@ -332,8 +334,8 @@ numbers stored in registers.
 
   If you use a register as a counter, incrementing it on each
 repetition of the macro, that accomplishes the same thing as a
-keyboard macro counter.  @xref{RegNumbers}.  For most purposes, it is
-simpler to use a keyboard macro counter.
+keyboard macro counter.  @xref{Number Registers}.  For most purposes,
+it is simpler to use a keyboard macro counter.
 
 @node Keyboard Macro Query
 @section Executing Macros with Variations

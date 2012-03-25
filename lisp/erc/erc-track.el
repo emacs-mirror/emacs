@@ -1,6 +1,6 @@
 ;;; erc-track.el --- Track modified channel buffers
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm, faces
@@ -588,12 +588,15 @@ START is the minimum length of the name used."
 
 ;;;###autoload
 (define-minor-mode erc-track-minor-mode
-  "Global minor mode for tracking ERC buffers and showing activity in the
-mode line.
+  "Toggle mode line display of ERC activity (ERC Track minor mode).
+With a prefix argument ARG, enable ERC Track minor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-This exists for the sole purpose of providing the C-c C-SPC and
-C-c C-@ keybindings.  Make sure that you have enabled the track
-module, otherwise the keybindings will not do anything useful."
+ERC Track minor mode is a global minor mode.  It exists for the
+sole purpose of providing the C-c C-SPC and C-c C-@ keybindings.
+Make sure that you have enabled the track module, otherwise the
+keybindings will not do anything useful."
   :init-value nil
   :lighter ""
   :keymap erc-track-minor-mode-map
@@ -1037,7 +1040,7 @@ relative to `erc-track-switch-direction'"
 		   ((oldest leastactive)
 		    (- (length erc-modified-channels-alist) arg))
 		   (t (1- arg))))
-    ;; normalise out of range user input
+    ;; normalize out of range user input
     (cond ((>= offset (length erc-modified-channels-alist))
 	   (setq offset (1- (length erc-modified-channels-alist))))
 	  ((< offset 0)
@@ -1072,4 +1075,3 @@ switch back to the last non-ERC buffer visited.  Next is defined by
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

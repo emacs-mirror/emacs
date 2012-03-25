@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on the GNU Hurd.
 
-Copyright (C) 1994-1996, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1994-1996, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -37,10 +37,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
-#if defined(_IO_STDIO_H) || defined(_STDIO_USES_IOSTREAM)
+#if defined (_IO_STDIO_H) || defined (_STDIO_USES_IOSTREAM)
 /* new C libio names */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
 #endif /* !_IO_STDIO_H */
 #endif /* emacs */
 
+#define POSIX_SIGNALS 1
+
+/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
+#define GC_MARK_STACK 	GC_MAKE_GCPROS_NOOPS

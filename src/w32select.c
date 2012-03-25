@@ -1,6 +1,6 @@
 /* Selection processing for Emacs on the Microsoft W32 API.
 
-Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *
  * When copying or cutting (sending data to the OS), the data is
  * announced and stored internally, but only actually rendered on
- * request.  The requester determines the format provided.  The
+ * request.  The requestor determines the format provided.  The
  * {next-}selection-coding-system is only used, when its corresponding
  * clipboard type matches the type requested.
  *
@@ -335,7 +335,7 @@ render_all (Lisp_Object ignore)
 
   OpenClipboard (NULL);
 
-  /* There is no usefull means to report errors here, there are none
+  /* There is no useful means to report errors here, there are none
      expected anyway, and even if there were errors, they wouldn't do
      any harm.  So we just go ahead and do what has to be done without
      bothering with error handling.  */
@@ -750,7 +750,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
       else
 	{
 	  /* Advertise all supported formats so that whatever the
-	     requester chooses, only one encoding step needs to be
+	     requestor chooses, only one encoding step needs to be
 	     made.  This is intentionally different from what we do in
 	     the handler for WM_RENDERALLFORMATS.  */
 	  SetClipboardData (CF_UNICODETEXT, NULL);
@@ -1009,14 +1009,17 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 /* Support checking for a clipboard selection. */
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-       0, 1, 0,
-       doc: /* Whether there is an owner for the given X Selection.
-The arg should be the name of the selection in question, typically one of
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)
-For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'.  */)
-  (Lisp_Object selection)
+       0, 2, 0,
+       doc: /* Whether there is an owner for the given X selection.
+SELECTION should be the name of the selection in question, typically
+one of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  (X expects
+these literal upper-case names.)  The symbol nil is the same as
+`PRIMARY', and t is the same as `SECONDARY'.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.  */)
+  (Lisp_Object selection, Lisp_Object terminal)
 {
   CHECK_SYMBOL (selection);
 
@@ -1138,4 +1141,3 @@ globals_of_w32select (void)
 
   clipboard_owner = create_owner ();
 }
-

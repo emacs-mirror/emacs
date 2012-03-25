@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
@@ -34,6 +34,11 @@
 
 (eval-when-compile (require 'cl) (require 'vc))
 
+(defgroup vc-mtn nil
+  "VC Monotone (mtn) backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-mtn-diff-switches t
   "String or list of strings specifying switches for monotone diff under VC.
 If nil, use the value of `vc-diff-switches'.  If t, use no switches."
@@ -42,13 +47,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "23.1"
-  :group 'vc)
+  :group 'vc-mtn)
 
 (define-obsolete-variable-alias 'vc-mtn-command 'vc-mtn-program "23.1")
 (defcustom vc-mtn-program "mtn"
   "Name of the monotone executable."
   :type 'string
-  :group 'vc)
+  :group 'vc-mtn)
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -59,9 +64,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (setq vc-handled-backends (delq 'Mtn vc-handled-backends)))
 
 ;;;###autoload
-(defconst vc-mtn-admin-dir "_MTN")
+(defconst vc-mtn-admin-dir "_MTN" "Name of the monotone directory.")
 ;;;###autoload
-(defconst vc-mtn-admin-format (concat vc-mtn-admin-dir "/format"))
+(defconst vc-mtn-admin-format (concat vc-mtn-admin-dir "/format")
+  "Name of the monotone directory's format file.")
 
 ;;;###autoload (defun vc-mtn-registered (file)
 ;;;###autoload   (if (vc-find-root file vc-mtn-admin-format)
@@ -152,7 +158,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Rewrite rules to shorten Mtn's revision names on the mode-line."
   :type '(repeat (cons regexp string))
   :version "22.2"
-  :group 'vc)
+  :group 'vc-mtn)
 
 (defun vc-mtn-mode-line-string (file)
   "Return string for placement in modeline by `vc-mode-line' for FILE."
@@ -192,7 +198,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (unless contents-done
     (vc-mtn-command nil 0 file "revert")))
 
-;; (defun vc-mtn-roolback (files)
+;; (defun vc-mtn-rollback (files)
 ;;   )
 
 (defun vc-mtn-print-log (files buffer &optional shortlog start-revision limit)
@@ -299,7 +305,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       ids)))
 
 (defun vc-mtn-revision-completion-table (files)
-  ;; TODO: Implement completion for for selectors
+  ;; TODO: Implement completion for selectors
   ;; TODO: Implement completion for composite selectors.
   (lexical-let ((files files))
     ;; What about using `files'?!?  --Stef

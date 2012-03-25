@@ -1,6 +1,6 @@
 ;;; vietnamese.el --- support for Vietnamese -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -28,7 +28,7 @@
 
 ;;; Commentary:
 
-;; For Vietnames, the character sets VISCII, VSCII and TCVN-5712 are
+;; For Vietnamese, the character sets VISCII, VSCII and TCVN-5712 are
 ;; supported.
 
 ;;; Code:
@@ -84,7 +84,7 @@
 		(documentation . "\
 For Vietnamese, Emacs uses special charsets internally.
 They can be decoded from and encoded to VISCII, VSCII, TCVN-5712, VIQR
-and windows-1258.  VSCII is deprecated in favour of TCVN-5712.  The
+and windows-1258.  VSCII is deprecated in favor of TCVN-5712.  The
 Current setting gives higher priority to the coding system VISCII than
 TCVN-5712.  If you prefer TCVN-5712, please do: (prefer-coding-system
 'vietnamese-tcvn).  There are two Vietnamese input methods: VIQR and

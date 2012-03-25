@@ -1,5 +1,5 @@
 /* Cursor motion subroutines for GNU Emacs.
-   Copyright (C) 1985, 1995, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2001-2012  Free Software Foundation, Inc.
     based primarily on public domain code written by Chris Torek
 
 This file is part of GNU Emacs.
@@ -305,7 +305,8 @@ done:
 }
 
 #if 0
-losecursor ()
+void
+losecursor (void)
 {
   curY = -1;
 }

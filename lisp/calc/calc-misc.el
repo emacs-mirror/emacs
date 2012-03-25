@@ -1,6 +1,6 @@
 ;;; calc-misc.el --- miscellaneous functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -219,10 +219,10 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
   (let ((msgs
 	 '("Press `h' for complete help; press `?' repeatedly for a summary"
 	   "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
-	   "Letter keys: SHIFT + Undo, reDo; Keep-args; Inverse, Hyperbolic, Option"
+	   "Letter keys: SHIFT + Undo, reDo; Inverse, Hyperbolic, Option"
 	   "Letter keys: SHIFT + sQrt; Sin, Cos, Tan; Exp, Ln, logB"
 	   "Letter keys: SHIFT + Floor, Round; Abs, conJ, arG; Pi"
-	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro"
+	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
 	   "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
 	   "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
 	   "Other keys: ' (alg-entry), = (eval), ` (edit); M-RET (last-args)"
@@ -260,13 +260,13 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
                                                       (length msg)) 32)
                                       "  [?=MORE]")
                             ""))))))))
-  
+
 
 
 
 ;;;; Stack and buffer management.
 
-;; The variable calc-last-why-command is set in calc-do-handly-whys
+;; The variable calc-last-why-command is set in calc-do-handle-whys
 ;; and used in calc-why (in calc-stuff.el).
 (defvar calc-last-why-command)
 

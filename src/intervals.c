@@ -1,5 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1993-1995, 1997-1998, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -247,8 +247,7 @@ static int zero_length;
 INTERVAL search_interval, found_interval;
 
 void
-check_for_interval (i)
-     register INTERVAL i;
+check_for_interval (INTERVAL i)
 {
   if (i == search_interval)
     {
@@ -258,8 +257,7 @@ check_for_interval (i)
 }
 
 INTERVAL
-search_for_interval (i, tree)
-     register INTERVAL i, tree;
+search_for_interval (INTERVAL i, INTERVAL tree)
 {
   icount = 0;
   search_interval = i;
@@ -269,8 +267,7 @@ search_for_interval (i, tree)
 }
 
 static void
-inc_interval_count (i)
-     INTERVAL i;
+inc_interval_count (INTERVAL i)
 {
   icount++;
   if (LENGTH (i) == 0)
@@ -280,8 +277,7 @@ inc_interval_count (i)
 }
 
 int
-count_intervals (i)
-     register INTERVAL i;
+count_intervals (INTERVAL i)
 {
   icount = 0;
   idepth = 0;
@@ -292,8 +288,7 @@ count_intervals (i)
 }
 
 static INTERVAL
-root_interval (interval)
-     INTERVAL interval;
+root_interval (INTERVAL interval)
 {
   register INTERVAL i = interval;
 
@@ -804,9 +799,8 @@ update_interval (register INTERVAL i, EMACS_INT pos)
    to the root.  */
 
 static INTERVAL
-adjust_intervals_for_insertion (tree, position, length)
-     INTERVAL tree;
-     EMACS_INT position, length;
+adjust_intervals_for_insertion (INTERVAL tree, EMACS_INT position,
+				EMACS_INT length)
 {
   register EMACS_INT relative_position;
   register INTERVAL this;
@@ -1323,7 +1317,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   if (NULL_INTERVAL_P (tree))
     return 0;
 
-  /* Left branch */
+  /* Left branch.  */
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
       EMACS_INT subtract = interval_deletion_adjustment (tree->left,
@@ -1333,7 +1327,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
       CHECK_TOTAL_LENGTH (tree);
       return subtract;
     }
-  /* Right branch */
+  /* Right branch.  */
   else if (relative_position >= (TOTAL_LENGTH (tree)
 				 - RIGHT_TOTAL_LENGTH (tree)))
     {
@@ -1431,9 +1425,8 @@ adjust_intervals_for_deletion (struct buffer *buffer,
    compiler that does not allow calling a static function (here,
    adjust_intervals_for_deletion) from a non-static inline function.  */
 
-static inline void
-static_offset_intervals (struct buffer *buffer, EMACS_INT start,
-			 EMACS_INT length)
+void
+offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
 {
   if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
     return;
@@ -1445,12 +1438,6 @@ static_offset_intervals (struct buffer *buffer, EMACS_INT start,
       IF_LINT (if (length < - TYPE_MAXIMUM (EMACS_INT)) abort ();)
       adjust_intervals_for_deletion (buffer, start, -length);
     }
-}
-
-inline void
-offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
-{
-  static_offset_intervals (buffer, start, length);
 }
 
 /* Merge interval I with its lexicographic successor. The resulting
@@ -1615,9 +1602,7 @@ reproduce_tree_obj (INTERVAL source, Lisp_Object parent)
    interval.  */
 
 static INTERVAL
-make_new_interval (intervals, start, length)
-     INTERVAL intervals;
-     EMACS_INT start, length;
+make_new_interval (INTERVAL intervals, EMACS_INT start, EMACS_INT length)
 {
   INTERVAL slot;
 
@@ -1714,56 +1699,37 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
 				 Qnil, buf, 0);
 	}
       if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
-	/* Shouldn't be necessary.  -stef  */
+	/* Shouldn't be necessary.  --Stef  */
 	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
       return;
     }
 
-  if (NULL_INTERVAL_P (tree))
-    {
-      /* The inserted text constitutes the whole buffer, so
+  eassert (length == TOTAL_LENGTH (source));
+
+  if ((BUF_Z (buffer) - BUF_BEG (buffer)) == length)
+    {  /* The inserted text constitutes the whole buffer, so
 	 simply copy over the interval structure.  */
-      if ((BUF_Z (buffer) - BUF_BEG (buffer)) == TOTAL_LENGTH (source))
-	{
 	  Lisp_Object buf;
 	  XSETBUFFER (buf, buffer);
 	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
-	  BUF_INTERVALS (buffer)->position = BEG;
-	  BUF_INTERVALS (buffer)->up_obj = 1;
-
-	  /* Explicitly free the old tree here?  */
-
+      BUF_INTERVALS (buffer)->position = BUF_BEG (buffer);
+      eassert (BUF_INTERVALS (buffer)->up_obj == 1);
 	  return;
 	}
-
-      /* Create an interval tree in which to place a copy
+  else if (NULL_INTERVAL_P (tree))
+    { /* Create an interval tree in which to place a copy
 	 of the intervals of the inserted string.  */
-      {
 	Lisp_Object buf;
 	XSETBUFFER (buf, buffer);
 	tree = create_root_interval (buf);
       }
-    }
-  else if (TOTAL_LENGTH (tree) == TOTAL_LENGTH (source))
-    /* If the buffer contains only the new string, but
-       there was already some interval tree there, then it may be
-       some zero length intervals.  Eventually, do something clever
-       about inserting properly.  For now, just waste the old intervals.  */
-    {
-      BUF_INTERVALS (buffer) = reproduce_tree (source, INTERVAL_PARENT (tree));
-      BUF_INTERVALS (buffer)->position = BEG;
-      BUF_INTERVALS (buffer)->up_obj = 1;
-      /* Explicitly free the old tree here.  */
-
-      return;
-    }
   /* Paranoia -- the text has already been added, so this buffer
      should be of non-zero length.  */
   else if (TOTAL_LENGTH (tree) == 0)
     abort ();
 
   this = under = find_interval (tree, position);
-  if (NULL_INTERVAL_P (under))	/* Paranoia */
+  if (NULL_INTERVAL_P (under))	/* Paranoia.  */
     abort ();
   over = find_interval (source, interval_start_pos (source));
 
@@ -1894,7 +1860,7 @@ lookup_char_property (Lisp_Object plist, register Lisp_Object prop, int textprop
 /* Set point in BUFFER "temporarily" to CHARPOS, which corresponds to
    byte position BYTEPOS.  */
 
-inline void
+void
 temp_set_point_both (struct buffer *buffer,
 		     EMACS_INT charpos, EMACS_INT bytepos)
 {
@@ -1914,7 +1880,7 @@ temp_set_point_both (struct buffer *buffer,
 
 /* Set point "temporarily", without checking any text properties.  */
 
-inline void
+void
 temp_set_point (struct buffer *buffer, EMACS_INT charpos)
 {
   temp_set_point_both (buffer, charpos,
@@ -1934,7 +1900,7 @@ set_point (EMACS_INT charpos)
    current buffer, and the invisible property has a `stickiness' such that
    inserting a character at position POS would inherit the property it,
    return POS + ADJ, otherwise return POS.  If TEST_INTANG is non-zero,
-   then intangibility is required as well as invisibleness.
+   then intangibility is required as well as invisibility.
 
    TEST_OFFS should be either 0 or -1, and ADJ should be either 1 or -1.
 
@@ -2403,7 +2369,7 @@ copy_intervals (INTERVAL tree, EMACS_INT start, EMACS_INT length)
 
 /* Give STRING the properties of BUFFER from POSITION to LENGTH.  */
 
-inline void
+void
 copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
 			  EMACS_INT position, EMACS_INT length)
 {

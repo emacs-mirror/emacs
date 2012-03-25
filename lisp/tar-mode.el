@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990-1991, 1993-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2012 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: FSF
@@ -142,7 +142,7 @@ This information is useful, but it takes screen space away from file names."
 
 ;; The Tar data is made up of bytes and better manipulated as bytes
 ;; and can be very large, so insert/delete can be costly.  The summary we
-;; want to display may contain non-ascci chars, of course, so we'd like it
+;; want to display may contain non-ascii chars, of course, so we'd like it
 ;; to be multibyte.  We used to keep both in the same buffer and switch
 ;; from/to uni/multibyte.  But this had several downsides:
 ;; - set-buffer-multibyte has an O(N^2) worst case that tends to be triggered
@@ -404,13 +404,19 @@ MODE should be an integer which is a file mode value."
   (string
    (if (zerop (logand 256 mode)) ?- ?r)
    (if (zerop (logand 128 mode)) ?- ?w)
-   (if (zerop (logand 1024 mode)) (if (zerop (logand  64 mode)) ?- ?x) ?s)
+   (if (zerop (logand 2048 mode))
+       (if (zerop (logand  64 mode)) ?- ?x)
+     (if (zerop (logand  64 mode)) ?S ?s))
    (if (zerop (logand  32 mode)) ?- ?r)
    (if (zerop (logand  16 mode)) ?- ?w)
-   (if (zerop (logand 2048 mode)) (if (zerop (logand   8 mode)) ?- ?x) ?s)
+   (if (zerop (logand 1024 mode))
+       (if (zerop (logand   8 mode)) ?- ?x)
+     (if (zerop (logand   8 mode)) ?S ?s))
    (if (zerop (logand   4 mode)) ?- ?r)
    (if (zerop (logand   2 mode)) ?- ?w)
-   (if (zerop (logand   1 mode)) ?- ?x)))
+   (if (zerop (logand 512 mode))
+       (if (zerop (logand   1 mode)) ?- ?x)
+     (if (zerop (logand   1 mode)) ?T ?t))))
 
 (defun tar-header-block-summarize (tar-hblock &optional mod-p)
   "Return a line similar to the output of `tar -vtf'."
@@ -628,6 +634,9 @@ inside of a tar archive without extracting it and re-archiving it.
 
 See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 \\{tar-mode-map}"
+  (and buffer-file-name
+       (file-writable-p buffer-file-name)
+       (setq buffer-read-only nil))    ; undo what `special-mode' did
   (make-local-variable 'tar-parse-info)
   (set (make-local-variable 'require-final-newline) nil) ; binary data, dude...
   (set (make-local-variable 'local-enable-local-variables) nil)
@@ -671,9 +680,12 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 
 (define-minor-mode tar-subfile-mode
   "Minor mode for editing an element of a tar-file.
-This mode arranges for \"saving\" this buffer to write the data
-into the tar-file buffer that it came from.  The changes will actually
-appear on disk when you save the tar-file's buffer."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.  This mode arranges for \"saving\" this
+buffer to write the data into the tar-file buffer that it came
+from.  The changes will actually appear on disk when you save the
+tar-file's buffer."
   ;; Don't do this, because it is redundant and wastes mode line space.
   ;; :lighter " TarFile"
   nil nil nil

@@ -1,6 +1,6 @@
 /* This file is the configuration file for Linux-based GNU systems
 
-Copyright (C) 1985-1986, 1992, 1994, 1996, 1999, 2001-2011
+Copyright (C) 1985-1986, 1992, 1994, 1996, 1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file was put together by Michael K. Johnson and Rik Faith.
@@ -103,7 +103,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This is needed for dispnew.c:update_frame.  */
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
-#if defined(_IO_STDIO_H) || defined(_STDIO_USES_IOSTREAM)
+#if defined (_IO_STDIO_H) || defined (_STDIO_USES_IOSTREAM)
 /* New C libio names.  */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
@@ -155,7 +155,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     extern void *__libc_ia64_register_backing_store_base;	\
     __builtin_ia64_flushrs ();					\
     mark_memory (__libc_ia64_register_backing_store_base,	\
-		 __builtin_ia64_bsp (), 0);			\
+		 __builtin_ia64_bsp ());			\
   } while (0)
 #endif
 #endif

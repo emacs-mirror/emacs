@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs
 
-;; Copyright (C) 1985-1986, 1994, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
@@ -98,11 +98,21 @@ and `debugger-reenable' to temporarily disable debug-on-entry.")
 
 (defvar inhibit-trace)                  ;Not yet implemented.
 
+(defvar debugger-args nil
+  "Arguments with which the debugger was called.
+It is a list expected to take the form (CAUSE . REST)
+where CAUSE can be:
+- debug: called for entry to a flagged function.
+- t: called because of debug-on-next-call.
+- lambda: same thing but via `funcall'.
+- exit: called because of exit of a flagged function.
+- error: called because of `debug-on-error'.")
+
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
 (defun debug (&rest debugger-args)
-  "Enter debugger.  To return, type \\<debugger-mode-map>`\\[debugger-continue]'.
+  "Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.
 Arguments are mainly for use when this is called from the internals
 of the evaluator.
 
@@ -296,32 +306,33 @@ That buffer should be current already."
   (insert "Debugger entered")
   ;; lambda is for debug-on-call when a function call is next.
   ;; debug is for debug-on-entry function called.
-  (cond ((memq (car debugger-args) '(lambda debug))
-	 (insert "--entering a function:\n"))
-	;; Exiting a function.
-	((eq (car debugger-args) 'exit)
-	 (insert "--returning value: ")
-	 (setq debugger-value (nth 1 debugger-args))
-	 (prin1 debugger-value (current-buffer))
-	 (insert ?\n)
-	 (delete-char 1)
-	 (insert ? )
-	 (beginning-of-line))
-	;; Debugger entered for an error.
-	((eq (car debugger-args) 'error)
-	 (insert "--Lisp error: ")
-	 (prin1 (nth 1 debugger-args) (current-buffer))
-	 (insert ?\n))
-	;; debug-on-call, when the next thing is an eval.
-	((eq (car debugger-args) t)
-	 (insert "--beginning evaluation of function call form:\n"))
-	;; User calls debug directly.
-	(t
-	 (insert ": ")
-	 (prin1 (if (eq (car debugger-args) 'nil)
-		    (cdr debugger-args) debugger-args)
-		(current-buffer))
-	 (insert ?\n)))
+  (pcase (car debugger-args)
+    ((or `lambda `debug)
+     (insert "--entering a function:\n"))
+    ;; Exiting a function.
+    (`exit
+     (insert "--returning value: ")
+     (setq debugger-value (nth 1 debugger-args))
+     (prin1 debugger-value (current-buffer))
+     (insert ?\n)
+     (delete-char 1)
+     (insert ? )
+     (beginning-of-line))
+    ;; Debugger entered for an error.
+    (`error
+     (insert "--Lisp error: ")
+     (prin1 (nth 1 debugger-args) (current-buffer))
+     (insert ?\n))
+    ;; debug-on-call, when the next thing is an eval.
+    (`t
+     (insert "--beginning evaluation of function call form:\n"))
+    ;; User calls debug directly.
+    (_
+     (insert ": ")
+     (prin1 (if (eq (car debugger-args) 'nil)
+                (cdr debugger-args) debugger-args)
+            (current-buffer))
+     (insert ?\n)))
   ;; After any frame that uses eval-buffer,
   ;; insert a line that states the buffer position it's reading at.
   (save-excursion
@@ -342,71 +353,72 @@ That buffer should be current already."
   "Attach cross-references to function names in the `*Backtrace*' buffer."
   (interactive "b")
   (with-current-buffer (or buffer (current-buffer))
-    (setq buffer (current-buffer))
-    (let ((inhibit-read-only t)
-	  (old-end (point-min)) (new-end (point-min)))
-      ;; If we saved an old backtrace, find the common part
-      ;; between the new and the old.
-      ;; Compare line by line, starting from the end,
-      ;; because that's the part that is likely to be unchanged.
-      (if debugger-previous-backtrace
-	  (let (old-start new-start (all-match t))
-	    (goto-char (point-max))
-	    (with-temp-buffer
-	      (insert debugger-previous-backtrace)
-	      (while (and all-match (not (bobp)))
-		(setq old-end (point))
-		(forward-line -1)
-		(setq old-start (point))
-		(with-current-buffer buffer
-		  (setq new-end (point))
+    (save-excursion
+      (setq buffer (current-buffer))
+      (let ((inhibit-read-only t)
+	    (old-end (point-min)) (new-end (point-min)))
+	;; If we saved an old backtrace, find the common part
+	;; between the new and the old.
+	;; Compare line by line, starting from the end,
+	;; because that's the part that is likely to be unchanged.
+	(if debugger-previous-backtrace
+	    (let (old-start new-start (all-match t))
+	      (goto-char (point-max))
+	      (with-temp-buffer
+		(insert debugger-previous-backtrace)
+		(while (and all-match (not (bobp)))
+		  (setq old-end (point))
 		  (forward-line -1)
-		  (setq new-start (point)))
-		(if (not (zerop
-                          (let ((case-fold-search nil))
-                            (compare-buffer-substrings
-                             (current-buffer) old-start old-end
-                             buffer new-start new-end))))
-		    (setq all-match nil))))
-	    ;; Now new-end is the position of the start of the
-	    ;; unchanged part in the current buffer, and old-end is
-	    ;; the position of that same text in the saved old
-	    ;; backtrace.  But we must subtract (point-min) since strings are
-	    ;; indexed in origin 0.
+		  (setq old-start (point))
+		  (with-current-buffer buffer
+		    (setq new-end (point))
+		    (forward-line -1)
+		    (setq new-start (point)))
+		  (if (not (zerop
+			    (let ((case-fold-search nil))
+			      (compare-buffer-substrings
+			       (current-buffer) old-start old-end
+			       buffer new-start new-end))))
+		      (setq all-match nil))))
+	      ;; Now new-end is the position of the start of the
+	      ;; unchanged part in the current buffer, and old-end is
+	      ;; the position of that same text in the saved old
+	      ;; backtrace.  But we must subtract (point-min) since strings are
+	      ;; indexed in origin 0.
 
-	    ;; Replace the unchanged part of the backtrace
-	    ;; with the text from debugger-previous-backtrace,
-	    ;; since that already has the proper xrefs.
-	    ;; With this optimization, we only need to scan
-	    ;; the changed part of the backtrace.
-	    (delete-region new-end (point-max))
-	    (goto-char (point-max))
-	    (insert (substring debugger-previous-backtrace
-			       (- old-end (point-min))))
-	    ;; Make the unchanged part of the backtrace inaccessible
-	    ;; so it won't be scanned.
-	    (narrow-to-region (point-min) new-end)))
+	      ;; Replace the unchanged part of the backtrace
+	      ;; with the text from debugger-previous-backtrace,
+	      ;; since that already has the proper xrefs.
+	      ;; With this optimization, we only need to scan
+	      ;; the changed part of the backtrace.
+	      (delete-region new-end (point-max))
+	      (goto-char (point-max))
+	      (insert (substring debugger-previous-backtrace
+				 (- old-end (point-min))))
+	      ;; Make the unchanged part of the backtrace inaccessible
+	      ;; so it won't be scanned.
+	      (narrow-to-region (point-min) new-end)))
 
-      ;; Scan the new part of the backtrace, inserting xrefs.
-      (goto-char (point-min))
-      (while (progn
-	       (goto-char (+ (point) 2))
-	       (skip-syntax-forward "^w_")
-	       (not (eobp)))
-	(let* ((beg (point))
-	       (end (progn (skip-syntax-forward "w_") (point)))
-	       (sym (intern-soft (buffer-substring-no-properties
-				  beg end)))
-	       (file (and sym (symbol-file sym 'defun))))
-	  (when file
-	    (goto-char beg)
-	    ;; help-xref-button needs to operate on something matched
-	    ;; by a regexp, so set that up for it.
-	    (re-search-forward "\\(\\sw\\|\\s_\\)+")
-	    (help-xref-button 0 'help-function-def sym file)))
-	(forward-line 1))
-      (widen))
-    (setq debugger-previous-backtrace (buffer-string))))
+	;; Scan the new part of the backtrace, inserting xrefs.
+	(goto-char (point-min))
+	(while (progn
+		 (goto-char (+ (point) 2))
+		 (skip-syntax-forward "^w_")
+		 (not (eobp)))
+	  (let* ((beg (point))
+		 (end (progn (skip-syntax-forward "w_") (point)))
+		 (sym (intern-soft (buffer-substring-no-properties
+				    beg end)))
+		 (file (and sym (symbol-file sym 'defun))))
+	    (when file
+	      (goto-char beg)
+	      ;; help-xref-button needs to operate on something matched
+	      ;; by a regexp, so set that up for it.
+	      (re-search-forward "\\(\\sw\\|\\s_\\)+")
+	      (help-xref-button 0 'help-function-def sym file)))
+	  (forward-line 1))
+	(widen))
+      (setq debugger-previous-backtrace (buffer-string)))))
 
 (defun debugger-step-through ()
   "Proceed, stepping through subexpressions of this expression.
@@ -438,6 +450,10 @@ Enter another debugger on next entry to eval, apply or funcall."
 This is only useful when the value returned from the debugger
 will be used, such as in a debug on exit from a frame."
   (interactive "XReturn value (evaluated): ")
+  (when (memq (car debugger-args) '(t lambda error debug))
+    (error "Cannot return a value %s"
+           (if (eq (car debugger-args) 'error)
+               "from an error" "at function entrance")))
   (setq debugger-value val)
   (princ "Returning " t)
   (prin1 debugger-value)
@@ -778,6 +794,7 @@ Redefining FUNCTION also cancels it."
 			 (not (debugger-special-form-p symbol))))
 		t nil nil (symbol-name fn)))
      (list (if (equal val "") fn (intern val)))))
+  ;; FIXME: Use advice.el.
   (when (debugger-special-form-p function)
     (error "Function %s is a special form" function))
   (if (or (symbolp (symbol-function function))
@@ -835,24 +852,32 @@ To specify a nil argument interactively, exit with an empty minibuffer."
     (message "Cancelling debug-on-entry for all functions")
     (mapcar 'cancel-debug-on-entry debug-function-list)))
 
+(defun debug-arglist (definition)
+  ;; FIXME: copied from ad-arglist.
+  "Return the argument list of DEFINITION."
+  (require 'help-fns)
+  (help-function-arglist definition 'preserve-names))
+
 (defun debug-convert-byte-code (function)
   (let* ((defn (symbol-function function))
 	 (macro (eq (car-safe defn) 'macro)))
     (when macro (setq defn (cdr defn)))
-    (unless (consp defn)
-      ;; Assume a compiled code object.
-      (let* ((contents (append defn nil))
+    (when (byte-code-function-p defn)
+      (let* ((args (debug-arglist defn))
 	     (body
-	      (list (list 'byte-code (nth 1 contents)
-			  (nth 2 contents) (nth 3 contents)))))
-	(if (nthcdr 5 contents)
-	    (setq body (cons (list 'interactive (nth 5 contents)) body)))
-	(if (nth 4 contents)
+              `((,(if (memq '&rest args) #'apply #'funcall)
+                 ,defn
+                 ,@(remq '&rest (remq '&optional args))))))
+	(if (> (length defn) 5)
+            ;; The mere presence of field 5 is sufficient to make
+            ;; it interactive.
+	    (push `(interactive ,(aref defn 5)) body))
+	(if (and (> (length defn) 4) (aref defn 4))
 	    ;; Use `documentation' here, to get the actual string,
 	    ;; in case the compiled function has a reference
 	    ;; to the .elc file.
 	    (setq body (cons (documentation function) body)))
-	(setq defn (cons 'lambda (cons (car contents) body))))
+	(setq defn `(closure (t) ,args ,@body)))
       (when macro (setq defn (cons 'macro defn)))
       (fset function defn))))
 
@@ -861,11 +886,12 @@ To specify a nil argument interactively, exit with an empty minibuffer."
 	 (tail defn))
     (when (eq (car-safe tail) 'macro)
       (setq tail (cdr tail)))
-    (if (not (eq (car-safe tail) 'lambda))
+    (if (not (memq (car-safe tail) '(closure lambda)))
 	;; Only signal an error when we try to set debug-on-entry.
 	;; When we try to clear debug-on-entry, we are now done.
 	(when flag
 	  (error "%s is not a user-defined Lisp function" function))
+      (if (eq (car tail) 'closure) (setq tail (cdr tail)))
       (setq tail (cdr tail))
       ;; Skip the docstring.
       (when (and (stringp (cadr tail)) (cddr tail))
@@ -875,9 +901,9 @@ To specify a nil argument interactively, exit with an empty minibuffer."
 	(setq tail (cdr tail)))
       (unless (eq flag (equal (cadr tail) '(implement-debug-on-entry)))
 	;; Add/remove debug statement as needed.
-	(if flag
-	    (setcdr tail (cons '(implement-debug-on-entry) (cdr tail)))
-	  (setcdr tail (cddr tail)))))
+	(setcdr tail (if flag
+                         (cons '(implement-debug-on-entry) (cdr tail))
+                       (cddr tail)))))
     defn))
 
 (defun debugger-list-functions ()

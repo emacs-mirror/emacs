@@ -1,7 +1,7 @@
 \input texinfo  @c -*-texinfo-*-
 @c This file is used for printing the GNU Emacs Lisp Reference Manual
 @c in two volumes.  It is a modified version of elisp.texi.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c %**start of header
 @setfilename elisp
@@ -44,7 +44,7 @@
 @end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.  
+@c save on paper cost.
 @c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @ifset smallbook
@@ -67,9 +67,7 @@
 This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software
-Foundation, Inc.
+Copyright @copyright{} 1990-1996, 1998-2012  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -189,11 +187,9 @@ Appendices
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
-* Standard Errors::         List of all error symbols.
-* Standard Buffer-Local Variables::
-                            List of variables buffer-local in all buffers.
-* Standard Keymaps::        List of standard keymaps.
-* Standard Hooks::          List of standard hook variables.
+* Standard Errors::         List of some standard error symbols.
+* Standard Keymaps::        List of some standard keymaps.
+* Standard Hooks::          List of some standard hook variables.
 
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
@@ -211,7 +207,7 @@ Appendices
  --- The Detailed Node Listing ---
  ---------------------------------
 
-Here are other nodes that are inferiors of those already listed,
+Here are other nodes that are subnodes of those already listed,
 mentioned here so you can get to them in one step:
 
 Introduction
@@ -392,6 +388,7 @@ Evaluation
 * Forms::                   How various sorts of objects are evaluated.
 * Quoting::                 Avoiding evaluation (to put constants in
                               the program).
+* Backquote::               Easier construction of list structure.
 * Eval::                    How to invoke the Lisp interpreter explicitly.
 
 Kinds of Forms
@@ -480,6 +477,7 @@ Functions
 * Anonymous Functions::     Lambda expressions are functions with no names.
 * Function Cells::          Accessing or setting the function definition
                               of a symbol.
+* Closures::                Functions that enclose a lexical environment.
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
                               will open code.
@@ -502,7 +500,6 @@ Macros
 * Expansion::               How, when and why macros are expanded.
 * Compiling Macros::        How macros are expanded by the compiler.
 * Defining Macros::         How to write a macro definition.
-* Backquote::               Easier construction of list structure.
 * Problems with Macros::    Don't evaluate the macro arguments too many times.
                               Don't hide the user's variables.
 * Indenting Macros::        Specifying how to indent macro calls.
@@ -569,17 +566,14 @@ Advising Emacs Lisp Functions
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
 
-* Debugger::                How the Emacs Lisp debugger is implemented.
+* Debugger::                A debugger for the Emacs Lisp evaluator.
 * Edebug::                  A source-level Emacs Lisp debugger.
 * Syntax Errors::           How to find syntax errors.
 * Test Coverage::           Ensuring you have tested all branches in your code.
-* Compilation Errors::      How to find errors that show up in
-                              byte compilation.
 
 The Lisp Debugger
 
@@ -679,6 +673,7 @@ Completion
                               shell commands.
 * Completion Styles::       Specifying rules for performing completion.
 * Programmed Completion::   Writing your own completion-function.
+* Completion in Buffers::   Completing text in ordinary buffers.
 
 Command Loop
 
@@ -786,9 +781,9 @@ Major and Minor Modes
 * Major Modes::        Defining major modes.
 * Minor Modes::        Defining minor modes.
 * Mode Line Format::   Customizing the text that appears in the mode line.
-* Imenu::              How a mode can provide a menu
-                         of definitions in the buffer.
+* Imenu::              Providing a menu of definitions made in a buffer.
 * Font Lock Mode::     How modes can highlight text according to syntax.
+* Auto-Indentation::   How to teach Emacs to indent for a major mode.
 * Desktop Save Mode::  How modes can have buffer state saved between
                          Emacs sessions.
 
@@ -799,15 +794,16 @@ Hooks
 
 Major Modes
 
-* Major Mode Basics::
 * Major Mode Conventions::  Coding conventions for keymaps, etc.
 * Auto Major Mode::         How Emacs chooses the major mode automatically.
 * Mode Help::               Finding out how to use a mode.
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
+* Basic Major Modes::       Modes that other modes are often derived from.
+* Mode Hooks::              Hooks run at the end of major mode commands.
+* Tabulated List Mode::     Parent mode for buffers containing tabulated data.
 * Generic Modes::           Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
-* Mode Hooks::              Hooks run at the end of major mode functions.
 * Example Major Modes::     Text mode and Lisp modes.
 
 Minor Modes
@@ -839,8 +835,6 @@ Font Lock Mode
                                   contents can also specify how to fontify it.
 * Faces for Font Lock::     Special faces specifically for Font Lock.
 * Syntactic Font Lock::     Fontification based on syntax tables.
-* Setting Syntax Properties::   Defining character syntax based on context
-                                  using the Font Lock mechanism.
 * Multiline Font Lock::     How to coerce Font Lock into properly
                               highlighting multiline constructs.
 
@@ -852,8 +846,7 @@ Multiline Font Lock Constructs
 
 Documentation
 
-* Documentation Basics::    Good style for doc strings.
-                              Where to put them.  How Emacs stores them.
+* Documentation Basics::    Where doc strings are defined and stored.
 * Accessing Documentation:: How Lisp programs can access doc strings.
 * Keys in Documentation::   Substituting current key bindings.
 * Describing Characters::   Making printable descriptions of
@@ -869,12 +862,11 @@ Files
 * File Locks::              Locking and unlocking files, to prevent
                               simultaneous editing by two people.
 * Information about Files:: Testing existence, accessibility, size of files.
-* Changing Files::          Renaming files, changing protection, etc.
+* Changing Files::          Renaming files, changing permissions, etc.
 * File Names::              Decomposing and expanding file names.
 * Contents of Directories:: Getting a list of the files in a directory.
 * Create/Delete Dirs::      Creating and Deleting Directories.
-* Magic File Names::        Defining "magic" special handling
-                              for certain file names.
+* Magic File Names::        Special handling for certain file names.
 * Format Conversion::       Conversion to and from various file formats.
 
 Visiting Files
@@ -935,7 +927,7 @@ Buffers
                               is visited.
 * Buffer Modification::     A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::       Determining whether the visited file was changed
-                              ``behind Emacs's back''.
+                              "behind Emacs's back".
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
 * The Buffer List::         How to look at all the existing buffers.
@@ -954,11 +946,13 @@ Windows
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
-* Displaying Buffers::      Higher-level functions for displaying a buffer
-                              and choosing a window for it.
+* Switching Buffers::       Higher-level functions for switching to a buffer.
 * Choosing Window::         How to choose a window for displaying a buffer.
+* Display Action Functions:: Subroutines for @code{display-buffer}.
+* Choosing Window Options:: Extra options affecting how buffers are displayed.
+* Window History::          Each window remembers the buffers displayed in it.
 * Dedicated Windows::       How to avoid displaying another buffer in
-                              a specific window.          
+                              a specific window.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is
                               on-screen in a window.
@@ -1000,7 +994,7 @@ Frames
 * Window System Selections::Transferring text to and from other X clients.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::             Getting the definitions of color names.
-* Text Terminal Colors::    Defining colors for text-only terminals.
+* Text Terminal Colors::    Defining colors for text terminals.
 * Resources::               Getting resource values from the server.
 * Display Feature Testing:: Determining the features of a terminal.
 
@@ -1082,7 +1076,8 @@ Text
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
 * Base 64::                 Conversion to or from base 64 encoding.
-* MD5 Checksum::            Compute the MD5 "message digest"/"checksum".
+* Checksum/Hash::           Computing cryptographic hashes.
+* Parsing HTML/XML::        Parsing HTML and XML.
 * Atomic Changes::          Installing several buffer changes "atomically".
 * Change Hooks::            Supplying functions to be run when text is changed.
 
@@ -1214,7 +1209,6 @@ Parsing Expressions
 
 Abbrevs and Abbrev Expansion
 
-* Abbrev Mode::             Setting up Emacs for abbreviation.
 * Abbrev Tables::           Creating and working with abbrev tables.
 * Defining Abbrevs::        Specifying abbreviations and their expansions.
 * Abbrev Files::            Saving abbrevs in files.
@@ -1291,13 +1285,16 @@ Emacs Display
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.
 * Buttons::                 Adding clickable buttons to Emacs buffers.
-* Abstract Display::        Emacs' Widget for Object Collections.
+* Abstract Display::        Emacs's Widget for Object Collections.
 * Blinking::                How Emacs shows the matching open parenthesis.
 * Usual Display::           The usual conventions for displaying
                               nonprinting chars.
 * Display Tables::          How to specify other conventions.
 * Beeping::                 Audible signal to the user.
 * Window Systems::          Which window system is being used.
+* Bidirectional Display::   Display of bidirectional scripts, such as
+                              Arabic and Farsi.
+* Glyphless Chars::         How glyphless characters are drawn.
 
 The Echo Area
 
@@ -1330,6 +1327,7 @@ Faces
 * Face Remapping::         Remapping faces to alternative definitions.
 * Face Functions::          How to define and examine faces.
 * Auto Faces::              Hook for automatic face assignment.
+* Basic Faces::             Faces that are defined by default.
 * Font Selection::          Finding the best available font for a face.
 * Font Lookup::             Looking up the names of available fonts
                               and information about them.
@@ -1369,6 +1367,7 @@ Images
 * Defining Images::         Convenient ways to define an image for later use.
 * Showing Images::          Convenient ways to display an image once
                               it is defined.
+* Animated Images::         Some image formats can be animated.
 * Image Cache::             Internal mechanisms of image display.
 
 Buttons
@@ -1397,7 +1396,7 @@ Operating System Interface
 * System Environment::      Distinguish the name and kind of system.
 * User Identification::     Finding the name and user id of the user.
 * Time of Day::             Getting the current time.
-* Time Conversion::         Converting a time from numeric form to 
+* Time Conversion::         Converting a time from numeric form to
                               calendrical data and vice versa.
 * Time Parsing::            Converting a time from numeric form to text
                               and vice versa.
@@ -1453,7 +1452,7 @@ Tips and Conventions
 GNU Emacs Internals
 
 * Building Emacs::          How the dumped Emacs is made.
-* Pure Storage::            A kludge to make preloaded Lisp functions sharable.
+* Pure Storage::            Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::      Reclaiming space for Lisp objects no longer used.
 * Memory Usage::            Info about total size of Lisp objects made so far.
 * Writing Emacs Primitives::  Writing C code for Emacs.
@@ -1531,7 +1530,6 @@ Object Internals
 @c include tips.texi
 @c include internals.texi
 @c include errors.texi
-@c include locals.texi
 @c include maps.texi
 @c include hooks.texi
 

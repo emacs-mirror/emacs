@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -340,6 +340,21 @@ better with the \"do { ... } while \(0)\" trick)."
   :group 'c)
 (put 'c-syntactic-indentation-in-macros 'safe-local-variable 'booleanp)
 
+(defcustom c-defun-tactic 'go-outward
+  "*Whether functions are recognized inside, e.g., a class.
+This is used by `c-beginning-of-defun' and like functions.
+
+Its value is one of:
+ t           -- Functions are recognized only at the top level.
+ go-outward  -- Nested functions are also recognized.  Should a function
+                command hit the beginning/end of a nested scope, it will
+                carry on at the less nested level."
+  :version "24.1"
+  :type '(radio
+	  (const :tag "Functions are at the top-level" t)
+	  (const :tag "Functions are also recognized inside declaration scopes" go-outward))
+  :group 'c)
+
 (defcustom-c-stylevar c-comment-only-line-offset 0
   "*Extra offset for line which contains only the start of a comment.
 Can contain an integer or a cons cell of the form:
@@ -406,7 +421,7 @@ If a LINE-TYPE is missing, then \\[indent-for-comment] indents the comment
 according to `comment-column'.
 
 Note that a non-nil value on `c-indent-comments-syntactically-p'
-overrides this variable, so empty lines are indentented syntactically
+overrides this variable, so empty lines are indented syntactically
 in that case, i.e. as if \\[c-indent-command] was used instead."
   :type
   (let ((space '(cons :tag "space"
@@ -572,7 +587,7 @@ in a mode hook, you have to call `c-setup-doc-comment-style'
 afterwards to redo that work."
   ;; Symbols other than those documented above may be used on this
   ;; variable.  If a variable exists that has that name with
-  ;; "-font-lock-keywords" appended, it's value is prepended to the
+  ;; "-font-lock-keywords" appended, its value is prepended to the
   ;; font lock keywords list.  If it's a function then it's called and
   ;; the result is prepended.
   :type '(radio
@@ -949,7 +964,7 @@ this is `c-lineup-ObjC-method-call', which would align it like:
 	[foo blahBlahBlah: fred
 	     thisIsTooDamnLong: barney
 
-This behaviour can be overridden by customizing the indentation of
+This behavior can be overridden by customizing the indentation of
 `objc-method-call-cont' in the \"objc\" style."
   :type 'integer
   :group 'c)
@@ -1313,7 +1328,7 @@ Here is the current list of valid syntactic element symbols:
  statement-case-open    -- The first line in a case block starting with brace.
  substatement           -- The first line after an if/while/for/do/else.
  substatement-open      -- The brace that opens a substatement block.
- substatement-label     -- Labelled line after an if/while/for/do/else.
+ substatement-label     -- Labeled line after an if/while/for/do/else.
  case-label             -- A \"case\" or \"default\" label.
  access-label           -- C++ private/protected/public access label.
  label                  -- Any ordinary label.
@@ -1608,6 +1623,54 @@ names)."))
 
 
 ;; Non-customizable variables, still part of the interface to CC Mode
+(defvar c-macro-with-semi-re nil
+  ;; Regular expression which matches a (#define'd) symbol whose expansion
+  ;; ends with a semicolon.
+  ;;
+  ;; This variable should be set by `c-make-macros-with-semi-re' rather than
+  ;; directly.
+)
+(make-variable-buffer-local 'c-macro-with-semi-re)
+
+(defun c-make-macro-with-semi-re ()
+  ;; Convert `c-macro-names-with-semicolon' into the regexp
+  ;; `c-macro-with-semi-re' (or just copy it if it's already a re).
+  (setq c-macro-with-semi-re
+	(and
+	 c-opt-cpp-macro-define
+	 (cond
+	  ((stringp c-macro-names-with-semicolon)
+	   (copy-sequence c-macro-names-with-semicolon))
+	  ((consp c-macro-names-with-semicolon)
+	   (concat
+	    "\\<"
+	    (regexp-opt c-macro-names-with-semicolon)
+	    "\\>"))   ; N.B. the PAREN param of regexp-opt isn't supported by
+		      ; all XEmacsen.
+	  ((null c-macro-names-with-semicolon)
+	   nil)
+	  (t (error "c-make-macro-with-semi-re: invalid \
+c-macro-names-with-semicolon: %s"
+		    c-macro-names-with-semicolon))))))
+
+(defvar c-macro-names-with-semicolon
+  '("Q_OBJECT" "Q_PROPERTY" "Q_DECLARE" "Q_ENUMS")
+  "List of #defined symbols whose expansion ends with a semicolon.
+Alternatively it can be a string, a regular expression which
+matches all such symbols.
+
+The \"symbols\" must be syntactically valid identifiers in the
+target language \(C, C++, Objective C), or \(as the case may be)
+the regular expression must match only valid identifiers.
+
+If you change this variable's value, call the function
+`c-make-macros-with-semi-re' to set the necessary internal
+variables.
+
+Note that currently \(2008-11-04) this variable is a prototype,
+and is likely to disappear or change its form soon.")
+(make-variable-buffer-local 'c-macro-names-with-semicolon)
+
 (defvar c-file-style nil
   "Variable interface for setting style via File Local Variables.
 In a file's Local Variable section, you can set this variable to a
@@ -1633,8 +1696,7 @@ as designated in the variable `c-file-style'.")
 ;; It isn't possible to specify a doc-string without specifying an
 ;; initial value with `defvar', so the following two variables have been
 ;; given doc-strings by setting the property `variable-documentation'
-;; directly.  C-h v will read this documentation only for versions of GNU
-;; Emacs from 22.1.  It's really good not to have an initial value for
+;; directly.  It's really good not to have an initial value for
 ;; variables like these that always should be dynamically bound, so it's
 ;; worth the inconvenience.
 

@@ -1,6 +1,6 @@
 ;;; cl-specs.el --- Edebug specs for cl.el -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1993, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2012 Free Software Foundation, Inc.
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Keywords: lisp, tools, maint
 ;; Package: emacs

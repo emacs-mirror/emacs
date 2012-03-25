@@ -1,6 +1,6 @@
 ;;; calc-alg.el --- algebraic functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger  <jay.p.belanger@gmail.com>
@@ -1841,7 +1841,7 @@
 	     expr))))
 
 ;;; Simplify a polynomial in list form by stripping off high-end zeros.
-;;; This always leaves the constant part, i.e., nil->nil and nonnil->nonnil.
+;;; This always leaves the constant part, i.e., nil->nil and non-nil->non-nil.
 (defun math-poly-simplify (p)
   (and p
        (if (Math-zerop (nth (1- (length p)) p))

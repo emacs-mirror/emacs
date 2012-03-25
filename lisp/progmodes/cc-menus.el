@@ -1,6 +1,6 @@
 ;;; cc-menus.el --- imenu support for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -66,7 +66,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
 (defvar cc-imenu-c++-generic-expression
   `(
     ;; Try to match ::operator definitions first. Otherwise `X::operator new ()'
-    ;; will be incorrectly recognised as function `new ()' because the regexps
+    ;; will be incorrectly recognized as function `new ()' because the regexps
     ;; work by backtracking from the end of the definition.
     (nil
      ,(concat
@@ -108,8 +108,11 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
        "[^" c-alnum "_:<>~]"                  ; match any non-identifier char
        "\\([" c-alpha "_][" c-alnum "_:<>~]*\\)" ; match function name
        "\\([ \t\n]\\|\\\\\n\\)*("	      ; see above, BUT the arg list
-       "\\([ \t\n]\\|\\\\\n\\)*\\([^ \t\n(*][^)]*\\)?)" ; must not start
-       "\\([ \t\n]\\|\\\\\n\\)*[^ \t\n;(]"    ; with an asterisk or parentheses
+       "\\([ \t\n]\\|\\\\\n\\)*"	      ; must not start
+       "\\([^ \t\n(*]"			      ; with an asterisk or parentheses
+       "[^()]*\\(([^()]*)[^()]*\\)*"	      ; Maybe function pointer arguments
+       "\\)?)"
+       "\\([ \t\n]\\|\\\\\n\\)*[^ \t\n;(]"
        ) 1)
     ;; Special case for definitions using phony prototype macros like:
     ;; `int main _PROTO( (int argc,char *argv[]) )'.

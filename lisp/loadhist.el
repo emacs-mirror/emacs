@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups
 
-;; Copyright (C) 1995, 1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -115,20 +115,28 @@ from a file."
 (defvaralias 'loadhist-hook-functions 'unload-feature-special-hooks)
 (defvar unload-feature-special-hooks
   '(after-change-functions after-insert-file-functions
-    after-make-frame-functions auto-fill-function before-change-functions
+    after-make-frame-functions auto-coding-functions
+    auto-fill-function before-change-functions
     blink-paren-function buffer-access-fontify-functions
-    choose-completion-string-functions comint-output-filter-functions
-    command-line-functions comment-indent-function compilation-finish-functions
+    choose-completion-string-functions
+    comint-output-filter-functions command-line-functions
+    comment-indent-function compilation-finish-functions
     delete-frame-functions disabled-command-function
-    find-file-not-found-functions font-lock-beginning-of-syntax-function
-    font-lock-fontify-buffer-function font-lock-fontify-region-function
-    font-lock-mark-block-function font-lock-syntactic-face-function
-    font-lock-unfontify-buffer-function font-lock-unfontify-region-function
-    kill-buffer-query-functions kill-emacs-query-functions lisp-indent-function
-    mouse-position-function redisplaylay-end-trigger-functions
-    suspend-tty-functions temp-buffer-show-function window-scroll-functions
-    window-size-change-functions write-contents-functions write-file-functions
-    write-region-annotate-functions)
+    fill-nobreak-predicate find-directory-functions
+    find-file-not-found-functions
+    font-lock-beginning-of-syntax-function
+    font-lock-fontify-buffer-function
+    font-lock-fontify-region-function
+    font-lock-mark-block-function
+    font-lock-syntactic-face-function
+    font-lock-unfontify-buffer-function
+    font-lock-unfontify-region-function
+    kill-buffer-query-functions kill-emacs-query-functions
+    lisp-indent-function mouse-position-function
+    redisplay-end-trigger-functions suspend-tty-functions
+    temp-buffer-show-function window-scroll-functions
+    window-size-change-functions write-contents-functions
+    write-file-functions write-region-annotate-functions)
   "A list of special hooks from Info node `(elisp)Standard Hooks'.
 
 These are symbols with hooklike values whose names don't end in
@@ -136,7 +144,7 @@ These are symbols with hooklike values whose names don't end in
 pertinent symbols.")
 
 (defvar unload-function-defs-list nil
-  "List of defintions in the Lisp library being unloaded.
+  "List of definitions in the Lisp library being unloaded.
 
 This is meant to be used by `FEATURE-unload-function'; see the
 documentation of `unload-feature' for details.")
@@ -148,7 +156,7 @@ documentation of `unload-feature' for details.")
     (dolist (buffer (buffer-list))
       (set-buffer buffer)
       (let ((proposed major-mode))
-        ;; Look for an antecessor mode not defined in the feature we're processing
+        ;; Look for a predecessor mode not defined in the feature we're processing
         (while (and proposed (rassq proposed unload-function-defs-list))
           (setq proposed (get proposed 'derived-mode-parent)))
         (unless (eq proposed major-mode)

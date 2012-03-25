@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994-1995, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -52,7 +52,7 @@
     ["Insert Anniversary" diary-insert-anniversary-entry]
     ["Insert Block" diary-insert-block-entry]
     ["Insert Cyclic" diary-insert-cyclic-entry]
-    ("Insert Baha'i"
+    ("Insert Bahá'í"
      ["One time" diary-bahai-insert-entry]
      ["Monthly" diary-bahai-insert-monthly-entry]
      ["Yearly" diary-bahai-insert-yearly-entry])
@@ -127,7 +127,7 @@
     ["Astronomical Date" calendar-astro-goto-day-number]
     ["Hebrew Date" calendar-hebrew-goto-date]
     ["Persian Date" calendar-persian-goto-date]
-    ["Baha'i Date" calendar-bahai-goto-date]
+    ["Bahá'í Date" calendar-bahai-goto-date]
     ["Islamic Date" calendar-islamic-goto-date]
     ["Julian Date" calendar-julian-goto-date]
     ["Chinese Date" calendar-chinese-goto-date]
@@ -215,13 +215,15 @@ is non-nil."
 ;; but easymenu does not seem to allow this (?).
 ;; The ignore-errors is because `documentation' can end up calling
 ;; this in a non-calendar buffer where displayed-month is unbound.  (Bug#3862)
+;; This still has issues - bug#9976, so added derived-mode-p call.
 (defun cal-menu-set-date-title (menu)
   "Convert date of last event to title suitable for MENU."
-  (let ((date (ignore-errors (calendar-cursor-to-date nil last-input-event))))
-    (if date
-        (easy-menu-filter-return menu (calendar-date-string date t nil))
-      (message "Not on a date!")
-      nil)))
+  (when (derived-mode-p 'calendar-mode)
+    (let ((date (ignore-errors (calendar-cursor-to-date nil last-input-event))))
+      (if date
+          (easy-menu-filter-return menu (calendar-date-string date t nil))
+        (message "Not on a date!")
+        nil))))
 
 (easy-menu-define cal-menu-context-mouse-menu nil
   "Pop up mouse menu for selected date in the calendar window."
@@ -279,5 +281,9 @@ is non-nil."
 (run-hooks 'cal-menu-load-hook)
 
 (provide 'cal-menu)
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; cal-menu.el ends here

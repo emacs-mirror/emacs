@@ -254,6 +254,7 @@ foo.c:8.23-45: Informational: message
 foo.c:8-23: message
 foo.c:8-45.3: message
 foo.c:8.23-9.1: message
+foo.el:3:1:Error: End of file during parsing
 jade:dbcommon.dsl:133:17:E: missing argument for function call
 G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 file:G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
@@ -545,9 +546,20 @@ checking whether to build shared libraries... yes
 checking whether -lc should be explicitly linked in... (cached) no
 checking For GLIB - version >= 2.0.0... yes (version 2.1.0)
 checking FONTCONFIG_CFLAGS...
-g++ -o foo.o foo.cc
-tool1 -output=foo foo.x
-tool2 --outfile foo foo.y
+tool -o foo.o foo.c
+tool -o=foo.o foo.c
+tool -output foo.o foo.c
+tool -output=foo.o foo.c
+tool -outfile foo.o foo.c
+tool -outfile=foo.o foo.c
+tool --output foo.o foo.c
+tool --output=foo.o foo.c
+tool --outfile foo.o foo.c
+tool --outfile=foo.o foo.c
+tool -omega foo.c foo2.c
+tool -output-html-file foo.c foo2.c
+tool --omega foo.c foo2.c
+tool --output-html-file foo.c foo2.c
 
 Compilation started at Wed Jul 20 12:20:10
 Compilation interrupt at Wed Jul 20 12:20:10
@@ -558,7 +570,7 @@ Compilation segmentation fault at Thu Jul 13 10:55:49
 Compilation finished at Thu Jul 21 15:02:15
 
 
-Copyright (C) 2004-2011  Free Software Foundation, Inc.
+Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

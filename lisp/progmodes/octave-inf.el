@@ -1,10 +1,10 @@
 ;;; octave-inf.el --- running Octave as an inferior Emacs process
 
-;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
-;; Author: John Eaton <jwe@bevo.che.wisc.edu>
-;; Maintainer: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
+;; 	   John Eaton <jwe@bevo.che.wisc.edu>
+;; Maintainer: FSF
 ;; Keywords: languages
 ;; Package: octave-mod
 
@@ -68,7 +68,8 @@ mode, set this to (\"-q\" \"--traditional\")."
     (define-key map "\C-c\C-l" 'inferior-octave-dynamic-list-input-ring)
     (define-key map [menu-bar inout list-history]
       '("List Input History" . inferior-octave-dynamic-list-input-ring))
-    (define-key map "\C-c\C-h" 'octave-help)
+    ;; FIXME: free C-h so it can do the describe-prefix-bindings.
+    (define-key map "\C-c\C-h" 'info-lookup-symbol)
     map)
   "Keymap used in Inferior Octave mode.")
 

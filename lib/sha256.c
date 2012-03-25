@@ -51,7 +51,7 @@ static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */ };
 
 /*
   Takes a pointer to a 256 bit block of data (eight 32 bit ints) and
-  intializes it to the start constants of the SHA256 algorithm.  This
+  initializes it to the start constants of the SHA256 algorithm.  This
   must be called before using hash in the call to sha256_hash
 */
 void

@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -435,7 +435,7 @@ Thank you for your help in stamping out bugs.
 	   (progn
 	     ,@forms)
 	 (gnus-inews-add-send-actions ,winconf ,buffer ,article ,config
-				      ,yanked ',winconf-name)
+				      ,yanked ,winconf-name)
 	 (setq gnus-message-buffer (current-buffer))
 	 (set (make-local-variable 'gnus-message-group-art)
 	      (cons ,group ,article))
@@ -478,22 +478,28 @@ Thank you for your help in stamping out bugs.
 
 ;;;###autoload
 (defun gnus-msg-mail (&optional to subject other-headers continue
-		      switch-action yank-action send-actions return-action)
+				switch-action yank-action send-actions
+				return-action)
   "Start editing a mail message to be sent.
 Like `message-mail', but with Gnus paraphernalia, particularly the
-Gcc: header for archiving purposes."
+Gcc: header for archiving purposes.
+If Gnus isn't running, a plain `message-mail' setup is used
+instead."
   (interactive)
-  (let ((buf (current-buffer))
-	mail-buf)
-    (gnus-setup-message 'message
+  (if (not (gnus-alive-p))
       (message-mail to subject other-headers continue
-		    nil yank-action send-actions return-action))
-    (when switch-action
-      (setq mail-buf (current-buffer))
-      (switch-to-buffer buf)
-      (apply switch-action mail-buf nil)))
-  ;; COMPOSEFUNC should return t if succeed.  Undocumented ???
-  t)
+                    nil yank-action send-actions return-action)
+    (let ((buf (current-buffer))
+	  mail-buf)
+      (gnus-setup-message 'message
+	(message-mail to subject other-headers continue
+		      nil yank-action send-actions return-action))
+      (when switch-action
+	(setq mail-buf (current-buffer))
+	(switch-to-buffer buf)
+	(apply switch-action mail-buf nil))
+      ;; COMPOSEFUNC should return t if succeed.  Undocumented ???
+      t)))
 
 ;;;###autoload
 (defun gnus-button-mailto (address)
@@ -636,7 +642,7 @@ a news."
 	     (if (= 1 (prefix-numeric-value arg))
 		 (gnus-group-completing-read "Newsgroup" nil
 					     (gnus-read-active-file-p))
-	       (gnus-group-group-name))
+	       (or (gnus-group-group-name) ""))
 	   ""))
 	;; make sure last viewed article doesn't affect posting styles:
 	(gnus-article-copy))
@@ -1129,7 +1135,7 @@ If VERY-WIDE, make a very wide reply."
 	    (insert headers))
 	  (goto-char (point-max)))
 	(mml-quote-region (point) (point-max))
-	(message-reply nil wide 'switch-to-buffer)
+	(message-reply nil wide)
 	(when yank
 	  (gnus-inews-yank-articles yank))
 	(gnus-summary-handle-replysign)))))
@@ -1225,12 +1231,12 @@ if ARG is 3, decode message and forward as an rfc822 MIME section;
 if ARG is 4, forward message directly inline;
 otherwise, use flipped `message-forward-as-mime'.
 If POST, post instead of mail.
-For the `inline' alternatives, also see the variable
+For the \"inline\" alternatives, also see the variable
 `message-forward-ignored-headers'."
   (interactive "P")
   (if (cdr (gnus-summary-work-articles nil))
       ;; Process marks are given.
-      (gnus-uu-digest-mail-forward arg post)
+      (gnus-uu-digest-mail-forward nil post)
     ;; No process marks.
     (let ((message-forward-as-mime message-forward-as-mime)
 	  (message-forward-show-mml message-forward-show-mml))
@@ -1447,7 +1453,6 @@ If YANK is non-nil, include the original article."
     (error "Gnus has been shut down"))
   (gnus-setup-message (if (message-mail-user-agent) 'message 'bug)
     (unless (message-mail-user-agent)
-      (delete-other-windows)
       (when gnus-bug-create-help-buffer
 	(switch-to-buffer "*Gnus Help Bug*")
 	(erase-buffer)
@@ -1549,7 +1554,7 @@ this is a reply."
       (message-narrow-to-headers)
       (let ((gcc (or gcc (mail-fetch-field "gcc" nil t)))
 	    (cur (current-buffer))
-	    groups group method group-art
+	    groups group method group-art options
 	    mml-externalize-attachments)
 	(when gcc
 	  (message-remove-header "gcc")
@@ -1573,6 +1578,7 @@ this is a reply."
 		    gnus-gcc-externalize-attachments))
 	    (save-excursion
 	      (nnheader-set-temp-buffer " *acc*")
+	      (setq message-options (with-current-buffer cur message-options))
 	      (insert-buffer-substring cur)
 	      (message-encode-message-body)
 	      (save-restriction
@@ -1587,7 +1593,7 @@ this is a reply."
 		       ;; BUG: We really need to get the charset for
 		       ;; each name in the Newsgroups and Followup-To
 		       ;; lines to allow crossposting between group
-		       ;; namess with incompatible character sets.
+		       ;; names with incompatible character sets.
 		       ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2001-10-08.
 		       (group-field-charset
 			(gnus-group-name-charset
@@ -1629,6 +1635,8 @@ this is a reply."
 			      (boundp 'gnus-inews-mark-gcc-as-read)
 			      (symbol-value 'gnus-inews-mark-gcc-as-read))))
 		(gnus-group-mark-article-read group (cdr group-art)))
+	      (setq options message-options)
+	      (with-current-buffer cur (setq message-options options))
 	      (kill-buffer (current-buffer)))))))))
 
 (defun gnus-inews-insert-gcc (&optional group)
@@ -1781,7 +1789,7 @@ this is a reply."
 			     (and header
 				  (string-match (nth 2 match) header)))))))
 		 (t
-		  ;; This is a form to be evaled.
+		  ;; This is a form to be evalled.
 		  (eval match)))))
 	  ;; We have a match, so we set the variables.
 	  (dolist (attribute style)

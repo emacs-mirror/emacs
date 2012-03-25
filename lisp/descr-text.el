@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (C) 1994-1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: FSF
@@ -221,7 +221,7 @@ At the time of writing it is at the URL
 		 file))
 
 (defun describe-char-unicode-data (char)
-  "Return a list of Unicode data for unicode CHAR.
+  "Return a list of Unicode data for Unicode CHAR.
 Each element is a list of a property description and the property value.
 The list is null if CHAR isn't found in `describe-char-unicodedata-file'.
 This function is semi-obsolete.  Use `get-char-code-property'."
@@ -358,7 +358,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
       (compose-string (string ch) 0 1 (format "\t%c\t" ch))
     (string ch)))
 
-;; Return a nicely formated list of categories; extended category
+;; Return a nicely formatted list of categories; extended category
 ;; description is added to the category name as a tooltip
 (defsubst describe-char-categories (category-set)
   (let ((mnemonics (category-set-mnemonics category-set)))
@@ -366,21 +366,31 @@ This function is semi-obsolete.  Use `get-char-code-property'."
       (list (mapconcat
 	     (lambda (x)
 	       (let* ((c (category-docstring x))
-		      (doc (if (string-match "\\`\\(.*?\\)\n\\(.*\\)\\'" c)
+		      (doc (if (string-match "\\`\\(.*?\\)\n" c)
 			       (propertize (match-string 1 c)
-					   'help-echo (match-string 2 c))
+                                           'help-echo
+                                           (substring c (1+ (match-end 1))))
 			     c)))
 		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
 
 ;;;###autoload
 (defun describe-char (pos &optional buffer)
-  "Describe the character after POS (interactively, the character after point).
-Is POS is taken to be in buffer BUFFER or current buffer if nil.
-The information includes character code, charset and code points in it,
-syntax, category, how the character is encoded in a file,
-character composition information (if relevant),
-as well as widgets, buttons, overlays, and text properties."
+  "Describe position POS (interactively, point) and the char after POS.
+POS is taken to be in BUFFER, or the current buffer if BUFFER is nil.
+The information is displayed in buffer `*Help*'.
+
+The position information includes POS; the total size of BUFFER; the
+region limits, if narrowed; the column number; and the horizontal
+scroll amount, if the buffer is horizontally scrolled.
+
+The character information includes the character code; charset and
+code points in it; syntax; category; how the character is encoded in
+BUFFER and in BUFFER's file; character composition information (if
+relevant); the font and font glyphs used to display the character;
+the character's canonical name and other properties defined by the
+Unicode Data Base; and widgets, buttons, overlays, and text properties
+relevant to POS."
   (interactive "d")
   (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
   (let ((src-buf (current-buffer)))
@@ -421,6 +431,20 @@ as well as widgets, buttons, overlays, and text properties."
               (setq charset (char-charset char)
                     code (encode-char char charset)))
         (setq code char))
+      (cond
+       ;; Append a PDF character to directional embeddings and
+       ;; overrides, to prevent potential messup of the following
+       ;; text.
+       ((memq char '(?\x202a ?\x202b ?\x202d ?\x202e))
+	(setq char-description
+	      (concat char-description
+		      (propertize (string ?\x202c) 'invisible t))))
+       ;; Append a LRM character to any strong character to avoid
+       ;; messing up the numerical codepoint.
+       ((memq (get-char-code-property char 'bidi-class) '(R AL))
+	(setq char-description
+	      (concat char-description
+		      (propertize (string ?\x200e) 'invisible t)))))
       (when composition
         ;; When the composition is trivial (i.e. composed only with the
         ;; current character itself without any alternate characters),
@@ -496,8 +520,27 @@ as well as widgets, buttons, overlays, and text properties."
             (setq composition nil)))
 
       (setq item-list
-            `(("character"
-               ,(format "%s (%d, #o%o, #x%x)"
+            `(("position"
+               ,(let* ((beg      (point-min))
+                       (end      (point-max))
+                       (total    (buffer-size))
+                       (percent  (if (> total 50000) ; Avoid overflow multiplying by 100
+                                     (/ (+ (/ total 200) (1- pos))  (max (/ total 100) 1))
+                                   (/ (+ (/ total 2) (* 100 (1- pos)))  (max total 1))))
+                       (hscroll  (if (= (window-hscroll) 0)
+                                     ""
+                                   (format ", Hscroll: %d" (window-hscroll))))
+                       (col      (current-column)))
+                  (if (or (/= beg 1)  (/= end (1+ total)))
+                      (format "%d of %d (%d%%), restriction: <%d-%d>, column: %d%s"
+                              pos total percent col beg end hscroll)
+                    (if (= pos end)
+                        (format "%d of %d (EOB), column: %d%s" pos total col hscroll)
+                      (format "%d of %d (%d%%), column: %d%s"
+                              pos total percent col hscroll)))))
+              ("character"
+               ,(format "%s (displayed as %s) (codepoint %d, #o%o, #x%x)"
+			char-description
                         (apply 'propertize char-description
                                (text-properties-at pos))
                         char char char))
@@ -506,7 +549,7 @@ as well as widgets, buttons, overlays, and text properties."
                   ,(symbol-name charset)
                   'type 'help-character-set 'help-args '(,charset))
                ,(format "(%s)" (charset-description charset)))
-              ("code point"
+              ("code point in charset"
                ,(let ((str (if (integerp code)
                                (format (if (< code 256) "0x%02X" "0x%04X")
                                        code)
@@ -605,7 +648,8 @@ as well as widgets, buttons, overlays, and text properties."
                              'trailing-whitespace)
                             ((and nobreak-char-display char (eq char '#xa0))
                              'nobreak-space)
-                            ((and nobreak-char-display char (eq char '#xad))
+                            ((and nobreak-char-display char
+				  (memq char '(#xad #x2010 #x2011)))
                              'escape-glyph)
                             ((and (< char 32) (not (memq char '(9 10))))
                              'escape-glyph)))))

@@ -1,6 +1,6 @@
-;;; srecode/insert --- Insert srecode templates to an output stream.
+;;; srecode/insert.el --- Insert srecode templates to an output stream.
 
-;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -33,6 +33,7 @@
 (require 'srecode/find)
 (require 'srecode/dictionary)
 (require 'srecode/args)
+(require 'srecode/filters)
 
 (defvar srecode-template-inserter-point)
 (declare-function srecode-overlaid-activate "srecode/fields")
@@ -255,7 +256,7 @@ ST can be a class, or an object."
       (let ((c (oref st code)))
 	(srecode-push st)
 	(srecode-insert-code-stream c dictionary))
-    ;; Poping the stack is protected
+    ;; Popping the stack is protected.
     (srecode-pop st)))
 
 (defun srecode-insert-code-stream (code dictionary)
@@ -312,7 +313,7 @@ occur in your template.")
 	  (setq doit nil)))
       (goto-char pm)
       )
-    ;; Do indentation reguardless of the newline.
+    ;; Do indentation regardless of the newline.
     (when (and (eq i t) inbuff)
       (indent-according-to-mode)
       (goto-char pm))
@@ -911,7 +912,7 @@ this template instance."
 	  (setq active (cdr active)))
 	(when (not tmpl)
 	  ;; If it wasn't in this context, look to see if it
-	  ;; defines it's own context
+	  ;; defines its own context
 	  (setq tmpl (srecode-template-get-table (srecode-table)
 						 templatenamepart)))
 	)
@@ -936,7 +937,7 @@ with the dictionaries found in the dictionary."
   (if (srecode-dictionary-lookup-name dictionary (oref sti :object-name))
       ;; If we have a value, then call the next method
       (srecode-insert-method-helper sti dictionary 'includedtemplate)
-    ;; If we don't have a special dictitonary, then just insert with the
+    ;; If we don't have a special dictionary, then just insert with the
     ;; current dictionary.
     (srecode-insert-subtemplate sti dictionary 'includedtemplate))
   )
@@ -946,7 +947,7 @@ with the dictionaries found in the dictionary."
 ;; It will first insert the included template, then insert the embedded
 ;; template wherever the $^$ in the included template was.
 ;;
-;; Since it uses dual inheretance, it will magically get the end-matching
+;; Since it uses dual inheritance, it will magically get the end-matching
 ;; behavior of #, with the including feature of >.
 ;;
 (defclass srecode-template-inserter-include-wrap (srecode-template-inserter-include srecode-template-inserter-section-start)

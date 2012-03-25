@@ -1,6 +1,6 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode
 
-;; Copyright (C) 1986-1988, 1997-1998, 2001-2011
+;; Copyright (C) 1986-1988, 1997-1998, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
@@ -55,24 +55,24 @@
 (defvar scheme-mode-syntax-table
   (let ((st (make-syntax-table))
 	(i 0))
-
-    ;; Default is atom-constituent.
-    (while (< i 256)
+    ;; Symbol constituents
+    ;; We used to treat chars 128-256 as symbol-constituent, but they
+    ;; should be valid word constituents (Bug#8843).  Note that valid
+    ;; identifier characters are Scheme-implementation dependent.
+    (while (< i ?0)
       (modify-syntax-entry i "_   " st)
       (setq i (1+ i)))
-
-    ;; Word components.
-    (setq i ?0)
-    (while (<= i ?9)
-      (modify-syntax-entry i "w   " st)
+    (setq i (1+ ?9))
+    (while (< i ?A)
+      (modify-syntax-entry i "_   " st)
       (setq i (1+ i)))
-    (setq i ?A)
-    (while (<= i ?Z)
-      (modify-syntax-entry i "w   " st)
+    (setq i (1+ ?Z))
+    (while (< i ?a)
+      (modify-syntax-entry i "_   " st)
       (setq i (1+ i)))
-    (setq i ?a)
-    (while (<= i ?z)
-      (modify-syntax-entry i "w   " st)
+    (setq i (1+ ?z))
+    (while (< i 128)
+      (modify-syntax-entry i "_   " st)
       (setq i (1+ i)))
 
     ;; Whitespace
@@ -442,9 +442,19 @@ that variable's value is a string."
 
 (defvar calculate-lisp-indent-last-sexp)
 
-;; Copied from lisp-indent-function, but with gets of
-;; scheme-indent-{function,hook}.
+
+;; FIXME this duplicates almost all of lisp-indent-function.
+;; Extract common code to a subroutine.
 (defun scheme-indent-function (indent-point state)
+  "Scheme mode function for the value of the variable `lisp-indent-function'.
+This behaves like the function `lisp-indent-function', except that:
+
+i) it checks for a non-nil value of the property `scheme-indent-function'
+\(or the deprecated `scheme-indent-hook'), rather than `lisp-indent-function'.
+
+ii) if that property specifies a function, it is called with three
+arguments (not two), the third argument being the default (i.e., current)
+indentation."
   (let ((normal-indent (current-column)))
     (goto-char (1+ (elt state 1)))
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)

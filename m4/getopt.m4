@@ -231,8 +231,12 @@ dnl is ambiguous with environment values that contain newlines.
         [AC_LANG_PROGRAM([[#include <getopt.h>
                            #include <stddef.h>
                            #include <string.h>
+           ]GL_NOCRASH[
            ]], [[
              int result = 0;
+
+             nocrash_init();
+
              /* This code succeeds on glibc 2.8, OpenBSD 4.0, Cygwin, mingw,
                 and fails on MacOS X 10.5, AIX 5.2, HP-UX 11, IRIX 6.5,
                 OSF/1 5.1, Solaris 10.  */

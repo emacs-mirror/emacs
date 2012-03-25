@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -271,7 +271,8 @@ Whichever character you type to run this command is inserted.
 Before insertion, `expand-abbrev' is executed if the inserted character does
 not have word syntax and the previous character in the buffer does.
 After insertion, the value of `auto-fill-function' is called if the
-`auto-fill-chars' table has a non-nil value for the inserted character.  */)
+`auto-fill-chars' table has a non-nil value for the inserted character.
+At the end, it runs `post-self-insert-hook'.  */)
   (Lisp_Object n)
 {
   int remove_boundary = 1;
@@ -471,7 +472,7 @@ internal_self_insert (int c, EMACS_INT n)
     {
       USE_SAFE_ALLOCA;
       char *strn, *p;
-      SAFE_ALLOCA (strn, char *, n * len);
+      SAFE_NALLOCA (strn, len, n);
       for (p = strn; n > 0; n--, p += len)
 	memcpy (p, str, len);
       insert_and_inherit (strn, p - strn);

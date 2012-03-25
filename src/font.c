@@ -1,6 +1,6 @@
 /* font.c -- "Font" primitives.
 
-Copyright (C) 2006-2011  Free Software Foundation, Inc.
+Copyright (C) 2006-2012  Free Software Foundation, Inc.
 Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <float.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <setjmp.h>
@@ -161,7 +162,7 @@ static struct font_driver_list *font_driver_list;
 
 
 
-/* Creaters of font-related Lisp object.  */
+/* Creators of font-related Lisp object.  */
 
 static Lisp_Object
 font_make_spec (void)
@@ -613,7 +614,7 @@ static const struct
   /* Function to validate PROP's value VAL, or NULL if any value is
      ok.  The value is VAL or its regularized value if VAL is valid,
      and Qerror if not.  */
-  Lisp_Object (*validater) (Lisp_Object prop, Lisp_Object val);
+  Lisp_Object (*validator) (Lisp_Object prop, Lisp_Object val);
 } font_property_table[] =
   { { &QCtype, font_prop_validate_symbol },
     { &QCfoundry, font_prop_validate_symbol },
@@ -671,7 +672,7 @@ font_prop_validate (int idx, Lisp_Object prop, Lisp_Object val)
       if (idx < 0)
 	return val;
     }
-  validated = (font_property_table[idx].validater) (prop, val);
+  validated = (font_property_table[idx].validator) (prop, val);
   if (EQ (validated, Qerror))
     signal_error ("invalid font property", Fcons (prop, val));
   return validated;
@@ -801,7 +802,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
   struct {
     /* Minimum possible field.  */
     int from;
-    /* Maxinum possible field.  */
+    /* Maximum possible field.  */
     int to;
     /* Bit mask of possible field.  Nth bit corresponds to Nth field.  */
     int mask;
@@ -824,7 +825,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
     range_mask = (range_mask << 1) | 1;
 
   /* The triplet RANGE_FROM, RANGE_TO, and RANGE_MASK is a
-     position-based retriction for FIELD[I].  */
+     position-based restriction for FIELD[I].  */
   for (i = 0, range_from = 0, range_to = 14 - n; i < n;
        i++, range_from++, range_to++, range_mask <<= 1)
     {
@@ -841,7 +842,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
       else
 	{
 	  /* The triplet FROM, TO, and MASK is a value-based
-	     retriction for FIELD[I].  */
+	     restriction for FIELD[I].  */
 	  int from, to;
 	  unsigned mask;
 
@@ -953,7 +954,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
 	}
     }
 
-  /* Decide all fileds from restrictions in RANGE.  */
+  /* Decide all fields from restrictions in RANGE.  */
   for (i = j = 0; i < n ; i++)
     {
       if (j < range[i].from)
@@ -1180,7 +1181,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   char *p;
   const char *f[XLFD_REGISTRY_INDEX + 1];
   Lisp_Object val;
-  int i, j, len = 0;
+  int i, j, len;
 
   font_assert (FONTP (font));
 
@@ -1195,9 +1196,9 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
       if (NILP (val))
 	{
 	  if (j == XLFD_REGISTRY_INDEX)
-	    f[j] = "*-*", len += 4;
+	    f[j] = "*-*";
 	  else
-	    f[j] = "*", len += 2;
+	    f[j] = "*";
 	}
       else
 	{
@@ -1207,21 +1208,15 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	      && ! strchr (SSDATA (val), '-'))
 	    {
 	      /* Change "jisx0208*" and "jisx0208" to "jisx0208*-*".  */
-	      if (SDATA (val)[SBYTES (val) - 1] == '*')
-		{
-		  f[j] = p = alloca (SBYTES (val) + 3);
-		  sprintf (p, "%s-*", SDATA (val));
-		  len += SBYTES (val) + 3;
-		}
-	      else
-		{
-		  f[j] = p = alloca (SBYTES (val) + 4);
-		  sprintf (p, "%s*-*", SDATA (val));
-		  len += SBYTES (val) + 4;
-		}
+	      ptrdiff_t alloc = SBYTES (val) + 4;
+	      if (nbytes <= alloc)
+		return -1;
+	      f[j] = p = alloca (alloc);
+	      sprintf (p, "%s%s-*", SDATA (val),
+		       "*" + (SDATA (val)[SBYTES (val) - 1] == '*'));
 	    }
 	  else
-	    f[j] = SSDATA (val), len += SBYTES (val) + 1;
+	    f[j] = SSDATA (val);
 	}
     }
 
@@ -1230,11 +1225,11 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
     {
       val = font_style_symbolic (font, i, 0);
       if (NILP (val))
-	f[j] = "*", len += 2;
+	f[j] = "*";
       else
 	{
 	  val = SYMBOL_NAME (val);
-	  f[j] = SSDATA (val), len += SBYTES (val) + 1;
+	  f[j] = SSDATA (val);
 	}
     }
 
@@ -1242,64 +1237,62 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   font_assert (NUMBERP (val) || NILP (val));
   if (INTEGERP (val))
     {
-      i = XINT (val);
-      if (i <= 0)
-	i = pixel_size;
-      if (i > 0)
+      EMACS_INT v = XINT (val);
+      if (v <= 0)
+	v = pixel_size;
+      if (v > 0)
 	{
-	  f[XLFD_PIXEL_INDEX] = p = alloca (22);
-	  len += sprintf (p, "%d-*", i) + 1;
+	  f[XLFD_PIXEL_INDEX] = p =
+	    alloca (sizeof "-*" + INT_STRLEN_BOUND (EMACS_INT));
+	  sprintf (p, "%"pI"d-*", v);
 	}
       else
-	f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
+	f[XLFD_PIXEL_INDEX] = "*-*";
     }
   else if (FLOATP (val))
     {
-      i = XFLOAT_DATA (val) * 10;
-      f[XLFD_PIXEL_INDEX] = p = alloca (12);
-      len += sprintf (p, "*-%d", i) + 1;
+      double v = XFLOAT_DATA (val) * 10;
+      f[XLFD_PIXEL_INDEX] = p = alloca (sizeof "*-" + 1 + DBL_MAX_10_EXP + 1);
+      sprintf (p, "*-%.0f", v);
     }
   else
-    f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
+    f[XLFD_PIXEL_INDEX] = "*-*";
 
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
     {
-      i = XINT (AREF (font, FONT_DPI_INDEX));
-      f[XLFD_RESX_INDEX] = p = alloca (22);
-      len += sprintf (p, "%d-%d", i, i) + 1;
+      EMACS_INT v = XINT (AREF (font, FONT_DPI_INDEX));
+      f[XLFD_RESX_INDEX] = p =
+	alloca (sizeof "-" + 2 * INT_STRLEN_BOUND (EMACS_INT));
+      sprintf (p, "%"pI"d-%"pI"d", v, v);
     }
   else
-    f[XLFD_RESX_INDEX] = "*-*", len += 4;
+    f[XLFD_RESX_INDEX] = "*-*";
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
     {
-      int spacing = XINT (AREF (font, FONT_SPACING_INDEX));
+      EMACS_INT spacing = XINT (AREF (font, FONT_SPACING_INDEX));
 
       f[XLFD_SPACING_INDEX] = (spacing <= FONT_SPACING_PROPORTIONAL ? "p"
 			       : spacing <= FONT_SPACING_DUAL ? "d"
 			       : spacing <= FONT_SPACING_MONO ? "m"
 			       : "c");
-      len += 2;
     }
   else
-    f[XLFD_SPACING_INDEX] = "*", len += 2;
+    f[XLFD_SPACING_INDEX] = "*";
   if (INTEGERP (AREF (font,  FONT_AVGWIDTH_INDEX)))
     {
-      f[XLFD_AVGWIDTH_INDEX] = p = alloca (22);
-      len += sprintf (p, "%"pI"d",
-		      XINT (AREF (font, FONT_AVGWIDTH_INDEX))) + 1;
+      f[XLFD_AVGWIDTH_INDEX] = p = alloca (INT_BUFSIZE_BOUND (EMACS_INT));
+      sprintf (p, "%"pI"d", XINT (AREF (font, FONT_AVGWIDTH_INDEX)));
     }
   else
-    f[XLFD_AVGWIDTH_INDEX] = "*", len += 2;
-  len++;	/* for terminating '\0'.  */
-  if (len >= nbytes)
-    return -1;
-  return sprintf (name, "-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
+    f[XLFD_AVGWIDTH_INDEX] = "*";
+  len = snprintf (name, nbytes, "-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
 		  f[XLFD_FOUNDRY_INDEX], f[XLFD_FAMILY_INDEX],
 		  f[XLFD_WEIGHT_INDEX], f[XLFD_SLANT_INDEX],
 		  f[XLFD_SWIDTH_INDEX], f[XLFD_ADSTYLE_INDEX],
 		  f[XLFD_PIXEL_INDEX], f[XLFD_RESX_INDEX],
 		  f[XLFD_SPACING_INDEX], f[XLFD_AVGWIDTH_INDEX],
 		  f[XLFD_REGISTRY_INDEX]);
+  return len < nbytes ? len : -1;
 }
 
 /* Parse NAME (null terminated) and store information in FONT
@@ -1341,7 +1334,7 @@ font_parse_fcname (char *name, Lisp_Object font)
 	{
 	  int decimal = 0, size_found = 1;
 	  for (q = p + 1; *q && *q != ':'; q++)
-	    if (! isdigit(*q))
+	    if (! isdigit (*q))
 	      {
 		if (*q != '.' || decimal)
 		  {
@@ -1553,23 +1546,19 @@ int
 font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 {
   Lisp_Object family, foundry;
-  Lisp_Object tail, val;
+  Lisp_Object val;
   int point_size;
   int i;
-  ptrdiff_t len = 1;
   char *p;
+  char *lim;
   Lisp_Object styles[3];
   const char *style_names[3] = { "weight", "slant", "width" };
-  char work[256];
 
   family = AREF (font, FONT_FAMILY_INDEX);
   if (! NILP (family))
     {
       if (SYMBOLP (family))
-	{
-	  family = SYMBOL_NAME (family);
-	  len += SBYTES (family);
-	}
+	family = SYMBOL_NAME (family);
       else
 	family = Qnil;
     }
@@ -1580,7 +1569,6 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
       if (XINT (val) != 0)
 	pixel_size = XINT (val);
       point_size = -1;
-      len += 21;		/* for ":pixelsize=NUM" */
     }
   else
     {
@@ -1588,80 +1576,91 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	abort ();
       pixel_size = -1;
       point_size = (int) XFLOAT_DATA (val);
-      len += 11;		/* for "-NUM" */
     }
 
   foundry = AREF (font, FONT_FOUNDRY_INDEX);
   if (! NILP (foundry))
     {
       if (SYMBOLP (foundry))
-	{
-	  foundry = SYMBOL_NAME (foundry);
-	  len += 9 + SBYTES (foundry); /* ":foundry=NAME" */
-	}
+	foundry = SYMBOL_NAME (foundry);
       else
 	foundry = Qnil;
     }
 
   for (i = 0; i < 3; i++)
-    {
-      styles[i] = font_style_symbolic (font, FONT_WEIGHT_INDEX + i, 0);
-      if (! NILP (styles[i]))
-	len += sprintf (work, ":%s=%s", style_names[i],
-			SDATA (SYMBOL_NAME (styles[i])));
-    }
+    styles[i] = font_style_symbolic (font, FONT_WEIGHT_INDEX + i, 0);
 
-  if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    len += sprintf (work, ":dpi=%"pI"d", XINT (AREF (font, FONT_DPI_INDEX)));
-  if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
-    len += strlen (":spacing=100");
-  if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
-    len += strlen (":scalable=false"); /* or ":scalable=true" */
-  for (tail = AREF (font, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
-    {
-      Lisp_Object key = XCAR (XCAR (tail)), value = XCDR (XCAR (tail));
-
-      len += SBYTES (SYMBOL_NAME (key)) + 1; /* for :KEY= */
-      if (STRINGP (value))
-	len += SBYTES (value);
-      else if (INTEGERP (value))
-	len += sprintf (work, "%"pI"d", XINT (value));
-      else if (SYMBOLP (value))
-	len += (NILP (value) ? 5 : 4); /* for "false" or "true" */
-    }
-
-  if (len > nbytes)
-    return -1;
   p = name;
+  lim = name + nbytes;
   if (! NILP (family))
-    p += sprintf (p, "%s", SDATA (family));
+    {
+      int len = snprintf (p, lim - p, "%s", SSDATA (family));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   if (point_size > 0)
     {
-      if (p == name)
-	p += sprintf (p, "%d", point_size);
-      else
-	p += sprintf (p, "-%d", point_size);
+      int len = snprintf (p, lim - p, "-%d" + (p == name), point_size);
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
     }
   else if (pixel_size > 0)
-    p += sprintf (p, ":pixelsize=%d", pixel_size);
+    {
+      int len = snprintf (p, lim - p, ":pixelsize=%d", pixel_size);
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   if (! NILP (AREF (font, FONT_FOUNDRY_INDEX)))
-    p += sprintf (p, ":foundry=%s",
-		  SDATA (SYMBOL_NAME (AREF (font, FONT_FOUNDRY_INDEX))));
+    {
+      int len = snprintf (p, lim - p, ":foundry=%s",
+			  SSDATA (SYMBOL_NAME (AREF (font,
+						     FONT_FOUNDRY_INDEX))));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   for (i = 0; i < 3; i++)
     if (! NILP (styles[i]))
-      p += sprintf (p, ":%s=%s", style_names[i],
-		    SDATA (SYMBOL_NAME (styles[i])));
+      {
+	int len = snprintf (p, lim - p, ":%s=%s", style_names[i],
+			    SSDATA (SYMBOL_NAME (styles[i])));
+	if (! (0 <= len && len < lim - p))
+	  return -1;
+	p += len;
+      }
+
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    p += sprintf (p, ":dpi=%"pI"d", XINT (AREF (font, FONT_DPI_INDEX)));
+    {
+      int len = snprintf (p, lim - p, ":dpi=%"pI"d",
+			  XINT (AREF (font, FONT_DPI_INDEX)));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
+
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
-    p += sprintf (p, ":spacing=%"pI"d", XINT (AREF (font, FONT_SPACING_INDEX)));
+    {
+      int len = snprintf (p, lim - p, ":spacing=%"pI"d",
+			  XINT (AREF (font, FONT_SPACING_INDEX)));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
+
   if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
     {
-      if (XINT (AREF (font, FONT_AVGWIDTH_INDEX)) == 0)
-	p += sprintf (p, ":scalable=true");
-      else
-	p += sprintf (p, ":scalable=false");
+      int len = snprintf (p, lim - p,
+			  (XINT (AREF (font, FONT_AVGWIDTH_INDEX)) == 0
+			   ? ":scalable=true"
+			   : ":scalable=false"));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
     }
+
   return (p - name);
 }
 
@@ -1738,8 +1737,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
 #define LGSTRING_GLYPH_SIZE 8
 
 static int
-check_gstring (gstring)
-     Lisp_Object gstring;
+check_gstring (Lisp_Object gstring)
 {
   Lisp_Object val;
   int i, j;
@@ -1793,8 +1791,7 @@ check_gstring (gstring)
 }
 
 static void
-check_otf_features (otf_features)
-     Lisp_Object otf_features;
+check_otf_features (Lisp_Object otf_features)
 {
   Lisp_Object val;
 
@@ -1827,8 +1824,7 @@ check_otf_features (otf_features)
 Lisp_Object otf_list;
 
 static Lisp_Object
-otf_tag_symbol (tag)
-     OTF_Tag tag;
+otf_tag_symbol (OTF_Tag tag)
 {
   char name[5];
 
@@ -1837,8 +1833,7 @@ otf_tag_symbol (tag)
 }
 
 static OTF *
-otf_open (file)
-     Lisp_Object file;
+otf_open (Lisp_Object file)
 {
   Lisp_Object val = Fassoc (file, otf_list);
   OTF *otf;
@@ -1860,8 +1855,7 @@ otf_open (file)
    (struct font_driver).otf_capability.  */
 
 Lisp_Object
-font_otf_capability (font)
-     struct font *font;
+font_otf_capability (struct font *font)
 {
   OTF *otf;
   Lisp_Object capability = Fcons (Qnil, Qnil);
@@ -1935,9 +1929,7 @@ font_otf_capability (font)
    FEATURES.  */
 
 static void
-generate_otf_features (spec, features)
-     Lisp_Object spec;
-     char *features;
+generate_otf_features (Lisp_Object spec, char *features)
 {
   Lisp_Object val;
   char *p;
@@ -1959,12 +1951,12 @@ generate_otf_features (spec, features)
       else if (! asterisk)
 	{
 	  val = SYMBOL_NAME (val);
-	  p += sprintf (p, "%s", SDATA (val));
+	  p += esprintf (p, "%s", SDATA (val));
 	}
       else
 	{
 	  val = SYMBOL_NAME (val);
-	  p += sprintf (p, "~%s", SDATA (val));
+	  p += esprintf (p, "~%s", SDATA (val));
 	}
     }
   if (CONSP (spec))
@@ -1972,8 +1964,7 @@ generate_otf_features (spec, features)
 }
 
 Lisp_Object
-font_otf_DeviceTable (device_table)
-     OTF_DeviceTable *device_table;
+font_otf_DeviceTable (OTF_DeviceTable *device_table)
 {
   int len = device_table->StartSize - device_table->EndSize + 1;
 
@@ -1982,9 +1973,7 @@ font_otf_DeviceTable (device_table)
 }
 
 Lisp_Object
-font_otf_ValueRecord (value_format, value_record)
-     int value_format;
-     OTF_ValueRecord *value_record;
+font_otf_ValueRecord (int value_format, OTF_ValueRecord *value_record)
 {
   Lisp_Object val = Fmake_vector (make_number (8), Qnil);
 
@@ -2008,8 +1997,7 @@ font_otf_ValueRecord (value_format, value_record)
 }
 
 Lisp_Object
-font_otf_Anchor (anchor)
-     OTF_Anchor *anchor;
+font_otf_Anchor (OTF_Anchor *anchor)
 {
   Lisp_Object val;
 
@@ -3172,14 +3160,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
   else
     {
       Lisp_Object alters
-	= Fassoc_string (val, Vface_alternative_font_family_alist,
-                         /* Font family names are case-sensitive under NS. */
-#ifndef HAVE_NS
-			 Qt
-#else
-			 Qnil
-#endif
-			 );
+	= Fassoc_string (val, Vface_alternative_font_family_alist, Qt);
 
       if (! NILP (alters))
 	{
@@ -3251,7 +3232,7 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
 	  if (INTEGERP (height))
 	    pt = XINT (height);
 	  else
-	    abort(); /* We should never end up here.  */
+	    abort (); /* We should never end up here.  */
 	}
 
       pt /= 10;
@@ -3259,7 +3240,7 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
 #ifdef HAVE_NS
       if (size == 0)
         {
-          Lisp_Object ffsize = get_frame_param(f, Qfontsize);
+          Lisp_Object ffsize = get_frame_param (f, Qfontsize);
           size = NUMBERP (ffsize) ? POINT_TO_PIXEL (XINT (ffsize), f->resy) : 0;
         }
 #endif
@@ -5156,7 +5137,7 @@ the corresponding glyph code.  If ENCODING is a char-table, looking up
 the table by a character gives the corresponding glyph code.
 
 REPERTORY specifies a repertory of characters supported by the font.
-If REPERTORY is a charset, all characters beloging to the charset are
+If REPERTORY is a charset, all characters belonging to the charset are
 supported.  If REPERTORY is a char-table, all characters who have a
 non-nil value in the table are supported.  If REPERTORY is nil, Emacs
 gets the repertory information by an opened font and ENCODING.  */);

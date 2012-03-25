@@ -1,6 +1,6 @@
-;;; f90.el --- Fortran-90 mode (free format)
+;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -724,7 +724,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
          ["Reset to Saved" Custom-reset-saved :active t
           :help "Reset all edited or set settings to saved"]
          ["Reset to Standard Settings" Custom-reset-standard :active t
-          :help "Erase all cusomizations in buffer"]
+          :help "Erase all customizations in buffer"]
          )
         "--"
         ["Indent Subprogram" f90-indent-subprogram t]
@@ -1489,14 +1489,19 @@ Does not check type and subprogram indentation."
       (if (not (f90-previous-statement))
           ;; If f90-previous-statement returns nil, we must have been
           ;; called from on or before the first line of the first statement.
-          (setq icol (if (save-excursion
-                           ;; f90-previous-statement has moved us over
-                           ;; comment/blank lines, so we need to get
-                           ;; back to the first code statement.
-                           (when (looking-at "[ \t]*\\([!#]\\|$\\)")
-                             (f90-next-statement))
-                           (skip-chars-forward " \t0-9")
-                           (f90-looking-at-program-block-start))
+          (setq icol (if (or (save-excursion
+                               (goto-char pnt)
+                               (beginning-of-line)
+                               ;; Preprocessor line before code statement.
+                               (looking-at "[ \t]*#"))
+                             (progn
+                               ;; f90-previous-statement has moved us over
+                               ;; comment/blank lines, so we need to get
+                               ;; back to the first code statement.
+                               (when (looking-at "[ \t]*\\([!#]\\|$\\)")
+                                 (f90-next-statement))
+                               (skip-chars-forward " \t0-9")
+                               (f90-looking-at-program-block-start)))
                          0
                        ;; No explicit PROGRAM start statement.
                        f90-program-indent))
@@ -1573,7 +1578,7 @@ Return nil if no later statement is found."
     (while (and (setq not-last-statement
                       (and (zerop (forward-line 1))
                            (not (eobp))))
-                (looking-at "[ \t0-9]*\\(!\\|$\\)")))
+                (looking-at "[ \t0-9]*\\(!\\|$\\|#\\)")))
     not-last-statement))
 
 (defun f90-beginning-of-subprogram ()
@@ -1832,7 +1837,7 @@ after indenting."
     (and (< (point) pos)
          (goto-char pos))
     (if auto-fill-function
-        ;; GM NO-UPDATE not honoured, since this calls f90-update-line.
+        ;; GM NO-UPDATE not honored, since this calls f90-update-line.
         (f90-do-auto-fill)
       (or no-update (f90-update-line)))
     (set-marker pos nil)))
@@ -2000,7 +2005,7 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
   (cond ((f90-in-string)
          (insert "&\n&"))
         ((f90-in-comment)
-         (delete-horizontal-space 'backwards) ; remove trailing whitespace
+         (delete-horizontal-space) ; remove trailing whitespace
          (insert "\n" (f90-get-present-comment-type)))
         (t (insert "&")
            (or no-update (f90-update-line))
@@ -2012,12 +2017,15 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
 
 (defun f90-find-breakpoint ()
   "From `fill-column', search backward for break-delimiter."
-  (re-search-backward f90-break-delimiters (line-beginning-position))
-  (if (not f90-break-before-delimiters)
-      (forward-char (if (looking-at f90-no-break-re) 2 1))
-    (backward-char)
-    (or (looking-at f90-no-break-re)
-        (forward-char))))
+  ;; Commented text more likely than commented code.
+  (if (f90-in-comment)
+      (re-search-backward "\\s-" (line-beginning-position))
+    (re-search-backward f90-break-delimiters (line-beginning-position))
+    (if (not f90-break-before-delimiters)
+        (forward-char (if (looking-at f90-no-break-re) 2 1))
+      (backward-char)
+      (or (looking-at f90-no-break-re)
+        (forward-char)))))
 
 (defun f90-do-auto-fill ()
   "Break line if non-white characters beyond `fill-column'.
@@ -2311,7 +2319,6 @@ escape character."
 
 ;; Local Variables:
 ;; coding: utf-8
-;; lexical-binding: t
 ;; End:
 
 ;;; f90.el ends here

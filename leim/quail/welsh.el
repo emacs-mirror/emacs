@@ -1,6 +1,6 @@
 ;;; welsh.el --- Quail package for inputting Welsh characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

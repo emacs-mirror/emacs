@@ -1,6 +1,6 @@
 # src/Makefile for GNU Emacs.
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2011
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2012
 #   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -129,6 +129,9 @@ START_FILES = @START_FILES@
 
 ## -lm, or empty.
 LIB_MATH=@LIB_MATH@
+
+## -lpthreads, or empty.
+LIB_PTHREAD=@LIB_PTHREAD@
 
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
@@ -385,7 +388,7 @@ LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD_SIGMASK) \
+   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
    $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
@@ -439,7 +442,7 @@ GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	@rm -f gl-tmp
 	$(libsrc)/make-docfile -d $(srcdir) -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
-	$(srcdir)/../move-if-change gl-tmp globals.h
+	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
 	echo timestamp > $@
 
 $(obj) $(otherobj): globals.h

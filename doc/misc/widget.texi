@@ -8,7 +8,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2000-2011  Free Software Foundation, Inc.
+Copyright @copyright{} 2000-2012  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -450,7 +450,6 @@ There is a standard widget keymap which you might find useful.
 @findex widget-button-press
 @findex widget-button-click
 @defvr Const widget-keymap
-A keymap with the global keymap as its parent.@*
 @key{TAB} and @kbd{C-@key{TAB}} are bound to @code{widget-forward} and
 @code{widget-backward}, respectively.  @key{RET} and @kbd{Mouse-2}
 are bound to @code{widget-button-press} and

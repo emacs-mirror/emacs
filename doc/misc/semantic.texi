@@ -24,7 +24,7 @@
 @copying
 This manual documents the Semantic library and utilities.
 
-Copyright @copyright{} 1999-2005, 2007, 2009-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1999-2005, 2007, 2009-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -306,7 +306,7 @@ Files associated with tags.  Goto-tag, file for include, and file for
 a prototype.
 
 @item semantic-tag-ls.el
-Language dependant features of a tag, such as parent calculation, slot
+Language dependent features of a tag, such as parent calculation, slot
 protection, and other states like abstract, virtual, static, and leaf.
 
 @item semantic-dep.el
@@ -349,7 +349,7 @@ This file also provides support for @code{semanticdb-minor-mode},
 which automatically associates files with tables in databases so that
 tags are @emph{saved} while a buffer is not in memory.
 
-The database and tables both also provide applicate cache information,
+The database and tables both also provide applicable cache information,
 and cache flushing system.  The semanticdb search routines use caches
 to save datastructures that are complex to calculate.
 
@@ -380,7 +380,7 @@ with the search results format.
 
 @item semanticdb-ref.el
 Tracks crossreferences.   Cross references are needed when buffer is
-reparsed, and must alert other tables that any dependant caches may
+reparsed, and must alert other tables that any dependent caches may
 need to be flushed.  References are in the form of include files.
 
 @end table
@@ -421,7 +421,7 @@ local variables, and tag lists in scope for various reasons, such as
 C++ using statements.
 
 @item semanticdb-typecache.el
-The typecache is part of @code{semanticdb}, but is used primarilly by
+The typecache is part of @code{semanticdb}, but is used primarily by
 the analyzer to look up datatypes and complex names.  The typecache is
 bound across source files and builds a master lookup table for data
 type names.
@@ -536,7 +536,7 @@ the buffer.
 
 @item bovine parser
 A parser using the bovine parser generator.  It is an LL parser
-suitible for small simple languages.
+suitable for small simple languages.
 
 @item context
 
@@ -606,14 +606,14 @@ Emacs Lisp.  It is an LALR parser suitable for complex languages.
 @c LocalWords: concat concocting const constantness ctxt Decl defcustom
 @c LocalWords: deffn deffnx defun defvar destructor's dfn diff dir
 @c LocalWords: doc docstring EDE EIEIO elisp emacsman emph enum
-@c LocalWords: eq Exp EXPANDFULL expresssion fn foo func funcall
+@c LocalWords: eq Exp EXPANDFULL expression fn foo func funcall
 @c LocalWords: ia ids iff ifinfo imenu imenus init int isearch itemx java kbd
 @c LocalWords: keymap keywordtable lang languagemode lexer lexing Ludlam
 @c LocalWords: menubar metaparent metaparents min minibuffer Misc mode's
 @c LocalWords: multitable NAvigaTOR noindent nomedian nonterm noselect
 @c LocalWords: nosnarf obarray OLE OO outputfile paren parsetable POINT's
 @c LocalWords: popup positionalonly positiononly positionormarker pre
-@c LocalWords: printf printindex Programmatically pt punctuations quotemode
+@c LocalWords: printf printindex Programmatically pt quotemode
 @c LocalWords: ref regex regexp Regexps reparse resetfile samp sb
 @c LocalWords: scopestart SEmantic semanticdb setfilename setq
 @c LocalWords: settitle setupfunction sexp sp SPC speedbar speedbar's

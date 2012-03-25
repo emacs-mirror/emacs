@@ -1,6 +1,6 @@
 ;;; calculator.el --- a [not so] simple calculator for Emacs
 
-;; Copyright (C) 1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
@@ -81,7 +81,7 @@ This determines the default behavior of unary operators."
 
 (defcustom calculator-prompt "Calc=%s> "
   "The prompt used by the Emacs calculator.
-It should contain a \"%s\" somewhere that will indicate the i/o radixes;
+It should contain a \"%s\" somewhere that will indicate the i/o radices;
 this will be a two-character string as described in the documentation
 for `calculator-mode'."
   :type  'string
@@ -720,7 +720,7 @@ See the documentation for `calculator-mode' for more information."
            ;; maybe leave two lines for our window because of the normal
            ;; `raised' modeline in Emacs 21
            (select-window
-            (split-window-vertically
+            (split-window-below
              ;; If the modeline might interfere with the calculator buffer,
              ;; use 3 lines instead.
              (if (and (fboundp 'face-attr-construct)

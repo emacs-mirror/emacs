@@ -1,6 +1,6 @@
 ;;; delphi.el --- major mode for editing Delphi source (Object Pascal) in Emacs
 
-;; Copyright (C) 1998-1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>
@@ -1958,10 +1958,6 @@ comment block.  If not in a // comment, just does a normal newline."
 		(list "\C-c\C-d" delphi-debug-mode-map)))
     kmap)
   "Keymap used in Delphi mode.")
-
-(defvar delphi-mode-syntax-table nil
-  "Delphi mode's syntax table.  It is just a standard syntax table.
-This is ok since we do our own keyword/comment/string face coloring.")
 
 ;;;###autoload
 (define-derived-mode delphi-mode prog-mode "Delphi"

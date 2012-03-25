@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993-1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -65,7 +65,7 @@
 --> t means save bookmarks when Emacs is killed.
 --> Otherwise, it should be a number that is the frequency with which
     the bookmark list is saved (i.e.: the number of times which
-    Emacs' bookmark list may be modified before it is automatically
+    Emacs's bookmark list may be modified before it is automatically
     saved.).  If it is a number, Emacs will also automatically save
     bookmarks when it is killed.
 
@@ -83,7 +83,7 @@ To specify the file in which to save them, modify the variable
   "The `.emacs.bmk' file used to be called this name.")
 
 
-;; defvarred to avoid a compilation warning:
+;; defvared to avoid a compilation warning:
 (defvar bookmark-file nil
   "Old name for `bookmark-default-file'.")
 
@@ -1539,7 +1539,7 @@ deletion, or > if it is flagged for displaying."
   (bookmark-maybe-load-default-file)
   (let ((buf (get-buffer-create "*Bookmark List*")))
     (if (called-interactively-p 'interactive)
-        (pop-to-buffer-same-window buf)
+        (switch-to-buffer buf)
       (set-buffer buf)))
   (let ((inhibit-read-only t))
     (erase-buffer)
@@ -1841,8 +1841,7 @@ With a prefix arg, prompts for a file to save them in."
         (menu (current-buffer))
         (pop-up-windows t))
     (delete-other-windows)
-    (with-no-warnings ; We really do want to call `switch-to-buffer' here.
-      (switch-to-buffer (other-buffer)))
+    (switch-to-buffer (other-buffer) nil t)
     (bookmark--jump-via bmrk 'pop-to-buffer)
     (bury-buffer menu)))
 

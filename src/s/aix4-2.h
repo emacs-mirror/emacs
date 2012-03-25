@@ -1,5 +1,5 @@
 /*
-Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1999, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -46,11 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* AIX doesn't define this.  */
 #define unix 1
-
-/* string.h defines rindex as a macro, at least with native cc, so we
-   lose declaring char * rindex without this.
-   It is just a guess which versions of AIX need this definition.  */
-#undef HAVE_STRING_H
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #define SIGNALS_VIA_CHARACTERS

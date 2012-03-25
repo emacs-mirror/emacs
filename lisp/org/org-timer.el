@@ -1,11 +1,10 @@
 ;;; org-timer.el --- The relative timer code for Org-mode
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -64,6 +63,9 @@ When 0, the user is prompted for a value."
 
 (defvar org-timer-pause-hook nil
   "Hook run before relative timer is paused.")
+
+(defvar org-timer-continue-hook nil
+ "Hook run after relative timer is continued.")
 
 (defvar org-timer-set-hook nil
   "Hook run after countdown timer is set.")
@@ -128,6 +130,7 @@ With prefix arg STOP, stop it entirely."
 	       (org-float-time org-timer-start-time))))
 	  org-timer-pause-time nil)
     (org-timer-set-mode-line 'on)
+    (run-hooks 'org-timer-continue-hook)
     (message "Timer continues at %s" (org-timer-value-string)))
    (t
     ;; pause timer
@@ -203,22 +206,27 @@ it in the buffer."
 (defun org-timer-item (&optional arg)
   "Insert a description-type item with the current timer value."
   (interactive "P")
-  (cond
-   ;; In a timer list, insert with `org-list-insert-item-generic'.
-   ((and (org-in-item-p)
-	 (save-excursion (org-beginning-of-item) (org-at-item-timer-p)))
-    (org-list-insert-item-generic
-     (point) nil (concat (org-timer (when arg '(4)) t) ":: ")))
-   ;; In a list of another type, don't break anything: throw an error.
-   ((org-in-item-p)
-    (error "This is not a timer list"))
-   ;; Else, insert the timer correctly indented at bol.
-   (t
-    (beginning-of-line)
-    (org-indent-line-function)
-    (insert  "- ")
-    (org-timer (when arg '(4)))
-    (insert ":: "))))
+  (let ((itemp (org-in-item-p)) (pos (point)))
+    (cond
+     ;; In a timer list, insert with `org-list-insert-item',
+     ;; then fix the list.
+     ((and itemp (goto-char itemp) (org-at-item-timer-p))
+      (let* ((struct (org-list-struct))
+	     (prevs (org-list-prevs-alist struct))
+	     (s (concat (org-timer (when arg '(4)) t) ":: ")))
+	(setq struct (org-list-insert-item pos struct prevs nil s))
+	(org-list-write-struct struct (org-list-parents-alist struct))
+	(looking-at org-list-full-item-re)
+	(goto-char (match-end 0))))
+     ;; In a list of another type, don't break anything: throw an error.
+     (itemp (goto-char pos) (error "This is not a timer list"))
+     ;; Else, start a new list.
+     (t
+      (beginning-of-line)
+      (org-indent-line-function)
+      (insert  "- ")
+      (org-timer (when arg '(4)))
+      (insert ":: ")))))
 
 (defun org-timer-fix-incomplete (hms)
   "If hms is a H:MM:SS string with missing hour or hour and minute, fix it."
@@ -393,6 +401,5 @@ replace any running timer."
 	(message "No timer set"))))))
 
 (provide 'org-timer)
-
 
 ;;; org-timer.el ends here

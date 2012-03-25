@@ -1,6 +1,6 @@
 ;;; rlogin.el --- remote login interface
 
-;; Copyright (C) 1992-1995, 1997-1998, 2001-2011
+;; Copyright (C) 1992-1995, 1997-1998, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
@@ -125,8 +125,6 @@ this variable is set from that."
 
 
 
-;;;###autoload (add-hook 'same-window-regexps (purecopy "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)"))
-
 (defvar rlogin-history nil)
 
 ;;;###autoload
@@ -196,7 +194,7 @@ variable."
           (t
            (setq buffer-name (generate-new-buffer-name buffer-name))))
     (setq buffer (get-buffer-create buffer-name))
-    (pop-to-buffer buffer-name)
+    (switch-to-buffer buffer-name)
     (unless (comint-check-proc buffer-name)
       (comint-exec buffer buffer-name rlogin-program nil args)
       (rlogin-mode)

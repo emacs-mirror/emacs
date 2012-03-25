@@ -1,5 +1,5 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -123,8 +123,8 @@ _start (void)
      is finished.  */
 #ifdef HAVE_NTGUI
   /* determine WinMain args like crt0.c does */
-  hinst = GetModuleHandle(NULL);
-  lpCmdLine = GetCommandLine();
+  hinst = GetModuleHandle (NULL);
+  lpCmdLine = GetCommandLine ();
   nCmdShow = SW_SHOWDEFAULT;
 #endif
   mainCRTStartup ();
@@ -326,7 +326,7 @@ relocate_offset (DWORD offset,
 #define PTR_TO_RVA(ptr) ((DWORD)(ptr) - (DWORD) GetModuleHandle (NULL))
 
 #define RVA_TO_PTR(var,section,filedata) \
-	  ((void *)(RVA_TO_OFFSET(var,section) + (filedata).file_base))
+	  ((void *)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
 
 #define PTR_TO_OFFSET(ptr, pfile_data) \
           ((unsigned char *)(ptr) - (pfile_data)->file_base)

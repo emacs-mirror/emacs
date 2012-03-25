@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
 
-Copyright (C) 1989, 1993-2011  Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1294,6 +1294,8 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
       old_font = SelectObject (s->hdc, FONT_HANDLE (font));
 
       for (i = 0, j = s->cmp_from; i < s->nchars; i++, j++)
+	/* TAB in a composition means display glyphs with padding
+	   space on the left or right.  */
 	if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
 	  {
 	    int xx = x + s->cmp->offsets[j * 2];
@@ -1439,7 +1441,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
    Nominally, highlight colors for `3d' faces are calculated by
    brightening an object's color by a constant scale factor, but this
-   doesn't yield good results for dark colors, so for colors who's
+   doesn't yield good results for dark colors, so for colors whose
    brightness is less than this value (on a scale of 0-255) have to
    use an additional additive factor.
 
@@ -1618,8 +1620,9 @@ x_setup_relief_colors (struct glyph_string *s)
 
 static void
 w32_draw_relief_rect (struct frame *f,
-		      int left_x, int top_y, int right_x, int bottom_y, int width,
-		      int raised_p, int top_p, int bot_p, int left_p, int right_p,
+		      int left_x, int top_y, int right_x, int bottom_y,
+		      int width, int raised_p,
+		      int top_p, int bot_p, int left_p, int right_p,
 		      RECT *clip_rect)
 {
   int i;
@@ -1880,7 +1883,8 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief : DEFAULT_TOOL_BAR_BUTTON_RELIEF;
+      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief
+	: DEFAULT_TOOL_BAR_BUTTON_RELIEF;
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -2661,7 +2665,7 @@ x_scroll_run (struct window *w, struct run *run)
     }
   else
     {
-      /* Scolling down.  Make sure we don't copy over the mode line.
+      /* Scrolling down.  Make sure we don't copy over the mode line.
 	 at the bottom.  */
       if (to_y + run->height > bottom_y)
 	height = bottom_y - to_y;
@@ -3282,8 +3286,8 @@ w32_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
  ***********************************************************************/
 
 /* Handle mouse button event on the tool-bar of frame F, at
-   frame-relative coordinates X/Y.  EVENT_TYPE is either ButtionPress
-   or ButtonRelase.  */
+   frame-relative coordinates X/Y.  EVENT_TYPE is either ButtonPress
+   or ButtonRelease.  */
 
 static void
 w32_handle_tool_bar_click (struct frame *f, struct input_event *button_event)
@@ -3384,7 +3388,7 @@ w32_set_scroll_bar_thumb (struct scroll_bar *bar,
   if (whole)
     {
       /* Position scroll bar at rock bottom if the bottom of the
-         buffer is visible. This avoids shinking the thumb away
+         buffer is visible. This avoids shrinking the thumb away
          to nothing if it is held at the bottom of the buffer.  */
       if (position + portion >= whole && !draggingp)
 	{
@@ -3486,7 +3490,7 @@ my_destroy_window (struct frame * f, HWND hwnd)
 
 /* Create a scroll bar and return the scroll bar vector for it.  W is
    the Emacs window on which to create the scroll bar. TOP, LEFT,
-   WIDTH and HEIGHT are.the pixel coordinates and dimensions of the
+   WIDTH and HEIGHT are the pixel coordinates and dimensions of the
    scroll bar. */
 
 static struct scroll_bar *
@@ -3552,7 +3556,7 @@ x_scroll_bar_remove (struct scroll_bar *bar)
   /* Destroy the window.  */
   my_destroy_window (f, SCROLL_BAR_W32_WINDOW (bar));
 
-  /* Disassociate this scroll bar from its window.  */
+  /* Dissociate this scroll bar from its window.  */
   XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
 
   UNBLOCK_INPUT;
@@ -3872,7 +3876,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	  si.fMask = SIF_POS;
 	  si.nPos = y;
 	  /* Remember apparent position (we actually lag behind the real
-	     position, so don't set that directly.  */
+	     position, so don't set that directly).  */
 	  last_scroll_bar_drag_pos = y;
 
 	  SetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, FALSE);
@@ -4502,7 +4506,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 	    }
 
 	  /* If window has been obscured or exposed by another window
-	     being maximised or minimised/restored, then recheck
+	     being maximized or minimized/restored, then recheck
 	     visibility of all frames.  Direct changes to our own
 	     windows get handled by WM_SIZE.  */
 #if 0
@@ -4771,7 +4775,7 @@ w32_read_socket (struct terminal *terminal, int expected,
       pending_autoraise_frame = 0;
     }
 
-  /* Check which frames are still visisble, if we have enqueued any user
+  /* Check which frames are still visible, if we have enqueued any user
      events or been notified of events that may affect visibility.  We
      do this here because there doesn't seem to be any direct
      notification from Windows that the visibility of a window has
@@ -5195,7 +5199,6 @@ x_catch_errors (dpy)
 x_catch_errors_unwind (old_val)
 x_check_errors (dpy, format)
 x_fully_uncatch_errors ()
-x_catching_errors ()
 x_had_errors_p (dpy)
 x_clear_errors (dpy)
 x_uncatch_errors (dpy, count)
@@ -5573,7 +5576,7 @@ x_raise_frame (struct frame *f)
      input focus anyway (so the window with focus will never be
      completely obscured) - if not, then just moving the mouse over it
      is sufficient to give it focus.  On Windows, the user must actually
-     click on the frame (preferrably the title bar so as not to move
+     click on the frame (preferably the title bar so as not to move
      point), which is more awkward.  Also, no other Windows program
      raises a window to the top but leaves another window (possibly now
      completely obscured) with input focus.
@@ -5687,15 +5690,15 @@ x_make_frame_visible (struct frame *f)
 
       f->output_data.w32->asked_for_visible = 1;
 
-      /* The first of these seems to give more expected behavior, but
-         was added as a commented out line in Sept 1997, with the
-         second version remaining uncommented. There may have been
-         some problem with it that led to it not being enabled,
-         so the old version remains commented out below in case we
-         decide we need to go back to it [23.0.60 2008-06-09].  */
+      /* According to a report in emacs-devel 2008-06-03, SW_SHOWNORMAL
+	 causes unexpected behavior when unminimizing frames that were
+	 previously maximized.  But only SW_SHOWNORMAL works properly for
+	 frames that were truely hidden (using make-frame-invisible), so
+	 we need it to avoid Bug#5482.  It seems that async_iconified
+	 is only set for minimized windows that are still visible, so
+         use that to determine the appropriate flag to pass ShowWindow.  */
       my_show_window (f, FRAME_W32_WINDOW (f),
-                      f->async_iconified ? SW_RESTORE : SW_SHOW);
-      /* my_show_window (f, FRAME_W32_WINDOW (f), SW_SHOWNORMAL);  */
+                      f->async_iconified ? SW_RESTORE : SW_SHOWNORMAL);
     }
 
   /* Synchronize to ensure Emacs knows the frame is visible
@@ -6161,7 +6164,7 @@ w32_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
   ReleaseDC (NULL, hdc);
 
-  /* initialise palette with white and black */
+  /* initialize palette with white and black */
   {
     XColor color;
     w32_defined_color (0, "white", &color, 1);
@@ -6429,7 +6432,7 @@ baseline level.  The default value is nil.  */);
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
-With MS Windows, the value is t.  */);
+With MS Windows or Nextstep, the value is t.  */);
   Vx_toolkit_scroll_bars = Qt;
 
   staticpro (&last_mouse_motion_frame);

@@ -1,6 +1,6 @@
 ;;; semantic/analyze/debug.el --- Debug the analyzer
 
-;;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -70,7 +70,7 @@
       (let ((pentry (nth idx pf))
 	    (ptentry (nth idx pft)))
 	(if (or (stringp pentry) (not ptentry))
-	    ;; Found someting ok.  stop
+	    ;; Found something ok.  Stop.
 	    (setq stop t)
 	  (setq idx (1+ idx)))))
     ;; We found the first non-tag entry.  What is the situation?

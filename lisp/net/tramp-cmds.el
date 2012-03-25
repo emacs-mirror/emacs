@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp
 
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This package provides all interactive commands which are releated
+;; This package provides all interactive commands which are related
 ;; to Tramp.
 
 ;;; Code:
@@ -308,7 +308,7 @@ buffer in your bug report.
 
       ;; There is at least one Tramp buffer.
       (when buffer-list
-	(tramp-compat-pop-to-buffer-same-window (list-buffers-noselect nil))
+	(switch-to-buffer (list-buffers-noselect nil))
 	(delete-other-windows)
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
@@ -343,7 +343,7 @@ the debug buffer(s).")
 	    ;; OK, let's send.  First we delete the buffer list.
 	    (progn
 	      (kill-buffer nil)
-	      (tramp-compat-pop-to-buffer-same-window curbuf)
+	      (switch-to-buffer curbuf)
 	      (goto-char (point-max))
 	      (insert "\n\
 This is a special notion of the `gnus/message' package.  If you

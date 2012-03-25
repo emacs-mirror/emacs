@@ -1,6 +1,6 @@
 /* Replacement inntypes.h file for building GNU Emacs on Windows with MSVC.
 
-Copyright (C) 2011  Free Software Foundation, Inc.
+Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,7 +24,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include_next <inttypes.h>
 #else  /* !__MINGW32__ */
 #include "stdint.h"
+#ifdef _WIN64
 #define strtoumax _strtoui64
+#define strtoimax _strtoi64
+#else
+#define strtoumax strtoul
+#define strtoimax strtol
+#endif
 #endif	/* !__MINGW32__ */
 
 #endif

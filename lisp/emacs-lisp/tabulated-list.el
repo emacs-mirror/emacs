@@ -1,6 +1,6 @@
-;;; tabulated-list.el --- generic major mode for tabulated lists.
+;;; tabulated-list.el --- generic major mode for tabulated lists -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords: extensions, lisp
@@ -146,7 +146,7 @@ If ADVANCE is non-nil, move forward by one line afterwards."
 (defvar tabulated-list-glyphless-char-display
   (let ((table (make-char-table 'glyphless-char-display nil)))
     (set-char-table-parent table glyphless-char-display)
-    ;; Some text terminals can't display the unicode arrows; be safe.
+    ;; Some text terminals can't display the Unicode arrows; be safe.
     (aset table 9650 (cons nil "^"))
     (aset table 9660 (cons nil "v"))
     table)
@@ -258,7 +258,8 @@ to the entry with the same ID element as the current line."
     ;; If REMEMBER-POS was specified, move to the "old" location.
     (if saved-pt
 	(progn (goto-char saved-pt)
-	       (move-to-column saved-col))
+	       (move-to-column saved-col)
+	       (recenter))
       (goto-char (point-min)))))
 
 (defun tabulated-list-print-entry (id cols)
@@ -277,11 +278,11 @@ of column descriptors."
 	     (width  (nth 1 format))
 	     (label  (if (stringp desc) desc (car desc)))
 	     (help-echo (concat (car format) ": " label)))
-	;; Truncate labels if necessary.
-	(and (> width 6)
-	     (> (length label) width)
-	     (setq label (concat (substring label 0 (- width 3))
-				 "...")))
+	;; Truncate labels if necessary (except last column).
+	(and (< (1+ n) len)
+	     (> (string-width label) width)
+	     (setq label (truncate-string-to-width label width nil nil t)))
+	(setq label (bidi-string-mark-left-to-right label))
 	(if (stringp desc)
 	    (insert (propertize label 'help-echo help-echo))
 	  (apply 'insert-text-button label (cdr desc)))
@@ -319,7 +320,7 @@ This mode is usually not used directly; instead, other major
 modes are derived from it, using `define-derived-mode'.
 
 In this major mode, the buffer is divided into multiple columns,
-which are labelled using the header line.  Each non-empty line
+which are labeled using the header line.  Each non-empty line
 belongs to one \"entry\", and the entries can be sorted according
 to their column values.
 
@@ -360,7 +361,6 @@ as the ewoc pretty-printer."
 
 ;; Local Variables:
 ;; coding: utf-8
-;; lexical-binding: t
 ;; End:
 
 ;;; tabulated-list.el ends here

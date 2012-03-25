@@ -1,6 +1,6 @@
 ;;; tq.el --- utility to maintain a transaction queue
 
-;; Copyright (C) 1985-1987, 1992, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Scott Draves <spot@cs.cmu.edu>
 ;; Maintainer: FSF

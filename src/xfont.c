@@ -1,5 +1,5 @@
 /* xfont.c -- X core font driver.
-   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2012 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -272,8 +272,8 @@ xfont_chars_supported (Lisp_Object chars, XFontStruct *xfont,
   return 0;
 }
 
-/* A hash table recoding which font supports which scritps.  Each key
-   is a vector of characteristic font propertis FOUNDRY to WIDTH and
+/* A hash table recoding which font supports which scripts.  Each key
+   is a vector of characteristic font properties FOUNDRY to WIDTH and
    ADDSTYLE, and each value is a list of script symbols.
 
    We assume that fonts that have the same value in the above
@@ -281,7 +281,7 @@ xfont_chars_supported (Lisp_Object chars, XFontStruct *xfont,
 
 static Lisp_Object xfont_scripts_cache;
 
-/* Re-usable vector to store characteristic font properites.   */
+/* Re-usable vector to store characteristic font properties.   */
 static Lisp_Object xfont_scratch_props;
 
 /* Return a list of scripts supported by the font of FONTNAME whose

@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Vincent Belaïche  <vincentb1@users.sourceforge.net>
@@ -940,6 +940,7 @@ the old and FORCE is nil."
 
 (defcustom ses-self-reference-early-detection nil
   "True if cycle detection is early for cells that refer to themselves."
+  :version "24.1"
   :type 'boolean
   :group 'ses)
 

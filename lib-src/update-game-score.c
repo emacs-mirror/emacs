@@ -1,6 +1,6 @@
 /* update-game-score.c --- Update a score file
 
-Copyright (C) 2002-2011  Free Software Foundation, Inc.
+Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 Author: Colin Walters <walters@debian.org>
 
@@ -35,21 +35,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <errno.h>
-#ifdef HAVE_STRING_H
+#include <limits.h>
 #include <string.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 #include <stdio.h>
 #include <time.h>
 #include <pwd.h>
 #include <ctype.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifdef STDC_HEADERS
-#include <stdarg.h>
 #endif
 #include <sys/stat.h>
 
@@ -71,7 +65,7 @@ static int usage (int err) NO_RETURN;
 static int
 usage (int err)
 {
-  fprintf (stdout, "Usage: update-game-score [-m MAX ] [ -r ] game/scorefile SCORE DATA\n");
+  fprintf (stdout, "Usage: update-game-score [-m MAX] [-r] [-d DIR] game/scorefile SCORE DATA\n");
   fprintf (stdout, "       update-game-score -h\n");
   fprintf (stdout, " -h\t\tDisplay this help.\n");
   fprintf (stdout, " -m MAX\t\tLimit the maximum number of scores to MAX.\n");
@@ -113,8 +107,7 @@ static void lose_syserr (const char *msg) NO_RETURN;
 #ifndef HAVE_STRERROR
 #ifndef WINDOWSNT
 char *
-strerror (errnum)
-     int errnum;
+strerror (int errnum)
 {
   extern char *sys_errlist[];
   extern int sys_nerr;
@@ -136,19 +129,13 @@ lose_syserr (const char *msg)
 static char *
 get_user_id (void)
 {
-  char *name;
   struct passwd *buf = getpwuid (getuid ());
   if (!buf)
     {
-      int count = 1;
-      int uid = (int) getuid ();
-      int tuid = uid;
-      while (tuid /= 10)
-	count++;
-      name = malloc (count+1);
-      if (!name)
-	return NULL;
-      sprintf (name, "%d", uid);
+      long uid = getuid ();
+      char *name = malloc (sizeof uid * CHAR_BIT / 3 + 1);
+      if (name)
+	sprintf (name, "%ld", uid);
       return name;
     }
   return buf->pw_name;
@@ -359,7 +346,7 @@ read_scores (const char *filename, struct score_entry **scores, int *count)
     return -1;
   while ((readval = read_score (f, &ret[scorecount])) == 0)
     {
-      /* We encoutered an error */
+      /* We encountered an error.  */
       if (readval < 0)
 	return -1;
       scorecount++;

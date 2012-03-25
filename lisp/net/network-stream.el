@@ -1,6 +1,6 @@
 ;;; network-stream.el --- open network processes, possibly with encryption
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -115,7 +115,7 @@ values:
   capability command, and should return the command to switch on
   STARTTLS if the server supports STARTTLS, and nil otherwise.
 
-:always-query-capabilies says whether to query the server for
+:always-query-capabilities says whether to query the server for
   capabilities, even if we're doing a `plain' network connection.
 
 :client-certificate should either be a list where the first
@@ -218,7 +218,7 @@ functionality.
 	 (resulting-type 'plain)
 	 (builtin-starttls (and (fboundp 'gnutls-available-p)
 				(gnutls-available-p)))
-	 starttls-command error)
+	 starttls-available starttls-command error)
 
     ;; First check whether the server supports STARTTLS at all.
     (when (and capabilities success-string starttls-function)
@@ -227,23 +227,24 @@ functionality.
     ;; If we have built-in STARTTLS support, try to upgrade the
     ;; connection.
     (when (and starttls-command
-	       (or builtin-starttls
-		   (and (or require-tls
-			    (plist-get parameters :use-starttls-if-possible))
-			(executable-find "gnutls-cli")))
+	       (setq starttls-available
+		     (or builtin-starttls
+			 (and (or require-tls
+				  (plist-get parameters :use-starttls-if-possible))
+			      (starttls-available-p))))
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
       (unless builtin-starttls
 	(delete-process stream)
 	(setq start (with-current-buffer buffer (point-max)))
-	(let* ((starttls-use-gnutls t)
-	       (starttls-extra-arguments
+	(let* ((starttls-extra-arguments
 		(if require-tls
 		    starttls-extra-arguments
 		  ;; For opportunistic TLS upgrades, we don't really
 		  ;; care about the identity of the peer.
 		  (cons "--insecure" starttls-extra-arguments)))
+	       (starttls-extra-args starttls-extra-args)
 	       (cert (network-stream-certificate host service parameters)))
 	  ;; There are client certificates requested, so add them to
 	  ;; the command line.
@@ -251,7 +252,11 @@ functionality.
 	    (setq starttls-extra-arguments
 		  (nconc (list "--x509keyfile" (expand-file-name (nth 0 cert))
 			       "--x509certfile" (expand-file-name (nth 1 cert)))
-			 starttls-extra-arguments)))
+			 starttls-extra-arguments)
+		  starttls-extra-args
+		  (nconc (list "--key-file" (expand-file-name (nth 0 cert))
+			       "--cert-file" (expand-file-name (nth 1 cert)))
+			 starttls-extra-args)))
 	  (setq stream (starttls-open-stream name buffer host service)))
 	(network-stream-get-response stream start eoc)
 	;; Requery capabilities for protocols that require it; i.e.,
@@ -294,9 +299,19 @@ functionality.
 	       ;; support, or no gnutls-cli installed.
 	       (eq resulting-type 'plain))
       (setq error
-	    (if require-tls
+	    (if (or (null starttls-command)
+		    starttls-available)
 		"Server does not support TLS"
-	      "Server supports STARTTLS, but Emacs does not have support for it"))
+	      ;; See `starttls-available-p'.  If this predicate
+	      ;; changes to allow running under Windows, the error
+	      ;; message below should be amended.
+	      (if (memq system-type '(windows-nt ms-dos))
+		  (concat "Emacs does not support TLS")
+		(concat "Emacs does not support TLS, and no external `"
+			(if starttls-use-gnutls
+			    starttls-gnutls-program
+			  starttls-program)
+			"' program was found"))))
       (delete-process stream)
       (setq stream nil))
     ;; Return value:

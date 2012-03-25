@@ -1,6 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985-1986, 1995, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1995, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -85,7 +85,7 @@
 	      (eq last-input-event ?\C-g))
 	  (progn (setq unread-command-events nil
 		       prefix-arg nil)
-		 ;; If it wasn't cancelling a prefix character, then quit.
+		 ;; If it wasn't canceling a prefix character, then quit.
 		 (if (or (= (length (this-command-keys)) 1)
 			 (not inhibit-quit)) ; safety
 		     (progn (ding)
@@ -199,6 +199,12 @@ Returns nil when we can't find this char."
 (defvar electric-indent-chars '(?\n)
   "Characters that should cause automatic reindentation.")
 
+(defvar electric-indent-functions nil
+  "Special hook run to decide whether to auto-indent.
+Each function is called with one argument (the inserted char), with
+point right after that char, and it should return t to cause indentation,
+`no-indent' to prevent indentation or nil to let other functions decide.")
+
 (defun electric-indent-post-self-insert-function ()
   ;; FIXME: This reindents the current line, but what we really want instead is
   ;; to reindent the whole affected text.  That's the current line for simple
@@ -208,13 +214,21 @@ Returns nil when we can't find this char."
   ;; There might be a way to get it working by analyzing buffer-undo-list, but
   ;; it looks challenging.
   (let (pos)
-    (when (and (memq last-command-event electric-indent-chars)
-               ;; Don't reindent while inserting spaces at beginning of line.
-               (or (not (memq last-command-event '(?\s ?\t)))
-                   (save-excursion (skip-chars-backward " \t") (not (bolp))))
-               (setq pos (electric--after-char-pos))
-               ;; Not in a string or comment.
-               (not (nth 8 (save-excursion (syntax-ppss pos)))))
+    (when (and
+           ;; Don't reindent while inserting spaces at beginning of line.
+           (or (not (memq last-command-event '(?\s ?\t)))
+               (save-excursion (skip-chars-backward " \t") (not (bolp))))
+           (setq pos (electric--after-char-pos))
+           (save-excursion
+             (goto-char pos)
+             (let ((act (or (run-hook-with-args-until-success
+                             'electric-indent-functions
+                             last-command-event)
+                            (memq last-command-event electric-indent-chars))))
+               (not
+                (or (memq act '(nil no-indent))
+                    ;; In a string or comment.
+                    (unless (eq act 'do-indent) (nth 8 (syntax-ppss))))))))
       ;; For newline, we want to reindent both lines and basically behave like
       ;; reindent-then-newline-and-indent (whose code we hence copied).
       (when (< (1- pos) (line-beginning-position))
@@ -222,7 +236,7 @@ Returns nil when we can't find this char."
           (save-excursion
             (unless (memq indent-line-function
                           '(indent-relative indent-to-left-margin
-                            indent-relative-maybe))
+                                            indent-relative-maybe))
               ;; Don't reindent the previous line if the indentation function
               ;; is not a real one.
               (goto-char before)
@@ -241,31 +255,41 @@ Returns nil when we can't find this char."
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
-  "Automatically reindent lines of code when inserting particular chars.
-`electric-indent-chars' specifies the set of chars that should cause reindentation."
+  "Toggle on-the-fly reindentation (Electric Indent mode).
+With a prefix argument ARG, enable Electric Indent mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+This is a global minor mode.  When enabled, it reindents whenever
+the hook `electric-indent-functions' returns non-nil, or you
+insert a character from `electric-indent-chars'."
   :global t
   :group 'electricity
-  (if electric-indent-mode
-      (add-hook 'post-self-insert-hook
-                #'electric-indent-post-self-insert-function)
-    (remove-hook 'post-self-insert-hook
-                 #'electric-indent-post-self-insert-function))
-  ;; FIXME: electric-indent-mode and electric-layout-mode interact
-  ;; in non-trivial ways.  It turns out that electric-indent-mode works
-  ;; better if it is run *after* electric-layout-mode's hook.
-  (when (memq #'electric-layout-post-self-insert-function
-              (memq #'electric-indent-post-self-insert-function
-                    (default-value 'post-self-insert-hook)))
-    (remove-hook 'post-self-insert-hook
-                 #'electric-layout-post-self-insert-function)
+  (if (not electric-indent-mode)
+      (remove-hook 'post-self-insert-hook
+                   #'electric-indent-post-self-insert-function)
+    ;; post-self-insert-hooks interact in non-trivial ways.
+    ;; It turns out that electric-indent-mode generally works better if run
+    ;; late, but still before blink-paren.
     (add-hook 'post-self-insert-hook
-              #'electric-layout-post-self-insert-function)))
+              #'electric-indent-post-self-insert-function
+              'append)
+    ;; FIXME: Ugly!
+    (let ((bp (memq #'blink-paren-post-self-insert-function
+                    (default-value 'post-self-insert-hook))))
+      (when (memq #'electric-indent-post-self-insert-function bp)
+        (setcar bp #'electric-indent-post-self-insert-function)
+        (setcdr bp (cons #'blink-paren-post-self-insert-function
+                         (delq #'electric-indent-post-self-insert-function
+                               (cdr bp))))))))
 
 ;; Electric pairing.
 
 (defcustom electric-pair-pairs
   '((?\" . ?\"))
   "Alist of pairs that should be used regardless of major mode."
+  :group 'electricity
+  :version "24.1"
   :type '(repeat (cons character character)))
 
 (defcustom electric-pair-skip-self t
@@ -274,10 +298,13 @@ When inserting a closing paren character right before the same character,
 just skip that character instead, so that hitting ( followed by ) results
 in \"()\" rather than \"())\".
 This can be convenient for people who find it easier to hit ) than C-f."
+  :group 'electricity
+  :version "24.1"
   :type 'boolean)
 
 (defun electric-pair-post-self-insert-function ()
   (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
+                      electric-pair-mode
                       (let ((x (assq last-command-event electric-pair-pairs)))
                         (cond
                          (x (if (eq (car x) (cdr x)) ?\" ?\())
@@ -330,7 +357,16 @@ This can be convenient for people who find it easier to hit ) than C-f."
 
 ;;;###autoload
 (define-minor-mode electric-pair-mode
-  "Automatically pair-up parens when inserting an open paren."
+  "Toggle automatic parens pairing (Electric Pair mode).
+With a prefix argument ARG, enable Electric Pair mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Electric Pair mode is a global minor mode.  When enabled, typing
+an open parenthesis automatically inserts the corresponding
+closing parenthesis.  \(Likewise for brackets, etc.)
+
+See options `electric-pair-pairs' and `electric-pair-skip-self'."
   :global t
   :group 'electricity
   (if electric-pair-mode
@@ -345,8 +381,8 @@ This can be convenient for people who find it easier to hit ) than C-f."
   "List of rules saying where to automatically insert newlines.
 Each rule has the form (CHAR . WHERE) where CHAR is the char
 that was just inserted and WHERE specifies where to insert newlines
-and can be: nil, `before', `after', `around', or a function that returns
-one of those symbols.")
+and can be: nil, `before', `after', `around', or a function of no
+arguments that returns one of those symbols.")
 
 (defun electric-layout-post-self-insert-function ()
   (let* ((rule (cdr (assq last-command-event electric-layout-rules)))
@@ -374,7 +410,11 @@ one of those symbols.")
 
 ;;;###autoload
 (define-minor-mode electric-layout-mode
-  "Automatically insert newlines around some chars."
+  "Automatically insert newlines around some chars.
+With a prefix argument ARG, enable Electric Layout mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+The variable `electric-layout-rules' says when and how to insert newlines."
   :global t
   :group 'electricity
   (if electric-layout-mode

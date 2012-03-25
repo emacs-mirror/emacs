@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2011
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -35,10 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"  /* For FRAME_KBOARD reference in y-or-n-p.  */
 #include "font.h"
 
-#ifdef STDC_HEADERS
 #include <float.h>
-#endif
-
 /* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*.  */
 #ifndef IEEE_FLOATING_POINT
 #if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
@@ -842,7 +839,7 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
 
     case Lisp_Fwd_Kboard_Obj:
       /* We used to simply use current_kboard here, but from Lisp
-	 code, it's value is often unexpected.  It seems nicer to
+	 code, its value is often unexpected.  It seems nicer to
 	 allow constructions like this to work as intuitively expected:
 
 	 (with-selected-frame frame
@@ -2031,7 +2028,7 @@ DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 2, 0,
 If OBJECT is not a symbol, just return it.  Otherwise, follow all
 function indirections to find the final function binding and return it.
 If the final symbol in the chain is unbound, signal a void-function error.
-Optional arg NOERROR non-nil means to return nil instead of signalling.
+Optional arg NOERROR non-nil means to return nil instead of signaling.
 Signal a cyclic-function-indirection error if there is a loop in the
 function chain of symbols.  */)
   (register Lisp_Object object, Lisp_Object noerror)
@@ -2736,8 +2733,7 @@ Both must be integers or markers.  */)
 
 #ifndef HAVE_FMOD
 double
-fmod (f1, f2)
-     double f1, f2;
+fmod (double f1, double f2)
 {
   double r = f1;
 

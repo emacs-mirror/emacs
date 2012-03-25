@@ -1,6 +1,6 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
-;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -58,7 +58,7 @@
 ;;   - Word/keyword completion
 ;;   - Block commenting
 ;;   - Code fixing/alignment/beautification
-;;   - Postscript printing
+;;   - PostScript printing
 ;;   - VHDL'87/'93 and VHDL-AMS supported
 ;;   - Comprehensive menu
 ;;   - Fully customizable
@@ -1714,7 +1714,7 @@ an absolute path (i.e. all caches can be stored in one global directory)."
 
 
 (defgroup vhdl-menu nil
-  "Customizations for menues."
+  "Customizations for menus."
   :group 'vhdl)
 
 (defcustom vhdl-index-menu nil
@@ -1752,7 +1752,7 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
 
 (defcustom vhdl-print-two-column t
   "*Non-nil means print code in two columns and landscape format.
-Adjusts settings in a way that postscript printing (\"File\" menu, `ps-print')
+Adjusts settings in a way that PostScript printing (\"File\" menu, `ps-print')
 prints VHDL files in a nice two-column landscape style.
 
 NOTE: Activate the new setting by restarting Emacs.
@@ -1761,7 +1761,7 @@ NOTE: Activate the new setting by restarting Emacs.
   :group 'vhdl-print)
 
 (defcustom vhdl-print-customize-faces t
-  "*Non-nil means use an optimized set of faces for postscript printing.
+  "*Non-nil means use an optimized set of faces for PostScript printing.
 
 NOTE: Activate the new setting by restarting Emacs.
       Overrides `ps-print' settings locally."
@@ -1844,7 +1844,7 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
 ;; Internal variables
 
 (defvar vhdl-menu-max-size 20
-  "*Specifies the maximum size of a menu before splitting it into submenues.")
+  "*Specifies the maximum size of a menu before splitting it into submenus.")
 
 (defvar vhdl-progress-interval 1
   "*Interval used to update progress status during long operations.
@@ -2040,7 +2040,7 @@ Ignore byte-compiler warnings you might see."
 ;; `wildcard-to-regexp' is included only in XEmacs 21
 (unless (fboundp 'wildcard-to-regexp)
   (defun wildcard-to-regexp (wildcard)
-    "Simplified version of `wildcard-to-regexp' from Emacs' `files.el'."
+    "Simplified version of `wildcard-to-regexp' from Emacs's `files.el'."
     (let* ((i (string-match "[*?]" wildcard))
 	   (result (substring wildcard 0 i))
 	   (len (length wildcard)))
@@ -2087,7 +2087,7 @@ Ignore byte-compiler warnings you might see."
 ;; `file-expand-wildcards' undefined (XEmacs)
 (unless (fboundp 'file-expand-wildcards)
   (defun file-expand-wildcards (pattern &optional full)
-    "Taken from Emacs' `files.el'."
+    "Taken from Emacs's `files.el'."
     (let* ((nondir (file-name-nondirectory pattern))
     	   (dirpart (file-name-directory pattern))
     	   (dirs (if (and dirpart (string-match "[[*?]" dirpart))
@@ -2131,7 +2131,7 @@ Ignore byte-compiler warnings you might see."
   (if (fboundp 'start-itimer)
       (start-itimer "vhdl-mode" function secs repeat t)
 ;    (run-with-idle-timer secs repeat function)))
-    ;; explicitely activate timer (necessary when Emacs is already idle)
+    ;; explicitly activate timer (necessary when Emacs is already idle)
     (aset (run-with-idle-timer secs repeat function) 0 nil)))
 
 (defun vhdl-warning-when-idle (&rest args)
@@ -2468,7 +2468,7 @@ conversion."
   (goto-char marker))
 
 (defun vhdl-menu-split (list title)
-  "Split menu LIST into several submenues, if number of
+  "Split menu LIST into several submenus, if number of
 elements > `vhdl-menu-max-size'."
   (if (> (length list) vhdl-menu-max-size)
       (let ((remain list)
@@ -3117,7 +3117,7 @@ STRING are replaced by `-' and substrings are converted to lower case."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Menues
+;;; Menus
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3510,7 +3510,7 @@ STRING are replaced by `-' and substrings are converted to lower case."
 			menu-list))
 	    (setq comp-alist (cdr comp-alist)))
 	  (setq menu-list (nreverse menu-list))
-	  (vhdl-menu-split menu-list "Compler")))
+	  (vhdl-menu-split menu-list "Compiler")))
       ["Use Local Error Regexp"
        (customize-set-variable 'vhdl-compile-use-local-error-regexp
 			       (not vhdl-compile-use-local-error-regexp))
@@ -4266,7 +4266,7 @@ Usage:
 
   CODE BEAUTIFICATION:
     `C-c M-b' and `C-c C-b' beautify the code of a region or of the entire
-    buffer respectively.  This inludes indentation, alignment, and case
+    buffer respectively.  This includes indentation, alignment, and case
     fixing.  Code beautification can also be run non-interactively using the
     command:
 
@@ -4567,10 +4567,10 @@ Usage:
 
 
   PRINTING:
-    Postscript printing with different faces (an optimized set of faces is
+    PostScript printing with different faces (an optimized set of faces is
     used if `vhdl-print-customize-faces' is non-nil) or colors \(if
     `ps-print-color-p' is non-nil) is possible using the standard Emacs
-    postscript printing commands.  Option `vhdl-print-two-column' defines
+    PostScript printing commands.  Option `vhdl-print-two-column' defines
     appropriate default settings for nice landscape two-column printing.
     The paper format can be set by option `ps-paper-type'.  Do not forget to
     switch `ps-print-color-p' to nil for printing on black-and-white
@@ -8029,12 +8029,16 @@ project is defined."
 
 (define-minor-mode vhdl-electric-mode
   "Toggle VHDL electric mode.
-Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable it if ARG
+is omitted or nil."
   :global t)
 
 (define-minor-mode vhdl-stutter-mode
   "Toggle VHDL stuttering mode.
-Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable it if ARG
+is omitted or nil."
   :global t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -10808,7 +10812,7 @@ but not if inside a comment or quote."
 
 (defvar vhdl-port-list nil
   "Variable to hold last port map parsed.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (ent-name
 ;;  ((generic-names) generic-type generic-init generic-comment group-comment)
 ;;  ((port-names) port-object port-direct port-type port-comment group-comment)
@@ -11656,7 +11660,7 @@ reflected in a subsequent paste operation."
 
 (defvar vhdl-subprog-list nil
   "Variable to hold last subprogram interface parsed.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (subprog-name kind
 ;;  ((names) object direct type init comment group-comment)
 ;;  return-type return-comment group-comment)
@@ -12909,10 +12913,10 @@ This does background highlighting of translate-off regions.")
   (font-lock-mode t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Initialization for postscript printing
+;; Initialization for PostScript printing
 
 (defun vhdl-ps-print-settings ()
-  "Initialize custom face and page settings for postscript printing."
+  "Initialize custom face and page settings for PostScript printing."
   ;; define custom face settings
   (unless (or (not vhdl-print-customize-faces)
 	      ps-print-color-p)
@@ -12947,7 +12951,7 @@ This does background highlighting of translate-off regions.")
       (set (make-local-variable 'ps-right-margin) 40.0))))
 
 (defun vhdl-ps-print-init ()
-  "Initialize postscript printing."
+  "Initialize PostScript printing."
   (if (featurep 'xemacs)
       (when (boundp 'ps-print-color-p)
 	(vhdl-ps-print-settings))
@@ -12967,7 +12971,7 @@ This does background highlighting of translate-off regions.")
 (defvar vhdl-entity-alist nil
   "Cache with entities and corresponding architectures for each
 project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (ent-key ent-name ent-file ent-line
 ;;     (arch-key arch-name arch-file arch-line
@@ -12978,7 +12982,7 @@ project/directory.")
 
 (defvar vhdl-config-alist nil
   "Cache with configurations for each project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (conf-key conf-name conf-file conf-line ent-key arch-key
 ;;     (inst-key inst-comp-name inst-ent-key inst-arch-key
@@ -12987,7 +12991,7 @@ project/directory.")
 
 (defvar vhdl-package-alist nil
   "Cache with packages for each project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (pack-key pack-name pack-file pack-line
 ;;     (comp-key comp-name comp-file comp-line)
@@ -12999,19 +13003,19 @@ project/directory.")
 
 (defvar vhdl-ent-inst-alist nil
   "Cache with instantiated entities for each project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key (inst-ent-key))
 
 (defvar vhdl-file-alist nil
   "Cache with design units in each file for each project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (file-name (ent-list) (arch-list) (arch-ent-list) (conf-list)
 ;;		(pack-list) (pack-body-list) (inst-list) (inst-ent-list))
 
 (defvar vhdl-directory-alist nil
   "Cache with source directories for each project.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key (directory))
 
 (defvar vhdl-speedbar-shown-unit-alist nil
@@ -13651,7 +13655,7 @@ of PROJECT."
       (vhdl-speedbar-update-current-unit)
       (when updated (message "Updating hierarchy...done")))))
 
-;; structure (parenthesised expression means list of such entries)
+;; structure (parenthesized expression means list of such entries)
 ;; (inst-key inst-file-marker comp-ent-key comp-ent-file-marker
 ;;  comp-arch-key comp-arch-file-marker comp-conf-key comp-conf-file-marker
 ;;  comp-lib-name level)
@@ -16853,7 +16857,7 @@ User Options
 `vhdl-configuration-file-name': (new)
   Specify how the configuration file name is obtained.
 `vhdl-compose-configuration-name': (new)
-  Specify how the configuration name is optained.
+  Specify how the configuration name is obtained.
 `vhdl-compose-configuration-create-file': (new)
   Specify whether a new file should be created for a configuration.
 `vhdl-compose-configuration-hierarchical': (new)

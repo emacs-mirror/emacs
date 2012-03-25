@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2011 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2005, 2008-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -362,7 +362,7 @@ extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 #endif
 
 #ifndef NS_HAVE_NSINTEGER
-#if defined(__LP64__) && __LP64__
+#if defined (__LP64__) && __LP64__
 typedef double CGFloat;
 typedef long NSInteger;
 typedef unsigned long NSUInteger;
@@ -416,8 +416,8 @@ struct ns_bitmap_record
 /* this to map between emacs color indices and NSColor objects */
 struct ns_color_table
 {
-  unsigned int size;
-  unsigned int avail;
+  ptrdiff_t size;
+  ptrdiff_t avail;
 #ifdef __OBJC__
   NSColor **colors;
   NSMutableSet *empty_indices;
@@ -447,7 +447,7 @@ struct nsfont_info
 {
   struct font font;
 
-  char *name;  /* postscript name, uniquely identifies on NS systems */
+  char *name;  /* PostScript name, uniquely identifies on NS systems */
   float width;  /* this and following metrics stored as float rather than int */
   float height;
   float underpos;
@@ -467,11 +467,10 @@ struct nsfont_info
 #endif
   char bold, ital;  /* convenience flags */
   char synthItal;
-  float voffset;  /* mean of ascender/descender offsets */
   XCharStruct max_bounds;
   /* we compute glyph codes and metrics on-demand in blocks of 256 indexed
      by hibyte, lobyte */
-  unsigned short **glyphs; /* map unicode index to glyph */
+  unsigned short **glyphs; /* map Unicode index to glyph */
   struct font_metrics **metrics;
 };
 
@@ -761,6 +760,7 @@ extern void  ns_release_object (void *obj);
 extern void  ns_retain_object (void *obj);
 extern void *ns_alloc_autorelease_pool ();
 extern void ns_release_autorelease_pool ();
+extern const char *ns_get_defaults_value ();
 
 /* in nsmenu */
 extern void update_frame_tool_bar (FRAME_PTR f);
@@ -795,6 +795,10 @@ extern void x_set_tool_bar_lines (struct frame *f,
                                   Lisp_Object oldval);
 extern void x_activate_menubar (struct frame *);
 extern void free_frame_menubar (struct frame *);
+extern void x_free_frame_resources (struct frame *);
+
+#define NSAPP_DATA2_RUNASSCRIPT 10
+extern void ns_run_ascript (void);
 
 extern void ns_init_paths (void);
 extern void syms_of_nsterm (void);
@@ -824,6 +828,13 @@ extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;
+
+/* From nsterm.m, needed in nsfont.m. */
+#ifdef __OBJC__
+extern void
+ns_draw_text_decoration (struct glyph_string *s, struct face *face,
+                         NSColor *defaultCol, CGFloat width, CGFloat x);
+#endif
 
 #ifdef NS_IMPL_GNUSTEP
 extern char gnustep_base_version[];  /* version tracking */

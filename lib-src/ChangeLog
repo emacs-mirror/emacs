@@ -1,3 +1,129 @@
+2012-03-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacsclient.c (main): Handle -print-nonl command.
+
+	* emacsclient.c (main): Handle multiple messages in a single
+	datagram.
+
+	* emacsclient.c (socket_name): Add const.
+	(get_server_config): Add parameter config_file, use it instead of
+	global server_file.
+	(set_tcp_socket): Add parameter local_server_file, pass it down to
+	get_server_config.
+	(set_local_socket): Add parameter local_socket_name, use it
+	instead of global socket_name.
+	(set_socket): Adjust calls to set_local_socket and set_tcp_socket.
+	Don't clobber global server_file or socket_name.
+	(main): No longer reset server_file or socket_name.
+
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version) <emacs_copyright>:
+	* etags.c (print_version) <emacs_copyright>:
+	* rcs2log (Copyright): Update short copyright year to 2012.
+
+2011-12-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* etags.c (C_entries): Properly skip over string and character
+	constants and comments inside brackets.  (Bug#10357)
+
+2011-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (decode_options) [WINDOWSNT]: Don't force tty = 0;
+	instead, treat both -c and -t as always requesting a new "tty" frame,
+	and let server.el decide which kind is actually required.
+	Reported by Uwe Siart <usenet@siart.de> in this thread:
+	http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00303.html
+
+2011-11-30  Chong Yidong  <cyd@gnu.org>
+
+	* emacsclient.c (main): Condition last change on WINDOWSNT
+	(Bug#10155).
+
+2011-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LOCAL_FLAGS): Add $(EMACS_EXTRA_C_FLAGS).
+
+	* emacsclient.c (main) <environ>: Remove declaration, already
+	pulled in by unistd.h on Posix hosts and stdlib.h on MS-Windows.
+
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* make-docfile.c (scan_lisp_file): Treat defcustom like defvar.
+
+2011-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (all): Make sure "all" is the first target.
+
+2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (w32_getenv): Silence compiler warnings.
+
+2011-09-07  Glenn Morris  <rgm@gnu.org>
+
+	* etags.c (Fortran_functions): Handle "elemental" functions.
+
+2011-09-07  Dieter Schuster  <didischuster@arcor.de>  (tiny change)
+
+	* etags.c (Fortran_functions): Handle "pure" functions.  (Bug#9359)
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}): install-sh moved
+	to build-aux (Bug#9169).
+
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer and memory overflow issues (Bug#9397).
+
+	* emacsclient.c (xmalloc): Accept size_t, not unsigned int, to
+	avoid potential buffer overflow issues on typical 64-bit hosts.
+	Return void *, not long *.
+	(get_current_dir_name): Report a failure, instead of looping
+	forever, if buffer size calculation overflows.  Treat malloc
+	failures like realloc failures, as that has better behavior and is
+	more consistent.  Do not check whether xmalloc returns NULL, as
+	that's not possible.
+	(message): Do not arbitrarily truncate message to 2048 bytes when
+	sending it to stderr; use vfprintf instead.
+	(get_server_config, set_local_socket)
+	(start_daemon_and_retry_set_socket): Do not alloca
+	arbitrarily-large buffers; that's not safe.
+	(get_server_config, set_local_socket): Do not use sprintf when its
+	result might not fit in 'int'.
+	(set_local_socket): Do not assume uid fits in 'int'.
+
+	* etags.c (xmalloc, xrealloc): Accept size_t, not unsigned int,
+	to avoid potential buffer overflow issues on typical 64-bit hosts.
+	(whatlen_max): New static var.
+	(main): Avoid buffer overflow if subsidiary command length is
+	greater than BUFSIZ or 2*BUFSIZ + 20. Do not use sprintf when its
+	result might not fit in 'int'.
+
+	* movemail.c (main): Do not use sprintf when its result might not fit
+	in 'int'.  Instead, put the possibly-long file name into the
+	output of pfatal_with_name.
+
+	* update-game-score.c: Include <limits.h>
+	(get_user_id): Do not assume uid fits in 'int'.  Simplify.
+
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume freestanding C89 headers, string.h, stdlib.h.
+	* ebrowse.c: Include stdlib.h unconditionally.
+	* etags.c, update-game-score.c:
+	Include string.h and stdlib.h unconditionally.
+	* makefile.w32-in (LOCAL_CFLAGS): Don't define STDC_HEADERS.
+	* movemail.c, pop.c: Include string.h unconditionally.
+	* update-game-score.c: No need to include stdarg.h; not used.
+
+	Assume support for memcmp, memcpy, memmove, memset.
+	* etags.c (absolute_filename): Assume memmove exists.
+
+2011-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* update-game-score.c (usage): Update usage line.
+
 2011-07-02  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c (decode_options) [WINDOWSNT]: Avoid tty mode on
@@ -1959,7 +2085,7 @@
 	* etags.c [ETAGS_REGEXPS]: Now is unconditionally defined.
 	[LONG_OPTIONS]: Changed to NO_LONG_OPTIONS, which is undefined.
 	(Objc_suffixes): Suggest using --lang=c for full help.
-	(C_entries): Initialise savetoken to 0 to shut up the compiler.
+	(C_entries): Initialize savetoken to 0 to shut up the compiler.
 
 2006-07-20  Andreas Schwab  <schwab@suse.de>
 
@@ -2665,7 +2791,7 @@
 	(add_regex, regex_tag_multiline, readline): Use it.
 	(main): Free some global structures.
 	(fdesc): New member `written'.
-	(readline, process_file): Initialise it.
+	(readline, process_file): Initialize it.
 	(put_entries): Set it.
 	(main): Use it to create entries for files without tags.
 	(total_size_of_entries): Do not count invalid tags.
@@ -2776,7 +2902,7 @@
 	(find_entries): Rewind unconditionally.
 	(find_entries): Do not call language functions directly, now calls
 	itself.
-	(find_entries): Do general initialisations here.
+	(find_entries): Do general initializations here.
 	(CNL_SAVE_DEFINEDEF, C_entries, LOOP_ON_INPUT_LINES, F_getit)
 	(Ada_getit, Pascal_functions, Pascal_functions)
 	(prolog_skip_comment): Do not do them here.
@@ -3012,7 +3138,7 @@
 	(TeX_commands): Name tags.  Correction of old disabled code.
 
 	* etags.c (curfiledir, curtagfname): New global variables.
-	(process_file): Initialise them.
+	(process_file): Initialize them.
 	(readline): Canonicalize the name found in #line directive.
 
 2002-03-06  Jason Rumney  <jasonr@gnu.org>
@@ -3040,7 +3166,7 @@
 	(main): Call put_entries here even in CTAGS mode.
 	(main, process_file): Check the return values of fclose and pclose.
 	(process_file): Do not call put_entries after parsing each file.
-	(process_file): Canonicalise file names even for ctags.
+	(process_file): Canonicalize file names even for ctags.
 	(process_file): Set curfile here...
 	(find_entries): ... not here any more.
 	(add_node): In etags mode, build a linked list of entries (on
@@ -3102,7 +3228,7 @@
 	(L_getit): Simplify by using get_tag.
 	(Perl_functions, Postscript_functions, erlang_attribute): Use the
 	modified LOOKING_AT.
-	(notinname): Remove '[' and added ')' to the recognised chars.
+	(notinname): Remove '[' and added ')' to the recognized chars.
 	(LOOKING_AT, get_tag, PHP_functions): Use notinname.
 	(Ada_getit, Ada_funcs, Python_functions, Scheme_functions):
 	Clarified, using strneq or notinname.
@@ -3169,7 +3295,7 @@
 	(Scheme_functions, Texinfo_nodes): Use it.
 	(Perl_functions): Use strneq.
 	(prolog_pred): Rename to prolog_pr.
-	(prolog_pr): Recognise Prolog rules in addition to predicates.
+	(prolog_pr): Recognize Prolog rules in addition to predicates.
 	[ETAGS_REGEXPS] [!HAVE_CONFIG_H] [__CYGWIN__]: Prevent
 	unmodified compile, as Cygwin's regex.h is incompatible with us.
 	[!HAVE_CONFIG_H] [!__STDC__]: #define const as the empty string.
@@ -3443,7 +3569,7 @@
 	* etags.c (enum sym_type): New label st_C_template.
 	(gperf input): Use it for switching to C++ from C.
 	(consider_token): Do it.
-	(C_entries): Initialise typdefcblev to quiet compilers.
+	(C_entries): Initialize typdefcblev to quiet compilers.
 	[!HAVE_CONFIG_H] [!__STDC__]: #define static as nothing.
 
 2001-02-22  Andrew Innes  <andrewi@gnu.org>
@@ -3569,7 +3695,7 @@
 	(lang_names): Add a NULL member for every entry, added an entry
 	for makefiles.
 	(Makefile_targets): New function.
-	(Texinfo_nodes): Rename from Texinfo_fuctions and made
+	(Texinfo_nodes): Rename from Texinfo_functions and made
 	it conformant to the style of the rest of the code.
 
 2001-01-13  Gerd Moellmann  <gerd@gnu.org>
@@ -3894,7 +4020,7 @@
 
 	* etags.c (C_entries, consider_token): C++ `operator' now is
 	tagged in most cases.
-	As before, :: is not recognised if surrounded by spaces.
+	As before, :: is not recognized if surrounded by spaces.
 
 	* etags.c (relative_filename): Account for DOS file names such
 	that is impossible to make one relative to another.
@@ -4194,7 +4320,7 @@
 
 1998-12-08  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefile.nt: Do string comparision of _NMAKE_VER.
+	* makefile.nt: Do string comparison of _NMAKE_VER.
 
 1998-11-03  Theodore Jump  <tjump@cais.com>
 
@@ -4503,7 +4629,7 @@
 	* etags.c (C_entries): Use "." instead of "::" for Java.
 	(consider_token): is_func renamed to is_func_or_var.
 	(C_entries): is_func renamed to funorvar.
-	(C_entries): Initialise tok.named.
+	(C_entries): Initialize tok.named.
 	(sym_type, C_stab_entry, consider_token): st_C_ignore is used to
 	get rid of "import", "package" and "friend".
 	(fvdef): Rename from funcdef.  Also some constants renamed.
@@ -4557,13 +4683,13 @@
 	(lang_names): Add Java.
 	(sym_type): Add st_C_javastruct for Java.
 	(C_stab_entry): Add `extends' and `implements' keywords.
-	(consider_token, C_entries): Recognise Java structures.
+	(consider_token, C_entries): Recognize Java structures.
 
 1997-05-12  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
-	* etags.c (Cplusplus_suffixes): .pdb is Postscript with C syntax.
-	(Postscript_suffixes): .ps is Postscript.
-	(lang_names): Add Postscript.
+	* etags.c (Cplusplus_suffixes): .pdb is PostScript with C syntax.
+	(Postscript_suffixes): .ps is PostScript.
+	(lang_names): Add postscript.
 	(Postscript_functions): New function.
 	(TEX_decode_env): Close minor memory leak.
 	(just_read_file): Correct the char number of the tag.
@@ -4605,7 +4731,7 @@
 
 	* etags.c (xnew): Add support for debugging with chkmalloc.
 	(error): Use this instead of printf whenever possible.
-	(main): Only call xnew after having initialised progname.
+	(main): Only call xnew after having initialized progname.
 	(substitute): Bad memory corruption error corrected.
 
 1997-04-08  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
@@ -5061,7 +5187,7 @@
 
 1996-03-15  Anders Lindgren  <andersl@csd.uu.se>
 
-	* etags.c: Prolog language totaly rewritten.
+	* etags.c: Prolog language totally rewritten.
 	(Prolog_functions): Rewritten from scratch.
 	(skip_comment, prolog_getit): Removed.
 	(prolog_skip_comment): New function, like old skip_comment.
@@ -5523,8 +5649,8 @@
 
 1995-02-22  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* etags.c (C_entries): token_saved removed.  Initialise tok.valid and
-	savetok.valid.  Mark token as valid when it is initialised.
+	* etags.c (C_entries): token_saved removed.  Initialize tok.valid and
+	savetok.valid.  Mark token as valid when it is initialized.
 	(make_tag): Make token only if token is valid and reset validity.
 	(CNL_SAVE_DEFINEDEF): Test for savetok.valid instead of token_saved.
 	(TOKEN): Add a new member: valid.
@@ -5536,15 +5662,15 @@
 
 1995-02-14  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* etags.c (C_entries): Initialise the new members of TOKEN.
+	* etags.c (C_entries): Initialize the new members of TOKEN.
 	(C_entries): Do not allocate a new space for each token found by
 	consider_token.  Let make_tag do that instead.
 	(make_tag): Since now TOKEN has memory of where it is taken from,
 	this new macro substitutes both make_tag_from_new_lb and
 	make_tag_from_oth_lb.  All callers changed.
 	(TOKEN): Add linepos and buffer members.
-	(main): Initialise token_str.
-	(lang_extensions): Recognise .c++ and .h++ as C++ file suffixes.
+	(main): Initialize token_str.
+	(lang_extensions): Recognize .c++ and .h++ as C++ file suffixes.
 	(token_str): New global variable used by C_entries.
 
 1995-02-07  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
@@ -5553,7 +5679,7 @@
 
 1995-02-01  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* etags.c (pfnote): Initialise been_warned in the node.
+	* etags.c (pfnote): Initialize been_warned in the node.
 	(C_entries): Remove a speed hack for the sake of clarity.
 
 1995-01-18  Francesco Potortì  (pot@cnuce.cnr.it)
@@ -5838,8 +5964,8 @@
 
 1994-09-29  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* etags.c (C_entries): Recognise typedef of ANSI style functions.
-	(C_entries): Recognise #define inside a struct.
+	* etags.c (C_entries): Recognize typedef of ANSI style functions.
+	(C_entries): Recognize #define inside a struct.
 	(C_entries): ANSI tells that preprocessor commands do not have to
 	start on the first column.
 	(print_help): Documentation corrected for -d and -D.
@@ -5953,7 +6079,7 @@
 
 1994-07-08  Dave Love  (d.love@dl.ac.uk)
 
-	* etags.c (takeprec): Recognise `character*(*) function'.
+	* etags.c (takeprec): Recognize `character*(*) function'.
 
 1994-07-08  Francesco Potortì  (pot@cnuce.cnr.it)
 
@@ -6146,7 +6272,7 @@
 	TeX_functions, Prolog_functions.
 	(inf): No more a global variable.
 	(C_entries): Take 2nd parameter `inf' instead of using the global one.
-	(find_entries): Add the cp1 var for optimisation.
+	(find_entries): Add the cp1 var for optimization.
 	(find_entries): Add more suffixes for assembler files.
 	(Asm_funcs): Now finds labels even without an ending colon.
 
@@ -6174,7 +6300,7 @@
 	functions added to compute filenames in tags files.
 	(process_file): Filenames in tags file are relative to the
 	directory where the tags file is (useful with the -o option).
-	(main): Initialise the outfiledir var.
+	(main): Initialize the outfiledir var.
 	(TYPEDST): Add the `tignore' value.
 	(C_entries): Corrected various small bugs.
 
@@ -6480,7 +6606,7 @@
 
 1993-09-20  Francesco Potortì  (pot@fly)
 
-	* etags.c (C_entries): is_func is initialised here instead of in
+	* etags.c (C_entries): is_func is initialized here instead of in
 	consider_token for the sake of the yacc rules section.
 	(C_entries): Now class, struct, enum, union and typedef produce
 	named tags.
@@ -6534,7 +6660,7 @@
 
 1993-08-04  Francesco Potortì  (pot@spiff.gnu.ai.mit.edu)
 
-	* etags.c (L_isdef, L_isquote, L_getit): Small optimisations.
+	* etags.c (L_isdef, L_isquote, L_getit): Small optimizations.
 	(L_funcs): The (foo::defmumble stuff now should work.
 	(consider_token): Function returned random value--corrected.
 	(C_entries): Corrected == versus = typo.
@@ -6556,7 +6682,7 @@
 	(C_entries, consider_token): Make use of fignore.
 	(consider_token): Reset funcdef when next_token_is_func: when in
 	ctags mode makes DEFVAR and others work better.
-	(L_isquote): Function that recognises the "(quote" string.
+	(L_isquote): Function that recognizes the "(quote" string.
 	(L_getit): Ignore quoting via "'" or "(quote".  Useful for defalias.
 
 1993-07-29  Paul Eggert  (eggert@twinsun.com)
@@ -6903,7 +7029,7 @@
 	(TOKEN): Member linestart removed.
 	(linepos, prev_linepos, lb1): Deleted.
 	(main): Call initbuffer on lbs array instead of lb1.
-	(init): Remove the initialisation of the logical _gd array.
+	(init): Remove the initialization of the logical _gd array.
 	(find_entries): A .sa suffix means assembler file.
 	(C_create_stab): "auto", "void", "extern", "static" are st_C_typespec.
 	All C state machines rewritten.
@@ -7828,7 +7954,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1988-1999, 2001-2011 Free Software Foundation, Inc.
+  Copyright (C) 1988-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

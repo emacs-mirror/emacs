@@ -1,6 +1,6 @@
 ;;; chinese.el --- support for Chinese -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -125,7 +125,7 @@
 (define-coding-system 'chinese-big5
   "BIG5 8-bit encoding for Chinese (MIME:Big5)"
   :coding-type 'big5
-  :mnemonic ?B 
+  :mnemonic ?B
   :charset-list '(ascii big5)
   :mime-charset 'big5)
 
@@ -152,7 +152,7 @@
 (define-coding-system 'chinese-big5-hkscs
   "BIG5-HKSCS 8-bit encoding for Chinese, Hong Kong supplement (MIME:Big5-HKSCS)"
   :coding-type 'charset
-  :mnemonic ?B 
+  :mnemonic ?B
   :charset-list '(ascii big5-hkscs)
   :mime-charset 'big5-hkscs)
 (define-coding-system-alias 'big5-hkscs 'chinese-big5-hkscs)
@@ -191,7 +191,7 @@
 			  chinese-cns11643-5 chinese-cns11643-6
 			  chinese-cns11643-7)
 		 (iso639-language . zh)
-		 (setup-function . (lambda () 
+		 (setup-function . (lambda ()
 				     (use-cjk-char-width-table 'zh_TW)))
 		 (exit-function . use-default-char-width-table)
 		 (coding-system iso-2022-cn euc-tw)
@@ -211,7 +211,7 @@ accepts Big5 for input also (which is then converted to CNS)."))
 			     chinese-cns11643-5 chinese-cns11643-6
 			     chinese-cns11643-7 chinese-big5-1 chinese-big5-2)
 		    (iso639-language . zh)
-		    (setup-function . (lambda () 
+		    (setup-function . (lambda ()
 					(use-cjk-char-width-table 'zh_TW)))
 		    (exit-function . use-default-char-width-table)
 		    (coding-system euc-tw iso-2022-cn)
@@ -220,7 +220,7 @@ accepts Big5 for input also (which is then converted to CNS)."))
 		    (features china-util)
 		    (input-method . "chinese-cns-quick")
 		    (documentation . "\
-Support for Chinese, prefering the EUC-TW character set.  Note that
+Support for Chinese, preferring the EUC-TW character set.  Note that
 the EUC-TW coding system accepts Big5 for input also (which is then
 converted to CNS)."))
  '("Chinese"))
@@ -241,13 +241,13 @@ converted to CNS)."))
 (set-language-info-alist
  "Chinese-GBK" '((charset chinese-gbk)
 		 (iso639-language . zh)
-		 (setup-function . (lambda () 
+		 (setup-function . (lambda ()
 				     (use-cjk-char-width-table 'zh_CN)))
 		 (exit-function . use-default-char-width-table)
 		 (coding-system chinese-gbk)
 		 (coding-priority gbk iso-2022-cn chinese-big5
 				  chinese-iso-8bit) ; fixme?
-		 (ctext-non-standard-encodings "gbk-0")		 
+		 (ctext-non-standard-encodings "gbk-0")
 		 (input-method . "chinese-py-punct") ; fixme?
 		 (sample-text . "Chinese (中文,普通话,汉语) 妳好")
 		 (features china-util)

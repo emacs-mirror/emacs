@@ -1,6 +1,6 @@
 ;; ada-xref.el --- for lookup and completion in Ada mode
 
-;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012  Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
@@ -30,7 +30,7 @@
 ;;; for lookup and completion in Ada mode.
 ;;;
 ;;; If a file *.`adp' exists in the ada-file directory, then it is
-;;; read for configuration informations.  It is read only the first
+;;; read for configuration information.  It is read only the first
 ;;; time a cross-reference is asked for, and is not read later.
 
 ;;; You need Emacs >= 20.2 to run this package
@@ -1163,7 +1163,8 @@ If OTHER-FRAME is non-nil, display the cross-reference in another frame."
 
 (defun ada-goto-declaration-other-frame (pos)
   "Display the declaration of the identifier around POS.
-The declation is shown in another frame if `ada-xref-other-buffer' is non-nil."
+The declaration is shown in another frame if `ada-xref-other-buffer' is
+non-nil."
   (interactive "d")
   (ada-goto-declaration pos t))
 
@@ -1356,7 +1357,7 @@ project file."
 			  (or executable-name
 			      (file-name-sans-extension (buffer-file-name))))))
 
-    ;;  For gvd, add an extra switch so that the Emacs window is completly
+    ;;  For gvd, add an extra switch so that the Emacs window is completely
     ;;  swallowed inside the Gvd one
     (if (and ada-tight-gvd-integration
 	     (string-match "^[^ \t]*gvd" cmd))
@@ -1438,7 +1439,7 @@ project file."
       ;;  is going to have some relevant information.
       (if (or (not (string-match "gvd" (comint-arguments cmd 0 0)))
 	      (string-match "--tty" cmd))
-	  (split-window-vertically))
+	  (split-window-below))
       (switch-to-buffer buffer)
       )))
 
@@ -1532,7 +1533,7 @@ the project file."
   ;;      .ali file for a spec file.  If we are, go to step 3.
   ;;   3- If the file is not found or step 2 failed:
   ;;      find the name of the "other file", ie the body, and look
-  ;;      for its associated .ali file by subtituing the extension
+  ;;      for its associated .ali file by substituting the extension
   ;;
   ;; We must also handle the case of separate packages and subprograms:
   ;;   4- If no ali file was found, we try to modify the file name by removing
@@ -1747,7 +1748,7 @@ Information is extracted from the ali file."
 
     (unless declaration-found
 
-      ;; Since we alread know the number of the file, search for a direct
+      ;; Since we already know the number of the file, search for a direct
       ;; reference to it
       (goto-char (point-min))
       (set 'declaration-found t)
@@ -1782,7 +1783,7 @@ Information is extracted from the ali file."
 	    )
 	  )
 
-      ;; Last check to be completly sure we have found the correct line (the
+      ;; Last check to be completely sure we have found the correct line (the
       ;; ali might not be up to date for instance)
       (if declaration-found
 	  (progn

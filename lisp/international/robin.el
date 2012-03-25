@@ -22,7 +22,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Comentary:
+;;; Commentary:
 
 ;; Functionalities
 ;; ---------------
@@ -50,9 +50,9 @@
 ;; identified by a string called package name.  Use robin-define-package
 ;; to define a robin package.
 
-;; (robin-define-package NAME DOCTSTRING
-;;   (INPUT1 OUPUT1)
-;;   (INPUT2 OUPUT2)
+;; (robin-define-package NAME DOCSTRING
+;;   (INPUT1 OUTPUT1)
+;;   (INPUT2 OUTPUT2)
 ;;   ...)
 
 ;; NAME is a string identifying the robin package.  It often starts with a
@@ -229,7 +229,7 @@
 ;; As stated in Murphy's law, it took longer than expected to develop the
 ;; very first version of Japanese input subsystem in NEmacs (Nihongo
 ;; Emacs).  So the subsystem was named "TAMAGO", which is an acronym of
-;; "TAkusan Matasete GOmennasai" (Sorry to have kept you waiting so
+;; "TAkusan Matasete GOmen-nasai" (Sorry to have kept you waiting so
 ;; long).  "Tamago" as a Japanese word means "egg", so the word "egg" was
 ;; also used for related filenames and function names.
 

@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
@@ -395,7 +395,7 @@ It is a list of lists (KEY PREDICATE REVERSE).")
   :group 'proced-faces)
 
 (defface proced-marked
-  '((t (:inherit font-lock-warning-face)))
+  '((t (:inherit error)))
   "Face used for marked processes."
   :group 'proced-faces)
 
@@ -1332,7 +1332,7 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
             (proced-sort-interactive key arg)
           (message "No sorter defined here."))))))
 
-;;; Formating
+;;; Formatting
 
 (defun proced-format-time (time)
   "Format time interval TIME."
@@ -1724,7 +1724,9 @@ After sending the signal, this command runs the normal hook
             (buffer-disable-undo)
             (setq buffer-read-only t)
             (dolist (process process-alist)
-              (insert "  " (cdr process) "\n")))
+              (insert "  " (cdr process) "\n"))
+            (delete-char -1)
+            (goto-char (point-min)))
           (save-window-excursion
             ;; Analogous to `dired-pop-to-buffer'
             ;; Don't split window horizontally.  (Bug#1806)

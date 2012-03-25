@@ -1,6 +1,6 @@
 ;;; sgml-input.el --- Quail method for Unicode entered as SGML entities -*- coding: utf-8 -*-
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -916,7 +916,7 @@ E.g.: &aacute; -> á"
   ("&theta;" ?\θ) ;; GREEK SMALL LETTER THETA
   ("&Theta;" ?\Θ) ;; GREEK CAPITAL LETTER THETA
   ("&thetas;" ?\θ) ;; GREEK SMALL LETTER THETA
-  ("&thetasyLsymbol;" ?\ϑ) ;; GREEK THETA SYMBOL
+  ("&thetasym;" ?\ϑ) ;; GREEK THETA SYMBOL
   ("&thetav;" ?\ϑ) ;; GREEK THETA SYMBOL
   ("&THgr;" ?\Θ) ;; GREEK CAPITAL LETTER THETA
   ("&thgr;" ?\θ) ;; GREEK SMALL LETTER THETA

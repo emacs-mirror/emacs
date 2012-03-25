@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing
 
-;; Copyright (C) 2007-2008, 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -248,7 +248,7 @@ Emacs bug 6581 at URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6581'."
     ;; We disallow nil since `ert-test-at-point' and related functions
     ;; want to return a test name, but also need an out-of-band value
     ;; on failure.  Nil is the most natural out-of-band value; using 0
-    ;; or "" or signalling an error would be too awkward.
+    ;; or "" or signaling an error would be too awkward.
     ;;
     ;; Note that nil is still a valid value for the `name' slot in
     ;; ert-test objects.  It designates an anonymous test.
@@ -392,7 +392,7 @@ DATA is displayed to the user and should state the reason of the failure."
          ;; compiling doesn't depend on cl and thus doesn't need an
          ;; environment arg for `macroexpand'.
          (if (fboundp 'cl-macroexpand)
-             ;; Suppress warning about run-time call to cl funtion: we
+             ;; Suppress warning about run-time call to cl function: we
              ;; only call it if it's fboundp.
              (with-no-warnings
                (cl-macroexpand form (and (boundp 'cl-macro-environment)
@@ -448,7 +448,7 @@ arguments: INNER-FORM and FORM-DESCRIPTION-FORM, where INNER-FORM
 is an expression equivalent to FORM, and FORM-DESCRIPTION-FORM is
 an expression that returns a description of FORM.  INNER-EXPANDER
 should return code that calls INNER-FORM and performs the checks
-and error signalling specific to the particular variant of
+and error signaling specific to the particular variant of
 `should'.  The code that INNER-EXPANDER returns must not call
 FORM-DESCRIPTION-FORM before it has called INNER-FORM."
   (lexical-let ((inner-expander inner-expander))
@@ -489,17 +489,17 @@ Returns nil."
 
 Determines whether CONDITION matches TYPE and EXCLUDE-SUBTYPES,
 and aborts the current test as failed if it doesn't."
-  (let ((signalled-conditions (get (car condition) 'error-conditions))
+  (let ((signaled-conditions (get (car condition) 'error-conditions))
         (handled-conditions (etypecase type
                               (list type)
                               (symbol (list type)))))
-    (assert signalled-conditions)
-    (unless (ert--intersection signalled-conditions handled-conditions)
+    (assert signaled-conditions)
+    (unless (ert--intersection signaled-conditions handled-conditions)
       (ert-fail (append
                  (funcall form-description-fn)
                  (list
                   :condition condition
-                  :fail-reason (concat "the error signalled did not"
+                  :fail-reason (concat "the error signaled did not"
                                        " have the expected type")))))
     (when exclude-subtypes
       (unless (member (car condition) handled-conditions)
@@ -507,7 +507,7 @@ and aborts the current test as failed if it doesn't."
                    (funcall form-description-fn)
                    (list
                     :condition condition
-                    :fail-reason (concat "the error signalled was a subtype"
+                    :fail-reason (concat "the error signaled was a subtype"
                                          " of the expected type"))))))))
 
 ;; FIXME: The expansion will evaluate the keyword args (if any) in
@@ -515,7 +515,7 @@ and aborts the current test as failed if it doesn't."
 (defmacro* should-error (form &rest keys &key type exclude-subtypes)
   "Evaluate FORM and check that it signals an error.
 
-The error signalled needs to match TYPE.  TYPE should be a list
+The error signaled needs to match TYPE.  TYPE should be a list
 of condition names.  (It can also be a non-nil symbol, which is
 equivalent to a singleton list containing that symbol.)  If
 EXCLUDE-SUBTYPES is nil, the error matches TYPE if one of its
@@ -523,7 +523,7 @@ condition names is an element of TYPE.  If EXCLUDE-SUBTYPES is
 non-nil, the error matches TYPE if it is an element of TYPE.
 
 If the error matches, returns (ERROR-SYMBOL . DATA) from the
-error.  If not, or if no error was signalled, abort the test as
+error.  If not, or if no error was signaled, abort the test as
 failed."
   (unless type (setq type ''error))
   (ert--expand-should
@@ -577,8 +577,7 @@ failed."
     (t x)))
 
 (defun ert--explain-equal-rec (a b)
-  "Returns a programmer-readable explanation of why A and B are not `equal'.
-
+  "Return a programmer-readable explanation of why A and B are not `equal'.
 Returns nil if they are."
   (if (not (equal (type-of a) (type-of b)))
       `(different-types ,a ,b)
@@ -863,7 +862,7 @@ run.  DEBUGGER-ARGS are the arguments to `debugger'."
                   (make-ert-test-failed :condition condition
                                         :backtrace backtrace
                                         :infos infos))))
-         ;; Work around Emacs' heuristic (in eval.c) for detecting
+         ;; Work around Emacs's heuristic (in eval.c) for detecting
          ;; errors in the debugger.
          (incf num-nonmacro-input-events)
          ;; FIXME: We should probably implement more fine-grained
@@ -1020,36 +1019,36 @@ t -- Always matches.
   (ert-test-result-type-p result (ert-test-expected-result-type test)))
 
 (defun ert-select-tests (selector universe)
-  "Return the tests that match SELECTOR.
+  "Return a list of tests that match SELECTOR.
 
-UNIVERSE specifies the set of tests to select from; it should be
-a list of tests, or t, which refers to all tests named by symbols
-in `obarray'.
+UNIVERSE specifies the set of tests to select from; it should be a list
+of tests, or t, which refers to all tests named by symbols in `obarray'.
 
-Returns the set of tests as a list.
+Valid SELECTORs:
 
-Valid selectors:
-
-nil -- Selects the empty set.
-t -- Selects UNIVERSE.
+nil  -- Selects the empty set.
+t    -- Selects UNIVERSE.
 :new -- Selects all tests that have not been run yet.
-:failed, :passed -- Select tests according to their most recent result.
+:failed, :passed       -- Select tests according to their most recent result.
 :expected, :unexpected -- Select tests according to their most recent result.
-a string -- Selects all tests that have a name that matches the string,
-            a regexp.
-a test -- Selects that test.
+a string -- A regular expression selecting all tests with matching names.
+a test   -- (i.e., an object of the ert-test data-type) Selects that test.
 a symbol -- Selects the test that the symbol names, errors if none.
-\(member TESTS...\) -- Selects TESTS, a list of tests or symbols naming tests.
+\(member TESTS...) -- Selects the elements of TESTS, a list of tests
+    or symbols naming tests.
 \(eql TEST\) -- Selects TEST, a test or a symbol naming a test.
-\(and SELECTORS...\) -- Selects the tests that match all SELECTORS.
-\(or SELECTORS...\) -- Selects the tests that match any SELECTOR.
-\(not SELECTOR\) -- Selects all tests that do not match SELECTOR.
+\(and SELECTORS...) -- Selects the tests that match all SELECTORS.
+\(or SELECTORS...)  -- Selects the tests that match any of the SELECTORS.
+\(not SELECTOR)     -- Selects all tests that do not match SELECTOR.
 \(tag TAG) -- Selects all tests that have TAG on their tags list.
-\(satisfies PREDICATE\) -- Selects all tests that satisfy PREDICATE.
+    A tag is an arbitrary label you can apply when you define a test.
+\(satisfies PREDICATE) -- Selects all tests that satisfy PREDICATE.
+    PREDICATE is a function that takes an ert-test object as argument,
+    and returns non-nil if it is selected.
 
 Only selectors that require a superset of tests, such
 as (satisfies ...), strings, :new, etc. make use of UNIVERSE.
-Selectors that do not, such as \(member ...\), just return the
+Selectors that do not, such as (member ...), just return the
 set implied by them without checking whether it is really
 contained in UNIVERSE."
   ;; This code needs to match the etypecase in
@@ -2121,7 +2120,7 @@ To be used in the ERT results buffer."
 
 EWOC-FN specifies the direction and should be either `ewoc-prev'
 or `ewoc-next'.  If there are no more nodes in that direction, an
-error is signalled with the message ERROR-MESSAGE."
+error is signaled with the message ERROR-MESSAGE."
   (loop
    (setq node (funcall ewoc-fn ert--results-ewoc node))
    (when (null node)

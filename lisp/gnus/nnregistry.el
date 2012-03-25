@@ -1,7 +1,7 @@
 ;;; nnregistry.el --- access to articles via Gnus' message-id registry
 ;;; -*- coding: utf-8 -*-
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Authors: Ludovic Courtès <ludo@gnu.org>
 ;; Keywords: news, mail
@@ -37,7 +37,7 @@
 (nnoo-declare nnregistry)
 
 (deffoo nnregistry-server-opened (server)
-  (eq gnus-registry-install t))
+  gnus-registry-enabled)
 
 (deffoo nnregistry-close-server (server)
   t)
@@ -46,7 +46,7 @@
   nil)
 
 (deffoo nnregistry-open-server (server &optional defs)
-  (eq gnus-registry-install t))
+  gnus-registry-enabled)
 
 (defvar nnregistry-within-nnregistry nil)
 

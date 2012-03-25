@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2011
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -74,11 +74,14 @@ If Emacs lacks asynchronous process support, this hook is run
 after `call-process' inserts the grep output into the buffer.")
 
 (defvar compilation-filter-start nil
-  "Start of the text inserted by `compilation-filter'.
-This is bound to a buffer position before running `compilation-filter-hook'.")
+  "Position of the start of the text inserted by `compilation-filter'.
+This is bound before running `compilation-filter-hook'.")
 
 (defvar compilation-first-column 1
-  "*This is how compilers number the first column, usually 1 or 0.")
+  "*This is how compilers number the first column, usually 1 or 0.
+If this is buffer-local in the destination buffer, Emacs obeys
+that value, otherwise it uses the value in the *compilation*
+buffer.  This enables a major-mode to specify its own value.")
 
 (defvar compilation-parse-errors-filename-function nil
   "Function to call to post-process filenames while parsing error messages.
@@ -145,7 +148,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (ant
      "^[ \t]*\\[[^] \n]+\\][ \t]*\\([^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\):\\)?\
-\\( warning\\)?" 1 (2 . 4) (3 . 5) (4))
+\\( warning\\)?" 1 (2 . 4) (3 . 5) (6))
 
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
@@ -157,7 +160,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (python-tracebacks-and-caml
      "^[ \t]*File \\(\"?\\)\\([^,\" \n\t<>]+\\)\\1, lines? \\([0-9]+\\)-?\\([0-9]+\\)?\\(?:$\\|,\
-\\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning:\\)?\\)"
+\\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning\\(?: [0-9]+\\)?:\\)?\\)"
      2 (3 . 4) (5 . 6) (7))
 
     (comma
@@ -253,7 +256,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 \\(?:-\\([0-9]+\\)?\\(?:\\.\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
  *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\|[Nn]ote\\)\\|\
-\[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
+ *[Ee]rror\\|\[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
      1 (2 . 4) (3 . 5) (6 . 7))
 
     (lcc
@@ -523,7 +526,7 @@ you may also want to change `compilation-page-delimiter'.")
      ;; Command output lines.  Recognize `make[n]:' lines too.
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
-     (" -\\(?:o[= ]?\\|-\\(?:outfile\\|output\\)[= ]\\)\\(\\S +\\)" . 1)
+     (" --?o\\(?:utfile\\|utput\\)?[= ]\\(\\S +\\)" . 1)
      ("^Compilation \\(finished\\).*"
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face))
@@ -547,7 +550,10 @@ Otherwise they are interpreted as character positions, with
 each character occupying one column.
 The default is to use screen columns, which requires that the compilation
 program and Emacs agree about the display width of the characters,
-especially the TAB character."
+especially the TAB character.
+If this is buffer-local in the destination buffer, Emacs obeys
+that value, otherwise it uses the value in the *compilation*
+buffer.  This enables a major-mode to specify its own value."
   :type 'boolean
   :group 'compilation
   :version "20.4")
@@ -637,29 +643,33 @@ This should be a function of three arguments: process status, exit status,
 and exit message; it returns a cons (MESSAGE . MODELINE) of the strings to
 write into the compilation buffer, and to put in its mode line.")
 
-(defvar compilation-environment nil
-  "*List of environment variables for compilation to inherit.
+(defcustom compilation-environment nil
+  "List of environment variables for compilation to inherit.
 Each element should be a string of the form ENVVARNAME=VALUE.
 This list is temporarily prepended to `process-environment' prior to
-starting the compilation process.")
+starting the compilation process."
+  :type '(repeat (string :tag "ENVVARNAME=VALUE"))
+  :options '(("LANG=C"))
+  :group 'compilation
+  :version "24.1")
 
 ;; History of compile commands.
 (defvar compile-history nil)
 
 (defface compilation-error
-  '((t :inherit font-lock-warning-face))
+  '((t :inherit error))
   "Face used to highlight compiler errors."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-warning
-  '((t :inherit font-lock-variable-name-face))
+  '((t :inherit warning))
   "Face used to highlight compiler warnings."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-info
-  '((t :inherit font-lock-type-face))
+  '((t :inherit success))
   "Face used to highlight compiler information."
   :group 'compilation
   :version "22.1")
@@ -985,12 +995,15 @@ POS and RES.")
 	    (let* ((prev
 		    (or (get-text-property (1- prev-pos) 'compilation-message)
 			(get-text-property prev-pos 'compilation-message)))
-		   (prev-struct
-		    (car (nth 2 (car prev)))))
+		   (prev-file-struct
+		    (and prev
+			 (compilation--loc->file-struct
+			  (compilation--message->loc prev)))))
+
 	      ;; Construct FILE . DIR from that.
-	      (if prev-struct
-		  (setq file (cons (car prev-struct)
-				   (cadr prev-struct))))))
+	      (if prev-file-struct
+		  (setq file (cons (caar prev-file-struct)
+				   (cadr (car prev-file-struct)))))))
 	(unless file
 	  (setq file '("*unknown*")))))
     ;; All of these fields are optional, get them only if we have an index, and
@@ -1006,11 +1019,11 @@ POS and RES.")
             (setq col (funcall col))
           (and
            (setq col (match-string-no-properties col))
-           (setq col (- (string-to-number col) compilation-first-column)))))
+           (setq col (string-to-number col)))))
     (if (and end-col (functionp end-col))
         (setq end-col (funcall end-col))
       (if (and end-col (setq end-col (match-string-no-properties end-col)))
-          (setq end-col (- (string-to-number end-col) compilation-first-column -1))
+          (setq end-col (- (string-to-number end-col) -1))
         (if end-line (setq end-col -1))))
     (if (consp type)			; not a static type, check what it is.
 	(setq type (or (and (car type) (match-end (car type)) 1)
@@ -1030,6 +1043,7 @@ POS and RES.")
   "Go to column COL on the current line.
 If SCREEN is non-nil, columns are screen columns, otherwise, they are
 just char-counts."
+  (setq col (- col compilation-first-column))
   (if screen
       (move-to-column (max col 0))
     (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))
@@ -1049,7 +1063,8 @@ FMTS is a list of format specs for transforming the file name.
           (cadr (compilation--file-struct->loc-tree file-struct)))
 	 (marker
           (if marker-line (compilation--loc->marker (cadr marker-line))))
-	 (compilation-error-screen-columns compilation-error-screen-columns)
+	 (screen-columns compilation-error-screen-columns)
+	 (first-column compilation-first-column)
 	 end-marker loc end-loc)
     (if (not (and marker (marker-buffer marker)))
 	(setq marker nil)		; no valid marker for this file
@@ -1057,16 +1072,24 @@ FMTS is a list of format specs for transforming the file name.
       (catch 'marker			; find nearest loc, at least one exists
 	(dolist (x (cddr (compilation--file-struct->loc-tree
                           file-struct)))	; Loop over remaining lines.
-	  (if (> (car x) loc)		; still bigger
+	  (if (> (car x) loc)		; Still bigger.
 	      (setq marker-line x)
 	    (if (> (- (or (car marker-line) 1) loc)
-		   (- loc (car x)))	; current line is nearer
+		   (- loc (car x)))	; Current line is nearer.
 		(setq marker-line x))
 	    (throw 'marker t))))
       (setq marker (compilation--loc->marker (cadr marker-line))
 	    marker-line (or (car marker-line) 1))
       (with-current-buffer (marker-buffer marker)
-	(save-excursion
+        (let ((screen-columns
+               ;; Obey the compilation-error-screen-columns of the target
+               ;; buffer if its major mode set it buffer-locally.
+               (if (local-variable-p 'compilation-error-screen-columns)
+                   compilation-error-screen-columns screen-columns))
+	      (compilation-first-column
+               (if (local-variable-p 'compilation-first-column)
+                   compilation-first-column first-column)))
+          (save-excursion
 	  (save-restriction
 	    (widen)
 	    (goto-char (marker-position marker))
@@ -1074,17 +1097,15 @@ FMTS is a list of format specs for transforming the file name.
 	      (beginning-of-line (- (or end-line line) marker-line -1))
 	      (if (or (null end-col) (< end-col 0))
 		  (end-of-line)
-		(compilation-move-to-column
-		 end-col compilation-error-screen-columns))
+		(compilation-move-to-column end-col screen-columns))
 	      (setq end-marker (point-marker)))
 	    (beginning-of-line (if end-line
 				   (- line end-line -1)
 				 (- loc marker-line -1)))
 	    (if col
-		(compilation-move-to-column
-		 col compilation-error-screen-columns)
+		(compilation-move-to-column col screen-columns)
 	      (forward-to-indentation 0))
-	    (setq marker (point-marker))))))
+	    (setq marker (point-marker)))))))
 
     (setq loc (compilation-assq line (compilation--file-struct->loc-tree
                                       file-struct)))
@@ -1479,6 +1500,7 @@ Returns the compilation buffer created."
 	      "compilation"
 	    (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
 	 (thisdir default-directory)
+	 (thisenv compilation-environment)
 	 outwin outbuf)
     (with-current-buffer
 	(setq outbuf
@@ -1525,8 +1547,9 @@ Returns the compilation buffer created."
         ;; Remember the original dir, so we can use it when we recompile.
         ;; default-directory' can't be used reliably for that because it may be
         ;; affected by the special handling of "cd ...;".
-        ;; NB: must be fone after (funcall mode) as that resets local variables
+        ;; NB: must be done after (funcall mode) as that resets local variables
         (set (make-local-variable 'compilation-directory) thisdir)
+	(set (make-local-variable 'compilation-environment) thisenv)
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))
@@ -1959,12 +1982,15 @@ Optional argument MINOR indicates this is called from
 
 ;;;###autoload
 (define-minor-mode compilation-shell-minor-mode
-  "Toggle compilation shell minor mode.
-With arg, turn compilation mode on if and only if arg is positive.
-In this minor mode, all the error-parsing commands of the
-Compilation major mode are available but bound to keys that don't
-collide with Shell mode.  See `compilation-mode'.
-Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
+  "Toggle Compilation Shell minor mode.
+With a prefix argument ARG, enable Compilation Shell minor mode
+if ARG is positive, and disable it otherwise.  If called from
+Lisp, enable the mode if ARG is omitted or nil.
+
+When Compilation Shell minor mode is enabled, all the
+error-parsing commands of the Compilation major mode are
+available but bound to keys that don't collide with Shell mode.
+See `compilation-mode'."
   nil " Shell-Compile"
   :group 'compilation
   (if compilation-shell-minor-mode
@@ -1973,11 +1999,14 @@ Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
 
 ;;;###autoload
 (define-minor-mode compilation-minor-mode
-  "Toggle compilation minor mode.
-With arg, turn compilation mode on if and only if arg is positive.
-In this minor mode, all the error-parsing commands of the
-Compilation major mode are available.  See `compilation-mode'.
-Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
+  "Toggle Compilation minor mode.
+With a prefix argument ARG, enable Compilation minor mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
+
+When Compilation minor mode is enabled, all the error-parsing
+commands of Compilation major mode are available.  See
+`compilation-mode'."
   nil " Compilation"
   :group 'compilation
   (if compilation-minor-mode
@@ -2251,7 +2280,8 @@ This is the value of `next-error-function' in Compilation buffers."
   (interactive "p")
   (when reset
     (setq compilation-current-error nil))
-  (let* ((columns compilation-error-screen-columns) ; buffer's local value
+  (let* ((screen-columns compilation-error-screen-columns)
+	 (first-column compilation-first-column)
 	 (last 1)
 	 (msg (compilation-next-error (or n 1) nil
 				      (or compilation-current-error
@@ -2286,29 +2316,37 @@ This is the value of `next-error-function' in Compilation buffers."
            marker
            (caar (compilation--loc->file-struct loc))
            (cadr (car (compilation--loc->file-struct loc))))
-	(save-restriction
-	  (widen)
-	  (goto-char (point-min))
-	  ;; Treat file's found lines in forward order, 1 by 1.
-	  (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
-	    (when (car line)		; else this is a filename w/o a line#
-	      (beginning-of-line (- (car line) last -1))
-	      (setq last (car line)))
-	    ;; Treat line's found columns and store/update a marker for each.
-	    (dolist (col (cdr line))
-	      (if (compilation--loc->col col)
-		  (if (eq (compilation--loc->col col) -1)
-                      ;; Special case for range end.
-		      (end-of-line)
-		    (compilation-move-to-column (compilation--loc->col col)
-                                                columns))
-		(beginning-of-line)
-		(skip-chars-forward " \t"))
-	      (if (compilation--loc->marker col)
-                  (set-marker (compilation--loc->marker col) (point))
-		(setf (compilation--loc->marker col) (point-marker)))
-              ;; (setf (compilation--loc->timestamp col) timestamp)
-              )))))
+        (let ((screen-columns
+               ;; Obey the compilation-error-screen-columns of the target
+               ;; buffer if its major mode set it buffer-locally.
+               (if (local-variable-p 'compilation-error-screen-columns)
+                   compilation-error-screen-columns screen-columns))
+              (compilation-first-column
+               (if (local-variable-p 'compilation-first-column)
+                   compilation-first-column first-column)))
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            ;; Treat file's found lines in forward order, 1 by 1.
+            (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
+              (when (car line)		; else this is a filename w/o a line#
+                (beginning-of-line (- (car line) last -1))
+                (setq last (car line)))
+              ;; Treat line's found columns and store/update a marker for each.
+              (dolist (col (cdr line))
+                (if (compilation--loc->col col)
+                    (if (eq (compilation--loc->col col) -1)
+                        ;; Special case for range end.
+                        (end-of-line)
+                      (compilation-move-to-column (compilation--loc->col col)
+                                                  screen-columns))
+                  (beginning-of-line)
+                  (skip-chars-forward " \t"))
+                (if (compilation--loc->marker col)
+                    (set-marker (compilation--loc->marker col) (point))
+                  (setf (compilation--loc->marker col) (point-marker)))
+                ;; (setf (compilation--loc->timestamp col) timestamp)
+                ))))))
     (compilation-goto-locus marker (compilation--loc->marker loc)
                             (compilation--loc->marker end-loc))
     (setf (compilation--loc->visited loc) t)))
@@ -2399,9 +2437,8 @@ and overlay is highlighted between MK and END-MK."
 			     ;; also do this while we change buffer
 			     (compilation-set-window w msg)
 			     compilation-highlight-regexp)))
-    ;; Ideally, the window-size should be passed to `display-buffer' (via
-    ;; something like special-display-buffer) so it's only used when
-    ;; creating a new window.
+    ;; Ideally, the window-size should be passed to `display-buffer'
+    ;; so it's only used when creating a new window.
     (unless pre-existing (compilation-set-window-height w))
 
     (if from-compilation-buffer
@@ -2410,7 +2447,7 @@ and overlay is highlighted between MK and END-MK."
         ;; display the source in another window.
         (let ((pop-up-windows t))
           (pop-to-buffer (marker-buffer mk) 'other-window))
-      (pop-to-buffer-same-window (marker-buffer mk)))
+      (switch-to-buffer (marker-buffer mk)))
     (unless (eq (goto-char mk) (point))
       ;; If narrowing gets in the way of going to the right place, widen.
       (widen)

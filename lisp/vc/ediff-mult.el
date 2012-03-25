@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -2164,7 +2164,7 @@ all marked sessions must be active."
 ;; If meta-buf doesn't exist, it is created.  In that case, id doesn't have a
 ;; parent meta-buf
 ;; Check if META-BUF exists before calling this function
-;; Optional MUST-REDRAW, if non-nil, would force redrawal of the whole meta
+;; Optional MUST-REDRAW, if non-nil, would force redrawing of the whole meta
 ;; buffer.  Otherwise, it will just go over the buffer and update activity marks
 ;; and session status.
 ;; SESSION-NUMBER, if specified, says which session caused the update.

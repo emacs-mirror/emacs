@@ -1,6 +1,6 @@
 ;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
@@ -427,7 +427,7 @@ images."
     (define-key map "sx" 'newsticker-show-extra)
     (define-key map "hx" 'newsticker-hide-extra)
 
-    (define-key map " "  'scroll-up)
+    (define-key map " "  'scroll-up-command)
     (define-key map "q"  'newsticker-close-buffer)
     (define-key map "p"  'newsticker-previous-item)
     (define-key map "P"  'newsticker-previous-new-item)
@@ -783,11 +783,11 @@ Return new buffer position."
       (newsticker--buffer-set-uptodate nil)
       (newsticker--ticker-text-setup)
       (newsticker-buffer-update)
-      ;; go back to where we came frome
+      ;; Go back to where we came from.
       (goto-char pos)
       (end-of-line)
       (newsticker--buffer-goto '(feed) nil t))))
-  
+
 (defun newsticker-mark-all-items-at-point-as-read ()
   "Mark all items as read and clear ticker contents."
   (interactive)
@@ -1574,7 +1574,7 @@ property to '(<nt-type>-<nt-age> <nt-type> <nt-age>)."
       (while (and (setq pos2 (next-single-property-change pos1 'nt-type))
                   (<= pos2 end)
                   (> pos2 pos1))
-        ;; must shift one char to the left in order to handle inivisible
+        ;; must shift one char to the left in order to handle invisible
         ;; newlines, motion in invisible text areas and all that correctly
         (put-text-property (1- pos1) (1- pos2)
                            'invisible

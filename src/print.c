@@ -1,6 +1,6 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2011
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -46,10 +46,7 @@ static Lisp_Object Qtemp_buffer_setup_hook;
 static Lisp_Object Qfloat_output_format;
 
 #include <math.h>
-
-#if STDC_HEADERS
 #include <float.h>
-#endif
 #include <ftoastr.h>
 
 /* Default to values appropriate for IEEE floating point.  */
@@ -623,7 +620,7 @@ A printed representation of an object is text which describes that object.  */)
     printcharfun = Vprin1_to_string_buffer;
     PRINTPREPARE;
     print (object, printcharfun, NILP (noescape));
-    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
+    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINISH */
     PRINTFINISH;
   }
 
@@ -1019,12 +1016,15 @@ float_to_string (char *buf, double data)
 	{
 	  width = 0;
 	  do
-	    width = (width * 10) + (*cp++ - '0');
+	    {
+	      width = (width * 10) + (*cp++ - '0');
+	      if (DBL_DIG < width)
+		goto lose;
+	    }
 	  while (*cp >= '0' && *cp <= '9');
 
 	  /* A precision of zero is valid only for %f.  */
-	  if (width > DBL_DIG
-	      || (width == 0 && *cp != 'f'))
+	  if (width == 0 && *cp != 'f')
 	    goto lose;
 	}
 
@@ -1317,7 +1317,9 @@ print_prune_string_charset (Lisp_Object string)
 static void
 print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
 {
-  char buf[40];
+  char buf[max (sizeof "from..to..in " + 2 * INT_STRLEN_BOUND (EMACS_INT),
+		max (sizeof " . #" + INT_STRLEN_BOUND (printmax_t),
+		     40))];
 
   QUIT;
 
@@ -1539,13 +1541,19 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	else
 	  confusing = 0;
 
+	size_byte = SBYTES (name);
+
 	if (! NILP (Vprint_gensym) && !SYMBOL_INTERNED_P (obj))
 	  {
 	    PRINTCHAR ('#');
 	    PRINTCHAR (':');
 	  }
-
-	size_byte = SBYTES (name);
+	else if (size_byte == 0)
+	  {
+	    PRINTCHAR ('#');
+	    PRINTCHAR ('#');
+	    break;
+	  }
 
 	for (i = 0, i_byte = 0; i_byte < size_byte;)
 	  {
@@ -1558,7 +1566,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      {
 		if (c == '\"' || c == '\\' || c == '\''
 		    || c == ';' || c == '#' || c == '(' || c == ')'
-		    || c == ',' || c =='.' || c == '`'
+		    || c == ',' || c == '.' || c == '`'
 		    || c == '[' || c == ']' || c == '?' || c <= 040
 		    || confusing)
 		  PRINTCHAR ('\\'), confusing = 0;
@@ -1611,8 +1619,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  PRINTCHAR ('(');
 
 	  {
-	    EMACS_INT print_length;
-	    int i;
+	    printmax_t i, print_length;
 	    Lisp_Object halftail = obj;
 
 	    /* Negative values of print-length are invalid in CL.
@@ -1620,7 +1627,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    if (NATNUMP (Vprint_length))
 	      print_length = XFASTINT (Vprint_length);
 	    else
-	      print_length = 0;
+	      print_length = TYPE_MAXIMUM (printmax_t);
 
 	    i = 0;
 	    while (CONSP (obj))
@@ -1628,10 +1635,10 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		/* Detect circular list.  */
 		if (NILP (Vprint_circle))
 		  {
-		    /* Simple but imcomplete way.  */
+		    /* Simple but incomplete way.  */
 		    if (i != 0 && EQ (obj, halftail))
 		      {
-			sprintf (buf, " . #%d", i / 2);
+			sprintf (buf, " . #%"pMd, i / 2);
 			strout (buf, -1, -1, printcharfun);
 			goto end_of_list;
 		      }
@@ -1651,15 +1658,16 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		      }
 		  }
 
-		if (i++)
+		if (i)
 		  PRINTCHAR (' ');
 
-		if (print_length && i > print_length)
+		if (print_length <= i)
 		  {
 		    strout ("...", 3, 3, printcharfun);
 		    goto end_of_list;
 		  }
 
+		i++;
 		print_object (XCAR (obj), printcharfun, escapeflag);
 
 		obj = XCDR (obj);
@@ -1694,7 +1702,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (BOOL_VECTOR_P (obj))
 	{
-	  register int i;
+	  ptrdiff_t i;
 	  register unsigned char c;
 	  struct gcpro gcpro1;
 	  EMACS_INT size_in_chars
@@ -1795,19 +1803,17 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      PRINTCHAR (' ');
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun);
 	      PRINTCHAR (' ');
-	      sprintf (buf, "%ld/%ld", (long) h->count,
-		       (long) ASIZE (h->next));
+	      sprintf (buf, "%"pI"d/%"pI"d", h->count, ASIZE (h->next));
 	      strout (buf, -1, -1, printcharfun);
 	    }
-	  sprintf (buf, " 0x%lx", (unsigned long) h);
+	  sprintf (buf, " %p", h);
 	  strout (buf, -1, -1, printcharfun);
 	  PRINTCHAR ('>');
 #endif
 	  /* Implement a readable output, e.g.:
 	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
 	  /* Always print the size. */
-	  sprintf (buf, "#s(hash-table size %ld",
-		   (long) ASIZE (h->next));
+	  sprintf (buf, "#s(hash-table size %"pI"d", ASIZE (h->next));
 	  strout (buf, -1, -1, printcharfun);
 
 	  if (!NILP (h->test))
@@ -2014,9 +2020,9 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
 	case Lisp_Misc_Save_Value:
 	  strout ("#<save_value ", -1, -1, printcharfun);
-	  sprintf(buf, "ptr=%p int=%"pD"d",
-		  XSAVE_VALUE (obj)->pointer,
-		  XSAVE_VALUE (obj)->integer);
+	  sprintf (buf, "ptr=%p int=%"pD"d",
+                   XSAVE_VALUE (obj)->pointer,
+                   XSAVE_VALUE (obj)->integer);
 	  strout (buf, -1, -1, printcharfun);
 	  PRINTCHAR ('>');
 	  break;
@@ -2035,7 +2041,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	if (MISCP (obj))
 	  sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
-	  sprintf (buf, "(PVEC 0x%08lx)", (unsigned long) ASIZE (obj));
+	  sprintf (buf, "(PVEC 0x%08"pI"x)", ASIZE (obj));
 	else
 	  sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
 	strout (buf, -1, -1, printcharfun);

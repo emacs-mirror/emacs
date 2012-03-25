@@ -1,6 +1,6 @@
 ;;; erc-netsplit.el --- Reduce JOIN/QUIT messages on netsplits
 
-;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm

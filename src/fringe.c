@@ -1,5 +1,5 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985-1988, 1993-1995, 1997-2011  Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1997-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Logical bitmaps are used internally to denote things like
    'end-of-buffer', 'left-truncation', 'overlay-arrow', etc.
 
-   Physical bitmaps specify the visual appearence of the bitmap,
+   Physical bitmaps specify the visual appearance of the bitmap,
    e.g. 'bottom-left-angle', 'left-arrow', 'left-triangle', etc.
    User defined bitmaps are physical bitmaps.
 
@@ -456,7 +456,7 @@ static struct fringe_bitmap standard_bitmaps[] =
 
 #define NO_FRINGE_BITMAP 0
 #define UNDEF_FRINGE_BITMAP 1
-#define MAX_STANDARD_FRINGE_BITMAPS (sizeof(standard_bitmaps)/sizeof(standard_bitmaps[0]))
+#define MAX_STANDARD_FRINGE_BITMAPS (sizeof (standard_bitmaps)/sizeof (standard_bitmaps[0]))
 
 static struct fringe_bitmap **fringe_bitmaps;
 static Lisp_Object *fringe_faces;
@@ -928,7 +928,7 @@ update_window_fringes (struct window *w, int keep_current_p)
   int top_ind_rn, bot_ind_rn;
   int top_ind_min_y, bot_ind_max_y;
 
-  /* top_ind_rn is set to a nonnegative value whenver
+  /* top_ind_rn is set to a nonnegative value whenever
      row->indicate_bob_p is set, so it's OK that top_row_ends_at_zv_p
      is not initialized here.  Similarly for bot_ind_rn,
      row->indicate_eob_p and bot_row_ends_at_zv_p.  */
@@ -1165,7 +1165,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 	}
       else if ((!row->reversed_p && row->truncated_on_left_p)
 	       || (row->reversed_p && row->truncated_on_right_p))
-	left = LEFT_FRINGE(0, Qtruncation, 0);
+	left = LEFT_FRINGE (0, Qtruncation, 0);
       else if (row->indicate_bob_p && EQ (boundary_top, Qleft))
 	{
 	  left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
@@ -1610,22 +1610,25 @@ If BITMAP already exists, the existing definition is replaced.  */)
 
 	  if (n == max_fringe_bitmaps)
 	    {
-	      if ((max_fringe_bitmaps + 20) > MAX_FRINGE_BITMAPS)
+	      int bitmaps = max_fringe_bitmaps + 20;
+	      if (MAX_FRINGE_BITMAPS < bitmaps)
 		error ("No free fringe bitmap slots");
 
 	      i = max_fringe_bitmaps;
-	      max_fringe_bitmaps += 20;
 	      fringe_bitmaps
 		= ((struct fringe_bitmap **)
-		   xrealloc (fringe_bitmaps, max_fringe_bitmaps * sizeof (struct fringe_bitmap *)));
+		   xrealloc (fringe_bitmaps, bitmaps * sizeof *fringe_bitmaps));
 	      fringe_faces
-		= (Lisp_Object *) xrealloc (fringe_faces, max_fringe_bitmaps * sizeof (Lisp_Object));
+		= (Lisp_Object *) xrealloc (fringe_faces,
+					    bitmaps * sizeof *fringe_faces);
 
-	      for (; i < max_fringe_bitmaps; i++)
+	      for (i = max_fringe_bitmaps; i < bitmaps; i++)
 		{
 		  fringe_bitmaps[i] = NULL;
 		  fringe_faces[i] = Qnil;
 		}
+
+	      max_fringe_bitmaps = bitmaps;
 	    }
 	}
 
@@ -1784,7 +1787,7 @@ init_fringe_once (void)
   int bt;
 
   for (bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
-    init_fringe_bitmap(bt, &standard_bitmaps[bt], 1);
+    init_fringe_bitmap (bt, &standard_bitmaps[bt], 1);
 }
 
 void

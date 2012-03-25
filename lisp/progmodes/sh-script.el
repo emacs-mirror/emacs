@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993-1997, 1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -460,6 +460,7 @@ This is buffer-local in every such buffer.")
     (define-key map "\C-c+" 'sh-add)
     (define-key map "\C-\M-x" 'sh-execute-region)
     (define-key map "\C-c\C-x" 'executable-interpret)
+    ;; FIXME: Use post-self-insert-hook.
     (define-key map "<" 'sh-maybe-here-document)
     (define-key map "(" 'skeleton-pair-insert-maybe)
     (define-key map "{" 'skeleton-pair-insert-maybe)
@@ -566,6 +567,7 @@ This is buffer-local in every such buffer.")
   '((csh . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
     ;; actually spaces are only supported in let/(( ... ))
     (ksh88 . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*\\([-+*/%&|~^]\\|<<\\|>>\\)?=")
+    (bash . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?\\+?=")
     (rc . "\\<\\([[:alnum:]_*]+\\)[ \t]*=")
     (sh . "\\<\\([[:alnum:]_]+\\)="))
   "Regexp for the variable name and what may follow in an assignment.
@@ -888,7 +890,7 @@ See `sh-feature'.")
          font-lock-variable-name-face))
 
     (rc sh-append es)
-    (bash sh-append shell ("\\$(\\(\\sw+\\)" (1 'sh-quoted-exec t) ))
+    (bash sh-append sh ("\\$(\\(\\sw+\\)" (1 'sh-quoted-exec t) ))
     (sh sh-append shell
 	;; Variable names.
 	("\\$\\({#?\\)?\\([[:alpha:]_][[:alnum:]_]*\\|[-#?@!]\\)" 2
@@ -984,7 +986,7 @@ Find all the unescaped \" characters within said subshell, remembering that
 subshells can nest."
   ;; FIXME: This can (and often does) match multiple lines, yet it makes no
   ;; effort to handle multiline cases correctly, so it ends up being
-  ;; rather flakey.
+  ;; rather flaky.
   (when (eq ?\" (nth 3 (syntax-ppss))) ; Check we matched an opening quote.
     ;; bingo we have a $( or a ` inside a ""
     (let (;; `state' can be: double-quote, backquote, code.
@@ -1028,45 +1030,45 @@ subshells can nest."
 
 (defun sh-font-lock-paren (start)
   (unless (nth 8 (syntax-ppss))
-  (save-excursion
-    (goto-char start)
-    ;; Skip through all patterns
-    (while
-	(progn
+    (save-excursion
+      (goto-char start)
+      ;; Skip through all patterns
+      (while
+          (progn
             (while
                 (progn
-	  (forward-comment (- (point-max)))
+                  (forward-comment (- (point-max)))
                   (when (and (eolp) (sh-is-quoted-p (point)))
                     (forward-char -1)
                     t)))
-	  ;; Skip through one pattern
-	  (while
-	      (or (/= 0 (skip-syntax-backward "w_"))
+            ;; Skip through one pattern
+            (while
+                (or (/= 0 (skip-syntax-backward "w_"))
                     (/= 0 (skip-chars-backward "-$=?[]*@/\\\\"))
-		  (and (sh-is-quoted-p (1- (point)))
-		       (goto-char (- (point) 2)))
+                    (and (sh-is-quoted-p (1- (point)))
+                         (goto-char (- (point) 2)))
                     (when (memq (char-before) '(?\" ?\' ?\}))
-		    (condition-case nil (progn (backward-sexp 1) t)
-		      (error nil)))))
-	  ;; Patterns can be preceded by an open-paren (Bug#1320).
-	  (if (eq (char-before (point)) ?\()
-	      (backward-char 1))
-          (while (progn
-                   (forward-comment (- (point-max)))
-                   ;; Maybe we've bumped into an escaped newline.
-                   (sh-is-quoted-p (point)))
-            (backward-char 1))
-	  (when (eq (char-before) ?|)
-	    (backward-char 1) t)))
-    (when (progn (backward-char 2)
-                 (if (> start (line-end-position))
-                     (put-text-property (point) (1+ start)
-                                        'syntax-multiline t))
-                 ;; FIXME: The `in' may just be a random argument to
-                 ;; a normal command rather than the real `in' keyword.
-                 ;; I.e. we should look back to try and find the
-                 ;; corresponding `case'.
-                   (and (looking-at ";[;&]\\|in")
+                      (condition-case nil (progn (backward-sexp 1) t)
+                        (error nil)))))
+            ;; Patterns can be preceded by an open-paren (Bug#1320).
+            (if (eq (char-before (point)) ?\()
+                (backward-char 1))
+            (while (progn
+                     (forward-comment (- (point-max)))
+                     ;; Maybe we've bumped into an escaped newline.
+                     (sh-is-quoted-p (point)))
+              (backward-char 1))
+            (when (eq (char-before) ?|)
+              (backward-char 1) t)))
+      (when (progn (backward-char 2)
+                   (if (> start (line-end-position))
+                       (put-text-property (point) (1+ start)
+                                          'syntax-multiline t))
+                   ;; FIXME: The `in' may just be a random argument to
+                   ;; a normal command rather than the real `in' keyword.
+                   ;; I.e. we should look back to try and find the
+                   ;; corresponding `case'.
+                   (and (looking-at ";[;&]\\|\\_<in")
                         ;; ";; esac )" is a case that looks like a case-pattern
                         ;; but it's really just a close paren after a case
                         ;; statement.  I.e. if we skipped over `esac' just now,
@@ -3659,6 +3661,7 @@ The document is bounded by `sh-here-document-word'."
       (save-excursion
 	(backward-char 2)
 	(sh-quoted-p))
+      (nth 8 (syntax-ppss))
       (let ((tabs (if (string-match "\\`-" sh-here-document-word)
                       (make-string (/ (current-indentation) tab-width) ?\t)
                     ""))

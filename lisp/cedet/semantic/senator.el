@@ -1,6 +1,6 @@
 ;;; semantic/senator.el --- SEmantic NAvigaTOR
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: FSF
@@ -179,8 +179,8 @@ source."
     (goto-char (semantic-tag-start tag))
     (when (re-search-forward (concat
                               ;; The tag name is expected to be
-                              ;; between word delimiters, whitespaces,
-                              ;; or punctuations.
+                              ;; between word delimiters, whitespace,
+                              ;; or punctuation.
                               "\\(\\<\\|\\s-+\\|\\s.\\)"
                               (regexp-quote name)
                               "\\(\\>\\|\\s-+\\|\\s.\\)")

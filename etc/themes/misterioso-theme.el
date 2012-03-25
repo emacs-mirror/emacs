@@ -1,6 +1,6 @@
 ;;; misterioso-theme.el --- Custom face theme for Emacs
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Hermida
 
@@ -33,7 +33,7 @@
 	       (:background "#2d3743" :foreground "#e1e1e0"))
 	      (,class
 	       (:background "#3a3a3a" :foreground "#e1e1e0"))))
-   `(cursor ((,class (:background "#415160" :foreground "#415160"))))
+   `(cursor ((,class (:background "#415160"))))
    ;; Highlighting faces
    `(fringe ((,class (:background "#2e3748"))))
    `(highlight ((,class (:background "#338f86" :foreground "#e1e1e0"))))

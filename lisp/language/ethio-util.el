@@ -1,6 +1,6 @@
-;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8; -*-
+;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8-emacs; -*-
 
-;; Copyright (C) 1997-1998, 2002-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2002-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -48,7 +48,7 @@
 			([f4] . ethio-sera-to-fidel-buffer)
 			([S-f4] . ethio-sera-to-fidel-region)
 			([C-f4] . ethio-sera-to-fidel-marker)
-			([S-f5] . ethio-toggle-punctuation)
+			;; ([S-f5] . ethio-toggle-punctuation)
 			([S-f6] . ethio-modify-vowel)
 			([S-f7] . ethio-replace-space)
 			;; ([S-f8] . ethio-input-special-character) ; deprecated
@@ -582,7 +582,7 @@ See also the descriptions of the variables
 	    (narrow-to-region p (point))
 	    (robin-invert-region (point-min) (point-max) "ethiopic-sera")
 
-	    ;; ethio-quote-vowel-alwyas
+	    ;; ethio-quote-vowel-always
 	    (goto-char (point-min))
 	    (while (re-search-forward "'[eauio]" nil t)
 	      (save-excursion
@@ -802,7 +802,7 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
 	(forward-char 1)
 	(insert "}")))
 
-    ;; Special Ethiopic punctuations.
+    ;; Special Ethiopic punctuation.
     (goto-char (point-min))
     (while (re-search-forward "\\ce[»\\.\\?]\\|«\\ce" nil t)
       (cond
@@ -890,7 +890,7 @@ Otherwise, [0-9A-F]."
 
 ;;;###autoload
 (defun ethio-find-file nil
-  "Transliterate file content into Ethiopic dependig on filename suffix."
+  "Transliterate file content into Ethiopic depending on filename suffix."
   (cond
 
    ((string-match "\\.sera$" (buffer-file-name))

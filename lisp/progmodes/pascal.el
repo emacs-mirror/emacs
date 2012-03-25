@@ -1,6 +1,6 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-2012 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages
@@ -227,7 +227,7 @@ will do all lineups."
   :type '(set :extra-offset 8
 	      (const :tag "Everything" all)
 	      (const :tag "Parameter lists" paramlist)
-	      (const :tag "Decalrations" declaration)
+	      (const :tag "Declarations" declaration)
 	      (const :tag "Case statements" case))
   :group 'pascal)
 
@@ -414,7 +414,7 @@ no args, if that value is non-nil."
       (electric-pascal-terminate-line)))
 
 (defun electric-pascal-colon ()
-  "Insert `:' and do all indentions except line indent on this line."
+  "Insert `:' and do all indentations except line indent on this line."
   (interactive)
   (insert last-command-event)
   ;; Do nothing if within string.
@@ -427,7 +427,7 @@ no args, if that value is non-nil."
       (pascal-indent-command))))
 
 (defun electric-pascal-equal ()
-  "Insert `=', and do indention if within type declaration."
+  "Insert `=', and do indentation if within type declaration."
   (interactive)
   (insert last-command-event)
   (if (eq (car (pascal-calculate-indent)) 'declaration)
@@ -786,6 +786,7 @@ on the line which ends a function or procedure named NAME."
     (if (looking-at "[ \t]+$")
 	(skip-chars-forward " \t"))))
 
+(defvar ind)			       ;Used via `eval' in pascal-indent-alist.
 (defun pascal-indent-line ()
   "Indent current line as a Pascal statement."
   (let* ((indent-str (pascal-calculate-indent))
@@ -1393,8 +1394,12 @@ The default is a name found in the buffer around point."
 (define-obsolete-function-alias 'pascal-outline 'pascal-outline-mode "22.1")
 (define-minor-mode pascal-outline-mode
   "Outline-line minor mode for Pascal mode.
-When in Pascal Outline mode, portions
-of the text being edited may be made invisible. \\<pascal-outline-map>
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
+When enabled, portions of the text being edited may be made
+invisible. \\<pascal-outline-map>
 
 Pascal Outline mode provides some additional commands.
 

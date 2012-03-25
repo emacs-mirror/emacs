@@ -1,5 +1,5 @@
 /* testsppreplaced.c --- unit test for CPP/SPP Replacement
-   Copyright (C) 2007-2011 Free Software Foundation, Inc.
+   Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -69,7 +69,7 @@ int continuation_symbol () { };
 
 int tail (int q) {}
 
-/* TEST: macros used impropertly. */
+/* TEST: macros used improperly */
 
 int tail_fcn(int q);
 
@@ -98,7 +98,7 @@ namespace foo { namespace bar {
 
     int foo_bar_func(int a) { }
 
-  } 
+  }
 }
 
 /* TEST: The VC++ macro hack. */
@@ -115,4 +115,3 @@ int MACROA () {
 
 
 /* End */
-

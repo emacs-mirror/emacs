@@ -1,6 +1,6 @@
 ;;; w32console.el -- Setup w32 console keys and colors.
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals

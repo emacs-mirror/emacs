@@ -1,6 +1,6 @@
 ;;; semantic/java.el --- Semantic functions for Java
 
-;;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 
@@ -256,7 +256,7 @@ Optional argument COLOR indicates that color should be mixed in."
 (define-mode-local-override semantic-documentation-for-tag
   java-mode (&optional tag nosnarf)
   "Find documentation from TAG and return it as a clean string.
-Java has documentation set in a comment preceding TAG's definition.
+Java have documentation set in a comment preceding TAG's definition.
 Attempt to strip out comment syntactic sugar, unless optional argument
 NOSNARF is non-nil.
 If NOSNARF is 'lex, then return the semantic lex token."

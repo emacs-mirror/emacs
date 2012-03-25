@@ -51,7 +51,7 @@ XDrawFilled so it shouldn't be defined.
  */
 typedef struct _XAssoc {
 	struct _XAssoc *next;	/* Next object in this bucket. */
-	struct _XAssoc *prev;	/* Previous obejct in this bucket. */
+	struct _XAssoc *prev;	/* Previous object in this bucket. */
 	Display *display;	/* Display which owns the id. */
 	XID x_id;		/* X Window System id. */
 	void *data;		/* Pointer to untyped memory. */

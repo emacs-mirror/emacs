@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions
 
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -41,6 +41,7 @@
   (require 'advice)
   (require 'custom)
   (require 'format-spec)
+  (require 'shell)
 
   ;; As long as password.el is not part of (X)Emacs, it shouldn't be
   ;; mandatory.
@@ -411,7 +412,7 @@ element is not omitted."
   (program &optional infile destination display &rest args)
   "Calls `call-process' on the local host.
 This is needed because for some Emacs flavors Tramp has
-defadviced `call-process' to behave like `process-file'.  The
+defadvised `call-process' to behave like `process-file'.  The
 Lisp error raised when PROGRAM is nil is trapped also, returning 1."
   (let ((default-directory
 	  (if (file-remote-p default-directory)
@@ -501,15 +502,6 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 			eol-type
 			"`dos', `unix', or `mac'")))))
         (t (error "Can't change EOL conversion -- is MULE missing?"))))
-
-;; `pop-to-buffer-same-window'  has been introduced with Emacs 24.1.
-(defun tramp-compat-pop-to-buffer-same-window
-  (&optional buffer-or-name norecord label)
-  "Pop to buffer specified by BUFFER-OR-NAME in the selected window."
-  (if (fboundp 'pop-to-buffer-same-window)
-      (tramp-compat-funcall
-       'pop-to-buffer-same-window buffer-or-name norecord label)
-    (tramp-compat-funcall 'switch-to-buffer buffer-or-name norecord)))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

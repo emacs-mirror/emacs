@@ -884,7 +884,7 @@
 1998-07-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/kkc.el (kkc-region): Handled the case that
-	conversion is cancelled.
+	conversion is canceled.
 	(kkc-terminate): Update kkc-overlay-head correctly.
 	(kkc-cancel): Don't call kkc-terminate, but set kkc-converting to nil.
 
@@ -1012,7 +1012,7 @@
 	bindings for quail-execute-non-quail-command deleted.
 	(quail-conversion-keymap): Likewise.  Add key bindings for
 	quail-self-insert-command.
-	(quail-delete-overlays): Chekc overlay-start for overlays before
+	(quail-delete-overlays): Check overlay-start for overlays before
 	deleting them.
 	(quail-mode): This function deleted.
 	(quail-inactivate, quail-activate): New functions.
@@ -1230,7 +1230,7 @@
 	indicator regex, Fix line positioning.
 	(speedbar-add-indicator): Handles obj indicators now.
 	(speedbar-check-objects, speedbar-check-obj-this-line): New functions.
-	(speedbar-double-click): Fix tripple click error.
+	(speedbar-double-click): Fix triple click error.
 	(speedbar-line-file, speedbar-goto-this-file): Handle indicator regex.
 	(speedbar-line-path): Only try to get a file when in "files" display.
 	(speedbar-line-depth): Handle indicator regex.
@@ -1902,7 +1902,7 @@
 	(japanese-hankaku-region): Likewise.
 	(japanese-zenkaku-region): Likewise.
 
-1998-06-22  WJCarpenter  <bill@carpenter.ORG>
+1998-06-22  WJ Carpenter  <bill@carpenter.ORG>
 
 	* mail/feedmail.el: New file.
 
@@ -1948,7 +1948,7 @@
 	Add support for loading the files that contain :version when doing
 	`customize-changed-options' so it can know which variables have
 	changed even in files that were not loaded at the time it was called.
-	* cus-edit.el (customize-changed-options): Remeber all the
+	* cus-edit.el (customize-changed-options): Remember all the
 	versions and load the corresponding files before we show the
 	customization buffer.  Change the sorting to show the groups first
 	in the customization buffer.
@@ -2018,7 +2018,7 @@
 1998-06-19  Karl Heuer  <kwzh@gnu.org>
 
 	* emacs-lisp/checkdoc.el (checkdoc-eval-defun): Doc fix.
-	(checkdoc-continue, checkdoc-tripple-semi-comment-check-flag): Ditto.
+	(checkdoc-continue, checkdoc-triple-semi-comment-check-flag): Ditto.
 	(checkdoc-common-verbs-wrong-voice): Use dotted pairs.
 
 1998-06-19  Richard Stallman  <rms@gnu.org>
@@ -4115,7 +4115,7 @@
 
 	* ffap.el (dired-at-point): Add autoload cookie.
 
-1998-04-23  Jens Petersen  <petersen@kurims.kyoto-u.ac.jp>
+1998-04-23  Jens-Ulrik Petersen  <petersen@kurims.kyoto-u.ac.jp>
 
 	* ffap.el (dired-at-point-require-prefix): New option.
 	(dired-at-point): New command.
@@ -4923,10 +4923,10 @@
 	(fortran-blink-matching-if, fortran-blink-matching-do)
 	(fortran-indent-new-line): Bind case-fold-search.
 	(fortran-end-do, fortran-beginning-do, fortran-end-if)
-	(fortran-beginning-if): Bind case-fold-search.  Allow labelled blocks.
+	(fortran-beginning-if): Bind case-fold-search.  Allow labeled blocks.
 	Use fortran-end-prog-re.
 	(fortran-if-start-re): New variable.
-	(fortran-calculate-indent): Allow labelled blocks.  Simplify the conds.
+	(fortran-calculate-indent): Allow labeled blocks.  Simplify the conds.
 	Make select case indentation work.
 	(fortran-is-in-string-p): Ignore Emacs 18 bug kluge.
 	(fortran-fill): Allow double quotes in check for string.
@@ -5859,8 +5859,7 @@
 
 1998-03-05  Sam Steingold  <sds@usa.net>
 
-	* lisp/simple.el (backward-delete-char-untabify-method):
-	New user option.
+	* simple.el (backward-delete-char-untabify-method): New user option.
 	(backward-delete-char-untabify): Obey it.
 	This implements "hungry" delete.
 
@@ -6526,7 +6525,7 @@
 
 	* bibtex.el (bibtex-autokey-get-titles): Non capitalized title words
 	are used for key generation as well.
-	(bibtex-member-of-regexp): Case is honoured for matches now.
+	(bibtex-member-of-regexp): Case is honored for matches now.
 	(bibtex-autokey-titleword-ignore): Added entries provide compatibility
 	to former behavior.
 
@@ -6815,9 +6814,9 @@
 	`reftex-no-include-regexps'.
 	(reftex-no-include-regexps): New option.
 	(reftex-do-parse): Initialize appendix flag.
-	(reftex-parse-from-file): Interprete appendix.
+	(reftex-parse-from-file): Interpret appendix.
 	(reftex-section-info): Use changed version of reftex-section-number.
-	(reftex-where-am-I): Interprete appendix match.
+	(reftex-where-am-I): Interpret appendix match.
 	(reftex-init-section-numbers): New arg: appendix.
 	(reftex-section-number): Treat appendix enumeration.
 	(reftex-toc-external): Improved message.
@@ -7798,10 +7797,10 @@
 
 1997-12-03  Kyle Jones  <kyle_jones@wonderworks.com>
 
-	* lisp/mail/sendmail.el (sendmail-send-it): Parse folded
-	Resent-To header properly; don't ignore folded lines.
+	* mail/sendmail.el (sendmail-send-it):
+	Parse folded Resent-To header properly; don't ignore folded lines.
 
-	* lisp/mail/mail-utils.el (mail-parse-comma-list):
+	* mail/mail-utils.el (mail-parse-comma-list):
 	Treat newlines and tabs as whitespace.
 
 1997-12-03  Richard Stallman  <rms@gnu.org>
@@ -11240,7 +11239,7 @@
 	(reftex-cite-comment-format): New variable.
 	(reftex-cite-punctuation): New variable.
 	(reftex-make-master-buffer): Changed name of master buffer,
-	removed interactive.  Runs a hook on the buffer.  Interprete
+	removed interactive.  Runs a hook on the buffer.  Interpret
 	TEXINPUTS environment variable.  Allow naked argument for \input.
 	Master buffer is now in fundamental mode.
 	(reftex-access-scan-info): Name of master buffer changed.
@@ -11264,9 +11263,9 @@
 	(reftex-allow-for-ctrl-m): New function.
 	(reftex-label-info-update): Allow more general label commands.
 	(reftex-label-info): New parameter derive.
-	(reftex-short-context): Interprete integer parse as nth arg of macro.
+	(reftex-short-context): Interpret integer parse as nth arg of macro.
 	(reftex-nth-parens-substring): New function.
-	(reftex-select-item): Interprete the new 'cnt text property.
+	(reftex-select-item): Interpret the new 'cnt text property.
 	(reftex-pop-to-label): Allow more general label commands.
 	(reftex-nicify-text): Allow more general label commands.
 	(reftex-toc): Remember previous window configuration.  Use text
@@ -12129,7 +12128,7 @@
 
 	* cc-mode.el (c-buffer-is-cc-mode):
 	Definition moved here from cc-vars.el.  Also,
-	put permanent-local property on variable so it's value won't get
+	put permanent-local property on variable so its value won't get
 	killed by kill-all-local-variables.
 
 	* cc-mode.el (c++-mode, java-mode, objc-mode, idl-mode):
@@ -13088,7 +13087,7 @@
 
 1997-07-25  Simon Marshall  <simon@frobnitz.gnu.ai.mit.edu>
 
-	* complete.el: Customise; as subgroup of minibuffer.
+	* complete.el: Customize; as subgroup of minibuffer.
 	(partial-completion-mode): New option to toggle mode.
 	(partial-completion-mode): New command to toggle mode.
 	Add and remove hooks here, i.e., not at the top-level.
@@ -13617,7 +13616,7 @@
 
 1997-07-15  Simon Marshall  <simon@albert.gnu.ai.mit.edu>
 
-	* mouse-sel.el: Customise; create mouse-sel as subgroup of mouse.
+	* mouse-sel.el: Customize; create mouse-sel as subgroup of mouse.
 	(mouse-sel-mode): New option to toggle mode.
 	(mouse-sel-mode): New command to toggle mode.
 	(mouse-sel-set-selection-function): If mouse-sel-default-bindings is
@@ -13625,7 +13624,7 @@
 	(mouse-sel-bindings): New function to install/restore mouse bindings.
 	This is called by mouse-sel-mode, i.e., not at the top-level.
 
-	* delsel.el: Customise; as part of editing-basics group.
+	* delsel.el: Customize; as part of editing-basics group.
 	(delete-selection-mode): Convert to autoloaded option.  Default to nil.
 	(delete-selection-mode): Define before option.
 	Modify pre-command-hook here, i.e., not at the top-level.
@@ -13739,7 +13738,7 @@
 	(isearch-toggle-specified-input-method): Set the above variables.
 	(isearch-toggle-input-method): Likewise.
 	(isearch-process-search-multibyte-characters): Give
-	iseach-input-method as arg to read-multilingual-string.
+	isearch-input-method as arg to read-multilingual-string.
 
 	* international/mule-cmds.el (read-multilingual-string): Adjusted
 	for the previous change of variables related to input methods.
@@ -14943,7 +14942,7 @@
 	paren-matching) and put all blink-matching-paren variables in the
 	former (as opposed to the latter) group.
 
-	* paren.el: Customise; paren-showing as a subgroup of paren-matching.
+	* paren.el: Customize; paren-showing as a subgroup of paren-matching.
 	(show-paren-style): New variable.
 	(show-paren-match-face)
 	(show-paren-mismatch-face): New faces.
@@ -15185,7 +15184,7 @@
 1997-06-16  Dan Nicolaescu  <done@ece.arizona.edu>
 
 	* icon.el (icon-indent-line): A comment ends at the end of the
-	line, delete call to inexistent function.
+	line, delete call to nonexistent function.
 
 	* icon.el (icon-font-lock-keywords-1): Improved regexp.
 	(icon-font-lock-keywords-2): Likewise.
@@ -18065,7 +18064,7 @@
 	have KEY.
 	(current-input-method-title): Doc-string modified.
 	(select-input-method): Set current-input-method to nil even if
-	inactivation of the current input method failed.
+	deactivation of the current input method failed.
 	(set-language-environment): Doc-string modified.
 	(describe-language-support): Doc-string modified.  Calls an
 	appropriate function for each language.
@@ -18871,7 +18870,7 @@
 
 1997-04-16  Simon Marshall  <simon@wombat.gnu.ai.mit.edu>
 
-	* font-lock.el: Customise.
+	* font-lock.el: Customize.
 	(font-lock-defaults-alist): Leave ~ syntax alone in C++.
 	(font-lock-match-c++-style-declaration-item-and-skip-to-next): Match ~
 	characters here.
@@ -18883,10 +18882,10 @@
 	(font-lock-compile-keywords): Don't set font-lock-keywords.
 	(font-lock-fontify-keywords-region): Set it here.
 
-	* fast-lock.el: Customise.
+	* fast-lock.el: Customize.
 	(fast-lock-cache-data): Simplify calls of font-lock-compile-keywords.
 
-	* lazy-lock.el: Customise.
+	* lazy-lock.el: Customize.
 	(lazy-lock-fontify-conservatively): Fontify around WINDOW's point.
 
 	* shell.el (shell-font-lock-keywords): Use EVAL form for prompt.
@@ -19394,7 +19393,7 @@
 	* loadup.el: Load language/english and language/tibetan.
 
 	* mule-cmds.el: Prefix for Mule related commands is changed.
-	(view-hello-file): Allways does correct decoding of HELLO file.
+	(view-hello-file): Always does correct decoding of HELLO file.
 
 	* mule-conf.el: Change descriptions for Arabic, Indian, and
 	Vietnamese character sets.  Define Tibetan character sets.
@@ -19534,7 +19533,7 @@
 	the innermost test.  This catches GNU-style comments.
 
 	* cc-mode.el (c-add-syntax):
-	Move macro definition to before it's first use.
+	Move macro definition to before its first use.
 
 	* cc-mode.el (c-submit-bug-report):
 	Capture buffer local variable values which are
@@ -19552,7 +19551,7 @@
 	* term.el: Added a lot of new faces, they all start with
 	term- and follow a simple lexicographical convention.  Note that
 	each change is commented: just search for -mm in the source.
-	(term-char-mode): Added all the "grey-keys" to term-raw-map.
+	(term-char-mode): Added all the "gray-keys" to term-raw-map.
 	(term-send-up): Similar, decided to go for the more xterm-like
 	\eOA bindings in place of the previous \e[A.
 	(term-buffer-maximum-size): New variable.
@@ -21766,9 +21765,9 @@
 
 	* f90.el (f90-no-block-limit): Fixed bug for indentation of
 	elsewhere and elseif.
-	(f90-looking-at-where-or-forall): Now allows for labelled forall
+	(f90-looking-at-where-or-forall): Now allows for labeled forall
 	and where statements.
-	(f90-font-lock-keywords-2): New highlighting for labelled where
+	(f90-font-lock-keywords-2): New highlighting for labeled where
 	and forall.  Fixed small bug with else highlighting.
 	(f90-fill-region): Moved indentation to f90-break-line.
 	(f90-break-line): Will now always indent the second line.
@@ -22110,7 +22109,7 @@
 1996-09-27  Jacques Duthen  <duthen@cegelec-red.fr>
 
 	* ps-print.el
-	(ps-print-prologue-1): Fix bug in postscript comment lines.
+	(ps-print-prologue-1): Fix bug in PostScript comment lines.
 	(ps-nb-pages): Call ps-setup _before_ switching to the other
 	buffer, because of buffer variables.
 
@@ -22123,7 +22122,7 @@
 	(ps-page-height-i, ps-page-width-i): Variables deleted.
 	(ps-print-prologue): Variable deleted.
 	(ps-print-prologue-1, ps-print-prologue-2): New variables.
-	Major rewrite of the postscript code to handle landscape mode,
+	Major rewrite of the PostScript code to handle landscape mode,
 	multiple columns and new font management.
 	(ps-landscape-mode, ps-number-of-columns, ps-inter-column): New
 	variables.
@@ -22136,7 +22135,7 @@
 	(ps-header-font, ps-landscape-page-height): New internal variables.
 	(ps-top-margin): Change its semantics.  It is now really the top
 	margin, not anymore twice the top margin.
-	(/ReportAllFontInfo): New postscript function to get all the font
+	(/ReportAllFontInfo): New PostScript function to get all the font
 	families of the printer.
 	(ps-setup): New function.
 	(ps-line-lengths, ps-nb-pages-buffer, ps-nb-pages-region): New
@@ -23107,7 +23106,7 @@ See ChangeLog.6 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-	Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
+	Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -23123,4 +23122,3 @@ See ChangeLog.6 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

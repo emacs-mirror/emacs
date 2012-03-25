@@ -1,5 +1,5 @@
 /* Add entries to the GNU Emacs Program Manager folder.
-   Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -250,7 +250,7 @@ main (int argc, char *argv[])
 			       MB_OKCANCEL | MB_ICONQUESTION);
 	  if (result != IDOK)
 	    {
-	      fprintf (stderr, "Install cancelled\n");
+	      fprintf (stderr, "Install canceled\n");
 	      exit (1);
 	    }
 	}
@@ -365,4 +365,3 @@ main (int argc, char *argv[])
 
   return 0;
 }
-

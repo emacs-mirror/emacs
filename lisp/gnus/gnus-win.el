@@ -1,6 +1,6 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -54,7 +54,7 @@
   :type 'boolean)
 
 (defcustom gnus-use-frames-on-any-display nil
-  "*If non-nil, frames on all displays will be considered useable by Gnus.
+  "*If non-nil, frames on all displays will be considered usable by Gnus.
 When nil, only frames on the same display as the selected frame will be
 used to display Gnus windows."
   :version "22.1"
@@ -242,7 +242,7 @@ See the Gnus manual for an explanation of the syntax used.")
   (let* ((current-window (or (get-buffer-window (current-buffer)) (selected-window)))
          (window (or window current-window)))
     (select-window window)
-    ;; The SPLIT might be something that is to be evaled to
+    ;; The SPLIT might be something that is to be evalled to
     ;; return a new SPLIT.
     (while (and (not (assq (car split) gnus-window-to-buffer))
 		(symbolp (car split)) (fboundp (car split)))
@@ -358,8 +358,13 @@ See the Gnus manual for an explanation of the syntax used.")
 (defvar gnus-frame-split-p nil)
 
 (defun gnus-configure-windows (setting &optional force)
-  (if (window-configuration-p setting)
-      (set-window-configuration setting)
+  (cond
+   ((null setting)
+    ;; Do nothing.
+    )
+   ((window-configuration-p setting)
+    (set-window-configuration setting))
+   (t
     (setq gnus-current-window-configuration setting)
     (setq force (or force gnus-always-force-window-configuration))
     (let ((split (if (symbolp setting)
@@ -410,7 +415,7 @@ See the Gnus manual for an explanation of the syntax used.")
           (run-hooks 'gnus-configure-windows-hook)
           (when gnus-window-frame-focus
             (gnus-select-frame-set-input-focus
-             (window-frame gnus-window-frame-focus))))))))
+             (window-frame gnus-window-frame-focus)))))))))
 
 (defun gnus-delete-windows-in-gnusey-frames ()
   "Do a `delete-other-windows' in all frames that have Gnus windows."
@@ -442,7 +447,7 @@ should have point."
       (when (consp (car split))
 	(push 1.0 split)
 	(push 'vertical split))
-      ;; The SPLIT might be something that is to be evaled to
+      ;; The SPLIT might be something that is to be evalled to
       ;; return a new SPLIT.
       (while (and (not (assq (car split) gnus-window-to-buffer))
 		  (symbolp (car split)) (fboundp (car split)))
@@ -459,6 +464,7 @@ should have point."
 	(unless buffer
 	  (error "Invalid buffer type: %s" type))
 	(if (and (setq buf (get-buffer (gnus-window-to-buffer-helper buffer)))
+		 (buffer-live-p buf)
 		 (setq win (gnus-get-buffer-window buf t)))
 	    (if (memq 'point split)
 		(setq all-visible win))

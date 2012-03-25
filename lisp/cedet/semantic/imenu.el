@@ -1,6 +1,6 @@
 ;;; semantic/imenu.el --- Use Semantic as an imenu tag generator
 
-;;; Copyright (C) 2000-2005, 2007-2008, 2010-2011
+;;; Copyright (C) 2000-2005, 2007-2008, 2010-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -96,7 +96,7 @@ This option is ignored if `semantic-imenu-bucketize-file' is nil."
 (defcustom semantic-imenu-bucketize-type-members t
   "*Non-nil if members of a type should be grouped into buckets.
 A nil value means to keep them in the same order.
-Overriden to nil if `semantic-imenu-bucketize-file' is nil."
+Overridden to nil if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
 (make-variable-buffer-local 'semantic-imenu-bucketize-type-members)
@@ -368,7 +368,7 @@ Optional argument PARENT is a tag parent of STREAM."
                      semantic-imenu-expandable-tag-classes)
 	       children
                )
-          ;; to keep an homogeneous menu organisation, type menu items
+          ;; to keep an homogeneous menu organization, type menu items
           ;; always have a sub-menu with at least the *definition*
           ;; item (even if the tag has no type components)
 	  (progn
@@ -393,7 +393,7 @@ Optional argument PARENT is a tag parent of STREAM."
 					semantic-imenu-bucketize-file)
 				   (semantic-create-imenu-index-1 parts tag)
 				 (semantic-create-imenu-subindex parts))))
-			  ;; Only add a *definition* if we have a postion
+			  ;; Only add a *definition* if we have a position
 			  ;; in that type tag.
 			  (if (semantic-tag-with-position-p tag)
 			      (cons

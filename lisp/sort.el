@@ -1,6 +1,6 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986-1987, 1994-1995, 2001-2011
+;; Copyright (C) 1986-1987, 1994-1995, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Howie Kaye
@@ -423,7 +423,7 @@ For example: to sort lines in the region by the first word on each line
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
-  (interactive "P\nsRegexp specifying records to sort:
+  (interactive "P\nsRegexp specifying records to sort: \n\
 sRegexp specifying key within record: \nr")
   (cond ((or (equal key-regexp "") (equal key-regexp "\\&"))
 	 (setq key-regexp 0))

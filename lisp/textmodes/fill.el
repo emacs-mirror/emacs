@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs		-*- coding: utf-8 -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2011
+;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -82,7 +82,7 @@ reinserts the fill prefix in each resulting line."
       (setq fill-prefix nil)))
   (if fill-prefix
       (message "fill-prefix: \"%s\"" fill-prefix)
-    (message "fill-prefix cancelled")))
+    (message "fill-prefix canceled")))
 
 (defcustom adaptive-fill-mode t
   "Non-nil means determine a paragraph's fill prefix from its text."
@@ -93,7 +93,8 @@ reinserts the fill prefix in each resulting line."
   ;; Added `!' for doxygen comments starting with `//!' or `/*!'.
   ;; Added `%' for TeX comments.
   ;; RMS: deleted the code to match `1.' and `(1)'.
-  (purecopy "[ \t]*\\([-!|#%;>*·•‣⁃◦]+[ \t]*\\)*")
+  ;; Update mail-mode's paragraph-separate if you change this.
+  (purecopy "[ \t]*\\([-–!|#%;>*·•‣⁃◦]+[ \t]*\\)*")
   "Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, a prefix matching this pattern
 on the first and second lines of a paragraph is used as the
@@ -383,7 +384,7 @@ and `fill-nobreak-invisible'."
   "Char-table of characters that don't use space between words.")
 
 (progn
-  ;; Register `kinsoku' for scripts HAN, KANA, BOPOMPFO, and CJK-MISS.
+  ;; Register `kinsoku' for scripts HAN, KANA, BOPOMOFO, and CJK-MISC.
   ;; Also tell that they don't use space between words.
   (map-char-table
    #'(lambda (key val)
@@ -469,7 +470,7 @@ Point is moved to just past the fill prefix on the first line."
 
   (goto-char from)
   (if enable-multibyte-characters
-      ;; Delete unnecessay newlines surrounded by words.  The
+      ;; Delete unnecessary newlines surrounded by words.  The
       ;; character category `|' means that we can break a line at the
       ;; character.  And, char-table
       ;; `fill-nospace-between-words-table' tells how to concatenate

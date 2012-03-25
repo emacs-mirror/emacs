@@ -1,7 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -24,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This code implements GNU Emacs' on-line help system, the one invoked by
+;; This code implements GNU Emacs's on-line help system, the one invoked by
 ;; `M-x help-for-help'.
 
 ;;; Code:
@@ -36,17 +35,6 @@
 ;; This makes `with-output-to-temp-buffer' buffers use `help-mode'.
 (add-hook 'temp-buffer-setup-hook 'help-mode-setup)
 (add-hook 'temp-buffer-show-hook 'help-mode-finish)
-
-;; The variable `help-window' below is used by `help-mode-finish' to
-;; communicate the window displaying help (the "help window") to the
-;; macro `with-help-window'.  The latter sets `help-window' to t before
-;; invoking `with-output-to-temp-buffer'.  If and only if `help-window'
-;; is eq to t, `help-mode-finish' (called by `temp-buffer-setup-hook')
-;; sets `help-window' to the window selected by `display-buffer'.
-;; Exiting `with-help-window' and calling `help-print-return-message'
-;; reset `help-window' to nil.
-(defvar help-window nil
-  "Window chosen for displaying help.")
 
 ;; `help-window-point-marker' is a marker you can move to a valid
 ;; position of the buffer shown in the help window in order to override
@@ -132,7 +120,7 @@
   "What to do to \"exit\" the help buffer.
 This is a list
  (WINDOW . t)              delete the selected window (and possibly its frame,
-                           see `quit-window' and `View-quit'), go to WINDOW.
+                           see `quit-window'), go to WINDOW.
  (WINDOW . quit-window)    do quit-window, then select WINDOW.
  (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
 
@@ -527,7 +515,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
   (unless definition (error "No command"))
   (let ((func (indirect-function definition))
         (defs nil)
-        (standard-output (if insert (current-buffer) t)))
+        (standard-output (if insert (current-buffer) standard-output)))
     ;; In DEFS, find all symbols that are aliases for DEFINITION.
     (mapatoms (lambda (symbol)
 		(and (fboundp symbol)
@@ -625,7 +613,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		    (aref key 1)
 		  (aref key 0)))
 	 (modifiers (event-modifiers event))
-	 (standard-output (if insert (current-buffer) t))
+	 (standard-output (if insert (current-buffer) standard-output))
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
 			    (memq 'drag modifiers)) " at that spot" ""))
 	 (defn (key-binding key t))
@@ -980,7 +968,7 @@ This is effective only when Temp Buffer Resize mode is enabled.
 The value is the maximum height (in lines) which
 `resize-temp-buffer-window' will give to a window displaying a
 temporary buffer.  It can also be a function to be called to
-choose the height for such a buffer.  It gets one argumemt, the
+choose the height for such a buffer.  It gets one argument, the
 buffer, and should return a positive integer.  At the time the
 function is called, the window to be resized is selected."
   :type '(choice integer function)
@@ -988,13 +976,15 @@ function is called, the window to be resized is selected."
   :version "20.4")
 
 (define-minor-mode temp-buffer-resize-mode
-  "Toggle mode which makes windows smaller for temporary buffers.
-With prefix argument ARG, turn the resizing of windows displaying
-temporary buffers on if ARG is positive or off otherwise.
+  "Toggle auto-shrinking temp buffer windows (Temp Buffer Resize mode).
+With a prefix argument ARG, enable Temp Buffer Resize mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
-This mode makes a window the right height for its contents, but
-never more than `temp-buffer-max-height' nor less than
-`window-min-height'.
+When Temp Buffer Resize mode is enabled, the windows in which we
+show a temporary buffer are automatically reduced in height to
+fit the buffer's contents, but never more than
+`temp-buffer-max-height' nor less than `window-min-height'.
 
 This mode is used by `help', `apropos' and `completion' buffers,
 and some others."
@@ -1012,7 +1002,7 @@ than `window-min-height'.  Do nothing if the selected window is
 not vertically combined or some of its contents are scrolled out
 of view."
   (when (and (pos-visible-in-window-p (point-min))
-	     (window-iso-combined-p))
+	     (window-combined-p))
     (fit-window-to-buffer
      nil
      (if (functionp temp-buffer-max-height)
@@ -1060,14 +1050,13 @@ window."
     (message "%s"
      (substitute-command-keys (concat quit-part scroll-part)))))
 
-(defun help-window-setup ()
+(defun help-window-setup (help-window)
   "Set up help window for `with-help-window'.
-This relies on `display-buffer-window' being correctly set up by
-`display-buffer'."
-  (let* ((help-window (car-safe display-buffer-window))
-	 (help-buffer (when (window-live-p help-window)
+HELP-WINDOW is the window used for displaying the help buffer."
+  (let* ((help-buffer (when (window-live-p help-window)
 			(window-buffer help-window)))
-	 (help-value (cdr-safe display-buffer-window)))
+	 (help-setup (when (window-live-p help-window)
+		       (car (window-parameter help-window 'quit-restore)))))
     (when help-buffer
       ;; Handle `help-window-point-marker'.
       (when (eq (marker-buffer help-window-point-marker) help-buffer)
@@ -1078,6 +1067,7 @@ This relies on `display-buffer-window' being correctly set up by
       (cond
        ((or (eq help-window (selected-window))
 	    (and (or (eq help-window-select t)
+		     (eq help-setup 'frame)
 		     (and (eq help-window-select 'other)
 			  (eq (window-frame help-window) (selected-frame))
 			  (> (length (window-list nil 'no-mini)) 2)))
@@ -1085,13 +1075,12 @@ This relies on `display-buffer-window' being correctly set up by
 	;; The help window is or gets selected ...
 	(help-window-display-message
 	 (cond
-	  ((eq help-value 'new-window)
+	  ((eq help-setup 'window)
 	   ;; ... and is new, ...
-	   "Type \"q\" to delete this window")
-	  ((eq help-value 'new-frame)
-	   ;; ... is on a new frame ...
-	   "Type \"q\" to delete this frame")
-	  ((eq help-value 'reuse-other-window)
+	   "Type \"q\" to delete help window")
+	  ((eq help-setup 'frame)
+	   "Type \"q\" to delete help frame")
+	  ((eq help-setup 'other)
 	   ;; ... or displayed some other buffer before.
 	   "Type \"q\" to restore previous buffer"))
 	 help-window t))
@@ -1101,15 +1090,22 @@ This relies on `display-buffer-window' being correctly set up by
 	;; other one is the selected one.
 	(help-window-display-message
 	 (cond
-	  ((eq help-value 'new-window)
+	  ((eq help-setup 'window)
 	   "Type \\[delete-other-windows] to delete the help window")
-	  ((eq help-value 'reuse-other-window)
-	   "Type \\[switch-to-prev-buffer] RET to restore previous buffer"))
+	  ((eq help-setup 'other)
+	   "Type \"q\" in help window to restore its previous buffer"))
 	 help-window 'other))
        (t
-	;; Not much to say here.
+	;; The help window is not selected ...
 	(help-window-display-message
-	 "Type \"q\" in help window to quit" help-window))))))
+	 (cond
+	  ((eq help-setup 'window)
+	   ;; ... and is new, ...
+	   "Type \"q\" in help window to delete it")
+	  ((eq help-setup 'other)
+	   ;; ... or displayed some other buffer before.
+	   "Type \"q\" in help window to restore previous buffer"))
+	 help-window))))))
 
 ;; `with-help-window' is a wrapper for `with-output-to-temp-buffer'
 ;; providing the following additional twists:
@@ -1128,24 +1124,21 @@ This relies on `display-buffer-window' being correctly set up by
 (defmacro with-help-window (buffer-name &rest body)
   "Display buffer with name BUFFER-NAME in a help window evaluating BODY.
 Select help window if the actual value of the user option
-`help-window-select' says so.  Return last value in BODY.
-
-You can specify where and how to show the buffer by binding the
-variable `temp-buffer-show-specifiers' to an appropriate value."
+`help-window-select' says so.  Return last value in BODY."
   (declare (indent 1) (debug t))
   `(progn
-     ;; Reset `display-buffer-window': `display-buffer' is
-     ;; supposed to set this to the window displaying the buffer plus
-     ;; some additional information.
-     (setq display-buffer-window nil)
      ;; Make `help-window-point-marker' point nowhere.  The only place
      ;; where this should be set to a buffer position is within BODY.
      (set-marker help-window-point-marker nil)
-     (prog1
-	 ;; Return value returned by `with-output-to-temp-buffer'.
-	 (with-output-to-temp-buffer ,buffer-name
-	   (progn ,@body))
-       (when display-buffer-window (help-window-setup)))))
+     (let* (help-window
+            (temp-buffer-show-hook
+             (cons (lambda () (setq help-window (selected-window)))
+                   temp-buffer-show-hook)))
+       ;; Return value returned by `with-output-to-temp-buffer'.
+       (prog1
+	   (with-output-to-temp-buffer ,buffer-name
+	     (progn ,@body))
+	 (help-window-setup help-window)))))
 
 ;; Called from C, on encountering `help-char' when reading a char.
 ;; Don't print to *Help*; that would clobber Help history.

@@ -1,6 +1,6 @@
 ;;; reftex-sel.el --- the selection modes for RefTeX
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -570,13 +570,13 @@ Useful for large TOC's."
    nil t)
   (beginning-of-line))
 (defun reftex-select-next-heading (&optional arg)
-  "Move to next table of contentes line."
+  "Move to next table of contents line."
   (interactive "p")
   (end-of-line)
   (re-search-forward "^ " nil t arg)
   (beginning-of-line))
 (defun reftex-select-previous-heading (&optional arg)
-  "Move to previous table of contentes line."
+  "Move to previous table of contents line."
   (interactive "p")
   (re-search-backward "^ " nil t arg))
 (defun reftex-select-quit ()

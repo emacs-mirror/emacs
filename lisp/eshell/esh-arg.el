@@ -1,6 +1,6 @@
 ;;; esh-arg.el --- argument processing
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -202,6 +202,18 @@ If POS is nil, the location of point is checked."
     (or (= pos (point-max))
 	(memq (char-after pos) eshell-delimiter-argument-list))))
 
+(defun eshell-quote-argument (string)
+  "Return STRING with magic characters quoted.
+Magic characters are those in `eshell-special-chars-outside-quoting'."
+  (let ((index 0))
+    (mapconcat (lambda (c)
+		 (prog1
+		     (or (eshell-quote-backslash string index)
+			 (char-to-string c))
+		   (setq index (1+ index))))
+	       string
+	       "")))
+
 ;; Argument parsing
 
 (defun eshell-parse-arguments (beg end)
@@ -311,7 +323,7 @@ special character that is not itself a backslash."
 		  (char-to-string (char-before))))
 	;; allow \\<RET> to mean a literal "\" character followed by a
 	;; normal return, rather than a backslash followed by a line
-	;; continuator (i.e., "\\ + \n" rather than "\ + \\n").  This
+	;; continuation (i.e., "\\ + \n" rather than "\ + \\n").  This
 	;; is necessary because backslashes in Eshell are not special
 	;; unless they either precede something special, or precede a
 	;; backslash that precedes something special.  (Mainly this is

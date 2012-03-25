@@ -485,7 +485,6 @@ Lisp_Object
 char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
-  Lisp_Object *contents = tbl->contents;
 
   if (from == to)
     char_table_set (table, from, val);
@@ -590,8 +589,6 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
   (Lisp_Object char_table, Lisp_Object n, Lisp_Object value)
 {
   CHECK_CHAR_TABLE (char_table);
-  if (EQ (XCHAR_TABLE (char_table)->purpose, Qchar_code_property_table))
-    error ("Can't change extra-slot of char-code-property-table");
   CHECK_NUMBER (n);
   if (XINT (n) < 0
       || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))
@@ -750,7 +747,7 @@ equivalent and can be merged.  It defaults to `equal'.  */)
    ARG is passed to C_FUNCTION when that is called.
 
    It returns the value of last character covered by TABLE (not the
-   value inheritted from the parent), and by side-effect, the car part
+   value inherited from the parent), and by side-effect, the car part
    of RANGE is updated to the minimum character C where C and all the
    following characters in TABLE have the same value.  */
 
@@ -759,11 +756,9 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 		    Lisp_Object function, Lisp_Object table, Lisp_Object arg, Lisp_Object val,
 		    Lisp_Object range, Lisp_Object top)
 {
-  /* Pointer to the elements of TABLE. */
-  Lisp_Object *contents;
   /* Depth of TABLE.  */
   int depth;
-  /* Minimum and maxinum characters covered by TABLE. */
+  /* Minimum and maximum characters covered by TABLE. */
   int min_char, max_char;
   /* Number of characters covered by one element of TABLE.  */
   int chars_in_block;
@@ -777,14 +772,12 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
       struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
 
       depth = XINT (tbl->depth);
-      contents = tbl->contents;
       min_char = XINT (tbl->min_char);
       max_char = min_char + chartab_chars[depth - 1] - 1;
     }
   else
     {
       depth = 0;
-      contents = XCHAR_TABLE (table)->contents;
       min_char = 0;
       max_char = MAX_CHAR;
     }
@@ -1100,21 +1093,30 @@ map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
 
 /* Unicode character property tables.
 
-   This section provides a convenient and efficient way to get a
-   Unicode character property from C code (from Lisp, you must use
-   get-char-code-property).
+   This section provides a convenient and efficient way to get Unicode
+   character properties of characters from C code (from Lisp, you must
+   use get-char-code-property).
 
-   The typical usage is to get a char-table for a specific property at
-   a proper initialization time as this:
+   The typical usage is to get a char-table object for a specific
+   property like this (use of the "bidi-class" property below is just
+   an example):
 
 	Lisp_Object bidi_class_table = uniprop_table (intern ("bidi-class"));
 
-   and get a property value for character CH as this:
+   (uniprop_table can return nil if it fails to find data for the
+   named property, or if it fails to load the appropriate Lisp support
+   file, so the return value should be tested to be non-nil, before it
+   is used.)
 
-	Lisp_Object bidi_class = CHAR_TABLE_REF (CH, bidi_class_table);
+   To get a property value for character CH use CHAR_TABLE_REF:
+
+	Lisp_Object bidi_class = CHAR_TABLE_REF (bidi_class_table, CH);
 
    In this case, what you actually get is an index number to the
    vector of property values (symbols nil, L, R, etc).
+
+   The full list of Unicode character properties supported by Emacs is
+   documented in the ELisp manual, in the node "Character Properties".
 
    A table for Unicode character property has these characteristics:
 
@@ -1127,7 +1129,7 @@ map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
    means that we don't have to decode values.
 
    o The third extra slot is a Lisp function, an index (integer) to
-   the array uniprop_enncoder[], or nil.  If it is a Lisp function, we
+   the array uniprop_encoder[], or nil.  If it is a Lisp function, we
    can't use such a table from C (at the moment).  If it is nil, it
    means that we don't have to encode values.  */
 
@@ -1143,7 +1145,6 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
   Lisp_Object sub = make_sub_char_table (3, min_char, Qnil);
   struct Lisp_Sub_Char_Table *subtbl = XSUB_CHAR_TABLE (sub);
   const unsigned char *p, *pend;
-  int i;
 
   XSUB_CHAR_TABLE (table)->contents[idx] = sub;
   p = SDATA (val), pend = p + SBYTES (val);
@@ -1195,7 +1196,7 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
 }
 
 
-/* Decode VALUE as an elemnet of char-table TABLE.  */
+/* Decode VALUE as an element of char-table TABLE.  */
 
 static Lisp_Object
 uniprop_decode_value_run_length (Lisp_Object table, Lisp_Object value)

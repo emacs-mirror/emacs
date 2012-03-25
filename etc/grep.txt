@@ -84,7 +84,7 @@ grep -nH -e "xyzxyz" ../info/*
 
 
 
-Copyright (C) 2005-2011  Free Software Foundation, Inc.
+Copyright (C) 2005-2012  Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 
@@ -103,5 +103,6 @@ COPYING PERMISSIONS:
 
 
 ;;; Local Variables:
+;;; eval: (let ((inhibit-read-only t) (compilation-filter-start (point-min))) (save-excursion (goto-char (point-max)) (grep-filter) (set-buffer-modified-p nil)))
 ;;; buffer-read-only: t
 ;;; End:

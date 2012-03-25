@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2011
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -677,8 +677,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
     (put-text-property start end 'latex-env-pair t)))
 
 (define-minor-mode latex-electric-env-pair-mode
-  "Automatically update the \\end arg when editing the \\begin one.
-And vice-versa."
+  "Toggle Latex Electric Env Pair mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable it if ARG
+is omitted or nil.
+
+Latex Electric Env Pair mode is a buffer-local minor mode for use
+with `latex-mode'.  When enabled, typing a \\begin or \\end tag
+automatically inserts its partner."
   :lighter "/e"
   (if latex-electric-env-pair-mode
       (add-hook 'before-change-functions
@@ -1865,7 +1871,7 @@ Mark is left at original location."
      tex-old-error-file-name 2 nil 1 1
      (2 compilation-warning-face))
     ;; Included files get output as (<file> ...).
-    ;; FIXME: there tend to be a crapload of them at the beginning of the
+    ;; FIXME: there tend to be a boatload of them at the beginning of the
     ;; output which aren't that interesting.  Maybe we should filter out
     ;; all the file name that start with /usr/share?
     ;; ("(\\.?/\\([^() \n]+\\)" 1 nil nil 0)
@@ -2248,7 +2254,7 @@ Only applies the FSPEC to the args part of FORMAT."
     ;; Remove those commands whose input was considered stable for
     ;; some other command (typically if (t . "%.pdf") is inactive
     ;; then we're using pdflatex and the fact that the dvi file
-    ;; is inexistent doesn't matter).
+    ;; is nonexistent doesn't matter).
     (let ((tmp nil))
       (dolist (cmd cmds)
 	(unless (member (nth 1 cmd) unchanged-in)

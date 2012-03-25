@@ -1,6 +1,6 @@
 ;;; lpr.el --- print Emacs buffer on line printer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2011
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -33,11 +33,13 @@
 
 ;;;###autoload
 (defvar lpr-windows-system
-  (memq system-type '(ms-dos windows-nt)))
+  (memq system-type '(ms-dos windows-nt))
+  "Non-nil if running on MS-DOS or MS Windows.")
 
 ;;;###autoload
 (defvar lpr-lp-system
-  (memq system-type '(usg-unix-v hpux irix)))
+  (memq system-type '(usg-unix-v hpux irix))
+  "Non-nil if running on a system type that uses the \"lp\" command.")
 
 
 (defgroup lpr nil

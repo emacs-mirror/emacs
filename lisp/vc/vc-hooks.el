@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992-1996, 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2012  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -72,7 +72,7 @@ An empty list disables VC altogether."
   :group 'vc)
 
 ;; Note: we don't actually have a darcs back end yet.
-;; Also, Meta-CVS (corresponsding to MCVS) is unsupported.
+;; Also, Meta-CVS (corresponding to MCVS) is unsupported.
 (defcustom vc-directory-exclusion-list (purecopy '("SCCS" "RCS" "CVS" "MCVS"
 					 ".svn" ".git" ".hg" ".bzr"
 					 "_MTN" "_darcs" "{arch}"))
@@ -114,9 +114,9 @@ Otherwise, not displayed."
   :group 'vc)
 
 (defcustom vc-keep-workfiles t
-  "If non-nil, don't delete working files after registering changes.
-If the back-end is CVS, workfiles are always kept, regardless of the
-value of this flag."
+  "Whether to keep work files on disk after commits, on a locking VCS.
+This variable has no effect on modern merging-based version
+control systems."
   :type 'boolean
   :group 'vc)
 
@@ -456,8 +456,8 @@ For registered files, the value returned is one of:
   'edited            The working file has been edited by the user.  If
                      locking is used for the file, this state means that
                      the current version is locked by the calling user.
-                     This status should *not* be reported for files 
-                     which have a changed mtime but the same content 
+                     This status should *not* be reported for files
+                     which have a changed mtime but the same content
                      as the repo copy.
 
   USER               The current version of the working file is locked by
@@ -648,22 +648,8 @@ this function."
 	       (throw 'found trial))))
        templates))))
 
-(defun vc-toggle-read-only (&optional verbose)
-  "Change read-only status of current buffer, perhaps via version control.
-
-If the buffer is visiting a file registered with version control,
-throw an error, because this is not a safe or really meaningful operation
-on any version-control system newer than RCS.
-
-Otherwise, just change the read-only flag of the buffer.
-
-If you bind this function to \\[toggle-read-only], then Emacs
-will properly intercept all attempts to toggle the read-only flag
-on version-controlled buffer."
-  (interactive "P")
-  (if (vc-backend buffer-file-name)
-      (error "Toggling the readability of a version controlled file is likely to wreak havoc")
-    (toggle-read-only)))
+(define-obsolete-function-alias
+  'vc-toggle-read-only 'toggle-read-only "24.1")
 
 (defun vc-default-make-version-backups-p (backend file)
   "Return non-nil if unmodified versions should be backed up locally.
@@ -955,7 +941,7 @@ current, and kill the buffer that visits the link."
     (define-key map "~" 'vc-revision-other-window)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
-(define-key global-map "\C-xv" 'vc-prefix-map)
+(define-key ctl-x-map "v" 'vc-prefix-map)
 
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))

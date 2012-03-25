@@ -3479,7 +3479,7 @@
 	a workaround for SunOS 4's cc.
 	(CCL_CALL_FOR_MAP_INSTRUCTION): Use "if (1)..." not "do {...".
 	(CCL_SUCCESS, CCL_SUSPEND, CCL_INVALID_CMD): Likewise.
-	(ccl_driver) <CCL_ReadMultibyteChar2>: Remove unnecessay "do"
+	(ccl_driver) <CCL_ReadMultibyteChar2>: Remove unnecessary "do"
 	statement.
 
 2001-01-23  Gerd Moellmann  <gerd@gnu.org>
@@ -4617,7 +4617,7 @@
 	* lisp.h (detect_coding_system): Prototype adjusted.
 
 	* coding.c (ONE_MORE_BYTE_CHECK_MULTIBYTE): New macro.
-	(detect_coding_emacs_mule, detect_coding_iso2022,)
+	(detect_coding_emacs_mule, detect_coding_iso2022)
 	(detect_coding_sjis, detect_coding_big5, detect_coding_utf_8)
 	(detect_coding_utf_16, detect_coding_ccl): Make them static.
 	New argument MULTIBYTEP.  Callers changed.
@@ -5150,7 +5150,7 @@
 2000-11-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_load_system_font): Always mark font as double byte
-	if codepage is unicode.
+	if codepage is Unicode.
 
 2000-11-27  Gerd Moellmann  <gerd@gnu.org>
 
@@ -8409,7 +8409,7 @@
 	(encode_coding_iso2022): New local variable safe_chars.  Check
 	unsafe chars.
 	(setup_coding_system): Delete the code to initialize
-	coding->safe_charses.
+	coding->safe_charsets.
 	(intersection, find_safe_codings): New functions.
 	(Ffind_coding_systems_region_internal): New function.
 	(syms_of_coding): Defsubr it.  Initialize Qsafe_chars,
@@ -10460,7 +10460,7 @@
 	(Fkey_description): Likewise.
 
 	* lread.c (read1): On reading multibyte string, be sure to make
-	all 8-bit chararacters in valid multibyte form.
+	all 8-bit characters in valid multibyte form.
 	(readchar): Use FETCH_STRING_CHAR_ADVANCE unconditionally.
 
 	* print.c (print_object): Use FETCH_STRING_CHAR_ADVANCE
@@ -13294,7 +13294,7 @@ See ChangeLog.8 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; windmove.el --- directional window-selection routines
 ;;
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998
@@ -245,7 +245,7 @@ placement bugs in old versions of Emacs."
 ;; Actually, the whole subject of the minibuffer edge of the frame is
 ;; rather messy.  It turns out that with a sufficiently large delta,
 ;; we can fly off the bottom edge of the frame and miss the minibuffer
-;; altogther.  This, I think, is never right: if there's a minibuffer
+;; altogether.  This, I think, is never right: if there's a minibuffer
 ;; and you're not in it, and you move down, the minibuffer should be
 ;; in your way.
 ;;
@@ -417,17 +417,17 @@ supplied, if ARG is greater or smaller than zero, respectively."
                               (- (nth 3 edges) 1))))
       (cond
        ((> effective-arg 0)
-          top-left)
+	top-left)
        ((< effective-arg 0)
-          bottom-right)
+	bottom-right)
        ((= effective-arg 0)
-          (windmove-coord-add
-             top-left
-	     (let ((col-row
-		    (posn-col-row
-		     (posn-at-point (window-point window) window))))
-	       (cons (- (car col-row) (window-hscroll window))
-		     (cdr col-row)))))))))
+	(windmove-coord-add
+	 top-left
+	 ;; Don't care whether window is horizontally scrolled -
+	 ;; `posn-at-point' handles that already.  See also:
+	 ;; http://lists.gnu.org/archive/html/emacs-devel/2012-01/msg00638.html
+	 (posn-col-row
+	  (posn-at-point (window-point window) window))))))))
 
 ;; This uses the reference location in the current window (calculated
 ;; by `windmove-reference-loc' above) to find a reference location

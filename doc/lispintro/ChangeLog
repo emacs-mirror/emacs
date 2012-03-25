@@ -1,3 +1,34 @@
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Standardize possessive apostrophe usage.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Design @value{COUNT-WORDS}, Syntax)
+	(count-words-in-defun): Fix cross-refs to Emacs manual.
+
+2012-01-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp-intro.texi (Top): Move setting of COUNT-WORDS outside
+	of @menu.  (Bug#10628)
+
+2012-01-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp-intro.texi (count-words-in-defun):
+	Add missing parenthesis (bug#10544).
+
+2012-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (re-search-forward): Fix typo.
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp-intro.texi (etags): Fix typo.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.
@@ -463,7 +494,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

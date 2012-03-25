@@ -1,11 +1,11 @@
 ;;; ob-lob.el --- functions supporting the Library of Babel
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte, Dan Davison
+;; Author: Eric Schulte
+;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -22,15 +22,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary:
-
-;; See the online documentation for more information
-;; 
-;;   http://orgmode.org/worg/org-contrib/babel/
-
 ;;; Code:
+(eval-when-compile
+  (require 'cl))
 (require 'ob)
 (require 'ob-table)
+
+(declare-function org-babel-in-example-or-verbatim "ob-exp" nil)
 
 (defvar org-babel-library-of-babel nil
   "Library of source-code blocks.
@@ -43,11 +41,14 @@ To add files to this list use the `org-babel-lob-ingest' command."
   :group 'org-babel
   :type 'list)
 
+(defvar org-babel-default-lob-header-args '((:exports . "results"))
+  "Default header arguments to use when exporting #+lob/call lines.")
+
 ;;;###autoload
 (defun org-babel-lob-ingest (&optional file)
   "Add all named source-blocks defined in FILE to
 `org-babel-library-of-babel'."
-  (interactive "f")
+  (interactive "fFile: ")
   (let ((lob-ingest-count 0))
     (org-babel-map-src-blocks file
       (let* ((info (org-babel-get-src-block-info 'light))
@@ -62,20 +63,25 @@ To add files to this list use the `org-babel-lob-ingest' command."
 	     lob-ingest-count (if (> lob-ingest-count 1) "s" ""))
     lob-ingest-count))
 
-(defconst org-babel-lob-call-aliases '("lob" "call")
-  "Aliases to call a source block function.
-If you change the value of this variable then your files may
-  become unusable by other org-babel users, and vice versa.")
+(defconst org-babel-block-lob-one-liner-regexp
+  (concat
+   "^\\([ \t]*\\)#\\+call:[ \t]+\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
+   "\(\\([^\n]*\\)\)\\(\\[.+\\]\\|\\)[ \t]*\\(\\([^\n]*\\)\\)?")
+  "Regexp to match non-inline calls to predefined source block functions.")
+
+(defconst org-babel-inline-lob-one-liner-regexp
+  (concat
+   "\\([^\n]*\\)call_\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
+   "\(\\([^\n]*\\)\)\\(\\[\\(.*?\\)\\]\\)?")
+  "Regexp to match inline calls to predefined source block functions.")
 
 (defconst org-babel-lob-one-liner-regexp
-  (concat
-   "^\\([ \t]*\\)#\\+\\(?:"
-   (mapconcat #'regexp-quote org-babel-lob-call-aliases "\\|")
-   "\\):[ \t]+\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
-   "\(\\([^\n]*\\)\)\\(\\[.+\\]\\|\\)[ \t]*\\([^\n]*\\)")
+  (concat "\\(" org-babel-block-lob-one-liner-regexp
+	  "\\|" org-babel-inline-lob-one-liner-regexp "\\)")
   "Regexp to match calls to predefined source block functions.")
 
 ;; functions for executing lob one-liners
+
 ;;;###autoload
 (defun org-babel-lob-execute-maybe ()
   "Execute a Library of Babel source block, if appropriate.
@@ -83,32 +89,38 @@ Detect if this is context for a Library Of Babel source block and
 if so then run the appropriate source block from the Library."
   (interactive)
   (let ((info (org-babel-lob-get-info)))
-    (if (nth 0 info) (progn (org-babel-lob-execute info) t) nil)))
+    (if (and (nth 0 info) (not (org-babel-in-example-or-verbatim)))
+	(progn (org-babel-lob-execute info) t)
+      nil)))
 
 ;;;###autoload
 (defun org-babel-lob-get-info ()
   "Return a Library of Babel function call as a string."
-  (let ((case-fold-search t))
-    (save-excursion
-      (beginning-of-line 1)
-      (if (looking-at org-babel-lob-one-liner-regexp)
-          (append
-	   (mapcar #'org-babel-clean-text-properties 
+  (flet ((nonempty (a b)
+		   (let ((it (match-string a)))
+		     (if (= (length it) 0) (match-string b) it))))
+    (let ((case-fold-search t))
+      (save-excursion
+	(beginning-of-line 1)
+	(when (looking-at org-babel-lob-one-liner-regexp)
+	  (append
+	   (mapcar #'org-babel-clean-text-properties
 		   (list
 		    (format "%s%s(%s)%s"
-			    (match-string 2)
-			    (if (match-string 4)
-				(concat "[" (match-string 4) "]") "")
-			    (or (match-string 6) "") (match-string 7))
-		    (match-string 8)))
-	   (list (length (match-string 1))))))))
-  
+			    (nonempty 3 12)
+			    (if (not (= 0 (length (nonempty 5 13))))
+				(concat "[" (nonempty 5 13) "]") "")
+			    (or (nonempty 7 16) "")
+			    (or (nonempty 8 19) ""))
+		    (nonempty 9 18)))
+	   (list (length (if (= (length (match-string 12)) 0)
+			     (match-string 2) (match-string 11))))))))))
+
 (defun org-babel-lob-execute (info)
   "Execute the lob call specified by INFO."
   (let ((params (org-babel-process-params
 		 (org-babel-merge-params
 		  org-babel-default-header-args
-		  (org-babel-params-from-buffer)
 		  (org-babel-params-from-properties)
 		  (org-babel-parse-header-arguments
 		   (org-babel-clean-text-properties
@@ -118,6 +130,7 @@ if so then run the appropriate source block from the Library."
      nil (list "emacs-lisp" "results" params nil nil (nth 2 info)))))
 
 (provide 'ob-lob)
+
 
 
 ;;; ob-lob.el ends here

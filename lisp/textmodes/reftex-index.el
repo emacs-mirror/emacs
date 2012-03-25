@@ -1,6 +1,6 @@
 ;;; reftex-index.el --- index support with RefTeX
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -663,7 +663,7 @@ SPC=view TAB=goto RET=goto+hide [e]dit [q]uit [r]escan [f]ollow [?]Help
     (insert "\n")))
 
 (defun reftex-get-restriction (arg docstruct)
-  ;; Interprete the prefix ARG and derive index restriction specs.
+  ;; Interpret the prefix ARG and derive index restriction specs.
   (let* ((beg (min (point) (or (condition-case nil (mark) (error nil))
                                (point-max))))
          (end (max (point) (or (condition-case nil (mark) (error nil))

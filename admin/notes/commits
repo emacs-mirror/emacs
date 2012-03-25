@@ -17,7 +17,7 @@ Date: 	 Tue, 31 Mar 2009 12:21:20 +0900
     files), not one-by-one.  This is pretty easy using vc-dir now.
 
 (2) Make the log message describe the entire changeset, perhaps
-    including relevant changelog entiries (I often don't bother with
+    including relevant changelog entries (I often don't bother with
     the latter if it's a trivial sort of change).
 
     Many modern source-control systems vaguely distinguish the first

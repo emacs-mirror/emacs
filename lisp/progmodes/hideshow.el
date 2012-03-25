@@ -1,6 +1,6 @@
 ;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks
 
-;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
@@ -194,9 +194,9 @@
 ;;     Unfortunately, these workarounds do not restore hideshow state.
 ;;     If someone figures out a better way, please let me know.
 
-;; * Correspondance
+;; * Correspondence
 ;;
-;; Correspondance welcome; please indicate version number.  Send bug
+;; Correspondence welcome; please indicate version number.  Send bug
 ;; reports and inquiries to <ttn@gnu.org>.
 
 ;; * Thanks
@@ -539,7 +539,7 @@ property of an overlay."
 (defun hs-looking-at-block-start-p ()
   "Return non-nil if the point is at the block start."
   (and (looking-at hs-block-start-regexp)
-       (save-match-data (not (nth 4 (syntax-ppss))))))
+       (save-match-data (not (nth 8 (syntax-ppss))))))
 
 (defun hs-forward-sexp (match-data arg)
   "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
@@ -604,9 +604,10 @@ we return a list having a nil as its car and the end of comment position
 as cdr."
   (save-excursion
     ;; the idea is to look backwards for a comment start regexp, do a
-    ;; forward comment, and see if we are inside, then extend extend
+    ;; forward comment, and see if we are inside, then extend
     ;; forward and backward as long as we have comments
     (let ((q (point)))
+      (skip-chars-forward "[:blank:]")
       (when (or (looking-at hs-c-start-regexp)
                 (re-search-backward hs-c-start-regexp (point-min) t))
         ;; first get to the beginning of this comment...
@@ -693,8 +694,8 @@ Return point, or nil if original point was not in a block."
         (point)
       ;; look backward for the start of a block that contains the cursor
       (while (and (re-search-backward hs-block-start-regexp nil t)
-		  ;; go again if in a comment
-		  (or (save-match-data (nth 4 (syntax-ppss)))
+		  ;; go again if in a comment or a string
+		  (or (save-match-data (nth 8 (syntax-ppss)))
 		      (not (setq done
 				 (< here (save-excursion
 					   (hs-forward-sexp (match-data t) 1)
@@ -718,7 +719,7 @@ Return point, or nil if original point was not in a block."
            (and (< (point) maxp)
                 (re-search-forward hs-block-start-regexp maxp t)))
     (when (save-match-data
-	    (not (nth 4 (syntax-ppss)))) ; not inside comments
+	    (not (nth 8 (syntax-ppss)))) ; not inside comments or strings
       (if (> arg 1)
 	  (hs-hide-level-recursive (1- arg) minp maxp)
 	(goto-char (match-beginning hs-block-start-mdata-select))
@@ -928,6 +929,10 @@ This can be useful if you have huge RCS logs in those comments."
 ;;;###autoload
 (define-minor-mode hs-minor-mode
   "Minor mode to selectively hide/show code and comment blocks.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value '(hs . t) is added to `buffer-invisibility-spec'.

@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; These functions should be automatically loaded when called, but you
-;; can explicity (require 'ibuf-ext) in your ~/.emacs to have them
+;; can explicitly (require 'ibuf-ext) in your ~/.emacs to have them
 ;; preloaded.
 
 ;;; Code:
@@ -217,8 +217,10 @@ Currently, this only applies to `ibuffer-saved-filters' and
 
 ;;;###autoload
 (define-minor-mode ibuffer-auto-mode
-  "Toggle use of Ibuffer's auto-update facility.
-With numeric ARG, enable auto-update if and only if ARG is positive."
+  "Toggle use of Ibuffer's auto-update facility (Ibuffer Auto mode).
+With a prefix argument ARG, enable Ibuffer Auto mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   nil nil nil
   (unless (derived-mode-p 'ibuffer-mode)
     (error "This buffer is not in Ibuffer mode"))
@@ -505,7 +507,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	      (assoc (cdr filter)
 		     ibuffer-saved-filters)))
 	 (unless data
-	   (ibuffer-filter-disable)
+	   (ibuffer-filter-disable t)
 	   (error "Unknown saved filter %s" (cdr filter)))
 	 (ibuffer-included-in-filters-p buf (cadr data))))
       (t
@@ -514,7 +516,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	 ;; filterdat should be like (TYPE DESCRIPTION FUNC)
 	 ;; just a sanity check
 	(unless filterdat
-	  (ibuffer-filter-disable)
+	  (ibuffer-filter-disable t)
 	  (error "Undefined filter %s" (car filter)))
 	(not
 	 (not
@@ -768,11 +770,14 @@ The value from `ibuffer-saved-filter-groups' is used."
   (ibuffer-update nil t))
 
 ;;;###autoload
-(defun ibuffer-filter-disable ()
-  "Disable all filters currently in effect in this buffer."
+(defun ibuffer-filter-disable (&optional delete-filter-groups)
+  "Disable all filters currently in effect in this buffer.
+With optional arg DELETE-FILTER-GROUPS non-nil, delete all filter
+group definitions by setting `ibuffer-filter-groups' to nil."
   (interactive)
-  (setq ibuffer-filtering-qualifiers nil
-	ibuffer-filter-groups nil)
+  (setq ibuffer-filtering-qualifiers nil)
+  (if delete-filter-groups
+      (setq ibuffer-filter-groups nil))
   (let ((buf (ibuffer-current-buffer)))
     (ibuffer-update nil t)
     (when buf

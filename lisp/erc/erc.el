@@ -1,6 +1,6 @@
 ;; erc.el --- An Emacs Internet Relay Chat client
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
@@ -1242,7 +1242,9 @@ Example:
        (erc-define-minor-mode
 	,mode
 	,(format "Toggle ERC %S mode.
-With arg, turn ERC %S mode on if and only if arg is positive.
+With a prefix argument ARG, enable %s if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 %s" name name doc)
 	nil nil nil
 	:global ,(not local-p) :group (quote ,group)
@@ -1567,7 +1569,7 @@ symbol, it may have these values:
     ;; current ERC buffer.
     ;; if buf-name is taken by a different connection (or by something !erc)
     ;; then see if "buf-name/server" meets the same criteria
-    (dolist (candidate (list buf-name (concat buf-name "/" server))) 
+    (dolist (candidate (list buf-name (concat buf-name "/" server)))
       (if (and (not buffer-name)
                erc-reuse-buffers
                (get-buffer candidate)
@@ -2173,6 +2175,7 @@ be invoked for the values of the other parameters."
 (defalias 'erc-select 'erc)
 (defalias 'erc-ssl 'erc-tls)
 
+;;;###autoload
 (defun erc-tls (&rest r)
   "Interactively select TLS connection parameters and run ERC.
 Arguments are the same as for `erc'."
@@ -2624,7 +2627,7 @@ VALUE is computed by evaluating the rest of LINE in Lisp."
 (defun erc-cmd-default (line)
   "Fallback command.
 
-Commands for which no erc-cmd-xxx exists, are tunnelled through
+Commands for which no erc-cmd-xxx exists, are tunneled through
 this function.  LINE is sent to the server verbatim, and
 therefore has to contain the command itself as well."
   (erc-log (format "cmd: DEFAULT: %s" line))
@@ -3999,7 +4002,7 @@ and as second argument the event parsed as a vector."
        (not (string-match "^\C-a\\ACTION.*\C-a$" message))))
 
 (defun erc-format-privmessage (nick msg privp msgp)
-  "Format a PRIVMSG in an insertible fashion."
+  "Format a PRIVMSG in an insertable fashion."
   (let* ((mark-s (if msgp (if privp "*" "<") "-"))
 	 (mark-e (if msgp (if privp "*" ">") "-"))
 	 (str	 (format "%s%s%s %s" mark-s nick mark-e msg))
@@ -5795,7 +5798,7 @@ If it doesn't exist, create it."
   "Give information about the nickname at `point'.
 
 If called interactively, give a human readable message in the
-minibuffer.  If called programatically, return the corresponding
+minibuffer.  If called programmatically, return the corresponding
 entry of `channel-members'."
   (interactive)
   (require 'thingatpt)

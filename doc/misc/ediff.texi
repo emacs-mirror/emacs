@@ -25,7 +25,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright @copyright{} 1995-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -433,6 +433,8 @@ command (see @kbd{ga}, @kbd{gb}, and @kbd{gc}).
 
 @node Quick Help Commands,Other Session Commands,,Session Commands
 @section Quick Help Commands
+@cindex command help
+@cindex important commands
 
 @table @kbd
 @item ?
@@ -1207,7 +1209,7 @@ This hook can be used to alter bindings in Ediff's keymap,
 @code{ediff-mode-map}.  These hooks are
 run right after the default bindings are set but before
 @code{ediff-load-hook}.  The regular user needs not be concerned with this
-hook---it is provided for implementors of other Emacs packages built on top
+hook---it is provided for implementers of other Emacs packages built on top
 of Ediff.
 
 @item ediff-before-setup-windows-hook
@@ -1731,7 +1733,7 @@ faces, you can modify them when Ediff is being loaded using
 @end smallexample
 
 @strong{Please note:} to set Ediff's faces, use only @code{copy-face}
-or @code{set/make-face-@dots{}} as shown above. Emacs' low-level
+or @code{set/make-face-@dots{}} as shown above. Emacs's low-level
 face-manipulation functions should be avoided.
 
 @node Narrowing, Refinement of Difference Regions, Highlighting Difference Regions, Customization

@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins
 ;;
-;; Copyright (C) 1997, 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2012  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -118,6 +118,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				  :standard (not noninteractive)
 				  :initialize custom-initialize-delay
 				  :set custom-set-minor-mode)
+	     (bidi-paragraph-direction
+	      paragraphs
+	      (choice
+	       (const :tag "Left to Right" left-to-right)
+	       (const :tag "Right to Left" right-to-left)
+	       (const :tag "Dynamic, according to paragraph text" nil))
+	      "24.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -173,12 +180,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					     (symbol :format "%v"))
 				     (const :tag "always" t)))
 	     (debug-ignored-errors debug (repeat (choice symbol regexp)))
-	     (debug-on-quit debug
-			    (choice (const :tag "off")
-				    (repeat :menu-tag "When"
-					    :value (nil)
-					    (symbol :format "%v"))
-				    (const :tag "always" t)))
+	     (debug-on-quit debug boolean)
              ;; fileio.c
              (delete-by-moving-to-trash auto-save boolean "23.1")
 	     (auto-save-visited-file-name auto-save boolean)
@@ -235,6 +237,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			    :set custom-set-minor-mode)
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
+	     ;; image.c
+	     (imagemagick-render-type image integer "24.1")
 	     ;; indent.c
 	     (indent-tabs-mode indent boolean)
 	     ;; keyboard.c
@@ -398,8 +402,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Never (nil)" :value nil)
 		       (const :tag "Only on ttys" :value tty)
 		       (other :tag "Always" t)) "23.1")
-	     (window-splits windows boolean "24.1")
-	     (window-nest windows boolean "24.1")
+	     (window-combination-resize windows boolean "24.1")
+	     (window-combination-limit windows boolean "24.1")
 	     ;; xdisp.c
 	     (show-trailing-whitespace whitespace-faces boolean nil
 				       :safe booleanp)
@@ -456,6 +460,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-use-underline-position-properties display boolean "22.1")
 	     (x-underline-at-descent-line display boolean "22.1")
 	     (x-stretch-cursor display boolean "21.1")
+	     ;; xselect.c
+	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
 	     (font-use-system-font font-selection boolean "23.2")))
       this symbol group type standard version native-p rest prop propval
@@ -496,12 +502,16 @@ since it could result in memory overflow and make Emacs crash."
 		       (featurep 'ns))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
+		      ((string-match "clipboard-manager" (symbol-name symbol))
+		       (boundp 'x-select-enable-clipboard-manager))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
 		      ((string-match "selection" (symbol-name symbol))
 		       (fboundp 'x-selection-exists-p))
 		      ((string-match "fringe" (symbol-name symbol))
 		       (fboundp 'define-fringe-bitmap))
+		      ((string-match "\\`imagemagick" (symbol-name symbol))
+		       (fboundp 'imagemagick-types))
 		      ((equal "font-use-system-font" (symbol-name symbol))
 		       (featurep 'system-font-setting))
 		      ;; Conditioned on x-create-frame, because that's

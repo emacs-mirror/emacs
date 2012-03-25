@@ -1,6 +1,6 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
@@ -149,14 +149,17 @@ This is used to determine if `eldoc-idle-delay' is changed by the user.")
 
 ;;;###autoload
 (define-minor-mode eldoc-mode
-  "Toggle ElDoc mode on or off.
-In ElDoc mode, the echo area displays information about a
-function or variable in the text where point is.  If point is
-on a documented variable, it displays the first line of that
-variable's doc string.  Otherwise it displays the argument list
-of the function called in the expression point is on.
+  "Toggle echo area display of Lisp objects at point (ElDoc mode).
+With a prefix argument ARG, enable ElDoc mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable ElDoc mode
+if ARG is omitted or nil.
 
-With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
+ElDoc mode is a buffer-local minor mode.  When enabled, the echo
+area displays information about a function or variable in the
+text where point is.  If point is on a documented variable, it
+displays the first line of that variable's doc string.  Otherwise
+it displays the argument list of the function called in the
+expression point is on."
   :group 'eldoc :lighter eldoc-minor-mode-string
   (setq eldoc-last-message nil)
   (if eldoc-mode
@@ -431,7 +434,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 	  nil
 	(list (eldoc-current-symbol) argument-index)))))
 
-;; Move to the beginnig of current sexp.  Return the number of nested
+;; Move to the beginning of current sexp.  Return the number of nested
 ;; sexp the point was over or after.
 (defun eldoc-beginning-of-sexp ()
   (let ((parse-sexp-ignore-comments t)

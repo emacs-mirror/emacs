@@ -1,6 +1,6 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;; Copyright (C) 1998-2000, 2003, 2005, 2007-2011
+;; Copyright (C) 1998-2000, 2003, 2005, 2007-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -214,7 +214,6 @@ OT is the object target.  DIR is the directory to start in."
 	       target (project-am-preferred-target-type (buffer-file-name)))))
     (ede-with-projectfile ot
       (makefile-move-to-macro (project-am-macro ot))
-      (ede-maybe-checkout)
       (makefile-end-of-command)
       (insert " " ofn)
       (makefile-fill-paragraph nil)
@@ -226,10 +225,6 @@ OT is the object target.  DIR is the directory to start in."
   "Remove the current buffer from any project targets."
   (ede-with-projectfile ot
     (makefile-move-to-macro (project-am-macro ot))
-    (if (and buffer-read-only vc-mode
-	     (y-or-n-p "Checkout Makefile.am from VC? "))
-	(vc-toggle-read-only t))
-    (ede-maybe-checkout)
     (makefile-navigate-macro (concat " *" (regexp-quote (ede-name fnnd))))
     (replace-match "" t t nil 0)
     (makefile-fill-paragraph nil)
@@ -271,7 +266,6 @@ buffer being in order to provide a smart default target type."
     (if (not ot) (error "Error creating target object %S" ntype))
     (ede-with-projectfile ot
       (goto-char (point-min))
-      (ede-maybe-checkout)
       (makefile-next-dependency)
       (if (= (point) (point-min))
 	  (goto-char (point-max))
@@ -290,7 +284,7 @@ buffer being in order to provide a smart default target type."
 		(progn (forward-line -1)
 		       (end-of-line)
 		       (insert "\n"))
-	      ;; If the above search fails, thats ok.  We'd just want to be at
+	      ;; If the above search fails, that's ok.  We'd just want to be at
 	      ;; point-min anyway.
 	      )
 	    (makefile-insert-macro (car (cdr (cdr ntype))))))
@@ -434,7 +428,7 @@ Argument COMMAND is the command to use for compiling the target."
 If a given set of projects has already been loaded, then do nothing
 but return the project for the directory given.
 Optional ROOTPROJ is the root EDE project."
-  (let* ((ede-constructiong t)
+  (let* ((ede-constructing t)
 	 (amo (object-assoc (expand-file-name "Makefile.am" directory)
 			    'file ede-projects)))
     (when (not amo)
@@ -665,7 +659,7 @@ Strip out duplicates, and recurse on variables."
       ;; their object still exists!
       ;; FIGURE THIS OUT
       (project-am-expand-subdirlist 'csubprojexpanded csubproj)
-      ;; Ok, now lets look at all our sub-projects.
+      ;; Ok, now let's look at all our sub-projects.
       (mapc (lambda (sp)
 	      (let* ((subdir (file-name-as-directory
 			      (expand-file-name
@@ -842,7 +836,7 @@ nil means that this buffer belongs to no-one."
   (oref this :name))
 
 (defmethod project-compile-target-command ((this project-am-texinfo))
-  "Default target t- use when compling a texinfo file."
+  "Default target t- use when compiling a texinfo file."
   (let ((n (oref this :name)))
     (if (string-match "\\.texi?\\(nfo\\)?" n)
 	(setq n (replace-match ".info" t t n)))

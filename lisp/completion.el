@@ -1,6 +1,6 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2011
+;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2337,7 +2337,10 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 
 ;;;###autoload
 (define-minor-mode dynamic-completion-mode
-  "Enable dynamic word-completion."
+  "Toggle dynamic word-completion on or off.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :global t
   ;; This is always good, not specific to dynamic-completion-mode.
   (define-key function-key-map [C-return] [?\C-\r])

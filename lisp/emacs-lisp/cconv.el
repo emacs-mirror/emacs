@@ -1,6 +1,6 @@
 ;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
 ;; Author: Igor Kuzmin <kzuminig@iro.umontreal.ca>
 ;; Maintainer: FSF
@@ -26,21 +26,21 @@
 
 ;; This takes a piece of Elisp code, and eliminates all free variables from
 ;; lambda expressions.  The user entry points are cconv-closure-convert and
-;; cconv-closure-convert-toplevel(for toplevel forms).
+;; cconv-closure-convert-toplevel (for toplevel forms).
 ;; All macros should be expanded beforehand.
 ;;
 ;; Here is a brief explanation how this code works.
-;; Firstly, we analyse the tree by calling cconv-analyse-form.
+;; Firstly, we analyze the tree by calling cconv-analyse-form.
 ;; This function finds all mutated variables, all functions that are suitable
 ;; for lambda lifting and all variables captured by closure. It passes the tree
 ;; once, returning a list of three lists.
 ;;
-;; Then we calculate the intersection of first and third lists returned by
+;; Then we calculate the intersection of the first and third lists returned by
 ;; cconv-analyse form to find all mutated variables that are captured by
 ;; closure.
 
 ;; Armed with this data, we call cconv-closure-convert-rec, that rewrites the
-;; tree recursivly, lifting lambdas where possible, building closures where it
+;; tree recursively, lifting lambdas where possible, building closures where it
 ;; is needed and eliminating mutable variables used in closure.
 ;;
 ;; We do following replacements :
@@ -67,7 +67,7 @@
 
 ;; TODO: (not just for cconv but also for the lexbind changes in general)
 ;; - let (e)debug find the value of lexical variables from the stack.
-;; - make eval-region do the eval-sexp-add-defvars danse.
+;; - make eval-region do the eval-sexp-add-defvars dance.
 ;; - byte-optimize-form should be applied before cconv.
 ;;   OTOH, the warnings emitted by cconv-analyze need to come before optimize
 ;;   since afterwards they can because obnoxious (warnings about an "unused
@@ -142,7 +142,7 @@ Returns a form where all lambdas don't have any free variables."
   (let ((cconv-freevars-alist '())
 	(cconv-lambda-candidates '())
 	(cconv-captured+mutated '()))
-    ;; Analyse form - fill these variables with new information.
+    ;; Analyze form - fill these variables with new information.
     (cconv-analyse-form form '())
     (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
     (cconv-convert form nil nil))) ; Env initially empty.
@@ -507,7 +507,7 @@ places where they originally did not directly appear."
   (defalias 'byte-compile-not-lexical-var-p 'boundp))
 
 (defun cconv--analyse-use (vardata form varkind)
-  "Analyse the use of a variable.
+  "Analyze the use of a variable.
 VARDATA should be (BINDER READ MUTATED CAPTURED CALLED).
 VARKIND is the name of the kind of variable.
 FORM is the parent form that binds this var."
@@ -559,7 +559,7 @@ FORM is the parent form that binds this var."
        (t (let ((varstruct (list arg nil nil nil nil)))
             (push (cons (list arg) (cdr varstruct)) newvars)
             (push varstruct newenv)))))
-    (dolist (form body)                   ;Analyse body forms.
+    (dolist (form body)                   ;Analyze body forms.
       (cconv-analyse-form form newenv))
     ;; Summarize resulting data about arguments.
     (dolist (vardata newvars)
@@ -581,7 +581,7 @@ FORM is the parent form that binds this var."
 
 (defun cconv-analyse-form (form env)
   "Find mutated variables and variables captured by closure.
-Analyse lambdas if they are suitable for lambda lifting.
+Analyze lambdas if they are suitable for lambda lifting.
 - FORM is a piece of Elisp code after macroexpansion.
 - ENV is an alist mapping each enclosing lexical variable to its info.
    I.e. each element has the form (VAR . (READ MUTATED CAPTURED CALLED)).
@@ -612,7 +612,7 @@ and updates the data stored in ENV."
              (push (cons binder (cdr varstruct)) newvars)
              (push varstruct env))))
 
-       (dolist (form body-forms)          ; Analyse body forms.
+       (dolist (form body-forms)          ; Analyze body forms.
          (cconv-analyse-form form env))
 
        (dolist (vardata newvars)

@@ -1,6 +1,6 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
-;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2011
+;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
@@ -38,6 +38,12 @@
 (defgroup jka-compr nil
   "jka-compr customization."
   :group 'compression)
+
+(defcustom jka-compr-verbose t
+  "If non-nil, output messages whenever compressing or uncompressing files."
+  :version "24.1"
+  :type 'boolean
+  :group 'jka-compr)
 
 ;; List of all the elements we actually added to file-coding-system-alist.
 (defvar jka-compr-added-to-file-coding-system-alist nil)
@@ -113,7 +119,7 @@ based on the filename itself and `jka-compr-compression-info-list'."
 (defun jka-compr-install ()
   "Install jka-compr.
 This adds entries to `file-name-handler-alist' and `auto-mode-alist'
-and `inhibit-first-line-modes-suffixes'."
+and `inhibit-local-variables-suffixes'."
 
   (setq jka-compr-file-name-handler-entry
 	(cons (jka-compr-build-file-regexp) 'jka-compr-handler))
@@ -139,12 +145,12 @@ and `inhibit-first-line-modes-suffixes'."
          ;; are chosen right according to the file names
          ;; sans `.gz'.
          (push (list (jka-compr-info-regexp x) nil 'jka-compr) auto-mode-alist)
-         ;; Also add these regexps to
-         ;; inhibit-first-line-modes-suffixes, so that a
-         ;; -*- line in the first file of a compressed tar
-         ;; file doesn't override tar-mode.
+         ;; Also add these regexps to inhibit-local-variables-suffixes,
+         ;; so that a -*- line in the first file of a compressed tar file,
+         ;; or a Local Variables section in a member file at the end of
+         ;; the tar file don't override tar-mode.
          (push (jka-compr-info-regexp x)
-               inhibit-first-line-modes-suffixes)))
+               inhibit-local-variables-suffixes)))
   (setq auto-mode-alist
 	(append auto-mode-alist jka-compr-mode-alist-additions))
 
@@ -228,6 +234,14 @@ options through Custom does this automatically."
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
      t t "\037\213"]
+    ["\\.lz\\'"
+     "Lzip compressing"   "lzip"         ("-c" "-q")
+     "Lzip uncompressing" "lzip"         ("-c" "-q" "-d")
+     t t "LZIP"]
+    ["\\.lzma\\'"
+     "LZMA compressing"   "lzma"         ("-c" "-q" "-z")
+     "LZMA uncompressing" "lzma"         ("-c" "-q" "-d")
+     t t ""]
     ["\\.xz\\'"
      "XZ compressing"     "xz"           ("-c" "-q")
      "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
@@ -327,9 +341,14 @@ variables.  Setting this through Custom does that automatically."
   :group 'jka-compr)
 
 (define-minor-mode auto-compression-mode
-  "Toggle automatic file compression and uncompression.
-With prefix argument ARG, turn auto compression on if positive, else off.
-Return the new status of auto compression (non-nil means on)."
+  "Toggle Auto Compression mode.
+With a prefix argument ARG, enable Auto Compression mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
+
+Auto Compression mode is a global minor mode.  When enabled,
+compressed files are automatically uncompressed for reading, and
+compressed when writing."
   :global t :init-value t :group 'jka-compr :version "22.1"
   (let* ((installed (jka-compr-installed-p))
 	 (flag auto-compression-mode))
@@ -340,7 +359,7 @@ Return the new status of auto compression (non-nil means on)."
      (t (jka-compr-uninstall)))))
 
 (defmacro with-auto-compression-mode (&rest body)
-  "Evalute BODY with automatic file compression and uncompression enabled."
+  "Evaluate BODY with automatic file compression and uncompression enabled."
   (declare (indent 0))
   (let ((already-installed (make-symbol "already-installed")))
     `(let ((,already-installed (jka-compr-installed-p)))

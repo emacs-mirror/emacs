@@ -1,6 +1,6 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -79,13 +79,13 @@
 ;;  The PATH argument is then the most interesting argument.  It can
 ;;  have these values:
 ;;
-;;    nil - Take the current buffer, and use it's include list
+;;    nil - Take the current buffer, and use its include list
 ;;    buffer - Use that buffer's include list.
 ;;    filename - Use that file's include list.  If the file is not
 ;;        in a buffer, see of there is a semanticdb table for it.  If
 ;;        not, read that file into a buffer.
 ;;    tag - Get that tag's buffer of file file.  See above.
-;;    table - Search that table, and it's include list.
+;;    table - Search that table, and its include list.
 ;;
 ;; Search Results:
 ;;
@@ -210,7 +210,7 @@ This class will cache data derived during various searches.")
   "Synchronize the search index IDX with some NEW-TAGS."
   ;; Reset our parts.
   (semantic-reset idx)
-  ;; Notify dependants by clearning their indicies.
+  ;; Notify dependants by clearing their indices.
   (semanticdb-notify-references
    (oref idx table)
    (lambda (tab me)
@@ -224,7 +224,7 @@ This class will cache data derived during various searches.")
   (if (semantic-find-tags-by-class 'include new-tags)
       (progn
 	(semantic-reset idx)
-	;; Notify dependants by clearning their indicies.
+	;; Notify dependants by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
 	 (lambda (tab me)
@@ -234,7 +234,7 @@ This class will cache data derived during various searches.")
     (when (oref idx type-cache)
       (when (semanticdb-partial-synchronize (oref idx type-cache) new-tags)
 	;; If the synchronize returns true, we need to notify.
-	;; Notify dependants by clearning their indicies.
+	;; Notify dependants by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
 	 (lambda (tab me)
@@ -325,8 +325,10 @@ Default action as described in `semanticdb-find-translate-path'."
 	 (cond ((null path) semanticdb-current-database)
 	       ((semanticdb-table-p path) (oref path parent-db))
 	       (t (let ((tt (semantic-something-to-tag-table path)))
-		    ;; @todo - What does this DO ??!?!
-		    (with-current-buffer (semantic-tag-buffer (car tt))
+		    (if tt
+			;; @todo - What does this DO ??!?!
+			(with-current-buffer (semantic-tag-buffer (car tt))
+			  semanticdb-current-database)
 		      semanticdb-current-database))))))
     (apply
      #'nconc
@@ -405,10 +407,10 @@ Default action as described in `semanticdb-find-translate-path'."
 	;; do a caching lookup.
 	(let ((index (semanticdb-get-table-index table)))
 	  (if (semanticdb-find-need-cache-update-p table)
-	      ;; Lets go look up our indicies
+	      ;; Let's go look up our indices.
 	      (let ((ans (semanticdb-find-translate-path-includes--internal path)))
 		(oset index include-path ans)
-		;; Once we have our new indicies set up, notify those
+		;; Once we have our new indices set up, notify those
 		;; who depend on us if we found something for them to
 		;; depend on.
 		(when ans (semanticdb-refresh-references table))
@@ -575,7 +577,7 @@ a new path from the provided PATH."
 	  (setq ans (semanticdb-file-table
 		     (car systemdb)
 		     ;; I would expect most omniscient to return the same
-		     ;; thing reguardless of filename, but we may have
+		     ;; thing regardless of filename, but we may have
 		     ;; one that can return a table of all things the
 		     ;; current file needs.
 		     (buffer-file-name (current-buffer))))
@@ -675,7 +677,7 @@ Included databases are filtered based on `semanticdb-find-default-throttle'."
      ;;
      ;; NOTE: Not used if EDE is active!
      ((and (semanticdb-find-throttle-active-p 'project)
-	   ;; And dont do this if it is a system include.  Not supported by all languages,
+	   ;; And don't do this if it is a system include.  Not supported by all languages,
 	   ;; but when it is, this is a nice fast way to skip this step.
 	   (not (semantic-tag-include-system-p includetag))
 	   ;; Don't do this if we have an EDE project.
@@ -862,7 +864,7 @@ instead."
 	  (let ((tab (car (car tmp)))
 		(tags (cdr (car tmp))))
 	    (dolist (T tags)
-	      ;; Normilzation gives specialty database tables a chance
+	      ;; Normalization gives specialty database tables a chance
 	      ;; to convert into a more stable tag format.
 	      (let* ((norm (semanticdb-normalize-one-tag tab T))
 		     (ntab (car norm))
@@ -918,7 +920,7 @@ but should be good enough for debugging assertions."
 			 result
 			 " ")
 	      ">")
-    ;; Longer results should have an abreviated form.
+    ;; Longer results should have an abbreviated form.
     (format "#<FIND RESULT %d TAGS in %d FILES>"
 	    (semanticdb-find-result-length result)
 	    (length result))))

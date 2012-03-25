@@ -1,6 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -39,11 +39,16 @@
 ;;; Customization options
 ;;;
 
+(defgroup vc-svn nil
+  "VC Subversion (svn) backend."
+  :version "24.1"
+  :group 'vc)
+
 ;; FIXME there is also svnadmin.
 (defcustom vc-svn-program "svn"
   "Name of the SVN executable."
   :type 'string
-  :group 'vc)
+  :group 'vc-svn)
 
 (defcustom vc-svn-global-switches nil
   "Global switches to pass to any SVN command."
@@ -53,7 +58,7 @@
 			 :value ("")
 			 string))
   :version "22.1"
-  :group 'vc)
+  :group 'vc-svn)
 
 (defcustom vc-svn-register-switches nil
   "Switches for registering a file into SVN.
@@ -65,7 +70,7 @@ If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
-  :group 'vc)
+  :group 'vc-svn)
 
 (defcustom vc-svn-diff-switches
   t			   ;`svn' doesn't support common args like -c or -b.
@@ -81,13 +86,13 @@ If you want to force an empty list of arguments, use t."
 			 :value ("")
 			 string))
   :version "22.1"
-  :group 'vc)
+  :group 'vc-svn)
 
 (defcustom vc-svn-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string)
-  :group 'vc)
+  :group 'vc-svn)
 
 ;; We want to autoload it for use by the autoloaded version of
 ;; vc-svn-registered, but we want the value to be compiled at startup, not
@@ -263,8 +268,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 (defun vc-svn-create-repo ()
   "Create a new SVN repository."
   (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
-  (vc-do-command "*vc*" 0 vc-svn-program '(".")
-		 "checkout" (concat "file://" default-directory "SVN")))
+  (vc-svn-command "*vc*" 0 "." "checkout"
+                  (concat "file://" default-directory "SVN")))
 
 (defun vc-svn-register (files &optional rev comment)
   "Register FILES into the SVN version-control system.
@@ -334,7 +339,6 @@ This is only possible if SVN is responsible for FILE's directory.")
     ;; Check out a particular version (or recreate the file).
     (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-svn-command nil 0 file
-	   "--non-interactive"		; bug#4280
 	   "update"
 	   (cond
 	    ((null rev) "-rBASE")
@@ -373,7 +377,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   (message "Merging changes into %s..." file)
   ;; (vc-file-setprop file 'vc-working-revision nil)
   (vc-file-setprop file 'vc-checkout-time 0)
-  (vc-svn-command nil 0 file "--non-interactive" "update") ; see bug#7152
+  (vc-svn-command nil 0 file "update")
   ;; Analyze the merge result reported by SVN, and set
   ;; file properties accordingly.
   (with-current-buffer (get-buffer "*vc*")
@@ -425,7 +429,7 @@ This is only supported if the repository access method is either file://
 or svn+ssh://."
   (let (tempfile host remotefile directory fileurl-p)
     (with-temp-buffer
-      (vc-do-command (current-buffer) 0 vc-svn-program nil "info")
+      (vc-svn-command (current-buffer) 0 nil "info")
       (goto-char (point-min))
       (unless (re-search-forward "Repository Root: \\(file://\\(/.*\\)\\)\\|\\(svn\\+ssh://\\([^/]+\\)\\(/.*\\)\\)" nil t)
 	(error "Repository information is unavailable"))
@@ -581,12 +585,19 @@ NAME is assumed to be a URL."
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
-and that it passes `vc-svn-global-switches' to it before FLAGS."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
-         (if (stringp vc-svn-global-switches)
+and that it passes \"--non-interactive\" and `vc-svn-global-switches' to
+it before FLAGS."
+  ;; Might be nice if svn defaulted to non-interactive if stdin not tty.
+  ;; http://svn.haxx.se/dev/archive-2008-05/0762.shtml
+  ;; http://svn.haxx.se/dev/archive-2009-04/0094.shtml
+  ;; Maybe newer ones do?
+  (or (member "--non-interactive"
+              (setq flags (if (stringp vc-svn-global-switches)
              (cons vc-svn-global-switches flags)
-           (append vc-svn-global-switches
-                   flags))))
+                            (append vc-svn-global-switches flags))))
+      (setq flags (cons "--non-interactive" flags)))
+  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
+         flags))
 
 (defun vc-svn-repository-hostname (dirname)
   (with-temp-buffer
@@ -700,7 +711,7 @@ information about FILENAME and return its status."
   (vc-svn-command buf 'async file "annotate" (if rev (concat "-r" rev))))
 
 (defun vc-svn-annotate-time-of-rev (rev)
-  ;; Arbitrarily assume 10 commmits per day.
+  ;; Arbitrarily assume 10 commits per day.
   (/ (string-to-number rev) 10.0))
 
 (defvar vc-annotate-parent-rev)

@@ -1,6 +1,6 @@
 ;;; srecode/fields.el --- Handling type-in fields in a buffer.
 ;;
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -101,7 +101,7 @@ Has virtual :start and :end initializers.")
 	    ))
 
     ;; Create a temporary overlay now.  We have to use an overlay and
-    ;; not a marker becaues of the in-front insertion rules.  The rules
+    ;; not a marker because of the in-front insertion rules.  The rules
     ;; are backward from what is wanted while typing.
     (setq olay (make-overlay start end (current-buffer) t nil))
     (overlay-put olay 'srecode-init-only t)
@@ -324,7 +324,7 @@ Try to use this to provide useful completion when available.")
   )
 
 (defvar srecode-field-replication-max-size 100
-  "Maximum size of a field before cancelling replication.")
+  "Maximum size of a field before canceling replication.")
 
 (defun srecode-field-mod-hook (ol after start end &optional pre-len)
   "Modification hook for the field overlay.
@@ -338,7 +338,7 @@ PRE-LEN is used in the after mode for the length of the changed text."
 	   (inhibit-modification-hooks t)
 	   )
       ;; Sometimes a field is deleted, but we might still get a stray
-      ;; event.  Lets just ignore those events.
+      ;; event.  Let's just ignore those events.
       (when (slot-boundp field 'overlay)
 	;; First, fixup the two overlays, in case they got confused.
 	(let ((main (oref field overlay))

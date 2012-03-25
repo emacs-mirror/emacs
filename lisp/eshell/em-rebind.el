@@ -1,6 +1,6 @@
 ;;; em-rebind.el --- rebind keys when point is at current input
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -144,7 +144,7 @@ This is default behavior of shells like bash."
 ;;; Functions:
 
 (defun eshell-rebind-initialize ()
-  "Initialize the inputing code."
+  "Initialize the inputting code."
   (unless eshell-non-interactive-p
     (add-hook 'eshell-mode-hook 'eshell-setup-input-keymap nil t)
     (make-local-variable 'eshell-previous-point)

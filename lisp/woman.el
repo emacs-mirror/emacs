@@ -1,6 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: FSF
@@ -1439,8 +1439,8 @@ The cdr of each alist element is the path-index / filename."
 	  (push (woman-topic-all-completions-1 dir path-index)
 		files))
       (setq path-index (1+ path-index)))
-    ;; Uniquefy topics:
-    ;; Concate all lists with a single nconc call to
+    ;; Uniquify topics:
+    ;; Concatenate all lists with a single nconc call to
     ;; avoid retraversing the first lists repeatedly  -- dak
     (woman-topic-all-completions-merge
      (apply #'nconc files))))
@@ -2023,7 +2023,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 ;; Both advices are disabled because "a file in Emacs should not put
 ;; advice on a function in Emacs" (see Info node "(elisp)Advising
 ;; Functions").  Counting the formatting time is useful for
-;; developping, but less applicable for daily use.  The advice for
+;; developing, but less applicable for daily use.  The advice for
 ;; `Man-getpage-in-background' can be discarded, because the
 ;; key-binding in `woman-mode-map' has been remapped to call `woman'
 ;; but `man'.  Michael Albinus <michael.albinus@gmx.de>
@@ -2558,7 +2558,7 @@ REQUEST is the invoking directive without the leading dot."
      ;; ((looking-at "[te]") (setq c nil))   ; reject t(roff) and e(ven page)
      ((looking-at "[ntoe]")
       (setq c (memq (following-char) woman-if-conditions-true)))
-     ;; Unrecognised letter so reject:
+     ;; Unrecognized letter so reject:
      ((looking-at "[A-Za-z]") (setq c nil)
       (WoMan-warn "%s %s -- unrecognized condition name rejected!"
 		  request (match-string 0)))
@@ -2621,15 +2621,27 @@ If DELETE is non-nil then delete from point."
     ;; Process matching .el anything:
     (cond ((string= request "ie")
 	   ;; Discard unless previous .ie c `evaluated to false'.
+	   ;; IIUC, an .ie must be followed by an .el.
+	   ;; (An if with no else uses .if rather than .ie.)
+	   ;; TODO warn if no .el found?
+	   ;; The .el should come immediately after the .ie (modulo
+	   ;; comments etc), but this searches to eob.
 	   (cond ((re-search-forward "^[.'][ \t]*el[ \t]*" nil t)
 		  (woman-delete-match 0)
 		  (woman-if-body "el" nil (not delete)))))
+;;; FIXME neither the comment nor the code here make sense to me.
+;;; This branch was executed for an else (any else, AFAICS).
+;;; At this point, the else in question has already been processed above.
+;;; The re-search will find the _next_ else, if there is one, and
+;;; delete it.  If there is one, it belongs to another if block.  (Bug#9447)
+;;; woman0-el does not need this bit either.
 	  ;; Got here after processing a single-line `.ie' as a body
 	  ;; clause to be discarded:
-	  ((string= request "el")
-	   (cond ((re-search-forward "^[.'][ \t]*el[ \t]*" nil t)
-		  (woman-delete-match 0)
-		  (woman-if-body "el" nil t)))))
+;;;	  ((string= request "el")
+;;;	   (cond ((re-search-forward "^[.'][ \t]*el[ \t]*" nil t)
+;;;		  (woman-delete-match 0)
+;;;		  (woman-if-body "el" nil t)))))
+          )
     (goto-char from)))
 
 (defun woman0-el ()
@@ -2925,11 +2937,15 @@ interpolated by `\*x' and `\*(xx' escapes."
     ("bv" "|")				; bold vertical
 
     ;; groff etc. extensions:
+    ;; List these via eg man -Tdvi groff_char > groff_char.dvi.
     ("lq" "\"")
     ("rq" "\"")
     ("aq" "'")
     ("ha" "^")
     ("ti" "~")
+    ("oq" "‘")                          ; u2018
+    ("cq" "’")                          ; u2019
+    ("hy" "‐")                          ; u2010
     )
   "Alist of special character codes with ASCII and extended-font equivalents.
 Each alist elements has the form
@@ -3681,7 +3697,7 @@ expression in parentheses.  Leaves point after the value."
                               (setq woman-request (match-string 1)))))
             ;; Delete request or macro name:
             (woman-delete-match 0))
-           ;; Unrecognised request:
+           ;; Unrecognized request:
            ((prog1 nil
               ;; (WoMan-warn ".%s request ignored!" woman-request)
               (WoMan-warn-ignored woman-request "ignored!")
@@ -3938,6 +3954,8 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
     ;; Done like this to preserve any text properties of the `\'
     (while (search-forward "\\" to t)
       (let ((c (following-char)))
+	;; Some other escapes, such as \f, are handled in
+	;; `woman0-process-escapes'.
 	(cond ((eq c ?')		; \' -> '
 	       (delete-char -1)
 	       (cond (numeric		; except in numeric args, \' -> `
@@ -3951,12 +3969,7 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
 	       (insert "\t"))
 	      ((and numeric
 		    (memq c '(?w ?n ?h)))) ; leave \w, \n, \h (?????)
-	      ((eq c ?l) (woman-horizontal-line))
-	      (t
-	       ;; \? -> ? where ? is any remaining character
-	       (WoMan-warn "Escape ignored: \\%c -> %c" c c)
-	       (delete-char -1))
-	      )))
+	      ((eq c ?l) (woman-horizontal-line)))))
     (goto-char from)
     ;; Process non-default tab settings:
     (cond (tab-stop-list
@@ -4581,5 +4594,10 @@ logging the message."
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
 (provide 'woman)
+
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; woman.el ends here

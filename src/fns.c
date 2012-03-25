@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985-1987, 1993-1995, 1997-2011
+   Copyright (C) 1985-1987, 1993-1995, 1997-2012
 		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -602,7 +602,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 
   prev = Qnil;
   if (STRINGP (val))
-    SAFE_ALLOCA (textprops, struct textprop_rec *, sizeof (struct textprop_rec) * nargs);
+    SAFE_NALLOCA (textprops, 1, nargs);
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -3252,9 +3252,9 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   return decoded_string;
 }
 
-/* Base64-decode the data at FROM of LENGHT bytes into TO.  If
+/* Base64-decode the data at FROM of LENGTH bytes into TO.  If
    MULTIBYTE is nonzero, the decoded result should be in multibyte
-   form.  If NCHARS_RETRUN is not NULL, store the number of produced
+   form.  If NCHARS_RETURN is not NULL, store the number of produced
    characters in *NCHARS_RETURN.  */
 
 static EMACS_INT
@@ -3395,11 +3395,13 @@ check_hash_table (Lisp_Object obj)
 
 
 /* Value is the next integer I >= N, N >= 0 which is "almost" a prime
-   number.  */
+   number.  A number is "almost" a prime number if it is not divisible
+   by any integer in the range 2 .. (NEXT_ALMOST_PRIME_LIMIT - 1).  */
 
 EMACS_INT
 next_almost_prime (EMACS_INT n)
 {
+  verify (NEXT_ALMOST_PRIME_LIMIT == 11);
   for (n |= 1; ; n += 2)
     if (n % 3 != 0 && n % 5 != 0 && n % 7 != 0)
       return n;
@@ -3787,11 +3789,11 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
    the hash code of KEY.  Value is the index of the entry in H
    matching KEY, or -1 if not found.  */
 
-EMACS_INT
+ptrdiff_t
 hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
 {
   EMACS_UINT hash_code;
-  EMACS_INT start_of_bucket;
+  ptrdiff_t start_of_bucket;
   Lisp_Object idx;
 
   hash_code = h->hashfn (h, key);
@@ -3821,11 +3823,11 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
    HASH is a previously computed hash code of KEY.
    Value is the index of the entry in H matching KEY.  */
 
-EMACS_INT
+ptrdiff_t
 hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 	  EMACS_UINT hash)
 {
-  EMACS_INT start_of_bucket, i;
+  ptrdiff_t start_of_bucket, i;
 
   xassert ((hash & ~INTMASK) == 0);
 
@@ -4098,25 +4100,33 @@ sweep_weak_hash_tables (void)
 #define SXHASH_REDUCE(X) \
   ((((X) ^ (X) >> (BITS_PER_EMACS_INT - FIXNUM_BITS))) & INTMASK)
 
-/* Return a hash for string PTR which has length LEN.  The hash
-   code returned is guaranteed to fit in a Lisp integer.  */
+/* Return a hash for string PTR which has length LEN.  The hash value
+   can be any EMACS_UINT value.  */
 
-static EMACS_UINT
-sxhash_string (unsigned char *ptr, EMACS_INT len)
+EMACS_UINT
+hash_string (char const *ptr, ptrdiff_t len)
 {
-  unsigned char *p = ptr;
-  unsigned char *end = p + len;
+  char const *p = ptr;
+  char const *end = p + len;
   unsigned char c;
   EMACS_UINT hash = 0;
 
   while (p != end)
     {
       c = *p++;
-      if (c >= 0140)
-	c -= 40;
       hash = SXHASH_COMBINE (hash, c);
     }
 
+  return hash;
+}
+
+/* Return a hash for string PTR which has length LEN.  The hash
+   code returned is guaranteed to fit in a Lisp integer.  */
+
+static EMACS_UINT
+sxhash_string (char const *ptr, ptrdiff_t len)
+{
+  EMACS_UINT hash = hash_string (ptr, len);
   return SXHASH_REDUCE (hash);
 }
 
@@ -4231,7 +4241,7 @@ sxhash (Lisp_Object obj, int depth)
       /* Fall through.  */
 
     case Lisp_String:
-      hash = sxhash_string (SDATA (obj), SCHARS (obj));
+      hash = sxhash_string (SSDATA (obj), SBYTES (obj));
       break;
 
       /* This can be everything from a vector to an overlay.  */
@@ -4474,7 +4484,7 @@ If KEY is not found, return DFLT which defaults to nil.  */)
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  EMACS_INT i = hash_lookup (h, key, NULL);
+  ptrdiff_t i = hash_lookup (h, key, NULL);
   return i >= 0 ? HASH_VALUE (h, i) : dflt;
 }
 
@@ -4486,7 +4496,7 @@ VALUE.  In any case, return VALUE.  */)
   (Lisp_Object key, Lisp_Object value, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  EMACS_INT i;
+  ptrdiff_t i;
   EMACS_UINT hash;
 
   i = hash_lookup (h, key, &hash);
@@ -4694,13 +4704,13 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
 		    force_raw_text = 1;
 		}
 
-	      if (NILP (coding_system) && !NILP (Fbuffer_file_name(object)))
+	      if (NILP (coding_system) && !NILP (Fbuffer_file_name (object)))
 		{
 		  /* Check file-coding-system-alist.  */
 		  Lisp_Object args[4], val;
 
 		  args[0] = Qwrite_region; args[1] = start; args[2] = end;
-		  args[3] = Fbuffer_file_name(object);
+		  args[3] = Fbuffer_file_name (object);
 		  val = Ffind_operation_coding_system (4, args);
 		  if (CONSP (val) && !NILP (XCDR (val)))
 		    coding_system = XCDR (val);
@@ -4837,12 +4847,15 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 }
 
 DEFUN ("secure-hash", Fsecure_hash, Ssecure_hash, 2, 5, 0,
-       doc: /* Return the secure hash of an OBJECT.
-ALGORITHM is a symbol: md5, sha1, sha224, sha256, sha384 or sha512.
-OBJECT is either a string or a buffer.
-Optional arguments START and END are character positions specifying
-which portion of OBJECT for computing the hash.  If BINARY is non-nil,
-return a string in binary form.  */)
+       doc: /* Return the secure hash of OBJECT, a buffer or string.
+ALGORITHM is a symbol specifying the hash to use:
+md5, sha1, sha224, sha256, sha384 or sha512.
+
+The two optional arguments START and END are positions specifying for
+which part of OBJECT to compute the hash.  If nil or omitted, uses the
+whole OBJECT.
+
+If BINARY is non-nil, returns a string in binary form.  */)
   (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object binary)
 {
   return secure_hash (algorithm, object, start, end, Qnil, Qnil, binary);

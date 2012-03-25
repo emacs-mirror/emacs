@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system
 
-;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -56,7 +56,7 @@
 (put 'Bzr 'vc-functions nil)
 
 (defgroup vc-bzr nil
-  "VC bzr backend."
+  "VC Bazaar (bzr) backend."
   :version "22.2"
   :group 'vc)
 
@@ -89,18 +89,40 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-bzr)
 
+(defcustom vc-bzr-status-switches
+  (ignore-errors
+    (with-temp-buffer
+      (call-process vc-bzr-program nil t nil "help" "status")
+      (if (search-backward "--no-classify" nil t)
+          "--no-classify")))
+  "String or list of strings specifying switches for bzr status under VC.
+The option \"--no-classify\" should be present if your bzr supports it."
+  :type '(choice (const :tag "None" nil)
+                 (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string))
+  :group 'vc-bzr
+  :version "24.1")
+
 ;; since v0.9, bzr supports removing the progress indicators
 ;; by setting environment variable BZR_PROGRESS_BAR to "none".
 (defun vc-bzr-command (bzr-command buffer okstatus file-or-list &rest args)
   "Wrapper round `vc-do-command' using `vc-bzr-program' as COMMAND.
 Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
-`LC_MESSAGES=C' to the environment."
+`LC_MESSAGES=C' to the environment.  If BZR-COMMAND is \"status\",
+prepends `vc-bzr-status-switches' to ARGS."
   (let ((process-environment
          (list* "BZR_PROGRESS_BAR=none" ; Suppress progress output (bzr >=0.9)
                 "LC_MESSAGES=C"         ; Force English output
                 process-environment)))
     (apply 'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
-           file-or-list bzr-command args)))
+           file-or-list bzr-command
+           (if (and (string-equal "status" bzr-command)
+                    vc-bzr-status-switches)
+               (append (if (stringp vc-bzr-status-switches)
+                           (list vc-bzr-status-switches)
+                         vc-bzr-status-switches)
+                       args)
+             args))))
 
 (defun vc-bzr-async-command (bzr-command &rest args)
   "Wrapper round `vc-do-async-command' using `vc-bzr-program' as COMMAND.
@@ -124,7 +146,8 @@ Use the current Bzr root directory as the ROOT argument to
 ;; Used in the autoloaded vc-bzr-registered; see below.
 ;;;###autoload
 (defconst vc-bzr-admin-checkout-format-file
-  (concat vc-bzr-admin-dirname "/checkout/format"))
+  (concat vc-bzr-admin-dirname "/checkout/format")
+  "Name of the format file in a .bzr directory.")
 (defconst vc-bzr-admin-dirstate
   (concat vc-bzr-admin-dirname "/checkout/dirstate"))
 (defconst vc-bzr-admin-branch-format-file
@@ -430,7 +453,7 @@ If any error occurred in running `bzr status', then return nil."
             (skip-chars-forward " \n\t") ;Throw away spaces.
             (cons status
                   ;; "bzr" will output warnings and informational messages to
-                  ;; stderr; due to Emacs' `vc-do-command' (and, it seems,
+                  ;; stderr; due to Emacs's `vc-do-command' (and, it seems,
                   ;; `start-process' itself) limitations, we cannot catch stderr
                   ;; and stdout into different buffers.  So, if there's anything
                   ;; left in the buffer after removing the above status
@@ -444,7 +467,7 @@ If any error occurred in running `bzr status', then return nil."
       (let ((warnings (cdr result)))
         (when warnings
           ;; bzr 2.3.0 returns info about shelves, which is not really a warning
-          (when (string-match "[1-9]+ shel\\(f\\|ves\\) exists?\\..*?\n" warnings)
+          (when (string-match "[0-9]+ shel\\(f\\|ves\\) exists?\\..*?\n" warnings)
             (setq warnings (replace-match "" nil nil warnings)))
           (unless (string= warnings "")
             (message "Warnings in `bzr' output: %s" warnings))))
@@ -763,7 +786,10 @@ REV non-nil gets an error."
 
 (defun vc-bzr-rename-file (old new)
   "Rename file from OLD to NEW using `bzr mv'."
-  (vc-bzr-command "mv" nil 0 new old))
+  (setq old (expand-file-name old))
+  (setq new (expand-file-name new))
+  (vc-bzr-command "mv" nil 0 new old)
+  (message "Renamed %s => %s" old new))
 
 (defvar vc-bzr-annotation-table nil
   "Internal use.")
@@ -866,7 +892,7 @@ stream.  Standard error output is discarded."
 		       (" M " . edited) ;; file text modified
 		       ("  *" . edited) ;; execute bit changed
 		       (" M*" . edited) ;; text modified + execute bit changed
-		       ;; FIXME: what about ignored files?
+		       ("I  " . ignored)
 		       (" D " . missing)
                        ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
 		       ("C  " . conflict)
@@ -891,7 +917,7 @@ stream.  Standard error output is discarded."
       (goto-char (point-min))
       (while (not (eobp))
         ;; Bzr 2.3.0 added this if there are shelves.  (Bug#8170)
-        (unless (looking-at "[1-9]+ shel\\(f\\|ves\\) exists?\\.")
+        (unless (looking-at "[0-9]+ shel\\(f\\|ves\\) exists?\\.")
           (setq status-str
                 (buffer-substring-no-properties (point) (+ (point) 3)))
           (setq translated (cdr (assoc status-str translation)))
@@ -916,7 +942,7 @@ stream.  Standard error output is discarded."
               (push (list new-name 'edited
                           (vc-bzr-create-extra-fileinfo old-name)) result)))
            ;; do nothing for non existent files
-           ((eq translated 'not-found))
+           ((memq translated '(not-found ignored)))
            (t
             (push (list (file-relative-name
                          (buffer-substring-no-properties
@@ -964,23 +990,23 @@ stream.  Standard error output is discarded."
 (defvar vc-bzr-shelve-menu-map
   (let ((map (make-sparse-keymap "Bzr Shelve")))
     (define-key map [de]
-      '(menu-item "Delete shelf" vc-bzr-shelve-delete-at-point
+      '(menu-item "Delete Shelf" vc-bzr-shelve-delete-at-point
 		  :help "Delete the current shelf"))
     (define-key map [ap]
-      '(menu-item "Apply and keep shelf" vc-bzr-shelve-apply-and-keep-at-point
+      '(menu-item "Apply and Keep Shelf" vc-bzr-shelve-apply-and-keep-at-point
 		  :help "Apply the current shelf and keep it"))
     (define-key map [po]
-      '(menu-item "Apply and remove shelf (pop)" vc-bzr-shelve-apply-at-point
+      '(menu-item "Apply and Remove Shelf (Pop)" vc-bzr-shelve-apply-at-point
 		  :help "Apply the current shelf and remove it"))
     (define-key map [sh]
-      '(menu-item "Show shelve" vc-bzr-shelve-show-at-point
+      '(menu-item "Show Shelve" vc-bzr-shelve-show-at-point
     		  :help "Show the contents of the current shelve"))
     map))
 
 (defvar vc-bzr-extra-menu-map
   (let ((map (make-sparse-keymap)))
     (define-key map [bzr-sn]
-      '(menu-item "Shelve a snapshot" vc-bzr-shelve-snapshot
+      '(menu-item "Shelve a Snapshot" vc-bzr-shelve-snapshot
 		  :help "Shelve the current state of the tree and keep the current state"))
     (define-key map [bzr-sh]
       '(menu-item "Shelve..." vc-bzr-shelve

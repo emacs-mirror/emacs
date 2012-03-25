@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus
 
-;; Copyright (C) 1987-1990, 1992-1998, 2000-2011
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -261,6 +261,8 @@ See `nnml-marks-is-evil' for more information.")
 					  (const :format "" "password")
 					  (string :format "Password: %v")))))))
 
+(make-obsolete 'nntp-authinfo-file nil "Emacs 24.1")
+
 
 
 (defvoo nntp-connection-timeout nil
@@ -279,6 +281,7 @@ update their active files often, this can help.")
 
 ;;; Internal variables.
 
+(defvoo nntp-retrieval-in-progress nil)
 (defvar nntp-record-commands nil
   "*If non-nil, nntp will record all commands in the \"*nntp-log*\" buffer.")
 
@@ -430,6 +433,9 @@ be restored and the command retried."
 
 (defun nntp-kill-buffer (buffer)
   (when (buffer-name buffer)
+    (let ((process (get-buffer-process buffer)))
+      (when process
+	(delete-process process)))
     (kill-buffer buffer)
     (nnheader-init-server-buffer)))
 
@@ -660,7 +666,7 @@ command whose response triggered the error."
                                                   (process-buffer -process))))
                               ;; When I an able to identify the
                               ;; connection to the server AND I've
-                              ;; received NO reponse for
+                              ;; received NO response for
                               ;; nntp-connection-timeout seconds.
                               (when (and -buffer (eq 0 (buffer-size -buffer)))
                                 ;; Close the connection.  Take no
@@ -765,21 +771,32 @@ command whose response triggered the error."
 (deffoo nntp-retrieve-group-data-early (server infos)
   "Retrieve group info on INFOS."
   (nntp-with-open-group nil server
-    (when (nntp-find-connection-buffer nntp-server-buffer)
-      ;; The first time this is run, this variable is `try'.  So we
-      ;; try.
-      (when (eq nntp-server-list-active-group 'try)
-	(nntp-try-list-active
-	 (gnus-group-real-name (gnus-info-group (car infos)))))
-      (with-current-buffer (nntp-find-connection-buffer nntp-server-buffer)
-	(erase-buffer)
-	(let ((nntp-inhibit-erase t)
-	      (command (if nntp-server-list-active-group
-			   "LIST ACTIVE" "GROUP")))
-	  (dolist (info infos)
-	    (nntp-send-command
-	     nil command (gnus-group-real-name (gnus-info-group info)))))
-	(length infos)))))
+    (let ((buffer (nntp-find-connection-buffer nntp-server-buffer)))
+      (unless infos
+	(with-current-buffer buffer
+	  (setq nntp-retrieval-in-progress nil)))
+      (when (and buffer
+		 infos
+		 (with-current-buffer buffer
+		   (not nntp-retrieval-in-progress)))
+	;; The first time this is run, this variable is `try'.  So we
+	;; try.
+	(when (eq nntp-server-list-active-group 'try)
+	  (nntp-try-list-active
+	   (gnus-group-real-name (gnus-info-group (car infos)))))
+	(with-current-buffer buffer
+	  (erase-buffer)
+	  ;; Mark this buffer as "in use" in case we try to issue two
+	  ;; retrievals from the same server.  This shouldn't happen,
+	  ;; so this is mostly a sanity check.
+	  (setq nntp-retrieval-in-progress t)
+	  (let ((nntp-inhibit-erase t)
+		(command (if nntp-server-list-active-group
+			     "LIST ACTIVE" "GROUP")))
+	    (dolist (info infos)
+	      (nntp-send-command
+	       nil command (gnus-group-real-name (gnus-info-group info)))))
+	  (length infos))))))
 
 (deffoo nntp-finish-retrieve-group-infos (server infos count)
   (nntp-with-open-group nil server
@@ -789,6 +806,8 @@ command whose response triggered the error."
 		   (car infos)))
 	  (received 0)
 	  (last-point 1))
+      (with-current-buffer buf
+	(setq nntp-retrieval-in-progress nil))
       (when (and buf
 		 count)
 	(with-current-buffer buf
@@ -832,7 +851,14 @@ command whose response triggered the error."
   "Retrieve group info on GROUPS."
   (nntp-with-open-group
    nil server
-   (when (nntp-find-connection-buffer nntp-server-buffer)
+   (when (and (nntp-find-connection-buffer nntp-server-buffer)
+	      (with-current-buffer
+		  (nntp-find-connection-buffer nntp-server-buffer)
+		(if (not nntp-retrieval-in-progress)
+		    t
+		  (message "Warning: Refusing to do retrieval from %s because a retrieval is already happening"
+			   server)
+		  nil)))
      (catch 'done
        (save-excursion
          ;; Erase nntp-server-buffer before nntp-inhibit-erase.
@@ -1226,10 +1252,11 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
          (auth-info
-          (nth 0 (auth-source-search :max 1
-                                     ;; TODO: allow the virtual server name too
-                                     :host nntp-address
-                                     :port '("119" "nntp"))))
+          (nth 0 (auth-source-search
+		  :max 1
+		  :host (list nntp-address (nnoo-current-server 'nntp))
+		  :port `("119" "nntp" ,(format "%s" nntp-port-number)
+			  "563" "nntps" "snews"))))
          (auth-user (plist-get auth-info :user))
          (auth-force (plist-get auth-info :force))
          (auth-passwd (plist-get auth-info :secret))
@@ -1313,6 +1340,7 @@ password contained in '~/.nntp-authinfo'."
     (set (make-local-variable 'nntp-process-to-buffer) nil)
     (set (make-local-variable 'nntp-process-start-point) nil)
     (set (make-local-variable 'nntp-process-decode) nil)
+    (set (make-local-variable 'nntp-retrieval-in-progress) nil)
     (current-buffer)))
 
 (defun nntp-open-connection (buffer)
@@ -1358,6 +1386,10 @@ password contained in '~/.nntp-authinfo'."
       (nnheader-cancel-timer timer))
     (when (and process
 	       (not (memq (process-status process) '(open run))))
+      (with-current-buffer pbuffer
+	(goto-char (point-min))
+	(nnheader-report 'nntp "Error when connecting: %s"
+			 (buffer-substring (point) (line-end-position))))
       (setq process nil))
     (unless process
       (nntp-kill-buffer pbuffer))
@@ -1676,7 +1708,7 @@ password contained in '~/.nntp-authinfo'."
         ;; for the first available article.  Obviously, a client can
         ;; use that entry to avoid making unnecessary requests.  The
         ;; only problem is for a client that assumes that the response
-        ;; will always be within the requested ranage.  For such a
+        ;; will always be within the requested range.  For such a
         ;; client, we can get N copies of the same entry (one for each
         ;; XOVER command sent to the server).
 

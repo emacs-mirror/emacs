@@ -1,7 +1,7 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993-1994, 1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
 ;; Maintainer: FSF
@@ -133,10 +133,10 @@ BODY can start with a bunch of keyword arguments.  The following keyword
 	Declare the customization group that corresponds to this mode.
 	The command `customize-mode' uses this.
 :syntax-table TABLE
-	Use TABLE instead of the default.
+	Use TABLE instead of the default (CHILD-syntax-table).
 	A nil value means to simply use the same syntax-table as the parent.
 :abbrev-table TABLE
-	Use TABLE instead of the default.
+	Use TABLE instead of the default (CHILD-abbrev-table).
 	A nil value means to simply use the same abbrev-table as the parent.
 
 Here is how you could define LaTeX-Thesis mode as a variant of LaTeX mode:
@@ -230,7 +230,7 @@ No problems result if this variable is not bound.
 					; Run the parent.
 	 (delay-mode-hooks
 
-	  (,(or parent 'fundamental-mode))
+	  (,(or parent 'kill-all-local-variables))
 					; Identify the child mode.
 	  (setq major-mode (quote ,child))
 	  (setq mode-name ,name)

@@ -1,6 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -393,7 +393,7 @@ FORM is of the form `(and FORM1 ...)'."
 (defun rx-anything (form)
   "Match any character."
   (if (consp form)
-      (error "rx `anythng' syntax error: %s" form))
+      (error "rx `anything' syntax error: %s" form))
   (rx-or (list 'or 'not-newline ?\n)))
 
 

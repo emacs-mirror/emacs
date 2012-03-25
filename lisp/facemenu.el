@@ -1,6 +1,6 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
-;; Copyright (C) 1994-1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -241,10 +241,12 @@ it will remove any faces not explicitly in the list."
   (define-key map [df] (cons (purecopy "Display Faces") 'list-faces-display))
   (define-key map [dp] (cons (purecopy "Describe Properties")
 			     'describe-text-properties))
-  (define-key map [ra] (cons (purecopy "Remove Text Properties")
-			     'facemenu-remove-all))
-  (define-key map [rm] (cons (purecopy "Remove Face Properties")
-			     'facemenu-remove-face-props))
+  (define-key map [ra] (list 'menu-item (purecopy "Remove Text Properties")
+			     'facemenu-remove-all
+			     :enable 'mark-active))
+  (define-key map [rm] (list 'menu-item (purecopy "Remove Face Properties")
+			     'facemenu-remove-face-props
+			     :enable 'mark-active))
   (define-key map [s1] (list (purecopy "--"))))
 (let ((map facemenu-menu))
   (define-key map [in] (cons (purecopy "Indentation")
@@ -517,17 +519,14 @@ filter out the color from the output."
   "Display names of defined colors, and show what they look like.
 If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list of
-colors that the current display can handle.
+colors that the current display can handle.  Customize
+`list-colors-sort' to change the order in which colors are shown.
 
-If the optional argument BUFFER-NAME is nil, it defaults to
-*Colors*.
+If the optional argument BUFFER-NAME is nil, it defaults to *Colors*.
 
 If the optional argument CALLBACK is non-nil, it should be a
 function to call each time the user types RET or clicks on a
-color.  The function should accept a single argument, the color
-name.
-
-You can change the color sort order by customizing `list-colors-sort'."
+color.  The function should accept a single argument, the color name."
   (interactive)
   (when (and (null list) (> (display-color-cells) 0))
     (setq list (list-colors-duplicates (defined-colors)))
@@ -637,8 +636,17 @@ a list of colors that the current display can handle."
 	 (l list))
     (while (cdr l)
       (if (and (facemenu-color-equal (car (car l)) (car (car (cdr l))))
-	       (not (if (fboundp 'w32-default-color-map)
-			(not (assoc (car (car l)) (w32-default-color-map))))))
+               ;; On MS-Windows, there are logical colors that might have
+               ;; the same value but different names and meanings.  For
+               ;; example, `SystemMenuText' (the color w32 uses for the
+               ;; text in menu entries) and `SystemWindowText' (the default
+               ;; color w32 uses for the text in windows and dialogs) may
+               ;; be the same display color and be adjacent in the list.
+               ;; These system colors all have names prefixed with "System",
+               ;; which is hardcoded in w32fns.c (SYSTEM_COLOR_PREFIX).
+               ;; This makes them different to any other color.  Bug#9722
+	       (not (and (eq system-type 'windows-nt)
+			 (string-match-p "^System" (car (car l))))))
 	  (progn
 	    (setcdr (car l) (cons (car (car (cdr l))) (cdr (car l))))
 	    (setcdr l (cdr (cdr l))))

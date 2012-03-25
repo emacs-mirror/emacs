@@ -1,6 +1,6 @@
 ;;; srecode.el --- Semantic buffer evaluator.
 
-;;; Copyright (C) 2005, 2007-2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2005, 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -31,7 +31,7 @@
 ;;
 ;; Contemplation of the simplistic problem within the scope of
 ;; semantic showed that the solution was more complex than could
-;; possibly be handled in semantic-format.el.   Semantic Recode, or
+;; possibly be handled in semantic/format.el.   Semantic Recode, or
 ;; srecode is a rich API for generating code out of semantic tags, or
 ;; recoding the tags.
 ;;

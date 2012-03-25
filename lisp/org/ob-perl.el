@@ -1,11 +1,11 @@
 ;;; ob-perl.el --- org-babel functions for perl evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
-;; Author: Dan Davison, Eric Schulte
+;; Author: Dan Davison
+;;	Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -31,6 +31,7 @@
 (require 'ob-eval)
 (eval-when-compile (require 'cl))
 
+(defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("perl" . "pl"))
 
 (defvar org-babel-default-header-args:perl '())
@@ -111,6 +112,7 @@ return the value of the last statement in BODY, as elisp."
 	     (org-babel-eval-read-file tmp-file)))))
 
 (provide 'ob-perl)
+
 
 
 ;;; ob-perl.el ends here

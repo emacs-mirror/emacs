@@ -1,10 +1,10 @@
 ;;; s-region.el --- set region using shift key
 
-;; Copyright (C) 1994-1995, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: terminals
-;; Favourite-brand-of-beer: None, I hate beer.
+;; Favorite-brand-of-beer: None, I hate beer.
 ;; Obsolete-since: 24.1
 
 ;; This file is part of GNU Emacs.

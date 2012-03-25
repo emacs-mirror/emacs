@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -139,6 +139,7 @@ extern void term_w32select (void);
 extern void syms_of_w32menu (void);
 extern void globals_of_w32menu (void);
 extern void syms_of_fontset (void);
+extern void syms_of_w32font (void);
 
 extern int _sys_read_ahead (int fd);
 extern int _sys_wait_accept (int fd);

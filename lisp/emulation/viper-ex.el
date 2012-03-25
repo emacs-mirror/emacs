@@ -1,6 +1,6 @@
 ;;; viper-ex.el --- functions implementing the Ex commands for Viper
 
-;; Copyright (C) 1994-1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -259,7 +259,7 @@
 (defvar ex-addresses nil)
 
 ;; This flag is supposed to be set only by `#', `print', and `list',
-;; none of which is implemented.  So, it and the pices of the code it
+;; none of which is implemented.  So, it and the pieces of the code it
 ;; controls are dead weight.  We keep it just in case this might be
 ;; needed in the future.
 (defvar ex-flag nil)

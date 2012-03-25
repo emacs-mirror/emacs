@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2011
+Copyright (C) 1985-1986, 1993-1995, 1997-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,7 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <time.h> /* for time_t */
+#include <sys/types.h> /* for off_t, time_t */
 
 /* Accessing the parameters of the current buffer.  */
 
@@ -559,15 +559,15 @@ struct buffer
      is still the same (since it's rounded up to seconds) but we're actually
      not up-to-date.  -1 means the size is unknown.  Only meaningful if
      modtime is actually set.  */
-  EMACS_INT modtime_size;
+  off_t modtime_size;
   /* The value of text->modiff at the last auto-save.  */
   int auto_save_modified;
   /* The value of text->modiff at the last display error.
      Redisplay of this buffer is inhibited until it changes again.  */
   int display_error_modiff;
   /* The time at which we detected a failure to auto-save,
-     Or -1 if we didn't have a failure.  */
-  int auto_save_failure_time;
+     Or 0 if we didn't have a failure.  */
+  time_t auto_save_failure_time;
   /* Position in buffer at which display started
      the last time this buffer was displayed.  */
   EMACS_INT last_window_start;
@@ -978,7 +978,7 @@ extern int last_per_buffer_idx;
    variable has an index > 0 associated with it, except when it always
    has buffer-local values, in which case the index is -1.  If this is
    0, this is a bug and means that the slot of VAR in
-   buffer_local_flags wasn't intiialized.  */
+   buffer_local_flags wasn't initialized.  */
 
 #define PER_BUFFER_VAR_IDX(VAR) \
     PER_BUFFER_IDX (PER_BUFFER_VAR_OFFSET (VAR))

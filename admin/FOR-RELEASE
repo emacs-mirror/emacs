@@ -7,7 +7,7 @@ Check cross-references between the manuals (eg from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
 
-emacs -Q --eval "(setq Info-default-directory-list '(\".\"))" \
+emacs -Q --eval "(progn (require 'info) (setq Info-directory-list '(\".\")))" \
   -f info-xref-check-all
 
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
@@ -61,18 +61,6 @@ sk	Miroslav Vaško
 
 * BUGS
 
-** Does deleting frames run Lisp code?  If so, can we get rid of that?
-It is a dangerous design.
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01330.html
-
-** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01987.html
-
-** rms: gnus-dired.el is a mistake.  Those features should not
-be part of Gnus.  They should be moved to some other part of Emacs.
-rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
-minimized.  I don't know what is left to do here.
-
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
 and change key bindings where necessary.  The current list of modes:
 
@@ -90,26 +78,10 @@ and change key bindings where necessary.  The current list of modes:
    `log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding `M-s' are useless in these modes.
 
-** sdl.web@gmail.com, 30 Oct: ps-lpr-switches has no effect
-http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02091.html
+5. Rmail binds `\es' to `rmail-search'/`rmail-summary-search'.
 
-Fixed by this change?
-
-2007-11-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el: [...]
-	(ps-do-despool): If ps-lpr-switches is not a list, force it to be one.
-
-** In C, use EMACS_INT for variables and structure members
-for buffer/string positions.  E.g. struct it, struct text_pos.
 
 * DOCUMENTATION
-
-** Clean up Emacs.app references in code and documentation.
-
-** Document new font backend
-
-** Document XEmbed support
 
 ** Check the Emacs Tutorial.
 
@@ -123,137 +95,141 @@ names of the people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
-etc/TUTORIAL             rgm (but see Bug#3783)
-etc/TUTORIAL.bg          
-etc/TUTORIAL.cn
-etc/TUTORIAL.cs          
-etc/TUTORIAL.de          Werner Lemberg
-etc/TUTORIAL.eo
-etc/TUTORIAL.es          
-etc/TUTORIAL.fr          
-etc/TUTORIAL.it          
-etc/TUTORIAL.ja		 
-etc/TUTORIAL.ko
-etc/TUTORIAL.nl		 
-etc/TUTORIAL.pl          
-etc/TUTORIAL.pt_BR       
-etc/TUTORIAL.ro
-etc/TUTORIAL.ru          
-etc/TUTORIAL.sk          
-etc/TUTORIAL.sl          
-etc/TUTORIAL.sv          
-etc/TUTORIAL.th          
-etc/TUTORIAL.zh
+TUTORIAL             cyd
+TUTORIAL.bg          ogi
+TUTORIAL.cn
+TUTORIAL.cs          
+TUTORIAL.de          wl
+TUTORIAL.eo
+TUTORIAL.es          
+TUTORIAL.fr          
+TUTORIAL.he          eliz
+TUTORIAL.it          
+TUTORIAL.ja		 
+TUTORIAL.ko
+TUTORIAL.nl	     Pieter Schoenmakers
+TUTORIAL.pl          
+TUTORIAL.pt_BR       
+TUTORIAL.ro
+TUTORIAL.ru          Alex Ott
+TUTORIAL.sk          
+TUTORIAL.sl          Primoz PETERLIN
+TUTORIAL.sv          Mats Lidell
+TUTORIAL.th          
+TUTORIAL.zh
 
 ** Check the manual.
 
-abbrevs.texi      -- cyd
-ack.texi          -- rgm
-anti.texi
-arevert-xtra.texi
-basic.texi        -- cyd
-buffers.texi      -- cyd
-building.texi     -- cyd
-calendar.texi     -- rgm
-cal-xtra.texi     -- rgm
-cmdargs.texi      -- cyd
-commands.texi     -- cyd
-custom.texi       -- cyd
-dired.texi        -- cyd
-dired-xtra.texi
-display.texi      -- cyd
-emacs.texi        -- cyd
-emacs-xtra.texi
-emerge-xtra.texi
-entering.texi     -- cyd
-files.texi        -- cyd
-fixit.texi        -- cyd
-fortran-xtra.texi -- rgm
-frames.texi       -- cyd
+abbrevs.texi      cyd
+ack.texi          rgm
+anti.texi         cyd
+arevert-xtra.texi cyd
+basic.texi        cyd
+buffers.texi      cyd
+building.texi     cyd
+calendar.texi     rgm
+cal-xtra.texi     rgm
+cmdargs.texi      cyd
+commands.texi     cyd
+custom.texi       cyd
+dired.texi        cyd
+dired-xtra.texi   rgm
+display.texi      cyd
+emacs.texi        rgm
+emacs-xtra.texi   rgm
+emerge-xtra.texi  rgm
+entering.texi     cyd
+files.texi        cyd
+fixit.texi        cyd
+fortran-xtra.texi rgm
+frames.texi       cyd
 glossary.texi
-help.texi         -- cyd
-indent.texi       -- cyd
-killing.texi      -- cyd
-kmacro.texi       -- cyd
-macos.texi     -- davidswelt
-maintaining.texi  -- cyd
-major.texi        -- cyd
-mark.texi         -- cyd
-mini.texi         -- cyd
-misc.texi         -- cyd
-msdog.texi        -- eliz
-msdog-xtra.texi   -- eliz
-mule.texi         -- cyd
-m-x.texi          -- cyd
-programs.texi     -- cyd
-regs.texi         -- cyd
-rmail.texi        -- rgm
-screen.texi       -- cyd
-search.texi       -- cyd
-sending.texi      -- rgm (maybe needs some brief mailclient.el details in
-                          "Mail Sending" section?)
-text.texi         -- cyd
-trouble.texi      -- cyd
-windows.texi      -- rudalics
-xresources.texi   -- cyd
+help.texi         cyd
+indent.texi       cyd
+killing.texi      cyd
+kmacro.texi       cyd
+macos.texi        rgm  (can't actually test any of it though)
+maintaining.texi  cyd
+mark.texi         cyd
+mini.texi         rgm
+misc.texi         cyd
+modes.texi        cyd
+msdog.texi        rgm  (can't actually test any of it though)
+  It was not obvious to me that the following is true (it could well be though):
+
+   Emacs on Windows automatically determines your default printer and
+   sets the variable `printer-name' to that printer's name.
+
+msdog-xtra.texi   rgm  (can't actually test any of it though)
+mule.texi         
+m-x.texi          cyd
+package.texi      cyd
+picture-xtra.texi rgm
+programs.texi     cyd
+regs.texi         cyd
+rmail.texi        rgm
+screen.texi       cyd
+search.texi       cyd
+sending.texi      cyd
+text.texi         cyd
+trouble.texi      cyd
+vc-xtra.texi      cyd
+vc1-xtra.texi     cyd
+windows.texi      cyd
+xresources.texi   cyd
 
 ** Check the Lisp manual.
 
-abbrevs.texi      -- cyd
-advice.texi       -- cyd
-anti.texi         -- cyd
+abbrevs.texi      rgm
+advice.texi       cyd
+anti.texi         
 back.texi
-backups.texi      -- cyd
-buffers.texi      -- cyd
-commands.texi     -- cyd
-compile.texi      -- cyd
-control.texi      -- cyd
-customize.texi    -- cyd
-debugging.texi    -- cyd
-display.texi      -- cyd
+backups.texi      cyd
+buffers.texi      cyd
+commands.texi     cyd
+compile.texi      cyd
+control.texi      cyd
+customize.texi    cyd
+debugging.texi    cyd
+display.texi      
 edebug.texi
 elisp.texi
-errors.texi       -- cyd
-eval.texi         -- cyd
-files.texi        -- cyd
-frames.texi       -- cyd
-functions.texi    -- cyd
-hash.texi         -- cyd
-help.texi         -- cyd
-hooks.texi        -- cyd
+errors.texi       rgm
+eval.texi         cyd
+files.texi        cyd
+frames.texi       cyd
+functions.texi    cyd
+hash.texi         cyd
+help.texi         cyd
+hooks.texi        rgm
 index.texi
-internals.texi    -- cyd
-intro.texi        -- cyd
-keymaps.texi      -- cyd
-lists.texi        -- cyd
-loading.texi      -- cyd
-locals.texi       -- cyd
-macros.texi       -- cyd
-maps.texi         -- cyd
-markers.texi      -- cyd
-minibuf.texi      -- cyd
-modes.texi        -- cyd
-nonascii.texi     -- cyd
-numbers.texi      -- cyd
-objects.texi      -- cyd
-os.texi           -- cyd
-positions.texi    -- cyd
+internals.texi    rgm  cyd
+intro.texi        cyd
+keymaps.texi      cyd
+lists.texi        cyd
+loading.texi      cyd
+macros.texi       cyd
+maps.texi         rgm
+markers.texi      rgm
+minibuf.texi      
+modes.texi        cyd
+nonascii.texi     cyd
+numbers.texi      cyd
+objects.texi      cyd
+os.texi           cyd
+package.texi      rgm
+positions.texi    cyd
 processes.texi
-searching.texi    -- cyd
-sequences.texi    -- cyd
-streams.texi      -- cyd
-strings.texi      -- cyd
-symbols.texi      -- cyd
-syntax.texi       -- cyd
-text.texi         -- cyd
-tips.texi         -- cyd
-variables.texi    -- cyd
-windows.texi      -- rudalics
-
-* PLANNED ADDITIONS
-
-** pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
-** gas-mode ?
+searching.texi    
+sequences.texi    cyd
+streams.texi      cyd
+strings.texi      cyd
+symbols.texi      cyd
+syntax.texi       cyd
+text.texi         cyd
+tips.texi         rgm
+variables.texi    cyd
+windows.texi      
 
 
 Local variables:

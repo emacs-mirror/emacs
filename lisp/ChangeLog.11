@@ -1744,7 +1744,7 @@
 	substitute-env-vars -- not quite shell compatible but better than
 	nothing.
 	(compilation-error-regexp-alist-alist): Simplify ftnchek to only
-	handle the newer versions messages, which are more parseable.
+	handle the newer versions messages, which are more parsable.
 
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -5283,7 +5283,7 @@
 	(disabled-command-function): Function renamed from
 	`disabled-command-hook'.  Adapt code to name change of the variable.
 
-2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>  (tiny change)
+2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* simple.el (completion-root-regexp): New defvar.
 	(completion-setup-function): Use it instead of a literal string.
@@ -6728,11 +6728,11 @@
 2004-05-28  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-open-stream):
-	Bind starttls-extra-arguments too, if starttls.el uses GNUTLS.
+	Bind starttls-extra-arguments too, if starttls.el uses GnuTLS.
 
 2004-05-26  Simon Josefsson  <jas@extundo.com>
 
-	* starttls.el: Merge with my GNUTLS based starttls.el.
+	* starttls.el: Merge with my GnuTLS based starttls.el.
 	(starttls-gnutls-program, starttls-use-gnutls)
 	(starttls-extra-arguments, starttls-process-connection-type)
 	(starttls-connect, starttls-failure, starttls-success): New variables.
@@ -6884,7 +6884,7 @@
 
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/paragraphs.el (sentence-end): Match unicode curly quotes
+	* textmodes/paragraphs.el (sentence-end): Match Unicode curly quotes
 	as a close quote.
 
 	* textmodes/bibtex.el: Use assoc-string, not assoc-ignore-case.
@@ -7074,7 +7074,7 @@
 2004-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* descr-text.el (describe-char-unicode-data)
-	(describe-char-unicodedata-file): Re-enable the unicode code now that
+	(describe-char-unicodedata-file): Re-enable the Unicode code now that
 	the licensing issues have been cleared in the unicode-4 license.
 	(describe-text-properties-1): Remove unused `overlay' var.
 	(describe-char): Remove unused var `buffer'.
@@ -7234,7 +7234,7 @@
 
 2004-05-10  Miles Bader  <miles@gnu.org>
 
-	* lisp/progmodes/gud.el (gud-common-init): Only consider an existing
+	* progmodes/gud.el (gud-common-init): Only consider an existing
 	buffer an error if the debugger process is actually running.
 
 2004-05-10  Juanma Barranquero  <lektu@terra.es>
@@ -7529,7 +7529,7 @@
 
 2004-05-03  Michael Mauger  <mmaug@yahoo.com>
 
-	* emacs/lisp/progmodes/sql.el (sql-xemacs-p, sql-emacs19-p)
+	* progmodes/sql.el (sql-xemacs-p, sql-emacs19-p)
 	(sql-emacs20-p): Remove.
 	(sql-mode-syntax-table): Use shared GNU Emacs/XEmacs syntax.
 	(sql-builtin-face, sql-doc-face): Remove.

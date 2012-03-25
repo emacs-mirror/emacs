@@ -1,6 +1,6 @@
 ;;; autoconf.el --- mode for editing Autoconf configure.in files
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
@@ -83,7 +83,8 @@ searching backwards at another AC_... command."
   (set (make-local-variable 'defun-prompt-regexp)
        "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
   (set (make-local-variable 'comment-start) "dnl ")
-  (set (make-local-variable 'comment-start-skip) "\\(?:\\<dnl\\|#\\) +")
+  (set (make-local-variable 'comment-start-skip)
+       "\\(?:\\(\\W\\|\\`\\)dnl\\|#\\) +")
   (set (make-local-variable 'syntax-propertize-function)
        (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
   (set (make-local-variable 'font-lock-defaults)

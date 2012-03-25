@@ -1,6 +1,6 @@
 ;;; ede-proj-misc.el --- EDE Generic Project Emacs Lisp support
 
-;; Copyright (C) 1998-2001, 2008-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2001, 2008-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -50,7 +50,7 @@ All listed sources are included in the distribution.")
 
 (defvar ede-misc-source
   (ede-sourcecode "ede-misc-source"
-		  :name "Miscelaneous"
+		  :name "Miscellaneous"
 		  :sourcepattern ".*")
   "Miscellaneous field definition.")
 

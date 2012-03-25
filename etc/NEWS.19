@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.  1992.
 
-Copyright (C) 1993-1995, 2001, 2006-2011  Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001, 2006-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -1729,7 +1729,7 @@ projects to define project-specific structures.  It also enables the
 use of etags and TAGS files for languages not supported by etags.
 
 The Emacs manual section on Tags contains explanations and examples
-for Emacs's DEFVAR, VHDL, Cobol, Postscript and TCL.
+for Emacs's DEFVAR, VHDL, Cobol, PostScript and TCL.
 
 ** Various mode-specific commands that used to be bound to C-c LETTER
 have been moved.
@@ -1828,7 +1828,7 @@ c-fill-paragraph's behavior.
 containing an open brace just after a case/default label.
 
 *** New variable, c-progress-interval, which controls minibuffer update
-message displays during long re-indention.  This is a new feature
+message displays during long re-indentation.  This is a new feature
 which prints percentage complete messages at specified intervals.
 
 ** Makefile mode changes.
@@ -4288,7 +4288,7 @@ filename completion in comint mode apply, together with a variable
 controlling whether to restrict possible completions to only files
 that are executable (`shell-command-execonly').
 
-The input history is initialised from the file name given in the
+The input history is initialized from the file name given in the
 variable `shell-input-ring-file-name'--normally `.history' in your
 home directory.
 
@@ -4457,7 +4457,7 @@ highlighting, etc.
 
 So that such output processing may be done efficiently, there is a new
 variable, comint-last-output-start, that records the position of the start of
-the lastest output inserted into the buffer (effectively the previous value
+the last output inserted into the buffer (effectively the previous value
 of process-mark).  Output processing functions should process the text
 between comint-last-output-start (or perhaps the beginning of the line that
 the position lies on) and process-mark.
@@ -5032,7 +5032,7 @@ if it is `memq' in the list.
 
 ** If you call `get-buffer-window' passing t as its second argument, it
 will only search for windows on visible frames.  Previously, passing t
-as the secord argument caused `get-buffer-window' to search all
+as the second argument caused `get-buffer-window' to search all
 frames, visible or not.
 
 ** If you call `other-buffer' with a nil or omitted second argument, it
@@ -5484,7 +5484,7 @@ non-nil.
 ** M-x revert-buffer no longer offers to revert from a recent auto-save
 file unless you give it a prefix argument.  Otherwise it always
 reverts from the real file regardless of whether there has been an
-auto-save since thenm.  (Reverting from the auto-save file is no longer
+auto-save since then.  (Reverting from the auto-save file is no longer
 very useful now that the undo capacity is larger.)
 
 ** M-x recover-file no longer turns off Auto Save mode when it reads
@@ -6114,7 +6114,7 @@ When you have edited both buffers as you wish, merge them with C-x 6
 1.  This copies the text from the right-hand buffer as a second column
 in the other buffer.  To go back to two-column editing, use C-x 6 s.
 
-Use C-x 6 d to disassociate the two buffers, leaving each as it
+Use C-x 6 d to dissociate the two buffers, leaving each as it
 stands.  (If the other buffer, the one that was not current when you
 type C-x 6 d, is empty, C-x 6 d kills it.)
 

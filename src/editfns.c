@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.
 
-Copyright (C) 1985-1987, 1989, 1993-2011 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -85,6 +85,8 @@ extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
 static void time_overflow (void) NO_RETURN;
+static Lisp_Object format_time_string (char const *, ptrdiff_t, Lisp_Object,
+				       int, time_t *, struct tm **);
 static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (EMACS_INT, EMACS_INT);
 
@@ -146,7 +148,7 @@ init_editfns (void)
   /* If the user name claimed in the environment vars differs from
      the real uid, use the claimed name to find the full name.  */
   tem = Fstring_equal (Vuser_login_name, Vuser_real_login_name);
-  Vuser_full_name = Fuser_full_name (NILP (tem)? make_number (geteuid())
+  Vuser_full_name = Fuser_full_name (NILP (tem)? make_number (geteuid ())
 				     : Vuser_login_name);
 
   p = getenv ("NAME");
@@ -194,8 +196,7 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
-       doc: /* Convert arg STRING to a character, the first character of that string.
-A multibyte character is handled correctly.  */)
+       doc: /* Return the first character in STRING.  */)
   (register Lisp_Object string)
 {
   register Lisp_Object val;
@@ -662,10 +663,11 @@ is after LIMIT, then LIMIT will be returned instead.  */)
 
 DEFUN ("constrain-to-field", Fconstrain_to_field, Sconstrain_to_field, 2, 5, 0,
        doc: /* Return the position closest to NEW-POS that is in the same field as OLD-POS.
-
 A field is a region of text with the same `field' property.
-If NEW-POS is nil, then the current point is used instead, and set to the
-constrained position if that is different.
+
+If NEW-POS is nil, then use the current point instead, and move point
+to the resulting constrained position, in addition to returning that
+position.
 
 If OLD-POS is at the boundary of two fields, then the allowable
 positions for NEW-POS depends on the value of the optional argument
@@ -1696,36 +1698,46 @@ The modifiers are `E' and `O'.  For certain characters X,
 %EX is a locale's alternative version of %X;
 %OX is like %X, but uses the locale's number symbols.
 
-For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
+For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".
+
+usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
-  time_t value;
+  time_t t;
+  struct tm *tm;
+
+  CHECK_STRING (format_string);
+  format_string = code_convert_string_norecord (format_string,
+						Vlocale_coding_system, 1);
+  return format_time_string (SSDATA (format_string), SBYTES (format_string),
+			     timeval, ! NILP (universal), &t, &tm);
+}
+
+static Lisp_Object
+format_time_string (char const *format, ptrdiff_t formatlen,
+		    Lisp_Object timeval, int ut, time_t *tval, struct tm **tmp)
+{
   ptrdiff_t size;
   int usec;
   int ns;
   struct tm *tm;
-  int ut = ! NILP (universal);
 
-  CHECK_STRING (format_string);
-
-  if (! (lisp_time_argument (timeval, &value, &usec)
+  if (! (lisp_time_argument (timeval, tval, &usec)
 	 && 0 <= usec && usec < 1000000))
     error ("Invalid time specification");
   ns = usec * 1000;
 
-  format_string = code_convert_string_norecord (format_string,
-						Vlocale_coding_system, 1);
-
   /* This is probably enough.  */
-  size = SBYTES (format_string);
+  size = formatlen;
   if (size <= (STRING_BYTES_BOUND - 50) / 6)
     size = size * 6 + 50;
 
   BLOCK_INPUT;
-  tm = ut ? gmtime (&value) : localtime (&value);
+  tm = ut ? gmtime (tval) : localtime (tval);
   UNBLOCK_INPUT;
   if (! tm)
     time_overflow ();
+  *tmp = tm;
 
   synchronize_system_time_locale ();
 
@@ -1736,9 +1748,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       buf[0] = '\1';
       BLOCK_INPUT;
-      result = emacs_nmemftime (buf, size, SSDATA (format_string),
-				SBYTES (format_string),
-				tm, ut, ns);
+      result = emacs_nmemftime (buf, size, format, formatlen, tm, ut, ns);
       UNBLOCK_INPUT;
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return code_convert_string_norecord (make_unibyte_string (buf, result),
@@ -1746,9 +1756,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       /* If buffer was too small, make it bigger and try again.  */
       BLOCK_INPUT;
-      result = emacs_nmemftime (NULL, (size_t) -1,
-				SSDATA (format_string),
-				SBYTES (format_string),
+      result = emacs_nmemftime (NULL, (size_t) -1, format, formatlen,
 				tm, ut, ns);
       UNBLOCK_INPUT;
       if (STRING_BYTES_BOUND <= result)
@@ -1993,50 +2001,34 @@ the data it can't find.  */)
 {
   time_t value;
   struct tm *t;
-  struct tm gmt;
+  struct tm localtm;
+  struct tm *localt;
+  Lisp_Object zone_offset, zone_name;
 
-  if (!lisp_time_argument (specified_time, &value, NULL))
-    t = NULL;
-  else
-    {
-      BLOCK_INPUT;
-      t = gmtime (&value);
-      if (t)
-	{
-	  gmt = *t;
-	  t = localtime (&value);
-	}
-      UNBLOCK_INPUT;
-    }
+  zone_offset = Qnil;
+  zone_name = format_time_string ("%Z", sizeof "%Z" - 1, specified_time,
+				  0, &value, &localt);
+  localtm = *localt;
+  BLOCK_INPUT;
+  t = gmtime (&value);
+  UNBLOCK_INPUT;
 
   if (t)
     {
-      int offset = tm_diff (t, &gmt);
-      char *s = 0;
-      char buf[6];
-
-#ifdef HAVE_TM_ZONE
-      if (t->tm_zone)
-	s = (char *)t->tm_zone;
-#else /* not HAVE_TM_ZONE */
-#ifdef HAVE_TZNAME
-      if (t->tm_isdst == 0 || t->tm_isdst == 1)
-	s = tzname[t->tm_isdst];
-#endif
-#endif /* not HAVE_TM_ZONE */
-
-      if (!s)
+      int offset = tm_diff (&localtm, t);
+      zone_offset = make_number (offset);
+      if (SCHARS (zone_name) == 0)
 	{
 	  /* No local time zone name is available; use "+-NNNN" instead.  */
-	  int am = (offset < 0 ? -offset : offset) / 60;
+	  int m = offset / 60;
+	  int am = offset < 0 ? - m : m;
+	  char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
 	  sprintf (buf, "%c%02d%02d", (offset < 0 ? '-' : '+'), am/60, am%60);
-	  s = buf;
+	  zone_name = build_string (buf);
 	}
-
-      return Fcons (make_number (offset), Fcons (build_string (s), Qnil));
     }
-  else
-    return Fmake_list (make_number (2), Qnil);
+
+  return list2 (zone_offset, zone_name);
 }
 
 /* This holds the value of `environ' produced by the previous
@@ -2052,7 +2044,12 @@ static char *initial_tz;
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
        doc: /* Set the local time zone using TZ, a string specifying a time zone rule.
 If TZ is nil, use implementation-defined default time zone information.
-If TZ is t, use Universal Time.  */)
+If TZ is t, use Universal Time.
+
+Instead of calling this function, you typically want (setenv "TZ" TZ).
+That changes both the environment of the Emacs process and the
+variable `process-environment', whereas `set-time-zone-rule' affects
+only the former.  */)
   (Lisp_Object tz)
 {
   const char *tzstring;
@@ -2072,7 +2069,7 @@ If TZ is t, use Universal Time.  */)
     }
 
   set_time_zone_rule (tzstring);
-  free (environbuf);
+  xfree (environbuf);
   environbuf = environ;
 
   return Qnil;
@@ -2101,7 +2098,7 @@ static char set_time_zone_rule_tz2[] = "TZ=GMT+1";
 void
 set_time_zone_rule (const char *tzstring)
 {
-  int envptrs;
+  ptrdiff_t envptrs;
   char **from, **to, **newenv;
 
   /* Make the ENVIRON vector longer with room for TZSTRING.  */
@@ -3156,10 +3153,9 @@ It returns the number of characters changed.  */)
 }
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
-       doc: /* Delete the text between point and mark.
-
-When called from a program, expects two arguments,
-positions (integers or markers) specifying the stretch to be deleted.  */)
+       doc: /* Delete the text between START and END.
+If called interactively, delete the region between point and mark.
+This command deletes buffer text without modifying the kill ring.  */)
   (Lisp_Object start, Lisp_Object end)
 {
   validate_region (&start, &end);
@@ -3248,7 +3244,7 @@ save_restriction_save (void)
       end = buildmark (ZV, ZV_BYTE);
 
       /* END must move forward if text is inserted at its exact location.  */
-      XMARKER(end)->insertion_type = 1;
+      XMARKER (end)->insertion_type = 1;
 
       return Fcons (beg, end);
     }
@@ -3352,7 +3348,7 @@ usage: (save-restriction &rest BODY)  */)
 static char *message_text;
 
 /* Allocated length of that buffer.  */
-static int message_length;
+static ptrdiff_t message_length;
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
        doc: /* Display a message at the bottom of the screen.
@@ -3434,8 +3430,8 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
 	}
       if (SBYTES (val) > message_length)
 	{
+	  message_text = (char *) xrealloc (message_text, SBYTES (val));
 	  message_length = SBYTES (val);
-	  message_text = (char *)xrealloc (message_text, message_length);
 	}
       memcpy (message_text, SDATA (val), SBYTES (val));
       message2 (message_text, SBYTES (val),
@@ -3505,22 +3501,6 @@ usage: (propertize STRING &rest PROPERTIES)  */)
 			properties, string);
   RETURN_UNGCPRO (string);
 }
-
-/* pWIDE is a conversion for printing large decimal integers (possibly with a
-   trailing "d" that is ignored).  pWIDElen is its length.  signed_wide and
-   unsigned_wide are signed and unsigned types for printing them.  Use widest
-   integers if available so that more floating point values can be converted.  */
-#ifdef PRIdMAX
-# define pWIDE PRIdMAX
-enum { pWIDElen = sizeof PRIdMAX - 2 }; /* Don't count trailing "d".  */
-typedef intmax_t signed_wide;
-typedef uintmax_t unsigned_wide;
-#else
-# define pWIDE pI
-enum { pWIDElen = sizeof pI - 1 };
-typedef EMACS_INT signed_wide;
-typedef EMACS_UINT unsigned_wide;
-#endif
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
        doc: /* Format a string out of a format-string and arguments.
@@ -3891,7 +3871,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      enum
 	      {
 		/* Maximum precision for a %f conversion such that the
-		   trailing output digit might be nonzero.  Any precisions
+		   trailing output digit might be nonzero.  Any precision
 		   larger than this will not yield useful information.  */
 		USEFUL_PRECISION_MAX =
 		  ((1 - DBL_MIN_EXP)
@@ -3900,10 +3880,14 @@ usage: (format STRING &rest OBJECTS)  */)
 		      : -1)),
 
 		/* Maximum number of bytes generated by any format, if
-		   precision is no more than DBL_USEFUL_PRECISION_MAX.
+		   precision is no more than USEFUL_PRECISION_MAX.
 		   On all practical hosts, %f is the worst case.  */
 		SPRINTF_BUFSIZE =
-		  sizeof "-." + (DBL_MAX_10_EXP + 1) + USEFUL_PRECISION_MAX
+		  sizeof "-." + (DBL_MAX_10_EXP + 1) + USEFUL_PRECISION_MAX,
+
+		/* Length of pM (that is, of pMd without the
+		   trailing "d").  */
+		pMlen = sizeof pMd - 2
 	      };
 	      verify (0 < USEFUL_PRECISION_MAX);
 
@@ -3916,7 +3900,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      /* Copy of conversion specification, modified somewhat.
 		 At most three flags F can be specified at once.  */
-	      char convspec[sizeof "%FFF.*d" + pWIDElen];
+	      char convspec[sizeof "%FFF.*d" + pMlen];
 
 	      /* Avoid undefined behavior in underlying sprintf.  */
 	      if (conversion == 'd' || conversion == 'i')
@@ -3924,7 +3908,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      /* Create the copy of the conversion specification, with
 		 any width and precision removed, with ".*" inserted,
-		 and with pWIDE inserted for integer formats.  */
+		 and with pM inserted for integer formats.  */
 	      {
 		char *f = convspec;
 		*f++ = '%';
@@ -3939,8 +3923,8 @@ usage: (format STRING &rest OBJECTS)  */)
 		    || conversion == 'o' || conversion == 'x'
 		    || conversion == 'X')
 		  {
-		    memcpy (f, pWIDE, pWIDElen);
-		    f += pWIDElen;
+		    memcpy (f, pMd, pMlen);
+		    f += pMlen;
 		    zero_flag &= ~ precision_given;
 		  }
 		*f++ = conversion;
@@ -3980,7 +3964,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		  /* For float, maybe we should use "%1.0f"
 		     instead so it also works for values outside
 		     the integer range.  */
-		  signed_wide x;
+		  printmax_t x;
 		  if (INTEGERP (args[n]))
 		    x = XINT (args[n]);
 		  else
@@ -3988,13 +3972,13 @@ usage: (format STRING &rest OBJECTS)  */)
 		      double d = XFLOAT_DATA (args[n]);
 		      if (d < 0)
 			{
-			  x = TYPE_MINIMUM (signed_wide);
+			  x = TYPE_MINIMUM (printmax_t);
 			  if (x < d)
 			    x = d;
 			}
 		      else
 			{
-			  x = TYPE_MAXIMUM (signed_wide);
+			  x = TYPE_MAXIMUM (printmax_t);
 			  if (d < x)
 			    x = d;
 			}
@@ -4004,7 +3988,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      else
 		{
 		  /* Don't sign-extend for octal or hex printing.  */
-		  unsigned_wide x;
+		  uprintmax_t x;
 		  if (INTEGERP (args[n]))
 		    x = XUINT (args[n]);
 		  else
@@ -4014,7 +3998,7 @@ usage: (format STRING &rest OBJECTS)  */)
 			x = 0;
 		      else
 			{
-			  x = TYPE_MAXIMUM (unsigned_wide);
+			  x = TYPE_MAXIMUM (uprintmax_t);
 			  if (d < x)
 			    x = d;
 			}
@@ -4143,8 +4127,8 @@ usage: (format STRING &rest OBJECTS)  */)
 		format++;
 	      while (! CHAR_HEAD_P (*format));
 
-	      convbytes = format - format0;
-	      memset (&discarded[format0 + 1 - format_start], 2, convbytes - 1);
+	      convbytes = format - src;
+	      memset (&discarded[src + 1 - format_start], 2, convbytes - 1);
 	    }
 	  else
 	    {
@@ -4172,7 +4156,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	 character.  CONVBYTES says how much room is needed.  Allocate
 	 enough room (and then some) and do it again.  */
       {
-	EMACS_INT used = p - buf;
+	ptrdiff_t used = p - buf;
 
 	if (max_bufsize - used < convbytes)
 	  string_overflow ();

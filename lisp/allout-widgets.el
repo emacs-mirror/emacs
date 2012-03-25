@@ -1,14 +1,28 @@
 ;; allout-widgets.el --- Visually highlight allout outline structure.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Ken Manheimer
+;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
-;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
+;; Author: Ken Manheimer <ken dot manheimer at gmail...>
+;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Version: 1.0
 ;; Created: Dec 2005
-;; Version: 1.0
 ;; Keywords: outlines
-;; Website: http://myriadicity.net/Sundry/EmacsAllout
+;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -50,7 +64,7 @@
 ;; systematically couple overlays, graphics, and other features with
 ;; allout-governed text.
 
-;;;_: Code (structured with comments that delinieate an allout outline)
+;;;_: Code (structured with comments that delineate an allout outline)
 
 ;;;_ : General Environment
 (require 'allout)
@@ -109,7 +123,7 @@ inhibition of allout-widgets-mode."
 ;;;_  > allout-widgets-setup (varname value)
 ;;;###autoload
 (defun allout-widgets-setup (varname value)
-  "Commission or decommision allout-widgets-mode along with allout-mode.
+  "Commission or decommission allout-widgets-mode along with allout-mode.
 
 Meant to be used by customization of `allout-widgets-auto-activation'."
   (set-default varname value)
@@ -132,6 +146,7 @@ explicitly invoke `allout-widgets-mode' in allout buffers where
 you want allout widgets operation.
 
 See `allout-widgets-mode' for allout widgets mode features."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets
   :set 'allout-widgets-setup
@@ -156,16 +171,19 @@ See `allout-widgets-mode' for allout widgets mode features."
 ;;;_  = allout-widgets-icons-dark-subdir
 (defcustom allout-widgets-icons-dark-subdir "icons/allout-widgets/dark-bg/"
   "Directory on `image-load-path' holding allout icons for dark backgrounds."
+  :version "24.1"
   :type 'string
   :group 'allout-widgets)
 ;;;_  = allout-widgets-icons-light-subdir
 (defcustom allout-widgets-icons-light-subdir "icons/allout-widgets/light-bg/"
   "Directory on `image-load-path' holding allout icons for light backgrounds."
+  :version "24.1"
   :type 'string
   :group 'allout-widgets)
 ;;;_  = allout-widgets-icon-types
 (defcustom allout-widgets-icon-types '(xpm png)
   "File extensions for the icon graphic format types, in order of preference."
+  :version "24.1"
   :type '(repeat symbol)
   :group 'allout-widgets)
 
@@ -173,23 +191,27 @@ See `allout-widgets-mode' for allout widgets mode features."
 ;;;_   = allout-widgets-theme-dark-background
 (defcustom allout-widgets-theme-dark-background "allout-dark-bg"
   "Identify the outline's icon theme to use with a dark background."
+  :version "24.1"
   :type '(string)
   :group 'allout-widgets)
 ;;;_   = allout-widgets-theme-light-background
 (defcustom allout-widgets-theme-light-background "allout-light-bg"
   "Identify the outline's icon theme to use with a light background."
+  :version "24.1"
   :type '(string)
   :group 'allout-widgets)
 ;;;_   = allout-widgets-item-image-properties-emacs
 (defcustom allout-widgets-item-image-properties-emacs
   '(:ascent center :mask (heuristic t))
   "*Default properties item widget images in mainline Emacs."
+  :version "24.1"
   :type 'plist
   :group 'allout-widgets)
 ;;;_   = allout-widgets-item-image-properties-xemacs
 (defcustom allout-widgets-item-image-properties-xemacs
   nil
   "*Default properties item widget images in XEmacs."
+  :version "24.1"
   :type 'plist
   :group 'allout-widgets)
 ;;;_  . Developer
@@ -205,6 +227,7 @@ doing byte-compilation with a repeat count, so the file is loaded after
 compilation.)
 
 See `allout-widgets-run-unit-tests' to see what's run."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-time-decoration-activity
@@ -216,6 +239,7 @@ The details are retained as the value of
 
 Generally, allout widgets code developers are the only ones who'll want to
 set this."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-hook-error-post-time 0
@@ -225,6 +249,7 @@ set this."
 0 is minimal, or nil to not post to the message area.
 
 This is for debugging purposes."
+  :version "24.1"
   :type 'integer
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-maintain-tally nil
@@ -236,6 +261,7 @@ This is for debugging purposes.
 The tally shows the total number of item widgets in the current
 buffer, and tracking increases as new widgets are added and
 decreases as obsolete widgets are garbage collected."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 (defvar allout-widgets-tally nil
@@ -269,6 +295,7 @@ The number varies according to the evanescence of objects on a
 This is for debugging purposes, and generally set at need in a
 buffer rather than as a prevailing configuration \(but it's handy
 to publicize it by making it a customization variable\)."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 (make-variable-buffer-local 'allout-widgets-track-decoration)
@@ -486,13 +513,14 @@ happens in the buffer.")
 ;;;_   > define-minor-mode allout-widgets-mode (arg)
 ;;;###autoload
 (define-minor-mode allout-widgets-mode
-  "Allout-mode extension, providing graphical decoration of outline structure.
+  "Toggle Allout Widgets mode.
+With a prefix argument ARG, enable Allout Widgets mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-This is meant to operate along with allout-mode, via `allout-mode-hook'.
-
-If optional argument ARG is greater than 0, enable.
-If optional argument ARG is less than 0, disable.
-Anything else, toggle between active and inactive.
+Allout Widgets mode is an extension of Allout mode that provides
+graphical decoration of outline structure.  It is meant to
+operate along with `allout-mode', via `allout-mode-hook'.
 
 The graphics include:
 
@@ -810,7 +838,7 @@ Optional RECURSING is for internal use, to limit recursion."
                       (forward-char -1)))))))
 
     (error
-     ;; zero work list so we don't get stuck futily retrying.
+     ;; zero work list so we don't get stuck futilely retrying.
      ;; error recording done by allout-widgets-hook-error-handler.
      (setq allout-widgets-changes-record nil))))
 ;;;_   , major change handlers:
@@ -1244,7 +1272,7 @@ Optional FROM-DEPTH is for internal use."
 (defun allout-range-overlaps (from to ranges)
   "Return a pair indicating overlap of FROM and TO subtree range in RANGES.
 
-First element of result indicates whether candadate range FROM, TO
+First element of result indicates whether candidate range FROM, TO
 overlapped any of the existing ranges.
 
 Second element of result is a new version of RANGES incorporating the
@@ -1464,7 +1492,7 @@ recursive operation."
 
   :from           nil                   ; item beginning - marker
   :to             nil                   ; item end - marker
-  :span-overlay   nil   ; overlay by which actual postion is determined
+  :span-overlay   nil   ; overlay by which actual position is determined
 
   ;; also serves as guide-end:
   :icon-start     nil
@@ -1623,7 +1651,7 @@ We return the item-widget corresponding to the item at point."
 
       (set-buffer-modified-p was-modified)
       (goto-char steady-point)
-      ;; must null the marker or the buffer gets clogged with impedence:
+      ;; must null the marker or the buffer gets clogged with impedance:
       (set-marker steady-point nil)
 
       item-widget)))
@@ -1631,11 +1659,11 @@ We return the item-widget corresponding to the item at point."
 (defun allout-redecorate-item (item-widget)
   "Resituate ITEM-WIDGET decorations, disregarding context.
 
-Use this to redecorate only the item, when you know that it's
+Use this to redecorate only the item, when you know that its
 situation with respect to siblings, parent, and offspring is
 unchanged from its last decoration.  Use
 `allout-decorate-item-and-context' instead to reassess and adjust
-relevent context, when suitable."
+relevant context, when suitable."
   (if (not (equal (widget-get item-widget :last-decorated-tick)
                   allout-command-counter))
       (let ((was-modified (buffer-modified-p))

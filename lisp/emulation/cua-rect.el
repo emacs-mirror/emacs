@@ -1,6 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -741,7 +741,7 @@ If command is repeated at same position, delete the rectangle."
   ;; We try to reuse overlays where possible because this is more efficient
   ;; and results in less flicker.
   ;; If cua--rectangle-virtual-edges is nil and the buffer contains tabs or short lines,
-  ;; the higlighted region may not be perfectly rectangular.
+  ;; the highlighted region may not be perfectly rectangular.
   (let ((deactivate-mark deactivate-mark)
         (old cua--rectangle-overlays)
         (new nil)
@@ -1258,7 +1258,7 @@ The numbers are formatted according to the FORMAT string."
   (untabify (point-min) (point-max)))
 
 (defun cua-text-fill-rectangle (width text)
-  "Replace rectagle with filled TEXT read from minibuffer.
+  "Replace rectangle with filled TEXT read from minibuffer.
 A numeric prefix argument is used a new width for the filled rectangle."
   (interactive (list
                 (prefix-numeric-value current-prefix-arg)
@@ -1269,7 +1269,7 @@ A numeric prefix argument is used a new width for the filled rectangle."
     (lambda () (insert text))))
 
 (defun cua-refill-rectangle (width)
-  "Fill contents of current rectagle.
+  "Fill contents of current rectangle.
 A numeric prefix argument is used as new width for the filled rectangle."
   (interactive "P")
   (cua--rectangle-aux-replace
@@ -1420,6 +1420,7 @@ With prefix arg, indent to that column."
   (define-key cua--rectangle-keymap [remap kill-ring-save]      'cua-copy-rectangle)
   (define-key cua--rectangle-keymap [remap kill-region]         'cua-cut-rectangle)
   (define-key cua--rectangle-keymap [remap delete-char]         'cua-delete-rectangle)
+  (define-key cua--rectangle-keymap [remap delete-forward-char] 'cua-delete-rectangle)
   (define-key cua--rectangle-keymap [remap set-mark-command]    'cua-toggle-rectangle-mark)
 
   (define-key cua--rectangle-keymap [remap forward-char]        'cua-resize-rectangle-right)

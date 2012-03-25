@@ -1,6 +1,6 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2011
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -1111,6 +1111,13 @@ See `find-file-noselect' for the arguments."
 					    (or ,end (point-max)))
 		       '(buffer-string)))))
        (insert-buffer-substring ,buffer ,start ,end))))
+
+(defvar nnheader-last-message-time '(0 0))
+(defun nnheader-message-maybe (&rest args)
+  (let ((now (current-time)))
+    (when (> (float-time (time-subtract now nnheader-last-message-time)) 1)
+      (setq nnheader-last-message-time now)
+      (apply 'nnheader-message args))))
 
 (when (featurep 'xemacs)
   (require 'nnheaderxm))

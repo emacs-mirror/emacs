@@ -1,6 +1,6 @@
 ;;; vera-mode.el --- major mode for editing Vera files
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
@@ -310,7 +310,6 @@ Key bindings:
   (set (make-local-variable 'comment-indent-function) 'c-comment-indent)
   (set (make-local-variable 'paragraph-start) "^$")
   (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'indent-tabs-mode) nil)
   (set (make-local-variable 'indent-line-function) 'vera-indent-line)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
@@ -428,7 +427,7 @@ Key bindings:
     "icompare" "insert" "inst_get_at_least" "inst_get_auto_bin_max"
     "inst_get_collect" "inst_get_cov_weight" "inst_get_coverage_goal"
     "inst_getcross_bin_max" "inst_query" "inst_set_at_least"
-    "inst_set_auto_bin_max" "inst_set_bin_activiation" "inst_set_collect"
+    "inst_set_auto_bin_max" "inst_set_bin_activation" "inst_set_collect"
     "inst_set_cov_weight" "inst_set_coverage_goal" "inst_set_cross_bin_max"
     "itoa"
     "last" "last_index" "len" "load"
@@ -439,7 +438,7 @@ Key bindings:
     "push_front" "putc"
     "query" "query_str"
     "rand_mode" "randomize" "reserve" "reverse" "rsort"
-    "search" "set_at_least" "set_auto_bin_max" "set_bin_activiation"
+    "search" "set_at_least" "set_auto_bin_max" "set_bin_activation"
     "set_cov_weight" "set_coverage_goal" "set_cross_bin_max" "set_name" "size"
     "sort" "substr" "sum"
     "thismatch" "tolower" "toupper"

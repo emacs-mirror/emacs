@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting
 
-;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -283,14 +283,17 @@ a library is being loaded.")
 
 ;;;###autoload
 (define-minor-mode hi-lock-mode
-  "Toggle minor mode for interactively adding font-lock highlighting patterns.
+  "Toggle selective highlighting of patterns (Hi Lock mode).
+With a prefix argument ARG, enable Hi Lock mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-If ARG positive, turn hi-lock on.  Issuing a hi-lock command will also
-turn hi-lock on.  To turn hi-lock on in all buffers use
-`global-hi-lock-mode' or in your .emacs file (global-hi-lock-mode 1).
-When hi-lock is turned on, a \"Regexp Highlighting\" submenu is added
-to the \"Edit\" menu.  The commands in the submenu, which can be
-called interactively, are:
+Issuing one the highlighting commands listed below will
+automatically enable Hi Lock mode.  To enable Hi Lock mode in all
+buffers, use `global-hi-lock-mode' or add (global-hi-lock-mode 1)
+to your init file.  When Hi Lock mode is enabled, a \"Regexp
+Highlighting\" submenu is added to the \"Edit\" menu.  The
+commands in the submenu, which can be called interactively, are:
 
 \\[highlight-regexp] REGEXP FACE
   Highlight matches of pattern REGEXP in current buffer with FACE.
@@ -461,7 +464,9 @@ interactive functions.  \(See `hi-lock-interactive-patterns'.\)
 \\<minibuffer-local-must-match-map>Use \\[minibuffer-complete] to complete a partially typed regexp.
 \(See info node `Minibuffer History'.\)"
   (interactive
-   (if (and (display-popup-menus-p) (not last-nonmenu-event))
+   (if (and (display-popup-menus-p)
+	    (listp last-nonmenu-event)
+	    use-dialog-box)
        (catch 'snafu
 	 (or
 	  (x-popup-menu

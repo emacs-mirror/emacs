@@ -1,6 +1,6 @@
 ;;; mh-comp.el --- MH-E functions for composing and sending messages
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -213,7 +213,7 @@ Elements look like (HEADER . VALUE) where both HEADER and VALUE
 are strings.
 
 CONTINUE, SWITCH-FUNCTION, YANK-ACTION, SEND-ACTIONS, and
-RETURN-ACTION are ignored."
+RETURN-ACTION and any additional arguments are IGNORED."
   (mh-find-path)
   (let ((mh-error-if-no-draft t))
     (mh-send to "" subject)
@@ -504,7 +504,7 @@ See also `mh-compose-forward-as-mime-flag',
                                             folder msg)
                     ;; Was inserted before us, move to end of file to preserve order
                     (goto-char (point-max)))))))
-        ;; Postition just before forwarded message
+        ;; Position just before forwarded message.
         (if (re-search-forward "^------- Forwarded Message" nil t)
             (forward-line -1)
           (goto-char (mh-mail-header-end))

@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -92,37 +92,45 @@
                   :visible (fboundp 'make-frame-command)
                   :help ,(purecopy "Open a new frame")))
 
-    (define-key menu [one-window]
-      `(menu-item ,(purecopy "Remove Splits") delete-other-windows
-                  :enable (not (one-window-p t nil))
-                  :help ,(purecopy
-                          "Selected window grows to fill the whole frame")))
+    (define-key menu [separator-frame]
+      menu-bar-separator)
 
-    (define-key menu [split-window]
-      `(menu-item ,(purecopy "Split Window") split-window-vertically
+    (define-key menu [one-window]
+      `(menu-item ,(purecopy "Remove Other Windows") delete-other-windows
+                  :enable (not (one-window-p t nil))
+                  :help ,(purecopy "Make selected window fill whole frame")))
+
+    (define-key menu [new-window-on-right]
+      `(menu-item ,(purecopy "New Window on Right") split-window-right
                   :enable (and (menu-bar-menu-frame-live-and-visible-p)
                                (menu-bar-non-minibuffer-window-p))
-                  :help ,(purecopy "Split selected window in two windows")))
+                  :help ,(purecopy "Make new window on right of selected one")))
+
+    (define-key menu [new-window-below]
+      `(menu-item ,(purecopy "New Window Below") split-window-below
+                  :enable (and (menu-bar-menu-frame-live-and-visible-p)
+                               (menu-bar-non-minibuffer-window-p))
+                  :help ,(purecopy "Make new window below selected one")))
 
     (define-key menu [separator-window]
       menu-bar-separator)
 
     (define-key menu [ps-print-region]
-      `(menu-item ,(purecopy "Postscript Print Region (B+W)") ps-print-region
+      `(menu-item ,(purecopy "PostScript Print Region (B+W)") ps-print-region
                   :enable mark-active
                   :help ,(purecopy "Pretty-print marked region in black and white to PostScript printer")))
     (define-key menu [ps-print-buffer]
-      `(menu-item ,(purecopy "Postscript Print Buffer (B+W)") ps-print-buffer
+      `(menu-item ,(purecopy "PostScript Print Buffer (B+W)") ps-print-buffer
                   :enable (menu-bar-menu-frame-live-and-visible-p)
                   :help ,(purecopy "Pretty-print current buffer in black and white to PostScript printer")))
     (define-key menu [ps-print-region-faces]
-      `(menu-item ,(purecopy "Postscript Print Region")
+      `(menu-item ,(purecopy "PostScript Print Region")
                   ps-print-region-with-faces
                   :enable mark-active
                   :help ,(purecopy
                           "Pretty-print marked region to PostScript printer")))
     (define-key menu [ps-print-buffer-faces]
-      `(menu-item ,(purecopy "Postscript Print Buffer")
+      `(menu-item ,(purecopy "PostScript Print Buffer")
                   ps-print-buffer-with-faces
                   :enable (menu-bar-menu-frame-live-and-visible-p)
                   :help ,(purecopy "Pretty-print current buffer to PostScript printer")))
@@ -433,11 +441,11 @@
 
 (defvar menu-bar-edit-menu
   (let ((menu (make-sparse-keymap "Edit")))
-    
+
     (define-key menu [props]
       `(menu-item ,(purecopy "Text Properties") facemenu-menu))
 
-    ;; ns-win.el said: Add spell for platorm consistency.
+    ;; ns-win.el said: Add spell for platform consistency.
     (if (featurep 'ns)
         (define-key menu [spell]
           `(menu-item ,(purecopy "Spell") ispell-menu-map)))
@@ -675,29 +683,10 @@ by \"Save Options\" in Custom buffers.")
 (defun menu-set-font ()
   "Interactively select a font and make it the default."
   (interactive)
-  (let ((font (if (fboundp 'x-select-font)
-  		  (x-select-font)
-  		(mouse-select-font)))
-	spec)
-    (when font
-      ;; Be careful here: when set-face-attribute is called for the
-      ;; :font attribute, Emacs tries to guess the best matching font
-      ;; by examining the other face attributes (Bug#2476).
-      (set-face-attribute 'default (selected-frame)
-			  :width 'normal
-			  :weight 'normal
-			  :slant 'normal
-			  :font font)
-      (let ((font-object (face-attribute 'default :font)))
-	(dolist (f (frame-list))
-	  (and (not (eq f (selected-frame)))
-	       (display-graphic-p f)
-	       (set-face-attribute 'default f :font font-object)))
-	(set-face-attribute 'default t :font font-object))
-      (setq spec (list (list t (face-attr-construct 'default))))
-      (put 'default 'customized-face spec)
-      (custom-push-theme 'theme-face 'default 'user 'set spec)
-      (put 'default 'face-modified nil))))
+  (set-frame-font (if (fboundp 'x-select-font)
+		      (x-select-font)
+		    (mouse-select-font))
+		  nil t))
 
 (defun menu-bar-options-save ()
   "Save current values of Options menu items using Custom."
@@ -985,7 +974,7 @@ by \"Save Options\" in Custom buffers.")
     (let ((menu (make-sparse-keymap "Tool-bar")))
 
       (define-key menu [showhide-tool-bar-left]
-        `(menu-item ,(purecopy "On the left")
+        `(menu-item ,(purecopy "On the Left")
                     menu-bar-showhide-tool-bar-menu-customize-enable-left
                     :help ,(purecopy "Tool-bar at the left side")
                     :visible (display-graphic-p)
@@ -997,7 +986,7 @@ by \"Save Options\" in Custom buffers.")
                                        'left)))))
 
       (define-key menu [showhide-tool-bar-right]
-        `(menu-item ,(purecopy "On the right")
+        `(menu-item ,(purecopy "On the Right")
                     menu-bar-showhide-tool-bar-menu-customize-enable-right
                     :help ,(purecopy "Tool-bar at the right side")
                     :visible (display-graphic-p)
@@ -1009,7 +998,7 @@ by \"Save Options\" in Custom buffers.")
                                        'right)))))
 
       (define-key menu [showhide-tool-bar-bottom]
-        `(menu-item ,(purecopy "On the bottom")
+        `(menu-item ,(purecopy "On the Bottom")
                     menu-bar-showhide-tool-bar-menu-customize-enable-bottom
                     :help ,(purecopy "Tool-bar at the bottom")
                     :visible (display-graphic-p)
@@ -1021,7 +1010,7 @@ by \"Save Options\" in Custom buffers.")
                                        'bottom)))))
 
       (define-key menu [showhide-tool-bar-top]
-        `(menu-item ,(purecopy "On the top")
+        `(menu-item ,(purecopy "On the Top")
                     menu-bar-showhide-tool-bar-menu-customize-enable-top
                     :help ,(purecopy "Tool-bar at the top")
                     :visible (display-graphic-p)
@@ -1200,7 +1189,7 @@ mail status in mode line"))
         (define-key menu [menu-system-font]
           (menu-bar-make-toggle
            toggle-use-system-font font-use-system-font
-           "Use system font"
+           "Use System Font"
            "Use system font: %s"
            "Use the monospaced font defined by the system")))
 
@@ -1304,7 +1293,7 @@ mail status in mode line"))
 			     (eq 'turn-on-auto-fill text-mode-hook)))))
 
     (define-key menu [line-wrapping]
-      `(menu-item ,(purecopy "Line Wrapping in this Buffer")
+      `(menu-item ,(purecopy "Line Wrapping in This Buffer")
 		  ,menu-bar-line-wrapping-menu))
 
 
@@ -1645,7 +1634,7 @@ key, a click, or a menu-item")))
 
 (defvar menu-bar-search-documentation-menu
   (let ((menu (make-sparse-keymap "Search Documentation")))
-    
+
     (define-key menu [search-documentation-strings]
       `(menu-item ,(purecopy "Search Documentation Strings...") apropos-documentation
                   :help
@@ -2161,11 +2150,13 @@ It must accept a buffer as its only required argument.")
 		:help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
 
 (define-minor-mode menu-bar-mode
-  "Toggle display of a menu bar on each frame.
+  "Toggle display of a menu bar on each frame (Menu Bar mode).
+With a prefix argument ARG, enable Menu Bar mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Menu Bar mode if ARG is omitted or nil.
+
 This command applies to all frames that exist and frames to be
-created in the future.
-With a numeric argument, if the argument is positive,
-turn on menu bars; otherwise, turn off menu bars."
+created in the future."
   :init-value t
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.

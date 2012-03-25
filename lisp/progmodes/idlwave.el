@@ -1,6 +1,6 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -605,7 +605,7 @@ The value of this variable may be nil to inhibit display, or an integer to
 indicate the maximum number of classes to display.
 
 On XEmacs, a full list of classes will also be placed into a `help-echo'
-property on the competion items, so that the list of classes for the current
+property on the completion items, so that the list of classes for the current
 item is displayed in the echo area.  If the value of this variable is a
 negative integer, the `help-echo' property will be suppressed."
   :group 'idlwave-completion
@@ -1907,7 +1907,6 @@ The main features of this mode are
   (set (make-local-variable 'comment-start-skip) ";+[ \t]*")
   (set (make-local-variable 'comment-start) ";")
   (set (make-local-variable 'comment-add) 1) ; ";;" for new and regions
-  (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'abbrev-all-caps) t)
   (set (make-local-variable 'indent-tabs-mode) nil)
   (set (make-local-variable 'completion-ignore-case) t)
@@ -2465,7 +2464,7 @@ If prefix ARG < 0 then move forward to enclosing block end."
 (defun idlwave-down-block (&optional arg)
   "Go down a block.
 With ARG: ARG >= 0 go forwards, ARG < 0 go backwards.
-Returns non-nil if successfull."
+Returns non-nil if successful."
   (interactive "p")
   (let (status)
     (if (< arg 0)
@@ -5790,7 +5789,7 @@ end
     (setq idlwave-idlwave_routine_info-compiled t))
 
   ;; Restore if necessary.  Must use execute to hide lame routine_info
-  ;; errors on undefinded routine
+  ;; errors on undefined routine
   (idlwave-shell-send-command
    (format "if execute(\"_v=routine_info('idlwave_routine_info',/SOURCE)\") eq 0 then restore,'%s' else if _v.path eq '' then restore,'%s'"
 	   idlwave-shell-temp-rinfo-save-file
@@ -7207,7 +7206,7 @@ If these don't exist, a letter in the string is automatically selected."
 ;;----------------------------------------------------------------------
 
 ;;; ------------------------------------------------------------------------
-;;; Stucture parsing code, and code to manage class info
+;;; Structure parsing code, and code to manage class info
 
 ;;
 ;; - Go again over the documentation how to write a completion
@@ -7856,7 +7855,7 @@ Restore the pre-completion window configuration if possible."
 If point is on a keyword, help for that keyword will be shown.  If
 point is on a routine name or in the argument list of a routine, help
 for that routine will be displayed.  Works for system routines and
-keywords, it pulls up text help.  For other routies and keywords,
+keywords, it pulls up text help.  For other routines and keywords,
 visits the source file, finding help in the header (if
 `idlwave-help-source-try-header' is non-nil) or the routine definition
 itself."
@@ -7867,7 +7866,7 @@ itself."
   "Display online help about the completion at point."
   (interactive "eP")
   ;; Restore last-command for next command, to make
-  ;; scrolling/cancelling of completions work.
+  ;; scrolling/canceling of completions work.
   (setq this-command last-command)
   (idlwave-do-mouse-completion-help ev))
 
@@ -8962,7 +8961,7 @@ This expects NAME TYPE IDLWAVE-TWIN-CLASS to be bound to the right values."
     (nth 1 source)))
 
 (defun idlwave-downcase-safe (string)
-  "Donwcase if string, else return unchanged."
+  "Downcase if string, else return unchanged."
   (if (stringp string)
       (downcase string)
     string))

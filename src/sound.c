@@ -1,5 +1,5 @@
 /* sound.c -- sound support.
-   Copyright (C) 1998-1999, 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 1998-1999, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -226,7 +226,7 @@ struct sound_device
   /* Close device SD.  */
   void (* close) (struct sound_device *sd);
 
-  /* Configure SD accoring to device-dependent parameters.  */
+  /* Configure SD according to device-dependent parameters.  */
   void (* configure) (struct sound_device *device);
 
   /* Choose a device-dependent format for outputting sound S.  */
@@ -267,7 +267,7 @@ struct sound
      read from the start of a sound file.  */
   char *header;
 
-  /* Number of bytes raed from sound file.  This is always <=
+  /* Number of bytes read from sound file.  This is always <=
      MAX_SOUND_HEADER_BYTES.  */
   int header_size;
 
@@ -1013,7 +1013,7 @@ alsa_configure (struct sound_device *sd)
 
   err = snd_pcm_hw_params_get_buffer_size (p->hwparams, &buffer_size);
   if (err < 0)
-    alsa_sound_perror("Unable to get buffer size for playback", err);
+    alsa_sound_perror ("Unable to get buffer size for playback", err);
 
   err = snd_pcm_sw_params_current (p->handle, p->swparams);
   if (err < 0)
@@ -1071,7 +1071,7 @@ alsa_configure (struct sound_device *sd)
                       snd_mixer_selem_set_playback_volume (e, chn, vol);
                   }
               }
-          snd_mixer_close(handle);
+          snd_mixer_close (handle);
         }
     }
 }
@@ -1182,7 +1182,7 @@ alsa_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
           else if (err == -ESTRPIPE)
             {
               while ((err = snd_pcm_resume (p->handle)) == -EAGAIN)
-                sleep(1);	/* wait until the suspend flag is released */
+                sleep (1);	/* wait until the suspend flag is released */
               if (err < 0)
                 {
                   err = snd_pcm_prepare (p->handle);

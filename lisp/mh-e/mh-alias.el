@@ -1,6 +1,6 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 
-;; Copyright (C) 1994-1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -272,7 +272,7 @@ Blind aliases or users from /etc/passwd are not expanded."
                       (completing-read prompt mh-alias-alist nil nil) ",")))))
       (if (not mh-alias-expand-aliases-flag)
           (mapconcat 'identity the-answer ", ")
-        ;; Loop over all elements, checking if in passwd aliast or blind first
+        ;; Loop over all elements, checking if in passwd alias or blind first
         (mapconcat 'mh-alias-expand the-answer ",\n ")))))
 
 ;;;###mh-autoload

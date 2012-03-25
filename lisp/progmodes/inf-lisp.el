@@ -1,6 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Copyright (C) 1988, 1993-1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp
@@ -36,7 +36,7 @@
 ;; This makes these modes easier to use.
 
 ;; For documentation on the functionality provided by comint mode, and
-;; the hooks available for customising it, see the file comint.el.
+;; the hooks available for customizing it, see the file comint.el.
 ;; For further information on inferior-lisp mode, see the comments below.
 
 ;; Needs fixin:
@@ -297,8 +297,7 @@ of `inferior-lisp-program').  Runs the hooks from
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))
   (setq inferior-lisp-buffer "*inferior-lisp*")
-  (pop-to-buffer "*inferior-lisp*"))
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*inferior-lisp*"))
+  (pop-to-buffer-same-window "*inferior-lisp*"))
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)
@@ -599,7 +598,7 @@ See variable `lisp-describe-sym-command'."
 	(error "No Lisp subprocess; see variable `inferior-lisp-buffer'"))))
 
 
-;;; Do the user's customisation...
+;;; Do the user's customization...
 ;;;===============================
 (defvar inferior-lisp-load-hook nil
   "This hook is run when the library `inf-lisp' is loaded.")

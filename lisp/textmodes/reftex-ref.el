@@ -1,6 +1,6 @@
 ;;; reftex-ref.el --- code to create labels and references with RefTeX
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -206,7 +206,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
                          (if naked "Naked Label: " "Label: ")
                          default))
 
-            ;; Lets make sure that this is a valid label
+            ;; Let's make sure that this is a valid label
             (cond
 
              ((string-match (concat "\\`\\(" (regexp-quote prefix)

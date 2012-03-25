@@ -1,6 +1,6 @@
 ;; erc-button.el --- A way of buttonizing certain things in ERC buffers
 
-;; Copyright (C) 1996-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: irc, button, url, regexp
@@ -430,19 +430,19 @@ call it with the value of the `erc-data' text property."
 (defun erc-button-next-function ()
   "Pseudo completion function that actually jumps to the next button.
 For use on `completion-at-point-functions'."
-  (let ((here (point)))
-    (when (< here (erc-beg-of-input-line))
-      (lambda ()
-        (while (and (get-text-property here 'erc-callback)
-                    (not (= here (point-max))))
-          (setq here (1+ here)))
-        (while (and (not (get-text-property here 'erc-callback))
-                    (not (= here (point-max))))
-          (setq here (1+ here)))
-        (if (< here (point-max))
-            (goto-char here)
-          (error "No next button"))
-        t))))
+    (when (< (point) (erc-beg-of-input-line))
+      `(lambda ()
+         (let ((here ,(point)))
+           (while (and (get-text-property here 'erc-callback)
+                       (not (= here (point-max))))
+             (setq here (1+ here)))
+           (while (and (not (get-text-property here 'erc-callback))
+                       (not (= here (point-max))))
+             (setq here (1+ here)))
+           (if (< here (point-max))
+               (goto-char here)
+             (error "No next button"))
+           t))))
 
 (defun erc-button-next ()
   "Go to the next button in this buffer."

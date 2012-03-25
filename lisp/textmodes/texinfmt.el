@@ -1,6 +1,6 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
-;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2011
+;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>
@@ -518,7 +518,7 @@ if large.  You can use `Info-split' to do this manually."
 
 ;;; Handle paragraph filling
 
-;; Keep as concatinated lists for ease of maintenance
+;; Keep as concatenated lists for ease of maintenance
 
 (defvar texinfo-no-refill-regexp
   (concat
@@ -620,7 +620,7 @@ if large.  You can use `Info-split' to do this manually."
    "var{\\|"
    "w{\\|"
    "xref{\\|"
-   "@-\\|"    ; @- is a descretionary hyphen (not an accent) (a noop).
+   "@-\\|"    ; @- is a discretionary hyphen (not an accent) (a noop).
    texinfo-accent-commands
    "\\)"
    )
@@ -2088,11 +2088,11 @@ This command is executed when texinfmt sees @item inside @multitable."
         (table-entry-height 0)
         ;; unformatted row looks like:  A1  @tab  A2  @tab  A3
         ;; extract-row command deletes the source line in the table.
-        (unformated-row (texinfo-multitable-extract-row)))
+        (unformatted-row (texinfo-multitable-extract-row)))
     ;; Use a temporary buffer
     (set-buffer (get-buffer-create texinfo-multitable-buffer-name))
     (delete-region (point-min) (point-max))
-    (insert unformated-row)
+    (insert unformatted-row)
     (goto-char (point-min))
 ;; 1. Check for correct number of @tab in line.
     (let ((tab-number 1))               ; one @tab between two columns
@@ -2194,7 +2194,7 @@ This command is executed when texinfmt sees @item inside @multitable."
 
 (put 'image 'texinfo-format 'texinfo-format-image)
 (defun texinfo-format-image ()
-  "Insert an image from an an file ending in .txt.
+  "Insert an image from a file ending in .txt.
 Use only the FILENAME arg; for Info, ignore the other arguments to @image."
   (let ((args (texinfo-format-parse-args))
 	filename)
@@ -3909,11 +3909,11 @@ Default is to leave paragraph indentation as is."
 ;;; @set, @clear, @ifset, @ifclear
 
 ;; If a flag is set with @set FLAG, then text between @ifset and @end
-;; ifset is formatted normally, but if the flag is is cleared with
+;; ifset is formatted normally, but if the flag is cleared with
 ;; @clear FLAG, then the text is not formatted; it is ignored.
 
 ;; If a flag is cleared with @clear FLAG, then text between @ifclear
-;; and @end ifclear is formatted normally, but if the flag is is set with
+;; and @end ifclear is formatted normally, but if the flag is set with
 ;; @set FLAG, then the text is not formatted; it is ignored.  @ifclear
 ;; is the opposite of @ifset.
 
@@ -4238,7 +4238,7 @@ the @ifeq command."
 Must be used only with -batch, and kills Emacs on completion.
 Each file will be processed even if an error occurred previously.
 For example, invoke
-  \"emacs -batch -funcall batch-texinfo-format $docs/ ~/*.texinfo\"."
+  \"emacs -batch -l texinfmt -f batch-texinfo-format $docs/ ~/*.texinfo\"."
   (if (not noninteractive)
       (error "batch-texinfo-format may only be used -batch"))
   (let ((version-control t)

@@ -466,7 +466,7 @@ followed by the first character of the construct.
   '(m2-var) \n _ \n \n
   '(m2-begin)
   '(m2-begin-comment)
-  " Module " str " Initialisation Code "
+  " Module " str " Initialization Code "
   '(m2-end-comment)
   \n \n "END " str "." > \n)
 

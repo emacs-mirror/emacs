@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2012 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -164,6 +164,13 @@ get_adstyle_property (FcPattern *p)
   char *str, *end;
   Lisp_Object adstyle;
 
+#ifdef FC_FONTFORMAT
+  if ((FcPatternGetString (p, FC_FONTFORMAT, 0, &fcstr) == FcResultMatch)
+      && xstrcasecmp ((char *) fcstr, "bdf") != 0
+      && xstrcasecmp ((char *) fcstr, "pcf") != 0)
+    /* Not a BDF nor PCF font.  */
+    return Qnil;
+#endif
   if (FcPatternGetString (p, FC_STYLE, 0, &fcstr) != FcResultMatch)
     return Qnil;
   str = (char *) fcstr;
@@ -214,6 +221,10 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
 
       for (i = 0; i < FONT_OBJLIST_INDEX; i++)
 	ASET (val, i, AREF (entity, i));
+
+      ASET (val, FONT_EXTRA_INDEX, Fcopy_sequence (extra));
+      font_put_extra (val, QCfont_entity, key);
+
       return val;
     }
   entity = font_make_entity ();
@@ -268,7 +279,7 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
     }
   else
     {
-      /* As this font is not scalable, parhaps this is a BDF or PCF
+      /* As this font is not scalable, perhaps this is a BDF or PCF
 	 font. */
       FT_Face ft_face;
 
@@ -682,7 +693,10 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
       if (NILP (val))
 	continue;
       len = Flength (val);
-      spec->features[i] = malloc (sizeof (int) * XINT (len));
+      spec->features[i] =
+	(min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < XINT (len)
+	 ? 0
+	 : malloc (sizeof (int) * XINT (len)));
       if (! spec->features[i])
 	{
 	  if (i > 0 && spec->features[0])
@@ -723,7 +737,7 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 
   if ((n = FONT_SLANT_NUMERIC (spec)) >= 0
       && n < 100)
-    /* Fontconfig doesn't support reverse-italic/obligue.  */
+    /* Fontconfig doesn't support reverse-italic/oblique.  */
     return NULL;
 
   if (INTEGERP (AREF (spec, FONT_DPI_INDEX)))
@@ -946,7 +960,7 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
   /* Need fix because this finds any fonts.  */
   if (fontset->nfont == 0 && ! NILP (family))
     {
-      /* Try maching with configuration.  For instance, the
+      /* Try matching with configuration.  For instance, the
 	 configuration may specify "Nimbus Mono L" as an alias of
 	 "Courier".  */
       FcPattern *pat = FcPatternBuild (0, FC_FAMILY, FcTypeString,
@@ -1455,7 +1469,7 @@ ftfont_get_bitmap (struct font *font, unsigned int code, struct font_bitmap *bit
        : ft_face->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_LCD_V ? 8
        : -1);
   if (bitmap->bits_per_pixel < 0)
-    /* We don't suport that kind of pixel mode.  */
+    /* We don't support that kind of pixel mode.  */
     return -1;
   bitmap->rows = ft_face->glyph->bitmap.rows;
   bitmap->width = ft_face->glyph->bitmap.width;
@@ -1761,15 +1775,10 @@ static OTF_GlyphString otf_gstring;
 static void
 setup_otf_gstring (int size)
 {
-  if (otf_gstring.size == 0)
+  if (otf_gstring.size < size)
     {
-      otf_gstring.glyphs = (OTF_Glyph *) xmalloc (sizeof (OTF_Glyph) * size);
-      otf_gstring.size = size;
-    }
-  else if (otf_gstring.size < size)
-    {
-      otf_gstring.glyphs = xrealloc (otf_gstring.glyphs,
-				     sizeof (OTF_Glyph) * size);
+      otf_gstring.glyphs = xnrealloc (otf_gstring.glyphs,
+				      size, sizeof (OTF_Glyph));
       otf_gstring.size = size;
     }
   otf_gstring.used = size;
@@ -1847,7 +1856,7 @@ ftfont_drive_otf (MFLTFont *font,
   setup_otf_gstring (len);
   for (i = 0; i < len; i++)
     {
-      otf_gstring.glyphs[i].c = in->glyphs[from + i].c;
+      otf_gstring.glyphs[i].c = in->glyphs[from + i].c & 0x11FFFF;
       otf_gstring.glyphs[i].glyph_id = in->glyphs[from + i].code;
     }
 
@@ -2445,17 +2454,19 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 	}
     }
 
+  if (INT_MAX / 2 < len)
+    memory_full (SIZE_MAX);
+
   if (gstring.allocated == 0)
     {
-      gstring.allocated = len * 2;
       gstring.glyph_size = sizeof (MFLTGlyph);
-      gstring.glyphs = xmalloc (sizeof (MFLTGlyph) * gstring.allocated);
+      gstring.glyphs = xnmalloc (len * 2, sizeof (MFLTGlyph));
+      gstring.allocated = len * 2;
     }
   else if (gstring.allocated < len * 2)
     {
+      gstring.glyphs = xnrealloc (gstring.glyphs, len * 2, sizeof (MFLTGlyph));
       gstring.allocated = len * 2;
-      gstring.glyphs = xrealloc (gstring.glyphs,
-				 sizeof (MFLTGlyph) * gstring.allocated);
     }
   memset (gstring.glyphs, 0, sizeof (MFLTGlyph) * len);
   for (i = 0; i < len; i++)
@@ -2504,9 +2515,11 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       int result = mflt_run (&gstring, 0, len, &flt_font_ft.flt_font, flt);
       if (result != -2)
 	break;
-      gstring.allocated += gstring.allocated;
-      gstring.glyphs = xrealloc (gstring.glyphs,
-				 sizeof (MFLTGlyph) * gstring.allocated);
+      if (INT_MAX / 2 < gstring.allocated)
+	memory_full (SIZE_MAX);
+      gstring.glyphs = xnrealloc (gstring.glyphs,
+				  gstring.allocated, 2 * sizeof (MFLTGlyph));
+      gstring.allocated *= 2;
     }
   if (gstring.used > LGSTRING_GLYPH_LEN (lgstring))
     return Qnil;

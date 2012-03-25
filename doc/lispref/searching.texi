@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/searching
@@ -49,7 +49,6 @@ This function searches forward from point for an exact match for
 @var{string}.  If successful, it sets point to the end of the occurrence
 found, and returns the new value of point.  If no match is found, the
 value and side effects depend on @var{noerror} (see below).
-@c Emacs 19 feature
 
 In the following example, point is initially at the beginning of the
 line.  Then @code{(search-forward "fox")} moves point after the last
@@ -91,18 +90,21 @@ The argument @var{noerror} only affects valid searches which fail to
 find a match.  Invalid arguments cause errors regardless of
 @var{noerror}.
 
-If @var{repeat} is supplied (it must be a positive number), then the
-search is repeated that many times (each time starting at the end of the
-previous time's match).  If these successive searches succeed, the
-function succeeds, moving point and returning its new value.  Otherwise
-the search fails, with results depending on the value of
-@var{noerror}, as described above.
+If @var{repeat} is a positive number @var{n}, it serves as a repeat
+count: the search is repeated @var{n} times, each time starting at the
+end of the previous time's match.  If these successive searches
+succeed, the function succeeds, moving point and returning its new
+value.  Otherwise the search fails, with results depending on the
+value of @var{noerror}, as described above.  If @var{repeat} is a
+negative number -@var{n}, it serves as a repeat count of @var{n} for a
+search in the opposite (backward) direction.
 @end deffn
 
 @deffn Command search-backward string &optional limit noerror repeat
 This function searches backward from point for @var{string}.  It is
-just like @code{search-forward} except that it searches backwards and
-leaves point at the beginning of the match.
+like @code{search-forward}, except that it searches backwards rather
+than forwards.  Backward searches leave point at the beginning of the
+match.
 @end deffn
 
 @deffn Command word-search-forward string &optional limit noerror repeat
@@ -557,6 +559,7 @@ through @samp{f} and @samp{A} through @samp{F}.
 
 @node Regexp Backslash
 @subsubsection Backslash Constructs in Regular Expressions
+@cindex backslash in regular expressions
 
   For the most part, @samp{\} followed by any character matches only
 that character.  However, there are several exceptions: certain
@@ -717,11 +720,15 @@ the characters that stand for them.
 @cindex @samp{\S} in regexp
 matches any character whose syntax is not @var{code}.
 
+@cindex category, regexp search for
 @item \c@var{c}
 matches any character whose category is @var{c}.  Here @var{c} is a
 character that represents a category: thus, @samp{c} for Chinese
 characters or @samp{g} for Greek characters in the standard category
-table.
+table.  You can see the list of all the currently defined categories
+with @kbd{M-x describe-categories @key{RET}}.  You can also define
+your own categories in addition to the standard ones using the
+@code{define-category} function (@pxref{Categories}).
 
 @item \C@var{c}
 matches any character whose category is not @var{c}.
@@ -1209,7 +1216,7 @@ match data around it, to prevent it from being overwritten.
 
   Notice that all functions are allowed to overwrite the match data
 unless they're explicitly documented not to do so.  A consequence is
-that functions that are run implictly in the background
+that functions that are run implicitly in the background
 (@pxref{Timers}, and @ref{Idle Timers}) should likely save and restore
 the match data explicitly.
 

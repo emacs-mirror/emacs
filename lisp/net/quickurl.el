@@ -1,6 +1,6 @@
-;;; quickurl.el --- insert an URL based on text at point in buffer
+;;; quickurl.el --- insert a URL based on text at point in buffer
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -24,9 +24,9 @@
 
 ;;; Commentary:
 ;;
-;; This package provides a simple method of inserting an URL based on the
+;; This package provides a simple method of inserting a URL based on the
 ;; text at point in the current buffer. This is part of an on-going effort
-;; to increase the information I provide people while reducing the ammount
+;; to increase the information I provide people while reducing the amount
 ;; of typing I need to do. No-doubt there are undiscovered Emacs packages
 ;; out there that do all of this and do it better, feel free to point me to
 ;; them, in the mean time I'm having fun playing with Emacs Lisp.
@@ -90,7 +90,7 @@
 ;; Customize options.
 
 (defgroup quickurl nil
-  "Insert an URL based on text at point in buffer."
+  "Insert a URL based on text at point in buffer."
   :version "21.1"
   :group  'abbrev
   :prefix "quickurl-")
@@ -189,19 +189,19 @@ in your ~/.emacs (after loading/requiring quickurl).")
   "Local keymap for a `quickurl-list-mode' buffer.")
 
 (defvar quickurl-list-buffer-name "*quickurl-list*"
-  "Name for the URL listinig buffer.")
+  "Name for the URL listing buffer.")
 
 (defvar quickurl-list-last-buffer nil
   "`current-buffer' when `quickurl-list' was called.")
 
-;; Functions for working with an URL entry.
+;; Functions for working with a URL entry.
 
 (defun quickurl-url-commented-p (url)
   "Does the URL have a comment?"
   (listp (cdr url)))
 
 (defun quickurl-make-url (keyword url &optional comment)
-  "Create an URL from KEYWORD, URL and (optionaly) COMMENT."
+  "Create a URL from KEYWORD, URL and (optionally) COMMENT."
   (if (and comment (not (zerop (length comment))))
       (list keyword url comment)
     (cons keyword url)))
@@ -230,7 +230,7 @@ Note that this function is a setfable place."
     (setf (cdr ,url) ,store)))
 
 (defun quickurl-url-comment (url)
-  "Get the comment from an URL.
+  "Get the comment from a URL.
 
 If the URL has no comment an empty string is returned. Also note that this
 function is a setfable place."
@@ -304,10 +304,10 @@ Also display a `message' saying what the URL was unless SILENT is non-nil."
 
 ;;;###autoload
 (defun* quickurl (&optional lookup)
-  "Insert an URL based on LOOKUP.
+  "Insert a URL based on LOOKUP.
 
 If not supplied LOOKUP is taken to be the word at point in the current
-buffer, this default action can be modifed via
+buffer, this default action can be modified via
 `quickurl-grab-lookup-function'."
   (interactive)
   (when (or lookup
@@ -323,7 +323,7 @@ buffer, this default action can be modifed via
 
 ;;;###autoload
 (defun quickurl-ask (lookup)
-  "Insert an URL, with `completing-read' prompt, based on LOOKUP."
+  "Insert a URL, with `completing-read' prompt, based on LOOKUP."
   (interactive
    (list
     (progn
@@ -335,7 +335,7 @@ buffer, this default action can be modifed via
       (quickurl-insert url))))
 
 (defun quickurl-grab-url ()
-  "Attempt to grab a word/url pair from point in the current buffer.
+  "Attempt to grab a word/URL pair from point in the current buffer.
 
 Point should be somewhere on the URL and the word is taken to be the thing
 that is returned from calling `quickurl-grab-lookup-function' once a
@@ -369,7 +369,7 @@ It is assumed that the URL is either \"unguarded\" or is wrapped inside an
 (defun quickurl-add-url (word url comment)
   "Allow the user to interactively add a new URL associated with WORD.
 
-See `quickurl-grab-url' for details on how the default word/url combination
+See `quickurl-grab-url' for details on how the default word/URL combination
 is decided."
   (interactive (let ((word-url (quickurl-grab-url)))
                  (list (read-string "Word: "    (quickurl-url-keyword word-url))
@@ -402,7 +402,7 @@ is decided."
   "Browse the URL associated with LOOKUP.
 
 If not supplied LOOKUP is taken to be the word at point in the
-current buffer, this default action can be modifed via
+current buffer, this default action can be modified via
 `quickurl-grab-lookup-function'."
   (interactive)
   (when (or lookup

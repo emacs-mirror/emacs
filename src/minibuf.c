@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -48,7 +49,7 @@ static Lisp_Object minibuf_save_list;
 
 /* Depth in minibuffer invocations.  */
 
-int minibuf_level;
+EMACS_INT minibuf_level;
 
 /* The maximum length of a minibuffer history.  */
 
@@ -236,8 +237,9 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 			     int allow_props, int inherit_input_method)
 {
   ptrdiff_t size, len;
-  char *line, *s;
+  char *line;
   Lisp_Object val;
+  int c;
 
   fprintf (stdout, "%s", SDATA (prompt));
   fflush (stdout);
@@ -246,22 +248,30 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   size = 100;
   len = 0;
   line = (char *) xmalloc (size);
-  while ((s = fgets (line + len, size - len, stdin)) != NULL
-	 && (len = strlen (line),
-	     len == size - 1 && line[len - 1] != '\n'))
+
+  while ((c = getchar ()) != '\n')
     {
-      if (STRING_BYTES_BOUND / 2 < size)
-	memory_full (SIZE_MAX);
-      size *= 2;
-      line = (char *) xrealloc (line, size);
+      if (c == EOF)
+	{
+	  if (errno != EINTR)
+	    break;
+	}
+      else
+	{
+	  if (len == size)
+	    {
+	      if (STRING_BYTES_BOUND / 2 < size)
+		memory_full (SIZE_MAX);
+	      size *= 2;
+	      line = (char *) xrealloc (line, size);
+	    }
+	  line[len++] = c;
+	}
     }
 
-  if (s)
+  if (len || c == '\n')
     {
-      char *nl = strchr (line, '\n');
-      if (nl)
-	*nl = '\0';
-      val = build_string (line);
+      val = make_string (line, len);
       xfree (line);
     }
   else
@@ -549,6 +559,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   minibuffer = get_minibuffer (minibuf_level);
   Fset_buffer (minibuffer);
 
+  /* Defeat (setq-default truncate-lines t), since truncated lines do
+     not work correctly in minibuffers.  (Bug#5715, etc)  */
+  BVAR (current_buffer, truncate_lines) = Qnil;
+
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
     BVAR (current_buffer, enable_multibyte_characters) = enable_multibyte;
@@ -762,10 +776,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
  used for nonrecursive minibuffer invocations.  */
 
 Lisp_Object
-get_minibuffer (int depth)
+get_minibuffer (EMACS_INT depth)
 {
   Lisp_Object tail, num, buf;
-  char name[24];
+  char name[sizeof " *Minibuf-*" + INT_STRLEN_BOUND (EMACS_INT)];
 
   XSETFASTINT (num, depth);
   tail = Fnthcdr (num, Vminibuffer_list);
@@ -777,7 +791,7 @@ get_minibuffer (int depth)
   buf = Fcar (tail);
   if (NILP (buf) || NILP (BVAR (XBUFFER (buf), name)))
     {
-      sprintf (name, " *Minibuf-%d*", depth);
+      sprintf (name, " *Minibuf-%"pI"d*", depth);
       buf = Fget_buffer_create (build_string (name));
 
       /* Although the buffer's name starts with a space, undo should be
@@ -891,27 +905,36 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
   HIST is a cons.  It is discussed in more detail below.
+
 Third arg KEYMAP is a keymap to use whilst reading;
   if omitted or nil, the default is `minibuffer-local-map'.
-If fourth arg READ is non-nil, then interpret the result as a Lisp object
+
+If fourth arg READ is non-nil, interpret the result as a Lisp object
   and return that object:
   in other words, do `(car (read-from-string INPUT-STRING))'
+
 Fifth arg HIST, if non-nil, specifies a history list and optionally
   the initial position in the list.  It can be a symbol, which is the
-  history list variable to use, or it can be a cons cell
-  (HISTVAR . HISTPOS).  In that case, HISTVAR is the history list variable
-  to use, and HISTPOS is the initial position for use by the minibuffer
-  history commands.  For consistency, you should also specify that
-  element of the history as the value of INITIAL-CONTENTS.  Positions
-  are counted starting from 1 at the beginning of the list.
-Sixth arg DEFAULT-VALUE is the default value or the list of default values.
-  If non-nil, it is available for history commands, and as the value
-  (or the first element of the list of default values) to return
-  if the user enters the empty string.  But, unless READ is non-nil,
-  `read-from-minibuffer' does NOT return DEFAULT-VALUE if the user enters
-  empty input!  It returns the empty string.
+  history list variable to use, or a cons cell (HISTVAR . HISTPOS).
+  In that case, HISTVAR is the history list variable to use, and
+  HISTPOS is the initial position for use by the minibuffer history
+  commands.  For consistency, you should also specify that element of
+  the history as the value of INITIAL-CONTENTS.  Positions are counted
+  starting from 1 at the beginning of the list.
+
+Sixth arg DEFAULT-VALUE, if non-nil, should be a string, which is used
+  as the default to `read' if READ is non-nil and the user enters
+  empty input.  But if READ is nil, this function does _not_ return
+  DEFAULT-VALUE for empty input!  Instead, it returns the empty string.
+
+  Whatever the value of READ, DEFAULT-VALUE is made available via the
+  minibuffer history commands.  DEFAULT-VALUE can also be a list of
+  strings, in which case all the strings are available in the history,
+  and the first string is the default to `read' if READ is non-nil.
+
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.
+
 If the variable `minibuffer-allow-text-properties' is non-nil,
  then the string which is returned includes whatever text properties
  were present in the minibuffer.  Otherwise the value has no text properties.
@@ -1713,7 +1736,7 @@ the values STRING, PREDICATE and `lambda'.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
   Lisp_Object regexps, tail, tem = Qnil;
-  EMACS_INT i = 0;
+  ptrdiff_t i = 0;
 
   CHECK_STRING (string);
 
@@ -1847,8 +1870,9 @@ The arguments STRING and PREDICATE are as in `try-completion',
 	  while (CONSP (bufs) && SREF (XCAR (bufs), 0) == ' ')
 	    bufs = XCDR (bufs);
 	  if (NILP (bufs))
-	    /* All bufs in `res' are internal, so don't trip them out.  */
-	    return res;
+	    return (EQ (Flength (res), Flength (Vbuffer_alist))
+		    /* If all bufs are internal don't strip them out.  */
+		    ? res : bufs);
 	  res = bufs;
 	  while (CONSP (XCDR (bufs)))
 	    if (SREF (XCAR (XCDR (bufs)), 0) == ' ')
@@ -1978,7 +2002,7 @@ The function is called with the arguments passed to `read-buffer'.  */);
 
   DEFVAR_BOOL ("read-buffer-completion-ignore-case",
 	       read_buffer_completion_ignore_case,
-	       doc: /* *Non-nil means completion ignores case when reading a buffer name.  */);
+	       doc: /* Non-nil means completion ignores case when reading a buffer name.  */);
   read_buffer_completion_ignore_case = 0;
 
   DEFVAR_LISP ("minibuffer-setup-hook", Vminibuffer_setup_hook,
@@ -1990,20 +2014,24 @@ The function is called with the arguments passed to `read-buffer'.  */);
   Vminibuffer_exit_hook = Qnil;
 
   DEFVAR_LISP ("history-length", Vhistory_length,
-	       doc: /* *Maximum length for history lists before truncation takes place.
-A number means that length; t means infinite.  Truncation takes place
-just after a new element is inserted.  Setting the `history-length'
-property of a history variable overrides this default.  */);
+	       doc: /* Maximum length of history lists before truncation takes place.
+A number means truncate to that length; truncation deletes old
+elements, and is done just after inserting a new element.
+A value of t means no truncation.
+
+This variable only affects history lists that don't specify their own
+maximum lengths.  Setting the `history-length' property of a history
+variable overrides this default.  */);
   XSETFASTINT (Vhistory_length, 30);
 
   DEFVAR_BOOL ("history-delete-duplicates", history_delete_duplicates,
-	       doc: /* *Non-nil means to delete duplicates in history.
+	       doc: /* Non-nil means to delete duplicates in history.
 If set to t when adding a new history element, all previous identical
 elements are deleted from the history list.  */);
   history_delete_duplicates = 0;
 
   DEFVAR_LISP ("history-add-new-input", Vhistory_add_new_input,
-	       doc: /* *Non-nil means to add new elements in history.
+	       doc: /* Non-nil means to add new elements in history.
 If set to nil, minibuffer reading functions don't add new elements to the
 history list, so it is possible to do this afterwards by calling
 `add-to-history' explicitly.  */);
@@ -2018,7 +2046,7 @@ controls the behavior, rather than this variable.  */);
   completion_ignore_case = 0;
 
   DEFVAR_BOOL ("enable-recursive-minibuffers", enable_recursive_minibuffers,
-	       doc: /* *Non-nil means to allow minibuffer commands while in the minibuffer.
+	       doc: /* Non-nil means to allow minibuffer commands while in the minibuffer.
 This variable makes a difference whenever the minibuffer window is active. */);
   enable_recursive_minibuffers = 0;
 
@@ -2074,7 +2102,7 @@ is added with
   Vminibuffer_history_position = Qnil;
 
   DEFVAR_BOOL ("minibuffer-auto-raise", minibuffer_auto_raise,
-	       doc: /* *Non-nil means entering the minibuffer raises the minibuffer's frame.
+	       doc: /* Non-nil means entering the minibuffer raises the minibuffer's frame.
 Some uses of the echo area also raise that frame (since they use it too).  */);
   minibuffer_auto_raise = 0;
 

@@ -1,6 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system
 
-;; Copyright (C) 1993-1994, 2005-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2005-2012  Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
 ;;	Christian Limpach
@@ -150,8 +150,8 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [end] 'end-of-buffer)
 (define-key global-map [kp-home] 'beginning-of-buffer)
 (define-key global-map [kp-end] 'end-of-buffer)
-(define-key global-map [kp-prior] 'scroll-down)
-(define-key global-map [kp-next] 'scroll-up)
+(define-key global-map [kp-prior] 'scroll-down-command)
+(define-key global-map [kp-next] 'scroll-up-command)
 
 ;; Allow shift-clicks to work similarly to under Nextstep.
 (define-key global-map [S-mouse-1] 'mouse-save-then-kill)
@@ -163,7 +163,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
-(define-key global-map [ns-drag-file] 'ns-insert-file)
+(define-key global-map [ns-drag-file] 'ns-find-file)
 (define-key global-map [ns-drag-color] 'ns-set-foreground-at-mouse)
 (define-key global-map [S-ns-drag-color] 'ns-set-background-at-mouse)
 (define-key global-map [ns-drag-text] 'ns-insert-text)
@@ -492,7 +492,7 @@ unless the current buffer is a scratch buffer."
 			       command-line-default-directory)))
          (file (find-file-noselect f))
          (bufwin1 (get-buffer-window file 'visible))
-         (bufwin2 (get-buffer-window "*scratch*" 'visibile)))
+         (bufwin2 (get-buffer-window "*scratch*" 'visible)))
     (cond
      (bufwin1
       (select-frame (window-frame bufwin1))
@@ -512,9 +512,6 @@ unless the current buffer is a scratch buffer."
       (find-file f)))))
 
 ;;;; Frame-related functions.
-
-;; Don't show the frame name; that's redundant with Nextstep.
-(setq-default mode-line-frame-identification '("  "))
 
 ;; nsterm.m
 (defvar ns-alternate-modifier)
@@ -665,7 +662,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defvar ns-reg-to-script)               ; nsfont.m
 
 ;; This maps font registries (not exposed by NS APIs for font selection) to
-;; unicode scripts (which can be mapped to unicode character ranges which are).
+;; Unicode scripts (which can be mapped to Unicode character ranges which are).
 ;; See ../international/fontset.el
 (setq ns-reg-to-script
       '(("iso8859-1" . latin)
@@ -705,19 +702,24 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;;;; Pasteboard support.
 
-(declare-function ns-get-cut-buffer-internal "nsselect.m" (buffer))
+(declare-function ns-get-selection-internal "nsselect.m" (buffer))
+(declare-function ns-store-selection-internal "nsselect.m" (buffer string))
+
+(define-obsolete-function-alias 'ns-get-cut-buffer-internal
+  'ns-get-selection-internal "24.1")
+(define-obsolete-function-alias 'ns-store-cut-buffer-internal
+  'ns-store-selection-internal "24.1")
+
 
 (defun ns-get-pasteboard ()
   "Returns the value of the pasteboard."
-  (ns-get-cut-buffer-internal 'CLIPBOARD))
-
-(declare-function ns-store-cut-buffer-internal "nsselect.m" (buffer string))
+  (ns-get-selection-internal 'CLIPBOARD))
 
 (defun ns-set-pasteboard (string)
   "Store STRING into the pasteboard of the Nextstep display server."
   ;; Check the data type of STRING.
   (if (not (stringp string)) (error "Nonstring given to pasteboard"))
-  (ns-store-cut-buffer-internal 'CLIPBOARD string))
+  (ns-store-selection-internal 'CLIPBOARD string))
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
@@ -745,11 +747,11 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defun ns-copy-including-secondary ()
   (interactive)
   (call-interactively 'kill-ring-save)
-  (ns-store-cut-buffer-internal 'SECONDARY
-				(buffer-substring (point) (mark t))))
+  (ns-store-selection-internal 'SECONDARY
+			       (buffer-substring (point) (mark t))))
 (defun ns-paste-secondary ()
   (interactive)
-  (insert (ns-get-cut-buffer-internal 'SECONDARY)))
+  (insert (ns-get-selection-internal 'SECONDARY)))
 
 
 ;;;; Scrollbar handling.

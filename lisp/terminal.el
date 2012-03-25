@@ -1,6 +1,6 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs
 
-;; Copyright (C) 1986-1989, 1993-1994, 2001-2011
+;; Copyright (C) 1986-1989, 1993-1994, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
@@ -1285,7 +1285,7 @@ in the directory specified by `te-terminfo-directory'."
 	;; Rename it to the desired name.
 	;; We use this roundabout approach
 	;; to avoid any risk of writing a name that
-	;; was michievouslyt set up as a symlink.
+	;; was mischievously set up as a symlink.
 	(rename-file temp-file file-name))
       ;; Now compile that source to make the binary that the
       ;; programs actually use.

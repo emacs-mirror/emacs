@@ -1,6 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -173,7 +173,7 @@ OWNERSHIP:
 
 FILE ATTRIBUTES:
   l[+-]N                 +/-/= N links
-  a[Mwhms][+-](N|'FILE') access time +/-/= N mnths/weeks/hours/mins/secs
+  a[Mwhms][+-](N|'FILE') access time +/-/= N months/weeks/hours/mins/secs
 			 (days if unspecified) if FILE specified,
 			 use as comparison basis; so a+'file.c'
 			 shows files accessed before file.c was

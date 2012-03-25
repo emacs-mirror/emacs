@@ -1,6 +1,6 @@
 ;;; smime.el --- S/MIME support library
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: SMIME X.509 PEM OpenSSL
@@ -99,7 +99,7 @@
 ;;
 ;; I would include pointers to introductory text on concepts used in
 ;; this library here, but the material I've read are so horrible I
-;; don't want to recomend them.
+;; don't want to recommend them.
 ;;
 ;; Why can't someone write a simple introduction to all this stuff?
 ;; Until then, much of this resemble security by obscurity.
@@ -180,7 +180,7 @@ File should contain certificates in PEM format."
 (defcustom smime-certificate-directory "~/Mail/certs/"
   "*Directory containing other people's certificates.
 It should contain files named to the X.509 hash of the certificate,
-and the files themself should be in PEM format."
+and the files themselves should be in PEM format."
 ;The S/MIME library provide simple functionality for fetching
 ;certificates into this directory, so there is no need to populate it
 ;manually.
@@ -588,7 +588,7 @@ A string or a list of strings is returned."
 		  (filter &optional host attributes attrsonly withdn))
 
 (defun smime-cert-by-ldap-1 (mail host)
-  "Get cetificate for MAIL from the ldap server at HOST."
+  "Get certificate for MAIL from the ldap server at HOST."
   (let ((ldapresult
 	 (funcall
 	  (if (featurep 'xemacs)
@@ -689,7 +689,7 @@ The following commands are available:
       (dolist (key smime-keys)
 	(insert
 	 (format "\t\t%s: %s\n" (car key) (cadr key))))
-      (insert "\nTrusted Certificate Authoritys:\n")
+      (insert "\nTrusted Certificate Authorities:\n")
       (insert "\nKnown Certificates:\n"))))
 
 (defun smime ()

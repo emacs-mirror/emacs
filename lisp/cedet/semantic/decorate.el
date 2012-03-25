@@ -1,6 +1,6 @@
 ;;; semantic/decorate.el --- Utilities for decorating/highlighting tokens.
 
-;;; Copyright (C) 1999-2003, 2005-2007, 2009-2011
+;;; Copyright (C) 1999-2003, 2005-2007, 2009-2012
 ;;; Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -107,7 +107,7 @@ the extent 'intangible' property does not exist."
   "Hook used in modification hooks to prevent modification.
 Allows deletion of the entire text.
 Argument OVERLAY, AFTER, START, END, and LEN are passed in by the system."
-  ;; Stolen blithly from cpp.el in Emacs 21.1
+  ;; Stolen blithely from cpp.el in Emacs 21.1
   (if (and (not after)
 	   (or (< (semantic-overlay-start overlay) start)
 	       (> (semantic-overlay-end overlay) end)))

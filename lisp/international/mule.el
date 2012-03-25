@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -120,14 +120,14 @@ MAX-N is the maximum byte value of that.
 
 `:min-code'
 
-VALUE must be an integer specifying the mininum code point of the
+VALUE must be an integer specifying the minimum code point of the
 charset.  If omitted, it is calculated from `:code-space'.  VALUE may
 be a cons (HIGH . LOW), where HIGH is the most significant 16 bits of
 the code point and LOW is the least significant 16 bits.
 
 `:max-code'
 
-VALUE must be an integer specifying the maxinum code point of the
+VALUE must be an integer specifying the maximum code point of the
 charset.  If omitted, it is calculated from `:code-space'.  VALUE may
 be a cons (HIGH . LOW), where HIGH is the most significant 16 bits of
 the code point and LOW is the least significant 16 bits.
@@ -165,7 +165,7 @@ compatibility.
 
 VALUE must be a nonnegative integer that can be used as an invalid
 code point of the charset.  If the minimum code is 0 and the maximum
-code is greater than Emacs' maximum integer value, `:invalid-code'
+code is greater than Emacs's maximum integer value, `:invalid-code'
 should not be omitted.
 
 `:code-offset'
@@ -703,13 +703,13 @@ If the value is nil, on decoding, don't treat the first two-byte as
 BOM, and on encoding, don't produce BOM bytes.
 
 If the value is t, on decoding, skip the first two-byte as BOM, and on
-encoding, produce BOM bytes accoding to the value of `:endian'.
+encoding, produce BOM bytes according to the value of `:endian'.
 
 If the value is cons, on decoding, check the first two-byte.  If they
 are 0xFE 0xFF, use the car part coding system of the value.  If they
 are 0xFF 0xFE, use the cdr part coding system of the value.
 Otherwise, treat them as bytes for a normal character.  On encoding,
-produce BOM bytes accoding to the value of `:endian'.
+produce BOM bytes according to the value of `:endian'.
 
 This attribute has a meaning only when `:coding-type' is `utf-16' or
 `utf-8'.
@@ -1566,13 +1566,13 @@ of `ctext-non-standard-encodings-alist'.")
 
 ;; Return an alist of CHARSET vs CTEXT-USAGE-INFO generated from
 ;; `ctext-non-standard-encodings' and a list specified by the key
-;; `ctext-non-standard-encodings' for the currrent language
+;; `ctext-non-standard-encodings' for the current language
 ;; environment.  CTEXT-USAGE-INFO is one of the element of
 ;; `ctext-non-standard-encodings-alist' or nil.  In the former case, a
 ;; character in CHARSET is encoded using extended segment.  In the
 ;; latter case, a character in CHARSET is encoded using normal ISO2022
 ;; designation sequence.  If a character is not in any of CHARSETs, it
-;; is encoded using UTF-8 encoding extention.
+;; is encoded using UTF-8 encoding extension.
 
 (defun ctext-non-standard-encodings-table ()
   (let* ((table (append ctext-non-standard-encodings
@@ -1656,7 +1656,7 @@ in-place."
 		      (insert 2)))
 		;; Encode this range as characters in CHARSET.
 		(put-text-property last-pos (point) 'charset charset))
-	    ;; Encode this range using UTF-8 encoding extention.
+	    ;; Encode this range using UTF-8 encoding extension.
 	    (encode-coding-region last-pos (point) 'mule-utf-8)
 	    (save-excursion
 	      (goto-char last-pos)
@@ -1668,6 +1668,7 @@ in-place."
 
 ;;; FILE I/O
 
+;; TODO many elements of this list are also in inhibit-local-variables-regexps.
 (defcustom auto-coding-alist
   ;; .exe and .EXE are added to support archive-mode looking at DOS
   ;; self-extracting exe archives.
@@ -1677,7 +1678,7 @@ arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'"
      . no-conversion-multibyte)
     ("\\.\\(exe\\|EXE\\)\\'" . no-conversion)
-    ("\\.\\(sx[dmicw]\\|odt\\|tar\\|tgz\\)\\'" . no-conversion)
+    ("\\.\\(sx[dmicw]\\|odt\\|tar\\|t[bg]z\\)\\'" . no-conversion)
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|xz\\|gpg\\)\\'" . no-conversion)
     ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("\\.pdf\\'" . no-conversion)
@@ -1785,7 +1786,7 @@ contents of the current buffer following point against
 succeed, it checks to see if any function in `auto-coding-functions'
 gives a match.
 
-If a coding system is specifed, the return value is a cons
+If a coding system is specified, the return value is a cons
 \(CODING . SOURCE), where CODING is the specified coding system and
 SOURCE is a symbol `auto-coding-alist', `auto-coding-regexp-alist',
 `:coding', or `auto-coding-functions' indicating by what CODING is
@@ -2403,8 +2404,8 @@ This function is intended to be added to `auto-coding-functions'."
     ;; (allowing for whitespace at bob).  Note: 'DOCTYPE NETSCAPE' is
     ;; useful for Mozilla bookmark files.
     (when (and (re-search-forward "\\`[[:space:]\n]*\\(<!doctype[[:space:]\n]+\\(html\\|netscape\\)\\|<html\\)" size t)
-	       (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t))
-      (let* ((match (match-string 1))
+	       (re-search-forward "<meta\\s-+\\(http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*\\)?charset=[\"']?\\(.+?\\)[\"'\\s-/>]" size t))
+      (let* ((match (match-string 2))
 	     (sym (intern (downcase match))))
 	(if (coding-system-p sym)
 	    sym

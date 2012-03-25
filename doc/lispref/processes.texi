@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/processes
@@ -300,7 +300,8 @@ MS-DOS doesn't support asynchronous subprocesses, so this option doesn't
 work there.
 
 @item @code{(:file @var{file-name})}
-Send the output to the file name specified.
+Send the output to the file name specified, overwriting it if it
+already exists.
 
 @item @code{(@var{real-destination} @var{error-destination})}
 Keep the standard output stream separate from the standard error stream;
@@ -420,7 +421,7 @@ remote files.
 Per default, this variable is always set to @code{t}, meaning that a
 call of @code{process-file} could potentially change any file on a
 remote host.  When set to @code{nil}, a file handler could optimize
-its behaviour with respect to remote file attributes caching.
+its behavior with respect to remote file attributes caching.
 
 This variable should never be changed by @code{setq}.  Instead of, it
 shall be set only by let-binding.
@@ -712,6 +713,9 @@ happen sooner or later).
 This command displays a listing of all living processes.  In addition,
 it finally deletes any process whose status was @samp{Exited} or
 @samp{Signaled}.  It returns @code{nil}.
+
+The processes are shown in a buffer named @samp{*Process List*}, whose
+major mode is named Process Menu mode.
 
 If @var{query-only} is non-@code{nil} then it lists only processes
 whose query flag is non-@code{nil}.  @xref{Query Before Exit}.
@@ -1938,9 +1942,13 @@ queued but input may be lost.  You can use the function
 @code{process-command} to determine whether a network connection or
 server is stopped; a non-@code{nil} value means yes.
 
-@defun open-network-stream name buffer-or-name host service
-This function opens a TCP connection, and returns a process object
-that represents the connection.
+@cindex network connection, encrypted
+@cindex encrypted network connections
+@cindex TLS network connections
+@cindex STARTTLS network connections
+@defun open-network-stream name buffer-or-name host service &rest parameters
+This function opens a TCP connection, with optional encryption, and
+returns a process object that represents the connection.
 
 The @var{name} argument specifies the name for the process object.  It
 is modified as necessary to make it unique.
@@ -1954,6 +1962,83 @@ associated with any buffer.
 The arguments @var{host} and @var{service} specify where to connect to;
 @var{host} is the host name (a string), and @var{service} is the name of
 a defined network service (a string) or a port number (an integer).
+
+@c FIXME?  Is this too lengthy for the printed manual?
+The remaining arguments @var{parameters} are keyword/argument pairs
+that are mainly relevant to encrypted connections:
+
+@table @code
+
+@item :nowait @var{boolean}
+If non-@code{nil}, try to make an asynchronous connection.
+
+@item :type @var{type}
+The type of connection.  Options are:
+
+@table @code
+@item plain
+An ordinary, unencrypted connection.
+@item tls
+@itemx ssl
+A TLS (``Transport Layer Security'') connection.
+@item nil
+@itemx network
+Start with a plain connection, and if parameters @samp{:success}
+and @samp{:capability-command} are supplied, try to upgrade to an encrypted
+connection via STARTTLS.  If that fails, retain the unencrypted connection.
+@item starttls
+As for @code{nil}, but if STARTTLS fails drop the connection.
+@item shell
+A shell connection.
+@end table
+
+@item :always-query-capabilities @var{boolean}
+If non-@code{nil}, always ask for the server's capabilities, even when
+doing a @samp{plain} connection.
+
+@item :capability-command @var{capability-command}
+Command string to query the host capabilities.
+
+@item :end-of-command @var{regexp}
+@itemx :end-of-capability @var{regexp}
+Regular expression matching the end of a command, or the end of the
+command @var{capability-command}.  The latter defaults to the former.
+
+@item :starttls-function @var{function}
+Function of one argument (the response to @var{capability-command}),
+which returns either @code{nil}, or the command to activate STARTTLS
+if supported.
+
+@item :success @var{regexp}
+Regular expression matching a successful STARTTLS negotiation.
+
+@item :use-starttls-if-possible @var{boolean}
+If non-@code{nil}, do opportunistic STARTTLS upgrades even if Emacs
+doesn't have built-in TLS support.
+
+@item :client-certificate @var{list-or-t}
+Either a list of the form @code{(@var{key-file} @var{cert-file})},
+naming the certificate key file and certificate file itself, or
+@code{t}, meaning to query @code{auth-source} for this information
+(@pxref{Top,,auth-source, auth, Emacs auth-source Library}).
+Only used for TLS or STARTTLS.
+
+@item :return-list @var{cons-or-nil}
+The return value of this function.  If omitted or @code{nil}, return a
+process object.  Otherwise, a cons of the form @code{(@var{process-object}
+. @var{plist})}, where @var{plist} has keywords:
+
+@table @code
+@item :greeting @var{string-or-nil}
+If non-@code{nil}, the greeting string returned by the host.
+@item :capabilities @var{string-or-nil}
+If non-@code{nil}, the host's capability string.
+@item :type @var{symbol}
+The connection type: @samp{plain} or @samp{tls}.
+@end table
+
+@end table
+
 @end defun
 
 @node Network Servers
@@ -1981,9 +2066,9 @@ not get a separate process buffer; otherwise, Emacs creates a new
 buffer for the purpose.  The buffer name is the server's buffer name
 or process name, concatenated with the client identification string.
 
-The server's process buffer value is never used directly by Emacs, but
-it is passed to the log function, which can log connections by
-inserting text there.
+The server's process buffer value is never used directly, but the log
+function can retrieve it and use it to log connections by inserting
+text there.
 
 @item
 The communication type and the process filter and sentinel are
@@ -2627,7 +2712,7 @@ Unsigned integer in network byte order, with length 3.
 @itemx dword
 @itemx long
 Unsigned integer in network byte order, with length 4.
-Note: These values may be limited by Emacs' integer implementation limits.
+Note: These values may be limited by Emacs's integer implementation limits.
 
 @item u16r
 @itemx u24r

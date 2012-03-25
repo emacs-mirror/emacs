@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -356,12 +356,12 @@ directory, like `default-directory'."
   :type 'hook
   :group 'ibuffer)
 
-(defcustom ibuffer-marked-face 'font-lock-warning-face
+(defcustom ibuffer-marked-face 'warning
   "Face used for displaying marked buffers."
   :type 'face
   :group 'ibuffer)
 
-(defcustom ibuffer-deletion-face 'font-lock-type-face
+(defcustom ibuffer-deletion-face 'error
   "Face used for displaying buffers marked for deletion."
   :type 'face
   :group 'ibuffer)
@@ -426,7 +426,7 @@ directory, like `default-directory'."
       '(menu-item "Save current filter groups permanently..."
         ibuffer-save-filter-groups
         :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)
-        :help "Use a mnemnonic name to store current filter groups"))
+        :help "Use a mnemonic name to store current filter groups"))
     (define-key-after groups-map [switch-to-saved-filter-groups]
       '(menu-item "Restore permanently saved filters..."
         ibuffer-switch-to-saved-filter-groups
@@ -676,7 +676,7 @@ directory, like `default-directory'."
     (define-key-after map [menu-bar view filter save-filters]
       '(menu-item "Save current filters permanently..." ibuffer-save-filters
         :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
-        :help "Use a mnemnonic name to store current filter stack"))
+        :help "Use a mnemonic name to store current filter stack"))
     (define-key-after map [menu-bar view filter switch-to-saved-filters]
       '(menu-item "Restore permanently saved filters..."
         ibuffer-switch-to-saved-filters
@@ -2140,11 +2140,10 @@ If optional arg SILENT is non-nil, do not display progress messages."
   (unless silent
     (message "Redisplaying current buffer list..."))
   (let ((blist (ibuffer-current-state-list)))
-    (when (null blist)
-      (if (and (featurep 'ibuf-ext)
+    (when (and (null blist)
+	       (featurep 'ibuf-ext)
 	       (or ibuffer-filtering-qualifiers ibuffer-hidden-filter-groups))
-	  (message "No buffers! (note: filtering in effect)")
-	(error "No buffers!")))
+      (message "No buffers! (note: filtering in effect)"))
     (ibuffer-redisplay-engine blist t)
     (unless silent
       (message "Redisplaying current buffer list...done"))
@@ -2174,11 +2173,10 @@ If optional arg SILENT is non-nil, do not display progress messages."
 		   (cadr bufs))
 		 (ibuffer-current-buffers-with-marks bufs)
 		 ibuffer-display-maybe-show-predicates)))
-    (when (null blist)
-      (if (and (featurep 'ibuf-ext)
-	       ibuffer-filtering-qualifiers)
-	  (message "No buffers! (note: filtering in effect)")
-	(error "No buffers!")))
+    (and (null blist)
+	 (featurep 'ibuf-ext)
+	 ibuffer-filtering-qualifiers
+	 (message "No buffers! (note: filtering in effect)"))
     (unless silent
       (message "Updating buffer list..."))
     (ibuffer-redisplay-engine blist arg)
@@ -2384,7 +2382,7 @@ currently open buffers, in addition to filtering your view to a
 particular subset of them, and sorting by various criteria.
 
 Operations on marked buffers:
-
+\\<ibuffer-mode-map>
   '\\[ibuffer-do-save]' - Save the marked buffers
   '\\[ibuffer-do-view]' - View the marked buffers in this frame.
   '\\[ibuffer-do-view-other-frame]' - View the marked buffers in another frame.
@@ -2504,7 +2502,7 @@ Other commands:
 
 ** Information on Filtering:
 
- You can filter your ibuffer view via different critera.  Each Ibuffer
+ You can filter your ibuffer view via different criteria.  Each Ibuffer
 buffer has its own stack of active filters.  For example, suppose you
 are working on an Emacs Lisp project.  You can create an Ibuffer
 buffer displays buffers in just `emacs-lisp' modes via
@@ -2648,12 +2646,14 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "001cd83e8e1ff27c9a61097c840a984d")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "1400db1bc3d4a3010cbc4807a6725072")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
-Toggle use of Ibuffer's auto-update facility.
-With numeric ARG, enable auto-update if and only if ARG is positive.
+Toggle use of Ibuffer's auto-update facility (Ibuffer Auto mode).
+With a prefix argument ARG, enable Ibuffer Auto mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 \(fn &optional ARG)" t nil)
 
@@ -2778,8 +2778,10 @@ The value from `ibuffer-saved-filter-groups' is used.
 
 (autoload 'ibuffer-filter-disable "ibuf-ext" "\
 Disable all filters currently in effect in this buffer.
+With optional arg DELETE-FILTER-GROUPS non-nil, delete all filter
+group definitions by setting `ibuffer-filter-groups' to nil.
 
-\(fn)" t nil)
+\(fn &optional DELETE-FILTER-GROUPS)" t nil)
 
 (autoload 'ibuffer-pop-filter "ibuf-ext" "\
 Remove the top filter in this buffer.

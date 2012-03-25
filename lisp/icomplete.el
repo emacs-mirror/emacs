@@ -1,6 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992-1994, 1997, 1999, 2001-2011
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
@@ -172,18 +172,16 @@ except those on this list.")
 ;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
 (define-minor-mode icomplete-mode
-  "Toggle incremental minibuffer completion for this Emacs session.
-With a numeric argument, turn Icomplete mode on if ARG is positive,
-otherwise turn it off."
+  "Toggle incremental minibuffer completion (Icomplete mode).
+With a prefix argument ARG, enable Icomplete mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t :group 'icomplete
   (if icomplete-mode
       ;; The following is not really necessary after first time -
       ;; no great loss.
-      (progn
-	(setq completion-show-inline-help nil)
-	(add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup))
-    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
-    (setq completion-show-inline-help t)))
+      (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
+    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)))
 
 ;;;_ > icomplete-simple-completing-p ()
 (defun icomplete-simple-completing-p ()
@@ -209,6 +207,7 @@ Conditions are:
   "Run in minibuffer on activation to establish incremental completion.
 Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
+    (set (make-local-variable 'completion-show-inline-help) nil)
     (add-hook 'pre-command-hook
 	      (lambda () (run-hooks 'icomplete-pre-command-hook))
 	      nil t)
@@ -334,21 +333,23 @@ are exhibited within the square braces.)"
                  (window-width)))
              (prefix-len
               ;; Find the common prefix among `comps'.
-	      (if (eq t (compare-strings (car comps) nil (length most)
-					 most nil nil completion-ignore-case))
-                  ;; Common case.
-		  (length most)
-                ;; Else, use try-completion.
-		(let ((comps-prefix (try-completion "" comps)))
-                  (and (stringp comps-prefix)
-                       (length comps-prefix)))))
+	      ;; We can't use the optimization below because its assumptions
+	      ;; aren't always true, e.g. when completion-cycling (bug#10850):
+	      ;; (if (eq t (compare-strings (car comps) nil (length most)
+	      ;; 			 most nil nil completion-ignore-case))
+	      ;;     ;; Common case.
+	      ;;     (length most)
+	      ;; Else, use try-completion.
+	      (let ((comps-prefix (try-completion "" comps)))
+		(and (stringp comps-prefix)
+		     (length comps-prefix)))) ;;)
 
 	     prospects most-is-exact comp limit)
 	(if (eq most-try t) ;; (or (null (cdr comps))
 	    (setq prospects nil)
 	  (while (and comps (not limit))
 	    (setq comp
-                  (if prefix-len (substring (car comps) prefix-len) (car comps))
+		  (if prefix-len (substring (car comps) prefix-len) (car comps))
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))

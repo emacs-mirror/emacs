@@ -1,11 +1,10 @@
 ;;; ob-css.el --- org-babel functions for css evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -43,6 +42,7 @@ CSS does not support sessions."
   (error "CSS sessions are nonsensical"))
 
 (provide 'ob-css)
+
 
 
 ;;; ob-css.el ends here

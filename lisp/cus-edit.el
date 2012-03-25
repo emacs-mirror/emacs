@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996-1997, 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2012  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -442,8 +442,8 @@
     (set-keymap-parent map widget-keymap)
     (define-key map [remap self-insert-command] 'Custom-no-edit)
     (define-key map "\^m" 'Custom-newline)
-    (define-key map " " 'scroll-up)
-    (define-key map "\177" 'scroll-down)
+    (define-key map " " 'scroll-up-command)
+    (define-key map "\177" 'scroll-down-command)
     (define-key map "\C-c\C-c" 'Custom-set)
     (define-key map "\C-x\C-s" 'Custom-save)
     (define-key map "q" 'Custom-buffer-done)
@@ -594,7 +594,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
     ("-function\\'" function)
     ("-functions\\'" (repeat function))
     ("-list\\'" (repeat sexp))
-    ("-alist\\'" (repeat (cons sexp sexp))))
+    ("-alist\\'" (alist :key-type sexp :value-type sexp)))
   "Alist of (MATCH TYPE).
 
 MATCH should be a regexp matching the name of a symbol, and TYPE should
@@ -698,8 +698,6 @@ If `last', order groups after non-groups."
 		 (const last)
 		 (const :tag "none" nil))
   :group 'custom-menu)
-
-;;;###autoload (add-hook 'same-window-regexps (purecopy "\\`\\*Customiz.*\\*\\'"))
 
 (defun custom-sort-items (items sort-alphabetically order-groups)
   "Return a sorted copy of ITEMS.
@@ -1033,7 +1031,11 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
  	 (put variable 'saved-variable-comment comment)))
   (put variable 'customized-value nil)
   (put variable 'customized-variable-comment nil)
-  (custom-save-all)
+  (if (custom-file t)
+      (custom-save-all)
+    (message "Setting `%s' temporarily since \"emacs -q\" would overwrite customizations"
+	     variable)
+    (set variable value))
   value)
 
 ;; Some parts of Emacs might prompt the user to save customizations,
@@ -1099,8 +1101,9 @@ then prompt for the MODE to customize."
                      t)))
 
 ;;;###autoload
-(defun customize-group (&optional group)
-  "Customize GROUP, which must be a customization group."
+(defun customize-group (&optional group other-window)
+  "Customize GROUP, which must be a customization group.
+If OTHER-WINDOW is non-nil, display in another window."
   (interactive (list (customize-read-group)))
   (when (stringp group)
     (if (string-equal "" group)
@@ -1108,22 +1111,25 @@ then prompt for the MODE to customize."
       (setq group (intern group))))
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
-    (if (get-buffer name)
-        (pop-to-buffer name)
-      (custom-buffer-create
-       (list (list group 'custom-group))
-       name
-       (concat " for group "
-               (custom-unlispify-tag-name group))))))
+    (cond
+     ((null (get-buffer name))
+      (funcall (if other-window
+		   'custom-buffer-create-other-window
+		 'custom-buffer-create)
+	       (list (list group 'custom-group))
+	       name
+	       (concat " for group "
+		       (custom-unlispify-tag-name group))))
+     (other-window
+      (switch-to-buffer-other-window name))
+     (t
+      (pop-to-buffer-same-window name)))))
 
 ;;;###autoload
 (defun customize-group-other-window (&optional group)
   "Customize GROUP, which must be a customization group, in another window."
   (interactive (list (customize-read-group)))
-  (let ((pop-up-windows t)
-        (same-window-buffer-names nil)
-        (same-window-regexps nil))
-    (customize-group group)))
+  (customize-group group t))
 
 ;;;###autoload
 (defalias 'customize-variable 'customize-option)
@@ -1304,10 +1310,12 @@ Emacs that is associated with version VERSION of PACKAGE."
 	     (< minor1 minor2)))))
 
 ;;;###autoload
-(defun customize-face (&optional face)
+(defun customize-face (&optional face other-window)
   "Customize FACE, which should be a face name or nil.
 If FACE is nil, customize all faces.  If FACE is actually a
 face-alias, customize the face it is aliased to.
+
+If OTHER-WINDOW is non-nil, display in another window.
 
 Interactively, when point is on text which has a face specified,
 suggest to customize that face, if it's customizable."
@@ -1316,21 +1324,24 @@ suggest to customize that face, if it's customizable."
       (setq face (face-list)))
   (if (and (listp face) (null (cdr face)))
       (setq face (car face)))
-  (if (listp face)
-      (custom-buffer-create
-       (custom-sort-items
-        (mapcar (lambda (s) (list s 'custom-face)) face)
-        t nil)
-       "*Customize Faces*")
-    ;; If FACE is actually an alias, customize the face it is aliased to.
-    (if (get face 'face-alias)
-        (setq face (get face 'face-alias)))
-    (unless (facep face)
-      (error "Invalid face %S" face))
-    (custom-buffer-create
-     (list (list face 'custom-face))
-     (format "*Customize Face: %s*"
-             (custom-unlispify-tag-name face)))))
+  (let ((display-fun (if other-window
+			 'custom-buffer-create-other-window
+		       'custom-buffer-create)))
+    (if (listp face)
+	(funcall display-fun
+		 (custom-sort-items
+		  (mapcar (lambda (s) (list s 'custom-face)) face)
+		  t nil)
+		 "*Customize Faces*")
+      ;; If FACE is actually an alias, customize the face it is aliased to.
+      (if (get face 'face-alias)
+	  (setq face (get face 'face-alias)))
+      (unless (facep face)
+	(error "Invalid face %S" face))
+      (funcall display-fun
+	       (list (list face 'custom-face))
+	       (format "*Customize Face: %s*"
+		       (custom-unlispify-tag-name face))))))
 
 ;;;###autoload
 (defun customize-face-other-window (&optional face)
@@ -1340,16 +1351,13 @@ If FACE is actually a face-alias, customize the face it is aliased to.
 Interactively, when point is on text which has a face specified,
 suggest to customize that face, if it's customizable."
   (interactive (list (read-face-name "Customize face" "all faces" t)))
-  (let ((pop-up-windows t)
-        (same-window-buffer-names nil)
-        (same-window-regexps nil))
-    (customize-face face)))
+  (customize-face face t))
 
 (defalias 'customize-customized 'customize-unsaved)
 
 ;;;###autoload
 (defun customize-unsaved ()
-  "Customize all user options set in this session but not saved."
+  "Customize all options and faces set in this session but not saved."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1387,7 +1395,7 @@ suggest to customize that face, if it's customizable."
 			    "*Customize Rogue*"))))
 ;;;###autoload
 (defun customize-saved ()
-  "Customize all already saved user options."
+  "Customize all saved options and faces."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1529,7 +1537,7 @@ Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
-  (pop-to-buffer (custom-get-fresh-buffer (or name "*Customization*")))
+  (pop-to-buffer-same-window (custom-get-fresh-buffer (or name "*Customization*")))
   (custom-buffer-create-internal options description))
 
 ;;;###autoload
@@ -1541,11 +1549,8 @@ OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
-  (let ((pop-up-windows t)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer (custom-get-fresh-buffer name))
-    (custom-buffer-create-internal options description)))
+  (switch-to-buffer-other-window (custom-get-fresh-buffer name))
+  (custom-buffer-create-internal options description))
 
 (defcustom custom-reset-button-menu nil
   "If non-nil, only show a single reset button in customize buffers.
@@ -1619,7 +1624,9 @@ Otherwise use brackets."
     ;; Insert the search field.
     (when custom-search-field
       (widget-insert "\n")
-      (let* ((echo "Search for custom items")
+      (let* ((echo "Search for custom items.
+You can enter one or more words separated by spaces,
+or a regular expression.")
 	     (search-widget
 	      (widget-create
 	       'editable-field
@@ -1632,7 +1639,7 @@ Otherwise use brackets."
 	 :tag " Search "
 	 :help-echo echo :action
 	 (lambda (widget &optional _event)
-	   (customize-apropos (widget-value (widget-get widget :parent)))))
+	   (customize-apropos (split-string (widget-value (widget-get widget :parent))))))
 	(widget-insert "\n")))
 
     ;; The custom command buttons are also in the toolbar, so for a
@@ -1720,7 +1727,7 @@ Otherwise use brackets."
   (unless group
     (setq group 'emacs))
   (let ((name "*Customize Browser*"))
-    (pop-to-buffer (custom-get-fresh-buffer name)))
+    (pop-to-buffer-same-window (custom-get-fresh-buffer name)))
   (Custom-mode)
   (widget-insert (format "\
 %s buttons; type RET or click mouse-1
@@ -2594,7 +2601,6 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :parent widget)
 		 buttons))
 	  ((memq form '(lisp mismatch))
-	   ;; In lisp mode edit the saved value when possible.
 	   (push (widget-create-child-and-convert
 		  widget 'custom-visibility
 		  :help-echo "Hide the value of this option."
@@ -2606,11 +2612,10 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  t)
 		 buttons)
 	   (insert " ")
-	   (let* ((value (cond ((get symbol 'saved-value)
-				(car (get symbol 'saved-value)))
-			       ((get symbol 'standard-value)
-				(car (get symbol 'standard-value)))
-			       ((default-boundp symbol)
+	   ;; This used to try presenting the saved value or the
+	   ;; standard value, but it seems more intuitive to present
+	   ;; the current value (Bug#7600).
+	   (let* ((value (cond ((default-boundp symbol)
 				(custom-quote (funcall get symbol)))
 			       (t
 				(custom-quote (widget-get conv :value))))))
@@ -3068,7 +3073,7 @@ to switch between two values."
 	      (funcall set symbol (car value))
 	     (error nil)))
       (error "No backup value for %s" symbol))
-    (put symbol 'customized-value (list (car value)))
+    (put symbol 'customized-value (list (custom-quote (car value))))
     (put symbol 'variable-comment comment)
     (put symbol 'customized-variable-comment comment)
     (custom-variable-state-set widget)
@@ -3220,7 +3225,7 @@ Also change :reverse-video to :inverse-video."
     (if (not inactive)
 	;; Widget is alive, we don't have to do anything special
 	(widget-default-delete widget)
-      ;; WIDGET is already deleted because we did so to inactivate it;
+      ;; WIDGET is already deleted because we did so to deactivate it;
       ;; now just get rid of the label we put in its place.
       (delete-region (car (cdr inactive))
 		     (+ (car (cdr inactive)) (cdr (cdr inactive))))
@@ -3246,6 +3251,7 @@ Also change :reverse-video to :inverse-video."
   :args '((const :tag "all" t)
 	  (const :tag "defaults" default)
 	  (checklist
+	   :tag "specific display"
 	   :offset 0
 	   :extra-offset 9
 	   :args ((group :sibling-args (:help-echo "\
@@ -4403,23 +4409,16 @@ Click on \"More\" \(or position point there and press RETURN)
 if only the first line of the docstring is shown."))
   :group 'customize)
 
-(defun custom-file ()
+(defun custom-file (&optional no-error)
   "Return the file name for saving customizations."
-  (file-chase-links
-   (or custom-file
-       (let ((user-init-file user-init-file)
-	     (default-init-file
-	       (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
-	 (when (null user-init-file)
-	   (if (or (file-exists-p default-init-file)
-		   (and (eq system-type 'windows-nt)
-			(file-exists-p "~/_emacs")))
-	       ;; Started with -q, i.e. the file containing
-	       ;; Custom settings hasn't been read.  Saving
-	       ;; settings there would overwrite other settings.
-	       (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
-	   (setq user-init-file default-init-file))
-	 user-init-file))))
+  (if (null user-init-file)
+      ;; Started with -q, i.e. the file containing Custom settings
+      ;; hasn't been read.  Saving settings there won't make much
+      ;; sense.
+      (if no-error
+	  nil
+	(error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+    (file-chase-links (or custom-file user-init-file))))
 
 ;; If recentf-mode is non-nil, this is defined.
 (declare-function recentf-expand-file-name "recentf" (name))

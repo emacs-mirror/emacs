@@ -1,5 +1,5 @@
 /* Emulate the X Resource Manager through the registry.
-   Copyright (C) 1990, 1993-1994, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -147,9 +147,9 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
     {
       char *resource;
 
-      if (resource = w32_get_rdb_resource (rdb, name))
+      if ((resource = w32_get_rdb_resource (rdb, name)))
         return resource;
-      if (resource = w32_get_rdb_resource (rdb, class))
+      if ((resource = w32_get_rdb_resource (rdb, class)))
         return resource;
     }
 
@@ -157,6 +157,5 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
     /* --quick was passed, so this is a no-op.  */
     return NULL;
 
-  return (w32_get_string_resource (name, class, REG_SZ));
+  return w32_get_string_resource (name, class, REG_SZ);
 }
-

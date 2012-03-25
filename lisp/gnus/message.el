@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -655,14 +655,16 @@ Done before generating the new subject of a forward."
 	(t
 	 (error "Don't know how to send mail.  Please customize `message-send-mail-function'"))))
 
-;; Useful to set in site-init.el
-(defcustom message-send-mail-function
+(defun message-default-send-mail-function ()
   (cond ((eq send-mail-function 'smtpmail-send-it) 'message-smtpmail-send-it)
 	((eq send-mail-function 'feedmail-send-it) 'feedmail-send-it)
 	((eq send-mail-function 'sendmail-query-once) 'sendmail-query-once)
 	((eq send-mail-function 'mailclient-send-it)
 	 'message-send-mail-with-mailclient)
-	(t (message-send-mail-function)))
+	(t (message-send-mail-function))))
+
+;; Useful to set in site-init.el
+(defcustom message-send-mail-function (message-default-send-mail-function)
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line whose contents match the
 variable `mail-header-separator'.
@@ -906,7 +908,7 @@ The function `message-setup' runs this hook."
   :type 'hook)
 
 (defcustom message-cancel-hook nil
-  "Hook run when cancelling articles."
+  "Hook run when canceling articles."
   :group 'message-various
   :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
@@ -1093,6 +1095,7 @@ probably want to set this variable only for specific groups,
 e.g. using `gnus-posting-styles':
 
   (eval (set (make-local-variable 'message-cite-reply-position) 'above))"
+  :version "24.1"
   :type '(choice (const :tag "Reply inline" 'traditional)
 		 (const :tag "Reply above" 'above)
 		 (const :tag "Reply below" 'below))
@@ -1310,7 +1313,9 @@ text and it replaces `self-insert-command' with the other command, e.g.
   :type '(repeat function))
 
 (defcustom message-auto-save-directory
-  (file-name-as-directory (expand-file-name "drafts" message-directory))
+  (if (file-writable-p message-directory)
+      (file-name-as-directory (expand-file-name "drafts" message-directory))
+    "~/")
   "*Directory where Message auto-saves buffers if Gnus isn't running.
 If nil, Message won't auto-save."
   :group 'message-buffers
@@ -1351,7 +1356,8 @@ candidates:
 `quoted-text-only'  Allow you to post quoted text only;
 `multiple-copies'   Allow you to post multiple copies;
 `cancel-messages'   Allow you to cancel or supersede messages from
-		    your other email addresses.")
+		    your other email addresses;
+`canlock-verify'    Allow you to cancel messages without verifying canlock.")
 
 (defsubst message-gnksa-enable-p (feature)
   (or (not (listp message-shoot-gnksa-feet))
@@ -1890,14 +1896,14 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
   (concat "[a-z0-9][-.a-z0-9]+\\." ;; [hostname.subdomain.]domain.
 	  ;; valid TLDs:
 	  "\\([a-z][a-z]\\|" ;; two letter country TDLs
-	  "aero\\|arpa\\|bitnet\\|biz\\|bofh\\|"
+	  "aero\\|arpa\\|asia\\|bitnet\\|biz\\|bofh\\|"
 	  "cat\\|com\\|coop\\|edu\\|gov\\|"
 	  "info\\|int\\|jobs\\|"
 	  "mil\\|mobi\\|museum\\|name\\|net\\|"
-	  "org\\|pro\\|travel\\|uucp\\)")
+	  "org\\|pro\\|tel\\|travel\\|uucp\\)")
   ;; http://en.wikipedia.org/wiki/List_of_Internet_top-level_domains
   ;; http://en.wikipedia.org/wiki/GTLD
-  ;; `in the process of being approved': .asia .post .tel .sex
+  ;; `approved, but not yet in operation': .xxx
   ;; "dead" nato bitnet uucp
   "Regular expression that matches a valid FQDN."
   ;; see also: gnus-button-valid-fqdn-regexp
@@ -2500,7 +2506,7 @@ Return the number of headers removed."
      (point-max)))
   (goto-char (point-min)))
 
-;; FIXME: clarify diffference: message-narrow-to-head,
+;; FIXME: clarify difference: message-narrow-to-head,
 ;; message-narrow-to-headers-or-head, message-narrow-to-headers
 (defun message-narrow-to-head ()
   "Narrow the buffer to the head of the message.
@@ -3676,7 +3682,7 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
       (message-delete-line))
     ;; Delete blank lines at the end of the buffer.
     (goto-char (point-max))
-    (unless (eolp)
+    (unless (eq (preceding-char) ?\n)
       (insert "\n"))
     (while (and (zerop (forward-line -1))
 		(looking-at "$"))
@@ -4019,7 +4025,9 @@ The text will also be indented the normal way."
 ;;;
 
 (defun message-send-and-exit (&optional arg)
-  "Send message like `message-send', then, if no errors, exit from mail buffer."
+  "Send message like `message-send', then, if no errors, exit from mail buffer.
+The usage of ARG is defined by the instance that called Message.
+It should typically alter the sending method in some way or other."
   (interactive "P")
   (let ((buf (current-buffer))
 	(actions message-exit-actions))
@@ -4251,8 +4259,10 @@ conformance."
 		 "Invisible text found and made visible; continue sending? ")
 	  (error "Invisible text found and made visible")))))
   (message-check 'illegible-text
-    (let (char found choice)
+    (let (char found choice nul-chars)
       (message-goto-body)
+      (setq nul-chars (save-excursion
+			(search-forward "\000" nil t)))
       (while (progn
 	       (skip-chars-forward mm-7bit-chars)
 	       (when (get-text-property (point) 'no-illegible-text)
@@ -4278,7 +4288,9 @@ conformance."
       (when found
 	(setq choice
 	      (gnus-multiple-choice
-	       "Non-printable characters found.  Continue sending?"
+	       (if nul-chars
+		   "NUL characters found, which may cause problems.  Continue sending?"
+		 "Non-printable characters found.  Continue sending?")
 	       `((?d "Remove non-printable characters and send")
 		 (?r ,(format
 		       "Replace non-printable characters with \"%s\" and send"
@@ -4400,7 +4412,7 @@ This function could be useful in `message-setup-hook'."
        ;; A simple function.
        ((functionp action)
 	(funcall action))
-       ;; Something to be evaled.
+       ;; Something to be evalled.
        (t
 	(eval action))))))
 
@@ -4498,7 +4510,8 @@ This function could be useful in `message-setup-hook'."
 		   (boundp 'gnus-group-posting-charset-alist))
 	      (gnus-setup-posting-charset nil)
 	    message-posting-charset))
-	 (headers message-required-mail-headers))
+	 (headers message-required-mail-headers)
+	 options)
     (when (and message-generate-hashcash
 	       (not (eq message-generate-hashcash 'opportunistic)))
       (message "Generating hashcash...")
@@ -4537,9 +4550,11 @@ This function could be useful in `message-setup-hook'."
 	      (error "Failed to send the message")))))
       ;; Let the user do all of the above.
       (run-hooks 'message-header-hook))
+    (setq options message-options)
     (unwind-protect
 	(with-current-buffer tembuf
 	  (erase-buffer)
+	  (setq message-options options)
 	  ;; Avoid copying text props (except hard newlines).
 	  (insert (with-current-buffer mailbuf
 		    (mml-buffer-substring-no-properties-except-hard-newlines
@@ -4621,9 +4636,11 @@ If you always want Gnus to send messages in one piece, set
 		(message "Sending via mail...")
 		(funcall (or message-send-mail-real-function
 			     message-send-mail-function)))
-	    (message-send-mail-partially)))
+	    (message-send-mail-partially))
+	  (setq options message-options))
       (kill-buffer tembuf))
     (set-buffer mailbuf)
+    (setq message-options options)
     (push 'mail message-sent-message-via)))
 
 (defvar sendmail-program)
@@ -4783,7 +4800,9 @@ Do not use this for anything important, it is cryptographically weak."
   (require 'sha1)
   (let (sha1-maximum-internal-length)
     (sha1 (concat (message-unique-id)
-		  (format "%x%x%x" (random) (random t) (random))
+		  (format "%x%x%x" (random)
+			  (progn (random t) (random))
+			  (random))
 		  (prin1-to-string (recent-keys))
 		  (prin1-to-string (garbage-collect))))))
 
@@ -4824,7 +4843,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 			   (message-fetch-field "Followup-To")))
 	 ;; BUG: We really need to get the charset for each name in the
 	 ;; Newsgroups and Followup-To lines to allow crossposting
-	 ;; between group namess with incompatible character sets.
+	 ;; between group names with incompatible character sets.
 	 ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2001-10-08.
 	 (group-field-charset
 	  (gnus-group-name-charset method newsgroups-field))
@@ -5486,10 +5505,12 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 ;; You might for example insert a "." somewhere (not next to another dot
 ;; or string boundary), or modify the "fsf" string.
 (defun message-unique-id ()
+  (random t)
   ;; Don't use microseconds from (current-time), they may be unsupported.
   ;; Instead we use this randomly inited counter.
   (setq message-unique-id-char
-	(% (1+ (or message-unique-id-char (logand (random t) (1- (lsh 1 20)))))
+	(% (1+ (or message-unique-id-char
+		   (logand (random most-positive-fixnum) (1- (lsh 1 20)))))
 	   ;; (current-time) returns 16-bit ints,
 	   ;; and 2^16*25 just fits into 4 digits i base 36.
 	   (* 25 25)))
@@ -6151,7 +6172,7 @@ If the current line has `message-yank-prefix', insert it on the new line."
 When sending via news, also check that the REFERENCES are less
 than 988 characters long, and if they are not, trim them until
 they are."
-  ;; 21 is the number suggested by USEAGE.
+  ;; 21 is the number suggested by USAGE.
   (let ((maxcount 21)
 	(count 0)
 	(cut 2)
@@ -6318,7 +6339,7 @@ between beginning of field and beginning of line."
 	      (progn
 		(gnus-select-frame-set-input-focus (window-frame window))
 		(select-window window))
-	    (funcall (or switch-function 'pop-to-buffer) buffer)
+	    (funcall (or switch-function #'pop-to-buffer) buffer)
 	    (set-buffer buffer))
 	  (when (and (buffer-modified-p)
 		     (not (prog1
@@ -6326,7 +6347,11 @@ between beginning of field and beginning of line."
 			       "Message already being composed; erase? ")
 			    (message nil))))
 	    (error "Message being composed")))
-      (funcall (or switch-function 'pop-to-buffer) name)
+      (funcall (or switch-function
+		   (if (fboundp #'pop-to-buffer-same-window)
+		       #'pop-to-buffer-same-window
+		     #'pop-to-buffer))
+	       name)
       (set-buffer name))
     (erase-buffer)
     (message-mode)))
@@ -6347,34 +6372,37 @@ between beginning of field and beginning of line."
   ;; Rename the buffer.
   (if message-send-rename-function
       (funcall message-send-rename-function)
-    ;; Note: mail-abbrevs of XEmacs renames buffer name behind Gnus.
-    (when (string-match
-	   "\\`\\*\\(sent \\|unsent \\)?\\(.+\\)\\*[^\\*]*\\|\\`mail to "
-	   (buffer-name))
-      (let ((name (match-string 2 (buffer-name)))
-	    to group)
-	(if (not (or (null name)
-		     (string-equal name "mail")
-		     (string-equal name "posting")))
-	    (setq name (concat "*sent " name "*"))
-	  (message-narrow-to-headers)
-	  (setq to (message-fetch-field "to"))
-	  (setq group (message-fetch-field "newsgroups"))
-	  (widen)
-	  (setq name
-		(cond
-		 (to (concat "*sent mail to "
-			     (or (car (mail-extract-address-components to))
-				 to) "*"))
-		 ((and group (not (string= group "")))
-		  (concat "*sent posting on " group "*"))
-		 (t "*sent mail*"))))
-	(unless (string-equal name (buffer-name))
-	  (rename-buffer name t)))))
+    (message-default-send-rename-function))
   ;; Push the current buffer onto the list.
   (when message-max-buffers
     (setq message-buffer-list
 	  (nconc message-buffer-list (list (current-buffer))))))
+
+(defun message-default-send-rename-function ()
+  ;; Note: mail-abbrevs of XEmacs renames buffer name behind Gnus.
+  (when (string-match
+	 "\\`\\*\\(sent \\|unsent \\)?\\(.+\\)\\*[^\\*]*\\|\\`mail to "
+	 (buffer-name))
+    (let ((name (match-string 2 (buffer-name)))
+	  to group)
+      (if (not (or (null name)
+		   (string-equal name "mail")
+		   (string-equal name "posting")))
+	  (setq name (concat "*sent " name "*"))
+	(message-narrow-to-headers)
+	(setq to (message-fetch-field "to"))
+	(setq group (message-fetch-field "newsgroups"))
+	(widen)
+	(setq name
+	      (cond
+	       (to (concat "*sent mail to "
+			   (or (car (mail-extract-address-components to))
+			       to) "*"))
+	       ((and group (not (string= group "")))
+		(concat "*sent posting on " group "*"))
+	       (t "*sent mail*"))))
+      (unless (string-equal name (buffer-name))
+	(rename-buffer name t)))))
 
 (defun message-mail-user-agent ()
   (let ((mua (cond
@@ -6519,7 +6547,9 @@ are not included."
   (message-position-point)
   ;; Allow correct handling of `message-checksum' in `message-yank-original':
   (set-buffer-modified-p nil)
-  (undo-boundary))
+  (undo-boundary)
+  ;; rmail-start-mail expects message-mail to return t (Bug#9392)
+  t)
 
 (defun message-set-auto-save-file-name ()
   "Associate the message buffer with a file in the drafts directory."
@@ -6878,20 +6908,19 @@ Useful functions to put in this list include:
       (unless follow-to
 	(setq follow-to (message-get-reply-headers wide to-address))))
 
-    (unless (message-mail-user-agent)
-      (message-pop-to-buffer
-       (message-buffer-name
-	(if wide "wide reply" "reply") from
-	(if wide to-address nil))
-       switch-function))
-
-    (setq message-reply-headers
-	  (vector 0 subject from date message-id references 0 0 ""))
-
-    (message-setup
-     `((Subject . ,subject)
-       ,@follow-to)
-     cur)))
+    (let ((headers
+	   `((Subject . ,subject)
+	     ,@follow-to)))
+      (unless (message-mail-user-agent)
+	(message-pop-to-buffer
+	 (message-buffer-name
+	  (if wide "wide reply" "reply") from
+	  (if wide to-address nil))
+	 switch-function))
+      (setq message-reply-headers
+	    (vector 0 (cdr (assq 'Subject headers))
+		    from date message-id references 0 0 ""))
+      (message-setup headers cur))))
 
 ;;;###autoload
 (defun message-wide-reply (&optional to-address)
@@ -7032,7 +7061,8 @@ regexp to match all of yours addresses."
   (save-excursion
     (save-restriction
       (message-narrow-to-head-1)
-      (if (message-fetch-field "Cancel-Lock")
+      (if (and (message-fetch-field "Cancel-Lock")
+	       (message-gnksa-enable-p 'canlock-verify))
 	  (if (null (canlock-verify))
 	      t
 	    (error "Failed to verify Cancel-lock: This article is not yours"))
@@ -7149,7 +7179,7 @@ header line with the old Message-ID."
 
 (defun message-wash-subject (subject)
   "Remove junk like \"Re:\", \"(fwd)\", etc. added to subject string SUBJECT.
-Previous forwarders, replyers, etc. may add it."
+Previous forwarders, repliers, etc. may add it."
   (with-temp-buffer
     (insert subject)
     (goto-char (point-min))
@@ -7413,14 +7443,16 @@ is for the internal use."
       (with-temp-buffer
 	(insert-buffer-substring cur)
 	(when (setq handles (mm-dissect-buffer t t))
-	  (if (and (prog1
-		       (bufferp (car handles))
-		     (mm-destroy-parts handles))
+	  (if (and (bufferp (car handles))
 		   (equal (mm-handle-media-type handles) "text/plain"))
 	      (progn
+		(erase-buffer)
+		(insert-buffer-substring (car handles))
 		(mm-decode-content-transfer-encoding
 		 (mm-handle-encoding handles))
+		(mm-destroy-parts handles)
 		(setq handles (mm-uu-dissect)))
+	    (mm-destroy-parts handles)
 	    (setq handles nil))))))
   (when handles
     (prog1
@@ -7606,12 +7638,8 @@ you."
   "Like `message-mail' command, but display mail buffer in another window."
   (interactive)
   (unless (message-mail-user-agent)
-    (let ((pop-up-windows t)
-	  (special-display-buffer-names nil)
-	  (special-display-regexps nil)
-	  (same-window-buffer-names nil)
-	  (same-window-regexps nil))
-      (message-pop-to-buffer (message-buffer-name "mail" to))))
+    (message-pop-to-buffer (message-buffer-name "mail" to)
+			   'switch-to-buffer-other-window))
   (let ((message-this-is-mail t))
     (message-setup `((To . ,(or to "")) (Subject . ,(or subject "")))
 		   nil nil nil 'switch-to-buffer-other-window)))
@@ -7621,12 +7649,8 @@ you."
   "Like `message-mail' command, but display mail buffer in another frame."
   (interactive)
   (unless (message-mail-user-agent)
-    (let ((pop-up-frames t)
-	  (special-display-buffer-names nil)
-	  (special-display-regexps nil)
-	  (same-window-buffer-names nil)
-	  (same-window-regexps nil))
-      (message-pop-to-buffer (message-buffer-name "mail" to))))
+    (message-pop-to-buffer (message-buffer-name "mail" to)
+			   'switch-to-buffer-other-frame))
   (let ((message-this-is-mail t))
     (message-setup `((To . ,(or to "")) (Subject . ,(or subject "")))
 		   nil nil nil 'switch-to-buffer-other-frame)))
@@ -7635,12 +7659,8 @@ you."
 (defun message-news-other-window (&optional newsgroups subject)
   "Start editing a news article to be sent."
   (interactive)
-  (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)))
+  (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)
+			 'switch-to-buffer-other-window)
   (let ((message-this-is-news t))
     (message-setup `((Newsgroups . ,(or newsgroups ""))
 		     (Subject . ,(or subject ""))))))
@@ -7649,12 +7669,8 @@ you."
 (defun message-news-other-frame (&optional newsgroups subject)
   "Start editing a news article to be sent."
   (interactive)
-  (let ((pop-up-frames t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)))
+  (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)
+			 'switch-to-buffer-other-frame)
   (let ((message-this-is-news t))
     (message-setup `((Newsgroups . ,(or newsgroups ""))
 		     (Subject . ,(or subject ""))))))
@@ -7725,7 +7741,7 @@ Setter function for custom variables."
 			      'message-tool-bar-retro)
   "Specifies the message mode tool bar.
 
-It can be either a list or a symbol refering to a list.  See
+It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `message-mode-map'.
 
@@ -7886,7 +7902,11 @@ those headers."
 		(let ((mail-abbrev-mode-regexp (caar alist)))
 		  (not (mail-abbrev-in-expansion-header-p))))
       (setq alist (cdr alist)))
-    (cdar alist)))
+    (when (cdar alist)
+      (lexical-let ((fun (cdar alist)))
+        ;; Even if completion fails, return a non-nil value, so as to avoid
+        ;; falling back to message-tab-body-function.
+        (lambda () (funcall fun) 'completion-attempted)))))
 
 (eval-and-compile
   (condition-case nil
@@ -8071,10 +8091,10 @@ regexp VARSTR."
 (defun message-read-from-minibuffer (prompt &optional initial-contents)
   "Read from the minibuffer while providing abbrev expansion."
   (if (fboundp 'mail-abbrevs-setup)
-      (let ((mail-abbrev-mode-regexp "")
-	    (minibuffer-setup-hook 'mail-abbrevs-setup)
+      (let ((minibuffer-setup-hook 'mail-abbrevs-setup)
 	    (minibuffer-local-map message-minibuffer-local-map))
-	(read-from-minibuffer prompt initial-contents))
+	(flet ((mail-abbrev-in-expansion-header-p nil t))
+	  (read-from-minibuffer prompt initial-contents)))
     (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook)
 	  (minibuffer-local-map message-minibuffer-local-map))
       (read-string prompt initial-contents))))

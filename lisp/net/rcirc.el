@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -659,7 +659,7 @@ Functions are called with PROCESS and SENTINEL arguments.")
 (defun rcirc-disconnect-buffer (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     ;; set rcirc-target to nil for each channel so cleanup
-    ;; doesnt happen when we reconnect
+    ;; doesn't happen when we reconnect
     (setq rcirc-target nil)
     (setq mode-line-process ":disconnected")))
 
@@ -815,18 +815,19 @@ If SILENT is non-nil, do not print the message in any irc buffer."
 
 (defvar rcirc-input-ring nil)
 (defvar rcirc-input-ring-index 0)
+
 (defun rcirc-prev-input-string (arg)
   (ring-ref rcirc-input-ring (+ rcirc-input-ring-index arg)))
 
-(defun rcirc-insert-prev-input (arg)
-  (interactive "p")
+(defun rcirc-insert-prev-input ()
+  (interactive)
   (when (<= rcirc-prompt-end-marker (point))
     (delete-region rcirc-prompt-end-marker (point-max))
     (insert (rcirc-prev-input-string 0))
     (setq rcirc-input-ring-index (1+ rcirc-input-ring-index))))
 
-(defun rcirc-insert-next-input (arg)
-  (interactive "p")
+(defun rcirc-insert-next-input ()
+  (interactive)
   (when (<= rcirc-prompt-end-marker (point))
     (delete-region rcirc-prompt-end-marker (point-max))
     (setq rcirc-input-ring-index (1- rcirc-input-ring-index))
@@ -935,14 +936,6 @@ IRC command completion is performed only if '/' is the first input char."
     map)
   "Keymap for rcirc mode.")
 
-(defvar rcirc-browse-url-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'rcirc-browse-url-at-point)
-    (define-key map (kbd "<mouse-2>") 'rcirc-browse-url-at-mouse)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Keymap used for browsing URLs in `rcirc-mode'.")
-
 (defvar rcirc-short-buffer-name nil
   "Generated abbreviation to use to indicate buffer activity.")
 
@@ -971,7 +964,13 @@ This number is independent of the number of lines in the buffer.")
   (setq mode-line-process nil)
 
   (set (make-local-variable 'rcirc-input-ring)
-       (make-ring rcirc-input-ring-size))
+       ;; If rcirc-input-ring is already a ring with desired size do
+       ;; not re-initialize.
+       (if (and (ring-p rcirc-input-ring)
+		(= (ring-size rcirc-input-ring)
+		   rcirc-input-ring-size))
+	   rcirc-input-ring
+	 (make-ring rcirc-input-ring-size)))
   (set (make-local-variable 'rcirc-server-buffer) (process-buffer process))
   (set (make-local-variable 'rcirc-target) target)
   (set (make-local-variable 'rcirc-topic) nil)
@@ -980,6 +979,7 @@ This number is independent of the number of lines in the buffer.")
   (set (make-local-variable 'rcirc-recent-quit-alist) nil)
   (set (make-local-variable 'rcirc-current-line) 0)
 
+  (use-hard-newlines t)
   (set (make-local-variable 'rcirc-short-buffer-name) nil)
   (set (make-local-variable 'rcirc-urls) nil)
 
@@ -1261,7 +1261,10 @@ Create the buffer if it doesn't exist."
   "Keymap for multiline mode in rcirc.")
 
 (define-minor-mode rcirc-multiline-minor-mode
-  "Minor mode for editing multiple lines in rcirc."
+  "Minor mode for editing multiple lines in rcirc.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :init-value nil
   :lighter " rcirc-mline"
   :keymap rcirc-multiline-minor-mode-map
@@ -1563,18 +1566,16 @@ record activity."
 
 	  ;; keep window on bottom line if it was already there
 	  (when rcirc-scroll-show-maximum-output
-	    (walk-windows (lambda (w)
-			    (when (eq (window-buffer w) (current-buffer))
-			      (with-current-buffer (window-buffer w)
-				(when (eq major-mode 'rcirc-mode)
-				  (with-selected-window w
-				    (when (<= (- (window-height)
-						 (count-screen-lines (window-point)
-								     (window-start))
-						 1)
-					      0)
-				      (recenter -1)))))))
-				  nil t))
+	    (let ((window (get-buffer-window)))
+	      (when window
+		(with-selected-window window
+		  (when (eq major-mode 'rcirc-mode)
+		    (when (<= (- (window-height)
+				 (count-screen-lines (window-point)
+						     (window-start))
+				 1)
+			      0)
+		      (recenter -1)))))))
 
 	  ;; flush undo (can we do something smarter here?)
 	  (buffer-disable-undo)
@@ -1781,7 +1782,10 @@ This function does not alter the INPUT string."
 
 ;;;###autoload
 (define-minor-mode rcirc-track-minor-mode
-  "Global minor mode for tracking activity in rcirc buffers."
+  "Global minor mode for tracking activity in rcirc buffers.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :init-value nil
   :lighter ""
   :keymap rcirc-track-minor-mode-map
@@ -2144,6 +2148,16 @@ CHANNELS is a comma- or space-separated string of channel names."
       (dolist (b buffers) ;; order the new channel buffers in the buffer list
         (switch-to-buffer b)))))
 
+(defun-rcirc-command invite (nick-channel)
+  "Invite NICK to CHANNEL."
+  (interactive (list
+		(concat
+		 (completing-read "Invite nick: "
+				  (with-rcirc-server-buffer rcirc-nick-table))
+		 " "
+		 (read-string "Channel: "))))
+  (rcirc-send-string process (concat "INVITE " nick-channel)))
+
 ;; TODO: /part #channel reason, or consider removing #channel altogether
 (defun-rcirc-command part (channel)
   "Part CHANNEL."
@@ -2151,13 +2165,17 @@ CHANNELS is a comma- or space-separated string of channel names."
   (let ((channel (if (> (length channel) 0) channel target)))
     (rcirc-send-string process (concat "PART " channel " :" rcirc-id-string))))
 
-(defun-rcirc-command quit (reason)
-  "Send a quit message to server with REASON."
-  (interactive "sQuit reason: ")
-  (rcirc-send-string process (concat "QUIT :"
-				     (if (not (zerop (length reason)))
-					 reason
-				       rcirc-id-string))))
+(defun-rcirc-command quit (reason all)
+  "Send a quit message to server with REASON.
+When called with prefix, quit all servers."
+  (interactive "sQuit reason: \nP")
+  (dolist (p (if all
+		 (rcirc-process-list)
+	       (list process)))
+    (rcirc-send-string p (concat "QUIT :"
+				 (if (not (zerop (length reason)))
+				     reason
+				   rcirc-id-string)))))
 
 (defun-rcirc-command nick (nick)
   "Change nick to NICK."
@@ -2351,21 +2369,6 @@ keywords when no KEYWORD is given."
     (browse-url (completing-read "rcirc browse-url: "
                                  completions nil nil initial-input 'history)
                 arg)))
-
-(defun rcirc-browse-url-at-point (point)
-  "Send URL at point to `browse-url'."
-  (interactive "d")
-  (let ((beg (previous-single-property-change (1+ point) 'mouse-face))
-	(end (next-single-property-change point 'mouse-face)))
-    (browse-url (buffer-substring-no-properties beg end))))
-
-(defun rcirc-browse-url-at-mouse (event)
-  "Send URL at mouse click to `browse-url'."
-  (interactive "e")
-  (let ((position (event-end event)))
-    (with-current-buffer (window-buffer (posn-window position))
-      (rcirc-browse-url-at-point (posn-point position)))))
-
 
 (defun rcirc-markup-timestamp (sender response)
   (goto-char (point-min))
@@ -2385,6 +2388,7 @@ keywords when no KEYWORD is given."
     (delete-region (match-beginning 1) (match-end 1))
     (goto-char (match-beginning 1)))
   ;; remove the ^O characters now
+  (goto-char (point-min))
   (while (re-search-forward "\C-o+" nil t)
     (delete-region (match-beginning 0) (match-end 0))))
 
@@ -2406,12 +2410,16 @@ keywords when no KEYWORD is given."
   (while (and rcirc-url-regexp ;; nil means disable URL catching
               (re-search-forward rcirc-url-regexp nil t))
     (let ((start (match-beginning 0))
-	  (end (match-end 0)))
-      (rcirc-add-face start end 'rcirc-url)
-      (add-text-properties start end (list 'mouse-face 'highlight
-					   'keymap rcirc-browse-url-map))
+	  (end (match-end 0))
+	  (url (match-string-no-properties 0)))
+      (make-button start end
+		   'face 'rcirc-url
+		   'follow-link t
+		   'rcirc-url url
+		   'action (lambda (button)
+			     (browse-url (button-get button 'rcirc-url))))
       ;; record the url
-      (push (buffer-substring-no-properties start end) rcirc-urls))))
+      (push url rcirc-urls))))
 
 (defun rcirc-markup-keywords (sender response)
   (when (and (string= response "PRIVMSG")
@@ -2533,6 +2541,7 @@ the only argument."
                 (member message
                         (list
                          (format "You are now identified for \C-b%s\C-b." rcirc-nick)
+			 (format "You are successfully identified as \C-b%s\C-b." rcirc-nick)
                          "Password accepted - you are now recognized."
                          )))
                (and ;; quakenet
@@ -2714,7 +2723,8 @@ the only argument."
       (setq rcirc-topic (caddr args)))))
 
 (defun rcirc-handler-333 (process sender args text)
-  "Not in rfc1459.txt"
+  "333 says who set the topic and when.
+Not in rfc1459.txt"
   (let ((buffer (or (rcirc-get-buffer process (cadr args))
 		    (rcirc-get-temp-buffer-create process (cadr args)))))
     (with-current-buffer buffer

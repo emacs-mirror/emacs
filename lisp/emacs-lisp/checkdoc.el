@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements
 
-;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -1237,9 +1237,10 @@ generating a buffered list of errors."
 
 ;;;###autoload
 (define-minor-mode checkdoc-minor-mode
-  "Toggle Checkdoc minor mode, a mode for checking Lisp doc strings.
-With prefix ARG, turn Checkdoc minor mode on if ARG is positive, otherwise
-turn it off.
+  "Toggle automatic docstring checking (Checkdoc minor mode).
+With a prefix argument ARG, enable Checkdoc minor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 In Checkdoc minor mode, the usual bindings for `eval-defun' which is
 bound to \\<checkdoc-minor-mode-map>\\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
@@ -1942,7 +1943,7 @@ from the comment."
 A code fragment is identified by an open parenthesis followed by a
 symbol which is a valid function or a word in all CAPS, or a parenthesis
 that is quoted with the ' character.  Only the region from START to LIMIT
-is is allowed while searching for the bounding parenthesis."
+is allowed while searching for the bounding parenthesis."
   (save-match-data
     (save-restriction
       (narrow-to-region start limit)
@@ -2117,7 +2118,7 @@ before using the Ispell engine on it."
 	      ;; Find out how we spell-check this word.
 	      (if (or
 		   ;; All caps w/ option th, or s tacked on the end
-		   ;; for pluralization or numberthness.
+		   ;; for pluralization or number.
 		   (string-match "^[A-Z][A-Z]+\\(s\\|th\\)?$" word)
 		   (looking-at "}") ; a keymap expression
 		   )

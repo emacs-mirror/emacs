@@ -1,6 +1,6 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
 
-;; Copyright (C) 1995-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -554,7 +554,9 @@ parameter.  It should return nil, `warn' or `delete'."
 		 (const delete)))
 
 (defcustom nnmail-extra-headers '(To Newsgroups)
-  "*Extra headers to parse."
+  "Extra headers to parse.
+In addition to the standard headers, these extra headers will be
+included in NOV headers (and the like) when backends parse headers."
   :version "21.1"
   :group 'nnmail
   :type '(repeat symbol))
@@ -1797,7 +1799,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	 (i 0)
 	 (new 0)
 	 (total 0)
-	 incoming incomings source)
+	 source)
     (when (and (nnmail-get-value "%s-get-new-mail" method)
 	       sources)
       (while (setq source (pop sources))
@@ -1840,18 +1842,23 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       ;; and fetch the mail from each.
       (while (setq source (pop fetching-sources))
 	(when (setq new
-		    (mail-source-fetch
-		     source
-		     (gnus-byte-compile
-		      `(lambda (file orig-file)
-			 (nnmail-split-incoming
-			  file ',(intern (format "%s-save-mail" method))
-			  ',spool-func
-			  (or in-group
-			      (if (equal file orig-file)
-				  nil
-				(nnmail-get-split-group orig-file ',source)))
-			  ',(intern (format "%s-active-number" method)))))))
+		    (condition-case cond
+			(mail-source-fetch
+			 source
+			 (gnus-byte-compile
+			  `(lambda (file orig-file)
+			     (nnmail-split-incoming
+			      file ',(intern (format "%s-save-mail" method))
+			      ',spool-func
+			      (or in-group
+				  (if (equal file orig-file)
+				      nil
+				    (nnmail-get-split-group orig-file
+							    ',source)))
+			      ',(intern (format "%s-active-number" method))))))
+		      ((error quit)
+		       (message "Mail source %s failed: %s" source cond)
+		       0)))
 	  (incf total new)
 	  (incf i)))
       ;; If we did indeed read any incoming spools, we save all info.

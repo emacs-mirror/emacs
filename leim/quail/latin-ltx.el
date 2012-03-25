@@ -1,6 +1,6 @@
 ;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 ;;   2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -351,16 +351,65 @@ system, including many technical ones.  Examples:
  ("^9" ?⁹)
  ("^=" ?⁼)
  ("^\\gamma" ?ˠ)
+ ;; FIXME: It'd be nicer to generate some of these rules via something like
+ ;; (map (lambda (name char)
+ ;;        (cond ((string-match "MODIFIER SMALL LETTER \\(.\\)" name)
+ ;;               (list (string ?^ (downcase (aref name (match-beginning 1))))
+ ;;                     char)))
+ ;;              ...)))
+ ("^a" ?ᵃ)
+ ("^b" ?ᵇ)
+ ("^c" ?ᶜ)
+ ("^d" ?ᵈ)
+ ("^e" ?ᵉ)
+ ("^f" ?ᶠ)
+ ("^g" ?ᵍ)
  ("^h" ?ʰ)
+ ;; ("^i" ?)  ;; FIXME: can't find MODIFIER SMALL LETTER I  !?!
  ("^j" ?ʲ)
+ ("^k" ?ᵏ)
  ("^l" ?ˡ)
+ ("^m" ?ᵐ)
  ("^n" ?ⁿ)
- ("^o" ?º)
+ ("^o" ?ᵒ)
+ ("^o_" ?º)
+ ("^p" ?ᵖ)
+ ;; ("^q" ?)  ;; FIXME: can't find MODIFIER SMALL LETTER Q  !?!
  ("^r" ?ʳ)
  ("^s" ?ˢ)
+ ("^t" ?ᵗ)
+ ("^u" ?ᵘ)
+ ("^v" ?ᵛ)
  ("^w" ?ʷ)
  ("^x" ?ˣ)
  ("^y" ?ʸ)
+ ("^z" ?ᶻ)
+ ("^A" ?ᴬ)
+ ("^B" ?ᴮ)
+ ;; ("^C" ?)  ;; FIXME: can't find MODIFIER CAPITAL LETTER C  !?!
+ ("^D" ?ᴰ)
+ ("^E" ?ᴱ)
+ ;; ("^F" ?)  ;; FIXME: can't find MODIFIER CAPITAL LETTER F  !?!
+ ("^G" ?ᴳ)
+ ("^H" ?ᴴ)
+ ("^I" ?ᴵ)
+ ("^J" ?ᴶ)
+ ("^K" ?ᴷ)
+ ("^L" ?ᴸ)
+ ("^M" ?ᴹ)
+ ("^N" ?ᴺ)
+ ("^O" ?ᴼ)
+ ("^P" ?ᴾ)
+ ;; ("^Q" ?)  ;; FIXME: can't find MODIFIER CAPITAL LETTER Q  !?!
+ ("^R" ?ᴿ)
+ ;; ("^S" ?)  ;; FIXME: can't find MODIFIER CAPITAL LETTER S  !?!
+ ("^T" ?ᵀ)
+ ("^U" ?ᵁ)
+ ("^V" ?ⱽ)
+ ("^W" ?ᵂ)
+ ;; ("^X" ?)  ;; FIXME: can't find MODIFIER CAPITAL LETTER X  !?!
+ ;; ("^Y" ?)  ;; FIXME: can't find MODIFIER CAPITAL LETTER Y  !?!
+ ;; ("^Z" ?)  ;; FIXME: can't find MODIFIER CAPITAL LETTER Z  !?!
  ("^{SM}" ?℠)
  ("^{TEL}" ?℡)
  ("^{TM}" ?™)

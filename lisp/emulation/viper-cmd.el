@@ -1,6 +1,6 @@
 ;;; viper-cmd.el --- Vi command support for Viper
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -617,7 +617,10 @@
     (or (viper-overlay-p viper-replace-overlay)
       (viper-set-replace-overlay (point-min) (point-min)))
     (viper-hide-replace-overlay)
-    (if abbrev-mode (expand-abbrev))
+    ;; Expand abbrevs iff the previous character has word syntax.
+    (and abbrev-mode
+	 (eq (char-syntax (preceding-char)) ?w)
+	 (expand-abbrev))
     (if (and auto-fill-function (> (current-column) fill-column))
 	(funcall auto-fill-function))
     ;; don't leave whitespace lines around
@@ -713,7 +716,7 @@
     (error
      (viper-message-conditions conds))))
 
-;; escape to emacs mode termporarily
+;; escape to emacs mode temporarily
 (defun viper-escape-to-emacs (arg &optional events)
   "Escape to Emacs state from Vi state for one Emacs command.
 ARG is used as the prefix value for the executed command.  If
@@ -723,7 +726,7 @@ EVENTS is a list of events, which become the beginning of the command."
       (message "Switched to EMACS state for the next command..."))
   (viper-escape-to-state arg events 'emacs-state))
 
-;; escape to Vi mode termporarily
+;; escape to Vi mode temporarily
 (defun viper-escape-to-vi (arg)
   "Escape from Emacs state to Vi state for one Vi 1-character command.
 If the Vi command that the user types has a prefix argument, e.g., `d2w', then
@@ -1083,8 +1086,17 @@ as a Meta key and any number of multiple escapes are allowed."
 (defun viper-intercept-ESC-key ()
   "Function that implements ESC key in Viper emulation of Vi."
   (interactive)
-  (let ((cmd (or (key-binding (viper-envelop-ESC-key))
-		 (lambda () (interactive) (error "Viper bell")))))
+  ;; `key-binding' needs to be called in a context where Viper's
+  ;; minor-mode map(s) have been temporarily disabled so the ESC
+  ;; binding to viper-intercept-ESC-key doesn't hide the binding we're
+  ;; looking for (Bug#9146):
+  (let* ((event (viper-envelop-ESC-key))
+	 (cmd (cond ((equal event viper-ESC-key)
+		     'viper-intercept-ESC-key)
+		    ((let ((emulation-mode-map-alists nil))
+		       (key-binding event)))
+		    (t
+		     (error "Viper bell")))))
 
     ;; call the actual function to execute ESC (if no other symbols followed)
     ;; or the key bound to the ESC sequence (if the sequence was issued
@@ -1384,7 +1396,7 @@ as a Meta key and any number of multiple escapes are allowed."
 	(insert " ")(backward-char 1)))
   (if (= viper-com-point (point))
       (viper-forward-char-carefully))
-  (set-mark viper-com-point)
+  (push-mark viper-com-point)
   (if (eq m-com 'viper-next-line-at-bol)
       (viper-enlarge-region (mark t) (point)))
   (if (< (point) (mark t))
@@ -1393,8 +1405,7 @@ as a Meta key and any number of multiple escapes are allowed."
       (viper-backward-char-carefully)) ; give back the newline
   (if (eq viper-intermediate-command 'viper-repeat)
       (viper-change-subr (mark t) (point))
-    (viper-change (mark t) (point))
-    ))
+    (viper-change (mark t) (point))))
 
 ;; this is invoked by viper-substitute-line
 (defun viper-exec-Change (m-com com)
@@ -1597,7 +1608,7 @@ as a Meta key and any number of multiple escapes are allowed."
 ;; call viper-execute-com to execute viper-exec-change, which eventually will
 ;; call viper-change to invoke the replace mode on the region.
 ;;
-;; The var viper-d-com is set to (M-COM VAL COM REG INSETED-TEXT COMMAND-KEYS)
+;; The var viper-d-com is set to (M-COM VAL COM REG INSERTED-TEXT COMMAND-KEYS)
 ;; via a call to viper-set-destructive-command, for later use by viper-repeat.
 (defun viper-execute-com (m-com val com)
   (let ((reg viper-use-register))
@@ -1977,7 +1988,7 @@ Undo previous insertion and inserts new."
 ;; Quote region by each line with a user supplied string.
 (defun viper-quote-region ()
   (let ((quote-str viper-quote-string)
-	(donot-change-dafault t))
+	(donot-change-default t))
     (setq quote-str
 	  (viper-read-string-with-history
 	   "Quote string: "
@@ -1989,9 +2000,9 @@ Undo previous insertion and inserts new."
 		 ((string-match "lisp.*-mode" (symbol-name major-mode)) ";;")
 		 ((memq major-mode '(c-mode cc-mode c++-mode)) "//")
 		 ((memq major-mode '(sh-mode shell-mode)) "#")
-		 (t (setq donot-change-dafault nil)
+		 (t (setq donot-change-default nil)
 		    quote-str))))
-    (or donot-change-dafault
+    (or donot-change-default
 	(setq viper-quote-string quote-str))
     (viper-enlarge-region (point) (mark t))
     (if (> (point) (mark t)) (exchange-point-and-mark))
@@ -2405,7 +2416,7 @@ problems."
    t 'local)
   (add-hook
    'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel t 'local)
-  ;; guard against a smartie who switched from R-replace to normal replace
+  ;; guard against a smarty who switched from R-replace to normal replace
   (remove-hook
    'viper-post-command-hooks 'viper-R-state-post-command-sentinel 'local)
   (if overwrite-mode (overwrite-mode -1))
@@ -2529,7 +2540,7 @@ problems."
    'viper-post-command-hooks 'viper-R-state-post-command-sentinel t 'local)
   (add-hook
    'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel t 'local)
-  ;; guard against a smartie who switched from R-replace to normal replace
+  ;; guard against a smarty who switched from R-replace to normal replace
   (remove-hook
    'viper-post-command-hooks 'viper-replace-state-post-command-sentinel 'local)
   )
@@ -3713,7 +3724,7 @@ Although this function is bound to \\[viper-toggle-search-style], the most
 convenient way to use it is to bind `//' to the macro
 `1 M-x viper-toggle-search-style' and `///' to
 `2 M-x viper-toggle-search-style'.  In this way, hitting `//' quickly will
-toggle case-fold-search and hitting `/' three times witth toggle regexp
+toggle case-fold-search and hitting `/' three times with toggle regexp
 search.  Macros are more convenient in this case because they don't affect
 the Emacs binding of `/'."
   (interactive "P")
@@ -3765,7 +3776,7 @@ If MAJOR-MODE is set, set the macros only in that major mode."
 	       "//" 'vi-state
 	       [1 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	       scope)
-	      ;; toggle regexp/vanila search
+	      ;; toggle regexp/vanilla search
 	      (viper-record-kbd-macro
 	       "///" 'vi-state
 	       [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
@@ -3822,7 +3833,7 @@ the macros are set in the current major mode.
 	     "//" 'emacs-state
 	     [1 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	     (or arg-majormode major-mode))
-	    ;; toggle regexp/vanila search
+	    ;; toggle regexp/vanilla search
 	    (viper-record-kbd-macro
 	     "///" 'emacs-state
 	     [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
@@ -4015,7 +4026,7 @@ Null string will repeat previous search."
   (setq viper-prefix-commands
 	(cons viper-buffer-search-char viper-prefix-commands)))
 
-;; This is a Viper wraper for isearch-forward.
+;; This is a Viper wrapper for isearch-forward.
 (defun viper-isearch-forward (arg)
   "Do incremental search forward."
   (interactive "P")
@@ -4023,7 +4034,7 @@ Null string will repeat previous search."
   (if (listp arg) (setq arg (car arg)))
   (viper-exec-form-in-emacs (list 'isearch-forward arg)))
 
-;; This is a Viper wraper for isearch-backward."
+;; This is a Viper wrapper for isearch-backward."
 (defun viper-isearch-backward (arg)
   "Do incremental search backward."
   (interactive "P")
@@ -4395,7 +4406,7 @@ cursor move past the beginning of line."
 
 (defun viper-query-replace ()
   "Query replace.
-If a null string is suplied as the string to be replaced,
+If a null string is supplied as the string to be replaced,
 the query replace mode will toggle between string replace
 and regexp replace."
   (interactive)

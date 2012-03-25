@@ -1,6 +1,6 @@
 ;;; gnus-registry.el --- article registry for Gnus
 
-;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news registry
@@ -142,6 +142,7 @@ display.")
 The addresses are matched, they don't have to be fully qualified.
 In the messages, these addresses can be the sender or the
 recipients."
+  :version "24.1"
   :group 'gnus-registry
   :type '(repeat regexp))
 
@@ -163,6 +164,8 @@ nnmairix groups are specifically excluded because they are ephemeral."
   :type '(choice (const :tag "Never Install" nil)
                  (const :tag "Always Install" t)
                  (const :tag "Ask Me" ask)))
+
+(defvar gnus-registry-enabled nil)
 
 (defvar gnus-summary-misc-menu) ;; Avoid byte compiler warning.
 
@@ -241,6 +244,7 @@ the Bit Bucket."
 
 (defcustom gnus-registry-max-pruned-entries nil
   "Maximum number of pruned entries in the registry, nil for unlimited."
+  :version "24.1"
   :group 'gnus-registry
   :type '(radio (const :format "Unlimited " nil)
                 (integer :format "Maximum number: %v")))
@@ -873,8 +877,9 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 
                  ;; if this is called and the user doesn't want the
                  ;; registry enabled, we'll ask anyhow
-                 (when (eq gnus-registry-install nil)
-                   (setq gnus-registry-install 'ask))
+                 (unless gnus-registry-install
+                   (let ((gnus-registry-install 'ask))
+                     (gnus-registry-install-p)))
 
                  ;; now the user is asked if gnus-registry-install is 'ask
                  (when (gnus-registry-install-p)
@@ -1151,7 +1156,6 @@ only the last one's marks are returned."
 "Initialize the Gnus registry."
   (interactive)
   (gnus-message 5 "Initializing the registry")
-  (setq gnus-registry-install t)        ; in case it was 'ask or nil
   (gnus-registry-install-hooks)
   (gnus-registry-install-shortcuts)
   (gnus-registry-read))
@@ -1160,6 +1164,7 @@ only the last one's marks are returned."
 (defun gnus-registry-install-hooks ()
   "Install the registry hooks."
   (interactive)
+  (setq gnus-registry-enabled t)
   (add-hook 'gnus-summary-article-move-hook 'gnus-registry-action)
   (add-hook 'gnus-summary-article-delete-hook 'gnus-registry-action)
   (add-hook 'gnus-summary-article-expire-hook 'gnus-registry-action)
@@ -1181,23 +1186,25 @@ only the last one's marks are returned."
   (remove-hook 'gnus-save-newsrc-hook 'gnus-registry-save)
   (remove-hook 'gnus-read-newsrc-el-hook 'gnus-registry-read)
 
-  (remove-hook 'gnus-summary-prepare-hook 'gnus-registry-register-message-ids))
+  (remove-hook 'gnus-summary-prepare-hook 'gnus-registry-register-message-ids)
+  (setq gnus-registry-enabled nil))
 
 (add-hook 'gnus-registry-unload-hook 'gnus-registry-unload-hook)
 
 (defun gnus-registry-install-p ()
+  "If the registry is not already enabled, and `gnus-registry-install' is t,
+the registry is enabled.  If `gnus-registry-install' is `ask',
+the user is asked first.  Returns non-nil iff the registry is enabled."
   (interactive)
-  (when (eq gnus-registry-install 'ask)
-    (setq gnus-registry-install
-          (gnus-y-or-n-p
-           (concat "Enable the Gnus registry?  "
-                   "See the variable `gnus-registry-install' "
-                   "to get rid of this query permanently. ")))
-    (when gnus-registry-install
-      ;; we just set gnus-registry-install to t, so initialize the registry!
+  (unless gnus-registry-enabled
+    (when (if (eq gnus-registry-install 'ask)
+              (gnus-y-or-n-p
+               (concat "Enable the Gnus registry?  "
+                       "See the variable `gnus-registry-install' "
+                       "to get rid of this query permanently. "))
+            gnus-registry-install)
       (gnus-registry-initialize)))
-;;; we could call it here: (customize-variable 'gnus-registry-install)
-  gnus-registry-install)
+  gnus-registry-enabled)
 
 ;; TODO: a few things
 

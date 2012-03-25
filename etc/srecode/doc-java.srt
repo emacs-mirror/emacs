@@ -1,6 +1,6 @@
 ;; doc-java.srt --- SRecode templates for "document" applications
 
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -44,7 +44,7 @@ Recycle javadoc comment code from the more general template set."
 ----
 
 template variable-same-line-comment :tag
-"A comment occurring after a veriable declaration.
+"A comment occurring after a variable declaration.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:declaration:javadoc-variable-same-line}}

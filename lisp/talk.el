@@ -1,6 +1,6 @@
 ;;; talk.el --- allow several users to talk to each other through Emacs
 
-;; Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: comm, frames
@@ -111,7 +111,7 @@ Select the first of these windows, displaying the first of the buffers."
 	  (while (progn
 		   (switch-to-buffer (car buffers))
 		   (setq buffers (cdr buffers)))
-	    (split-window-vertically lines-per-buffer)
+	    (split-window-below lines-per-buffer)
 	    (other-window 1))
 	  (select-window (frame-first-window frame)))
       (select-frame old-frame))))

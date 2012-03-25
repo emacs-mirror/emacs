@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 2001-2012  Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -258,7 +258,8 @@ multibyte_char_to_unibyte_safe (int c)
 }
 
 DEFUN ("characterp", Fcharacterp, Scharacterp, 1, 2, 0,
-       doc: /* Return non-nil if OBJECT is a character.  */)
+       doc: /* Return non-nil if OBJECT is a character.
+usage: (characterp OBJECT)  */)
   (Lisp_Object object, Lisp_Object ignore)
 {
   return (CHARACTERP (object) ? Qt : Qnil);
@@ -307,6 +308,36 @@ If the multibyte character does not represent a byte, return -1.  */)
     }
 }
 
+
+/* Return width (columns) of C considering the buffer display table DP. */
+
+static EMACS_INT
+char_width (int c, struct Lisp_Char_Table *dp)
+{
+  EMACS_INT width = CHAR_WIDTH (c);
+
+  if (dp)
+    {
+      Lisp_Object disp = DISP_CHAR_VECTOR (dp, c), ch;
+      int i;
+
+      if (VECTORP (disp))
+	for (i = 0, width = 0; i < ASIZE (disp); i++)
+	  {
+	    ch = AREF (disp, i);
+	    if (CHARACTERP (ch))
+	      {
+		int w = CHAR_WIDTH (XFASTINT (ch));
+		if (INT_ADD_OVERFLOW (width, w))
+		  string_overflow ();
+		width += w;
+	      }
+	  }
+    }
+  return width;
+}
+
+
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
        doc: /* Return width of CHAR when displayed in the current buffer.
 The width is measured by how many columns it occupies on the screen.
@@ -314,21 +345,12 @@ Tab is taken to occupy `tab-width' columns.
 usage: (char-width CHAR)  */)
   (Lisp_Object ch)
 {
-  Lisp_Object disp;
-  int c, width;
-  struct Lisp_Char_Table *dp = buffer_display_table ();
+  int c;
+  EMACS_INT width;
 
   CHECK_CHARACTER (ch);
   c = XINT (ch);
-
-  /* Get the way the display table would display it.  */
-  disp = dp ? DISP_CHAR_VECTOR (dp, c) : Qnil;
-
-  if (VECTORP (disp))
-    width = ASIZE (disp);
-  else
-    width = CHAR_WIDTH (c);
-
+  width = char_width (c, buffer_display_table ());
   return make_number (width);
 }
 
@@ -349,25 +371,16 @@ c_string_width (const unsigned char *str, EMACS_INT len, int precision,
 
   while (i_byte < len)
     {
-      int bytes, thiswidth;
-      Lisp_Object val;
+      int bytes;
       int c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
+      EMACS_INT thiswidth = char_width (c, dp);
 
-      if (dp)
+      if (precision <= 0)
 	{
-	  val = DISP_CHAR_VECTOR (dp, c);
-	  if (VECTORP (val))
-	    thiswidth = ASIZE (val);
-	  else
-	    thiswidth = CHAR_WIDTH (c);
+	  if (INT_ADD_OVERFLOW (width, thiswidth))
+	    string_overflow ();
 	}
-      else
-	{
-	  thiswidth = CHAR_WIDTH (c);
-	}
-
-      if (precision > 0
-	  && (width + thiswidth > precision))
+      else if (precision - width < thiswidth)
 	{
 	  *nchars = i;
 	  *nbytes = i_byte;
@@ -422,7 +435,7 @@ lisp_string_width (Lisp_Object string, EMACS_INT precision,
     {
       EMACS_INT chars, bytes, thiswidth;
       Lisp_Object val;
-      int cmp_id;
+      ptrdiff_t cmp_id;
       EMACS_INT ignore, end;
 
       if (find_composition (i, -1, &ignore, &end, &val, string)
@@ -446,18 +459,7 @@ lisp_string_width (Lisp_Object string, EMACS_INT precision,
 	  else
 	    c = str[i_byte], bytes = 1;
 	  chars = 1;
-	  if (dp)
-	    {
-	      val = DISP_CHAR_VECTOR (dp, c);
-	      if (VECTORP (val))
-		thiswidth = ASIZE (val);
-	      else
-		thiswidth = CHAR_WIDTH (c);
-	    }
-	  else
-	    {
-	      thiswidth = CHAR_WIDTH (c);
-	    }
+	  thiswidth = char_width (c, dp);
 	}
 
       if (precision <= 0)
@@ -587,7 +589,7 @@ parse_str_as_multibyte (const unsigned char *str, EMACS_INT len,
 }
 
 /* Arrange unibyte text at STR of NBYTES bytes as a multibyte text.
-   It actually converts only such 8-bit characters that don't contruct
+   It actually converts only such 8-bit characters that don't construct
    a multibyte sequence to multibyte forms of Latin-1 characters.  If
    NCHARS is nonzero, set *NCHARS to the number of characters in the
    text.  It is assured that we can use LEN bytes at STR as a work
@@ -668,7 +670,7 @@ str_as_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT nbytes,
 }
 
 /* Parse unibyte string at STR of LEN bytes, and return the number of
-   bytes it may ocupy when converted to multibyte string by
+   bytes it may occupy when converted to multibyte string by
    `str_to_multibyte'.  */
 
 EMACS_INT
@@ -901,7 +903,7 @@ usage: (string &rest CHARACTERS)  */)
   Lisp_Object str;
   USE_SAFE_ALLOCA;
 
-  SAFE_ALLOCA (buf, unsigned char *, MAX_MULTIBYTE_LENGTH * n);
+  SAFE_NALLOCA (buf, MAX_MULTIBYTE_LENGTH, n);
   p = buf;
 
   for (i = 0; i < n; i++)
@@ -968,7 +970,7 @@ character is a target to get a byte value.  In this case, POSITION, if
 non-nil, is an index of a target character in the string.
 
 If the current buffer (or STRING) is multibyte, and the target
-character is not ASCII nor 8-bit character, an error is signalled.  */)
+character is not ASCII nor 8-bit character, an error is signaled.  */)
   (Lisp_Object position, Lisp_Object string)
 {
   int c;

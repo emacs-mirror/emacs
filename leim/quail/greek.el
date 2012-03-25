@@ -1,6 +1,6 @@
 ;;; greek.el --- Quail package for inputting Greek -*-coding: iso-2022-7bit-*-
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -152,7 +152,7 @@ eta		H		h
 theta		Q		q
 iota		I		i
 kappa		K		k
-lamda		L		l
+lambda		L		l
 mu		M		m
 nu		N		n
 xi		X		x
@@ -433,7 +433,7 @@ eta		H		h
 theta		J		j
 iota		I		i
 kappa		K		k
-lamda		L		l
+lambda		L		l
 mu		M		m
 nu		N		n
 xi		X		x
@@ -1147,7 +1147,7 @@ nil t t nil nil nil nil nil nil nil t)
 
 In the right of ,Fk(B key is a combination key, where
  ,F4(B acute
- ,F((B diaresis
+ ,F((B diaeresis
 
 e.g.
  ,F4(B + ,Fa(B -> ,F\(B
@@ -1289,7 +1289,7 @@ e.g.
 
 In the right of ,Fk(B key is a combination key, where
  ,F4(B acute
- ,F((B diaresis
+ ,F((B diaeresis
 
 e.g.
  ,Fa(B + ,F4(B -> ,F\(B

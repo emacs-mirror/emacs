@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
 Author: Howard Gayle
 
@@ -95,7 +95,7 @@ CANONICALIZE maps each character to a canonical equivalent;
  any two characters that are related by case-conversion have the same
  canonical equivalent character; it may be nil, in which case it is
  deduced from DOWNCASE and UPCASE.
-EQUIVALENCES is a map that cyclicly permutes each equivalence class
+EQUIVALENCES is a map that cyclically permutes each equivalence class
  (of characters with the same canonical equivalent); it may be nil,
  in which case it is deduced from CANONICALIZE.  */)
   (Lisp_Object table)

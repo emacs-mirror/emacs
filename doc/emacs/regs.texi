@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Registers, Display, Killing, Top
@@ -30,21 +30,21 @@ Display a description of what register @var{r} contains.
 @end table
 
   @dfn{Bookmarks} record files and positions in them, so you can
-return to those positions when you look at the file again.
-Bookmarks are similar enough in spirit to registers that they
-seem to belong in this chapter.
+return to those positions when you look at the file again.  Bookmarks
+are similar in spirit to registers, so they are also documented in
+this chapter.
 
 @menu
-* Position: RegPos.           Saving positions in registers.
-* Text: RegText.              Saving text in registers.
-* Rectangle: RegRect.         Saving rectangles in registers.
-* Configurations: RegConfig.  Saving window configurations in registers.
-* Numbers: RegNumbers.        Numbers in registers.
-* Files: RegFiles.            File names in registers.
-* Bookmarks::                 Bookmarks are like registers, but persistent.
+* Position Registers::       Saving positions in registers.
+* Text Registers::           Saving text in registers.
+* Rectangle Registers::      Saving rectangles in registers.
+* Configuration Registers::  Saving window configurations in registers.
+* Number Registers::         Numbers in registers.
+* File Registers::           File names in registers.
+* Bookmarks::                Bookmarks are like registers, but persistent.
 @end menu
 
-@node RegPos
+@node Position Registers
 @section Saving Positions in Registers
 @cindex saving position in a register
 
@@ -76,7 +76,7 @@ was saved from has been killed, @kbd{C-x r j} tries to create the buffer
 again by visiting the same file.  Of course, this works only for buffers
 that were visiting files.
 
-@node RegText
+@node Text Registers
 @section Saving Text in Registers
 @cindex saving text in a register
 
@@ -119,11 +119,11 @@ the region text to the text in the register instead of
 @kindex C-x r i
 @findex insert-register
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
-@var{r}.  Normally it leaves point before the text and places the mark
-after, but with a numeric argument (@kbd{C-u}) it puts point after the
-text and the mark before.
+@var{r}.  Normally it leaves point before the text and sets the mark
+after, without activating it.  With a numeric argument, it instead
+puts point after the text and the mark before.
 
-@node RegRect
+@node Rectangle Registers
 @section Saving Rectangles in Registers
 @cindex saving rectangle in a register
 
@@ -143,14 +143,11 @@ Insert the rectangle stored in register @var{r} (if it contains a
 rectangle) (@code{insert-register}).
 @end table
 
-  The @kbd{C-x r i @var{r}} command inserts a text string if the
-register contains one, and inserts a rectangle if the register contains
-one.
+  The @kbd{C-x r i @var{r}} (@code{insert-register}) command,
+previously documented in @ref{Text Registers}, inserts a rectangle
+rather than a text string, if the register contains a rectangle.
 
-  See also the command @code{sort-columns}, which you can think of
-as sorting a rectangle.  @xref{Sorting}.
-
-@node RegConfig
+@node Configuration Registers
 @section Saving Window Configurations in Registers
 @cindex saving window configuration in a register
 
@@ -178,7 +175,7 @@ restore a frame configuration, any existing frames not included in the
 configuration become invisible.  If you wish to delete these frames
 instead, use @kbd{C-u C-x r j @var{r}}.
 
-@node RegNumbers
+@node Number Registers
 @section Keeping Numbers in Registers
 @cindex saving number in a register
 
@@ -205,7 +202,7 @@ register contents into the buffer.  @kbd{C-x r +} with no numeric
 argument increments the register value by 1; @kbd{C-x r n} with no
 numeric argument stores zero in the register.
 
-@node RegFiles
+@node File Registers
 @section Keeping File Names in Registers
 @cindex saving file name in a register
 
@@ -281,19 +278,22 @@ you can use it to edit your bookmark definitions or annotate the
 bookmarks.  Type @kbd{C-h m} in the bookmark buffer for more
 information about its special editing commands.
 
-  When you kill Emacs, Emacs offers to save your bookmark values in your
-default bookmark file, @file{~/.emacs.bmk}, if you have changed any
-bookmark values.  You can also save the bookmarks at any time with the
-@kbd{M-x bookmark-save} command.  The bookmark commands load your
-default bookmark file automatically.  This saving and loading is how
-bookmarks persist from one Emacs session to the next.
+  When you kill Emacs, Emacs saves your bookmarks, if
+you have changed any bookmark values.  You can also save the bookmarks
+at any time with the @kbd{M-x bookmark-save} command.  Bookmarks are
+saved to the file @file{~/.emacs.d/bookmarks} (for compatibility with
+older versions of Emacs, if you have a file named @file{~/.emacs.bmk},
+that is used instead).  The bookmark commands load your default
+bookmark file automatically.  This saving and loading is how bookmarks
+persist from one Emacs session to the next.
 
 @vindex bookmark-save-flag
   If you set the variable @code{bookmark-save-flag} to 1, each command
 that sets a bookmark will also save your bookmarks; this way, you
-don't lose any bookmark values even if Emacs crashes.  (The value, if
+don't lose any bookmark values even if Emacs crashes.  The value, if
 a number, says how many bookmark modifications should go by between
-saving.)
+saving.  If you set this variable to @code{nil}, Emacs only
+saves bookmarks if you explicitly use @kbd{M-x bookmark-save}.
 
 @vindex bookmark-search-size
   Bookmark position values are saved with surrounding context, so that

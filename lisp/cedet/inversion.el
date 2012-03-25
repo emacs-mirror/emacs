@@ -1,6 +1,6 @@
 ;;; inversion.el --- When you need something in version XX.XX
 
-;;; Copyright (C) 2002-2003, 2005-2011  Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2003, 2005-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
@@ -199,12 +199,12 @@ not an indication of new features or bug fixes."
 	     (= v1-1 v2-1)
 	     (= v1-2 v2-2)
 	     (= v1-3 v2-3)
-	     v1-4 v2-4		; all or nothin if elt - is =
+	     v1-4 v2-4		; all or nothing if elt - is =
 	     (< v1-4 v2-4))
 	(and (= v1-0 v2-0)
 	     (= v1-1 v2-1)
 	     (= v1-2 v2-2)
-	     v1-3 v2-3		; all or nothin if elt - is =
+	     v1-3 v2-3		; all or nothing if elt - is =
 	     (< v1-3 v2-3))
 	(and (= v1-1 v2-1)
 	     (< v1-2 v2-2))
@@ -216,14 +216,14 @@ not an indication of new features or bug fixes."
 	)))
 
 (defun inversion-check-version (version incompatible-version
-					minimum &rest reserved)
+                                minimum &rest reserved)
   "Check that a given version meets the minimum requirement.
 VERSION, INCOMPATIBLE-VERSION and MINIMUM are of similar format to
 return entries of `inversion-decode-version', or a classic version
 string.	 INCOMPATIBLE-VERSION can be nil.
 RESERVED arguments are kept for a later use.
 Return:
-- nil if everything is ok
+- nil if everything is ok.
 - 'outdated if VERSION is less than MINIMUM.
 - 'incompatible if VERSION is not backward compatible with MINIMUM.
 - t if the check failed."
@@ -374,7 +374,7 @@ Return nil when VERSION-STRING was not found."
       (with-temp-buffer
 	;; The 3000 is a bit arbitrary, but should cut down on
 	;; fileio as version info usually is at the very top
-	;; of a file.  AFter a long commentary could be bad.
+	;; of a file.  After a long commentary could be bad.
 	(insert-file-contents-literally file nil 0 3000)
 	(goto-char (point-min))
 	(when (re-search-forward (format tag package 'version) nil t)
@@ -419,7 +419,7 @@ INSTALLDIR path."
           ;;(message "%S added to `load-path'" default-directory)
           (add-to-list 'load-path default-directory))
 	;; We get to this point iff we do not accept or there is no
-	;; system file.  Lets check the version of what we just
+	;; system file.  Let's check the version of what we just
 	;; installed... just to be safe.
 	(let ((newver (inversion-find-version package)))
 	  (if (not newver)

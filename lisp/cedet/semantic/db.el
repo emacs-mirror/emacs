@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -205,7 +205,7 @@ If one doesn't exist, create it."
    )
   "Table used for search results when there is no file or table association.
 Examples include search results from external sources such as from
-Emacs' own symbol table, or from external libraries.")
+Emacs's own symbol table, or from external libraries.")
 
 (defmethod semanticdb-refresh-table ((obj semanticdb-search-results-table) &optional force)
   "If the tag list associated with OBJ is loaded, refresh it.
@@ -227,9 +227,9 @@ it is in Emacs.")
 	  "Non nil if this table needs to be `Saved'.")
    (db-refs :initform nil
 	    :documentation
-	    "List of `semanticdb-table' objects refering to this one.
+	    "List of `semanticdb-table' objects referring to this one.
 These aren't saved, but are instead recalculated after load.
-See the file semanticdb-ref.el for how this slot is used.")
+See the file semantic/db-ref.el for how this slot is used.")
    (pointmax :initarg :pointmax
 	     :initform nil
 	     :documentation "Size of buffer when written to disk.
@@ -441,7 +441,7 @@ Tools needing a per-file cache must subclass this, and then get one as
 needed.  Cache objects are identified in semanticdb by subclass.
 In order to keep your cache up to date, be sure to implement
 `semanticdb-synchronize', and `semanticdb-partial-synchronize'.
-See the file semantic-scope.el for an example."
+See the file semantic/scope.el for an example."
   :abstract t)
 
 (defmethod semanticdb-cache-get ((table semanticdb-abstract-table)
@@ -459,7 +459,7 @@ other than :table."
       (setq cache (cdr cache)))
     (if obj
 	obj ;; Just return it.
-      ;; No object, lets create a new one and return that.
+      ;; No object, let's create a new one and return that.
       (setq obj (funcall desired-class "Cache" :table table))
       (object-add-to-list table 'cache obj)
       obj)))
@@ -492,7 +492,7 @@ Tools needing a database cache must subclass this, and then get one as
 needed.  Cache objects are identified in semanticdb by subclass.
 In order to keep your cache up to date, be sure to implement
 `semanticdb-synchronize', and `semanticdb-partial-synchronize'.
-See the file semantic-scope.el for an example."
+See the file semantic/scope.el for an example."
   :abstract t)
 
 (defmethod semanticdb-cache-get ((db semanticdb-project-database)
@@ -510,7 +510,7 @@ other than :table."
       (setq cache (cdr cache)))
     (if obj
 	obj ;; Just return it.
-      ;; No object, lets create a new one and return that.
+      ;; No object, let's create a new one and return that.
       (setq obj (funcall desired-class "Cache" :db db))
       (object-add-to-list db 'cache obj)
       obj)))
@@ -606,7 +606,7 @@ The file associated with OBJ does not need to be in a buffer."
   ;; The lexical table should be good too.
   (when (featurep 'semantic/lex-spp)
     (oset table lexical-table (semantic-lex-spp-save-table)))
-  ;; this implies dirtyness
+  ;; this implies dirtiness
   (semanticdb-set-dirty table)
 
   ;; Synchronize the index
@@ -636,7 +636,7 @@ The file associated with OBJ does not need to be in a buffer."
   (when (featurep 'semantic/lex-spp)
     (oset table lexical-table (semantic-lex-spp-save-table)))
 
-  ;; Incremental parser doesn't mokey around with this.
+  ;; Incremental parser doesn't monkey around with this.
   (oset table unmatched-syntax semantic-unmatched-syntax-cache)
 
   ;; Synchronize the index
@@ -657,7 +657,7 @@ The file associated with OBJ does not need to be in a buffer."
 ;;; SAVE/LOAD
 ;;
 (defmethod semanticdb-save-db ((DB semanticdb-project-database)
-			       &optional supress-questions)
+			       &optional suppress-questions)
   "Cause a database to save itself.
 The database base class does not save itself persistently.
 Subclasses could save themselves to a file, or to a database, or other
@@ -941,7 +941,7 @@ DONTLOAD does not affect the creation of new database objects."
 	  (setq fullfile (file-truename file))
 	  )
 
-	;; If we have a table, but no fullfile, that's ok.  Lets get the filename
+	;; If we have a table, but no fullfile, that's ok.  Let's get the filename
 	;; from the table which is pre-truenamed.
 	(when (and (not fullfile) tab)
 	  (setq fullfile (semanticdb-full-filename tab)))

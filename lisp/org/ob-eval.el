@@ -1,11 +1,10 @@
 ;;; ob-eval.el --- org-babel functions for external code evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -256,6 +255,7 @@ This buffer is named by `org-babel-error-buffer-name'."
       (delete-region (point-min) (point-max)))))
 
 (provide 'ob-eval)
+
 
 
 ;;; ob-eval.el ends here

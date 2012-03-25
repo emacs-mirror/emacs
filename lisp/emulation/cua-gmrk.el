@@ -1,6 +1,6 @@
 ;;; cua-gmrk.el --- CUA unified global mark support
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua mark
@@ -94,7 +94,7 @@ insert the deleted or copied text before the global marker, even when the
 global marker is in another buffer.
 If the global marker isn't set, set the global marker at point in the current
 buffer.  Otherwise jump to the global marker position and cancel it.
-With prefix argument, don't jump to global mark when cancelling it."
+With prefix argument, don't jump to global mark when canceling it."
   (interactive "P")
   (unless cua--global-mark-initialized
     (cua--init-global-mark))

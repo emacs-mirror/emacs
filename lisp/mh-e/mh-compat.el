@@ -1,6 +1,6 @@
-;;; mh-compat.el --- make MH-E compatibile with various versions of Emacs
+;;; mh-compat.el --- make MH-E compatible with various versions of Emacs
 
-;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -122,16 +122,6 @@ introduced in Emacs 22."
   "XEmacs does not have `font-lock-add-keywords'.
 This function returns nil on that system.")
 
-(defun-mh mh-window-full-height-p
-  window-full-height-p (&optional WINDOW)
-  "Return non-nil if WINDOW is not the result of a vertical split.
-This function is defined in XEmacs as it lacks
-`window-full-height-p'. The values of the functions
-`window-height' and `frame-height' are compared instead. The
-argument WINDOW is ignored."
-  (= (1+ (window-height))
-     (frame-height)))
-
 (defun-mh mh-image-load-path-for-library
   image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
@@ -184,7 +174,7 @@ compatibility with versions of Emacs that lack the variable
                 dir (expand-file-name "../" dir))))
       (setq image-directory-load-path dir))
 
-    ;; If `image-directory-load-path' isn't Emacs' image directory,
+    ;; If `image-directory-load-path' isn't Emacs's image directory,
     ;; it's probably a user preference, so use it. Then use a
     ;; relative setting if possible; otherwise, use
     ;; `image-directory-load-path'.
@@ -215,7 +205,7 @@ compatibility with versions of Emacs that lack the variable
               ;; Set it to nil if image is not found.
               (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
                     ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
-     ;; Use Emacs' image directory.
+     ;; Use Emacs's image directory.
      (image-directory-load-path
       (setq image-directory image-directory-load-path))
      (no-error
@@ -311,6 +301,16 @@ The arguments RETURN-TO and EXIT-ACTION are ignored."
   (if return-to nil)
   (if exit-action nil)
   (view-mode 1))
+
+(defun-mh mh-window-full-height-p
+  window-full-height-p (&optional WINDOW)
+  "Return non-nil if WINDOW is not the result of a vertical split.
+This function is defined in XEmacs as it lacks
+`window-full-height-p'. The values of the functions
+`window-height' and `frame-height' are compared instead. The
+argument WINDOW is ignored."
+  (= (1+ (window-height))
+     (frame-height)))
 
 (defmacro mh-write-file-functions ()
   "Return `write-file-functions' if it exists.

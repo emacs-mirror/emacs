@@ -1,6 +1,6 @@
 ;;; dichromacy-theme.el --- color theme suitable for color-blind users
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken>
 
@@ -42,7 +42,7 @@ Ansi-Color faces are included.")
   (custom-theme-set-faces
    'dichromacy
    `(default ((,class (:foreground "black" :background "white"))))
-   `(cursor ((,class (:foreground "white" :background "black"))))
+   `(cursor ((,class (:background "black"))))
    ;; Highlighting faces
    `(fringe ((,class (:background "#f7f7f7"))))
    `(highlight ((,class (:foreground ,blue :background "#e5e5e5"))))
@@ -60,6 +60,10 @@ Ansi-Color faces are included.")
    ;; Escape and prompt faces
    `(minibuffer-prompt ((,class (:weight bold :foreground ,blue))))
    `(escape-glyph ((,class (:foreground ,vermillion))))
+   `(error ((,class (:weight bold :slant italic
+			     :foreground ,vermillion))))
+   `(warning ((,class (:foreground ,orange))))
+   `(success ((,class (:foreground ,bluegreen))))
    ;; Font lock faces
    `(font-lock-builtin-face ((,class (:foreground ,blue))))
    `(font-lock-comment-face ((,class (:slant italic :foreground ,bluegreen))))
@@ -69,8 +73,6 @@ Ansi-Color faces are included.")
    `(font-lock-string-face ((,class (:foreground ,bluegray))))
    `(font-lock-type-face ((,class (:weight bold :foreground ,blue))))
    `(font-lock-variable-name-face ((,class (:weight bold :foreground ,orange))))
-   `(font-lock-warning-face ((,class (:weight bold :slant italic
-				      :foreground ,vermillion))))
    ;; Button and link faces
    `(link ((,class (:underline t :foreground ,blue))))
    `(link-visited ((,class (:underline t :foreground ,redpurple))))

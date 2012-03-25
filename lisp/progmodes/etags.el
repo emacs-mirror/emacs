@@ -1,6 +1,6 @@
 ;;; etags.el --- etags facility for Emacs
 
-;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2011
+;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -463,7 +463,7 @@ Returns non-nil if it is a valid table."
 
 ;; Subroutine of visit-tags-table-buffer.  Search the current tags tables
 ;; for one that has tags for THIS-FILE (or that includes a table that
-;; does).  Return the name of the first table table listing THIS-FILE; if
+;; does).  Return the name of the first table listing THIS-FILE; if
 ;; the table is one included by another table, it is the master table that
 ;; we return.  If CORE-ONLY is non-nil, check only tags tables that are
 ;; already in buffers--don't visit any new files.
@@ -809,10 +809,11 @@ If no tags table is loaded, do nothing and return nil."
 	  beg)
       (when pattern
 	(save-excursion
-	  (search-backward pattern) ;FIXME: will fail if we're inside pattern.
-	  (setq beg (point))
-	  (forward-char (length pattern))
-	  (list beg (point) (tags-lazy-completion-table) :exclusive 'no))))))
+          (forward-char (1- (length pattern)))
+          (search-backward pattern)
+          (setq beg (point))
+          (forward-char (length pattern))
+          (list beg (point) (tags-lazy-completion-table) :exclusive 'no))))))
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."
@@ -1144,7 +1145,7 @@ error message."
 	  (setq order tag-order))
 	;; We throw out on match, so only get here if there were no matches.
 	;; Clear out the markers we use to avoid duplicate matches so they
-	;; don't slow down editting and are immediately available for GC.
+	;; don't slow down editing and are immediately available for GC.
 	(while tag-lines-already-matched
 	  (set-marker (car tag-lines-already-matched) nil nil)
 	  (setq tag-lines-already-matched (cdr tag-lines-already-matched)))
@@ -1191,7 +1192,7 @@ error message."
     ;; Note: there is a small inefficiency in find-buffer-visiting :
     ;;   truename is computed even if not needed. Not too sure about this
     ;;   but I suspect truename computation accesses the disk.
-    ;;   It is maybe a good idea to optimise this find-buffer-visiting.
+    ;;   It is maybe a good idea to optimize this find-buffer-visiting.
     ;; An alternative would be to use only get-file-buffer
     ;; but this looks less "sure" to find the buffer for the file.
     (while (and (not the-buffer) buffer-search-extensions)
@@ -1260,11 +1261,11 @@ buffer-local values of tags table format variables."
 (defun etags-file-of-tag (&optional relative) ; Doc string?
   (save-excursion
     (re-search-backward "\f\n\\([^\n]+\\),[0-9]*\n")
-    (let ((str (buffer-substring (match-beginning 1) (match-end 1))))
+    (let ((str (convert-standard-filename
+                (buffer-substring (match-beginning 1) (match-end 1)))))
       (if relative
 	  str
-	(expand-file-name str
-			  (file-truename default-directory))))))
+	(expand-file-name str (file-truename default-directory))))))
 
 
 (defun etags-tags-completion-table () ; Doc string?
@@ -1409,7 +1410,9 @@ hits the start of file."
 	  tag tag-info pt)
     (forward-line 1)
     (while (not (or (eobp) (looking-at "\f")))
-      (setq tag-info (save-excursion (funcall snarf-tag-function t))
+      ;; We used to use explicit tags when available, but the current goto-func
+      ;; can only handle implicit tags.
+      (setq tag-info (save-excursion (funcall snarf-tag-function nil))
 	    tag (car tag-info)
 	    pt (with-current-buffer standard-output (point)))
       (princ tag)
@@ -1545,7 +1548,9 @@ hits the start of file."
       (end-of-line)
       (skip-chars-backward "^," beg)
       (or (looking-at "include$")
-	  (setq files (cons (buffer-substring beg (1- (point))) files))))
+	  (push (convert-standard-filename
+                 (buffer-substring beg (1- (point))))
+                files)))
     (nreverse files)))
 
 (defun etags-tags-included-tables () ; Doc string?
@@ -1556,10 +1561,11 @@ hits the start of file."
       (setq beg (point))
       (end-of-line)
       (skip-chars-backward "^," beg)
-      (if (looking-at "include$")
-	  ;; Expand in the default-directory of the tags table buffer.
-	  (setq files (cons (expand-file-name (buffer-substring beg (1- (point))))
-			    files))))
+      (when (looking-at "include$")
+        ;; Expand in the default-directory of the tags table buffer.
+        (push (expand-file-name (convert-standard-filename
+                                 (buffer-substring beg (1- (point)))))
+              files)))
     (nreverse files)))
 
 ;; Empty tags file support.
@@ -1860,7 +1866,11 @@ nil, we exit; otherwise we scan the next file."
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue].
 
-See documentation of variable `tags-file-name'."
+If FILE-LIST-FORM is non-nil, it should be a form that, when
+evaluated, will return a list of file names.  The search will be
+restricted to these files.
+
+Aleso see the documentation of the `tags-file-name' variable."
   (interactive "sTags search (regexp): ")
   (if (and (equal regexp "")
 	   (eq (car tags-loop-scan) 're-search-forward)
@@ -2063,7 +2073,9 @@ for \\[find-tag] (which see)."
   (let ((comp-data (tags-completion-at-point-function)))
     (if (null comp-data)
 	(error "Nothing to complete")
-      (apply 'completion-in-region comp-data))))
+      (completion-in-region (car comp-data) (cadr comp-data)
+			    (nth 2 comp-data)
+			    (plist-get (nthcdr 3 comp-data) :predicate)))))
 
 (dolist (x '("^No tags table in use; use .* to select one$"
 	     "^There is no default tag$"

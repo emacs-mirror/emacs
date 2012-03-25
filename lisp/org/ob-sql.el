@@ -1,11 +1,10 @@
 ;;; ob-sql.el --- org-babel functions for sql evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -40,7 +39,7 @@
 ;; - add more useful header arguments (user, passwd, database, etc...)
 ;; - support for more engines (currently only supports mysql)
 ;; - what's a reasonable way to drop table data into SQL?
-;; 
+;;
 
 ;;; Code:
 (require 'ob)
@@ -50,6 +49,9 @@
 (declare-function orgtbl-to-csv "org-table" (TABLE PARAMS))
 
 (defvar org-babel-default-header-args:sql '())
+
+(defvar org-babel-header-arg-names:sql
+  '(engine out-file))
 
 (defun org-babel-expand-body:sql (body params)
   "Expand BODY according to the values of PARAMS."
@@ -65,32 +67,58 @@ This function is called by `org-babel-execute-src-block'."
          (in-file (org-babel-temp-file "sql-in-"))
          (out-file (or (cdr (assoc :out-file params))
                        (org-babel-temp-file "sql-out-")))
+	 (header-delim "")
          (command (case (intern engine)
-                    (msosql (format "osql %s -s \"\t\" -i %s -o %s"
+                    ('msosql (format "osql %s -s \"\t\" -i %s -o %s"
+                                     (or cmdline "")
+                                     (org-babel-process-file-name in-file)
+                                     (org-babel-process-file-name out-file)))
+                    ('mysql (format "mysql %s < %s > %s"
                                     (or cmdline "")
-                                    (org-babel-process-file-name in-file)
-                                    (org-babel-process-file-name out-file)))
-                    (mysql (format "mysql %s -e \"source %s\" > %s"
-                                   (or cmdline "")
-                                   (org-babel-process-file-name in-file)
-                                   (org-babel-process-file-name out-file)))
-		    (postgresql (format "psql -A -P footer=off -F \"\t\"  -f %s -o %s %s"
-                                        (org-babel-process-file-name in-file)
-                                        (org-babel-process-file-name out-file)
-                                        (or cmdline "")))
+				    (org-babel-process-file-name in-file)
+				    (org-babel-process-file-name out-file)))
+		    ('postgresql (format
+				  "psql -A -P footer=off -F \"\t\"  -f %s -o %s %s"
+				    (org-babel-process-file-name in-file)
+				    (org-babel-process-file-name out-file)
+				    (or cmdline "")))
                     (t (error "no support for the %s sql engine" engine)))))
     (with-temp-file in-file
       (insert (org-babel-expand-body:sql body params)))
     (message command)
     (shell-command command)
-    (with-temp-buffer
-      (org-table-import out-file '(16))
-      (org-babel-reassemble-table
-       (org-table-to-lisp)
-       (org-babel-pick-name (cdr (assoc :colname-names params))
-			    (cdr (assoc :colnames params)))
-       (org-babel-pick-name (cdr (assoc :rowname-names params))
-			    (cdr (assoc :rownames params)))))))
+    (if (or (member "scalar" result-params)
+	    (member "verbatim" result-params)
+	    (member "html" result-params)
+	    (member "code" result-params)
+	    (equal (point-min) (point-max)))
+	(with-temp-buffer
+	  (progn (insert-file-contents-literally out-file) (buffer-string)))
+      (with-temp-buffer
+	;; need to figure out what the delimiter is for the header row
+	(with-temp-buffer
+	  (insert-file-contents out-file)
+	  (goto-char (point-min))
+	  (when (re-search-forward "^\\(-+\\)[^-]" nil t)
+	    (setq header-delim (match-string-no-properties 1)))
+	  (goto-char (point-max))
+	  (forward-char -1)
+	  (while (looking-at "\n")
+	    (delete-char 1)
+	    (goto-char (point-max))
+	    (forward-char -1))
+	  (write-file out-file))
+	(org-table-import out-file '(16))
+	(org-babel-reassemble-table
+	 (mapcar (lambda (x)
+		   (if (string= (car x) header-delim)
+		       'hline
+		     x))
+		 (org-table-to-lisp))
+	 (org-babel-pick-name (cdr (assoc :colname-names params))
+			      (cdr (assoc :colnames params)))
+	 (org-babel-pick-name (cdr (assoc :rowname-names params))
+			      (cdr (assoc :rownames params))))))))
 
 (defun org-babel-sql-expand-vars (body vars)
   "Expand the variables held in VARS in BODY."
@@ -120,6 +148,7 @@ This function is called by `org-babel-execute-src-block'."
   (error "sql sessions not yet implemented"))
 
 (provide 'ob-sql)
+
 
 
 ;;; ob-sql.el ends here

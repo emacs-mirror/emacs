@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -185,6 +185,7 @@ The `plain' comment style doubles this value.
 This should generally stay 0, except for a few modes like Lisp where
 it is 1 so that regions are commented with two or three semi-colons.")
 
+;;;###autoload
 (defconst comment-styles
   '((plain      nil nil nil nil
                 "Start in column 0 (do not indent), as in Emacs-20")
@@ -224,7 +225,7 @@ ALIGN specifies that the `comment-end' markers should be aligned.
      /* bli */
   if `comment-end' is empty, this has no effect, unless EXTRA is also set,
   in which case the comment gets wrapped in a box.
-  
+
 EXTRA specifies that an extra line should be used before and after the
   region to comment (to put the `comment-end' and `comment-start').
   e.g. in C it comments regions as
@@ -328,7 +329,8 @@ the variables are properly set."
       (let ((cs (read-string "No comment syntax is defined.  Use: ")))
 	(if (zerop (length cs))
 	    (error "No comment syntax defined")
-	  (set (make-local-variable 'comment-start) cs))))
+	  (set (make-local-variable 'comment-start) cs)
+	  (set (make-local-variable 'comment-start-skip) cs))))
     ;; comment-use-syntax
     (when (eq comment-use-syntax 'undecided)
       (set (make-local-variable 'comment-use-syntax)
@@ -596,8 +598,9 @@ Point is expected to be at the start of the comment."
                 (- (or comment-fill-column fill-column)
                    (save-excursion (end-of-line) (current-column)))))
         (other nil)
-        (min (save-excursion (skip-chars-backward " \t")
-                             (+ comment-inline-offset (current-column)))))
+        (min (save-excursion
+               (skip-chars-backward " \t")
+               (if (bolp) 0 (+ comment-inline-offset (current-column))))))
     ;; Fix up the range.
     (if (< max min) (setq max min))
     ;; Don't move past the fill column.
@@ -884,14 +887,15 @@ comment markers."
 	  (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
 	    (goto-char (match-end 0)))
 	  (if (null arg) (delete-region (point-min) (point))
-	    (skip-syntax-backward " ")
-	    (delete-char (- numarg))
-	    (unless (or (bobp)
-			(save-excursion (goto-char (point-min))
-					(looking-at comment-start-skip)))
-	      ;; If there's something left but it doesn't look like
-	      ;; a comment-start any more, just remove it.
-	      (delete-region (point-min) (point))))
+            (let ((opoint (point-marker)))
+              (skip-syntax-backward " ")
+              (delete-char (- numarg))
+              (unless (and (not (bobp))
+                           (save-excursion (goto-char (point-min))
+                                           (looking-at comment-start-skip)))
+                ;; If there's something left but it doesn't look like
+                ;; a comment-start any more, just remove it.
+                (delete-region (point-min) opoint))))
 
 	  ;; Remove the end-comment (and leading padding and such).
 	  (goto-char (point-max)) (comment-enter-backward)
@@ -1000,8 +1004,8 @@ indentation to be kept as it was before narrowing."
 		   (setq ,bindent (- ,bindent n)))))))))))
 
 (defun comment-add (arg)
-  "Compute the number of extra comment starter characters
-\(extra semicolons in Lisp mode, extra stars in C mode, etc.)
+  "Compute the number of extra comment starter characters.
+\(Extra semicolons in Lisp mode, extra stars in C mode, etc.)
 If ARG is non-nil, just follow ARG.
 If the comment starter is multi-char, just follow ARG.
 Otherwise obey `comment-add'."
@@ -1256,7 +1260,7 @@ This has no effect in modes that do not define a comment syntax."
   :group 'comment)
 
 (defun comment-valid-prefix-p (prefix compos)
-    "Check that the adaptive-fill-prefix is consistent with the context.
+    "Check that the adaptive fill prefix is consistent with the context.
 PREFIX is the prefix (presumably guessed by `adaptive-fill-mode').
 COMPOS is the position of the beginning of the comment we're in, or nil
 if we're not inside a comment."

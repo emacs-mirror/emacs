@@ -1,7 +1,7 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
 
-Copyright (C) 1986, 1992-1994, 1996, 1999, 2001-2011
+Copyright (C) 1986, 1992-1994, 1996, 1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -68,9 +68,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #include "syswait.h"
 #ifdef MAIL_USE_POP
 #include "pop.h"
@@ -185,8 +183,8 @@ main (int argc, char **argv)
 # define ARGSTR "p"
 #endif /* MAIL_USE_POP */
 
-  uid_t real_gid = getgid();
-  uid_t priv_gid = getegid();
+  uid_t real_gid = getgid ();
+  uid_t priv_gid = getegid ();
 
 #ifdef WINDOWSNT
   /* Ensure all file i/o is in binary mode. */
@@ -327,11 +325,10 @@ main (int argc, char **argv)
 	  if (desc < 0)
 	    {
 	      int mkstemp_errno = errno;
-	      char *message = (char *) xmalloc (strlen (tempname) + 50);
-	      sprintf (message, "creating %s, which would become the lock file",
-		       tempname);
+	      error ("error while creating what would become the lock file",
+		     0, 0);
 	      errno = mkstemp_errno;
-	      pfatal_with_name (message);
+	      pfatal_with_name (tempname);
 	    }
 	  close (desc);
 

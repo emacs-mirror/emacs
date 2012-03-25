@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -150,7 +150,7 @@ This variable only has effect if set with \\[customize]."
 (defcustom timeclock-use-display-time t
   "If non-nil, use `display-time-hook' for doing modeline updates.
 The advantage of this is that one less timer has to be set running
-amok in Emacs' process space.  The disadvantage is that it requires
+amok in Emacs's process space.  The disadvantage is that it requires
 you to have `display-time' running.  If you don't want to use
 `display-time', but still want the modeline to show how much time is
 left, set this variable to nil.  Changing the value of this variable
@@ -407,7 +407,7 @@ discover the reason."
     (if arg
 	(run-hooks 'timeclock-done-hook))))
 
-;; Should today-only be removed in favour of timeclock-relative? - gm
+;; Should today-only be removed in favor of timeclock-relative? - gm
 (defsubst timeclock-workday-remaining (&optional today-only)
   "Return the number of seconds until the workday is complete.
 The amount returned is relative to the value of `timeclock-workday'.
@@ -547,7 +547,7 @@ non-nil, the amount returned will be relative to past time worked."
 
 (defalias 'timeclock-seconds-to-time 'seconds-to-time)
 
-;; Should today-only be removed in favour of timeclock-relative? - gm
+;; Should today-only be removed in favor of timeclock-relative? - gm
 (defsubst timeclock-when-to-leave (&optional today-only)
   "Return a time value representing the end of today's workday.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
@@ -569,7 +569,7 @@ This string is relative to the value of `timeclock-workday'.  If
 SHOW-SECONDS is non-nil, the value printed/returned will include
 seconds.  If TODAY-ONLY is non-nil, the value returned will be
 relative only to the time worked today, and not to past time."
-  ;; Should today-only be removed in favour of timeclock-relative? - gm
+  ;; Should today-only be removed in favor of timeclock-relative? - gm
   (interactive)
   (let* ((then (timeclock-when-to-leave today-only))
 	 (string

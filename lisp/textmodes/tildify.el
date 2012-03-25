@@ -1,6 +1,6 @@
 ;;; tildify.el --- adding hard spaces into texts
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;; Version:    4.5

@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985-1988, 1993, 2000-2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993, 2000-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -271,7 +271,7 @@ struct byte_stack
 /* A list of currently active byte-code execution value stacks.
    Fbyte_code adds an entry to the head of this list before it starts
    processing byte-code, and it removed the entry again when it is
-   done.  Signalling an error truncates the list analoguous to
+   done.  Signaling an error truncates the list analogous to
    gcprolist.  */
 
 struct byte_stack *byte_stack_list;

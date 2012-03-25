@@ -1,6 +1,6 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -43,11 +43,13 @@
 
 (defcustom gnus-after-set-mark-hook nil
   "Hook called just after marks are set in a group."
+  :version "24.1"
   :group 'gnus-start
   :type 'hook)
 
 (defcustom gnus-before-update-mark-hook nil
   "Hook called just before marks are updated in a group."
+  :version "24.1"
   :group 'gnus-start
   :type 'hook)
 
@@ -62,6 +64,13 @@ server denied."
   :type '(choice (const :tag "Ask" nil)
 		 (const :tag "Deny server" denied)
 		 (const :tag "Unplug Agent" offline)))
+
+(defcustom gnus-nntp-server nil
+  "The name of the host running the NNTP server."
+  :group 'gnus-server
+  :type '(choice (const :tag "disable" nil)
+		 string))
+(make-obsolete-variable 'gnus-nntp-server 'gnus-select-method "24.1")
 
 (defvar gnus-internal-registry-spool-current-method nil
   "The current method, for the registry.")
@@ -238,7 +247,7 @@ If it is down, start it up (again)."
   (eq (nth 1 (assoc method gnus-opened-servers))
       'denied))
 
-(defvar gnus-backend-trace t)
+(defvar gnus-backend-trace nil)
 
 (defun gnus-open-server (gnus-command-method)
   "Open a connection to GNUS-COMMAND-METHOD."
@@ -255,7 +264,8 @@ If it is down, start it up (again)."
     ;; If this method was previously denied, we just return nil.
     (if (eq (nth 1 elem) 'denied)
 	(progn
-	  (gnus-message 1 "Denied server %s" server)
+	  (gnus-message
+	   1 "Server %s previously determined to be down; not retrying" server)
 	  nil)
       ;; Open the server.
       (let* ((open-server-function
@@ -348,7 +358,7 @@ If it is down, start it up (again)."
 	   infos data))
 
 (defun gnus-retrieve-group-data-early (gnus-command-method infos)
-  "Start early async retrival of data from GNUS-COMMAND-METHOD."
+  "Start early async retrieval of data from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'retrieve-group-data-early)
@@ -388,7 +398,7 @@ If it is down, start it up (again)."
     result))
 
 (defun gnus-request-compact (gnus-command-method)
-  "Request groups compaction  from GNUS-COMMAND-METHOD."
+  "Request groups compaction from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'request-compact)
@@ -516,11 +526,12 @@ If BUFFER, insert the article in that group."
 	     article (gnus-group-real-name group)
 	     (nth 1 gnus-command-method) buffer)))
 
-(defun gnus-request-thread (header)
+(defun gnus-request-thread (header group)
   "Request the headers in the thread containing the article specified by HEADER."
-  (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
     (funcall (gnus-get-function gnus-command-method 'request-thread)
-	     header)))
+	     header
+	     (gnus-group-real-name group))))
 
 (defun gnus-warp-to-article ()
   "Warps from an article in a virtual group to the article in its

@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2011
+Copyright (C) 1992, 1994, 1996-1997, 2000-2012
   Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -31,9 +31,9 @@ some of the steps manually.  The more detailed description in the other
 sections of this guide will help you do that, so please refer to those
 sections if you need to.
 
-  1. Unpacking the Emacs 23.2 release requires about 170 MB of free
-  disk space.  Building Emacs uses about another 60 MB of space.
-  The final installed Emacs uses about 120 MB of disk space.
+  1. Unpacking the Emacs 24.1 release requires about 180 MB of free
+  disk space.  Building Emacs uses about another 70 MB of space.
+  The final installed Emacs uses about 110 MB of disk space.
   This includes the space-saving that comes from automatically
   compressing the Lisp source files on installation.
 
@@ -111,15 +111,16 @@ ADDITIONAL DISTRIBUTION FILES
 
 * Complex Text Layout support libraries
 
-Emacs needs the optional libraries "m17n-db", "libm17n-flt", "libotf"
-to correctly display such complex scripts as Indic and Khmer.
-On some systems, particularly GNU/Linux, these libraries may be
-already present or available as additional packages.  Note that if
-there is a separate `dev' or `devel' package, for use at compilation
-time rather than run time, you will need that as well as the
-corresponding run time package; typically the dev package will contain
-header files and a library archive.  Otherwise, you can download and
-build libraries from sources.
+On GNU and Unix systems, Emacs needs the optional libraries "m17n-db",
+"libm17n-flt", "libotf" to correctly display such complex scripts as
+Indic and Khmer, and also for scripts that require Arabic shaping
+support (Arabic and Farsi).  On some systems, particularly GNU/Linux,
+these libraries may be already present or available as additional
+packages.  Note that if there is a separate `dev' or `devel' package,
+for use at compilation time rather than run time, you will need that
+as well as the corresponding run time package; typically the dev
+package will contain header files and a library archive.  Otherwise,
+you can download and build libraries from sources.
 
 The sources of these libraries are available by anonymous CVS from
 cvs.m17n.org.
@@ -132,6 +133,9 @@ cvs.m17n.org.
 For m17n-lib, if you have problems with making the whole package
 because you lack some other packages on which m17n-lib depends, try to
 configure it with the option "--without-gui".
+
+Note that Emacs cannot support complex scripts on a TTY, unless the
+terminal includes such a support.
 
 * intlfonts-VERSION.tar.gz
 

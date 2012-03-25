@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -452,7 +452,7 @@ to invocation.")
       (if ediff-3way-job
 	  (ediff-with-current-buffer ediff-buffer-C
 	    (ediff-nuke-selective-display)
-	    ;; the merge bufer should never be narrowed
+	    ;; the merge buffer should never be narrowed
 	    ;; (it can happen if it is on rmail-mode or similar)
 	    (if (ediff-with-current-buffer control-buffer ediff-merge-job)
 		(widen))
@@ -2635,7 +2635,7 @@ delete this buffer in another session as well."
     ))
 
 ;; Kill the variant buffer, according to user directives (ask, kill
-;; unconditionaly, keep)
+;; unconditionally, keep)
 ;; BUFF is the buffer, BUFF-TYPE is either 'A, or 'B, 'C, 'Ancestor
 (defun ediff-dispose-of-variant-according-to-user (buff bufftype ask keep-variants)
   ;; if this is indirect buffer, kill it and substitute with direct buf
@@ -3103,7 +3103,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 ;; according to context.
 ;; If DEFAULT-FILE is set, it should be used as the default value.
 ;; If DEFAULT-DIR is non-nil, use it as the default directory.
-;; Otherwise, use the value of Emacs' variable `default-directory.'
+;; Otherwise, use the value of `default-directory.'
 (defun ediff-read-file-name (prompt default-dir default-file &optional no-dirs)
   ;; hack default-dir if it is not set
   (setq default-dir
@@ -3811,7 +3811,7 @@ Ediff Control Panel to restore highlighting."
 	 ;; later, and nconc above will break it. Either this or use slow
 	 ;; append instead of nconc
 	 (selected-buffers (ediff-get-selected-buffers))
-	 (prefered-buffer (car all-buffers))
+	 (preferred-buffer (car all-buffers))
 	 visible-dired-buffers
 	 (excl-buff-name-list
 	  (mapcar
@@ -3841,7 +3841,7 @@ Ediff Control Panel to restore highlighting."
 	     (cond ((member (buffer-name x) excl-buff-name-list) nil)
 		   ((memq x selected-buffers) x)
 		   ((not (ediff-get-visible-buffer-window x)) nil)
-		   ((eq x prefered-buffer) x)
+		   ((eq x preferred-buffer) x)
 		   ;; if prev selected buffer is dired, look only at
 		   ;; dired.
 		   ((eq use-dired-major-mode 'yes)

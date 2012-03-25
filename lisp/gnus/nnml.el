@@ -1,6 +1,6 @@
 ;;; nnml.el --- mail spool access for Gnus
 
-;; Copyright (C) 1995-2011 Free Software
+;; Copyright (C) 1995-2012 Free Software
 ;;   Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@xemacs.org> (adding compaction)
@@ -1213,7 +1213,7 @@ Use the nov database for the current group if available."
 		;; #### already belongs to a range, whereas the corresponding
 		;; #### article doesn't exist (for example, if you delete an
 		;; #### article). For that reason, it is important to update
-		;; #### the ranges (meaning remove inexistent articles) before
+		;; #### the ranges (meaning remove nonexistent articles) before
 		;; #### doing anything on them.
 		;; 2 a/ read articles:
 		(let ((read (gnus-info-read info)))
@@ -1298,6 +1298,9 @@ Use the nov database for the current group if available."
 	  (nnml-save-nov)
 	  ;; b/ Save the active file:
 	  (nnmail-save-active nnml-group-alist nnml-active-file)
+	  (let ((marks (nnml-group-pathname group nnml-marks-file-name server)))
+	    (when (file-exists-p marks)
+	      (delete-file marks)))
 	  t)))))
 
 (defun nnml-request-compact (&optional server)

@@ -1,6 +1,6 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
-;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2011
+;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
@@ -360,7 +360,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 		   (save-window-excursion
 		     ;; make buffer visible before skeleton or function
 		     ;; which might ask the user for something
-		     (pop-to-buffer-same-window (current-buffer))
+		     (switch-to-buffer (current-buffer))
 		     (if (and (consp action)
 			      (not (eq (car action) 'lambda)))
 			 (skeleton-insert action)
@@ -397,9 +397,10 @@ or if CONDITION had no actions, after all other CONDITIONs."
 
 ;;;###autoload
 (define-minor-mode auto-insert-mode
-  "Toggle Auto-insert mode.
-With prefix ARG, turn Auto-insert mode on if and only if ARG is positive.
-Returns the new status of Auto-insert mode (non-nil means on).
+  "Toggle Auto-insert mode, a global minor mode.
+With a prefix argument ARG, enable Auto-insert mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 When Auto-insert mode is enabled, when new files are created you can
 insert a template for the file depending on the mode of the buffer."

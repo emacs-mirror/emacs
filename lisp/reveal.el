@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: outlines
@@ -106,7 +106,7 @@ Each element has the form (WINDOW . OVERLAY).")
           (let ((inv (overlay-get ol 'invisible)) open)
             (when (and inv
                        ;; There's an `invisible' property.  Make sure it's
-                       ;; actually invisible, and ellipsised.
+                       ;; actually invisible, and ellipsized.
                        (and (consp buffer-invisibility-spec)
                             (cdr (assq inv buffer-invisibility-spec)))
                        (or (setq open
@@ -189,12 +189,13 @@ Each element has the form (WINDOW . OVERLAY).")
 
 ;;;###autoload
 (define-minor-mode reveal-mode
-  "Toggle Reveal mode on or off.
-Reveal mode renders invisible text around point visible again.
+  "Toggle uncloaking of invisible text near point (Reveal mode).
+With a prefix argument ARG, enable Reveal mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Reveal mode if ARG is omitted or nil.
 
-Interactively, with no prefix argument, toggle the mode.
-With universal prefix ARG (or if ARG is nil) turn mode on.
-With zero or negative ARG turn mode off."
+Reveal mode is a buffer-local minor mode.  When enabled, it
+reveals invisible text around point."
   :group 'reveal
   :lighter (global-reveal-mode nil " Reveal")
   :keymap reveal-mode-map
@@ -207,12 +208,12 @@ With zero or negative ARG turn mode off."
 
 ;;;###autoload
 (define-minor-mode global-reveal-mode
-  "Toggle Reveal mode in all buffers on or off.
+  "Toggle Reveal mode in all buffers (Global Reveal mode).
 Reveal mode renders invisible text around point visible again.
 
-Interactively, with no prefix argument, toggle the mode.
-With universal prefix ARG (or if ARG is nil) turn mode on.
-With zero or negative ARG turn mode off."
+With a prefix argument ARG, enable Global Reveal mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t :group 'reveal
   (setq-default reveal-mode global-reveal-mode)
   (if global-reveal-mode

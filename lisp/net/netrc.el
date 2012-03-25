@@ -1,5 +1,5 @@
 ;;; netrc.el --- .netrc parsing functionality
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -39,6 +39,7 @@
 
 (defcustom netrc-file "~/.authinfo"
   "File where user credentials are stored."
+  :version "24.1"
   :type 'file
   :group 'netrc)
 
@@ -237,7 +238,7 @@ MODE can be \"login\" or \"password\", suitable for passing to
 ;;;###autoload
 (defun netrc-credentials (machine &rest ports)
   "Return a user name/password pair.
-Port specifications will be prioritised in the order they are
+Port specifications will be prioritized in the order they are
 listed in the PORTS list."
   (let ((list (netrc-parse))
 	found)

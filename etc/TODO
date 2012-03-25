@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 2001-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -71,6 +71,12 @@ things in their .emacs.
 
 ** See if other files can use generated-autoload-file (see eg ps-print).
 
+** Write more tests.  Pick a fixed bug from the database, write a test
+case to make sure it stays fixed.  Or pick your favorite programming
+major-mode, and write a test for its indentation.  Or a version
+control backend, and write a test for its status parser.  Etc.
+See test/automated for examples.
+
 * Small but important fixes needed in existing features:
 
 ** Flymake's customization mechanism needs to be both simpler (fewer
@@ -79,7 +85,7 @@ understand.  I find it quite hard to figure out what compilation
 command it will use.
 
 I suggest totally rewriting that part of Flymake, using the simplest
-mechanism that sufficies for the specific needs.  That will be easy
+mechanism that suffices for the specific needs.  That will be easy
 for users to customize.
 
 ** Compute the list of active keymaps *after* reading the first event.
@@ -165,7 +171,7 @@ Change them to use report-emacs-bug.
 like make-backup-file-name-function for non-numeric backup files.
 
 ** `dired-mode' should specify the semantics of `buffer-modified-p' for
-dired buffers and DTRT WRT `auto-revert-mode'. 
+dired buffers and DTRT WRT `auto-revert-mode'.
 
 ** Check uses of prin1 for error-handling.
 http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
@@ -205,7 +211,7 @@ of the scroll bar itself.  That depends on to what extent toolkit
 scroll bars are extensible.
 
 ** Provide user-friendly ways to list all available font families,
-   list fonts, display a font as a sample, etc.  [fx is looking at
+  list fonts, display a font as a sample, etc.  [fx is looking at
   multilingual font selection for the Unicode branch of Emacs.]
 
 ** Provide a convenient way to select a color with the mouse.
@@ -325,7 +331,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Beefed-up syntax-tables.
 *** recognize multi-character syntactic entities like `begin' and `end'.
-*** nested string-delimiters (for Postscript's (foo(bar)baz) strings).
+*** nested string-delimiters (for PostScript's (foo(bar)baz) strings).
 *** support for infix operators (with precedence).
 *** support for the $ (paired delimiter) in parse-partial-sexp.
 *** support for hook-chars whose effect on the parsing-state is specified
@@ -635,15 +641,46 @@ up on top of all others
 
 *** Other / Low Priority:
 
-**** Better recognition of unicode scripts / Greek / composition.
+**** Better recognition of Unicode scripts / Greek / composition.
 
 **** Undo for color-drag face customization.
+
+** Bidirectional editing
+
+*** Allow the user to control the direction of the UI
+
+**** Introduce user option to control direction of mode line.
+This requires to figure out what to do with unibyte strings that are
+used in constructing the mode line.  Currently, unibyte strings are
+not reordered by bidi.c, without which R2L mode line will not display
+correctly.  One possibility would be to STRING_SET_MULTIBYTE all Lisp
+strings involved in the mode line, and then pass them through bidi.c.
+
+Another problem is the header line, which is produced by the same
+routines as the mode line.  While it makes sense to have the mode-line
+direction controlled by a single global variable, header lines are
+buffer-specific, so they need a separate treatment in this regard.
+
+**** User options to control direction of menu bar and tool bar.
+For the tool bar, it's relatively easy: set it.paragraph_embedding
+in redisplay_tool_bar according to the user variable, and make
+f->desired_tool_bar_string multibyte with STRING_SET_MULTIBYTE.  Some
+minor changes will be needed to set the right_box_line_p and
+left_box_line_p flags correctly for the R2L tool bar.
+
+However, it makes no sense to display the tool bar right to left if
+the menu bar cannot be displayed in the same direction.
+
+R2L menu bar is tricky for the same reasons as the mode line.  In
+addition, toolkit builds create their menu bars in toolkit-specific
+parts of code, bypassing xdisp.c, so those parts need to be enhanced
+with toolkit-specific code to display the menu bar right to left.
 
 ** ImageMagick support
 
 *** image-type-header-regexps priorities the jpeg loader over the
 ImageMagick one.  This is not wrong, but how should a user go about
-prefering the ImageMagick loader?  The user might like zooming etc in jpegs.
+preferring the ImageMagick loader?  The user might like zooming etc in jpegs.
 
 Try (setq image-type-header-regexps nil) for a quick hack to prefer
 ImageMagick over the jpg loader.
@@ -663,8 +700,8 @@ view, page-flipping becomes uselessly slow.
 
 *** Integrate with image-dired.
 
-*** Integrate with docview. 
-  
+*** Integrate with docview.
+
 *** Integrate with image-mode.
 Some work has been done, e.g. M-x image-transform-fit-to-height will
 fit the image to the height of the Emacs window.
@@ -810,7 +847,7 @@ more detailed diagnosis.
 
 **** Provide an Error Summary buffer showing all the validation errors.
 
-**** Pop-up menu.  What is useful?  Tag a region (should be greyed out if
+**** Pop-up menu.  What is useful?  Tag a region (should be grayed out if
 the region is not balanced).  Suggestions based on error messages.
 
 **** Have configurable list of namespace URIs so that we can provide
@@ -1012,7 +1049,7 @@ was an error in the namespace URI.
 
 **** Better recovery from ill-formed XML declarations.
 
-*** Useability improvements
+*** Usability improvements
 
 **** Should print a "Parsing..." message during long movements.
 
@@ -1212,4 +1249,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

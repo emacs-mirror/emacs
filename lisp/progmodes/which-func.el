@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997-1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -229,19 +229,23 @@ It creates the Imenu index for the buffer, if necessary."
 	 (error "Error in which-func-update: %S" info))))))
 
 ;;;###autoload
-(defalias 'which-func-mode 'which-function-mode)
+(defun which-func-mode (&optional arg)
+  (which-function-mode arg))
+(make-obsolete 'which-func-mode 'which-function-mode "24.1")
 
 (defvar which-func-update-timer nil)
 
 ;; This is the name people would normally expect.
 ;;;###autoload
 (define-minor-mode which-function-mode
-  "Toggle Which Function mode, globally.
-When Which Function mode is enabled, the current function name is
-continuously displayed in the mode line, in certain major modes.
+  "Toggle mode line display of current function (Which Function mode).
+With a prefix argument ARG, enable Which Function mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-With prefix ARG, turn Which Function mode on if arg is positive,
-and off otherwise."
+Which Function mode is a global minor mode.  When enabled, the
+current function name is continuously displayed in the mode line,
+in certain major modes."
   :global t :group 'which-func
   (when (timerp which-func-update-timer)
     (cancel-timer which-func-update-timer))

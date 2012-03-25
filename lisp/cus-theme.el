@@ -1,6 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -329,11 +329,16 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
     (load-theme theme nil t))
   (let ((settings (reverse (get theme 'theme-settings))))
     (dolist (setting settings)
-      (funcall (if (eq (car setting) 'theme-value)
-		   'custom-theme-add-variable
-		 'custom-theme-add-face)
-	       (nth 1 setting)
-	       (nth 3 setting))))
+      (let ((option (eq (car setting) 'theme-value))
+	    (name   (nth 1 setting))
+	    (value  (nth 3 setting)))
+	(unless (and option
+		     (memq name '(custom-enabled-themes
+				  custom-safe-themes)))
+	  (funcall (if option
+		       'custom-theme-add-variable
+		     'custom-theme-add-face)
+		   name value)))))
   theme)
 
 ;; From cus-edit.el
@@ -516,12 +521,14 @@ It includes all faces in list FACES."
 
 (defcustom custom-theme-allow-multiple-selections nil
   "Whether to allow multi-selections in the *Custom Themes* buffer."
+  :version "24.1"
   :type 'boolean
   :group 'custom-buffer)
 
 (defvar custom-theme-choose-mode-map
   (let ((map (make-keymap)))
-    (set-keymap-parent map widget-keymap)
+    (set-keymap-parent map (make-composed-keymap widget-keymap
+						 special-mode-map))
     (suppress-keymap map)
     (define-key map "\C-x\C-s" 'custom-theme-save)
     (define-key map "n" 'widget-forward)
@@ -530,7 +537,7 @@ It includes all faces in list FACES."
     map)
   "Keymap for `custom-theme-choose-mode'.")
 
-(define-derived-mode custom-theme-choose-mode nil "Themes"
+(define-derived-mode custom-theme-choose-mode special-mode "Themes"
   "Major mode for selecting Custom themes.
 Do not call this mode function yourself.  It is meant for internal use."
   (use-local-map custom-theme-choose-mode-map)

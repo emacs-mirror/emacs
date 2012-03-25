@@ -1,10 +1,10 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
-;; Favourite-brand-of-beer: None, I hate beer.
+;; Favorite-brand-of-beer: None, I hate beer.
 
 ;; This file is part of GNU Emacs.
 
@@ -75,7 +75,7 @@
 ;;
 ;; LZH         A series of (header,file).  Headers are checksummed.  No
 ;;             interaction among members.
-;;             Headers come in three flavours called level 0, 1 and 2 headers.
+;;             Headers come in three flavors called level 0, 1 and 2 headers.
 ;;             Level 2 header is free of DOS specific restrictions and most
 ;;             prevalently used.  Also level 1 and 2 headers consist of base
 ;;             and extension headers.  For more details see
@@ -322,6 +322,7 @@ Archive and member name will be added."
   "Program and its options to run in order to extract a 7z file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
+  :version "24.1"
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
@@ -332,6 +333,7 @@ be added."
   '("7z" "d")
   "Program and its options to run in order to delete 7z file members.
 Archive and member names will be added."
+  :version "24.1"
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
@@ -343,6 +345,7 @@ Archive and member names will be added."
   "Program and its options to run in order to update a 7z file member.
 Options should ensure that specified directory will be put into the 7z
 file.  Archive and member name will be added."
+  :version "24.1"
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
@@ -860,13 +863,13 @@ using `make-temp-file', and the generated name is returned."
 	  dir)))
     (if (or alien (file-exists-p fullname))
 	(progn
-	  ;; Maked sure all the leading directories in
+	  ;; Make sure all the leading directories in
 	  ;; archive-local-name exist under archive-tmpdir, so that
 	  ;; the directory structure recorded in the archive is
 	  ;; reconstructed in the temporary directory.
 	  (make-directory (file-name-directory tmpfile) t)
 	  (make-temp-file tmpfile))
-      ;; Maked sure all the leading directories in `fullname' exist
+      ;; Make sure all the leading directories in `fullname' exist
       ;; under archive-tmpdir.  This is necessary for nested archives
       ;; (`archive-extract' sets `archive-remote' to t in case
       ;; an archive occurs inside another archive).
@@ -1036,7 +1039,7 @@ using `make-temp-file', and the generated name is returned."
 	  (setq archive-file-name-coding-system file-name-coding)
 	  (if (and
 	       (null
-		(let (;; We may have to encode file name arguement for
+		(let (;; We may have to encode the file name argument for
 		      ;; external programs.
 		      (coding-system-for-write
 		       (and enable-multibyte-characters
@@ -1083,7 +1086,7 @@ using `make-temp-file', and the generated name is returned."
 	    (view-buffer buffer (and just-created 'kill-buffer-if-not-modified)))
            ((eq other-window-p 'display) (display-buffer buffer))
            (other-window-p (switch-to-buffer-other-window buffer))
-           (t (pop-to-buffer-same-window buffer))))))
+           (t (switch-to-buffer buffer))))))
 
 (defun archive-*-extract (archive name command)
   (let* ((default-directory (file-name-as-directory archive-tmpdir))

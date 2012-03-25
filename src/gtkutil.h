@@ -1,6 +1,6 @@
 /* Definitions and headers for GTK widgets.
 
-Copyright (C) 2003-2011  Free Software Foundation, Inc.
+Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -98,7 +98,7 @@ extern GtkWidget *xg_create_widget (const char *type,
                                     struct _widget_value *val,
                                     GCallback select_cb,
                                     GCallback deactivate_cb,
-                                    GCallback hightlight_cb);
+                                    GCallback highlight_cb);
 
 extern void xg_modify_menubar_widgets (GtkWidget *menubar,
                                        FRAME_PTR f,
@@ -106,7 +106,7 @@ extern void xg_modify_menubar_widgets (GtkWidget *menubar,
                                        int deep_p,
                                        GCallback select_cb,
                                        GCallback deactivate_cb,
-                                       GCallback hightlight_cb);
+                                       GCallback highlight_cb);
 
 extern int xg_update_frame_menubar (FRAME_PTR f);
 
@@ -114,17 +114,17 @@ extern int xg_event_is_for_menubar (FRAME_PTR f, XEvent *event);
 
 extern int xg_have_tear_offs (void);
 
-extern int xg_get_scroll_id_for_window (Display *dpy, Window wid);
+extern ptrdiff_t xg_get_scroll_id_for_window (Display *dpy, Window wid);
 
 extern void xg_create_scroll_bar (FRAME_PTR f,
                                   struct scroll_bar *bar,
                                   GCallback scroll_callback,
                                   GCallback end_callback,
                                   const char *scroll_bar_name);
-extern void xg_remove_scroll_bar (FRAME_PTR f, int scrollbar_id);
+extern void xg_remove_scroll_bar (FRAME_PTR f, ptrdiff_t scrollbar_id);
 
 extern void xg_update_scrollbar_pos (FRAME_PTR f,
-                                     int scrollbar_id,
+                                     ptrdiff_t scrollbar_id,
                                      int top,
                                      int left,
                                      int width,
@@ -185,4 +185,3 @@ extern int xg_ignore_gtk_scrollbar;
 
 #endif /* USE_GTK */
 #endif /* GTKUTIL_H */
-

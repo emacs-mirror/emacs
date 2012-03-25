@@ -1,6 +1,6 @@
 ;;; semantic/analyze/complete.el --- Smart Completions
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -28,7 +28,7 @@
 ;;
 ;;; History:
 ;;
-;; Code was moved here from semantic-analyze.el
+;; Code was moved here from semantic/analyze.el
 
 (require 'semantic/analyze)
 
@@ -188,7 +188,7 @@ FLAGS can be any number of:
       ;; Reset c.
       (setq c nil)
 
-      ;; Loop over all the found matches, and catagorize them
+      ;; Loop over all the found matches, and categorize them
       ;; as being possible features.
       (while (and loopc do-typeconstraint)
 

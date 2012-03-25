@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -198,13 +198,14 @@ If FUNC is not the symbol of an advised function, just returns FUNC."
 (defun find-function-C-source (fun-or-var file type)
   "Find the source location where FUN-OR-VAR is defined in FILE.
 TYPE should be nil to find a function, or `defvar' to find a variable."
-  (unless find-function-C-source-directory
-    (setq find-function-C-source-directory
-	  (read-directory-name "Emacs C source dir: " nil nil t)))
-  (setq file (expand-file-name file find-function-C-source-directory))
-  (unless (file-readable-p file)
-    (error "The C source file %s is not available"
-	   (file-name-nondirectory file)))
+  (let ((dir (or find-function-C-source-directory
+                 (read-directory-name "Emacs C source dir: " nil nil t))))
+    (setq file (expand-file-name file dir))
+    (if (file-readable-p file)
+        (if (null find-function-C-source-directory)
+            (setq find-function-C-source-directory dir))
+      (error "The C source file %s is not available"
+             (file-name-nondirectory file))))
   (unless type
     ;; Either or both an alias and its target might be advised.
     (setq fun-or-var (find-function-advised-original
@@ -312,13 +313,17 @@ The search is done in the source for library LIBRARY."
 	      (cons (current-buffer) nil))))))))
 
 ;;;###autoload
-(defun find-function-noselect (function)
+(defun find-function-noselect (function &optional lisp-only)
   "Return a pair (BUFFER . POINT) pointing to the definition of FUNCTION.
 
 Finds the source file containing the definition of FUNCTION
 in a buffer and the point of the definition.  The buffer is
 not selected.  If the function definition can't be found in
 the buffer, returns (BUFFER).
+
+If FUNCTION is a built-in function, this function normally
+attempts to find it in the Emacs C sources; however, if LISP-ONLY
+is non-nil, signal an error instead.
 
 If the file where FUNCTION is defined is not known, then it is
 searched for in `find-function-source-path' if non-nil, otherwise
@@ -345,6 +350,8 @@ in `load-path'."
 	   (cond ((eq (car-safe def) 'autoload)
 		  (nth 1 def))
 		 ((subrp def)
+		  (if lisp-only
+		      (error "%s is a built-in function" function))
 		  (help-C-file-name def 'subr))
 		 ((symbol-file function 'defun)))))
       (find-function-search-for-symbol function nil library))))
@@ -356,29 +363,23 @@ If TYPE is nil, insist on a symbol with a function definition.
 Otherwise TYPE should be `defvar' or `defface'.
 If TYPE is nil, defaults using `function-called-at-point',
 otherwise uses `variable-at-point'."
-  (let ((symb (if (null type)
-		  (function-called-at-point)
-		(if (eq type 'defvar)
-		    (variable-at-point)
-		  (variable-at-point t))))
-	(predicate (cdr (assq type '((nil . fboundp) (defvar . boundp)
-				     (defface . facep)))))
-	(prompt (cdr (assq type '((nil . "function") (defvar . "variable")
-				  (defface . "face")))))
-	(enable-recursive-minibuffers t)
-	val)
-    (if (equal symb 0)
-	(setq symb nil))
-    (setq val (completing-read
-	       (concat "Find "
-		       prompt
-		       (if symb
-			   (format " (default %s)" symb))
-		       ": ")
-	       obarray predicate t nil))
-    (list (if (equal val "")
-	      symb
-	    (intern val)))))
+  (let* ((symb1 (cond ((null type) (function-called-at-point))
+                      ((eq type 'defvar) (variable-at-point))
+                      (t (variable-at-point t))))
+         (symb  (unless (eq symb1 0) symb1))
+         (predicate (cdr (assq type '((nil . fboundp)
+                                      (defvar . boundp)
+                                      (defface . facep)))))
+         (prompt-type (cdr (assq type '((nil . "function")
+                                        (defvar . "variable")
+                                        (defface . "face")))))
+         (prompt (concat "Find " prompt-type
+                         (and symb (format " (default %s)" symb))
+                         ": "))
+         (enable-recursive-minibuffers t))
+    (list (intern (completing-read
+                   prompt obarray predicate
+                   t nil nil (and symb (symbol-name symb)))))))
 
 (defun find-function-do-it (symbol type switch-fn)
   "Find Emacs Lisp SYMBOL in a buffer and display it.

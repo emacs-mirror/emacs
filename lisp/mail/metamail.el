@@ -1,6 +1,6 @@
 ;;; metamail.el --- Metamail interface for GNU Emacs
 
-;; Copyright (C) 1993, 1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: mail, news, mime, multimedia
@@ -165,7 +165,7 @@ redisplayed as output is inserted."
 	 (list (format "EMACS_VIEW_MODE=%d"
 		       (if (numberp viewmode) viewmode 1)))))
     (save-excursion
-      ;; Gee!  Metamail does not ouput to stdout if input comes from
+      ;; Gee!  Metamail does not output to stdout if input comes from
       ;; stdin.
       (let ((selective-display nil))	;Disable ^M to nl translation.
 	(write-region beg end metafile nil 'nomessage))

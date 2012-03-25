@@ -1,6 +1,6 @@
 ;;; erc-match.el --- Highlight messages matching certain regexps
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Keywords: comm, faces
@@ -36,7 +36,7 @@
 (require 'erc)
 (eval-when-compile (require 'cl))
 
-;; Customisation:
+;; Customization:
 
 (defgroup erc-match nil
   "Keyword and Friend/Foe/... recognition.
@@ -633,4 +633,3 @@ This function is meant to be called from `erc-text-matched-hook'."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

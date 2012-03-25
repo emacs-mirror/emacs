@@ -1,6 +1,6 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Copyright (C) 1985-1986, 1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
 ;; Maintainer: FSF
@@ -70,8 +70,8 @@
     (define-key map "\C-n" 'next-line)
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
-    (define-key map "\C-v" 'scroll-up)
-    (define-key map "\ev" 'scroll-down)
+    (define-key map "\C-v" 'scroll-up-command)
+    (define-key map "\ev" 'scroll-down-command)
     (define-key map ">" 'scroll-right)
     (define-key map "<" 'scroll-left)
     (define-key map "\e\C-v" 'scroll-other-window)

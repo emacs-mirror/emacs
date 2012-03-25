@@ -1,6 +1,6 @@
 ;;; manoj-dark.el --- A dark theme from Manoj
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Manoj Srivastava <srivasta@ieee.org>
 ;; Keywords: lisp, faces
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; I spend a lot of time workin in front of a screen (many hours in a
+;; I spend a lot of time working in front of a screen (many hours in a
 ;; dimly lit room) and eye fatigue is an issue. This is a dark color
 ;; theme for emacs, which is easier on the eyes than light themes.
 
@@ -37,7 +37,7 @@
 ;; (blueish) or mail (greenish), have states (large number of under
 ;; messages, normal, and empty). The large number unread groups have
 ;; highest luminance (appear brighter), and the empty one have lower
-;; luminance (appear greyer), but have the same chroma and saturation.
+;; luminance (appear grayer), but have the same chroma and saturation.
 ;; Sub states and group priorities are rendered using a color series
 ;; which has constant luminance and saturation, and vary in hue by a
 ;; constant separation -- so all the related groups have the same
@@ -52,8 +52,8 @@
 ;; reading mail/USENET.
 
 ;; In the message itself, quoted mail messages from different people
-;; are color coordinated, with high contrast beteen citations that are
-;; close to each other in the heirarchy, so it is less likely that one
+;; are color coordinated, with high contrast between citations that are
+;; close to each other in the hierarchy, so it is less likely that one
 ;; misunderstands who said what in a long conversation.
 
 ;; The following scheme covers programming languages, Gnus, Erc, mail,

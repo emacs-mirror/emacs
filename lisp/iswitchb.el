@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996-1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -122,7 +122,7 @@
 ;; t               IN          | INBOX
 ;; t               In          | [No match]
 
-;;; Customisation
+;;; Customization
 
 ;; See the User Variables section below for easy ways to change the
 ;; functionality of the program.  These are accessible using the
@@ -163,7 +163,7 @@
 ;; Font-Lock
 
 ;; font-lock is used to highlight the first matching buffer.  To
-;; switch this off, set (setq iswitchb-use-faces nil).  Colouring of
+;; switch this off, set (setq iswitchb-use-faces nil).  Coloring of
 ;; the matching buffer name was suggested by Carsten Dominik
 ;; (dominik@strw.leidenuniv.nl)
 
@@ -1110,7 +1110,7 @@ Return the modified list with the last element prepended to it."
 	  (if (fboundp 'set-buffer-major-mode)
 	      (set-buffer-major-mode newbufcreated))
 	  (iswitchb-visit-buffer newbufcreated))
-      ;; else wont create new buffer
+      ;; else won't create new buffer
       (message "no buffer matching `%s'" buf))))
 
 (defun iswitchb-window-buffer-p  (buffer)
@@ -1424,10 +1424,13 @@ See the variable `iswitchb-case' for details."
 
 ;;;###autoload
 (define-minor-mode iswitchb-mode
-  "Toggle Iswitchb global minor mode.
-With arg, turn Iswitchb mode on if ARG is positive, otherwise turn it off.
-This mode enables switching between buffers using substrings.  See
-`iswitchb' for details."
+  "Toggle Iswitchb mode.
+With a prefix argument ARG, enable Iswitchb mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Iswitchb mode is a global minor mode that enables switching
+between buffers using substrings.  See `iswitchb' for details."
   nil nil iswitchb-global-map :global t :group 'iswitchb
   (if iswitchb-mode
       (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)

@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -67,7 +67,7 @@
 ;;
 ;; The syntactic keyword pass places `syntax-table' text properties in the
 ;; buffer according to the variable `font-lock-syntactic-keywords'.  It is
-;; necessary because Emacs' syntax table is not powerful enough to describe all
+;; necessary because Emacs's syntax table is not powerful enough to describe all
 ;; the different syntactic constructs required by the sort of people who decide
 ;; that a single quote can be syntactic or not depending on the time of day.
 ;; (What sort of person could decide to overload the meaning of a quote?)
@@ -228,8 +228,11 @@
 ;; User variables.
 
 (defcustom font-lock-maximum-size 256000
-  "Maximum size of a buffer for buffer fontification.
-Only buffers less than this can be fontified when Font Lock mode is turned on.
+  "Maximum buffer size for unsupported buffer fontification.
+When `font-lock-support-mode' is nil, only buffers smaller than
+this are fontified.  This variable has no effect if a Font Lock
+support mode (usually `jit-lock-mode') is enabled.
+
 If nil, means size is irrelevant.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
 where MAJOR-MODE is a symbol or t (meaning the default).  For example:
@@ -248,12 +251,14 @@ for buffers in Rmail mode, and size is irrelevant otherwise."
 				      (const :tag "none" nil)
 				      (integer :tag "size")))))
   :group 'font-lock)
+(make-obsolete-variable 'font-lock-maximum-size nil "24.1")
 
 (defcustom font-lock-maximum-decoration t
   "Maximum decoration level for fontification.
 If nil, use the default decoration (typically the minimum available).
 If t, use the maximum decoration available.
 If a number, use that level of decoration (or if not available the maximum).
+The higher the number, the more decoration is done.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . LEVEL),
 where MAJOR-MODE is a symbol or t (meaning the default).  For example:
  ((c-mode . t) (c++-mode . 2) (t . 1))
@@ -289,7 +294,7 @@ If a number, only buffers greater than this size have fontification messages."
 ;; and they give users another mechanism for changing face appearance.
 ;; We now allow a FACENAME in `font-lock-keywords' to be any expression that
 ;; returns a face.  So the easiest thing is to continue using these variables,
-;; rather than sometimes evaling FACENAME and sometimes not.  sm.
+;; rather than sometimes evalling FACENAME and sometimes not.  sm.
 
 ;; Note that in new code, in the vast majority of cases there is no
 ;; need to create variables that specify face names.  Simply using
@@ -624,13 +629,24 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
 
-(defun font-lock-mode-internal (arg)
-  ;; Turn on Font Lock mode.
-  (when arg
-    (add-hook 'after-change-functions 'font-lock-after-change-function t t)
-    (font-lock-set-defaults)
-    (font-lock-turn-on-thing-lock)
-    ;; Fontify the buffer if we have to.
+(defun font-lock-specified-p (mode)
+  "Return non-nil if the current buffer is ready for fontification.
+The MODE argument, if non-nil, means Font Lock mode is about to
+be enabled."
+  (or font-lock-defaults
+      (and (boundp 'font-lock-keywords)
+	   font-lock-keywords)
+      (and mode
+	   (boundp 'font-lock-set-defaults)
+	   font-lock-set-defaults
+	   font-lock-major-mode
+	   (not (eq font-lock-major-mode major-mode)))))
+
+(defun font-lock-initial-fontify ()
+  ;; The first fontification after turning the mode on.  This must
+  ;;  only be called after the mode hooks have been run.
+  (when (and font-lock-mode
+	     (font-lock-specified-p t))
     (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
       (cond (font-lock-fontified
 	     nil)
@@ -638,7 +654,14 @@ Major/minor modes can set this variable if they know which option applies.")
 	     (font-lock-fontify-buffer))
 	    (font-lock-verbose
 	     (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
-		      (buffer-name))))))
+		      (buffer-name)))))))
+
+(defun font-lock-mode-internal (arg)
+  ;; Turn on Font Lock mode.
+  (when arg
+    (add-hook 'after-change-functions 'font-lock-after-change-function t t)
+    (font-lock-set-defaults)
+    (font-lock-turn-on-thing-lock))
   ;; Turn off Font Lock mode.
   (unless font-lock-mode
     (remove-hook 'after-change-functions 'font-lock-after-change-function t)
@@ -976,7 +999,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; rules one way and C code another.  Neat!
 ;;
 ;; A further reason to use the fontification indirection feature is when the
-;; default syntactual fontification, or the default fontification in general,
+;; default syntactic fontification, or the default fontification in general,
 ;; is not flexible enough for a particular major mode.  For example, perhaps
 ;; comments are just too hairy for `font-lock-fontify-syntactically-region' to
 ;; cope with.  You need to write your own version of that function, e.g.,
@@ -1017,14 +1040,20 @@ The region it returns may start or end in the middle of a line.")
   (funcall font-lock-unfontify-buffer-function))
 
 (defun font-lock-fontify-region (beg end &optional loudly)
+  "Fontify the text between BEG and END.
+If LOUDLY is non-nil, print status messages while fontifying.
+This works by calling `font-lock-fontify-region-function'."
   (font-lock-set-defaults)
   (funcall font-lock-fontify-region-function beg end loudly))
 
 (defun font-lock-unfontify-region (beg end)
+  "Unfontify the text between BEG and END.
+This works by calling `font-lock-unfontify-region-function'."
   (save-buffer-state
     (funcall font-lock-unfontify-region-function beg end)))
 
 (defun font-lock-default-fontify-buffer ()
+  "Fontify the whole buffer using `font-lock-fontify-region-function'."
   (let ((verbose (if (numberp font-lock-verbose)
 		     (> (buffer-size) font-lock-verbose)
 		   font-lock-verbose)))
@@ -1044,6 +1073,7 @@ The region it returns may start or end in the middle of a line.")
 	  (quit (font-lock-unfontify-buffer)))))))
 
 (defun font-lock-default-unfontify-buffer ()
+  "Unfontify the whole buffer using `font-lock-unfontify-region-function'."
   ;; Make sure we unfontify etc. in the whole buffer.
   (save-restriction
     (widen)
@@ -1113,6 +1143,9 @@ Put first the functions more likely to cause a change and cheaper to compute.")
     changed))
 
 (defun font-lock-default-fontify-region (beg end loudly)
+  "Fontify the text between BEG and END.
+If LOUDLY is non-nil, print status messages while fontifying.
+This function is the default `font-lock-fontify-region-function'."
   (save-buffer-state
     ;; Use the fontification syntax table, if any.
     (with-syntax-table (or font-lock-syntax-table (syntax-table))
@@ -1161,6 +1194,8 @@ This is used by `font-lock-default-unfontify-region' to decide
 what properties to clear before refontifying a region.")
 
 (defun font-lock-default-unfontify-region (beg end)
+  "Unfontify the text between BEG and END.
+This function is the default `font-lock-unfontify-region-function'."
   (remove-list-of-text-properties
    beg end (append
 	    font-lock-extra-managed-props
@@ -1725,7 +1760,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
 	 keyword)))
 
 (defun font-lock-eval-keywords (keywords)
-  "Evalulate KEYWORDS if a function (funcall) or variable (eval) name."
+  "Evaluate KEYWORDS if a function (funcall) or variable (eval) name."
   (if (listp keywords)
       keywords
     (font-lock-eval-keywords (if (fboundp keywords)
@@ -1856,19 +1891,13 @@ Sets various variables using `font-lock-defaults' and
     (((class color) (min-colors 8) (background light))
      (:foreground "red"))
     (((class color) (min-colors 8) (background dark))
-     )
+     (:foreground "yellow"))
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
   :group 'font-lock-faces)
 
 (defface font-lock-comment-delimiter-face
-  '((default :inherit font-lock-comment-face)
-    (((class grayscale)))
-    (((class color) (min-colors 16)))
-    (((class color) (min-colors 8) (background light))
-     :foreground "red")
-    (((class color) (min-colors 8) (background dark))
-     :foreground "red1"))
+  '((default :inherit font-lock-comment-face))
   "Font Lock mode face used to highlight comment delimiters."
   :group 'font-lock-faces)
 
@@ -1964,12 +1993,7 @@ Sets various variables using `font-lock-defaults' and
   :group 'font-lock-faces)
 
 (defface font-lock-warning-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "Red1" :weight bold))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 16) (background light)) (:foreground "Red1" :weight bold))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 8)) (:foreground "red"))
-    (t (:inverse-video t :weight bold)))
+  '((t :inherit error))
   "Font Lock mode face used to highlight warnings."
   :group 'font-lock-faces)
 
@@ -2260,13 +2284,13 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
      `(;; Control structures.  Emacs Lisp forms.
        (,(concat
 	  "(" (regexp-opt
-	       '("cond" "if" "while" "while-no-input" "let" "let*"
+	       '("cond" "if" "while" "while-no-input" "let" "let*" "letrec"
 		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
 		 "inline" "lambda" "save-restriction" "save-excursion"
 		 "save-selected-window" "save-window-excursion"
 		 "save-match-data" "save-current-buffer"
 		 "combine-after-change-calls" "unwind-protect"
-		 "condition-case" "condition-case-no-debug"
+		 "condition-case" "condition-case-unless-debug"
 		 "track-mouse" "eval-after-load" "eval-and-compile"
 		 "eval-when-compile" "eval-when" "eval-next-after-load"
 		 "with-case-table" "with-category-table"
@@ -2277,7 +2301,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "with-selected-window" "with-selected-frame"
 		 "with-silent-modifications" "with-syntax-table"
 		 "with-temp-buffer" "with-temp-file" "with-temp-message"
-		 "with-timeout" "with-timeout-handler") t)
+		 "with-timeout" "with-timeout-handler" "with-wrapper-hook") t)
 	  "\\>")
 	  .  1)
        ;; Control structures.  Common Lisp forms.

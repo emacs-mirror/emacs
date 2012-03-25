@@ -1,6 +1,6 @@
 ;;; srecode/mode.el --- Minor mode for managing and using SRecode templates
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -61,7 +61,7 @@
 	(define-key km (format "%c" k) 'srecode-bind-insert)
 	(setq k (1+ k))))
     km)
-  "Keymap used behind the srecode prefix key in in srecode minor mode.")
+  "Keymap used behind the srecode prefix key in srecode minor mode.")
 
 (defvar srecode-menu-bar
   (list
@@ -366,7 +366,7 @@ programming modes."
 	(define-key srecode-prefix-map oldkey nil)
 	)))
 
-  ;; Update Keybings
+  ;; Update Keybindings
   (let ((oldbinding (lookup-key srecode-prefix-map binding)))
 
     ;; During development, allow overrides.

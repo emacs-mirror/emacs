@@ -1,11 +1,10 @@
 ;;; org-ascii.el --- ASCII export for Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -37,7 +36,7 @@
   :tag "Org Export ASCII"
   :group 'org-export)
 
-(defcustom org-export-ascii-underline '(?\$ ?\# ?^ ?\~ ?\= ?\-)
+(defcustom org-export-ascii-underline '(?\- ?\= ?\~ ?^ ?\# ?\$)
   "Characters for underlining headings in ASCII export.
 In the given sequence, these characters will be used for level 1, 2, ..."
   :group 'org-export-ascii
@@ -95,29 +94,30 @@ utf8      Use all UTF-8 characters")
 (defun org-export-as-latin1 (&rest args)
   "Like `org-export-as-ascii', use latin1 encoding for special symbols."
   (interactive)
-  (org-export-as-encoding 'org-export-as-ascii (interactive-p)
+  (org-export-as-encoding 'org-export-as-ascii (org-called-interactively-p 'any)
 			  'latin1 args))
 
 ;;;###autoload
 (defun org-export-as-latin1-to-buffer (&rest args)
   "Like `org-export-as-ascii-to-buffer', use latin1 encoding for symbols."
   (interactive)
-  (org-export-as-encoding 'org-export-as-ascii-to-buffer (interactive-p)
-			  'latin1 args))
+  (org-export-as-encoding 'org-export-as-ascii-to-buffer
+			  (org-called-interactively-p 'any) 'latin1 args))
 
 ;;;###autoload
 (defun org-export-as-utf8 (&rest args)
-  "Like `org-export-as-ascii', use use encoding for special symbols."
+  "Like `org-export-as-ascii', use encoding for special symbols."
   (interactive)
-  (org-export-as-encoding 'org-export-as-ascii (interactive-p)
+  (org-export-as-encoding 'org-export-as-ascii
+			  (org-called-interactively-p 'any)
 			  'utf8 args))
 
 ;;;###autoload
 (defun org-export-as-utf8-to-buffer (&rest args)
   "Like `org-export-as-ascii-to-buffer', use utf8 encoding for symbols."
   (interactive)
-  (org-export-as-encoding 'org-export-as-ascii-to-buffer (interactive-p)
-			  'utf8 args))
+  (org-export-as-encoding 'org-export-as-ascii-to-buffer
+			  (org-called-interactively-p 'any) 'utf8 args))
 
 (defun org-export-as-encoding (command interactivep encoding &rest args)
   (let ((org-export-ascii-entities encoding))
@@ -144,7 +144,7 @@ command to convert it."
   (interactive "r")
   (let (reg ascii buf pop-up-frames)
     (save-window-excursion
-      (if (org-mode-p)
+      (if (eq major-mode 'org-mode)
 	  (setq ascii (org-export-region-as-ascii
 		      beg end t 'string))
 	(setq reg (buffer-substring beg end)
@@ -175,7 +175,7 @@ a Lisp program could call this function in the following way:
 When called interactively, the output buffer is selected, and shown
 in a window.  A non-interactive call will only return the buffer."
   (interactive "r\nP")
-  (when (interactive-p)
+  (when (org-called-interactively-p 'any)
     (setq buffer "*Org ASCII Export*"))
   (let ((transient-mark-mode t) (zmacs-regions t)
 	ext-plist rtn)
@@ -187,7 +187,7 @@ in a window.  A non-interactive call will only return the buffer."
 	       nil nil ext-plist
 	       buffer body-only))
     (if (fboundp 'deactivate-mark) (deactivate-mark))
-    (if (and (interactive-p) (bufferp rtn))
+    (if (and (org-called-interactively-p 'any) (bufferp rtn))
 	(switch-to-buffer-other-window rtn)
       rtn)))
 
@@ -283,17 +283,19 @@ publishing directory."
 		    "UNTITLED"))
 	 (email (plist-get opt-plist :email))
 	 (language (plist-get opt-plist :language))
-	 (quote-re0 (concat "^[ \t]*" org-quote-string "\\>"))
+	 (quote-re0 (concat "^\\(" org-quote-string "\\)\\( +\\|[ \t]*$\\)"))
 	 (todo nil)
 	 (lang-words nil)
 	 (region
 	  (buffer-substring
 	   (if (org-region-active-p) (region-beginning) (point-min))
 	   (if (org-region-active-p) (region-end) (point-max))))
+	 (org-export-footnotes-seen nil)
+	 (org-export-footnotes-data (org-footnote-all-labels 'with-defs))
 	 (lines (org-split-string
 		 (org-export-preprocess-string
 		  region
-		  :for-ascii t
+		  :for-backend 'ascii
 		  :skip-before-1st-heading
 		  (plist-get opt-plist :skip-before-1st-heading)
 		  :drawers (plist-get opt-plist :drawers)
@@ -302,6 +304,7 @@ publishing directory."
 		  :footnotes (plist-get opt-plist :footnotes)
 		  :timestamps (plist-get opt-plist :timestamps)
 		  :todo-keywords (plist-get opt-plist :todo-keywords)
+		  :tasks (plist-get opt-plist :tasks)
 		  :verbatim-multiline t
 		  :select-tags (plist-get opt-plist :select-tags)
 		  :exclude-tags (plist-get opt-plist :exclude-tags)
@@ -369,61 +372,61 @@ publishing directory."
 	  (push (concat (nth 3 lang-words) "\n") thetoc)
 	  (push (concat (make-string (string-width (nth 3 lang-words)) ?=)
 			"\n") thetoc)
-	  (mapc (lambda (line)
-                  (if (string-match org-todo-line-regexp
-                                    line)
-                      ;; This is a headline
-                      (progn
-                        (setq have-headings t)
-                        (setq level (- (match-end 1) (match-beginning 1)
-                                       level-offset)
-                              level (org-tr-level level)
-                              txt (match-string 3 line)
-                              todo
-                              (or (and org-export-mark-todo-in-toc
-                                       (match-beginning 2)
-                                       (not (member (match-string 2 line)
-                                                    org-done-keywords)))
+	  (mapc #'(lambda (line)
+		   (if (string-match org-todo-line-regexp
+				     line)
+		       ;; This is a headline
+		       (progn
+			 (setq have-headings t)
+			 (setq level (- (match-end 1) (match-beginning 1)
+					level-offset)
+			       level (org-tr-level level)
+			       txt (match-string 3 line)
+			       todo
+			       (or (and org-export-mark-todo-in-toc
+					(match-beginning 2)
+					(not (member (match-string 2 line)
+						     org-done-keywords)))
 					; TODO, not DONE
-                                  (and org-export-mark-todo-in-toc
-                                       (= level umax-toc)
-                                       (org-search-todo-below
-                                        line lines level))))
-                        (setq txt (org-html-expand-for-ascii txt))
+				   (and org-export-mark-todo-in-toc
+					(= level umax-toc)
+					(org-search-todo-below
+					 line lines level))))
+			 (setq txt (org-html-expand-for-ascii txt))
 
-                        (while (string-match org-bracket-link-regexp txt)
-                          (setq txt
-                                (replace-match
-                                 (match-string (if (match-end 2) 3 1) txt)
-                                 t t txt)))
+			 (while (string-match org-bracket-link-regexp txt)
+			   (setq txt
+				 (replace-match
+				  (match-string (if (match-end 2) 3 1) txt)
+				  t t txt)))
 
-                        (if (and (memq org-export-with-tags '(not-in-toc nil))
-                                 (string-match
-                                  (org-re "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$")
-                                  txt))
-                            (setq txt (replace-match "" t t txt)))
-                        (if (string-match quote-re0 txt)
-                            (setq txt (replace-match "" t t txt)))
+			 (if (and (memq org-export-with-tags '(not-in-toc nil))
+				  (string-match
+				   (org-re "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$")
+				   txt))
+			     (setq txt (replace-match "" t t txt)))
+			 (if (string-match quote-re0 txt)
+			     (setq txt (replace-match "" t t txt 1)))
 
-                        (if org-export-with-section-numbers
-                            (setq txt (concat (org-section-number level)
-                                              " " txt)))
-                        (if (<= level umax-toc)
-                            (progn
-                              (push
-                               (concat
-                                (make-string
-                                 (* (max 0 (- level org-min-level)) 4) ?\ )
-                                (format (if todo "%s (*)\n" "%s\n") txt))
-                               thetoc)
-                              (setq org-last-level level))
-                          ))))
+			 (if org-export-with-section-numbers
+			     (setq txt (concat (org-section-number level)
+					       " " txt)))
+			 (if (<= level umax-toc)
+			     (progn
+			       (push
+				(concat
+				 (make-string
+				  (* (max 0 (- level org-min-level)) 4) ?\ )
+				 (format (if todo "%s (*)\n" "%s\n") txt))
+				thetoc)
+			       (setq org-last-level level))
+			   ))))
 		lines)
 	  (setq thetoc (if have-headings (nreverse thetoc) nil))))
 
     (org-init-section-numbers)
     (while (setq line (pop lines))
-      (when (and link-buffer (string-match "^\\*+ " line))
+      (when (and link-buffer (string-match org-outline-regexp-bol line))
 	(org-export-ascii-push-links (nreverse link-buffer))
 	(setq link-buffer nil))
       (setq wrap nil)
@@ -576,8 +579,8 @@ publishing directory."
       (replace-match "\\1\\2")))
   ;; Remove list start counters
   (goto-char (point-min))
-  (while (org-search-forward-unenclosed
-	  "\\[@\\(?:start:\\)?[0-9]+\\][ \t]*" nil t)
+  (while (org-list-search-forward
+	  "\\[@\\(?:start:\\)?\\([0-9]+\\|[A-Za-z]\\)\\][ \t]*" nil t)
     (replace-match ""))
   (remove-text-properties
    (point-min) (point-max)
@@ -624,7 +627,9 @@ publishing directory."
       (save-match-data
 	(if (save-excursion
 	      (re-search-backward
-	       "^\\(\\([ \t]*\\)\\|\\(\\*+ \\)\\)[^ \t\n]" nil t))
+	       (concat "^\\(\\([ \t]*\\)\\|\\("
+		       org-outline-regexp
+		       "\\)\\)[^ \t\n]") nil t))
 	    (setq ind (or (match-string 2)
 			  (make-string (length (match-string 3)) ?\ )))))
       (mapc (lambda (x) (insert ind "[" (car x) "]: " (cdr x) "\n"))
@@ -651,7 +656,8 @@ publishing directory."
       (if (or (not (equal (char-before) ?\n))
 	      (not (equal (char-before (1- (point))) ?\n)))
 	  (insert "\n"))
-      (setq char (nth (- umax level) (reverse org-export-ascii-underline)))
+      (setq char (or (nth (1- level) org-export-ascii-underline)
+      		     (car (last org-export-ascii-underline))))
       (unless org-export-with-tags
 	(if (string-match (org-re "[ \t]+\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$") title)
 	    (setq title (replace-match "" t t title))))

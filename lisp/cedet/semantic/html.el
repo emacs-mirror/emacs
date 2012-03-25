@@ -1,6 +1,6 @@
 ;;; semantic/html.el --- Semantic details for html files
 
-;; Copyright (C) 2004-2005, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -61,7 +61,7 @@
 (define-mode-local-override semantic-parse-region
   html-mode (&rest ignore)
   "Parse the current html buffer for semantic tags.
-INGNORE any arguments.  Always parse the whole buffer.
+IGNORE any arguments.  Always parse the whole buffer.
 Each tag returned is of the form:
  (\"NAME\" section (:members CHILDREN))
 or
@@ -126,7 +126,7 @@ html parser.  PNT is the new point to set."
 NAME is the name of this section.
 MEMBERS is a list of semantic tags representing the elements that make
 up this section.
-LEVEL is the levelling level.
+LEVEL is the leveling level.
 START and END define the location of data described by the tag."
   (let ((anchorp (eq level 11)))
     (append (semantic-tag name
@@ -222,7 +222,7 @@ tag with greater section value than LEVEL is found."
   "The children TAG expands to."
   (semantic-html-components tag))
 
-;; In semantic-imenu.el, not part of Emacs.
+;; In semantic/imenu.el, not part of Emacs.
 (defvar semantic-imenu-expandable-tag-classes)
 (defvar semantic-imenu-bucketize-file)
 (defvar semantic-imenu-bucketize-type-members)

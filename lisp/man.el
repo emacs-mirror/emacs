@@ -1,6 +1,6 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2011
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
@@ -215,15 +215,27 @@ the associated section number."
 		       (string :tag "Real Section")))
   :group 'man)
 
+;; FIXME see comments at ffap-c-path.
 (defcustom Man-header-file-path
-  '("/usr/include" "/usr/local/include")
+  (let ((arch (with-temp-buffer
+                (when (eq 0 (ignore-errors
+                              (call-process "gcc" nil '(t nil) nil
+                                            "-print-multiarch")))
+                  (goto-char (point-min))
+                  (buffer-substring (point) (line-end-position)))))
+        (base '("/usr/include" "/usr/local/include")))
+    (if (zerop (length arch))
+        base
+      (append base (list (expand-file-name arch "/usr/include")))))
   "C Header file search path used in Man."
+  :version "24.1"                       ; add multiarch
   :type '(repeat string)
   :group 'man)
 
 (defcustom Man-name-local-regexp (concat "^" (regexp-opt '("NOM" "NAME")) "$")
   "Regexp that matches the text that precedes the command's name.
 Used in `bookmark-set' to get the default bookmark name."
+  :version "24.1"
   :type 'string :group 'bookmark)
 
 (defvar manual-program "man"
@@ -398,8 +410,8 @@ Otherwise, the value is whatever the function
     (suppress-keymap map)
     (set-keymap-parent map button-buffer-map)
 
-    (define-key map " "    'scroll-up)
-    (define-key map "\177" 'scroll-down)
+    (define-key map " "    'scroll-up-command)
+    (define-key map "\177" 'scroll-down-command)
     (define-key map "n"    'Man-next-section)
     (define-key map "p"    'Man-previous-section)
     (define-key map "\en"  'Man-next-manpage)
@@ -687,7 +699,7 @@ POS defaults to `point'."
 	  ;; Otherwise record the current column and look backwards.
 	  (setq column (current-column))
 	  (skip-chars-backward ",; \t")
-	  ;; Record the distance travelled.
+	  ;; Record the distance traveled.
 	  (setq distance (- column (current-column)))
 	  (when (looking-back
 		 (concat "([ \t]*\\(?:" Man-section-regexp "\\)[ \t]*)"))
@@ -754,8 +766,10 @@ POS defaults to `point'."
 
 (defun Man-completion-table (string pred action)
   (cond
-   ((eq action 'lambda)
-    (not (string-match "([^)]*\\'" string)))
+   ;; This ends up returning t for pretty much any string, and hence leads to
+   ;; spurious "complete but not unique" messages.  And since `man' doesn't
+   ;; require-match anyway, there's not point being clever.
+   ;;((eq action 'lambda) (not (string-match "([^)]*\\'" string)))
    ((equal string "-k")
     ;; Let SPC (minibuffer-complete-word) insert the space.
     (complete-with-action action '("-k ") string pred))
@@ -931,7 +945,8 @@ Return the buffer in which the manpage will appear."
 	;;               minal (using an ioctl(2) if available, the value of
 	;;               $COLUMNS,  or falling back to 80 characters if nei-
 	;;               ther is available).
-	(unless (or (getenv "MANWIDTH") (getenv "COLUMNS"))
+	(when (or window-system
+                  (not (or (getenv "MANWIDTH") (getenv "COLUMNS"))))
 	  ;; This isn't strictly correct, since we don't know how
 	  ;; the page will actually be displayed, but it seems
 	  ;; reasonable.
@@ -1095,7 +1110,7 @@ Same for the ANSI bold and normal escape sequences."
       (replace-match "+")
       (put-text-property (1- (point)) (point) 'face 'bold))
     ;; When the header is longer than the manpage name, groff tries to
-    ;; condense it to a shorter line interspered with ^H.  Remove ^H with
+    ;; condense it to a shorter line interspersed with ^H.  Remove ^H with
     ;; their preceding chars (but don't put Man-overstrike-face).  (Bug#5566)
     (goto-char (point-min))
     (while (re-search-forward ".\b" nil t) (backward-delete-char 2))
@@ -1108,7 +1123,7 @@ Same for the ANSI bold and normal escape sequences."
       (put-text-property (match-beginning 0)
 			 (match-end 0)
 			 'face Man-overstrike-face)))
-  (message "%s man page formatted" Man-arguments))
+  (message "%s man page formatted" (Man-page-from-arguments Man-arguments)))
 
 (defun Man-highlight-references (&optional xref-man-type)
   "Highlight the references on mouse-over.
@@ -1189,7 +1204,7 @@ script would have done them."
   (goto-char (point-min))
   (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t) (replace-match "+"))
   ;; When the header is longer than the manpage name, groff tries to
-  ;; condense it to a shorter line interspered with ^H.  Remove ^H with
+  ;; condense it to a shorter line interspersed with ^H.  Remove ^H with
   ;; their preceding chars (but don't put Man-overstrike-face).  (Bug#5566)
   (goto-char (point-min))
   (while (re-search-forward ".\b" nil t) (backward-delete-char 2))
@@ -1257,12 +1272,11 @@ manpage command."
 	  (Man-mode)
 
 	  (if (not Man-page-list)
-	      (let ((args Man-arguments))
+ 	      (let ((args Man-arguments))
 		(kill-buffer (current-buffer))
-		(error "Can't find the %s manpage" args)))
-
-          (set-buffer-modified-p nil)
-          ))
+		(error "Can't find the %s manpage"
+		       (Man-page-from-arguments args)))
+	    (set-buffer-modified-p nil))))
 	;; Restore case-fold-search before calling
 	;; Man-notify-when-ready because it may switch buffers.
 
@@ -1272,6 +1286,18 @@ manpage command."
 	(if err-mess
 	    (error "%s" err-mess))
 	))))
+
+(defun Man-page-from-arguments (args)
+  ;; Skip arguments and only print the page name.
+  (mapconcat
+   'identity
+   (delete nil
+	   (mapcar
+	    (lambda (elem)
+	      (and (not (string-match "^-" elem))
+		   elem))
+	    (split-string args " ")))
+   " "))
 
 
 ;; ======================================================================

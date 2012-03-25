@@ -1,7 +1,7 @@
 /* Session management module for systems which understand the X Session
    management protocol.
 
-Copyright (C) 2002-2011  Free Software Foundation, Inc.
+Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -223,9 +223,11 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->name = xstrdup (SmRestartCommand);
   props[props_idx]->type = xstrdup (SmLISTofARRAY8);
   /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir ... */
+  if (INT_MAX - 3 < initial_argc)
+    memory_full (SIZE_MAX);
   i = 3 + initial_argc;
   props[props_idx]->num_vals = i;
-  vp = (SmPropValue *) xmalloc (i * sizeof(*vp));
+  vp = xnmalloc (i, sizeof *vp);
   props[props_idx]->vals = vp;
   props[props_idx]->vals[vp_idx].length = strlen (emacs_program);
   props[props_idx]->vals[vp_idx++].value = emacs_program;
@@ -460,7 +462,7 @@ x_session_initialize (struct x_display_info *dpyinfo)
       Vx_session_id = build_string (client_id);
 
 #ifdef USE_GTK
-      /* GTK creats a leader window by itself, but we need to tell
+      /* GTK creates a leader window by itself, but we need to tell
          it about our client_id.  */
       gdk_x11_set_sm_client_id (client_id);
 #else

@@ -1,3 +1,235 @@
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* HELLO: Say that this is not a comprehensive list.
+	Remove "duplicate" entry.  (Bug#11024)
+
+2012-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-buffer.gdb ($valmask): Don't assume EMACS_INT fits in 'long'.
+
+2012-02-10  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Change condition-case-no-debug to
+	condition-case-unless-debug and split the entry in two.
+
+2012-02-08  Alex Ott  <alexott@gmail.com>
+
+	* tutorials/TUTORIAL.ru: Updated; synchronize with TUTORIAL.
+	Coding system changed to UTF-8.
+
+2012-02-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Updated; synchronize with TUTORIAL.
+
+2012-02-03  Pieter Schoenmakers  <tiggr@tiggr.net>
+
+	* tutorials/TUTORIAL.nl: Updated; synchronize with TUTORIAL.
+
+2012-01-30  Chong Yidong  <cyd@gnu.org>
+
+	* tutorials/TUTORIAL: Delete a repeat sentence.
+
+2012-01-25  Mats Lidell  <mats.lidell@cag.se>
+
+	* tutorials/TUTORIAL.sv: Updated; synchronize with TUTORIAL.
+
+2012-01-21  Ognyan Kulev  <ogi@tower.3.bg>
+
+	* tutorials/TUTORIAL.bg: Updated; synchronize with TUTORIAL.
+
+2012-01-19  Werner Lemberg  <wl@gnu.org>
+
+	* tutorial/TUTORIAL.de: Updated; synchronize with TUTORIAL.
+	Minor typographical improvements.
+
+2012-01-17  Primoz PETERLIN  <primoz.peterlin@mf.uni-lj.si>
+
+	* tutorials/TUTORIAL.sl: Update.
+
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Update to follow changes to TUTORIAL in
+	revision 106831.
+
+2012-01-10  Chong Yidong  <cyd@gnu.org>
+
+	* tutorials/TUTORIAL: Don't give instructions for old-style X
+	scrollbars.  Use DEL terminology instead of DelBack.  Improve
+	description of graphical continuation lines and mode-line.
+	Promote use of C-/ and C-SPC.  Remove discussion of flow control.
+
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/pl-refcard.tex:
+	* refcards/pt-br-refcard.tex, refcards/refcard.tex:
+	* refcards/ru-refcard.tex, refcards/sk-dired-ref.tex:
+	* refcards/sk-refcard.tex, refcards/sk-survival.tex:
+	* refcards/survival.tex: Bump version number to 24.
+
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/orgcard.tex:
+	* refcards/pl-refcard.tex, refcards/pt-br-refcard.tex:
+	* refcards/refcard.tex, refcards/ru-refcard.tex:
+	* refcards/sk-dired-ref.tex, refcards/sk-refcard.tex:
+	* refcards/sk-survival.tex, refcards/survival.tex:
+	* refcards/vipcard.tex, refcards/viperCard.tex:
+	Update short copyright year to 2012.
+
+2012-01-04 Chong Yidong  <cyd@stupidchicken.com>
+
+	* org/README: Rename from COPYRIGHT-AND-LICENSE.
+
+2012-01-03  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org/OrgOdtContentTemplate.xml, org/OrgOdtStyles.xml: New files.
+
+2012-01-03  Bastien Guerry  <bzg@altern.org>
+
+	* org/COPYRIGHT-AND-LICENSE: New file.
+
+	* org/: New directory.
+
+2012-01-03  Julian Gehring  <julian.gehring@googlemail.com>
+
+	* refcards/orgcard.tex: Correct one markup in the "Timestamps" section.
+
+2011-12-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention auth-source twice in connection with smtpmail to
+	clarify that smtpmail uses auth-source.
+
+2011-11-20  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.3.1.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.3.1.
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* MAILINGLISTS: Fix typo.
+
+2011-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* themes/wombat-theme.el: Add a coding cookie.  (Bug#9905)
+
+2011-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS: Document the disappearance of binding caches (bug#9899).
+
+2011-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix typo.  Remove duplicate info.
+
+2011-09-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* NEWS: Document some window code changes.
+
+2011-09-20  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.3.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.3.
+
+2011-09-13  William Stevenson  <yhvh2000@gmail.com>
+
+	* themes/adwaita-theme.el: New file.
+
+2011-09-13  Scott Frazer  <frazer.scott@gmail.com>
+
+	* themes/whiteboard-theme.el:
+	* themes/deeper-blue-theme.el: New files.
+
+2011-09-05  Juri Linkov  <juri@jurta.org>
+
+	* grep.txt: Add `eval' to the Local Variables section that
+	emulates `grep-filter'.
+
+2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* MACHINES: Remove obsolete info and update a bit (Bug#9404).
+
+	* PROBLEMS: Remove obsolete comment re Yellow Dog (Bug#9403).
+
+2011-08-24  Steve Chapel  <schapel@laptop.stevechapel.com>  (tiny change)
+
+	* refcards/refcard.tex: Add a few more commands. (Bug#9343)
+
+2011-08-22  Juri Linkov  <juri@jurta.org>
+
+	* compilation.txt: Add more samples of output and non-output
+	switches (bug#9319).
+
+2011-08-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/dichromacy-theme.el:
+	* themes/wheatgrass-theme.el:
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el: Add error, warning, and success
+	faces.
+
+2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Document `org-copy-visible'.
+
+2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
+
+	* refcards/orgcard.tex: Documentation of new Babel function.
+
+2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
+
+	* refcards/orgcard.tex: Adding line for org-babel-check-src-block.
+
+2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Document key for clock consistency check.
+
+2011-07-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* grammars: New directory.
+
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* NEWS: Document ## and #:.
+
+2011-07-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* charsets/GB180302.map: Update to 2005 edition.
+	* charsets/GB180304.map: Likewise.
+
+2011-07-17  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.93.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.93.
+
+2011-07-16  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.92.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.92.
+
+2011-07-12  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.91.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.91.
+
+	* MH-E-NEWS: Mention that SourceForge MH-E users will have to
+	update their load-paths.
+
+2011-07-10  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.90.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.90.
+
 2011-07-07  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* themes/tsdh-light-theme.el:
@@ -45,7 +277,7 @@
 
 2011-06-21  Leo Liu  <sdl.web@gmail.com>
 
-	* NEWS: Mention the new primtive secure-hash.
+	* NEWS: Mention the new primitive secure-hash.
 
 2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -153,12 +385,12 @@
 
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* images/icons/allout-widgets/dark-bg/encrypted-locked.png:
-	* images/icons/allout-widgets/dark-bg/encrypted-locked.xpm:
+	* images/icons/allout-widgets/dark-bg/locked-encrypted.png:
+	* images/icons/allout-widgets/dark-bg/locked-encrypted.xpm:
 	* images/icons/allout-widgets/dark-bg/unlocked-encrypted.png:
 	* images/icons/allout-widgets/dark-bg/unlocked-encrypted.xpm:
-	* images/icons/allout-widgets/light-bg/encrypted-locked.png:
-	* images/icons/allout-widgets/light-bg/encrypted-locked.xpm:
+	* images/icons/allout-widgets/light-bg/locked-encrypted.png:
+	* images/icons/allout-widgets/light-bg/locked-encrypted.xpm:
 	* images/icons/allout-widgets/light-bg/unlocked-encrypted.png:
 	* images/icons/allout-widgets/light-bg/unlocked-encrypted.xpm:
 	Reorganize icon directories and files to reconcile against windows
@@ -256,7 +488,7 @@
 
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
-	* NEWS: Extended behaviour of dbus-register-{method,property}.
+	* NEWS: Extended behavior of dbus-register-{method,property}.
 
 2011-01-02  Kenichi Handa  <handa@m17n.org>
 
@@ -1294,7 +1526,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Remove non-unicode character from Tibetan text.
+	* HELLO: Remove non-Unicode character from Tibetan text.
 
 2008-02-01  Miles Bader  <miles@gnu.org>
 
@@ -3988,7 +4220,7 @@
 
 2002-02-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* gnus.xpm: Remove garbages.
+	* gnus.xpm: Remove garbage.
 
 2002-01-27  Pavel Janík  <Pavel@Janik.cz>
 
@@ -5398,7 +5630,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
-;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
+;;; sendmail.el --- mail sending commands for Emacs
 
-;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2011
+;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -140,7 +140,11 @@ Otherwise, let mailer send back a message to report errors."
 
 ;; Useful to set in site-init.el
 ;;;###autoload
-(defcustom send-mail-function 'sendmail-query-once
+(defcustom send-mail-function
+  ;; Assume smtpmail is the preferred choice if it's already configured.
+  (if (and (boundp 'smtpmail-smtp-server)
+           smtpmail-smtp-server)
+      'smtpmail-send-it 'sendmail-query-once)
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
 not a valid RFC822 header or continuation line,
@@ -155,53 +159,6 @@ This is used by the default mail-sending commands.  See also
 		function)
   :version "24.1"
   :group 'sendmail)
-
-(defvar sendmail-query-once-function 'query
-  "Either a function to send email, or the symbol `query'.")
-
-(autoload 'custom-file "cus-edit")
-
-;;;###autoload
-(defun sendmail-query-once ()
-  "Send an email via `sendmail-query-once-function'.
-If `sendmail-query-once-function' is `query', ask the user what
-function to use, and then save that choice."
-  (when (equal sendmail-query-once-function 'query)
-    (let* ((default
-	     (cond
-	      ((or (and window-system (eq system-type 'darwin))
-		   (eq system-type 'windows-nt))
-	       'mailclient-send-it)
-	      ((and sendmail-program
-		    (executable-find sendmail-program))
-	       'sendmail-send-it)))
-	   (function
-	    (if (or (not default)
-		    ;; We have detected no OS-level mail senders, or we
-		    ;; have already configured smtpmail, so we use the
-		    ;; internal SMTP service.
-		    (and (boundp 'smtpmail-smtp-server)
-			 smtpmail-smtp-server))
-		'smtpmail-send-it
-	      ;; Query the user.
-	      (unwind-protect
-		  (progn
-		    (pop-to-buffer "*Mail Help*")
-		    (erase-buffer)
-		    (insert "Sending mail from Emacs hasn't been set up yet.\n\n"
-			    "Type `y' to configure outgoing SMTP, or `n' to use\n"
-			    "the default mail sender on your system.\n\n"
-			    "To change this again at a later date, customize the\n"
-			    "`send-mail-function' variable.\n")
-		    (goto-char (point-min))
-		    (if (y-or-n-p "Configure outgoing SMTP in Emacs? ")
-			'smtpmail-send-it
-		      default))
-		(kill-buffer (current-buffer))))))
-      (if (ignore-errors (custom-file))
-	  (customize-save-variable 'sendmail-query-once-function function)
-	(setq sendmail-query-once-function function))))
-  (funcall sendmail-query-once-function))
 
 ;;;###autoload
 (defcustom mail-header-separator (purecopy "--text follows this line--")
@@ -353,6 +310,9 @@ The default value matches citations like `foo-bar>' plus whitespace."
 
     (define-key map [menu-bar mail]
       (cons "Mail" (make-sparse-keymap "Mail")))
+
+    (define-key map [menu-bar mail attachment]
+      '("Attach File" . mail-add-attachment))
 
     (define-key map [menu-bar mail fill]
       '("Fill Citation" . mail-fill-yanked-message))
@@ -545,6 +505,60 @@ by Emacs.)")
   "Additional expressions to highlight in Mail mode.")
 
 
+;;;###autoload
+(defun sendmail-query-once ()
+  "Query for `send-mail-function' and send mail with it.
+This also saves the value of `send-mail-function' via Customize."
+  ;; If send-mail-function is already setup, we're incorrectly called
+  ;; a second time, probably because someone's using an old value
+  ;; of send-mail-function.
+  (when (eq send-mail-function 'sendmail-query-once)
+    (sendmail-query-user-about-smtp))
+  (funcall send-mail-function))
+
+(defun sendmail-query-user-about-smtp ()
+  (let* ((options `(("mail client" . mailclient-send-it)
+		    ,@(when (and sendmail-program
+				 (executable-find sendmail-program))
+			'(("transport" . sendmail-send-it)))
+		    ("smtp" . smtpmail-send-it)))
+	 (choice
+	  ;; Query the user.
+	  (with-temp-buffer
+	    (rename-buffer "*Emacs Mail Setup Help*" t)
+	    (insert "\
+ Emacs is about to send an email message, but it has not been
+ configured for sending email.  To tell Emacs how to send email:
+
+ - Type `"
+		    (propertize "mail client" 'face 'bold)
+		    "' to start your default email client and
+   pass it the message text.\n\n")
+	    (and sendmail-program
+		 (executable-find sendmail-program)
+		 (insert "\
+ - Type `"
+			 (propertize "transport" 'face 'bold)
+			 "' to invoke the system's mail transport agent
+   (the `"
+			 sendmail-program
+			 "' program).\n\n"))
+	    (insert "\
+ - Type `"
+		    (propertize "smtp" 'face 'bold)
+		    "' to send mail directly to an \"outgoing mail\" server.
+   (Emacs may prompt you for SMTP settings).
+
+ Emacs will record your selection and will use it thereafter.
+ To change it later, customize the option `send-mail-function'.\n")
+	    (goto-char (point-min))
+	    (display-buffer (current-buffer))
+	    (let ((completion-ignore-case t))
+	      (completing-read "Send mail via: "
+			       options nil 'require-match)))))
+    (customize-save-variable 'send-mail-function
+			     (cdr (assoc-string choice options t)))))
+
 (defun sendmail-sync-aliases ()
   (when mail-personal-alias-file
     (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
@@ -564,11 +578,7 @@ by Emacs.)")
 				    send-actions return-action
 				    &rest ignored)
   (if switch-function
-      (let ((special-display-buffer-names nil)
-	    (special-display-regexps nil)
-	    (same-window-buffer-names nil)
-	    (same-window-regexps nil))
-	(funcall switch-function "*mail*")))
+      (funcall switch-function "*mail*"))
   (let ((cc (cdr (assoc-string "cc" other-headers t)))
 	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
 	(body (cdr (assoc-string "body" other-headers t))))
@@ -680,6 +690,7 @@ switching to, the `*mail*' buffer.  See also `mail-setup-hook'."
   :options '(footnote-mode))
 
 (defvar mail-mode-abbrev-table text-mode-abbrev-table)
+(defvar mail-encode-mml)
 ;;;###autoload
 (define-derived-mode mail-mode text-mode "Mail"
   "Major mode for editing mail to be sent.
@@ -698,11 +709,15 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
 \\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
+\\[mail-insert-file] insert a text file into the message.
+\\[mail-add-attachment] attach to the message a file as binary attachment.
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
   (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
   (make-local-variable 'mail-return-action)
+  (make-local-variable 'mail-encode-mml)
+  (setq mail-encode-mml nil)
   (setq buffer-offer-save t)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mail-font-lock-keywords t t))
@@ -718,6 +733,7 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
       (set (make-local-variable 'comment-start-skip)
 	   (concat "^" (regexp-quote mail-yank-prefix) "[ \t]*")))
   (make-local-variable 'adaptive-fill-regexp)
+  ;; Also update the paragraph-separate entry if you change this.
   (setq adaptive-fill-regexp
 	(concat "[ \t]*[-[:alnum:]]+>+[ \t]*\\|"
 		adaptive-fill-regexp))
@@ -731,11 +747,14 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
-  (setq paragraph-separate (concat (regexp-quote mail-header-separator)
-				"$\\|\t*\\([-|#;>* ]\\|(?[0-9]+[.)]\\)+$"
-				"\\|[ \t]*[[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
-				"--\\( \\|-+\\)$\\|"
-				page-delimiter)))
+  (setq paragraph-separate
+	(concat (regexp-quote mail-header-separator)
+		;; This is based on adaptive-fill-regexp (presumably
+		;; the idea is to allow navigation etc of cited paragraphs).
+		"$\\|\t*[-–!|#%;>*·•‣⁃◦ ]+$"
+		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
+		"--\\( \\|-+\\)$\\|"
+		page-delimiter)))
 
 
 (defun mail-header-end ()
@@ -864,6 +883,7 @@ header when sending a message to a mailing list."
   :type '(repeat string)
   :group 'sendmail)
 
+(declare-function mml-to-mime "mml" ())
 
 (defun mail-send ()
   "Send the message in the current buffer.
@@ -936,6 +956,9 @@ the user from the mailer."
 	      (error "Invalid header line (maybe a continuation line lacks initial whitespace)"))
 	    (forward-line 1)))
 	(goto-char opoint)
+	(when mail-encode-mml
+	  (mml-to-mime)
+	  (setq mail-encode-mml nil))
 	(run-hooks 'mail-send-hook)
 	(message "Sending...")
 	(funcall send-mail-function)
@@ -1062,6 +1085,9 @@ Return non-nil if and only if some part of the header is encoded."
 		(cons selected mm-coding-system-priorities)
 	      mm-coding-system-priorities))
 	   (tick (buffer-chars-modified-tick))
+	   ;; Many mailers, including Gnus, passes a message of which
+	   ;; the header is already encoded, so this is necessary to
+	   ;; prevent it from being encoded again.
 	   (rfc2047-encode-encoded-words nil))
       (rfc2047-encode-message-header)
       (= tick (buffer-chars-modified-tick)))))
@@ -1690,7 +1716,7 @@ If the current line has `mail-yank-prefix', insert it on the new line."
   (split-line mail-yank-prefix))
 
 
-(defun mail-attach-file (&optional file)
+(defun mail-insert-file (&optional file)
   "Insert a file at the end of the buffer, with separator lines around it."
   (interactive "fAttach file: ")
   (save-excursion
@@ -1709,12 +1735,24 @@ If the current line has `mail-yank-prefix', insert it on the new line."
       (insert-file-contents file)
       (or (bolp) (newline))
       (goto-char start))))
+
+(define-obsolete-function-alias 'mail-attach-file 'mail-insert-file "24.1")
+
+(declare-function mml-attach-file "mml"
+		  (file &optional type description disposition))
+(declare-function mm-default-file-encoding "mm-encode" (file))
+
+(defun mail-add-attachment (file)
+  "Add FILE as a MIME attachment to the end of the mail message being composed."
+  (interactive "fAttach file: ")
+  (mml-attach-file file
+		   (or (mm-default-file-encoding file)
+		       "application/octet-stream") nil)
+  (setq mail-encode-mml t))
+
 
 ;; Put these commands last, to reduce chance of lossage from quitting
 ;; in middle of loading the file.
-
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*mail*"))
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*unsent mail*"))
 
 ;;;###autoload
 (defun mail (&optional noerase to subject in-reply-to cc replybuffer
@@ -1767,11 +1805,11 @@ The seventh argument ACTIONS is a list of actions to take
  This is how Rmail arranges to mark messages `answered'."
   (interactive "P")
   (if (eq noerase 'new)
-      (pop-to-buffer (generate-new-buffer "*mail*"))
+      (pop-to-buffer-same-window (generate-new-buffer "*mail*"))
     (and noerase
 	 (not (get-buffer "*mail*"))
 	 (setq noerase nil))
-    (pop-to-buffer "*mail*"))
+    (pop-to-buffer-same-window "*mail*"))
 
   ;; Avoid danger that the auto-save file can't be written.
   (let ((dir (expand-file-name
@@ -1921,7 +1959,7 @@ you can move to one of them and type C-c C-c to recover that one."
 		  (dired-noselect file-name
 				  (concat dired-listing-switches " -t"))))
 	     (save-selected-window
-	       (select-window (display-buffer dispbuf t))
+	       (switch-to-buffer-other-window dispbuf)
 	       (goto-char (point-min))
 	       (forward-line 2)
 	       (dired-move-to-filename)
@@ -1944,28 +1982,23 @@ you can move to one of them and type C-c C-c to recover that one."
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another window."
   (interactive "P")
-  (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer "*mail*"))
+  (switch-to-buffer-other-window "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;;;###autoload
 (defun mail-other-frame (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another frame."
   (interactive "P")
-  (let ((pop-up-frames t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer "*mail*"))
+  (switch-to-buffer-other-frame "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;; Do not add anything but external entries on this page.
 
 (provide 'sendmail)
+
+;; Local Variables:
+;; byte-compile-dynamic: t
+;; coding: utf-8
+;; End:
 
 ;;; sendmail.el ends here

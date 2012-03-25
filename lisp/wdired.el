@@ -1,6 +1,6 @@
 ;;; wdired.el --- Rename files editing their names in dired buffers
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>
@@ -32,7 +32,7 @@
 ;; the files in a "dired" buffer? Now you can do this.  All the power
 ;; of Emacs commands are available to renaming files!
 ;;
-;; This package provides a function that makes the filenames of a a
+;; This package provides a function that makes the filenames of a
 ;; dired buffer editable, by changing the buffer mode (which inhibits
 ;; all of the commands of dired mode). Here you can edit the names of
 ;; one or more files and directories, and when you press C-c C-c, the
@@ -216,6 +216,8 @@ See `wdired-mode'."
        (buffer-substring (point-min) (point-max)))
   (set (make-local-variable 'wdired-old-point) (point))
   (set (make-local-variable 'query-replace-skip-read-only) t)
+  (set (make-local-variable 'isearch-filter-predicate)
+       'wdired-isearch-filter-read-only)
   (use-local-map wdired-mode-map)
   (force-mode-line-update)
   (setq buffer-read-only nil)
@@ -241,6 +243,11 @@ See `wdired-mode'."
 		 "Press \\[wdired-finish-edit] when finished \
 or \\[wdired-abort-changes] to abort changes")))
 
+(defun wdired-isearch-filter-read-only (beg end)
+  "Skip matches that have a read-only property."
+  (and (isearch-filter-visible beg end)
+       (not (text-property-not-all (min beg end) (max beg end)
+				   'read-only nil))))
 
 ;; Protect the buffer so only the filenames can be changed, and put
 ;; properties so filenames (old and new) can be easily found.

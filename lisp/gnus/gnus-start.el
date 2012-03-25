@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -763,8 +763,8 @@ prompt the user for the name of an NNTP server to use."
     ;; Add "native" to gnus-predefined-server-alist just to have a
     ;; name for the native select method.
     (when gnus-select-method
-      (push (cons "native" gnus-select-method)
-	    gnus-predefined-server-alist))
+      (add-to-list 'gnus-predefined-server-alist
+		   (cons "native" gnus-select-method)))
 
     (if gnus-agent
 	(gnus-agentize))
@@ -1451,7 +1451,11 @@ newsgroup."
 (defun gnus-activate-group (group &optional scan dont-check method
 				  dont-sub-check)
   "Check whether a group has been activated or not.
-If SCAN, request a scan of that group as well."
+If SCAN, request a scan of that group as well.  If METHOD, use
+that select method instead of determining the method based on the
+group name.  If DONT-CHECK, don't check check whether the group
+actually exists.  If DONT-SUB-CHECK or DONT-CHECK, don't let the
+backend check whether the group actually exists."
   (let ((method (or method (inline (gnus-find-method-for-group group))))
 	active)
     (and (inline (gnus-check-server method))
@@ -1678,7 +1682,7 @@ If SCAN, request a scan of that group as well."
 
     ;; Sort the methods based so that the primary and secondary
     ;; methods come first.  This is done for legacy reasons to try to
-    ;; ensure that side-effect behaviour doesn't change from previous
+    ;; ensure that side-effect behavior doesn't change from previous
     ;; Gnus versions.
     (setq type-cache
 	  (sort (nreverse type-cache)
@@ -1709,6 +1713,21 @@ If SCAN, request a scan of that group as well."
 		   (gnus-check-backend-function 'request-list (car method)))
 	  (with-current-buffer nntp-server-buffer
 	    (gnus-read-active-file-1 method nil)))))
+
+    ;; Clear out all the early methods.
+    (dolist (elem type-cache)
+      (destructuring-bind (method method-type infos dummy) elem
+	(when (and method
+		   infos
+		   (gnus-check-backend-function
+		    'retrieve-group-data-early (car method))
+		   (not (gnus-method-denied-p method)))
+	  (when (ignore-errors (gnus-get-function method 'open-server))
+	    (unless (gnus-server-opened method)
+	      (gnus-open-server method))
+	    (when (gnus-server-opened method)
+	      ;; Just mark this server as "cleared".
+	      (gnus-retrieve-group-data-early method nil))))))
 
     ;; Start early async retrieval of data.
     (let ((done-methods nil)
@@ -2533,7 +2552,7 @@ If FORCE is non-nil, the .newsrc file is read."
        ((or (eq symbol options-symbol)
 	    (eq symbol Options-symbol))
 	(setq gnus-newsrc-options
-	      ;; This concating is quite inefficient, but since our
+	      ;; This concatting is quite inefficient, but since our
 	      ;; thorough studies show that approx 99.37% of all
 	      ;; .newsrc files only contain a single options line, we
 	      ;; don't give a damn, frankly, my dear.

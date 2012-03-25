@@ -1,6 +1,6 @@
 ;;; spam-report.el --- Reporting spam
 
-;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: network, spam, mail, gmane, report
@@ -102,7 +102,7 @@ Reports is as ham when HAM is set."
       (customize-set-variable
        spam-report-resend-to
        (read-from-minibuffer "email address to resend SPAM/HAM to? ")))
-    ;; This is ganked from the `gnus-summary-resend-message' function.
+    ;; This is yanked from the `gnus-summary-resend-message' function.
     ;; It involves rendering the SPAM, which is undesirable, but there does
     ;; not seem to be a nicer way to achieve this.
     ;; select this particular article

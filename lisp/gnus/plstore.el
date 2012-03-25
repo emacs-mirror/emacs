@@ -1,5 +1,5 @@
 ;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -80,9 +80,10 @@
   "Control whether or not to pop up the key selection dialog.
 
 If t, always asks user to select recipients.
-If nil, query user only when `plstore-encrypt-to' is not set.
-If neither t nor nil, doesn't ask user.  In this case, symmetric
-encryption is used."
+If nil, query user only when a file's default recipients are not
+known (i.e. `plstore-encrypt-to' is not locally set in the buffer
+visiting a plstore file).
+If neither t nor nil, doesn't ask user."
   :type '(choice (const :tag "Ask always" t)
 		 (const :tag "Ask when recipients are not set" nil)
 		 (const :tag "Don't ask" silent))
@@ -90,7 +91,8 @@ encryption is used."
 
 (defvar plstore-encrypt-to nil
   "*Recipient(s) used for encrypting secret entries.
-May either be a string or a list of strings.")
+May either be a string or a list of strings.  If it is nil,
+symmetric encryption will be used.")
 
 (put 'plstore-encrypt-to 'safe-local-variable
      (lambda (val)
@@ -135,38 +137,38 @@ May either be a string or a list of strings.")
     (message "%s...%d%%" handback
 	     (if (> total 0) (floor (* (/ current (float total)) 100)) 0))))
 
-(defun plstore--get-buffer (this)
-  (aref this 0))
+(defun plstore--get-buffer (arg)
+  (aref arg 0))
 
-(defun plstore--get-alist (this)
-  (aref this 1))
+(defun plstore--get-alist (arg)
+  (aref arg 1))
 
-(defun plstore--get-encrypted-data (this)
-  (aref this 2))
+(defun plstore--get-encrypted-data (arg)
+  (aref arg 2))
 
-(defun plstore--get-secret-alist (this)
-  (aref this 3))
+(defun plstore--get-secret-alist (arg)
+  (aref arg 3))
 
-(defun plstore--get-merged-alist (this)
-  (aref this 4))
+(defun plstore--get-merged-alist (arg)
+  (aref arg 4))
 
-(defun plstore--set-buffer (this buffer)
-  (aset this 0 buffer))
+(defun plstore--set-buffer (arg buffer)
+  (aset arg 0 buffer))
 
-(defun plstore--set-alist (this plist)
-  (aset this 1 plist))
+(defun plstore--set-alist (arg plist)
+  (aset arg 1 plist))
 
-(defun plstore--set-encrypted-data (this encrypted-data)
-  (aset this 2 encrypted-data))
+(defun plstore--set-encrypted-data (arg encrypted-data)
+  (aset arg 2 encrypted-data))
 
-(defun plstore--set-secret-alist (this secret-alist)
-  (aset this 3 secret-alist))
+(defun plstore--set-secret-alist (arg secret-alist)
+  (aset arg 3 secret-alist))
 
-(defun plstore--set-merged-alist (this merged-alist)
-  (aset this 4 merged-alist))
+(defun plstore--set-merged-alist (arg merged-alist)
+  (aset arg 4 merged-alist))
 
-(defun plstore-get-file (this)
-  (buffer-file-name (plstore--get-buffer this)))
+(defun plstore-get-file (arg)
+  (buffer-file-name (plstore--get-buffer arg)))
 
 (defun plstore--make (&optional buffer alist encrypted-data secret-alist
 				merged-alist)
@@ -418,7 +420,7 @@ SECRET-KEYS is a plist containing secret data."
 							  (current-buffer)))))
 			  (epa-select-keys
 			   context
-			   "Select recipents for encryption.
+			   "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "
 			   recipients)
 			(if plstore-encrypt-to

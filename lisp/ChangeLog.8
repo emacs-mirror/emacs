@@ -434,7 +434,7 @@
 	for Emacs 20.4 and the earlier versions.
 	(ps-mule-init-external-library): Just require a feature for
 	external libraries.
-	(ps-mule-prologue): Postscript code modified for new composition.
+	(ps-mule-prologue): PostScript code modified for new composition.
 	(ps-mule-find-wrappoint): New arg COMPOSITION.
 	(ps-mule-plot-string): Delete code for composite characters.
 	(ps-mule-plot-composition): New function.
@@ -447,7 +447,7 @@
 	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar,
 	ps-mule-prepare-cmpchar-font): Deleted.
 	(ps-mule-string-encoding): New arg NO-SETFONT.
-	(ps-mule-bitmap-prologue): In Postscript code of BuildGlyphCommon,
+	(ps-mule-bitmap-prologue): In PostScript code of BuildGlyphCommon,
 	check Composing, not Cmpchar.
 	(ps-mule-initialize): Set ps-mule-composition-prologue-generated
 	to nil.
@@ -530,7 +530,7 @@
 	composition-function-table.
 	(tibetan-composable-pattern): New variable.
 	(tibetan-subjoined-transcription-alist): Change key "R" to "+R".
-	(tibetan-precomposition-rule-alist): Move punctuations to
+	(tibetan-precomposition-rule-alist): Move punctuation to
 	tibetan-punctuation-transcription-alist and
 	tibetan-obsolete-glyphs.
 	(tibetan-punctuation-transcription-alist): New variable.
@@ -3475,8 +3475,8 @@
 	(reftex-process-string): Preserve default directory.
 	(reftex-label-alist-builtin): Changed prefixes of endnote and footnote.
 	Also the magic words.
-	(reftex-reference): Interprete new option `reftex-fref-is-default'.
-	(reftex-replace-prefix-escapes): Interprete new `%S' format.
+	(reftex-reference): Interpret new option `reftex-fref-is-default'.
+	(reftex-replace-prefix-escapes): Interpret new `%S' format.
 	(reftex-toc-mouse-view-line): Command removed (had no binding).
 	(reftex-everything-regexp): New function.
 	(reftex-nearest-match): Made better.
@@ -3571,7 +3571,7 @@
 
 1999-08-15  Yoshiki Hayashi  <t90553@mail.ecc.u-tokyo.ac.jp>
 
-	* lisp/texinfmt.el: Handle @ifnottex.
+	* texinfmt.el: Handle @ifnottex.
 
 1999-08-15  Eli Zaretskii  <eliz@gnu.org>
 
@@ -4294,7 +4294,7 @@
 
 1999-07-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (toolbar): Grey default background.
+	* faces.el (toolbar): Gray default background.
 	(modeline): Ditto.
 
 	* image.el (image-type-regexps): New.
@@ -5516,7 +5516,7 @@
 1999-04-08  Andre Spiegel  <spiegel@inf.fu-berlin.de>
 
 	* vc.el (vc-backend-revert): For CVS files that were made
-	writeable with "cvs edit", call "cvs unedit" to undo that.
+	writable with "cvs edit", call "cvs unedit" to undo that.
 
 1999-04-08  Dave Love  <fx@gnu.org>
 
@@ -6259,7 +6259,7 @@
 	* sql.el: Added keywords from `finder-by-keyword'.
 	(sql-mode): Made sql-buffer a local variable, changed the
 	documentation: removed instructions to add *.sql files to
-	auto-mode-alist, added documentation for having mutliple SQL
+	auto-mode-alist, added documentation for having multiple SQL
 	buffers sending their stuff to different SQLi buffers, each
 	running a different process.
 	(sql-postgres): Quoted *SQL* in doc string.
@@ -6270,7 +6270,7 @@
 	(sql-sybase): Quoted *SQL* in doc string, added comma.
 	(sql-oracle): Likewise.
 	(sql-interactive-mode): Added extensive documentation for having
-	mutliple SQL buffers sending their stuff to different SQLi
+	multiple SQL buffers sending their stuff to different SQLi
 	buffers, each running a different process.
 	(sql-buffer): Changed doc from *SQL* to SQLi.
 	(sql-get-login): Doc fix.
@@ -8317,7 +8317,7 @@
 1998-11-11  Sam Steingold  <sds@goems.com>
 
 	* inf-lisp.el (switch-to-lisp): If no inferior lisp present, call
-	`run-lisp' instead of signalling an error.
+	`run-lisp' instead of signaling an error.
 
 1998-11-11  Karl Heuer  <kwzh@gnu.org>
 
@@ -8708,7 +8708,7 @@
 
 1998-10-21  Markus Rost  <rost@delysid.gnu.org>
 
-	* lisp/info.el (Info-next-menu-item): Stay on top of node.
+	* info.el (Info-next-menu-item): Stay on top of node.
 
 	* mail/rmailout.el (rmail-output): Insert newline only if necessary.
 
@@ -9181,7 +9181,7 @@
 	* gnus-art.el (gnus-article-x-face-too-ugly): Fix type.
 	(gnus-saved-headers): Fix type.
 
-	* lisp/textmodes/fill.el (fill-individual-paragraphs-prefix):
+	* textmodes/fill.el (fill-individual-paragraphs-prefix):
 	Avoid nil value of `two-lines-citation-part'.
 
 1998-09-30  Roman Belenov  <roman@nstl.nnov.ru>
@@ -9750,11 +9750,11 @@
 	* international/mule.el (charset-description): Doc fix.
 
 	* language/chinese.el, language/cyrillic.el, language/czech.el,
-	language/devanagari.el, language/ethiopic.el,
-	language/european.el, language/hebrew.el, language/indian.el,
-	language/japanese.el, language/korean.el, language/lao.el,
-	language/slovak.el, language/thai.el, language/tibetan.el,
-	language/vietnamese.el:
+	* language/devanagari.el, language/ethiopic.el,
+	* language/european.el, language/hebrew.el, language/indian.el,
+	* language/japanese.el, language/korean.el, language/lao.el,
+	* language/slovak.el, language/thai.el, language/tibetan.el,
+	* language/vietnamese.el:
 	Add coding: local variable, to avoid bootstrapping problem
 	if you need to recompile all the Lisp files using interpreted code.
 
@@ -9993,7 +9993,7 @@ See ChangeLog.7 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
+    Copyright (C) 1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -10009,4 +10009,3 @@ See ChangeLog.7 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

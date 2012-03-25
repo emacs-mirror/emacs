@@ -1,6 +1,6 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
 ;; Maintainer: simula-mode@ifi.uio.no

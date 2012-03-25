@@ -1,6 +1,6 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1998-1999, 2004-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2004-2012 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -173,7 +173,7 @@ URL can be a URL string, or a URL vector of the type returned by
 	(if attributes
 	    (setq attributes (mapcar 'url-unhex-string (split-string attributes ","))))
 
-	;; Parse out the exentions
+	;; Parse out the extensions.
 	(if extensions
 	    (setq extensions (mapcar (lambda (ext)
 				       (if (string-match "\\([^=]*\\)=\\(.*\\)" ext)

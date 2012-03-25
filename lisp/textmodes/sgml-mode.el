@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: utf-8 -*-
 
-;; Copyright (C) 1992, 1995-1996, 1998, 2001-2011
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
@@ -62,7 +62,7 @@
   :group 'sgml
   :type 'hook)
 
-;; As long as Emacs' syntax can't be complemented with predicates to context
+;; As long as Emacs's syntax can't be complemented with predicates to context
 ;; sensitively confirm the syntax of characters, we have to live with this
 ;; kludgy kind of tradeoff.
 (defvar sgml-specials '(?\")
@@ -841,7 +841,14 @@ Return non-nil if we skipped over matched tags."
     (delete-overlay (pop sgml-electric-tag-pair-overlays))))
 
 (define-minor-mode sgml-electric-tag-pair-mode
-  "Automatically update the closing tag when editing the opening one."
+  "Toggle SGML Electric Tag Pair mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
+SGML Electric Tag Pair mode is a buffer-local minor mode for use
+with `sgml-mode' and related major modes.  When enabled, editing
+an opening markup tag automatically updates the closing tag."
   :lighter "/e"
   (if sgml-electric-tag-pair-mode
       (progn
@@ -1551,7 +1558,7 @@ LCON is the lexical context, if any."
 
 (defun sgml-guess-indent ()
   "Guess an appropriate value for `sgml-basic-offset'.
-Base the guessed identation level on the first indented tag in the buffer.
+Base the guessed indentation level on the first indented tag in the buffer.
 Add this to `sgml-mode-hook' for convenience."
   (interactive)
   (save-excursion
@@ -1865,7 +1872,7 @@ This takes effect when first loading the library.")
     ("dir" . "Directory list (obsolete)")
     ("div" . "Generic block-level container")
     ("dl" . "Definition list")
-    ("dt" . "Term to be definined")
+    ("dt" . "Term to be defined")
     ("em" . "Emphasized")
     ("embed" . "Embedded data in foreign format")
     ("fig" . "Figure")
@@ -1890,7 +1897,7 @@ This takes effect when first loading the library.")
     ("input" . "Form input field")
     ("ins" . "Inserted text")
     ("isindex" . "Input field for index search")
-    ("kbd" . "Keybard example face")
+    ("kbd" . "Keyboard example face")
     ("lang" . "Natural language")
     ("li" . "List item")
     ("link" . "Link relationship")
@@ -2024,9 +2031,14 @@ The third `match-string' will be the used in the menu.")
     (nreverse toc-index)))
 
 (define-minor-mode html-autoview-mode
-  "Toggle automatic viewing via `browse-url-of-buffer' upon saving buffer.
-With positive prefix ARG always turns viewing on, with negative ARG always off.
-Can be used as a value for `html-mode-hook'."
+  "Toggle viewing of HTML files on save (HTML Autoview mode).
+With a prefix argument ARG, enable HTML Autoview mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+HTML Autoview mode is a buffer-local minor mode for use with
+`html-mode'.  If enabled, saving the file automatically runs
+`browse-url-of-buffer' to view it."
   nil nil nil
   :group 'sgml
   (if html-autoview-mode

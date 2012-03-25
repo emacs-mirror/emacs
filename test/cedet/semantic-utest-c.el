@@ -1,6 +1,6 @@
 ;;; semantic-utest-c.el --- C based parsing tests.
 
-;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -28,7 +28,7 @@
 (defvar semantic-utest-c-comparisons
   '( ("testsppreplace.c" . "testsppreplaced.c")
      )
-  "List of files to parse and compare against eachother.")
+  "List of files to parse and compare against each other.")
 
 ;;; Code:
 ;;;###autoload

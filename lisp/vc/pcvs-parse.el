@@ -1,6 +1,6 @@
 ;;; pcvs-parse.el --- the CVS output parser
 
-;; Copyright (C) 1991-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2012 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -423,14 +423,14 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	(cvs-match "restoring \\(.*\\) from backup file .*$" (path 1))))
       t)
 
-     ;; Is it a succesful merge?
+     ;; Is it a successful merge?
      ;; Figure out result of merging (ie, was there a conflict?)
      (let ((qfile (regexp-quote path)))
        (cvs-or
 	;; Conflict
 	(and
 	 (cvs-match (concat "C \\(.*" qfile "\\)$") (path 1) (type 'CONFLICT))
-	 ;; C might be followed by a "suprious" U for non-mergeable files
+	 ;; C might be followed by a "spurious" U for non-mergable files
 	 (cvs-or (cvs-match (concat "U \\(.*" qfile "\\)$")) t))
 	;; Successful merge
 	(cvs-match (concat "M \\(.*" qfile "\\)$") (path 1))

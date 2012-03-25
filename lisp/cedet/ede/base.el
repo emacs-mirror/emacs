@@ -1,6 +1,6 @@
 ;;; ede/base.el --- Baseclasses for EDE.
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -413,7 +413,7 @@ Specifying PARENT is useful for sub-sub projects relative to the root project."
 (defmethod ede-subproject-p ((proj ede-project))
   "Return non-nil if PROJ is a sub project."
   ;; @TODO - Use this in more places, and also pay attention to
-  ;; metasubproject in ede-proj.el
+  ;; metasubproject in ede/proj.el
   (ede-parent-project proj))
 
 

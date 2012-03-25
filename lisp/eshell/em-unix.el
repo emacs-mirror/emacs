@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -599,7 +599,7 @@ symlink, then revert to the system's definition of cat."
       (let ((ext-cat (eshell-search-path "cat")))
 	(if ext-cat
 	    (throw 'eshell-replace-command
-		   (eshell-parse-command ext-cat args))
+		   (eshell-parse-command (eshell-quote-argument ext-cat) args))
 	  (if eshell-in-pipeline-p
 	      (error "Eshell's `cat' does not work in pipelines")
 	    (error "Eshell's `cat' cannot display one of the files given"))))
@@ -712,7 +712,7 @@ available..."
 
 (defun eshell-grep (command args &optional maybe-use-occur)
   "Generic service function for the various grep aliases.
-It calls Emacs' grep utility if the command is not redirecting output,
+It calls Emacs's grep utility if the command is not redirecting output,
 and if it's not part of a command pipeline.  Otherwise, it calls the
 external command."
   (if (and maybe-use-occur eshell-no-grep-available)
@@ -792,8 +792,6 @@ external command."
   (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
 	       pcomplete-default-completion-function)))
 
-(defalias 'pcomplete/ssh 'pcomplete/rsh)
-
 (defvar block-size)
 (defvar by-bytes)
 (defvar dereference-links)
@@ -857,7 +855,7 @@ external command."
 			   (file-remote-p (expand-file-name arg) 'method) "ftp")
 			  (throw 'have-ange-path t))))))
 	(throw 'eshell-replace-command
-	       (eshell-parse-command ext-du args))
+	       (eshell-parse-command (eshell-quote-argument ext-du) args))
       (eshell-eval-using-options
        "du" args
        '((?a "all" nil show-all
@@ -965,6 +963,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
     ((string-match "[^[:blank:]]" string) string)
     (nil)))
 
+(autoload 'diff-no-select "diff")
+
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."
   (let ((orig-args (eshell-stringify-list (eshell-flatten-list args))))
@@ -986,8 +986,9 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	  (setcdr (last args 3) nil))
 	(with-current-buffer
 	    (condition-case err
-		(diff old new
-		      (nil-blank-string (eshell-flatten-and-stringify args)))
+		(diff-no-select
+		 old new
+		 (nil-blank-string (eshell-flatten-and-stringify args)))
 	      (error
 	       (throw 'eshell-replace-command
 		      (eshell-parse-command "*diff" orig-args))))

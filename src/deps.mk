@@ -1,6 +1,6 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2011
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2012
 ##   Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
@@ -39,7 +39,7 @@
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
  globals.h ../lib/unistd.h $(config_h)
 bidi.o: bidi.c buffer.h character.h dispextern.h msdos.h lisp.h \
-   biditype.h bidimirror.h globals.h $(config_h)
+   globals.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    $(INTERVALS_H) blockinput.h atimer.h systime.h character.h ../lib/unistd.h \
    indent.h keyboard.h coding.h keymap.h frame.h lisp.h globals.h $(config_h)

@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2011
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -853,9 +853,9 @@ non-nil, otherwise in local time."
                             (let ((tz (getenv "TZ")))
                               (unwind-protect
                                   (progn
-                                    (set-time-zone-rule add-log-time-zone-rule)
+                                    (setenv "TZ" add-log-time-zone-rule)
                                     (funcall add-log-time-format))
-                                (set-time-zone-rule tz)))
+                                (setenv "TZ" tz)))
                           (funcall add-log-time-format))
                         "  " full-name
                         "  <" addr ">"))

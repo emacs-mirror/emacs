@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings
 
-;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
@@ -143,7 +143,7 @@ This means the number of non-shy regexp grouping constructs
   "Return a regexp to match a string in the sorted list STRINGS.
 If PAREN non-nil, output regexp parentheses around returned regexp.
 If LAX non-nil, don't output parentheses if it doesn't require them.
-Merges keywords to avoid backtracking in Emacs' regexp matcher."
+Merges keywords to avoid backtracking in Emacs's regexp matcher."
   ;; The basic idea is to find the shortest common prefix or suffix, remove it
   ;; and recurse.  If there is no prefix, we divide the list into two so that
   ;; \(at least) one half will have at least a one-character common prefix.

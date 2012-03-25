@@ -1,9 +1,102 @@
+2011-11-20  Bill Wohler  <wohler@newt.com>
+
+	* Release MH-E version 8.3.1.
+
+	* mh-e.el (Version, mh-version): Update for release 8.3.1.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-utils.el (mh-folder-list): Fix typo.
+	(mh-children-p): Move part of the docstring to a comment.
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-search.el (mh-pick-parse-search-buffer): Fix typo.
+
+2011-09-20  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.3.
+
+	* mh-e.el (Version, mh-version): Update for release 8.3.
+
+2011-07-30  Bill Wohler  <wohler@newt.com>
+
+	* mh-show.el (mh-unvisit-file): Clarify language in yes-or-no-p
+	and error messages.
+
+2011-07-17  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.93.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.93.
+
+	* mh-compat.el (mh-pop-to-buffer-same-window): Delete.
+	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
+	(mh-make-folder): Revert to switch-to-buffer, as the Emacs folks
+	decided that it was fine to use it in programs.
+
+2011-07-16  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.92.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.92.
+
+2011-07-12  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.91.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.91.
+
+	* mh-compat.el (mh-pop-to-buffer-same-window): Add compatibility
+	function to call switch-to-buffer on systems that lack
+	pop-to-buffer-same-window.
+	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
+	(mh-make-folder): Call mh-pop-to-buffer-same-window instead of
+	switch-to-buffer.  The previous change which used pop-to-buffer
+	produced the wrong behavior.
+
+2011-07-12  Henrique Martins  <henrique@martins.cc>  (tiny change)
+
+	* mh-xface.el (mh-picon-get-image): Remove quote from block
+	argument.
+	* mh-mime.el (mh-mh-directive-present-p): Ditto.
+
+2011-07-10  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.90.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.90.
+
+	* mh-utils.el (mh-sub-folders-actual): Remove FIXME question.
+
+	* mh-mime.el (mh-decode-message-subject): Fix case of Subject.
+
+	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
+	(mh-make-folder): Replace calls to switch-to-buffer with of
+	pop-to-buffer.  The former is intended for interactive use only
+	and generates warnings in Emacs 24.
+
+2011-07-09  Bill Wohler  <wohler@newt.com>
+
+	* mh-speed.el (mh-speed-toggle,mh-speed-view): Document "ignored"
+	arguments to keep checkdoc happy.
+
+	* mh-search.el (mh-flists-execute): Ditto.
+
+	* mh-funcs.el (mh-undo-folder): Ditto.
+
+	* mh-comp.el (mh-user-agent-compose): Ditto.
+
+	* mh-xface.el (mh-face-to-png, mh-uncompface)
+	(mh-picon-file-contents): Only call set-buffer-multibyte if it
+	exists, which it doesn't in XEmacs.
+
 2011-07-04  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el: Just require mh-loaddefs since loading it in an
 	eval-and-compile block causes compilation errors in XEmacs.
 
-	* mh-acros.el, 	mh-comp.el, mh-e.el, mh-folder.el, mh-letter.el:
+	* mh-acros.el, mh-comp.el, mh-e.el, mh-folder.el, mh-letter.el:
 	* mh-mime.el, mh-search.el, mh-seq.el: Shush XEmacs compiler in
 	mh-do-in-xemacs block.
 
@@ -14,7 +107,7 @@
 
 	* mh-letter.el (mh-letter-mode-map, mh-letter-complete)
 	(mh-complete-word): Remove FIXME comments since these functions
-	are still needed in other Emacsen. However, they can probably
+	are still needed in other Emacsen.  However, they can probably
 	stand to be generalized like completion-at-point.
 	(mh-letter-complete-or-space): Remove unused variable.
 
@@ -29,7 +122,7 @@
 	* mh-mime.el: Shush XEmacs compiler in mh-do-in-xemacs block.
 
 	* mh-folder.el: Use boundp instead of fboundp when testing
-	existence of desktop-buffer-mode-handlers.
+	existence of desktop-buffer-mode-handlers (closes SF #1510145).
 
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
@@ -80,7 +173,7 @@
 2010-05-14  Peter S Galbraith  <psg@debian.org>
 
 	* mh-mime.el (mh-decode-message-subject): New function to decode
-	RFC2047 encoded Subject lines. Used for reply drafts.
+	RFC2047 encoded Subject lines.  Used for reply drafts.
 	* mh-comp.el (mh-compose-and-send-mail): Call
 	`mh-decode-message-subject' on (reply or forward) message drafts.
 
@@ -139,7 +232,8 @@
 	(mh-handle-process-error, mh-variant-info):
 	* mh-comp.el (mh-forward):
 	* mh-alias.el (mh-alias-local-users, mh-alias-which-file-has-alias):
-	(mh-alias-add-alias-to-file): Use with-current-buffer.
+	(mh-alias-add-alias-to-file): Use with-current-buffer (closes SF
+	#1903293).
 
 2009-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -265,7 +359,7 @@
 
 2008-06-20  Stephen Eglen  <stephen@gnu.org>
 
-	* mh-show.el (mh-defun-show-buffer): Use `...' rather than than
+	* mh-show.el (mh-defun-show-buffer): Use `...' rather than
 	"..." in generated docstrings.
 
 2008-06-12  Glenn Morris  <rgm@gnu.org>
@@ -2581,7 +2675,7 @@
 
 	Follow MH-E Developers Guide conventions.  Use `' quotes for Help
 	hyperlinks such as symbols, Info nodes, or URLs.  Use \" quotes for
-	everything else.  Otherwise, you can accidently get links to
+	everything else.  Otherwise, you can accidentally get links to
 	nonsense symbols.
 
 2005-12-22  Bill Wohler  <wohler@newt.com>
@@ -3341,7 +3435,7 @@
 	* ChangeLog.1: New file.  Contains old ChangeLog.
 
 
-	Copyright (C) 2005-2011  Free Software Foundation, Inc.
+	Copyright (C) 2005-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -3363,4 +3457,3 @@
 ;; sentence-end-double-space: nil
 ;; add-log-time-zone-rule: t
 ;; End:
-

@@ -1,6 +1,6 @@
 ;;; ede/autoconf-edit.el --- Keymap for autoconf
 
-;; Copyright (C) 1998-2000, 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project
@@ -191,7 +191,7 @@ This is to make it compatible with `autoconf-find-last-macro'.
 Assume that MACRO doesn't appear in the buffer yet, so search
 the ordering list `autoconf-preferred-macro-order'."
   ;; Search this list backwards.. heh heh heh
-  ;; This lets us do a reverse search easilly.
+  ;; This lets us do a reverse search easily.
   (let ((ml (member macro (reverse autoconf-preferred-macro-order))))
     (if (not ml) (error "Don't know how to position for %s yet" macro))
     (setq ml (cdr ml))

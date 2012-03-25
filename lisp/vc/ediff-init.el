@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -81,7 +81,7 @@ that Ediff doesn't know about.")
 ;; so that `kill-all-local-variables' (called by major-mode setting
 ;; commands) won't destroy Ediff control variables.
 ;;
-;; Plagiarised from `emerge-defvar-local' for XEmacs.
+;; Plagiarized from `emerge-defvar-local' for XEmacs.
 (defmacro ediff-defvar-local (var value doc)
   "Defines VAR as a local variable."
   (declare (indent defun))
@@ -370,7 +370,7 @@ It needs to be killed when we quit the session.")
 	     this-command)))
 
 (defgroup ediff-highlighting nil
-  "Hilighting of difference regions in Ediff."
+  "Highlighting of difference regions in Ediff."
   :prefix "ediff-"
   :group 'ediff)
 
@@ -1340,11 +1340,9 @@ this variable represents.")
 		    ovr-list))))))))
 
 
-(defvar ediff-toggle-read-only-function nil
-  "*Specifies the function to be used to toggle read-only.
-If nil, Ediff tries to deduce the function from the binding of C-x C-q.
-Normally, this is the `toggle-read-only' function, but, if version
-control is used, it could be `vc-toggle-read-only' or `rcs-toggle-read-only'.")
+(defvar ediff-toggle-read-only-function 'toggle-read-only
+  "Function to be used to toggle read-only status of the buffer.
+If nil, Ediff tries using the command bound to C-x C-q.")
 
 (defcustom ediff-make-buffers-readonly-at-startup nil
   "Make all variant buffers read-only when Ediff starts up.
@@ -1745,8 +1743,10 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 ;; If ediff modified mode line, strip the modification
 (defsubst ediff-strip-mode-line-format ()
-  (if (member (car mode-line-format) '(" A: " " B: " " C: " " Ancestor: "))
-      (setq mode-line-format (nth 2 mode-line-format))))
+  (and (consp mode-line-format)
+       (member (car mode-line-format)
+	       '(" A: " " B: " " C: " " Ancestor: "))
+       (setq mode-line-format (nth 2 mode-line-format))))
 
 ;; Verify that we have a difference selected.
 (defsubst ediff-valid-difference-p (&optional n)

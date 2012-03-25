@@ -1,6 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -861,7 +861,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		       expr-p)
 		   (progn
 		     ;; Line is continuation line, or the sexp opener
-		     ;; is not a curly brace, or we are are looking at
+		     ;; is not a curly brace, or we are looking at
 		     ;; an `expr' expression (which must be split
 		     ;; specially).  So indentation is column of first
 		     ;; good spot after sexp opener (with some added

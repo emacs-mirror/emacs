@@ -1,6 +1,6 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Copyright (C) 1993-1998, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1998, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author:          1993-1998 Barry A. Warsaw
 ;; Maintainer:      FSF
@@ -332,12 +332,11 @@ mail-sending package is used for editing and sending the message."
 	hookvar)
     ;; do the work
     (require 'sendmail)
+    ;; Just in case the original buffer is not visible now, bring it
+    ;; back somewhere
+    (display-buffer reporter-eval-buffer)
     ;; If mailbuf did not get made visible before, make it visible now.
-    (let (same-window-buffer-names same-window-regexps)
-      (pop-to-buffer mailbuf)
-      ;; Just in case the original buffer is not visible now, bring it
-      ;; back somewhere
-      (and pop-up-windows (display-buffer reporter-eval-buffer)))
+    (pop-to-buffer mailbuf)
     (goto-char (point-min))
     (mail-position-on-field "to")
     (insert address)

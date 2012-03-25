@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993-1995, 1997, 1999-2011 Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 1997, 1999-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1625,7 +1625,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 
 DEFUN ("text-property-any", Ftext_property_any,
        Stext_property_any, 4, 5, 0,
-       doc: /* Check text from START to END for property PROPERTY equalling VALUE.
+       doc: /* Check text from START to END for property PROPERTY equaling VALUE.
 If so, return the position of the first character whose property PROPERTY
 is `eq' to VALUE.  Otherwise return nil.
 If the optional fifth argument OBJECT is a buffer (or nil, which means
@@ -1661,7 +1661,7 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
 
 DEFUN ("text-property-not-all", Ftext_property_not_all,
        Stext_property_not_all, 4, 5, 0,
-       doc: /* Check text from START to END for property PROPERTY not equalling VALUE.
+       doc: /* Check text from START to END for property PROPERTY not equaling VALUE.
 If so, return the position of the first character whose property PROPERTY
 is not `eq' to VALUE.  Otherwise, return nil.
 If the optional fifth argument OBJECT is a buffer (or nil, which means
@@ -2227,7 +2227,7 @@ This also inhibits the use of the `intangible' text property.  */);
 
   DEFVAR_LISP ("text-property-default-nonsticky",
 	       Vtext_property_default_nonsticky,
-	       doc: /* Alist of properties vs the corresponding non-stickinesses.
+	       doc: /* Alist of properties vs the corresponding non-stickiness.
 Each element has the form (PROPERTY . NONSTICKINESS).
 
 If a character in a buffer has PROPERTY, new text inserted adjacent to

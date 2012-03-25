@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994-1995, 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2012  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -105,8 +105,8 @@
 ;; should be loaded before the ada-mode, which will then setup some variables
 ;; to improve the support for Ada code.
 ;; Here is the list of these modes:
-;;   `which-function-mode': Display the name of the subprogram the cursor is
-;;      in in the mode line.
+;;   `which-function-mode': Display in the modeline the name of the subprogram
+;;      the cursor is in.
 ;;   `outline-mode': Provides the capability to collapse or expand the code
 ;;      for specific language constructs, for instance if you want to hide the
 ;;      code corresponding to a subprogram
@@ -499,7 +499,7 @@ Used to define `ada-*-keywords.'"))
 
 (defvar ada-case-exception-substring '()
   "Alist of substrings (entities) that have special casing.
-The substrings are detected for word constituant when the word
+The substrings are detected for word constituent when the word
 is not itself in `ada-case-exception', and only for substrings that
 either are at the beginning or end of the word, or start after '_'.")
 
@@ -826,7 +826,7 @@ the 4 file locations can be clicked on and jumped to."
 ;; to be considered as part of a word or not.
 ;; Some characters may have multiple meanings depending on the context:
 ;;  - ' is either the beginning of a constant character or an attribute
-;;  - # is either part of a based litteral or a gnatprep statement.
+;;  - # is either part of a based literal or a gnatprep statement.
 ;;  - " starts a string, but not if inside a constant character.
 ;;  - ( and ) should be ignored if inside a constant character.
 ;; Thus their syntax property is changed automatically, and we can still use
@@ -1694,7 +1694,7 @@ ARG is ignored, and is there for compatibility with `capitalize-word' only."
 (defun ada-no-auto-case (&optional _arg)
   "Do nothing.  ARG is ignored.
 This function can be used for the auto-casing variables in Ada mode, to
-adapt to unusal auto-casing schemes.  Since it does nothing, you can for
+adapt to unusual auto-casing schemes.  Since it does nothing, you can for
 instance use it for `ada-case-identifier' if you don't want any special
 auto-casing for identifiers, whereas keywords have to be lower-cased.
 See also `ada-auto-case' to disable auto casing altogether."
@@ -1773,7 +1773,7 @@ ATTENTION: This function might take very long for big buffers!"
 ;;    `ada-insert-paramlist'.
 ;; Both steps are called from `ada-format-paramlist'.
 ;; Note: Comments inside the parameter list are lost.
-;;       The syntax has to be correct, or the reformating will fail.
+;;       The syntax has to be correct, or the reformatting will fail.
 ;;--------------------------------------------------------------
 
 (defun ada-format-paramlist ()
@@ -2139,7 +2139,7 @@ command like:
 
   (while command-line-args-left
     (let ((source (car command-line-args-left)))
-      (message "Formating %s" source)
+      (message "Formatting %s" source)
       (find-file source)
       (ada-indent-region (point-min) (point-max))
       (ada-adjust-case-buffer)
@@ -3939,7 +3939,7 @@ If NOERROR is non-nil, it only returns nil if no matching start found."
        ;; processing them recursively avoids the need for any special
        ;; handling.
        ;; Nothing should be done if we have only the specs or a
-       ;; generic instantion.
+       ;; generic instantiation.
 
        ((and (looking-at "\\<procedure\\|function\\>"))
 	(if first
@@ -4401,7 +4401,7 @@ Moves to 'begin' if in a declarative part."
           (ada-goto-matching-end 1))
 
          ;; on first line of subprogram body
-         ;; Do nothing for specs or generic instantion, since these are
+         ;; Do nothing for specs or generic instantiation, since these are
          ;; handled as the general case (find the enclosing block)
          ;; We also need to make sure that we ignore nested subprograms
          ((save-excursion

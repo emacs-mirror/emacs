@@ -9,7 +9,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 2007-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -332,7 +332,7 @@ Example:
 @code{method}, @code{signal}, and @code{property} elements.  Unlike
 properties, which can change their values during lifetime of a D-Bus
 object, annotations are static.  Often they are used for code
-generators of D-Bus langugae bindings.  Example:
+generators of D-Bus language bindings.  Example:
 
 @example
 <annotation name="de.berlios.Pinot.GetStatistics" value="pinotDBus"/>
@@ -553,7 +553,7 @@ data from a running system:
 @node Methods and Signal
 @section Applying the functionality.
 
-Methods and signals are the communicatione means to D-Bus.  The
+Methods and signals are the communication means to D-Bus.  The
 following functions return their specifications.
 
 @defun dbus-introspect-get-method-names bus service path interface
@@ -1606,9 +1606,10 @@ D-Bus @var{bus}.
 
 @var{service} is the D-Bus service name used by the sending D-Bus
 object.  It can be either a known name or the unique name of the D-Bus
-object sending the signal.  In case of a unique name, signals won't be
-received any longer once the object owning this unique name has
-disappeared, and a new queued object has replaced it.
+object sending the signal.  A known name will be mapped onto the
+unique name of the object, owning @var{service} at registration time.
+When the corresponding D-Bus object disappears, signals won't be
+received any longer.
 
 When @var{service} is @code{nil}, related signals from all D-Bus
 objects shall be accepted.
@@ -1677,7 +1678,7 @@ Establish the connection to D-Bus @var{bus}.
 
 @var{bus} can be either the symbol @code{:system} or the symbol
 @code{:session}, or it can be a string denoting the address of the
-corresponding bus.  For the system and session busses, this function
+corresponding bus.  For the system and session buses, this function
 is called when loading @file{dbus.el}, there is no need to call it
 again.
 
@@ -1816,7 +1817,7 @@ handled by a hook function.
 @defvar dbus-event-error-hooks
 This hook variable keeps a list of functions, which are called when a
 D-Bus error happens in the event handler.  Every function must accept
-two arguments, the event and the error variable catched in
+two arguments, the event and the error variable caught in
 @code{condition-case} by @code{dbus-error}.
 
 Such functions can be used the adapt the error signal to be raised.

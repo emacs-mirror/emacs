@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system
 
-;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Keywords: vc tools
@@ -116,13 +116,18 @@
 
 ;;; Customization options
 
+(defgroup vc-hg nil
+  "VC Mercurial (hg) backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-hg-global-switches nil
   "Global switches to pass to any Hg command."
   :type '(choice (const :tag "None" nil)
          (string :tag "Argument String")
          (repeat :tag "Argument List" :value ("") string))
   :version "22.2"
-  :group 'vc)
+  :group 'vc-hg)
 
 (defcustom vc-hg-diff-switches t ; Hg doesn't support common args like -u
   "String or list of strings specifying switches for Hg diff under VC.
@@ -132,12 +137,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
   :version "23.1"
-  :group 'vc)
+  :group 'vc-hg)
 
 (defcustom vc-hg-program "hg"
   "Name of the Mercurial executable (excluding any arguments)."
   :type 'string
-  :group 'vc)
+  :group 'vc-hg)
 
 (defcustom vc-hg-root-log-format
   '("{rev}:{tags}: {author|person} {date|shortdate} {desc|firstline}\\n"
@@ -153,7 +158,7 @@ REGEXP is a regular expression matching the resulting Mercurial
 output, and KEYWORDS is a list of `font-lock-keywords' for
 highlighting the Log View buffer."
   :type '(list string string (repeat sexp))
-  :group 'vc
+  :group 'vc-hg
   :version "24.1")
 
 
@@ -216,50 +221,19 @@ highlighting the Log View buffer."
              ((eq state ?R) 'removed)
              ((eq state ?!) 'missing)
              ((eq state ??) 'unregistered)
-             ((eq state ?C) 'up-to-date) ;; Older mercurials use this
+             ((eq state ?C) 'up-to-date) ;; Older mercurial versions use this.
              (t 'up-to-date)))))))
 
 (defun vc-hg-working-revision (file)
   "Hg-specific version of `vc-working-revision'."
-  (let*
-      ((status nil)
-       (default-directory (file-name-directory file))
-       ;; Avoid localization of messages so we can parse the output.
-       (avoid-local-env (append (list "TERM=dumb" "LANGUAGE=C")
-				     process-environment))
-       (out
-        (with-output-to-string
-          (with-current-buffer
-              standard-output
-            (setq status
-                  (condition-case nil
-		      (let ((process-environment avoid-local-env))
-			;; Ignore all errors.
-			(process-file
-			 vc-hg-program nil t nil
-			 "--config" "alias.parents=parents"
-			 "--config" "defaults.parents="
-			 "parents" "--template" "{rev}" (file-relative-name file)))
-                    ;; Some problem happened.  E.g. We can't find an `hg'
-                    ;; executable.
-                    (error nil)))))))
-    (if (eq 0 status)
-	out
-      ;; Check if the file is in the 'added state, the above hg
-      ;; command does not distinguish between 'added and 'unregistered.
-      (setq status
-	    (condition-case nil
-		(let ((process-environment avoid-local-env))
-		  (process-file
-		   vc-hg-program nil nil nil
-		   ;; We use "log" here, if there's a faster command
-		   ;; that returns true for an 'added file and false
-		   ;; for an 'unregistered one, we could use that.
-		   "log" "-l1" (file-relative-name file)))
-	      ;; Some problem happened.  E.g. We can't find an `hg'
-	      ;; executable.
-	      (error nil)))
-      (when (eq 0 status) "0"))))
+  (let ((default-directory (if (file-directory-p file)
+                               (file-name-as-directory file)
+                             (file-name-directory file))))
+    (ignore-errors
+      (with-output-to-string
+        (process-file vc-hg-program nil standard-output nil
+                      "log" "-l" "1" "--template" "{rev}"
+                      (file-relative-name file))))))
 
 ;;; History functions
 

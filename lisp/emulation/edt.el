@@ -1,6 +1,6 @@
 ;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs
 
-;; Copyright (C) 1986, 1992-1995, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992-1995, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
@@ -2362,7 +2362,7 @@ Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
   (edt-bind-gold-key-default  "\C-h" 'help-for-help); Just in case.
   (edt-bind-gold-key-default  [f1] 'help-for-help)
   (edt-bind-gold-key-default  [help] 'help-for-help)
-  (edt-bind-gold-key-default  "\C-\\" 'split-window-vertically)
+  (edt-bind-gold-key-default  "\C-\\" 'split-window-below)
 
   ;; GOLD bindings for regular keys.
   (edt-bind-gold-key-default "a" 'edt-key-not-assigned)
@@ -2484,7 +2484,7 @@ Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
   F10: Cut Rectangle
 G-F10: Paste Rectangle
   F11: ESC
-  F12: Begining of Line           +----------+----------+----------+----------+
+  F12: Beginning of Line          +----------+----------+----------+----------+
 G-F12: Delete Other Windows       |   GOLD   |   HELP   |  FNDNXT  |  DEL L   |
   F13: Delete to Begin of Word    |   (PF1)  |   (PF2)  |   (PF3)  |  (PF4)   |
  HELP: Keypad Help                |Mark Wisel|Desc Funct|   FIND   |  UND L   |

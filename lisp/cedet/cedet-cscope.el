@@ -1,6 +1,6 @@
 ;;; cedet-cscope.el --- CScope support for CEDET
 
-;;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Package: cedet
@@ -135,8 +135,8 @@ the error code."
 
 (defun cedet-cscope-version-check (&optional noerror)
   "Check the version of the installed CScope command.
-If optional programatic argument NOERROR is non-nil, then
-instead of throwing an error if CScope isn't available, then
+If optional programmatic argument NOERROR is non-nil,
+then instead of throwing an error if CScope isn't available,
 return nil."
   (interactive)
   (require 'inversion)

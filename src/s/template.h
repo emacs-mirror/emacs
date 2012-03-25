@@ -2,7 +2,7 @@
    This file describes the parameters that system description files
    should define or not.
 
-Copyright (C) 1985-1986, 1992, 1999, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1992, 1999, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
@@ -515,12 +515,12 @@ See `whitespace-buffer' docstring for a summary of the problems."
   (whitespace-check-whitespace-mode current-prefix-arg)
   (if (and buffer-file-name whitespace-mode)
       (let ((whitespace-any nil)
-	    (whitespace-tabwith 8)
-	    (whitespace-tabwith-saved tab-width))
+	    (whitespace-tabwidth 8)
+	    (whitespace-tabwidth-saved tab-width))
 
 	;; since all printable TABS should be 8, irrespective of how
 	;; they are displayed.
-	(setq tab-width whitespace-tabwith)
+	(setq tab-width whitespace-tabwidth)
 
 	(if (and whitespace-check-buffer-leading
 		 (whitespace-buffer-leading))
@@ -562,7 +562,7 @@ See `whitespace-buffer' docstring for a summary of the problems."
 		  (message "The region is now clean")
 		(message "%s is now clean" buffer-file-name)))
 	    (whitespace-update-modeline)))
-	(setq tab-width whitespace-tabwith-saved))))
+	(setq tab-width whitespace-tabwidth-saved))))
 
 ;;;###autoload
 (defun whitespace-cleanup-region (s e)

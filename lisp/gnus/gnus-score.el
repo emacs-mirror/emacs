@@ -1,6 +1,6 @@
 ;;; gnus-score.el --- scoring code for Gnus
 
-;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -522,9 +522,10 @@ of the last successful match.")
 (defun gnus-summary-lower-score (&optional score symp)
   "Make a score entry based on the current article.
 The user will be prompted for header to score on, match type,
-permanence, and the string to be used.  The numerical prefix will be
-used as score.  A symbolic prefix of `a' says to use the `all.SCORE'
-file for the command instead of the current score file."
+permanence, and the string to be used.  The numerical prefix will
+be used as SCORE.  A symbolic prefix of `a' (the SYMP parameter)
+says to use the `all.SCORE' file for the command instead of the
+current score file."
   (interactive (gnus-interactive "P\ny"))
   (gnus-summary-increase-score (- (gnus-score-delta-default score)) symp))
 
@@ -537,9 +538,10 @@ file for the command instead of the current score file."
 (defun gnus-summary-increase-score (&optional score symp)
   "Make a score entry based on the current article.
 The user will be prompted for header to score on, match type,
-permanence, and the string to be used.  The numerical prefix will be
-used as score.  A symbolic prefix of `a' says to use the `all.SCORE'
-file for the command instead of the current score file."
+permanence, and the string to be used.  The numerical prefix will
+be used as SCORE.  A symbolic prefix of `a' (the SYMP parameter)
+says to use the `all.SCORE' file for the command instead of the
+current score file."
   (interactive (gnus-interactive "P\ny"))
   (let* ((nscore (gnus-score-delta-default score))
 	 (prefix (if (< nscore 0) ?L ?I))
@@ -2834,8 +2836,7 @@ The list is determined from the variable `gnus-score-file-alist'."
       ;; handle the multiple match alist
       (while alist
 	(when (string-match (caar alist) group)
-	  (setq score-files
-		(nconc score-files (copy-sequence (cdar alist)))))
+	  (setq score-files (append (cdar alist) score-files)))
 	(setq alist (cdr alist)))
       (setq alist gnus-score-file-single-match-alist)
       ;; handle the single match alist
@@ -2845,8 +2846,7 @@ The list is determined from the variable `gnus-score-file-alist'."
 	  ;; and score-files is still nil.  -sj
 	  ;; this can be construed as a "stop searching here" feature :>
 	  ;; and used to simplify regexps in the single-alist
-	  (setq score-files
-		(nconc score-files (copy-sequence (cdar alist))))
+	  (setq score-files (append (cdar alist) score-files))
 	  (setq alist nil))
 	(setq alist (cdr alist)))
       ;; cache the score files
@@ -2866,7 +2866,7 @@ The list is determined from the variable `gnus-score-file-alist'."
       (when gnus-score-use-all-scores
 	;; Get the initial score files for this group.
 	(when funcs
-	  (setq score-files (nreverse (gnus-score-find-alist group))))
+	  (setq score-files (copy-sequence (gnus-score-find-alist group))))
 	;; Add any home adapt files.
 	(let ((home (gnus-home-score-file group t)))
 	  (when home
@@ -3013,7 +3013,7 @@ If ADAPT, return the home adaptive file instead."
 
 (defun gnus-current-home-score-file (group)
   "Return the \"current\" regular score file."
-  (car (nreverse (gnus-score-find-alist group))))
+  (car (gnus-score-find-alist group)))
 
 ;;;
 ;;; Score decays
@@ -3028,7 +3028,7 @@ If ADAPT, return the home adaptive file instead."
 			   (* (abs score)
 			      gnus-score-decay-scale)))))))
     (if (and (featurep 'xemacs)
-	     ;; XEmacs' floor can handle only the floating point
+	     ;; XEmacs's floor can handle only the floating point
 	     ;; number below the half of the maximum integer.
 	     (> (abs n) (lsh -1 -2)))
 	(string-to-number

@@ -1,6 +1,6 @@
 ;;; vc-sccs.el --- support for SCCS version-control
 
-;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -47,6 +47,11 @@
 ;;   :type '(repeat directory)
 ;;   :group 'vc)
 
+(defgroup vc-sccs nil
+  "VC SCCS backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-sccs-register-switches nil
   "Switches for registering a file in SCCS.
 A string or list of strings passed to the checkin program by
@@ -57,7 +62,7 @@ If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-sccs)
 
 (defcustom vc-sccs-diff-switches nil
   "String or list of strings specifying switches for SCCS diff under VC.
@@ -67,13 +72,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-sccs)
 
 (defcustom vc-sccs-header '("%W%")
   "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
-  :group 'vc)
+  :group 'vc-sccs)
 
 ;;;###autoload
 (defcustom vc-sccs-master-templates
@@ -86,7 +91,7 @@ For a description of possible values, see `vc-check-master-templates'."
 			 (choice string
 				 function)))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-sccs)
 
 
 ;;;
@@ -359,9 +364,9 @@ revert all subfiles."
 ;;; our own set of name-to-revision mappings.
 ;;;
 
-(defun vc-sccs-create-tag (backend dir name branchp)
+(defun vc-sccs-create-tag (dir name branchp)
   (when branchp
-    (error "SCCS backend %s does not support module branches" backend))
+    (error "SCCS backend does not support module branches"))
   (let ((result (vc-tag-precondition dir)))
     (if (stringp result)
 	(error "File %s is not up-to-date" result)

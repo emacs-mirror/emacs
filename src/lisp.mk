@@ -1,6 +1,6 @@
 ### lisp.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2011
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2012
 ##   Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.

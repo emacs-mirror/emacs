@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -27,7 +27,7 @@
 ;; to the corresponding source file.
 
 ;; Inspired by Pavel Machek's patch-mode.el (<pavel@@atrey.karlin.mff.cuni.cz>)
-;; Some efforts were spent to have it somewhat compatible with XEmacs'
+;; Some efforts were spent to have it somewhat compatible with XEmacs's
 ;; diff-mode as well as with compilation-minor-mode
 
 ;; Bugs:
@@ -121,7 +121,7 @@ when editing big diffs)."
     ("{" . diff-file-prev)
     ("\C-m" . diff-goto-source)
     ([mouse-2] . diff-goto-source)
-    ;; From XEmacs' diff-mode.
+    ;; From XEmacs's diff-mode.
     ("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
     ;;("f" . diff-goto-source)		;find-file
@@ -146,7 +146,7 @@ when editing big diffs)."
                ;; but not all since they may hide useful M-<foo> global
                ;; bindings when editing.
                (set-keymap-parent map diff-mode-shared-map)
-               (dolist (key '("A" "r" "R" "g" "q" "W"))
+               (dolist (key '("A" "r" "R" "g" "q" "W" "z"))
                  (define-key map key nil))
                map))
     ;; From compilation-minor-mode.
@@ -225,12 +225,19 @@ when editing big diffs)."
   "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'.")
 
 (define-minor-mode diff-auto-refine-mode
-  "Automatically highlight changes in detail as the user visits hunks.
-When transitioning from disabled to enabled,
-try to refine the current hunk, as well."
+  "Toggle automatic diff hunk highlighting (Diff Auto Refine mode).
+With a prefix argument ARG, enable Diff Auto Refine mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
+
+Diff Auto Refine mode is a buffer-local minor mode used with
+`diff-mode'.  When enabled, Emacs automatically highlights
+changes in detail as the user visits hunks.  When transitioning
+from disabled to enabled, it tries to refine the current hunk, as
+well."
   :group 'diff-mode :init-value t :lighter nil ;; " Auto-Refine"
   (when diff-auto-refine-mode
-    (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
+    (condition-case-unless-debug nil (diff-refine-hunk) (error nil))))
 
 ;;;;
 ;;;; font-lock support
@@ -535,7 +542,7 @@ but in the file header instead, in which case move forward to the first hunk."
 (easy-mmode-define-navigation
  diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
  (if diff-auto-refine-mode
-     (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
+     (condition-case-unless-debug nil (diff-refine-hunk) (error nil))))
 
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-hunk)
@@ -808,9 +815,11 @@ PREFIX is only used internally: don't use it."
 	    (diff-find-file-name old noprompt (match-string 1)))
        ;; if all else fails, ask the user
        (unless noprompt
-         (let ((file (read-file-name (format "Use file %s: "
-                                             (or (first fs) ""))
-                                     nil (first fs) t (first fs))))
+         (let ((file (expand-file-name (or (first fs) ""))))
+	   (setq file
+		 (read-file-name (format "Use file %s: " file)
+				 (file-name-directory file) file t
+				 (file-name-nondirectory file)))
            (set (make-local-variable 'diff-remembered-files-alist)
                 (cons (cons fs file) diff-remembered-files-alist))
            file))))))
@@ -1306,7 +1315,11 @@ a diff with \\[diff-reverse-direction].
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode
-  "Minor mode for viewing/editing context diffs.
+  "Toggle Diff minor mode.
+With a prefix argument ARG, enable Diff minor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 \\{diff-minor-mode-map}"
   :group 'diff-mode :lighter " Diff"
   ;; FIXME: setup font-lock

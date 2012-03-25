@@ -1,5 +1,5 @@
 /* syssignal.h - System-dependent definitions for signals.
-   Copyright (C) 1993, 1999, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1993, 1999, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,7 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 extern void init_signals (void);
 
-#if defined (HAVE_GTK_AND_PTHREAD) || defined (HAVE_NS)
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 /* If defined, asynchronous signals delivered to a non-main thread are
    forwarded to the main thread.  */
@@ -39,7 +39,7 @@ extern sigset_t empty_mask;
 
 /* POSIX pretty much destroys any possibility of writing sigmask as a
    macro in standard C.  We always define our own version because the
-   predefined macro in Glibc 2.1 is only provided for compatility for old
+   predefined macro in Glibc 2.1 is only provided for compatibility for old
    programs that use int as signal mask type.  */
 #undef sigmask
 #ifdef __GNUC__

@@ -1,5 +1,5 @@
 /* Functions to manipulate keymaps.
-   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef KEYMAP_H
 #define KEYMAP_H
 
+/* The maximum byte size consumed by push_key_description.
+   All callers should assure that at least this size of memory is
+   allocated at the place pointed by the second argument.
+
+   There are 6 modifiers, each consumes 2 chars.
+   The octal form of a character code consumes
+   (1 + CHARACTERBITS / 3 + 1) chars (including backslash at the head).
+   We need one more byte for string terminator `\0'.  */
+#define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
+
 #define KEYMAPP(m) (!NILP (get_keymap (m, 0, 0)))
 extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object Qremap;
@@ -30,6 +40,7 @@ EXFUN (Fdefine_key, 3);
 EXFUN (Fcommand_remapping, 3);
 EXFUN (Fkey_binding, 4);
 EXFUN (Fkey_description, 2);
+extern char *push_key_description (EMACS_INT, char *, int);
 EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 5);
 EXFUN (Fcurrent_active_maps, 2);
@@ -38,7 +49,7 @@ extern Lisp_Object get_keymap (Lisp_Object, int, int);
 EXFUN (Fset_keymap_parent, 2);
 extern int describe_map_tree (Lisp_Object, int, Lisp_Object, Lisp_Object,
 			      const char *, int, int, int, int);
-extern int current_minor_maps (Lisp_Object **, Lisp_Object **);
+extern ptrdiff_t current_minor_maps (Lisp_Object **, Lisp_Object **);
 extern void initial_define_key (Lisp_Object, int, const char *);
 extern void initial_define_lispy_key (Lisp_Object, const char *, const char *);
 extern void syms_of_keymap (void);

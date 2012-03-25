@@ -1,11 +1,10 @@
 ;;; ob-haskell.el --- org-babel functions for haskell evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -51,6 +50,7 @@
 (declare-function inferior-haskell-load-file
 		  "ext:inf-haskell" (&optional reload))
 
+(defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("haskell" . "hs"))
 
 (defvar org-babel-default-header-args:haskell '())
@@ -79,7 +79,7 @@
                    (cdr (member org-babel-haskell-eoe
                                 (reverse (mapcar #'org-babel-trim raw)))))))
     (org-babel-reassemble-table
-     (cond 
+     (cond
       ((equal result-type 'output)
        (mapconcat #'identity (reverse (cdr results)) "\n"))
       ((equal result-type 'value)
@@ -191,7 +191,7 @@ constructs (header arguments, no-web syntax etc...) are ignored."
     (save-excursion
       ;; export to latex w/org and save as .lhs
       (find-file tmp-org-file) (funcall 'org-export-as-latex nil)
-      (kill-buffer)
+      (kill-buffer nil)
       (delete-file tmp-org-file)
       (find-file tmp-tex-file)
       (goto-char (point-min)) (forward-line 2)
@@ -201,7 +201,7 @@ constructs (header arguments, no-web syntax etc...) are ignored."
         (replace-match (save-match-data (org-remove-indentation (match-string 0)))
                        t t))
       (setq contents (buffer-string))
-      (save-buffer) (kill-buffer))
+      (save-buffer) (kill-buffer nil))
     (delete-file tmp-tex-file)
     ;; save org exported latex to a .lhs file
     (with-temp-file lhs-file (insert contents))
@@ -211,6 +211,7 @@ constructs (header arguments, no-web syntax etc...) are ignored."
       (message "running %s" command) (shell-command command) (find-file tex-file))))
 
 (provide 'ob-haskell)
+
 
 
 ;;; ob-haskell.el ends here

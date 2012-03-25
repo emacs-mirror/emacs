@@ -1,6 +1,6 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
-;; Copyright (C) 1989, 1993-1995, 1997, 2000-2011
+;; Copyright (C) 1989, 1993-1995, 1997, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -424,10 +424,10 @@ format the string."
 	  (let ((ts-real-time-zone (getenv "TZ")))
 	    (unwind-protect
 		(progn
-		  (set-time-zone-rule time-stamp-time-zone)
+		  (setenv "TZ" time-stamp-time-zone)
 		  (format-time-string
 		   (time-stamp-string-preprocess ts-format)))
-	      (set-time-zone-rule ts-real-time-zone)))
+	      (setenv "TZ" ts-real-time-zone)))
 	(format-time-string
 	 (time-stamp-string-preprocess ts-format)))
     ;; handle version 1 compatibility

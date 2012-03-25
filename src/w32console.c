@@ -1,5 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1999, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -748,7 +748,7 @@ syms_of_ntterm (void)
 	       doc: /* Non-nil means make terminal frames use the full screen buffer dimensions.
 This is desirable when running Emacs over telnet.
 A value of nil means use the current console window dimensions; this
-may be preferrable when working directly at the console with a large
+may be preferable when working directly at the console with a large
 scroll-back buffer.  */);
   w32_use_full_screen_buffer = 0;
 
@@ -757,4 +757,3 @@ scroll-back buffer.  */);
   defsubr (&Sset_cursor_size);
   defsubr (&Sset_message_beep);
 }
-

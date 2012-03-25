@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2011 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -258,11 +258,11 @@ struct frame
 
   /* Size of this frame, excluding fringes, scroll bars etc.,
      in units of canonical characters.  */
-  EMACS_INT text_lines, text_cols;
+  int text_lines, text_cols;
 
   /* Total size of this frame (i.e. its native window), in units of
      canonical characters.  */
-  EMACS_INT total_lines, total_cols;
+  int total_lines, total_cols;
 
   /* New text height and width for pending size change.
      0 if no change pending.  */
@@ -371,7 +371,7 @@ struct frame
      if greater than 1, then the frame is obscured - we still consider
      it to be "visible" as seen from lisp, but we don't bother
      updating it.  We must take care to garbage the frame when it
-     ceaces to be obscured though.
+     ceases to be obscured though.
 
      iconified is nonzero if the frame is currently iconified.
 
@@ -538,12 +538,12 @@ typedef struct frame *FRAME_PTR;
    does not have FRAME_X_DISPLAY_INFO.  */
 #ifdef HAVE_WINDOW_SYSTEM
 # define MOUSE_HL_INFO(F)					\
-   (FRAME_WINDOW_P(F)						\
-    ? &(FRAME_X_DISPLAY_INFO(F)->mouse_highlight)		\
-    : &(((F)->output_data.tty->display_info)->mouse_highlight))
+  (FRAME_WINDOW_P(F)						\
+   ? &FRAME_X_DISPLAY_INFO(F)->mouse_highlight			\
+   : &(F)->output_data.tty->display_info->mouse_highlight)
 #else
 # define MOUSE_HL_INFO(F)					\
-    (&(((F)->output_data.tty->display_info)->mouse_highlight))
+  (&(F)->output_data.tty->display_info->mouse_highlight)
 #endif
 
 /* Nonzero if frame F is still alive (not deleted).  */
@@ -594,7 +594,7 @@ typedef struct frame *FRAME_PTR;
 /* Lines above the top-most window in frame F.  */
 
 #define FRAME_TOP_MARGIN(F) \
-     (FRAME_MENU_BAR_LINES (F) + FRAME_TOOL_BAR_LINES (F))
+  (FRAME_MENU_BAR_LINES (F) + FRAME_TOOL_BAR_LINES (F))
 
 /* Pixel height of the top margin above.  */
 
@@ -659,11 +659,11 @@ typedef struct frame *FRAME_PTR;
    and which side they are on.  */
 #define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((f)->vertical_scroll_bar_type)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS(f) \
-     ((f)->vertical_scroll_bar_type != vertical_scroll_bar_none)
+  ((f)->vertical_scroll_bar_type != vertical_scroll_bar_none)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) \
-     ((f)->vertical_scroll_bar_type == vertical_scroll_bar_left)
+  ((f)->vertical_scroll_bar_type == vertical_scroll_bar_left)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) \
-     ((f)->vertical_scroll_bar_type == vertical_scroll_bar_right)
+  ((f)->vertical_scroll_bar_type == vertical_scroll_bar_right)
 
 /* Width that a scroll bar in frame F should have, if there is one.
    Measured in pixels.
@@ -680,13 +680,13 @@ typedef struct frame *FRAME_PTR;
    the right in this frame, or there are no scroll bars, value is 0.  */
 
 #define FRAME_LEFT_SCROLL_BAR_COLS(f)			\
-     (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)	\
-      ? FRAME_CONFIG_SCROLL_BAR_COLS (f)		\
-      : 0)
+  (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)		\
+   ? FRAME_CONFIG_SCROLL_BAR_COLS (f)			\
+   : 0)
 
 /* Width of a left scroll bar in frame F, measured in pixels */
 
-#define FRAME_LEFT_SCROLL_BAR_AREA_WIDTH(f)					\
+#define FRAME_LEFT_SCROLL_BAR_AREA_WIDTH(f)				\
   (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)				\
    ? (FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f))	\
    : 0)
@@ -696,13 +696,13 @@ typedef struct frame *FRAME_PTR;
    the left in this frame, or there are no scroll bars, value is 0.  */
 
 #define FRAME_RIGHT_SCROLL_BAR_COLS(f)			\
-     (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f)	\
-      ? FRAME_CONFIG_SCROLL_BAR_COLS (f)		\
-      : 0)
+  (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f)		\
+   ? FRAME_CONFIG_SCROLL_BAR_COLS (f)			\
+   : 0)
 
 /* Width of a right scroll bar area in frame F, measured in pixels */
 
-#define FRAME_RIGHT_SCROLL_BAR_AREA_WIDTH(f)					\
+#define FRAME_RIGHT_SCROLL_BAR_AREA_WIDTH(f)				\
   (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f)				\
    ? (FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f))	\
    : 0)
@@ -710,9 +710,9 @@ typedef struct frame *FRAME_PTR;
 /* Actual width of a scroll bar in frame F, measured in columns.  */
 
 #define FRAME_SCROLL_BAR_COLS(f)			\
-     (FRAME_HAS_VERTICAL_SCROLL_BARS (f)		\
-      ? FRAME_CONFIG_SCROLL_BAR_COLS (f)		\
-      : 0)
+  (FRAME_HAS_VERTICAL_SCROLL_BARS (f)			\
+   ? FRAME_CONFIG_SCROLL_BAR_COLS (f)			\
+   : 0)
 
 /* Actual width of a scroll bar area in frame F, measured in pixels.  */
 
@@ -731,21 +731,21 @@ typedef struct frame *FRAME_PTR;
    not including scroll bars and fringes.  */
 
 #define SET_FRAME_COLS(f, val)						\
-     (FRAME_COLS (f) = (val),						\
-      (f)->total_cols = FRAME_TOTAL_COLS_ARG (f, FRAME_COLS (f)))
+  (FRAME_COLS (f) = (val),						\
+   (f)->total_cols = FRAME_TOTAL_COLS_ARG (f, FRAME_COLS (f)))
 
 /* Given a value WIDTH for frame F's nominal width,
    return the value that FRAME_TOTAL_COLS should have.  */
 
 #define FRAME_TOTAL_COLS_ARG(f, width)		\
-     ((width)					\
-      + FRAME_SCROLL_BAR_COLS (f)		\
-      + FRAME_FRINGE_COLS (f))
+  ((width)					\
+   + FRAME_SCROLL_BAR_COLS (f)			\
+   + FRAME_FRINGE_COLS (f))
 
 /* Maximum + 1 legitimate value for FRAME_CURSOR_X.  */
 
 #define FRAME_CURSOR_X_LIMIT(f) \
-     (FRAME_COLS (f) + FRAME_LEFT_SCROLL_BAR_COLS (f))
+  (FRAME_COLS (f) + FRAME_LEFT_SCROLL_BAR_COLS (f))
 
 /* Nonzero if frame F has scroll bars.  */
 
@@ -938,18 +938,18 @@ extern Lisp_Object selected_frame;
    float.  Value is a C integer.  */
 
 #define FRAME_PIXEL_X_FROM_CANON_X(F, X)		\
-     (INTEGERP (X)					\
-      ? XINT (X) * FRAME_COLUMN_WIDTH (F)		\
-      : (int) (XFLOAT_DATA (X) * FRAME_COLUMN_WIDTH (F)))
+  (INTEGERP (X)						\
+   ? XINT (X) * FRAME_COLUMN_WIDTH (F)			\
+   : (int) (XFLOAT_DATA (X) * FRAME_COLUMN_WIDTH (F)))
 
 /* Convert canonical value Y to pixels.  F is the frame whose
    canonical character height is to be used.  X must be a Lisp integer
    or float.  Value is a C integer.  */
 
 #define FRAME_PIXEL_Y_FROM_CANON_Y(F, Y)		\
-     (INTEGERP (Y)					\
-      ? XINT (Y) * FRAME_LINE_HEIGHT (F)		\
-      : (int) (XFLOAT_DATA (Y) * FRAME_LINE_HEIGHT (F)))
+  (INTEGERP (Y)						\
+   ? XINT (Y) * FRAME_LINE_HEIGHT (F)			\
+   : (int) (XFLOAT_DATA (Y) * FRAME_LINE_HEIGHT (F)))
 
 /* Convert pixel-value X to canonical units.  F is the frame whose
    canonical character width is to be used.  X is a C integer.  Result
@@ -957,9 +957,9 @@ extern Lisp_Object selected_frame;
    otherwise it's a Lisp integer.  */
 
 #define FRAME_CANON_X_FROM_PIXEL_X(F, X)			\
-     ((X) % FRAME_COLUMN_WIDTH (F) != 0				\
-      ? make_float ((double) (X) / FRAME_COLUMN_WIDTH (F))	\
-      : make_number ((X) / FRAME_COLUMN_WIDTH (F)))
+  ((X) % FRAME_COLUMN_WIDTH (F) != 0				\
+   ? make_float ((double) (X) / FRAME_COLUMN_WIDTH (F))		\
+   : make_number ((X) / FRAME_COLUMN_WIDTH (F)))
 
 /* Convert pixel-value Y to canonical units.  F is the frame whose
    canonical character height is to be used.  Y is a C integer.
@@ -967,9 +967,9 @@ extern Lisp_Object selected_frame;
    otherwise it's a Lisp integer.  */
 
 #define FRAME_CANON_Y_FROM_PIXEL_Y(F, Y)			\
-     ((Y) % FRAME_LINE_HEIGHT (F) 				\
-      ? make_float ((double) (Y) / FRAME_LINE_HEIGHT (F))	\
-      : make_number ((Y) / FRAME_LINE_HEIGHT (F)))
+  ((Y) % FRAME_LINE_HEIGHT (F)					\
+   ? make_float ((double) (Y) / FRAME_LINE_HEIGHT (F))		\
+   : make_number ((Y) / FRAME_LINE_HEIGHT (F)))
 
 
 

@@ -1,5 +1,5 @@
 /* Emulate getpagesize on systems that lack it.
-   Copyright (C) 1986, 1992, 1995, 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992, 1995, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <unistd.h>
 
 # ifdef _SC_PAGESIZE
-#  define getpagesize() sysconf(_SC_PAGESIZE)
+#  define getpagesize() sysconf (_SC_PAGESIZE)
 # else /* no _SC_PAGESIZE */
 #  ifdef HAVE_SYS_PARAM_H
 #   include <sys/param.h>

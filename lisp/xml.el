@@ -1,6 +1,6 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -421,7 +421,8 @@ Returns one of:
      ;;  skip comments
      ((looking-at "<!--")
       (search-forward "-->")
-      nil)
+      (skip-syntax-forward " ")
+      (xml-parse-tag parse-dtd xml-ns))
      ;;  end tag
      ((looking-at "</")
       '())
@@ -540,7 +541,7 @@ Leave point at the first non-blank character after the tag."
 	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(let ((expansion (xml-substitute-special string)))
 	  (unless (stringp expansion)
-					; We say this is the constraint.  It is acctually that
+					; We say this is the constraint.  It is actually that neither
 					; external entities nor "<" can be in an attribute value.
 	    (error "XML: (Not Well-Formed) Entities in attributes cannot expand into elements"))
 	  (push (cons name expansion) attlist)))
@@ -756,7 +757,7 @@ This follows the rule [28] in the XML specifications."
 ;;*******************************************************************
 
 (defun xml-substitute-special (string)
-  "Return STRING, after subsituting entity references."
+  "Return STRING, after substituting entity references."
   ;; This originally made repeated passes through the string from the
   ;; beginning, which isn't correct, since then either "&amp;amp;" or
   ;; "&#38;amp;" won't DTRT.

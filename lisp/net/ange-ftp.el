@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989-1996, 1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1989-1996, 1998, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -46,10 +46,10 @@
 ;; Extended filename syntax:
 ;;
 ;; The default extended filename syntax is '/user@host:name', where the
-;; 'user@' part may be omitted.  This syntax can be customised to a certain
+;; 'user@' part may be omitted.  This syntax can be customized to a certain
 ;; extent by changing ange-ftp-name-format.  There are limitations.
 ;; The `host' part has an optional suffix `#port' which may be used to
-;; specify a non-default port number for the connexion.
+;; specify a non-default port number for the connection.
 ;;
 ;; If the user part is omitted then ange-ftp generates a default user
 ;; instead whose value depends on the variable ange-ftp-default-user.
@@ -721,7 +721,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
           "^500 .*AUTH\\|^KERBEROS\\|"
           "^504 Unknown security mechanism\\|"
-	  "^530 Please login with USER and PASS\\|" ; non kerberised vsFTPd
+	  "^530 Please login with USER and PASS\\|" ; non kerberized vsFTPd
 	  "^534 Kerberos Authentication not enabled\\|"
 	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
   "Regular expression matching FTP messages that can be ignored."
@@ -1390,6 +1390,9 @@ only return the directory part of FILE."
 		(run-hooks 'find-file-hook)
 		(setq buffer-file-name nil)
 		(goto-char (point-min))
+		(while (search-forward-regexp "^[ \t]*#.*$" nil t)
+		  (replace-match ""))
+		(goto-char (point-min))
 		(skip-chars-forward " \t\r\n")
 		(while (not (eobp))
 		  (ange-ftp-parse-netrc-group))
@@ -1664,8 +1667,8 @@ good, skip, fatal, or unknown."
           (if (not (and seen-prompt ange-ftp-pending-error-line))
               (ange-ftp-process-handle-line line proc)
             ;; If we've seen a potential error message and it
-            ;; hasn't been cancelled by a good message before
-            ;; seeing a propt, then the error was real.
+            ;; hasn't been canceled by a good message before
+            ;; seeing a prompt, then the error was real.
             (delete-process proc)
             (setq ange-ftp-process-busy nil
                   ange-ftp-process-result-line ange-ftp-pending-error-line))))
@@ -2854,7 +2857,7 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 ;; that a wasted listing is not done:
 ;; 1. When looking for a .dired file in dired-x.el.
 ;; 2. The syntax of FILE and DIR make it impossible that FILE could be a valid
-;;     subdirectory. This is of course an OS dependent judgement.
+;;     subdirectory. This is of course an OS dependent judgment.
 
 (defvar dired-local-variables-file)
 (defmacro ange-ftp-allow-child-lookup (dir file)
@@ -3098,7 +3101,8 @@ logged in as user USER and cd'd to directory DIR."
             (if (not (eq system-type 'windows-nt))
                 (setq name (ange-ftp-real-expand-file-name name))
               ;; Windows UNC default dirs do not make sense for ftp.
-              (setq name (if (string-match "\\`//" default-directory)
+              (setq name (if (and default-directory
+				  (string-match "\\`//" default-directory))
                              (ange-ftp-real-expand-file-name name "c:/")
                            (ange-ftp-real-expand-file-name name)))
               ;; Strip off possible drive specifier.
@@ -3637,6 +3641,10 @@ so return the size on the remote host exactly. See RFC 3659."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
 
+  (or (file-exists-p filename)
+      (signal 'file-error
+	      (list "Copy file" "no such file or directory" filename)))
+
   ;; canonicalize newname if a directory.
   (if (file-directory-p newname)
       (setq newname (expand-file-name (file-name-nondirectory filename) newname)))
@@ -4027,7 +4035,7 @@ E.g.,
 	      (concat bestmatch "/")
 	    bestmatch)))))
 
-;; Put these lines uncommmented in your .emacs if you want C-r to refresh
+;; Put these lines uncommented in your .emacs if you want C-r to refresh
 ;; ange-ftp's cache whilst doing filename completion.
 ;;
 ;;(define-key minibuffer-local-completion-map "\C-r" 'ange-ftp-re-read-dir)
@@ -4412,14 +4420,16 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
 
-(defun ange-ftp-run-real-handler (operation args)
-  (let ((inhibit-file-name-handlers
-	 (cons 'ange-ftp-hook-function
-	       (cons 'ange-ftp-completion-hook-function
-		     (and (eq inhibit-file-name-operation operation)
-			  inhibit-file-name-handlers))))
-	(inhibit-file-name-operation operation))
-    (apply operation args)))
+;(defun ange-ftp-run-real-handler (operation args)
+;  (let ((inhibit-file-name-handlers
+;	 (cons 'ange-ftp-hook-function
+;	       (cons 'ange-ftp-completion-hook-function
+;		     (and (eq inhibit-file-name-operation operation)
+;			  inhibit-file-name-handlers))))
+;	(inhibit-file-name-operation operation))
+;    (apply operation args)))
+
+(defalias 'ange-ftp-run-real-handler 'tramp-run-real-handler)
 
 (defun ange-ftp-real-file-name-directory (&rest args)
   (ange-ftp-run-real-handler 'file-name-directory args))
@@ -4505,7 +4515,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
     ;; We used to follow symlinks on `file' here.  Apparently it was done
     ;; because some FTP servers react to "ls foo" by listing the symlink foo
     ;; rather than the directory it points to.  Now that ange-ftp-ls uses
-    ;; "cd foo; ls" instead, this is not necesssary any more.
+    ;; "cd foo; ls" instead, this is not necessary any more.
     (let ((beg (point))
 	  (end (point-marker)))
       (set-marker-insertion-type end t)
@@ -5005,7 +5015,11 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		      dir (and dir "/")
 		      file))
 	  (error "name %s didn't match" name))
-      (let (drive dir file tmp)
+      (let (drive dir file tmp quote)
+	(if (string-match "\\`\".+\"\\'" name)
+	    (setq name (substring name 1 -1)
+		  quote "\"")
+	  (setq quote ""))
 	(if (string-match "\\`/[^:]+:/" name)
 	    (setq drive (substring name 1
 				   (1- (match-end 0)))
@@ -5014,9 +5028,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(if tmp
 	    (setq dir (subst-char-in-string ?/ ?. (substring tmp 0 -1) t)))
 	(setq file (file-name-nondirectory name))
-	(concat drive
+	(concat quote drive
 		(and dir (concat "[" (if drive nil ".") dir "]"))
-		file)))))
+		file quote)))))
 
 ;; (ange-ftp-fix-name-for-vms "/PUB$:/ANONYMOUS/SDSCPUB/NEXT/Readme.txt;1")
 ;; (ange-ftp-fix-name-for-vms "/PUB$:[ANONYMOUS.SDSCPUB.NEXT]Readme.txt;1" t)
@@ -5989,7 +6003,7 @@ Other orders of $ and _ seem to all work just fine.")
 	     (concat
 	      pubset
 	      (and userid (concat userid "."))
-	      ;; change every '/' in filename to a '.', normally not neccessary
+	      ;; change every '/' in filename to a '.', normally not necessary
 	      (and filename
 		   (subst-char-in-string ?/ ?. filename)))))
 	;; Let's hope that BS2000 recognize this anyway:

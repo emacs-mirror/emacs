@@ -1,6 +1,6 @@
 /* GNU Emacs site configuration template file.  -*- C -*-
 
-Copyright (C) 1988, 1993-1994, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -131,12 +131,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_LINUX_VERSION_H
 #undef HAVE_SYS_SYSTEMINFO_H
 #undef HAVE_TERMIOS_H
-#undef HAVE_LIMITS_H
-#undef HAVE_STRING_H
 #undef HAVE_STRINGS_H
-#undef HAVE_STDLIB_H
 #undef HAVE_PWD_H
-#undef STDC_HEADERS
 
 #undef HAVE_LIBDNET
 #undef HAVE_LIBPTHREADS
@@ -191,7 +187,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef TM_IN_SYS_TIME
 #undef HAVE_TM_ZONE
-#undef HAVE_TZNAME
+
+/* Define to 1 if you don't have `tm_zone' but do have the external array
+   `tzname'. */
+#define HAVE_TZNAME 1
+
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+   */
+#define HAVE_DECL_TZNAME 1
 
 #undef const
 
@@ -244,6 +247,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_SETSOCKOPT 1
 #define HAVE_GETSOCKNAME 1
 #define HAVE_GETPEERNAME 1
+#define HAVE_SNPRINTF 1
 #define HAVE_LANGINFO_CODESET 1
 /* Local (unix) sockets are not supported.  */
 #undef HAVE_SYS_UN_H
@@ -299,6 +303,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
 
+/* Define to 1 if you have the declaration of `strtoll', and to 0 if you
+   don't. */
+#define HAVE_DECL_STRTOLL 1
+
 /* Define to 1 if you have the declaration of `strtoull', and to 0 if you
    don't. */
 #define HAVE_DECL_STRTOULL 1
@@ -320,12 +328,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PACKAGE "emacs"
 
 /* Version number of package */
-#define VERSION "24.0.50"
+#define VERSION "24.0.94"
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifdef __GNUC__
 #ifndef __cplusplus
 #undef inline
+#endif
+#else  /* MSVC */
+#define inline __inline
 #endif
 
 /* Define to the equivalent of the C99 'restrict' keyword, or to
@@ -337,11 +349,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define restrict
 #endif
 
+/* `mode_t' is not defined for MSVC. Define. */
+#ifdef _MSC_VER
+typedef unsigned short mode_t;
+#endif
+
 /* A va_copy replacement for MSVC.  */
 #ifdef _MSC_VER
 # ifdef _WIN64
-#  ifndef va_copy
-#   error "va_copy is needed, but not defined!"
+#  ifndef va_copy               /* Need to be checked (?) */
+#   define va_copy(d,s) ((d) = (s))
 #  endif
 # else	/* not _WIN64 */
 #  define va_copy(d,s) ((d) = (s))
@@ -473,7 +490,7 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 
-#if defined(__MINGW32__) || _MSC_VER >= 1400
+#if defined (__MINGW32__) || _MSC_VER >= 1400
 
 /* Define to 1 if the system has the type `long long int'. */
 # define HAVE_LONG_LONG_INT 1
@@ -506,15 +523,11 @@ extern char *getenv ();
 #define PROTOTYPES 1
 #endif
 
-#ifdef HAVE_STRING_H
 #include "string.h"
-#endif
 #ifdef HAVE_STRINGS_H
 #include "strings.h"
 #endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #ifndef NO_RETURN
 #if defined __GNUC__ && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR >= 5))

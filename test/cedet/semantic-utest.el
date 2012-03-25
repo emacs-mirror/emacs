@@ -1,6 +1,6 @@
 ;;; semantic-utest.el --- Tests for semantic's parsing system.
 
-;;; Copyright (C) 2003-2004, 2007-2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2003-2004, 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -170,7 +170,7 @@ def fun2(a,b,c): #1
 
 
 )
-;  "pyhon test case. notice that python is indentation sensitive
+;  "python test case. notice that python is indentation sensitive
 
 
 (defvar semantic-utest-Python-name-contents
@@ -536,7 +536,7 @@ Pre-fill the buffer with CONTENTS."
 
 (defun semantic-utest-generic (testname filename contents name-contents names-removed killme insertme)
   "Generic unit test according to template.
-Should work for languages withouth .h files, python javascript java.
+Should work for languages without .h files, python javascript java.
 TESTNAME is the name of the test.
 FILENAME is the name of the file to create.
 CONTENTS is the contents of the file to test.
@@ -622,7 +622,7 @@ INSERTME is the text to be inserted after the deletion."
   )
 
 ;look at http://mfgames.com/linux/csharp-mode
-(defun semantic-utest-Csharp() ;; hmm i dont even know how to edit a scharp file. need a csharp mode implementation i suppose
+(defun semantic-utest-Csharp() ;; hmm i don't even know how to edit a scharp file. need a csharp mode implementation i suppose
   (interactive)
   (if (fboundp 'csharp-mode)
       (semantic-utest-generic "C#" (semantic-utest-fname "csharptest.cs") semantic-utest-Csharp-buffer-contents  semantic-utest-Csharp-name-contents   '("fun2") "//1" "//deleted line")
@@ -787,7 +787,7 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 (defun semantic-utest-kill-indicator ( killme insertme)
   "Kill the line with KILLME on it and insert INSERTME in its place."
   (goto-char (point-min))
-;  (re-search-forward (concat "/\\*" indicator "\\*/")); JAVE this isnt generic enough for different lagnuages
+;  (re-search-forward (concat "/\\*" indicator "\\*/")); JAVE this isn't generic enough for different languages
   (re-search-forward killme)
   (beginning-of-line)
   (setq semantic-utest-last-kill-pos (point))
@@ -812,7 +812,7 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 (defun semantic-utest-last-invalid (name-contents names-removed killme insertme)
   "Make the last fcn invalid."
   (semantic-utest-kill-indicator killme insertme)
-;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesnt handle skipnames yet
+;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesn't handle skipnames yet
   (semantic-utest-unkill-indicator);put back killed stuff
   )
 

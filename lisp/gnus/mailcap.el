@@ -1,6 +1,6 @@
 ;;; mailcap.el --- MIME media types configuration
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -82,7 +82,7 @@ This is a compatibility function for different Emacsen."
 			 (list lpr-switches)
 		       lpr-switches)))
 	     " ")
-  "Shell command (including switches) used to print Postscript files.")
+  "Shell command (including switches) used to print PostScript files.")
 
 ;; Postpone using defcustom for this as it's so big and we essentially
 ;; have to have two copies of the data around then.  Perhaps just
@@ -90,7 +90,7 @@ This is a compatibility function for different Emacsen."
 ;; files for the rest?  -- fx
 (defvar mailcap-mime-data
   `(("application"
-     ("vnd.ms-excel"
+     ("vnd\\.ms-excel"
       (viewer . "gnumeric %s")
       (test   . (getenv "DISPLAY"))
       (type . "application/vnd.ms-excel"))

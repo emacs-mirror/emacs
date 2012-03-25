@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -61,6 +61,7 @@ properties to colorize its output based on the setting of
   "How to display time information in `eshell-ls-file'.
 This is passed to `format-time-string' as a format string.
 To display the date using the current locale, use \"%b \%e\"."
+  :version "24.1"
   :type 'string
   :group 'eshell-ls)
 

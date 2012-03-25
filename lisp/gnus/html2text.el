@@ -1,6 +1,6 @@
 ;;; html2text.el --- a simple html to plain text converter
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Joakim Hove <hove@phys.ntnu.no>
 
@@ -123,7 +123,7 @@ If this list contains the element \"font\".")
 This is an alist where each dotted pair consists of a tag, and then
 the name of a function to be called when this tag is found.  The
 function is called with the arguments p1, p2, p3 and p4. These are
-demontrated below:
+demonstrated below:
 
 \"<b> This is bold text </b>\"
  ^   ^                 ^    ^
@@ -193,7 +193,7 @@ formatting, and then moved afterward.")
      ;; size=3
      ((string-match "[^ ]=[^ ]" prev)
       (let ((attr  (nth 0 (split-string prev "=")))
-	    (value (nth 1 (split-string prev "="))))
+	    (value (substring prev (1+ (string-match "=" prev)))))
 	(setq attr-list (cons (list attr value) attr-list))))
      ;; size= 3
      ((string-match "[^ ]=\\'" prev)
@@ -204,7 +204,7 @@ formatting, and then moved afterward.")
        ;; size=3
        ((string-match "[^ ]=[^ ]" this)
 	(let ((attr  (nth 0 (split-string this "=")))
-	      (value (nth 1 (split-string this "="))))
+	      (value (substring prev (1+ (string-match "=" this)))))
 	  (setq attr-list (cons (list attr value) attr-list))))
        ;; size =3
        ((string-match "\\`=[^ ]" this)
@@ -358,7 +358,8 @@ formatting, and then moved afterward.")
     (delete-region p1 p4)
     (when href
       (goto-char p1)
-      (insert (substring href 1 -1 ))
+      (insert (if (string-match "\\`['\"].*['\"]\\'" href)
+		  (substring href 1 -1) href))
       (put-text-property p1 (point) 'face 'bold))))
 
 ;;
@@ -409,7 +410,7 @@ fashion, quite close to pure guess-work. It does work in some cases though."
   (while (re-search-forward "^<br>$" nil t)
     (delete-region (match-beginning 0) (match-end 0)))
   ;; Removing lonely <br> on a single line, if they are left intact we
-  ;; dont have any paragraphs at all.
+  ;; don't have any paragraphs at all.
   (goto-char (point-min))
   (while (not (eobp))
     (let ((p1 (point)))

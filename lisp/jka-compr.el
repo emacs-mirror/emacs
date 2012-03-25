@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993-1995, 1997, 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997, 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -203,6 +203,7 @@ to keep: LEN chars starting BEG chars from the beginning."
   ;; call-process barfs if default-directory is inaccessible.
   (let ((default-directory
 	  (if (and default-directory
+		   (not (file-remote-p default-directory))
 		   (file-accessible-directory-p default-directory))
 	      default-directory
 	    (file-name-directory infile))))
@@ -309,6 +310,7 @@ There should be no more than seven characters after the final `/'."
 
 	  (and
 	   compress-message
+	   jka-compr-verbose
 	   (message "%s %s..." compress-message base-name))
 
 	  (jka-compr-run-real-handler 'write-region
@@ -341,6 +343,7 @@ There should be no more than seven characters after the final `/'."
 
 	  (and
 	   compress-message
+	   jka-compr-verbose
 	   (message "%s %s...done" compress-message base-name))
 
 	  (cond
@@ -404,6 +407,7 @@ There should be no more than seven characters after the final `/'."
 
               (and
                uncompress-message
+	       jka-compr-verbose
                (message "%s %s..." uncompress-message base-name))
 
               (condition-case error-code
@@ -479,6 +483,7 @@ There should be no more than seven characters after the final `/'."
 
         (and
          uncompress-message
+	 jka-compr-verbose
          (message "%s %s...done" uncompress-message base-name))
 
         (and
@@ -534,6 +539,7 @@ There should be no more than seven characters after the final `/'."
 
 		(and
 		 uncompress-message
+		 jka-compr-verbose
 		 (message "%s %s..." uncompress-message base-name))
 
 		;; Here we must read the output of uncompress program
@@ -554,6 +560,7 @@ There should be no more than seven characters after the final `/'."
 
 		  (and
 		   uncompress-message
+		   jka-compr-verbose
 		   (message "%s %s...done" uncompress-message base-name))
 
 		  (write-region
@@ -651,16 +658,15 @@ It is not recommended to set this variable permanently to anything but nil.")
 (defun jka-compr-uninstall ()
   "Uninstall jka-compr.
 This removes the entries in `file-name-handler-alist' and `auto-mode-alist'
-and `inhibit-first-line-modes-suffixes' that were added
+and `inhibit-local-variables-suffixes' that were added
 by `jka-compr-installed'."
-  ;; Delete from inhibit-first-line-modes-suffixes
-  ;; what jka-compr-install added.
+  ;; Delete from inhibit-local-variables-suffixes what jka-compr-install added.
   (mapc
      (function (lambda (x)
 		 (and (jka-compr-info-strip-extension x)
-		      (setq inhibit-first-line-modes-suffixes
+		      (setq inhibit-local-variables-suffixes
 			    (delete (jka-compr-info-regexp x)
-				    inhibit-first-line-modes-suffixes)))))
+				    inhibit-local-variables-suffixes)))))
      jka-compr-compression-info-list--internal)
 
   (let* ((fnha (cons nil file-name-handler-alist))

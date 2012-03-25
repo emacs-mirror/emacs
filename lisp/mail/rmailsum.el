@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993-1996, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993-1996, 2000-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -268,9 +268,7 @@ Setting this option to nil might speed up the generation of summaries."
 (defun rmail-summary ()
   "Display a summary of all messages, one line per message."
   (interactive)
-  (rmail-new-summary "All" '(rmail-summary) nil)
-  (unless (get-buffer-window rmail-buffer)
-    (rmail-summary-beginning-of-message)))
+  (rmail-new-summary "All" '(rmail-summary) nil))
 
 ;;;###autoload
 (defun rmail-summary-by-labels (labels)
@@ -344,10 +342,9 @@ Emacs will list the message in the summary."
 (defun rmail-message-regexp-p-1 (msg regexp)
   ;; Search functions can expect to start from the beginning.
   (narrow-to-region (point) (save-excursion (search-forward "\n\n") (point)))
-  (if rmail-enable-mime
-      (if rmail-search-mime-header-function
-	  (funcall rmail-search-mime-header-function msg regexp (point))
-	(error "You must set `rmail-search-mime-header-function'"))
+  (if (and rmail-enable-mime
+	   rmail-search-mime-header-function)
+      (funcall rmail-search-mime-header-function msg regexp (point))
     (re-search-forward regexp nil t)))
 
 ;;;###autoload
@@ -404,13 +401,14 @@ nil for FUNCTION means all messages."
   (message "Computing summary lines...")
   (unless rmail-buffer
     (error "No RMAIL buffer found"))
-  (let (mesg was-in-summary)
+  (let (mesg was-in-summary sumbuf)
     (if (eq major-mode 'rmail-summary-mode)
 	(setq was-in-summary t))
     (with-current-buffer rmail-buffer
-      (if (zerop (setq mesg rmail-current-message))
-	  (error "No messages to summarize"))
-      (setq rmail-summary-buffer (rmail-new-summary-1 desc redo func args)))
+      (setq rmail-summary-buffer (rmail-new-summary-1 desc redo func args)
+	    ;; r-s-b is buffer-local.
+	    sumbuf rmail-summary-buffer
+	    mesg rmail-current-message))
     ;; Now display the summary buffer and go to the right place in it.
     (unless was-in-summary
       (if (and (one-window-p)
@@ -420,13 +418,12 @@ nil for FUNCTION means all messages."
 	  (progn
 	    (split-window (selected-window) rmail-summary-window-size)
 	    (select-window (next-window (frame-first-window)))
-	    (rmail-pop-to-buffer rmail-summary-buffer)
+	    (rmail-pop-to-buffer sumbuf)
 	    ;; If pop-to-buffer did not use that window, delete that
 	    ;; window.  (This can happen if it uses another frame.)
-	    (if (not (eq rmail-summary-buffer
-			 (window-buffer (frame-first-window))))
+	    (if (not (eq sumbuf (window-buffer (frame-first-window))))
 		(delete-other-windows)))
-	(rmail-pop-to-buffer rmail-summary-buffer))
+	(rmail-pop-to-buffer sumbuf))
       (set-buffer rmail-buffer)
       ;; This is how rmail makes the summary buffer reappear.
       ;; We do this here to make the window the proper size.
@@ -490,9 +487,6 @@ message."
     ;; Temporarily, while summary buffer is unfinished,
     ;; we "don't have" a summary.
     (setq rmail-summary-buffer nil)
-    (unless summary-msgs
-      (kill-buffer sumbuf)
-      (error "Nothing to summarize"))
     ;; I have not a clue what this clause is doing.  If you read this
     ;; chunk of code and have a clue, then please email that clue to
     ;; pmr@pajato.com
@@ -768,6 +762,12 @@ the message being processed."
 					      (point)))))))))
 	       (if (null from)
 		   "                         "
+		 ;; We are going to return only 25 characters of the
+		 ;; address, so make sure it is RFC2047 decoded before
+		 ;; taking its substring.  This is important when the address is not on the same line as the name, e.g.:
+		 ;; To: =?UTF-8?Q?=C5=A0t=C4=9Bp=C3=A1n_?= =?UTF-8?Q?N=C4=9Bmec?=
+		 ;; <stepnem@gmail.com>
+		 (setq from (rfc2047-decode-string from))
 		 (setq len (length from))
 		 (setq mch (string-match "[@%]" from))
 		 (format "%25s"

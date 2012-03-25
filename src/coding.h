@@ -1,5 +1,5 @@
 /* Header for coding system handler.
-   Copyright (C) 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 2001-2012  Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -415,7 +415,7 @@ struct coding_system
      setup_coding_system.  At the early stage of building time, this
      value is -1 in the array coding_categories to indicate that no
      coding-system of that category is yet defined.  */
-  int id;
+  ptrdiff_t id;
 
   /* Flag bits of the coding system.  The meaning of each bit is common
      to all types of coding systems.  */
@@ -457,7 +457,7 @@ struct coding_system
   /* Number of error source data found in a decoding routine.  */
   int errors;
 
-  /* Store the positions of error source data. */
+  /* Store the positions of error source data.  */
   EMACS_INT *error_positions;
 
   /* Finish status of code conversion.  */
@@ -485,7 +485,7 @@ struct coding_system
      element.  The following elements are OFFSET, ANNOTATION-TYPE, and
      a sequence of actual data for the annotation.  OFFSET is a
      character position offset from dst_pos or src_pos,
-     ANNOTATION-TYPE specfies the meaning of the annotation and how to
+     ANNOTATION-TYPE specifies the meaning of the annotation and how to
      handle the following data..  */
   int *charbuf;
   int charbuf_size, charbuf_used;
@@ -518,7 +518,7 @@ struct coding_system
 #define CODING_REQUIRE_DETECTION_MASK		0x1000
 #define CODING_RESET_AT_BOL_MASK		0x2000
 
-/* Return 1 if the coding context CODING requires annotaion
+/* Return 1 if the coding context CODING requires annotation
    handling.  */
 #define CODING_REQUIRE_ANNOTATION(coding) \
   ((coding)->common_flags & CODING_ANNOTATION_MASK)

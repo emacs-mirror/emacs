@@ -1,5 +1,5 @@
 /* How much read-only Lisp storage a dumped Emacs needs.
-   Copyright (C) 1993, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -75,21 +75,7 @@ extern void pure_write_error (void) NO_RETURN;
 
 /* Define PURE_P.  */
 
-#ifdef VIRT_ADDR_VARIES
-/* For machines where text and data can go anywhere
-   in virtual memory.  */
-
 extern EMACS_INT pure[];
 
 #define PURE_P(obj) \
- ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) ((char *) pure + PURESIZE) \
-  && (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure)
-
-#else /* not VIRT_ADDR_VARIES */
-
-extern char my_edata[];
-
-#define PURE_P(obj) \
-  ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) my_edata)
-
-#endif /* VIRT_ADDRESS_VARIES */
+  ((uintptr_t) XPNTR (obj) - (uintptr_t) pure <= PURESIZE)

@@ -1,6 +1,6 @@
 ;;; hideif.el --- hides selected code within ifdef
 
-;; Copyright (C) 1988, 1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Brian Marick
 ;;	Daniel LaLiberte <liberte@holonexus.org>
@@ -214,11 +214,15 @@
 
 ;;;###autoload
 (define-minor-mode hide-ifdef-mode
-  "Toggle Hide-Ifdef mode.  This is a minor mode, albeit a large one.
-With ARG, turn Hide-Ifdef mode on if arg is positive, off otherwise.
-In Hide-Ifdef mode, code within #ifdef constructs that the C preprocessor
-would eliminate may be hidden from view.  Several variables affect
-how the hiding is done:
+  "Toggle features to hide/show #ifdef blocks (Hide-Ifdef mode).
+With a prefix argument ARG, enable Hide-Ifdef mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Hide-Ifdef mode is a buffer-local minor mode for use with C and
+C-like major modes.  When enabled, code within #ifdef constructs
+that the C preprocessor would eliminate may be hidden from view.
+Several variables affect how the hiding is done:
 
 `hide-ifdef-env'
 	An association list of defined and undefined symbols for the
@@ -818,7 +822,7 @@ Point is left unchanged."
 
 (defun hif-possibly-hide ()
   "Called at #ifX expression, this hides those parts that should be hidden.
-It uses the judgement of `hide-ifdef-evaluator'."
+It uses the judgment of `hide-ifdef-evaluator'."
   ;; (message "hif-possibly-hide") (sit-for 1)
   (let ((test (hif-canonicalize))
 	(range (hif-find-range)))

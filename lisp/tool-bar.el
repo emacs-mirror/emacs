@@ -1,6 +1,6 @@
 ;;; tool-bar.el --- setting up the tool bar
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
@@ -43,8 +43,10 @@
 ;; Deleting it means invoking this command won't work
 ;; when you are on a tty.  I hope that won't cause too much trouble -- rms.
 (define-minor-mode tool-bar-mode
-  "Toggle use of the tool bar.
-With numeric ARG, display the tool bar if and only if ARG is positive.
+  "Toggle the tool bar in all graphical frames (Tool Bar mode).
+With a prefix argument ARG, enable Tool Bar mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Tool Bar mode if ARG is omitted or nil.
 
 See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."
@@ -285,6 +287,7 @@ holds a keymap."
 Possible values are `top' (tool bar on top), `bottom' (tool bar at bottom),
 `left' (tool bar on left) and `right' (tool bar on right).
 Customize `tool-bar-mode' if you want to show or hide the tool bar."
+      :version "24.1"
       :type '(choice (const top)
 		     (const bottom)
 		     (const left)

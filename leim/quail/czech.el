@@ -1,6 +1,6 @@
 ;;; czech.el --- Quail package for inputting Czech -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Pavel Jan,Bm(Bk <Pavel@Janik.cz>
@@ -461,7 +461,7 @@ keyboard from the obsolete `emacs-czech' package.
 All digits except of `1' are replaced by Czech characters as on the standard
 Czech keyboard.
 `[' and `]' are replaced with `,Bz(B' and `,By(B', respectively.
-There are two dead keys on `=' and `+'.  Characters with diaresis are
+There are two dead keys on `=' and `+'.  Characters with diaereses are
 accessible through `+='.
 All other keys are the same as on standard US keyboard."
  nil t nil nil t nil nil nil nil nil t)

@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on Solaris 2.6.
 
-Copyright (C) 1999-2011  Free Software Foundation, Inc.
+Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

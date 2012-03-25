@@ -1,7 +1,7 @@
 /* sys/stat.h supplied with MSVCRT uses too narrow data types for
    inode and user/group id, so we replace them with our own.
 
-Copyright (C) 2008-2011  Free Software Foundation, Inc.
+Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -96,6 +96,9 @@ struct stat {
   char		   st_uname[260];
   char		   st_gname[260];
 };
+
+/* Prevent redefinition by other headers, e.g. wchar.h.  */
+#define _STAT_DEFINED
 
 _CRTIMP int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
 _CRTIMP int __cdecl __MINGW_NOTHROW	chmod (const char*, int);

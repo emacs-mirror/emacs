@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2011
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -398,7 +398,12 @@ find_defun_start (EMACS_INT pos, EMACS_INT pos_byte)
 
   if (!open_paren_in_column_0_is_defun_start)
     {
+      find_start_value = BEGV;
       find_start_value_byte = BEGV_BYTE;
+      find_start_buffer = current_buffer;
+      find_start_modiff = MODIFF;
+      find_start_begv = BEGV;
+      find_start_pos = pos;
       return BEGV;
     }
 
@@ -2839,18 +2844,23 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 
 DEFUN ("scan-lists", Fscan_lists, Sscan_lists, 3, 3, 0,
        doc: /* Scan from character number FROM by COUNT lists.
-Returns the character number of the position thus found.
+Scan forward if COUNT is positive, backward if COUNT is negative.
+Return the character number of the position thus found.
 
-If DEPTH is nonzero, paren depth begins counting from that value,
-only places where the depth in parentheses becomes zero
-are candidates for stopping; COUNT such places are counted.
-Thus, a positive value for DEPTH means go out levels.
+A \"list", in this context, refers to a balanced parenthetical
+grouping, as determined by the syntax table.
+
+If DEPTH is nonzero, treat that as the nesting depth of the starting
+point (i.e. the starting point is DEPTH parentheses deep).  This
+function scans over parentheses until the depth goes to zero COUNT
+times.  Hence, positive DEPTH moves out that number of levels of
+parentheses, while negative DEPTH moves to a deeper level.
 
 Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
 
-If the beginning or end of (the accessible part of) the buffer is reached
-and the depth is wrong, an error is signaled.
-If the depth is right but the count is not used up, nil is returned.  */)
+If we reach the beginning or end of the accessible part of the buffer
+before we have scanned over COUNT lists, return nil if the depth at
+that point is zero, and signal a error if the depth is nonzero.  */)
   (Lisp_Object from, Lisp_Object count, Lisp_Object depth)
 {
   CHECK_NUMBER (from);

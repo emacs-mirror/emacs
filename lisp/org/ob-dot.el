@@ -1,11 +1,10 @@
 ;;; ob-dot.el --- org-babel functions for dot evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -77,13 +76,14 @@ This function is called by `org-babel-execute-src-block'."
 	     " " (org-babel-process-file-name in-file)
 	     " " cmdline
 	     " -o " (org-babel-process-file-name out-file)) "")
-    out-file))
+    nil)) ;; signal that output has already been written to file
 
 (defun org-babel-prep-session:dot (session params)
   "Return an error because Dot does not support sessions."
   (error "Dot does not support sessions"))
 
 (provide 'ob-dot)
+
 
 
 ;;; ob-dot.el ends here

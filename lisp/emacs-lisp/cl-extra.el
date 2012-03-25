@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2
 
-;; Copyright (C) 1993, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -480,17 +480,13 @@ If STATE is t, return a new state object seeded from the time of day."
 	(and (numberp res) (/= res (/ res 2)) res))
     (arith-error nil)))
 
-(defvar most-positive-float)
-(defvar most-negative-float)
-(defvar least-positive-float)
-(defvar least-negative-float)
-(defvar least-positive-normalized-float)
-(defvar least-negative-normalized-float)
-(defvar float-epsilon)
-(defvar float-negative-epsilon)
-
 ;;;###autoload
 (defun cl-float-limits ()
+  "Initialize the Common Lisp floating-point parameters.
+This sets the values of: `most-positive-float', `most-negative-float',
+`least-positive-float', `least-negative-float', `float-epsilon',
+`float-negative-epsilon', `least-positive-normalized-float', and
+`least-negative-normalized-float'."
   (or most-positive-float (not (numberp '2e1))
       (let ((x '2e0) y z)
 	;; Find maximum exponent (first two loops are optimizations)

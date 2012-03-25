@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992-1996, 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -119,18 +119,16 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 
 
 (defun face-list ()
-  "Return a list of all defined face names."
+  "Return a list of all defined faces."
   (mapcar #'car face-new-frame-defaults))
-
-
-;;; ### If not frame-local initialize by what X resources?
 
 (defun make-face (face &optional no-init-from-resources)
   "Define a new face with name FACE, a symbol.
-NO-INIT-FROM-RESOURCES non-nil means don't initialize frame-local
-variants of FACE from X resources.  (X resources recognized are found
-in the global variable `face-x-resources'.)  If FACE is already known
-as a face, leave it unmodified.  Value is FACE."
+Do not call this directly from Lisp code; use `defface' instead.
+
+If NO-INIT-FROM-RESOURCES is non-nil, don't initialize face
+attributes from X resources.  If FACE is already known as a face,
+leave it unmodified.  Return FACE."
   (interactive (list (read-from-minibuffer
 		      "Make face: " nil nil t 'face-name-history)))
   (unless (facep face)
@@ -145,31 +143,30 @@ as a face, leave it unmodified.  Value is FACE."
       (make-face-x-resource-internal face)))
   face)
 
-
 (defun make-empty-face (face)
   "Define a new, empty face with name FACE.
-If the face already exists, it is left unmodified.  Value is FACE."
+Do not call this directly from Lisp code; use `defface' instead."
   (interactive (list (read-from-minibuffer
 		      "Make empty face: " nil nil t 'face-name-history)))
   (make-face face 'no-init-from-resources))
 
-
 (defun copy-face (old-face new-face &optional frame new-frame)
-  "Define a face just like OLD-FACE, with name NEW-FACE.
+  "Define a face named NEW-FACE, which is a copy of OLD-FACE.
+This function does not copy face customization data, so NEW-FACE
+will not be made customizable.  Most Lisp code should not call
+this function; use `defface' with :inherit instead.
 
-If NEW-FACE already exists as a face, it is modified to be like
-OLD-FACE.  If it doesn't already exist, it is created.
+If NEW-FACE already exists as a face, modify it to be like
+OLD-FACE.  If NEW-FACE doesn't already exist, create it.
 
-If the optional argument FRAME is given as a frame, NEW-FACE is
-changed on FRAME only.
-If FRAME is t, the frame-independent default specification for OLD-FACE
-is copied to NEW-FACE.
-If FRAME is nil, copying is done for the frame-independent defaults
-and for each existing frame.
+If the optional argument FRAME is a frame, change NEW-FACE on
+FRAME only.  If FRAME is t, copy the frame-independent default
+specification for OLD-FACE to NEW-FACE.  If FRAME is nil, copy
+the defaults as well as the faces on each existing frame.
 
-If the optional fourth argument NEW-FRAME is given,
-copy the information from face OLD-FACE on frame FRAME
-to NEW-FACE on frame NEW-FRAME.  In this case, FRAME may not be nil."
+If the optional fourth argument NEW-FRAME is given, copy the
+information from face OLD-FACE on frame FRAME to NEW-FACE on
+frame NEW-FRAME.  In this case, FRAME must not be nil."
   (let ((inhibit-quit t))
     (if (null frame)
 	(progn
@@ -557,9 +554,10 @@ If FACE is a face-alias, get the documentation for the target face."
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
 
-FRAME nil means change attributes on all frames.  FRAME t means change
-the default for new frames (this is done automatically each time an
-attribute is changed on all frames).
+If FRAME is nil this function sets the attributes for all
+existing frames, and the default for new frames.  If FRAME is t,
+change the default for new frames (this is done automatically
+each time an attribute is changed on all frames).
 
 ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid
 face attribute name.  All attributes can be set to `unspecified';
@@ -1255,7 +1253,7 @@ arg, prompt for a regular expression."
 	(insert
 	 (substitute-command-keys
 	  (concat
-	   "\\<help-mode-map>>Use "
+	   "\\<help-mode-map>Use "
 	   (if (display-mouse-p) "\\[help-follow-mouse] or ")
 	   "\\[help-follow] on a face name to customize it\n"
 	   "or on its sample text for a description of the face.\n\n")))
@@ -1445,6 +1443,8 @@ If FRAME is nil, the current FRAME is used."
 	    options (cdr conjunct)
 	    match (cond ((eq req 'type)
 			 (or (memq (window-system frame) options)
+			     (and (memq 'graphic options)
+				  (memq (window-system frame) '(x w32 ns)))
 			     ;; FIXME: This should be revisited to use
 			     ;; display-graphic-p, provided that the
 			     ;; color selection depends on the number
@@ -1510,11 +1510,26 @@ If SPEC is nil, return nil."
 
 (defun face-spec-reset-face (face &optional frame)
   "Reset all attributes of FACE on FRAME to unspecified."
-  (let (reset-args)
-    (dolist (attr-and-name face-attribute-name-alist)
-      (push 'unspecified reset-args)
-      (push (car attr-and-name) reset-args))
-    (apply 'set-face-attribute face frame reset-args)))
+  (apply 'set-face-attribute face frame
+	 (if (eq face 'default)
+	     ;; For the default face, avoid making any attribute
+	     ;; unspecified.  Instead, set attributes to default values
+	     ;; (see also realize_default_face in xfaces.c).
+	     (append
+	      '(:underline nil :overline nil :strike-through nil
+		:box nil :inverse-video nil :stipple nil :inherit nil)
+	      ;; `display-graphic-p' is unavailable when running
+	      ;; temacs, prior to loading frame.el.
+	      (unless (and (fboundp 'display-graphic-p)
+			   (display-graphic-p frame))
+		'(:family "default" :foundry "default" :width normal
+		  :height 1 :weight normal :slant normal
+		  :foreground "unspecified-fg"
+		  :background "unspecified-bg")))
+	   ;; For all other faces, unspecify all attributes.
+	   (apply 'append
+		  (mapcar (lambda (x) (list (car x) 'unspecified))
+			  face-attribute-name-alist)))))
 
 (defun face-spec-set (face spec &optional for-defface)
   "Set FACE's face spec, which controls its appearance, to SPEC.
@@ -1702,13 +1717,14 @@ If omitted or nil, that stands for the selected frame's display."
       (> (tty-color-gray-shades display) 2)))))
 
 (defun read-color (&optional prompt convert-to-RGB allow-empty-name msg)
-  "Read a color name or RGB triplet of the form \"#RRRRGGGGBBBB\".
+  "Read a color name or RGB triplet.
 Completion is available for color names, but not for RGB triplets.
 
-RGB triplets have the form #XXXXXXXXXXXX, where each X is a hex
-digit.  The number of Xs must be a multiple of 3, with the same
-number of Xs for each of red, green, and blue.  The order is red,
-green, blue.
+RGB triplets have the form \"#RRGGBB\".  Each of the R, G, and B
+components can have one to four digits, but all three components
+must have the same number of digits.  Each digit is a hex value
+between 0 and F; either upper case or lower case for A through F
+are acceptable.
 
 In addition to standard color names and RGB hex values, the
 following are available as color candidates.  In each case, the
@@ -1923,7 +1939,7 @@ frame parameters in PARAMETERS."
 	  (progn
 	    ;; Initialize faces from face spec and custom theme.
 	    (face-spec-recalc face frame)
-	    ;; X resouces for the default face are applied during
+	    ;; X resources for the default face are applied during
 	    ;; `x-create-frame'.
 	    (and (not (eq face 'default)) window-system-p
 		 (make-face-x-resource-internal face frame))
@@ -2063,9 +2079,9 @@ terminal type to a different value."
     (((supports :underline t))
      :underline t)
     (t
-     ;; default to italic, even it doesn't appear to be supported,
-     ;; because in some cases the display engine will do it's own
-     ;; workaround (to `dim' on ttys)
+     ;; Default to italic, even if it doesn't appear to be supported,
+     ;; because in some cases the display engine will do its own
+     ;; workaround (to `dim' on ttys).
      :slant italic))
   "Basic italic face."
   :group 'basic-faces)
@@ -2109,7 +2125,7 @@ terminal type to a different value."
 
 (defface link
   '((((class color) (min-colors 88) (background light))
-     :foreground "blue1" :underline t)
+     :foreground "RoyalBlue3" :underline t)
     (((class color) (background light))
      :foreground "blue" :underline t)
     (((class color) (min-colors 88) (background dark))
@@ -2364,6 +2380,10 @@ used to display the prompt text."
   '((((background light)) :background "black")
     (((background dark))  :background "white"))
   "Basic face for the cursor color under X.
+Currently, only the `:background' attribute is meaningful; all
+other attributes are ignored.  The cursor foreground color is
+taken from the background color of the underlying text.
+
 Note: Other faces cannot inherit from the cursor face."
   :version "21.1"
   :group 'cursor
@@ -2413,12 +2433,45 @@ Note: Other faces cannot inherit from the cursor face."
 It is used for characters of no fonts too."
   :version "24.1"
   :group 'basic-faces)
+
+(defface error
+  '((((class color) (min-colors 88) (background light)) (:foreground "Red1" :weight bold))
+    (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
+    (((class color) (min-colors 16) (background light)) (:foreground "Red1" :weight bold))
+    (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))
+    (((class color) (min-colors 8)) (:foreground "red"))
+    (t (:inverse-video t :weight bold)))
+  "Basic face used to highlight errors and to denote failure."
+  :version "24.1"
+  :group 'basic-faces)
+
+(defface warning
+  '((((class color) (min-colors 16)) (:foreground "DarkOrange" :weight bold))
+    (((class color)) (:foreground "yellow" :weight bold))
+    (t (:weight bold)))
+  "Basic face used to highlight warnings."
+  :version "24.1"
+  :group 'basic-faces)
+
+(defface success
+  '((((class color) (min-colors 16) (background light))
+     (:foreground "ForestGreen" :weight bold))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "Green1" :weight bold))
+    (((class color) (min-colors 16) (background dark))
+     (:foreground "Green" :weight bold))
+    (((class color)) (:foreground "green" :weight bold))
+    (t (:weight bold)))
+  "Basic face used to indicate successful operation."
+  :version "24.1"
+  :group 'basic-faces)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; This is here for compatibilty with Emacs 20.2.  For example,
+;; This is here for compatibility with Emacs 20.2.  For example,
 ;; international/fontset.el uses x-resolve-font-name.  The following
 ;; functions are not used in the face implementation itself.
 

@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2011
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -700,7 +700,7 @@ be set in `.emacs' instead."
 (defface gnus-summary-cancelled
   '((((class color))
      (:foreground "yellow" :background "black")))
-  "Face used for cancelled articles."
+  "Face used for canceled articles."
   :group 'gnus-summary)
 ;; backward-compatibility alias
 (put 'gnus-summary-cancelled-face 'face-alias 'gnus-summary-cancelled)
@@ -1245,7 +1245,12 @@ REST is a plist of following:
 
 (defcustom gnus-home-directory "~/"
   "Directory variable that specifies the \"home\" directory.
-All other Gnus file and directory variables are initialized from this variable."
+All other Gnus file and directory variables are initialized from this variable.
+
+Note that Gnus is mostly loaded when the `.gnus.el' file is read.
+This means that other directory variables that are initialized
+from this variable won't be set properly if you set this variable
+in `.gnus.el'.  Set this variable in `.emacs' instead."
   :group 'gnus-files
   :type 'directory)
 
@@ -1390,13 +1395,6 @@ non-numeric prefix - `C-u M-x gnus', in short."
   :type '(repeat string))
 (make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")
 
-(defcustom gnus-nntp-server nil
-  "The name of the host running the NNTP server."
-  :group 'gnus-server
-  :type '(choice (const :tag "disable" nil)
-		 string))
-(make-obsolete-variable 'gnus-nntp-server 'gnus-select-method "24.1")
-
 (defcustom gnus-secondary-select-methods nil
   "A list of secondary methods that will be used for reading news.
 This is a list where each element is a complete select method (see
@@ -1435,6 +1433,7 @@ list, Gnus will try all the methods in the list until it finds a match."
 		 (const current)
 		 (const :tag "Google" (nnweb "refer" (nnweb-type google)))
 		 gnus-select-method
+		 sexp
 		 (repeat :menu-tag "Try multiple"
 			 :tag "Multiple"
 			 :value (current (nnweb "refer" (nnweb-type google)))
@@ -1585,9 +1584,12 @@ commands will still require prompting."
   :type 'boolean)
 
 (defcustom gnus-interactive-exit t
-  "*If non-nil, require your confirmation when exiting Gnus."
+  "*If non-nil, require your confirmation when exiting Gnus.
+If `quiet', update any active summary buffers automatically
+first before exiting."
   :group 'gnus-exit
-  :type 'boolean)
+  :type '(choice boolean
+		 (const quiet)))
 
 (defcustom gnus-extract-address-components 'gnus-extract-address-components
   "*Function for extracting address components from a From header.
@@ -1624,7 +1626,7 @@ slower."
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks)
-    ("nnmaildir" mail respool address)
+    ("nnmaildir" mail respool address server-marks)
     ("nnnil" none))
   "*An alist of valid select methods.
 The first element of each list lists should be a string with the name
@@ -1874,7 +1876,7 @@ total number of articles in the group.")
  :variable-default (mapcar
                     (lambda (g) (list g t))
                     '("delayed$" "drafts$" "queue$" "INBOX$"
-                      "^nnmairix:" "archive"))
+                      "^nnmairix:" "^nnir:" "archive"))
  :variable-document
  "*Groups in which the registry should be turned off."
  :variable-group gnus-registry
@@ -2617,7 +2619,7 @@ a string, be sure to use a valid format, see RFC 2616."
     (scored . score) (saved . save)
     (cached . cache) (downloadable . download)
     (unsendable . unsend) (forwarded . forward)
-    (recent . recent) (seen . seen)))
+    (seen . seen)))
 
 (defconst gnus-article-special-mark-lists
   '((seen range)
@@ -2683,8 +2685,7 @@ such as a mark that says whether an article is stored in the cache
 			gnus-newsrc-last-checked-date
 			gnus-newsrc-alist gnus-server-alist
 			gnus-killed-list gnus-zombie-list
-			gnus-topic-topology gnus-topic-alist
-			gnus-format-specs)
+			gnus-topic-topology gnus-topic-alist)
   "Gnus variables saved in the quick startup file.")
 
 (defvar gnus-newsrc-alist nil
@@ -3581,7 +3582,7 @@ that that variable is buffer-local to the summary buffers."
 		 (equal (nth 1 m1) (nth 1 m2)))))))
 
 (defsubst gnus-sloppily-equal-method-parameters (m1 m2)
-  ;; Check parameters for sloppy equalness.
+  ;; Check parameters for sloppy equality.
   (let ((p1 (copy-sequence (cddr m1)))
 	(p2 (copy-sequence (cddr m2)))
 	e1 e2)
@@ -3607,6 +3608,13 @@ that that variable is buffer-local to the summary buffers."
 		(return nil))))))
       ;; If p2 now is empty, they were equal.
       (null p2))))
+
+(defun gnus-method-ephemeral-p (method)
+  (let ((equal nil))
+    (dolist (ephemeral gnus-ephemeral-servers)
+      (when (gnus-sloppily-equal-method-parameters method ephemeral)
+	(setq equal t)))
+    equal))
 
 (defun gnus-methods-sloppily-equal (m1 m2)
   ;; Same method.
@@ -3859,13 +3867,14 @@ The function `gnus-group-find-parameter' will do that for you."
 	  ;; The car is regexp matching for matching the group name.
 	  (when (string-match (car head) group)
 	    ;; The cdr is the parameters.
-	    (setq result (gnus-group-parameter-value (cdr head)
-						     symbol allow-list))
-	    (when result
-	      ;; Expand if necessary.
-	      (if (and (stringp result) (string-match "\\\\[0-9&]" result))
-		  (setq result (gnus-expand-group-parameter (car head)
-							    result group))))))
+	    (let ((this-result
+		   (gnus-group-parameter-value (cdr head) symbol allow-list t)))
+	      (when this-result
+		(setq result (car this-result))
+		;; Expand if necessary.
+		(if (and (stringp result) (string-match "\\\\[0-9&]" result))
+		    (setq result (gnus-expand-group-parameter
+				  (car head) result group)))))))
 	;; Done.
 	result))))
 
@@ -3875,7 +3884,9 @@ If SYMBOL, return the value of that symbol in the group parameters.
 
 If you call this function inside a loop, consider using the faster
 `gnus-group-fast-parameter' instead."
-  (with-current-buffer gnus-group-buffer
+  (with-current-buffer (if (buffer-live-p (get-buffer gnus-group-buffer))
+			   gnus-group-buffer
+			 (current-buffer))
     (if symbol
 	(gnus-group-fast-parameter group symbol allow-list)
       (nconc
@@ -4112,12 +4123,17 @@ parameters."
   (if (or (not (inline (gnus-similar-server-opened method)))
 	  (not (cddr method)))
       method
-    (setq method
-	  `(,(car method) ,(concat (cadr method) "+" group)
-	    (,(intern (format "%s-address" (car method))) ,(cadr method))
-	    ,@(cddr method)))
-    (push method gnus-extended-servers)
-    method))
+    (let ((address-slot
+	   (intern (format "%s-address" (car method)))))
+      (setq method
+	    (if (assq address-slot (cddr method))
+		`(,(car method) ,(concat (cadr method) "+" group)
+		  ,@(cddr method))
+	      `(,(car method) ,(concat (cadr method) "+" group)
+		(,address-slot ,(cadr method))
+		,@(cddr method))))
+      (push method gnus-extended-servers)
+      method)))
 
 (defun gnus-server-status (method)
   "Return the status of METHOD."
@@ -4381,12 +4397,11 @@ prompt the user for the name of an NNTP server to use."
     (gnus-1 arg dont-connect slave)
     (gnus-final-warning)))
 
-(autoload 'debbugs-emacs "debbugs-gnu")
+(autoload 'debbugs-gnu "debbugs-gnu")
 (defun gnus-list-debbugs ()
   "List all open Gnus bug reports."
   (interactive)
-  (debbugs-emacs '("important" "normal" "minor" "wishlist")
-		 "gnus"))
+  (debbugs-gnu nil "gnus"))
 
 ;; Allow redefinition of Gnus functions.
 

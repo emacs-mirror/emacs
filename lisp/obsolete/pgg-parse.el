@@ -1,6 +1,6 @@
 ;;; pgg-parse.el --- OpenPGP packet parsing
 
-;; Copyright (C) 1999, 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
@@ -53,7 +53,7 @@
 
 (defcustom pgg-parse-symmetric-key-algorithm-alist
   '((1 . IDEA) (2 . 3DES) (4 . CAST5) (5 . SAFER-SK128))
-  "Alist of the assigned number to the simmetric key algorithm."
+  "Alist of the assigned number to the symmetric key algorithm."
   :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))

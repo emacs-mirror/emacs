@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep and MacOSX Cocoa menu and toolbar module.
-   Copyright (C) 2007-2011 Free Software Foundation, Inc.
+   Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -73,6 +73,10 @@ EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;
 static NSModalSession popupSession;
+
+/* Nonzero means we are tracking and updating menus.  */
+static int trackingMenu;
+
 
 /* NOTE: toolbar implementation is at end,
   following complete menu implementation. */
@@ -400,6 +404,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       items = FRAME_MENU_BAR_ITEMS (f);
       if (NILP (items))
         {
+          free_menubar_widget_value_tree (first_wv);
           [pool release];
           UNBLOCK_INPUT;
           return;
@@ -427,6 +432,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
           if (i == n)
             {
+              free_menubar_widget_value_tree (first_wv);
               [pool release];
               UNBLOCK_INPUT;
               return;
@@ -543,21 +549,44 @@ set_frame_menubar (struct frame *f, int first_time, int deep_p)
   frame = f;
 }
 
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
+extern NSString *NSMenuDidBeginTrackingNotification;
+#endif
+#endif
+
+#ifdef NS_IMPL_COCOA
+-(void)trackingNotification:(NSNotification *)notification
+{
+  /* Update menu in menuNeedsUpdate only while tracking menus.  */
+  trackingMenu = ([notification name] == NSMenuDidBeginTrackingNotification
+                  ? 1 : 0);
+}
+#endif
 
 /* delegate method called when a submenu is being opened: run a 'deep' call
    to set_frame_menubar */
 - (void)menuNeedsUpdate: (NSMenu *)menu
 {
-  NSEvent *event;
   if (!FRAME_LIVE_P (frame))
     return;
-  event = [[FRAME_NS_VIEW (frame) window] currentEvent];
-  /* HACK: Cocoa/Carbon will request update on every keystroke
+
+  /* Cocoa/Carbon will request update on every keystroke
      via IsMenuKeyEvent -> CheckMenusForKeyEvent.  These are not needed
      since key equivalents are handled through emacs.
-     On Leopard, even keystroke events generate SystemDefined events, but
-     their subtype is 8. */
-  if ([event type] != NSSystemDefined || [event subtype] == 8
+     On Leopard, even keystroke events generate SystemDefined event.
+     Third-party applications that enhance mouse / trackpad
+     interaction, or also VNC/Remote Desktop will send events
+     of type AppDefined rather than SysDefined.
+     Menus will fail to show up if they haven't been initialized.
+     AppDefined events may lack timing data.
+
+     Thus, we rely on the didBeginTrackingNotification notification
+     as above to indicate the need for updates.
+     From 10.6 on, we could also use -[NSMenu propertiesToUpdate]: In the
+     key press case, NSMenuPropertyItemImage (e.g.) won't be set.
+  */
+  if (trackingMenu == 0
       /* Also, don't try this if from an event picked up asynchronously,
          as lots of lisp evaluation happens in ns_update_menubar. */
       || handling_signal != 0)
@@ -1014,7 +1043,7 @@ update_frame_tool_bar (FRAME_PTR f)
       BOOL enabled_p = !NILP (TOOLPROP (TOOL_BAR_ITEM_ENABLED_P));
       BOOL selected_p = !NILP (TOOLPROP (TOOL_BAR_ITEM_SELECTED_P));
       int idx;
-      int img_id;
+      ptrdiff_t img_id;
       struct image *img;
       Lisp_Object image;
       Lisp_Object helpObj;
@@ -1228,8 +1257,8 @@ update_frame_tool_bar (FRAME_PTR f)
 
   [textField setEditable: NO];
   [textField setSelectable: NO];
-  [textField setBordered: YES];
-  [textField setBezeled: YES];
+  [textField setBordered: NO];
+  [textField setBezeled: NO];
   [textField setDrawsBackground: YES];
 
   win = [[NSWindow alloc]
@@ -1237,6 +1266,7 @@ update_frame_tool_bar (FRAME_PTR f)
                       styleMask: 0
                         backing: NSBackingStoreBuffered
                           defer: YES];
+  [win setHasShadow: YES];
   [win setReleasedWhenClosed: NO];
   [win setDelegate: self];
   [[win contentView] addSubview: textField];
@@ -1257,17 +1287,15 @@ update_frame_tool_bar (FRAME_PTR f)
 - (void) setText: (char *)text
 {
   NSString *str = [NSString stringWithUTF8String: text];
-  NSRect r = [textField frame];
-  NSSize textSize = [str sizeWithAttributes:
-     [NSDictionary dictionaryWithObject: [[textField font] screenFont]
-				 forKey: NSFontAttributeName]];
-  NSSize padSize = [[[textField font] screenFont]
-		     boundingRectForFont].size;
+  NSRect r  = [textField frame];
+  NSSize tooltipDims;
 
-  r.size.width = textSize.width + padSize.width/2;
-  r.size.height = textSize.height + padSize.height/2;
-  [textField setFrame: r];
   [textField setStringValue: str];
+  tooltipDims = [[textField cell] cellSize];
+
+  r.size.width = tooltipDims.width;
+  r.size.height = tooltipDims.height;
+  [textField setFrame: r];
 }
 
 - (void) showAtX: (int)x Y: (int)y for: (int)seconds
@@ -1340,7 +1368,7 @@ Lisp_Object
 ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   id dialog;
-  Lisp_Object window, tem;
+  Lisp_Object window, tem, title;
   struct frame *f;
   NSPoint p;
   BOOL isQ;
@@ -1388,6 +1416,14 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   p.x = (int)f->left_pos + ((int)FRAME_COLUMN_WIDTH (f) * f->text_cols)/2;
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
+
+  title = Fcar (contents);
+  CHECK_STRING (title);
+
+  if (NILP (Fcar (Fcdr (contents))))
+    /* No buttons specified, add an "Ok" button so users can pop down
+       the dialog.  */
+    contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
 
   BLOCK_INPUT;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
@@ -1788,6 +1824,11 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 void
 syms_of_nsmenu (void)
 {
+#ifndef NS_IMPL_COCOA
+  /* Don't know how to keep track of this in Next/Open/Gnustep.  Always
+     update menus there.  */
+  trackingMenu = 1;
+#endif
   defsubr (&Sx_popup_dialog);
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);

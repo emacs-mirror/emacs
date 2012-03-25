@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995-1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -55,15 +55,11 @@
 ;;; Code:
 
 (require 'sendmail)
+(require 'auth-source)
 (autoload 'mail-strip-quoted-names "mail-utils")
 (autoload 'message-make-date "message")
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
-(autoload 'netrc-parse "netrc")
-(autoload 'netrc-machine "netrc")
-(autoload 'netrc-get "netrc")
-(autoload 'password-read "password-cache")
-(autoload 'auth-source-search "auth-source")
 
 ;;;
 (defgroup smtpmail nil
@@ -89,6 +85,13 @@ The default value would be \"smtp\" or 25."
   :type '(choice (integer :tag "Port") (string :tag "Service"))
   :group 'smtpmail)
 
+(defcustom smtpmail-smtp-user nil
+  "User name to use when looking up credentials in the authinfo file.
+If non-nil, only consider credentials for the specified user."
+  :version "24.1"
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
 (defcustom smtpmail-local-domain nil
   "Local domain name without a host name.
 If the function `system-name' returns the full internet address,
@@ -97,15 +100,16 @@ don't define this value."
   :group 'smtpmail)
 
 (defcustom smtpmail-stream-type nil
-  "Connection type SMTP connections.
-This may be either nil (possibly upgraded to STARTTLS if
-possible), or `starttls' (refuse to send if STARTTLS isn't
-available), or `plain' (never use STARTTLS).."
+  "Type of SMTP connections to use.
+This may be either nil (possibly upgraded to STARTTLS if possible),
+or `starttls' (refuse to send if STARTTLS isn't available), or `plain'
+\(never use STARTTLS), or `ssl' (to use TLS/SSL)."
   :version "24.1"
   :group 'smtpmail
   :type '(choice (const :tag "Possibly upgrade to STARTTLS" nil)
 		 (const :tag "Always use STARTTLS" starttls)
-		 (const :tag "Never use STARTTLS" plain)))
+		 (const :tag "Never use STARTTLS" plain)
+		 (const :tag "Use TLS/SSL" ssl)))
 
 (defcustom smtpmail-sendto-domain nil
   "Local domain name without a host name.
@@ -196,7 +200,10 @@ The list is in preference order.")
 	;; local binding in the mail buffer will take effect.
 	(smtpmail-mail-address
          (or (and mail-specify-envelope-from (mail-envelope-from))
-             user-mail-address))
+             (smtpmail-user-mail-address)
+	     (let ((from (mail-fetch-field "from")))
+	       (and from
+		    (cadr (mail-extract-address-components from))))))
 	(smtpmail-code-conv-from
 	 (if enable-multibyte-characters
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
@@ -317,7 +324,10 @@ The list is in preference order.")
 	    (if (re-search-forward "^FCC:" delimline t)
 		;; Force `mail-do-fcc' to use the encoding of the mail
 		;; buffer to encode outgoing messages on FCC files.
-		(let ((coding-system-for-write smtpmail-code-conv-from))
+		(let ((coding-system-for-write
+		       ;; mbox files must have Unix EOLs.
+		       (coding-system-change-eol-conversion
+			smtpmail-code-conv-from 'unix)))
 		  (mail-do-fcc delimline)))
 	    (if mail-interactive
 		(with-current-buffer errbuf
@@ -465,9 +475,6 @@ The list is in preference order.")
 	(push el2 result)))
     (nreverse result)))
 
-;; `password-read' autoloads password-cache.
-(declare-function password-cache-add "password-cache" (key password))
-
 (defun smtpmail-command-or-throw (process string &optional code)
   (let (ret)
     (smtpmail-send-command process string)
@@ -487,12 +494,13 @@ The list is in preference order.")
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection mechs smtpmail-auth-supported)))
 	 (auth-source-creation-prompts
-          '((user  . "SMTP user at %h: ")
+          '((user  . "SMTP user name for %h: ")
             (secret . "SMTP password for %u@%h: ")))
          (auth-info (car
 		     (auth-source-search
 		      :host host
 		      :port port
+		      :user smtpmail-smtp-user
 		      :max 1
 		      :require (and ask-for-password
 				    '(:user :secret))
@@ -502,6 +510,8 @@ The list is in preference order.")
 	 (save-function (and ask-for-password
 			     (plist-get auth-info :save-function)))
 	 ret)
+    (when (functionp password)
+      (setq password (funcall password)))
     (when (and user
 	       (not password))
       ;; The user has stored the user name, but not the password, so
@@ -513,6 +523,7 @@ The list is in preference order.")
 	      :max 1
 	      :host host
 	      :port port
+	      :user smtpmail-smtp-user
 	      :require '(:user :secret)
 	      :create t))
 	    password (plist-get auth-info :secret)))
@@ -587,28 +598,46 @@ The list is in preference order.")
 (defun smtpmail-response-text (response)
   (mapconcat 'identity (cdr response) "\n"))
 
-(autoload 'custom-file "cus-edit")
-
 (defun smtpmail-query-smtp-server ()
+  "Query for an SMTP server and try to contact it.
+If the contact succeeds, customizes and saves `smtpmail-smtp-server'
+and `smtpmail-smtp-service'.  This tries standard SMTP ports, and if
+none works asks you to supply one.  If you know that you need to use
+a non-standard port, you can set `smtpmail-smtp-service' in advance.
+Returns an error if the server cannot be contacted."
   (let ((server (read-string "Outgoing SMTP mail server: "))
-	(ports '(587 "smtp"))
-	stream port)
-    (when (and smtpmail-smtp-server
-	       (not (member smtpmail-smtp-server ports)))
-      (push smtpmail-smtp-server ports))
+	(ports '(25 587))
+	stream port prompted)
+    (when (and smtpmail-smtp-service
+	       (not (member smtpmail-smtp-service ports)))
+      (push smtpmail-smtp-service ports))
     (while (and (not smtpmail-smtp-server)
 		(setq port (pop ports)))
-      (when (setq stream (ignore-errors
-			   (open-network-stream "smtp" nil server port)))
-	(if (ignore-errors (custom-file))
-	    (progn
-	      (customize-save-variable 'smtpmail-smtp-server server)
-	      (customize-save-variable 'smtpmail-smtp-service port))
-	  (setq smtpmail-smtp-server server
-		smtpmail-smtp-service port))
+      (if (not (setq stream (condition-case ()
+				(open-network-stream "smtp" nil server port)
+			      (quit nil)
+			      (error nil))))
+	  ;; We've used up the list of default ports, so query the user.
+	  (when (and (not ports)
+		     (not prompted))
+	    (push (read-number (format "Port number to use when contacting %s? "
+				       server))
+		  ports)
+	    (setq prompted t))
+	(customize-save-variable 'smtpmail-smtp-server server)
+	(customize-save-variable 'smtpmail-smtp-service port)
 	(delete-process stream)))
     (unless smtpmail-smtp-server
       (error "Couldn't contact an SMTP server"))))
+
+(defun smtpmail-user-mail-address ()
+  "Return `user-mail-address' if it's a valid email address."
+  (and user-mail-address
+       (let ((parts (split-string user-mail-address "@")))
+	 (and (= (length parts) 2)
+	      ;; There's a dot in the domain name.
+	      (string-match "\\." (cadr parts))
+	      user-mail-address))))
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer
 				    &optional ask-for-password)
@@ -620,12 +649,16 @@ The list is in preference order.")
 	(port smtpmail-smtp-service)
         ;; `smtpmail-mail-address' should be set to the appropriate
         ;; buffer-local value by the caller, but in case not:
-        (envelope-from (or smtpmail-mail-address
-                           (and mail-specify-envelope-from
-                                (mail-envelope-from))
-                           user-mail-address))
-	(coding-system-for-read 'binary)
-	(coding-system-for-write 'binary)
+        (envelope-from
+	 (or smtpmail-mail-address
+	     (and mail-specify-envelope-from
+		  (mail-envelope-from))
+	     (smtpmail-user-mail-address)
+	     ;; Fall back on the From: header as the envelope From
+	     ;; address.
+	     (let ((from (mail-fetch-field "from")))
+	       (and from
+		    (cadr (mail-extract-address-components from))))))
 	response-code
 	process-buffer
 	result
@@ -644,21 +677,23 @@ The list is in preference order.")
 	    (erase-buffer))
 
 	  ;; open the connection to the server
-	  (setq result
-		(open-network-stream
-		 "smtpmail" process-buffer host port
-		 :type smtpmail-stream-type
-		 :return-list t
-		 :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
-		 :end-of-command "^[0-9]+ .*\r\n"
-		 :success "^2.*\n"
-		 :always-query-capabilities t
-		 :starttls-function
-		 (lambda (capabilities)
-		   (and (string-match "-STARTTLS" capabilities)
-			"STARTTLS\r\n"))
-		 :client-certificate t
-		 :use-starttls-if-possible t))
+	  (let ((coding-system-for-read 'binary)
+		(coding-system-for-write 'binary))
+	    (setq result
+		  (open-network-stream
+		   "smtpmail" process-buffer host port
+		   :type smtpmail-stream-type
+		   :return-list t
+		   :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
+		   :end-of-command "^[0-9]+ .*\r\n"
+		   :success "^2.*\n"
+		   :always-query-capabilities t
+		   :starttls-function
+		   (lambda (capabilities)
+		     (and (string-match "[ -]STARTTLS" capabilities)
+			  "STARTTLS\r\n"))
+		   :client-certificate t
+		   :use-starttls-if-possible t)))
 
 	  ;; If we couldn't access the server at all, we give up.
 	  (unless (setq process (car result))
@@ -675,7 +710,7 @@ The list is in preference order.")
 	      (throw 'done (format "No greeting: %s" greeting)))
 	    (when (>= code 400)
 	      (throw 'done (format "Connection not allowed: %s" greeting))))
-	  
+
 	  (with-current-buffer process-buffer
 	    (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix)
 	    (make-local-variable 'smtpmail-read-point)
@@ -728,7 +763,7 @@ The list is in preference order.")
 
 	    (when (member 'xusr supported-extensions)
 	      (smtpmail-command-or-throw process (format "XUSR")))
-	    
+
 	    ;; MAIL FROM:<sender>
 	    (let ((size-part
 		   (if (or (member 'size supported-extensions)
@@ -767,11 +802,15 @@ The list is in preference order.")
 		)
 	       ((and auth-mechanisms
 		     (not ask-for-password)
-		     (= (car result) 530))
+		     (eq (car result) 530))
 		;; We got a "530 auth required", so we close and try
 		;; again, this time asking the user for a password.
-		(smtpmail-send-command process "QUIT")
-		(smtpmail-read-response process)
+		;; We ignore any errors here, because some MTAs just
+		;; close the connection immediately after giving the
+		;; error message.
+		(ignore-errors
+		  (smtpmail-send-command process "QUIT")
+		  (smtpmail-read-response process))
 		(delete-process process)
 		(setq process nil)
 		(throw 'done
@@ -794,10 +833,12 @@ The list is in preference order.")
 		  nil)
 		 ((and auth-mechanisms
 		       (not ask-for-password)
-		       (= (car result) 550))
-		  ;; We got a "550 relay not permitted", and the server
-		  ;; accepts credentials, so we try again, but ask for a
-		  ;; password first.
+		       (integerp (car result))
+		       (>= (car result) 550)
+		       (<= (car result) 554))
+		  ;; We got a "550 relay not permitted" (or the like),
+		  ;; and the server accepts credentials, so we try
+		  ;; again, but ask for a password first.
 		  (smtpmail-send-command process "QUIT")
 		  (smtpmail-read-response process)
 		  (delete-process process)
@@ -830,7 +871,8 @@ The list is in preference order.")
 (defun smtpmail-process-filter (process output)
   (with-current-buffer (process-buffer process)
     (goto-char (point-max))
-    (insert output)))
+    (insert output)
+    (set-marker (process-mark process) (point))))
 
 (defun smtpmail-read-response (process)
   (let ((case-fold-search nil)
@@ -886,8 +928,8 @@ The list is in preference order.")
 
 (defun smtpmail-send-command (process command)
   (goto-char (point-max))
-  (if (= (aref command 0) ?P)
-      (insert "PASS <omitted>\r\n")
+  (if (string-match "\\`AUTH [A-Z]+ " command)
+      (insert (match-string 0 command) "<omitted>\r\n")
     (insert command "\r\n"))
   (setq smtpmail-read-point (point))
   (process-send-string process command)
@@ -914,7 +956,7 @@ The list is in preference order.")
 (defun smtpmail-send-data (process buffer)
   (let ((data-continue t) sending-data
         (pr (with-current-buffer buffer
-              (make-progress-reporter "Sending email"
+              (make-progress-reporter "Sending email "
                                       (point-min) (point-max)))))
     (with-current-buffer buffer
       (goto-char (point-min)))
@@ -965,7 +1007,7 @@ The list is in preference order.")
 	  (subst-char-in-region (point-min) (point-max)  9 ?  t) ; tab     --> blank
 
 	  (goto-char (point-min))
-	  ;; tidyness in case hook is not robust when it looks at this
+	  ;; tidiness in case hook is not robust when it looks at this
 	  (while (re-search-forward "[ \t]+" header-end t) (replace-match " "))
 
 	  (goto-char (point-min))

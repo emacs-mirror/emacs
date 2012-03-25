@@ -1,6 +1,6 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2011
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
@@ -420,7 +420,7 @@ Type `n' to quit this window for now.\n")
 	(goto-char (point-min))
 	(if (y-or-n-p "Inhibit VIP startup message? ")
 	    (progn
-	      (with-current-buffer 
+	      (with-current-buffer
                   (find-file-noselect
                    (substitute-in-file-name vip-startup-file))
 		(goto-char (point-max))
@@ -877,7 +877,7 @@ is the name of the register for COM."
   (if (> beg end) (exchange-point-and-mark)))
 
 (defun vip-global-execute ()
-  "Call last keyboad macro for each line in the region."
+  "Call last keyboard macro for each line in the region."
   (if (> (point) (mark)) (exchange-point-and-mark))
   (beginning-of-line)
   (call-last-kbd-macro)
@@ -1605,7 +1605,7 @@ used.  This behavior is controlled by the sign of prefix numeric value."
   "Show current buffer in two windows."
   (interactive)
   (delete-other-windows)
-  (split-window-vertically nil))
+  (split-window-below))
 
 
 ;; searching

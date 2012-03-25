@@ -1,6 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994-1997, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994-1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 
@@ -709,7 +709,7 @@ Commands:                        Equivalent keys in read-only mode:
       (forms-first-record))
     )
 
-  ;; user customising
+  ;; user customizing
   ;;(message "forms: proceeding setup (user hooks)...")
   (run-mode-hooks 'forms-mode-hook 'forms-mode-hooks)
   ;;(message "forms: setting up... done.")
@@ -1295,7 +1295,7 @@ Commands:                        Equivalent keys in read-only mode:
   )
 
 (defun forms--mode-menu-ro (map)
-;;; Menu initialisation
+;;; Menu initialization
 ;  (define-key map [menu-bar] (make-sparse-keymap))
   (define-key map [menu-bar forms]
     (cons "Forms" (make-sparse-keymap "Forms")))
@@ -1341,7 +1341,7 @@ Commands:                        Equivalent keys in read-only mode:
   (put 'forms-delete-record 'menu-enable '(not forms-read-only))
 )
 (defun forms--mode-menu-edit (map)
-;;; Menu initialisation
+;;; Menu initialization
 ;  (define-key map [menu-bar] (make-sparse-keymap))
   (define-key map [menu-bar forms]
     (cons "Forms" (make-sparse-keymap "Forms")))

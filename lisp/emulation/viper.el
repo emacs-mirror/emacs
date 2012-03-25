@@ -3,7 +3,7 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
-;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
@@ -87,7 +87,7 @@
 ;;    facility in the original Vi.
 ;;    First, one can execute any Emacs command while defining a
 ;;    macro, not just the Vi commands.  Second, macros are defined in a
-;;    WYSYWYG mode, using an interface to Emacs' WYSIWYG style of defining
+;;    WYSYWYG mode, using an interface to Emacs's WYSIWYG style of defining
 ;;    macros.  Third, in Viper, one can define macros that are specific to
 ;;    a given buffer, a given major mode, or macros defined for all buffers.
 ;;    The same macro name can have several different definitions:
@@ -491,7 +491,7 @@ unless it is coming up in a wrong Viper state."
     )
   "List specifying how to modify the various major modes to enable some Viperisms.
 The list has the structure: ((mode viper-state keymap) (mode viper-state
-keymap) ...).  If `mode' is on the list, the `kemap' will be made active (on
+keymap) ...).  If `mode' is on the list, the `keymap' will be made active (on
 the minor-mode-map-alist) in the specified viper state.
 If you change this list, have to restart Emacs for the change to take effect.
 However, if you did the change through the customization widget, then Emacs
@@ -561,7 +561,7 @@ and improving upon much of it.
       use Emacs productively, you are advised to reach user level 3 or higher.
 
       At user level 2 or higher, ^X and ^C have Emacs, not Vi, bindings;
-      ^Z toggles Vi/Emacs states; ^G is Emacs' keyboard-quit (like ^C in Vi).
+      ^Z toggles Vi/Emacs states; ^G is Emacs's keyboard-quit (like ^C in Vi).
 
    2. Vi exit functions (e.g., :wq, ZZ) work on INDIVIDUAL files -- they
       do not cause Emacs to quit, except at user level 1 (for a novice).
@@ -777,7 +777,7 @@ It also can't undo some Viper settings."
   (viper-unbind-mouse-search-key)
   (viper-unbind-mouse-insert-key)
   ;; In emacs, we have to advice handle-switch-frame
-  ;; This advice is undone earlier, when all advices matchine "viper-" are
+  ;; This advice is undone earlier, when all advices matching "viper-" are
   ;; deactivated.
   (if (featurep 'xemacs)
       (remove-hook 'mouse-leave-frame-hook 'viper-remember-current-frame))
@@ -1050,7 +1050,7 @@ It also can't undo some Viper settings."
 					 (memq 'down (event-modifiers (aref key 1)))))
 				(read-event))))))
     ) ; (if (featurep 'xemacs)
-  
+
   (if (featurep 'xemacs)
       ;; XEmacs
       (defadvice describe-key-briefly
@@ -1076,7 +1076,7 @@ It also can't undo some Viper settings."
 			       (prefix-numeric-value current-prefix-arg))
 			   1))))
     ) ; (if (featurep 'xemacs)
-  
+
   (defadvice find-file (before viper-add-suffix-advice activate)
     "Use `read-file-name' for reading arguments."
     (interactive (cons (read-file-name "Find file: " nil default-directory)

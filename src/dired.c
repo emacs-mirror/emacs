@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985-1986, 1993-1994, 1999-2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 1993-1994, 1999-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -229,11 +229,11 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 	  int len;
 	  int wanted = 0;
 	  Lisp_Object name, finalname;
-	  struct gcpro inner_gcpro1, inner_gcpro2;
+	  struct gcpro gcpro1, gcpro2;
 
 	  len = NAMLEN (dp);
 	  name = finalname = make_unibyte_string (dp->d_name, len);
-	  GCPRO2_VAR (finalname, name, inner_gcpro);
+	  GCPRO2 (finalname, name);
 
 	  /* Note: DECODE_FILE can GC; it should protect its argument,
 	     though.  */
@@ -289,23 +289,23 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 		  /* Construct an expanded filename for the directory entry.
 		     Use the decoded names for input to Ffile_attributes.  */
 		  Lisp_Object decoded_fullname, fileattrs;
-		  struct gcpro innermost_gcpro1, innermost_gcpro2;
+		  struct gcpro gcpro1, gcpro2;
 
 		  decoded_fullname = fileattrs = Qnil;
-		  GCPRO2_VAR (decoded_fullname, fileattrs, innermost_gcpro);
+		  GCPRO2 (decoded_fullname, fileattrs);
 
 		  /* Both Fexpand_file_name and Ffile_attributes can GC.  */
 		  decoded_fullname = Fexpand_file_name (name, directory);
 		  fileattrs = Ffile_attributes (decoded_fullname, id_format);
 
 		  list = Fcons (Fcons (finalname, fileattrs), list);
-		  UNGCPRO_VAR (innermost_gcpro);
+		  UNGCPRO;
 		}
 	      else
 		list = Fcons (finalname, list);
 	    }
 
-	  UNGCPRO_VAR (inner_gcpro);
+	  UNGCPRO;
 	}
     }
 
@@ -401,6 +401,7 @@ determined by the variable `completion-ignored-extensions', which see.  */)
   (Lisp_Object file, Lisp_Object directory, Lisp_Object predicate)
 {
   Lisp_Object handler;
+  directory = Fexpand_file_name (directory, Qnil);
 
   /* If the directory name has special constructs in it,
      call the corresponding file handler.  */
@@ -424,6 +425,7 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   (Lisp_Object file, Lisp_Object directory)
 {
   Lisp_Object handler;
+  directory = Fexpand_file_name (directory, Qnil);
 
   /* If the directory name has special constructs in it,
      call the corresponding file handler.  */
@@ -474,7 +476,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
   bestmatch = Qnil;
   encoded_file = encoded_dir = Qnil;
   GCPRO5 (file, dirname, bestmatch, encoded_file, encoded_dir);
-  dirname = Fexpand_file_name (dirname, Qnil);
   specbind (Qdefault_directory, dirname);
 
   /* Do completion on the encoded file name
@@ -627,7 +628,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 
 	  if (includeall && !canexclude)
 	    { /* If we have one non-excludable file, we want to exclude the
-		 excudable files.  */
+		 excludable files.  */
 	      includeall = 0;
 	      /* Throw away any previous excludable match found.  */
 	      bestmatch = Qnil;
@@ -672,11 +673,11 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
       if (!NILP (predicate))
 	{
 	  Lisp_Object val;
-	  struct gcpro inner_gcpro1;
+	  struct gcpro gcpro1;
 
-	  GCPRO1_VAR (name, inner_gcpro);
+	  GCPRO1 (name);
 	  val = call1 (predicate, name);
-	  UNGCPRO_VAR (inner_gcpro);
+	  UNGCPRO;
 
 	  if (NILP (val))
 	    continue;
@@ -1003,7 +1004,7 @@ so last access time will always be midnight of that day.  */)
   values[10] = INTEGER_TO_CONS (s.st_ino);
   values[11] = INTEGER_TO_CONS (s.st_dev);
 
-  return Flist (sizeof(values) / sizeof(values[0]), values);
+  return Flist (sizeof (values) / sizeof (values[0]), values);
 }
 
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,

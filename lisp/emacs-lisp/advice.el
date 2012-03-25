@@ -1,6 +1,6 @@
 ;;; advice.el --- an overloading mechanism for Emacs Lisp functions
 
-;; Copyright (C) 1993-1994, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -348,10 +348,7 @@
 ;; first argument list defined in the list of before/around/after advices.
 ;; The values of <arglist> variables can be accessed/changed in the body of
 ;; an advice by simply referring to them by their original name, however,
-;; more portable argument access macros are also provided (see below).  For
-;; subrs/special-forms for which neither explicit argument list definitions
-;; are available, nor their documentation strings contain such definitions
-;; (as they do v19s), `(&rest ad-subr-args)' will be used.
+;; more portable argument access macros are also provided (see below).
 
 ;; <advised-docstring> is an optional, special documentation string which will
 ;; be expanded into a proper documentation string upon call of `documentation'.
@@ -491,17 +488,15 @@
 
 ;; @@@ Argument list mapping:
 ;; ==========================
-;; Because `defadvice' allows the specification of the argument list of the
-;; advised function we need a mapping mechanism that maps this argument list
-;; onto that of the original function. For example, somebody might specify
-;; `(sym newdef)' as the argument list of `fset', while advice might use
-;; `(&rest ad-subr-args)' as the argument list of the original function
-;; (depending on what Emacs version is used). Hence SYM and NEWDEF have to
-;; be properly mapped onto the &rest variable when the original definition is
-;; called. Advice automatically takes care of that mapping, hence, the advice
-;; programmer can specify an argument list without having to know about the
-;; exact structure of the original argument list as long as the new argument
-;; list takes a compatible number/magnitude of actual arguments.
+;; Because `defadvice' allows the specification of the argument list
+;; of the advised function we need a mapping mechanism that maps this
+;; argument list onto that of the original function. Hence SYM and
+;; NEWDEF have to be properly mapped onto the &rest variable when the
+;; original definition is called. Advice automatically takes care of
+;; that mapping, hence, the advice programmer can specify an argument
+;; list without having to know about the exact structure of the
+;; original argument list as long as the new argument list takes a
+;; compatible number/magnitude of actual arguments.
 
 ;; @@ Activation and deactivation:
 ;; ===============================
@@ -625,12 +620,12 @@
 ;;
 ;;    (ad-activate-regexp "^ange-ftp-")
 ;;
-;; A saver way would have been to use
+;; A safer way would have been to use
 ;;
 ;;    (ad-update-regexp "^ange-ftp-")
 ;;
 ;; instead which would have only reactivated currently actively advised
-;; functions, but not functions that were currently deactivated. All these
+;; functions, but not functions that were currently inactive. All these
 ;; functions can also be called interactively.
 
 ;; A certain piece of advice is considered a match if its name contains a
@@ -664,8 +659,8 @@
 
 ;; @@@ Enabling automatic advice activation:
 ;; =========================================
-;; Automatic advice activation is enabled by default. It can be disabled by
-;; doint `M-x ad-stop-advice' and enabled again with `M-x ad-start-advice'.
+;; Automatic advice activation is enabled by default. It can be disabled with
+;; `M-x ad-stop-advice' and enabled again with `M-x ad-start-advice'.
 
 ;; @@ Caching of advised definitions:
 ;; ==================================
@@ -833,7 +828,7 @@
 ;;     Reactivate an advised function but only if its advice is currently
 ;;     active. This can be used to bring all currently advised function up
 ;;     to date with the current state of advice without also activating
-;;     currently deactivated functions.
+;;     currently inactive functions.
 ;; - Caching:
 ;;     Is the saving of an advised definition and an identifying cache-id so
 ;;     it can be reused, for example, for activation after deactivation.
@@ -853,7 +848,7 @@
 ;; - ad-activate to activate the advice of a FUNCTION
 ;; - ad-deactivate to deactivate the advice of a FUNCTION
 ;; - ad-update   to activate the advice of a FUNCTION unless it was not
-;;               yet activated or is currently deactivated.
+;;               yet activated or is currently inactive.
 ;; - ad-unadvise deactivates a FUNCTION and removes all of its advice
 ;;               information, hence, it cannot be activated again
 ;; - ad-recover  tries to redefine a FUNCTION to its original definition and
@@ -884,9 +879,6 @@
 ;; @@ Summary of forms with special meanings when used within an advice:
 ;; =====================================================================
 ;;   ad-return-value   name of the return value variable (get/settable)
-;;   ad-subr-args      name of &rest argument variable used for advised
-;;                     subrs whose actual argument list cannot be
-;;                     determined (get/settable)
 ;;   (ad-get-arg <pos>), (ad-get-args <pos>),
 ;;   (ad-set-arg <pos> <value>), (ad-set-args <pos> <value-list>)
 ;;                     argument access text macros to get/set the values of
@@ -1261,7 +1253,7 @@
 ;; contain some advice matched by the regular expression. This is a save
 ;; way to update the activation of advised functions whose advice changed
 ;; in some way or other without accidentally also activating currently
-;; deactivated functions:
+;; inactive functions:
 ;;
 ;; (ad-update-regexp "^fg-")
 ;; nil
@@ -1608,7 +1600,7 @@
 ;; fii
 ;;
 ;; Now we advise `fii' to use an optional second argument that controls the
-;; amount of incrementation. A list following the (optional) position
+;; amount of incrementing. A list following the (optional) position
 ;; argument of the advice will be interpreted as an argument list
 ;; specification. This means you cannot specify an empty argument list, and
 ;; why would you want to anyway?
@@ -2593,36 +2585,6 @@ For that it has to be fbound with a non-autoload definition."
 	 (fset symbol (symbol-function function))
 	 (byte-compile symbol)
 	 (fset function (symbol-function symbol))))))
-
-
-;; @@ Constructing advised definitions:
-;; ====================================
-;;
-;; Main design decisions about the form of advised definitions:
-;;
-;; A) How will original definitions be called?
-;; B) What will argument lists of advised functions look like?
-;;
-;; Ad A)
-;;    I chose to use function indirection for all four types of original
-;;    definitions (functions, macros, subrs and special forms), i.e., create
-;;    a unique symbol `ad-Orig-<name>' which is fbound to the original
-;;    definition and call it according to type and arguments.  Functions and
-;;    subrs that don't have any &rest arguments can be called directly in a
-;;    `(ad-Orig-<name> ....)' form.  If they have a &rest argument we have to
-;;    use `apply'.  Macros will be called with
-;;    `(macroexpand '(ad-Orig-<name> ....))', and special forms also need a
-;;    form like that with `eval' instead of `macroexpand'.
-;;
-;; Ad B)
-;;    Use original arguments where possible and `(&rest ad-subr-args)'
-;;    otherwise, even though this seems to be more complicated and less
-;;    uniform than a general `(&rest args)' approach.  My reason to still
-;;    do it that way is that in most cases my approach leads to the more
-;;    efficient form for the advised function, and portability (e.g., to
-;;    make the same advice work regardless of whether something is a
-;;    function or a subr) can still be achieved with argument access macros.
-
 
 (defun ad-prognify (forms)
   (cond ((<= (length forms) 1)

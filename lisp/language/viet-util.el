@@ -1,6 +1,6 @@
 ;;; viet-util.el --- utilities for Vietnamese  -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -34,7 +34,7 @@
 ;; for representing these characters: VISCII, TCVN-5712, VPS, VIQR,
 ;; and Unicode.  VISCII, TCVN-5712 and VPS are simple 1-byte code
 ;; which assigns 134 unique characters in control-code area
-;; (0x00..0x1F) and right half area (0x80..0xFF).  VIQR is a menmonic
+;; (0x00..0x1F) and right half area (0x80..0xFF).  VIQR is a mnemonic
 ;; encoding specification representing diacritical marks by following
 ;; ASCII characters.
 
@@ -47,7 +47,7 @@
   "Return VISCII character code of CHAR if appropriate."
   (encode-char char 'viscii))
 
-;; VIQR is a menmonic encoding specification for Vietnamese.
+;; VIQR is a mnemonic encoding specification for Vietnamese.
 ;; It represents diacritical marks by ASCII characters as follows:
 ;; ------------+----------+--------
 ;;     mark    | mnemonic | example

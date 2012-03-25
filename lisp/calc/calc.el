@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -124,7 +124,7 @@
 ;;	target integral is not complete (and the time limit has not run out)
 ;;	choose an incomplete integral from the cache and, for every integral
 ;;	appearing in its RHS's, add those integrals to the cache using the
-;;	same substitition, parts, etc. rules.  The cache should be organized
+;;	same substitution, parts, etc. rules.  The cache should be organized
 ;;	as a priority queue, choosing the "simplest" incomplete integral at
 ;;	each step, or choosing randomly among equally simple integrals.
 ;;	Simplicity equals small size, and few steps removed from the original
@@ -428,32 +428,36 @@ in normal mode."
   nil
   "If non-nil, use a separate face to indicate selected sub-formulas.
 If `calc-show-selections' is non-nil, then selected sub-formulas are shown
-by displaying the rest of the formula in `calc-nonselected-face'.  
+by displaying the rest of the formula in `calc-nonselected-face'.
 If `calc-show-selections' is nil, then selected sub-formulas are shown
 by displaying the sub-formula in `calc-selected-face'."
+  :version "24.1"
   :group 'calc
   :type 'boolean)
 
 (defcustom calc-lu-field-reference
   "20 uPa"
   "The default reference level for logarithmic units (field)."
+  :version "24.1"
   :group 'calc
   :type '(string))
 
 (defcustom calc-lu-power-reference
   "mW"
   "The default reference level for logarithmic units (power)."
+  :version "24.1"
   :group 'calc
   :type '(string))
 
-(defcustom calc-note-threshold "1" 
+(defcustom calc-note-threshold "1"
   "The number of cents that a frequency should be near a note
 to be identified as that note."
+  :version "24.1"
   :type 'string
   :group 'calc)
 
 (defface calc-nonselected-face
-  '((t :inherit shadow       
+  '((t :inherit shadow
        :slant italic))
   "Face used to show the non-selected portion of a formula."
   :group 'calc)
@@ -1003,7 +1007,7 @@ Used by `calc-user-invocation'.")
 (defvar calc-quick-prev-results nil
   "Previous results from Quick Calc.")
 (defvar calc-said-hello nil
-  "Non-nil if the welcomd message has been displayed.")
+  "Non-nil if the welcome message has been displayed.")
 (defvar calc-executing-macro nil
   "Non-nil if a keyboard macro is executing from the \"K\" key.")
 (defvar calc-any-selections nil
@@ -1235,7 +1239,8 @@ Used by `calc-user-invocation'.")
 	(glob (current-global-map))
 	(loc (current-local-map)))
     (or (input-pending-p) (message "%s" prompt))
-    (let ((key (calc-read-key t)))
+    (let ((key (calc-read-key t))
+	  (input-method-function nil))
       (calc-unread-command (cdr key))
       (unwind-protect
 	  (progn

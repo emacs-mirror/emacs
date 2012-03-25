@@ -1,4 +1,4 @@
-Copyright (C) 2002-2011  Free Software Foundation, Inc.
+Copyright (C) 2002-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -27,6 +27,10 @@ You can then configure your build (use `./configure --help' to see
 options you can set):
 
   $ ./configure
+
+If you want later builds to go faster, at the expense of sometimes
+doing the wrong thing if you update the build procedure, you can
+invoke "./configure -C --disable-maintainer-mode" instead.
 
 Some of the files that are included in the Emacs tarball, such as
 byte-compiled Lisp files, are not stored in Bazaar.  Therefore, to

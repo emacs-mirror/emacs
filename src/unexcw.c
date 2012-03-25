@@ -1,7 +1,7 @@
 /* unexec() support for Cygwin;
    complete rewrite of xemacs Cygwin unexec() code
 
-   Copyright (C) 2004-2011 Free Software Foundation, Inc.
+   Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,6 +32,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DOTEXE ".exe"
 
 extern int bss_sbrk_did_unexec;
+
+extern int __malloc_initialized;
 
 /* emacs symbols that indicate where bss and data end for emacs internals */
 extern char my_endbss[];
@@ -210,9 +212,12 @@ fixup_executable (int fd)
 	    lseek (fd, (long) (exe_header->section_header[i].s_scnptr),
 		   SEEK_SET);
 	  assert (ret != -1);
+	  /* force the dumped emacs to reinitialize malloc */
+	  __malloc_initialized = 0;
 	  ret =
 	    write (fd, (char *) start_address,
 		   my_endbss - (char *) start_address);
+	  __malloc_initialized = 1;
 	  assert (ret == (my_endbss - (char *) start_address));
 	  if (debug_unexcw)
 	    printf ("         .bss, mem start 0x%08x mem length %d\n",

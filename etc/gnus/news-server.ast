@@ -7,7 +7,7 @@
 @validate (or (assistant-validate-connect-to-server server port) (y-or-n-p "Do you want to use the server anyway, although you can't confirm it's valid?"))
 @result gnus-select-method (list 'nntp server (list 'nntp-server port))
 @text
-Usenet news is usually read from your Internet service prodider's news
+Usenet news is usually read from your Internet service provider's news
 server.  If you don't know the name of this server, contact your ISP.
 
 As a guess, the name of the server might be news.yourisp.com.
@@ -61,4 +61,3 @@ Password: @variable{user-name}
 @c End:
 
 @c arch tag is missing
-

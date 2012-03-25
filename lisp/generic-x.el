@@ -1,6 +1,6 @@
 ;;; generic-x.el --- A collection of generic modes
 
-;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Tue Oct 08 1996
@@ -1436,7 +1436,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
     "REGDB_APPPATH"
     "REGDB_BINARY"
     "REGDB_ERR_CONNECTIONEXISTS"
-    "REGDB_ERR_CORRUPTEDREGSITRY"
+    "REGDB_ERR_CORRUPTEDREGISTRY"
     "REGDB_ERR_INITIALIZATION"
     "REGDB_ERR_INVALIDHANDLE"
     "REGDB_ERR_INVALIDNAME"
@@ -1446,7 +1446,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
     "REGDB_STRING"
     "REGDB_UNINSTALL_NAME"
     "REMOTE_DRIVE"
-    "REMOVALE_DRIVE"
+    "REMOVEABLE_DRIVE"
     "REPLACE_ITEM"
     "REPLACE"
     "RESET"

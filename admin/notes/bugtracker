@@ -632,3 +632,22 @@ mytest       my.email.address
 
 Then if you do all your testing with 'Package: mytest', the resulting
 mails should only go to your email address.
+
+** Adding new tags
+
+Add them to @gTags in /etc/debbugs/config.
+I think you also have to add them to 'tags' and 'tags_single_letter'
+in /usr/share/perl5/Debbugs/Config.pm.
+And update /var/www/Developer.html with a description of what the tag means.
+And the "valid tags" list in /var/www/index.html.
+
+** Backups
+
+The FSF sysadmins handle multi-generational backups of the filesystem
+on debbugs.gnu.org.  But if you really want to have your own backup of
+the bug database, you can use rsync (this requires login access to
+debbugs.gnu.org):
+
+ rsync -azvv -e ssh USER@debbugs.gnu.org:/var/lib/debbugs/ DEST
+
+Note that this occupies well over 1G of disk space.

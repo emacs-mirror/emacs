@@ -1,6 +1,6 @@
 ;;; ede.el --- Emacs Development Environment gloss
 
-;; Copyright (C) 1998-2005, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -93,6 +93,42 @@ target willing to take the file.  'never means never perform the check."
   "Default Emacs command used to debug a target."
   :group 'ede
   :type 'sexp) ; make this be a list of options some day
+
+(defcustom ede-project-directories nil
+  "Directories in which EDE may search for project files.
+If the value is t, EDE may search in any directory.
+
+If the value is a function, EDE calls that function with one
+argument, the directory name; the function should return t iff
+EDE should look for project files in the directory.
+
+Otherwise, the value should be a list of fully-expanded directory
+names.  EDE searches for project files only in those directories.
+If you invoke the commands \\[ede] or \\[ede-new] on a directory
+that is not listed, Emacs will offer to add it to the list.
+
+Any other value disables searching for EDE project files."
+  :group 'ede
+  :type '(choice (const :tag "Any directory" t)
+		 (repeat :tag "List of directories"
+			 (directory))
+		 (function :tag "Predicate"))
+  :version "23.4"
+  :risky t)
+
+(defun ede-directory-safe-p (dir)
+  "Return non-nil if DIR is a safe directory to load projects from.
+Projects that do not load a project definition as Emacs Lisp code
+are safe, and can be loaded automatically.  Other project types,
+such as those created with Project.ede files, are safe only if
+specified by `ede-project-directories'."
+  (setq dir (directory-file-name (expand-file-name dir)))
+  ;; Load only if allowed by `ede-project-directories'.
+  (or (eq ede-project-directories t)
+      (and (functionp ede-project-directories)
+	   (funcall ede-project-directories dir))
+      (and (listp ede-project-directories)
+	   (member dir ede-project-directories))))
 
 
 ;;; Management variables
@@ -214,7 +250,7 @@ Argument LIST-O-O is the list of objects to choose from."
     (and obj (obj-of-class-p obj ede-target))))
 
 (defun ede-buffer-belongs-to-project-p ()
-  "Return non-nil if this buffer belongs to at least one target."
+  "Return non-nil if this buffer belongs to at least one project."
   (if (or (null ede-object) (consp ede-object)) nil
     (obj-of-class-p ede-object ede-project)))
 
@@ -243,7 +279,7 @@ Argument MENU-DEF is the menu definition to use."
 	      ede-obj (if (listp ede-object) ede-object (list ede-object)))
 	;; First, collect the build items from the project
 	(setq newmenu (append newmenu (ede-menu-items-build obj t)))
-	;; Second, Declare the current target menu items
+	;; Second, declare the current target menu items
 	(if (and ede-obj (ede-menu-obj-of-class-p ede-target))
 	    (while ede-obj
 	      (setq newmenu (append newmenu
@@ -264,7 +300,7 @@ Argument MENU-DEF is the menu definition to use."
 	  (setq targets (cdr targets)))
 	;; Fourth, build sub projects.
 	;; -- nerp
-	;; Fifth, Add make distribution
+	;; Fifth, add make distribution
 	(append newmenu (list [ "Make distribution" ede-make-dist t ]))
 	)))))
 
@@ -398,8 +434,9 @@ To be used in hook functions."
 
 (define-minor-mode ede-minor-mode
   "Toggle EDE (Emacs Development Environment) minor mode.
-With non-nil argument ARG, enable EDE minor mode if ARG is
-positive; otherwise, disable it.
+With a prefix argument ARG, enable EDE minor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+EDE minor mode if ARG is omitted or nil.
 
 If this file is contained, or could be contained in an EDE
 controlled project, then this mode is activated automatically
@@ -419,24 +456,42 @@ provided `global-ede-mode' is enabled."
 Sets buffer local variables for EDE."
   (let* ((ROOT nil)
 	 (proj (ede-directory-get-open-project default-directory
-					       'ROOT)))
+					       'ROOT))
+	 (projauto nil))
+
     (when (or proj ROOT
-	      (ede-directory-project-p default-directory t))
+	      ;; If there is no open project, look up the project
+	      ;; autoloader to see if we should initialize.
+	      (setq projauto (ede-directory-project-p default-directory t)))
 
-      (when (not proj)
-	;; @todo - this could be wasteful.
-	(setq proj (ede-load-project-file default-directory 'ROOT)))
+      (when (and (not proj) projauto)
 
-      (setq ede-object (ede-buffer-object (current-buffer)
+	;; No project was loaded, but we have a project description
+	;; object.  This means that we can check if it is a safe
+	;; project to load before requesting it to be loaded.
+
+	(when (or (oref projauto safe-p)
+		  ;; The project style is not safe, so check if it is
+		  ;; in `ede-project-directories'.
+		  (let ((top (ede-toplevel-project default-directory)))
+		    (ede-directory-safe-p top)))
+
+	  ;; The project is safe, so load it in.
+	  (setq proj (ede-load-project-file default-directory 'ROOT))))
+
+      ;; Only initialize EDE state in this buffer if we found a project.
+      (when proj
+
+	(setq ede-object (ede-buffer-object (current-buffer)
 					  'ede-object-project))
 
-      (setq ede-object-root-project
-	    (or ROOT (ede-project-root ede-object-project)))
+	(setq ede-object-root-project
+	      (or ROOT (ede-project-root ede-object-project)))
 
-      (if (and (not ede-object) ede-object-project)
-	  (ede-auto-add-to-target))
+	(if (and (not ede-object) ede-object-project)
+	    (ede-auto-add-to-target))
 
-      (ede-apply-target-options))))
+	(ede-apply-target-options)))))
 
 (defun ede-reset-all-buffers (onoff)
   "Reset all the buffers due to change in EDE.
@@ -458,8 +513,9 @@ ONOFF indicates enabling or disabling the mode."
 ;;;###autoload
 (define-minor-mode global-ede-mode
   "Toggle global EDE (Emacs Development Environment) mode.
-With non-nil argument ARG, enable global EDE mode if ARG is
-positive; otherwise, disable it.
+With a prefix argument ARG, enable global EDE mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 This global minor mode enables `ede-minor-mode' in all buffers in
 an EDE controlled project."
@@ -510,7 +566,7 @@ an EDE controlled project."
   "Look for a target that wants to own the current file.
 Follow the preference set with `ede-auto-add-method' and get the list
 of objects with the `ede-want-file-p' method."
-  (if ede-object (error "Ede-object already defined for %s" (buffer-name)))
+  (if ede-object (error "ede-object already defined for %s" (buffer-name)))
   (if (or (eq ede-auto-add-method 'never)
 	  (ede-ignore-file (buffer-file-name)))
       nil
@@ -555,16 +611,76 @@ of objects with the `ede-want-file-p' method."
 
 ;;; Interactive method invocations
 ;;
-(defun ede (file)
-  "Start up EDE on something.
-Argument FILE is the file or directory to load a project from."
-  (interactive "fProject File: ")
-  (if (not (file-exists-p file))
-      (ede-new file)
-    (ede-load-project-file (file-name-directory file))))
+(defun ede (dir)
+  "Start up EDE for directory DIR.
+If DIR has an existing project file, load it.
+Otherwise, create a new project for DIR."
+  (interactive
+   ;; When choosing a directory to turn on, and we see some directory here,
+   ;; provide that as the default.
+   (let* ((top (ede-toplevel-project default-directory))
+	  (promptdflt (or top default-directory)))
+     (list (read-directory-name "Project directory: "
+				promptdflt promptdflt t))))
+  (unless (file-directory-p dir)
+    (error "%s is not a directory" dir))
+  (when (ede-directory-get-open-project dir)
+    (error "%s already has an open project associated with it" dir))
+
+  ;; Check if the directory has been added to the list of safe
+  ;; directories.  It can also add the directory to the safe list if
+  ;; the user chooses.
+  (if (ede-check-project-directory dir)
+      (progn
+	;; If there is a project in DIR, load it, otherwise do
+	;; nothing.
+	(ede-load-project-file dir)
+
+	;; Check if we loaded anything on the previous line.
+	(if (ede-current-project dir)
+
+	    ;; We successfully opened an existing project.  Some open
+	    ;; buffers may also be referring to this project.
+	    ;; Resetting all the buffers will get them to also point
+	    ;; at this new open project.
+	    (ede-reset-all-buffers 1)
+
+	  ;; ELSE
+	  ;; There was no project, so switch to `ede-new' which is how
+	  ;; a user can select a new kind of project to create.
+	  (let ((default-directory (expand-file-name dir)))
+	    (call-interactively 'ede-new))))
+
+    ;; If the proposed directory isn't safe, then say so.
+    (error "%s is not an allowed project directory in `ede-project-directories'"
+	   dir)))
+
+(defun ede-check-project-directory (dir)
+  "Check if DIR should be in `ede-project-directories'.
+If it is not, try asking the user if it should be added; if so,
+add it and save `ede-project-directories' via Customize.
+Return nil iff DIR should not be in `ede-project-directories'."
+  (setq dir (directory-file-name (expand-file-name dir))) ; strip trailing /
+  (or (eq ede-project-directories t)
+      (and (functionp ede-project-directories)
+	   (funcall ede-project-directories dir))
+      ;; If `ede-project-directories' is a list, maybe add it.
+      (when (listp ede-project-directories)
+	(or (member dir ede-project-directories)
+	    (when (y-or-n-p (format "`%s' is not listed in `ede-project-directories'.
+Add it to the list of allowed project directories? "
+				    dir))
+	      (push dir ede-project-directories)
+	      ;; If possible, save `ede-project-directories'.
+	      (if (or custom-file user-init-file)
+		  (let ((coding-system-for-read nil))
+		    (customize-save-variable
+		     'ede-project-directories
+		     ede-project-directories)))
+	      t)))))
 
 (defun ede-new (type &optional name)
-  "Create a new project starting of project type TYPE.
+  "Create a new project starting from project type TYPE.
 Optional argument NAME is the name to give this project."
   (interactive
    (list (completing-read "Project Type: "
@@ -596,6 +712,11 @@ Optional argument NAME is the name to give this project."
     (error "Cannot create project in non-existent directory %s" default-directory))
   (when (not (file-writable-p default-directory))
     (error "No write permissions for %s" default-directory))
+  (unless (ede-check-project-directory default-directory)
+    (error "%s is not an allowed project directory in `ede-project-directories'"
+	   default-directory))
+  ;; Make sure the project directory is loadable in the future.
+  (ede-check-project-directory default-directory)
   ;; Create the project
   (let* ((obj (object-assoc type 'name ede-project-class-files))
 	 (nobj (let ((f (oref obj file))
@@ -629,6 +750,10 @@ Optional argument NAME is the name to give this project."
 	(ede-add-subproject pp nobj)
 	(ede-commit-project pp)))
     (ede-commit-project nobj))
+  ;; Once the project is created, load it again.  This used to happen
+  ;; lazily, but with project loading occurring less often and with
+  ;; security in mind, this is now the safe time to reload.
+  (ede-load-project-file default-directory)
   ;; Have the menu appear
   (setq ede-minor-mode t)
   ;; Allert the user
@@ -640,7 +765,7 @@ Optional argument NAME is the name to give this project."
 
 (defun ede-invoke-method (sym &rest args)
   "Invoke method SYM on the current buffer's project object.
-ARGS are additional arguments to pass to method sym."
+ARGS are additional arguments to pass to method SYM."
   (if (not ede-object)
       (error "Cannot invoke %s for %s" (symbol-name sym)
 	     (buffer-name)))
@@ -651,11 +776,16 @@ ARGS are additional arguments to pass to method sym."
 (defun ede-rescan-toplevel ()
   "Rescan all project files."
   (interactive)
-  (let ((toppath (ede-toplevel-project default-directory))
-	(ede-deep-rescan t))
-    (project-rescan (ede-load-project-file toppath))
-    (ede-reset-all-buffers 1)
-    ))
+  (if (not (ede-directory-get-open-project default-directory))
+      ;; This directory isn't open.  Can't rescan.
+      (error "Attempt to rescan a project that isn't open")
+
+    ;; Continue
+    (let ((toppath (ede-toplevel-project default-directory))
+	  (ede-deep-rescan t))
+
+      (project-rescan (ede-load-project-file toppath))
+      (ede-reset-all-buffers 1))))
 
 (defun ede-new-target (&rest args)
   "Create a new target specific to this type of project file.
@@ -813,7 +943,7 @@ Argument FNND is an argument."
   (error "remove-file not supported by %s" (object-name ot)))
 
 (defmethod project-edit-file-target ((ot ede-target))
-  "Edit the target OT associated w/ this file."
+  "Edit the target OT associated with this file."
   (find-file (oref (ede-current-project) file)))
 
 (defmethod project-new-target ((proj ede-project) &rest args)
@@ -855,7 +985,7 @@ Argument COMMAND is the command to use for compiling the target."
   (error "Dist-files is not supported by %s" (object-name this)))
 
 (defmethod project-rescan ((this ede-project))
-  "Rescan the EDE proj project THIS."
+  "Rescan the EDE project THIS."
   (error "Rescanning a project is not supported by %s" (object-name this)))
 
 (defun ede-ecb-project-paths ()
@@ -877,7 +1007,7 @@ On success, return the added project."
   (when (not proj)
     (error "No project created to add to master list"))
   (when (not (eieio-object-p proj))
-    (error "Attempt to add Non-object to master project list"))
+    (error "Attempt to add non-object to master project list"))
   (when (not (obj-of-class-p proj ede-project-placeholder))
     (error "Attempt to add a non-project to the ede projects list"))
   (add-to-list 'ede-projects proj)
@@ -891,7 +1021,7 @@ Optional ROOTRETURN will return the root project for DIR."
   ;; Do the load
   ;;(message "EDE LOAD : %S" file)
   (let* ((file dir)
-	 (path (expand-file-name (file-name-directory file)))
+	 (path (file-name-as-directory (expand-file-name dir)))
 	 (pfc (ede-directory-project-p path))
 	 (toppath nil)
 	 (o nil))
@@ -907,7 +1037,7 @@ Optional ROOTRETURN will return the root project for DIR."
 	;; recomment as we go
 	;;nil
 	))
-     ;; Do nothing if we are buiding an EDE project already
+     ;; Do nothing if we are building an EDE project already.
      (ede-constructing
       nil)
      ;; Load in the project in question.
@@ -920,13 +1050,11 @@ Optional ROOTRETURN will return the root project for DIR."
       ;; See if it's been loaded before
       (setq o (object-assoc (ede-dir-to-projectfile pfc toppath) 'file
 			    ede-projects))
-      (if (not o)
-	  ;; If not, get it now.
-	  (let ((ede-constructing pfc))
-	    (setq o (funcall (oref pfc load-type) toppath))
-	    (when (not o)
-	      (error "Project type error: :load-type failed to create a project"))
-	    (ede-add-project-to-global-list o)))
+
+      ;; If not open yet, load it.
+      (unless o
+	(let ((ede-constructing pfc))
+	  (setq o (ede-auto-load-project pfc toppath))))
 
       ;; Return the found root project.
       (when rootreturn (set rootreturn o))
@@ -980,13 +1108,7 @@ Optional argument OBJ is an object to find the parent of."
 	     (and root
 		  (ede-find-subproject-for-directory root updir))
 	     ;; Try the all structure based search.
-	     (ede-directory-get-open-project updir)
-	     ;; Load up the project file as a last resort.
-	     ;; Last resort since it uses file-truename, and other
-	     ;; slow features.
-	     (and (ede-directory-project-p updir)
-		  (ede-load-project-file
-		   (file-name-as-directory updir))))))))))
+	     (ede-directory-get-open-project updir))))))))
 
 (defun ede-current-project (&optional dir)
   "Return the current project file.
@@ -1000,11 +1122,7 @@ If optional DIR is provided, get the project for DIR instead."
     ;; No current project.
     (when (not ans)
       (let* ((ldir (or dir default-directory)))
-	(setq ans (ede-directory-get-open-project ldir))
-	(or ans
-	    ;; No open project, if this dir pass project-p, then load.
-	    (when (ede-directory-project-p ldir)
-	      (setq ans (ede-load-project-file ldir))))))
+	(setq ans (ede-directory-get-open-project ldir))))
     ;; Return what we found.
     ans))
 
@@ -1059,12 +1177,13 @@ If TARGET belongs to a subproject, return that project file."
   "Return the project which is the parent of TARGET.
 It is recommended you track the project a different way as this function
 could become slow in time."
-  ;; @todo - use ede-object-project as a starting point.
-  (let ((ans nil) (projs ede-projects))
-    (while (and (not ans) projs)
-      (setq ans (ede-target-in-project-p (car projs) target)
-	    projs (cdr projs)))
-    ans))
+  (or ede-object-project
+      ;; If not cached, derive it from the current directory of the target.
+      (let ((ans nil) (projs ede-projects))
+	(while (and (not ans) projs)
+	  (setq ans (ede-target-in-project-p (car projs) target)
+		projs (cdr projs)))
+	ans)))
 
 (defmethod ede-find-target ((proj ede-project) buffer)
   "Fetch the target in PROJ belonging to BUFFER or nil."
@@ -1155,7 +1274,7 @@ See also `ede-map-all-subprojects'."
   (mapcar proc (oref this subproj)))
 
 (defmethod ede-map-all-subprojects ((this ede-project) allproc)
-  "For object THIS, execute PROC on THIS and  all subprojects.
+  "For object THIS, execute PROC on THIS and all subprojects.
 This function also applies PROC to sub-sub projects.
 See also `ede-map-subprojects'."
   (apply 'append
@@ -1176,16 +1295,6 @@ See also `ede-map-subprojects'."
   "For project THIS, map PROC to all targets and return if any non-nil.
 Return the first non-nil value returned by PROC."
   (eval (cons 'or (ede-map-targets this proc))))
-
-;;; VC Handling
-;;
-(defun ede-maybe-checkout (&optional buffer)
-  "Check BUFFER out of VC if necessary."
-  (save-excursion
-    (if buffer (set-buffer buffer))
-    (if (and buffer-read-only vc-mode
-	     (y-or-n-p "Checkout Makefile.am from VC? "))
-	(vc-toggle-read-only))))
 
 
 ;;; Some language specific methods.

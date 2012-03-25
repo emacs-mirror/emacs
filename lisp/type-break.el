@@ -1,6 +1,6 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals
 
-;; Copyright (C) 1994-1995, 1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
@@ -431,13 +431,13 @@ problems."
   type-break-mode)
 
 (define-minor-mode type-break-mode-line-message-mode
-  "Enable or disable warnings in the mode line about typing breaks.
+  "Toggle warnings about typing breaks in the mode line.
+With a prefix argument ARG, enable these warnings if ARG is
+positive, and disable them otherwise.  If called from Lisp,
+enable them if ARG is omitted or nil.
 
-A negative PREFIX argument disables this mode.
-No argument or any non-negative argument enables it.
-
-The user may also enable or disable this mode simply by setting the
-variable of the same name.
+The user may also enable or disable this mode simply by setting
+the variable of the same name.
 
 Variables controlling the display of messages in the mode line include:
 
@@ -448,17 +448,13 @@ Variables controlling the display of messages in the mode line include:
   :global t)
 
 (define-minor-mode type-break-query-mode
-  "Enable or disable warnings in the mode line about typing breaks.
+  "Toggle typing break queries.
+With a prefix argument ARG, enable these queries if ARG is
+positive, and disable them otherwise.  If called from Lisp,
+enable them if ARG is omitted or nil.
 
-When enabled, the user is periodically queried about whether to take a
-typing break at that moment.  The function which does this query is
-specified by the variable `type-break-query-function'.
-
-A negative PREFIX argument disables this mode.
-No argument or any non-negative argument enables it.
-
-The user may also enable or disable this mode simply by setting the
-variable of the same name."
+The user may also enable or disable this mode simply by setting
+the variable of the same name."
   :global t)
 
 

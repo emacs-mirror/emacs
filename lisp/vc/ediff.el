@@ -1,6 +1,6 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
@@ -1348,7 +1348,7 @@ buffer."
 
 ;;;###autoload
 (defun ediff-patch-file (&optional arg patch-buf)
-  "Run Ediff by patching SOURCE-FILENAME.
+  "Query for a file name, and then run Ediff by patching that file.
 If optional PATCH-BUF is given, use the patch in that buffer
 and don't ask the user.
 If prefix argument, then: if even argument, assume that the patch is in a

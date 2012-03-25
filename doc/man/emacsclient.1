@@ -52,8 +52,8 @@ options starting with two dashes (`-').
 .B \-a, \-\-alternate-editor=EDITOR
 if the Emacs server is not running, run the specified editor instead.
 This can also be specified via the `ALTERNATE_EDITOR' environment variable.
-If the value of EDITOR is the empty string, then Emacs is started in
-daemon mode and emacsclient will try to connect to it.
+If the value of EDITOR is the empty string, run `emacs --daemon' to
+start Emacs in daemon mode, and try to connect to it.
 .TP
 .B -c, \-\-create-frame
 create a new frame instead of trying to use the current Emacs frame
@@ -87,6 +87,9 @@ print version information and exit
 .TP
 .B \-H, \-\-help
 print this usage information message and exit
+.SH "EXIT STATUS"
+Normally, the exit status is 0.  If emacsclient shuts down due to
+Emacs signaling an error, the exit status is 1.
 .SH "SEE ALSO"
 The program is documented fully in
 .IR "Using Emacs as a Server"
