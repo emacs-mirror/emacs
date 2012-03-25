@@ -269,6 +269,19 @@ makes the comment easier to read.  Default is 1.  nil means 0."
   :group 'comment)
 
 ;;;###autoload
+(defcustom comment-inline-offset 1
+  "Inline comments have to be preceded by at least this many spaces.
+This is usefull when style-conventions require a certain minimal offset.
+Python's PEP8 for example recommends two spaces, so you could do:
+
+\(add-hook 'python-mode-hook
+   (lambda nil (set (make-local-variable 'comment-inline-offset) 2)))
+
+See `comment-padding' for whole-line comments."
+  :type 'integer
+  :group 'comment)
+
+;;;###autoload
 (defcustom comment-multi-line nil
   "Non-nil means `comment-indent-new-line' continues comments.
 That is, it inserts no new terminator or starter.
@@ -685,7 +698,7 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	  (save-excursion
 	    (skip-chars-backward " \t")
 	    (unless (bolp)
-	      (setq indent (max indent (1+ (current-column))))))
+	      (setq indent (max indent (+ (current-column) comment-inline-offset)))))
 	  ;; If that's different from comment's current position, change it.
 	  (unless (= (current-column) indent)
 	    (delete-region (point) (progn (skip-chars-backward " \t") (point)))
