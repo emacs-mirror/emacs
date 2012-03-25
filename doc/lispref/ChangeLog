@@ -1,3 +1,16 @@
+2012-03-25  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringes): Note that fringes are shown on graphical
+	displays only.
+	(Fringe Size/Pos, Fringe Bitmaps, Making Buttons): Clarifications.
+	(Replacing Specs): Clarify example.
+	(Manipulating Buttons): Note that button-at can return a marker.
+	(Buttons): Minor rewrite.
+	(Character Display): New node.  Consolidate all character display
+	related nodes into its subsections.
+	(Usual Display): Character 127 is also affected by ctl-arrow.
+	(Display Tables): Improve example.
+
 2012-03-22  Glenn Morris  <rgm@gnu.org>
 
 	* strings.texi (Text Comparison): Mention string-prefix-p.

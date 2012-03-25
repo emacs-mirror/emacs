@@ -1,3 +1,7 @@
+2012-03-25  Chong Yidong  <cyd@gnu.org>
+
+	* button.el (button-at): Minor addition to docstring.
+
 2012-03-24  Simon Leinen  <simon.leinen@gmail.com>
 
 	* vc/vc.el (vc-merge): Fix a prompt.
