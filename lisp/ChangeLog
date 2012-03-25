@@ -1,3 +1,8 @@
+2012-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-inline-offset): Don't autoload.
+	(comment-choose-indent): Obey comment-inline-offset.
+
 2012-03-25  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
 
 	* newcomment.el (comment-inline-offset): New custom var (bug#11090).

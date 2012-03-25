@@ -268,7 +268,6 @@ makes the comment easier to read.  Default is 1.  nil means 0."
   :type '(choice string integer (const nil))
   :group 'comment)
 
-;;;###autoload
 (defcustom comment-inline-offset 1
   "Inline comments have to be preceded by at least this many spaces.
 This is usefull when style-conventions require a certain minimal offset.
@@ -598,7 +597,7 @@ Point is expected to be at the start of the comment."
                    (save-excursion (end-of-line) (current-column)))))
         (other nil)
         (min (save-excursion (skip-chars-backward " \t")
-                             (1+ (current-column)))))
+                             (+ comment-inline-offset (current-column)))))
     ;; Fix up the range.
     (if (< max min) (setq max min))
     ;; Don't move past the fill column.
@@ -698,7 +697,8 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	  (save-excursion
 	    (skip-chars-backward " \t")
 	    (unless (bolp)
-	      (setq indent (max indent (+ (current-column) comment-inline-offset)))))
+	      (setq indent (max indent
+                                (+ (current-column) comment-inline-offset)))))
 	  ;; If that's different from comment's current position, change it.
 	  (unless (= (current-column) indent)
 	    (delete-region (point) (progn (skip-chars-backward " \t") (point)))
