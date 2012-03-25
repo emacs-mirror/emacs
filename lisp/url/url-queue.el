@@ -160,7 +160,8 @@ The variable `url-queue-timeout' sets a timeout."
   ;; Call the callback with an error message to ensure that the caller
   ;; is notified that the job has failed.
   (with-current-buffer
-      (if (bufferp (url-queue-buffer job))
+      (if (and (bufferp (url-queue-buffer job))
+	       (buffer-live-p (url-queue-buffer job)))
 	  ;; Use the (partially filled) process buffer it it exists.
 	  (url-queue-buffer job)
 	;; If not, just create a new buffer, which will probably be
