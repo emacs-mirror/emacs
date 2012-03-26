@@ -1,3 +1,7 @@
+2012-03-26  Ami Fischman  <ami@fischman.org>
+
+	* vc/vc-git.el (vc-git-state): Avoid unnecessarily locking.
+
 2012-03-26  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (save-buffers-kill-emacs): Doc fix.
