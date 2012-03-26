@@ -6290,7 +6290,11 @@ be a predicate function such as `yes-or-no-p'."
 
 (defun save-buffers-kill-emacs (&optional arg)
   "Offer to save each buffer, then kill this Emacs process.
-With prefix ARG, silently save all file-visiting buffers, then kill."
+With prefix ARG, silently save all file-visiting buffers without asking.
+If there are active processes where `process-query-on-exit-flag'
+returns non-nil, asks whether processes should be killed.
+Runs the members of `kill-emacs-query-functions' in turn and stops
+if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
   (interactive "P")
   (save-some-buffers arg t)
   (and (or (not (memq t (mapcar (function

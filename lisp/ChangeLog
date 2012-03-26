@@ -1,5 +1,7 @@
 2012-03-26  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (save-buffers-kill-emacs): Doc fix.
+
 	* startup.el (normal-top-level, command-line, command-line-1):
 	Give them doc strings.
 

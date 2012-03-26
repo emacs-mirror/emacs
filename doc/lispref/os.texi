@@ -601,7 +601,9 @@ as a file name to visit.
 
   There are two ways to get out of Emacs: you can kill the Emacs job,
 which exits permanently, or you can suspend it, which permits you to
-reenter the Emacs process later.
+reenter the Emacs process later.  (In a graphical environment, you can
+of course simply switch to another application without doing anything
+special to Emacs, then switch back to Emacs when you want.)
 
 @menu
 * Killing Emacs::        Exiting Emacs irreversibly.
@@ -613,9 +615,10 @@ reenter the Emacs process later.
 @subsection Killing Emacs
 @cindex killing Emacs
 
-  Killing Emacs means ending the execution of the Emacs process.  The
-parent process normally resumes control.  The low-level primitive for
-killing Emacs is @code{kill-emacs}.
+  Killing Emacs means ending the execution of the Emacs process.
+If you started Emacs from a terminal, the parent process normally
+resumes control.  The low-level primitive for killing Emacs is
+@code{kill-emacs}.
 
 @deffn Command kill-emacs &optional exit-data
 This command calls the hook @code{kill-emacs-hook}, then exits the
@@ -686,11 +689,17 @@ use the appropriate command in the parent shell---most likely
   Suspending works only on a terminal device from which the Emacs
 session was started.  We call that device the @dfn{controlling
 terminal} of the session.  Suspending is not allowed if the
-controlling terminal is a graphical terminal.
+controlling terminal is a graphical terminal.  Suspending is usually
+not relevant in graphical environments, since you can simply switch to
+another application without doing anything special to Emacs.
 
-  Some operating systems do not support suspension of jobs; on these
-systems, ``suspension'' actually creates a new shell temporarily as a
-subprocess of Emacs.  Then you would exit the shell to return to Emacs.
+@c FIXME?  Are there any systems Emacs still supports that do not
+@c have SIGTSTP?
+@cindex SIGTSTP
+  Some operating systems (those without @code{SIGTSTP}, or MS-DOS) do
+not support suspension of jobs; on these systems, ``suspension''
+actually creates a new shell temporarily as a subprocess of Emacs.
+Then you would exit the shell to return to Emacs.
 
 @deffn Command suspend-emacs &optional string
 This function stops Emacs and returns control to the superior process.
@@ -705,9 +714,10 @@ before suspending Emacs, or this function signals an error.
 @xref{Multiple Terminals}.
 
 If @var{string} is non-@code{nil}, its characters are sent to Emacs's
-superior shell, to be read as terminal input.  The characters in
-@var{string} are not echoed by the superior shell; only the results
-appear.
+superior shell, to be read as terminal input.
+@c FIXME?  It seems to me that shell does echo STRING.
+The characters in @var{string} are not echoed by the superior shell;
+only the results appear.
 
 Before suspending, @code{suspend-emacs} runs the normal hook
 @code{suspend-hook}.  After the user resumes Emacs,
@@ -718,34 +728,23 @@ The next redisplay after resumption will redraw the entire screen,
 unless the variable @code{no-redraw-on-reenter} is non-@code{nil}.
 @xref{Refresh Screen}.
 
-In the following example, note that @samp{pwd} is not echoed after
-Emacs is suspended.  But it is read and executed by the shell.
+Here is an example of how you could use these hooks:
 
 @smallexample
 @group
-(suspend-emacs)
-     @result{} nil
-@end group
-
-@group
 (add-hook 'suspend-hook
-          (function (lambda ()
-                      (or (y-or-n-p
-                            "Really suspend? ")
-                          (error "Suspend canceled")))))
-     @result{} (lambda nil
-          (or (y-or-n-p "Really suspend? ")
-              (error "Suspend canceled")))
+          (lambda () (or (y-or-n-p "Really suspend? ")
+                         (error "Suspend canceled"))))
 @end group
-@group
-(add-hook 'suspend-resume-hook
-          (function (lambda () (message "Resumed!"))))
-     @result{} (lambda nil (message "Resumed!"))
-@end group
-@group
-(suspend-emacs "pwd")
-     @result{} nil
-@end group
+(add-hook 'suspend-resume-hook (lambda () (message "Resumed!")
+                                 (sit-for 2)))
+@end smallexample
+@c The sit-for prevents the ``nil'' that suspend-emacs returns
+@c hiding the message.
+
+Here is what you would see upon evaluating @code{(suspend-emacs "pwd")}:
+
+@smallexample
 @group
 ---------- Buffer: Minibuffer ----------
 Really suspend? @kbd{y}
@@ -754,8 +753,8 @@ Really suspend? @kbd{y}
 
 @group
 ---------- Parent Shell ----------
-lewis@@slug[23] % /user/lewis/manual
-lewis@@slug[24] % fg
+bash$ /home/username
+bash$ fg
 @end group
 
 @group
@@ -763,6 +762,10 @@ lewis@@slug[24] % fg
 Resumed!
 @end group
 @end smallexample
+
+@c FIXME?  AFAICS, it is echoed.
+Note that @samp{pwd} is not echoed after Emacs is suspended.  But it
+is read and executed by the shell.
 @end deffn
 
 @defvar suspend-hook
@@ -791,23 +794,23 @@ terminal object as an argument to each function.
 
 @defun resume-tty &optional tty
 This function resumes the previously suspended terminal device
-@var{tty}; @var{tty} can be a terminal object, a frame (meaning the
-terminal for that frame), or @code{nil} (meaning the terminal for the
-selected frame).
+@var{tty}; where @var{tty} has the same possible values as it does
+for @code{suspend-tty}.
 
 @vindex resume-tty-functions
 This function reopens the terminal device, re-initializes it, and
-redraws its with that terminal's selected frame.  It then runs the
+redraws it with that terminal's selected frame.  It then runs the
 hook @code{resume-tty-functions}, passing the terminal object as an
 argument to each function.
 
 If the same device is already used by another Emacs terminal, this
-function signals an error.
+function signals an error.  If @var{tty} is not suspended, this
+function does nothing.
 @end defun
 
-@defun controlling-tty-p &optional terminal
-This function returns non-@code{nil} if @var{terminal} is the
-controlling terminal of the Emacs session; @code{terminal} can be a
+@defun controlling-tty-p &optional tty
+This function returns non-@code{nil} if @var{tty} is the
+controlling terminal of the Emacs session; @var{tty} can be a
 terminal object, a frame (meaning the terminal for that frame), or
 @code{nil} (meaning the terminal for the selected frame).
 @end defun
