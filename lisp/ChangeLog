@@ -1,3 +1,8 @@
+2012-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-constants-vector): Allow more
+	than 197 variables.
+
 2012-03-26  Ami Fischman  <ami@fischman.org>
 
 	* vc/vc-git.el (vc-git-state): Avoid unnecessarily locking.
