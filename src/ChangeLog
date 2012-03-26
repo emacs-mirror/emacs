@@ -1,3 +1,8 @@
+2012-03-26  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (struct glyph): Fix previous change.  Change the
+	bit length of glyphless.ch to 25 (Bug#11082).
+
 2012-03-26  Chong Yidong  <cyd@gnu.org>
 
 	* keyboard.c (Vselection_inhibit_update_commands): New variable.
