@@ -454,7 +454,7 @@ struct glyph
       /* Length of acronym or hexadecimal code string (at most 8).  */
       unsigned len : 4;
       /* Character to display.  Actually we need only 22 bits.  */
-      unsigned ch : 22;
+      unsigned ch : 25;
     } glyphless;
 
     /* Used to compare all bit-fields above in one step.  */
