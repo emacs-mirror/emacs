@@ -208,7 +208,7 @@ static void print_time(char *before, double t, char *after)
     char *x = prefixes+2; /* start at micro */
     double ot = t;
     if (before)
-        printf(before);
+        printf("%s", before);
     if (t > MAXPRINTABLE) {
         while (x[-1] && t > MAXPRINTABLE) {
             t /= 1000.0;
@@ -230,7 +230,7 @@ static void print_time(char *before, double t, char *after)
             printf("%g s", ot/1000000.0);
     }
     if (after)
-        printf(after);
+        printf("%s", after);
 }
 
 /* Make a single Dylan object */
