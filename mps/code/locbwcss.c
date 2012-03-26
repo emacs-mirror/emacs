@@ -31,7 +31,7 @@
   ((size_t)((char *)(l) - (char *)(b)))
 
 
-/* PoolStat -- maintain data about contiguous allocations */ 
+/* PoolStat -- maintain data about contiguous allocations */
 
 typedef struct PoolStatStruct *PoolStat;
 
@@ -100,7 +100,7 @@ static void poolStatInit(PoolStat stat, mps_pool_t pool, size_t objSize)
   s3 = allocObject(pool, objSize / 2);
   recordNewObjectStat(stat, s3);
 
-  mps_free(pool, s2, objSize / 2);  
+  mps_free(pool, s2, objSize / 2);
   recordFreedObjectStat(stat);
 
 }
@@ -120,7 +120,7 @@ static void allocMultiple(PoolStat stat)
 
   /* free one of the objects, to make the test more interesting */
   i = rnd() % allocsPerIteration;
-  mps_free(stat->pool, objects[i], stat->objSize);  
+  mps_free(stat->pool, objects[i], stat->objSize);
   recordFreedObjectStat(stat);
 
 }
@@ -131,11 +131,11 @@ static void allocMultiple(PoolStat stat)
 static void reportResults(PoolStat stat, char *name)
 {
   printf("\nResults for ");
-  printf(name);
+  fputs(name, stdout);
   printf("\n");
   printf("   Allocated  %lu objects\n", (unsigned long)stat->aCount);
   printf("   Freed      %lu objects\n", (unsigned long)stat->fCount);
-  printf("   There were %lu non-contiguous allocations\n", 
+  printf("   There were %lu non-contiguous allocations\n",
          (unsigned long)stat->ncCount);
   printf("   Address range from %p to %p\n",
          (void *)stat->min, (void *)stat->max);
@@ -152,13 +152,13 @@ static void testInArena(mps_arena_t arena)
   PoolStat histat = &histruct;
   int i;
 
-  die(mps_pool_create(&hipool, arena, mps_class_mvff(), 
-                      chunkSize, chunkSize, 1024, 
+  die(mps_pool_create(&hipool, arena, mps_class_mvff(),
+                      chunkSize, chunkSize, 1024,
                       TRUE, TRUE, TRUE),
       "Create HI MFFV");
 
-  die(mps_pool_create(&lopool, arena, mps_class_mvff(), 
-                      chunkSize, chunkSize, 1024, 
+  die(mps_pool_create(&lopool, arena, mps_class_mvff(),
+                      chunkSize, chunkSize, 1024,
                       FALSE, FALSE, TRUE),
       "Create LO MFFV");
 
@@ -174,7 +174,7 @@ static void testInArena(mps_arena_t arena)
   /* report results */
   reportResults(lostat, "the low MVFF pool");
   reportResults(histat, "the high MVFF pool");
-  
+
   if (lostat->max > histat->min) {
     printf("\nFOUND PROBLEM - low range overlaps high\n");
   } else if (lostat->ncCount != 0 || histat->ncCount != 0) {
@@ -210,18 +210,18 @@ int main(int argc, char **argv)
  * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
