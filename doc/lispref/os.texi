@@ -110,8 +110,8 @@ compiled into the Emacs executable when it was built.
 It runs the normal hook @code{before-init-hook}.
 
 @item
-If appropriate (e.g., not in batch mode or started as a daemon), it
-creates a graphical frame.
+If appropriate, it creates a graphical frame.  This is not done if the
+options @samp{--batch} or @samp{--daemon} were specified.
 
 @item
 It initializes the initial frame's faces, and sets up the menu bar
@@ -195,7 +195,7 @@ It now exits if the option @code{--batch} was specified.
 
 @item
 If @code{initial-buffer-choice} is a string, it visits the file with
-that name.  Furthermore, if the @samp{*scratch*} buffer exists and is
+that name.  If the @samp{*scratch*} buffer exists and is
 empty, it inserts @code{initial-scratch-message} into that buffer.
 
 @c To make things nice and confusing, the next three items can be
@@ -221,9 +221,9 @@ It runs @code{window-setup-hook}.  @xref{Window Systems}.
 @item
 It displays the @dfn{startup screen}, which is a special buffer that
 contains information about copyleft and basic Emacs usage.  This is
-not done if @code{initial-buffer-choice} or
-@code{inhibit-startup-screen} are @code{nil}, nor if the
-@samp{--no-splash} or @samp{-Q} command-line options were specified.
+not done if @code{inhibit-startup-screen} or @code{initial-buffer-choice}
+are non-@code{nil}, or if the @samp{--no-splash} or @samp{-Q} command-line
+options were specified.
 
 @c End of command-line-1.
 
@@ -267,15 +267,14 @@ aliases for this variable.
 @end defopt
 
 @defopt initial-buffer-choice
-This variable, if non-@code{nil}, determines a file or buffer for
-Emacs to display after starting up, instead of the startup screen.
+If non-@code{nil}, this variable is a string that specifies a file or
+directory for Emacs to display after starting up, instead of the
+startup screen.
 @ignore
 @c I do not think this should be mentioned.  AFAICS it is just a dodge
 @c around inhibit-startup-screen not being settable on a site-wide basis.
 If its value is @code{t}, Emacs displays the @samp{*scratch*} buffer. 
 @end ignore
-If its value is a string, that specifies the name of a file for Emacs to
-visit.
 @end defopt
 
 @defopt inhibit-startup-echo-area-message
@@ -365,11 +364,12 @@ Lisp library named @file{default.el}.  Emacs finds this file through
 the standard search path for libraries (@pxref{How Programs Do
 Loading}).  The Emacs distribution does not come with this file; it is
 intended for local customizations.  If the default init file exists,
-it is loaded whenever you start Emacs, except in batch mode or if
-@samp{-q} (or @samp{-Q}) is specified.  But your own personal init
+it is loaded whenever you start Emacs.  But your own personal init
 file, if any, is loaded first; if it sets @code{inhibit-default-init}
 to a non-@code{nil} value, then Emacs does not subsequently load the
-@file{default.el} file.
+@file{default.el} file.  In batch mode, or if you specify @samp{-q}
+(or @samp{-Q}), Emacs loads neither your personal init file nor
+the default init file.
 
   Another file for site-customization is @file{site-start.el}.  Emacs
 loads this @emph{before} the user's init file.  You can inhibit the
@@ -380,6 +380,7 @@ This variable specifies the site-customization file to load before the
 user's init file.  Its normal value is @code{"site-start"}.  The only
 way you can change it with real effect is to do so before dumping
 Emacs.
+@c So why even mention it here.  I imagine it is almost never changed.
 @end defopt
 
   @xref{Init Examples,, Init File Examples, emacs, The GNU Emacs Manual}, for
@@ -387,28 +388,27 @@ examples of how to make various commonly desired customizations in your
 @file{.emacs} file.
 
 @defopt inhibit-default-init
-This variable prevents Emacs from loading the default initialization
-library file for your session of Emacs.  If its value is non-@code{nil},
-then the default library is not loaded.  The default value is
-@code{nil}.
+If this variable is non-@code{nil}, it prevents Emacs from loading the
+default initialization library file.  The default value is @code{nil}.
 @end defopt
 
 @defvar before-init-hook
 This normal hook is run, once, just before loading all the init files
-(the user's init file, @file{default.el}, and/or @file{site-start.el}).
+(@file{site-start.el}, your init file, and @file{default.el}).
 (The only way to change it with real effect is before dumping Emacs.)
 @end defvar
 
 @defvar after-init-hook
 This normal hook is run, once, just after loading all the init files
-(the user's init file, @file{default.el}, and/or @file{site-start.el}),
-before loading the terminal-specific library and processing the
-command-line action arguments.
+(@file{site-start.el}, your init file, and @file{default.el}),
+before loading the terminal-specific library (if started on a text
+terminal) and processing the command-line action arguments.
 @end defvar
 
 @defvar emacs-startup-hook
 This normal hook is run, once, just after handling the command line
-arguments, just before @code{term-setup-hook}.
+arguments, just before @code{term-setup-hook}.  In batch mode, Emacs
+does not run either of these hooks.
 @end defvar
 
 @defvar user-init-file
@@ -419,7 +419,7 @@ the value refers to the corresponding source file.
 
 @defvar user-emacs-directory
 This variable holds the name of the @file{.emacs.d} directory.  It is
-ordinarily @file{~/.emacs.d}, but differs on some platforms.
+@file{~/.emacs.d} on all platforms but MS-DOS.
 @end defvar
 
 @node Terminal-Specific
@@ -442,12 +442,12 @@ set or add to @code{input-decode-map} if the Termcap or Terminfo entry
 does not specify all the terminal's function keys.  @xref{Terminal
 Input}.
 
-  When the name of the terminal type contains a hyphen, and no library
+  When the name of the terminal type contains a hyphen or underscore, and no library
 is found whose name is identical to the terminal's name, Emacs strips
-from the terminal's name the last hyphen and everything that follows
+from the terminal's name the last hyphen or underscore and everything that follows
 it, and tries again.  This process is repeated until Emacs finds a
-matching library, or until there are no more hyphens in the name
-(i.g.@: there is no terminal-specific library).  For example, if the
+matching library, or until there are no more hyphens or underscores in the name
+(i.e.@: there is no terminal-specific library).  For example, if the
 terminal name is @samp{xterm-256color} and there is no
 @file{term/xterm-256color.el} library, Emacs tries to load
 @file{term/xterm.el}.  If necessary, the terminal library can evaluate
@@ -460,10 +460,10 @@ experimenting with your own peculiar customizations.
 
   You can also arrange to override some of the actions of the
 terminal-specific library by setting the variable
-@code{term-setup-hook}.  This is a normal hook which Emacs runs using
-@code{run-hooks} at the end of Emacs initialization, after loading both
-your init file and any terminal-specific libraries.  You can
-use this variable to define initializations for terminals that do not
+@code{term-setup-hook}.  This is a normal hook that Emacs runs
+at the end its initialization, after loading both
+your init file and any terminal-specific libraries.  You could
+use this hook to define initializations for terminals that do not
 have their own libraries.  @xref{Hooks}.
 
 @defvar term-file-prefix
@@ -478,11 +478,9 @@ terminal-specific initialization file as follows:
 @noindent
 You may set the @code{term-file-prefix} variable to @code{nil} in your
 init file if you do not wish to load the
-terminal-initialization file.  To do this, put the following in
-your init file: @code{(setq term-file-prefix nil)}.
+terminal-initialization file.
 
-On MS-DOS, if the environment variable @code{TERM} is not set, Emacs
-uses @samp{internal} as the terminal type.
+On MS-DOS, Emacs sets the @code{TERM} environment variable to @samp{internal}.
 @end defvar
 
 @defvar term-setup-hook
@@ -492,28 +490,27 @@ terminal-specific Lisp file.
 
 You can use @code{term-setup-hook} to override the definitions made by a
 terminal-specific file.
-@end defvar
 
-  See @code{window-setup-hook} in @ref{Window Systems}, for a related
-feature.
+For a related feature, @pxref{Window Systems, window-setup-hook}.
+@end defvar
 
 @node Command-Line Arguments
 @subsection Command-Line Arguments
 @cindex command-line arguments
 
   You can use command-line arguments to request various actions when
-you start Emacs.  Command-line arguments should not be commonly used,
-since the recommended way of using Emacs is to start it just once,
-after logging in, and do all editing in the same Emacs session
-(@pxref{Entering Emacs,,, emacs, The GNU Emacs Manual}); nonetheless,
-they can be useful when invoking Emacs from session scripts or
-debugging Emacs itself.  This section describes how Emacs processes
-command-line arguments.
+you start Emacs.  Note that the recommended way of using Emacs is to
+start it just once, after logging in, and then do all editing in the same
+Emacs session (@pxref{Entering Emacs,,, emacs, The GNU Emacs Manual}).
+For this reason, you might not use command-line arguments very often;
+nonetheless, they can be useful when invoking Emacs from session
+scripts or debugging Emacs.  This section describes how Emacs
+processes command-line arguments.
 
 @defun command-line
 This function parses the command line that Emacs was called with,
-processes it, loads the user's init file and displays the
-startup messages.
+processes it, and (amongst other things) loads the user's init file and
+displays the startup messages.
 @end defun
 
 @defvar command-line-processed
@@ -529,9 +526,9 @@ to process its new command-line arguments.
 @cindex switches on command line
 @cindex options on command line
 @cindex command-line options
-The value of this variable is an alist of user-defined command-line
-options and associated handler functions.  This variable exists so you
-can add elements to it.
+This variable is an alist of user-defined command-line options and
+associated handler functions.  By default it is empty, but you can
+add elements if you wish.
 
 A @dfn{command-line option} is an argument on the command line, which
 has the form:
@@ -571,7 +568,9 @@ to Emacs.
 @defvar command-line-args-left
 @vindex argv
 The value of this variable is the list of command-line arguments that
-have not yet been processed.  @code{argv} is an alias for this.
+have not yet been processed.
+@c Don't mention this, since it is a "bad name for a dynamically bound variable"
+@c @code{argv} is an alias for this.
 @end defvar
 
 @defvar command-line-functions
@@ -592,7 +591,7 @@ should return a non-@code{nil} value to say it has dealt with that
 argument.  If it has also dealt with some of the following arguments, it
 can indicate that by deleting them from @code{command-line-args-left}.
 
-If all of these functions return @code{nil}, then the argument is used
+If all of these functions return @code{nil}, then the argument is treated
 as a file name to visit.
 @end defvar
 
@@ -602,7 +601,9 @@ as a file name to visit.
 
   There are two ways to get out of Emacs: you can kill the Emacs job,
 which exits permanently, or you can suspend it, which permits you to
-reenter the Emacs process later.
+reenter the Emacs process later.  (In a graphical environment, you can
+of course simply switch to another application without doing anything
+special to Emacs, then switch back to Emacs when you want.)
 
 @menu
 * Killing Emacs::        Exiting Emacs irreversibly.
@@ -614,9 +615,10 @@ reenter the Emacs process later.
 @subsection Killing Emacs
 @cindex killing Emacs
 
-  Killing Emacs means ending the execution of the Emacs process.  The
-parent process normally resumes control.  The low-level primitive for
-killing Emacs is @code{kill-emacs}.
+  Killing Emacs means ending the execution of the Emacs process.
+If you started Emacs from a terminal, the parent process normally
+resumes control.  The low-level primitive for killing Emacs is
+@code{kill-emacs}.
 
 @deffn Command kill-emacs &optional exit-data
 This command calls the hook @code{kill-emacs-hook}, then exits the
@@ -687,11 +689,17 @@ use the appropriate command in the parent shell---most likely
   Suspending works only on a terminal device from which the Emacs
 session was started.  We call that device the @dfn{controlling
 terminal} of the session.  Suspending is not allowed if the
-controlling terminal is a graphical terminal.
+controlling terminal is a graphical terminal.  Suspending is usually
+not relevant in graphical environments, since you can simply switch to
+another application without doing anything special to Emacs.
 
-  Some operating systems do not support suspension of jobs; on these
-systems, ``suspension'' actually creates a new shell temporarily as a
-subprocess of Emacs.  Then you would exit the shell to return to Emacs.
+@c FIXME?  Are there any systems Emacs still supports that do not
+@c have SIGTSTP?
+@cindex SIGTSTP
+  Some operating systems (those without @code{SIGTSTP}, or MS-DOS) do
+not support suspension of jobs; on these systems, ``suspension''
+actually creates a new shell temporarily as a subprocess of Emacs.
+Then you would exit the shell to return to Emacs.
 
 @deffn Command suspend-emacs &optional string
 This function stops Emacs and returns control to the superior process.
@@ -706,9 +714,10 @@ before suspending Emacs, or this function signals an error.
 @xref{Multiple Terminals}.
 
 If @var{string} is non-@code{nil}, its characters are sent to Emacs's
-superior shell, to be read as terminal input.  The characters in
-@var{string} are not echoed by the superior shell; only the results
-appear.
+superior shell, to be read as terminal input.
+@c FIXME?  It seems to me that shell does echo STRING.
+The characters in @var{string} are not echoed by the superior shell;
+only the results appear.
 
 Before suspending, @code{suspend-emacs} runs the normal hook
 @code{suspend-hook}.  After the user resumes Emacs,
@@ -719,34 +728,23 @@ The next redisplay after resumption will redraw the entire screen,
 unless the variable @code{no-redraw-on-reenter} is non-@code{nil}.
 @xref{Refresh Screen}.
 
-In the following example, note that @samp{pwd} is not echoed after
-Emacs is suspended.  But it is read and executed by the shell.
+Here is an example of how you could use these hooks:
 
 @smallexample
 @group
-(suspend-emacs)
-     @result{} nil
-@end group
-
-@group
 (add-hook 'suspend-hook
-          (function (lambda ()
-                      (or (y-or-n-p
-                            "Really suspend? ")
-                          (error "Suspend canceled")))))
-     @result{} (lambda nil
-          (or (y-or-n-p "Really suspend? ")
-              (error "Suspend canceled")))
+          (lambda () (or (y-or-n-p "Really suspend? ")
+                         (error "Suspend canceled"))))
 @end group
-@group
-(add-hook 'suspend-resume-hook
-          (function (lambda () (message "Resumed!"))))
-     @result{} (lambda nil (message "Resumed!"))
-@end group
-@group
-(suspend-emacs "pwd")
-     @result{} nil
-@end group
+(add-hook 'suspend-resume-hook (lambda () (message "Resumed!")
+                                 (sit-for 2)))
+@end smallexample
+@c The sit-for prevents the ``nil'' that suspend-emacs returns
+@c hiding the message.
+
+Here is what you would see upon evaluating @code{(suspend-emacs "pwd")}:
+
+@smallexample
 @group
 ---------- Buffer: Minibuffer ----------
 Really suspend? @kbd{y}
@@ -755,8 +753,8 @@ Really suspend? @kbd{y}
 
 @group
 ---------- Parent Shell ----------
-lewis@@slug[23] % /user/lewis/manual
-lewis@@slug[24] % fg
+bash$ /home/username
+bash$ fg
 @end group
 
 @group
@@ -764,6 +762,10 @@ lewis@@slug[24] % fg
 Resumed!
 @end group
 @end smallexample
+
+@c FIXME?  AFAICS, it is echoed.
+Note that @samp{pwd} is not echoed after Emacs is suspended.  But it
+is read and executed by the shell.
 @end deffn
 
 @defvar suspend-hook
@@ -792,23 +794,23 @@ terminal object as an argument to each function.
 
 @defun resume-tty &optional tty
 This function resumes the previously suspended terminal device
-@var{tty}; @var{tty} can be a terminal object, a frame (meaning the
-terminal for that frame), or @code{nil} (meaning the terminal for the
-selected frame).
+@var{tty}; where @var{tty} has the same possible values as it does
+for @code{suspend-tty}.
 
 @vindex resume-tty-functions
 This function reopens the terminal device, re-initializes it, and
-redraws its with that terminal's selected frame.  It then runs the
+redraws it with that terminal's selected frame.  It then runs the
 hook @code{resume-tty-functions}, passing the terminal object as an
 argument to each function.
 
 If the same device is already used by another Emacs terminal, this
-function signals an error.
+function signals an error.  If @var{tty} is not suspended, this
+function does nothing.
 @end defun
 
-@defun controlling-tty-p &optional terminal
-This function returns non-@code{nil} if @var{terminal} is the
-controlling terminal of the Emacs session; @code{terminal} can be a
+@defun controlling-tty-p &optional tty
+This function returns non-@code{nil} if @var{tty} is the
+controlling terminal of the Emacs session; @var{tty} can be a
 terminal object, a frame (meaning the terminal for that frame), or
 @code{nil} (meaning the terminal for the selected frame).
 @end defun

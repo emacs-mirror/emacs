@@ -1,3 +1,23 @@
+2012-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-bin): Don't copy addpm.exe here.  Use
+	$(DIRNAME)_same-dir.tst instead of same-dir.tst, to avoid stepping
+	on other (parallel) Make job's toes.
+	(install-other-dirs-nmake, install-other-dirs-gmake): Depend on `all'.
+	(install-shortcuts): Depend on $(INSTALL_DIR)/bin.  Copy addpm.exe
+	here.
+	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH, dist): Depend
+	on create-tmp-dist-dir.
+
+	* nmake.defs (DIRNAME): New variable.
+	(IFNOTSAMEDIR): Use $(DIRNAME)_same-dir.tst instead of
+	same-dir.tst.
+
+	* gmake.defs (DIRNAME): New variable.
+	(IFNOTSAMEDIR): Use $(DIRNAME)_same-dir.tst instead of
+	same-dir.tst, to avoid conflicts between several (parallel) Make
+	jobs.
+
 2012-02-24  Eli Zaretskii  <eliz@gnu.org>
 
 	Prevent endless re-spawning of cmdproxy.exe when some of its

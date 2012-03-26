@@ -1,3 +1,14 @@
+2012-03-26  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (Vselection_inhibit_update_commands): New variable.
+	(command_loop_1): Use it; inhibit selection update for
+	handle-select-window too (Bug#8996).
+
+2012-03-25  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* w32heap.c (_heap_init, _heap_term): Remove dead MSVC-specific
+	code.
+
 2012-03-25  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (struct glyph): Change the bit length of

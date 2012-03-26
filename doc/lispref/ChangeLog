@@ -1,3 +1,12 @@
+2012-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Startup Summary): Copyedits.  Fix startup screen logic.
+	(Init File): Copyedits.
+	(Command-Line Arguments): Copyedits.  Do not mention argv alias.
+	(Killing Emacs): Copyedits.
+	(Suspending Emacs): Copyedits.  Mention not very relevant with GUIs.
+	Shorten the example, use more standard shell prompts.
+
 2012-03-25  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Fringes): Note that fringes are shown on graphical

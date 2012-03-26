@@ -27,6 +27,7 @@ MAKETYPE=nmake
 
 CURDIR		= $(MAKEDIR:\=/)
 THISDIR		= $(MAKEDIR)
+DIRNAME		=
 
 ALL_DEPS	= $**
 
@@ -181,7 +182,7 @@ COMPILER_TEMP_FILES = *.pdb
 
 CP		= cp -f
 CP_DIR		= cp -rf
-IFNOTSAMEDIR	= if not exist ..\same-dir.tst
+IFNOTSAMEDIR	= if not exist ..\$(DIRNAME)_same-dir.tst
 ENDIF		=
 FOREACH		= for %%f in (
 FORVAR		= %%f

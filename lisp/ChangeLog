@@ -1,3 +1,20 @@
+2012-03-26  Ami Fischman  <ami@fischman.org>
+
+	* vc/vc-git.el (vc-git-state): Avoid unnecessarily locking.
+
+2012-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (save-buffers-kill-emacs): Doc fix.
+
+	* startup.el (normal-top-level, command-line, command-line-1):
+	Give them doc strings.
+
+2012-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install): Use $(DIRNAME)_same-dir.tst instead
+	of same-dir.tst, to avoid stepping on other (parallel) Make job's
+	toes.
+
 2012-03-25  Chong Yidong  <cyd@gnu.org>
 
 	* custom.el (load-theme): Even if NO-ENABLE arg is t, reenable the
