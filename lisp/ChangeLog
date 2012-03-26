@@ -1,3 +1,8 @@
+2012-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (normal-top-level, command-line, command-line-1):
+	Give them doc strings.
+
 2012-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (install): Use $(DIRNAME)_same-dir.tst instead

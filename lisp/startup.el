@@ -65,6 +65,8 @@ once you are familiar with the contents of the startup screen."
 
 (defvar startup-screen-inhibit-startup-screen nil)
 
+;; FIXME? Why does this get such weirdly extreme treatment, when the
+;; more important inhibit-startup-screen does not.
 (defcustom inhibit-startup-echo-area-message nil
   "Non-nil inhibits the initial startup echo area message.
 Setting this variable takes effect
@@ -464,6 +466,10 @@ DIRS are relative."
       (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail))))))
 
 (defun normal-top-level ()
+  "Emacs calls this function when it first starts up.
+It sets `command-line-processed', processes the command-line,
+reads the initialization files, etc.
+It is the default value of the variable `top-level'."
   (if command-line-processed
       (message "Back to top level.")
     (setq command-line-processed t)
@@ -701,6 +707,8 @@ opening the first frame (e.g. open a connection to an X server).")
 (defvar server-process)
 
 (defun command-line ()
+  "A subroutine of `normal-top-level'.
+Amongst another things, it parses the command-line arguments."
   (setq before-init-time (current-time)
 	after-init-time nil
         command-line-default-directory default-directory)
@@ -2076,6 +2084,7 @@ A fancy display is used on graphic displays, normal otherwise."
 (defalias 'display-splash-screen 'display-startup-screen)
 
 (defun command-line-1 (args-left)
+  "A subroutine of `command-line'."
   (display-startup-echo-area-message)
   (when (and pure-space-overflow
 	     (not noninteractive))
