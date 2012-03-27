@@ -211,7 +211,7 @@ typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
                                           AllocFrame frame);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
                                FormattedObjectsStepMethod f,
-                               void *v, unsigned long s);
+                               void *v, size_t s);
 typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockStepMethod f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
 typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream);
