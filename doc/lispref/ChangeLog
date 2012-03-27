@@ -1,3 +1,8 @@
+2012-03-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window History): Describe new option
+	switch-to-visible-buffer.
+
 2012-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* searching.texi (String Search): Add xref to Emacs manual.

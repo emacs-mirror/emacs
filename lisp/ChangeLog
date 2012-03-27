@@ -1,3 +1,10 @@
+2012-03-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-visible-buffer): New option.
+	(switch-to-prev-buffer, switch-to-next-buffer): Observe
+	switch-to-visible-buffer.  Make sure that checking for a window
+	showing a buffer already is done on the same frame.
+
 2012-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (mail-host-address): Doc fix.
