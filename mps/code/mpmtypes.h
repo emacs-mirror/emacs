@@ -41,6 +41,7 @@ typedef unsigned Serial;                /* <design/type/#serial> */
 typedef Addr Ref;                       /* <design/type/#ref> */
 typedef void *Pointer;                  /* <design/type/#pointer> */
 typedef unsigned long Clock;            /* processor time */
+typedef MPS_T_ULONGEST ULongest;        /* <design/type/#ulongest> */
 
 typedef Word RefSet;                    /* design.mps.refset */
 typedef Word ZoneSet;                   /* design.mps.refset */
@@ -441,8 +442,8 @@ typedef Addr WriteFA;
 typedef Pointer WriteFP;
 typedef const char *WriteFS;
 typedef Word WriteFW;
-typedef unsigned long WriteFU;
-typedef unsigned long WriteFB;
+typedef ULongest WriteFU;
+typedef ULongest WriteFB;
 typedef void *(*WriteFF)(void);
 typedef int WriteFC; /* Promoted */
 typedef double WriteFD;
