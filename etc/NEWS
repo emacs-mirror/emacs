@@ -1121,7 +1121,8 @@ Use (where-is-internal <def> nil t) instead.
 
 +++
 ** The following obsolete (mostly since at least 21.1) functions and aliases
-have been removed (the appropriate new function is given in parentheses):
+have been removed (the appropriate new function is given in parentheses;
+"not needed" means you can just remove all calls to the function in question):
 comint-kill-output (comint-delete-output),
 decompose-composite-char (char-to-string),
 outline-visible (outline-invisible-p),
