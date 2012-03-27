@@ -213,7 +213,7 @@ extern void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
-                     void *v, unsigned long s);
+                     void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
 extern Res PoolTrivInit(Pool pool, va_list arg);
 extern void PoolTrivFinish(Pool pool);
@@ -262,7 +262,7 @@ extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsStepMethod step,
-                       void *p, unsigned long s);
+                       void *p, size_t s);
 extern void PoolNoFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
