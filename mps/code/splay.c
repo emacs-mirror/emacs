@@ -883,7 +883,7 @@ static Compare SplayFindLastCompare(void *key, SplayNode node)
 Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
                            SplayTestNodeMethod testNode,
                            SplayTestTreeMethod testTree,
-                           void *closureP, unsigned long closureS)
+                           void *closureP, Size closureS)
 {
   SplayNode node;
   SplayFindClosureStruct closureStruct;
@@ -919,7 +919,7 @@ Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
 Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
                           SplayTestNodeMethod testNode,
                           SplayTestTreeMethod testTree,
-                          void *closureP, unsigned long closureS)
+                          void *closureP, Size closureS)
 {
   SplayNode node;
   SplayFindClosureStruct closureStruct;
