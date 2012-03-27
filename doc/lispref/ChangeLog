@@ -1,5 +1,7 @@
 2012-03-27  Glenn Morris  <rgm@gnu.org>
 
+	* processes.texi (Network Servers): Standardize apostrophe usage.
+
 	* os.texi (System Environment): Copyedits.  Remove some examples
 	that do not seem useful.  Mention setenv third arg.
 	tty-erase-char does not seem to be nil under a window-system.
