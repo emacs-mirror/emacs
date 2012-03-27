@@ -194,36 +194,32 @@ static Compare cbsSplayCompare(void *key, SplayNode node)
 /* cbsTestNode, cbsTestTree -- test for nodes larger than the S parameter */
 
 static Bool cbsTestNode(SplayTree tree, SplayNode node,
-                        void *closureP, unsigned long closureS)
+                        void *closureP, Size size)
 {
-  Size size;
   CBSBlock block;
 
   AVERT(SplayTree, tree);
   AVERT(SplayNode, node);
   AVER(closureP == NULL);
-  AVER(closureS > 0);
+  AVER(size > 0);
   AVER(cbsOfSplayTree(tree)->fastFind);
 
-  size = (Size)closureS;
   block = cbsBlockOfSplayNode(node);
 
   return CBSBlockSize(block) >= size;
 }
 
 static Bool cbsTestTree(SplayTree tree, SplayNode node,
-                        void *closureP, unsigned long closureS)
+                        void *closureP, Size size)
 {
-  Size size;
   CBSBlock block;
 
   AVERT(SplayTree, tree);
   AVERT(SplayNode, node);
   AVER(closureP == NULL);
-  AVER(closureS > 0);
+  AVER(size > 0);
   AVER(cbsOfSplayTree(tree)->fastFind);
 
-  size = (Size)closureS;
   block = cbsBlockOfSplayNode(node);
 
   return block->maxSize >= size;
@@ -1396,7 +1392,7 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
 
     METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
     found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
-                           &cbsTestTree, NULL, (unsigned long)size);
+                           &cbsTestTree, NULL, size);
 
     if (found) {
       CBSBlock block;
@@ -1479,7 +1475,7 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
 
     METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
     found = SplayFindLast(&node, splayTreeOfCBS(cbs), &cbsTestNode,
-                          &cbsTestTree, NULL, (unsigned long)size);
+                          &cbsTestTree, NULL, size);
     if (found) {
       CBSBlock block;
 
@@ -1573,7 +1569,7 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
       size = cbsBlockOfSplayNode(root)->maxSize;
       METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
       found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
-                             &cbsTestTree, NULL, (unsigned long)size);
+                             &cbsTestTree, NULL, size);
       AVER(found); /* maxSize is exact, so we will find it. */
       block = cbsBlockOfSplayNode(node);
       AVER(CBSBlockSize(block) >= size);
