@@ -339,7 +339,9 @@ this variable usefully is to set it while building and dumping Emacs."
 	  (error "Customizing `site-run-file' does not work")))
 
 (defcustom mail-host-address nil
-  "Name of this machine, for purposes of naming users."
+  "Name of this machine, for purposes of naming users.
+If non-nil, Emacs uses this instead of `system-name' when constructing
+email addresses."
   :type '(choice (const nil) string)
   :group 'mail)
 

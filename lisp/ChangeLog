@@ -1,3 +1,7 @@
+2012-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (mail-host-address): Doc fix.
+
 2012-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-constants-vector): Allow more
