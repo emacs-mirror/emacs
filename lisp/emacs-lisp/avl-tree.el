@@ -295,9 +295,9 @@ Return t if the height of the tree has grown."
 	        (if (> (* sgn b2) 0) (- sgn) 0)
 	      (avl-tree--node-balance p1)
 	        (if (< (* sgn b2) 0) sgn 0)
-	      (avl-tree--node-branch node branch) p2
-	      (avl-tree--node-balance
-	       (avl-tree--node-branch node branch)) 0))
+                (avl-tree--node-branch node branch) p2))
+      (setf (avl-tree--node-balance
+             (avl-tree--node-branch node branch)) 0)
       nil))))
 
 (defun avl-tree--do-enter (cmpfun root branch data &optional updatefun)
@@ -338,6 +338,16 @@ inserted data."
 	(setf (avl-tree--node-data br) newdata)
 	(cons nil newdata))  ; return value
       ))))
+
+(defun avl-tree--check (tree)
+  "Check the tree's balance."
+  (avl-tree--check-node (avl-tree--root tree)))
+(defun avl-tree--check-node (node)
+  (if (null node) 0
+    (let ((dl (avl-tree--check-node (avl-tree--node-left node)))
+	  (dr (avl-tree--check-node (avl-tree--node-right node))))
+      (assert (= (- dr dl) (avl-tree--node-balance node)))
+      (1+ (max dl dr)))))
 
 ;; ----------------------------------------------------------------
 
