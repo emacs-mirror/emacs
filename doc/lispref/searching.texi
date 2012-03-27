@@ -38,7 +38,8 @@ properties, see @ref{Property Search}.
 buffer.  They are meant for use in programs, but you may call them
 interactively.  If you do so, they prompt for the search string; the
 arguments @var{limit} and @var{noerror} are @code{nil}, and @var{repeat}
-is 1.
+is 1.  For more details on interactive searching, @pxref{Search,,
+Searching and Replacement, emacs, The GNU Emacs Manual}.
 
   These search functions convert the search string to multibyte if the
 buffer is multibyte; they convert the search string to unibyte if the
@@ -71,8 +72,8 @@ The quick brown fox@point{} jumped over the lazy dog.
 @end group
 @end example
 
-The argument @var{limit} specifies the upper bound to the search.  (It
-must be a position in the current buffer.)  No match extending after
+The argument @var{limit} specifies the bound to the search, and should
+be a position in the current buffer.  No match extending after
 that position is accepted.  If @var{limit} is omitted or @code{nil}, it
 defaults to the end of the accessible portion of the buffer.
 
@@ -82,9 +83,14 @@ What happens when the search fails depends on the value of
 error is signaled.  If @var{noerror} is @code{t}, @code{search-forward}
 returns @code{nil} and does nothing.  If @var{noerror} is neither
 @code{nil} nor @code{t}, then @code{search-forward} moves point to the
-upper bound and returns @code{nil}.  (It would be more consistent now to
-return the new position of point in that case, but some existing
-programs may depend on a value of @code{nil}.)
+upper bound and returns @code{nil}.
+@c I see no prospect of this ever changing, and frankly the current
+@c behavior seems better, so there seems no need to mention this.
+@ignore
+(It would be more consistent now to return the new position of point
+in that case, but some existing programs may depend on a value of
+@code{nil}.)
+@end ignore
 
 The argument @var{noerror} only affects valid searches which fail to
 find a match.  Invalid arguments cause errors regardless of
@@ -132,7 +138,7 @@ the ball boy!"
 
 @group
 (word-search-forward "Please find the ball, boy.")
-     @result{} 35
+     @result{} 36
 
 ---------- Buffer: foo ----------
 He said "Please!  Find
@@ -153,11 +159,16 @@ end of the accessible portion of the buffer) and returns @code{nil}.
 
 If @var{repeat} is non-@code{nil}, then the search is repeated that many
 times.  Point is positioned at the end of the last match.
+
+@findex word-search-regexp
+Internal, @code{word-search-forward} and related functions use the
+function @code{word-search-regexp} to convert @var{string} to a
+regular expression that ignores punctuation.
 @end deffn
 
 @deffn Command word-search-forward-lax string &optional limit noerror repeat
 This command is identical to @code{word-search-forward}, except that
-the end of @code{string} need not match a word boundary unless it ends
+the end of @var{string} need not match a word boundary, unless @var{string} ends
 in whitespace.  For instance, searching for @samp{ball boy} matches
 @samp{ball boyee}, but does not match @samp{aball boy}.
 @end deffn
@@ -171,7 +182,7 @@ beginning of the match.
 
 @deffn Command word-search-backward-lax string &optional limit noerror repeat
 This command is identical to @code{word-search-backward}, except that
-the end of @code{string} need not match a word boundary unless it ends
+the end of @var{string} need not match a word boundary, unless @var{string} ends
 in whitespace.
 @end deffn
 
@@ -189,24 +200,26 @@ regular expressions, too; thus, @samp{[aB]} would match @samp{a} or
 @code{case-fold-search} to @code{nil}.  Then all letters must match
 exactly, including case.  This is a buffer-local variable; altering the
 variable affects only the current buffer.  (@xref{Intro to
-Buffer-Local}.)  Alternatively, you may change the default value of
-@code{case-fold-search}.
+Buffer-Local}.)  Alternatively, you may change the default value.
+In Lisp code, you will more typically use @code{let} to bind
+@code{case-fold-search} to the desired value.
 
   Note that the user-level incremental search feature handles case
 distinctions differently.  When the search string contains only lower
 case letters, the search ignores case, but when the search string
 contains one or more upper case letters, the search becomes
 case-sensitive.  But this has nothing to do with the searching
-functions used in Lisp code.
+functions used in Lisp code.  @xref{Incremental Search,,, emacs,
+The GNU Emacs Manual}.
 
 @defopt case-fold-search
 This buffer-local variable determines whether searches should ignore
 case.  If the variable is @code{nil} they do not ignore case; otherwise
-they do ignore case.
+(and by default) they do ignore case.
 @end defopt
 
 @defopt case-replace
-This variable determines whether the higher level replacement
+This variable determines whether the higher-level replacement
 functions should preserve case.  If the variable is @code{nil}, that
 means to use the replacement text verbatim.  A non-@code{nil} value
 means to convert the case of the replacement text according to the

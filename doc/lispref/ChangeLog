@@ -1,5 +1,9 @@
 2012-03-27  Glenn Morris  <rgm@gnu.org>
 
+	* searching.texi (String Search): Add xref to Emacs manual.
+	Copyedits.  Mention the function word-search-regexp.
+	(Searching and Case): Add xref to Emacs manual.  Copyedits.
+
 	* processes.texi (Network Servers): Standardize apostrophe usage.
 
 	* os.texi (System Environment): Copyedits.  Remove some examples
