@@ -833,15 +833,15 @@ system, the user's @acronym{UID}, and so on.
 
 @defvar system-configuration
 This variable holds the standard GNU configuration name for the
-hardware/software configuration of your system, as a string.  The
-convenient way to test parts of this string is with
-@code{string-match}.
+hardware/software configuration of your system, as a string.  For
+example, a typical value for a 64-bit GNU/Linux system is
+@samp{"x86_64-unknown-linux-gnu"}.
 @end defvar
 
 @cindex system type and name
 @defvar system-type
 The value of this variable is a symbol indicating the type of operating
-system Emacs is operating on.  Here is a table of the possible values:
+system Emacs is running on.  The possible values are:
 
 @table @code
 @item aix
@@ -861,7 +861,7 @@ The GNU system (using the GNU kernel, which consists of the HURD and Mach).
 
 @item gnu/linux
 A GNU/Linux system---that is, a variant GNU system, using the Linux
-kernel.  (These systems are the ones people often call ``Linux,'' but
+kernel.  (These systems are the ones people often call ``Linux'', but
 actually Linux is just the kernel, not the whole system.)
 
 @item gnu/kfreebsd
@@ -874,33 +874,28 @@ Hewlett-Packard HPUX operating system.
 Silicon Graphics Irix system.
 
 @item ms-dos
-Microsoft MS-DOS ``operating system.''  Emacs compiled with DJGPP for
-MS-DOS binds @code{system-type} to @code{ms-dos} even when you run it on
-MS-Windows.
+Microsoft's DOS.  Emacs compiled with DJGPP for MS-DOS binds
+@code{system-type} to @code{ms-dos} even when you run it on MS-Windows.
 
 @item usg-unix-v
 AT&T Unix System V.
 
 @item windows-nt
-Microsoft Windows NT and later.  The same executable supports Windows
-9X, but the value of @code{system-type} is @code{windows-nt} in either
-case.
+Microsoft Windows NT, 9X and later.  The value of @code{system-type}
+is always @code{windows-nt}, e.g. even on Windows 7.
 
 @end table
 
 We do not wish to add new symbols to make finer distinctions unless it
 is absolutely necessary!  In fact, we hope to eliminate some of these
-alternatives in the future.  We recommend using
-@code{system-configuration} to distinguish between different operating
-systems.
+alternatives in the future.  If you need to make a finer distinction
+than @code{system-type} allows for, you can test
+@code{system-configuration}, e.g. against a regexp.
 @end defvar
 
 @defun system-name
-This function returns the name of the machine you are running on.
-@example
-(system-name)
-     @result{} "www.gnu.org"
-@end example
+This function returns the name of the machine you are running on, as a
+string.
 @end defun
 
   The symbol @code{system-name} is a variable as well as a function.  In
@@ -910,6 +905,7 @@ fact, the function returns whatever value the variable
 system.  The variable is also useful for constructing frame titles
 (@pxref{Frame Titles}).
 
+@c FIXME seems like this section is not the best place for this option?
 @defopt mail-host-address
 If this variable is non-@code{nil}, it is used instead of
 @code{system-name} for purposes of generating email addresses.  For
@@ -917,37 +913,43 @@ example, it is used when constructing the default value of
 @code{user-mail-address}.  @xref{User Identification}.  (Since this is
 done when Emacs starts up, the value actually used is the one saved when
 Emacs was dumped.  @xref{Building Emacs}.)
+@c FIXME sounds like should probably give this a :set-after and some
+@c custom-initialize-delay voodoo.
 @end defopt
 
 @deffn Command getenv var &optional frame
 @cindex environment variable access
 This function returns the value of the environment variable @var{var},
 as a string.  @var{var} should be a string.  If @var{var} is undefined
-in the environment, @code{getenv} returns @code{nil}.  If returns
-@samp{""} if @var{var} is set but null.  Within Emacs, the environment
-variable values are kept in the Lisp variable @code{process-environment}.
+in the environment, @code{getenv} returns @code{nil}.  It returns
+@samp{""} if @var{var} is set but null.  Within Emacs, a list of environment
+variables and their values is kept in the variable @code{process-environment}.
 
 @example
 @group
 (getenv "USER")
      @result{} "lewis"
 @end group
+@end example
 
+The shell command @code{printenv} prints all or part of the environment:
+
+@example
 @group
-lewis@@slug[10] % printenv
-PATH=.:/user/lewis/bin:/usr/bin:/usr/local/bin
+bash$ printenv
+PATH=/usr/local/bin:/usr/bin:/bin
 USER=lewis
 @end group
 @group
-TERM=ibmapa16
-SHELL=/bin/csh
-HOME=/user/lewis
+TERM=xterm
+SHELL=/bin/bash
+HOME=/home/lewis
 @end group
+@dots{}
 @end example
 @end deffn
 
-@c Emacs 19 feature
-@deffn Command setenv variable &optional value
+@deffn Command setenv variable &optional value substitute
 This command sets the value of the environment variable named
 @var{variable} to @var{value}.  @var{variable} should be a string.
 Internally, Emacs Lisp can handle any string.  However, normally
@@ -955,8 +957,13 @@ Internally, Emacs Lisp can handle any string.  However, normally
 of letters, digits and underscores, starting with a letter or
 underscore.  Otherwise, errors may occur if subprocesses of Emacs try
 to access the value of @var{variable}.  If @var{value} is omitted or
-@code{nil}, @code{setenv} removes @var{variable} from the environment.
-Otherwise, @var{value} should be a string.
+@code{nil} (or, interactively, with a prefix argument), @code{setenv}
+removes @var{variable} from the environment.  Otherwise, @var{value}
+should be a string.
+
+If the optional argument @var{substitute} is non-@code{nil}, Emacs
+calls the function @code{substitute-env-vars} to expand any
+environment variables in @var{value}.
 
 @code{setenv} works by modifying @code{process-environment}; binding
 that variable with @code{let} is also reasonable practice.
@@ -973,14 +980,14 @@ of this variable.
 @smallexample
 @group
 process-environment
-@result{} ("l=/usr/stanford/lib/gnuemacs/lisp"
-    "PATH=.:/user/lewis/bin:/usr/class:/nfsusr/local/bin"
+@result{} ("PATH=/usr/local/bin:/usr/bin:/bin"
     "USER=lewis"
 @end group
 @group
-    "TERM=ibmapa16"
-    "SHELL=/bin/csh"
-    "HOME=/user/lewis")
+    "TERM=xterm"
+    "SHELL=/bin/bash"
+    "HOME=/home/lewis"
+    @dots{})
 @end group
 @end smallexample
 
@@ -991,23 +998,21 @@ specifies the variable, and the other ``duplicates'' are ignored.
 
 @defvar initial-environment
 This variable holds the list of environment variables Emacs inherited
-from its parent process.  It is computed during startup, see
-@ref{Startup Summary}.
+from its parent process when Emacs started.
 @end defvar
 
 @defvar path-separator
-This variable holds a string which says which character separates
+This variable holds a string that says which character separates
 directories in a search path (as found in an environment variable).  Its
-value is @code{":"} for Unix and GNU systems, and @code{";"} for MS-DOS
-and MS-Windows.
+value is @code{":"} for Unix and GNU systems, and @code{";"} for MS systems.
 @end defvar
 
 @defun parse-colon-path path
-This function takes a search path string such as would be the value of
+This function takes a search path string such as the value of
 the @code{PATH} environment variable, and splits it at the separators,
-returning a list of directory names.  @code{nil} in this list stands for
-``use the current directory.''  Although the function's name says
-``colon,'' it actually uses the value of @code{path-separator}.
+returning a list of directory names.  @code{nil} in this list means
+the current directory.  Although the function's name says
+``colon'', it actually uses the value of @code{path-separator}.
 
 @example
 (parse-colon-path ":/foo:/bar")
@@ -1022,30 +1027,32 @@ value is a string, and does not include a directory name.
 
 @defvar invocation-directory
 This variable holds the directory from which the Emacs executable was
-invoked, or perhaps @code{nil} if that directory cannot be determined.
+invoked, or @code{nil} if that directory cannot be determined.
 @end defvar
 
 @defvar installation-directory
 If non-@code{nil}, this is a directory within which to look for the
-@file{lib-src} and @file{etc} subdirectories.  This is non-@code{nil}
+@file{lib-src} and @file{etc} subdirectories.  In an installed Emacs,
+it is normally @code{nil}.  It is non-@code{nil}
 when Emacs can't find those directories in their standard installed
 locations, but can find them in a directory related somehow to the one
-containing the Emacs executable.
+containing the Emacs executable (i.e., @code{invocation-directory}).
 @end defvar
 
 @defun load-average &optional use-float
-This function returns the current 1-minute, 5-minute, and 15-minute load
-averages, in a list.
+This function returns the current 1-minute, 5-minute, and 15-minute
+system load averages, in a list.  The load average indicates the
+number of processes trying to run on the system.
 
 By default, the values are integers that are 100 times the system load
-averages, which indicate the average number of processes trying to run.
-If @var{use-float} is non-@code{nil}, then they are returned
-as floating point numbers and without multiplying by 100.
+averages, but if @var{use-float} is non-@code{nil}, then they are
+returned as floating point numbers without multiplying by 100.
 
 If it is impossible to obtain the load average, this function signals
 an error.  On some platforms, access to load averages requires
 installing Emacs as setuid or setgid so that it can read kernel
 information, and that usually isn't advisable.
+@c FIXME which platforms are these?  Are they still relevant?
 
 If the 1-minute load average is available, but the 5- or 15-minute
 averages are not, this function returns a shortened list containing
@@ -1060,13 +1067,9 @@ the available averages.
 (load-average t)
      @result{} (1.69 0.48 0.36)
 @end group
-
-@group
-lewis@@rocky[5] % uptime
- 11:55am  up 1 day, 19:37,  3 users,
- load average: 1.69, 0.48, 0.36
-@end group
 @end example
+
+The shell command @code{uptime} returns similar information.
 @end defun
 
 @defun emacs-pid
@@ -1077,7 +1080,8 @@ as an integer.
 @defvar tty-erase-char
 This variable holds the erase character that was selected
 in the system's terminal driver, before Emacs was started.
-The value is @code{nil} if Emacs is running under a window system.
+@c FIXME?  Seems untrue since 23.1.  For me, it is 0.
+@c The value is @code{nil} if Emacs is running under a window system.
 @end defvar
 
 @node User Identification
@@ -1107,27 +1111,18 @@ want to use the default value.
 @end defopt
 
 @defun user-login-name &optional uid
-If you don't specify @var{uid}, this function returns the name under
-which the user is logged in.  If the environment variable @code{LOGNAME}
-is set, that value is used.  Otherwise, if the environment variable
-@code{USER} is set, that value is used.  Otherwise, the value is based
-on the effective @acronym{UID}, not the real @acronym{UID}.
+This function returns the name under which the user is logged in.
+It uses the environment variables @code{LOGNAME} or @code{USER} if
+either is set.  Otherwise, the value is based on the effective
+@acronym{UID}, not the real @acronym{UID}.
 
-If you specify @var{uid}, the value is the user name that corresponds
-to @var{uid} (which should be an integer), or @code{nil} if there is
-no such user.
-
-@example
-@group
-(user-login-name)
-     @result{} "lewis"
-@end group
-@end example
+If you specify @var{uid} (a number), the result is the user name that
+corresponds to @var{uid}, or @code{nil} if there is no such user.
 @end defun
 
 @defun user-real-login-name
 This function returns the user name corresponding to Emacs's real
-@acronym{UID}.  This ignores the effective @acronym{UID} and ignores the
+@acronym{UID}.  This ignores the effective @acronym{UID}, and the
 environment variables @code{LOGNAME} and @code{USER}.
 @end defun
 
@@ -1135,16 +1130,8 @@ environment variables @code{LOGNAME} and @code{USER}.
 This function returns the full name of the logged-in user---or the value
 of the environment variable @code{NAME}, if that is set.
 
-@c "Bil" is the correct spelling.
-@example
-@group
-(user-full-name)
-     @result{} "Bil Lewis"
-@end group
-@end example
-
-If the Emacs job's user-id does not correspond to any known user (and
-provided @code{NAME} is not set), the value is @code{"unknown"}.
+If the Emacs process's user-id does not correspond to any known user (and
+provided @code{NAME} is not set), the result is @code{"unknown"}.
 
 If @var{uid} is non-@code{nil}, then it should be a number (a user-id)
 or a string (a login name).  Then @code{user-full-name} returns the full
@@ -1164,14 +1151,8 @@ Titles}).
 
 @defun user-real-uid
 This function returns the real @acronym{UID} of the user.
-The value may be a floating point number.
-
-@example
-@group
-(user-real-uid)
-     @result{} 19
-@end group
-@end example
+The value may be a floating point number, in the (unlikely) event that
+the UID is too large to fit in a Lisp integer.
 @end defun
 
 @defun user-uid
