@@ -220,11 +220,10 @@ matching the resulting Git log output, and KEYWORDS is a list of
     (let ((diff (vc-git--run-command-string
                  file "diff-index" "-p" "--raw" "-z" "HEAD" "--")))
       (if (and diff
-	       (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0\\(\\(?:.\\|\n\\)*\\)\\'"
+	       (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0\\(.\\)?"
 			     diff))
-          (let ((diff-letter (match-string 1 diff))
-                (diff-contents (match-string 2 diff)))
-            (if (not (string-match "\n." diff-contents))
+          (let ((diff-letter (match-string 1 diff)))
+            (if (not (match-beginning 2))
                 ;; Empty diff: file contents is the same as the HEAD
                 ;; revision, but timestamps are different (eg, file
                 ;; was "touch"ed).  Update timestamp in index:

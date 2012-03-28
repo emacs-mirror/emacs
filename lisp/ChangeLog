@@ -1,3 +1,8 @@
+2012-03-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/vc-git.el (vc-git-state): Don't try to match all of the diff
+	contents.  (Bug#11109)
+
 2012-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/avl-tree.el (avl-tree--enter-balance): Fix paren typo
