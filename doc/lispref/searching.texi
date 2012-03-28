@@ -392,6 +392,10 @@ If @code{case-fold-search} is non-@code{nil}, @samp{[a-z]} also
 matches upper-case letters.  Note that a range like @samp{[a-z]} is
 not affected by the locale's collation sequence, it always represents
 a sequence in @acronym{ASCII} order.
+@c This wasn't obvious to me, since eg the grep manual "Character
+@c Classes and Bracket Expressions" specifically notes the opposite
+@c behavior.  But by experiment Emacs seems unaffected by LC_COLLATE
+@c in this regard.
 
 Note also that the usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters is
