@@ -1,3 +1,7 @@
+2012-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (safe_run_hooks_error): Don't unquote strings.
+
 2012-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* search.c (Fword_search_backward_lax, Fword_search_forward_lax):
@@ -16,8 +20,7 @@
 
 2012-03-25  Fabrice Popineau  <fabrice.popineau@supelec.fr>
 
-	* w32heap.c (_heap_init, _heap_term): Remove dead MSVC-specific
-	code.
+	* w32heap.c (_heap_init, _heap_term): Remove dead MSVC-specific code.
 
 2012-03-25  Kenichi Handa  <handa@m17n.org>
 
