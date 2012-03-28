@@ -932,6 +932,7 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
   EMACS_INT endpos
     = (string->s || STRINGP (string->lstring)) ? string->schars : ZV;
   struct text_pos pos;
+  int len;
 
   /* If we got past the last known position of display string, compute
      the position of the next one.  That position could be at CHARPOS.  */
@@ -1003,7 +1004,6 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
     normal_char:
       if (string->s)
 	{
-	  int len;
 
 	  if (!string->unibyte)
 	    {
@@ -1018,8 +1018,6 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 	}
       else if (STRINGP (string->lstring))
 	{
-	  int len;
-
 	  if (!string->unibyte)
 	    {
 	      ch = STRING_CHAR_AND_LENGTH (SDATA (string->lstring) + bytepos,
@@ -1034,8 +1032,8 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 	}
       else
 	{
-	  ch = FETCH_MULTIBYTE_CHAR (bytepos);
-	  *ch_len = CHAR_BYTES (ch);
+	  ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (bytepos), len);
+	  *ch_len = len;
 	}
       *nchars = 1;
     }

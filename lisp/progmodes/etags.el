@@ -809,10 +809,11 @@ If no tags table is loaded, do nothing and return nil."
 	  beg)
       (when pattern
 	(save-excursion
-	  (search-backward pattern) ;FIXME: will fail if we're inside pattern.
-	  (setq beg (point))
-	  (forward-char (length pattern))
-	  (list beg (point) (tags-lazy-completion-table) :exclusive 'no))))))
+          (forward-char (1- (length pattern)))
+          (search-backward pattern)
+          (setq beg (point))
+          (forward-char (length pattern))
+          (list beg (point) (tags-lazy-completion-table) :exclusive 'no))))))
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."
@@ -1409,7 +1410,9 @@ hits the start of file."
 	  tag tag-info pt)
     (forward-line 1)
     (while (not (or (eobp) (looking-at "\f")))
-      (setq tag-info (save-excursion (funcall snarf-tag-function t))
+      ;; We used to use explicit tags when available, but the current goto-func
+      ;; can only handle implicit tags.
+      (setq tag-info (save-excursion (funcall snarf-tag-function nil))
 	    tag (car tag-info)
 	    pt (with-current-buffer standard-output (point)))
       (princ tag)

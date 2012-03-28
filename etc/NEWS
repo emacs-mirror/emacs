@@ -123,6 +123,8 @@ and pops down the *Completions* buffer accordingly.
 *** Completion style can be set per-category `completion-category-overrides'.
 +++
 *** Completion of buffers now uses substring completion by default.
+---
+*** The `widget-complete-field' option has been removed.
 
 ** Mail changes
 
@@ -468,6 +470,11 @@ been shown in a specific window.
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
 This is handy for minibuffer-only frames, and is also used for the feature
 where mouse-1 pops up *Messages*"', which can now easily be changed.
+
+---
+** Minibuffers set `truncate-lines' to nil.
+If you want to change the value to something else, you could use
+for example minibuffer-setup-hook.
 
 
 * Editing Changes in Emacs 24.1
@@ -1114,7 +1121,8 @@ Use (where-is-internal <def> nil t) instead.
 
 +++
 ** The following obsolete (mostly since at least 21.1) functions and aliases
-have been removed (the appropriate new function is given in parentheses):
+have been removed (the appropriate new function is given in parentheses;
+"not needed" means you can just remove all calls to the function in question):
 comint-kill-output (comint-delete-output),
 decompose-composite-char (char-to-string),
 outline-visible (outline-invisible-p),
@@ -1539,6 +1547,10 @@ display-delayed-warnings and collapse-delayed-warnings.
 from multiple input maps.  You can use this to make a keymap that
 inherits from multiple maps, eg:
  (set-keymap-parent newmap (make-composed-keymap othermap parent))
+
++++
+** New function `string-prefix-p'.
+(This was actually added in Emacs 23.2 but was not advertised at the time.)
 
 +++
 ** New reader macro ## that stands for the empty symbol.

@@ -2165,13 +2165,17 @@ CHANNELS is a comma- or space-separated string of channel names."
   (let ((channel (if (> (length channel) 0) channel target)))
     (rcirc-send-string process (concat "PART " channel " :" rcirc-id-string))))
 
-(defun-rcirc-command quit (reason)
-  "Send a quit message to server with REASON."
-  (interactive "sQuit reason: ")
-  (rcirc-send-string process (concat "QUIT :"
-				     (if (not (zerop (length reason)))
-					 reason
-				       rcirc-id-string))))
+(defun-rcirc-command quit (reason all)
+  "Send a quit message to server with REASON.
+When called with prefix, quit all servers."
+  (interactive "sQuit reason: \nP")
+  (dolist (p (if all
+		 (rcirc-process-list)
+	       (list process)))
+    (rcirc-send-string p (concat "QUIT :"
+				 (if (not (zerop (length reason)))
+				     reason
+				   rcirc-id-string)))))
 
 (defun-rcirc-command nick (nick)
   "Change nick to NICK."

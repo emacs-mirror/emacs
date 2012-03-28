@@ -450,6 +450,12 @@ and so on."
   keep-overlays      : More of a bell (or possibly whistle) than an
                        optimization - If on, preserve overlay highlighting
                        (cf ediff or goo-font-lock) as well as basic faces.\n
+  body-text-only     : Emit only body-text. In concrete terms,
+                       1. Suppress calls to `hfy-page-header'and
+                          `hfy-page-footer'
+                       2. Pretend that `div-wrapper' option above is
+                          turned off
+                       3. Don't enclose output in <pre> </pre> tags
   And the following are planned but not yet available:\n
   kill-context-leak  : Suppress hyperlinking between files highlighted by
                        different modes.\n
@@ -463,7 +469,8 @@ which can never slow you down, but may result in incomplete fontification."
                (const :tag "skip-refontification" skip-refontification)
                (const :tag "kill-context-leak"    kill-context-leak   )
                (const :tag "div-wrapper"          div-wrapper         )
-               (const :tag "keep-overlays"        keep-overlays       ))
+               (const :tag "keep-overlays"        keep-overlays       )
+               (const :tag "body-text-only"       body-text-only      ))
   :group 'htmlfontify
   :tag   "optimizations")
 
@@ -1044,7 +1051,7 @@ haven't encountered them yet.  Returns a `hfy-style-assoc'."
    ((facep fn)
     (hfy-face-attr-for-class fn hfy-display-class))
    ((and (symbolp fn)
-	 (facep (symbol-value fn)))
+         (facep (symbol-value fn)))
     ;; Obsolete faces like `font-lock-reference-face' are defined as
     ;; aliases for another face.
     (hfy-face-attr-for-class (symbol-value fn) hfy-display-class))
@@ -1108,10 +1115,9 @@ See also `hfy-face-to-style-i', `hfy-flatten-style'."
 
 ;; construct an assoc of (stripped-name . "{ css-stuff-here }") pairs
 ;; from a face:
-(defun hfy-face-to-css (fn)
-  "Take FN, a font or `defface' specification (cf `face-attr-construct')
-and return a CSS style specification.\n
-See also `hfy-face-to-style'."
+(defun hfy-face-to-css-default (fn)
+  "Default handler for mapping faces to styles.
+See also `hfy-face-to-css'."
   ;;(message "hfy-face-to-css");;DBUG
   (let* ((css-list (hfy-face-to-style fn))
          (seen     nil)
@@ -1124,6 +1130,17 @@ See also `hfy-face-to-style'."
                    (format " %s: %s; " (car E) (cdr E)))))
            css-list)))
     (cons (hfy-css-name fn) (format "{%s}" (apply 'concat css-text)))) )
+
+(defvar hfy-face-to-css 'hfy-face-to-css-default
+  "Handler for mapping faces  to styles.
+The signature of the handler is of the form \(lambda (FN) ...\).
+FN is a font or `defface' specification (cf
+`face-attr-construct').  The handler should return a cons cell of
+the form (STYLE-NAME . STYLE-SPEC).
+
+The default handler is `hfy-face-to-css-default'.
+
+See also `hfy-face-to-style'.")
 
 (defalias 'hfy-prop-invisible-p
   (if (fboundp 'invisible-p) #'invisible-p
@@ -1311,20 +1328,27 @@ The plists are returned in descending priority order."
 
 ;; construct an assoc of (face-name . (css-name . "{ css-style }")) elements:
 (defun hfy-compile-stylesheet ()
-  "Trawl the current buffer, construct and return a `hfy-sheet-assoc'."
+  "Trawl the current buffer, construct and return a `hfy-sheet-assoc'.
+If `hfy-user-sheet-assoc' is currently bound then use it to
+collect new styles discovered during this run.  Otherwise create
+a new assoc."
   ;;(message "hfy-compile-stylesheet");;DBUG
   (let ((pt (point-min))
         ;; Make the font stack stay:
         ;;(hfy-tmpfont-stack nil)
         (fn         nil)
-        (style      nil))
+        (style      (and (boundp 'hfy-user-sheet-assoc) hfy-user-sheet-assoc)))
     (save-excursion
       (goto-char pt)
       (while (< pt (point-max))
         (if (and (setq fn (hfy-face-at pt)) (not (assoc fn style)))
-            (push (cons fn (hfy-face-to-css fn)) style))
-        (setq pt (next-char-property-change pt))) )
-    (push (cons 'default (hfy-face-to-css 'default)) style)))
+            (push (cons fn (funcall hfy-face-to-css fn)) style))
+        (setq pt (next-char-property-change pt))))
+    (unless (assoc 'default style)
+      (push (cons 'default (funcall hfy-face-to-css 'default)) style))
+    (when (boundp 'hfy-user-sheet-assoc)
+      (setq hfy-user-sheet-assoc style))
+    style))
 
 (defun hfy-fontified-p ()
   "`font-lock' doesn't like to say it's been fontified when in batch
@@ -1425,7 +1449,7 @@ Returns a modified copy of FACE-MAP."
         (setq pt (next-char-property-change pt))
         (setq pt-narrow (+ offset pt)))
       (if (and map (not (eq 'end (cdar map))))
-          (push (cons (- (point-max) (point-min)) 'end) map)))
+          (push (cons (1+ (- (point-max) (point-min))) 'end) map)))
     (if (hfy-opt 'merge-adjacent-tags) (hfy-merge-adjacent-spans map) map)))
 
 (defun hfy-buffer ()
@@ -1547,6 +1571,61 @@ Do not record undo information during evaluation of BODY."
       (remove-text-properties (point-min) (point-max)
                               '(hfy-show-trailing-whitespace)))))
 
+(defun hfy-begin-span (style text-block text-id text-begins-block-p)
+  "Default handler to begin a span of text.
+Insert \"<span class=\"STYLE\" ...>\". See
+`hfy-begin-span-handler' for more information."
+  (when text-begins-block-p
+    (insert
+     (format "<span onclick=\"toggle_invis('%s');\">…</span>" text-block)))
+
+  (insert
+   (if text-block
+       (format "<span class=\"%s\" id=\"%s-%d\">" style text-block text-id)
+     (format "<span class=\"%s\">" style))))
+
+(defun hfy-end-span ()
+  "Default handler to end a span of text.
+Insert \"</span>\".  See `hfy-end-span-handler' for more
+information."
+  (insert "</span>"))
+
+(defvar hfy-begin-span-handler 'hfy-begin-span
+  "Handler to begin a span of text.
+The signature of the handler is \(lambda (STYLE TEXT-BLOCK
+TEXT-ID TEXT-BEGINS-BLOCK-P) ...\).  The handler must insert
+appropriate tags to begin a span of text.
+
+STYLE is the name of the style that begins at point.  It is
+derived from the face attributes as part of `hfy-face-to-css'
+callback.  The other arguments TEXT-BLOCK, TEXT-ID,
+TEXT-BEGINS-BLOCK-P are non-nil only if the buffer contains
+invisible text.
+
+TEXT-BLOCK is a string that identifies a single chunk of visible
+or invisible text of which the current position is a part.  For
+visible portions, it's value is \"nil\". For invisible portions,
+it's value is computed as part of `hfy-invisible-name'.
+
+TEXT-ID marks a unique position within a block.  It is set to
+value of `point' at the current buffer position.
+
+TEXT-BEGINS-BLOCK-P is a boolean and is non-nil if the current
+span also begins a invisible portion of text.
+
+An implementation can use TEXT-BLOCK, TEXT-ID,
+TEXT-BEGINS-BLOCK-P to implement fold/unfold-on-mouse-click like
+behaviour.
+
+The default handler is `hfy-begin-span'.")
+
+(defvar hfy-end-span-handler 'hfy-end-span
+  "Handler to end a span of text.
+The signature of the handler is \(lambda () ...\).  The handler
+must insert appropriate tags to end a span of text.
+
+The default handler is `hfy-end-span'.")
+
 (defun hfy-fontify-buffer (&optional srcdir file)
   "Implement the guts of `htmlfontify-buffer'.
 SRCDIR, if set, is the directory being htmlfontified.
@@ -1634,23 +1713,19 @@ FILE, if set, is the file name."
               (or (get-text-property pt 'hfy-linkp)
                   (get-text-property pt 'hfy-endl )))
         (if (eq 'end fn)
-            (insert "</span>")
+            (funcall hfy-end-span-handler)
           (if (not (and srcdir file))
               nil
             (when move-link
               (remove-text-properties (point) (1+ (point)) '(hfy-endl nil))
               (put-text-property pt (1+ pt) 'hfy-endl t) ))
           ;; if we have invisible blocks, we need to do some extra magic:
-          (if invis-ranges
-              (let ((iname (hfy-invisible-name pt invis-ranges))
-                    (fname (hfy-lookup         fn css-sheet   )))
-                (when (assq pt invis-ranges)
-                  (insert
-                   (format "<span onclick=\"toggle_invis('%s');\">" iname))
-                  (insert "…</span>"))
-                (insert
-                 (format "<span class=\"%s\" id=\"%s-%d\">" fname iname pt)))
-            (insert (format "<span class=\"%s\">" (hfy-lookup fn css-sheet))))
+          (funcall hfy-begin-span-handler
+                   (hfy-lookup fn css-sheet)
+                   (and invis-ranges
+                        (format "%s" (hfy-invisible-name pt invis-ranges)))
+                   (and invis-ranges pt)
+                   (and invis-ranges (assq pt invis-ranges)))
           (if (not move-link) nil
             ;;(message "removing prop2 @ %d" (point))
             (if (remove-text-properties (point) (1+ (point)) '(hfy-endl nil))
@@ -1698,22 +1773,38 @@ FILE, if set, is the file name."
     ;; so we have to do this after we use said properties:
     ;; (message "munging dangerous characters")
     (hfy-html-dekludge-buffer)
-    ;; insert the stylesheet at the top:
-    (goto-char (point-min))
-    ;;(message "inserting stylesheet")
-    (insert (hfy-sprintf-stylesheet css-sheet file))
-    (if (hfy-opt 'div-wrapper) (insert "<div class=\"default\">"))
-    (insert "\n<pre>")
-    (goto-char (point-max))
-    (insert "</pre>\n")
-    (if (hfy-opt 'div-wrapper) (insert "</div>"))
-    ;;(message "inserting footer")
-    (insert (funcall hfy-page-footer file))
+    (unless (hfy-opt 'body-text-only)
+      ;; insert the stylesheet at the top:
+      (goto-char (point-min))
+
+      ;;(message "inserting stylesheet")
+      (insert (hfy-sprintf-stylesheet css-sheet file))
+
+      (if (hfy-opt 'div-wrapper) (insert "<div class=\"default\">"))
+      (insert "\n<pre>")
+      (goto-char (point-max))
+      (insert "</pre>\n")
+      (if (hfy-opt 'div-wrapper) (insert "</div>"))
+      ;;(message "inserting footer")
+      (insert (funcall hfy-page-footer file)))
     ;; call any post html-generation hooks:
     (run-hooks 'hfy-post-html-hooks)
     ;; return the html buffer
     (set-buffer-modified-p nil)
     html-buffer))
+
+(defun htmlfontify-string (string)
+  "Take a STRING and return a fontified version of it.
+It is assumed that STRING has text properties that allow it to be
+fontified.  This is a simple convenience wrapper around
+`htmlfontify-buffer'."
+  (let* ((hfy-optimisations-1 (copy-sequence hfy-optimisations))
+         (hfy-optimisations (add-to-list 'hfy-optimisations-1
+                                         'skip-refontification)))
+    (with-temp-buffer
+      (insert string)
+      (htmlfontify-buffer)
+      (buffer-string))))
 
 (defun hfy-force-fontification ()
   "Try to force font-locking even when it is optimized away."

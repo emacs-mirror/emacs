@@ -6290,7 +6290,11 @@ be a predicate function such as `yes-or-no-p'."
 
 (defun save-buffers-kill-emacs (&optional arg)
   "Offer to save each buffer, then kill this Emacs process.
-With prefix ARG, silently save all file-visiting buffers, then kill."
+With prefix ARG, silently save all file-visiting buffers without asking.
+If there are active processes where `process-query-on-exit-flag'
+returns non-nil, asks whether processes should be killed.
+Runs the members of `kill-emacs-query-functions' in turn and stops
+if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
   (interactive "P")
   (save-some-buffers arg t)
   (and (or (not (memq t (mapcar (function
@@ -6563,7 +6567,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		(new-fn      (expand-file-name (file-name-nondirectory fn)
 					       trash-dir)))
 	   ;; We can't trash a parent directory of trash-directory.
-	   (if (string-match fn trash-dir)
+	   (if (string-prefix-p fn trash-dir)
 	       (error "Trash directory `%s' is a subdirectory of `%s'"
 		      trash-dir filename))
 	   (unless (file-directory-p trash-dir)
@@ -6595,10 +6599,10 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 				     (file-name-directory fn)))
 	     (error "Cannot move %s to trash: Permission denied" filename))
 	   ;; The trashed file cannot be the trash dir or its parent.
-	   (if (string-match fn trash-files-dir)
+	   (if (string-prefix-p fn trash-files-dir)
 	       (error "The trash directory %s is a subdirectory of %s"
 		      trash-files-dir filename))
-	   (if (string-match fn trash-info-dir)
+	   (if (string-prefix-p fn trash-info-dir)
 	       (error "The trash directory %s is a subdirectory of %s"
 		      trash-info-dir filename))
 

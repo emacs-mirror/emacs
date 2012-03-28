@@ -525,6 +525,10 @@ mode when creating new buffers (@pxref{Auto Major Mode}), but with such
 @code{special} modes, Fundamental mode is used instead.  Modes such as
 Dired, Rmail, and Buffer List use this feature.
 
+The function @code{view-buffer} does not enable View mode in buffers
+whose mode-class is special, because such modes usually provide their
+own View-like bindings.
+
 The @code{define-derived-mode} macro automatically marks the derived
 mode as special if the parent mode is special.  Special mode is a
 convenient parent for such modes to inherit from; @xref{Basic Major

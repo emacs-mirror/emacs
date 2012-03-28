@@ -278,11 +278,10 @@ of column descriptors."
 	     (width  (nth 1 format))
 	     (label  (if (stringp desc) desc (car desc)))
 	     (help-echo (concat (car format) ": " label)))
-	;; Truncate labels if necessary.
-	(and (> width 6)
-	     (> (length label) width)
-	     (setq label (concat (substring label 0 (- width 3))
-				 "...")))
+	;; Truncate labels if necessary (except last column).
+	(and (< (1+ n) len)
+	     (> (string-width label) width)
+	     (setq label (truncate-string-to-width label width nil nil t)))
 	(setq label (bidi-string-mark-left-to-right label))
 	(if (stringp desc)
 	    (insert (propertize label 'help-echo help-echo))

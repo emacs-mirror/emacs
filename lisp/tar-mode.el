@@ -634,6 +634,9 @@ inside of a tar archive without extracting it and re-archiving it.
 
 See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 \\{tar-mode-map}"
+  (and buffer-file-name
+       (file-writable-p buffer-file-name)
+       (setq buffer-read-only nil))    ; undo what `special-mode' did
   (make-local-variable 'tar-parse-info)
   (set (make-local-variable 'require-final-newline) nil) ; binary data, dude...
   (set (make-local-variable 'local-enable-local-variables) nil)

@@ -296,27 +296,3 @@ round_heap (unsigned long align)
   if (need_to_alloc)
     sbrk (need_to_alloc);
 }
-
-#if (_MSC_VER >= 1000 && _MSC_VER < 1300 && !defined (USE_CRT_DLL))
-
-/* MSVC 4.2 invokes these functions from mainCRTStartup to initialize
-   a heap via HeapCreate.  They are normally defined by the runtime,
-   but we override them here so that the unnecessary HeapCreate call
-   is not performed.  */
-
-int __cdecl
-_heap_init (void)
-{
-  /* Stepping through the assembly indicates that mainCRTStartup is
-     expecting a nonzero success return value.  */
-  return 1;
-}
-
-void __cdecl
-_heap_term (void)
-{
-  return;
-}
-
-#endif
-

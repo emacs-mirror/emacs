@@ -6599,20 +6599,22 @@ ignore.  */);
 	       doc: /* Alist of face remappings.
 Each element is of the form:
 
-   (FACE REPLACEMENT...),
+   (FACE . REPLACEMENT),
 
-which causes display of the face FACE to use REPLACEMENT... instead.
-REPLACEMENT... is interpreted the same way as the value of a `face'
-text property: it may be (1) A face name, (2) A list of face names,
-(3) A property-list of face attribute/value pairs, or (4) A list of
-face names or lists containing face attribute/value pairs.
+which causes display of the face FACE to use REPLACEMENT instead.
+REPLACEMENT is a face specification, i.e. one of the following:
 
-Multiple entries in REPLACEMENT... are merged together to form the final
-result, with faces or attributes earlier in the list taking precedence
-over those that are later.
+  (1) a face name
+  (2) a property list of attribute/value pairs, or
+  (3) a list in which each element has the form of (1) or (2).
 
-Face-name remapping cycles are suppressed; recursive references use the
-underlying face instead of the remapped face.  So a remapping of the form:
+List values for REPLACEMENT are merged to form the final face
+specification, with earlier entries taking precedence, in the same as
+as in the `face' text property.
+
+Face-name remapping cycles are suppressed; recursive references use
+the underlying face instead of the remapped face.  So a remapping of
+the form:
 
    (FACE EXTRA-FACE... FACE)
 
@@ -6620,13 +6622,13 @@ or:
 
    (FACE (FACE-ATTR VAL ...) FACE)
 
-will cause EXTRA-FACE... or (FACE-ATTR VAL ...) to be _merged_ with the
-existing definition of FACE.  Note that for the default face, this isn't
-necessary, as every face inherits from the default face.
+causes EXTRA-FACE... or (FACE-ATTR VAL ...) to be _merged_ with the
+existing definition of FACE.  Note that this isn't necessary for the
+default face, since every face inherits from the default face.
 
-Making this variable buffer-local is a good way to allow buffer-specific
-face definitions.  For instance, the mode my-mode could define a face
-`my-mode-default', and then in the mode setup function, do:
+If this variable is made buffer-local, the face remapping takes effect
+only in that buffer.  For instance, the mode my-mode could define a
+face `my-mode-default', and then in the mode setup function, do:
 
    (set (make-local-variable 'face-remapping-alist)
 	'((default my-mode-default)))).

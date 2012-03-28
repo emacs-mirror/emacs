@@ -1,6 +1,7 @@
 /* String search routines for GNU Emacs.
-   Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2012
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2012
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2257,7 +2258,7 @@ DEFUN ("word-search-backward-lax", Fword_search_backward_lax, Sword_search_backw
 Set point to the beginning of the occurrence found, and return point.
 
 Unlike `word-search-backward', the end of STRING need not match a word
-boundary unless it ends in whitespace.
+boundary, unless STRING ends in whitespace.
 
 An optional second argument bounds the search; it is a buffer position.
 The match found must not extend before that position.
@@ -2279,7 +2280,7 @@ DEFUN ("word-search-forward-lax", Fword_search_forward_lax, Sword_search_forward
 Set point to the end of the occurrence found, and return point.
 
 Unlike `word-search-forward', the end of STRING need not match a word
-boundary unless it ends in whitespace.
+boundary, unless STRING ends in whitespace.
 
 An optional second argument bounds the search; it is a buffer position.
 The match found must not extend after that position.

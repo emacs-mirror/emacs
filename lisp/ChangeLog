@@ -1,3 +1,255 @@
+2012-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/avl-tree.el (avl-tree--enter-balance): Fix paren typo
+	(bug#11077).
+	(avl-tree--check, avl-tree--check-node): New funs.
+
+2012-03-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-visible-buffer): New option.
+	(switch-to-prev-buffer, switch-to-next-buffer):
+	Observe switch-to-visible-buffer.  Make sure that checking for a window
+	showing a buffer already is done on the same frame.
+
+2012-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (mail-host-address): Doc fix.
+
+2012-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-constants-vector): Allow more
+	than 197 variables.
+
+2012-03-26  Ami Fischman  <ami@fischman.org>
+
+	* vc/vc-git.el (vc-git-state): Avoid unnecessarily locking.
+
+2012-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (save-buffers-kill-emacs): Doc fix.
+
+	* startup.el (normal-top-level, command-line, command-line-1):
+	Give them doc strings.
+
+2012-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install): Use $(DIRNAME)_same-dir.tst instead
+	of same-dir.tst, to avoid stepping on other (parallel) Make job's toes.
+
+2012-03-25  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (load-theme): Even if NO-ENABLE arg is t, reenable the
+	theme if it was previously enabled before (Bug#11031).
+
+	* cus-theme.el (custom-theme-write-faces): Retrieve current face
+	spec with custom-face-get-current-spec if its :shown-value is not
+	determined yet (Bug#9337).
+	(customize-create-theme, custom-theme-revert): Doc fixes.
+
+	* button.el (button-at): Minor addition to docstring.
+
+2012-03-24  Simon Leinen  <simon.leinen@gmail.com>
+
+	* vc/vc.el (vc-merge): Fix a prompt.
+
+2012-03-24  Chong Yidong  <cyd@gnu.org>
+
+	* mwheel.el (mwheel-scroll): Call deactivate-mark at the right
+	point (Bug#9623).
+
+	* button.el (button-at): Minor addition to docstring.
+
+2012-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-choose-indent): No space after BOL.
+
+2012-03-22  Sam Steingold  <sds@gnu.org>
+
+	* window.el (switch-to-prev-buffer): Revert last patch because the
+	bug turned out to be an advertised feature (Elisp manual 28.14).
+
+2012-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-status-switches): New option.  (Bug#6724)
+	(vc-bzr-command): If running "status", pass vc-bzr-status-switches.
+
+2012-03-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (network-stream-open-starttls): Make error
+	message under Windows be less misleading.
+
+2012-03-22  Liang Wang  <netcasper@gmail.com>  (tiny change)
+
+	* progmodes/etags.el (etags-list-tags): Only use tags which goto-func
+	understands (bug#9942).
+
+2012-03-22  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (end-of-visible-line): Handle return value of
+	next-single-property-change properly (Bug#9371).
+
+2012-03-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-insert-kbd-layout): Fix previous
+	change.  To avoid unwanted bidi reordering, use
+	bidi-string-mark-left-to-right instead of inserting LRO and PDF.
+
+2012-03-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Don't confuse "end:" for "end" (bug#10786).
+	(ruby-block-end-re, ruby-delimiter, ruby-parse-partial)
+	(ruby-beginning-of-indent): Be more careful with the difference
+	between word-boundary and symbol boundary.
+	(ruby-mode-syntax-table): Make : a symbol constituent.
+
+2012-03-21  Andreas Politz  <politza@fh-trier.de>
+
+	* outline.el (outline-flag-region): Evaporate overlays (bug#10789).
+
+2012-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Improve last fix.
+
+	* files.el (move-file-to-trash): Files aren't regexps (bug#11055).
+
+2012-03-21  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Avoid the error when point is inside the pattern.
+
+2012-03-21  John Yates  <john@yates-sheets.org>  (tiny change)
+
+	* progmodes/hideshow.el (hs-inside-comment-p): Fix hiding of first
+	line (Bug#10855).
+
+2012-03-21  Drew Adams  <drew.adams@oracle.com>
+
+	* info.el (Info-menu): Handle string value of FORK arg (Bug#10858).
+
+2012-03-21  Anmol Khirbat  <anmol@khirbat.net>  (tiny change)
+
+	* ido.el (ido-set-current-directory, ido-read-internal)
+	(ido-choose-completion-string, ido-completion-help): Handle nil
+	value of ido-completion-buffer (Bug#11008).
+
+2012-03-21  Sam Steingold  <sds@gnu.org>
+
+	* window.el (switch-to-prev-buffer): Do not switch to a visible
+	window previous buffer, just like with the frame previous buffers.
+
+2012-03-21  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (make-face, make-empty-face, copy-face):
+	* face-remap.el (face-remap-add-relative, face-remap-set-base):
+	Doc fixes.
+
+2012-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wid-edit.el (widget-complete-field): Remove (bug#11051).
+	(widget-complete): Remove broken use of it.
+
+2012-03-20  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry):
+	Use string-width and truncate-string-width to handle arbitrary
+	characters.
+
+2012-03-20  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* textmodes/artist.el (artist-menu-map): Bind Rectangle menu item
+	to draw rectangles, not squares.  (Regression introduced by revno
+	103471)
+
+2012-03-18  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (face-spec-reset-face): Don't call display-graphic-p if
+	it is not yet defined (for temacs).
+
+2012-03-18  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-cmd-quit): Allow quiting all servers with prefix.
+
+2012-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-skip-tib, ispell-keep-choices-win)
+	(ispell-choices-win-default-height, ispell-silently-savep)
+	(ispell-dictionary-alist, ispell-encoding8-command)
+	(ispell-check-version, ispell-aspell-find-dictionary)
+	(ispell-valid-dictionary-list, ispell-words-keyword)
+	(ispell-get-word, ispell-internal-change-dictionary)
+	(ispell-region, ispell-skip-region-list)
+	(ispell-begin-skip-region-regexp, ispell-ignore-fcc)
+	(ispell-process-line, ispell-minor-mode, ispell-minor-check)
+	(ispell-message-text-end, ispell-message)
+	(ispell-buffer-local-parsing): Doc fix.
+
+2012-03-13  Jambunathan K  <kjambunathan@gmail.com>
+
+	* htmlfontify.el: Add support for code block fontification for ODT
+	export (Bug #9914).
+	(hfy-optimisations): Define new option
+	`body-text-only'
+	(hfy-fontify-buffer): Honor above setting.
+	(hfy-begin-span, hfy-end-span): New routines factored out form
+	`hfy-fontify-buffer'.
+	(hfy-begin-span-handler, hfy-end-span-handler): New variables
+	that permit insertion of custom tags.
+	(hfy-fontify-buffer): Use above handlers.
+	(hfy-face-to-css-default): Same as the earlier `hfy-face-to-css'.
+	(hfy-face-to-css): Re-defined to be a variable.
+	(hfy-compile-stylesheet): Modify.  Allow stylesheet to be built
+	over multiple runs. This is made possible by having the caller let
+	bind a special variable `hfy-user-sheet-assoc'.
+	(htmlfontify-string): New defun.
+	(hfy-compile-face-map): Make sure that the last char in the
+	buffer is correctly fontified.
+	(hfy-face-resolve-face): Whitespace only change.
+
+2012-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-get-decoded-string): Make the error
+	message more clear.
+
+2012-03-16  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/copyright.el (copyright-year-ranges): Fix typo.
+
+2012-03-16  Alan Mackenzie  <acm@muc.de>
+
+	Further optimise the handling of large macros.
+
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Use a
+	limit to a call of `c-literal-limits'.
+	(c-determine-+ve-limit): New function.
+	(c-at-macro-vsemi-p): Move `c-in-literal' to the bottom of an `and'.
+	(c-guess-basic-syntax): In macros, restrict a search limit to 2000.
+	In CASE 5B, restrict a search limit to 500.
+	(c-just-after-func-arglist-p): Obviouly wrong `or' -> `and'.
+
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-and-mark-CPP):
+	Restrict macro bounds to +-500 from after-change's BEG END.
+
+2012-03-16  Leo Liu  <sdl.web@gmail.com>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add letrec.
+
+2012-03-16  Aaron S. Hawley  <Aaron.S.Hawley@gmail.com>
+
+	* tar-mode.el (tar-mode): Fix saving by conditionally undoing
+	`special-mode' setting of `buffer-read-only'.  (Bug#11010)
+
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* view.el (view-buffer, view-buffer-other-window)
+	(view-buffer-other-frame): Doc fixes re special mode-class.
+
+	* subr.el (eval-after-load): If named feature is provided not from
+	a file, run after-load forms.  (Bug#10946)
+
+	* calendar/calendar.el (calendar-insert-at-column):
+	Handle non-unit-width characters a bit better.  (Bug#10978)
+
 2012-03-15  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/ring.el (ring-extend): New function.
@@ -52,8 +304,7 @@
 
 2012-03-12  Leo Liu  <sdl.web@gmail.com>
 
-	* simple.el (kill-new): Use equal-including-properties for
-	comparison.
+	* simple.el (kill-new): Use equal-including-properties for comparison.
 	(kill-do-not-save-duplicates): Doc fix.
 
 2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -135,8 +386,7 @@
 
 	* net/mairix.el (mairix-replace-invalid-chars): Rename from
 	mairix-replace-illegal-chars; all callers changed.  Don't remove
-	^, ~, and = characters: they are meaningful in mairix search
-	specs.
+	^, ~, and = characters: they are meaningful in mairix search specs.
 	(mairix-widget-create-query): Add usage information about mairix
 	search forms: negating words, searching for substrings, etc.
 
@@ -321,8 +571,7 @@
 
 2012-03-04  Chong Yidong  <cyd@gnu.org>
 
-	* cus-start.el: Make x-select-enable-clipboard-manager
-	customizable.
+	* cus-start.el: Make x-select-enable-clipboard-manager customizable.
 
 2012-03-04  Glenn Morris  <rgm@gnu.org>
 
@@ -453,7 +702,7 @@
 	(font-lock-default-function): Move the check for a specification
 	to font-lock-spec-present.
 
-	* font-lock.el (font-lock-initial-fontify): call ...
+	* font-lock.el (font-lock-initial-fontify): Call ...
 	(font-lock-spec-present): New function.
 
 2012-02-26  Jim Blandy  <jimb@red-bean.com>
@@ -782,8 +1031,7 @@
 
 2012-02-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* net/gnutls.el (gnutls-algorithm-priority): Add missing :group
-	tag.
+	* net/gnutls.el (gnutls-algorithm-priority): Add missing :group tag.
 
 2012-02-12  Alan Mackenzie  <acm@muc.de>
 
@@ -956,8 +1204,8 @@
 	* progmodes/cc-guess.el (c-guess-offset-threshold, c-guess-region-max):
 	Add :version tags.
 
-	* progmodes/compile.el (compilation-first-column)
-	(compilation-error-screen-columns, compilation-filter-start): Doc fixes.
+	* progmodes/compile.el (compilation-error-screen-columns)
+	(compilation-first-column, compilation-filter-start): Doc fixes.
 
 	* vc/log-view.el (log-view-toggle-entry-display):
 	* vc/vc.el (vc-merge, vc-pull): Doc fixes.

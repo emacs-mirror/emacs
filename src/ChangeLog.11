@@ -9627,7 +9627,7 @@
 	* frame.c (Vdefault_frame_scroll_bars): Put non-GTK X scroll-bars
 	on left.
 
-2010-03-13  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+2010-03-13  Andreas Politz  <politza@fh-trier.de>
 
 	* editfns.c (Fformat): Account for string precision when computing
 	field width (Bug#5710).

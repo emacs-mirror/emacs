@@ -2073,7 +2073,8 @@ or killed or has been already shown by a recent invocation of
 If repeated invocations of this command have already shown all buffers
 previously shown in @var{window}, further invocations will show buffers
 from the buffer list of the frame @var{window} appears on (@pxref{The
-Buffer List}).
+Buffer List}) trying to skip buffers that are already shown in another
+window on that frame.
 @end deffn
 
 @deffn Command switch-to-next-buffer &optional window
@@ -2086,6 +2087,19 @@ If there is no recent invocation of a @code{switch-to-prev-buffer} that
 can be undone, this function tries to show a buffer from the buffer list
 of the frame @var{window} appears on (@pxref{The Buffer List}).
 @end deffn
+
+By default @code{switch-to-prev-buffer} and @code{switch-to-next-buffer}
+can switch to a buffer that is already shown in another window on the
+same frame.  The following option can be used to override that behavior.
+
+@defopt switch-to-visible-buffer
+If this variable is non-@code{nil}, @code{switch-to-prev-buffer} and
+@code{switch-to-next-buffer} may switch to a buffer that is already
+visible on the same frame, provided the buffer was shown in the argument
+window before.  If it's @code{nil}, @code{switch-to-prev-buffer} and
+@code{switch-to-next-buffer} always try to avoid switching to a buffer
+that is already visible in another window on the same frame.
+@end defopt
 
 
 @node Dedicated Windows

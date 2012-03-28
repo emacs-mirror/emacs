@@ -3673,7 +3673,9 @@ handle_face_prop (struct it *it)
 	     with, so that overlay strings appear in the same face as
 	     surrounding text, unless they specify their own
 	     faces.  */
-	  base_face_id = underlying_face_id (it);
+	  base_face_id = it->string_from_prefix_prop_p
+	    ? DEFAULT_FACE_ID
+	    : underlying_face_id (it);
 	}
 
       new_face_id = face_at_string_position (it->w,
@@ -5576,6 +5578,7 @@ push_it (struct it *it, struct text_pos *position)
   p->font_height = it->font_height;
   p->voffset = it->voffset;
   p->string_from_display_prop_p = it->string_from_display_prop_p;
+  p->string_from_prefix_prop_p = it->string_from_prefix_prop_p;
   p->display_ellipsis_p = 0;
   p->line_wrap = it->line_wrap;
   p->bidi_p = it->bidi_p;
@@ -5685,6 +5688,7 @@ pop_it (struct it *it)
   it->font_height = p->font_height;
   it->voffset = p->voffset;
   it->string_from_display_prop_p = p->string_from_display_prop_p;
+  it->string_from_prefix_prop_p = p->string_from_prefix_prop_p;
   it->line_wrap = p->line_wrap;
   it->bidi_p = p->bidi_p;
   it->paragraph_embedding = p->paragraph_embedding;
@@ -6115,6 +6119,8 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
   it->multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   it->sp = 0;
   it->string_from_display_prop_p = 0;
+  it->string_from_prefix_prop_p = 0;
+
   it->from_disp_prop_p = 0;
   it->face_before_selective_p = 0;
   if (it->bidi_p)
@@ -18456,9 +18462,11 @@ cursor_row_p (struct glyph_row *row)
       /* Suppose the row ends on a string.
 	 Unless the row is continued, that means it ends on a newline
 	 in the string.  If it's anything other than a display string
-	 (e.g. a before-string from an overlay), we don't want the
+	 (e.g., a before-string from an overlay), we don't want the
 	 cursor there.  (This heuristic seems to give the optimal
-	 behavior for the various types of multi-line strings.)  */
+	 behavior for the various types of multi-line strings.)
+	 One exception: if the string has `cursor' property on one of
+	 its characters, we _do_ want the cursor there.  */
       if (CHARPOS (row->end.string_pos) >= 0)
 	{
 	  if (row->continued_p)
@@ -18480,6 +18488,25 @@ cursor_row_p (struct glyph_row *row)
 		    result =
 		      (!NILP (prop)
 		       && display_prop_string_p (prop, glyph->object));
+		    /* If there's a `cursor' property on one of the
+		       string's characters, this row is a cursor row,
+		       even though this is not a display string.  */
+		    if (!result)
+		      {
+			Lisp_Object s = glyph->object;
+
+			for ( ; glyph >= beg && EQ (glyph->object, s); --glyph)
+			  {
+			    EMACS_INT gpos = glyph->charpos;
+
+			    if (!NILP (Fget_char_property (make_number (gpos),
+							   Qcursor, s)))
+			      {
+				result = 1;
+				break;
+			      }
+			  }
+		      }
 		    break;
 		  }
 	    }
@@ -18518,7 +18545,7 @@ cursor_row_p (struct glyph_row *row)
    `line-prefix' and `wrap-prefix' properties.  */
 
 static int
-push_display_prop (struct it *it, Lisp_Object prop)
+push_prefix_prop (struct it *it, Lisp_Object prop)
 {
   struct text_pos pos =
     STRINGP (it->string) ? it->current.string_pos : it->current.pos;
@@ -18542,6 +18569,7 @@ push_display_prop (struct it *it, Lisp_Object prop)
 	}
 
       it->string = prop;
+      it->string_from_prefix_prop_p = 1;
       it->multibyte_p = STRING_MULTIBYTE (it->string);
       it->current.overlay_string_index = -1;
       IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = 0;
@@ -18628,7 +18656,7 @@ handle_line_prefix (struct it *it)
       if (NILP (prefix))
 	prefix = Vline_prefix;
     }
-  if (! NILP (prefix) && push_display_prop (it, prefix))
+  if (! NILP (prefix) && push_prefix_prop (it, prefix))
     {
       /* If the prefix is wider than the window, and we try to wrap
 	 it, it would acquire its own wrap prefix, and so on till the
@@ -23985,7 +24013,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	  sprintf (buf, "%0*X", it->c < 0x10000 ? 4 : 6, it->c);
 	  str = buf;
 	}
-      for (len = 0; str[len] && ASCII_BYTE_P (str[len]); len++)
+      for (len = 0; str[len] && ASCII_BYTE_P (str[len]) && len < 6; len++)
 	code[len] = font->driver->encode_char (font, str[len]);
       upper_len = (len + 1) / 2;
       font->driver->text_extents (font, code, upper_len,

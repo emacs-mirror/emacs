@@ -332,6 +332,7 @@ the URL of the image to the kill buffer instead."
       (unless shr-start
 	(setq shr-start (point)))
       (insert elem)
+      (setq shr-state nil)
       (let (found)
 	(while (and (> (current-column) shr-width)
 		    (progn

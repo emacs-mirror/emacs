@@ -751,6 +751,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
     ;; very end of the heading, before the newline, so text inserted at FROM
     ;; belongs to the heading rather than to the entry.
     (let ((o (make-overlay from to nil 'front-advance)))
+      (overlay-put o 'evaporate t)
       (overlay-put o 'invisible 'outline)
       (overlay-put o 'isearch-open-invisible
 		   (or outline-isearch-open-invisible-function

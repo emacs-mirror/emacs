@@ -56,6 +56,11 @@
 (quail-define-indian-trans-package
  indian-dev-itrans-v5-hash "devanagari-itrans" "Devanagari" "DevIT"
  "Devanagari transliteration by ITRANS method.")
+(quail-defrule "..." ?॥)
+(quail-defrule "\\'" ?॑)
+(quail-defrule "\\_" ?॒)
+(quail-defrule "\\__" ?_)
+(quail-defrule "\\''" ?')
 
 (if nil
     (quail-define-package "devanagari-kyoto-harvard" "Devanagari" "DevKH" t "Devanagari Kyoto-Harvard"))
@@ -440,7 +445,7 @@ Full key sequences are listed below:")
 (if nil
     (quail-define-package "telugu-inscript" "Telugu" "TlgIS" t "Telugu keyboard Inscript"))
 (quail-define-inscript-package
- indian-dev-base-table inscript-dev-keytable
+ indian-tlg-base-table inscript-dev-keytable
  "telugu-inscript" "Telugu" "TlgIS"
  "Telugu keyboard Inscript.")
 

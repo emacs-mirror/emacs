@@ -1,3 +1,8 @@
+2012-03-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Check whether the buffer has
+	been killed asynchronously before selecting it.
+
 2012-03-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-queue.el (url-queue-kill-job): Make sure that the callback

@@ -1,3 +1,92 @@
+2012-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* search.c (Fword_search_backward_lax, Fword_search_forward_lax):
+	Doc fixes.
+
+2012-03-26  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (struct glyph): Fix previous change.  Change the
+	bit length of glyphless.ch to 25 (Bug#11082).
+
+2012-03-26  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (Vselection_inhibit_update_commands): New variable.
+	(command_loop_1): Use it; inhibit selection update for
+	handle-select-window too (Bug#8996).
+
+2012-03-25  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* w32heap.c (_heap_init, _heap_term): Remove dead MSVC-specific
+	code.
+
+2012-03-25  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (struct glyph): Change the bit length of
+	glyphless.ch to 22 to make the member glyphless fit in 32 bits.
+
+2012-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (tzname): Include time.h before redirecting to
+	_tzname.  Fixes the MSVC build.  (Bug#9960)
+
+2012-03-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xdisp.c (produce_glyphless_glyph): Limit length of acronym to 6
+	characters.
+
+	* xterm.c (XTread_socket): Only modify handling_signal if
+	!SYNC_INPUT.  (Bug#11080)
+
+2012-03-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_fetch_char): Use STRING_CHAR_AND_LENGTH instead of
+	FETCH_MULTIBYTE_CHAR followed by CHAR_BYTES.  Prevents crashes
+	when fetching a multibyte character consumes more bytes than
+	CHAR_BYTES returns, due to unification of CJK characters in
+	string_char.  (Bug#11073)
+
+2012-03-23  Troels Nielsen  <bn.troels@gmail.com>  (tiny change)
+
+	* process.c (wait_reading_process_output): Handle pty disconnect
+	by refraining from sending oneself a SIGCHLD (bug#10933).
+
+2012-03-22  Chong Yidong  <cyd@gnu.org>
+
+	* dispextern.h (struct it): New member string_from_prefix_prop_p.
+
+	* xdisp.c (push_prefix_prop): Rename from push_display_prop.
+	Mark string as coming from a prefix property.
+	(handle_face_prop): Use default face for prefix strings (Bug#4281).
+	(pop_it, reseat_1): Save and restore string_from_prefix_prop_p.
+
+2012-03-21  Chong Yidong  <cyd@gnu.org>
+
+	* xfaces.c (Vface_remapping_alist): Doc fix.
+
+2012-03-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (Fw32_set_console_codepage)
+	(Fw32_set_console_output_codepage, Fw32_get_codepage_charset):
+	Doc fixes.
+
+2012-03-20  Chong Yidong  <cyd@gnu.org>
+
+	* dispnew.c (Fredisplay, Vredisplay_preemption_period): Update doc
+	to reflect default non-nil value of redisplay-dont-pause.
+
+2012-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_drive_otf): Mask bits of character code to make
+	it fit in a valid range (Bug#11003).
+
+2012-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (cursor_row_p): Even if the glyph row ends in a string
+	that is not from display property, accept the row as a "cursor
+	row" if one of the string's character has a non-nil `cursor'
+	property.  Fixes cursor positioning when there are newlines in
+	overlay strings, e.g. in icomplete.el.  (Bug#11035)
+
 2012-03-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.c (compare_overlays): Don't assume args differ (Bug#6830).

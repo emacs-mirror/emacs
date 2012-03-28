@@ -1141,12 +1141,6 @@ the field."
 	(kill-region (point) end)
       (call-interactively 'kill-line))))
 
-(defcustom widget-complete-field (lookup-key global-map "\M-\t")
-  "Default function to call for completion inside fields."
-  :options '(ispell-complete-word complete-tag lisp-complete-symbol)
-  :type 'function
-  :group 'widgets)
-
 (defun widget-narrow-to-field ()
   "Narrow to field."
   (interactive)
@@ -1169,10 +1163,6 @@ When not inside a field, signal an error."
         (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
                               (plist-get completion-extra-properties
                                          :predicate))))
-     ((widget-field-find (point))
-      ;; This defaulting used to be performed in widget-default-complete, but
-      ;; it seems more appropriate here than in widget-default-completions.
-      (call-interactively 'widget-complete-field))
      (t
       (error "Not in an editable field")))))
 ;; We may want to use widget completion in buffers where the major mode

@@ -203,8 +203,7 @@ hash.texi         cyd
 help.texi         cyd
 hooks.texi        rgm
 index.texi
-internals.texi    rgm  (I don't know much about this, so it would be
-    good if someone else could at least look at the FIXME? comments.)
+internals.texi    rgm  cyd
 intro.texi        cyd
 keymaps.texi      cyd
 lists.texi        cyd
@@ -217,7 +216,7 @@ modes.texi        cyd
 nonascii.texi     cyd
 numbers.texi      cyd
 objects.texi      cyd
-os.texi           
+os.texi           cyd
 package.texi      rgm
 positions.texi    cyd
 processes.texi

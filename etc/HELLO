@@ -1,4 +1,6 @@
 This is a list of ways to say hello in various languages.
+It is not intended to be comprehensive, but to demonstrate
+some of the character sets that Emacs supports.
 
 Non-ASCII examples:
   Europe: ,A!(BHola!, Gr,A|_(B Gott, Hyv,Add(B p,Ad(Biv,Add(B, Tere ,Au(Bhtust, Bon,Cu(Bu
@@ -46,7 +48,6 @@ Lao ((1>RJRERG(B)	(1JP:R-4U(B / (1"mcKib*!4U(B
 Malayalam ($,1@N@R@O@^@S@"(B)	$,1@H@N@X@m@5@^@P@"(B
 Maltese (il-Malti)	Bon,Cu(Bu / Sa,C11(Ba
 Mathematics	$,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
-Nederlands, Vlaams	Hallo / Dag
 Norwegian (norsk)	Hei / God dag
 Oriya ($,1:s;\;?:f(B)	$,1;6;A;#;?;,;G(B
 Polish  (j,Bj(Bzyk polski)	Dzie,Bq(B dobry! / Cze,B6f(B!
@@ -55,7 +56,7 @@ Sinhala ($,1B#B2ABB$A}(B)	$,1AFAzB4AvB=B AqB*(B
 Slovak (sloven,Bh(Bina)	Dobr,A}(B de,Br(B
 Slovenian (sloven,B9h(Bina)	Pozdravljeni!
 Spanish (espa,Aq(Bol)	,A!(BHola!
-Swedish (p,Ae(B svenska)	Hej / Goddag / Hall,Ae(B
+Swedish (svenska)	Hej / Goddag / Hall,Ae(B
 Tamil ($,1<D<N<_<T<m(B)	$,1<U<C<5<m<5<N<m(B
 Telugu ($,1=d>&=r>!=W>!(B)	$,1=h=n=x>-=U=~=p=B(B
 Thai (,T@RIRd7B(B)	,TJGQJ4U$CQ:(B / ,TJGQJ4U$hP(B

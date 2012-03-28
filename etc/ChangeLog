@@ -1,3 +1,8 @@
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* HELLO: Say that this is not a comprehensive list.
+	Remove "duplicate" entry.  (Bug#11024)
+
 2012-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs-buffer.gdb ($valmask): Don't assume EMACS_INT fits in 'long'.

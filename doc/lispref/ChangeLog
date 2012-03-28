@@ -1,3 +1,112 @@
+2012-03-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window History): Describe new option
+	switch-to-visible-buffer.
+
+2012-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* searching.texi (String Search): Add xref to Emacs manual.
+	Copyedits.  Mention the function word-search-regexp.
+	(Searching and Case): Add xref to Emacs manual.  Copyedits.
+
+	* processes.texi (Network Servers): Standardize apostrophe usage.
+
+	* os.texi (System Environment): Copyedits.  Remove some examples
+	that do not seem useful.  Mention setenv third arg.
+	tty-erase-char does not seem to be nil under a window-system.
+	(User Identification): Copyedits.
+	Remove some examples that do not seem useful.
+
+2012-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Startup Summary): Copyedits.  Fix startup screen logic.
+	(Init File): Copyedits.
+	(Command-Line Arguments): Copyedits.  Do not mention argv alias.
+	(Killing Emacs): Copyedits.
+	(Suspending Emacs): Copyedits.  Mention not very relevant with GUIs.
+	Shorten the example, use more standard shell prompts.
+
+2012-03-25  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringes): Note that fringes are shown on graphical
+	displays only.
+	(Fringe Size/Pos, Fringe Bitmaps, Making Buttons): Clarifications.
+	(Replacing Specs): Clarify example.
+	(Manipulating Buttons): Note that button-at can return a marker.
+	(Buttons): Minor rewrite.
+	(Character Display): New node.  Consolidate all character display
+	related nodes into its subsections.
+	(Usual Display): Character 127 is also affected by ctl-arrow.
+	(Display Tables): Improve example.
+
+2012-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* strings.texi (Text Comparison): Mention string-prefix-p.
+
+2012-03-21  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (The Echo Area): Add xref to Output Streams.
+	(Displaying Messages): Improve doc of message.
+	(Echo Area Customization, Invisible Text): Copyedits.
+	(Invisible Text): Mention that spec comparison is done with eq.
+	(Width): Improve doc of char-width.
+	(Faces): Recommend using symbol instead of string for face name.
+	Minor clarifications.
+	(Defining Faces): Copyedits.  Update face example.
+	(Attribute Functions): Mark set-face-foreground etc as commands.
+	(Face Remapping): Mention text-scale-adjust.  Clarify
+	face-remapping-alist and related docs.
+	(Face Functions): Don't document make-face or copy-face.
+
+2012-03-20  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Forcing Redisplay): Various rewrites to reflect
+	new value of redisplay-dont-pause.
+	(Truncation): Copyedits.
+
+2012-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Startup Summary): Don't mention initial-buffer-choice = t.
+	Add summary table of some relevant command-line options.
+
+2012-03-18  Chong Yidong  <cyd@gnu.org>
+
+	* internals.texi (Building Emacs, Garbage Collection): Copyedits.
+	(Writing Emacs Primitives): Re-organize discussion of functions
+	with variable Lisp arguments are handled.  Delete an obsolete
+	remark, previously tagged as FIXME.
+
+	* os.texi (Idle Timers): Minor clarification.
+	(Idle Timers): Link to Time of Day for description of time list.
+
+2012-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (System Interface): Flow control was removed.
+	(Startup Summary): General update.
+	(Init File): Don't mention compiling it.
+
+2012-03-17  Chong Yidong  <cyd@gnu.org>
+
+	* os.texi (Startup Summary): Mention package loading.
+	(Init File): Don't refer to .emacs in section title.  Copyedits.
+	(Terminal-Specific): Give a realistic example.
+	(Command-Line Arguments): Reference Entering Emacs instead of
+	repeating the spiel about not restarting Emacs.
+	(Time of Day): Discuss time representation at beginning of node.
+	(Sound Output): Copyedits.
+
+	* package.texi (Packaging Basics): Document package-initialize.
+
+2012-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Initial Parameters): Add an index entry for
+	minibuffer-only frame.
+
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Mention the strange
+	relationship between View mode and special modes.  (Bug#10650)
+
 2012-03-11  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Window Configurations): save-window-excursion is

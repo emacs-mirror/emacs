@@ -232,12 +232,17 @@ This should only be bound to mouse buttons 4 and 5."
                    (end-of-buffer (while t (funcall mwheel-scroll-up-function)))))
 		(t (error "Bad binding in mwheel-scroll"))))
       (if curwin (select-window curwin)))
-    ;; If there is a temporarily active region, deactivate it iff
+    ;; If there is a temporarily active region, deactivate it if
     ;; scrolling moves point.
     (when opoint
       (with-current-buffer buffer
 	(when (/= opoint (point))
-	  (deactivate-mark)))))
+	  ;; Call `deactivate-mark' at the original position, so that
+	  ;; the original region is saved to the X selection.
+	  (let ((newpoint (point)))
+	    (goto-char opoint)
+	    (deactivate-mark)
+	    (goto-char newpoint))))))
   (when (and mouse-wheel-click-event mouse-wheel-inhibit-click-time)
     (if mwheel-inhibit-click-event-timer
 	(cancel-timer mwheel-inhibit-click-event-timer)

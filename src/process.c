@@ -4888,15 +4888,20 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
 		{
-		  /* Clear the descriptor now, so we only raise the signal once.  */
-		  FD_CLR (channel, &input_wait_mask);
-		  FD_CLR (channel, &non_keyboard_wait_mask);
-
-		  kill (getpid (), SIGCHLD);
+                  /* Don't do anything if only a pty, with no associated
+		     process (bug#10933).  */
+                  if (XPROCESS (proc)->pid != -2) {
+                    /* Clear the descriptor now, so we only raise the signal
+		       once.  */
+                    FD_CLR (channel, &input_wait_mask);
+                    FD_CLR (channel, &non_keyboard_wait_mask);
+                    
+                    kill (getpid (), SIGCHLD);
+                  }
 		}
 #endif /* HAVE_PTYS */
-	      /* If we can detect process termination, don't consider the process
-		 gone just because its pipe is closed.  */
+	      /* If we can detect process termination, don't consider the
+		 process gone just because its pipe is closed.  */
 #ifdef SIGCHLD
 	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc))
 		;

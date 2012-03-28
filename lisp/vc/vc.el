@@ -1922,7 +1922,7 @@ changes from the current branch."
 	  (setq first-revision
 		(vc-read-revision
 		 (concat "Merge " file
-			 "from branch or revision "
+			 " from branch or revision "
 			 "(default news on current branch): ")
 		 (list file)
 		 backend))

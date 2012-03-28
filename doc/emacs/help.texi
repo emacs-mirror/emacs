@@ -464,7 +464,8 @@ listing the associated character sets, coding systems, and input
 methods, as well as some sample text for that language environment.
 
   The command @kbd{C-h h} (@code{view-hello-file}) displays the file
-@file{etc/HELLO}, which shows how to say ``hello'' in many languages.
+@file{etc/HELLO}, which demonstrates various character sets by showing
+how to say ``hello'' in many languages.
 
   The command @kbd{C-h I} (@code{describe-input-method}) describes an
 input method---either a specified input method, or by default the
