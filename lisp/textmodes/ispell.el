@@ -740,7 +740,7 @@ when the language uses non-ASCII characters.
 Note that with \"ispell\" as the speller, the CASECHARS and
 OTHERCHARS slots of the alist should contain the same character
 set as casechars and otherchars in the LANGUAGE.aff file \(e.g.,
-english.aff\).  apsell and hunspell don't have this limitation.")
+english.aff\).  aspell and hunspell don't have this limitation.")
 
 (defvar ispell-really-aspell nil)   ; Non-nil if we can use aspell extensions.
 (defvar ispell-really-hunspell nil) ; Non-nil if we can use hunspell extensions.
