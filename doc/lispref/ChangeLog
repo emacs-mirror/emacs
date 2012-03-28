@@ -1,3 +1,10 @@
+2012-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* searching.texi (Regular Expressions, Regexp Special):
+	(Regexp Backslash, Regexp Example): Copyedits.
+	(Regexp Special): Mention collation.
+	Clarify char classes with an example.
+
 2012-03-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Window History): Describe new option

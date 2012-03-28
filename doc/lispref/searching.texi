@@ -241,7 +241,7 @@ regexps; the following section says how to search for them.
 
 @findex re-builder
 @cindex regular expressions, developing
-  For convenient interactive development of regular expressions, you
+  For interactive development of regular expressions, you
 can use the @kbd{M-x re-builder} command.  It provides a convenient
 interface for creating regular expressions, by giving immediate visual
 feedback in a separate buffer.  As you edit the regexp, all its
@@ -318,6 +318,7 @@ possible.  Thus, @samp{o*} matches any number of @samp{o}s (including no
 expression.  Thus, @samp{fo*} has a repeating @samp{o}, not a repeating
 @samp{fo}.  It matches @samp{f}, @samp{fo}, @samp{foo}, and so on.
 
+@cindex backtracking and regular expressions
 The matcher processes a @samp{*} construct by matching, immediately, as
 many repetitions as can be found.  Then it continues with the rest of
 the pattern.  If that fails, backtracking occurs, discarding some of the
@@ -387,7 +388,12 @@ Ranges may be intermixed freely with individual characters, as in
 @samp{[a-z$%.]}, which matches any lower case @acronym{ASCII} letter
 or @samp{$}, @samp{%} or period.
 
-Note that the usual regexp special characters are not special inside a
+If @code{case-fold-search} is non-@code{nil}, @samp{[a-z]} also
+matches upper-case letters.  Note that a range like @samp{[a-z]} is
+not affected by the locale's collation sequence, it always represents
+a sequence in @acronym{ASCII} order.
+
+Note also that the usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters is
 special inside character alternatives: @samp{]}, @samp{-} and @samp{^}.
 
@@ -395,23 +401,27 @@ To include a @samp{]} in a character alternative, you must make it the
 first character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.
 To include a @samp{-}, write @samp{-} as the first or last character of
 the character alternative, or put it after a range.  Thus, @samp{[]-]}
-matches both @samp{]} and @samp{-}.
+matches both @samp{]} and @samp{-}.  (As explained below, you cannot
+use @samp{\]} to include a @samp{]} inside a character alternative,
+since @samp{\} is not special there.)
 
 To include @samp{^} in a character alternative, put it anywhere but at
 the beginning.
 
+@c What if it starts with a multibyte and ends with a unibyte?
+@c That doesn't seem to match anything...?
 If a range starts with a unibyte character @var{c} and ends with a
 multibyte character @var{c2}, the range is divided into two parts: one
-is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where
-@var{c1} is the first character of the charset to which @var{c2}
-belongs.
+spans the unibyte characters @samp{@var{c}..?\377}, the other the
+multibyte characters @samp{@var{c1}..@var{c2}}, where @var{c1} is the
+first character of the charset to which @var{c2} belongs.
 
 A character alternative can also specify named character classes
-(@pxref{Char Classes}).  This is a POSIX feature whose syntax is
-@samp{[:@var{class}:]}.  Using a character class is equivalent to
-mentioning each of the characters in that class; but the latter is not
-feasible in practice, since some classes include thousands of
-different characters.
+(@pxref{Char Classes}).  This is a POSIX feature.  For example,
+@samp{[[:ascii:]]} matches any @acronym{ASCII} character.
+Using a character class is equivalent to mentioning each of the
+characters in that class; but the latter is not feasible in practice,
+since some classes include thousands of different characters.
 
 @item @samp{[^ @dots{} ]}
 @cindex @samp{^} in regexp
@@ -812,7 +822,7 @@ with a symbol-constituent character.
 
 @kindex invalid-regexp
   Not every string is a valid regular expression.  For example, a string
-that ends inside a character alternative without terminating @samp{]}
+that ends inside a character alternative without a terminating @samp{]}
 is invalid, and so is a string that ends with a single @samp{\}.  If
 an invalid regular expression is passed to any of the search functions,
 an @code{invalid-regexp} error is signaled.
@@ -827,18 +837,12 @@ follows.  (Nowadays Emacs uses a similar but more complex default
 regexp constructed by the function @code{sentence-end}.
 @xref{Standard Regexps}.)
 
-  First, we show the regexp as a string in Lisp syntax to distinguish
-spaces from tab characters.  The string constant begins and ends with a
+  Below, we show first the regexp as a string in Lisp syntax (to
+distinguish spaces from tab characters), and then the result of
+evaluating it.  The string constant begins and ends with a
 double-quote.  @samp{\"} stands for a double-quote as part of the
 string, @samp{\\} for a backslash as part of the string, @samp{\t} for a
 tab and @samp{\n} for a newline.
-
-@example
-"[.?!][]\"')@}]*\\($\\| $\\|\t\\|@ @ \\)[ \t\n]*"
-@end example
-
-@noindent
-In contrast, if you evaluate this string, you will see the following:
 
 @example
 @group
@@ -849,7 +853,7 @@ In contrast, if you evaluate this string, you will see the following:
 @end example
 
 @noindent
-In this output, tab and newline appear as themselves.
+In the output, tab and newline appear as themselves.
 
   This regular expression contains four parts in succession and can be
 deciphered as follows:
