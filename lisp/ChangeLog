@@ -1,3 +1,7 @@
+2012-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* replace.el (query-replace-map): Doc fix.
+
 2012-03-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* vc/vc-git.el (vc-git-state): Don't try to match all of the diff

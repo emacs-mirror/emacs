@@ -220,7 +220,7 @@ os.texi           cyd
 package.texi      rgm
 positions.texi    cyd
 processes.texi
-searching.texi    
+searching.texi    rgm
 sequences.texi    cyd
 streams.texi      cyd
 strings.texi      cyd

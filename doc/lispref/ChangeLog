@@ -1,9 +1,15 @@
 2012-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* searching.texi (Regular Expressions, Regexp Special):
-	(Regexp Backslash, Regexp Example): Copyedits.
+	(Regexp Backslash, Regexp Example, Regexp Functions, Regexp Search):
+	(Simple Match Data, Saving Match Data, Standard Regexps): Copyedits.
 	(Regexp Special): Mention collation.
 	Clarify char classes with an example.
+	(Regexp Functions): Mention regexp-opt is not guaranteed.
+	Mention regexp-opt-charset.
+	(Regexp Search): Recommend against looking-back.
+	(Search and Replace): Use Texinfo recommended quote convention.
+	Add more query-replace-map items.  List multi-query-replace-map items.
 
 2012-03-27  Martin Rudalics  <rudalics@gmx.at>
 

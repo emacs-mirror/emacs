@@ -1594,8 +1594,8 @@ E to edit the replacement string"
   "Keymap that defines the responses to questions in `query-replace'.
 The \"bindings\" in this map are not commands; they are answers.
 The valid answers include `act', `skip', `act-and-show',
-`exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
-`automatic', `backup', `exit-prefix', and `help'.")
+`exit', `act-and-exit', `edit', `edit-replacement', `delete-and-edit',
+`recenter', `automatic', `backup', `exit-prefix', `quit', and `help'.")
 
 (defvar multi-query-replace-map
   (let ((map (make-sparse-keymap)))
