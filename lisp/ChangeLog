@@ -1,3 +1,11 @@
+2012-03-28  Sam Steingold  <sds@gnu.org>
+
+	* calendar/calendar.el (calendar-exit): Use `quit-windows-on'
+	instead of the broken adhockery which does not prevent calendar
+	buffers from being displayed at random after exit.
+	(calendar-window-list, calendar-hide-window): Remove the broken
+	adhockery.
+
 2012-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* replace.el (query-replace-map): Doc fix.
