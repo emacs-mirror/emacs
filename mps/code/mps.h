@@ -16,6 +16,11 @@
 #include <limits.h>
 
 
+/* Platform Dependencies */
+
+#define MPS_T_WORD      unsigned long       /* won't be true on W3I6MV */
+
+
 /* Abstract Types */
 
 typedef struct mps_arena_s  *mps_arena_t;  /* arena */
@@ -39,7 +44,7 @@ typedef struct mps_frame_s
 
 /* Concrete Types */
 
-typedef unsigned long mps_word_t; /* pointer-sized word */
+typedef MPS_T_WORD mps_word_t;  /* pointer-sized word */
 typedef int mps_bool_t;         /* boolean (int) */
 typedef int mps_res_t;          /* result code (int) */
 typedef unsigned mps_shift_t;   /* shift amount (unsigned int) */
