@@ -1,3 +1,7 @@
+2012-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Discourage from defining HAVE_GETCWD.
+
 2012-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (install-bin): Don't copy addpm.exe here.  Use

@@ -1,3 +1,7 @@
+2012-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h: Discourage from defining HAVE_GETCWD.
+
 2012-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (safe_run_hooks_error): Don't unquote strings.
