@@ -1,3 +1,8 @@
+2012-03-30  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (help-with-tutorial): Ensure local variables don't
+	happen to make the buffer read-only.  (Bug#11127)
+
 2012-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-indent-line): Use `noindent' in strings.
