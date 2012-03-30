@@ -832,6 +832,7 @@ Run the Viper tutorial? "))
               (insert-file-contents (tutorial--saved-file))
 	      (let ((enable-local-variables :safe))
 		(hack-local-variables))
+              ;; FIXME?  What we actually want is to ignore dir-locals (?).
               (setq buffer-read-only nil) ; bug#11118
               (goto-char (point-min))
               (setq old-tut-point
@@ -850,6 +851,7 @@ Run the Viper tutorial? "))
           (insert-file-contents (expand-file-name filename tutorial-directory))
 	  (let ((enable-local-variables :safe))
 	    (hack-local-variables))
+          ;; FIXME?  What we actually want is to ignore dir-locals (?).
           (setq buffer-read-only nil) ; bug#11118
           (forward-line)
           (setq tutorial--point-before-chkeys (point-marker)))
