@@ -1911,27 +1911,35 @@ point.  Partial Completion mode offers other features extending
 @cindex images, viewing
 @cindex image animation
 @cindex animated images
-  Visiting image files automatically selects Image mode.  This major
-mode allows you to toggle between displaying the file as an image in
-the Emacs buffer, and displaying its underlying text representation,
-using the command @kbd{C-c C-c} (@code{image-toggle-display}).  This
-works only when Emacs can display the specific image type@footnote{If
-your Emacs was compiled with ImageMagick support, then after using
-@code{imagemagick-register-types}, you can view in Image mode any
-image type that ImageMagick supports; @pxref{ImageMagick Images,,,
-elisp, The Emacs Lisp Reference Manual}}.  If the displayed image is wider
+  Visiting image files automatically selects Image mode.  In this
+major mode, you can type @kbd{C-c C-c} (@code{image-toggle-display})
+to toggle between displaying the file as an image in the Emacs buffer,
+and displaying its underlying text (or raw byte) representation.
+Displaying the file as an image works only if Emacs is compiled with
+support for displaying such images.  If the displayed image is wider
 or taller than the frame, the usual point motion keys (@kbd{C-f},
 @kbd{C-p}, and so forth) cause different parts of the image to be
-displayed.  If the image can be animated, then the command @kbd{RET}
-(@code{image-toggle-animation}), will start (or stop) animating it.
+displayed.  If the image can be animated, the command @kbd{RET}
+(@code{image-toggle-animation}) starts or stops the animation.
 Animation plays once, unless the option @code{image-animate-loop} is
-non-@code{nil}.  Currently, Emacs only supports animated GIF files
-(@pxref{Animated Images,,, elisp, The Emacs Lisp Reference Manual}).
+non-@code{nil}.  Currently, Emacs only supports animation in GIF
+files.
+
+@cindex ImageMagick support
+  If your Emacs was compiled with ImageMagick support, it is possible
+to view a much wider variety of image types in Image mode, by
+rendering the images via ImageMagick.  However, this feature is
+currently disabled by default.  To enable it, add the following line
+to your init file:
+
+@example
+(imagemagick-register-types)
+@end example
 
 @findex thumbs-mode
 @findex mode, thumbs
-  See also the Image-Dired package (@pxref{Image-Dired}) for viewing
-images as thumbnails.
+  The Image-Dired package can also be used to view images as
+thumbnails.  @xref{Image-Dired}.
 
 @node Filesets
 @section Filesets

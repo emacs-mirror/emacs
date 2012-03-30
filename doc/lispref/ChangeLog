@@ -1,3 +1,16 @@
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Image Formats): Add imagemagick type.
+	(Image Descriptors): Mention how they are used.
+	(ImageMagick Images): Clarify role of imagemagick-register-types.
+	(Character Display): Don't mention glyph tables.
+	(Display Tables): Use make-glyph-code in example.
+	(Glyphs): Avoid "simple glyph code" terminology.  Note that glyph
+	tables are semi-obsolete.  De-document create-glyph.
+	(Glyphless Chars): Note that display tables override this.
+	(Bidirectional Display): Copyedits.  Introduce "bidirectional
+	reordering" terminology, and use it.
+
 2012-03-30  Glenn Morris  <rgm@gnu.org>
 
 	* edebug.texi (Jumping): Give name of `i' binding.

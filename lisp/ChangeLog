@@ -1,3 +1,8 @@
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-types-inhibit)
+	(imagemagick-register-types): Doc fix.
+
 2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-get-extended-character-mode): Disable

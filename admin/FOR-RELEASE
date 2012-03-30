@@ -191,7 +191,7 @@ compile.texi      cyd
 control.texi      cyd
 customize.texi    cyd
 debugging.texi    cyd
-display.texi      
+display.texi      cyd
 edebug.texi
 elisp.texi
 errors.texi       rgm
