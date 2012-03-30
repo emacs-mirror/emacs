@@ -18172,8 +18172,10 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  it->c = it->char_to_display = ' ';
 	  it->len = 1;
 
+	  /* If the default face was remapped, be sure to use the
+	     remapped face for the appended newline. */
 	  if (default_face_p)
-	    it->face_id = DEFAULT_FACE_ID;
+	    it->face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
 	  else if (it->face_before_selective_p)
 	    it->face_id = it->saved_face_id;
 	  face = FACE_FROM_ID (it->f, it->face_id);
@@ -18209,7 +18211,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 static void
 extend_face_to_end_of_line (struct it *it)
 {
-  struct face *face;
+  struct face *face, *default_face;
   struct frame *f = it->f;
 
   /* If line is already filled, do nothing.  Non window-system frames
@@ -18222,6 +18224,9 @@ extend_face_to_end_of_line (struct it *it)
 	 && it->glyph_row->reversed_p
 	 && !it->glyph_row->continued_p))
     return;
+
+  /* The default face, possibly remapped. */
+  default_face = FACE_FROM_ID (f, lookup_basic_face (f, DEFAULT_FACE_ID));
 
   /* Face extension extends the background and box of IT->face_id
      to the end of the line.  If the background equals the background
@@ -18260,7 +18265,7 @@ extend_face_to_end_of_line (struct it *it)
       if (it->glyph_row->used[TEXT_AREA] == 0)
 	{
 	  it->glyph_row->glyphs[TEXT_AREA][0] = space_glyph;
-	  it->glyph_row->glyphs[TEXT_AREA][0].face_id = it->face_id;
+	  it->glyph_row->glyphs[TEXT_AREA][0].face_id = face->id;
 	  it->glyph_row->used[TEXT_AREA] = 1;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
@@ -18296,7 +18301,7 @@ extend_face_to_end_of_line (struct it *it)
 		 face, to avoid painting the rest of the window with
 		 the region face, if the region ends at ZV.  */
 	      if (it->glyph_row->ends_at_zv_p)
-		it->face_id = DEFAULT_FACE_ID;
+		it->face_id = default_face->id;
 	      else
 		it->face_id = face->id;
 	      append_stretch_glyph (it, make_number (0), stretch_width,
@@ -18329,7 +18334,7 @@ extend_face_to_end_of_line (struct it *it)
 	 avoid painting the rest of the window with the region face,
 	 if the region ends at ZV.  */
       if (it->glyph_row->ends_at_zv_p)
-	it->face_id = DEFAULT_FACE_ID;
+	it->face_id = default_face->id;
       else
 	it->face_id = face->id;
 
@@ -18993,8 +18998,13 @@ display_line (struct it *it)
 	  /* A row that displays right-to-left text must always have
 	     its last face extended all the way to the end of line,
 	     even if this row ends in ZV, because we still write to
-	     the screen left to right.  */
-	  if (row->reversed_p)
+	     the screen left to right.  We also need to extend the
+	     last face if the default face is remapped to some
+	     different face, otherwise the functions that clear
+	     portions of the screen will clear with the default face's
+	     background color.  */
+	  if (row->reversed_p
+	      || lookup_basic_face (it->f, DEFAULT_FACE_ID) != DEFAULT_FACE_ID)
 	    extend_face_to_end_of_line (it);
 	  break;
 	}

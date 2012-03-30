@@ -1,3 +1,12 @@
+2012-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (append_space_for_newline): If the default face was
+	remapped, use the remapped face for the appended newline.
+	(extend_face_to_end_of_line): Use the remapped default face for
+	extending the face to the end of the line.
+	(display_line): Call extend_face_to_end_of_line when the default
+	face was remapped.  (Bug#11068)
+
 2012-03-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h: Discourage from defining HAVE_GETCWD.
