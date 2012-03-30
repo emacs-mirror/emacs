@@ -1,3 +1,7 @@
+2012-03-30  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Jumping): Give name of `i' binding.
+
 2012-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* searching.texi (Regular Expressions, Regexp Special):

@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992-1994, 1998-1999, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1992-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This file can also be used by an independent Edebug User
@@ -214,6 +214,7 @@ evaluating forms that never instrument them: from a file with
 
   If Edebug detects a syntax error while instrumenting, it leaves point
 at the erroneous code and signals an @code{invalid-read-syntax} error.
+@c FIXME?  I can't see that it "leaves point at the erroneous code".
 
   @xref{Edebug Eval}, for other evaluation functions available
 inside of Edebug.
@@ -239,6 +240,7 @@ least for a certain distance.
 @item S
 Stop: don't execute any more of the program, but wait for more
 Edebug commands (@code{edebug-stop}).
+@c FIXME Does not work. http://debbugs.gnu.org/9764
 
 @item @key{SPC}
 Step: stop at the next stop point encountered (@code{edebug-step-mode}).
@@ -331,7 +333,8 @@ Run the program for one expression
 Run the program until the end of the containing sexp (@code{edebug-step-out}).
 
 @item i
-Step into the function or macro called by the form after point.
+Step into the function or macro called by the form after point
+(@code{edebug-step-in}).
 @end table
 
 The @kbd{h} command proceeds to the stop point at or after the current
