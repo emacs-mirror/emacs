@@ -1334,8 +1334,10 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
   (nth 5 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
 	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
 (defun ispell-get-extended-character-mode ()
-  (nth 6 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
-	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
+  (if ispell-really-hunspell     ;; hunspell treats ~word as ordinary words
+      nil                        ;; in pipe mode. Disable extended-char-mode
+    (nth 6 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
+	       (assoc ispell-current-dictionary ispell-dictionary-alist)))))
 (defun ispell-get-coding-system ()
   (nth 7 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
 	     (assoc ispell-current-dictionary ispell-dictionary-alist))))

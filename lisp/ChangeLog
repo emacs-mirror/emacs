@@ -1,3 +1,9 @@
+2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-get-extended-character-mode): Disable
+	extended-char-mode for hunspell. hunspell does not support it and
+	treats ~word as ordinary words in pipe mode.
+
 2012-03-30  Glenn Morris  <rgm@gnu.org>
 
 	* tutorial.el (help-with-tutorial): Ensure local variables don't
