@@ -378,7 +378,7 @@ The expansion is entirely correct because it uses the C preprocessor."
 		    ;; we are: we have to go back to the beginning of this
 		    ;; "string" and count from there.
 		    (condition-case nil
-                        (progn
+			(progn
 			  ;; Start after the first char since it doesn't have
 			  ;; paren-syntax (an alternative would be to let-bind
 			  ;; parse-sexp-lookup-properties).
@@ -415,17 +415,17 @@ The expansion is entirely correct because it uses the C preprocessor."
 	  ;; s{...}{...}) we're right after the first arg, so we still have to
 	  ;; handle the second part.
 	  (when (and twoargs close)
-            ;; Skip whitespace and make sure that font-lock will
-            ;; refontify the second part in the proper context.
-            (put-text-property
-             (point) (progn (forward-comment (point-max)) (point))
+	    ;; Skip whitespace and make sure that font-lock will
+	    ;; refontify the second part in the proper context.
+	    (put-text-property
+	     (point) (progn (forward-comment (point-max)) (point))
 	     'syntax-multiline t)
-            ;;
+	    ;;
 	    (when (< (point) limit)
-              (put-text-property (point) (1+ (point))
-                                 'syntax-table
-                                 (if (assoc (char-after)
-                                            perl-quote-like-pairs)
+	      (put-text-property (point) (1+ (point))
+				 'syntax-table
+				 (if (assoc (char-after)
+					    perl-quote-like-pairs)
                                      ;; Put an `e' in the cdr to mark this
                                      ;; char as "second arg starter".
 				     (string-to-syntax "|e")
@@ -756,6 +756,7 @@ changed by, or (parse-state) if line starts in a quoted string."
     (setq shift-amt
 	  (cond ((eq (char-after bof) ?=) 0)
 		((listp (setq indent (perl-calculate-indent bof))) indent)
+                ((eq 'noindent indent) indent)
 		((looking-at (or nochange perl-nochange)) 0)
 		(t
 		 (skip-chars-forward " \t\f")
@@ -849,7 +850,7 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 	;;          following_quotep minimum_paren-depth_this_scan)
 	;; Parsing stops if depth in parentheses becomes equal to third arg.
 	(setq containing-sexp (nth 1 state)))
-      (cond ((nth 3 state) state)	; In a quoted string?
+      (cond ((nth 3 state) 'noindent)	; In a quoted string?
 	    ((null containing-sexp)	; Line is at top level.
 	     (skip-chars-forward " \t\f")
 	     (if (= (following-char) ?{)

@@ -1,3 +1,8 @@
+2012-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-indent-line): Use `noindent' in strings.
+	(perl-calculate-indent): Return `noindent' in strings.
+
 2012-03-28  Sam Steingold  <sds@gnu.org>
 
 	* calendar/calendar.el (calendar-exit): Use `quit-windows-on'
