@@ -1457,7 +1457,7 @@ ESC or `q' to not overwrite any of the remaining files,
 	      (and (eq t (car (file-attributes destname)))
 		   (eq file-creator 'dired-copy-file)
 		   (file-subdir-of-p destname from)
-		   (error "Here:Cannot copy `%s' into its subdirectory `%s'"
+		   (error "Cannot copy `%s' into its subdirectory `%s'"
 			  from to)))
             (condition-case err
                 (progn
