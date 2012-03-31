@@ -1,3 +1,10 @@
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): Clarify the description of the
+	effect of integer values of the 'cursor' property on cursor
+	position.  See the discussions in bug#11068 for more details and
+	context.
+
 2012-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* edebug.texi (Edebug Eval, Specification List, Edebug Options):
