@@ -1,3 +1,8 @@
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (emacsclient Options): Document peculiarities of new
+	frame creation on MS-Windows under -c or -t options.  (Bug#11091)
+
 2012-03-30  Chong Yidong  <cyd@gnu.org>
 
 	* files.texi (File Conveniences): Clarify Imagemagick discussion.
