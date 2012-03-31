@@ -1,3 +1,10 @@
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): If `cursor' property on a display
+	string comes from a `display' text property, use the buffer
+	position of that property as if we actually saw that position in
+	the row's glyphs.
+
 2012-03-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (append_space_for_newline): If the default face was

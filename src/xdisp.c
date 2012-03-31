@@ -13800,16 +13800,31 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
 	    chprop = Fget_char_property (make_number (glyph_pos), Qcursor,
 					 glyph->object);
+	    if (!NILP (chprop))
+	      {
+		/* If the string came from a `display' text property,
+		   look up the buffer position of that property and
+		   use that position to update bpos_max, as if we
+		   actually saw such a position in one of the row's
+		   glyphs.  This helps with supporting integer values
+		   of `cursor' property on the display string in
+		   situations where most or all of the row's buffer
+		   text is completely covered by display properties,
+		   so that no glyph with valid buffer positions is
+		   ever seen in the row.  */
+		EMACS_INT prop_pos =
+		  string_buffer_position_lim (glyph->object, pos_before,
+					      pos_after, 0);
+
+		if (prop_pos >= pos_before)
+		  bpos_max = prop_pos - 1;
+	      }
 	    if (INTEGERP (chprop))
 	      {
 		bpos_covered = bpos_max + XINT (chprop);
 		/* If the `cursor' property covers buffer positions up
 		   to and including point, we should display cursor on
-		   this glyph.  Note that overlays and text properties
-		   with string values stop bidi reordering, so every
-		   buffer position to the left of the string is always
-		   smaller than any position to the right of the
-		   string.  Therefore, if a `cursor' property on one
+		   this glyph.  Note that, if a `cursor' property on one
 		   of the string's characters has an integer value, we
 		   will break out of the loop below _before_ we get to
 		   the position match above.  IOW, integer values of
@@ -13869,6 +13884,15 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
 	    chprop = Fget_char_property (make_number (glyph_pos), Qcursor,
 					 glyph->object);
+	    if (!NILP (chprop))
+	      {
+		EMACS_INT prop_pos =
+		  string_buffer_position_lim (glyph->object, pos_before,
+					      pos_after, 0);
+
+		if (prop_pos >= pos_before)
+		  bpos_max = prop_pos - 1;
+	      }
 	    if (INTEGERP (chprop))
 	      {
 		bpos_covered = bpos_max + XINT (chprop);
