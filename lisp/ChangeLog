@@ -1,5 +1,7 @@
 2012-03-31  Glenn Morris  <rgm@gnu.org>
 
+	* term/xterm.el (xterm-extra-capabilities): Doc fix.
+
 	* language/indian.el ("Devanagari"): Fix typo.  (Bug#11103)
 
 	* calendar/calendar.el (calendar-window-list)

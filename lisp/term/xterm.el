@@ -30,9 +30,15 @@
   :group 'emacs)
 
 (defcustom xterm-extra-capabilities 'check
-  "Set to a list if the XTerm supports modifyOtherKeys or
-reporting the background color.  Set to 'check to check for those
-features.  Set to nil to skip the checks."
+  "Whether Xterm supports some additional, more modern, features.
+If nil, just assume that it does not.
+If `check', try to check if it does.
+If a list, assume that the listed features are supported, without checking.
+
+The relevant features are:
+  modifyOtherKeys  -- if supported, more key bindings work (e.g, \"\\C-,\")
+  reportBackground -- if supported, Xterm reports its background color
+"
   :version "24.1"
   :group 'xterm
   :type '(choice (const :tag "No" nil)
