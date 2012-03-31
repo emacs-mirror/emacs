@@ -8966,7 +8966,6 @@ move_it_by_lines (struct it *it, int dvpos)
     {
       /* DVPOS == 0 means move to the start of the screen line.  */
       move_it_vertically_backward (it, 0);
-      xassert (it->current_x == 0 && it->hpos == 0);
       /* Let next call to line_bottom_y calculate real line height */
       last_height = 0;
     }

@@ -4,6 +4,10 @@
 	string comes from a `display' text property, use the buffer
 	position of that property as if we actually saw that position in
 	the row's glyphs.
+	(move_it_by_lines): Remove the assertion that
+	"it->current_x == 0 && it->hpos == 0" which can be legitimately
+	violated when there's a before-string at the beginning of a line.
+	(Bug#11063)
 
 2012-03-30  Eli Zaretskii  <eliz@gnu.org>
 
