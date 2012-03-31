@@ -1,5 +1,9 @@
 2012-03-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* window.c (Fdelete_other_windows_internal): Invalidate the row
+	and column information about mouse highlight, so that redisplay
+	restores it after reallocating the glyph matrices.  (Bug#7464)
+
 	* xdisp.c (set_cursor_from_row): If `cursor' property on a display
 	string comes from a `display' text property, use the buffer
 	position of that property as if we actually saw that position in
