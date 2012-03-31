@@ -1,5 +1,7 @@
 2012-03-31  Glenn Morris  <rgm@gnu.org>
 
+	* language/indian.el ("Devanagari"): Fix typo.  (Bug#11103)
+
 	* calendar/calendar.el (calendar-window-list)
 	(calendar-hide-window): Restore.  (Bug#11140)
 	(calendar-exit): Use calendar-window-list, calendar-hide-window again.
