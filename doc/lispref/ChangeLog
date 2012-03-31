@@ -1,3 +1,9 @@
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls):
+	Mention defining macros at instrumentation time.
+	(Edebug Options): Mention edebug-unwrap-results.
+
 2012-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* text.texi (Special Properties): Clarify the description of the

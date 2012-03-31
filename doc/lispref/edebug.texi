@@ -1113,6 +1113,15 @@ definition, but specifications are much more general than macro
 arguments.  @xref{Defining Macros}, for more explanation of
 the @code{declare} form.
 
+@c See eg http://debbugs.gnu.org/10577
+@c FIXME  Maybe there should be an Edebug option to get it to
+@c automatically load the entire source file containing the function
+@c being instrumented.  That would avoid this.
+  Take care to ensure that the specifications are known to Edebug when
+you instrument code.  If you are instrumenting a function from a file
+that uses @code{eval-when-compile} to require another file containing
+macro definitions, you may need to explicitly load that file.
+
   You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
 @code{debug} declarations is preferred, and more convenient, for macro
@@ -1254,6 +1263,8 @@ Each of the following elements is matched as alternatives as if by using
 @code{&or}, but if any of them match, the specification fails.  If none
 of them match, nothing is matched, but the @code{&not} specification
 succeeds.
+
+@c FIXME &key?
 
 @item &define
 @c @kindex &define @r{(Edebug)}
@@ -1422,7 +1433,15 @@ of the bindings is either a symbol or a sublist with a symbol and
 optional expression.  In the specification below, notice the @code{gate}
 inside of the sublist to prevent backtracking once a sublist is found.
 
-@c FIXME? The actual definition in edebug.el does not have a gate.
+@ignore
+@c FIXME?  The actual definition in edebug.el looks like this (and always
+@c has AFAICS).  In fact, nothing in edebug.el uses gate.  So maybe
+@c this is just an example for illustration?
+(def-edebug-spec let
+  ((&rest
+    &or (symbolp &optional form) symbolp)
+   body))
+@end ignore
 @example
 (def-edebug-spec let
   ((&rest
@@ -1566,7 +1585,28 @@ debugged.
 @xref{Edebug Execution Modes}.
 @end defopt
 
-@c FIXME edebug-unwrap-results
+@defopt edebug-unwrap-results
+If non-@code{nil}, Edebug tries to remove any of its own
+instrumentation when showing the results of expressions.  This is
+relevant when debugging macros where the results of expressions are
+themselves instrumented expressions.  As a very artificial example,
+suppose that the example function @code{fac} has been instrumented,
+and consider a macro of the form:
+
+@c FIXME find a less silly example.
+@smallexample
+(defmacro test () "Edebug example."
+  (if (symbol-function 'fac)
+      @dots{}))
+@end smallexample
+
+If you instrument the @code{test} macro and step through it, then by
+default the result of the @code{symbol-function} call has numerous
+@code{edebug-after} and @code{edebug-before} forms, which can make it
+difficult to see the ``actual'' result.  If
+@code{edebug-unwrap-results} is non-@code{nil}, Edebug tries to remove
+these forms from the result.
+@end defopt
 
 @defopt edebug-on-error
 Edebug binds @code{debug-on-error} to this value, if

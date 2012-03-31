@@ -183,7 +183,7 @@ xresources.texi   cyd
 abbrevs.texi      rgm
 advice.texi       cyd
 anti.texi         
-back.texi
+back.texi         rgm
 backups.texi      cyd
 buffers.texi      cyd
 commands.texi     cyd
@@ -192,7 +192,7 @@ control.texi      cyd
 customize.texi    cyd
 debugging.texi    cyd
 display.texi      cyd
-edebug.texi
+edebug.texi       rgm
 elisp.texi
 errors.texi       rgm
 eval.texi         cyd

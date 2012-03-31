@@ -1,3 +1,7 @@
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-unwrap-results): Doc fix.
+
 2012-03-30  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* dired-aux.el (dired-copy-file-recursive, dired-create-files):
