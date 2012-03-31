@@ -1,5 +1,10 @@
 2012-03-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (move_it_by_lines): When DVPOS is positive, and the
+	position we get to after a call to move_it_to fails the
+	IS_POS_VALID_AFTER_MOVE_P test, move to the next buffer position
+	only if we wind up in a string from display property.  (Bug#11063)
+
 	* window.c (Fdelete_other_windows_internal): Invalidate the row
 	and column information about mouse highlight, so that redisplay
 	restores it after reallocating the glyph matrices.  (Bug#7464)

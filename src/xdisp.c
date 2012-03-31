@@ -8973,7 +8973,20 @@ move_it_by_lines (struct it *it, int dvpos)
     {
       move_it_to (it, -1, -1, -1, it->vpos + dvpos, MOVE_TO_VPOS);
       if (!IT_POS_VALID_AFTER_MOVE_P (it))
-	move_it_to (it, IT_CHARPOS (*it) + 1, -1, -1, -1, MOVE_TO_POS);
+	{
+	  /* Only move to the next buffer position if we ended up in a
+	     string from display property, not in an overlay string
+	     (before-string or after-string).  That is because the
+	     latter don't conceal the underlying buffer position, so
+	     we can ask to move the iterator to the exact position we
+	     are interested in.  Note that, even if we are already at
+	     IT_CHARPOS (*it), the call below is not a no-op, as it
+	     will detect that we are at the end of the string, pop the
+	     iterator, and compute it->current_x and it->hpos
+	     correctly.  */
+	  move_it_to (it, IT_CHARPOS (*it) + it->string_from_display_prop_p,
+		      -1, -1, -1, MOVE_TO_POS);
+	}
     }
   else
     {
