@@ -1,3 +1,8 @@
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Edebug Eval, Specification List, Edebug Options):
+	Copyedits.
+
 2012-03-30  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Image Formats): Add imagemagick type.

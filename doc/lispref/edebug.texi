@@ -629,7 +629,7 @@ open.
 @node Edebug Eval
 @subsection Evaluation
 
-  While within Edebug, you can evaluate expressions ``as if'' Edebug
+  While within Edebug, you can evaluate expressions as if Edebug
 were not running.  Edebug tries to be invisible to the expression's
 evaluation and printing.  Evaluation of expressions that cause side
 effects will work as expected, except for changes to data that Edebug
@@ -656,6 +656,7 @@ Evaluate the expression before point, in the context outside of Edebug
 lexically bound symbols created by the following constructs in
 @file{cl.el}: @code{lexical-let}, @code{macrolet}, and
 @code{symbol-macrolet}.
+@c FIXME?  What about lexical-binding = t?
 
 @node Eval List
 @subsection Evaluation List Buffer
@@ -1170,7 +1171,7 @@ modify the processing of all following elements.  The latter, called
 @dfn{specification keywords}, are symbols beginning with @samp{&} (such
 as @code{&optional}).
 
-A specification list may contain sublists which match arguments that are
+A specification list may contain sublists, which match arguments that are
 themselves lists, or it may contain vectors used for grouping.  Sublists
 and groups thus subdivide the specification list into a hierarchy of
 levels.  Specification keywords apply only to the remainder of the
@@ -1221,7 +1222,7 @@ A lambda expression with no quoting.
 All following elements in the specification list are optional; as soon
 as one does not match, Edebug stops matching at this level.
 
-To make just a few elements optional followed by non-optional elements,
+To make just a few elements optional, followed by non-optional elements,
 use @code{[&optional @var{specs}@dots{}]}.  To specify that several
 elements must all match or none, use @code{&optional
 [@var{specs}@dots{}]}.  See the @code{defun} example.
@@ -1286,8 +1287,8 @@ arguments.  The specification may be defined with @code{def-edebug-spec}
 just as for macros.  See the @code{defun} example.
 
 Otherwise, the symbol should be a predicate.  The predicate is called
-with the argument and the specification fails if the predicate returns
-@code{nil}, and the argument is not instrumented.
+with the argument, and if the predicate returns @code{nil}, the
+specification fails and the argument is not instrumented.
 
 Some suitable predicates include @code{symbolp}, @code{integerp},
 @code{stringp}, @code{vectorp}, and @code{atom}.
@@ -1482,8 +1483,8 @@ could fail.)
 @defopt edebug-setup-hook
 Functions to call before Edebug is used.  Each time it is set to a new
 value, Edebug will call those functions once and then
-@code{edebug-setup-hook} is reset to @code{nil}.  You could use this to
-load up Edebug specifications associated with a package you are using
+reset @code{edebug-setup-hook} to @code{nil}.  You could use this to
+load up Edebug specifications associated with a package you are using,
 but only when you also use Edebug.
 @xref{Instrumenting}.
 @end defopt
