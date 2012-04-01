@@ -1,3 +1,8 @@
+2012-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (simple_dialog_show, add_menu_item): Use SAFE_ALLOCA
+	instead of alloca.  (Bug#11138)
+
 2012-04-01  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* w32menu.c (is_simple_dialog): Properly check lisp types.
