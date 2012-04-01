@@ -1,6 +1,6 @@
 ;;; ob-fortran.el --- org-babel functions for fortran
 
-;; Copyright (C) 2011-2012 Sergey Litvinov, Eric Schulte
+;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
 ;; Authors: Sergey Litvinov (based on ob-C.el by Eric Schulte), Eric Schulte
 ;; Keywords: literate programming, reproducible research, fortran
