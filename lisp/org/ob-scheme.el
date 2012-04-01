@@ -1,6 +1,6 @@
 ;;; ob-scheme.el --- org-babel functions for Scheme
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, scheme

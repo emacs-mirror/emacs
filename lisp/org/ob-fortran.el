@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
-;; Authors: Sergey Litvinov (based on ob-C.el by Eric Schulte), Eric Schulte
+;; Authors: Sergey Litvinov
+;;       Eric Schulte
 ;; Keywords: literate programming, reproducible research, fortran
 ;; Homepage: http://orgmode.org
 

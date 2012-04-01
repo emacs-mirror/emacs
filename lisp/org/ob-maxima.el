@@ -3,7 +3,7 @@
 ;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
-;;	   Eric Schulte
+;;	Eric Schulte
 ;; Keywords: literate programming, reproducible research, maxima
 ;; Homepage: http://orgmode.org
 

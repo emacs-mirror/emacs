@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte
-;;	Dan Davison
+;; Authors: Eric Schulte
+;;	 Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 

@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
-;; Author: Joel Boehland
-;;	Eric Schulte
-;;	David T. O'Toole <dto@gnu.org>
+;; Authors: Joel Boehland
+;;	 Eric Schulte
+;;	 David T. O'Toole <dto@gnu.org>
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 

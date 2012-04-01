@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Authors: Thorsten Jolitz
-;;	    Eric Schulte
+;;	 Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 
