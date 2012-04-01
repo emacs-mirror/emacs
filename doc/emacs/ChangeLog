@@ -1,3 +1,8 @@
+2012-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (emacsclient Options): More clarifications about -t
+	and -c on MS-Windows.  (Bug#11091)
+
 2012-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* misc.texi (emacsclient Options): Document peculiarities of new
