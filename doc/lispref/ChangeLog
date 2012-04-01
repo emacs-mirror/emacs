@@ -1,3 +1,8 @@
+2012-04-01  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Kinds of Files): file-subdir-of-p renamed to
+	file-in-directory-p.
+
 2012-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* edebug.texi (Instrumenting Macro Calls):

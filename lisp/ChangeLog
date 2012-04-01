@@ -1,3 +1,12 @@
+2012-04-01  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (file-in-directory-p): Rename from file-subdir-of-p.
+	Handle root directory properly.
+	(copy-directory): Caller changed.
+
+	* dired-aux.el (dired-copy-file-recursive, dired-create-files):
+	* net/tramp.el (tramp-file-name-for-operation): Callers changed.
+
 2012-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* term/xterm.el (xterm-extra-capabilities): Doc fix.
