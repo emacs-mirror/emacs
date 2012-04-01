@@ -1509,9 +1509,10 @@ text-only terminal, provided it is able to connect to a graphical
 display.  If Emacs is unable to connect to a graphical display, and on
 systems, such as MS-Windows, where it cannot create graphical frames
 when started from a text-only terminal, it creates a new text-only
-terminal frame (@pxref{Frames}).  If you omit a filename argument
-while supplying the @samp{-c} option, the new frame displays the
-@samp{*scratch*} buffer (@pxref{Buffers}).
+terminal frame (@pxref{Frames}) on the same terminal where it was
+started.  If you omit a filename argument while supplying the
+@samp{-c} option, the new frame displays the @samp{*scratch*} buffer
+(@pxref{Buffers}).
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
