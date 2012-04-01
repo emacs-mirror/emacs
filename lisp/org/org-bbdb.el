@@ -112,20 +112,14 @@
           (&optional dont-check-disk already-in-db-buffer))
 (declare-function bbdb-split "ext:bbdb" (string separators))
 (declare-function bbdb-string-trim "ext:bbdb" (string))
-(declare-function bbdb-record-get-field "ext:bbdb"
-		  (fn file &optional arglist fileonly))
-;; These two functions below are part of BBDB3:
-(declare-function bbdb-search-name "ext:bbdb" (regexp &optional layout))
-(declare-function bbdb-search-organization "ext:bbdb" (regexp &optional layout))
+(declare-function bbdb-record-get-field "ext:bbdb" (record field))
+(declare-function bbdb-search-name "ext:bbdb-com" (regexp &optional layout))
+(declare-function bbdb-search-organization "ext:bbdb-com" (regexp &optional layout))
 
 (declare-function calendar-leap-year-p "calendar" (year))
 (declare-function diary-ordinal-suffix "diary-lib" (n))
 
 (defvar date)   ;; dynamically scoped from Org
-(defvar name)   ;; dynamically scoped from Org
-
-;; Support for version 2.35
-(defvar org-bbdb-old (fboundp 'bbdb-record-get-field-internal))
 
 ;; Customization
 
@@ -206,7 +200,7 @@ date year)."
     ;; This is BBDB, we make this link!
     (let* ((rec (bbdb-current-record))
            (name (bbdb-record-name rec))
-	   (company (if org-bbdb-old
+	   (company (if (fboundp 'bbdb-record-getprop)
                         (bbdb-record-getprop rec 'company)
                       (car (bbdb-record-get-field rec 'organization))))
 	   (link (org-make-link "bbdb:" name)))
@@ -227,14 +221,14 @@ italicized, in all other cases it is left unchanged."
 
 (defun org-bbdb-open (name)
   "Follow a BBDB link to NAME."
-  (require 'bbdb)
+  (require 'bbdb-com)
   (let ((inhibit-redisplay (not debug-on-error))
 	(bbdb-electric-p nil))
-    (if org-bbdb-old
-        (org-bbdb-open-old)
-      (org-bbdb-open-new))))
+    (if (fboundp 'bbdb-name)
+        (org-bbdb-open-old name)
+      (org-bbdb-open-new name))))
 
-(defun org-bbdb-open-old ()
+(defun org-bbdb-open-old (name)
   (catch 'exit
     ;; Exact match on name
     (bbdb-name (concat "\\`" name "\\'") nil)
@@ -254,7 +248,7 @@ italicized, in all other cases it is left unchanged."
       (delete-window (get-buffer-window "*BBDB*"))
       (error "No matching BBDB record"))))
 
-(defun org-bbdb-open-new ()
+(defun org-bbdb-open-new (name)
   (catch 'exit
     ;; Exact match on name
     (bbdb-search-name (concat "\\`" name "\\'") nil)

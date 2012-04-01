@@ -207,7 +207,7 @@ Valid values are ?. and ?\).  To get both terminators, use t."
   :group 'org-plain-lists
   :type '(choice (const :tag "dot like in \"2.\"" ?.)
 		 (const :tag "paren like in \"2)\"" ?\))
-		 (const :tab "both" t)))
+		 (const :tag "both" t)))
 
 (defcustom org-alphabetical-lists nil
   "Non-nil means single character alphabetical bullets are allowed.
@@ -229,41 +229,11 @@ spaces instead of one after the bullet in each item of the list."
 	  (const :tag "never" nil)
 	  (regexp)))
 
-(defcustom org-list-ending-method 'both
-  "Determine where plain lists should end.
-Valid values are: `regexp', `indent' or `both'.
-
-When set to `regexp', Org will look into two variables,
-`org-empty-line-terminates-plain-lists' and the more general
-`org-list-end-regexp', to determine what will end lists.
-
-When set to `indent', a list will end whenever a line following
-an item, but not starting one, is less or equally indented than
-the first item of the list.
-
-When set to `both', each of the preceding methods is applied to
-determine lists endings.  This is the default method."
-  :group 'org-plain-lists
-  :type '(choice
-	  (const :tag "With a regexp defining ending" regexp)
-	  (const :tag "With indentation of regular (no bullet) text" indent)
-	  (const :tag "With both methods" both)))
-
 (defcustom org-empty-line-terminates-plain-lists nil
   "Non-nil means an empty line ends all plain list levels.
-This variable only makes sense if `org-list-ending-method' is set
-to `regexp' or `both'.  This is then equivalent to set
-`org-list-end-regexp' to \"^[ \\t]*$\"."
+Otherwise, two of them will be necessary."
   :group 'org-plain-lists
   :type 'boolean)
-
-(defcustom org-list-end-regexp "^[ \t]*\n[ \t]*\n"
-  "Regexp matching the end of all plain list levels.
-It must start with \"^\" and end with \"\\n\".  It defaults to 2
-blank lines. `org-empty-line-terminates-plain-lists' has
-precedence over it."
-  :group 'org-plain-lists
-  :type 'string)
 
 (defcustom org-list-automatic-rules '((bullet . t)
 				      (checkbox . t)
@@ -381,9 +351,8 @@ specifically, type `block' is determined by the variable
 
 ;;; Predicates and regexps
 
-(defconst org-list-end-re (if org-empty-line-terminates-plain-lists
-			      "^[ \t]*\n"
-			    org-list-end-regexp)
+(defconst org-list-end-re (if org-empty-line-terminates-plain-lists "^[ \t]*\n"
+			    "^[ \t]*\n[ \t]*\n")
   "Regex corresponding to the end of a list.
 It depends on `org-empty-line-terminates-plain-lists'.")
 
@@ -432,8 +401,7 @@ group 4: description tag")
   (not (org-in-block-p org-list-forbidden-blocks)))
 
 (defun org-in-item-p ()
-  "Return item beginning position when in a plain list, nil otherwise.
-This checks `org-list-ending-method'."
+  "Return item beginning position when in a plain list, nil otherwise."
   (save-excursion
     (beginning-of-line)
     (let* ((case-fold-search t)
@@ -460,8 +428,7 @@ This checks `org-list-ending-method'."
 	;; to compute its boundaries END-BOUNDS.  When point is
 	;; in-between, move cursor before regexp beginning.
 	(let ((hl 0) (i -1) end-bounds)
-	  (when (and (not (eq org-list-ending-method 'indent))
-		     (progn
+	  (when (and (progn
 		       (while (setq i (string-match
 				       "[\r\n]" org-list-end-re (1+ i)))
 			 (setq hl (1+ hl)))
@@ -470,23 +437,18 @@ This checks `org-list-ending-method'."
 		     (< (point) (cdr end-bounds)))
 	    (goto-char (car end-bounds))
 	    (forward-line -1)))
-	;; Look for an item, less indented that reference line if
-	;; `org-list-ending-method' isn't `regexp'.
+	;; Look for an item, less indented that reference line.
 	(catch 'exit
 	  (while t
 	    (let ((ind (org-get-indentation)))
 	      (cond
 	       ;; This is exactly what we want.
-	       ((and (looking-at item-re)
-		     (or (< ind ind-ref)
-			 (eq org-list-ending-method 'regexp)))
+	       ((and (looking-at item-re) (< ind ind-ref))
 		(throw 'exit (point)))
 	       ;; At upper bound of search or looking at the end of a
 	       ;; previous list: search is over.
 	       ((<= (point) lim-up) (throw 'exit nil))
-	       ((and (not (eq org-list-ending-method 'indent))
-		     (looking-at org-list-end-re))
-		(throw 'exit nil))
+	       ((looking-at org-list-end-re) (throw 'exit nil))
 	       ;; Skip blocks, drawers, inline-tasks, blank lines
 	       ((and (looking-at "^[ \t]*#\\+end_")
 		     (re-search-backward "^[ \t]*#\\+begin_" lim-up t)))
@@ -703,8 +665,7 @@ Assume point is at an item."
 		(forward-line -1))
 	       ;; Looking at a list ending regexp.  Dismiss useless
 	       ;; data recorded above BEG-CELL.  Jump to part 2.
-	       ((and (not (eq org-list-ending-method 'indent))
-		     (looking-at org-list-end-re))
+	       ((looking-at org-list-end-re)
 		(throw 'exit
 		       (setq itm-lst
 			     (memq (assq (car beg-cell) itm-lst) itm-lst))))
@@ -716,10 +677,7 @@ Assume point is at an item."
 	       ((looking-at item-re)
 		(push (funcall assoc-at-point ind) itm-lst)
 		(push (cons ind (point)) end-lst)
-		(when (or (and (eq org-list-ending-method 'regexp)
-			       (<= ind (cdr beg-cell)))
-			  (< ind text-min-ind))
-		  (setq beg-cell (cons (point) ind)))
+		(when (< ind text-min-ind) (setq beg-cell (cons (point) ind)))
 		(forward-line -1))
 	       ;; Skip blocks, drawers, inline tasks, blank lines.
 	       ((and (looking-at "^[ \t]*#\\+end_")
@@ -732,14 +690,13 @@ Assume point is at an item."
 		(forward-line -1))
 	       ((looking-at "^[ \t]*$")
 		(forward-line -1))
-	       ;; From there, point is not at an item.  Unless ending
-	       ;; method is `regexp', interpret line's indentation:
+	       ;; From there, point is not at an item. Interpret
+	       ;; line's indentation:
 	       ;; - text at column 0 is necessarily out of any list.
 	       ;;   Dismiss data recorded above BEG-CELL.  Jump to
 	       ;;   part 2.
 	       ;; - any other case may be an ending position for an
 	       ;;   hypothetical item above.  Store it and proceed.
-	       ((eq org-list-ending-method 'regexp) (forward-line -1))
 	       ((zerop ind)
 		(throw 'exit
 		       (setq itm-lst
@@ -771,8 +728,7 @@ Assume point is at an item."
 	       (next-single-property-change (point) 'org-example nil lim-down)))
 	     ;; Looking at a list ending regexp.  Save point as an
 	     ;; ending position and jump to part 3.
-	     ((and (not (eq org-list-ending-method 'indent))
-		   (looking-at org-list-end-re))
+	     ((looking-at org-list-end-re)
 	      (throw 'exit (push (cons 0 (point)) end-lst-2)))
 	     ((looking-at item-re)
 	      ;; Point is at an item.  Add data to ITM-LST-2. It may
@@ -788,16 +744,14 @@ Assume point is at an item."
 	     ;; Ind is lesser or equal than BEG-CELL's.  The list is
 	     ;; over: store point as an ending position and jump to
 	     ;; part 3.
-	     ((and (not (eq org-list-ending-method 'regexp))
-		   (<= ind (cdr beg-cell)))
+	     ((<= ind (cdr beg-cell))
 	      (throw 'exit
 		     (push (cons 0 (funcall end-before-blank)) end-lst-2)))
 	     ;; Else, if ind is lesser or equal than previous item's,
 	     ;; this is an ending position: store it.  In any case,
 	     ;; skip block or drawer at point, and move to next line.
 	     (t
-	      (when (and (not (eq org-list-ending-method 'regexp))
-			 (<= ind (nth 1 (car itm-lst-2))))
+	      (when (<= ind (nth 1 (car itm-lst-2)))
 		(push (cons ind (point)) end-lst-2))
 	      (cond
 	       ((and (looking-at "^[ \t]*#\\+begin_")
@@ -1192,9 +1146,7 @@ some heuristics to guess the result."
 				    (point))))))))
       (cond
        ;; Trivial cases where there should be none.
-       ((or (and (not (eq org-list-ending-method 'indent))
-		 org-empty-line-terminates-plain-lists)
-	    (not insert-blank-p)) 0)
+       ((or org-empty-line-terminates-plain-lists (not insert-blank-p)) 0)
        ;; When `org-blank-before-new-entry' says so, it is 1.
        ((eq insert-blank-p t) 1)
        ;; `plain-list-item' is 'auto.  Count blank lines separating
@@ -2929,9 +2881,7 @@ Point is left at list end."
     (goto-char top)
     (when delete
       (delete-region top bottom)
-      (when (and (not (eq org-list-ending-method 'indent))
-		 (not (looking-at "[ \t]*$"))
-		 (looking-at org-list-end-re))
+      (when (and (not (looking-at "[ \t]*$")) (looking-at org-list-end-re))
 	(replace-match "")))
     out))
 

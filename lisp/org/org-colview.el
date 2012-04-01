@@ -194,7 +194,9 @@ This is the compiled version of the format.")
 				   (point-at-bol) (point-at-eol)))))
 			    ;; In agenda, just get the `txt' property
 			    (org-no-properties
-			     (org-get-at-bol 'txt))))
+			     (or (org-get-at-bol 'txt)
+				 (buffer-substring
+				  (point) (progn (end-of-line) (point)))))))
 		  (assoc property props))
 	    width (or (cdr (assoc property org-columns-current-maxwidths))
 		      (nth 2 column)
@@ -355,7 +357,7 @@ CPHR is the complex heading regexp to use for parsing ITEM."
 		   'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
 		 (and (match-end 2) (not (assoc "TODO" fmt)) (concat " " (match-string 2 item)))
 		 (and (match-end 3) (not (assoc "PRIORITY" fmt)) (concat " " (match-string 3 item)))
-		 " " (save-match-data (org-columns-compact-links (match-string 4 item)))
+		 " " (save-match-data (org-columns-compact-links (or (match-string 4 item) "")))
 		 (and (match-end 5) (not (assoc "TAGS" fmt)) (concat " " (match-string 5 item)))))
 	(add-text-properties
 	 0 (1+ (match-end 1))
@@ -928,6 +930,8 @@ Don't set this, this is meant for dynamic scoping.")
 		  (overlay-put ov 'display (format fmt val)))))
 	    org-columns-overlays))))
 
+(defvar org-inlinetask-min-level
+  (if (featurep 'org-inlinetask) org-inlinetask-min-level 15))
 (defun org-columns-compute (property)
   "Sum the values of property PROPERTY hierarchically, for the entire buffer."
   (interactive)
@@ -942,7 +946,9 @@ Don't set this, this is meant for dynamic scoping.")
 	 (fun (nth 6 ass))
 	 (calc (or (nth 7 ass) 'identity))
 	 (beg org-columns-top-level-marker)
-	 last-level val valflag flag end sumpos sum-alist sum str str1 useval)
+	 (inminlevel org-inlinetask-min-level)
+	 (last-level org-inlinetask-min-level)
+	 val valflag flag end sumpos sum-alist sum str str1 useval)
     (save-excursion
       ;; Find the region to compute
       (goto-char beg)
@@ -951,16 +957,21 @@ Don't set this, this is meant for dynamic scoping.")
       ;; Walk the tree from the back and do the computations
       (while (re-search-backward re beg t)
 	(setq sumpos (match-beginning 0)
-	      last-level level
+	      last-level (if (not (or (zerop level) (eq level inminlevel)))
+			     level last-level)
 	      level (org-outline-level)
 	      val (org-entry-get nil property)
 	      valflag (and val (string-match "\\S-" val)))
 	(cond
 	 ((< level last-level)
 	  ;; put the sum of lower levels here as a property
-	  (setq sum (when (aref lvals last-level)
-		      (apply fun (aref lvals last-level)))
-		flag (aref lflag last-level) ; any valid entries from children?
+	  (setq sum (+ (if (and (/= last-level inminlevel)
+				(aref lvals last-level))
+			   (apply fun (aref lvals last-level)) 0)
+		       (if (aref lvals inminlevel)
+			   (apply fun (aref lvals inminlevel)) 0))
+		flag (or (aref lflag last-level) ; any valid entries from children?
+			 (aref lflag inminlevel)) ; or inline tasks?
 		str (org-columns-number-to-string sum format printf)
 		str1 (org-add-props (copy-sequence str) nil 'org-computed t 'face 'bold)
 		useval (if flag str1 (if valflag val ""))

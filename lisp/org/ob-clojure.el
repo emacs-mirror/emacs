@@ -31,7 +31,6 @@
 ;;; - clojure (at least 1.2.0)
 ;;; - clojure-mode
 ;;; - slime
-;;; - swank-clojure
 
 ;;; By far, the best way to install these components is by following
 ;;; the directions as set out by Phil Hagelberg (Technomancy) on the
@@ -75,7 +74,7 @@
 
 (defun org-babel-execute:clojure (body params)
   "Execute a block of Clojure code with Babel."
-  (require 'slime) (require 'swank-clojure)
+  (require 'slime)
   (with-temp-buffer
     (insert (org-babel-expand-body:clojure body params))
     ((lambda (result)
@@ -86,7 +85,7 @@
 	   (condition-case nil (org-babel-script-escape result)
 	     (error result)))))
      (slime-eval
-      `(swank:interactive-eval-region
+      `(swank:eval-and-grab-output
      	,(buffer-substring-no-properties (point-min) (point-max)))
       (cdr (assoc :package params))))))
 

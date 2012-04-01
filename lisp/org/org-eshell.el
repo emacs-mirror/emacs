@@ -3,7 +3,6 @@
 ;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Konrad Hinsen <konrad.hinsen AT fastmail.net>
-;; Version: 0.1
 
 ;; This file is part of GNU Emacs.
 

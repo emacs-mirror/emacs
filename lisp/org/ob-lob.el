@@ -65,14 +65,14 @@ To add files to this list use the `org-babel-lob-ingest' command."
 
 (defconst org-babel-block-lob-one-liner-regexp
   (concat
-   "^\\([ \t]*\\)#\\+call:[ \t]+\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
-   "\(\\([^\n]*\\)\)\\(\\[.+\\]\\|\\)[ \t]*\\(\\([^\n]*\\)\\)?")
+   "^\\([ \t]*?\\)#\\+call:[ \t]+\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
+   "\(\\([^\n]*?\\)\)\\(\\[.+\\]\\|\\)[ \t]*\\(\\([^\n]*\\)\\)?")
   "Regexp to match non-inline calls to predefined source block functions.")
 
 (defconst org-babel-inline-lob-one-liner-regexp
   (concat
-   "\\([^\n]*\\)call_\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
-   "\(\\([^\n]*\\)\)\\(\\[\\(.*?\\)\\]\\)?")
+   "\\([^\n]*?\\)call_\\([^\(\)\n]+?\\)\\(\\[\\(.*?\\)\\]\\|\\(\\)\\)"
+   "\(\\([^\n]*?\\)\)\\(\\[\\(.*?\\)\\]\\)?")
   "Regexp to match inline calls to predefined source block functions.")
 
 (defconst org-babel-lob-one-liner-regexp
@@ -108,8 +108,8 @@ if so then run the appropriate source block from the Library."
 		   (list
 		    (format "%s%s(%s)%s"
 			    (nonempty 3 12)
-			    (if (not (= 0 (length (nonempty 5 13))))
-				(concat "[" (nonempty 5 13) "]") "")
+			    (if (not (= 0 (length (nonempty 5 14))))
+				(concat "[" (nonempty 5 14) "]") "")
 			    (or (nonempty 7 16) "")
 			    (or (nonempty 8 19) ""))
 		    (nonempty 9 18)))

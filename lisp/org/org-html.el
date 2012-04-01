@@ -1351,7 +1351,7 @@ PUB-DIR is set, use this as the publishing directory."
 	;; insert html preamble
 	(when (plist-get opt-plist :html-preamble)
 	  (let ((html-pre (plist-get opt-plist :html-preamble))
-		html-pre-real-contents)
+		(html-pre-real-contents ""))
 	    (cond ((stringp html-pre)
 		   (setq html-pre-real-contents
 			 (format-spec html-pre `((?t . ,title) (?a . ,author)
@@ -1422,7 +1422,7 @@ PUB-DIR is set, use this as the publishing directory."
 			     (if (string-match
 				  (org-re "[ \t]+:\\([[:alnum:]_@:]+\\):[ \t]*$") txt)
 				 (setq txt (replace-match
-					    "&nbsp;&nbsp;&nbsp;<span class=\"tag\"> \\1</span>" t nil txt)))
+					    "&nbsp;&nbsp;&nbsp;<span class=\"tag\">\\1</span>" t nil txt)))
 			     (if (string-match quote-re0 txt)
 				 (setq txt (replace-match "" t t txt)))
 			     (setq snumber (org-section-number level))
@@ -1630,7 +1630,7 @@ PUB-DIR is set, use this as the publishing directory."
 				"done" "todo")
 			    " " (org-export-html-get-todo-kwd-class-name
 				 (match-string 2 line))
-			    "\"> " (match-string 2 line)
+			    "\">" (match-string 2 line)
 			    "</span>" (substring line (match-end 2)))))
 
 	  ;; Does this contain a reference to a footnote?

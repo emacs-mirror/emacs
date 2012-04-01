@@ -24,6 +24,7 @@
 ;;; Commentary:
 
 ;; Org-Babel support for evaluating sql source code.
+;; (see also ob-sqlite.el)
 ;;
 ;; SQL is somewhat unique in that there are many different engines for
 ;; the evaluation of sql (Mysql, PostgreSQL, etc...), so much of this

@@ -911,30 +911,30 @@ it.  When it is a variable, retrieve the value.  Return whatever we get."
 	 (target-entry-p (org-capture-get :target-entry-p))
 	 (ind 0)
 	 beg end)
-    (cond
-     ((org-capture-get :exact-position)
-      (goto-char (org-capture-get :exact-position)))
-     ((not target-entry-p)
-      ;; Insert as top-level entry, either at beginning or at end of file
-      (setq beg (point-min) end (point-max)))
-     (t
-      (setq beg (1+ (point-at-eol))
-	    end (save-excursion (outline-next-heading) (point)))))
-    (if (org-capture-get :prepend)
-	(progn
-	  (goto-char beg)
-	  (if (org-list-search-forward (org-item-beginning-re) end t)
-	      (progn
-		(goto-char (match-beginning 0))
-		(setq ind (org-get-indentation)))
-	    (goto-char end)
-	    (setq ind 0)))
-      (goto-char end)
-      (if (org-list-search-backward (org-item-beginning-re) beg t)
+    (if (org-capture-get :exact-position)
+	(goto-char (org-capture-get :exact-position))
+      (cond
+       ((not target-entry-p)
+	;; Insert as top-level entry, either at beginning or at end of file
+	(setq beg (point-min) end (point-max)))
+       (t
+	(setq beg (1+ (point-at-eol))
+	      end (save-excursion (outline-next-heading) (point)))))
+      (if (org-capture-get :prepend)
 	  (progn
-	    (setq ind (org-get-indentation))
-	    (org-end-of-item))
-	(setq ind 0)))
+	    (goto-char beg)
+	    (if (org-list-search-forward (org-item-beginning-re) end t)
+		(progn
+		  (goto-char (match-beginning 0))
+		  (setq ind (org-get-indentation)))
+	      (goto-char end)
+	      (setq ind 0)))
+	(goto-char end)
+	(if (org-list-search-backward (org-item-beginning-re) beg t)
+	    (progn
+	      (setq ind (org-get-indentation))
+	      (org-end-of-item))
+	  (setq ind 0))))
     ;; Remove common indentation
     (setq txt (org-remove-indentation txt))
     ;; Make sure this is indeed an item

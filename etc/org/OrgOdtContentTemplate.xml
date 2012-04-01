@@ -46,8 +46,61 @@
 
   <!-- automatic styles -->
   <office:automatic-styles>
+    <!-- Section styles -->
+    <style:style style:name="OrgIndentedSection-Level-1" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="1.281cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-2" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="1.905cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-3" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="2.54cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-4" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="3.175cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-5" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="3.81cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-6" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="4.445cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-7" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="5.08cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-8" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="5.715cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-9" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="6.35cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+    <style:style style:name="OrgIndentedSection-Level-10" style:family="section">
+      <style:section-properties text:dont-balance-text-columns="false" fo:margin-left="6.985cm" fo:margin-right="0cm" style:editable="false">
+	<style:columns fo:column-count="1" fo:column-gap="0cm"/>
+      </style:section-properties>
+    </style:style>
+
+    <!-- Table styles -->
     <style:style style:name="OrgTable" style:family="table">
-      <style:table-properties style:rel-width="90%" fo:margin-top="0cm" fo:margin-bottom="0.20cm" table:align="center"/>
+      <style:table-properties style:rel-width="96%" fo:margin-top="0cm" fo:margin-bottom="0.20cm" table:align="center"/>
     </style:style>
 
     <style:style style:name="OrgTableColumn" style:family="table-column">

@@ -104,7 +104,7 @@ ln    create a hard link.  Note that this is not supported
   :type '(choice
 	  (const :tag "Don't store link" nil)
 	  (const :tag "Link to origin location" t)
-	  (const :tag "Link to the attach-dir location" 'attached)))
+	  (const :tag "Link to the attach-dir location" attached)))
 
 ;;;###autoload
 (defun org-attach ()

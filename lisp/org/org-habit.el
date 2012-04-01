@@ -334,7 +334,14 @@ current time."
   (let ((inhibit-read-only t) l c
 	(buffer-invisibility-spec '(org-link))
 	(moment (time-subtract (current-time)
-			       (list 0 (* 3600 org-extend-today-until) 0))))
+			       (list 0 (* 3600 org-extend-today-until) 0)))
+	disabled-overlays)
+    ;; Disable filters; this helps with alignment if there are links.
+    (mapc (lambda (ol)
+	    (when (overlay-get ol 'invisible)
+	      (overlay-put ol 'invisible nil)
+	      (setq disabled-overlays (cons ol disabled-overlays))))
+	  (overlays-in (point-min) (point-max)))
     (save-excursion
       (goto-char (if line (point-at-bol) (point-min)))
       (while (not (eobp))
@@ -344,14 +351,15 @@ current time."
 	    (delete-char (min (+ 1 org-habit-preceding-days
 				 org-habit-following-days)
 			      (- (line-end-position) (point))))
-	    (insert (org-habit-build-graph
-		     habit
-		     (time-subtract moment
-				    (days-to-time org-habit-preceding-days))
-		     moment
-		     (time-add moment
-			       (days-to-time org-habit-following-days))))))
-	(forward-line)))))
+	    (insert-before-markers
+	     (org-habit-build-graph
+	      habit
+	      (time-subtract moment (days-to-time org-habit-preceding-days))
+	      moment
+	      (time-add moment (days-to-time org-habit-following-days))))))
+	(forward-line)))
+    (mapc (lambda (ol) (overlay-put ol 'invisible t))
+	  disabled-overlays)))
 
 (defun org-habit-toggle-habits ()
   "Toggle display of habits in an agenda buffer."

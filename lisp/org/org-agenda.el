@@ -91,7 +91,7 @@
 (defvar org-agenda-buffer-name)
 (defvar org-agenda-overriding-header)
 (defvar org-agenda-title-append nil)
-(defvar entry)
+(defvar org-entry)
 (defvar date)
 (defvar org-agenda-undo-list)
 (defvar org-agenda-pending-undo-list)
@@ -247,9 +247,7 @@ you can \"misuse\" it to also add other text to the header.  However,
 
 ;; Keep custom values for `org-agenda-filter-preset' compatible with
 ;; the new variable `org-agenda-tag-filter-preset'.
-(if (fboundp 'defvaralias)
-    (defvaralias 'org-agenda-filter-preset 'org-agenda-tag-filter-preset)
-    (defvaralias 'org-agenda-filter 'org-agenda-tag-filter))
+(defvaralias 'org-agenda-filter-preset 'org-agenda-tag-filter-preset)
 
 (defconst org-agenda-custom-commands-local-options
   `(repeat :tag "Local settings for this command. Remember to quote values"
@@ -306,11 +304,13 @@ you can \"misuse\" it to also add other text to the header.  However,
 		    (string :tag "+tag or -tag"))))
 	    (list :tag "Set daily/weekly entry types"
 		  (const org-agenda-entry-types)
-		  (set :greedy t :value (:deadline :scheduled :timestamp :sexp)
-		       (const :deadline)
-		       (const :scheduled)
-		       (const :timestamp)
-		       (const :sexp)))
+		  (list
+		   (const :format "" quote)
+		   (set :greedy t :value (:deadline :scheduled :timestamp :sexp)
+			(const :deadline)
+			(const :scheduled)
+			(const :timestamp)
+			(const :sexp))))
 	    (list :tag "Standard skipping condition"
 		  :value (org-agenda-skip-function '(org-agenda-skip-entry-if))
 		  (const org-agenda-skip-function)
@@ -408,7 +408,7 @@ where
 
 desc   A description string to be displayed in the dispatcher menu.
 cmd    An agenda command, similar to the above.  However, tree commands
-       are no allowed, but instead you can get agenda and global todo list.
+       are not allowed, but instead you can get agenda and global todo list.
        So valid commands for a set are:
        (agenda \"\" settings)
        (alltodo \"\" settings)
@@ -1770,7 +1770,7 @@ works you probably want to add it to `org-agenda-custom-commands' for good."
 	(setcdr ass (cdr entry))
       (push entry org-agenda-custom-commands))))
 
-;;; Define the org-agenda-mode
+;;; Define the Org-agenda-mode
 
 (defvar org-agenda-mode-map (make-sparse-keymap)
   "Keymap for `org-agenda-mode'.")
@@ -3075,7 +3075,6 @@ the global options and expect it to be applied to the entire view.")
 
 (defun org-prepare-agenda (&optional name)
   (setq org-todo-keywords-for-agenda nil)
-  (setq org-done-keywords-for-agenda nil)
   (setq org-drawers-for-agenda nil)
   (unless org-agenda-persistent-filter
     (setq org-agenda-tag-filter nil
@@ -3094,6 +3093,7 @@ the global options and expect it to be applied to the entire view.")
 		    (make-string (window-width) org-agenda-block-separator))
 		  "\n"))
 	(narrow-to-region (point) (point-max)))
+    (setq org-done-keywords-for-agenda nil)
     (org-agenda-reset-markers)
     (setq org-agenda-contributing-files nil)
     (setq org-agenda-columns-active nil)
@@ -4221,7 +4221,7 @@ See `org-agenda-skip-if' for details."
 (defun org-agenda-skip-if (subtree conditions)
   "Checks current entity for CONDITIONS.
 If SUBTREE is non-nil, the entire subtree is checked.  Otherwise, only
-the entry, i.e. the text before the next heading is checked.
+the entry (i.e. the text before the next heading) is checked.
 
 CONDITIONS is a list of symbols, boolean OR is used to combine the results
 from different tests.  Valid conditions are:
@@ -4247,12 +4247,12 @@ keywords, which may include \"*\" to match any todo keyword.
 
 would skip all entries with \"TODO\" or \"WAITING\" keywords.
 
-Instead of a list a keyword class may be given
+Instead of a list, a keyword class may be given.  For example:
 
     (org-agenda-skip-entry-if 'nottodo 'done)
 
 would skip entries that haven't been marked with any of \"DONE\"
-keywords. Possible classes are: `todo', `done', `any'.
+keywords.  Possible classes are: `todo', `done', `any'.
 
 If any of these conditions is met, this function returns the end point of
 the entity, causing the search to continue from there.  This is a function
@@ -4285,8 +4285,8 @@ that can be put into `org-agenda-skip-function' for the duration of a command."
 	   (stringp (nth 1 m))
 	   (not (re-search-forward (nth 1 m) end t)))
       (and (or
-	    (setq m (memq 'todo conditions))
-	    (setq m (memq 'nottodo conditions)))
+	    (setq m (memq 'nottodo conditions))
+	    (setq m (memq 'todo conditions)))
 	   (org-agenda-skip-if-todo m end)))
      end)))
 
@@ -4377,7 +4377,7 @@ of what a project is and how to check if it stuck, customize the variable
 ;;; Diary integration
 
 (defvar org-disable-agenda-to-diary nil)          ;Dynamically-scoped param.
-(defvar diary-list-entries-hook)
+(defvar list-diary-entries-hook)
 (defvar diary-time-regexp)
 (defun org-get-entries-from-diary (date)
   "Get the (Emacs Calendar) diary entries for DATE."
@@ -4386,8 +4386,8 @@ of what a project is and how to check if it stuck, customize the variable
 	 (diary-display-hook '(fancy-diary-display))
 	 (diary-display-function 'fancy-diary-display)
 	 (pop-up-frames nil)
-	 (diary-list-entries-hook
-	  (cons 'org-diary-default-entry diary-list-entries-hook))
+	 (list-diary-entries-hook
+	  (cons 'org-diary-default-entry list-diary-entries-hook))
 	 (diary-file-name-prefix-function nil) ; turn this feature off
 	 (diary-modify-entry-list-string-function 'org-modify-diary-entry-string)
 	 entries
@@ -4530,8 +4530,8 @@ function from a program - use `org-agenda-get-day-entries' instead."
   (org-compile-prefix-format 'agenda)
   (org-set-sorting-strategy 'agenda)
   (setq args (or args '(:deadline :scheduled :timestamp :sexp)))
-  (let* ((files (if (and entry (stringp entry) (string-match "\\S-" entry))
-		    (list entry)
+  (let* ((files (if (and org-entry (stringp org-entry) (string-match "\\S-" org-entry))
+		    (list org-entry)
 		  (org-agenda-files t)))
 	 (time (org-float-time))
 	 file rtn results)
@@ -4936,7 +4936,7 @@ holiday will also be skipped."
 	   (not (member (car (calendar-iso-from-absolute d)) skip-weeks))))
      (not (and (memq 'holidays skip-weeks)
 	       (calendar-check-holidays date)))
-     entry)))
+     org-entry)))
 
 (defun org-diary-class (m1 d1 y1 m2 d2 y2 dayname &rest skip-weeks)
   "Like `org-class', but honor `calendar-date-style'.
@@ -5870,8 +5870,18 @@ could bind the variable in the options section of a custom command.")
       (let ((pl (text-property-any 0 (length x) 'org-heading t x)))
 	(setq re (get-text-property 0 'org-todo-regexp x))
 	(when (and re
+		   ;; Test `pl' because if there's no heading content,
+		   ;; there's no point matching to highlight.  Note
+		   ;; that if we didn't test `pl' first, and there
+		   ;; happened to be no keyword from `org-todo-regexp'
+		   ;; on this heading line, then the `equal' comparison
+		   ;; afterwards would spuriously succeed in the case
+		   ;; where `pl' is nil -- causing an args-out-of-range
+		   ;; error when we try to add text properties to text
+		   ;; that isn't there.
+		   pl
 		   (equal (string-match (concat "\\(\\.*\\)" re "\\( +\\)")
-					x (or pl 0)) pl))
+					x pl) pl))
 	  (add-text-properties
 	   (or (match-end 1) (match-end 0)) (match-end 0)
 	   (list 'face (org-get-todo-face (match-string 2 x)))
@@ -6182,8 +6192,8 @@ When this is the global TODO list, a prefix argument will be interpreted."
     (recenter window-line)))
 
 (defvar org-global-tags-completion-table nil)
-(defvar org-agenda-filtered-by-category nil)
 (defvar org-agenda-filter-form nil)
+(defvar org-agenda-filtered-by-category nil)
 
 (defun org-agenda-filter-by-category (strip)
   "Keep only those lines in the agenda buffer that have a specific category.
@@ -7282,16 +7292,18 @@ use the dedicated frame)."
   (if (and current-prefix-arg (listp current-prefix-arg))
       (org-agenda-do-tree-to-indirect-buffer)
     (let ((agenda-window (selected-window))
-          (indirect-window (get-buffer-window org-last-indirect-buffer)))
+          (indirect-window
+	   (and org-last-indirect-buffer
+		(get-buffer-window org-last-indirect-buffer))))
       (save-window-excursion (org-agenda-do-tree-to-indirect-buffer))
       (unwind-protect
           (progn
-            (unless indirect-window
+            (unless (and indirect-window (window-live-p indirect-window))
               (setq indirect-window (split-window agenda-window)))
             (select-window indirect-window)
             (switch-to-buffer org-last-indirect-buffer :norecord)
             (fit-window-to-buffer indirect-window))
-        (select-window agenda-window)))))
+        (select-window (get-buffer-window org-agenda-buffer-name))))))
 
 (defun org-agenda-do-tree-to-indirect-buffer ()
   "Same as `org-agenda-tree-to-indirect-buffer' without saving window."

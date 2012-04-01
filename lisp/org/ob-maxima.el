@@ -40,6 +40,11 @@
 
 (defvar org-babel-default-header-args:maxima '())
 
+(defcustom org-babel-maxima-command
+  (if (boundp 'maxima-command) maxima-command "maxima")
+  "Command used to call maxima on the shell."
+  :group 'org-babel)
+
 (defun org-babel-maxima-expand (body params)
   "Expand a block of Maxima code according to its header arguments."
   (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
@@ -67,8 +72,8 @@ called by `org-babel-execute-src-block'."
 	(result
 	 (let* ((cmdline (cdr (assoc :cmdline params)))
 		(in-file (org-babel-temp-file "maxima-" ".max"))
-		(cmd (format "maxima --very-quiet -r 'batchload(%S)$' %s"
-			     in-file cmdline)))
+		(cmd (format "%s --very-quiet -r 'batchload(%S)$' %s"
+			     org-babel-maxima-command in-file cmdline)))
 	   (with-temp-file in-file (insert (org-babel-maxima-expand body params)))
 	   (message cmd)
 	   ((lambda (raw) ;; " | grep -v batch | grep -v 'replaced' | sed '/^$/d' "

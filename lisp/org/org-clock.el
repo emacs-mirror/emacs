@@ -1691,7 +1691,7 @@ from the `before-change-functions' in the current buffer."
       (remove-hook 'before-change-functions
 		   'org-clock-remove-overlays 'local))))
 
-(defvar state) ;; dynamically scoped into this function
+(defvar org-clock-state) ;; dynamically scoped into this function
 (defun org-clock-out-if-current ()
   "Clock out if the current entry contains the running clock.
 This is used to stop the clock after a TODO entry is marked DONE,
@@ -1700,9 +1700,9 @@ and is only done if the variable `org-clock-out-when-done' is not nil."
 	     org-clock-out-when-done
 	     (marker-buffer org-clock-marker)
 	     (or (and (eq t org-clock-out-when-done)
-		      (member state org-done-keywords))
+		      (member org-clock-state org-done-keywords))
 		 (and (listp org-clock-out-when-done)
-		      (member state org-clock-out-when-done)))
+		      (member org-clock-state org-clock-out-when-done)))
 	     (equal (or (buffer-base-buffer (org-clocking-buffer))
 			(org-clocking-buffer))
 		    (or (buffer-base-buffer (current-buffer))
@@ -1762,17 +1762,6 @@ buffer and update it."
       (org-create-dblock
        (org-combine-plists org-clock-clocktable-default-properties props))))
   (org-update-dblock))
-
-(defun org-in-clocktable-p ()
-  "Check if the cursor is in a clocktable."
-  (let ((pos (point)) start)
-    (save-excursion
-      (end-of-line 1)
-      (and (re-search-backward "^[ \t]*#\\+BEGIN:[ \t]+clocktable" nil t)
-	   (setq start (match-beginning 0))
-	   (re-search-forward "^[ \t]*#\\+END:.*" nil t)
-	   (>= (match-end 0) pos)
-	   start))))
 
 (defun org-day-of-week (day month year)
   "Returns the day of the week as an integer."
@@ -2445,6 +2434,7 @@ TIME:      The sum of all time spend in this tree, in minutes.  This time
 	 (tags (plist-get params :tags))
 	 (properties (plist-get params :properties))
 	 (inherit-property-p (plist-get params :inherit-props))
+	 todo-only
 	 (matcher (if tags (cdr (org-make-tags-matcher tags))))
 	 cc range-text st p time level hdl props tsp tbl)
 

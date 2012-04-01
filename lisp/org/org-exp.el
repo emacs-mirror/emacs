@@ -1730,10 +1730,11 @@ from the buffer."
 					":[ \t]*\\(.*\\)") nil t)
 	(if (not (eq backend org-export-current-backend))
 	    (delete-region (point-at-bol) (min (1+ (point-at-eol)) (point-max)))
-	  (replace-match "\\1\\2" t)
-	  (add-text-properties
-	   (point-at-bol) (min (1+ (point-at-eol)) (point-max))
-	   `(org-protected t original-indentation ,ind org-native-text t))))
+	  (let ((ind (get-text-property (point-at-bol) 'original-indentation)))
+	    (replace-match "\\1\\2" t)
+	    (add-text-properties
+	     (point-at-bol) (min (1+ (point-at-eol)) (point-max))
+	     `(org-protected t original-indentation ,ind org-native-text t)))))
       ;; Delete #+ATTR_BACKEND: stuff of another backend. Those
       ;; matching the current backend will be taken care of by
       ;; `org-export-attach-captions-and-attributes'
@@ -1748,7 +1749,8 @@ from the buffer."
       (while (re-search-forward (concat "^[ \t]*#\\+BEGIN_" backend-name "\\>.*\n?")
 				nil t)
 	(setq beg (match-beginning 0) beg-content (match-end 0))
-	(setq ind (save-excursion (goto-char beg) (org-get-indentation)))
+	(setq ind (or (get-text-property beg 'original-indentation)
+		      (save-excursion (goto-char beg) (org-get-indentation))))
 	(when (re-search-forward (concat "^[ \t]*#\\+END_" backend-name "\\>.*\n?")
 				 nil t)
 	  (setq end (match-end 0) end-content (match-beginning 0))
@@ -1759,17 +1761,7 @@ from the buffer."
 		 beg-content end-content
 		 `(org-protected t original-indentation ,ind org-native-text t))
 		;; strip protective commas
-		(save-excursion
-		  (save-match-data
-		    (goto-char beg-content)
-		    (let ((front-line (save-excursion
-					(re-search-forward
-					 "[^[:space:]]" end-content t)
-					(goto-char (match-beginning 0))
-					(current-column))))
-		      (while (re-search-forward "^[ \t]*\\(,\\)" end-content t)
-			(when (= (current-column) front-line)
-			  (replace-match "" nil nil nil 1))))))
+		(org-strip-protective-commas beg-content end-content)
 		(delete-region (match-beginning 0) (match-end 0))
 		(save-excursion
 		  (goto-char beg)
@@ -1816,8 +1808,7 @@ These special cookies will later be interpreted by the backend."
 		  (top (point-at-bol))
 		  (top-ind (org-list-get-ind top struct)))
 	     (goto-char bottom)
-	     (when (and (not (eq org-list-ending-method 'indent))
-			(not (looking-at "[ \t]*$"))
+	     (when (and (not (looking-at "[ \t]*$"))
 			(looking-at org-list-end-re))
 	       (replace-match ""))
 	     (unless (bolp) (insert "\n"))
@@ -1875,8 +1866,7 @@ These special properties will later be interpreted by the backend."
 	      ;; useful to line processing exporters.
 	      (goto-char bottom)
 	      (when (or (looking-at "^ORG-LIST-END-MARKER\n")
-			(and (not (eq org-list-ending-method 'indent))
-			     (not (looking-at "[ \t]*$"))
+			(and (not (looking-at "[ \t]*$"))
 			     (looking-at org-list-end-re)))
 		(replace-match ""))
 	      (unless (bolp) (insert "\n"))
@@ -2203,7 +2193,7 @@ can work correctly."
 	;; This is a subtree, we take the title from the first heading
 	(goto-char rbeg)
 	(looking-at org-todo-line-tags-regexp)
-	(setq title (if (eq tags t)
+	(setq title (if (and (eq tags t) (match-string 4))
 			(format "%s\t%s" (match-string 3) (match-string 4))
 		      (match-string 3)))
 	(org-unmodified
@@ -3277,7 +3267,7 @@ If yes remove the column and the special lines."
 	      ((org-table-cookie-line-p x)
 	       ;; This line contains formatting cookies, discard it
 	       nil)
-	      ((string-match "^[ \t]*| *[!_^/] *|" x)
+	      ((string-match "^[ \t]*| *\\([!_^/$]\\|\\\\\\$\\) *|" x)
 	       ;; ignore this line
 	       nil)
 	      ((or (string-match "^\\([ \t]*\\)|-+\\+" x)

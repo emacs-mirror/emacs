@@ -112,7 +112,7 @@
 (eval-when-compile
   (require 'cl))
 
-(defvar description nil) ; dynamically scoped from org.el
+(defvar org-bibtex-description nil) ; dynamically scoped from org.el
 (defvar org-id-locations)
 
 (declare-function bibtex-beginning-of-entry "bibtex" ())
@@ -467,7 +467,7 @@ With optional argument OPTIONAL, also prompt for optional fields."
        :btype (or (cdr (assoc "=type=" entry)) "[no type]")
        :type "bibtex"
        :link link
-       :description description))))
+       :description org-bibtex-description))))
 
 (defun org-create-file-search-in-bibtex ()
   "Create the search string and description for a BibTeX database entry."
@@ -485,7 +485,7 @@ With optional argument OPTIONAL, also prompt for optional fields."
 	(bibtex-autokey-titleword-case-convert-function 'identity)
 	(bibtex-autokey-titleword-length 'infty)
 	(bibtex-autokey-year-title-separator ": "))
-    (setq description (bibtex-generate-autokey)))
+    (setq org-bibtex-description (bibtex-generate-autokey)))
   ;; Now parse the entry, get the key and return it.
   (save-excursion
     (bibtex-beginning-of-entry)
