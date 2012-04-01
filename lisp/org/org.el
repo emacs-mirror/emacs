@@ -11256,7 +11256,7 @@ For calling through lisp, arg is also interpreted in the following way:
 		 (interpret (nth 1 ass))
 		 (done-word (nth 3 ass))
 		 (final-done-word (nth 4 ass))
-		 (last-state (or this ""))
+		 (org-last-state (or this ""))
 		 (completion-ignore-case t)
 		 (member (member this org-todo-keywords-1))
 		 (tail (cdr member))
@@ -11322,7 +11322,7 @@ For calling through lisp, arg is also interpreted in the following way:
 			  (car tail))))
 		 (state (or
 			 (run-hook-with-args-until-success
-			  'org-todo-get-default-hook state last-state)
+			  'org-todo-get-default-hook state org-last-state)
 			 state))
 		 (next (if state (concat " " state " ") " "))
 		 (change-plist (list :type 'todo-state-change :from this :to state

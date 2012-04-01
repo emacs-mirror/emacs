@@ -1,3 +1,7 @@
+2012-04-01  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-todo): Fix bug in `org-todo'.
+
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
 	* ob-C.el (org-babel-C-execute): Add .exe to the end of compiled
