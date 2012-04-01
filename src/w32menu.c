@@ -1173,8 +1173,12 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
 static int
 is_simple_dialog (Lisp_Object contents)
 {
-  Lisp_Object options = XCDR (contents);
+  Lisp_Object options;
   Lisp_Object name, yes, no, other;
+
+  if (!CONSP (contents))
+    return 0;
+  options = XCDR (contents);
 
   yes = build_string ("Yes");
   no = build_string ("No");
@@ -1182,9 +1186,10 @@ is_simple_dialog (Lisp_Object contents)
   if (!CONSP (options))
     return 0;
 
-  name = XCAR (XCAR (options));
-  if (!CONSP (options))
+  name = XCAR (options);
+  if (!CONSP (name))
     return 0;
+  name = XCAR (name);
 
   if (!NILP (Fstring_equal (name, yes)))
     other = no;
@@ -1197,7 +1202,10 @@ is_simple_dialog (Lisp_Object contents)
   if (!CONSP (options))
     return 0;
 
-  name = XCAR (XCAR (options));
+  name = XCAR (options);
+  if (!CONSP (name))
+    return 0;
+  name = XCAR (name);
   if (NILP (Fstring_equal (name, other)))
     return 0;
 

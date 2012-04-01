@@ -1,3 +1,8 @@
+2012-04-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32menu.c (is_simple_dialog): Properly check lisp types.
+	(Bug#11141)
+
 2012-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_by_lines): When DVPOS is positive, and the
