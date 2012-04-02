@@ -1,3 +1,7 @@
+2012-04-02  Alan Mackenzie  <acm@muc.de>
+
+	* NEWS: Add CC Mode entries.
+
 2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org/OrgOdtContentTemplate.xml (OrgIndentedSection-Level-*):

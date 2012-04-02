@@ -665,8 +665,19 @@ view-diary-entries, list-diary-entries, show-all-diary-entries
 on platforms that support it.  This calls your desktop's preferred browser.
 
 +++
-** New CC Mode feature to "guess" the style in an existing buffer.
+** CC Mode
+*** New feature to "guess" the style in an existing buffer.
 The main entry is M-x c-guess.
+
+*** Java Mode now supports Java 5.0 (Tiger) and 6 (Mustang).
+
+*** c-beginning-of-defun and c-end-of-defun now respect nested scopes:
+Thus C-M-a will, by default, go to the beginning of the immediate function,
+not the top level.
+
+*** "Macros with semicolon" can be registered, for correct indentation.
+Where such a macro ends a line (no semicolon) the next statement is no longer
+parsed as a statement continuation.
 
 ** comint and modes derived from it use the generic completion code.
 
