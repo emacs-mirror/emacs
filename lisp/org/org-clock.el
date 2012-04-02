@@ -1691,7 +1691,7 @@ from the `before-change-functions' in the current buffer."
       (remove-hook 'before-change-functions
 		   'org-clock-remove-overlays 'local))))
 
-(defvar org-clock-state) ;; dynamically scoped into this function
+(defvar org-state) ;; dynamically scoped into this function
 (defun org-clock-out-if-current ()
   "Clock out if the current entry contains the running clock.
 This is used to stop the clock after a TODO entry is marked DONE,
@@ -1700,9 +1700,9 @@ and is only done if the variable `org-clock-out-when-done' is not nil."
 	     org-clock-out-when-done
 	     (marker-buffer org-clock-marker)
 	     (or (and (eq t org-clock-out-when-done)
-		      (member org-clock-state org-done-keywords))
+		      (member org-state org-done-keywords))
 		 (and (listp org-clock-out-when-done)
-		      (member org-clock-state org-clock-out-when-done)))
+		      (member org-state org-clock-out-when-done)))
 	     (equal (or (buffer-base-buffer (org-clocking-buffer))
 			(org-clocking-buffer))
 		    (or (buffer-base-buffer (current-buffer))

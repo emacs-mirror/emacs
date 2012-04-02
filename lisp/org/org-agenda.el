@@ -91,7 +91,7 @@
 (defvar org-agenda-buffer-name)
 (defvar org-agenda-overriding-header)
 (defvar org-agenda-title-append nil)
-(defvar org-entry)
+(defvar entry)
 (defvar date)
 (defvar org-agenda-undo-list)
 (defvar org-agenda-pending-undo-list)
@@ -4530,8 +4530,8 @@ function from a program - use `org-agenda-get-day-entries' instead."
   (org-compile-prefix-format 'agenda)
   (org-set-sorting-strategy 'agenda)
   (setq args (or args '(:deadline :scheduled :timestamp :sexp)))
-  (let* ((files (if (and org-entry (stringp org-entry) (string-match "\\S-" org-entry))
-		    (list org-entry)
+  (let* ((files (if (and entry (stringp entry) (string-match "\\S-" entry))
+		    (list entry)
 		  (org-agenda-files t)))
 	 (time (org-float-time))
 	 file rtn results)
@@ -4936,7 +4936,7 @@ holiday will also be skipped."
 	   (not (member (car (calendar-iso-from-absolute d)) skip-weeks))))
      (not (and (memq 'holidays skip-weeks)
 	       (calendar-check-holidays date)))
-     org-entry)))
+     entry)))
 
 (defun org-diary-class (m1 d1 y1 m2 d2 y2 dayname &rest skip-weeks)
   "Like `org-class', but honor `calendar-date-style'.

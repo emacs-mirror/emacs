@@ -4841,7 +4841,7 @@ This is for getting out of special buffers like remember.")
 
 ;; FIXME: Occasionally check by commenting these, to make sure
 ;;        no other functions uses these, forgetting to let-bind them.
-(defvar org-entry)
+(defvar entry)
 (defvar org-last-state)
 (defvar date)
 
@@ -10382,8 +10382,8 @@ on the system \"/user@host:\"."
 	targets tgs txt re files f desc descre fast-path-p level pos0)
     (message "Getting targets...")
     (with-current-buffer (or default-buffer (current-buffer))
-      (while (setq org-entry (pop entries))
-	(setq files (car org-entry) desc (cdr org-entry))
+      (while (setq entry (pop entries))
+	(setq files (car entry) desc (cdr entry))
 	(setq fast-path-p nil)
 	(cond
 	 ((null files) (setq files (list (current-buffer))))
@@ -11260,18 +11260,18 @@ For calling through lisp, arg is also interpreted in the following way:
 		 (completion-ignore-case t)
 		 (member (member this org-todo-keywords-1))
 		 (tail (cdr member))
-		 (state (cond
-			 ((and org-todo-key-trigger
-			       (or (and (equal arg '(4))
-					(eq org-use-fast-todo-selection 'prefix))
-				   (and (not arg) org-use-fast-todo-selection
-					(not (eq org-use-fast-todo-selection
-						 'prefix)))))
-			  ;; Use fast selection
-			  (org-fast-todo-selection))
-			 ((and (equal arg '(4))
-			       (or (not org-use-fast-todo-selection)
-				   (not org-todo-key-trigger)))
+		 (org-state (cond
+			     ((and org-todo-key-trigger
+				   (or (and (equal arg '(4))
+					    (eq org-use-fast-todo-selection 'prefix))
+				       (and (not arg) org-use-fast-todo-selection
+					    (not (eq org-use-fast-todo-selection
+						     'prefix)))))
+			      ;; Use fast selection
+			      (org-fast-todo-selection))
+			     ((and (equal arg '(4))
+				   (or (not org-use-fast-todo-selection)
+				       (not org-todo-key-trigger)))
 			  ;; Read a state with completion
 			  (org-icompleting-read
 			   "State: " (mapcar (lambda(x) (list x))
@@ -11320,12 +11320,12 @@ For calling through lisp, arg is also interpreted in the following way:
 			      nil)))
 			 (t
 			  (car tail))))
-		 (state (or
-			 (run-hook-with-args-until-success
-			  'org-todo-get-default-hook state org-last-state)
-			 state))
-		 (next (if state (concat " " state " ") " "))
-		 (change-plist (list :type 'todo-state-change :from this :to state
+		 (org-state (or
+			     (run-hook-with-args-until-success
+			      'org-todo-get-default-hook org-state org-last-state)
+			     org-state))
+		 (next (if org-state (concat " " org-state " ") " "))
+		 (change-plist (list :type 'todo-state-change :from this :to org-state
 				     :position startpos))
 		 dolog now-done-p)
 	    (when org-blocker-hook
@@ -11337,16 +11337,16 @@ For calling through lisp, arg is also interpreted in the following way:
 			   (run-hook-with-args-until-failure
 			    'org-blocker-hook change-plist))))
 		(if (org-called-interactively-p 'interactive)
-		    (error "TODO state change from %s to %s blocked" this state)
+		    (error "TODO state change from %s to %s blocked" this org-state)
 		  ;; fail silently
-		  (message "TODO state change from %s to %s blocked" this state)
+		  (message "TODO state change from %s to %s blocked" this org-state)
 		  (throw 'exit nil))))
 	    (store-match-data match-data)
 	    (replace-match next t t)
 	    (unless (pos-visible-in-window-p hl-pos)
 	      (message "TODO state changed to %s" (org-trim next)))
 	    (unless head
-	      (setq head (org-get-todo-sequence-head state)
+	      (setq head (org-get-todo-sequence-head org-state)
 		    ass (assoc head org-todo-kwd-alist)
 		    interpret (nth 1 ass)
 		    done-word (nth 3 ass)
@@ -11354,24 +11354,24 @@ For calling through lisp, arg is also interpreted in the following way:
 	    (when (memq arg '(nextset previousset))
 	      (message "Keyword-Set %d/%d: %s"
 		       (- (length org-todo-sets) -1
-			  (length (memq (assoc state org-todo-sets) org-todo-sets)))
+			  (length (memq (assoc org-state org-todo-sets) org-todo-sets)))
 		       (length org-todo-sets)
-		       (mapconcat 'identity (assoc state org-todo-sets) " ")))
+		       (mapconcat 'identity (assoc org-state org-todo-sets) " ")))
 	    (setq org-last-todo-state-is-todo
-		  (not (member state org-done-keywords)))
-	    (setq now-done-p (and (member state org-done-keywords)
+		  (not (member org-state org-done-keywords)))
+	    (setq now-done-p (and (member org-state org-done-keywords)
 				  (not (member this org-done-keywords))))
 	    (and logging (org-local-logging logging))
 	    (when (and (or org-todo-log-states org-log-done)
 		       (not (eq org-inhibit-logging t))
 		       (not (memq arg '(nextset previousset))))
 	      ;; we need to look at recording a time and note
-	      (setq dolog (or (nth 1 (assoc state org-todo-log-states))
+	      (setq dolog (or (nth 1 (assoc org-state org-todo-log-states))
 			      (nth 2 (assoc this org-todo-log-states))))
 	      (if (and (eq dolog 'note) (eq org-inhibit-logging 'note))
 		  (setq dolog 'time))
-	      (when (and state
-			 (member state org-not-done-keywords)
+	      (when (and org-state
+			 (member org-state org-not-done-keywords)
 			 (not (member this org-not-done-keywords)))
 		;; This is now a todo state and was not one before
 		;; If there was a CLOSED time stamp, get rid of it.
@@ -11381,17 +11381,17 @@ For calling through lisp, arg is also interpreted in the following way:
 		(org-add-planning-info 'closed (org-current-effective-time))
 		(if (and (not dolog) (eq 'note org-log-done))
 		    (org-add-log-setup 'done state this 'findpos 'note)))
-	      (when (and state dolog)
+	      (when (and org-state dolog)
 		;; This is a non-nil state, and we need to log it
-		(org-add-log-setup 'state state this 'findpos dolog)))
+		(org-add-log-setup 'state org-state this 'findpos dolog)))
 	    ;; Fixup tag positioning
-	    (org-todo-trigger-tag-changes state)
+	    (org-todo-trigger-tag-changes org-state)
 	    (and org-auto-align-tags (not org-setting-tags) (org-set-tags nil t))
 	    (when org-provide-todo-statistics
 	      (org-update-parent-todo-statistics))
 	    (run-hooks 'org-after-todo-state-change-hook)
-	    (if (and arg (not (member state org-done-keywords)))
-		(setq head (org-get-todo-sequence-head state)))
+	    (if (and arg (not (member org-state org-done-keywords)))
+		(setq head (org-get-todo-sequence-head org-state)))
 	    (put-text-property (point-at-bol) (point-at-eol) 'org-todo-head head)
 	    ;; Do we need to trigger a repeat?
 	    (when now-done-p
@@ -11400,7 +11400,7 @@ For calling through lisp, arg is also interpreted in the following way:
 		(save-match-data
 		  (setq org-agenda-headline-snapshot-before-repeat
 			(org-get-heading))))
-	      (org-auto-repeat-maybe state))
+	      (org-auto-repeat-maybe org-state))
 	    ;; Fixup cursor location if close to the keyword
 	    (if (and (outline-on-heading-p)
 		     (not (bolp))

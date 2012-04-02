@@ -1,6 +1,15 @@
+2012-04-02  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-clock-out-if-current): Fix regression: rename
+	`org-clock-state' to `org-state' to match the name of the
+	dynamically-scoped variable in `org-todo'.
+
+	* org-agenda.el (entry, org-diary, org-class): Fix regression:
+	rename `org-entry' to `entry'.
+
 2012-04-01  Bastien Guerry  <bzg@gnu.org>
 
-	* org.el (org-todo): Fix bug in `org-todo'.
+	* org.el (org-todo): Fix regression in `org-todo'.
 
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
@@ -9739,7 +9748,7 @@
 	Remove hard-wired configuration of minted export
 	(org-export-latex-minted-with-line-numbers): Remove variable.
 
-2010-12-11  Bastien Guerry  <bzg@altern.org>
+2010-12-11  Bastien Guerry  <bzg@gnu.org>
 
 	* org-clock.el (org-dblock-write:clocktable): Fix double
 	reference to `link' in let construct.
@@ -11133,7 +11142,7 @@
 	* org.el (org-make-link-string): Don't escape characters in link
 	type.
 
-2010-11-11  Bastien Guerry  <bzg@altern.org>
+2010-11-11  Bastien Guerry  <bzg@gnu.org>
 
 	* org-capture.el (org-capture-templates): Update docstring to
 	advertise %:org-date.
@@ -11218,7 +11227,7 @@
 	* ob-keys.el (org-babel-key-bindings): Key bindings for block
 	demarcation.
 
-2010-11-11  Bastien Guerry  <bzg@altern.org>
+2010-11-11  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-link-types): Add the "message" link type.
 
@@ -11227,7 +11236,7 @@
 	* org.el (org-link-types): Add 'message:' link type to default
 	link types.
 
-2010-11-11  Bastien Guerry  <bzg@altern.org>
+2010-11-11  Bastien Guerry  <bzg@gnu.org>
 
 	* org-gnus.el (org-gnus-store-link): Add the :date property to
 	gnus links, allowing the use of %:date in capture templates.
@@ -11460,7 +11469,7 @@
 	* org.el (org-src-fontify-natively): Set to nil by default.
 	Supply cutomize interface.
 
-2010-11-11  Bastien Guerry  <bzg@altern.org>
+2010-11-11  Bastien Guerry  <bzg@gnu.org>
 
 	* org-ascii.el (org-export-as-ascii): Fix bug in ASCII export: use
 	`org-bracket-link-analytic-regexp++' to match the link type.
@@ -12718,7 +12727,7 @@
 	(org-org-menu): Remove the entry to configure LaTeX snippet
 	processing.
 
-2010-11-11  Bastien Guerry  <bzg@altern.org>
+2010-11-11  Bastien Guerry  <bzg@gnu.org>
 
 	* org-agenda.el (org-agenda-clock-goto): Use `\C-c\C-x\C-j' for
 	`org-clock-goto' and `J' for `org-agenda-clock-goto'.  If the
@@ -13554,7 +13563,7 @@
 	* org-html.el (org-export-html-close-lists-maybe): Check if raw
 	HTML stuff was actually made from an example.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-latex.el: Items are no longer skipped when their first line
 	ends on a protected element.
@@ -13567,18 +13576,18 @@
 	* org-exp-blocks.el (org-export-blocks-preprocess):
 	Cleanup trailing newline after block.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-exp.el: Comment regexp now matches documentation.  No more
 	protection check when deleting comments before export.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-exp.el (org-export-preprocess-string):
 	Now using `org-export-handle-include-files-recurse' to resolve
 	included files.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-agenda.el (org-agenda-get-deadlines)
 	(org-agenda-get-scheduled):
@@ -13589,7 +13598,7 @@
 	now instead of resetting on the cyclic repeating date.  This makes it
 	much more obvious when you missed a repeating task after the repeater.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-exp.el (org-export-mark-blockquote-verse-center):
 	Consider environments that end at eob.
@@ -13629,16 +13638,16 @@
 	from latex backend specific instructions (#+LaTeX) are already
 	protected and won't be treated as normal environments.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-timer.el (org-timer-set-timer): Fix typo in the docstring.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-timer.el (org-timer-set-timer): Use a prefix argument.
 	See the docstring of the function.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-timer.el (org-timer-set-timer): Fix bug about canceling
 	timers.
@@ -13659,7 +13668,7 @@
 	t before calling `org-clock-out', so that that function can
 	know its call context.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-timer.el (org-timer-default-timer): New variable.
 	(org-timer-set-timer): Use the new variable.  Also offer the
@@ -14109,7 +14118,7 @@
 	* org-compat.el (org-overlays-at): Function removed.
 	(org-overlays-in): Function removed.
 
-2010-07-19  Bastien Guerry  <bzg@altern.org>
+2010-07-19  Bastien Guerry  <bzg@gnu.org>
 
 	* org-clock.el (org-clock-set-current): Just return the headline
 	itself, strip the TODO keyword, the priority cookie and the tags.
@@ -14355,7 +14364,7 @@
 	* org-publish.el (org-publish-aux-preprocess): Control case
 	sensitivity.
 
-2010-04-10  Bastien Guerry  <bzg@altern.org>
+2010-04-10  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-splice-latex-header): Fix typo.
 
@@ -14843,7 +14852,7 @@
 	restricted, as an agenda mode.
 	(org-agenda-fontify-priorities): Allow simple colors as values.
 
-2010-04-10  Bastien Guerry  <bzg@altern.org>
+2010-04-10  Bastien Guerry  <bzg@gnu.org>
 
 	* org-timer.el (org-timer-current-timer): Rename from
 	`org-timer-last-timer'.
@@ -14861,7 +14870,7 @@
 	* org-exp.el (org-export-format-source-code-or-example):
 	Fix textarea tag.
 
-2010-04-10  Bastien Guerry  <bzg@altern.org>
+2010-04-10  Bastien Guerry  <bzg@gnu.org>
 
 	* org-clock.el (org-clock-current-task): New variable to store
 	last clocked in task.
@@ -16176,7 +16185,7 @@
 	(org-columns-compile-format): Support the additional parameter in
 	org-columns-compile-map.
 
-2009-11-13  Bastien Guerry  <bzg@altern.org>
+2009-11-13  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-mode-hook): Turn `org-mode-hook' into a customizable
 	variable.
@@ -16845,7 +16854,7 @@
 	* org.el (org-shifttab): Interpret arg differently when using only
 	odd levels.
 
-2009-10-01  Bastien Guerry  <bzg@altern.org>
+2009-10-01  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-check-agenda-file): Use a more explicit message.
 
@@ -16854,7 +16863,7 @@
 	* org-exp.el (org-export-remove-special-table-lines): Don't remove
 	normal lines.
 
-2009-10-01  Bastien Guerry  <bzg@altern.org>
+2009-10-01  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-offer-links-in-entry): Don't use "Select link" as a
 	prompt in the temporary window.
@@ -17065,7 +17074,7 @@
 	* org-gnus.el (org-gnus-store-link): Restore the linking to a
 	website.
 
-2009-09-02  Bastien Guerry  <bzg@altern.org>
+2009-09-02  Bastien Guerry  <bzg@gnu.org>
 
 	* org-latex.el (org-export-latex-first-lines): Bugfix.
 
@@ -17209,7 +17218,7 @@
 	(org-remember-apply-template): Use `org-remember-escaped-%' to
 	detect escaped % signs.
 
-2009-09-02  Bastien Guerry  <bzg@altern.org>
+2009-09-02  Bastien Guerry  <bzg@gnu.org>
 
 	* org-timer.el (org-timer-set-timer): Use `org-notify' and play a
 	sound when showing the notification.
@@ -17343,7 +17352,7 @@
 	* org-exp.el (org-export-format-source-code-or-example):
 	Use listing package if requested by the user.
 
-2009-09-02  Bastien Guerry  <bzg@altern.org>
+2009-09-02  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-iswitchb): Fix bug when aborting the `org-iswitchb'
 	command before actually switching to a buffer.
@@ -17577,14 +17586,14 @@
 	* org-macs.el (org-unmodified): Turn of modification hooks while
 	running this macro.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-adapt-indentation): Slightly improve the docstring.
 	(org-occur): Sends an error when the user inputs an empty string.
 	(org-priority): Bugfix: the tag alignement should happen within
 	save-excursion.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-make-link-regexps): Don't exclude parentheses from
 	`org-plain-link-re'.
@@ -17598,7 +17607,7 @@
 	* org-clock.el (org-clock-in): Bugfix: recognize timestamps with
 	an abbreviated format for days.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org-protocol.el (org-protocol-default-template-key):
 	New option.
@@ -17615,7 +17624,7 @@
 	(org-update-parent-todo-statistics): Possibly use the new allowed
 	value of `org-provide-todo-statistics'.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org-timer.el: Add autoload cookie.
 
@@ -17640,7 +17649,7 @@
 	(org-update-parent-todo-statistics): Possibly use the new
 	'all-headline value from `org-provide-todo-statistics'.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org-clock.el (org-dblock-write:clocktable): Add a new option
 	:timestamp which allows display of timestamps in clock reports.
@@ -17656,7 +17665,7 @@
 	* org.el (org-eval-in-calendar): Select the right frame.
 	(org-save-frame-excursion): Remove this macro.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org-list.el (org-list-beginning-re): Bugfix: don't use * when
 	trying to find the beginning of a list.
@@ -17670,7 +17679,7 @@
 	(org-id-method): Use `org-id-uuid-program'.
 	(org-id-new): Use `org-id-uuid-program'.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org-exp.el (org-export-number-lines): Allow whitespace in code
 	references.  Allow the -r switch to remove the references in the
@@ -17683,18 +17692,18 @@
 	* org-clock.el (org-show-notification-handler): New option.
 	(org-show-notification): Use the new option.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-eval-in-calendar): Fix a bug about calendar
 	navigation when `calendar-setup' value is 'calendar-only.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (orgstruct++-mode): Fix typo in docstring.
 	(org-insert-link): Clean up: (or (...)) => (...)
 	(org-insert-link): Use TAB for stored links completion.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-get-refile-targets): Fix bug: don't ignore case when
 	building the list of targets.
@@ -17711,12 +17720,12 @@
 	* org-plot.el (org-plot/gnuplot): Run with an idle timer to avoid
 	premature deletion of the data when using org-plot in a script.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org-clock.el (org-clock-in-prepare-hook): New hook.
 	(org-clock-in): Use this new hook.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-special-ctrl-a/e): Explicitly bind the value
 	'reversed for this option to the "true line boundary first"
@@ -18750,7 +18759,7 @@
 
 	* org-exp.el (org-export-splice-attributes): New function.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 	Daniel M German  <dmg@uvic.org>
 	Sebastian Rose  <sebastian_rose@gmx.de>
 	Ross Patterson  <me@rpatterson.net>
@@ -18961,7 +18970,7 @@
 
 	* org-exp.el (org-export-as-ascii): Improve export of plain lists.
 
-2009-08-06  Bastien Guerry  <bzg@altern.org>
+2009-08-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-toggle-fixed-width-section): Bug fix: insert a
 	column and a space, not only a column.
@@ -20776,7 +20785,7 @@
 	* org-archive.el (org-archive-to-archive-sibling): Handle top
 	level headlines better.
 
-2008-10-26  Bastien Guerry  <bzg@altern.org>
+2008-10-26  Bastien Guerry  <bzg@gnu.org>
 
 	* org-export-latex.el (org-export-latex-classes):
 	Add \usepackage{graphicx} to the default list of packages.
@@ -21000,7 +21009,7 @@
 	New functions, similar to the outline versions, but invisible headings
 	are OK.
 
-2008-10-12  Bastien Guerry  <bzg@altern.org>
+2008-10-12  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-auto-repeat-maybe): Insert a space between
 	the timestamp's type and the timestamp itself.
@@ -21012,13 +21021,13 @@
 
 	* org.el (org-map-entries): Protect the keyword-selecting variables.
 
-2008-10-12  Bastien Guerry  <bzg@altern.org>
+2008-10-12  Bastien Guerry  <bzg@gnu.org>
 
 	* org-agenda.el (org-agenda-to-appt): Make sure the function check
 	against all agenda files.
 
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
-	    Bastien Guerry  <bzg@altern.org>
+	    Bastien Guerry  <bzg@gnu.org>
 
 	* org-list.el: New file, aggregating list functions from org.el
 	and org-export-latex.el.
@@ -21030,7 +21039,7 @@
 	* org-agenda.el (org-agenda-to-appt): Fix bug with appointment
 	time before 1am.
 
-2008-10-12  Bastien Guerry  <bzg@altern.org>
+2008-10-12  Bastien Guerry  <bzg@gnu.org>
 
 	* org-export-latex.el (org-export-latex-keywords-maybe): Bug fix.
 
@@ -21075,7 +21084,7 @@
 
 	* org-compat.el (org-propertize): New function.
 
-2008-10-12  Bastien Guerry  <bzg@altern.org>
+2008-10-12  Bastien Guerry  <bzg@gnu.org>
 
 	* org-export-latex.el (org-export-latex-tables): Protect exported
 	tables from further special chars conversion.
@@ -21181,7 +21190,7 @@
 
 	* org.el (org-log-note-extra): New variable.
 
-2008-10-12  Bastien Guerry  <bzg@altern.org>
+2008-10-12  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-additional-option-like-keywords): Add keywords for
 	the _QUOTE, _VERSE and _SRC environments.
@@ -21834,7 +21843,7 @@
 	(org-structure-template-alist): New, experimental option.
 	(org-complete): Call `org-complete-expand-structure-template'.
 
-2008-06-17  Bastien Guerry  <bzg@altern.org>
+2008-06-17  Bastien Guerry  <bzg@gnu.org>
 
 	* org-export-latex.el (org-export-latex-preprocess):
 	Add support for blockquotes.
