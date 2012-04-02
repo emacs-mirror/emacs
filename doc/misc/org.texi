@@ -1007,7 +1007,7 @@ from within Emacs, please copy and paste the content into your Email program.
 
 Sometimes you might face a problem due to an error in your Emacs or Org mode
 setup.  Before reporting a bug, it is very helpful to start Emacs with minimal
-customisations and reproduce the problem.  Doing so often helps you determine
+customizations and reproduce the problem.  Doing so often helps you determine
 if the problem is with your customization or with Org mode itself.  You can
 start a typical minimal session with a command like the example below.
 
@@ -10975,7 +10975,7 @@ A link with no description and destined to a regular (un-itemized) outline
 heading is replaced with a cross-reference and section number of the heading.
 
 A @samp{\ref@{label@}}-style reference to an image, table etc. is replaced
-with a cross-reference and sequence number of the labelled entity.
+with a cross-reference and sequence number of the labeled entity.
 @xref{Labels and captions in ODT export}.
 
 @node Tables in ODT export, Images in ODT export, Links in ODT export, OpenDocument Text export
@@ -10999,7 +10999,7 @@ You can control the width of the table by specifying @code{:rel-width}
 property using an @code{#+ATTR_ODT} line.
 
 For example, consider the following table which makes use of all the rules
-mentoned above.
+mentioned above.
 
 @example
 #+ATTR_ODT: :rel-width 50
@@ -11225,7 +11225,7 @@ or
 You can label and caption various category of objects - an inline image, a
 table, a @LaTeX{} fragment or a Math formula - using @code{#+LABEL} and
 @code{#+CAPTION} lines.  @xref{Images and tables}.  ODT exporter enumerates
-each labelled or captioned object of a given category separately.  As a
+each labeled or captioned object of a given category separately.  As a
 result, each such object is assigned a sequence number based on order of it's
 appearance in the Org file.
 

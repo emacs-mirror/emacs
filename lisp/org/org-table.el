@@ -2931,7 +2931,7 @@ known that the table will be realigned a little later anyway."
 
 (defun org-table-iterate (&optional arg)
   "Recalculate the table until it does not change anymore.
-The maximun number of iterations is 10, but you can choose a different value
+The maximum number of iterations is 10, but you can choose a different value
 with the prefix ARG."
   (interactive "P")
   (let ((imax (if arg (prefix-numeric-value arg) 10))

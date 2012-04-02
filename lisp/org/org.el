@@ -20477,7 +20477,7 @@ beyond the end of the headline."
 		 (t refpos)))))
        ((org-at-item-p)
 	;; Being at an item and not looking at an the item means point
-	;; was previously moved to beginning of a visual line, whiche
+	;; was previously moved to beginning of a visual line, which
 	;; doesn't contain the item.  Therefore, do nothing special,
 	;; just stay here.
 	(when (looking-at org-list-full-item-re)

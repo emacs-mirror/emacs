@@ -562,7 +562,7 @@
 	dysfunctional routine.  This possibly has crept in because of the
 	broken merges between "maint" and "origin" branches.
 	(org-odt-begin-table): Don't emit an empty paragraph when a table is
-	neither labelled or captioned.
+	neither labeled nor captioned.
 	(org-odt-init-outfile): Remove reference to an unused variable.
 
 2012-04-01  Viktor Rosenfeld  <listuser36@googlemail.com>
