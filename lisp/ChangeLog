@@ -1,3 +1,9 @@
+2012-04-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-send-command): Apply
+	`tramp-compat-call-process' instead of `tramp-local-call-process'.
+	Reported by Magnus Henoch <magnus.henoch@gmail.com>.
+
 2012-04-01  Chong Yidong  <cyd@gnu.org>
 
 	* files.el (file-in-directory-p): Rename from file-subdir-of-p.
