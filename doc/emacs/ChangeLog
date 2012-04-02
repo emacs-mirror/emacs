@@ -1,3 +1,11 @@
+2012-04-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Startup): Add description of emacsclient
+	operation under -c and -t on MS-Windows.
+
+	* misc.texi (emacsclient Options): Add cross-reference to "Windows
+	Startup".  (Bug#11091)
+
 2012-04-02  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
 
 	* custom.texi (Changing a Variable): Fix example.
