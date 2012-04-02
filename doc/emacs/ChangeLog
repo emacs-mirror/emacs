@@ -1,3 +1,7 @@
+2012-04-02  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* custom.texi (Changing a Variable): Fix example.
+
 2012-04-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* misc.texi (emacsclient Options): More clarifications about -t
