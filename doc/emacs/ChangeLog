@@ -1,3 +1,7 @@
+2012-04-03  Chong Yidong  <cyd@gnu.org>
+
+	* sending.texi (Mail Misc): Fix an index entry.
+
 2012-04-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Startup): Add description of emacsclient

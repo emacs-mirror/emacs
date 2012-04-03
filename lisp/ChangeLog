@@ -1,3 +1,8 @@
+2012-04-03  Chong Yidong  <cyd@gnu.org>
+
+	* mail/sendmail.el (mail-mode-map): Bind C-c C-i to
+	mail-insert-file, not its obsolete alias mail-attach-file.
+
 2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el (notifications-notify): Fix docstring.
