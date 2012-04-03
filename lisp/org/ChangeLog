@@ -1,3 +1,9 @@
+2012-04-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-todo): Fix regression: rename `state' to
+	`org-state'.
+	(org-use-effective-time): Fix group and type.
+
 2012-04-02  Bastien Guerry  <bzg@gnu.org>
 
 	* org-clock.el (org-clock-out-if-current): Fix regression: rename

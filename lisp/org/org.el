@@ -2816,8 +2816,8 @@ be the favorite working time of John Wiegley :-)"
 For example, if `org-extend-today-until' is 8, and it's 4am, then the
 \"effective time\" of any timestamps between midnight and 8am will be
 23:59 of the previous day."
-  :group 'boolean
-  :type 'integer)
+  :group 'org-time
+  :type 'boolean)
 
 (defcustom org-edit-timestamp-down-means-later nil
   "Non-nil means S-down will increase the time in a time stamp.
@@ -11380,7 +11380,7 @@ For calling through lisp, arg is also interpreted in the following way:
 		;; It is now done, and it was not done before
 		(org-add-planning-info 'closed (org-current-effective-time))
 		(if (and (not dolog) (eq 'note org-log-done))
-		    (org-add-log-setup 'done state this 'findpos 'note)))
+		    (org-add-log-setup 'done org-state this 'findpos 'note)))
 	      (when (and org-state dolog)
 		;; This is a non-nil state, and we need to log it
 		(org-add-log-setup 'state org-state this 'findpos dolog)))
