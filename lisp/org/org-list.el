@@ -215,6 +215,7 @@ Both uppercase and lowercase are handled.  Lists with more than
 26 items will fallback to standard numbering.  Alphabetical
 counters like \"[@c]\" will be recognized."
   :group 'org-plain-lists
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-list-two-spaces-after-bullet-regexp nil
@@ -258,6 +259,7 @@ indent    when non-nil, indenting or outdenting list top-item
           outdenting a list whose bullet is * to column 0 will
           change that bullet to \"-\"."
    :group 'org-plain-lists
+   :version "24.1"
    :type '(alist :tag "Sets of rules"
 		 :key-type
 		 (choice
@@ -277,6 +279,7 @@ This affects the behavior of \\[org-move-item-up],
  \\[org-move-item-down], \\[org-next-item] and
  \\[org-previous-item]."
   :group 'org-plain-lists
+  :version "24.1"
   :type 'boolean)
 
 (defvar org-checkbox-statistics-hook nil
@@ -306,6 +309,7 @@ When the indentation would be larger than this, it will become
 By setting this to a small number, usually 1 or 2, one can more
 clearly distinguish sub-items in a list."
   :group 'org-plain-lists
+  :version "24.1"
   :type 'integer)
 
 (defcustom org-list-radio-list-templates

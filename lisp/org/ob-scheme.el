@@ -54,6 +54,7 @@
 (defcustom org-babel-scheme-cmd "guile"
   "Name of command used to evaluate scheme blocks."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 (defun org-babel-expand-body:scheme (body params)

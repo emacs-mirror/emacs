@@ -216,12 +216,14 @@
 (defcustom org-bibtex-autogen-keys nil
   "Set to a truth value to use `bibtex-generate-autokey' to generate keys."
   :group 'org-bibtex
+  :version "24.1"
   :type  'boolean)
 
 (defcustom org-bibtex-prefix nil
   "Optional prefix for all bibtex property names.
 For example setting to 'BIB_' would allow interoperability with fireforg."
   :group 'org-bibtex
+  :version "24.1"
   :type  'string)
 
 (defcustom org-bibtex-treat-headline-as-title t
@@ -230,6 +232,7 @@ If an entry is missing a title property, use the headline text as
 the property. If this value is t, `org-bibtex-check' will ignore
 a missing title field."
   :group 'org-bibtex
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-bibtex-export-arbitrary-fields nil
@@ -238,6 +241,7 @@ This only has effect if `org-bibtex-prefix' is defined, so as to
 ensure that other org-properties, such as CATEGORY or LOGGING are
 not placed in the exported bibtex entry."
   :group 'org-bibtex
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-bibtex-key-property "CUSTOM_ID"
@@ -247,11 +251,13 @@ bibtex headlines from within an org file. This can be set to ID
 to enable global links, but only with great caution, as global
 IDs must be unique."
   :group 'org-bibtex
+  :version "24.1"
   :type 'string)
 
 (defcustom org-bibtex-tags nil
   "List of tag(s) that should be added to new bib entries."
   :group 'org-bibtex
+  :version "24.1"
   :type '(repeat  :tag "Tag" (string)))
 
 (defcustom org-bibtex-tags-are-keywords nil
@@ -266,17 +272,20 @@ comma-separated string of keywords when exported to bibtex. Tags
 defined in `org-bibtex-tags' or `org-bibtex-no-export-tags' will
 not be exported."
   :group 'org-bibtex
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-bibtex-no-export-tags nil
   "List of tag(s) that should not be converted to keywords.
 This variable is relevant only if `org-bibtex-export-tags-as-keywords` is t."
   :group 'org-bibtex
+  :version "24.1"
   :type '(repeat :tag "Tag" (string)))
 
 (defcustom org-bibtex-type-property-name "btype"
   "Property in which to store bibtex entry type (e.g., article)."
   :group 'org-bibtex
+  :version "24.1"
   :type 'string)
 
 

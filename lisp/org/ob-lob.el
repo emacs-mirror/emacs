@@ -39,6 +39,7 @@ files to `org-babel-lob-files'.")
   "Files used to populate the `org-babel-library-of-babel'.
 To add files to this list use the `org-babel-lob-ingest' command."
   :group 'org-babel
+  :version "24.1"
   :type 'list)
 
 (defvar org-babel-default-lob-header-args '((:exports . "results"))

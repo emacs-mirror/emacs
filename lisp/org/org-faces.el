@@ -351,6 +351,7 @@ keywords will then be interpreted as either foreground or background
 color."
   :group 'org-faces
   :group 'org-todo
+  :version "24.1"
   :type '(repeat
 	  (cons (choice (const todo) (const tag) (const priority))
 		(choice (const :foreground) (const :background)))))
@@ -547,6 +548,7 @@ follows a #+DATE:, #+AUTHOR: or #+EMAIL: keyword."
 When nil, format these as normal Org.  This is the default, because the
 content of these blocks will still be treated as Org syntax."
   :group 'org-faces
+  :version "24.1"
   :type 'boolean)
 
 (defface org-clock-overlay ;; copied from secondary-selection
@@ -732,6 +734,7 @@ If nil, then all levels >=org-n-level-faces are styled like
 level org-n-level-faces"
  :group 'org-appearance
  :group 'org-faces
+ :version "24.1"
  :type 'boolean)
 
 (defface org-latex-and-export-specials

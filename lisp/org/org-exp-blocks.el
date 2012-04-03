@@ -136,6 +136,7 @@ export function should accept three arguments."
 (defcustom org-export-blocks-postblock-hook nil
   "Run after blocks have been processed with `org-export-blocks-preprocess'."
   :group 'org-export-general
+  :version "24.1"
   :type 'hook)
 
 (defun org-export-blocks-html-quote (body &optional open close)

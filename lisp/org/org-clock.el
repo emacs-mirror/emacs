@@ -226,6 +226,7 @@ should get a different face (`org-mode-line-clock-overrun').
 When this is a string, it is prepended to the clock string as an indication,
 also using the face `org-mode-line-clock-overrun'."
   :group 'org-clock
+  :version "24.1"
   :type '(choice
 	  (const :tag "Just mark the time string" nil)
 	  (string :tag "Text to prepend")))
@@ -267,12 +268,14 @@ string as argument."
     :formatter nil)
   "Default properties for clock tables."
   :group 'org-clock
+  :version "24.1"
   :type 'plist)
 
 (defcustom org-clock-clocktable-formatter 'org-clocktable-write-default
   "Function to turn clocking data into a table.
 For more information, see `org-clocktable-write-default'."
   :group 'org-clocktable
+  :version "24.1"
   :type 'function)
 
 ;; FIXME: translate es and nl last string "Clock summary at"
@@ -283,6 +286,7 @@ For more information, see `org-clocktable-write-default'."
     ("nl" "Bestand"  "N"  "Tijdstip"   "Hoofding" "Duur"  "ALLES" "Totale duur"  "Bestandstijd" "Clock summary at"))
   "Terms used in clocktable, translated to different languages."
   :group 'org-clocktable
+  :version "24.1"
   :type 'alist)
 
 (defcustom org-clock-clocktable-default-properties '(:maxlevel 2 :scope file)
@@ -310,11 +314,13 @@ play with them."
 (defcustom org-clock-report-include-clocking-task nil
   "When non-nil, include the current clocking task time in clock reports."
   :group 'org-clock
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-clock-resolve-expert nil
   "Non-nil means do not show the splash buffer with the clock resolver."
   :group 'org-clock
+  :version "24.1"
   :type 'boolean)
 
 (defvar org-clock-in-prepare-hook nil

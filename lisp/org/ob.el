@@ -105,6 +105,7 @@ against accidental code block evaluation.  The
 `org-babel-no-eval-on-ctrl-c-ctrl-c' variable can be used to
 remove code block execution from the C-c C-c keybinding."
     :group 'org-babel
+    :version "24.1"
     :type '(choice boolean function))
 ;; don't allow this variable to be changed through file settings
 (put 'org-confirm-babel-evaluate 'safe-local-variable (lambda (x) (eq x t)))
@@ -112,6 +113,7 @@ remove code block execution from the C-c C-c keybinding."
 (defcustom org-babel-no-eval-on-ctrl-c-ctrl-c nil
   "Remove code block evaluation from the C-c C-c key binding."
   :group 'org-babel
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-babel-results-keyword "RESULTS"

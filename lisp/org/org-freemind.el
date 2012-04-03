@@ -414,6 +414,7 @@ MATCHED is the link just matched."
   ;; with this setting now, but not before??? Was this perhaps a java
   ;; bug or is it a windows xp bug (some resource gets exhausted if you
   ;; use sticky keys which I do).
+  :version "24.1"
   :group 'org-freemind)
 
 (defun org-freemind-org-text-to-freemind-subnode/note (node-name start end drawers-regexp)

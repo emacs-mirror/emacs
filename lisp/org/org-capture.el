@@ -262,6 +262,7 @@ w3, w3m                 |  %:type %:url
 info                    |  %:type %:file %:node
 calendar                |  %:type %:date"
   :group 'org-capture
+  :version "24.1"
   :type
   '(repeat
     (choice :value ("" "" entry (file "~/org/notes.org") "")
@@ -336,12 +337,14 @@ calendar                |  %:type %:date"
 The capture buffer is still current when this hook runs and it is
 widened to the entire buffer."
   :group 'org-capture
+  :version "24.1"
   :type 'hook)
 
 (defcustom org-capture-after-finalize-hook nil
   "Hook that is run right after a capture process is finalized.
   Suitable for window cleanup"
   :group 'org-capture
+  :version "24.1"
   :type 'hook)
 
 ;;; The property list for keeping information about the capture process

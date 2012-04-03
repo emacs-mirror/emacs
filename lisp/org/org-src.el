@@ -761,6 +761,7 @@ Org-babel commands."
   "If non-nil, the effect of TAB in a code block is as if it were
 issued in the language major mode buffer."
   :type 'boolean
+  :version "24.1"
   :group 'org-babel)
 
 (defun org-src-native-tab-command-maybe ()

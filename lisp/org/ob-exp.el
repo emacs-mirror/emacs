@@ -43,6 +43,7 @@
 When set to nil no code will be evaluated as part of the export
 process."
   :group 'org-babel
+  :version "24.1"
   :type 'boolean)
 (put 'org-export-babel-evaluate 'safe-local-variable (lambda (x) (eq x nil)))
 

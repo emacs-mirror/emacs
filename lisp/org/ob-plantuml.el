@@ -44,6 +44,7 @@
 (defcustom org-plantuml-jar-path nil
   "Path to the plantuml.jar file."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 (defun org-babel-execute:plantuml (body params)

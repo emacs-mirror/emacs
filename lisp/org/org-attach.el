@@ -101,6 +101,7 @@ ln    create a hard link.  Note that this is not supported
 (defcustom org-attach-store-link-p nil
   "Non-nil means store a link to a file when attaching it."
   :group 'org-attach
+  :version "24.1"
   :type '(choice
 	  (const :tag "Don't store link" nil)
 	  (const :tag "Link to origin location" t)

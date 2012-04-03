@@ -70,11 +70,13 @@ relative to the current effective date."
 (defcustom org-habit-today-glyph ?!
   "Glyph character used to identify today."
   :group 'org-habit
+  :version "24.1"
   :type 'character)
 
 (defcustom org-habit-completed-glyph ?*
   "Glyph character used to show completed days on which a task was done."
   :group 'org-habit
+  :version "24.1"
   :type 'character)
 
 (defface org-habit-clear-face
