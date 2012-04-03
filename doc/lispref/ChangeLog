@@ -1,3 +1,13 @@
+2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* os.texi (Terminal-Specific): Fix typo.
+	(Notifications): New section.
+
+	* elisp.texi (Top):
+	* vol1.texi (Top):
+	* vol2.texi (Top): Add "Notifications" and "Dynamic Libraries"
+	menu entries.
+
 2012-04-01  Chong Yidong  <cyd@gnu.org>
 
 	* files.texi (Kinds of Files): file-subdir-of-p renamed to
