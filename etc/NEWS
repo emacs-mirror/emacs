@@ -653,17 +653,21 @@ choose a color via `list-colors-display'.
 
 ** D-Bus
 
++++
 *** It is now possible to access buses other than the default system
 or session bus.
 
++++
 *** The `dbus-register-method' and `dbus-register-property' functions
 optionally do not register names.
 
++++
 *** The new function `dbus-register-service' registers a known service
 name on a D-Bus without simultaneously registering a property or a
 method.
 
 ** Dired-x
+
 ---
 *** C-x C-j (`dired-jump') and C-x 4 C-j (`dired-jump-other-window'),
 if called with a prefix argument, read a file name from the minibuffer
