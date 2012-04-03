@@ -185,10 +185,13 @@ Various PARAMS can be set:
                    - `dismissed' if the notification was dismissed by the user
                    - `close-notification' if the notification was closed
                      by a call to CloseNotification
+                   - `undefined' if the notification server hasn't provided
+                     a reason
 
 This function returns a notification id, an integer, which can be
 used to manipulate the notification item with
-`notifications-close-notification'."
+`notifications-close-notification' or the `:replaces-id' argument
+of another `notifications-notify' call."
   (let ((title (plist-get params :title))
         (body (plist-get params :body))
         (app-name (plist-get params :app-name))

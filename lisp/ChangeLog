@@ -1,3 +1,7 @@
+2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-notify): Fix docstring.
+
 2012-04-02  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Another addition.
