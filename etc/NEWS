@@ -720,7 +720,7 @@ choose a color via list-colors-display.
 *** It is now possible to access buses other than the default system
 or session bus.
 
-*** The dbus-register-method and dbus-register-property functions 
+*** The dbus-register-method and dbus-register-property functions
 optionally do not register names.
 
 *** The new function dbus-register-service registers a known service name
@@ -1025,9 +1025,11 @@ Secret Service API requires D-Bus for communication.  The command
 `secrets-show-secrets' offers a buffer with a visualization of the
 secrets.
 
++++
 ** notifications.el provides an implementation of the Desktop
 Notifications API.  It requires D-Bus for communication.
 
+---
 ** soap-client.el supports access to SOAP web services from Emacs.
 soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
