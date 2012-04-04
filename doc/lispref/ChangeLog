@@ -1,5 +1,11 @@
 2012-04-04  Chong Yidong  <cyd@gnu.org>
 
+	* minibuf.texi (Programmed Completion): Remove obsolete variable
+	completion-annotate-function.
+	(Completion Variables): Rename from Completion Styles.  Document
+	completion-extra-properties.  Document completion-styles-alist
+	change.
+
 	* display.texi (Delayed Warnings): New node.
 
 	* os.texi (Notifications): Copyedits.

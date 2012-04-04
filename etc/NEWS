@@ -1329,6 +1329,7 @@ properties of the current completion:
 *** Functions on `completion-at-point-functions' can return any of the
 properties valid for `completion-extra-properties'.
 
++++
 *** `completion-annotate-function' is obsolete.
 
 *** New `metadata' method for completion tables.  The metadata thus returned

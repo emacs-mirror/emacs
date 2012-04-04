@@ -1,5 +1,7 @@
 2012-04-04  Chong Yidong  <cyd@gnu.org>
 
+	* minibuffer.el (completion-extra-properties): Doc fix.
+
 	* subr.el (delayed-warnings-hook): Doc fix.
 
 2012-04-04  Daiki Ueno  <ueno@unixuser.org>
