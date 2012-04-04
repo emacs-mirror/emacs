@@ -1,3 +1,9 @@
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* glossary.texi (Glossary): Copyedits.
+	Use Texinfo-recommended convention for quotes and punctuation.
+	Comment out a few specialized (Rmail) items.
+
 2012-04-03  Chong Yidong  <cyd@gnu.org>
 
 	* sending.texi (Mail Misc): Fix an index entry.

@@ -7,7 +7,7 @@
 
 @table @asis
 @item Abbrev
-An abbrev is a text string which expands into a different text string
+An abbrev is a text string that expands into a different text string
 when present in the buffer.  For example, you might define a few letters
 as an abbrev for a long phrase that you want to insert frequently.
 @xref{Abbrevs}.
@@ -26,7 +26,7 @@ key labeled @key{ALT} that is really a @key{META} key.)  @xref{User
 Input, Alt}.
 
 @item Argument
-See `numeric argument.'
+See `numeric argument'.
 
 @item @acronym{ASCII} character
 An @acronym{ASCII} character is either an @acronym{ASCII} control
@@ -38,7 +38,7 @@ letter, or the Control version of one of the characters @samp{@@[\]^_?}.
 
 @item @acronym{ASCII} printing character
 @acronym{ASCII} printing characters include letters, digits, space, and these
-punctuation characters: @samp{!@@#$%^& *()_-+=|\~` @{@}[]:;"' <>,.?/}.
+punctuation characters: @samp{!@@#$%^&*()_-+=|\~`@{@}[]:;"'<>,.?/}.
 
 @item Auto Fill Mode
 Auto Fill mode is a minor mode (q.v.@:) in which text that you insert is
@@ -53,7 +53,7 @@ be preserved if the buffer is lost due to a system error or user error.
 
 @item Autoloading
 Emacs can automatically load Lisp libraries when a Lisp program requests a
-function from those libraries.  This is called `autoloading.'
+function from those libraries.  This is called `autoloading'.
 @xref{Lisp Libraries}.
 
 @item Backtrace
@@ -72,8 +72,8 @@ Emacs can balance parentheses (or other matching delimiters) either
 manually or automatically.  You do manual balancing with the commands
 to move over parenthetical groupings (@pxref{Moving by Parens}).
 Automatic balancing works by blinking or highlighting the delimiter
-that matches the one you just inserted (@pxref{Matching,,Matching
-Parens}).
+that matches the one you just inserted, or inserting the matching
+delimiter for you (@pxref{Matching,,Matching Parens}).
 
 @item Balanced Expressions
 A balanced expression is a syntactically recognizable expression, such
@@ -81,7 +81,7 @@ as a symbol, number, string constant, block, or parenthesized expression
 in C.  @xref{Expressions,Balanced Expressions}.
 
 @item Balloon Help
-See `tooltips.'
+See `tooltips'.
 
 @item Base Buffer
 A base buffer is a buffer whose text is shared by an indirect buffer
@@ -100,12 +100,12 @@ all key sequences are recorded in the keymaps (q.v.@:).  @xref{Keymaps}.
 
 @item Blank Lines
 Blank lines are lines that contain only whitespace.  Emacs has several
-commands for operating on the blank lines in the buffer.
+commands for operating on the blank lines in the buffer.  @xref{Blank Lines}.
 
 @item Bookmark
 Bookmarks are akin to registers (q.v.@:) in that they record positions
 in buffers to which you can return later.  Unlike registers, bookmarks
-persist between Emacs sessions.
+persist between Emacs sessions.  @xref{Bookmarks}.
 
 @item Border
 A border is a thin space along the edge of the frame, used just for
@@ -118,13 +118,13 @@ X}).  Borders are not the same as fringes (q.v.@:).
 
 @item Buffer
 The buffer is the basic editing unit; one buffer corresponds to one text
-being edited.  You can have several buffers, but at any time you are
-editing only one, the `current buffer,' though several can be visible
+being edited.  You normally have several buffers, but at any time you are
+editing only one, the `current buffer', though several can be visible
 when you are using multiple windows or frames (q.v.@:).  Most buffers
 are visiting (q.v.@:) some file.  @xref{Buffers}.
 
 @item Buffer Selection History
-Emacs keeps a buffer selection history which records how recently each
+Emacs keeps a buffer selection history that records how recently each
 Emacs buffer has been selected.  This is used for choosing a buffer to
 select.  @xref{Buffers}.
 
@@ -139,10 +139,10 @@ A button down event is the kind of input event (q.v.@:) generated
 right away when you press down on a mouse button.  @xref{Mouse Buttons}.
 
 @item By Default
-See `default.'
+See `default'.
 
 @item Byte Compilation
-See `compilation.'
+See `compilation'.
 
 @item @kbd{C-}
 @kbd{C-} in the name of a character is an abbreviation for Control.
@@ -156,7 +156,7 @@ corresponding Control character.  @xref{User Input,C-M-}.
 
 @item Case Conversion
 Case conversion means changing text from upper case to lower case or
-vice versa.  @xref{Case}, for the commands for case conversion.
+vice versa.  @xref{Case}.
 
 @item Character
 Characters form the contents of an Emacs buffer.  Also, key sequences
@@ -168,7 +168,7 @@ Emacs supports a number of character sets, each of which represents a
 particular alphabet or script.  @xref{International}.
 
 @item Character Terminal
-See `text-only terminal.'
+See `text-only terminal'.
 
 @item Click Event
 A click event is the kind of input event (q.v.@:) generated when you
@@ -195,10 +195,10 @@ binding (q.v.@:) is looked up in the relevant keymaps (q.v.@:) to find
 the command to run.  @xref{Commands}.
 
 @item Command History
-See `minibuffer history.'
+See `minibuffer history'.
 
 @item Command Name
-A command name is the name of a Lisp symbol which is a command
+A command name is the name of a Lisp symbol that is a command
 (@pxref{Commands}).  You can invoke any command by its name using
 @kbd{M-x} (@pxref{M-x,M-x,Running Commands by Name}).
 
@@ -221,7 +221,7 @@ Reference Manual}) and programs in C and other languages
 (@pxref{Compilation}).
 
 @item Complete Key
-A complete key is a key sequence which fully specifies one action to be
+A complete key is a key sequence that fully specifies one action to be
 performed by Emacs.  For example, @kbd{X} and @kbd{C-f} and @kbd{C-x m}
 are complete keys.  Complete keys derive their meanings from being bound
 (q.v.@:) to commands (q.v.@:).  Thus, @kbd{X} is conventionally bound to
@@ -264,7 +264,7 @@ GNU General Public License.  @xref{Copying}.
 
 @item @key{CTRL}
 The @key{CTRL} or ``control'' key is what you hold down
-in order to enter a control character (q.v.).  See also `@kbd{C-}.'
+in order to enter a control character (q.v.).  See also `@kbd{C-}'.
 
 @item Current Buffer
 The current buffer in Emacs is the Emacs buffer on which most editing
@@ -289,7 +289,7 @@ The cursor is the rectangle on the screen which indicates the position
 (called point; q.v.@:) at which insertion and deletion takes place.
 The cursor is on or under the character that follows point.  Often
 people speak of `the cursor' when, strictly speaking, they mean
-`point.'  @xref{Point,Cursor}.
+`point'.  @xref{Point,Cursor}.
 
 @item Customization
 Customization is making minor changes in the way Emacs works, to
@@ -299,7 +299,7 @@ or by rebinding key sequences (@pxref{Keymaps}).
 
 @cindex cut and paste
 @item Cut and Paste
-See `killing' and `yanking.'
+See `killing' and `yanking'.
 
 @item Daemon
 A daemon is a standard term for a system-level process that runs in the
@@ -315,13 +315,13 @@ the default argument is used if you just type @key{RET}.
 @xref{Minibuffer}.
 
 @item Default
-A default is the value that is used for a certain purpose if and when
-you do not specify a value to use.
+A default is the value that is used for a certain purpose when
+you do not explicitly specify a value to use.
 
 @item Default Directory
 When you specify a file name that does not start with @samp{/} or @samp{~},
 it is interpreted relative to the current buffer's default directory.
-(On MS-Windows and MS-DOS, file names which start with a drive letter
+(On MS systems, file names that start with a drive letter
 @samp{@var{x}:} are treated as absolute, not relative.)
 @xref{Minibuffer File,Default Directory}.
 
@@ -361,11 +361,11 @@ old if you wish.  @xref{Windows}.
 @item Directory
 File directories are named collections in the file system, within which
 you can place individual files or subdirectories.  They are sometimes
-referred to as ``folders.''  @xref{Directories}.
+referred to as ``folders''.  @xref{Directories}.
 
 @item Dired
 Dired is the Emacs facility that displays the contents of a file
-directory and allows you to ``edit the directory,'' performing
+directory and allows you to ``edit the directory'', performing
 operations on the files in the directory.  @xref{Dired}.
 
 @item Disabled Command
@@ -421,7 +421,7 @@ variables in the environment it passes to programs it invokes.
 @xref{Environment}.
 
 @item EOL
-See `end of line.'
+See `end of line'.
 
 @item Error
 An error occurs when an Emacs command cannot execute in the current
@@ -446,7 +446,7 @@ typed), you press the @key{ESC} key as you would press a letter key, and
 it applies to the next character you type.
 
 @item Expression
-See `balanced expression.'
+See `balanced expression'.
 
 @item Expunging
 Expunging an Rmail, Gnus newsgroup, or Dired buffer is an operation
@@ -496,7 +496,7 @@ text to be filled.  @xref{Filling}.
 Filling text means adjusting the position of line-breaks to shift text
 between consecutive lines, so that all the lines are approximately the
 same length.  @xref{Filling}.  Some other editors call this feature
-`line wrapping.'
+`line wrapping'.
 
 @item Font Lock
 Font Lock is a mode that highlights parts of buffer text in different
@@ -510,7 +510,7 @@ make it easy to change several fonts at once by specifying the name of a
 fontset, rather than changing each font separately.  @xref{Fontsets}.
 
 @item Formfeed Character
-See `page.'
+See `page'.
 
 @item Frame
 A frame is a rectangular cluster of Emacs windows.  Emacs starts out
@@ -539,7 +539,7 @@ the buffer text (@pxref{Fringes}).  Emacs displays the fringe using a
 special face (q.v.@:) called @code{fringe}.  @xref{Faces,fringe}.
 
 @item FSF
-See `Free Software Foundation.'
+See `Free Software Foundation'.
 
 @item FTP
 FTP is an acronym for File Transfer Protocol.  This is one standard
@@ -551,7 +551,7 @@ correspond to any character.  @xref{Function Keys}.
 
 @item Global
 Global means ``independent of the current environment; in effect
-throughout Emacs.''  It is the opposite of local (q.v.@:).  Particular
+throughout Emacs''.  It is the opposite of local (q.v.@:).  Particular
 examples of the use of `global' appear below.
 
 @item Global Abbrev
@@ -605,7 +605,7 @@ buffer.
 
 Emacs uses highlighting in several ways.  It highlights the region
 whenever it is active (@pxref{Mark}).  Incremental search also
-highlights matches (@pxref{Incremental Search}).  See also `font lock.'
+highlights matches (@pxref{Incremental Search}).  See also `font lock'.
 
 @item Hardcopy
 Hardcopy means printed output.  Emacs has various commands for
@@ -644,7 +644,7 @@ have.  To make a character Hyper, type it while holding down the
 @kbd{Hyper-} (usually written @kbd{H-} for short).  @xref{User Input}.
 
 @item Iff
-``Iff'' means ``if and only if.''  This terminology comes from
+``Iff'' means ``if and only if''.  This terminology comes from
 mathematics.  Try to avoid using this term in documentation, since
 many are unfamiliar with it and mistake it for a typo.
 
@@ -694,14 +694,14 @@ that someone else is already editing.
 @xref{Interlocking,Interlocking,Simultaneous Editing}.
 
 @item Isearch
-See `incremental search.'
+See `incremental search'.
 
 @item Justification
 Justification means adding extra spaces within lines of text in order
 to adjust the position of the text edges.  @xref{Fill Commands}.
 
 @item Key Binding
-See `binding.'
+See `binding'.
 
 @item Keyboard Macro
 Keyboard macros are a way of defining new Emacs commands from
@@ -713,8 +713,8 @@ play them back as many times as you like.
 @cindex keyboard shortcuts
 @item Keyboard Shortcut
 A keyboard shortcut is a key sequence (q.v.@:) which invokes a
-command.  What some programs call ``assigning a keyboard shortcut,''
-Emacs calls ``binding a key sequence.''  See `binding.'
+command.  What some programs call ``assigning a keyboard shortcut'',
+Emacs calls ``binding a key sequence''.  See `binding'.
 
 @item Key Sequence
 A key sequence (key, for short) is a sequence of input events (q.v.@:)
@@ -740,7 +740,7 @@ called yanking (q.v.@:).  @xref{Yanking}.
 
 @item Killing
 Killing means erasing text and saving it on the kill ring so it can be
-yanked (q.v.@:) later.  Some other systems call this ``cutting.''
+yanked (q.v.@:) later.  Some other systems call this ``cutting''.
 Most Emacs commands that erase text perform killing, as opposed to
 deletion (q.v.@:).  @xref{Killing}.
 
@@ -756,7 +756,7 @@ Environments}.  These defaults are relevant if you edit
 non-@acronym{ASCII} text (@pxref{International}).
 
 @item Line Wrapping
-See `filling.'
+See `filling'.
 
 @item Lisp
 Lisp is a programming language.  Most of Emacs is written in a dialect
@@ -844,7 +844,7 @@ words you can click on with the mouse to bring up menus, or you can use
 a keyboard interface to navigate it.  @xref{Menu Bars}.
 
 @item Message
-See `mail.'
+See `mail'.
 
 @item Meta
 Meta is the name of a modifier bit which you can use in a command
@@ -924,13 +924,13 @@ all.  @xref{Narrowing}.
 
 @item Newline
 Control-J characters in the buffer terminate lines of text and are
-therefore also called newlines.  See `End of Line.'
+therefore also called newlines.  See `End of Line'.
 
 @cindex nil
 @cindex t
 @item @code{nil}
-@code{nil} is a value usually interpreted as a logical ``false.''  Its
-opposite is @code{t}, interpreted as ``true.''
+@code{nil} is a value usually interpreted as a logical ``false''.  Its
+opposite is @code{t}, interpreted as ``true''.
 
 @item Numeric Argument
 A numeric argument is a number, specified before a command, to change
@@ -965,7 +965,7 @@ character.  The terminal's cursor (q.v.@:) indicates the location of
 point.  @xref{Point}.
 
 @item Prefix Argument
-See `numeric argument.'
+See `numeric argument'.
 
 @item Prefix Key
 A prefix key is a key sequence (q.v.@:) whose sole function is to
@@ -973,10 +973,13 @@ introduce a set of longer key sequences.  @kbd{C-x} is an example of
 prefix key; any two-character sequence starting with @kbd{C-x} is
 therefore a legitimate key sequence.  @xref{Keys}.
 
+@c I don't think this kind of thing needs to be here.
+@ignore
 @item Primary Rmail File
 Your primary Rmail file is the file named @samp{RMAIL} in your home
 directory.  That's where Rmail stores your incoming mail, unless you
 specify a different file name.  @xref{Rmail}.
+@end ignore
 
 @item Primary Selection
 The primary selection is one particular X selection (q.v.@:); it is the
@@ -1042,7 +1045,7 @@ correspond to changes that have been made in the text being edited.
 @xref{Screen,Redisplay}.
 
 @item Regexp
-See `regular expression.'
+See `regular expression'.
 
 @item Region
 The region is the text between point (q.v.@:) and the mark (q.v.@:).
@@ -1066,10 +1069,10 @@ you have a supported method to gain access to those files.
 @xref{Remote Files}.
 
 @item Repeat Count
-See `numeric argument.'
+See `numeric argument'.
 
 @item Replacement
-See `global substitution.'
+See `global substitution'.
 
 @item Restriction
 A buffer's restriction is the amount of text, at the beginning or the
@@ -1086,9 +1089,13 @@ read in the minibuffer (q.v.@:).  @xref{User Input,Return}.
 Reverting means returning to the original state.  Emacs lets you
 revert a buffer by re-reading its file from disk.  @xref{Reverting}.
 
+@c Seems too obvious, also there is nothing special about the format
+@c these days.
+@ignore
 @item Rmail File
 An Rmail file is a file containing text in the format used by
 Rmail for storing mail.  @xref{Rmail}.
+@end ignore
 
 @item Saving
 Saving a buffer means copying its text into the file that was visited
@@ -1198,10 +1205,10 @@ inside the string; however, backslash sequences as in C, such as
 allowed as well.
 
 @item String Substitution
-See `global substitution.'
+See `global substitution'.
 
 @item Syntax Highlighting
-See `font lock.'
+See `font lock'.
 
 @item Syntax Table
 The syntax table tells Emacs which characters are part of a word,
@@ -1287,11 +1294,11 @@ two adjacent characters, words, balanced expressions (q.v.@:) or lines
 @item Truncation
 Truncating text lines in the display means leaving out any text on a
 line that does not fit within the right margin of the window
-displaying it.  See also `continuation line.'
+displaying it.  See also `continuation line'.
 @xref{Continuation Lines,Truncation}.
 
 @item TTY
-See `text-only terminal.'
+See `text-only terminal'.
 
 @item Undoing
 Undoing means making your previous editing go in reverse, bringing
@@ -1350,7 +1357,7 @@ have their] own windows at the same time.  All modern operating systems
 include a window system.
 
 @item Word Abbrev
-See `abbrev.'
+See `abbrev'.
 
 @item Word Search
 Word search is searching for a sequence of words, considering the
@@ -1359,5 +1366,5 @@ punctuation between them as insignificant.  @xref{Word Search}.
 @item Yanking
 Yanking means reinserting text previously killed (q.v.@:).  It can be
 used to undo a mistaken kill, or for copying or moving text.  Some
-other systems call this ``pasting.''  @xref{Yanking}.
+other systems call this ``pasting''.  @xref{Yanking}.
 @end table
