@@ -1,3 +1,7 @@
+2012-04-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth.texi (Secret Service API): Add the missing text.
+
 2012-04-04  Chong Yidong  <cyd@gnu.org>
 
 	* message.texi (Using PGP/MIME): Note that epg is now the default.

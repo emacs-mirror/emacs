@@ -227,7 +227,135 @@ necessary if you have an unusual (see earlier comment on those) setup.
 @node Secret Service API
 @chapter Secret Service API
 
-TODO: how does it work generally, how does secrets.el work, some examples.
+The @dfn{Secret Service API} is a standard from
+@uref{http://www.freedesktop.org/wiki/Specifications/secret-storage-spec,,freedesktop.org}
+to securely store passwords and other confidential information.
+Implementations of compliant daemons are the GNOME Keyring and the KDE
+Wallet.
+
+Although the usage of the client library secrets.el is hidden in Emacs
+via the auth-source library, its functionality can be used also
+directly in other packages.
+
+@defvar secrets-enabled
+After loading @file{secrets.el}, a non-@code{nil} value of this
+variable indicates the existence of a daemon providing the Secret
+Service API.
+@end defvar
+
+@deffn Command secrets-show-secrets
+All collections, items, and their attributes are inspected by this command.
+@end deffn
+
+The atomic objects to be managed by the Secret Service API are
+@dfn{secret items}, which are something an application wishes to store
+securely.  A good example is a password that an application needs to
+save and use at a later date.
+
+Secret items are grouped in @dfn{collections}.  A collection is
+similar in concept to the terms @samp{keyring} or @samp{wallet}.  A
+common collection is called @samp{"login"}.  A collection is stored
+permanently under the user's permissions, and can be accessed in a
+user session context.
+
+A collection can have an alias name.  The use case for this is to
+set the alias @samp{"default"} for a given collection, making it
+transparent for clients, which collection is used.  Other aliases
+are not supported (yet).  Since an alias is visible to all
+applications, this setting shall be performed with care.
+
+@defun secrets-list-collections
+This function returns a list of collection names.
+@end defun
+
+@defun secrets-set-alias collection alias
+Set @var{alias} as alias of collection labeled @var{collection}.
+For the time being, only the alias @samp{"default"} is supported.
+@end defun
+
+@defun secrets-get-alias alias
+Return the collection name @var{alias} is referencing to.
+For the time being, only the alias @samp{"default"} is supported.
+@end defun
+
+Collections can be created and deleted by the functions
+@code{secrets-create-collection} and @code{secrets-delete-collection}.
+Usually, this is not applied from within Emacs.  Common collections,
+like @samp{"login"}, shall never be deleted.
+
+There exists a special collection called @samp{"session"}, which has
+the lifetime of the corresponding client session (aka Emacs's
+lifetime).  It is created automatically when Emacs uses the Secret
+Service interface, and it is deleted when Emacs is killed.  Therefore,
+it can be used to store and retrieve secret items temporarily.  This
+shall be preferred over creation of a persistent collection, when the
+information shall not live longer than Emacs.  The session collection
+can be addressed either by the string @samp{"session"}, or by
+@code{nil}, whenever a collection parameter is needed in the following
+functions.
+
+As already said, a collection is a group of secret items.  A secret
+item has a label, the @dfn{secret} (which is a string), and a set of
+lookup attributes.  The attributes can be used to search and retrieve
+a secret item at a later date.
+
+@defun secrets-list-items collection
+Returns a list of all item labels of @var{collection}.
+@end defun
+
+@defun secrets-create-item collection item password &rest attributes
+This function creates a new item in @var{collection} with label
+@var{item} and password @var{PASSWORD}.  @var{attributes} are
+key-value pairs set for the created item.  The keys are keyword
+symbols, starting with a colon.  Example:
+
+@example
+(secrets-create-item "session" "my item" "geheim"
+ :method "sudo" :user "joe" :host "remote-host")
+@end example
+@end defun
+
+@defun secrets-get-secret collection item
+Return the secret of item labeled @var{item} in @var{collection}.
+If there is no such item, return @code{nil}.
+@end defun
+
+@defun secrets-delete-item collection item
+This function deletes item @var{item} in @var{collection}.
+@end defun
+
+The lookup attributes, which are specified during creation of a
+secret item, must be a key-value pair.  Keys are keyword symbols,
+starting with a colon; values are strings.  They can be retrieved
+from a given secret item, and they can be used for searching of items.
+
+@defun secrets-get-attribute collection item attribute
+Returns the value of key @var{attribute} of item labeled @var{item} in
+@var{collection}.  If there is no such item, or the item doesn't own
+this key, the function returns @code{nil}.
+@end defun
+
+@defun secrets-get-attributes collection item
+Return the lookup attributes of item labeled @var{item} in
+@var{collection}.  If there is no such item, or the item has no
+attributes, it returns @code{nil}.  Example:
+
+@example
+(secrets-get-attributes "session" "my item")
+     @result{} ((:user . "joe") (:host ."remote-host"))
+@end example
+@end defun
+
+@defun secrets-search-items collection &rest attributes
+Searchs items in @var{collection} with @var{attributes}.
+@var{attributes} are key-value pairs, as used in
+@code{secrets-create-item}.  Example:
+
+@example
+(secrets-search-items "session" :user "joe")
+     @result{} ("my item" "another item")
+@end example
+@end defun
 
 @node Help for developers
 @chapter Help for developers
