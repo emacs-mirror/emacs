@@ -1008,6 +1008,7 @@ from which other modes can be derived.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
 
++++
 ** secrets.el is an implementation of the Secret Service API, an
 interface to password managers like GNOME Keyring or KDE Wallet.  The
 Secret Service API requires D-Bus for communication.  The command
