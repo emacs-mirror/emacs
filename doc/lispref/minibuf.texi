@@ -985,6 +985,14 @@ information to the commands that actually do completion.
 They are described in the following section.
 @end defun
 
+@defvar completing-read-function
+The value of this variable must be a function, which is called by
+@code{completing-read} to actually do its work.  It should accept the
+same arguments as @code{completing-read}.  This can be bound to a
+different function to completely override the normal behavior of
+@code{completing-read}.
+@end defvar
+
 @node Completion Commands
 @subsection Minibuffer Commands that Do Completion
 
@@ -1377,11 +1385,7 @@ name.  You must call @code{expand-file-name} yourself if an absolute
 file name is required.
 
 The optional argument @var{require-match} has the same meaning as in
-@code{completing-read}.  @xref{Minibuffer Completion}.  If
-@var{require-match} is @code{nil}, the local keymap in the minibuffer
-is @code{minibuffer-local-filename-completion-map}; otherwise, it is
-@code{minibuffer-local-filename-must-match-map}.  @xref{Completion
-Commands}.
+@code{completing-read}.  @xref{Minibuffer Completion}.
 
 The argument @var{directory} specifies the directory to use for
 completing relative file names.  It should be an absolute directory
@@ -1750,8 +1754,9 @@ that text, in a form suitable for passing as the second argument to
 alternatives will be generated from this completion table in the usual
 way, via the completion styles defined in @code{completion-styles}
 (@pxref{Completion Variables}).  @var{props} is a property list for
-additional information; the following optional properties are
-recognized:
+additional information; any of the properties in
+@code{completion-extra-properties} are recognized (@pxref{Completion
+Variables}), as well as the following additional ones:
 
 @table @code
 @item :predicate

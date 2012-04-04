@@ -5,6 +5,11 @@
 	(Completion Variables): Rename from Completion Styles.  Document
 	completion-extra-properties.  Document completion-styles-alist
 	change.
+	(Reading File Names): minibuffer-local-filename-must-match-map is
+	not used anymore.
+	(Minibuffer Completion): Document completing-read-function.
+	(Completion in Buffers): completion-at-point-functions can return
+	properties recognized in completion-extra-properties.
 
 	* display.texi (Delayed Warnings): New node.
 
