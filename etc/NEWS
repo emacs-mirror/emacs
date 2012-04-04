@@ -95,7 +95,7 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 ** New command line option `--no-site-lisp' removes site-lisp directories
 from load-path.  -Q now implies this.  This option does not affect the
 EMACSLOADPATH environment variable (and hence has no effect for
-Nextstep builds.)
+Nextstep builds).
 
 
 * Changes in Emacs 24.1
