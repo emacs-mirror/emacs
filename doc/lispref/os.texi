@@ -2254,9 +2254,10 @@ Emacs is restarted by the session manager.
 @section Desktop Notifications
 @cindex desktop notifications
 
-Emacs is able to send notifications on systems which support the
+Emacs is able to send @dfn{notifications} on systems that support the
 desktop notification specification of freedesktop.org.  In order to
-use this functionality, the package @code{notifications} must be loaded.
+use this functionality, Emacs must have been compiled with D-Bus
+support, and the @code{notifications} library must be loaded.
 
 @defun notifications-notify &rest params
 This function sends a notification to the desktop via D-Bus.
@@ -2272,7 +2273,7 @@ notification server, the text could contain HTML markups, like
 @samp{"<b>bold text</b>"}, or hyperlinks.
 
 @item :app-name @var{name}
-The name of the application sending the notification. Default is
+The name of the application sending the notification.  The default is
 @code{notifications-application-name}.
 
 @item :replaces-id @var{id}
@@ -2281,7 +2282,7 @@ must be the result of a previous @code{notifications-notify} call.
 
 @item :app-icon @var{icon-file}
 The file name of the notification icon.  If set to @code{nil}, no icon
-is displayed. Default is @code{notifications-application-icon}.
+is displayed.  The default is @code{notifications-application-icon}.
 
 @item :actions (@var{key} @var{title} @var{key} @var{title} ...)
 A list of actions to be applied.  @var{key} and @var{title} are both
@@ -2297,7 +2298,7 @@ server's settings, and may vary for the type of notification.  If 0,
 the notification never expires.  Default value is -1.
 
 @item :urgency @var{urgency}
-The urgency level.  It can be  @code{low}, @code{normal} or @code{critical}.
+The urgency level.  It can be @code{low}, @code{normal}, or @code{critical}.
 
 @item :category @var{category}
 The type of notification this is, a string.
@@ -2307,9 +2308,9 @@ This specifies the name of the desktop filename representing the
 calling program, like @samp{"emacs"}.
 
 @item :image-data (@var{width} @var{height} @var{rowstride} @var{has-alpha} @var{bits} @var{channels} @var{data})
-This is a raw data image format which describes the width, height,
-rowstride, has alpha, bits per sample, channels and image data
-respectively.
+This is a raw data image format that describes the width, height,
+rowstride, whether there is an alpha channel, bits per sample,
+channels and image data, respectively.
 
 @item :image-path @var{path}
 This is represented either as a URI (@samp{file://} is the only URI
@@ -2331,7 +2332,7 @@ ability.
 
 @item :x @var{position}
 @itemx :y @var{position}
-Specifies the X respectively Y location on the screen that the
+Specifies the X, Y location on the screen that the
 notification should point to.  Both arguments must be used together.
 
 @item :on-action @var{function}
@@ -2356,9 +2357,7 @@ by the user.  The function receive the notification @var{id} and the closing
 This function returns a notification id, an integer, which can be used
 to manipulate the notification item with
 @code{notifications-close-notification} or the @code{:replaces-id}
-argument of another @code{notifications-notify} call.
-
-Example:
+argument of another @code{notifications-notify} call.  For example:
 
 @example
 @group
@@ -2392,7 +2391,7 @@ A message window opens on the desktop.  Press "I agree"
 @end defun
 
 @defun notifications-close-notification id
-This function closes a notification with identifier ID.
+This function closes a notification with identifier @var{id}.
 @end defun
 
 @node Dynamic Libraries

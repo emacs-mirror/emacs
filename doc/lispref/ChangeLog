@@ -1,3 +1,7 @@
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Notifications): Copyedits.
+
 2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* os.texi (Terminal-Specific): Fix typo.
