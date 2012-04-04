@@ -1306,6 +1306,7 @@ Reporting Warnings
 * Warning Variables::       Variables programs bind to customize
                               their warnings.
 * Warning Options::         Variables users set to control display of warnings.
+* Delayed Warnings::        Deferring warning display until the end of a command.
 
 Overlays
 

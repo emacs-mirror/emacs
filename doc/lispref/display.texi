@@ -572,6 +572,7 @@ possible problem, but continue running.
 * Warning Basics::      Warnings concepts and functions to report them.
 * Warning Variables::   Variables programs bind to customize their warnings.
 * Warning Options::     Variables users set to control display of warnings.
+* Delayed Warnings::    Deferring a warning until the end of a command.
 @end menu
 
 @node Warning Basics
@@ -749,6 +750,53 @@ warnings buffer.  Each element of the list should be a list of
 symbols.  If it matches the first few elements in a warning type, then
 that warning is not logged.
 @end defopt
+
+@node Delayed Warnings
+@subsection Delayed Warnings
+
+Sometimes, you may wish to avoid showing a warning while a command is
+running, and only show it only after the end of the command.  You can
+use the variable @code{delayed-warnings-list} for this.
+
+@defvar delayed-warnings-list
+The value of this variable is a list of warnings to be displayed after
+the current command has finished.  Each element must be a list
+
+@smallexample
+(@var{type} @var{message} [@var{level} [@var{buffer-name}]])
+@end smallexample
+
+@noindent
+with the same form, and the same meanings, as the argument list of
+@code{display-warning} (@pxref{Warning Basics}).  Immediately after
+running @code{post-command-hook} (@pxref{Command Overview}), the Emacs
+command loop displays all the warnings specified by this variable,
+then resets it to @code{nil}.
+@end defvar
+
+  Programs which need to further customize the delayed warnings
+mechanism can change the variable @code{delayed-warnings-hook}:
+
+@defvar delayed-warnings-hook
+This is a normal hook which is run by the Emacs command loop, after
+@code{post-command-hook}, in order to to process and display delayed
+warnings.
+
+Its default value is a list of two functions:
+
+@smallexample
+(collapse-delayed-warnings display-delayed-warnings)
+@end smallexample
+
+@findex collapse-delayed-warnings
+@findex display-delayed-warnings
+@noindent
+The function @code{collapse-delayed-warnings} iterates through
+@code{delayed-warnings-list}, removing repeated entries.  The function
+@code{display-delayed-warnings} calls @code{display-warning} on each
+of the entries in @code{delayed-warnings-list}, in turn, and then sets
+@code{delayed-warnings-list} to @code{nil}.
+@end defvar
 
 @node Invisible Text
 @section Invisible Text

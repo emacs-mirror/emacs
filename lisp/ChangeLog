@@ -1,3 +1,7 @@
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (delayed-warnings-hook): Doc fix.
+
 2012-04-04  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa--select-keys): Bind C-c C-c to finish the key

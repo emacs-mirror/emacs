@@ -5,7 +5,7 @@
 @c %**end of header
 
 @copying
-This manual documents nxml-mode, an Emacs major mode for editing
+This manual documents nXML mode, an Emacs major mode for editing
 XML with RELAX NG support.
 
 Copyright @copyright{} 2007-2012 Free Software Foundation, Inc.
@@ -108,31 +108,25 @@ lists.  Report any bugs with @kbd{M-x report-emacs-bug}.
 @node Completion
 @chapter Completion
 
-Apart from real-time validation, the most important feature that
-nxml-mode provides for assisting in document creation is "completion".
+Apart from real-time validation, the most important feature that nXML
+mode provides for assisting in document creation is "completion".
 Completion assists the user in inserting characters at point, based on
 knowledge of the schema and on the contents of the buffer before
 point.
 
-The traditional GNU Emacs key combination for completion in a
-buffer is @kbd{M-@key{TAB}}. However, many window systems
-and window managers use this key combination themselves (typically for
-switching between windows) and do not pass it to applications. It's
-hard to find key combinations in GNU Emacs that are both easy to type
-and not taken by something else.  @kbd{C-@key{RET}} (i.e.
-pressing the Enter or Return key, while the Ctrl key is held down) is
-available.  It won't be available on a traditional terminal (because
-it is indistinguishable from Return), but it will work with a window
-system.  Therefore we adopt the following solution by default: use
-@kbd{C-@key{RET}} when there's a window system and
-@kbd{M-@key{TAB}} when there's not.  In the following, I
-will assume that a window system is being used and will therefore
-refer to @kbd{C-@key{RET}}.
+nXML mode adapts the standard GNU Emacs command for completion in a
+buffer: @code{completion-at-point}, which is bound to @kbd{C-M-i} and
+@kbd{M-@key{TAB}}.  Note that many window systems and window managers
+use @kbd{M-@key{TAB}} themselves (typically for switching between
+windows) and do not pass it to applications.  In that case, you should
+type @kbd{C-M-i} or @kbd{@key{ESC} @key{TAB}} for completion, or bind
+@code{completion-at-point} to a key that is convenient for you.  In
+the following, I will assume that you type @kbd{C-M-i}.
 
-Completion works by examining the symbol preceding point.  This
-is the symbol to be completed. The symbol to be completed may be the
-empty. Completion considers what symbols starting with the symbol to
-be completed would be valid replacements for the symbol to be
+nXML mode completion works by examining the symbol preceding point.
+This is the symbol to be completed. The symbol to be completed may be
+the empty. Completion considers what symbols starting with the symbol
+to be completed would be valid replacements for the symbol to be
 completed, given the schema and the contents of the buffer before
 point.  These symbols are the possible completions.  An example may
 make this clearer.  Suppose the buffer looks like this (where @point{}
@@ -168,7 +162,7 @@ completions are @samp{base}, @samp{isindex},
 In this case, the symbol to be completed is empty, and the possible
 completions are just @samp{http://www.w3.org/1999/xhtml}.
 
-When you type @kbd{C-@key{RET}}, what happens depends
+When you type @kbd{C-M-i}, what happens depends
 on what the set of possible completions are.
 
 @itemize @bullet
@@ -186,7 +180,7 @@ required. For example, in this case:
 @end example
 
 @noindent
-@kbd{C-@key{RET}} will yield
+@kbd{C-M-i} will yield
 
 @example
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -202,18 +196,17 @@ is inserted. For example, suppose the buffer is:
 @end example
 
 @noindent
-The symbol to be completed is @samp{x}. The possible completions
-are @samp{xmlns} and @samp{xml:lang}.  These share a
-common prefix of @samp{xml}.  Thus, @kbd{C-@key{RET}}
-will yield:
+The symbol to be completed is @samp{x}. The possible completions are
+@samp{xmlns} and @samp{xml:lang}.  These share a common prefix of
+@samp{xml}.  Thus, @kbd{C-M-i} will yield:
 
 @example
 <html xml@point{}
 @end example
 
 @noindent
-Typically, you would do @kbd{C-@key{RET}} again, which would
-have the result described in the next item.
+Typically, you would do @kbd{C-M-i} again, which would have the result
+described in the next item.
 @item
 If there is more than one possible completion, but the
 possible completions do not share a non-empty prefix, then Emacs will
@@ -251,19 +244,19 @@ If you input @kbd{xmlns}, the result will be:
 @end example
 
 @noindent
-(If you do @kbd{C-@key{RET}} again, the namespace URI will
-be inserted. Should that happen automatically?)
+(If you do @kbd{C-M-i} again, the namespace URI will be
+inserted. Should that happen automatically?)
 @end itemize
 
 @node Inserting end-tags
 @chapter Inserting end-tags
 
-The main redundancy in XML syntax is end-tags.  nxml-mode provides
+The main redundancy in XML syntax is end-tags.  nXML mode provides
 several ways to make it easier to enter end-tags.  You can use all of
 these without a schema.
 
-You can use @kbd{C-@key{RET}} after @samp{</}
-to complete the rest of the end-tag.
+You can use @kbd{C-M-i} after @samp{</} to complete the rest of the
+end-tag.
 
 @kbd{C-c C-f} inserts an end-tag for the element containing
 point. This command is useful when you want to input the start-tag,
@@ -279,9 +272,9 @@ start-tag, point and the end-tag on successive lines, appropriately
 indented. The @samp{i} is mnemonic for inline and the
 @samp{b} is mnemonic for block.
 
-Finally, you can customize nxml-mode so that @kbd{/}
-automatically inserts the rest of the end-tag when it occurs after
-@samp{<}, by doing
+Finally, you can customize nXML mode so that @kbd{/} automatically
+inserts the rest of the end-tag when it occurs after @samp{<}, by
+doing
 
 @display
 @kbd{M-x customize-variable @key{RET} nxml-slash-auto-complete-flag @key{RET}}
@@ -868,7 +861,7 @@ an @samp{applyFollowingRules} to the private file.
 @node DTDs
 @chapter DTDs
 
-nxml-mode is designed to support the creation of standalone XML
+nXML mode is designed to support the creation of standalone XML
 documents that do not depend on a DTD.  Although it is common practice
 to insert a DOCTYPE declaration referencing an external DTD, this has
 undesirable side-effects.  It means that the document is no longer

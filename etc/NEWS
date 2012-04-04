@@ -740,6 +740,7 @@ See MH-E-NEWS for details.
 ---
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 
++++
 ** nXML mode no longer binds C-RET to `nxml-complete'.
 Completion is now performed via `completion-at-point', bound to M-TAB.
 If `nxml-bind-meta-tab-to-complete-flag' is non-nil (the default),
@@ -940,6 +941,7 @@ You can get a comparable behavior with:
 ---
 *** pc-mode.el is obsolete (CUA mode is much more comprehensive).
 
++++
 *** pgg is obsolete (use EasyPG instead)
 
 ---
@@ -1562,7 +1564,7 @@ displayed with a "spinning bar".
 ** New variable `revert-buffer-in-progress-p' is true while a buffer is
 being reverted, even if the buffer has a local `revert-buffer-function'.
 
----
++++
 ** New variables `delayed-warnings-list' and `delayed-warnings-hook'.
 If delayed-warnings-list is non-nil, the command loop calls
 `delayed-warnings-hook' after `post-command-hook'.  At present, this

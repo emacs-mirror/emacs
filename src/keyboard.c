@@ -12168,7 +12168,7 @@ whenever `deferred-action-list' is non-nil.  */);
   Vdeferred_action_function = Qnil;
 
   DEFVAR_LISP ("delayed-warnings-list", Vdelayed_warnings_list,
-               doc: /* List of warnings to be displayed as soon as possible.
+               doc: /* List of warnings to be displayed after this command.
 Each element must be a list (TYPE MESSAGE [LEVEL [BUFFER-NAME]]),
 as per the args of `display-warning' (which see).
 If this variable is non-nil, `delayed-warnings-hook' will be run

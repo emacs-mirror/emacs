@@ -1,3 +1,7 @@
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Delayed Warnings): New node.
+
 2012-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Notifications): Copyedits.

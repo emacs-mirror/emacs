@@ -1101,10 +1101,11 @@ the passphrase prompt.
 
 @acronym{PGP/MIME} requires an external OpenPGP implementation, such
 as @uref{http://www.gnupg.org/, GNU Privacy Guard}. Pre-OpenPGP
-implementations such as PGP 2.x and PGP 5.x are also supported. One
-Emacs interface to the PGP implementations, PGG (@pxref{Top, ,PGG,
-pgg, PGG Manual}), is included, but Mailcrypt is also supported.
-@xref{PGP Compatibility}.
+implementations such as PGP 2.x and PGP 5.x are also supported.  The
+default Emacs interface to the PGP implementation is EasyPG
+(@pxref{Top,,EasyPG Assistant User's Manual, epa, EasyPG Assistant
+User's Manual}), but PGG (@pxref{Top, ,PGG, pgg, PGG Manual}) and
+Mailcrypt are also supported.  @xref{PGP Compatibility}.
 
 @cindex gpg-agent
 Message internally calls GnuPG (the @command{gpg} command) to perform
@@ -1139,11 +1140,6 @@ does the trick.
 gpg --use-agent --sign < /dev/null > /dev/null
 @end example
 
-The Lisp variable @code{pgg-gpg-use-agent} controls whether to use
-@command{gpg-agent}.  See also @xref{Caching passphrase, , , pgg, The
-PGG Manual}.
-
-
 @node PGP Compatibility
 @subsection Compatibility with older implementations
 
@@ -1158,7 +1154,7 @@ your PGP implementation, so we refer to it.
 If you have imported your old PGP 2.x key into GnuPG, and want to send
 signed and encrypted messages to your fellow PGP 2.x users, you'll
 discover that the receiver cannot understand what you send. One
-solution is to use PGP 2.x instead (i.e., if you use @code{pgg}, set
+solution is to use PGP 2.x instead (e.g.@: if you use @code{pgg}, set
 @code{pgg-default-scheme} to @code{pgp}). You could also convince your
 fellow PGP 2.x users to convert to GnuPG.
 @vindex mml-signencrypt-style-alist

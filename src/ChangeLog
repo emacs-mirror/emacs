@@ -1,3 +1,7 @@
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (Vdelayed_warnings_list): Doc fix.
+
 2012-04-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32menu.c (simple_dialog_show, add_menu_item): Use SAFE_ALLOCA

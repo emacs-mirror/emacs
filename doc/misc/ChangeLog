@@ -1,3 +1,15 @@
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* message.texi (Using PGP/MIME): Note that epg is now the default.
+
+	* gnus.texi: Reduce references to obsolete pgg library.
+	(Security): Note that epg is now the default.
+
+	* gnus-faq.texi (FAQ 8-2): Mention EasyPG.
+
+	* nxml-mode.texi (Completion): C-RET is no longer bound to
+	nxml-complete.
+
 2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org.texi (Customizing tables in ODT export): Correct few errors.
