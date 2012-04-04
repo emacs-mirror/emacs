@@ -1,3 +1,7 @@
+2012-04-04  Richard Stallman  <rms@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Bind inhibit-read-only.
+
 2012-04-03  Chong Yidong  <cyd@gnu.org>
 
 	* mail/sendmail.el (mail-mode-map): Bind C-c C-i to

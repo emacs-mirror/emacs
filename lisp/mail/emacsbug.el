@@ -182,7 +182,9 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (set (make-local-variable 'message-strip-special-text-properties) nil))
     (rfc822-goto-eoh)
     (forward-line 1)
-    (let ((signature (buffer-substring (point) (point-max))))
+    ;; Move the mail signature to the proper place.
+    (let ((signature (buffer-substring (point) (point-max)))
+	  (inhibit-read-only t))
       (delete-region (point) (point-max))
       (insert signature)
       (backward-char (length signature)))
