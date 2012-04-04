@@ -1,3 +1,9 @@
+2012-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint--common-quoted-suffix): Check string boundary
+	before comparing (bug#11158).
+	* pcomplete.el (pcomplete--common-quoted-suffix): Idem.
+
 2012-04-04  Chong Yidong  <cyd@gnu.org>
 
 	* minibuffer.el (completion-extra-properties): Doc fix.

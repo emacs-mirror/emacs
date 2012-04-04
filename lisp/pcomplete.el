@@ -387,24 +387,25 @@ modified to be an empty string, or the desired separation string."
 (defun pcomplete--common-quoted-suffix (s1 s2)
   ;; FIXME: Copied in comint.el.
   "Find the common suffix between S1 and S2 where S1 is the expanded S2.
-S1 is expected to be the unquoted and expanded version of S1.
+S1 is expected to be the unquoted and expanded version of S2.
 Returns (PS1 . PS2), i.e. the shortest prefixes of S1 and S2, such that
 S1 = (concat PS1 SS1) and S2 = (concat PS2 SS2) and
 SS1 = (unquote SS2)."
   (let* ((cs (comint--common-suffix s1 s2))
          (ss1 (substring s1 (- (length s1) cs)))
          (qss1 (pcomplete-quote-argument ss1))
-         qc)
+         qc s2b)
     (if (and (not (equal ss1 qss1))
              (setq qc (pcomplete-quote-argument (substring ss1 0 1)))
-             (eq t (compare-strings s2 (- (length s2) cs (length qc) -1)
-                                    (- (length s2) cs -1)
+	     (setq s2b (- (length s2) cs (length qc) -1))
+	     (>= s2b 0)			;bug#11158.
+             (eq t (compare-strings s2 s2b (- (length s2) cs -1)
                                     qc nil nil)))
         ;; The difference found is just that one char is quoted in S2
         ;; but not in S1, keep looking before this difference.
         (pcomplete--common-quoted-suffix
          (substring s1 0 (- (length s1) cs))
-         (substring s2 0 (- (length s2) cs (length qc) -1)))
+         (substring s2 0 s2b))
       (cons (substring s1 0 (- (length s1) cs))
             (substring s2 0 (- (length s2) cs))))))
 
