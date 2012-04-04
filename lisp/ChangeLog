@@ -1,3 +1,8 @@
+2012-04-04  Gabor Vida  <vidagabor@gmail.com>  (tiny change)
+
+	* ido.el (ido-wide-find-dirs-or-files): Use file-name-absolute-p
+	(bug#11145).
+
 2012-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* comint.el (comint--common-quoted-suffix): Check string boundary
