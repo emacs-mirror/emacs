@@ -233,9 +233,9 @@ to securely store passwords and other confidential information.
 Implementations of compliant daemons are the GNOME Keyring and the KDE
 Wallet.
 
-Although the usage of the client library secrets.el is hidden in Emacs
-via the auth-source library, its functionality can be used also
-directly in other packages.
+The auth-source library uses the @file{secrets.el} library as an
+interface to this feature.  You can also use that library in other
+packages.
 
 @defvar secrets-enabled
 After loading @file{secrets.el}, a non-@code{nil} value of this
@@ -244,7 +244,7 @@ Service API.
 @end defvar
 
 @deffn Command secrets-show-secrets
-All collections, items, and their attributes are inspected by this command.
+This command inspects all collections, items, and their attributes.
 @end deffn
 
 The atomic objects to be managed by the Secret Service API are
@@ -260,9 +260,9 @@ user session context.
 
 A collection can have an alias name.  The use case for this is to
 set the alias @samp{"default"} for a given collection, making it
-transparent for clients, which collection is used.  Other aliases
+transparent to clients as to which collection is used.  Other aliases
 are not supported (yet).  Since an alias is visible to all
-applications, this setting shall be performed with care.
+applications, this setting should be performed with care.
 
 @defun secrets-list-collections
 This function returns a list of collection names.
@@ -281,15 +281,15 @@ For the time being, only the alias @samp{"default"} is supported.
 Collections can be created and deleted by the functions
 @code{secrets-create-collection} and @code{secrets-delete-collection}.
 Usually, this is not applied from within Emacs.  Common collections,
-like @samp{"login"}, shall never be deleted.
+like @samp{"login"}, should never be deleted.
 
 There exists a special collection called @samp{"session"}, which has
 the lifetime of the corresponding client session (aka Emacs's
 lifetime).  It is created automatically when Emacs uses the Secret
 Service interface, and it is deleted when Emacs is killed.  Therefore,
 it can be used to store and retrieve secret items temporarily.  This
-shall be preferred over creation of a persistent collection, when the
-information shall not live longer than Emacs.  The session collection
+should be preferred over creation of a persistent collection, when the
+information should not live longer than Emacs.  The session collection
 can be addressed either by the string @samp{"session"}, or by
 @code{nil}, whenever a collection parameter is needed in the following
 functions.
@@ -305,7 +305,7 @@ Returns a list of all item labels of @var{collection}.
 
 @defun secrets-create-item collection item password &rest attributes
 This function creates a new item in @var{collection} with label
-@var{item} and password @var{PASSWORD}.  @var{attributes} are
+@var{item} and password @var{password}.  @var{attributes} are
 key-value pairs set for the created item.  The keys are keyword
 symbols, starting with a colon.  Example:
 
@@ -347,7 +347,7 @@ attributes, it returns @code{nil}.  Example:
 @end defun
 
 @defun secrets-search-items collection &rest attributes
-Searchs items in @var{collection} with @var{attributes}.
+Search items in @var{collection} with @var{attributes}.
 @var{attributes} are key-value pairs, as used in
 @code{secrets-create-item}.  Example:
 
@@ -370,14 +370,14 @@ logging.
 
 The auth-source library only has a few functions for external use.
 
-@defun auth-source-search SPEC
-
-TODO: how to include docstring?
-
+@defun auth-source-search &rest spec &key type max host user port secret require create delete &allow-other-keys
+This function searches (or modifies) authentication backends according
+to @var{spec}.  See the function's doc-string for details.
+@c TODO more details.
 @end defun
 
 Let's take a look at an example of using @code{auth-source-search}
-from Gnus' @code{nnimap.el}.
+from Gnus's @code{nnimap.el}.
 
 @example
 (defun nnimap-credentials (address ports)
@@ -432,22 +432,21 @@ the same question again, which is annoying.
 So the responsibility of the API user that specified @code{:create t}
 is to call the @code{:save-function} if it's provided.
 
-@defun auth-source-delete SPEC
-
-TODO: how to include docstring?
-
+@defun auth-source-delete &rest spec &key delete &allow-other-keys
+This function deletes entries matching @var{spec} from the
+authentication backends.  It returns the entries that were deleted.
+The backend may not actually delete the entries.
 @end defun
 
-@defun auth-source-forget SPEC
-
-TODO: how to include docstring?
-
+@defun auth-source-forget spec
+This function forgets any cached data that exactly matches @var{spec}.
+It returns @code{t} if it forget some data, and @code{nil} if no
+matching data was found.
 @end defun
 
-@defun auth-source-forget+ SPEC
-
-TODO: how to include docstring?
-
+@defun auth-source-forget+ &rest spec &allow-other-keys
+This function forgets any cached data matching @var{spec}.
+It returns the number of items forgotten.
 @end defun
 
 @node GnuPG and EasyPG Assistant Configuration
