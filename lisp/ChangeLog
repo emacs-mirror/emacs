@@ -1,3 +1,10 @@
+2012-04-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa--select-keys): Bind C-c C-c to finish the key
+	selection (Bug#11159).
+	(epa-insert-keys): Inform that the default public key will be
+	exported if no key is selected.
+
 2012-04-04  Richard Stallman  <rms@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Bind inhibit-read-only.
