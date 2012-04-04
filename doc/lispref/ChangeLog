@@ -2,6 +2,8 @@
 
 	* display.texi (Delayed Warnings): New node.
 
+	* os.texi (Notifications): Copyedits.
+
 2012-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Notifications): Copyedits.

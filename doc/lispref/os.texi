@@ -2255,13 +2255,15 @@ Emacs is restarted by the session manager.
 @cindex desktop notifications
 
 Emacs is able to send @dfn{notifications} on systems that support the
-desktop notification specification of freedesktop.org.  In order to
-use this functionality, Emacs must have been compiled with D-Bus
-support, and the @code{notifications} library must be loaded.
+freedesktop.org Desktop Notifications Specification.  In order to use
+this functionality, Emacs must have been compiled with D-Bus support,
+and the @code{notifications} library must be loaded.
 
 @defun notifications-notify &rest params
-This function sends a notification to the desktop via D-Bus.
-Various @var{params} can be set, none of them is mandatory:
+This function sends a notification to the desktop via D-Bus,
+consisting of the parameters specified by the @var{params} arguments.
+These arguments should consist of alternating keyword and value pairs.
+The supported keywords and values are as follows:
 
 @table @code
 @item :title @var{title}
