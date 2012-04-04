@@ -5,6 +5,9 @@ and hence were removed.  See:
 
 http://lists.gnu.org/archive/html/emacs-devel/2012-04/msg00042.html
 
+(UPDATE: It seems tag deletion is basically impossible in bzr, so all
+these tags came back.)
+
 In the unlikely event that you need them, the removed tags were:
 
 tag                       revision
