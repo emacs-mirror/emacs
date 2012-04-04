@@ -5,6 +5,10 @@
 @node Glossary, Key Index, Intro, Top
 @unnumbered Glossary
 
+@c It would be nice if texinfo could add internal links from one item
+@c to another here.  Eg when we say "see also `foo bar'", there would
+@c be a hyperlink to the foo bar item.
+
 @table @asis
 @item Abbrev
 An abbrev is a text string that expands into a different text string
@@ -16,6 +20,8 @@ as an abbrev for a long phrase that you want to insert frequently.
 Aborting means getting out of a recursive edit (q.v.@:).  The
 commands @kbd{C-]} and @kbd{M-x top-level} are used for this.
 @xref{Quitting}.
+
+@c FIXME?  Active Region
 
 @item Alt
 Alt is the name of a modifier bit that a keyboard input character may
@@ -86,6 +92,12 @@ See `tooltips'.
 @item Base Buffer
 A base buffer is a buffer whose text is shared by an indirect buffer
 (q.v.@:).
+
+@item Bidirectional Text
+Some human languages, such as English, are written from left to right.
+Others, such as Arabic, are written from right to left.  Emacs
+supports both of these forms, as well as any mixture of them---this
+is `bidirectional text'.  @xref{Bidirectional Editing}.
 
 @item Bind
 To bind a key sequence means to give it a binding (q.v.@:).
@@ -174,6 +186,9 @@ See `text-only terminal'.
 A click event is the kind of input event (q.v.@:) generated when you
 press a mouse button and release it without moving the mouse.
 @xref{Mouse Buttons}.
+
+@item Client
+See `server'.
 
 @item Clipboard
 A clipboard is a buffer provided by the window system for transferring
@@ -363,6 +378,11 @@ File directories are named collections in the file system, within which
 you can place individual files or subdirectories.  They are sometimes
 referred to as ``folders''.  @xref{Directories}.
 
+@item Directory Local Variable
+A directory local variable is a local variable (q.v.@:) that applies
+to all the files within a certain directory.  @xref{Directory
+Variables}.
+
 @item Dired
 Dired is the Emacs facility that displays the contents of a file
 directory and allows you to ``edit the directory'', performing
@@ -386,6 +406,9 @@ A dribble file is a file into which Emacs writes all the characters that
 you type on the keyboard.  Dribble files can be used to make a record
 for debugging Emacs bugs.  Emacs does not make a dribble file unless you
 tell it to.  @xref{Bugs}.
+
+@c TODO?  Not really appropriate for the user manual I think.
+@c Dynamic Binding
 
 @item Echo Area
 The echo area is the bottom line of the screen, used for echoing the
@@ -461,11 +484,16 @@ features to associate specific faces with portions of buffer text, in
 order to display that text as specified by the face attributes.
 @xref{Faces}.
 
+@item File Local Variable
+A file local variable is a local variable (q.v.@:) specified in a
+given file.  @xref{File Variables}.  See also `directory variable'.
+
 @item File Locking
 Emacs uses file locking to notice when two different users
 start to edit one file at the same time.  @xref{Interlocking}.
 
 @item File Name
+@c This is fairly tautological...
 A file name is a name that refers to a file.  File names may be relative
 or absolute; the meaning of a relative file name depends on the current
 directory, but an absolute file name refers to the same file regardless
@@ -496,11 +524,12 @@ text to be filled.  @xref{Filling}.
 Filling text means adjusting the position of line-breaks to shift text
 between consecutive lines, so that all the lines are approximately the
 same length.  @xref{Filling}.  Some other editors call this feature
-`line wrapping'.
+``line wrapping''.
 
 @item Font Lock
 Font Lock is a mode that highlights parts of buffer text in different
-faces, according to the syntax.  For example, all comments (q.v.@:)
+faces, according to the syntax.  Some other editors refer to this as
+``syntax highlighting''.  For example, all comments (q.v.@:)
 might be colored red.  @xref{Font Lock}.
 
 @item Fontset
@@ -534,7 +563,7 @@ For more information, see @uref{http://fsf.org/, the FSF website}.
 @item Fringe
 On a graphical display (q.v.@:), there's a narrow portion of the frame
 (q.v.@:) between the text area and the window's border.  These
-`fringes' are used to display symbols that provide information about
+``fringes'' are used to display symbols that provide information about
 the buffer text (@pxref{Fringes}).  Emacs displays the fringe using a
 special face (q.v.@:) called @code{fringe}.  @xref{Faces,fringe}.
 
@@ -613,14 +642,14 @@ printing the contents of Emacs buffers.  @xref{Printing}.
 
 @item @key{HELP}
 @key{HELP} is the Emacs name for @kbd{C-h} or @key{F1}.  You can type
-@key{HELP} at any time to ask what options you have, or to ask what any
+@key{HELP} at any time to ask what options you have, or to ask what a
 command does.  @xref{Help}.
 
 @item Help Echo
 Help echo is a short message displayed in the echo area (q.v.@:) when
 the mouse pointer is located on portions of display that require some
 explanations.  Emacs displays help echo for menu items, parts of the
-mode line, tool-bar buttons, etc.  On graphics displays, the messages
+mode line, tool-bar buttons, etc.  On graphical displays, the messages
 can be displayed as tooltips (q.v.@:).  @xref{Tooltips}.
 
 @item Home Directory
@@ -650,7 +679,7 @@ many are unfamiliar with it and mistake it for a typo.
 
 @item Inbox
 An inbox is a file in which mail is delivered by the operating system.
-Rmail transfers mail from inboxes to Rmail files (q.v.@:) in which the
+Rmail transfers mail from inboxes to Rmail files in which the
 mail is then stored permanently or until explicitly deleted.
 @xref{Rmail Inbox}.
 
@@ -689,9 +718,7 @@ Insertion means adding text into the buffer, either from the keyboard
 or from some other place in Emacs.
 
 @item Interlocking
-Interlocking is a feature for warning when you start to alter a file
-that someone else is already editing.
-@xref{Interlocking,Interlocking,Simultaneous Editing}.
+See `file locking'.
 
 @item Isearch
 See `incremental search'.
@@ -712,7 +739,7 @@ play them back as many times as you like.
 
 @cindex keyboard shortcuts
 @item Keyboard Shortcut
-A keyboard shortcut is a key sequence (q.v.@:) which invokes a
+A keyboard shortcut is a key sequence (q.v.@:) that invokes a
 command.  What some programs call ``assigning a keyboard shortcut'',
 Emacs calls ``binding a key sequence''.  See `binding'.
 
@@ -734,9 +761,9 @@ codes that come from the terminal into the character codes that make up
 key sequences.
 
 @item Kill Ring
-The kill ring is where all text you have killed recently is saved.
-You can reinsert any of the killed text still in the ring; this is
-called yanking (q.v.@:).  @xref{Yanking}.
+The kill ring is where all text you have killed (see `killing')
+recently is saved.  You can reinsert any of the killed text still in
+the ring; this is called yanking (q.v.@:).  @xref{Yanking}.
 
 @item Killing
 Killing means erasing text and saving it on the kill ring so it can be
@@ -754,6 +781,9 @@ Your choice of language environment specifies defaults for the input
 method (q.v.@:) and coding system (q.v.@:).  @xref{Language
 Environments}.  These defaults are relevant if you edit
 non-@acronym{ASCII} text (@pxref{International}).
+
+@c TODO?  Not really appropriate for the user manual I think.
+@c Lexical Binding
 
 @item Line Wrapping
 See `filling'.
@@ -834,7 +864,7 @@ all the text from point to the mark.  Each buffer has its own mark.
 
 @item Mark Ring
 The mark ring is used to hold several recent previous locations of the
-mark, just in case you want to move back to them.  Each buffer has its
+mark, in case you want to move back to them.  Each buffer has its
 own mark ring; in addition, there is a single global mark ring (q.v.@:).
 @xref{Mark Ring}.
 
@@ -873,7 +903,7 @@ for minibuffer arguments, so you can conveniently use the same text
 again.  @xref{Minibuffer History}.
 
 @item Minor Mode
-A minor mode is an optional feature of Emacs which can be switched on
+A minor mode is an optional feature of Emacs, which can be switched on
 or off independently of all other features.  Each minor mode has a
 command to turn it on or off.  Some minor modes are global (q.v.@:),
 and some are local (q.v.@:).  @xref{Minor Modes}.
@@ -911,7 +941,7 @@ since the number of non-@acronym{ASCII} characters is much more than 256.
 @xref{International Chars, International Characters}.
 
 @item Named Mark
-A named mark is a register (q.v.@:) in its role of recording a
+A named mark is a register (q.v.@:), in its role of recording a
 location in text so that you can move point to that location.
 @xref{Registers}.
 
@@ -940,11 +970,16 @@ repeat count.  @xref{Arguments}.
 @item Overwrite Mode
 Overwrite mode is a minor mode.  When it is enabled, ordinary text
 characters replace the existing text after point rather than pushing
-it to the right.  @xref{Minor Modes}.
+it to one side.  @xref{Minor Modes}.
+
+@item Package
+A package is a collection of Lisp code that you download and
+automatically install from within Emacs.  Packages provide a
+convenient way to add new features.  @xref{Packages}.
 
 @item Page
 A page is a unit of text, delimited by formfeed characters (@acronym{ASCII}
-control-L, code 014) coming at the beginning of a line.  Some Emacs
+control-L, code 014) at the beginning of a line.  Some Emacs
 commands are provided for moving over and operating on pages.
 @xref{Pages}.
 
@@ -1163,6 +1198,20 @@ are self-inserting in Emacs, except in certain special major modes.
 Emacs has commands for moving by or killing by sentences.
 @xref{Sentences}.
 
+@item Server
+Within Emacs, you can start a `server' process, which listens for
+connections from `clients'.  This offers a faster alternative to
+starting several Emacs instances.  @xref{Emacs Server}.  See also
+`daemon'.
+
+@c This is only covered in the lispref, not the user manual.
+@ignore
+@item Session Manager
+Some window systems (q.v.@:) provide a tool called a `session manager'.
+This offers the ability to save your windows when you log off,
+and restore them after you log in again.
+@end ignore
+
 @item Sexp
 A sexp (short for ``s-expression'') is the basic syntactic unit of
 Lisp in its textual form: either a list, or Lisp atom.  Sexps are also
@@ -1193,7 +1242,7 @@ spelling-checker programs to check the spelling of parts of a buffer
 via a convenient user interface.  @xref{Spelling}.
 
 @item String
-A string is a kind of Lisp data object which contains a sequence of
+A string is a kind of Lisp data object that contains a sequence of
 characters.  Many Emacs variables are intended to have strings as
 values.  The Lisp syntax for a string consists of the characters in the
 string with a @samp{"} before and another @samp{"} after.  A @samp{"}
@@ -1267,6 +1316,11 @@ Text properties are annotations recorded for particular characters in
 the buffer.  Images in the buffer are recorded as text properties;
 they also specify formatting information.  @xref{Editing Format Info}.
 
+@item Theme
+A theme is a set of customizations (q.v.@:) that give Emacs a
+particular appearance or behavior.  For example, you might use a theme
+for your favorite set of faces (q.v.@:).
+
 @item Tool Bar
 The tool bar is a line (sometimes multiple lines) of icons at the top
 of an Emacs frame.  Clicking on one of these icons executes a command.
@@ -1285,11 +1339,16 @@ are not in a recursive editing level (q.v.@:) or the minibuffer
 (q.v.@:), and not in the middle of a command.  You can get back to top
 level by aborting (q.v.@:) and quitting (q.v.@:).  @xref{Quitting}.
 
+@c FIXME?  Transient Mark Mode
+
 @item Transposition
 Transposing two units of text means putting each one into the place
 formerly occupied by the other.  There are Emacs commands to transpose
 two adjacent characters, words, balanced expressions (q.v.@:) or lines
 (@pxref{Transpose}).
+
+@item Trash Can
+See `deletion of files'.
 
 @item Truncation
 Truncating text lines in the display means leaving out any text on a

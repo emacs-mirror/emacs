@@ -3,6 +3,8 @@
 	* glossary.texi (Glossary): Copyedits.
 	Use Texinfo-recommended convention for quotes and punctuation.
 	Comment out a few specialized (Rmail) items.
+	New items: Bidirectional Text, Client, Directory Local Variable,
+	File Local Variable, Server, Theme, Trash Can.
 
 2012-04-03  Chong Yidong  <cyd@gnu.org>
 
