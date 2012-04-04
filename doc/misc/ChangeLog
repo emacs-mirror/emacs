@@ -2,6 +2,8 @@
 
 	* auth.texi (Secret Service API): Copyedits.
 	(Help for developers): Fill in some missing function doc-strings.
+	(Help for users, Help for developers)
+	(GnuPG and EasyPG Assistant Configuration): Markup fixes.
 
 2012-04-04  Michael Albinus  <michael.albinus@gmx.de>
 
