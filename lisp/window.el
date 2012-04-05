@@ -2117,6 +2117,7 @@ Interactively, if no argument is given, make the selected window
 one line smaller.  If optional argument HORIZONTAL is non-nil,
 make selected window narrower by DELTA columns.  If DELTA is
 negative, enlarge selected window by -DELTA lines or columns.
+Also see the `window-min-height' variable.
 Return nil."
   (interactive "p")
   (cond
