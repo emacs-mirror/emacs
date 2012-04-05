@@ -1,3 +1,9 @@
+2012-04-05  Chong Yidong  <cyd@gnu.org>
+
+	* anti.texi (Antinews): Rewrite for Emacs 23.
+
+	* minibuf.texi (Programmed Completion): Document metadata method.
+
 2012-04-04  Chong Yidong  <cyd@gnu.org>
 
 	* minibuf.texi (Programmed Completion): Remove obsolete variable
