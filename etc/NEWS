@@ -95,7 +95,7 @@ and pops down the *Completions* buffer accordingly.
 *** New option `completion-cycle-threshold' allows completion cycling.
 
 *** New option `completion-category-overrides' for overriding the
-default completion style in certain cirucmstances.
+default completion style in certain circumstances.
 
 *** New completion style `substring'.
 
@@ -829,14 +829,14 @@ You can get a comparable behavior with:
 
 *** pc-mode.el is obsolete (CUA mode is much more comprehensive).
 
-*** pgg is obsolete (use EasyPG instead)
+*** pgg is obsolete (use EasyPG instead).
 
 *** sregex.el is obsolete, since rx.el is a strict superset.
 
 *** s-region.el and pc-select.el are obsolete.
 They are superseded by shift-select-mode, enabled by default since 23.1.
 
-*** vc-mcvs.el is obsolete (for lack of a maintainer)
+*** vc-mcvs.el is obsolete (for lack of a maintainer).
 
 ** Miscellaneous
 
@@ -989,7 +989,7 @@ means you can just remove all calls to the function in question):
 *** `frame-update-faces' (not needed)
 *** `frame-update-face-colors' (`frame-set-background-mode')
 *** `x-frob-font-weight' and `x-frob-font-slant' (`make-face-*' functions)
-*** `x-make-font-bold and x-make-font-demibold (make-face-bold)
+*** `x-make-font-bold and x-make-font-demibold (`make-face-bold')
 *** `x-make-font-italic' and `x-make-font-oblique' (`make-face-italic')
 *** `x-make-font-bold-italic' (`make-face-bold-italic')
 *** `x-make-font-unbold' (`make-face-unbold')
