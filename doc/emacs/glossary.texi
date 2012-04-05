@@ -156,6 +156,7 @@ right away when you press down on a mouse button.  @xref{Mouse Buttons}.
 @item Byte Compilation
 @xref{Glossary - Compilation}.
 
+@anchor{Glossary - C-}
 @item @kbd{C-}
 @kbd{C-} in the name of a character is an abbreviation for Control.
 @xref{User Input,C-}.
@@ -253,10 +254,11 @@ is known; for example, on command names, buffer names, and
 file names.  Completion usually occurs when @key{TAB}, @key{SPC} or
 @key{RET} is typed.  @xref{Completion}.@refill
 
+@anchor{Glossary - Continuation Line}
 @item Continuation Line
 When a line of text is longer than the width of the window, it
-normally (but see `Truncation') takes up more than one screen line
-when displayed.  We say that the text line is continued, and all
+normally (but see @ref{Glossary - Truncation}) takes up more than one
+screen line when displayed.  We say that the text line is continued, and all
 screen lines used for it after the first are called continuation
 lines.  @xref{Continuation Lines}.  A related Emacs feature is
 `filling' (q.v.@:).
@@ -280,7 +282,7 @@ GNU General Public License.  @xref{Copying}.
 
 @item @key{CTRL}
 The @key{CTRL} or ``control'' key is what you hold down
-in order to enter a control character (q.v.).  See also `@kbd{C-}'.
+in order to enter a control character (q.v.).  @xref{Glossary - C-}.
 
 @item Current Buffer
 The current buffer in Emacs is the Emacs buffer on which most editing
@@ -317,6 +319,7 @@ or by rebinding key sequences (@pxref{Keymaps}).
 @item Cut and Paste
 @xref{Glossary - Killing}, and @ref{Glossary - Yanking}.
 
+@anchor{Glossary - Daemon}
 @item Daemon
 A daemon is a standard term for a system-level process that runs in the
 background.  Daemons are often started when the system first starts up.
@@ -381,6 +384,7 @@ File directories are named collections in the file system, within which
 you can place individual files or subdirectories.  They are sometimes
 referred to as ``folders''.  @xref{Directories}.
 
+@anchor{Glossary - Directory Local Variable}
 @item Directory Local Variable
 A directory local variable is a local variable (q.v.@:) that applies
 to all the files within a certain directory.  @xref{Directory
@@ -490,7 +494,8 @@ order to display that text as specified by the face attributes.
 
 @item File Local Variable
 A file local variable is a local variable (q.v.@:) specified in a
-given file.  @xref{File Variables}.  See also `directory variable'.
+given file.  @xref{File Variables}, and @ref{Glossary - Directory
+Local Variable}.
 
 @anchor{Glossary - File Locking}
 @item File Locking
@@ -605,7 +610,7 @@ mode's local keymap (q.v.@:).  @xref{Keymaps}.
 The global mark ring records the series of buffers you have recently
 set a mark (q.v.@:) in.  In many cases you can use this to backtrack
 through buffers you have been editing, or in which you have found
-tags (see `tags table').  @xref{Global Mark Ring}.
+tags (@pxref{Glossary - Tags Table}).  @xref{Global Mark Ring}.
 
 @anchor{Glossary - Global Substitution}
 @item Global Substitution
@@ -643,7 +648,7 @@ buffer.
 
 Emacs uses highlighting in several ways.  It highlights the region
 whenever it is active (@pxref{Mark}).  Incremental search also
-highlights matches (@pxref{Incremental Search}).  See also `font lock'.
+highlights matches (@pxref{Incremental Search}).  @xref{Glossary - Font Lock}.
 
 @item Hardcopy
 Hardcopy means printed output.  Emacs has various commands for
@@ -751,7 +756,7 @@ play them back as many times as you like.
 @item Keyboard Shortcut
 A keyboard shortcut is a key sequence (q.v.@:) that invokes a
 command.  What some programs call ``assigning a keyboard shortcut'',
-Emacs calls ``binding a key sequence''.  See `binding'.
+Emacs calls ``binding a key sequence''.  @xref{Glossary - Binding}.
 
 @item Key Sequence
 A key sequence (key, for short) is a sequence of input events (q.v.@:)
@@ -771,7 +776,7 @@ codes that come from the terminal into the character codes that make up
 key sequences.
 
 @item Kill Ring
-The kill ring is where all text you have killed (see `killing')
+The kill ring is where all text you have killed (@pxref{Glossary - Killing})
 recently is saved.  You can reinsert any of the killed text still in
 the ring; this is called yanking (q.v.@:).  @xref{Yanking}.
 
@@ -967,7 +972,7 @@ all.  @xref{Narrowing}.
 
 @item Newline
 Control-J characters in the buffer terminate lines of text and are
-therefore also called newlines.  See `End of Line'.
+therefore also called newlines.  @xref{Glossary - End Of Line}.
 
 @cindex nil
 @cindex t
@@ -1219,8 +1224,8 @@ Emacs has commands for moving by or killing by sentences.
 @item Server
 Within Emacs, you can start a `server' process, which listens for
 connections from `clients'.  This offers a faster alternative to
-starting several Emacs instances.  @xref{Emacs Server}.  See also
-`daemon'.
+starting several Emacs instances.  @xref{Emacs Server}, and
+@ref{Glossary - Daemon}.
 
 @c This is only covered in the lispref, not the user manual.
 @ignore
@@ -1299,6 +1304,7 @@ your buffers, unsaved edits, undo history, etc.  @xref{Exiting}.
 @key{TAB} is the tab character.  In Emacs it is typically used for
 indentation or completion.
 
+@anchor{Glossary - Tags Table}
 @item Tags Table
 A tags table is a file that serves as an index to the function
 definitions in one or more other files.  @xref{Tags}.
@@ -1370,11 +1376,12 @@ two adjacent characters, words, balanced expressions (q.v.@:) or lines
 @item Trash Can
 @xref{Glossary - Deletion of Files}.
 
+@anchor{Glossary - Truncation}
 @item Truncation
 Truncating text lines in the display means leaving out any text on a
 line that does not fit within the right margin of the window
-displaying it.  See also `continuation line'.
-@xref{Continuation Lines,Truncation}.
+displaying it.  @xref{Continuation Lines,Truncation}, and
+@ref{Glossary - Continuation Line}.
 
 @item TTY
 @xref{Glossary - Text-only Terminal}.
