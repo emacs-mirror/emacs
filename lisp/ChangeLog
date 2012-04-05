@@ -1,3 +1,7 @@
+2012-04-05  Bastien Guerry  <bzg@altern.org>
+
+	* color.el (color-lighten-name): Fix typo.
+
 2012-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server--on-display-p): New function.
