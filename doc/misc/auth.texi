@@ -229,13 +229,14 @@ necessary if you have an unusual (see earlier comment on those) setup.
 
 The @dfn{Secret Service API} is a standard from
 @uref{http://www.freedesktop.org/wiki/Specifications/secret-storage-spec,,freedesktop.org}
-to securely store passwords and other confidential information.
-Implementations of compliant daemons are the GNOME Keyring and the KDE
-Wallet.
+to securely store passwords and other confidential information.  This
+API is implemented by system daemons such as the GNOME Keyring and the
+KDE Wallet (these are GNOME and KDE packages respectively and should
+be available on most modern GNU/Linux systems).
 
-The auth-source library uses the @file{secrets.el} library as an
-interface to this feature.  You can also use that library in other
-packages.
+The auth-source library uses the @file{secrets.el} library to connect
+through the Secret Service API.  You can also use that library in
+other packages, it's not exclusive to auth-source.
 
 @defvar secrets-enabled
 After loading @file{secrets.el}, a non-@code{nil} value of this
@@ -244,63 +245,60 @@ Service API.
 @end defvar
 
 @deffn Command secrets-show-secrets
-This command inspects all collections, items, and their attributes.
+This command shows all collections, items, and their attributes.
 @end deffn
 
-The atomic objects to be managed by the Secret Service API are
-@dfn{secret items}, which are something an application wishes to store
-securely.  A good example is a password that an application needs to
-save and use at a later date.
+The atomic objects managed by the Secret Service API are @dfn{secret
+items}, which contain things an application wishes to store securely,
+like a password.  Secret items have a label (a name), the @dfn{secret}
+(which is the string we want, like a password), and a set of lookup
+attributes.  The attributes can be used to search and retrieve a
+secret item at a later date.
 
 Secret items are grouped in @dfn{collections}.  A collection is
-similar in concept to the terms @samp{keyring} or @samp{wallet}.  A
-common collection is called @samp{"login"}.  A collection is stored
-permanently under the user's permissions, and can be accessed in a
-user session context.
+sometimes called a @samp{keyring} or @samp{wallet} in GNOME Keyring
+and KDE Wallet but it's the same thing, a group of secrets.
+Collections are personal and protected so only the owner can open them.
 
-A collection can have an alias name.  The use case for this is to
-set the alias @samp{"default"} for a given collection, making it
-transparent to clients as to which collection is used.  Other aliases
-are not supported (yet).  Since an alias is visible to all
-applications, this setting should be performed with care.
+The most common collection is called @samp{login}.
+
+A collection can have an alias.  The alias @samp{default} is
+commonly used so the clients don't have to know the specific name of
+the collection they open.  Other aliases are not supported yet.
+Since aliases are globally accessible, set the @samp{default} alias
+only when you're sure it's appropriate.
 
 @defun secrets-list-collections
-This function returns a list of collection names.
+This function returns all the collection names as a list.
 @end defun
 
 @defun secrets-set-alias collection alias
 Set @var{alias} as alias of collection labeled @var{collection}.
-For the time being, only the alias @samp{"default"} is supported.
+Currently only the alias @samp{default} is supported.
 @end defun
 
 @defun secrets-get-alias alias
 Return the collection name @var{alias} is referencing to.
-For the time being, only the alias @samp{"default"} is supported.
+Currently only the alias @samp{default} is supported.
 @end defun
 
 Collections can be created and deleted by the functions
 @code{secrets-create-collection} and @code{secrets-delete-collection}.
-Usually, this is not applied from within Emacs.  Common collections,
-like @samp{"login"}, should never be deleted.
+Usually, this is not done from within Emacs.  Do not delete standard
+collections such as @samp{login}.
 
-There exists a special collection called @samp{"session"}, which has
-the lifetime of the corresponding client session (aka Emacs's
-lifetime).  It is created automatically when Emacs uses the Secret
-Service interface, and it is deleted when Emacs is killed.  Therefore,
-it can be used to store and retrieve secret items temporarily.  This
-should be preferred over creation of a persistent collection, when the
-information should not live longer than Emacs.  The session collection
-can be addressed either by the string @samp{"session"}, or by
-@code{nil}, whenever a collection parameter is needed in the following
-functions.
-
-As already said, a collection is a group of secret items.  A secret
-item has a label, the @dfn{secret} (which is a string), and a set of
-lookup attributes.  The attributes can be used to search and retrieve
-a secret item at a later date.
+The special collection @samp{session} exists for the lifetime of the
+corresponding client session (in our case, Emacs's lifetime).  It is
+created automatically when Emacs uses the Secret Service interface and
+it is deleted when Emacs is killed.  Therefore, it can be used to
+store and retrieve secret items temporarily.  The @samp{session}
+collection is better than a persistent collection when the secret
+items should not live longer than Emacs.  The session collection can
+be specified either by the string @samp{session}, or by @code{nil},
+whenever a collection parameter is needed in the following functions.
 
 @defun secrets-list-items collection
-Returns a list of all item labels of @var{collection}.
+Returns all the item labels of @var{collection} as a list.
 @end defun
 
 @defun secrets-create-item collection item password &rest attributes
@@ -310,6 +308,8 @@ key-value pairs set for the created item.  The keys are keyword
 symbols, starting with a colon.  Example:
 
 @example
+;;; The session "session", the label is "my item"
+;;; and the secret (password) is "geheim"
 (secrets-create-item "session" "my item" "geheim"
  :method "sudo" :user "joe" :host "remote-host")
 @end example
@@ -327,7 +327,7 @@ This function deletes item @var{item} in @var{collection}.
 The lookup attributes, which are specified during creation of a
 secret item, must be a key-value pair.  Keys are keyword symbols,
 starting with a colon; values are strings.  They can be retrieved
-from a given secret item, and they can be used for searching of items.
+from a given secret item and they can be used for searching of items.
 
 @defun secrets-get-attribute collection item attribute
 Returns the value of key @var{attribute} of item labeled @var{item} in
@@ -347,15 +347,33 @@ attributes, it returns @code{nil}.  Example:
 @end defun
 
 @defun secrets-search-items collection &rest attributes
-Search items in @var{collection} with @var{attributes}.
-@var{attributes} are key-value pairs, as used in
-@code{secrets-create-item}.  Example:
+Search for the items in @var{collection} with matching
+@var{attributes}.  The @var{attributes} are key-value pairs, as used
+in @code{secrets-create-item}.  Example:
 
 @example
 (secrets-search-items "session" :user "joe")
      @result{} ("my item" "another item")
 @end example
 @end defun
+
+The auth-source library uses the @file{secrets.el} library and thus
+the Secret Service API when you specify a source matching
+@samp{secrets:COLLECTION}.  For instance, you could use
+@samp{secrets:session} to use the @samp{session} collection, open only
+for the lifetime of Emacs.  Or you could use @samp{secrets:Login} to
+open the @samp{Login} collection.  As a special case, you can use the
+symbol @code{default} in @code{auth-sources} (not a string, but a
+symbol) to specify the @samp{default} alias.  Here is a contrived
+example that sets @code{auth-sources} to search three collections and
+then fall back to @file{~/.authinfo.gpg}.
+
+@example
+(setq auth-sources '(default
+                     "secrets:session"
+                     "secrets:Login"
+                     "~/.authinfo.gpg"))
+@end example
 
 @node Help for developers
 @chapter Help for developers

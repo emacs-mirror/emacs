@@ -1,3 +1,7 @@
+2012-04-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Secret Service API): Edit further and give examples.
+
 2012-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* auth.texi (Secret Service API): Copyedits.
