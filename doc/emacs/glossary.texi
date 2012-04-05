@@ -5,11 +5,8 @@
 @node Glossary, Key Index, Intro, Top
 @unnumbered Glossary
 
-@c It would be nice if texinfo could add internal links from one item
-@c to another here.  Eg when we say "see also `foo bar'", there would
-@c be a hyperlink to the foo bar item.
-
 @table @asis
+@anchor{Glossary - Abbrev}
 @item Abbrev
 An abbrev is a text string that expands into a different text string
 when present in the buffer.  For example, you might define a few letters
@@ -32,7 +29,7 @@ key labeled @key{ALT} that is really a @key{META} key.)  @xref{User
 Input, Alt}.
 
 @item Argument
-See `numeric argument'.
+@xref{Glossary - Numeric Argument}.
 
 @item @acronym{ASCII} character
 An @acronym{ASCII} character is either an @acronym{ASCII} control
@@ -66,7 +63,8 @@ function from those libraries.  This is called `autoloading'.
 A backtrace is a trace of a series of function calls showing how a
 program arrived at a certain point.  It is used mainly for finding and
 correcting bugs (q.v.@:).  Emacs can display a backtrace when it signals
-an error or when you type @kbd{C-g} (see `quitting').  @xref{Checklist}.
+an error or when you type @kbd{C-g} (@pxref{Glossary - Quitting}).
+@xref{Checklist}.
 
 @item Backup File
 A backup file records the contents that a file had before the current
@@ -81,13 +79,14 @@ Automatic balancing works by blinking or highlighting the delimiter
 that matches the one you just inserted, or inserting the matching
 delimiter for you (@pxref{Matching,,Matching Parens}).
 
+@anchor{Glossary - Balanced Expression}
 @item Balanced Expressions
 A balanced expression is a syntactically recognizable expression, such
 as a symbol, number, string constant, block, or parenthesized expression
 in C.  @xref{Expressions,Balanced Expressions}.
 
 @item Balloon Help
-See `tooltips'.
+@xref{Glossary - Tooltips}.
 
 @item Base Buffer
 A base buffer is a buffer whose text is shared by an indirect buffer
@@ -103,6 +102,7 @@ is `bidirectional text'.  @xref{Bidirectional Editing}.
 To bind a key sequence means to give it a binding (q.v.@:).
 @xref{Rebinding}.
 
+@anchor{Glossary - Binding}
 @item Binding
 A key sequence gets its meaning in Emacs by having a binding, which is a
 command (q.v.@:), a Lisp function that is run when you type that
@@ -151,10 +151,10 @@ A button down event is the kind of input event (q.v.@:) generated
 right away when you press down on a mouse button.  @xref{Mouse Buttons}.
 
 @item By Default
-See `default'.
+@xref{Glossary - Default}.
 
 @item Byte Compilation
-See `compilation'.
+@xref{Glossary - Compilation}.
 
 @item @kbd{C-}
 @kbd{C-} in the name of a character is an abbreviation for Control.
@@ -180,7 +180,7 @@ Emacs supports a number of character sets, each of which represents a
 particular alphabet or script.  @xref{International}.
 
 @item Character Terminal
-See `text-only terminal'.
+@xref{Glossary - Text-only Terminal}.
 
 @item Click Event
 A click event is the kind of input event (q.v.@:) generated when you
@@ -188,7 +188,7 @@ press a mouse button and release it without moving the mouse.
 @xref{Mouse Buttons}.
 
 @item Client
-See `server'.
+@xref{Glossary - Server}.
 
 @item Clipboard
 A clipboard is a buffer provided by the window system for transferring
@@ -210,7 +210,7 @@ binding (q.v.@:) is looked up in the relevant keymaps (q.v.@:) to find
 the command to run.  @xref{Commands}.
 
 @item Command History
-See `minibuffer history'.
+@xref{Glossary - Minibuffer History}.
 
 @item Command Name
 A command name is the name of a Lisp symbol that is a command
@@ -228,6 +228,7 @@ Common Lisp is a dialect of Lisp (q.v.@:) much larger and more powerful
 than Emacs Lisp.  Emacs provides a subset of Common Lisp in the CL
 package.  @xref{Top, Common Lisp, Overview, cl, Common Lisp Extensions}.
 
+@anchor{Glossary - Compilation}
 @item Compilation
 Compilation is the process of creating an executable program from source
 code.  Emacs has commands for compiling files of Emacs Lisp code
@@ -314,7 +315,7 @@ or by rebinding key sequences (@pxref{Keymaps}).
 
 @cindex cut and paste
 @item Cut and Paste
-See `killing' and `yanking'.
+@xref{Glossary - Killing}, and @ref{Glossary - Yanking}.
 
 @item Daemon
 A daemon is a standard term for a system-level process that runs in the
@@ -329,6 +330,7 @@ do not specify one.  When the minibuffer is used to read an argument,
 the default argument is used if you just type @key{RET}.
 @xref{Minibuffer}.
 
+@anchor{Glossary - Default}
 @item Default
 A default is the value that is used for a certain purpose when
 you do not explicitly specify a value to use.
@@ -355,6 +357,7 @@ key or the @key{BACKSPACE} key, whichever one is easy to type.
 Deletion means erasing text without copying it into the kill ring
 (q.v.@:).  The alternative is killing (q.v.@:).  @xref{Killing,Deletion}.
 
+@anchor{Glossary - Deletion of Files}
 @item Deletion of Files
 Deleting a file means erasing it from the file system.
 (Note that some systems use the concept of a ``trash can'', or ``recycle
@@ -429,6 +432,7 @@ else as well.  For example, some programming language major modes define
 particular delimiter characters to reindent the line, or insert one or
 more newlines in addition to self-insertion.
 
+@anchor{Glossary - End Of Line}
 @item End Of Line
 End of line is a character or a sequence of characters that indicate
 the end of a text line.  On GNU and Unix systems, this is a newline
@@ -444,7 +448,7 @@ variables in the environment it passes to programs it invokes.
 @xref{Environment}.
 
 @item EOL
-See `end of line'.
+@xref{Glossary - End Of Line}.
 
 @item Error
 An error occurs when an Emacs command cannot execute in the current
@@ -469,7 +473,7 @@ typed), you press the @key{ESC} key as you would press a letter key, and
 it applies to the next character you type.
 
 @item Expression
-See `balanced expression'.
+@xref{Glossary - Balanced Expression}.
 
 @item Expunging
 Expunging an Rmail, Gnus newsgroup, or Dired buffer is an operation
@@ -488,6 +492,7 @@ order to display that text as specified by the face attributes.
 A file local variable is a local variable (q.v.@:) specified in a
 given file.  @xref{File Variables}.  See also `directory variable'.
 
+@anchor{Glossary - File Locking}
 @item File Locking
 Emacs uses file locking to notice when two different users
 start to edit one file at the same time.  @xref{Interlocking}.
@@ -520,12 +525,14 @@ The fill prefix is a string that should be expected at the beginning
 of each line when filling is done.  It is not regarded as part of the
 text to be filled.  @xref{Filling}.
 
+@anchor{Glossary - Filling}
 @item Filling
 Filling text means adjusting the position of line-breaks to shift text
 between consecutive lines, so that all the lines are approximately the
 same length.  @xref{Filling}.  Some other editors call this feature
 ``line wrapping''.
 
+@anchor{Glossary - Font Lock}
 @item Font Lock
 Font Lock is a mode that highlights parts of buffer text in different
 faces, according to the syntax.  Some other editors refer to this as
@@ -539,7 +546,7 @@ make it easy to change several fonts at once by specifying the name of a
 fontset, rather than changing each font separately.  @xref{Fontsets}.
 
 @item Formfeed Character
-See `page'.
+@xref{Glossary - Page}.
 
 @item Frame
 A frame is a rectangular cluster of Emacs windows.  Emacs starts out
@@ -555,6 +562,7 @@ and modify it.  Emacs is free software, part of the GNU project
 (q.v.@:), and distributed under a copyleft (q.v.@:) license called the
 GNU General Public License.  @xref{Copying}.
 
+@anchor{Glossary - Free Software Foundation}
 @item Free Software Foundation
 The Free Software Foundation (FSF) is a charitable foundation
 dedicated to promoting the development of free software (q.v.@:).
@@ -568,7 +576,7 @@ the buffer text (@pxref{Fringes}).  Emacs displays the fringe using a
 special face (q.v.@:) called @code{fringe}.  @xref{Faces,fringe}.
 
 @item FSF
-See `Free Software Foundation'.
+@xref{Glossary - Free Software Foundation}.
 
 @item FTP
 FTP is an acronym for File Transfer Protocol.  This is one standard
@@ -599,6 +607,7 @@ set a mark (q.v.@:) in.  In many cases you can use this to backtrack
 through buffers you have been editing, or in which you have found
 tags (see `tags table').  @xref{Global Mark Ring}.
 
+@anchor{Glossary - Global Substitution}
 @item Global Substitution
 Global substitution means replacing each occurrence of one string by
 another string throughout a large amount of text.  @xref{Replace}.
@@ -683,6 +692,7 @@ Rmail transfers mail from inboxes to Rmail files in which the
 mail is then stored permanently or until explicitly deleted.
 @xref{Rmail Inbox}.
 
+@anchor{Glossary - Incremental Search}
 @item Incremental Search
 Emacs provides an incremental search facility, whereby Emacs begins
 searching for a string as soon as you type the first character.
@@ -718,17 +728,17 @@ Insertion means adding text into the buffer, either from the keyboard
 or from some other place in Emacs.
 
 @item Interlocking
-See `file locking'.
+@xref{Glossary - File Locking}.
 
 @item Isearch
-See `incremental search'.
+@xref{Glossary - Incremental Search}.
 
 @item Justification
 Justification means adding extra spaces within lines of text in order
 to adjust the position of the text edges.  @xref{Fill Commands}.
 
 @item Key Binding
-See `binding'.
+@xref{Glossary - Binding}.
 
 @item Keyboard Macro
 Keyboard macros are a way of defining new Emacs commands from
@@ -765,6 +775,7 @@ The kill ring is where all text you have killed (see `killing')
 recently is saved.  You can reinsert any of the killed text still in
 the ring; this is called yanking (q.v.@:).  @xref{Yanking}.
 
+@anchor{Glossary - Killing}
 @item Killing
 Killing means erasing text and saving it on the kill ring so it can be
 yanked (q.v.@:) later.  Some other systems call this ``cutting''.
@@ -786,7 +797,7 @@ non-@acronym{ASCII} text (@pxref{International}).
 @c Lexical Binding
 
 @item Line Wrapping
-See `filling'.
+@xref{Glossary - Filling}.
 
 @item Lisp
 Lisp is a programming language.  Most of Emacs is written in a dialect
@@ -835,6 +846,7 @@ Control-Meta; it means the same thing as `@kbd{C-M-}' (q.v.@:).
 name.  This is how you run commands that are not bound to key sequences.
 @xref{M-x,M-x,Running Commands by Name}.
 
+@anchor{Glossary - Mail}
 @item Mail
 Mail means messages sent from one user to another through the computer
 system, to be read at the recipient's convenience.  Emacs has commands for
@@ -874,7 +886,7 @@ words you can click on with the mouse to bring up menus, or you can use
 a keyboard interface to navigate it.  @xref{Menu Bars}.
 
 @item Message
-See `mail'.
+@xref{Glossary - Mail}.
 
 @item Meta
 Meta is the name of a modifier bit which you can use in a command
@@ -897,6 +909,7 @@ The minibuffer is the window that appears when necessary inside the
 echo area (q.v.@:), used for reading arguments to commands.
 @xref{Minibuffer}.
 
+@anchor{Glossary - Minibuffer History}
 @item Minibuffer History
 The minibuffer history records the text you have specified in the past
 for minibuffer arguments, so you can conveniently use the same text
@@ -962,6 +975,7 @@ therefore also called newlines.  See `End of Line'.
 @code{nil} is a value usually interpreted as a logical ``false''.  Its
 opposite is @code{t}, interpreted as ``true''.
 
+@anchor{Glossary - Numeric Argument}
 @item Numeric Argument
 A numeric argument is a number, specified before a command, to change
 the effect of the command.  Often the numeric argument serves as a
@@ -977,6 +991,7 @@ A package is a collection of Lisp code that you download and
 automatically install from within Emacs.  Packages provide a
 convenient way to add new features.  @xref{Packages}.
 
+@anchor{Glossary - Page}
 @item Page
 A page is a unit of text, delimited by formfeed characters (@acronym{ASCII}
 control-L, code 014) at the beginning of a line.  Some Emacs
@@ -1000,7 +1015,7 @@ character.  The terminal's cursor (q.v.@:) indicates the location of
 point.  @xref{Point}.
 
 @item Prefix Argument
-See `numeric argument'.
+@xref{Glossary - Numeric Argument}.
 
 @item Prefix Key
 A prefix key is a key sequence (q.v.@:) whose sole function is to
@@ -1036,6 +1051,7 @@ a kind of prompting (@pxref{Echo Area}).
 Query-replace is an interactive string replacement feature provided by
 Emacs.  @xref{Query Replace}.
 
+@anchor{Glossary - Quitting}
 @item Quitting
 Quitting means canceling a partially typed command or a running
 command, using @kbd{C-g} (or @kbd{C-@key{BREAK}} on MS-DOS).  @xref{Quitting}.
@@ -1080,7 +1096,7 @@ correspond to changes that have been made in the text being edited.
 @xref{Screen,Redisplay}.
 
 @item Regexp
-See `regular expression'.
+@xref{Glossary - Regular Expression}.
 
 @item Region
 The region is the text between point (q.v.@:) and the mark (q.v.@:).
@@ -1091,6 +1107,7 @@ Registers are named slots in which text, buffer positions, or
 rectangles can be saved for later use.  @xref{Registers}.  A related
 Emacs feature is `bookmarks' (q.v.@:).
 
+@anchor{Glossary - Regular Expression}
 @item Regular Expression
 A regular expression is a pattern that can match various text strings;
 for example, @samp{a[0-9]+} matches @samp{a} followed by one or more
@@ -1104,10 +1121,10 @@ you have a supported method to gain access to those files.
 @xref{Remote Files}.
 
 @item Repeat Count
-See `numeric argument'.
+@xref{Glossary - Numeric Argument}.
 
 @item Replacement
-See `global substitution'.
+@xref{Glossary - Global Substitution}.
 
 @item Restriction
 A buffer's restriction is the amount of text, at the beginning or the
@@ -1198,6 +1215,7 @@ are self-inserting in Emacs, except in certain special major modes.
 Emacs has commands for moving by or killing by sentences.
 @xref{Sentences}.
 
+@anchor{Glossary - Server}
 @item Server
 Within Emacs, you can start a `server' process, which listens for
 connections from `clients'.  This offers a faster alternative to
@@ -1254,10 +1272,10 @@ inside the string; however, backslash sequences as in C, such as
 allowed as well.
 
 @item String Substitution
-See `global substitution'.
+@xref{Glossary - Global Substitution}.
 
 @item Syntax Highlighting
-See `font lock'.
+@xref{Glossary - Font Lock}.
 
 @item Syntax Table
 The syntax table tells Emacs which characters are part of a word,
@@ -1305,6 +1323,7 @@ Data consisting of written human language (as opposed to programs),
 or following the stylistic conventions of human language.
 @end itemize
 
+@anchor{Glossary - Text-only Terminal}
 @item Text-only Terminal
 A text-only terminal is a display that is limited to displaying text in
 character units.  Such a terminal cannot control individual pixels it
@@ -1327,6 +1346,7 @@ of an Emacs frame.  Clicking on one of these icons executes a command.
 You can think of this as a graphical relative of the menu bar (q.v.@:).
 @xref{Tool Bars}.
 
+@anchor{Glossary - Tooltips}
 @item Tooltips
 Tooltips are small windows displaying a help echo (q.v.@:) text, which
 explains parts of the display, lists useful options available via mouse
@@ -1348,7 +1368,7 @@ two adjacent characters, words, balanced expressions (q.v.@:) or lines
 (@pxref{Transpose}).
 
 @item Trash Can
-See `deletion of files'.
+@xref{Glossary - Deletion of Files}.
 
 @item Truncation
 Truncating text lines in the display means leaving out any text on a
@@ -1357,7 +1377,7 @@ displaying it.  See also `continuation line'.
 @xref{Continuation Lines,Truncation}.
 
 @item TTY
-See `text-only terminal'.
+@xref{Glossary - Text-only Terminal}.
 
 @item Undoing
 Undoing means making your previous editing go in reverse, bringing
@@ -1416,12 +1436,13 @@ have their] own windows at the same time.  All modern operating systems
 include a window system.
 
 @item Word Abbrev
-See `abbrev'.
+@xref{Glossary - Abbrev}.
 
 @item Word Search
 Word search is searching for a sequence of words, considering the
 punctuation between them as insignificant.  @xref{Word Search}.
 
+@anchor{Glossary - Yanking}
 @item Yanking
 Yanking means reinserting text previously killed (q.v.@:).  It can be
 used to undo a mistaken kill, or for copying or moving text.  Some
