@@ -292,7 +292,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   } while (0)
 
 /* Return the character code of character whose multibyte form is at
-   P.  */
+   P.  Note that this macro unifies CJK characters whose codepoints
+   are in the Private Use Areas (PUAs), so it might return a different
+   codepoint from the one actually stored at P.  */
 
 #define STRING_CHAR(p)						\
   (!((p)[0] & 0x80)						\
@@ -309,7 +311,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Like STRING_CHAR, but set ACTUAL_LEN to the length of multibyte
-   form.  */
+   form.
+
+   Note: This macro returns the actual length of the character's
+   multibyte sequence as it is stored in a buffer or string.  The
+   character it returns might have a different codepoint that has a
+   different multibyte sequence of a different legth, due to possible
+   unification of CJK characters inside string_char.  Therefore do NOT
+   assume that the length returned by this macro is identical to the
+   length of the multibyte sequence of the character it returns.  */
 
 #define STRING_CHAR_AND_LENGTH(p, actual_len)			\
   (!((p)[0] & 0x80)						\

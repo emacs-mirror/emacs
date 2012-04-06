@@ -1,3 +1,12 @@
+2012-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.h (FETCH_CHAR, FETCH_MULTIBYTE_CHAR):
+	* character.h (STRING_CHAR, STRING_CHAR_AND_LENGTH): Add comments
+	about subtle differences between FETCH_CHAR* and STRING_CHAR*
+	macros related to unification of CJK characters.  For the details,
+	see the discussion following the message here:
+	http://debbugs.gnu.org/cgi/bugreport.cgi?bug=11073#14.
+
 2012-04-04  Chong Yidong  <cyd@gnu.org>
 
 	* keyboard.c (Vdelayed_warnings_list): Doc fix.

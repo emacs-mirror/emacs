@@ -343,7 +343,8 @@ while (0)
  - (ptr - (current_buffer)->text->beg <= GPT_BYTE - BEG_BYTE ? 0 : GAP_SIZE) \
  + BEG_BYTE)
 
-/* Return character at byte position POS.  */
+/* Return character at byte position POS.  See the caveat WARNING for
+   FETCH_MULTIBYTE_CHAR below.  */
 
 #define FETCH_CHAR(pos)				      	\
   (!NILP (BVAR (current_buffer, enable_multibyte_characters))	\
@@ -359,7 +360,17 @@ extern unsigned char *_fetch_multibyte_char_p;
 
 /* Return character code of multi-byte form at byte position POS.  If POS
    doesn't point the head of valid multi-byte form, only the byte at
-   POS is returned.  No range checking.  */
+   POS is returned.  No range checking.
+
+   WARNING: The character returned by this macro could be "unified"
+   inside STRING_CHAR, if the original character in the buffer belongs
+   to one of the Private Use Areas (PUAs) of codepoints that Emacs
+   uses to support non-unified CJK characters.  If that happens,
+   CHAR_BYTES will return a value that is different from the length of
+   the original multibyte sequence stored in the buffer.  Therefore,
+   do _not_ use FETCH_MULTIBYTE_CHAR if you need to advance through
+   the buffer to the next character after fetching this one.  Instead,
+   use either FETCH_CHAR_ADVANCE or STRING_CHAR_AND_LENGTH.  */
 
 #define FETCH_MULTIBYTE_CHAR(pos)				 	\
   (_fetch_multibyte_char_p = (((pos) >= GPT_BYTE ? GAP_SIZE : 0) 	\
