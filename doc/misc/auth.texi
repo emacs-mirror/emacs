@@ -260,12 +260,12 @@ sometimes called a @samp{keyring} or @samp{wallet} in GNOME Keyring
 and KDE Wallet but it's the same thing, a group of secrets.
 Collections are personal and protected so only the owner can open them.
 
-The most common collection is called @samp{login}.
+The most common collection is called @code{"login"}.
 
-A collection can have an alias.  The alias @samp{default} is
+A collection can have an alias.  The alias @code{"default"} is
 commonly used so the clients don't have to know the specific name of
 the collection they open.  Other aliases are not supported yet.
-Since aliases are globally accessible, set the @samp{default} alias
+Since aliases are globally accessible, set the @code{"default"} alias
 only when you're sure it's appropriate.
 
 @defun secrets-list-collections
@@ -274,27 +274,27 @@ This function returns all the collection names as a list.
 
 @defun secrets-set-alias collection alias
 Set @var{alias} as alias of collection labeled @var{collection}.
-Currently only the alias @samp{default} is supported.
+Currently only the alias @code{"default"} is supported.
 @end defun
 
 @defun secrets-get-alias alias
 Return the collection name @var{alias} is referencing to.
-Currently only the alias @samp{default} is supported.
+Currently only the alias @code{"default"} is supported.
 @end defun
 
 Collections can be created and deleted by the functions
 @code{secrets-create-collection} and @code{secrets-delete-collection}.
 Usually, this is not done from within Emacs.  Do not delete standard
-collections such as @samp{login}.
+collections such as @code{"login"}.
 
-The special collection @samp{session} exists for the lifetime of the
+The special collection @code{"session"} exists for the lifetime of the
 corresponding client session (in our case, Emacs's lifetime).  It is
 created automatically when Emacs uses the Secret Service interface and
 it is deleted when Emacs is killed.  Therefore, it can be used to
-store and retrieve secret items temporarily.  The @samp{session}
+store and retrieve secret items temporarily.  The @code{"session"}
 collection is better than a persistent collection when the secret
 items should not live longer than Emacs.  The session collection can
-be specified either by the string @samp{session}, or by @code{nil},
+be specified either by the string @code{"session"}, or by @code{nil},
 whenever a collection parameter is needed in the following functions.
 
 @defun secrets-list-items collection
@@ -359,12 +359,12 @@ in @code{secrets-create-item}.  Example:
 
 The auth-source library uses the @file{secrets.el} library and thus
 the Secret Service API when you specify a source matching
-@samp{secrets:COLLECTION}.  For instance, you could use
-@samp{secrets:session} to use the @samp{session} collection, open only
-for the lifetime of Emacs.  Or you could use @samp{secrets:Login} to
-open the @samp{Login} collection.  As a special case, you can use the
+@code{"secrets:COLLECTION"}.  For instance, you could use
+@code{"secrets:session"} to use the @code{"session"} collection, open only
+for the lifetime of Emacs.  Or you could use @code{"secrets:Login"} to
+open the @code{"Login"} collection.  As a special case, you can use the
 symbol @code{default} in @code{auth-sources} (not a string, but a
-symbol) to specify the @samp{default} alias.  Here is a contrived
+symbol) to specify the @code{"default"} alias.  Here is a contrived
 example that sets @code{auth-sources} to search three collections and
 then fall back to @file{~/.authinfo.gpg}.
 

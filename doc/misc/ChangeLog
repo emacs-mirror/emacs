@@ -1,6 +1,7 @@
 2012-04-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth.texi (Secret Service API): Edit further and give examples.
+	(Secret Service API): Adjust @samp to @code for collection names.
 
 2012-04-04  Glenn Morris  <rgm@gnu.org>
 
