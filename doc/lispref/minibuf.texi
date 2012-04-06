@@ -1575,12 +1575,10 @@ completion behavior.
 
 @cindex completion styles
 @defopt completion-styles
-The value of this variable is a list of completion styles to use for
-performing completion.  A @dfn{completion style} is a set of rules for
-generating completions.
-
-Each style listed in this variable must be one of those defined in
-@code{completion-styles-alist}.
+The value of this variable is a list of completion style (symbols) to
+use for performing completion.  A @dfn{completion style} is a set of
+rules for generating completions.  Each symbol in occurring this list
+must have a corresponding entry in @code{completion-styles-alist}.
 @end defopt
 
 @defvar completion-styles-alist
@@ -1588,15 +1586,16 @@ This variable stores a list of available completion styles.  Each
 element in the list has the form
 
 @example
-(@var{name} @var{try-completion} @var{all-completions} @var{doc})
+(@var{style} @var{try-completion} @var{all-completions} @var{doc})
 @end example
 
 @noindent
-Here, @var{name} is the name of the completion style (a symbol), which
-may be used in @code{completion-styles-alist} to refer to this style;
-@var{try-completion} is the function that does the completion;
-@var{all-completions} is the function that lists the completions; and
-@var{doc} is a string describing the completion style.
+Here, @var{style} is the name of the completion style (a symbol),
+which may be used in the @code{completion-styles} variable to refer to
+this style; @var{try-completion} is the function that does the
+completion; @var{all-completions} is the function that lists the
+completions; and @var{doc} is a string describing the completion
+style.
 
 The @var{try-completion} and @var{all-completions} functions should
 each accept four arguments: @var{string}, @var{collection},
@@ -1621,6 +1620,31 @@ listing completions, via the @var{all-completions} functions.
 @xref{Completion Styles,,, emacs, The GNU Emacs Manual}, for a
 description of the available completion styles.
 @end defvar
+
+@defopt completion-category-overrides
+This variable specifies special completion styles and other completion
+behaviors to use when completing certain types of text.  Its value
+should be a list of the form @code{(@var{category} . @var{alist})}.
+@var{category} is a symbol describing what is being completed;
+currently, the @code{buffer} and @code{file} categories are defined,
+but others can be defined via specialized completion functions
+(@pxref{Programmed Completion}).  @var{alist} is an association list
+describing how completion should behave for the corresponding
+category.  The following alist keys are supported:
+
+@table @code
+@item styles
+The value should be a list of completion styles (symbols).
+
+@item cycle
+The value should be a value for @code{completion-cycle-threshold}
+(@pxref{Completion Options,,, emacs, The GNU Emacs Manual}) for this
+category.
+@end table
+
+@noindent
+Additional alist entries may be defined in the future.
+@end defopt
 
 @defvar completion-extra-properties
 This variable is used to specify extra properties of the current
@@ -1706,8 +1730,47 @@ This specifies a @code{completion-boundaries} operation.  The function
 should return @code{(boundaries START . END)}, where START is the
 position of the beginning boundary in the specified string, and END is
 the position of the end boundary in SUFFIX.
+
+@item metadata
+This specifies a request for information about the state of the
+current completion.  The function should return an alist, as described
+below.  The alist may contain any number of elements.
 @end table
+
+@noindent
+If the flag has any other value, the completion function should return
+@code{nil}.
 @end itemize
+
+The following is a list of metadata entries that a completion function
+may return in response to a @code{metadata} flag argument:
+
+@table @code
+@item category
+The value should be a symbol describing what kind of text the
+completion function is trying to complete.  If the symbol matches one
+of the keys in @code{completion-category-overrides}, the usual
+completion behavior is overridden.  @xref{Completion Variables}.
+
+@item annotation-function
+The value should be a function for @dfn{annotating} completions.  The
+function should take one argument, @var{string}, which is a possible
+completion.  It should return a string, which is displayed after the
+completion @var{string} in the @samp{*Completions*} buffer.
+
+@item display-sort-function
+The value should be a function for sorting completions.  The function
+should take one argument, a list of completion strings, and return a
+sorted list of completion strings.  It is allowed to alter the input
+list destructively.
+
+@item cycle-sort-function
+The value should be a function for sorting completions, when
+@code{completion-cycle-threshold} is non-@code{nil} and the user is
+cycling through completion alternatives.  @xref{Completion Options,,,
+emacs, The GNU Emacs Manual}.  Its argument list and return value are
+the same as for @code{display-sort-function}.
+@end table
 
 @defun completion-table-dynamic function
 This function is a convenient way to write a function that can act as
