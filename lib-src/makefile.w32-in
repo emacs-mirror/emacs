@@ -17,8 +17,8 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
-ALL = $(BLD)/make-docfile.exe $(BLD)/hexl.exe $(BLD)/ctags.exe\
- $(BLD)/etags.exe $(BLD)/movemail.exe $(BLD)/ebrowse.exe\
+ALL = $(BLD)/test-distrib.exe $(BLD)/make-docfile.exe $(BLD)/hexl.exe\
+ $(BLD)/ctags.exe $(BLD)/etags.exe $(BLD)/movemail.exe $(BLD)/ebrowse.exe\
  $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
 
 .PHONY: make-docfile
