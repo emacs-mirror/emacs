@@ -1,3 +1,7 @@
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in: Convert to Unix EOL format.
+
 2012-03-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt: Discourage from defining HAVE_GETCWD.
