@@ -41,12 +41,12 @@ $(BLD)/libgnu.$(A):	$(GNULIBOBJS)
 	- $(DEL) $@
 	$(AR) $(AR_OUT)$@ $(ALL_DEPS)
 
-gnulib:	stamp_BLD $(BLD)/libgnu.$(A)
+gnulib:		$(BLD)/libgnu.$(A)
 
 #
 # Build everything
 #
-all:		stamp_BLD $(ALL)
+all:		$(ALL)
 
 ### TAGS ###
 
