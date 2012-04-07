@@ -1,6 +1,6 @@
 ;;; org-ascii.el --- ASCII export for Org-mode
 
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -438,7 +438,9 @@ publishing directory."
 	      link (concat (match-string 1 line) path)
 	      type (match-string 2 line)
 	      desc0 (match-string 5 line)
-	      desc (or desc0 link))
+	      desc0 (replace-regexp-in-string "\\\\_" "_" desc0)
+	      desc (or desc0 link)
+	      desc (replace-regexp-in-string "\\\\_" "_" desc))
 	(if (and (> (length link) 8)
 		 (equal (substring link 0 8) "coderef:"))
 	    (setq line (replace-match

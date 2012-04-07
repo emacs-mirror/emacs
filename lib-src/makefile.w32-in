@@ -17,9 +17,11 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
-ALL = make-docfile hexl ctags etags movemail ebrowse emacsclient
+ALL = $(BLD)/test-distrib.exe $(BLD)/make-docfile.exe $(BLD)/hexl.exe\
+ $(BLD)/ctags.exe $(BLD)/etags.exe $(BLD)/movemail.exe $(BLD)/ebrowse.exe\
+ $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
 
-.PHONY: $(ALL)
+.PHONY: make-docfile
 
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DNO_LDAV=1 \
 		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../lib \
@@ -27,23 +29,16 @@ LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DNO_LDAV=1 \
 
 LIBS 		= $(BASE_LIBS) $(ADVAPI32)
 
+# The following target is used by makefile.w32-in files in other directories.
+make-docfile:	$(BLD)/make-docfile.exe
+
 $(BLD)/make-docfile.exe: 	$(BLD)/make-docfile.$(O) $(BLD)/ntlib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/make-docfile.$(O) $(BLD)/ntlib.$(O) $(LIBS)
 $(BLD)/hexl.exe:		$(BLD)/hexl.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/hexl.$(O) $(LIBS)
 $(BLD)/test-distrib.exe: $(BLD)/test-distrib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/test-distrib.$(O) $(LIBS)
-
-make-docfile:	stamp_BLD $(BLD)/make-docfile.exe
-ctags:		stamp_BLD $(BLD)/ctags.exe
-etags:		stamp_BLD $(BLD)/etags.exe
-ebrowse:        stamp_BLD $(BLD)/ebrowse.exe
-hexl:		stamp_BLD $(BLD)/hexl.exe
-movemail:	stamp_BLD $(BLD)/movemail.exe
-emacsclient:	stamp_BLD $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
-
-test-distrib:	stamp_BLD $(BLD)/test-distrib.exe
-	"$(BLD)/test-distrib.exe" "$(SRC)/testfile"
+		"$(BLD)/test-distrib.exe" "$(SRC)/testfile"
 
 MOVEMAILOBJS =  $(BLD)/movemail.$(O) \
 		$(BLD)/pop.$(O) \
@@ -140,7 +135,7 @@ obj =   dosfns.o msdos.o \
 	process.o callproc.o unexw32.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o intervals.o textprop.o composite.o \
-	gnutls.o
+	gnutls.o xml.o
 
 #
 # These are the lisp files that are loaded up in loadup.el
@@ -297,7 +292,7 @@ $(DOC):		stamp_BLD $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(l
 #
 # Build the executables
 #
-all:		stamp_BLD $(ALL) $(DOC)
+all:		$(ALL) $(DOC)
 
 #
 # Assuming INSTALL_DIR is defined, build and install emacs in it.

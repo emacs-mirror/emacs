@@ -173,6 +173,7 @@ or, with the additional package \"todonotes\" for LaTeX,
 This should be the state `org-inlinetask-insert-task' should use by
 default, or nil of no state should be assigned."
   :group 'org-inlinetask
+  :version "24.1"
   :type '(choice
 	  (const :tag "No state" nil)
 	  (string :tag "Specific state")))

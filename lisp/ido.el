@@ -3269,7 +3269,7 @@ for first matching file."
     (while filenames
       (setq filename (car filenames)
 	    filenames (cdr filenames))
-      (if (and (string-match "^/" filename)
+      (if (and (file-name-absolute-p filename)
 	       (file-exists-p filename))
 	  (setq d (file-name-directory filename)
 		f (file-name-nondirectory filename)

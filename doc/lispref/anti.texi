@@ -6,150 +6,134 @@
 @c This node must have no pointers.
 
 @node Antinews, GNU Free Documentation License, Packaging, Top
-@appendix Emacs 22 Antinews
+@appendix Emacs 23 Antinews
 @c Update the elisp.texi, vol1.texi, vol2.texi Antinews menu entries
 @c with the above version number.
 
 For those users who live backwards in time, here is information about
-downgrading to Emacs version 22.3.  We hope you will enjoy the greater
+downgrading to Emacs version 23.4.  We hope you will enjoy the greater
 simplicity that results from the absence of many Emacs @value{EMACSVER}
 features.
 
-@section Old Lisp Features in Emacs 22
+@section Old Lisp Features in Emacs 23
 
 @itemize @bullet
 @item
-The internal character representation used by Emacs is not longer
-based on Unicode.  In this representation, called @code{emacs-mule},
-each character belongs to one and only one script.  Emacs makes no
-attempt to distinguish between ``similar'' characters occurring in
-different scripts.
+Support for lexical scoping has been removed; all variables are
+dynamically scoped.  The @code{lexical-binding} variable has been
+removed, and so has the @var{lexical} argument to @code{eval}.  The
+@code{defvar} and @code{defconst} forms no longer mark variables as
+dynamic, since all variables are dynamic.
+
+Having only dynamic binding follows the spirit of Emacs extensibility,
+for it allows any Emacs code to access any defined variable with a
+minimum of fuss.  But @xref{Dynamic Binding Tips}, for tips to avoid
+making your programs hard to understand.
 
 @item
-The @code{^} interactive spec code, the function
-@code{handle-shift-selection}, and the variable
-@code{this-command-keys-shift-translated} have all been removed.
-Shift-translated keys are no longer treated specially, making Emacs's
-handling of keybindings much more consistent.
+Calling a minor mode function from Lisp with a nil or omitted argument
+does not enable the minor mode unconditionally; instead, it toggles
+the minor mode---which is the straightforward thing to do, since that
+is the behavior when invoked interactively.  One downside is that it
+is more troublesome to enable minor modes from hooks; you have to do
+something like
+
+@example
+(add-hook 'foo-hook (lambda () (bar-mode 1)))
+@end example
+
+@noindent
+or define @code{turn-on-bar-mode} and call that from the hook.
 
 @item
-Temporarily-active regions are not created by giving the variable
-@code{transient-mark-mode} values of the form @code{(only
-. @var{oldvar})}.  We instead use a more complicated scheme:
-setting @code{transient-mark-mode} to @code{only} enables Transient
-Mark mode for the following command only, during which the value of
-@code{transient-mark-mode} is set to @code{identity}; if it is still
-@code{identity} at the end of the command, Transient Mark mode is
-disabled.
+The @code{prog-mode} dummy major mode has been removed.  Instead of
+using it as a crutch to meet programming mode conventions, you should
+explicitly ensure that your mode follows those conventions.
+@xref{Major Mode Conventions}.
 
 @item
-Many minibuffer functions, such as @code{read-file-name} and
-@code{minibuffer-complete}, have been rewritten in C for greater
-speed.  The completion code has been considerably simplified; the
-completion style can no longer be changed via
-@code{completion-styles-alist}, and @code{completing-read} no longer
-recognizes the special values @code{confirm-only} and
-@code{confirm-after-completion} for its @var{require-match} argument.
+Emacs no longer supports bidirectional display and editing.  Since
+there is no need to worry about the insertion of right-to-left text
+messing up how lines and paragraphs are displayed, the function
+@code{bidi-string-mark-left-to-right} has been removed; so have many
+other functions and variables related to bidirectional display.
+Unicode directionality characters like @code{U+200E} ("left-to-right
+mark") have no special effect on display.
 
 @item
-Emacs no longer supports explicitly-numbered groups in regular
-expressions.
+Emacs windows now have most of their internal state hidden from Lisp.
+Internal windows are no longer visible to Lisp; functions such as
+@code{window-parent}, window parameters related to window arrangement,
+and window-local buffer lists have all been removed.  Functions for
+resizing windows can delete windows if when they become too small.
+
+The @dfn{action function} feature for controlling buffer display has
+been removed, including @code{display-buffer-overriding-action} and
+related variables, as well as the @var{action} argument to
+@code{display-buffer} and other functions.  The way to
+programmatically control how Emacs chooses a window to display a
+buffer is to bind the right combination of
+@code{special-display-regexps}, @code{pop-up-frames}, and other
+variables.
 
 @item
-The @code{permanent-local-hook} function property has no special
-meaning.
+The standard completion interface has been simplified, eliminating the
+@code{completion-extra-properties} variable, the @code{metadata}
+action flag for completion functions, and the concept of
+@dfn{completion categories}.  Lisp programmers may now find the choice
+of methods for tuning completion less bewildering, but if a package
+finds the streamlined interface insufficient for its needs, it must
+implement its own specialized completion feature.
 
 @item
-The @code{functionp} function now returns @code{t} for special forms.
+@code{copy-directory} now behaves the same whether or not the
+destination is an existing directory: if the destination exists, the
+@emph{contents} of the first directory are copied into it (with
+subdirectories handled recursively), rather than copying the first
+directory into a subdirectory.
 
 @item
-The @code{interactive-form} symbol property has no special meaning.
-Once you supply a function with an interactive form, the only way to
-change it is to redefine the function.
+The @var{trash} arguments for @code{delete-file} and
+@code{delete-directory} have been removed.  The variable
+@code{delete-by-moving-to-trash} must now be used with care; whenever
+it is non-@code{nil}, all calls to @code{delete-file} or
+@code{delete-directory} use the trash.
 
 @item
-The @code{ignore-errors} macro has been moved into the @code{cl}
-package.
+Because Emacs no longer supports SELinux file contexts, the
+@var{preserve-selinux-context} argument to @code{copy-file} has been
+removed.  The return value of @code{backup-buffer} no longer has an
+entry for the SELinux file context.
 
 @item
-Variables can now be both buffer-local and frame-local; buffer-local
-bindings take precedence over frame-local bindings.
+For mouse click input events in the text area, the Y pixel coordinate
+in the @var{position} list (@pxref{Click Events}) now counts from the
+top of the header line, if there is one, rather than the top of the
+text area.
 
 @item
-Faces can no longer be remapped.
+Bindings in menu keymaps (@pxref{Format of Keymaps}) now sometimes get
+an additional @var{cache} entry in their definitions, like this:
+
+@example
+(@var{type} @var{item-name} @var{cache} . @var{binding})
+@end example
+
+@noindent
+The @var{cache} entry is used internally by Emacs to record equivalent
+keyboard key sequences for invoking the same command; Lisp programs
+should never use it.
 
 @item
-Lisp programs now specify fonts by their names, which are strings
-following the XLFD (X logical font descriptor) format.  Fonts are no
-longer represented using a special set of ``font'' data types.  The
-various functions that act on these data types, such as @code{fontp},
-@code{font-spec}, and @code{list-fonts}, have all been deleted.
+The @code{open-network-stream} function has been removed, and so has
+the @code{gnutls} library.  Lisp programs that want an encrypted
+network connection must now call external utilities such as
+@command{starttls} or @command{gnutls-cli}.
 
 @item
-Emacs does not recognize the @code{FontBackend} X resource and the
-@code{font-backend} frame parameter.  On the X Window System, fonts
-are always drawn using the X core font driver.
+Tool bars can no longer display separators, which frees up several
+pixels of space on each graphical frame.
 
 @item
-Display terminals are no longer represented using a ``terminal'' data
-type; this is not necessary, because we have removed the ability to
-display on graphical and text terminals simultaneously.  For the same
-reason, the @code{window-system} variable is no longer frame-local,
-and the @code{window-system} function has been removed.
-
-@item
-The functions @code{list-system-processes} and
-@code{process-attributes} have been removed.  To get information about
-system processes, call an external program, such as @command{ps}.
-
-@item
-The function @code{locate-user-emacs-file} and the variable
-@code{user-emacs-directory} have been removed.  Instead, use
-hard-coded values pointing to @file{~/.emacs.d}.
-
-@item
-@code{vertical-motion} can no longer be told to move to a specific
-column; it always puts point on the first column of a line.
-
-@item
-Windows no longer have parameters.
-
-@item
-The @code{display-buffer} function has been rewritten in C.  Its
-window-splitting heuristics are a little less sophisticated, and a
-little less documented.  Window-splitting is handled internally,
-instead of using @code{split-window-preferred-function} (which has
-been removed).  Windows are never split horizontally; the variable
-@code{split-width-threshold} has been removed.
-
-@item
-The @code{mode-name} variable now accepts only string values, and
-cannot take the form of a mode-line construct.
-
-@item
-The behavior of @code{map-char-table} has changed.  It calls the
-mapping function for every single character in the table, instead of
-using cons cells to represent contiguous character code ranges.
-
-@item
-Several keymaps have been eliminated: @code{input-decode-map},
-@code{local-function-key-map}, @code{search-map},
-@code{multi-query-replace-map}, and
-@code{minibuffer-local-shell-command-map}.
-
-@item
-Many functions have been removed, including: @code{buffer-swap-text},
-@code{emacs-init-time}, @code{emacs-uptime}, @code{use-region-p},
-@code{region-active-p}, @code{start-file-process},
-@code{process-lines}, @code{image-refresh},
-@code{match-substitute-replacement}, @code{word-search-forward-lax},
-and @code{word-search-backward-lax}.
-
-@item
-Many variables have been removed, including @code{read-circle},
-@code{after-init-time} and @code{before-init-time},
-@code{generate-autoload-cookie}, @code{file-local-variables-alist},
-@code{replace-search-function} and @code{replace-re-search-function},
-@code{inhibit-changing-match-data}, @code{wrap-prefix}, and
-@code{line-prefix},
+Many other functions and variables have been eliminated.
 @end itemize

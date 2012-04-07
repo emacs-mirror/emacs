@@ -1264,7 +1264,8 @@ Special value `always' suppresses confirmation."
 
 (defun dired-copy-file-recursive (from to ok-flag &optional
 				       preserve-time top recursive)
-  (when (file-subdir-of-p to from)
+  (when (and (eq t (car (file-attributes from)))
+	     (file-in-directory-p to from))
     (error "Cannot copy `%s' into its subdirectory `%s'" from to))
   (let ((attrs (file-attributes from)))
     (if (and recursive
@@ -1451,11 +1452,13 @@ ESC or `q' to not overwrite any of the remaining files,
                          (file-directory-p to)
                          (eq file-creator 'dired-copy-file))
                 (setq to destname))
-              ;; If DESTNAME and FROM are the same directory or
-              ;; If DESTNAME is a subdirectory of FROM, return error.
-              (and (file-subdir-of-p destname from)
-                   (error "Cannot copy `%s' into its subdirectory `%s'"
-                          from to)))
+	      ;; If DESTNAME is a subdirectory of FROM, not a symlink,
+	      ;; and the method in use is copying, signal an error.
+	      (and (eq t (car (file-attributes destname)))
+		   (eq file-creator 'dired-copy-file)
+		   (file-in-directory-p destname from)
+		   (error "Cannot copy `%s' into its subdirectory `%s'"
+			  from to)))
             (condition-case err
                 (progn
                   (funcall file-creator from to dired-overwrite-confirmed)

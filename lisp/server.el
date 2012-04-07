@@ -367,18 +367,27 @@ If CLIENT is non-nil, add a description of it to the logged message."
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
+(defun server--on-display-p (frame display)
+  (and (equal (frame-parameter frame 'display) display)
+       ;; Note: TTY frames still get a `display' parameter set to the value of
+       ;; $DISPLAY.  This is useful when running from that tty frame
+       ;; sub-processes that want to connect to the X server, but that means we
+       ;; have to be careful here not to be tricked into thinking those frames
+       ;; are on `display'.
+       (not (eq (framep frame) t))))
+
 (defun server-select-display (display)
   ;; If the current frame is on `display' we're all set.
   ;; Similarly if we are unable to open frames on other displays, there's
   ;; nothing more we can do.
   (unless (or (not (fboundp 'make-frame-on-display))
-              (equal (frame-parameter (selected-frame) 'display) display))
+              (server--on-display-p (selected-frame) display))
     ;; Otherwise, look for an existing frame there and select it.
     (dolist (frame (frame-list))
-      (when (equal (frame-parameter frame 'display) display)
+      (when (server--on-display-p frame display)
 	(select-frame frame)))
     ;; If there's no frame on that display yet, create and select one.
-    (unless (equal (frame-parameter (selected-frame) 'display) display)
+    (unless (server--on-display-p (selected-frame) display)
       (let* ((buffer (generate-new-buffer " *server-dummy*"))
              (frame (make-frame-on-display
                      display

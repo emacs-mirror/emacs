@@ -2109,12 +2109,11 @@ I can't find anything in the Gnus manual about X
 
 @subsubheading Answer
 
-There's not only the Gnus manual but also the manuals
-for message, emacs-mime, sieve and pgg. Those packages
-are distributed with Gnus and used by Gnus but aren't
-really part of core Gnus, so they are documented in
-different info files, you should have a look in those
-manuals, too.
+There's not only the Gnus manual but also the manuals for message,
+emacs-mime, sieve, EasyPG Assistant, and pgg. Those packages are
+distributed with Gnus and used by Gnus but aren't really part of core
+Gnus, so they are documented in different info files, you should have
+a look in those manuals, too.
 
 @node FAQ 8-3
 @subsubheading Question 8.3

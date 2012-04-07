@@ -98,6 +98,7 @@ is nil, the buffer remains buried also in these cases."
 This applied to the commands `org-export-as-html-and-open' and
 `org-export-as-pdf-and-open'."
   :group 'org-export-general
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-export-run-in-background nil
@@ -120,6 +121,7 @@ force an export command into the current process."
   "The initial scope when exporting with `org-export'.
 This variable can be either set to 'buffer or 'subtree."
   :group 'org-export-general
+  :version "24.1"
   :type '(choice
 	  (const :tag "Export current buffer" 'buffer)
 	  (const :tag "Export current subtree" 'subtree)))
@@ -220,6 +222,7 @@ and in `org-clock-clocktable-language-setup'."
 (defcustom org-export-date-timestamp-format "%Y-%m-%d"
   "Time string format for Org timestamps in the #+DATE option."
   :group 'org-export-general
+  :version "24.1"
   :type 'string)
 
 (defvar org-export-page-description ""
@@ -317,6 +320,7 @@ done                 include only tasks that are already done.
 nil                  remove all tasks before export
 list of TODO kwds    keep only tasks with these keywords"
   :group 'org-export-general
+  :version "24.1"
   :type '(choice
 	  (const :tag "All tasks" t)
 	  (const :tag "No tasks" nil)
@@ -367,6 +371,7 @@ e.g. \"author:nil\"."
 This option can also be set with the +OPTIONS line,
 e.g. \"email:t\"."
   :group 'org-export-general
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-export-creator-info t
@@ -594,6 +599,7 @@ the values of constants may be useful to have."
 This is the global equivalent of the :remove-nil-lines option
 when locally sending a table with #+ORGTBL."
   :group 'org-export-tables
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-export-prefer-native-exporter-for-tables nil
@@ -1730,10 +1736,11 @@ from the buffer."
 					":[ \t]*\\(.*\\)") nil t)
 	(if (not (eq backend org-export-current-backend))
 	    (delete-region (point-at-bol) (min (1+ (point-at-eol)) (point-max)))
-	  (replace-match "\\1\\2" t)
-	  (add-text-properties
-	   (point-at-bol) (min (1+ (point-at-eol)) (point-max))
-	   `(org-protected t original-indentation ,ind org-native-text t))))
+	  (let ((ind (get-text-property (point-at-bol) 'original-indentation)))
+	    (replace-match "\\1\\2" t)
+	    (add-text-properties
+	     (point-at-bol) (min (1+ (point-at-eol)) (point-max))
+	     `(org-protected t original-indentation ,ind org-native-text t)))))
       ;; Delete #+ATTR_BACKEND: stuff of another backend. Those
       ;; matching the current backend will be taken care of by
       ;; `org-export-attach-captions-and-attributes'
@@ -1748,7 +1755,8 @@ from the buffer."
       (while (re-search-forward (concat "^[ \t]*#\\+BEGIN_" backend-name "\\>.*\n?")
 				nil t)
 	(setq beg (match-beginning 0) beg-content (match-end 0))
-	(setq ind (save-excursion (goto-char beg) (org-get-indentation)))
+	(setq ind (or (get-text-property beg 'original-indentation)
+		      (save-excursion (goto-char beg) (org-get-indentation))))
 	(when (re-search-forward (concat "^[ \t]*#\\+END_" backend-name "\\>.*\n?")
 				 nil t)
 	  (setq end (match-end 0) end-content (match-beginning 0))
@@ -1759,17 +1767,7 @@ from the buffer."
 		 beg-content end-content
 		 `(org-protected t original-indentation ,ind org-native-text t))
 		;; strip protective commas
-		(save-excursion
-		  (save-match-data
-		    (goto-char beg-content)
-		    (let ((front-line (save-excursion
-					(re-search-forward
-					 "[^[:space:]]" end-content t)
-					(goto-char (match-beginning 0))
-					(current-column))))
-		      (while (re-search-forward "^[ \t]*\\(,\\)" end-content t)
-			(when (= (current-column) front-line)
-			  (replace-match "" nil nil nil 1))))))
+		(org-strip-protective-commas beg-content end-content)
 		(delete-region (match-beginning 0) (match-end 0))
 		(save-excursion
 		  (goto-char beg)
@@ -1816,8 +1814,7 @@ These special cookies will later be interpreted by the backend."
 		  (top (point-at-bol))
 		  (top-ind (org-list-get-ind top struct)))
 	     (goto-char bottom)
-	     (when (and (not (eq org-list-ending-method 'indent))
-			(not (looking-at "[ \t]*$"))
+	     (when (and (not (looking-at "[ \t]*$"))
 			(looking-at org-list-end-re))
 	       (replace-match ""))
 	     (unless (bolp) (insert "\n"))
@@ -1875,8 +1872,7 @@ These special properties will later be interpreted by the backend."
 	      ;; useful to line processing exporters.
 	      (goto-char bottom)
 	      (when (or (looking-at "^ORG-LIST-END-MARKER\n")
-			(and (not (eq org-list-ending-method 'indent))
-			     (not (looking-at "[ \t]*$"))
+			(and (not (looking-at "[ \t]*$"))
 			     (looking-at org-list-end-re)))
 		(replace-match ""))
 	      (unless (bolp) (insert "\n"))
@@ -2203,7 +2199,7 @@ can work correctly."
 	;; This is a subtree, we take the title from the first heading
 	(goto-char rbeg)
 	(looking-at org-todo-line-tags-regexp)
-	(setq title (if (eq tags t)
+	(setq title (if (and (eq tags t) (match-string 4))
 			(format "%s\t%s" (match-string 3) (match-string 4))
 		      (match-string 3)))
 	(org-unmodified
@@ -3277,7 +3273,7 @@ If yes remove the column and the special lines."
 	      ((org-table-cookie-line-p x)
 	       ;; This line contains formatting cookies, discard it
 	       nil)
-	      ((string-match "^[ \t]*| *[!_^/] *|" x)
+	      ((string-match "^[ \t]*| *\\([!_^/$]\\|\\\\\\$\\) *|" x)
 	       ;; ignore this line
 	       nil)
 	      ((or (string-match "^\\([ \t]*\\)|-+\\+" x)

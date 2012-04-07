@@ -75,9 +75,8 @@ results
 
 NOTE: by default string variable names are interpreted as
 references to source-code blocks, to force interpretation of a
-cell's value as a string, prefix the identifier with two \"$\"s
-rather than a single \"$\" (i.e. \"$$2\" instead of \"$2\" in the
-example above.
+cell's value as a string, prefix the identifier a \"$\" (e.g.,
+\"$$2\" instead of \"$2\" or \"$@2$2\" instead of \"@2$2\").
 
 NOTE: it is also possible to pass header arguments to the code
 block.  In this case a table cell should hold the string value of
@@ -97,7 +96,7 @@ as shown in the example below.
 		     (delq nil (mapcar
 				(lambda (el)
 				  (if (eq '$ el)
-				      (setq quote t)
+				      (prog1 nil (setq quote t))
 				    (prog1 (if quote
 					       (format "\"%s\"" el)
 					     (org-babel-clean-text-properties el))

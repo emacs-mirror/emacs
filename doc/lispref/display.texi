@@ -572,6 +572,7 @@ possible problem, but continue running.
 * Warning Basics::      Warnings concepts and functions to report them.
 * Warning Variables::   Variables programs bind to customize their warnings.
 * Warning Options::     Variables users set to control display of warnings.
+* Delayed Warnings::    Deferring a warning until the end of a command.
 @end menu
 
 @node Warning Basics
@@ -749,6 +750,53 @@ warnings buffer.  Each element of the list should be a list of
 symbols.  If it matches the first few elements in a warning type, then
 that warning is not logged.
 @end defopt
+
+@node Delayed Warnings
+@subsection Delayed Warnings
+
+Sometimes, you may wish to avoid showing a warning while a command is
+running, and only show it only after the end of the command.  You can
+use the variable @code{delayed-warnings-list} for this.
+
+@defvar delayed-warnings-list
+The value of this variable is a list of warnings to be displayed after
+the current command has finished.  Each element must be a list
+
+@smallexample
+(@var{type} @var{message} [@var{level} [@var{buffer-name}]])
+@end smallexample
+
+@noindent
+with the same form, and the same meanings, as the argument list of
+@code{display-warning} (@pxref{Warning Basics}).  Immediately after
+running @code{post-command-hook} (@pxref{Command Overview}), the Emacs
+command loop displays all the warnings specified by this variable,
+then resets it to @code{nil}.
+@end defvar
+
+  Programs which need to further customize the delayed warnings
+mechanism can change the variable @code{delayed-warnings-hook}:
+
+@defvar delayed-warnings-hook
+This is a normal hook which is run by the Emacs command loop, after
+@code{post-command-hook}, in order to to process and display delayed
+warnings.
+
+Its default value is a list of two functions:
+
+@smallexample
+(collapse-delayed-warnings display-delayed-warnings)
+@end smallexample
+
+@findex collapse-delayed-warnings
+@findex display-delayed-warnings
+@noindent
+The function @code{collapse-delayed-warnings} iterates through
+@code{delayed-warnings-list}, removing repeated entries.  The function
+@code{display-delayed-warnings} calls @code{display-warning} on each
+of the entries in @code{delayed-warnings-list}, in turn, and then sets
+@code{delayed-warnings-list} to @code{nil}.
+@end defvar
 
 @node Invisible Text
 @section Invisible Text
@@ -1402,7 +1450,7 @@ of them:
 @table @code
 @item priority
 @kindex priority @r{(overlay property)}
-This property's value (which should be a nonnegative integer number)
+This property's value (which should be a non-negative integer number)
 determines the priority of the overlay.  No priority, or @code{nil},
 means zero.
 
@@ -1557,7 +1605,7 @@ sense---only on the screen.
 This property specifies a display spec to prepend to each
 non-continuation line at display-time.  @xref{Truncation}.
 
-@itemx wrap-prefix
+@item wrap-prefix
 This property specifies a display spec to prepend to each continuation
 line at display-time.  @xref{Truncation}.
 
@@ -4118,95 +4166,103 @@ displayed (@pxref{Display Feature Testing}).
 @cindex image formats
 @cindex image types
 
-  Emacs can display a number of different image formats; some of them
-are supported only if particular support libraries are installed on
-your machine.  In some environments, Emacs can load support libraries
-on demand; if so, the variable @code{dynamic-library-alist}
-(@pxref{Dynamic Libraries}) can be used to modify the set of known
-names for these dynamic libraries (though it is not possible to add
-new image formats).  Note that image types @code{pbm} and @code{xbm}
-do not depend on external libraries and are always available in Emacs.
+  Emacs can display a number of different image formats.  Some of
+these image formats are supported only if particular support libraries
+are installed.  On some platforms, Emacs can load support libraries on
+demand; if so, the variable @code{dynamic-library-alist} can be used
+to modify the set of known names for these dynamic libraries.
+@xref{Dynamic Libraries}.
 
-  The supported image formats (and the necessary library files)
-include XBM, XPM (@code{libXpm} and @code{libz}), GIF (@code{libgif}
-or @code{libungif}), PostScript, PBM, JPEG (@code{libjpeg}), TIFF
+  Supported image formats (and the required support libraries) include
+PBM and XBM (which do not depend on support libraries and are always
+available), XPM (@code{libXpm}), GIF (@code{libgif} or
+@code{libungif}), PostScript (@code{gs}), JPEG (@code{libjpeg}), TIFF
 (@code{libtiff}), PNG (@code{libpng}), and SVG (@code{librsvg}).
 
-  You specify one of these formats with an image type symbol.  The image
-type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
-@code{pbm}, @code{jpeg}, @code{tiff}, @code{png}, and @code{svg}.
+  Each of these image formats is associated with an @dfn{image type
+symbol}.  The symbols for the above formats are, respectively,
+@code{pbm}, @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
+@code{jpeg}, @code{tiff}, @code{png}, and @code{svg}.
+
+  Furthermore, if you build Emacs with ImageMagick
+(@code{libMagickWand}) support, Emacs can display any image format
+that ImageMagick can.  @xref{ImageMagick Images}.  All images
+displayed via ImageMagick have type symbol @code{imagemagick}.
 
 @defvar image-types
-This variable contains a list of those image type symbols that are
-potentially supported in the current configuration.
-@emph{Potentially} here means that Emacs knows about the image types,
-not necessarily that they can be loaded (they could depend on
-unavailable dynamic libraries, for example).
+This variable contains a list of type symbols for image formats which
+are potentially supported in the current configuration.
 
-To know which image types are really available, use
-@code{image-type-available-p}.
+``Potentially'' means that Emacs knows about the image types, not
+necessarily that they can be used (for example, they could depend on
+unavailable dynamic libraries).  To know which image types are really
+available, use @code{image-type-available-p}.
 @end defvar
 
 @defun image-type-available-p type
-This function returns non-@code{nil} if image type @var{type} is
-available, i.e., if images of this type can be loaded and displayed in
-Emacs.  @var{type} should be one of the types contained in
-@code{image-types}.
+This function returns non-@code{nil} if images of type @var{type} can
+be loaded and displayed.  @var{type} must be an image type symbol.
 
 For image types whose support libraries are statically linked, this
-function always returns @code{t}; for other image types, it returns
-@code{t} if the dynamic library could be loaded, @code{nil} otherwise.
+function always returns @code{t}.  For image types whose support
+libraries are dynamically loaded, it returns @code{t} if the library
+could be loaded and @code{nil} otherwise.
 @end defun
 
 @node Image Descriptors
 @subsection Image Descriptors
 @cindex image descriptor
 
-  An image description is a list of the form @code{(image . @var{props})},
-where @var{props} is a property list containing alternating keyword
-symbols (symbols whose names start with a colon) and their values.
-You can use any Lisp object as a property, but the only properties
-that have any special meaning are certain symbols, all of them keywords.
+  An @dfn{image descriptor} is a list which specifies the underlying
+data for an image, and how to display it.  It is typically used as the
+value of a @code{display} overlay or text property (@pxref{Other
+Display Specs}); but @xref{Showing Images}, for convenient helper
+functions to insert images into buffers.
 
-  Every image descriptor must contain the property @code{:type
-@var{type}} to specify the format of the image.  The value of @var{type}
-should be an image type symbol; for example, @code{xpm} for an image in
-XPM format.
+  Each image descriptor has the form @code{(image . @var{props})},
+where @var{props} is a property list of alternating keyword symbols
+and values, including at least the pair @code{:type @var{TYPE}} which
+specifies the image type.
 
-  Here is a list of other properties that are meaningful for all image
-types:
+  The following is a list of properties that are meaningful for all
+image types (there are also properties which are meaningful only for
+certain image types, as documented in the following subsections):
 
 @table @code
+@item :type @var{type}
+The image type.
+@ifnottex
+@xref{Image Formats}.
+@end ifnottex
+Every image descriptor must include this property.
+
 @item :file @var{file}
-The @code{:file} property says to load the image from file
-@var{file}.  If @var{file} is not an absolute file name, it is expanded
-in @code{data-directory}.
+This says to load the image from file @var{file}.  If @var{file} is
+not an absolute file name, it is expanded in @code{data-directory}.
 
 @item :data @var{data}
-The @code{:data} property says the actual contents of the image.
-Each image must use either @code{:data} or @code{:file}, but not both.
-For most image types, the value of the @code{:data} property should be a
-string containing the image data; we recommend using a unibyte string.
+This specifies the raw image data.  Each image descriptor must have
+either @code{:data} or @code{:file}, but not both.
 
-Before using @code{:data}, look for further information in the section
-below describing the specific image format.  For some image types,
-@code{:data} may not be supported; for some, it allows other data types;
-for some, @code{:data} alone is not enough, so you need to use other
-image properties along with @code{:data}.
+For most image types, the value of a @code{:data} property should be a
+string containing the image data.  Some image types do not support
+@code{:data}; for some others, @code{:data} alone is not enough, so
+you need to use other image properties along with @code{:data}.  See
+the following subsections for details.
 
 @item :margin @var{margin}
-The @code{:margin} property specifies how many pixels to add as an
-extra margin around the image.  The value, @var{margin}, must be a
-non-negative number, or a pair @code{(@var{x} . @var{y})} of such
-numbers.  If it is a pair, @var{x} specifies how many pixels to add
-horizontally, and @var{y} specifies how many pixels to add vertically.
-If @code{:margin} is not specified, the default is zero.
+This specifies how many pixels to add as an extra margin around the
+image.  The value, @var{margin}, must be a non-negative number, or a
+pair @code{(@var{x} . @var{y})} of such numbers.  If it is a pair,
+@var{x} specifies how many pixels to add horizontally, and @var{y}
+specifies how many pixels to add vertically.  If @code{:margin} is not
+specified, the default is zero.
 
 @item :ascent @var{ascent}
-The @code{:ascent} property specifies the amount of the image's
-height to use for its ascent---that is, the part above the baseline.
-The value, @var{ascent}, must be a number in the range 0 to 100, or
-the symbol @code{center}.
+This specifies the amount of the image's height to use for its
+ascent---that is, the part above the baseline.  The value,
+@var{ascent}, must be a number in the range 0 to 100, or the symbol
+@code{center}.
 
 If @var{ascent} is a number, that percentage of the image's height is
 used for its ascent.
@@ -4219,16 +4275,15 @@ properties and overlays that apply to the image.
 If this property is omitted, it defaults to 50.
 
 @item :relief @var{relief}
-The @code{:relief} property, if non-@code{nil}, adds a shadow rectangle
-around the image.  The value, @var{relief}, specifies the width of the
-shadow lines, in pixels.  If @var{relief} is negative, shadows are drawn
-so that the image appears as a pressed button; otherwise, it appears as
-an unpressed button.
+This adds a shadow rectangle around the image.  The value,
+@var{relief}, specifies the width of the shadow lines, in pixels.  If
+@var{relief} is negative, shadows are drawn so that the image appears
+as a pressed button; otherwise, it appears as an unpressed button.
 
 @item :conversion @var{algorithm}
-The @code{:conversion} property, if non-@code{nil}, specifies a
-conversion algorithm that should be applied to the image before it is
-displayed; the value, @var{algorithm}, specifies which algorithm.
+This specifies a conversion algorithm that should be applied to the
+image before it is displayed; the value, @var{algorithm}, specifies
+which algorithm.
 
 @table @code
 @item laplace
@@ -4498,30 +4553,41 @@ specifying the bounding box of the PostScript image, analogous to the
 @cindex ImageMagick images
 @cindex images, support for more formats
 
-  If you build Emacs with ImageMagick (@url{http://www.imagemagick.org})
-support, you can use the ImageMagick library to load many image formats.
+  If you build Emacs with ImageMagick support, you can use the
+ImageMagick library to load many image formats.  The image type symbol
+for images loaded via ImageMagick is @code{imagemagick}, regardless of
+the actual underlying image format.
 
-@findex imagemagick-types
-@findex imagemagick-register-types
-The function @code{imagemagick-types} returns a list of image file
-extensions that your installation of ImageMagick supports.  To enable
-support, you must call the function @code{imagemagick-register-types}.
-This enables Emacs to visit these file types in @code{image-mode}
-(@pxref{File Conveniences,,, emacs, The GNU Emacs Manual}).
-If your Emacs was not compiled with ImageMagick support, then
-@code{imagemagick-types} will be undefined and
-@code{imagemagick-register-types} will do nothing.
+@defun imagemagick-types
+This function returns a list of image file extensions supported by the
+current ImageMagick installation.
+@end defun
 
-@vindex imagemagick-types-inhibit
-The variable @code{imagemagick-types-inhibit} specifies a list of
-image types that you do @emph{not} want ImageMagick to handle.  It is
-a list of symbols, each of which has the same name as one of the
-format tags used internally by ImageMagick (i.e., as
-@code{imagemagick-types} returns).  ImageMagick has a very broad
-definition of what an image is, for example it includes such file
-types as C files and HTML files.  It is not appropriate to treat these
-as images in Emacs.  You can add any other ImageMagick type that you
-wish to this list.
+  By default, Emacs does not use ImageMagick to display images in
+Image mode, e.g.@: when visiting such files with @kbd{C-x C-f}.  This
+feature is enabled by calling @code{imagemagick-register-types}.
+
+@defun imagemagick-register-types
+This function enables using Image mode to visit image files supported
+by ImageMagick.  @xref{File Conveniences,,, emacs, The GNU Emacs
+Manual}.  It also causes @code{create-image} and other helper
+functions to associate such file names with the @code{imagemagick}
+image type (@pxref{Defining Images}).
+
+All image file extensions supported by ImageMagick are registered,
+except those specified in @code{imagemagick-types-inhibit}.  If Emacs
+was not compiled with ImageMagick support, this function does nothing.
+@end defun
+
+@defopt imagemagick-types-inhibit
+This variable specifies a list of image types that should @emph{not}
+be registered by @code{imagemagick-register-types}.  Each entry in
+this list should be one of the symbols returned by
+@code{imagemagick-types}.  The default value lists several file types
+that are considered ``images'' by ImageMagick, but which should not be
+considered as images by Emacs, including C files and HTML files.
+@end defopt
+
 @ignore
 @c I don't know what this means.  I suspect it means eg loading jpg
 @c images via libjpeg or ImageMagick.  But it doesn't work.
@@ -4538,17 +4604,9 @@ loaders).
 For example, if you never want to use the ImageMagick loader to view
 JPEG files, add @code{JPG} to this list.
 @end ignore
-Note that ImageMagick often distinguishes between several different
-types of a particular format (e.g., @code{JPG}, @code{JPEG},
-@code{PJPEG}, etc.), and you may need to add all versions to this
-list.
 
-@c Not sure this should even be in the manual at all.
-@vindex imagemagick-render-type
-If you wish to experiment with the performance of the ImageMagick
-loader, see the variable @code{imagemagick-render-type}.
-
-Images loaded with ImageMagick support a few new display specifications:
+  Images loaded with ImageMagick support the following additional
+image descriptor properties:
 
 @table @code
 @item :width, :height
@@ -4567,7 +4625,6 @@ i.e. it specifies which image to view inside an image bundle file format
 such as DJVM.  You can use the @code{image-metadata} function to
 retrieve the total number of images in an image bundle.
 @end table
-
 
 @node Other Image Types
 @subsection Other Image Types
@@ -4767,10 +4824,10 @@ This function inserts @var{image} in the current buffer at point, like
 @code{insert-image}, but splits the image into @var{rows}x@var{cols}
 equally sized slices.
 
-If an image is inserted ``sliced'', then the Emacs display engine will
-treat each slice as a separate image, and allow more intuitive
-scrolling up/down, instead of jumping up/down the entire image when
-paging through a buffer that displays (large) images.
+If an image is inserted ``sliced'', Emacs displays each slice as a
+separate image, and allow more intuitive scrolling up/down, instead of
+jumping up/down the entire image when paging through a buffer that
+displays (large) images.
 @end defun
 
 @defun put-image image pos &optional string area
@@ -5624,9 +5681,6 @@ Here is an example of calling this function explicitly.
 @smallexample
 @group
 (defun interactive-blink-matching-open ()
-@c Do not break this line! -- rms.
-@c The first line of a doc string
-@c must stand alone.
   "Indicate momentarily the start of sexp before point."
   (interactive)
 @end group
@@ -5642,23 +5696,19 @@ Here is an example of calling this function explicitly.
 @node Character Display
 @section Character Display
 
-@cindex glyph
-This section describes how characters are actually displayed by Emacs.
-Typically, a character is displayed as a @dfn{glyph} (a graphical
-symbol which occupies one character position on the screen), whose
-appearance corresponds to the character itself.  For example, the
-character @samp{a} (character code 97) is displayed as @samp{a}.  Some
-characters, however, are displayed specially.  For example, the
+  This section describes how characters are actually displayed by
+Emacs.  Typically, a character is displayed as a @dfn{glyph} (a
+graphical symbol which occupies one character position on the screen),
+whose appearance corresponds to the character itself.  For example,
+the character @samp{a} (character code 97) is displayed as @samp{a}.
+Some characters, however, are displayed specially.  For example, the
 formfeed character (character code 12) is usually displayed as a
 sequence of two glyphs, @samp{^L}, while the newline character
 (character code 10) starts a new screen line.
 
   You can modify how each character is displayed by defining a
 @dfn{display table}, which maps each character code into a sequence of
-glyphs.  @xref{Display Tables}.  A related feature, called the
-@dfn{glyph table}, allows you to control how each character is
-displayed on a text terminal.  @xref{Glyphs}.
-
+glyphs.  @xref{Display Tables}.
 
 @menu
 * Usual Display::       The usual conventions for displaying characters.
@@ -5671,8 +5721,8 @@ displayed on a text terminal.  @xref{Glyphs}.
 @node Usual Display
 @subsection Usual Display Conventions
 
-  Here are the usual conventions for display each character code (in
-the absence of a display table, which can override these
+  Here are the conventions for displaying each character code (in the
+absence of a display table, which can override these
 @iftex
 conventions).
 @end iftex
@@ -5685,8 +5735,7 @@ conventions; @pxref{Display Tables}).
 @item
 The @dfn{printable @acronym{ASCII} characters}, character codes 32
 through 126 (consisting of numerals, English letters, and symbols like
-@samp{#}) are displayed literally, i.e.@: they map onto glyph codes 32
-through 126.
+@samp{#}) are displayed literally.
 
 @item
 The tab character (character code 9) displays as whitespace stretching
@@ -5695,8 +5744,8 @@ Emacs Manual}.  The variable @code{tab-width} controls the number of
 spaces per tab stop (see below).
 
 @item
-The newline character (character code 10) has the effect of ending the
-preceding line and starting a new line.
+The newline character (character code 10) has a special effect: it
+ends the preceding line and starts a new line.
 
 @cindex ASCII control characters
 @item
@@ -5825,16 +5874,21 @@ when there are no scroll bars; if scroll bars are supported and in use,
 a scroll bar separates the two windows.
 @end table
 
-  For example, here is how to construct a display table that mimics the
-effect of setting @code{ctl-arrow} to a non-@code{nil} value:
+  For example, here is how to construct a display table that mimics
+the effect of setting @code{ctl-arrow} to a non-@code{nil} value
+(@pxref{Glyphs}, for the function @code{make-glyph-code}):
 
 @example
 (setq disptab (make-display-table))
 (dotimes (i 32)
   (or (= i ?\t)
       (= i ?\n)
-      (aset disptab i (vector ?^ (+ i 64)))))
-(aset disptab 127 (vector ?^ ??))
+      (aset disptab i
+            (vector (make-glyph-code ?^ 'escape-glyph)
+                    (make-glyph-code (+ i 64) 'escape-glyph)))))
+(aset disptab 127
+      (vector (make-glyph-code ?^ 'escape-glyph)
+              (make-glyph-code ?? 'escape-glyph)))))
 @end example
 
 @defun display-table-slot display-table slot
@@ -5906,122 +5960,82 @@ the standard display table.
 
 @node Glyphs
 @subsection Glyphs
+@cindex glyph
 
   A @dfn{glyph} is a graphical symbol which occupies a single
 character position on the screen.  Each glyph is represented in Lisp
-as a @dfn{glyph code}.  A glyph code can be @dfn{simple}, or it can be
-defined by the @dfn{glyph table}.  A simple glyph code is just a way
-of specifying a character and a face to output it in.  @xref{Faces}.
-
-  The following functions are used to manipulate simple glyph codes:
+as a @dfn{glyph code}, which specifies a character and optionally a
+face to display it in (@pxref{Faces}).  The main use of glyph codes is
+as the entries of display tables (@pxref{Display Tables}).  The
+following functions are used to manipulate glyph codes:
 
 @defun make-glyph-code char &optional face
-This function returns a simple glyph code representing char @var{char}
-with face @var{face}.
+This function returns a glyph code representing char @var{char} with
+face @var{face}.  If @var{face} is omitted or @code{nil}, the glyph
+uses the default face; in that case, the glyph code is an integer.  If
+@var{face} is non-@code{nil}, the glyph code is not necessarily an
+integer object.
 @end defun
 
 @defun glyph-char glyph
-This function returns the character of simple glyph code @var{glyph}.
+This function returns the character of glyph code @var{glyph}.
 @end defun
 
 @defun glyph-face glyph
-This function returns face of simple glyph code @var{glyph}, or
-@code{nil} if @var{glyph} has the default face (face-id 0).
-@xref{Face Functions}.
+This function returns face of glyph code @var{glyph}, or @code{nil} if
+@var{glyph} uses the default face.
 @end defun
 
-  On character terminals, you can set up a @dfn{glyph table} to define
-the meaning of glyph codes (represented as small integers).
+@ifnottex
+  You can set up a @dfn{glyph table} to change how glyph codes are
+actually displayed on text terminals.  This feature is semi-obsolete;
+use @code{glyphless-char-display} instead (@pxref{Glyphless Chars}).
 
 @defvar glyph-table
-The value of this variable is the current glyph table.  It should be
-@code{nil} or a vector whose @var{g}th element defines glyph code
-@var{g}.
-
-If a glyph code is greater than or equal to the length of the glyph
-table, that code is automatically simple.  If @code{glyph-table} is
-@code{nil} then all glyph codes are simple.
-
-The glyph table is used only on character terminals.  On graphical
-displays, all glyph codes are simple.
-@end defvar
-
-  Here are the meaningful types of elements in the glyph table:
+The value of this variable, if non-@code{nil}, is the current glyph
+table.  It takes effect only on character terminals; on graphical
+displays, all glyphs are displayed literally.  The glyph table should
+be a vector whose @var{g}th element specifies how to display glyph
+code @var{g}, where @var{g} is the glyph code for a glyph whose face
+is unspecified.  Each element should be one of the following:
 
 @table @asis
-@item @var{string}
-Send the characters in @var{string} to the terminal to output
-this glyph code.
-
-@item @var{code}
-Define this glyph code as an alias for glyph code @var{code} created
-by @code{make-glyph-code}.  You can use such an alias to define a
-small-numbered glyph code which specifies a character with a face.
-
 @item @code{nil}
-This glyph code is simple.
+Display this glyph literally.
+
+@item a string
+Display this glyph by sending the specified string to the terminal.
+
+@item a glyph code
+Display the specified glyph code instead.
 @end table
 
-@defun create-glyph string
-This function returns a newly-allocated glyph code which is set up to
-display by sending @var{string} to the terminal.
-@end defun
-
-@node Beeping
-@section Beeping
-@c  @cindex beeping   "beep" is adjacent
-@cindex bell
-
-  This section describes how to make Emacs ring the bell (or blink the
-screen) to attract the user's attention.  Be conservative about how
-often you do this; frequent bells can become irritating.  Also be
-careful not to use just beeping when signaling an error is more
-appropriate.  (@xref{Errors}.)
-
-@defun ding &optional do-not-terminate
-@cindex keyboard macro termination
-This function beeps, or flashes the screen (see @code{visible-bell} below).
-It also terminates any keyboard macro currently executing unless
-@var{do-not-terminate} is non-@code{nil}.
-@end defun
-
-@defun beep &optional do-not-terminate
-This is a synonym for @code{ding}.
-@end defun
-
-@defopt visible-bell
-This variable determines whether Emacs should flash the screen to
-represent a bell.  Non-@code{nil} means yes, @code{nil} means no.
-This is effective on graphical displays, and on text terminals
-provided the terminal's Termcap entry defines the visible bell
-capability (@samp{vb}).
-@end defopt
-
-@defvar ring-bell-function
-If this is non-@code{nil}, it specifies how Emacs should ``ring the
-bell.''  Its value should be a function of no arguments.  If this is
-non-@code{nil}, it takes precedence over the @code{visible-bell}
-variable.
+Any integer glyph code greater than or equal to the length of the
+glyph table is displayed literally.
 @end defvar
+@end ifnottex
 
 @node Glyphless Chars
 @subsection Glyphless Character Display
 @cindex glyphless characters
 
-  @dfn{Glyphless characters} are not displayed in the usual way when
-they appear in a buffer, but in some special way (e.g. as a box
-containing a hexadecimal code).  These include characters that cannot
-be displayed with any available font (on a graphical display), or that
-cannot be encoded by the terminal's coding system (on a text
-terminal).  Specific characters can also be defined to be glyphless.
+  @dfn{Glyphless characters} are characters which are displayed in a
+special way, e.g.@: as a box containing a hexadecimal code, instead of
+being displayed literally.  These include characters which are
+explicitly defined to be glyphless, as well as characters for which
+there is no available font (on a graphical display), and characters
+which cannot be encoded by the terminal's coding system (on a text
+terminal).
 
 @defvar glyphless-char-display
-The value of this variable is a char-table that defines glyphless
-characters and how they are displayed.  If an entry is @code{nil}, the
-corresponding character is displayed in its usual way.  Otherwise, an
-entry should be one of the following display methods:
+The value of this variable is a char-table which defines glyphless
+characters and how they are displayed.  Each entry must be one of the
+following display methods:
 
 @table @asis
+@item @code{nil}
+Display the character in the usual way.
+
 @item @code{zero-width}
 Don't display the character.
 
@@ -6038,27 +6052,34 @@ hexadecimal notation.
 
 @item an @acronym{ASCII} string
 Display a box containing that string.
+
+@item a cons cell @code{(@var{graphical} . @var{text})}
+Display with @var{graphical} on graphical displays, and with
+@var{text} on text terminals.  Both @var{graphical} and @var{text}
+must be one of the display methods described above.
 @end table
 
 @noindent
-Except for @code{zero-width}, these methods display using the
+The @code{thin-space}, @code{empty-box}, @code{hex-code}, and
+@acronym{ASCII} string display methods are drawn with the
 @code{glyphless-char} face.
-
-An entry can also be a cons cell @code{(@var{graphical}
-. @var{text})}, where @var{graphical} and @var{text} are the display
-methods on graphical displays and text terminals respectively.
 
 The char-table has one extra slot, which determines how to display any
 character that cannot be displayed with any available font, or cannot
 be encoded by the terminal's coding system.  Its value should be one
 of the above display methods, except @code{zero-width} or a cons cell.
+
+If a character has a non-@code{nil} entry in an active display table,
+the display table takes effect; in this case, Emacs does not consult
+@code{glyphless-char-display} at all.
 @end defvar
 
 @defopt glyphless-char-display-control
 This user option provides a convenient way to set
-@code{glyphless-char-display} for groups of similar characters.  It
-takes effect via a custom @code{:set} function (@pxref{Variable
-Definitions}), which update @code{glyphless-char-display}.
+@code{glyphless-char-display} for groups of similar characters.  Do
+not set its value directly from Lisp code; the value takes effect only
+via a custom @code{:set} function (@pxref{Variable Definitions}),
+which updates @code{glyphless-char-display}.
 
 Its value should be an alist of elements @code{(@var{group}
 . @var{method})}, where @var{group} is a symbol specifying a group of
@@ -6096,6 +6117,42 @@ The @var{method} symbol should be one of @code{zero-width},
 @code{thin-space}, @code{empty-box}, or @code{hex-code}.  These have
 the same meanings as in @code{glyphless-char-display}, above.
 @end defopt
+
+@node Beeping
+@section Beeping
+@cindex bell
+
+  This section describes how to make Emacs ring the bell (or blink the
+screen) to attract the user's attention.  Be conservative about how
+often you do this; frequent bells can become irritating.  Also be
+careful not to use just beeping when signaling an error is more
+appropriate (@pxref{Errors}).
+
+@defun ding &optional do-not-terminate
+@cindex keyboard macro termination
+This function beeps, or flashes the screen (see @code{visible-bell} below).
+It also terminates any keyboard macro currently executing unless
+@var{do-not-terminate} is non-@code{nil}.
+@end defun
+
+@defun beep &optional do-not-terminate
+This is a synonym for @code{ding}.
+@end defun
+
+@defopt visible-bell
+This variable determines whether Emacs should flash the screen to
+represent a bell.  Non-@code{nil} means yes, @code{nil} means no.
+This is effective on graphical displays, and on text terminals
+provided the terminal's Termcap entry defines the visible bell
+capability (@samp{vb}).
+@end defopt
+
+@defvar ring-bell-function
+If this is non-@code{nil}, it specifies how Emacs should ``ring the
+bell.''  Its value should be a function of no arguments.  If this is
+non-@code{nil}, it takes precedence over the @code{visible-bell}
+variable.
+@end defvar
 
 @node Window Systems
 @section Window Systems
@@ -6166,61 +6223,56 @@ interfere with it.
 @cindex right-to-left text
 
   Emacs can display text written in scripts, such as Arabic, Farsi,
-and Hebrew, whose natural ordering of horizontal text for display is
-from right to left.  However, digits and Latin text embedded in these
-scripts are still displayed left to right.  It is also not uncommon to
-have small portions of text in Arabic or Hebrew embedded in otherwise
-Latin document, e.g., as comments and strings in a program source
-file.  Likewise, small portions of Latin text can be embedded in an
-Arabic or Farsi document.  For these reasons, text that uses these
-scripts is actually @dfn{bidirectional}: a mixture of runs of
-left-to-right and right-to-left characters.
-
-  This section describes the facilities and options provided by Emacs
-for editing and displaying bidirectional text.
+and Hebrew, whose natural ordering for horizontal text display runs
+from right to left.  Furthermore, segments of Latin script and digits
+embedded in right-to-left text are displayed left-to-right, while
+segments of right-to-left script embedded in left-to-right text
+(e.g.@: Arabic or Hebrew text in comments or strings in a program
+source file) are appropriately displayed right-to-left.  We call such
+mixtures of left-to-right and right-to-left text @dfn{bidirectional
+text}.  This section describes the facilities and options for editing
+and displaying bidirectional text.
 
 @cindex logical order
 @cindex reading order
 @cindex visual order
 @cindex unicode bidirectional algorithm
-  Emacs stores right-to-left and bidirectional text in the so-called
-@dfn{logical} (or @dfn{reading}) order: the buffer or string position
-of the first character you read precedes that of the next character.
-Reordering of bidirectional text into the @dfn{visual} order happens
-at display time.  As result, character positions no longer increase
-monotonically with their positions on display.  Emacs implements the
-Unicode Bidirectional Algorithm (a.k.a.@: @acronym{UBA}) described in
-the Unicode Standard Annex #9, for reordering of bidirectional text
-for display.  Reordering of bidirectional text for display in Emacs is
-a ``Full bidirectionality'' class implementation of the @acronym{UBA}.
+@cindex bidirectional reordering
+  Text is stored in Emacs buffers and strings in @dfn{logical} (or
+@dfn{reading}) order, i.e.@: the order in which a human would read
+each character.  In right-to-left and bidirectional text, the order in
+which characters are displayed on the screen (called @dfn{visual
+order}) is not the same as logical order; the characters' screen
+positions do not increase monotonically with string or buffer
+position.  In performing this @dfn{bidirectional reordering}, Emacs
+follows the Unicode Bidirectional Algorithm (a.k.a.@: @acronym{UBA}),
+which is described in Annex #9 of the Unicode standard
+(@url{http://www.unicode.org/reports/tr9/}).  Emacs provides a ``Full
+Bidirectionality'' class implementation of the @acronym{UBA}.
 
 @defvar bidi-display-reordering
-  This buffer-local variable controls whether text in the buffer is
-reordered for display.  If its value is non-@code{nil}, Emacs reorders
-characters that have right-to-left directionality when they are
-displayed.  The default value is @code{t}.  Text in overlay strings
-(@pxref{Overlay Properties,,before-string}), display strings
-(@pxref{Overlay Properties,,display}), and @code{display} text
-properties (@pxref{Display Property}) is also reordered for display if
-the buffer whose text includes these strings is reordered.  Turning
-off @code{bidi-display-reordering} for a buffer turns off reordering
-of all the overlay and display strings in that buffer.
+If the value of this buffer-local variable is non-@code{nil} (the
+default), Emacs performs bidirectional reordering for display.  The
+reordering affects buffer text, as well as display strings and overlay
+strings from text and overlay properties in the buffer (@pxref{Overlay
+Properties}, and @pxref{Display Property}).  If the value is
+@code{nil}, Emacs does not perform bidirectional reordering in the
+buffer.
 
-  Reordering of strings that are unrelated to any buffer, such as text
-displayed on the mode line (@pxref{Mode Line Format}) or header line
-(@pxref{Header Lines}), is controlled by the default value of
-@code{bidi-display-reordering}.
+The default value of @code{bidi-display-reordering} controls the
+reordering of strings which are not directly supplied by a buffer,
+including the text displayed in mode lines (@pxref{Mode Line Format})
+and header lines (@pxref{Header Lines}).
 @end defvar
 
 @cindex unibyte buffers, and bidi reordering
-  Emacs does not reorder text in unibyte buffers, even if
-@code{bidi-display-reordering} is non-@code{nil} in such a buffer.
-This is because unibyte buffers contain raw bytes, not characters, and
-thus don't have bidirectional properties defined for them which are
-required for correct reordering.  Therefore, to test whether text in a
-buffer will be reordered for display, it is not enough to test the
-value of @code{bidi-display-reordering} alone.  The correct test is
-this:
+  Emacs never reorders the text of a unibyte buffer, even if
+@code{bidi-display-reordering} is non-@code{nil} in the buffer.  This
+is because unibyte buffers contain raw bytes, not characters, and thus
+lack the directionality properties required for reordering.
+Therefore, to test whether text in a buffer will be reordered for
+display, it is not enough to test the value of
+@code{bidi-display-reordering} alone.  The correct test is this:
 
 @example
  (if (and enable-multibyte-characters
@@ -6229,12 +6281,11 @@ this:
    )
 @end example
 
-  In contrast to unibyte buffers, unibyte display and overlay strings
-@emph{are} reordered, if their parent buffer is reordered.  This is
-because plain-@sc{ascii} strings are stored by Emacs as unibyte
-strings.  If a unibyte display or overlay string includes
-non-@sc{ascii} characters, these characters are assumed to have
-left-to-right direction.
+  However, unibyte display and overlay strings @emph{are} reordered if
+their parent buffer is reordered.  This is because plain-@sc{ascii}
+strings are stored by Emacs as unibyte strings.  If a unibyte display
+or overlay string includes non-@sc{ascii} characters, these characters
+are assumed to have left-to-right direction.
 
 @cindex display properties, and bidi reordering of text
   Text covered by @code{display} text properties, by overlays with
@@ -6242,7 +6293,7 @@ left-to-right direction.
 properties that replace buffer text, is treated as a single unit when
 it is reordered for display.  That is, the entire chunk of text
 covered by these properties is reordered together.  Moreover, the
-bidirectional properties of the characters in this chunk of text are
+bidirectional properties of the characters in such a chunk of text are
 ignored, and Emacs reorders them as if they were replaced with a
 single character @code{U+FFFC}, known as the @dfn{Object Replacement
 Character}.  This means that placing a display property over a portion
@@ -6252,36 +6303,34 @@ properties on text whose directionality is identical with text that
 surrounds it.
 
 @cindex base direction of a paragraph
-  Each paragraph of bidirectional text can have its own @dfn{base
-direction}, either right-to-left or left-to-right.  Text in
-left-to-right paragraphs is displayed beginning at the left margin of
-the window and is truncated or continued when it reaches the right
-margin.  By contrast, display of text in right-to-left paragraphs
-begins at the right margin and is continued or truncated at the left
-margin.
+  Each paragraph of bidirectional text has a @dfn{base direction},
+either right-to-left or left-to-right.  Left-to-right paragraphs are
+displayed beginning at the left margin of the window, and are
+truncated or continued when the text reaches the right margin.
+Right-to-left paragraphs are displayed beginning at the right margin,
+and are continued or truncated at the left margin.
+
+  By default, Emacs determines the base direction of each paragraph by
+looking at the text at its beginning.  The precise method of
+determining the base direction is specified by the @acronym{UBA}; in a
+nutshell, the first character in a paragraph that has an explicit
+directionality determines the base direction of the paragraph.
+However, sometimes a buffer may need to force a certain base direction
+for its paragraphs.  For example, buffers containing program source
+code should force all paragraphs to be displayed left-to-right.  You
+can use following variable to do this:
 
 @defvar bidi-paragraph-direction
-  By default, Emacs determines the base direction of each paragraph
-dynamically, based on the text at the beginning of the paragraph.  The
-precise method of determining the base direction is specified by the
-@acronym{UBA}; in a nutshell, the first character in a paragraph that
-has an explicit directionality determines the base direction of the
-paragraph.  However, sometimes a buffer may need to force a certain
-base direction for its paragraphs.  For example, a buffer that visits
-a source code of a program should force all its paragraphs to be
-displayed left to right.  The variable
-@code{bidi-paragraph-direction}, if non-@code{nil}, disables the
-dynamic determination of the base direction, and instead forces all
-paragraphs in the buffer to have the direction specified by its
-buffer-local value.  The value can be either @code{right-to-left} or
-@code{left-to-right}.  Any other value is interpreted as @code{nil}.
-The default is @code{nil}.
+If the value of this buffer-local variable is the symbol
+@code{right-to-left} or @code{left-to-right}, all paragraphs in the
+buffer are assumed to have that specified direction.  Any other value
+is equivalent to @code{nil} (the default), which means to determine
+the base direction of each paragraph from its contents.
 
 @cindex @code{prog-mode}, and @code{bidi-paragraph-direction}
-Modes that are meant to display program source code should force a
-@code{left-to-right} paragraph direction.  The easiest way of doing so
-is to derive the mode from Prog Mode, which already sets
-@code{bidi-paragraph-direction} to that value.
+Modes for program source code should set this to @code{left-to-right}.
+Prog mode does this by default, so modes derived from Prog mode do not
+need to set this explicitly (@pxref{Basic Major Modes}).
 @end defvar
 
 @defun current-bidi-paragraph-direction &optional buffer
@@ -6300,22 +6349,18 @@ buffers, this function always returns @code{left-to-right}.
 @cindex layout on display, and bidirectional text
 @cindex jumbled display of bidirectional text
 @cindex concatenating bidirectional strings
-  Reordering of bidirectional text for display can have surprising and
-unpleasant effects when two strings with bidirectional content are
-juxtaposed in a buffer, or otherwise programmatically concatenated
-into a string of text.  A typical example is a buffer whose lines are
-actually sequences of items, or fields, separated by whitespace or
-punctuation characters.  This is used in specialized modes such as
-Buffer-menu Mode or various email summary modes, like Rmail Summary
-Mode.  Because these separator characters are @dfn{weak}, i.e.@: have
-no strong directionality, they take on the directionality of
-surrounding text.  As result, a numeric field that follows a field
-with bidirectional content can be displayed @emph{to the left} of the
-preceding field, producing a jumbled display and messing up the
-expected layout.
-
-  To countermand this, we recommend that you use one of the following
-techniques for forcing correct order of fields on display:
+  Bidirectional reordering can have surprising and unpleasant effects
+when two strings with bidirectional content are juxtaposed in a
+buffer, or otherwise programmatically concatenated into a string of
+text.  A typical problematic case is when a buffer consists of
+sequences of text ``fields'' separated by whitespace or punctuation
+characters, like Buffer Menu mode or Rmail Summary Mode.  Because the
+punctuation characters used as separators have @dfn{weak
+directionality}, they take on the directionality of surrounding text.
+As result, a numeric field that follows a field with bidirectional
+content can be displayed @emph{to the left} of the preceding field,
+messing up the expected layout.  There are several ways to avoid this
+problem:
 
 @itemize @minus
 @item
@@ -6325,28 +6370,23 @@ content, or prepend it to the beginning of the following field.  The
 function @code{bidi-string-mark-left-to-right}, described below, comes
 in handy for this purpose.  (In a right-to-left paragraph, use
 @code{U+200F}, RIGHT-TO-LEFT MARK, or @acronym{RLM}, instead.)  This
-is one of the solutions recommended by
-@uref{http://www.unicode.org/reports/tr9/#Separators, the
-@acronym{UBA}}.
+is one of the solutions recommended by the UBA.
 
 @item
 Include the tab character in the field separator.  The tab character
-plays the role of @dfn{segment separator} in the @acronym{UBA}
-reordering, whose effect is to make each field a separate segment, and
-thus reorder them separately.
+plays the role of @dfn{segment separator} in bidirectional reordering,
+causing the text on either side to be reordered separately.
 
 @cindex @code{space} display spec, and bidirectional text
 @item
-Separate fields with a @code{display} property or overlay with the
+Separate fields with a @code{display} property or overlay with a
 property value of the form @code{(space . PROPS)} (@pxref{Specified
-Space}).  This display specification is treated by Emacs as a
-@dfn{paragraph separator}; the text before and after the separator is
-reordered separately, which avoids the influence of any field on its
-neighboring fields.
+Space}).  Emacs treats this display specification as a @dfn{paragraph
+separator}, and reorders the text on either side separately.
 @end itemize
 
 @defun bidi-string-mark-left-to-right string
-This subroutine returns its argument @var{string}, possibly modified,
+This function returns its argument @var{string}, possibly modified,
 such that the result can be safely concatenated with another string,
 or juxtaposed with another string in a buffer, without disrupting the
 relative layout of this string and the next one on display.  If the
@@ -6356,7 +6396,8 @@ of the text that follows it.  The function works by examining the
 characters of its argument, and if any of those characters could cause
 reordering on display, the function appends the @acronym{LRM}
 character to the string.  The appended @acronym{LRM} character is made
-@emph{invisible} (@pxref{Invisible Text}), to hide it on display.
+invisible by giving it an @code{invisible} text property of @code{t}
+(@pxref{Invisible Text}).
 @end defun
 
   The reordering algorithm uses the bidirectional properties of the

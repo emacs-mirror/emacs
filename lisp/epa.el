@@ -482,6 +482,8 @@ If ARG is non-nil, mark the key."
     (setq epa-keys-buffer (generate-new-buffer "*Keys*")))
   (with-current-buffer epa-keys-buffer
     (epa-key-list-mode)
+    ;; C-c C-c is the usual way to finish the selection (bug#11159).
+    (define-key (current-local-map) "\C-c\C-c" 'exit-recursive-edit)
     (let ((inhibit-read-only t)
 	  buffer-read-only)
       (erase-buffer)
@@ -1236,7 +1238,8 @@ between START and END."
   "Insert selected KEYS after the point."
   (interactive
    (list (epa-select-keys (epg-make-context epa-protocol)
-			  "Select keys to export.  ")))
+				"Select keys to export.
+If no one is selected, default public key is exported.  ")))
   (let ((context (epg-make-context epa-protocol)))
     ;;(epg-context-set-armor context epa-armor)
     (epg-context-set-armor context t)

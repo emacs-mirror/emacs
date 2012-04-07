@@ -8966,7 +8966,6 @@ move_it_by_lines (struct it *it, int dvpos)
     {
       /* DVPOS == 0 means move to the start of the screen line.  */
       move_it_vertically_backward (it, 0);
-      xassert (it->current_x == 0 && it->hpos == 0);
       /* Let next call to line_bottom_y calculate real line height */
       last_height = 0;
     }
@@ -8974,7 +8973,20 @@ move_it_by_lines (struct it *it, int dvpos)
     {
       move_it_to (it, -1, -1, -1, it->vpos + dvpos, MOVE_TO_VPOS);
       if (!IT_POS_VALID_AFTER_MOVE_P (it))
-	move_it_to (it, IT_CHARPOS (*it) + 1, -1, -1, -1, MOVE_TO_POS);
+	{
+	  /* Only move to the next buffer position if we ended up in a
+	     string from display property, not in an overlay string
+	     (before-string or after-string).  That is because the
+	     latter don't conceal the underlying buffer position, so
+	     we can ask to move the iterator to the exact position we
+	     are interested in.  Note that, even if we are already at
+	     IT_CHARPOS (*it), the call below is not a no-op, as it
+	     will detect that we are at the end of the string, pop the
+	     iterator, and compute it->current_x and it->hpos
+	     correctly.  */
+	  move_it_to (it, IT_CHARPOS (*it) + it->string_from_display_prop_p,
+		      -1, -1, -1, MOVE_TO_POS);
+	}
     }
   else
     {
@@ -13800,16 +13812,31 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
 	    chprop = Fget_char_property (make_number (glyph_pos), Qcursor,
 					 glyph->object);
+	    if (!NILP (chprop))
+	      {
+		/* If the string came from a `display' text property,
+		   look up the buffer position of that property and
+		   use that position to update bpos_max, as if we
+		   actually saw such a position in one of the row's
+		   glyphs.  This helps with supporting integer values
+		   of `cursor' property on the display string in
+		   situations where most or all of the row's buffer
+		   text is completely covered by display properties,
+		   so that no glyph with valid buffer positions is
+		   ever seen in the row.  */
+		EMACS_INT prop_pos =
+		  string_buffer_position_lim (glyph->object, pos_before,
+					      pos_after, 0);
+
+		if (prop_pos >= pos_before)
+		  bpos_max = prop_pos - 1;
+	      }
 	    if (INTEGERP (chprop))
 	      {
 		bpos_covered = bpos_max + XINT (chprop);
 		/* If the `cursor' property covers buffer positions up
 		   to and including point, we should display cursor on
-		   this glyph.  Note that overlays and text properties
-		   with string values stop bidi reordering, so every
-		   buffer position to the left of the string is always
-		   smaller than any position to the right of the
-		   string.  Therefore, if a `cursor' property on one
+		   this glyph.  Note that, if a `cursor' property on one
 		   of the string's characters has an integer value, we
 		   will break out of the loop below _before_ we get to
 		   the position match above.  IOW, integer values of
@@ -13869,6 +13896,15 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
 	    chprop = Fget_char_property (make_number (glyph_pos), Qcursor,
 					 glyph->object);
+	    if (!NILP (chprop))
+	      {
+		EMACS_INT prop_pos =
+		  string_buffer_position_lim (glyph->object, pos_before,
+					      pos_after, 0);
+
+		if (prop_pos >= pos_before)
+		  bpos_max = prop_pos - 1;
+	      }
 	    if (INTEGERP (chprop))
 	      {
 		bpos_covered = bpos_max + XINT (chprop);
@@ -18172,8 +18208,10 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  it->c = it->char_to_display = ' ';
 	  it->len = 1;
 
+	  /* If the default face was remapped, be sure to use the
+	     remapped face for the appended newline. */
 	  if (default_face_p)
-	    it->face_id = DEFAULT_FACE_ID;
+	    it->face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
 	  else if (it->face_before_selective_p)
 	    it->face_id = it->saved_face_id;
 	  face = FACE_FROM_ID (it->f, it->face_id);
@@ -18209,7 +18247,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 static void
 extend_face_to_end_of_line (struct it *it)
 {
-  struct face *face;
+  struct face *face, *default_face;
   struct frame *f = it->f;
 
   /* If line is already filled, do nothing.  Non window-system frames
@@ -18222,6 +18260,9 @@ extend_face_to_end_of_line (struct it *it)
 	 && it->glyph_row->reversed_p
 	 && !it->glyph_row->continued_p))
     return;
+
+  /* The default face, possibly remapped. */
+  default_face = FACE_FROM_ID (f, lookup_basic_face (f, DEFAULT_FACE_ID));
 
   /* Face extension extends the background and box of IT->face_id
      to the end of the line.  If the background equals the background
@@ -18260,7 +18301,7 @@ extend_face_to_end_of_line (struct it *it)
       if (it->glyph_row->used[TEXT_AREA] == 0)
 	{
 	  it->glyph_row->glyphs[TEXT_AREA][0] = space_glyph;
-	  it->glyph_row->glyphs[TEXT_AREA][0].face_id = it->face_id;
+	  it->glyph_row->glyphs[TEXT_AREA][0].face_id = face->id;
 	  it->glyph_row->used[TEXT_AREA] = 1;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
@@ -18296,7 +18337,7 @@ extend_face_to_end_of_line (struct it *it)
 		 face, to avoid painting the rest of the window with
 		 the region face, if the region ends at ZV.  */
 	      if (it->glyph_row->ends_at_zv_p)
-		it->face_id = DEFAULT_FACE_ID;
+		it->face_id = default_face->id;
 	      else
 		it->face_id = face->id;
 	      append_stretch_glyph (it, make_number (0), stretch_width,
@@ -18329,7 +18370,7 @@ extend_face_to_end_of_line (struct it *it)
 	 avoid painting the rest of the window with the region face,
 	 if the region ends at ZV.  */
       if (it->glyph_row->ends_at_zv_p)
-	it->face_id = DEFAULT_FACE_ID;
+	it->face_id = default_face->id;
       else
 	it->face_id = face->id;
 
@@ -18993,8 +19034,13 @@ display_line (struct it *it)
 	  /* A row that displays right-to-left text must always have
 	     its last face extended all the way to the end of line,
 	     even if this row ends in ZV, because we still write to
-	     the screen left to right.  */
-	  if (row->reversed_p)
+	     the screen left to right.  We also need to extend the
+	     last face if the default face is remapped to some
+	     different face, otherwise the functions that clear
+	     portions of the screen will clear with the default face's
+	     background color.  */
+	  if (row->reversed_p
+	      || lookup_basic_face (it->f, DEFAULT_FACE_ID) != DEFAULT_FACE_ID)
 	    extend_face_to_end_of_line (it);
 	  break;
 	}

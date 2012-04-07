@@ -1,6 +1,6 @@
 ;;; ob-scheme.el --- org-babel functions for Scheme
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, scheme
@@ -54,6 +54,7 @@
 (defcustom org-babel-scheme-cmd "guile"
   "Name of command used to evaluate scheme blocks."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 (defun org-babel-expand-body:scheme (body params)

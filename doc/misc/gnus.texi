@@ -399,7 +399,7 @@ This manual corresponds to Gnus v5.13
 @item Message manual: Composing messages
 @item Emacs-MIME:     Composing messages; @acronym{MIME}-specific parts.
 @item Sieve:          Managing Sieve scripts in Emacs.
-@item PGG:            @acronym{PGP/MIME} with Gnus.
+@item EasyPG:         @acronym{PGP/MIME} with Gnus.
 @item SASL:           @acronym{SASL} authentication in Emacs.
 @end itemize
 
@@ -426,7 +426,7 @@ Other related manuals
 * Message:(message).         Composing messages.
 * Emacs-MIME:(emacs-mime).   Composing messages; @acronym{MIME}-specific parts.
 * Sieve:(sieve).             Managing Sieve scripts in Emacs.
-* PGG:(pgg).                 @acronym{PGP/MIME} with Gnus.
+* EasyPG:(epa).              @acronym{PGP/MIME} with Gnus.
 * SASL:(sasl).               @acronym{SASL} authentication in Emacs.
 
 @detailmenu
@@ -22146,8 +22146,8 @@ to you, using @kbd{G b u} and updating the group will usually fix this.
 @include emacs-mime.texi
 @chapter Sieve
 @include sieve.texi
-@chapter PGG
-@include pgg.texi
+@chapter EasyPG
+@include epa.texi
 @chapter SASL
 @include sasl.texi
 @end iflatex

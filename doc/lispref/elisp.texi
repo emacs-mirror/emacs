@@ -163,7 +163,7 @@ Cover art by Etienne Suvasa.
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 22.
+* Antinews::                Info for users downgrading to Emacs 23.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -649,8 +649,8 @@ Completion
                               (reading buffer name, file name, etc.).
 * Reading File Names::      Using completion to read file names and
                               shell commands.
-* Completion Styles::       Specifying rules for performing completion.
-* Programmed Completion::   Writing your own completion-function.
+* Completion Variables::    Variables controlling completion behavior.
+* Programmed Completion::   Writing your own completion function.
 * Completion in Buffers::   Completing text in ordinary buffers.
 
 Command Loop
@@ -1284,6 +1284,7 @@ Reporting Warnings
 * Warning Variables::       Variables programs bind to customize
                               their warnings.
 * Warning Options::         Variables users set to control display of warnings.
+* Delayed Warnings::        Deferring a warning until the end of a command.
 
 Overlays
 
@@ -1390,6 +1391,8 @@ Operating System Interface
 * Batch Mode::              Running Emacs without terminal interaction.
 * Session Management::      Saving and restoring state with
                               X Session Management.
+* Notifications::           Desktop notifications.
+* Dynamic Libraries::       On-demand loading of support libraries.
 
 Preparing Lisp code for distribution
 

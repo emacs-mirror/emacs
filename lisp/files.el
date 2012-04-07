@@ -5015,20 +5015,20 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
 	     (setq f2-attr (file-attributes (file-truename file2)))
 	     (equal f1-attr f2-attr))))))
 
-(defun file-subdir-of-p (dir1 dir2)
-  "Return non-nil if DIR1 is a subdirectory of DIR2.
-A directory is considered to be a subdirectory of itself.
-Return nil if top directory DIR2 is not an existing directory."
-  (let ((handler (or (find-file-name-handler dir1 'file-subdir-of-p)
-                     (find-file-name-handler dir2 'file-subdir-of-p))))
+(defun file-in-directory-p (file dir)
+  "Return non-nil if FILE is in DIR or a subdirectory of DIR.
+A directory is considered to be \"in\" itself.
+Return nil if DIR is not an existing directory."
+  (let ((handler (or (find-file-name-handler file 'file-in-directory-p)
+                     (find-file-name-handler dir  'file-in-directory-p))))
     (if handler
-        (funcall handler 'file-subdir-of-p dir1 dir2)
-      (when (file-directory-p dir2) ; Top dir must exist.
-	(setq dir1 (file-truename dir1)
-	      dir2 (file-truename dir2))
-	(let ((ls1  (or (split-string dir1 "/" t) '("/")))
-	      (ls2  (or (split-string dir2 "/" t) '("/")))
-	      (root (if (string-match "\\`/" dir1) "/" ""))
+        (funcall handler 'file-in-directory-p file dir)
+      (when (file-directory-p dir) ; DIR must exist.
+	(setq file (file-truename file)
+	      dir  (file-truename dir))
+	(let ((ls1 (split-string file "/" t))
+	      (ls2 (split-string dir  "/" t))
+	      (root (if (string-match "\\`/" file) "/" ""))
 	      (mismatch nil))
 	  (while (and ls1 ls2 (not mismatch))
 	    (if (string-equal (car ls1) (car ls2))
@@ -5037,7 +5037,7 @@ Return nil if top directory DIR2 is not an existing directory."
 	    (setq ls1 (cdr ls1)
 		  ls2 (cdr ls2)))
 	  (unless mismatch
-	    (file-equal-p root dir2)))))))
+	    (file-equal-p root dir)))))))
 
 (defun copy-directory (directory newname &optional keep-time parents copy-contents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
@@ -5065,7 +5065,7 @@ directly into NEWNAME instead."
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
 	   current-prefix-arg t nil)))
-  (when (file-subdir-of-p newname directory)
+  (when (file-in-directory-p newname directory)
     (error "Cannot copy `%s' into its subdirectory `%s'"
            directory newname))
   ;; If default-directory is a remote directory, make sure we find its
@@ -5102,13 +5102,14 @@ directly into NEWNAME instead."
 	       ;; We do not want to copy "." and "..".
 	       (directory-files directory 'full
 				directory-files-no-dot-files-regexp))
-	(if (file-directory-p file)
-	    (copy-directory file newname keep-time parents)
-	  (let ((target (expand-file-name (file-name-nondirectory file) newname))
-		(attrs (file-attributes file)))
-	    (if (stringp (car attrs)) ; Symbolic link
-		(make-symbolic-link (car attrs) target t)
-	      (copy-file file target t keep-time)))))
+	(let ((target (expand-file-name (file-name-nondirectory file) newname))
+	      (filetype (car (file-attributes file))))
+	  (cond
+	   ((eq filetype t)       ; Directory but not a symlink.
+	    (copy-directory file newname keep-time parents))
+	   ((stringp filetype)    ; Symbolic link
+	    (make-symbolic-link filetype target t))
+	   ((copy-file file target t keep-time)))))
 
       ;; Set directory attributes.
       (let ((modes (file-modes directory))

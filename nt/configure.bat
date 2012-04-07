@@ -131,6 +131,7 @@ if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-gnutls" goto withoutgnutls
+if "%1" == "--without-libxml2" goto withoutlibxml2
 if "%1" == "--without-xpm" goto withoutxpm
 if "%1" == "--with-svg" goto withsvg
 if "%1" == "--distfiles" goto distfiles
@@ -156,6 +157,7 @@ echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
 echo.   --without-gnutls        do not use GnuTLS library even if it is installed
+echo.   --without-libxml2       do not use libxml2 library even if it is installed
 echo.   --with-svg              use the RSVG library (experimental)
 echo.   --distfiles             path to files for make dist, e.g. libXpm.dll
 if "%use_extensions%" == "0" goto end
@@ -312,6 +314,14 @@ rem ----------------------------------------------------------------------
 :withoutgnutls
 set tlssupport=N
 set HAVE_GNUTLS=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withoutlibxml2
+set libxml2support=N
+set HAVE_LIBXML2=
 shift
 goto again
 
@@ -569,6 +579,28 @@ set HAVE_GNUTLS=1
 :tlsDone
 rm -f junk.c junk.obj
 
+if (%libxml2support%) == (N) goto xml2Done
+
+echo Checking for libxml2....
+echo #include "libxml/HTMLparser.h" >junk.c
+echo main(){} >>junk.c
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
+if exist junk.obj goto havelibxml2
+
+echo ...libxml/HTMLparser.h not found, building without libxml2 support
+echo The failed program was: >>config.log
+type junk.c >>config.log
+set HAVE_LIBXML2=
+goto xml2Done
+
+:havelibxml2
+echo ...libxml2 header available, building with libxml2 support
+set HAVE_LIBXML2=1
+
+:xml2Done
+rm -f junk.c junk.obj
+
 if (%jpegsupport%) == (N) goto jpegDone
 
 echo Checking for jpeg-6b...
@@ -757,6 +789,7 @@ if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %escuserldflags%">>config.tm
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp
+if not "(%HAVE_LIBXML2%)" == "()" echo #define HAVE_LIBXML2 1 >>config.tmp
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp
 if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>config.tmp
@@ -896,6 +929,7 @@ set HAVE_DISTFILES=
 set distFilesOk=
 set pngsupport=
 set tlssupport=
+set libxml2support=
 set jpegsupport=
 set gifsupport=
 set tiffsupport=

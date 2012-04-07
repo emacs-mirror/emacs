@@ -241,7 +241,7 @@ regexps; the following section says how to search for them.
 
 @findex re-builder
 @cindex regular expressions, developing
-  For convenient interactive development of regular expressions, you
+  For interactive development of regular expressions, you
 can use the @kbd{M-x re-builder} command.  It provides a convenient
 interface for creating regular expressions, by giving immediate visual
 feedback in a separate buffer.  As you edit the regexp, all its
@@ -318,6 +318,7 @@ possible.  Thus, @samp{o*} matches any number of @samp{o}s (including no
 expression.  Thus, @samp{fo*} has a repeating @samp{o}, not a repeating
 @samp{fo}.  It matches @samp{f}, @samp{fo}, @samp{foo}, and so on.
 
+@cindex backtracking and regular expressions
 The matcher processes a @samp{*} construct by matching, immediately, as
 many repetitions as can be found.  Then it continues with the rest of
 the pattern.  If that fails, backtracking occurs, discarding some of the
@@ -387,7 +388,16 @@ Ranges may be intermixed freely with individual characters, as in
 @samp{[a-z$%.]}, which matches any lower case @acronym{ASCII} letter
 or @samp{$}, @samp{%} or period.
 
-Note that the usual regexp special characters are not special inside a
+If @code{case-fold-search} is non-@code{nil}, @samp{[a-z]} also
+matches upper-case letters.  Note that a range like @samp{[a-z]} is
+not affected by the locale's collation sequence, it always represents
+a sequence in @acronym{ASCII} order.
+@c This wasn't obvious to me, since eg the grep manual "Character
+@c Classes and Bracket Expressions" specifically notes the opposite
+@c behavior.  But by experiment Emacs seems unaffected by LC_COLLATE
+@c in this regard.
+
+Note also that the usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters is
 special inside character alternatives: @samp{]}, @samp{-} and @samp{^}.
 
@@ -395,23 +405,27 @@ To include a @samp{]} in a character alternative, you must make it the
 first character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.
 To include a @samp{-}, write @samp{-} as the first or last character of
 the character alternative, or put it after a range.  Thus, @samp{[]-]}
-matches both @samp{]} and @samp{-}.
+matches both @samp{]} and @samp{-}.  (As explained below, you cannot
+use @samp{\]} to include a @samp{]} inside a character alternative,
+since @samp{\} is not special there.)
 
 To include @samp{^} in a character alternative, put it anywhere but at
 the beginning.
 
+@c What if it starts with a multibyte and ends with a unibyte?
+@c That doesn't seem to match anything...?
 If a range starts with a unibyte character @var{c} and ends with a
 multibyte character @var{c2}, the range is divided into two parts: one
-is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where
-@var{c1} is the first character of the charset to which @var{c2}
-belongs.
+spans the unibyte characters @samp{@var{c}..?\377}, the other the
+multibyte characters @samp{@var{c1}..@var{c2}}, where @var{c1} is the
+first character of the charset to which @var{c2} belongs.
 
 A character alternative can also specify named character classes
-(@pxref{Char Classes}).  This is a POSIX feature whose syntax is
-@samp{[:@var{class}:]}.  Using a character class is equivalent to
-mentioning each of the characters in that class; but the latter is not
-feasible in practice, since some classes include thousands of
-different characters.
+(@pxref{Char Classes}).  This is a POSIX feature.  For example,
+@samp{[[:ascii:]]} matches any @acronym{ASCII} character.
+Using a character class is equivalent to mentioning each of the
+characters in that class; but the latter is not feasible in practice,
+since some classes include thousands of different characters.
 
 @item @samp{[^ @dots{} ]}
 @cindex @samp{^} in regexp
@@ -812,7 +826,7 @@ with a symbol-constituent character.
 
 @kindex invalid-regexp
   Not every string is a valid regular expression.  For example, a string
-that ends inside a character alternative without terminating @samp{]}
+that ends inside a character alternative without a terminating @samp{]}
 is invalid, and so is a string that ends with a single @samp{\}.  If
 an invalid regular expression is passed to any of the search functions,
 an @code{invalid-regexp} error is signaled.
@@ -827,18 +841,12 @@ follows.  (Nowadays Emacs uses a similar but more complex default
 regexp constructed by the function @code{sentence-end}.
 @xref{Standard Regexps}.)
 
-  First, we show the regexp as a string in Lisp syntax to distinguish
-spaces from tab characters.  The string constant begins and ends with a
+  Below, we show first the regexp as a string in Lisp syntax (to
+distinguish spaces from tab characters), and then the result of
+evaluating it.  The string constant begins and ends with a
 double-quote.  @samp{\"} stands for a double-quote as part of the
 string, @samp{\\} for a backslash as part of the string, @samp{\t} for a
 tab and @samp{\n} for a newline.
-
-@example
-"[.?!][]\"')@}]*\\($\\| $\\|\t\\|@ @ \\)[ \t\n]*"
-@end example
-
-@noindent
-In contrast, if you evaluate this string, you will see the following:
 
 @example
 @group
@@ -849,7 +857,7 @@ In contrast, if you evaluate this string, you will see the following:
 @end example
 
 @noindent
-In this output, tab and newline appear as themselves.
+In the output, tab and newline appear as themselves.
 
   This regular expression contains four parts in succession and can be
 deciphered as follows:
@@ -894,7 +902,7 @@ This function returns a regular expression whose only exact match is
 @var{string}.  Using this regular expression in @code{looking-at} will
 succeed only if the next characters in the buffer are @var{string};
 using it in a search function will succeed if the text being searched
-contains @var{string}.
+contains @var{string}.  @xref{Regexp Search}.
 
 This allows you to request an exact string match or search when calling
 a function that wants a regular expression.
@@ -923,7 +931,11 @@ whitespace:
 This function returns an efficient regular expression that will match
 any of the strings in the list @var{strings}.  This is useful when you
 need to make matching or searching as fast as possible---for example,
-for Font Lock mode.
+for Font Lock mode@footnote{Note that @code{regexp-opt} does not
+guarantee that its result is absolutely the most efficient form
+possible.  A hand-tuned regular expression can sometimes be slightly
+more efficient, but is almost never worth the effort.}.
+@c See eg http://debbugs.gnu.org/2816
 
 If the optional argument @var{paren} is non-@code{nil}, then the
 returned regular expression is always enclosed by at least one
@@ -939,7 +951,7 @@ regular expression which is equivalent to the actual value
 (but not as efficient):
 
 @example
-(defun regexp-opt (strings paren)
+(defun regexp-opt (strings &optional paren)
   (let ((open-paren (if paren "\\(" ""))
         (close-paren (if paren "\\)" "")))
     (concat open-paren
@@ -953,6 +965,19 @@ This function returns the total number of grouping constructs
 (parenthesized expressions) in @var{regexp}.  This does not include
 shy groups (@pxref{Regexp Backslash}).
 @end defun
+
+@c Supposedly an internal regexp-opt function, but table.el uses it at least.
+@defun regexp-opt-charset chars
+This function returns a regular expression matching a character in the
+list of characters @var{chars}.
+
+@example
+(regexp-opt-charset '(?a ?b ?c ?d ?e))
+     @result{} "[a-e]"
+@end example
+@end defun
+
+@c Internal functions: regexp-opt-group
 
 @node Regexp Search
 @section Regular Expression Searching
@@ -1096,8 +1121,7 @@ following'' means precisely that: the search is ``anchored'' and it can
 succeed only starting with the first character following point.  The
 result is @code{t} if so, @code{nil} otherwise.
 
-This function does not move point, but it updates the match data, which
-you can access using @code{match-beginning} and @code{match-end}.
+This function does not move point, but it does update the match data.
 @xref{Match Data}.  If you need to test for a match without modifying
 the match data, use @code{looking-at-p}, described below.
 
@@ -1118,8 +1142,8 @@ comes back" twice.
 @end defun
 
 @defun looking-back regexp &optional limit greedy
-This function returns @code{t} if @var{regexp} matches text before
-point, ending at point, and @code{nil} otherwise.
+This function returns @code{t} if @var{regexp} matches the text
+immediately before point (i.e., ending at point), and @code{nil} otherwise.
 
 Because regular expression matching works only going forward, this is
 implemented by searching backwards from point for a match that ends at
@@ -1147,6 +1171,11 @@ comes back" twice.
      @result{} nil
 @end group
 @end example
+
+@c http://debbugs.gnu.org/5689
+As a general recommendation, try to avoid using @code{looking-back}
+wherever possible, since it is slow.  For this reason, there are no
+plans to add a @code{looking-back-p} function.
 @end defun
 
 @defun looking-at-p regexp
@@ -1170,6 +1199,7 @@ a part of the code.
 @node POSIX Regexps
 @section POSIX Regular Expression Searching
 
+@cindex backtracking and POSIX regular expressions
   The usual regular expression functions do backtracking when necessary
 to handle the @samp{\|} and repetition constructs, but they continue
 this only until they find @emph{some} match.  Then they succeed and
@@ -1342,12 +1372,16 @@ only information available is about the entire match.
 query the match data immediately after searching, before calling any
 other function that might perform another search.  Alternatively, you
 may save and restore the match data (@pxref{Saving Match Data}) around
-the call to functions that could perform another search.
+the call to functions that could perform another search.  Or use the
+functions that explicitly do not modify the match data;
+e.g. @code{string-match-p}.
 
+@c This is an old comment and presumably there is no prospect of this
+@c changing now.  But still the advice stands.
   A search which fails may or may not alter the match data.  In the
-past, a failing search did not do this, but we may change it in the
-future.  So don't try to rely on the value of the match data after
-a failing search.
+current implementation, it does not, but we may change it in the
+future.  Don't try to rely on the value of the match data after a
+failing search.
 
 @defun match-string count &optional in-string
 This function returns, as a string, the text matched in the last search
@@ -1361,7 +1395,7 @@ argument @var{in-string}.  After a buffer search or match,
 you should omit @var{in-string} or pass @code{nil} for it; but you
 should make sure that the current buffer when you call
 @code{match-string} is the one in which you did the searching or
-matching.
+matching.  Failure to follow this advice will lead to incorrect results.
 
 The value is @code{nil} if @var{count} is out of range, or for a
 subexpression inside a @samp{\|} alternative that wasn't used or a
@@ -1374,7 +1408,7 @@ has no text properties.
 @end defun
 
 @defun match-beginning count
-This function returns the position of the start of text matched by the
+This function returns the position of the start of the text matched by the
 last regular expression searched for, or a subexpression of it.
 
 If @var{count} is zero, then the value is the position of the start of
@@ -1467,7 +1501,7 @@ write the entire match data, all at once.
 
 @defun match-data &optional integers reuse reseat
 This function returns a list of positions (markers or integers) that
-record all the information on what text the last search matched.
+record all the information on the text that the last search matched.
 Element zero is the position of the beginning of the match for the
 whole expression; element one is the position of the end of the match
 for the expression.  The next two elements are the positions of the
@@ -1536,6 +1570,7 @@ an error; that sets the match data in a meaningless but harmless way.
 If @var{reseat} is non-@code{nil}, all markers on the @var{match-list} list
 are reseated to point to nowhere.
 
+@c TODO Make it properly obsolete.
 @findex store-match-data
 @code{store-match-data} is a semi-obsolete alias for @code{set-match-data}.
 @end defun
@@ -1543,7 +1578,7 @@ are reseated to point to nowhere.
 @node Saving Match Data
 @subsection Saving and Restoring the Match Data
 
-  When you call a function that may do a search, you may need to save
+  When you call a function that may search, you may need to save
 and restore the match data around that call, if you want to preserve the
 match data from an earlier search for later use.  Here is an example
 that shows the problem that arises if you fail to save the match data:
@@ -1552,8 +1587,7 @@ that shows the problem that arises if you fail to save the match data:
 @group
 (re-search-forward "The \\(cat \\)")
      @result{} 48
-(foo)                   ; @r{Perhaps @code{foo} does}
-                        ;   @r{more searching.}
+(foo)                   ; @r{@code{foo} does more searching.}
 (match-end 0)
      @result{} 61              ; @r{Unexpected result---not 48!}
 @end group
@@ -1646,7 +1680,7 @@ Instead of a string, @var{rep} can be a function.  In that case,
 @code{replace-regexp-in-string} calls @var{rep} for each match,
 passing the text of the match as its sole argument.  It collects the
 value @var{rep} returns and passes that to @code{replace-match} as the
-replacement string.  The match-data at this point are the result
+replacement string.  The match data at this point are the result
 of matching @var{regexp} against a substring of @var{string}.
 @end defun
 
@@ -1684,7 +1718,7 @@ it specifies how many times to use each of the strings in the
 
 If @var{from-string} contains upper-case letters, then
 @code{perform-replace} binds @code{case-fold-search} to @code{nil}, and
-it uses the @code{replacements} without altering the case of them.
+it uses the @var{replacements} without altering their case.
 
 Normally, the keymap @code{query-replace-map} defines the possible
 user responses for queries.  The argument @var{map}, if
@@ -1714,7 +1748,7 @@ to the functions that use this map.
 Prefix keys are not supported; each key binding must be for a
 single-event key sequence.  This is because the functions don't use
 @code{read-key-sequence} to get the input; instead, they read a single
-event and look it up ``by hand.''
+event and look it up ``by hand''.
 @end itemize
 @end defvar
 
@@ -1724,26 +1758,30 @@ friends.
 
 @table @code
 @item act
-Do take the action being considered---in other words, ``yes.''
+Do take the action being considered---in other words, ``yes''.
 
 @item skip
-Do not take action for this question---in other words, ``no.''
+Do not take action for this question---in other words, ``no''.
 
 @item exit
-Answer this question ``no,'' and give up on the entire series of
-questions, assuming that the answers will be ``no.''
+Answer this question ``no'', and give up on the entire series of
+questions, assuming that the answers will be ``no''.
+
+@item exit-prefix
+Like @code{exit}, but add the key that was pressed to
+@code{unread-comment-events}.
 
 @item act-and-exit
-Answer this question ``yes,'' and give up on the entire series of
-questions, assuming that subsequent answers will be ``no.''
+Answer this question ``yes'', and give up on the entire series of
+questions, assuming that subsequent answers will be ``no''.
 
 @item act-and-show
-Answer this question ``yes,'' but show the results---don't advance yet
+Answer this question ``yes'', but show the results---don't advance yet
 to the next question.
 
 @item automatic
 Answer this question and all subsequent questions in the series with
-``yes,'' without further user interaction.
+``yes'', without further user interaction.
 
 @item backup
 Move back to the previous place that a question was asked about.
@@ -1751,6 +1789,9 @@ Move back to the previous place that a question was asked about.
 @item edit
 Enter a recursive edit to deal with this question---instead of any
 other action that would normally be taken.
+
+@item edit-replacement
+Edit the replacement for this question in the minibuffer.
 
 @item delete-and-edit
 Delete the text being considered, then enter a recursive edit to replace
@@ -1770,7 +1811,18 @@ Display some help, then ask again.
 @defvar multi-query-replace-map
 This variable holds a keymap that extends @code{query-replace-map} by
 providing additional keybindings that are useful in multi-buffer
-replacements.
+replacements.  The additional ``bindings'' are:
+
+@table @code
+@item automatic-all
+Answer this question and all subsequent questions in the series with
+``yes'', without further user interaction, for all remaining buffers.
+
+@item exit-current
+Answer this question ``no'', and give up on the entire series of
+questions for the current buffer.  Continue to the next buffer in the
+sequence.
+@end table
 @end defvar
 
 @defvar replace-search-function
@@ -1833,8 +1885,8 @@ If non-@code{nil}, the value should be a regular expression describing
 the end of a sentence, including the whitespace following the
 sentence.  (All paragraph boundaries also end sentences, regardless.)
 
-If the value is @code{nil}, the default, then the function
-@code{sentence-end} has to construct the regexp.  That is why you
+If the value is @code{nil}, as it is by default, then the function
+@code{sentence-end} constructs the regexp.  That is why you
 should always call the function @code{sentence-end} to obtain the
 regexp to be used to recognize the end of a sentence.
 @end defopt
@@ -1844,6 +1896,6 @@ This function returns the value of the variable @code{sentence-end},
 if non-@code{nil}.  Otherwise it returns a default value based on the
 values of the variables @code{sentence-end-double-space}
 (@pxref{Definition of sentence-end-double-space}),
-@code{sentence-end-without-period} and
+@code{sentence-end-without-period}, and
 @code{sentence-end-without-space}.
 @end defun

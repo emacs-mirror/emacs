@@ -367,6 +367,40 @@
   You can get pre-built binaries (including any required DLL and the
   header files) at http://sourceforge.net/projects/ezwinports/files/.
 
+* Optional libxml2 support
+
+  If configure.bat finds the libxml/HTMLparser.h file in the include path,
+  Emacs is built with libxml2 support by default; to avoid that you can
+  pass the argument --without-libxml2.
+
+  In order to support libxml2 at runtime, a libxml2-enabled Emacs must
+  be able to find the relevant DLLs during startup; failure to do so
+  is not an error, but libxml2 features won't be available to the
+  running session.
+
+  One place where you can get pre-built Windows binaries of libxml2
+  (including any required DLL and the header files) is here:
+
+     http://sourceforge.net/projects/ezwinports/files/
+
+  To compile Emacs with libxml2 from that site, you will need to pass
+  the "--cflags -I/path/to/include/libxml2" option to configure.bat,
+  because libxml2 header files are installed in the include/libxml2
+  subdirectory of the directory where you unzip the binary
+  distribution.  Other binary distributions might use other
+  directories, although include/libxml2 is the canonical place where
+  libxml2 headers are installed on Posix platforms.
+
+  You will also need to install the libiconv "development" tarball,
+  because the libiconv headers need to be available to the compiler
+  when you compile with libxml2 support.  A MinGW port of libiconv can
+  be found on the MinGW site:
+
+   http://sourceforge.net/projects/mingw/files/MinGW/Base/libiconv/
+
+  You need the libiconv-X.Y.Z-N-mingw32-dev.tar.lzma tarball from that
+  site.
+
 * Experimental SVG support
 
   SVG support is currently experimental, and not built by default.

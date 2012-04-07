@@ -41,13 +41,13 @@
          (result-params (cdr (assoc :result-params params)))
          (print-level nil) (print-length nil)
          (body (if (> (length vars) 0)
-		   (concat "(let ("
-			 (mapconcat
-			  (lambda (var)
-			    (format "%S" (print `(,(car var) ',(cdr var)))))
-			  vars "\n      ")
-			 ")\n" body ")")
-		 body)))
+		    (concat "(let ("
+			    (mapconcat
+			     (lambda (var)
+			       (format "%S" (print `(,(car var) ',(cdr var)))))
+			     vars "\n      ")
+			    ")\n" body "\n)")
+		 (concat body "\n"))))
     (if (or (member "code" result-params)
 	    (member "pp" result-params))
 	(concat "(pp " body ")") body)))

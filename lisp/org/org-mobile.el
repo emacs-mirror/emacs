@@ -68,6 +68,7 @@ org-agenda-text-search-extra-files
 (defcustom org-mobile-files-exclude-regexp ""
   "A regexp to exclude files from `org-mobile-files'."
   :group 'org-mobile
+  :version "24.1"
   :type 'regexp)
 
 (defcustom org-mobile-directory ""
@@ -84,6 +85,7 @@ Turning on encryption requires to set the same password in the MobileOrg
 application.  Before turning this on, check of MobileOrg does already
 support it - at the time of this writing it did not yet."
   :group 'org-mobile
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-mobile-encryption-tempfile "~/orgtmpcrypt"
@@ -91,6 +93,7 @@ support it - at the time of this writing it did not yet."
 This must be local file on your local machine (not on the WebDAV server).
 You might want to put this file into a directory where only you have access."
   :group 'org-mobile
+  :version "24.1"
   :type 'directory)
 
 (defcustom org-mobile-encryption-password ""
@@ -111,6 +114,7 @@ it, this also limits the security of this approach.  You can also leave
 this variable empty - Org will then ask for the password once per Emacs
 session."
   :group 'org-mobile
+  :version "24.1"
   :type '(string :tag "Password"))
 
 (defvar org-mobile-encryption-password-session nil)
@@ -150,6 +154,7 @@ custom   all custom agendas defined by the user
 all      the custom agendas and the default ones
 list     a list of selection key(s) as string."
   :group 'org-mobile
+  :version "24.1"
   :type '(choice
 	  (const :tag "Default Agendas" default)
 	  (const :tag "Custom Agendas" custom)

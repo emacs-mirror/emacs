@@ -1506,10 +1506,12 @@ precedence.
 Create a new graphical frame, instead of using an existing Emacs
 frame.  Emacs can create a graphical frame even if it was started in a
 text-only terminal, provided it is able to connect to a graphical
-display.  If no graphical display is available, Emacs creates a new
-text-only terminal frame (@pxref{Frames}).  If you omit a filename
-argument while supplying the @samp{-c} option, the new frame displays
-the @samp{*scratch*} buffer (@pxref{Buffers}).
+display.  If Emacs is unable to connect to a graphical display, and on
+systems, such as MS-Windows (@pxref{Windows Startup, emacsclient}),
+where it cannot create graphical frames when started from a text-only
+terminal, it creates a new text-only terminal frame (@pxref{Frames}).
+If you omit a filename argument while supplying the @samp{-c} option,
+the new frame displays the @samp{*scratch*} buffer (@pxref{Buffers}).
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
@@ -1594,8 +1596,11 @@ server it finds.  (This option is not supported on MS-Windows.)
 Create a new Emacs frame on the current text-only terminal, instead of
 using an existing Emacs frame.  Emacs can open a text-only terminal
 even if it was started in another text-only terminal, or on a
-graphical display.  If you omit a filename argument while supplying
-this option, the new frame displays the @samp{*scratch*} buffer.
+graphical display.  On systems, such as MS-Windows, where this is
+impossible, Emacs will create a new frame, either GUI or text-only, on
+the same terminal where it was started (@pxref{Windows Startup,
+emacsclient}).  If you omit a filename argument while supplying this
+option, the new frame displays the @samp{*scratch*} buffer.
 @xref{Buffers}.
 @end table
 

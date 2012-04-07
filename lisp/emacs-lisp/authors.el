@@ -170,6 +170,7 @@ files.")
     ("Thomas Dye" "Tom Dye")
     ("Thomas Horsley" "Tom Horsley")	; FIXME ?
     ("Thomas Wurgler" "Tom Wurgler")
+    ("Toby Cubitt" "Toby S\\. Cubitt")
     ("Tomohiko Morioka" "MORIOKA Tomohiko")
     ("Torbjörn Axelsson" "Torbjvrn Axelsson")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")

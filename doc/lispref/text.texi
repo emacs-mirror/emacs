@@ -3179,21 +3179,41 @@ Consecutive characters with the same @code{field} property constitute a
 
 @item cursor
 @kindex cursor @r{(text property)}
-Normally, the cursor is displayed at the end of any overlay and text
-property strings present at the current buffer position.  You can
-place the cursor on any desired character of these strings by giving
-that character a non-@code{nil} @code{cursor} text property.  In
-addition, if the value of the @code{cursor} property of an overlay
-string is an integer number, it specifies the number of buffer's
-character positions associated with the overlay string; this way,
-Emacs will display the cursor on the character with that property
-regardless of whether the current buffer position is actually covered
-by the overlay.  Specifically, if the value of the @code{cursor}
-property of a character is the number @var{n}, the cursor will be
-displayed on this character for any buffer position in the range
-@code{[@var{ovpos}..@var{ovpos}+@var{n}]}, where @var{ovpos} is the
-starting buffer position covered by the overlay (@pxref{Managing
-Overlays}).
+Normally, the cursor is displayed at the beginning or the end of any
+overlay and text property strings present at the current buffer
+position.  You can place the cursor on any desired character of these
+strings by giving that character a non-@code{nil} @code{cursor} text
+property.  In addition, if the value of the @code{cursor} property is
+an integer number, it specifies the number of buffer's character
+positions, starting with the position where the overlay or the
+@code{display} property begins, for which the cursor should be
+displayed on that character.  Specifically, if the value of the
+@code{cursor} property of a character is the number @var{n}, the
+cursor will be displayed on this character for any buffer position in
+the range @code{[@var{ovpos}..@var{ovpos}+@var{n})}, where @var{ovpos}
+is the overlay's starting position given by @code{overlay-start}
+(@pxref{Managing Overlays}), or the position where the @code{display}
+text property begins in the buffer.
+
+In other words, the string character with the @code{cursor} property
+of any non-@code{nil} value is the character where to display the
+cursor.  The value of the property says for which buffer positions to
+display the cursor there.  If the value is an integer number @var{n},
+the cursor is displayed there when point is anywhere between the
+beginning of the overlay or @code{display} property and @var{n}
+positions after that.  If the value is anything else and
+non-@code{nil}, the cursor is displayed there only when point is at
+the beginning of the @code{display} property or at
+@code{overlay-start}.
+
+@cindex cursor position for @code{display} properties and overlays
+When the buffer has many overlay strings (e.g., @pxref{Overlay
+Properties, before-string}) or @code{display} properties that are
+strings, it is a good idea to use the @code{cursor} property on these
+strings to cue the Emacs display about the places where to put the
+cursor while traversing these strings.  This directly communicates to
+the display engine where the Lisp program wants to put the cursor, or
+where the user would expect the cursor.
 
 @item pointer
 @kindex pointer @r{(text property)}

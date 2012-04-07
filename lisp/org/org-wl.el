@@ -46,11 +46,13 @@
 (defcustom org-wl-link-remove-filter nil
   "Remove filter condition if message is filter folder."
   :group 'org-wl
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-wl-shimbun-prefer-web-links nil
   "If non-nil create web links for shimbun messages."
   :group 'org-wl
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-wl-nntp-prefer-web-links nil
@@ -58,16 +60,19 @@
 When folder name contains string \"gmane\" link to gmane,
 googlegroups otherwise."
   :type 'boolean
+  :version "24.1"
   :group 'org-wl)
 
 (defcustom org-wl-disable-folder-check t
   "Disable check for new messages when open a link."
   :type 'boolean
+  :version "24.1"
   :group 'org-wl)
 
 (defcustom org-wl-namazu-default-index nil
   "Default namazu search index."
   :type 'directory
+  :version "24.1"
   :group 'org-wl)
 
 ;; Declare external functions and variables

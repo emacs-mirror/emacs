@@ -46,7 +46,7 @@
  "Devanagari" '((charset unicode)
 		(coding-system utf-8)
 		(coding-priority utf-8)
-		(input-method . "dev-aiba")
+		(input-method . "devanagari-aiba")
 		(documentation . "\
 Such languages using Devanagari script as Hindi and Marathi
 are supported in this language environment."))

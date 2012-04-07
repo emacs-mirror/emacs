@@ -1,3 +1,22 @@
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Support building with libxml2.
+
+	* INSTALL:
+	* README.W32: Add information about libxml2.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in: Convert to Unix EOL format.
+	(all): Don't depend on stamp_BLD and on maybe-bootstrap.
+	(all-other-dirs-$(MAKETYPE)): Depend on maybe-bootstrap.
+	(bootstrap-gmake): Invoke the "clean" and build targets in 2
+	separate commands, so they run in that order even under "make -j".
+
+2012-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Discourage from defining HAVE_GETCWD.
+
 2012-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (install-bin): Don't copy addpm.exe here.  Use

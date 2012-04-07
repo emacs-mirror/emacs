@@ -143,7 +143,7 @@ files.texi        cyd
 fixit.texi        cyd
 fortran-xtra.texi rgm
 frames.texi       cyd
-glossary.texi
+glossary.texi     rgm
 help.texi         cyd
 indent.texi       cyd
 killing.texi      cyd
@@ -183,7 +183,7 @@ xresources.texi   cyd
 abbrevs.texi      rgm
 advice.texi       cyd
 anti.texi         
-back.texi
+back.texi         rgm
 backups.texi      cyd
 buffers.texi      cyd
 commands.texi     cyd
@@ -191,8 +191,8 @@ compile.texi      cyd
 control.texi      cyd
 customize.texi    cyd
 debugging.texi    cyd
-display.texi      
-edebug.texi
+display.texi      cyd
+edebug.texi       rgm
 elisp.texi
 errors.texi       rgm
 eval.texi         cyd
@@ -220,7 +220,7 @@ os.texi           cyd
 package.texi      rgm
 positions.texi    cyd
 processes.texi
-searching.texi    
+searching.texi    rgm
 sequences.texi    cyd
 streams.texi      cyd
 strings.texi      cyd

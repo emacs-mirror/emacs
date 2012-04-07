@@ -1267,7 +1267,7 @@ COMMAND is usually a command from the gvfs-* utilities.
     (with-current-buffer (tramp-get-buffer vec)
       (erase-buffer)
       (tramp-message vec 6 "%s %s" command (mapconcat 'identity args " "))
-      (setq result (apply 'tramp-local-call-process command nil t nil args))
+      (setq result (apply 'tramp-compat-call-process command nil t nil args))
       (tramp-message vec 6 "%s" (buffer-string))
       result)))
 

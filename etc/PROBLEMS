@@ -1679,6 +1679,23 @@ recommended way of turning on Font-lock is by typing "M-x
 global-font-lock-mode RET" or by customizing the variable
 `global-font-lock-mode'.
 
+** Unexpected characters inserted into the buffer when you start Emacs.
+See eg http://debbugs.gnu.org/11129
+
+This can happen when you start Emacs in -nw mode in an Xterm.
+For example, in the *scratch* buffer, you might see something like:
+
+  0;276;0c
+
+This is more likely to happen if you are using Emacs over a slow
+connection, and begin typing before Emacs is ready to respond.
+
+This occurs when Emacs tries to query the terminal to see what
+capabilities it supports, and gets confused by the answer.
+To avoid it, set xterm-extra-capabilities to a value other than
+`check' (the default).  See that variable's documentation (in
+term/xterm.el) for more details.
+
 * Runtime problems specific to individual Unix variants
 
 ** GNU/Linux
@@ -2241,10 +2258,10 @@ printer drivers. A workaround on MS-Windows is to use Windows' basic
 built in editor to print (this is possibly the only useful purpose it
 has):
 
-(setq printer-name "")         ;; notepad takes the default
-(setq lpr-command "notepad")   ;; notepad
-(setq lpr-switches nil)        ;; not needed
-(setq lpr-printer-switch "/P") ;; run notepad as batch printer
+(setq printer-name "")         ; notepad takes the default
+(setq lpr-command "notepad")   ; notepad
+(setq lpr-switches nil)        ; not needed
+(setq lpr-printer-switch "/P") ; run notepad as batch printer
 
 ** Antivirus software interacts badly with the MS-Windows version of Emacs.
 

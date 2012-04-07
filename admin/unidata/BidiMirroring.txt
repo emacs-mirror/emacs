@@ -1,19 +1,19 @@
-# BidiMirroring-6.0.0.txt
-# Date: 2010-06-21, 12:09:00 PDT [KW]
+# BidiMirroring-6.1.0.txt
+# Date: 2011-12-20, 19:31:00 GMT [KW, LI]
 #
 # Bidi_Mirroring_Glyph Property
 # 
 # This file is an informative contributory data file in the
 # Unicode Character Database.
 #
-# Copyright (c) 1991-2010 Unicode, Inc.
+# Copyright (c) 1991-2011 Unicode, Inc.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
-# This data file lists characters that have the Bidi_Mirrored=True property
+# This data file lists characters that have the Bidi_Mirrored=Yes property
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 6.0.0.
+# The repertoire covered by the file is Unicode 6.1.0.
 # 
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.
@@ -26,9 +26,17 @@
 # variable-length hexadecimal value with 4 to 6 digits.
 # A comment indicates where the characters are "BEST FIT" mirroring.
 # 
-# Code points for which Bidi_Mirrored=True, but for which no appropriate 
+# Code points for which Bidi_Mirrored=Yes, but for which no appropriate 
 # characters exist with mirrored glyphs, are
 # listed as comments at the end of the file.
+#
+#   Note: (2011-12-19) There is an inconsistency between the 
+#   following statement about the default value
+#   of the Bidi_Mirroring_Glyph property and the
+#   value of the @missing line for Bidi_Mirroring_Glyph in
+#   PropertyValueAliases.txt. This inconsistency was discovered too
+#   late in the release process to be resolved by
+#   the UTC. The inconsistency will be resolved in a future revision.
 #
 # Formally, the default value of the Bidi_Mirroring_Glyph property
 # for each code point is the code point itself, unless a mapping to
@@ -41,9 +49,13 @@
 # at http://www.unicode.org/unicode/reports/tr9/
 # 
 # This file was originally created by Markus Scherer.
-# Extended for Unicode 3.2, 4.0, 4.1, 5.0, 5.1, 5.2, and 6.0 by Ken Whistler.
+# Extended for Unicode 3.2, 4.0, 4.1, 5.0, 5.1, 5.2, and 6.0 by Ken Whistler,
+# and for Unicode 6.1 by Ken Whistler and Laurentiu Iancu.
 # 
 # ############################################################
+#
+# Property:	Bidi_Mirroring_Glyph
+#
 
 0028; 0029 # LEFT PARENTHESIS
 0029; 0028 # RIGHT PARENTHESIS
@@ -209,6 +221,8 @@
 27C6; 27C5 # RIGHT S-SHAPED BAG DELIMITER
 27C8; 27C9 # REVERSE SOLIDUS PRECEDING SUBSET
 27C9; 27C8 # SUPERSET PRECEDING SOLIDUS
+27CB; 27CD # MATHEMATICAL RISING DIAGONAL
+27CD; 27CB # MATHEMATICAL FALLING DIAGONAL
 27D5; 27D6 # LEFT OUTER JOIN
 27D6; 27D5 # RIGHT OUTER JOIN
 27DD; 27DE # LONG RIGHT TACK

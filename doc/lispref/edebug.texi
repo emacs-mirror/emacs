@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992-1994, 1998-1999, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1992-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This file can also be used by an independent Edebug User
@@ -214,6 +214,7 @@ evaluating forms that never instrument them: from a file with
 
   If Edebug detects a syntax error while instrumenting, it leaves point
 at the erroneous code and signals an @code{invalid-read-syntax} error.
+@c FIXME?  I can't see that it "leaves point at the erroneous code".
 
   @xref{Edebug Eval}, for other evaluation functions available
 inside of Edebug.
@@ -239,6 +240,7 @@ least for a certain distance.
 @item S
 Stop: don't execute any more of the program, but wait for more
 Edebug commands (@code{edebug-stop}).
+@c FIXME Does not work. http://debbugs.gnu.org/9764
 
 @item @key{SPC}
 Step: stop at the next stop point encountered (@code{edebug-step-mode}).
@@ -331,7 +333,8 @@ Run the program for one expression
 Run the program until the end of the containing sexp (@code{edebug-step-out}).
 
 @item i
-Step into the function or macro called by the form after point.
+Step into the function or macro called by the form after point
+(@code{edebug-step-in}).
 @end table
 
 The @kbd{h} command proceeds to the stop point at or after the current
@@ -626,7 +629,7 @@ open.
 @node Edebug Eval
 @subsection Evaluation
 
-  While within Edebug, you can evaluate expressions ``as if'' Edebug
+  While within Edebug, you can evaluate expressions as if Edebug
 were not running.  Edebug tries to be invisible to the expression's
 evaluation and printing.  Evaluation of expressions that cause side
 effects will work as expected, except for changes to data that Edebug
@@ -653,6 +656,7 @@ Evaluate the expression before point, in the context outside of Edebug
 lexically bound symbols created by the following constructs in
 @file{cl.el}: @code{lexical-let}, @code{macrolet}, and
 @code{symbol-macrolet}.
+@c FIXME?  What about lexical-binding = t?
 
 @node Eval List
 @subsection Evaluation List Buffer
@@ -1109,6 +1113,15 @@ definition, but specifications are much more general than macro
 arguments.  @xref{Defining Macros}, for more explanation of
 the @code{declare} form.
 
+@c See eg http://debbugs.gnu.org/10577
+@c FIXME  Maybe there should be an Edebug option to get it to
+@c automatically load the entire source file containing the function
+@c being instrumented.  That would avoid this.
+  Take care to ensure that the specifications are known to Edebug when
+you instrument code.  If you are instrumenting a function from a file
+that uses @code{eval-when-compile} to require another file containing
+macro definitions, you may need to explicitly load that file.
+
   You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
 @code{debug} declarations is preferred, and more convenient, for macro
@@ -1167,7 +1180,7 @@ modify the processing of all following elements.  The latter, called
 @dfn{specification keywords}, are symbols beginning with @samp{&} (such
 as @code{&optional}).
 
-A specification list may contain sublists which match arguments that are
+A specification list may contain sublists, which match arguments that are
 themselves lists, or it may contain vectors used for grouping.  Sublists
 and groups thus subdivide the specification list into a hierarchy of
 levels.  Specification keywords apply only to the remainder of the
@@ -1218,7 +1231,7 @@ A lambda expression with no quoting.
 All following elements in the specification list are optional; as soon
 as one does not match, Edebug stops matching at this level.
 
-To make just a few elements optional followed by non-optional elements,
+To make just a few elements optional, followed by non-optional elements,
 use @code{[&optional @var{specs}@dots{}]}.  To specify that several
 elements must all match or none, use @code{&optional
 [@var{specs}@dots{}]}.  See the @code{defun} example.
@@ -1250,6 +1263,8 @@ Each of the following elements is matched as alternatives as if by using
 @code{&or}, but if any of them match, the specification fails.  If none
 of them match, nothing is matched, but the @code{&not} specification
 succeeds.
+
+@c FIXME &key?
 
 @item &define
 @c @kindex &define @r{(Edebug)}
@@ -1283,8 +1298,8 @@ arguments.  The specification may be defined with @code{def-edebug-spec}
 just as for macros.  See the @code{defun} example.
 
 Otherwise, the symbol should be a predicate.  The predicate is called
-with the argument and the specification fails if the predicate returns
-@code{nil}, and the argument is not instrumented.
+with the argument, and if the predicate returns @code{nil}, the
+specification fails and the argument is not instrumented.
 
 Some suitable predicates include @code{symbolp}, @code{integerp},
 @code{stringp}, @code{vectorp}, and @code{atom}.
@@ -1418,7 +1433,15 @@ of the bindings is either a symbol or a sublist with a symbol and
 optional expression.  In the specification below, notice the @code{gate}
 inside of the sublist to prevent backtracking once a sublist is found.
 
-@c FIXME? The actual definition in edebug.el does not have a gate.
+@ignore
+@c FIXME?  The actual definition in edebug.el looks like this (and always
+@c has AFAICS).  In fact, nothing in edebug.el uses gate.  So maybe
+@c this is just an example for illustration?
+(def-edebug-spec let
+  ((&rest
+    &or (symbolp &optional form) symbolp)
+   body))
+@end ignore
 @example
 (def-edebug-spec let
   ((&rest
@@ -1479,8 +1502,8 @@ could fail.)
 @defopt edebug-setup-hook
 Functions to call before Edebug is used.  Each time it is set to a new
 value, Edebug will call those functions once and then
-@code{edebug-setup-hook} is reset to @code{nil}.  You could use this to
-load up Edebug specifications associated with a package you are using
+reset @code{edebug-setup-hook} to @code{nil}.  You could use this to
+load up Edebug specifications associated with a package you are using,
 but only when you also use Edebug.
 @xref{Instrumenting}.
 @end defopt
@@ -1562,7 +1585,28 @@ debugged.
 @xref{Edebug Execution Modes}.
 @end defopt
 
-@c FIXME edebug-unwrap-results
+@defopt edebug-unwrap-results
+If non-@code{nil}, Edebug tries to remove any of its own
+instrumentation when showing the results of expressions.  This is
+relevant when debugging macros where the results of expressions are
+themselves instrumented expressions.  As a very artificial example,
+suppose that the example function @code{fac} has been instrumented,
+and consider a macro of the form:
+
+@c FIXME find a less silly example.
+@smallexample
+(defmacro test () "Edebug example."
+  (if (symbol-function 'fac)
+      @dots{}))
+@end smallexample
+
+If you instrument the @code{test} macro and step through it, then by
+default the result of the @code{symbol-function} call has numerous
+@code{edebug-after} and @code{edebug-before} forms, which can make it
+difficult to see the ``actual'' result.  If
+@code{edebug-unwrap-results} is non-@code{nil}, Edebug tries to remove
+these forms from the result.
+@end defopt
 
 @defopt edebug-on-error
 Edebug binds @code{debug-on-error} to this value, if

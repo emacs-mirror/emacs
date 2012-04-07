@@ -1,3 +1,20 @@
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add xml.o.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ALL): Now the list of executables, not of phony
+	targets.
+	(.PHONY): Only make-docfile is its prerequisite now.
+	(make-docfile): Don't depend on stamp_BLD.  Add a comment about
+	the need in this target.
+	(ctags, etags, ebrowse, hexl, movemail, emacsclient)
+	(test-distrib): Phony targets removed.
+	($(BLD)/test-distrib.exe): Run test-distrib as part of the recipe.
+	(all): Don't depend on stamp_BLD.
+	(ALL): Include $(BLD)/test-distrib.exe.
+
 2012-03-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacsclient.c (main): Handle -print-nonl command.

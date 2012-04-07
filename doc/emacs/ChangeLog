@@ -1,3 +1,45 @@
+2012-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* glossary.texi (Glossary): Use anchors for internal cross-references.
+
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* glossary.texi (Glossary): Copyedits.
+	Use Texinfo-recommended convention for quotes and punctuation.
+	Comment out a few specialized (Rmail) items.
+	New items: Bidirectional Text, Client, Directory Local Variable,
+	File Local Variable, Package, Server, Theme, Trash Can.
+
+2012-04-03  Chong Yidong  <cyd@gnu.org>
+
+	* sending.texi (Mail Misc): Fix an index entry.
+
+2012-04-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Startup): Add description of emacsclient
+	operation under -c and -t on MS-Windows.
+
+	* misc.texi (emacsclient Options): Add cross-reference to "Windows
+	Startup".  (Bug#11091)
+
+2012-04-02  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* custom.texi (Changing a Variable): Fix example.
+
+2012-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (emacsclient Options): More clarifications about -t
+	and -c on MS-Windows.  (Bug#11091)
+
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (emacsclient Options): Document peculiarities of new
+	frame creation on MS-Windows under -c or -t options.  (Bug#11091)
+
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (File Conveniences): Clarify Imagemagick discussion.
+
 2012-03-22  Glenn Morris  <rgm@gnu.org>
 
 	* dired.texi (Operating on Files): Fix dired-recursive-copies default.

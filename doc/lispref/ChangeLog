@@ -1,3 +1,96 @@
+2012-04-06  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Programmed Completion): Document metadata method.
+	(Completion Variables): Document completion-category-overrides.
+
+2012-04-05  Chong Yidong  <cyd@gnu.org>
+
+	* anti.texi (Antinews): Rewrite for Emacs 23.
+
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Programmed Completion): Remove obsolete variable
+	completion-annotate-function.
+	(Completion Variables): Rename from Completion Styles.  Document
+	completion-extra-properties.  Document completion-styles-alist
+	change.
+	(Reading File Names): minibuffer-local-filename-must-match-map is
+	not used anymore.
+	(Minibuffer Completion): Document completing-read-function.
+	(Completion in Buffers): completion-at-point-functions can return
+	properties recognized in completion-extra-properties.
+
+	* display.texi (Delayed Warnings): New node.
+
+	* os.texi (Notifications): Copyedits.
+
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Notifications): Copyedits.
+
+2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* os.texi (Terminal-Specific): Fix typo.
+	(Notifications): New section.
+
+	* elisp.texi (Top):
+	* vol1.texi (Top):
+	* vol2.texi (Top): Add "Notifications" and "Dynamic Libraries"
+	menu entries.
+
+2012-04-01  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Kinds of Files): file-subdir-of-p renamed to
+	file-in-directory-p.
+
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls):
+	Mention defining macros at instrumentation time.
+	(Edebug Options): Mention edebug-unwrap-results.
+
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): Clarify the description of the
+	effect of integer values of the 'cursor' property on cursor
+	position.  See the discussions in bug#11068 for more details and
+	context.
+
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Edebug Eval, Specification List, Edebug Options):
+	Copyedits.
+
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Image Formats): Add imagemagick type.
+	(Image Descriptors): Mention how they are used.
+	(ImageMagick Images): Clarify role of imagemagick-register-types.
+	(Character Display): Don't mention glyph tables.
+	(Display Tables): Use make-glyph-code in example.
+	(Glyphs): Avoid "simple glyph code" terminology.  Note that glyph
+	tables are semi-obsolete.  De-document create-glyph.
+	(Glyphless Chars): Note that display tables override this.
+	(Bidirectional Display): Copyedits.  Introduce "bidirectional
+	reordering" terminology, and use it.
+
+2012-03-30  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Jumping): Give name of `i' binding.
+
+2012-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* searching.texi (Regular Expressions, Regexp Special):
+	(Regexp Backslash, Regexp Example, Regexp Functions, Regexp Search):
+	(Simple Match Data, Saving Match Data, Standard Regexps): Copyedits.
+	(Regexp Special): Mention collation.
+	Clarify char classes with an example.
+	(Regexp Functions): Mention regexp-opt is not guaranteed.
+	Mention regexp-opt-charset.
+	(Regexp Search): Recommend against looking-back.
+	(Search and Replace): Use Texinfo recommended quote convention.
+	Add more query-replace-map items.  List multi-query-replace-map items.
+
 2012-03-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Window History): Describe new option

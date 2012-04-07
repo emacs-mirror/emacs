@@ -686,14 +686,13 @@ The minimum delay between successive frames is 0.01s."
 
 (defcustom imagemagick-types-inhibit
   '(C HTML HTM TXT PDF)
-  "ImageMagick types that Emacs should not use ImageMagick to handle.
-This should be a list of symbols, each of which has the same
-name as one of the format tags used internally by ImageMagick;
-see `imagemagick-types'.  Entries in this list are excluded from
-being registered by `imagemagick-register-types', so if you change
-this variable you must do so before you call that function.
+  "ImageMagick types that should not be visited in Image mode.
+This should be a list of symbols, each of which should be one of
+the ImageMagick types listed in `imagemagick-types'.  These image
+types are not registered by `imagemagick-register-types'.
 
-If Emacs is compiled without ImageMagick, this variable has no effect."
+If Emacs is compiled without ImageMagick support, this variable
+has no effect."
   :type '(choice (const :tag "Let ImageMagick handle all types it can" nil)
 		 (repeat symbol))
   ;; Ideally, would have a :set function that checks if we already did
@@ -704,10 +703,13 @@ If Emacs is compiled without ImageMagick, this variable has no effect."
 ;;;###autoload
 (defun imagemagick-register-types ()
   "Register file types that can be handled by ImageMagick.
-This adds the file types returned by `imagemagick-types'
-\(excluding the ones in `imagemagick-types-inhibit') to
-`auto-mode-alist' and `image-type-file-name-regexps', so that
-Emacs visits them in Image mode.
+This registers the ImageMagick types listed in `imagemagick-types',
+excluding those listed in `imagemagick-types-inhibit'.
+
+Registered image types are added to `auto-mode-alist', so that
+Emacs visits them in Image mode.  They are also added to
+`image-type-file-name-regexps', so that the `image-type' function
+recognizes these files as having image type `imagemagick'.
 
 If Emacs is compiled without ImageMagick support, do nothing."
   (when (fboundp 'imagemagick-types)

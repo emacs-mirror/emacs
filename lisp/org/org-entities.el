@@ -44,6 +44,7 @@
 For example, this will replace \"\\nsup\" with \"[not a superset of]\"
 in backends where the corresponding character is not available."
   :group 'org-entities
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-entities-user nil
@@ -68,6 +69,7 @@ utf-8 replacement    Use the special characters available in utf-8.
 If you define new entities here that require specific LaTeX packages to be
 loaded, add these packages to `org-export-latex-packages-alist'."
   :group 'org-entities
+  :version "24.1"
   :type '(repeat
 	  (list
 	   (string :tag "name  ")

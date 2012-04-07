@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Authors: Thorsten Jolitz
-;;	    Eric Schulte
+;;	 Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 
@@ -76,6 +76,7 @@
 (defcustom org-babel-picolisp-cmd "pil"
   "Name of command used to evaluate picolisp blocks."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 (defun org-babel-expand-body:picolisp (body params &optional processed-params)

@@ -412,6 +412,7 @@ This function is meant to be called by `after-change-functions'."
       (if (or org-indent-modified-headline-flag
 	      (save-excursion
 		(goto-char beg)
+		(beginning-of-line)
 		(re-search-forward org-outline-regexp-bol end t)))
 	(let ((end (save-excursion
 		     (goto-char end)

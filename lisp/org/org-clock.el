@@ -1,6 +1,6 @@
 ;;; org-clock.el --- The time clocking code for Org-mode
 
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -226,6 +226,7 @@ should get a different face (`org-mode-line-clock-overrun').
 When this is a string, it is prepended to the clock string as an indication,
 also using the face `org-mode-line-clock-overrun'."
   :group 'org-clock
+  :version "24.1"
   :type '(choice
 	  (const :tag "Just mark the time string" nil)
 	  (string :tag "Text to prepend")))
@@ -267,12 +268,14 @@ string as argument."
     :formatter nil)
   "Default properties for clock tables."
   :group 'org-clock
+  :version "24.1"
   :type 'plist)
 
 (defcustom org-clock-clocktable-formatter 'org-clocktable-write-default
   "Function to turn clocking data into a table.
 For more information, see `org-clocktable-write-default'."
   :group 'org-clocktable
+  :version "24.1"
   :type 'function)
 
 ;; FIXME: translate es and nl last string "Clock summary at"
@@ -283,6 +286,7 @@ For more information, see `org-clocktable-write-default'."
     ("nl" "Bestand"  "N"  "Tijdstip"   "Hoofding" "Duur"  "ALLES" "Totale duur"  "Bestandstijd" "Clock summary at"))
   "Terms used in clocktable, translated to different languages."
   :group 'org-clocktable
+  :version "24.1"
   :type 'alist)
 
 (defcustom org-clock-clocktable-default-properties '(:maxlevel 2 :scope file)
@@ -310,11 +314,13 @@ play with them."
 (defcustom org-clock-report-include-clocking-task nil
   "When non-nil, include the current clocking task time in clock reports."
   :group 'org-clock
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-clock-resolve-expert nil
   "Non-nil means do not show the splash buffer with the clock resolver."
   :group 'org-clock
+  :version "24.1"
   :type 'boolean)
 
 (defvar org-clock-in-prepare-hook nil
@@ -1691,7 +1697,7 @@ from the `before-change-functions' in the current buffer."
       (remove-hook 'before-change-functions
 		   'org-clock-remove-overlays 'local))))
 
-(defvar state) ;; dynamically scoped into this function
+(defvar org-state) ;; dynamically scoped into this function
 (defun org-clock-out-if-current ()
   "Clock out if the current entry contains the running clock.
 This is used to stop the clock after a TODO entry is marked DONE,
@@ -1700,9 +1706,9 @@ and is only done if the variable `org-clock-out-when-done' is not nil."
 	     org-clock-out-when-done
 	     (marker-buffer org-clock-marker)
 	     (or (and (eq t org-clock-out-when-done)
-		      (member state org-done-keywords))
+		      (member org-state org-done-keywords))
 		 (and (listp org-clock-out-when-done)
-		      (member state org-clock-out-when-done)))
+		      (member org-state org-clock-out-when-done)))
 	     (equal (or (buffer-base-buffer (org-clocking-buffer))
 			(org-clocking-buffer))
 		    (or (buffer-base-buffer (current-buffer))
@@ -1762,17 +1768,6 @@ buffer and update it."
       (org-create-dblock
        (org-combine-plists org-clock-clocktable-default-properties props))))
   (org-update-dblock))
-
-(defun org-in-clocktable-p ()
-  "Check if the cursor is in a clocktable."
-  (let ((pos (point)) start)
-    (save-excursion
-      (end-of-line 1)
-      (and (re-search-backward "^[ \t]*#\\+BEGIN:[ \t]+clocktable" nil t)
-	   (setq start (match-beginning 0))
-	   (re-search-forward "^[ \t]*#\\+END:.*" nil t)
-	   (>= (match-end 0) pos)
-	   start))))
 
 (defun org-day-of-week (day month year)
   "Returns the day of the week as an integer."
@@ -2445,6 +2440,7 @@ TIME:      The sum of all time spend in this tree, in minutes.  This time
 	 (tags (plist-get params :tags))
 	 (properties (plist-get params :properties))
 	 (inherit-property-p (plist-get params :inherit-props))
+	 todo-only
 	 (matcher (if tags (cdr (org-make-tags-matcher tags))))
 	 cc range-text st p time level hdl props tsp tbl)
 

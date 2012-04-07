@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
-;; Author: Joel Boehland
-;;	Eric Schulte
-;;	David T. O'Toole <dto@gnu.org>
+;; Authors: Joel Boehland
+;;	 Eric Schulte
+;;	 David T. O'Toole <dto@gnu.org>
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 
@@ -49,6 +49,7 @@
 For example a value of \"(progn ;; %s\\n   %%s)\" would ignore the
 current directory string."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 (defun org-babel-expand-body:lisp (body params)

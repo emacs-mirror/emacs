@@ -2565,6 +2565,7 @@ window-start value is reasonable when this function is called.  */)
   Lisp_Object sibling, pwindow, swindow IF_LINT (= Qnil), delta;
   EMACS_INT startpos IF_LINT (= 0);
   int top IF_LINT (= 0), new_top, resize_failed;
+  Mouse_HLInfo *hlinfo;
 
   w = decode_any_window (window);
   XSETWINDOW (window, w);
@@ -2645,6 +2646,20 @@ window-start value is reasonable when this function is called.  */)
     }
 
   BLOCK_INPUT;
+  hlinfo = MOUSE_HL_INFO (f);
+  /* We are going to free the glyph matrices of WINDOW, and with that
+     we might lose any information about glyph rows that have some of
+     their glyphs highlighted in mouse face.  (These rows are marked
+     with a non-zero mouse_face_p flag.)  If WINDOW indeed has some
+     glyphs highlighted in mouse face, signal to frame's up-to-date
+     hook that mouse highlight was overwritten, so that it will
+     arrange for redisplaying the highlight.  */
+  if (EQ (hlinfo->mouse_face_window, window))
+    {
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
+    }
   free_window_matrices (r);
 
   windows_or_buffers_changed++;

@@ -159,6 +159,9 @@ struct sigaction {
 #undef  HAVE_UTIMES
 #undef  HAVE_SETRLIMIT
 #undef  HAVE_SETPGID
+/* If you think about defining HAVE_GETCWD, don't: the alternative
+   getwd is redefined on w32.c, and does not really return the current
+   directory, to get the desired results elsewhere in Emacs */
 #undef  HAVE_GETCWD
 #define HAVE_SHUTDOWN 1
 

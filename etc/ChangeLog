@@ -1,3 +1,15 @@
+2012-04-02  Alan Mackenzie  <acm@muc.de>
+
+	* NEWS: Add CC Mode entries.
+
+2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org/OrgOdtContentTemplate.xml (OrgIndentedSection-Level-*):
+	New section styles. These sections are indented to the same
+	level as the corresponding list entries.  These sections hold
+	tables that occur within a list.  (OrgTable): Increased
+	relative width from 90% to 96% for aesthetic reasons.
+
 2012-03-16  Glenn Morris  <rgm@gnu.org>
 
 	* HELLO: Say that this is not a comprehensive list.

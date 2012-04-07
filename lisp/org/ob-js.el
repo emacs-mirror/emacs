@@ -1,6 +1,6 @@
 ;;; ob-js.el --- org-babel functions for Javascript
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, js
@@ -55,6 +55,7 @@
 (defcustom org-babel-js-cmd "node"
   "Name of command used to evaluate js blocks."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 (defvar org-babel-js-function-wrapper

@@ -1881,7 +1881,7 @@ safe_run_hooks_error (Lisp_Object error_data)
     = CONSP (Vinhibit_quit) ? XCAR (Vinhibit_quit) : Vinhibit_quit;
   Lisp_Object fun = CONSP (Vinhibit_quit) ? XCDR (Vinhibit_quit) : Qnil;
   Lisp_Object args[4];
-  args[0] = build_string ("Error in %s (%s): %s");
+  args[0] = build_string ("Error in %s (%s): %S");
   args[1] = hook;
   args[2] = fun;
   args[3] = error_data;
@@ -12168,7 +12168,7 @@ whenever `deferred-action-list' is non-nil.  */);
   Vdeferred_action_function = Qnil;
 
   DEFVAR_LISP ("delayed-warnings-list", Vdelayed_warnings_list,
-               doc: /* List of warnings to be displayed as soon as possible.
+               doc: /* List of warnings to be displayed after this command.
 Each element must be a list (TYPE MESSAGE [LEVEL [BUFFER-NAME]]),
 as per the args of `display-warning' (which see).
 If this variable is non-nil, `delayed-warnings-hook' will be run

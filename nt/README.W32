@@ -172,6 +172,16 @@ See the end of the file for license conditions.
   You can get pre-built binaries (including any required DLL and the
   header files) at http://sourceforge.net/projects/ezwinports/files/.
 
+* libxml2 support
+
+  In order to support libxml2 at runtime, a libxml2-enabled Emacs must
+  be able to find the relevant DLLs during startup; failure to do so
+  is not an error, but libxml2 features won't be available to the
+  running session.
+
+  You can get pre-built binaries (including any required DLL and the
+  header files) at http://sourceforge.net/projects/ezwinports/files/.
+
 * Uninstalling Emacs
 
   If you should need to uninstall Emacs, simply delete all the files

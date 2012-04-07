@@ -1,3 +1,97 @@
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Support building on MS-Windows with libxml2.
+
+	* makefile.w32-in (OBJ2): Add xml.$(O).
+	(GLOBAL_SOURCES): Add xml.c.
+	($(BLD)/xml.$(O)): New dependency list.
+
+	* xml.c (DEF_XML2_FN, LOAD_XML2_FN) [WINDOWSNT]: New macros.
+	(fn_htmlReadMemory, fn_xmlReadMemory, fn_xmlDocGetRootElement)
+	(fn_xmlFreeDoc, fn_xmlCleanupParser, fn_xmlCheckVersion)
+	[!WINDOWSNT]: New macros.
+	(init_libxml2_functions, libxml2_loaded_p): New functions.
+	(parse_region): Call fn_xmlCheckVersion instead of using the macro
+	LIBXML_TEST_VERSION.  Call libxml2 functions via the fn_* macros.
+	(xml_cleanup_parser): New function, export for fn_xmlCleanupParser.
+	Calls xmlCleanupParser only if libxml2 was loaded (or statically
+	linked in).
+	(Flibxml_parse_html_region, Flibxml_parse_xml_region): Call
+	init_libxml2_functions before calling libxml2 functions.
+	(syms_of_xml) <Qlibxml2_dll>: DEFSYM it.
+
+	* emacs.c: Don't include libxml/parser.h.
+	(shut_down_emacs): Call xml_cleanup_parser, instead of calling
+	xmlCleanupParser directly.
+
+	* lisp.h [HAVE_LIBXML2]: Add prototype for xml_cleanup_parser.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): If there is a display string at
+	point, use it.vpos to compute how many lines to backtrack after
+	move_it_to point.  (Bug#11133)
+
+2012-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.h (FETCH_CHAR, FETCH_MULTIBYTE_CHAR):
+	* character.h (STRING_CHAR, STRING_CHAR_AND_LENGTH): Add comments
+	about subtle differences between FETCH_CHAR* and STRING_CHAR*
+	macros related to unification of CJK characters.  For the details,
+	see the discussion following the message here:
+	http://debbugs.gnu.org/cgi/bugreport.cgi?bug=11073#14.
+
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (Vdelayed_warnings_list): Doc fix.
+
+2012-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (simple_dialog_show, add_menu_item): Use SAFE_ALLOCA
+	instead of alloca.  (Bug#11138)
+
+2012-04-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32menu.c (is_simple_dialog): Properly check lisp types.
+	(Bug#11141)
+
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_by_lines): When DVPOS is positive, and the
+	position we get to after a call to move_it_to fails the
+	IS_POS_VALID_AFTER_MOVE_P test, move to the next buffer position
+	only if we wind up in a string from display property.  (Bug#11063)
+
+	* window.c (Fdelete_other_windows_internal): Invalidate the row
+	and column information about mouse highlight, so that redisplay
+	restores it after reallocating the glyph matrices.  (Bug#7464)
+
+	* xdisp.c (set_cursor_from_row): If `cursor' property on a display
+	string comes from a `display' text property, use the buffer
+	position of that property as if we actually saw that position in
+	the row's glyphs.
+	(move_it_by_lines): Remove the assertion that
+	"it->current_x == 0 && it->hpos == 0" which can be legitimately
+	violated when there's a before-string at the beginning of a line.
+	(Bug#11063)
+
+2012-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (append_space_for_newline): If the default face was
+	remapped, use the remapped face for the appended newline.
+	(extend_face_to_end_of_line): Use the remapped default face for
+	extending the face to the end of the line.
+	(display_line): Call extend_face_to_end_of_line when the default
+	face was remapped.  (Bug#11068)
+
+2012-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h: Discourage from defining HAVE_GETCWD.
+
+2012-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (safe_run_hooks_error): Don't unquote strings.
+
 2012-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* search.c (Fword_search_backward_lax, Fword_search_forward_lax):
@@ -16,8 +110,7 @@
 
 2012-03-25  Fabrice Popineau  <fabrice.popineau@supelec.fr>
 
-	* w32heap.c (_heap_init, _heap_term): Remove dead MSVC-specific
-	code.
+	* w32heap.c (_heap_init, _heap_term): Remove dead MSVC-specific code.
 
 2012-03-25  Kenichi Handa  <handa@m17n.org>
 

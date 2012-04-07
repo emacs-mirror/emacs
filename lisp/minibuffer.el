@@ -1269,17 +1269,24 @@ the completions buffer."
 (defvar completion-extra-properties nil
   "Property list of extra properties of the current completion job.
 These include:
-`:annotation-function': Function to add annotations in the completions buffer.
-   The function takes a completion and should either return nil, or a string
-   that will be displayed next to the completion.  The function can access the
-   completion data via `minibuffer-completion-table' and related variables.
+
+`:annotation-function': Function to annotate the completions buffer.
+   The function must accept one argument, a completion string,
+   and return either nil or a string which is to be displayed
+   next to the completion (but which is not part of the
+   completion).  The function can access the completion data via
+   `minibuffer-completion-table' and related variables.
+
 `:exit-function': Function to run after completion is performed.
-   The function takes at least 2 parameters (STRING and STATUS) where STRING
-   is the text to which the field was completed and STATUS indicates what
-   kind of operation happened: if text is now complete it's `finished', if text
-   cannot be further completed but completion is not finished, it's `sole', if
-   text is a valid completion but may be further completed, it's `exact', and
-   other STATUSes may be added in the future.")
+
+   The function must accept two arguments, STRING and STATUS.
+   STRING is the text to which the field was completed, and
+   STATUS indicates what kind of operation happened:
+     `finished' - text is now complete
+     `sole'     - text cannot be further completed but
+                  completion is not finished
+     `exact'    - text is a valid completion but may be further
+                  completed.")
 
 (defvar completion-annotate-function
   nil

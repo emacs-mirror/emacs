@@ -35,6 +35,7 @@ terminal and the screen.
 * X11 Keysyms::         Operating on key symbols for X Windows.
 * Batch Mode::          Running Emacs without terminal interaction.
 * Session Management::  Saving and restoring state with X Session Management.
+* Notifications::       Desktop notifications.
 * Dynamic Libraries::   On-demand loading of support libraries.
 @end menu
 
@@ -273,7 +274,7 @@ startup screen.
 @ignore
 @c I do not think this should be mentioned.  AFAICS it is just a dodge
 @c around inhibit-startup-screen not being settable on a site-wide basis.
-If its value is @code{t}, Emacs displays the @samp{*scratch*} buffer. 
+If its value is @code{t}, Emacs displays the @samp{*scratch*} buffer.
 @end ignore
 @end defopt
 
@@ -461,7 +462,7 @@ experimenting with your own peculiar customizations.
   You can also arrange to override some of the actions of the
 terminal-specific library by setting the variable
 @code{term-setup-hook}.  This is a normal hook that Emacs runs
-at the end its initialization, after loading both
+at the end of its initialization, after loading both
 your init file and any terminal-specific libraries.  You could
 use this hook to define initializations for terminals that do not
 have their own libraries.  @xref{Hooks}.
@@ -2248,6 +2249,152 @@ Emacs is restarted by the session manager.
   nil)
 @end group
 @end example
+
+@node Notifications
+@section Desktop Notifications
+@cindex desktop notifications
+
+Emacs is able to send @dfn{notifications} on systems that support the
+freedesktop.org Desktop Notifications Specification.  In order to use
+this functionality, Emacs must have been compiled with D-Bus support,
+and the @code{notifications} library must be loaded.
+
+@defun notifications-notify &rest params
+This function sends a notification to the desktop via D-Bus,
+consisting of the parameters specified by the @var{params} arguments.
+These arguments should consist of alternating keyword and value pairs.
+The supported keywords and values are as follows:
+
+@table @code
+@item :title @var{title}
+The notification title.
+
+@item :body @var{text}
+The notification body text.  Depending on the implementation of the
+notification server, the text could contain HTML markups, like
+@samp{"<b>bold text</b>"}, or hyperlinks.
+
+@item :app-name @var{name}
+The name of the application sending the notification.  The default is
+@code{notifications-application-name}.
+
+@item :replaces-id @var{id}
+The notification @var{id} that this notification replaces.  @var{id}
+must be the result of a previous @code{notifications-notify} call.
+
+@item :app-icon @var{icon-file}
+The file name of the notification icon.  If set to @code{nil}, no icon
+is displayed.  The default is @code{notifications-application-icon}.
+
+@item :actions (@var{key} @var{title} @var{key} @var{title} ...)
+A list of actions to be applied.  @var{key} and @var{title} are both
+strings.  The default action (usually invoked by clicking the
+notification) should have a key named @samp{"default"}.  The title can
+be anything, though implementations are free not to display it.
+
+@item :timeout @var{timeout}
+The timeout time in milliseconds since the display of the notification
+at which the notification should automatically close.  If -1, the
+notification's expiration time is dependent on the notification
+server's settings, and may vary for the type of notification.  If 0,
+the notification never expires.  Default value is -1.
+
+@item :urgency @var{urgency}
+The urgency level.  It can be @code{low}, @code{normal}, or @code{critical}.
+
+@item :category @var{category}
+The type of notification this is, a string.
+
+@item :desktop-entry @var{filename}
+This specifies the name of the desktop filename representing the
+calling program, like @samp{"emacs"}.
+
+@item :image-data (@var{width} @var{height} @var{rowstride} @var{has-alpha} @var{bits} @var{channels} @var{data})
+This is a raw data image format that describes the width, height,
+rowstride, whether there is an alpha channel, bits per sample,
+channels and image data, respectively.
+
+@item :image-path @var{path}
+This is represented either as a URI (@samp{file://} is the only URI
+schema supported right now) or a name in a freedesktop.org-compliant
+icon theme from @samp{$XDG_DATA_DIRS/icons}, like @samp{"mail-message-new"}.
+
+@item :sound-file @var{filename}
+The path to a sound file to play when the notification pops up.
+
+@item :sound-name @var{name}
+A themable named sound from the freedesktop.org sound naming
+specification from @samp{$XDG_DATA_DIRS/sounds}, to play when the
+notification pops up.  Similar to the icon name, only for sounds. An
+example would be @samp{"message-new-instant"}.
+
+@item :suppress-sound
+Causes the server to suppress playing any sounds, if it has that
+ability.
+
+@item :x @var{position}
+@itemx :y @var{position}
+Specifies the X, Y location on the screen that the
+notification should point to.  Both arguments must be used together.
+
+@item :on-action @var{function}
+Function to call when an action is invoked.  The notification @var{id}
+and the @var{key} of the action are passed as arguments to the
+function.
+
+@item :on-close @var{function}
+Function to call when the notification has been closed by timeout or
+by the user.  The function receive the notification @var{id} and the closing
+@var{reason} as arguments:
+
+@itemize
+@item @code{expired} if the notification has expired
+@item @code{dismissed} if the notification was dismissed by the user
+@item @code{close-notification} if the notification was closed by a call to
+@code{notifications-close-notification}
+@item @code{undefined} if the notification server hasn't provided a reason
+@end itemize
+@end table
+
+This function returns a notification id, an integer, which can be used
+to manipulate the notification item with
+@code{notifications-close-notification} or the @code{:replaces-id}
+argument of another @code{notifications-notify} call.  For example:
+
+@example
+@group
+(defun my-on-action-function (id key)
+  (message "Message %d, key \"%s\" pressed" id key))
+     @result{} my-on-action-function
+@end group
+
+@group
+(defun my-on-close-function (id reason)
+  (message "Message %d, closed due to \"%s\"" id reason))
+     @result{} my-on-close-function
+@end group
+
+@group
+(notifications-notify
+ :title "Title"
+ :body "This is <b>important</b>."
+ :actions '("Confirm" "I agree" "Refuse" "I disagree")
+ :on-action 'my-on-action-function
+ :on-close 'my-on-close-function)
+     @result{} 22
+@end group
+
+@group
+A message window opens on the desktop.  Press "I agree"
+     @result{} Message 22, key "Confirm" pressed
+        Message 22, closed due to "dismissed"
+@end group
+@end example
+@end defun
+
+@defun notifications-close-notification id
+This function closes a notification with identifier @var{id}.
+@end defun
 
 @node Dynamic Libraries
 @section Dynamically Loaded Libraries

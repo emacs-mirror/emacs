@@ -53,6 +53,7 @@ the value of the relative timer."
   "The default timer when a timer is set.
 When 0, the user is prompted for a value."
   :group 'org-time
+  :version "24.1"
   :type 'number)
 
 (defvar org-timer-start-hook nil

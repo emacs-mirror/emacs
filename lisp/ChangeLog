@@ -1,3 +1,149 @@
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/uni-bidi.el:
+	international/uni-category.el:
+	international/uni-combining.el:
+	international/uni-decimal.el:
+	international/uni-decomposition.el:
+	international/uni-digit.el:
+	international/uni-lowercase.el:
+	international/uni-mirrored.el:
+	international/uni-name.el:
+	international/uni-numeric.el:
+	international/uni-titlecase.el:
+	international/uni-uppercase.el: Update for Unicode 6.1.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist): Add libxml2 DLLs.
+
+2012-04-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* window.el (shrink-window): Mention the `window-min-height'
+	variable in the doc string.
+
+2012-04-05  Bastien Guerry  <bzg@altern.org>
+
+	* color.el (color-lighten-name): Fix typo.
+
+2012-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server--on-display-p): New function.
+	(server--on-display-p): Use it.
+
+2012-04-04  Gabor Vida  <vidagabor@gmail.com>  (tiny change)
+
+	* ido.el (ido-wide-find-dirs-or-files): Use file-name-absolute-p
+	(bug#11145).
+
+2012-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint--common-quoted-suffix): Check string boundary
+	before comparing (bug#11158).
+	* pcomplete.el (pcomplete--common-quoted-suffix): Idem.
+
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* minibuffer.el (completion-extra-properties): Doc fix.
+
+	* subr.el (delayed-warnings-hook): Doc fix.
+
+2012-04-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa--select-keys): Bind C-c C-c to finish the key
+	selection (Bug#11159).
+	(epa-insert-keys): Inform that the default public key will be
+	exported if no key is selected.
+
+2012-04-04  Richard Stallman  <rms@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Bind inhibit-read-only.
+
+2012-04-03  Chong Yidong  <cyd@gnu.org>
+
+	* mail/sendmail.el (mail-mode-map): Bind C-c C-i to
+	mail-insert-file, not its obsolete alias mail-attach-file.
+
+2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-notify): Fix docstring.
+
+2012-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Another addition.
+
+2012-04-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-send-command): Apply
+	`tramp-compat-call-process' instead of `tramp-local-call-process'.
+	Reported by Magnus Henoch <magnus.henoch@gmail.com>.
+
+2012-04-01  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (file-in-directory-p): Rename from file-subdir-of-p.
+	Handle root directory properly.
+	(copy-directory): Caller changed.
+
+	* dired-aux.el (dired-copy-file-recursive, dired-create-files):
+	* net/tramp.el (tramp-file-name-for-operation): Callers changed.
+
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* term/xterm.el (xterm-extra-capabilities): Doc fix.
+
+	* language/indian.el ("Devanagari"): Fix typo.  (Bug#11103)
+
+	* calendar/calendar.el (calendar-window-list)
+	(calendar-hide-window): Restore.  (Bug#11140)
+	(calendar-exit): Use calendar-window-list, calendar-hide-window again.
+
+	* emacs-lisp/edebug.el (edebug-unwrap-results): Doc fix.
+
+2012-03-30  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* dired-aux.el (dired-copy-file-recursive, dired-create-files):
+	Check if file is a symlink (Bug#10489).
+
+	* files.el (copy-directory): Likewise.
+
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-types-inhibit)
+	(imagemagick-register-types): Doc fix.
+
+2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-get-extended-character-mode): Disable
+	extended-char-mode for hunspell. hunspell does not support it and
+	treats ~word as ordinary words in pipe mode.
+
+2012-03-30  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (help-with-tutorial): Ensure local variables don't
+	happen to make the buffer read-only.  (Bug#11127)
+
+2012-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-indent-line): Use `noindent' in strings.
+	(perl-calculate-indent): Return `noindent' in strings.
+
+2012-03-28  Sam Steingold  <sds@gnu.org>
+
+	* calendar/calendar.el (calendar-exit): Use `quit-windows-on'
+	instead of the broken adhockery which does not prevent calendar
+	buffers from being displayed at random after exit.
+	(calendar-window-list, calendar-hide-window): Remove the broken
+	adhockery.
+
+2012-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* replace.el (query-replace-map): Doc fix.
+
+2012-03-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/vc-git.el (vc-git-state): Don't try to match all of the diff
+	contents.  (Bug#11109)
+
 2012-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/avl-tree.el (avl-tree--enter-balance): Fix paren typo

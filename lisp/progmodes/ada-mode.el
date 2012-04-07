@@ -4728,7 +4728,7 @@ Moves to 'begin' if in a declarative part."
 	      ["Entry family"    ada-entry-family    t]
 	      ["Select"          ada-select          t]
 	      ["Accept"          ada-accept          t]
-	      ["Or accept"       ada-or-accep        t]
+	      ["Or accept"       ada-or-accept       t]
 	      ["Or delay"        ada-or-delay        t]
 	      ["Or terminate"    ada-or-terminate    t]
 	      ["---"             nil                 nil]
