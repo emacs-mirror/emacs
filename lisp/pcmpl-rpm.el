@@ -1,6 +1,6 @@
 ;;; pcmpl-rpm.el --- functions for dealing with rpm completions
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -29,6 +29,13 @@
 
 ;; Functions:
 
+;; FIXME rpm -qa can be slow, so:
+;; Adding --nodigest --nosignature is MUCH faster.
+;; (Probably need to test --help for those options though.)
+;; Consider caching the result (cf woman).
+;; Consider printing an explanatory message before running -qa.
+;;
+;; Seems pointless for this to be a defsubst.
 (defsubst pcmpl-rpm-packages ()
   (split-string (pcomplete-process-result "rpm" "-q" "-a")))
 
@@ -92,6 +99,7 @@
 	       '("--changelog"
 		 "--dbpath"
 		 "--dump"
+		 "--file"
 		 "--ftpport"            ;nyi for the next four
 		 "--ftpproxy"
 		 "--httpport"
@@ -112,6 +120,8 @@
 		(pcomplete-here*))
 	       ((pcomplete-test "--rcfile")
 		(pcomplete-here* (pcomplete-entries)))
+	       ((pcomplete-test "--file")
+		(pcomplete-here* (pcomplete-entries)))
 	       ((pcomplete-test "--root")
 		(pcomplete-here* (pcomplete-dirs)))
 	       ((pcomplete-test "--scripts")
@@ -129,7 +139,9 @@
 	      (pcomplete-opt "af.p(pcmpl-rpm-files)ilsdcvR")
 	    (if (pcomplete-test "-[^-]*p" 'first 1)
 		(pcomplete-here (pcmpl-rpm-files))
-	      (pcomplete-here (pcmpl-rpm-packages))))))
+              (if (pcomplete-test "-[^-]*f" 'first 1)
+                  (pcomplete-here* (pcomplete-entries))
+                (pcomplete-here (pcmpl-rpm-packages)))))))
        ((pcomplete-test "--pipe")
 	(pcomplete-here* (funcall pcomplete-command-completion-function)))
        ((pcomplete-test "--rmsource")

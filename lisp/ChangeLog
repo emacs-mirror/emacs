@@ -1,3 +1,7 @@
+2012-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-rpm.el (pcomplete/rpm): Handle -qf.
+
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* minibuffer.el (completion-in-region-mode-map): Bind
