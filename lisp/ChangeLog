@@ -1,23 +1,19 @@
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-bzr-get-version): New function.
+	(emacs-bzr-version): New variable.
 	* loadup.el (emacs-bzr-version): Set it.  (Bug#8054)
 	* mail/emacsbug.el (report-emacs-bug): Include bzr version.
 
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/uni-bidi.el:
-	international/uni-category.el:
-	international/uni-combining.el:
-	international/uni-decimal.el:
-	international/uni-decomposition.el:
-	international/uni-digit.el:
-	international/uni-lowercase.el:
-	international/uni-mirrored.el:
-	international/uni-name.el:
-	international/uni-numeric.el:
-	international/uni-titlecase.el:
-	international/uni-uppercase.el: Update for Unicode 6.1.
+	* international/uni-bidi.el, international/uni-category.el:
+	* international/uni-combining.el, international/uni-decimal.el:
+	* international/uni-decomposition.el, international/uni-digit.el:
+	* international/uni-lowercase.el, international/uni-mirrored.el:
+	* international/uni-name.el, international/uni-numeric.el:
+	* international/uni-titlecase.el, international/uni-uppercase.el:
+	Update for Unicode 6.1.
 
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
