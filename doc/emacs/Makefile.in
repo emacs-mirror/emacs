@@ -1,6 +1,6 @@
 #### Makefile for the Emacs Manual
 
-# Copyright (C) 1994, 1996-2012  Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -127,31 +127,31 @@ ps: emacs.ps
 # Note that all the Info targets build the Info files in srcdir.
 # There is no provision for Info files to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
-
+# Note: "<" is not portable in ordinary make rules.
 $(infodir)/emacs: ${EMACSSOURCES}
 	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ ${srcdir}/emacs.texi
 
 emacs.dvi: ${EMACSSOURCES}
-	$(ENVADD) $(TEXI2DVI) $<
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
 
 emacs.ps: emacs.dvi
-	$(DVIPS) -o $@ $<
+	$(DVIPS) -o $@ emacs.dvi
 
 emacs.pdf: ${EMACSSOURCES}
-	$(ENVADD) $(TEXI2PDF) $<
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs.texi
 
 emacs.html: ${EMACSSOURCES}
-	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ ${srcdir}/emacs.texi
 
 emacs-xtra.dvi: $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2DVI) $<
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
 
 emacs-xtra.ps: emacs-xtra.dvi
-	$(DVIPS) -o $@ $<
+	$(DVIPS) -o $@ emacs-xtra.dvi
 
 emacs-xtra.pdf: $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2PDF) $<
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-xtra.texi
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 

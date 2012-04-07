@@ -106,21 +106,22 @@ html: elisp.html
 pdf: elisp.pdf
 ps: elisp.ps
 
+## Note: "<" is not portable in ordinary make rules.
 $(infodir)/elisp: $(srcs)
 	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
-	$(ENVADD) $(TEXI2DVI) $<
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/elisp.texi
 
 elisp.html: $(srcs)
-	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $(srcdir)/elisp.texi
 
 elisp.ps: elisp.dvi
-	$(DVIPS) -o $@ $<
+	$(DVIPS) -o $@ elisp.dvi
 
 elisp.pdf: $(srcs)
-	$(ENVADD) $(TEXI2PDF) $<
+	$(ENVADD) $(TEXI2PDF) $(srcdir)/elisp.texi
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 
