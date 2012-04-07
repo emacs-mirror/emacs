@@ -1,5 +1,20 @@
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/uni-bidi.el:
+	international/uni-category.el:
+	international/uni-combining.el:
+	international/uni-decimal.el:
+	international/uni-decomposition.el:
+	international/uni-digit.el:
+	international/uni-lowercase.el:
+	international/uni-mirrored.el:
+	international/uni-name.el:
+	international/uni-numeric.el:
+	international/uni-titlecase.el:
+	international/uni-uppercase.el: Update for Unicode 6.1.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
 	* term/w32-win.el (dynamic-library-alist): Add libxml2 DLLs.
 
 2012-04-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
