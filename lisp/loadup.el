@@ -259,6 +259,8 @@
 	   (versions (mapcar (function (lambda (name)
 					 (string-to-number (substring name (length base)))))
 			     files)))
+      (setq emacs-bzr-version (condition-case nil (emacs-bzr-get-version)
+                              (error nil)))
       ;; `emacs-version' is a constant, so we shouldn't change it with `setq'.
       (defconst emacs-version
 	(format "%s.%d"
