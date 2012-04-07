@@ -85,8 +85,6 @@ static int
 init_libxml2_functions (Lisp_Object libraries)
 {
 #ifdef WINDOWSNT
-  Lisp_Object found = Fassq (Qlibxml2_dll, Vlibrary_cache);
-
   if (libxml2_loaded_p ())
     return 1;
   else

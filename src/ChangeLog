@@ -1,3 +1,8 @@
+2012-04-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xml.c (init_libxml2_functions) [WINDOWSNT]:
+	Remove unused local variable.
+
 2012-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid unnecessary pointer scanning in garbage collection (Bug#10780).
