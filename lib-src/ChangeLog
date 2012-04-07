@@ -1,5 +1,9 @@
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (obj): Add xml.o.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
 	* makefile.w32-in (ALL): Now the list of executables, not of phony
 	targets.
 	(.PHONY): Only make-docfile is its prerequisite now.

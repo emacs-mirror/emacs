@@ -3549,6 +3549,7 @@ EXFUN (Fmsdos_downcase_filename, 1);
 #ifdef HAVE_LIBXML2
 /* Defined in xml.c */
 extern void syms_of_xml (void);
+extern void xml_cleanup_parser (void);
 #endif
 
 #ifdef HAVE_MENUS

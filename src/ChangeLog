@@ -1,5 +1,33 @@
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
+	Support building on MS-Windows with libxml2.
+
+	* makefile.w32-in (OBJ2): Add xml.$(O).
+	(GLOBAL_SOURCES): Add xml.c.
+	($(BLD)/xml.$(O)): New dependency list.
+
+	* xml.c (DEF_XML2_FN, LOAD_XML2_FN) [WINDOWSNT]: New macros.
+	(fn_htmlReadMemory, fn_xmlReadMemory, fn_xmlDocGetRootElement)
+	(fn_xmlFreeDoc, fn_xmlCleanupParser, fn_xmlCheckVersion)
+	[!WINDOWSNT]: New macros.
+	(init_libxml2_functions, libxml2_loaded_p): New functions.
+	(parse_region): Call fn_xmlCheckVersion instead of using the macro
+	LIBXML_TEST_VERSION.  Call libxml2 functions via the fn_* macros.
+	(xml_cleanup_parser): New function, export for fn_xmlCleanupParser.
+	Calls xmlCleanupParser only if libxml2 was loaded (or statically
+	linked in).
+	(Flibxml_parse_html_region, Flibxml_parse_xml_region): Call
+	init_libxml2_functions before calling libxml2 functions.
+	(syms_of_xml) <Qlibxml2_dll>: DEFSYM it.
+
+	* emacs.c: Don't include libxml/parser.h.
+	(shut_down_emacs): Call xml_cleanup_parser, instead of calling
+	xmlCleanupParser directly.
+
+	* lisp.h [HAVE_LIBXML2]: Add prototype for xml_cleanup_parser.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
 	* indent.c (Fvertical_motion): If there is a display string at
 	point, use it.vpos to compute how many lines to backtrack after
 	move_it_to point.  (Bug#11133)

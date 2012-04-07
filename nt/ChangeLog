@@ -1,5 +1,12 @@
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* configure.bat: Support building with libxml2.
+
+	* INSTALL:
+	* README.W32: Add information about libxml2.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
 	* makefile.w32-in: Convert to Unix EOL format.
 	(all): Don't depend on stamp_BLD and on maybe-bootstrap.
 	(all-other-dirs-$(MAKETYPE)): Depend on maybe-bootstrap.

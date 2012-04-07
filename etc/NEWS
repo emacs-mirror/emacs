@@ -15,6 +15,14 @@ You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
 
+* Changes in Emacs 24.2 on non-free operating systems
+
+** New configure.bat options on MS-Windows:
+
+*** --without-libxml2 omits support for libxml2, even if its presence
+is detected.
+
+
 * Installation Changes in Emacs 24.1
 
 ** Emacs can be compiled with Gtk+ 3.0 if you pass --with-x-toolkit=gtk3
