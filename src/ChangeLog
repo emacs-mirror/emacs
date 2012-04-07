@@ -1,3 +1,9 @@
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): If there is a display string at
+	point, use it.vpos to compute how many lines to backtrack after
+	move_it_to point.  (Bug#11133)
+
 2012-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.h (FETCH_CHAR, FETCH_MULTIBYTE_CHAR):
