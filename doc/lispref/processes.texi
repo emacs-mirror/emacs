@@ -1629,31 +1629,13 @@ This returns the query flag of @var{process}.
 This function sets the query flag of @var{process} to @var{flag}.  It
 returns @var{flag}.
 
+Here is an example of using @code{set-process-query-on-exit-flag} on a
+shell process to avoid querying:
+
 @smallexample
 @group
-;; @r{Don't query about the shell process}
 (set-process-query-on-exit-flag (get-process "shell") nil)
      @result{} t
-@end group
-@end smallexample
-@end defun
-
-@defun process-kill-without-query process &optional do-query
-This function clears the query flag of @var{process}, so that
-Emacs will not query the user on account of that process.
-
-Actually, the function does more than that: it returns the old value of
-the process's query flag, and sets the query flag to @var{do-query}.
-Please don't use this function to do those things any more---please
-use the newer, cleaner functions @code{process-query-on-exit-flag} and
-@code{set-process-query-on-exit-flag} in all but the simplest cases.
-The only way you should use @code{process-kill-without-query} nowadays
-is like this:
-
-@smallexample
-@group
-;; @r{Don't query about the shell process}
-(process-kill-without-query (get-process "shell"))
 @end group
 @end smallexample
 @end defun

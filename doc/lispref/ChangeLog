@@ -1,3 +1,8 @@
+2012-04-08  Chong Yidong  <cyd@gnu.org>
+
+	* processes.texi (Query Before Exit): Remove obsolete function
+	process-kill-without-query (Bug#11190).
+
 2012-04-08  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi, frames.texi, loading.texi, os.texi, processes.texi:
