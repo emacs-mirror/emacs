@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2010-2012  Free Software Foundation, Inc.
+Copyright (C) 2010-2012 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -14,6 +14,32 @@ and NEWS.1-17 for changes in older Emacs versions.
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
+Temporary note:
++++ indicates that the appropriate manual has already been updated.
+--- means no change in the manuals is called for.
+When you add a new item, please add it without either +++ or ---
+so we will look at it and add it to the manual.
+
+
+* Installation Changes in Emacs 24.2
+
+* Startup Changes in Emacs 24.2
+
+* Changes in Emacs 24.2
+
+** If your Emacs was built from a bzr checkout, the new variable
+`emacs-bzr-version' contains information about which bzr revision was used.
+
+
+* Editing Changes in Emacs 24.2
+
+* Changes in Specialized Modes and Packages in Emacs 24.2
+
+* New Modes and Packages in Emacs 24.2
+
+* Incompatible Lisp Changes in Emacs 24.2
+
+* Lisp changes in Emacs 24.2
 
 * Changes in Emacs 24.2 on non-free operating systems
 

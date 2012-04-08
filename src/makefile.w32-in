@@ -943,10 +943,10 @@ $(BLD)/gnutls.$(O) : \
 
 $(BLD)/xml.$(O) : \
 	$(SRC)/xml.c \
+	$(SRC)/buffer.h \
 	$(SRC)/w32.h \
 	$(CONFIG_H) \
-	$(LISP_H) \
-	$(SRC)/buffer.h
+	$(LISP_H)
 
 $(BLD)/image.$(O) : \
 	$(SRC)/image.c \

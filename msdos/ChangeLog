@@ -1,3 +1,7 @@
+2012-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp: Bump version to 24.1.50.
+
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed3v2.inp (insrcdir): Use $(<F) rather than $<, as

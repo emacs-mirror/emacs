@@ -239,6 +239,8 @@ usually do not have translators for other languages.\n\n")))
     (add-text-properties (1+ user-point) (point) prompt-properties)
 
     (insert "\n\nIn " (emacs-version) "\n")
+    (if (stringp emacs-bzr-version)
+	(insert "Bzr revision: " emacs-bzr-version "\n"))
     (if (fboundp 'x-server-vendor)
 	(condition-case nil
             ;; This is used not only for X11 but also W32 and others.

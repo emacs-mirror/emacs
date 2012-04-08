@@ -1,3 +1,8 @@
+2012-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt, makefile.w32-in, emacs.rc, emacsclient.rc:
+	Bump version to 24.1.50.
+
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat: Support building with libxml2.

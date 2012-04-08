@@ -73,7 +73,7 @@ libxml2_loaded_p (void)
 #define fn_xmlCleanupParser     xmlCleanupParser
 #define fn_xmlCheckVersion      xmlCheckVersion
 
-static inine int
+static inline int
 libxml2_loaded_p (void)
 {
   return 1;
@@ -85,8 +85,6 @@ static int
 init_libxml2_functions (Lisp_Object libraries)
 {
 #ifdef WINDOWSNT
-  Lisp_Object found = Fassq (Qlibxml2_dll, Vlibrary_cache);
-
   if (libxml2_loaded_p ())
     return 1;
   else

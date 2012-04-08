@@ -1,3 +1,22 @@
+2012-04-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xml.c (init_libxml2_functions) [WINDOWSNT]:
+	Remove unused local variable.
+
+2012-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid unnecessary pointer scanning in garbage collection (Bug#10780).
+	* alloc.c (POINTERS_MIGHT_HIDE_IN_OBJECTS): New macro.
+	(mark_memory): Mark Lisp_Objects only if pointers might hide in
+	objects, as mark_maybe_pointer will catch them otherwise.
+	(GC_LISP_OBJECT_ALIGNMENT): Remove; no longer needed.
+	* s/gnu-linux.h (GC_LISP_OBJECT_ALIGNMENT) [__mc68000__]: Likewise.
+
+2012-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix typo that broke non-Windows builds.
+	* xml.c (libxml2_loaded_p) [!!WINDOWSNT]: 'inine' -> 'inline'.
+
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
 	Support building on MS-Windows with libxml2.
