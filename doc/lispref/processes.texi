@@ -77,14 +77,14 @@ sections.  Since the three functions are all called in a similar
 fashion, their common arguments are described here.
 
 @cindex execute program
-@cindex @code{PATH} environment variable
-@cindex @code{HOME} environment variable
+@cindex @env{PATH} environment variable
+@cindex @env{HOME} environment variable
   In all cases, the function's @var{program} argument specifies the
 program to be run.  An error is signaled if the file is not found or
 cannot be executed.  If the file name is relative, the variable
 @code{exec-path} contains a list of directories to search.  Emacs
 initializes @code{exec-path} when it starts up, based on the value of
-the environment variable @code{PATH}.  The standard file name
+the environment variable @env{PATH}.  The standard file name
 constructs, @samp{~}, @samp{.}, and @samp{..}, are interpreted as
 usual in @code{exec-path}, but environment variable substitutions
 (@samp{$HOME}, etc.) are not recognized; use

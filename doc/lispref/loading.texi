@@ -235,7 +235,7 @@ it skips the latter group.
 in a list of directories specified by the variable @code{load-path}.
 
 @defvar load-path
-@cindex @code{EMACSLOADPATH} environment variable
+@cindex @env{EMACSLOADPATH} environment variable
 The value of this variable is a list of directories to search when
 loading files with @code{load}.  Each element is a string (which must be
 a directory name) or @code{nil} (which stands for the current working

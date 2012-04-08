@@ -92,7 +92,7 @@ file named @file{.newsrc} in your home directory which lists your
 Usenet newsgroups and subscriptions (this file is not unique to Gnus;
 it is used by many other newsreader programs).  It then tries to
 contact the system's default news server, which is typically specified
-by the @samp{NNTPSERVER} environment variable.
+by the @env{NNTPSERVER} environment variable.
 
   If your system does not have a default news server, or if you wish
 to use Gnus for reading email, then before invoking @kbd{M-x gnus} you

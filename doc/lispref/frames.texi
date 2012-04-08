@@ -488,7 +488,7 @@ frame.  @code{title} and @code{name} are meaningful on all terminals.
 @item display
 The display on which to open this frame.  It should be a string of the
 form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
-@code{DISPLAY} environment variable.
+@env{DISPLAY} environment variable.
 
 @vindex display-type, a frame parameter
 @item display-type
