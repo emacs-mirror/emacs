@@ -1,3 +1,8 @@
+2012-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-dictionary-base-alist): Add data for
+	Hebrew.
+
 2012-04-08  Chong Yidong  <cyd@gnu.org>
 
 	* net/rcirc.el (rcirc-cmd-quit): Revert 2012-03-18 change
