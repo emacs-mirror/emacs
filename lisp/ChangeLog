@@ -1,3 +1,8 @@
+2012-04-08  Chong Yidong  <cyd@gnu.org>
+
+	* net/rcirc.el (rcirc-cmd-quit): Revert 2012-03-18 change
+	(Bug#11192).
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* pcmpl-rpm.el (pcomplete/rpm): Handle -qf.
