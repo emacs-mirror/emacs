@@ -1,3 +1,11 @@
+2012-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-check-version): For hunspell, set
+	ispell-encoding8-command to "-i", without a trailing space.
+	(ispell-start-process): For hunspell, use '("-i" ENCODING), in 2
+	separate command-line arguments, to specify the encoding, since
+	that's how hunspell expects it.
+
 2012-04-08  Glenn Morris  <rgm@gnu.org>
 
 	* loadup.el: Load bindings before cus-start.
