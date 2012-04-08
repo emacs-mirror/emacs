@@ -1134,6 +1134,8 @@ struct Lisp_Symbol
      special (with `defvar' etc), and shouldn't be lexically bound.  */
   unsigned declared_special : 1;
 
+  unsigned spacer : 23;
+
   /* The symbol's name, as a Lisp string.
      The name "xname" is used to intentionally break code referring to
      the old field "name" of type pointer to struct Lisp_String.  */
