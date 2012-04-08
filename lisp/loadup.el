@@ -89,12 +89,12 @@
 (load "widget")
 (load "custom")
 (load "emacs-lisp/map-ynp")
-(load "cus-start")
 (load "international/mule")
 (load "international/mule-conf")
 (load "env")
 (load "format")
 (load "bindings")
+(load "cus-start")
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")

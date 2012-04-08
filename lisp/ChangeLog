@@ -1,3 +1,8 @@
+2012-04-08  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el: Load bindings before cus-start.
+	This reduces somewhat the number of "rogue" settings in emacs -Q.
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-bzr-get-version): New function.
