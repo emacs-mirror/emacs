@@ -2205,10 +2205,7 @@ in that case, this function acts as if `enable-local-variables' were t."
              (boundp 'font-lock-keywords)
              (eq (car font-lock-keywords) t))
     (setq font-lock-keywords (cadr font-lock-keywords))
-    (font-lock-mode 1))
-
-  (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
-      (ucs-set-table-for-input)))
+    (font-lock-mode 1)))
 
 (defcustom auto-mode-case-fold t
   "Non-nil means to try second pass through `auto-mode-alist'.
