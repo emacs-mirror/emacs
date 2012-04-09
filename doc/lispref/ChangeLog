@@ -1,3 +1,11 @@
+2012-04-09  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Variable Definitions): Remove user-variable-p.
+
+	* commands.texi (Interactive Codes):
+	* help.texi (Accessing Documentation):
+	* minibuf.texi (High-Level Completion): Callers changed.
+
 2012-04-06  Chong Yidong  <cyd@gnu.org>
 
 	* minibuf.texi (Programmed Completion): Document metadata method.

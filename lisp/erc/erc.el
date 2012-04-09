@@ -2616,7 +2616,7 @@ VALUE is computed by evaluating the rest of LINE in Lisp."
 			   (if (consp val)
 			       (concat "\n" (pp-to-string val))
 			     (format " %S\n" val)))))
-	       (apropos-internal "^erc-" 'user-variable-p))))
+	       (apropos-internal "^erc-" 'custom-variable-p))))
      (current-buffer)) t)
    (t nil)))
 (defalias 'erc-cmd-VAR 'erc-cmd-SET)

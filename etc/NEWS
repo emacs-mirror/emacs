@@ -43,6 +43,13 @@ been adding them there, put them somewhere else, eg site-lisp.
 * New Modes and Packages in Emacs 24.2
 
 * Incompatible Lisp Changes in Emacs 24.2
+
++++
+** Docstrings starting with `*' no longer indicate user options.
+Only variables defined using `defcustom' are considered user options.
+The function `user-variable-p' is now an obsolete alias for
+`custom-variable-p'.
+
 
 * Lisp changes in Emacs 24.2
 

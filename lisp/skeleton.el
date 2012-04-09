@@ -456,7 +456,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 ;;		     obarray
 ;;		     (lambda (symbol)
 ;;		       (or (eq symbol 'eval)
-;;			   (user-variable-p symbol)))
+;;			   (custom-variable-p symbol)))
 ;;		     t)
 ;;    comment-start str ": "
 ;;    (read-from-minibuffer "Expression: " nil read-expression-map nil

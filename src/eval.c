@@ -808,8 +808,6 @@ The optional argument DOCSTRING is a documentation string for the
 variable.
 
 To define a user option, use `defcustom' instead of `defvar'.
-The function `user-variable-p' also identifies a variable as a user
-option if its DOCSTRING starts with *, but this behavior is obsolete.
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   (Lisp_Object args)
 {
@@ -923,71 +921,6 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   return sym;
 }
 
-/* Error handler used in Fuser_variable_p.  */
-static Lisp_Object
-user_variable_p_eh (Lisp_Object ignore)
-{
-  return Qnil;
-}
-
-static Lisp_Object
-lisp_indirect_variable (Lisp_Object sym)
-{
-  struct Lisp_Symbol *s = indirect_variable (XSYMBOL (sym));
-  XSETSYMBOL (sym, s);
-  return sym;
-}
-
-DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
-       doc: /* Return t if VARIABLE is intended to be set and modified by users.
-\(The alternative is a variable used internally in a Lisp program.)
-
-This function returns t if (i) the first character of its
-documentation is `*', or (ii) it is customizable (its property list
-contains a non-nil value of `standard-value' or `custom-autoload'), or
-\(iii) it is an alias for a user variable.
-
-But condition (i) is considered obsolete, so for most purposes this is
-equivalent to `custom-variable-p'.  */)
-  (Lisp_Object variable)
-{
-  Lisp_Object documentation;
-
-  if (!SYMBOLP (variable))
-      return Qnil;
-
-  /* If indirect and there's an alias loop, don't check anything else.  */
-  if (XSYMBOL (variable)->redirect == SYMBOL_VARALIAS
-      && NILP (internal_condition_case_1 (lisp_indirect_variable, variable,
-					  Qt, user_variable_p_eh)))
-    return Qnil;
-
-  while (1)
-    {
-      documentation = Fget (variable, Qvariable_documentation);
-      if (INTEGERP (documentation) && XINT (documentation) < 0)
-	return Qt;
-      if (STRINGP (documentation)
-	  && ((unsigned char) SREF (documentation, 0) == '*'))
-	return Qt;
-      /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
-      if (CONSP (documentation)
-	  && STRINGP (XCAR (documentation))
-	  && INTEGERP (XCDR (documentation))
-	  && XINT (XCDR (documentation)) < 0)
-	return Qt;
-      /* Customizable?  See `custom-variable-p'.  */
-      if ((!NILP (Fget (variable, intern ("standard-value"))))
-	  || (!NILP (Fget (variable, intern ("custom-autoload")))))
-	return Qt;
-
-      if (!(XSYMBOL (variable)->redirect == SYMBOL_VARALIAS))
-	return Qnil;
-
-      /* An indirect variable?  Let's follow the chain.  */
-      XSETSYMBOL (variable, SYMBOL_ALIAS (XSYMBOL (variable)));
-    }
-}
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
        doc: /* Bind variables according to VARLIST then eval BODY.
@@ -3789,7 +3722,6 @@ alist of active lexical bindings.  */);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);
-  defsubr (&Suser_variable_p);
   defsubr (&Slet);
   defsubr (&SletX);
   defsubr (&Swhile);

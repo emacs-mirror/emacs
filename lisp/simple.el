@@ -5983,7 +5983,7 @@ in the definition is used to check that VALUE is valid.
 With a prefix argument, set VARIABLE to VALUE buffer-locally."
   (interactive
    (let* ((default-var (variable-at-point))
-          (var (if (user-variable-p default-var)
+          (var (if (custom-variable-p default-var)
 		   (read-variable (format "Set variable (default %s): " default-var)
 				  default-var)
 		 (read-variable "Set variable: ")))

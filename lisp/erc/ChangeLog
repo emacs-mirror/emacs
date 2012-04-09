@@ -1,3 +1,8 @@
+2012-04-09  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-cmd-SET): Call custom-variable-p instead of
+	user-variable-p.
+
 2012-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* erc-backend.el (erc-coding-system-precedence):

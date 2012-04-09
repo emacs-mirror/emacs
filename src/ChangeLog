@@ -1,3 +1,12 @@
+2012-04-09  Chong Yidong  <cyd@gnu.org>
+
+	* eval.c (Fuser_variable_p, user_variable_p_eh)
+	(lisp_indirect_variable): Functions deleted.
+	(Fdefvar): Caller changed.
+
+	* callint.c (Finteractive, Fcall_interactively):
+	* minibuf.c (Fread_variable): Callers changed.
+
 2012-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): If the display string appears in

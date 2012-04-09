@@ -97,7 +97,7 @@ r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.
 s -- Any string.  Does not inherit the current input method.
 S -- Any symbol.
 U -- Mouse up event discarded by a previous k or K argument.
-v -- Variable name: symbol that is user-variable-p.
+v -- Variable name: symbol that is `custom-variable-p'.
 x -- Lisp expression read but not evaluated.
 X -- Lisp expression read and evaluated.
 z -- Coding system.
@@ -748,7 +748,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'v':		/* Variable name: symbol that is
-				   user-variable-p. */
+				   custom-variable-p. */
 	  args[i] = Fread_variable (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
