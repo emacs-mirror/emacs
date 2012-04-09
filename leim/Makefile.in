@@ -93,12 +93,7 @@ TIT_MISC=${CHINESE_TIT} ${MISC}
 	@echo Compiling $<
 	@${RUN_EMACS} -l ${buildlisppath}/international/quail -f batch-byte-compile $<
 
-all: ${BUILT_EMACS} ${SUBDIRS} leim-list.el compile-main
-
-# To ensure that we can run Emacs.  This target is ignored (never
-# being hit) if a user changes default value of BUILT_EMACS.
-../src/emacs:
-	cd ../src; ${MAKE} ${MFLAGS} emacs
+all: ${SUBDIRS} leim-list.el compile-main
 
 ${SUBDIRS}:
 	mkdir $@

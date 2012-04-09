@@ -1,3 +1,9 @@
+2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (../src/emacs): Remove this rule, no longer relevant
+	since leim distributed with Emacs (eg lisp/ has no such rule).
+	(all): Remove $BUILT_EMACS dependence.
+
 2012-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* quail/latin-ltx.el (latin-ltx--define-rules): Comment out
