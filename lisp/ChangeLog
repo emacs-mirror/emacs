@@ -1,5 +1,8 @@
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (normal-top-level): Don't look for leim-list.el
+	in places where it will not be found.  (Bug#910)
+
 	* international/mule-cmds.el (set-default-coding-systems):
 	* files.el (normal-mode):
 	Remove guarded calls to ucs-set-table-for-input.  (Bug#9821)

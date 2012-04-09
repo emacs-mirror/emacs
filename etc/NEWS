@@ -24,6 +24,11 @@ so we will look at it and add it to the manual.
 * Installation Changes in Emacs 24.2
 
 * Startup Changes in Emacs 24.2
+
+** Emacs no longer searches for `leim-list.el' files beneath the standard
+lisp/ directory.  There should not be any there anyway.  If you have
+been adding them there, put them somewhere else, eg site-lisp.
+
 
 * Changes in Emacs 24.2
 
