@@ -1,3 +1,12 @@
+2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACS): Rename from BUILT_EMACS.
+	(RUN_EMACS, compile-main): Update for this change.
+
+	* Makefile.in (../src/emacs): Remove this rule, no longer relevant
+	since leim distributed with Emacs (eg lisp/ has no such rule).
+	(all): Remove $BUILT_EMACS dependence.
+
 2012-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* quail/latin-ltx.el (latin-ltx--define-rules): Comment out
@@ -5,8 +14,9 @@
 
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in: Compute the list of .el files to be compiled dynamically,
+	* Makefile.in: Compute list of .el files to be compiled dynamically,
 	as the lisp/ directory does, rather than hard-coding it.
+	Also, separate leim-list generation from byte-compilation.
 	(TIT_GB, TIT_BIG5, CHINESE_TIT, MISC, TIT_MISC):
 	Make them store the .el files rather than the .elc files.
 	(NON_TIT_GB, NON_TIT_BIG5, CHINESE_NON_TIT, CHINESE_GB)
