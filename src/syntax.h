@@ -258,7 +258,7 @@ do									\
     else if (EQ (gl_state.object, Qt))					\
       {									\
 	gl_state.b_property = 0;					\
-	gl_state.e_property = MOST_POSITIVE_FIXNUM;			\
+	gl_state.e_property = PTRDIFF_MAX;				\
 	gl_state.offset = 0;						\
       }									\
     else								\

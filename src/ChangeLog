@@ -626,6 +626,8 @@
 	* syntax.h: Adjust decls to match defn changes elsewhere.
 	(struct gl_state_s):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(SETUP_SYNTAX_TABLE_FOR_OBJECT): Use PTRDIFF_MAX, not
+	MOST_POSITIVE_FIXNUM.
 	* sysdep.c (wait_for_termination_1, wait_for_termination)
 	(interruptible_wait_for_termination, mkdir):
 	Don't assume pid_t fits in int; on 64-bit AIX pid_t is 64-bit.
