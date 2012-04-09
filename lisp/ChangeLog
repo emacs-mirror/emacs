@@ -1,3 +1,8 @@
+2012-04-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/characters.el: Recover lost case pairs.
+	(Bug#11209)
+
 2012-04-09  Chong Yidong  <cyd@gnu.org>
 
 	* custom.el (custom-variable-p): Return nil for non-symbol
