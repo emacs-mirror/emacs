@@ -1,5 +1,11 @@
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in: Generate leim-list with bootstrap-emacs, in
+	preparation for dumping it with emacs.  (Bug#4789)
+	(leimdir): New variable.
+	($(leimdir)/leim-list.el): New rule.
+	(emacs$(EXEEXT)): Depend on leim-list.el.
+
 	* buffer.c (Qucs_set_table_for_input): Remove.  (Bug#9821)
 	(Fget_buffer_create): Don't call Qucs_set_table_for_input.
 	(init_buffer_once, syms_of_buffer): Remove Qucs_set_table_for_input.
