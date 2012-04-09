@@ -6,9 +6,7 @@
 
 2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* Makefile.in: Add gnutls.texi to build.
-
-	* gnutls.texi: New file to explain the GnuTLS integration.
+	* Makefile.in: Add emacs-gnutls.texi to build.
 
 	* emacs-gnutls.texi: Add documentation for the GnuTLS integration.
 
