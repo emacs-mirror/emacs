@@ -1,3 +1,11 @@
+2012-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): If the display string appears in
+	the buffer at position that is closer to point than the position
+	after the display string, display the cursor on the first glyph of
+	the display string.  Fixes cursor display when a 'display' text
+	property immediately follows invisible text.  (Bug#11094)
+
 2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	composite.c: use 'double' consistently

@@ -14042,15 +14042,18 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		      || pos <= tem)
 		    {
 		      /* If the string from which this glyph came is
-			 found in the buffer at point, then we've
-			 found the glyph we've been looking for.  If
-			 it comes from an overlay (tem == 0), and it
-			 has the `cursor' property on one of its
+			 found in the buffer at point, or at position
+			 that is closer to point than pos_after, then
+			 we've found the glyph we've been looking for.
+			 If it comes from an overlay (tem == 0), and
+			 it has the `cursor' property on one of its
 			 glyphs, record that glyph as a candidate for
 			 displaying the cursor.  (As in the
 			 unidirectional version, we will display the
 			 cursor on the last candidate we find.)  */
-		      if (tem == 0 || tem == pt_old)
+		      if (tem == 0
+			  || tem == pt_old
+			  || (tem - pt_old > 0 && tem < pos_after))
 			{
 			  /* The glyphs from this string could have
 			     been reordered.  Find the one with the
@@ -14088,7 +14091,8 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 				}
 			    }
 
-			  if (tem == pt_old)
+			  if (tem == pt_old
+			      || (tem - pt_old > 0 && tem < pos_after))
 			    goto compute_x;
 			}
 		      if (tem)
