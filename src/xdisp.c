@@ -16609,7 +16609,7 @@ find_last_unchanged_at_beg_row (struct window *w)
 	     bidi-reordered and was killed immediately before this
 	     redisplay cycle.  In that case, ROW->end stores the
 	     buffer position of the first visual-order character of
-	     the next row, which is now beyond ZV.  */
+	     the killed text, which is now beyond ZV.  */
 	  && CHARPOS (row->end.pos) <= ZV)
 	row_found = row;
 
