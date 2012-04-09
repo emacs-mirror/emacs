@@ -1,3 +1,8 @@
+2012-04-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (constrainFrameRect): Always constrain when there is only
+	one screen (Bug#10962).
+
 2012-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.h (FETCH_CHAR, FETCH_MULTIBYTE_CHAR):
