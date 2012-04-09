@@ -1,5 +1,9 @@
 2012-04-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/characters.el: Add set-case-syntax-pair call for
+	LATIN CAPITAL LETTER Y WITH DIAERESIS RET and its lower-case
+	counterpart.  (Bug#11209)
+
 	* simple.el (shell-command-on-region): Doc fix.  (Bug#11208)
 
 2012-04-09  Glenn Morris  <rgm@gnu.org>

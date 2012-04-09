@@ -575,6 +575,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	  (set-case-syntax-pair from (1+ from) tbl)
 	  (setq from (+ from 2))))))
 
+  (set-case-syntax-pair #x178 #x0ff tbl)
   (set-case-syntax-pair #x189 #x256 tbl)
   (set-case-syntax-pair #x18A #x257 tbl)
 
