@@ -41,13 +41,13 @@ GZIP_PROG = @GZIP_PROG@
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
-BUILT_EMACS = ../src/emacs
+EMACS = ../src/emacs
 
 buildlisppath=${srcdir}/../lisp
 
 # How to run Emacs.
 RUN_EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
-	${BUILT_EMACS} -batch --no-site-file --no-site-lisp
+	${EMACS} -batch --no-site-file --no-site-lisp
 
 # Subdirectories to be made if ${srcdir} is different from the current
 # directory.
@@ -171,7 +171,7 @@ compile-main: ${TIT_MISC}
 	  echo "$${el}c"; \
 	done | xargs echo) | \
 	while read chunk; do \
-	  $(MAKE) $(MFLAGS) compile-targets BUILT_EMACS="$(BUILT_EMACS)" TARGETS="$$chunk"; \
+	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
 
 MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done

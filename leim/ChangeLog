@@ -1,5 +1,8 @@
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (EMACS): Rename from BUILT_EMACS.
+	(RUN_EMACS, compile-main): Update for this change.
+
 	* Makefile.in (../src/emacs): Remove this rule, no longer relevant
 	since leim distributed with Emacs (eg lisp/ has no such rule).
 	(all): Remove $BUILT_EMACS dependence.

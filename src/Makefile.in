@@ -395,7 +395,7 @@ LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
 all: emacs$(EXEEXT) $(OTHER_FILES)
 
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
-	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el BUILT_EMACS=$(bootstrap_exe)
+	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS=$(bootstrap_exe)
 
 ## Does anyone ever pay attention to the load-path-shadows output here?
 ## The dumped Emacs is as functional and more efficient than
