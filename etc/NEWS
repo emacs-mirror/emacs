@@ -22,6 +22,13 @@ so we will look at it and add it to the manual.
 
 
 * Installation Changes in Emacs 24.2
+
+** New configure option '--enable-gcc-warnings', intended for developers.
+If building with GCC, this enables compile-time checks that warn about
+possibly-questionable C code.  On a recent GNU system there should be
+no warnings; on older and on non-GNU systems the generated warnings
+may or may not be useful.  By default, these warnings are not generated.
+
 
 * Startup Changes in Emacs 24.2
 

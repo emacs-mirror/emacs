@@ -1,5 +1,18 @@
 2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	configure: new option --enable-gcc-warnings
+	* Makefile.in (C_WARNINGS_SWITCH): Remove.
+	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
+	(ALL_CFLAGS): Use new macros rather than old.
+	* process.c: Ignore -Wstrict-overflow to work around GCC bug 52904.
+	* regex.c: Ignore -Wstrict-overflow.  If !emacs, also ignore
+	-Wunused-but-set-variable, -Wunused-function, -Wunused-macros,
+	-Wunused-result, -Wunused-variable.  This should go away once
+	the Emacs and Gnulib regex code is merged.
+	(xmalloc, xrealloc): Now static.
+
+2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
+
 	composite.c: use 'double' consistently
 	* composite.c (get_composition_id): Use 'double' consistently
 	instead of converting 'float' to 'double' and vice versa; this is

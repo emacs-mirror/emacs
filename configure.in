@@ -686,47 +686,121 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
-### Use -Wdeclaration-after-statement if the compiler supports it
-AC_MSG_CHECKING([whether gcc understands -Wdeclaration-after-statement])
-SAVE_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wdeclaration-after-statement"
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], has_option=yes, has_option=no)
-if test $has_option = yes; then
-   C_WARNINGS_SWITCH="-Wdeclaration-after-statement $C_WARNINGS_SWITCH"
-fi
-AC_MSG_RESULT($has_option)
-CFLAGS="$SAVE_CFLAGS"
-unset has_option
-unset SAVE_CFLAGS
+AC_ARG_ENABLE([gcc-warnings],
+  [AS_HELP_STRING([--enable-gcc-warnings],
+                  [turn on lots of GCC warnings (for developers)])],
+  [case $enableval in
+     yes|no) ;;
+     *)      AC_MSG_ERROR([bad value $enableval for gcc-warnings option]) ;;
+   esac
+   gl_gcc_warnings=$enableval],
+  [gl_gcc_warnings=no]
+)
 
-### Use -Wold-style-definition if the compiler supports it
-# This can be removed when conversion to standard C is finished.
-AC_MSG_CHECKING([whether gcc understands -Wold-style-definition])
-SAVE_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wold-style-definition"
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], has_option=yes, has_option=no)
-if test $has_option = yes; then
-   C_WARNINGS_SWITCH="-Wold-style-definition $C_WARNINGS_SWITCH"
-fi
-AC_MSG_RESULT($has_option)
-CFLAGS="$SAVE_CFLAGS"
-unset has_option
-unset SAVE_CFLAGS
+# gl_GCC_VERSION_IFELSE([major], [minor], [run-if-found], [run-if-not-found])
+# ------------------------------------------------
+# If $CPP is gcc-MAJOR.MINOR or newer, then run RUN-IF-FOUND.
+# Otherwise, run RUN-IF-NOT-FOUND.
+AC_DEFUN([gl_GCC_VERSION_IFELSE],
+  [AC_PREPROC_IFELSE(
+    [AC_LANG_PROGRAM(
+      [[
+#if ($1) < __GNUC__ || (($1) == __GNUC__ && ($2) <= __GNUC_MINOR__)
+/* ok */
+#else
+# error "your version of gcc is older than $1.$2"
+#endif
+      ]]),
+    ], [$3], [$4])
+  ]
+)
 
-### Use -Wimplicit-function-declaration if the compiler supports it
-AC_MSG_CHECKING([whether gcc understands -Wimplicit-function-declaration])
-SAVE_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wimplicit-function-declaration"
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], has_option=yes, has_option=no)
-if test $has_option = yes; then
-   C_WARNINGS_SWITCH="-Wimplicit-function-declaration $C_WARNINGS_SWITCH"
-fi
-AC_MSG_RESULT($has_option)
-CFLAGS="$SAVE_CFLAGS"
-unset has_option
-unset SAVE_CFLAGS
+# When compiling with GCC, prefer -isystem to -I when including system
+# include files, to avoid generating useless diagnostics for the files.
+if test "$gl_gcc_warnings" != yes; then
+  isystem='-I'
+else
+  isystem='-isystem '
 
-AC_SUBST(C_WARNINGS_SWITCH)
+  # This, $nw, is the list of warnings we disable.
+  nw=
+
+  case $with_x_toolkit in
+    lucid | athena | motif)
+       # Old toolkits mishandle 'const'.
+       nw="$nw -Wwrite-strings"
+       ;;
+    *)
+       gl_WARN_ADD([-Werror], [WERROR_CFLAGS])
+       ;;
+  esac
+  AC_SUBST([WERROR_CFLAGS])
+
+  nw="$nw -Waggregate-return"       # anachronistic
+  nw="$nw -Wlong-long"              # C90 is anachronistic (lib/gethrxtime.h)
+  nw="$nw -Wc++-compat"             # We don't care about C++ compilers
+  nw="$nw -Wundef"                  # Warns on '#if GNULIB_FOO' etc in gnulib
+  nw="$nw -Wtraditional"            # Warns on #elif which we use often
+  nw="$nw -Wcast-qual"              # Too many warnings for now
+  nw="$nw -Wconversion"             # Too many warnings for now
+  nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
+  nw="$nw -Wsign-conversion"        # Too many warnings for now
+  nw="$nw -Woverlength-strings"     # Not a problem these days
+  nw="$nw -Wtraditional-conversion" # Too many warnings for now
+  nw="$nw -Wpadded"                 # Our structs are not padded
+  nw="$nw -Wredundant-decls"        # We regularly (re)declare getenv etc.
+  nw="$nw -Wlogical-op"             # any use of fwrite provokes this
+  nw="$nw -Wformat-nonliteral"      # Emacs does this a lot
+  nw="$nw -Wvla"                    # warnings in gettext.h
+  nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
+  nw="$nw -Wswitch-enum"            # Too many warnings for now
+  nw="$nw -Wswitch-default"         # Too many warnings for now
+  nw="$nw -Wfloat-equal"            # e.g., ftoastr.c
+  nw="$nw -Winline"                 # e.g., dispnew.c's inlining of row_equal_p
+
+  # Emacs doesn't care about shadowing; see
+  # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+  nw="$nw -Wshadow"
+
+  # The following lines should be removable at some point.
+  nw="$nw -Wsuggest-attribute=const"
+  nw="$nw -Wsuggest-attribute=pure"
+
+  gl_MANYWARN_ALL_GCC([ws])
+  gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
+  for w in $ws; do
+    gl_WARN_ADD([$w])
+  done
+  gl_WARN_ADD([-Wno-missing-field-initializers]) # We need this one
+  gl_WARN_ADD([-Wno-sign-compare])     # Too many warnings for now
+  gl_WARN_ADD([-Wno-type-limits])      # Too many warnings for now
+  gl_WARN_ADD([-Wno-switch])           # Too many warnings for now
+  gl_WARN_ADD([-Wno-unused-parameter]) # Too many warnings for now
+  gl_WARN_ADD([-Wno-format-nonliteral])
+
+  # In spite of excluding -Wlogical-op above, it is enabled, as of
+  # gcc 4.5.0 20090517.
+  gl_WARN_ADD([-Wno-logical-op])
+
+  gl_WARN_ADD([-fdiagnostics-show-option])
+  gl_WARN_ADD([-funit-at-a-time])
+
+  AC_SUBST([WARN_CFLAGS])
+
+  AC_DEFINE([lint], [1], [Define to 1 if the compiler is checking for lint.])
+  AC_DEFINE([_FORTIFY_SOURCE], [2],
+    [enable compile-time and run-time bounds-checking, and some warnings])
+  AC_DEFINE([GNULIB_PORTCHECK], [1], [enable some gnulib portability checks])
+
+  # We use a slightly smaller set of warning options for lib/.
+  # Remove the following and save the result in GNULIB_WARN_CFLAGS.
+  nw=
+  nw="$nw -Wunused-macros"
+
+  gl_MANYWARN_COMPLEMENT([GNULIB_WARN_CFLAGS], [$WARN_CFLAGS], [$nw])
+  AC_SUBST([GNULIB_WARN_CFLAGS])
+fi
+
 
 
 #### Some other nice autoconf tests.
@@ -1127,8 +1201,13 @@ AC_DEFUN([PKG_CHECK_MODULES], [
         if $PKG_CONFIG --exists "$2" 2>&AS_MESSAGE_LOG_FD &&
 	   $1_CFLAGS=`$PKG_CONFIG --cflags "$2" 2>&AS_MESSAGE_LOG_FD` &&
 	   $1_LIBS=`$PKG_CONFIG --libs "$2" 2>&AS_MESSAGE_LOG_FD`; then
-
-	    $1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    $1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
 	    $1_LIBS=`AS_ECHO(["$$1_LIBS"]) | sed -e 's,///*,/,g'`
             AC_MSG_RESULT([yes CFLAGS='$$1_CFLAGS' LIBS='$$1_LIBS'])
             succeeded=yes
@@ -1463,7 +1542,7 @@ AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(LD_SWITCH_X_SITE_AUX_RPATH)
 
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
-  C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
+  C_SWITCH_X_SITE="$isystem"`echo ${x_includes} | sed -e "s/:/ $isystem/g"`
 fi
 
 if test x"${x_includes}" = x; then

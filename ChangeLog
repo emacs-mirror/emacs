@@ -1,3 +1,20 @@
+2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings
+	I have been using this change for many months in my private copy
+	of Emacs, and have used it to find several bugs.  It's mature
+	enough to publish now.
+	* Makefile.in (GNULIB_MODULES): Add warnings, manywarnings.
+	* configure.in: Support --enable-gcc-warnings, in the style of
+	other GNU packages such as coreutils.
+	(C_WARNINGS_SWITCH): Remove, replacing with...
+	(WARN_CFLAGS, GNULIB_WARN_CFLAGS): New variable.
+	(PKG_CHECK_MODULES, C_SWITCH_X_SITE): Use -isystem rather than -I,
+	when including system files with GCC.
+	* etc/NEWS: Mention --enable-gcc-warnings.
+	* lib/Makefile.am (AM_CFLAGS): New macro.
+	* m4/manywarnings.m4, m4/warnings.m4: New files, from gnulib.
+
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (leim): Check cd return value.  Pass fewer variables.

@@ -1,3 +1,10 @@
+2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings
+	* Makefile.in (C_WARNINGS_SWITCH): Remove.
+	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
+	(ALL_CFLAGS): Use new macros rather than old.
+
 2011-10-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lwlib-Xaw.c (openFont, xaw_destroy_instance): Replace free with
