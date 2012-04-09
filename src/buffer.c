@@ -128,7 +128,6 @@ static Lisp_Object Qchange_major_mode_hook;
 Lisp_Object Qfirst_change_hook;
 Lisp_Object Qbefore_change_functions;
 Lisp_Object Qafter_change_functions;
-static Lisp_Object Qucs_set_table_for_input;
 
 static Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
 static Lisp_Object Qpermanent_local_hook;
@@ -401,13 +400,6 @@ even if it is dead.  The return value is never nil.  */)
   /* And run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qbuffer_list_update_hook);
-
-  /* An error in calling the function here (should someone redefine it)
-     can lead to infinite regress until you run out of stack.  rms
-     says that's not worth protecting against.  */
-  if (!NILP (Ffboundp (Qucs_set_table_for_input)))
-    /* buffer is on buffer-alist, so no gcpro.  */
-    call1 (Qucs_set_table_for_input, buffer);
 
   return buffer;
 }
@@ -5043,8 +5035,6 @@ init_buffer_once (void)
   Qkill_buffer_hook = intern_c_string ("kill-buffer-hook");
   Fput (Qkill_buffer_hook, Qpermanent_local, Qt);
 
-  Qucs_set_table_for_input = intern_c_string ("ucs-set-table-for-input");
-
   /* super-magic invisible buffer */
   Vprin1_to_string_buffer = Fget_buffer_create (make_pure_c_string (" prin1"));
   Vbuffer_alist = Qnil;
@@ -5199,9 +5189,6 @@ syms_of_buffer (void)
   DEFSYM (Qbefore_change_functions, "before-change-functions");
   DEFSYM (Qafter_change_functions, "after-change-functions");
   DEFSYM (Qkill_buffer_query_functions, "kill-buffer-query-functions");
-
-  /* The next one is initialized in init_buffer_once.  */
-  staticpro (&Qucs_set_table_for_input);
 
   Fput (Qprotected_field, Qerror_conditions,
 	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));

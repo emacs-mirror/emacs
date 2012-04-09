@@ -1,3 +1,30 @@
+2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Compute the list of .el files to be compiled dynamically,
+	as the lisp/ directory does, rather than hard-coding it.
+	(TIT_GB, TIT_BIG5, CHINESE_TIT, MISC, TIT_MISC):
+	Make them store the .el files rather than the .elc files.
+	(NON_TIT_GB, NON_TIT_BIG5, CHINESE_NON_TIT, CHINESE_GB)
+	(CHINESE_GB, CHINESE_BIG5, JAPANESE, KOREAN, THAI, VIETNAMESE)
+	(LAO, INDIAN, TIBETAN, LATIN, UNICODE, SLAVIC, GREEK, RUSSIAN)
+	(OTHERS, CHINESE, EASTASIA, ASIA, EUROPEAN, WORLD, NON_TIT_MISC):
+	Remove variables listing the non-generated .el files.
+	(.el.elc): Add explicit load-path for quail.
+	(all): Depend on compile-main rule rather than $WORLD.
+	(changed.tit, changed.misc): Also depend on $SUBDIRS.
+	(leim-list.el): Don't depend on changed.tit or changed.misc.
+	Remove unnecessary compilation check.
+	(setwins, compile-targets, compile-main): New.
+	(clean, mostlyclean): Update for change in TIT_MISC contents.
+	(bootstrap-clean): Use a glob match to delete .elc, not a fixed list.
+
+2012-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Auto-generate some of the entries.
+	(latin-ltx--ascii-p): New function.
+	(latin-ltx--define-rules): New macro.
+	(define-rules): Use it.
+
 2012-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (install): Use $(DIRNAME)_same-dir.tst instead

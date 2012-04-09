@@ -2,7 +2,7 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992-2012  Free Software Foundation, Inc.
+# Copyright (C) 1992-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -309,9 +309,7 @@ epaths-force: FRC
 # running more than 1 process in the leim directory, especially for
 # the $TIT files there.
 leim:   src Makefile FRC
-	(export PARALLEL; PARALLEL=0; cd $@; $(MAKE) all $(MFLAGS) \
-	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}')
+	cd leim && PARALLEL=0 $(MAKE) all $(MFLAGS)
 
 lib-src src: lib
 
@@ -670,11 +668,11 @@ install-etc: mkdir
 ### `install-arch-indep'.  People who extracted LEIM files after they
 ### installed Emacs itself can install only LEIM files by this target.
 install-leim: leim/Makefile mkdir
-	cd leim; $(MAKE) install
+	cd leim && $(MAKE) $(MFLAGS) install
 
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:
-	$(MAKE) INSTALL_STRIP=-s install
+	$(MAKE) $(MFLAGS) INSTALL_STRIP=-s install
 
 ### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,

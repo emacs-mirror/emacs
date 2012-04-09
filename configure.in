@@ -758,12 +758,12 @@ dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
 
 
-## Need makeinfo >= 4.6 (?) to build the manuals.
+## Need makeinfo >= 4.7 (?) to build the manuals.
 AC_PATH_PROG(MAKEINFO, makeinfo, no)
 dnl By this stage, configure has already checked for egrep and set EGREP,
 dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[6-9]]|4\.[[1-5]][[0-9]]+)'`" = x; then
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'`" = x; then
    MAKEINFO=no
 fi
 
@@ -783,7 +783,7 @@ if test "$MAKEINFO" = "no"; then
   if test "x${with_makeinfo}" = "xno"; then
     HAVE_MAKEINFO=no
   elif test ! -e $srcdir/info/emacs; then
-    AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6, and your
+    AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.7, and your
 source tree does not seem to have pre-built manuals in the `info' directory.
 Either install a suitable version of makeinfo, or re-run configure
 with the `--without-makeinfo' option to build without the manuals.] )

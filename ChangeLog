@@ -1,3 +1,12 @@
+2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (leim): Check cd return value.  Pass fewer variables.
+	(install-leim): Check cd return value.  Pass $MFLAGS.
+	(install-strip): Pass $MFLAGS.
+
+	* configure.in: Require makeinfo >= 4.7.  (Bug#10910)
+	Eg org.texi has been using 4.7 functions for some time.
+
 2012-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Check pkg-config exit status when configuring (Bug#10626).

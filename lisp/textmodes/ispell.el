@@ -874,7 +874,7 @@ Otherwise returns the library directory name, if that is defined."
 	    (setq ispell-really-aspell nil)))
 	 (ispell-really-hunspell
 	  (if (ispell-check-minver hunspell8-minver ispell-really-hunspell)
-	      (setq ispell-encoding8-command "-i ")
+	      (setq ispell-encoding8-command "-i")
 	    (setq ispell-really-hunspell nil))))))
     result))
 
@@ -2618,9 +2618,12 @@ Keeps argument list for future ispell invocations for no async support."
            ;; right encoding for communication. ispell or older aspell/hunspell
            ;; does not support this.
            (if ispell-encoding8-command
-               (list
-                (concat ispell-encoding8-command
-                        (symbol-name (ispell-get-coding-system)))))
+	       (if ispell-really-hunspell
+		   (list ispell-encoding8-command
+			 (upcase (symbol-name (ispell-get-coding-system))))
+		 (list
+		  (concat ispell-encoding8-command
+			  (symbol-name (ispell-get-coding-system))))))
            ispell-extra-args)))
 
     ;; Initially we don't know any buffer's local words.

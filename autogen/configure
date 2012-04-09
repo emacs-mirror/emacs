@@ -8313,22 +8313,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ALSA_MODULES" >&5
 $as_echo_n "checking for $ALSA_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$ALSA_MODULES" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "$ALSA_MODULES" 2>&5 &&
+	   ALSA_CFLAGS=`$PKG_CONFIG --cflags "$ALSA_MODULES" 2>&5` &&
+	   ALSA_LIBS=`$PKG_CONFIG --libs "$ALSA_MODULES" 2>&5`; then
+
+	    ALSA_CFLAGS=`$as_echo "$ALSA_CFLAGS" | sed -e 's,///*,/,g'`
+	    ALSA_LIBS=`$as_echo "$ALSA_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$ALSA_CFLAGS' LIBS='$ALSA_LIBS'" >&5
+$as_echo "yes CFLAGS='$ALSA_CFLAGS' LIBS='$ALSA_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking ALSA_CFLAGS" >&5
-$as_echo_n "checking ALSA_CFLAGS... " >&6; }
-            ALSA_CFLAGS=`$PKG_CONFIG --cflags "$ALSA_MODULES"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ALSA_CFLAGS" >&5
-$as_echo "$ALSA_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking ALSA_LIBS" >&5
-$as_echo_n "checking ALSA_LIBS... " >&6; }
-            ALSA_LIBS=`$PKG_CONFIG --libs "$ALSA_MODULES"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ALSA_LIBS" >&5
-$as_echo "$ALSA_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10756,22 +10749,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $RSVG_MODULE" >&5
 $as_echo_n "checking for $RSVG_MODULE... " >&6; }
 
-        if $PKG_CONFIG --exists "$RSVG_MODULE" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "$RSVG_MODULE" 2>&5 &&
+	   RSVG_CFLAGS=`$PKG_CONFIG --cflags "$RSVG_MODULE" 2>&5` &&
+	   RSVG_LIBS=`$PKG_CONFIG --libs "$RSVG_MODULE" 2>&5`; then
+
+	    RSVG_CFLAGS=`$as_echo "$RSVG_CFLAGS" | sed -e 's,///*,/,g'`
+	    RSVG_LIBS=`$as_echo "$RSVG_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$RSVG_CFLAGS' LIBS='$RSVG_LIBS'" >&5
+$as_echo "yes CFLAGS='$RSVG_CFLAGS' LIBS='$RSVG_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking RSVG_CFLAGS" >&5
-$as_echo_n "checking RSVG_CFLAGS... " >&6; }
-            RSVG_CFLAGS=`$PKG_CONFIG --cflags "$RSVG_MODULE"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $RSVG_CFLAGS" >&5
-$as_echo "$RSVG_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking RSVG_LIBS" >&5
-$as_echo_n "checking RSVG_LIBS... " >&6; }
-            RSVG_LIBS=`$PKG_CONFIG --libs "$RSVG_MODULE"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $RSVG_LIBS" >&5
-$as_echo "$RSVG_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10870,22 +10856,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $IMAGEMAGICK_MODULE" >&5
 $as_echo_n "checking for $IMAGEMAGICK_MODULE... " >&6; }
 
-        if $PKG_CONFIG --exists "$IMAGEMAGICK_MODULE" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "$IMAGEMAGICK_MODULE" 2>&5 &&
+	   IMAGEMAGICK_CFLAGS=`$PKG_CONFIG --cflags "$IMAGEMAGICK_MODULE" 2>&5` &&
+	   IMAGEMAGICK_LIBS=`$PKG_CONFIG --libs "$IMAGEMAGICK_MODULE" 2>&5`; then
+
+	    IMAGEMAGICK_CFLAGS=`$as_echo "$IMAGEMAGICK_CFLAGS" | sed -e 's,///*,/,g'`
+	    IMAGEMAGICK_LIBS=`$as_echo "$IMAGEMAGICK_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$IMAGEMAGICK_CFLAGS' LIBS='$IMAGEMAGICK_LIBS'" >&5
+$as_echo "yes CFLAGS='$IMAGEMAGICK_CFLAGS' LIBS='$IMAGEMAGICK_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking IMAGEMAGICK_CFLAGS" >&5
-$as_echo_n "checking IMAGEMAGICK_CFLAGS... " >&6; }
-            IMAGEMAGICK_CFLAGS=`$PKG_CONFIG --cflags "$IMAGEMAGICK_MODULE"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $IMAGEMAGICK_CFLAGS" >&5
-$as_echo "$IMAGEMAGICK_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking IMAGEMAGICK_LIBS" >&5
-$as_echo_n "checking IMAGEMAGICK_LIBS... " >&6; }
-            IMAGEMAGICK_LIBS=`$PKG_CONFIG --libs "$IMAGEMAGICK_MODULE"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $IMAGEMAGICK_LIBS" >&5
-$as_echo "$IMAGEMAGICK_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10996,22 +10975,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $GTK_MODULES" >&5
 $as_echo_n "checking for $GTK_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5 &&
+	   GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES" 2>&5` &&
+	   GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES" 2>&5`; then
+
+	    GTK_CFLAGS=`$as_echo "$GTK_CFLAGS" | sed -e 's,///*,/,g'`
+	    GTK_LIBS=`$as_echo "$GTK_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GTK_CFLAGS' LIBS='$GTK_LIBS'" >&5
+$as_echo "yes CFLAGS='$GTK_CFLAGS' LIBS='$GTK_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GTK_CFLAGS" >&5
-$as_echo_n "checking GTK_CFLAGS... " >&6; }
-            GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_CFLAGS" >&5
-$as_echo "$GTK_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GTK_LIBS" >&5
-$as_echo_n "checking GTK_LIBS... " >&6; }
-            GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_LIBS" >&5
-$as_echo "$GTK_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -11106,22 +11078,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $GTK_MODULES" >&5
 $as_echo_n "checking for $GTK_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5 &&
+	   GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES" 2>&5` &&
+	   GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES" 2>&5`; then
+
+	    GTK_CFLAGS=`$as_echo "$GTK_CFLAGS" | sed -e 's,///*,/,g'`
+	    GTK_LIBS=`$as_echo "$GTK_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GTK_CFLAGS' LIBS='$GTK_LIBS'" >&5
+$as_echo "yes CFLAGS='$GTK_CFLAGS' LIBS='$GTK_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GTK_CFLAGS" >&5
-$as_echo_n "checking GTK_CFLAGS... " >&6; }
-            GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_CFLAGS" >&5
-$as_echo "$GTK_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GTK_LIBS" >&5
-$as_echo_n "checking GTK_LIBS... " >&6; }
-            GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_LIBS" >&5
-$as_echo "$GTK_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -11308,22 +11273,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dbus-1 >= 1.0" >&5
 $as_echo_n "checking for dbus-1 >= 1.0... " >&6; }
 
-        if $PKG_CONFIG --exists "dbus-1 >= 1.0" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "dbus-1 >= 1.0" 2>&5 &&
+	   DBUS_CFLAGS=`$PKG_CONFIG --cflags "dbus-1 >= 1.0" 2>&5` &&
+	   DBUS_LIBS=`$PKG_CONFIG --libs "dbus-1 >= 1.0" 2>&5`; then
+
+	    DBUS_CFLAGS=`$as_echo "$DBUS_CFLAGS" | sed -e 's,///*,/,g'`
+	    DBUS_LIBS=`$as_echo "$DBUS_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$DBUS_CFLAGS' LIBS='$DBUS_LIBS'" >&5
+$as_echo "yes CFLAGS='$DBUS_CFLAGS' LIBS='$DBUS_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking DBUS_CFLAGS" >&5
-$as_echo_n "checking DBUS_CFLAGS... " >&6; }
-            DBUS_CFLAGS=`$PKG_CONFIG --cflags "dbus-1 >= 1.0"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DBUS_CFLAGS" >&5
-$as_echo "$DBUS_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking DBUS_LIBS" >&5
-$as_echo_n "checking DBUS_LIBS... " >&6; }
-            DBUS_LIBS=`$PKG_CONFIG --libs "dbus-1 >= 1.0"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DBUS_LIBS" >&5
-$as_echo "$DBUS_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -11425,22 +11383,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gio-2.0 >= 2.26" >&5
 $as_echo_n "checking for gio-2.0 >= 2.26... " >&6; }
 
-        if $PKG_CONFIG --exists "gio-2.0 >= 2.26" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "gio-2.0 >= 2.26" 2>&5 &&
+	   GSETTINGS_CFLAGS=`$PKG_CONFIG --cflags "gio-2.0 >= 2.26" 2>&5` &&
+	   GSETTINGS_LIBS=`$PKG_CONFIG --libs "gio-2.0 >= 2.26" 2>&5`; then
+
+	    GSETTINGS_CFLAGS=`$as_echo "$GSETTINGS_CFLAGS" | sed -e 's,///*,/,g'`
+	    GSETTINGS_LIBS=`$as_echo "$GSETTINGS_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GSETTINGS_CFLAGS' LIBS='$GSETTINGS_LIBS'" >&5
+$as_echo "yes CFLAGS='$GSETTINGS_CFLAGS' LIBS='$GSETTINGS_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GSETTINGS_CFLAGS" >&5
-$as_echo_n "checking GSETTINGS_CFLAGS... " >&6; }
-            GSETTINGS_CFLAGS=`$PKG_CONFIG --cflags "gio-2.0 >= 2.26"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GSETTINGS_CFLAGS" >&5
-$as_echo "$GSETTINGS_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GSETTINGS_LIBS" >&5
-$as_echo_n "checking GSETTINGS_LIBS... " >&6; }
-            GSETTINGS_LIBS=`$PKG_CONFIG --libs "gio-2.0 >= 2.26"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GSETTINGS_LIBS" >&5
-$as_echo "$GSETTINGS_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -11530,22 +11481,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gconf-2.0 >= 2.13" >&5
 $as_echo_n "checking for gconf-2.0 >= 2.13... " >&6; }
 
-        if $PKG_CONFIG --exists "gconf-2.0 >= 2.13" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "gconf-2.0 >= 2.13" 2>&5 &&
+	   GCONF_CFLAGS=`$PKG_CONFIG --cflags "gconf-2.0 >= 2.13" 2>&5` &&
+	   GCONF_LIBS=`$PKG_CONFIG --libs "gconf-2.0 >= 2.13" 2>&5`; then
+
+	    GCONF_CFLAGS=`$as_echo "$GCONF_CFLAGS" | sed -e 's,///*,/,g'`
+	    GCONF_LIBS=`$as_echo "$GCONF_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GCONF_CFLAGS' LIBS='$GCONF_LIBS'" >&5
+$as_echo "yes CFLAGS='$GCONF_CFLAGS' LIBS='$GCONF_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GCONF_CFLAGS" >&5
-$as_echo_n "checking GCONF_CFLAGS... " >&6; }
-            GCONF_CFLAGS=`$PKG_CONFIG --cflags "gconf-2.0 >= 2.13"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GCONF_CFLAGS" >&5
-$as_echo "$GCONF_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GCONF_LIBS" >&5
-$as_echo_n "checking GCONF_LIBS... " >&6; }
-            GCONF_LIBS=`$PKG_CONFIG --libs "gconf-2.0 >= 2.13"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GCONF_LIBS" >&5
-$as_echo "$GCONF_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -11713,22 +11657,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 2.6.6" >&5
 $as_echo_n "checking for gnutls >= 2.6.6... " >&6; }
 
-        if $PKG_CONFIG --exists "gnutls >= 2.6.6" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "gnutls >= 2.6.6" 2>&5 &&
+	   LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.6.6" 2>&5` &&
+	   LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.6.6" 2>&5`; then
+
+	    LIBGNUTLS_CFLAGS=`$as_echo "$LIBGNUTLS_CFLAGS" | sed -e 's,///*,/,g'`
+	    LIBGNUTLS_LIBS=`$as_echo "$LIBGNUTLS_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$LIBGNUTLS_CFLAGS' LIBS='$LIBGNUTLS_LIBS'" >&5
+$as_echo "yes CFLAGS='$LIBGNUTLS_CFLAGS' LIBS='$LIBGNUTLS_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBGNUTLS_CFLAGS" >&5
-$as_echo_n "checking LIBGNUTLS_CFLAGS... " >&6; }
-            LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.6.6"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBGNUTLS_CFLAGS" >&5
-$as_echo "$LIBGNUTLS_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBGNUTLS_LIBS" >&5
-$as_echo_n "checking LIBGNUTLS_LIBS... " >&6; }
-            LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.6.6"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBGNUTLS_LIBS" >&5
-$as_echo "$LIBGNUTLS_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12367,22 +12304,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for fontconfig >= 2.2.0" >&5
 $as_echo_n "checking for fontconfig >= 2.2.0... " >&6; }
 
-        if $PKG_CONFIG --exists "fontconfig >= 2.2.0" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "fontconfig >= 2.2.0" 2>&5 &&
+	   FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig >= 2.2.0" 2>&5` &&
+	   FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig >= 2.2.0" 2>&5`; then
+
+	    FONTCONFIG_CFLAGS=`$as_echo "$FONTCONFIG_CFLAGS" | sed -e 's,///*,/,g'`
+	    FONTCONFIG_LIBS=`$as_echo "$FONTCONFIG_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$FONTCONFIG_CFLAGS' LIBS='$FONTCONFIG_LIBS'" >&5
+$as_echo "yes CFLAGS='$FONTCONFIG_CFLAGS' LIBS='$FONTCONFIG_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking FONTCONFIG_CFLAGS" >&5
-$as_echo_n "checking FONTCONFIG_CFLAGS... " >&6; }
-            FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig >= 2.2.0"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FONTCONFIG_CFLAGS" >&5
-$as_echo "$FONTCONFIG_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking FONTCONFIG_LIBS" >&5
-$as_echo_n "checking FONTCONFIG_LIBS... " >&6; }
-            FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig >= 2.2.0"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FONTCONFIG_LIBS" >&5
-$as_echo "$FONTCONFIG_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12469,22 +12399,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xft >= 0.13.0" >&5
 $as_echo_n "checking for xft >= 0.13.0... " >&6; }
 
-        if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5 &&
+	   XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0" 2>&5` &&
+	   XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0" 2>&5`; then
+
+	    XFT_CFLAGS=`$as_echo "$XFT_CFLAGS" | sed -e 's,///*,/,g'`
+	    XFT_LIBS=`$as_echo "$XFT_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$XFT_CFLAGS' LIBS='$XFT_LIBS'" >&5
+$as_echo "yes CFLAGS='$XFT_CFLAGS' LIBS='$XFT_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking XFT_CFLAGS" >&5
-$as_echo_n "checking XFT_CFLAGS... " >&6; }
-            XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $XFT_CFLAGS" >&5
-$as_echo "$XFT_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking XFT_LIBS" >&5
-$as_echo_n "checking XFT_LIBS... " >&6; }
-            XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $XFT_LIBS" >&5
-$as_echo "$XFT_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12680,22 +12603,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype2" >&5
 $as_echo_n "checking for freetype2... " >&6; }
 
-        if $PKG_CONFIG --exists "freetype2" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "freetype2" 2>&5 &&
+	   FREETYPE_CFLAGS=`$PKG_CONFIG --cflags "freetype2" 2>&5` &&
+	   FREETYPE_LIBS=`$PKG_CONFIG --libs "freetype2" 2>&5`; then
+
+	    FREETYPE_CFLAGS=`$as_echo "$FREETYPE_CFLAGS" | sed -e 's,///*,/,g'`
+	    FREETYPE_LIBS=`$as_echo "$FREETYPE_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$FREETYPE_CFLAGS' LIBS='$FREETYPE_LIBS'" >&5
+$as_echo "yes CFLAGS='$FREETYPE_CFLAGS' LIBS='$FREETYPE_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking FREETYPE_CFLAGS" >&5
-$as_echo_n "checking FREETYPE_CFLAGS... " >&6; }
-            FREETYPE_CFLAGS=`$PKG_CONFIG --cflags "freetype2"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FREETYPE_CFLAGS" >&5
-$as_echo "$FREETYPE_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking FREETYPE_LIBS" >&5
-$as_echo_n "checking FREETYPE_LIBS... " >&6; }
-            FREETYPE_LIBS=`$PKG_CONFIG --libs "freetype2"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FREETYPE_LIBS" >&5
-$as_echo "$FREETYPE_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12784,22 +12700,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libotf" >&5
 $as_echo_n "checking for libotf... " >&6; }
 
-        if $PKG_CONFIG --exists "libotf" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "libotf" 2>&5 &&
+	   LIBOTF_CFLAGS=`$PKG_CONFIG --cflags "libotf" 2>&5` &&
+	   LIBOTF_LIBS=`$PKG_CONFIG --libs "libotf" 2>&5`; then
+
+	    LIBOTF_CFLAGS=`$as_echo "$LIBOTF_CFLAGS" | sed -e 's,///*,/,g'`
+	    LIBOTF_LIBS=`$as_echo "$LIBOTF_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$LIBOTF_CFLAGS' LIBS='$LIBOTF_LIBS'" >&5
+$as_echo "yes CFLAGS='$LIBOTF_CFLAGS' LIBS='$LIBOTF_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBOTF_CFLAGS" >&5
-$as_echo_n "checking LIBOTF_CFLAGS... " >&6; }
-            LIBOTF_CFLAGS=`$PKG_CONFIG --cflags "libotf"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBOTF_CFLAGS" >&5
-$as_echo "$LIBOTF_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBOTF_LIBS" >&5
-$as_echo_n "checking LIBOTF_LIBS... " >&6; }
-            LIBOTF_LIBS=`$PKG_CONFIG --libs "libotf"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBOTF_LIBS" >&5
-$as_echo "$LIBOTF_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12936,22 +12845,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for m17n-flt" >&5
 $as_echo_n "checking for m17n-flt... " >&6; }
 
-        if $PKG_CONFIG --exists "m17n-flt" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "m17n-flt" 2>&5 &&
+	   M17N_FLT_CFLAGS=`$PKG_CONFIG --cflags "m17n-flt" 2>&5` &&
+	   M17N_FLT_LIBS=`$PKG_CONFIG --libs "m17n-flt" 2>&5`; then
+
+	    M17N_FLT_CFLAGS=`$as_echo "$M17N_FLT_CFLAGS" | sed -e 's,///*,/,g'`
+	    M17N_FLT_LIBS=`$as_echo "$M17N_FLT_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$M17N_FLT_CFLAGS' LIBS='$M17N_FLT_LIBS'" >&5
+$as_echo "yes CFLAGS='$M17N_FLT_CFLAGS' LIBS='$M17N_FLT_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking M17N_FLT_CFLAGS" >&5
-$as_echo_n "checking M17N_FLT_CFLAGS... " >&6; }
-            M17N_FLT_CFLAGS=`$PKG_CONFIG --cflags "m17n-flt"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $M17N_FLT_CFLAGS" >&5
-$as_echo "$M17N_FLT_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking M17N_FLT_LIBS" >&5
-$as_echo_n "checking M17N_FLT_LIBS... " >&6; }
-            M17N_FLT_LIBS=`$PKG_CONFIG --libs "m17n-flt"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $M17N_FLT_LIBS" >&5
-$as_echo "$M17N_FLT_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -13663,22 +13565,15 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 > 2.6.17" >&5
 $as_echo_n "checking for libxml-2.0 > 2.6.17... " >&6; }
 
-        if $PKG_CONFIG --exists "libxml-2.0 > 2.6.17" 2>&5; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+        if $PKG_CONFIG --exists "libxml-2.0 > 2.6.17" 2>&5 &&
+	   LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 > 2.6.17" 2>&5` &&
+	   LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 > 2.6.17" 2>&5`; then
+
+	    LIBXML2_CFLAGS=`$as_echo "$LIBXML2_CFLAGS" | sed -e 's,///*,/,g'`
+	    LIBXML2_LIBS=`$as_echo "$LIBXML2_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$LIBXML2_CFLAGS' LIBS='$LIBXML2_LIBS'" >&5
+$as_echo "yes CFLAGS='$LIBXML2_CFLAGS' LIBS='$LIBXML2_LIBS'" >&6; }
             succeeded=yes
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBXML2_CFLAGS" >&5
-$as_echo_n "checking LIBXML2_CFLAGS... " >&6; }
-            LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 > 2.6.17"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBXML2_CFLAGS" >&5
-$as_echo "$LIBXML2_CFLAGS" >&6; }
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBXML2_LIBS" >&5
-$as_echo_n "checking LIBXML2_LIBS... " >&6; }
-            LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 > 2.6.17"|sed -e 's,///*,/,g'`
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBXML2_LIBS" >&5
-$as_echo "$LIBXML2_LIBS" >&6; }
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
