@@ -1,5 +1,8 @@
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
+	* doc.c (Fsnarf_documentation): Check variables, functions are bound,
+	not just in the obarray, before snarfing them.  (Bug#11036)
+
 	* Makefile.in ($(leimdir)/leim-list.el):
 	Pass EMACS rather than BUILT_EMACS.
 

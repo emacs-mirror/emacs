@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2012
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993-1995, 1997-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -671,15 +671,18 @@ the same file name is found in the `doc-directory'.  */)
 		  /* Install file-position as variable-documentation property
 		     and make it negative for a user-variable
 		     (doc starts with a `*').  */
-		  Fput (sym, Qvariable_documentation,
-			make_number ((pos + end + 1 - buf)
-				     * (end[1] == '*' ? -1 : 1)));
+                  if (!NILP (Fboundp (sym)))
+                    Fput (sym, Qvariable_documentation,
+                          make_number ((pos + end + 1 - buf)
+                                       * (end[1] == '*' ? -1 : 1)));
 		}
 
 	      /* Attach a docstring to a function?  */
 	      else if (p[1] == 'F')
-		store_function_docstring (sym, pos + end + 1 - buf);
-
+                {
+                  if (!NILP (Ffboundp (sym)))
+                    store_function_docstring (sym, pos + end + 1 - buf);
+                }
 	      else if (p[1] == 'S')
 		; /* Just a source file name boundary marker.  Ignore it.  */
 
