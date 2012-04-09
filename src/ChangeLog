@@ -1,4 +1,17 @@
+2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	composite.c: use 'double' consistently
+	* composite.c (get_composition_id): Use 'double' consistently
+	instead of converting 'float' to 'double' and vice versa; this is
+	easier to understand and avoids a GCC warning.
+
 2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Generate leim-list with bootstrap-emacs, in
+	preparation for dumping it with emacs.  (Bug#4789)
+	(leimdir): New variable.
+	($(leimdir)/leim-list.el): New rule.
+	(emacs$(EXEEXT)): Depend on leim-list.el.
 
 	* buffer.c (Qucs_set_table_for_input): Remove.  (Bug#9821)
 	(Fget_buffer_create): Don't call Qucs_set_table_for_input.

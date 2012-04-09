@@ -355,7 +355,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   else
     {
       /* Rule-base composition.  */
-      float leftmost = 0.0, rightmost;
+      double leftmost = 0.0, rightmost;
 
       ch = XINT (key_contents[0]);
       rightmost = ch != '\t' ? CHAR_WIDTH (ch) : 1;
@@ -364,7 +364,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 	{
 	  int rule, gref, nref;
 	  int this_width;
-	  float this_left;
+	  double this_left;
 
 	  rule = XINT (key_contents[i]);
 	  ch = XINT (key_contents[i + 1]);
