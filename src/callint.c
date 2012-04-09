@@ -945,7 +945,7 @@ may be set by the debugger as a reminder for itself.  */);
   Vcommand_debug_status = Qnil;
 
   DEFVAR_LISP ("mark-even-if-inactive", Vmark_even_if_inactive,
-	       doc: /* *Non-nil means you can use the mark even when inactive.
+	       doc: /* Non-nil means you can use the mark even when inactive.
 This option makes a difference in Transient Mark mode.
 When the option is non-nil, deactivation of the mark
 turns off region highlighting, but commands that use the mark

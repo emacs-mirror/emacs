@@ -1754,7 +1754,7 @@ syms_of_fringe (void)
   defsubr (&Sset_fringe_bitmap_face);
 
   DEFVAR_LISP ("overflow-newline-into-fringe", Voverflow_newline_into_fringe,
-    doc: /* *Non-nil means that newline may flow into the right fringe.
+    doc: /* Non-nil means that newline may flow into the right fringe.
 This means that display lines which are exactly as wide as the window
 (not counting the final newline) will only occupy one screen line, by
 showing (or hiding) the final newline in the right fringe; when point

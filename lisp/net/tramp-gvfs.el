@@ -111,7 +111,7 @@
 
 ;;;###tramp-autoload
 (defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")
-  "*List of methods for remote files, accessed with GVFS."
+  "List of methods for remote files, accessed with GVFS."
   :group 'tramp
   :version "23.2"
   :type '(repeat (choice (const "dav")
@@ -128,7 +128,7 @@
 (add-to-list 'tramp-default-user-alist '("\\`synce\\'" nil nil))
 
 (defcustom tramp-gvfs-zeroconf-domain "local"
-  "*Zeroconf domain to be used for discovering services, like host names."
+  "Zeroconf domain to be used for discovering services, like host names."
   :group 'tramp
   :version "23.2"
   :type 'string)

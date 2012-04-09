@@ -277,13 +277,13 @@ full featured `looking-back' function is missing."
 ;;;  ******* THIS FILE IS WRITTEN FOR ISPELL VERSION 3.1+
 
 (defcustom ispell-highlight-p 'block
-  "*Highlight spelling errors when non-nil.
+  "Highlight spelling errors when non-nil.
 When set to `block', assumes a block cursor with TTY displays."
   :type '(choice (const block) (const :tag "off" nil) (const :tag "on" t))
   :group 'ispell)
 
 (defcustom ispell-lazy-highlight (boundp 'lazy-highlight-cleanup)
-  "*Controls the lazy-highlighting of spelling errors.
+  "Controls the lazy-highlighting of spelling errors.
 When non-nil, all text in the buffer matching the current spelling
 error is highlighted lazily using isearch lazy highlighting (see
 `lazy-highlight-initial-delay' and `lazy-highlight-interval')."
@@ -293,7 +293,7 @@ error is highlighted lazily using isearch lazy highlighting (see
   :version "22.1")
 
 (defcustom ispell-highlight-face (if ispell-lazy-highlight 'isearch 'highlight)
-  "*The face used for Ispell highlighting.  For Emacsen with overlays.
+  "The face used for Ispell highlighting.  For Emacsen with overlays.
 Possible values are `highlight', `modeline', `secondary-selection',
 `region', and `underline'.
 This variable can be set by the user to whatever face they desire.
@@ -303,7 +303,7 @@ slightly different."
   :group 'ispell)
 
 (defcustom ispell-check-comments t
-  "*Spelling of comments checked when non-nil.
+  "Spelling of comments checked when non-nil.
 When set to `exclusive', ONLY comments are checked.  (For code comments).
 Warning!  Not checking comments, when a comment start is embedded in strings,
 may produce undesired results."
@@ -314,13 +314,13 @@ may produce undesired results."
      (lambda (a) (memq a '(nil t exclusive))))
 
 (defcustom ispell-query-replace-choices nil
-  "*Corrections made throughout region when non-nil.
+  "Corrections made throughout region when non-nil.
 Uses `query-replace' (\\[query-replace]) for corrections."
   :type 'boolean
   :group 'ispell)
 
 (defcustom ispell-skip-tib nil
-  "*Does not spell check `tib' bibliography references when non-nil.
+  "Does not spell check `tib' bibliography references when non-nil.
 Skips any text between strings matching regular expressions
 `ispell-tib-ref-beginning' and `ispell-tib-ref-end'.
 
@@ -337,13 +337,13 @@ That includes the [.5mm] type of number..."
   "Regexp matching the end of a Tib reference.")
 
 (defcustom ispell-keep-choices-win t
-  "*If non-nil, keep the `*Choices*' window for the entire spelling session.
+  "If non-nil, keep the `*Choices*' window for the entire spelling session.
 This minimizes redisplay thrashing."
   :type 'boolean
   :group 'ispell)
 
 (defcustom ispell-choices-win-default-height 2
-  "*The default size of the `*Choices*' window, including the mode line.
+  "The default size of the `*Choices*' window, including the mode line.
 Must be greater than 1."
   :type 'integer
   :group 'ispell)
@@ -366,18 +366,18 @@ Must be greater than 1."
 	((file-readable-p "/usr/share/lib/dict/words")
 	 "/usr/share/lib/dict/words")
 	((file-readable-p "/sys/dict") "/sys/dict"))
-  "*Alternate plain word-list dictionary for spelling help."
+  "Alternate plain word-list dictionary for spelling help."
   :type '(choice file (const :tag "None" nil))
   :group 'ispell)
 
 (defcustom ispell-complete-word-dict nil
-  "*Plain word-list dictionary used for word completion if
+  "Plain word-list dictionary used for word completion if
 different from `ispell-alternate-dictionary'."
   :type '(choice file (const :tag "None" nil))
   :group 'ispell)
 
 (defcustom ispell-message-dictionary-alist nil
-  "*List used by `ispell-message' to select a new dictionary.
+  "List used by `ispell-message' to select a new dictionary.
 It consists of pairs (REGEXP . DICTIONARY).  If REGEXP is found
 in the message headers, `ispell-local-dictionary' will be set to
 DICTIONARY if `ispell-local-dictionary' is not buffer-local.
@@ -389,7 +389,7 @@ E.g. you may use the following value:
 
 
 (defcustom ispell-message-fcc-skip 50000
-  "*Query before saving Fcc message copy if attachment larger than this value.
+  "Query before saving Fcc message copy if attachment larger than this value.
 Always stores Fcc copy of message when nil."
   :type '(choice integer (const :tag "off" nil))
   :group 'ispell)
@@ -423,13 +423,13 @@ This must be an absolute file name."
   :group 'ispell)
 
 (defcustom ispell-look-p (file-exists-p ispell-look-command)
-  "*Non-nil means use `look' rather than `grep'.
+  "Non-nil means use `look' rather than `grep'.
 Default is based on whether `look' seems to be available."
   :type 'boolean
   :group 'ispell)
 
 (defcustom ispell-have-new-look nil
-  "*Non-nil means use the `-r' option (regexp) when running `look'."
+  "Non-nil means use the `-r' option (regexp) when running `look'."
   :type 'boolean
   :group 'ispell)
 
@@ -445,13 +445,13 @@ When nil, Emacs uses pipes."
   :group 'ispell)
 
 (defcustom ispell-following-word nil
-  "*Non-nil means `ispell-word' checks the word around or after point.
+  "Non-nil means `ispell-word' checks the word around or after point.
 Otherwise `ispell-word' checks the preceding word."
   :type 'boolean
   :group 'ispell)
 
 (defcustom ispell-help-in-bufferp nil
-  "*Non-nil means display interactive keymap help in a buffer.
+  "Non-nil means display interactive keymap help in a buffer.
 The following values are supported:
   nil        Expand the minibuffer and display a short help message
              there for a couple of seconds.
@@ -463,12 +463,12 @@ The following values are supported:
   :group 'ispell)
 
 (defcustom ispell-quietly nil
-  "*Non-nil means suppress messages in `ispell-word'."
+  "Non-nil means suppress messages in `ispell-word'."
   :type 'boolean
   :group 'ispell)
 
 (defcustom ispell-format-word-function (function upcase)
-  "*Formatting function for displaying word being spell checked.
+  "Formatting function for displaying word being spell checked.
 The function must take one string argument and return a string."
   :type 'function
   :group 'ispell)
@@ -484,7 +484,7 @@ window system by evaluating the following on startup to set this variable:
 
 ;;;###autoload
 (defcustom ispell-personal-dictionary nil
-  "*File name of your personal spelling dictionary, or nil.
+  "File name of your personal spelling dictionary, or nil.
 If nil, the default personal dictionary, (\"~/.ispell_DICTNAME\" for ispell or
 \"~/.aspell.LANG.pws\" for aspell) is used, where DICTNAME is the name of your
 default dictionary and LANG the two letter language code."
@@ -493,7 +493,7 @@ default dictionary and LANG the two letter language code."
   :group 'ispell)
 
 (defcustom ispell-silently-savep nil
-  "*When non-nil, save personal dictionary without asking for confirmation."
+  "When non-nil, save personal dictionary without asking for confirmation."
   :type 'boolean
   :group 'ispell)
 
@@ -527,7 +527,7 @@ is automatically set when defined in the file with either
   :group 'ispell)
 
 (defcustom ispell-extra-args nil
-  "*If non-nil, a list of extra switches to pass to the Ispell program.
+  "If non-nil, a list of extra switches to pass to the Ispell program.
 For example, (\"-W\" \"3\") to cause it to accept all 1-3 character
 words as correct.  See also `ispell-dictionary-alist', which may be used
 for language-specific arguments."
@@ -537,7 +537,7 @@ for language-specific arguments."
 
 
 (defcustom ispell-skip-html 'use-mode-name
-  "*Indicates whether ispell should skip spell checking of SGML markup.
+  "Indicates whether ispell should skip spell checking of SGML markup.
 If t, always skip SGML markup; if nil, never skip; if non-t and non-nil,
 guess whether SGML markup should be skipped according to the name of the
 buffer's major mode."
@@ -549,7 +549,7 @@ buffer's major mode."
 
 
 (defcustom ispell-local-dictionary-alist nil
-  "*List of local or customized dictionary definitions.
+  "List of local or customized dictionary definitions.
 These can override the values in `ispell-dictionary-alist'.
 
 To make permanent changes to your dictionary definitions, you
@@ -1470,7 +1470,7 @@ Valid forms include:
      ("list"				 ispell-tex-arg-end 2)
      ("program"		. "\\\\end[ \t\n]*{[ \t\n]*program[ \t\n]*}")
      ("verbatim\\*?"	. "\\\\end[ \t\n]*{[ \t\n]*verbatim\\*?[ \t\n]*}"))))
-  "*Lists of regions to be skipped in TeX mode.
+  "Lists of regions to be skipped in TeX mode.
 First list is used raw.
 Second list has key placed inside \\begin{}.
 
@@ -1489,7 +1489,7 @@ for skipping in latex mode.")
     ("<[tT][tT]/"			  "/")
     ("<[^ \t\n>]"			  ">")
     ("&[^ \t\n;]"			  "[; \t\n]"))
-  "*Lists of start and end keys to skip in HTML buffers.
+  "Lists of start and end keys to skip in HTML buffers.
 Same format as `ispell-skip-region-alist'.
 Note - substrings of other matches must come last
  (e.g. \"<[tT][tT]/\" and \"<[^ \\t\\n>]\").")
@@ -1513,7 +1513,7 @@ local variable syntax.")
 Ispell is then restarted because the local words could conflict.")
 
 (defvar ispell-parser 'use-mode-name
-   "*Indicates whether ispell should parse the current buffer as TeX Code.
+  "Indicates whether ispell should parse the current buffer as TeX Code.
 Special value `use-mode-name' tries to guess using the name of `major-mode'.
 Default parser is `nroff'.
 Currently the only other valid parser is `tex'.
@@ -3530,7 +3530,7 @@ Don't read buffer-local settings or word lists."
 	       ;; Matches commonly used "cut" boundaries
 	       "^\\(- \\)?[-=_]+\\s ?\\(cut here\\|Environment Follows\\)")
 	     "\\|")
-  "*Text beyond which `ispell-message' will not spell-check.
+  "Text beyond which `ispell-message' will not spell-check.
 If it is a string, limit is the first occurrence of that regular expression.
 Otherwise, it must be a function which is called to get the limit.")
 (put 'ispell-message-text-end 'risky-local-variable t)

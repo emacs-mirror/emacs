@@ -106,7 +106,7 @@
   :group 'idlwave)
 
 (defcustom idlwave-shell-prompt-pattern "^\r? ?IDL> "
-  "*Regexp to match IDL prompt at beginning of a line.
+  "Regexp to match IDL prompt at beginning of a line.
 For example, \"^\r?IDL> \" or \"^\r?WAVE> \".
 The \"^\r?\" is needed, to indicate the beginning of the line, with
 optional return character (which IDL seems to output randomly).
@@ -118,7 +118,7 @@ This is a fine thing to set in your `.emacs' file."
   :type 'regexp)
 
 (defcustom idlwave-shell-process-name "idl"
-  "*Name to be associated with the IDL process.  The buffer for the
+  "Name to be associated with the IDL process.  The buffer for the
 process output is made by surrounding this name with `*'s."
   :group 'idlwave-shell-general-setup
   :type 'string)
@@ -126,12 +126,12 @@ process output is made by surrounding this name with `*'s."
 ;; (defcustom idlwave-shell-automatic-start...)  See idlwave.el
 
 (defcustom idlwave-shell-use-dedicated-window nil
-  "*Non-nil means, never replace the shell frame with another buffer."
+  "Non-nil means, never replace the shell frame with another buffer."
   :group 'idlwave-shell-general-setup
   :type 'boolean)
 
 (defcustom idlwave-shell-use-dedicated-frame nil
-  "*Non-nil means, IDLWAVE should use a special frame to display shell buffer."
+  "Non-nil means, IDLWAVE should use a special frame to display shell buffer."
   :group 'idlwave-shell-general-setup
   :type 'boolean)
 
@@ -145,12 +145,12 @@ The default makes the frame splittable, so that completion works correctly."
 	  (cons symbol sexp)))
 
 (defcustom idlwave-shell-raise-frame t
-  "*Non-nil means, `idlwave-shell' raises the frame showing the shell window."
+  "Non-nil means, `idlwave-shell' raises the frame showing the shell window."
   :group 'idlwave-shell-general-setup
   :type 'boolean)
 
 (defcustom idlwave-shell-arrows-do-history t
-  "*Non-nil means UP and DOWN arrows move through command history.
+  "Non-nil means UP and DOWN arrows move through command history.
 This variable can have 3 values:
 nil        Arrows just move the cursor
 t          Arrows force the cursor back to the current command line and
@@ -166,7 +166,7 @@ t          Arrows force the cursor back to the current command line and
 ;; FIXME: add comint-input-ring-size?
 
 (defcustom idlwave-shell-use-toolbar t
-  "*Non-nil means, use the debugging toolbar in all IDL related buffers.
+  "Non-nil means, use the debugging toolbar in all IDL related buffers.
 Starting the shell will then add the toolbar to all idlwave-mode buffers.
 Exiting the shell will removed everywhere.
 Available on XEmacs and on Emacs 21.x or later.
@@ -176,7 +176,7 @@ At any time you can toggle the display of the toolbar with
   :type 'boolean)
 
 (defcustom idlwave-shell-temp-pro-prefix "/tmp/idltemp"
-  "*The prefix for temporary IDL files used when compiling regions.
+  "The prefix for temporary IDL files used when compiling regions.
 It should be an absolute pathname.
 The full temporary file name is obtained by using `make-temp-file'
 so that the name will be unique among multiple Emacs processes."
@@ -184,13 +184,13 @@ so that the name will be unique among multiple Emacs processes."
   :type 'string)
 
 (defvar idlwave-shell-fix-inserted-breaks nil
-  "*OBSOLETE VARIABLE, is no longer used.
+  "OBSOLETE VARIABLE, is no longer used.
 
 The documentation of this variable used to be:
 If non-nil then run `idlwave-shell-remove-breaks' to clean up IDL messages.")
 
 (defcustom idlwave-shell-prefix-key "\C-c\C-d"
-  "*The prefix key for the debugging map `idlwave-shell-mode-prefix-map'.
+  "The prefix key for the debugging map `idlwave-shell-mode-prefix-map'.
 This variable must already be set when idlwave-shell.el is loaded.
 Setting it in the mode-hook is too late."
   :group 'idlwave-shell-general-setup
@@ -227,7 +227,7 @@ window, but is useful for stepping, etc."
   "Obsolete variable.  See `idlwave-shell-debug-modifiers'.")
 
 (defcustom idlwave-shell-use-truename nil
-  "*Non-nil means, use `file-truename' when looking for buffers.
+  "Non-nil means, use `file-truename' when looking for buffers.
 If this variable is non-nil, Emacs will use the function `file-truename' to
 resolve symbolic links in the file paths printed by e.g., STOP commands.
 This means, unvisited files will be loaded under their truename.
@@ -247,7 +247,7 @@ because these are used as separators by IDL."
   :type 'string)
 
 (defcustom idlwave-shell-mode-hook '()
-  "*Hook for customizing `idlwave-shell-mode'."
+  "Hook for customizing `idlwave-shell-mode'."
   :group 'idlwave-shell-general-setup
   :type 'hook)
 
@@ -292,7 +292,7 @@ is non-nil."
 
 (defcustom idlwave-shell-show-commands
   '(run misc breakpoint)
-  "*A list of command types to show output from in the shell.
+  "A list of command types to show output from in the shell.
 Possibilities are 'run, 'debug, 'breakpoint, and 'misc.  Unselected
 types are not displayed in the shell.  The type 'everything causes all
 the copious shell traffic to be displayed."
@@ -336,10 +336,10 @@ expression being examined."
 	   (string :tag "Command"))))
 
 (defvar idlwave-shell-print-expression-function nil
-  "*OBSOLETE VARIABLE, is no longer used.")
+  "OBSOLETE VARIABLE, is no longer used.")
 
 (defcustom idlwave-shell-separate-examine-output t
-  "*Non-nil means, put output of examine commands in their own buffer."
+  "Non-nil means, put output of examine commands in their own buffer."
   :group 'idlwave-shell-command-setup
   :type 'boolean)
 
@@ -359,12 +359,12 @@ newly created."
 	  (cons variable sexp)))
 
 (defcustom idlwave-shell-query-for-class t
-  "*Non-nil means query the shell for object class on object completions."
+  "Non-nil means query the shell for object class on object completions."
   :group 'idlwave-shell-command-setup
   :type 'boolean)
 
 (defcustom idlwave-shell-use-input-mode-magic nil
-  "*Non-nil means, IDLWAVE should check for input mode spells in output.
+  "Non-nil means, IDLWAVE should check for input mode spells in output.
 The spells are strings printed by your IDL program and matched
 by the regular expressions in `idlwave-shell-input-mode-spells'.
 When these expressions match, IDLWAVE switches to character input mode and
@@ -432,7 +432,7 @@ end"
 	  (regexp :tag "Line-mode regexp")))
 
 (defcustom idlwave-shell-breakpoint-popup-menu t
-  "*If non-nil, provide a menu on mouse-3 on breakpoint lines, and
+  "If non-nil, provide a menu on mouse-3 on breakpoint lines, and
 popup help text on the line."
   :group 'idlwave-shell-command-setup
   :type 'boolean)
@@ -449,7 +449,7 @@ popup help text on the line."
   :group 'idlwave)
 
 (defcustom idlwave-shell-mark-stop-line t
-  "*Non-nil means, mark the source code line where IDL is currently stopped.
+  "Non-nil means, mark the source code line where IDL is currently stopped.
 Value decides about the method which is used to mark the line.  Valid values
 are:
 
@@ -471,7 +471,7 @@ hides any code, so setting this to 'arrow on Emacs 21 sounds like a good idea."
 	  (const :tag "Face or arrow." t)))
 
 (defcustom idlwave-shell-overlay-arrow ">"
-  "*The overlay arrow to display at source lines where execution halts.
+  "The overlay arrow to display at source lines where execution halts.
 We use a single character by default, since the main block of IDL procedures
 often has no indentation.  Where possible, IDLWAVE will use overlays to
 display the stop-lines.  The arrow is only used on character-based terminals.
@@ -480,14 +480,14 @@ See also `idlwave-shell-use-overlay-arrow'."
   :type 'string)
 
 (defcustom idlwave-shell-stop-line-face 'highlight
-  "*The face for `idlwave-shell-stop-line-overlay'.
+  "The face for `idlwave-shell-stop-line-overlay'.
 Allows you to choose the font, color and other properties for
 line where IDL is stopped.  See also `idlwave-shell-mark-stop-line'."
   :group 'idlwave-shell-highlighting-and-faces
   :type 'symbol)
 
 (defcustom idlwave-shell-electric-stop-color "Violet"
-  "*The color for the default face or overlay arrow when stopped."
+  "The color for the default face or overlay arrow when stopped."
   :group 'idlwave-shell-highlighting-and-faces
   :type 'string)
 
@@ -499,14 +499,14 @@ line where IDL is stopped.  See also `idlwave-shell-mark-stop-line'."
     (condition-case nil
 	(set-face-foreground 'idlwave-shell-electric-stop-line nil)
       (error nil)))
-  "*The face for `idlwave-shell-stop-line-overlay' when in electric debug mode.
+  "The face for `idlwave-shell-stop-line-overlay' when in electric debug mode.
 Allows you to choose the font, color and other properties for the line
 where IDL is stopped, when in Electric Debug Mode."
   :group 'idlwave-shell-highlighting-and-faces
   :type 'symbol)
 
 (defcustom idlwave-shell-mark-breakpoints t
-  "*Non-nil means, mark breakpoints in the source files.
+  "Non-nil means, mark breakpoints in the source files.
 Valid values are:
 nil        Do not mark breakpoints.
 'face      Highlight line with `idlwave-shell-breakpoint-face'.
@@ -524,7 +524,7 @@ t          Glyph when possible, otherwise face (same effect as 'glyph)."
   "Obsolete variable.  See `idlwave-shell-mark-breakpoints'.")
 
 (defcustom idlwave-shell-breakpoint-face 'idlwave-shell-bp
-  "*The face for breakpoint lines in the source code.
+  "The face for breakpoint lines in the source code.
 Allows you to choose the font, color and other properties for
 lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
   :group 'idlwave-shell-highlighting-and-faces
@@ -542,7 +542,7 @@ lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
 
 (defcustom idlwave-shell-disabled-breakpoint-face
   'idlwave-shell-disabled-bp
-  "*The face for disabled breakpoint lines in the source code.
+  "The face for disabled breakpoint lines in the source code.
 Allows you to choose the font, color and other properties for
 lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
   :group 'idlwave-shell-highlighting-and-faces
@@ -560,14 +560,14 @@ lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
 
 
 (defcustom idlwave-shell-expression-face 'secondary-selection
-  "*The face for `idlwave-shell-expression-overlay'.
+  "The face for `idlwave-shell-expression-overlay'.
 Allows you to choose the font, color and other properties for
 the expression printed by IDL."
   :group 'idlwave-shell-highlighting-and-faces
   :type 'symbol)
 
 (defcustom idlwave-shell-output-face 'secondary-selection
-  "*The face for `idlwave-shell-output-overlay'.
+  "The face for `idlwave-shell-output-overlay'.
 Allows you to choose the font, color and other properties for
 the expression output by IDL."
   :group 'idlwave-shell-highlighting-and-faces
@@ -784,7 +784,7 @@ with `*'s."
     "^% Skipped to:"
     "^% Stop encountered:"
     )
-  "*A list of regular expressions matching IDL messages.
+  "A list of regular expressions matching IDL messages.
 These are the messages containing file and line information where
 IDL is currently stopped.")
 
@@ -795,19 +795,19 @@ IDL is currently stopped.")
 
 (defconst idlwave-shell-trace-message-re
   "^% At "    ;; First line of a trace message
-  "*A regular expression matching IDL trace messages.  These are the
+  "A regular expression matching IDL trace messages.  These are the
 messages containing file and line information of a current
 traceback.")
 
 (defconst idlwave-shell-step-messages
   '("^% Stepped to:"
     )
-  "*A list of regular expressions matching stepped execution messages.
+  "A list of regular expressions matching stepped execution messages.
 These are IDL messages containing file and line information where
 IDL has currently stepped.")
 
 (defvar idlwave-shell-break-message "^% Breakpoint at:"
-  "*Regular expression matching an IDL breakpoint message line.")
+  "Regular expression matching an IDL breakpoint message line.")
 
 (defconst idlwave-shell-electric-debug-help
   "   ==> IDLWAVE Electric Debug Mode Help <==
@@ -1672,7 +1672,7 @@ number.")
    "\\([ \t]*\n[ \t]*[^ \t\n]+\\)*"      ; continuation lines file name (6)
    "\\)"                                 ; end line number group (5)
    )
-  "*A regular expression to parse out the file name and line number.
+  "A regular expression to parse out the file name and line number.
 The 1st group should match the subroutine name.
 The 3rd group is the line number.
 The 5th group is the file name.

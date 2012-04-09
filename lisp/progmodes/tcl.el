@@ -120,24 +120,24 @@
   :group 'languages)
 
 (defcustom tcl-indent-level 4
-  "*Indentation of Tcl statements with respect to containing block."
+  "Indentation of Tcl statements with respect to containing block."
   :type 'integer
   :group 'tcl)
 (put 'tcl-indent-level 'safe-local-variable 'integerp)
 
 (defcustom tcl-continued-indent-level 4
-  "*Indentation of continuation line relative to first line of command."
+  "Indentation of continuation line relative to first line of command."
   :type 'integer
   :group 'tcl)
 (put 'tcl-continued-indent-level 'safe-local-variable 'integerp)
 
 (defcustom tcl-auto-newline nil
-  "*Non-nil means automatically newline before and after braces you insert."
+  "Non-nil means automatically newline before and after braces you insert."
   :type 'boolean
   :group 'tcl)
 
 (defcustom tcl-tab-always-indent tab-always-indent
-  "*Control effect of TAB key.
+  "Control effect of TAB key.
 If t (the default), always indent current line.
 If nil and point is not in the indentation area at the beginning of
 the line, a TAB is inserted.
@@ -157,7 +157,7 @@ to take place:
 
 
 (defcustom tcl-electric-hash-style nil ;; 'smart
-  "*Style of electric hash insertion to use.
+  "Style of electric hash insertion to use.
 Possible values are `backslash', meaning that `\\' quoting should be
 done; `quote', meaning that `\"' quoting should be done; `smart',
 meaning that the choice between `backslash' and `quote' should be
@@ -168,27 +168,27 @@ taken to mean `smart'.  The default is nil."
   :group 'tcl)
 
 (defcustom tcl-help-directory-list nil
-  "*List of topmost directories containing TclX help files."
+  "List of topmost directories containing TclX help files."
   :type '(repeat directory)
   :group 'tcl)
 
 (defcustom tcl-use-smart-word-finder t
-  "*If not nil, use smart way to find current word, for Tcl help feature."
+  "If not nil, use smart way to find current word, for Tcl help feature."
   :type 'boolean
   :group 'tcl)
 
 (defcustom tcl-application "wish"
-  "*Name of Tcl program to run in inferior Tcl mode."
+  "Name of Tcl program to run in inferior Tcl mode."
   :type 'string
   :group 'tcl)
 
 (defcustom tcl-command-switches nil
-  "*List of switches to supply to the `tcl-application' program."
+  "List of switches to supply to the `tcl-application' program."
   :type '(repeat string)
   :group 'tcl)
 
 (defcustom tcl-prompt-regexp "^\\(% \\|\\)"
-  "*If not nil, a regexp that will match the prompt in the inferior process.
+  "If not nil, a regexp that will match the prompt in the inferior process.
 If nil, the prompt is the name of the application with \">\" appended.
 
 The default is \"^\\(% \\|\\)\", which will match the default primary
@@ -197,7 +197,7 @@ and secondary prompts for tclsh and wish."
   :group 'tcl)
 
 (defcustom inferior-tcl-source-command "source %s\n"
-  "*Format-string for building a Tcl command to load a file.
+  "Format-string for building a Tcl command to load a file.
 This format string should use `%s' to substitute a file name
 and should result in a Tcl expression that will command the
 inferior Tcl to load that file.  The filename will be appropriately
@@ -301,7 +301,7 @@ quoted for Tcl."
     ["Tcl help" tcl-help-on-word tcl-help-directory-list]))
 
 (defvar inferior-tcl-buffer nil
-  "*The current inferior-tcl process buffer.
+  "The current inferior-tcl process buffer.
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================

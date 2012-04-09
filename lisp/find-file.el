@@ -190,7 +190,7 @@ To override this, give an argument to `ff-find-other-file'."
     )
   ;; We include `ff-treat-as-special' documentation here so that autoload
   ;; can make it available to be read prior to loading this file.
-  "*List of special constructs for `ff-treat-as-special' to recognize.
+  "List of special constructs for `ff-treat-as-special' to recognize.
 Each element, tried in order, has the form (REGEXP . EXTRACT).
 If REGEXP matches the current line (from the beginning of the line),
 `ff-treat-as-special' calls function EXTRACT with no args.

@@ -2149,7 +2149,7 @@ shared once again when the text is read back.  */);
   Vprint_gensym = Qnil;
 
   DEFVAR_LISP ("print-circle", Vprint_circle,
-	       doc: /* *Non-nil means print recursive structures using #N= and #N# syntax.
+	       doc: /* Non-nil means print recursive structures using #N= and #N# syntax.
 If nil, printing proceeds recursively and may lead to
 `max-lisp-eval-depth' being exceeded or an error may occur:
 \"Apparently circular structure being printed.\"  Also see
@@ -2161,7 +2161,7 @@ where N is a positive decimal integer.  */);
   Vprint_circle = Qnil;
 
   DEFVAR_LISP ("print-continuous-numbering", Vprint_continuous_numbering,
-	       doc: /* *Non-nil means number continuously across print calls.
+	       doc: /* Non-nil means number continuously across print calls.
 This affects the numbers printed for #N= labels and #M# references.
 See also `print-circle', `print-gensym', and `print-number-table'.
 This variable should not be set with `setq'; bind it with a `let' instead.  */);

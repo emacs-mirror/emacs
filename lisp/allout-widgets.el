@@ -153,7 +153,7 @@ See `allout-widgets-mode' for allout widgets mode features."
  )
 ;; ;;;_  = allout-widgets-allow-unruly-edits
 ;; (defcustom allout-widgets-allow-unruly-edits nil
-;;   "*Control whether manual edits are restricted to maintain outline integrity.
+;;   "Control whether manual edits are restricted to maintain outline integrity.
 
 ;; When nil, manual edits must either be within an item's body or encompass
 ;; one or more items completely - eg, killing topics as entities, rather than
@@ -203,21 +203,21 @@ See `allout-widgets-mode' for allout widgets mode features."
 ;;;_   = allout-widgets-item-image-properties-emacs
 (defcustom allout-widgets-item-image-properties-emacs
   '(:ascent center :mask (heuristic t))
-  "*Default properties item widget images in mainline Emacs."
+  "Default properties item widget images in mainline Emacs."
   :version "24.1"
   :type 'plist
   :group 'allout-widgets)
 ;;;_   = allout-widgets-item-image-properties-xemacs
 (defcustom allout-widgets-item-image-properties-xemacs
   nil
-  "*Default properties item widget images in XEmacs."
+  "Default properties item widget images in XEmacs."
   :version "24.1"
   :type 'plist
   :group 'allout-widgets)
 ;;;_  . Developer
 ;;;_   = allout-widgets-run-unit-tests-on-load
 (defcustom allout-widgets-run-unit-tests-on-load nil
-  "*When non-nil, unit tests will be run at end of loading allout-widgets.
+  "When non-nil, unit tests will be run at end of loading allout-widgets.
 
 Generally, allout widgets code developers are the only ones who'll want to
 set this.
@@ -232,7 +232,7 @@ See `allout-widgets-run-unit-tests' to see what's run."
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-time-decoration-activity
 (defcustom allout-widgets-time-decoration-activity nil
-  "*Retain timing info of the last cooperative redecoration.
+  "Retain timing info of the last cooperative redecoration.
 
 The details are retained as the value of
 `allout-widgets-last-decoration-timing'.
@@ -244,7 +244,7 @@ set this."
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-hook-error-post-time 0
 (defcustom allout-widgets-hook-error-post-time 0
-  "*Amount of time to sit showing hook error messages.
+  "Amount of time to sit showing hook error messages.
 
 0 is minimal, or nil to not post to the message area.
 
@@ -254,7 +254,7 @@ This is for debugging purposes."
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-maintain-tally nil
 (defcustom allout-widgets-maintain-tally nil
-  "*If non-nil, maintain a collection of widgets, `allout-widgets-tally'.
+  "If non-nil, maintain a collection of widgets, `allout-widgets-tally'.
 
 This is for debugging purposes.
 
@@ -290,7 +290,7 @@ The number varies according to the evanescence of objects on a
     (format ":%s" (hash-table-count allout-widgets-tally))))
 ;;;_   = allout-widgets-track-decoration nil
 (defcustom allout-widgets-track-decoration nil
-  "*If non-nil, show cursor position of each item decoration.
+  "If non-nil, show cursor position of each item decoration.
 
 This is for debugging purposes, and generally set at need in a
 buffer rather than as a prevailing configuration \(but it's handy
@@ -416,7 +416,7 @@ onto the front.")
 ;;;_   , Widget-specific outline text format
 ;;;_    = allout-escaped-prefix-regexp
 (defvar allout-escaped-prefix-regexp ""
-  "*Regular expression for body text that would look like an item prefix if
+  "Regular expression for body text that would look like an item prefix if
 not altered with an escape sequence.")
 (make-variable-buffer-local 'allout-escaped-prefix-regexp)
 ;;;_   , Widget element formatting

@@ -5920,32 +5920,32 @@ Chinese, Japanese, and Korean.  */);
 
 /* This is not ifdef:ed, so other builds than GTK can customize it.  */
   DEFVAR_BOOL ("x-gtk-use-old-file-dialog", x_gtk_use_old_file_dialog,
-    doc: /* *Non-nil means prompt with the old GTK file selection dialog.
+    doc: /* Non-nil means prompt with the old GTK file selection dialog.
 If nil or if the file selection dialog is not available, the new GTK file
 chooser is used instead.  To turn off all file dialogs set the
 variable `use-file-dialog'.  */);
   x_gtk_use_old_file_dialog = 0;
 
   DEFVAR_BOOL ("x-gtk-show-hidden-files", x_gtk_show_hidden_files,
-    doc: /* *If non-nil, the GTK file chooser will by default show hidden files.
+    doc: /* If non-nil, the GTK file chooser will by default show hidden files.
 Note that this is just the default, there is a toggle button on the file
 chooser to show or not show hidden files on a case by case basis.  */);
   x_gtk_show_hidden_files = 0;
 
   DEFVAR_BOOL ("x-gtk-file-dialog-help-text", x_gtk_file_dialog_help_text,
-    doc: /* *If non-nil, the GTK file chooser will show additional help text.
+    doc: /* If non-nil, the GTK file chooser will show additional help text.
 If more space for files in the file chooser dialog is wanted, set this to nil
 to turn the additional text off.  */);
   x_gtk_file_dialog_help_text = 1;
 
   DEFVAR_BOOL ("x-gtk-whole-detached-tool-bar", x_gtk_whole_detached_tool_bar,
-    doc: /* *If non-nil, a detached tool bar is shown in full.
+    doc: /* If non-nil, a detached tool bar is shown in full.
 The default is to just show an arrow and pressing on that arrow shows
 the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
 
   DEFVAR_BOOL ("x-gtk-use-system-tooltips", x_gtk_use_system_tooltips,
-    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ tooltip is used.
+    doc: /* If non-nil with a Gtk+ built Emacs, the Gtk+ tooltip is used.
 Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
   x_gtk_use_system_tooltips = 1;

@@ -6411,7 +6411,7 @@ the cursor have no effect.  */);
      from cus-start.el and other places, like "M-x set-variable".  */
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       x_use_underline_position_properties,
-     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+     doc: /* Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.  You can also use `underline-minimum-offset'
@@ -6421,7 +6421,7 @@ sizes.  */);
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       x_underline_at_descent_line,
-     doc: /* *Non-nil means to draw the underline at the same place as the descent line.
+     doc: /* Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);

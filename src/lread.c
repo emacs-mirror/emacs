@@ -4442,7 +4442,7 @@ were read in. */);
   Vread_circle = Qt;
 
   DEFVAR_LISP ("load-path", Vload_path,
-	       doc: /* *List of directories to search for files to load.
+	       doc: /* List of directories to search for files to load.
 Each element is a string (directory name) or nil (try default directory).
 Initialized based on EMACSLOADPATH environment variable, if any,
 otherwise to default specified by file `epaths.h' when Emacs was built.  */);

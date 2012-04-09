@@ -1122,17 +1122,17 @@ parentheses."
 ;;;###autoload
 (defvar add-log-lisp-like-modes
   '(emacs-lisp-mode lisp-mode scheme-mode dsssl-mode lisp-interaction-mode)
-  "*Modes that look like Lisp to `add-log-current-defun'.")
+  "Modes that look like Lisp to `add-log-current-defun'.")
 
 ;;;###autoload
 (defvar add-log-c-like-modes
   '(c-mode c++-mode c++-c-mode objc-mode)
-  "*Modes that look like C to `add-log-current-defun'.")
+  "Modes that look like C to `add-log-current-defun'.")
 
 ;;;###autoload
 (defvar add-log-tex-like-modes
   '(TeX-mode plain-TeX-mode LaTeX-mode tex-mode)
-  "*Modes that look like TeX to `add-log-current-defun'.")
+  "Modes that look like TeX to `add-log-current-defun'.")
 
 (declare-function c-cpp-define-name "cc-cmds" ())
 (declare-function c-defun-name      "cc-cmds" ())

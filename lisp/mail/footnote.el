@@ -129,7 +129,7 @@ has no effect on buffers already displaying footnotes."
 (defvar footnote-signature-separator (if (boundp 'message-signature-separator)
 					 message-signature-separator
 				       "^-- $")
-  "*String used to recognize .signatures.")
+  "String used to recognize .signatures.")
 
 ;;; Private variables
 

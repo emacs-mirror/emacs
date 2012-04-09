@@ -101,7 +101,7 @@
   :group 'erc)
 
 (defcustom erc-generate-log-file-name-function 'erc-generate-log-file-name-long
-  "*A function to generate a log filename.
+  "A function to generate a log filename.
 The function must take five arguments: BUFFER, TARGET, NICK, SERVER and PORT.
 BUFFER is the buffer to be saved,
 TARGET is the name of the channel, or the target of the query,
@@ -157,12 +157,12 @@ arguments."
 		 (const :tag "Disable logging" nil)))
 
 (defcustom erc-log-insert-log-on-open nil
-  "*Insert log file contents into the buffer if a log file exists."
+  "Insert log file contents into the buffer if a log file exists."
   :group 'erc-log
   :type 'boolean)
 
 (defcustom erc-save-buffer-on-part t
-  "*Save the channel buffer content using `erc-save-buffer-in-logs' on PART.
+  "Save the channel buffer content using `erc-save-buffer-in-logs' on PART.
 
 If you set this to nil, you may want to enable both
 `erc-log-write-after-send' and `erc-log-write-after-insert'."
@@ -170,7 +170,7 @@ If you set this to nil, you may want to enable both
   :type 'boolean)
 
 (defcustom erc-save-queries-on-quit t
-  "*Save all query (also channel) buffers of the server on QUIT.
+  "Save all query (also channel) buffers of the server on QUIT.
 
 If you set this to nil, you may want to enable both
 `erc-log-write-after-send' and `erc-log-write-after-insert'."
@@ -178,7 +178,7 @@ If you set this to nil, you may want to enable both
   :type 'boolean)
 
 (defcustom erc-log-write-after-send nil
-  "*If non-nil, write to log file after every message you send.
+  "If non-nil, write to log file after every message you send.
 
 If you set this to nil, you may want to enable both
 `erc-save-buffer-on-part' and `erc-save-queries-on-quit'."
@@ -186,7 +186,7 @@ If you set this to nil, you may want to enable both
   :type 'boolean)
 
 (defcustom erc-log-write-after-insert nil
-  "*If non-nil, write to log file when new text is added to a
+  "If non-nil, write to log file when new text is added to a
 logged ERC buffer.
 
 If you set this to nil, you may want to enable both
@@ -197,14 +197,14 @@ If you set this to nil, you may want to enable both
 (defcustom erc-log-file-coding-system (if (featurep 'xemacs)
 					  'binary
 					'emacs-mule)
-  "*The coding system ERC should use for writing log files.
+  "The coding system ERC should use for writing log files.
 
 This should ideally, be a \"catch-all\" coding system, like
 `emacs-mule', or `iso-2022-7bit'."
   :group 'erc-log)
 
 (defcustom erc-log-filter-function nil
-  "*If non-nil, pass text through the given function before writing it to
+  "If non-nil, pass text through the given function before writing it to
 a log file.
 
 The function should take one argument, which is the text to filter."

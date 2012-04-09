@@ -49,7 +49,7 @@
   :group 'erc)
 
 (defcustom erc-pcomplete-nick-postfix ":"
-  "*When `pcomplete' is used in the first word after the prompt,
+  "When `pcomplete' is used in the first word after the prompt,
 add this string to nicks completed."
   :group 'erc-pcomplete
   :type 'string)

@@ -333,7 +333,7 @@ This repertoire is supported for the following fonts:
   "Glyph set corresponding to Windows Glyph List 4.")
 
 (defvar nxml-glyph-set-hook nil
-  "*Hook for determining the set of glyphs in a face.
+  "Hook for determining the set of glyphs in a face.
 The hook will receive a single argument FACE.  If it can determine
 the set of glyphs representable by FACE, it must set the variable
 `nxml-glyph-set' and return non-nil.  Otherwise, it must return nil.

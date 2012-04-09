@@ -29,7 +29,7 @@
 
 (defvar url-nfs-automounter-directory-spec
   "file:/net/%h%f"
-  "*How to invoke the NFS automounter.  Certain % sequences are recognized.
+  "How to invoke the NFS automounter.  Certain % sequences are recognized.
 
 %h -- the hostname of the NFS server
 %n -- the port # of the NFS server

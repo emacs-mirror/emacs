@@ -79,7 +79,7 @@ mode, set this to (\"-q\" \"--traditional\")."
   "Syntax table in use in inferior-octave-mode buffers.")
 
 (defcustom inferior-octave-mode-hook nil
-  "*Hook to be run when Inferior Octave mode is started."
+  "Hook to be run when Inferior Octave mode is started."
   :type 'hook
   :group 'octave-inferior)
 

@@ -1410,7 +1410,7 @@ This list is used when switching between buffer-local and global
 values of variables, and for the commands using indentation styles.")
 
 (defvar sh-make-vars-local t
-  "*Controls whether indentation variables are local to the buffer.
+  "Controls whether indentation variables are local to the buffer.
 If non-nil, indentation variables are made local initially.
 If nil, you can later make the variables local by invoking
 command `sh-make-vars-local'.
@@ -1876,7 +1876,7 @@ region, clear header."
 
 ;; Indentation stuff.
 (defun sh-must-support-indent ()
-  "*Signal an error if the shell type for this buffer is not supported.
+  "Signal an error if the shell type for this buffer is not supported.
 Also, the buffer must be in Shell-script mode."
   (unless sh-indent-supported-here
     (error "This buffer's shell does not support indentation through Emacs")))
@@ -2885,7 +2885,7 @@ so that `occur-next' and `occur-prev' will work."
 
 ;; Is this really worth having?
 (defvar sh-learned-buffer-hook nil
-  "*An abnormal hook, called with an alist of learned variables.")
+  "An abnormal hook, called with an alist of learned variables.")
 ;; Example of how to use sh-learned-buffer-hook
 ;;
 ;; (defun what-i-learned (list)

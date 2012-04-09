@@ -917,7 +917,7 @@ to the directories specified in `bibtex-string-file-path'."
   :type '(repeat file))
 
 (defvar bibtex-string-file-path (getenv "BIBINPUTS")
-  "*Colon separated list of paths to search for `bibtex-string-files'.")
+  "Colon separated list of paths to search for `bibtex-string-files'.")
 
 (defcustom bibtex-files nil
   "List of BibTeX files that are searched for entry keys.
@@ -931,7 +931,7 @@ See also `bibtex-search-entry-globally'."
                          directory file)))
 
 (defvar bibtex-file-path (getenv "BIBINPUTS")
-  "*Colon separated list of paths to search for `bibtex-files'.")
+  "Colon separated list of paths to search for `bibtex-files'.")
 
 (defcustom bibtex-search-entry-globally nil
   "If non-nil, interactive calls of `bibtex-search-entry' search globally.
@@ -1614,7 +1614,7 @@ Initialized by `bibtex-set-dialect'.")
     ,@(mapcar (lambda (matcher)
                 `((lambda (bound) (bibtex-font-lock-cite ',matcher bound))))
               bibtex-cite-matcher-alist))
-  "*Default expressions to highlight in BibTeX mode.")
+  "Default expressions to highlight in BibTeX mode.")
 
 (defvar bibtex-font-lock-url-regexp
   ;; Assume that field names begin at the beginning of a line.

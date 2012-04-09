@@ -255,7 +255,7 @@ If nil, only \"> \" will be shown."
 	  (repeat :inline t :tag "Others" (string :tag "IRC Message Type"))))
 
 (defcustom erc-hide-list nil
-  "*List of IRC type messages to hide.
+  "List of IRC type messages to hide.
 A typical value would be '(\"JOIN\" \"PART\" \"QUIT\")."
   :group 'erc-ignore
   :type 'erc-message-type)
@@ -653,12 +653,12 @@ This only has any meaning if the variable `erc-command-indicator' is non-nil."
 	     prompt))))
 
 (defcustom erc-notice-prefix "*** "
-  "*Prefix for all notices."
+  "Prefix for all notices."
   :group 'erc-display
   :type 'string)
 
 (defcustom erc-notice-highlight-type 'all
-  "*Determines how to highlight notices.
+  "Determines how to highlight notices.
 See `erc-notice-prefix'.
 
 The following values are allowed:
@@ -673,7 +673,7 @@ Any other value disables notice's highlighting altogether."
 		 (const :tag "don't highlight notices at all" nil)))
 
 (defcustom erc-echo-notice-hook nil
-  "*Specifies a list of functions to call to echo a private
+  "Specifies a list of functions to call to echo a private
 notice.  Each function is called with four arguments, the string
 to display, the parsed server message, the target buffer (or
 nil), and the sender.  The functions are called in order, until a
@@ -704,7 +704,7 @@ See also: `erc-echo-notice-always-hook',
 
 (defcustom erc-echo-notice-always-hook
   '(erc-echo-notice-in-default-buffer)
-  "*Specifies a list of functions to call to echo a private
+  "Specifies a list of functions to call to echo a private
 notice.  Each function is called with four arguments, the string
 to display, the parsed server message, the target buffer (or
 nil), and the sender.  The functions are called in order, and all
@@ -736,17 +736,17 @@ See also: `erc-echo-notice-hook',
 ;; other tunable parameters
 
 (defcustom erc-whowas-on-nosuchnick nil
-  "*If non-nil, do a whowas on a nick if no such nick."
+  "If non-nil, do a whowas on a nick if no such nick."
   :group 'erc
   :type 'boolean)
 
 (defcustom erc-verbose-server-ping nil
-  "*If non-nil, show every time you get a PING or PONG from the server."
+  "If non-nil, show every time you get a PING or PONG from the server."
   :group 'erc-paranoia
   :type 'boolean)
 
 (defcustom erc-public-away-p nil
-  "*Let others know you are back when you are no longer marked away.
+  "Let others know you are back when you are no longer marked away.
 This happens in this form:
 * <nick> is back (gone for <time>)
 
@@ -755,7 +755,7 @@ Many consider it impolite to do so automatically."
   :type 'boolean)
 
 (defcustom erc-away-nickname nil
-  "*The nickname to take when you are marked as being away."
+  "The nickname to take when you are marked as being away."
   :group 'erc
   :type '(choice (const nil)
 		 string))
@@ -796,7 +796,7 @@ If nil, ERC will call `system-name' to get this information."
 		 string))
 
 (defcustom erc-ignore-list nil
-  "*List of regexps matching user identifiers to ignore.
+  "List of regexps matching user identifiers to ignore.
 
 A user identifier has the form \"nick!login@host\".  If an
 identifier matches, the message from the person will not be
@@ -806,7 +806,7 @@ processed."
 (make-variable-buffer-local 'erc-ignore-list)
 
 (defcustom erc-ignore-reply-list nil
-  "*List of regexps matching user identifiers to ignore completely.
+  "List of regexps matching user identifiers to ignore completely.
 
 This differs from `erc-ignore-list' in that it also ignores any
 messages directed at the user.
@@ -824,7 +824,7 @@ people.  You can update the ERC internal info using /WHO *."
   :type '(repeat regexp))
 
 (defvar erc-flood-protect t
-  "*If non-nil, flood protection is enabled.
+  "If non-nil, flood protection is enabled.
 Flooding is sending too much information to the server in too
 short of an interval, which may cause the server to terminate the
 connection.
@@ -854,7 +854,7 @@ directory in the list."
   :type '(repeat directory))
 
 (defcustom erc-script-echo t
-  "*If non-nil, echo the IRC script commands locally."
+  "If non-nil, echo the IRC script commands locally."
   :group 'erc-scripts
   :type 'boolean)
 
@@ -929,7 +929,7 @@ will be used as the part message."
   :type '(repeat (list regexp (choice (string) (function)))))
 
 (defcustom erc-quit-reason 'erc-quit-reason-normal
-  "*A function which returns the reason for quitting.
+  "A function which returns the reason for quitting.
 
 The function is passed a single argument, the string typed by the
 user after \"/quit\"."
@@ -1480,7 +1480,7 @@ The available choices are:
 		 (const :tag "Use current buffer" t)))
 
 (defcustom erc-frame-alist nil
-  "*Alist of frame parameters for creating erc frames.
+  "Alist of frame parameters for creating erc frames.
 A value of nil means to use `default-frame-alist'."
   :group 'erc-buffers
   :type '(repeat (cons :format "%v"
@@ -1488,13 +1488,13 @@ A value of nil means to use `default-frame-alist'."
 		       (sexp :tag "Value"))))
 
 (defcustom erc-frame-dedicated-flag nil
-  "*Non-nil means the erc frames are dedicated to that buffer.
+  "Non-nil means the erc frames are dedicated to that buffer.
 This only has effect when `erc-join-buffer' is set to `frame'."
   :group 'erc-buffers
   :type 'boolean)
 
 (defcustom erc-reuse-frames t
-  "*Determines whether new frames are always created.
+  "Determines whether new frames are always created.
 Non-nil means that a new frame is not created to display an ERC
 buffer if there is already a window displaying it.  This only has
 effect when `erc-join-buffer' is set to `frame'."
@@ -1511,7 +1511,7 @@ effect when `erc-join-buffer' is set to `frame'."
 	(t nil)))
 
 (defcustom erc-reuse-buffers t
-  "*If nil, create new buffers on joining a channel/query.
+  "If nil, create new buffers on joining a channel/query.
 If non-nil, a new buffer will only be created when you join
 channels with same names on different servers, or have query buffers
 open with nicks of the same name on different servers.  Otherwise,
@@ -3799,7 +3799,7 @@ This places `point' just after the prompt, or at the beginning of the line."
 
 (defcustom erc-default-server-hook '(erc-debug-missing-hooks
 				     erc-default-server-handler)
-  "*Default for server messages which aren't covered by `erc-server-hooks'."
+  "Default for server messages which aren't covered by `erc-server-hooks'."
   :group 'erc-server-hooks
   :type 'hook)
 
@@ -4017,7 +4017,7 @@ and as second argument the event parsed as a vector."
     str))
 
 (defcustom erc-format-nick-function 'erc-format-nick
-  "*Function to format a nickname for message display."
+  "Function to format a nickname for message display."
   :group 'erc-display
   :type 'function)
 
@@ -4575,7 +4575,7 @@ channel."
     (run-hooks 'erc-channel-members-changed-hook)))
 
 (defcustom erc-channel-members-changed-hook nil
-  "*This hook is called every time the variable `channel-members' changes.
+  "This hook is called every time the variable `channel-members' changes.
 The buffer where the change happened is current while this hook is called."
   :group 'erc-hooks
   :type 'hook)
@@ -6386,17 +6386,17 @@ See also `format-spec'."
 (add-hook 'kill-buffer-hook 'erc-kill-buffer-function)
 
 (defcustom erc-kill-server-hook '(erc-kill-server)
-  "*Invoked whenever a server-buffer is killed via `kill-buffer'."
+  "Invoked whenever a server-buffer is killed via `kill-buffer'."
   :group 'erc-hooks
   :type 'hook)
 
 (defcustom erc-kill-channel-hook '(erc-kill-channel)
-  "*Invoked whenever a channel-buffer is killed via `kill-buffer'."
+  "Invoked whenever a channel-buffer is killed via `kill-buffer'."
   :group 'erc-hooks
   :type 'hook)
 
 (defcustom erc-kill-buffer-hook nil
-  "*Hook run whenever a non-server or channel buffer is killed.
+  "Hook run whenever a non-server or channel buffer is killed.
 
 See also `kill-buffer'."
   :group 'erc-hooks

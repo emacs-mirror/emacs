@@ -2227,7 +2227,7 @@ alternate fontnames (if any) are tried instead.  */);
 
   DEFVAR_LISP ("vertical-centering-font-regexp",
 	       Vvertical_centering_font_regexp,
-	       doc: /* *Regexp matching font names that require vertical centering on display.
+	       doc: /* Regexp matching font names that require vertical centering on display.
 When a character is displayed with such fonts, the character is displayed
 at the vertical center of lines.  */);
   Vvertical_centering_font_regexp = Qnil;

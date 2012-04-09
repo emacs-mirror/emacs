@@ -1637,16 +1637,16 @@ syms_of_callproc (void)
   staticpro (&Vtemp_file_name_pattern);
 
   DEFVAR_LISP ("shell-file-name", Vshell_file_name,
-	       doc: /* *File name to load inferior shells from.
+	       doc: /* File name to load inferior shells from.
 Initialized from the SHELL environment variable, or to a system-dependent
 default if SHELL is not set.  */);
 
   DEFVAR_LISP ("exec-path", Vexec_path,
-	       doc: /* *List of directories to search programs to run in subprocesses.
+	       doc: /* List of directories to search programs to run in subprocesses.
 Each element is a string (directory name) or nil (try default directory).  */);
 
   DEFVAR_LISP ("exec-suffixes", Vexec_suffixes,
-	       doc: /* *List of suffixes to try to find executable file names.
+	       doc: /* List of suffixes to try to find executable file names.
 Each element is a string.  */);
   Vexec_suffixes = Qnil;
 

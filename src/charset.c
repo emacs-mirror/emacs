@@ -2403,7 +2403,7 @@ syms_of_charset (void)
   defsubr (&Ssort_charsets);
 
   DEFVAR_LISP ("charset-map-path", Vcharset_map_path,
-	       doc: /* *List of directories to search for charset map files.  */);
+	       doc: /* List of directories to search for charset map files.  */);
   Vcharset_map_path = Qnil;
 
   DEFVAR_BOOL ("inhibit-load-charset-map", inhibit_load_charset_map,

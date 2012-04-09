@@ -80,7 +80,7 @@
   "Default font-lock-keywords for `m4 mode'.")
 
 (defcustom m4-mode-hook nil
-  "*Hook called by `m4-mode'."
+  "Hook called by `m4-mode'."
   :type 'hook
   :group 'm4)
 

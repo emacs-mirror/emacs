@@ -1405,7 +1405,7 @@ RESULT must be an `ert-test-result-with-condition'."
 ;;; Running tests in batch mode.
 
 (defvar ert-batch-backtrace-right-margin 70
-  "*The maximum line length for printing backtraces in `ert-run-tests-batch'.")
+  "The maximum line length for printing backtraces in `ert-run-tests-batch'.")
 
 ;;;###autoload
 (defun ert-run-tests-batch (&optional selector)

@@ -78,14 +78,14 @@ Used for knowing which history list to look in when the user asks for
 previous/next input.")
 
 (defcustom mail-hist-history-size (or kill-ring-max 1729)
-  "*The maximum number of elements in a mail field's history.
+  "The maximum number of elements in a mail field's history.
 Oldest elements are dumped first."
   :type 'integer
   :group 'mail-hist)
 
 ;;;###autoload
 (defcustom mail-hist-keep-history t
-  "*Non-nil means keep a history for headers and text of outgoing mail."
+  "Non-nil means keep a history for headers and text of outgoing mail."
   :type 'boolean
   :group 'mail-hist)
 
@@ -182,7 +182,7 @@ HEADER is a string without the colon."
   (cdr (assoc header mail-hist-header-ring-alist)))
 
 (defcustom mail-hist-text-size-limit nil
-  "*Don't store any header or body with more than this many characters.
+  "Don't store any header or body with more than this many characters.
 If the value is nil, that means no limit on text size."
   :type '(choice (const nil) integer)
   :group 'mail-hist)

@@ -2150,7 +2150,7 @@ of `history-length', which see.")
   "Switch used to have the shell execute its command line argument.")
 
 (defvar shell-command-default-error-buffer nil
-  "*Buffer name for `shell-command' and `shell-command-on-region' error output.
+  "Buffer name for `shell-command' and `shell-command-on-region' error output.
 This buffer is used when `shell-command' or `shell-command-on-region'
 is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
@@ -5321,7 +5321,7 @@ Returns t if it really did any work."
       t)))
 
 (defvar comment-line-break-function 'comment-indent-new-line
-  "*Mode-specific function which line breaks and continues a comment.
+  "Mode-specific function which line breaks and continues a comment.
 This function is called during auto-filling when a comment syntax
 is defined.
 The function should take a single optional argument, which is a flag

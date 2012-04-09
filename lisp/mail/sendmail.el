@@ -989,7 +989,7 @@ This function uses `mail-envelope-from'."
 
 ;;;###autoload
 (defvar sendmail-coding-system nil
-  "*Coding system for encoding the outgoing mail.
+  "Coding system for encoding the outgoing mail.
 This has higher priority than the default `buffer-file-coding-system'
 and `default-sendmail-coding-system',
 but lower priority than the local value of `buffer-file-coding-system'.

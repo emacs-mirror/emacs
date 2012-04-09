@@ -78,7 +78,7 @@ after `call-process' inserts the grep output into the buffer.")
 This is bound before running `compilation-filter-hook'.")
 
 (defvar compilation-first-column 1
-  "*This is how compilers number the first column, usually 1 or 0.
+  "This is how compilers number the first column, usually 1 or 0.
 If this is buffer-local in the destination buffer, Emacs obeys
 that value, otherwise it uses the value in the *compilation*
 buffer.  This enables a major-mode to specify its own value.")
@@ -90,7 +90,7 @@ in the compilation output, and should return a transformed file name.")
 
 ;;;###autoload
 (defvar compilation-process-setup-function nil
-  "*Function to call to customize the compilation process.
+  "Function to call to customize the compilation process.
 This function is called immediately before the compilation process is
 started.  It can be used to set any variables or functions that are used
 while processing the output of the compilation process.")
@@ -633,7 +633,7 @@ This only affects platforms that support asynchronous processes (see
 (defvar compilation-locs ())
 
 (defvar compilation-debug nil
-  "*Set this to t before creating a *compilation* buffer.
+  "Set this to t before creating a *compilation* buffer.
 Then every error line will have a debug text property with the matcher that
 fit this line and the match data.  Use `describe-text-properties'.")
 
@@ -739,7 +739,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 ;; (make-variable-buffer-local 'compilation-buffer-modtime)
 
 (defvar compilation-skip-to-next-location t
-  "*If non-nil, skip multiple error messages for the same source location.")
+  "If non-nil, skip multiple error messages for the same source location.")
 
 (defcustom compilation-skip-threshold 1
   "Compilation motion commands skip less important messages.

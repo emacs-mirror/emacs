@@ -115,7 +115,7 @@ must be explicitly set non-nil in order for the variable
   "Obsolete variable.  See `idlwave-html-help-location'.")
 
 (defcustom idlwave-help-use-dedicated-frame t
-  "*Non-nil means, use a separate frame for Online Help if possible."
+  "Non-nil means, use a separate frame for Online Help if possible."
   :group 'idlwave-online-help
   :type 'boolean)
 
@@ -164,12 +164,12 @@ probably a good idea to still call this function as a fallback."
   :type 'symbol)
 
 (defcustom idlwave-help-fontify-source-code nil
-  "*Non-nil means, fontify source code displayed as help like normal code."
+  "Non-nil means, fontify source code displayed as help like normal code."
   :group 'idlwave-online-help
   :type 'boolean)
 
 (defcustom idlwave-help-source-try-header t
-  "*Non-nil means, try to find help in routine header when displaying source.
+  "Non-nil means, try to find help in routine header when displaying source.
 Routines which are not documented in the system manual use their source as
 help text.  When this variable is non-nil, we try to find a description of
 the help item in the first routine doclib header above the routine definition.
@@ -180,14 +180,14 @@ definition is displayed instead."
 
 
 (defcustom idlwave-help-doclib-name "name"
-  "*A regexp for the heading word to search for in doclib headers
+  "A regexp for the heading word to search for in doclib headers
 which specifies the `name' section.  Can be used for localization
 support."
   :group 'idlwave-online-help
   :type 'string)
 
 (defcustom idlwave-help-doclib-keyword "KEYWORD"
-  "*A regexp for the heading word to search for in doclib headers
+  "A regexp for the heading word to search for in doclib headers
 which specifies the `keywords' section.  Can be used for localization
 support."
   :group 'idlwave-online-help

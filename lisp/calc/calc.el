@@ -817,7 +817,7 @@ If nil, selections displayed but ignored.")
 Used by `calc-user-invocation'.")
 
 (defcalcmodevar calc-show-banner t
-  "*If non-nil, show a friendly greeting above the stack.")
+  "If non-nil, show a friendly greeting above the stack.")
 
 (defconst calc-local-var-list '(calc-stack
 				calc-stack-top

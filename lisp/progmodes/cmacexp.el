@@ -106,12 +106,12 @@
 
 
 (defcustom c-macro-shrink-window-flag nil
-  "*Non-nil means shrink the *Macroexpansion* window to fit its contents."
+  "Non-nil means shrink the *Macroexpansion* window to fit its contents."
   :type 'boolean
   :group 'c-macro)
 
 (defcustom c-macro-prompt-flag nil
-  "*Non-nil makes `c-macro-expand' prompt for preprocessor arguments."
+  "Non-nil makes `c-macro-expand' prompt for preprocessor arguments."
   :type 'boolean
   :group 'c-macro)
 
@@ -141,7 +141,7 @@ option, or to set an equivalent one."
   :group 'c-macro)
 
 (defcustom c-macro-cppflags ""
-  "*Preprocessor flags used by `c-macro-expand'."
+  "Preprocessor flags used by `c-macro-expand'."
   :type 'string
   :group 'c-macro)
 

@@ -78,7 +78,7 @@ string."
 
 
 (defcustom glasses-original-separator "_"
-  "*String to be displayed as `glasses-separator' in separator positions.
+  "String to be displayed as `glasses-separator' in separator positions.
 For instance, if you set it to \"_\" and set `glasses-separator' to \"-\",
 underscore separators are displayed as hyphens.
 If `glasses-original-separator' is an empty string, no such display change is

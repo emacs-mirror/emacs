@@ -368,14 +368,14 @@ corresponding function symbol."
 (defvar viper-keep-reading-filename nil)
 
 (defcustom ex-cycle-other-window t
-  "*If t, :n and :b cycles through files and buffers in other window.
+  "If t, :n and :b cycles through files and buffers in other window.
 Then :N and :B cycles in the current window.  If nil, this behavior is
 reversed."
   :type 'boolean
   :group 'viper-ex)
 
 (defcustom ex-cycle-through-non-files nil
-  "*Cycle through *scratch* and other buffers that don't visit any file."
+  "Cycle through *scratch* and other buffers that don't visit any file."
   :type 'boolean
   :group 'viper-ex)
 

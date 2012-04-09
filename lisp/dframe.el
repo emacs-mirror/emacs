@@ -157,22 +157,22 @@ selected frame and the focus will change to that frame."
   :type 'hook)
 
 (defvar dframe-track-mouse-function nil
-  "*A function to call when the mouse is moved in the given frame.
+  "A function to call when the mouse is moved in the given frame.
 Typically used to display info about the line under the mouse.")
 (make-variable-buffer-local 'dframe-track-mouse-function)
 
 (defvar dframe-help-echo-function nil
-  "*A function to call when help-echo is used in newer versions of Emacs.
+  "A function to call when help-echo is used in newer versions of Emacs.
 Typically used to display info about the line under the mouse.")
 (make-variable-buffer-local 'dframe-help-echo-function)
 
 (defvar dframe-mouse-click-function nil
-  "*A function to call when the mouse is clicked.
+  "A function to call when the mouse is clicked.
 Valid clicks are mouse 2, our double mouse 1.")
 (make-variable-buffer-local 'dframe-mouse-click-function)
 
 (defvar dframe-mouse-position-function nil
-  "*A function to call to position the cursor for a mouse click.")
+  "A function to call to position the cursor for a mouse click.")
 (make-variable-buffer-local 'dframe-mouse-position-function)
 
 (defvar dframe-power-click nil

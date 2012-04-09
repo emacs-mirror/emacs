@@ -101,7 +101,7 @@ the command \\[ediff-show-diff-output]. Use the variable
   :group 'ediff-diff)
 
 (ediff-defvar-local ediff-ignore-case nil
-  "*If t, skip over difference regions that differ only in letter case.
+  "If t, skip over difference regions that differ only in letter case.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
@@ -165,12 +165,12 @@ This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-ignore-similar-regions nil
-  "*If t, skip over difference regions that differ only in the white space and line breaks.
+  "If t, skip over difference regions that differ only in the white space and line breaks.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-auto-refine-limit 14000
-  "*Auto-refine only the regions of this size \(in bytes\) or less.")
+  "Auto-refine only the regions of this size \(in bytes\) or less.")
 
 ;;; General
 
@@ -1288,38 +1288,38 @@ delimiter regions"))
 ;;; Word functions used to refine the current diff
 
 (defvar ediff-forward-word-function 'ediff-forward-word
-  "*Function to call to move to the next word.
+  "Function to call to move to the next word.
 Used for splitting difference regions into individual words.")
 (make-variable-buffer-local 'ediff-forward-word-function)
 
 ;; \240 is Unicode symbol for nonbreakable whitespace
 (defvar ediff-whitespace " \n\t\f\r\240"
-  "*Characters constituting white space.
+  "Characters constituting white space.
 These characters are ignored when differing regions are split into words.")
 (make-variable-buffer-local 'ediff-whitespace)
 
 (defvar ediff-word-1
   (if (featurep 'xemacs) "a-zA-Z---_" "-[:word:]_")
-  "*Characters that constitute words of type 1.
+  "Characters that constitute words of type 1.
 More precisely, [ediff-word-1] is a regexp that matches type 1 words.
 See `ediff-forward-word' for more details.")
 (make-variable-buffer-local 'ediff-word-1)
 
 (defvar ediff-word-2 "0-9.,"
-  "*Characters that constitute words of type 2.
+  "Characters that constitute words of type 2.
 More precisely, [ediff-word-2] is a regexp that matches type 2 words.
 See `ediff-forward-word' for more details.")
 (make-variable-buffer-local 'ediff-word-2)
 
 (defvar ediff-word-3 "`'?!:;\"{}[]()"
-  "*Characters that constitute words of type 3.
+  "Characters that constitute words of type 3.
 More precisely, [ediff-word-3] is a regexp that matches type 3 words.
 See `ediff-forward-word' for more details.")
 (make-variable-buffer-local 'ediff-word-3)
 
 (defvar ediff-word-4
   (concat "^" ediff-word-1 ediff-word-2 ediff-word-3 ediff-whitespace)
-  "*Characters that constitute words of type 4.
+  "Characters that constitute words of type 4.
 More precisely, [ediff-word-4] is a regexp that matches type 4 words.
 See `ediff-forward-word' for more details.")
 (make-variable-buffer-local 'ediff-word-4)

@@ -198,7 +198,7 @@ Examples:
   :group 'vhdl)
 
 (defcustom vhdl-indent-tabs-mode nil
-  "*Non-nil means indentation can insert tabs.
+  "Non-nil means indentation can insert tabs.
 Overrides local variable `indent-tabs-mode'."
   :type 'boolean
   :group 'vhdl-mode)
@@ -322,7 +322,7 @@ Overrides local variable `indent-tabs-mode'."
      ("^ *Compiling \"\\(.+\\)\" " 1)
      nil)
     )
-  "*List of available VHDL compilers and their properties.
+  "List of available VHDL compilers and their properties.
 Each list entry specifies the following items for a compiler:
 Compiler:
   Compiler name    : name used in option `vhdl-compiler' to choose compiler
@@ -429,7 +429,7 @@ NOTE: Activate new error and file message regexps and reflect the new setting
   :group 'vhdl-compile)
 
 (defcustom vhdl-compiler "ModelSim"
-  "*Specifies the VHDL compiler to be used for syntax analysis.
+  "Specifies the VHDL compiler to be used for syntax analysis.
 Select a compiler name from the ones defined in option `vhdl-compiler-alist'."
   :type (let ((alist vhdl-compiler-alist) list)
 	  (while alist
@@ -439,7 +439,7 @@ Select a compiler name from the ones defined in option `vhdl-compiler-alist'."
   :group 'vhdl-compile)
 
 (defcustom vhdl-compile-use-local-error-regexp t
-  "*Non-nil means use buffer-local `compilation-error-regexp-alist'.
+  "Non-nil means use buffer-local `compilation-error-regexp-alist'.
 In this case, only error message regexps for VHDL compilers are active if
 compilation is started from a VHDL buffer.  Otherwise, the error message
 regexps are appended to the predefined global regexps, and all regexps are
@@ -451,7 +451,7 @@ NOTE: Activate the new setting by restarting Emacs."
   :group 'vhdl-compile)
 
 (defcustom vhdl-makefile-generation-hook nil
-  "*Functions to run at the end of Makefile generation.
+  "Functions to run at the end of Makefile generation.
 Allows to insert user specific parts into a Makefile.
 
 Example:
@@ -462,7 +462,7 @@ Example:
   :group 'vhdl-compile)
 
 (defcustom vhdl-default-library "work"
-  "*Name of default library.
+  "Name of default library.
 Is overwritten by project settings if a project is active."
   :type 'string
   :group 'vhdl-compile)
@@ -488,7 +488,7 @@ Is overwritten by project settings if a project is active."
 -- This is a multi-line project description
 -- that can be used as a project dependent part of the file header.
 "))
-  "*List of projects and their properties.
+  "List of projects and their properties.
   Name             : name used in option `vhdl-project' to choose project
   Title            : title of project (single-line string)
   Default directory: default project directory (absolute path)
@@ -594,7 +594,7 @@ NOTE: Reflect the new setting in the choice list of option `vhdl-project'
   :group 'vhdl-project)
 
 (defcustom vhdl-project nil
-  "*Specifies the default for the current project.
+  "Specifies the default for the current project.
 Select a project name from the ones defined in option `vhdl-project-alist'.
 Is used to determine the project title and description to be inserted in file
 headers and the source files/directories to be scanned in the hierarchy
@@ -608,7 +608,7 @@ browser.  The current project can also be changed temporarily in the menu."
   :group 'vhdl-project)
 
 (defcustom vhdl-project-file-name '("\\1.prj")
-  "*List of file names/paths for importing/exporting project setups.
+  "List of file names/paths for importing/exporting project setups.
 \"\\1\" is replaced by the project name (SPC is replaced by `_'), \"\\2\" is
 replaced by the user name (allows to have user-specific project setups).
 The first entry is used as file name to import/export individual project
@@ -624,7 +624,7 @@ in global directories)."
   :group 'vhdl-project)
 
 (defcustom vhdl-project-auto-load '(startup)
-  "*Automatically load project setups from files.
+  "Automatically load project setups from files.
 All project setup files that match the file names specified in option
 `vhdl-project-file-name' are automatically loaded.  The project of the
 \(alphabetically) last loaded setup of the first `vhdl-project-file-name'
@@ -635,7 +635,7 @@ A project setup file can be obtained by exporting a project (see menu).
   :group 'vhdl-project)
 
 (defcustom vhdl-project-sort t
-  "*Non-nil means projects are displayed in alphabetical order."
+  "Non-nil means projects are displayed in alphabetical order."
   :type 'boolean
   :group 'vhdl-project)
 
@@ -648,7 +648,7 @@ A project setup file can be obtained by exporting a project (see menu).
   :group 'vhdl-compose)
 
 (defcustom vhdl-standard '(87 nil)
-  "*VHDL standards used.
+  "VHDL standards used.
 Basic standard:
   VHDL'87      : IEEE Std 1076-1987
   VHDL'93      : IEEE Std 1076-1993
@@ -675,13 +675,13 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
   :group 'vhdl-style)
 
 (defcustom vhdl-basic-offset 2
-  "*Amount of basic offset used for indentation.
+  "Amount of basic offset used for indentation.
 This value is used by + and - symbols in `vhdl-offsets-alist'."
   :type 'integer
   :group 'vhdl-style)
 
 (defcustom vhdl-upper-case-keywords nil
-  "*Non-nil means convert keywords to upper case.
+  "Non-nil means convert keywords to upper case.
 This is done when typed or expanded or by the fix case functions."
   :type 'boolean
   :set (lambda (variable value)
@@ -689,7 +689,7 @@ This is done when typed or expanded or by the fix case functions."
   :group 'vhdl-style)
 
 (defcustom vhdl-upper-case-types nil
-  "*Non-nil means convert standardized types to upper case.
+  "Non-nil means convert standardized types to upper case.
 This is done when expanded or by the fix case functions."
   :type 'boolean
   :set (lambda (variable value)
@@ -697,7 +697,7 @@ This is done when expanded or by the fix case functions."
   :group 'vhdl-style)
 
 (defcustom vhdl-upper-case-attributes nil
-  "*Non-nil means convert standardized attributes to upper case.
+  "Non-nil means convert standardized attributes to upper case.
 This is done when expanded or by the fix case functions."
   :type 'boolean
   :set (lambda (variable value)
@@ -705,7 +705,7 @@ This is done when expanded or by the fix case functions."
   :group 'vhdl-style)
 
 (defcustom vhdl-upper-case-enum-values nil
-  "*Non-nil means convert standardized enumeration values to upper case.
+  "Non-nil means convert standardized enumeration values to upper case.
 This is done when expanded or by the fix case functions."
   :type 'boolean
   :set (lambda (variable value)
@@ -713,7 +713,7 @@ This is done when expanded or by the fix case functions."
   :group 'vhdl-style)
 
 (defcustom vhdl-upper-case-constants t
-  "*Non-nil means convert standardized constants to upper case.
+  "Non-nil means convert standardized constants to upper case.
 This is done when expanded."
   :type 'boolean
   :set (lambda (variable value)
@@ -721,7 +721,7 @@ This is done when expanded."
   :group 'vhdl-style)
 
 (defcustom vhdl-use-direct-instantiation 'standard
-  "*Non-nil means use VHDL'93 direct component instantiation.
+  "Non-nil means use VHDL'93 direct component instantiation.
   Never   : never
   Standard: only in VHDL standards that allow it (VHDL'93 and higher)
   Always  : always"
@@ -737,7 +737,7 @@ This is done when expanded."
 
 (defcustom vhdl-entity-file-name '(".*" . "\\&")
   (concat
-   "*Specifies how the entity file name is obtained.
+   "Specifies how the entity file name is obtained.
 The entity file name can be obtained by modifying the entity name (e.g.
 attaching or stripping off a substring).  The file extension is automatically
 taken from the file name of the current buffer."
@@ -749,7 +749,7 @@ taken from the file name of the current buffer."
 
 (defcustom vhdl-architecture-file-name '("\\(.*\\) \\(.*\\)" . "\\1_\\2")
   (concat
-   "*Specifies how the architecture file name is obtained.
+   "Specifies how the architecture file name is obtained.
 The architecture file name can be obtained by modifying the entity
 and/or architecture name (e.g. attaching or stripping off a substring).  The
 file extension is automatically taken from the file name of the current
@@ -764,7 +764,7 @@ access to both names (see default setting as example)."
 
 (defcustom vhdl-configuration-file-name '(".*" . "\\&")
   (concat
-   "*Specifies how the configuration file name is obtained.
+   "Specifies how the configuration file name is obtained.
 The configuration file name can be obtained by modifying the configuration
 name (e.g. attaching or stripping off a substring).  The file extension is
 automatically taken from the file name of the current buffer."
@@ -776,7 +776,7 @@ automatically taken from the file name of the current buffer."
 
 (defcustom vhdl-package-file-name '(".*" . "\\&")
   (concat
-   "*Specifies how the package file name is obtained.
+   "Specifies how the package file name is obtained.
 The package file name can be obtained by modifying the package name (e.g.
 attaching or stripping off a substring).  The file extension is automatically
 taken from the file name of the current buffer.  Package files can be created
@@ -789,7 +789,7 @@ file name."
   :group 'vhdl-compose)
 
 (defcustom vhdl-file-name-case 'identity
-  "*Specifies how to change case for obtaining file names.
+  "Specifies how to change case for obtaining file names.
 When deriving a file name from a VHDL unit name, case can be changed as
 follows:
   As Is:      case is not changed (taken as is)
@@ -809,7 +809,7 @@ follows:
   :group 'vhdl)
 
 (defcustom vhdl-electric-keywords '(vhdl user)
-  "*Type of keywords for which electrification is enabled.
+  "Type of keywords for which electrification is enabled.
   VHDL keywords: invoke built-in templates
   User keywords: invoke user models (see option `vhdl-model-alist')"
   :type '(set (const :tag "VHDL keywords" vhdl)
@@ -819,7 +819,7 @@ follows:
   :group 'vhdl-template)
 
 (defcustom vhdl-optional-labels 'process
-  "*Constructs for which labels are to be queried.
+  "Constructs for which labels are to be queried.
 Template generators prompt for optional labels for:
   None          : no constructs
   Processes only: processes only (also procedurals in VHDL-AMS)
@@ -830,7 +830,7 @@ Template generators prompt for optional labels for:
   :group 'vhdl-template)
 
 (defcustom vhdl-insert-empty-lines 'unit
-  "*Specifies whether to insert empty lines in some templates.
+  "Specifies whether to insert empty lines in some templates.
 This improves readability of code.  Empty lines are inserted in:
   None             : no constructs
   Design units only: entities, architectures, configurations, packages only
@@ -845,7 +845,7 @@ Replaces option `vhdl-additional-empty-lines'."
   :group 'vhdl-compose)
 
 (defcustom vhdl-argument-list-indent nil
-  "*Non-nil means indent argument lists relative to opening parenthesis.
+  "Non-nil means indent argument lists relative to opening parenthesis.
 That is, argument, association, and port lists start on the same line as the
 opening parenthesis and subsequent lines are indented accordingly.
 Otherwise, lists start on a new line and are indented as normal code."
@@ -855,7 +855,7 @@ Otherwise, lists start on a new line and are indented as normal code."
   :group 'vhdl-compose)
 
 (defcustom vhdl-association-list-with-formals t
-  "*Non-nil means write association lists with formal parameters.
+  "Non-nil means write association lists with formal parameters.
 Templates prompt for formal and actual parameters (ports/generics).
 When pasting component instantiations, formals are included.
 If nil, only a list of actual parameters is entered."
@@ -865,17 +865,17 @@ If nil, only a list of actual parameters is entered."
   :group 'vhdl-compose)
 
 (defcustom vhdl-conditions-in-parenthesis nil
-  "*Non-nil means place parenthesis around condition expressions."
+  "Non-nil means place parenthesis around condition expressions."
   :type 'boolean
   :group 'vhdl-template)
 
 (defcustom vhdl-zero-string "'0'"
-  "*String to use for a logic zero."
+  "String to use for a logic zero."
   :type 'string
   :group 'vhdl-template)
 
 (defcustom vhdl-one-string "'1'"
-  "*String to use for a logic one."
+  "String to use for a logic one."
   :type 'string
   :group 'vhdl-template)
 
@@ -906,7 +906,7 @@ If nil, only a list of actual parameters is entered."
 -------------------------------------------------------------------------------
 
 "
-  "*String or file to insert as file header.
+  "String or file to insert as file header.
 If the string specifies an existing file name, the contents of the file is
 inserted, otherwise the string itself is inserted as file header.
 Type `C-j' for newlines.
@@ -936,7 +936,7 @@ dependent part of the file header and can also contain the above keywords."
   :group 'vhdl-header)
 
 (defcustom vhdl-file-footer ""
-  "*String or file to insert as file footer.
+  "String or file to insert as file footer.
 If the string specifies an existing file name, the contents of the file is
 inserted, otherwise the string itself is inserted as file footer (i.e. at
 the end of the file).
@@ -946,7 +946,7 @@ The same keywords as in option `vhdl-file-header' can be used."
   :group 'vhdl-header)
 
 (defcustom vhdl-company-name ""
-  "*Name of company to insert in file header.
+  "Name of company to insert in file header.
 See option `vhdl-file-header'."
   :type 'string
   :group 'vhdl-header)
@@ -955,14 +955,14 @@ See option `vhdl-file-header'."
 -------------------------------------------------------------------------------
 -- Copyright (c) <year> <company>
 "
-  "*Copyright string to insert in file header.
+  "Copyright string to insert in file header.
 Can be multi-line string (type `C-j' for newline) and contain other file
 header keywords (see option `vhdl-file-header')."
   :type 'string
   :group 'vhdl-header)
 
 (defcustom vhdl-platform-spec ""
-  "*Specification of VHDL platform to insert in file header.
+  "Specification of VHDL platform to insert in file header.
 The platform specification should contain names and versions of the
 simulation and synthesis tools used.
 See option `vhdl-file-header'."
@@ -970,7 +970,7 @@ See option `vhdl-file-header'."
   :group 'vhdl-header)
 
 (defcustom vhdl-date-format "%Y-%m-%d"
-  "*Specifies the date format to use in the header.
+  "Specifies the date format to use in the header.
 This string is passed as argument to the command `format-time-string'.
 For more information on format strings, see the documentation for the
 `format-time-string' command (C-h f `format-time-string')."
@@ -978,7 +978,7 @@ For more information on format strings, see the documentation for the
   :group 'vhdl-header)
 
 (defcustom vhdl-modify-date-prefix-string "-- Last update: "
-  "*Prefix string of modification date in VHDL file header.
+  "Prefix string of modification date in VHDL file header.
 If actualization of the modification date is called (menu,
 `\\[vhdl-template-modify]'), this string is searched and the rest
 of the line replaced by the current date."
@@ -986,7 +986,7 @@ of the line replaced by the current date."
   :group 'vhdl-header)
 
 (defcustom vhdl-modify-date-on-saving t
-  "*Non-nil means update the modification date when the buffer is saved.
+  "Non-nil means update the modification date when the buffer is saved.
 Calls function `\\[vhdl-template-modify]').
 
 NOTE: Activate the new setting in a VHDL buffer by using the menu entry
@@ -1000,26 +1000,26 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
   :group 'vhdl-template)
 
 (defcustom vhdl-reset-kind 'async
-  "*Specifies which kind of reset to use in sequential processes."
+  "Specifies which kind of reset to use in sequential processes."
   :type '(choice (const :tag "None" none)
 		 (const :tag "Synchronous" sync)
 		 (const :tag "Asynchronous" async))
   :group 'vhdl-sequential-process)
 
 (defcustom vhdl-reset-active-high nil
-  "*Non-nil means reset in sequential processes is active high.
+  "Non-nil means reset in sequential processes is active high.
 Otherwise, reset is active low."
   :type 'boolean
   :group 'vhdl-sequential-process)
 
 (defcustom vhdl-clock-rising-edge t
-  "*Non-nil means rising edge of clock triggers sequential processes.
+  "Non-nil means rising edge of clock triggers sequential processes.
 Otherwise, falling edge triggers."
   :type 'boolean
   :group 'vhdl-sequential-process)
 
 (defcustom vhdl-clock-edge-condition 'standard
-  "*Syntax of the clock edge condition.
+  "Syntax of the clock edge condition.
   Standard: \"clk'event and clk = '1'\"
   Function: \"rising_edge(clk)\""
   :type '(choice (const :tag "Standard" standard)
@@ -1027,12 +1027,12 @@ Otherwise, falling edge triggers."
   :group 'vhdl-sequential-process)
 
 (defcustom vhdl-clock-name ""
-  "*Name of clock signal to use in templates."
+  "Name of clock signal to use in templates."
   :type 'string
   :group 'vhdl-sequential-process)
 
 (defcustom vhdl-reset-name ""
-  "*Name of reset signal to use in templates."
+  "Name of reset signal to use in templates."
   :type 'string
   :group 'vhdl-sequential-process)
 
@@ -1054,7 +1054,7 @@ begin  -- process <label>
   end if;
 end process <label>;"
      "e" ""))
-  "*List of user models.
+  "List of user models.
 VHDL models (templates) can be specified by the user in this list.  They can be
 invoked from the menu, through key bindings (`C-c C-m ...'), or by keyword
 electrification (i.e. overriding existing or creating new keywords, see
@@ -1103,7 +1103,7 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
 
 (defcustom vhdl-compose-architecture-name '(".*" . "str")
   (concat
-   "*Specifies how the component architecture name is obtained.
+   "Specifies how the component architecture name is obtained.
 The component architecture name can be obtained by modifying the entity name
 \(e.g. attaching or stripping off a substring).
 If TO STRING is empty, the architecture name is queried."
@@ -1115,7 +1115,7 @@ If TO STRING is empty, the architecture name is queried."
 (defcustom vhdl-compose-configuration-name
   '("\\(.*\\) \\(.*\\)" . "\\1_\\2_cfg")
   (concat
-   "*Specifies how the configuration name is obtained.
+   "Specifies how the configuration name is obtained.
 The configuration name can be obtained by modifying the entity and/or
 architecture name (e.g. attaching or stripping off a substring).  The string
 that is matched against the regexp is the concatenation of the entity and the
@@ -1129,7 +1129,7 @@ default setting as example)."
 (defcustom vhdl-components-package-name
   '((".*" . "\\&_components") . "components")
   (concat
-   "*Specifies how the name for the components package is obtained.
+   "Specifies how the name for the components package is obtained.
 The components package is a package containing all component declarations for
 the current design.  Its name can be obtained by modifying the project name
 \(e.g. attaching or stripping off a substring).  If no project is defined, the
@@ -1142,19 +1142,19 @@ DIRECTORY entry is chosen."
   :group 'vhdl-compose)
 
 (defcustom vhdl-use-components-package nil
-  "*Non-nil means use a separate components package for component declarations.
+  "Non-nil means use a separate components package for component declarations.
 Otherwise, component declarations are inserted and searched for in the
 architecture declarative parts."
   :type 'boolean
   :group 'vhdl-compose)
 
 (defcustom vhdl-compose-include-header t
-  "*Non-nil means include a header in automatically generated files."
+  "Non-nil means include a header in automatically generated files."
   :type 'boolean
   :group 'vhdl-compose)
 
 (defcustom vhdl-compose-create-files 'single
-  "*Specifies whether new files should be created for the new component.
+  "Specifies whether new files should be created for the new component.
 The component's entity and architecture are inserted:
   None          : in current buffer
   Single file   : in new single file
@@ -1167,14 +1167,14 @@ The file names are obtained from variables `vhdl-entity-file-name' and
   :group 'vhdl-compose)
 
 (defcustom vhdl-compose-configuration-create-file nil
-  "*Specifies whether a new file should be created for the configuration.
+  "Specifies whether a new file should be created for the configuration.
 If non-nil, a new file is created for the configuration.
 The file name is obtained from variable `vhdl-configuration-file-name'."
   :type 'boolean
   :group 'vhdl-compose)
 
 (defcustom vhdl-compose-configuration-hierarchical t
-  "*Specifies whether hierarchical configurations should be created.
+  "Specifies whether hierarchical configurations should be created.
 If non-nil, automatically created configurations are hierarchical and include
 the whole hierarchy of subcomponents.  Otherwise the configuration only
 includes one level of subcomponents."
@@ -1182,7 +1182,7 @@ includes one level of subcomponents."
   :group 'vhdl-compose)
 
 (defcustom vhdl-compose-configuration-use-subconfiguration t
-  "*Specifies whether subconfigurations should be used inside configurations.
+  "Specifies whether subconfigurations should be used inside configurations.
 If non-nil, automatically created configurations use configurations in binding
 indications for subcomponents, if such configurations exist.  Otherwise,
 entities are used in binding indications for subcomponents."
@@ -1196,22 +1196,22 @@ entities are used in binding indications for subcomponents."
   :group 'vhdl-compose)
 
 (defcustom vhdl-include-port-comments nil
-  "*Non-nil means include port comments when a port is pasted."
+  "Non-nil means include port comments when a port is pasted."
   :type 'boolean
   :group 'vhdl-port)
 
 (defcustom vhdl-include-direction-comments nil
-  "*Non-nil means include port direction in instantiations as comments."
+  "Non-nil means include port direction in instantiations as comments."
   :type 'boolean
   :group 'vhdl-port)
 
 (defcustom vhdl-include-type-comments nil
-  "*Non-nil means include generic/port type in instantiations as comments."
+  "Non-nil means include generic/port type in instantiations as comments."
   :type 'boolean
   :group 'vhdl-port)
 
 (defcustom vhdl-include-group-comments 'never
-  "*Specifies whether to include group comments and spacings.
+  "Specifies whether to include group comments and spacings.
 The comments and empty lines between groups of ports are pasted:
   Never       : never
   Declarations: in entity/component/constant/signal declarations only
@@ -1223,7 +1223,7 @@ The comments and empty lines between groups of ports are pasted:
 
 (defcustom vhdl-actual-port-name '(".*" . "\\&")
   (concat
-   "*Specifies how actual port names are obtained from formal port names.
+   "Specifies how actual port names are obtained from formal port names.
 In a component instantiation, an actual port name can be obtained by
 modifying the formal port name (e.g. attaching or stripping off a substring)."
    vhdl-name-doc-string)
@@ -1233,7 +1233,7 @@ modifying the formal port name (e.g. attaching or stripping off a substring)."
 
 (defcustom vhdl-instance-name '(".*" . "\\&_%d")
   (concat
-   "*Specifies how an instance name is obtained.
+   "Specifies how an instance name is obtained.
 The instance name can be obtained by modifying the name of the component to be
 instantiated (e.g. attaching or stripping off a substring).  \"%d\" is replaced
 by a unique number (starting with 1).
@@ -1250,7 +1250,7 @@ If TO STRING is empty, the instance name is queried."
 
 (defcustom vhdl-testbench-entity-name '(".*" . "\\&_tb")
   (concat
-   "*Specifies how the testbench entity name is obtained.
+   "Specifies how the testbench entity name is obtained.
 The entity name of a testbench can be obtained by modifying the name of
 the component to be tested (e.g. attaching or stripping off a substring)."
    vhdl-name-doc-string)
@@ -1260,7 +1260,7 @@ the component to be tested (e.g. attaching or stripping off a substring)."
 
 (defcustom vhdl-testbench-architecture-name '(".*" . "")
   (concat
-   "*Specifies how the testbench architecture name is obtained.
+   "Specifies how the testbench architecture name is obtained.
 The testbench architecture name can be obtained by modifying the name of
 the component to be tested (e.g. attaching or stripping off a substring).
 If TO STRING is empty, the architecture name is queried."
@@ -1271,7 +1271,7 @@ If TO STRING is empty, the architecture name is queried."
 
 (defcustom vhdl-testbench-configuration-name vhdl-compose-configuration-name
   (concat
-   "*Specifies how the testbench configuration name is obtained.
+   "Specifies how the testbench configuration name is obtained.
 The configuration name of a testbench can be obtained by modifying the entity
 and/or architecture name (e.g. attaching or stripping off a substring).  The
 string that is matched against the regexp is the concatenation of the entity
@@ -1284,7 +1284,7 @@ names (see default setting as example)."
 
 (defcustom vhdl-testbench-dut-name '(".*" . "DUT")
   (concat
-   "*Specifies how a DUT instance name is obtained.
+   "Specifies how a DUT instance name is obtained.
 The design-under-test instance name (i.e. the component instantiated in the
 testbench) can be obtained by modifying the component name (e.g. attaching
 or stripping off a substring)."
@@ -1294,7 +1294,7 @@ or stripping off a substring)."
   :group 'vhdl-testbench)
 
 (defcustom vhdl-testbench-include-header t
-  "*Non-nil means include a header in automatically generated files."
+  "Non-nil means include a header in automatically generated files."
   :type 'boolean
   :group 'vhdl-testbench)
 
@@ -1302,7 +1302,7 @@ or stripping off a substring)."
   -- clock
   signal Clk : std_logic := '1';
 "
-  "*String or file to be inserted in the testbench declarative part.
+  "String or file to be inserted in the testbench declarative part.
 If the string specifies an existing file name, the contents of the file is
 inserted, otherwise the string itself is inserted in the testbench
 architecture before the BEGIN keyword.
@@ -1322,7 +1322,7 @@ Type `C-j' for newlines."
     wait until Clk = '1';
   end process WaveGen_Proc;
 "
-  "*String or file to be inserted in the testbench statement part.
+  "String or file to be inserted in the testbench statement part.
 If the string specifies an existing file name, the contents of the file is
 inserted, otherwise the string itself is inserted in the testbench
 architecture before the END keyword.
@@ -1331,22 +1331,22 @@ Type `C-j' for newlines."
   :group 'vhdl-testbench)
 
 (defcustom vhdl-testbench-initialize-signals nil
-  "*Non-nil means initialize signals with `0' when declared in testbench."
+  "Non-nil means initialize signals with `0' when declared in testbench."
   :type 'boolean
   :group 'vhdl-testbench)
 
 (defcustom vhdl-testbench-include-library t
-  "*Non-nil means a library/use clause for std_logic_1164 is included."
+  "Non-nil means a library/use clause for std_logic_1164 is included."
   :type 'boolean
   :group 'vhdl-testbench)
 
 (defcustom vhdl-testbench-include-configuration t
-  "*Non-nil means a testbench configuration is attached at the end."
+  "Non-nil means a testbench configuration is attached at the end."
   :type 'boolean
   :group 'vhdl-testbench)
 
 (defcustom vhdl-testbench-create-files 'single
-  "*Specifies whether new files should be created for the testbench.
+  "Specifies whether new files should be created for the testbench.
 testbench entity and architecture are inserted:
   None          : in current buffer
   Single file   : in new single file
@@ -1360,7 +1360,7 @@ and `vhdl-testbench-architecture-file-name'."
 
 (defcustom vhdl-testbench-entity-file-name vhdl-entity-file-name
   (concat
-   "*Specifies how the testbench entity file name is obtained.
+   "Specifies how the testbench entity file name is obtained.
 The entity file name can be obtained by modifying the testbench entity name
 \(e.g. attaching or stripping off a substring).  The file extension is
 automatically taken from the file name of the current buffer.  Testbench
@@ -1373,7 +1373,7 @@ absolute path to the file name."
 
 (defcustom vhdl-testbench-architecture-file-name vhdl-architecture-file-name
   (concat
-   "*Specifies how the testbench architecture file name is obtained.
+   "Specifies how the testbench architecture file name is obtained.
 The architecture file name can be obtained by modifying the testbench entity
 and/or architecture name (e.g. attaching or stripping off a substring).  The
 string that is matched against the regexp is the concatenation of the entity
@@ -1392,17 +1392,17 @@ name."
   :group 'vhdl)
 
 (defcustom vhdl-self-insert-comments t
-  "*Non-nil means various templates automatically insert help comments."
+  "Non-nil means various templates automatically insert help comments."
   :type 'boolean
   :group 'vhdl-comment)
 
 (defcustom vhdl-prompt-for-comments t
-  "*Non-nil means various templates prompt for user definable comments."
+  "Non-nil means various templates prompt for user definable comments."
   :type 'boolean
   :group 'vhdl-comment)
 
 (defcustom vhdl-inline-comment-column 40
-  "*Column to indent and align inline comments to.
+  "Column to indent and align inline comments to.
 Overrides local option `comment-column'.
 
 NOTE: Activate the new setting in a VHDL buffer by using the menu entry
@@ -1411,7 +1411,7 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
   :group 'vhdl-comment)
 
 (defcustom vhdl-end-comment-column 79
-  "*End of comment column.
+  "End of comment column.
 Comments that exceed this column number are wrapped.
 
 NOTE: Activate the new setting in a VHDL buffer by using the menu entry
@@ -1427,19 +1427,19 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
   :group 'vhdl)
 
 (defcustom vhdl-auto-align t
-  "*Non-nil means align some templates automatically after generation."
+  "Non-nil means align some templates automatically after generation."
   :type 'boolean
   :group 'vhdl-align)
 
 (defcustom vhdl-align-groups t
-  "*Non-nil means align groups of code lines separately.
+  "Non-nil means align groups of code lines separately.
 A group of code lines is a region of consecutive lines between two lines that
 match the regexp in option `vhdl-align-group-separate'."
   :type 'boolean
   :group 'vhdl-align)
 
 (defcustom vhdl-align-group-separate "^\\s-*$"
-  "*Regexp for matching a line that separates groups of lines for alignment.
+  "Regexp for matching a line that separates groups of lines for alignment.
 Examples:
   \"^\\s-*$\":          matches an empty line
   \"^\\s-*\\(--.*\\)?$\": matches an empty line or a comment-only line"
@@ -1447,7 +1447,7 @@ Examples:
   :group 'vhdl-align)
 
 (defcustom vhdl-align-same-indent t
-  "*Non-nil means align blocks with same indent separately.
+  "Non-nil means align blocks with same indent separately.
 When a region or the entire buffer is aligned, the code is divided into
 blocks of same indent which are aligned separately (except for argument/port
 lists).  This gives nicer alignment in most cases.
@@ -1461,7 +1461,7 @@ Option `vhdl-align-groups' still applies within these blocks."
   :group 'vhdl)
 
 (defcustom vhdl-highlight-keywords t
-  "*Non-nil means highlight VHDL keywords and other standardized words.
+  "Non-nil means highlight VHDL keywords and other standardized words.
 The following faces are used:
   `font-lock-keyword-face'       : keywords
   `font-lock-type-face'          : standardized types
@@ -1477,7 +1477,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-highlight-names t
-  "*Non-nil means highlight declaration names and construct labels.
+  "Non-nil means highlight declaration names and construct labels.
 The following faces are used:
   `font-lock-function-name-face' : names in declarations of units,
      subprograms, components, as well as labels of VHDL constructs
@@ -1494,7 +1494,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-highlight-special-words nil
-  "*Non-nil means highlight words with special syntax.
+  "Non-nil means highlight words with special syntax.
 The words with syntax and color specified in option `vhdl-special-syntax-alist'
 are highlighted accordingly.
 Can be used for visual support of naming conventions.
@@ -1507,7 +1507,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-highlight-forbidden-words nil
-  "*Non-nil means highlight forbidden words.
+  "Non-nil means highlight forbidden words.
 The reserved words specified in option `vhdl-forbidden-words' or having the
 syntax specified in option `vhdl-forbidden-syntax' are highlighted in a
 warning color (face `vhdl-font-lock-reserved-words-face') to indicate not to
@@ -1522,7 +1522,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-highlight-verilog-keywords nil
-  "*Non-nil means highlight Verilog keywords as reserved words.
+  "Non-nil means highlight Verilog keywords as reserved words.
 Verilog keywords are highlighted in a warning color (face
 `vhdl-font-lock-reserved-words-face') to indicate not to use them.
 
@@ -1535,7 +1535,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-highlight-translate-off nil
-  "*Non-nil means background-highlight code excluded from translation.
+  "Non-nil means background-highlight code excluded from translation.
 That is, all code between \"-- pragma translate_off\" and
 \"-- pragma translate_on\" is highlighted using a different background color
 \(face `vhdl-font-lock-translate-off-face').
@@ -1549,7 +1549,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-highlight-case-sensitive nil
-  "*Non-nil means consider case for highlighting.
+  "Non-nil means consider case for highlighting.
 Possible trade-off:
   non-nil  also upper-case VHDL words are highlighted, but case of words with
            special syntax is not considered
@@ -1566,7 +1566,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   '(("generic/constant" "\\w+_[cg]" "Gold3" "BurlyWood1")
     ("type" "\\w+_t" "ForestGreen" "PaleGreen")
     ("variable" "\\w+_v" "Grey50" "Grey80"))
-  "*List of special syntax to be highlighted.
+  "List of special syntax to be highlighted.
 If option `vhdl-highlight-special-words' is non-nil, words with the specified
 syntax (as regular expression) are highlighted in the corresponding color.
 
@@ -1599,7 +1599,7 @@ NOTE: Activate a changed regexp in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-forbidden-words '()
-  "*List of forbidden words to be highlighted.
+  "List of forbidden words to be highlighted.
 If option `vhdl-highlight-forbidden-words' is non-nil, these reserved
 words are highlighted in a warning color to indicate not to use them.
 
@@ -1612,7 +1612,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-forbidden-syntax ""
-  "*Syntax of forbidden words to be highlighted.
+  "Syntax of forbidden words to be highlighted.
 If option `vhdl-highlight-forbidden-words' is non-nil, words with this
 syntax are highlighted in a warning color to indicate not to use them.
 Can be used to highlight too long identifiers (e.g. \"\\w\\w\\w\\w\\w\\w\\w\\w\\w\\w+\"
@@ -1627,7 +1627,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl-highlight)
 
 (defcustom vhdl-directive-keywords '("pragma" "synopsys")
-  "*List of compiler directive keywords recognized for highlighting.
+  "List of compiler directive keywords recognized for highlighting.
 
 NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
       entry \"Fontify Buffer\")."
@@ -1643,13 +1643,13 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   :group 'vhdl)
 
 (defcustom vhdl-speedbar-auto-open nil
-  "*Non-nil means automatically open speedbar at startup.
+  "Non-nil means automatically open speedbar at startup.
 Alternatively, the speedbar can be opened from the VHDL menu."
   :type 'boolean
   :group 'vhdl-speedbar)
 
 (defcustom vhdl-speedbar-display-mode 'files
-  "*Specifies the default displaying mode when opening speedbar.
+  "Specifies the default displaying mode when opening speedbar.
 Alternatively, the displaying mode can be selected from the speedbar menu or
 by typing `f' (files), `h' (directory hierarchy) or `H' (project hierarchy)."
   :type '(choice (const :tag "Files" files)
@@ -1658,7 +1658,7 @@ by typing `f' (files), `h' (directory hierarchy) or `H' (project hierarchy)."
   :group 'vhdl-speedbar)
 
 (defcustom vhdl-speedbar-scan-limit '(10000000 (1000000 50))
-  "*Limits scanning of large files and netlists.
+  "Limits scanning of large files and netlists.
 Design units: maximum file size to scan for design units
 Hierarchy (instances of subcomponents):
   File size: maximum file size to scan for instances (in bytes)
@@ -1685,18 +1685,18 @@ prevent the scanning of large netlists."
   :group 'vhdl-speedbar)
 
 (defcustom vhdl-speedbar-jump-to-unit t
-  "*Non-nil means jump to the design unit code when opened in a buffer.
+  "Non-nil means jump to the design unit code when opened in a buffer.
 The buffer cursor position is left unchanged otherwise."
   :type 'boolean
   :group 'vhdl-speedbar)
 
 (defcustom vhdl-speedbar-update-on-saving t
-  "*Automatically update design hierarchy when buffer is saved."
+  "Automatically update design hierarchy when buffer is saved."
   :type 'boolean
   :group 'vhdl-speedbar)
 
 (defcustom vhdl-speedbar-save-cache '(hierarchy display)
-  "*Automatically save modified hierarchy caches when exiting Emacs.
+  "Automatically save modified hierarchy caches when exiting Emacs.
   Hierarchy: design hierarchy information
   Display:   displaying information (which design units to expand)"
   :type '(set (const :tag "Hierarchy" hierarchy)
@@ -1704,7 +1704,7 @@ The buffer cursor position is left unchanged otherwise."
   :group 'vhdl-speedbar)
 
 (defcustom vhdl-speedbar-cache-file-name ".emacs-vhdl-cache-\\1-\\2"
-  "*Name of file for saving hierarchy cache.
+  "Name of file for saving hierarchy cache.
 \"\\1\" is replaced by the project name if a project is specified,
 \"directory\" otherwise.  \"\\2\" is replaced by the user name (allows for
 different users to have cache files in the same directory). Can also have
@@ -1718,20 +1718,20 @@ an absolute path (i.e. all caches can be stored in one global directory)."
   :group 'vhdl)
 
 (defcustom vhdl-index-menu nil
-  "*Non-nil means add an index menu for a source file when loading.
+  "Non-nil means add an index menu for a source file when loading.
 Alternatively, the speedbar can be used.  Note that the index menu scans a file
 when it is opened, while speedbar only scans the file upon request."
   :type 'boolean
   :group 'vhdl-menu)
 
 (defcustom vhdl-source-file-menu nil
-  "*Non-nil means add a menu of all source files in current directory.
+  "Non-nil means add a menu of all source files in current directory.
 Alternatively, the speedbar can be used."
   :type 'boolean
   :group 'vhdl-menu)
 
 (defcustom vhdl-hideshow-menu nil
-  "*Non-nil means add hideshow menu and functionality at startup.
+  "Non-nil means add hideshow menu and functionality at startup.
 Hideshow can also be enabled from the VHDL Mode menu.
 Hideshow allows hiding code of various VHDL constructs.
 
@@ -1741,7 +1741,7 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
   :group 'vhdl-menu)
 
 (defcustom vhdl-hide-all-init nil
-  "*Non-nil means hide all design units initially after a file is loaded."
+  "Non-nil means hide all design units initially after a file is loaded."
   :type 'boolean
   :group 'vhdl-menu)
 
@@ -1751,7 +1751,7 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
   :group 'vhdl)
 
 (defcustom vhdl-print-two-column t
-  "*Non-nil means print code in two columns and landscape format.
+  "Non-nil means print code in two columns and landscape format.
 Adjusts settings in a way that PostScript printing (\"File\" menu, `ps-print')
 prints VHDL files in a nice two-column landscape style.
 
@@ -1761,7 +1761,7 @@ NOTE: Activate the new setting by restarting Emacs.
   :group 'vhdl-print)
 
 (defcustom vhdl-print-customize-faces t
-  "*Non-nil means use an optimized set of faces for PostScript printing.
+  "Non-nil means use an optimized set of faces for PostScript printing.
 
 NOTE: Activate the new setting by restarting Emacs.
       Overrides `ps-print' settings locally."
@@ -1774,7 +1774,7 @@ NOTE: Activate the new setting by restarting Emacs.
   :group 'vhdl)
 
 (defcustom vhdl-intelligent-tab t
-  "*Non-nil means `TAB' does indentation, word completion and tab insertion.
+  "Non-nil means `TAB' does indentation, word completion and tab insertion.
 That is, if preceding character is part of a word then complete word,
 else if not at beginning of line then insert tab,
 else if last command was a `TAB' or `RET' then dedent one step,
@@ -1788,28 +1788,28 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
   :group 'vhdl-misc)
 
 (defcustom vhdl-indent-syntax-based t
-  "*Non-nil means indent lines of code based on their syntactic context.
+  "Non-nil means indent lines of code based on their syntactic context.
 Otherwise, a line is indented like the previous nonblank line.  This can be
 useful in large files where syntax-based indentation gets very slow."
   :type 'boolean
   :group 'vhdl-misc)
 
 (defcustom vhdl-word-completion-case-sensitive nil
-  "*Non-nil means word completion using `TAB' is case sensitive.
+  "Non-nil means word completion using `TAB' is case sensitive.
 That is, `TAB' completes words that start with the same letters and case.
 Otherwise, case is ignored."
   :type 'boolean
   :group 'vhdl-misc)
 
 (defcustom vhdl-word-completion-in-minibuffer t
-  "*Non-nil enables word completion in minibuffer (for template prompts).
+  "Non-nil enables word completion in minibuffer (for template prompts).
 
 NOTE: Activate the new setting by restarting Emacs."
   :type 'boolean
   :group 'vhdl-misc)
 
 (defcustom vhdl-underscore-is-part-of-word nil
-  "*Non-nil means consider the underscore character `_' as part of word.
+  "Non-nil means consider the underscore character `_' as part of word.
 An identifier containing underscores is then treated as a single word in
 select and move operations.  All parts of an identifier separated by underscore
 are treated as single words otherwise.
@@ -1844,24 +1844,24 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
 ;; Internal variables
 
 (defvar vhdl-menu-max-size 20
-  "*Specifies the maximum size of a menu before splitting it into submenus.")
+  "Specifies the maximum size of a menu before splitting it into submenus.")
 
 (defvar vhdl-progress-interval 1
-  "*Interval used to update progress status during long operations.
+  "Interval used to update progress status during long operations.
 If a number, percentage complete gets updated after each interval of
 that many seconds.  To inhibit all messages, set this option to nil.")
 
 (defvar vhdl-inhibit-startup-warnings-p nil
-  "*If non-nil, inhibits start up compatibility warnings.")
+  "If non-nil, inhibits start up compatibility warnings.")
 
 (defvar vhdl-strict-syntax-p nil
-  "*If non-nil, all syntactic symbols must be found in `vhdl-offsets-alist'.
+  "If non-nil, all syntactic symbols must be found in `vhdl-offsets-alist'.
 If the syntactic symbol for a particular line does not match a symbol
 in the offsets alist, an error is generated, otherwise no error is
 reported and the syntactic symbol is ignored.")
 
 (defvar vhdl-echo-syntactic-information-p nil
-  "*If non-nil, syntactic info is echoed when the line is indented.")
+  "If non-nil, syntactic info is echoed when the line is indented.")
 
 (defconst vhdl-offsets-alist-default
   '((string		   . -1000)
@@ -1889,7 +1889,7 @@ Do not change this constant!  See the variable `vhdl-offsets-alist' for
 more information.")
 
 (defvar vhdl-offsets-alist (copy-alist vhdl-offsets-alist-default)
-  "*Association list of syntactic element symbols and indentation offsets.
+  "Association list of syntactic element symbols and indentation offsets.
 As described below, each cons cell in this list has the form:
 
     (SYNTACTIC-SYMBOL . OFFSET)
@@ -1950,7 +1950,7 @@ Here is the current list of valid syntactic element symbols:
  package-body           -- inside a package body")
 
 (defvar vhdl-comment-only-line-offset 0
-  "*Extra offset for line which contains only the start of a comment.
+  "Extra offset for line which contains only the start of a comment.
 Can contain an integer or a cons cell of the form:
 
  (NON-ANCHORED-OFFSET . ANCHORED-OFFSET)
@@ -1961,7 +1961,7 @@ the amount of offset to give column-zero anchored comment-only lines.
 Just an integer as value is equivalent to (<val> . 0)")
 
 (defvar vhdl-special-indent-hook nil
-  "*Hook for user defined special indentation adjustments.
+  "Hook for user defined special indentation adjustments.
 This hook gets called after a line is indented by the mode.")
 
 (defvar vhdl-style-alist
@@ -2003,7 +2003,7 @@ your style, only those that are different from the default.")
       (setq vhdl-style-alist (cons default vhdl-style-alist))))
 
 (defvar vhdl-mode-hook nil
-  "*Hook called by `vhdl-mode'.")
+  "Hook called by `vhdl-mode'.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

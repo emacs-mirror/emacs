@@ -3563,7 +3563,7 @@ void
 syms_of_eval (void)
 {
   DEFVAR_INT ("max-specpdl-size", max_specpdl_size,
-	      doc: /* *Limit on number of Lisp variable bindings and `unwind-protect's.
+	      doc: /* Limit on number of Lisp variable bindings and `unwind-protect's.
 If Lisp code tries to increase the total number past this amount,
 an error is signaled.
 You can safely use a value considerably larger than the default value,
@@ -3571,7 +3571,7 @@ if that proves inconveniently small.  However, if you increase it too far,
 Emacs could run out of memory trying to make the stack bigger.  */);
 
   DEFVAR_INT ("max-lisp-eval-depth", max_lisp_eval_depth,
-	      doc: /* *Limit on depth in `eval', `apply' and `funcall' before error.
+	      doc: /* Limit on depth in `eval', `apply' and `funcall' before error.
 
 This limit serves to catch infinite recursions for you before they cause
 actual stack overflow in C, which would be fatal for Emacs.
@@ -3615,7 +3615,7 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qdebug, "debug");
 
   DEFVAR_LISP ("debug-on-error", Vdebug_on_error,
-	       doc: /* *Non-nil means enter debugger if an error is signaled.
+	       doc: /* Non-nil means enter debugger if an error is signaled.
 Does not apply to errors handled by `condition-case' or those
 matched by `debug-ignored-errors'.
 If the value is a list, an error only means to enter the debugger
@@ -3627,7 +3627,7 @@ See also the variable `debug-on-quit'.  */);
   Vdebug_on_error = Qnil;
 
   DEFVAR_LISP ("debug-ignored-errors", Vdebug_ignored_errors,
-    doc: /* *List of errors for which the debugger should not be called.
+    doc: /* List of errors for which the debugger should not be called.
 Each element may be a condition-name or a regexp that matches error messages.
 If any element applies to a given error, that error skips the debugger
 and just returns to top level.
@@ -3636,7 +3636,7 @@ It does not apply to errors handled by `condition-case'.  */);
   Vdebug_ignored_errors = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", debug_on_quit,
-    doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
+    doc: /* Non-nil means enter debugger if quit is signaled (C-g, for example).
 Does not apply if quit is handled by a `condition-case'.  */);
   debug_on_quit = 0;
 
@@ -3665,7 +3665,7 @@ The Edebug package uses this to regain control.  */);
   Vsignal_hook_function = Qnil;
 
   DEFVAR_LISP ("debug-on-signal", Vdebug_on_signal,
-	       doc: /* *Non-nil means call the debugger regardless of condition handlers.
+	       doc: /* Non-nil means call the debugger regardless of condition handlers.
 Note that `debug-on-error', `debug-on-quit' and friends
 still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;

@@ -92,7 +92,7 @@
 "*Number of steps `animate-string' will place a char before its last position.")
 
 (defvar animation-buffer-name nil
-  "*String naming the default buffer for animations.
+  "String naming the default buffer for animations.
 When nil animations displayed in the buffer named *Animation*.")
 
 ;;;###autoload

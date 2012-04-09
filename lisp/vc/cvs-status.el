@@ -395,7 +395,7 @@ the list is a three-string list TAG, KIND, REV."
    (cvs-tree-use-jisx0208 'jisx0208)
    ((char-displayable-p ?━) 'unicode)
    ((char-displayable-p (make-char 'japanese-jisx0208 40 44)) 'jisx0208))
-  "*Non-nil if we should use the graphical glyphs from `japanese-jisx0208'.
+  "Non-nil if we should use the graphical glyphs from `japanese-jisx0208'.
 Otherwise, default to ASCII chars like +, - and |.")
 
 (defconst cvs-tree-char-space

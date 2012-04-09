@@ -99,7 +99,7 @@ present for backward compatibility."
 ;; Define FTP method ...
 ;;;###tramp-autoload
 (defconst tramp-ftp-method "ftp"
-  "*When this method name is used, forward all calls to Ange-FTP.")
+  "When this method name is used, forward all calls to Ange-FTP.")
 
 ;; ... and add it to the method list.
 ;;;###tramp-autoload

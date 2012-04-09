@@ -468,7 +468,7 @@ The expansion is entirely correct because it uses the C preprocessor."
    (t (funcall (default-value 'font-lock-syntactic-face-function) state))))
 
 (defcustom perl-indent-level 4
-  "*Indentation of Perl statements with respect to containing block."
+  "Indentation of Perl statements with respect to containing block."
   :type 'integer
   :group 'perl)
 
@@ -485,28 +485,28 @@ The expansion is entirely correct because it uses the C preprocessor."
 ;;;###autoload(put 'perl-label-offset 'safe-local-variable 'integerp)
 
 (defcustom perl-continued-statement-offset 4
-  "*Extra indent for lines not starting new statements."
+  "Extra indent for lines not starting new statements."
   :type 'integer
   :group 'perl)
 (defcustom perl-continued-brace-offset -4
-  "*Extra indent for substatements that start with open-braces.
+  "Extra indent for substatements that start with open-braces.
 This is in addition to `perl-continued-statement-offset'."
   :type 'integer
   :group 'perl)
 (defcustom perl-brace-offset 0
-  "*Extra indentation for braces, compared with other text in same context."
+  "Extra indentation for braces, compared with other text in same context."
   :type 'integer
   :group 'perl)
 (defcustom perl-brace-imaginary-offset 0
-  "*Imagined indentation of an open brace that actually follows a statement."
+  "Imagined indentation of an open brace that actually follows a statement."
   :type 'integer
   :group 'perl)
 (defcustom perl-label-offset -2
-  "*Offset of Perl label lines relative to usual indentation."
+  "Offset of Perl label lines relative to usual indentation."
   :type 'integer
   :group 'perl)
 (defcustom perl-indent-continued-arguments nil
-  "*If non-nil offset of argument lines relative to usual indentation.
+  "If non-nil offset of argument lines relative to usual indentation.
 If nil, continued arguments are aligned with the first argument."
   :type '(choice integer (const nil))
   :group 'perl)
@@ -521,7 +521,7 @@ nonwhite character on the line."
 ;; I changed the default to nil for consistency with general Emacs
 ;; conventions -- rms.
 (defcustom perl-tab-to-comment nil
-  "*Non-nil means TAB moves to eol or makes a comment in some cases.
+  "Non-nil means TAB moves to eol or makes a comment in some cases.
 For lines which don't need indenting, TAB either indents an
 existing comment, moves to end-of-line, or if at end-of-line already,
 create a new comment."
@@ -529,7 +529,7 @@ create a new comment."
   :group 'perl)
 
 (defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"
-  "*Lines starting with this regular expression are not auto-indented."
+  "Lines starting with this regular expression are not auto-indented."
   :type 'regexp
   :group 'perl)
 

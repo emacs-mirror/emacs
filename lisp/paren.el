@@ -96,7 +96,7 @@ otherwise)."
   'show-paren-mismatch "22.1")
 
 (defvar show-paren-highlight-openparen t
-  "*Non-nil turns on openparen highlighting when matching forward.")
+  "Non-nil turns on openparen highlighting when matching forward.")
 
 (defvar show-paren-idle-timer nil)
 

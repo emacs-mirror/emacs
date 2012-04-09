@@ -4270,7 +4270,7 @@ syms_of_msdos (void)
   DEFSYM (Qreverse, "reverse");
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", Vdos_unsupported_char_glyph,
-	       doc: /* *Glyph to display instead of chars not supported by current codepage.
+	       doc: /* Glyph to display instead of chars not supported by current codepage.
 This variable is used only by MS-DOS terminals.  */);
   Vdos_unsupported_char_glyph = make_number ('\177');
 

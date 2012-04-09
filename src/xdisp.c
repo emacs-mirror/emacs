@@ -28284,14 +28284,14 @@ syms_of_xdisp (void)
 
 #ifdef HAVE_WINDOW_SYSTEM
   DEFVAR_BOOL ("x-stretch-cursor", x_stretch_cursor_p,
-    doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
+    doc: /* Non-nil means draw block cursor as wide as the glyph under it.
 For example, if a block cursor is over a tab, it will be drawn as
 wide as that tab on the display.  */);
   x_stretch_cursor_p = 0;
 #endif
 
   DEFVAR_LISP ("show-trailing-whitespace", Vshow_trailing_whitespace,
-    doc: /* *Non-nil means highlight trailing whitespace.
+    doc: /* Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
@@ -28311,7 +28311,7 @@ A value of nil means no special handling of these characters.  */);
   Vnobreak_char_display = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", Vvoid_text_area_pointer,
-    doc: /* *The pointer shape to show in void text areas.
+    doc: /* The pointer shape to show in void text areas.
 A value of nil means to show the text pointer.  Other options are `arrow',
 `text', `hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */);
   Vvoid_text_area_pointer = Qarrow;
@@ -28344,14 +28344,14 @@ where to display overlay arrows.  */);
     = Fcons (intern_c_string ("overlay-arrow-position"), Qnil);
 
   DEFVAR_INT ("scroll-step", emacs_scroll_step,
-    doc: /* *The number of lines to try scrolling a window by when point moves out.
+    doc: /* The number of lines to try scrolling a window by when point moves out.
 If that fails to bring point back on frame, point is centered instead.
 If this is zero, point is always centered after it moves off frame.
 If you want scrolling to always be a line at a time, you should set
 `scroll-conservatively' to a large value rather than set this to 1.  */);
 
   DEFVAR_INT ("scroll-conservatively", scroll_conservatively,
-    doc: /* *Scroll up to this many lines, to bring point back on screen.
+    doc: /* Scroll up to this many lines, to bring point back on screen.
 If point moves off-screen, redisplay will scroll by up to
 `scroll-conservatively' lines in order to bring point just barely
 onto the screen again.  If that cannot be done, then redisplay
@@ -28365,7 +28365,7 @@ A value of zero means always recenter point if it moves off screen.  */);
   scroll_conservatively = 0;
 
   DEFVAR_INT ("scroll-margin", scroll_margin,
-    doc: /* *Number of lines of margin at the top and bottom of a window.
+    doc: /* Number of lines of margin at the top and bottom of a window.
 Recenter the window whenever point gets within this many lines
 of the top or bottom of the window.  */);
   scroll_margin = 0;
@@ -28401,20 +28401,20 @@ Any other value means to use the appropriate face, `mode-line',
   mode_line_inverse_video = 1;
 
   DEFVAR_LISP ("line-number-display-limit", Vline_number_display_limit,
-    doc: /* *Maximum buffer size for which line number should be displayed.
+    doc: /* Maximum buffer size for which line number should be displayed.
 If the buffer is bigger than this, the line number does not appear
 in the mode line.  A value of nil means no limit.  */);
   Vline_number_display_limit = Qnil;
 
   DEFVAR_INT ("line-number-display-limit-width",
 	      line_number_display_limit_width,
-    doc: /* *Maximum line width (in characters) for line number display.
+    doc: /* Maximum line width (in characters) for line number display.
 If the average length of the lines near point is bigger than this, then the
 line number may be omitted from the mode line.  */);
   line_number_display_limit_width = 200;
 
   DEFVAR_BOOL ("highlight-nonselected-windows", highlight_nonselected_windows,
-    doc: /* *Non-nil means highlight region even in nonselected windows.  */);
+    doc: /* Non-nil means highlight region even in nonselected windows.  */);
   highlight_nonselected_windows = 0;
 
   DEFVAR_BOOL ("multiple-frames", multiple_frames,
@@ -28486,7 +28486,7 @@ See `set-window-redisplay-end-trigger'.  */);
   Vredisplay_end_trigger_functions = Qnil;
 
   DEFVAR_LISP ("mouse-autoselect-window", Vmouse_autoselect_window,
-     doc: /* *Non-nil means autoselect window with mouse pointer.
+     doc: /* Non-nil means autoselect window with mouse pointer.
 If nil, do not autoselect windows.
 A positive number means delay autoselection by that many seconds: a
 window is autoselected only after the mouse has remained in that
@@ -28506,7 +28506,7 @@ When customizing this variable make sure that the actual value of
   Vmouse_autoselect_window = Qnil;
 
   DEFVAR_LISP ("auto-resize-tool-bars", Vauto_resize_tool_bars,
-    doc: /* *Non-nil means automatically resize tool-bars.
+    doc: /* Non-nil means automatically resize tool-bars.
 This dynamically changes the tool-bar's height to the minimum height
 that is needed to make all tool-bar items visible.
 If value is `grow-only', the tool-bar's height is only increased
@@ -28514,15 +28514,15 @@ automatically; to decrease the tool-bar height, use \\[recenter].  */);
   Vauto_resize_tool_bars = Qt;
 
   DEFVAR_BOOL ("auto-raise-tool-bar-buttons", auto_raise_tool_bar_buttons_p,
-    doc: /* *Non-nil means raise tool-bar buttons when the mouse moves over them.  */);
+    doc: /* Non-nil means raise tool-bar buttons when the mouse moves over them.  */);
   auto_raise_tool_bar_buttons_p = 1;
 
   DEFVAR_BOOL ("make-cursor-line-fully-visible", make_cursor_line_fully_visible_p,
-    doc: /* *Non-nil means to scroll (recenter) cursor line if it is not fully visible.  */);
+    doc: /* Non-nil means to scroll (recenter) cursor line if it is not fully visible.  */);
   make_cursor_line_fully_visible_p = 1;
 
   DEFVAR_LISP ("tool-bar-border", Vtool_bar_border,
-    doc: /* *Border below tool-bar in pixels.
+    doc: /* Border below tool-bar in pixels.
 If an integer, use it as the height of the border.
 If it is one of `internal-border-width' or `border-width', use the
 value of the corresponding frame parameter.
@@ -28530,7 +28530,7 @@ Otherwise, no border is added below the tool-bar.  */);
   Vtool_bar_border = Qinternal_border_width;
 
   DEFVAR_LISP ("tool-bar-button-margin", Vtool_bar_button_margin,
-    doc: /* *Margin around tool-bar buttons in pixels.
+    doc: /* Margin around tool-bar buttons in pixels.
 If an integer, use that for both horizontal and vertical margins.
 Otherwise, value should be a pair of integers `(HORZ . VERT)' with
 HORZ specifying the horizontal margin, and VERT specifying the
@@ -28538,7 +28538,7 @@ vertical margin.  */);
   Vtool_bar_button_margin = make_number (DEFAULT_TOOL_BAR_BUTTON_MARGIN);
 
   DEFVAR_INT ("tool-bar-button-relief", tool_bar_button_relief,
-    doc: /* *Relief thickness of tool-bar buttons.  */);
+    doc: /* Relief thickness of tool-bar buttons.  */);
   tool_bar_button_relief = DEFAULT_TOOL_BAR_BUTTON_RELIEF;
 
   DEFVAR_LISP ("tool-bar-style", Vtool_bar_style,
@@ -28553,7 +28553,7 @@ It can be one of
   Vtool_bar_style = Qnil;
 
   DEFVAR_INT ("tool-bar-max-label-size", tool_bar_max_label_size,
-    doc: /* *Maximum number of characters a label can have to be shown.
+    doc: /* Maximum number of characters a label can have to be shown.
 The tool bar style must also show labels for this to have any effect, see
 `tool-bar-style'.  */);
   tool_bar_max_label_size = DEFAULT_TOOL_BAR_LABEL_SIZE;
@@ -28568,7 +28568,7 @@ fontified regions the property `fontified'.  */);
 
   DEFVAR_BOOL ("unibyte-display-via-language-environment",
                unibyte_display_via_language_environment,
-    doc: /* *Non-nil means display unibyte text according to language environment.
+    doc: /* Non-nil means display unibyte text according to language environment.
 Specifically, this means that raw bytes in the range 160-255 decimal
 are displayed by converting them to the equivalent multibyte characters
 according to the current language environment.  As a result, they are
@@ -28579,7 +28579,7 @@ but does not change the fact they are interpreted as raw bytes.  */);
   unibyte_display_via_language_environment = 0;
 
   DEFVAR_LISP ("max-mini-window-height", Vmax_mini_window_height,
-    doc: /* *Maximum height for resizing mini-windows (the minibuffer and the echo area).
+    doc: /* Maximum height for resizing mini-windows (the minibuffer and the echo area).
 If a float, it specifies a fraction of the mini-window frame's height.
 If an integer, it specifies a number of lines.  */);
   Vmax_mini_window_height = make_float (0.25);
@@ -28613,12 +28613,12 @@ point visible.  */);
   DEFSYM (Qauto_hscroll_mode, "auto-hscroll-mode");
 
   DEFVAR_INT ("hscroll-margin", hscroll_margin,
-    doc: /* *How many columns away from the window edge point is allowed to get
+    doc: /* How many columns away from the window edge point is allowed to get
 before automatic hscrolling will horizontally scroll the window.  */);
   hscroll_margin = 5;
 
   DEFVAR_LISP ("hscroll-step", Vhscroll_step,
-    doc: /* *How many columns to scroll the window when point gets too close to the edge.
+    doc: /* How many columns to scroll the window when point gets too close to the edge.
 When point is less than `hscroll-margin' columns from the window
 edge, automatic hscrolling will scroll the window by the amount of columns
 determined by this variable.  If its value is a positive integer, scroll that
@@ -28705,7 +28705,7 @@ To add a prefix to continuation lines, use `wrap-prefix'.  */);
 #endif /* GLYPH_DEBUG */
 
   DEFVAR_INT ("overline-margin", overline_margin,
-	       doc: /* *Space between overline and text, in pixels.
+	       doc: /* Space between overline and text, in pixels.
 The default value is 2: the height of the overline (1 pixel) plus 1 pixel
 margin to the character height.  */);
   overline_margin = 2;
@@ -28726,7 +28726,7 @@ cursor shapes.  */);
   display_hourglass_p = 1;
 
   DEFVAR_LISP ("hourglass-delay", Vhourglass_delay,
-	       doc: /* *Seconds to wait before displaying an hourglass pointer when Emacs is busy.  */);
+	       doc: /* Seconds to wait before displaying an hourglass pointer when Emacs is busy.  */);
   Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
   hourglass_atimer = NULL;

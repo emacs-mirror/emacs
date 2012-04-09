@@ -141,10 +141,10 @@ This is used during Tempo template completion."
   :group 'snmp)
 
 (defvar snmp-tempo-tags nil
-  "*Tempo tags for SNMP mode.")
+  "Tempo tags for SNMP mode.")
 
 (defvar snmpv2-tempo-tags nil
-  "*Tempo tags for SNMPv2 mode.")
+  "Tempo tags for SNMPv2 mode.")
 
 
 ;; Enable fontification for SNMP MIBs

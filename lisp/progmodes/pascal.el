@@ -183,42 +183,42 @@
 (put 'pascal-mode 'font-lock-defaults '(pascal-font-lock-keywords nil t))
 
 (defcustom pascal-indent-level 3
-  "*Indentation of Pascal statements with respect to containing block."
+  "Indentation of Pascal statements with respect to containing block."
   :type 'integer
   :group 'pascal)
 
 (defcustom pascal-case-indent 2
-  "*Indentation for case statements."
+  "Indentation for case statements."
   :type 'integer
   :group 'pascal)
 
 (defcustom pascal-auto-newline nil
-  "*Non-nil means automatically insert newlines in certain cases.
+  "Non-nil means automatically insert newlines in certain cases.
 These include after semicolons and after the punctuation mark after an `end'."
   :type 'boolean
   :group 'pascal)
 
 (defcustom pascal-indent-nested-functions t
-  "*Non-nil means nested functions are indented."
+  "Non-nil means nested functions are indented."
   :type 'boolean
   :group 'pascal)
 
 (defcustom pascal-tab-always-indent t
-  "*Non-nil means TAB in Pascal mode should always reindent the current line.
+  "Non-nil means TAB in Pascal mode should always reindent the current line.
 If this is nil, TAB inserts a tab if it is at the end of the line
 and follows non-whitespace text."
   :type 'boolean
   :group 'pascal)
 
 (defcustom pascal-auto-endcomments t
-  "*Non-nil means automatically insert comments after certain `end's.
+  "Non-nil means automatically insert comments after certain `end's.
 Specifically, this is done after the ends of cases statements and functions.
 The name of the function or case is included between the braces."
   :type 'boolean
   :group 'pascal)
 
 (defcustom pascal-auto-lineup '(all)
-  "*List of contexts where auto lineup of :'s or ='s should be done.
+  "List of contexts where auto lineup of :'s or ='s should be done.
 Elements can be of type: 'paramlist', 'declaration' or 'case', which will
 do auto lineup in parameterlist, declarations or case-statements
 respectively.  The word 'all' will do all lineups.  '(case paramlist) for
@@ -232,7 +232,7 @@ will do all lineups."
   :group 'pascal)
 
 (defvar pascal-toggle-completions nil
-  "*Non-nil meant \\<pascal-mode-map>\\[pascal-complete-word] would try all possible completions one by one.
+  "Non-nil meant \\<pascal-mode-map>\\[pascal-complete-word] would try all possible completions one by one.
 Repeated use of \\[pascal-complete-word] would show you all of them.
 Normally, when there is more than one possible completion,
 it displays a list of all possible completions.")
@@ -241,7 +241,7 @@ it displays a list of all possible completions.")
 
 (defcustom pascal-type-keywords
   '("array" "file" "packed" "char" "integer" "real" "string" "record")
-  "*Keywords for types used when completing a word in a declaration or parmlist.
+  "Keywords for types used when completing a word in a declaration or parmlist.
 These include integer, real, char, etc.
 The types defined within the Pascal program
 are handled in another way, and should not be added to this list."
@@ -251,7 +251,7 @@ are handled in another way, and should not be added to this list."
 (defcustom pascal-start-keywords
   '("begin" "end" "function" "procedure" "repeat" "until" "while"
     "read" "readln" "reset" "rewrite" "write" "writeln")
-  "*Keywords to complete when standing at the first word of a statement.
+  "Keywords to complete when standing at the first word of a statement.
 These are keywords such as begin, repeat, until, readln.
 The procedures and variables defined within the Pascal program
 are handled in another way, and should not be added to this list."
@@ -260,7 +260,7 @@ are handled in another way, and should not be added to this list."
 
 (defcustom pascal-separator-keywords
   '("downto" "else" "mod" "div" "then")
-  "*Keywords to complete when NOT standing at the first word of a statement.
+  "Keywords to complete when NOT standing at the first word of a statement.
 These are keywords such as downto, else, mod, then.
 Variables and function names defined within the Pascal program
 are handled in another way, and should not be added to this list."

@@ -436,7 +436,7 @@ like <img alt=\"Some thing.\">."
 
 ;; dash character machinery
 (defvar flyspell-consider-dash-as-word-delimiter-flag nil
-   "*Non-nil means that the `-' char is considered as a word delimiter.")
+  "Non-nil means that the `-' char is considered as a word delimiter.")
 (make-variable-buffer-local 'flyspell-consider-dash-as-word-delimiter-flag)
 (defvar flyspell-dash-dictionary nil)
 (make-variable-buffer-local 'flyspell-dash-dictionary)

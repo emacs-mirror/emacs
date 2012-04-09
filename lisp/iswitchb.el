@@ -373,7 +373,7 @@ See also `iswitchb-newbuffer'."
   :group 'iswitchb)
 
 (defvar iswitchb-all-frames 'visible
-  "*Argument to pass to `walk-windows' when finding visible buffers.
+  "Argument to pass to `walk-windows' when finding visible buffers.
 See documentation of `walk-windows' for useful values.")
 
 (defcustom iswitchb-minibuffer-setup-hook nil
