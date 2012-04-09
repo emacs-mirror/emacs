@@ -1,3 +1,11 @@
+2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* Makefile.in: Add gnutls.texi to build.
+
+	* gnutls.texi: New file to explain the GnuTLS integration.
+
+	* emacs-gnutls.texi: Add documentation for the GnuTLS integration.
+
 2012-04-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth.texi (Secret Service API): Edit further and give examples.

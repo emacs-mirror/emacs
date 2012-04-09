@@ -68,6 +68,7 @@ INFO_TARGETS = \
 	$(infodir)/flymake \
 	$(infodir)/forms \
 	$(infodir)/gnus \
+	$(infodir)/emacs-gnutls \
 	$(infodir)/idlwave \
 	$(infodir)/info \
 	$(infodir)/mairix-el \
@@ -119,6 +120,7 @@ DVI_TARGETS = \
 	flymake.dvi \
 	forms.dvi \
 	gnus.dvi \
+	emacs-gnutls.dvi \
 	idlwave.dvi \
 	info.dvi \
 	mairix-el.dvi \
@@ -170,6 +172,7 @@ PDF_TARGETS = \
 	flymake.pdf \
 	forms.pdf \
 	gnus.pdf \
+	emacs-gnutls.pdf \
 	idlwave.pdf \
 	info.pdf \
 	mairix-el.pdf \
@@ -340,6 +343,15 @@ $(infodir)/eieio: eieio.texi
 eieio.dvi: ${srcdir}/eieio.texi
 	$(ENVADD) $(TEXI2DVI) $<
 eieio.pdf: ${srcdir}/eieio.texi
+	$(ENVADD) $(TEXI2PDF) $<
+
+emacs-gnutls : $(infodir)/emacs-gnutls
+$(infodir)/emacs-gnutls: emacs-gnutls.texi
+	$(mkinfodir)
+	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) $<
+emacs-gnutls.dvi: ${srcdir}/emacs-gnutls.texi
+	$(ENVADD) $(TEXI2DVI) $<
+emacs-gnutls.pdf: ${srcdir}/emacs-gnutls.texi
 	$(ENVADD) $(TEXI2PDF) $<
 
 emacs-mime : $(infodir)/emacs-mime

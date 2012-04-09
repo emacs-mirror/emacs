@@ -40,6 +40,7 @@ Emacs editing modes
 Emacs network features
 * EUDC: (eudc).                 Emacs client for directory servers (LDAP, PH).
 * Gnus: (gnus).                 The newsreader Gnus.
+* GnuTLS: (emacs-gnutls).       The Emacs GnuTLS integration.
 * Mairix: (mairix-el).          Emacs interface to the Mairix mail indexer.
 * MH-E: (mh-e).                 Emacs interface to the MH mail system.
 * Message: (message).           Mail and news composition mode that
