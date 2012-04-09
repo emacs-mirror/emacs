@@ -68,7 +68,8 @@ system, including many technical ones.  Examples:
                            (push (list x char) newrules))
                        (setq count (1+ count))
                        (push (list keys char) newrules))))))
-             (message "latin-ltx: %d mapping for %S" count re)))))
+             ;(message "latin-ltx: %d mapping for %S" count re)
+	     ))))
       `(quail-define-rules ,@(nreverse (delete-dups newrules))))))
 
 (latin-ltx--define-rules

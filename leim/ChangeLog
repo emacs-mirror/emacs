@@ -1,3 +1,8 @@
+2012-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* quail/latin-ltx.el (latin-ltx--define-rules): Comment out
+	debugging messages.
+
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Compute the list of .el files to be compiled dynamically,
