@@ -1,3 +1,9 @@
+2012-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add
+	emacs-gnutls.
+	($(infodir)/emacs-gnutls, emacs-gnutls.dvi): New targets.
+
 2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* Makefile.in: Add gnutls.texi to build.
