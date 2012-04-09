@@ -1,3 +1,8 @@
+2012-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_last_unchanged_at_beg_row): Don't consider a row
+	"unchanged" if its end.pos is beyond ZV.  (Bug#11199)
+
 2012-04-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (constrainFrameRect): Always constrain when there is only
