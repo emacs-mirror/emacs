@@ -53,7 +53,7 @@
   :group 'languages)
 
 (defcustom asm-comment-char ?\;
-  "*The comment-start character assumed by Asm mode."
+  "The comment-start character assumed by Asm mode."
   :type 'character
   :group 'asm)
 

@@ -4933,7 +4933,7 @@ Used by `featurep' and `require', and altered by `provide'.  */);
 #endif	/* HAVE_LANGINFO_CODESET */
 
   DEFVAR_BOOL ("use-dialog-box", use_dialog_box,
-    doc: /* *Non-nil means mouse commands use dialog boxes to ask questions.
+    doc: /* Non-nil means mouse commands use dialog boxes to ask questions.
 This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
 invoked by mouse clicks and mouse menu items.
 
@@ -4942,7 +4942,7 @@ non-nil.  */);
   use_dialog_box = 1;
 
   DEFVAR_BOOL ("use-file-dialog", use_file_dialog,
-    doc: /* *Non-nil means mouse commands use a file dialog to ask for files.
+    doc: /* Non-nil means mouse commands use a file dialog to ask for files.
 This applies to commands from menus and tool bar buttons even when
 they are initiated from the keyboard.  If `use-dialog-box' is nil,
 that disables the use of a file dialog, regardless of the value of

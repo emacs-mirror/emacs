@@ -808,8 +808,6 @@ The optional argument DOCSTRING is a documentation string for the
 variable.
 
 To define a user option, use `defcustom' instead of `defvar'.
-The function `user-variable-p' also identifies a variable as a user
-option if its DOCSTRING starts with *, but this behavior is obsolete.
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   (Lisp_Object args)
 {
@@ -923,71 +921,6 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   return sym;
 }
 
-/* Error handler used in Fuser_variable_p.  */
-static Lisp_Object
-user_variable_p_eh (Lisp_Object ignore)
-{
-  return Qnil;
-}
-
-static Lisp_Object
-lisp_indirect_variable (Lisp_Object sym)
-{
-  struct Lisp_Symbol *s = indirect_variable (XSYMBOL (sym));
-  XSETSYMBOL (sym, s);
-  return sym;
-}
-
-DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
-       doc: /* Return t if VARIABLE is intended to be set and modified by users.
-\(The alternative is a variable used internally in a Lisp program.)
-
-This function returns t if (i) the first character of its
-documentation is `*', or (ii) it is customizable (its property list
-contains a non-nil value of `standard-value' or `custom-autoload'), or
-\(iii) it is an alias for a user variable.
-
-But condition (i) is considered obsolete, so for most purposes this is
-equivalent to `custom-variable-p'.  */)
-  (Lisp_Object variable)
-{
-  Lisp_Object documentation;
-
-  if (!SYMBOLP (variable))
-      return Qnil;
-
-  /* If indirect and there's an alias loop, don't check anything else.  */
-  if (XSYMBOL (variable)->redirect == SYMBOL_VARALIAS
-      && NILP (internal_condition_case_1 (lisp_indirect_variable, variable,
-					  Qt, user_variable_p_eh)))
-    return Qnil;
-
-  while (1)
-    {
-      documentation = Fget (variable, Qvariable_documentation);
-      if (INTEGERP (documentation) && XINT (documentation) < 0)
-	return Qt;
-      if (STRINGP (documentation)
-	  && ((unsigned char) SREF (documentation, 0) == '*'))
-	return Qt;
-      /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
-      if (CONSP (documentation)
-	  && STRINGP (XCAR (documentation))
-	  && INTEGERP (XCDR (documentation))
-	  && XINT (XCDR (documentation)) < 0)
-	return Qt;
-      /* Customizable?  See `custom-variable-p'.  */
-      if ((!NILP (Fget (variable, intern ("standard-value"))))
-	  || (!NILP (Fget (variable, intern ("custom-autoload")))))
-	return Qt;
-
-      if (!(XSYMBOL (variable)->redirect == SYMBOL_VARALIAS))
-	return Qnil;
-
-      /* An indirect variable?  Let's follow the chain.  */
-      XSETSYMBOL (variable, SYMBOL_ALIAS (XSYMBOL (variable)));
-    }
-}
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
        doc: /* Bind variables according to VARLIST then eval BODY.
@@ -3630,7 +3563,7 @@ void
 syms_of_eval (void)
 {
   DEFVAR_INT ("max-specpdl-size", max_specpdl_size,
-	      doc: /* *Limit on number of Lisp variable bindings and `unwind-protect's.
+	      doc: /* Limit on number of Lisp variable bindings and `unwind-protect's.
 If Lisp code tries to increase the total number past this amount,
 an error is signaled.
 You can safely use a value considerably larger than the default value,
@@ -3638,7 +3571,7 @@ if that proves inconveniently small.  However, if you increase it too far,
 Emacs could run out of memory trying to make the stack bigger.  */);
 
   DEFVAR_INT ("max-lisp-eval-depth", max_lisp_eval_depth,
-	      doc: /* *Limit on depth in `eval', `apply' and `funcall' before error.
+	      doc: /* Limit on depth in `eval', `apply' and `funcall' before error.
 
 This limit serves to catch infinite recursions for you before they cause
 actual stack overflow in C, which would be fatal for Emacs.
@@ -3682,7 +3615,7 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qdebug, "debug");
 
   DEFVAR_LISP ("debug-on-error", Vdebug_on_error,
-	       doc: /* *Non-nil means enter debugger if an error is signaled.
+	       doc: /* Non-nil means enter debugger if an error is signaled.
 Does not apply to errors handled by `condition-case' or those
 matched by `debug-ignored-errors'.
 If the value is a list, an error only means to enter the debugger
@@ -3694,7 +3627,7 @@ See also the variable `debug-on-quit'.  */);
   Vdebug_on_error = Qnil;
 
   DEFVAR_LISP ("debug-ignored-errors", Vdebug_ignored_errors,
-    doc: /* *List of errors for which the debugger should not be called.
+    doc: /* List of errors for which the debugger should not be called.
 Each element may be a condition-name or a regexp that matches error messages.
 If any element applies to a given error, that error skips the debugger
 and just returns to top level.
@@ -3703,7 +3636,7 @@ It does not apply to errors handled by `condition-case'.  */);
   Vdebug_ignored_errors = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", debug_on_quit,
-    doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
+    doc: /* Non-nil means enter debugger if quit is signaled (C-g, for example).
 Does not apply if quit is handled by a `condition-case'.  */);
   debug_on_quit = 0;
 
@@ -3732,7 +3665,7 @@ The Edebug package uses this to regain control.  */);
   Vsignal_hook_function = Qnil;
 
   DEFVAR_LISP ("debug-on-signal", Vdebug_on_signal,
-	       doc: /* *Non-nil means call the debugger regardless of condition handlers.
+	       doc: /* Non-nil means call the debugger regardless of condition handlers.
 Note that `debug-on-error', `debug-on-quit' and friends
 still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;
@@ -3789,7 +3722,6 @@ alist of active lexical bindings.  */);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);
-  defsubr (&Suser_variable_p);
   defsubr (&Slet);
   defsubr (&SletX);
   defsubr (&Swhile);

@@ -1,6 +1,6 @@
 2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
-	configure: new option --enable-gcc-warnings
+	configure: new option --enable-gcc-warnings (Bug#11207)
 	* Makefile.in (C_WARNINGS_SWITCH): Remove.
 	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
 	(ALL_CFLAGS): Use new macros rather than old.
@@ -10,6 +10,38 @@
 	-Wunused-result, -Wunused-variable.  This should go away once
 	the Emacs and Gnulib regex code is merged.
 	(xmalloc, xrealloc): Now static.
+
+2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* process.c (make_process):
+	* process.h: Add integer `gnutls_handshakes_tried' member to
+	process struct.
+
+	* gnutls.h: Add `GNUTLS_EMACS_HANDSHAKES_LIMIT' upper limit.  Add
+	convenience `GNUTLS_LOG2i' macro.
+
+	* gnutls.c (gnutls_log_function2i): Convenience log function.
+	(emacs_gnutls_read): Use new log functions,
+	`gnutls_handshakes_tried' process member, and
+	`GNUTLS_EMACS_HANDSHAKES_LIMIT' to limit the number of handshake
+	attempts per process (connection).
+
+2012-04-09  Chong Yidong  <cyd@gnu.org>
+
+	* eval.c (Fuser_variable_p, user_variable_p_eh)
+	(lisp_indirect_variable): Functions deleted.
+	(Fdefvar): Caller changed.
+
+	* callint.c (Finteractive, Fcall_interactively):
+	* minibuf.c (Fread_variable): Callers changed.
+
+2012-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): If the display string appears in
+	the buffer at position that is closer to point than the position
+	after the display string, display the cursor on the first glyph of
+	the display string.  Fixes cursor display when a 'display' text
+	property immediately follows invisible text.  (Bug#11094)
 
 2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 

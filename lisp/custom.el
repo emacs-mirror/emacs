@@ -599,15 +599,17 @@ If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
   (put symbol 'custom-autoload (if noset 'noset t))
   (custom-add-load symbol load))
 
-;; This test is also in the C code of `user-variable-p'.
 (defun custom-variable-p (variable)
   "Return non-nil if VARIABLE is a customizable variable.
 A customizable variable is either (i) a variable whose property
 list contains a non-nil `standard-value' or `custom-autoload'
 property, or (ii) an alias for another customizable variable."
-  (setq variable (indirect-variable variable))
-  (or (get variable 'standard-value)
-      (get variable 'custom-autoload)))
+  (when (symbolp variable)
+    (setq variable (indirect-variable variable))
+    (or (get variable 'standard-value)
+	(get variable 'custom-autoload))))
+
+(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.2")
 
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).

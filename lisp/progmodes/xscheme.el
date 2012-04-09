@@ -48,7 +48,7 @@
   "Name of xscheme buffer that we're currently interacting with.")
 
 (defvar xscheme-expressions-ring-max 30
-  "*Maximum length of Scheme expressions ring.")
+  "Maximum length of Scheme expressions ring.")
 
 (defvar xscheme-expressions-ring nil
   "List of expressions recently transmitted to the Scheme process.")
@@ -116,12 +116,12 @@ from being inserted into the process-buffer.")
   :group 'lisp)
 
 (defcustom scheme-band-name nil
-  "*Band loaded by the `run-scheme' command."
+  "Band loaded by the `run-scheme' command."
   :type '(choice (const nil) string)
   :group 'xscheme)
 
 (defcustom scheme-program-arguments nil
-  "*Arguments passed to the Scheme program by the `run-scheme' command."
+  "Arguments passed to the Scheme program by the `run-scheme' command."
   :type '(choice (const nil) string)
   :group 'xscheme)
 

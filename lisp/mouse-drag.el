@@ -169,7 +169,7 @@ Basically, we check for existing horizontal scrolling."
 	     nil))))))
 
 (defvar mouse-throw-with-scroll-bar nil
-  "*Set direction of mouse-throwing.
+  "Set direction of mouse-throwing.
 If nil, the text moves in the direction the mouse moves.
 If t, the scroll bar moves in the direction the mouse moves.")
 (defconst mouse-throw-magnifier-min -6)

@@ -6558,7 +6558,7 @@ syms_of_xfaces (void)
 #endif
 
   DEFVAR_LISP ("font-list-limit", Vfont_list_limit,
-	       doc: /* *Limit for font matching.
+	       doc: /* Limit for font matching.
 If an integer > 0, font matching functions won't load more than
 that number of fonts when searching for a matching font.  */);
   Vfont_list_limit = make_number (DEFAULT_FONT_LIST_LIMIT);
@@ -6568,7 +6568,7 @@ that number of fonts when searching for a matching font.  */);
   Vface_new_frame_defaults = Qnil;
 
   DEFVAR_LISP ("face-default-stipple", Vface_default_stipple,
-    doc: /* *Default stipple pattern used on monochrome displays.
+    doc: /* Default stipple pattern used on monochrome displays.
 This stipple pattern is used on monochrome displays
 instead of shades of gray for a face background color.
 See `set-face-stipple' for possible values for this variable.  */);

@@ -43,20 +43,20 @@
   :group 'news)
 
 (defcustom binhex-decoder-program "hexbin"
-  "*Non-nil value should be a string that names a binhex decoder.
+  "Non-nil value should be a string that names a binhex decoder.
 The program should expect to read binhex data on its standard
 input and write the converted data to its standard output."
   :type 'string
   :group 'binhex)
 
 (defcustom binhex-decoder-switches '("-d")
-  "*List of command line flags passed to the command `binhex-decoder-program'."
+  "List of command line flags passed to the command `binhex-decoder-program'."
   :group 'binhex
   :type '(repeat string))
 
 (defcustom binhex-use-external
   (executable-find binhex-decoder-program)
-  "*Use external binhex program."
+  "Use external binhex program."
   :version "22.1"
   :group 'binhex
   :type 'boolean)

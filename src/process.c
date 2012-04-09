@@ -647,7 +647,10 @@ make_process (Lisp_Object name)
 
 #ifdef HAVE_GNUTLS
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
+  /* Default log level.  */
   p->gnutls_log_level = 0;
+  /* GnuTLS handshakes attempted for this connection.  */
+  p->gnutls_handshakes_tried = 0;
   p->gnutls_p = 0;
   p->gnutls_state = NULL;
   p->gnutls_x509_cred = NULL;
@@ -7460,7 +7463,7 @@ syms_of_process (void)
   DEFSYM (Qargs, "args");
 
   DEFVAR_BOOL ("delete-exited-processes", delete_exited_processes,
-	       doc: /* *Non-nil means delete processes immediately when they exit.
+	       doc: /* Non-nil means delete processes immediately when they exit.
 A value of nil means don't delete them until `list-processes' is run.  */);
 
   delete_exited_processes = 1;

@@ -50,21 +50,21 @@
 
 ;; ------ User variables
 (defcustom ada-xref-other-buffer t
-  "*If nil, always display the cross-references in the same buffer.
+  "If nil, always display the cross-references in the same buffer.
 Otherwise create either a new buffer or a new frame."
   :type 'boolean :group 'ada)
 
 (defcustom ada-xref-create-ali nil
-  "*If non-nil, run gcc whenever the cross-references are not up-to-date.
+  "If non-nil, run gcc whenever the cross-references are not up-to-date.
 If nil, the cross-reference mode never runs gcc."
   :type 'boolean :group 'ada)
 
 (defcustom ada-xref-confirm-compile nil
-  "*If non-nil, ask for confirmation before compiling or running the application."
+  "If non-nil, ask for confirmation before compiling or running the application."
   :type 'boolean :group 'ada)
 
 (defcustom ada-krunch-args "0"
-  "*Maximum number of characters for filenames created by `gnatkr'.
+  "Maximum number of characters for filenames created by `gnatkr'.
 Set to 0, if you don't use crunched filenames.  This should be a string."
   :type 'string :group 'ada)
 
@@ -76,7 +76,7 @@ is faster, available from Ada mode web site."
   :type 'string :group 'ada)
 
 (defcustom ada-gnatls-args '("-v")
-  "*Arguments to pass to `gnatls' to find location of the runtime.
+  "Arguments to pass to `gnatls' to find location of the runtime.
 Typical use is to pass `--RTS=soft-floats' on some systems that support it.
 
 You can also add `-I-' if you do not want the current directory to be included.
@@ -125,7 +125,7 @@ The command `gnatfind' is used every time you choose the menu
 (defcustom ada-prj-default-check-cmd
   (concat "${cross_prefix}gnatmake -u -c -gnatc ${gnatmake_opt} ${full_current}"
 	  " -cargs ${comp_opt}")
-  "*Default command to be used to compile a single file.
+  "Default command to be used to compile a single file.
 Emacs will substitute the current filename for ${full_current}, or add
 the filename at the end.  This is the same syntax as in the project file."
   :type 'string :group 'ada)
@@ -133,35 +133,35 @@ the filename at the end.  This is the same syntax as in the project file."
 (defcustom ada-prj-default-comp-cmd
   (concat "${cross_prefix}gnatmake -u -c ${gnatmake_opt} ${full_current} -cargs"
 	  " ${comp_opt}")
-  "*Default command to be used to compile a single file.
+  "Default command to be used to compile a single file.
 Emacs will substitute the current filename for ${full_current}, or add
 the filename at the end.  This is the same syntax as in the project file."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-default-debugger "${cross_prefix}gdb"
-  "*Default name of the debugger."
+  "Default name of the debugger."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-default-make-cmd
   (concat "${cross_prefix}gnatmake -o ${main} ${main} ${gnatmake_opt} "
 	  "-cargs ${comp_opt} -bargs ${bind_opt} -largs ${link_opt}")
-  "*Default command to be used to compile the application.
+  "Default command to be used to compile the application.
 This is the same syntax as in the project file."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-default-project-file ""
-  "*Name of the current project file.
+  "Name of the current project file.
 Emacs will not try to use the search algorithm to find the project file if
 this string is not empty.  It is set whenever a project file is found."
   :type '(file :must-match t) :group 'ada)
 
 (defcustom ada-gnatstub-opts "-q -I${src_dir}"
-  "*Options to pass to `gnatsub' to generate the body of a package.
+  "Options to pass to `gnatsub' to generate the body of a package.
 This has the same syntax as in the project file (with variable substitution)."
   :type 'string :group 'ada)
 
 (defcustom ada-always-ask-project nil
-  "*If nil, use default values when no project file was found.
+  "If nil, use default values when no project file was found.
 Otherwise, ask the user for the name of the project file to use."
   :type 'boolean :group 'ada)
 
@@ -169,12 +169,12 @@ Otherwise, ask the user for the name of the project file to use."
   "True if we are running on Windows.")
 
 (defcustom ada-tight-gvd-integration nil
-  "*If non-nil, a new Emacs frame will be swallowed in GVD when debugging.
+  "If non-nil, a new Emacs frame will be swallowed in GVD when debugging.
 If GVD is not the debugger used, nothing happens."
   :type 'boolean :group 'ada)
 
 (defcustom ada-xref-search-with-egrep t
-  "*If non-nil, use egrep to find the possible declarations for an entity.
+  "If non-nil, use egrep to find the possible declarations for an entity.
 This alternate method is used when the exact location was not found in the
 information provided by GNAT.  However, it might be expensive if you have a lot
 of sources, since it will search in all the files in your project."

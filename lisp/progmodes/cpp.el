@@ -52,7 +52,7 @@
   :prefix "cpp-")
 
 (defcustom cpp-config-file (convert-standard-filename ".cpp.el")
-  "*File name to save cpp configuration."
+  "File name to save cpp configuration."
   :type 'file
   :group 'cpp)
 
@@ -61,17 +61,17 @@
   :type '(choice (const invisible) (face)))
 
 (defcustom cpp-known-face 'invisible
-  "*Face used for known cpp symbols."
+  "Face used for known cpp symbols."
   :type 'cpp-face
   :group 'cpp)
 
 (defcustom cpp-unknown-face 'highlight
-  "*Face used for unknown cpp symbols."
+  "Face used for unknown cpp symbols."
   :type 'cpp-face
   :group 'cpp)
 
 (defcustom cpp-face-type 'light
-  "*Indicate what background face type you prefer.
+  "Indicate what background face type you prefer.
 Can be either light or dark for color screens, mono for monochrome
 screens, and none if you don't use a window system and don't have
 a color-capable display."
@@ -80,12 +80,12 @@ a color-capable display."
   :group 'cpp)
 
 (defcustom cpp-known-writable t
-  "*Non-nil means you are allowed to modify the known conditionals."
+  "Non-nil means you are allowed to modify the known conditionals."
   :type 'boolean
   :group 'cpp)
 
 (defcustom cpp-unknown-writable t
-  "*Non-nil means you are allowed to modify the unknown conditionals."
+  "Non-nil means you are allowed to modify the unknown conditionals."
   :type 'boolean
   :group 'cpp)
 

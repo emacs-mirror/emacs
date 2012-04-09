@@ -183,7 +183,7 @@ themselves."
   :group 'erc)
 
 (defcustom erc-interpret-controls-p t
-  "*If non-nil, display IRC colors and other highlighting effects.
+  "If non-nil, display IRC colors and other highlighting effects.
 
 If this is set to the symbol `remove', ERC removes all IRC colors and
 highlighting effects.  When this variable is non-nil, it can cause Emacs to run
@@ -196,7 +196,7 @@ emergency (message flood) it can be turned off to save processing time.  See
                  (const :tag "Display raw control characters" nil)))
 
 (defcustom erc-interpret-mirc-color nil
-  "*If non-nil, ERC will interpret mIRC color codes."
+  "If non-nil, ERC will interpret mIRC color codes."
   :group 'erc-control-characters
   :type 'boolean)
 

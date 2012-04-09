@@ -302,7 +302,7 @@
 
 
 (defvar math-additional-units nil
-  "*Additional units table for user-defined units.
+  "Additional units table for user-defined units.
 Must be formatted like `math-standard-units'.
 If you change this, be sure to set `math-units-table' to nil to ensure
 that the combined units table will be rebuilt.")

@@ -594,7 +594,7 @@ highlighted using ASCII flags."
 (ediff-defvar-local ediff-start-narrowed t
   "Non-nil means start narrowed, if doing ediff-windows-* or ediff-regions-*")
 (ediff-defvar-local ediff-quit-widened t
-  "*Non-nil means: when finished, Ediff widens buffers A/B.
+  "Non-nil means: when finished, Ediff widens buffers A/B.
 Actually, Ediff restores the scope of visibility that existed at startup.")
 
 (defcustom ediff-keep-variants t

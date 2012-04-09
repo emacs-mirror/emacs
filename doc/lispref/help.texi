@@ -218,7 +218,7 @@ in the `*Help*' buffer."
 @group
                 (princ
                  (format "%s\t%s\n%s\n\n" s
-                   (if (user-variable-p s)
+                   (if (custom-variable-p s)
                        "Option " "Variable")
 @end group
 @group

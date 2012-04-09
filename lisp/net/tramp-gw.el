@@ -50,20 +50,20 @@
 ;; Define HTTP tunnel method ...
 ;;;###tramp-autoload
 (defconst tramp-gw-tunnel-method "tunnel"
-  "*Method to connect HTTP gateways.")
+  "Method to connect HTTP gateways.")
 
 ;; ... and port.
 (defconst tramp-gw-default-tunnel-port 8080
-  "*Default port for HTTP gateways.")
+  "Default port for HTTP gateways.")
 
 ;; Define SOCKS method ...
 ;;;###tramp-autoload
 (defconst tramp-gw-socks-method "socks"
-  "*Method to connect SOCKS servers.")
+  "Method to connect SOCKS servers.")
 
 ;; ... and port.
 (defconst tramp-gw-default-socks-port 1080
-  "*Default port for SOCKS servers.")
+  "Default port for SOCKS servers.")
 
 ;; Autoload the socks library.  It is used only when we access a SOCKS server.
 (autoload 'socks-open-network-stream "socks")

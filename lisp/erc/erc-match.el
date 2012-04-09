@@ -83,7 +83,7 @@ Useful to mark nicks from dangerous hosts."
   :type '(repeat regexp))
 
 (defcustom erc-current-nick-highlight-type 'keyword
-  "*Determines how to highlight text in which your current nickname appears
+  "Determines how to highlight text in which your current nickname appears
 \(does not apply to text sent by you\).
 
 The following values are allowed:
@@ -105,7 +105,7 @@ Any other value disables highlighting of current nickname altogether."
 		 (const all)))
 
 (defcustom erc-pal-highlight-type 'nick
-  "*Determines how to highlight messages by pals.
+  "Determines how to highlight messages by pals.
 See `erc-pals'.
 
 The following values are allowed:
@@ -121,7 +121,7 @@ Any other value disables pal highlighting altogether."
 		 (const all)))
 
 (defcustom erc-fool-highlight-type 'nick
-  "*Determines how to highlight messages by fools.
+  "Determines how to highlight messages by fools.
 See `erc-fools'.
 
 The following values are allowed:
@@ -137,7 +137,7 @@ Any other value disables fool highlighting altogether."
 		 (const all)))
 
 (defcustom erc-keyword-highlight-type 'keyword
-  "*Determines how to highlight messages containing keywords.
+  "Determines how to highlight messages containing keywords.
 See variable `erc-keywords'.
 
 The following values are allowed:
@@ -152,7 +152,7 @@ Any other value disables keyword highlighting altogether."
 		 (const all)))
 
 (defcustom erc-dangerous-host-highlight-type 'nick
-  "*Determines how to highlight messages by nicks from dangerous-hosts.
+  "Determines how to highlight messages by nicks from dangerous-hosts.
 See `erc-dangerous-hosts'.
 
 The following values are allowed:

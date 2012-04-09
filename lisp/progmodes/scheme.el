@@ -229,7 +229,7 @@ Set this to nil if you normally use another dialect."
 (defcustom dsssl-sgml-declaration
   "<!DOCTYPE style-sheet PUBLIC \"-//James Clark//DTD DSSSL Style Sheet//EN\">
 "
-  "*An SGML declaration for the DSSSL file.
+  "An SGML declaration for the DSSSL file.
 If it is defined as a string this will be inserted into an empty buffer
 which is in `dsssl-mode'.  It is typically James Clark's style-sheet
 doctype, as required for Jade."
@@ -251,7 +251,7 @@ See `run-hooks'."
 
 ;; This is shared by cmuscheme and xscheme.
 (defcustom scheme-program-name "scheme"
-  "*Program invoked by the `run-scheme' command."
+  "Program invoked by the `run-scheme' command."
   :type 'string
   :group 'scheme)
 

@@ -43,7 +43,7 @@
   "The timer we use to decide when to zone out, or nil if none.")
 
 (defvar zone-timeout nil
-  "*Seconds to timeout the zoning.
+  "Seconds to timeout the zoning.
 If nil, don't interrupt for about 1^26 seconds.")
 
 ;; Vector of functions that zone out.  `zone' will execute one of
@@ -623,7 +623,7 @@ If the element is a function or a list of a function and a number,
 ;;;; the lyfe so short the craft so long to lerne --chaucer
 
 (defvar zone-pgm-random-life-wait nil
-  "*Seconds to wait between successive `life' generations.
+  "Seconds to wait between successive `life' generations.
 If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
 
 (defvar life-patterns) ; from life.el

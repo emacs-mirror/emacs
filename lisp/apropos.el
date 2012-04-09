@@ -466,7 +466,7 @@ normal variables."
 		       #'(lambda (symbol)
 			   (and (boundp symbol)
 				(get symbol 'variable-documentation)))
-		     'user-variable-p)))
+		     'custom-variable-p)))
 
 ;; For auld lang syne:
 ;;;###autoload

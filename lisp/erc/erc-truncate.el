@@ -36,7 +36,7 @@
   :group 'erc)
 
 (defcustom erc-max-buffer-size 30000
-  "*Maximum size in chars of each ERC buffer.
+  "Maximum size in chars of each ERC buffer.
 Used only when auto-truncation is enabled.
 \(see `erc-truncate-buffer' and `erc-insert-post-hook')."
   :group 'erc-truncate

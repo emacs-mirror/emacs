@@ -1,6 +1,6 @@
 2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
-	configure: new option --enable-gcc-warnings
+	configure: new option --enable-gcc-warnings (Bug#11207)
 	I have been using this change for many months in my private copy
 	of Emacs, and have used it to find several bugs.  It's mature
 	enough to publish now.
@@ -14,6 +14,12 @@
 	* etc/NEWS: Mention --enable-gcc-warnings.
 	* lib/Makefile.am (AM_CFLAGS): New macro.
 	* m4/manywarnings.m4, m4/warnings.m4: New files, from gnulib.
+
+2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* info/dir (File):
+	* Makefile.in: Add emacs-gnutls to the info directory and the
+	INFO_FILES target.
 
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 

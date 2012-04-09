@@ -75,7 +75,7 @@ IRC users."
   :group 'erc)
 
 (defcustom erc-dcc-verbose nil
-  "*If non-nil, be verbose about DCC activity reporting."
+  "If non-nil, be verbose about DCC activity reporting."
   :group 'erc-dcc
   :type 'boolean)
 
@@ -316,7 +316,7 @@ Should be set to a string or nil.  If nil, use the value of
                     :valid-regexp erc-dcc-ipv4-regexp)))
 
 (defcustom erc-dcc-send-request 'ask
-  "*How to treat incoming DCC Send requests.
+  "How to treat incoming DCC Send requests.
 'ask - Report the Send request, and wait for the user to manually accept it
        You might want to set `erc-dcc-auto-masks' for this.
 'auto - Automatically accept the request and begin downloading the file
@@ -405,7 +405,7 @@ the accepted connection."
 ;;; Interactive command handling
 
 (defcustom erc-dcc-get-default-directory nil
-  "*Default directory for incoming DCC file transfers.
+  "Default directory for incoming DCC file transfers.
 If this is nil, then the current value of `default-directory' is used."
   :group 'erc-dcc
   :type '(choice (const nil :tag "Default directory") directory))
@@ -719,7 +719,7 @@ match, returns that regexp and nil otherwise."
   "^DCC CHAT +chat +\\([0-9]+\\) +\\([0-9]+\\)")
 
 (defcustom erc-dcc-chat-request 'ask
-  "*How to treat incoming DCC Chat requests.
+  "How to treat incoming DCC Chat requests.
 'ask - Report the Chat request, and wait for the user to manually accept it
 'auto - Automatically accept the request and open a new chat window
 'ignore - Ignore incoming DCC chat requests completely."
@@ -777,12 +777,12 @@ match, returns that regexp and nil otherwise."
 ;;; SEND handling
 
 (defcustom erc-dcc-block-size 1024
-  "*Block size to use for DCC SEND sessions."
+  "Block size to use for DCC SEND sessions."
   :group 'erc-dcc
   :type 'integer)
 
 (defcustom erc-dcc-pump-bytes nil
-  "*If set to an integer, keep sending until that number of bytes are
+  "If set to an integer, keep sending until that number of bytes are
 unconfirmed."
   :group 'erc-dcc
   :type '(choice (const nil) integer))
@@ -856,7 +856,7 @@ bytes sent."
 
 (defcustom erc-dcc-send-connect-hook
   '(erc-dcc-display-send erc-dcc-send-block)
-  "*Hook run whenever the remote end of a DCC SEND offer connected to your
+  "Hook run whenever the remote end of a DCC SEND offer connected to your
 listening port."
   :group 'erc-dcc
   :type 'hook)
@@ -1046,12 +1046,12 @@ transfer is complete."
 ;;; CHAT handling
 
 (defcustom erc-dcc-chat-buffer-name-format "DCC-CHAT-%s"
-  "*Format to use for DCC Chat buffer names."
+  "Format to use for DCC Chat buffer names."
   :group 'erc-dcc
   :type 'string)
 
 (defcustom erc-dcc-chat-mode-hook nil
-  "*Hook calls when `erc-dcc-chat-mode' finished setting up the buffer."
+  "Hook calls when `erc-dcc-chat-mode' finished setting up the buffer."
   :group 'erc-dcc
   :type 'hook)
 
@@ -1100,7 +1100,7 @@ Possible values are: ask, auto, ignore."
 (defalias 'pcomplete/erc-mode/SREQ 'pcomplete/erc-mode/CREQ)
 
 (defvar erc-dcc-chat-filter-hook '(erc-dcc-chat-parse-output)
-  "*Hook to run after doing parsing (and possible insertion) of DCC messages.")
+  "Hook to run after doing parsing (and possible insertion) of DCC messages.")
 
 (defvar erc-dcc-chat-mode-map
   (let ((map (make-sparse-keymap)))

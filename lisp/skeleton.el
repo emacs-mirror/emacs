@@ -37,7 +37,7 @@
 
 
 (defvar skeleton-transformation-function 'identity
-  "*If non-nil, function applied to literal strings before they are inserted.
+  "If non-nil, function applied to literal strings before they are inserted.
 It should take strings and characters and return them transformed, or nil
 which means no transformation.
 Typical examples might be `upcase' or `capitalize'.")
@@ -95,11 +95,11 @@ skeleton elements.")
 (defvar skeleton-subprompt
   (substitute-command-keys
    "RET, \\<minibuffer-local-map>\\[abort-recursive-edit] or \\[help-command]")
-  "*Replacement for %s in prompts of recursive subskeletons.")
+  "Replacement for %s in prompts of recursive subskeletons.")
 
 
 (defvar skeleton-debug nil
-  "*If non-nil `define-skeleton' will override previous definition.")
+  "If non-nil `define-skeleton' will override previous definition.")
 
 (defvar skeleton-positions nil
   "List of positions marked with @, after skeleton insertion.
@@ -456,7 +456,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 ;;		     obarray
 ;;		     (lambda (symbol)
 ;;		       (or (eq symbol 'eval)
-;;			   (user-variable-p symbol)))
+;;			   (custom-variable-p symbol)))
 ;;		     t)
 ;;    comment-start str ": "
 ;;    (read-from-minibuffer "Expression: " nil read-expression-map nil
@@ -468,13 +468,13 @@ automatically, and you are prompted to fill in the variable parts.")))
 ;; Variables and command for automatically inserting pairs like () or "".
 
 (defvar skeleton-pair nil
-  "*If this is nil pairing is turned off, no matter what else is set.
+  "If this is nil pairing is turned off, no matter what else is set.
 Otherwise modes with `skeleton-pair-insert-maybe' on some keys
 will attempt to insert pairs of matching characters.")
 
 
 (defvar skeleton-pair-on-word nil
-  "*If this is nil, paired insertion is inhibited before or inside a word.")
+  "If this is nil, paired insertion is inhibited before or inside a word.")
 
 
 (defvar skeleton-pair-filter-function (lambda () nil)

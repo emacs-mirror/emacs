@@ -710,7 +710,7 @@ Implicitly modified when the TZ variable is changed.  */);
 #endif
 
   DEFVAR_LISP ("dos-display-scancodes", Vdos_display_scancodes,
-	       doc: /* *Controls whether DOS raw keyboard events are displayed as you type.
+	       doc: /* Whether DOS raw keyboard events are displayed as you type.
 When non-nil, the keyboard scan-codes are displayed at the bottom right
 corner of the display (typically at the end of the mode line).
 The output format is: scan code:char code*modifiers.  */);
@@ -718,17 +718,17 @@ The output format is: scan code:char code*modifiers.  */);
   Vdos_display_scancodes = Qnil;
 
   DEFVAR_INT ("dos-hyper-key", dos_hyper_key,
-	      doc: /* *If set to 1, use right ALT key as hyper key.
+	      doc: /* If set to 1, use right ALT key as hyper key.
 If set to 2, use right CTRL key as hyper key.  */);
   dos_hyper_key = 0;
 
   DEFVAR_INT ("dos-super-key", dos_super_key,
-	      doc: /* *If set to 1, use right ALT key as super key.
+	      doc: /* If set to 1, use right ALT key as super key.
 If set to 2, use right CTRL key as super key.  */);
   dos_super_key = 0;
 
   DEFVAR_INT ("dos-keypad-mode", dos_keypad_mode,
-	      doc: /* *Controls what key code is returned by a key in the numeric keypad.
+	      doc: /* Controls what key code is returned by a key in the numeric keypad.
 The `numlock ON' action is only taken if no modifier keys are pressed.
 The value is an integer constructed by adding the following bits together:
 

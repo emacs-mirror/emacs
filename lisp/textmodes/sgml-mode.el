@@ -292,7 +292,7 @@ Any terminating `>' or `/' is not matched.")
 ;; for font-lock, but must be defvar'ed after
 ;; sgml-font-lock-keywords-1 and sgml-font-lock-keywords-2 above
 (defvar sgml-font-lock-keywords sgml-font-lock-keywords-1
-  "*Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
+  "Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
 
 (defconst sgml-syntax-propertize-function
   (syntax-propertize-rules
@@ -1843,7 +1843,7 @@ This takes effect when first loading the library.")
       ("u")
       ("var")
       ("wbr" t)))
-  "*Value of `sgml-tag-alist' for HTML mode.")
+  "Value of `sgml-tag-alist' for HTML mode.")
 
 (defvar html-tag-help
   `(,@sgml-tag-help
@@ -1936,7 +1936,7 @@ This takes effect when first loading the library.")
     ("ul" . "Unordered list")
     ("var" . "Math variable face")
     ("wbr" . "Enable <br> within <nobr>"))
-  "*Value of `sgml-tag-help' for HTML mode.")
+  "Value of `sgml-tag-help' for HTML mode.")
 
 
 ;;;###autoload
@@ -2010,7 +2010,7 @@ To work around that, do:
 
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
-  "*A regular expression matching a head line to be added to the menu.
+  "A regular expression matching a head line to be added to the menu.
 The first `match-string' should be a number from 1-9.
 The second `match-string' matches extra tags and is ignored.
 The third `match-string' will be the used in the menu.")

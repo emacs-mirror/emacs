@@ -90,12 +90,12 @@
   :group 'languages)
 
 (defcustom vera-basic-offset 2
-  "*Amount of basic offset used for indentation."
+  "Amount of basic offset used for indentation."
   :type 'integer
   :group 'vera)
 
 (defcustom vera-underscore-is-part-of-word nil
-  "*Non-nil means consider the underscore character `_' as part of word.
+  "Non-nil means consider the underscore character `_' as part of word.
 An identifier containing underscores is then treated as a single word in
 select and move operations.  All parts of an identifier separated by underscore
 are treated as single words otherwise."
@@ -103,7 +103,7 @@ are treated as single words otherwise."
   :group 'vera)
 
 (defcustom vera-intelligent-tab t
-  "*Non-nil means `TAB' does indentation, word completion and tab insertion.
+  "Non-nil means `TAB' does indentation, word completion and tab insertion.
 That is, if preceding character is part of a word then complete word,
 else if not at beginning of line then insert tab,
 else if last command was a `TAB' or `RET' then dedent one step,

@@ -1968,7 +1968,7 @@ It can be retrieved with `(process-get PROCESS PROPNAME)'."
 ;;;; Input and display facilities.
 
 (defvar read-quoted-char-radix 8
-  "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
+  "Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
 Legitimate radix values are 8, 10 and 16.")
 
 (custom-declare-variable-early

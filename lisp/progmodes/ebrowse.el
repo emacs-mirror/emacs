@@ -50,7 +50,7 @@
 
 
 (defcustom ebrowse-search-path nil
-  "*List of directories to search for source files in a class tree.
+  "List of directories to search for source files in a class tree.
 Elements should be directory names; nil as an element means to try
 to find source files relative to the location of the BROWSE file loaded."
   :group 'ebrowse
@@ -59,25 +59,25 @@ to find source files relative to the location of the BROWSE file loaded."
 
 
 (defcustom ebrowse-view/find-hook nil
-  "*Hooks run after finding or viewing a member or class."
+  "Hooks run after finding or viewing a member or class."
   :group 'ebrowse
   :type 'hook)
 
 
 (defcustom ebrowse-not-found-hook nil
-  "*Hooks run when finding or viewing a member or class was not successful."
+  "Hooks run when finding or viewing a member or class was not successful."
   :group 'ebrowse
   :type 'hook)
 
 
 (defcustom ebrowse-electric-list-mode-hook nil
-  "*Hook called by `ebrowse-electric-position-mode'."
+  "Hook called by `ebrowse-electric-position-mode'."
   :group 'ebrowse
   :type 'hook)
 
 
 (defcustom ebrowse-max-positions 50
-  "*Number of markers saved on electric position stack."
+  "Number of markers saved on electric position stack."
   :group 'ebrowse
   :type 'integer)
 
@@ -89,31 +89,31 @@ to find source files relative to the location of the BROWSE file loaded."
 
 
 (defcustom ebrowse-tree-mode-hook nil
-  "*Hook run in each new tree buffer."
+  "Hook run in each new tree buffer."
   :group 'ebrowse-tree
   :type 'hook)
 
 
 (defcustom ebrowse-tree-buffer-name "*Tree*"
-  "*The default name of class tree buffers."
+  "The default name of class tree buffers."
   :group 'ebrowse-tree
   :type 'string)
 
 
 (defcustom ebrowse--indentation 4
-  "*The amount by which subclasses are indented in the tree."
+  "The amount by which subclasses are indented in the tree."
   :group 'ebrowse-tree
   :type 'integer)
 
 
 (defcustom ebrowse-source-file-column 40
-  "*The column in which source file names are displayed in the tree."
+  "The column in which source file names are displayed in the tree."
   :group 'ebrowse-tree
   :type 'integer)
 
 
 (defcustom ebrowse-tree-left-margin 2
-  "*Amount of space left at the left side of the tree display.
+  "Amount of space left at the left side of the tree display.
 This space is used to display markers."
   :group 'ebrowse-tree
   :type 'integer)
@@ -126,25 +126,25 @@ This space is used to display markers."
 
 
 (defcustom ebrowse-default-declaration-column 25
-  "*The column in which member declarations are displayed in member buffers."
+  "The column in which member declarations are displayed in member buffers."
   :group 'ebrowse-member
   :type 'integer)
 
 
 (defcustom ebrowse-default-column-width 25
-  "*The width of the columns in member buffers (short display form)."
+  "The width of the columns in member buffers (short display form)."
   :group 'ebrowse-member
   :type 'integer)
 
 
 (defcustom ebrowse-member-buffer-name "*Members*"
-  "*The name of the buffer for member display."
+  "The name of the buffer for member display."
   :group 'ebrowse-member
   :type 'string)
 
 
 (defcustom ebrowse-member-mode-hook nil
-  "*Run in each new member buffer."
+  "Run in each new member buffer."
   :group 'ebrowse-member
   :type 'hook)
 
@@ -158,7 +158,7 @@ This space is used to display markers."
 (defface ebrowse-tree-mark
   '((((min-colors 88)) (:foreground "red1"))
     (t (:foreground "red")))
-  "*The face used for the mark character in the tree."
+  "The face used for the mark character in the tree."
   :group 'ebrowse-faces)
 (define-obsolete-face-alias 'ebrowse-tree-mark-face 'ebrowse-tree-mark "22.1")
 
@@ -166,21 +166,21 @@ This space is used to display markers."
 (defface ebrowse-root-class
   '((((min-colors 88)) (:weight bold :foreground "blue1"))
     (t (:weight bold :foreground "blue")))
-  "*The face used for root classes in the tree."
+  "The face used for root classes in the tree."
   :group 'ebrowse-faces)
 (define-obsolete-face-alias 'ebrowse-root-class-face 'ebrowse-root-class "22.1")
 
 
 (defface ebrowse-file-name
   '((t (:italic t)))
-  "*The face for filenames displayed in the tree."
+  "The face for filenames displayed in the tree."
   :group 'ebrowse-faces)
 (define-obsolete-face-alias 'ebrowse-file-name-face 'ebrowse-file-name "22.1")
 
 
 (defface ebrowse-default
   '((t nil))
-  "*Face for everything else in the tree not having other faces."
+  "Face for everything else in the tree not having other faces."
   :group 'ebrowse-faces)
 (define-obsolete-face-alias 'ebrowse-default-face 'ebrowse-default "22.1")
 
@@ -188,7 +188,7 @@ This space is used to display markers."
 (defface ebrowse-member-attribute
   '((((min-colors 88)) (:foreground "red1"))
     (t (:foreground "red")))
-  "*Face used to display member attributes."
+  "Face used to display member attributes."
   :group 'ebrowse-faces)
 (define-obsolete-face-alias 'ebrowse-member-attribute-face
   'ebrowse-member-attribute "22.1")
@@ -196,7 +196,7 @@ This space is used to display markers."
 
 (defface ebrowse-member-class
   '((t (:foreground "purple")))
-  "*Face used to display the class title in member buffers."
+  "Face used to display the class title in member buffers."
   :group 'ebrowse-faces)
 (define-obsolete-face-alias 'ebrowse-member-class-face
   'ebrowse-member-class "22.1")
@@ -205,7 +205,7 @@ This space is used to display markers."
 (defface ebrowse-progress
   '((((min-colors 88)) (:background "blue1"))
     (t (:background "blue")))
-  "*Face for progress indicator."
+  "Face for progress indicator."
   :group 'ebrowse-faces)
 (define-obsolete-face-alias 'ebrowse-progress-face 'ebrowse-progress "22.1")
 
@@ -4178,7 +4178,7 @@ NUMBER-OF-STATIC-VARIABLES:"
 ;; prefix `\C-c\C-m' to browse commands.
 
 (defvar ebrowse-global-map nil
-  "*Keymap for Ebrowse commands.")
+  "Keymap for Ebrowse commands.")
 
 
 (defvar ebrowse-global-prefix-key "\C-c\C-m"

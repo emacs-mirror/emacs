@@ -33,7 +33,7 @@
 
 ;;;###autoload
 (defvar tags-file-name nil
-  "*File name of tags table.
+  "File name of tags table.
 To switch to a new tags table, setting this variable is sufficient.
 If you set this variable, do not also set `tags-table-list'.
 Use the `etags' program to make a tags table file.")
@@ -46,7 +46,7 @@ Use the `etags' program to make a tags table file.")
 
 ;;;###autoload
 (defcustom tags-case-fold-search 'default
-  "*Whether tags operations should be case-sensitive.
+  "Whether tags operations should be case-sensitive.
 A value of t means case-insensitive, a value of nil means case-sensitive.
 Any other value means use the setting of `case-fold-search'."
   :group 'etags
@@ -58,7 +58,7 @@ Any other value means use the setting of `case-fold-search'."
 ;;;###autoload
 ;; Use `visit-tags-table-buffer' to cycle through tags tables in this list.
 (defcustom tags-table-list nil
-  "*List of file names of tags tables to search.
+  "List of file names of tags tables to search.
 An element that is a directory means the file \"TAGS\" in that directory.
 To switch to a new list of tags tables, setting this variable is sufficient.
 If you set this variable, do not also set `tags-file-name'.
@@ -69,7 +69,7 @@ Use the `etags' program to make a tags table file."
 ;;;###autoload
 (defcustom tags-compression-info-list
   (purecopy '("" ".Z" ".bz2" ".gz" ".xz" ".tgz"))
-  "*List of extensions tried by etags when jka-compr is used.
+  "List of extensions tried by etags when jka-compr is used.
 An empty string means search the non-compressed file.
 These extensions will be tried only if jka-compr was activated
 \(i.e. via customize of `auto-compression-mode' or by calling the function
@@ -90,7 +90,7 @@ These extensions will be tried only if jka-compr was activated
 
 ;;;###autoload
 (defcustom tags-add-tables 'ask-user
-  "*Control whether to add a new tags table to the current list.
+  "Control whether to add a new tags table to the current list.
 t means do; nil means don't (always start a new list).
 Any other value means ask the user whether to add a new tags table
 to the current list (as opposed to starting a new list)."
@@ -100,7 +100,7 @@ to the current list (as opposed to starting a new list)."
 		 (other :tag "Ask" ask-user)))
 
 (defcustom tags-revert-without-query nil
-  "*Non-nil means reread a TAGS table without querying, if it has changed."
+  "Non-nil means reread a TAGS table without querying, if it has changed."
   :group 'etags
   :type 'boolean)
 
@@ -131,7 +131,7 @@ Each element is a list of strings which are file names.")
 
 ;;;###autoload
 (defcustom find-tag-hook nil
-  "*Hook to be run by \\[find-tag] after finding a tag.  See `run-hooks'.
+  "Hook to be run by \\[find-tag] after finding a tag.  See `run-hooks'.
 The value in the buffer in which \\[find-tag] is done is used,
 not the value in the buffer \\[find-tag] goes to."
   :group 'etags
@@ -139,7 +139,7 @@ not the value in the buffer \\[find-tag] goes to."
 
 ;;;###autoload
 (defcustom find-tag-default-function nil
-  "*A function of no arguments used by \\[find-tag] to pick a default tag.
+  "A function of no arguments used by \\[find-tag] to pick a default tag.
 If nil, and the symbol that is the value of `major-mode'
 has a `find-tag-default-function' property (see `put'), that is used.
 Otherwise, `find-tag-default' is used."
@@ -147,13 +147,13 @@ Otherwise, `find-tag-default' is used."
   :type '(choice (const nil) function))
 
 (defcustom find-tag-marker-ring-length 16
-  "*Length of marker rings `find-tag-marker-ring' and `tags-location-ring'."
+  "Length of marker rings `find-tag-marker-ring' and `tags-location-ring'."
   :group 'etags
   :type 'integer
   :version "20.3")
 
 (defcustom tags-tag-face 'default
-  "*Face for tags in the output of `tags-apropos'."
+  "Face for tags in the output of `tags-apropos'."
   :group 'etags
   :type 'face
   :version "21.1")
@@ -1687,7 +1687,7 @@ Point should be just after a string that matches TAG."
 	   (re-search-backward re bol t)))))
 
 (defcustom tags-loop-revert-buffers nil
-  "*Non-nil means tags-scanning loops should offer to reread changed files.
+  "Non-nil means tags-scanning loops should offer to reread changed files.
 These loops normally read each file into Emacs, but when a file
 is already visited, they use the existing buffer.
 When this flag is non-nil, they offer to revert the existing buffer

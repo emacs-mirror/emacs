@@ -2031,7 +2031,7 @@ Usage: (setq forms-number-of-fields
 ;;; Debugging
 
 (defvar forms--debug nil
-  "*Enables forms-mode debugging if not nil.")
+  "Enables forms-mode debugging if not nil.")
 
 (defun forms--debug (&rest args)
   "Internal debugging routine."

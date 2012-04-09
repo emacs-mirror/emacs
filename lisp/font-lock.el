@@ -492,11 +492,11 @@ This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
 (defvar font-lock-keywords-only nil
-  "*Non-nil means Font Lock should not fontify comments or strings.
+  "Non-nil means Font Lock should not fontify comments or strings.
 This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-keywords-case-fold-search nil
-  "*Non-nil means the patterns in `font-lock-keywords' are case-insensitive.
+  "Non-nil means the patterns in `font-lock-keywords' are case-insensitive.
 This is set via the function `font-lock-set-defaults', based on
 the CASE-FOLD argument of `font-lock-defaults'.")
 (make-variable-buffer-local 'font-lock-keywords-case-fold-search)
@@ -556,7 +556,7 @@ If this is nil, the major mode's syntax table is used.
 This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-beginning-of-syntax-function nil
-  "*Non-nil means use this function to move back outside all constructs.
+  "Non-nil means use this function to move back outside all constructs.
 When called with no args it should move point backward to a place which
 is not in a string or comment and not within any bracket-pairs (or else,
 a place such that any bracket-pairs outside it can be ignored for Emacs
@@ -571,7 +571,7 @@ This is normally set via `font-lock-defaults'.")
                         'syntax-begin-function "23.3" 'set)
 
 (defvar font-lock-mark-block-function nil
-  "*Non-nil means use this function to mark a block of text.
+  "Non-nil means use this function to mark a block of text.
 When called with no args it should leave point at the beginning of any
 enclosing textual block and mark at the end.
 This is normally set via `font-lock-defaults'.")

@@ -45,17 +45,17 @@
   "Abbrev table used while in scribe mode.")
 
 (defcustom scribe-fancy-paragraphs nil
-  "*Non-nil makes Scribe mode use a different style of paragraph separation."
+  "Non-nil makes Scribe mode use a different style of paragraph separation."
   :type 'boolean
   :group 'scribe)
 
 (defcustom scribe-electric-quote nil
-  "*Non-nil makes insert of double quote use `` or '' depending on context."
+  "Non-nil makes insert of double quote use `` or '' depending on context."
   :type 'boolean
   :group 'scribe)
 
 (defcustom scribe-electric-parenthesis nil
-  "*Non-nil makes parenthesis char ( (]}> ) automatically insert its close
+  "Non-nil makes parenthesis char ( (]}> ) automatically insert its close
 if typed after an @Command form."
   :type 'boolean
   :group 'scribe)

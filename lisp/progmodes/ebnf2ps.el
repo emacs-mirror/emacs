@@ -1276,14 +1276,14 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defcustom ebnf-horizontal-orientation nil
-  "*Non-nil means productions are drawn horizontally."
+  "Non-nil means productions are drawn horizontally."
   :type 'boolean
   :version "20"
   :group 'ebnf-displacement)
 
 
 (defcustom ebnf-horizontal-max-height nil
-  "*Non-nil means to use maximum production height in horizontal orientation.
+  "Non-nil means to use maximum production height in horizontal orientation.
 
 It is only used when `ebnf-horizontal-orientation' is non-nil."
   :type 'boolean
@@ -1292,7 +1292,7 @@ It is only used when `ebnf-horizontal-orientation' is non-nil."
 
 
 (defcustom ebnf-production-horizontal-space 0.0 ; use ebnf2ps default value
-  "*Specify horizontal space in points between productions.
+  "Specify horizontal space in points between productions.
 
 Value less or equal to zero forces ebnf2ps to set a proper default value."
   :type 'number
@@ -1301,7 +1301,7 @@ Value less or equal to zero forces ebnf2ps to set a proper default value."
 
 
 (defcustom ebnf-production-vertical-space 0.0 ; use ebnf2ps default value
-  "*Specify vertical space in points between productions.
+  "Specify vertical space in points between productions.
 
 Value less or equal to zero forces ebnf2ps to set a proper default value."
   :type 'number
@@ -1310,7 +1310,7 @@ Value less or equal to zero forces ebnf2ps to set a proper default value."
 
 
 (defcustom ebnf-justify-sequence 'center
-  "*Specify justification of terms in a sequence inside alternatives.
+  "Specify justification of terms in a sequence inside alternatives.
 
 Valid values are:
 
@@ -1324,14 +1324,14 @@ Valid values are:
 
 
 (defcustom ebnf-special-show-delimiter t
-  "*Non-nil means special delimiter (character `?') is shown."
+  "Non-nil means special delimiter (character `?') is shown."
   :type 'boolean
   :version "20"
   :group 'ebnf-special)
 
 
 (defcustom ebnf-special-font '(7 Courier "Black" "Gray95" bold italic)
-  "*Specify special font.
+  "Specify special font.
 
 See documentation for `ebnf-production-font'."
   :type '(list :tag "Special Font"
@@ -1353,7 +1353,7 @@ See documentation for `ebnf-production-font'."
 
 
 (defcustom ebnf-special-shape 'bevel
-  "*Specify special box shape.
+  "Specify special box shape.
 
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Special Shape"
@@ -1363,28 +1363,28 @@ See documentation for `ebnf-non-terminal-shape'."
 
 
 (defcustom ebnf-special-shadow nil
-  "*Non-nil means special box will have a shadow."
+  "Non-nil means special box will have a shadow."
   :type 'boolean
   :version "20"
   :group 'ebnf-special)
 
 
 (defcustom ebnf-special-border-width 0.5
-  "*Specify border width for special box."
+  "Specify border width for special box."
   :type 'number
   :version "20"
   :group 'ebnf-special)
 
 
 (defcustom ebnf-special-border-color "Black"
-  "*Specify border color for special box."
+  "Specify border color for special box."
   :type 'string
   :version "20"
   :group 'ebnf-special)
 
 
 (defcustom ebnf-except-font '(7 Courier "Black" "Gray90" bold italic)
-  "*Specify except font.
+  "Specify except font.
 
 See documentation for `ebnf-production-font'."
   :type '(list :tag "Except Font"
@@ -1406,7 +1406,7 @@ See documentation for `ebnf-production-font'."
 
 
 (defcustom ebnf-except-shape 'bevel
-  "*Specify except box shape.
+  "Specify except box shape.
 
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Except Shape"
@@ -1416,28 +1416,28 @@ See documentation for `ebnf-non-terminal-shape'."
 
 
 (defcustom ebnf-except-shadow nil
-  "*Non-nil means except box will have a shadow."
+  "Non-nil means except box will have a shadow."
   :type 'boolean
   :version "20"
   :group 'ebnf-except)
 
 
 (defcustom ebnf-except-border-width 0.25
-  "*Specify border width for except box."
+  "Specify border width for except box."
   :type 'number
   :version "20"
   :group 'ebnf-except)
 
 
 (defcustom ebnf-except-border-color "Black"
-  "*Specify border color for except box."
+  "Specify border color for except box."
   :type 'string
   :version "20"
   :group 'ebnf-except)
 
 
 (defcustom ebnf-repeat-font '(7 Courier "Black" "Gray85" bold italic)
-  "*Specify repeat font.
+  "Specify repeat font.
 
 See documentation for `ebnf-production-font'."
   :type '(list :tag "Repeat Font"
@@ -1459,7 +1459,7 @@ See documentation for `ebnf-production-font'."
 
 
 (defcustom ebnf-repeat-shape 'bevel
-  "*Specify repeat box shape.
+  "Specify repeat box shape.
 
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Repeat Shape"
@@ -1469,28 +1469,28 @@ See documentation for `ebnf-non-terminal-shape'."
 
 
 (defcustom ebnf-repeat-shadow nil
-  "*Non-nil means repeat box will have a shadow."
+  "Non-nil means repeat box will have a shadow."
   :type 'boolean
   :version "20"
   :group 'ebnf-repeat)
 
 
 (defcustom ebnf-repeat-border-width 0.0
-  "*Specify border width for repeat box."
+  "Specify border width for repeat box."
   :type 'number
   :version "20"
   :group 'ebnf-repeat)
 
 
 (defcustom ebnf-repeat-border-color "Black"
-  "*Specify border color for repeat box."
+  "Specify border color for repeat box."
   :type 'string
   :version "20"
   :group 'ebnf-repeat)
 
 
 (defcustom ebnf-terminal-font '(7 Courier "Black" "White")
-  "*Specify terminal font.
+  "Specify terminal font.
 
 See documentation for `ebnf-production-font'."
   :type '(list :tag "Terminal Font"
@@ -1512,7 +1512,7 @@ See documentation for `ebnf-production-font'."
 
 
 (defcustom ebnf-terminal-shape 'miter
-  "*Specify terminal box shape.
+  "Specify terminal box shape.
 
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Terminal Shape"
@@ -1522,35 +1522,35 @@ See documentation for `ebnf-non-terminal-shape'."
 
 
 (defcustom ebnf-terminal-shadow nil
-  "*Non-nil means terminal box will have a shadow."
+  "Non-nil means terminal box will have a shadow."
   :type 'boolean
   :version "20"
   :group 'ebnf-terminal)
 
 
 (defcustom ebnf-terminal-border-width 1.0
-  "*Specify border width for terminal box."
+  "Specify border width for terminal box."
   :type 'number
   :version "20"
   :group 'ebnf-terminal)
 
 
 (defcustom ebnf-terminal-border-color "Black"
-  "*Specify border color for terminal box."
+  "Specify border color for terminal box."
   :type 'string
   :version "20"
   :group 'ebnf-terminal)
 
 
 (defcustom ebnf-production-name-p t
-  "*Non-nil means production name will be printed."
+  "Non-nil means production name will be printed."
   :type 'boolean
   :version "20"
   :group 'ebnf-production)
 
 
 (defcustom ebnf-sort-production nil
-  "*Specify how productions are sorted.
+  "Specify how productions are sorted.
 
 Valid values are:
 
@@ -1566,7 +1566,7 @@ Valid values are:
 
 
 (defcustom ebnf-production-font '(10 Helvetica "Black" "White" bold)
-  "*Specify production header font.
+  "Specify production header font.
 
 It is a list with the following form:
 
@@ -1609,7 +1609,7 @@ See `ps-font-info-database' for valid font name."
 
 
 (defcustom ebnf-non-terminal-font '(7 Helvetica "Black" "White")
-  "*Specify non-terminal font.
+  "Specify non-terminal font.
 
 See documentation for `ebnf-production-font'."
   :type '(list :tag "Non-Terminal Font"
@@ -1631,7 +1631,7 @@ See documentation for `ebnf-production-font'."
 
 
 (defcustom ebnf-non-terminal-shape 'round
-  "*Specify non-terminal box shape.
+  "Specify non-terminal box shape.
 
 Valid values are:
 
@@ -1655,28 +1655,28 @@ Any other value is treated as `miter'."
 
 
 (defcustom ebnf-non-terminal-shadow nil
-  "*Non-nil means non-terminal box will have a shadow."
+  "Non-nil means non-terminal box will have a shadow."
   :type 'boolean
   :version "20"
   :group 'ebnf-non-terminal)
 
 
 (defcustom ebnf-non-terminal-border-width 1.0
-  "*Specify border width for non-terminal box."
+  "Specify border width for non-terminal box."
   :type 'number
   :version "20"
   :group 'ebnf-non-terminal)
 
 
 (defcustom ebnf-non-terminal-border-color "Black"
-  "*Specify border color for non-terminal box."
+  "Specify border color for non-terminal box."
   :type 'string
   :version "20"
   :group 'ebnf-non-terminal)
 
 
 (defcustom ebnf-arrow-shape 'hollow
-  "*Specify the arrow shape.
+  "Specify the arrow shape.
 
 Valid values are:
 
@@ -1733,7 +1733,7 @@ Any other value is treated as `none'."
 
 
 (defcustom ebnf-chart-shape 'round
-  "*Specify chart flow shape.
+  "Specify chart flow shape.
 
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Chart Flow Shape"
@@ -1743,7 +1743,7 @@ See documentation for `ebnf-non-terminal-shape'."
 
 
 (defcustom ebnf-user-arrow nil
-  "*Specify a sexp for user arrow shape (a PostScript code).
+  "Specify a sexp for user arrow shape (a PostScript code).
 
 When evaluated, the sexp should return nil or a string containing PostScript
 code.  PostScript code should draw a right arrow.
@@ -1783,7 +1783,7 @@ symbol `user'."
 
 
 (defcustom ebnf-syntax 'ebnf
-  "*Specify syntax to be recognized.
+  "Specify syntax to be recognized.
 
 Valid values are:
 
@@ -1827,7 +1827,7 @@ Any other value is treated as `ebnf'."
 
 
 (defcustom ebnf-lex-comment-char ?\;
-  "*Specify the line comment character.
+  "Specify the line comment character.
 
 It's used only when `ebnf-syntax' is `ebnf'."
   :type 'character
@@ -1836,7 +1836,7 @@ It's used only when `ebnf-syntax' is `ebnf'."
 
 
 (defcustom ebnf-lex-eop-char ?.
-  "*Specify the end of production character.
+  "Specify the end of production character.
 
 It's used only when `ebnf-syntax' is `ebnf'."
   :type 'character
@@ -1845,7 +1845,7 @@ It's used only when `ebnf-syntax' is `ebnf'."
 
 
 (defcustom ebnf-terminal-regexp nil
-  "*Specify how it's a terminal name.
+  "Specify how it's a terminal name.
 
 If it's nil, the terminal name must be enclosed by `\"'.
 If it's a string, it should be a regexp that it'll be used to determine a
@@ -1859,7 +1859,7 @@ It's used only when `ebnf-syntax' is `ebnf'."
 
 
 (defcustom ebnf-case-fold-search nil
-  "*Non-nil means ignore case on matching.
+  "Non-nil means ignore case on matching.
 
 It's only used when `ebnf-terminal-regexp' is non-nil and when `ebnf-syntax' is
 `ebnf'."
@@ -1869,7 +1869,7 @@ It's only used when `ebnf-terminal-regexp' is non-nil and when `ebnf-syntax' is
 
 
 (defcustom ebnf-iso-alternative-p nil
-  "*Non-nil means use alternative ISO EBNF.
+  "Non-nil means use alternative ISO EBNF.
 
 It's only used when `ebnf-syntax' is `iso-ebnf'.
 
@@ -1888,7 +1888,7 @@ This variable affects the following symbol set:
 
 
 (defcustom ebnf-iso-normalize-p nil
-  "*Non-nil means normalize ISO EBNF syntax names.
+  "Non-nil means normalize ISO EBNF syntax names.
 
 Normalize a name means that several contiguous spaces inside name become a
 single space, so \"A  B   C\" is normalized to  \"A B C\".
@@ -1900,7 +1900,7 @@ It's only used when `ebnf-syntax' is `iso-ebnf'."
 
 
 (defcustom ebnf-file-suffix-regexp "\.[Bb][Nn][Ff]$"
-  "*Specify file name suffix that contains EBNF.
+  "Specify file name suffix that contains EBNF.
 
 See `ebnf-eps-directory' command."
   :type 'regexp
@@ -1909,7 +1909,7 @@ See `ebnf-eps-directory' command."
 
 
 (defcustom ebnf-eps-prefix "ebnf--"
-  "*Specify EPS prefix file name.
+  "Specify EPS prefix file name.
 
 See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
   :type 'string
@@ -1918,7 +1918,7 @@ See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
 
 
 (defcustom ebnf-eps-header-font '(11 Helvetica "Black" "White" bold)
-  "*Specify EPS header font.
+  "Specify EPS header font.
 
 See documentation for `ebnf-production-font'.
 
@@ -1942,7 +1942,7 @@ See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
 
 
 (defcustom ebnf-eps-header nil
-  "*Specify EPS header.
+  "Specify EPS header.
 
 The value should be a string, a symbol or nil.
 
@@ -1978,7 +1978,7 @@ empty string, no header is generated until a non-empty header is specified or
 
 
 (defcustom ebnf-eps-footer-font '(7 Helvetica "Black" "White" bold)
-  "*Specify EPS footer font.
+  "Specify EPS footer font.
 
 See documentation for `ebnf-production-font'.
 
@@ -2002,7 +2002,7 @@ See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
 
 
 (defcustom ebnf-eps-footer nil
-  "*Specify EPS footer.
+  "Specify EPS footer.
 
 The value should be a string, a symbol or nil.
 
@@ -2038,7 +2038,7 @@ empty string, no footer is generated until a non-empty footer is specified or
 
 
 (defcustom ebnf-entry-percentage 0.5	; middle
-  "*Specify entry height on alternatives.
+  "Specify entry height on alternatives.
 
 It must be a float between 0.0 (top) and 1.0 (bottom)."
   :type 'number
@@ -2047,7 +2047,7 @@ It must be a float between 0.0 (top) and 1.0 (bottom)."
 
 
 (defcustom ebnf-default-width 0.6
-  "*Specify additional border width over default terminal, non-terminal or
+  "Specify additional border width over default terminal, non-terminal or
 special."
   :type 'number
   :version "20"
@@ -2057,21 +2057,21 @@ special."
 ;; Printing color requires x-color-values.
 (defcustom ebnf-color-p (or (fboundp 'x-color-values) ; Emacs
 			    (fboundp 'color-instance-rgb-components)) ; XEmacs
-  "*Non-nil means use color."
+  "Non-nil means use color."
   :type 'boolean
   :version "20"
   :group 'ebnf2ps)
 
 
 (defcustom ebnf-line-width 1.0
-  "*Specify flow line width."
+  "Specify flow line width."
   :type 'number
   :version "20"
   :group 'ebnf2ps)
 
 
 (defcustom ebnf-line-color "Black"
-  "*Specify flow line color."
+  "Specify flow line color."
   :type 'string
   :version "20"
   :group 'ebnf2ps)
@@ -2081,7 +2081,7 @@ special."
   (if (eq ebnf-arrow-shape 'none)
       0.0
     (* (sqrt 5.0) 0.65 ebnf-line-width))
-  "*Specify extra width for arrow shape drawing.
+  "Specify extra width for arrow shape drawing.
 
 The extra width is used to avoid that the arrowhead and the terminal border
 overlap.  It depends on `ebnf-arrow-shape' and `ebnf-line-width'."
@@ -2091,7 +2091,7 @@ overlap.  It depends on `ebnf-arrow-shape' and `ebnf-line-width'."
 
 
 (defcustom ebnf-arrow-scale 1.0
-  "*Specify the arrow scale.
+  "Specify the arrow scale.
 
 Values lower than 1.0, shrink the arrow.
 Values greater than 1.0, expand the arrow."
@@ -2101,7 +2101,7 @@ Values greater than 1.0, expand the arrow."
 
 
 (defcustom ebnf-debug-ps nil
-  "*Non-nil means to generate PostScript debug procedures.
+  "Non-nil means to generate PostScript debug procedures.
 
 It is intended to help PostScript programmers in debugging."
   :type 'boolean
@@ -2110,7 +2110,7 @@ It is intended to help PostScript programmers in debugging."
 
 
 (defcustom ebnf-use-float-format t
-  "*Non-nil means use `%f' float format.
+  "Non-nil means use `%f' float format.
 
 The advantage of using float format is that ebnf2ps generates a little short
 PostScript file.
@@ -2126,14 +2126,14 @@ when executing ebnf2ps, set `ebnf-use-float-format' to nil."
 
 
 (defcustom ebnf-stop-on-error nil
-  "*Non-nil means signal error and stop.  Otherwise, signal error and continue."
+  "Non-nil means signal error and stop.  Otherwise, signal error and continue."
   :type 'boolean
   :version "20"
   :group 'ebnf2ps)
 
 
 (defcustom ebnf-yac-ignore-error-recovery nil
-  "*Non-nil means ignore error recovery.
+  "Non-nil means ignore error recovery.
 
 It's only used when `ebnf-syntax' is `yacc'."
   :type 'boolean
@@ -2142,7 +2142,7 @@ It's only used when `ebnf-syntax' is `yacc'."
 
 
 (defcustom ebnf-ignore-empty-rule nil
-  "*Non-nil means ignore empty rules.
+  "Non-nil means ignore empty rules.
 
 It's interesting to set this variable if your Yacc/Bison grammar has a lot of
 middle action rule."
@@ -2152,7 +2152,7 @@ middle action rule."
 
 
 (defcustom ebnf-optimize nil
-  "*Non-nil means optimize syntactic chart of rules.
+  "Non-nil means optimize syntactic chart of rules.
 
 The following optimizations are done:
 
@@ -2179,7 +2179,7 @@ The above optimizations are specially useful when `ebnf-syntax' is `yacc'."
 
 
 (defcustom ebnf-log nil
-  "*Non-nil means generate log messages.
+  "Non-nil means generate log messages.
 
 The log messages are generated into the buffer *Ebnf2ps Log*.
 These messages are intended to help debugging ebnf2ps."

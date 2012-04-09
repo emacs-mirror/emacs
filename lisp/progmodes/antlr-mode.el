@@ -269,7 +269,7 @@ greater than this number."
 		 (integer :tag "Hidden if longer than" :value 3)))
 
 (defcustom antlr-indent-comment 'tab
-  "*Non-nil, if the indentation should touch lines in block comments.
+  "Non-nil, if the indentation should touch lines in block comments.
 If nil, no continuation line of a block comment is changed.  If t, they
 are changed according to `c-indentation-line'.  When not nil and not t,
 they are only changed by \\[antlr-indent-command]."
@@ -296,7 +296,7 @@ ANTLR's and Java's indentation styles.  Used by `antlr-set-tabs'."
 			(boolean :tag "Indent-tabs-mode"))))
 
 (defcustom antlr-indent-style "java"
-  "*If non-nil, cc-mode indentation style used for `antlr-mode'.
+  "If non-nil, cc-mode indentation style used for `antlr-mode'.
 See `c-set-style' and for details, where the most interesting part in
 `c-style-alist' is the value of `c-basic-offset'."
   :group 'antlr
@@ -339,14 +339,14 @@ to the normal rules of `antlr-indent-line'."
 ;;;===========================================================================
 
 (defcustom antlr-options-use-submenus t
-  "*Non-nil, if the major mode menu should include option submenus.
+  "Non-nil, if the major mode menu should include option submenus.
 If nil, the menu just includes a command to insert options.  Otherwise,
 it includes four submenus to insert file/grammar/rule/subrule options."
   :group 'antlr
   :type 'boolean)
 
 (defcustom antlr-tool-version 20701
-  "*The version number of the Antlr tool.
+  "The version number of the Antlr tool.
 The value is an integer of the form XYYZZ which stands for vX.YY.ZZ.
 This variable is used to warn about non-supported options and to supply
 version correct option values when using \\[antlr-insert-option].
@@ -358,7 +358,7 @@ can make this variable buffer-local."
   :type 'integer)
 
 (defcustom antlr-options-auto-colon t
-  "*Non-nil, if `:' is inserted with a rule or subrule options section.
+  "Non-nil, if `:' is inserted with a rule or subrule options section.
 A `:' is only inserted if this value is non-nil, if a rule or subrule
 option is inserted with \\[antlr-insert-option], if there was no rule or
 subrule options section before, and if a `:' is not already present
@@ -378,7 +378,7 @@ is `language-as-string'.  See also `antlr-read-value'."
   :type '(repeat (symbol :tag "Style symbol")))
 
 (defcustom antlr-options-push-mark t
-  "*Non-nil, if inserting an option should set & push mark.
+  "Non-nil, if inserting an option should set & push mark.
 If nil, never set mark when inserting an option with command
 \\[antlr-insert-option].  If t, always set mark via `push-mark'.  If a
 number, only set mark if point was outside the options area before and
@@ -392,7 +392,7 @@ options area before."
 		(sexp :tag "If outside options" :format "%t" :value outside)))
 
 (defcustom antlr-options-assign-string " = "
-  "*String containing `=' to use between option name and value.
+  "String containing `=' to use between option name and value.
 This string is only used if the option to insert did not exist before
 or if there was no `=' after it.  In other words, the spacing around an
 existing `=' won't be changed when changing an option value."
@@ -578,21 +578,21 @@ AS-STRING is non-nil and is either t or a symbol which is a member of
 ;;;===========================================================================
 
 (defcustom antlr-tool-command "java antlr.Tool"
-  "*Command used in \\[antlr-run-tool] to run the Antlr tool.
+  "Command used in \\[antlr-run-tool] to run the Antlr tool.
 This variable should include all options passed to Antlr except the
 option \"-glib\" which is automatically suggested if necessary."
   :group 'antlr
   :type 'string)
 
 (defcustom antlr-ask-about-save t
-  "*If not nil, \\[antlr-run-tool] asks which buffers to save.
+  "If not nil, \\[antlr-run-tool] asks which buffers to save.
 Otherwise, it saves all modified buffers before running without asking."
   :group 'antlr
   :type 'boolean)
 
 (defcustom antlr-makefile-specification
   '("\n" ("GENS" "GENS%d" " \\\n\t") "$(ANTLR)")
-  "*Variable to specify the appearance of the generated makefile rules.
+  "Variable to specify the appearance of the generated makefile rules.
 This variable influences the output of \\[antlr-show-makefile-rules].
 It looks like \(RULE-SEP GEN-VAR-SPEC COMMAND).
 
@@ -650,7 +650,7 @@ See variable `antlr-file-formats-alist' for language dependent
 formats.")
 
 (defvar antlr-unknown-file-formats '("?%s?.g" "?%s?")
-  "*Formats which specify the names of unknown files.
+  "Formats which specify the names of unknown files.
 The value looks like \(SUPER-GRAMMAR-FILE-FORMAT SUPER-EVOCAB-FORMAT).
 
 SUPER-GRAMMAR-FORMAT is a format string, it specifies with substitution
@@ -685,7 +685,7 @@ DIRECTORY is the name of the current directory.")
 ;;;===========================================================================
 
 (defcustom antlr-imenu-name t ; (featurep 'xemacs) ; TODO: Emacs-21 bug?
-  "*Non-nil, if a \"Index\" menu should be added to the menubar.
+  "Non-nil, if a \"Index\" menu should be added to the menubar.
 If it is a string, it is used instead \"Index\".  Requires package
 imenu."
   :group 'antlr
@@ -774,7 +774,7 @@ imenu."
 ;;;===========================================================================
 
 (defcustom antlr-font-lock-maximum-decoration 'inherit
-  "*The maximum decoration level for fontifying actions.
+  "The maximum decoration level for fontifying actions.
 Value `none' means, do not fontify actions, just normal grammar code
 according to `antlr-font-lock-additional-keywords'.  Value `inherit'
 means, use value of `font-lock-maximum-decoration'.  Any other value is

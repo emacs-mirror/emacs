@@ -3494,7 +3494,7 @@ See the info node `(elisp)Syntax Properties' for a description of the
 
   DEFVAR_BOOL ("open-paren-in-column-0-is-defun-start",
 	       open_paren_in_column_0_is_defun_start,
-	       doc: /* *Non-nil means an open paren in column 0 denotes the start of a defun.  */);
+	       doc: /* Non-nil means an open paren in column 0 denotes the start of a defun.  */);
   open_paren_in_column_0_is_defun_start = 1;
 
 

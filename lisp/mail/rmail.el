@@ -712,7 +712,7 @@ to an appropriate value, and optionally also set
 
 ;; FIXME this is unused since 23.1.
 (defvar rmail-decode-mime-charset t
-  "*Non-nil means a message is decoded by MIME's charset specification.
+  "Non-nil means a message is decoded by MIME's charset specification.
 If this variable is nil, or the message has not MIME specification,
 the message is decoded as normal way.
 
@@ -4211,7 +4211,7 @@ This has an effect only if a summary buffer exists."
 (eval-when-compile (require 'speedbar))
 
 (defvar rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
-  "*This regex is used to match folder names to be displayed in speedbar.
+  "This regex is used to match folder names to be displayed in speedbar.
 Enabling this will permit speedbar to display your folders for easy
 browsing, and moving of messages.")
 
@@ -4704,7 +4704,7 @@ SENDERS is a string of regexps separated by commas.
 ;;;***
 
 ;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "undigest.el" "a31a35802a2adbc51be42959c3043dbd")
+;;;;;;  "undigest" "undigest.el" "9f270a2571bbbbfabc27498a8d4089c7")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\

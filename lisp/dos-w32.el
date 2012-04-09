@@ -55,7 +55,7 @@
     ("\\.tp[ulpw]$" . t)		; borland Pascal stuff
     ("[:/]tags$" . nil)			; emacs TAGS file
     )
-  "*Alist for distinguishing text files from binary files.
+  "Alist for distinguishing text files from binary files.
 Each element has the form (REGEXP . TYPE), where REGEXP is matched
 against the file name, and TYPE is nil for text, t for binary.")
 
@@ -283,7 +283,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 ;;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
 
 (defvar direct-print-region-use-command-dot-com t
-  "*Control whether command.com is used to print on Windows 9x.")
+  "Control whether command.com is used to print on Windows 9x.")
 
 ;; Function to actually send data to the printer port.
 ;; Supports writing directly, and using various programs.

@@ -1024,7 +1024,7 @@ syms_of_xsettings (void)
   defsubr (&Sfont_get_system_normal_font);
 
   DEFVAR_BOOL ("font-use-system-font", use_system_font,
-    doc: /* *Non-nil means to apply the system defined font dynamically.
+    doc: /* Non-nil means to apply the system defined font dynamically.
 When this is non-nil and the system defined fixed width font changes, we
 update frames dynamically.
 If this variable is nil, Emacs ignores system font changes.  */);

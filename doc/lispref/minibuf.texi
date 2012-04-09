@@ -1313,17 +1313,17 @@ If the user then types @kbd{fill-p @key{RET}}, @code{read-variable}
 returns @code{fill-prefix}.
 
 In general, @code{read-variable} is similar to @code{read-command},
-but uses the predicate @code{user-variable-p} instead of
+but uses the predicate @code{custom-variable-p} instead of
 @code{commandp}:
 
-@cindex @code{user-variable-p} example
+@cindex @code{custom-variable-p} example
 @example
 @group
 (read-variable @var{prompt})
 @equiv{}
 (intern
  (completing-read @var{prompt} obarray
-                  'user-variable-p t nil))
+                  'custom-variable-p t nil))
 @end group
 @end example
 @end defun

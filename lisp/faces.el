@@ -1212,7 +1212,7 @@ Value is a list (FACE NEW-VALUE) where FACE is the face read
 
 (defconst list-faces-sample-text
   "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  "*Text string to display as the sample text for `list-faces-display'.")
+  "Text string to display as the sample text for `list-faces-display'.")
 
 
 ;; The name list-faces would be more consistent, but let's avoid a

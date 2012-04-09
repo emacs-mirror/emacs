@@ -276,7 +276,7 @@ function and the `webjump-sites' variable.")
 
 (defvar webjump-sites
   webjump-sample-sites
-  "*Hotlist for WebJump.
+  "Hotlist for WebJump.
 
 The hotlist is represented as an association list, with the CAR of each cell
 being the name of the Web site, and the CDR being the definition for the URL of

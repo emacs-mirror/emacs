@@ -35,7 +35,7 @@
 
 (defvar minibuffer-default-in-prompt-regexps
   '(("\\( (default\\>.*)\\):? \\'" . 1) ("\\( \\[.*\\]\\):? *\\'" . 1))
-  "*A list of regexps matching the parts of minibuffer prompts showing defaults.
+  "A list of regexps matching the parts of minibuffer prompts showing defaults.
 When `minibuffer-electric-default-mode' is active, these regexps are
 used to identify the portions of prompts to elide.
 

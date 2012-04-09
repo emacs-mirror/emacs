@@ -177,18 +177,18 @@ the separate window."
     (20 . ?G)))
 
 (defvar epa-protocol 'OpenPGP
-  "*The default protocol.
+  "The default protocol.
 The value can be either OpenPGP or CMS.
 
 You should bind this variable with `let', but do not set it globally.")
 
 (defvar epa-armor nil
-  "*If non-nil, epa commands create ASCII armored output.
+  "If non-nil, epa commands create ASCII armored output.
 
 You should bind this variable with `let', but do not set it globally.")
 
 (defvar epa-textmode nil
-  "*If non-nil, epa commands treat input files as text.
+  "If non-nil, epa commands treat input files as text.
 
 You should bind this variable with `let', but do not set it globally.")
 

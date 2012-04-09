@@ -311,7 +311,7 @@ If a key is pressed while ERC is waiting, it will stop waiting."
   :type 'number)
 
 (defcustom erc-split-line-length 440
-  "*The maximum length of a single message.
+  "The maximum length of a single message.
 If a message exceeds this size, it is broken into multiple ones.
 
 IRC allows for lines up to 512 bytes. Two of them are CR LF.
@@ -379,14 +379,14 @@ It should take same arguments as `open-network-stream' does."
   :type 'function)
 
 (defcustom erc-server-prevent-duplicates '("301")
-  "*Either nil or a list of strings.
+  "Either nil or a list of strings.
 Each string is a IRC message type, like PRIVMSG or NOTICE.
 All Message types in that list of subjected to duplicate prevention."
   :type '(choice (const nil) (list string))
   :group 'erc-server)
 
 (defcustom erc-server-duplicate-timeout 60
-  "*The time allowed in seconds between duplicate messages.
+  "The time allowed in seconds between duplicate messages.
 
 If two identical messages arrive within this value of one another, the second
 isn't displayed."
@@ -399,7 +399,7 @@ isn't displayed."
 ;; (http://www.nongnu.org/circe)
 
 (defcustom erc-server-flood-margin 10
-  "*A margin on how much excess data we send.
+  "A margin on how much excess data we send.
 The flood protection algorithm of ERC works like the one
 detailed in RFC 2813, section 5.8 \"Flood control of clients\".
 
@@ -423,14 +423,14 @@ protection algorithm."
 ;; Ping handling
 
 (defcustom erc-server-send-ping-interval 30
-  "*Interval of sending pings to the server, in seconds.
+  "Interval of sending pings to the server, in seconds.
 If this is set to nil, pinging the server is disabled."
   :group 'erc-server
   :type '(choice (const :tag "Disabled" nil)
                  (integer :tag "Seconds")))
 
 (defcustom erc-server-send-ping-timeout 120
-  "*If the time between ping and response is greater than this, reconnect.
+  "If the time between ping and response is greater than this, reconnect.
 The time is in seconds.
 
 This must be greater than or equal to the value for

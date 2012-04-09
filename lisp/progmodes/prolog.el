@@ -3621,12 +3621,12 @@ a new comment is created."
       (indent-for-comment)))
 
 (defun prolog-indent-predicate ()
-  "*Indent the current predicate."
+  "Indent the current predicate."
   (interactive)
   (indent-region (prolog-pred-start) (prolog-pred-end) nil))
 
 (defun prolog-indent-buffer ()
-  "*Indent the entire buffer."
+  "Indent the entire buffer."
   (interactive)
   (indent-region (point-min) (point-max) nil))
 

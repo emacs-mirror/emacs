@@ -132,7 +132,7 @@ just before \"Other\" at the end."
     ,(purecopy "^font-lock-") ,(purecopy "^gnus-") ,(purecopy "^message-")
     ,(purecopy "^ediff-") ,(purecopy "^term-") ,(purecopy "^vc-")
     ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
-  "*List of faces that are of no interest to the user.")
+  "List of faces that are of no interest to the user.")
 (make-obsolete-variable 'facemenu-unlisted-faces 'facemenu-listed-faces
 			"22.1,\n  and has no effect on the Face menu")
 

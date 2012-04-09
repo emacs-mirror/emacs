@@ -3744,7 +3744,7 @@ This prints the value into current buffer."
 
 ;; FIXME eh?
 (defvar gud-inhibit-global-bindings
-  "*Non-nil means don't do global rebindings of C-x C-a subcommands.")
+  "Non-nil means don't do global rebindings of C-x C-a subcommands.")
 
 ;; Global GUD bindings for all emacs-lisp-mode buffers.
 (unless gud-inhibit-global-bindings

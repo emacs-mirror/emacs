@@ -872,7 +872,7 @@ The following variables are available, but should not be changed:
   :group 'ido)
 
 (defvar ido-rewrite-file-prompt-rules nil
-  "*Alist of rewriting rules for directory names in ido prompts.
+  "Alist of rewriting rules for directory names in ido prompts.
 A list of elements of the form (FROM . TO) or (FROM . FUNC), each
 meaning to rewrite the directory name if matched by FROM by either
 substituting the matched string by TO or calling the function FUNC
@@ -894,7 +894,7 @@ Otherwise, only the current list of matches is shown."
   :group 'ido)
 
 (defvar ido-all-frames 'visible
-  "*Argument to pass to `walk-windows' when finding visible files.
+  "Argument to pass to `walk-windows' when finding visible files.
 See documentation of `walk-windows' for useful values.")
 
 (defcustom ido-minibuffer-setup-hook nil

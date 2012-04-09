@@ -203,7 +203,7 @@ It comes after the chapter-level menu entries.")
     (3 . (concat "\\(^@\\)\\(" texinfo-section-level-regexp "\\)\\>[ \t]*"))
     (4 . (concat "\\(^@\\)\\(" texinfo-subsection-level-regexp "\\)\\>[ \t]+"))
     (5 . (concat "\\(^@\\)\\(" texinfo-subsubsection-level-regexp "\\)\\>[ \t]+")))
-  "*Regexps for searching for same level sections in a Texinfo file.
+  "Regexps for searching for same level sections in a Texinfo file.
 The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
 
@@ -231,7 +231,7 @@ document; the values are regular expressions.")
       "\\|"
       texinfo-chapter-level-regexp
       "\\)\\>[ \t]*\\)")))
-  "*Regexps for searching for higher level sections in a Texinfo file.
+  "Regexps for searching for higher level sections in a Texinfo file.
 The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
 
@@ -270,7 +270,7 @@ document; the values are regular expressions.")
       "\\)\\>[ \t]+\\)"))
     ;; There's nothing below 5, use a bogus regexp that can't match.
     (5 . "a\\(^\\)"))
-  "*Regexps for searching for lower level sections in a Texinfo file.
+  "Regexps for searching for lower level sections in a Texinfo file.
 The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
 
@@ -682,7 +682,7 @@ node within the section."
 
 ;; try 32, but perhaps 24 is better
 (defvar texinfo-column-for-description 32
-  "*Column at which descriptions start in a Texinfo menu.")
+  "Column at which descriptions start in a Texinfo menu.")
 
 (defun texinfo-insert-menu (menu-list node-name)
   "Insert formatted menu at point.

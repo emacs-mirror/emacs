@@ -2163,7 +2163,7 @@ void
 syms_of_indent (void)
 {
   DEFVAR_BOOL ("indent-tabs-mode", indent_tabs_mode,
-	       doc: /* *Indentation can insert tabs if this is non-nil.  */);
+	       doc: /* Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
 
   defsubr (&Scurrent_indentation);

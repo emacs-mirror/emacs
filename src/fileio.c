@@ -5611,7 +5611,7 @@ syms_of_fileio (void)
   DEFSYM (Qexcl, "excl");
 
   DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
-	       doc: /* *Coding system for encoding file names.
+	       doc: /* Coding system for encoding file names.
 If it is nil, `default-file-name-coding-system' (which see) is used.  */);
   Vfile_name_coding_system = Qnil;
 
@@ -5765,7 +5765,7 @@ file is usually more useful if it contains the deleted text.  */);
 
 #ifdef HAVE_FSYNC
   DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
-	       doc: /* *Non-nil means don't call fsync in `write-region'.
+	       doc: /* Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
 A non-nil value may result in data loss!  */);
   write_region_inhibit_fsync = 0;

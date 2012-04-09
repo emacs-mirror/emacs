@@ -435,7 +435,7 @@ widget."
     view-mode
     vm-mode
     vm-summary-mode)
-  "*A list of major modes that should come up in Emacs state.
+  "A list of major modes that should come up in Emacs state.
 Normally, Viper would bring buffers up in Emacs state, unless the corresponding
 major mode has been placed on `viper-vi-state-mode-list' or
 `viper-insert-state-mode-list'.  So, don't place a new mode on this list,
@@ -451,7 +451,7 @@ unless it is coming up in a wrong Viper state."
     erc-mode
     eshell-mode
     shell-mode)
-  "*A list of major modes that should come up in Vi Insert state."
+  "A list of major modes that should come up in Vi Insert state."
   :type '(repeat symbol)
   :group 'viper-misc)
 

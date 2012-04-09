@@ -482,7 +482,7 @@ discarded, @samp{U} provides @code{nil} as the argument.  No I/O.
 
 @item v
 A variable declared to be a user option (i.e., satisfying the
-predicate @code{user-variable-p}).  This reads the variable using
+predicate @code{custom-variable-p}).  This reads the variable using
 @code{read-variable}.  @xref{Definition of read-variable}.  Existing,
 Completion, Prompt.
 

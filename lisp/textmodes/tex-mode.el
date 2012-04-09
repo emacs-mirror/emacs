@@ -265,7 +265,7 @@ Deleted when the \\[tex-region] or \\[tex-buffer] is next run, or when the
 tex shell terminates.")
 
 (defvar tex-command "tex"
-  "*Command to run TeX.
+  "Command to run TeX.
 If this string contains an asterisk \(`*'\), that is replaced by the file name;
 otherwise the value of `tex-start-options', the \(shell-quoted\)
 value of `tex-start-commands', and the file name are added at the end
