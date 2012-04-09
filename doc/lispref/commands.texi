@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/commands
 @node Command Loop, Keymaps, Minibuffers, Top
@@ -483,7 +482,7 @@ discarded, @samp{U} provides @code{nil} as the argument.  No I/O.
 
 @item v
 A variable declared to be a user option (i.e., satisfying the
-predicate @code{user-variable-p}).  This reads the variable using
+predicate @code{custom-variable-p}).  This reads the variable using
 @code{read-variable}.  @xref{Definition of read-variable}.  Existing,
 Completion, Prompt.
 
@@ -3430,7 +3429,7 @@ buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
 @defvar kbd-macro-termination-hook
-This normal hook (@pxref{Standard Hooks}) is run when a keyboard
-macro terminates, regardless of what caused it to terminate (reaching
-the macro end or an error which ended the macro prematurely).
+This normal hook is run when a keyboard macro terminates, regardless
+of what caused it to terminate (reaching the macro end or an error
+which ended the macro prematurely).
 @end defvar

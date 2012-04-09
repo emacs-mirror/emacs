@@ -353,10 +353,6 @@ This also sets the following values:
       if CODING-SYSTEM is ASCII-compatible"
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
-  (if (fboundp 'ucs-set-table-for-input)
-      (dolist (buffer (buffer-list))
-	(or (local-variable-p 'buffer-file-coding-system buffer)
-	    (ucs-set-table-for-input buffer))))
 
   (if (eq system-type 'darwin)
       ;; The file-name coding system on Darwin systems is always utf-8.

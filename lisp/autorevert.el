@@ -439,17 +439,18 @@ This is an internal function used by Auto-Revert Mode."
     (let* ((buffer (current-buffer)) size
 	   (revert
 	    (or (and buffer-file-name
-		     (file-readable-p buffer-file-name)
 		     (if auto-revert-tail-mode
 			 ;; Tramp caches the file attributes.  Setting
 			 ;; `remote-file-name-inhibit-cache' forces Tramp
 			 ;; to reread the values.
 			 (let ((remote-file-name-inhibit-cache t))
-			   (/= auto-revert-tail-pos
-			       (setq size
-				     (nth 7 (file-attributes
-					     buffer-file-name)))))
+			   (and (file-readable-p buffer-file-name)
+				(/= auto-revert-tail-pos
+				    (setq size
+					  (nth 7 (file-attributes
+						  buffer-file-name))))))
 		       (and (not (file-remote-p buffer-file-name))
+			    (file-readable-p buffer-file-name)
 			    (not (verify-visited-file-modtime buffer)))))
 		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)

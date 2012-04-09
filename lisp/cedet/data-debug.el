@@ -872,7 +872,7 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   "Keymap used in data-debug.")
 
 (defcustom data-debug-mode-hook nil
-  "*Hook run when data-debug starts."
+  "Hook run when data-debug starts."
   :group 'data-debug
   :type 'hook)
 

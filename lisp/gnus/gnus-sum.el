@@ -6074,6 +6074,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 
 	(when (and (gnus-check-backend-function
 		    'request-set-mark gnus-newsgroup-name)
+		   (or gnus-propagate-marks
+		       (gnus-method-option-p
+			(gnus-find-method-for-group gnus-newsgroup-name)
+			'server-marks))
 		   (not (gnus-article-unpropagatable-p (cdr type))))
 	  (let* ((old (cdr (assq (cdr type) (gnus-info-marks info))))
 		 ;; Don't do anything about marks for articles we

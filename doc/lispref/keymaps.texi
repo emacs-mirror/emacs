@@ -2345,24 +2345,25 @@ multiple levels or comes from the menu bar.)
   It's often best to use a button-down event to trigger the menu.  Then
 the user can select a menu item by releasing the button.
 
-  A single keymap can appear as multiple menu panes, if you explicitly
-arrange for this.  The way to do this is to make a keymap for each pane,
-then create a binding for each of those maps in the main keymap of the
-menu.  Give each of these bindings an item string that starts with
-@samp{@@}.  The rest of the item string becomes the name of the pane.
-See the file @file{lisp/mouse.el} for an example of this.  Any ordinary
-bindings with @samp{@@}-less item strings are grouped into one pane,
-which appears along with the other panes explicitly created for the
-submaps.
+@cindex submenu
+  If the menu keymap contains a binding to a nested keymap, the nested
+keymap specifies a @dfn{submenu}.  There will be a menu item, labeled
+by the nested keymap's item string, and clicking on this item
+automatically pops up the specified submenu.  As a special exception,
+if the menu keymap contains a single nested keymap and no other menu
+items, the menu shows the contents of the nested keymap directly, not
+as a submenu.
 
-  X toolkit menus don't have panes; instead, they can have submenus.
-Every nested keymap becomes a submenu, whether the item string starts
-with @samp{@@} or not.  In a toolkit version of Emacs, the only thing
-special about @samp{@@} at the beginning of an item string is that the
-@samp{@@} doesn't appear in the menu item.
-
-  Multiple keymaps that define the same menu prefix key produce
-separate panes or separate submenus.
+  However, if Emacs is compiled without X toolkit support, submenus
+are not supported.  Each nested keymap is shown as a menu item, but
+clicking on it does not automatically pop up the submenu.  If you wish
+to imitate the effect of submenus, you can do that by giving a nested
+keymap an item string which starts with @samp{@@}.  This causes Emacs
+to display the nested keymap using a separate @dfn{menu pane}; the
+rest of the item string after the @samp{@@} is the pane label.  If
+Emacs is compiled without X toolkit support, menu panes are not used;
+in that case, a @samp{@@} at the beginning of an item string is
+omitted when the menu label is displayed, and has no other effect.
 
 @node Keyboard Menus
 @subsection Menus and the Keyboard

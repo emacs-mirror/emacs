@@ -96,7 +96,7 @@
   (regexp-opt (append ruby-modifier-beg-keywords ruby-block-op-keywords))
   "Regexp to match hanging block modifiers.")
 
-(defconst ruby-block-end-re "\\<end\\>")
+(defconst ruby-block-end-re "\\_<end\\_>")
 
 (eval-and-compile
   (defconst ruby-here-doc-beg-re
@@ -115,9 +115,9 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
                (match-string 6)))))
 
 (defconst ruby-delimiter
-  (concat "[?$/%(){}#\"'`.:]\\|<<\\|\\[\\|\\]\\|\\<\\("
+  (concat "[?$/%(){}#\"'`.:]\\|<<\\|\\[\\|\\]\\|\\_<\\("
           ruby-block-beg-re
-          "\\)\\>\\|" ruby-block-end-re
+          "\\)\\_>\\|" ruby-block-end-re
           "\\|^=begin\\|" ruby-here-doc-beg-re))
 
 (defconst ruby-negative
@@ -166,6 +166,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     (modify-syntax-entry ?$ "." table)
     (modify-syntax-entry ?? "_" table)
     (modify-syntax-entry ?_ "_" table)
+    (modify-syntax-entry ?: "_" table)
     (modify-syntax-entry ?< "." table)
     (modify-syntax-entry ?> "." table)
     (modify-syntax-entry ?& "." table)
@@ -565,7 +566,7 @@ and `\\' when preceded by `?'."
               (setq nest (cons (cons nil pnt) nest))
               (setq depth (1+ depth))))
         (goto-char (match-end 0)))
-       ((looking-at (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))
+       ((looking-at (concat "\\_<\\(" ruby-block-beg-re "\\)\\_>"))
         (and
          (save-match-data
            (or (not (looking-at (concat "do" ruby-keyword-end-re)))
@@ -864,7 +865,7 @@ move backward."
   ;; It seems like it should move to the line where indentation should deepen,
   ;; but ruby-indent-beg-re only accounts for whitespace before class, module and def,
   ;; so this will only match other block beginners at the beginning of the line.
-  (and (re-search-backward (concat "^\\(" ruby-indent-beg-re "\\)\\b") nil 'move)
+  (and (re-search-backward (concat "^\\(" ruby-indent-beg-re "\\)\\_>") nil 'move)
        (beginning-of-line)))
 
 (defun ruby-move-to-block (n)

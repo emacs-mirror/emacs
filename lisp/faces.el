@@ -122,15 +122,13 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
   "Return a list of all defined faces."
   (mapcar #'car face-new-frame-defaults))
 
-
-;;; ### If not frame-local initialize by what X resources?
-
 (defun make-face (face &optional no-init-from-resources)
   "Define a new face with name FACE, a symbol.
-NO-INIT-FROM-RESOURCES non-nil means don't initialize frame-local
-variants of FACE from X resources.  (X resources recognized are found
-in the global variable `face-x-resources'.)  If FACE is already known
-as a face, leave it unmodified.  Value is FACE."
+Do not call this directly from Lisp code; use `defface' instead.
+
+If NO-INIT-FROM-RESOURCES is non-nil, don't initialize face
+attributes from X resources.  If FACE is already known as a face,
+leave it unmodified.  Return FACE."
   (interactive (list (read-from-minibuffer
 		      "Make face: " nil nil t 'face-name-history)))
   (unless (facep face)
@@ -145,31 +143,30 @@ as a face, leave it unmodified.  Value is FACE."
       (make-face-x-resource-internal face)))
   face)
 
-
 (defun make-empty-face (face)
   "Define a new, empty face with name FACE.
-If the face already exists, it is left unmodified.  Value is FACE."
+Do not call this directly from Lisp code; use `defface' instead."
   (interactive (list (read-from-minibuffer
 		      "Make empty face: " nil nil t 'face-name-history)))
   (make-face face 'no-init-from-resources))
 
-
 (defun copy-face (old-face new-face &optional frame new-frame)
-  "Define a face just like OLD-FACE, with name NEW-FACE.
+  "Define a face named NEW-FACE, which is a copy of OLD-FACE.
+This function does not copy face customization data, so NEW-FACE
+will not be made customizable.  Most Lisp code should not call
+this function; use `defface' with :inherit instead.
 
-If NEW-FACE already exists as a face, it is modified to be like
-OLD-FACE.  If it doesn't already exist, it is created.
+If NEW-FACE already exists as a face, modify it to be like
+OLD-FACE.  If NEW-FACE doesn't already exist, create it.
 
-If the optional argument FRAME is given as a frame, NEW-FACE is
-changed on FRAME only.
-If FRAME is t, the frame-independent default specification for OLD-FACE
-is copied to NEW-FACE.
-If FRAME is nil, copying is done for the frame-independent defaults
-and for each existing frame.
+If the optional argument FRAME is a frame, change NEW-FACE on
+FRAME only.  If FRAME is t, copy the frame-independent default
+specification for OLD-FACE to NEW-FACE.  If FRAME is nil, copy
+the defaults as well as the faces on each existing frame.
 
-If the optional fourth argument NEW-FRAME is given,
-copy the information from face OLD-FACE on frame FRAME
-to NEW-FACE on frame NEW-FRAME.  In this case, FRAME may not be nil."
+If the optional fourth argument NEW-FRAME is given, copy the
+information from face OLD-FACE on frame FRAME to NEW-FACE on
+frame NEW-FRAME.  In this case, FRAME must not be nil."
   (let ((inhibit-quit t))
     (if (null frame)
 	(progn
@@ -1215,7 +1212,7 @@ Value is a list (FACE NEW-VALUE) where FACE is the face read
 
 (defconst list-faces-sample-text
   "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  "*Text string to display as the sample text for `list-faces-display'.")
+  "Text string to display as the sample text for `list-faces-display'.")
 
 
 ;; The name list-faces would be more consistent, but let's avoid a
@@ -1513,12 +1510,26 @@ If SPEC is nil, return nil."
 
 (defun face-spec-reset-face (face &optional frame)
   "Reset all attributes of FACE on FRAME to unspecified."
-  (unless (eq face 'default)
-    (let (reset-args)
-      (dolist (attr-and-name face-attribute-name-alist)
-	(push 'unspecified reset-args)
-	(push (car attr-and-name) reset-args))
-      (apply 'set-face-attribute face frame reset-args))))
+  (apply 'set-face-attribute face frame
+	 (if (eq face 'default)
+	     ;; For the default face, avoid making any attribute
+	     ;; unspecified.  Instead, set attributes to default values
+	     ;; (see also realize_default_face in xfaces.c).
+	     (append
+	      '(:underline nil :overline nil :strike-through nil
+		:box nil :inverse-video nil :stipple nil :inherit nil)
+	      ;; `display-graphic-p' is unavailable when running
+	      ;; temacs, prior to loading frame.el.
+	      (unless (and (fboundp 'display-graphic-p)
+			   (display-graphic-p frame))
+		'(:family "default" :foundry "default" :width normal
+		  :height 1 :weight normal :slant normal
+		  :foreground "unspecified-fg"
+		  :background "unspecified-bg")))
+	   ;; For all other faces, unspecify all attributes.
+	   (apply 'append
+		  (mapcar (lambda (x) (list (car x) 'unspecified))
+			  face-attribute-name-alist)))))
 
 (defun face-spec-set (face spec &optional for-defface)
   "Set FACE's face spec, which controls its appearance, to SPEC.

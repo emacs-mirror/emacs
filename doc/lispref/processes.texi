@@ -2054,7 +2054,7 @@ parameters:
 @itemize @bullet
 @item
 The connection's process name is constructed by concatenating the
-server process' @var{name} with a client identification string.  The
+server process's @var{name} with a client identification string.  The
 client identification string for an IPv4 connection looks like
 @samp{<@var{a}.@var{b}.@var{c}.@var{d}:@var{p}>}.  Otherwise, it is a
 unique number in brackets, as in @samp{<@var{nnn}>}.  The number
@@ -2087,7 +2087,7 @@ The connection's local address is set up according to the port
 number used for the connection.
 
 @item
-The client process' plist is initialized from the server's plist.
+The client process's plist is initialized from the server's plist.
 @end itemize
 
 @node Datagrams

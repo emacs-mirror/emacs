@@ -38,20 +38,20 @@
   :group 'news)
 
 (defcustom uudecode-decoder-program "uudecode"
-  "*Non-nil value should be a string that names a uu decoder.
+  "Non-nil value should be a string that names a uu decoder.
 The program should expect to read uu data on its standard
 input and write the converted data to its standard output."
   :type 'string
   :group 'uudecode)
 
 (defcustom uudecode-decoder-switches nil
-  "*List of command line flags passed to `uudecode-decoder-program'."
+  "List of command line flags passed to `uudecode-decoder-program'."
   :group 'uudecode
   :type '(repeat string))
 
 (defcustom uudecode-use-external
   (executable-find uudecode-decoder-program)
-  "*Use external uudecode program."
+  "Use external uudecode program."
   :version "22.1"
   :group 'uudecode
   :type 'boolean)

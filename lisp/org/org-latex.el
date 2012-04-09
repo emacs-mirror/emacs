@@ -218,6 +218,7 @@ For example, adding an entry
 will cause \\usepackage[utf8x]{inputenc} to be used for buffers that
 are written as utf8 files."
   :group 'org-export-latex
+  :version "24.1"
   :type '(repeat
 	  (cons
 	   (string :tag "Derived from buffer")
@@ -283,6 +284,7 @@ markup defined, the first one in the association list will be used."
 (defcustom org-export-latex-tag-markup "\\textbf{%s}"
   "Markup for tags, as a printf format."
   :group 'org-export-latex
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-latex-timestamp-markup "\\textit{%s}"
@@ -293,6 +295,7 @@ markup defined, the first one in the association list will be used."
 (defcustom org-export-latex-timestamp-inactive-markup "\\textit{%s}"
   "A printf format string to be applied to inactive time stamps."
   :group 'org-export-latex
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-latex-timestamp-keyword-markup "\\texttt{%s}"
@@ -307,6 +310,7 @@ If it contains two %s instances, the first will be filled with
 the link, the second with the link description.  If it contains
 only one, the %s will be filled with the link."
   :group 'org-export-latex
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-latex-hyperref-format "\\hyperref[%s]{%s}"
@@ -314,11 +318,13 @@ only one, the %s will be filled with the link."
 The format must contain one or two %s instances.  The first one
 will be filled with the link, the second with its description."
   :group 'org-export-latex
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-latex-footnote-separator "\\textsuperscript{,}\\,"
   "Text used to separate footnotes."
   :group 'org-export-latex
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-latex-quotes
@@ -336,6 +342,7 @@ For each item in a CONS, the first string is a regexp
 for allowed characters before/after the quote, the second
 string defines the replacement string for this quote."
   :group 'org-export-latex
+  :version "24.1"
   :type '(list
 	  (cons :tag "Opening quote"
 		(string :tag "Regexp for char before")
@@ -361,6 +368,7 @@ string defines the replacement string for this quote."
   "When non-nil, the caption is set above the table.  When nil,
 the caption is set below the table."
   :group 'org-export-latex
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-export-latex-tables-column-borders nil
@@ -478,6 +486,7 @@ Code blocks exported with the listings package (controlled by the
 `org-export-latex-listings' variable) can be named in the style
 of noweb."
   :group 'org-export-latex
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-export-latex-minted-langs
@@ -499,6 +508,7 @@ with:
 pygmentize -L lexers
 "
   :group 'org-export-latex
+  :version "24.1"
   :type '(repeat
 	  (list
 	   (symbol :tag "Major mode       ")
@@ -522,6 +532,7 @@ black keywords.
 Note that the same options will be applied to blocks of all
 languages."
   :group 'org-export-latex
+  :version "24.1"
   :type '(repeat
 	  (list
 	   (string :tag "Listings option name ")
@@ -545,6 +556,7 @@ will result in src blocks being exported with
 as the start of the minted environment. Note that the same
 options will be applied to blocks of all languages."
   :group 'org-export-latex
+  :version "24.1"
   :type '(repeat
 	  (list
 	   (string :tag "Minted option name ")
@@ -586,11 +598,13 @@ and `org-export-with-tags' instead."
 (defcustom org-latex-default-figure-position "htb"
   "Default position for latex figures."
   :group 'org-export-latex
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-latex-tabular-environment "tabular"
   "Default environment used to build tables."
   :group 'org-export-latex
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-latex-inline-image-extensions
@@ -657,6 +671,18 @@ This function should accept the file name as its single argument."
 		   "bibtex %b"
 		   "pdflatex -interaction nonstopmode -output-directory %o %f"
 		   "pdflatex -interaction nonstopmode -output-directory %o %f"))
+	  (const :tag "2 runs of xelatex"
+		 ("xelatex -interaction nonstopmode -output-directory %o %f"
+		   "xelatex -interaction nonstopmode -output-directory %o %f"))
+	  (const :tag "3 runs of xelatex"
+		 ("xelatex -interaction nonstopmode -output-directory %o %f"
+		   "xelatex -interaction nonstopmode -output-directory %o %f"
+		   "xelatex -interaction nonstopmode -output-directory %o %f"))
+	  (const :tag "xelatex,bibtex,xelatex,xelatex"
+		 ("xelatex -interaction nonstopmode -output-directory %o %f"
+		   "bibtex %b"
+		   "xelatex -interaction nonstopmode -output-directory %o %f"
+		   "xelatex -interaction nonstopmode -output-directory %o %f"))
 	  (const :tag "texi2dvi"
 		 ("texi2dvi -p -b -c -V %f"))
 	  (const :tag "rubber"
@@ -667,6 +693,7 @@ This function should accept the file name as its single argument."
   '("aux" "idx" "log" "out" "toc" "nav" "snm" "vrb")
   "The list of file extensions to consider as LaTeX logfiles."
   :group 'org-export-pdf
+  :version "24.1"
   :type '(repeat (string :tag "Extension")))
 
 (defcustom org-export-pdf-remove-logfiles t
@@ -855,7 +882,7 @@ when PUB-DIR is set, use this as the publishing directory."
 	       (concat
 		(file-name-as-directory
 		 (or pub-dir
-		     (org-export-directory :LaTeX ext-plist)))
+		     (org-export-directory :LaTeX org-export-latex-options-plist)))
 		(file-name-sans-extension
 		 (or (and subtree-p
 			  (org-entry-get rbeg "EXPORT_FILE_NAME" t))
@@ -870,7 +897,7 @@ when PUB-DIR is set, use this as the publishing directory."
 		   (concat filename ".tex")
 		 filename)))
 	 (auto-insert nil); Avoid any auto-insert stuff for the new file
-	 (TeX-master t) ; Avoid the Query for TeX master from AUCTeX
+	 (TeX-master (boundp 'TeX-master))
 	 (buffer (if to-buffer
 		     (cond
 		      ((eq to-buffer 'string) (get-buffer-create
@@ -1224,7 +1251,7 @@ numbered sections and lower levels as unnumbered sections."
 					     org-export-target-aliases))))
 	 (sectioning org-export-latex-sectioning)
 	 (depth org-export-latex-sectioning-depth)
-	 main-heading sub-heading)
+	 main-heading sub-heading ctnt)
     (when (symbolp (car sectioning))
       (setq sectioning (funcall (car sectioning) level heading))
       (when sectioning
@@ -1291,16 +1318,20 @@ numbered sections and lower levels as unnumbered sections."
 		 (delete-region (point-at-bol 0) (point))
 	       (insert (format "\\begin{%s}\n"
 			       (symbol-name org-export-latex-low-levels))))
-	     (insert (format "\n\\item %s\\\\\n%s%%"
-			     heading
-			     (if label (format "\\label{%s}" label) "")))
-	     (insert (org-export-latex-content content))
+	     (let ((ctnt (org-export-latex-content content)))
+	       (insert (format (if (not (equal (replace-regexp-in-string "\n" "" ctnt) ""))
+				   "\n\\item %s\\\\\n%s%%"
+				 "\n\\item %s\n%s%%")
+			       heading
+			       (if label (format "\\label{%s}" label) "")))
+	       (insert ctnt))
 	     (cond ((stringp subcontent) (insert subcontent))
 		   ((listp subcontent) (org-export-latex-sub subcontent)))
 	     (insert (format "\\end{%s} %% ends low level\n"
 			     (symbol-name org-export-latex-low-levels))))
 
-	    ((listp org-export-latex-low-levels)
+	    ((and (listp org-export-latex-low-levels)
+		  org-export-latex-low-levels)
 	     (if (string-match "% ends low level$"
 			       (buffer-substring (point-at-bol 0) (point)))
 		 (delete-region (point-at-bol 0) (point))
@@ -1902,10 +1933,14 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
                          'org-label raw-table)
                   longtblp (and attr (stringp attr)
                                 (string-match "\\<longtable\\>" attr))
-		  tblenv (if (and attr (stringp attr)
-				  (or (string-match (regexp-quote "table*") attr)
-				      (string-match "\\<multicolumn\\>" attr)))
-			     "table*" "table")
+		  tblenv (if (and attr (stringp attr))
+			     (cond ((string-match "\\<sidewaystable\\>" attr)
+				    "sidewaystable")
+				   ((or (string-match (regexp-quote "table*") attr)
+					(string-match "\\<multicolumn\\>" attr))
+				    "table*")
+				   (t "table"))
+			   "table")
 		  tabular-env
 		  (if (and attr (stringp attr)
 			   (string-match "\\(tabular.\\)" attr))
@@ -1988,7 +2023,8 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
                              (if shortn (concat "[" shortn "]") "")
                              (or caption "")
 			     (if label (format "\\label{%s}" label) "")))
-			(if (and longtblp caption) "\\\\\n" "\n")
+			(if (and longtblp caption org-export-latex-table-caption-above)
+			    "\\\\\n" "\n")
                         (if (and org-export-latex-tables-centered (not longtblp))
                             "\\begin{center}\n")
                         (if (not longtblp)
@@ -2572,9 +2608,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
   "Convert plain text lists in current buffer into LaTeX lists."
   ;; `org-list-end-re' output has changed since preprocess from
   ;; org-exp.el. Make sure it is taken into account.
-  (let ((org-list-ending-method
-	 (if (eq org-list-ending-method 'regexp) 'regexp 'both))
-	(org-list-end-re "^ORG-LIST-END-MARKER\n"))
+  (let ((org-list-end-re "^ORG-LIST-END-MARKER\n"))
     (mapc
      (lambda (e)
        ;; For each type of context allowed for list export (E), find

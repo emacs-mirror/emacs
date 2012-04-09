@@ -423,7 +423,7 @@ For example: to sort lines in the region by the first word on each line
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
-  (interactive "P\nsRegexp specifying records to sort:
+  (interactive "P\nsRegexp specifying records to sort: \n\
 sRegexp specifying key within record: \nr")
   (cond ((or (equal key-regexp "") (equal key-regexp "\\&"))
 	 (setq key-regexp 0))

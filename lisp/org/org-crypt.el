@@ -236,16 +236,20 @@ See `org-crypt-disable-auto-save'."
 (defun org-encrypt-entries ()
   "Encrypt all top-level entries in the current buffer."
   (interactive)
-  (org-scan-tags
-   'org-encrypt-entry
-   (cdr (org-make-tags-matcher org-crypt-tag-matcher))))
+  (let (todo-only)
+    (org-scan-tags
+     'org-encrypt-entry
+     (cdr (org-make-tags-matcher org-crypt-tag-matcher))
+     todo-only)))
 
 (defun org-decrypt-entries ()
   "Decrypt all entries in the current buffer."
   (interactive)
-  (org-scan-tags
-   'org-decrypt-entry
-   (cdr (org-make-tags-matcher org-crypt-tag-matcher))))
+  (let (todo-only)
+    (org-scan-tags
+     'org-decrypt-entry
+     (cdr (org-make-tags-matcher org-crypt-tag-matcher))
+     todo-only)))
 
 (defun org-crypt-use-before-save-magic ()
   "Add a hook to automatically encrypt entries before a file is saved to disk."

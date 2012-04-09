@@ -1,3 +1,354 @@
+2012-04-09  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Variable Definitions): Remove user-variable-p.
+
+	* commands.texi (Interactive Codes):
+	* help.texi (Accessing Documentation):
+	* minibuf.texi (High-Level Completion): Callers changed.
+
+2012-04-06  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Programmed Completion): Document metadata method.
+	(Completion Variables): Document completion-category-overrides.
+
+2012-04-05  Chong Yidong  <cyd@gnu.org>
+
+	* anti.texi (Antinews): Rewrite for Emacs 23.
+
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Programmed Completion): Remove obsolete variable
+	completion-annotate-function.
+	(Completion Variables): Rename from Completion Styles.  Document
+	completion-extra-properties.  Document completion-styles-alist
+	change.
+	(Reading File Names): minibuffer-local-filename-must-match-map is
+	not used anymore.
+	(Minibuffer Completion): Document completing-read-function.
+	(Completion in Buffers): completion-at-point-functions can return
+	properties recognized in completion-extra-properties.
+
+	* display.texi (Delayed Warnings): New node.
+
+	* os.texi (Notifications): Copyedits.
+
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Notifications): Copyedits.
+
+2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* os.texi (Terminal-Specific): Fix typo.
+	(Notifications): New section.
+
+	* elisp.texi (Top):
+	* vol1.texi (Top):
+	* vol2.texi (Top): Add "Notifications" and "Dynamic Libraries"
+	menu entries.
+
+2012-04-01  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Kinds of Files): file-subdir-of-p renamed to
+	file-in-directory-p.
+
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls):
+	Mention defining macros at instrumentation time.
+	(Edebug Options): Mention edebug-unwrap-results.
+
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): Clarify the description of the
+	effect of integer values of the 'cursor' property on cursor
+	position.  See the discussions in bug#11068 for more details and
+	context.
+
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Edebug Eval, Specification List, Edebug Options):
+	Copyedits.
+
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Image Formats): Add imagemagick type.
+	(Image Descriptors): Mention how they are used.
+	(ImageMagick Images): Clarify role of imagemagick-register-types.
+	(Character Display): Don't mention glyph tables.
+	(Display Tables): Use make-glyph-code in example.
+	(Glyphs): Avoid "simple glyph code" terminology.  Note that glyph
+	tables are semi-obsolete.  De-document create-glyph.
+	(Glyphless Chars): Note that display tables override this.
+	(Bidirectional Display): Copyedits.  Introduce "bidirectional
+	reordering" terminology, and use it.
+
+2012-03-30  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Jumping): Give name of `i' binding.
+
+2012-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* searching.texi (Regular Expressions, Regexp Special):
+	(Regexp Backslash, Regexp Example, Regexp Functions, Regexp Search):
+	(Simple Match Data, Saving Match Data, Standard Regexps): Copyedits.
+	(Regexp Special): Mention collation.
+	Clarify char classes with an example.
+	(Regexp Functions): Mention regexp-opt is not guaranteed.
+	Mention regexp-opt-charset.
+	(Regexp Search): Recommend against looking-back.
+	(Search and Replace): Use Texinfo recommended quote convention.
+	Add more query-replace-map items.  List multi-query-replace-map items.
+
+2012-03-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window History): Describe new option
+	switch-to-visible-buffer.
+
+2012-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* searching.texi (String Search): Add xref to Emacs manual.
+	Copyedits.  Mention the function word-search-regexp.
+	(Searching and Case): Add xref to Emacs manual.  Copyedits.
+
+	* processes.texi (Network Servers): Standardize apostrophe usage.
+
+	* os.texi (System Environment): Copyedits.  Remove some examples
+	that do not seem useful.  Mention setenv third arg.
+	tty-erase-char does not seem to be nil under a window-system.
+	(User Identification): Copyedits.
+	Remove some examples that do not seem useful.
+
+2012-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Startup Summary): Copyedits.  Fix startup screen logic.
+	(Init File): Copyedits.
+	(Command-Line Arguments): Copyedits.  Do not mention argv alias.
+	(Killing Emacs): Copyedits.
+	(Suspending Emacs): Copyedits.  Mention not very relevant with GUIs.
+	Shorten the example, use more standard shell prompts.
+
+2012-03-25  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringes): Note that fringes are shown on graphical
+	displays only.
+	(Fringe Size/Pos, Fringe Bitmaps, Making Buttons): Clarifications.
+	(Replacing Specs): Clarify example.
+	(Manipulating Buttons): Note that button-at can return a marker.
+	(Buttons): Minor rewrite.
+	(Character Display): New node.  Consolidate all character display
+	related nodes into its subsections.
+	(Usual Display): Character 127 is also affected by ctl-arrow.
+	(Display Tables): Improve example.
+
+2012-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* strings.texi (Text Comparison): Mention string-prefix-p.
+
+2012-03-21  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (The Echo Area): Add xref to Output Streams.
+	(Displaying Messages): Improve doc of message.
+	(Echo Area Customization, Invisible Text): Copyedits.
+	(Invisible Text): Mention that spec comparison is done with eq.
+	(Width): Improve doc of char-width.
+	(Faces): Recommend using symbol instead of string for face name.
+	Minor clarifications.
+	(Defining Faces): Copyedits.  Update face example.
+	(Attribute Functions): Mark set-face-foreground etc as commands.
+	(Face Remapping): Mention text-scale-adjust.  Clarify
+	face-remapping-alist and related docs.
+	(Face Functions): Don't document make-face or copy-face.
+
+2012-03-20  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Forcing Redisplay): Various rewrites to reflect
+	new value of redisplay-dont-pause.
+	(Truncation): Copyedits.
+
+2012-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Startup Summary): Don't mention initial-buffer-choice = t.
+	Add summary table of some relevant command-line options.
+
+2012-03-18  Chong Yidong  <cyd@gnu.org>
+
+	* internals.texi (Building Emacs, Garbage Collection): Copyedits.
+	(Writing Emacs Primitives): Re-organize discussion of functions
+	with variable Lisp arguments are handled.  Delete an obsolete
+	remark, previously tagged as FIXME.
+
+	* os.texi (Idle Timers): Minor clarification.
+	(Idle Timers): Link to Time of Day for description of time list.
+
+2012-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (System Interface): Flow control was removed.
+	(Startup Summary): General update.
+	(Init File): Don't mention compiling it.
+
+2012-03-17  Chong Yidong  <cyd@gnu.org>
+
+	* os.texi (Startup Summary): Mention package loading.
+	(Init File): Don't refer to .emacs in section title.  Copyedits.
+	(Terminal-Specific): Give a realistic example.
+	(Command-Line Arguments): Reference Entering Emacs instead of
+	repeating the spiel about not restarting Emacs.
+	(Time of Day): Discuss time representation at beginning of node.
+	(Sound Output): Copyedits.
+
+	* package.texi (Packaging Basics): Document package-initialize.
+
+2012-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Initial Parameters): Add an index entry for
+	minibuffer-only frame.
+
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Mention the strange
+	relationship between View mode and special modes.  (Bug#10650)
+
+2012-03-11  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Configurations): save-window-excursion is
+	now a macro.
+
+	* display.texi (Temporary Displays): with-output-to-temp-buffer is
+	now a macro.
+
+	* text.texi (Fields): Minor copyedit.
+
+2012-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* strings.texi (String Basics):
+	* sequences.texi (Sequence Functions): Mention that `length' is
+	not appropriate for computing the string width on display; add a
+	cross-reference to the description of `string-width'.  (Bug#10978)
+
+	* eval.texi (Autoloading): Minor change of wording.
+
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* loading.texi (Autoload): Explicitly state which forms are
+	processed specially (Bug#7783).
+
+	* keymaps.texi (Mouse Menus): Describe non-toolkit behavior as the
+	non-default situation.  Describe one-submenu exception (Bug#7695).
+
+	* nonascii.texi (Character Properties): Copyedits.
+
+2012-03-08  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Mode-Specific Indent): Document new behavior of
+	indent-for-tab-command.  Document tab-always-indent.
+	(Special Properties): Copyedits.
+	(Checksum/Hash): Improve secure-hash doc.  Do not recommend MD5.
+	(Parsing HTML/XML): Rename from Parsing HTML.  Update doc of
+	libxml-parse-html-region.
+
+2012-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* markers.texi (The Region): Briefly mention use-empty-active-region
+	and region-active-p.
+	(Overview of Markers): Reword garbage collection, add cross-ref.
+	(The Mark): Tiny clarification re command loop and activate-mark-hook.
+
+2012-03-07  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Buffer Contents): Don't duplicate explanation of
+	region arguments from Text node.  Put doc of obsolete var
+	buffer-substring-filters back, since it is referred to.
+	(Low-Level Kill Ring): Yank now uses clipboard instead of primary
+	selection by default.
+
+	* markers.texi (The Mark): Fix typo.
+	(The Region): Copyedits.
+
+2012-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* markers.texi (Overview of Markers): Copyedits.
+	(Creating Markers): Update approximate example buffer size.
+	(The Mark): Don't mention uninteresting return values.
+
+2012-03-05  Chong Yidong  <cyd@gnu.org>
+
+	* positions.texi (Text Lines): Document count-words.
+
+2012-03-04  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Frames): Remove little-used "terminal frame" and
+	"window frame" terminology.
+	(Frame Parameters, Font and Color Parameters, Initial Parameters)
+	(Size and Position, Visibility of Frames): Callers changed.
+	(Frames): Clarify which terminals in framep are graphical.
+	(Initial Parameters): --geometry is not the only option which adds
+	to initial-frame-alist.
+	(Position Parameters): Note that icon-left and icon-top are for
+	old window managers only.
+	(Size Parameters): Sizes are in characters even on graphical
+	displays.
+	(Management Parameters): Note that window-id and outer-window-id
+	can't really be changed, and that auto-raise isn't always obeyed.
+	(Cursor Parameters): Document cursor-type explicitly.
+	(Size and Position): The aliases set-screen-height and
+	set-screen-width have been deleted.
+	(Visibility of Frames): Mention "minimization".
+
+	* os.texi (Startup Summary): Minor clarifications.
+	(Startup Summary, Suspending Emacs): Standardize on "text
+	terminal" terminology.
+
+	* windows.texi (Basic Windows, Coordinates and Windows)
+	(Coordinates and Windows):
+	* display.texi (Refresh Screen, Line Height, Face Attributes)
+	(Overlay Arrow, Beeping, Glyphless Chars): Likewise.
+
+2012-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi: Small copyedits throughout.
+	(Abbrev Mode): Remove this section, folding it into the top-level.
+	(Abbrev Tables): Don't mention irrelevant return values.
+	(Abbrev Expansion): Add cross-ref for wrapper hooks.
+	(Standard Abbrev Tables): Emacs Lisp mode now has its own table.
+	(Abbrev Table Properties): Update nil :regexp description.
+
+2012-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* internals.texi: Change @appendix section commands to @section.
+	(Building Emacs): Say less about CANNOT_DUMP platforms.
+	Replace deleted eval-at-startup with custom-initialize-delay.
+	(Pure Storage): Small changes.
+	(Memory Usage): Copyedit.
+	(Writing Emacs Primitives): Update Fcoordinates_in_window_p and For
+	example definitions. Give examples of things with non-nil
+	interactive args.  Mention eval_sub.  Remove old info about
+	strings and GCPRO.  Mention cus-start.el.
+	(Buffer Internals, Window Internals, Process Internals):
+	Misc small updates and fixes for fields.
+
+	* tips.texi: Copyedits.
+	(Coding Conventions): Mention autoloads.
+	Combine partially duplicated macro items.  Fix xref.
+	Refer to Library Headers for copyright notice.
+	(Programming Tips): edit-options is long-obsolete.
+	(Compilation Tips): Mention loading bytecomp for byte-compile props.
+	(Warning Tips): Mention declare-function.
+	(Documentation Tips): Remove old info.
+	(Comment Tips): Mention comment-dwim, not indent-for-comment.
+	(Library Headers): General update.
+
+2012-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* backups.texi (Reverting): Un-duplicate revert-buffer-in-progress-p,
+	and relocate entry.  Mention buffer-stale-function.
+
+	* elisp.texi, vol1.texi, vol2.texi: Standardize some menu entries.
+
+	* hooks.texi (Standard Hooks): General update.
+	Put related hooks together.  Add and remove items.
+	* commands.texi (Keyboard Macros): Remove cross-ref to Standard Hooks.
+	* modes.texi (Hooks): Tweak cross-ref description.
+
 2012-03-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Kinds of Files): The return value of file-equal-p is

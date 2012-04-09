@@ -1340,7 +1340,7 @@ Example 'defadvice' for mail-send:
 
 
 (defvar feedmail-queue-runner-is-active nil
-  "*Non-nil means we're inside the logic of the queue-running loop.
+  "Non-nil means we're inside the logic of the queue-running loop.
 That is, iterating over all messages in the queue to send them.  In
 that case, the value is the name of the queued message file currently
 being processed.  This can be used for differentiating customized code
@@ -1371,11 +1371,11 @@ call to `feedmail-run-the-queue'."
 
 
 (defvar feedmail-mail-send-hook nil
-  "*See documentation for `feedmail-mail-send-hook-splitter'.")
+  "See documentation for `feedmail-mail-send-hook-splitter'.")
 
 
 (defvar feedmail-mail-send-hook-queued nil
-  "*See documentation for `feedmail-mail-send-hook-splitter'.")
+  "See documentation for `feedmail-mail-send-hook-splitter'.")
 
 
 (defun feedmail-confirm-addresses-hook-example ()
@@ -1514,7 +1514,7 @@ function, for example, to archive all of your sent messages someplace
 
 
 (defvar feedmail-is-a-resend nil
-  "*Non-nil means the message is a Resend (in the RFC-822 sense).
+  "Non-nil means the message is a Resend (in the RFC-822 sense).
 This affects the composition of certain headers.  feedmail sets this
 variable as soon as it starts prepping the message text buffer, so any
 user-supplied functions can rely on it.  Users shouldn't set or change this

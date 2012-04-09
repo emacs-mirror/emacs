@@ -162,7 +162,7 @@ Like CL's `some'."
 (defun complete-with-action (action table string pred)
   "Perform completion ACTION.
 STRING is the string to complete.
-TABLE is the completion table, which should not be a function.
+TABLE is the completion table.
 PRED is a completion predicate.
 ACTION can be one of nil, t or `lambda'."
   (cond
@@ -776,7 +776,8 @@ scroll the window of possible completions."
   (interactive)
   ;; If the previous command was not this,
   ;; mark the completion buffer obsolete.
-  (unless (eq this-command last-command)
+  (setq this-command 'completion-at-point)
+  (unless (eq 'completion-at-point last-command)
     (completion--flush-all-sorted-completions)
     (setq minibuffer-scroll-window nil))
 
@@ -1268,17 +1269,24 @@ the completions buffer."
 (defvar completion-extra-properties nil
   "Property list of extra properties of the current completion job.
 These include:
-`:annotation-function': Function to add annotations in the completions buffer.
-   The function takes a completion and should either return nil, or a string
-   that will be displayed next to the completion.  The function can access the
-   completion data via `minibuffer-completion-table' and related variables.
+
+`:annotation-function': Function to annotate the completions buffer.
+   The function must accept one argument, a completion string,
+   and return either nil or a string which is to be displayed
+   next to the completion (but which is not part of the
+   completion).  The function can access the completion data via
+   `minibuffer-completion-table' and related variables.
+
 `:exit-function': Function to run after completion is performed.
-   The function takes at least 2 parameters (STRING and STATUS) where STRING
-   is the text to which the field was completed and STATUS indicates what
-   kind of operation happened: if text is now complete it's `finished', if text
-   cannot be further completed but completion is not finished, it's `sole', if
-   text is a valid completion but may be further completed, it's `exact', and
-   other STATUSes may be added in the future.")
+
+   The function must accept two arguments, STRING and STATUS.
+   STRING is the text to which the field was completed, and
+   STATUS indicates what kind of operation happened:
+     `finished' - text is now complete
+     `sole'     - text cannot be further completed but
+                  completion is not finished
+     `exact'    - text is a valid completion but may be further
+                  completed.")
 
 (defvar completion-annotate-function
   nil
@@ -1483,10 +1491,13 @@ exit."
           (minibuffer-completion-predicate predicate)
           (ol (make-overlay start end nil nil t)))
       (overlay-put ol 'field 'completion)
+      ;; HACK: if the text we are completing is already in a field, we
+      ;; want the completion field to take priority (e.g. Bug#6830).
+      (overlay-put ol 'priority 100)
       (when completion-in-region-mode-predicate
         (completion-in-region-mode 1)
         (setq completion-in-region--data
-            (list (current-buffer) start end collection)))
+	      (list (current-buffer) start end collection)))
       (unwind-protect
           (call-interactively 'minibuffer-complete)
         (delete-overlay ol)))))
@@ -1653,9 +1664,10 @@ The completion method is determined by `completion-at-point-functions'."
         ;; introduce a corresponding hook (plus another for word-completion,
         ;; and another for force-completion, maybe?).
         (overlay-put ol 'field 'completion)
+	(overlay-put ol 'priority 100)
         (completion-in-region-mode 1)
         (setq completion-in-region--data
-            (list (current-buffer) start end collection))
+	      (list (current-buffer) start end collection))
         (unwind-protect
             (call-interactively 'minibuffer-completion-help)
           (delete-overlay ol))))

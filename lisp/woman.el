@@ -1987,7 +1987,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 			    (lambda (symbol)
 			      (and
 			       (or (commandp symbol)
-				   (user-variable-p symbol))
+				   (custom-variable-p symbol))
 			       (not (get symbol 'apropos-inhibit))))))
     ;; Find documentation strings:
     (let ((p apropos-accumulator)
@@ -1999,7 +1999,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 		       (if (setq doc (documentation symbol t))
 			   (substring doc 0 (string-match "\n" doc))
 			 "(not documented)"))
-		   (if (user-variable-p symbol)	; 3. variable doc
+		   (if (custom-variable-p symbol)	; 3. variable doc
 		       (if (setq doc (documentation-property
 				      symbol 'variable-documentation t))
 			   (substring doc 0 (string-match "\n" doc))))))

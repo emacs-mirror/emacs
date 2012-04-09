@@ -1173,8 +1173,12 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
 static int
 is_simple_dialog (Lisp_Object contents)
 {
-  Lisp_Object options = XCDR (contents);
+  Lisp_Object options;
   Lisp_Object name, yes, no, other;
+
+  if (!CONSP (contents))
+    return 0;
+  options = XCDR (contents);
 
   yes = build_string ("Yes");
   no = build_string ("No");
@@ -1182,9 +1186,10 @@ is_simple_dialog (Lisp_Object contents)
   if (!CONSP (options))
     return 0;
 
-  name = XCAR (XCAR (options));
-  if (!CONSP (options))
+  name = XCAR (options);
+  if (!CONSP (name))
     return 0;
+  name = XCAR (name);
 
   if (!NILP (Fstring_equal (name, yes)))
     other = no;
@@ -1197,7 +1202,10 @@ is_simple_dialog (Lisp_Object contents)
   if (!CONSP (options))
     return 0;
 
-  name = XCAR (XCAR (options));
+  name = XCAR (options);
+  if (!CONSP (name))
+    return 0;
+  name = XCAR (name);
   if (NILP (Fstring_equal (name, other)))
     return 0;
 
@@ -1223,6 +1231,7 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
   if (unicode_message_box)
     {
       WCHAR *text, *title;
+      USE_SAFE_ALLOCA;
 
       if (STRINGP (temp))
 	{
@@ -1232,7 +1241,7 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 	     one utf16 word, so we cannot simply use the character
 	     length of temp.  */
 	  int utf8_len = strlen (utf8_text);
-	  text = alloca ((utf8_len + 1) * sizeof (WCHAR));
+	  SAFE_ALLOCA (text, WCHAR *, (utf8_len + 1) * sizeof (WCHAR));
 	  utf8to16 (utf8_text, utf8_len, text);
 	}
       else
@@ -1252,6 +1261,7 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 	}
 
       answer = unicode_message_box (FRAME_W32_WINDOW (f), text, title, type);
+      SAFE_FREE ();
     }
   else
     {
@@ -1358,6 +1368,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
   char *out_string, *p, *q;
   int return_value;
   size_t nlen, orig_len;
+  USE_SAFE_ALLOCA;
 
   if (menu_separator_name_p (wv->name))
     {
@@ -1373,7 +1384,8 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 
       if (wv->key != NULL)
 	{
-	  out_string = alloca (strlen (wv->name) + strlen (wv->key) + 2);
+	  SAFE_ALLOCA (out_string, char *,
+		       strlen (wv->name) + strlen (wv->key) + 2);
 	  strcpy (out_string, wv->name);
 	  strcat (out_string, "\t");
 	  strcat (out_string, wv->key);
@@ -1407,7 +1419,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       if (nlen > orig_len)
         {
           p = out_string;
-          out_string = alloca (nlen + 1);
+          SAFE_ALLOCA (out_string, char *, nlen + 1);
           q = out_string;
           while (*p)
             {
@@ -1467,7 +1479,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       if (fuFlags & MF_OWNERDRAW)
 	utf16_string = local_alloc ((utf8_len + 1) * sizeof (WCHAR));
       else
-	utf16_string = alloca ((utf8_len + 1) * sizeof (WCHAR));
+	SAFE_ALLOCA (utf16_string, WCHAR *, (utf8_len + 1) * sizeof (WCHAR));
 
       utf8to16 (out_string, utf8_len, utf16_string);
       return_value = unicode_append_menu (menu, fuFlags,
@@ -1536,6 +1548,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 			      FALSE, &info);
 	}
     }
+  SAFE_FREE ();
   return return_value;
 }
 

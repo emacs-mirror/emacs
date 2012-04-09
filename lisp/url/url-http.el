@@ -27,6 +27,7 @@
 (eval-when-compile (require 'cl))
 (defvar url-http-extra-headers)
 (defvar url-http-target-url)
+(defvar url-http-no-retry)
 (defvar url-http-proxy)
 (defvar url-http-connection-opened)
 (require 'url-gw)
@@ -153,38 +154,40 @@ request.")
 
 (defun url-http-find-free-connection (host port)
   (let ((conns (gethash (cons host port) url-http-open-connections))
-	(found nil))
-    (while (and conns (not found))
+	(connection nil))
+    (while (and conns (not connection))
       (if (not (memq (process-status (car conns)) '(run open connect)))
 	  (progn
 	    (url-http-debug "Cleaning up dead process: %s:%d %S"
 			    host port (car conns))
 	    (url-http-idle-sentinel (car conns) nil))
-	(setq found (car conns))
-	(url-http-debug "Found existing connection: %s:%d %S" host port found))
+	(setq connection (car conns))
+	(url-http-debug "Found existing connection: %s:%d %S" host port connection))
       (pop conns))
-    (if found
+    (if connection
 	(url-http-debug "Reusing existing connection: %s:%d" host port)
       (url-http-debug "Contacting host: %s:%d" host port))
     (url-lazy-message "Contacting host: %s:%d" host port)
-    (url-http-mark-connection-as-busy
-     host port
-     (or found
-         (let ((buf (generate-new-buffer " *url-http-temp*")))
-           ;; `url-open-stream' needs a buffer in which to do things
-           ;; like authentication.  But we use another buffer afterwards.
-           (unwind-protect
-               (let ((proc (url-open-stream host buf host port)))
-		 ;; url-open-stream might return nil.
-		 (when (processp proc)
-		   ;; Drop the temp buffer link before killing the buffer.
-		   (set-process-buffer proc nil))
-                 proc)
-	     ;; If there was an error on connect, make sure we don't
-	     ;; get queried.
-	     (when (get-buffer-process buf)
-	       (set-process-query-on-exit-flag (get-buffer-process buf) nil))
-             (kill-buffer buf)))))))
+
+    (unless connection
+      (let ((buf (generate-new-buffer " *url-http-temp*")))
+	;; `url-open-stream' needs a buffer in which to do things
+	;; like authentication.  But we use another buffer afterwards.
+	(unwind-protect
+	    (let ((proc (url-open-stream host buf host port)))
+	      ;; url-open-stream might return nil.
+	      (when (processp proc)
+		;; Drop the temp buffer link before killing the buffer.
+		(set-process-buffer proc nil)
+		(setq connection proc)))
+	  ;; If there was an error on connect, make sure we don't
+	  ;; get queried.
+	  (when (get-buffer-process buf)
+	    (set-process-query-on-exit-flag (get-buffer-process buf) nil))
+	  (kill-buffer buf))))
+
+    (if connection
+	(url-http-mark-connection-as-busy host port connection))))
 
 ;; Building an HTTP request
 (defun url-http-user-agent-string ()
@@ -873,19 +876,26 @@ should be shown to the user."
 	      url-http-open-connections))
 
 (defun url-http-end-of-document-sentinel (proc why)
-  ;; Sentinel used for old HTTP/0.9 or connections we know are going
-  ;; to die as the 'end of document' notifier.
+  ;; Sentinel used to handle (i) terminated old HTTP/0.9 connections,
+  ;; and (ii) closed connection due to reusing a HTTP connection which
+  ;; we believed was still alive, but which the server closed on us.
+  ;; We handle case (ii) by calling `url-http' again.
   (url-http-debug "url-http-end-of-document-sentinel in buffer (%s)"
 		  (process-buffer proc))
   (url-http-idle-sentinel proc why)
   (when (buffer-name (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (goto-char (point-min))
-      (if (not (looking-at "HTTP/"))
-	  ;; HTTP/0.9 just gets passed back no matter what
-	  (url-http-activate-callback)
-	(if (url-http-parse-headers)
-	    (url-http-activate-callback))))))
+      (cond ((not (looking-at "HTTP/"))
+	     (if url-http-no-retry
+		 ;; HTTP/0.9 just gets passed back no matter what
+		 (url-http-activate-callback)
+	       ;; Call `url-http' again if our connection expired.
+	       (erase-buffer)
+	       (url-http url-current-object url-callback-function
+			 url-callback-arguments (current-buffer))))
+	    ((url-http-parse-headers)
+	     (url-http-activate-callback))))))
 
 (defun url-http-simple-after-change-function (st nd length)
   ;; Function used when we do NOT know how long the document is going to be
@@ -1163,11 +1173,14 @@ the end of the document."
       (goto-char (point-max)))))
 
 ;;;###autoload
-(defun url-http (url callback cbargs)
+(defun url-http (url callback cbargs &optional retry-buffer)
   "Retrieve URL via HTTP asynchronously.
 URL must be a parsed URL.  See `url-generic-parse-url' for details.
 When retrieval is completed, the function CALLBACK is executed with
-CBARGS as the arguments."
+CBARGS as the arguments.
+
+Optional arg RETRY-BUFFER, if non-nil, specifies the buffer of a
+previous `url-http' call, which is being re-attempted."
   (check-type url vector "Need a pre-parsed URL.")
   (declare (special url-current-object
 		    url-http-end-of-headers
@@ -1188,7 +1201,8 @@ CBARGS as the arguments."
   (let* ((host (url-host (or url-using-proxy url)))
 	 (port (url-port (or url-using-proxy url)))
 	 (connection (url-http-find-free-connection host port))
-	 (buffer (generate-new-buffer (format " *http %s:%d*" host port))))
+	 (buffer (or retry-buffer
+		     (generate-new-buffer (format " *http %s:%d*" host port)))))
     (if (not connection)
 	;; Failed to open the connection for some reason
 	(progn
@@ -1218,6 +1232,7 @@ CBARGS as the arguments."
 		       url-http-extra-headers
 		       url-http-data
 		       url-http-target-url
+		       url-http-no-retry
 		       url-http-connection-opened
 		       url-http-proxy))
 	  (set (make-local-variable var) nil))
@@ -1233,6 +1248,7 @@ CBARGS as the arguments."
 	      url-callback-arguments cbargs
 	      url-http-after-change-function 'url-http-wait-for-headers-change-function
 	      url-http-target-url url-current-object
+	      url-http-no-retry retry-buffer
 	      url-http-connection-opened nil
 	      url-http-proxy url-using-proxy)
 
@@ -1259,6 +1275,7 @@ CBARGS as the arguments."
     (with-current-buffer (process-buffer proc)
       (cond
        (url-http-connection-opened
+	(setq url-http-no-retry t)
 	(url-http-end-of-document-sentinel proc why))
        ((string= (substring why 0 4) "open")
 	(setq url-http-connection-opened t)

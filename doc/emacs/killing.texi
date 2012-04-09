@@ -490,6 +490,17 @@ new yank to the clipboard.
   To prevent kill and yank commands from accessing the clipboard,
 change the variable @code{x-select-enable-clipboard} to @code{nil}.
 
+@cindex clipboard manager
+@vindex x-select-enable-clipboard-manager
+  Many X desktop environments support a feature called the
+@dfn{clipboard manager}.  If you exit Emacs while it is the current
+``owner'' of the clipboard data, and there is a clipboard manager
+running, Emacs transfers the clipboard data to the clipboard manager
+so that it is not lost.  In some circumstances, this may cause a delay
+when exiting Emacs; if you wish to prevent Emacs from transferring
+data to the clipboard manager, change the variable
+@code{x-select-enable-clipboard-manager} to @code{nil}.
+
 @vindex x-select-enable-primary
 @findex clipboard-kill-region
 @findex clipboard-kill-ring-save

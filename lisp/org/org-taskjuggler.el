@@ -166,28 +166,33 @@
 (defcustom org-export-taskjuggler-extension ".tjp"
   "Extension of TaskJuggler files."
   :group 'org-export-taskjuggler
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-taskjuggler-project-tag "taskjuggler_project"
   "Tag, property or todo used to find the tree containing all
 the tasks for the project."
   :group 'org-export-taskjuggler
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-taskjuggler-resource-tag "taskjuggler_resource"
   "Tag, property or todo used to find the tree containing all the
 resources for the project."
   :group 'org-export-taskjuggler
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-taskjuggler-target-version 2.4
   "Which version of TaskJuggler the exporter is targeting."
   :group 'org-export-taskjuggler
+  :version "24.1"
   :type 'number)
 
 (defcustom org-export-taskjuggler-default-project-version "1.0"
   "Default version string for the project."
   :group 'org-export-taskjuggler
+  :version "24.1"
   :type 'string)
 
 (defcustom org-export-taskjuggler-default-project-duration 280
@@ -195,6 +200,7 @@ resources for the project."
 in the root node of the task tree, i.e. the tree that has been marked
 with `org-export-taskjuggler-project-tag'"
   :group 'org-export-taskjuggler
+  :version "24.1"
   :type 'integer)
 
 (defcustom org-export-taskjuggler-default-reports
@@ -214,6 +220,7 @@ with `org-export-taskjuggler-project-tag'"
 }")
   "Default reports for the project."
   :group 'org-export-taskjuggler
+  :version "24.1"
   :type '(repeat (string :tag "Report")))
 
 (defcustom org-export-taskjuggler-default-global-properties
@@ -230,6 +237,7 @@ include another TaskJuggler file.
 The global properties are inserted after the project declaration
 but before any resource and task declarations."
   :group 'org-export-taskjuggler
+  :version "24.1"
   :type '(string :tag "Preamble"))
 
 ;;; Hooks

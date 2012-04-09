@@ -82,7 +82,7 @@ Colors will be the background color.")
 Useful if new Emacs is used on B&W display.")
 
 (defcustom chart-face-use-pixmaps nil
-  "*Non-nil to use fancy pixmaps in the background of chart face colors."
+  "Non-nil to use fancy pixmaps in the background of chart face colors."
   :group 'eieio
   :type 'boolean)
 

@@ -963,13 +963,14 @@ See the command `imenu' for more information."
 	  imenu-generic-expression
 	  (not (eq imenu-create-index-function
 		   'imenu-default-create-index-function)))
-      (let ((newmap (make-sparse-keymap)))
-	(set-keymap-parent newmap (current-local-map))
-	(setq imenu--last-menubar-index-alist nil)
-	(define-key newmap [menu-bar index]
-	  `(menu-item ,name ,(make-sparse-keymap "Imenu")))
-	(use-local-map newmap)
-	(add-hook 'menu-bar-update-hook 'imenu-update-menubar))
+      (unless (keymapp (lookup-key (current-local-map) [menu-bar index]))
+	(let ((newmap (make-sparse-keymap)))
+	  (set-keymap-parent newmap (current-local-map))
+	  (setq imenu--last-menubar-index-alist nil)
+	  (define-key newmap [menu-bar index]
+	    `(menu-item ,name ,(make-sparse-keymap "Imenu")))
+	  (use-local-map newmap)
+	  (add-hook 'menu-bar-update-hook 'imenu-update-menubar)))
     (error "The mode `%s' does not support Imenu"
            (format-mode-line mode-name))))
 
@@ -1008,6 +1009,9 @@ to `imenu-update-menubar'.")
 						   (car (cdr menu))))
 					    'imenu--menubar-select))
 	  (setq old (lookup-key (current-local-map) [menu-bar index]))
+	  ;; This should never happen, but in some odd cases, potentially,
+	  ;; lookup-key may return a dynamically composed keymap.
+	  (if (keymapp (cadr old)) (setq old (cadr old)))
 	  (setcdr old (cdr menu1)))))))
 
 (defun imenu--menubar-select (item)

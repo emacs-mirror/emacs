@@ -237,10 +237,6 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	  (setq process (start-process
 			 name buffer shell-file-name shell-command-switch
 			 formatted-cmd))
-	  (funcall (if (fboundp 'set-process-query-on-exit-flag)
-		       'set-process-query-on-exit-flag
-		     'process-kill-without-query)
-		   process nil)
 	  (while (and process
 		      (memq (process-status process) '(open run))
 		      (progn

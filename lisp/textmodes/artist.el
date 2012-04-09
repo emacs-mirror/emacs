@@ -349,7 +349,7 @@ Example:
 
 
 (defvar artist-pointer-shape (if (eq window-system 'x) x-pointer-crosshair nil)
-  "*If in X Windows, use this pointer shape while drawing with the mouse.")
+  "If in X Windows, use this pointer shape while drawing with the mouse.")
 
 
 (defcustom artist-text-renderer-function 'artist-figlet
@@ -397,13 +397,13 @@ Example:
   ;; This is a defvar, not a defcustom, since the custom
   ;; package shows lists of characters as a lists of integers,
   ;; which is confusing
-  "*Characters (``color'') to use when spraying.
+  "Characters (``color'') to use when spraying.
 They should be ordered from the ``lightest'' to the ``heaviest''
 since spraying replaces a light character with the next heavier one.")
 
 
 (defvar artist-spray-new-char ?.
-  "*Initial character to use when spraying.
+  "Initial character to use when spraying.
 This character is used if spraying upon a character that is not in
 `artist-spray-chars'.  The character defined by this variable should
 be in `artist-spray-chars', or spraying will behave strangely.")
@@ -535,7 +535,8 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 		  ("Text" artist-select-op-text-overwrite text-ovwrt)
 		  ("Ellipse" artist-select-op-circle circle)
 		  ("Poly-line" artist-select-op-straight-poly-line spolyline)
-		  ("Rectangle" artist-select-op-square square)
+		  ("Square" artist-select-op-square square)
+		  ("Rectangle" artist-select-op-rectangle rectangle)
     		  ("Line" artist-select-op-straight-line s-line)
     		  ("Pen" artist-select-op-pen-line pen-line)))
       (define-key map (vector (nth 2 op))

@@ -1024,12 +1024,13 @@ This function returns @code{t} if the files @var{file1} and
 not exist, the return value is unspecified.
 @end defun
 
-@defun file-subdir-of-p dir1 dir2
-This function returns @code{t} if directory @var{dir1} is a
-subdirectory of @var{dir2}, or if @var{dir1} and @var{dir2} are the
-same directory.  It compares the @code{file-truename} values of the
-two directories (@pxref{Truenames}).  If @var{dir2}
-do not name an existing directory, the return value is @code{nil}.
+@defun file-in-directory-p file dir
+This function returns @code{t} if @var{file} is a file in directory
+@var{dir}, or in a subdirectory of @var{dir}.  It also returns
+@code{t} if @var{file} and @var{dir} are the same directory.  It
+compares the @code{file-truename} values of the two directories
+(@pxref{Truenames}).  If @var{dir} does not name an existing
+directory, the return value is @code{nil}.
 @end defun
 
 @node Truenames
@@ -2718,7 +2719,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-ownership-preserved-p},
-@code{file-readable-p}, @code{file-regular-p}, @code{file-subdir-of-p},
+@code{file-readable-p}, @code{file-regular-p}, @code{file-in-directory-p},
 @code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
 @code{file-equal-p}, @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},@*

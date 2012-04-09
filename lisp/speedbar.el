@@ -3987,11 +3987,11 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 
 (defun speedbar-unhighlight-one-tag-line ()
   "Unhighlight the currently highlighted line."
-  (if speedbar-highlight-one-tag-line
-      (progn
-	(speedbar-delete-overlay speedbar-highlight-one-tag-line)
-	(setq speedbar-highlight-one-tag-line nil)))
-  (remove-hook 'pre-command-hook 'speedbar-unhighlight-one-tag-line))
+  (when (and speedbar-highlight-one-tag-line
+	     (not (eq this-command 'handle-switch-frame)))
+    (speedbar-delete-overlay speedbar-highlight-one-tag-line)
+    (setq speedbar-highlight-one-tag-line nil)
+    (remove-hook 'pre-command-hook 'speedbar-unhighlight-one-tag-line)))
 
 (defun speedbar-recenter-to-top ()
   "Recenter the current buffer so point is on the top of the window."

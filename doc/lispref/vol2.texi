@@ -180,15 +180,15 @@ Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 22.
+* Antinews::                Info for users downgrading to Emacs 23.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
-* Standard Errors::         List of main error symbols.
-* Standard Keymaps::        List of standard keymaps.
-* Standard Hooks::          List of standard hook variables.
+* Standard Errors::         List of some standard error symbols.
+* Standard Keymaps::        List of some standard keymaps.
+* Standard Hooks::          List of some standard hook variables.
 
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
@@ -670,8 +670,8 @@ Completion
                               (reading buffer name, file name, etc.).
 * Reading File Names::      Using completion to read file names and
                               shell commands.
-* Completion Styles::       Specifying rules for performing completion.
-* Programmed Completion::   Writing your own completion-function.
+* Completion Variables::    Variables controlling completion behavior.
+* Programmed Completion::   Writing your own completion function.
 * Completion in Buffers::   Completing text in ordinary buffers.
 
 Command Loop
@@ -993,7 +993,7 @@ Frames
 * Window System Selections::Transferring text to and from other X clients.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::             Getting the definitions of color names.
-* Text Terminal Colors::    Defining colors for text-only terminals.
+* Text Terminal Colors::    Defining colors for text terminals.
 * Resources::               Getting resource values from the server.
 * Display Feature Testing:: Determining the features of a terminal.
 
@@ -1075,7 +1075,8 @@ Text
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
 * Base 64::                 Conversion to or from base 64 encoding.
-* Checksum/Hash::           Computing "message digests"/"checksums"/"hashes".
+* Checksum/Hash::           Computing cryptographic hashes.
+* Parsing HTML/XML::        Parsing HTML and XML.
 * Atomic Changes::          Installing several buffer changes "atomically".
 * Change Hooks::            Supplying functions to be run when text is changed.
 
@@ -1207,7 +1208,6 @@ Parsing Expressions
 
 Abbrevs and Abbrev Expansion
 
-* Abbrev Mode::             Setting up Emacs for abbreviation.
 * Abbrev Tables::           Creating and working with abbrev tables.
 * Defining Abbrevs::        Specifying abbreviations and their expansions.
 * Abbrev Files::            Saving abbrevs in files.
@@ -1286,14 +1286,11 @@ Emacs Display
 * Buttons::                 Adding clickable buttons to Emacs buffers.
 * Abstract Display::        Emacs's Widget for Object Collections.
 * Blinking::                How Emacs shows the matching open parenthesis.
-* Usual Display::           The usual conventions for displaying
-                              nonprinting chars.
-* Display Tables::          How to specify other conventions.
+* Character Display::       How Emacs displays individual characters.
 * Beeping::                 Audible signal to the user.
 * Window Systems::          Which window system is being used.
 * Bidirectional Display::   Display of bidirectional scripts, such as
                               Arabic and Farsi.
-* Glyphless Chars::         How glyphless characters are drawn.
 
 The Echo Area
 
@@ -1308,6 +1305,7 @@ Reporting Warnings
 * Warning Variables::       Variables programs bind to customize
                               their warnings.
 * Warning Options::         Variables users set to control display of warnings.
+* Delayed Warnings::        Deferring a warning until the end of a command.
 
 Overlays
 
@@ -1382,11 +1380,13 @@ Abstract Display
 * Abstract Display Functions::  Functions in the Ewoc package.
 * Abstract Display Example::    Example of using Ewoc.
 
-Display Tables
+Character Display
 
-* Display Table Format::    What a display table consists of.
-* Active Display Table::    How Emacs selects a display table to use.
-* Glyphs::                  How to define a glyph, and what glyphs mean.
+* Usual Display::       The usual conventions for displaying characters.
+* Display Tables::      What a display table consists of.
+* Active Display Table::  How Emacs selects a display table to use.
+* Glyphs::              How to define a glyph, and what glyphs mean.
+* Glyphless Chars::     How glyphless characters are drawn.
 
 Operating System Interface
 
@@ -1412,6 +1412,8 @@ Operating System Interface
 * Batch Mode::              Running Emacs without terminal interaction.
 * Session Management::      Saving and restoring state with
                               X Session Management.
+* Notifications::           Desktop notifications.
+* Dynamic Libraries::       On-demand loading of support libraries.
 
 Preparing Lisp code for distribution
 

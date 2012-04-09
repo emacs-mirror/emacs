@@ -271,7 +271,7 @@ that differs by this value or more."
   :group 'msb)
 
 (defvar msb-files-by-directory-sort-key 0
-  "*The sort key for files sorted by directory.")
+  "The sort key for files sorted by directory.")
 
 (defcustom msb-max-menu-items 15
   "The maximum number of items in a menu.
@@ -316,7 +316,7 @@ No buffers at all if less than 1 or nil (or any non-number)."
   :group 'msb)
 
 (defvar msb-horizontal-shift-function (lambda () 0)
-  "*Function that specifies how many pixels to shift the top menu leftwards.")
+  "Function that specifies how many pixels to shift the top menu leftwards.")
 
 (defcustom msb-display-invisible-buffers-p nil
   "Show invisible buffers or not.
@@ -327,7 +327,7 @@ names that starts with a space character."
   :group 'msb)
 
 (defvar msb-item-handling-function 'msb-item-handler
-  "*The appearance of a buffer menu.
+  "The appearance of a buffer menu.
 
 The default function to call for handling the appearance of a menu
 item.  It should take two arguments, BUFFER and MAX-BUFFER-NAME-LENGTH,

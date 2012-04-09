@@ -43,7 +43,7 @@
 ;; `dired-insert-set-properties'.
 
 (defcustom tramp-inline-compress-start-size 4096
-  "*The minimum size of compressing where inline transfer.
+  "The minimum size of compressing where inline transfer.
 When inline transfer, compress transferred data of file
 whose size is this value or above (up to `tramp-copy-size-limit').
 If it is nil, no compression at all will be applied."
@@ -51,14 +51,14 @@ If it is nil, no compression at all will be applied."
   :type '(choice (const nil) integer))
 
 (defcustom tramp-copy-size-limit 10240
-  "*The maximum file size where inline copying is preferred over an out-of-the-band copy.
+  "The maximum file size where inline copying is preferred over an out-of-the-band copy.
 If it is nil, inline out-of-the-band copy will be used without a check."
   :group 'tramp
   :type '(choice (const nil) integer))
 
 ;;;###tramp-autoload
 (defcustom tramp-terminal-type "dumb"
-  "*Value of TERM environment variable for logging in to remote host.
+  "Value of TERM environment variable for logging in to remote host.
 Because Tramp wants to parse the output of the remote shell, it is easily
 confused by ANSI color escape sequences and suchlike.  Often, shell init
 files conditionalize this setup based on the TERM environment variable."
@@ -516,7 +516,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
   '(tramp-default-remote-path "/bin" "/usr/bin" "/usr/sbin" "/usr/local/bin"
     "/local/bin" "/local/freeware/bin" "/local/gnu/bin"
     "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin")
-  "*List of directories to search for executables on remote host.
+  "List of directories to search for executables on remote host.
 For every remote host, this variable will be set buffer local,
 keeping the list of existing directories on that host.
 
@@ -546,7 +546,7 @@ as given in your `~/.profile'."
     "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH=" "PAGER=\"\""
     "autocorrect=" "correct=")
 
-  "*List of environment variables to be set on the remote host.
+  "List of environment variables to be set on the remote host.
 
 Each element should be a string of the form ENVVARNAME=VALUE.  An
 entry ENVVARNAME= disables the corresponding environment variable,
@@ -558,7 +558,7 @@ not be set here. Instead, it should be set via `tramp-remote-path'."
   :type '(repeat string))
 
 (defcustom tramp-sh-extra-args '(("/bash\\'" . "-norc -noprofile"))
-  "*Alist specifying extra arguments to pass to the remote shell.
+  "Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
 arguments.

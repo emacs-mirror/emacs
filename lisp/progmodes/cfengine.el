@@ -54,7 +54,7 @@
   :group 'languages)
 
 (defcustom cfengine-indent 2
-  "*Size of a CFEngine indentation step in columns."
+  "Size of a CFEngine indentation step in columns."
   :group 'cfengine
   :type 'integer)
 

@@ -372,18 +372,17 @@ This function returns the number of lines between the positions
 1, even if @var{start} and @var{end} are on the same line.  This is
 because the text between them, considered in isolation, must contain at
 least one line unless it is empty.
-
-Here is an example of using @code{count-lines}:
-
-@example
-@group
-(defun current-line ()
-  "Return the vertical position of point@dots{}"
-  (+ (count-lines (window-start) (point))
-     (if (= (current-column) 0) 1 0)))
-@end group
-@end example
 @end defun
+
+@deffn Command count-words start end
+@cindex words in region
+This function returns the number of words between the positions
+@var{start} and @var{end} in the current buffer.
+
+This function can also be called interactively.  In that case, it
+prints a message reporting the number of lines, words, and characters
+in the buffer, or in the region if the region is active.
+@end deffn
 
 @defun line-number-at-pos &optional pos
 @cindex line number

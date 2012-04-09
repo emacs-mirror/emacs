@@ -570,10 +570,10 @@ whole threads.  Function returns t if messages were found."
 	       mairix-output-buffer)))
     (zerop rval)))
 
-(defun mairix-replace-illegal-chars (header)
-  "Replace illegal characters in HEADER for mairix query."
+(defun mairix-replace-invalid-chars (header)
+  "Replace invalid characters in HEADER for mairix query."
   (when header
-    (while (string-match "[^-.@/,& [:alnum:]]" header)
+    (while (string-match "[^-.@/,^=~& [:alnum:]]" header)
       (setq header (replace-match "" t t header)))
     (while (string-match "[& ]" header)
       (setq header (replace-match "," t t header)))
@@ -620,7 +620,7 @@ See %s for details" mairix-output-buffer)))
 	 (concat
 	  (nth 1 cur)
 	  ":"
-	  (mairix-replace-illegal-chars
+	  (mairix-replace-invalid-chars
 	   (widget-value
 	   (cadr (assoc (concat "e" (car (cddr cur))) widgets)))))
 	 query)))
@@ -652,9 +652,17 @@ Fill in VALUES if based on an article."
     (kill-all-local-variables)
     (erase-buffer)
     (widget-insert
-     "Specify your query for Mairix (check boxes for activating fields):\n\n")
+     "Specify your query for Mairix using check boxes for activating fields.\n\n")
     (widget-insert
-     "(Whitespaces will be converted to ',' (i.e. AND). Use '/' for OR.)\n\n")
+     (concat "Use ~word        to match messages "
+	     (propertize "not" 'face 'italic)
+	     " containing the word)\n"
+	     "    substring=   to match words containing the substring\n"
+	     "    substring=N  to match words containing the substring, allowing\n"
+	     "                  up to N errors(missing/extra/different letters)\n"
+	     "    ^substring=  to match the substring at the beginning of a word.\n"))
+    (widget-insert
+     "Whitespace will be converted to ',' (i.e. AND).  Use '/' for OR.\n\n")
     (setq mairix-widgets (mairix-widget-build-editable-fields values))
     (when (member 'flags mairix-widget-other)
       (widget-insert "\nFlags:\n      Seen:     ")
@@ -935,7 +943,7 @@ Use cursor keys or C-n,C-p to select next/previous search.\n\n")
 	      (lambda (field)
 		(list (car (cddr field))
 		      (if (car field)
-			  (mairix-replace-illegal-chars
+			  (mairix-replace-invalid-chars
 			   (funcall get-mail-header (car field)))
 			nil))))
 	     mairix-widget-fields-list)))

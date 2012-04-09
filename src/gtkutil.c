@@ -1304,10 +1304,13 @@ x_wm_set_size_hint (FRAME_PTR f, long int flags, int user_position)
 
   hint_flags |= GDK_HINT_BASE_SIZE;
   base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0) + FRAME_TOOLBAR_WIDTH (f);
-  base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0)
+  /* Use one row here so base_height does not become zero.
+     Gtk+ and/or Unity on Ubuntu 12.04 can't handle it.  */
+  base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 1)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
   check_frame_size (f, &min_rows, &min_cols);
+  if (min_rows > 0) --min_rows; /* We used one row in base_height = ... 1); */
 
   size_hints.base_width = base_width;
   size_hints.base_height = base_height;

@@ -394,7 +394,7 @@ inclusive."
 See `color-lighten-hsl'."
   (apply 'color-rgb-to-hex
 	 (apply 'color-hsl-to-rgb
-		(apply 'color-lighten--hsl
+		(apply 'color-lighten-hsl
 		       (append
 			(apply 'color-rgb-to-hsl
 			       (color-name-to-rgb name))

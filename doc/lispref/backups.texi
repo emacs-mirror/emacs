@@ -699,10 +699,12 @@ operation, reverting preserves all the markers.  If they are not
 identical, reverting does change the buffer; in that case, it preserves
 the markers in the unchanged text (if any) at the beginning and end of
 the buffer.  Preserving any additional markers would be problematical.
-
-This command binds @code{revert-buffer-in-progress-p} to a
-non-@code{nil} value while it operates.
 @end deffn
+
+@defvar revert-buffer-in-progress-p
+@code{revert-buffer} binds this variable to a non-@code{nil} value
+while it is working.
+@end defvar
 
 You can customize how @code{revert-buffer} does its work by setting
 the variables described in the rest of this section.
@@ -758,7 +760,15 @@ the modified contents---but only if @code{revert-buffer-function} is
 @code{nil}.
 @end defvar
 
-@defvar revert-buffer-in-progress-p
-This variable is bound to a non-@code{nil} value by
-@code{revert-buffer} while it is working.
+@c FIXME?  Move this section from arevert-xtra to here?
+@defvar buffer-stale-function
+The value of this variable, if non-@code{nil}, specifies a function
+to call to check whether a non-file buffer needs reverting
+@iftex
+(@pxref{Supporting additional buffers,,, emacs-xtra,  Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Supporting additional buffers,,, emacs}).
+@end ifnottex
 @end defvar
+

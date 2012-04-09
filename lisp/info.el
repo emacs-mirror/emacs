@@ -1165,6 +1165,12 @@ a case-insensitive match is tried."
 		       (progn (setq file (expand-file-name "dir.info" truename))
 			      (file-attributes file))
 		       (progn (setq file (expand-file-name "DIR.INFO" truename))
+			      (file-attributes file))
+		       ;; Shouldn't really happen, but sometimes does,
+		       ;; eg on Debian systems with buggy packages;
+		       ;; so may as well try it.
+		       ;; http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00005.html
+		       (progn (setq file (expand-file-name "dir.gz" truename))
 			      (file-attributes file)))))
 		(setq dirs-done
 		      (cons truename
@@ -2588,7 +2594,9 @@ new buffer."
        (list item current-prefix-arg))))
   ;; there is a problem here in that if several menu items have the same
   ;; name you can only go to the node of the first with this command.
-  (Info-goto-node (Info-extract-menu-item menu-item) (if fork menu-item)))
+  (Info-goto-node (Info-extract-menu-item menu-item)
+		  (and fork
+		       (if (stringp fork) fork menu-item))))
 
 (defun Info-extract-menu-item (menu-item)
   (setq menu-item (regexp-quote menu-item))

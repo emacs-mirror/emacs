@@ -2397,15 +2397,15 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
         (gdb-table-add-row table
                            (list
                             (bindat-get-field breakpoint 'number)
-                            type
-                            (bindat-get-field breakpoint 'disp)
+                            (or type "")
+                            (or (bindat-get-field breakpoint 'disp) "")
                             (let ((flag (bindat-get-field breakpoint 'enabled)))
                               (if (string-equal flag "y")
                                   (propertize "y" 'font-lock-face  font-lock-warning-face)
                                 (propertize "n" 'font-lock-face  font-lock-comment-face)))
                             (bindat-get-field breakpoint 'addr)
-                            (bindat-get-field breakpoint 'times)
-                            (if (string-match ".*watchpoint" type)
+                            (or (bindat-get-field breakpoint 'times) "")
+                            (if (and type (string-match ".*watchpoint" type))
                                 (bindat-get-field breakpoint 'what)
                               (or pending at
                                   (concat "in "
@@ -3269,8 +3269,12 @@ DOC is an optional documentation string."
   (let* ((frame (gdb-current-buffer-frame))
          (file (bindat-get-field frame 'fullname))
          (line (bindat-get-field frame 'line)))
-    (when file
-      (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)))
+    (if file
+      (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)
+    ;; If we're unable to get a file name / line for $PC, simply
+    ;; follow $PC, disassembling the next 10 (x ~15 (on IA) ==
+    ;; 150 bytes) instructions.
+    "-data-disassemble -s $pc -e \"$pc + 150\" -- 0"))
   gdb-disassembly-handler
   ;; We update disassembly only after we have actual frame information
   ;; about all threads, so no there's `update' signal in this list
@@ -3329,8 +3333,12 @@ DOC is an optional documentation string."
       (gdb-table-add-row table
                          (list
                           (bindat-get-field instr 'address)
-                          (apply #'format "<%s+%s>:"
-                                 (gdb-get-many-fields instr 'func-name 'offset))
+                          (let
+                              ((func-name (bindat-get-field instr 'func-name))
+                               (offset (bindat-get-field instr 'offset)))
+                            (if func-name
+                                (format "<%s+%s>:" func-name offset)
+                              ""))
                           (bindat-get-field instr 'inst)))
       (when (string-equal (bindat-get-field instr 'address)
                           address)

@@ -2117,6 +2117,7 @@ Interactively, if no argument is given, make the selected window
 one line smaller.  If optional argument HORIZONTAL is non-nil,
 make selected window narrower by DELTA columns.  If DELTA is
 negative, enlarge selected window by -DELTA lines or columns.
+Also see the `window-min-height' variable.
 Return nil."
   (interactive "p")
   (cond
@@ -2575,6 +2576,18 @@ before was current this also makes BUFFER the current buffer."
     (when point
       (set-window-point-1 window point))))
 
+(defcustom switch-to-visible-buffer t
+  "If non-nil, allow switching to an already visible buffer.
+If this variable is non-nil, `switch-to-prev-buffer' and
+`switch-to-next-buffer' may switch to an already visible buffer
+provided the buffer was shown in the argument window before.  If
+this variable is nil, `switch-to-prev-buffer' and
+`switch-to-next-buffer' always try to avoid switching to a buffer
+that is already visible in another window on the same frame."
+  :type 'boolean
+  :version "24.1"
+  :group 'windows)
+
 (defun switch-to-prev-buffer (&optional window bury-or-kill)
   "In WINDOW switch to previous buffer.
 WINDOW must be a live window and defaults to the selected one.
@@ -2584,6 +2597,7 @@ shown in WINDOW is about to be buried or killed and consequently
 shall not be switched to in future invocations of this command."
   (interactive)
   (let* ((window (window-normalize-window window t))
+	 (frame (window-frame window))
 	 (old-buffer (window-buffer window))
 	 ;; Save this since it's destroyed by `set-window-buffer'.
 	 (next-buffers (window-next-buffers window))
@@ -2600,11 +2614,15 @@ shall not be switched to in future invocations of this command."
 		       (not (setq killed-buffers
 				  (cons new-buffer killed-buffers))))
 		   (not (eq new-buffer old-buffer))
-		   (or bury-or-kill
+                   (or bury-or-kill
 		       (not (memq new-buffer next-buffers))))
-	  (set-window-buffer-start-and-point
-	   window new-buffer (nth 1 entry) (nth 2 entry))
-	  (throw 'found t)))
+	  (if (and (not switch-to-visible-buffer)
+		   (get-buffer-window new-buffer frame))
+	      ;; Try to avoid showing a buffer visible in some other window.
+	      (setq visible new-buffer)
+          (set-window-buffer-start-and-point
+           window new-buffer (nth 1 entry) (nth 2 entry))
+          (throw 'found t))))
       ;; Scan reverted buffer list of WINDOW's frame next, skipping
       ;; entries of next buffers.  Note that when we bury or kill a
       ;; buffer we don't reverse the global buffer list to avoid showing
@@ -2612,15 +2630,16 @@ shall not be switched to in future invocations of this command."
       ;; buffer list in order to make sure that switching to the
       ;; previous/next buffer traverse it in opposite directions.
       (dolist (buffer (if bury-or-kill
-			  (buffer-list (window-frame window))
-			(nreverse (buffer-list (window-frame window)))))
+			  (buffer-list frame)
+			(nreverse (buffer-list frame))))
 	(when (and (buffer-live-p buffer)
 		   (not (eq buffer old-buffer))
 		   (not (eq (aref (buffer-name buffer) 0) ?\s))
 		   (or bury-or-kill (not (memq buffer next-buffers))))
-	  (if (get-buffer-window buffer)
+	  (if (get-buffer-window buffer frame)
 	      ;; Try to avoid showing a buffer visible in some other window.
-	      (setq visible buffer)
+	      (unless visible
+		(setq visible buffer))
 	    (setq new-buffer buffer)
 	    (set-window-buffer-start-and-point window new-buffer)
 	    (throw 'found t))))
@@ -2673,6 +2692,7 @@ shall not be switched to in future invocations of this command."
 WINDOW must be a live window and defaults to the selected one."
   (interactive)
   (let* ((window (window-normalize-window window t))
+	 (frame (window-frame window))
 	 (old-buffer (window-buffer window))
 	 (next-buffers (window-next-buffers window))
 	 new-buffer entry killed-buffers visible)
@@ -2693,11 +2713,11 @@ WINDOW must be a live window and defaults to the selected one."
 	  (throw 'found t)))
       ;; Scan the buffer list of WINDOW's frame next, skipping previous
       ;; buffers entries.
-      (dolist (buffer (buffer-list (window-frame window)))
+      (dolist (buffer (buffer-list frame))
 	(when (and (buffer-live-p buffer) (not (eq buffer old-buffer))
 		   (not (eq (aref (buffer-name buffer) 0) ?\s))
 		   (not (assq buffer (window-prev-buffers window))))
-	  (if (get-buffer-window buffer)
+	  (if (get-buffer-window buffer frame)
 	      ;; Try to avoid showing a buffer visible in some other window.
 	      (setq visible buffer)
 	    (setq new-buffer buffer)
@@ -2711,9 +2731,14 @@ WINDOW must be a live window and defaults to the selected one."
 		       (not (setq killed-buffers
 				  (cons new-buffer killed-buffers))))
 		   (not (eq new-buffer old-buffer)))
-	  (set-window-buffer-start-and-point
-	   window new-buffer (nth 1 entry) (nth 2 entry))
-	  (throw 'found t)))
+	  (if (and (not switch-to-visible-buffer)
+		   (get-buffer-window new-buffer frame))
+	      ;; Try to avoid showing a buffer visible in some other window.
+	      (unless visible
+		(setq visible new-buffer))
+	    (set-window-buffer-start-and-point
+	     window new-buffer (nth 1 entry) (nth 2 entry))
+	    (throw 'found t))))
 
       ;; Show a buffer visible in another window.
       (when visible
@@ -3273,7 +3298,7 @@ Otherwise, the window starts are chosen so as to minimize the
 amount of redisplay; this is convenient on slow terminals."
   (interactive "P")
   (let ((old-window (selected-window))
-	(old-point (point))
+	(old-point (window-point-1))
 	(size (and size (prefix-numeric-value size)))
         moved-by-window-height moved new-window bottom)
     (when (and size (< size 0) (< (- size) window-min-height))
@@ -3282,22 +3307,27 @@ amount of redisplay; this is convenient on slow terminals."
     (setq new-window (split-window nil size))
     (unless split-window-keep-point
       (with-current-buffer (window-buffer)
-	(goto-char (window-start))
-	(setq moved (vertical-motion (window-height)))
-	(set-window-start new-window (point))
-	(when (> (point) (window-point new-window))
-	  (set-window-point new-window (point)))
-	(when (= moved (window-height))
-	  (setq moved-by-window-height t)
-	  (vertical-motion -1))
-	(setq bottom (point)))
-      (and moved-by-window-height
-	   (<= bottom (point))
-	   (set-window-point old-window (1- bottom)))
-      (and moved-by-window-height
-	   (<= (window-start new-window) old-point)
-	   (set-window-point new-window old-point)
-	   (select-window new-window)))
+	;; Use `save-excursion' around vertical movements below
+	;; (Bug#10971).  Note: When the selected window's buffer has a
+	;; header line, up to two lines of the buffer may not show up
+	;; in the resulting configuration.
+	(save-excursion
+	  (goto-char (window-start))
+	  (setq moved (vertical-motion (window-height)))
+	  (set-window-start new-window (point))
+	  (when (> (point) (window-point new-window))
+	    (set-window-point new-window (point)))
+	  (when (= moved (window-height))
+	    (setq moved-by-window-height t)
+	    (vertical-motion -1))
+	  (setq bottom (point)))
+	(and moved-by-window-height
+	     (<= bottom (point))
+	     (set-window-point-1 old-window (1- bottom)))
+	(and moved-by-window-height
+	     (<= (window-start new-window) old-point)
+	     (set-window-point new-window old-point)
+	     (select-window new-window))))
     ;; Always copy quit-restore parameter in interactive use.
     (let ((quit-restore (window-parameter old-window 'quit-restore)))
       (when quit-restore

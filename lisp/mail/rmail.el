@@ -712,7 +712,7 @@ to an appropriate value, and optionally also set
 
 ;; FIXME this is unused since 23.1.
 (defvar rmail-decode-mime-charset t
-  "*Non-nil means a message is decoded by MIME's charset specification.
+  "Non-nil means a message is decoded by MIME's charset specification.
 If this variable is nil, or the message has not MIME specification,
 the message is decoded as normal way.
 
@@ -1363,8 +1363,7 @@ sets the current buffer's `buffer-file-coding-system' to that of
 (defun rmail-buffers-swapped-p ()
   "Return non-nil if the message collection is in `rmail-view-buffer'."
   ;; This is analogous to tar-data-swapped-p in tar-mode.el.
-  (and (buffer-live-p rmail-view-buffer)
-       rmail-buffer-swapped))
+  rmail-buffer-swapped)
 
 (defun rmail-change-major-mode-hook ()
   ;; Bring the actual Rmail messages back into the main buffer.
@@ -1406,7 +1405,8 @@ If so restore the actual mbox message collection."
 	(kill-buffer rmail-view-buffer))))
 
 (defun rmail-view-buffer-kill-buffer-hook ()
-  (error "Can't kill message view buffer by itself"))
+  (error "Can't kill Rmail view buffer `%s' by itself"
+	 (buffer-name (current-buffer))))
 
 ;; Set up the permanent locals associated with an Rmail file.
 (defun rmail-perm-variables ()
@@ -4211,7 +4211,7 @@ This has an effect only if a summary buffer exists."
 (eval-when-compile (require 'speedbar))
 
 (defvar rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
-  "*This regex is used to match folder names to be displayed in speedbar.
+  "This regex is used to match folder names to be displayed in speedbar.
 Enabling this will permit speedbar to display your folders for easy
 browsing, and moving of messages.")
 
@@ -4472,7 +4472,11 @@ encoded string (and the same mask) will decode the string."
 
 ;; Used in `write-region-annotate-functions' to write rmail files.
 (defun rmail-write-region-annotate (start end)
-  (when (and (null start) (rmail-buffers-swapped-p))
+  (when (and (null start) rmail-buffer-swapped)
+    (unless (buffer-live-p rmail-view-buffer)
+      (error "Buffer `%s' with real text of `%s' has disappeared"
+	     (buffer-name rmail-view-buffer)
+	     (buffer-name (current-buffer))))
     (setq rmail-message-encoding buffer-file-coding-system)
     (set-buffer rmail-view-buffer)
     (widen)
@@ -4700,7 +4704,7 @@ SENDERS is a string of regexps separated by commas.
 ;;;***
 
 ;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "undigest.el" "a31a35802a2adbc51be42959c3043dbd")
+;;;;;;  "undigest" "undigest.el" "9f270a2571bbbbfabc27498a8d4089c7")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\

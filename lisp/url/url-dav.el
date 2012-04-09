@@ -478,7 +478,7 @@ names (ie: DAV:resourcetype)."
 
 ;;; Locking support
 (defvar url-dav-lock-identifier (concat "mailto:" user-mail-address)
-  "*URL used as contact information when creating locks in DAV.
+  "URL used as contact information when creating locks in DAV.
 This will be used as the contents of the DAV:owner/DAV:href tag to
 identify the owner of a LOCK when requesting it.  This will be shown
 to other users when the DAV:lockdiscovery property is requested, so

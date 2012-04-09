@@ -72,7 +72,7 @@ Lisp_Object Qcompletion_ignore_case;
 static Lisp_Object Qminibuffer_completion_table;
 static Lisp_Object Qminibuffer_completion_predicate;
 static Lisp_Object Qminibuffer_completion_confirm;
-static Lisp_Object Quser_variable_p;
+static Lisp_Object Qcustom_variable_p;
 
 static Lisp_Object Qminibuffer_default;
 
@@ -1094,10 +1094,11 @@ Prompt with PROMPT.  */)
 #endif /* NOTDEF */
 
 DEFUN ("read-variable", Fread_variable, Sread_variable, 1, 2, 0,
-       doc: /* Read the name of a user variable and return it as a symbol.
+       doc: /* Read the name of a user option and return it as a symbol.
 Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
 if it is a list.
-A user variable is one for which `user-variable-p' returns non-nil.  */)
+A user option, or customizable variable, is one for which
+`custom-variable-p' returns non-nil.  */)
   (Lisp_Object prompt, Lisp_Object default_value)
 {
   Lisp_Object name, default_string;
@@ -1110,7 +1111,7 @@ A user variable is one for which `user-variable-p' returns non-nil.  */)
     default_string = default_value;
 
   name = Fcompleting_read (prompt, Vobarray,
-			   Quser_variable_p, Qt,
+			   Qcustom_variable_p, Qt,
 			   Qnil, Qnil, default_string, Qnil);
   if (NILP (name))
     return name;
@@ -1975,11 +1976,11 @@ syms_of_minibuf (void)
   staticpro (&last_minibuf_string);
   last_minibuf_string = Qnil;
 
-  DEFSYM (Quser_variable_p, "user-variable-p");
   DEFSYM (Qminibuffer_history, "minibuffer-history");
   DEFSYM (Qbuffer_name_history, "buffer-name-history");
   Fset (Qbuffer_name_history, Qnil);
 
+  DEFSYM (Qcustom_variable_p, "custom-variable-p");
   DEFSYM (Qminibuffer_setup_hook, "minibuffer-setup-hook");
   DEFSYM (Qminibuffer_exit_hook, "minibuffer-exit-hook");
   DEFSYM (Qhistory_length, "history-length");

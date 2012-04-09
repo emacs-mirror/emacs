@@ -93,7 +93,7 @@ If optional argument HERE is non-nil, insert info at point."
     (@unnumberedsubsubsec . @unnumberedsubsec)
     (@subsubheading . @subheading)
     (@appendixsubsubsec . @appendixsubsec))
-  "*An alist of next higher levels for chapters, sections, etc...
+  "An alist of next higher levels for chapters, sections, etc...
 For example, section to chapter, subsection to section.
 Used by `texinfo-raise-lower-sections'.
 The keys specify types of section; the values correspond to the next
@@ -121,7 +121,7 @@ higher types.")
     (@unnumberedsubsubsec . @unnumberedsubsubsec)
     (@subsubheading . @subsubheading)
     (@appendixsubsubsec . @appendixsubsubsec))
-  "*An alist of next lower levels for chapters, sections, etc...
+  "An alist of next lower levels for chapters, sections, etc...
 For example, chapter to section, section to subsection.
 Used by `texinfo-raise-lower-sections'.
 The keys specify types of section; the values correspond to the next
@@ -174,7 +174,7 @@ and don't split the file if large.  You can use `Info-tagify' and
 			 "done.  Now save it." "done.")))))
 
 (defvar texinfo-region-buffer-name "*Info Region*"
-  "*Name of the temporary buffer used by \\[texinfo-format-region].")
+  "Name of the temporary buffer used by \\[texinfo-format-region].")
 
 (defvar texinfo-pre-format-hook nil
   "Hook called before the conversion of the Texinfo file to Info format.
@@ -1918,7 +1918,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
 ;; Texinfo commands.
 
 (defvar texinfo-extra-inter-column-width 0
-  "*Number of extra spaces between entries (columns) in @multitable.")
+  "Number of extra spaces between entries (columns) in @multitable.")
 
 (defvar texinfo-multitable-buffer-name "*multitable-temporary-buffer*")
 (defvar texinfo-multitable-rectangle-name "texinfo-multitable-temp-")

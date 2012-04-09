@@ -62,7 +62,7 @@ and play sound files as requested."
   :group 'erc)
 
 (defcustom erc-play-sound t
-  "*Play sounds when you receive CTCP SOUND requests."
+  "Play sounds when you receive CTCP SOUND requests."
   :group 'erc-sound
   :type 'boolean)
 

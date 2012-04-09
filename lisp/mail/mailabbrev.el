@@ -255,7 +255,7 @@ By default this is the file specified by `mail-personal-alias-file'."
   (message "Parsing %s... done" file))
 
 (defvar mail-alias-separator-string ", "
-  "*A string inserted between addresses in multi-address mail aliases.
+  "A string inserted between addresses in multi-address mail aliases.
 This has to contain a comma, so \", \" is a reasonable value.  You might
 also want something like \",\\n    \" to get each address on its own line.")
 
@@ -423,7 +423,7 @@ fill-column, break the line at the previous comma, and indent the next line."
 
 (defvar mail-abbrev-mode-regexp
   "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):"
-  "*Regexp to select mail-headers in which mail abbrevs should be expanded.
+  "Regexp to select mail-headers in which mail abbrevs should be expanded.
 This string will be handed to `looking-at' with point at the beginning
 of the current line; if it matches, abbrev mode will be turned on, otherwise
 it will be turned off.  (You don't need to worry about continuation lines.)

@@ -128,6 +128,7 @@ OBJ2 =  $(BLD)/sysdep.$(O)		\
 	$(BLD)/image.$(O)		\
 	$(BLD)/terminal.$(O)            \
 	$(BLD)/menu.$(O)		\
+	$(BLD)/xml.$(O)			\
 	$(BLD)/w32term.$(O)		\
 	$(BLD)/w32xfns.$(O)		\
 	$(BLD)/w32fns.$(O)		\
@@ -225,7 +226,7 @@ GLOBAL_SOURCES =   dosfns.c msdos.c \
 	process.c callproc.c unexw32.c \
 	region-cache.c sound.c atimer.c \
 	doprnt.c intervals.c textprop.c composite.c \
-	gnutls.c
+	gnutls.c xml.c
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
 	xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o dbusbind.o
 obj = $(GLOBAL_SOURCES:.c=.o)
@@ -939,6 +940,13 @@ $(BLD)/gnutls.$(O) : \
 	$(CONFIG_H) \
 	$(LISP_H) \
 	$(PROCESS_H)
+
+$(BLD)/xml.$(O) : \
+	$(SRC)/xml.c \
+	$(SRC)/buffer.h \
+	$(SRC)/w32.h \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/image.$(O) : \
 	$(SRC)/image.c \

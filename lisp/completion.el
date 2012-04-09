@@ -344,18 +344,18 @@ are automatically added to the completion database."
   :group 'completion)
 
 ;;(defvar *record-cmpl-statistics-p* nil
-;;  "*If non-nil, record completion statistics.")
+;;  "If non-nil, record completion statistics.")
 
 ;;(defvar *completion-auto-save-period* 1800
-;;  "*The period in seconds to wait for emacs to be idle before autosaving
+;;  "The period in seconds to wait for emacs to be idle before autosaving
 ;;the completions.  Default is a 1/2 hour.")
 
 (defvar completion-min-length 6
-  "*The minimum length of a stored completion.
+  "The minimum length of a stored completion.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
 (defvar completion-max-length 200
-  "*The maximum length of a stored completion.
+  "The maximum length of a stored completion.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
 (defvar completion-prefix-min-length 3

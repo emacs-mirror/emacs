@@ -241,7 +241,7 @@ remove themselves after running.")
     (""
      type-break-mode-line-break-message
      type-break-mode-line-warning))
-  "*Format of messages in the mode line concerning typing breaks.")
+  "Format of messages in the mode line concerning typing breaks.")
 
 (defvar type-break-mode-line-break-message
   '(type-break-mode-line-break-message-p

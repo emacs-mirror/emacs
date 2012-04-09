@@ -29,13 +29,13 @@
 (require 'erc-dcc)
 
 (defcustom erc-xdcc-files nil
-  "*List of files to offer via XDCC.
+  "List of files to offer via XDCC.
 Your friends should issue \"/ctcp yournick XDCC list\" to see this."
   :group 'erc-dcc
   :type '(repeat file))
 
 (defcustom erc-xdcc-verbose-flag t
-  "*Report XDCC CTCP requests in the server buffer."
+  "Report XDCC CTCP requests in the server buffer."
   :group 'erc-dcc
   :type 'boolean)
 
@@ -43,7 +43,7 @@ Your friends should issue \"/ctcp yournick XDCC list\" to see this."
   '(("help" . erc-xdcc-help)
     ("list" . erc-xdcc-list)
     ("send" . erc-xdcc-send))
-  "*Sub-command handler alist for XDCC CTCP queries."
+  "Sub-command handler alist for XDCC CTCP queries."
   :group 'erc-dcc
   :type '(alist :key-type (string :tag "Sub-command") :value-type function))
 
@@ -54,7 +54,7 @@ Your friends should issue \"/ctcp yournick XDCC list\" to see this."
     ("Type \"/ctcp " (erc-current-nick)
      " XDCC list\" to see the list of offered files, then type \"/ctcp "
      (erc-current-nick) " XDCC send #\" to get a particular file number."))
-  "*Help text sent in response to XDCC help command.
+  "Help text sent in response to XDCC help command.
 A list of messages, each consisting of strings and expressions, expressions
 being evaluated and should return strings."
   :group 'erc-dcc

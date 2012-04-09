@@ -581,7 +581,7 @@ Commands:                        Equivalent keys in read-only mode:
 	    (error (concat "Forms control file error: "
 			   "`forms-modified-record-filter' is not a function")))
 
-	;; The filters acces the contents of the forms using `forms-fields'.
+	;; The filters access the contents of the forms using `forms-fields'.
 	(make-local-variable 'forms-fields)
 
 	;; Dynamic text support.
@@ -2031,7 +2031,7 @@ Usage: (setq forms-number-of-fields
 ;;; Debugging
 
 (defvar forms--debug nil
-  "*Enables forms-mode debugging if not nil.")
+  "Enables forms-mode debugging if not nil.")
 
 (defun forms--debug (&rest args)
   "Internal debugging routine."

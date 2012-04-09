@@ -640,7 +640,10 @@ make_process (Lisp_Object name)
 
 #ifdef HAVE_GNUTLS
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
+  /* Default log level.  */
   p->gnutls_log_level = 0;
+  /* GnuTLS handshakes attempted for this connection.  */
+  p->gnutls_handshakes_tried = 0;
   p->gnutls_p = 0;
   p->gnutls_state = NULL;
   p->gnutls_x509_cred = NULL;
@@ -4874,15 +4877,20 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
 		{
-		  /* Clear the descriptor now, so we only raise the signal once.  */
-		  FD_CLR (channel, &input_wait_mask);
-		  FD_CLR (channel, &non_keyboard_wait_mask);
-
-		  kill (getpid (), SIGCHLD);
+                  /* Don't do anything if only a pty, with no associated
+		     process (bug#10933).  */
+                  if (XPROCESS (proc)->pid != -2) {
+                    /* Clear the descriptor now, so we only raise the signal
+		       once.  */
+                    FD_CLR (channel, &input_wait_mask);
+                    FD_CLR (channel, &non_keyboard_wait_mask);
+                    
+                    kill (getpid (), SIGCHLD);
+                  }
 		}
 #endif /* HAVE_PTYS */
-	      /* If we can detect process termination, don't consider the process
-		 gone just because its pipe is closed.  */
+	      /* If we can detect process termination, don't consider the
+		 process gone just because its pipe is closed.  */
 #ifdef SIGCHLD
 	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc))
 		;
@@ -7426,7 +7434,7 @@ syms_of_process (void)
   DEFSYM (Qargs, "args");
 
   DEFVAR_BOOL ("delete-exited-processes", delete_exited_processes,
-	       doc: /* *Non-nil means delete processes immediately when they exit.
+	       doc: /* Non-nil means delete processes immediately when they exit.
 A value of nil means don't delete them until `list-processes' is run.  */);
 
   delete_exited_processes = 1;

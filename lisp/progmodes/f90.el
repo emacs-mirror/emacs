@@ -651,7 +651,7 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
 
 (defvar f90-font-lock-keywords
   f90-font-lock-keywords-2
-  "*Default expressions to highlight in F90 mode.
+  "Default expressions to highlight in F90 mode.
 Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 

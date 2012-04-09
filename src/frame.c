@@ -1118,41 +1118,32 @@ Otherwise, include all frames.  */)
 static int
 other_visible_frames (FRAME_PTR f)
 {
-  /* We know the selected frame is visible,
-     so if F is some other frame, it can't be the sole visible one.  */
-  if (f == SELECTED_FRAME ())
+  Lisp_Object frames;
+
+  for (frames = Vframe_list; CONSP (frames); frames = XCDR (frames))
     {
-      Lisp_Object frames;
-      int count = 0;
+      Lisp_Object this = XCAR (frames);
+      if (f == XFRAME (this))
+	continue;
 
-      for (frames = Vframe_list;
-	   CONSP (frames);
-	   frames = XCDR (frames))
-	{
-	  Lisp_Object this;
-
-	  this = XCAR (frames);
-	  /* Verify that the frame's window still exists
-	     and we can still talk to it.  And note any recent change
-	     in visibility.  */
+      /* Verify that we can still talk to the frame's X window,
+	 and note any recent change in visibility.  */
 #ifdef HAVE_WINDOW_SYSTEM
-	  if (FRAME_WINDOW_P (XFRAME (this)))
-	    {
-	      x_sync (XFRAME (this));
-	      FRAME_SAMPLE_VISIBILITY (XFRAME (this));
-	    }
+      if (FRAME_WINDOW_P (XFRAME (this)))
+	{
+	  x_sync (XFRAME (this));
+	  FRAME_SAMPLE_VISIBILITY (XFRAME (this));
+	}
 #endif
 
-	  if (FRAME_VISIBLE_P (XFRAME (this))
-	      || FRAME_ICONIFIED_P (XFRAME (this))
-	      /* Allow deleting the terminal frame when at least
-		 one X frame exists!  */
-	      || (FRAME_WINDOW_P (XFRAME (this)) && !FRAME_WINDOW_P (f)))
-	    count++;
-	}
-      return count > 1;
+      if (FRAME_VISIBLE_P (XFRAME (this))
+	  || FRAME_ICONIFIED_P (XFRAME (this))
+	  /* Allow deleting the terminal frame when at least one X
+	     frame exists.  */
+	  || (FRAME_WINDOW_P (XFRAME (this)) && !FRAME_WINDOW_P (f)))
+	return 1;
     }
-  return 1;
+  return 0;
 }
 
 /* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME

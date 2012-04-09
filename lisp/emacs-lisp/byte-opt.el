@@ -1237,7 +1237,7 @@
 	 string-to-multibyte
 	 tan truncate
 	 unibyte-char-to-multibyte upcase user-full-name
-	 user-login-name user-original-login-name user-variable-p
+	 user-login-name user-original-login-name custom-variable-p
 	 vconcat
 	 window-buffer window-dedicated-p window-edges window-height
 	 window-hscroll window-minibuffer-p window-width

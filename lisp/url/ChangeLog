@@ -1,3 +1,24 @@
+2012-03-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Check whether the buffer has
+	been killed asynchronously before selecting it.
+
+2012-03-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Make sure that the callback
+	is always called, even if we have a timeout.
+
+2012-03-11  Chong Yidong  <cyd@gnu.org>
+
+	* url-http.el (url-http-end-of-document-sentinel): Handle
+	keepalive expiry by calling url-http again (Bug#10223).
+	(url-http): New arg, for the above.
+
+2012-03-11  Devon Sean McCullough  <emacs-hacker2012@jovi.net>
+
+	* url-http.el (url-http-find-free-connection): Don't pass a nil
+	argument to url-http-mark-connection-as-busy (bug#10891).
+
 2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* url-queue.el (url-queue-kill-job): Delete the process sentinel

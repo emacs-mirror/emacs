@@ -212,7 +212,7 @@ Should be an assoc list of headers/contents.")
 
 ;; FIXME!!  (RFC 2616 gives examples like `compress, gzip'.)
 (defvar url-mime-encoding-string nil
-  "*String to send in the Accept-encoding: field in HTTP requests.")
+  "String to send in the Accept-encoding: field in HTTP requests.")
 
 ;; Perhaps the first few should actually be given decreasing `q's and
 ;; the list should be trimmed significantly.
@@ -233,7 +233,7 @@ Generated according to current coding system priorities."
 		";q=0.5"))))
 
 (defvar url-mime-charset-string nil
-  "*String to send in the Accept-charset: field in HTTP requests.
+  "String to send in the Accept-charset: field in HTTP requests.
 The MIME charset corresponding to the most preferred coding system is
 given priority 1 and the rest are given priority 0.5.")
 
@@ -364,7 +364,7 @@ Currently supported methods:
 
 (defvar url-parse-syntax-table
   (copy-syntax-table emacs-lisp-mode-syntax-table)
-  "*A syntax table for parsing URLs.")
+  "A syntax table for parsing URLs.")
 
 (modify-syntax-entry ?' "\"" url-parse-syntax-table)
 (modify-syntax-entry ?` "\"" url-parse-syntax-table)
@@ -373,7 +373,7 @@ Currently supported methods:
 (modify-syntax-entry ?/ " " url-parse-syntax-table)
 
 (defvar url-load-hook nil
-  "*Hooks to be run after initializing the URL library.")
+  "Hooks to be run after initializing the URL library.")
 
 ;;; Make OS/2 happy - yeeks
 ;; (defvar	tcp-binary-process-input-services nil

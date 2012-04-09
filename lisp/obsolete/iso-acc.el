@@ -73,7 +73,7 @@
   :group 'i18n)
 
 (defcustom iso-accents-insert-offset nonascii-insert-offset
-  "*Offset added by ISO Accents mode to character codes 0200 and above."
+  "Offset added by ISO Accents mode to character codes 0200 and above."
   :type 'integer
   :group 'iso-acc)
 
@@ -262,7 +262,7 @@ Change it with the `iso-accents-customize' function.")
   "Association list for ISO accent combinations, for the chosen language.")
 
 (defcustom iso-accents-mode nil
-  "*Non-nil enables ISO Accents mode.
+  "Non-nil enables ISO Accents mode.
 Setting this variable makes it local to the current buffer.
 See the function `iso-accents-mode'."
   :type 'boolean
@@ -270,7 +270,7 @@ See the function `iso-accents-mode'."
 (make-variable-buffer-local 'iso-accents-mode)
 
 (defcustom iso-accents-enable '(?' ?` ?^ ?\" ?~ ?/)
-  "*List of accent keys that become prefixes in ISO Accents mode.
+  "List of accent keys that become prefixes in ISO Accents mode.
 The default is (?' ?` ?^ ?\" ?~ ?/), which contains all the supported
 accent keys.  If you set this variable to a list in which some of those
 characters are missing, the missing ones do not act as accents.

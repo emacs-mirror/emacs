@@ -367,18 +367,27 @@ If CLIENT is non-nil, add a description of it to the logged message."
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
+(defun server--on-display-p (frame display)
+  (and (equal (frame-parameter frame 'display) display)
+       ;; Note: TTY frames still get a `display' parameter set to the value of
+       ;; $DISPLAY.  This is useful when running from that tty frame
+       ;; sub-processes that want to connect to the X server, but that means we
+       ;; have to be careful here not to be tricked into thinking those frames
+       ;; are on `display'.
+       (not (eq (framep frame) t))))
+
 (defun server-select-display (display)
   ;; If the current frame is on `display' we're all set.
   ;; Similarly if we are unable to open frames on other displays, there's
   ;; nothing more we can do.
   (unless (or (not (fboundp 'make-frame-on-display))
-              (equal (frame-parameter (selected-frame) 'display) display))
+              (server--on-display-p (selected-frame) display))
     ;; Otherwise, look for an existing frame there and select it.
     (dolist (frame (frame-list))
-      (when (equal (frame-parameter frame 'display) display)
+      (when (server--on-display-p frame display)
 	(select-frame frame)))
     ;; If there's no frame on that display yet, create and select one.
-    (unless (equal (frame-parameter (selected-frame) 'display) display)
+    (unless (server--on-display-p (selected-frame) display)
       (let* ((buffer (generate-new-buffer " *server-dummy*"))
              (frame (make-frame-on-display
                      display
@@ -706,9 +715,29 @@ Server mode runs a process that accepts commands from the
           (pp v)
           (let ((text (buffer-substring-no-properties
                        (point-min) (point-max))))
-            (server-send-string
-             proc (format "-print %s\n"
-                          (server-quote-arg text)))))))))
+            (server-reply-print (server-quote-arg text) proc)))))))
+
+(defconst server-msg-size 1024
+  "Maximum size of a message sent to a client.")
+
+(defun server-reply-print (qtext proc)
+  "Send a `-print QTEXT' command to client PROC.
+QTEXT must be already quoted.
+This handles splitting the command if it would be bigger than
+`server-msg-size'."
+  (let ((prefix "-print ")
+	part)
+    (while (> (+ (length qtext) (length prefix) 1) server-msg-size)
+      ;; We have to split the string
+      (setq part (substring qtext 0 (- server-msg-size (length prefix) 1)))
+      ;; Don't split in the middle of a quote sequence
+      (if (string-match "\\(^\\|[^&]\\)\\(&&\\)+$" part)
+	  ;; There is an uneven number of & at the end
+	  (setq part (substring part 0 -1)))
+      (setq qtext (substring qtext (length part)))
+      (server-send-string proc (concat prefix part "\n"))
+      (setq prefix "-print-nonl "))
+    (server-send-string proc (concat prefix qtext "\n"))))
 
 (defun server-create-tty-frame (tty type proc)
   (unless tty
@@ -910,6 +939,11 @@ The following commands are accepted by the client:
 `-print STRING'
   Print STRING on stdout.  Used to send values
   returned by -eval.
+
+`-print-nonl STRING'
+  Print STRING on stdout.  Used to continue a
+  preceding -print command that would be too big to send
+  in a single message.
 
 `-error DESCRIPTION'
   Signal an error and delete process PROC.
@@ -1534,46 +1568,54 @@ only these files will be asked to be saved."
 Returns the result of the evaluation, or signals an error if it
 cannot contact the specified server.  For example:
   \(server-eval-at \"server\" '(emacs-pid))
-returns the process ID of the Emacs instance running \"server\".
-This function requires the use of TCP sockets. "
-  (or server-use-tcp
-      (error "This function requires TCP sockets"))
-  (let ((auth-file (expand-file-name server server-auth-dir))
-	(coding-system-for-read 'binary)
-	(coding-system-for-write 'binary)
-	address port secret process)
-    (unless (file-exists-p auth-file)
-      (error "No such server definition: %s" auth-file))
+returns the process ID of the Emacs instance running \"server\"."
+  (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
+	 (server-file (expand-file-name server server-dir))
+	 (coding-system-for-read 'binary)
+	 (coding-system-for-write 'binary)
+	 address port secret process)
+    (unless (file-exists-p server-file)
+      (error "No such server: %s" server))
     (with-temp-buffer
-      (insert-file-contents auth-file)
-      (unless (looking-at "\\([0-9.]+\\):\\([0-9]+\\)")
-	(error "Invalid auth file"))
-      (setq address (match-string 1)
-	    port (string-to-number (match-string 2)))
-      (forward-line 1)
-      (setq secret (buffer-substring (point) (line-end-position)))
-      (erase-buffer)
-      (unless (setq process (open-network-stream "eval-at" (current-buffer)
-						 address port))
-	(error "Unable to contact the server"))
-      (set-process-query-on-exit-flag process nil)
-      (process-send-string
-       process
-       (concat "-auth " secret " -eval "
-	       (replace-regexp-in-string
-		" " "&_" (format "%S" form))
-	       "\n"))
+      (when server-use-tcp
+	(let ((coding-system-for-read 'no-conversion))
+	  (insert-file-contents server-file)
+	  (unless (looking-at "\\([0-9.]+\\):\\([0-9]+\\)")
+	    (error "Invalid auth file"))
+	  (setq address (match-string 1)
+		port (string-to-number (match-string 2)))
+	  (forward-line 1)
+	  (setq secret (buffer-substring (point) (line-end-position)))
+	  (erase-buffer)))
+      (unless (setq process (make-network-process
+			     :name "eval-at"
+			     :buffer (current-buffer)
+			     :host address
+			     :service (if server-use-tcp port server-file)
+			     :family (if server-use-tcp 'ipv4 'local)
+			     :noquery t))
+	       (error "Unable to contact the server"))
+      (if server-use-tcp
+	  (process-send-string process (concat "-auth " secret "\n")))
+      (process-send-string process
+			   (concat "-eval "
+				   (server-quote-arg (format "%S" form))
+				   "\n"))
       (while (memq (process-status process) '(open run))
 	(accept-process-output process 0 10))
       (goto-char (point-min))
       ;; If the result is nil, there's nothing in the buffer.  If the
       ;; result is non-nil, it's after "-print ".
-      (when (search-forward "\n-print" nil t)
-	(let ((start (point)))
-	  (while (search-forward "&_" nil t)
-	    (replace-match " " t t))
-	  (goto-char start)
-	  (read (current-buffer)))))))
+      (let ((answer ""))
+	(while (re-search-forward "\n-print\\(-nonl\\)? " nil t)
+	  (setq answer
+		(concat answer
+			(buffer-substring (point)
+					  (progn (skip-chars-forward "^\n")
+						 (point))))))
+	(if (not (equal answer ""))
+	    (read (decode-coding-string (server-unquote-arg answer)
+					'emacs-internal)))))))
 
 
 (provide 'server)

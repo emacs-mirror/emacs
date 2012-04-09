@@ -1293,7 +1293,7 @@ See `auth-source-search' for details on SPEC."
                                      (secret "password")
                                      (port   "port") ; redundant but clearer
                                      (t (symbol-name r)))
-                                   (if (string-match "[\" ]" data)
+                                   (if (string-match "[\"# ]" data)
                                        (format "%S" data)
                                      data)))))
             (setq add (concat add (funcall printer)))))))

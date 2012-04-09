@@ -716,7 +716,7 @@ This will only work for errors raised by WordStar mode functions."
 
 (defun ws-query-replace (from to)
   "In WordStar mode: Search string, remember string for repetition."
-  (interactive "sReplace:
+  (interactive "sReplace: \n\
 sWith: " )
   (setq ws-search-string from)
   (setq ws-search-direction t)

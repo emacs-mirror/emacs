@@ -1606,9 +1606,10 @@ D-Bus @var{bus}.
 
 @var{service} is the D-Bus service name used by the sending D-Bus
 object.  It can be either a known name or the unique name of the D-Bus
-object sending the signal.  In case of a unique name, signals won't be
-received any longer once the object owning this unique name has
-disappeared, and a new queued object has replaced it.
+object sending the signal.  A known name will be mapped onto the
+unique name of the object, owning @var{service} at registration time.
+When the corresponding D-Bus object disappears, signals won't be
+received any longer.
 
 When @var{service} is @code{nil}, related signals from all D-Bus
 objects shall be accepted.

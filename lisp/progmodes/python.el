@@ -494,7 +494,7 @@ statement."
 
 
 (defcustom python-pdbtrack-do-tracking-p t
-  "*Controls whether the pdbtrack feature is enabled or not.
+  "Controls whether the pdbtrack feature is enabled or not.
 
 When non-nil, pdbtrack is enabled in all comint-based buffers,
 e.g. shell interaction buffers and the *Python* buffer.
@@ -509,7 +509,7 @@ having to restart the program."
 (make-variable-buffer-local 'python-pdbtrack-do-tracking-p)
 
 (defcustom python-pdbtrack-minor-mode-string " PDB"
-  "*Minor-mode sign to be displayed when pdbtrack is active."
+  "Minor-mode sign to be displayed when pdbtrack is active."
   :type 'string
   :group 'python)
 
@@ -1288,7 +1288,7 @@ modified by the user.  Additional arguments are added when the command
 is used by `run-python' et al.")
 
 (defvar python-buffer nil
-  "*The current Python process buffer.
+  "The current Python process buffer.
 
 Commands that send text from source buffers to Python processes have
 to choose a process to send to.  This is determined by buffer-local

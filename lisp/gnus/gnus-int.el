@@ -247,7 +247,7 @@ If it is down, start it up (again)."
   (eq (nth 1 (assoc method gnus-opened-servers))
       'denied))
 
-(defvar gnus-backend-trace t)
+(defvar gnus-backend-trace nil)
 
 (defun gnus-open-server (gnus-command-method)
   "Open a connection to GNUS-COMMAND-METHOD."

@@ -51,7 +51,9 @@ C are terminated by a character with @acronym{ASCII} code 0.)
 operate on them with the general array and sequence functions.
 (@xref{Sequences Arrays Vectors}.)  For example, you can access or
 change individual characters in a string using the functions @code{aref}
-and @code{aset} (@pxref{Array Functions}).
+and @code{aset} (@pxref{Array Functions}).  However, note that
+@code{length} should @emph{not} be used for computing the width of a
+string on display; use @code{string-width} (@pxref{Width}) instead.
 
   There are two text representations for non-@acronym{ASCII} characters in
 Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
@@ -504,6 +506,13 @@ are used.
 
 @defun string-lessp string1 string2
 @code{string-lessp} is another name for @code{string<}.
+@end defun
+
+@defun string-prefix-p string1 string2 &optional ignore-case
+This function returns non-@code{nil} if @var{string1} is a prefix of
+@var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
+the optional argument @var{ignore-case} is non-@code{nil}, the
+comparison ignores case differences.
 @end defun
 
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case

@@ -349,7 +349,9 @@ Also see `make-text-button'."
 ;; Finding buttons in a buffer
 
 (defun button-at (pos)
-  "Return the button at position POS in the current buffer, or nil."
+  "Return the button at position POS in the current buffer, or nil.
+If the button at POS is a text property button, the return value
+is a marker pointing to POS."
   (let ((button (get-char-property pos 'button)))
     (if (or (overlayp button) (null button))
 	button

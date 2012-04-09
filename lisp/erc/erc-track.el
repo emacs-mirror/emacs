@@ -93,13 +93,13 @@ Activity means that there was no user input in the last 10 seconds."
   :type '(repeat string))
 
 (defcustom erc-track-remove-disconnected-buffers nil
-  "*If true, remove buffers associated with a server that is
+  "If true, remove buffers associated with a server that is
 disconnected from `erc-modified-channels-alist'."
   :group 'erc-track
   :type 'boolean)
 
 (defcustom erc-track-exclude-types '("NICK" "333" "353")
-  "*List of message types to be ignored.
+  "List of message types to be ignored.
 This list could look like '(\"JOIN\" \"PART\").
 
 By default, exclude changes of nicknames (NICK), display of who
@@ -109,7 +109,7 @@ channel (353)."
   :type 'erc-message-type)
 
 (defcustom erc-track-exclude-server-buffer nil
-  "*If true, don't perform tracking on the server buffer; this is
+  "If true, don't perform tracking on the server buffer; this is
 useful for excluding all the things like MOTDs from the server and
 other miscellaneous functions."
   :group 'erc-track
@@ -127,7 +127,7 @@ the mode-line should be reduced to."
   :type 'number)
 
 (defcustom erc-track-shorten-aggressively nil
-  "*If non-nil, channel names will be shortened more aggressively.
+  "If non-nil, channel names will be shortened more aggressively.
 Usually, names are not shortened if this will save only one character.
 Example: If there are two channels, #linux-de and #linux-fr, then
 normally these will not be shortened.  When shortening aggressively,
@@ -150,7 +150,7 @@ This setting is used by `erc-track-shorten-names'."
 		 (const :tag "Max" max)))
 
 (defcustom erc-track-shorten-function 'erc-track-shorten-names
-  "*This function will be used to reduce the channel names before display.
+  "This function will be used to reduce the channel names before display.
 It takes one argument, CHANNEL-NAMES which is a list of strings.
 It should return a list of strings of the same number of elements.
 If nil instead of a function, shortening is disabled."
@@ -169,7 +169,7 @@ notification of channel activity."
   :type 'hook)
 
 (defcustom erc-track-use-faces t
-  "*Use faces in the mode-line.
+  "Use faces in the mode-line.
 The faces used are the same as used for text in the buffers.
 \(e.g. `erc-pal-face' is used if a pal sent a message to that channel.)"
   :group 'erc-track

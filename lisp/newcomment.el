@@ -106,12 +106,12 @@ Comments might be indented to a different value in order not to go beyond
 
 ;;;###autoload
 (defvar comment-start nil
-  "*String to insert to start a new comment, or nil if no comment syntax.")
+  "String to insert to start a new comment, or nil if no comment syntax.")
 ;;;###autoload(put 'comment-start 'safe-local-variable 'string-or-null-p)
 
 ;;;###autoload
 (defvar comment-start-skip nil
-  "*Regexp to match the start of a comment plus everything up to its body.
+  "Regexp to match the start of a comment plus everything up to its body.
 If there are any \\(...\\) pairs, the comment delimiter text is held to begin
 at the place matched by the close of the first pair.")
 ;;;###autoload(put 'comment-start-skip 'safe-local-variable 'string-or-null-p)
@@ -123,7 +123,7 @@ at the place matched by the close of the first pair.")
 
 ;;;###autoload
 (defvar comment-end (purecopy "")
-  "*String to insert to end a new comment.
+  "String to insert to end a new comment.
 Should be an empty string if comments are terminated by end-of-line.")
 ;;;###autoload(put 'comment-end 'safe-local-variable 'string-or-null-p)
 
@@ -587,7 +587,7 @@ Point is expected to be at the start of the comment."
                    (save-excursion (end-of-line) (current-column)))))
         (other nil)
         (min (save-excursion (skip-chars-backward " \t")
-                             (1+ (current-column)))))
+                             (if (bolp) 0 (1+ (current-column))))))
     ;; Fix up the range.
     (if (< max min) (setq max min))
     ;; Don't move past the fill column.

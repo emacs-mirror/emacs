@@ -831,10 +831,24 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(setq lower (aref layout i)
 	      upper (aref layout (1+ i)))
 	(insert bar)
-	(if (= (if (stringp lower) (string-width lower) (char-width lower)) 1)
+	(if (< (if (stringp lower) (string-width lower) (char-width lower)) 2)
 	    (insert " "))
-	(insert lower upper)
-	(if (= (if (stringp upper) (string-width upper) (char-width upper)) 1)
+	(if (characterp lower)
+	    (if (eq (get-char-code-property lower 'general-category) 'Mn)
+		;; Pad the left and right of non-spacing characters.
+		(setq lower (compose-string (string lower) 0 1
+					    (format "\t%c\t" lower)))
+	      (setq lower (string lower))))
+	(if (characterp upper)
+	    (if (eq (get-char-code-property upper 'general-category) 'Mn)
+		;; Pad the left and right of non-spacing characters.
+		(setq upper (compose-string (string upper) 0 1
+					    (format "\t%c\t" upper)))
+	      (setq upper (string upper))))
+	(insert (bidi-string-mark-left-to-right lower)
+		(propertize " " 'invisible t)
+		(bidi-string-mark-left-to-right upper))
+	(if (< (string-width upper) 2)
 	    (insert " "))
 	(setq i (+ i 2))
 	(if (= (% i 30) 0)
@@ -849,20 +863,21 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	;;(delete-region pos (point)))
 	(let ((from1 100) (to1 0) from2 to2)
 	  (while (not (eobp))
-	    (if (looking-at "[| ]*$")
+	    (if (looking-at "[| \u202c\u202d]*$")
 		;; The entire row is blank.
 		(delete-region (point) (match-end 0))
 	      ;; Delete blank key columns at the head.
-	      (if (looking-at " *\\(|    \\)+")
+	      (if (looking-at "\u202d? *\\(|     \\)+")
 		  (subst-char-in-region (point) (match-end 0) ?| ? ))
 	      ;; Delete blank key columns at the tail.
-	      (if (re-search-forward "\\(    |\\)+$" (line-end-position) t)
+	      (if (re-search-forward "\\(     |\\)+\u202c?$"
+				     (line-end-position) t)
 		  (delete-region (match-beginning 0) (point)))
 	      (beginning-of-line))
 	    ;; Calculate the start and end columns of a horizontal line.
 	    (if (eolp)
 		(setq from2 from1 to2 to1)
-	      (skip-chars-forward " ")
+	      (skip-chars-forward " \u202d")
 	      (setq from2 (current-column))
 	      (end-of-line)
 	      (setq to2 (current-column))
@@ -2485,6 +2500,11 @@ package to describe."
     ;; the width of the window in which the buffer displayed.
     (with-current-buffer (help-buffer)
       (setq buffer-read-only nil)
+      ;; Without this, a keyboard layout with R2L characters might be
+      ;; displayed reversed, right to left.  See the thread starting at
+      ;; http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00062.html
+      ;; for a description of one such situation.
+      (setq bidi-paragraph-direction 'left-to-right)
       (insert "Input method: " (quail-name)
 	      " (mode line indicator:"
 	      (quail-title)

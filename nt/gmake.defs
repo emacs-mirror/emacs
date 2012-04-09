@@ -245,9 +245,11 @@ CP_DIR		= cp -rf
 DEL		= rm
 DEL_TREE	= rm -r
 
+DIRNAME		= $(notdir $(CURDIR))
+
 ifdef USING_SH
 
-IFNOTSAMEDIR	= if [ ! -s ../same-dir.tst ] ; then
+IFNOTSAMEDIR	= if [ ! -s ../$(DIRNAME)_same-dir.tst ] ; then
 FOREACH		= for f in
 FORVAR		= $${f}
 FORDO		= ; do
@@ -262,7 +264,7 @@ endif
 
 else
 
-IFNOTSAMEDIR	= if not exist ../same-dir.tst
+IFNOTSAMEDIR	= if not exist ../$(DIRNAME)_same-dir.tst
 FOREACH		= for %%f in (
 FORVAR		= %%f
 FORDO		= ) do

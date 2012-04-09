@@ -304,7 +304,7 @@ The default value matches citations like `foo-bar>' plus whitespace."
     (define-key map "\C-c\C-w" 'mail-signature)
     (define-key map "\C-c\C-c" 'mail-send-and-exit)
     (define-key map "\C-c\C-s" 'mail-send)
-    (define-key map "\C-c\C-i" 'mail-attach-file)
+    (define-key map "\C-c\C-i" 'mail-insert-file)
     ;; FIXME add this? "b" = bury buffer.  It's in the menu-bar.
 ;;;    (define-key map "\C-c\C-b" 'mail-dont-send)
 
@@ -989,7 +989,7 @@ This function uses `mail-envelope-from'."
 
 ;;;###autoload
 (defvar sendmail-coding-system nil
-  "*Coding system for encoding the outgoing mail.
+  "Coding system for encoding the outgoing mail.
 This has higher priority than the default `buffer-file-coding-system'
 and `default-sendmail-coding-system',
 but lower priority than the local value of `buffer-file-coding-system'.
@@ -1085,6 +1085,9 @@ Return non-nil if and only if some part of the header is encoded."
 		(cons selected mm-coding-system-priorities)
 	      mm-coding-system-priorities))
 	   (tick (buffer-chars-modified-tick))
+	   ;; Many mailers, including Gnus, passes a message of which
+	   ;; the header is already encoded, so this is necessary to
+	   ;; prevent it from being encoded again.
 	   (rfc2047-encode-encoded-words nil))
       (rfc2047-encode-message-header)
       (= tick (buffer-chars-modified-tick)))))

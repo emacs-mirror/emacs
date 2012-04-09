@@ -893,16 +893,23 @@ that uses or sets the mark."
 ;; Counting lines, one way or another.
 
 (defun goto-line (line &optional buffer)
-  "Goto LINE, counting from line 1 at beginning of buffer.
-Normally, move point in the current buffer, and leave mark at the
-previous position.  With just \\[universal-argument] as argument,
-move point in the most recently selected other buffer, and switch to it.
+  "Go to LINE, counting from line 1 at beginning of buffer.
+If called interactively, a numeric prefix argument specifies
+LINE; without a numeric prefix argument, read LINE from the
+minibuffer.
 
-If there's a number in the buffer at point, it is the default for LINE.
+If optional argument BUFFER is non-nil, switch to that buffer and
+move to line LINE there.  If called interactively with \\[universal-argument]
+as argument, BUFFER is the most recently selected other buffer.
+
+Prior to moving point, this function sets the mark (without
+activating it), unless Transient Mark mode is enabled and the
+mark is already active.
 
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want instead is something like:
-  (goto-char (point-min)) (forward-line (1- N))
+  (goto-char (point-min))
+  (forward-line (1- N))
 If at all possible, an even better solution is to use char counts
 rather than line counts."
   (interactive
@@ -949,46 +956,51 @@ rather than line counts."
       (forward-line (1- line)))))
 
 (defun count-words-region (start end)
-  "Return the number of words between START and END.
+  "Count the number of words in the region.
 If called interactively, print a message reporting the number of
-lines, words, and characters in the region."
+lines, words, and chars in the region.
+If called from Lisp, return the number of words between positions
+START and END."
   (interactive "r")
-  (let ((words 0))
-    (save-excursion
-      (save-restriction
-        (narrow-to-region start end)
-        (goto-char (point-min))
-        (while (forward-word 1)
-          (setq words (1+ words)))))
-    (when (called-interactively-p 'interactive)
-      (count-words--message "Region"
-			    (count-lines start end)
-			    words
-			    (- end start)))
-    words))
+  (if (called-interactively-p 'any)
+      (count-words--message "Region" start end)
+    (count-words start end)))
 
-(defun count-words ()
-  "Display the number of lines, words, and characters in the buffer.
-In Transient Mark mode when the mark is active, display the
-number of lines, words, and characters in the region."
-  (interactive)
-  (if (use-region-p)
-      (call-interactively 'count-words-region)
-    (let* ((beg (point-min))
-	   (end (point-max))
-	   (lines (count-lines beg end))
-	   (words (count-words-region beg end))
-	   (chars (- end beg)))
-      (count-words--message "Buffer" lines words chars))))
+(defun count-words (start end)
+  "Count words between START and END.
+If called interactively, START and END are normally the start and
+end of the buffer; but if the region is active, START and END are
+the start and end of the region.  Print a message reporting the
+number of lines, words, and chars.
 
-(defun count-words--message (str lines words chars)
-  (message "%s has %d line%s, %d word%s, and %d character%s."
-	   str
-	   lines (if (= lines 1) "" "s")
-	   words (if (= words 1) "" "s")
-	   chars (if (= chars 1) "" "s")))
+If called from Lisp, return the number of words between START and
+END, without printing any message."
+  (interactive (list nil nil))
+  (cond ((not (called-interactively-p 'any))
+	 (let ((words 0))
+	   (save-excursion
+	     (save-restriction
+	       (narrow-to-region start end)
+	       (goto-char (point-min))
+	       (while (forward-word 1)
+		 (setq words (1+ words)))))
+	   words))
+	((use-region-p)
+	 (call-interactively 'count-words-region))
+	(t
+	 (count-words--message "Buffer" (point-min) (point-max)))))
 
-(defalias 'count-lines-region 'count-words-region)
+(defun count-words--message (str start end)
+  (let ((lines (count-lines start end))
+	(words (count-words start end))
+	(chars (- end start)))
+    (message "%s has %d line%s, %d word%s, and %d character%s."
+	     str
+	     lines (if (= lines 1) "" "s")
+	     words (if (= words 1) "" "s")
+	     chars (if (= chars 1) "" "s"))))
+
+(define-obsolete-function-alias 'count-lines-region 'count-words-region "24.1")
 
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
@@ -2138,7 +2150,7 @@ of `history-length', which see.")
   "Switch used to have the shell execute its command line argument.")
 
 (defvar shell-command-default-error-buffer nil
-  "*Buffer name for `shell-command' and `shell-command-on-region' error output.
+  "Buffer name for `shell-command' and `shell-command-on-region' error output.
 This buffer is used when `shell-command' or `shell-command-on-region'
 is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
@@ -3057,7 +3069,8 @@ before the Emacs kill and one can still paste it using \\[yank] \\[yank-pop]."
   :version "23.2")
 
 (defcustom kill-do-not-save-duplicates nil
-  "Do not add a new string to `kill-ring' when it is the same as the last one."
+  "Do not add a new string to `kill-ring' if it duplicates the last one.
+The comparison is done using `equal-including-properties'."
   :type 'boolean
   :group 'killing
   :version "23.2")
@@ -3085,7 +3098,10 @@ argument should still be a \"useful\" string for such uses."
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
   (unless (and kill-do-not-save-duplicates
-	       (equal string (car kill-ring)))
+	       ;; Due to text properties such as 'yank-handler that
+	       ;; can alter the contents to yank, comparison using
+	       ;; `equal' is unsafe.
+	       (equal-including-properties string (car kill-ring)))
     (if (fboundp 'menu-bar-update-yank-menu)
 	(menu-bar-update-yank-menu string (and replace (car kill-ring)))))
   (when save-interprogram-paste-before-kill
@@ -3096,10 +3112,10 @@ argument should still be a \"useful\" string for such uses."
 		       (nreverse interprogram-paste)
 		     (list interprogram-paste)))
 	  (unless (and kill-do-not-save-duplicates
-		       (equal s (car kill-ring)))
+		       (equal-including-properties s (car kill-ring)))
 	    (push s kill-ring))))))
   (unless (and kill-do-not-save-duplicates
-	       (equal string (car kill-ring)))
+	       (equal-including-properties string (car kill-ring)))
     (if (and replace kill-ring)
 	(setcar kill-ring string)
       (push string kill-ring)
@@ -3458,8 +3474,10 @@ and KILLP is t if a prefix arg was specified."
                      ((eq backward-delete-char-untabify-method 'all)
                       " \t\n\r")))
          (n (if skip
-                (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
-                                                     (point)))))
+                (let* ((oldpt (point))
+                       (wh (- oldpt (save-excursion
+                                      (skip-chars-backward skip)
+                                      (constrain-to-field nil oldpt)))))
                   (+ arg (if (zerop wh) 0 (1- wh))))
               arg)))
     ;; Avoid warning about delete-backward-char
@@ -3670,7 +3688,8 @@ If ARG is zero, move to the beginning of the current line."
 			(assq prop buffer-invisibility-spec))))))
     (skip-chars-forward "^\n")
     (if (get-text-property (point) 'invisible)
-	(goto-char (next-single-property-change (point) 'invisible))
+	(goto-char (or (next-single-property-change (point) 'invisible)
+		       (point-max)))
       (goto-char (next-overlay-change (point))))
     (end-of-line)))
 
@@ -5302,7 +5321,7 @@ Returns t if it really did any work."
       t)))
 
 (defvar comment-line-break-function 'comment-indent-new-line
-  "*Mode-specific function which line breaks and continues a comment.
+  "Mode-specific function which line breaks and continues a comment.
 This function is called during auto-filling when a comment syntax
 is defined.
 The function should take a single optional argument, which is a flag
@@ -5964,7 +5983,7 @@ in the definition is used to check that VALUE is valid.
 With a prefix argument, set VARIABLE to VALUE buffer-locally."
   (interactive
    (let* ((default-var (variable-at-point))
-          (var (if (user-variable-p default-var)
+          (var (if (custom-variable-p default-var)
 		   (read-variable (format "Set variable (default %s): " default-var)
 				  default-var)
 		 (read-variable "Set variable: ")))

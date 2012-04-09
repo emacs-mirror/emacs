@@ -39,22 +39,10 @@
 (require 'ob)
 
 (defvar org-babel-default-header-args:ditaa
-  '((:results . "file")
-    (:exports . "results")
-    (:java . "-Dfile.encoding=UTF-8"))
+  '((:results . "file") (:exports . "results") (:java . "-Dfile.encoding=UTF-8"))
   "Default arguments for evaluating a ditaa source block.")
 
-(defcustom org-ditaa-jar-path nil
-  "Path for the ditaa jar file."
-  :group 'org-babel
-  :type 'string)
-
-(defcustom org-ditaa-jar-option "-jar"
-  "Option for the ditaa jar file.
-Do not leave leading or trailing spaces in this string."
-  :group 'org-babel
-  :type 'string)
-
+(defvar org-ditaa-jar-path)
 (defun org-babel-execute:ditaa (body params)
   "Execute a block of Ditaa code with org-babel.
 This function is called by `org-babel-execute-src-block'."
@@ -67,7 +55,7 @@ This function is called by `org-babel-execute-src-block'."
 	 (cmdline (cdr (assoc :cmdline params)))
 	 (java (cdr (assoc :java params)))
 	 (in-file (org-babel-temp-file "ditaa-"))
-	 (cmd (concat "java " java " " org-ditaa-jar-option " "
+	 (cmd (concat "java " java " -jar "
 		      (shell-quote-argument
 		       (expand-file-name org-ditaa-jar-path))
 		      " " cmdline

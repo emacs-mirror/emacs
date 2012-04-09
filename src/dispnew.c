@@ -6077,10 +6077,14 @@ sit_for (Lisp_Object timeout, int reading, int do_display)
 
 
 DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
-       doc: /* Perform redisplay if no input is available.
-If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
-perform a full redisplay even if input is available.
-Return t if redisplay was performed, nil otherwise.  */)
+       doc: /* Perform redisplay.
+Optional arg FORCE, if non-nil, prevents redisplay from being
+preempted by arriving input, even if `redisplay-dont-pause' is nil.
+If `redisplay-dont-pause' is non-nil (the default), redisplay is never
+preempted by arriving input, so FORCE does nothing.
+
+Return t if redisplay was performed, nil if redisplay was preempted
+immediately by pending input.  */)
   (Lisp_Object force)
 {
   ptrdiff_t count;
@@ -6530,21 +6534,21 @@ syms_of_display (void)
   DEFSYM (Qredisplay_dont_pause, "redisplay-dont-pause");
 
   DEFVAR_INT ("baud-rate", baud_rate,
-	      doc: /* *The output baud rate of the terminal.
+	      doc: /* The output baud rate of the terminal.
 On most systems, changing this value will affect the amount of padding
 and the other strategic decisions made during redisplay.  */);
 
   DEFVAR_BOOL ("inverse-video", inverse_video,
-	       doc: /* *Non-nil means invert the entire frame display.
+	       doc: /* Non-nil means invert the entire frame display.
 This means everything is in inverse video which otherwise would not be.  */);
 
   DEFVAR_BOOL ("visible-bell", visible_bell,
-	       doc: /* *Non-nil means try to flash the frame to represent a bell.
+	       doc: /* Non-nil means try to flash the frame to represent a bell.
 
 See also `ring-bell-function'.  */);
 
   DEFVAR_BOOL ("no-redraw-on-reenter", no_redraw_on_reenter,
-	       doc: /* *Non-nil means no need to redraw entire frame after suspending.
+	       doc: /* Non-nil means no need to redraw entire frame after suspending.
 A non-nil value is useful if the terminal can automatically preserve
 Emacs's frame display when you reenter Emacs.
 It is up to you to set this variable if your terminal can do that.  */);
@@ -6599,14 +6603,15 @@ See `buffer-display-table' for more information.  */);
   Vstandard_display_table = Qnil;
 
   DEFVAR_BOOL ("redisplay-dont-pause", redisplay_dont_pause,
-	       doc: /* *Non-nil means display update isn't paused when input is detected.  */);
+	       doc: /* Non-nil means display update isn't paused when input is detected.  */);
   redisplay_dont_pause = 1;
 
 #if PERIODIC_PREEMPTION_CHECKING
   DEFVAR_LISP ("redisplay-preemption-period", Vredisplay_preemption_period,
-	       doc: /* *The period in seconds between checking for input during redisplay.
-If input is detected, redisplay is pre-empted, and the input is processed.
-If nil, never pre-empt redisplay.  */);
+	       doc: /* Period in seconds between checking for input during redisplay.
+This has an effect only if `redisplay-dont-pause' is nil; in that
+case, arriving input preempts redisplay until the input is processed.
+If the value is nil, redisplay is never preempted.  */);
   Vredisplay_preemption_period = make_float (0.10);
 #endif
 

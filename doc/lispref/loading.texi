@@ -500,14 +500,31 @@ Building Emacs loads @file{loaddefs.el} and thus calls @code{autoload}.
 autoloads for all files in the current directory.
 
   The same magic comment can copy any kind of form into
-@file{loaddefs.el}.  If the form following the magic comment is not a
-function-defining form or a @code{defcustom} form, it is copied
-verbatim.  ``Function-defining forms'' include @code{define-skeleton},
-@code{define-derived-mode}, @code{define-generic-mode} and
-@code{define-minor-mode} as well as @code{defun} and
-@code{defmacro}.  To save space, a @code{defcustom} form is converted to
-a @code{defvar} in @file{loaddefs.el}, with some additional information
-if it uses @code{:require}.
+@file{loaddefs.el}.  The form following the magic comment is copied
+verbatim, @emph{except} if it is one of the forms which the autoload
+facility handles specially (e.g.@: by conversion into an
+@code{autoload} call).  The forms which are not copied verbatim are
+the following:
+
+@table @asis
+@item Definitions for function or function-like objects:
+@code{defun} and @code{defmacro}; also @code{defun*} and
+@code{defmacro*} (@pxref{Argument Lists,,,cl,CL Manual}), and
+@code{define-overloadable-function} (see the commentary in
+@file{mode-local.el}).
+
+@item Definitions for major or minor modes:
+@code{define-derived-mode}, @code{define-minor-mode},
+@code{define-compilation-mode}, @code{define-generic-mode},
+@code{easy-mmode-define-global-mode}, @code{define-global-minor-mode},
+@code{define-globalized-minor-mode}, and
+@code{easy-mmode-define-minor-mode}.
+
+@item Other definition types:
+@code{defcustom}, @code{defgroup}, @code{defclass}
+(@pxref{Top,EIEIO,,eieio,EIEIO}), and @code{define-skeleton} (see the
+commentary in @file{skeleton.el}).
+@end table
 
   You can also use a magic comment to execute a form at build time
 @emph{without} executing it when the file itself is loaded.  To do this,

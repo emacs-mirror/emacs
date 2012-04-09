@@ -79,6 +79,26 @@ to the system configuration; look at `system-configuration' instead."
 ;; We hope that this alias is easier for people to find.
 (defalias 'version 'emacs-version)
 
+;; Set during dumping, this is a defvar so that it can be setq'd.
+(defvar emacs-bzr-version nil "\
+String giving the bzr revision number from which this Emacs was built.
+This is nil if Emacs was not built from a bzr checkout, or if we could
+not determine the revision.")
+
+(defun emacs-bzr-get-version () "\
+Try to return as a string the bzr revision number of the Emacs sources.
+Returns nil if the sources do not seem to be under bzr, or if we could
+not determine the revision.  Note that this reports on the current state
+of the sources, which may not correspond to the running Emacs."
+  (let ((file (expand-file-name ".bzr/branch/last-revision" source-directory)))
+    (if (file-readable-p file)
+        (with-temp-buffer
+          (insert-file-contents file)
+          (goto-char (point-max))
+          (if (looking-back "\n")
+              (delete-char -1))
+          (buffer-string)))))
+
 ;; We put version info into the executable in the form that `ident' uses.
 (or (eq system-type 'windows-nt)
     (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))

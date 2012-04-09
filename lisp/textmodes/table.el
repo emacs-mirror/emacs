@@ -844,7 +844,7 @@ simply by any key input."
 (defvar table-disable-menu (null (and (locate-library "easymenu")
 				      (require 'easymenu)
 				      (fboundp 'easy-menu-add-item)))
-  "*When non-nil, use of menu by table package is disabled.
+  "When non-nil, use of menu by table package is disabled.
 It must be set before loading this package `table.el' for the first
 time.")
 

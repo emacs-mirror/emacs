@@ -1594,8 +1594,8 @@ E to edit the replacement string"
   "Keymap that defines the responses to questions in `query-replace'.
 The \"bindings\" in this map are not commands; they are answers.
 The valid answers include `act', `skip', `act-and-show',
-`exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
-`automatic', `backup', `exit-prefix', and `help'.")
+`exit', `act-and-exit', `edit', `edit-replacement', `delete-and-edit',
+`recenter', `automatic', `backup', `exit-prefix', `quit', and `help'.")
 
 (defvar multi-query-replace-map
   (let ((map (make-sparse-keymap)))
@@ -2116,13 +2116,13 @@ make, or the user didn't cancel the call."
   (if query-replace-lazy-highlight
       (let ((isearch-string string)
 	    (isearch-regexp regexp)
+	    ;; Set isearch-word to nil because word-replace is regexp-based,
+	    ;; so `isearch-search-fun' should not use `word-search-forward'.
+	    (isearch-word nil)
 	    (search-whitespace-regexp nil)
 	    (isearch-case-fold-search case-fold)
 	    (isearch-forward t)
 	    (isearch-error nil))
-	;; Set isearch-word to nil because word-replace is regexp-based,
-	;; so `isearch-search-fun' should not use `word-search-forward'.
-	(if (and isearch-word isearch-regexp) (setq isearch-word nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
 (defun replace-dehighlight ()

@@ -248,6 +248,7 @@ nil won't sort files.
 You can overwrite this default per project in your
 `org-publish-project-alist', using `:sitemap-sort-files'."
   :group 'org-publish
+  :version "24.1"
   :type 'symbol)
 
 (defcustom org-publish-sitemap-sort-folders 'first
@@ -260,6 +261,7 @@ Any other value will not mix files and folders.
 You can overwrite this default per project in your
 `org-publish-project-alist', using `:sitemap-sort-folders'."
   :group 'org-publish
+  :version "24.1"
   :type 'symbol)
 
 (defcustom org-publish-sitemap-sort-ignore-case nil
@@ -268,12 +270,14 @@ You can overwrite this default per project in your
 You can overwrite this default per project in your
 `org-publish-project-alist', using `:sitemap-ignore-case'."
   :group 'org-publish
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-publish-sitemap-date-format "%Y-%m-%d"
   "Format for `format-time-string' which is used to print a date
 in the sitemap."
   :group 'org-publish
+  :version "24.1"
   :type 'string)
 
 (defcustom org-publish-sitemap-file-entry-format "%t"
@@ -284,6 +288,7 @@ You could use brackets to delimit on what part the link will be.
 %a is the author.
 %d is the date formatted using `org-publish-sitemap-date-format'."
   :group 'org-publish
+  :version "24.1"
   :type 'string)
 
 

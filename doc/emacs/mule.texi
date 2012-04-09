@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International, Modes, Frames, Top
 @chapter International Character Set Support
@@ -137,8 +137,8 @@ writing files, and when exchanging data with subprocesses.
 @cindex undisplayable characters
 @cindex @samp{?} in display
   The command @kbd{C-h h} (@code{view-hello-file}) displays the file
-@file{etc/HELLO}, which shows how to say ``hello'' in many languages.
-This illustrates various scripts.  If some characters can't be
+@file{etc/HELLO}, which illustrates various scripts by showing
+how to say ``hello'' in many languages.  If some characters can't be
 displayed on your terminal, they appear as @samp{?} or as hollow boxes
 (@pxref{Undisplayable Characters}).
 

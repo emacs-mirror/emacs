@@ -96,12 +96,12 @@
   :prefix "quickurl-")
 
 (defcustom quickurl-url-file (convert-standard-filename "~/.quickurls")
-  "*File that contains the URL list."
+  "File that contains the URL list."
   :type  'file
   :group 'quickurl)
 
 (defcustom quickurl-format-function (lambda (url) (format "<URL:%s>" (quickurl-url-url url)))
-  "*Function to format the URL before insertion into the current buffer."
+  "Function to format the URL before insertion into the current buffer."
   :type  'function
   :group 'quickurl)
 
@@ -111,32 +111,32 @@
                                             (string<
                                              (downcase (quickurl-url-description x))
                                              (downcase (quickurl-url-description y))))))
-  "*Function to sort the URL list."
+  "Function to sort the URL list."
   :type  'function
   :group 'quickurl)
 
 (defcustom quickurl-grab-lookup-function #'current-word
-  "*Function to grab the thing to lookup."
+  "Function to grab the thing to lookup."
   :type  'function
   :group 'quickurl)
 
 (defcustom quickurl-assoc-function #'assoc-ignore-case
-  "*Function to use for alist lookup into `quickurl-urls'."
+  "Function to use for alist lookup into `quickurl-urls'."
   :type  'function
   :group 'quickurl)
 
 (defcustom quickurl-completion-ignore-case t
-  "*Should `quickurl-ask' ignore case when doing the input lookup?"
+  "Should `quickurl-ask' ignore case when doing the input lookup?"
   :type  'boolean
   :group 'quickurl)
 
 (defcustom quickurl-prefix ";; -*- lisp -*-\n\n"
-  "*Text to write to `quickurl-url-file' before writing the URL list."
+  "Text to write to `quickurl-url-file' before writing the URL list."
   :type  'string
   :group 'quickurl)
 
 (defcustom quickurl-postfix ""
-  "*Text to write to `quickurl-url-file' after writing the URL list.
+  "Text to write to `quickurl-url-file' after writing the URL list.
 
 See the constant `quickurl-reread-hook-postfix' for some example text that
 could be used here."
@@ -144,7 +144,7 @@ could be used here."
   :group 'quickurl)
 
 (defcustom quickurl-list-mode-hook nil
-  "*Hooks for `quickurl-list-mode'."
+  "Hooks for `quickurl-list-mode'."
   :type  'hook
   :group 'quickurl)
 

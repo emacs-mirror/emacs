@@ -143,7 +143,7 @@ files.texi        cyd
 fixit.texi        cyd
 fortran-xtra.texi rgm
 frames.texi       cyd
-glossary.texi
+glossary.texi     rgm
 help.texi         cyd
 indent.texi       cyd
 killing.texi      cyd
@@ -180,10 +180,10 @@ xresources.texi   cyd
 
 ** Check the Lisp manual.
 
-abbrevs.texi      
+abbrevs.texi      rgm
 advice.texi       cyd
 anti.texi         
-back.texi
+back.texi         rgm
 backups.texi      cyd
 buffers.texi      cyd
 commands.texi     cyd
@@ -191,43 +191,43 @@ compile.texi      cyd
 control.texi      cyd
 customize.texi    cyd
 debugging.texi    cyd
-display.texi      
-edebug.texi
+display.texi      cyd
+edebug.texi       rgm
 elisp.texi
 errors.texi       rgm
 eval.texi         cyd
 files.texi        cyd
-frames.texi       
+frames.texi       cyd
 functions.texi    cyd
 hash.texi         cyd
 help.texi         cyd
-hooks.texi        
+hooks.texi        rgm
 index.texi
-internals.texi    
+internals.texi    rgm  cyd
 intro.texi        cyd
 keymaps.texi      cyd
 lists.texi        cyd
 loading.texi      cyd
 macros.texi       cyd
 maps.texi         rgm
-markers.texi      
+markers.texi      rgm
 minibuf.texi      
 modes.texi        cyd
-nonascii.texi     
+nonascii.texi     cyd
 numbers.texi      cyd
 objects.texi      cyd
-os.texi           
-package.texi
-positions.texi    
+os.texi           cyd
+package.texi      rgm
+positions.texi    cyd
 processes.texi
-searching.texi    
+searching.texi    rgm
 sequences.texi    cyd
 streams.texi      cyd
 strings.texi      cyd
 symbols.texi      cyd
 syntax.texi       cyd
-text.texi         
-tips.texi         
+text.texi         cyd
+tips.texi         rgm
 variables.texi    cyd
 windows.texi      
 

@@ -58,6 +58,7 @@
 	("jisx0208" . japanese-jisx0208)
 	("jisx0201" . jisx0201)
 	("jisx0212" . japanese-jisx0212)
+	("ksx1001" . korean-ksc5601)
 	("ksc5601.1987" . korean-ksc5601)
 	("cns11643.1992.*1" . chinese-cns11643-1)
 	("cns11643.1992.*2" . chinese-cns11643-2)

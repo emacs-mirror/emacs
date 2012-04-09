@@ -182,7 +182,9 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (set (make-local-variable 'message-strip-special-text-properties) nil))
     (rfc822-goto-eoh)
     (forward-line 1)
-    (let ((signature (buffer-substring (point) (point-max))))
+    ;; Move the mail signature to the proper place.
+    (let ((signature (buffer-substring (point) (point-max)))
+	  (inhibit-read-only t))
       (delete-region (point) (point-max))
       (insert signature)
       (backward-char (length signature)))
@@ -237,6 +239,8 @@ usually do not have translators for other languages.\n\n")))
     (add-text-properties (1+ user-point) (point) prompt-properties)
 
     (insert "\n\nIn " (emacs-version) "\n")
+    (if (stringp emacs-bzr-version)
+	(insert "Bzr revision: " emacs-bzr-version "\n"))
     (if (fboundp 'x-server-vendor)
 	(condition-case nil
             ;; This is used not only for X11 but also W32 and others.
@@ -394,7 +398,10 @@ and send the mail again%s."
     ;; Query the user for the SMTP method, so that we can skip
     ;; questions about From header validity if the user is going to
     ;; use mailclient, anyway.
-    (when (eq send-mail-function 'sendmail-query-once)
+    (when (or (and (derived-mode-p 'message-mode)
+		   (eq message-send-mail-function 'sendmail-query-once))
+	      (and (not (derived-mode-p 'message-mode))
+		   (eq send-mail-function 'sendmail-query-once)))
       (sendmail-query-user-about-smtp)
       (when (derived-mode-p 'message-mode)
 	(setq message-send-mail-function (message-default-send-mail-function))))

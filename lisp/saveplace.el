@@ -132,9 +132,10 @@ removable and network volumes."
 
 (defcustom save-place-ignore-files-regexp
   "\\(?:COMMIT_EDITMSG\\|hg-editor-[[:alnum:]]+\\.txt\\|svn-commit\\.tmp\\|bzr_log\\.[[:alnum:]]+\\)$"
-  "Regexp matching files for which no location should be recorded.
+  "Regexp matching files for which no position should be recorded.
 Useful for temporary file such as commit message files that are
-automatically created by the VCS."
+automatically created by the VCS.  If set to nil, this feature is
+disabled, i.e., the position is recorded for all files."
   :version "24.1"
   :type 'regexp :group 'save-place)
 
@@ -169,8 +170,9 @@ To save places automatically in all files, put this in your `.emacs' file:
   ;; will be saved again when Emacs is killed.
   (or save-place-loaded (load-save-place-alist-from-file))
   (when (and buffer-file-name
-	     (not (string-match save-place-ignore-files-regexp
-				buffer-file-name)))
+	     (or (not save-place-ignore-files-regexp)
+		 (not (string-match save-place-ignore-files-regexp
+				    buffer-file-name))))
     (let ((cell (assoc buffer-file-name save-place-alist))
 	  (position (if (not (eq major-mode 'hexl-mode))
 			(point)

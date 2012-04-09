@@ -316,7 +316,7 @@ With argument, actually select the window showing the cross reference."
         (run-hooks 'reftex-display-copied-context-hook)))))
 
 (defvar reftex-use-itimer-in-xemacs nil
-  "*Non-nil means use the idle timers in XEmacs for crossref display.
+  "Non-nil means use the idle timers in XEmacs for crossref display.
 Currently, idle timer restart is broken and we use the post-command-hook.")
 
 (defun reftex-toggle-auto-view-crossref ()

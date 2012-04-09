@@ -139,7 +139,7 @@
       version-string)))
 
 (defvar ada-mode-hook nil
-  "*List of functions to call when Ada mode is invoked.
+  "List of functions to call when Ada mode is invoked.
 This hook is automatically executed after the `ada-mode' is
 fully loaded.
 This is a good place to add Ada environment specific bindings.")
@@ -150,13 +150,13 @@ This is a good place to add Ada environment specific bindings.")
   :group 'languages)
 
 (defcustom ada-auto-case t
-  "*Non-nil means automatically change case of preceding word while typing.
+  "Non-nil means automatically change case of preceding word while typing.
 Casing is done according to `ada-case-keyword', `ada-case-identifier'
 and `ada-case-attribute'."
   :type 'boolean :group 'ada)
 
 (defcustom ada-broken-decl-indent 0
-  "*Number of columns to indent a broken declaration.
+  "Number of columns to indent a broken declaration.
 
 An example is :
   declare
@@ -165,7 +165,7 @@ An example is :
   :type 'integer :group 'ada)
 
 (defcustom ada-broken-indent 2
-  "*Number of columns to indent the continuation of a broken line.
+  "Number of columns to indent the continuation of a broken line.
 
 An example is :
    My_Var : My_Type := (Field1 =>
@@ -173,7 +173,7 @@ An example is :
   :type 'integer :group 'ada)
 
 (defcustom ada-continuation-indent ada-broken-indent
-  "*Number of columns to indent the continuation of broken lines in parenthesis.
+  "Number of columns to indent the continuation of broken lines in parenthesis.
 
 An example is :
    Func (Param1,
@@ -181,7 +181,7 @@ An example is :
   :type 'integer :group 'ada)
 
 (defcustom ada-case-attribute 'ada-capitalize-word
-  "*Function to call to adjust the case of Ada attributes.
+  "Function to call to adjust the case of Ada attributes.
 It may be `downcase-word', `upcase-word', `ada-loose-case-word',
 `ada-capitalize-word' or `ada-no-auto-case'."
   :type '(choice (const downcase-word)
@@ -193,7 +193,7 @@ It may be `downcase-word', `upcase-word', `ada-loose-case-word',
 
 (defcustom ada-case-exception-file
   (list (convert-standard-filename' "~/.emacs_case_exceptions"))
-  "*List of special casing exceptions dictionaries for identifiers.
+  "List of special casing exceptions dictionaries for identifiers.
 The first file is the one where new exceptions will be saved by Emacs
 when you call `ada-create-case-exception'.
 
@@ -207,7 +207,7 @@ by a comment."
   :group 'ada)
 
 (defcustom ada-case-keyword 'downcase-word
-  "*Function to call to adjust the case of an Ada keywords.
+  "Function to call to adjust the case of an Ada keywords.
 It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
 `ada-capitalize-word'."
   :type '(choice (const downcase-word)
@@ -218,7 +218,7 @@ It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
   :group 'ada)
 
 (defcustom ada-case-identifier 'ada-loose-case-word
-  "*Function to call to adjust the case of an Ada identifier.
+  "Function to call to adjust the case of an Ada identifier.
 It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
 `ada-capitalize-word'."
   :type '(choice (const downcase-word)
@@ -229,7 +229,7 @@ It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
   :group 'ada)
 
 (defcustom ada-clean-buffer-before-saving t
-  "*Non-nil means remove trailing spaces and untabify the buffer before saving."
+  "Non-nil means remove trailing spaces and untabify the buffer before saving."
   :type 'boolean :group 'ada)
 (make-obsolete-variable 'ada-clean-buffer-before-saving
 			"use the `write-file-functions' hook."
@@ -237,7 +237,7 @@ It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
 
 
 (defcustom ada-indent 3
-  "*Size of Ada indentation.
+  "Size of Ada indentation.
 
 An example is :
 procedure Foo is
@@ -246,11 +246,11 @@ begin
   :type 'integer  :group 'ada)
 
 (defcustom ada-indent-after-return t
-  "*Non-nil means automatically indent after RET or LFD."
+  "Non-nil means automatically indent after RET or LFD."
   :type 'boolean :group 'ada)
 
 (defcustom ada-indent-align-comments t
-  "*Non-nil means align comments on previous line comments, if any.
+  "Non-nil means align comments on previous line comments, if any.
 If nil, indentation is calculated as usual.
 Note that indentation is calculated only if `ada-indent-comment-as-code' is t.
 
@@ -260,12 +260,12 @@ For instance:
   :type 'boolean :group 'ada)
 
 (defcustom ada-indent-comment-as-code t
-  "*Non-nil means indent comment lines as code.
+  "Non-nil means indent comment lines as code.
 A nil value means do not auto-indent comments."
   :type 'boolean :group 'ada)
 
 (defcustom ada-indent-handle-comment-special nil
-  "*Non-nil if comment lines should be handled specially inside parenthesis.
+  "Non-nil if comment lines should be handled specially inside parenthesis.
 By default, if the line that contains the open parenthesis has some
 text following it, then the following lines will be indented in the
 same column as this text.  This will not be true if the first line is
@@ -287,11 +287,11 @@ type A is
   :type 'boolean :group 'ada)
 
 (defcustom ada-indent-is-separate t
-  "*Non-nil means indent 'is separate' or 'is abstract' if on a single line."
+  "Non-nil means indent 'is separate' or 'is abstract' if on a single line."
   :type 'boolean :group 'ada)
 
 (defcustom ada-indent-record-rel-type 3
-  "*Indentation for 'record' relative to 'type' or 'use'.
+  "Indentation for 'record' relative to 'type' or 'use'.
 
 An example is:
    type A is
@@ -299,7 +299,7 @@ An example is:
   :type 'integer :group 'ada)
 
 (defcustom ada-indent-renames ada-broken-indent
-  "*Indentation for renames relative to the matching function statement.
+  "Indentation for renames relative to the matching function statement.
 If `ada-indent-return' is null or negative, the indentation is done relative to
 the open parenthesis (if there is no parenthesis, `ada-broken-indent' is used).
 
@@ -310,7 +310,7 @@ An example is:
   :type 'integer :group 'ada)
 
 (defcustom ada-indent-return 0
-  "*Indentation for 'return' relative to the matching 'function' statement.
+  "Indentation for 'return' relative to the matching 'function' statement.
 If `ada-indent-return' is null or negative, the indentation is done relative to
 the open parenthesis (if there is no parenthesis, `ada-broken-indent' is used).
 
@@ -320,22 +320,22 @@ An example is:
   :type 'integer :group 'ada)
 
 (defcustom ada-indent-to-open-paren t
-  "*Non-nil means indent according to the innermost open parenthesis."
+  "Non-nil means indent according to the innermost open parenthesis."
   :type 'boolean :group 'ada)
 
 (defcustom ada-fill-comment-prefix "--  "
-  "*Text inserted in the first columns when filling a comment paragraph.
+  "Text inserted in the first columns when filling a comment paragraph.
 Note: if you modify this variable, you will have to invoke `ada-mode'
 again to take account of the new value."
   :type 'string :group 'ada)
 
 (defcustom ada-fill-comment-postfix " --"
-  "*Text inserted at the end of each line when filling a comment paragraph.
+  "Text inserted at the end of each line when filling a comment paragraph.
 Used by `ada-fill-comment-paragraph-postfix'."
   :type 'string :group 'ada)
 
 (defcustom ada-label-indent -4
-  "*Number of columns to indent a label.
+  "Number of columns to indent a label.
 
 An example is:
 procedure Foo is
@@ -346,15 +346,15 @@ This is also used for <<..>> labels"
   :type 'integer :group 'ada)
 
 (defcustom ada-language-version 'ada95
-  "*Ada language version; one of `ada83', `ada95', `ada2005'."
+  "Ada language version; one of `ada83', `ada95', `ada2005'."
   :type '(choice (const ada83) (const ada95) (const ada2005)) :group 'ada)
 
 (defcustom ada-move-to-declaration nil
-  "*Non-nil means `ada-move-to-start' moves to the subprogram declaration, not to 'begin'."
+  "Non-nil means `ada-move-to-start' moves to the subprogram declaration, not to 'begin'."
   :type 'boolean :group 'ada)
 
 (defcustom ada-popup-key '[down-mouse-3]
-  "*Key used for binding the contextual menu.
+  "Key used for binding the contextual menu.
 If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
   :group 'ada)
@@ -364,7 +364,7 @@ If nil, no contextual menu is available."
 	  (split-string (or (getenv "ADA_INCLUDE_PATH") "") ":")
 	  '("/usr/adainclude" "/usr/local/adainclude"
 	    "/opt/gnu/adainclude"))
-  "*Default list of directories to search for Ada files.
+  "Default list of directories to search for Ada files.
 See the description for the `ff-search-directories' variable.  This variable
 is the initial value of `ada-search-directories-internal'."
   :type '(repeat (choice :tag "Directory"
@@ -379,7 +379,7 @@ and the standard runtime location, and the value of the user-defined
 `ada-search-directories'.")
 
 (defcustom ada-stmt-end-indent 0
-  "*Number of columns to indent the end of a statement on a separate line.
+  "Number of columns to indent the end of a statement on a separate line.
 
 An example is:
    if A = B
@@ -387,7 +387,7 @@ An example is:
   :type 'integer :group 'ada)
 
 (defcustom ada-tab-policy 'indent-auto
-  "*Control the behavior of the TAB key.
+  "Control the behavior of the TAB key.
 Must be one of :
 `indent-rigidly' : always adds `ada-indent' blanks at the beginning of the line.
 `indent-auto'    : use indentation functions in this file.
@@ -398,7 +398,7 @@ Must be one of :
   :group 'ada)
 
 (defcustom ada-use-indent ada-broken-indent
-  "*Indentation for the lines in a 'use' statement.
+  "Indentation for the lines in a 'use' statement.
 
 An example is:
    use Ada.Text_IO,
@@ -406,7 +406,7 @@ An example is:
   :type 'integer :group 'ada)
 
 (defcustom ada-when-indent 3
-  "*Indentation for 'when' relative to 'exception' or 'case'.
+  "Indentation for 'when' relative to 'exception' or 'case'.
 
 An example is:
    case A is
@@ -414,7 +414,7 @@ An example is:
   :type 'integer :group 'ada)
 
 (defcustom ada-with-indent ada-broken-indent
-  "*Indentation for the lines in a 'with' statement.
+  "Indentation for the lines in a 'with' statement.
 
 An example is:
    with Ada.Text_IO,
@@ -422,7 +422,7 @@ An example is:
   :type 'integer :group 'ada)
 
 (defcustom ada-which-compiler 'gnat
-  "*Name of the compiler to use.
+  "Name of the compiler to use.
 This will determine what features are made available through the Ada mode.
 The possible choices are:
 `gnat': Use Ada Core Technologies' GNAT compiler.  Add some cross-referencing
@@ -4728,7 +4728,7 @@ Moves to 'begin' if in a declarative part."
 	      ["Entry family"    ada-entry-family    t]
 	      ["Select"          ada-select          t]
 	      ["Accept"          ada-accept          t]
-	      ["Or accept"       ada-or-accep        t]
+	      ["Or accept"       ada-or-accept       t]
 	      ["Or delay"        ada-or-delay        t]
 	      ["Or terminate"    ada-or-terminate    t]
 	      ["---"             nil                 nil]

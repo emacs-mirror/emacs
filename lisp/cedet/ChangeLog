@@ -1,3 +1,15 @@
+2012-03-12  David Engster  <deng@randomsample.de>
+
+	* semantic/db-find.el
+	(semanticdb-find-translate-path-brutish-default): If we don't yet
+	have a proper table for PATH, use `semanticdb-current-database'
+	instead (bug #10343).
+
+2012-03-11  David Engster  <deng@randomsample.de>
+
+	* semantic/wisent/javascript.el (js-mode): Define `js-mode' as
+	child-mode of `javascript-mode' (bug #8445).
+
 2012-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/db.el (semanticdb-search-results-table):

@@ -89,12 +89,12 @@
 (load "widget")
 (load "custom")
 (load "emacs-lisp/map-ynp")
-(load "cus-start")
 (load "international/mule")
 (load "international/mule-conf")
 (load "env")
 (load "format")
 (load "bindings")
+(load "cus-start")
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
@@ -259,6 +259,8 @@
 	   (versions (mapcar (function (lambda (name)
 					 (string-to-number (substring name (length base)))))
 			     files)))
+      (setq emacs-bzr-version (condition-case nil (emacs-bzr-get-version)
+                              (error nil)))
       ;; `emacs-version' is a constant, so we shouldn't change it with `setq'.
       (defconst emacs-version
 	(format "%s.%d"

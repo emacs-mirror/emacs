@@ -1420,6 +1420,7 @@ With prefix arg, indent to that column."
   (define-key cua--rectangle-keymap [remap kill-ring-save]      'cua-copy-rectangle)
   (define-key cua--rectangle-keymap [remap kill-region]         'cua-cut-rectangle)
   (define-key cua--rectangle-keymap [remap delete-char]         'cua-delete-rectangle)
+  (define-key cua--rectangle-keymap [remap delete-forward-char] 'cua-delete-rectangle)
   (define-key cua--rectangle-keymap [remap set-mark-command]    'cua-toggle-rectangle-mark)
 
   (define-key cua--rectangle-keymap [remap forward-char]        'cua-resize-rectangle-right)

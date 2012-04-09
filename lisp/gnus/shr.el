@@ -332,6 +332,7 @@ the URL of the image to the kill buffer instead."
       (unless shr-start
 	(setq shr-start (point)))
       (insert elem)
+      (setq shr-state nil)
       (let (found)
 	(while (and (> (current-column) shr-width)
 		    (progn
@@ -341,7 +342,6 @@ the URL of the image to the kill buffer instead."
 	    (delete-char -1))
 	  (insert "\n")
 	  (unless found
-	    (put-text-property (1- (point)) (point) 'shr-break t)
 	    ;; No space is needed at the beginning of a line.
 	    (when (eq (following-char) ? )
 	      (delete-char 1)))
@@ -711,7 +711,7 @@ ones, in case fg and bg are nil."
     (forward-line 1)
     (setq end (point))
     (narrow-to-region start end)
-    (let ((width (shr-natural-width))
+    (let ((width (shr-buffer-width))
 	  column)
       (goto-char (point-min))
       (while (not (eobp))
@@ -1048,7 +1048,10 @@ ones, in case fg and bg are nil."
 	 ;; be smaller (if there's little text) or bigger (if there's
 	 ;; unbreakable text).
 	 (sketch (shr-make-table cont suggested-widths))
-	 (sketch-widths (shr-table-widths sketch suggested-widths)))
+	 ;; Compute the "natural" width by setting each column to 500
+	 ;; characters and see how wide they really render.
+	 (natural (shr-make-table cont (make-vector (length columns) 500)))
+	 (sketch-widths (shr-table-widths sketch natural suggested-widths)))
     ;; This probably won't work very well.
     (when (> (+ (loop for width across sketch-widths
 		      summing (1+ width))
@@ -1186,31 +1189,35 @@ ones, in case fg and bg are nil."
 	    shr-table-corner))
   (insert "\n"))
 
-(defun shr-table-widths (table suggested-widths)
+(defun shr-table-widths (table natural-table suggested-widths)
   (let* ((length (length suggested-widths))
 	 (widths (make-vector length 0))
 	 (natural-widths (make-vector length 0)))
     (dolist (row table)
       (let ((i 0))
 	(dolist (column row)
-	  (aset widths i (max (aref widths i)
-			      (car column)))
-	  (aset natural-widths i (max (aref natural-widths i)
-				      (cadr column)))
+	  (aset widths i (max (aref widths i) column))
+	  (setq i (1+ i)))))
+    (dolist (row natural-table)
+      (let ((i 0))
+	(dolist (column row)
+	  (aset natural-widths i (max (aref natural-widths i) column))
 	  (setq i (1+ i)))))
     (let ((extra (- (apply '+ (append suggested-widths nil))
 		    (apply '+ (append widths nil))))
 	  (expanded-columns 0))
+      ;; We have extra, unused space, so divide this space amongst the
+      ;; columns.
       (when (> extra 0)
+	;; If the natural width is wider than the rendered width, we
+	;; want to allow the column to expand.
 	(dotimes (i length)
-	  ;; If the natural width is wider than the rendered width, we
-	  ;; want to allow the column to expand.
 	  (when (> (aref natural-widths i) (aref widths i))
 	    (setq expanded-columns (1+ expanded-columns))))
 	(dotimes (i length)
 	  (when (> (aref natural-widths i) (aref widths i))
 	    (aset widths i (min
-			    (1+ (aref natural-widths i))
+			    (aref natural-widths i)
 			    (+ (/ extra expanded-columns)
 			       (aref widths i))))))))
     widths))
@@ -1265,10 +1272,13 @@ ones, in case fg and bg are nil."
 	  (let ((shr-width width)
 		(shr-indentation 0))
 	    (shr-descend (cons 'td cont)))
+	  ;; Delete padding at the bottom of the TDs.
 	  (delete-region
 	   (point)
-	   (+ (point)
-	      (skip-chars-backward " \t\n")))
+	   (progn
+	     (skip-chars-backward " \t\n")
+	     (end-of-line)
+	     (point)))
 	  (push (list (cons width cont) (buffer-string)
 		      (shr-overlays-in-region (point-min) (point-max)))
 		shr-content-cache)))
@@ -1302,19 +1312,14 @@ ones, in case fg and bg are nil."
 		  (split-string (buffer-string) "\n")
 		  (shr-collect-overlays)
 		  (car actual-colors))
-	  (list max
-		(shr-natural-width)))))))
+	  max)))))
 
-(defun shr-natural-width ()
+(defun shr-buffer-width ()
   (goto-char (point-min))
-  (let ((current 0)
-	(max 0))
+  (let ((max 0))
     (while (not (eobp))
       (end-of-line)
-      (setq current (+ current (current-column)))
-      (unless (get-text-property (point) 'shr-break)
-	(setq max (max max current)
-	      current 0))
+      (setq max (max max (current-column)))
       (forward-line 1))
     max))
 

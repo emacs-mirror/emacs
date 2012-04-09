@@ -449,10 +449,10 @@ Finally, we add an entry to @code{flymake-err-line-patterns}:
 @cindex Adding support for C (gcc+make)
 
 In this example we will add support for C files syntax checked by
-@code{gcc} called via @code{make}.
+@command{gcc} called via @command{make}.
 
 We're not required to write any new functions, as Flymake already has
-functions for @code{make}. We just add a new entry to the
+functions for @command{make}. We just add a new entry to the
 @code{flymake-allowed-file-name-masks}:
 
 @lisp
@@ -464,7 +464,7 @@ functions for @code{make}. We just add a new entry to the
             flymake-allowed-file-name-masks))
 @end lisp
 
-@code{flymake-simple-make-init} builds the following @code{make}
+@code{flymake-simple-make-init} builds the following @command{make}
 command line:
 
 @lisp
@@ -486,9 +486,17 @@ check-syntax:
 	gcc -o /dev/null -S ${CHK_SOURCES}
 @end verbatim
 
-The format of error messages reported by @code{gcc} is already
+@noindent
+The format of error messages reported by @command{gcc} is already
 supported by Flymake, so we don't have to add a new entry to
-@code{flymake-err-line-patterns}.
+@code{flymake-err-line-patterns}.  Note that if you are using
+Automake, you may want to replace @code{gcc} with the standard
+Automake variable @code{COMPILE}:
+
+@verbatim
+check-syntax:
+	$(COMPILE) -o /dev/null -S ${CHK_SOURCES}
+@end verbatim
 
 @node Flymake Implementation
 @chapter Flymake Implementation
@@ -548,9 +556,9 @@ These modes are handled inside init/cleanup/getfname functions, see
 @ref{Adding support for a new syntax check tool}.
 
 Flymake contains implementations of all functionality required to
-support different syntax check modes described above (making
-temporary copies, finding master files, etc.), as well as some
-tool-specific (routines for @code{make}, @code{Ant}, etc.) code.
+support different syntax check modes described above (making temporary
+copies, finding master files, etc.), as well as some tool-specific
+(routines for Make, Ant, etc.) code.
 
 
 @node Making a temporary copy
@@ -626,8 +634,8 @@ Therefore, a customizable variable
 way to implement the desired behavior.
 
 The default implementation, @code{flymake-get-project-include-dirs-imp},
-uses a @code{make} call. This requires a correct base directory, that is, a
-directory containing a correct @code{Makefile}, to be determined.
+uses a @command{make} call. This requires a correct base directory, that is, a
+directory containing a correct @file{Makefile}, to be determined.
 
 As obtaining the project include directories might be a costly operation, its
 return value is cached in the hash table. The cache is cleared in the beginning
@@ -641,16 +649,16 @@ of every syntax check attempt.
 
 Flymake can be configured to use different tools for performing syntax
 checks. For example, it can use direct compiler call to syntax check a perl
-script or a call to @code{make} for a more complicated case of a
+script or a call to @command{make} for a more complicated case of a
 @code{C/C++} source. The general idea is that simple files, like perl
 scripts and html pages, can be checked by directly invoking a
 corresponding tool. Files that are usually more complex and generally
 used as part of larger projects, might require non-trivial options to
 be passed to the syntax check tool, like include directories for
 C++. The latter files are syntax checked using some build tool, like
-@code{make} or @code{Ant}.
+Make or Ant.
 
-All @code{make} configuration data is usually stored in a file called
+All Make configuration data is usually stored in a file called
 @code{Makefile}. To allow for future extensions, flymake uses a notion of
 buildfile to reference the 'project configuration' file.
 

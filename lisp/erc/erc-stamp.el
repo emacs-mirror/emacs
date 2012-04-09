@@ -47,7 +47,7 @@ in your .emacs file or interactively using `load-library'."
   :group 'erc)
 
 (defcustom erc-timestamp-format "[%H:%M]"
-  "*If set to a string, messages will be timestamped.
+  "If set to a string, messages will be timestamped.
 This string is processed using `format-time-string'.
 Good examples are \"%T\" and \"%H:%M\".
 
@@ -57,7 +57,7 @@ If nil, timestamping is turned off."
 		 (string)))
 
 (defcustom erc-timestamp-format-left "\n[%a %b %e %Y]\n"
-  "*If set to a string, messages will be timestamped.
+  "If set to a string, messages will be timestamped.
 This string is processed using `format-time-string'.
 Good examples are \"%T\" and \"%H:%M\".
 
@@ -71,7 +71,7 @@ If nil, timestamping is turned off."
 		 (string)))
 
 (defcustom erc-timestamp-format-right " [%H:%M]"
-  "*If set to a string, messages will be timestamped.
+  "If set to a string, messages will be timestamped.
 This string is processed using `format-time-string'.
 Good examples are \"%T\" and \"%H:%M\".
 
@@ -85,7 +85,7 @@ If nil, timestamping is turned off."
 		 (string)))
 
 (defcustom erc-insert-timestamp-function 'erc-insert-timestamp-left-and-right
-  "*Function to use to insert timestamps.
+  "Function to use to insert timestamps.
 
 It takes a single argument STRING which is the final string
 which all text-properties already appended.  This function only cares about
@@ -102,7 +102,7 @@ You will probably want to set
 		 function))
 
 (defcustom erc-away-timestamp-format "<%H:%M>"
-  "*Timestamp format used when marked as being away.
+  "Timestamp format used when marked as being away.
 
 If nil, timestamping is turned off when away unless `erc-timestamp-format'
 is set.
@@ -114,7 +114,7 @@ If `erc-timestamp-format' is set, this will not be used."
 
 (defcustom erc-insert-away-timestamp-function
   'erc-insert-timestamp-left-and-right
-  "*Function to use to insert the away timestamp.
+  "Function to use to insert the away timestamp.
 
 See `erc-insert-timestamp-function' for details."
   :group 'erc-stamp
@@ -124,7 +124,7 @@ See `erc-insert-timestamp-function' for details."
 		 function))
 
 (defcustom erc-hide-timestamps nil
-  "*If non-nil, timestamps will be invisible.
+  "If non-nil, timestamps will be invisible.
 
 This is useful for logging, because, although timestamps will be
 hidden, they will still be present in the logs."
@@ -132,7 +132,7 @@ hidden, they will still be present in the logs."
   :type 'boolean)
 
 (defcustom erc-echo-timestamps nil
-  "*If non-nil, print timestamp in the minibuffer when point is moved.
+  "If non-nil, print timestamp in the minibuffer when point is moved.
 Using this variable, you can turn off normal timestamping,
 and simply move point to an irc message to see its timestamp
 printed in the minibuffer."
@@ -140,14 +140,14 @@ printed in the minibuffer."
   :type 'boolean)
 
 (defcustom erc-echo-timestamp-format "Timestamped %A, %H:%M:%S"
-  "*Format string to be used when `erc-echo-timestamps' is non-nil.
+  "Format string to be used when `erc-echo-timestamps' is non-nil.
 This string specifies the format of the timestamp being echoed in
 the minibuffer."
   :group 'erc-stamp
   :type 'string)
 
 (defcustom erc-timestamp-intangible t
-  "*Whether the timestamps should be intangible, i.e. prevent the point
+  "Whether the timestamps should be intangible, i.e. prevent the point
 from entering them and instead jump over them."
   :group 'erc-stamp
   :type 'boolean)
@@ -205,7 +205,7 @@ This is used when `erc-insert-timestamp-function' is set to
 (make-variable-buffer-local 'erc-timestamp-last-inserted-right)
 
 (defcustom erc-timestamp-only-if-changed-flag t
-  "*Insert timestamp only if its value changed since last insertion.
+  "Insert timestamp only if its value changed since last insertion.
 If `erc-insert-timestamp-function' is `erc-insert-timestamp-left', a
 string of spaces which is the same size as the timestamp is added to
 the beginning of the line in its place. If you use
@@ -215,7 +215,7 @@ timestamp."
   :type 'boolean)
 
 (defcustom erc-timestamp-right-column nil
-  "*If non-nil, the column at which the timestamp is inserted,
+  "If non-nil, the column at which the timestamp is inserted,
 if the timestamp is to be printed to the right.  If nil,
 `erc-insert-timestamp-right' will use other means to determine
 the correct column."
@@ -227,7 +227,7 @@ the correct column."
 (defcustom erc-timestamp-use-align-to (and (not (featurep 'xemacs))
 					   (>= emacs-major-version 22)
 					   (eq window-system 'x))
-  "*If non-nil, use the :align-to display property to align the stamp.
+  "If non-nil, use the :align-to display property to align the stamp.
 This gives better results when variable-width characters (like
 Asian language characters and math symbols) precede a timestamp.
 Unfortunately, it only works in Emacs 22 and when using the X

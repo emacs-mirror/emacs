@@ -47,7 +47,7 @@
 ;;; Code:
 
 (defvar resume-emacs-args-file (expand-file-name "~/.emacs_args")
-  "*This file is where arguments are placed for a suspended Emacs job.")
+  "This file is where arguments are placed for a suspended Emacs job.")
 
 (defvar resume-emacs-args-buffer " *Command Line Args*"
   "Buffer that is used by `resume-process-args'.")

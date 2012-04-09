@@ -57,7 +57,7 @@
 ;; This used to default to `other', but that doesn't seem to have any
 ;; significance.  fx 2000-02-11.
 (defcustom executable-insert t		; 'other
-  "*Non-nil means offer to add a magic number to a file.
+  "Non-nil means offer to add a magic number to a file.
 This takes effect when you switch to certain major modes,
 including Shell-script mode (`sh-mode').
 When you type \\[executable-set-magic], it always offers to add or
@@ -70,7 +70,7 @@ update the magic number."
 
 
 (defcustom executable-query 'function
-  "*If non-nil, ask user before changing an existing magic number.
+  "If non-nil, ask user before changing an existing magic number.
 When this is `function', only ask when called non-interactively."
   :type '(choice (const :tag "Don't Ask" nil)
 		 (const :tag "Ask when non-interactive" function)
@@ -79,19 +79,19 @@ When this is `function', only ask when called non-interactively."
 
 
 (defcustom executable-magicless-file-regexp "/[Mm]akefile$\\|/\\.\\(z?profile\\|bash_profile\\|z?login\\|bash_login\\|z?logout\\|bash_logout\\|.+shrc\\|esrc\\|rcrc\\|[kz]shenv\\)$"
-  "*On files with this kind of name no magic is inserted or changed."
+  "On files with this kind of name no magic is inserted or changed."
   :type 'regexp
   :group 'executable)
 
 
 (defcustom executable-prefix "#! "
-  "*Interpreter magic number prefix inserted when there was no magic number."
+  "Interpreter magic number prefix inserted when there was no magic number."
   :type 'string
   :group 'executable)
 
 
 (defcustom executable-chmod 73
-  "*After saving, if the file is not executable, set this mode.
+  "After saving, if the file is not executable, set this mode.
 This mode passed to `set-file-modes' is taken absolutely when negative, or
 relative to the files existing modes.  Do nothing if this is nil.
 Typical values are 73 (+x) or -493 (rwxr-xr-x)."
@@ -103,7 +103,7 @@ Typical values are 73 (+x) or -493 (rwxr-xr-x)."
 (defvar executable-command nil)
 
 (defcustom executable-self-display "tail"
-  "*Command you use with argument `+2' to make text files self-display.
+  "Command you use with argument `+2' to make text files self-display.
 Note that the like of `more' doesn't work too well under Emacs \\[shell]."
   :type 'string
   :group 'executable)
@@ -111,7 +111,7 @@ Note that the like of `more' doesn't work too well under Emacs \\[shell]."
 
 (defvar executable-font-lock-keywords
   '(("\\`#!.*/\\([^ \t\n]+\\)" 1 font-lock-keyword-face t))
-  "*Rules for highlighting executable scripts' magic number.
+  "Rules for highlighting executable scripts' magic number.
 This can be included in `font-lock-keywords' by modes that call `executable'.")
 
 

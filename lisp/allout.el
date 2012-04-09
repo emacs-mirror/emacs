@@ -945,7 +945,7 @@ case the value of `allout-default-layout' is used.")
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
 (defvar allout-regexp ""
-  "*Regular expression to match the beginning of a heading line.
+  "Regular expression to match the beginning of a heading line.
 
 Any line whose beginning matches this regexp is considered a
 heading.  This var is set according to the user configuration vars
@@ -965,7 +965,7 @@ and `allout-distinctive-bullets-string'.")
 (make-variable-buffer-local 'allout-bullets-string-len)
 ;;;_   = allout-depth-specific-regexp
 (defvar allout-depth-specific-regexp ""
-  "*Regular expression to match a heading line prefix for a particular depth.
+  "Regular expression to match a heading line prefix for a particular depth.
 
 This expression is used to search for depth-specific topic
 headers at depth 2 and greater.  Use `allout-depth-one-regexp'
@@ -978,7 +978,7 @@ topic prefix to be matched.")
 (make-variable-buffer-local 'allout-depth-specific-regexp)
 ;;;_   = allout-depth-one-regexp
 (defvar allout-depth-one-regexp ""
-  "*Regular expression to match a heading line prefix for depth one.
+  "Regular expression to match a heading line prefix for depth one.
 
 This var is set according to the user configuration vars by
 `set-allout-regexp'.  It is prepared with format strings for two
@@ -1403,10 +1403,10 @@ their settings before allout-mode was started."
      ,expr))
 ;;;_   = allout-mode-hook
 (defvar allout-mode-hook nil
-  "*Hook that's run when allout mode starts.")
+  "Hook that's run when allout mode starts.")
 ;;;_   = allout-mode-deactivate-hook
 (defvar allout-mode-deactivate-hook nil
-  "*Hook that's run when allout mode ends.")
+  "Hook that's run when allout mode ends.")
 (define-obsolete-variable-alias 'allout-mode-deactivate-hook
   'allout-mode-off-hook "24.1")
 ;;;_   = allout-exposure-category
@@ -1414,7 +1414,7 @@ their settings before allout-mode was started."
   "Symbol for use as allout invisible-text overlay category.")
 ;;;_   = allout-exposure-change-hook
 (defvar allout-exposure-change-hook nil
-  "*Hook that's run after allout outline subtree exposure changes.
+  "Hook that's run after allout outline subtree exposure changes.
 
 It is run at the conclusion of `allout-flag-region'.
 
@@ -1427,7 +1427,7 @@ Functions on the hook must take three arguments:
 This hook might be invoked multiple times by a single command.")
 ;;;_   = allout-structure-added-hook
 (defvar allout-structure-added-hook nil
-  "*Hook that's run after addition of items to the outline.
+  "Hook that's run after addition of items to the outline.
 
 Functions on the hook should take two arguments:
 
@@ -1437,7 +1437,7 @@ Functions on the hook should take two arguments:
 This hook might be invoked multiple times by a single command.")
 ;;;_   = allout-structure-deleted-hook
 (defvar allout-structure-deleted-hook nil
-  "*Hook that's run after disciplined deletion of subtrees from the outline.
+  "Hook that's run after disciplined deletion of subtrees from the outline.
 
 Functions on the hook must take two arguments:
 
@@ -1450,7 +1450,7 @@ specifically edits that native allout routines do not control.
 This hook might be invoked multiple times by a single command.")
 ;;;_   = allout-structure-shifted-hook
 (defvar allout-structure-shifted-hook nil
-  "*Hook that's run after shifting of items in the outline.
+  "Hook that's run after shifting of items in the outline.
 
 Functions on the hook should take two arguments:
 
@@ -1463,12 +1463,12 @@ that native allout routines do not control.
 This hook might be invoked multiple times by a single command.")
 ;;;_   = allout-after-copy-or-kill-hook
 (defvar allout-after-copy-or-kill-hook nil
-  "*Hook that's run after copying outline text.
+  "Hook that's run after copying outline text.
 
 Functions on the hook should not require any arguments.")
 ;;;_   = allout-post-undo-hook
 (defvar allout-post-undo-hook nil
-  "*Hook that's run after undo activity.
+  "Hook that's run after undo activity.
 
 The item that's current when the hook is run *may* be the one
 that was affected by the undo.

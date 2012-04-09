@@ -521,7 +521,7 @@ package, which provides more flexible citation
 @subsection Mail Miscellany
 
 @kindex C-c C-a @r{(Message mode)}
-@findex mail-attach-file
+@findex mml-attach-file
 @cindex MIME
 @cindex Multipurpose Internet Mail Extensions
   You can @dfn{attach} a file to an outgoing message by typing

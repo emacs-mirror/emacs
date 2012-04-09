@@ -75,6 +75,10 @@ This function overrides `get-local-variables'."
 ;;
 ;; This sets up the javascript parser
 
+;; Since javascript-mode is an alias for js-mode, let it inherit all
+;; the overrides.
+(define-child-mode js-mode javascript-mode)
+
 ;; In semantic-imenu.el, not part of Emacs.
 (defvar semantic-imenu-summary-function)
 

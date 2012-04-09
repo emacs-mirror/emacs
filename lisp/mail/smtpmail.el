@@ -324,7 +324,10 @@ The list is in preference order.")
 	    (if (re-search-forward "^FCC:" delimline t)
 		;; Force `mail-do-fcc' to use the encoding of the mail
 		;; buffer to encode outgoing messages on FCC files.
-		(let ((coding-system-for-write smtpmail-code-conv-from))
+		(let ((coding-system-for-write
+		       ;; mbox files must have Unix EOLs.
+		       (coding-system-change-eol-conversion
+			smtpmail-code-conv-from 'unix)))
 		  (mail-do-fcc delimline)))
 	    (if mail-interactive
 		(with-current-buffer errbuf

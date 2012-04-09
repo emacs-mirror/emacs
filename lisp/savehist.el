@@ -369,9 +369,11 @@ trimming of history lists to `history-length' items."
   "Return non-nil if VALUE is printable."
   (cond
    ;; Quick response for oft-encountered types known to be printable.
-   ((stringp value))
    ((numberp value))
    ((symbolp value))
+   ;; String without properties
+   ((and (stringp value)
+	 (equal-including-properties value (substring-no-properties value))))
    (t
     ;; For others, check explicitly.
     (with-temp-buffer

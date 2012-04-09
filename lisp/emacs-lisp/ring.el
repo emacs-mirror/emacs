@@ -185,26 +185,31 @@ Raise error if ITEM is not in the RING."
     (unless curr-index (error "Item is not in the ring: `%s'" item))
     (ring-ref ring (ring-minus1 curr-index (ring-length ring)))))
 
+(defun ring-extend (ring x)
+  "Increase the size of RING by X."
+  (when (and (integerp x) (> x 0))
+    (let* ((hd       (car ring))
+	   (length   (ring-length ring))
+	   (size     (ring-size ring))
+	   (old-vec  (cddr ring))
+	   (new-vec  (make-vector (+ size x) nil)))
+      (setcdr ring (cons length new-vec))
+      ;; If the ring is wrapped, the existing elements must be written
+      ;; out in the right order.
+      (dotimes (j length)
+	(aset new-vec j (aref old-vec (mod (+ hd j) size))))
+      (setcar ring 0))))
+
 (defun ring-insert+extend (ring item &optional grow-p)
   "Like `ring-insert', but if GROW-P is non-nil, then enlarge ring.
 Insert onto ring RING the item ITEM, as the newest (last) item.
 If the ring is full, behavior depends on GROW-P:
   If GROW-P is non-nil, enlarge the ring to accommodate the new item.
   If GROW-P is nil, dump the oldest item to make room for the new."
-  (let* ((vec (cddr ring))
-	 (veclen (length vec))
-	 (hd (car ring))
-	 (ringlen (ring-length ring)))
-    (prog1
-        (cond ((and grow-p (= ringlen veclen)) ; Full ring.  Enlarge it.
-               (setq veclen (1+ veclen))
-               (setcdr ring (cons (setq ringlen (1+ ringlen))
-                                  (setq vec (vconcat vec (vector item)))))
-               (setcar ring hd))
-              (t (aset vec (mod (+ hd ringlen) veclen) item)))
-      (if (= ringlen veclen)
-          (setcar ring (ring-plus1 hd veclen))
-        (setcar (cdr ring) (1+ ringlen))))))
+  (and grow-p
+       (= (ring-length ring) (ring-size ring))
+       (ring-extend ring 1))
+  (ring-insert ring item))
 
 (defun ring-remove+insert+extend (ring item &optional grow-p)
   "`ring-remove' ITEM from RING, then `ring-insert+extend' it.

@@ -33,7 +33,7 @@
 ;;;;	    START OF THINGS TO CHECK WHEN INSTALLING
 
 (defvar cvs-program "cvs"
-  "*Name or full path of the cvs executable.")
+  "Name or full path of the cvs executable.")
 
 (defvar cvs-version
   ;; With the divergence of the CVSNT codebase and version numbers, this is
@@ -46,12 +46,12 @@
                                nil t)
 	(cons (string-to-number (match-string 1))
 	      (string-to-number (match-string 2))))))
-  "*Version of `cvs' installed on your system.
+  "Version of `cvs' installed on your system.
 It must be in the (MAJOR . MINOR) format.")
 
 ;; FIXME: this is only used by cvs-mode-diff-backup
 (defvar cvs-diff-program (or (and (boundp 'diff-command) diff-command) "diff")
-  "*Name or full path of the best diff program you've got.
+  "Name or full path of the best diff program you've got.
 NOTE:  there are some nasty bugs in the context diff variants of some vendor
 versions, such as the one in SunOS-4.")
 
@@ -89,7 +89,7 @@ will select a shared-flag.")
   "List of flags whose settings is shared among several commands.")
 
 (defvar cvs-cvsroot nil
-  "*Specifies where the (current) cvs master repository is.
+  "Specifies where the (current) cvs master repository is.
 Overrides the environment variable $CVSROOT by sending \" -d dir\" to
 all CVS commands. This switch is useful if you have multiple CVS
 repositories. It can be set interactively with \\[cvs-change-cvsroot.]
@@ -243,7 +243,7 @@ the directory name of the cvs buffer.")
   ;; Was '(expand-file-name " *cvs-tmp*" dir), but that causes them to
   ;; become non-hidden if uniquification is done `forward'.
   " *cvs-tmp*"
-  "*Name of the cvs temporary buffer.
+  "Name of the cvs temporary buffer.
 Output from cvs is placed here for asynchronous commands.")
 
 (defcustom cvs-idiff-imerge-handlers

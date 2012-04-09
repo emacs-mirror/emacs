@@ -125,17 +125,17 @@
 )
 
 (defcustom mspools-update nil
-  "*Non-nil means update *spools* buffer after visiting any folder."
+  "Non-nil means update *spools* buffer after visiting any folder."
   :type 'boolean
   :group 'mspools)
 
 (defcustom mspools-suffix "spool"
-  "*Extension used for spool files (not including full stop)."
+  "Extension used for spool files (not including full stop)."
   :type 'string
   :group 'mspools)
 
 (defcustom mspools-using-vm  (fboundp 'vm)
-  "*Non-nil if VM is used as mail reader, otherwise RMAIL is used."
+  "Non-nil if VM is used as mail reader, otherwise RMAIL is used."
   :type 'boolean
   :group 'mspools)
 
@@ -143,7 +143,7 @@
   (if (boundp 'vm-folder-directory)
       vm-folder-directory
     "~/MAIL/")
-  "*Directory where mail folders are kept.  Ensure it has a trailing /.
+  "Directory where mail folders are kept.  Ensure it has a trailing /.
 Defaults to `vm-folder-directory' if bound else to ~/MAIL/."
   :type 'directory
   :group 'mspools)
@@ -151,7 +151,7 @@ Defaults to `vm-folder-directory' if bound else to ~/MAIL/."
 (defcustom mspools-vm-system-mail (or (getenv "MAIL")
 				      (concat rmail-spool-directory
 					      (user-login-name)))
-  "*Spool file for main mailbox.  Only used by VM.
+  "Spool file for main mailbox.  Only used by VM.
 This needs to be set to your primary mail spool - mspools will not run
 without it.  By default this will be set to the environment variable
 $MAIL.  Otherwise it will use `rmail-spool-directory' to guess where

@@ -1046,7 +1046,7 @@ and source-file directory for your debugger."
 (defvar gud-dbx-history nil)
 
 (defcustom gud-dbx-directories nil
-  "*A list of directories that dbx should search for source code.
+  "A list of directories that dbx should search for source code.
 If nil, only source files in the program directory
 will be known to dbx.
 
@@ -1358,7 +1358,7 @@ and source-file directory for your debugger."
 (defvar gud-xdb-history nil)
 
 (defcustom gud-xdb-directories nil
-  "*A list of directories that xdb should search for source code.
+  "A list of directories that xdb should search for source code.
 If nil, only source files in the program directory
 will be known to xdb.
 
@@ -1811,7 +1811,7 @@ source file information.")
 
 ;; List of Java source file directories.
 (defvar gud-jdb-directories (list ".")
-  "*A list of directories that gud jdb should search for source code.
+  "A list of directories that gud jdb should search for source code.
 The file names should be absolute, or relative to the current
 directory.
 

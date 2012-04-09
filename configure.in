@@ -4,7 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2012  Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2012 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -22,7 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
-AC_INIT(emacs, 24.0.94)
+AC_INIT(emacs, 24.1.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
@@ -758,12 +758,12 @@ dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
 
 
-## Need makeinfo >= 4.6 (?) to build the manuals.
+## Need makeinfo >= 4.7 (?) to build the manuals.
 AC_PATH_PROG(MAKEINFO, makeinfo, no)
 dnl By this stage, configure has already checked for egrep and set EGREP,
 dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[6-9]]|4\.[[1-5]][[0-9]]+)'`" = x; then
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'`" = x; then
    MAKEINFO=no
 fi
 
@@ -783,7 +783,7 @@ if test "$MAKEINFO" = "no"; then
   if test "x${with_makeinfo}" = "xno"; then
     HAVE_MAKEINFO=no
   elif test ! -e $srcdir/info/emacs; then
-    AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6, and your
+    AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.7, and your
 source tree does not seem to have pre-built manuals in the `info' directory.
 Either install a suitable version of makeinfo, or re-run configure
 with the `--without-makeinfo' option to build without the manuals.] )
@@ -1124,17 +1124,14 @@ AC_DEFUN([PKG_CHECK_MODULES], [
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         AC_MSG_CHECKING(for $2)
 
-        if $PKG_CONFIG --exists "$2" 2>&AS_MESSAGE_LOG_FD; then
-            AC_MSG_RESULT(yes)
+        if $PKG_CONFIG --exists "$2" 2>&AS_MESSAGE_LOG_FD &&
+	   $1_CFLAGS=`$PKG_CONFIG --cflags "$2" 2>&AS_MESSAGE_LOG_FD` &&
+	   $1_LIBS=`$PKG_CONFIG --libs "$2" 2>&AS_MESSAGE_LOG_FD`; then
+
+	    $1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e 's,///*,/,g'`
+	    $1_LIBS=`AS_ECHO(["$$1_LIBS"]) | sed -e 's,///*,/,g'`
+            AC_MSG_RESULT([yes CFLAGS='$$1_CFLAGS' LIBS='$$1_LIBS'])
             succeeded=yes
-
-            AC_MSG_CHECKING($1_CFLAGS)
-            $1_CFLAGS=`$PKG_CONFIG --cflags "$2"|sed -e 's,///*,/,g'`
-            AC_MSG_RESULT($$1_CFLAGS)
-
-            AC_MSG_CHECKING($1_LIBS)
-            $1_LIBS=`$PKG_CONFIG --libs "$2"|sed -e 's,///*,/,g'`
-            AC_MSG_RESULT($$1_LIBS)
         else
             AC_MSG_RESULT(no)
             $1_CFLAGS=""
@@ -2784,11 +2781,43 @@ AC_CHECK_FUNCS(getpt)
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
-have_tputs_et_al=true
+AC_MSG_CHECKING([for library containing tputs])
+# Run a test program that contains a call to tputs, a call that is
+# never executed.  This tests whether a pre-'main' dynamic linker
+# works with the library.  It's too much trouble to actually call
+# tputs in the test program, due to portability hassles.  When
+# cross-compiling, assume the test program will run if it links.
+AC_DEFUN([tputs_link_source], [
+  AC_LANG_SOURCE(
+     [[extern void tputs (const char *, int, int (*)(int));
+       int main (int argc, char **argv)
+       {
+	  if (argc == 10000)
+	    tputs (argv[0], 0, 0);
+	  return 0;
+       }]])
+])
 # Maybe curses should be tried earlier?
 # See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
-AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap curses], , have_tputs_et_al=false)
-if test "$have_tputs_et_al" != true; then
+for tputs_library in '' ncurses terminfo termcap curses; do
+  OLIBS=$LIBS
+  if test -z "$tputs_library"; then
+    LIBS_TERMCAP=
+    msg='none required'
+  else
+    LIBS_TERMCAP=-l$tputs_library
+    msg=$LIBS_TERMCAP
+    LIBS="$LIBS_TERMCAP $LIBS"
+  fi
+  AC_RUN_IFELSE([tputs_link_source], [], [msg=no],
+    [AC_LINK_IFELSE([tputs_link_source], [], [msg=no])])
+  LIBS=$OLIBS
+  if test "X$msg" != Xno; then
+    break
+  fi
+done
+AC_MSG_RESULT([$msg])
+if test "X$msg" = Xno; then
   AC_MSG_ERROR([The required function `tputs' was not found in any library.
 These libraries were tried: libncurses, libterminfo, libtermcap, libcurses.
 Please try installing whichever of these libraries is most appropriate
@@ -2807,7 +2836,6 @@ HAVE_LIBNCURSES=yes
 ## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
-LIBS_TERMCAP=
 case "$opsys" in
   ## cygwin: Fewer environment variables to go wrong, more terminal types.
   ## hpux10-20: Use the system provided termcap(3) library.
@@ -2872,10 +2900,6 @@ esac
 TERMCAP_OBJ=tparam.o
 if test $TERMINFO = yes; then
   AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
-
-  ## Default used to be -ltermcap.  Add a case above if need something else.
-  test "x$LIBS_TERMCAP" = "x" && LIBS_TERMCAP="-lcurses"
-
   TERMCAP_OBJ=terminfo.o
 fi
 AC_SUBST(LIBS_TERMCAP)

@@ -2694,7 +2694,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	 (limits '(5			; Use the 1-byte varref codes,
 		   63  ; 1-constlim	;  1-byte byte-constant codes,
 		   255			;  2-byte varref codes,
-		   65535))		;  3-byte codes for the rest.
+		   65535		;  3-byte codes for the rest.
+                   65535))              ;  twice since we step when we swap.
 	 limit)
     (while (or rest other)
       (setq limit (car limits))
@@ -2708,8 +2709,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	  (setcdr (car rest) (setq i (1+ i)))
 	  (setq ret (cons (car rest) ret))))
 	(setq rest (cdr rest)))
-      (setq limits (cdr limits)
-	    rest (prog1 other
+      (setq limits (cdr limits)         ;Step
+	    rest (prog1 other           ;&Swap.
 		   (setq other rest))))
     (apply 'vector (nreverse (mapcar 'car ret)))))
 

@@ -235,6 +235,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_UTIMES
 #undef HAVE_SETRLIMIT
 #undef HAVE_SETPGID
+/* If you think about defining HAVE_GETCWD, don't: the alternative
+   getwd is redefined on w32.c, and does not really return the current
+   directory, to get the desired results elsewhere in Emacs */
 #undef HAVE_GETCWD
 #undef HAVE_SHUTDOWN
 #undef HAVE_STRFTIME
@@ -328,7 +331,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PACKAGE "emacs"
 
 /* Version number of package */
-#define VERSION "24.0.94"
+#define VERSION "24.1.50"
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */

@@ -93,7 +93,14 @@ This function is called by `org-babel-execute-src-block'."
 	      (member "code" result-params)
 	      (equal (point-min) (point-max)))
 	  (buffer-string)
-	(org-table-convert-region (point-min) (point-max))
+	(org-table-convert-region (point-min) (point-max)
+				  (if (or (member :csv others)
+					  (member :column others)
+					  (member :line others)
+					  (member :list others)
+					  (member :html others) separator)
+				      nil
+				    '(4)))
 	(org-babel-sqlite-table-or-scalar
 	 (org-babel-sqlite-offset-colnames
 	  (org-table-to-lisp) headers-p))))))

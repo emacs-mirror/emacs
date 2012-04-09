@@ -115,13 +115,13 @@ longer than `erc-fill-column'."
   :type 'boolean)
 
 (defcustom erc-button-rfc-url "http://www.faqs.org/rfcs/rfc%s.html"
-  "*URL used to browse rfc references.
+  "URL used to browse rfc references.
 %s is replaced by the number."
   :group 'erc-button
   :type 'string)
 
 (defcustom erc-button-google-url "http://www.google.com/search?q=%s"
-  "*URL used to browse Google search references.
+  "URL used to browse Google search references.
 %s is replaced by the search string."
   :group 'erc-button
   :type 'string)
@@ -155,7 +155,7 @@ longer than `erc-fill-column'."
      1)
     ;; other
     ("\\s-\\(@\\([0-9][0-9][0-9]\\)\\)" 1 t erc-button-beats-to-time 2))
-  "*Alist of regexps matching buttons in ERC buffers.
+  "Alist of regexps matching buttons in ERC buffers.
 Each entry has the form (REGEXP BUTTON FORM CALLBACK PAR...), where
 
 REGEXP is the string matching text around the button or a symbol
@@ -198,12 +198,12 @@ PAR is a number of a regexp grouping whose text will be passed to
                         (integer :tag "Regexp section number")))))
 
 (defcustom erc-emacswiki-url "http://www.emacswiki.org/cgi-bin/wiki.pl?"
-  "*URL of the EmacsWiki Homepage."
+  "URL of the EmacsWiki Homepage."
   :group 'erc-button
   :type 'string)
 
 (defcustom erc-emacswiki-lisp-url "http://www.emacswiki.org/elisp/"
-  "*URL of the EmacsWiki ELisp area."
+  "URL of the EmacsWiki ELisp area."
   :group 'erc-button
   :type 'string)
 
@@ -488,7 +488,7 @@ For use on `completion-at-point-functions'."
     ("Query" . (erc-cmd-QUERY nick))
     ("Whois" . (erc-cmd-WHOIS nick))
     ("Lastlog" . (erc-cmd-LASTLOG nick)))
-  "*An alist of possible actions to take on a nickname.
+  "An alist of possible actions to take on a nickname.
 An entry looks like (\"Action\" . SEXP) where SEXP is evaluated with
 the variable `nick' bound to the nick in question.
 

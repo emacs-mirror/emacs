@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/modes
 @node Modes, Documentation, Keymaps, Top
@@ -38,7 +38,7 @@ user.  For related topics such as keymaps and syntax tables, see
 to be called on a particular occasion by an existing program.  Emacs
 provides hooks for the sake of customization.  Most often, hooks are set
 up in the init file (@pxref{Init File}), but Lisp programs can set them also.
-@xref{Standard Hooks}, for a list of standard hook variables.
+@xref{Standard Hooks}, for a list of some standard hook variables.
 
 @cindex normal hook
   Most of the hooks in Emacs are @dfn{normal hooks}.  These variables
@@ -524,6 +524,10 @@ value of @code{major-mode} is @code{nil}.  By default, the value of
 mode when creating new buffers (@pxref{Auto Major Mode}), but with such
 @code{special} modes, Fundamental mode is used instead.  Modes such as
 Dired, Rmail, and Buffer List use this feature.
+
+The function @code{view-buffer} does not enable View mode in buffers
+whose mode-class is special, because such modes usually provide their
+own View-like bindings.
 
 The @code{define-derived-mode} macro automatically marks the derived
 mode as special if the parent mode is special.  Special mode is a
@@ -4030,8 +4034,3 @@ Here @var{desktop-buffer-misc} is the value returned by the function
 optionally bound to @code{desktop-save-buffer}.
 @end defvar
 
-@ignore
-   Local Variables:
-   fill-column: 72
-   End:
-@end ignore

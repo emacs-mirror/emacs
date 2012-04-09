@@ -14934,7 +14934,7 @@
 	* woman.el (woman-make-bufname): Handle man-pages with "." in the
 	name.  (Bug#5038)
 
-2009-12-02  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+2009-12-02  Andreas Politz  <politza@fh-trier.de>
 
 	* ido.el (ido-file-internal): Handle filenames at point that do
 	not have a directory part.  (Bug#5049)
@@ -19488,7 +19488,7 @@
 	(elint-log-message): Add optional argument.  Use elint-output.
 	(elint-set-mode-line): New function.
 
-2009-09-12  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+2009-09-12  Andreas Politz  <politza@fh-trier.de>
 
 	* emacs-lisp/elp.el (elp-not-profilable): Add more
 	functions (Bug#4233).

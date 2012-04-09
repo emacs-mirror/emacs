@@ -7099,7 +7099,8 @@ x_dispatch_event (XEvent *event, Display *display)
 
 
 /* Read events coming from the X server.
-   This routine is called by the SIGIO handler.
+   This routine is called by the SIGIO handler only if SYNC_INPUT is
+   not defined.
    We return as soon as there are no more events to be read.
 
    We return the number of characters stored into the buffer,
@@ -7133,7 +7134,9 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
+#ifndef SYNC_INPUT
   ++handling_signal;
+#endif
 
   /* For debugging, this gives a way to fake an I/O error.  */
   if (terminal->display_info.x == XTread_socket_fake_io_error)
@@ -7223,7 +7226,9 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
       pending_autoraise_frame = 0;
     }
 
+#ifndef SYNC_INPUT
   --handling_signal;
+#endif
   UNBLOCK_INPUT;
 
   return count;
@@ -10825,7 +10830,7 @@ syms_of_xterm (void)
 
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       x_use_underline_position_properties,
-     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+     doc: /* Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.  You can also use `underline-minimum-offset'
@@ -10835,7 +10840,7 @@ sizes.  */);
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       x_underline_at_descent_line,
-     doc: /* *Non-nil means to draw the underline at the same place as the descent line.
+     doc: /* Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);

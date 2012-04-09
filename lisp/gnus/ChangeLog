@@ -1,3 +1,47 @@
+2012-03-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-netrc-create): Quote tokens that contain
+	"#" to avoid having them interpreted as comments.
+
+2012-03-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-insert): Update the text state properly to avoid
+	inserting spurious paragraph starts.
+
+2012-03-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-marks): Don't propagate marks unless
+	requested (bug#10961).
+
+	* shr.el (shr-table-widths): Divide the extra width more fairly over
+	the TDs (bug#10973).
+	(shr-render-td): Don't delete too much padding.
+	(shr-natural-width): Compute the natural width more correctly.
+	(shr-insert): Allow the natural width to be computed for tables again.
+	(shr-tag-table-1): Rework how the natural widths are computed by
+	rendering the table a third time.
+	(shr-natural-width): Removed.
+	(shr-buffer-width): New function.
+	(shr-expand-newlines): Use it.
+
+	* gnus-msg.el (gnus-bug): Don't delete the other windows.  We may be
+	using a `gnus-use-full-window' setup (bug#11013).
+
+2012-03-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-backend-trace): Flip default to nil before Emacs
+	24.1 release.
+
+2012-03-10  David Edmondson  <dme@dme.org>
+
+	* mm-uu.el (mm-uu-forward-extract): Allow for blank lines between the
+	'Forwarded Message' header and the start of the message.
+
+2012-03-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* gnus-msg.el (gnus-msg-mail): Call `message-mail' correctly when Gnus
+	isn't running (bug#10897).
+
 2012-02-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-column-specs): Protect against TDs with "width: 0%".

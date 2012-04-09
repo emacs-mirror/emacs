@@ -631,8 +631,8 @@ for reading certain kinds of names with completion.
                              (reading buffer name, file name, etc.).
 * Reading File Names::     Using completion to read file names and
                              shell commands.
-* Completion Styles::      Specifying rules for performing completion.
-* Programmed Completion::  Writing your own completion-function.
+* Completion Variables::   Variables controlling completion behavior.
+* Programmed Completion::  Writing your own completion function.
 * Completion in Buffers::  Completing text in ordinary buffers.
 @end menu
 
@@ -795,7 +795,7 @@ example for @code{try-completion}:
 @defun test-completion string collection &optional predicate
 @anchor{Definition of test-completion}
 This function returns non-@code{nil} if @var{string} is a valid
-completion possibility specified by @var{collection} and
+completion alternative specified by @var{collection} and
 @var{predicate}.  The arguments are the same as in
 @code{try-completion}.  For instance, if @var{collection} is a list of
 strings, this is true if @var{string} appears in the list and
@@ -984,6 +984,14 @@ The @code{completing-read} function binds variables to pass
 information to the commands that actually do completion.
 They are described in the following section.
 @end defun
+
+@defvar completing-read-function
+The value of this variable must be a function, which is called by
+@code{completing-read} to actually do its work.  It should accept the
+same arguments as @code{completing-read}.  This can be bound to a
+different function to completely override the normal behavior of
+@code{completing-read}.
+@end defvar
 
 @node Completion Commands
 @subsection Minibuffer Commands that Do Completion
@@ -1305,17 +1313,17 @@ If the user then types @kbd{fill-p @key{RET}}, @code{read-variable}
 returns @code{fill-prefix}.
 
 In general, @code{read-variable} is similar to @code{read-command},
-but uses the predicate @code{user-variable-p} instead of
+but uses the predicate @code{custom-variable-p} instead of
 @code{commandp}:
 
-@cindex @code{user-variable-p} example
+@cindex @code{custom-variable-p} example
 @example
 @group
 (read-variable @var{prompt})
 @equiv{}
 (intern
  (completing-read @var{prompt} obarray
-                  'user-variable-p t nil))
+                  'custom-variable-p t nil))
 @end group
 @end example
 @end defun
@@ -1377,11 +1385,7 @@ name.  You must call @code{expand-file-name} yourself if an absolute
 file name is required.
 
 The optional argument @var{require-match} has the same meaning as in
-@code{completing-read}.  @xref{Minibuffer Completion}.  If
-@var{require-match} is @code{nil}, the local keymap in the minibuffer
-is @code{minibuffer-local-filename-completion-map}; otherwise, it is
-@code{minibuffer-local-filename-must-match-map}.  @xref{Completion
-Commands}.
+@code{completing-read}.  @xref{Minibuffer Completion}.
 
 The argument @var{directory} specifies the directory to use for
 completing relative file names.  It should be an absolute directory
@@ -1429,7 +1433,7 @@ current buffer visit no file using @code{M-x set-visited-file-name}.
 
 If @var{predicate} is non-@code{nil}, it specifies a function of one
 argument that decides which file names are acceptable completion
-possibilities.  A file name is an acceptable value if @var{predicate}
+alternatives.  A file name is an acceptable value if @var{predicate}
 returns non-@code{nil} for it.
 
 Here is an example of using @code{read-file-name}:
@@ -1480,7 +1484,7 @@ when performing completion.
 
 @defun read-directory-name prompt &optional directory default require-match initial
 This function is like @code{read-file-name} but allows only directory
-names as completion possibilities.
+names as completion alternatives.
 
 If @var{default} is @code{nil} and @var{initial} is non-@code{nil},
 @code{read-directory-name} constructs a substitute default by
@@ -1563,57 +1567,109 @@ This keymap is used by @code{read-shell-command} for completing
 command and file names that are part of a shell command.
 @end defvar
 
-@node Completion Styles
-@subsection Completion Styles
+@node Completion Variables
+@subsection Completion Variables
+
+  Here are some variables which can be used to alter the default
+completion behavior.
+
 @cindex completion styles
-
-  A @dfn{completion style} is a set of rules for generating
-completions.  The user option @code{completion-styles} stores a list
-of completion styles, which are represented by symbols.
-
 @defopt completion-styles
-This is a list of completion style symbols to use for performing
-completion.  Each completion style in this list must be defined in
-@code{completion-styles-alist}.
+The value of this variable is a list of completion style (symbols) to
+use for performing completion.  A @dfn{completion style} is a set of
+rules for generating completions.  Each symbol in occurring this list
+must have a corresponding entry in @code{completion-styles-alist}.
 @end defopt
 
 @defvar completion-styles-alist
 This variable stores a list of available completion styles.  Each
-element in the list must have the form @samp{(@var{name}
-@var{try-completion} @var{all-completions})}.  Here, @var{name} is the
-name of the completion style (a symbol), which may be used in
-@code{completion-styles-alist} to refer to this style.
+element in the list has the form
 
-@var{try-completion} is the function that does the completion, and
-@var{all-completions} is the function that lists the completions.
-These functions should accept four arguments: @var{string},
-@var{collection}, @var{predicate}, and @var{point}.  The @var{string},
-@var{collection}, and @var{predicate} arguments have the same meanings
-as in @code{try-completion} (@pxref{Basic Completion}), and the
-@var{point} argument is the position of point within @var{string}.
-Each function should return a non-@code{nil} value if it performed its
-job, and @code{nil} if it did not (e.g., if there is no way to
-complete @var{string} according to the completion style).
+@example
+(@var{style} @var{try-completion} @var{all-completions} @var{doc})
+@end example
 
-When the user calls a completion command, such as
+@noindent
+Here, @var{style} is the name of the completion style (a symbol),
+which may be used in the @code{completion-styles} variable to refer to
+this style; @var{try-completion} is the function that does the
+completion; @var{all-completions} is the function that lists the
+completions; and @var{doc} is a string describing the completion
+style.
+
+The @var{try-completion} and @var{all-completions} functions should
+each accept four arguments: @var{string}, @var{collection},
+@var{predicate}, and @var{point}.  The @var{string}, @var{collection},
+and @var{predicate} arguments have the same meanings as in
+@code{try-completion} (@pxref{Basic Completion}), and the @var{point}
+argument is the position of point within @var{string}.  Each function
+should return a non-@code{nil} value if it performed its job, and
+@code{nil} if it did not (e.g.@: if there is no way to complete
+@var{string} according to the completion style).
+
+When the user calls a completion command like
 @code{minibuffer-complete} (@pxref{Completion Commands}), Emacs looks
 for the first style listed in @code{completion-styles} and calls its
 @var{try-completion} function.  If this function returns @code{nil},
-Emacs moves to the next completion style listed in
-@code{completion-styles} and calls its @var{try-completion} function,
-and so on until one of the @var{try-completion} functions successfully
-performs completion and returns a non-@code{nil} value.  A similar
-procedure is used for listing completions, via the
-@var{all-completions} functions.
+Emacs moves to the next listed completion style and calls its
+@var{try-completion} function, and so on until one of the
+@var{try-completion} functions successfully performs completion and
+returns a non-@code{nil} value.  A similar procedure is used for
+listing completions, via the @var{all-completions} functions.
+
+@xref{Completion Styles,,, emacs, The GNU Emacs Manual}, for a
+description of the available completion styles.
 @end defvar
 
-  By default, @code{completion-styles-alist} contains five pre-defined
-completion styles: @code{basic}, a basic completion style;
-@code{partial-completion}, which does partial completion (completing
-each word in the input separately); @code{emacs22}, which performs
-completion according to the rules used in Emacs 22; @code{emacs21},
-which performs completion according to the rules used in Emacs 21; and
-@code{initials}, which completes acronyms and initialisms.
+@defopt completion-category-overrides
+This variable specifies special completion styles and other completion
+behaviors to use when completing certain types of text.  Its value
+should be a list of the form @code{(@var{category} . @var{alist})}.
+@var{category} is a symbol describing what is being completed;
+currently, the @code{buffer} and @code{file} categories are defined,
+but others can be defined via specialized completion functions
+(@pxref{Programmed Completion}).  @var{alist} is an association list
+describing how completion should behave for the corresponding
+category.  The following alist keys are supported:
+
+@table @code
+@item styles
+The value should be a list of completion styles (symbols).
+
+@item cycle
+The value should be a value for @code{completion-cycle-threshold}
+(@pxref{Completion Options,,, emacs, The GNU Emacs Manual}) for this
+category.
+@end table
+
+@noindent
+Additional alist entries may be defined in the future.
+@end defopt
+
+@defvar completion-extra-properties
+This variable is used to specify extra properties of the current
+completion command.  It is intended to be let-bound by specialized
+completion commands.  Its value should be a list of property and value
+pairs.  The following properties are supported:
+
+@table @code
+@item :annotation-function
+The value should be a function to add annotations in the completions
+buffer.  This function must accept one argument, a completion, and
+should either return @code{nil} or a string to be displayed next to
+the completion.
+
+@item :exit-function
+The value should be a function to run after performing completion.
+The function should accept two arguments, @var{string} and
+@var{status}, where @var{string} is the text to which the field was
+completed and @var{status} indicates what kind of operation happened:
+@code{finished} if text is now complete, @code{sole} if the text
+cannot be further completed but completion is not finished, or
+@code{exact} if the text is a valid completion but may be further
+completed.
+@end table
+@end defvar
 
 @node Programmed Completion
 @subsection Programmed Completion
@@ -1640,48 +1696,81 @@ the work.
 The string to be completed.
 
 @item
-The predicate function to filter possible matches, or @code{nil} if
-none.  Your function should call the predicate for each possible match,
-and ignore the possible match if the predicate returns @code{nil}.
+A predicate function with which to filter possible matches, or
+@code{nil} if none.  The function should call the predicate for each
+possible match, and ignore the match if the predicate returns
+@code{nil}.
 
 @item
-A flag specifying the type of operation.  The best way to think about
-it is that the function stands for an object (in the
-``object-oriented'' sense of the word), and this third argument
-specifies which method to run.
-@end itemize
+A flag specifying the type of completion operation to perform.  This
+is one of the following four values:
 
-  There are currently four methods, i.e. four flag values, one for
-each of the four different basic operations:
+@table @code
+@item nil
+This specifies a @code{try-completion} operation.  The function should
+return @code{t} if the specified string is a unique and exact match;
+if there is more than one match, it should return the common substring
+of all matches (if the string is an exact match for one completion
+alternative but also matches other longer alternatives, the return
+value is the string); if there are no matches, it should return
+@code{nil}.
 
-@itemize @bullet
-@item
-@code{nil} specifies @code{try-completion}.  The completion function
-should return the completion of the specified string, or @code{t} if the
-string is a unique and exact match already, or @code{nil} if the string
-matches no possibility.
-
-If the string is an exact match for one possibility, but also matches
-other longer possibilities, the function should return the string, not
-@code{t}.
-
-@item
-@code{t} specifies @code{all-completions}.  The completion function
+@item t
+This specifies an @code{all-completions} operation.  The function
 should return a list of all possible completions of the specified
 string.
 
-@item
-@code{lambda} specifies @code{test-completion}.  The completion
-function should return @code{t} if the specified string is an exact
-match for some possibility; @code{nil} otherwise.
+@item lambda
+This specifies a @code{test-completion} operation.  The function
+should return @code{t} if the specified string is an exact match for
+some completion alternative; @code{nil} otherwise.
 
-@item
-@code{(boundaries . SUFFIX)} specifies @code{completion-boundaries}.
-The function should return a value of the form @code{(boundaries
-START . END)} where START is the position of the beginning boundary
-in the string to complete, and END is the position of the end boundary
-in SUFFIX.
+@item (boundaries . @var{suffix})
+This specifies a @code{completion-boundaries} operation.  The function
+should return @code{(boundaries START . END)}, where START is the
+position of the beginning boundary in the specified string, and END is
+the position of the end boundary in SUFFIX.
+
+@item metadata
+This specifies a request for information about the state of the
+current completion.  The function should return an alist, as described
+below.  The alist may contain any number of elements.
+@end table
+
+@noindent
+If the flag has any other value, the completion function should return
+@code{nil}.
 @end itemize
+
+The following is a list of metadata entries that a completion function
+may return in response to a @code{metadata} flag argument:
+
+@table @code
+@item category
+The value should be a symbol describing what kind of text the
+completion function is trying to complete.  If the symbol matches one
+of the keys in @code{completion-category-overrides}, the usual
+completion behavior is overridden.  @xref{Completion Variables}.
+
+@item annotation-function
+The value should be a function for @dfn{annotating} completions.  The
+function should take one argument, @var{string}, which is a possible
+completion.  It should return a string, which is displayed after the
+completion @var{string} in the @samp{*Completions*} buffer.
+
+@item display-sort-function
+The value should be a function for sorting completions.  The function
+should take one argument, a list of completion strings, and return a
+sorted list of completion strings.  It is allowed to alter the input
+list destructively.
+
+@item cycle-sort-function
+The value should be a function for sorting completions, when
+@code{completion-cycle-threshold} is non-@code{nil} and the user is
+cycling through completion alternatives.  @xref{Completion Options,,,
+emacs, The GNU Emacs Manual}.  Its argument list and return value are
+the same as for @code{display-sort-function}.
+@end table
 
 @defun completion-table-dynamic function
 This function is a convenient way to write a function that can act as
@@ -1691,19 +1780,6 @@ possible completions of it.  You can think of
 @code{completion-table-dynamic} as a transducer between that interface
 and the interface for programmed completion functions.
 @end defun
-
-@defvar completion-annotate-function
-The value of this variable, if non-@code{nil}, should be a function
-for ``annotating'' the entries in the @samp{*Completions*} buffer.
-The function should accept a single argument, the completion string
-for an entry.  It should return an additional string to display next
-to that entry in the @samp{*Completions*} buffer, or @code{nil} if no
-additional string is to be displayed.
-
-The function can determine the collection used for the current
-completion via the variable @code{minibuffer-completion-table}
-(@pxref{Completion Commands}).
-@end defvar
 
 @node Completion in Buffers
 @subsection Completion in Ordinary Buffers
@@ -1740,9 +1816,10 @@ that text, in a form suitable for passing as the second argument to
 @code{try-completion} (@pxref{Basic Completion}); completion
 alternatives will be generated from this completion table in the usual
 way, via the completion styles defined in @code{completion-styles}
-(@pxref{Completion Styles}).  @var{props} is a property list for
-additional information; the following optional properties are
-recognized:
+(@pxref{Completion Variables}).  @var{props} is a property list for
+additional information; any of the properties in
+@code{completion-extra-properties} are recognized (@pxref{Completion
+Variables}), as well as the following additional ones:
 
 @table @code
 @item :predicate

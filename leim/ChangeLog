@@ -1,3 +1,74 @@
+2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACS): Rename from BUILT_EMACS.
+	(RUN_EMACS, compile-main): Update for this change.
+
+	* Makefile.in (../src/emacs): Remove this rule, no longer relevant
+	since leim distributed with Emacs (eg lisp/ has no such rule).
+	(all): Remove $BUILT_EMACS dependence.
+
+2012-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* quail/latin-ltx.el (latin-ltx--define-rules): Comment out
+	debugging messages.
+
+2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Compute list of .el files to be compiled dynamically,
+	as the lisp/ directory does, rather than hard-coding it.
+	Also, separate leim-list generation from byte-compilation.
+	(TIT_GB, TIT_BIG5, CHINESE_TIT, MISC, TIT_MISC):
+	Make them store the .el files rather than the .elc files.
+	(NON_TIT_GB, NON_TIT_BIG5, CHINESE_NON_TIT, CHINESE_GB)
+	(CHINESE_GB, CHINESE_BIG5, JAPANESE, KOREAN, THAI, VIETNAMESE)
+	(LAO, INDIAN, TIBETAN, LATIN, UNICODE, SLAVIC, GREEK, RUSSIAN)
+	(OTHERS, CHINESE, EASTASIA, ASIA, EUROPEAN, WORLD, NON_TIT_MISC):
+	Remove variables listing the non-generated .el files.
+	(.el.elc): Add explicit load-path for quail.
+	(all): Depend on compile-main rule rather than $WORLD.
+	(changed.tit, changed.misc): Also depend on $SUBDIRS.
+	(leim-list.el): Don't depend on changed.tit or changed.misc.
+	Remove unnecessary compilation check.
+	(setwins, compile-targets, compile-main): New.
+	(clean, mostlyclean): Update for change in TIT_MISC contents.
+	(bootstrap-clean): Use a glob match to delete .elc, not a fixed list.
+
+2012-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Auto-generate some of the entries.
+	(latin-ltx--ascii-p): New function.
+	(latin-ltx--define-rules): New macro.
+	(define-rules): Use it.
+
+2012-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install): Use $(DIRNAME)_same-dir.tst instead
+	of same-dir.tst, to avoid stepping on other (parallel) Make job's
+	toes.
+
+2012-03-21  Kenichi Handa  <handa@m17n.org>
+
+	* quail/indian.el ("devanagari-itrans"): Add a few more useful
+	keys (Bug#10935).
+
+2012-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* quail/indian.el (telugu-inscript): Fix typo.  (Bug#10936)
+
+2012-03-13  Йордан Миладинов  <jordanmiladinov@gmail.com>  (tiny change)
+
+	* quail/cyrillic.el (bulgarian-alt-phonetic):
+	New input method.  (Bug#10893)
+
+2012-03-09  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
+
+	* quail/persian.el: Update which includes: (1) full compliance to
+	ISIRI-6219, forbidden characters were eliminated and missing
+	characters were added; (2) layer 3 of ISIRI-9147 is now
+	implemented with a '\' prefix; (3) double entry of characters
+	which were postfixed with 'h' is now supported; (4) lots of
+	comment and additional pointers have been added.
+
 2011-12-15  Kenichi Handa  <handa@m17n.org>
 
 	* quail/ethiopic.el ("ethiopic"): Do not refer to

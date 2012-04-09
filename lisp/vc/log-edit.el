@@ -161,7 +161,7 @@ can be obtained from `log-edit-files'."
 			"21.1")
 
 (defvar log-edit-changelog-full-paragraphs cvs-changelog-full-paragraphs
-  "*If non-nil, include full ChangeLog paragraphs in the log.
+  "If non-nil, include full ChangeLog paragraphs in the log.
 This may be set in the ``local variables'' section of a ChangeLog, to
 indicate the policy for that ChangeLog.
 

@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1989, 1993-1995, 1997-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -128,7 +128,6 @@ static Lisp_Object Qchange_major_mode_hook;
 Lisp_Object Qfirst_change_hook;
 Lisp_Object Qbefore_change_functions;
 Lisp_Object Qafter_change_functions;
-static Lisp_Object Qucs_set_table_for_input;
 
 static Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
 static Lisp_Object Qpermanent_local_hook;
@@ -401,13 +400,6 @@ even if it is dead.  The return value is never nil.  */)
   /* And run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qbuffer_list_update_hook);
-
-  /* An error in calling the function here (should someone redefine it)
-     can lead to infinite regress until you run out of stack.  rms
-     says that's not worth protecting against.  */
-  if (!NILP (Ffboundp (Qucs_set_table_for_input)))
-    /* buffer is on buffer-alist, so no gcpro.  */
-    call1 (Qucs_set_table_for_input, buffer);
 
   return buffer;
 }
@@ -1717,7 +1709,7 @@ record_buffer (Lisp_Object buffer)
 /* Move BUFFER to the end of the buffer (a)lists.  Do nothing if the
    buffer is killed.  For the selected frame's buffer list this moves
    BUFFER to its end even if it was never shown in that frame.  If
-   this happens we have a feature, hence `unrecord-buffer' should be
+   this happens we have a feature, hence `bury-buffer-internal' should be
    called only when BUFFER was shown in the selected frame.  */
 
 DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
@@ -2863,6 +2855,12 @@ compare_overlays (const void *v1, const void *v2)
     return s1->beg < s2->beg ? -1 : 1;
   if (s1->end != s2->end)
     return s2->end < s1->end ? -1 : 1;
+  /* Avoid the non-determinism of qsort by choosing an arbitrary ordering
+     between "equal" overlays.  The result can still change between
+     invocations of Emacs, but it won't change in the middle of
+     `find_field' (bug#6830).  */
+  if (XHASH (s1->overlay) != XHASH (s2->overlay))
+    return XHASH (s1->overlay) < XHASH (s2->overlay) ? -1 : 1;
   return 0;
 }
 
@@ -5036,8 +5034,6 @@ init_buffer_once (void)
   Qkill_buffer_hook = intern_c_string ("kill-buffer-hook");
   Fput (Qkill_buffer_hook, Qpermanent_local, Qt);
 
-  Qucs_set_table_for_input = intern_c_string ("ucs-set-table-for-input");
-
   /* super-magic invisible buffer */
   Vprin1_to_string_buffer = Fget_buffer_create (make_pure_c_string (" prin1"));
   Vbuffer_alist = Qnil;
@@ -5193,9 +5189,6 @@ syms_of_buffer (void)
   DEFSYM (Qafter_change_functions, "after-change-functions");
   DEFSYM (Qkill_buffer_query_functions, "kill-buffer-query-functions");
 
-  /* The next one is initialized in init_buffer_once.  */
-  staticpro (&Qucs_set_table_for_input);
-
   Fput (Qprotected_field, Qerror_conditions,
 	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));
   Fput (Qprotected_field, Qerror_message,
@@ -5237,7 +5230,7 @@ This is the same as (default-value 'ctl-arrow).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-enable-multibyte-characters",
 			  enable_multibyte_characters,
-			  doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
+			  doc: /* Default value of `enable-multibyte-characters' for buffers not overriding it.
 This is the same as (default-value 'enable-multibyte-characters).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-buffer-file-coding-system",
@@ -5399,7 +5392,7 @@ A string is printed verbatim in the mode line except for %-constructs:
 Decimal digits after the % specify field width to which to pad.  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-major-mode", major_mode,
-			  doc: /* *Value of `major-mode' for new buffers.  */);
+			  doc: /* Value of `major-mode' for new buffers.  */);
 
   DEFVAR_PER_BUFFER ("major-mode", &BVAR (current_buffer, major_mode),
 		     make_number (Lisp_Symbol),
@@ -5430,25 +5423,25 @@ Use the command `abbrev-mode' to change this variable.  */);
 
   DEFVAR_PER_BUFFER ("case-fold-search", &BVAR (current_buffer, case_fold_search),
 		     Qnil,
-		     doc: /* *Non-nil if searches and matches should ignore case.  */);
+		     doc: /* Non-nil if searches and matches should ignore case.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &BVAR (current_buffer, fill_column),
 		     make_number (LISP_INT_TAG),
-		     doc: /* *Column beyond which automatic line-wrapping should happen.
+		     doc: /* Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &BVAR (current_buffer, left_margin),
 		     make_number (LISP_INT_TAG),
-		     doc: /* *Column for the default `indent-line-function' to indent to.
+		     doc: /* Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
 		     make_number (LISP_INT_TAG),
-		     doc: /* *Distance between tab stops (for display of tab characters), in columns.
+		     doc: /* Distance between tab stops (for display of tab characters), in columns.
 This should be an integer greater than zero.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &BVAR (current_buffer, ctl_arrow), Qnil,
-		     doc: /* *Non-nil means display control chars with uparrow.
+		     doc: /* Non-nil means display control chars with uparrow.
 A value of nil means use backslash and octal digits.
 This variable does not apply to characters whose display is specified
 in the current display table (if there is one).  */);
@@ -5489,7 +5482,7 @@ This variable is never applied to a way of decoding a file while reading it.  */
 
   DEFVAR_PER_BUFFER ("bidi-paragraph-direction",
 		     &BVAR (current_buffer, bidi_paragraph_direction), Qnil,
-		     doc: /* *If non-nil, forces directionality of text paragraphs in the buffer.
+		     doc: /* If non-nil, forces directionality of text paragraphs in the buffer.
 
 If this is nil (the default), the direction of each paragraph is
 determined by the first strong directional character of its text.
@@ -5500,7 +5493,7 @@ This variable has no effect unless the buffer's value of
 \`bidi-display-reordering' is non-nil.  */);
 
  DEFVAR_PER_BUFFER ("truncate-lines", &BVAR (current_buffer, truncate_lines), Qnil,
-		     doc: /* *Non-nil means do not display continuation lines.
+		     doc: /* Non-nil means do not display continuation lines.
 Instead, give each line of text just one screen line.
 
 Note that this is overridden by the variable
@@ -5510,7 +5503,7 @@ and this buffer is not full-frame width.
 Minibuffers set this variable to nil.  */);
 
   DEFVAR_PER_BUFFER ("word-wrap", &BVAR (current_buffer, word_wrap), Qnil,
-		     doc: /* *Non-nil means to use word-wrapping for continuation lines.
+		     doc: /* Non-nil means to use word-wrapping for continuation lines.
 When word-wrapping is on, continuation lines are wrapped at the space
 or tab character nearest to the right window edge.
 If nil, continuation lines are wrapped at the right screen edge.
@@ -5631,39 +5624,39 @@ See also the functions `display-table-slot' and `set-display-table-slot'.  */);
 
   DEFVAR_PER_BUFFER ("left-margin-width", &BVAR (current_buffer, left_margin_cols),
 		     Qnil,
-		     doc: /* *Width of left marginal area for display of a buffer.
+		     doc: /* Width of left marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
   DEFVAR_PER_BUFFER ("right-margin-width", &BVAR (current_buffer, right_margin_cols),
 		     Qnil,
-		     doc: /* *Width of right marginal area for display of a buffer.
+		     doc: /* Width of right marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
   DEFVAR_PER_BUFFER ("left-fringe-width", &BVAR (current_buffer, left_fringe_width),
 		     Qnil,
-		     doc: /* *Width of this buffer's left fringe (in pixels).
+		     doc: /* Width of this buffer's left fringe (in pixels).
 A value of 0 means no left fringe is shown in this buffer's window.
 A value of nil means to use the left fringe width from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("right-fringe-width", &BVAR (current_buffer, right_fringe_width),
 		     Qnil,
-		     doc: /* *Width of this buffer's right fringe (in pixels).
+		     doc: /* Width of this buffer's right fringe (in pixels).
 A value of 0 means no right fringe is shown in this buffer's window.
 A value of nil means to use the right fringe width from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("fringes-outside-margins", &BVAR (current_buffer, fringes_outside_margins),
 		     Qnil,
-		     doc: /* *Non-nil means to display fringes outside display margins.
+		     doc: /* Non-nil means to display fringes outside display margins.
 A value of nil means to display fringes between margins and buffer text.  */);
 
   DEFVAR_PER_BUFFER ("scroll-bar-width", &BVAR (current_buffer, scroll_bar_width),
 		     Qnil,
-		     doc: /* *Width of this buffer's scroll bars in pixels.
+		     doc: /* Width of this buffer's scroll bars in pixels.
 A value of nil means to use the scroll bar width from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("vertical-scroll-bar", &BVAR (current_buffer, vertical_scroll_bar_type),
 		     Qnil,
-		     doc: /* *Position of this buffer's vertical scroll bar.
+		     doc: /* Position of this buffer's vertical scroll bar.
 The value takes effect whenever you tell a window to display this buffer;
 for instance, with `set-window-buffer' or when `display-buffer' displays it.
 
@@ -5673,13 +5666,13 @@ A value of t (the default) means do whatever the window's frame specifies.  */);
 
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &BVAR (current_buffer, indicate_empty_lines), Qnil,
-		     doc: /* *Visually indicate empty lines after the buffer end.
+		     doc: /* Visually indicate empty lines after the buffer end.
 If non-nil, a bitmap is displayed in the left fringe of a window on
 window-systems.  */);
 
   DEFVAR_PER_BUFFER ("indicate-buffer-boundaries",
 		     &BVAR (current_buffer, indicate_buffer_boundaries), Qnil,
-		     doc: /* *Visually indicate buffer boundaries and scrolling.
+		     doc: /* Visually indicate buffer boundaries and scrolling.
 If non-nil, the first and last line of the buffer are marked in the fringe
 of a window on window-systems with angle bitmaps, or if the window can be
 scrolled, the top and bottom line of the window are marked with up and down
@@ -5704,7 +5697,7 @@ fringe, but no arrow bitmaps, use ((top .  left) (bottom . left)).  */);
 
   DEFVAR_PER_BUFFER ("fringe-indicator-alist",
 		     &BVAR (current_buffer, fringe_indicator_alist), Qnil,
-		     doc: /* *Mapping from logical to physical fringe indicator bitmaps.
+		     doc: /* Mapping from logical to physical fringe indicator bitmaps.
 The value is an alist where each element (INDICATOR . BITMAPS)
 specifies the fringe bitmaps used to display a specific logical
 fringe indicator.
@@ -5723,7 +5716,7 @@ symbol which is used in both left and right fringes.  */);
 
   DEFVAR_PER_BUFFER ("fringe-cursor-alist",
 		     &BVAR (current_buffer, fringe_cursor_alist), Qnil,
-		     doc: /* *Mapping from logical to physical fringe cursor bitmaps.
+		     doc: /* Mapping from logical to physical fringe cursor bitmaps.
 The value is an alist where each element (CURSOR . BITMAP)
 specifies the fringe bitmaps used to display a specific logical
 cursor type in the fringe.
@@ -5887,7 +5880,7 @@ set when a file is visited.  */);
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-format",
 		     &BVAR (current_buffer, auto_save_file_format), Qnil,
-		     doc: /* *Format in which to write auto-save files.
+		     doc: /* Format in which to write auto-save files.
 Should be a list of symbols naming formats that are defined in `format-alist'.
 If it is t, which is the default, auto-save files are written in the
 same format as a regular save would use.  */);
@@ -5937,7 +5930,7 @@ Lisp programs may give this variable certain special values:
   Vtransient_mark_mode = Qnil;
 
   DEFVAR_LISP ("inhibit-read-only", Vinhibit_read_only,
-	       doc: /* *Non-nil means disregard read-only status of buffers or characters.
+	       doc: /* Non-nil means disregard read-only status of buffers or characters.
 If the value is t, disregard `buffer-read-only' and all `read-only'
 text properties.  If the value is a list, disregard `buffer-read-only'
 and disregard a `read-only' text property if the property value
@@ -5972,7 +5965,7 @@ to the default frame line height.  A value of nil means add no extra space.  */)
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     &BVAR (current_buffer, cursor_in_non_selected_windows), Qnil,
-		     doc: /* *Non-nil means show a cursor in non-selected windows.
+		     doc: /* Non-nil means show a cursor in non-selected windows.
 If nil, only shows a cursor in the selected window.
 If t, displays a cursor related to the usual cursor type
 \(a solid box becomes hollow, a bar becomes a narrower bar).
@@ -5995,7 +5988,7 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
 	       doc: /* Hook run when the buffer list changes.
 Functions running this hook are `get-buffer-create',
 `make-indirect-buffer', `rename-buffer', `kill-buffer',
-`record-buffer' and `unrecord-buffer'.  */);
+and `bury-buffer-internal'.  */);
   Vbuffer_list_update_hook = Qnil;
   DEFSYM (Qbuffer_list_update_hook, "buffer-list-update-hook");
 

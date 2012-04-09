@@ -1,3 +1,177 @@
+2012-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add
+	emacs-gnutls.
+	($(infodir)/emacs-gnutls, emacs-gnutls.dvi): New targets.
+
+2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* Makefile.in: Add emacs-gnutls.texi to build.
+
+	* emacs-gnutls.texi: Add documentation for the GnuTLS integration.
+
+2012-04-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Secret Service API): Edit further and give examples.
+	(Secret Service API): Adjust @samp to @code for collection names.
+
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi (Secret Service API): Copyedits.
+	(Help for developers): Fill in some missing function doc-strings.
+	(Help for users, Help for developers)
+	(GnuPG and EasyPG Assistant Configuration): Markup fixes.
+
+2012-04-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth.texi (Secret Service API): Add the missing text.
+
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* message.texi (Using PGP/MIME): Note that epg is now the default.
+
+	* gnus.texi: Reduce references to obsolete pgg library.
+	(Security): Note that epg is now the default.
+
+	* gnus-faq.texi (FAQ 8-2): Mention EasyPG.
+
+	* nxml-mode.texi (Completion): C-RET is no longer bound to
+	nxml-complete.
+
+2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org.texi (Customizing tables in ODT export): Correct few errors.
+
+2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org.texi (Links in ODT export): Update.
+	(Labels and captions in ODT export): New node.
+
+2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org.texi (Literal examples in ODT export): htmlfontify.el in
+	Emacs-24.1 now supports fontification.  So ODT source blocks will
+	be fontified by default.
+
+2012-04-01  Julian Gehring  <julian.gehring@googlemail.com>  (tiny change)
+
+	* org.texi (Refiling notes): Remove duplicated keybinding.
+
+2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (noweb): Documentation of this new option to the :noweb
+	header argument.
+
+2012-04-01  Suvayu Ali  <fatkasuvayu+linux@gmail.com>
+
+	* org.texi (Header and sectioning): Add example demonstrating how
+	to use "LaTeX_CLASS_OPTIONS".
+
+2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (Noweb reference syntax): Describe the ability to
+	execute noweb references in the manual.
+
+2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (cache): Improve cache documentation when session
+	evaluation is used.
+
+2012-04-01  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (Plain lists): Document removal.
+
+2012-04-01  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org.texi: Decapitalize file name in references to Calc manual.
+
+2012-04-01  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (Plain lists): Document removal.
+
+2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org.texi (Top, OpenDocument Text export)
+	(ODT export commands, Extending ODT export)
+	(Images in ODT export, Tables in ODT export)
+	(Configuring a document converter): Add or Update.
+
+2012-04-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (MobileOrg): Change the wording to reflect that the
+	Android Version is no longer just the little brother of the iOS
+	version.
+
+2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (Key bindings and useful functions): Updated babel key
+	binding documentation in manual.
+
+2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (noweb): Document new noweb header value.
+
+2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (noweb-sep): Document new header argument.
+
+2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (noweb-ref): Documentation of this new custom variable.
+
+2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (wrap): Update the new :wrap documentation to match the
+	current implementation.
+
+2012-04-01  Thomas Dye  <dk@poto.myhome.westell.com>
+
+	* org.texi: Added documentation for :wrap.
+
+2012-04-01  Thomas Dye  <dk@poto.myhome.westell.com>
+
+	* org.texi: #+RESULTS now user-configurable.
+
+2012-04-01  Thomas Dye  <dk@poto.myhome.westell.com>
+
+	* org.texi: Documented :noweb no-export.
+
+2012-04-01  Thomas Dye  <dk@poto.local>
+
+	* org.texi: Edit :noweb no header argument for correctness.
+
+2012-04-01  Bastien Guerry  <bzg@altern.org>
+
+	* org.texi (Customization): Update the approximate number of Org
+	variables.
+
+2012-04-01  Thomas Dye  <dk@poto.local>
+
+	* org.texi: The :results wrap produces a drawer instead of a
+	begin_results block.
+
+2012-03-22  Peder O. Klingenberg  <peder@klingenberg.no>  (tiny change)
+
+	* gnus.texi (Archived Messages): Update `gnus-message-archive-group' to
+	reflect the new default.
+
+2012-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.texi (Expert Info): Move the index entry for "Texinfo" from
+	"Getting Started" to this node.  (Bug#10450)
+
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* flymake.texi (Example -- Configuring a tool called via make):
+	Mention the Automake COMPILE variable (Bug#8715).
+
+	* info.texi (Getting Started): Add an index entry (Bug#10450).
+
+2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Signals): Known names will be mapped onto unique
+	names, when registering for signals.
+
 2012-02-29  Glenn Morris  <rgm@gnu.org>
 
 	* url.texi: Fix quote usage in body text.

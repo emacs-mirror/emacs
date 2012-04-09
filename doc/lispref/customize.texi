@@ -462,14 +462,6 @@ meaning it was declared with @code{defcustom}), or an alias for
 another customizable variable.
 @end defun
 
-@defun user-variable-p arg
-This function is like @code{custom-variable-p}, except it also returns
-@code{t} if the first character of the variable's documentation string
-is the character @samp{*}.  That is an obsolete way of indicating a
-user option, so for most purposes you may consider
-@code{user-variable-p} as equivalent to @code{custom-variable-p}.
-@end defun
-
 @node Customization Types
 @section Customization Types
 

@@ -49,7 +49,7 @@ Intended to be used in the `interactive' spec of
 	     (format "%s: " prompt))
 	   obarray
 	   (lambda (sym)
-	     (or (user-variable-p sym)
+	     (or (custom-variable-p sym)
                  (get sym 'safe-local-variable)
 		 (memq sym '(mode eval coding unibyte))))
 	   nil nil nil default nil))

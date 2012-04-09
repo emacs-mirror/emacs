@@ -4,7 +4,7 @@
 
 ;; Author: Martyn Jago
 ;; Keywords: babel language, literate programming
-;; Homepage: https://github.com/mjago/ob-lilypond
+;; Homepage: http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-lilypond.html
 
 ;; This file is part of GNU Emacs.
 
@@ -30,17 +30,13 @@
 (require 'ob)
 (require 'ob-eval)
 (require 'ob-tangle)
+(require 'outline)
 (defalias 'lilypond-mode 'LilyPond-mode)
-
-(declare-function show-all "outline" ())
 
 (add-to-list 'org-babel-tangle-lang-exts '("LilyPond" . "ly"))
 
 (defvar org-babel-default-header-args:lilypond '()
   "Default header arguments for js code blocks.")
-
-(defconst ly-version "0.3"
-  "The version number of the file ob-lilypond.el.")
 
 (defvar ly-compile-post-tangle t
   "Following the org-babel-tangle (C-c C-v t) command,
@@ -408,13 +404,7 @@ If TEST is non-nil, it contains a simulation of the OS for test purposes"
   (message (concat "Arrange mode has been "
                    (if ly-arrange-mode "ENABLED." "DISABLED."))))
 
-(defun ly-version (&optional insert-at-point)
-  (interactive)
-  (let ((version (format "ob-lilypond version %s" ly-version)))
-    (when insert-at-point (insert version))
-    (message version)))
-
-  (defun ly-switch-extension (file-name ext)
+(defun ly-switch-extension (file-name ext)
   "Utility command to swap current FILE-NAME extension with EXT"
 
   (concat (file-name-sans-extension

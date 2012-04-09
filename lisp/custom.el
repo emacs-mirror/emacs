@@ -599,15 +599,17 @@ If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
   (put symbol 'custom-autoload (if noset 'noset t))
   (custom-add-load symbol load))
 
-;; This test is also in the C code of `user-variable-p'.
 (defun custom-variable-p (variable)
   "Return non-nil if VARIABLE is a customizable variable.
 A customizable variable is either (i) a variable whose property
 list contains a non-nil `standard-value' or `custom-autoload'
 property, or (ii) an alias for another customizable variable."
-  (setq variable (indirect-variable variable))
-  (or (get variable 'standard-value)
-      (get variable 'custom-autoload)))
+  (when (symbolp variable)
+    (setq variable (indirect-variable variable))
+    (or (get variable 'standard-value)
+	(get variable 'custom-autoload))))
+
+(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.2")
 
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).
@@ -1143,8 +1145,9 @@ prompt the user for confirmation before loading it.  But if
 optional arg NO-CONFIRM is non-nil, load the theme without
 prompting.
 
-Normally, this function also enables THEME; if optional arg
-NO-ENABLE is non-nil, load the theme but don't enable it.
+Normally, this function also enables THEME.  If optional arg
+NO-ENABLE is non-nil, load the theme but don't enable it, unless
+the theme was already enabled.
 
 This function is normally called through Customize when setting
 `custom-enabled-themes'.  If used directly in your init file, it
@@ -1160,6 +1163,10 @@ Return t if THEME was successfully loaded, nil otherwise."
     nil nil))
   (unless (custom-theme-name-valid-p theme)
     (error "Invalid theme name `%s'" theme))
+  ;; If THEME is already enabled, re-enable it after loading, even if
+  ;; NO-ENABLE is t.
+  (if no-enable
+      (setq no-enable (not (custom-theme-enabled-p theme))))
   ;; If reloading, clear out the old theme settings.
   (when (custom-theme-p theme)
     (disable-theme theme)

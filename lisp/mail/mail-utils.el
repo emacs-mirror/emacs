@@ -63,12 +63,16 @@ from START (inclusive) to END (exclusive)."
 
 ;;;###autoload
 (defun mail-quote-printable (string &optional wrapper)
-  "Convert a string to the \"quoted printable\" Q encoding.
+  "Convert a string to the \"quoted printable\" Q encoding if necessary.
+If the string contains only ASCII characters and no troublesome ones,
+we return it unconverted.
+
 If the optional argument WRAPPER is non-nil,
 we add the wrapper characters =?ISO-8859-1?Q?....?=."
   (let ((i 0) (result ""))
     (save-match-data
-      (while (string-match "[?=\"\200-\377]" string i)
+      (while (or (string-match "[?=\"]" string i)
+		 (string-match "[^\000-\177]" string i))
 	(setq result
 	      (concat result (substring string i (match-beginning 0))
 		      (upcase (format "=%02x"

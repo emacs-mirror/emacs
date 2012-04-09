@@ -2021,6 +2021,7 @@ whether or not it is currently displayed in some window.  */)
       ptrdiff_t it_start, it_overshoot_count = 0;
       int first_x;
       int overshoot_handled = 0;
+      int disp_string_at_start_p = 0;
 
       itdata = bidi_shelve_cache ();
       SET_TEXT_POS (pt, PT, PT_BYTE);
@@ -2035,6 +2036,8 @@ whether or not it is currently displayed in some window.  */)
 	{
 	  const char *s = SSDATA (it.string);
 	  const char *e = s + SBYTES (it.string);
+
+	  disp_string_at_start_p = it.string_from_display_prop_p;
 	  while (s < e)
 	    {
 	      if (*s++ == '\n')
@@ -2062,7 +2065,8 @@ whether or not it is currently displayed in some window.  */)
       /* IT may move too far if truncate-lines is on and PT lies
 	 beyond the right margin.  IT may also move too far if the
 	 starting point is on a Lisp string that has embedded
-	 newlines.  In these cases, backtrack.  */
+	 newlines, or spans several screen lines.  In these cases,
+	 backtrack.  */
       if (IT_CHARPOS (it) > it_start)
 	{
 	  /* We need to backtrack also if the Lisp string contains no
@@ -2073,6 +2077,14 @@ whether or not it is currently displayed in some window.  */)
 	      && it.method == GET_FROM_BUFFER
 	      && it.c == '\n')
 	    it_overshoot_count = 1;
+	  else if (disp_string_at_start_p && it.vpos > 0)
+	    {
+	      /* This is the case of a display string that spans
+		 several screen lines.  In that case, we end up at the
+		 end of the string, and it.vpos tells us how many
+		 screen lines we need to backtrack.  */
+	      it_overshoot_count = it.vpos;
+	    }
 	  if (it_overshoot_count > 0)
 	    move_it_by_lines (&it, -it_overshoot_count);
 
@@ -2151,7 +2163,7 @@ void
 syms_of_indent (void)
 {
   DEFVAR_BOOL ("indent-tabs-mode", indent_tabs_mode,
-	       doc: /* *Indentation can insert tabs if this is non-nil.  */);
+	       doc: /* Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
 
   defsubr (&Scurrent_indentation);

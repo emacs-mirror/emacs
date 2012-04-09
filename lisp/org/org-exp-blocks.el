@@ -57,9 +57,9 @@
 ;;        using the dot utility.  For information on dot see
 ;;        http://www.graphviz.org/
 ;;
-;; comment :: Wrap comments with titles and author information, in
-;;            their own divs with author-specific ids allowing for css
-;;            coloring of comments based on the author.
+;; export-comment :: Wrap comments with titles and author information,
+;;            in their own divs with author-specific ids allowing for
+;;            css coloring of comments based on the author.
 ;;
 ;;; Adding new blocks
 ;;
@@ -73,6 +73,7 @@
 (eval-when-compile
   (require 'cl))
 (require 'org)
+(require 'find-func)
 
 (defun org-export-blocks-set (var value)
   "Set the value of `org-export-blocks' and install fontification."
@@ -87,7 +88,7 @@
 	value))
 
 (defcustom org-export-blocks
-  '((comment org-export-blocks-format-comment t)
+  '((export-comment org-export-blocks-format-comment t)
     (ditaa org-export-blocks-format-ditaa nil)
     (dot org-export-blocks-format-dot nil))
   "Use this alist to associate block types with block exporting functions.
@@ -135,6 +136,7 @@ export function should accept three arguments."
 (defcustom org-export-blocks-postblock-hook nil
   "Run after blocks have been processed with `org-export-blocks-preprocess'."
   :group 'org-export-general
+  :version "24.1"
   :type 'hook)
 
 (defun org-export-blocks-html-quote (body &optional open close)
@@ -224,7 +226,7 @@ which defaults to the value of `org-export-blocks-witheld'."
 
 ;;--------------------------------------------------------------------------------
 ;; ditaa: create images from ASCII art using the ditaa utility
-(defvar org-ditaa-jar-path (expand-file-name
+(defcustom org-ditaa-jar-path (expand-file-name
 			    "ditaa.jar"
 			    (file-name-as-directory
 			     (expand-file-name
@@ -232,8 +234,10 @@ which defaults to the value of `org-export-blocks-witheld'."
 			      (file-name-as-directory
 			       (expand-file-name
 				"../contrib"
-				(file-name-directory (or load-file-name buffer-file-name)))))))
-  "Path to the ditaa jar executable.")
+				(file-name-directory (find-library-name "org")))))))
+  "Path to the ditaa jar executable."
+  :group 'org-babel
+  :type 'string)
 
 (defvar org-export-current-backend) ; dynamically bound in org-exp.el
 (defun org-export-blocks-format-ditaa (body &rest headers)

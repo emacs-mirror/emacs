@@ -241,6 +241,7 @@ Lisp_Object internal_last_event_frame;
 Time last_event_timestamp;
 
 static Lisp_Object Qx_set_selection, Qhandle_switch_frame;
+static Lisp_Object Qhandle_select_window;
 Lisp_Object QPRIMARY;
 
 static Lisp_Object Qself_insert_command;
@@ -1645,7 +1646,8 @@ command_loop_1 (void)
 		      ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
 		      : (!NILP (Vselect_active_regions)
 			 && !NILP (Vtransient_mark_mode)))
-		  && !EQ (Vthis_command, Qhandle_switch_frame))
+		  && NILP (Fmemq (Vthis_command,
+				  Vselection_inhibit_update_commands)))
 		{
 		  ptrdiff_t beg =
 		    XINT (Fmarker_position (BVAR (current_buffer, mark)));
@@ -1877,7 +1879,7 @@ safe_run_hooks_error (Lisp_Object error_data)
     = CONSP (Vinhibit_quit) ? XCAR (Vinhibit_quit) : Vinhibit_quit;
   Lisp_Object fun = CONSP (Vinhibit_quit) ? XCDR (Vinhibit_quit) : Qnil;
   Lisp_Object args[4];
-  args[0] = build_string ("Error in %s (%s): %s");
+  args[0] = build_string ("Error in %s (%s): %S");
   args[1] = hook;
   args[2] = fun;
   args[3] = error_data;
@@ -11654,6 +11656,7 @@ syms_of_keyboard (void)
   DEFSYM (Qx_set_selection, "x-set-selection");
   DEFSYM (QPRIMARY, "PRIMARY");
   DEFSYM (Qhandle_switch_frame, "handle-switch-frame");
+  DEFSYM (Qhandle_select_window, "handle-select-window");
 
   DEFSYM (Qinput_method_function, "input-method-function");
   DEFSYM (Qinput_method_exit_on_first_char, "input-method-exit-on-first-char");
@@ -12170,7 +12173,7 @@ whenever `deferred-action-list' is non-nil.  */);
   Vdeferred_action_function = Qnil;
 
   DEFVAR_LISP ("delayed-warnings-list", Vdelayed_warnings_list,
-               doc: /* List of warnings to be displayed as soon as possible.
+               doc: /* List of warnings to be displayed after this command.
 Each element must be a list (TYPE MESSAGE [LEVEL [BUFFER-NAME]]),
 as per the args of `display-warning' (which see).
 If this variable is non-nil, `delayed-warnings-hook' will be run
@@ -12289,6 +12292,16 @@ If `select-active-regions' is non-nil, Emacs sets this to the
 text in the region before modifying the buffer.  The next
 `deactivate-mark' call uses this to set the window selection.  */);
   Vsaved_region_selection = Qnil;
+
+  DEFVAR_LISP ("selection-inhibit-update-commands",
+	       Vselection_inhibit_update_commands,
+	       doc: /* List of commands which should not update the selection.
+Normally, if `select-active-regions' is non-nil and the mark remains
+active after a command (i.e. the mark was not deactivated), the Emacs
+command loop sets the selection to the text in the region.  However,
+if the command is in this list, the selection is not updated.  */);
+  Vselection_inhibit_update_commands
+    = list2 (Qhandle_switch_frame, Qhandle_select_window);
 
   DEFVAR_LISP ("debug-on-event",
                Vdebug_on_event,

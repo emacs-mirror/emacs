@@ -231,12 +231,12 @@ macro to be executed before appending to it."
 ;;; Keyboard macro counter
 
 (defvar kmacro-counter 0
-  "*Current keyboard macro counter.")
+  "Current keyboard macro counter.")
 
 (defvar kmacro-default-counter-format "%d")
 
 (defvar kmacro-counter-format "%d"
-  "*Current keyboard macro counter format.")
+  "Current keyboard macro counter format.")
 
 (defvar kmacro-counter-format-start kmacro-counter-format
   "Macro format at start of macro execution.")
