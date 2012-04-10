@@ -1,3 +1,8 @@
+2012-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (eol-mnemonic-unix, eol-mnemonic-dos, eol-mnemonic-mac):
+	Add :standard values, reducing "rogue" customs in emacs -Q a bit more.
+
 2012-04-10  Florian Adamsky  <florian@adamsky.it>  (tiny change)
 
 	* recentf.el (recentf-dialog-mode-map): Added two keybindings for
