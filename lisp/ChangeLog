@@ -1,3 +1,9 @@
+2012-04-10  Laimonas Vėbra  <laimonas.vebra@gmail.com>  (tiny change)
+
+	* language/european.el (cp775): Added oem/legacy (en)coding on
+	DOS/MS Windows for the Baltic languages. There are still plenty of
+	texts written in this encoding/codepage (bug#6519).
+
 2012-04-10  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (eol-mnemonic-unix, eol-mnemonic-dos, eol-mnemonic-mac):
