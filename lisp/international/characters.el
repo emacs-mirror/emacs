@@ -560,6 +560,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 		       (#x01AC . #x01AD)
 		       (#x01AF . #x01B0)
 		       (#x01B3 . #x01B6)
+		       (#x01B8 . #x01B9)
 		       (#x01BC . #x01BD)
 		       (#x01CD . #x01DC)
 		       (#x01DE . #x01EF)
@@ -575,9 +576,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	  (set-case-syntax-pair from (1+ from) tbl)
 	  (setq from (+ from 2))))))
 
-  (set-case-syntax-pair #x178 #x0ff tbl)
-  (set-case-syntax-pair #x189 #x256 tbl)
-  (set-case-syntax-pair #x18A #x257 tbl)
+  (set-case-syntax-pair ?Ÿ ?ÿ tbl)
 
   ;; In some languages, such as Turkish, U+0049 LATIN CAPITAL LETTER I
   ;; and U+0131 LATIN SMALL LETTER DOTLESS I make a case pair, and so
@@ -593,6 +592,8 @@ with L, LRE, or LRO Unicode bidi character type.")
 
   (set-case-syntax-pair ?Ɓ ?ɓ tbl)
   (set-case-syntax-pair ?Ɔ ?ɔ tbl)
+  (set-case-syntax-pair ?Ɖ ?ɖ tbl)
+  (set-case-syntax-pair ?Ɗ ?ɗ tbl)
   (set-case-syntax-pair ?Ǝ ?ǝ tbl)
   (set-case-syntax-pair ?Ə ?ə tbl)
   (set-case-syntax-pair ?Ɛ ?ɛ tbl)
