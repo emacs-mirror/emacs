@@ -262,6 +262,8 @@ kill ring; mouse-1 or mouse-3 kills it."
 	      interprogram-paste-function
 	      mouse-sel-original-interprogram-paste-function))))
 
+(make-obsolete 'mouse-sel-mode "use the normal mouse modes" "24.2")
+
 ;;=== Internal Variables/Constants ========================================
 
 (defvar mouse-sel-primary-thing nil

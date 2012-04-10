@@ -1,5 +1,7 @@
 2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mouse-sel.el (mouse-sel-mode): Mark as obsolete (bug#6174).
+
 	* simple.el (zap-to-char): Allow zapping using input methods
 	(bug#1580).
 
