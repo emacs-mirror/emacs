@@ -12,7 +12,7 @@
 @kindex C-x m
 @findex compose-mail
   To send an email message from Emacs, type @kbd{C-x m}.  This
-switches to a buffer named @samp{*unsent mail*}, where you can edit
+switches to a buffer named @file{*unsent mail*}, where you can edit
 the text and headers of the message.  When done, type @kbd{C-c C-s} or
 @kbd{C-c C-c} to send it.
 
@@ -306,7 +306,7 @@ completion, and inserts its definition at point.
 @cindex Message mode
 @cindex mode, Message
 
-  The default major mode for the @samp{*mail*} buffer is called
+  The default major mode for the @file{*mail*} buffer is called
 Message mode.  It behaves like Text mode in many ways, but provides
 several additional commands on the @kbd{C-c} prefix, which make
 editing a message more convenient.

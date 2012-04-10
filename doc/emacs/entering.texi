@@ -63,7 +63,7 @@ certain Lisp files, where to put the initial frame, and so forth.
   If the variable @code{inhibit-startup-screen} is non-@code{nil},
 Emacs does not display the startup screen.  In that case, if one or
 more files were specified on the command line, Emacs simply displays
-those files; otherwise, it displays a buffer named @samp{*scratch*},
+those files; otherwise, it displays a buffer named @file{*scratch*},
 which can be used to evaluate Emacs Lisp expressions interactively.
 @xref{Lisp Interaction}.  You can set the variable
 @code{inhibit-startup-screen} using the Customize facility
@@ -82,7 +82,7 @@ the desired file or directory.
 @ignore
 @c I do not think this should be mentioned.  AFAICS it is just a dodge
 @c around inhibit-startup-screen not being settable on a site-wide basis.
-or @code{t}, which means to display the @samp{*scratch*} buffer.
+or @code{t}, which means to display the @file{*scratch*} buffer.
 @end ignore
 
 @node Exiting, Basic, Entering Emacs, Top

@@ -93,8 +93,8 @@ deleting or changing marks or flags will mark it modified again.
 
 Remote Dired buffers are not auto-reverted (because it may be slow).
 Neither are Dired buffers for which you used shell wildcards or file
-arguments to list only some of the files.  @samp{*Find*} and
-@samp{*Locate*} buffers do not auto-revert either.
+arguments to list only some of the files.  @file{*Find*} and
+@file{*Locate*} buffers do not auto-revert either.
 
 @c FIXME?  This should be in the elisp manual?
 @node Supporting additional buffers

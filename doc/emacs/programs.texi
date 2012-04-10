@@ -1130,7 +1130,7 @@ prompts for a topic, with completion (@pxref{Completion}), and runs
 the @command{man} program to format the corresponding man page.  If
 the system permits, it runs @command{man} asynchronously, so that you
 can keep on editing while the page is being formatted.  The result
-goes in a buffer named @samp{*Man @var{topic}*}.  These buffers use a
+goes in a buffer named @file{*Man @var{topic}*}.  These buffers use a
 special major mode, Man mode, that facilitates scrolling and jumping
 to other manual pages.  For details, type @kbd{C-h m} while in a Man
 mode buffer.
@@ -1165,7 +1165,7 @@ command.  Unlike @kbd{M-x man}, it does not run any external programs
 to format and display the man pages; the formatting is done by Emacs,
 so it works on systems such as MS-Windows where the @command{man}
 program may be unavailable.  It prompts for a man page, and displays
-it in a buffer named @samp{*WoMan @var{section} @var{topic}}.
+it in a buffer named @file{*WoMan @var{section} @var{topic}}.
 
   @kbd{M-x woman} computes the completion list for manpages the first
 time you invoke the command.  With a numeric argument, it recomputes
@@ -1705,7 +1705,7 @@ inserted on that line, and any @samp{\} there is deleted.
 @cindex preprocessor highlighting
 @findex cpp-highlight-buffer
 Highlight parts of the text according to its preprocessor conditionals.
-This command displays another buffer named @samp{*CPP Edit*}, which
+This command displays another buffer named @file{*CPP Edit*}, which
 serves as a graphic menu for selecting how to display particular kinds
 of conditionals and their contents.  After changing various settings,
 click on @samp{[A]pply these settings} (or go to that buffer and type

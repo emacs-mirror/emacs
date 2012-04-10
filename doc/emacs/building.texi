@@ -44,7 +44,7 @@ messages and show you where the errors occurred.
 @table @kbd
 @item M-x compile
 Run a compiler asynchronously under Emacs, with error messages going to
-the @samp{*compilation*} buffer.
+the @file{*compilation*} buffer.
 @item M-x recompile
 Invoke a compiler with the same command as in the last invocation of
 @kbd{M-x compile}.
@@ -57,7 +57,7 @@ Kill the running compilation subprocess.
 compile}.  This reads a shell command line using the minibuffer, and
 then executes the command by running a shell as a subprocess (or
 @dfn{inferior process}) of Emacs.  The output is inserted in a buffer
-named @samp{*compilation*}.  The current buffer's default directory is
+named @file{*compilation*}.  The current buffer's default directory is
 used as the working directory for the execution of the command;
 normally, therefore, compilation takes place in this directory.
 
@@ -72,19 +72,19 @@ specified is automatically stored in the variable
 type @kbd{M-x compile}.  A file can also specify a file-local value
 for @code{compile-command} (@pxref{File Variables}).
 
-  Starting a compilation displays the @samp{*compilation*} buffer in
+  Starting a compilation displays the @file{*compilation*} buffer in
 another window but does not select it.  While the compilation is
 running, the word @samp{run} is shown in the major mode indicator for
-the @samp{*compilation*} buffer, and the word @samp{Compiling} appears
-in all mode lines.  You do not have to keep the @samp{*compilation*}
+the @file{*compilation*} buffer, and the word @samp{Compiling} appears
+in all mode lines.  You do not have to keep the @file{*compilation*}
 buffer visible while compilation is running; it continues in any case.
 When the compilation ends, for whatever reason, the mode line of the
-@samp{*compilation*} buffer changes to say @samp{exit} (followed by
+@file{*compilation*} buffer changes to say @samp{exit} (followed by
 the exit code: @samp{[0]} for a normal exit), or @samp{signal} (if a
 signal terminated the process).
 
   If you want to watch the compilation transcript as it appears,
-switch to the @samp{*compilation*} buffer and move point to the end of
+switch to the @file{*compilation*} buffer and move point to the end of
 the buffer.  When point is at the end, new compilation output is
 inserted above point, which remains at the end.  Otherwise, point
 remains fixed while compilation output is added at the end of the
@@ -93,7 +93,7 @@ buffer.
 @cindex compilation buffer, keeping point at end
 @vindex compilation-scroll-output
   If you change the variable @code{compilation-scroll-output} to a
-non-@code{nil} value, the @samp{*compilation*} buffer scrolls
+non-@code{nil} value, the @file{*compilation*} buffer scrolls
 automatically to follow the output.  If the value is
 @code{first-error}, scrolling stops when the first error appears,
 leaving point at that error.  For any other non-@code{nil} value,
@@ -103,22 +103,22 @@ scrolling continues until there is no more output.
   To rerun the last compilation with the same command, type @kbd{M-x
 recompile}.  This reuses the compilation command from the last
 invocation of @kbd{M-x compile}.  It also reuses the
-@samp{*compilation*} buffer and starts the compilation in its default
+@file{*compilation*} buffer and starts the compilation in its default
 directory, which is the directory in which the previous compilation
 was started.
 
 @findex kill-compilation
   Starting a new compilation also kills any compilation already
-running in @samp{*compilation*}, as the buffer can only handle one
+running in @file{*compilation*}, as the buffer can only handle one
 compilation at any time.  However, @kbd{M-x compile} asks for
 confirmation before actually killing a compilation that is running.
 You can also kill the compilation process with @kbd{M-x
 kill-compilation}.
 
   To run two compilations at once, start the first one, then rename
-the @samp{*compilation*} buffer (perhaps using @code{rename-uniquely};
+the @file{*compilation*} buffer (perhaps using @code{rename-uniquely};
 @pxref{Misc Buffer}), then switch buffers and start the other
-compilation.  This will create a new @samp{*compilation*} buffer.
+compilation.  This will create a new @file{*compilation*} buffer.
 
 @vindex compilation-environment
   You can control the environment passed to the compilation command
@@ -133,7 +133,7 @@ variable settings override the usual ones.
 @cindex Compilation mode
 @cindex mode, Compilation
 @cindex locus
-  The @samp{*compilation*} buffer uses a major mode called Compilation
+  The @file{*compilation*} buffer uses a major mode called Compilation
 mode.  Compilation mode turns each error message in the buffer into a
 hyperlink; you can move point to it and type @key{RET}, or click on it
 with the mouse (@pxref{Mouse References}), to visit the @dfn{locus} of
@@ -145,10 +145,10 @@ position in a file where that error occurred.
   If you change the variable
 @code{compilation-auto-jump-to-first-error} to a non-@code{nil} value,
 Emacs automatically visits the locus of the first error message that
-appears in the @samp{*compilation*} buffer.
+appears in the @file{*compilation*} buffer.
 
   Compilation mode provides the following additional commands.  These
-commands can also be used in @samp{*grep*} buffers, where the
+commands can also be used in @file{*grep*} buffers, where the
 hyperlinks are search matches rather than error messages (@pxref{Grep
 Searching}).
 
@@ -190,7 +190,7 @@ mode buffer.  The first time you invoke it after a compilation, it
 visits the locus of the first error message.  Each subsequent
 @w{@kbd{C-x `}} visits the next error, in a similar fashion.  If you
 visit a specific error with @key{RET} or a mouse click in the
-@samp{*compilation*} buffer, subsequent @w{@kbd{C-x `}} commands
+@file{*compilation*} buffer, subsequent @w{@kbd{C-x `}} commands
 advance from there.  When @w{@kbd{C-x `}} finds no more error messages
 to visit, it signals an error.  @w{@kbd{C-u C-x `}} starts again from
 the beginning of the compilation buffer, and visits the first locus.
@@ -199,8 +199,8 @@ the beginning of the compilation buffer, and visits the first locus.
 through errors in the opposite direction.
 
   The @code{next-error} and @code{previous-error} commands don't just
-act on the errors or matches listed in @samp{*compilation*} and
-@samp{*grep*} buffers; they also know how to iterate through error or
+act on the errors or matches listed in @file{*compilation*} and
+@file{*grep*} buffers; they also know how to iterate through error or
 match lists produced by other commands, such as @kbd{M-x occur}
 (@pxref{Other Repeating Search}).  If you are already in a buffer
 containing error messages or matches, those are the ones that are
@@ -224,7 +224,7 @@ highlights the relevant source line.  The duration of this highlight
 is determined by the variable @code{next-error-highlight}.
 
 @vindex compilation-context-lines
-  If the @samp{*compilation*} buffer is shown in a window with a left
+  If the @file{*compilation*} buffer is shown in a window with a left
 fringe (@pxref{Fringes}), the locus-visiting commands put an arrow in
 the fringe, pointing to the current error message.  If the window has
 no left fringe, such as on a text-only terminal, these commands scroll
@@ -276,7 +276,7 @@ Names}).
 command, but specifies the option for a noninteractive shell.  This
 means, in particular, that the shell should start with no prompt.  If
 you find your usual shell prompt making an unsightly appearance in the
-@samp{*compilation*} buffer, it means you have made a mistake in your
+@file{*compilation*} buffer, it means you have made a mistake in your
 shell's init file by setting the prompt unconditionally.  (This init
 file may be named @file{.bashrc}, @file{.profile}, @file{.cshrc},
 @file{.shrc}, etc., depending on what shell you use.)  The shell init
@@ -339,14 +339,14 @@ mode (@pxref{Compilation Mode}).
 @item M-x grep
 @itemx M-x lgrep
 Run @command{grep} asynchronously under Emacs, listing matching lines in
-the buffer named @samp{*grep*}.
+the buffer named @file{*grep*}.
 @item M-x grep-find
 @itemx M-x find-grep
 @itemx M-x rgrep
 Run @command{grep} via @code{find}, and collect output in the
-@samp{*grep*} buffer.
+@file{*grep*} buffer.
 @item M-x zrgrep
-Run @code{zgrep} and collect output in the @samp{*grep*} buffer.
+Run @code{zgrep} and collect output in the @file{*grep*} buffer.
 @item M-x kill-grep
 Kill the running @command{grep} subprocess.
 @end table
@@ -369,7 +369,7 @@ can chain @command{grep} commands, like this:
 grep -nH -e foo *.el | grep bar | grep toto
 @end example
 
-  The output from @command{grep} goes in the @samp{*grep*} buffer.  You
+  The output from @command{grep} goes in the @file{*grep*} buffer.  You
 can find the corresponding lines in the original files using @w{@kbd{C-x
 `}}, @key{RET}, and so forth, just like compilation errors.
 
@@ -1506,14 +1506,14 @@ commands are used; its default is @code{t}.
 @section Lisp Interaction Buffers
 
 @findex lisp-interaction-mode
-  When Emacs starts up, it contains a buffer named @samp{*scratch*},
+  When Emacs starts up, it contains a buffer named @file{*scratch*},
 which is provided for evaluating Emacs Lisp expressions interactively.
 Its major mode is Lisp Interaction mode.  You can also enable Lisp
 Interaction mode by typing @kbd{M-x lisp-interaction-mode}.
 
 @findex eval-print-last-sexp
 @kindex C-j @r{(Lisp Interaction mode)}
-  In the @samp{*scratch*} buffer, and other Lisp Interaction mode
+  In the @file{*scratch*} buffer, and other Lisp Interaction mode
 buffers, @kbd{C-j} (@code{eval-print-last-sexp}) evaluates the Lisp
 expression before point, and inserts the value at point.  Thus, as you
 type expressions into the buffer followed by @kbd{C-j} after each
@@ -1522,7 +1522,7 @@ expressions and their values.  All other commands in Lisp Interaction
 mode are the same as in Emacs Lisp mode.
 
 @vindex initial-scratch-message
-  At startup, the @samp{*scratch*} buffer contains a short message, in
+  At startup, the @file{*scratch*} buffer contains a short message, in
 the form of a Lisp comment, that explains what it is for.  This
 message is controlled by the variable @code{initial-scratch-message},
 which should be either a string, or @code{nil} (which means to
@@ -1533,7 +1533,7 @@ suppress the message).
 interactively is to use Inferior Emacs Lisp mode, which provides an
 interface rather like Shell mode (@pxref{Shell Mode}) for evaluating
 Emacs Lisp expressions.  Type @kbd{M-x ielm} to create an
-@samp{*ielm*} buffer which uses this mode.  For more information, see
+@file{*ielm*} buffer which uses this mode.  For more information, see
 that command's documentation.
 
 @node External Lisp
@@ -1555,13 +1555,13 @@ whose names end in @file{.l}, @file{.lsp}, or @file{.lisp}.
 evaluated.  To begin an external Lisp session, type @kbd{M-x
 run-lisp}.  This runs the program named @command{lisp}, and sets it up
 so that both input and output go through an Emacs buffer named
-@samp{*inferior-lisp*}.  To change the name of the Lisp program run by
+@file{*inferior-lisp*}.  To change the name of the Lisp program run by
 @kbd{M-x run-lisp}, change the variable @code{inferior-lisp-program}.
 
-  The major mode for the @samp{*lisp*} buffer is Inferior Lisp mode,
+  The major mode for the @file{*lisp*} buffer is Inferior Lisp mode,
 which combines the characteristics of Lisp mode and Shell mode
 (@pxref{Shell Mode}).  To send input to the Lisp session, go to the
-end of the @samp{*lisp*} buffer and type the input, followed by
+end of the @file{*lisp*} buffer and type the input, followed by
 @key{RET}.  Terminal output from the Lisp session is automatically
 inserted in the buffer.
 
@@ -1572,7 +1572,7 @@ inserted in the buffer.
 buffer to a Lisp session that you had started with @kbd{M-x run-lisp}.
 The expression sent is the top-level Lisp expression at or following
 point.  The resulting value goes as usual into the
-@samp{*inferior-lisp*} buffer.  Note that the effect of @kbd{C-M-x} in
+@file{*inferior-lisp*} buffer.  Note that the effect of @kbd{C-M-x} in
 Lisp mode is thus very similar to its effect in Emacs Lisp mode
 (@pxref{Lisp Eval}), except that the expression is sent to a different
 Lisp environment instead of being evaluated in Emacs.
@@ -1587,4 +1587,4 @@ to a Scheme subprocess, are very similar.  Scheme source files are
 edited in Scheme mode, which can be explicitly enabled with @kbd{M-x
 scheme-mode}.  You can initiate a Scheme session by typing @kbd{M-x
 run-scheme} (the buffer for interacting with Scheme is named
-@samp{*scheme*}), and send expressions to it by typing @kbd{C-M-x}.
+@file{*scheme*}), and send expressions to it by typing @kbd{C-M-x}.

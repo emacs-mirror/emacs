@@ -102,7 +102,7 @@ to (@code{describe-key-briefly}).  Here @kbd{c} stands for
 Display the commands and variables whose documentation matches
 @var{topics} (@code{apropos-documentation}).
 @item C-h e
-Display the @code{*Messages*} buffer
+Display the @file{*Messages*} buffer
 (@code{view-echo-area-messages}).
 @item C-h f @var{function} @key{RET}
 Display documentation on the Lisp function named @var{function}
@@ -168,7 +168,7 @@ programming language you are editing (@code{info-lookup-symbol}).
 @item C-h .
 Display the help message for a special text area, if point is in one
 (@code{display-local-help}).  (These include, for example, links in
-@samp{*Help*} buffers.)
+@file{*Help*} buffers.)
 @end table
 
 @node Key Help
@@ -519,7 +519,7 @@ use @kbd{C-h c} to find out what they do.
 @findex view-echo-area-messages
   To review recent echo area messages, use @kbd{C-h e}
 (@code{view-echo-area-messages}).  This displays the buffer
-@code{*Messages*}, where those messages are kept.
+@file{*Messages*}, where those messages are kept.
 
 @kindex C-h m
 @findex describe-mode

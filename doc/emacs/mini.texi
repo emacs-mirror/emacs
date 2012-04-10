@@ -197,7 +197,7 @@ set the variable @code{enable-recursive-minibuffers} to @code{t}.
 
 @findex minibuffer-inactive-mode
   When not active, the minibuffer is in @code{minibuffer-inactive-mode},
-and clicking @kbd{Mouse-1} there shows the @samp{*Messages*} buffer.
+and clicking @kbd{Mouse-1} there shows the @file{*Messages*} buffer.
 If you use a dedicated frame for minibuffers, Emacs also recognizes
 certain keys there, for example @kbd{n} to make a new frame.
 

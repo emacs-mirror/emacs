@@ -1,5 +1,12 @@
 2012-04-10  Glenn Morris  <rgm@gnu.org>
 
+	* abbrevs.texi, arevert-xtra.texi, buffers.texi, building.texi:
+	* cmdargs.texi, custom.texi, entering.texi, files.texi, frames.texi:
+	* glossary.texi, help.texi, macos.texi, maintaining.texi, mini.texi:
+	* misc.texi, package.texi, programs.texi, screen.texi, search.texi:
+	* sending.texi, text.texi, trouble.texi:
+	Use @file for buffers, per the Texinfo manual.
+
 	* entering.texi (Entering Emacs):
 	Do not mention initial-buffer-choice = t.
 
