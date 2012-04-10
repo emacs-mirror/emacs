@@ -1,5 +1,10 @@
 2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* image.el (put-image): Return the overlay created instead of the
+	optional input string (bug#7834).  Note that this may break code
+	that is (for some reason or other) depending on `put-image'
+	returning the string.
+
 	* mouse-sel.el (mouse-sel-mode): Mark as obsolete (bug#6174).
 
 	* simple.el (zap-to-char): Allow zapping using input methods
