@@ -1,5 +1,10 @@
 2012-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/quail.el: Use dolist and simplify.
+	(quail-define-package, quail-update-keyboard-layout)
+	(quail-define-rules): Use dolist.
+	(quail-insert-kbd-layout, quail-get-translation): CSE.
+
 	* tmm.el: Use dolist, remove left over hook.
 	(tmm-prompt, tmm-define-keys, tmm-shortcut, tmm-get-keybind):
 	Use dolist.
