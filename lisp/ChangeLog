@@ -1,3 +1,7 @@
+2012-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el: Add more missing Latin case pairs.
+
 2012-04-10  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* international/characters.el: Recover lost case pairs.

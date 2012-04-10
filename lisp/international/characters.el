@@ -621,6 +621,12 @@ with L, LRE, or LRO Unicode bidi character type.")
   (set-case-syntax-pair ?ǲ ?ǳ tbl)
   (set-case-syntax-pair ?Ƕ ?ƕ tbl)
   (set-case-syntax-pair ?Ƿ ?ƿ tbl)
+  (set-case-syntax-pair ?Ⱥ ?ⱥ tbl)
+  (set-case-syntax-pair ?Ƚ ?ƚ tbl)
+  (set-case-syntax-pair ?Ⱦ ?ⱦ tbl)
+  (set-case-syntax-pair ?Ƀ ?ƀ tbl)
+  (set-case-syntax-pair ?Ʉ ?ʉ tbl)
+  (set-case-syntax-pair ?Ʌ ?ʌ tbl)
 
   ;; Latin Extended Additional
   (modify-category-entry '(#x1e00 . #x1ef9) ?l)
