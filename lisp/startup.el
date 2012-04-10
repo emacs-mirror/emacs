@@ -2341,6 +2341,7 @@ A fancy display is used on graphic displays, normal otherwise."
     (if (or inhibit-startup-screen
 	    initial-buffer-choice
 	    noninteractive
+            (daemonp)
 	    inhibit-x-resources)
 
 	;; Not displaying a startup screen.  If 3 or more files
@@ -2383,9 +2384,7 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; (with-no-warnings
       ;; 	(setq menubar-bindings-done t))
 
-      (if (> file-count 0)
-	  (display-startup-screen t)
-	(display-startup-screen nil)))))
+      (display-startup-screen (> file-count 0)))))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."

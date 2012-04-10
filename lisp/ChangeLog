@@ -1,3 +1,7 @@
+2012-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (command-line-1): Inhibit splash from daemon (bug#10996).
+
 2012-04-10  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* international/characters.el: Fix sorting.
