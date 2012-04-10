@@ -1,3 +1,8 @@
+2012-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	Use derived-mode-p.  Run the diff asynchronously.
+
 2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* obsolete/mouse-sel.el: Add an Obsolete-since header.
@@ -10,13 +15,13 @@
 
 2012-04-10  Nathan Weizenbaum  <nweiz@google.com>
 
-	* progmodes/python.el (python-fill-paragraph): Make
-	python-fill-region in a multiline string work when font-lock is
+	* progmodes/python.el (python-fill-paragraph):
+	Make python-fill-region in a multiline string work when font-lock is
 	disabled (bug#7018).
 
 2012-04-10  Laimonas Vėbra  <laimonas.vebra@gmail.com>  (tiny change)
 
-	* language/european.el (cp775): Added oem/legacy (en)coding on
+	* language/european.el (cp775): Add oem/legacy (en)coding on
 	DOS/MS Windows for the Baltic languages. There are still plenty of
 	texts written in this encoding/codepage (bug#6519).
 
@@ -27,7 +32,7 @@
 
 2012-04-10  Florian Adamsky  <florian@adamsky.it>  (tiny change)
 
-	* recentf.el (recentf-dialog-mode-map): Added two keybindings for
+	* recentf.el (recentf-dialog-mode-map): Add two keybindings for
 	next-line "n" and previous-line "p" in order to make recentf more
 	consistent with ibuffer, dired or org-mode (bug#9387).
 
