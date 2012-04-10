@@ -762,9 +762,6 @@ write its autoloads into the specified file instead."
 (define-obsolete-function-alias 'update-autoloads-from-directories
     'update-directory-autoloads "22.1")
 
-(defvar autoload-make-program (or (getenv "MAKE") "make")
-  "Name of the make program in use during the Emacs build process.")
-
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
