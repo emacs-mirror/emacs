@@ -1,5 +1,10 @@
 2012-04-10  Glenn Morris  <rgm@gnu.org>
 
+	* buffers.texi, compile.texi, customize.texi, debugging.texi:
+	* display.texi, edebug.texi, eval.texi, help.texi, intro.texi:
+	* keymaps.texi, minibuf.texi, modes.texi, os.texi, processes.texi:
+	* text.texi: Use @file for buffers, per the Texinfo manual.
+
 	* compile.texi (Compiler Errors): Add missing space in buffer name.
 
 2012-04-08  Chong Yidong  <cyd@gnu.org>

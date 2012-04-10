@@ -170,7 +170,7 @@ measurement of how long it took.
 It runs the normal hook @code{after-init-hook}.
 
 @item
-If the buffer @samp{*scratch*} exists and is still in Fundamental mode
+If the buffer @file{*scratch*} exists and is still in Fundamental mode
 (as it should be by default), it sets its major mode according to
 @code{initial-major-mode}.
 
@@ -196,7 +196,7 @@ It now exits if the option @code{--batch} was specified.
 
 @item
 If @code{initial-buffer-choice} is a string, it visits the file with
-that name.  If the @samp{*scratch*} buffer exists and is
+that name.  If the @file{*scratch*} buffer exists and is
 empty, it inserts @code{initial-scratch-message} into that buffer.
 
 @c To make things nice and confusing, the next three items can be
@@ -254,7 +254,7 @@ The following options affect some aspects of the startup sequence.
 
 @defopt inhibit-startup-screen
 This variable, if non-@code{nil}, inhibits the startup screen.  In
-that case, Emacs typically displays the @samp{*scratch*} buffer; but
+that case, Emacs typically displays the @file{*scratch*} buffer; but
 see @code{initial-buffer-choice}, below.
 
 Do not set this variable in the init file of a new user, or in a way
@@ -274,7 +274,7 @@ startup screen.
 @ignore
 @c I do not think this should be mentioned.  AFAICS it is just a dodge
 @c around inhibit-startup-screen not being settable on a site-wide basis.
-If its value is @code{t}, Emacs displays the @samp{*scratch*} buffer.
+If its value is @code{t}, Emacs displays the @file{*scratch*} buffer.
 @end ignore
 @end defopt
 
@@ -299,8 +299,8 @@ file will not inhibit the message for someone else.
 
 @defopt initial-scratch-message
 This variable, if non-@code{nil}, should be a string, which is
-inserted into the @samp{*scratch*} buffer when Emacs starts up.  If it
-is @code{nil}, the @samp{*scratch*} buffer is empty.
+inserted into the @file{*scratch*} buffer when Emacs starts up.  If it
+is @code{nil}, the @file{*scratch*} buffer is empty.
 @end defopt
 
 @noindent
@@ -2233,7 +2233,7 @@ non-@code{nil}, Emacs tells the session manager to cancel the
 shutdown.
 @end defvar
 
-Here is an example that just inserts some text into @samp{*scratch*} when
+Here is an example that just inserts some text into @file{*scratch*} when
 Emacs is restarted by the session manager.
 
 @example
