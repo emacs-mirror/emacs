@@ -77,9 +77,13 @@ information about @file{site-start.el}.}
 by setting the variable @code{initial-buffer-choice} to a
 non-@code{nil} value.  (In that case, even if you specify one or more
 files on the command line, Emacs opens but does not display them.)
-The value of @code{initial-buffer-choice} can be either the name of
-the desired file or directory, or @code{t}, which means to display the
-@samp{*scratch*} buffer.
+The value of @code{initial-buffer-choice} should be the name of
+the desired file or directory.
+@ignore
+@c I do not think this should be mentioned.  AFAICS it is just a dodge
+@c around inhibit-startup-screen not being settable on a site-wide basis.
+or @code{t}, which means to display the @samp{*scratch*} buffer.
+@end ignore
 
 @node Exiting, Basic, Entering Emacs, Top
 @section Exiting Emacs
