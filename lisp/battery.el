@@ -344,14 +344,15 @@ The following %-sequences are provided:
 	       (setq charging-state (match-string 1)))
 	  (when (re-search-forward "present rate: +\\([0-9]+\\) \\(m[AW]\\)$"
 				   nil t)
-	    (setq rate (+ (or rate 0) (string-to-number (match-string 1)))
-		  rate-type (or (and rate-type
+	    (setq rate (+ (or rate 0) (string-to-number (match-string 1))))
+	    (when (> rate 0)
+	      (setq rate-type (or (and rate-type
 				     (if (string= rate-type (match-string 2))
 					 rate-type
 				       (error
 					"Inconsistent rate types (%s vs. %s)"
 					rate-type (match-string 2))))
-				(match-string 2))))
+				  (match-string 2)))))
 	  (when (re-search-forward "remaining capacity: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
 	    (setq capacity

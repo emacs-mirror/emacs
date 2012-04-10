@@ -1,3 +1,10 @@
+2012-04-10  Dan Nicolaescu  <dann@gnu.org>
+
+	* battery.el (battery-linux-proc-acpi): Only one battery is
+	discharged at a time, but that seems to confuse battery.el when
+	computing `rate-type' for the battery not being discharged
+	(bug#10332).
+
 2012-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-make-program): Remove, unused.
