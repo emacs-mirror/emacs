@@ -1959,7 +1959,7 @@ the string's indentation."
 		;; paragraph in a multi-line string properly, so narrow
 		;; to the string and then fill around (the end of) the
 		;; current line.
-		((eq t (nth 3 syntax))	; in fenced string
+		((nth 3 syntax)	; in fenced string
 		 (goto-char (nth 8 syntax)) ; string start
 		 (setq start (line-beginning-position))
 		 (setq end (condition-case () ; for unbalanced quotes
