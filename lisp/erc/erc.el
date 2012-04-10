@@ -3646,6 +3646,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
 				     'start-open t ; XEmacs
 				     'rear-nonsticky t ; Emacs
 				     'erc-prompt t
+				     'field t
 				     'front-sticky t
 				     'read-only t))
 	(erc-put-text-property 0 (1- (length prompt))
