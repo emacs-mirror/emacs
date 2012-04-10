@@ -22430,6 +22430,16 @@ if test -f $srcdir/${opt_makefile}.in; then
 
 fi
 
+
+opt_makefile=admin/unidata/Makefile
+
+if test -f $srcdir/${opt_makefile}.in; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+  ac_config_files="$ac_config_files admin/unidata/Makefile"
+
+fi
+
+
 SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`
 
 
@@ -23259,6 +23269,7 @@ do
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
     "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
+    "admin/unidata/Makefile") CONFIG_FILES="$CONFIG_FILES admin/unidata/Makefile" ;;
     "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;
     "epaths") CONFIG_COMMANDS="$CONFIG_COMMANDS epaths" ;;
     "gdbinit") CONFIG_COMMANDS="$CONFIG_COMMANDS gdbinit" ;;
