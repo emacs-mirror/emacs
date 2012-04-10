@@ -1,3 +1,7 @@
+2012-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-set-class-variables): Doc fix.
+
 2012-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el: Add set-case-syntax-pair call for
