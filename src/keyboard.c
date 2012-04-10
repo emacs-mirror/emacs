@@ -10213,7 +10213,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
 
   memset (keybuf, 0, sizeof keybuf);
   GCPRO1 (keybuf[0]);
-  gcpro1.nvars = (sizeof keybuf/sizeof (keybuf[0]));
+  gcpro1.nvars = (sizeof keybuf / sizeof (keybuf[0]));
 
   if (NILP (continue_echo))
     {
@@ -10227,7 +10227,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
     cancel_hourglass ();
 #endif
 
-  i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
+  i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
 			 ! NILP (can_return_switch_frame), 0);
 
@@ -10918,6 +10918,11 @@ interrupt_signal (int signalnum)	/* If we don't have an argument, some */
   errno = old_errno;
 }
 
+/* If Emacs is stuck because `inhibit-quit' is true, then keep track
+   of the number of times C-g has been requested.  If C-g is pressed
+   enough times, then quit anyway.  See bug#6585.  */
+static int force_quit_count;
+
 /* This routine is called at interrupt level in response to C-g.
 
    It is called from the SIGINT handler or kbd_buffer_store_event.
@@ -11036,8 +11041,16 @@ handle_interrupt (void)
 	  UNGCPRO;
 	}
       else
-	/* Else request quit when it's safe */
-	Vquit_flag = Qt;
+        { /* Else request quit when it's safe.  */
+          if (NILP (Vquit_flag))
+	    force_quit_count = 0;
+	  if (++force_quit_count == 3)
+            {
+              immediate_quit = 1;
+              Vinhibit_quit = Qnil;
+            }
+          Vquit_flag = Qt;
+        }
     }
 
 /* TODO: The longjmp in this call throws the NS event loop integration off,
