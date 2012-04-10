@@ -1,3 +1,8 @@
+2012-04-10  Sébastien Gross  <seb@chezwam.org>  (tiny change)
+
+	* progmodes/hideshow.el (hs-hide-all): Don't infloop on comments
+	that start in the middle of the line (bug#10496).
+
 2012-04-10  Dan Nicolaescu  <dann@gnu.org>
 
 	* battery.el (battery-linux-proc-acpi): Only one battery is
