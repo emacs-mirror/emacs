@@ -1,3 +1,7 @@
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* obsolete/mouse-sel.el: Add an Obsolete-since header.
+
 2012-04-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* misc.el: Display absolute path of loaded DLLs (bug#10424).

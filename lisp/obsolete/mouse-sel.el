@@ -4,6 +4,7 @@
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse
+;; Obsolete-since: 24.2
 
 ;; This file is part of GNU Emacs.
 
