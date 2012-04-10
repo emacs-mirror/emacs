@@ -46,6 +46,10 @@ been adding them there, put them somewhere else, eg site-lisp.
 * Editing Changes in Emacs 24.2
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
+
+** erc will look up server/channel names via auth-source and use the
+   channel keys found, if any.
+
 
 * New Modes and Packages in Emacs 24.2
 

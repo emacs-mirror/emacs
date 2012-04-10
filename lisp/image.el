@@ -412,7 +412,8 @@ means display it in the right marginal area."
 	  (prop (if (null area) image (list (list 'margin area) image))))
       (put-text-property 0 (length string) 'display prop string)
       (overlay-put overlay 'put-image t)
-      (overlay-put overlay 'before-string string))))
+      (overlay-put overlay 'before-string string)
+      overlay)))
 
 
 ;;;###autoload

@@ -25,6 +25,7 @@
 
 (require 'url-util)
 (require 'url-parse)
+(require 'url-domsuf)
 
 (eval-when-compile (require 'cl))	; defstruct
 
@@ -211,14 +212,6 @@ telling Microsoft that."
 	(concat retval "\r\n")
       "")))
 
-(defvar url-cookie-two-dot-domains
-  (concat "\\.\\("
-   (mapconcat 'identity (list "com" "edu" "net" "org" "gov" "mil" "int")
-	      "\\|")
-   "\\)$")
-  "A regexp of top level domains that only require two matching
-'.'s in the domain name in order to set a cookie.")
-
 (defcustom url-cookie-trusted-urls nil
   "A list of regular expressions matching URLs to always accept cookies from."
   :type '(repeat regexp)
@@ -230,30 +223,18 @@ telling Microsoft that."
   :group 'url-cookie)
 
 (defun url-cookie-host-can-set-p (host domain)
-  (let ((numdots 0)
-	(last nil)
-	(case-fold-search t)
-	(mindots 3))
-    (while (setq last (string-match "\\." domain last))
-      (setq numdots (1+ numdots)
-	    last (1+ last)))
-    (if (string-match url-cookie-two-dot-domains domain)
-	(setq mindots 2))
-    (cond
-     ((string= host domain)		; Apparently netscape lets you do this
-      t)
-     ((>= numdots mindots)		; We have enough dots in domain name
-      ;; Need to check and make sure the host is actually _in_ the
-      ;; domain it wants to set a cookie for though.
-      (string-match (concat (regexp-quote
-                             ;; Remove the dot from wildcard domains
-                             ;; before matching.
-                             (if (eq ?. (aref domain 0))
-                                 (substring domain 1)
-                               domain))
-                            "$") host))
-     (t
-      nil))))
+  (let ((last nil)
+	(case-fold-search t))
+    (if (string= host domain)	; Apparently netscape lets you do this
+	t
+      ;; Remove the dot from wildcard domains before matching.
+      (when (eq ?. (aref domain 0))
+	(setq domain (substring domain 1)))
+      (and (url-domsuf-cookie-allowed-p domain)
+	   ;; Need to check and make sure the host is actually _in_ the
+	   ;; domain it wants to set a cookie for though.
+	   (string-match (concat (regexp-quote domain)
+				 "$") host)))))
 
 (defun url-cookie-handle-set-cookie (str)
   (setq url-cookies-changed-since-last-save t)

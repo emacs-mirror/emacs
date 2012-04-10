@@ -56,6 +56,7 @@ doc/**/*.pdf
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf
 info/*
+!info/dir
 admin/unidata/unidata.txt
 build-aux/compile
 build-aux/config.guess

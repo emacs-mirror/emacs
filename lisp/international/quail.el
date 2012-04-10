@@ -486,19 +486,15 @@ non-Quail commands."
 	  (setq translation-keymap (copy-keymap
 				    (if simple quail-simple-translation-keymap
 				      quail-translation-keymap)))
-	  (while translation-keys
-	    (define-key translation-keymap
-	      (car (car translation-keys)) (cdr (car translation-keys)))
-	    (setq translation-keys (cdr translation-keys))))
+	  (dolist (trans translation-keys)
+	    (define-key translation-keymap (car trans) (cdr trans))))
       (setq translation-keymap
 	    (if simple quail-simple-translation-keymap
 	      quail-translation-keymap)))
     (when conversion-keys
       (setq conversion-keymap (copy-keymap quail-conversion-keymap))
-      (while conversion-keys
-	(define-key conversion-keymap
-	  (car (car conversion-keys)) (cdr (car conversion-keys)))
-	(setq conversion-keys (cdr conversion-keys))))
+      (dolist (conv conversion-keys)
+	(define-key conversion-keymap (car conv) (cdr conv))))
     (quail-add-package
      (list name title (list nil) guidance (or docstring "")
 	   translation-keymap
@@ -720,12 +716,11 @@ The command `quail-set-keyboard-layout' usually sets this variable."
       (setq quail-keyboard-layout-substitution subst-list)
       ;; If there are additional key locations, map them to missing
       ;; key locations.
-      (while missing-list
+      (dolist (missing missing-list)
 	(while (and subst-list (cdr (car subst-list)))
 	  (setq subst-list (cdr subst-list)))
 	(if subst-list
-	    (setcdr (car subst-list) (car missing-list)))
-	(setq missing-list (cdr missing-list))))))
+	    (setcdr (car subst-list) missing))))))
 
 (defcustom quail-keyboard-layout-type "standard"
   "Type of keyboard layout used in Quail base input method.
@@ -806,9 +801,10 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(if translation
 	    (progn
 	      (if (consp translation)
-		  (if (> (length (cdr translation)) 0)
-		      (setq translation (aref (cdr translation) 0))
-		    (setq translation " ")))
+		  (setq translation
+                        (if (> (length (cdr translation)) 0)
+                            (aref (cdr translation) 0)
+                          " ")))
 	      (setq done-list (cons translation done-list)))
 	  (setq translation (aref kbd-layout i)))
 	(aset layout i translation))
@@ -834,17 +830,19 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(if (< (if (stringp lower) (string-width lower) (char-width lower)) 2)
 	    (insert " "))
 	(if (characterp lower)
-	    (if (eq (get-char-code-property lower 'general-category) 'Mn)
-		;; Pad the left and right of non-spacing characters.
-		(setq lower (compose-string (string lower) 0 1
-					    (format "\t%c\t" lower)))
-	      (setq lower (string lower))))
+            (setq lower
+                  (if (eq (get-char-code-property lower 'general-category) 'Mn)
+                      ;; Pad the left and right of non-spacing characters.
+                      (compose-string (string lower) 0 1
+                                      (format "\t%c\t" lower))
+                    (string lower))))
 	(if (characterp upper)
-	    (if (eq (get-char-code-property upper 'general-category) 'Mn)
-		;; Pad the left and right of non-spacing characters.
-		(setq upper (compose-string (string upper) 0 1
-					    (format "\t%c\t" upper)))
-	      (setq upper (string upper))))
+	    (setq upper
+                  (if (eq (get-char-code-property upper 'general-category) 'Mn)
+                      ;; Pad the left and right of non-spacing characters.
+                      (compose-string (string upper) 0 1
+                                      (format "\t%c\t" upper))
+                    (string upper))))
 	(insert (bidi-string-mark-left-to-right lower)
 		(propertize " " 'invisible t)
 		(bidi-string-mark-left-to-right upper))
@@ -1032,8 +1030,8 @@ the following annotation types are supported.
       (let ((map (list nil))
 	    (decode-map (if (not no-decode-map) (list 'decode-map)))
 	    key trans)
-	(while l
-	  (setq key (car (car l)) trans (car (cdr (car l))) l (cdr l))
+	(dolist (el l)
+	  (setq key (car el) trans (car (cdr el)))
 	  (quail-defrule-internal key trans map t decode-map props))
 	`(if (prog1 (quail-decode-map)
 	       (quail-install-map ',map))
@@ -1201,7 +1199,7 @@ function `quail-define-rules' for the detail."
 		(if (stringp trans)
 		    (setq trans (string-to-vector trans))))
               (let ((new (quail-vunion prevchars trans)))
-	      (setq trans
+                (setq trans
                       (if (equal new prevchars)
                           ;; Nothing to change, get back to orig value.
                           prev
@@ -1215,10 +1213,8 @@ where VECTOR is a vector of candidates (character or string) for
 the translation, and INDEX points into VECTOR to specify the currently
 selected translation."
   (if (and def (symbolp def))
-      (if (functionp def)
-	  ;; DEF is a symbol of a function which returns valid translation.
-	  (setq def (funcall def key len))
-	(setq def nil)))
+      ;; DEF is a symbol of a function which returns valid translation.
+      (setq def (if (functionp def) (funcall def key len))))
   (if (and (consp def) (not (vectorp (cdr def))))
       (setq def (car def)))
 

@@ -5816,7 +5816,15 @@ w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
             CHECK_STRING_CAR (dlls);
             if ((library_dll = LoadLibrary (SDATA (XCAR (dlls)))))
               {
-                found = XCAR (dlls);
+                char name[MAX_PATH];
+                DWORD len;
+
+                len = GetModuleFileNameA (library_dll, name, sizeof (name));
+                found = Fcons (XCAR (dlls),
+                               (len > 0)
+                               /* Possibly truncated */
+                               ? make_specified_string (name, -1, len, 1)
+                               : Qnil);
                 break;
               }
           }

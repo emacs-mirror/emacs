@@ -307,11 +307,11 @@ info-nmake:
 	$(MAKE) $(MFLAGS) info
 	cd $(MAKEDIR)
 
-info-gmake:
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/emacs info
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/misc info
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispref info
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispintro info
+info-gmake: emacs misc lispref lispintro
+
+emacs misc lispref lispintro:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/$@ info
+
 #
 # Maintenance
 #

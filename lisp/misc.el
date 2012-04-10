@@ -138,6 +138,19 @@ variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'."
 (defvar list-dynamic-libraries--loaded-only-p)
 (make-variable-buffer-local 'list-dynamic-libraries--loaded-only-p)
 
+(defun list-dynamic-libraries--loaded (from)
+  "Compute the \"Loaded from\" column.
+Internal use only."
+  (if from
+      (let ((name (car from))
+            (path (or (cdr from) "<unknown>")))
+        ;; This is a roundabout way to change the tooltip without
+        ;; having to replace the default printer function
+        (propertize name
+                    'display (propertize name
+                                         'help-echo (concat "Loaded from: " path))))
+    ""))
+
 (defun list-dynamic-libraries--refresh ()
   "Recompute the list of dynamic libraries.
 Internal use only."
@@ -159,7 +172,7 @@ Internal use only."
       (when (or from
                 (not list-dynamic-libraries--loaded-only-p))
         (push (list id (vector (symbol-name id)
-                               (or from "")
+                               (list-dynamic-libraries--loaded from)
                                (mapconcat 'identity (cdr lib) ", ")))
               tabulated-list-entries)))))
 

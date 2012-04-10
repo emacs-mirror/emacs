@@ -1,7 +1,76 @@
+2012-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-make-program): Remove, unused.
+
+	* international/quail.el: Use dolist and simplify.
+	(quail-define-package, quail-update-keyboard-layout)
+	(quail-define-rules): Use dolist.
+	(quail-insert-kbd-layout, quail-get-translation): CSE.
+
+	* tmm.el: Use dolist, remove left over hook.
+	(tmm-prompt, tmm-define-keys, tmm-shortcut, tmm-get-keybind):
+	Use dolist.
+	(calendar-load-hook): Don't mess with it.
+
+	* vc/vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	Use derived-mode-p.  Run the diff asynchronously.
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* obsolete/mouse-sel.el: Add an Obsolete-since header.
+
+2012-04-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* misc.el: Display absolute path of loaded DLLs (bug#10424).
+	(list-dynamic-libraries--loaded): New function.
+	(list-dynamic-libraries--refresh): Use it.
+
+2012-04-10  Nathan Weizenbaum  <nweiz@google.com>
+
+	* progmodes/python.el (python-fill-paragraph):
+	Make python-fill-region in a multiline string work when font-lock is
+	disabled (bug#7018).
+
+2012-04-10  Laimonas Vėbra  <laimonas.vebra@gmail.com>  (tiny change)
+
+	* language/european.el (cp775): Add oem/legacy (en)coding on
+	DOS/MS Windows for the Baltic languages. There are still plenty of
+	texts written in this encoding/codepage (bug#6519).
+
+2012-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (eol-mnemonic-unix, eol-mnemonic-dos, eol-mnemonic-mac):
+	Add :standard values, reducing "rogue" customs in emacs -Q a bit more.
+
+2012-04-10  Florian Adamsky  <florian@adamsky.it>  (tiny change)
+
+	* recentf.el (recentf-dialog-mode-map): Add two keybindings for
+	next-line "n" and previous-line "p" in order to make recentf more
+	consistent with ibuffer, dired or org-mode (bug#9387).
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.el (put-image): Return the overlay created instead of the
+	optional input string (bug#7834).  Note that this may break code
+	that is (for some reason or other) depending on `put-image'
+	returning the string.
+
+	* mouse-sel.el (mouse-sel-mode): Mark as obsolete (bug#6174).
+
+	* simple.el (zap-to-char): Allow zapping using input methods
+	(bug#1580).
+
+	* textmodes/fill.el (fill-region): Leave point and mark where they
+	were before filling (bug#5399).
+
+2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-bzr-get-version):
+	Handle lightweight checkouts of local branches.
+
 2012-04-09  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* international/characters.el: Recover lost case pairs.
-	(Bug#11209)
+	* international/characters.el: Recover lost case pairs.  (Bug#11209)
 
 2012-04-09  Chong Yidong  <cyd@gnu.org>
 
