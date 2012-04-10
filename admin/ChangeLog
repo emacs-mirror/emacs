@@ -1,5 +1,7 @@
 2012-04-10  Glenn Morris  <rgm@gnu.org>
 
+	* bzrmerge.el (bzrmerge-skip-regexp): Add "from trunk".
+
 	* unidata/Makefile.in: Add FSF copyright.
 	Make it use autoconf features, and work for out-of-tree builds.
 
