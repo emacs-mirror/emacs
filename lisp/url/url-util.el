@@ -308,13 +308,11 @@ Will not do anything if `url-show-status' is nil."
 ;;     str))
 
 ;;;###autoload
-(defun url-unhex-string (str &optional allow-newlines coding-system)
+(defun url-unhex-string (str &optional allow-newlines)
   "Remove %XX embedded spaces, etc in a URL.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
 decoding of carriage returns and line feeds in the string, which is normally
-forbidden in URL encoding.
-If CODING-SYSTEM is non-nil, interpret the unhexed string as
-being encoded in that coding system."
+forbidden in URL encoding."
   (setq str (or str ""))
   (let ((tmp "")
 	(case-fold-search t))
@@ -333,9 +331,7 @@ being encoded in that coding system."
 		    (t (byte-to-string code))))
 	      str (substring str (match-end 0)))))
     (setq tmp (concat tmp str))
-    (if coding-system
-	(decode-coding-string tmp coding-system)
-      tmp)))
+    tmp))
 
 (defconst url-unreserved-chars
   '(
