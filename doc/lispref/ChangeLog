@@ -1,3 +1,7 @@
+2012-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* compile.texi (Compiler Errors): Add missing space in buffer name.
+
 2012-04-08  Chong Yidong  <cyd@gnu.org>
 
 	* processes.texi (Query Before Exit): Remove obsolete function
