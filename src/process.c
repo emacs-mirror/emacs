@@ -640,7 +640,10 @@ make_process (Lisp_Object name)
 
 #ifdef HAVE_GNUTLS
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
+  /* Default log level.  */
   p->gnutls_log_level = 0;
+  /* GnuTLS handshakes attempted for this connection.  */
+  p->gnutls_handshakes_tried = 0;
   p->gnutls_p = 0;
   p->gnutls_state = NULL;
   p->gnutls_x509_cred = NULL;

@@ -247,16 +247,25 @@ init_gnutls_functions (Lisp_Object libraries)
 #endif /* !WINDOWSNT */
 
 
+/* Function to log a simple message.  */
 static void
 gnutls_log_function (int level, const char* string)
 {
   message ("gnutls.c: [%d] %s", level, string);
 }
 
+/* Function to log a message and a string.  */
 static void
 gnutls_log_function2 (int level, const char* string, const char* extra)
 {
   message ("gnutls.c: [%d] %s %s", level, string, extra);
+}
+
+/* Function to log a message and an integer.  */
+static void
+gnutls_log_function2i (int level, const char* string, int extra)
+{
+  message ("gnutls.c: [%d] %s %d", level, string, extra);
 }
 
 static int
@@ -399,10 +408,25 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
   ssize_t rtnval;
   gnutls_session_t state = proc->gnutls_state;
 
+  int log_level = proc->gnutls_log_level;
+
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
     {
-      emacs_gnutls_handshake (proc);
-      return -1;
+      /* If the handshake count is under the limit, try the handshake
+         again and increment the handshake count.  This count is kept
+         per process (connection), not globally.  */
+      if (proc->gnutls_handshakes_tried < GNUTLS_EMACS_HANDSHAKES_LIMIT)
+        {
+          proc->gnutls_handshakes_tried++;
+          emacs_gnutls_handshake (proc);
+          GNUTLS_LOG2i (5, log_level, "Retried handshake", 
+                        proc->gnutls_handshakes_tried);
+          return -1;
+        }
+
+      GNUTLS_LOG (2, log_level, "Giving up on handshake; resetting retries");
+      proc->gnutls_handshakes_tried = 0;
+      return 0;
     }
   rtnval = fn_gnutls_record_recv (state, buf, nbyte);
   if (rtnval >= 0)
