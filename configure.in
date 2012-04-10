@@ -3834,6 +3834,16 @@ if test -f $srcdir/${opt_makefile}.in; then
   AC_CONFIG_FILES([test/automated/Makefile])
 fi
 
+
+dnl admin/ may or may not be present.
+opt_makefile=admin/unidata/Makefile
+
+if test -f $srcdir/${opt_makefile}.in; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+  AC_CONFIG_FILES([admin/unidata/Makefile])
+fi
+
+
 SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`
 
 AC_SUBST(SUBDIR_MAKEFILES_IN)

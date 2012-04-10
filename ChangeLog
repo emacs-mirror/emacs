@@ -1,8 +1,10 @@
+2012-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Conditionally generate admin/unidata/Makefile.
+
 2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* info/dir (File):
-	* Makefile.in: Add emacs-gnutls to the info directory and the
-	INFO_FILES target.
+	* info/dir, Makefile.in (INFO_FILES): Add emacs-gnutls manual.
 
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 

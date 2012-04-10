@@ -1,4 +1,7 @@
 # Makefile -- Makefile to generate character property tables.
+
+# Copyright (C) 2012 Free Software Foundation, Inc.
+
 # Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
@@ -18,25 +21,33 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+SHELL = /bin/sh
 
-EMACS = ../../src/emacs
-DSTDIR = ../../lisp/international
-RUNEMACS = ${EMACS} -Q -batch
+srcdir = @srcdir@
+abs_builddir = @abs_builddir@
+top_srcdir = @top_srcdir@
+abs_top_builddir = @abs_top_builddir@
+
+EMACS = ${abs_top_builddir}/src/emacs
+DSTDIR = ${top_srcdir}/lisp/international
+emacs = ${EMACS} -batch --no-site-file --no-site-lisp
 
 all: ${DSTDIR}/charprop.el
 
 .el.elc:
-	${RUNEMACS} -batch -f batch-byte-compile $<
+	${emacs} -f batch-byte-compile $<
 
-unidata.txt: UnicodeData.txt
-	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < UnicodeData.txt > $@
+unidata.txt: ${srcdir}/UnicodeData.txt
+	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < ${srcdir}/UnicodeData.txt > $@
 
-${DSTDIR}/charprop.el: unidata-gen.elc unidata.txt
-	ELC=`/bin/pwd`/unidata-gen.elc; \
-	DATADIR=`/bin/pwd`; \
-	DATA=unidata.txt; \
-	cd ${DSTDIR}; \
-	${RUNEMACS} -batch --load $${ELC} -f unidata-gen-files $${DATADIR} $${DATA}
+${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.elc unidata.txt
+	cd ${DSTDIR} && ${emacs} -l ${srcdir}/unidata-gen \
+	  -f unidata-gen-files ${srcdir} ${abs_builddir}/unidata.txt
+
+## Like the above, but generate in PWD rather than lisp/international.
+charprop.el: ${srcdir}/unidata-gen.elc unidata.txt
+	${emacs} -l ${srcdir}/unidata-gen \
+	  -f unidata-gen-files ${srcdir} unidata.txt
 
 install: charprop.el
 	cp charprop.el ${DSTDIR}
@@ -46,4 +57,9 @@ clean:
 	if test -f charprop.el; then \
 	  rm -f `sed -n 's/^;; FILE: //p' < charprop.el`; \
 	fi
-	rm -f charprop.el unidata-gen.elc unidata.txt
+	rm -f charprop.el ${srcdir}/unidata-gen.elc unidata.txt
+
+distclean: clean
+	-rm -f ./Makefile
+
+maintainer-clean: distclean
