@@ -1,3 +1,9 @@
+2012-04-10  Florian Adamsky  <florian@adamsky.it>  (tiny change)
+
+	* recentf.el (recentf-dialog-mode-map): Added two keybindings for
+	next-line "n" and previous-line "p" in order to make recentf more
+	consistent with ibuffer, dired or org-mode (bug#9387).
+
 2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.el (put-image): Return the overlay created instead of the
