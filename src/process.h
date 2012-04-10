@@ -134,6 +134,7 @@ struct Lisp_Process
     gnutls_certificate_client_credentials gnutls_x509_cred;
     gnutls_anon_client_credentials_t gnutls_anon_cred;
     int gnutls_log_level;
+    int gnutls_handshakes_tried;
     int gnutls_p;
 #endif
 };

@@ -1,3 +1,18 @@
+2012-04-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* process.c (make_process):
+	* process.h: Add integer `gnutls_handshakes_tried' member to
+	process struct.
+
+	* gnutls.h: Add `GNUTLS_EMACS_HANDSHAKES_LIMIT' upper limit.  Add
+	convenience `GNUTLS_LOG2i' macro.
+
+	* gnutls.c (gnutls_log_function2i): Convenience log function.
+	(emacs_gnutls_read): Use new log functions,
+	`gnutls_handshakes_tried' process member, and
+	`GNUTLS_EMACS_HANDSHAKES_LIMIT' to limit the number of handshake
+	attempts per process (connection).
+
 2012-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (find_last_unchanged_at_beg_row): Don't consider a row
