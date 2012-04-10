@@ -1,5 +1,10 @@
 2012-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tmm.el: Use dolist, remove left over hook.
+	(tmm-prompt, tmm-define-keys, tmm-shortcut, tmm-get-keybind):
+	Use dolist.
+	(calendar-load-hook): Don't mess with it.
+
 	* vc/vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
 	Use derived-mode-p.  Run the diff asynchronously.
 
