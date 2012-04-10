@@ -64,7 +64,7 @@ constituent events; thus, @code{"\C-xl"} represents the key sequence
 @kbd{C-x l}.
 
   Key sequences containing function keys, mouse button events, or
-non-ASCII characters such as @kbd{C-=} or @kbd{H-a} cannot be
+non-@acronym{ASCII} characters such as @kbd{C-=} or @kbd{H-a} cannot be
 represented as strings; they have to be represented as vectors.
 
   In the vector representation, each element of the vector represents

@@ -352,7 +352,7 @@ following text.)
 
   In addition to the specific escape sequences for special important
 control characters, Emacs provides several types of escape syntax that
-you can use to specify non-ASCII text characters.
+you can use to specify non-@acronym{ASCII} text characters.
 
 @cindex unicode character escape
   You can specify characters by their Unicode values.

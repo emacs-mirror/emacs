@@ -1,5 +1,9 @@
 2012-04-10  Glenn Morris  <rgm@gnu.org>
 
+	* strings.texi (Case Tables):
+	* objects.texi (General Escape Syntax):
+	* keymaps.texi (Key Sequences): Use @acronym with "ASCII".
+
 	* buffers.texi, compile.texi, customize.texi, debugging.texi:
 	* display.texi, edebug.texi, eval.texi, help.texi, intro.texi:
 	* keymaps.texi, minibuf.texi, modes.texi, os.texi, processes.texi:
