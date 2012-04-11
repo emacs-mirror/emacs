@@ -1,5 +1,5 @@
 # Copyright (C) 1992, 1993 Lucid, Inc.
-# Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001-2012 Free Software Foundation, Inc.
 #
 # This file is part of the Lucid Widget Library.
 #
@@ -26,7 +26,6 @@ srcdir=@srcdir@
 VPATH=@srcdir@
 @SET_MAKE@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
-C_SWITCH_X_SYSTEM=@C_SWITCH_X_SYSTEM@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
@@ -53,7 +52,7 @@ OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 ## $(srcdir) is where the lwlib sources are.
 ## There are no generated lwlib files, hence no need for -I.
 ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
-  $(C_SWITCH_X_SYSTEM) $(C_SWITCH_MACHINE) \
+  $(C_SWITCH_MACHINE) \
   $(C_WARNINGS_SWITCH) $(PROFILING_CFLAGS) $(CFLAGS) \
   -DHAVE_CONFIG_H -Demacs -I../src \
   -I$(srcdir) -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib

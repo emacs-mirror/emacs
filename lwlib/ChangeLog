@@ -1,3 +1,8 @@
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (C_SWITCH_X_SYSTEM): Remove.
+	(ALL_CFLAGS): Remove C_SWITCH_X_SYSTEM.
+
 2011-10-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lwlib-Xaw.c (openFont, xaw_destroy_instance): Replace free with
@@ -1756,7 +1761,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1995-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

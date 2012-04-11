@@ -15,7 +15,7 @@
 ## without express or implied warranty.
 
 
-## Copyright (C) 2001-2012  Free Software Foundation, Inc.
+## Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -45,7 +45,6 @@
 srcdir=@srcdir@
 VPATH=@srcdir@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
-C_SWITCH_X_SYSTEM=@C_SWITCH_X_SYSTEM@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
@@ -88,7 +87,7 @@ OBJS =  Activate.o \
 all:: libXMenu11.a
 
 ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
-  $(C_SWITCH_X_SITE) $(C_SWITCH_X_SYSTEM) \
+  $(C_SWITCH_X_SITE) \
   ${C_WARNINGS_SWITCH} ${PROFILING_CFLAGS} \
   $(CPPFLAGS) $(CFLAGS) -DEMACS_BITMAP_FILES \
   -I../src -I${srcdir} -I${srcdir}/../src
