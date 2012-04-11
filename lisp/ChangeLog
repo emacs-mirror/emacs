@@ -1,5 +1,10 @@
 2012-04-11  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-menus.el (cc-imenu-objc-generic-expression): Make
+	imenu work again for Objective C Mode.  Correct the *-index
+	values, these having been disturbed by a previous change in
+	2011-08.
+
 	* progmodes/cc-engine.el (c-before-change-check-<>-operators):
 	Correct two search limits.
 
