@@ -81,10 +81,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/* vfork() interacts badly with setsid(), causing ptys to fail to
-   change their controlling terminal */
-#define vfork fork
-
 /* This should work (at least when compiling with gcc).  But I have no way
    or intention to verify or even test it.  If you encounter a problem with
    it, feel free to change this setting, but please add a comment here about
