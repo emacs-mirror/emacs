@@ -963,7 +963,8 @@ See the command `imenu' for more information."
 	  imenu-generic-expression
 	  (not (eq imenu-create-index-function
 		   'imenu-default-create-index-function)))
-      (unless (keymapp (lookup-key (current-local-map) [menu-bar index]))
+      (unless (and (current-local-map)
+                   (keymapp (lookup-key (current-local-map) [menu-bar index])))
 	(let ((newmap (make-sparse-keymap)))
 	  (set-keymap-parent newmap (current-local-map))
 	  (setq imenu--last-menubar-index-alist nil)

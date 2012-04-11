@@ -1,9 +1,13 @@
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el (imenu-add-to-menubar): `current-local-map' can be nil.
+	Reported by Noah Friedman.  Backport from trunk.
+
 2012-04-11  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-menus.el (cc-imenu-objc-generic-expression): Make
-	imenu work again for Objective C Mode.  Correct the *-index
-	values, these having been disturbed by a previous change in
-	2011-08.
+	* progmodes/cc-menus.el (cc-imenu-objc-generic-expression):
+	Make imenu work again for Objective C Mode.  Correct the *-index
+	values, these having been disturbed by a previous change in 2011-08.
 
 	* progmodes/cc-engine.el (c-before-change-check-<>-operators):
 	Correct two search limits.
@@ -56,8 +60,8 @@
 
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* minibuffer.el (completion-in-region-mode-map): Bind
-	completion-help-at-point to M-? rather than ?.  (Bug#11182)
+	* minibuffer.el (completion-in-region-mode-map):
+	Bind completion-help-at-point to M-? rather than ?.  (Bug#11182)
 
 2012-04-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
