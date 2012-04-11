@@ -1,3 +1,7 @@
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-passwd): Use read-string.
+
 2012-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* vcursor.el (vcursor-move): Increase the priority of the overlay
