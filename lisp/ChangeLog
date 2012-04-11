@@ -1,3 +1,7 @@
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-status): Avoid condition-case-unless-debug.
+
 2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (window--state-get-1): Obey window-point-insertion-type.

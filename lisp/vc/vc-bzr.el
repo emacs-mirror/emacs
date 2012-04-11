@@ -410,7 +410,11 @@ in the branch repository (or whose status not be determined)."
 ;; (unchanged . WARNING).  FIXME unchanged is not the best status to
 ;; return in case of error.
   (with-temp-buffer
-    (with-demoted-errors (vc-bzr-command "status" t 0 file))
+    ;; This is with-demoted-errors without the condition-case-unless-debug
+    ;; annoyance, which makes it fail during ert testing.
+    (let (err)
+      (condition-case err (vc-bzr-command "status" t 0 file)
+        (error (message "Error: %S" err) nil)))
     (let ((status 'unchanged))
       ;; the only secure status indication in `bzr status' output
       ;; is a couple of lines following the pattern::
