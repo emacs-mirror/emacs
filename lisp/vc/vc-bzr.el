@@ -37,7 +37,6 @@
 ;; are bzr-versioned, `vc-bzr` presently runs `bzr status` on the
 ;; symlink, thereby not detecting whether the actual contents
 ;; (that is, the target contents) are changed.
-;; See https://bugs.launchpad.net/vc-bzr/+bug/116607
 
 ;;; Properties of the backend
 
@@ -64,14 +63,6 @@
   "Name of the bzr command (excluding any arguments)."
   :group 'vc-bzr
   :type 'string)
-
-(defcustom vc-bzr-sha1-program '("sha1sum")
-  "Name of program to compute SHA1.
-It must be a string \(program name\) or list of strings \(name and its args\)."
-  :type '(repeat string)
-  :group 'vc-bzr)
-
-(define-obsolete-variable-alias 'sha1-program 'vc-bzr-sha1-program "24.1")
 
 (defcustom vc-bzr-diff-switches nil
   "String or list of strings specifying switches for bzr diff under VC.
@@ -190,20 +181,15 @@ in the repository root directory of FILE."
 (defun vc-bzr-sha1 (file)
   (with-temp-buffer
     (set-buffer-multibyte nil)
-    (let ((prog vc-bzr-sha1-program)
-          (args nil)
-	  process-file-side-effects)
-      (when (consp prog)
-	(setq args (cdr prog))
-        (setq prog (car prog)))
-      (apply 'process-file prog (file-relative-name file) t nil args)
-      (buffer-substring (point-min) (+ (point-min) 40)))))
+    (insert-file-contents-literally file)
+    (sha1 (current-buffer))))
 
 (defun vc-bzr-state-heuristic (file)
   "Like `vc-bzr-state' but hopefully without running Bzr."
-  ;; `bzr status' was excruciatingly slow with large histories and
-  ;; pending merges, so try to avoid using it until they fix their
-  ;; performance problems.
+  ;; `bzr status' could be slow with large histories and pending merges,
+  ;; so this tries to avoid calling it if possible.  bzr status is
+  ;; faster now, so this is not as important as it was.
+  ;;
   ;; This function tries first to parse Bzr internal file
   ;; `checkout/dirstate', but it may fail if Bzr internal file format
   ;; has changed.  As a safeguard, the `checkout/dirstate' file is
@@ -299,10 +285,7 @@ in the repository root directory of FILE."
                         'up-to-date)
                        (t 'edited))
                     'unregistered))))
-          ;; Either the dirstate file can't be read, or the sha1
-          ;; executable is missing, or ...
-          ;; In either case, recent versions of Bzr aren't that slow
-          ;; any more.
+          ;; The dirstate file can't be read, or some other problem.
           (error (vc-bzr-state file)))))))
 
 
