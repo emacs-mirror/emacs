@@ -1,3 +1,8 @@
+2012-04-11  William Stevenson  <yhvh2000@gmail.com>
+
+	* textmodes/artist.el (artist-mode): Convert artist-mode to use
+	define-minor-mode (bug#10760).
+
 2011-12-20  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* lisp/progmodes/grep.el (rgrep): Tweak the find command line so

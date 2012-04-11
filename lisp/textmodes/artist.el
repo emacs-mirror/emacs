@@ -1197,9 +1197,9 @@ PREV-OP-ARG are used when invoked recursively during the build-up."
 ;;; ---------------------------------
 
 ;;;###autoload
-(defun artist-mode (&optional state)
+(define-minor-mode artist-mode
   "Toggle Artist mode.
-With argument STATE, turn Artist mode on if STATE is positive.
+With argument ARG, turn Artist mode on if ARG is positive.
 Artist lets you draw lines, squares, rectangles and poly-lines,
 ellipses and circles with your mouse and/or keyboard.
 
@@ -1388,36 +1388,24 @@ Variables
 
 Hooks
 
- When entering artist-mode, the hook `artist-mode-init-hook' is called.
- When quitting artist-mode, the hook `artist-mode-exit-hook' is called.
+ Turning the mode on or off runs `artist-mode-hook'.
 
 
 Keymap summary
 
 \\{artist-mode-map}"
-  (interactive)
-  (if (setq artist-mode
-	    (if (null state) (not artist-mode)
-	      (> (prefix-numeric-value state) 0)))
-      (artist-mode-init)
-    (artist-mode-exit)))
-
-;; insert our minor mode string
-(or (assq 'artist-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons '(artist-mode artist-mode-name)
-		minor-mode-alist)))
-
-;; insert our minor mode keymap
-(or (assq 'artist-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons (cons 'artist-mode artist-mode-map)
-		minor-mode-map-alist)))
-
+  :init-value nil :group 'artist :lighter artist-mode-name
+  :keymap artist-mode-map
+  (cond ((null artist-mode)
+	 ;; Turn mode off
+	 (artist-mode-exit))
+	(t
+	 ;; Turn mode on
+	 (artist-mode-init))))
 
 ;; Init and exit
 (defun artist-mode-init ()
-  "Init Artist mode.  This will call the hook `artist-mode-init-hook'."
+  "Init Artist mode.  This will call the hook `artist-mode-hook'."
   ;; Set up a conversion table for mapping tabs and new-lines to spaces.
   ;; the last case, 0, is for the last position in buffer/region, where
   ;; the `following-char' function returns 0.
@@ -1459,15 +1447,13 @@ Keymap summary
       (progn
 	(picture-mode)
 	(message "")))
-  (run-hooks 'artist-mode-init-hook)
   (artist-mode-line-show-curr-operation artist-key-is-drawing))
 
 (defun artist-mode-exit ()
-  "Exit Artist mode.  This will call the hook `artist-mode-exit-hook'."
+  "Exit Artist mode.  This will call the hook `artist-mode-hook'."
   (if (and artist-picture-compatibility (eq major-mode 'picture-mode))
       (picture-mode-exit))
-  (kill-local-variable 'next-line-add-newlines)
-  (run-hooks 'artist-mode-exit-hook))
+  (kill-local-variable 'next-line-add-newlines))
 
 (defun artist-mode-off ()
   "Turn Artist mode off."
