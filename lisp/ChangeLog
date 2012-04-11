@@ -1,3 +1,7 @@
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (window--state-get-1): Obey window-point-insertion-type.
+
 2012-04-11  Lennart Borgman  <lennart.borgman@gmail.com>
 
 	* emacs-lisp/lisp.el (narrow-to-defun): `beginning-of-defun' goes

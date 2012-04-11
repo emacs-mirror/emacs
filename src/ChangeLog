@@ -1,3 +1,7 @@
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (save_window_save): Obey window-point-insertion-type.
+
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (GNUSTEP_CFLAGS): Rename from C_SWITCH_X_SYSTEM.
