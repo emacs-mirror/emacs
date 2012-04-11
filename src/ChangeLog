@@ -1,3 +1,7 @@
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (lisp_align_malloc): Remove unneeded prototype.
+
 2012-04-10  "Jason S. Cornez"  <jcornez@ravenpack.com>  (tiny change)
 
 	* keyboard.c: Override inhibit-quit after the third C-g (bug#6585).
