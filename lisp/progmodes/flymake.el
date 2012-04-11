@@ -1356,8 +1356,12 @@ if ARG is omitted or nil."
       (setq flymake-timer
             (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
 
-      (when flymake-start-syntax-check-on-find-file
-        (flymake-start-syntax-check)))))
+      (when (and flymake-start-syntax-check-on-find-file
+                 ;; Since we write temp files in current dir, there's no point
+                 ;; trying if the directory is read-only (bug#8954).
+                 (file-writable-p (file-name-directory buffer-file-name)))
+        (with-demoted-errors
+          (flymake-start-syntax-check))))))
 
    ;; Turning the mode OFF.
    (t

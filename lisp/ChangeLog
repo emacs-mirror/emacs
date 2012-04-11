@@ -1,3 +1,7 @@
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-mode): Beware read-only dirs (bug#8954).
+
 2012-04-10  Sébastien Gross  <seb@chezwam.org>  (tiny change)
 
 	* progmodes/hideshow.el (hs-hide-all): Don't infloop on comments
