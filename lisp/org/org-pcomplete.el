@@ -69,7 +69,7 @@ The return value is a string naming the thing at point."
 	(re-search-backward "^[ \t]*#\\+\\([A-Z_]+\\):.*"
 			    (line-beginning-position) t))
       (cons "file-option" (match-string-no-properties 1)))
-     ((string-match "\\`[ \t]*#\\+[a-zA-Z]*\\'" line-to-here)
+     ((string-match "\\`[ \t]*#\\+[a-zA-Z_]*\\'" line-to-here)
       (cons "file-option" nil))
      ((equal (char-before beg) ?\[)
       (cons "link" nil))
@@ -144,7 +144,7 @@ When completing for #+STARTUP, for example, this function returns
 			      (if (string-match "^#\\+\\([A-Z_]+:?\\)" x)
 				  (match-string 1 x)))
 			    (org-split-string (org-get-current-options) "\n"))
-		    org-additional-option-like-keywords)))))
+		    (copy-sequence org-additional-option-like-keywords))))))
    (substring pcomplete-stub 2)))
 
 (defvar org-startup-options)

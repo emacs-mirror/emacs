@@ -704,7 +704,7 @@ Additional note on `org-footnote-insert-pos-for-preprocessor':
 				     (org-combine-plists
 				      export-props
 				      '(:todo-keywords t :tags t :priority t))))
-				(org-export-preprocess-string def parameters))
+				(apply #'org-export-preprocess-string def parameters))
 			    def)
 			  ;; Reference beginning position is a marker
 			  ;; to preserve it during further buffer

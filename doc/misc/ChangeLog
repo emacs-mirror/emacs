@@ -1,3 +1,16 @@
+2012-04-11  Jérémie Courrèges-Anglas  <jca@wxcvbn.org>  (tiny change)
+
+	* org.texi (Deadlines and scheduling): Fix the example: the
+	DEADLINE item should come right after the headline.  We enforce
+	this convention, so it is a bug not to illustrate it correctly in
+	the manual.
+
+2012-04-11  Ippei FURUHASHI  <top.tuna+orgmode@gmail.com>  (tiny change)
+
+	* org.texi (Agenda commands): Fix documentation bug by swapping
+	the equivalent keybindings to `org-agenda-next-line' with the ones
+	to `org-agenda-previous-line'.
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Replace non-portable use of $< in ordinary rules.

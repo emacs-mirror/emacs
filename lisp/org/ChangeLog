@@ -1,3 +1,50 @@
+2012-04-11  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-point-at-end-of-empty-headline): Only try to match
+	̀org-todo-line-regexp' when the value is non-nil, e.g. in non-org
+	modes.
+	(org-fontify-meta-lines-and-blocks-1): Prevent errors when trying
+	to fontify beyond (point-max).
+
+	* org-clock.el (org-clock-task-overrun-text)
+	(org-task-overrun, org-clock-get-clock-string)
+	(org-clock-update-mode-line)
+	(org-clock-notify-once-if-expired): Rename `org-task-overrun'
+	and `org-task-overrun-text' to `org-clock-task-overrun' and
+	`org-clock-task-overrun-text' respectively.
+	(org-task-overrun-text): New alias.
+
+	* org-table.el (org-table-eval-formula): Fix bug about handling
+	remote references as durations.
+	(org-table-get-range): Fix bug: make sure references to $0 are
+	correctly handled.
+
+	* org-pcomplete.el (pcomplete/org-mode/file-option): Fix bug in
+	`pcomplete/org-mode/file-option'.
+	(org-thing-at-point): Also match line options like LATEX_CLASS
+	when pcompleting from LATEX_.
+
+	* org-agenda.el (org-agenda-filter-make-matcher)
+	(org-agenda-filter-apply): Allow filtering entries out by
+	category.  Using `C-u <' from the agenda view will redisplay
+	the agenda without entries from categories of the current
+	line.
+
+2012-04-11  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob-C.el (org-babel-C-ensure-main-wrap): Add an explicit return
+	to automatically generated main methods.
+
+2012-04-11  Matt Lundin  <mdl@imapmail.org>
+
+	* org.el (org-after-todo-state-change-hook): Fix docstring to
+	reflect name change of state to `org-state'.
+
+2012-04-11  Mike Sperber  <sperber@deinprogramm.de>  (tiny change)
+
+	* org-footnote.el (org-footnote-normalize): Correctly pass keyword
+	arguments to `org-export-preprocess-string'.
+
 2012-04-03  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-todo): Fix regression: rename `state' to
