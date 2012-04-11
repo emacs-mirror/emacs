@@ -1,3 +1,8 @@
+2012-04-11  Chong Yidong  <cyd@gnu.org>
+
+	* startup.el (command-line): Remove support for long-obsolete
+	variable font-lock-face-attributes.
+
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-status): Avoid condition-case-unless-debug.
