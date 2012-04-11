@@ -1,3 +1,9 @@
+2012-04-11  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* emacs-lisp/lisp.el (narrow-to-defun): `beginning-of-defun' goes
+	to previous function when point is on the first character of a
+	function. Take care of that in `narrow-to-defun' (bug#6157).
+
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-status): Handle all errors,
