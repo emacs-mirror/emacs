@@ -13,7 +13,7 @@
 	* textmodes/artist.el (artist-mode): Convert artist-mode to use
 	define-minor-mode (bug#10760).
 
-2011-12-20  Wolfgang Jenkner  <wjenkner@inode.at>
+2012-04-11  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
 	* lisp/progmodes/grep.el (rgrep): Tweak the find command line so
 	that directories matching `grep-find-ignored-files' won't be
