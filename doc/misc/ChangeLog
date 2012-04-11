@@ -1,3 +1,7 @@
+2012-04-11  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (c-offsets-alist): Correct a typo.
+
 2012-04-11  Jérémie Courrèges-Anglas  <jca@wxcvbn.org>  (tiny change)
 
 	* org.texi (Deadlines and scheduling): Fix the example: the
