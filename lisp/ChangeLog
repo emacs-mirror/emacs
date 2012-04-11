@@ -1,5 +1,8 @@
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-bzr.el (vc-bzr-status): Handle all errors,
+	not just file-errors.
+
 	* vc/vc-bzr.el (vc-bzr-sha1-program, sha1-program): Remove.
 	(vc-bzr-sha1): Use internal sha1.
 
