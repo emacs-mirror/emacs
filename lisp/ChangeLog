@@ -1,5 +1,8 @@
 2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* imenu.el (imenu-add-to-menubar): `current-local-map' can be nil.
+	Reported by Noah Friedman.
+
 	* subr.el (read-passwd): Use read-string.
 
 2012-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
