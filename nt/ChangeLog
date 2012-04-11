@@ -1,3 +1,7 @@
+2012-04-11  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* makefile.w32-in: Fix typo (Bug#10261).
+
 2012-03-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt: Discourage from defining HAVE_GETCWD.
