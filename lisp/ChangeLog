@@ -1,3 +1,9 @@
+2011-12-20  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* lisp/progmodes/grep.el (rgrep): Tweak the find command line so
+	that directories matching `grep-find-ignored-files' won't be
+	pruned (bug#10351).
+
 2012-04-11  Chong Yidong  <cyd@gnu.org>
 
 	* startup.el (command-line): Remove support for long-obsolete
