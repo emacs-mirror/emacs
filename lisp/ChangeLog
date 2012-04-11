@@ -1,3 +1,8 @@
+2012-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* vcursor.el (vcursor-move): Increase the priority of the overlay
+	(bug#9663).
+
 2012-04-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-kill-channel-buffers): New variable.
