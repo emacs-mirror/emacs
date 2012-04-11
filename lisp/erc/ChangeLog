@@ -1,3 +1,8 @@
+2012-04-11  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc-services.el (erc-nickserv-passwords): Don't display the
+	password (bug#4459).
+
 2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* erc-join.el (erc-server-join-channel): New function to look up
