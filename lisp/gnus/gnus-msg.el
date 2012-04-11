@@ -1670,11 +1670,13 @@ this is a reply."
 			(not
 			 (setq result
 			       (cond
-				((stringp (caar var))
+				((and group
+				      (stringp (caar var)))
 				 ;; Regexp.
 				 (when (string-match (caar var) group)
 				   (cdar var)))
-				((functionp (car var))
+				((and group
+				      (functionp (car var)))
 				 ;; Function.
 				 (funcall (car var) group))
 				(t
