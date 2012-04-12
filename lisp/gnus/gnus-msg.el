@@ -1664,7 +1664,7 @@ this is a reply."
 	   ((functionp var)
 	    ;; A function.
 	    (funcall var group))
-	   (t
+	   (group
 	    ;; An alist of regexps/functions/forms.
 	    (while (and var
 			(not
