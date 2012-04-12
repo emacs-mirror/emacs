@@ -466,7 +466,7 @@ for that key.
 @cindex input methods
   An @dfn{input method} is a kind of character conversion designed
 specifically for interactive input.  In Emacs, typically each language
-has its own input method; sometimes several languages which use the same
+has its own input method; sometimes several languages that use the same
 characters can share one input method.  A few languages support several
 input methods.
 
@@ -479,14 +479,14 @@ work this way.
 characters into one letter.  Many European input methods use composition
 to produce a single non-@acronym{ASCII} letter from a sequence that consists of a
 letter followed by accent characters (or vice versa).  For example, some
-methods convert the sequence @kbd{a'} into a single accented letter.
+methods convert the sequence @kbd{o ^} into a single accented letter.
 These input methods have no special commands of their own; all they do
 is compose sequences of printing characters.
 
   The input methods for syllabic scripts typically use mapping followed
 by composition.  The input methods for Thai and Korean work this way.
 First, letters are mapped into symbols for particular sounds or tone
-marks; then, sequences of these which make up a whole syllable are
+marks; then, sequences of these that make up a whole syllable are
 mapped into one syllable sign.
 
   Chinese and Japanese require more complex methods.  In Chinese input
@@ -496,7 +496,8 @@ portions of the character (input methods @code{chinese-4corner} and
 @code{chinese-sw}, and others).  One input sequence typically
 corresponds to many possible Chinese characters.  You select the one
 you mean using keys such as @kbd{C-f}, @kbd{C-b}, @kbd{C-n},
-@kbd{C-p}, and digits, which have special meanings in this situation.
+@kbd{C-p} (or the arrow keys), and digits, which have special meanings
+in this situation.
 
   The possible characters are conceptually arranged in several rows,
 with each row holding up to 10 alternatives.  Normally, Emacs displays
@@ -510,8 +511,8 @@ the alternatives in the current row.  As you do this, Emacs highlights
 the current alternative with a special color; type @code{C-@key{SPC}}
 to select the current alternative and use it as input.  The
 alternatives in the row are also numbered; the number appears before
-the alternative.  Typing a digit @var{n} selects the @var{n}th
-alternative of the current row and uses it as input.
+the alternative.  Typing a number selects the associated alternative
+of the current row and uses it as input.
 
   @key{TAB} in these Chinese input methods displays a buffer showing
 all the possible characters at once; then clicking @kbd{Mouse-2} on
@@ -530,15 +531,15 @@ the alternatives.
   Sometimes it is useful to cut off input method processing so that the
 characters you have just entered will not combine with subsequent
 characters.  For example, in input method @code{latin-1-postfix}, the
-sequence @kbd{e '} combines to form an @samp{e} with an accent.  What if
+sequence @kbd{o ^} combines to form an @samp{o} with an accent.  What if
 you want to enter them as separate characters?
 
   One way is to type the accent twice; this is a special feature for
-entering the separate letter and accent.  For example, @kbd{e ' '} gives
-you the two characters @samp{e'}.  Another way is to type another letter
-after the @kbd{e}---something that won't combine with that---and
-immediately delete it.  For example, you could type @kbd{e e @key{DEL}
-'} to get separate @samp{e} and @samp{'}.
+entering the separate letter and accent.  For example, @kbd{o ^ ^} gives
+you the two characters @samp{o^}.  Another way is to type another letter
+after the @kbd{o}---something that won't combine with that---and
+immediately delete it.  For example, you could type @kbd{o o @key{DEL}
+^} to get separate @samp{o} and @samp{^}.
 
   Another method, more general but not quite as easy to type, is to use
 @kbd{C-\ C-\} between two characters to stop them from combining.  This
@@ -567,7 +568,7 @@ possible characters to type next is displayed in the echo area (but
 not when you are in the minibuffer).
 
   Another facility for typing characters not on your keyboard is by
-using the @kbd{C-x 8 @key{RET}} (@code{ucs-insert}) to insert a single
+using @kbd{C-x 8 @key{RET}} (@code{ucs-insert}) to insert a single
 character based on its Unicode name or code-point; see @ref{Inserting
 Text}.
 
