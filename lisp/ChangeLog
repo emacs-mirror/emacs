@@ -1,3 +1,10 @@
+2012-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* battery.el (battery--linux-sysfs-regexp): New const.
+	(battery-status-function): Use it.  Remove yeeloong special case.
+	(battery-yeeloong-sysfs): Remove.
+	(battery-echo-area-format): Remove yeeloong special case.
+
 2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* imenu.el (imenu-add-to-menubar): `current-local-map' can be nil.
