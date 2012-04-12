@@ -57,7 +57,8 @@
                  (const 16)
                  (const 32)
                  (const 64))
-  :group 'hexl)
+  :group 'hexl
+  :version "24.2")
 
 (defcustom hexl-program "hexl"
   "The program that will hexlify and dehexlify its stdin.
