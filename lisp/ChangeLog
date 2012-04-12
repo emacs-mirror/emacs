@@ -1,3 +1,7 @@
+2012-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mailpost.el: Move to obsolete/.
+
 2012-04-12  Drew Adams  <drew.adams@oracle.com>
 
 	* imenu.el (imenu--generic-function): Ignore invisible definitions

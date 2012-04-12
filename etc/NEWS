@@ -43,7 +43,9 @@ been adding them there, put them somewhere else, eg site-lisp.
 ** erc will look up server/channel names via auth-source and use the
    channel keys found, if any.
 
-** Obsolete modes
+** Obsolete packages:
+
+*** mailpost.el
 
 *** mouse-sel.el
 
