@@ -1571,8 +1571,8 @@ rather than buffer-local.  It defaults to @code{nil}.
 
 One of the effects of making a minor mode global is that the
 @var{mode} variable becomes a customization variable.  Toggling it
-through the Custom interface turns the mode on and off, and its value
-can be saved for future Emacs sessions (@pxref{Saving
+through the Customize interface turns the mode on and off, and its
+value can be saved for future Emacs sessions (@pxref{Saving
 Customizations,,, emacs, The GNU Emacs Manual}.  For the saved
 variable to work, you should ensure that the @code{define-minor-mode}
 form is evaluated each time Emacs starts; for packages that are not
@@ -1691,7 +1691,7 @@ Fundamental mode; but it does not detect the creation of a new buffer
 in Fundamental mode.
 
 This defines the customization option @var{global-mode} (@pxref{Customization}),
-which can be toggled in the Custom interface to turn the minor mode on
+which can be toggled in the Customize interface to turn the minor mode on
 and off.  As with @code{define-minor-mode}, you should ensure that the
 @code{define-globalized-minor-mode} form is evaluated each time Emacs
 starts, for example by providing a @code{:require} keyword.

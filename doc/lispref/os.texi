@@ -290,9 +290,9 @@ form to your init file:
 
 Emacs explicitly checks for an expression as shown above in your init
 file; your login name must appear in the expression as a Lisp string
-constant.  You can also use the Custom interface.  Other methods of setting
-@code{inhibit-startup-echo-area-message} to the same value do not
-inhibit the startup message.  This way, you can easily inhibit the
+constant.  You can also use the Customize interface.  Other methods of
+setting @code{inhibit-startup-echo-area-message} to the same value do
+not inhibit the startup message.  This way, you can easily inhibit the
 message for yourself if you wish, but thoughtless copying of your init
 file will not inhibit the message for someone else.
 @end defopt

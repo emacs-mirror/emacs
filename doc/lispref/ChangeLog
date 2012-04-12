@@ -1,3 +1,13 @@
+2012-04-12  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Applying Customizations):
+	(Custom Themes): New nodes.
+
+	* display.texi (Defining Faces): Reference custom-set-faces.
+
+	* modes.texi (Defining Minor Modes, Defining Minor Modes):
+	* os.texi (Startup Summary): Copyedits.
+
 2012-04-12  Glenn Morris  <rgm@gnu.org>
 
 	* loading.texi (Loading Non-ASCII): "unibyte:" can also be at the end.

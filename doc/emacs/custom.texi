@@ -684,9 +684,8 @@ the @samp{[Merge Theme]} button and specifying the special theme named
   A theme file is simply an Emacs Lisp source file, and loading the
 Custom theme works by loading the Lisp file.  Therefore, you can edit
 a theme file directly instead of using the @file{*Custom Theme*}
-buffer.
-@c Add link to the relevant Emacs Lisp Reference manual node, once
-@c that is written.
+buffer.  @xref{Custom Themes,,, elisp, The Emacs Lisp Reference
+Manual}, for details.
 
 @node Variables
 @section Variables

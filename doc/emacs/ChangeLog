@@ -1,3 +1,8 @@
+2012-04-12  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Creating Custom Themes): Add reference to Custom
+	Themes node in Lisp manual.
+
 2012-04-12  Glenn Morris  <rgm@gnu.org>
 
 	* mule.texi (International): Copyedits.
