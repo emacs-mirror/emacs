@@ -1,3 +1,9 @@
+2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-large-region): For hunspell, use
+	'("-i" ENCODING), in 2 separate command-line arguments, to specify
+	the encoding, as expected by hunspell.
+
 2012-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* battery.el (battery--linux-sysfs-regexp): New const.
