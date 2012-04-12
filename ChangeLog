@@ -1,3 +1,7 @@
+2012-04-12  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.in: Warn that Cygwin 1.5 is unsupported.  (Bug#10398)
+
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (GNUSTEP_CFLAGS): Rename from C_SWITCH_X_SYSTEM.
