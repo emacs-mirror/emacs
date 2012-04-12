@@ -1,3 +1,8 @@
+2012-04-12  Jari Aalto  <jari.aalto@cante.net>
+
+	* processes.texi (Synchronous Processes): Mention
+	`default-directory' (bug#7515).
+
 2012-04-09  Chong Yidong  <cyd@gnu.org>
 
 	* customize.texi (Variable Definitions): Remove user-variable-p.

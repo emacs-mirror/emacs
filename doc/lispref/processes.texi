@@ -268,6 +268,9 @@ system, much like text written into a file.  @xref{Coding Systems}.
 @defun call-process program &optional infile destination display &rest args
 This function calls @var{program} and waits for it to finish.
 
+The current working directory of the subprocess is
+@code{default-directory}.
+
 The standard input for the new process comes from file @var{infile} if
 @var{infile} is not @code{nil}, and from the null device otherwise.
 The argument @var{destination} says where to put the process output.
