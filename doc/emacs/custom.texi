@@ -1163,8 +1163,8 @@ returned by that expression is ignored).
 conversion of this file.  @xref{Coding Systems}.
 
 @item
-@code{unibyte} says to visit the file in a unibyte buffer, if the
-value is @code{t}.  @xref{Enabling Multibyte}.
+@code{unibyte} says to load or compile a file of Emacs Lisp in unibyte
+mode, if the value is @code{t}.  @xref{Disabling Multibyte}.
 @end itemize
 
 @noindent

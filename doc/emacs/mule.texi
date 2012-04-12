@@ -41,7 +41,7 @@ including European and Vietnamese variants of the Latin alphabet, as
 well as Cyrillic, Devanagari (for Hindi and Marathi), Ethiopic, Greek,
 Han (for Chinese and Japanese), Hangul (for Korean), Hebrew, IPA,
 Kannada, Lao, Malayalam, Tamil, Thai, Tibetan, and Vietnamese scripts.
-Emacs also supports various encodings of these characters used by
+Emacs also supports various encodings of these characters that are used by
 other internationalized software, such as word processors and mailers.
 
   Emacs allows editing text with international characters by supporting
@@ -74,14 +74,14 @@ others.
 @item
 You can insert non-@acronym{ASCII} characters or search for them.  To do that,
 you can specify an input method (@pxref{Select Input Method}) suitable
-for your language, or use the default input method set up when you set
+for your language, or use the default input method set up when you chose
 your language environment.  If
 your keyboard can produce non-@acronym{ASCII} characters, you can select an
 appropriate keyboard coding system (@pxref{Terminal Coding}), and Emacs
 will accept those characters.  Latin-1 characters can also be input by
 using the @kbd{C-x 8} prefix, see @ref{Unibyte Mode}.
 
-On the X Window System, your locale should be set to an appropriate
+With the X Window System, your locale should be set to an appropriate
 value to make sure Emacs interprets keyboard input correctly; see
 @ref{Language Environments, locales}.
 @end itemize
@@ -90,7 +90,7 @@ value to make sure Emacs interprets keyboard input correctly; see
 
 @menu
 * International Chars::     Basic concepts of multibyte characters.
-* Enabling Multibyte::      Controlling whether to use multibyte characters.
+* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
 * Select Input Method::     Specifying your choice of input methods.
@@ -224,29 +224,30 @@ faces used to display the character, and any overlays containing it
 in a buffer whose coding system is @code{utf-8-unix}:
 
 @smallexample
-        character: @`A (192, #o300, #xc0)
-preferred charset: unicode (Unicode (ISO10646))
-       code point: 0xC0
-           syntax: w    which means: word
-         category: j:Japanese l:Latin v:Vietnamese
-      buffer code: #xC3 #x80
-        file code: not encodable by coding system undecided-unix
-          display: by this font (glyph code)
+             position: 1 of 1 (0%), column: 0
+            character: @`A (displayed as @`A) (codepoint 192, #o300, #xc0)
+    preferred charset: unicode (Unicode (ISO10646))
+code point in charset: 0xC0
+               syntax: w       which means: word
+             category: .:Base, L:Left-to-right (strong),
+                       j:Japanese, l:Latin, v:Viet
+          buffer code: #xC3 #x80
+            file code: not encodable by coding system undecided-unix
+              display: by this font (glyph code)
     xft:-unknown-DejaVu Sans Mono-normal-normal-
         normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
 
 Character code properties: customize what to show
   name: LATIN CAPITAL LETTER A WITH GRAVE
+  old-name: LATIN CAPITAL LETTER A GRAVE
   general-category: Lu (Letter, Uppercase)
   decomposition: (65 768) ('A' '`')
-  old-name: LATIN CAPITAL LETTER A GRAVE
-
-There are text properties here:
-  auto-composed        t
 @end smallexample
 
-@node Enabling Multibyte
-@section Enabling Multibyte Characters
+@c FIXME?  Does this section even belong in the user manual?
+@c Seems more appropriate to the lispref?
+@node Disabling Multibyte
+@section Disabling Multibyte Characters
 
   By default, Emacs starts in multibyte mode: it stores the contents
 of buffers and strings using an internal encoding that represents
@@ -275,32 +276,48 @@ Coding}.  Unlike @code{find-file-literally}, finding a file as
 @samp{raw-text} doesn't disable format conversion, uncompression, or
 auto mode selection.
 
+@c Not a single file in Emacs uses this feature.  Is it really worth
+@c mentioning in the _user_ manual?  Also, this duplicates somewhat
+@c "Loading Non-ASCII" from the lispref.
 @cindex Lisp files, and multibyte operation
 @cindex multibyte operation, and Lisp files
 @cindex unibyte operation, and Lisp files
 @cindex init file, and non-@acronym{ASCII} characters
   Emacs normally loads Lisp files as multibyte.
 This includes the Emacs initialization
-file, @file{.emacs}, and the initialization files of Emacs packages
+file, @file{.emacs}, and the initialization files of packages
 such as Gnus.  However, you can specify unibyte loading for a
-particular Lisp file, by putting @w{@samp{-*-unibyte: t;-*-}} in a
-comment on the first line (@pxref{File Variables}).  Then that file is
-always loaded as unibyte text.  The motivation for these conventions
-is that it is more reliable to always load any particular Lisp file in
-the same way.  However, you can load a Lisp file as unibyte, on any
-one occasion, by typing @kbd{C-x @key{RET} c raw-text @key{RET}}
-immediately before loading it.
+particular Lisp file, by adding an entry @samp{unibyte: t} in a file
+local variables section (@pxref{File Variables}).  Then that file is
+always loaded as unibyte text.  Note that this does not represent a
+real @code{unibyte} variable, rather it just acts as an indicator
+to Emacs in the same way as @code{coding} does (@pxref{Specify Coding}).
+@ignore
+@c I don't see the point of this statement:
+The motivation for these conventions is that it is more reliable to
+always load any particular Lisp file in the same way.
+@end ignore
+Note also that this feature only applies to @emph{loading} Lisp files
+for evaluation, not to visiting them for editing.  You can also load a
+Lisp file as unibyte, on any one occasion, by typing @kbd{C-x
+@key{RET} c raw-text @key{RET}} immediately before loading it.
 
-  The mode line indicates whether multibyte character support is
-enabled in the current buffer.  If it is, there are two or more
-characters (most often two dashes) near the beginning of the mode
-line, before the indication of the visited file's end-of-line
-convention (colon, backslash, etc.).  When multibyte characters
-are not enabled, nothing precedes the colon except a single dash.
-@xref{Mode Line}, for more details about this.
+@c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
+@vindex enable-multibyte-characters
+The buffer-local variable @code{enable-multibyte-characters} is
+non-@code{nil} in multibyte buffers, and @code{nil} in unibyte ones.
+The mode line also indicates whether a buffer is multibyte or not.
+@xref{Mode Line}.  With a graphical display, in a multibyte buffer,
+the portion of the mode line that indicates the character set has a
+tooltip that (amongst other things) says that the buffer is multibyte.
+In a unibyte buffer, the character set indicator is absent.  Thus, in
+a unibyte buffer (when using a graphical display) there is normally
+nothing before the indication of the visited file's end-of-line
+convention (colon, backslash, etc.), unless you are using an input
+method.
 
 @findex toggle-enable-multibyte-characters
-You can turn on multibyte support in a specific buffer by invoking the
+You can turn off multibyte support in a specific buffer by invoking the
 command @code{toggle-enable-multibyte-characters} in that buffer.
 
 @node Language Environments
@@ -1540,7 +1557,7 @@ can still handle these character codes as if they belonged to
 set-language-environment} and specify a suitable language environment
 such as @samp{Latin-@var{n}}.
 
-  For more information about unibyte operation, see @ref{Enabling
+  For more information about unibyte operation, see @ref{Disabling
 Multibyte}.  Note particularly that you probably want to ensure that
 your initialization files are read as unibyte if they contain
 non-@acronym{ASCII} characters.
@@ -1613,7 +1630,7 @@ a key sequence is allowed.
 library is loaded, the @key{ALT} modifier key, if the keyboard has
 one, serves the same purpose as @kbd{C-x 8}: use @key{ALT} together
 with an accent character to modify the following letter.  In addition,
-if the keyboard has keys for the Latin-1 ``dead accent characters,''
+if the keyboard has keys for the Latin-1 ``dead accent characters'',
 they too are defined to compose with the following character, once
 @code{iso-transl} is loaded.
 
