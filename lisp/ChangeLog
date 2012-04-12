@@ -1,3 +1,8 @@
+2012-04-12  Drew Adams  <drew.adams@oracle.com>
+
+	* imenu.el (imenu--generic-function): Ignore invisible definitions
+	(bug#10123).
+
 2012-04-12  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* hexl.el (hexl-bits): New variable.
