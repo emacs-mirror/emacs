@@ -1,3 +1,7 @@
+2012-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Don't mention obsolete mailpost.el.
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* emacsver.texi (EMACSVER): Bump version to 24.1.50.
