@@ -51,7 +51,7 @@ INFO_TARGETS = $(infodir)/ccmode \
 		$(infodir)/remember $(infodir)/nxml-mode \
 		$(infodir)/epa $(infodir)/mairix-el $(infodir)/sasl \
 		$(infodir)/auth $(infodir)/eieio $(infodir)/ede \
-		$(infodir)/semantic $(infodir)/edt
+		$(infodir)/semantic $(infodir)/edt $(infodir)/emacs-gnutls
 DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
 		sieve.dvi pgg.dvi mh-e.dvi \
@@ -62,7 +62,7 @@ DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		newsticker.dvi rcirc.dvi erc.dvi ert.dvi \
 		remember.dvi nxml-mode.dvi \
 		epa.dvi mairix-el.dvi sasl.dvi auth.dvi eieio.dvi ede.dvi \
-		semantic.dvi edt.dvi
+		semantic.dvi edt.dvi emacs-gnutls.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -350,6 +350,11 @@ $(infodir)/edt: edt.texi doclicense.texi
 edt.dvi: edt.texi doclicense.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/edt.texi
 
+$(infodir)/emacs-gnutls: emacs-gnutls.texi doclicense.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) emacs-gnutls.texi
+emacs-gnutls.dvi: emacs-gnutls.texi doclicense.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-gnutls.texi
+
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
@@ -377,7 +382,7 @@ clean: mostlyclean
 		 $(infodir)/epa* $(infodir)/sasl* \
 		 $(infodir)/mairix-el* $(infodir)/auth* \
 		 $(infodir)/eieio* $(infodir)/ede* \
-		 $(infodir)/semantic* $(infodir)edt*
+		 $(infodir)/semantic* $(infodir)edt* $(infodir)/emacs-gnutls*
 
 distclean: clean
 	- $(DEL) makefile

@@ -1,3 +1,7 @@
+2012-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* info/dir, Makefile.in (INFO_FILES): Add emacs-gnutls.
+
 2012-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: fix ncurses 'configure' issue on Solaris 10 (Bug#10677)
