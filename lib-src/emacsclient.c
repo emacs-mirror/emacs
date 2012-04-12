@@ -648,7 +648,7 @@ decode_options (int argc, char **argv)
      server.el check whether it makes sense.  */
   if (tty || !current_frame)
     {
-      display = (const char *) ttyname;
+      display = (const char *) ttyname (0);  /* Arg is ignored.  */
       current_frame = 0;
       tty = 1;
     }

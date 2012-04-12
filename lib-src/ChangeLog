@@ -1,3 +1,8 @@
+2012-04-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (decode_options) [WINDOWSNT]:
+	Call ttyname instead of passing its address (typo in revno:106608).
+
 2012-03-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacsclient.c (main): Handle -print-nonl command.
