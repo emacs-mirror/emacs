@@ -1,3 +1,16 @@
+2012-04-12  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* hexl.el (hexl-bits): New variable.
+	(hexl-options): Mention the variable in the doc string.
+	(hexl-rulerise): New function.
+	(hexl-line-displen): New function
+	(hexl-mode): Mention the new variable.
+	(hexl-mode, hexl-current-address, hexl-current-address): Use the
+	displen.
+	(hexl-ascii-start-column): New function.
+	(hexl-address-to-marker, hexl-beginning-of-line, hexl-options)
+	(hexl-insert-char, hexl-mode-ruler): Use the displen (bug#4941).
+
 2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): For hunspell, use
