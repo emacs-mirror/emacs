@@ -6,6 +6,8 @@
 	Clarify what "unibyte: t" does, and mode-line description.
 	(Unibyte Mode): Update for "Disabling Multibyte" node name change.
 	Use Texinfo recommended convention for quotes+punctuation.
+	(Language Environments): Copyedits.
+
 	* custom.texi (Specifying File Variables):  Fix "unibyte" description.
 	Update for "Disabling Multibyte" node name change.
 	* emacs.texi: Update for "Disabling Multibyte" node name change.

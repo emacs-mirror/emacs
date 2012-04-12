@@ -326,8 +326,8 @@ command @code{toggle-enable-multibyte-characters} in that buffer.
 
   All supported character sets are supported in Emacs buffers whenever
 multibyte characters are enabled; there is no need to select a
-particular language in order to display its characters in an Emacs
-buffer.  However, it is important to select a @dfn{language
+particular language in order to display its characters.
+However, it is important to select a @dfn{language
 environment} in order to set various defaults.  Roughly speaking, the
 language environment represents a choice of preferred script rather
 than a choice of language.
@@ -344,7 +344,8 @@ language environment also specifies a default input method.
 @code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally
-to the Emacs session.  The supported language environments include:
+to the Emacs session.  The supported language environments
+(see the variable @code{language-info-alist}) include:
 
 @cindex Euro sign
 @cindex UTF-8
@@ -368,11 +369,15 @@ which prefers Cyrillic characters and files encoded in Windows-1255).
 @cindex Intlfonts package, installation
   To display the script(s) used by your language environment on a
 graphical display, you need to have a suitable font.  If some of the
-characters appear as empty boxes or hex codes, you should install the
+characters appear as empty boxes or hex codes, you should install
+extra fonts.  Your operating system may have optional fonts that
+you can install; or you can install the
 GNU Intlfonts package, which includes fonts for most supported
-scripts.@footnote{If you run Emacs on X, you need to inform the X
-server about the location of the newly installed fonts with the
-following commands:
+scripts.@footnote{If you run Emacs on X, you may need to inform the X
+server about the location of the newly installed fonts with
+commands such as:
+@c FIXME?  I feel like this may be out of date.
+@c Eg the intlfonts tarfile is ~ 10 years old.
 
 @example
  xset fp+ /usr/local/share/emacs/fonts
@@ -387,22 +392,25 @@ following commands:
 @cindex locales
   Some operating systems let you specify the character-set locale you
 are using by setting the locale environment variables @env{LC_ALL},
-@env{LC_CTYPE}, or @env{LANG}.@footnote{If more than one of these is
+@env{LC_CTYPE}, or @env{LANG}.  (If more than one of these is
 set, the first one that is nonempty specifies your locale for this
-purpose.}  During startup, Emacs looks up your character-set locale's
+purpose.)  During startup, Emacs looks up your character-set locale's
 name in the system locale alias table, matches its canonical name
 against entries in the value of the variables
-@code{locale-charset-language-names} and @code{locale-language-names},
+@code{locale-charset-language-names} and @code{locale-language-names}
+(the former overrides the latter),
 and selects the corresponding language environment if a match is found.
-(The former variable overrides the latter.)  It also adjusts the display
+It also adjusts the display
 table and terminal coding system, the locale coding system, the
 preferred coding system as needed for the locale, and---last but not
 least---the way Emacs decodes non-@acronym{ASCII} characters sent by your keyboard.
 
+@c This seems unlikely, doesn't it?
   If you modify the @env{LC_ALL}, @env{LC_CTYPE}, or @env{LANG}
-environment variables while running Emacs, you may want to invoke the
-@code{set-locale-environment} function afterwards to readjust the
-language environment from the new locale.
+environment variables while running Emacs (by using @kbd{M-x setenv}),
+you may want to invoke the @code{set-locale-environment}
+function afterwards to readjust the language environment from the new
+locale.
 
 @vindex locale-preferred-coding-systems
   The @code{set-locale-environment} function normally uses the preferred
@@ -438,7 +446,7 @@ this command describes the chosen language environment.
 language environment.  The hook functions can test for a specific
 language environment by checking the variable
 @code{current-language-environment}.  This hook is where you should
-put non-default settings for specific language environment, such as
+put non-default settings for specific language environments, such as
 coding systems for keyboard input and terminal output, the default
 input method, etc.
 
