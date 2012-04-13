@@ -1,3 +1,7 @@
+2012-04-13  Ken Brown  <kbrown@cornell.edu>
+
+	* s/cygwin.h (PTY_OPEN): Don't try to close a bogus file descriptor.
+
 2012-04-13  Reuben Thomas  <rrt@sc3d.org>
 
 	* indent.c (Fmove_to_column): Change interactive spec (Bug#739).

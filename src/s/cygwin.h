@@ -58,7 +58,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
 	fd = -1;					\
       sigsetmask (mask);				\
-      emacs_close (dummy);				\
+      if (fd >= 0)					\
+	emacs_close (dummy);				\
     }							\
   while (0)
 
