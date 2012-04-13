@@ -1,3 +1,7 @@
+2012-04-13  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Custom Themes): Also document load-theme etc.
+
 2012-04-12  Chong Yidong  <cyd@gnu.org>
 
 	* customize.texi (Applying Customizations):

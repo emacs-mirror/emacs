@@ -1330,14 +1330,14 @@ be a call to @code{deftheme}, and the last form should be a call to
 
 @defmac deftheme theme &optional doc
 This macro declares @var{theme} (a symbol) as the name of a Custom
-theme.  The optional argument @var{doc} specifies a string describing
+theme.  The optional argument @var{doc} should be a string describing
 the theme; this is the description shown when the user invokes the
-@kbd{?} (@code{describe-theme}) command in the @samp{*Custom Themes*}
-buffer.
+@code{describe-theme} command or types @kbd{?} in the @samp{*Custom
+Themes*} buffer.
 
-Two special theme names are disallowed: @code{user} is a ``dummy
-theme'' used to store the user's direct customization settings, and
-@code{changed} is a ``dummy theme'' used to store changes made outside
+Two special theme names are disallowed: @code{user} is a ``dummy''
+theme which stores the user's direct customization settings, and
+@code{changed} is a ``dummy'' theme which stores changes made outside
 of the Customize system.  If you specify either of these as the
 @var{theme} argument, @code{deftheme} signals an error.
 @end defmac
@@ -1347,15 +1347,15 @@ This macro declares that the theme named @var{theme} has been fully
 specified.
 @end defmac
 
-  In between @code{deftheme} and @code{provide-theme} are the Lisp
-forms specifying the theme settings---usually a call to
+  In between @code{deftheme} and @code{provide-theme} are Lisp forms
+specifying the theme settings: usually a call to
 @code{custom-theme-set-variables} and/or a call to
-@code{custom-theme-set-faces}:
+@code{custom-theme-set-faces}.
 
 @defun custom-theme-set-variables theme &rest args
-This function declares that the Custom theme @var{theme} (a symbol)
-customizes the variables in @var{args}.  Each argument in @var{args}
-should be a list of the form
+This function specifies the Custom theme @var{theme}'s variable
+settings.  @var{theme} should be a symbol.  Each argument in
+@var{args} should be a list of the form
 
 @example
 (@var{var} @var{expression} [@var{now} [@var{request} [@var{comment}]]])
@@ -1367,9 +1367,9 @@ where the list entries have the same meanings as in
 @end defun
 
 @defun custom-theme-set-faces theme &rest args
-This function declares that the Custom theme @var{theme} (a symbol)
-customizes the faces in @var{args}.  Each argument in @var{args}
-should be a list of the form
+This function specifies the Custom theme @var{theme}'s face settings.
+@var{theme} should be a symbol.  Each argument in @var{args} should be
+a list of the form
 
 @example
 (@var{face} @var{spec} [@var{now} [@var{comment}]])
@@ -1380,7 +1380,43 @@ where the list entries have the same meanings as in
 @code{custom-set-faces}.  @xref{Applying Customizations}.
 @end defun
 
-  In principle, a theme file can also contain other Lisp forms, which
-would be evaluated when loading the theme; but it is ``bad form'' for
-a theme to do this.  (For reasons of security, Emacs prompts the user
-before loading any non-built-in theme.)
+  In theory, a theme file can also contain other Lisp forms, which
+would be evaluated when loading the theme, but that is ``bad form''.
+To protect against loading themes containing malicious code, Emacs
+displays the source file and asks for confirmation from the user
+before loading any non-built-in theme for the first time.
+
+  The following functions are useful for programmatically enabling and
+disabling Custom themes:
+
+@defun custom-theme-p theme
+This function return a non-@code{nil} value if @var{theme} (a symbol)
+is the name of a Custom theme (i.e.@: a Custom theme which has been
+loaded into Emacs, whether or not the theme is enabled).  Otherwise,
+it returns @code{nil}.
+@end defun
+
+@deffn Command load-theme theme &optional no-confirm no-enable
+This function loads the Custom theme named @var{theme} from its source
+file, looking for the source file in the directories specified by the
+variable @code{custom-theme-load-path}.  @xref{Custom Themes,,, emacs,
+The GNU Emacs Manual}.  It also @dfn{enables} the theme, causing its
+variable and face settings to take effect.
+
+If the optional argument @var{no-confirm} is non-@code{nil}, this
+skips prompting the user for confirmation before loading the theme.
+
+If the optional argument @var{no-enable} is non-@code{nil}, the theme
+is loaded but not enabled.
+@end deffn
+
+@deffn Command enable-theme theme
+This function enables the Custom theme named @var{theme}.  It signals
+an error if no such theme has been loaded.
+@end deffn
+
+@deffn Command disable-theme theme
+This function disables the Custom theme named @var{theme}.  The theme
+remains loaded, so that a subsequent call to @code{enable-theme} will
+re-enable it.
+@end deffn
