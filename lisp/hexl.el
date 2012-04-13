@@ -964,11 +964,7 @@ CH must be a unibyte character whose value is between 0 and 255."
       (error "Invalid character 0x%x -- must be in the range [0..255]" ch))
   (let ((address (hexl-current-address t)))
     (while (> num 0)
-      (let ((hex-position
-	     (+ (* (/ address 16) (hexl-line-displen))
-		10 (point-min)
-		(* 2 (% address 16))
-		(/ (% address 16) 2)))
+      (let ((hex-position (hexl-address-to-marker address))
 	    (ascii-position
 	     (+ (* (/ address 16) (hexl-line-displen))
                 (hexl-ascii-start-column)

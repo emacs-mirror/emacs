@@ -1,3 +1,7 @@
+2012-04-13  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* hexl.el (hexl-insert-char): Make display sizes other than 16 work.
+
 2012-04-13  Masatake YAMATO  <yamato@redhat.com>
 
 	* minibuffer.el (minibuffer-local-filename-syntax): New variable
