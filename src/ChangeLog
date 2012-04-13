@@ -1,11 +1,15 @@
+2012-04-13  Atsuo Ohki  <ohki@gssm.otsuka.tsukuba.ac.jp>  (tiny change)
+
+	* lread.c (lisp_file_lexically_bound_p): Fix hang at ";-*-\n" (bug#11238).
+
 2012-04-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* process.c (make_process):
 	* process.h: Add integer `gnutls_handshakes_tried' member to
 	process struct.
 
-	* gnutls.h: Add `GNUTLS_EMACS_HANDSHAKES_LIMIT' upper limit.  Add
-	convenience `GNUTLS_LOG2i' macro.
+	* gnutls.h: Add `GNUTLS_EMACS_HANDSHAKES_LIMIT' upper limit.
+	Add convenience `GNUTLS_LOG2i' macro.
 
 	* gnutls.c (gnutls_log_function2i): Convenience log function.
 	(emacs_gnutls_read): Use new log functions,
