@@ -41,6 +41,9 @@ been adding them there, put them somewhere else, eg site-lisp.
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.
 
+** `mouse-avoidance-banish-position' can now be used to customize
+`mouse-avoidance-mode' further.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
