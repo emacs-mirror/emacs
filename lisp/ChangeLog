@@ -1,3 +1,9 @@
+2012-04-13  Masatake YAMATO  <yamato@redhat.com>
+
+	* minibuffer.el (minibuffer-local-filename-syntax): New variable
+	to allow `C-M-f' and `C-M-b' to move to the nearest path
+	separator (bug#9511).
+
 2012-04-13  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* avoid.el: Require cl when compiling.  And also move the

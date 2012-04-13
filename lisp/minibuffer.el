@@ -2045,6 +2045,21 @@ and `read-file-name-function'."
   (funcall (or read-file-name-function #'read-file-name-default)
            prompt dir default-filename mustmatch initial predicate))
 
+(defvar minibuffer-local-filename-syntax
+  (let ((table (make-syntax-table))
+	(punctuation (car (string-to-syntax "."))))
+    ;; Convert all punctuation entries to symbol.
+    (map-char-table (lambda (c syntax)
+		      (when (eq (car syntax) punctuation)
+			(modify-syntax-entry c "_" table)))
+		    table)
+    (mapc
+     (lambda (c)
+       (modify-syntax-entry c "." table))
+     '(?/ ?: ?\\))
+    table)
+  "Syntax table to be used in minibuffer for reading file name.")
+
 ;; minibuffer-completing-file-name is a variable used internally in minibuf.c
 ;; to determine whether to use minibuffer-local-filename-completion-map or
 ;; minibuffer-local-completion-map.  It shouldn't be exported to Elisp.
@@ -2113,7 +2128,8 @@ See `read-file-name' for the meaning of the arguments."
                                (lambda ()
                                  (with-current-buffer
                                      (window-buffer (minibuffer-selected-window))
-				   (read-file-name--defaults dir initial)))))
+				   (read-file-name--defaults dir initial))))
+			  (set-syntax-table minibuffer-local-filename-syntax))
                       (completing-read prompt 'read-file-name-internal
                                        pred mustmatch insdef
                                        'file-name-history default-filename)))
