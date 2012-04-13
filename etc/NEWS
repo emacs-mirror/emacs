@@ -37,6 +37,10 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 
 * Editing Changes in Emacs 24.2
+
+** M-x move-to-column, if called interactively with no prefix arg, now
+prompts for a column number.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 

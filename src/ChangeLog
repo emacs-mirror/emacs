@@ -1,3 +1,7 @@
+2012-04-13  Reuben Thomas  <rrt@sc3d.org>
+
+	* indent.c (Fmove_to_column): Change interactive spec (Bug#739).
+
 2012-04-11  Daniel Colascione  <dancol@dancol.org>
 
 	* s/cygwin.h: The vfork the #define in cygwin.h was protecting
