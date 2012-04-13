@@ -67,7 +67,7 @@
 
 ;;; Code:
 
-(provide 'avoid)
+(eval-when-compile (require 'cl))
 
 (defgroup avoid nil
   "Make mouse pointer stay out of the way of editing."
@@ -456,5 +456,7 @@ definition of \"random distance\".)"
 ;; Needed for custom.
 (if mouse-avoidance-mode
     (mouse-avoidance-mode mouse-avoidance-mode))
+
+(provide 'avoid)
 
 ;;; avoid.el ends here

@@ -1,3 +1,8 @@
+2012-04-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* avoid.el: Require cl when compiling.  And also move the
+	`provide' to the end.
+
 2012-04-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* avoid.el (mouse-avoidance-banish-position): New variable.
