@@ -1,3 +1,7 @@
+2012-04-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Replace non-portable use of $< in emacs-gnutls rules.
+
 2012-04-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add emacs-gnutls.

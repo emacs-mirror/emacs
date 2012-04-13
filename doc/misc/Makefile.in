@@ -350,11 +350,11 @@ eieio.pdf: ${srcdir}/eieio.texi
 emacs-gnutls : $(infodir)/emacs-gnutls
 $(infodir)/emacs-gnutls: emacs-gnutls.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) $<
+	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) emacs-gnutls.texi
 emacs-gnutls.dvi: ${srcdir}/emacs-gnutls.texi
-	$(ENVADD) $(TEXI2DVI) $<
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-gnutls.texi
 emacs-gnutls.pdf: ${srcdir}/emacs-gnutls.texi
-	$(ENVADD) $(TEXI2PDF) $<
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-gnutls.texi
 
 emacs-mime : $(infodir)/emacs-mime
 $(infodir)/emacs-mime: emacs-mime.texi
