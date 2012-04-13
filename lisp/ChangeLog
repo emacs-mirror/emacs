@@ -1,3 +1,11 @@
+2012-04-13  Ken Brown  <kbrown@cornell.edu>
+
+	* net/browse-url.el (browse-url-file-url): Remove Cygwin hack;
+	this is no longer needed now that cygstart understands file://
+	URLs.
+	(browse-url-filename-alist): For the same reason, don't modify
+	file:// URLs on Cygwin.
+
 2012-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/cua-base.el (cua--pre-command-handler-1): Don't activate

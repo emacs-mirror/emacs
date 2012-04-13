@@ -467,7 +467,7 @@ commands reverses the effect of this variable.  Requires Netscape version
     ;; it in anonymous cases.  If it's not anonymous the next regexp
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
-    ,@(if (memq system-type '(windows-nt ms-dos cygwin))
+    ,@(if (memq system-type '(windows-nt ms-dos))
           '(("^\\([a-zA-Z]:\\)[\\/]" . "file:///\\1/")
             ("^[\\/][\\/]+" . "file://")))
     ("^/+" . "file:///"))
@@ -724,12 +724,6 @@ interactively.  Turn the filename into a URL with function
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
 Use variable `browse-url-filename-alist' to map filenames to URLs."
-  ;; De-munge Cygwin filenames before passing them to Windows browser.
-  (if (eq system-type 'cygwin)
-      (let ((winfile (with-output-to-string
-		       (call-process "cygpath" nil standard-output
-				     nil "-m" file))))
-	(setq file (substring winfile 0 -1))))
   (let ((coding (and (default-value 'enable-multibyte-characters)
 		     (or file-name-coding-system
 			 default-file-name-coding-system))))
