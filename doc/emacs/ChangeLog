@@ -1,3 +1,12 @@
+2012-04-13  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (Select Input Method, Coding Systems, Recognize Coding):
+	Copyedits.
+	(Coding Systems): Mac OS X apparently uses newlines for EOL.
+	(Recognize Coding): Remove old auto-coding-regexp-alist example.
+	auto-coding-functions does not override coding: tags.
+	Remove rmail-decode-mime-charset; it no longer has any effect.
+
 2012-04-12  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Creating Custom Themes): Add reference to Custom

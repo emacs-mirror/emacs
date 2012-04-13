@@ -614,7 +614,7 @@ turn off the input method temporarily.  To do this, type @kbd{C-\}
 @kbd{C-\} again.
 
   If you type @kbd{C-\} and you have not yet selected an input method,
-it prompts for you to specify one.  This has the same effect as using
+it prompts you to specify one.  This has the same effect as using
 @kbd{C-x @key{RET} C-\} to specify an input method.
 
   When invoked with a numeric argument, as in @kbd{C-u C-\},
@@ -657,7 +657,7 @@ automatically.  For example:
 @end lisp
 
 @noindent
-This activates the input method ``german-prefix'' automatically in the
+This automatically activates the input method ``german-prefix'' in
 Text mode.
 
 @findex quail-set-keyboard-layout
@@ -671,7 +671,7 @@ the command @kbd{M-x quail-set-keyboard-layout}.
   You can use the command @kbd{M-x quail-show-key} to show what key (or
 key sequence) to type in order to input the character following point,
 using the selected keyboard layout.  The command @kbd{C-u C-x =} also
-shows that information in addition to the other information about the
+shows that information, in addition to other information about the
 character.
 
 @findex list-input-methods
@@ -711,7 +711,8 @@ system; for example, to visit a file encoded in codepage 850, type
   In addition to converting various representations of non-@acronym{ASCII}
 characters, a coding system can perform end-of-line conversion.  Emacs
 handles three different conventions for how to separate lines in a file:
-newline, carriage-return linefeed, and just carriage-return.
+newline (``unix''), carriage-return linefeed (``dos''), and just
+carriage-return (``mac'').
 
 @table @kbd
 @item C-h C @var{coding} @key{RET}
@@ -751,27 +752,27 @@ end-of-line conversion to be decided based on the contents of each file.
 For example, if the file appears to use the sequence carriage-return
 linefeed to separate lines, DOS end-of-line conversion will be used.
 
-  Each of the listed coding systems has three variants which specify
+  Each of the listed coding systems has three variants, which specify
 exactly what to do for end-of-line conversion:
 
 @table @code
 @item @dots{}-unix
 Don't do any end-of-line conversion; assume the file uses
 newline to separate lines.  (This is the convention normally used
-on Unix and GNU systems.)
+on Unix and GNU systems, and Mac OS X.)
 
 @item @dots{}-dos
 Assume the file uses carriage-return linefeed to separate lines, and do
 the appropriate conversion.  (This is the convention normally used on
 Microsoft systems.@footnote{It is also specified for MIME @samp{text/*}
 bodies and in other network transport contexts.  It is different
-from the SGML reference syntax record-start/record-end format which
+from the SGML reference syntax record-start/record-end format, which
 Emacs doesn't support directly.})
 
 @item @dots{}-mac
 Assume the file uses carriage-return to separate lines, and do the
-appropriate conversion.  (This is the convention normally used on the
-Macintosh system.)
+appropriate conversion.  (This was the convention used on the
+Macintosh system prior to OS X.)
 @end table
 
   These variant coding systems are omitted from the
@@ -789,7 +790,7 @@ be deduced from the text itself.
 
 @cindex @code{raw-text}, coding system
   The coding system @code{raw-text} is good for a file which is mainly
-@acronym{ASCII} text, but may contain byte values above 127 which are
+@acronym{ASCII} text, but may contain byte values above 127 that are
 not meant to encode non-@acronym{ASCII} characters.  With
 @code{raw-text}, Emacs copies those byte values unchanged, and sets
 @code{enable-multibyte-characters} to @code{nil} in the current buffer
@@ -906,37 +907,47 @@ the buffer.
 
   The default value of @code{inhibit-iso-escape-detection} is
 @code{nil}.  We recommend that you not change it permanently, only for
-one specific operation.  That's because many Emacs Lisp source files
+one specific operation.  That's because some Emacs Lisp source files
 in the Emacs distribution contain non-@acronym{ASCII} characters encoded in the
 coding system @code{iso-2022-7bit}, and they won't be
 decoded correctly when you visit those files if you suppress the
 escape sequence detection.
+@c I count a grand total of 3 such files, so is the above really true?
 
 @vindex auto-coding-alist
 @vindex auto-coding-regexp-alist
-@vindex auto-coding-functions
-  The variables @code{auto-coding-alist},
-@code{auto-coding-regexp-alist} and @code{auto-coding-functions} are
+  The variables @code{auto-coding-alist} and
+@code{auto-coding-regexp-alist} are
 the strongest way to specify the coding system for certain patterns of
-file names, or for files containing certain patterns; these variables
-even override @samp{-*-coding:-*-} tags in the file itself.  Emacs
+file names, or for files containing certain patterns, respectively.
+These variables even override @samp{-*-coding:-*-} tags in the file
+itself.  For example, Emacs
 uses @code{auto-coding-alist} for tar and archive files, to prevent it
 from being confused by a @samp{-*-coding:-*-} tag in a member of the
 archive and thinking it applies to the archive file as a whole.
+@ignore
+@c This describes old-style BABYL files, which are no longer relevant.
 Likewise, Emacs uses @code{auto-coding-regexp-alist} to ensure that
 RMAIL files, whose names in general don't match any particular
-pattern, are decoded correctly.  One of the builtin
-@code{auto-coding-functions} detects the encoding for XML files.
+pattern, are decoded correctly.
+@end ignore
 
+@vindex auto-coding-functions
+  Another way to specify a coding system is with the variable
+@code{auto-coding-functions}.  For example, one of the builtin
+@code{auto-coding-functions} detects the encoding for XML files.
+Unlike the previous two, this variable does not override any
+@samp{-*-coding:-*-} tag.
+
+@c FIXME?  This seems somewhat out of place.  Move to the Rmail section?
 @vindex rmail-decode-mime-charset
 @vindex rmail-file-coding-system
   When you get new mail in Rmail, each message is translated
 automatically from the coding system it is written in, as if it were a
 separate file.  This uses the priority list of coding systems that you
 have specified.  If a MIME message specifies a character set, Rmail
-obeys that specification, unless @code{rmail-decode-mime-charset} is
-@code{nil}.  For reading and saving Rmail files themselves, Emacs uses
-the coding system specified by the variable
+obeys that specification.  For reading and saving Rmail files
+themselves, Emacs uses the coding system specified by the variable
 @code{rmail-file-coding-system}.  The default value is @code{nil},
 which means that Rmail files are not translated (they are read and
 written in the Emacs internal character code).
