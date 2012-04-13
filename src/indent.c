@@ -957,7 +957,7 @@ indented_beyond_p (EMACS_INT pos, EMACS_INT pos_byte, EMACS_INT column)
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2,
-       "NMove to column:",
+       "NMove to column: ",
        doc: /* Move point to column COLUMN in the current line.
 Interactively, COLUMN is the value of prefix numeric argument.
 The column of a character is calculated by adding together the widths
