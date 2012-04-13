@@ -1,3 +1,7 @@
+2012-04-13  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/which-func.el (which-func-modes): Add objc-mode.
+
 2012-04-13  Ken Brown  <kbrown@cornell.edu>
 
 	* net/browse-url.el (browse-url-file-url): Remove Cygwin hack;
