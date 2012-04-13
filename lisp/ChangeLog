@@ -1,3 +1,8 @@
+2012-04-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* avoid.el (mouse-avoidance-banish-position): New variable.
+	(mouse-avoidance-banish-destination): Use it (bug#10165).
+
 2012-04-13  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/which-func.el (which-func-modes): Add objc-mode.
