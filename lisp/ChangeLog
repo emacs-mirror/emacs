@@ -1,3 +1,8 @@
+2012-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-base.el (cua--pre-command-handler-1): Don't activate
+	the region on shift if the binding is already shifted (bug#11221).
+
 2012-04-12  Glenn Morris  <rgm@gnu.org>
 
 	* mail/mailpost.el: Move to obsolete/.

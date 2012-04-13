@@ -1246,22 +1246,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    ;;   (and region not started with C-SPC).
    ;; If rectangle is active, expand rectangle in specified direction and
    ;;   ignore the movement.
-   ((if window-system
-        ;; Shortcut for window-system, assuming that input-decode-map is empty.
-	(memq 'shift (event-modifiers
-		      (aref (this-single-command-raw-keys) 0)))
-      (or
-       ;; Check if the final key-sequence was shifted.
-       (memq 'shift (event-modifiers
-		     (aref (this-single-command-keys) 0)))
-       ;; If not, maybe the raw key-sequence was mapped by input-decode-map
-       ;; to a shifted key (and then mapped down to its unshifted form).
-       (let* ((keys (this-single-command-raw-keys))
-              (ev (lookup-key input-decode-map keys)))
-         (or (and (vector ev) (memq 'shift (event-modifiers (aref ev 0))))
-             ;; Or maybe, the raw key-sequence was not an escape sequence
-             ;; and was shifted (and then mapped down to its unshifted form).
-             (memq 'shift (event-modifiers (aref keys 0)))))))
+   (this-command-keys-shift-translated
     (unless mark-active
       (push-mark-command nil t))
     (setq cua--last-region-shifted t)
