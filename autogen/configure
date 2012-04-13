@@ -22410,6 +22410,14 @@ to run if these resources are not installed."
    echo
 fi
 
+if test "${opsys}" = "cygwin"; then
+  case `uname -r` in
+    1.5.*) { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: building Emacs on Cygwin 1.5 is not supported." >&5
+$as_echo "$as_me: WARNING: building Emacs on Cygwin 1.5 is not supported." >&2;}
+           echo
+	   ;;
+  esac
+fi
 
 # Remove any trailing slashes in these variables.
 test "${prefix}" != NONE &&
