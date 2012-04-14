@@ -2,7 +2,6 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1993, 1998, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
 @appendix Standard Hooks
 @cindex standard hooks
