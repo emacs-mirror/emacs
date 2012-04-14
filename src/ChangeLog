@@ -11,6 +11,18 @@
 	the Emacs and Gnulib regex code is merged.
 	(xmalloc, xrealloc): Now static.
 
+2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make GC_MAKE_GCPROS_NOOPS the default (Bug#9926).
+	* lisp.h (GC_MARK_STACK): Default to GC_MAKE_GCPROS_NOOPS.
+	* s/cygwin.h, s/darwin.h, s/freebsd.h, s/gnu.h, s/irix6-5.h, s/msdos.h:
+	* s/netbsd.h, s/sol2-6.h:
+	Remove definition of GC_MARK_STACK, since the default now works.
+	* s/aix4-2.h, s/hpux10-20.h, s/unixware.h:
+	Define GC_MARK_STACK to GC_USE_GCPROS_AS_BEFORE, since that's
+	no longer the default.
+	* s/gnu-linux.h (GC_MARK_STACK): Adjust to change in default.
+
 2012-04-14  Atsuo Ohki  <ohki@gssm.otsuka.tsukuba.ac.jp>  (tiny change)
 
 	* lread.c (lisp_file_lexically_bound_p):

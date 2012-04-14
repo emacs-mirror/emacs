@@ -59,4 +59,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   }
 
 #define GC_SETJMP_WORKS 1
-#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS

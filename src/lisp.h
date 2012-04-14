@@ -2221,7 +2221,7 @@ struct gcpro
 #define GC_USE_GCPROS_CHECK_ZOMBIES	3
 
 #ifndef GC_MARK_STACK
-#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
+#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 #endif
 
 /* Whether we do the stack marking manually.  */
