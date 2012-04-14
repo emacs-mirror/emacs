@@ -27,7 +27,7 @@
 #    otherwise edit them to zero:
 #
 #     /^REPLACE_CALLOC *=/s/@REPLACE_CALLOC@/0/
-# 
+#
 #  . If the module is a header or adds headers, edit the corresponding
 #    variable to either an empty value or to the name of the header.
 #    Examples:
@@ -126,7 +126,9 @@ am__cd = cd
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
 /^GNUSTEP_CFLAGS *=/s/@GNUSTEP_CFLAGS@//
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
-/^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
+/^GNULIB_WARN_CFLAGS *=/s/@GNULIB_WARN_CFLAGS@//
+/^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
+/^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
 /^DEFS *=/s/@[^@\n]*@/-DHAVE_CONFIG_H/
 /^DEPDIR *=/s/@[^@\n]*@/deps/
 /^DEPFLAGS *=/s/@[^@\n]*@/-MMD -MF ${DEPDIR}\/$*.d/
