@@ -222,7 +222,7 @@ as that will override any bit grouping options set here."
      (2 'hexl-ascii-region t t)))
   "Font lock keywords used in `hexl-mode'.")
 
-(defun hexl-rulerise (string bits)
+(defun hexl-rulerize (string bits)
   (let ((size (/ bits 4)) (strlen (length string)) (pos 0) (ruler ""))
     (while (< pos strlen)
       (setq ruler (concat ruler " " (substring string pos (+ pos size))))
@@ -234,7 +234,7 @@ as that will override any bit grouping options set here."
    (lambda (bits)
      (cons bits
            (concat " 87654321  "
-                   (hexl-rulerise "00112233445566778899aabbccddeeff" bits)
+                   (hexl-rulerize "00112233445566778899aabbccddeeff" bits)
                    "  0123456789abcdef")))
    '(8 16 32 64)))
 ;; routines

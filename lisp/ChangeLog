@@ -1,3 +1,9 @@
+2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* hexl.el (hexl-rulerize): Rename from hexl-rulerise, since
+	Emacs uses American spelling.
+
 2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lock.el (emacs-lock-locked-buffer-functions): New hook.
