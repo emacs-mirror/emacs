@@ -53,8 +53,11 @@ character when doing minibuffer filename prompts.
 ** which-function-mode now applies to all applicable major modes by default.
 
 ** erc will look up server/channel names via auth-source and use the
-   channel keys found, if any.
+channel keys found, if any.
 
+** The `server-auth-key' variable can be used to set a permanent
+shared key for Emacs Server.
+   
 ** Obsolete packages:
 
 *** mailpost.el
