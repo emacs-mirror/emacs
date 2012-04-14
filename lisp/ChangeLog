@@ -1,3 +1,26 @@
+2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-auth-key, server-generate-key): Doc fixes.
+	(server-get-auth-key): Doc fix.  Use `string-match-p'.
+	(server-start): Reflow docstring.
+
+2012-04-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* server.el (server-generate-key): `called-interactively-p'
+	requires a parameter.
+
+2012-04-14  Michal Nazarewicz  <mina86@mina86.com>
+
+	* server.el (server-auth-key): New variable.
+	(server-generate-key): New function.
+	(server-get-auth-key): New function.
+	(server-start): Use the new variable and functions to allow
+	setting a permanent server key (bug#9423).
+
+2012-04-14  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/diff-mode.el (diff-file-prev/next): Fix typo.
+
 2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.

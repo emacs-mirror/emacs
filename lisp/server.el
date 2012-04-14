@@ -139,6 +139,32 @@ directory residing in a NTFS partition instead."
 ;;;###autoload
 (put 'server-auth-dir 'risky-local-variable t)
 
+(defcustom server-auth-key nil
+  "Server authentication key.
+
+Normally, the authentication key is randomly generated when the
+server starts, which guarantees some level of security.  It is
+recommended to leave it that way.  Using a long-lived shared key
+will decrease security (especially since the key is transmitted as
+plain text).
+
+In some situations however, it can be difficult to share randomly
+generated passwords with remote hosts (eg. no shared directory),
+so you can set the key with this variable and then copy the
+server file to the remote host (with possible changes to IP
+address and/or port if that applies).
+
+The key must consist of 64 ASCII printable characters except for
+space (this means characters from ! to ~; or from code 33 to 126).
+
+You can use \\[server-generate-key] to get a random authentication
+key."
+  :group 'server
+  :type '(choice
+	  (const :tag "Random" nil)
+	  (string :tag "Password"))
+  :version "24.2")
+
 (defcustom server-raise-frame t
   "If non-nil, raise frame when switching to a buffer."
   :group 'server
@@ -522,13 +548,38 @@ See variable `server-auth-dir' for details."
       (unless safe
 	(error "The directory `%s' is unsafe" dir)))))
 
+(defun server-generate-key ()
+  "Generate and return a random authentication key.
+The key is a 64-byte string of random chars in the range `!'..`~'.
+If called interactively, also inserts it into current buffer."
+  (interactive)
+  (let ((auth-key
+	 (loop repeat 64
+	       collect (+ 33 (random 94)) into auth
+	       finally return (concat auth))))
+    (if (called-interactively-p 'interactive)
+	(insert auth-key))
+    auth-key))
+
+(defun server-get-auth-key ()
+  "Return server's authentication key.
+
+If `server-auth-key' is nil, just call `server-generate-key'.
+Otherwise, if `server-auth-key' is a valid key, return it.
+If the key is not valid, signal an error."
+  (if server-auth-key
+    (if (string-match-p "^[!-~]\\{64\\}$" server-auth-key)
+        server-auth-key
+      (error "The key '%s' is invalid" server-auth-key))
+    (server-generate-key)))
+
 ;;;###autoload
 (defun server-start (&optional leave-dead inhibit-prompt)
   "Allow this Emacs process to be a server for client processes.
-This starts a server communications subprocess through which
-client \"editors\" can send your editing commands to this Emacs
-job.  To use the server, set up the program `emacsclient' in the
-Emacs distribution as your standard \"editor\".
+This starts a server communications subprocess through which client
+\"editors\" can send your editing commands to this Emacs job.
+To use the server, set up the program `emacsclient' in the Emacs
+distribution as your standard \"editor\".
 
 Optional argument LEAVE-DEAD (interactively, a prefix arg) means just
 kill any existing server communications subprocess.
@@ -615,13 +666,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 	  (unless server-process (error "Could not start server process"))
 	  (process-put server-process :server-file server-file)
 	  (when server-use-tcp
-	    (let ((auth-key
-		   (loop
-		    ;; The auth key is a 64-byte string of random chars in the
-		    ;; range `!'..`~'.
-		    repeat 64
-		    collect (+ 33 (random 94)) into auth
-		    finally return (concat auth))))
+	    (let ((auth-key (server-get-auth-key)))
 	      (process-put server-process :auth-key auth-key)
 	      (with-temp-file server-file
 		(set-buffer-multibyte nil)
