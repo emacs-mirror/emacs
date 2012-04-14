@@ -1,3 +1,7 @@
+2012-04-14  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/diff-mode.el (diff-file-prev/next): Fix typo.
+
 2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.

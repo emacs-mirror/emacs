@@ -545,7 +545,7 @@ but in the file header instead, in which case move forward to the first hunk."
      (condition-case-unless-debug nil (diff-refine-hunk) (error nil))))
 
 (easy-mmode-define-navigation
- diff-file diff-file-header-re "file" diff-end-of-hunk)
+ diff-file diff-file-header-re "file" diff-end-of-file)
 
 (defun diff-restrict-view (&optional arg)
   "Restrict the view to the current hunk.
