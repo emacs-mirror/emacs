@@ -1,5 +1,7 @@
 2012-04-14  Glenn Morris  <rgm@gnu.org>
 
+	* msdog.texi (Windows Printing): It doesn't set printer-name.
+
 	* mule.texi (Language Environments): Move font info to "Fontsets".
 	(Fontsets): Move intlfonts etc here from "Language Environments".
 	Copyedits.

@@ -155,11 +155,6 @@ mini.texi         rgm
 misc.texi         cyd
 modes.texi        cyd
 msdog.texi        rgm  (can't actually test any of it though)
-  It was not obvious to me that the following is true (it could well be though):
-
-   Emacs on Windows automatically determines your default printer and
-   sets the variable `printer-name' to that printer's name.
-
 msdog-xtra.texi   rgm  (can't actually test any of it though)
 mule.texi         rgm  (not 100% sure about "Fontsets")
 m-x.texi          cyd
