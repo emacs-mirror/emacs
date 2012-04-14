@@ -1,5 +1,8 @@
 2012-04-14  Glenn Morris  <rgm@gnu.org>
 
+	* frames.texi (Scroll Bars):
+	* glossary.texi (Glossary): Use consistent case for "X Window System".
+
 	* mule.texi (Select Input Method, Coding Systems):
 	State command names in kbd tables.
 	(Recognize Coding): Add cross-ref.
