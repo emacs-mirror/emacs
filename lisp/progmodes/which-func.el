@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997-1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997-1998, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -80,6 +80,7 @@
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."
   :group 'which-func
+  :version "24.2"                       ; added objc-mode
   :type '(choice (const :tag "All modes" t)
 		 (repeat (symbol :tag "Major mode"))))
 
