@@ -1,3 +1,8 @@
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* anti.texi (Antinews): Copyedits.  Don't @dfn anything here.
+	open-network-stream does exist in Emacs 23, but is simpler.
+
 2012-04-13  Chong Yidong  <cyd@gnu.org>
 
 	* customize.texi (Custom Themes): Also document load-theme etc.

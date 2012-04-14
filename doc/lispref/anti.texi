@@ -65,9 +65,9 @@ Emacs windows now have most of their internal state hidden from Lisp.
 Internal windows are no longer visible to Lisp; functions such as
 @code{window-parent}, window parameters related to window arrangement,
 and window-local buffer lists have all been removed.  Functions for
-resizing windows can delete windows if when they become too small.
+resizing windows can delete windows if they become too small.
 
-The @dfn{action function} feature for controlling buffer display has
+The ``action function'' feature for controlling buffer display has
 been removed, including @code{display-buffer-overriding-action} and
 related variables, as well as the @var{action} argument to
 @code{display-buffer} and other functions.  The way to
@@ -80,7 +80,7 @@ variables.
 The standard completion interface has been simplified, eliminating the
 @code{completion-extra-properties} variable, the @code{metadata}
 action flag for completion functions, and the concept of
-@dfn{completion categories}.  Lisp programmers may now find the choice
+``completion categories''.  Lisp programmers may now find the choice
 of methods for tuning completion less bewildering, but if a package
 finds the streamlined interface insufficient for its needs, it must
 implement its own specialized completion feature.
@@ -123,17 +123,19 @@ an additional @var{cache} entry in their definitions, like this:
 The @var{cache} entry is used internally by Emacs to record equivalent
 keyboard key sequences for invoking the same command; Lisp programs
 should never use it.
+@c Not really NEWS-worthy then...
 
 @item
-The @code{open-network-stream} function has been removed, and so has
-the @code{gnutls} library.  Lisp programs that want an encrypted
-network connection must now call external utilities such as
-@command{starttls} or @command{gnutls-cli}.
+The @code{gnutls} library has been removed, and the function
+@code{open-network-stream} correspondingly simplified.
+Lisp programs that want an encrypted network connection must now call
+external utilities such as @command{starttls} or @command{gnutls-cli}.
 
 @item
 Tool bars can no longer display separators, which frees up several
 pixels of space on each graphical frame.
 
 @item
-Many other functions and variables have been eliminated.
+As part of the ongoing quest for simplicity, many other functions and
+variables have been eliminated.
 @end itemize
