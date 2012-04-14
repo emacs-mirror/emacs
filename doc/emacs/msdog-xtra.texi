@@ -247,7 +247,7 @@ begins at the top of the character cell.
 
 @cindex frames on MS-DOS
   The MS-DOS terminal can only display a single frame at a time.  The
-Emacs frame facilities work on MS-DOS much as they do on text-only
+Emacs frame facilities work on MS-DOS much as they do on text
 terminals
 @iftex
 (@pxref{Frames,,,emacs, the Emacs Manual}).

@@ -1405,7 +1405,7 @@ signaled.)  Currently, this feature is mainly useful for developers.
 the shell command @samp{emacsclient @var{file}}, where @var{file} is a
 file name.  This connects to an Emacs server, and tells that Emacs
 process to visit @var{file} in one of its existing frames---either a
-graphical frame, or one in a text-only terminal (@pxref{Frames}).  You
+graphical frame, or one in a text terminal (@pxref{Frames}).  You
 can then select that frame to begin editing.
 
   If there is no Emacs server, the @command{emacsclient} program halts
@@ -1415,12 +1415,12 @@ Server})---then Emacs opens a frame on the terminal in which you
 called @command{emacsclient}.
 
   You can also force @command{emacsclient} to open a new frame on a
-graphical display, or on a text-only terminal, using the @samp{-c} and
+graphical display, or on a text terminal, using the @samp{-c} and
 @samp{-t} options.  @xref{emacsclient Options}.
 
-  If you are running on a single text-only terminal, you can switch
-between @command{emacsclient}'s shell and the Emacs server using one
-of two methods: (i) run the Emacs server and @command{emacsclient} on
+  If you are running on a single text terminal, you can switch between
+@command{emacsclient}'s shell and the Emacs server using one of two
+methods: (i) run the Emacs server and @command{emacsclient} on
 different virtual terminals, and switch to the Emacs server's virtual
 terminal after calling @command{emacsclient}; or (ii) call
 @command{emacsclient} from within the Emacs server itself, using Shell
@@ -1511,8 +1511,8 @@ buffer (@pxref{Buffers}).  See below for the special behavior of
 @kbd{C-x C-c} in a client frame.
 
 On GNU and Unix systems, Emacs can create a graphical frame even if it
-was started in a text-only terminal, provided it is able to connect to
-a graphical display.  On systems such as MS-Windows, it cannot create
+was started in a text terminal, provided it is able to connect to a
+graphical display.  On systems such as MS-Windows, it cannot create
 graphical frames if it was started from a text terminal
 (@pxref{Windows Startup, emacsclient}).  If Emacs cannot connect to a
 graphical display for any reason, it instead creates a new client

@@ -148,14 +148,14 @@ stopping the program temporarily and returning control to the parent
 process (usually a shell); in most shells, you can resume Emacs after
 suspending it with the shell command @command{%emacs}.
 
-  Text-only terminals usually listen for certain special characters
-whose meaning is to kill or suspend the program you are running.
-@b{This terminal feature is turned off while you are in Emacs.}  The
-meanings of @kbd{C-z} and @kbd{C-x C-c} as keys in Emacs were inspired
-by the use of @kbd{C-z} and @kbd{C-c} on several operating systems as
-the characters for stopping or killing a program, but that is their
-only relationship with the operating system.  You can customize these
-keys to run any commands of your choice (@pxref{Keymaps}).
+  Text terminals usually listen for certain special characters whose
+meaning is to kill or suspend the program you are running.  @b{This
+terminal feature is turned off while you are in Emacs.}  The meanings
+of @kbd{C-z} and @kbd{C-x C-c} as keys in Emacs were inspired by the
+use of @kbd{C-z} and @kbd{C-c} on several operating systems as the
+characters for stopping or killing a program, but that is their only
+relationship with the operating system.  You can customize these keys
+to run any commands of your choice (@pxref{Keymaps}).
 
 @ifnottex
 @lowersections

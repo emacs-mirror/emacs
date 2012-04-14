@@ -60,7 +60,7 @@ for each command; see @ref{Text Coding}.
 @item
 You can display non-@acronym{ASCII} characters encoded by the various
 scripts.  This works by using appropriate fonts on graphics displays
-(@pxref{Defining Fontsets}), and by sending special codes to text-only
+(@pxref{Defining Fontsets}), and by sending special codes to text
 displays (@pxref{Terminal Coding}).  If some characters are displayed
 incorrectly, refer to @ref{Undisplayable Characters}, which describes
 possible problems and explains how to solve them.
@@ -210,7 +210,7 @@ What keys to type to input the character in the current input method
 
 @item
 If you are running Emacs on a graphical display, the font name and
-glyph code for the character.  If you are running Emacs on a text-only
+glyph code for the character.  If you are running Emacs on a text
 terminal, the code(s) sent to the terminal.
 
 @item
@@ -1543,9 +1543,9 @@ examples are:
 @node Undisplayable Characters
 @section Undisplayable Characters
 
-  There may be a some non-@acronym{ASCII} characters that your terminal cannot
-display.  Most text-only terminals support just a single character
-set (use the variable @code{default-terminal-coding-system}
+  There may be a some non-@acronym{ASCII} characters that your
+terminal cannot display.  Most text terminals support just a single
+character set (use the variable @code{default-terminal-coding-system}
 (@pxref{Terminal Coding}) to tell Emacs which one); characters which
 can't be encoded in that coding system are displayed as @samp{?} by
 default.
@@ -1632,8 +1632,8 @@ If your keyboard can generate character codes 128 (decimal) and up,
 representing non-@acronym{ASCII} characters, you can type those character codes
 directly.
 
-On a graphical display, you should not need to do anything special to use
-these keys; they should simply work.  On a text-only terminal, you
+On a graphical display, you should not need to do anything special to
+use these keys; they should simply work.  On a text terminal, you
 should use the command @code{M-x set-keyboard-coding-system} or the
 variable @code{keyboard-coding-system} to specify which coding system
 your keyboard uses (@pxref{Terminal Coding}).  Enabling this feature

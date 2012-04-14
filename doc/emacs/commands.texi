@@ -62,7 +62,7 @@ starting with @key{ESC}.  Thus, you can enter @kbd{M-a} by typing
 C-a}.  Unlike @key{Meta}, @key{ESC} is entered as a separate
 character.  You don't hold down @key{ESC} while typing the next
 character; instead, press @key{ESC} and release it, then enter the
-next character.  This feature is useful on certain text-only terminals
+next character.  This feature is useful on certain text terminals
 where the @key{Meta} key does not function reliably.
 
 @cindex keys stolen by window manager

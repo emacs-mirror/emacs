@@ -511,7 +511,7 @@ Frames and Graphical Displays
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
-* Text-Only Mouse::     Using the mouse in text-only terminals.
+* Text-Only Mouse::     Using the mouse in text terminals.
 
 International Character Set Support
 

@@ -286,8 +286,8 @@ scrolling whenever point moves off the left or right edge of the
 screen.  To disable automatic horizontal scrolling, set the variable
 @code{auto-hscroll-mode} to @code{nil}.  Note that when the automatic
 horizontal scrolling is turned off, if point moves off the edge of the
-screen, the cursor disappears to indicate that.  (On text-only
-terminals, the cursor is left at the edge instead.)
+screen, the cursor disappears to indicate that.  (On text terminals,
+the cursor is left at the edge instead.)
 
 @vindex hscroll-margin
   The variable @code{hscroll-margin} controls how close point can get
@@ -479,9 +479,9 @@ prompts for a regular expression, and displays only faces with names
 matching that regular expression (@pxref{Regexps}).
 
   It's possible for a given face to look different in different
-frames.  For instance, some text-only terminals do not support all
-face attributes, particularly font, height, and width, and some
-support a limited range of colors.
+frames.  For instance, some text terminals do not support all face
+attributes, particularly font, height, and width, and some support a
+limited range of colors.
 
 @cindex background color
 @cindex default face
@@ -529,13 +529,13 @@ or an @dfn{RGB triplet}.
 @samp{medium sea green}.  To view a list of color names, type @kbd{M-x
 list-colors-display}.  To control the order in which colors are shown,
 customize @code{list-colors-sort}.  If you run this command on a
-graphical display, it shows the full range of color names known to Emacs
-(these are the standard X11 color names, defined in X's @file{rgb.txt}
-file).  If you run the command on a text-only terminal, it shows only a
-small subset of colors that can be safely displayed on such terminals.
-However, Emacs understands X11 color names even on text-only terminals;
-if a face is given a color specified by an X11 color name, it is
-displayed using the closest-matching terminal color.
+graphical display, it shows the full range of color names known to
+Emacs (these are the standard X11 color names, defined in X's
+@file{rgb.txt} file).  If you run the command on a text terminal, it
+shows only a small subset of colors that can be safely displayed on
+such terminals.  However, Emacs understands X11 color names even on
+text terminals; if a face is given a color specified by an X11 color
+name, it is displayed using the closest-matching terminal color.
 
   An RGB triplet is a string of the form @samp{#RRGGBB}.  Each of the
 R, G, and B components is a hexadecimal number specifying the
@@ -651,8 +651,8 @@ at the top of a window just as the mode line appears at the bottom.
 Most windows do not have a header line---only some special modes, such
 Info mode, create one.
 @item vertical-border
-This face is used for the vertical divider between windows on
-text-only terminals.
+This face is used for the vertical divider between windows on text
+terminals.
 @item minibuffer-prompt
 @cindex @code{minibuffer-prompt} face
 @vindex minibuffer-prompt-properties
@@ -679,9 +679,9 @@ This face determines the color of the mouse pointer.
 @end table
 
   The following faces likewise control the appearance of parts of the
-Emacs frame, but only on text-only terminals, or when Emacs is built
-on X with no toolkit support.  (For all other cases, the appearance of
-the respective frame elements is determined by system-wide settings.)
+Emacs frame, but only on text terminals, or when Emacs is built on X
+with no toolkit support.  (For all other cases, the appearance of the
+respective frame elements is determined by system-wide settings.)
 
 @table @code
 @item scroll-bar
@@ -1453,9 +1453,9 @@ global-hl-line-mode} enables or disables the same mode globally.
 Emacs can display long lines by @dfn{truncation}.  This means that all
 the characters that do not fit in the width of the screen or window do
 not appear at all.  On graphical displays, a small straight arrow in
-the fringe indicates truncation at either end of the line.  On
-text-only terminals, this is indicated with @samp{$} signs in the
-leftmost and/or rightmost columns.
+the fringe indicates truncation at either end of the line.  On text
+terminals, this is indicated with @samp{$} signs in the leftmost
+and/or rightmost columns.
 
 @vindex truncate-lines
 @findex toggle-truncate-lines
@@ -1577,7 +1577,7 @@ of an overline above the text, including the height of the overline
 itself, in pixels; the default is 2.
 
 @findex tty-suppress-bold-inverse-default-colors
-  On some text-only terminals, bold face and inverse video together
-result in text that is hard to read.  Call the function
+  On some text terminals, bold face and inverse video together result
+in text that is hard to read.  Call the function
 @code{tty-suppress-bold-inverse-default-colors} with a non-@code{nil}
 argument to suppress the effect of bold-face in this case.

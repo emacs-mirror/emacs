@@ -121,8 +121,8 @@ Emacs will always create a new text-mode frame in the same
 created only if the server runs in a GUI session.  Similarly, if you
 invoke @command{emacsclient} with the @option{-t} option, Emacs will
 create a GUI frame if the server runs in a GUI session, or a text-mode
-frame when the session runs in text-only mode in a @dfn{Command
-Prompt} window.  @xref{emacsclient Options}.
+frame when the session runs in text mode in a @dfn{Command Prompt}
+window.  @xref{emacsclient Options}.
 
 @node Text and Binary
 @section Text Files and Binary Files
