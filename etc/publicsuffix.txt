@@ -3601,7 +3601,7 @@ turystyka.pl
 6bone.pl
 art.pl
 mbone.pl
-// Government domains (administred by ippt.gov.pl)
+// Government domains (administered by ippt.gov.pl)
 gov.pl
 uw.gov.pl
 um.gov.pl
