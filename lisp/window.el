@@ -3643,7 +3643,11 @@ specific buffers."
 		     (scroll-bars . ,(window-scroll-bars window))
 		     (vscroll . ,(window-vscroll window))
 		     (dedicated . ,(window-dedicated-p window))
-		     (point . ,(if writable point (copy-marker point)))
+		     (point . ,(if writable point
+                                 (copy-marker point
+                                              (buffer-local-value
+                                               'window-point-insertion-type
+                                               buffer))))
 		     (start . ,(if writable start (copy-marker start)))))))))
 	 (tail
 	  (when (memq type '(vc hc))

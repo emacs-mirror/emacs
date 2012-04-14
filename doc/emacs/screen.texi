@@ -131,15 +131,15 @@ Commands that take a long time often display messages ending in
 progress has been made, as a percentage), and add @samp{done} when
 they are finished.
 
-@cindex @samp{*Messages*} buffer
+@cindex @file{*Messages*} buffer
 @cindex saved echo area messages
 @cindex messages saved from echo area
 @vindex message-log-max
   Informative echo area messages are saved in a special buffer named
-@samp{*Messages*}.  (We have not explained buffers yet; see
+@file{*Messages*}.  (We have not explained buffers yet; see
 @ref{Buffers}, for more information about them.)  If you miss a
 message that appeared briefly on the screen, you can switch to the
-@samp{*Messages*} buffer to see it again.  The @samp{*Messages*}
+@file{*Messages*} buffer to see it again.  The @file{*Messages*}
 buffer is limited to a certain number of lines, specified by the
 variable @code{message-log-max}.  (We have not explained variables
 either; see @ref{Variables}, for more information about them.)  Beyond

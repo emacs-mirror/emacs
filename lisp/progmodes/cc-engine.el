@@ -5382,7 +5382,7 @@ comment at the start of cc-engine.el for more info."
 	  new-beg new-end need-new-beg need-new-end)
       ;; Locate the barrier before the changed region
       (goto-char  (if beg-lit-limits (car beg-lit-limits) beg))
-      (c-syntactic-skip-backward "^;{}" (max (- beg 2048) (point-min)))
+      (c-syntactic-skip-backward "^;{}" (c-determine-limit 512))
       (setq new-beg (point))
 
       ;; Remove the syntax-table properties from each pertinent <...> pair.
@@ -5393,8 +5393,7 @@ comment at the start of cc-engine.el for more info."
 
       ;; Locate the barrier after END.
       (goto-char (if end-lit-limits (cdr end-lit-limits) end))
-      (c-syntactic-re-search-forward "[;{}]"
-				     (min (+ end 2048) (point-max)) 'end)
+      (c-syntactic-re-search-forward "[;{}]" (c-determine-+ve-limit 512) 'end)
       (setq new-end (point))
 
       ;; Remove syntax-table properties from the remaining pertinent <...>

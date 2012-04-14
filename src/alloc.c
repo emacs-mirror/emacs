@@ -296,7 +296,6 @@ enum mem_type
   MEM_TYPE_VECTORLIKE
 };
 
-static POINTER_TYPE *lisp_align_malloc (size_t, enum mem_type);
 static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
 
 
@@ -938,9 +937,10 @@ lisp_free (POINTER_TYPE *block)
   MALLOC_UNBLOCK_INPUT;
 }
 
-/* Allocation of aligned blocks of memory to store Lisp data.              */
-/* The entry point is lisp_align_malloc which returns blocks of at most    */
-/* BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
+/*****  Allocation of aligned blocks of memory to store Lisp data.  *****/
+
+/* The entry point is lisp_align_malloc which returns blocks of at most
+   BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
 /* Use posix_memalloc if the system has it and we're using the system's
    malloc (because our gmalloc.c routines don't have posix_memalign although
@@ -1099,7 +1099,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 #endif
 
       /* Initialize the blocks and put them on the free list.
-	 Is `base' was not properly aligned, we can't use the last block.  */
+	 If `base' was not properly aligned, we can't use the last block.  */
       for (i = 0; i < (aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1); i++)
 	{
 	  abase->blocks[i].abase = abase;
@@ -1146,8 +1146,8 @@ lisp_align_free (POINTER_TYPE *block)
   ablock->x.next_free = free_ablock;
   free_ablock = ablock;
   /* Update busy count.  */
-  ABLOCKS_BUSY (abase) =
-    (struct ablocks *) (-2 + (intptr_t) ABLOCKS_BUSY (abase));
+  ABLOCKS_BUSY (abase)
+    = (struct ablocks *) (-2 + (intptr_t) ABLOCKS_BUSY (abase));
 
   if (2 > (intptr_t) ABLOCKS_BUSY (abase))
     { /* All the blocks are free.  */

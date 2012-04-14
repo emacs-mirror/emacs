@@ -257,7 +257,7 @@ highlighting.
 @key{RET}, or by clicking either @kbd{Mouse-1} or @kbd{Mouse-2} on the
 button.  For example, in a Dired buffer, each file name is a button;
 activating it causes Emacs to visit that file (@pxref{Dired}).  In a
-@samp{*Compilation*} buffer, each error message is a button, and
+@file{*Compilation*} buffer, each error message is a button, and
 activating it visits the source code for that error
 (@pxref{Compilation}).
 

@@ -802,12 +802,15 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
                   (forward-comment (point-max)))
                 (re-search-forward re (point-max) t))
          (if (match-beginning 1)
-             ;; we have found a block beginning
+             ;; We have found a block beginning.
              (progn
                (goto-char (match-beginning 1))
-               (if hs-hide-all-non-comment-function
-                   (funcall hs-hide-all-non-comment-function)
-                 (hs-hide-block-at-point t)))
+	       (unless (if hs-hide-all-non-comment-function
+			   (funcall hs-hide-all-non-comment-function)
+			 (hs-hide-block-at-point t))
+		 ;; Go to end of matched data to prevent from getting stuck
+		 ;; with an endless loop.
+		 (goto-char (match-end 0))))
            ;; found a comment, probably
            (let ((c-reg (hs-inside-comment-p)))
              (when (and c-reg (car c-reg))

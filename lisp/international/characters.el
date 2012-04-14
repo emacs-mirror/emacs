@@ -576,9 +576,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	  (set-case-syntax-pair from (1+ from) tbl)
 	  (setq from (+ from 2))))))
 
-  (set-case-syntax-pair #x178 #x0ff tbl)
-  (set-case-syntax-pair #x189 #x256 tbl)
-  (set-case-syntax-pair #x18A #x257 tbl)
+  (set-case-syntax-pair ?Ÿ ?ÿ tbl)
 
   ;; In some languages, such as Turkish, U+0049 LATIN CAPITAL LETTER I
   ;; and U+0131 LATIN SMALL LETTER DOTLESS I make a case pair, and so
@@ -594,6 +592,8 @@ with L, LRE, or LRO Unicode bidi character type.")
 
   (set-case-syntax-pair ?Ɓ ?ɓ tbl)
   (set-case-syntax-pair ?Ɔ ?ɔ tbl)
+  (set-case-syntax-pair ?Ɖ ?ɖ tbl)
+  (set-case-syntax-pair ?Ɗ ?ɗ tbl)
   (set-case-syntax-pair ?Ǝ ?ǝ tbl)
   (set-case-syntax-pair ?Ə ?ə tbl)
   (set-case-syntax-pair ?Ɛ ?ɛ tbl)
@@ -622,6 +622,12 @@ with L, LRE, or LRO Unicode bidi character type.")
   (set-case-syntax-pair ?ǲ ?ǳ tbl)
   (set-case-syntax-pair ?Ƕ ?ƕ tbl)
   (set-case-syntax-pair ?Ƿ ?ƿ tbl)
+  (set-case-syntax-pair ?Ⱥ ?ⱥ tbl)
+  (set-case-syntax-pair ?Ƚ ?ƚ tbl)
+  (set-case-syntax-pair ?Ⱦ ?ⱦ tbl)
+  (set-case-syntax-pair ?Ƀ ?ƀ tbl)
+  (set-case-syntax-pair ?Ʉ ?ʉ tbl)
+  (set-case-syntax-pair ?Ʌ ?ʌ tbl)
 
   ;; Latin Extended Additional
   (modify-category-entry '(#x1e00 . #x1ef9) ?l)

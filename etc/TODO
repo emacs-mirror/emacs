@@ -647,17 +647,29 @@ up on top of all others
 
 ** Bidirectional editing
 
+*** Support reordering structured text
+Two important use cases: (1) comments and strings in program sources,
+and (2) text with markup, like HTML or XML.
+
+One idea is to invent a special text property that would instruct the
+display engine to reorder only the parts of buffer text covered by
+that property.  The display engine will then push its state onto the
+iterator stack, restrict the bidi iterator to accessing only the
+portion of buffer text covered by the property, reorder the text, then
+pop its state from stack and continue as usual.  This will require
+minor changes in the bidi_it structure.
+
+This design requires Lisp-level code to put the text properties on the
+relevant parts of the buffer text.  That could be done using JIT
+fontifications, or as a preliminary processing when the file is
+visited.  With HTML/XML, the code that puts text properties needs to
+pay attention to the bidi directives embedded in the HTML/XML stream.
+
 *** Allow the user to control the direction of the UI
 
 **** Introduce user option to control direction of mode line.
-This requires to figure out what to do with unibyte strings that are
-used in constructing the mode line.  Currently, unibyte strings are
-not reordered by bidi.c, without which R2L mode line will not display
-correctly.  One possibility would be to STRING_SET_MULTIBYTE all Lisp
-strings involved in the mode line, and then pass them through bidi.c.
-
-Another problem is the header line, which is produced by the same
-routines as the mode line.  While it makes sense to have the mode-line
+One problem is the header line, which is produced by the same routines
+as the mode line.  While it makes sense to have the mode-line
 direction controlled by a single global variable, header lines are
 buffer-specific, so they need a separate treatment in this regard.
 

@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/objects
 @node Lisp Data Types, Numbers, Introduction, Top
 @chapter Lisp Data Types
 @cindex object
@@ -352,7 +351,7 @@ following text.)
 
   In addition to the specific escape sequences for special important
 control characters, Emacs provides several types of escape syntax that
-you can use to specify non-ASCII text characters.
+you can use to specify non-@acronym{ASCII} text characters.
 
 @cindex unicode character escape
   You can specify characters by their Unicode values.

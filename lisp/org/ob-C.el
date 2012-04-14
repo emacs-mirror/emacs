@@ -152,7 +152,7 @@ it's header arguments."
   "Wrap body in a \"main\" function call if none exists."
   (if (string-match "^[ \t]*[intvod]+[ \t\n\r]*main[ \t]*(.*)" body)
       body
-    (format "int main() {\n%s\n}\n" body)))
+    (format "int main() {\n%s\nreturn(0);\n}\n" body)))
 
 (defun org-babel-prep-session:C (session params)
   "This function does nothing as C is a compiled language with no

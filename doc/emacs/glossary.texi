@@ -421,7 +421,7 @@ tell it to.  @xref{Bugs}.
 The echo area is the bottom line of the screen, used for echoing the
 arguments to commands, for asking questions, and showing brief messages
 (including error messages).  The messages are stored in the buffer
-@samp{*Messages*} so you can review them later.  @xref{Echo Area}.
+@file{*Messages*} so you can review them later.  @xref{Echo Area}.
 
 @item Echoing
 Echoing is acknowledging the receipt of input events by displaying

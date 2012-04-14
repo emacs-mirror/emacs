@@ -1,5 +1,4 @@
 @c -*-texinfo-*-
-@setfilename ../../info/index
 
 @c Indexing guidelines
 

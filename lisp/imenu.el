@@ -800,7 +800,17 @@ depending on PATTERNS."
 	      (goto-char (point-max))
 	      (while (and (if (functionp regexp)
 			      (funcall regexp)
-			    (re-search-backward regexp nil t))
+			    (and
+			     (re-search-backward regexp nil t)
+			     ;; Do not count invisible definitions.
+			     (let ((invis (invisible-p (point))))
+			       (or (not invis)
+				   (progn
+				     (while (and invis
+						 (not (bobp)))
+				       (setq invis (not (re-search-backward
+							 regexp nil 'move))))
+				     (not invis))))))
 			  ;; Exit the loop if we get an empty match,
 			  ;; because it means a bad regexp was specified.
 			  (not (= (match-beginning 0) (match-end 0))))
@@ -963,7 +973,8 @@ See the command `imenu' for more information."
 	  imenu-generic-expression
 	  (not (eq imenu-create-index-function
 		   'imenu-default-create-index-function)))
-      (unless (keymapp (lookup-key (current-local-map) [menu-bar index]))
+      (unless (and (current-local-map)
+                   (keymapp (lookup-key (current-local-map) [menu-bar index])))
 	(let ((newmap (make-sparse-keymap)))
 	  (set-keymap-parent newmap (current-local-map))
 	  (setq imenu--last-menubar-index-alist nil)

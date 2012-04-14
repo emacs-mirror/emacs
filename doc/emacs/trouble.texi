@@ -636,7 +636,7 @@ Emacs, so you will have to report the bug somewhere else.
 The type of machine you are using, and the operating system name and
 version number (again, automatically included by @kbd{M-x
 report-emacs-bug}).  @kbd{M-x emacs-version @key{RET}} provides this
-information too.  Copy its output from the @samp{*Messages*} buffer,
+information too.  Copy its output from the @file{*Messages*} buffer,
 so that you get it all and get it accurately.
 
 @item
@@ -699,7 +699,7 @@ The way to collect the terminal output is to execute the Lisp expression
 @end example
 
 @noindent
-using @kbd{M-:} or from the @samp{*scratch*} buffer just after
+using @kbd{M-:} or from the @file{*scratch*} buffer just after
 starting Emacs.  From then on, Emacs copies all terminal output to the
 specified termscript file as well, until the Emacs process is killed.
 If the problem happens when Emacs starts up, put this expression into
@@ -725,10 +725,10 @@ Alternatively, use the @command{locale} command, if your system has it,
 to display your locale settings.
 
 You can use the @kbd{M-!} command to execute these commands from
-Emacs, and then copy the output from the @samp{*Messages*} buffer into
+Emacs, and then copy the output from the @file{*Messages*} buffer into
 the bug report.  Alternatively, @kbd{M-x getenv @key{RET} LC_ALL
 @key{RET}} will display the value of @code{LC_ALL} in the echo area, and
-you can copy its output from the @samp{*Messages*} buffer.
+you can copy its output from the @file{*Messages*} buffer.
 
 @item
 A description of what behavior you observe that you believe is
@@ -761,7 +761,7 @@ important to report the precise text of the error message, and a
 backtrace showing how the Lisp program in Emacs arrived at the error.
 
 To get the error message text accurately, copy it from the
-@samp{*Messages*} buffer into the bug report.  Copy all of it, not just
+@file{*Messages*} buffer into the bug report.  Copy all of it, not just
 part.
 
 @findex toggle-debug-on-error

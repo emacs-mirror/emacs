@@ -252,10 +252,6 @@ Vivek Dasmohapatra wrote @file{htmlfontify.el}, to convert a buffer or
 source tree to HTML.
 
 @item
-Gary Delp wrote @file{mailpost.el}, an interface between RMAIL and the
-@file{/usr/uci/post} mailer.
-
-@item
 Matthieu Devin wrote @file{delsel.el}, a package to make newly-typed
 text replace the current selection.
 

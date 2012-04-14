@@ -219,7 +219,8 @@ auto     Automatically, either `all', or `repeat' for repeating tasks"
 	  (const :tag "All task time" all)
 	  (const :tag "Automatically, `all' or since `repeat'" auto)))
 
-(defcustom org-task-overrun-text nil
+(defvaralias 'org-task-overrun-text 'org-clock-task-overrun-text)
+(defcustom org-clock-task-overrun-text nil
   "The extra modeline text that should indicate that the clock is overrun.
 The can be nil to indicate that instead of adding text, the clock time
 should get a different face (`org-mode-line-clock-overrun').
@@ -495,7 +496,7 @@ pointing to it."
 	(insert (format "[%c] %-15s %s\n" i cat task))
 	(cons i marker)))))
 
-(defvar org-task-overrun nil
+(defvar org-clock-task-overrun nil
   "Internal flag indicating if the clock has overrun the planned time.")
 (defvar org-clock-update-period 60
   "Number of seconds between mode line clock string updates.")
@@ -516,7 +517,7 @@ If not, show simply the clocked time like 01:50."
 	       (work-done-str
 		(org-propertize
 		 (format org-time-clocksum-format h m)
-		 'face (if (and org-task-overrun (not org-task-overrun-text))
+		 'face (if (and org-clock-task-overrun (not org-clock-task-overrun-text))
 			   'org-mode-line-clock-overrun 'org-mode-line-clock)))
 	       (effort-str (format org-time-clocksum-format effort-h effort-m))
 	       (clockstr (org-propertize
@@ -532,7 +533,7 @@ If not, show simply the clocked time like 01:50."
 (defun org-clock-update-mode-line ()
   (if org-clock-effort
       (org-clock-notify-once-if-expired)
-    (setq org-task-overrun nil))
+    (setq org-clock-task-overrun nil))
   (setq org-mode-line-string
 	(org-propertize
 	 (let ((clock-string (org-clock-get-clock-string))
@@ -546,10 +547,10 @@ If not, show simply the clocked time like 01:50."
 	 'local-map org-clock-mode-line-map
 	 'mouse-face (if (featurep 'xemacs) 'highlight 'mode-line-highlight)
 	 ))
-  (if (and org-task-overrun org-task-overrun-text)
+  (if (and org-clock-task-overrun org-clock-task-overrun-text)
       (setq org-mode-line-string
 	    (concat (org-propertize
-		     org-task-overrun-text
+		     org-clock-task-overrun-text
 		     'face 'org-mode-line-clock-overrun) org-mode-line-string)))
   (force-mode-line-update))
 
@@ -606,7 +607,7 @@ Notification is shown only once."
   (when (org-clocking-p)
     (let ((effort-in-minutes (org-duration-string-to-minutes org-clock-effort))
 	  (clocked-time (org-clock-get-clocked-time)))
-      (if (setq org-task-overrun
+      (if (setq org-clock-task-overrun
 		(if (or (null effort-in-minutes) (zerop effort-in-minutes))
 		    nil
 		  (>= clocked-time effort-in-minutes)))

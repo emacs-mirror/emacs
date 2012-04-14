@@ -976,7 +976,7 @@ are not visiting files are auto-saved only if you request it explicitly;
 when they are auto-saved, the auto-save file name is made by appending
 @samp{#} to the front and rear of buffer name, then
 adding digits and letters at the end for uniqueness.  For
-example, the @samp{*mail*} buffer in which you compose messages to be
+example, the @file{*mail*} buffer in which you compose messages to be
 sent might be auto-saved in a file named @file{#*mail*#704juu}.  Auto-save file
 names are made this way unless you reprogram parts of Emacs to do
 something different (the functions @code{make-auto-save-file-name} and
@@ -1245,7 +1245,7 @@ for more information about using the Trash.
 @vindex diff-switches
   The command @kbd{M-x diff} prompts for two file names, using the
 minibuffer, and displays the differences between the two files in a
-buffer named @samp{*diff*}.  This works by running the @command{diff}
+buffer named @file{*diff*}.  This works by running the @command{diff}
 program, using options taken from the variable @code{diff-switches}.
 The value of @code{diff-switches} should be a string; the default is
 @code{"-c"} to specify a context diff.  @xref{Top,, Diff, diff,

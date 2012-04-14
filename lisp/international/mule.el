@@ -1754,8 +1754,9 @@ functions, so they won't be called at all."
   :type '(repeat function))
 
 (defvar set-auto-coding-for-load nil
-  "Non-nil means look for `load-coding' property instead of `coding'.
-This is used for loading and byte-compiling Emacs Lisp files.")
+  "Non-nil means respect a \"unibyte: t\" entry in file local variables.
+Emacs binds this variable to t when loading or byte-compiling Emacs Lisp
+files.")
 
 (defun auto-coding-alist-lookup (filename)
   "Return the coding system specified by `auto-coding-alist' for FILENAME."

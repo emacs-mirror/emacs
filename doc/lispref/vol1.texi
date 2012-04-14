@@ -141,7 +141,7 @@ Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 * Functions::               A function is a Lisp program
                               that can be invoked from other functions.
 * Macros::                  Macros are a way to extend the Lisp language.
-* Customization::           Writing customization declarations.
+* Customization::           Making variables and faces customizable.
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
@@ -520,6 +520,8 @@ Writing Customization Definitions
 * Group Definitions::       Writing customization group definitions.
 * Variable Definitions::    Declaring user options.
 * Customization Types::     Specifying the type of a user option.
+* Applying Customizations:: Functions to apply customization settings.
+* Custom Themes::           Writing Custom themes.
 
 Customization Types
 
@@ -1317,7 +1319,7 @@ Overlays
 
 Faces
 
-* Defining Faces::          How to define a face with @code{defface}.
+* Defining Faces::          How to define a face.
 * Face Attributes::         What is in a face?
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for

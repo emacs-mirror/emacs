@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/buffers
 @node Buffers, Windows, Backups and Auto-Saving, Top
 @chapter Buffers
 @cindex buffer
@@ -863,7 +862,7 @@ a buffer visible in any window on any visible frame, except as a last
 resort.  If @var{visible-ok} is non-@code{nil}, then it does not matter
 whether a buffer is displayed somewhere or not.
 
-If no suitable buffer exists, the buffer @samp{*scratch*} is returned
+If no suitable buffer exists, the buffer @file{*scratch*} is returned
 (and created, if necessary).
 @end defun
 
@@ -874,7 +873,7 @@ selected frame's buffer list.
 
 The argument @var{visible-ok} is handled as with @code{other-buffer},
 see above.  If no suitable buffer can be found, the buffer
-@samp{*scratch*} is returned.
+@file{*scratch*} is returned.
 @end defun
 
 @deffn Command bury-buffer &optional buffer-or-name

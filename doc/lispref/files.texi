@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/files
 @node Files, Backups and Auto-Saving, Documentation, Top
 @comment  node-name,  next,  previous,  up
 @chapter Files
@@ -2154,7 +2153,7 @@ double all @samp{$} characters to prevent subsequent incorrect
 results.
 
 @c Wordy to avoid overfull hbox.  --rjc 15mar92
-Here we assume that the environment variable @code{HOME}, which holds
+Here we assume that the environment variable @env{HOME}, which holds
 the user's home directory name, has value @samp{/xcssun/users/rms}.
 
 @example
@@ -2239,9 +2238,9 @@ non-@code{nil}.  To use it, you should expand the prefix against
 the proper directory before calling @code{make-temp-file}.
 
 @defopt temporary-file-directory
-@cindex @code{TMPDIR} environment variable
-@cindex @code{TMP} environment variable
-@cindex @code{TEMP} environment variable
+@cindex @env{TMPDIR} environment variable
+@cindex @env{TMP} environment variable
+@cindex @env{TEMP} environment variable
 This variable specifies the directory name for creating temporary files.
 Its value should be a directory name (@pxref{Directory Names}), but it
 is good for Lisp programs to cope if the value is a directory's file
@@ -2249,7 +2248,7 @@ name instead.  Using the value as the second argument to
 @code{expand-file-name} is a good way to achieve that.
 
 The default value is determined in a reasonable way for your operating
-system; it is based on the @code{TMPDIR}, @code{TMP} and @code{TEMP}
+system; it is based on the @env{TMPDIR}, @env{TMP} and @env{TEMP}
 environment variables, with a fall-back to a system-dependent name if
 none of these variables is defined.
 

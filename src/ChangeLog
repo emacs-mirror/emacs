@@ -1,4 +1,4 @@
-2012-04-10  Paul Eggert  <eggert@cs.ucla.edu>
+2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)
 	* Makefile.in (C_WARNINGS_SWITCH): Remove.
@@ -10,6 +10,47 @@
 	-Wunused-result, -Wunused-variable.  This should go away once
 	the Emacs and Gnulib regex code is merged.
 	(xmalloc, xrealloc): Now static.
+
+2012-04-14  Atsuo Ohki  <ohki@gssm.otsuka.tsukuba.ac.jp>  (tiny change)
+
+	* lread.c (lisp_file_lexically_bound_p):
+	Fix hang at ";-*-\n" (bug#11238).
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_last_unchanged_at_beg_row): Don't consider a row
+	"unchanged" if its end.pos is beyond ZV.  (Bug#11199)
+
+2012-04-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (constrainFrameRect): Always constrain when there is only
+	one screen (Bug#10962).
+
+2012-04-13  Ken Brown  <kbrown@cornell.edu>
+
+	* s/cygwin.h (PTY_OPEN): Don't try to close a bogus file descriptor.
+
+2012-04-13  Reuben Thomas  <rrt@sc3d.org>
+
+	* indent.c (Fmove_to_column): Change interactive spec (Bug#739).
+
+2012-04-11  Daniel Colascione  <dancol@dancol.org>
+
+	* s/cygwin.h: The vfork the #define in cygwin.h was protecting
+	against is gone.  It's better to use vfork now so that when Cygwin
+	gains a new, working vfork, we use it automatically (bug#10398).
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (save_window_save): Obey window-point-insertion-type.
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (GNUSTEP_CFLAGS): Rename from C_SWITCH_X_SYSTEM.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (lisp_align_malloc): Remove unneeded prototype.
 
 2012-04-10  "Jason S. Cornez"  <jcornez@ravenpack.com>  (tiny change)
 
@@ -9747,7 +9788,7 @@ See ChangeLog.11 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2012  Free Software Foundation, Inc.
+  Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

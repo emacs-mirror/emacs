@@ -477,7 +477,7 @@ If every work file in the VC fileset is unchanged, do nothing.
 
 @item
 If every work file in the VC fileset has been modified, commit the
-changes.  To do this, Emacs pops up a @samp{*vc-log*} buffer; type the
+changes.  To do this, Emacs pops up a @file{*vc-log*} buffer; type the
 desired log entry for the new revision, followed by @kbd{C-c C-c} to
 commit.  @xref{Log Buffer}.
 
@@ -530,7 +530,7 @@ so that you can begin to edit it.
 
 @item
 If each file is locked by you and contains changes, commit the
-changes.  To do this, Emacs pops up a @samp{*vc-log*} buffer; type the
+changes.  To do this, Emacs pops up a @file{*vc-log*} buffer; type the
 desired log entry for the new revision, followed by @kbd{C-c C-c} to
 commit (@pxref{Log Buffer}).
 
@@ -588,7 +588,7 @@ they use the concept of ``checking out'' individual files.
 @cindex C-c C-c @r{(Log Edit mode)}
 @findex log-edit-done
   When you tell VC to commit a change, it pops up a buffer named
-@samp{*vc-log*}.  In this buffer, you should write a @dfn{log entry}
+@file{*vc-log*}.  In this buffer, you should write a @dfn{log entry}
 describing the changes you have made (@pxref{Why Version Control?}).
 After you are done, type @kbd{C-c C-c} (@code{log-edit-done}) to exit
 the buffer and commit the change, together with your log entry.
@@ -596,12 +596,12 @@ the buffer and commit the change, together with your log entry.
 @cindex Log Edit mode
 @cindex mode, Log Edit
 @vindex vc-log-mode-hook
-  The major mode for the @samp{*vc-log*} buffer is Log Edit mode, a
+  The major mode for the @file{*vc-log*} buffer is Log Edit mode, a
 variant of Text mode (@pxref{Text Mode}).  On entering Log Edit mode,
 Emacs runs the hooks @code{text-mode-hook} and @code{vc-log-mode-hook}
 (@pxref{Hooks}).
 
-  In the @samp{*vc-log*} buffer, you can write one or more @dfn{header
+  In the @file{*vc-log*} buffer, you can write one or more @dfn{header
 lines}, specifying additional information to be supplied to the
 version control system.  Each header line must occupy a single line at
 the top of the buffer; the first line that is not a header line is
@@ -626,7 +626,7 @@ support it, the header is treated as part of the log entry.
 @findex log-edit-show-files
 @kindex C-c C-d @r{(Log Edit mode)}
 @findex log-edit-show-diff
-  While in the @samp{*vc-log*} buffer, the ``current VC fileset'' is
+  While in the @file{*vc-log*} buffer, the ``current VC fileset'' is
 considered to be the fileset that will be committed if you type
 @w{@kbd{C-c C-c}}.  To view a list of the files in the VC fileset,
 type @w{@kbd{C-c C-f}} (@code{log-edit-show-files}).  To view a diff
@@ -639,7 +639,7 @@ started editing (@pxref{Old Revisions}), type @kbd{C-c C-d}
   If the VC fileset includes one or more @file{ChangeLog} files
 (@pxref{Change Log}), type @kbd{C-c C-a}
 (@code{log-edit-insert-changelog}) to pull the relevant entries into
-the @samp{*vc-log*} buffer.  If the topmost item in each
+the @file{*vc-log*} buffer.  If the topmost item in each
 @file{ChangeLog} was made under your user name on the current date,
 this command searches that item for entries matching the file(s) to be
 committed, and inserts them.
@@ -652,7 +652,7 @@ Edit buffer.
   To abort a commit, just @strong{don't} type @kbd{C-c C-c} in that
 buffer.  You can switch buffers and do other editing.  As long as you
 don't try to make another commit, the entry you were editing remains
-in the @samp{*vc-log*} buffer, and you can go back to that buffer at
+in the @file{*vc-log*} buffer, and you can go back to that buffer at
 any time to complete the commit.
 
 @kindex M-n @r{(Log Edit mode)}
@@ -904,10 +904,10 @@ Display the changes that will be sent by the next push operation
 @kindex C-x v l
 @findex vc-print-log
   The command @kbd{C-x v l} (@code{vc-print-log}) displays a buffer
-named @samp{*vc-change-log*}, showing the history of changes made to
+named @file{*vc-change-log*}, showing the history of changes made to
 the current file, including who made the changes, the dates, and the
 log entry for each change (these are the same log entries you would
-enter via the @samp{*vc-log*} buffer; @pxref{Log Buffer}).  Point is
+enter via the @file{*vc-log*} buffer; @pxref{Log Buffer}).  Point is
 centered at the revision of the file currently being visited.  With a
 prefix argument, the command prompts for the revision to center on,
 and the maximum number of revisions to display.
@@ -919,7 +919,7 @@ file listed on the current line.
 @findex vc-print-root-log
 @findex log-view-toggle-entry-display
   @kbd{C-x v L} (@code{vc-print-root-log}) displays a
-@samp{*vc-change-log*} buffer showing the history of the entire
+@file{*vc-change-log*} buffer showing the history of the entire
 version-controlled directory tree (RCS, SCCS, and CVS do not support
 this feature).  With a prefix argument, the command prompts for the
 maximum number of revisions to display.
@@ -927,7 +927,7 @@ maximum number of revisions to display.
   The @kbd{C-x v L} history is shown in a compact form, usually
 showing only the first line of each log entry.  However, you can type
 @key{RET} (@code{log-view-toggle-entry-display}) in the
-@samp{*vc-change-log*} buffer to reveal the entire log entry for the
+@file{*vc-change-log*} buffer to reveal the entire log entry for the
 revision at point.  A second @key{RET} hides it again.
 
   On a decentralized version control system, the @kbd{C-x v I}
@@ -942,7 +942,7 @@ specific repository.  Similarly, @kbd{C-x v O}
 another repository, the next time you run the ``push'' command; with a
 prefix argument, it prompts for a specific destination repository.
 
-  In the @samp{*vc-change-log*} buffer, you can use the following keys
+  In the @file{*vc-change-log*} buffer, you can use the following keys
 to move between the logs of revisions and of files, and to examine and
 compare past revisions (@pxref{Old Revisions}):
 
@@ -993,11 +993,11 @@ revision at point.
 
 @vindex vc-log-show-limit
 Because fetching many log entries can be slow, the
-@samp{*vc-change-log*} buffer displays no more than 2000 revisions by
+@file{*vc-change-log*} buffer displays no more than 2000 revisions by
 default.  The variable @code{vc-log-show-limit} specifies this limit;
 if you set the value to zero, that removes the limit.  You can also
 increase the number of revisions shown in an existing
-@samp{*vc-change-log*} buffer by clicking on the @samp{Show 2X
+@file{*vc-change-log*} buffer by clicking on the @samp{Show 2X
 entries} or @samp{Show unlimited entries} buttons at the end of the
 buffer.  However, RCS, SCCS, and CVS do not support this feature.
 
@@ -1045,7 +1045,7 @@ it is used to specify multi-file VC filesets for commands like
   To use the VC Directory buffer, type @kbd{C-x v d} (@code{vc-dir}).
 This reads a directory name using the minibuffer, and switches to a VC
 Directory buffer for that directory.  By default, the buffer is named
-@samp{*vc-dir*}.  Its contents are described
+@file{*vc-dir*}.  Its contents are described
 @iftex
 below.
 @end iftex

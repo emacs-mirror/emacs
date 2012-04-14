@@ -58,7 +58,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
 	fd = -1;					\
       sigsetmask (mask);				\
-      emacs_close (dummy);				\
+      if (fd >= 0)					\
+	emacs_close (dummy);				\
     }							\
   while (0)
 
@@ -80,10 +81,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
 #define HAVE_SOCKETS
-
-/* vfork() interacts badly with setsid(), causing ptys to fail to
-   change their controlling terminal */
-#define vfork fork
 
 /* This should work (at least when compiling with gcc).  But I have no way
    or intention to verify or even test it.  If you encounter a problem with

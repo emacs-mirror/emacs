@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/loading
 @node Loading, Byte Compilation, Customization, Top
 @chapter Loading
 @cindex loading
@@ -235,7 +234,7 @@ it skips the latter group.
 in a list of directories specified by the variable @code{load-path}.
 
 @defvar load-path
-@cindex @code{EMACSLOADPATH} environment variable
+@cindex @env{EMACSLOADPATH} environment variable
 The value of this variable is a list of directories to search when
 loading files with @code{load}.  Each element is a string (which must be
 a directory name) or @code{nil} (which stands for the current working
@@ -375,7 +374,7 @@ strings are multibyte strings should not be noticeable, since
 inserting them in unibyte buffers converts them to unibyte
 automatically.  However, if this does make a difference, you can force
 a particular Lisp file to be interpreted as unibyte by writing
-@samp{-*-unibyte: t;-*-} in a comment on the file's first line.  With
+@samp{unibyte: t} in a local variables section.  With
 that designator, the file will unconditionally be interpreted as
 unibyte, even in an ordinary multibyte Emacs session.  This can matter
 when making keybindings to non-@acronym{ASCII} characters written as

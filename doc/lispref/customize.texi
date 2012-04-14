@@ -1,23 +1,27 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1997-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/customize
 @node Customization, Loading, Macros, Top
-@chapter Writing Customization Definitions
+@chapter Customization Settings
 
-@cindex customization definitions
-  This chapter describes how to declare user options for customization,
-and also customization groups for classifying them.  We use the term
-@dfn{customization item} to include both kinds of customization
-definitions---as well as face definitions (@pxref{Defining Faces}).
+@cindex customization item
+  This chapter describes how to declare customizable variables and
+customization groups for classifying them.  We use the term
+@dfn{customization item} to include customizable variables,
+customization groups, as well as faces.
+
+  @xref{Defining Faces}, for the @code{defface} macro, which is used
+for declaring customizable faces.
 
 @menu
-* Common Keywords::      Common keyword arguments for all kinds of
-                           customization declarations.
-* Group Definitions::    Writing customization group definitions.
-* Variable Definitions:: Declaring user options.
-* Customization Types::  Specifying the type of a user option.
+* Common Keywords::         Common keyword arguments for all kinds of
+                             customization declarations.
+* Group Definitions::       Writing customization group definitions.
+* Variable Definitions::    Declaring user options.
+* Customization Types::     Specifying the type of a user option.
+* Applying Customizations:: Functions to apply customization settings.
+* Custom Themes::           Writing Custom themes.
 @end menu
 
 @node Common Keywords
@@ -306,7 +310,7 @@ individual types for a description of how to use @code{:options}.
 @item :set @var{setfunction}
 @kindex set@r{, @code{defcustom} keyword}
 Specify @var{setfunction} as the way to change the value of this
-option when using the Customize user interface.  The function
+option when using the Customize interface.  The function
 @var{setfunction} should take two arguments, a symbol (the option
 name) and the new value, and should do whatever is necessary to update
 the value properly for this option (which may not mean simply setting
@@ -588,7 +592,7 @@ The value must be a coding-system name, and you can do completion with
 @item color
 The value must be a valid color name.  The widget provides completion
 for color names, as well as a sample and a button for selecting a
-color name from a list of color names shown in a @samp{*Colors*}
+color name from a list of color names shown in a @file{*Colors*}
 buffer.
 @end table
 
@@ -1242,3 +1246,168 @@ the inferior widgets will convert @emph{their} inferior widgets.  If
 the data structure is itself recursive, this conversion is an infinite
 recursion.  The @code{lazy} widget prevents the recursion: it convert
 its @code{:type} argument only when needed.
+
+@node Applying Customizations
+@section Applying Customizations
+
+The following functions are responsible for installing the user's
+customization settings for variables and faces, respectively.  When
+the user invokes @samp{Save for future sessions} in the Customize
+interface, that takes effect by writing a @code{custom-set-variables}
+and/or a @code{custom-set-faces} form into the custom file, to be
+evaluated the next time Emacs starts up.
+
+@defun custom-set-variables &rest args
+This function installs the variable customizations specified by
+@var{args}.  Each argument in @var{args} should have the form
+
+@example
+(@var{var} @var{expression} [@var{now} [@var{request} [@var{comment}]]])
+@end example
+
+@noindent
+@var{var} is a variable name (a symbol), and @var{expression} is an
+expression which evaluates to the desired customized value.
+
+If the @code{defcustom} form for @var{var} has been evaluated prior to
+this @code{custom-set-variables} call, @var{expression} is immediately
+evaluated, and the variable's value is set to the result.  Otherwise,
+@var{expression} is stored into the variable's @code{saved-value}
+property, to be evaluated when the relevant @code{defcustom} is called
+(usually when the library defining that variable is loaded into
+Emacs).
+
+The @var{now}, @var{request}, and @var{comment} entries are for
+internal use only, and may be omitted.  @var{now}, if non-@code{nil},
+means to set the variable's value now, even if the variable's
+@code{defcustom} form has not been evaluated.  @var{request} is a list
+of features to be loaded immediately (@pxref{Named Features}).
+@var{comment} is a string describing the customization.
+@end defun
+
+@defun custom-set-faces &rest args
+This function installs the face customizations specified by
+@var{args}.  Each argument in @var{args} should have the form
+
+@example
+(@var{face} @var{spec} [@var{now} [@var{comment}]])
+@end example
+
+@noindent
+@var{face} is a face name (a symbol), and @var{spec} is the customized
+face specification for that face (@pxref{Defining Faces}).
+
+The @var{now} and @var{comment} entries are for internal use only, and
+may be omitted.  @var{now}, if non-@code{nil}, means to install the
+face specification now, even if the @code{defface} form has not been
+evaluated.  @var{comment} is a string describing the customization.
+@end defun
+
+@node Custom Themes
+@section Custom Themes
+
+  @dfn{Custom themes} are collections of settings that can be enabled
+or disabled as a unit.  @xref{Custom Themes,,, emacs, The GNU Emacs
+Manual}.  Each Custom theme is defined by an Emacs Lisp source file,
+which should follow the conventions described in this section.
+(Instead of writing a Custom theme by hand, you can also create one
+using a Customize-like interface; @pxref{Creating Custom Themes,,,
+emacs, The GNU Emacs Manual}.)
+
+  A Custom theme file should be named @file{@var{foo}-theme.el}, where
+@var{foo} is the theme name.  The first Lisp form in the file should
+be a call to @code{deftheme}, and the last form should be a call to
+@code{provide-theme}.
+
+@defmac deftheme theme &optional doc
+This macro declares @var{theme} (a symbol) as the name of a Custom
+theme.  The optional argument @var{doc} should be a string describing
+the theme; this is the description shown when the user invokes the
+@code{describe-theme} command or types @kbd{?} in the @samp{*Custom
+Themes*} buffer.
+
+Two special theme names are disallowed: @code{user} is a ``dummy''
+theme which stores the user's direct customization settings, and
+@code{changed} is a ``dummy'' theme which stores changes made outside
+of the Customize system.  If you specify either of these as the
+@var{theme} argument, @code{deftheme} signals an error.
+@end defmac
+
+@defmac provide-theme theme
+This macro declares that the theme named @var{theme} has been fully
+specified.
+@end defmac
+
+  In between @code{deftheme} and @code{provide-theme} are Lisp forms
+specifying the theme settings: usually a call to
+@code{custom-theme-set-variables} and/or a call to
+@code{custom-theme-set-faces}.
+
+@defun custom-theme-set-variables theme &rest args
+This function specifies the Custom theme @var{theme}'s variable
+settings.  @var{theme} should be a symbol.  Each argument in
+@var{args} should be a list of the form
+
+@example
+(@var{var} @var{expression} [@var{now} [@var{request} [@var{comment}]]])
+@end example
+
+@noindent
+where the list entries have the same meanings as in
+@code{custom-set-variables}.  @xref{Applying Customizations}.
+@end defun
+
+@defun custom-theme-set-faces theme &rest args
+This function specifies the Custom theme @var{theme}'s face settings.
+@var{theme} should be a symbol.  Each argument in @var{args} should be
+a list of the form
+
+@example
+(@var{face} @var{spec} [@var{now} [@var{comment}]])
+@end example
+
+@noindent
+where the list entries have the same meanings as in
+@code{custom-set-faces}.  @xref{Applying Customizations}.
+@end defun
+
+  In theory, a theme file can also contain other Lisp forms, which
+would be evaluated when loading the theme, but that is ``bad form''.
+To protect against loading themes containing malicious code, Emacs
+displays the source file and asks for confirmation from the user
+before loading any non-built-in theme for the first time.
+
+  The following functions are useful for programmatically enabling and
+disabling Custom themes:
+
+@defun custom-theme-p theme
+This function return a non-@code{nil} value if @var{theme} (a symbol)
+is the name of a Custom theme (i.e.@: a Custom theme which has been
+loaded into Emacs, whether or not the theme is enabled).  Otherwise,
+it returns @code{nil}.
+@end defun
+
+@deffn Command load-theme theme &optional no-confirm no-enable
+This function loads the Custom theme named @var{theme} from its source
+file, looking for the source file in the directories specified by the
+variable @code{custom-theme-load-path}.  @xref{Custom Themes,,, emacs,
+The GNU Emacs Manual}.  It also @dfn{enables} the theme, causing its
+variable and face settings to take effect.
+
+If the optional argument @var{no-confirm} is non-@code{nil}, this
+skips prompting the user for confirmation before loading the theme.
+
+If the optional argument @var{no-enable} is non-@code{nil}, the theme
+is loaded but not enabled.
+@end deffn
+
+@deffn Command enable-theme theme
+This function enables the Custom theme named @var{theme}.  It signals
+an error if no such theme has been loaded.
+@end deffn
+
+@deffn Command disable-theme theme
+This function disables the Custom theme named @var{theme}.  The theme
+remains loaded, so that a subsequent call to @code{enable-theme} will
+re-enable it.
+@end deffn

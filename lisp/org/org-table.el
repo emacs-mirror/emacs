@@ -2526,8 +2526,13 @@ not overwrite the stored one."
 		(replace-match
 		 (save-match-data
 		   (org-table-make-reference
-		    (org-table-get-remote-range
-		     (match-string 1 form) (match-string 2 form))
+		    (let ((rmtrng (org-table-get-remote-range
+				   (match-string 1 form) (match-string 2 form))))
+		      (if duration
+			  (if (listp rmtrng)
+			      (mapcar (lambda(x) (org-table-time-string-to-seconds x)) rmtrng)
+			    (org-table-time-string-to-seconds rmtrng))
+			rmtrng))
 		    keep-empty numbers lispp))
 		 t t form)))
 	;; Insert complex ranges
@@ -2663,8 +2668,8 @@ in the buffer and column1 and column2 are table column numbers."
 ;      (setq r2 (or r2 r1) c2 (or c2 c1))
       (if (not r1) (setq r1 thisline))
       (if (not r2) (setq r2 thisline))
-      (if (not c1) (setq c1 col))
-      (if (not c2) (setq c2 col))
+      (if (or (not c1) (= 0 c1)) (setq c1 col))
+      (if (or (not c2) (= 0 c2)) (setq c2 col))
       (if (and (not corners-only)
 	       (or (not rangep) (and (= r1 r2) (= c1 c2))))
 	  ;; just one field

@@ -1,3 +1,7 @@
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Replace non-portable use of $< in ordinary rules.
+
 2012-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi: Standardize possessive apostrophe usage.

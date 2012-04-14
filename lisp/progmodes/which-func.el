@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997-1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997-1998, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -72,14 +72,15 @@
   :group 'tools
   :version "20.3")
 
-(defcustom which-func-modes
-  '(emacs-lisp-mode c-mode c++-mode perl-mode cperl-mode python-mode
-		    makefile-mode sh-mode fortran-mode f90-mode ada-mode
-		    diff-mode)
+(defcustom which-func-modes t
+  ;; '(emacs-lisp-mode c-mode c++-mode objc-mode perl-mode cperl-mode python-mode
+  ;;       	    makefile-mode sh-mode fortran-mode f90-mode ada-mode
+  ;;       	    diff-mode)
   "List of major modes for which Which Function mode should be used.
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."
   :group 'which-func
+  :version "24.2"                       ; added objc-mode
   :type '(choice (const :tag "All modes" t)
 		 (repeat (symbol :tag "Major mode"))))
 

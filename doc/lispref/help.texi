@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/help
 @node Documentation, Files, Modes, Top
 @chapter Documentation
 @cindex documentation strings
@@ -180,7 +179,7 @@ face.
 @c Wordy to prevent overfull hboxes.  --rjc 15mar92
 Here is an example of using the two functions, @code{documentation} and
 @code{documentation-property}, to display the documentation strings for
-several symbols in a @samp{*Help*} buffer.
+several symbols in a @file{*Help*} buffer.
 
 @anchor{describe-symbols example}
 @smallexample
@@ -535,7 +534,7 @@ seems to be as a match.  Each of the remaining elements is a
 documentation string, or @code{nil}, for @var{symbol} as a function,
 variable, etc.
 
-It also displays the symbols in a buffer named @samp{*Apropos*}, each
+It also displays the symbols in a buffer named @file{*Apropos*}, each
 with a one-line description taken from the beginning of its
 documentation string.
 
@@ -648,7 +647,7 @@ certain documentation and text files that come with Emacs.
 
 @defun help-buffer
 This function returns the name of the help buffer, which is normally
-@samp{*Help*}; if such a buffer does not exist, it is first created.
+@file{*Help*}; if such a buffer does not exist, it is first created.
 @end defun
 
 @defmac with-help-window buffer-name body@dots{}
@@ -662,16 +661,16 @@ scroll the help window.
 @end defmac
 
 @defun help-setup-xref item interactive-p
-This function updates the cross reference data in the @samp{*Help*}
+This function updates the cross reference data in the @file{*Help*}
 buffer, which is used to regenerate the help information when the user
 clicks on the @samp{Back} or @samp{Forward} buttons.  Most commands
-that use the @samp{*Help*} buffer should invoke this function before
+that use the @file{*Help*} buffer should invoke this function before
 clearing the buffer.  The @var{item} argument should have the form
 @code{(@var{function} . @var{args})}, where @var{function} is a function
 to call, with argument list @var{args}, to regenerate the help buffer.
 The @var{interactive-p} argument is non-@code{nil} if the calling
 command was invoked interactively; in that case, the stack of items
-for the @samp{*Help*} buffer's @samp{Back} buttons is cleared.
+for the @file{*Help*} buffer's @samp{Back} buttons is cleared.
 @end defun
 
 @xref{describe-symbols example}, for an example of using

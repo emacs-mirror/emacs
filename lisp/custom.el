@@ -936,16 +936,21 @@ Each of the arguments in ARGS should be a list of this form:
 
   (SYMBOL EXP [NOW [REQUEST [COMMENT]]])
 
-This stores EXP (without evaluating it) as the saved value for SYMBOL.
-If NOW is present and non-nil, then also evaluate EXP and set
-the default value for the SYMBOL to the value of EXP.
+SYMBOL is the variable name, and EXP is an expression which
+evaluates to the customized value.  EXP will also be stored,
+without evaluating it, in SYMBOL's `saved-value' property, so
+that it can be restored via the Customize interface.  It is also
+added to the alist in SYMBOL's `theme-value' property \(by
+calling `custom-push-theme').
 
-REQUEST is a list of features we must require in order to
-handle SYMBOL properly.
-COMMENT is a comment string about SYMBOL.
+NOW, if present and non-nil, means to install the variable's
+value directly now, even if its `defcustom' declaration has not
+been executed.  This is for internal use only.
 
-EXP itself is saved unevaluated as SYMBOL property `saved-value' and
-in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
+REQUEST is a list of features to `require' (which are loaded
+prior to evaluating EXP).
+
+COMMENT is a comment string about SYMBOL."
   (custom-check-theme theme)
 
   ;; Process all the needed autoloads before anything else, so that the

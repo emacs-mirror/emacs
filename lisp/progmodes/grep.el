@@ -1024,7 +1024,8 @@ to specify a command to run."
 				    (shell-quote-argument ")")
 				    " -prune -o "))
 		       (and grep-find-ignored-files
-			    (concat (shell-quote-argument "(")
+			    (concat (shell-quote-argument "!") " -type d "
+				    (shell-quote-argument "(")
 				    ;; we should use shell-quote-argument here
 				    " -name "
 				    (mapconcat

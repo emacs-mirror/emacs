@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/os
 @node System Interface, Packaging, Display, Top
 @chapter Operating System Interface
 
@@ -89,7 +88,7 @@ that Emacs is being initialized.
 @c set-locale-environment
 @item
 It sets the language environment and the terminal coding system,
-if requested by environment variables such as @code{LANG}.
+if requested by environment variables such as @env{LANG}.
 
 @item
 It does some basic parsing of the command-line arguments.
@@ -170,7 +169,7 @@ measurement of how long it took.
 It runs the normal hook @code{after-init-hook}.
 
 @item
-If the buffer @samp{*scratch*} exists and is still in Fundamental mode
+If the buffer @file{*scratch*} exists and is still in Fundamental mode
 (as it should be by default), it sets its major mode according to
 @code{initial-major-mode}.
 
@@ -196,7 +195,7 @@ It now exits if the option @code{--batch} was specified.
 
 @item
 If @code{initial-buffer-choice} is a string, it visits the file with
-that name.  If the @samp{*scratch*} buffer exists and is
+that name.  If the @file{*scratch*} buffer exists and is
 empty, it inserts @code{initial-scratch-message} into that buffer.
 
 @c To make things nice and confusing, the next three items can be
@@ -254,7 +253,7 @@ The following options affect some aspects of the startup sequence.
 
 @defopt inhibit-startup-screen
 This variable, if non-@code{nil}, inhibits the startup screen.  In
-that case, Emacs typically displays the @samp{*scratch*} buffer; but
+that case, Emacs typically displays the @file{*scratch*} buffer; but
 see @code{initial-buffer-choice}, below.
 
 Do not set this variable in the init file of a new user, or in a way
@@ -274,7 +273,7 @@ startup screen.
 @ignore
 @c I do not think this should be mentioned.  AFAICS it is just a dodge
 @c around inhibit-startup-screen not being settable on a site-wide basis.
-If its value is @code{t}, Emacs displays the @samp{*scratch*} buffer.
+If its value is @code{t}, Emacs displays the @file{*scratch*} buffer.
 @end ignore
 @end defopt
 
@@ -290,17 +289,17 @@ form to your init file:
 
 Emacs explicitly checks for an expression as shown above in your init
 file; your login name must appear in the expression as a Lisp string
-constant.  You can also use the Custom interface.  Other methods of setting
-@code{inhibit-startup-echo-area-message} to the same value do not
-inhibit the startup message.  This way, you can easily inhibit the
+constant.  You can also use the Customize interface.  Other methods of
+setting @code{inhibit-startup-echo-area-message} to the same value do
+not inhibit the startup message.  This way, you can easily inhibit the
 message for yourself if you wish, but thoughtless copying of your init
 file will not inhibit the message for someone else.
 @end defopt
 
 @defopt initial-scratch-message
 This variable, if non-@code{nil}, should be a string, which is
-inserted into the @samp{*scratch*} buffer when Emacs starts up.  If it
-is @code{nil}, the @samp{*scratch*} buffer is empty.
+inserted into the @file{*scratch*} buffer when Emacs starts up.  If it
+is @code{nil}, the @file{*scratch*} buffer is empty.
 @end defopt
 
 @noindent
@@ -352,8 +351,8 @@ control whether and where to find the init file; @samp{-q} (and the
 stronger @samp{-Q}) says not to load an init file, while @samp{-u
 @var{user}} says to load @var{user}'s init file instead of yours.
 @xref{Entering Emacs,,, emacs, The GNU Emacs Manual}.  If neither
-option is specified, Emacs uses the @code{LOGNAME} environment
-variable, or the @code{USER} (most systems) or @code{USERNAME} (MS
+option is specified, Emacs uses the @env{LOGNAME} environment
+variable, or the @env{USER} (most systems) or @env{USERNAME} (MS
 systems) variable, to find your home directory and thus your init
 file; this way, even if you have su'd, Emacs still loads your own init
 file.  If those environment variables are absent, though, Emacs uses
@@ -430,7 +429,7 @@ This variable holds the name of the @file{.emacs.d} directory.  It is
   Each terminal type can have its own Lisp library that Emacs loads when
 run on that type of terminal.  The library's name is constructed by
 concatenating the value of the variable @code{term-file-prefix} and the
-terminal type (specified by the environment variable @code{TERM}).
+terminal type (specified by the environment variable @env{TERM}).
 Normally, @code{term-file-prefix} has the value
 @code{"term/"}; changing this is not recommended.  Emacs finds the file
 in the normal manner, by searching the @code{load-path} directories, and
@@ -468,7 +467,7 @@ use this hook to define initializations for terminals that do not
 have their own libraries.  @xref{Hooks}.
 
 @defvar term-file-prefix
-@cindex @code{TERM} environment variable
+@cindex @env{TERM} environment variable
 If the value of this variable is non-@code{nil}, Emacs loads a
 terminal-specific initialization file as follows:
 
@@ -481,7 +480,7 @@ You may set the @code{term-file-prefix} variable to @code{nil} in your
 init file if you do not wish to load the
 terminal-initialization file.
 
-On MS-DOS, Emacs sets the @code{TERM} environment variable to @samp{internal}.
+On MS-DOS, Emacs sets the @env{TERM} environment variable to @samp{internal}.
 @end defvar
 
 @defvar term-setup-hook
@@ -1010,7 +1009,7 @@ value is @code{":"} for Unix and GNU systems, and @code{";"} for MS systems.
 
 @defun parse-colon-path path
 This function takes a search path string such as the value of
-the @code{PATH} environment variable, and splits it at the separators,
+the @env{PATH} environment variable, and splits it at the separators,
 returning a list of directory names.  @code{nil} in this list means
 the current directory.  Although the function's name says
 ``colon'', it actually uses the value of @code{path-separator}.
@@ -1113,7 +1112,7 @@ want to use the default value.
 
 @defun user-login-name &optional uid
 This function returns the name under which the user is logged in.
-It uses the environment variables @code{LOGNAME} or @code{USER} if
+It uses the environment variables @env{LOGNAME} or @env{USER} if
 either is set.  Otherwise, the value is based on the effective
 @acronym{UID}, not the real @acronym{UID}.
 
@@ -1124,12 +1123,12 @@ corresponds to @var{uid}, or @code{nil} if there is no such user.
 @defun user-real-login-name
 This function returns the user name corresponding to Emacs's real
 @acronym{UID}.  This ignores the effective @acronym{UID}, and the
-environment variables @code{LOGNAME} and @code{USER}.
+environment variables @env{LOGNAME} and @env{USER}.
 @end defun
 
 @defun user-full-name &optional uid
 This function returns the full name of the logged-in user---or the value
-of the environment variable @code{NAME}, if that is set.
+of the environment variable @env{NAME}, if that is set.
 
 If the Emacs process's user-id does not correspond to any known user (and
 provided @code{NAME} is not set), the result is @code{"unknown"}.
@@ -1249,9 +1248,9 @@ The argument @var{time-value}, if given, specifies a time (represented
 as a list of integers) to analyze instead of the current time.
 @end defun
 
-The current time zone is determined by the @samp{TZ} environment
+The current time zone is determined by the @env{TZ} environment
 variable.  @xref{System Environment}.  For example, you can tell Emacs
-to use universal time with @code{(setenv "TZ" "UTC0")}.  If @samp{TZ}
+to use universal time with @code{(setenv "TZ" "UTC0")}.  If @env{TZ}
 is not in the environment, Emacs uses a platform-dependent default
 time zone.
 
@@ -1325,7 +1324,7 @@ yourself before you call @code{encode-time}.
 The optional argument @var{zone} defaults to the current time zone and
 its daylight saving time rules.  If specified, it can be either a list
 (as you would get from @code{current-time-zone}), a string as in the
-@code{TZ} environment variable, @code{t} for Universal Time, or an
+@env{TZ} environment variable, @code{t} for Universal Time, or an
 integer (as you would get from @code{decode-time}).  The specified
 zone is used without any further alteration for daylight saving time.
 
@@ -2233,7 +2232,7 @@ non-@code{nil}, Emacs tells the session manager to cancel the
 shutdown.
 @end defvar
 
-Here is an example that just inserts some text into @samp{*scratch*} when
+Here is an example that just inserts some text into @file{*scratch*} when
 Emacs is restarted by the session manager.
 
 @example

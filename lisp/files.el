@@ -3523,7 +3523,7 @@ LIST is a list of the form accepted by the function.
 When a file is visited, the file's class is found.  A directory
 may be assigned a class using `dir-locals-set-directory-class'.
 Then variables are set in the file's buffer according to the
-class' LIST.  The list is processed in order.
+VARIABLES list of the class.  The list is processed in order.
 
 * If the element is of the form (MAJOR-MODE . ALIST), and the
   buffer's major mode is derived from MAJOR-MODE (as determined

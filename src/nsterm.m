@@ -6038,11 +6038,15 @@ ns_term_shutdown (int sig)
    restrict the height to just one monitor.  So we override this.  */
 - (NSRect)constrainFrameRect:(NSRect)frameRect toScreen:(NSScreen *)screen
 {
-  /* When making the frame visible for the first time, we want to
-     constrain.  Other times not.  */
+  /* When making the frame visible for the first time or if there is just
+     one screen, we want to constrain.  Other times not.  */
+  NSUInteger nr_screens = [[NSScreen screens] count];
   struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
   NSTRACE (constrainFrameRect);
 
+  if (nr_screens == 1)
+    return [super constrainFrameRect:frameRect toScreen:screen];
+  
   if (f->output_data.ns->dont_constrain
       || ns_menu_bar_should_be_hidden ())
     return frameRect;

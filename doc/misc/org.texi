@@ -4,8 +4,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 7.8.07
-@set DATE March 2012
+@set VERSION 7.8.09
+@set DATE April 2012
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -5698,8 +5698,8 @@ until the entry is marked DONE.  An example:
 
 @example
 *** TODO write article about the Earth for the Guide
-    The editor in charge is [[bbdb:Ford Prefect]]
     DEADLINE: <2004-02-29 Sun>
+    The editor in charge is [[bbdb:Ford Prefect]]
 @end example
 
 You can specify a different lead time for warnings for a specific
@@ -7852,9 +7852,9 @@ the other commands, the cursor needs to be in the desired line.
 @tsubheading{Motion}
 @cindex motion commands in agenda
 @orgcmd{n,org-agenda-next-line}
-Next line (same as @key{up} and @kbd{C-p}).
+Next line (same as @key{down} and @kbd{C-n}).
 @orgcmd{p,org-agenda-previous-line}
-Previous line (same as @key{down} and @kbd{C-n}).
+Previous line (same as @key{up} and @kbd{C-p}).
 @tsubheading{View/Go to Org file}
 @orgcmdkkc{@key{SPC},mouse-3,org-agenda-show-and-scroll-up}
 Display the original location of the item in another window.
@@ -9537,12 +9537,12 @@ the web, while the XOXO format provides a solid base for exchange with a
 broad range of other applications.  @LaTeX{} export lets you use Org mode and
 its structured editing functions to easily create @LaTeX{} files.  DocBook
 export makes it possible to convert Org files to many other formats using
-DocBook tools.  OpenDocument Text(ODT) export allows seamless
+DocBook tools.  OpenDocument Text (ODT) export allows seamless
 collaboration across organizational boundaries.  For project management you
 can create gantt and resource charts by using TaskJuggler export.  To
 incorporate entries with associated times like deadlines or appointments into
 a desktop calendar program like iCal, Org mode can also produce extracts in
-the iCalendar format.  Currently Org mode only supports export, not import of
+the iCalendar format.  Currently, Org mode only supports export, not import of
 these different formats.
 
 Org supports export of selected regions when @code{transient-mark-mode} is
@@ -10869,10 +10869,10 @@ one format (say @samp{csv}) to another format (say @samp{ods} or @samp{xls}).
 If you have a working installation of LibreOffice, a document converter is
 pre-configured for you and you can use it right away.  If you would like to
 use @file{unoconv} as your preferred converter, customize the variable
-@code{org-export-odt-convert-process} to point to @code{unoconv}.  If you
-would like to use a converter of your own choosing or tweak the default
-settings of the default @file{LibreOffice} and @samp{unoconv} converters
-@xref{Configuring a document converter}.
+@code{org-export-odt-convert-process} to point to @code{unoconv}.  You can
+also use your own favorite converter or tweak the default settings of the
+@file{LibreOffice} and @samp{unoconv} converters.  @xref{Configuring a
+document converter}.
 
 @subsubsection Automatically exporting to other formats
 @anchor{x-export-to-other-formats}
@@ -11206,7 +11206,7 @@ that the @file{dvipng} program be available on your system.
 
 For various reasons, you may find embedding @LaTeX{} math snippets in an
 ODT document less than reliable.  In that case, you can embed a
-math equation by linking to its MathML(@file{.mml}) source or its
+math equation by linking to its MathML (@file{.mml}) source or its
 OpenDocument formula (@file{.odf}) file as shown below:
 
 @example
@@ -11269,7 +11269,7 @@ Illustration 2: Bell curve
 Export of literal examples (@pxref{Literal examples}) with full fontification
 is supported.  Internally, the exporter relies on @file{htmlfontify.el} to
 generate all style definitions needed for a fancy listing.@footnote{Your
-@file{htmlfontify.el} library must atleast be at Emacs 24.1 levels for
+@file{htmlfontify.el} library must at least be at Emacs 24.1 levels for
 fontification to be turned on.}  The auto-generated styles have @samp{OrgSrc}
 as prefix and inherit their color from the faces used by Emacs
 @code{font-lock} library for the source language.
@@ -11318,10 +11318,9 @@ the variable @code{org-export-odt-convert-processes}.  Also specify how the
 converter can be invoked via command-line to effect the conversion.
 
 @item Configure its capabilities
+
 @vindex org-export-odt-convert-capabilities
-
 @anchor{x-odt-converter-capabilities}
-
 Specify the set of formats the converter can handle by customizing the
 variable @code{org-export-odt-convert-capabilities}.  Use the default value
 for this variable as a guide for configuring your converter.  As suggested by
@@ -11460,7 +11459,7 @@ regular text.
 @end example
 
 @strong{Hint:} To see the above example in action, edit your
-@file{styles.xml}(@pxref{x-orgodtstyles-xml,,Factory styles}) and add a
+@file{styles.xml} (@pxref{x-orgodtstyles-xml,,Factory styles}) and add a
 custom @samp{Highlight} style as shown below.
 
 @example
@@ -11479,7 +11478,7 @@ directive.  For example, to force a page break do the following:
 @end example
 
 @strong{Hint:} To see the above example in action, edit your
-@file{styles.xml}(@pxref{x-orgodtstyles-xml,,Factory styles}) and add a
+@file{styles.xml} (@pxref{x-orgodtstyles-xml,,Factory styles}) and add a
 custom @samp{PageBreak} style as shown below.
 
 @example

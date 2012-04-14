@@ -1,9 +1,13 @@
-2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
+2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)
 	* Makefile.in (C_WARNINGS_SWITCH): Remove.
 	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
 	(BASE_CFLAGS): Use new macros rather than old.
+
+2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
+	* emacsclient.c (decode_options) [WINDOWSNT]:
+	Call ttyname instead of passing its address (typo in revno:106608).
 
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 

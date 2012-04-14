@@ -51,6 +51,14 @@
   "Edit a file in a hex dump format using the hexl filter."
   :group 'data)
 
+(defcustom hexl-bits 16
+  "The bit grouping that hexl will use."
+  :type '(choice (const 8 )
+                 (const 16)
+                 (const 32)
+                 (const 64))
+  :group 'hexl
+  :version "24.2")
 
 (defcustom hexl-program "hexl"
   "The program that will hexlify and dehexlify its stdin.
@@ -67,7 +75,9 @@ and \"-de\" when dehexlifying a buffer."
 
 (defcustom hexl-options (format "-hex %s" hexl-iso)
   "Space separated options to `hexl-program' that suit your needs.
-Quoting cannot be used, so the arguments cannot themselves contain spaces."
+Quoting cannot be used, so the arguments cannot themselves contain spaces.
+If you wish to set the `-group-by-X-bits' options, set `hexl-bits' instead,
+as that will override any bit grouping options set here."
   :type 'string
   :group 'hexl)
 
@@ -212,10 +222,34 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
      (2 'hexl-ascii-region t t)))
   "Font lock keywords used in `hexl-mode'.")
 
+(defun hexl-rulerise (string bits)
+  (let ((size (/ bits 4)) (strlen (length string)) (pos 0) (ruler ""))
+    (while (< pos strlen)
+      (setq ruler (concat ruler " " (substring string pos (+ pos size))))
+      (setq pos (+ pos size)))
+    (substring ruler 1) ))
+
+(defvar hexl-rulers
+  (mapcar
+   (lambda (bits)
+     (cons bits
+           (concat " 87654321  "
+                   (hexl-rulerise "00112233445566778899aabbccddeeff" bits)
+                   "  0123456789abcdef")))
+   '(8 16 32 64)))
 ;; routines
 
 (put 'hexl-mode 'mode-class 'special)
 
+;; 10 chars for the "address: "
+;; 32 chars for the hexlified bytes
+;; 1 char for the space
+;; 16 chars for the character display
+;; X chars for the spaces (128 bits divided by the hexl-bits)
+;; 1 char for the newline.
+(defun hexl-line-displen ()
+  "The length of a hexl display line (varies with `hexl-bits')."
+  (+ 60 (/ 128 (or hexl-bits 16))))
 
 (defun hexl-mode--minor-mode-p (var)
   (memq var '(ruler-mode hl-line-mode)))
@@ -248,7 +282,7 @@ using the function `hexlify-buffer'.
 Each line in the buffer has an \"address\" (displayed in hexadecimal)
 representing the offset into the file that the characters on this line
 are at and 16 characters from the file (displayed as hexadecimal
-values grouped every 16 bits) and as their ASCII values.
+values grouped every `hexl-bits' bits) and as their ASCII values.
 
 If any of the characters (displayed as ASCII characters) are
 unprintable (control or meta characters) they will be replaced as
@@ -330,10 +364,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
         (hexlify-buffer)
         (restore-buffer-modified-p modified))
       (set (make-local-variable 'hexl-max-address)
-           (let* ((full-lines (/ (buffer-size) 68))
-                  (last-line (% (buffer-size) 68))
-                  (last-line-bytes (% last-line 52)))
-             (+ last-line-bytes (* full-lines 16) -1)))
+           (+ (* (/ (1- (buffer-size)) (hexl-line-displen)) 16) 15))
       (condition-case nil
 	  (hexl-goto-address original-point)
 	(error nil)))
@@ -510,17 +541,20 @@ Ask the user for confirmation."
 (defun hexl-current-address (&optional validate)
   "Return current hexl-address."
   (interactive)
-  (let ((current-column (- (% (- (point) (point-min) -1) 68) 11))
+  (let ((current-column
+         (- (% (- (point) (point-min) -1) (hexl-line-displen)) 11))
 	(hexl-address 0))
     (if (< current-column 0)
 	(if validate
 	    (error "Point is not on a character in the file")
 	  (setq current-column 0)))
     (setq hexl-address
-	  (+ (* (/ (- (point) (point-min) -1) 68) 16)
-	     (if (>= current-column 41)
-		 (- current-column 41)
-	       (/ (- current-column  (/ current-column 5)) 2))))
+          (+ (* (/ (- (point) (point-min) -1)
+                   (hexl-line-displen)) 16)
+	     (if (>= current-column (- (hexl-ascii-start-column) 10))
+		 (- current-column (- (hexl-ascii-start-column) 10))
+               (/ (- current-column
+                     (/ current-column (1+ (/ hexl-bits 4)))) 2))))
     (when (called-interactively-p 'interactive)
       (message "Current address is %d/0x%08x" hexl-address hexl-address))
     hexl-address))
@@ -531,10 +565,18 @@ This function is intended to be used as eldoc callback."
   (let ((addr (hexl-current-address)))
     (format "Current address is %d/0x%08x" addr addr)))
 
+(defun hexl-ascii-start-column ()
+  "Column at which the ascii portion of the hexl display starts."
+  (+ 43 (/ 128 hexl-bits)))
+
 (defun hexl-address-to-marker (address)
   "Return buffer position for ADDRESS."
   (interactive "nAddress: ")
-  (+ (* (/ address 16) 68) 10 (point-min) (/ (* (% address 16) 5) 2)))
+  (let ((N (* (% address 16) 2)))
+    (+ (* (/ address 16) (hexl-line-displen)) ; hexl line no * display length
+       10                      ; 10 chars for the "address: " prefix
+       (point-min)             ; base offset (point usually starts at 1, not 0)
+       (+ N (/ N (/ hexl-bits 4))) )) ) ; char offset into hexl display line
 
 (defun hexl-goto-address (address)
   "Go to hexl-mode (decimal) address ADDRESS.
@@ -700,7 +742,7 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 (defun hexl-beginning-of-line ()
   "Goto beginning of line in hexl mode."
   (interactive)
-  (goto-char (+ (* (/ (point) 68) 68) 11)))
+  (goto-char (+ (* (/ (point) (hexl-line-displen)) (hexl-line-displen)) 11)))
 
 (defun hexl-end-of-line ()
   "Goto end of line in hexl mode."
@@ -776,6 +818,17 @@ You may also type octal digits, to insert a character with that code."
 
 ;00000000: 0011 2233 4455 6677 8899 aabb ccdd eeff  0123456789ABCDEF
 
+(defun hexl-options (&optional test)
+  "Combine `hexl-bits' with `hexl-options', altering `hexl-options' as needed
+to produce the command line options to pass to the hexl command."
+  (let ((opts (or test hexl-options)))
+    (when (memq hexl-bits '(8 16 32 64))
+      (when (string-match "\\(.*\\)-group-by-[0-9]+-bits\\(.*\\)" opts)
+        (setq opts (concat (match-string 1 opts)
+                           (match-string 2 opts))))
+      (setq opts (format "%s -group-by-%d-bits " opts hexl-bits)) )
+    opts))
+
 ;;;###autoload
 (defun hexlify-buffer ()
   "Convert a binary buffer to hexl format.
@@ -798,7 +851,7 @@ This discards the buffer's undo information."
            (mapcar (lambda (s)
                      (if (not (multibyte-string-p s)) s
                        (encode-coding-string s locale-coding-system)))
-                   (split-string hexl-options)))
+                   (split-string (hexl-options))))
     (if (> (point) (hexl-address-to-marker hexl-max-address))
 	(hexl-goto-address hexl-max-address))))
 
@@ -815,7 +868,7 @@ This discards the buffer's undo information."
 	(buffer-undo-list t))
     (apply 'call-process-region (point-min) (point-max)
 	   (expand-file-name hexl-program exec-directory)
-	   t t nil "-de" (split-string hexl-options))))
+	   t t nil "-de" (split-string (hexl-options)))))
 
 (defun hexl-char-after-point ()
   "Return char for ASCII hex digits at point."
@@ -911,13 +964,12 @@ CH must be a unibyte character whose value is between 0 and 255."
       (error "Invalid character 0x%x -- must be in the range [0..255]" ch))
   (let ((address (hexl-current-address t)))
     (while (> num 0)
-      (let ((hex-position
-	     (+ (* (/ address 16) 68)
-		10 (point-min)
-		(* 2 (% address 16))
-		(/ (% address 16) 2)))
+      (let ((hex-position (hexl-address-to-marker address))
 	    (ascii-position
-	     (+ (* (/ address 16) 68) 51 (point-min) (% address 16)))
+	     (+ (* (/ address 16) (hexl-line-displen))
+                (hexl-ascii-start-column)
+                (point-min)
+                (% address 16)))
 	    at-ascii-position)
 	(if (= (point) ascii-position)
 	    (setq at-ascii-position t))
@@ -933,7 +985,7 @@ CH must be a unibyte character whose value is between 0 and 255."
 	(if at-ascii-position
 	    (progn
 	      (beginning-of-line)
-	      (forward-char 51)
+	      (forward-char (hexl-ascii-start-column))
 	      (forward-char (% address 16)))))
       (setq num (1- num)))))
 
@@ -1041,7 +1093,7 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 
 (defun hexl-follow-ascii-find ()
   "Find and highlight the ASCII element corresponding to current point."
-  (let ((pos (+ 51
+  (let ((pos (+ (hexl-ascii-start-column)
 		(- (point) (current-column))
 		(mod (hexl-current-address) 16))))
     (move-overlay hexl-ascii-overlay pos (1+ pos))
@@ -1050,7 +1102,7 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 (defun hexl-mode-ruler ()
   "Return a string ruler for hexl mode."
   (let* ((highlight (mod (hexl-current-address) 16))
-	 (s " 87654321  0011 2233 4455 6677 8899 aabb ccdd eeff  0123456789abcdef")
+	 (s (cdr (assq hexl-bits hexl-rulers)))
 	 (pos 0))
     (set-text-properties 0 (length s) nil s)
     ;; Turn spaces in the header into stretch specs so they work
@@ -1062,12 +1114,12 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 			 `(space :align-to ,(1- pos))
 			 s))
     ;; Highlight the current column.
-    (put-text-property (+ 11 (/ (* 5 highlight) 2))
-		       (+ 13 (/ (* 5 highlight) 2))
-		       'face 'highlight s)
+    (let ( (offset (+ (* 2 highlight) (/ (* 8 highlight) hexl-bits))) )
+      (put-text-property (+ 11 offset) (+ 13 offset) 'face 'highlight s))
     ;; Highlight the current ascii column
-    (put-text-property (+ 13 39 highlight) (+ 13 40 highlight)
-		       'face 'highlight s)
+    (put-text-property (+ (hexl-ascii-start-column) highlight 1)
+                       (+ (hexl-ascii-start-column) highlight 2)
+                       'face 'highlight s)
     s))
 
 ;; startup stuff.

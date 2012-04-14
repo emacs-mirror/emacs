@@ -2,7 +2,6 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/keymaps
 @node Keymaps, Modes, Command Loop, Top
 @chapter Keymaps
 @cindex keymap
@@ -64,7 +63,7 @@ constituent events; thus, @code{"\C-xl"} represents the key sequence
 @kbd{C-x l}.
 
   Key sequences containing function keys, mouse button events, or
-non-ASCII characters such as @kbd{C-=} or @kbd{H-a} cannot be
+non-@acronym{ASCII} characters such as @kbd{C-=} or @kbd{H-a} cannot be
 represented as strings; they have to be represented as vectors.
 
   In the vector representation, each element of the vector represents
@@ -808,7 +807,7 @@ bindings.
 @defun current-local-map
 This function returns the current buffer's local keymap, or @code{nil}
 if it has none.  In the following example, the keymap for the
-@samp{*scratch*} buffer (using Lisp Interaction mode) is a sparse keymap
+@file{*scratch*} buffer (using Lisp Interaction mode) is a sparse keymap
 in which the entry for @key{ESC}, @acronym{ASCII} code 27, is another sparse
 keymap.
 
@@ -1922,7 +1921,7 @@ other command.  However, if @var{no-remap} is non-@code{nil}.
 
 @deffn Command describe-bindings &optional prefix buffer-or-name
 This function creates a listing of all current key bindings, and
-displays it in a buffer named @samp{*Help*}.  The text is grouped by
+displays it in a buffer named @file{*Help*}.  The text is grouped by
 modes---minor modes first, then the major mode, then global bindings.
 
 If @var{prefix} is non-@code{nil}, it should be a prefix key; then the

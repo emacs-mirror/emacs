@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/minibuf
 @node Minibuffers, Command Loop, Read and Print, Top
 @chapter Minibuffers
 @cindex arguments, reading
@@ -1062,7 +1061,7 @@ using the value of the variable @code{minibuffer-completion-table} as
 the @var{collection} argument, and the value of
 @code{minibuffer-completion-predicate} as the @var{predicate} argument.
 The list of completions is displayed as text in a buffer named
-@samp{*Completions*}.
+@file{*Completions*}.
 @end deffn
 
 @defun display-completion-list completions &optional common-substring
@@ -1756,7 +1755,7 @@ completion behavior is overridden.  @xref{Completion Variables}.
 The value should be a function for @dfn{annotating} completions.  The
 function should take one argument, @var{string}, which is a possible
 completion.  It should return a string, which is displayed after the
-completion @var{string} in the @samp{*Completions*} buffer.
+completion @var{string} in the @file{*Completions*} buffer.
 
 @item display-sort-function
 The value should be a function for sorting completions.  The function

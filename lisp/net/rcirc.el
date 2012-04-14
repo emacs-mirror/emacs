@@ -361,6 +361,14 @@ of a line.  The string is passed as the first argument to
   :type 'string
   :group 'rcirc)
 
+(defcustom rcirc-kill-channel-buffers nil
+  "When non-nil, kill channel buffers when the server buffer is killed.
+Only the channel buffers associated with the server in question
+will be killed."
+  :version "24.2"
+  :type 'boolean
+  :group 'rcirc)
+
 (defvar rcirc-nick nil)
 
 (defvar rcirc-prompt-start-marker nil)
@@ -1088,12 +1096,20 @@ Logfiles are kept in `rcirc-log-directory'."
   :group 'rcirc)
 
 (defun rcirc-kill-buffer-hook ()
-  "Part the channel when killing an rcirc buffer."
+  "Part the channel when killing an rcirc buffer.
+
+If `rcirc-kill-channel-buffers' is non-nil and the killed buffer
+is a server buffer, kills all of the channel buffers associated
+with it."
   (when (eq major-mode 'rcirc-mode)
     (when (and rcirc-log-flag
                rcirc-log-directory)
       (rcirc-log-write))
-    (rcirc-clean-up-buffer "Killed buffer")))
+    (rcirc-clean-up-buffer "Killed buffer")
+    (when (and rcirc-buffer-alist ;; it's a server buffer
+               rcirc-kill-channel-buffers)
+      (dolist (channel rcirc-buffer-alist)
+	(kill-buffer (cdr channel))))))
 
 (defun rcirc-change-major-mode-hook ()
   "Part the channel when changing the major-mode."
@@ -2165,17 +2181,13 @@ CHANNELS is a comma- or space-separated string of channel names."
   (let ((channel (if (> (length channel) 0) channel target)))
     (rcirc-send-string process (concat "PART " channel " :" rcirc-id-string))))
 
-(defun-rcirc-command quit (reason all)
-  "Send a quit message to server with REASON.
-When called with prefix, quit all servers."
-  (interactive "sQuit reason: \nP")
-  (dolist (p (if all
-		 (rcirc-process-list)
-	       (list process)))
-    (rcirc-send-string p (concat "QUIT :"
-				 (if (not (zerop (length reason)))
-				     reason
-				   rcirc-id-string)))))
+(defun-rcirc-command quit (reason)
+  "Send a quit message to server with REASON."
+  (interactive "sQuit reason: ")
+  (rcirc-send-string process (concat "QUIT :"
+				     (if (not (zerop (length reason)))
+					 reason
+				       rcirc-id-string))))
 
 (defun-rcirc-command nick (nick)
   "Change nick to NICK."

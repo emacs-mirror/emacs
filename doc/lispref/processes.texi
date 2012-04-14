@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/processes
 @node Processes, Display, Abbrevs, Top
 @chapter Processes
 @cindex child process
@@ -77,14 +76,14 @@ sections.  Since the three functions are all called in a similar
 fashion, their common arguments are described here.
 
 @cindex execute program
-@cindex @code{PATH} environment variable
-@cindex @code{HOME} environment variable
+@cindex @env{PATH} environment variable
+@cindex @env{HOME} environment variable
   In all cases, the function's @var{program} argument specifies the
 program to be run.  An error is signaled if the file is not found or
 cannot be executed.  If the file name is relative, the variable
 @code{exec-path} contains a list of directories to search.  Emacs
 initializes @code{exec-path} when it starts up, based on the value of
-the environment variable @code{PATH}.  The standard file name
+the environment variable @env{PATH}.  The standard file name
 constructs, @samp{~}, @samp{.}, and @samp{..}, are interpreted as
 usual in @code{exec-path}, but environment variable substitutions
 (@samp{$HOME}, etc.) are not recognized; use
@@ -267,6 +266,9 @@ system, much like text written into a file.  @xref{Coding Systems}.
 
 @defun call-process program &optional infile destination display &rest args
 This function calls @var{program} and waits for it to finish.
+
+The current working directory of the subprocess is
+@code{default-directory}.
 
 The standard input for the new process comes from file @var{infile} if
 @var{infile} is not @code{nil}, and from the null device otherwise.
@@ -714,7 +716,7 @@ This command displays a listing of all living processes.  In addition,
 it finally deletes any process whose status was @samp{Exited} or
 @samp{Signaled}.  It returns @code{nil}.
 
-The processes are shown in a buffer named @samp{*Process List*}, whose
+The processes are shown in a buffer named @file{*Process List*}, whose
 major mode is named Process Menu mode.
 
 If @var{query-only} is non-@code{nil} then it lists only processes
@@ -1629,31 +1631,13 @@ This returns the query flag of @var{process}.
 This function sets the query flag of @var{process} to @var{flag}.  It
 returns @var{flag}.
 
+Here is an example of using @code{set-process-query-on-exit-flag} on a
+shell process to avoid querying:
+
 @smallexample
 @group
-;; @r{Don't query about the shell process}
 (set-process-query-on-exit-flag (get-process "shell") nil)
      @result{} t
-@end group
-@end smallexample
-@end defun
-
-@defun process-kill-without-query process &optional do-query
-This function clears the query flag of @var{process}, so that
-Emacs will not query the user on account of that process.
-
-Actually, the function does more than that: it returns the old value of
-the process's query flag, and sets the query flag to @var{do-query}.
-Please don't use this function to do those things any more---please
-use the newer, cleaner functions @code{process-query-on-exit-flag} and
-@code{set-process-query-on-exit-flag} in all but the simplest cases.
-The only way you should use @code{process-kill-without-query} nowadays
-is like this:
-
-@smallexample
-@group
-;; @r{Don't query about the shell process}
-(process-kill-without-query (get-process "shell"))
 @end group
 @end smallexample
 @end defun

@@ -39,6 +39,9 @@
   :prefix "battery-"
   :group 'hardware)
 
+;; Either BATn or yeeloong-bat, basically.
+(defconst battery--linux-sysfs-regexp "[bB][aA][tT][0-9]?$")
+
 (defcustom battery-status-function
   (cond ((and (eq system-type 'gnu/linux)
 	      (file-readable-p "/proc/apm"))
@@ -48,12 +51,9 @@
 	 'battery-linux-proc-acpi)
 	((and (eq system-type 'gnu/linux)
 	      (file-directory-p "/sys/class/power_supply/")
-	      (directory-files "/sys/class/power_supply/" nil "BAT[0-9]$"))
+	      (directory-files "/sys/class/power_supply/" nil
+                               battery--linux-sysfs-regexp))
 	 'battery-linux-sysfs)
-	((and (eq system-type 'gnu/linux)
-	      (file-directory-p "/sys/class/power_supply/yeeloong-bat/")
-	      (directory-files "/sys/class/power_supply/yeeloong-bat/" nil "charge_"))
-	 'battery-yeeloong-sysfs)
 	((and (eq system-type 'darwin)
 	      (condition-case nil
 		  (with-temp-buffer
@@ -80,8 +80,6 @@ introduced by a `%' character in a control string."
 	((eq battery-status-function 'battery-linux-sysfs)
 	 "Power %L, battery %B (%p%% load)")
 	((eq battery-status-function 'battery-pmset)
-	 "%L power, battery %B (%p%% load, remaining time %t)")
-	((eq battery-status-function 'battery-yeeloong-sysfs)
 	 "%L power, battery %B (%p%% load, remaining time %t)")
 	(battery-status-function
 	 "Power %L, battery %B (%p%% load, remaining time %t)"))
@@ -344,14 +342,15 @@ The following %-sequences are provided:
 	       (setq charging-state (match-string 1)))
 	  (when (re-search-forward "present rate: +\\([0-9]+\\) \\(m[AW]\\)$"
 				   nil t)
-	    (setq rate (+ (or rate 0) (string-to-number (match-string 1)))
-		  rate-type (or (and rate-type
+	    (setq rate (+ (or rate 0) (string-to-number (match-string 1))))
+	    (when (> rate 0)
+	      (setq rate-type (or (and rate-type
 				     (if (string= rate-type (match-string 2))
 					 rate-type
 				       (error
 					"Inconsistent rate types (%s vs. %s)"
 					rate-type (match-string 2))))
-				(match-string 2))))
+				  (match-string 2)))))
 	  (when (re-search-forward "remaining capacity: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
 	    (setq capacity
@@ -447,7 +446,8 @@ The following %-sequences are provided:
     (with-temp-buffer
       (dolist (dir (ignore-errors
 		    (directory-files
-		     "/sys/class/power_supply/" t "BAT[0-9]$")))
+		     "/sys/class/power_supply/" t
+                     battery--linux-sysfs-regexp)))
 	(erase-buffer)
 	(ignore-errors (insert-file-contents
 			(expand-file-name "uevent" dir)))
@@ -524,91 +524,6 @@ The following %-sequences are provided:
 			   "AC"
 			 "BAT")
 		     "N/A")))))
-
-(defun battery-yeeloong-sysfs ()
-  "Get ACPI status information from Linux (the kernel).
-This function works only on the Lemote Yeeloong.
-
-The following %-sequences are provided:
-%c Current capacity (mAh)
-%r Current rate
-%B Battery status (verbose)
-%b Battery status, empty means high, `-' means low,
-   `!' means critical, and `+' means charging
-%L AC line status (verbose)
-%p Battery load percentage
-%m Remaining time (to charge or discharge) in minutes
-%h Remaining time (to charge or discharge) in hours
-%t Remaining time (to charge or discharge) in the form `h:min'"
-
-  (let (capacity
-	capacity-level
-	status
-	ac-online
-	hours
-	current-now
-	charge-full
-	charge-now)
-
-    (with-temp-buffer
-      (ignore-errors
-	(insert-file-contents "/sys/class/power_supply/yeeloong-bat/uevent")
-	(goto-char 1)
-	(search-forward "POWER_SUPPLY_CHARGE_NOW=")
-	(setq charge-now (read (current-buffer)))
-	(goto-char 1)
-	(search-forward "POWER_SUPPLY_CHARGE_FULL=")
-	(setq charge-full (read (current-buffer)))
-	(goto-char 1)
-	(search-forward "POWER_SUPPLY_CURRENT_NOW=")
-	(setq current-now (read (current-buffer)))
-	(goto-char 1)
-	(search-forward "POWER_SUPPLY_CAPACITY_LEVEL=")
-	(setq capacity-level (buffer-substring (point) (line-end-position)))
-	(goto-char 1)
-	(search-forward "POWER_SUPPLY_STATUS=")
-	(setq status (buffer-substring (point) (line-end-position))))
-	
-      (erase-buffer)
-      (ignore-errors
-	(insert-file-contents
-	 "/sys/class/power_supply/yeeloong-ac/online")
-	(goto-char 1)
-	(setq ac-online (read (current-buffer)))
-	(erase-buffer)))
-
-
-    (setq capacity (round (/ (* charge-now 100.0) charge-full)))
-    (when (and current-now (not (= current-now 0)))
-      (if (< current-now 0)
-	  ;; Charging
-	  (setq hours (/ (- charge-now charge-full) (+ 0.0 current-now)))
-	;; Discharging
-	(setq hours (/ charge-now (+ 0.0 current-now)))))
-
-    (list (cons ?c (if charge-now
-		       (number-to-string charge-now)
-		     "N/A"))
-	  (cons ?r current-now)
-	  (cons ?B (cond ((equal capacity-level "Full") "full")
-			 ((equal status "Charging") "charging")
-			 ((equal capacity-level "Low") "low")
-			 ((equal capacity-level "Critical") "critical")
-			 (t "high")))
-	  (cons ?b (cond ((equal capacity-level "Full") " ")
-			 ((equal status "Charging") "+")
-			 ((equal capacity-level "Low") "-")
-			 ((equal capacity-level "Critical") "!")
-			 (t " ")))
-	  (cons ?h (if hours (number-to-string hours) "N/A"))
-	  (cons ?m (if hours (number-to-string (* 60 hours)) "N/A"))
-	  (cons ?t (if hours
-		       (format "%d:%d"
-			       (/ (round (* 60 hours)) 60)
-			       (% (round (* 60 hours)) 60))
-		     "N/A"))
-	  (cons ?p (if capacity (number-to-string capacity) "N/A"))
-	  (cons ?L (if (eq ac-online 1) "AC" "BAT")))))
 
 ;;; `pmset' interface for Darwin (OS X).
 

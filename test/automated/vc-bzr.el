@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- tests for vc/vc-bzr.el
 
-;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
 
@@ -96,6 +96,33 @@
                   (vc-next-action nil))
               (fset 'y-or-n-p f)))
           (should (get-buffer "*vc-log*")))
+      (delete-directory tempdir t))))
+
+;; http://lists.gnu.org/archive/html/help-gnu-emacs/2012-04/msg00145.html
+(ert-deftest vc-bzr-test-faulty-bzr-autoloads ()
+  "Test we can generate autoloads in a bzr directory when bzr is faulty."
+  :expected-result (if (executable-find vc-bzr-program) :passed :failed)
+  (should (executable-find vc-bzr-program))
+  (let* ((tempdir (make-temp-file "vc-bzr-test" t))
+         (file (expand-file-name "foo.el" tempdir))
+         (default-directory (file-name-as-directory tempdir))
+         (generated-autoload-file (expand-file-name "loaddefs.el" tempdir)))
+    (unwind-protect
+        (progn
+          (call-process vc-bzr-program nil nil nil "init")
+          (with-temp-buffer
+            (insert ";;;###autoload
+\(defun foo () \"foo\" (interactive) (message \"foo!\"))")
+            (write-region nil nil file nil 'silent))
+          (call-process vc-bzr-program nil nil nil "add")
+          (call-process vc-bzr-program nil nil nil "commit" "-m" "Commit 1")
+          ;; Deleting dirstate ensures both that vc-bzr's status heuristic
+          ;; fails, so it has to call the external bzr status, and
+          ;; causes bzr status to fail.  This simulates a broken bzr
+          ;; installation.
+          (delete-file ".bzr/checkout/dirstate")
+          (should (progn (update-directory-autoloads default-directory)
+                         t)))
       (delete-directory tempdir t))))
 
 ;;; vc-bzr.el ends here

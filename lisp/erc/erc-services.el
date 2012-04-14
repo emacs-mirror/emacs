@@ -195,7 +195,8 @@ Example of use:
 		(repeat :tag "Nickname and password"
 			(cons :tag "Identity"
 			      (string :tag "Nick")
-			      (string :tag "Password"))))))
+			      (string :tag "Password"
+                                      :secret ?*))))))
 
 ;; Variables:
 

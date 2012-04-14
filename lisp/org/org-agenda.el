@@ -6365,7 +6365,9 @@ to switch to narrowing."
     (dolist (x (delete-dups
 		(append (get 'org-agenda-category-filter
 			     :preset-filter) org-agenda-category-filter)))
-      (setq f1 (list 'equal (substring x 1) 'cat))
+      (if (equal "-" (substring x 0 1))
+	  (setq f1 (list 'not (list 'equal (substring x 1) 'cat)))
+	(setq f1 (list 'equal (substring x 1) 'cat)))
       (push f1 f))
     (cons 'and (nreverse f))))
 
@@ -6396,9 +6398,13 @@ If the line does not have an effort defined, return nil."
   (let (tags cat)
     (if (eq type 'tag)
 	(setq org-agenda-tag-filter filter)
-      (setq org-agenda-category-filter filter
-	    org-agenda-filtered-by-category t))
+      (setq org-agenda-category-filter filter))
     (setq org-agenda-filter-form (org-agenda-filter-make-matcher))
+    (if (and (eq type 'category)
+	     (not (equal (substring (car filter) 0 1) "-")))
+	;; Only set `org-agenda-filtered-by-category' to t
+	;; when a unique category is used as the filter
+	(setq org-agenda-filtered-by-category t))
     (org-agenda-set-mode-name)
     (save-excursion
       (goto-char (point-min))
@@ -6412,7 +6418,7 @@ If the line does not have an effort defined, return nil."
 	      (beginning-of-line 2))
 	  (beginning-of-line 2))))
     (if (get-char-property (point) 'invisible)
-	(org-agenda-previous-line))))
+	(ignore-errors (org-agenda-previous-line)))))
 
 (defun org-agenda-filter-hide-line (type)
   (let (ov)

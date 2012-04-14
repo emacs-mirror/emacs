@@ -67,7 +67,7 @@
 
 ;;; Code:
 
-(provide 'avoid)
+(eval-when-compile (require 'cl))
 
 (defgroup avoid nil
   "Make mouse pointer stay out of the way of editing."
@@ -114,6 +114,23 @@ If the cursor gets closer than this, the mouse pointer will move away.
 Only applies in Mouse Avoidance modes `animate' and `jump'."
   :type 'integer
   :group 'avoid)
+
+(defcustom mouse-avoidance-banish-position '((frame-or-window . frame)
+                                             (side . right)
+                                             (side-pos . 3)
+                                             (top-or-bottom . top)
+                                             (top-or-bottom-pos . 0))
+  "Position to which Mouse Avoidance mode `banish' moves the mouse.
+An alist where keywords mean:
+FRAME-OR-WINDOW: banish the mouse to corner of frame or window.
+SIDE: banish the mouse on right or left corner of frame or window.
+SIDE-POS: Distance from right or left edge of frame or window.
+TOP-OR-BOTTOM: banish the mouse to top or bottom of frame or window.
+TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
+  :group   'avoid
+  :type    '(alist :key-type symbol :value-type symbol)
+  :options '(frame-or-window side (side-pos integer)
+             top-or-bottom (top-or-bottom-pos integer)))
 
 ;; Internal variables
 (defvar mouse-avoidance-state nil)
@@ -183,13 +200,45 @@ Acceptable distance is defined by `mouse-avoidance-threshold'."
 
 (defun mouse-avoidance-banish-destination ()
   "The position to which Mouse Avoidance mode `banish' moves the mouse.
-You can redefine this if you want the mouse banished to a different corner."
-  (let* ((pos (window-edges)))
-    (cons (- (nth 2 pos) 2)
-	  (nth 1 pos))))
+
+If you want the mouse banished to a different corner set
+`mouse-avoidance-banish-position' as you need."
+  (let* ((fra-or-win         (assoc-default
+                              'frame-or-window
+                              mouse-avoidance-banish-position 'eq))
+         (list-values        (case fra-or-win
+                               (frame (list 0 0 (frame-width) (frame-height)))
+                               (window (window-edges))))
+         (alist              (loop for v in list-values
+                                   for k in '(left top right bottom)
+                                   collect (cons k v)))
+         (side               (assoc-default
+                              'side
+                              mouse-avoidance-banish-position 'eq))
+         (side-dist          (assoc-default
+                              'side-pos
+                              mouse-avoidance-banish-position 'eq))
+         (top-or-bottom      (assoc-default
+                              'top-or-bottom
+                              mouse-avoidance-banish-position 'eq))
+         (top-or-bottom-dist (assoc-default
+                              'top-or-bottom-pos
+                              mouse-avoidance-banish-position 'eq))
+         (side-fn            (case side
+                               (left '+)
+                               (right '-)))
+         (top-or-bottom-fn   (case top-or-bottom
+                               (top '+)
+                               (bottom '-))))
+    (cons (funcall side-fn                        ; -/+
+                   (assoc-default side alist 'eq) ; right or left
+                   side-dist)                     ; distance from side
+	  (funcall top-or-bottom-fn                        ; -/+
+                   (assoc-default top-or-bottom alist 'eq) ; top/bottom
+                   top-or-bottom-dist)))) ; distance from top/bottom
 
 (defun mouse-avoidance-banish-mouse ()
-  ;; Put the mouse pointer in the upper-right corner of the current frame.
+  "Put the mouse pointer to `mouse-avoidance-banish-position'."
   (mouse-avoidance-set-mouse-position (mouse-avoidance-banish-destination)))
 
 (defsubst mouse-avoidance-delta (cur delta dist var min max)
@@ -407,5 +456,7 @@ definition of \"random distance\".)"
 ;; Needed for custom.
 (if mouse-avoidance-mode
     (mouse-avoidance-mode mouse-avoidance-mode))
+
+(provide 'avoid)
 
 ;;; avoid.el ends here

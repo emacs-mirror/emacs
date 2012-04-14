@@ -1,3 +1,51 @@
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (Select Input Method, Coding Systems, Recognize Coding):
+	Copyedits.
+	(Coding Systems): Mac OS X apparently uses newlines for EOL.
+	(Recognize Coding): Remove old auto-coding-regexp-alist example.
+	auto-coding-functions does not override coding: tags.
+	Remove rmail-decode-mime-charset; it no longer has any effect.
+
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Creating Custom Themes): Add reference to Custom
+	Themes node in Lisp manual.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (International): Copyedits.
+	(International Chars): Update C-x = example output.
+	(Disabling Multibyte): Rename from "Enabling Multibyte".
+	Clarify what "unibyte: t" does, and mode-line description.
+	(Unibyte Mode): Update for "Disabling Multibyte" node name change.
+	Use Texinfo recommended convention for quotes+punctuation.
+	(Language Environments): Copyedits.
+	(Input Methods): Copyedits.  Use "^" for the postfix example,
+	because it is less confusing inside Info's `quotes'.
+
+	* custom.texi (Specifying File Variables):  Fix "unibyte" description.
+	Update for "Disabling Multibyte" node name change.
+	* emacs.texi: Update for "Disabling Multibyte" node name change.
+
+	* abbrevs.texi, arevert-xtra.texi, buffers.texi, building.texi:
+	* cmdargs.texi, custom.texi, entering.texi, files.texi, frames.texi:
+	* glossary.texi, help.texi, macos.texi, maintaining.texi, mini.texi:
+	* misc.texi, package.texi, programs.texi, screen.texi, search.texi:
+	* sending.texi, text.texi, trouble.texi:
+	Use @file for buffers, per the Texinfo manual.
+
+	* entering.texi (Entering Emacs):
+	Do not mention initial-buffer-choice = t.
+
+	* misc.texi (Gnus Startup): Use @env for environment variables.
+
+	* Makefile.in: Replace non-portable use of $< in ordinary rules.
+
+2012-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Don't mention obsolete mailpost.el.
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* emacsver.texi (EMACSVER): Bump version to 24.1.50.

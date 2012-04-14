@@ -1,3 +1,225 @@
+2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lock.el (emacs-lock-locked-buffer-functions): New hook.
+	(emacs-lock--exit-locked-buffer): Return the locked buffer.  Doc fix.
+	(emacs-lock--kill-emacs-hook, emacs-lock--kill-emacs-query-functions)
+	(emacs-lock--kill-buffer-query-functions): Run new hook.  (Bug#11017)
+
+2012-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/which-func.el (which-func-modes): Change default.
+
+2012-04-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-exchange-point-and-mark): Just call
+	exchange-point-and-mark if cua-enable-cua-keys is nil (Bug#11191).
+
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (custom-theme-set-variables): Doc fix.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule.el (set-auto-coding-for-load): Doc fix.
+
+2012-04-14  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-menus.el (cc-imenu-objc-generic-expression): Make
+	imenu work again for Objective C Mode.  Correct the *-index values,
+	these having been disturbed by a previous change in 2011-08.
+
+	* progmodes/cc-engine.el (c-before-change-check-<>-operators):
+	Correct two search limits.
+
+2012-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (command-line-1): Inhibit splash from daemon (bug#10996).
+
+2012-04-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/characters.el: Fix sorting.
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el: Add more missing Latin case pairs.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-set-class-variables): Doc fix.
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el: Add set-case-syntax-pair call for
+	LATIN CAPITAL LETTER Y WITH DIAERESIS RET and its lower-case
+	counterpart.  (Bug#11209)
+
+	* simple.el (shell-command-on-region): Doc fix.  (Bug#11208)
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (calendar-check-holidays): Doc fix.
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-dictionary-base-alist):
+	Add data for Hebrew.
+
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* net/rcirc.el (rcirc-cmd-quit):
+	Revert 2012-03-18 change (Bug#11192).
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-rpm.el (pcomplete/rpm): Handle -qf.
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuffer.el (completion-in-region-mode-map):
+	Bind completion-help-at-point to M-? rather than ?.  (Bug#11182)
+
+2012-04-13  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* hexl.el (hexl-insert-char): Make display sizes other than 16 work.
+
+2012-04-13  Masatake YAMATO  <yamato@redhat.com>
+
+	* minibuffer.el (minibuffer-local-filename-syntax): New variable
+	to allow `C-M-f' and `C-M-b' to move to the nearest path
+	separator (bug#9511).
+
+2012-04-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* avoid.el: Require cl when compiling.  And also move the
+	`provide' to the end.
+
+2012-04-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* avoid.el (mouse-avoidance-banish-position): New variable.
+	(mouse-avoidance-banish-destination): Use it (bug#10165).
+
+2012-04-13  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/which-func.el (which-func-modes): Add objc-mode.
+
+2012-04-13  Ken Brown  <kbrown@cornell.edu>
+
+	* net/browse-url.el (browse-url-file-url): Remove Cygwin hack;
+	this is no longer needed now that cygstart understands file:// URLs.
+	(browse-url-filename-alist): For the same reason, don't modify
+	file:// URLs on Cygwin.
+
+2012-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-base.el (cua--pre-command-handler-1): Don't activate
+	the region on shift if the binding is already shifted (bug#11221).
+
+2012-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mailpost.el: Move to obsolete/.
+
+2012-04-12  Drew Adams  <drew.adams@oracle.com>
+
+	* imenu.el (imenu--generic-function): Ignore invisible definitions
+	(bug#10123).
+
+2012-04-12  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* hexl.el (hexl-bits): New variable.
+	(hexl-options): Mention the variable in the doc string.
+	(hexl-rulerise): New function.
+	(hexl-line-displen): New function
+	(hexl-mode): Mention the new variable.
+	(hexl-mode, hexl-current-address, hexl-current-address): Use the
+	displen.
+	(hexl-ascii-start-column): New function.
+	(hexl-address-to-marker, hexl-beginning-of-line, hexl-options)
+	(hexl-insert-char, hexl-mode-ruler): Use the displen (bug#4941).
+
+2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-large-region): For hunspell, use
+	'("-i" ENCODING), in 2 separate command-line arguments, to specify
+	the encoding, as expected by hunspell.
+
+2012-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* battery.el (battery--linux-sysfs-regexp): New const.
+	(battery-status-function): Use it.  Remove yeeloong special case.
+	(battery-yeeloong-sysfs): Remove.
+	(battery-echo-area-format): Remove yeeloong special case.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el (imenu-add-to-menubar): `current-local-map' can be nil.
+	Reported by Noah Friedman.
+
+	* subr.el (read-passwd): Use read-string.
+
+2012-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* vcursor.el (vcursor-move): Increase the priority of the overlay
+	(bug#9663).
+
+2012-04-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-kill-channel-buffers): New variable.
+	(rcirc-kill-buffer-hook): Use it to kill channel buffers (bug#5128).
+
+2012-04-11  William Stevenson  <yhvh2000@gmail.com>
+
+	* textmodes/artist.el (artist-mode): Convert artist-mode to use
+	define-minor-mode (bug#10760).
+
+2012-04-11  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* lisp/progmodes/grep.el (rgrep): Tweak the find command line so
+	that directories matching `grep-find-ignored-files' won't be
+	pruned (bug#10351).
+
+2012-04-11  Chong Yidong  <cyd@gnu.org>
+
+	* startup.el (command-line): Remove support for long-obsolete
+	variable font-lock-face-attributes.
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-status): Avoid condition-case-unless-debug.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (window--state-get-1): Obey window-point-insertion-type.
+
+2012-04-11  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* emacs-lisp/lisp.el (narrow-to-defun): `beginning-of-defun' goes
+	to previous function when point is on the first character of a
+	function. Take care of that in `narrow-to-defun' (bug#6157).
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-status): Handle all errors,
+	not just file-errors.
+
+	* vc/vc-bzr.el (vc-bzr-sha1-program, sha1-program): Remove.
+	(vc-bzr-sha1): Use internal sha1.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-mode): Beware read-only dirs (bug#8954).
+
+2012-04-10  Sébastien Gross  <seb@chezwam.org>  (tiny change)
+
+	* progmodes/hideshow.el (hs-hide-all): Don't infloop on comments
+	that start in the middle of the line (bug#10496).
+
+2012-04-10  Dan Nicolaescu  <dann@gnu.org>
+
+	* battery.el (battery-linux-proc-acpi): Only one battery is
+	discharged at a time, but that seems to confuse battery.el when
+	computing `rate-type' for the battery not being discharged
+	(bug#10332).
+
 2012-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-make-program): Remove, unused.

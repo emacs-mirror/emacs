@@ -16606,7 +16606,15 @@ find_last_unchanged_at_beg_row (struct window *w)
 	     continued.  */
 	  && !(MATRIX_ROW_END_CHARPOS (row) == first_changed_pos
 	       && (row->continued_p
-		   || row->exact_window_width_line_p)))
+		   || row->exact_window_width_line_p))
+	  /* If ROW->end is beyond ZV, then ROW->end is outdated and
+	     needs to be recomputed, so don't consider this row as
+	     unchanged.  This happens when the last line was
+	     bidi-reordered and was killed immediately before this
+	     redisplay cycle.  In that case, ROW->end stores the
+	     buffer position of the first visual-order character of
+	     the killed text, which is now beyond ZV.  */
+	  && CHARPOS (row->end.pos) <= ZV)
 	row_found = row;
 
       /* Stop if last visible row.  */

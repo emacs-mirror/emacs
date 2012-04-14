@@ -2,7 +2,6 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/display
 @node Display, System Interface, Processes, Top
 @chapter Emacs Display
 
@@ -268,7 +267,7 @@ objects for its format specifications, like in the @code{format}
 function (@pxref{Formatting Strings}).  The resulting formatted string
 is displayed in the echo area; if it contains @code{face} text
 properties, it is displayed with the specified faces (@pxref{Faces}).
-The string is also added to the @samp{*Messages*} buffer, but without
+The string is also added to the @file{*Messages*} buffer, but without
 text properties (@pxref{Logging Messages}).
 
 In batch mode, the message is printed to the standard error stream,
@@ -341,7 +340,7 @@ buffer is used, the window used to display it.
 
 If @var{message} is a string, then the optional argument
 @var{buffer-name} is the name of the buffer used to display it when a
-pop-up buffer is used, defaulting to @samp{*Message*}.  In the case
+pop-up buffer is used, defaulting to @file{*Message*}.  In the case
 where @var{message} is a string and displayed in the echo area, it is
 not specified whether the contents are inserted into the buffer anyway.
 
@@ -474,16 +473,16 @@ this macro this way:
 @end defmac
 
 @node Logging Messages
-@subsection Logging Messages in @samp{*Messages*}
+@subsection Logging Messages in @file{*Messages*}
 @cindex logging echo-area messages
 
   Almost all the messages displayed in the echo area are also recorded
-in the @samp{*Messages*} buffer so that the user can refer back to
+in the @file{*Messages*} buffer so that the user can refer back to
 them.  This includes all the messages that are output with
 @code{message}.
 
 @defopt message-log-max
-This variable specifies how many lines to keep in the @samp{*Messages*}
+This variable specifies how many lines to keep in the @file{*Messages*}
 buffer.  The value @code{t} means there is no limit on how many lines to
 keep.  The value @code{nil} disables message logging entirely.  Here's
 how to display a message and prevent it from being logged:
@@ -494,7 +493,7 @@ how to display a message and prevent it from being logged:
 @end example
 @end defopt
 
-  To make @samp{*Messages*} more convenient for the user, the logging
+  To make @file{*Messages*} more convenient for the user, the logging
 facility combines successive identical messages.  It also combines
 successive related messages for the sake of two cases: question
 followed by answer, and a series of progress messages.
@@ -624,7 +623,7 @@ and @var{type} as the warning type.  @var{level} should be the
 severity level, with @code{:warning} being the default.
 
 @var{buffer-name}, if non-@code{nil}, specifies the name of the buffer
-for logging the warning.  By default, it is @samp{*Warnings*}.
+for logging the warning.  By default, it is @file{*Warnings*}.
 @end defun
 
 @defun lwarn type level message &rest args
@@ -1885,7 +1884,7 @@ in all frames.  But you can also assign a face name a special set of
 attributes in one frame (@pxref{Attribute Functions}).
 
 @menu
-* Defining Faces::      How to define a face with @code{defface}.
+* Defining Faces::      How to define a face.
 * Face Attributes::     What is in a face?
 * Attribute Functions::  Functions to examine and set face attributes.
 * Displaying Faces::     How Emacs combines the faces specified for a character.
@@ -1904,22 +1903,17 @@ attributes in one frame (@pxref{Attribute Functions}).
 @node Defining Faces
 @subsection Defining Faces
 
-  The way to define a new face is with @code{defface}.  This creates a
-kind of customization item which the user can customize using the
-Customization buffer (@pxref{Customization}).
-
-  People are sometimes tempted to create variables whose values specify
-which faces to use (for example, Font-Lock does this).  In the vast
-majority of cases, this is not necessary, and simply using faces
-directly is preferable.
+  The @code{defface} macro defines a face and specifies its default
+appearance.  The user can subsequently customize the face using the
+Customize interface (@pxref{Customization}).
 
 @defmac defface face spec doc [keyword value]@dots{}
-This declares @var{face} as a customizable face whose default
+This macro declares @var{face} as a customizable face whose default
 attributes are given by @var{spec}.  You should not quote the symbol
 @var{face}, and it should not end in @samp{-face} (that would be
-redundant).  The argument @var{doc} specifies the face documentation.
-The keywords you can use in @code{defface} are the same as in
-@code{defgroup} and @code{defcustom} (@pxref{Common Keywords}).
+redundant).  The argument @var{doc} is a documentation string for the
+face.  The additional @var{keyword} arguments have the same meanings
+as in @code{defgroup} and @code{defcustom} (@pxref{Common Keywords}).
 
 When @code{defface} executes, it defines the face according to
 @var{spec}, then uses any customizations that were read from the
@@ -1930,12 +1924,14 @@ Lisp mode (@code{eval-defun}), a special feature of @code{eval-defun}
 overrides any customizations of the face.  This way, the face reflects
 exactly what the @code{defface} says.
 
-The purpose of @var{spec} is to specify how the face should appear on
-different kinds of terminals.  It should be an alist whose elements
-have the form @code{(@var{display} @var{atts})}.  @var{display}
-specifies a class of terminals (see below), while @var{atts} is a
-property list of face attributes and their values, specifying the
-appearance of the face on matching terminals
+@cindex face specification
+The @var{spec} argument is a @dfn{face specification}, which states
+how the face should appear on different kinds of terminals.  It should
+be an alist whose elements each have the form @code{(@var{display}
+@var{atts})}.  @var{display} specifies a class of terminals (see
+below), while @var{atts} is a property list of face attributes and
+their values, specifying the appearance of the face on matching
+terminals
 @iftex
 (see the next section for details about face attributes).
 @end iftex
@@ -2022,14 +2018,22 @@ frame must match one of the @var{value}s specified for it in
   :group 'basic-faces)
 @end example
 
-  Internally, @code{defface} uses the symbol property
-@code{face-defface-spec} to record the specified face attributes.  The
-attributes saved by the user with the customization buffer are
-recorded in the symbol property @code{saved-face}; the attributes
-customized by the user for the current session, but not saved, are
-recorded in the symbol property @code{customized-face}.  The
-documentation string is recorded in the symbol property
-@code{face-documentation}.
+  Internally, Emacs stores the face's default specification in its
+@code{face-defface-spec} symbol property (@pxref{Property Lists}).
+The @code{saved-face} property stores the face specification saved by
+the user, using the customization buffer; the @code{customized-face}
+property stores the face specification customized for the current
+session, but not saved; and the @code{theme-face} property stores an
+alist associating the active customization settings and Custom themes
+with their specifications for that face.  The face's documentation
+string is stored in the @code{face-documentation} property.  But
+normally you should not try to set any of these properties directly.
+@xref{Applying Customizations}, for the @code{custom-set-faces}
+function, which is used to apply customized face settings.
+
+  People are sometimes tempted to create variables whose values
+specify a face to use.  In the vast majority of cases, this is not
+necessary; it is preferable to simply use faces directly.
 
 @defopt frame-background-mode
 This option, if non-@code{nil}, specifies the background type to use for
@@ -2752,7 +2756,7 @@ For text matching a search command.
 @itemx warning
 @itemx success
 For text concerning errors, warnings, or successes.  For example,
-these are used for messages in @samp{*Compilation*} buffers.
+these are used for messages in @file{*Compilation*} buffers.
 @end table
 
 @node Font Selection

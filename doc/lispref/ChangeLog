@@ -1,3 +1,45 @@
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Applying Customizations):
+	(Custom Themes): New nodes.
+
+	* display.texi (Defining Faces): Reference custom-set-faces.
+
+	* modes.texi (Defining Minor Modes, Defining Minor Modes):
+	* os.texi (Startup Summary): Copyedits.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Loading Non-ASCII): "unibyte:" can also be at the end.
+
+	* strings.texi (Case Tables):
+	* objects.texi (General Escape Syntax):
+	* keymaps.texi (Key Sequences): Use @acronym with "ASCII".
+
+	* buffers.texi, compile.texi, customize.texi, debugging.texi:
+	* display.texi, edebug.texi, eval.texi, help.texi, intro.texi:
+	* keymaps.texi, minibuf.texi, modes.texi, os.texi, processes.texi:
+	* text.texi: Use @file for buffers, per the Texinfo manual.
+
+	* compile.texi (Compiler Errors): Add missing space in buffer name.
+
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* processes.texi (Query Before Exit): Remove obsolete function
+	process-kill-without-query (Bug#11190).
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi, frames.texi, loading.texi, os.texi, processes.texi:
+	Use @env for environment variables.
+
+	* Makefile.in: Replace non-portable use of $< in ordinary rules.
+
+2012-04-12  Jari Aalto  <jari.aalto@cante.net>
+
+	* processes.texi (Synchronous Processes): Mention
+	`default-directory' (bug#7515).
+
 2012-04-09  Chong Yidong  <cyd@gnu.org>
 
 	* customize.texi (Variable Definitions): Remove user-variable-p.

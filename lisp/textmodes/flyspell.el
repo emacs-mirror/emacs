@@ -1576,10 +1576,11 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
       (if ispell-encoding8-command
 	  (setq args
 		(append args
-			(list
-			 (concat ispell-encoding8-command
-				 (symbol-name
-				  encoding))))))
+			(if ispell-really-hunspell
+			    (list ispell-encoding8-command
+				  (upcase (symbol-name encoding)))
+			  (list (concat ispell-encoding8-command
+					(symbol-name encoding)))))))
 
       (let ((process-coding-system-alist (list (cons "\\.*" encoding))))
 	(setq c (apply 'ispell-call-process-region beg

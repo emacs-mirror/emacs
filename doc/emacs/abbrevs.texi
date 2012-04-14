@@ -261,12 +261,12 @@ expands to itself, and save it to your abbrev file.
   @kbd{M-x edit-abbrevs} allows you to add, change or kill abbrev
 definitions by editing a list of them in an Emacs buffer.  The list has
 the same format described above.  The buffer of abbrevs is called
-@samp{*Abbrevs*}, and is in Edit-Abbrevs mode.  Type @kbd{C-c C-c} in
+@file{*Abbrevs*}, and is in Edit-Abbrevs mode.  Type @kbd{C-c C-c} in
 this buffer to install the abbrev definitions as specified in the
 buffer---and delete any abbrev definitions not listed.
 
   The command @code{edit-abbrevs} is actually the same as
-@code{list-abbrevs} except that it selects the buffer @samp{*Abbrevs*}
+@code{list-abbrevs} except that it selects the buffer @file{*Abbrevs*}
 whereas @code{list-abbrevs} merely displays it in another window.
 
 @node Saving Abbrevs

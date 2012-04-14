@@ -9,6 +9,7 @@
 ;; Maintainer: FSF
 ;; Created: 13 Jan 1986
 ;; Keywords: mail
+;; Obsolete-since: 24.2
 
 ;;; Commentary:
 

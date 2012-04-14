@@ -44,11 +44,29 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 
 * Editing Changes in Emacs 24.2
+
+** M-x move-to-column, if called interactively with no prefix arg, now
+prompts for a column number.
+
+** `mouse-avoidance-banish-position' can now be used to customize
+`mouse-avoidance-mode' further.
+
+** `C-M-f' and `C-M-b' will now move to the path name separator
+character when doing minibuffer filename prompts.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** which-function-mode now applies to all applicable major modes by default.
+
 ** erc will look up server/channel names via auth-source and use the
    channel keys found, if any.
+
+** Obsolete packages:
+
+*** mailpost.el
+
+*** mouse-sel.el
 
 
 * New Modes and Packages in Emacs 24.2
