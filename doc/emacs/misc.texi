@@ -1502,16 +1502,22 @@ The environment variable @env{ALTERNATE_EDITOR} has the same effect as
 the @samp{-a} option.  If both are present, the latter takes
 precedence.
 
+@cindex client frame
 @item -c
-Create a new graphical frame, instead of using an existing Emacs
-frame.  Emacs can create a graphical frame even if it was started in a
-text-only terminal, provided it is able to connect to a graphical
-display.  If Emacs is unable to connect to a graphical display, and on
-systems, such as MS-Windows (@pxref{Windows Startup, emacsclient}),
-where it cannot create graphical frames when started from a text-only
-terminal, it creates a new text-only terminal frame (@pxref{Frames}).
-If you omit a filename argument while supplying the @samp{-c} option,
-the new frame displays the @file{*scratch*} buffer (@pxref{Buffers}).
+Create a new graphical @dfn{client frame}, instead of using an
+existing Emacs frame.  If you omit a filename argument while supplying
+the @samp{-c} option, the new frame displays the @file{*scratch*}
+buffer (@pxref{Buffers}).  See below for the special behavior of
+@kbd{C-x C-c} in a client frame.
+
+On GNU and Unix systems, Emacs can create a graphical frame even if it
+was started in a text-only terminal, provided it is able to connect to
+a graphical display.  On systems such as MS-Windows, it cannot create
+graphical frames if it was started from a text terminal
+(@pxref{Windows Startup, emacsclient}).  If Emacs cannot connect to a
+graphical display for any reason, it instead creates a new client
+frame on the text terminal from which you invoked
+@command{emacsclient} (@pxref{Non-Window Terminals}).
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
@@ -1593,28 +1599,31 @@ server it finds.  (This option is not supported on MS-Windows.)
 @item -t
 @itemx --tty
 @itemx -nw
-Create a new Emacs frame on the current text-only terminal, instead of
-using an existing Emacs frame.  Emacs can open a text-only terminal
-even if it was started in another text-only terminal, or on a
-graphical display.  On systems, such as MS-Windows, where this is
-impossible, Emacs will create a new frame, either GUI or text-only, on
-the same terminal where it was started (@pxref{Windows Startup,
-emacsclient}).  If you omit a filename argument while supplying this
-option, the new frame displays the @file{*scratch*} buffer.
-@xref{Buffers}.
+Create a new client frame on the current text terminal, instead of
+using an existing Emacs frame.  This is similar to the @samp{-c}
+option, above, except that it creates a text terminal frame
+(@pxref{Non-Window Terminals}).  If you omit a filename argument while
+supplying this option, the new frame displays the @file{*scratch*}
+buffer (@pxref{Buffers}).  See below for the special behavior of
+@kbd{C-x C-c} in a client frame.
+
+On GNU and Unix systems, Emacs can open a text terminal even if it was
+started in another text terminal, or on a graphical display.  On
+systems where this is impossible, such as MS-Windows, Emacs instead
+creates a new frame on the same terminal where it was started
+(@pxref{Windows Startup, emacsclient}).
 @end table
 
-  If you type @kbd{C-x C-c} (@code{save-buffers-kill-terminal}) in an
-Emacs frame created with @command{emacsclient}, via the @samp{-c} or
-@samp{-t} options, Emacs deletes the frame instead of killing the
-Emacs process itself.  On a text-only terminal frame created with the
-@samp{-t} option, this returns control to the terminal.  Emacs also
-marks all the server buffers for the client as finished, as though you
-had typed @kbd{C-x #} in all of them.
-
-  When Emacs is started as a daemon, all frames are considered client
-frames, so @kbd{C-x C-c} will never kill Emacs.  To kill the Emacs
-process, type @kbd{M-x kill-emacs}.
+  If you type @kbd{C-x C-c} in a client frame created by
+@command{emacsclient} (via the @samp{-c} or @samp{-t} options), that
+command does not kill the main Emacs session as it normally does
+(@pxref{Exiting}).  Instead, Emacs deletes the client frame; and if
+@command{emacsclient} was waiting for server edits to finish, Emacs
+marks the client's server buffers as finished (as though you had typed
+@kbd{C-x #} in all of them), allowing @command{emacsclient} to regain
+control and exit.  When Emacs is started as a daemon, all frames are
+considered client frames, so @kbd{C-x C-c} will never kill Emacs.  To
+kill the Emacs process, type @kbd{M-x kill-emacs}.
 
 @node Printing, Sorting, Emacs Server, Top
 @section Printing Hard Copies

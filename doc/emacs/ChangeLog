@@ -1,3 +1,8 @@
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (emacsclient Options): Document "client frame" concept
+	and its effect on C-x C-c more carefully.
+
 2012-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* frames.texi (Scroll Bars):
