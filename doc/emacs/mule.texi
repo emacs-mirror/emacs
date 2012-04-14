@@ -1598,12 +1598,8 @@ can still handle these character codes as if they belonged to
 set-language-environment} and specify a suitable language environment
 such as @samp{Latin-@var{n}}.
 
-  For more information about unibyte operation, see @ref{Disabling
-Multibyte}.
-@c FIXME  This isn't true any more, is it?
-Note particularly that you probably want to ensure that
-your initialization files are read as unibyte if they contain
-non-@acronym{ASCII} characters.
+  For more information about unibyte operation, see
+@ref{Disabling Multibyte}.
 
 @vindex unibyte-display-via-language-environment
   Emacs can also display bytes in the range 160 to 255 as readable
