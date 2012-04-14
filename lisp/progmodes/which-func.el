@@ -80,7 +80,7 @@
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."
   :group 'which-func
-  :version "24.2"                       ; added objc-mode
+  :version "24.2"                       ; explicit list -> t
   :type '(choice (const :tag "All modes" t)
 		 (repeat (symbol :tag "Major mode"))))
 
