@@ -11,7 +11,7 @@
 the file's text.  Each time you invoke Dired, a buffer is used to hold
 the directory listing.  If you send a message with @kbd{C-x m}, a
 buffer is used to hold the text of the message.  When you ask for a
-command's documentation, that appears in a buffer named @samp{*Help*}.
+command's documentation, that appears in a buffer named @file{*Help*}.
 
   Each buffer has a unique name, which can be of any length.  When a
 buffer is displayed in a window, its name is shown in the mode line
@@ -19,7 +19,7 @@ buffer is displayed in a window, its name is shown in the mode line
 matters in buffer names.  Most buffers are made by visiting files, and
 their names are derived from the files' names; however, you can also
 create an empty buffer with any name you want.  A newly started Emacs
-has several buffers, including one named @samp{*scratch*}, which can
+has several buffers, including one named @file{*scratch*}, which can
 be used for evaluating Lisp expressions and is not associated with any
 file (@pxref{Lisp Interaction}).
 
@@ -198,7 +198,7 @@ CRM Buffer                Size  Mode              File
 @end smallexample
 
 @noindent
-The buffer @samp{*Help*} was made by a help request (@pxref{Help}); it
+The buffer @file{*Help*} was made by a help request (@pxref{Help}); it
 is not visiting any file.  The buffer @code{src} was made by Dired on
 the directory @file{~/cvs/emacs/src/}.  You can list only buffers that
 are visiting files by giving the command a prefix argument, as in
@@ -248,9 +248,9 @@ happens and no renaming is done.
   @kbd{M-x rename-uniquely} renames the current buffer to a similar
 name with a numeric suffix added to make it both different and unique.
 This command does not need an argument.  It is useful for creating
-multiple shell buffers: if you rename the @samp{*shell*} buffer, then
+multiple shell buffers: if you rename the @file{*shell*} buffer, then
 do @kbd{M-x shell} again, it makes a new shell buffer named
-@samp{*shell*}; meanwhile, the old shell buffer continues to exist
+@file{*shell*}; meanwhile, the old shell buffer continues to exist
 under its new name.  This method is also good for mail buffers,
 compilation buffers, and most Emacs features that create special
 buffers with particular names.  (With some of these features, such as
@@ -354,7 +354,7 @@ operations on buffers, through an interface similar to Dired
 @findex buffer-menu
 @findex buffer-menu-other-window
   To use the buffer menu, type @kbd{C-x C-b} and switch to the window
-displaying the @samp{*Buffer List*} buffer.  You can also type
+displaying the @file{*Buffer List*} buffer.  You can also type
 @kbd{M-x buffer-menu} to open the buffer menu in the selected window.
 Alternatively, the command @kbd{M-x buffer-menu-other-window} opens
 the buffer menu in another window, and selects that window.
@@ -409,11 +409,11 @@ Quit the buffer menu---immediately display the most recent formerly
 visible buffer in its place.
 @item @key{RET}
 @itemx f
-Immediately select this line's buffer in place of the @samp{*Buffer
+Immediately select this line's buffer in place of the @file{*Buffer
 List*} buffer.
 @item o
 Immediately select this line's buffer in another window as if by
-@kbd{C-x 4 b}, leaving @samp{*Buffer List*} visible.
+@kbd{C-x 4 b}, leaving @file{*Buffer List*} visible.
 @item C-o
 Immediately display this line's buffer in another window, but don't
 select the window.
@@ -422,7 +422,7 @@ Immediately select this line's buffer in a full-screen window.
 @item 2
 Immediately set up two windows, with this line's buffer selected in
 one, and the previously current buffer (aside from the buffer
-@samp{*Buffer List*}) displayed in the other.
+@file{*Buffer List*}) displayed in the other.
 @item b
 Bury the buffer listed on this line.
 @item m
@@ -448,19 +448,19 @@ the inclusion of such buffers in the buffer list.
 suitable buffer, and turn on Buffer Menu mode in it.  Everything else
 described above is implemented by the special commands provided in
 Buffer Menu mode.  One consequence of this is that you can switch from
-the @samp{*Buffer List*} buffer to another Emacs buffer, and edit
-there.  You can reselect the @samp{*Buffer List*} buffer later, to
+the @file{*Buffer List*} buffer to another Emacs buffer, and edit
+there.  You can reselect the @file{*Buffer List*} buffer later, to
 perform the operations already requested, or you can kill it, or pay
 no further attention to it.
 
-  Normally, the buffer @samp{*Buffer List*} is not updated
+  Normally, the buffer @file{*Buffer List*} is not updated
 automatically when buffers are created and killed; its contents are
 just text.  If you have created, deleted or renamed buffers, the way
-to update @samp{*Buffer List*} to show what you have done is to type
+to update @file{*Buffer List*} to show what you have done is to type
 @kbd{g} (@code{revert-buffer}).  You can make this happen regularly
 every @code{auto-revert-interval} seconds if you enable Auto Revert
 mode in this buffer, as long as it is not marked modified.  Global
-Auto Revert mode applies to the @samp{*Buffer List*} buffer only if
+Auto Revert mode applies to the @file{*Buffer List*} buffer only if
 @code{global-auto-revert-non-file-buffers} is non-@code{nil}.
 @iftex
 @inforef{Autorevert,, emacs-xtra}, for details.

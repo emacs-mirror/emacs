@@ -2464,9 +2464,9 @@ COMMAND.
 To specify a coding system for converting non-ASCII characters
 in the input and output to the shell command, use \\[universal-coding-system-argument]
 before this command.  By default, the input (from the current buffer)
-is encoded in the same coding system that will be used to save the file,
-`buffer-file-coding-system'.  If the output is going to replace the region,
-then it is decoded from that same coding system.
+is encoded using coding-system specified by `process-coding-system-alist',
+falling back to `default-process-coding-system' if no match for COMMAND
+is found in `process-coding-system-alist'.
 
 The noninteractive arguments are START, END, COMMAND,
 OUTPUT-BUFFER, REPLACE, ERROR-BUFFER, and DISPLAY-ERROR-BUFFER.

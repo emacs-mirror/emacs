@@ -622,7 +622,7 @@ back to the stop point in the source code buffer from any buffer using
 saved outside window configuration---so that even if you turn saving
 back @emph{on}, the current window configuration remains unchanged when
 you next exit Edebug (by continuing the program).  However, the
-automatic redisplay of @samp{*edebug*} and @samp{*edebug-trace*} may
+automatic redisplay of @file{*edebug*} and @file{*edebug-trace*} may
 conflict with the buffers you wish to see unless you have enough windows
 open.
 
@@ -661,18 +661,18 @@ lexically bound symbols created by the following constructs in
 @node Eval List
 @subsection Evaluation List Buffer
 
-  You can use the @dfn{evaluation list buffer}, called @samp{*edebug*}, to
+  You can use the @dfn{evaluation list buffer}, called @file{*edebug*}, to
 evaluate expressions interactively.  You can also set up the
 @dfn{evaluation list} of expressions to be evaluated automatically each
 time Edebug updates the display.
 
 @table @kbd
 @item E
-Switch to the evaluation list buffer @samp{*edebug*}
+Switch to the evaluation list buffer @file{*edebug*}
 (@code{edebug-visit-eval-list}).
 @end table
 
-  In the @samp{*edebug*} buffer you can use the commands of Lisp
+  In the @file{*edebug*} buffer you can use the commands of Lisp
 Interaction mode (@pxref{Lisp Interaction,,, emacs, The GNU Emacs
 Manual}) as well as these special commands:
 
@@ -699,7 +699,7 @@ Switch back to the source code buffer at the current stop point
 @end table
 
   You can evaluate expressions in the evaluation list window with
-@kbd{C-j} or @kbd{C-x C-e}, just as you would in @samp{*scratch*};
+@kbd{C-j} or @kbd{C-x C-e}, just as you would in @file{*scratch*};
 but they are evaluated in the context outside of Edebug.
 
   The expressions you enter interactively (and their results) are lost
@@ -758,8 +758,8 @@ the expression at a suitable place, insert a new comment line, then type
 @kbd{C-c C-u}.  You need not insert dashes in the comment line---its
 contents don't matter.
 
-After selecting @samp{*edebug*}, you can return to the source code
-buffer with @kbd{C-c C-w}.  The @samp{*edebug*} buffer is killed when
+After selecting @file{*edebug*}, you can return to the source code
+buffer with @kbd{C-c C-w}.  The @file{*edebug*} buffer is killed when
 you continue execution, and recreated next time it is needed.
 
 @node Printing in Edebug
@@ -819,7 +819,7 @@ for details.
 @cindex trace buffer
 
   Edebug can record an execution trace, storing it in a buffer named
-@samp{*edebug-trace*}.  This is a log of function calls and returns,
+@file{*edebug-trace*}.  This is a log of function calls and returns,
 showing the function names and their arguments and values.  To enable
 trace recording, set @code{edebug-trace} to a non-@code{nil} value.
 
@@ -1567,7 +1567,7 @@ The default value is @code{step}.
 
 @defopt edebug-trace
 If this is non-@code{nil}, trace each function entry and exit.
-Tracing output is displayed in a buffer named @samp{*edebug-trace*}, one
+Tracing output is displayed in a buffer named @file{*edebug-trace*}, one
 function entry or exit per line, indented by the recursion level.
 
 Also see @code{edebug-tracing}, in @ref{Trace Buffer}.

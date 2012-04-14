@@ -1002,15 +1002,21 @@ behavior, see `cua-paste-pop-rotate-temporarily'."
     (setq this-command 'cua-paste-pop))))
 
 (defun cua-exchange-point-and-mark (arg)
-  "Exchanges point and mark, but don't activate the mark.
-Activates the mark if a prefix argument is given."
+  "Exchange point and mark.
+Don't activate the mark if `cua-enable-cua-keys' is non-nil.
+Otherwise, just activate the mark if a prefix ARG is given.
+
+See also `exchange-point-and-mark'."
   (interactive "P")
-  (if arg
-      (setq mark-active t)
-    (let (mark-active)
-      (exchange-point-and-mark)
-      (if cua--rectangle
-	  (cua--rectangle-corner 0)))))
+  (cond ((null cua-enable-cua-keys)
+	 (exchange-point-and-mark arg))
+	(arg
+	 (setq mark-active t))
+	(t
+	 (let (mark-active)
+	   (exchange-point-and-mark)
+	   (if cua--rectangle
+	       (cua--rectangle-corner 0))))))
 
 ;; Typed text that replaced the highlighted region.
 (defvar cua--repeat-replace-text nil)

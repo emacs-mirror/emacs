@@ -1,3 +1,19 @@
+2012-04-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-inews-insert-gcc): Don't do the alist stuff when we
+	don't have a current group.
+
+	* gnus-msg.el (gnus-inews-insert-gcc): Protect against when we don't
+	have a group name.
+
+	* gnus-art.el (article-wash-html): Ensure that we insert the HTML into
+	a multibyte buffer (bug#7410).
+	(article-wash-html): Parse the original article buffer to get the
+	unencoded data (bug#7410).
+
+	* gnus-start.el (gnus-read-newsrc-el-file): Protect against broken
+	.newsrc.el files.
+
 2012-03-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* auth-source.el (auth-source-netrc-create): Quote tokens that contain

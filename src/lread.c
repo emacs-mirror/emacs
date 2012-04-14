@@ -839,7 +839,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 	    }
 
 	  /* Stop scanning if no colon was found before end marker.  */
-	  if (!in_file_vars)
+	  if (!in_file_vars || ch == '\n' || ch == EOF)
 	    break;
 
 	  while (i > 0 && (var[i - 1] == ' ' || var[i - 1] == '\t'))
@@ -863,8 +863,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 		  ch = READCHAR;
 		}
 	      if (! in_file_vars)
-		/* The value was terminated by an end-marker, which
-		   remove.  */
+		/* The value was terminated by an end-marker, which remove.  */
 		i -= 3;
 	      while (i > 0 && (val[i - 1] == ' ' || val[i - 1] == '\t'))
 		i--;

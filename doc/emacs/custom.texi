@@ -561,7 +561,7 @@ format of a theme file and how to make one.
 @vindex custom-theme-directory
 @cindex color scheme
   Type @kbd{M-x customize-themes} to switch to a buffer named
-@samp{*Custom Themes*}, which lists the Custom themes that Emacs knows
+@file{*Custom Themes*}, which lists the Custom themes that Emacs knows
 about.  By default, Emacs looks for theme files in two locations: the
 directory specified by the variable @code{custom-theme-directory}
 (which defaults to @file{~/.emacs.d/}), and a directory named
@@ -580,11 +580,11 @@ add the directory name to the list variable
 @code{custom-theme-directory} has the special meaning of the value of
 the variable @code{custom-theme-directory}, while @code{t} stands for
 the built-in theme directory @file{etc/themes}.  The themes listed in
-the @samp{*Custom Themes*} buffer are those found in the directories
+the @file{*Custom Themes*} buffer are those found in the directories
 specified by @code{custom-theme-load-path}.
 
 @kindex C-x C-s @r{(Custom Themes buffer)}
-  In the @samp{*Custom Themes*} buffer, you can activate the checkbox
+  In the @file{*Custom Themes*} buffer, you can activate the checkbox
 next to a Custom theme to enable or disable the theme for the current
 Emacs session.  When a Custom theme is enabled, all of its settings
 (variables and faces) take effect in the Emacs session.  To apply the
@@ -608,7 +608,7 @@ always considered safe.
   Setting or saving Custom themes actually works by customizing the
 variable @code{custom-enabled-themes}.  The value of this variable is
 a list of Custom theme names (as Lisp symbols, e.g.@: @code{tango}).
-Instead of using the @samp{*Custom Themes*} buffer to set
+Instead of using the @file{*Custom Themes*} buffer to set
 @code{custom-enabled-themes}, you can customize the variable using the
 usual customization interface, e.g.@: with @kbd{M-x customize-option}.
 Note that Custom themes are not allowed to set
@@ -635,7 +635,7 @@ type @kbd{M-x disable-theme}.
 
 @findex describe-theme
   To see a description of a Custom theme, type @kbd{?} on its line in
-the @samp{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
+the @file{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
 anywhere in Emacs and enter the theme name in the minibuffer.
 
 @node Creating Custom Themes
@@ -645,12 +645,12 @@ anywhere in Emacs and enter the theme name in the minibuffer.
 @findex customize-create-theme
   You can define a Custom theme using an interface similar to the
 customization buffer, by typing @kbd{M-x customize-create-theme}.
-This switches to a buffer named @samp{*Custom Theme*}.  It also offers
+This switches to a buffer named @file{*Custom Theme*}.  It also offers
 to insert some common Emacs faces into the theme (a convenience, since
 Custom themes are often used to customize faces).  If you answer no,
 the theme will initially contain no settings.
 
-  Near the top of the @samp{*Custom Theme*} buffer are editable fields
+  Near the top of the @file{*Custom Theme*} buffer are editable fields
 where you can enter the theme's name and description.  The name can be
 anything except @samp{user}.  The description is the one that will be
 shown when you invoke @kbd{M-x describe-theme} for the theme.  Its
@@ -673,7 +673,7 @@ theme, uncheck the checkbox next to its name.
 @file{@var{name}-theme.el} where @var{name} is the theme name, in the
 directory named by @code{custom-theme-directory}.
 
-  From the @samp{*Custom Theme*} buffer, you can view and edit an
+  From the @file{*Custom Theme*} buffer, you can view and edit an
 existing Custom theme by activating the @samp{[Visit Theme]} button
 and specifying the theme name.  You can also add the settings of
 another theme into the buffer, using the @samp{[Merge Theme]} button.
@@ -683,10 +683,9 @@ the @samp{[Merge Theme]} button and specifying the special theme named
 
   A theme file is simply an Emacs Lisp source file, and loading the
 Custom theme works by loading the Lisp file.  Therefore, you can edit
-a theme file directly instead of using the @samp{*Custom Theme*}
-buffer.
-@c Add link to the relevant Emacs Lisp Reference manual node, once
-@c that is written.
+a theme file directly instead of using the @file{*Custom Theme*}
+buffer.  @xref{Custom Themes,,, elisp, The Emacs Lisp Reference
+Manual}, for details.
 
 @node Variables
 @section Variables
@@ -809,7 +808,7 @@ can set any variable with a Lisp expression like this:
 @noindent
 To execute such an expression, type @kbd{M-:} (@code{eval-expression})
 and enter the expression in the minibuffer (@pxref{Lisp Eval}).
-Alternatively, go to the @samp{*scratch*} buffer, type in the
+Alternatively, go to the @file{*scratch*} buffer, type in the
 expression, and then type @kbd{C-j} (@pxref{Lisp Interaction}).
 
   Setting variables, like all means of customizing Emacs except where
@@ -1163,8 +1162,8 @@ returned by that expression is ignored).
 conversion of this file.  @xref{Coding Systems}.
 
 @item
-@code{unibyte} says to visit the file in a unibyte buffer, if the
-value is @code{t}.  @xref{Enabling Multibyte}.
+@code{unibyte} says to load or compile a file of Emacs Lisp in unibyte
+mode, if the value is @code{t}.  @xref{Disabling Multibyte}.
 @end itemize
 
 @noindent

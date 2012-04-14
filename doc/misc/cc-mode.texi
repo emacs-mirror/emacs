@@ -5195,7 +5195,7 @@ indentation.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 This section explains the structure and semantics of the style
-variable @code{c-offset-alist}, the principal variable for configuring
+variable @code{c-offsets-alist}, the principal variable for configuring
 indentation.  Details of how to set it up, and its relationship to
 @ccmode{}'s style system are given in @ref{Style Variables}.
 

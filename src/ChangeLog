@@ -1,3 +1,18 @@
+2012-04-14  Atsuo Ohki  <ohki@gssm.otsuka.tsukuba.ac.jp>  (tiny change)
+
+	* lread.c (lisp_file_lexically_bound_p):
+	Fix hang at ";-*-\n" (bug#11238).
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_last_unchanged_at_beg_row): Don't consider a row
+	"unchanged" if its end.pos is beyond ZV.  (Bug#11199)
+
+2012-04-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (constrainFrameRect): Always constrain when there is only
+	one screen (Bug#10962).
+
 2012-04-13  Ken Brown  <kbrown@cornell.edu>
 
 	* s/cygwin.h (PTY_OPEN): Don't try to close a bogus file descriptor.

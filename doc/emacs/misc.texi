@@ -92,7 +92,7 @@ file named @file{.newsrc} in your home directory which lists your
 Usenet newsgroups and subscriptions (this file is not unique to Gnus;
 it is used by many other newsreader programs).  It then tries to
 contact the system's default news server, which is typically specified
-by the @samp{NNTPSERVER} environment variable.
+by the @env{NNTPSERVER} environment variable.
 
   If your system does not have a default news server, or if you wish
 to use Gnus for reading email, then before invoking @kbd{M-x gnus} you
@@ -507,7 +507,7 @@ minibuffer and executes it as a shell command, in a subshell made just
 for that command.  Standard input for the command comes from the null
 device.  If the shell command produces any output, the output appears
 either in the echo area (if it is short), or in an Emacs buffer named
-@samp{*Shell Command Output*}, displayed in another window (if the
+@file{*Shell Command Output*}, displayed in another window (if the
 output is long).
 
   For instance, one way to decompress a file named @file{foo.gz} is to
@@ -554,7 +554,7 @@ old region and replaces it with the output from the shell command.
 see what keys are in the buffer.  If the buffer contains a GnuPG key,
 type @kbd{C-x h M-| gpg @key{RET}} to feed the entire buffer contents
 to @command{gpg}.  This will output the list of keys to the
-@samp{*Shell Command Output*} buffer.
+@file{*Shell Command Output*} buffer.
 
 @vindex shell-file-name
   The above commands use the shell specified by the variable
@@ -577,7 +577,7 @@ inserted into a buffer of that name.
 
 @findex shell
   To run a subshell interactively, type @kbd{M-x shell}.  This creates
-(or reuses) a buffer named @samp{*shell*}, and runs a shell subprocess
+(or reuses) a buffer named @file{*shell*}, and runs a shell subprocess
 with input coming from and output going to that buffer.  That is to
 say, any terminal output from the subshell goes into the buffer,
 advancing point, and any terminal input for the subshell comes from
@@ -600,8 +600,8 @@ easier to distinguish input lines from the shell output.
   To make multiple subshells, invoke @kbd{M-x shell} with a prefix
 argument (e.g. @kbd{C-u M-x shell}).  Then the command will read a
 buffer name, and create (or reuse) a subshell in that buffer.  You can
-also rename the @samp{*shell*} buffer using @kbd{M-x rename-uniquely},
-then create a new @samp{*shell*} buffer using plain @kbd{M-x shell}.
+also rename the @file{*shell*} buffer using @kbd{M-x rename-uniquely},
+then create a new @file{*shell*} buffer using plain @kbd{M-x shell}.
 Subshells in different buffers run independently and in parallel.
 
 @vindex explicit-shell-file-name
@@ -1183,7 +1183,7 @@ underlying shell, of course.
 @findex term
 
   To run a subshell in a terminal emulator, use @kbd{M-x term}.  This
-creates (or reuses) a buffer named @samp{*terminal*}, and runs a
+creates (or reuses) a buffer named @file{*terminal*}, and runs a
 subshell with input coming from your keyboard, and output going to
 that buffer.
 
@@ -1212,7 +1212,7 @@ serial port.  @xref{Serial Terminal}.
 
   The file name used to load the subshell is determined the same way
 as for Shell mode.  To make multiple terminal emulators, rename the
-buffer @samp{*terminal*} to something different using @kbd{M-x
+buffer @file{*terminal*} to something different using @kbd{M-x
 rename-uniquely}, just as with Shell mode.
 
   Unlike Shell mode, Term mode does not track the current directory by
@@ -1511,7 +1511,7 @@ systems, such as MS-Windows (@pxref{Windows Startup, emacsclient}),
 where it cannot create graphical frames when started from a text-only
 terminal, it creates a new text-only terminal frame (@pxref{Frames}).
 If you omit a filename argument while supplying the @samp{-c} option,
-the new frame displays the @samp{*scratch*} buffer (@pxref{Buffers}).
+the new frame displays the @file{*scratch*} buffer (@pxref{Buffers}).
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
@@ -1600,7 +1600,7 @@ graphical display.  On systems, such as MS-Windows, where this is
 impossible, Emacs will create a new frame, either GUI or text-only, on
 the same terminal where it was started (@pxref{Windows Startup,
 emacsclient}).  If you omit a filename argument while supplying this
-option, the new frame displays the @samp{*scratch*} buffer.
+option, the new frame displays the @file{*scratch*} buffer.
 @xref{Buffers}.
 @end table
 
@@ -1868,7 +1868,7 @@ init file (@pxref{Init File}), followed by @code{(pr-update-menus)}.
 This function replaces the usual printing commands in the menu bar
 with a @samp{Printing} submenu that contains various printing options.
 You can also type @kbd{M-x pr-interface RET}; this creates a
-@samp{*Printing Interface*} buffer, similar to a customization buffer,
+@file{*Printing Interface*} buffer, similar to a customization buffer,
 where you can set the printing options.  After selecting what and how
 to print, you start the print job using the @samp{Print} button (click
 @kbd{mouse-2} on it, or move point over it and type @kbd{RET}).  For
@@ -2482,7 +2482,7 @@ encrypted in a simple monoalphabetic substitution cipher.
 @findex dissociated-press
   @kbd{M-x dissociated-press} scrambles the text in the current Emacs
 buffer, word by word or character by character, writing its output to
-a buffer named @samp{*Dissociation*}.  A positive argument tells it to
+a buffer named @file{*Dissociation*}.  A positive argument tells it to
 operate character by character, and specifies the number of overlap
 characters.  A negative argument tells it to operate word by word, and
 specifies the number of overlap words.  Dissociated Press produces

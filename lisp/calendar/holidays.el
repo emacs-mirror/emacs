@@ -634,7 +634,7 @@ The optional LABEL is used to label the buffer created."
   "Check the list of holidays for any that occur on DATE.
 DATE is a list (month day year).  This function considers the
 holidays from the list `calendar-holidays', and returns a list of
-strings describing those holidays that apply on DATE."
+strings describing those holidays that apply on DATE, or nil if none do."
   (let ((displayed-month (calendar-extract-month date))
         (displayed-year (calendar-extract-year date))
         holiday-list)

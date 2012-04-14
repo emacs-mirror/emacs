@@ -4345,7 +4345,7 @@ changed text, its length is simply the difference between the first two
 arguments.
 @end defvar
 
-  Output of messages into the @samp{*Messages*} buffer does not
+  Output of messages into the @file{*Messages*} buffer does not
 call these functions.
 
 @defmac combine-after-change-calls body@dots{}

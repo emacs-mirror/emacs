@@ -1,6 +1,6 @@
 #### Makefile for the Emacs Lisp Introduction manual
 
-# Copyright (C) 1994-1999, 2001-2012  Free Software Foundation, Inc.
+# Copyright (C) 1994-1999, 2001-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -48,21 +48,22 @@ ps: emacs-lisp-intro.ps
 
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
+# Note: "<" is not portable in ordinary make rules.
 ${infodir}/eintr: ${srcdir}/emacs-lisp-intro.texi
 	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
 
 emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi
-	$(ENVADD) $(TEXI2DVI) $<
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-lisp-intro.texi
 
 emacs-lisp-intro.ps: emacs-lisp-intro.dvi
-	$(DVIPS) -o $@ $<
+	$(DVIPS) -o $@ emacs-lisp-intro.dvi
 
 emacs-lisp-intro.pdf: ${srcdir}/emacs-lisp-intro.texi
-	$(ENVADD) $(TEXI2PDF) $<
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-lisp-intro.texi
 
 emacs-lisp-intro.html: ${srcdir}/emacs-lisp-intro.texi
-	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ ${srcdir}/emacs-lisp-intro.texi
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 

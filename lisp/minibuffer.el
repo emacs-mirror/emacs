@@ -1506,7 +1506,7 @@ exit."
   (let ((map (make-sparse-keymap)))
     ;; FIXME: Only works if completion-in-region-mode was activated via
     ;; completion-at-point called directly.
-    (define-key map "?" 'completion-help-at-point)
+    (define-key map "\M-?" 'completion-help-at-point)
     (define-key map "\t" 'completion-at-point)
     map)
   "Keymap activated during `completion-in-region'.")
