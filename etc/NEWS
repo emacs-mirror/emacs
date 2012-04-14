@@ -50,6 +50,8 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** which-function-mode now applies to all applicable major modes by default.
+
 ** erc will look up server/channel names via auth-source and use the
    channel keys found, if any.
 

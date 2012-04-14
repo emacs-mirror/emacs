@@ -1,3 +1,7 @@
+2012-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/which-func.el (which-func-modes): Change default.
+
 2012-04-14  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-exchange-point-and-mark): Just call
@@ -94,8 +98,7 @@
 2012-04-13  Ken Brown  <kbrown@cornell.edu>
 
 	* net/browse-url.el (browse-url-file-url): Remove Cygwin hack;
-	this is no longer needed now that cygstart understands file://
-	URLs.
+	this is no longer needed now that cygstart understands file:// URLs.
 	(browse-url-filename-alist): For the same reason, don't modify
 	file:// URLs on Cygwin.
 
