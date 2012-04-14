@@ -82,12 +82,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/* This should work (at least when compiling with gcc).  But I have no way
-   or intention to verify or even test it.  If you encounter a problem with
-   it, feel free to change this setting, but please add a comment here about
-   why it needed to be changed.  */
-#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-
 /* Emacs supplies its own malloc, but glib (part of Gtk+) calls
    memalign and on Cygwin, that becomes the Cygwin-supplied memalign.
    As malloc is not the Cygwin malloc, the Cygwin memalign always

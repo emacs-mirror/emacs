@@ -38,6 +38,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Tell that garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the jmp_buf.  */
 #define GC_SETJMP_WORKS 1
-
-/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method.  */
-#define GC_MARK_STACK	GC_MAKE_GCPROS_NOOPS

@@ -100,6 +100,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    header sections which lose when `static' is defined away, as it is
    on HP-UX.  (You get duplicate symbol errors on linking). */
 #undef _FILE_OFFSET_BITS
+
+/* Conservative garbage collection has not been tested, so for now
+   play it safe and stick with the old-fashioned way of marking.  */
+#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
 
 /* The data segment on this machine always starts at address 0x40000000.  */
 #define DATA_SEG_BITS 0x40000000

@@ -145,6 +145,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It is already a controlling terminal of subprocess, because we did
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
-
-/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
-#define GC_MARK_STACK   GC_MAKE_GCPROS_NOOPS

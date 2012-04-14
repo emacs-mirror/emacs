@@ -75,3 +75,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Emacs currently calls xrealloc on the results of get_current_dir name,
    to avoid a crash just use the Emacs implementation for that function.  */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
+
+/* Conservative garbage collection has not been tested, so for now
+   play it safe and stick with the old-fashioned way of marking.  */
+#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
