@@ -1,3 +1,8 @@
+2012-04-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* server.el (server-generate-key): `called-interactively-p'
+	requires a parameter.
+
 2012-04-14  Michal Nazarewicz  <mina86@mina86.com>
 
 	* server.el (server-auth-key): New variable.

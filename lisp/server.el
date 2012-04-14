@@ -558,7 +558,7 @@ into current buffer."
 	 (loop repeat 64
 	       collect (+ 33 (random 94)) into auth
 	       finally return (concat auth))))
-    (if (called-interactively-p)
+    (if (called-interactively-p 'interactive)
 	(insert auth-key))
     auth-key))
 
