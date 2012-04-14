@@ -161,7 +161,7 @@ msdog.texi        rgm  (can't actually test any of it though)
    sets the variable `printer-name' to that printer's name.
 
 msdog-xtra.texi   rgm  (can't actually test any of it though)
-mule.texi         
+mule.texi         rgm  (not 100% sure about "Fontsets")
 m-x.texi          cyd
 package.texi      cyd
 picture-xtra.texi rgm

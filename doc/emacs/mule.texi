@@ -365,25 +365,8 @@ UTF-8), Ukrainian, Vietnamese, Welsh, and Windows-1255 (for a setup
 which prefers Cyrillic characters and files encoded in Windows-1255).
 @end quotation
 
-@cindex fonts for various scripts
-@cindex Intlfonts package, installation
   To display the script(s) used by your language environment on a
-graphical display, you need to have a suitable font.  If some of the
-characters appear as empty boxes or hex codes, you should install
-extra fonts.  Your operating system may have optional fonts that
-you can install; or you can install the
-GNU Intlfonts package, which includes fonts for most supported
-scripts.@footnote{If you run Emacs on X, you may need to inform the X
-server about the location of the newly installed fonts with
-commands such as:
-@c FIXME?  I feel like this may be out of date.
-@c Eg the intlfonts tarfile is ~ 10 years old.
-
-@example
- xset fp+ /usr/local/share/emacs/fonts
- xset fp rehash
-@end example
-}
+graphical display, you need to have suitable fonts.
 @xref{Fontsets}, for more details about setting up your fonts.
 
 @findex set-locale-environment
@@ -1318,30 +1301,49 @@ non-graphic characters.
   A font typically defines shapes for a single alphabet or script.
 Therefore, displaying the entire range of scripts that Emacs supports
 requires a collection of many fonts.  In Emacs, such a collection is
-called a @dfn{fontset}.  A fontset is defined by a list of font specs,
+called a @dfn{fontset}.  A fontset is defined by a list of font specifications,
 each assigned to handle a range of character codes, and may fall back
-on another fontset for characters which are not covered by the fonts
+on another fontset for characters that are not covered by the fonts
 it specifies.
 
+@cindex fonts for various scripts
+@cindex Intlfonts package, installation
   Each fontset has a name, like a font.  However, while fonts are
 stored in the system and the available font names are defined by the
 system, fontsets are defined within Emacs itself.  Once you have
 defined a fontset, you can use it within Emacs by specifying its name,
 anywhere that you could use a single font.  Of course, Emacs fontsets
-can use only the fonts that the system supports; if certain characters
-appear on the screen as hollow boxes, this means that the fontset in
-use for them has no font for those characters.@footnote{The Emacs
-installation instructions have information on additional font
-support.}
+can use only the fonts that the system supports.  If some characters
+appear on the screen as empty boxes or hex codes, this means that the
+fontset in use for them has no font for those characters.  In this
+case, or if the characters are shown, but not as well as you would
+like, you may need to install extra fonts.  Your operating system may
+have optional fonts that you can install; or you can install the GNU
+Intlfonts package, which includes fonts for most supported
+scripts.@footnote{If you run Emacs on X, you may need to inform the X
+server about the location of the newly installed fonts with commands
+such as:
+@c FIXME?  I feel like this may be out of date.
+@c Eg the intlfonts tarfile is ~ 10 years old.
+
+@example
+ xset fp+ /usr/local/share/emacs/fonts
+ xset fp rehash
+@end example
+}
 
   Emacs creates three fontsets automatically: the @dfn{standard
 fontset}, the @dfn{startup fontset} and the @dfn{default fontset}.
+@c FIXME?  The doc of *standard*-fontset-spec says:
+@c "You have the biggest chance to display international characters
+@c with correct glyphs by using the *standard* fontset." (my emphasis)
 The default fontset is most likely to have fonts for a wide variety of
-non-@acronym{ASCII} characters and is the default fallback for the
+non-@acronym{ASCII} characters, and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
-However it does not specify font family names, so results can be
+However, it does not specify font family names, so results can be
 somewhat random if you use it directly.  You can specify use of a
-specific fontset with the @samp{-fn} option.  For example,
+particular fontset by starting Emacs with the @samp{-fn} option.
+For example,
 
 @example
 emacs -fn fontset-standard
@@ -1380,10 +1382,12 @@ of @code{standard-fontset-spec}.  This fontset's name is
 @noindent
 or just @samp{fontset-standard} for short.
 
-  On GNUstep and Mac, fontset-standard is created using the value of
-@code{ns-standard-fontset-spec}, and on Windows it is
+  On GNUstep and Mac OS X, the standard fontset is created using the value of
+@code{ns-standard-fontset-spec}, and on MS Windows it is
 created using the value of @code{w32-standard-fontset-spec}.
 
+@c FIXME?  How does one access these, or do anything with them?
+@c Does it matter?
   Bold, italic, and bold-italic variants of the standard fontset are
 created automatically.  Their names have @samp{bold} instead of
 @samp{medium}, or @samp{i} instead of @samp{r}, or both.
@@ -1398,8 +1402,15 @@ started.  This is the @dfn{startup fontset} and its name is
 @var{charset_encoding} field with @samp{startup}, then using the
 resulting string to specify a fontset.
 
-  For instance, if you start Emacs this way,
+  For instance, if you start Emacs with a font of this form,
 
+@c FIXME?  I think this is a little misleading, because you cannot (?)
+@c actually specify a font with wildcards, it has to be a complete spec.
+@c Also, an X font specification of this form hasn't (?) been
+@c mentioned before now, and is somewhat obsolete these days.
+@c People are more likely to use a form like
+@c emacs -fn "DejaVu Sans Mono-12"
+@c How does any of this apply in that case?
 @example
 emacs -fn "*courier-medium-r-normal--14-140-*-iso8859-1"
 @end example
@@ -1412,8 +1423,8 @@ window frame:
 -*-courier-medium-r-normal-*-14-140-*-*-*-*-fontset-startup
 @end example
 
-  The startup fontset will use the font that you specify or a variant
-with a different registry and encoding for all the characters which
+  The startup fontset will use the font that you specify, or a variant
+with a different registry and encoding, for all the characters that
 are supported by that font, and fallback on @samp{fontset-default} for
 other characters.
 
@@ -1421,7 +1432,8 @@ other characters.
 just like an actual font name.  But be careful not to specify a fontset
 name in a wildcard resource like @samp{Emacs*Font}---that wildcard
 specification matches various other resources, such as for menus, and
-menus cannot handle fontsets.
+@c FIXME is this still true?
+menus cannot handle fontsets.  @xref{X Resources}.
 
   You can specify additional fontsets using X resources named
 @samp{Fontset-@var{n}}, where @var{n} is an integer starting from 0.
@@ -1432,7 +1444,8 @@ The resource value should have this form:
 @end smallexample
 
 @noindent
-@var{fontpattern} should have the form of a standard X font name, except
+@var{fontpattern} should have the form of a standard X font name (see
+the previous fontset-startup example), except
 for the last two fields.  They should have the form
 @samp{fontset-@var{alias}}.
 
@@ -1454,7 +1467,7 @@ that describe the character set.  For the @acronym{ASCII} character font,
   In addition, when several consecutive fields are wildcards, Emacs
 collapses them into a single wildcard.  This is to prevent use of
 auto-scaled fonts.  Fonts made by scaling larger fonts are not usable
-for editing, and scaling a smaller font is not useful because it is
+for editing, and scaling a smaller font is not also useful, because it is
 better to use the smaller font in its own size, which is what Emacs
 does.
 
@@ -1480,8 +1493,8 @@ and the font specification for Chinese GB2312 characters would be this:
 
   You may not have any Chinese font matching the above font
 specification.  Most X distributions include only Chinese fonts that
-have @samp{song ti} or @samp{fangsong ti} in @var{family} field.  In
-such a case, @samp{Fontset-@var{n}} can be specified as below:
+have @samp{song ti} or @samp{fangsong ti} in the @var{family} field.  In
+such a case, @samp{Fontset-@var{n}} can be specified as:
 
 @smallexample
 Emacs.Fontset-0: -*-fixed-medium-r-normal-*-24-*-*-*-*-*-fontset-24,\
@@ -1515,8 +1528,8 @@ script.
 
 Fontsets can be modified using the function @code{set-fontset-font},
 specifying a character, a charset, a script, or a range of characters
-to modify the font for, and a font-spec for the font to be used. Some
-examples are:
+to modify the font for, and a font specification for the font to be
+used.  Some examples are:
 
 @example
 ;; Use Liberation Mono for latin-3 charset.
@@ -1543,10 +1556,10 @@ examples are:
 @node Undisplayable Characters
 @section Undisplayable Characters
 
-  There may be a some non-@acronym{ASCII} characters that your
+  There may be some non-@acronym{ASCII} characters that your
 terminal cannot display.  Most text terminals support just a single
 character set (use the variable @code{default-terminal-coding-system}
-(@pxref{Terminal Coding}) to tell Emacs which one); characters which
+to tell Emacs which one, @ref{Terminal Coding}); characters that
 can't be encoded in that coding system are displayed as @samp{?} by
 default.
 
@@ -1578,7 +1591,7 @@ the range 0240 to 0377 octal (160 to 255 decimal) to handle the
 accented letters and punctuation needed by various European languages
 (and some non-European ones).  Note that Emacs considers bytes with
 codes in this range as raw bytes, not as characters, even in a unibyte
-session, i.e.@: if you disable multibyte characters.  However, Emacs
+buffer, i.e.@: if you disable multibyte characters.  However, Emacs
 can still handle these character codes as if they belonged to
 @emph{one} of the single-byte character sets at a time.  To specify
 @emph{which} of these codes to use, invoke @kbd{M-x
@@ -1586,7 +1599,9 @@ set-language-environment} and specify a suitable language environment
 such as @samp{Latin-@var{n}}.
 
   For more information about unibyte operation, see @ref{Disabling
-Multibyte}.  Note particularly that you probably want to ensure that
+Multibyte}.
+@c FIXME  This isn't true any more, is it?
+Note particularly that you probably want to ensure that
 your initialization files are read as unibyte if they contain
 non-@acronym{ASCII} characters.
 
@@ -1607,8 +1622,8 @@ them as raw bytes, not as characters.
 set, Emacs can display these characters as @acronym{ASCII} sequences which at
 least give you a clear idea of what the characters are.  To do this,
 load the library @code{iso-ascii}.  Similar libraries for other
-Latin-@var{n} character sets could be implemented, but we don't have
-them yet.
+Latin-@var{n} character sets could be implemented, but have not been
+so far.
 
 @findex standard-display-8bit
 @cindex 8-bit display
@@ -1634,7 +1649,7 @@ directly.
 
 On a graphical display, you should not need to do anything special to
 use these keys; they should simply work.  On a text terminal, you
-should use the command @code{M-x set-keyboard-coding-system} or the
+should use the command @code{M-x set-keyboard-coding-system} or customize the
 variable @code{keyboard-coding-system} to specify which coding system
 your keyboard uses (@pxref{Terminal Coding}).  Enabling this feature
 will probably require you to use @kbd{ESC} to type Meta characters;
@@ -1702,8 +1717,9 @@ internal representation within Emacs.
 @findex list-character-sets
   @kbd{M-x list-character-sets} displays a list of all supported
 charsets.  The list gives the names of charsets and additional
-information to identity each charset (see
-@url{http://www.itscj.ipsj.or.jp/ISO-IR/} for details).  In this list,
+information to identity each charset; see the
+@url{http://www.itscj.ipsj.or.jp/ISO-IR/, International Register of
+Coded Character Sets} for more details.  In this list,
 charsets are divided into two categories: @dfn{normal charsets} are
 listed first, followed by @dfn{supplementary charsets}.  A
 supplementary charset is one that is used to define another charset
@@ -1723,8 +1739,8 @@ Chars}).
 Hebrew, whose natural ordering of horizontal text for display is from
 right to left.  However, digits and Latin text embedded in these
 scripts are still displayed left to right.  It is also not uncommon to
-have small portions of text in Arabic or Hebrew embedded in otherwise
-Latin document, e.g., as comments and strings in a program source
+have small portions of text in Arabic or Hebrew embedded in an otherwise
+Latin document; e.g., as comments and strings in a program source
 file.  For these reasons, text that uses these scripts is actually
 @dfn{bidirectional}: a mixture of runs of left-to-right and
 right-to-left characters.
@@ -1752,6 +1768,7 @@ directionality when they are displayed.  The default value is
 
   Each paragraph of bidirectional text can have its own @dfn{base
 direction}, either right-to-left or left-to-right.  (Paragraph
+@c paragraph-separate etc have no influence on this?
 boundaries are empty lines, i.e.@: lines consisting entirely of
 whitespace characters.)  Text in left-to-right paragraphs begins at
 the left margin of the window and is truncated or continued when it
@@ -1788,5 +1805,5 @@ commands move point in the logical order, so the cursor will sometimes
 jump when point traverses reordered bidirectional text.  Similarly, a
 highlighted region covering a contiguous range of character positions
 may look discontinuous if the region spans reordered text.  This is
-normal and similar to behavior of other programs that support
+normal and similar to the behavior of other programs that support
 bidirectional text.

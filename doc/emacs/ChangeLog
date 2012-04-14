@@ -1,3 +1,11 @@
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (Language Environments): Move font info to "Fontsets".
+	(Fontsets): Move intlfonts etc here from "Language Environments".
+	Copyedits.
+	(Defining Fontsets, Modifying Fontsets, Undisplayable Characters)
+	(Unibyte Mode, Charsets, Bidirectional Editing): Copyedits.
+
 2012-04-14  Chong Yidong  <cyd@gnu.org>
 
 	* glossary.texi (Glossary): Standardize on "text terminal"
