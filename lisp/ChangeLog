@@ -1,3 +1,8 @@
+2012-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid the use of ((lambda ...) ...) in lexical-binding code.
+	* emacs-lisp/easy-mmode.el (define-minor-mode):Use funcall (bug#11241).
+
 2012-04-13  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-exchange-point-and-mark): Just call
