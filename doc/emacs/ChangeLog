@@ -1,3 +1,12 @@
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (Select Input Method, Coding Systems):
+	State command names in kbd tables.
+	(Recognize Coding): Add cross-ref.
+	(Output Coding): Don't mention message mode in particular.
+	(Text Coding, Communication Coding, File Name Coding, Terminal Coding):
+	Copyedits.
+
 2012-04-13  Glenn Morris  <rgm@gnu.org>
 
 	* mule.texi (Select Input Method, Coding Systems, Recognize Coding):

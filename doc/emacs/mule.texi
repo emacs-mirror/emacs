@@ -577,10 +577,10 @@ Text}.
 
 @table @kbd
 @item C-\
-Enable or disable use of the selected input method.
+Enable or disable use of the selected input method (@code{toggle-input-method}).
 
 @item C-x @key{RET} C-\ @var{method} @key{RET}
-Select a new input method for the current buffer.
+Select a new input method for the current buffer (@code{set-input-method}).
 
 @item C-h I @var{method} @key{RET}
 @itemx C-h C-\ @var{method} @key{RET}
@@ -716,7 +716,7 @@ carriage-return (``mac'').
 
 @table @kbd
 @item C-h C @var{coding} @key{RET}
-Describe coding system @var{coding}.
+Describe coding system @var{coding} (@code{describe-coding-system}).
 
 @item C-h C @key{RET}
 Describe the coding systems currently in use.
@@ -921,7 +921,7 @@ escape sequence detection.
 the strongest way to specify the coding system for certain patterns of
 file names, or for files containing certain patterns, respectively.
 These variables even override @samp{-*-coding:-*-} tags in the file
-itself.  For example, Emacs
+itself (@pxref{Specify Coding}).  For example, Emacs
 uses @code{auto-coding-alist} for tar and archive files, to prevent it
 from being confused by a @samp{-*-coding:-*-} tag in a member of the
 archive and thinking it applies to the archive file as a whole.
@@ -1006,6 +1006,7 @@ and asks you to choose one of those coding systems.
 
   If you insert the unsuitable characters in a mail message, Emacs
 behaves a bit differently.  It additionally checks whether the
+@c What determines this?
 most-preferred coding system is recommended for use in MIME messages;
 if not, Emacs tells you that the most-preferred coding system is not
 recommended and prompts you for another coding system.  This is so you
@@ -1014,17 +1015,22 @@ recipient's mail software will have difficulty decoding.  (You can
 still use an unsuitable coding system if you type its name in response
 to the question.)
 
+@c It seems that select-message-coding-system does this.
+@c Both sendmail.el and smptmail.el call it; i.e. smtpmail.el still
+@c obeys sendmail-coding-system.
 @vindex sendmail-coding-system
-  When you send a message with Message mode (@pxref{Sending Mail}),
+  When you send a mail message (@pxref{Sending Mail}),
 Emacs has four different ways to determine the coding system to use
 for encoding the message text.  It tries the buffer's own value of
 @code{buffer-file-coding-system}, if that is non-@code{nil}.
 Otherwise, it uses the value of @code{sendmail-coding-system}, if that
 is non-@code{nil}.  The third way is to use the default coding system
 for new files, which is controlled by your choice of language
+@c i.e., default-sendmail-coding-system
 environment, if that is non-@code{nil}.  If all of these three values
 are @code{nil}, Emacs encodes outgoing mail using the Latin-1 coding
 system.
+@c FIXME?  Where does the Latin-1 default come in?
 
 @node Text Coding
 @section Specifying a Coding System for File Text
@@ -1035,8 +1041,8 @@ one:
 
 @table @kbd
 @item C-x @key{RET} f @var{coding} @key{RET}
-Use coding system @var{coding} to save or revisit the visited file in
-the current buffer (@code{set-buffer-file-coding-system})
+Use coding system @var{coding} to save or revisit the file in
+the current buffer (@code{set-buffer-file-coding-system}).
 
 @item C-x @key{RET} c @var{coding} @key{RET}
 Specify coding system @var{coding} for the immediately following
@@ -1066,8 +1072,8 @@ buffer.
   You can also use this command to specify the end-of-line conversion
 (@pxref{Coding Systems, end-of-line conversion}) for encoding the
 current buffer.  For example, @kbd{C-x @key{RET} f dos @key{RET}} will
-cause Emacs to save the current buffer's text with DOS-style CRLF line
-endings.
+cause Emacs to save the current buffer's text with DOS-style
+carriage-return linefeed line endings.
 
 @kindex C-x RET c
 @findex universal-coding-system-argument
@@ -1155,7 +1161,7 @@ coding system for the next selection made in Emacs or read by Emacs.
   The variable @code{x-select-request-type} specifies the data type to
 request from the X Window System for receiving text selections from
 other applications.  If the value is @code{nil} (the default), Emacs
-tries @code{COMPOUND_TEXT} and @code{UTF8_STRING}, in this order, and
+tries @code{UTF8_STRING} and @code{COMPOUND_TEXT}, in this order, and
 uses various heuristics to choose the more appropriate of the two
 results; if none of these succeed, Emacs falls back on @code{STRING}.
 If the value of @code{x-select-request-type} is one of the symbols
@@ -1187,8 +1193,8 @@ current language environment.
   The variable @code{locale-coding-system} specifies a coding system
 to use when encoding and decoding system strings such as system error
 messages and @code{format-time-string} formats and time stamps.  That
-coding system is also used for decoding non-@acronym{ASCII} keyboard input on X
-Window systems.  You should choose a coding system that is compatible
+coding system is also used for decoding non-@acronym{ASCII} keyboard
+input on the X Window System.  You should choose a coding system that is compatible
 with the underlying system's text representation, which is normally
 specified by one of the environment variables @env{LC_ALL},
 @env{LC_CTYPE}, and @env{LANG}.  (The first one, in the order
@@ -1201,27 +1207,29 @@ the text representation.)
 @table @kbd
 @item C-x @key{RET} F @var{coding} @key{RET}
 Use coding system @var{coding} for encoding and decoding file
-@emph{names} (@code{set-file-name-coding-system}).
+names (@code{set-file-name-coding-system}).
 @end table
-
-@vindex file-name-coding-system
-@cindex file names with non-@acronym{ASCII} characters
-  The variable @code{file-name-coding-system} specifies a coding
-system to use for encoding file names.  It has no effect on reading
-and writing the @emph{contents} of files.
 
 @findex set-file-name-coding-system
 @kindex C-x @key{RET} F
-  If you set the variable to a coding system name (as a Lisp symbol or
-a string), Emacs encodes file names using that coding system for all
-file operations.  This makes it possible to use non-@acronym{ASCII}
-characters in file names---or, at least, those non-@acronym{ASCII}
-characters which the specified coding system can encode.  Use @kbd{C-x
-@key{RET} F} (@code{set-file-name-coding-system}) to specify this
-interactively.
+@cindex file names with non-@acronym{ASCII} characters
+  The command @kbd{C-x @key{RET} F} (@code{set-file-name-coding-system})
+specifies a coding system to use for encoding file @emph{names}.  It
+has no effect on reading and writing the @emph{contents} of files.
+
+@vindex file-name-coding-system
+  In fact, all this command does is set the value of the variable
+@code{file-name-coding-system}.  If you set the variable to a coding
+system name (as a Lisp symbol or a string), Emacs encodes file names
+using that coding system for all file operations.  This makes it
+possible to use non-@acronym{ASCII} characters in file names---or, at
+least, those non-@acronym{ASCII} characters that the specified coding
+system can encode.
 
   If @code{file-name-coding-system} is @code{nil}, Emacs uses a
-default coding system determined by the selected language environment.
+default coding system determined by the selected language environment,
+and stored in the @code{default-file-name-coding-system} variable.
+@c FIXME?  Is this correct?  What is the "default language environment"?
 In the default language environment, non-@acronym{ASCII} characters in
 file names are not encoded specially; they appear in the file system
 using the internal Emacs representation.
@@ -1232,7 +1240,7 @@ result if you have already visited files whose names were encoded using
 the earlier coding system and cannot be encoded (or are encoded
 differently) under the new coding system.  If you try to save one of
 these buffers under the visited file name, saving may use the wrong file
-name, or it may get an error.  If such a problem happens, use @kbd{C-x
+name, or it may encounter an error.  If such a problem happens, use @kbd{C-x
 C-w} to specify a new file name for that buffer.
 
 @findex recode-file-name
@@ -1245,13 +1253,13 @@ system, and the coding system to which you wish to convert.
 @section Coding Systems for Terminal I/O
 
 @table @kbd
-@item C-x @key{RET} k @var{coding} @key{RET}
-Use coding system @var{coding} for keyboard input
-(@code{set-keyboard-coding-system}).
-
 @item C-x @key{RET} t @var{coding} @key{RET}
 Use coding system @var{coding} for terminal output
 (@code{set-terminal-coding-system}).
+
+@item C-x @key{RET} k @var{coding} @key{RET}
+Use coding system @var{coding} for keyboard input
+(@code{set-keyboard-coding-system}).
 @end table
 
 @kindex C-x RET t
@@ -1274,8 +1282,8 @@ your locale specification (@pxref{Language Environments}).
 @kindex C-x RET k
 @findex set-keyboard-coding-system
 @vindex keyboard-coding-system
-  The command @kbd{C-x @key{RET} k} (@code{set-keyboard-coding-system})
-or the variable @code{keyboard-coding-system} specifies the coding
+  The command @kbd{C-x @key{RET} k} (@code{set-keyboard-coding-system}),
+or the variable @code{keyboard-coding-system}, specifies the coding
 system for keyboard input.  Character-code translation of keyboard
 input is useful for terminals with keys that send non-@acronym{ASCII}
 graphic characters---for example, some terminals designed for ISO
