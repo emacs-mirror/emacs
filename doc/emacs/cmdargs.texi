@@ -849,8 +849,8 @@ emacs -ms coral -cr 'slate blue' &
   You can reverse the foreground and background colors through the
 @samp{-rv} option or with the X resource @samp{reverseVideo}.
 
-  The @samp{-fg}, @samp{-bg}, and @samp{-rv} options function on
-text-only terminals as well as on graphical displays.
+  The @samp{-fg}, @samp{-bg}, and @samp{-rv} options function on text
+terminals as well as on graphical displays.
 
 @node Window Size X
 @appendixsec Options for Window Size and Position

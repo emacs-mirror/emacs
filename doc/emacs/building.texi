@@ -227,13 +227,13 @@ is determined by the variable @code{next-error-highlight}.
   If the @file{*compilation*} buffer is shown in a window with a left
 fringe (@pxref{Fringes}), the locus-visiting commands put an arrow in
 the fringe, pointing to the current error message.  If the window has
-no left fringe, such as on a text-only terminal, these commands scroll
-the window so that the current message is at the top of the window.
-If you change the variable @code{compilation-context-lines} to an
-integer value @var{n}, these commands scroll the window so that the
-current error message is @var{n} lines from the top, whether or not
-there is a fringe; the default value, @code{nil}, gives the behavior
-described above.
+no left fringe, such as on a text terminal, these commands scroll the
+window so that the current message is at the top of the window.  If
+you change the variable @code{compilation-context-lines} to an integer
+value @var{n}, these commands scroll the window so that the current
+error message is @var{n} lines from the top, whether or not there is a
+fringe; the default value, @code{nil}, gives the behavior described
+above.
 
 @vindex compilation-error-regexp-alist
 @vindex grep-regexp-alist
@@ -572,12 +572,12 @@ for special commands that can be used in the GUD interaction buffer.
 
   As you debug a program, Emacs displays the relevant source files by
 visiting them in Emacs buffers, with an arrow in the left fringe
-indicating the current execution line.  (On a text-only terminal, the
-arrow appears as @samp{=>}, overlaid on the first two text columns.)
-Moving point in such a buffer does not move the arrow.  You are free
-to edit these source files, but note that inserting or deleting lines
-will throw off the arrow's positioning, as Emacs has no way to figure
-out which edited source line corresponds to the line reported by the
+indicating the current execution line.  (On a text terminal, the arrow
+appears as @samp{=>}, overlaid on the first two text columns.)  Moving
+point in such a buffer does not move the arrow.  You are free to edit
+these source files, but note that inserting or deleting lines will
+throw off the arrow's positioning, as Emacs has no way to figure out
+which edited source line corresponds to the line reported by the
 debugger subprocess.  To update this information, you typically have
 to recompile and restart the program.
 
@@ -936,7 +936,7 @@ already exists there, the click removes it.  A @kbd{C-Mouse-1} click
 enables or disables an existing breakpoint; a breakpoint that is
 disabled, but not unset, is indicated by a gray dot.
 
-  On a text-only terminal, or when fringes are disabled, enabled
+  On a text terminal, or when fringes are disabled, enabled
 breakpoints are indicated with a @samp{B} character in the left margin
 of the window.  Disabled breakpoints are indicated with @samp{b}.
 (The margin is only displayed if a breakpoint is present.)
@@ -1079,9 +1079,9 @@ debugger}.
 
 @findex gdb-frames-select
   On graphical displays, the selected stack frame is indicated by an
-arrow in the fringe.  On text-only terminals, or when fringes are
-disabled, the selected stack frame is displayed in reverse contrast.
-To select a stack frame, move point in its line and type @key{RET}
+arrow in the fringe.  On text terminals, or when fringes are disabled,
+the selected stack frame is displayed in reverse contrast.  To select
+a stack frame, move point in its line and type @key{RET}
 (@code{gdb-frames-select}), or click @kbd{Mouse-2} on it.  Doing so
 also updates the Locals buffer
 @ifnottex
