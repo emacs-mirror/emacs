@@ -1,3 +1,16 @@
+2012-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid the use of ((lambda ...) ...) in lexical-binding code.
+	* emacs-lisp/easy-mmode.el (define-minor-mode):Use funcall (bug#11241).
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (process-file-side-effects): Doc fix.
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (set-language-environment): Doc fix.
+
 2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-auth-key, server-generate-key): Doc fixes.

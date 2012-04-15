@@ -172,20 +172,19 @@ used to delete forwards.  If this key deletes backward in Emacs, that
 too suggests Emacs got the wrong information---but in the opposite
 sense.
 
-  On a text-only terminal, if you find that @key{Backspace} prompts
-for a Help command, like @kbd{Control-h}, instead of deleting a
-character, it means that key is actually sending the @key{BS}
-character.  Emacs ought to be treating @key{BS} as @key{DEL}, but it
-isn't.
+  On a text terminal, if you find that @key{Backspace} prompts for a
+Help command, like @kbd{Control-h}, instead of deleting a character,
+it means that key is actually sending the @key{BS} character.  Emacs
+ought to be treating @key{BS} as @key{DEL}, but it isn't.
 
 @findex normal-erase-is-backspace-mode
   In all of those cases, the immediate remedy is the same: use the
 command @kbd{M-x normal-erase-is-backspace-mode}.  This toggles
 between the two modes that Emacs supports for handling @key{DEL}, so
 if Emacs starts in the wrong mode, this should switch to the right
-mode.  On a text-only terminal, if you want to ask for help when
-@key{BS} is treated as @key{DEL}, use @key{F1}; @kbd{C-?} may also
-work, if it sends character code 127.
+mode.  On a text terminal, if you want to ask for help when @key{BS}
+is treated as @key{DEL}, use @key{F1}; @kbd{C-?} may also work, if it
+sends character code 127.
 
   To fix the problem in every Emacs session, put one of the following
 lines into your initialization file (@pxref{Init File}).  For the
@@ -327,8 +326,8 @@ not make a backup of its old contents.
 @node Emergency Escape
 @subsection Emergency Escape
 
-  On text-only terminals, the @dfn{emergency escape} feature suspends
-Emacs immediately if you type @kbd{C-g} a second time before Emacs can
+  On text terminals, the @dfn{emergency escape} feature suspends Emacs
+immediately if you type @kbd{C-g} a second time before Emacs can
 actually respond to the first one by quitting.  This is so you can
 always get out of GNU Emacs no matter how badly it might be hung.
 When things are working properly, Emacs recognizes and handles the

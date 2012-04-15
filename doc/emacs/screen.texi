@@ -8,12 +8,12 @@
 @cindex frame
 
   On a graphical display, such as on GNU/Linux using the X Window
-System, Emacs occupies a ``graphical window''.  On a text-only
-terminal, Emacs occupies the entire terminal screen.  We will use the
-term @dfn{frame} to mean a graphical window or terminal screen
-occupied by Emacs.  Emacs behaves very similarly on both kinds of
-frames.  It normally starts out with just one frame, but you can
-create additional frames if you wish (@pxref{Frames}).
+System, Emacs occupies a ``graphical window''.  On a text terminal,
+Emacs occupies the entire terminal screen.  We will use the term
+@dfn{frame} to mean a graphical window or terminal screen occupied by
+Emacs.  Emacs behaves very similarly on both kinds of frames.  It
+normally starts out with just one frame, but you can create additional
+frames if you wish (@pxref{Frames}).
 
   Each frame consists of several distinct regions.  At the top of the
 frame is a @dfn{menu bar}, which allows you to access commands via a
@@ -178,7 +178,7 @@ unselected windows, in order to make it stand out.
 @end example
 
 @noindent
-On a text-only terminal, this text is followed by a series of dashes
+On a text terminal, this text is followed by a series of dashes
 extending to the right edge of the window.  These dashes are omitted
 on a graphical display.
 
@@ -195,7 +195,7 @@ means no conversion whatsoever, and is usually used for files
 containing non-textual data.  Other characters represent various
 @dfn{coding systems}---for example, @samp{1} represents ISO Latin-1.
 
-  On a text-only terminal, @var{cs} is preceded by two additional
+  On a text terminal, @var{cs} is preceded by two additional
 characters that describe the coding systems for keyboard input and
 terminal output.  Furthermore, if you are using an input method,
 @var{cs} is preceded by a string that identifies the input method
@@ -228,7 +228,7 @@ However, if the default-directory for the current buffer is on a
 remote machine, @samp{@@} is displayed instead (@pxref{File Names}).
 
   @var{fr} gives the selected frame name (@pxref{Frames}).  It appears
-only on text-only terminals.  The initial frame's name is @samp{F1}.
+only on text terminals.  The initial frame's name is @samp{F1}.
 
   @var{buf} is the name of the buffer displayed in the window.
 Usually, this is the same as the name of a file you are editing.
@@ -307,13 +307,12 @@ You can then navigate the menus with the arrow keys.  To activate a
 selected menu item, press @key{RET}; to cancel menu navigation, press
 @key{ESC}.
 
-  On a text-only terminal, you can use the menu bar by typing
-@kbd{M-`} or @key{F10} (these run the command @code{tmm-menubar}).
-This lets you select a menu item with the keyboard.  A provisional
-choice appears in the echo area.  You can use the up and down arrow
-keys to move through the menu to different items, and then you can
-type @key{RET} to select the item.  Each menu item is also designated
-by a letter or digit (usually the initial of some word in the item's
-name).  This letter or digit is separated from the item name by
-@samp{=>}.  You can type the item's letter or digit to select the
-item.
+  On a text terminal, you can use the menu bar by typing @kbd{M-`} or
+@key{F10} (these run the command @code{tmm-menubar}).  This lets you
+select a menu item with the keyboard.  A provisional choice appears in
+the echo area.  You can use the up and down arrow keys to move through
+the menu to different items, and then you can type @key{RET} to select
+the item.  Each menu item is also designated by a letter or digit
+(usually the initial of some word in the item's name).  This letter or
+digit is separated from the item name by @samp{=>}.  You can type the
+item's letter or digit to select the item.

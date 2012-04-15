@@ -60,7 +60,7 @@ for each command; see @ref{Text Coding}.
 @item
 You can display non-@acronym{ASCII} characters encoded by the various
 scripts.  This works by using appropriate fonts on graphics displays
-(@pxref{Defining Fontsets}), and by sending special codes to text-only
+(@pxref{Defining Fontsets}), and by sending special codes to text
 displays (@pxref{Terminal Coding}).  If some characters are displayed
 incorrectly, refer to @ref{Undisplayable Characters}, which describes
 possible problems and explains how to solve them.
@@ -210,7 +210,7 @@ What keys to type to input the character in the current input method
 
 @item
 If you are running Emacs on a graphical display, the font name and
-glyph code for the character.  If you are running Emacs on a text-only
+glyph code for the character.  If you are running Emacs on a text
 terminal, the code(s) sent to the terminal.
 
 @item
@@ -365,25 +365,8 @@ UTF-8), Ukrainian, Vietnamese, Welsh, and Windows-1255 (for a setup
 which prefers Cyrillic characters and files encoded in Windows-1255).
 @end quotation
 
-@cindex fonts for various scripts
-@cindex Intlfonts package, installation
   To display the script(s) used by your language environment on a
-graphical display, you need to have a suitable font.  If some of the
-characters appear as empty boxes or hex codes, you should install
-extra fonts.  Your operating system may have optional fonts that
-you can install; or you can install the
-GNU Intlfonts package, which includes fonts for most supported
-scripts.@footnote{If you run Emacs on X, you may need to inform the X
-server about the location of the newly installed fonts with
-commands such as:
-@c FIXME?  I feel like this may be out of date.
-@c Eg the intlfonts tarfile is ~ 10 years old.
-
-@example
- xset fp+ /usr/local/share/emacs/fonts
- xset fp rehash
-@end example
-}
+graphical display, you need to have suitable fonts.
 @xref{Fontsets}, for more details about setting up your fonts.
 
 @findex set-locale-environment
@@ -577,10 +560,10 @@ Text}.
 
 @table @kbd
 @item C-\
-Enable or disable use of the selected input method.
+Enable or disable use of the selected input method (@code{toggle-input-method}).
 
 @item C-x @key{RET} C-\ @var{method} @key{RET}
-Select a new input method for the current buffer.
+Select a new input method for the current buffer (@code{set-input-method}).
 
 @item C-h I @var{method} @key{RET}
 @itemx C-h C-\ @var{method} @key{RET}
@@ -716,7 +699,7 @@ carriage-return (``mac'').
 
 @table @kbd
 @item C-h C @var{coding} @key{RET}
-Describe coding system @var{coding}.
+Describe coding system @var{coding} (@code{describe-coding-system}).
 
 @item C-h C @key{RET}
 Describe the coding systems currently in use.
@@ -921,7 +904,7 @@ escape sequence detection.
 the strongest way to specify the coding system for certain patterns of
 file names, or for files containing certain patterns, respectively.
 These variables even override @samp{-*-coding:-*-} tags in the file
-itself.  For example, Emacs
+itself (@pxref{Specify Coding}).  For example, Emacs
 uses @code{auto-coding-alist} for tar and archive files, to prevent it
 from being confused by a @samp{-*-coding:-*-} tag in a member of the
 archive and thinking it applies to the archive file as a whole.
@@ -1006,6 +989,7 @@ and asks you to choose one of those coding systems.
 
   If you insert the unsuitable characters in a mail message, Emacs
 behaves a bit differently.  It additionally checks whether the
+@c What determines this?
 most-preferred coding system is recommended for use in MIME messages;
 if not, Emacs tells you that the most-preferred coding system is not
 recommended and prompts you for another coding system.  This is so you
@@ -1014,17 +998,22 @@ recipient's mail software will have difficulty decoding.  (You can
 still use an unsuitable coding system if you type its name in response
 to the question.)
 
+@c It seems that select-message-coding-system does this.
+@c Both sendmail.el and smptmail.el call it; i.e. smtpmail.el still
+@c obeys sendmail-coding-system.
 @vindex sendmail-coding-system
-  When you send a message with Message mode (@pxref{Sending Mail}),
+  When you send a mail message (@pxref{Sending Mail}),
 Emacs has four different ways to determine the coding system to use
 for encoding the message text.  It tries the buffer's own value of
 @code{buffer-file-coding-system}, if that is non-@code{nil}.
 Otherwise, it uses the value of @code{sendmail-coding-system}, if that
 is non-@code{nil}.  The third way is to use the default coding system
 for new files, which is controlled by your choice of language
+@c i.e., default-sendmail-coding-system
 environment, if that is non-@code{nil}.  If all of these three values
 are @code{nil}, Emacs encodes outgoing mail using the Latin-1 coding
 system.
+@c FIXME?  Where does the Latin-1 default come in?
 
 @node Text Coding
 @section Specifying a Coding System for File Text
@@ -1035,8 +1024,8 @@ one:
 
 @table @kbd
 @item C-x @key{RET} f @var{coding} @key{RET}
-Use coding system @var{coding} to save or revisit the visited file in
-the current buffer (@code{set-buffer-file-coding-system})
+Use coding system @var{coding} to save or revisit the file in
+the current buffer (@code{set-buffer-file-coding-system}).
 
 @item C-x @key{RET} c @var{coding} @key{RET}
 Specify coding system @var{coding} for the immediately following
@@ -1066,8 +1055,8 @@ buffer.
   You can also use this command to specify the end-of-line conversion
 (@pxref{Coding Systems, end-of-line conversion}) for encoding the
 current buffer.  For example, @kbd{C-x @key{RET} f dos @key{RET}} will
-cause Emacs to save the current buffer's text with DOS-style CRLF line
-endings.
+cause Emacs to save the current buffer's text with DOS-style
+carriage-return linefeed line endings.
 
 @kindex C-x RET c
 @findex universal-coding-system-argument
@@ -1155,7 +1144,7 @@ coding system for the next selection made in Emacs or read by Emacs.
   The variable @code{x-select-request-type} specifies the data type to
 request from the X Window System for receiving text selections from
 other applications.  If the value is @code{nil} (the default), Emacs
-tries @code{COMPOUND_TEXT} and @code{UTF8_STRING}, in this order, and
+tries @code{UTF8_STRING} and @code{COMPOUND_TEXT}, in this order, and
 uses various heuristics to choose the more appropriate of the two
 results; if none of these succeed, Emacs falls back on @code{STRING}.
 If the value of @code{x-select-request-type} is one of the symbols
@@ -1187,8 +1176,8 @@ current language environment.
   The variable @code{locale-coding-system} specifies a coding system
 to use when encoding and decoding system strings such as system error
 messages and @code{format-time-string} formats and time stamps.  That
-coding system is also used for decoding non-@acronym{ASCII} keyboard input on X
-Window systems.  You should choose a coding system that is compatible
+coding system is also used for decoding non-@acronym{ASCII} keyboard
+input on the X Window System.  You should choose a coding system that is compatible
 with the underlying system's text representation, which is normally
 specified by one of the environment variables @env{LC_ALL},
 @env{LC_CTYPE}, and @env{LANG}.  (The first one, in the order
@@ -1201,27 +1190,29 @@ the text representation.)
 @table @kbd
 @item C-x @key{RET} F @var{coding} @key{RET}
 Use coding system @var{coding} for encoding and decoding file
-@emph{names} (@code{set-file-name-coding-system}).
+names (@code{set-file-name-coding-system}).
 @end table
-
-@vindex file-name-coding-system
-@cindex file names with non-@acronym{ASCII} characters
-  The variable @code{file-name-coding-system} specifies a coding
-system to use for encoding file names.  It has no effect on reading
-and writing the @emph{contents} of files.
 
 @findex set-file-name-coding-system
 @kindex C-x @key{RET} F
-  If you set the variable to a coding system name (as a Lisp symbol or
-a string), Emacs encodes file names using that coding system for all
-file operations.  This makes it possible to use non-@acronym{ASCII}
-characters in file names---or, at least, those non-@acronym{ASCII}
-characters which the specified coding system can encode.  Use @kbd{C-x
-@key{RET} F} (@code{set-file-name-coding-system}) to specify this
-interactively.
+@cindex file names with non-@acronym{ASCII} characters
+  The command @kbd{C-x @key{RET} F} (@code{set-file-name-coding-system})
+specifies a coding system to use for encoding file @emph{names}.  It
+has no effect on reading and writing the @emph{contents} of files.
+
+@vindex file-name-coding-system
+  In fact, all this command does is set the value of the variable
+@code{file-name-coding-system}.  If you set the variable to a coding
+system name (as a Lisp symbol or a string), Emacs encodes file names
+using that coding system for all file operations.  This makes it
+possible to use non-@acronym{ASCII} characters in file names---or, at
+least, those non-@acronym{ASCII} characters that the specified coding
+system can encode.
 
   If @code{file-name-coding-system} is @code{nil}, Emacs uses a
-default coding system determined by the selected language environment.
+default coding system determined by the selected language environment,
+and stored in the @code{default-file-name-coding-system} variable.
+@c FIXME?  Is this correct?  What is the "default language environment"?
 In the default language environment, non-@acronym{ASCII} characters in
 file names are not encoded specially; they appear in the file system
 using the internal Emacs representation.
@@ -1232,7 +1223,7 @@ result if you have already visited files whose names were encoded using
 the earlier coding system and cannot be encoded (or are encoded
 differently) under the new coding system.  If you try to save one of
 these buffers under the visited file name, saving may use the wrong file
-name, or it may get an error.  If such a problem happens, use @kbd{C-x
+name, or it may encounter an error.  If such a problem happens, use @kbd{C-x
 C-w} to specify a new file name for that buffer.
 
 @findex recode-file-name
@@ -1245,13 +1236,13 @@ system, and the coding system to which you wish to convert.
 @section Coding Systems for Terminal I/O
 
 @table @kbd
-@item C-x @key{RET} k @var{coding} @key{RET}
-Use coding system @var{coding} for keyboard input
-(@code{set-keyboard-coding-system}).
-
 @item C-x @key{RET} t @var{coding} @key{RET}
 Use coding system @var{coding} for terminal output
 (@code{set-terminal-coding-system}).
+
+@item C-x @key{RET} k @var{coding} @key{RET}
+Use coding system @var{coding} for keyboard input
+(@code{set-keyboard-coding-system}).
 @end table
 
 @kindex C-x RET t
@@ -1274,8 +1265,8 @@ your locale specification (@pxref{Language Environments}).
 @kindex C-x RET k
 @findex set-keyboard-coding-system
 @vindex keyboard-coding-system
-  The command @kbd{C-x @key{RET} k} (@code{set-keyboard-coding-system})
-or the variable @code{keyboard-coding-system} specifies the coding
+  The command @kbd{C-x @key{RET} k} (@code{set-keyboard-coding-system}),
+or the variable @code{keyboard-coding-system}, specifies the coding
 system for keyboard input.  Character-code translation of keyboard
 input is useful for terminals with keys that send non-@acronym{ASCII}
 graphic characters---for example, some terminals designed for ISO
@@ -1310,30 +1301,49 @@ non-graphic characters.
   A font typically defines shapes for a single alphabet or script.
 Therefore, displaying the entire range of scripts that Emacs supports
 requires a collection of many fonts.  In Emacs, such a collection is
-called a @dfn{fontset}.  A fontset is defined by a list of font specs,
+called a @dfn{fontset}.  A fontset is defined by a list of font specifications,
 each assigned to handle a range of character codes, and may fall back
-on another fontset for characters which are not covered by the fonts
+on another fontset for characters that are not covered by the fonts
 it specifies.
 
+@cindex fonts for various scripts
+@cindex Intlfonts package, installation
   Each fontset has a name, like a font.  However, while fonts are
 stored in the system and the available font names are defined by the
 system, fontsets are defined within Emacs itself.  Once you have
 defined a fontset, you can use it within Emacs by specifying its name,
 anywhere that you could use a single font.  Of course, Emacs fontsets
-can use only the fonts that the system supports; if certain characters
-appear on the screen as hollow boxes, this means that the fontset in
-use for them has no font for those characters.@footnote{The Emacs
-installation instructions have information on additional font
-support.}
+can use only the fonts that the system supports.  If some characters
+appear on the screen as empty boxes or hex codes, this means that the
+fontset in use for them has no font for those characters.  In this
+case, or if the characters are shown, but not as well as you would
+like, you may need to install extra fonts.  Your operating system may
+have optional fonts that you can install; or you can install the GNU
+Intlfonts package, which includes fonts for most supported
+scripts.@footnote{If you run Emacs on X, you may need to inform the X
+server about the location of the newly installed fonts with commands
+such as:
+@c FIXME?  I feel like this may be out of date.
+@c Eg the intlfonts tarfile is ~ 10 years old.
+
+@example
+ xset fp+ /usr/local/share/emacs/fonts
+ xset fp rehash
+@end example
+}
 
   Emacs creates three fontsets automatically: the @dfn{standard
 fontset}, the @dfn{startup fontset} and the @dfn{default fontset}.
+@c FIXME?  The doc of *standard*-fontset-spec says:
+@c "You have the biggest chance to display international characters
+@c with correct glyphs by using the *standard* fontset." (my emphasis)
 The default fontset is most likely to have fonts for a wide variety of
-non-@acronym{ASCII} characters and is the default fallback for the
+non-@acronym{ASCII} characters, and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
-However it does not specify font family names, so results can be
+However, it does not specify font family names, so results can be
 somewhat random if you use it directly.  You can specify use of a
-specific fontset with the @samp{-fn} option.  For example,
+particular fontset by starting Emacs with the @samp{-fn} option.
+For example,
 
 @example
 emacs -fn fontset-standard
@@ -1372,10 +1382,12 @@ of @code{standard-fontset-spec}.  This fontset's name is
 @noindent
 or just @samp{fontset-standard} for short.
 
-  On GNUstep and Mac, fontset-standard is created using the value of
-@code{ns-standard-fontset-spec}, and on Windows it is
+  On GNUstep and Mac OS X, the standard fontset is created using the value of
+@code{ns-standard-fontset-spec}, and on MS Windows it is
 created using the value of @code{w32-standard-fontset-spec}.
 
+@c FIXME?  How does one access these, or do anything with them?
+@c Does it matter?
   Bold, italic, and bold-italic variants of the standard fontset are
 created automatically.  Their names have @samp{bold} instead of
 @samp{medium}, or @samp{i} instead of @samp{r}, or both.
@@ -1390,8 +1402,15 @@ started.  This is the @dfn{startup fontset} and its name is
 @var{charset_encoding} field with @samp{startup}, then using the
 resulting string to specify a fontset.
 
-  For instance, if you start Emacs this way,
+  For instance, if you start Emacs with a font of this form,
 
+@c FIXME?  I think this is a little misleading, because you cannot (?)
+@c actually specify a font with wildcards, it has to be a complete spec.
+@c Also, an X font specification of this form hasn't (?) been
+@c mentioned before now, and is somewhat obsolete these days.
+@c People are more likely to use a form like
+@c emacs -fn "DejaVu Sans Mono-12"
+@c How does any of this apply in that case?
 @example
 emacs -fn "*courier-medium-r-normal--14-140-*-iso8859-1"
 @end example
@@ -1404,8 +1423,8 @@ window frame:
 -*-courier-medium-r-normal-*-14-140-*-*-*-*-fontset-startup
 @end example
 
-  The startup fontset will use the font that you specify or a variant
-with a different registry and encoding for all the characters which
+  The startup fontset will use the font that you specify, or a variant
+with a different registry and encoding, for all the characters that
 are supported by that font, and fallback on @samp{fontset-default} for
 other characters.
 
@@ -1413,7 +1432,8 @@ other characters.
 just like an actual font name.  But be careful not to specify a fontset
 name in a wildcard resource like @samp{Emacs*Font}---that wildcard
 specification matches various other resources, such as for menus, and
-menus cannot handle fontsets.
+@c FIXME is this still true?
+menus cannot handle fontsets.  @xref{X Resources}.
 
   You can specify additional fontsets using X resources named
 @samp{Fontset-@var{n}}, where @var{n} is an integer starting from 0.
@@ -1424,7 +1444,8 @@ The resource value should have this form:
 @end smallexample
 
 @noindent
-@var{fontpattern} should have the form of a standard X font name, except
+@var{fontpattern} should have the form of a standard X font name (see
+the previous fontset-startup example), except
 for the last two fields.  They should have the form
 @samp{fontset-@var{alias}}.
 
@@ -1446,7 +1467,7 @@ that describe the character set.  For the @acronym{ASCII} character font,
   In addition, when several consecutive fields are wildcards, Emacs
 collapses them into a single wildcard.  This is to prevent use of
 auto-scaled fonts.  Fonts made by scaling larger fonts are not usable
-for editing, and scaling a smaller font is not useful because it is
+for editing, and scaling a smaller font is not also useful, because it is
 better to use the smaller font in its own size, which is what Emacs
 does.
 
@@ -1472,8 +1493,8 @@ and the font specification for Chinese GB2312 characters would be this:
 
   You may not have any Chinese font matching the above font
 specification.  Most X distributions include only Chinese fonts that
-have @samp{song ti} or @samp{fangsong ti} in @var{family} field.  In
-such a case, @samp{Fontset-@var{n}} can be specified as below:
+have @samp{song ti} or @samp{fangsong ti} in the @var{family} field.  In
+such a case, @samp{Fontset-@var{n}} can be specified as:
 
 @smallexample
 Emacs.Fontset-0: -*-fixed-medium-r-normal-*-24-*-*-*-*-*-fontset-24,\
@@ -1507,8 +1528,8 @@ script.
 
 Fontsets can be modified using the function @code{set-fontset-font},
 specifying a character, a charset, a script, or a range of characters
-to modify the font for, and a font-spec for the font to be used. Some
-examples are:
+to modify the font for, and a font specification for the font to be
+used.  Some examples are:
 
 @example
 ;; Use Liberation Mono for latin-3 charset.
@@ -1535,10 +1556,10 @@ examples are:
 @node Undisplayable Characters
 @section Undisplayable Characters
 
-  There may be a some non-@acronym{ASCII} characters that your terminal cannot
-display.  Most text-only terminals support just a single character
-set (use the variable @code{default-terminal-coding-system}
-(@pxref{Terminal Coding}) to tell Emacs which one); characters which
+  There may be some non-@acronym{ASCII} characters that your
+terminal cannot display.  Most text terminals support just a single
+character set (use the variable @code{default-terminal-coding-system}
+to tell Emacs which one, @ref{Terminal Coding}); characters that
 can't be encoded in that coding system are displayed as @samp{?} by
 default.
 
@@ -1570,17 +1591,15 @@ the range 0240 to 0377 octal (160 to 255 decimal) to handle the
 accented letters and punctuation needed by various European languages
 (and some non-European ones).  Note that Emacs considers bytes with
 codes in this range as raw bytes, not as characters, even in a unibyte
-session, i.e.@: if you disable multibyte characters.  However, Emacs
+buffer, i.e.@: if you disable multibyte characters.  However, Emacs
 can still handle these character codes as if they belonged to
 @emph{one} of the single-byte character sets at a time.  To specify
 @emph{which} of these codes to use, invoke @kbd{M-x
 set-language-environment} and specify a suitable language environment
 such as @samp{Latin-@var{n}}.
 
-  For more information about unibyte operation, see @ref{Disabling
-Multibyte}.  Note particularly that you probably want to ensure that
-your initialization files are read as unibyte if they contain
-non-@acronym{ASCII} characters.
+  For more information about unibyte operation, see
+@ref{Disabling Multibyte}.
 
 @vindex unibyte-display-via-language-environment
   Emacs can also display bytes in the range 160 to 255 as readable
@@ -1599,8 +1618,8 @@ them as raw bytes, not as characters.
 set, Emacs can display these characters as @acronym{ASCII} sequences which at
 least give you a clear idea of what the characters are.  To do this,
 load the library @code{iso-ascii}.  Similar libraries for other
-Latin-@var{n} character sets could be implemented, but we don't have
-them yet.
+Latin-@var{n} character sets could be implemented, but have not been
+so far.
 
 @findex standard-display-8bit
 @cindex 8-bit display
@@ -1624,9 +1643,9 @@ If your keyboard can generate character codes 128 (decimal) and up,
 representing non-@acronym{ASCII} characters, you can type those character codes
 directly.
 
-On a graphical display, you should not need to do anything special to use
-these keys; they should simply work.  On a text-only terminal, you
-should use the command @code{M-x set-keyboard-coding-system} or the
+On a graphical display, you should not need to do anything special to
+use these keys; they should simply work.  On a text terminal, you
+should use the command @code{M-x set-keyboard-coding-system} or customize the
 variable @code{keyboard-coding-system} to specify which coding system
 your keyboard uses (@pxref{Terminal Coding}).  Enabling this feature
 will probably require you to use @kbd{ESC} to type Meta characters;
@@ -1694,8 +1713,9 @@ internal representation within Emacs.
 @findex list-character-sets
   @kbd{M-x list-character-sets} displays a list of all supported
 charsets.  The list gives the names of charsets and additional
-information to identity each charset (see
-@url{http://www.itscj.ipsj.or.jp/ISO-IR/} for details).  In this list,
+information to identity each charset; see the
+@url{http://www.itscj.ipsj.or.jp/ISO-IR/, International Register of
+Coded Character Sets} for more details.  In this list,
 charsets are divided into two categories: @dfn{normal charsets} are
 listed first, followed by @dfn{supplementary charsets}.  A
 supplementary charset is one that is used to define another charset
@@ -1715,8 +1735,8 @@ Chars}).
 Hebrew, whose natural ordering of horizontal text for display is from
 right to left.  However, digits and Latin text embedded in these
 scripts are still displayed left to right.  It is also not uncommon to
-have small portions of text in Arabic or Hebrew embedded in otherwise
-Latin document, e.g., as comments and strings in a program source
+have small portions of text in Arabic or Hebrew embedded in an otherwise
+Latin document; e.g., as comments and strings in a program source
 file.  For these reasons, text that uses these scripts is actually
 @dfn{bidirectional}: a mixture of runs of left-to-right and
 right-to-left characters.
@@ -1744,6 +1764,7 @@ directionality when they are displayed.  The default value is
 
   Each paragraph of bidirectional text can have its own @dfn{base
 direction}, either right-to-left or left-to-right.  (Paragraph
+@c paragraph-separate etc have no influence on this?
 boundaries are empty lines, i.e.@: lines consisting entirely of
 whitespace characters.)  Text in left-to-right paragraphs begins at
 the left margin of the window and is truncated or continued when it
@@ -1780,5 +1801,5 @@ commands move point in the logical order, so the cursor will sometimes
 jump when point traverses reordered bidirectional text.  Similarly, a
 highlighted region covering a contiguous range of character positions
 may look discontinuous if the region spans reordered text.  This is
-normal and similar to behavior of other programs that support
+normal and similar to the behavior of other programs that support
 bidirectional text.

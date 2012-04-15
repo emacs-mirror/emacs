@@ -27,13 +27,12 @@ displays (@pxref{Exiting}).  To close just the selected frame, type
 
   This chapter describes Emacs features specific to graphical displays
 (particularly mouse commands), and features for managing multiple
-frames.  On text-only terminals, many of these features are
-unavailable.  However, it is still possible to create multiple
-``frames'' on text-only terminals; such frames are displayed one at a
-time, filling the entire terminal screen (@pxref{Non-Window
-Terminals}).  It is also possible to use the mouse on some text-only
-terminals (@pxref{Text-Only Mouse}, for doing so on GNU and Unix
-systems; and
+frames.  On text terminals, many of these features are unavailable.
+However, it is still possible to create multiple ``frames'' on text
+terminals; such frames are displayed one at a time, filling the entire
+terminal screen (@pxref{Non-Window Terminals}).  It is also possible
+to use the mouse on some text terminals (@pxref{Text-Only Mouse}, for
+doing so on GNU and Unix systems; and
 @iftex
 @pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
 @end iftex
@@ -62,7 +61,7 @@ for doing so on MS-DOS).
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
-* Text-Only Mouse::     Using the mouse in text-only terminals.
+* Text-Only Mouse::     Using the mouse in text terminals.
 @end menu
 
 @node Mouse Commands
@@ -465,9 +464,9 @@ the ordinary, interactive frames are deleted.  In this case, @kbd{C-x
 
   The @kbd{C-x 5 1} (@code{delete-other-frames}) command deletes all
 other frames on the current terminal (this terminal refers to either a
-graphical display, or a text-only terminal; @pxref{Non-Window
-Terminals}).  If the Emacs session has frames open on other graphical
-displays or text terminals, those are not deleted.
+graphical display, or a text terminal; @pxref{Non-Window Terminals}).
+If the Emacs session has frames open on other graphical displays or
+text terminals, those are not deleted.
 
 @vindex focus-follows-mouse
   The @kbd{C-x 5 o} (@code{other-frame}) command selects the next
@@ -908,7 +907,7 @@ scroll bars on the right side of windows), @code{left} (put them on
 the left), or @code{nil} (disable scroll bars).  By default, Emacs
 puts scroll bars on the right if it was compiled with GTK+ support on
 the X Window System, and on MS-Windows or Mac OS; Emacs puts scroll
-bars on the left if compiled on the X Window system without GTK+
+bars on the left if compiled on the X Window System without GTK+
 support (following the old convention for X applications).
 
 @vindex scroll-bar-width
@@ -953,7 +952,7 @@ the use of menu bars at startup, customize the variable
 @code{menu-bar-mode}.
 
 @kindex C-Mouse-3 @r{(when menu bar is disabled)}
-  Expert users often turn off the menu bar, especially on text-only
+  Expert users often turn off the menu bar, especially on text
 terminals, where this makes one additional line available for text.
 If the menu bar is off, you can still pop up a menu of its contents
 with @kbd{C-Mouse-3} on a display which supports pop-up menus.
@@ -1112,9 +1111,9 @@ raises the frame.
 
 @node Non-Window Terminals
 @section Non-Window Terminals
-@cindex text-only terminal
+@cindex text terminal
 
-  On a text-only terminal, Emacs can display only one Emacs frame at a
+  On a text terminal, Emacs can display only one Emacs frame at a
 time.  However, you can still create multiple Emacs frames, and switch
 between them.  Switching frames on these terminals is much like
 switching between different window configurations.
@@ -1139,11 +1138,11 @@ to select a frame according to its name.  The name you specify appears
 in the mode line when the frame is selected.
 
 @node Text-Only Mouse
-@section Using a Mouse in Text-only Terminals
+@section Using a Mouse in Text Terminals
 @cindex mouse support
 @cindex terminal emulators, mouse support
 
-Some text-only terminals support mouse clicks in the terminal window.
+Some text terminals support mouse clicks in the terminal window.
 
 @cindex xterm
   In a terminal emulator which is compatible with @command{xterm}, you

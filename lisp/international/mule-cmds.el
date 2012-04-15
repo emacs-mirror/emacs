@@ -1834,7 +1834,11 @@ The default status is as follows:
 This sets the coding system priority and the default input method
 and sometimes other things.  LANGUAGE-NAME should be a string
 which is the name of a language environment.  For example, \"Latin-1\"
-specifies the character set for the major languages of Western Europe."
+specifies the character set for the major languages of Western Europe.
+
+If there is a prior value for `current-language-environment', this
+runs the hook `exit-language-environment-hook'.  After setting up
+the new language environment, it runs `set-language-environment-hook'."
   (interactive (list (read-language-name
 		      nil
 		      "Set language environment (default English): ")))

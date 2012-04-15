@@ -121,8 +121,8 @@ Emacs will always create a new text-mode frame in the same
 created only if the server runs in a GUI session.  Similarly, if you
 invoke @command{emacsclient} with the @option{-t} option, Emacs will
 create a GUI frame if the server runs in a GUI session, or a text-mode
-frame when the session runs in text-only mode in a @dfn{Command
-Prompt} window.  @xref{emacsclient Options}.
+frame when the session runs in text mode in a @dfn{Command Prompt}
+window.  @xref{emacsclient Options}.
 
 @node Text and Binary
 @section Text Files and Binary Files
@@ -729,9 +729,9 @@ Posix-style @code{lpr} program is unavailable.  The same Emacs
 variables control printing on all systems, but in some cases they have
 different default values on MS-DOS and MS-Windows.
 
-  Emacs on Windows automatically determines your default printer and
-sets the variable @code{printer-name} to that printer's name.  But in
-some rare cases this can fail, or you may wish to use a different
+  Emacs on MS Windows attempts to determine your default printer
+automatically (using the function @code{default-printer-name}).
+But in some rare cases this can fail, or you may wish to use a different
 printer from within Emacs.  The rest of this section explains how to
 tell Emacs which printer to use.
 

@@ -1,3 +1,23 @@
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Processes, Subprocess Creation, Shell Arguments):
+	(Synchronous Processes, Asynchronous Processes, Deleting Processes):
+	Copyedits.
+	(Subprocess Creation): Discourage modifying exec-path directly.
+	(Synchronous Processes, Asynchronous Processes):
+	Update some example output.
+	(Process Information): Fix typo.
+	(Bindat Spec): Use Texinfo-recommended form of quote+punctuation.
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* anti.texi (Antinews): Copyedits.  Don't @dfn anything here.
+	open-network-stream does exist in Emacs 23, but is simpler.
+
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Custom Themes): Also document load-theme etc.
+
 2012-04-14  Chong Yidong  <cyd@gnu.org>
 
 	* customize.texi (Applying Customizations):

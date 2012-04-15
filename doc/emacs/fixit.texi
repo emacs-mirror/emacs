@@ -57,9 +57,9 @@ Undo one entry in the current buffer's undo records (@code{undo}).
 @kbd{C-x u})@footnote{Aside from @kbd{C-/}, the @code{undo} command is
 also bound to @kbd{C-x u} because that is more straightforward for
 beginners to remember: @samp{u} stands for ``undo''.  It is also bound
-to @kbd{C-_} because typing @kbd{C-/} on some text-only terminals
-actually enters @kbd{C-_}.}.  This undoes the most recent change in
-the buffer, and moves point back to where it was before that change.
+to @kbd{C-_} because typing @kbd{C-/} on some text terminals actually
+enters @kbd{C-_}.}.  This undoes the most recent change in the buffer,
+and moves point back to where it was before that change.
 
   Consecutive repetitions of @kbd{C-/} (or its aliases) undo earlier
 and earlier changes in the current buffer.  If all the recorded

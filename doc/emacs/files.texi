@@ -1853,7 +1853,7 @@ When typing a file name in the minibuffer, @kbd{C-@key{tab}}
 (@code{file-cache-minibuffer-complete}) completes it using the file
 name cache.  If you repeat @kbd{C-@key{tab}}, that cycles through the
 possible completions of what you had originally typed.  (However, note
-that the @kbd{C-@key{tab}} character cannot be typed on most text-only
+that the @kbd{C-@key{tab}} character cannot be typed on most text
 terminals.)
 
   The file name cache does not fill up automatically.  Instead, you
