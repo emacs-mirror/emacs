@@ -1,5 +1,11 @@
 2012-04-15  Chong Yidong  <cyd@gnu.org>
 
+	* frame.el (scrolling): Remove nearly unused customization group.
+
+	* scroll-all.el (scroll-all-mode): Move to windows group.
+
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
 	* bindings.el (goto-map): Bind goto-char to M-g c (Bug#11240).
 
 2012-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>

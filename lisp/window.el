@@ -5443,7 +5443,7 @@ A value of t means point moves to the beginning or the end of the buffer
 \(depending on scrolling direction) when no more scrolling possible.
 When point is already on that position, then signal an error."
   :type 'boolean
-  :group 'scrolling
+  :group 'windows
   :version "24.1")
 
 (defun scroll-up-command (&optional arg)
