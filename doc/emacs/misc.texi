@@ -1510,14 +1510,16 @@ the @samp{-c} option, the new frame displays the @file{*scratch*}
 buffer (@pxref{Buffers}).  See below for the special behavior of
 @kbd{C-x C-c} in a client frame.
 
-On GNU and Unix systems, Emacs can create a graphical frame even if it
-was started in a text terminal, provided it is able to connect to a
-graphical display.  On systems such as MS-Windows, it cannot create
-graphical frames if it was started from a text terminal
-(@pxref{Windows Startup, emacsclient}).  If Emacs cannot connect to a
-graphical display for any reason, it instead creates a new client
-frame on the text terminal from which you invoked
-@command{emacsclient} (@pxref{Non-Window Terminals}).
+If Emacs is unable to create a new graphical frame (e.g.@: if it is
+unable to connect to the X server), it tries to create a text terminal
+client frame, as though you had supplied the @samp{-t} option instead
+(see below).
+
+On MS-Windows, a single Emacs session cannot display frames on both
+graphical and text terminals, nor on multiple text terminals.  Thus,
+if the Emacs server is running on a text terminal, the @samp{-c}
+option, like the @samp{-t} option, creates a new frame in the server's
+current text terminal.  @xref{Windows Startup}.
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
@@ -1607,23 +1609,38 @@ supplying this option, the new frame displays the @file{*scratch*}
 buffer (@pxref{Buffers}).  See below for the special behavior of
 @kbd{C-x C-c} in a client frame.
 
-On GNU and Unix systems, Emacs can open a text terminal even if it was
-started in another text terminal, or on a graphical display.  On
-systems where this is impossible, such as MS-Windows, Emacs instead
-creates a new frame on the same terminal where it was started
-(@pxref{Windows Startup, emacsclient}).
+On MS-Windows, a single Emacs session cannot display frames on both
+graphical and text terminals, nor on multiple text terminals.  Thus,
+if the Emacs server is using the graphical display, @samp{-t} behaves
+like @samp{-c} (see above); whereas if the Emacs server is running on
+a text terminal, it creates a new frame in its current text terminal.
+@xref{Windows Startup}.
 @end table
 
-  If you type @kbd{C-x C-c} in a client frame created by
-@command{emacsclient} (via the @samp{-c} or @samp{-t} options), that
-command does not kill the main Emacs session as it normally does
-(@pxref{Exiting}).  Instead, Emacs deletes the client frame; and if
-@command{emacsclient} was waiting for server edits to finish, Emacs
-marks the client's server buffers as finished (as though you had typed
-@kbd{C-x #} in all of them), allowing @command{emacsclient} to regain
-control and exit.  When Emacs is started as a daemon, all frames are
-considered client frames, so @kbd{C-x C-c} will never kill Emacs.  To
-kill the Emacs process, type @kbd{M-x kill-emacs}.
+  The new graphical or text terminal frames created by the @samp{-c}
+or @samp{-t} options are considered @dfn{client frames}.  Any new
+frame that you create from a client frame is also considered a client
+frame.  If you type @kbd{C-x C-c} (@code{save-buffers-kill-terminal})
+in a client frame, that command does not kill the Emacs session as it
+normally does (@pxref{Exiting}).  Instead, Emacs deletes the client
+frame; furthermore, if the client frame has an @command{emacsclient}
+waiting to regain control (i.e.@: if you did not supply the @samp{-n}
+option), Emacs deletes all other frames of the same client, and marks
+the client's server buffers as finished, as though you had typed
+@kbd{C-x #} in all of them.  If it so happens that there are no
+remaining frames after the client frame(s) are deleted, the Emacs
+session exits.
+
+  As an exception, when Emacs is started as a daemon, all frames are
+considered client frames, and @kbd{C-x C-c} never kills Emacs.  To
+kill a daemon session, type @kbd{M-x kill-emacs}.
+
+  Note that the @samp{-t} and @samp{-n} options are contradictory:
+@samp{-t} says to take control of the current text terminal to create
+a new client frame, while @samp{-n} says not to take control of the
+text terminal.  If you supply both options, Emacs visits the specified
+files(s) in an existing frame rather than a new client frame, negating
+the effect of @samp{-t}.
 
 @node Printing, Sorting, Emacs Server, Top
 @section Printing Hard Copies

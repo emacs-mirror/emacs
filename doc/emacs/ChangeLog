@@ -1,3 +1,7 @@
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (emacsclient Options): More clarifications.
+
 2012-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* msdog.texi (Windows Printing): It doesn't set printer-name.
