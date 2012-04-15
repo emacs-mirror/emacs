@@ -1,3 +1,12 @@
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Processes, Subprocess Creation, Shell Arguments):
+	(Synchronous Processes): Copyedits.
+	(Subprocess Creation): Discourage modifying exec-path directly.
+	(Synchronous Processes): Update some example output.
+	(Process Information): Fix typo.
+	(Bindat Spec): Use Texinfo-recommended form of quote+punctuation.
+
 2012-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* anti.texi (Antinews): Copyedits.  Don't @dfn anything here.

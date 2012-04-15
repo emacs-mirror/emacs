@@ -1,3 +1,7 @@
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (process-file-side-effects): Doc fix.
+
 2012-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* international/mule-cmds.el (set-language-environment): Doc fix.

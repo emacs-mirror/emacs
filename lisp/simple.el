@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985-1987, 1993-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -2677,13 +2677,13 @@ value passed."
 (defvar process-file-side-effects t
   "Whether a call of `process-file' changes remote files.
 
-Per default, this variable is always set to `t', meaning that a
+By default, this variable is always set to `t', meaning that a
 call of `process-file' could potentially change any file on a
 remote host.  When set to `nil', a file handler could optimize
-its behavior with respect to remote file attributes caching.
+its behavior with respect to remote file attribute caching.
 
-This variable should never be changed by `setq'.  Instead of, it
-shall be set only by let-binding.")
+You should only ever change this variable with a let-binding;
+never with `setq'.")
 
 (defun start-file-process (name buffer program &rest program-args)
   "Start a program in a subprocess.  Return the process object for it.
