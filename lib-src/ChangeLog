@@ -67,7 +67,7 @@
 	* makefile.w32-in (LOCAL_FLAGS): Add $(EMACS_EXTRA_C_FLAGS).
 
 	* emacsclient.c (main) <environ>: Remove declaration, already
-	pulled in by unistd.h on Posix hosts and stdlib.h on MS-Windows.
+	pulled in by unistd.h on POSIX hosts and stdlib.h on MS-Windows.
 
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
@@ -6651,7 +6651,7 @@
 
 1993-08-25  Paul Eggert  (eggert@twinsun.com)
 
-	* rcs2log: Change /{/ to /\{/ for Posix ERE compatibility;
+	* rcs2log: Change /{/ to /\{/ for POSIX ERE compatibility;
 	otherwise, HP awk complains.
 
 	* vcdiff: Append /usr/ccs/bin and /usr/sccs to PATH, since these
@@ -6998,7 +6998,7 @@
 
 	* rcs2log: mawk, SunOS 4.1.3 nawk, and Ultrix/MKS nawk all barf on
 	/[/]/, so change it to /[\/]/.  This should work on all
-	Posix-compliant awks.  It's slightly wrong with traditional awk,
+	POSIX-compliant awks.  It's slightly wrong with traditional awk,
 	since it matches \ too, but that's a minor problem compared to awk
 	syntax errors.
 

@@ -51,7 +51,7 @@
 
 	* alloc.c (lisp_align_malloc): Remove unneeded prototype.
 
-2012-04-10  "Jason S. Cornez"  <jcornez@ravenpack.com>  (tiny change)
+2012-04-10  Jason S. Cornez  <jcornez@ravenpack.com>  (tiny change)
 
 	* keyboard.c: Override inhibit-quit after the third C-g (bug#6585).
 	(force_quit_count): New var.
@@ -1550,7 +1550,7 @@
 	* xfns.c (unwind_create_frame): Fix comment.
 	(Fx_create_frame, x_create_tip_frame):
 	Move terminal->reference_count++ just before making the frame
-	official. Move initialization of image_cache_refcount and
+	official.  Move initialization of image_cache_refcount and
 	dpyinfo_refcount before calling init_frame_faces (Bug#9943).
 
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
@@ -7323,7 +7323,7 @@
 	* xfaces.c <Qunspecified>: Make extern again.
 
 	* syntax.c: Include sys/types.h before including regex.h, as
-	required by Posix.
+	required by POSIX.
 
 	* doc.c (get_doc_string): Improve the format passed to `error'.
 

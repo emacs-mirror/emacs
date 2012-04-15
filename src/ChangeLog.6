@@ -3236,7 +3236,7 @@
 
 1995-12-12  Paul Eggert  <eggert@twinsun.com>
 
-	* process.c (create_process): Use Posix signal handling to
+	* process.c (create_process): Use POSIX signal handling to
 	block signals, if available.  If HAVE_VFORK, save and restore
 	signal handlers that the child might change, since in many
 	systems (e.g. Solaris 2.4) if the child changes the signal

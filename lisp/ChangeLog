@@ -12,8 +12,7 @@
 2012-04-14  Michal Nazarewicz  <mina86@mina86.com>
 
 	* server.el (server-auth-key): New variable.
-	(server-generate-key): New function.
-	(server-get-auth-key): New function.
+	(server-generate-key, server-get-auth-key): New function.
 	(server-start): Use the new variable and functions to allow
 	setting a permanent server key (bug#9423).
 
@@ -156,11 +155,10 @@
 
 	* hexl.el (hexl-bits): New variable.
 	(hexl-options): Mention the variable in the doc string.
-	(hexl-rulerise): New function.
-	(hexl-line-displen): New function
+	(hexl-rulerise, hexl-line-displen): New functions.
 	(hexl-mode): Mention the new variable.
-	(hexl-mode, hexl-current-address, hexl-current-address): Use the
-	displen.
+	(hexl-mode, hexl-current-address, hexl-current-address):
+	Use the displen.
 	(hexl-ascii-start-column): New function.
 	(hexl-address-to-marker, hexl-beginning-of-line, hexl-options)
 	(hexl-insert-char, hexl-mode-ruler): Use the displen (bug#4941).
@@ -223,7 +221,7 @@
 
 	* emacs-lisp/lisp.el (narrow-to-defun): `beginning-of-defun' goes
 	to previous function when point is on the first character of a
-	function. Take care of that in `narrow-to-defun' (bug#6157).
+	function.  Take care of that in `narrow-to-defun' (bug#6157).
 
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
@@ -285,8 +283,8 @@
 2012-04-10  Laimonas Vėbra  <laimonas.vebra@gmail.com>  (tiny change)
 
 	* language/european.el (cp775): Add oem/legacy (en)coding on
-	DOS/MS Windows for the Baltic languages. There are still plenty of
-	texts written in this encoding/codepage (bug#6519).
+	DOS/MS Windows for the Baltic languages.  There are still plenty
+	of texts written in this encoding/codepage (bug#6519).
 
 2012-04-10  Glenn Morris  <rgm@gnu.org>
 
@@ -476,8 +474,8 @@
 2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-get-extended-character-mode): Disable
-	extended-char-mode for hunspell. hunspell does not support it and
-	treats ~word as ordinary words in pipe mode.
+	extended-char-mode for hunspell.  hunspell does not support it
+	and treats ~word as ordinary words in pipe mode.
 
 2012-03-30  Glenn Morris  <rgm@gnu.org>
 
@@ -707,7 +705,7 @@
 	(hfy-face-to-css-default): Same as the earlier `hfy-face-to-css'.
 	(hfy-face-to-css): Re-defined to be a variable.
 	(hfy-compile-stylesheet): Modify.  Allow stylesheet to be built
-	over multiple runs. This is made possible by having the caller let
+	over multiple runs.  This is made possible by having the caller let
 	bind a special variable `hfy-user-sheet-assoc'.
 	(htmlfontify-string): New defun.
 	(hfy-compile-face-map): Make sure that the last char in the
@@ -940,7 +938,7 @@
 
 2012-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el: (dbus-property-handler): Return empty array if
+	* net/dbus.el (dbus-property-handler): Return empty array if
 	there are no properties.
 
 2012-03-09  Leo Liu  <sdl.web@gmail.com>

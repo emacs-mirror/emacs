@@ -9641,7 +9641,7 @@
 
 2010-03-12  Eli Zaretskii  <eliz@gnu.org>
 
-	These changes remove termcap.c from the build on Posix platforms.
+	These changes remove termcap.c from the build on POSIX platforms.
 	* Makefile.in (termcapobj): Move termcap.o from here...
 	(MSDOS_OBJ): ...to here.
 	(termcapobj) [!LIBS_TERMCAP]: Remove specialized value, as it is
