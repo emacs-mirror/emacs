@@ -1133,6 +1133,13 @@ The following commands are accepted by the client:
                 ;; Unknown command.
                 (arg (error "Unknown command: %s" arg))))
 
+	    ;; If both -no-wait and -tty are given with file or sexp
+	    ;; arguments, use an existing frame.
+	    (and nowait
+		 (not (eq tty-name 'window-system))
+		 (or files commands)
+		 (setq use-current-frame t))
+
 	    (setq frame
 		  (cond
 		   ((and use-current-frame

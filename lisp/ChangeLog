@@ -1,3 +1,8 @@
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* server.el (server-process-filter): Handle corner case where both
+	tty and nowait options are present (Bug#11102).
+
 2012-04-15  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (process-file-side-effects): Doc fix.

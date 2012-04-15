@@ -1,3 +1,8 @@
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* emacsclient.c (decode_options): Move -t -n corner case handling
+	into server.el (Bug#11102).
+
 2012-04-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (decode_options) [WINDOWSNT]:

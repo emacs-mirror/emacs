@@ -638,32 +638,23 @@ decode_options (int argc, char **argv)
   if (display && strlen (display) == 0)
     display = NULL;
 
-#ifdef WINDOWSNT
-  /* Emacs on Windows does not support GUI and console frames in the same
-     instance.  So, it makes sense to treat the -t and -c options as
-     equivalent, and open a new frame regardless of whether the running
-     instance is GUI or console.  Ideally, we would only set tty = 1 when
-     the instance is running in a console, but alas we don't know that.
-     The simplest workaround is to always ask for a tty frame, and let
-     server.el check whether it makes sense.  */
-  if (tty || !current_frame)
-    {
-      display = (const char *) ttyname (0);  /* Arg is ignored.  */
-      current_frame = 0;
-      tty = 1;
-    }
-#endif
-
   /* If no display is available, new frames are tty frames.  */
   if (!current_frame && !display)
     tty = 1;
 
-  /* --no-wait implies --current-frame on ttys when there are file
-     arguments or expressions given.  */
-  if (nowait && tty && argc - optind > 0)
-    current_frame = 1;
-
 #ifdef WINDOWSNT
+  /* Emacs on Windows does not support graphical and text terminal
+     frames in the same instance.  So, treat the -t and -c options as
+     equivalent, and open a new frame on the server's terminal.
+     Ideally, we would only set tty = 1 when the serve is running in a
+     console, but alas we don't know that.  As a workaround, always
+     ask for a tty frame, and let server.el figure it out.  */
+  if (!current_frame)
+    {
+      display = NULL;
+      tty = 1;
+    }
+
   if (alternate_editor && alternate_editor[0] == '\0')
     {
       message (TRUE, "--alternate-editor argument or ALTERNATE_EDITOR variable cannot be\n\
