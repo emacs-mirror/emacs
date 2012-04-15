@@ -47,6 +47,8 @@ prompts for a column number.
 ** `C-M-f' and `C-M-b' will now move to the path name separator
 character when doing minibuffer filename prompts.
 
+** `goto-char' is now bound to `M-g c'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 

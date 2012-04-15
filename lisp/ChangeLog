@@ -1,3 +1,7 @@
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el (goto-map): Bind goto-char to M-g c (Bug#11240).
+
 2012-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Avoid the use of ((lambda ...) ...) in lexical-binding code.
