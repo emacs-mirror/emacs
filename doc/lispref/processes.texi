@@ -496,6 +496,7 @@ inputinput@point{}
  "-c" command)        ; @r{arguments for the shell}
 @end group
 @end smallexample
+@c It actually uses shell-command-switch, but no need to mention that here.
 @end defun
 
 @defun call-process-shell-command command &optional infile destination display &rest args
@@ -562,7 +563,8 @@ The remaining arguments, @var{args}, are strings that specify command
 line arguments for the program.
 
 In the example below, the first process is started and runs (rather,
-sleeps) for 100 seconds.  Meanwhile, the second process is started, and
+sleeps) for 100 seconds (the output buffer @samp{foo} is created
+immediately).  Meanwhile, the second process is started, and
 given the name @samp{my-process<1>} for the sake of uniqueness.  It
 inserts the directory listing at the end of the buffer @samp{foo},
 before the first process finishes.  Then it finishes, and a message to
@@ -576,13 +578,15 @@ finishes, and another message is inserted in the buffer for it.
 @end group
 
 @group
-(start-process "my-process" "foo" "ls" "-l" "/user/lewis/bin")
+(start-process "my-process" "foo" "ls" "-l" "/bin")
      @result{} #<process my-process<1>>
 
 ---------- Buffer: foo ----------
-total 2
-lrwxrwxrwx  1 lewis     14 Jul 22 10:12 gnuemacs --> /emacs
--rwxrwxrwx  1 lewis     19 Jul 30 21:02 lemon
+total 8336
+-rwxr-xr-x 1 root root 971384 Mar 30 10:14 bash
+-rwxr-xr-x 1 root root 146920 Jul  5  2011 bsd-csh
+@dots{}
+-rwxr-xr-x 1 root root 696880 Feb 28 15:55 zsh4
 
 Process my-process<1> finished
 
@@ -595,45 +599,49 @@ Process my-process finished
 @defun start-file-process name buffer-or-name program &rest args
 Like @code{start-process}, this function starts a new asynchronous
 subprocess running @var{program} in it, and returns its process
-object---when @code{default-directory} is not a magic file name.
+object.
 
-If @code{default-directory} is magic, the function invokes its file
-handler instead.  This handler ought to run @var{program}, perhaps on
-the local host, perhaps on a remote host that corresponds to
-@code{default-directory}.  In the latter case, the local part of
-@code{default-directory} becomes the working directory of the process.
+The difference from @code{start-process} is that this function may
+invoked a file handler based on the value of @code{default-directory}.
+This handler ought to run @var{program}, perhaps on the local host,
+perhaps on a remote host that corresponds to @code{default-directory}.
+In the latter case, the local part of @code{default-directory} becomes
+the working directory of the process.
 
 This function does not try to invoke file name handlers for
 @var{program} or for the @var{program-args}.
 
 Depending on the implementation of the file handler, it might not be
 possible to apply @code{process-filter} or @code{process-sentinel} to
-the resulting process object (@pxref{Filter Functions}, @pxref{Sentinels}).
+the resulting process object.  @xref{Filter Functions}, and @ref{Sentinels}.
 
+@c FIXME  Can we find a better example (i.e. a more modern function
+@c that is actually documented).
 Some file handlers may not support @code{start-file-process} (for
-example @code{ange-ftp-hook-function}).  In such cases, the function
-does nothing and returns @code{nil}.
+example the function @code{ange-ftp-hook-function}).  In such cases,
+this function does nothing and returns @code{nil}.
 @end defun
 
 @defun start-process-shell-command name buffer-or-name command
-This function is like @code{start-process} except that it uses a shell
+This function is like @code{start-process}, except that it uses a shell
 to execute the specified command.  The argument @var{command} is a shell
 command name.  The variable @code{shell-file-name} specifies which shell to
 use.
 
 The point of running a program through the shell, rather than directly
 with @code{start-process}, is so that you can employ shell features such
-as wildcards in the arguments.  It follows that if you include an
-arbitrary user-specified arguments in the command, you should quote it
+as wildcards in the arguments.  It follows that if you include any
+arbitrary user-specified arguments in the command, you should quote them
 with @code{shell-quote-argument} first, so that any special shell
 characters do @emph{not} have their special shell meanings.  @xref{Shell
-Arguments}.
+Arguments}.  Of course, when executing commands based on user input
+you should also consider the security implications.
 @end defun
 
 @defun start-file-process-shell-command name buffer-or-name command
 This function is like @code{start-process-shell-command}, but uses
-@code{start-file-process} internally.  By this, @var{command} can be
-executed also on remote hosts, depending on @code{default-directory}.
+@code{start-file-process} internally.  Because of this, @var{command}
+can also be executed on remote hosts, depending on @code{default-directory}.
 @end defun
 
 @defvar process-connection-type
@@ -658,7 +666,7 @@ with one subprocess by binding the variable around the call to
 
 @smallexample
 @group
-(let ((process-connection-type nil))  ; @r{Use a pipe.}
+(let ((process-connection-type nil))  ; @r{use a pipe}
   (start-process @dots{}))
 @end group
 @end smallexample
@@ -675,9 +683,9 @@ Information}).
   @dfn{Deleting a process} disconnects Emacs immediately from the
 subprocess.  Processes are deleted automatically after they terminate,
 but not necessarily right away.  You can delete a process explicitly
-at any time.  If you delete a terminated process explicitly before it
+at any time.  If you explicitly delete a terminated process before it
 is deleted automatically, no harm results.  Deleting a running
-process sends a signal to terminate it (and its child processes if
+process sends a signal to terminate it (and its child processes, if
 any), and calls the process sentinel if it has one.  @xref{Sentinels}.
 
   When a process is deleted, the process object itself continues to
