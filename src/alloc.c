@@ -3136,17 +3136,29 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
 			   Symbol Allocation
  ***********************************************************************/
 
+/* Like struct Lisp_Symbol, but padded so that the size is a multiple
+   of the required alignment if LSB tags are used.  */
+
+union aligned_Lisp_Symbol
+{
+  struct Lisp_Symbol s;
+#ifdef USE_LSB_TAG
+  unsigned char c[(sizeof (struct Lisp_Symbol) + (1 << GCTYPEBITS) - 1)
+		  & -(1 << GCTYPEBITS)];
+#endif
+};
+
 /* Each symbol_block is just under 1020 bytes long, since malloc
    really allocates in units of powers of two and uses 4 bytes for its
    own overhead. */
 
 #define SYMBOL_BLOCK_SIZE \
-  ((1020 - sizeof (struct symbol_block *)) / sizeof (struct Lisp_Symbol))
+  ((1020 - sizeof (struct symbol_block *)) / sizeof (union aligned_Lisp_Symbol))
 
 struct symbol_block
 {
   /* Place `symbols' first, to preserve alignment.  */
-  struct Lisp_Symbol symbols[SYMBOL_BLOCK_SIZE];
+  union aligned_Lisp_Symbol symbols[SYMBOL_BLOCK_SIZE];
   struct symbol_block *next;
 };
 
@@ -3202,7 +3214,7 @@ Its value and function definition are void, and its property list is nil.  */)
 	  symbol_block = new;
 	  symbol_block_index = 0;
 	}
-      XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index]);
+      XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index].s);
       symbol_block_index++;
     }
 
@@ -3230,16 +3242,28 @@ Its value and function definition are void, and its property list is nil.  */)
 		       Marker (Misc) Allocation
  ***********************************************************************/
 
+/* Like union Lisp_Misc, but padded so that its size is a multiple of
+   the required alignment when LSB tags are used.  */
+
+union aligned_Lisp_Misc
+{
+  union Lisp_Misc m;
+#ifdef USE_LSB_TAG
+  unsigned char c[(sizeof (union Lisp_Misc) + (1 << GCTYPEBITS) - 1)
+		  & -(1 << GCTYPEBITS)];
+#endif
+};
+
 /* Allocation of markers and other objects that share that structure.
    Works like allocation of conses. */
 
 #define MARKER_BLOCK_SIZE \
-  ((1020 - sizeof (struct marker_block *)) / sizeof (union Lisp_Misc))
+  ((1020 - sizeof (struct marker_block *)) / sizeof (union aligned_Lisp_Misc))
 
 struct marker_block
 {
   /* Place `markers' first, to preserve alignment.  */
-  union Lisp_Misc markers[MARKER_BLOCK_SIZE];
+  union aligned_Lisp_Misc markers[MARKER_BLOCK_SIZE];
   struct marker_block *next;
 };
 
@@ -3284,7 +3308,7 @@ allocate_misc (void)
 	  marker_block_index = 0;
 	  total_free_markers += MARKER_BLOCK_SIZE;
 	}
-      XSETMISC (val, &marker_block->markers[marker_block_index]);
+      XSETMISC (val, &marker_block->markers[marker_block_index].m);
       marker_block_index++;
     }
 
@@ -6070,22 +6094,22 @@ gc_sweep (void)
     for (sblk = symbol_block; sblk; sblk = *sprev)
       {
 	int this_free = 0;
-	struct Lisp_Symbol *sym = sblk->symbols;
-	struct Lisp_Symbol *end = sym + lim;
+	union aligned_Lisp_Symbol *sym = sblk->symbols;
+	union aligned_Lisp_Symbol *end = sym + lim;
 
 	for (; sym < end; ++sym)
 	  {
 	    /* Check if the symbol was created during loadup.  In such a case
 	       it might be pointed to by pure bytecode which we don't trace,
 	       so we conservatively assume that it is live.  */
-	    int pure_p = PURE_POINTER_P (XSTRING (sym->xname));
+	    int pure_p = PURE_POINTER_P (XSTRING (sym->s.xname));
 
-	    if (!sym->gcmarkbit && !pure_p)
+	    if (!sym->s.gcmarkbit && !pure_p)
 	      {
-		if (sym->redirect == SYMBOL_LOCALIZED)
-		  xfree (SYMBOL_BLV (sym));
-		sym->next = symbol_free_list;
-		symbol_free_list = sym;
+		if (sym->s.redirect == SYMBOL_LOCALIZED)
+		  xfree (SYMBOL_BLV (&sym->s));
+		sym->s.next = symbol_free_list;
+		symbol_free_list = &sym->s;
 #if GC_MARK_STACK
 		symbol_free_list->function = Vdead;
 #endif
@@ -6095,8 +6119,8 @@ gc_sweep (void)
 	      {
 		++num_used;
 		if (!pure_p)
-		  UNMARK_STRING (XSTRING (sym->xname));
-		sym->gcmarkbit = 0;
+		  UNMARK_STRING (XSTRING (sym->s.xname));
+		sym->s.gcmarkbit = 0;
 	      }
 	  }
 
@@ -6108,7 +6132,7 @@ gc_sweep (void)
 	  {
 	    *sprev = sblk->next;
 	    /* Unhook from the free list.  */
-	    symbol_free_list = sblk->symbols[0].next;
+	    symbol_free_list = sblk->symbols[0].s.next;
 	    lisp_free (sblk);
 	  }
 	else
@@ -6138,22 +6162,22 @@ gc_sweep (void)
 
 	for (i = 0; i < lim; i++)
 	  {
-	    if (!mblk->markers[i].u_any.gcmarkbit)
+	    if (!mblk->markers[i].m.u_any.gcmarkbit)
 	      {
-		if (mblk->markers[i].u_any.type == Lisp_Misc_Marker)
-		  unchain_marker (&mblk->markers[i].u_marker);
+		if (mblk->markers[i].m.u_any.type == Lisp_Misc_Marker)
+		  unchain_marker (&mblk->markers[i].m.u_marker);
 		/* Set the type of the freed object to Lisp_Misc_Free.
 		   We could leave the type alone, since nobody checks it,
 		   but this might catch bugs faster.  */
-		mblk->markers[i].u_marker.type = Lisp_Misc_Free;
-		mblk->markers[i].u_free.chain = marker_free_list;
-		marker_free_list = &mblk->markers[i];
+		mblk->markers[i].m.u_marker.type = Lisp_Misc_Free;
+		mblk->markers[i].m.u_free.chain = marker_free_list;
+		marker_free_list = &mblk->markers[i].m;
 		this_free++;
 	      }
 	    else
 	      {
 		num_used++;
-		mblk->markers[i].u_any.gcmarkbit = 0;
+		mblk->markers[i].m.u_any.gcmarkbit = 0;
 	      }
 	  }
 	lim = MARKER_BLOCK_SIZE;
@@ -6164,7 +6188,7 @@ gc_sweep (void)
 	  {
 	    *mprev = mblk->next;
 	    /* Unhook from the free list.  */
-	    marker_free_list = mblk->markers[0].u_free.chain;
+	    marker_free_list = mblk->markers[0].m.u_free.chain;
 	    lisp_free (mblk);
 	  }
 	else

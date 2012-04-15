@@ -1,3 +1,16 @@
+2012-04-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h (struct Lisp_Symbol): Remove explicit padding.
+	(struct Lisp_Misc_Any): Likewise.
+	(struct Lisp_Free): Likewise.
+	* alloc.c (union aligned_Lisp_Symbol): Define.
+	(SYMBOL_BLOCK_SIZE, struct symbol_block): Use union
+	aligned_Lisp_Symbol instead of struct Lisp_Symbol.
+	(union aligned_Lisp_Misc): Define.
+	(MARKER_BLOCK_SIZE, struct marker_block): Use union
+	aligned_Lisp_Misc instead of union Lisp_Misc.
+	(Fmake_symbol, allocate_misc, gc_sweep): Adjust
+
 2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make GC_MAKE_GCPROS_NOOPS the default (Bug#9926).
