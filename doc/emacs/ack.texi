@@ -690,8 +690,8 @@ directory-local variables; and the @code{info-finder} feature that
 creates a virtual Info manual of package keywords.
 
 @item
-Károly L@H{o}rentey wrote the ``multi-terminal'' code, which allows Emacs to
-run on graphical and text-only terminals simultaneously.
+Károly L@H{o}rentey wrote the ``multi-terminal'' code, which allows
+Emacs to run on graphical and text terminals simultaneously.
 
 @item
 Martin Lorentzon wrote @file{vc-annotate.el}, support for version

@@ -1195,7 +1195,7 @@
 2005-06-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/socket.h: Change arg 4 of sys_setsockopt to
-	`const void *', for consistency with Posix.
+	`const void *', for consistency with POSIX.
 
 2005-06-04  Eli Zaretskii  <eliz@gnu.org>
 

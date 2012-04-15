@@ -868,6 +868,7 @@ if `inhibit-field-text-motion' is non-nil."
   "Keymap for navigation commands.")
 (define-key esc-map "g" goto-map)
 
+(define-key goto-map    "c" 'goto-char)
 (define-key goto-map    "g" 'goto-line)
 (define-key goto-map "\M-g" 'goto-line)
 (define-key goto-map    "n" 'next-error)

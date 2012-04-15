@@ -1,3 +1,37 @@
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (emacsclient Options): More clarifications.
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* msdog.texi (Windows Printing): It doesn't set printer-name.
+
+	* mule.texi (Language Environments): Move font info to "Fontsets".
+	(Fontsets): Move intlfonts etc here from "Language Environments".
+	Copyedits.
+	(Defining Fontsets, Modifying Fontsets, Undisplayable Characters)
+	(Unibyte Mode, Charsets, Bidirectional Editing): Copyedits.
+
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* glossary.texi (Glossary): Standardize on "text terminal"
+	terminology.  All callers changed.
+
+	* misc.texi (emacsclient Options): Document "client frame" concept
+	and its effect on C-x C-c more carefully.
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Scroll Bars):
+	* glossary.texi (Glossary): Use consistent case for "X Window System".
+
+	* mule.texi (Select Input Method, Coding Systems):
+	State command names in kbd tables.
+	(Recognize Coding): Add cross-ref.
+	(Output Coding): Don't mention message mode in particular.
+	(Text Coding, Communication Coding, File Name Coding, Terminal Coding):
+	Copyedits.
+
 2012-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* mule.texi (Select Input Method, Coding Systems, Recognize Coding):

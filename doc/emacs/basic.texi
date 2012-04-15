@@ -372,7 +372,7 @@ the text in the region.  @xref{Mark}, for a description of the region.
   On most keyboards, @key{DEL} is labeled @key{Backspace}, but we
 refer to it as @key{DEL} in this manual.  (Do not confuse @key{DEL}
 with the @key{Delete} key; we will discuss @key{Delete} momentarily.)
-On some text-only terminals, Emacs may not recognize the @key{DEL} key
+On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
   The @key{delete} (@code{delete-forward-char}) command deletes in the
@@ -530,7 +530,7 @@ too long to fit in the window, and Emacs displays it as two or more
 @dfn{continuation}, and the long logical line is called a
 @dfn{continued line}.  On a graphical display, Emacs indicates line
 wrapping with small bent arrows in the left and right window fringes.
-On a text-only terminal, Emacs indicates line wrapping by displaying a
+On a text terminal, Emacs indicates line wrapping by displaying a
 @samp{\} character at the right margin.
 
   Most commands that act on lines act on logical lines, not screen
@@ -545,9 +545,9 @@ and up, respectively, by one screen line (@pxref{Moving Point}).
 continuing them.  This means that every logical line occupies a single
 screen line; if it is longer than the width of the window, the rest of
 the line is not displayed.  On a graphical display, a truncated line
-is indicated by a small straight arrow in the right fringe; on a
-text-only terminal, it is indicated by a @samp{$} character in the
-right margin.  @xref{Line Truncation}.
+is indicated by a small straight arrow in the right fringe; on a text
+terminal, it is indicated by a @samp{$} character in the right margin.
+@xref{Line Truncation}.
 
   By default, continued lines are wrapped at the right window edge.
 Since the wrapping may occur in the middle of a word, continued lines

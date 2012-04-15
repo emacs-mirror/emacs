@@ -181,7 +181,7 @@ Emacs supports a number of character sets, each of which represents a
 particular alphabet or script.  @xref{International}.
 
 @item Character Terminal
-@xref{Glossary - Text-only Terminal}.
+@xref{Glossary - Text Terminal}.
 
 @item Click Event
 A click event is the kind of input event (q.v.@:) generated when you
@@ -193,7 +193,7 @@ press a mouse button and release it without moving the mouse.
 
 @item Clipboard
 A clipboard is a buffer provided by the window system for transferring
-text between applications.  On the X Window system, the clipboard is
+text between applications.  On the X Window System, the clipboard is
 provided in addition to the primary selection (q.v.@:); on MS-Windows and Mac,
 the clipboard is used @emph{instead} of the primary selection.
 @xref{Clipboard}.
@@ -1329,12 +1329,12 @@ Data consisting of written human language (as opposed to programs),
 or following the stylistic conventions of human language.
 @end itemize
 
-@anchor{Glossary - Text-only Terminal}
-@item Text-only Terminal
-A text-only terminal is a display that is limited to displaying text in
-character units.  Such a terminal cannot control individual pixels it
-displays.  Emacs supports a subset of display features on text-only
-terminals.
+@anchor{Glossary - Text Terminal}
+@item Text Terminal
+A text terminal, or character terminal, is a display that is limited
+to displaying text in character units.  Such a terminal cannot control
+individual pixels it displays.  Emacs supports a subset of display
+features on text terminals.
 
 @item Text Properties
 Text properties are annotations recorded for particular characters in
@@ -1384,7 +1384,7 @@ displaying it.  @xref{Continuation Lines,Truncation}, and
 @ref{Glossary - Continuation Line}.
 
 @item TTY
-@xref{Glossary - Text-only Terminal}.
+@xref{Glossary - Text Terminal}.
 
 @item Undoing
 Undoing means making your previous editing go in reverse, bringing
