@@ -1557,21 +1557,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
     'delete-frame-functions "22.1")
 
 
-;; Highlighting trailing whitespace.
-
-(make-variable-buffer-local 'show-trailing-whitespace)
-
-
-;; Scrolling
-
-(defgroup scrolling nil
-  "Scrolling windows."
-  :version "21.1"
-  :group 'frames)
-
-(defvaralias 'automatic-hscrolling 'auto-hscroll-mode)
-
-
 ;; Blinking cursor
 
 (defgroup cursor nil
@@ -1662,6 +1647,13 @@ terminals, cursor blinking is controlled by the terminal."
 (define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
+
+
+;; Misc.
+
+(defvaralias 'automatic-hscrolling 'auto-hscroll-mode)
+
+(make-variable-buffer-local 'show-trailing-whitespace)
 
 (provide 'frame)
 
