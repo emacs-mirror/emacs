@@ -1345,10 +1345,6 @@
 
 2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* files.el (file-subdir-of-p): Fix typo.
-
-2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
-
 	* files.el (files-equal-p, file-subdir-of-p): New functions.
 	(copy-directory): Error when trying to copy a directory on itself.
 	Add missing copy-contents arg to tramp handler.
