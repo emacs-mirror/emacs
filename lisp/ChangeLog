@@ -1,5 +1,9 @@
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
+	* woman.el: Remove eval-after-load for tar-mode.
+	* tar-mode.el (tar-mode-map): Add woman binding and menu entry.
+	(woman-tar-extract-file): Autoload it.
+
 	* frame.el (automatic-hscrolling): Make this alias obsolete.
 
 2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>

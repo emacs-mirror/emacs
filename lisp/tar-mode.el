@@ -549,6 +549,7 @@ MODE should be an integer which is a file mode value."
     (define-key map "R" 'tar-rename-entry)
     (define-key map "u" 'tar-unflag)
     (define-key map "v" 'tar-view)
+    (define-key map "w" 'woman-tar-extract-file)
     (define-key map "x" 'tar-expunge)
     (define-key map "\177" 'tar-unflag-backwards)
     (define-key map "E" 'tar-extract-other-window)
@@ -566,6 +567,8 @@ MODE should be an integer which is a file mode value."
     (define-key map [menu-bar immediate]
       (cons "Immediate" (make-sparse-keymap "Immediate")))
 
+    (define-key map [menu-bar immediate woman]
+      '("Read Man Page (WoMan)" . woman-tar-extract-file))
     (define-key map [menu-bar immediate view]
       '("View This File" . tar-view))
     (define-key map [menu-bar immediate display]
@@ -677,6 +680,8 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
      (fundamental-mode)
      (signal (car err) (cdr err)))))
 
+(autoload 'woman-tar-extract-file "woman"
+  "In tar mode, run the WoMan man-page browser on this file." t)
 
 (define-minor-mode tar-subfile-mode
   "Minor mode for editing an element of a tar-file.
