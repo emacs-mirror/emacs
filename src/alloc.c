@@ -6320,11 +6320,12 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
      {
        for (sblk = symbol_block; sblk; sblk = sblk->next)
 	 {
-	   struct Lisp_Symbol *sym = sblk->symbols;
+	   union aligned_Lisp_Symbol *aligned_sym = sblk->symbols;
 	   int bn;
 
-	   for (bn = 0; bn < SYMBOL_BLOCK_SIZE; bn++, sym++)
+	   for (bn = 0; bn < SYMBOL_BLOCK_SIZE; bn++, aligned_sym++)
 	     {
+	       struct Lisp_Symbol *sym = &aligned_sym->s;
 	       Lisp_Object val;
 	       Lisp_Object tem;
 
