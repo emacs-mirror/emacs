@@ -1,3 +1,7 @@
+2012-04-16  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el: Trivial cleanup.
+
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/eieio-opt.el (describe-class, describe-generic):
