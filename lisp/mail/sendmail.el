@@ -864,7 +864,7 @@ Prefix arg means don't delete this window."
     (unless return-action
       (dolist (buffer (buffer-list))
 	(if (eq (buffer-local-value 'major-mode buffer) 'rmail-mode)
-	    (setq return-action `(rmail-mail-return ,newbuf)))))
+	    (setq return-action `(rmail-mail-return ,buffer)))))
     (if (and (null arg) return-action)
 	(apply (car return-action) (cdr return-action))
       (switch-to-buffer newbuf))))

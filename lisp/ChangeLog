@@ -1,3 +1,8 @@
+2012-04-16  Chong Yidong  <cyd@gnu.org>
+
+	* mail/sendmail.el (mail-bury): Call return action with the right
+	Rmail buffer (Bug#11242).
+
 2012-04-15  Chong Yidong  <cyd@gnu.org>
 
 	* server.el (server-process-filter): Handle corner case where both
