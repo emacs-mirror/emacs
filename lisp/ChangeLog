@@ -1,5 +1,10 @@
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/picture.el (picture-desired-column)
+	(picture-update-desired-column): Convert comments to doc-strings.
+	(picture-substitute): Remove function.
+	(picture-mode-map): Initialize in the defvar.
+
 	* woman.el: Remove eval-after-load for tar-mode.
 	* tar-mode.el (tar-mode-map): Add woman binding and menu entry.
 	(woman-tar-extract-file): Autoload it.
