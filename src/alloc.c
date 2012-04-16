@@ -948,9 +948,6 @@ lisp_free (POINTER_TYPE *block)
 /* The entry point is lisp_align_malloc which returns blocks of at most
    BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
-/* Use posix_memalloc if the system has it and we're using the system's
-   malloc (because our gmalloc.c routines don't have posix_memalign although
-   its memalloc could be used).  */
 #if defined (HAVE_POSIX_MEMALIGN) && defined (SYSTEM_MALLOC)
 #define USE_POSIX_MEMALIGN 1
 #endif
@@ -1007,7 +1004,7 @@ struct ablocks
   struct ablock blocks[ABLOCKS_SIZE];
 };
 
-/* Size of the block requested from malloc or memalign.  */
+/* Size of the block requested from malloc or posix_memalign.  */
 #define ABLOCKS_BYTES (sizeof (struct ablocks) - BLOCK_PADDING)
 
 #define ABLOCK_ABASE(block) \

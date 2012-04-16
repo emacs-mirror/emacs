@@ -42,6 +42,14 @@ been adding them there, put them somewhere else, eg site-lisp.
 ** If your Emacs was built from a bzr checkout, the new variable
 `emacs-bzr-version' contains information about which bzr revision was used.
 
+** ImageMagick support, if available, is automatically enabled.
+It is no longer necessary to call `imagemagick-register-types'
+explicitly to install ImageMagick image types; that function is called
+automatically when setting `imagemagick-types-inhibit'.
+
+*** Setting `imagemagick-types-inhibit' to t now disables the use of
+ImageMagick to view images, set
+
 
 * Editing Changes in Emacs 24.2
 
