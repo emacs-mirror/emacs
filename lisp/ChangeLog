@@ -1,3 +1,16 @@
+2012-04-16  Alan Mackenzie  <acm@muc.de>
+
+	Ensure searching for keywords is case sensitive.
+
+	* progmodes/cc-cmds.el (c-electric-brace, c-electric-lt-gt)
+	(c-electric-paren, c-beginning-of-defun, c-end-of-defun)
+	(c-defun-name, c-mark-function, c-cpp-define-name)
+	(c-comment-indent, c-scan-conditionals, c-indent-defun)
+	(c-context-line-break): bind case-fold-search to nil.
+
+	* progmodes/cc-mode.el (c-font-lock-fontify-region): bind
+	case-fold-search to nil.
+
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
 	* mail/sendmail.el (mail-bury): Call return action with the right
