@@ -34,7 +34,7 @@
   :prefix "yow-"
   :group 'games)
 
-(defcustom yow-file (expand-file-name data-directory "yow.lines")
+(defcustom yow-file (expand-file-name "yow.lines" data-directory)
    "File containing pertinent pinhead phrases."
   :type 'file
   :group 'yow)
