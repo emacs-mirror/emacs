@@ -1,3 +1,7 @@
+2012-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (automatic-hscrolling): Make this alias obsolete.
+
 2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-set-spellchecker-params): Post-process
