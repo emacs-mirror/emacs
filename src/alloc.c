@@ -82,6 +82,8 @@ extern POINTER_TYPE *sbrk ();
 
 extern size_t _bytes_used;
 extern size_t __malloc_extra_blocks;
+extern void *_malloc_internal (size_t);
+extern void _free_internal (void *);
 
 #endif /* not DOUG_LEA_MALLOC */
 
@@ -314,7 +316,6 @@ static Lisp_Object Vdead;
 #ifdef GC_MALLOC_CHECK
 
 enum mem_type allocated_mem_type;
-static int dont_register_blocks;
 
 #endif /* GC_MALLOC_CHECK */
 
@@ -391,8 +392,13 @@ static int live_misc_p (struct mem_node *, void *);
 static void mark_maybe_object (Lisp_Object);
 static void mark_memory (void *, void *);
 static void mem_init (void);
+#if (defined GC_MALLOC_CHECK			     \
+     ? !defined SYSTEM_MALLOC && !defined SYNC_INPUT \
+     : GC_MARK_STACK)
+# define NEED_MEM_INSERT
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
+#endif
 static void mem_rotate_left (struct mem_node *);
 static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
@@ -1221,6 +1227,10 @@ static void (*old_free_hook) (void*, const void*);
 #  define BYTES_USED (mallinfo ().uordblks)
 #else
 #  define BYTES_USED _bytes_used
+#endif
+
+#ifdef GC_MALLOC_CHECK
+static int dont_register_blocks;
 #endif
 
 static size_t bytes_used_when_reconsidered;
@@ -3571,6 +3581,8 @@ mem_find (void *start)
 }
 
 
+#ifdef NEED_MEM_INSERT
+
 /* Insert a new node into the tree for a block of memory with start
    address START, end address END, and type TYPE.  Value is a
    pointer to the node that was inserted.  */
@@ -3717,6 +3729,8 @@ mem_insert_fixup (struct mem_node *x)
      it to black so that property #5 is satisfied.  */
   mem_root->color = MEM_BLACK;
 }
+
+#endif /* NEED_MEM_INSERT */
 
 
 /*   (x)                   (y)
