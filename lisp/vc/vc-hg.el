@@ -3,6 +3,7 @@
 ;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
+;; Maintainer: FSF
 ;; Keywords: vc tools
 ;; Package: vc
 
