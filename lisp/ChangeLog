@@ -1,3 +1,8 @@
+2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-set-spellchecker-params): Post-process
+	`ispell-dictionary-alist' to use [:alpha:] if possible.
+
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
 	* image.el (imagemagick--extension-regexp): New variable.

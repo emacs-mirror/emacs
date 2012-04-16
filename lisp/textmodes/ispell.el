@@ -767,6 +767,12 @@ here just for backwards compatibility.")
 (make-obsolete-variable 'ispell-aspell-supports-utf8
                         'ispell-encoding8-command "23.1")
 
+(defvar ispell-emacs-alpha-regexp
+  (if (string-match "^[[:alpha:]]+$" "abcde")
+      "[[:alpha:]]"
+    nil)
+  "[[:alpha:]] if Emacs supports [:alpha:] regexp, nil
+otherwise (current XEmacs does not support it).")
 
 ;;; **********************************************************************
 ;;; The following are used by ispell, and should not be changed.
@@ -1092,8 +1098,7 @@ aspell is used along with Emacs).")
 	       (error nil))
 	     ispell-really-aspell
 	     ispell-encoding8-command
-	     ;; XEmacs does not like [:alpha:] regexps.
-	     (string-match "^[[:alpha:]]+$" "abcde"))
+	     ispell-emacs-alpha-regexp)
 	(unless ispell-aspell-dictionary-alist
 	  (ispell-find-aspell-dictionaries)))
 
@@ -1117,8 +1122,27 @@ aspell is used along with Emacs).")
 			    ispell-dictionary-base-alist))
 	(unless (assoc (car dict) all-dicts-alist)
 	  (add-to-list 'all-dicts-alist dict)))
-      (setq ispell-dictionary-alist all-dicts-alist))))
+      (setq ispell-dictionary-alist all-dicts-alist))
 
+    ;; If Emacs flavor supports [:alpha:] use it for global dicts.  If
+    ;; spellchecker also supports UTF-8 via command-line option use it
+    ;; in communication.  This does not affect definitions in ~/.emacs.
+    (if ispell-emacs-alpha-regexp
+     	(let (tmp-dicts-alist)
+    	  (dolist (adict ispell-dictionary-alist)
+  	    (add-to-list 'tmp-dicts-alist
+   			 (list
+   			  (nth 0 adict)  ; dict name
+    			  "[[:alpha:]]"  ; casechars
+    			  "[^[:alpha:]]" ; not-casechars
+   			  (nth 3 adict)  ; otherchars
+    			  (nth 4 adict)  ; many-otherchars-p
+   			  (nth 5 adict)  ; ispell-args
+   			  (nth 6 adict)  ; extended-character-mode
+			  (if ispell-encoding8-command
+			      'utf-8
+			    (nth 7 adict)))))
+    	  (setq ispell-dictionary-alist tmp-dicts-alist)))))
 
 (defun ispell-valid-dictionary-list ()
   "Return a list of valid dictionaries.
