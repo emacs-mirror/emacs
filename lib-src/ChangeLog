@@ -1,3 +1,10 @@
+2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume less-ancient POSIX support.
+	* update-game-score.c: Include <getopt.h> rather than rolling our
+	own decls for optarg, optind, opterr.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html>.
+
 2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (decode_options) [WINDOWSNT]:
