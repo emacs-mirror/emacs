@@ -1,5 +1,11 @@
 2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix minor ralloc.c problems found by static checking.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html
+	* ralloc.c (ALIGNED, ROUND_TO_PAGE, HEAP_PTR_SIZE)
+	(r_alloc_size_in_use, r_alloc_freeze, r_alloc_thaw): Remove; unused.
+	(r_alloc_sbrk): Now static.
+
 	Improve ralloc.c interface checking.
 	See http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html
 	* buffer.c (ralloc_reset_variable, r_alloc, r_re_alloc)
