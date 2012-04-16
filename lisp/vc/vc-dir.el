@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC
 
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -556,7 +556,7 @@ If a prefix argument is given, move by that many lines."
       (let ((data (ewoc-data crt))
 	    (dir (vc-dir-node-directory crt)))
 	(and (vc-dir-fileinfo->directory data)
-	     (vc-string-prefix-p dir argdir)
+	     (string-prefix-p dir argdir)
 	     (vc-dir-fileinfo->marked data)
 	     (setq found data))))
     found))
@@ -818,7 +818,7 @@ child files."
 		       data)
 		  (while
 		      (and (setq crt (ewoc-next vc-ewoc crt))
-			   (vc-string-prefix-p dir
+			   (string-prefix-p dir
                                                (progn
                                                  (setq data (ewoc-data crt))
                                                  (vc-dir-node-directory crt))))
@@ -846,7 +846,7 @@ If it is a file, return the corresponding cons for the file itself."
 	       data)
 	  (while
 	      (and (setq crt (ewoc-next vc-ewoc crt))
-                   (vc-string-prefix-p dir (progn
+                   (string-prefix-p dir (progn
                                              (setq data (ewoc-data crt))
                                              (vc-dir-node-directory crt))))
 	    (unless (vc-dir-fileinfo->directory data)
@@ -878,10 +878,10 @@ If it is a file, return the corresponding cons for the file itself."
 	children
 	dname)
     ;; Find DIR
-    (while (and crt (not (vc-string-prefix-p
+    (while (and crt (not (string-prefix-p
 			  dirname (vc-dir-node-directory crt))))
       (setq crt (ewoc-next vc-ewoc crt)))
-    (while (and crt (vc-string-prefix-p
+    (while (and crt (string-prefix-p
 		     dirname
 		     (setq dname (vc-dir-node-directory crt))))
       (let ((data (ewoc-data crt)))
@@ -915,7 +915,7 @@ If it is a file, return the corresponding cons for the file itself."
           (if (not (derived-mode-p 'vc-dir-mode))
               (push status-buf drop)
             (let ((ddir default-directory))
-              (when (vc-string-prefix-p ddir file)
+              (when (string-prefix-p ddir file)
                 (if (file-directory-p file)
 		    (progn
 		      (vc-dir-resync-directory-files file)

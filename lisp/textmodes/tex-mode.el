@@ -1492,8 +1492,8 @@ Puts point on a blank line between them."
 
 (defvar latex-complete-bibtex-cache nil)
 
-(defun latex-string-prefix-p (str1 str2)
-  (eq t (compare-strings str1 nil nil str2 0 (length str1))))
+(define-obsolete-function-alias 'latex-string-prefix-p
+  'string-prefix-p "24.2")
 
 (defvar bibtex-reference-key)
 (declare-function reftex-get-bibfile-list "reftex-cite.el" ())
@@ -1507,7 +1507,7 @@ Puts point on a blank line between them."
             keys)
         (if (and (eq (car latex-complete-bibtex-cache)
                      (reftex-get-bibfile-list))
-                 (latex-string-prefix-p (nth 1 latex-complete-bibtex-cache)
+                 (string-prefix-p (nth 1 latex-complete-bibtex-cache)
                                         key))
             ;; Use the cache.
             (setq keys (nth 2 latex-complete-bibtex-cache))
@@ -2051,10 +2051,7 @@ IN can be either a string (with the same % escapes in it) indicating
 OUT describes the output file and is either a %-escaped string
   or nil to indicate that there is no output file.")
 
-;; defsubst* gives better byte-code than defsubst.
-(defsubst* tex-string-prefix-p (str1 str2)
-  "Return non-nil if STR1 is a prefix of STR2"
-  (eq t (compare-strings str2 nil (length str1) str1 nil nil)))
+(define-obsolete-function-alias 'tex-string-prefix-p 'string-prefix-p "24.2")
 
 (defun tex-guess-main-file (&optional all)
   "Find a likely `tex-main-file'.
@@ -2069,7 +2066,7 @@ of the current buffer."
 	(with-current-buffer buf
 	  (when (and (cond
 		      ((null all) (equal dir default-directory))
-		      ((eq all 'sub) (tex-string-prefix-p default-directory dir))
+		      ((eq all 'sub) (string-prefix-p default-directory dir))
 		      (t))
 		     (stringp tex-main-file))
 	    (throw 'found (expand-file-name tex-main-file)))))
@@ -2078,7 +2075,7 @@ of the current buffer."
 	(with-current-buffer buf
 	  (when (and (cond
 		      ((null all) (equal dir default-directory))
-		      ((eq all 'sub) (tex-string-prefix-p default-directory dir))
+		      ((eq all 'sub) (string-prefix-p default-directory dir))
 		      (t))
 		     buffer-file-name
 		     ;; (or (easy-mmode-derived-mode-p 'latex-mode)

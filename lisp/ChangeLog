@@ -4,6 +4,14 @@
 
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc.el (vc-string-prefix-p):
+	* vc/pcvs-util.el (cvs-string-prefix-p):
+	* textmodes/tex-mode.el (latex-string-prefix-p, tex-string-prefix-p):
+	* mpc.el (mpc-string-prefix-p):
+	Make all of these into obsolete aliases for string-prefix-p.
+	Update callers.
+	* vc/pcvs.el, vc/vc-dispatcher.el, vc/vc-dir.el: Update callers.
+
 	* textmodes/two-column.el: Move custom options to the start.
 	(frame-width): Remove compat definition.
 	(2C-associate-buffer, 2C-dissociate):
