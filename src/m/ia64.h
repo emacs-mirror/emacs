@@ -30,13 +30,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_INT		long
 #define pI			"l"
 #define EMACS_UINT		unsigned long
-
-#ifdef REL_ALLOC
-#ifndef _MALLOC_INTERNAL
-/* "char *" because ralloc.c defines it that way.  gmalloc.c thinks it
-   is allowed to prototype these as "void *" so we don't prototype in
-   that case.  You're right: it stinks!  */
-extern char *r_alloc (), *r_re_alloc ();
-extern void r_alloc_free ();
-#endif /* not _MALLOC_INTERNAL */
-#endif /* REL_ALLOC */
