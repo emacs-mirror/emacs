@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -132,11 +132,6 @@
     (define-key map "\t" 'perl-indent-command)
     map)
   "Keymap used in Perl mode.")
-
-(autoload 'c-macro-expand "cmacexp"
-  "Display the result of expanding all C macros occurring in the region.
-The expansion is entirely correct because it uses the C preprocessor."
-  t)
 
 (defvar perl-mode-syntax-table
   (let ((st (make-syntax-table (standard-syntax-table))))
