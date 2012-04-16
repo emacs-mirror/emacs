@@ -1,5 +1,14 @@
 2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix minor alloc.c problems found by static checking.
+	* alloc.c (_malloc_internal, _free_internal) [!DOUG_LEA_MALLOC]:
+	New extern decls, to avoid calling undeclared functions.
+	(dont_register_blocks): Define if ((!SYSTEM_MALLOC && !SYNC_INPUT)
+	&& GC_MALLOC_CHECK), not if ((GC_MARK_STACK || defined
+	GC_MALLOC_CHECK) && GC_MALLOC_CHECK), to match when it's used.
+	(NEED_MEM_INSERT): New macro.
+	(mem_insert, mem_insert_fixup) [!NEED_MEM_INSERT]: Remove; unused.
+
 	Fix minor ralloc.c problems found by static checking.
 	See http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html
 	* ralloc.c (ALIGNED, ROUND_TO_PAGE, HEAP_PTR_SIZE)
