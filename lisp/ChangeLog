@@ -1,5 +1,8 @@
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
+	* play/cookie1.el (cookie-snarf):
+	Give an explicit error if input file cannot be read.
+
 	* play/yow.el (yow-file): Use expand-file-name rather than concat.
 
 	* progmodes/perl-mode.el (c-macro-expand):
