@@ -1,3 +1,16 @@
+2012-04-16  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick--extension-regexp): New variable.
+	(imagemagick-register-types): Use it.
+	(imagemagick-types-inhibit): Add :set function.  Allow new value
+	of t to inhibit all types.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Avoid cl macros,
+	so we can preload it.
+
+	* loadup.el (fboundp): Preload regexp-opt, needed by
+	imagemagick-register-types.
+
 2012-04-15  Chong Yidong  <cyd@gnu.org>
 
 	* frame.el (scrolling): Remove nearly unused customization group.

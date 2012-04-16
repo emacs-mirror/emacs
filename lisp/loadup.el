@@ -193,6 +193,8 @@
 (if (fboundp 'x-create-frame)
     (progn
       (load "fringe")
+      ;; Needed by `imagemagick-register-types'
+      (load "emacs-lisp/regexp-opt")
       (load "image")
       (load "international/fontset")
       (load "dnd")
