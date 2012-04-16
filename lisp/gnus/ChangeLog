@@ -1,3 +1,7 @@
+2012-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* nndraft.el (nndraft-request-list): Fix declaration.
+
 2012-04-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-inews-insert-gcc): Don't do the alist stuff when we
