@@ -3,6 +3,7 @@
 	* processes.texi (Process Information, Input to Processes)
 	(Signals to Processes, Output from Processes, Process Buffers)
 	(Filter Functions, Decoding Output): Copyedits.
+	(Accepting Output): Discourage use of `millisec' argument.
 
 2012-04-15  Glenn Morris  <rgm@gnu.org>
 
