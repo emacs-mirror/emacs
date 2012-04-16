@@ -1,5 +1,8 @@
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/eieio-opt.el (describe-class, describe-generic):
+	Autoload trivia.
+
 	* emacs-lisp/cl-extra.el (*random-state*):
 	Remove unnecessary declaration.
 
