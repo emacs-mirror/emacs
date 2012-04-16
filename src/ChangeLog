@@ -1,3 +1,7 @@
+2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (which_symbols): Fix alignment issue / type clash.
+
 2012-04-15  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lisp.h (struct Lisp_Symbol): Remove explicit padding.
