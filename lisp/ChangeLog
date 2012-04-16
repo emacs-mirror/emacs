@@ -1,7 +1,7 @@
 2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-set-spellchecker-params): Post-process
-	`ispell-dictionary-alist' to use [:alpha:] if possible.
+	`ispell-dictionary-alist' to use [:alpha:] and utf-8 if possible.
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
