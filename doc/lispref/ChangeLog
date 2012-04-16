@@ -1,3 +1,9 @@
+2012-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Process Information, Input to Processes)
+	(Signals to Processes, Output from Processes, Process Buffers)
+	(Filter Functions, Decoding Output): Copyedits.
+
 2012-04-15  Glenn Morris  <rgm@gnu.org>
 
 	* processes.texi (Processes, Subprocess Creation, Shell Arguments):

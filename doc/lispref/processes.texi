@@ -726,17 +726,17 @@ happen sooner or later).
 @section Process Information
 
   Several functions return information about processes.
-@code{list-processes} is provided for interactive use.
 
-@deffn Command list-processes &optional query-only
+@deffn Command list-processes &optional query-only buffer
 This command displays a listing of all living processes.  In addition,
 it finally deletes any process whose status was @samp{Exited} or
 @samp{Signaled}.  It returns @code{nil}.
 
-The processes are shown in a buffer named @file{*Process List*}, whose
-major mode is named Process Menu mode.
+The processes are shown in a buffer named @file{*Process List*}
+(unless you specify otherwise using the optional argument @var{buffer}),
+whose major mode is Process Menu mode.
 
-If @var{query-only} is non-@code{nil} then it lists only processes
+If @var{query-only} is non-@code{nil}, it only lists processes
 whose query flag is non-@code{nil}.  @xref{Query Before Exit}.
 @end deffn
 
@@ -752,8 +752,8 @@ This function returns a list of all processes that have not been deleted.
 @end defun
 
 @defun get-process name
-This function returns the process named @var{name}, or @code{nil} if
-there is none.  An error is signaled if @var{name} is not a string.
+This function returns the process named @var{name} (a string), or
+@code{nil} if there is none.
 
 @smallexample
 @group
@@ -772,7 +772,7 @@ were given to the program.
 @smallexample
 @group
 (process-command (get-process "shell"))
-     @result{} ("/bin/csh" "-i")
+     @result{} ("bash" "-i")
 @end group
 @end smallexample
 @end defun
@@ -780,11 +780,10 @@ were given to the program.
 @defun process-contact process &optional key
 
 This function returns information about how a network or serial
-process was set up.  For a network process, when @var{key} is
-@code{nil}, it returns @code{(@var{hostname} @var{service})} which
-specifies what you connected to.  For a serial process, when @var{key}
-is @code{nil}, it returns @code{(@var{port} @var{speed})}.  For an
-ordinary child process, this function always returns @code{t}.
+process was set up.  When @var{key} is @code{nil}, it returns
+@code{(@var{hostname} @var{service})} for a network process, and
+@code{(@var{port} @var{speed})} for a serial process.
+For an ordinary child process, this function always returns @code{t}.
 
 If @var{key} is @code{t}, the value is the complete status information
 for the connection, server, or serial port; that is, the list of
@@ -792,7 +791,8 @@ keywords and values specified in @code{make-network-process} or
 @code{make-serial-process}, except that some of the values represent
 the current status instead of what you specified.
 
-For a network process:
+For a network process, the values include (see
+@code{make-network-process} for a complete list):
 
 @table @code
 @item :buffer
@@ -829,7 +829,7 @@ process is started and remains constant as long as the process exists.
 @end defun
 
 @defun process-name process
-This function returns the name of @var{process}.
+This function returns the name of @var{process}, as a string.
 @end defun
 
 @defun process-status process-name
@@ -869,12 +869,6 @@ if @var{process-name} is not the name of an existing process.
 (process-status (get-buffer "*shell*"))
      @result{} run
 @end group
-@group
-x
-     @result{} #<process xx<1>>
-(process-status x)
-     @result{} exit
-@end group
 @end smallexample
 
 For a network connection, @code{process-status} returns one of the symbols
@@ -912,13 +906,9 @@ the remote host is provided as process property @code{remote-tty}.
 
 @defun process-coding-system process
 @anchor{Coding systems for a subprocess}
-This function returns a cons cell describing the coding systems in use
-for decoding output from @var{process} and for encoding input to
-@var{process} (@pxref{Coding Systems}).  The value has this form:
-
-@example
-(@var{coding-system-for-decoding} . @var{coding-system-for-encoding})
-@end example
+This function returns a cons cell @code{(@var{decode} . @var{encode})},
+describing the coding systems in use for decoding output from, and
+encoding input to, @var{process} (@pxref{Coding Systems}).
 @end defun
 
 @defun set-process-coding-system process &optional decoding-system encoding-system
@@ -958,6 +948,7 @@ Emacs, which is done with the functions in this section.  You must
 specify the process to send input to, and the input data to send.  The
 data appears on the ``standard input'' of the subprocess.
 
+@c FIXME which?
   Some operating systems have limited space for buffered input in a
 @acronym{PTY}.  On these systems, Emacs sends an @acronym{EOF}
 periodically amidst the other characters, to force them through.  For
@@ -984,25 +975,13 @@ the current buffer's process.
 
 @defun process-send-string process string
 This function sends @var{process} the contents of @var{string} as
-standard input.  If it is @code{nil}, the current buffer's process is used.
-
-  The function returns @code{nil}.
+standard input.  It returns @code{nil}.  For example, to make a
+Shell buffer list files:
 
 @smallexample
 @group
 (process-send-string "shell<1>" "ls\n")
      @result{} nil
-@end group
-
-
-@group
----------- Buffer: *shell* ----------
-...
-introduction.texi               syntax-tables.texi~
-introduction.texi~              text.texi
-introduction.txt                text.texi~
-...
----------- Buffer: *shell* ----------
 @end group
 @end smallexample
 @end defun
@@ -1019,7 +998,6 @@ is unimportant which number is larger.)
 @defun process-send-eof &optional process
 This function makes @var{process} see an end-of-file in its
 input.  The @acronym{EOF} comes after any text already sent to it.
-
 The function returns @var{process}.
 
 @smallexample
@@ -1050,7 +1028,7 @@ system.  For example, the signal @code{SIGINT} means that the user has
 typed @kbd{C-c}, or that some analogous thing has happened.
 
   Each signal has a standard effect on the subprocess.  Most signals
-kill the subprocess, but some stop or resume execution instead.  Most
+kill the subprocess, but some stop (or resume) execution instead.  Most
 signals can optionally be handled by programs; if the program handles
 the signal, then we can say nothing in general about its effects.
 
@@ -1059,7 +1037,7 @@ section.  Emacs also sends signals automatically at certain times:
 killing a buffer sends a @code{SIGHUP} signal to all its associated
 processes; killing Emacs sends a @code{SIGHUP} signal to all remaining
 processes.  (@code{SIGHUP} is a signal that usually indicates that the
-user hung up the phone.)
+user ``hung up the phone'', i.e., disconnected.)
 
   Each of the signal-sending functions takes two optional arguments:
 @var{process} and @var{current-group}.
@@ -1103,6 +1081,8 @@ and cannot be handled by the subprocess.
 @defun quit-process &optional process current-group
 This function sends the signal @code{SIGQUIT} to the process
 @var{process}.  This signal is the one sent by the ``quit
+@c FIXME?  Never heard of C-b being used for this.  In readline, eg
+@c bash, that is backward-word.
 character'' (usually @kbd{C-b} or @kbd{C-\}) when you are not inside
 Emacs.
 @end defun
@@ -1127,11 +1107,12 @@ stopped previously.
 
 @defun signal-process process signal
 This function sends a signal to process @var{process}.  The argument
-@var{signal} specifies which signal to send; it should be an integer.
+@var{signal} specifies which signal to send; it should be an integer,
+or a symbol whose name is a signal.
 
-The @var{process} argument can be a system process @acronym{ID}; that
-allows you to send signals to processes that are not children of
-Emacs.  @xref{System Processes}.
+The @var{process} argument can be a system process @acronym{ID} (an
+integer); that allows you to send signals to processes that are not
+children of Emacs.  @xref{System Processes}.
 @end defun
 
 @node Output from Processes
@@ -1141,10 +1122,10 @@ Emacs.  @xref{System Processes}.
 
   There are two ways to receive the output that a subprocess writes to
 its standard output stream.  The output can be inserted in a buffer,
-which is called the associated buffer of the process, or a function
-called the @dfn{filter function} can be called to act on the output.  If
-the process has no buffer and no filter function, its output is
-discarded.
+which is called the associated buffer of the process (@pxref{Process
+Buffers}), or a function called the @dfn{filter function} can be
+called to act on the output.  If the process has no buffer and no
+filter function, its output is discarded.
 
   When a subprocess terminates, Emacs reads any pending output,
 then stops reading output from that subprocess.  Therefore, if the
@@ -1164,7 +1145,7 @@ primitive that waits.
 On some systems, when Emacs reads the output from a subprocess, the
 output data is read in very small blocks, potentially resulting in
 very poor performance.  This behavior can be remedied to some extent
-by setting the variable @var{process-adaptive-read-buffering} to a
+by setting the variable @code{process-adaptive-read-buffering} to a
 non-@code{nil} value (the default), as it will automatically delay reading
 from such processes, thus allowing them to produce more output before
 Emacs tries to read it.
@@ -1233,9 +1214,9 @@ to insert, and updates it to point after the inserted text.  That is why
 successive batches of output are inserted consecutively.
 
 Filter functions normally should use this marker in the same fashion
-as is done by direct insertion of output in the buffer.  A good
-example of a filter function that uses @code{process-mark} is found at
-the end of the following section.
+as is done by direct insertion of output in the buffer.  For an
+example of a filter function that uses @code{process-mark},
+@pxref{Process Filter Example}.
 
 When the user is expected to enter input in the process buffer for
 transmission to the process, the process marker separates the new input
@@ -1301,19 +1282,20 @@ cases, the right way to do this is with the macro
   If an error happens during execution of a filter function, it is
 caught automatically, so that it doesn't stop the execution of whatever
 program was running when the filter function was started.  However, if
-@code{debug-on-error} is non-@code{nil}, the error-catching is turned
-off.  This makes it possible to use the Lisp debugger to debug the
+@code{debug-on-error} is non-@code{nil}, errors are not caught.
+This makes it possible to use the Lisp debugger to debug the
 filter function.  @xref{Debugger}.
 
-  Many filter functions sometimes or always insert the text in the
+  Many filter functions sometimes (or always) insert the output in the
 process's buffer, mimicking the actions of Emacs when there is no
-filter.  Such filter functions need to use @code{set-buffer} in order to
-be sure to insert in that buffer.  To avoid setting the current buffer
-semipermanently, these filter functions must save and restore the
-current buffer.  They should also check whether the buffer is still
-alive, update the process marker, and in some cases update the value
-of point.  Here is how to do these things:
+filter.  Such filter functions need to make sure that they save the
+current buffer, select the correct buffer (if different) before
+inserting output, and then restore the original buffer.
+They should also check whether the buffer is still alive, update the
+process marker, and in some cases update the value of point.  Here is
+how to do these things:
 
+@anchor{Process Filter Example}
 @smallexample
 @group
 (defun ordinary-insertion-filter (proc string)
@@ -1323,7 +1305,7 @@ of point.  Here is how to do these things:
 @end group
 @group
         (save-excursion
-          ;;  @r{Insert the text, advancing the process marker.}
+          ;; @r{Insert the text, advancing the process marker.}
           (goto-char (process-mark proc))
           (insert string)
           (set-marker (process-mark proc) (point)))
@@ -1331,14 +1313,8 @@ of point.  Here is how to do these things:
 @end group
 @end smallexample
 
-@noindent
-The reason to use @code{with-current-buffer}, rather than using
-@code{save-excursion} to save and restore the current buffer, is so as
-to preserve the change in point made by the second call to
-@code{goto-char}.
-
   To make the filter force the process buffer to be visible whenever new
-text arrives, insert the following line just before the
+text arrives, you could insert a line like the following just before the
 @code{with-current-buffer} construct:
 
 @smallexample
@@ -1349,12 +1325,16 @@ text arrives, insert the following line just before the
 previously, eliminate the variable @code{moving} and call
 @code{goto-char} unconditionally.
 
+@ignore
   In earlier Emacs versions, every filter function that did regular
 expression searching or matching had to explicitly save and restore the
 match data.  Now Emacs does this automatically for filter functions;
-they never need to do it explicitly.  @xref{Match Data}.
+they never need to do it explicitly.
+@end ignore
+  Note that Emacs automatically saves and restores the match data
+while executing filter functions.  @xref{Match Data}.
 
-  The output to the function may come in chunks of any size.  A program
+  The output to the filter may come in chunks of any size.  A program
 that produces the same output twice in a row may send it as one batch of
 200 characters one time, and five batches of 40 characters the next.  If
 the filter looks for certain text strings in the subprocess output, make
@@ -1372,7 +1352,7 @@ This function returns the filter function of @var{process}, or @code{nil}
 if it has none.
 @end defun
 
-  Here is an example of use of a filter function:
+  Here is an example of the use of a filter function:
 
 @smallexample
 @group
@@ -1392,7 +1372,7 @@ if it has none.
 (process-send-string "shell" "ls ~/other\n")
      @result{} nil
 kept
-     @result{} ("lewis@@slug[8] % "
+     @result{} ("lewis@@slug:$ "
 @end group
 @group
 "FINAL-W87-SHORT.MSS    backup.otl              kolstad.mss~
@@ -1448,8 +1428,8 @@ bytes, Emacs by default uses @code{no-conversion} for it; see
 @ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
 control this behavior.
 
-  @strong{Warning:} Coding systems such as @code{undecided} which
-determine the coding system from the data do not work entirely
+  @strong{Warning:} Coding systems such as @code{undecided}, which
+determine the coding system from the data, do not work entirely
 reliably with asynchronous subprocess output.  This is because Emacs
 has to process asynchronous subprocess output in batches, as it
 arrives.  Emacs must try to detect the proper coding system from one
@@ -1467,7 +1447,7 @@ output as a multibyte string or as a unibyte string according to the
 process's filter coding system.  Emacs
 decodes the output according to the process output coding system,
 which usually produces a multibyte string, except for coding systems
-such as @code{binary} and @code{raw-text}
+such as @code{binary} and @code{raw-text}.
 
 @node Accepting Output
 @subsection Accepting Output from Processes
