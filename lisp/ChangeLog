@@ -2,6 +2,9 @@
 
 	* ispell.el (ispell-set-spellchecker-params): Post-process
 	`ispell-dictionary-alist' to use [:alpha:] and utf-8 if possible.
+	(ispell-dictionary-base-alist): Revert to original XEmacs
+	friendly version for default.  [:alpha:] will be added in
+	`ispell-set-spellchecker-params' if needed
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
