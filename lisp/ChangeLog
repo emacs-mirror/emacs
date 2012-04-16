@@ -1,5 +1,8 @@
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-extra.el (*random-state*):
+	Remove unnecessary declaration.
+
 	* calendar/cal-tex.el (cal-tex-end-document): Trivial clarification.
 
 	* play/cookie1.el (cookie-snarf):
