@@ -46,10 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #endif
 #include <sys/stat.h>
-
-/* Needed for SunOS4, for instance.  */
-extern char *optarg;
-extern int optind, opterr;
+#include <getopt.h>
 
 static int usage (int err) NO_RETURN;
 

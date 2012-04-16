@@ -2832,6 +2832,14 @@ extern void syms_of_alloc (void);
 extern struct buffer * allocate_buffer (void);
 extern int valid_lisp_object_p (Lisp_Object);
 
+#ifdef REL_ALLOC
+/* Defined in ralloc.c */
+extern void *r_alloc (void **, size_t);
+extern void r_alloc_free (void **);
+extern void *r_re_alloc (void **, size_t);
+extern void r_alloc_reset_variable (void **, void **);
+#endif
+
 /* Defined in chartab.c */
 EXFUN (Fmake_char_table, 2);
 EXFUN (Fset_char_table_parent, 2);

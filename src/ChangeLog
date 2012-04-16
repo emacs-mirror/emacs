@@ -1,5 +1,14 @@
 2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Improve ralloc.c interface checking.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html
+	* buffer.c (ralloc_reset_variable, r_alloc, r_re_alloc)
+	(r_alloc_free) [REL_ALLOC]: Move decls from here ...
+	* lisp.h (r_alloc, r_alloc_free, r_re_alloc, r_alloc_reset_variable)
+	[REL_ALLOC]: ... to here, to check interface.
+	* m/ia64.h (r_alloc, r_alloc_free) [REL_ALLOC && !_MALLOC_INTERNAL]:
+	Remove decls.  This fixes an "It stinks!".
+
 	* alloc.c (which_symbols): Fix alignment issue / type clash.
 
 2012-04-15  Andreas Schwab  <schwab@linux-m68k.org>
