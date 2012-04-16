@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
-;; Author: Christian Ohler <ohler@gnu.org>
+;;         Christian Ohler <ohler@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
