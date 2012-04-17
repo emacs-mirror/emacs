@@ -1,4 +1,4 @@
-2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+2012-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)
 	I have been using this change for many months in my private copy
@@ -14,6 +14,17 @@
 	* etc/NEWS: Mention --enable-gcc-warnings.
 	* lib/Makefile.am (AM_CFLAGS): New macro.
 	* m4/manywarnings.m4, m4/warnings.m4: New files, from gnulib.
+
+2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in (AC_CHECK_FUNCS):
+	Add getpwent, endpwent, getgrent, endgrent. (Bug#7900)
+
+2012-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (NS_HAVE_NSINTEGER): Remove unnecessary variable.
+
+	* configure.in: Remove X libs workaround for old autoconf.
 
 2012-04-12  Ken Brown  <kbrown@cornell.edu>
 

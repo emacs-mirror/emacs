@@ -1651,7 +1651,8 @@ terminals, cursor blinking is controlled by the terminal."
 
 ;; Misc.
 
-(defvaralias 'automatic-hscrolling 'auto-hscroll-mode)
+;; Only marked as obsolete in 24.2.
+(define-obsolete-variable-alias 'automatic-hscrolling 'auto-hscroll-mode "22.1")
 
 (make-variable-buffer-local 'show-trailing-whitespace)
 

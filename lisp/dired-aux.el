@@ -245,7 +245,11 @@ List has a form of (file-name full-file-name (attribute-list))."
 			     " (default now): "
 			   ": ")))
 	 (new-attribute (dired-mark-read-string prompt nil op-symbol
-						arg files default))
+						arg files default
+						(cond ((eq op-symbol 'chown)
+						       (system-users))
+						      ((eq op-symbol 'chgrp)
+						       (system-groups)))))
 	 (operation (concat program " " new-attribute))
 	 failures)
     (setq failures
@@ -385,7 +389,7 @@ Uses the shell command coming from variables `lpr-command' and
     (dired-run-shell-command (dired-shell-stuff-it command file-list nil))))
 
 (defun dired-mark-read-string (prompt initial op-symbol arg files
-			       &optional default-value)
+			       &optional default-value collection)
   "Read args for a Dired marked-files command, prompting with PROMPT.
 Return the user input (a string).
 
@@ -397,11 +401,14 @@ FILES should be a list of file names.
 DEFAULT-VALUE, if non-nil, should be a \"standard\" value or list
 of such values, available via history commands.  Note that if the
 user enters empty input, this function returns the empty string,
-not DEFAULT-VALUE."
+not DEFAULT-VALUE.
+
+Optional argument COLLECTION is a collection of possible completions,
+suitable for use by `completing-read'."
   (dired-mark-pop-up nil op-symbol files
-		     'read-from-minibuffer
+		     'completing-read
 		     (format prompt (dired-mark-prompt arg files))
-		     initial nil nil nil default-value))
+		     collection nil nil initial nil default-value nil))
 
 ;;; Cleaning a directory: flagging some backups for deletion.
 

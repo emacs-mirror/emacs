@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992-1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -847,7 +847,7 @@ been updated to their corresponding values."
        (if (file-directory-p file)
 	   (dolist (buffer (buffer-list))
 	     (let ((fname (buffer-file-name buffer)))
-	       (when (and fname (vc-string-prefix-p file fname))
+	       (when (and fname (string-prefix-p file fname))
 		 (push fname flist))))
 	 (push file flist)))
      ,form
@@ -900,7 +900,7 @@ use."
 	       (lambda (arg)
 		 (message "arg %s" arg)
 		 (and (file-directory-p arg)
-		      (vc-string-prefix-p (expand-file-name arg) def-dir)))))))
+		      (string-prefix-p (expand-file-name arg) def-dir)))))))
 	   (let ((default-directory repo-dir))
 	(vc-call-backend bk 'create-repo))
       (throw 'found bk))))
@@ -2809,11 +2809,7 @@ to provide the `find-revision' operation instead."
 
 
 ;; These things should probably be generally available
-
-(defun vc-string-prefix-p (prefix string)
-  (let ((lpref (length prefix)))
-    (and (>= (length string) lpref)
-	 (eq t (compare-strings prefix nil nil string nil lpref)))))
+(define-obsolete-function-alias 'vc-string-prefix-p 'string-prefix-p "24.2")
 
 (defun vc-file-tree-walk (dirname func &rest args)
   "Walk recursively through DIRNAME.

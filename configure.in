@@ -1500,15 +1500,6 @@ else
   window_system=x11
 fi
 
-## Workaround for bug in autoconf <= 2.62.
-## http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01551.html
-## No need to do anything special for these standard directories.
-if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
-
-   x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
-
-fi
-
 LD_SWITCH_X_SITE_AUX=
 LD_SWITCH_X_SITE_AUX_RPATH=
 if test "${x_libraries}" != NONE; then
@@ -1629,13 +1620,12 @@ fail;
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
   files are missing or cannot be compiled.])])
-  NS_HAVE_NSINTEGER=yes
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
                                      [NSInteger i;])],
 		    ns_have_nsinteger=yes,
 		    ns_have_nsinteger=no)
-  if test $ns_have_nsinteger = no; then
-    NS_HAVE_NSINTEGER=no
+  if test $ns_have_nsinteger = yes; then
+    AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi
 fi
 AC_SUBST(TEMACS_LDFLAGS2)
@@ -2683,9 +2673,6 @@ if test "${HAVE_NS}" = "yes"; then
     ## Extra CFLAGS applied to src/*.m files.
     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
-  if test "${NS_HAVE_NSINTEGER}" = "yes"; then
-    AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
-  fi
   # We also have mouse menus.
   HAVE_MENUS=yes
   OTHER_FILES=ns-app
@@ -2828,6 +2815,7 @@ __fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap fsync sync \
 difftime mempcpy mblen mbrlen posix_memalign \
+getpwent endpwent getgrent endgrent \
 cfmakeraw cfsetspeed copysign __executable_start)
 
 dnl Cannot use AC_CHECK_FUNCS

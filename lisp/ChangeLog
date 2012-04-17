@@ -1,7 +1,115 @@
+2012-04-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-ensure-safe-dir): Simplify.
+
+2012-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: Provide smarter auto-filling.
+	(smie-auto-fill): New function.
+	(smie-setup): Use it.
+
+	* newcomment.el (comment-choose-indent): Obey comment-inline-offset.
+
+2012-04-17  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
+
+	* newcomment.el (comment-inline-offset): New custom var (bug#11090).
+	(comment-indent): Use it.
+
+2012-04-17  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: The overall change is to add cell renaming, that is
+	setting fancy names for cell symbols other than name matching
+	"\\`[A-Z]+[0-9]+\\'" regexp .
+	(ses-localvars): Add ses--renamed-cell-symb-list.
+	(ses-create-cell-variable): New defun.
+	(ses-destroy-cell-variable-range): Respect ses--numrows, ses--numcols.
+	(ses-relocate-formula): Relocate formulas only for cells the
+	symbols of which are not renamed, i.e. symbols whose names do not
+	match regexp "\\`[A-Z]+[0-9]+\\'".
+	(ses-relocate-all): Relocate values only for cells the symbols of
+	which are not renamed.
+	(ses-load): Create cells variables as the (ses-cell ...) are read,
+	in order to check row col consistency with cell symbol name only
+	for cells that are not renamed.
+	(ses-replace-name-in-formula): New defun.
+	(ses-rename-cell): New defun.
+
+2012-04-17  Peter Oliver  <bzr@mavit.org.uk>  (tiny change)
+
+	* progmodes/perl-mode.el (perl-indent-parens-as-block):
+	New option (bug#11118).
+	(perl-calculate-indent): Respect it.
+
+2012-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* dired-aux.el (dired-mark-read-string): Doc fix.
+
+2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dired-aux.el (dired-mark-read-string): Offer optional completion.
+	(dired-do-chxxx): Complete chown, chgrp over users, groups.  (Bug#7900)
+
+2012-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (mouse-drag-track):
+	* speedbar.el (speedbar-frame-mode):
+	Use auto-hscroll-mode rather than the alias automatic-hscrolling.
+
+2012-04-16  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el: Trivial cleanup.
+
+2012-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-string-prefix-p):
+	* vc/pcvs-util.el (cvs-string-prefix-p):
+	* textmodes/tex-mode.el (latex-string-prefix-p, tex-string-prefix-p):
+	* mpc.el (mpc-string-prefix-p):
+	Make all of these into obsolete aliases for string-prefix-p.
+	Update callers.
+	* vc/pcvs.el, vc/vc-dispatcher.el, vc/vc-dir.el: Update callers.
+
+	* textmodes/two-column.el: Move custom options to the start.
+	(frame-width): Remove compat definition.
+	(2C-associate-buffer, 2C-dissociate):
+	Use with-current-buffer rather than save-excursion.
+	(2C-dissociate): Force a mode-line update.
+	(2C-autoscroll): Use ignore-errors.
+
+	* emacs-lisp/eieio-opt.el (describe-class, describe-generic):
+	Autoload trivia.
+
+	* emacs-lisp/cl-extra.el (*random-state*):
+	Remove unnecessary declaration.
+
+	* calendar/cal-tex.el (cal-tex-end-document): Trivial clarification.
+
+	* play/cookie1.el (cookie-snarf):
+	Give an explicit error if input file cannot be read.
+
+	* play/yow.el (yow-file): Use expand-file-name rather than concat.
+
+	* progmodes/perl-mode.el (c-macro-expand):
+	Remove unnecessary autoload (it is in loaddefs.el).
+
+	* textmodes/picture.el (picture-desired-column)
+	(picture-update-desired-column): Convert comments to doc-strings.
+	(picture-substitute): Remove function.
+	(picture-mode-map): Initialize in the defvar.
+
+	* woman.el: Remove eval-after-load for tar-mode.
+	* tar-mode.el (tar-mode-map): Add woman binding and menu entry.
+	(woman-tar-extract-file): Autoload it.
+
+	* frame.el (automatic-hscrolling): Make this alias obsolete.
+
 2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-set-spellchecker-params): Post-process
-	`ispell-dictionary-alist' to use [:alpha:] if possible.
+	`ispell-dictionary-alist' to use [:alpha:] and utf-8 if possible.
+	(ispell-dictionary-base-alist): Revert to original XEmacs
+	friendly version for default.  [:alpha:] will be added in
+	`ispell-set-spellchecker-params' if needed
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
@@ -1313,10 +1421,6 @@
 
 	* term/x-win.el (x-initialize-window-system): Reduce default for
 	x-selection-timeout to 5 seconds (Bug#8869).
-
-2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
-
-	* files.el (file-subdir-of-p): Fix typo.
 
 2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 

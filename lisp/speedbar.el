@@ -1,6 +1,6 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -1022,7 +1022,7 @@ supported at a time.
   (set (make-local-variable 'dframe-delete-frame-function)
        'speedbar-handle-delete-frame)
   ;; hscroll
-  (set (make-local-variable 'automatic-hscrolling) nil) ; Emacs 21
+  (set (make-local-variable 'auto-hscroll-mode) nil)
   ;; reset the selection variable
   (setq speedbar-last-selected-file nil))
 

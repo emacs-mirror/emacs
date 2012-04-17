@@ -1586,7 +1586,7 @@ messages to make sure it works as expected."
 
 
 ;; feedmail-buffer-to-binmail, feedmail-buffer-to-sendmail, and
-;; feedmail-buffer-to-smptmail are the only things provided for values
+;; feedmail-buffer-to-smtpmail are the only things provided for values
 ;; for the variable feedmail-buffer-eating-function.  It's pretty easy
 ;; to write your own, though.
 (defun feedmail-buffer-to-binmail (prepped errors-to addr-listoid)

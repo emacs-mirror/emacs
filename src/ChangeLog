@@ -1,3 +1,25 @@
+2012-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* Makefile.in (C_WARNINGS_SWITCH): Remove.
+	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
+	(ALL_CFLAGS): Use new macros rather than old.
+	* process.c: Ignore -Wstrict-overflow to work around GCC bug 52904.
+	* regex.c: Ignore -Wstrict-overflow.  If !emacs, also ignore
+	-Wunused-but-set-variable, -Wunused-function, -Wunused-macros,
+	-Wunused-result, -Wunused-variable.  This should go away once
+	the Emacs and Gnulib regex code is merged.
+	(xmalloc, xrealloc): Now static.
+
+2012-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* dired.c (Fsystem_users): Doc fix.
+
+2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dired.c (Fsystem_users, Fsystem_groups): New functions.  (Bug#7900)
+	(syms_of_dired): Add them.
+
 2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor alloc.c problems found by static checking.
@@ -39,19 +61,6 @@
 	(MARKER_BLOCK_SIZE, struct marker_block): Use union
 	aligned_Lisp_Misc instead of union Lisp_Misc.
 	(Fmake_symbol, allocate_misc, gc_sweep): Adjust
-
-2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
-
-	configure: new option --enable-gcc-warnings (Bug#11207)
-	* Makefile.in (C_WARNINGS_SWITCH): Remove.
-	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
-	(ALL_CFLAGS): Use new macros rather than old.
-	* process.c: Ignore -Wstrict-overflow to work around GCC bug 52904.
-	* regex.c: Ignore -Wstrict-overflow.  If !emacs, also ignore
-	-Wunused-but-set-variable, -Wunused-function, -Wunused-macros,
-	-Wunused-result, -Wunused-variable.  This should go away once
-	the Emacs and Gnulib regex code is merged.
-	(xmalloc, xrealloc): Now static.
 
 2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 

@@ -96,6 +96,8 @@ of load, ENDMSG at the end."
   "Reads in the PHRASE-FILE, returns it as a vector of strings.
 Emit STARTMSG and ENDMSG before and after.  Caches the result; second
 and subsequent calls on the same file won't go to disk."
+  (or (file-readable-p phrase-file)
+      (error "Cannot read file `%s'" phrase-file))
   (let ((sym (intern-soft phrase-file cookie-cache)))
     (and sym (not (equal (symbol-function sym)
 			 (nth 5 (file-attributes phrase-file))))

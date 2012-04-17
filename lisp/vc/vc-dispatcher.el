@@ -537,13 +537,12 @@ editing!"
 	 (kill-buffer (current-buffer)))))
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
-(declare-function vc-string-prefix-p "vc" (prefix string))
 
 (defun vc-resynch-buffers-in-directory (directory &optional keep noquery reset-vc-info)
   "Resync all buffers that visit files in DIRECTORY."
   (dolist (buffer (buffer-list))
     (let ((fname (buffer-file-name buffer)))
-      (when (and fname (vc-string-prefix-p directory fname))
+      (when (and fname (string-prefix-p directory fname))
 	(with-current-buffer buffer
 	  (vc-resynch-buffer fname keep noquery reset-vc-info))))))
 

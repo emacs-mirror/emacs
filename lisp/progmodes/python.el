@@ -69,11 +69,7 @@
 (require 'comint)
 (require 'ansi-color)
 
-(eval-when-compile
-  (require 'compile)
-  (require 'hippie-exp))
-
-(autoload 'comint-mode "comint")
+(eval-when-compile (require 'compile))
 
 (defgroup python nil
   "Silly walks in the Python language."
@@ -1488,8 +1484,6 @@ Don't save anything for STR matching `inferior-python-filter-regexp'."
            res)
           (t (concat res s)))))
 
-(autoload 'comint-check-proc "comint")
-
 (defvar python-version-checked nil)
 (defun python-check-version (cmd)
   "Check that CMD runs a suitable version of Python."
@@ -1683,8 +1677,6 @@ value to determine defaults."
 (defvar python-prev-dir/file nil
   "Caches (directory . file) pair used in the last `python-load-file' command.
 Used for determining the default in the next one.")
-
-(autoload 'comint-get-source "comint")
 
 (defun python-load-file (file-name)
   "Load a Python file FILE-NAME into the inferior Python process.

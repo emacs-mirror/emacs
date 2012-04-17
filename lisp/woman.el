@@ -1,6 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: FSF
@@ -1594,14 +1594,6 @@ Also make each path-info component into a list.
        (woman-make-bufname (file-name-nondirectory buffer-file-name)))
       (woman-process-buffer)
       (goto-char (point-min)))))
-
-;; There is currently no `tar-mode-hook' so use ...
-(eval-after-load "tar-mode"
-  '(progn
-    (define-key tar-mode-map "w" 'woman-tar-extract-file)
-    (define-key-after (lookup-key tar-mode-map [menu-bar immediate])
-      [woman] '("Read Man Page (WoMan)" . woman-tar-extract-file) 'view)))
-
 
 (defvar woman-last-file-name nil
   "The full pathname of the last file formatted by WoMan.")

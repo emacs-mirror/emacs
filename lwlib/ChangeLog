@@ -1,4 +1,4 @@
-2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+2012-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)
 	* Makefile.in (C_WARNINGS_SWITCH): Remove.

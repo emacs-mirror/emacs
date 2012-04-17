@@ -124,15 +124,51 @@
 
 
 ;;; Code:
+(defgroup two-column nil
+  "Minor mode for editing of two-column text."
+  :prefix "2C-"
+  :group 'frames)
+
+(defcustom 2C-mode-line-format
+	'("-%*- %15b --"  (-3 . "%p")  "--%[("  mode-name
+	  minor-mode-alist  "%n"  mode-line-process  ")%]%-")
+  "Value of `mode-line-format' for a buffer in two-column minor mode."
+  :type 'sexp
+  :group 'two-column)
+
+(defcustom 2C-other-buffer-hook 'text-mode
+  "Hook run in new buffer when it is associated with current one."
+  :type 'function
+  :group 'two-column)
+
+(defcustom 2C-separator ""
+  "A string inserted between the two columns when merging.
+This gets set locally by \\[2C-split]."
+  :type 'string
+  :group 'two-column)
+(put '2C-separator 'permanent-local t)
+
+(defcustom 2C-window-width 40
+  "The width of the first column.  (Must be at least `window-min-width'.)
+This value is local for every buffer that sets it."
+  :type 'integer
+  :group 'two-column)
+(make-variable-buffer-local '2C-window-width)
+(put '2C-window-width 'permanent-local t)
+
+(defcustom 2C-beyond-fill-column 4
+  "Base for calculating `fill-column' for a buffer in two-column minor mode.
+The value of `fill-column' becomes `2C-window-width' for this buffer
+minus this value."
+  :type 'integer
+  :group 'two-column)
+
+(defcustom 2C-autoscroll t
+  "If non-nil, Emacs attempts to keep the two column's buffers aligned."
+  :type 'boolean
+  :group 'two-column)
+
 
-
-;; Lucid patch
-(or (fboundp 'frame-width)
-    (fset 'frame-width 'screen-width))
-
-
-;;;;; Set up keymap ;;;;;
-
 (defvar 2C-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "2" '2C-two-columns)
@@ -141,8 +177,6 @@
     (define-key map "s" '2C-split)
     map)
   "Keymap for commands for setting up two-column mode.")
-
-
 
 ;;;###autoload (autoload '2C-command "two-column" () t 'keymap)
 (fset '2C-command 2C-mode-map)
@@ -153,7 +187,6 @@
 ;;;###autoload (global-set-key "\C-x6" '2C-command)
 
 ;;;###autoload (global-set-key [f2] '2C-command)
-
 
 (defvar 2C-minor-mode-map
   (let ((map (make-sparse-keymap)))
@@ -166,7 +199,6 @@
     (define-key map "}" '2C-enlarge-window-horizontally)
     map)
   "Keymap for commands for use in two-column mode.")
-
 
 (setq minor-mode-map-alist
       (cons (cons '2C-mode
@@ -181,15 +213,8 @@
 					       map (current-global-map))
 		    map))
 	    minor-mode-map-alist))
+
 
-;;;;; variable declarations ;;;;;
-
-(defgroup two-column nil
-  "Minor mode for editing of two-column text."
-  :prefix "2C-"
-  :group 'frames)
-
-
 ;; Markers seem to be the only buffer-id not affected by renaming a buffer.
 ;; This nevertheless loses when a buffer is killed.  The variable-name is
 ;; required by `describe-mode'.
@@ -198,61 +223,7 @@
 (make-variable-buffer-local '2C-mode)
 (put '2C-mode 'permanent-local t)
 
-
-
 (setq minor-mode-alist (cons '(2C-mode " 2C") minor-mode-alist))
-
-
-
-;; rearranged, so that the pertinent info will show in 40 columns
-(defcustom 2C-mode-line-format
-	'("-%*- %15b --"  (-3 . "%p")  "--%[("  mode-name
-	  minor-mode-alist  "%n"  mode-line-process  ")%]%-")
-  "Value of `mode-line-format' for a buffer in two-column minor mode."
-  :type 'sexp
-  :group 'two-column)
-
-
-(defcustom 2C-other-buffer-hook 'text-mode
-  "Hook run in new buffer when it is associated with current one."
-  :type 'function
-  :group 'two-column)
-
-
-(defcustom 2C-separator ""
-  "A string inserted between the two columns when merging.
-This gets set locally by \\[2C-split]."
-  :type 'string
-  :group 'two-column)
-(put '2C-separator 'permanent-local t)
-
-
-
-(defcustom 2C-window-width 40
-  "The width of the first column.  (Must be at least `window-min-width')
-This value is local for every buffer that sets it."
-  :type 'integer
-  :group 'two-column)
-(make-variable-buffer-local '2C-window-width)
-(put '2C-window-width 'permanent-local t)
-
-
-
-(defcustom 2C-beyond-fill-column 4
-  "Base for calculating `fill-column' for a buffer in two-column minor mode.
-The value of `fill-column' becomes `2C-window-width' for this buffer
-minus this value."
-  :type 'integer
-  :group 'two-column)
-
-
-
-(defcustom 2C-autoscroll t
-  "If non-nil, Emacs attempts to keep the two column's buffers aligned."
-  :type 'boolean
-  :group 'two-column)
-
-
 
 (defvar 2C-autoscroll-start nil)
 (make-variable-buffer-local '2C-autoscroll-start)
@@ -274,7 +245,6 @@ minus this value."
 		(kill-local-variable 'mode-line-format)
 		nil)))
       (if req (error "You must first set two-column minor mode"))))
-
 
 
 ;; function for setting up two-column minor mode in a buffer associated
@@ -320,7 +290,6 @@ The appearance of the screen can be customized by the variables
   (run-hooks '2C-mode-hook))
 
 
-
 ;;;###autoload
 (defun 2C-two-columns (&optional buffer)
   "Split current window vertically for two-column editing.
@@ -356,7 +325,6 @@ first and the associated buffer to its right."
 	       (other-window -1)))))
 
 
-
 ;;;###autoload
 (defun 2C-associate-buffer ()
   "Associate another buffer with this one in two-column minor mode.
@@ -368,9 +336,8 @@ accepting the proposed default buffer.
   (let ((b1 (current-buffer))
 	(b2 (or (2C-other)
 		(read-buffer "Associate buffer: " (other-buffer)))))
-    (save-excursion
-      (setq 2C-mode nil)
-      (set-buffer b2)
+    (setq 2C-mode nil)
+    (with-current-buffer b2
       (and (2C-other)
 	   (not (eq b1 (2C-other)))
 	   (error "Buffer already associated with buffer `%s'"
@@ -380,7 +347,6 @@ accepting the proposed default buffer.
     ; if other buffer has a local width, adjust here too
     (if b1 (setq 2C-window-width (- (frame-width) b1)))
     (2C-two-columns b2)))
-
 
 
 ;;;###autoload
@@ -454,32 +420,28 @@ First column's text    sSs  Second column's text
 	(move-to-column column)))))
 
 
-
-
 (defun 2C-dissociate ()
   "Turn off two-column minor mode in current and associated buffer.
 If the associated buffer is unmodified and empty, it is killed."
   (interactive)
-  (let ((buffer (current-buffer)))
-    (save-excursion
-      (and (2C-other)
-	   (set-buffer (2C-other))
-	   (or (not (2C-other))
-	       (eq buffer (2C-other)))
-	   (if (and (not (buffer-modified-p))
-		    (eobp) (bobp))
-	       (kill-buffer nil)
-	     (kill-local-variable '2C-mode)
-	     (kill-local-variable '2C-window-width)
-	     (kill-local-variable '2C-separator)
-	     (kill-local-variable 'mode-line-format)
-	     (kill-local-variable 'fill-column))))
-    (kill-local-variable '2C-mode)
-    (kill-local-variable '2C-window-width)
-    (kill-local-variable '2C-separator)
-    (kill-local-variable 'mode-line-format)
-    (kill-local-variable 'fill-column)))
-
+  (let ((buffer (current-buffer))
+	(other (2C-other)))
+    (if other
+	(with-current-buffer other
+	  (when (or (not (2C-other)) (eq buffer (2C-other)))
+	    (if (and (not (buffer-modified-p)) (zerop (buffer-size)))
+		(kill-buffer)
+	      (kill-local-variable '2C-mode)
+	      (kill-local-variable '2C-window-width)
+	      (kill-local-variable '2C-separator)
+	      (kill-local-variable 'mode-line-format)
+	      (kill-local-variable 'fill-column))))))
+  (kill-local-variable '2C-mode)
+  (kill-local-variable '2C-window-width)
+  (kill-local-variable '2C-separator)
+  (kill-local-variable 'mode-line-format)
+  (kill-local-variable 'fill-column)
+  (force-mode-line-update))
 
 
 ;; this doesn't use yank-rectangle, so that the first column can
@@ -578,7 +540,6 @@ on, this also realigns the two buffers."
     (message "Autoscrolling is off.")))
 
 
-
 (defun 2C-autoscroll ()
   (if 2C-autoscroll
       ;; catch a mouse scroll on non-selected scrollbar
@@ -590,27 +551,25 @@ on, this also realigns the two buffers."
 	      (select-window (car (car (cdr last-command-event)))))
 	 ;; In some cases scrolling causes an error, but post-command-hook
 	 ;; shouldn't, and should always stay in the original window
-	 (condition-case ()
-	     (and (or 2C-autoscroll-start (2C-toggle-autoscroll t) nil)
-		  (/= (window-start) 2C-autoscroll-start)
-		  (2C-other)
-		  (get-buffer-window (2C-other))
-		  (let ((lines (count-lines (window-start)
-					    2C-autoscroll-start)))
-		    (if (< (window-start) 2C-autoscroll-start)
-			(setq lines (- lines)))
-		    (setq 2C-autoscroll-start (window-start))
-		    (select-window (get-buffer-window (2C-other)))
-		    ;; make sure that other buffer has enough lines
-		    (save-excursion
-		      (insert-char
-		       ?\n (- lines (count-lines (window-start)
-						 (goto-char (point-max)))
-			      -1)))
-		    (scroll-up lines)
-		    (setq 2C-autoscroll-start (window-start))))
-	   (error))))))
-
+	 (ignore-errors
+	   (and (or 2C-autoscroll-start (2C-toggle-autoscroll t) nil)
+		(/= (window-start) 2C-autoscroll-start)
+		(2C-other)
+		(get-buffer-window (2C-other))
+		(let ((lines (count-lines (window-start)
+					  2C-autoscroll-start)))
+		  (if (< (window-start) 2C-autoscroll-start)
+		      (setq lines (- lines)))
+		  (setq 2C-autoscroll-start (window-start))
+		  (select-window (get-buffer-window (2C-other)))
+		  ;; make sure that other buffer has enough lines
+		  (save-excursion
+		    (insert-char
+		     ?\n (- lines (count-lines (window-start)
+					       (goto-char (point-max)))
+			    -1)))
+		  (scroll-up lines)
+		  (setq 2C-autoscroll-start (window-start)))))))))
 
 
 (defun 2C-enlarge-window-horizontally (arg)
@@ -626,7 +585,6 @@ on, this also realigns the two buffers."
   "Make current window ARG columns narrower."
   (interactive "p")
   (2C-enlarge-window-horizontally (- arg)))
-
 
 
 (provide 'two-column)
