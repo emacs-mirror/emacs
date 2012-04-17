@@ -9656,15 +9656,6 @@ else
   window_system=x11
 fi
 
-## Workaround for bug in autoconf <= 2.62.
-## http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01551.html
-## No need to do anything special for these standard directories.
-if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
-
-   x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
-
-fi
-
 LD_SWITCH_X_SITE_AUX=
 LD_SWITCH_X_SITE_AUX_RPATH=
 if test "${x_libraries}" != NONE; then
@@ -9803,7 +9794,6 @@ else
 fi
 
 
-  NS_HAVE_NSINTEGER=yes
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Foundation/NSObjCRuntime.h>
@@ -9821,8 +9811,10 @@ else
   ns_have_nsinteger=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  if test $ns_have_nsinteger = no; then
-    NS_HAVE_NSINTEGER=no
+  if test $ns_have_nsinteger = yes; then
+
+$as_echo "#define NS_HAVE_NSINTEGER 1" >>confdefs.h
+
   fi
 fi
 
@@ -13434,11 +13426,6 @@ $as_echo "#define NS_IMPL_GNUSTEP 1" >>confdefs.h
     ## Extra CFLAGS applied to src/*.m files.
     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
-  if test "${NS_HAVE_NSINTEGER}" = "yes"; then
-
-$as_echo "#define NS_HAVE_NSINTEGER 1" >>confdefs.h
-
-  fi
   # We also have mouse menus.
   HAVE_MENUS=yes
   OTHER_FILES=ns-app
@@ -13967,6 +13954,7 @@ __fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap fsync sync \
 difftime mempcpy mblen mbrlen posix_memalign \
+getpwent endpwent getgrent endgrent \
 cfmakeraw cfsetspeed copysign __executable_start
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
