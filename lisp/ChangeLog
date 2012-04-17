@@ -1,3 +1,8 @@
+2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dired-aux.el (dired-mark-read-string): Offer optional completion.
+	(dired-do-chxxx): Complete chown, chgrp over users, groups.  (Bug#7900)
+
 2012-04-17  Glenn Morris  <rgm@gnu.org>
 
 	* mouse.el (mouse-drag-track):
