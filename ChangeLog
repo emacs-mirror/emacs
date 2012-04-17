@@ -12,6 +12,7 @@
 	(PKG_CHECK_MODULES, C_SWITCH_X_SITE): Use -isystem rather than -I,
 	when including system files with GCC.
 	* etc/NEWS: Mention --enable-gcc-warnings.
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Likewise.
 	* lib/Makefile.am (AM_CFLAGS): New macro.
 	* m4/manywarnings.m4, m4/warnings.m4: New files, from gnulib.
 
