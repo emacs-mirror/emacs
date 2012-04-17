@@ -3560,6 +3560,16 @@ does not pop any summary buffer."
 
 ;;;; *** Rmail Mailing Commands ***
 
+(defun rmail-yank-current-message (buffer)
+  "Yank into the current buffer the current message of Rmail buffer BUFFER.
+If BUFFER is swapped with its message viewer buffer, yank out of BUFFER.
+If BUFFER is not swapped, yank out of its message viewer buffer."
+  (with-current-buffer buffer
+    (unless (rmail-buffers-swapped-p)
+      (setq buffer rmail-view-buffer)))
+  (insert-buffer buffer))
+
+
 (defun rmail-start-mail (&optional noerase to subject in-reply-to cc
 				   replybuffer sendactions same-window
 				   other-headers)
@@ -3571,7 +3581,8 @@ does not pop any summary buffer."
     (if replybuffer
 	;; The function used here must behave like insert-buffer wrt
 	;; point and mark (see doc of sc-cite-original).
-	(setq yank-action (list 'insert-buffer replybuffer)))
+	(setq yank-action
+	      `(rmail-yank-current-message ,replybuffer)))
     (push (cons "cc" cc) other-headers)
     (push (cons "in-reply-to" in-reply-to) other-headers)
     (setq other-headers
@@ -3587,7 +3598,7 @@ does not pop any summary buffer."
     (prog1
 	(compose-mail to subject other-headers noerase
 		      switch-function yank-action sendactions
-		      `(rmail-mail-return ,replybuffer))
+		      (if replybuffer `(rmail-mail-return ,replybuffer)))
       (if (eq switch-function 'switch-to-buffer-other-frame)
 	  ;; This is not a standard frame parameter; nothing except
 	  ;; sendmail.el looks at it.
@@ -3644,7 +3655,7 @@ to switch to."
 While composing the message, use \\[mail-yank-original] to yank the
 original message into it."
   (interactive)
-  (rmail-start-mail nil nil nil nil nil rmail-view-buffer))
+  (rmail-start-mail nil nil nil nil nil rmail-buffer))
 
 ;; FIXME should complain if there is nothing to continue.
 (defun rmail-continue ()
@@ -3731,9 +3742,7 @@ use \\[mail-yank-original] to yank the original message into it."
 			(mail-strip-quoted-names
 			 (if (null cc) to (concat to ", " cc))))))
 	 (if (string= cc-list "") nil cc-list)))
-     (if (rmail-buffers-swapped-p)
-	 rmail-buffer
-       rmail-view-buffer)
+     rmail-buffer
      (list (list 'rmail-mark-message
 		 rmail-buffer
 		 (with-current-buffer rmail-buffer
@@ -3835,7 +3844,7 @@ see the documentation of `rmail-resend'."
 			   (or (mail-fetch-field "Subject") "")
 			   "]")))
       (if (rmail-start-mail
-	   nil nil subject nil nil nil
+	   nil nil subject nil nil rmail-buffer
 	   (list (list 'rmail-mark-message
 		       forward-buffer
 		       (with-current-buffer rmail-buffer

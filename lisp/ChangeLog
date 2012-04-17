@@ -1,3 +1,17 @@
+2012-04-17  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-start-mail):
+	Pass (rmail-mail-return...) for the return-action.
+	Pass (rmail-yank-current-message...) for the yank-action.
+	(rmail-yank-current-message): New function.
+	(rmail-mail): Pass the Rmail buffer, not view buffer, for replybuffer.
+	(rmail-reply): Likewise.
+	(rmail-forward): Pass the Rmail buffer, not nil, for replybuffer.
+
+	* mail/sendmail.el (mail-bury): Choose the first rmail-mode
+	buffer, not the last.  Reject temp buffers.  Use the rmail-mode	
+	buffer, not newbuf.
+
 2012-04-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-ensure-safe-dir): Simplify.
