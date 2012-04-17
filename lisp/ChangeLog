@@ -1,3 +1,9 @@
+2012-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (mouse-drag-track):
+	* speedbar.el (speedbar-frame-mode):
+	Use auto-hscroll-mode rather than the alias automatic-hscrolling.
+
 2012-04-16  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/python.el: Trivial cleanup.

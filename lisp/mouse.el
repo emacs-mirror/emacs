@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993-1995, 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -805,8 +805,8 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 				  (= click-count 1)))
 	 ;; Suppress automatic hscrolling, because that is a nuisance
 	 ;; when setting point near the right fringe (but see below).
-	 (automatic-hscrolling-saved automatic-hscrolling)
-	 (automatic-hscrolling nil)
+	 (auto-hscroll-mode-saved auto-hscroll-mode)
+	 (auto-hscroll-mode nil)
 	 event end end-point)
 
     (setq mouse-selection-click-count click-count)
@@ -838,7 +838,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	  ;; Automatic hscrolling did not occur during the call to
 	  ;; `read-event'; but if the user subsequently drags the
 	  ;; mouse, go ahead and hscroll.
-	  (let ((automatic-hscrolling automatic-hscrolling-saved))
+	  (let ((auto-hscroll-mode auto-hscroll-mode-saved))
 	    (redisplay))
 	  (setq end (event-end event)
 		end-point (posn-point end))
