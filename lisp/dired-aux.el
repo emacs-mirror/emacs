@@ -401,7 +401,10 @@ FILES should be a list of file names.
 DEFAULT-VALUE, if non-nil, should be a \"standard\" value or list
 of such values, available via history commands.  Note that if the
 user enters empty input, this function returns the empty string,
-not DEFAULT-VALUE."
+not DEFAULT-VALUE.
+
+Optional argument COLLECTION is a collection of possible completions,
+suitable for use by `completing-read'."
   (dired-mark-pop-up nil op-symbol files
 		     'completing-read
 		     (format prompt (dired-mark-prompt arg files))
