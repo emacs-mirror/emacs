@@ -520,31 +520,27 @@ Creates the directory if necessary and makes sure:
     ;; Check that it's safe for use.
     (let* ((uid (nth 2 attrs))
 	   (w32 (eq system-type 'windows-nt))
-	   (safe (catch :safe
-		   (unless (eq t (car attrs))   ; is a dir?
-		     (throw :safe nil))
-		   (when (and w32 (zerop uid))  ; on FAT32?
-		     (display-warning
-		      'server
-		      (format "Using `%s' to store Emacs-server authentication files.
+	   (safe (cond
+		  ((not (eq t (car attrs))) nil)  ; is a dir?
+		  ((and w32 (zerop uid))	  ; on FAT32?
+		   (display-warning
+		    'server
+		    (format "Using `%s' to store Emacs-server authentication files.
 Directories on FAT32 filesystems are NOT secure against tampering.
 See variable `server-auth-dir' for details."
-			      (file-name-as-directory dir))
-		      :warning)
-		     (throw :safe t))
-		   (unless (or (= uid (user-uid)) ; is the dir ours?
-			       (and w32
-				    ;; Files created on Windows by
-				    ;; Administrator (RID=500) have
-				    ;; the Administrators (RID=544)
-				    ;; group recorded as the owner.
-				    (= uid 544) (= (user-uid) 500)))
-		     (throw :safe nil))
-		   (when w32                    ; on NTFS?
-		     (throw :safe t))
-		   (unless (zerop (logand ?\077 (file-modes dir)))
-		     (throw :safe nil))
-		   t)))
+			    (file-name-as-directory dir))
+		    :warning)
+		   t)
+		  ((and (/= uid (user-uid))	  ; is the dir ours?
+			(or (not w32)
+			    ;; Files created on Windows by Administrator
+			    ;; (RID=500) have the Administrators (RID=544)
+			    ;; group recorded as the owner.
+			    (/= uid 544) (/= (user-uid) 500)))
+		   nil)
+		  (w32 t)			  ; on NTFS?
+		  (t				  ; else, check permissions
+		   (zerop (logand ?\077 (file-modes dir)))))))
       (unless safe
 	(error "The directory `%s' is unsafe" dir)))))
 

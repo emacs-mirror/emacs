@@ -1,3 +1,7 @@
+2012-04-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-ensure-safe-dir): Simplify.
+
 2012-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el: Provide smarter auto-filling.
