@@ -1,3 +1,9 @@
+2012-04-17  Peter Oliver  <bzr@mavit.org.uk>  (tiny change)
+
+	* progmodes/perl-mode.el (perl-indent-parens-as-block):
+	New option (bug#11118).
+	(perl-calculate-indent): Respect it.
+
 2012-04-17  Glenn Morris  <rgm@gnu.org>
 
 	* dired-aux.el (dired-mark-read-string): Doc fix.

@@ -70,7 +70,10 @@ channel keys found, if any.
 
 ** The `server-auth-key' variable can be used to set a permanent
 shared key for Emacs Server.
-   
+
+** In Perl mode, new option `perl-indent-parens-as-block' causes non-block
+closing brackets to be aligned with the line of the opening bracket.
+
 ** Obsolete packages:
 
 *** mailpost.el
