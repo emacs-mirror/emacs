@@ -1,3 +1,10 @@
+2012-04-17  Chong Yidong  <cyd@gnu.org>
+
+	* help.texi (Keys in Documentation): Mention :advertised-binding.
+
+	* keymaps.texi (Menu Bar): Move most of the :advertised-binding
+	description to help.texi.
+
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* processes.texi (Process Information, Input to Processes)
