@@ -1,3 +1,14 @@
+2012-04-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (string_buffer_position_lim): Limit starting position to
+	BEGV.
+	(set_cursor_from_row): If called for a mode-line or header-line
+	row, return zero immediately.
+	(try_cursor_movement): If inside continuation line, don't back up
+	farther than the first row after the header line, if any.  Don't
+	consider the header-line row as "partially visible", even if
+	MATRIX_ROW_PARTIALLY_VISIBLE_P returns non-zero.  (Bug#11261)
+
 2012-04-13  Atsuo Ohki  <ohki@gssm.otsuka.tsukuba.ac.jp>  (tiny change)
 
 	* lread.c (lisp_file_lexically_bound_p): Fix hang at ";-*-\n" (bug#11238).
