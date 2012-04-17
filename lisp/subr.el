@@ -1888,8 +1888,7 @@ Used from `delayed-warnings-hook' (which see)."
         (push warning collapsed)))
     (setq delayed-warnings-list (nreverse collapsed))))
 
-;; At present this is only really useful for Emacs internals.
-;; Document in the lispref if it becomes generally useful.
+;; At present this is only used for Emacs internals.
 ;; Ref http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00085.html
 (defvar delayed-warnings-hook '(collapse-delayed-warnings
                                 display-delayed-warnings)
