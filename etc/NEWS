@@ -32,6 +32,9 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.2
 
+** New functions `system-users', `system-groups' return lists of the user
+name, group names known to the system (where possible).
+
 ** If your Emacs was built from a bzr checkout, the new variable
 `emacs-bzr-version' contains information about which bzr revision was used.
 

@@ -1018,7 +1018,8 @@ Comparison is in lexicographic order and case is significant.  */)
 
 DEFUN ("system-users", Fsystem_users, Ssystem_users, 0, 0, 0,
        doc: /* Return a list of user names currently registered in the system.
-The value may be nil if not supported on this platform.  */)
+If we don't know how to determine that on this platform, just
+return a list with one element, taken from `user-real-login-name'.  */)
      (void)
 {
   Lisp_Object users = Qnil;

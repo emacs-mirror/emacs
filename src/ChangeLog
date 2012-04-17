@@ -1,3 +1,7 @@
+2012-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* dired.c (Fsystem_users): Doc fix.
+
 2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dired.c (Fsystem_users, Fsystem_groups): New functions.  (Bug#7900)
