@@ -1023,7 +1023,7 @@ return a list with one element, taken from `user-real-login-name'.  */)
      (void)
 {
   Lisp_Object users = Qnil;
-#if defined(HAVE_GETPWENT) && defined(HAVE_ENDPWENT)
+#if defined HAVE_GETPWENT && defined HAVE_ENDPWENT
   struct passwd *pw;
 
   while ((pw = getpwent ()))
@@ -1043,9 +1043,8 @@ The value may be nil if not supported on this platform.  */)
      (void)
 {
   Lisp_Object groups = Qnil;
-#if defined(HAVE_GETGRENT) && defined(HAVE_ENDGRENT)
+#if defined HAVE_GETGRENT && defined HAVE_ENDGRENT
   struct group *gr;
-  int length;
 
   while ((gr = getgrent ()))
     groups = Fcons (DECODE_SYSTEM (build_string (gr->gr_name)), groups);
