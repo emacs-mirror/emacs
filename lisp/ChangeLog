@@ -1,3 +1,35 @@
+2012-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: Provide smarter auto-filling.
+	(smie-auto-fill): New function.
+	(smie-setup): Use it.
+
+	* newcomment.el (comment-choose-indent): Obey comment-inline-offset.
+
+2012-04-17  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
+
+	* newcomment.el (comment-inline-offset): New custom var (bug#11090).
+	(comment-indent): Use it.
+
+2012-04-17  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: The overall change is to add cell renaming, that is
+	setting fancy names for cell symbols other than name matching
+	"\\`[A-Z]+[0-9]+\\'" regexp .
+	(ses-localvars): Add ses--renamed-cell-symb-list.
+	(ses-create-cell-variable): New defun.
+	(ses-destroy-cell-variable-range): Respect ses--numrows, ses--numcols.
+	(ses-relocate-formula): Relocate formulas only for cells the
+	symbols of which are not renamed, i.e. symbols whose names do not
+	match regexp "\\`[A-Z]+[0-9]+\\'".
+	(ses-relocate-all): Relocate values only for cells the symbols of
+	which are not renamed.
+	(ses-load): Create cells variables as the (ses-cell ...) are read,
+	in order to check row col consistency with cell symbol name only
+	for cells that are not renamed.
+	(ses-replace-name-in-formula): New defun.
+	(ses-rename-cell): New defun.
+
 2012-04-17  Peter Oliver  <bzr@mavit.org.uk>  (tiny change)
 
 	* progmodes/perl-mode.el (perl-indent-parens-as-block):
