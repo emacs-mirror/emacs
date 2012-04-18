@@ -2152,6 +2152,7 @@ unless NOMODES is non-nil."
 	 (/= (char-after (1- (point-max))) ?\n)
 	 (not (and (eq selective-display t)
 		   (= (char-after (1- (point-max))) ?\r)))
+	 (not buffer-read-only)
 	 (save-excursion
 	   (goto-char (point-max))
 	   (insert "\n")))

@@ -1,3 +1,8 @@
+2012-04-18  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* files.el (after-find-file): Do not try to add a final newline if
+	the buffer is read-only (Bug#11156).
+
 2012-04-17  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-start-mail):
@@ -9,7 +14,7 @@
 	(rmail-forward): Pass the Rmail buffer, not nil, for replybuffer.
 
 	* mail/sendmail.el (mail-bury): Choose the first rmail-mode
-	buffer, not the last.  Reject temp buffers.  Use the rmail-mode	
+	buffer, not the last.  Reject temp buffers.  Use the rmail-mode
 	buffer, not newbuf.
 
 2012-04-17  Juanma Barranquero  <lekktu@gmail.com>
