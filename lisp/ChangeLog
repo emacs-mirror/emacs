@@ -1,3 +1,10 @@
+2012-04-18  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (edit-abbrevs): Move point to the abbrev table of
+	current buffer.
+	(prepare-abbrev-list-buffer): Enter edit-abbrevs-mode only if
+	LOCAL is nil.
+
 2012-04-18  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (line-move): Use forward-line if in batch mode
