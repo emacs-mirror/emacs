@@ -134,10 +134,13 @@ Otherwise display all abbrevs."
 		(push table empty-tables)
 	      (insert-abbrev-table-description table t)))
 	  (dolist (table (nreverse empty-tables))
-	    (insert-abbrev-table-description table t))))
+	    (insert-abbrev-table-description table t)))
+        ;; Note: `list-abbrevs' can dispaly only local abbrevs, in
+        ;; which case editing could lose abbrevs of other tables. Thus
+        ;; enter `edit-abbrevs-mode' only if LOCAL is nil.
+        (edit-abbrevs-mode))
       (goto-char (point-min))
       (set-buffer-modified-p nil)
-      (edit-abbrevs-mode)
       (current-buffer))))
 
 (defun edit-abbrevs-mode ()
@@ -152,7 +155,8 @@ Otherwise display all abbrevs."
 
 (defun edit-abbrevs ()
   "Alter abbrev definitions by editing a list of them.
-Selects a buffer containing a list of abbrev definitions.
+Selects a buffer containing a list of abbrev definitions with
+point located in the abbrev table of current buffer.
 You can edit them and type \\<edit-abbrevs-map>\\[edit-abbrevs-redefine] to redefine abbrevs
 according to your editing.
 Buffer contains a header line for each abbrev table,
@@ -163,7 +167,12 @@ where NAME and EXPANSION are strings with quotes,
 USECOUNT is an integer, and HOOK is any valid function
 or may be omitted (it is usually omitted)."
   (interactive)
-  (switch-to-buffer (prepare-abbrev-list-buffer)))
+  (let ((table-name (abbrev-table-name local-abbrev-table)))
+    (switch-to-buffer (prepare-abbrev-list-buffer))
+    (when (and table-name
+               (search-forward
+                (concat "(" (symbol-name table-name) ")\n\n") nil t))
+      (goto-char (match-end 0)))))
 
 (defun edit-abbrevs-redefine ()
   "Redefine abbrevs according to current buffer contents."
