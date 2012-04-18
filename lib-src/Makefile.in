@@ -36,8 +36,9 @@ configuration=@configuration@
 EXEEXT=@EXEEXT@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
-C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
+WARN_CFLAGS = @WARN_CFLAGS@
+WERROR_CFLAGS = @WERROR_CFLAGS@
 
 # Program name transformation.
 TRANSFORM = @program_transform_name@
@@ -167,7 +168,8 @@ LIBS_SYSTEM = @LIBS_SYSTEM@
 # Those files shared with other GNU utilities need HAVE_CONFIG_H
 # defined before they know they can take advantage of the information
 # in ../src/config.h.
-BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) ${C_WARNINGS_SWITCH} \
+BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
+	      $(WARN_CFLAGS) $(WERROR_CFLAGS) \
 	      -DHAVE_CONFIG_H -I. -I../src -I../lib \
 	      -I${srcdir} -I${srcdir}/../src -I${srcdir}/../lib
 

@@ -28,8 +28,9 @@ VPATH=@srcdir@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
-C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
+WARN_CFLAGS = `echo @WARN_CFLAGS@ | sed 's/ -Wwrite-strings//'`
+WERROR_CFLAGS = @WERROR_CFLAGS@
 
 CC=@CC@
 CFLAGS=@CFLAGS@
@@ -53,7 +54,7 @@ OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 ## There are no generated lwlib files, hence no need for -I.
 ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(C_SWITCH_MACHINE) \
-  $(C_WARNINGS_SWITCH) $(PROFILING_CFLAGS) $(CFLAGS) \
+  $(WARN_CFLAGS) $(WERROR_CFLAGS) $(PROFILING_CFLAGS) $(CFLAGS) \
   -DHAVE_CONFIG_H -Demacs -I../src \
   -I$(srcdir) -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib
 

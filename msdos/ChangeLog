@@ -1,3 +1,9 @@
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* sed1v2.inp, sed3v2.inp, sedlibmk.inp: GNULIB_WARN_CFLAGS,
+	WARN_CFLAGS, and WERROR_CFLAGS replace C_WARNINGS_SWITCH.
+
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* sedlibmk.inp, sed1v2.inp: GNUSTEP_CFLAGS replaces C_SWITCH_X_SYSTEM.

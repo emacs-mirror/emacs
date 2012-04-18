@@ -1,3 +1,10 @@
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* Makefile.in (C_WARNINGS_SWITCH): Remove.
+	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
+	(ALL_CFLAGS): Use new macros rather than old.
+
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (C_SWITCH_X_SYSTEM): Remove.

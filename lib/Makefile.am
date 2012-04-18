@@ -4,6 +4,7 @@ MOSTLYCLEANDIRS =
 MOSTLYCLEANFILES =
 noinst_LIBRARIES =
 
+AM_CFLAGS = $(GNULIB_WARN_CFLAGS) $(WERROR_CFLAGS)
 DEFAULT_INCLUDES = -I. -I../src -I$(top_srcdir)/src
 
 include gnulib.mk

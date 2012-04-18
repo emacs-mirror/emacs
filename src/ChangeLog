@@ -1,3 +1,16 @@
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* Makefile.in (C_WARNINGS_SWITCH): Remove.
+	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
+	(ALL_CFLAGS): Use new macros rather than old.
+	* process.c: Ignore -Wstrict-overflow to work around GCC bug 52904.
+	* regex.c: Ignore -Wstrict-overflow.  If !emacs, also ignore
+	-Wunused-but-set-variable, -Wunused-function, -Wunused-macros,
+	-Wunused-result, -Wunused-variable.  This should go away once
+	the Emacs and Gnulib regex code is merged.
+	(xmalloc, xrealloc): Now static.
+
 2012-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dired.c (Fsystem_groups): Remove unused local.

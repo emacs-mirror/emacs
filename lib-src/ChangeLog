@@ -1,3 +1,10 @@
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* Makefile.in (C_WARNINGS_SWITCH): Remove.
+	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
+	(BASE_CFLAGS): Use new macros rather than old.
+
 2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume less-ancient POSIX support.

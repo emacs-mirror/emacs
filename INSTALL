@@ -317,6 +317,12 @@ Use --with-wide-int to implement Emacs values with the type 'long long',
 even on hosts where a narrower type would do.  With this option, on a
 typical 32-bit host, Emacs integers have 62 bits instead of 30.
 
+Use --enable-gcc-warnings to enable compile-time checks that warn
+about possibly-questionable C code.  This is intended for developers
+and is useful with GNU-compatible compilers.  On a recent GNU system
+there should be no warnings; on older and on non-GNU systems the
+generated warnings may still be useful.
+
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
 - Emacs (and the other utilities users run) go in PREFIXDIR/bin
