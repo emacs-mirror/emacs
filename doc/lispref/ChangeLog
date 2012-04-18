@@ -1,3 +1,8 @@
+2012-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Serial Ports, Byte Packing, Bindat Spec)
+	(Bindat Functions): Copyedits.
+
 2012-04-18  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* files.texi (Saving Buffers): Document `visit and `visit-save'

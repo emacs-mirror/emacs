@@ -214,7 +214,7 @@ objects.texi      cyd
 os.texi           cyd
 package.texi      rgm
 positions.texi    cyd
-processes.texi
+processes.texi    rgm
 searching.texi    rgm
 sequences.texi    cyd
 streams.texi      cyd

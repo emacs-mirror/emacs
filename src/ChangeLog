@@ -2,7 +2,7 @@
 
 	* process.c (Fset_process_inherit_coding_system_flag)
 	(Fset_process_query_on_exit_flag): Doc fix (mention return value).
-	(Fmake_network_process): Doc fix.
+	(Fmake_network_process, Fmake_serial_process): Doc fix.
 
 2012-04-17  Eli Zaretskii  <eliz@gnu.org>
 

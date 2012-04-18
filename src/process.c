@@ -2528,7 +2528,7 @@ could be "COM1", or "\\\\.\\COM10" for ports higher than COM9 (double
 the backslashes in strings).
 
 :speed SPEED -- (mandatory) is handled by `serial-process-configure',
-which is called by `make-serial-process'.
+which this function calls.
 
 :name NAME -- NAME is the name of the process.  If NAME is not given,
 the value of PORT is used.
@@ -2557,13 +2557,12 @@ but you can send outgoing data.  The stopped state is cleared by
 
 :plist PLIST -- Install PLIST as the initial plist of the process.
 
-:speed
 :bytesize
 :parity
 :stopbits
 :flowcontrol
--- These arguments are handled by `serial-process-configure', which is
-called by `make-serial-process'.
+-- This function calls `serial-process-configure' to handle these
+arguments.
 
 The original argument list, possibly modified by later configuration,
 is available via the function `process-contact'.

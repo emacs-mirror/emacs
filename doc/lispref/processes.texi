@@ -2493,11 +2493,11 @@ lets you change the speed, bytesize, and other parameters.  In a
 terminal window created by @code{serial-term}, you can click on the
 mode line for configuration.
 
-  A serial connection is represented by a process object which can be
-used similar to a subprocess or network process.  You can send and
-receive data and configure the serial port.  A serial process object
-has no process ID, you can't send signals to it, and the status codes
-are different from other types of processes.
+  A serial connection is represented by a process object, which can be
+used in a similar way to a subprocess or network process.  You can send and
+receive data, and configure the serial port.  A serial process object
+has no process ID, however, and you can't send signals to it, and the
+status codes are different from other types of processes.
 @code{delete-process} on the process object or @code{kill-buffer} on
 the process buffer close the connection, but this does not affect the
 device connected to the serial port.
@@ -2505,15 +2505,17 @@ device connected to the serial port.
   The function @code{process-type} returns the symbol @code{serial}
 for a process object representing a serial port connection.
 
-  Serial ports are available on GNU/Linux, Unix, and Windows systems.
+  Serial ports are available on GNU/Linux, Unix, and MS Windows systems.
 
 @deffn Command serial-term port speed
 Start a terminal-emulator for a serial port in a new buffer.
-@var{port} is the name of the serial port to which to connect.  For
-example, this could be @file{/dev/ttyS0} on Unix.  On Windows, this
+@var{port} is the name of the serial port to connect to.  For
+example, this could be @file{/dev/ttyS0} on Unix.  On MS Windows, this
 could be @file{COM1}, or @file{\\.\COM10} (double the backslashes in
 Lisp strings).
 
+@c FIXME is 9600 still the most common value, or is it 115200 now?
+@c (Same value, 9600, appears below as well.)
 @var{speed} is the speed of the serial port in bits per second.  9600
 is a common value.  The buffer is in Term mode; see @ref{Term Mode,,,
 emacs, The GNU Emacs Manual}, for the commands to use in that buffer.
@@ -2522,25 +2524,27 @@ You can change the speed and the configuration in the mode line menu.
 
 @defun make-serial-process &rest args
 This function creates a process and a buffer.  Arguments are specified
-as keyword/argument pairs.  Here's the list of the meaningful keywords:
+as keyword/argument pairs.  Here's the list of the meaningful
+keywords, with the first two (@var{port} and @var{speed}) being mandatory:
 
 @table @code
-@item :port @var{port}@r{ (mandatory)}
+@item :port @var{port}
 This is the name of the serial port.  On Unix and GNU systems, this is
 a file name such as @file{/dev/ttyS0}.  On Windows, this could be
 @file{COM1}, or @file{\\.\COM10} for ports higher than @file{COM9}
 (double the backslashes in Lisp strings).
 
-@item :speed @var{speed}@r{ (mandatory)}
+@item :speed @var{speed}
 The speed of the serial port in bits per second.  This function calls
-@code{serial-process-configure} to handle the speed.
+@code{serial-process-configure} to handle the speed; see the
+following documentation of that function for more details.
 
 @item :name @var{name}
 The name of the process.  If @var{name} is not given, @var{port} will
 serve as the process name as well.
 
 @item :buffer @var{buffer}
-The buffer to associate with the process.  The value could be either a
+The buffer to associate with the process.  The value can be either a
 buffer or a string that names a buffer.  Process output goes at the
 end of that buffer, unless you specify an output stream or filter
 function to handle the output.  If @var{buffer} is not given, the
@@ -2550,9 +2554,9 @@ keyword.
 @item :coding @var{coding}
 If @var{coding} is a symbol, it specifies the coding system used for
 both reading and writing for this process.  If @var{coding} is a cons
-@code{(decoding . encoding)}, @var{decoding} is used for reading, and
-@var{encoding} is used for writing.  If not specified, the default is
-to determine the coding systems from data itself.
+@code{(@var{decoding} . @var{encoding})}, @var{decoding} is used for
+reading, and @var{encoding} is used for writing.  If not specified,
+the default is to determine the coding systems from the data itself.
 
 @item :noquery @var{query-flag}
 Initialize the process query flag to @var{query-flag}.  @xref{Query
@@ -2574,8 +2578,7 @@ Install @var{sentinel} as the process sentinel.
 @item :plist @var{plist}
 Install @var{plist} as the initial plist of the process.
 
-@item :speed
-@itemx :bytesize
+@item :bytesize
 @itemx :parity
 @itemx :stopbits
 @itemx :flowcontrol
@@ -2603,7 +2606,7 @@ Here is an example:
 This functions configures a serial port connection.  Arguments are
 specified as keyword/argument pairs.  Attributes that are not given
 are re-initialized from the process's current configuration (available
-via the function @code{process-contact}) or set to reasonable default
+via the function @code{process-contact}), or set to reasonable default
 values.  The following arguments are defined:
 
 @table @code
@@ -2621,8 +2624,8 @@ rate}.  The value can be any number, but most serial ports work only
 at a few defined values between 1200 and 115200, with 9600 being the
 most common value.  If @var{speed} is @code{nil}, the function ignores
 all other arguments and does not configure the port.  This may be
-useful for special serial ports such as Bluetooth-to-serial converters
-which can only be configured through AT commands sent through the
+useful for special serial ports such as Bluetooth-to-serial converters,
+which can only be configured through @samp{AT} commands sent through the
 connection.  The value of @code{nil} for @var{speed} is valid only for
 connections that were already opened by a previous call to
 @code{make-serial-process} or @code{serial-term}.
@@ -2649,9 +2652,9 @@ flow control).  If @var{flowcontrol} is not given, it defaults to no
 flow control.
 @end table
 
-@code{serial-process-configure} is called by
-@code{make-serial-process} for the initial configuration of the serial
-port.
+Internally, @code{make-serial-process} calls
+@code{serial-process-configure} for the initial configuration of the
+serial port.
 @end defun
 
 @node Byte Packing
@@ -2661,8 +2664,12 @@ port.
   This section describes how to pack and unpack arrays of bytes,
 usually for binary network protocols.  These functions convert byte arrays
 to alists, and vice versa.  The byte array can be represented as a
+@c FIXME?  No multibyte?
 unibyte string or as a vector of integers, while the alist associates
 symbols either with fixed-size objects or with recursive sub-alists.
+To use the functions referred to in this section, load the
+@code{bindat} library.
+@c It doesn't have any autoloads.
 
 @cindex serializing
 @cindex deserializing
@@ -2683,7 +2690,7 @@ direction is also known as @dfn{serializing} or @dfn{packing}.
 
   To control unpacking and packing, you write a @dfn{data layout
 specification}, a special nested list describing named and typed
-@dfn{fields}.  This specification controls length of each field to be
+@dfn{fields}.  This specification controls the length of each field to be
 processed, and how to pack or unpack it.  We normally keep bindat specs
 in variables whose names end in @samp{-bindat-spec}; that kind of name
 is automatically recognized as ``risky''.
@@ -2732,12 +2739,12 @@ String of length @var{len}.
 Zero-terminated string, in a fixed-size field with length @var{len}.
 
 @item vec @var{len} [@var{type}]
-Vector of @var{len} elements of type @var{type}, or bytes if not
-@var{type} is specified.
+Vector of @var{len} elements of type @var{type}, defaulting to bytes.
 The @var{type} is any of the simple types above, or another vector
-specified as a list @code{(vec @var{len} [@var{type}])}.
+specified as a list of the form @code{(vec @var{len} [@var{type}])}.
 
 @item ip
+@c FIXME?  IPv6?
 Four-byte vector representing an Internet address.  For example:
 @code{[127 0 0 1]} for localhost.
 
@@ -2765,12 +2772,11 @@ below, or by an expression @code{(eval @var{form})} where @var{form}
 should evaluate to an integer, specifying the field length.
 
 A field specification generally has the form @code{([@var{name}]
-@var{handler})}.  The square braces indicate that @var{name} is
-optional.  (Don't use names that are symbols meaningful as type
-specifications (above) or handler specifications (below), since that
-would be ambiguous.)  @var{name} can be a symbol or the expression
-@code{(eval @var{form})}, in which case @var{form} should evaluate to
-a symbol.
+@var{handler})}, where @var{name} is optional.  Don't use names that
+are symbols meaningful as type specifications (above) or handler
+specifications (below), since that would be ambiguous.  @var{name} can
+be a symbol or an expression @code{(eval @var{form})}, in which case
+@var{form} should evaluate to a symbol.
 
 @var{handler} describes how to unpack or pack the field and can be one
 of the following:
@@ -2817,10 +2823,11 @@ of @var{form}.  A non-@code{nil} result indicates a match.
 
 @item repeat @var{count} @var{field-specs}@dots{}
 Process the @var{field-specs} recursively, in order, then repeat
-starting from the first one, processing all the specs @var{count}
+starting from the first one, processing all the specifications @var{count}
 times overall.  The @var{count} is given using the same formats as a
 field length---if an @code{eval} form is used, it is evaluated just once.
-For correct operation, each spec in @var{field-specs} must include a name.
+For correct operation, each specification in @var{field-specs} must
+include a name.
 @end table
 
 For the @code{(eval @var{form})} forms used in a bindat specification,
@@ -2859,9 +2866,10 @@ specification, @code{bindat-raw} to a byte array, and @var{struct} to an
 alist representing unpacked field data.
 
 @defun bindat-unpack spec bindat-raw &optional bindat-idx
+@c FIXME?  Again, no multibyte?
 This function unpacks data from the unibyte string or byte
 array @code{bindat-raw}
-according to @var{spec}.  Normally this starts unpacking at the
+according to @var{spec}.  Normally, this starts unpacking at the
 beginning of the byte array, but if @var{bindat-idx} is non-@code{nil}, it
 specifies a zero-based starting position to use instead.
 
@@ -2897,7 +2905,7 @@ according to @var{spec}.
 
 @defun bindat-pack spec struct &optional bindat-raw bindat-idx
 This function returns a byte array packed according to @var{spec} from
-the data in the alist @var{struct}.  Normally it creates and fills a
+the data in the alist @var{struct}.  It normally creates and fills a
 new byte array starting at the beginning.  However, if @var{bindat-raw}
 is non-@code{nil}, it specifies a pre-allocated unibyte string or vector to
 pack into.  If @var{bindat-idx} is non-@code{nil}, it specifies the starting
@@ -2910,6 +2918,7 @@ meets or exceeds the total length to avoid an out-of-range error.
 @defun bindat-ip-to-string ip
 Convert the Internet address vector @var{ip} to a string in the usual
 dotted notation.
+@c FIXME?  Does it do IPv6?
 
 @example
 (bindat-ip-to-string [127 0 0 1])
@@ -2919,10 +2928,16 @@ dotted notation.
 
 @node Bindat Examples
 @subsection Examples of Byte Unpacking and Packing
+@c FIXME?  This seems a very long example for something that is not used
+@c very often.  As of 24.1, gdb-mi.el is the only user of bindat.el in Emacs.
+@c Maybe one or both of these examples should just be moved to the
+@c commentary of bindat.el.
 
   Here is a complete example of byte unpacking and packing:
 
 @lisp
+(require 'bindat)
+
 (defvar fcookie-index-spec
   '((:version  u32)
     (:count    u32)
@@ -2931,16 +2946,14 @@ dotted notation.
     (:flags    u32)
     (:delim    u8)
     (:ignored  fill 3)
-    (:offset   repeat (:count)
-               (:foo u32)))
+    (:offset   repeat (:count) (:foo u32)))
   "Description of a fortune cookie index file's contents.")
 
 (defun fcookie (cookies &optional index)
   "Display a random fortune cookie from file COOKIES.
 Optional second arg INDEX specifies the associated index
-filename, which is by default constructed by appending
-\".dat\" to COOKIES.  Display cookie text in possibly
-new buffer \"*Fortune Cookie: BASENAME*\" where BASENAME
+filename, by default \"COOKIES.dat\".  Display cookie text
+in buffer \"*Fortune Cookie: BASENAME*\", where BASENAME
 is COOKIES without the directory part."
   (interactive "fCookies file: ")
   (let* ((info (with-temp-buffer
@@ -2963,10 +2976,9 @@ is COOKIES without the directory part."
 
 (defun fcookie-create-index (cookies &optional index delim)
   "Scan file COOKIES, and write out its index file.
-Optional second arg INDEX specifies the index filename,
-which is by default constructed by appending \".dat\" to
-COOKIES.  Optional third arg DELIM specifies the unibyte
-character which, when found on a line of its own in
+Optional arg INDEX specifies the index filename, which by
+default is \"COOKIES.dat\".  Optional arg DELIM specifies the
+unibyte character that, when found on a line of its own in
 COOKIES, indicates the border between entries."
   (interactive "fCookies file: ")
   (setq delim (or delim ?%))
@@ -3003,8 +3015,8 @@ COOKIES, indicates the border between entries."
         (write-file (or index (concat cookies ".dat")))))))
 @end lisp
 
-Following is an example of defining and unpacking a complex structure.
-Consider the following C structures:
+The following is an example of defining and unpacking a complex
+structure.  Consider the following C structures:
 
 @example
 struct header @{
@@ -3017,14 +3029,14 @@ struct header @{
 struct data @{
     unsigned char    type;
     unsigned char    opcode;
-    unsigned short   length;  /* In network byte order */
+    unsigned short   length;  /* in network byte order  */
     unsigned char    id[8];   /* null-terminated string  */
     unsigned char    data[/* (length + 3) & ~3 */];
 @};
 
 struct packet @{
     struct header    header;
-    unsigned long    counters[2];  /* In little endian order */
+    unsigned long    counters[2];  /* in little endian order  */
     unsigned char    items;
     unsigned char    filler[3];
     struct data      item[/* items */];
@@ -3032,7 +3044,7 @@ struct packet @{
 @};
 @end example
 
-The corresponding data layout specification:
+The corresponding data layout specification is:
 
 @lisp
 (setq header-spec
@@ -3044,21 +3056,21 @@ The corresponding data layout specification:
 (setq data-spec
       '((type      u8)
         (opcode    u8)
-        (length    u16)  ;; network byte order
+        (length    u16)  ; network byte order
         (id        strz 8)
         (data      vec (length))
         (align     4)))
 
 (setq packet-spec
       '((header    struct header-spec)
-        (counters  vec 2 u32r)   ;; little endian order
+        (counters  vec 2 u32r)   ; little endian order
         (items     u8)
         (fill      3)
         (item      repeat (items)
                    (struct data-spec))))
 @end lisp
 
-A binary data representation:
+A binary data representation is:
 
 @lisp
 (setq binary-data
@@ -3068,7 +3080,7 @@ A binary data representation:
         1 4 0 7 ?B ?C ?D ?E ?F ?G 0 0 6 7 8 9 10 11 12 0 ])
 @end lisp
 
-The corresponding decoded structure:
+The corresponding decoded structure is:
 
 @lisp
 (setq decoded (bindat-unpack packet-spec binary-data))
@@ -3092,7 +3104,7 @@ The corresponding decoded structure:
         (type . 1))))
 @end lisp
 
-Fetching data from this structure:
+An example of fetching data from this structure:
 
 @lisp
 (bindat-get-field decoded 'item 1 'id)
