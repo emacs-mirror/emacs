@@ -763,6 +763,8 @@ else
   nw="$nw -Wshadow"
 
   # The following lines should be removable at some point.
+  nw="$nw -Wstack-protector"
+  nw="$nw -Wstrict-overflow"
   nw="$nw -Wsuggest-attribute=const"
   nw="$nw -Wsuggest-attribute=pure"
 
