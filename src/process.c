@@ -1070,7 +1070,9 @@ is more appropriate for saving the process buffer.
 
 Binding the variable `inherit-process-coding-system' to non-nil before
 starting the process is an alternative way of setting the inherit flag
-for the process which will run.  */)
+for the process which will run.
+
+This function returns FLAG.  */)
   (register Lisp_Object process, Lisp_Object flag)
 {
   CHECK_PROCESS (process);
@@ -1083,7 +1085,8 @@ DEFUN ("set-process-query-on-exit-flag",
        2, 2, 0,
        doc: /* Specify if query is needed for PROCESS when Emacs is exited.
 If the second argument FLAG is non-nil, Emacs will query the user before
-exiting or killing a buffer if PROCESS is running.  */)
+exiting or killing a buffer if PROCESS is running.  This function
+returns FLAG.  */)
   (register Lisp_Object process, Lisp_Object flag)
 {
   CHECK_PROCESS (process);
@@ -2794,7 +2797,7 @@ The stopped state is cleared by `continue-process' and set by
 :filter-multibyte BOOL -- If BOOL is non-nil, strings given to the
 process filter are multibyte, otherwise they are unibyte.
 If this keyword is not specified, the strings are multibyte if
-`default-enable-multibyte-characters' is non-nil.
+the default value of `enable-multibyte-characters' is non-nil.
 
 :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
 
