@@ -1,3 +1,7 @@
+2012-04-18  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Don't use the -R option (Bug#11251).
+
 2012-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* info/dir, Makefile.in (INFO_FILES): Add emacs-gnutls.
