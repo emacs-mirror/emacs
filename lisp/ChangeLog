@@ -1,3 +1,10 @@
+2012-04-18  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/gud.el (gud-key-prefix): Use :type 'key-sequence
+	instead of 'string to accommodate values like [f11].
+	Always use `vconcat' instead of `concat' on it, like in `gud-def'.
+	* progmodes/gdb-mi.el: Likewise.
+
 2012-04-18  Leo Liu  <sdl.web@gmail.com>
 
 	* abbrev.el (edit-abbrevs): Move point to the abbrev table of

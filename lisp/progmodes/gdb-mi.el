@@ -1056,7 +1056,7 @@ positive, otherwise don't automatically raise it."
 		   (if gdb-speedbar-auto-raise "en" "dis"))))
 
 (define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
-(define-key global-map (concat gud-key-prefix "\C-w") 'gud-watch)
+(define-key global-map (vconcat gud-key-prefix "\C-w") 'gud-watch)
 
 (declare-function tooltip-identifier-from-point "tooltip" (point))
 
