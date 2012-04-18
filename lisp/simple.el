@@ -4405,23 +4405,25 @@ lines."
 ;; a cleaner solution to the problem of making C-n do something
 ;; useful given a tall image.
 (defun line-move (arg &optional noerror to-end try-vscroll)
-  (unless (and auto-window-vscroll try-vscroll
-	       ;; Only vscroll for single line moves
-	       (= (abs arg) 1)
-	       ;; But don't vscroll in a keyboard macro.
-	       (not defining-kbd-macro)
-	       (not executing-kbd-macro)
-	       (line-move-partial arg noerror to-end))
-    (set-window-vscroll nil 0 t)
-    (if (and line-move-visual
-	     ;; Display-based column are incompatible with goal-column.
-	     (not goal-column)
-	     ;; When the text in the window is scrolled to the left,
-	     ;; display-based motion doesn't make sense (because each
-	     ;; logical line occupies exactly one screen line).
-	     (not (> (window-hscroll) 0)))
-	(line-move-visual arg noerror)
-      (line-move-1 arg noerror to-end))))
+  (if noninteractive
+      (forward-line arg)
+    (unless (and auto-window-vscroll try-vscroll
+		 ;; Only vscroll for single line moves
+		 (= (abs arg) 1)
+		 ;; But don't vscroll in a keyboard macro.
+		 (not defining-kbd-macro)
+		 (not executing-kbd-macro)
+		 (line-move-partial arg noerror to-end))
+      (set-window-vscroll nil 0 t)
+      (if (and line-move-visual
+	       ;; Display-based column are incompatible with goal-column.
+	       (not goal-column)
+	       ;; When the text in the window is scrolled to the left,
+	       ;; display-based motion doesn't make sense (because each
+	       ;; logical line occupies exactly one screen line).
+	       (not (> (window-hscroll) 0)))
+	  (line-move-visual arg noerror)
+	(line-move-1 arg noerror to-end)))))
 
 ;; Display-based alternative to line-move-1.
 ;; Arg says how many lines to move.  The value is t if we can move the
