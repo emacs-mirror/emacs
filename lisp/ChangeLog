@@ -1,3 +1,8 @@
+2012-04-18  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (line-move): Use forward-line if in batch mode
+	(Bug#11053).
+
 2012-04-18  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* files.el (after-find-file): Do not try to add a final newline if
