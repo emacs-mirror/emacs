@@ -1,3 +1,7 @@
+2012-04-18  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/grep.el (grep, rgrep): Doc fix (Bug#11268).
+
 2012-04-18  Glenn Morris  <rgm@gnu.org>
 
 	* net/network-stream.el (open-network-stream): Doc fix.

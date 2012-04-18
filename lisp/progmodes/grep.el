@@ -728,9 +728,9 @@ This function is called from `compilation-filter-hook'."
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
 While grep runs asynchronously, you can use \\[next-error] (M-x next-error),
-or \\<grep-mode-map>\\[compile-goto-error] in the grep \
-output buffer, to go to the lines where grep
-found matches.
+or \\<grep-mode-map>\\[compile-goto-error] in the *grep* \
+buffer, to go to the lines where grep found
+matches.  To kill the grep job before it finishes, type \\[kill-compilation].
 
 For doing a recursive `grep', see the `rgrep' command.  For running
 `grep' in a specific directory, see `lgrep'.
@@ -957,10 +957,11 @@ With \\[universal-argument] prefix, you can edit the constructed shell command l
 before it is executed.
 With two \\[universal-argument] prefixes, directly edit and run `grep-find-command'.
 
-Collect output in a buffer.  While find runs asynchronously, you
-can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] \
+Collect output in a buffer.  While the recursive grep is running,
+you can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] \
 in the grep output buffer,
-to go to the lines where grep found matches.
+to visit the lines where matches were found.  To kill the job
+before it finishes, type \\[kill-compilation].
 
 This command shares argument histories with \\[lgrep] and \\[grep-find].
 
