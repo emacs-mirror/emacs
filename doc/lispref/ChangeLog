@@ -1,5 +1,17 @@
 2012-04-19  Glenn Morris  <rgm@gnu.org>
 
+	* minibuf.texi (Object from Minibuffer): Remove overly pedantic para.
+	(Minibuffer History): Copyedits.  Add face-name-history.
+	(Initial Input, Yes-or-No Queries, Multiple Queries)
+	(Minibuffer Windows, Minibuffer Misc): Copyedits.
+	(Yes-or-No Queries): Tweak example.
+	(Minibuffer Commands): Add next-complete-history-element.
+	(Minibuffer Misc): Mention minibuffer-message-timeout, and
+	minibuffer-inactive-mode.
+
+	* minibuf.texi (Minibuffers):
+	* elisp.texi, vol1.texi, vol2.texi: Fix minibuffer subsection order.
+
 	* minibuf.texi: Standardize metasyntactic variables ("history", etc).
 	Use Texinfo-recommended form of quote+punctuation.
 	(Intro to Minibuffers): First minibuffer is #1, not #0.

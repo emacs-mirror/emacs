@@ -30,8 +30,8 @@ argument.
 * Multiple Queries::          Asking a series of similar questions.
 * Reading a Password::        Reading a password from the terminal.
 * Minibuffer Commands::       Commands used as key bindings in minibuffers.
-* Minibuffer Contents::       How such commands access the minibuffer text.
 * Minibuffer Windows::        Operating on the special minibuffer windows.
+* Minibuffer Contents::       How such commands access the minibuffer text.
 * Recursive Mini::            Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::           Various customization hooks and variables.
 @end menu
@@ -93,8 +93,6 @@ to be done.  @xref{Text from Minibuffer}, for the non-completion
 minibuffer local maps.  @xref{Completion Commands}, for the minibuffer
 local maps for completion.
 
-@findex minibuffer-inactive-mode
-@vindex minibuffer-inactive-mode-map
 @cindex inactive minibuffer
   When a minibuffer is inactive, its major mode is
 @code{minibuffer-inactive-mode}, with keymap
@@ -408,23 +406,16 @@ This function simply evaluates the result of a call to
 @end defun
 
 @defun edit-and-eval-command prompt form
-This function reads a Lisp expression in the minibuffer, and then
-evaluates it.  The difference between this command and
+This function reads a Lisp expression in the minibuffer, evaluates it,
+then returns the result.  The difference between this command and
 @code{eval-minibuffer} is that here the initial @var{form} is not
 optional and it is treated as a Lisp object to be converted to printed
 representation rather than as a string of text.  It is printed with
 @code{prin1}, so if it is a string, double-quote characters (@samp{"})
 appear in the initial text.  @xref{Output Functions}.
 
-The first thing @code{edit-and-eval-command} does is to activate the
-minibuffer with @var{prompt} as the prompt.  Then it inserts the printed
-representation of @var{form} in the minibuffer, and lets the user edit it.
-When the user exits the minibuffer, the edited text is read with
-@code{read} and then evaluated.  The resulting value becomes the value
-of @code{edit-and-eval-command}.
-
 In the following example, we offer the user an expression with initial
-text which is a valid form already:
+text that is already a valid form:
 
 @smallexample
 @group
@@ -444,7 +435,6 @@ Please edit: (forward-word 1)@point{}
 @noindent
 Typing @key{RET} right away would exit the minibuffer and evaluate the
 expression, thus moving point forward one word.
-@code{edit-and-eval-command} returns @code{nil} in this example.
 @end defun
 
 @node Minibuffer History
@@ -523,15 +513,15 @@ If the value of this variable is @code{nil}, standard functions that
 read from the minibuffer don't add new elements to the history list.
 This lets Lisp programs explicitly manage input history by using
 @code{add-to-history}.  By default, @code{history-add-new-input} is
-set to a non-@code{nil} value.
+non-@code{nil}.
 @end defvar
 
 @defopt history-length
 The value of this variable specifies the maximum length for all
 history lists that don't specify their own maximum lengths.  If the
 value is @code{t}, that means there is no maximum (don't delete old
-elements).  The value of @code{history-length} property of the history
-list variable's symbol, if set, overrides this variable for that
+elements).  If a history list variable's symbol has a non-@code{nil}
+@code{history-length} property, it overrides this variable for that
 particular history list.
 @end defopt
 
@@ -575,6 +565,14 @@ A history list for arguments that are shell commands.
 A history list for arguments that are Lisp expressions to evaluate.
 @end defvar
 
+@defvar face-name-history
+A history list for arguments that are faces.
+@end defvar
+
+@c Less common: coding-system-history, input-method-history,
+@c command-history, grep-history, grep-find-history,
+@c read-envvar-name-history, setenv-history, yes-or-no-p-history.
+
 @node Initial Input
 @section Initial Input
 
@@ -608,11 +606,10 @@ inconsistently in different functions.  In @code{completing-read},
 of 0 means the beginning of the string, 1 means after the first
 character, etc.  In @code{read-minibuffer}, and the other
 non-completion minibuffer input functions that support this argument,
-1 means the beginning of the string 2 means after the first character,
+1 means the beginning of the string, 2 means after the first character,
 etc.
 
-Use of a cons cell as the value for @var{initial} arguments is
-deprecated in user code.
+Use of a cons cell as the value for @var{initial} arguments is deprecated.
 
 @node Completion
 @section Completion
@@ -1900,7 +1897,7 @@ answer.
 using the mouse---more precisely, if @code{last-nonmenu-event}
 (@pxref{Command Loop Info}) is either @code{nil} or a list---then it
 uses a dialog box or pop-up menu to ask the question.  Otherwise, it
-uses keyboard input.  You can force use of the mouse or use of keyboard
+uses keyboard input.  You can force use either of the mouse or of keyboard
 input by binding @code{last-nonmenu-event} to a suitable value around
 the call.
 
@@ -1935,12 +1932,16 @@ hardwired.  The keymap @code{query-replace-map} specifies them.
 In the following example, the user first types @kbd{q}, which is
 invalid.  At the next prompt the user types @kbd{y}.
 
+@c Need an interactive example, because otherwise the return value
+@c obscures the display of the valid answer.
 @smallexample
 @group
-(y-or-n-p "Do you need a lift? ")
+(defun ask ()
+  (interactive)
+  (y-or-n-p "Do you need a lift? "))
 
-;; @r{After evaluation of the preceding expression,}
-;;   @r{the following prompt appears in the echo area:}
+;; @r{After evaluation of the preceding definition, @kbd{M-x ask}}
+;;   @r{causes the following prompt to appear in the echo area:}
 @end group
 
 @group
@@ -2043,7 +2044,7 @@ single-character answer in the echo area for each one.
 The value of @var{list} specifies the objects to ask questions about.
 It should be either a list of objects or a generator function.  If it is
 a function, it should expect no arguments, and should return either the
-next object to ask about, or @code{nil} meaning stop asking questions.
+next object to ask about, or @code{nil}, meaning to stop asking questions.
 
 The argument @var{prompter} specifies how to ask each question.  If
 @var{prompter} is a string, the question text is computed like this:
@@ -2059,8 +2060,8 @@ where @var{object} is the next object to ask about (as obtained from
 If not a string, @var{prompter} should be a function of one argument
 (the next object to ask about) and should return the question text.  If
 the value is a string, that is the question to ask the user.  The
-function can also return @code{t} meaning do act on this object (and
-don't ask the user), or @code{nil} meaning ignore this object (and don't
+function can also return @code{t}, meaning do act on this object (and
+don't ask the user), or @code{nil}, meaning ignore this object (and don't
 ask the user).
 
 The argument @var{actor} says how to act on the answers that the user
@@ -2113,12 +2114,14 @@ If @code{map-y-or-n-p} is called in a command that was invoked using the
 mouse---more precisely, if @code{last-nonmenu-event} (@pxref{Command
 Loop Info}) is either @code{nil} or a list---then it uses a dialog box
 or pop-up menu to ask the question.  In this case, it does not use
-keyboard input or the echo area.  You can force use of the mouse or use
+keyboard input or the echo area.  You can force use either of the mouse or
 of keyboard input by binding @code{last-nonmenu-event} to a suitable
 value around the call.
 
 The return value of @code{map-y-or-n-p} is the number of objects acted on.
 @end defun
+@c FIXME  An example of this would be more useful than all the
+@c preceding examples of simple things.
 
 @node Reading a Password
 @section Reading a Password
@@ -2181,6 +2184,19 @@ This command replaces the minibuffer contents with the value of the
 regular expression).
 @end deffn
 
+@deffn Command previous-complete-history-element n
+This command replaces the minibuffer contents with the value of the
+@var{n}th previous (older) history element that completes the current
+contents of the minibuffer before the point.
+@end deffn
+
+@deffn Command next-complete-history-element n
+This command replaces the minibuffer contents with the value of the
+@var{n}th next (newer) history element that completes the current
+contents of the minibuffer before the point.
+@end deffn
+
+
 @node Minibuffer Windows
 @section Minibuffer Windows
 @cindex minibuffer windows
@@ -2190,7 +2206,7 @@ and test whether they are active.
 
 @defun active-minibuffer-window
 This function returns the currently active minibuffer window, or
-@code{nil} if none is currently active.
+@code{nil} if there is none.
 @end defun
 
 @defun minibuffer-window &optional frame
@@ -2223,8 +2239,8 @@ there can be more than one minibuffer window if there is more than one
 frame.
 
 @defun minibuffer-window-active-p window
-This function returns non-@code{nil} if @var{window}, assumed to be
-a minibuffer window, is currently active.
+This function returns non-@code{nil} if @var{window} is the currently
+active minibuffer window.
 @end defun
 
 @node Minibuffer Contents
@@ -2339,7 +2355,7 @@ minibuffer, it scrolls this window.
 @end defvar
 
 @defun minibuffer-selected-window
-This function returns the window which was selected when the
+This function returns the window that was selected when the
 minibuffer was entered.  If selected window is not a minibuffer
 window, it returns @code{nil}.
 @end defun
@@ -2350,10 +2366,19 @@ windows.  If a float, it specifies a fraction of the height of the
 frame.  If an integer, it specifies a number of lines.
 @end defopt
 
+@vindex minibuffer-message-timeout
 @defun minibuffer-message string &rest args
 This function displays @var{string} temporarily at the end of the
-minibuffer text, for two seconds, or until the next input event
-arrives, whichever comes first.  If @var{args} is non-@code{nil}, the
-actual message is obtained by passing @var{string} and @var{args}
-through @code{format}.  @xref{Formatting Strings}.
+minibuffer text, for a few seconds, or until the next input event
+arrives, whichever comes first.  The variable
+@code{minibuffer-message-timeout} specifies the number of seconds to
+wait in the absence of input.  It defaults to 2.  If @var{args} is
+non-@code{nil}, the actual message is obtained by passing @var{string}
+and @var{args} through @code{format}.  @xref{Formatting Strings}.
 @end defun
+
+@deffn Command minibuffer-inactive-mode
+This is the major mode used in inactive minibuffers.  It uses
+keymap @code{minibuffer-inactive-mode-map}.  This can be useful
+if the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
+@end deffn
