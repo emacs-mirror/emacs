@@ -1,5 +1,10 @@
 2012-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
+	* imenu.el (imenu-progress-message): Restore; it is "used" in
+	erc/erc-imenu.el and net/snmp-mode.el.
+
+2012-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
 	* avoid.el (mouse-avoidance-mode): Mark unused arg.
 	(mouse-avoidance-nudge-mouse): Remove unused binding.
 

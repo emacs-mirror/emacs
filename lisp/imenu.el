@@ -266,6 +266,29 @@ The function in this variable is called when selecting a normal index-item.")
   (and (consp (cdr item)) (listp (cadr item))
        (not (eq (car (cadr item)) 'lambda))))
 
+;; Macro to display a progress message.
+;; RELPOS is the relative position to display.
+;; If RELPOS is nil, then the relative position in the buffer
+;; is calculated.
+;; PREVPOS is the variable in which we store the last position displayed.
+(defmacro imenu-progress-message (prevpos &optional relpos reverse)
+
+;; Made obsolete/empty, as computers are now faster than the eye, and
+;; it had problems updating the messages correctly, and could shadow
+;; more important messages/prompts in the minibuffer.  KFS 2004-10-27.
+
+;;  `(and
+;;    imenu-scanning-message
+;;    (let ((pos ,(if relpos
+;;		   relpos
+;;		 `(imenu--relative-position ,reverse))))
+;;	(if ,(if relpos t
+;;	    `(> pos (+ 5 ,prevpos)))
+;;	 (progn
+;;	   (message imenu-scanning-message pos)
+;;	   (setq ,prevpos pos)))))
+)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
