@@ -1,3 +1,17 @@
+2012-04-19  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty): New
+	function to call delete-process on the gdb-inferior buffer's pty.
+	(gdb-reset): Use it, instead of relying on kill-buffer to kill the
+	pty process (Bug#11273).
+	(gdb-update): New arg to suppress talking to the gdb process.
+	(gdb-done-or-error): Use it.
+	(gdb-stopped-functions): Rename from gdb-stopped-hooks.
+	(gdb): Call gdb-inferior-io--maybe-delete-pty as a workaround for
+	sentinel not being called.
+
+	* comint.el (make-comint-in-buffer, comint-exec): Doc fix.
+
 2012-04-18  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/grep.el (grep, rgrep): Doc fix (Bug#11268).
