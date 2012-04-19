@@ -1,3 +1,12 @@
+2012-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi: Standardize metasyntactic variables ("history", etc).
+	Use Texinfo-recommended form of quote+punctuation.
+	(Intro to Minibuffers): First minibuffer is #1, not #0.
+	Mention minibuffer-inactive-mode.
+	(Text from Minibuffer): Copyedits.
+	(Minibuffer History, Programmed Completion): Fix @var usage.
+
 2012-04-18  Glenn Morris  <rgm@gnu.org>
 
 	* processes.texi (Serial Ports, Byte Packing, Bindat Spec)
