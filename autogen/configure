@@ -1185,7 +1185,9 @@ CANNOT_DUMP
 HAVE_MAKEINFO
 GZIP_PROG
 INSTALL_INFO
-C_WARNINGS_SWITCH
+GNULIB_WARN_CFLAGS
+WARN_CFLAGS
+WERROR_CFLAGS
 RANLIB
 ARFLAGS
 AR
@@ -1334,6 +1336,7 @@ enable_profiling
 enable_autodepend
 enable_dependency_tracking
 enable_largefile
+enable_gcc_warnings
 with_x
 '
       ac_precious_vars='build_alias
@@ -1995,6 +1998,7 @@ Optional Features:
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-largefile     omit support for large files
+  --enable-gcc-warnings   turn on lots of GCC warnings (for developers)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -7064,12 +7068,50 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
-### Use -Wdeclaration-after-statement if the compiler supports it
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -Wdeclaration-after-statement" >&5
-$as_echo_n "checking whether gcc understands -Wdeclaration-after-statement... " >&6; }
-SAVE_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wdeclaration-after-statement"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+# Check whether --enable-gcc-warnings was given.
+if test "${enable_gcc_warnings+set}" = set; then :
+  enableval=$enable_gcc_warnings; case $enableval in
+     yes|no) ;;
+     *)      as_fn_error "bad value $enableval for gcc-warnings option" "$LINENO" 5 ;;
+   esac
+   gl_gcc_warnings=$enableval
+else
+  gl_gcc_warnings=no
+
+fi
+
+
+# gl_GCC_VERSION_IFELSE([major], [minor], [run-if-found], [run-if-not-found])
+# ------------------------------------------------
+# If $CPP is gcc-MAJOR.MINOR or newer, then run RUN-IF-FOUND.
+# Otherwise, run RUN-IF-NOT-FOUND.
+
+
+# When compiling with GCC, prefer -isystem to -I when including system
+# include files, to avoid generating useless diagnostics for the files.
+if test "$gl_gcc_warnings" != yes; then
+  isystem='-I'
+else
+  isystem='-isystem '
+
+  # This, $nw, is the list of warnings we disable.
+  nw=
+
+  case $with_x_toolkit in
+    lucid | athena | motif)
+       # Old toolkits mishandle 'const'.
+       nw="$nw -Wwrite-strings"
+       ;;
+    *)
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror" >&5
+$as_echo_n "checking whether C compiler handles -Werror... " >&6; }
+if test "${gl_cv_warn_c__Werror+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -Werror"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -7081,27 +7123,69 @@ main ()
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  has_option=yes
+  gl_cv_warn_c__Werror=yes
 else
-  has_option=no
+  gl_cv_warn_c__Werror=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-if test $has_option = yes; then
-   C_WARNINGS_SWITCH="-Wdeclaration-after-statement $C_WARNINGS_SWITCH"
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_option" >&5
-$as_echo "$has_option" >&6; }
-CFLAGS="$SAVE_CFLAGS"
-unset has_option
-unset SAVE_CFLAGS
+  CFLAGS="$gl_save_compiler_FLAGS"
 
-### Use -Wold-style-definition if the compiler supports it
-# This can be removed when conversion to standard C is finished.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -Wold-style-definition" >&5
-$as_echo_n "checking whether gcc understands -Wold-style-definition... " >&6; }
-SAVE_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wold-style-definition"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Werror" >&5
+$as_echo "$gl_cv_warn_c__Werror" >&6; }
+if test "x$gl_cv_warn_c__Werror" = x""yes; then :
+  as_fn_append WERROR_CFLAGS " -Werror"
+fi
+
+       ;;
+  esac
+
+
+  nw="$nw -Waggregate-return"       # anachronistic
+  nw="$nw -Wlong-long"              # C90 is anachronistic (lib/gethrxtime.h)
+  nw="$nw -Wc++-compat"             # We don't care about C++ compilers
+  nw="$nw -Wundef"                  # Warns on '#if GNULIB_FOO' etc in gnulib
+  nw="$nw -Wtraditional"            # Warns on #elif which we use often
+  nw="$nw -Wcast-qual"              # Too many warnings for now
+  nw="$nw -Wconversion"             # Too many warnings for now
+  nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
+  nw="$nw -Wsign-conversion"        # Too many warnings for now
+  nw="$nw -Woverlength-strings"     # Not a problem these days
+  nw="$nw -Wtraditional-conversion" # Too many warnings for now
+  nw="$nw -Wpadded"                 # Our structs are not padded
+  nw="$nw -Wredundant-decls"        # We regularly (re)declare getenv etc.
+  nw="$nw -Wlogical-op"             # any use of fwrite provokes this
+  nw="$nw -Wformat-nonliteral"      # Emacs does this a lot
+  nw="$nw -Wvla"                    # warnings in gettext.h
+  nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
+  nw="$nw -Wswitch-enum"            # Too many warnings for now
+  nw="$nw -Wswitch-default"         # Too many warnings for now
+  nw="$nw -Wfloat-equal"            # e.g., ftoastr.c
+  nw="$nw -Winline"                 # e.g., dispnew.c's inlining of row_equal_p
+
+  # Emacs doesn't care about shadowing; see
+  # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+  nw="$nw -Wshadow"
+
+  # The following lines should be removable at some point.
+  nw="$nw -Wstack-protector"
+  nw="$nw -Wstrict-overflow"
+  nw="$nw -Wsuggest-attribute=const"
+  nw="$nw -Wsuggest-attribute=pure"
+
+
+
+  if test -n "$GCC"; then
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -Wno-missing-field-initializers is supported" >&5
+$as_echo_n "checking whether -Wno-missing-field-initializers is supported... " >&6; }
+    if test "${gl_cv_cc_nomfi_supported+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      gl_save_CFLAGS="$CFLAGS"
+      CFLAGS="$CFLAGS -W -Werror -Wno-missing-field-initializers"
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -7113,26 +7197,186 @@ main ()
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  has_option=yes
+  gl_cv_cc_nomfi_supported=yes
 else
-  has_option=no
+  gl_cv_cc_nomfi_supported=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-if test $has_option = yes; then
-   C_WARNINGS_SWITCH="-Wold-style-definition $C_WARNINGS_SWITCH"
+      CFLAGS="$gl_save_CFLAGS"
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_option" >&5
-$as_echo "$has_option" >&6; }
-CFLAGS="$SAVE_CFLAGS"
-unset has_option
-unset SAVE_CFLAGS
 
-### Use -Wimplicit-function-declaration if the compiler supports it
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -Wimplicit-function-declaration" >&5
-$as_echo_n "checking whether gcc understands -Wimplicit-function-declaration... " >&6; }
-SAVE_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wimplicit-function-declaration"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_cc_nomfi_supported" >&5
+$as_echo "$gl_cv_cc_nomfi_supported" >&6; }
+
+    if test "$gl_cv_cc_nomfi_supported" = yes; then
+                  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -Wno-missing-field-initializers is needed" >&5
+$as_echo_n "checking whether -Wno-missing-field-initializers is needed... " >&6; }
+      if test "${gl_cv_cc_nomfi_needed+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+        gl_save_CFLAGS="$CFLAGS"
+        CFLAGS="$CFLAGS -W -Werror"
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+void f (void)
+               {
+                 typedef struct { int a; int b; } s_t;
+                 s_t s1 = { 0, };
+               }
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_cc_nomfi_needed=no
+else
+  gl_cv_cc_nomfi_needed=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+        CFLAGS="$gl_save_CFLAGS"
+
+fi
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_cc_nomfi_needed" >&5
+$as_echo "$gl_cv_cc_nomfi_needed" >&6; }
+    fi
+  fi
+
+  gl_manywarn_set=
+  for gl_manywarn_item in \
+    -Wall \
+    -W \
+    -Wformat-y2k \
+    -Wformat-nonliteral \
+    -Wformat-security \
+    -Winit-self \
+    -Wmissing-include-dirs \
+    -Wswitch-default \
+    -Wswitch-enum \
+    -Wunused \
+    -Wunknown-pragmas \
+    -Wstrict-aliasing \
+    -Wstrict-overflow \
+    -Wsystem-headers \
+    -Wfloat-equal \
+    -Wtraditional \
+    -Wtraditional-conversion \
+    -Wdeclaration-after-statement \
+    -Wundef \
+    -Wshadow \
+    -Wunsafe-loop-optimizations \
+    -Wpointer-arith \
+    -Wbad-function-cast \
+    -Wc++-compat \
+    -Wcast-qual \
+    -Wcast-align \
+    -Wwrite-strings \
+    -Wconversion \
+    -Wsign-conversion \
+    -Wlogical-op \
+    -Waggregate-return \
+    -Wstrict-prototypes \
+    -Wold-style-definition \
+    -Wmissing-prototypes \
+    -Wmissing-declarations \
+    -Wmissing-noreturn \
+    -Wmissing-format-attribute \
+    -Wpacked \
+    -Wpadded \
+    -Wredundant-decls \
+    -Wnested-externs \
+    -Wunreachable-code \
+    -Winline \
+    -Winvalid-pch \
+    -Wlong-long \
+    -Wvla \
+    -Wvolatile-register-var \
+    -Wdisabled-optimization \
+    -Wstack-protector \
+    -Woverlength-strings \
+    -Wbuiltin-macro-redefined \
+    -Wmudflap \
+    -Wpacked-bitfield-compat \
+    -Wsync-nand \
+    ; do
+    gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
+  done
+  # The following are not documented in the manual but are included in
+  # output from gcc --help=warnings.
+  for gl_manywarn_item in \
+    -Wattributes \
+    -Wcoverage-mismatch \
+    -Wmultichar \
+    -Wunused-macros \
+    ; do
+    gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
+  done
+  # More warnings from gcc 4.6.2 --help=warnings.
+  for gl_manywarn_item in \
+    -Wabi \
+    -Wcpp \
+    -Wdeprecated \
+    -Wdeprecated-declarations \
+    -Wdiv-by-zero \
+    -Wdouble-promotion \
+    -Wendif-labels \
+    -Wextra \
+    -Wformat-contains-nul \
+    -Wformat-extra-args \
+    -Wformat-zero-length \
+    -Wformat=2 \
+    -Wmultichar \
+    -Wnormalized=nfc \
+    -Woverflow \
+    -Wpointer-to-int-cast \
+    -Wpragmas \
+    -Wsuggest-attribute=const \
+    -Wsuggest-attribute=noreturn \
+    -Wsuggest-attribute=pure \
+    -Wtrampolines \
+    ; do
+    gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
+  done
+
+  # Disable the missing-field-initializers warning if needed
+  if test "$gl_cv_cc_nomfi_needed" = yes; then
+    gl_manywarn_set="$gl_manywarn_set -Wno-missing-field-initializers"
+  fi
+
+  ws=$gl_manywarn_set
+
+
+  gl_warn_set=
+  set x $ws; shift
+  for gl_warn_item
+  do
+    case " $nw " in
+      *" $gl_warn_item "*)
+        ;;
+      *)
+        gl_warn_set="$gl_warn_set $gl_warn_item"
+        ;;
+    esac
+  done
+  ws=$gl_warn_set
+
+  for w in $ws; do
+    as_gl_Warn=`$as_echo "gl_cv_warn_c_$w" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles $w" >&5
+$as_echo_n "checking whether C compiler handles $w... " >&6; }
+if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS $w"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -7144,20 +7388,368 @@ main ()
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  has_option=yes
+  eval "$as_gl_Warn=yes"
 else
-  has_option=no
+  eval "$as_gl_Warn=no"
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-if test $has_option = yes; then
-   C_WARNINGS_SWITCH="-Wimplicit-function-declaration $C_WARNINGS_SWITCH"
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_option" >&5
-$as_echo "$has_option" >&6; }
-CFLAGS="$SAVE_CFLAGS"
-unset has_option
-unset SAVE_CFLAGS
+  CFLAGS="$gl_save_compiler_FLAGS"
 
+fi
+eval ac_res=\$$as_gl_Warn
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+eval as_val=\$$as_gl_Warn
+   if test "x$as_val" = x""yes; then :
+  as_fn_append WARN_CFLAGS " $w"
+fi
+
+  done
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-missing-field-initializers" >&5
+$as_echo_n "checking whether C compiler handles -Wno-missing-field-initializers... " >&6; }
+if test "${gl_cv_warn_c__Wno_missing_field_initializers+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -Wno-missing-field-initializers"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_missing_field_initializers=yes
+else
+  gl_cv_warn_c__Wno_missing_field_initializers=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_missing_field_initializers" >&5
+$as_echo "$gl_cv_warn_c__Wno_missing_field_initializers" >&6; }
+if test "x$gl_cv_warn_c__Wno_missing_field_initializers" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-missing-field-initializers"
+fi
+ # We need this one
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-sign-compare" >&5
+$as_echo_n "checking whether C compiler handles -Wno-sign-compare... " >&6; }
+if test "${gl_cv_warn_c__Wno_sign_compare+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -Wno-sign-compare"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_sign_compare=yes
+else
+  gl_cv_warn_c__Wno_sign_compare=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_sign_compare" >&5
+$as_echo "$gl_cv_warn_c__Wno_sign_compare" >&6; }
+if test "x$gl_cv_warn_c__Wno_sign_compare" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-sign-compare"
+fi
+     # Too many warnings for now
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-type-limits" >&5
+$as_echo_n "checking whether C compiler handles -Wno-type-limits... " >&6; }
+if test "${gl_cv_warn_c__Wno_type_limits+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -Wno-type-limits"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_type_limits=yes
+else
+  gl_cv_warn_c__Wno_type_limits=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_type_limits" >&5
+$as_echo "$gl_cv_warn_c__Wno_type_limits" >&6; }
+if test "x$gl_cv_warn_c__Wno_type_limits" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-type-limits"
+fi
+      # Too many warnings for now
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-switch" >&5
+$as_echo_n "checking whether C compiler handles -Wno-switch... " >&6; }
+if test "${gl_cv_warn_c__Wno_switch+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -Wno-switch"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_switch=yes
+else
+  gl_cv_warn_c__Wno_switch=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_switch" >&5
+$as_echo "$gl_cv_warn_c__Wno_switch" >&6; }
+if test "x$gl_cv_warn_c__Wno_switch" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-switch"
+fi
+           # Too many warnings for now
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-parameter" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-parameter... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_parameter+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -Wno-unused-parameter"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_parameter=yes
+else
+  gl_cv_warn_c__Wno_unused_parameter=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_parameter" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_parameter" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_parameter" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-parameter"
+fi
+ # Too many warnings for now
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-format-nonliteral" >&5
+$as_echo_n "checking whether C compiler handles -Wno-format-nonliteral... " >&6; }
+if test "${gl_cv_warn_c__Wno_format_nonliteral+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -Wno-format-nonliteral"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_format_nonliteral=yes
+else
+  gl_cv_warn_c__Wno_format_nonliteral=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_format_nonliteral" >&5
+$as_echo "$gl_cv_warn_c__Wno_format_nonliteral" >&6; }
+if test "x$gl_cv_warn_c__Wno_format_nonliteral" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-format-nonliteral"
+fi
+
+
+  # In spite of excluding -Wlogical-op above, it is enabled, as of
+  # gcc 4.5.0 20090517.
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-logical-op" >&5
+$as_echo_n "checking whether C compiler handles -Wno-logical-op... " >&6; }
+if test "${gl_cv_warn_c__Wno_logical_op+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -Wno-logical-op"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_logical_op=yes
+else
+  gl_cv_warn_c__Wno_logical_op=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_logical_op" >&5
+$as_echo "$gl_cv_warn_c__Wno_logical_op" >&6; }
+if test "x$gl_cv_warn_c__Wno_logical_op" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-logical-op"
+fi
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -fdiagnostics-show-option" >&5
+$as_echo_n "checking whether C compiler handles -fdiagnostics-show-option... " >&6; }
+if test "${gl_cv_warn_c__fdiagnostics_show_option+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -fdiagnostics-show-option"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__fdiagnostics_show_option=yes
+else
+  gl_cv_warn_c__fdiagnostics_show_option=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__fdiagnostics_show_option" >&5
+$as_echo "$gl_cv_warn_c__fdiagnostics_show_option" >&6; }
+if test "x$gl_cv_warn_c__fdiagnostics_show_option" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -fdiagnostics-show-option"
+fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -funit-at-a-time" >&5
+$as_echo_n "checking whether C compiler handles -funit-at-a-time... " >&6; }
+if test "${gl_cv_warn_c__funit_at_a_time+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -funit-at-a-time"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__funit_at_a_time=yes
+else
+  gl_cv_warn_c__funit_at_a_time=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__funit_at_a_time" >&5
+$as_echo "$gl_cv_warn_c__funit_at_a_time" >&6; }
+if test "x$gl_cv_warn_c__funit_at_a_time" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -funit-at-a-time"
+fi
+
+
+
+
+
+$as_echo "#define lint 1" >>confdefs.h
+
+
+$as_echo "#define _FORTIFY_SOURCE 2" >>confdefs.h
+
+
+$as_echo "#define GNULIB_PORTCHECK 1" >>confdefs.h
+
+
+  # We use a slightly smaller set of warning options for lib/.
+  # Remove the following and save the result in GNULIB_WARN_CFLAGS.
+  nw=
+  nw="$nw -Wunused-macros"
+
+
+  gl_warn_set=
+  set x $WARN_CFLAGS; shift
+  for gl_warn_item
+  do
+    case " $nw " in
+      *" $gl_warn_item "*)
+        ;;
+      *)
+        gl_warn_set="$gl_warn_set $gl_warn_item"
+        ;;
+    esac
+  done
+  GNULIB_WARN_CFLAGS=$gl_warn_set
+
+
+fi
 
 
 
@@ -8316,8 +8908,13 @@ $as_echo_n "checking for $ALSA_MODULES... " >&6; }
         if $PKG_CONFIG --exists "$ALSA_MODULES" 2>&5 &&
 	   ALSA_CFLAGS=`$PKG_CONFIG --cflags "$ALSA_MODULES" 2>&5` &&
 	   ALSA_LIBS=`$PKG_CONFIG --libs "$ALSA_MODULES" 2>&5`; then
-
-	    ALSA_CFLAGS=`$as_echo "$ALSA_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    ALSA_CFLAGS=`$as_echo "$ALSA_CFLAGS" | sed -e "$edit_cflags"`
 	    ALSA_LIBS=`$as_echo "$ALSA_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$ALSA_CFLAGS' LIBS='$ALSA_LIBS'" >&5
 $as_echo "yes CFLAGS='$ALSA_CFLAGS' LIBS='$ALSA_LIBS'" >&6; }
@@ -9689,7 +10286,7 @@ fi
 
 
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
-  C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
+  C_SWITCH_X_SITE="$isystem"`echo ${x_includes} | sed -e "s/:/ $isystem/g"`
 fi
 
 if test x"${x_includes}" = x; then
@@ -10744,8 +11341,13 @@ $as_echo_n "checking for $RSVG_MODULE... " >&6; }
         if $PKG_CONFIG --exists "$RSVG_MODULE" 2>&5 &&
 	   RSVG_CFLAGS=`$PKG_CONFIG --cflags "$RSVG_MODULE" 2>&5` &&
 	   RSVG_LIBS=`$PKG_CONFIG --libs "$RSVG_MODULE" 2>&5`; then
-
-	    RSVG_CFLAGS=`$as_echo "$RSVG_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    RSVG_CFLAGS=`$as_echo "$RSVG_CFLAGS" | sed -e "$edit_cflags"`
 	    RSVG_LIBS=`$as_echo "$RSVG_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$RSVG_CFLAGS' LIBS='$RSVG_LIBS'" >&5
 $as_echo "yes CFLAGS='$RSVG_CFLAGS' LIBS='$RSVG_LIBS'" >&6; }
@@ -10851,8 +11453,13 @@ $as_echo_n "checking for $IMAGEMAGICK_MODULE... " >&6; }
         if $PKG_CONFIG --exists "$IMAGEMAGICK_MODULE" 2>&5 &&
 	   IMAGEMAGICK_CFLAGS=`$PKG_CONFIG --cflags "$IMAGEMAGICK_MODULE" 2>&5` &&
 	   IMAGEMAGICK_LIBS=`$PKG_CONFIG --libs "$IMAGEMAGICK_MODULE" 2>&5`; then
-
-	    IMAGEMAGICK_CFLAGS=`$as_echo "$IMAGEMAGICK_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    IMAGEMAGICK_CFLAGS=`$as_echo "$IMAGEMAGICK_CFLAGS" | sed -e "$edit_cflags"`
 	    IMAGEMAGICK_LIBS=`$as_echo "$IMAGEMAGICK_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$IMAGEMAGICK_CFLAGS' LIBS='$IMAGEMAGICK_LIBS'" >&5
 $as_echo "yes CFLAGS='$IMAGEMAGICK_CFLAGS' LIBS='$IMAGEMAGICK_LIBS'" >&6; }
@@ -10970,8 +11577,13 @@ $as_echo_n "checking for $GTK_MODULES... " >&6; }
         if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5 &&
 	   GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES" 2>&5` &&
 	   GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES" 2>&5`; then
-
-	    GTK_CFLAGS=`$as_echo "$GTK_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    GTK_CFLAGS=`$as_echo "$GTK_CFLAGS" | sed -e "$edit_cflags"`
 	    GTK_LIBS=`$as_echo "$GTK_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GTK_CFLAGS' LIBS='$GTK_LIBS'" >&5
 $as_echo "yes CFLAGS='$GTK_CFLAGS' LIBS='$GTK_LIBS'" >&6; }
@@ -11073,8 +11685,13 @@ $as_echo_n "checking for $GTK_MODULES... " >&6; }
         if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5 &&
 	   GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES" 2>&5` &&
 	   GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES" 2>&5`; then
-
-	    GTK_CFLAGS=`$as_echo "$GTK_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    GTK_CFLAGS=`$as_echo "$GTK_CFLAGS" | sed -e "$edit_cflags"`
 	    GTK_LIBS=`$as_echo "$GTK_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GTK_CFLAGS' LIBS='$GTK_LIBS'" >&5
 $as_echo "yes CFLAGS='$GTK_CFLAGS' LIBS='$GTK_LIBS'" >&6; }
@@ -11268,8 +11885,13 @@ $as_echo_n "checking for dbus-1 >= 1.0... " >&6; }
         if $PKG_CONFIG --exists "dbus-1 >= 1.0" 2>&5 &&
 	   DBUS_CFLAGS=`$PKG_CONFIG --cflags "dbus-1 >= 1.0" 2>&5` &&
 	   DBUS_LIBS=`$PKG_CONFIG --libs "dbus-1 >= 1.0" 2>&5`; then
-
-	    DBUS_CFLAGS=`$as_echo "$DBUS_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    DBUS_CFLAGS=`$as_echo "$DBUS_CFLAGS" | sed -e "$edit_cflags"`
 	    DBUS_LIBS=`$as_echo "$DBUS_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$DBUS_CFLAGS' LIBS='$DBUS_LIBS'" >&5
 $as_echo "yes CFLAGS='$DBUS_CFLAGS' LIBS='$DBUS_LIBS'" >&6; }
@@ -11378,8 +12000,13 @@ $as_echo_n "checking for gio-2.0 >= 2.26... " >&6; }
         if $PKG_CONFIG --exists "gio-2.0 >= 2.26" 2>&5 &&
 	   GSETTINGS_CFLAGS=`$PKG_CONFIG --cflags "gio-2.0 >= 2.26" 2>&5` &&
 	   GSETTINGS_LIBS=`$PKG_CONFIG --libs "gio-2.0 >= 2.26" 2>&5`; then
-
-	    GSETTINGS_CFLAGS=`$as_echo "$GSETTINGS_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    GSETTINGS_CFLAGS=`$as_echo "$GSETTINGS_CFLAGS" | sed -e "$edit_cflags"`
 	    GSETTINGS_LIBS=`$as_echo "$GSETTINGS_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GSETTINGS_CFLAGS' LIBS='$GSETTINGS_LIBS'" >&5
 $as_echo "yes CFLAGS='$GSETTINGS_CFLAGS' LIBS='$GSETTINGS_LIBS'" >&6; }
@@ -11476,8 +12103,13 @@ $as_echo_n "checking for gconf-2.0 >= 2.13... " >&6; }
         if $PKG_CONFIG --exists "gconf-2.0 >= 2.13" 2>&5 &&
 	   GCONF_CFLAGS=`$PKG_CONFIG --cflags "gconf-2.0 >= 2.13" 2>&5` &&
 	   GCONF_LIBS=`$PKG_CONFIG --libs "gconf-2.0 >= 2.13" 2>&5`; then
-
-	    GCONF_CFLAGS=`$as_echo "$GCONF_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    GCONF_CFLAGS=`$as_echo "$GCONF_CFLAGS" | sed -e "$edit_cflags"`
 	    GCONF_LIBS=`$as_echo "$GCONF_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GCONF_CFLAGS' LIBS='$GCONF_LIBS'" >&5
 $as_echo "yes CFLAGS='$GCONF_CFLAGS' LIBS='$GCONF_LIBS'" >&6; }
@@ -11652,8 +12284,13 @@ $as_echo_n "checking for gnutls >= 2.6.6... " >&6; }
         if $PKG_CONFIG --exists "gnutls >= 2.6.6" 2>&5 &&
 	   LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.6.6" 2>&5` &&
 	   LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.6.6" 2>&5`; then
-
-	    LIBGNUTLS_CFLAGS=`$as_echo "$LIBGNUTLS_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    LIBGNUTLS_CFLAGS=`$as_echo "$LIBGNUTLS_CFLAGS" | sed -e "$edit_cflags"`
 	    LIBGNUTLS_LIBS=`$as_echo "$LIBGNUTLS_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$LIBGNUTLS_CFLAGS' LIBS='$LIBGNUTLS_LIBS'" >&5
 $as_echo "yes CFLAGS='$LIBGNUTLS_CFLAGS' LIBS='$LIBGNUTLS_LIBS'" >&6; }
@@ -12299,8 +12936,13 @@ $as_echo_n "checking for fontconfig >= 2.2.0... " >&6; }
         if $PKG_CONFIG --exists "fontconfig >= 2.2.0" 2>&5 &&
 	   FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig >= 2.2.0" 2>&5` &&
 	   FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig >= 2.2.0" 2>&5`; then
-
-	    FONTCONFIG_CFLAGS=`$as_echo "$FONTCONFIG_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    FONTCONFIG_CFLAGS=`$as_echo "$FONTCONFIG_CFLAGS" | sed -e "$edit_cflags"`
 	    FONTCONFIG_LIBS=`$as_echo "$FONTCONFIG_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$FONTCONFIG_CFLAGS' LIBS='$FONTCONFIG_LIBS'" >&5
 $as_echo "yes CFLAGS='$FONTCONFIG_CFLAGS' LIBS='$FONTCONFIG_LIBS'" >&6; }
@@ -12394,8 +13036,13 @@ $as_echo_n "checking for xft >= 0.13.0... " >&6; }
         if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5 &&
 	   XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0" 2>&5` &&
 	   XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0" 2>&5`; then
-
-	    XFT_CFLAGS=`$as_echo "$XFT_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    XFT_CFLAGS=`$as_echo "$XFT_CFLAGS" | sed -e "$edit_cflags"`
 	    XFT_LIBS=`$as_echo "$XFT_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$XFT_CFLAGS' LIBS='$XFT_LIBS'" >&5
 $as_echo "yes CFLAGS='$XFT_CFLAGS' LIBS='$XFT_LIBS'" >&6; }
@@ -12598,8 +13245,13 @@ $as_echo_n "checking for freetype2... " >&6; }
         if $PKG_CONFIG --exists "freetype2" 2>&5 &&
 	   FREETYPE_CFLAGS=`$PKG_CONFIG --cflags "freetype2" 2>&5` &&
 	   FREETYPE_LIBS=`$PKG_CONFIG --libs "freetype2" 2>&5`; then
-
-	    FREETYPE_CFLAGS=`$as_echo "$FREETYPE_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    FREETYPE_CFLAGS=`$as_echo "$FREETYPE_CFLAGS" | sed -e "$edit_cflags"`
 	    FREETYPE_LIBS=`$as_echo "$FREETYPE_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$FREETYPE_CFLAGS' LIBS='$FREETYPE_LIBS'" >&5
 $as_echo "yes CFLAGS='$FREETYPE_CFLAGS' LIBS='$FREETYPE_LIBS'" >&6; }
@@ -12695,8 +13347,13 @@ $as_echo_n "checking for libotf... " >&6; }
         if $PKG_CONFIG --exists "libotf" 2>&5 &&
 	   LIBOTF_CFLAGS=`$PKG_CONFIG --cflags "libotf" 2>&5` &&
 	   LIBOTF_LIBS=`$PKG_CONFIG --libs "libotf" 2>&5`; then
-
-	    LIBOTF_CFLAGS=`$as_echo "$LIBOTF_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    LIBOTF_CFLAGS=`$as_echo "$LIBOTF_CFLAGS" | sed -e "$edit_cflags"`
 	    LIBOTF_LIBS=`$as_echo "$LIBOTF_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$LIBOTF_CFLAGS' LIBS='$LIBOTF_LIBS'" >&5
 $as_echo "yes CFLAGS='$LIBOTF_CFLAGS' LIBS='$LIBOTF_LIBS'" >&6; }
@@ -12840,8 +13497,13 @@ $as_echo_n "checking for m17n-flt... " >&6; }
         if $PKG_CONFIG --exists "m17n-flt" 2>&5 &&
 	   M17N_FLT_CFLAGS=`$PKG_CONFIG --cflags "m17n-flt" 2>&5` &&
 	   M17N_FLT_LIBS=`$PKG_CONFIG --libs "m17n-flt" 2>&5`; then
-
-	    M17N_FLT_CFLAGS=`$as_echo "$M17N_FLT_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    M17N_FLT_CFLAGS=`$as_echo "$M17N_FLT_CFLAGS" | sed -e "$edit_cflags"`
 	    M17N_FLT_LIBS=`$as_echo "$M17N_FLT_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$M17N_FLT_CFLAGS' LIBS='$M17N_FLT_LIBS'" >&5
 $as_echo "yes CFLAGS='$M17N_FLT_CFLAGS' LIBS='$M17N_FLT_LIBS'" >&6; }
@@ -13555,8 +14217,13 @@ $as_echo_n "checking for libxml-2.0 > 2.6.17... " >&6; }
         if $PKG_CONFIG --exists "libxml-2.0 > 2.6.17" 2>&5 &&
 	   LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 > 2.6.17" 2>&5` &&
 	   LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 > 2.6.17" 2>&5`; then
-
-	    LIBXML2_CFLAGS=`$as_echo "$LIBXML2_CFLAGS" | sed -e 's,///*,/,g'`
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    LIBXML2_CFLAGS=`$as_echo "$LIBXML2_CFLAGS" | sed -e "$edit_cflags"`
 	    LIBXML2_LIBS=`$as_echo "$LIBXML2_LIBS" | sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$LIBXML2_CFLAGS' LIBS='$LIBXML2_LIBS'" >&5
 $as_echo "yes CFLAGS='$LIBXML2_CFLAGS' LIBS='$LIBXML2_LIBS'" >&6; }
