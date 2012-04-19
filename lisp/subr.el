@@ -678,7 +678,6 @@ Subkeymaps may be modified but are not canonicalized."
     ;; Process the bindings starting from the end.
     (dolist (binding (prog1 bindings (setq bindings ())))
       (let* ((key (car binding))
-             (item (cdr binding))
              (oldbind (assq key bindings)))
         (push (if (not oldbind)
                   ;; The normal case: no duplicate bindings.
@@ -2121,7 +2120,7 @@ by doing (clear-string STRING)."
             ;; Turn off electricity.
             (set (make-local-variable 'post-self-insert-hook) nil)
             (add-hook 'after-change-functions
-                      (lambda (beg end len)
+                      (lambda (beg end _len)
                         (clear-this-command-keys)
                         (setq beg (min end (max (minibuffer-prompt-end)
                                                 beg)))

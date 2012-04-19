@@ -1,3 +1,61 @@
+2012-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* avoid.el (mouse-avoidance-mode): Mark unused arg.
+	(mouse-avoidance-nudge-mouse): Remove unused binding.
+
+	* bs.el (bs-toggle-readonly): Call `toggle-read-only' interactively.
+
+	* descr-text.el (describe-char):
+	* progmodes/python.el (python-describe-symbol):
+	Don't call `toggle-read-only', set `buffer-read-only'.
+
+	* imenu.el (imenu-default-goto-function): Mark unused args.
+	(imenu-progress-message): Remove obsolete macro; all callers changed.
+
+	* subr.el (keymap-canonicalize): Remove unused binding.
+	(read-passwd): Mark unused arg.
+
+	* tutorial.el (tutorial--display-changes): Remove unused binding.
+	(tutorial--save-tutorial-to): Remove unused variable.
+
+	* emacs-lisp/package.el (define-package, package-menu-mark-delete)
+	(package-menu-mark-install, package-menu-mark-unmark): Mark unused args.
+	(package-generate-autoloads, package-menu--generate)
+	(package-menu--find-upgrades): Remove unused bindings.
+
+	* emulation/cua-rect.el (cua-restrict-regexp-rectangle)
+	(cua-restrict-prefix-rectangle): Doc fixes.  Remove unused bindings.
+	(cua--mouse-ignore, cua--delete-rectangle, cua--extract-rectangle)
+	(cua--indent-rectangle, cua-open-rectangle, cua-close-rectangle)
+	(cua-blank-rectangle, cua-string-rectangle, cua-replace-in-rectangle)
+	(cua-incr-rectangle, cua-sequence-rectangle, cua--convert-rectangle-as)
+	(cua--rectangle-aux-replace, cua--left-fill-rectangle)
+	(cua-scroll-rectangle-up, cua-scroll-rectangle-down)
+	(cua-delete-char-rectangle): Mark unused args.
+	(cua-align-rectangle): Remove unused binding.
+
+	* mail/rmail.el (compilation--message->loc)
+	(epa--find-coding-system-for-mime-charset): Declare.
+
+	* net/dbus.el (dbus-register-service): Declare.
+	(dbus-name-owner-changed-handler): Remove unused binding.
+
+	* nxml/nxml-mode.el (nxml-electric-slash, nxml-in-mixed-content-p)
+	(nxml-compute-indent-from-matching-start-tag): Remove unused variables.
+	(nxml-scan-backward-within): Mark unused arg.
+	(nxml-dynamic-markup-word): Remove unused binding.
+
+	* mouse.el (mouse-menu-major-mode-map):
+	* emacs-lisp/authors.el (authors-scan-change-log)
+	(authors-add-to-author-list):
+	* emacs-lisp/avl-tree.el (avl-tree--enter-balance):
+	* emacs-lisp/smie.el (smie-auto-fill):
+	* mail/sendmail.el (mail-bury):
+	* mail/unrmail.el (unrmail):
+	* net/tls.el (open-tls-stream):
+	* textmodes/picture.el (picture-mouse-set-point):
+	Remove unused bindings.
+
 2012-04-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-action-password): Let-bind
@@ -180,7 +238,7 @@
 2012-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Avoid the use of ((lambda ...) ...) in lexical-binding code.
-	* emacs-lisp/easy-mmode.el (define-minor-mode):Use funcall (bug#11241).
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Use funcall (bug#11241).
 
 2012-04-15  Glenn Morris  <rgm@gnu.org>
 
@@ -392,7 +450,7 @@
 
 2012-04-11  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
-	* lisp/progmodes/grep.el (rgrep): Tweak the find command line so
+	* progmodes/grep.el (rgrep): Tweak the find command line so
 	that directories matching `grep-find-ignored-files' won't be
 	pruned (bug#10351).
 
@@ -1730,7 +1788,7 @@
 2012-02-12  Alan Mackenzie  <acm@muc.de>
 
 	Fix infinite loop with long macros.
-	* cc-engine.el (c-state-safe-place): Handle macros properly.
+	* progmodes/cc-engine.el (c-state-safe-place): Handle macros properly.
 
 2012-02-12  Chong Yidong  <cyd@gnu.org>
 
@@ -1993,11 +2051,10 @@
 
 2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* progmodes/cc-mode.el
-	(c-standard-font-lock-fontify-region-function): Set the default at
-	load time, too, so that `font-lock-fontify-buffer' can be called
-	without setting up the entire mode first.  This fixes a bug in
-	`mm-inline-text' with C MIME parts.
+	* progmodes/cc-mode.el (c-standard-font-lock-fontify-region-function):
+	Set the default at load time, too, so that `font-lock-fontify-buffer'
+	can be called without setting up the entire mode first.  This fixes
+	a bug in `mm-inline-text' with C MIME parts.
 
 2012-02-06  Chong Yidong  <cyd@gnu.org>
 

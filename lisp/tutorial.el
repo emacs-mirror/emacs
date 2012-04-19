@@ -585,7 +585,6 @@ with some explanatory links."
 	   (not (get-text-property (match-beginning 1) 'tutorial-remark))
 	   (let* ((desc    (car changed-key))
 		  (ck      (cdr changed-key))
-		  (key     (nth 0 ck))
 		  (def-fun (nth 1 ck))
 		  (where   (nth 3 ck))
 		  s1 s2 help-string)
@@ -724,7 +723,7 @@ See `tutorial--save-tutorial' for more information."
                            saved-file
                            (error-message-string err))))
             ;; An error is raised here?? Is this a bug?
-            (condition-case err
+            (condition-case nil
                 (undo-only)
               (error nil))
             ;; Restore point

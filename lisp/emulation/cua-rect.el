@@ -465,7 +465,7 @@ If command is repeated at same position, delete the rectangle."
       (cua-copy-rectangle arg)
       (setq cua--mouse-last-pos (cons (point) cua--last-killed-rectangle)))))
 
-(defun cua--mouse-ignore (event)
+(defun cua--mouse-ignore (_event)
   (interactive "e")
   (setq this-command last-command))
 
@@ -609,12 +609,12 @@ If command is repeated at same position, delete the rectangle."
   (let ((lines 0))
     (if (not (cua--rectangle-virtual-edges))
 	(cua--rectangle-operation nil nil t 2 t
-	  (lambda (s e l r v)
+	  (lambda (s e _l _r _v)
             (setq lines (1+ lines))
             (if (and (> e s) (<= e (point-max)))
                 (delete-region s e))))
       (cua--rectangle-operation nil 1 t nil t
-	(lambda (s e l r v)
+	(lambda (s e _l _r _v)
 	   (setq lines (1+ lines))
 	   (when (and (> e s) (<= e (point-max)))
 	     (delete-region s e)))))
@@ -624,10 +624,10 @@ If command is repeated at same position, delete the rectangle."
   (let (rect)
     (if (not (cua--rectangle-virtual-edges))
 	(cua--rectangle-operation nil nil nil nil nil ; do not tabify
-	  (lambda (s e l r)
+	  (lambda (s e _l _r)
 	     (setq rect (cons (cua--filter-buffer-noprops s e) rect))))
       (cua--rectangle-operation nil 1 nil nil nil ; do not tabify
-	(lambda (s e l r v)
+	(lambda (s e l r _v)
 	   (let ((copy t) (bs 0) (as 0) row)
 	     (if (= s e) (setq e (1+ e)))
 	     (goto-char s)
@@ -840,7 +840,7 @@ If command is repeated at same position, delete the rectangle."
         (pad (cua--rectangle-virtual-edges))
         indent)
     (cua--rectangle-operation (if clear 'clear 'corners) nil t pad nil
-      (lambda (s e l r)
+      (lambda (_s _e l _r)
          (move-to-column col pad)
          (if (and (eolp)
                   (< (current-column) col))
@@ -905,10 +905,10 @@ With prefix argument, activate previous rectangle if possible."
         (cua-help-for-region t))))
 
 (defun cua-restrict-regexp-rectangle (arg)
-  "Restrict rectangle to lines (not) matching REGEXP.
-With prefix argument, the toggle restriction."
+  "Restrict rectangle to lines (not) matching regexp.
+With prefix argument, toggle restriction."
   (interactive "P")
-  (let ((r (cua--rectangle-restriction)) regexp)
+  (let ((r (cua--rectangle-restriction)))
     (if (and r (null (car (cdr r))))
       (if arg
           (cua--rectangle-restriction (car r) nil (not (car (cdr (cdr r)))))
@@ -919,9 +919,9 @@ With prefix argument, the toggle restriction."
 
 (defun cua-restrict-prefix-rectangle (arg)
   "Restrict rectangle to lines (not) starting with CHAR.
-With prefix argument, the toggle restriction."
+With prefix argument, toggle restriction."
   (interactive "P")
-  (let ((r (cua--rectangle-restriction)) regexp)
+  (let ((r (cua--rectangle-restriction)))
     (if (and r (car (cdr r)))
       (if arg
           (cua--rectangle-restriction (car r) t (not (car (cdr (cdr r)))))
@@ -1000,7 +1000,7 @@ The text previously in the region is not overwritten by the blanks,
 but instead winds up to the right of the rectangle."
   (interactive)
   (cua--rectangle-operation 'corners nil t 1 nil
-   (lambda (s e l r)
+   (lambda (_s _e l r)
       (skip-chars-forward " \t")
       (let ((ws (- (current-column) l))
             (p (point)))
@@ -1015,7 +1015,7 @@ at that column is deleted.
 With prefix arg, also delete whitespace to the left of that column."
   (interactive "P")
   (cua--rectangle-operation 'clear nil t 1 nil
-   (lambda (s e l r)
+   (lambda (s _e _l _r)
       (when arg
         (skip-syntax-backward " " (line-beginning-position))
         (setq s (point)))
@@ -1027,7 +1027,7 @@ With prefix arg, also delete whitespace to the left of that column."
 The text previously in the rectangle is overwritten by the blanks."
   (interactive)
   (cua--rectangle-operation 'keep nil nil 1 nil
-   (lambda (s e l r)
+   (lambda (s e _l _r)
       (goto-char e)
       (skip-syntax-forward " " (line-end-position))
       (setq e (point))
@@ -1040,20 +1040,19 @@ The text previously in the rectangle is overwritten by the blanks."
 (defun cua-align-rectangle ()
   "Align rectangle lines to left column."
   (interactive)
-  (let (x)
-    (cua--rectangle-operation 'clear nil t t nil
-     (lambda (s e l r)
-        (let ((b (line-beginning-position)))
-          (skip-syntax-backward "^ " b)
-          (skip-syntax-backward " " b)
-          (setq s (point)))
-        (skip-syntax-forward " " (line-end-position))
-        (delete-region s (point))
-        (indent-to l))
-     (lambda (l r)
-        (move-to-column l)
-        ;; (setq cua-save-point (point))
-        ))))
+  (cua--rectangle-operation 'clear nil t t nil
+   (lambda (s _e l _r)
+      (let ((b (line-beginning-position)))
+	(skip-syntax-backward "^ " b)
+	(skip-syntax-backward " " b)
+	(setq s (point)))
+      (skip-syntax-forward " " (line-end-position))
+      (delete-region s (point))
+      (indent-to l))
+   (lambda (l _r)
+      (move-to-column l)
+      ;; (setq cua-save-point (point))
+      )))
 
 (declare-function cua--cut-rectangle-to-global-mark  "cua-gmrk" (as-text))
 (declare-function cua--copy-rectangle-to-global-mark "cua-gmrk" (as-text))
@@ -1087,7 +1086,7 @@ The text previously in the rectangle is overwritten by the blanks."
 The length of STRING need not be the same as the rectangle width."
   (interactive "sString rectangle: ")
   (cua--rectangle-operation 'keep nil t t nil
-     (lambda (s e l r)
+     (lambda (s e l _r)
         (delete-region s e)
         (skip-chars-forward " \t")
         (let ((ws (- (current-column) l)))
@@ -1095,7 +1094,7 @@ The length of STRING need not be the same as the rectangle width."
           (insert string)
           (indent-to (+ (current-column) ws))))
      (unless (cua--rectangle-restriction)
-       (lambda (l r)
+       (lambda (l _r)
           (cua--rectangle-right (max l (+ l (length string) -1)))))))
 
 (defun cua-fill-char-rectangle (character)
@@ -1113,7 +1112,7 @@ The length of STRING need not be the same as the rectangle width."
   (if buffer-read-only
       (message "Cannot replace in read-only buffer")
     (cua--rectangle-operation 'keep nil t 1 nil
-     (lambda (s e l r)
+     (lambda (_s e _l _r)
         (if (re-search-forward regexp e t)
             (replace-match newtext nil nil))))))
 
@@ -1121,7 +1120,7 @@ The length of STRING need not be the same as the rectangle width."
   "Increment each line of CUA rectangle by prefix amount."
   (interactive "p")
   (cua--rectangle-operation 'keep nil t 1 nil
-     (lambda (s e l r)
+     (lambda (_s e _l _r)
         (cond
          ((re-search-forward "0x\\([0-9a-fA-F]+\\)" e t)
           (let* ((txt (cua--filter-buffer-noprops (match-beginning 1) (match-end 1)))
@@ -1154,14 +1153,14 @@ The numbers are formatted according to the FORMAT string."
       (setq format cua--rectangle-seq-format)
     (setq cua--rectangle-seq-format format))
   (cua--rectangle-operation 'clear nil t 1 nil
-     (lambda (s e l r)
+     (lambda (s e _l _r)
          (delete-region s e)
          (insert (format format first))
          (setq first (+ first incr)))))
 
 (defmacro cua--convert-rectangle-as (command tabify)
   `(cua--rectangle-operation 'clear nil nil nil ,tabify
-    (lambda (s e l r)
+    (lambda (s e _l _r)
        (,command s e))))
 
 (defun cua-upcase-rectangle ()
@@ -1218,7 +1217,7 @@ The numbers are formatted according to the FORMAT string."
       (if cua--debug
 	  (print z auxbuf))
       (cua--rectangle-operation nil nil t pad nil
-        (lambda (s e l r)
+        (lambda (s e l _r)
            (let (cc)
              (goto-char e)
              (skip-chars-forward " \t")
@@ -1249,7 +1248,7 @@ The numbers are formatted according to the FORMAT string."
 
 (put 'cua--rectangle-aux-replace 'lisp-indent-function 4)
 
-(defun cua--left-fill-rectangle (start end)
+(defun cua--left-fill-rectangle (_start _end)
   (beginning-of-line)
   (while (< (point) (point-max))
     (delete-horizontal-space nil)
@@ -1298,7 +1297,7 @@ With prefix arg, replace rectangle with output from command."
   "Remove the first line of the rectangle and scroll remaining lines up."
   (interactive)
   (cua--rectangle-aux-replace 0 t t t t
-    (lambda (s e)
+    (lambda (s _e)
        (if (= (forward-line 1) 0)
            (delete-region s (point))))))
 
@@ -1307,7 +1306,7 @@ With prefix arg, replace rectangle with output from command."
 The remaining lines are scrolled down, losing the last line."
   (interactive)
   (cua--rectangle-aux-replace 0 t t t t
-    (lambda (s e)
+    (lambda (s _e)
        (goto-char s)
        (insert "\n"))))
 
@@ -1337,7 +1336,7 @@ With prefix arg, indent to that column."
         (pad (cua--rectangle-virtual-edges))
         indent)
     (cua--rectangle-operation 'corners nil t pad nil
-     (lambda (s e l r)
+     (lambda (_s _e l r)
         (move-to-column
          (if (cua--rectangle-right-side t)
              (max (1+ r) col) l)

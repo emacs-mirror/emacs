@@ -40,6 +40,9 @@
 (require 'mail-utils)
 (require 'rfc2047)
 
+(declare-function compilation--message->loc "compile" (cl-x) t)
+(declare-function epa--find-coding-system-for-mime-charset "epa" (mime-charset))
+
 (defconst rmail-attribute-header "X-RMAIL-ATTRIBUTES"
   "The header that stores the Rmail attribute data.")
 

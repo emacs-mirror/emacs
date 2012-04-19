@@ -194,8 +194,7 @@ items `Turn Off' and `Help'."
 	 (newmap (if ancestor
 		     (make-sparse-keymap (concat (format-mode-line mode-name)
                                                  " Mode"))
-		   menu-bar-edit-menu))
-	 uniq)
+		   menu-bar-edit-menu)))
     (if ancestor
 	(set-keymap-parent newmap ancestor))
     newmap))

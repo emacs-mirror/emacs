@@ -1,4 +1,4 @@
-;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8;-*-
+;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8 -*-
 
 ;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
@@ -829,7 +829,7 @@ with the file and the number of each action:
 	 (enable-local-eval nil)
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
-	 authors file pos)
+	 authors pos)
     (with-current-buffer buffer
       (save-restriction
 	(widen)
@@ -943,8 +943,7 @@ and changed by AUTHOR."
 	       (file (car change))
 	       (filestat (if (authors-public-domain-p file)
 			     (concat file " (public domain)")
-			   file))
-	       slot)
+			   file)))
 	  (cond ((assq :wrote actions)
 		 (setq wrote-list (cons filestat wrote-list)))
 		((assq :cowrote actions)

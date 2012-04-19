@@ -1603,8 +1603,7 @@ to which that point should be aligned, if we were to reindent it.")
         (indent-line-to indent)))))
 
 (defun smie-auto-fill ()
-  (let ((fc (current-fill-column))
-        (try-again nil))
+  (let ((fc (current-fill-column)))
     (while (and fc (> (current-column) fc))
       (cond
        ((not (or (nth 8 (save-excursion
@@ -1628,7 +1627,6 @@ to which that point should be aligned, if we were to reindent it.")
                   (setq bsf (point))))
               (smie-indent-forward-token))
             (when (> gain 0)
-              (setq try-again)
               (goto-char bsf)
               (newline-and-indent)))))
        (t (do-auto-fill))))))

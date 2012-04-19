@@ -1236,7 +1236,7 @@ on the line, reindent the line."
     (unless arg
       (if nxml-slash-auto-complete-flag
 	  (if end-tag-p
-	      (condition-case err
+	      (condition-case nil
 		  (let ((start-tag-end
 			 (nxml-scan-element-backward (1- slash-pos) t)))
 		    (when start-tag-end
@@ -1434,7 +1434,7 @@ its line.  Otherwise return nil."
 		 (nxml-token-after)
 		 (= xmltok-start bol))
 	       (eq xmltok-type 'data))
-	   (condition-case err
+	   (condition-case nil
 	       (nxml-scan-element-backward
 		(point)
 		nil
@@ -1559,8 +1559,7 @@ This expects the xmltok-* variables to be set up as by `xmltok-forward'."
 	(off 0))
     (if value-boundary
 	;; inside an attribute value
-	(let ((value-start (car value-boundary))
-	      (value-end (cdr value-boundary)))
+	(let ((value-start (car value-boundary)))
 	  (goto-char pos)
 	  (forward-line -1)
 	  (if (< (point) value-start)
@@ -1753,7 +1752,7 @@ single name.  A character reference contains a character number."
 	 xmltok-name-end)
 	(t end)))
 
-(defun nxml-scan-backward-within (end)
+(defun nxml-scan-backward-within (_end)
   (setq xmltok-start
 	(+ xmltok-start
 	   (nxml-start-delimiter-length xmltok-type)))
@@ -2263,7 +2262,7 @@ ENDP is t in the former case, nil in the latter."
 		 'nxml-in-mixed-content-hook))
 	   nil)
 	  ;; See if the matching tag does not start or end a line.
-	  ((condition-case err
+	  ((condition-case nil
 	       (progn
 		 (setq matching-tag-pos
 		       (xmltok-save
@@ -2401,7 +2400,7 @@ Repeating \\[nxml-dynamic-markup-word] immediately after successful
 \\[nxml-dynamic-markup-word] removes the previously inserted markup
 and attempts to find another possible way to do the markup."
   (interactive "*")
-  (let (search-start-pos done)
+  (let (search-start-pos)
     (if (and (integerp nxml-dynamic-markup-prev-pos)
 	     (= nxml-dynamic-markup-prev-pos (point))
 	     (eq last-command this-command)

@@ -80,7 +80,7 @@
 See function `mouse-avoidance-mode' for possible values.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `mouse-avoidance-mode'."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 ;; 'none below prevents toggling when value is nil.
 	 (mouse-avoidance-mode (or value 'none)))
   :initialize 'custom-initialize-default
@@ -267,7 +267,6 @@ If you want the mouse banished to a different corner set
   ;; For these modes, state keeps track of the total offset that we've
   ;; accumulated, and tries to keep it close to zero.
   (let* ((cur (mouse-position))
-	 (cur-frame (car cur))
 	 (cur-pos (cdr cur))
  	 (pos (window-edges))
  	 (wleft (pop pos))

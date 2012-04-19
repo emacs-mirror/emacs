@@ -37,6 +37,7 @@
 (declare-function dbus-init-bus "dbusbind.c")
 (declare-function dbus-method-return-internal "dbusbind.c")
 (declare-function dbus-method-error-internal "dbusbind.c")
+(declare-function dbus-register-service "dbusbind.c")
 (declare-function dbus-register-signal "dbusbind.c")
 (declare-function dbus-register-method "dbusbind.c")
 (declare-function dbus-send-signal "dbusbind.c")
@@ -275,8 +276,7 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 	     (stringp (cadr args))
 	     (stringp (caddr args)))
 	(let ((service (car args))
-	      (old-owner (cadr args))
-	      (new-owner (caddr args)))
+	      (old-owner (cadr args)))
 	  ;; Check whether SERVICE is a known name.
 	  (when (not (string-match "^:" service))
 	    (maphash
