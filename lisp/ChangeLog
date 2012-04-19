@@ -1,3 +1,8 @@
+2012-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function): Check that
+	electric-indent-mode is enabled in current buffer.
+
 2012-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* imenu.el (imenu-progress-message): Restore; it is "used" in

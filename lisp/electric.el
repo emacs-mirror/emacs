@@ -215,6 +215,7 @@ point right after that char, and it should return t to cause indentation,
   ;; it looks challenging.
   (let (pos)
     (when (and
+           electric-indent-mode
            ;; Don't reindent while inserting spaces at beginning of line.
            (or (not (memq last-command-event '(?\s ?\t)))
                (save-excursion (skip-chars-backward " \t") (not (bolp))))
