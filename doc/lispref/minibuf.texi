@@ -96,7 +96,7 @@ local maps for completion.
 @findex minibuffer-inactive-mode
 @vindex minibuffer-inactive-mode-map
 @cindex inactive minibuffer
-  When a minibuffer is inactive, it's major mode is
+  When a minibuffer is inactive, its major mode is
 @code{minibuffer-inactive-mode}, with keymap
 @code{minibuffer-inactive-mode-map}.  This is only really useful if
 the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
