@@ -1768,7 +1768,7 @@ will."
   ;; allow C-c C-f in help buffer.
   (let ((temp-buffer-show-hook		; avoid xref stuff
 	 (lambda ()
-	   (toggle-read-only 1)
+	   (setq buffer-read-only t)
 	   (setq view-return-to-alist
 		 (list (cons (selected-window) help-return-method))))))
     (with-output-to-temp-buffer (help-buffer)

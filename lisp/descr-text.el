@@ -806,7 +806,7 @@ relevant to POS."
                             (format "  %s: %s\n" elt val)))))))
 
           (if text-props-desc (insert text-props-desc))
-          (toggle-read-only 1))))))
+          (setq buffer-read-only t))))))
 
 (define-obsolete-function-alias 'describe-char-after 'describe-char "22.1")
 
