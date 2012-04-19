@@ -1,3 +1,8 @@
+2012-04-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-action-password): Let-bind
+	`enable-recursive-minibuffers' to t.
+
 2012-04-18  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/gud.el (gud-key-prefix): Use :type 'key-sequence
