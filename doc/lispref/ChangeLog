@@ -1,3 +1,16 @@
+2012-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (Basic Completion): No need to describe obarrays here.
+	Don't mention obsolete `nospace' argument of all-completions.
+	(Minibuffer Completion, Completion Commands, Reading File Names)
+	(Completion Variables): Copyedits.
+	(Completion Commands): Mention parent keymaps.
+	Remove obsolete minibuffer-local-filename-must-match-map.
+	(High-Level Completion): Remove read-variable's almost
+	word-for-word duplication of read-command.
+	* elisp.texi, vol1.texi, vol2.texi, minibuf.texi (Completion):
+	Update "High-Level Completion" description.
+
 2012-04-19  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Minibuffers):

@@ -648,7 +648,7 @@ Completion
 * Minibuffer Completion::   Invoking the minibuffer with completion.
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
-                              (reading buffer name, file name, etc.).
+                              (reading buffer names, variable names, etc.).
 * Reading File Names::      Using completion to read file names and
                               shell commands.
 * Completion Variables::    Variables controlling completion behavior.

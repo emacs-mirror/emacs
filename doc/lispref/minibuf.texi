@@ -620,6 +620,7 @@ starting from an abbreviation for it.  Completion works by comparing the
 user's input against a list of valid names and determining how much of
 the name is determined uniquely by what the user has typed.  For
 example, when you type @kbd{C-x b} (@code{switch-to-buffer}) and then
+@c "This is the sort of English up with which I will not put."
 type the first few letters of the name of the buffer to which you wish
 to switch, and then type @key{TAB} (@code{minibuffer-complete}), Emacs
 extends the name as far as it can.
@@ -644,7 +645,7 @@ for reading certain kinds of names with completion.
 * Minibuffer Completion::  Invoking the minibuffer with completion.
 * Completion Commands::    Minibuffer commands that do completion.
 * High-Level Completion::  Convenient special cases of completion
-                             (reading buffer name, file name, etc.).
+                             (reading buffer names, variable names, etc.).
 * Reading File Names::     Using completion to read file names and
                              shell commands.
 * Completion Variables::   Variables controlling completion behavior.
@@ -686,13 +687,7 @@ think of such lists as alists.
 
 @cindex obarray in completion
 If @var{collection} is an obarray (@pxref{Creating Symbols}), the names
-of all symbols in the obarray form the set of permissible completions.  The
-global variable @code{obarray} holds an obarray containing the names of
-all interned Lisp symbols.
-
-Note that the only valid way to make a new obarray is to create it
-empty and then add symbols to it one by one using @code{intern}.
-Also, you cannot intern a given symbol in more than one obarray.
+of all symbols in the obarray form the set of permissible completions.
 
 If @var{collection} is a hash table, then the keys that are strings
 are the possible completions.  Other keys are ignored.
@@ -773,16 +768,20 @@ too short).  Both of those begin with the string @samp{foobar}.
 @end smallexample
 @end defun
 
-@defun all-completions string collection &optional predicate nospace
+@c Removed obsolete argument nospace.
+@defun all-completions string collection &optional predicate
 This function returns a list of all possible completions of
-@var{string}.  The arguments to this function (aside from
-@var{nospace}) are the same as those of @code{try-completion}.  Also,
-this function uses @code{completion-regexp-list} in the same way that
+@var{string}.  The arguments to this function
+@c (aside from @var{nospace})
+are the same as those of @code{try-completion}, and it 
+uses @code{completion-regexp-list} in the same way that
 @code{try-completion} does.
 
+@ignore
 The optional argument @var{nospace} is obsolete.  If it is
 non-@code{nil}, completions that start with a space are ignored unless
 @var{string} starts with a space.
+@end ignore
 
 If @var{collection} is a function, it is called with three arguments:
 @var{string}, @var{predicate} and @code{t}; then @code{all-completions}
@@ -852,7 +851,7 @@ pertains to the area after @code{"/usr/"} and before @code{"/doc"}.
 @end defun
 
 If you store a completion alist in a variable, you should mark the
-variable as ``risky'' with a non-@code{nil}
+variable as ``risky'' by giving it a non-@code{nil}
 @code{risky-local-variable} property.  @xref{File Local Variables}.
 
 @defvar completion-ignore-case
@@ -881,7 +880,7 @@ proper value is done the first time you do completion using @var{var}.
 It is done by calling @var{fun} with no arguments.  The
 value @var{fun} returns becomes the permanent value of @var{var}.
 
-Here is a usage example:
+Here is an example:
 
 @smallexample
 (defvar foo (lazy-completion-table foo make-my-alist))
@@ -966,7 +965,7 @@ Methods}) and the setting of @code{enable-multibyte-characters}
 (@pxref{Text Representations}) from whichever buffer was current before
 entering the minibuffer.
 
-If the built-in variable @code{completion-ignore-case} is
+If the variable @code{completion-ignore-case} is
 non-@code{nil}, completion ignores case when comparing the input
 against the possible matches.  @xref{Basic Completion}.  In this mode
 of operation, @var{predicate} must also ignore case, or you will get
@@ -1099,8 +1098,8 @@ uses this to highlight text in the completion list for better visual
 feedback.  This is not needed in the minibuffer; for minibuffer
 completion, you can pass @code{nil}.
 
-This function is called by @code{minibuffer-completion-help}.  The
-most common way to use it is together with
+This function is called by @code{minibuffer-completion-help}.  A
+common way to use it is together with
 @code{with-output-to-temp-buffer}, like this:
 
 @example
@@ -1134,7 +1133,7 @@ keymap makes the following bindings:
 @end table
 
 @noindent
-with other characters bound as in @code{minibuffer-local-map}
+and uses @code{minibuffer-local-map} as its parent keymap
 (@pxref{Definition of minibuffer-local-map}).
 @end defvar
 
@@ -1146,15 +1145,6 @@ minibuffer unconditionally.  By default, this keymap makes the following
 bindings:
 
 @table @asis
-@item @kbd{?}
-@code{minibuffer-completion-help}
-
-@item @key{SPC}
-@code{minibuffer-complete-word}
-
-@item @key{TAB}
-@code{minibuffer-complete}
-
 @item @kbd{C-j}
 @code{minibuffer-complete-and-exit}
 
@@ -1163,25 +1153,21 @@ bindings:
 @end table
 
 @noindent
-with other characters bound as in @code{minibuffer-local-map}.
+and uses @code{minibuffer-local-completion-map} as its parent keymap.
 @end defvar
 
 @defvar minibuffer-local-filename-completion-map
-This is like @code{minibuffer-local-completion-map}
-except that it does not bind @key{SPC}.  This keymap is used by the
-function @code{read-file-name}.
+This is a sparse keymap that simply unbinds @key{SPC}; because
+filenames can contain spaces.  The function @code{read-file-name}
+combines this keymap with either @code{minibuffer-local-completion-map}
+or @code{minibuffer-local-must-match-map}.
 @end defvar
 
-@defvar minibuffer-local-filename-must-match-map
-This is like @code{minibuffer-local-must-match-map}
-except that it does not bind @key{SPC}.  This keymap is used by the
-function @code{read-file-name}.
-@end defvar
 
 @node High-Level Completion
 @subsection High-Level Completion Functions
 
-  This section describes the higher-level convenient functions for
+  This section describes the higher-level convenience functions for
 reading certain sorts of names with completion.
 
   In most cases, you should not call these functions in the middle of a
@@ -1255,7 +1241,7 @@ for which @code{commandp} returns @code{t}.  @xref{Interactive Call}.
 The argument @var{default} specifies what to return if the user enters
 null input.  It can be a symbol, a string or a list of strings.  If it
 is a string, @code{read-command} interns it before returning it.
-If it is a list, @code{read-command} returns the first element of this list.
+If it is a list, @code{read-command} interns the first element of this list.
 If @var{default} is @code{nil}, that means no default has been
 specified; then if the user enters null input, the return value is
 @code{(intern "")}, that is, a symbol whose name is an empty string.
@@ -1298,50 +1284,9 @@ complete in the set of extant Lisp symbols, and it uses the
 @defun read-variable prompt &optional default
 @anchor{Definition of read-variable}
 This function reads the name of a user variable and returns it as a
-symbol.
-
-The argument @var{default} specifies the default value to return if
-the user enters null input.  It can be a symbol, a string, or a list
-of strings.  If it is a string, @code{read-variable} interns it to
-make the default value.  If it is a list, @code{read-variable} interns
-the first element.  If @var{default} is @code{nil}, that means no
-default has been specified; then if the user enters null input, the
-return value is @code{(intern "")}.
-
-@example
-@group
-(read-variable "Variable name? ")
-
-;; @r{After evaluation of the preceding expression,}
-;;   @r{the following prompt appears,}
-;;   @r{with an empty minibuffer:}
-@end group
-
-@group
----------- Buffer: Minibuffer ----------
-Variable name? @point{}
----------- Buffer: Minibuffer ----------
-@end group
-@end example
-
-@noindent
-If the user then types @kbd{fill-p @key{RET}}, @code{read-variable}
-returns @code{fill-prefix}.
-
-In general, @code{read-variable} is similar to @code{read-command},
-but uses the predicate @code{user-variable-p} instead of
-@code{commandp}:
-
-@cindex @code{user-variable-p} example
-@example
-@group
-(read-variable @var{prompt})
-@equiv{}
-(intern
- (completing-read @var{prompt} obarray
-                  'user-variable-p t nil))
-@end group
-@end example
+symbol.  Its arguments have the same form as those of @code{read-command}.
+In general, this function is similar to @code{read-command}, but uses
+the predicate @code{user-variable-p} instead of @code{commandp}.
 @end defun
 
 @deffn Command read-color &optional prompt convert allow-empty display
@@ -1359,7 +1304,7 @@ minibuffer.  However, when called interactively or if the optional
 argument @var{convert} is non-@code{nil}, it converts any input color
 name into the corresponding RGB value string and instead returns that.
 This function requires a valid color specification to be input.
-Empty color names are allowed when @code{allow-empty} is
+Empty color names are allowed when @var{allow-empty} is
 non-@code{nil} and the user enters null input.
 
 Interactively, or when @var{display} is non-@code{nil}, the return
@@ -1377,7 +1322,7 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 
   The high-level completion functions @code{read-file-name},
 @code{read-directory-name}, and @code{read-shell-command} are designed
-to read file names, directory names, and shell commands respectively.
+to read file names, directory names, and shell commands, respectively.
 They provide special features, including automatic insertion of the
 default directory.
 
@@ -1386,15 +1331,29 @@ This function reads a file name, prompting with @var{prompt} and
 providing completion.
 
 As an exception, this function reads a file name using a graphical
-file dialog instead of the minibuffer, if (i) it is invoked via a
-mouse command, and (ii) the selected frame is on a graphical display
-supporting such dialogs, and (iii) the variable @code{use-dialog-box}
-is non-@code{nil} (@pxref{Dialog Boxes,, Dialog Boxes, emacs, The GNU
-Emacs Manual}), and (iv) the @var{directory} argument, described
-below, does not specify a remote file (@pxref{Remote Files,, Remote
-Files, emacs, The GNU Emacs Manual}).  The exact behavior when using a
-graphical file dialog is platform-dependent.  Here, we simply document
-the behavior when using the minibuffer.
+file dialog instead of the minibuffer, if all of the following are
+true:
+
+@enumerate
+@item
+It is invoked via a mouse command.
+
+@item
+The selected frame is on a graphical display supporting such dialogs.
+
+@item
+The variable @code{use-dialog-box} is non-@code{nil}.
+@xref{Dialog Boxes,, Dialog Boxes, emacs, The GNU Emacs Manual}.
+
+@item
+The @var{directory} argument, described below, does not specify a
+remote file.  @xref{Remote Files,, Remote Files, emacs, The GNU Emacs Manual}.
+@end enumerate
+
+@noindent
+The exact behavior when using a graphical file dialog is
+platform-dependent.  Here, we simply document the behavior when using
+the minibuffer.
 
 @code{read-file-name} does not automatically expand the returned file
 name.  You must call @code{expand-file-name} yourself if an absolute
@@ -1405,7 +1364,7 @@ The optional argument @var{require-match} has the same meaning as in
 
 The argument @var{directory} specifies the directory to use for
 completing relative file names.  It should be an absolute directory
-name.  If @code{insert-default-directory} is non-@code{nil},
+name.  If the variable @code{insert-default-directory} is non-@code{nil},
 @var{directory} is also inserted in the minibuffer as initial input.
 It defaults to the current buffer's value of @code{default-directory}.
 
@@ -1413,9 +1372,9 @@ If you specify @var{initial}, that is an initial file name to insert
 in the buffer (after @var{directory}, if that is inserted).  In this
 case, point goes at the beginning of @var{initial}.  The default for
 @var{initial} is @code{nil}---don't insert any file name.  To see what
-@var{initial} does, try the command @kbd{C-x C-v}.  @strong{Please
-note:} we recommend using @var{default} rather than @var{initial} in
-most cases.
+@var{initial} does, try the command @kbd{C-x C-v} in a buffer visiting
+a file.  @strong{Please note:} we recommend using @var{default} rather
+than @var{initial} in most cases.
 
 If @var{default} is non-@code{nil}, then the function returns
 @var{default} if the user exits the minibuffer with the same non-empty
@@ -1518,7 +1477,7 @@ use the code letters @samp{f} or @samp{F} in their interactive form.
 @xref{Interactive Codes,, Code Characters for interactive}.)  Its
 value controls whether @code{read-file-name} starts by placing the
 name of the default directory in the minibuffer, plus the initial file
-name if any.  If the value of this variable is @code{nil}, then
+name, if any.  If the value of this variable is @code{nil}, then
 @code{read-file-name} does not place any initial input in the
 minibuffer (unless you specify initial input with the @var{initial}
 argument).  In that case, the default directory is still used for
@@ -1580,20 +1539,22 @@ Input}).  The rest of @var{args}, if present, are used as the
 
 @defvar minibuffer-local-shell-command-map
 This keymap is used by @code{read-shell-command} for completing
-command and file names that are part of a shell command.
+command and file names that are part of a shell command.  It uses
+@code{minibuffer-local-map} as its parent keymap, and binds @key{TAB}
+to @code{completion-at-point}.
 @end defvar
 
 @node Completion Variables
 @subsection Completion Variables
 
-  Here are some variables which can be used to alter the default
+  Here are some variables that can be used to alter the default
 completion behavior.
 
 @cindex completion styles
 @defopt completion-styles
 The value of this variable is a list of completion style (symbols) to
 use for performing completion.  A @dfn{completion style} is a set of
-rules for generating completions.  Each symbol in occurring this list
+rules for generating completions.  Each symbol occurring this list
 must have a corresponding entry in @code{completion-styles-alist}.
 @end defopt
 
@@ -1640,13 +1601,14 @@ description of the available completion styles.
 @defopt completion-category-overrides
 This variable specifies special completion styles and other completion
 behaviors to use when completing certain types of text.  Its value
-should be a list of the form @code{(@var{category} . @var{alist})}.
-@var{category} is a symbol describing what is being completed;
-currently, the @code{buffer} and @code{file} categories are defined,
-but others can be defined via specialized completion functions
-(@pxref{Programmed Completion}).  @var{alist} is an association list
-describing how completion should behave for the corresponding
-category.  The following alist keys are supported:
+should be an alist with elements of the form @code{(@var{category}
+. @var{alist})}.  @var{category} is a symbol describing what is being
+completed; currently, the @code{buffer}, @code{file}, and
+@code{unicode-name} categories are defined, but others can be defined
+via specialized completion functions (@pxref{Programmed Completion}).
+@var{alist} is an association list describing how completion should
+behave for the corresponding category.  The following alist keys are
+supported:
 
 @table @code
 @item styles
@@ -1679,7 +1641,7 @@ the completion.
 The value should be a function to run after performing completion.
 The function should accept two arguments, @var{string} and
 @var{status}, where @var{string} is the text to which the field was
-completed and @var{status} indicates what kind of operation happened:
+completed, and @var{status} indicates what kind of operation happened:
 @code{finished} if text is now complete, @code{sole} if the text
 cannot be further completed but completion is not finished, or
 @code{exact} if the text is a valid completion but may be further
@@ -1791,7 +1753,7 @@ the same as for @code{display-sort-function}.
 
 @defun completion-table-dynamic function
 This function is a convenient way to write a function that can act as
-programmed completion function.  The argument @var{function} should be
+a programmed completion function.  The argument @var{function} should be
 a function that takes one argument, a string, and returns an alist of
 possible completions of it.  You can think of
 @code{completion-table-dynamic} as a transducer between that interface
@@ -1845,7 +1807,7 @@ satisfy.
 
 @item :exclusive
 If the value is @code{no}, then if the completion table fails to match
-the text at point, then @code{completion-at-point} moves on to the
+the text at point, @code{completion-at-point} moves on to the
 next function in @code{completion-at-point-functions} instead of
 reporting a completion failure.
 @end table
@@ -1859,7 +1821,7 @@ old code to using @code{completion-at-point}.
 The first function in @code{completion-at-point-functions} to return a
 non-@code{nil} value is used by @code{completion-at-point}.  The
 remaining functions are not called.  The exception to this is when
-there is a @code{:exclusive} specification, as described above.
+there is an @code{:exclusive} specification, as described above.
 @end defvar
 
   The following function provides a convenient way to perform
