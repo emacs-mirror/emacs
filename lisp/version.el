@@ -118,9 +118,8 @@ Optional argument DIR is a directory to use instead of `source-directory'."
             ))))
 
 ;; We put version info into the executable in the form that `ident' uses.
-(or (eq system-type 'windows-nt)
-    (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
-		      " $\n")))
+(purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
+		  " $\n"))
 
 ;; Local Variables:
 ;; version-control: never

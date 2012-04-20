@@ -1,6 +1,8 @@
 2012-04-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* version.el (emacs-bzr-version, emacs-bzr-get-version): Doc fixes.
+	(top level): Put into the executable the ident-style '$Id:' tag on
+	windows-nt as well.
 
 2012-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
