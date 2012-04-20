@@ -53,11 +53,16 @@ pt-br	Rodrigo Real
 ru	Alex Ott              
 sk	Miroslav Vaško        
 
+** For a major release, add a "New in Emacs XX" section to faq.texi.
+
 ** Remove temporary +++/--- lines in NEWS.
 
 ** Try to reorder NEWS: most important things first, related items together.
 
 ** Consider bumping customize-changed-options-previous-release.
+
+** cusver-check from admin.el cam help find new defcustoms missing
+:version tags.
 
 * BUGS
 
@@ -206,7 +211,7 @@ loading.texi      cyd
 macros.texi       cyd
 maps.texi         rgm
 markers.texi      rgm
-minibuf.texi      
+minibuf.texi      rgm
 modes.texi        cyd
 nonascii.texi     cyd
 numbers.texi      cyd
