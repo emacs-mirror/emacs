@@ -1,3 +1,10 @@
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* server.el (server-execute): Respect initial-buffer-choice if it
+	is a string and there are no files to open (Bug#2825).
+	(server-create-window-system-frame, server-create-tty-frame):
+	Don't switch buffers here.
+
 2012-04-20  Dan Nicolaescu  <dann@gnu.org>
 
 	* battery.el (battery-echo-area-format): Display remaining time

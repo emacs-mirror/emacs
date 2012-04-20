@@ -821,10 +821,6 @@ This handles splitting the command if it would be bigger than
     (select-frame frame)
     (process-put proc 'frame frame)
     (process-put proc 'terminal (frame-terminal frame))
-
-    ;; Display *scratch* by default.
-    (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
-
     frame))
 
 (defun server-create-window-system-frame (display nowait proc parent-id
@@ -857,9 +853,6 @@ This handles splitting the command if it would be bigger than
       (select-frame frame)
       (process-put proc 'frame frame)
       (process-put proc 'terminal (frame-terminal frame))
-
-      ;; Display *scratch* by default.
-      (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
       frame)))
 
 (defun server-goto-toplevel (proc)
@@ -1230,11 +1223,16 @@ The following commands are accepted by the client:
   ;; including code that needs to wait.
   (with-local-quit
     (condition-case err
-        (let* ((buffers
-                (when files
-                  (server-visit-files files proc nowait))))
-
+        (let ((buffers (server-visit-files files proc nowait)))
           (mapc 'funcall (nreverse commands))
+
+	  ;; If we were told only to open a new client, obey
+	  ;; `initial-buffer-choice' if it specifies a file.
+	  (unless (or files commands)
+	    (if (stringp initial-buffer-choice)
+		(find-file initial-buffer-choice)
+	      (switch-to-buffer (get-buffer-create "*scratch*")
+				'norecord)))
 
           ;; Delete the client if necessary.
           (cond

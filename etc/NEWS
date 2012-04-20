@@ -53,6 +53,10 @@ automatically when setting `imagemagick-types-inhibit'.
 *** Setting `imagemagick-types-inhibit' to t now disables the use of
 ImageMagick to view images, set
 
+** String values for `initial-buffer-choice' also apply to emacsclient
+frames, if emacsclient is only told to open a new frame without
+specifying any file to visit or expression to evaluate.
+
 
 * Editing Changes in Emacs 24.2
 
