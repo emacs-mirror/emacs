@@ -81,13 +81,15 @@ to the system configuration; look at `system-configuration' instead."
 
 ;; Set during dumping, this is a defvar so that it can be setq'd.
 (defvar emacs-bzr-version nil "\
-String giving the bzr revision number from which this Emacs was built.
-This is nil if Emacs was not built from a bzr checkout, or if we could
+String giving the bzr revision from which this Emacs was built.
+Value is the bzr revision number and a revision ID separated by a blank.
+Value is nil if Emacs was not built from a bzr checkout, or if we could
 not determine the revision.")
 
 (defun emacs-bzr-get-version (&optional dir) "\
 Try to return as a string the bzr revision number of the Emacs sources.
-Returns nil if the sources do not seem to be under bzr, or if we could
+Value is the bzr revision number and a revision ID separated by a blank.
+Value is nil if the sources do not seem to be under bzr, or if we could
 not determine the revision.  Note that this reports on the current state
 of the sources, which may not correspond to the running Emacs.
 
