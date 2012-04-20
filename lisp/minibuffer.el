@@ -1817,6 +1817,12 @@ same as `substitute-in-file-name'."
   (condition-case nil
       (cond
        ((eq action 'metadata) '(metadata (category . file)))
+       ((string-match-p "\\`~[^/\\]*\\'" string)
+        (completion-table-with-context "~"
+                                       (mapcar (lambda (u) (concat u "/"))
+                                               (system-users))
+                                       (substring string 1)
+                                       pred action))
        ((eq (car-safe action) 'boundaries)
         (let ((start (length (file-name-directory string)))
               (end (string-match-p "/" (cdr action))))

@@ -1,3 +1,7 @@
+2012-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Complete user names.
+
 2012-04-20  Leo Liu  <sdl.web@gmail.com>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Add pcase, pcase-let
