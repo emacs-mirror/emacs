@@ -1,3 +1,9 @@
+2012-04-20  Dan Nicolaescu  <dann@gnu.org>
+
+	* battery.el (battery-echo-area-format): Display remaining time
+	for sysfs backend too (Bug#11269).
+	(battery-linux-sysfs): Fix conditional for the charge.
+
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb): Revert 2012-04-19 change.
