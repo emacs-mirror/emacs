@@ -1,3 +1,77 @@
+2012-04-20  Dan Nicolaescu  <dann@gnu.org>
+
+	* battery.el (battery-echo-area-format): Display remaining time
+	for sysfs backend too (Bug#11269).
+	(battery-linux-sysfs): Fix conditional for the charge.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb): Revert previous change.
+	(gdb-inferior-io--init-proc): New function.
+	(gdb-init-1): Use it.
+	(gdb-inferior-io-sentinel): New sentinel for the gdb-inferior pty,
+	responsible for allocating a new pty and hooking it to gdb when
+	the old pty gets an EIO due to process exit.
+	(gdb-delchar-or-quit): New command.  Bind it in gdb-mi buffers.
+	(gdb-tooltip-print): Don't use obsolete tooltip-use-echo-area.
+	(gdb-inferior-io--maybe-delete-pty): Move into gdb-reset.
+
+2012-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (window-min-size, window-sizable, window-min-delta)
+	(window-max-delta, window--resizable, window-resizable)
+	(window-total-size, window-full-height-p, window-full-width-p)
+	(window-in-direction, window--resize-mini-window, window-resize)
+	(window--resize-child-windows-normal)
+	(window--resize-child-windows, window--resize-siblings)
+	(window--resize-this-window, adjust-window-trailing-edge)
+	(enlarge-window, shrink-window): Doc fixes.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty): New
+	function to call delete-process on the gdb-inferior buffer's pty.
+	(gdb-reset): Use it, instead of relying on kill-buffer to kill the
+	pty process (Bug#11273).
+	(gdb-update): New arg to suppress talking to the gdb process.
+	(gdb-done-or-error): Use it.
+	(gdb-stopped-functions): Rename from gdb-stopped-hooks.
+	(gdb): Call gdb-inferior-io--maybe-delete-pty as a workaround for
+	sentinel not being called.
+
+	* comint.el (make-comint-in-buffer, comint-exec): Doc fix.
+
+	* progmodes/grep.el (grep, rgrep): Doc fix (Bug#11268).
+
+2012-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* net/network-stream.el (open-network-stream): Doc fix.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print): Fix typos.
+
+2012-04-20  Alan Mackenzie  <acm@muc.de>
+
+	Ensure searching for keywords is case sensitive.
+
+	* progmodes/cc-cmds.el (c-electric-brace, c-electric-lt-gt)
+	(c-electric-paren, c-beginning-of-defun, c-end-of-defun)
+	(c-defun-name, c-mark-function, c-cpp-define-name)
+	(c-comment-indent, c-scan-conditionals, c-indent-defun)
+	(c-context-line-break): Bind case-fold-search to nil.
+
+	* progmodes/cc-mode.el (c-font-lock-fontify-region): Bind
+	case-fold-search to nil.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* mail/sendmail.el (mail-bury): Call return action with the right
+	Rmail buffer (Bug#11242).
+
+	* server.el (server-process-filter): Handle corner case where both
+	tty and nowait options are present (Bug#11102).
+
 2012-04-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* version.el (emacs-bzr-version, emacs-bzr-get-version): Doc fixes.

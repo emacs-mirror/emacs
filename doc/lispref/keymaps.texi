@@ -2548,17 +2548,8 @@ the same command (if such a key binding exists).  This serves as a
 convenient hint for users who do not know the key binding.  If a
 command has multiple bindings, Emacs normally displays the first one
 it finds.  You can specify one particular key binding by assigning an
-@code{:advertised-binding} symbol property to the command.  For
-instance, the following tells Emacs to show @kbd{C-/} for the
-@code{undo} menu item:
-
-@smallexample
-(put 'undo :advertised-binding [?\C-/])
-@end smallexample
-
-@noindent
-If the @code{:advertised-binding} property specifies a key binding
-that the command does not actually have, it is ignored.
+@code{:advertised-binding} symbol property to the command.  @xref{Keys
+in Documentation}.
 
 @node Tool Bar
 @subsection Tool bars

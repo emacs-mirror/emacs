@@ -78,7 +78,7 @@ introduced by a `%' character in a control string."
   (cond ((eq battery-status-function 'battery-linux-proc-acpi)
 	 "Power %L, battery %B at %r (%p%% load, remaining time %t)")
 	((eq battery-status-function 'battery-linux-sysfs)
-	 "Power %L, battery %B (%p%% load)")
+	 "Power %L, battery %B (%p%% load, remaining time %t)")
 	((eq battery-status-function 'battery-pmset)
 	 "%L power, battery %B (%p%% load, remaining time %t)")
 	(battery-status-function
@@ -509,7 +509,7 @@ The following %-sequences are provided:
 		     "N/A"))
 	  (cons ?d (or temperature "N/A"))
 	  (cons ?B (or charging-state "N/A"))
-	  (cons ?p (cond ((> charge-full 0)
+	  (cons ?p (cond ((and (> charge-full 0) (> charge-now 0))
 			  (format "%.1f"
 				  (/ (* 100 charge-now) charge-full)))
 			 ((> energy-full 0)

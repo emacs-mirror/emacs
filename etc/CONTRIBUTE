@@ -1,4 +1,4 @@
-Copyright (C) 2006-2012  Free Software Foundation, Inc.
+Copyright (C) 2006-2012 Free Software Foundation, Inc.
 See end for license conditions.
 
 
@@ -44,13 +44,24 @@ Ref: The "Tips" Appendix in the Emacs Lisp Reference.
 
 * Copyright Assignment
 
-We can accept small changes (roughly, fewer than 15 lines) without
-legal papers.  Anything more substantial requires a copyright
-disclaimer or assignment (the latter is preferred, especially for
-larger changes).  Both of these involved filling out a short form and
-filing it with the FSF.  The process is straightforward -- contact us
-at emacs-devel@gnu.org to obtain the relevant forms.
+The FSF (Free Software Foundation) is the copyright holder for GNU Emacs.
+The FSF is a nonprofit with a worldwide mission to promote computer
+user freedom and to defend the rights of all free software users.
+For general information, see the website http://www.fsf.org/ .
 
+Generally speaking, for non-trivial contributions to GNU Emacs we
+require that the copyright be assigned to the FSF.  For the reasons
+behind this, see: http://www.gnu.org/licenses/why-assign.html .
+
+Copyright assignment is a simple process.  If you live in the US, you
+can do it entirely electronically.  We can help you get started, and
+answer any questions you may have (or point you to the people with the
+answers), at the emacs-devel@gnu.org mailing list.
+
+A copyright disclaimer is also a possibility, but we prefer an assignment.
+We can accept small changes (roughly, fewer than 15 lines) without
+an assignment.  This is a cumulative limit (e.g. three separate 5 line
+patches) over all your contributions.
 
 * Getting the Source Code
 
