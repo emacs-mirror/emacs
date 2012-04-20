@@ -1,3 +1,8 @@
+2012-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (New in Emacs 24): New section.
+	(Packages that do not come with Emacs): Mention M-x list-packages.
+
 2012-04-13  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Replace non-portable use of $< in emacs-gnutls rules.
