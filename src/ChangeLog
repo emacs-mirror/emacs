@@ -1,3 +1,10 @@
+2012-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print_preprocess): Only check print_depth if print-circle
+	is nil.
+	(print_object): Check for cycles even when print-circle is nil and
+	print-gensym is t, but only check print_depth if print-circle is nil.
+
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
 	* process.c (wait_reading_process_output): If EIO occurs on a pty,
@@ -16,13 +23,14 @@
 	(set_cursor_from_row): If called for a mode-line or header-line
 	row, return zero immediately.
 	(try_cursor_movement): If inside continuation line, don't back up
-	farther than the first row after the header line, if any.  Don't
-	consider the header-line row as "partially visible", even if
+	farther than the first row after the header line, if any.
+	Don't consider the header-line row as "partially visible", even if
 	MATRIX_ROW_PARTIALLY_VISIBLE_P returns non-zero.  (Bug#11261)
 
 2012-04-20  Atsuo Ohki  <ohki@gssm.otsuka.tsukuba.ac.jp>  (tiny change)
 
-	* lread.c (lisp_file_lexically_bound_p): Fix hang at ";-*-\n" (bug#11238).
+	* lread.c (lisp_file_lexically_bound_p): Fix hang at ";-*-\n"
+	(bug#11238).
 
 2012-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
@@ -91,7 +99,7 @@
 	(union aligned_Lisp_Misc): Define.
 	(MARKER_BLOCK_SIZE, struct marker_block): Use union
 	aligned_Lisp_Misc instead of union Lisp_Misc.
-	(Fmake_symbol, allocate_misc, gc_sweep): Adjust
+	(Fmake_symbol, allocate_misc, gc_sweep): Adjust.
 
 2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 

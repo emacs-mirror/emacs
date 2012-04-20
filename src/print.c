@@ -93,14 +93,14 @@ static void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 
 
-/* Low level output routines for characters and strings */
+/* Low level output routines for characters and strings.  */
 
 /* Lisp functions to do output using a stream
    must have the stream in a variable called printcharfun
    and must start with PRINTPREPARE, end with PRINTFINISH,
    and use PRINTDECLARE to declare common variables.
    Use PRINTCHAR to output one character,
-   or call strout to output a block of characters. */
+   or call strout to output a block of characters.  */
 
 #define PRINTDECLARE							\
    struct buffer *old = current_buffer;					\
@@ -1130,15 +1130,15 @@ print_preprocess (Lisp_Object obj)
   int loop_count = 0;
   Lisp_Object halftail;
 
-  /* Give up if we go so deep that print_object will get an error.  */
-  /* See similar code in print_object.  */
-  if (print_depth >= PRINT_CIRCLE)
-    error ("Apparently circular structure being printed");
-
   /* Avoid infinite recursion for circular nested structure
      in the case where Vprint_circle is nil.  */
   if (NILP (Vprint_circle))
     {
+      /* Give up if we go so deep that print_object will get an error.  */
+      /* See similar code in print_object.  */
+      if (print_depth >= PRINT_CIRCLE)
+	error ("Apparently circular structure being printed");
+
       for (i = 0; i < print_depth; i++)
 	if (EQ (obj, being_printed[i]))
 	  return;
@@ -1240,7 +1240,7 @@ static void print_check_string_charset_prop (INTERVAL interval, Lisp_Object stri
 #define PRINT_STRING_NON_CHARSET_FOUND 1
 #define PRINT_STRING_UNSAFE_CHARSET_FOUND 2
 
-/* Bitwise or of the above macros. */
+/* Bitwise or of the above macros.  */
 static int print_check_string_result;
 
 static void
@@ -1323,48 +1323,46 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
   QUIT;
 
-  /* See similar code in print_preprocess.  */
-  if (print_depth >= PRINT_CIRCLE)
-    error ("Apparently circular structure being printed");
-
   /* Detect circularities and truncate them.  */
-  if (PRINT_CIRCLE_CANDIDATE_P (obj))
+  if (NILP (Vprint_circle))
     {
-      if (NILP (Vprint_circle) && NILP (Vprint_gensym))
+      /* Simple but incomplete way.  */
+      int i;
+
+      /* See similar code in print_preprocess.  */
+      if (print_depth >= PRINT_CIRCLE)
+	error ("Apparently circular structure being printed");
+
+      for (i = 0; i < print_depth; i++)
+	if (EQ (obj, being_printed[i]))
+	  {
+	    sprintf (buf, "#%d", i);
+	    strout (buf, -1, -1, printcharfun);
+	    return;
+	  }
+      being_printed[print_depth] = obj;
+    }
+  else if (PRINT_CIRCLE_CANDIDATE_P (obj))
+    {
+      /* With the print-circle feature.  */
+      Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
+      if (INTEGERP (num))
 	{
-	  /* Simple but incomplete way.  */
-	  int i;
-	  for (i = 0; i < print_depth; i++)
-	    if (EQ (obj, being_printed[i]))
-	      {
-		sprintf (buf, "#%d", i);
-		strout (buf, -1, -1, printcharfun);
-		return;
-	      }
-	  being_printed[print_depth] = obj;
-	}
-      else
-	{
-	  /* With the print-circle feature.  */
-	  Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
-	  if (INTEGERP (num))
+	  EMACS_INT n = XINT (num);
+	  if (n < 0)
+	    { /* Add a prefix #n= if OBJ has not yet been printed;
+		 that is, its status field is nil.  */
+	      sprintf (buf, "#%"pI"d=", -n);
+	      strout (buf, -1, -1, printcharfun);
+	      /* OBJ is going to be printed.  Remember that fact.  */
+	      Fputhash (obj, make_number (- n), Vprint_number_table);
+	    }
+	  else
 	    {
-	      EMACS_INT n = XINT (num);
-	      if (n < 0)
-		{ /* Add a prefix #n= if OBJ has not yet been printed;
-		     that is, its status field is nil.  */
-		  sprintf (buf, "#%"pI"d=", -n);
-		  strout (buf, -1, -1, printcharfun);
-		  /* OBJ is going to be printed.  Remember that fact.  */
-		  Fputhash (obj, make_number (- n), Vprint_number_table);
-		}
-	      else
-		{
-		  /* Just print #n# if OBJ has already been printed.  */
-		  sprintf (buf, "#%"pI"d#", n);
-		  strout (buf, -1, -1, printcharfun);
-		  return;
-		}
+	      /* Just print #n# if OBJ has already been printed.  */
+	      sprintf (buf, "#%"pI"d#", n);
+	      strout (buf, -1, -1, printcharfun);
+	      return;
 	    }
 	}
     }
