@@ -1536,12 +1536,16 @@ DOC is an optional documentation string."
 (defun gdb-inferior-io-sentinel (proc str)
   (when (eq (process-status proc) 'failed)
     ;; When the debugged process exits, Emacs gets an EIO error on
-    ;; read from the pty, and stops listening to it.  Remove the pty,
-    ;; make a new one, and pass it to gdb.
-    (let ((buffer (process-buffer proc)))
-      ;; `comint-exec' deletes the original process as a side effect.
-      (comint-exec buffer "gdb-inferior" nil nil nil)
-      (gdb-inferior-io--init-proc (get-buffer-process buffer)))))
+    ;; read from the pty, and stops listening to it.  If the gdb
+    ;; process is still running, remove the pty, make a new one, and
+    ;; pass it to gdb.
+    (let ((gdb-proc (get-buffer-process gud-comint-buffer))
+	  (io-buffer (process-buffer proc)))
+      (when (and gdb-proc (process-live-p gdb-proc)
+		 (buffer-live-p io-buffer))
+	;; `comint-exec' deletes the original process as a side effect.
+	(comint-exec io-buffer "gdb-inferior" nil nil nil)
+	(gdb-inferior-io--init-proc (get-buffer-process io-buffer))))))
 
 (defconst gdb-frame-parameters
   '((height . 14) (width . 80)
