@@ -7,7 +7,7 @@
 	(window--resize-child-windows-normal)
 	(window--resize-child-windows, window--resize-siblings)
 	(window--resize-this-window, adjust-window-trailing-edge)
-	(enlarge-window, shrink-window): 
+	(enlarge-window, shrink-window): Doc fixes.
 
 2012-04-19  Chong Yidong  <cyd@gnu.org>
 
