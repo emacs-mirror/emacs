@@ -1,3 +1,8 @@
+2012-04-20  Leo Liu  <sdl.web@gmail.com>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add pcase, pcase-let
+	and pcase-let*.
+
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
 	* server.el (server-execute): Respect initial-buffer-choice if it
