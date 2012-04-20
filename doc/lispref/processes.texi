@@ -559,8 +559,13 @@ already exists, then @var{name} is modified (by appending @samp{<1>},
 etc.) to be unique.  The buffer @var{buffer-or-name} is the buffer to
 associate with the process.
 
+If @var{program} is @code{nil}, Emacs opens a new pseudoterminal (pty)
+and associates its input and output with @var{buffer-or-name}, without
+creating a subprocess.  In that case, the remaining arguments
+@var{args} are ignored.
+
 The remaining arguments, @var{args}, are strings that specify command
-line arguments for the program.
+line arguments for the subprocess.
 
 In the example below, the first process is started and runs (rather,
 sleeps) for 100 seconds (the output buffer @samp{foo} is created

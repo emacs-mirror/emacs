@@ -1,3 +1,8 @@
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* processes.texi (Asynchronous Processes): Mention nil argument to
+	start-process.
+
 2012-04-20  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Basic Completion): No need to describe obarrays here.

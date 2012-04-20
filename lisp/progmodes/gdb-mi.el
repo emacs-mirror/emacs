@@ -817,10 +817,7 @@ detailed description of this mode.
             nil 'local)
   (local-set-key "\C-i" 'completion-at-point)
 
-  ;; FIXME: Under some circumstances, `gud-sentinel' apparently does
-  ;; not get called when the gdb process is killed (Bug#11273).
-  (add-hook 'post-command-hook 'gdb-inferior-io--maybe-delete-pty
-	    nil t)
+  (local-set-key [remap comint-delchar-or-maybe-eof] 'gdb-delchar-or-quit)
 
   (setq gdb-first-prompt t)
   (setq gud-running nil)
@@ -863,15 +860,8 @@ detailed description of this mode.
 
   (gdb-get-buffer-create 'gdb-inferior-io)
   (gdb-clear-inferior-io)
-  (set-process-filter (get-process "gdb-inferior") 'gdb-inferior-filter)
-  (gdb-input
-   ;; Needs GDB 6.4 onwards
-   (concat "-inferior-tty-set "
-	   (or
-	    ;; The process can run on a remote host.
-	    (process-get (get-process "gdb-inferior") 'remote-tty)
-	    (process-tty-name (get-process "gdb-inferior"))))
-   'ignore)
+  (gdb-inferior-io--init-proc (get-process "gdb-inferior"))
+
   (if (eq window-system 'w32)
       (gdb-input "-gdb-set new-console off" 'ignore))
   (gdb-input "-gdb-set height 0" 'ignore)
@@ -909,6 +899,25 @@ detailed description of this mode.
     (setq gdb-non-stop nil)
     (gdb-input "-gdb-set non-stop 0" 'ignore)))
 
+(defun gdb-delchar-or-quit (arg)
+  "Delete ARG characters or send a quit command to GDB.
+Send a quit only if point is at the end of the buffer, there is
+no input, and GDB is waiting for input."
+  (interactive "p")
+  (unless (and (eq (current-buffer) gud-comint-buffer)
+	       (eq gud-minor-mode 'gdbmi))
+    (error "Not in a GDB-MI buffer"))
+  (let ((proc (get-buffer-process gud-comint-buffer)))
+    (if (and (eobp) proc (process-live-p proc)
+	     (not gud-running)
+	     (= (point) (marker-position (process-mark proc))))
+	;; Sending an EOF does not work with GDB-MI; submit an
+	;; explicit quit command.
+	(progn
+	  (insert "quit")
+	  (comint-send-input t t))
+      (delete-char arg))))
+
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
 
 (defun gdb-create-define-alist ()
@@ -933,7 +942,6 @@ detailed description of this mode.
       (push (cons name define) gdb-define-alist))))
 
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area))
-(defvar tooltip-use-echo-area)
 
 (defun gdb-tooltip-print (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
@@ -941,7 +949,7 @@ detailed description of this mode.
     (if (re-search-forward ".*value=\\(\".*\"\\)" nil t)
         (tooltip-show
          (concat expr " = " (read (match-string 1)))
-         (or gud-tooltip-echo-area tooltip-use-echo-area
+         (or gud-tooltip-echo-area
              (not (display-graphic-p)))))))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
@@ -1514,13 +1522,26 @@ DOC is an optional documentation string."
   (gdb-display-buffer
    (gdb-get-buffer-create 'gdb-inferior-io) t))
 
-(defun gdb-inferior-io--maybe-delete-pty ()
-  (let ((proc (get-buffer-process gud-comint-buffer))
-	(inf-pty (get-process "gdb-inferior")))
-    (and (or (null proc)
-	     (memq (process-status proc) '(exit signal)))
-	 inf-pty
-	 (delete-process inf-pty))))
+(defun gdb-inferior-io--init-proc (proc)
+  ;; Set up inferior I/O.  Needs GDB 6.4 onwards.
+  (set-process-filter proc 'gdb-inferior-filter)
+  (set-process-sentinel proc 'gdb-inferior-io-sentinel)
+  (gdb-input
+   (concat "-inferior-tty-set "
+	   ;; The process can run on a remote host.
+	   (or (process-get proc 'remote-tty)
+	       (process-tty-name proc)))
+   'ignore))
+
+(defun gdb-inferior-io-sentinel (proc str)
+  (when (eq (process-status proc) 'failed)
+    ;; When the debugged process exits, Emacs gets an EIO error on
+    ;; read from the pty, and stops listening to it.  Remove the pty,
+    ;; make a new one, and pass it to gdb.
+    (let ((buffer (process-buffer proc)))
+      ;; `comint-exec' deletes the original process as a side effect.
+      (comint-exec buffer "gdb-inferior" nil nil nil)
+      (gdb-inferior-io--init-proc (get-buffer-process buffer)))))
 
 (defconst gdb-frame-parameters
   '((height . 14) (width . 80)
@@ -4131,7 +4152,9 @@ This arrangement depends on the value of `gdb-many-windows'."
 Kills the gdb buffers, and resets variables and the source buffers."
   ;; The gdb-inferior buffer has a pty hooked up to the main gdb
   ;; process.  This pty must be deleted explicitly.
-  (gdb-inferior-io--maybe-delete-pty)
+  (let ((pty (get-process "gdb-inferior")))
+    (if pty (delete-process pty)))
+  ;; Find gdb-mi buffers and kill them.
   (dolist (buffer (buffer-list))
     (unless (eq buffer gud-comint-buffer)
       (with-current-buffer buffer

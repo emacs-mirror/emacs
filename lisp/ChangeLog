@@ -1,3 +1,15 @@
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb): Revert 2012-04-19 change.
+	(gdb-inferior-io--init-proc): New function.
+	(gdb-init-1): Use it.
+	(gdb-inferior-io-sentinel): New sentinel for the gdb-inferior pty,
+	responsible for allocating a new pty and hooking it to gdb when
+	the old pty gets an EIO due to process exit.
+	(gdb-delchar-or-quit): New command.  Bind it in gdb-mi buffers.
+	(gdb-tooltip-print): Don't use obsolete tooltip-use-echo-area.
+	(gdb-inferior-io--maybe-delete-pty): Move into gdb-reset.
+
 2012-04-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.el (window-min-size, window-sizable, window-min-delta)

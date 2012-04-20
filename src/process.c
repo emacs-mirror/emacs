@@ -4893,16 +4893,23 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
 		{
-                  /* Don't do anything if only a pty, with no associated
-		     process (bug#10933).  */
-                  if (XPROCESS (proc)->pid != -2) {
-                    /* Clear the descriptor now, so we only raise the signal
-		       once.  */
-                    FD_CLR (channel, &input_wait_mask);
-                    FD_CLR (channel, &non_keyboard_wait_mask);
-                    
-                    kill (getpid (), SIGCHLD);
-                  }
+		  struct Lisp_Process *p = XPROCESS (proc);
+
+		  /* Clear the descriptor now, so we only raise the
+		     signal once.  */
+		  FD_CLR (channel, &input_wait_mask);
+		  FD_CLR (channel, &non_keyboard_wait_mask);
+
+		  if (p->pid == -2)
+		    {
+		      /* If the EIO occurs on a pty, sigchld_handler's
+			 wait3() will not find the process object to
+			 delete.  Do it here.  */
+		      p->tick = ++process_tick;
+		      p->status = Qfailed;
+		    }
+                  else
+		    kill (getpid (), SIGCHLD);
 		}
 #endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the
