@@ -1,3 +1,14 @@
+2012-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (window-min-size, window-sizable, window-min-delta)
+	(window-max-delta, window--resizable, window-resizable)
+	(window-total-size, window-full-height-p, window-full-width-p)
+	(window-in-direction, window--resize-mini-window, window-resize)
+	(window--resize-child-windows-normal)
+	(window--resize-child-windows, window--resize-siblings)
+	(window--resize-this-window, adjust-window-trailing-edge)
+	(enlarge-window, shrink-window): 
+
 2012-04-19  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty): New
