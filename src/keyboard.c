@@ -7196,6 +7196,7 @@ handle_async_input (void)
 #endif
 }
 
+#ifdef SYNC_INPUT
 void
 process_pending_signals (void)
 {
@@ -7203,6 +7204,7 @@ process_pending_signals (void)
     handle_async_input ();
   do_pending_atimers ();
 }
+#endif
 
 #ifdef SIGIO   /* for entire page */
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */

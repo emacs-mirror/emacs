@@ -1,3 +1,8 @@
+2012-04-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (process_pending_signals): Define only if SYNC_INPUT.
+	It is never used otherwise.
+
 2012-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* print.c (print_preprocess): Only check print_depth if print-circle
