@@ -404,13 +404,16 @@ must be one of the symbols header, mode, or vertical."
 		       (or mouse-1-click-in-non-selected-windows
 			   (eq window (selected-window)))
 		       (mouse-on-link-p start)))
-	 (enlarge-minibuffer
+	 (resize-minibuffer
+	  ;; Resize the minibuffer window if it's on the same frame as
+	  ;; and immediately below the position window and it's either
+	  ;; active or `resize-mini-windows' is nil.
 	  (and (eq line 'mode)
-	       (not resize-mini-windows)
 	       (eq (window-frame minibuffer-window) frame)
-	       (not (one-window-p t frame))
 	       (= (nth 1 (window-edges minibuffer-window))
-		  (nth 3 (window-edges window)))))
+		  (nth 3 (window-edges window)))
+	       (or (not resize-mini-windows)
+		   (eq minibuffer-window (active-minibuffer-window)))))
 	 (which-side
 	  (and (eq line 'vertical)
 	       (or (cdr (assq 'vertical-scroll-bars (frame-parameters frame)))
@@ -425,7 +428,7 @@ must be one of the symbols header, mode, or vertical."
      ((eq line 'mode)
       ;; Check whether mode-line can be dragged at all.
       (when (and (window-at-side-p window 'bottom)
-		 (not enlarge-minibuffer))
+		 (not resize-minibuffer))
 	(setq done t)))
      ((eq line 'vertical)
       ;; Get the window to adjust for the vertical case.
@@ -499,13 +502,9 @@ must be one of the symbols header, mode, or vertical."
 	    ;; Remember that we dragged.
 	    (setq dragged t))
 
-	  (cond
-	   (enlarge-minibuffer
-	    (adjust-window-trailing-edge window growth))
-	   ((eq line 'mode)
-	    (adjust-window-trailing-edge window growth))
-	   (t
-	    (adjust-window-trailing-edge window (- growth)))))))
+	  (if (eq line 'mode)
+	      (adjust-window-trailing-edge window growth)
+	    (adjust-window-trailing-edge window (- growth))))))
 
       ;; Presumably, if this was just a click, the last event should be
       ;; `mouse-1', whereas if this did move the mouse, it should be a

@@ -1,3 +1,10 @@
+2012-04-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (adjust-window-trailing-edge, enlarge-window)
+	(shrink-window, window-resize):
+	* mouse.el (mouse-drag-line): Fix resizing of minibuffer
+	windows (Bug#11276).
+
 2012-04-20  Dan Nicolaescu  <dann@gnu.org>
 
 	* battery.el (battery-echo-area-format): Display remaining time
