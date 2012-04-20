@@ -1,3 +1,13 @@
+2012-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-control-level): New variable.
+	(gdb): Make it buffer-local and init to zero.
+	(gdb-control-commands-regexp): New variable.
+	(gdb-send): Don't wrap in "-interpreter-exec console" if
+	gdb-control-level is positive.  Increment gdb-control-level
+	whenever the command matches gdb-control-commands-regexp, and
+	decrement it each time the command is "end".  (Bug#11279)
+
 2012-04-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (adjust-window-trailing-edge, enlarge-window)
