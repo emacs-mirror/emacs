@@ -1337,6 +1337,7 @@ fontset}, the @dfn{startup fontset} and the @dfn{default fontset}.
 @c FIXME?  The doc of *standard*-fontset-spec says:
 @c "You have the biggest chance to display international characters
 @c with correct glyphs by using the *standard* fontset." (my emphasis)
+@c See http://lists.gnu.org/archive/html/emacs-devel/2012-04/msg00430.html
 The default fontset is most likely to have fonts for a wide variety of
 non-@acronym{ASCII} characters, and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
