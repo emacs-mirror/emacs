@@ -1076,8 +1076,9 @@ The following commands are accepted by the client:
 
                 ;; -window-system:  Open a new X frame.
                 (`"-window-system"
-                 (setq dontkill t)
-                 (setq tty-name 'window-system))
+		 (if (fboundp 'x-create-frame)
+		     (setq dontkill t
+			   tty-name 'window-system)))
 
                 ;; -resume:  Resume a suspended tty frame.
                 (`"-resume"
@@ -1105,7 +1106,8 @@ The following commands are accepted by the client:
                  (setq dontkill t)
                  (pop args-left))
 
-                ;; -tty DEVICE-NAME TYPE:  Open a new tty frame at the client.
+		;; -tty DEVICE-NAME TYPE:  Open a new tty frame.
+		;; (But if we see -window-system later, use that.)
                 (`"-tty"
                  (setq tty-name (pop args-left)
                        tty-type (pop args-left)

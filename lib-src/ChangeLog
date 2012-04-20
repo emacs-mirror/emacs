@@ -2,6 +2,7 @@
 
 	* emacsclient.c (decode_options): Move -t -n corner case handling
 	into server.el (Bug#11102).
+	(main): Send -tty to Emacs under more circumstanced (Bug#8314).
 
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 

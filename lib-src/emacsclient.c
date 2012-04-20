@@ -1658,10 +1658,10 @@ main (int argc, char **argv)
       send_to_emacs (emacs_socket, " ");
     }
 
-  /* If using the current frame, send tty information to Emacs anyway.
-     In daemon mode, Emacs may need to occupy this tty if no other
-     frame is available.  */
-  if (tty || (current_frame && !eval))
+  /* Unless we are certain we don't want to occupy the tty, send our
+     tty information to Emacs.  For example, in daemon mode Emacs may
+     need to occupy this tty if no other frame is available.  */
+  if (!current_frame || !eval)
     {
       const char *tty_type, *tty_name;
 
