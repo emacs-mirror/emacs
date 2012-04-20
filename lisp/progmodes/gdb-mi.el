@@ -375,9 +375,8 @@ Emacs always switches to the thread which caused the stop."
   :version "23.2"
   :link '(info-link "(gdb)GDB/MI Async Records"))
 
-(defcustom gdb-stopped-hooks nil
-  "This variable holds a list of functions to be called whenever
-GDB stops.
+(defcustom gdb-stopped-functions nil
+  "List of functions called whenever GDB stops.
 
 Each function takes one argument, a parsed MI response, which
 contains fields of corresponding MI *stopped async record:
@@ -818,6 +817,8 @@ detailed description of this mode.
             nil 'local)
   (local-set-key "\C-i" 'completion-at-point)
 
+  (local-set-key [remap comint-delchar-or-maybe-eof] 'gdb-delchar-or-quit)
+
   (setq gdb-first-prompt t)
   (setq gud-running nil)
 
@@ -859,15 +860,8 @@ detailed description of this mode.
 
   (gdb-get-buffer-create 'gdb-inferior-io)
   (gdb-clear-inferior-io)
-  (set-process-filter (get-process "gdb-inferior") 'gdb-inferior-filter)
-  (gdb-input
-   ;; Needs GDB 6.4 onwards
-   (concat "-inferior-tty-set "
-	   (or
-	    ;; The process can run on a remote host.
-	    (process-get (get-process "gdb-inferior") 'remote-tty)
-	    (process-tty-name (get-process "gdb-inferior"))))
-   'ignore)
+  (gdb-inferior-io--init-proc (get-process "gdb-inferior"))
+
   (if (eq window-system 'w32)
       (gdb-input "-gdb-set new-console off" 'ignore))
   (gdb-input "-gdb-set height 0" 'ignore)
@@ -905,6 +899,25 @@ detailed description of this mode.
     (setq gdb-non-stop nil)
     (gdb-input "-gdb-set non-stop 0" 'ignore)))
 
+(defun gdb-delchar-or-quit (arg)
+  "Delete ARG characters or send a quit command to GDB.
+Send a quit only if point is at the end of the buffer, there is
+no input, and GDB is waiting for input."
+  (interactive "p")
+  (unless (and (eq (current-buffer) gud-comint-buffer)
+	       (eq gud-minor-mode 'gdbmi))
+    (error "Not in a GDB-MI buffer"))
+  (let ((proc (get-buffer-process gud-comint-buffer)))
+    (if (and (eobp) proc (process-live-p proc)
+	     (not gud-running)
+	     (= (point) (marker-position (process-mark proc))))
+	;; Sending an EOF does not work with GDB-MI; submit an
+	;; explicit quit command.
+	(progn
+	  (insert "quit")
+	  (comint-send-input t t))
+      (delete-char arg))))
+
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
 
 (defun gdb-create-define-alist ()
@@ -929,7 +942,6 @@ detailed description of this mode.
       (push (cons name define) gdb-define-alist))))
 
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area))
-(defvar tooltip-use-echo-area)
 
 (defun gdb-tooltip-print (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
@@ -937,7 +949,7 @@ detailed description of this mode.
     (if (re-search-forward ".*value=\\(\".*\"\\)" nil t)
         (tooltip-show
          (concat expr " = " (read (match-string 1)))
-         (or gud-tooltip-echo-area tooltip-use-echo-area
+         (or gud-tooltip-echo-area
              (not (display-graphic-p)))))))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
@@ -1510,6 +1522,31 @@ DOC is an optional documentation string."
   (gdb-display-buffer
    (gdb-get-buffer-create 'gdb-inferior-io) t))
 
+(defun gdb-inferior-io--init-proc (proc)
+  ;; Set up inferior I/O.  Needs GDB 6.4 onwards.
+  (set-process-filter proc 'gdb-inferior-filter)
+  (set-process-sentinel proc 'gdb-inferior-io-sentinel)
+  (gdb-input
+   (concat "-inferior-tty-set "
+	   ;; The process can run on a remote host.
+	   (or (process-get proc 'remote-tty)
+	       (process-tty-name proc)))
+   'ignore))
+
+(defun gdb-inferior-io-sentinel (proc str)
+  (when (eq (process-status proc) 'failed)
+    ;; When the debugged process exits, Emacs gets an EIO error on
+    ;; read from the pty, and stops listening to it.  If the gdb
+    ;; process is still running, remove the pty, make a new one, and
+    ;; pass it to gdb.
+    (let ((gdb-proc (get-buffer-process gud-comint-buffer))
+	  (io-buffer (process-buffer proc)))
+      (when (and gdb-proc (process-live-p gdb-proc)
+		 (buffer-live-p io-buffer))
+	;; `comint-exec' deletes the original process as a side effect.
+	(comint-exec io-buffer "gdb-inferior" nil nil nil)
+	(gdb-inferior-io--init-proc (get-buffer-process io-buffer))))))
+
 (defconst gdb-frame-parameters
   '((height . 14) (width . 80)
     (unsplittable . t)
@@ -1746,24 +1783,27 @@ If `gdb-thread-number' is nil, just wrap NAME in asterisks."
   (setq gdb-output-sink 'user)
   (setq gdb-pending-triggers nil))
 
-(defun gdb-update ()
-  "Update buffers showing status of debug session."
+(defun gdb-update (&optional no-proc)
+  "Update buffers showing status of debug session.
+If NO-PROC is non-nil, do not try to contact the GDB process."
   (when gdb-first-prompt
     (gdb-force-mode-line-update
      (propertize "initializing..." 'face font-lock-variable-name-face))
     (gdb-init-1)
     (setq gdb-first-prompt nil))
 
-  (gdb-get-main-selected-frame)
+  (unless no-proc
+    (gdb-get-main-selected-frame))
+
   ;; We may need to update gdb-threads-list so we can use
   (gdb-get-buffer-create 'gdb-threads-buffer)
   ;; gdb-break-list is maintained in breakpoints handler
   (gdb-get-buffer-create 'gdb-breakpoints-buffer)
 
-  (gdb-emit-signal gdb-buf-publisher 'update)
+  (unless no-proc
+    (gdb-emit-signal gdb-buf-publisher 'update))
 
   (gdb-get-changed-registers)
-
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     (dolist (var gdb-var-list)
       (setcar (nthcdr 5 var) nil))
@@ -2045,7 +2085,7 @@ current thread and update GDB buffers."
       ;; In all-stop this updates gud-running properly as well.
       (gdb-update)
       (setq gdb-first-done-or-error nil))
-    (run-hook-with-args 'gdb-stopped-hooks result)))
+    (run-hook-with-args 'gdb-stopped-functions result)))
 
 ;; Remove the trimmings from log stream containing debugging messages
 ;; being produced by GDB's internals, use warning face and send to GUD
@@ -2085,23 +2125,28 @@ current thread and update GDB buffers."
     (setq gdb-output-sink 'emacs))
 
   (gdb-clear-partial-output)
-  (when gdb-first-done-or-error
-    (unless (or token-number gud-running)
-      (setq gdb-filter-output (concat gdb-filter-output gdb-prompt-name)))
-    (gdb-update)
-    (setq gdb-first-done-or-error nil))
 
-  (setq gdb-filter-output
-	(gdb-concat-output gdb-filter-output output-field))
+  ;; The process may already be dead (e.g. C-d at the gdb prompt).
+  (let* ((proc (get-buffer-process gud-comint-buffer))
+	 (no-proc (or (null proc)
+		      (memq (process-status proc) '(exit signal)))))
 
-  (if token-number
-      (progn
-	(with-current-buffer
-	    (gdb-get-buffer-create 'gdb-partial-output-buffer)
-	  (funcall
-	   (cdr (assoc (string-to-number token-number) gdb-handler-alist))))
-	(setq gdb-handler-alist
-	      (assq-delete-all token-number gdb-handler-alist)))))
+    (when gdb-first-done-or-error
+      (unless (or token-number gud-running no-proc)
+	(setq gdb-filter-output (concat gdb-filter-output gdb-prompt-name)))
+      (gdb-update no-proc)
+      (setq gdb-first-done-or-error nil))
+
+    (setq gdb-filter-output
+	  (gdb-concat-output gdb-filter-output output-field))
+
+    (when token-number
+      (with-current-buffer
+	  (gdb-get-buffer-create 'gdb-partial-output-buffer)
+	(funcall
+	 (cdr (assoc (string-to-number token-number) gdb-handler-alist))))
+      (setq gdb-handler-alist
+	    (assq-delete-all token-number gdb-handler-alist)))))
 
 (defun gdb-concat-output (so-far new)
   (cond
@@ -4105,9 +4150,15 @@ This arrangement depends on the value of `gdb-many-windows'."
            (gud-find-file gdb-main-file)))
         (setq gdb-source-window win)))))
 
+;; Called from `gud-sentinel' in gud.el:
 (defun gdb-reset ()
   "Exit a debugging session cleanly.
 Kills the gdb buffers, and resets variables and the source buffers."
+  ;; The gdb-inferior buffer has a pty hooked up to the main gdb
+  ;; process.  This pty must be deleted explicitly.
+  (let ((pty (get-process "gdb-inferior")))
+    (if pty (delete-process pty)))
+  ;; Find gdb-mi buffers and kill them.
   (dolist (buffer (buffer-list))
     (unless (eq buffer gud-comint-buffer)
       (with-current-buffer buffer

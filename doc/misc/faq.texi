@@ -942,6 +942,7 @@ status of its latest version.
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 24::
 * New in Emacs 23::
 * New in Emacs 22::
 * New in Emacs 21::
@@ -1009,12 +1010,84 @@ Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  As of Emacs 22,
 you can give this command a prefix argument to read about which features
 were new in older versions.
 
+@node New in Emacs 24
+@section What is different about Emacs 24?
+@cindex Differences between Emacs 23 and Emacs 24
+@cindex Emacs 24, new features in
+
+@itemize
+@cindex packages, installing more
+@item
+Emacs now includes a package manager.  Type @kbd{M-x list-packages} to
+get started.  You can use this to download and automatically install
+many more Lisp packages.
+
+@cindex lexical binding
+@item
+Emacs Lisp now supports lexical binding on a per-file basis.  In
+@emph{lexical binding}, variable references must be located textually
+within the binding construct.  This contrasts with @emph{dynamic
+binding}, where programs can refer to variables defined outside their
+local textual scope.  A Lisp file can use a local variable setting of
+@code{lexical-binding: t} to indicate that the contents should be
+interpreted using lexical binding.  See the Emacs Lisp Reference
+Manual for more details.
+
+@cindex bidirectional display
+@cindex right-to-left languages
+@item
+Some human languages, such as English, are written from left to right.
+Others, such as Arabic, are written from right to left.  Emacs now has
+support for any mixture of these forms---this is ``bidirectional text''.
+
+@item
+Handling of text selections has been improved, and now integrates
+better with external clipboards.
+
+@cindex themes
+@item
+A new command @kbd{customize-themes} allows you to easily change the
+appearance of your Emacs.
+
+@item
+Emacs can be compiled with the Gtk+ 3 toolkit.
+
+@item
+Support for several new external libraries can be included at compile
+time:
+
+@itemize
+
+@item
+``Security-Enhanced Linux'' (SELinux) is a Linux kernel feature that
+provides more sophisticated file access controls than ordinary
+``Unix-style'' file permissions.
+
+@item
+The ImageMagick display library.  This allows you to display many more
+image format in Emacs, as well as carry out transformations such as
+rotations.
+
+@item
+The GnuTLS library for secure network communications.  Emacs uses this
+transparently for email if your mail server supports it.
+
+@item
+The libxml2 library for parsing XML structures.
+@end itemize
+
+@item
+Much more flexibility in the handling of windows and buffer display.
+
+@end itemize
+
+As always, consult the @file{NEWS} file for more information.
+
+
 @node New in Emacs 23
 @section What is different about Emacs 23?
 @cindex Differences between Emacs 22 and Emacs 23
 @cindex Emacs 23, new features in
-@cindex Recently introduced features
-@cindex Default features
 
 @itemize
 
@@ -1065,8 +1138,7 @@ Other changes include: support for serial port access; D-Bus bindings; a
 new Visual Line mode for line-motion; improved completion; a new mode
 (@samp{DocView}) for viewing of PDF, PostScript, and DVI documents; nXML
 mode (for editing XML documents) is included; VC has been updated for
-newer version control systems; etc.  As always, consult the @file{NEWS}
-file for more information.
+newer version control systems; etc.
 
 
 @node New in Emacs 22
@@ -3224,6 +3296,14 @@ see @ref{Packages that do not come with Emacs}.
 @cindex Packages, those that do not come with Emacs
 @cindex Emacs Lisp List
 @cindex Emacs Lisp Archive
+
+Your first port of call should be the @kbd{M-x list-packages} command.
+This connects to the @uref{http:///elpa.gnu.org, GNU ELPA} (``Emacs
+Lisp Package Archive'') server and fetches the list of additional
+packages that it offers.  These are GNU packages that are available
+for use with Emacs, but are distributed separately.  Select a package
+to get more details about the features that it offers, and then if you
+wish, Emacs can download and automatically install it for you.
 
 @uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs Lisp
 List (ELL)}, maintained by @email{S.J.Eglen@@damtp.cam.ac.uk, Stephen Eglen},

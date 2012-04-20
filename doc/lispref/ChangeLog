@@ -1,3 +1,75 @@
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* processes.texi (Asynchronous Processes): Mention nil argument to
+	start-process.
+
+2012-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (Basic Completion): No need to describe obarrays here.
+	Don't mention obsolete `nospace' argument of all-completions.
+	(Minibuffer Completion, Completion Commands, Reading File Names)
+	(Completion Variables): Copyedits.
+	(Completion Commands): Mention parent keymaps.
+	Remove obsolete minibuffer-local-filename-must-match-map.
+	(High-Level Completion): Remove read-variable's almost
+	word-for-word duplication of read-command.
+	* elisp.texi, vol1.texi, vol2.texi, minibuf.texi (Completion):
+	Update "High-Level Completion" description.
+
+2012-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (Minibuffers):
+	* elisp.texi, vol1.texi, vol2.texi: Fix minibuffer subsection order.
+
+	* minibuf.texi: Standardize metasyntactic variables ("history", etc).
+	Use Texinfo-recommended form of quote+punctuation.
+	(Intro to Minibuffers): First minibuffer is #1, not #0.
+	Mention minibuffer-inactive-mode.
+	(Text from Minibuffer): Copyedits.
+	(Minibuffer History, Programmed Completion): Fix @var usage.
+	(Object from Minibuffer): Remove overly pedantic para.
+	(Minibuffer History): Copyedits.  Add face-name-history.
+	(Initial Input, Yes-or-No Queries, Multiple Queries)
+	(Minibuffer Windows, Minibuffer Misc): Copyedits.
+	(Yes-or-No Queries): Tweak example.
+	(Minibuffer Commands): Add next-complete-history-element.
+	(Minibuffer Misc): Mention minibuffer-message-timeout, and
+	minibuffer-inactive-mode.
+
+2012-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Serial Ports, Byte Packing, Bindat Spec)
+	(Bindat Functions): Copyedits.
+
+2012-04-18  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* files.texi (Saving Buffers): Document `visit and `visit-save'
+	values of require-final-newline.
+
+2012-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Output from Processes, Filter Functions):
+	Mention waiting-for-user-input-p.
+	(Sentinels, Query Before Exit, System Processes, Transaction Queues):
+	(Network Servers, Datagrams, Network Processes, Network Options)
+	(Network Feature Testing, Serial Ports): Copyedits.
+	(Network): Add encrypted network overview paragraph.
+	Cross-reference the Emacs-GnuTLS manual.  Use @acronym.
+
+2012-04-17  Chong Yidong  <cyd@gnu.org>
+
+	* help.texi (Keys in Documentation): Mention :advertised-binding.
+
+	* keymaps.texi (Menu Bar): Move most of the :advertised-binding
+	description to help.texi.
+
+2012-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Process Information, Input to Processes)
+	(Signals to Processes, Output from Processes, Process Buffers)
+	(Filter Functions, Decoding Output): Copyedits.
+	(Accepting Output): Discourage use of `millisec' argument.
+
 2012-04-15  Glenn Morris  <rgm@gnu.org>
 
 	* processes.texi (Processes, Subprocess Creation, Shell Arguments):

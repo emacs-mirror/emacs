@@ -1,3 +1,8 @@
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* emacsclient.c (decode_options): Move -t -n corner case handling
+	into server.el (Bug#11102).
+
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)

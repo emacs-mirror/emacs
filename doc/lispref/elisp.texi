@@ -637,8 +637,8 @@ Minibuffers
 * Multiple Queries::        Asking a series of similar questions.
 * Reading a Password::      Reading a password from the terminal.
 * Minibuffer Commands::     Commands used as key bindings in minibuffers.
-* Minibuffer Contents::     How such commands access the minibuffer text.
 * Minibuffer Windows::      Operating on the special minibuffer windows.
+* Minibuffer Contents::     How such commands access the minibuffer text.
 * Recursive Mini::          Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::         Various customization hooks and variables.
 
@@ -648,7 +648,7 @@ Completion
 * Minibuffer Completion::   Invoking the minibuffer with completion.
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
-                              (reading buffer name, file name, etc.).
+                              (reading buffer names, variable names, etc.).
 * Reading File Names::      Using completion to read file names and
                               shell commands.
 * Completion Variables::    Variables controlling completion behavior.

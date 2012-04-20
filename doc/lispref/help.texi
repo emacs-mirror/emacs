@@ -347,6 +347,21 @@ This function scans @var{string} for the above special sequences and
 replaces them by what they stand for, returning the result as a string.
 This permits display of documentation that refers accurately to the
 user's own customized key bindings.
+
+@cindex advertised binding
+If a command has multiple bindings, this function normally uses the
+first one it finds.  You can specify one particular key binding by
+assigning an @code{:advertised-binding} symbol property to the
+command, like this:
+
+@smallexample
+(put 'undo :advertised-binding [?\C-/])
+@end smallexample
+
+@noindent
+The @code{:advertised-binding} property also affects the binding shown
+in menu items (@pxref{Menu Bar}).  The property is ignored if it
+specifies a key binding that the command does not actually have.
 @end defun
 
   Here are examples of the special sequences:

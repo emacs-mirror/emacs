@@ -22866,7 +22866,7 @@ case "$opsys" in
   ## had not yet been defined and was expanded to null.  Hence LD_SWITCH_SYSTEM
   ## had different values in configure (in ac_link) and src/Makefile.in.
   ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
-  gnu-linux) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_AUX)" ;;
+  gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_AUX_RPATH)" ;;
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac

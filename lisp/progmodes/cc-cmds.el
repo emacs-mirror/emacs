@@ -679,7 +679,7 @@ settings of `c-cleanup-list' are done."
 	;; We want to inhibit blinking the paren since this would be
 	;; most disruptive.  We'll blink it ourselves later on.
 	(old-blink-paren blink-paren-function)
-	blink-paren-function)
+	blink-paren-function case-fold-search)
 
     (c-save-buffer-state ()
       (setq safepos (c-safe-position (point) (c-parse-state))
@@ -1086,7 +1086,7 @@ numeric argument is supplied, or the point is inside a literal."
 
   (interactive "*P")
   (let ((c-echo-syntactic-information-p nil)
-	final-pos close-paren-inserted found-delim)
+	final-pos close-paren-inserted found-delim case-fold-search)
 
     (self-insert-command (prefix-numeric-value arg))
     (setq final-pos (point))
@@ -1172,7 +1172,8 @@ newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
   (interactive "*P")
   (let ((literal (c-save-buffer-state () (c-in-literal)))
 	;; shut this up
-	(c-echo-syntactic-information-p nil))
+	(c-echo-syntactic-information-p nil)
+	case-fold-search)
     (self-insert-command (prefix-numeric-value arg))
 
     (if (and (not arg) (not literal))
@@ -1585,7 +1586,7 @@ defun."
 					; structure with other users of c-state-cache.
        (orig-point-min (point-min)) (orig-point-max (point-max))
        lim			    ; Position of { which has been widened to.
-       where pos)
+       where pos case-fold-search)
 
     (save-restriction
       (if (eq c-defun-tactic 'go-outward)
@@ -1709,7 +1710,8 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
 				  ; structure with other users of c-state-cache.
        (orig-point-min (point-min)) (orig-point-max (point-max))
        lim
-       where pos)
+       where pos case-fold-search)
+
     (save-restriction
       (if (eq c-defun-tactic 'go-outward)
 	  (setq lim (c-widen-to-enclosing-decl-scope ; e.g. class, namespace
@@ -1769,8 +1771,8 @@ with a brace block."
   (interactive)
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
-       where pos name-end)
-
+       where pos name-end case-fold-search)
+ 
     (save-restriction
       (widen)
       (save-excursion
@@ -1969,7 +1971,7 @@ As opposed to \\[c-beginning-of-defun] and \\[c-end-of-defun], this
 function does not require the declaration to contain a brace block."
   (interactive)
 
-  (let (decl-limits)
+  (let (decl-limits case-fold-search)
     (c-save-buffer-state nil
       ;; We try to be line oriented, unless there are several
       ;; declarations on the same line.
@@ -2001,11 +2003,12 @@ function does not require the declaration to contain a brace block."
 (defun c-cpp-define-name ()
   "Return the name of the current CPP macro, or NIL if we're not in one."
   (interactive)
-  (save-excursion
-    (and c-opt-cpp-macro-define-start
-	 (c-beginning-of-macro)
-	 (looking-at c-opt-cpp-macro-define-start)
-	 (match-string-no-properties 1))))
+  (let (case-fold-search)
+    (save-excursion
+      (and c-opt-cpp-macro-define-start
+	   (c-beginning-of-macro)
+	   (looking-at c-opt-cpp-macro-define-start)
+	   (match-string-no-properties 1)))))
 
 
 ;; Movement by statements.
@@ -2888,7 +2891,8 @@ See `c-indent-comment-alist' for a description."
 			(eq (match-end 0) eot))
 		   'cpp-end-block)
 		  (t
-		   'other))))
+		   'other)))
+	   case-fold-search)
       (if (and (memq line-type '(anchored-comment empty-line))
 	       c-indent-comments-syntactically-p)
 	  (let ((c-syntactic-context (c-guess-basic-syntax)))
@@ -3024,7 +3028,7 @@ are treated as conditional clause limits.  Normally they are ignored."
   (let* ((forward (> count 0))
 	 (increment (if forward -1 1))
 	 (search-function (if forward 're-search-forward 're-search-backward))
-	 new)
+	 new case-fold-search)
     (unless (integerp target-depth)
       (setq target-depth (if target-depth -1 0)))
     (save-excursion
@@ -3226,7 +3230,7 @@ balanced expression is found."
 In the macro case this also has the effect of realigning any line
 continuation backslashes, unless `c-auto-align-backslashes' is nil."
   (interactive "*")
-  (let ((here (point-marker)) decl-limits)
+  (let ((here (point-marker)) decl-limits case-fold-search)
     (unwind-protect
 	(progn
 	  (c-save-buffer-state nil
@@ -4638,7 +4642,8 @@ inside a preprocessor directive."
 
   (interactive "*")
   (let* (c-lit-limits c-lit-type
-	 (c-macro-start c-macro-start))
+	 (c-macro-start c-macro-start)
+	 case-fold-search)
 
     (c-save-buffer-state ()
       (setq c-lit-limits (c-literal-limits nil nil t)

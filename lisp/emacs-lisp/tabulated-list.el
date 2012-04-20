@@ -215,7 +215,7 @@ buffer and inserts the entries with `tabulated-list-printer'.
 Optional argument REMEMBER-POS, if non-nil, means to move point
 to the entry with the same ID element as the current line."
   (let ((inhibit-read-only t)
-	(entries (if (functionp 'tabulated-list-entries)
+	(entries (if (functionp tabulated-list-entries)
 		     (funcall tabulated-list-entries)
 		   tabulated-list-entries))
 	entry-id saved-pt saved-col)
@@ -246,7 +246,7 @@ to the entry with the same ID element as the current line."
 	  (setq entries (sort entries sorter))
 	  (if (cdr tabulated-list-sort-key)
 	      (setq entries (nreverse entries)))
-	  (unless (functionp 'tabulated-list-entries)
+	  (unless (functionp tabulated-list-entries)
 	    (setq tabulated-list-entries entries)))))
     ;; Print the resulting list.
     (dolist (elt entries)

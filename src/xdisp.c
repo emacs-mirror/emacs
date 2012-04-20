@@ -4979,7 +4979,7 @@ string_buffer_position_lim (Lisp_Object string,
   Lisp_Object limit, prop, pos;
   int found = 0;
 
-  pos = make_number (from);
+  pos = make_number (max (from, BEGV));
 
   if (!back_p)	/* looking forward */
     {
@@ -13690,6 +13690,13 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
      comes from a text property, not from an overlay.  */
   int string_from_text_prop = 0;
 
+  /* Don't even try doing anything if called for a mode-line or
+     header-line row, since the rest of the code isn't prepared to
+     deal with such calamities.  */
+  xassert (!row->mode_line_p);
+  if (row->mode_line_p)
+    return 0;
+
   /* Skip over glyphs not having an object at the start and the end of
      the row.  These are special glyphs like truncation marks on
      terminal frames.  */
@@ -14910,6 +14917,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	  else if (rc != CURSOR_MOVEMENT_SUCCESS
 		   && !NILP (BVAR (XBUFFER (w->buffer), bidi_display_reordering)))
 	    {
+	      struct glyph_row *row1;
+
 	      /* If rows are bidi-reordered and point moved, back up
 		 until we find a row that does not belong to a
 		 continuation line.  This is because we must consider
@@ -14920,24 +14929,28 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	      /* FIXME: Revisit this when glyph ``spilling'' in
 		 continuation lines' rows is implemented for
 		 bidi-reordered rows.  */
-	      while (MATRIX_ROW_CONTINUATION_LINE_P (row))
+	      for (row1 = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+		   MATRIX_ROW_CONTINUATION_LINE_P (row);
+		   --row)
 		{
 		  /* If we hit the beginning of the displayed portion
 		     without finding the first row of a continued
 		     line, give up.  */
-		  if (row <= w->current_matrix->rows)
+		  if (row <= row1)
 		    {
 		      rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		      break;
 		    }
 		  xassert (row->enabled_p);
-		  --row;
 		}
 	    }
 	  if (must_scroll)
 	    ;
 	  else if (rc != CURSOR_MOVEMENT_SUCCESS
 	      && MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
+	      /* Make sure this isn't a header line by any chance, since
+		 then MATRIX_ROW_PARTIALLY_VISIBLE_P might yield non-zero.  */
+	      && !row->mode_line_p
 	      && make_cursor_line_fully_visible_p)
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
