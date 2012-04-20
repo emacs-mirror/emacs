@@ -2,10 +2,6 @@
 
 	* configure.in: Don't use the -R option (Bug#11251).
 
-2012-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
-
-	* info/dir, Makefile.in (INFO_FILES): Add emacs-gnutls.
-
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)
