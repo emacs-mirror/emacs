@@ -1,3 +1,8 @@
+2012-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Fcopy_file, Fset_file_selinux_context):
+	Ignore ENOTSUP failures from setfilecon functions.  (Bug#11245)
+
 2012-04-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (swap_glyph_pointers, copy_row_except_pointers): Don't
