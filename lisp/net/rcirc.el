@@ -479,7 +479,8 @@ If ARG is non-nil, instead prompt for connection parameters."
 			     rcirc-default-full-name))
 	      (channels (plist-get (cdr c) :channels))
               (password (plist-get (cdr c) :password))
-              (encryption (plist-get (cdr c) :encryption)))
+              (encryption (plist-get (cdr c) :encryption))
+              contact)
 	  (when server
 	    (let (connected)
 	      (dolist (p (rcirc-process-list))
@@ -491,10 +492,11 @@ If ARG is non-nil, instead prompt for connection parameters."
 				     full-name channels password encryption)
 		    (quit (message "Quit connecting to %s" server)))
 		(with-current-buffer (process-buffer connected)
-		  (setq connected-servers
-			(cons (process-contact (get-buffer-process
-						(current-buffer)) :host)
-			      connected-servers))))))))
+                  (setq contact (process-contact
+                                 (get-buffer-process (current-buffer)) :host))
+                  (setq connected-servers
+                        (cons (if (stringp contact) contact server)
+                              connected-servers))))))))
       (when connected-servers
 	(message "Already connected to %s"
 		 (if (cdr connected-servers)
