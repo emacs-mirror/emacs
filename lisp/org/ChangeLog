@@ -935,11 +935,6 @@
 	* org-footnote.el (org-footnote-normalize): Make sure that
 	footnotes are moved to a single place during export.
 
-2012-04-01  Bastien Guerry  <bzg@gnu.org>
-
-	* org.el (org-cycle-internal-global): Prevent the display of
-	messages when cycling from with a Gnus article buffer.
-
 2012-04-01  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-footnote.el (org-footnote-normalize): Ensure footnote
