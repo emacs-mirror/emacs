@@ -152,6 +152,8 @@ s/^	[^ 	]*move-if-change /	update /
 /^	echo[ 	][ 	]*timestamp/s/echo /djecho /
 /^	.*djecho timestamp/a\
 	@rm -f gl-tmp
+/^	cd \$(leimdir) && \$(MAKE)/c\
+	$(MAKE) $(MFLAGS) -C $(leimdir) leim-list.el EMACS=$(bootstrap_exe)
 /^	cd \$(lib) && \$(MAKE)/c\
 	$(MAKE) $(MFLAGS) -C $(lib) libgnu.a
 /^RUN_TEMACS *=/s|`/bin/pwd`|.|
