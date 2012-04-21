@@ -1,5 +1,12 @@
 2012-04-21  Glenn Morris  <rgm@gnu.org>
 
+	* windows.texi (Basic Windows, Windows and Frames, Window Sizes)
+	(Resizing Windows, Deleting Windows, Selecting Windows)
+	(Choosing Window Options, Horizontal Scrolling): Copyedits.
+	(Splitting Windows, Deleting Windows):
+	Fix ignore-window-parameters logic.
+	(Selecting Windows, Choosing Window Options): Markup fixes.
+
 	* elisp.texi, vol1.texi, vol2.texi: Bump VERSION and DATE.
 
 	* minibuf.texi (Intro to Minibuffers):

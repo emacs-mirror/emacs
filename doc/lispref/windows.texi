@@ -50,7 +50,7 @@ is displayed in windows.
 @section Basic Concepts of Emacs Windows
 @cindex window
 
-A @dfn{window} is a area of the screen which is used to display a
+A @dfn{window} is a area of the screen that is used to display a
 buffer (@pxref{Buffers}).  In Emacs Lisp, windows are represented by a
 special Lisp object type.
 
@@ -298,8 +298,8 @@ child of its parent.
 
 The functions @code{window-next-sibling} and
 @code{window-prev-sibling} should not be confused with the functions
-@code{next-window} and @code{previous-window} which respectively
-return the next and previous window in the cyclic ordering of windows
+@code{next-window} and @code{previous-window}, which return the next
+and previous window, respectively, in the cyclic ordering of windows
 (@pxref{Cyclic Window Ordering}).
 
   You can use the following functions to find the first live window on
@@ -377,7 +377,7 @@ line (@pxref{Mode Line Format}).
 
   Emacs provides several functions for finding the height and width of
 a window.  Except where noted, Emacs reports window heights and widths
-as integer numbers of lines and columns respectively.  On a graphical
+as integer numbers of lines and columns, respectively.  On a graphical
 display, each ``line'' and ``column'' actually corresponds to the
 height and width of a ``default'' character specified by the frame's
 default font.  Thus, if a window is displaying text with a different
@@ -620,7 +620,7 @@ window.
 
 The optional argument @var{max-height}, if non-@code{nil}, specifies
 the maximum total height that this function can give @var{window}.
-The optional argument @var{min-height}, if no-@code{nil}, specifies
+The optional argument @var{min-height}, if non-@code{nil}, specifies
 the minimum total height that it can give, which overrides the
 variable @code{window-min-height}.
 
@@ -724,7 +724,7 @@ properties of the window selected within @var{window}'s frame.
 
 The behavior of this function may be altered by the window parameters
 of @var{window}, so long as the variable
-@code{ignore-window-parameters} is non-@code{nil}.  If the value of
+@code{ignore-window-parameters} is @code{nil}.  If the value of
 the @code{split-window} window parameter is @code{t}, this function
 ignores all other window parameters.  Otherwise, if the value of the
 @code{split-window} window parameter is a function, that function is
@@ -1063,7 +1063,7 @@ combination.  @xref{Splitting Windows}.
 
 The behavior of this function may be altered by the window parameters
 of @var{window}, so long as the variable
-@code{ignore-window-parameters} is non-@code{nil}.  If the value of
+@code{ignore-window-parameters} is @code{nil}.  If the value of
 the @code{delete-window} window parameter is @code{t}, this function
 ignores all other window parameters.  Otherwise, if the value of the
 @code{delete-window} window parameter is a function, that function is
@@ -1080,7 +1080,7 @@ defaults to the selected window.  The return value is @code{nil}.
 
 The behavior of this function may be altered by the window parameters
 of @var{window}, so long as the variable
-@code{ignore-window-parameters} is non-@code{nil}.  If the value of
+@code{ignore-window-parameters} is @code{nil}.  If the value of
 the @code{delete-other-windows} window parameter is @code{t}, this
 function ignores all other window parameters.  Otherwise, if the value
 of the @code{delete-other-windows} window parameter is a function,
@@ -1120,8 +1120,8 @@ means operate on that frame.
 
 Note that this argument does not have the same meaning as in other
 functions which scan all live windows (@pxref{Cyclic Window
-Ordering}).  Specifically, the values @code{t} and @code{nil} have the
-opposite of their meanings in those other functions.
+Ordering}).  Specifically, the meanings of @code{t} and @code{nil} here
+are the opposite of what they are in those other functions.
 @end deffn
 
 @node Selecting Windows
@@ -1172,11 +1172,11 @@ the buffer list.
 This macro selects @var{window}, executes @var{forms} in sequence, then
 restores the previously selected window and current buffer.  The ordering
 of recently selected windows and the buffer list remain unchanged unless
-you deliberately change them within @var{forms}, for example, by calling
+you deliberately change them within @var{forms}; for example, by calling
 @code{select-window} with argument @var{norecord} @code{nil}.
 
-The order of recently selected windows and the buffer list are not
-changed by this macro.
+This macro does not change the order of recently selected windows or
+the buffer list.
 @end defmac
 
 @defun frame-selected-window &optional frame
@@ -1186,7 +1186,7 @@ within that frame.  @var{frame} should be a live frame; if omitted or
 @end defun
 
 @defun set-frame-selected-window frame window &optional norecord
-This function makes @code{window} the window selected within the frame
+This function makes @var{window} the window selected within the frame
 @var{frame}.  @var{frame} should be a live frame; if omitted or
 @code{nil}, it defaults to the selected frame.  @var{window} should be
 a live window; if omitted or @code{nil}, it defaults to the selected
@@ -1806,14 +1806,14 @@ desired buffer) or @code{nil} (which means the splitting failed).
 @end defopt
 
 @defun split-window-sensibly window
-This function tries to split @code{window}, and return the newly
-created window.  If @code{window} cannot be split, it returns
+This function tries to split @var{window}, and return the newly
+created window.  If @var{window} cannot be split, it returns
 @code{nil}.
 
 This function obeys the usual rules that determine when a window may
 be split (@pxref{Splitting Windows}).  It first tries to split by
 placing the new window below, subject to the restriction imposed by
-@code{split-height-threshold} (see below) in addition to any other
+@code{split-height-threshold} (see below), in addition to any other
 restrictions.  If that fails, it tries to split by placing the new
 window to the right, subject to @code{split-width-threshold} (see
 below).  If that fails, and the window is the only window on its
@@ -1945,7 +1945,7 @@ to display @var{buffer}.
 
 If @var{args} is an alist, it specifies frame parameters for the new
 frame.  If @var{args} is a list whose @sc{car} is a symbol, then
-@code{(car @var{args})} is called as a function to actually create and
+@code{(car @var{args})} is a function to actually create and
 set up the frame; it is called with @var{buffer} as first argument, and
 @code{(cdr @var{args})} as additional arguments.
 
@@ -1963,7 +1963,7 @@ This variable holds frame parameters for
 
 @defopt same-window-buffer-names
 A list of buffer names for buffers that should be displayed in the
-selected window.  If the buffer's name is in this list,
+selected window.  If a buffer's name is in this list,
 @code{display-buffer} handles the buffer by switching to it in the
 selected window.
 @end defopt
@@ -2818,8 +2818,8 @@ times the normal character width.  How many characters actually
 disappear off to the left depends on their width, and could vary from
 line to line.
 
-  Because we read from side to side in the ``inner loop,'' and from top
-to bottom in the ``outer loop,'' the effect of horizontal scrolling is
+  Because we read from side to side in the ``inner loop'', and from top
+to bottom in the ``outer loop'', the effect of horizontal scrolling is
 not like that of textual or vertical scrolling.  Textual scrolling
 involves selection of a portion of text to display, and vertical
 scrolling moves the window contents contiguously; but horizontal
@@ -3139,7 +3139,7 @@ old one.
 
 If the frame which @var{configuration} was saved from is dead, all this
 function does is restore the three variables @code{window-min-height},
-@code{window-min-width} and @code{minibuffer-scroll-window}. In this
+@code{window-min-width} and @code{minibuffer-scroll-window}.  In this
 case, the function returns @code{nil}.  Otherwise, it returns @code{t}.
 
 Here is a way of using this function to get the same effect
