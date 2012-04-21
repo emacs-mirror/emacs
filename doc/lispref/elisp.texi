@@ -5,11 +5,10 @@
 @c %**end of header
 
 @c Version of the manual and of Emacs.
-@c Please remember to update the edition number in README as well.
-@c And also the copies in vol1.texi and vol2.texi.
-@set VERSION  3.0
+@c Please remember to update these in vol1.texi and vol2.texi as well.
+@set VERSION  3.1
 @include emacsver.texi
-@set DATE July 2009
+@set DATE July 2012
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go

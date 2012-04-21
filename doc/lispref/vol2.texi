@@ -24,10 +24,9 @@
 @end tex
 
 @c Version of the manual and of Emacs.
-@c Please remember to update the edition number in README as well.
-@set VERSION  3.0
+@set VERSION  3.1
 @include emacsver.texi
-@set DATE July 2009
+@set DATE May 2012
 
 @dircategory Emacs
 @direntry

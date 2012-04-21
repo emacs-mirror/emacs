@@ -1,5 +1,7 @@
 2012-04-21  Glenn Morris  <rgm@gnu.org>
 
+	* elisp.texi, vol1.texi, vol2.texi: Bump VERSION and DATE.
+
 	* minibuf.texi (Intro to Minibuffers):
 	Tweak discussion of resizing minibuffer window.
 
