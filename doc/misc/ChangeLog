@@ -1,3 +1,9 @@
+2012-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Major packages and programs): Remove section.
+	There is no point listing 6 packages (cf etc/MORE.STUFF).
+	(Finding Emacs and related packages): Move "Spell-checkers" here.
+
 2012-04-20  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (New in Emacs 24): New section.
