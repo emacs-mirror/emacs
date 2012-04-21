@@ -4,12 +4,16 @@
 	(Resizing Windows, Deleting Windows, Selecting Windows)
 	(Choosing Window Options, Horizontal Scrolling)
 	(Cyclic Window Ordering, Window History, Dedicated Windows)
-	(Quitting Windows, Window Configurations): Copyedits.
+	(Quitting Windows, Window Configurations, Textual Scrolling):
+	(Coordinates and Windows, Window Configurations)
+	(Window Parameters, Window Hooks): Copyedits.
 	(Splitting Windows, Deleting Windows):
 	Fix ignore-window-parameters logic.
 	(Selecting Windows, Choosing Window Options): Markup fixes.
 	(Window Start and End): Remove pointless example.
 	Remove cross-reference to deleted count-lines content.
+	(Textual Scrolling): Mention recenter-redisplay, recenter-top-bottom,
+	and recenter-positions.  Remove recenter example.
 
 	* elisp.texi, vol1.texi, vol2.texi: Bump VERSION and DATE.
 

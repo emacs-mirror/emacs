@@ -2507,12 +2507,16 @@ commands move the paper up and down.  Thus, if you are looking at the
 middle of a buffer and repeatedly call @code{scroll-down}, you will
 eventually see the beginning of the buffer.
 
-  Some people have urged that the opposite convention be used: they
+  Unfortunately, this sometimes causes confusion, because some people
+tend to think in terms of the opposite convention: they
 imagine the window moving over text that remains in place, so that
 ``down'' commands take you to the end of the buffer.  This convention
 is consistent with fact that such a command is bound to a key named
-@key{PageDown} on modern keyboards.  We have not switched to this
-convention as that is likely to break existing Emacs Lisp code.
+@key{PageDown} on modern keyboards.
+@ignore
+We have not switched to this convention as that is likely to break
+existing Emacs Lisp code.
+@end ignore
 
   Textual scrolling functions (aside from @code{scroll-other-window})
 have unpredictable results if the current buffer is not the one
@@ -2542,13 +2546,8 @@ signals an error.  Otherwise, it returns @code{nil}.
 This function scrolls backward by @var{count} lines in the selected
 window.
 
-If @var{count} is negative, it scrolls forward instead.  If
-@var{count} is omitted or @code{nil}, the distance scrolled is
-@code{next-screen-context-lines} lines less than the height of the
-window's text area.
-
-If the selected window cannot be scrolled any further, this function
-signals an error.  Otherwise, it returns @code{nil}.
+If @var{count} is negative, it scrolls forward instead.  In other
+respects, it behaves the same way as @code{scroll-up} does.
 @end deffn
 
 @deffn Command scroll-up-command &optional count
@@ -2578,8 +2577,8 @@ already displayed, @code{scroll-other-window} displays it in some
 window.
 
 When the selected window is the minibuffer, the next window is normally
-the one at the top left corner.  You can specify a different window to
-scroll, when the minibuffer is selected, by setting the variable
+the leftmost one immediately above it.  You can specify a different
+window to scroll, when the minibuffer is selected, by setting the variable
 @code{minibuffer-scroll-window}.  This variable has no effect when any
 other window is selected.  When it is non-@code{nil} and the
 minibuffer is selected, it takes precedence over
@@ -2591,7 +2590,7 @@ window is the one at the bottom right corner.  In this case,
 @code{scroll-other-window} attempts to scroll the minibuffer.  If the
 minibuffer contains just one line, it has nowhere to scroll to, so the
 line reappears after the echo area momentarily displays the message
-@samp{Beginning of buffer}.
+@samp{End of buffer}.
 @end deffn
 
 @defvar other-window-scroll-buffer
@@ -2690,12 +2689,12 @@ If @var{count} is a non-negative number, that puts the line containing
 point @var{count} lines down from the top of the window.  If
 @var{count} is a negative number, then it counts upward from the
 bottom of the window, so that @minus{}1 stands for the last usable
-line in the window.  If @var{count} is a non-@code{nil} list, then it
-stands for the line in the middle of the window.
+line in the window.
 
-If @var{count} is @code{nil}, @code{recenter} puts the line containing
-point in the middle of the window, then clears and redisplays the entire
-selected frame.
+If @var{count} is @code{nil} (or a non-@code{nil} list),
+@code{recenter} puts the line containing point in the middle of the
+window.  If @var{count} is @code{nil}, this function may redraw the
+frame, according to the value of @code{recenter-redisplay}.
 
 When @code{recenter} is called interactively, @var{count} is the raw
 prefix argument.  Thus, typing @kbd{C-u} as the prefix sets the
@@ -2704,21 +2703,31 @@ prefix argument.  Thus, typing @kbd{C-u} as the prefix sets the
 top.
 
 With an argument of zero, @code{recenter} positions the current line at
-the top of the window.  This action is so handy that some people make a
-separate key binding to do this.  For example,
-
-@example
-@group
-(defun line-to-top-of-window ()
-  "Scroll current line to top of window.
-Replaces three keystroke sequence C-u 0 C-l."
-  (interactive)
-  (recenter 0))
-
-(global-set-key [kp-multiply] 'line-to-top-of-window)
-@end group
-@end example
+the top of the window.  The command @code{recenter-top-bottom} offers
+a more convenient way to achieve this.
 @end deffn
+
+@defopt recenter-redisplay
+If this variable is non-@code{nil}, calling @code{recenter} with a
+@code{nil} argument redraws the frame.  The default value is
+@code{tty}, which means only redraw the frame if it is a tty frame.
+@end defopt
+
+@deffn Command recenter-top-bottom &optional count
+This command, which is the default binding for @kbd{C-l}, acts like
+@code{recenter}, except if called with no argument.  In that case,
+successive calls place point according to the cycling order defined
+by the variable @code{recenter-positions}.
+@end deffn
+
+@defopt recenter-positions
+This variable controls how @code{recenter-top-bottom} behaves when
+called with no argument.  The default value is @code{(middle top
+bottom)}, which means that successive calls of
+@code{recenter-top-bottom} with no argument cycle between placing
+point at the middle, top, and bottom of the window.
+@end defopt
+
 
 @node Vertical Scrolling
 @section Vertical Fractional Scrolling
@@ -3005,7 +3014,7 @@ frame.
 
 @defun coordinates-in-window-p coordinates window
 This function checks whether a window @var{window} occupies the
-frame-relative coordinates @var{coordinates}, and if so which part of
+frame-relative coordinates @var{coordinates}, and if so, which part of
 the window that is.  @var{window} should be a live window.
 @var{coordinates} should be a cons cell of the form @code{(@var{x}
 . @var{y})}, where @var{x} and @var{y} are frame-relative coordinates.
@@ -3103,14 +3112,14 @@ for the current buffer.
   You can bring back an entire frame layout by restoring a previously
 saved window configuration.  If you want to record the layout of all
 frames instead of just one, use a frame configuration instead of a
-window configuration; see @ref{Frame Configurations}.
+window configuration.  @xref{Frame Configurations}.
 
 @defun current-window-configuration &optional frame
 This function returns a new object representing @var{frame}'s current
 window configuration.  The default for @var{frame} is the selected
 frame.  The variable @code{window-persistent-parameters} specifies
-whether and which window parameters are saved by this function, see
-@ref{Window Parameters} for details.
+which window parameters (if any) are saved by this function.
+@xref{Window Parameters}.
 @end defun
 
 @defun set-window-configuration configuration
@@ -3127,7 +3136,7 @@ change and triggers execution of the @code{window-size-change-functions}
 know how to tell whether the new configuration actually differs from the
 old one.
 
-If the frame which @var{configuration} was saved from is dead, all this
+If the frame from which @var{configuration} was saved is dead, all this
 function does is restore the three variables @code{window-min-height},
 @code{window-min-width} and @code{minibuffer-scroll-window}.  In this
 case, the function returns @code{nil}.  Otherwise, it returns @code{t}.
@@ -3212,8 +3221,8 @@ configurations.
 
   The objects returned by @code{current-window-configuration} die
 together with the Emacs process.  In order to store a window
-configuration on disk and read it back in another Emacs session, the
-functions described next can be used.  These functions are also useful
+configuration on disk and read it back in another Emacs session, you
+can use the functions described next.  These functions are also useful
 to clone the state of a frame into an arbitrary live window
 (@code{set-window-configuration} effectively clones the windows of a
 frame into the root window of that very frame only).
@@ -3230,13 +3239,13 @@ state will be written to disk and read back in another session.
 
 Together, the argument @var{writable} and the variable
 @code{window-persistent-parameters} specify which window parameters are
-saved by this function, see @ref{Window Parameters} for details.
+saved by this function.  @xref{Window Parameters}.
 @end defun
 
 The value returned by @code{window-state-get} can be used in the same
 session to make a clone of a window in another window.  It can be also
 written to disk and read back in another session.  In either case, use
-the function described next to restore the state of the window.
+the following function to restore the state of the window.
 
 @defun window-state-put state &optional window ignore
 This function puts the window state @var{state} into @var{window}.  The
@@ -3245,9 +3254,9 @@ earlier invocation of @code{window-state-get}, see above.  The optional
 argument @var{window} must specify a live window and defaults to the
 selected one.
 
-The optional argument @var{ignore} non-@code{nil} means to ignore
-minimum window sizes and fixed size restrictions.  If @var{ignore}
-equals @code{safe}, this means windows can get as small as one line
+If the optional argument @var{ignore} is non-@code{nil}, it means to ignore
+minimum window sizes and fixed-size restrictions.  If @var{ignore}
+is @code{safe}, this means windows can get as small as one line
 and/or two columns.
 @end defun
 
@@ -3267,8 +3276,8 @@ setting for @var{parameter}, this function returns @code{nil}.
 
 @defun window-parameters &optional window
 This function returns all parameters of @var{window} and their values.
-The default for @var{window} is the selected window.  The return value,
-if non-@code{nil} is an association list whose elements have the form
+The default for @var{window} is the selected window.  The return value
+is either @code{nil}, or an association list whose elements have the form
 @code{(@var{parameter} . @var{value})}.
 @end defun
 
@@ -3278,34 +3287,34 @@ This function sets @var{window}'s value of @var{parameter} to
 is the selected window.
 @end defun
 
-By default, functions saving and restoring window configurations or the
+By default, the functions that save and restore window configurations or the
 states of windows (@pxref{Window Configurations}) do not care about
-window parameters.  This means, that when you change the value of a
+window parameters.  This means that when you change the value of a
 parameter within the body of a @code{save-window-excursion}, the
-previous value is not restored upon exit of that macro.  It also means
+previous value is not restored when that macro exits.  It also means
 that when you restore via @code{window-state-put} a window state saved
 earlier by @code{window-state-get}, all cloned windows have their
-parameters reset to @code{nil}.  The following variable allows to
-override the standard behavior.
+parameters reset to @code{nil}.  The following variable allows you to
+override the standard behavior:
 
 @defvar window-persistent-parameters
 This variable is an alist specifying which parameters get saved by
-@code{current-window-configuration} and @code{window-state-get} and
+@code{current-window-configuration} and @code{window-state-get}, and
 subsequently restored by @code{set-window-configuration} and
-@code{window-state-put}, see @ref{Window Configurations}.
+@code{window-state-put}.  @xref{Window Configurations}.
 
-The @sc{car} of each entry of this alist is the symbol specifying the
+The @sc{car} of each entry of this alist is a symbol specifying the
 parameter.  The @sc{cdr} should be one of the following:
 
 @table @asis
 @item @code{nil}
-This value means the parameter is neither saved by
+This value means the parameter is saved neither by
 @code{window-state-get} nor by @code{current-window-configuration}.
 
 @item @code{t}
 This value specifies that the parameter is saved by
-@code{current-window-configuration} and, provided its @var{writable}
-argument is @code{nil}, by @code{window-state-get}.
+@code{current-window-configuration} and (provided its @var{writable}
+argument is @code{nil}) by @code{window-state-get}.
 
 @item @code{writable}
 This means that the parameter is saved unconditionally by both
@@ -3316,8 +3325,8 @@ may fail with an @code{invalid-read-syntax} error.
 @end table
 @end defvar
 
-Some functions, notably @code{delete-window},
-@code{delete-other-windows} and @code{split-window} may behave specially
+Some functions (notably @code{delete-window},
+@code{delete-other-windows} and @code{split-window}), may behave specially
 when their @var{window} argument has a parameter set.  You can override
 such special behavior by binding the following variable to a
 non-@code{nil} value:
@@ -3325,7 +3334,7 @@ non-@code{nil} value:
 @defvar ignore-window-parameters
 If this variable is non-@code{nil}, some standard functions do not
 process window parameters.  The functions currently affected by this are
-@code{split-window}, @code{delete-window}, @code{delete-other-windows}
+@code{split-window}, @code{delete-window}, @code{delete-other-windows},
 and @code{other-window}.
 
 An application can bind this variable to a non-@code{nil} value around
@@ -3359,18 +3368,19 @@ This parameter marks the window as not selectable by @code{other-window}
 (@pxref{Cyclic Window Ordering}).
 
 @item @code{clone-of}
-This parameter specifies the window this one has been cloned from and is
-installed by @code{window-state-get}, see @ref{Window Configurations}.
+This parameter specifies the window that this one has been cloned
+from.  It is installed by @code{window-state-get} (@pxref{Window
+Configurations}).
 
 @item @code{quit-restore}
-This parameter tells how to proceed with a window when the buffer it
-shows is no more needed.  It is installed by the buffer display
-functions (@pxref{Choosing Window}) and consulted by the function
+This parameter specifies what to do with a window when the buffer it
+shows is not needed any more.  It is installed by the buffer display
+functions (@pxref{Choosing Window}), and consulted by the function
 @code{quit-window} (@pxref{Quitting Windows}).
 @end table
 
-In addition, the parameters @code{window-atom} and @code{window-side}
-are reserved and should not be used by applications.
+There are additional parameters @code{window-atom} and @code{window-side};
+these are reserved and should not be used by applications.
 
 
 @node Window Hooks
@@ -3392,7 +3402,7 @@ the window also runs these functions.
 This variable is not a normal hook, because each function is called with
 two arguments: the window, and its new display-start position.
 
-These functions must be careful in using @code{window-end}
+These functions must take care when using @code{window-end}
 (@pxref{Window Start and End}); if you need an up-to-date value, you
 must use the @var{update} argument to ensure you get it.
 
@@ -3430,7 +3440,7 @@ of an existing frame.  This includes splitting or deleting windows,
 changing the sizes of windows, or displaying a different buffer in a
 window.
 
-The buffer-local part of this hook is run once per each window on the
+The buffer-local part of this hook is run once for each window on the
 affected frame, with the relevant window selected and its buffer
 current.  The global part is run once for the modified frame, with that
 frame selected.
