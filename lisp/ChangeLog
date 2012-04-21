@@ -1,7 +1,12 @@
+2012-04-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/verilog-mode.el (verilog-mode): Check whether
+	which-func-modes is t before adding verilog-mode.
+	Reported by Andy Moreton <andrewjmoreton@gmail.com>.
+
 2012-04-21  Leo Liu  <sdl.web@gmail.com>
 
-	* net/rcirc.el (rcirc): Avoid error when process-contact returns
-	t.
+	* net/rcirc.el (rcirc): Avoid error when process-contact returns t.
 
 2012-04-21  Michael Vehrs  <Michael.Burschik@gmx.de>
 

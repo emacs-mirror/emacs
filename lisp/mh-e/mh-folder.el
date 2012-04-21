@@ -520,7 +520,7 @@ font-lock is done highlighting.")
 
 ;; Register mh-folder-mode as supporting which-function-mode...
 (mh-require 'which-func nil t)
-(when (boundp 'which-func-modes)
+(when (and (boundp 'which-func-modes) (listp which-func-modes))
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
 ;; Shush compiler.
