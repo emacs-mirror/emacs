@@ -2,10 +2,14 @@
 
 	* windows.texi (Basic Windows, Windows and Frames, Window Sizes)
 	(Resizing Windows, Deleting Windows, Selecting Windows)
-	(Choosing Window Options, Horizontal Scrolling): Copyedits.
+	(Choosing Window Options, Horizontal Scrolling)
+	(Cyclic Window Ordering, Window History, Dedicated Windows)
+	(Quitting Windows, Window Configurations): Copyedits.
 	(Splitting Windows, Deleting Windows):
 	Fix ignore-window-parameters logic.
 	(Selecting Windows, Choosing Window Options): Markup fixes.
+	(Window Start and End): Remove pointless example.
+	Remove cross-reference to deleted count-lines content.
 
 	* elisp.texi, vol1.texi, vol2.texi: Bump VERSION and DATE.
 

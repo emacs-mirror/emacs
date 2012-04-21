@@ -1224,7 +1224,7 @@ the cyclic ordering of windows.  @var{window} should be a live window;
 if omitted or @code{nil}, it defaults to the selected window.
 
 The optional argument @var{minibuf} specifies whether minibuffer windows
-shall be included in the cyclic ordering.  Normally, when @var{minibuf}
+should be included in the cyclic ordering.  Normally, when @var{minibuf}
 is @code{nil}, a minibuffer window is included only if it is currently
 ``active''; this matches the behavior of @kbd{C-x o}.  (Note that a
 minibuffer window is active as long as its minibuffer is in use; see
@@ -1998,8 +1998,8 @@ above.
 @section Window History
 @cindex window history
 
-Each window remembers the buffers it has displayed earlier and the order
-in which these buffers have been removed from it.  This history is used,
+Each window remembers the buffers it has previously displayed, and the order
+in which these buffers were removed from it.  This history is used,
 for example, by @code{replace-buffer-in-windows} (@pxref{Buffers and
 Windows}).  This list is automatically maintained by Emacs, but you can
 use the following functions to explicitly inspect or alter it:
@@ -2062,41 +2062,41 @@ This command displays the previous buffer in @var{window}.  The
 argument @var{window} should be a live window or @code{nil} (meaning
 the selected window).  If the optional argument @var{bury-or-kill} is
 non-@code{nil}, this means that the buffer currently shown in
-@var{window} is about to be buried or killed and consequently shall
+@var{window} is about to be buried or killed and consequently should
 not be switched to in future invocations of this command.
 
 The previous buffer is usually the buffer shown before the buffer
 currently shown in @var{window}.  However, a buffer that has been buried
-or killed or has been already shown by a recent invocation of
-@code{switch-to-prev-buffer} does not qualify as previous buffer.
+or killed, or has been already shown by a recent invocation of
+@code{switch-to-prev-buffer}, does not qualify as previous buffer.
 
 If repeated invocations of this command have already shown all buffers
 previously shown in @var{window}, further invocations will show buffers
 from the buffer list of the frame @var{window} appears on (@pxref{The
-Buffer List}) trying to skip buffers that are already shown in another
+Buffer List}), trying to skip buffers that are already shown in another
 window on that frame.
 @end deffn
 
 @deffn Command switch-to-next-buffer &optional window
-This command switches to the next buffer in @var{window} thus undoing
+This command switches to the next buffer in @var{window}, thus undoing
 the effect of the last @code{switch-to-prev-buffer} command in
 @var{window}.  The argument @var{window} must be a live window and
 defaults to the selected one.
 
-If there is no recent invocation of a @code{switch-to-prev-buffer} that
+If there is no recent invocation of @code{switch-to-prev-buffer} that
 can be undone, this function tries to show a buffer from the buffer list
 of the frame @var{window} appears on (@pxref{The Buffer List}).
 @end deffn
 
 By default @code{switch-to-prev-buffer} and @code{switch-to-next-buffer}
 can switch to a buffer that is already shown in another window on the
-same frame.  The following option can be used to override that behavior.
+same frame.  The following option can be used to override this behavior.
 
 @defopt switch-to-visible-buffer
 If this variable is non-@code{nil}, @code{switch-to-prev-buffer} and
 @code{switch-to-next-buffer} may switch to a buffer that is already
-visible on the same frame, provided the buffer was shown in the argument
-window before.  If it's @code{nil}, @code{switch-to-prev-buffer} and
+visible on the same frame, provided the buffer was shown in the relevant
+window before.  If it is @code{nil}, @code{switch-to-prev-buffer} and
 @code{switch-to-next-buffer} always try to avoid switching to a buffer
 that is already visible in another window on the same frame.
 @end defopt
@@ -2138,7 +2138,7 @@ another buffer in it and iconifies the frame.
 This function returns non-@code{nil} if @var{window} is dedicated to its
 buffer and @code{nil} otherwise.  More precisely, the return value is
 the value assigned by the last call of @code{set-window-dedicated-p} for
-@var{window} or @code{nil} if that function was never called with
+@var{window}, or @code{nil} if that function was never called with
 @var{window} as its argument.  The default for @var{window} is the
 selected window.
 @end defun
@@ -2159,20 +2159,20 @@ non-@code{nil} value.
 @node Quitting Windows
 @section Quitting Windows
 
-When you want to get rid of a window used for displaying a buffer you
+When you want to get rid of a window used for displaying a buffer, you
 can call @code{delete-window} or @code{delete-windows-on}
 (@pxref{Deleting Windows}) to remove that window from its frame.  If the
 buffer is shown on a separate frame, you might want to call
 @code{delete-frame} (@pxref{Deleting Frames}) instead.  If, on the other
 hand, a window has been reused for displaying the buffer, you might
-prefer showing the buffer previously shown in that window by calling the
+prefer showing the buffer previously shown in that window, by calling the
 function @code{switch-to-prev-buffer} (@pxref{Window History}).
 Finally, you might want to either bury (@pxref{The Buffer List}) or kill
 (@pxref{Killing Buffers}) the window's buffer.
 
    The following function uses information on how the window for
-displaying the buffer was obtained in the first place thus attempting to
-automatize the above decisions for you.
+displaying the buffer was obtained in the first place, thus attempting to
+automate the above decisions for you.
 
 @deffn Command quit-window &optional kill window
 This command quits @var{window} and buries its buffer.  The argument
@@ -2200,39 +2200,39 @@ restore the original height of @var{window}.
 The three cases described so far require that the buffer shown in
 @var{window} is still the buffer displayed by the last buffer display
 function for this window.  If another buffer has been shown in the
-meantime or the buffer previously shown no longer exists, this command
+meantime, or the buffer previously shown no longer exists, this command
 calls @code{switch-to-prev-buffer} (@pxref{Window History}) to show some
 other buffer instead.
 @end deffn
 
 The function @code{quit-window} bases its decisions on information
 stored in @var{window}'s @code{quit-restore} window parameter
-(@pxref{Window Parameters}) and resets that parameter to @code{nil}
+(@pxref{Window Parameters}), and resets that parameter to @code{nil}
 after it's done.
 
 The following option specifies how to deal with a frame containing just
-one window that shall be either quit or whose buffer shall be buried.
+one window that should be either quit, or whose buffer should be buried.
 
 @defopt frame-auto-hide-function
 The function specified by this option is called to automatically hide
-frames.  This function is called with one argument - a frame.
+frames.  This function is called with one argument---a frame.
 
 The function specified here is called by @code{bury-buffer} (@pxref{The
 Buffer List}) when the selected window is dedicated and shows the buffer
-that shall be buried.  It is also called by @code{quit-window} (see
-above) when the frame of the window that shall be quit has been
+that should be buried.  It is also called by @code{quit-window} (see
+above) when the frame of the window that should be quit has been
 specially created for displaying that window's buffer and the buffer
-shall be buried.
+should be buried.
 
 The default is to call @code{iconify-frame} (@pxref{Visibility of
-Frames}).  Alternatively, you may either specify @code{delete-frame}
+Frames}).  Alternatively, you may specify either @code{delete-frame}
 (@pxref{Deleting Frames}) to remove the frame from its display,
 @code{ignore} to leave the frame unchanged, or any other function that
 can take a frame as its sole argument.
 
 Note that the function specified by this option is called if and only if
-there's at least one other frame on the terminal of the frame it's
-supposed to handle and that frame contains only one live window.
+there is at least one other frame on the terminal of the frame it's
+supposed to handle, and that frame contains only one live window.
 @end defopt
 
 
@@ -2322,14 +2322,7 @@ command to a key.
 @cindex window top line
 This function returns the display-start position of window
 @var{window}.  If @var{window} is @code{nil}, the selected window is
-used.  For example,
-
-@example
-@group
-(window-start)
-     @result{} 7058
-@end group
-@end example
+used.
 
 When you create a window, or display a different buffer in it, the
 display-start position is set to a display-start position recently used
@@ -2341,9 +2334,6 @@ it explicitly since the previous redisplay)---to make sure point appears
 on the screen.  Nothing except redisplay automatically changes the
 window-start position; if you move point, do not expect the window-start
 position to change in response until after the next redisplay.
-
-For a realistic example of using @code{window-start}, see the
-description of @code{count-lines}.  @xref{Definition of count-lines}.
 @end defun
 
 @cindex window end position
@@ -3236,7 +3226,7 @@ of the selected frame.
 If the optional argument @var{writable} is non-@code{nil}, this means to
 not use markers for sampling positions like @code{window-point} or
 @code{window-start}.  This argument should be non-@code{nil} when the
-state shall be written to disk and read back in another session.
+state will be written to disk and read back in another session.
 
 Together, the argument @var{writable} and the variable
 @code{window-persistent-parameters} specify which window parameters are
