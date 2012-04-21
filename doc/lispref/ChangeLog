@@ -1,5 +1,7 @@
 2012-04-21  Glenn Morris  <rgm@gnu.org>
 
+	* macros.texi (Indenting Macros): Fix typo.
+
 	* windows.texi (Basic Windows, Windows and Frames, Window Sizes)
 	(Resizing Windows, Deleting Windows, Selecting Windows)
 	(Choosing Window Options, Horizontal Scrolling)
