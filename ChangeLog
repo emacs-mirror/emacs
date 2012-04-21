@@ -1,3 +1,12 @@
+2012-04-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Sync from gnulib version 4f11d6bebc3098c64ffde27079ab0d0cecfd0cdc
+	dated 2011-10-07.  Regenerating from current gnulib would be a
+	pervasive change, and currently the trunk isn't open to such changes.
+	* configure.in (WARN_CFLAGS): Remove; no longer needed now
+	that gnulib does it.
+	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+
 2012-04-21  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* m4/gl-comp.m4: Update.  (Bug#11285)

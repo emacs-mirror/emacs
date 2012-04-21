@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2012 Free Software Foundation, Inc.
+# Copyright (C) 2002-2011 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -62,6 +62,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lstat:
+  # Code from module manywarnings:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
@@ -100,6 +101,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
+  # Code from module warnings:
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -216,6 +218,7 @@ fi
 gl_TIME_MODULE_INDICATOR([time_r])
 AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
+AC_SUBST([WARN_CFLAGS])
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_pathmax=false

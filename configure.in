@@ -787,8 +787,6 @@ else
   gl_WARN_ADD([-fdiagnostics-show-option])
   gl_WARN_ADD([-funit-at-a-time])
 
-  AC_SUBST([WARN_CFLAGS])
-
   AC_DEFINE([lint], [1], [Define to 1 if the compiler is checking for lint.])
   AC_DEFINE([_FORTIFY_SOURCE], [2],
     [enable compile-time and run-time bounds-checking, and some warnings])
