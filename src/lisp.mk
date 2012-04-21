@@ -131,6 +131,7 @@ lisp = \
 	$(lispsource)/replace.elc \
 	$(lispsource)/buff-menu.elc \
 	$(lispsource)/fringe.elc \
+	$(lispsource)/emacs-lisp/regexp-opt.elc \
 	$(lispsource)/image.elc \
 	$(lispsource)/international/fontset.elc \
 	$(lispsource)/dnd.elc \
