@@ -1,3 +1,15 @@
+2012-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp (RUN_EMACS): Replace BUILT_EMACS with EMACS.
+	Remove stale editing of "else make quail".
+	(.PHONY, compile-targets): Remove targets.
+	(compile-main): Edit into something that can be done without
+	requiring a Unixy shell.
+	(bootstrap-clean): Likewise: edit to not require $(setwins).
+
+	* sed1v2.inp: Edit "cd $(leimdir) && $(MAKE) ..." into the
+	equivalent "$(MAKE) $(MFLAGS) -C $(leimdir) ..." command.
+
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)
