@@ -1,3 +1,20 @@
+2012-04-21  Michael Vehrs  <Michael.Burschik@gmx.de>
+
+	* woman.el: Add support for "T{ T}" tbl syntax, and fix the
+	filling of the last column of a table (Bug#5635).
+	(woman-find-next-control-line): New arg, specifying an additional
+	regexp component for the control line.
+	(woman2-roff-buffer): Use it.
+	(woman-break-table): New function.
+	(woman2-TS): Use it.
+
+2012-04-21  Chong Yidong  <cyd@gnu.org>
+
+	* woman.el (woman-set-buffer-display-table, woman-decode-region)
+	(woman-horizontal-escapes, woman-negative-vertical-space)
+	(woman-tab-to-tab-stop, woman2-fc, woman2-TS)
+	(WoMan-warn-ignored): Use ?\s instead of ?\ .
+
 2012-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-file-name-table): Complete user names.
