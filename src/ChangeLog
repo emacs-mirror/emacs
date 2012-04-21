@@ -1,3 +1,8 @@
+2012-04-21  Eduard Wiebe  <usenet@pusto.de>
+
+	* sysdep.c (list_system_processes, system_process_attributes): Add
+	implementation for FreeBSD (Bug#5243).
+
 2012-04-21  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lisp.mk (lisp): Update.
