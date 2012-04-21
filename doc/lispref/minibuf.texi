@@ -58,16 +58,17 @@ including @code{beginning-of-line}, @code{forward-word},
 @code{forward-sentence}, and @code{forward-paragraph}, stop at the
 boundary between the prompt and the actual text.
 
+@c See http://debbugs.gnu.org/11276
   The minibuffer's window is normally a single line; it grows
-automatically if the contents require more space.  You can explicitly
-@c FIXME?  Works in 23.4, not 24.0.95.  (Bug#11276)
-resize it temporarily with the window sizing commands; it reverts to
-its normal size when the minibuffer is exited.  You can resize it
-@c FIXME?  Doesn't work in any version of Emacs?
+automatically if the contents require more space.  Whilst it is
+active, you can explicitly resize it temporarily with the window
+sizing commands; it reverts to its normal size when the minibuffer is
+exited.  When the minibuffer is not active, you can resize it
 permanently by using the window sizing commands in the frame's other
-window, when the minibuffer is not active.  If the frame contains just
-a minibuffer, you can change the minibuffer's size by changing the
-frame's size.
+window, or dragging the mode line with the mouse.  (Due to details of
+the current implementation, for this to work @code{resize-mini-windows}
+must be @code{nil}.)  If the frame contains just a minibuffer, you can
+change the minibuffer's size by changing the frame's size.
 
   Use of the minibuffer reads input events, and that alters the values
 of variables such as @code{this-command} and @code{last-command}

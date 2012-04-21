@@ -1,3 +1,8 @@
+2012-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (Intro to Minibuffers):
+	Tweak discussion of resizing minibuffer window.
+
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
 	* processes.texi (Asynchronous Processes): Mention nil argument to
