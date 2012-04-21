@@ -1070,7 +1070,7 @@ characters rather than pixels.
 These values include the internal borders, and windows' scroll bars
 and fringes (which belong to individual windows, not to the frame
 itself).  The exact value of the heights depends on the window-system
-and toolkit in use.  With Gtk+, the height does not include any tool
+and toolkit in use.  With GTK+, the height does not include any tool
 bar or menu bar.  With the Motif or Lucid toolkits, it includes the
 tool bar but not the menu bar.  In a graphical version with no
 toolkit, it includes both the tool bar and menu bar.  For a text

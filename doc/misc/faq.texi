@@ -1049,7 +1049,7 @@ A new command @kbd{customize-themes} allows you to easily change the
 appearance of your Emacs.
 
 @item
-Emacs can be compiled with the Gtk+ 3 toolkit.
+Emacs can be compiled with the GTK+ 3 toolkit.
 
 @item
 Support for several new external libraries can be included at compile
