@@ -178,7 +178,9 @@ and you want to simplify them for the mode line
 (defvar which-func-table (make-hash-table :test 'eq :weakness 'key))
 
 (defconst which-func-current
-  '(:eval (gethash (selected-window) which-func-table which-func-unknown)))
+  '(:eval (replace-regexp-in-string
+	   "%" "%%"
+	   (gethash (selected-window) which-func-table which-func-unknown))))
 ;;;###autoload (put 'which-func-current 'risky-local-variable t)
 
 (defvar which-func-mode nil
