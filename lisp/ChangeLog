@@ -1,3 +1,8 @@
+2012-04-21  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-parse-region, xml-parse-tag): Avoid errors due to
+	reaching eob (Bug#11286).
+
 2012-04-20  Richard Stallman  <rms@gnu.org>
 
 	Fix logic for returning to and yanking from Rmail buffer.
