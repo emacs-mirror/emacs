@@ -817,7 +817,7 @@ instead of deleted."
   :type '(choice (const :tag "Delete active region" t)
                  (const :tag "Kill active region" kill)
                  (const :tag "Do ordinary deletion" nil))
-  :group 'editing
+  :group 'killing
   :version "24.1")
 
 (defun delete-backward-char (n &optional killflag)

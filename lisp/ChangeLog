@@ -1,3 +1,7 @@
+2012-04-22  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (delete-active-region): Move to killing custom group.
+
 2012-04-21  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* progmodes/which-func.el (which-func-current): Quote %
