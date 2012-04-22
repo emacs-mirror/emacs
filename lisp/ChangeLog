@@ -1,3 +1,36 @@
+2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Move functions from C to Lisp.  Make non-blocking method calls
+	the default.  Implement further D-Bus standard interfaces.
+
+	* net/dbus.el (dbus-message-internal): Declare function.  Remove
+	unneeded function declarations.
+	(defvar dbus-message-type-invalid, dbus-message-type-method-call)
+	(dbus-message-type-method-return, dbus-message-type-error)
+	(dbus-message-type-signal): Declare variables.  Remove local
+	definitions.
+	(dbus-interface-dbus, dbus-interface-peer)
+	(dbus-interface-introspectable, dbus-interface-properties)
+	(dbus-path-emacs, dbus-interface-emacs, dbus-return-values-table):
+	Adapt docstring.
+	(dbus-interface-objectmanager): New defconst.
+	(dbus-call-method, dbus-call-method-asynchronously)
+	(dbus-send-signal, dbus-method-return-internal)
+	(dbus-method-error-internal, dbus-register-service)
+	(dbus-register-signal, dbus-register-method): New defuns, moved
+	from dbusbind.c
+	(dbus-call-method-handler, dbus-setenv)
+	(dbus-get-all-managed-objects, dbus-managed-objects-handler): New
+	defuns.
+	(dbus-call-method-non-blocking): Make it an obsolete function.
+	(dbus-unregister-object, dbus-unregister-service)
+	(dbus-handle-event, dbus-register-property)
+	(dbus-property-handler): Obey the new structure of
+	`bus-registered-objects'.
+	(dbus-introspect): Use `dbus-call-method'.  Use a timeout.
+	(dbus-get-property, dbus-set-property, dbus-get-all-properties):
+	Use `dbus-call-method'.
+
 2012-04-22  Chong Yidong  <cyd@gnu.org>
 
 	* cus-edit.el (custom-commands, custom-reset-menu)

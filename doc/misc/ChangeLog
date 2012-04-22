@@ -1,3 +1,19 @@
+2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Version): New node.
+	(Properties and Annotations): Mention the object manager
+	interface.  Describe dbus-get-all-managed-objects.
+	(Type Conversion): Floating point numbers are allowed, if an
+	anteger does not fit Emacs's integer range.
+	(Synchronous Methods): Remove obsolete dbus-call-method-non-blocking.
+	(Asynchronous Methods): Fix description of
+	dbus-call-method-asynchronously.
+	(Receiving Method Calls): Fix some minor errors.  Add
+	dbus-interface-emacs.
+	(Signals): Describe unicast signals and the new match rules.
+	(Alternative Buses): Add the PRIVATE optional argument to
+	dbus-init-bus.  Describe its new return value.  Add dbus-setenv.
+
 2012-04-20  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (New in Emacs 24): New section.

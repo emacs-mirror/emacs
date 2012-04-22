@@ -91,6 +91,36 @@ closing brackets to be aligned with the line of the opening bracket.
 
 ** which-function-mode now applies to all applicable major modes by default.
 
+** D-Bus
+
++++
+*** New variables `dbus-compiled-version' and `dbus-runtime-version'.
+
++++
+*** The D-Bus object manager interface is implemented.
+
++++
+*** Variables of type :(u)int32 and :(u)int64 accept floating points,
+if their value does not fit into Emacs's integer range.
+
++++
+*** The function `dbus-call-method' works non-blocking now, it can be
+interrupted by C-g.  `dbus-call-method-non-blocking' is obsolete.
+
++++
+*** Signals can be sent also as unicast message.
+
++++
+*** The argument list of `dbus-register-signal' has been extended,
+according to the new match rule types of D-Bus.  See the manual for
+details.
+
++++
+*** `dbus-init-bus' supports private connections.
+
++++
+*** There is a new function `dbus-setenv'.
+
 ** Obsolete packages:
 
 *** mailpost.el

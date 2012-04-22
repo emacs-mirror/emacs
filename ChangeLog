@@ -1,3 +1,9 @@
+2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in (dbus_validate_bus_name, dbus_validate_path)
+	(dbus_validate_interface, dbus_validate_member): Check also for
+	these library functions
+
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in (doug_lea_malloc): Check for __malloc_initialize_hook.

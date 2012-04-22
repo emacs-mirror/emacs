@@ -2079,8 +2079,7 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
-dnl other platforms.  Support for higher D-Bus versions than 1.0 is
-dnl also not configured.
+dnl other platforms.
 HAVE_DBUS=no
 DBUS_OBJ=
 if test "${with_dbus}" = "yes"; then
@@ -2088,7 +2087,13 @@ if test "${with_dbus}" = "yes"; then
    if test "$HAVE_DBUS" = yes; then
      LIBS="$LIBS $DBUS_LIBS"
      AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
-     AC_CHECK_FUNCS([dbus_watch_get_unix_fd])
+     dnl dbus_watch_get_unix_fd has been introduced in D-Bus 1.1.1.
+     dnl dbus_validate_* have been introduced in D-Bus 1.5.12.
+     AC_CHECK_FUNCS(dbus_watch_get_unix_fd \
+		    dbus_validate_bus_name \
+                    dbus_validate_path \
+		    dbus_validate_interface \
+		    dbus_validate_member)
      DBUS_OBJ=dbusbind.o
    fi
 fi

@@ -1,3 +1,48 @@
+2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Move functions from C to Lisp.  Make non-blocking method calls
+	the default.  Implement further D-Bus standard interfaces.
+
+	* dbusbind.c (DBUS_NUM_MESSAGE_TYPES): Declare.
+	(QCdbus_request_name_allow_replacement)
+	(QCdbus_request_name_replace_existing)
+	(QCdbus_request_name_do_not_queue)
+	(QCdbus_request_name_reply_primary_owner)
+	(QCdbus_request_name_reply_in_queue)
+	(QCdbus_request_name_reply_exists)
+	(QCdbus_request_name_reply_already_owner): Move to dbus.el.
+	(QCdbus_registered_serial, QCdbus_registered_method)
+	(QCdbus_registered_signal): New Lisp objects.
+	(XD_DEBUG_MESSAGE): Use sizeof.
+	(XD_MESSAGE_TYPE_TO_STRING, XD_OBJECT_TO_STRING)
+	(XD_DBUS_VALIDATE_BUS_ADDRESS, XD_DBUS_VALIDATE_OBJECT)
+	(XD_DBUS_VALIDATE_BUS_NAME, XD_DBUS_VALIDATE_PATH)
+	(XD_DBUS_VALIDATE_INTERFACE, XD_DBUS_VALIDATE_MEMBER): New macros.
+	(XD_CHECK_DBUS_SERIAL): Rename from CHECK_DBUS_SERIAL_GET_SERIAL.
+	(xd_signature, xd_append_arg): Allow float for integer types.
+	(xd_get_connection_references): New function.
+	(xd_get_connection_address): Rename from xd_initialize.  Return
+	cached address.
+	(xd_remove_watch): Do not unset $DBUS_SESSION_BUS_ADDRESS.
+	(xd_close_bus): Rename from Fdbus_close_bus.  Not needed on Lisp
+	level.
+	(Fdbus_init_bus): New optional arg PRIVATE.  Cache address.
+	Return number of recounts.
+	(Fdbus_get_unique_name): Make stronger parameter check.
+	(Fdbus_message_internal): New defun.
+	(Fdbus_call_method, Fdbus_call_method_asynchronously)
+	(Fdbus_method_return_internal, Fdbus_method_error_internal)
+	(Fdbus_send_signal, Fdbus_register_service)
+	(Fdbus_register_signal, Fdbus_register_method): Move to dbus.el.
+	(xd_read_message_1): Obey new structure of Vdbus_registered_objects.
+	(xd_read_queued_messages): Obey new structure of Vdbus_registered_buses.
+	(Vdbus_compiled_version, Vdbus_runtime_version)
+	(Vdbus_message_type_invalid, Vdbus_message_type_method_call)
+	(Vdbus_message_type_method_return, Vdbus_message_type_error)
+	(Vdbus_message_type_signal): New defvars.
+	(Vdbus_registered_buses, Vdbus_registered_objects_table): Adapt
+	docstring.
+
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix GC_MALLOC_CHECK debugging output on 64-bit hosts.
