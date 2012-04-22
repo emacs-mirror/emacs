@@ -1,4 +1,4 @@
-2012-04-21  Paul Eggert  <eggert@cs.ucla.edu>
+2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -789,6 +789,17 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2012-04-22  Leo Liu  <sdl.web@gmail.com>
+
+	* sysdep.c (list_system_processes): Support Darwin (Bug#5725).
+
+2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c [__FreeBSD__]: Minor cleanups.
+	(list_system_processes, system_process_attributes) [__FreeBSD__]:
+	Use Emacs indenting style more consistently.  Avoid some casts.
+	Use 'double' consistently rather than mixing 'float' and 'double'.
 
 2012-04-21  Eduard Wiebe  <usenet@pusto.de>
 
