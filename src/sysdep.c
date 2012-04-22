@@ -44,6 +44,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 #endif
 
+#ifdef DARWIN_OS
+#include <sys/sysctl.h>
+#endif
+
 #ifdef WINDOWSNT
 #define read sys_read
 #define write sys_write
@@ -2536,12 +2540,16 @@ list_system_processes (void)
   return proclist;
 }
 
-#elif defined __FreeBSD__
+#elif defined BSD_SYSTEM
 
 Lisp_Object
 list_system_processes (void)
 {
+#ifdef DARWIN_OS
+  int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL};
+#else
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
+#endif
   size_t len;
   struct kinfo_proc *procs;
   size_t i;
@@ -2562,7 +2570,13 @@ list_system_processes (void)
   GCPRO1 (proclist);
   len /= sizeof (struct kinfo_proc);
   for (i = 0; i < len; i++)
-    proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
+    {
+#ifdef DARWIN_OS
+      proclist = Fcons (make_fixnum_or_float (procs[i].kp_proc.p_pid), proclist);
+#else
+      proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
+#endif
+    }
   UNGCPRO;
 
   xfree (procs);

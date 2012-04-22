@@ -1,3 +1,7 @@
+2012-04-22  Leo Liu  <sdl.web@gmail.com>
+
+	* sysdep.c (list_system_processes): Support Darwin (Bug#5725).
+
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c [__FreeBSD__]: Minor cleanups.
