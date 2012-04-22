@@ -38,6 +38,7 @@
 (require 'cedet/semantic/ia-utest)
 (require 'cedet/semantic/utest-fw)
 (require 'cedet/semantic/gcc-utest)
+(require 'cedet/semantic/fmt-utest)
 (require 'semantic/wisent/calc)
 (require 'cedet/srecode/test)
 (require 'cedet/srecode/fields-utest)
