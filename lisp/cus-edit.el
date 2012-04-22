@@ -2823,10 +2823,8 @@ If STATE is nil, the value is computed by `custom-variable-state'."
 	    (memq (widget-get widget :custom-state) '(modified changed)))))
     ("Revert This Session's Customization" custom-variable-reset-saved
      (lambda (widget)
-       (and (or (get (widget-value widget) 'saved-value)
-		(get (widget-value widget) 'saved-variable-comment))
-	    (memq (widget-get widget :custom-state)
-		  '(modified set changed rogue)))))
+       (memq (widget-get widget :custom-state)
+	     '(modified set changed rogue))))
     ,@(when (or custom-file init-file-user)
 	'(("Erase Customization" custom-variable-reset-standard
 	   (lambda (widget)
@@ -2977,23 +2975,25 @@ Optional EVENT is the location for the menu."
   (custom-variable-state-set-and-redraw widget))
 
 (defun custom-variable-reset-saved (widget)
-  "Restore the saved value for the variable being edited by WIDGET.
-This also updates the buffer to show that value.
-The value that was current before this operation
-becomes the backup value, so you can get it again."
+  "Restore the value of the variable being edited by WIDGET.
+If there is a saved value, restore it; otherwise reset to the
+uncustomized (themed or standard) value.
+
+Update the widget to show that value.  The value that was current
+before this operation becomes the backup value."
   (let* ((symbol (widget-value widget))
-	 (set (or (get symbol 'custom-set) 'set-default))
-	 (value (get symbol 'saved-value))
+	 (saved-value (get symbol 'saved-value))
 	 (comment (get symbol 'saved-variable-comment)))
-    (cond ((or value comment)
-	   (put symbol 'variable-comment comment)
-	   (custom-variable-backup-value widget)
-	   (custom-push-theme 'theme-value symbol 'user 'set (car-safe value))
-	   (condition-case nil
-	       (funcall set symbol (eval (car value)))
-	     (error nil)))
-	  (t
-	   (error "No saved value for %s" symbol)))
+    (custom-variable-backup-value widget)
+    (if (not (or saved-value comment))
+	;; If there is no saved value, remove the setting.
+	(custom-push-theme 'theme-value symbol 'user 'reset)
+      ;; Otherwise, apply the saved value.
+      (put symbol 'variable-comment comment)
+      (custom-push-theme 'theme-value symbol 'user 'set (car-safe saved-value))
+      (ignore-errors
+	(funcall (or (get symbol 'custom-set) 'set-default)
+		 symbol (eval (car saved-value)))))
     (put symbol 'customized-value nil)
     (put symbol 'customized-variable-comment nil)
     (widget-put widget :custom-state 'unknown)
@@ -3619,8 +3619,7 @@ the present value is saved to its :shown-value property instead."
        (memq (widget-get widget :custom-state) '(modified changed))))
     ("Revert This Session's Customization" custom-face-reset-saved
      (lambda (widget)
-       (or (get (widget-value widget) 'saved-face)
-	   (get (widget-value widget) 'saved-face-comment))))
+       (memq (widget-get widget :custom-state) '(modified set changed))))
     ,@(when (or custom-file init-file-user)
 	'(("Erase Customization" custom-face-reset-standard
 	   (lambda (widget)
@@ -3675,18 +3674,17 @@ This is one of `set', `saved', `changed', `themed', or `rogue'."
 	      'changed))
 	   ((or (get face 'saved-face)
 		(get face 'saved-face-comment))
-	    (if (equal (get face 'saved-face-comment) comment)
-		(cond
-		 ((eq 'user (caar (get face 'theme-face)))
-		  'saved)
-		 ((eq 'changed (caar (get face 'theme-face)))
-		  'changed)
-		 (t 'themed))
-	      'changed))
+	    (cond ((not (equal (get face 'saved-face-comment) comment))
+		   'changed)
+		  ((eq 'user (caar (get face 'theme-face)))
+		   'saved)
+		  ((eq 'changed (caar (get face 'theme-face)))
+		   'changed)
+		  (t 'themed)))
 	   ((get face 'face-defface-spec)
-	    (if (equal comment nil)
-		'standard
-	      'changed))
+	    (cond (comment 'changed)
+		  ((get face 'theme-face) 'themed)
+		  (t 'standard)))
 	   (t 'rogue))))
     ;; If the user called set-face-attribute to change the default for
     ;; new frames, this face is "set outside of Customize".
@@ -3776,24 +3774,26 @@ Optional EVENT is the location for the menu."
   "22.1")
 
 (defun custom-face-reset-saved (widget)
-  "Restore WIDGET to the face's default attributes."
-  (let* ((symbol (widget-value widget))
+  "Restore WIDGET to the face's default attributes.
+If there is a saved face, restore it; otherwise reset to the
+uncustomized (themed or standard) face."
+  (let* ((face (widget-value widget))
 	 (child (car (widget-get widget :children)))
-	 (value (get symbol 'saved-face))
-	 (comment (get symbol 'saved-face-comment))
+	 (saved-face (get face 'saved-face))
+	 (comment (get face 'saved-face-comment))
 	 (comment-widget (widget-get widget :comment-widget)))
-    (unless (or value comment)
-      (error "No saved value for this face"))
-    (put symbol 'customized-face nil)
-    (put symbol 'customized-face-comment nil)
-    (custom-push-theme 'theme-face symbol 'user 'set value)
-    (face-spec-set symbol value t)
-    (put symbol 'face-comment comment)
-    (widget-value-set child value)
+    (put face 'customized-face nil)
+    (put face 'customized-face-comment nil)
+    (custom-push-theme 'theme-face face 'user
+		       (if saved-face 'set 'reset)
+		       saved-face)
+    (face-spec-set face saved-face t)
+    (put face 'face-comment comment)
+    (widget-value-set child saved-face)
     ;; This call manages the comment visibility
     (widget-value-set comment-widget (or comment ""))
     (custom-face-state-set widget)
-    (custom-redraw-magic widget)))
+    (custom-redraw widget)))
 
 (defun custom-face-standard-value (widget)
   (get (widget-value widget) 'face-defface-spec))

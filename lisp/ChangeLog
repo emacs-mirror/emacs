@@ -1,3 +1,11 @@
+2012-04-22  Chong Yidong  <cyd@gnu.org>
+
+	* cus-edit.el (custom-variable-menu)
+	(custom-variable-reset-saved, custom-face-menu)
+	(custom-face-reset-saved): If there is no saved value, make the
+	"reset-saved" operation bring back the default (Bug#9509).
+	(custom-face-state): Properly detect themed faces.
+
 2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Move functions from C to Lisp.  Make non-blocking method calls
