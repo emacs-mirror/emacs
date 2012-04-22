@@ -1,5 +1,9 @@
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix GC_MALLOC_CHECK debugging output on 64-bit hosts.
+	* alloc.c (emacs_blocked_malloc) [GC_MALLOC_CHECK]:
+	Do not assume ptrdiff_t is the same width as 'int'.
+
 	* alloc.c: Handle unusual debugging option combinations.
 	(GC_CHECK_MARKED_OBJECTS): Undef if ! GC_MARK_STACK,
 	since the two debugging options are incompatible.

@@ -1314,7 +1314,7 @@ emacs_blocked_malloc (size_t size, const void *ptr)
       {
 	fprintf (stderr, "Malloc returned %p which is already in use\n",
 		 value);
-	fprintf (stderr, "Region in use is %p...%p, %u bytes, type %d\n",
+	fprintf (stderr, "Region in use is %p...%p, %td bytes, type %d\n",
 		 m->start, m->end, (char *) m->end - (char *) m->start,
 		 m->type);
 	abort ();
