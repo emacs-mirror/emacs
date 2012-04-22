@@ -628,6 +628,7 @@ gl_GNULIB_ENABLED_dosname_FALSE
 gl_GNULIB_ENABLED_dosname_TRUE
 LTLIBINTL
 LIBINTL
+WARN_CFLAGS
 HAVE_UNISTD_H
 NEXT_AS_FIRST_DIRECTIVE_UNISTD_H
 NEXT_UNISTD_H
@@ -1186,7 +1187,6 @@ HAVE_MAKEINFO
 GZIP_PROG
 INSTALL_INFO
 GNULIB_WARN_CFLAGS
-WARN_CFLAGS
 WERROR_CFLAGS
 RANLIB
 ARFLAGS
@@ -6962,6 +6962,7 @@ esac
   # Code from module largefile:
 
   # Code from module lstat:
+  # Code from module manywarnings:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
@@ -6998,6 +6999,7 @@ esac
   # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
+  # Code from module warnings:
 
 
 # On Suns, sometimes $CPP names a directory.
@@ -7714,8 +7716,6 @@ $as_echo "$gl_cv_warn_c__funit_at_a_time" >&6; }
 if test "x$gl_cv_warn_c__funit_at_a_time" = x""yes; then :
   as_fn_append WARN_CFLAGS " -funit-at-a-time"
 fi
-
-
 
 
 
@@ -10527,50 +10527,37 @@ esac
 # Do the opsystem or machine files prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
-doug_lea_malloc=yes
-ac_fn_c_check_func "$LINENO" "malloc_get_state" "ac_cv_func_malloc_get_state"
-if test "x$ac_cv_func_malloc_get_state" = x""yes; then :
 
-else
-  doug_lea_malloc=no
-fi
-
-ac_fn_c_check_func "$LINENO" "malloc_set_state" "ac_cv_func_malloc_set_state"
-if test "x$ac_cv_func_malloc_set_state" = x""yes; then :
-
-else
-  doug_lea_malloc=no
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether __after_morecore_hook exists" >&5
-$as_echo_n "checking whether __after_morecore_hook exists... " >&6; }
-if test "${emacs_cv_var___after_morecore_hook+set}" = set; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether malloc is Doug Lea style" >&5
+$as_echo_n "checking whether malloc is Doug Lea style... " >&6; }
+if test "${emacs_cv_var_doug_lea_malloc+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-extern void (* __after_morecore_hook)();
+#include <malloc.h>
+	  static void hook (void) {}
 int
 main ()
 {
-__after_morecore_hook = 0
+malloc_set_state (malloc_get_state ());
+	  __after_morecore_hook = hook;
+	  __malloc_initialize_hook = hook;
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  emacs_cv_var___after_morecore_hook=yes
+  emacs_cv_var_doug_lea_malloc=yes
 else
-  emacs_cv_var___after_morecore_hook=no
+  emacs_cv_var_doug_lea_malloc=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_var___after_morecore_hook" >&5
-$as_echo "$emacs_cv_var___after_morecore_hook" >&6; }
-if test $emacs_cv_var___after_morecore_hook = no; then
-  doug_lea_malloc=no
-fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_var_doug_lea_malloc" >&5
+$as_echo "$emacs_cv_var_doug_lea_malloc" >&6; }
+doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
 
 system_malloc=no
@@ -22362,6 +22349,7 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
   else
     HAVE_UNISTD_H=0
   fi
+
 
 
 
