@@ -559,6 +559,8 @@
 	(Fexternal_debugging_output): Don't overflow EMACS_INT->int conversion.
 	(print_error_message): Use SAFE_ALLOCA, not alloca.
 	(print_object): Use int, not EMACS_INT, where int is wide enough.
+	(print_depth, new_backquote_output, print_number_index):
+	Use ptrdiff_t, not int, where int might not be wide enough.
 	* process.c (Fdelete_process): Don't assume pid fits into EMACS_INT.
 	(Fset_process_window_size, Fformat_network_address)
 	(get_lisp_to_sockaddr_size, set_socket_option, Fmake_network_process)

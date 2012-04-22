@@ -55,10 +55,10 @@ static Lisp_Object Qfloat_output_format;
 #endif
 
 /* Avoid actual stack overflow in print.  */
-static int print_depth;
+static ptrdiff_t print_depth;
 
 /* Level of nesting inside outputting backquote in new style.  */
-static int new_backquote_output;
+static ptrdiff_t new_backquote_output;
 
 /* Detect most circularities to print finite output.  */
 #define PRINT_CIRCLE 200
@@ -86,7 +86,7 @@ static Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
      N    the object has been printed so we can refer to it as #N#.
    print_number_index holds the largest N already used.
    N has to be striclty larger than 0 since we need to distinguish -N.  */
-static int print_number_index;
+static ptrdiff_t print_number_index;
 static void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
