@@ -1308,7 +1308,7 @@ displayed before and after each matching line.
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
 @kindex C-o @r{(Occur mode)}
-In the @samp{*Occur*} buffer, you can click on each entry, or move
+In the @file{*Occur*} buffer, you can click on each entry, or move
 point there and type @key{RET}, to visit the corresponding position in
 the buffer that was searched.  @kbd{o} and @kbd{C-o} display the match
 in another window; @kbd{C-o} does not select it.  Alternatively, you
@@ -1317,7 +1317,7 @@ occurrences one by one (@pxref{Compilation Mode}).
 
 @cindex Occur Edit mode
 @cindex mode, Occur Edit
-Typing @kbd{e} in the @samp{*Occur*} buffer switches to Occur Edit
+Typing @kbd{e} in the @file{*Occur*} buffer switches to Occur Edit
 mode, in which edits made to the entries are also applied to the text
 in the originating buffer.  Type @kbd{C-c C-c} to return to Occur
 mode.

@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/minibuf
 @node Minibuffers, Command Loop, Read and Print, Top
 @chapter Minibuffers
 @cindex arguments, reading
@@ -30,8 +29,8 @@ argument.
 * Multiple Queries::          Asking a series of similar questions.
 * Reading a Password::        Reading a password from the terminal.
 * Minibuffer Commands::       Commands used as key bindings in minibuffers.
-* Minibuffer Contents::       How such commands access the minibuffer text.
 * Minibuffer Windows::        Operating on the special minibuffer windows.
+* Minibuffer Contents::       How such commands access the minibuffer text.
 * Recursive Mini::            Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::           Various customization hooks and variables.
 @end menu
@@ -60,8 +59,10 @@ boundary between the prompt and the actual text.
 
   The minibuffer's window is normally a single line; it grows
 automatically if the contents require more space.  You can explicitly
+@c FIXME?  Works in 23.4, not 24.0.95.  (Bug#11276)
 resize it temporarily with the window sizing commands; it reverts to
 its normal size when the minibuffer is exited.  You can resize it
+@c FIXME?  Doesn't work in any version of Emacs?
 permanently by using the window sizing commands in the frame's other
 window, when the minibuffer is not active.  If the frame contains just
 a minibuffer, you can change the minibuffer's size by changing the
@@ -73,9 +74,9 @@ of variables such as @code{this-command} and @code{last-command}
 code that uses the minibuffer, if you do not want that to change them.
 
   Under some circumstances, a command can use a minibuffer even if
-there is an active minibuffer; such minibuffers are called a
+there is an active minibuffer; such a minibuffer is called a
 @dfn{recursive minibuffer}.  The first minibuffer is named
-@w{@samp{ *Minibuf-0*}}.  Recursive minibuffers are named by
+@w{@samp{ *Minibuf-1*}}.  Recursive minibuffers are named by
 incrementing the number at the end of the name.  (The names begin with
 a space so that they won't show up in normal buffer lists.)  Of
 several recursive minibuffers, the innermost (or most recently
@@ -90,6 +91,12 @@ invokes the minibuffer also sets up its local map according to the job
 to be done.  @xref{Text from Minibuffer}, for the non-completion
 minibuffer local maps.  @xref{Completion Commands}, for the minibuffer
 local maps for completion.
+
+@cindex inactive minibuffer
+  When a minibuffer is inactive, its major mode is
+@code{minibuffer-inactive-mode}, with keymap
+@code{minibuffer-inactive-mode-map}.  This is only really useful if
+the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
 
   When Emacs is running in batch mode, any request to read from the
 minibuffer actually reads a line from the standard input descriptor that
@@ -111,7 +118,7 @@ middle of a Lisp function.  Instead, do all minibuffer input as part of
 reading the arguments for a command, in the @code{interactive}
 specification.  @xref{Defining Commands}.
 
-@defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist default inherit-input-method
+@defun read-from-minibuffer prompt &optional initial keymap read history default inherit-input-method
 This function is the most general way to get input from the
 minibuffer.  By default, it accepts arbitrary text and returns it as a
 string; however, if @var{read} is non-@code{nil}, then it uses
@@ -119,8 +126,8 @@ string; however, if @var{read} is non-@code{nil}, then it uses
 Functions}).
 
 The first thing this function does is to activate a minibuffer and
-display it with @var{prompt-string} as the prompt.  This value must be a
-string.  Then the user can edit text in the minibuffer.
+display it with @var{prompt} (which must be a string) as the
+prompt.  Then the user can edit text in the minibuffer.
 
 When the user types a command to exit the minibuffer,
 @code{read-from-minibuffer} constructs the return value from the text in
@@ -132,7 +139,7 @@ reads the text and returns the resulting Lisp object, unevaluated.
 The argument @var{default} specifies default values to make available
 through the history commands.  It should be a string, a list of
 strings, or @code{nil}.  The string or strings become the minibuffer's
-``future history,'' available to the user with @kbd{M-n}.
+``future history'', available to the user with @kbd{M-n}.
 
 If @var{read} is non-@code{nil}, then @var{default} is also used
 as the input to @code{read}, if the user enters empty input.
@@ -149,12 +156,13 @@ value of @code{minibuffer-local-map} is used as the keymap.  Specifying
 a keymap is the most important way to customize the minibuffer for
 various applications such as completion.
 
-The argument @var{hist} specifies which history list variable to use
+The argument @var{history} specifies a history list variable to use
 for saving the input and for history commands used in the minibuffer.
-It defaults to @code{minibuffer-history}.  @xref{Minibuffer History}.
+It defaults to @code{minibuffer-history}.  You can optionally specify
+a starting position in the history list as well.  @xref{Minibuffer History}.
 
 If the variable @code{minibuffer-allow-text-properties} is
-non-@code{nil}, then the string which is returned includes whatever text
+non-@code{nil}, then the string that is returned includes whatever text
 properties were present in the minibuffer.  Otherwise all the text
 properties are stripped when the value is returned.
 
@@ -164,9 +172,9 @@ the setting of @code{enable-multibyte-characters} (@pxref{Text
 Representations}) from whichever buffer was current before entering the
 minibuffer.
 
-Use of @var{initial-contents} is mostly deprecated; we recommend using
+Use of @var{initial} is mostly deprecated; we recommend using
 a non-@code{nil} value only in conjunction with specifying a cons cell
-for @var{hist}.  @xref{Initial Input}.
+for @var{history}.  @xref{Initial Input}.
 @end defun
 
 @defun read-string prompt &optional initial history default inherit-input-method
@@ -179,11 +187,11 @@ The optional argument @var{default} is used as in
 @code{read-from-minibuffer}, except that, if non-@code{nil}, it also
 specifies a default value to return if the user enters null input.  As
 in @code{read-from-minibuffer} it should be a string, a list of
-strings, or @code{nil} which is equivalent to an empty string.  When
+strings, or @code{nil}, which is equivalent to an empty string.  When
 @var{default} is a string, that string is the default value.  When it
 is a list of strings, the first string is the default value.  (All
 these strings are available to the user in the ``future minibuffer
-history.'')
+history''.)
 
 This function works by calling the
 @code{read-from-minibuffer} function:
@@ -202,16 +210,16 @@ This function works by calling the
 @end smallexample
 @end defun
 
-@defun read-regexp prompt &optional default-value
+@defun read-regexp prompt &optional default
 This function reads a regular expression as a string from the
 minibuffer and returns it.  The argument @var{prompt} is used as in
 @code{read-from-minibuffer}.  The keymap used is
 @code{minibuffer-local-map}, and @code{regexp-history} is used as the
 history list (@pxref{Minibuffer History, regexp-history}).
 
-The optional argument @var{default-value} specifies a default value to
+The optional argument @var{default} specifies a default value to
 return if the user enters null input; it should be a string, or
-@code{nil} which is equivalent to an empty string.
+@code{nil}, which is equivalent to an empty string.
 
 In addition, @code{read-regexp} collects a few useful candidates for
 input and passes them to @code{read-from-minibuffer}, to make them
@@ -235,9 +243,9 @@ function, after computing the list of defaults as described above.
 @end defun
 
 @defvar minibuffer-allow-text-properties
-If this variable is @code{nil}, then @code{read-from-minibuffer} strips
-all text properties from the minibuffer input before returning it.
-This variable also affects @code{read-string}.  However,
+If this variable is @code{nil}, then @code{read-from-minibuffer}
+and @code{read-string} strip all text properties from the minibuffer
+input before returning it.  However,
 @code{read-no-blanks-input} (see below), as well as
 @code{read-minibuffer} and related functions (@pxref{Object from
 Minibuffer,, Reading Lisp Objects With the Minibuffer}), and all
@@ -275,6 +283,12 @@ default, it makes the following bindings:
 
 @item @kbd{M-r}
 @code{previous-matching-history-element}
+
+@ignore
+@c Does not seem worth/appropriate mentioning.
+@item @kbd{C-@key{TAB}}
+@code{file-cache-minibuffer-complete}
+@end ignore
 @end table
 @end defvar
 
@@ -305,6 +319,8 @@ This function discards text properties, regardless of the value of
 @end smallexample
 @end defun
 
+@c Slightly unfortunate name, suggesting it might be related to the
+@c Nextstep port...
 @defvar minibuffer-local-ns-map
 This built-in variable is the keymap used as the minibuffer local keymap
 in the function @code{read-no-blanks-input}.  By default, it makes the
@@ -389,23 +405,16 @@ This function simply evaluates the result of a call to
 @end defun
 
 @defun edit-and-eval-command prompt form
-This function reads a Lisp expression in the minibuffer, and then
-evaluates it.  The difference between this command and
+This function reads a Lisp expression in the minibuffer, evaluates it,
+then returns the result.  The difference between this command and
 @code{eval-minibuffer} is that here the initial @var{form} is not
 optional and it is treated as a Lisp object to be converted to printed
 representation rather than as a string of text.  It is printed with
 @code{prin1}, so if it is a string, double-quote characters (@samp{"})
 appear in the initial text.  @xref{Output Functions}.
 
-The first thing @code{edit-and-eval-command} does is to activate the
-minibuffer with @var{prompt} as the prompt.  Then it inserts the printed
-representation of @var{form} in the minibuffer, and lets the user edit it.
-When the user exits the minibuffer, the edited text is read with
-@code{read} and then evaluated.  The resulting value becomes the value
-of @code{edit-and-eval-command}.
-
 In the following example, we offer the user an expression with initial
-text which is a valid form already:
+text that is already a valid form:
 
 @smallexample
 @group
@@ -425,7 +434,6 @@ Please edit: (forward-word 1)@point{}
 @noindent
 Typing @key{RET} right away would exit the minibuffer and evaluate the
 expression, thus moving point forward one word.
-@code{edit-and-eval-command} returns @code{nil} in this example.
 @end defun
 
 @node Minibuffer History
@@ -441,7 +449,7 @@ is a list of strings (previous inputs), most recent first.
 kinds of inputs.  It's the Lisp programmer's job to specify the right
 history list for each use of the minibuffer.
 
-  You specify a minibuffer history list with the optional @var{hist}
+  You specify a minibuffer history list with the optional @var{history}
 argument to @code{read-from-minibuffer} or @code{completing-read}.
 Here are the possible values for it:
 
@@ -457,7 +465,7 @@ Specifying 0 for @var{startpos} is equivalent to just specifying the
 symbol @var{variable}.  @code{previous-history-element} will display
 the most recent element of the history list in the minibuffer.  If you
 specify a positive @var{startpos}, the minibuffer history functions
-behave as if @code{(elt @var{variable} (1- @var{STARTPOS}))} were the
+behave as if @code{(elt @var{variable} (1- @var{startpos}))} were the
 history element currently shown in the minibuffer.
 
 For consistency, you should also specify that element of the history
@@ -465,7 +473,7 @@ as the initial minibuffer contents, using the @var{initial} argument
 to the minibuffer input function (@pxref{Initial Input}).
 @end table
 
-  If you don't specify @var{hist}, then the default history list
+  If you don't specify @var{history}, then the default history list
 @code{minibuffer-history} is used.  For other standard history lists,
 see below.  You can also create your own history list variable; just
 initialize it to @code{nil} before the first use.
@@ -504,15 +512,15 @@ If the value of this variable is @code{nil}, standard functions that
 read from the minibuffer don't add new elements to the history list.
 This lets Lisp programs explicitly manage input history by using
 @code{add-to-history}.  By default, @code{history-add-new-input} is
-set to a non-@code{nil} value.
+non-@code{nil}.
 @end defvar
 
 @defopt history-length
 The value of this variable specifies the maximum length for all
 history lists that don't specify their own maximum lengths.  If the
 value is @code{t}, that means there is no maximum (don't delete old
-elements).  The value of @code{history-length} property of the history
-list variable's symbol, if set, overrides this variable for that
+elements).  If a history list variable's symbol has a non-@code{nil}
+@code{history-length} property, it overrides this variable for that
 particular history list.
 @end defopt
 
@@ -556,11 +564,19 @@ A history list for arguments that are shell commands.
 A history list for arguments that are Lisp expressions to evaluate.
 @end defvar
 
+@defvar face-name-history
+A history list for arguments that are faces.
+@end defvar
+
+@c Less common: coding-system-history, input-method-history,
+@c command-history, grep-history, grep-find-history,
+@c read-envvar-name-history, setenv-history, yes-or-no-p-history.
+
 @node Initial Input
 @section Initial Input
 
 Several of the functions for minibuffer input have an argument called
-@var{initial} or @var{initial-contents}.  This is a mostly-deprecated
+@var{initial}.  This is a mostly-deprecated
 feature for specifying that the minibuffer should start out with
 certain text, instead of empty as usual.
 
@@ -577,7 +593,7 @@ to offer useful default inputs to the user.
 
 There is just one situation where you should specify a string for an
 @var{initial} argument.  This is when you specify a cons cell for the
-@var{hist} or @var{history} argument.  @xref{Minibuffer History}.
+@var{history} argument.  @xref{Minibuffer History}.
 
 @var{initial} can also be a cons cell of the form @code{(@var{string}
 . @var{position})}.  This means to insert @var{string} in the
@@ -589,11 +605,10 @@ inconsistently in different functions.  In @code{completing-read},
 of 0 means the beginning of the string, 1 means after the first
 character, etc.  In @code{read-minibuffer}, and the other
 non-completion minibuffer input functions that support this argument,
-1 means the beginning of the string 2 means after the first character,
+1 means the beginning of the string, 2 means after the first character,
 etc.
 
-Use of a cons cell as the value for @var{initial} arguments is
-deprecated in user code.
+Use of a cons cell as the value for @var{initial} arguments is deprecated.
 
 @node Completion
 @section Completion
@@ -604,6 +619,7 @@ starting from an abbreviation for it.  Completion works by comparing the
 user's input against a list of valid names and determining how much of
 the name is determined uniquely by what the user has typed.  For
 example, when you type @kbd{C-x b} (@code{switch-to-buffer}) and then
+@c "This is the sort of English up with which I will not put."
 type the first few letters of the name of the buffer to which you wish
 to switch, and then type @key{TAB} (@code{minibuffer-complete}), Emacs
 extends the name as far as it can.
@@ -628,7 +644,7 @@ for reading certain kinds of names with completion.
 * Minibuffer Completion::  Invoking the minibuffer with completion.
 * Completion Commands::    Minibuffer commands that do completion.
 * High-Level Completion::  Convenient special cases of completion
-                             (reading buffer name, file name, etc.).
+                             (reading buffer names, variable names, etc.).
 * Reading File Names::     Using completion to read file names and
                              shell commands.
 * Completion Variables::   Variables controlling completion behavior.
@@ -663,20 +679,14 @@ If @var{collection} is an alist (@pxref{Association Lists}), the
 permissible completions are the elements of the alist that are either
 strings, or conses whose @sc{car} is a string or symbol.
 Symbols are converted to strings using @code{symbol-name}.  Other
-elements of the alist are ignored. (Remember that in Emacs Lisp, the
+elements of the alist are ignored.  (Remember that in Emacs Lisp, the
 elements of alists do not @emph{have} to be conses.)  In particular, a
 list of strings is allowed, even though we usually do not
 think of such lists as alists.
 
 @cindex obarray in completion
 If @var{collection} is an obarray (@pxref{Creating Symbols}), the names
-of all symbols in the obarray form the set of permissible completions.  The
-global variable @code{obarray} holds an obarray containing the names of
-all interned Lisp symbols.
-
-Note that the only valid way to make a new obarray is to create it
-empty and then add symbols to it one by one using @code{intern}.
-Also, you cannot intern a given symbol in more than one obarray.
+of all symbols in the obarray form the set of permissible completions.
 
 If @var{collection} is a hash table, then the keys that are strings
 are the possible completions.  Other keys are ignored.
@@ -757,16 +767,20 @@ too short).  Both of those begin with the string @samp{foobar}.
 @end smallexample
 @end defun
 
-@defun all-completions string collection &optional predicate nospace
+@c Removed obsolete argument nospace.
+@defun all-completions string collection &optional predicate
 This function returns a list of all possible completions of
-@var{string}.  The arguments to this function (aside from
-@var{nospace}) are the same as those of @code{try-completion}.  Also,
-this function uses @code{completion-regexp-list} in the same way that
+@var{string}.  The arguments to this function
+@c (aside from @var{nospace})
+are the same as those of @code{try-completion}, and it 
+uses @code{completion-regexp-list} in the same way that
 @code{try-completion} does.
 
+@ignore
 The optional argument @var{nospace} is obsolete.  If it is
 non-@code{nil}, completions that start with a space are ignored unless
 @var{string} starts with a space.
+@end ignore
 
 If @var{collection} is a function, it is called with three arguments:
 @var{string}, @var{predicate} and @code{t}; then @code{all-completions}
@@ -836,7 +850,7 @@ pertains to the area after @code{"/usr/"} and before @code{"/doc"}.
 @end defun
 
 If you store a completion alist in a variable, you should mark the
-variable as ``risky'' with a non-@code{nil}
+variable as ``risky'' by giving it a non-@code{nil}
 @code{risky-local-variable} property.  @xref{File Local Variables}.
 
 @defvar completion-ignore-case
@@ -865,7 +879,7 @@ proper value is done the first time you do completion using @var{var}.
 It is done by calling @var{fun} with no arguments.  The
 value @var{fun} returns becomes the permanent value of @var{var}.
 
-Here is a usage example:
+Here is an example:
 
 @smallexample
 (defvar foo (lazy-completion-table foo make-my-alist))
@@ -880,7 +894,7 @@ Here is a usage example:
   This section describes the basic interface for reading from the
 minibuffer with completion.
 
-@defun completing-read prompt collection &optional predicate require-match initial hist default inherit-input-method
+@defun completing-read prompt collection &optional predicate require-match initial history default inherit-input-method
 This function reads a string in the minibuffer, assisting the user by
 providing completion.  It activates the minibuffer with prompt
 @var{prompt}, which must be a string.
@@ -935,13 +949,13 @@ The function @code{completing-read} uses
 @code{minibuffer-local-must-match-map} if @var{require-match} is
 non-@code{nil}.  @xref{Completion Commands}.
 
-The argument @var{hist} specifies which history list variable to use for
+The argument @var{history} specifies which history list variable to use for
 saving the input and for minibuffer history commands.  It defaults to
 @code{minibuffer-history}.  @xref{Minibuffer History}.
 
 The argument @var{initial} is mostly deprecated; we recommend using a
 non-@code{nil} value only in conjunction with specifying a cons cell
-for @var{hist}.  @xref{Initial Input}.  For default input, use
+for @var{history}.  @xref{Initial Input}.  For default input, use
 @var{default} instead.
 
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
@@ -950,7 +964,7 @@ Methods}) and the setting of @code{enable-multibyte-characters}
 (@pxref{Text Representations}) from whichever buffer was current before
 entering the minibuffer.
 
-If the built-in variable @code{completion-ignore-case} is
+If the variable @code{completion-ignore-case} is
 non-@code{nil}, completion ignores case when comparing the input
 against the possible matches.  @xref{Basic Completion}.  In this mode
 of operation, @var{predicate} must also ignore case, or you will get
@@ -1062,7 +1076,7 @@ using the value of the variable @code{minibuffer-completion-table} as
 the @var{collection} argument, and the value of
 @code{minibuffer-completion-predicate} as the @var{predicate} argument.
 The list of completions is displayed as text in a buffer named
-@samp{*Completions*}.
+@file{*Completions*}.
 @end deffn
 
 @defun display-completion-list completions &optional common-substring
@@ -1083,8 +1097,8 @@ uses this to highlight text in the completion list for better visual
 feedback.  This is not needed in the minibuffer; for minibuffer
 completion, you can pass @code{nil}.
 
-This function is called by @code{minibuffer-completion-help}.  The
-most common way to use it is together with
+This function is called by @code{minibuffer-completion-help}.  A
+common way to use it is together with
 @code{with-output-to-temp-buffer}, like this:
 
 @example
@@ -1118,7 +1132,7 @@ keymap makes the following bindings:
 @end table
 
 @noindent
-with other characters bound as in @code{minibuffer-local-map}
+and uses @code{minibuffer-local-map} as its parent keymap
 (@pxref{Definition of minibuffer-local-map}).
 @end defvar
 
@@ -1130,15 +1144,6 @@ minibuffer unconditionally.  By default, this keymap makes the following
 bindings:
 
 @table @asis
-@item @kbd{?}
-@code{minibuffer-completion-help}
-
-@item @key{SPC}
-@code{minibuffer-complete-word}
-
-@item @key{TAB}
-@code{minibuffer-complete}
-
 @item @kbd{C-j}
 @code{minibuffer-complete-and-exit}
 
@@ -1147,25 +1152,21 @@ bindings:
 @end table
 
 @noindent
-with other characters bound as in @code{minibuffer-local-map}.
+and uses @code{minibuffer-local-completion-map} as its parent keymap.
 @end defvar
 
 @defvar minibuffer-local-filename-completion-map
-This is like @code{minibuffer-local-completion-map}
-except that it does not bind @key{SPC}.  This keymap is used by the
-function @code{read-file-name}.
+This is a sparse keymap that simply unbinds @key{SPC}; because
+filenames can contain spaces.  The function @code{read-file-name}
+combines this keymap with either @code{minibuffer-local-completion-map}
+or @code{minibuffer-local-must-match-map}.
 @end defvar
 
-@defvar minibuffer-local-filename-must-match-map
-This is like @code{minibuffer-local-must-match-map}
-except that it does not bind @key{SPC}.  This keymap is used by the
-function @code{read-file-name}.
-@end defvar
 
 @node High-Level Completion
 @subsection High-Level Completion Functions
 
-  This section describes the higher-level convenient functions for
+  This section describes the higher-level convenience functions for
 reading certain sorts of names with completion.
 
   In most cases, you should not call these functions in the middle of a
@@ -1239,7 +1240,7 @@ for which @code{commandp} returns @code{t}.  @xref{Interactive Call}.
 The argument @var{default} specifies what to return if the user enters
 null input.  It can be a symbol, a string or a list of strings.  If it
 is a string, @code{read-command} interns it before returning it.
-If it is a list, @code{read-command} returns the first element of this list.
+If it is a list, @code{read-command} interns the first element of this list.
 If @var{default} is @code{nil}, that means no default has been
 specified; then if the user enters null input, the return value is
 @code{(intern "")}, that is, a symbol whose name is an empty string.
@@ -1281,51 +1282,11 @@ complete in the set of extant Lisp symbols, and it uses the
 
 @defun read-variable prompt &optional default
 @anchor{Definition of read-variable}
-This function reads the name of a user variable and returns it as a
-symbol.
-
-The argument @var{default} specifies the default value to return if
-the user enters null input.  It can be a symbol, a string, or a list
-of strings.  If it is a string, @code{read-variable} interns it to
-make the default value.  If it is a list, @code{read-variable} interns
-the first element.  If @var{default} is @code{nil}, that means no
-default has been specified; then if the user enters null input, the
-return value is @code{(intern "")}.
-
-@example
-@group
-(read-variable "Variable name? ")
-
-;; @r{After evaluation of the preceding expression,}
-;;   @r{the following prompt appears,}
-;;   @r{with an empty minibuffer:}
-@end group
-
-@group
----------- Buffer: Minibuffer ----------
-Variable name? @point{}
----------- Buffer: Minibuffer ----------
-@end group
-@end example
-
-@noindent
-If the user then types @kbd{fill-p @key{RET}}, @code{read-variable}
-returns @code{fill-prefix}.
-
-In general, @code{read-variable} is similar to @code{read-command},
-but uses the predicate @code{custom-variable-p} instead of
-@code{commandp}:
-
-@cindex @code{custom-variable-p} example
-@example
-@group
-(read-variable @var{prompt})
-@equiv{}
-(intern
- (completing-read @var{prompt} obarray
-                  'custom-variable-p t nil))
-@end group
-@end example
+This function reads the name of a customizable variable and returns it
+as a symbol.  Its arguments have the same form as those of
+@code{read-command}.  It behaves just like @code{read-command}, except
+that it uses the predicate @code{custom-variable-p} instead of
+@code{commandp}.
 @end defun
 
 @deffn Command read-color &optional prompt convert allow-empty display
@@ -1343,7 +1304,7 @@ minibuffer.  However, when called interactively or if the optional
 argument @var{convert} is non-@code{nil}, it converts any input color
 name into the corresponding RGB value string and instead returns that.
 This function requires a valid color specification to be input.
-Empty color names are allowed when @code{allow-empty} is
+Empty color names are allowed when @var{allow-empty} is
 non-@code{nil} and the user enters null input.
 
 Interactively, or when @var{display} is non-@code{nil}, the return
@@ -1361,7 +1322,7 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 
   The high-level completion functions @code{read-file-name},
 @code{read-directory-name}, and @code{read-shell-command} are designed
-to read file names, directory names, and shell commands respectively.
+to read file names, directory names, and shell commands, respectively.
 They provide special features, including automatic insertion of the
 default directory.
 
@@ -1370,15 +1331,29 @@ This function reads a file name, prompting with @var{prompt} and
 providing completion.
 
 As an exception, this function reads a file name using a graphical
-file dialog instead of the minibuffer, if (i) it is invoked via a
-mouse command, and (ii) the selected frame is on a graphical display
-supporting such dialogs, and (iii) the variable @code{use-dialog-box}
-is non-@code{nil} (@pxref{Dialog Boxes,, Dialog Boxes, emacs, The GNU
-Emacs Manual}), and (iv) the @var{directory} argument, described
-below, does not specify a remote file (@pxref{Remote Files,, Remote
-Files, emacs, The GNU Emacs Manual}).  The exact behavior when using a
-graphical file dialog is platform-dependent.  Here, we simply document
-the behavior when using the minibuffer.
+file dialog instead of the minibuffer, if all of the following are
+true:
+
+@enumerate
+@item
+It is invoked via a mouse command.
+
+@item
+The selected frame is on a graphical display supporting such dialogs.
+
+@item
+The variable @code{use-dialog-box} is non-@code{nil}.
+@xref{Dialog Boxes,, Dialog Boxes, emacs, The GNU Emacs Manual}.
+
+@item
+The @var{directory} argument, described below, does not specify a
+remote file.  @xref{Remote Files,, Remote Files, emacs, The GNU Emacs Manual}.
+@end enumerate
+
+@noindent
+The exact behavior when using a graphical file dialog is
+platform-dependent.  Here, we simply document the behavior when using
+the minibuffer.
 
 @code{read-file-name} does not automatically expand the returned file
 name.  You must call @code{expand-file-name} yourself if an absolute
@@ -1389,7 +1364,7 @@ The optional argument @var{require-match} has the same meaning as in
 
 The argument @var{directory} specifies the directory to use for
 completing relative file names.  It should be an absolute directory
-name.  If @code{insert-default-directory} is non-@code{nil},
+name.  If the variable @code{insert-default-directory} is non-@code{nil},
 @var{directory} is also inserted in the minibuffer as initial input.
 It defaults to the current buffer's value of @code{default-directory}.
 
@@ -1397,9 +1372,9 @@ If you specify @var{initial}, that is an initial file name to insert
 in the buffer (after @var{directory}, if that is inserted).  In this
 case, point goes at the beginning of @var{initial}.  The default for
 @var{initial} is @code{nil}---don't insert any file name.  To see what
-@var{initial} does, try the command @kbd{C-x C-v}.  @strong{Please
-note:} we recommend using @var{default} rather than @var{initial} in
-most cases.
+@var{initial} does, try the command @kbd{C-x C-v} in a buffer visiting
+a file.  @strong{Please note:} we recommend using @var{default} rather
+than @var{initial} in most cases.
 
 If @var{default} is non-@code{nil}, then the function returns
 @var{default} if the user exits the minibuffer with the same non-empty
@@ -1502,7 +1477,7 @@ use the code letters @samp{f} or @samp{F} in their interactive form.
 @xref{Interactive Codes,, Code Characters for interactive}.)  Its
 value controls whether @code{read-file-name} starts by placing the
 name of the default directory in the minibuffer, plus the initial file
-name if any.  If the value of this variable is @code{nil}, then
+name, if any.  If the value of this variable is @code{nil}, then
 @code{read-file-name} does not place any initial input in the
 minibuffer (unless you specify initial input with the @var{initial}
 argument).  In that case, the default directory is still used for
@@ -1545,17 +1520,17 @@ The file is @point{}
 @end example
 @end defopt
 
-@defun read-shell-command prompt &optional initial-contents hist &rest args
+@defun read-shell-command prompt &optional initial history &rest args
 This function reads a shell command from the minibuffer, prompting
 with @var{prompt} and providing intelligent completion.  It completes
 the first word of the command using candidates that are appropriate
 for command names, and the rest of the command words as file names.
 
 This function uses @code{minibuffer-local-shell-command-map} as the
-keymap for minibuffer input.  The @var{hist} argument specifies the
+keymap for minibuffer input.  The @var{history} argument specifies the
 history list to use; if is omitted or @code{nil}, it defaults to
 @code{shell-command-history} (@pxref{Minibuffer History,
-shell-command-history}).  The optional argument @var{initial-contents}
+shell-command-history}).  The optional argument @var{initial}
 specifies the initial content of the minibuffer (@pxref{Initial
 Input}).  The rest of @var{args}, if present, are used as the
 @var{default} and @var{inherit-input-method} arguments in
@@ -1564,20 +1539,22 @@ Input}).  The rest of @var{args}, if present, are used as the
 
 @defvar minibuffer-local-shell-command-map
 This keymap is used by @code{read-shell-command} for completing
-command and file names that are part of a shell command.
+command and file names that are part of a shell command.  It uses
+@code{minibuffer-local-map} as its parent keymap, and binds @key{TAB}
+to @code{completion-at-point}.
 @end defvar
 
 @node Completion Variables
 @subsection Completion Variables
 
-  Here are some variables which can be used to alter the default
+  Here are some variables that can be used to alter the default
 completion behavior.
 
 @cindex completion styles
 @defopt completion-styles
 The value of this variable is a list of completion style (symbols) to
 use for performing completion.  A @dfn{completion style} is a set of
-rules for generating completions.  Each symbol in occurring this list
+rules for generating completions.  Each symbol occurring this list
 must have a corresponding entry in @code{completion-styles-alist}.
 @end defopt
 
@@ -1624,13 +1601,14 @@ description of the available completion styles.
 @defopt completion-category-overrides
 This variable specifies special completion styles and other completion
 behaviors to use when completing certain types of text.  Its value
-should be a list of the form @code{(@var{category} . @var{alist})}.
-@var{category} is a symbol describing what is being completed;
-currently, the @code{buffer} and @code{file} categories are defined,
-but others can be defined via specialized completion functions
-(@pxref{Programmed Completion}).  @var{alist} is an association list
-describing how completion should behave for the corresponding
-category.  The following alist keys are supported:
+should be an alist with elements of the form @code{(@var{category}
+. @var{alist})}.  @var{category} is a symbol describing what is being
+completed; currently, the @code{buffer}, @code{file}, and
+@code{unicode-name} categories are defined, but others can be defined
+via specialized completion functions (@pxref{Programmed Completion}).
+@var{alist} is an association list describing how completion should
+behave for the corresponding category.  The following alist keys are
+supported:
 
 @table @code
 @item styles
@@ -1663,7 +1641,7 @@ the completion.
 The value should be a function to run after performing completion.
 The function should accept two arguments, @var{string} and
 @var{status}, where @var{string} is the text to which the field was
-completed and @var{status} indicates what kind of operation happened:
+completed, and @var{status} indicates what kind of operation happened:
 @code{finished} if text is now complete, @code{sole} if the text
 cannot be further completed but completion is not finished, or
 @code{exact} if the text is a valid completion but may be further
@@ -1727,9 +1705,10 @@ some completion alternative; @code{nil} otherwise.
 
 @item (boundaries . @var{suffix})
 This specifies a @code{completion-boundaries} operation.  The function
-should return @code{(boundaries START . END)}, where START is the
-position of the beginning boundary in the specified string, and END is
-the position of the end boundary in SUFFIX.
+should return @code{(boundaries @var{start} . @var{end})}, where
+@var{start} is the position of the beginning boundary in the specified
+string, and @var{end} is the position of the end boundary in
+@var{suffix}.
 
 @item metadata
 This specifies a request for information about the state of the
@@ -1756,7 +1735,7 @@ completion behavior is overridden.  @xref{Completion Variables}.
 The value should be a function for @dfn{annotating} completions.  The
 function should take one argument, @var{string}, which is a possible
 completion.  It should return a string, which is displayed after the
-completion @var{string} in the @samp{*Completions*} buffer.
+completion @var{string} in the @file{*Completions*} buffer.
 
 @item display-sort-function
 The value should be a function for sorting completions.  The function
@@ -1774,7 +1753,7 @@ the same as for @code{display-sort-function}.
 
 @defun completion-table-dynamic function
 This function is a convenient way to write a function that can act as
-programmed completion function.  The argument @var{function} should be
+a programmed completion function.  The argument @var{function} should be
 a function that takes one argument, a string, and returns an alist of
 possible completions of it.  You can think of
 @code{completion-table-dynamic} as a transducer between that interface
@@ -1828,7 +1807,7 @@ satisfy.
 
 @item :exclusive
 If the value is @code{no}, then if the completion table fails to match
-the text at point, then @code{completion-at-point} moves on to the
+the text at point, @code{completion-at-point} moves on to the
 next function in @code{completion-at-point-functions} instead of
 reporting a completion failure.
 @end table
@@ -1842,7 +1821,7 @@ old code to using @code{completion-at-point}.
 The first function in @code{completion-at-point-functions} to return a
 non-@code{nil} value is used by @code{completion-at-point}.  The
 remaining functions are not called.  The exception to this is when
-there is a @code{:exclusive} specification, as described above.
+there is an @code{:exclusive} specification, as described above.
 @end defvar
 
   The following function provides a convenient way to perform
@@ -1880,7 +1859,7 @@ answer.
 using the mouse---more precisely, if @code{last-nonmenu-event}
 (@pxref{Command Loop Info}) is either @code{nil} or a list---then it
 uses a dialog box or pop-up menu to ask the question.  Otherwise, it
-uses keyboard input.  You can force use of the mouse or use of keyboard
+uses keyboard input.  You can force use either of the mouse or of keyboard
 input by binding @code{last-nonmenu-event} to a suitable value around
 the call.
 
@@ -1891,7 +1870,7 @@ the call.
 This function asks the user a question, expecting input in the echo
 area.  It returns @code{t} if the user types @kbd{y}, @code{nil} if the
 user types @kbd{n}.  This function also accepts @key{SPC} to mean yes
-and @key{DEL} to mean no.  It accepts @kbd{C-]} to mean ``quit,'' like
+and @key{DEL} to mean no.  It accepts @kbd{C-]} to mean ``quit'', like
 @kbd{C-g}, because the question might look like a minibuffer and for
 that reason the user might try to use @kbd{C-]} to get out.  The answer
 is a single character, with no @key{RET} needed to terminate it.  Upper
@@ -1915,12 +1894,16 @@ hardwired.  The keymap @code{query-replace-map} specifies them.
 In the following example, the user first types @kbd{q}, which is
 invalid.  At the next prompt the user types @kbd{y}.
 
+@c Need an interactive example, because otherwise the return value
+@c obscures the display of the valid answer.
 @smallexample
 @group
-(y-or-n-p "Do you need a lift? ")
+(defun ask ()
+  (interactive)
+  (y-or-n-p "Do you need a lift? "))
 
-;; @r{After evaluation of the preceding expression,}
-;;   @r{the following prompt appears in the echo area:}
+;; @r{After evaluation of the preceding definition, @kbd{M-x ask}}
+;;   @r{causes the following prompt to appear in the echo area:}
 @end group
 
 @group
@@ -1952,10 +1935,10 @@ We show successive lines of echo area messages, but only one actually
 appears on the screen at a time.
 @end defun
 
-@defun y-or-n-p-with-timeout prompt seconds default-value
+@defun y-or-n-p-with-timeout prompt seconds default
 Like @code{y-or-n-p}, except that if the user fails to answer within
 @var{seconds} seconds, this function stops waiting and returns
-@var{default-value}.  It works by setting up a timer; see @ref{Timers}.
+@var{default}.  It works by setting up a timer; see @ref{Timers}.
 The argument @var{seconds} may be an integer or a floating point number.
 @end defun
 
@@ -2023,7 +2006,7 @@ single-character answer in the echo area for each one.
 The value of @var{list} specifies the objects to ask questions about.
 It should be either a list of objects or a generator function.  If it is
 a function, it should expect no arguments, and should return either the
-next object to ask about, or @code{nil} meaning stop asking questions.
+next object to ask about, or @code{nil}, meaning to stop asking questions.
 
 The argument @var{prompter} specifies how to ask each question.  If
 @var{prompter} is a string, the question text is computed like this:
@@ -2039,8 +2022,8 @@ where @var{object} is the next object to ask about (as obtained from
 If not a string, @var{prompter} should be a function of one argument
 (the next object to ask about) and should return the question text.  If
 the value is a string, that is the question to ask the user.  The
-function can also return @code{t} meaning do act on this object (and
-don't ask the user), or @code{nil} meaning ignore this object (and don't
+function can also return @code{t}, meaning do act on this object (and
+don't ask the user), or @code{nil}, meaning ignore this object (and don't
 ask the user).
 
 The argument @var{actor} says how to act on the answers that the user
@@ -2081,7 +2064,7 @@ answer); @var{function} is a function of one argument (an object from
 
 When the user responds with @var{char}, @code{map-y-or-n-p} calls
 @var{function}.  If it returns non-@code{nil}, the object is considered
-``acted upon,'' and @code{map-y-or-n-p} advances to the next object in
+``acted upon'', and @code{map-y-or-n-p} advances to the next object in
 @var{list}.  If it returns @code{nil}, the prompt is repeated for the
 same object.
 
@@ -2093,12 +2076,14 @@ If @code{map-y-or-n-p} is called in a command that was invoked using the
 mouse---more precisely, if @code{last-nonmenu-event} (@pxref{Command
 Loop Info}) is either @code{nil} or a list---then it uses a dialog box
 or pop-up menu to ask the question.  In this case, it does not use
-keyboard input or the echo area.  You can force use of the mouse or use
+keyboard input or the echo area.  You can force use either of the mouse or
 of keyboard input by binding @code{last-nonmenu-event} to a suitable
 value around the call.
 
 The return value of @code{map-y-or-n-p} is the number of objects acted on.
 @end defun
+@c FIXME  An example of this would be more useful than all the
+@c preceding examples of simple things.
 
 @node Reading a Password
 @section Reading a Password
@@ -2161,6 +2146,19 @@ This command replaces the minibuffer contents with the value of the
 regular expression).
 @end deffn
 
+@deffn Command previous-complete-history-element n
+This command replaces the minibuffer contents with the value of the
+@var{n}th previous (older) history element that completes the current
+contents of the minibuffer before the point.
+@end deffn
+
+@deffn Command next-complete-history-element n
+This command replaces the minibuffer contents with the value of the
+@var{n}th next (newer) history element that completes the current
+contents of the minibuffer before the point.
+@end deffn
+
+
 @node Minibuffer Windows
 @section Minibuffer Windows
 @cindex minibuffer windows
@@ -2170,7 +2168,7 @@ and test whether they are active.
 
 @defun active-minibuffer-window
 This function returns the currently active minibuffer window, or
-@code{nil} if none is currently active.
+@code{nil} if there is none.
 @end defun
 
 @defun minibuffer-window &optional frame
@@ -2203,8 +2201,8 @@ there can be more than one minibuffer window if there is more than one
 frame.
 
 @defun minibuffer-window-active-p window
-This function returns non-@code{nil} if @var{window}, assumed to be
-a minibuffer window, is currently active.
+This function returns non-@code{nil} if @var{window} is the currently
+active minibuffer window.
 @end defun
 
 @node Minibuffer Contents
@@ -2319,7 +2317,7 @@ minibuffer, it scrolls this window.
 @end defvar
 
 @defun minibuffer-selected-window
-This function returns the window which was selected when the
+This function returns the window that was selected when the
 minibuffer was entered.  If selected window is not a minibuffer
 window, it returns @code{nil}.
 @end defun
@@ -2330,10 +2328,19 @@ windows.  If a float, it specifies a fraction of the height of the
 frame.  If an integer, it specifies a number of lines.
 @end defopt
 
+@vindex minibuffer-message-timeout
 @defun minibuffer-message string &rest args
 This function displays @var{string} temporarily at the end of the
-minibuffer text, for two seconds, or until the next input event
-arrives, whichever comes first.  If @var{args} is non-@code{nil}, the
-actual message is obtained by passing @var{string} and @var{args}
-through @code{format}.  @xref{Formatting Strings}.
+minibuffer text, for a few seconds, or until the next input event
+arrives, whichever comes first.  The variable
+@code{minibuffer-message-timeout} specifies the number of seconds to
+wait in the absence of input.  It defaults to 2.  If @var{args} is
+non-@code{nil}, the actual message is obtained by passing @var{string}
+and @var{args} through @code{format}.  @xref{Formatting Strings}.
 @end defun
+
+@deffn Command minibuffer-inactive-mode
+This is the major mode used in inactive minibuffers.  It uses
+keymap @code{minibuffer-inactive-mode-map}.  This can be useful
+if the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
+@end deffn

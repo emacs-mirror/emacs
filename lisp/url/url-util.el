@@ -330,8 +330,7 @@ forbidden in URL encoding."
 		     " ")
 		    (t (byte-to-string code))))
 	      str (substring str (match-end 0)))))
-    (setq tmp (concat tmp str))
-    tmp))
+    (concat tmp str)))
 
 (defconst url-unreserved-chars
   '(

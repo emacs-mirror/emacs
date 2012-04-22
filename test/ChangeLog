@@ -1,3 +1,7 @@
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/vc-bzr.el (vc-bzr-test-faulty-bzr-autoloads): New test.
+
 2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* automated/url-future-tests.el (url-future-tests): Move from

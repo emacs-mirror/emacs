@@ -81,6 +81,13 @@ for both actions (NOT RECOMMENDED)."
   :group 'emacs-lock
   :version "24.1")
 
+(defcustom emacs-lock-locked-buffer-functions nil
+  "Abnormal hook run when Emacs Lock prevents exiting Emacs, or killing a buffer.
+The functions get one argument, the first locked buffer found."
+  :type 'hook
+  :group 'emacs-lock
+  :version "24.2")
+
 (defvar emacs-lock-mode nil
   "If non-nil, the current buffer is locked.
 It can be one of the following values:
@@ -119,40 +126,45 @@ See `emacs-lock-unlockable-modes'."
              (or (eq unlock 'all) (eq unlock action))))))
 
 (defun emacs-lock--exit-locked-buffer ()
-  "Return the name of the first exit-locked buffer found."
+  "Return the first exit-locked buffer found."
   (save-current-buffer
     (catch :found
       (dolist (buffer (buffer-list))
         (set-buffer buffer)
         (unless (or (emacs-lock--can-auto-unlock 'exit)
                     (memq emacs-lock-mode '(nil kill)))
-          (throw :found (buffer-name))))
+          (throw :found buffer)))
       nil)))
 
 (defun emacs-lock--kill-emacs-hook ()
   "Signal an error if any buffer is exit-locked.
 Used from `kill-emacs-hook' (which see)."
-  (let ((buffer-name (emacs-lock--exit-locked-buffer)))
-    (when buffer-name
-      (error "Emacs cannot exit because buffer %S is locked" buffer-name))))
+  (let ((locked (emacs-lock--exit-locked-buffer)))
+    (when locked
+      (run-hook-with-args 'emacs-lock-locked-buffer-functions locked)
+      (error "Emacs cannot exit because buffer %S is locked"
+             (buffer-name locked)))))
 
 (defun emacs-lock--kill-emacs-query-functions ()
   "Display a message if any buffer is exit-locked.
 Return a value appropriate for `kill-emacs-query-functions' (which see)."
   (let ((locked (emacs-lock--exit-locked-buffer)))
-    (or (not locked)
-        (progn
-          (message "Emacs cannot exit because buffer %S is locked" locked)
-          nil))))
+    (if (not locked)
+        t
+      (run-hook-with-args 'emacs-lock-locked-buffer-functions locked)
+      (message "Emacs cannot exit because buffer %S is locked"
+               (buffer-name locked))
+      nil)))
 
 (defun emacs-lock--kill-buffer-query-functions ()
   "Display a message if the current buffer is kill-locked.
 Return a value appropriate for `kill-buffer-query-functions' (which see)."
-  (or (emacs-lock--can-auto-unlock 'kill)
-      (memq emacs-lock-mode '(nil exit))
-      (progn
-        (message "Buffer %S is locked and cannot be killed" (buffer-name))
-        nil)))
+  (if (or (emacs-lock--can-auto-unlock 'kill)
+          (memq emacs-lock-mode '(nil exit)))
+      t
+    (run-hook-with-args 'emacs-lock-locked-buffer-functions (current-buffer))
+    (message "Buffer %S is locked and cannot be killed" (buffer-name))
+    nil))
 
 (defun emacs-lock--set-mode (mode arg)
   "Setter function for `emacs-lock-mode'."

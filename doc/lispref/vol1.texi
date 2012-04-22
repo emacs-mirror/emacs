@@ -141,7 +141,7 @@ Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 * Functions::               A function is a Lisp program
                               that can be invoked from other functions.
 * Macros::                  Macros are a way to extend the Lisp language.
-* Customization::           Writing customization declarations.
+* Customization::           Making variables and faces customizable.
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
@@ -520,6 +520,8 @@ Writing Customization Definitions
 * Group Definitions::       Writing customization group definitions.
 * Variable Definitions::    Declaring user options.
 * Customization Types::     Specifying the type of a user option.
+* Applying Customizations:: Functions to apply customization settings.
+* Custom Themes::           Writing Custom themes.
 
 Customization Types
 
@@ -656,8 +658,8 @@ Minibuffers
 * Multiple Queries::        Asking a series of similar questions.
 * Reading a Password::      Reading a password from the terminal.
 * Minibuffer Commands::     Commands used as key bindings in minibuffers.
-* Minibuffer Contents::     How such commands access the minibuffer text.
 * Minibuffer Windows::      Operating on the special minibuffer windows.
+* Minibuffer Contents::     How such commands access the minibuffer text.
 * Recursive Mini::          Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::         Various customization hooks and variables.
 
@@ -668,7 +670,7 @@ Completion
 * Minibuffer Completion::   Invoking the minibuffer with completion.
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
-                              (reading buffer name, file name, etc.).
+                              (reading buffer names, variable names, etc.).
 * Reading File Names::      Using completion to read file names and
                               shell commands.
 * Completion Variables::    Variables controlling completion behavior.
@@ -1317,7 +1319,7 @@ Overlays
 
 Faces
 
-* Defining Faces::          How to define a face with @code{defface}.
+* Defining Faces::          How to define a face.
 * Face Attributes::         What is in a face?
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for

@@ -69,11 +69,7 @@
 (require 'comint)
 (require 'ansi-color)
 
-(eval-when-compile
-  (require 'compile)
-  (require 'hippie-exp))
-
-(autoload 'comint-mode "comint")
+(eval-when-compile (require 'compile))
 
 (defgroup python nil
   "Silly walks in the Python language."
@@ -1488,8 +1484,6 @@ Don't save anything for STR matching `inferior-python-filter-regexp'."
            res)
           (t (concat res s)))))
 
-(autoload 'comint-check-proc "comint")
-
 (defvar python-version-checked nil)
 (defun python-check-version (cmd)
   "Check that CMD runs a suitable version of Python."
@@ -1684,8 +1678,6 @@ value to determine defaults."
   "Caches (directory . file) pair used in the last `python-load-file' command.
 Used for determining the default in the next one.")
 
-(autoload 'comint-get-source "comint")
-
 (defun python-load-file (file-name)
   "Load a Python file FILE-NAME into the inferior Python process.
 If the file has extension `.py' import or reload it as a module.
@@ -1776,7 +1768,7 @@ will."
   ;; allow C-c C-f in help buffer.
   (let ((temp-buffer-show-hook		; avoid xref stuff
 	 (lambda ()
-	   (toggle-read-only 1)
+	   (setq buffer-read-only t)
 	   (setq view-return-to-alist
 		 (list (cons (selected-window) help-return-method))))))
     (with-output-to-temp-buffer (help-buffer)
@@ -1959,7 +1951,7 @@ the string's indentation."
 		;; paragraph in a multi-line string properly, so narrow
 		;; to the string and then fill around (the end of) the
 		;; current line.
-		((eq t (nth 3 syntax))	; in fenced string
+		((nth 3 syntax)	; in fenced string
 		 (goto-char (nth 8 syntax)) ; string start
 		 (setq start (line-beginning-position))
 		 (setq end (condition-case () ; for unbalanced quotes

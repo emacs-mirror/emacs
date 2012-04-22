@@ -165,14 +165,13 @@ Its value should be an event that has a binding in MENU."
     ;; tmm-km-list is an alist of (STRING . MEANING).
     ;; It has no other elements.
     ;; The order of elements in tmm-km-list is the order of the menu bar.
-    (mapc (lambda (elt)
-            (cond
-             ((stringp elt) (setq gl-str elt))
-             ((listp elt) (tmm-get-keymap elt not-menu))
-             ((vectorp elt)
-              (dotimes (i (length elt))
-                (tmm-get-keymap (cons i (aref elt i)) not-menu)))))
-          menu)
+    (dolist (elt menu)
+      (cond
+       ((stringp elt) (setq gl-str elt))
+       ((listp elt) (tmm-get-keymap elt not-menu))
+       ((vectorp elt)
+        (dotimes (i (length elt))
+          (tmm-get-keymap (cons i (aref elt i)) not-menu)))))
     ;; Choose an element of tmm-km-list; put it in choice.
     (if (and not-menu (= 1 (length tmm-km-list)))
 	;; If this is the top-level of an x-popup-menu menu,
@@ -313,15 +312,13 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-define-keys (minibuffer)
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (mapc
-     (lambda (c)
-       (if (listp tmm-shortcut-style)
-	   (define-key map (char-to-string c) 'tmm-shortcut)
-	 ;; only one kind of letters are shortcuts, so map both upcase and
-	 ;; downcase input to the same
-	 (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
-	 (define-key map (char-to-string (upcase c)) 'tmm-shortcut)))
-     tmm-short-cuts)
+    (dolist (c tmm-short-cuts)
+      (if (listp tmm-shortcut-style)
+          (define-key map (char-to-string c) 'tmm-shortcut)
+        ;; only one kind of letters are shortcuts, so map both upcase and
+        ;; downcase input to the same
+        (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
+        (define-key map (char-to-string (upcase c)) 'tmm-shortcut)))
     (if minibuffer
 	(progn
           (define-key map [pageup] 'tmm-goto-completions)
@@ -401,14 +398,13 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	      (choose-completion))
 	  ;; In minibuffer
 	  (delete-region (minibuffer-prompt-end) (point-max))
-	  (mapc (lambda (elt)
-		  (if (string=
-		       (substring (car elt) 0
-				  (min (1+ (length tmm-mid-prompt))
-				       (length (car elt))))
-		       (concat (char-to-string c) tmm-mid-prompt))
-		      (setq s (car elt))))
-		  tmm-km-list)
+	  (dolist (elt tmm-km-list)
+            (if (string=
+                 (substring (car elt) 0
+                            (min (1+ (length tmm-mid-prompt))
+                                 (length (car elt))))
+                 (concat (char-to-string c) tmm-mid-prompt))
+                (setq s (car elt))))
 	  (insert s)
 	  (exit-minibuffer)))))
 
@@ -540,19 +536,15 @@ of `menu-bar-final-items'."
 	  (setq allbind (cons globalbind (cons localbind minorbind)))
 
 	  ;; Merge all the elements of ALLBIND into one keymap.
-	  (mapc (lambda (in)
-		  (if (and (symbolp in) (keymapp in))
-		      (setq in (symbol-function in)))
-		  (and in (keymapp in)
-		       (if (keymapp bind)
-			   (setq bind (nconc bind (copy-sequence (cdr in))))
-			 (setq bind (copy-sequence in)))))
-		  allbind)
+	  (dolist (in allbind)
+            (if (and (symbolp in) (keymapp in))
+                (setq in (symbol-function in)))
+            (and in (keymapp in)
+                 (setq bind (if (keymapp bind)
+                                (nconc bind (copy-sequence (cdr in)))
+                              (copy-sequence in)))))
 	  ;; Return that keymap.
 	  bind))))
-
-;; Huh?  What's that about?  --Stef
-(add-hook 'calendar-load-hook (lambda () (require 'cal-menu)))
 
 (provide 'tmm)
 

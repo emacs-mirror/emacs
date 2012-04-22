@@ -14,7 +14,7 @@ Emacs includes a facility that lets you easily download and install
 separate Emacs Lisp program, sometimes including other components such
 as an Info manual.
 
-  @kbd{M-x list-packages} brings up a buffer named @samp{*Packages*}
+  @kbd{M-x list-packages} brings up a buffer named @file{*Packages*}
 with a list of all packages.  You can install or uninstall packages
 via this buffer.  @xref{Package Menu}.
 

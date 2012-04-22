@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985-1987, 1993-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -2464,9 +2464,9 @@ COMMAND.
 To specify a coding system for converting non-ASCII characters
 in the input and output to the shell command, use \\[universal-coding-system-argument]
 before this command.  By default, the input (from the current buffer)
-is encoded in the same coding system that will be used to save the file,
-`buffer-file-coding-system'.  If the output is going to replace the region,
-then it is decoded from that same coding system.
+is encoded using coding-system specified by `process-coding-system-alist',
+falling back to `default-process-coding-system' if no match for COMMAND
+is found in `process-coding-system-alist'.
 
 The noninteractive arguments are START, END, COMMAND,
 OUTPUT-BUFFER, REPLACE, ERROR-BUFFER, and DISPLAY-ERROR-BUFFER.
@@ -2677,13 +2677,13 @@ value passed."
 (defvar process-file-side-effects t
   "Whether a call of `process-file' changes remote files.
 
-Per default, this variable is always set to `t', meaning that a
+By default, this variable is always set to `t', meaning that a
 call of `process-file' could potentially change any file on a
 remote host.  When set to `nil', a file handler could optimize
-its behavior with respect to remote file attributes caching.
+its behavior with respect to remote file attribute caching.
 
-This variable should never be changed by `setq'.  Instead of, it
-shall be set only by let-binding.")
+You should only ever change this variable with a let-binding;
+never with `setq'.")
 
 (defun start-file-process (name buffer program &rest program-args)
   "Start a program in a subprocess.  Return the process object for it.
@@ -3487,14 +3487,14 @@ and KILLP is t if a prefix arg was specified."
   "Kill up to and including ARGth occurrence of CHAR.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found."
-  (interactive "p\ncZap to char: ")
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+		     (read-char "Zap to char: " t)))
   ;; Avoid "obsolete" warnings for translation-table-for-input.
   (with-no-warnings
     (if (char-table-p translation-table-for-input)
 	(setq char (or (aref translation-table-for-input char) char))))
   (kill-region (point) (progn
 			 (search-forward (char-to-string char) nil nil arg)
-;			 (goto-char (if (> arg 0) (1- (point)) (1+ (point))))
 			 (point))))
 
 ;; kill-line and its subroutines.
@@ -4405,23 +4405,25 @@ lines."
 ;; a cleaner solution to the problem of making C-n do something
 ;; useful given a tall image.
 (defun line-move (arg &optional noerror to-end try-vscroll)
-  (unless (and auto-window-vscroll try-vscroll
-	       ;; Only vscroll for single line moves
-	       (= (abs arg) 1)
-	       ;; But don't vscroll in a keyboard macro.
-	       (not defining-kbd-macro)
-	       (not executing-kbd-macro)
-	       (line-move-partial arg noerror to-end))
-    (set-window-vscroll nil 0 t)
-    (if (and line-move-visual
-	     ;; Display-based column are incompatible with goal-column.
-	     (not goal-column)
-	     ;; When the text in the window is scrolled to the left,
-	     ;; display-based motion doesn't make sense (because each
-	     ;; logical line occupies exactly one screen line).
-	     (not (> (window-hscroll) 0)))
-	(line-move-visual arg noerror)
-      (line-move-1 arg noerror to-end))))
+  (if noninteractive
+      (forward-line arg)
+    (unless (and auto-window-vscroll try-vscroll
+		 ;; Only vscroll for single line moves
+		 (= (abs arg) 1)
+		 ;; But don't vscroll in a keyboard macro.
+		 (not defining-kbd-macro)
+		 (not executing-kbd-macro)
+		 (line-move-partial arg noerror to-end))
+      (set-window-vscroll nil 0 t)
+      (if (and line-move-visual
+	       ;; Display-based column are incompatible with goal-column.
+	       (not goal-column)
+	       ;; When the text in the window is scrolled to the left,
+	       ;; display-based motion doesn't make sense (because each
+	       ;; logical line occupies exactly one screen line).
+	       (not (> (window-hscroll) 0)))
+	  (line-move-visual arg noerror)
+	(line-move-1 arg noerror to-end)))))
 
 ;; Display-based alternative to line-move-1.
 ;; Arg says how many lines to move.  The value is t if we can move the

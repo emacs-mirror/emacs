@@ -136,9 +136,6 @@ This means the number of non-shy regexp grouping constructs
 
 ;;; Workhorse functions.
 
-(eval-when-compile
-  (require 'cl))
-
 (defun regexp-opt-group (strings &optional paren lax)
   "Return a regexp to match a string in the sorted list STRINGS.
 If PAREN non-nil, output regexp parentheses around returned regexp.
@@ -248,15 +245,15 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
     ;;
     ;; Make a character map but extract character set meta characters.
     (dolist (char chars)
-      (case char
-	(?\]
-	 (setq bracket "]"))
-	(?^
-	 (setq caret "^"))
-	(?-
-	 (setq dash "-"))
-	(otherwise
-	 (aset charmap char t))))
+      (cond
+       ((eq char ?\])
+	(setq bracket "]"))
+       ((eq char ?^)
+	(setq caret "^"))
+       ((eq char ?-)
+	(setq dash "-"))
+       (t
+	(aset charmap char t))))
     ;;
     ;; Make a character set from the map using ranges where applicable.
     (map-char-table
@@ -268,14 +265,14 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 		   (setq charset (format "%s%c-%c" charset start end))
 		 (while (>= end start)
 		   (setq charset (format "%s%c" charset start))
-		   (incf start)))
+		   (setq start (1+ start))))
 	       (setq start (car c) end (cdr c)))
 	   (if (= (1- c) end) (setq end c)
 	     (if (> end (+ start 2))
 	       (setq charset (format "%s%c-%c" charset start end))
 	     (while (>= end start)
 	       (setq charset (format "%s%c" charset start))
-	       (incf start)))
+	       (setq start (1+ start))))
 	     (setq start c end c)))))
      charmap)
     (when (>= end start)
@@ -283,7 +280,7 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 	  (setq charset (format "%s%c-%c" charset start end))
 	(while (>= end start)
 	  (setq charset (format "%s%c" charset start))
-	  (incf start))))
+	  (setq start (1+ start)))))
     ;;
     ;; Make sure a caret is not first and a dash is first or last.
     (if (and (string-equal charset "") (string-equal bracket ""))

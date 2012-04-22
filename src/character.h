@@ -316,7 +316,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Note: This macro returns the actual length of the character's
    multibyte sequence as it is stored in a buffer or string.  The
    character it returns might have a different codepoint that has a
-   different multibyte sequence of a different legth, due to possible
+   different multibyte sequence of a different length, due to possible
    unification of CJK characters inside string_char.  Therefore do NOT
    assume that the length returned by this macro is identical to the
    length of the multibyte sequence of the character it returns.  */

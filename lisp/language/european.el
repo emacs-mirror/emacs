@@ -324,6 +324,14 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
   :mime-charset 'windows-1257)
 (define-coding-system-alias 'cp1257 'windows-1257)
 
+(define-coding-system 'cp775
+  "DOS codepage 775 (PC Baltic, MS-DOS Baltic Rim)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp775)
+  :mime-charset 'cp775)
+(define-coding-system-alias 'ibm775 'cp775)
+
 (define-coding-system 'cp850
   "DOS codepage 850 (Western European)"
   :coding-type 'charset

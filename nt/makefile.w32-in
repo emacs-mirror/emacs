@@ -264,10 +264,10 @@ install-shortcuts: $(INSTALL_DIR)/bin
 maybe-copy-distfiles: maybe-copy-distfiles-$(SHELLTYPE)
 
 maybe-copy-distfiles-CMD: create-tmp-dist-dir doit
-	@if not $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE)=="" $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
+	@if not $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE) == "" $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
 
 maybe-copy-distfiles-SH: create-tmp-dist-dir doit
-	@if [ ! $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE)=="" ] ; then \
+	@if [ ! $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE) == "" ] ; then \
 	  $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin ; \
 	fi
 
@@ -307,11 +307,11 @@ info-nmake:
 	$(MAKE) $(MFLAGS) info
 	cd $(MAKEDIR)
 
-info-gmake:
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/emacs info
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/misc info
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispref info
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispintro info
+info-gmake: emacs misc lispref lispintro
+
+emacs misc lispref lispintro:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/$@ info
+
 #
 # Maintenance
 #

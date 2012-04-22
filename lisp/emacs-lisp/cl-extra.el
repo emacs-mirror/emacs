@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2
 
-;; Copyright (C) 1993, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -430,7 +430,6 @@ With two arguments, return rounding and remainder of their quotient."
 
 ;; Random numbers.
 
-(defvar *random-state*)
 ;;;###autoload
 (defun random* (lim &optional state)
   "Return a random nonnegative number less than LIM, an integer or float.

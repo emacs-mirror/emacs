@@ -3592,7 +3592,7 @@ Key bindings specific to `verilog-mode-map' are:
   (set (make-local-variable 'imenu-generic-expression)
        verilog-imenu-generic-expression)
   ;; Tell which-func-modes that imenu knows about verilog
-  (when (boundp 'which-func-modes)
+  (when (and (boundp 'which-func-modes) (listp which-func-modes))
     (add-to-list 'which-func-modes 'verilog-mode))
   ;; hideshow support
   (when (boundp 'hs-special-modes-alist)

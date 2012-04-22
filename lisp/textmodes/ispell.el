@@ -574,12 +574,12 @@ re-start Emacs."
 
 
 (defvar ispell-dictionary-base-alist
-  '((nil
+  '((nil                                ; default
      ;; The default dictionary.  It may be English.aff, or any other
      ;; dictionary depending on locale and such things.  We should probably
      ;; ask ispell what dictionary it's using, but until we do that, let's
-     ;; just use an approximate regexp.
-     "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-B") nil iso-8859-1)
+     ;; just use a minimal regexp. [:alpha:] will later be set if possible.
+     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
     ("american"				; Yankee English
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
     ("brasileiro"			; Brazilian mode
@@ -684,7 +684,8 @@ re-start Emacs."
     ("svenska"				; Swedish mode
      "[A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
      "[^A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
-     "[']" nil ("-C") "~list" iso-8859-1))
+     "[']" nil ("-C") "~list" iso-8859-1)
+    ("hebrew" "[\340\341\342\343\344\345\346\347\350\351\353\352\354\356\355\360\357\361\362\364\363\367\366\365\370\371\372]" "[^\340\341\342\343\344\345\346\347\350\351\353\352\354\356\355\360\357\361\362\364\363\367\366\365\370\371\372]" "" nil ("-B") nil cp1255))
   "Base value for `ispell-dictionary-alist'.")
 
 (defvar ispell-dictionary-alist nil
@@ -766,6 +767,12 @@ here just for backwards compatibility.")
 (make-obsolete-variable 'ispell-aspell-supports-utf8
                         'ispell-encoding8-command "23.1")
 
+(defvar ispell-emacs-alpha-regexp
+  (if (string-match "^[[:alpha:]]+$" "abcde")
+      "[[:alpha:]]"
+    nil)
+  "[[:alpha:]] if Emacs supports [:alpha:] regexp, nil
+otherwise (current XEmacs does not support it).")
 
 ;;; **********************************************************************
 ;;; The following are used by ispell, and should not be changed.
@@ -1091,8 +1098,7 @@ aspell is used along with Emacs).")
 	       (error nil))
 	     ispell-really-aspell
 	     ispell-encoding8-command
-	     ;; XEmacs does not like [:alpha:] regexps.
-	     (string-match "^[[:alpha:]]+$" "abcde"))
+	     ispell-emacs-alpha-regexp)
 	(unless ispell-aspell-dictionary-alist
 	  (ispell-find-aspell-dictionaries)))
 
@@ -1116,8 +1122,27 @@ aspell is used along with Emacs).")
 			    ispell-dictionary-base-alist))
 	(unless (assoc (car dict) all-dicts-alist)
 	  (add-to-list 'all-dicts-alist dict)))
-      (setq ispell-dictionary-alist all-dicts-alist))))
+      (setq ispell-dictionary-alist all-dicts-alist))
 
+    ;; If Emacs flavor supports [:alpha:] use it for global dicts.  If
+    ;; spellchecker also supports UTF-8 via command-line option use it
+    ;; in communication.  This does not affect definitions in ~/.emacs.
+    (if ispell-emacs-alpha-regexp
+     	(let (tmp-dicts-alist)
+    	  (dolist (adict ispell-dictionary-alist)
+  	    (add-to-list 'tmp-dicts-alist
+   			 (list
+   			  (nth 0 adict)  ; dict name
+    			  "[[:alpha:]]"  ; casechars
+    			  "[^[:alpha:]]" ; not-casechars
+   			  (nth 3 adict)  ; otherchars
+    			  (nth 4 adict)  ; many-otherchars-p
+   			  (nth 5 adict)  ; ispell-args
+   			  (nth 6 adict)  ; extended-character-mode
+			  (if ispell-encoding8-command
+			      'utf-8
+			    (nth 7 adict)))))
+    	  (setq ispell-dictionary-alist tmp-dicts-alist)))))
 
 (defun ispell-valid-dictionary-list ()
   "Return a list of valid dictionaries.

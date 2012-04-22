@@ -1,3 +1,25 @@
+2012-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp (RUN_EMACS): Replace BUILT_EMACS with EMACS.
+	Remove stale editing of "else make quail".
+	(.PHONY, compile-targets): Remove targets.
+	(compile-main): Edit into something that can be done without
+	requiring a Unixy shell.
+	(bootstrap-clean): Likewise: edit to not require $(setwins).
+
+	* sed1v2.inp: Edit "cd $(leimdir) && $(MAKE) ..." into the
+	equivalent "$(MAKE) $(MFLAGS) -C $(leimdir) ..." command.
+
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* sed1v2.inp, sed3v2.inp, sedlibmk.inp: GNULIB_WARN_CFLAGS,
+	WARN_CFLAGS, and WERROR_CFLAGS replace C_WARNINGS_SWITCH.
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* sedlibmk.inp, sed1v2.inp: GNUSTEP_CFLAGS replaces C_SWITCH_X_SYSTEM.
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* sed2v2.inp: Bump version to 24.1.50.
@@ -1312,7 +1334,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1994-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1994-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

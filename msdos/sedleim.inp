@@ -33,13 +33,10 @@ s|\([ 	]\)echo|\1djecho|g
 
 /RUN_EMACS *=/,/^$/c\
 export EMACSLOADPATH=${buildlisppath}\
-RUN_EMACS = ${BUILT_EMACS} -batch --no-site-file
+RUN_EMACS = ${EMACS} -batch --no-site-file
 
 /^	cd ../c\
 	${MAKE} -C ../src ${MFLAGS} emacs
-
-/else make quail/c\
-	if not exist quail\\nul make quail
 
 /if \[ -f $@ \]\; then true/d
 /fi$/s/; fi$//
@@ -51,8 +48,22 @@ RUN_EMACS = ${BUILT_EMACS} -batch --no-site-file
 	/^	--eval/,/; \\$/s|\; \\||
 }
 
+/^setwins=/,/^$/d
+/^\.PHONY: compile-targets/d
+/^compile-targets:/d
+/^compile-main:/,/^$/c\
+compile-main: ${TIT_MISC}\
+	$(MAKE) $(MFLAGS) $(foreach f,$(wildcard ja-dic/*.el),$(basename $f).elc)\
+	$(MAKE) $(MFLAGS) $(foreach f,$(wildcard quail/*.el),$(basename $f).elc)\
+
+
 /^install:/,/^$/c\
 install: all\
+
+/^bootstrap-clean:/,/^$/c\
+bootstrap-clean: clean\
+	rm -f ja-dic/*.elc quail/*.elc\
+
 
 /^	if test -f/d
 /^distclean:/,/^$/ {

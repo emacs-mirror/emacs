@@ -260,7 +260,7 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 	 ;; repeat-command still does the toggling correctly.
 	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (let ((,last-message (current-message)))
-           (,@(if setter (list setter)
+           (,@(if setter `(funcall #',setter)
                 (list (if (symbolp mode) 'setq 'setf) mode))
             (if (eq arg 'toggle)
                 (not ,mode)

@@ -2,7 +2,7 @@
 # Configuration script for src/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1996-1997, 1999-2012  Free Software Foundation, Inc.
+# Copyright (C) 1996-1997, 1999-2012 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -39,9 +39,10 @@ s/\.h\.in/.h-in/
 /^LIBOBJS *=/s/@[^@\n]*@//
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
-/^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
+/^GNUSTEP_CFLAGS *=/s/@GNUSTEP_CFLAGS@//
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
-/^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
+/^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
+/^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
 /^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
 #/^LD_SWITCH_X_SITE *=/s/@LD_SWITCH_X_SITE@//
 /^LD_SWITCH_SYSTEM_TEMACS *=/s/@LD_SWITCH_SYSTEM_TEMACS@//
@@ -151,6 +152,8 @@ s/^	[^ 	]*move-if-change /	update /
 /^	echo[ 	][ 	]*timestamp/s/echo /djecho /
 /^	.*djecho timestamp/a\
 	@rm -f gl-tmp
+/^	cd \$(leimdir) && \$(MAKE)/c\
+	$(MAKE) $(MFLAGS) -C $(leimdir) leim-list.el EMACS=$(bootstrap_exe)
 /^	cd \$(lib) && \$(MAKE)/c\
 	$(MAKE) $(MFLAGS) -C $(lib) libgnu.a
 /^RUN_TEMACS *=/s|`/bin/pwd`|.|
@@ -186,7 +189,7 @@ s/echo.*buildobj.lst/dj&/
 /^	 *THEFILE=/s|$|\; cd ../src|
 /^	echo.* buildobj.h/s|echo |djecho |
 # Make the GCC command line fit one screen line
-/^[ 	][ 	]*\$(C_SWITCH_X_SYSTEM)/d
+/^[ 	][ 	]*\$(GNUSTEP_CFLAGS)/d
 /^[ 	][ 	]*\$(GCONF_CFLAGS)/d
 /^[ 	][ 	]*\$(LIBGNUTLS_CFLAGS)/d
 s/\$(LIBOTF_CFLAGS) \$(M17N_FLT_CFLAGS) \$(DEPFLAGS) //

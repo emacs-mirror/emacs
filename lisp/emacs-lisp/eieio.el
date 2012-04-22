@@ -3051,7 +3051,7 @@ Optional argument GROUP is the sub-group of slots to display.
 
 ;;;### (autoloads (eieio-help-mode-augmentation-maybee eieio-describe-generic
 ;;;;;;  eieio-describe-constructor eieio-describe-class eieio-browse)
-;;;;;;  "eieio-opt" "eieio-opt.el" "e2814881441ad23759409687502f0ee1")
+;;;;;;  "eieio-opt" "eieio-opt.el" "d808328f9c0156ecbd412d77ba8c569e")
 ;;; Generated autoloads from eieio-opt.el
 
 (autoload 'eieio-browse "eieio-opt" "\
@@ -3060,7 +3060,6 @@ If optional ROOT-CLASS, then start with that, otherwise start with
 variable `eieio-default-superclass'.
 
 \(fn &optional ROOT-CLASS)" t nil)
-
 (defalias 'describe-class 'eieio-describe-class)
 
 (autoload 'eieio-describe-class "eieio-opt" "\
@@ -3075,7 +3074,6 @@ Describe the constructor function FCN.
 Uses `eieio-describe-class' to describe the class being constructed.
 
 \(fn FCN)" t nil)
-
 (defalias 'describe-generic 'eieio-describe-generic)
 
 (autoload 'eieio-describe-generic "eieio-opt" "\

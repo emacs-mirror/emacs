@@ -2,7 +2,6 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/modes
 @node Modes, Documentation, Keymaps, Top
 @chapter Major and Minor Modes
 @cindex mode
@@ -628,7 +627,7 @@ have set.
 This function sets the major mode of @var{buffer} to the default value of
 @code{major-mode}; if that is @code{nil}, it uses the
 current buffer's major mode (if that is suitable).  As an exception,
-if @var{buffer}'s name is @samp{*scratch*}, it sets the mode to
+if @var{buffer}'s name is @file{*scratch*}, it sets the mode to
 @code{initial-major-mode}.
 
 The low-level primitives for creating buffers do not use this function,
@@ -637,9 +636,9 @@ but medium-level commands such as @code{switch-to-buffer} and
 @end defun
 
 @defopt initial-major-mode
-@cindex @samp{*scratch*}
+@cindex @file{*scratch*}
 The value of this variable determines the major mode of the initial
-@samp{*scratch*} buffer.  The value should be a symbol that is a major
+@file{*scratch*} buffer.  The value should be a symbol that is a major
 mode command.  The default value is @code{lisp-interaction-mode}.
 @end defopt
 
@@ -908,7 +907,7 @@ common bindings, including @kbd{q} for @code{quit-window}, @kbd{z} for
 (@pxref{Reverting}).
 
 An example of a major mode derived from Special mode is Buffer Menu
-mode, which is used by the @samp{*Buffer List*} buffer.  @xref{List
+mode, which is used by the @file{*Buffer List*} buffer.  @xref{List
 Buffers,,Listing Existing Buffers, emacs, The GNU Emacs Manual}.
 @end deffn
 
@@ -1571,8 +1570,8 @@ rather than buffer-local.  It defaults to @code{nil}.
 
 One of the effects of making a minor mode global is that the
 @var{mode} variable becomes a customization variable.  Toggling it
-through the Custom interface turns the mode on and off, and its value
-can be saved for future Emacs sessions (@pxref{Saving
+through the Customize interface turns the mode on and off, and its
+value can be saved for future Emacs sessions (@pxref{Saving
 Customizations,,, emacs, The GNU Emacs Manual}.  For the saved
 variable to work, you should ensure that the @code{define-minor-mode}
 form is evaluated each time Emacs starts; for packages that are not
@@ -1691,7 +1690,7 @@ Fundamental mode; but it does not detect the creation of a new buffer
 in Fundamental mode.
 
 This defines the customization option @var{global-mode} (@pxref{Customization}),
-which can be toggled in the Custom interface to turn the minor mode on
+which can be toggled in the Customize interface to turn the minor mode on
 and off.  As with @code{define-minor-mode}, you should ensure that the
 @code{define-globalized-minor-mode} form is evaluated each time Emacs
 starts, for example by providing a @code{:require} keyword.
@@ -2016,7 +2015,7 @@ identify the mode name in the mode line, use @code{format-mode-line}
 This buffer-local variable contains the mode line information on process
 status in modes used for communicating with subprocesses.  It is
 displayed immediately following the major mode name, with no intervening
-space.  For example, its value in the @samp{*shell*} buffer is
+space.  For example, its value in the @file{*shell*} buffer is
 @code{(":%s")}, which allows the shell to display its status along
 with the major mode as: @samp{(Shell:run)}.  Normally this variable
 is @code{nil}.

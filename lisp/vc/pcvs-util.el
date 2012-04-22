@@ -182,9 +182,7 @@ arguments.  If ARGS is not a list, no argument will be passed."
 			  (if oneline (line-end-position) (point-max))))
     (file-error nil)))
 
-(defun cvs-string-prefix-p (str1 str2)
-  "Tell whether STR1 is a prefix of STR2."
-  (eq t (compare-strings str2 nil (length str1) str1 nil nil)))
+(define-obsolete-function-alias 'cvs-string-prefix-p 'string-prefix-p "24.2")
 
 ;;;;
 ;;;; file names

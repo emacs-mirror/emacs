@@ -53,11 +53,16 @@ pt-br	Rodrigo Real
 ru	Alex Ott              
 sk	Miroslav Vaško        
 
+** For a major release, add a "New in Emacs XX" section to faq.texi.
+
 ** Remove temporary +++/--- lines in NEWS.
 
 ** Try to reorder NEWS: most important things first, related items together.
 
 ** Consider bumping customize-changed-options-previous-release.
+
+** cusver-check from admin.el cam help find new defcustoms missing
+:version tags.
 
 * BUGS
 
@@ -155,13 +160,8 @@ mini.texi         rgm
 misc.texi         cyd
 modes.texi        cyd
 msdog.texi        rgm  (can't actually test any of it though)
-  It was not obvious to me that the following is true (it could well be though):
-
-   Emacs on Windows automatically determines your default printer and
-   sets the variable `printer-name' to that printer's name.
-
 msdog-xtra.texi   rgm  (can't actually test any of it though)
-mule.texi         
+mule.texi         rgm  (not 100% sure about "Fontsets")
 m-x.texi          cyd
 package.texi      cyd
 picture-xtra.texi rgm
@@ -182,7 +182,7 @@ xresources.texi   cyd
 
 abbrevs.texi      rgm
 advice.texi       cyd
-anti.texi         
+anti.texi         rgm
 back.texi         rgm
 backups.texi      cyd
 buffers.texi      cyd
@@ -211,7 +211,7 @@ loading.texi      cyd
 macros.texi       cyd
 maps.texi         rgm
 markers.texi      rgm
-minibuf.texi      
+minibuf.texi      rgm
 modes.texi        cyd
 nonascii.texi     cyd
 numbers.texi      cyd
@@ -219,7 +219,7 @@ objects.texi      cyd
 os.texi           cyd
 package.texi      rgm
 positions.texi    cyd
-processes.texi
+processes.texi    rgm
 searching.texi    rgm
 sequences.texi    cyd
 streams.texi      cyd

@@ -1,3 +1,28 @@
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* emacsclient.c (decode_options): Move -t -n corner case handling
+	into server.el (Bug#11102).
+	(main): Send -tty to Emacs under more circumstanced (Bug#8314).
+
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* Makefile.in (C_WARNINGS_SWITCH): Remove.
+	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
+	(BASE_CFLAGS): Use new macros rather than old.
+
+2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume less-ancient POSIX support.
+	* update-game-score.c: Include <getopt.h> rather than rolling our
+	own decls for optarg, optind, opterr.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html>.
+
+2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (decode_options) [WINDOWSNT]:
+	Call ttyname instead of passing its address (typo in revno:106608).
+
 2012-04-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (obj): Add xml.o.
@@ -62,7 +87,7 @@
 	* makefile.w32-in (LOCAL_FLAGS): Add $(EMACS_EXTRA_C_FLAGS).
 
 	* emacsclient.c (main) <environ>: Remove declaration, already
-	pulled in by unistd.h on Posix hosts and stdlib.h on MS-Windows.
+	pulled in by unistd.h on POSIX hosts and stdlib.h on MS-Windows.
 
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
@@ -6646,7 +6671,7 @@
 
 1993-08-25  Paul Eggert  (eggert@twinsun.com)
 
-	* rcs2log: Change /{/ to /\{/ for Posix ERE compatibility;
+	* rcs2log: Change /{/ to /\{/ for POSIX ERE compatibility;
 	otherwise, HP awk complains.
 
 	* vcdiff: Append /usr/ccs/bin and /usr/sccs to PATH, since these
@@ -6993,7 +7018,7 @@
 
 	* rcs2log: mawk, SunOS 4.1.3 nawk, and Ultrix/MKS nawk all barf on
 	/[/]/, so change it to /[\/]/.  This should work on all
-	Posix-compliant awks.  It's slightly wrong with traditional awk,
+	POSIX-compliant awks.  It's slightly wrong with traditional awk,
 	since it matches \ too, but that's a minor problem compared to awk
 	syntax errors.
 

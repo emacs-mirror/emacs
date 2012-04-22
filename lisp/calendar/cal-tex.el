@@ -1,6 +1,6 @@
 ;;; cal-tex.el --- calendar functions for printing calendars with LaTeX
 
-;; Copyright (C) 1995, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Steve Fisk <fisk@bowdoin.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -1588,8 +1588,7 @@ informative header, and run HOOK."
   (cal-tex-e-document)
   (or (and cal-tex-preamble-extra
            (string-match "inputenc" cal-tex-preamble-extra))
-      (not (re-search-backward "[^[:ascii:]]" nil 'move))
-      (progn
+      (when (re-search-backward "[^[:ascii:]]" nil 'move)
         (goto-char (point-min))
         (when (search-forward "documentclass" nil t)
           (forward-line 1)

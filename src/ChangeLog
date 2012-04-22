@@ -1,4 +1,4 @@
-2012-04-09  Paul Eggert  <eggert@cs.ucla.edu>
+2012-04-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -790,6 +790,187 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
+2012-04-21  Eduard Wiebe  <usenet@pusto.de>
+
+	* sysdep.c (list_system_processes, system_process_attributes): Add
+	implementation for FreeBSD (Bug#5243).
+
+2012-04-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.mk (lisp): Update.
+
+2012-04-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (process_pending_signals): Define only if SYNC_INPUT.
+	It is never used otherwise.
+
+2012-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print_preprocess): Only check print_depth if print-circle
+	is nil.
+	(print_object): Check for cycles even when print-circle is nil and
+	print-gensym is t, but only check print_depth if print-circle is nil.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* process.c (wait_reading_process_output): If EIO occurs on a pty,
+	set the status to "failed" and ensure that sentinel is run.
+
+2012-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (Fset_process_inherit_coding_system_flag)
+	(Fset_process_query_on_exit_flag): Doc fix (mention return value).
+	(Fmake_network_process, Fmake_serial_process): Doc fix.
+
+2012-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (string_buffer_position_lim): Limit starting position to
+	BEGV.
+	(set_cursor_from_row): If called for a mode-line or header-line
+	row, return zero immediately.
+	(try_cursor_movement): If inside continuation line, don't back up
+	farther than the first row after the header line, if any.
+	Don't consider the header-line row as "partially visible", even if
+	MATRIX_ROW_PARTIALLY_VISIBLE_P returns non-zero.  (Bug#11261)
+
+2012-04-20  Atsuo Ohki  <ohki@gssm.otsuka.tsukuba.ac.jp>  (tiny change)
+
+	* lread.c (lisp_file_lexically_bound_p): Fix hang at ";-*-\n"
+	(bug#11238).
+
+2012-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* Makefile.in (C_WARNINGS_SWITCH): Remove.
+	(WARN_CFLAGS, WERROR_CFLAGS): New macros.
+	(ALL_CFLAGS): Use new macros rather than old.
+	* process.c: Ignore -Wstrict-overflow to work around GCC bug 52904.
+	* regex.c: Ignore -Wstrict-overflow.  If !emacs, also ignore
+	-Wunused-but-set-variable, -Wunused-function, -Wunused-macros,
+	-Wunused-result, -Wunused-variable.  This should go away once
+	the Emacs and Gnulib regex code is merged.
+	(xmalloc, xrealloc): Now static.
+
+2012-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dired.c (Fsystem_groups): Remove unused local.
+
+2012-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* dired.c (Fsystem_users): Doc fix.
+
+2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dired.c (Fsystem_users, Fsystem_groups): New functions.  (Bug#7900)
+	(syms_of_dired): Add them.
+
+2012-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor alloc.c problems found by static checking.
+	* alloc.c (_malloc_internal, _free_internal) [!DOUG_LEA_MALLOC]:
+	New extern decls, to avoid calling undeclared functions.
+	(dont_register_blocks): Define if ((!SYSTEM_MALLOC && !SYNC_INPUT)
+	&& GC_MALLOC_CHECK), not if ((GC_MARK_STACK || defined
+	GC_MALLOC_CHECK) && GC_MALLOC_CHECK), to match when it's used.
+	(NEED_MEM_INSERT): New macro.
+	(mem_insert, mem_insert_fixup) [!NEED_MEM_INSERT]: Remove; unused.
+	Remove one incorrect comment and fix another.
+
+	Fix minor ralloc.c problems found by static checking.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html
+	* ralloc.c (ALIGNED, ROUND_TO_PAGE, HEAP_PTR_SIZE)
+	(r_alloc_size_in_use, r_alloc_freeze, r_alloc_thaw): Remove; unused.
+	(r_alloc_sbrk): Now static.
+
+	Improve ralloc.c interface checking.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html
+	* buffer.c (ralloc_reset_variable, r_alloc, r_re_alloc)
+	(r_alloc_free) [REL_ALLOC]: Move decls from here ...
+	* lisp.h (r_alloc, r_alloc_free, r_re_alloc, r_alloc_reset_variable)
+	[REL_ALLOC]: ... to here, to check interface.
+	* m/ia64.h (r_alloc, r_alloc_free) [REL_ALLOC && !_MALLOC_INTERNAL]:
+	Remove decls.  This fixes an "It stinks!".
+
+	* alloc.c (which_symbols): Fix alignment issue / type clash.
+
+2012-04-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h (struct Lisp_Symbol): Remove explicit padding.
+	(struct Lisp_Misc_Any): Likewise.
+	(struct Lisp_Free): Likewise.
+	* alloc.c (union aligned_Lisp_Symbol): Define.
+	(SYMBOL_BLOCK_SIZE, struct symbol_block): Use union
+	aligned_Lisp_Symbol instead of struct Lisp_Symbol.
+	(union aligned_Lisp_Misc): Define.
+	(MARKER_BLOCK_SIZE, struct marker_block): Use union
+	aligned_Lisp_Misc instead of union Lisp_Misc.
+	(Fmake_symbol, allocate_misc, gc_sweep): Adjust.
+
+2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make GC_MAKE_GCPROS_NOOPS the default (Bug#9926).
+	* lisp.h (GC_MARK_STACK): Default to GC_MAKE_GCPROS_NOOPS.
+	* s/cygwin.h, s/darwin.h, s/freebsd.h, s/gnu.h, s/irix6-5.h, s/msdos.h:
+	* s/netbsd.h, s/sol2-6.h:
+	Remove definition of GC_MARK_STACK, since the default now works.
+	* s/aix4-2.h, s/hpux10-20.h, s/unixware.h:
+	Define GC_MARK_STACK to GC_USE_GCPROS_AS_BEFORE, since that's
+	no longer the default.
+	* s/gnu-linux.h (GC_MARK_STACK): Adjust to change in default.
+
+2012-04-14  Atsuo Ohki  <ohki@gssm.otsuka.tsukuba.ac.jp>  (tiny change)
+
+	* lread.c (lisp_file_lexically_bound_p):
+	Fix hang at ";-*-\n" (bug#11238).
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_last_unchanged_at_beg_row): Don't consider a row
+	"unchanged" if its end.pos is beyond ZV.  (Bug#11199)
+
+2012-04-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (constrainFrameRect): Always constrain when there is only
+	one screen (Bug#10962).
+
+2012-04-13  Ken Brown  <kbrown@cornell.edu>
+
+	* s/cygwin.h (PTY_OPEN): Don't try to close a bogus file descriptor.
+
+2012-04-13  Reuben Thomas  <rrt@sc3d.org>
+
+	* indent.c (Fmove_to_column): Change interactive spec (Bug#739).
+
+2012-04-11  Daniel Colascione  <dancol@dancol.org>
+
+	* s/cygwin.h: The vfork the #define in cygwin.h was protecting
+	against is gone.  It's better to use vfork now so that when Cygwin
+	gains a new, working vfork, we use it automatically (bug#10398).
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (save_window_save): Obey window-point-insertion-type.
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (GNUSTEP_CFLAGS): Rename from C_SWITCH_X_SYSTEM.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (lisp_align_malloc): Remove unneeded prototype.
+
+2012-04-10  Jason S. Cornez  <jcornez@ravenpack.com>  (tiny change)
+
+	* keyboard.c: Override inhibit-quit after the third C-g (bug#6585).
+	(force_quit_count): New var.
+	(handle_interrupt): Use it.
+
+2012-04-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (w32_delayed_load): Record the full path of the library
+	being loaded (bug#10424).
+
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
 	* doc.c (Fsnarf_documentation): Check variables, functions are bound,
@@ -804,8 +985,8 @@
 	* process.h: Add integer `gnutls_handshakes_tried' member to
 	process struct.
 
-	* gnutls.h: Add `GNUTLS_EMACS_HANDSHAKES_LIMIT' upper limit.  Add
-	convenience `GNUTLS_LOG2i' macro.
+	* gnutls.h: Add `GNUTLS_EMACS_HANDSHAKES_LIMIT' upper limit.
+	Add convenience `GNUTLS_LOG2i' macro.
 
 	* gnutls.c (gnutls_log_function2i): Convenience log function.
 	(emacs_gnutls_read): Use new log functions,
@@ -891,8 +1072,8 @@
 	(xml_cleanup_parser): New function, export for fn_xmlCleanupParser.
 	Calls xmlCleanupParser only if libxml2 was loaded (or statically
 	linked in).
-	(Flibxml_parse_html_region, Flibxml_parse_xml_region): Call
-	init_libxml2_functions before calling libxml2 functions.
+	(Flibxml_parse_html_region, Flibxml_parse_xml_region):
+	Call init_libxml2_functions before calling libxml2 functions.
 	(syms_of_xml) <Qlibxml2_dll>: DEFSYM it.
 
 	* emacs.c: Don't include libxml/parser.h.
@@ -2278,7 +2459,7 @@
 	* xfns.c (unwind_create_frame): Fix comment.
 	(Fx_create_frame, x_create_tip_frame):
 	Move terminal->reference_count++ just before making the frame
-	official. Move initialization of image_cache_refcount and
+	official.  Move initialization of image_cache_refcount and
 	dpyinfo_refcount before calling init_frame_faces (Bug#9943).
 
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
@@ -8051,7 +8232,7 @@
 	* xfaces.c <Qunspecified>: Make extern again.
 
 	* syntax.c: Include sys/types.h before including regex.h, as
-	required by Posix.
+	required by POSIX.
 
 	* doc.c (get_doc_string): Improve the format passed to `error'.
 
@@ -10515,7 +10696,7 @@ See ChangeLog.11 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2012  Free Software Foundation, Inc.
+  Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

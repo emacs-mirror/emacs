@@ -1,8 +1,7 @@
 @c -*-coding: iso-latin-1-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/intro
 
 @node Introduction, Lisp Data Types, Top, Top
 @comment  node-name,  next,  previous,  up
@@ -247,7 +246,7 @@ indicated with @samp{@equiv{}}.
 
   Many of the examples in this manual print text when they are
 evaluated.  If you execute example code in a Lisp Interaction buffer
-(such as the buffer @samp{*scratch*}), the printed text is inserted into
+(such as the buffer @file{*scratch*}), the printed text is inserted into
 the buffer.  If you execute the example by other means (such as by
 evaluating the function @code{eval-region}), the printed text is
 displayed in the echo area.

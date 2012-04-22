@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/strings
 @node Strings and Characters, Lists, Numbers, Top
 @comment  node-name,  next,  previous,  up
 @chapter Strings and Characters
@@ -1117,7 +1116,7 @@ Exits}).
 @acronym{ASCII} characters; for example, in the Turkish language
 environment, the @acronym{ASCII} character @samp{I} is downcased into
 a Turkish ``dotless i''.  This can interfere with code that requires
-ordinary ASCII case conversion, such as implementations of
+ordinary @acronym{ASCII} case conversion, such as implementations of
 @acronym{ASCII}-based network protocols.  In that case, use the
 @code{with-case-table} macro with the variable @var{ascii-case-table},
 which stores the unmodified case table for the @acronym{ASCII}

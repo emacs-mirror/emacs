@@ -2,7 +2,7 @@
 # Configuration script for lib/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 2011-2012  Free Software Foundation, Inc.
+# Copyright (C) 2011-2012 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -27,7 +27,7 @@
 #    otherwise edit them to zero:
 #
 #     /^REPLACE_CALLOC *=/s/@REPLACE_CALLOC@/0/
-# 
+#
 #  . If the module is a header or adds headers, edit the corresponding
 #    variable to either an empty value or to the name of the header.
 #    Examples:
@@ -124,9 +124,11 @@ am__cd = cd
 /^CYGWIN_OBJ *=/s/@[^@\n]*@//
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
-/^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
+/^GNUSTEP_CFLAGS *=/s/@GNUSTEP_CFLAGS@//
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
-/^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
+/^GNULIB_WARN_CFLAGS *=/s/@GNULIB_WARN_CFLAGS@//
+/^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
+/^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
 /^DEFS *=/s/@[^@\n]*@/-DHAVE_CONFIG_H/
 /^DEPDIR *=/s/@[^@\n]*@/deps/
 /^DEPFLAGS *=/s/@[^@\n]*@/-MMD -MF ${DEPDIR}\/$*.d/

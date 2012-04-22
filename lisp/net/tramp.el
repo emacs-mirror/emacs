@@ -3133,11 +3133,12 @@ beginning of local filename are not substituted."
 (defun tramp-action-password (proc vec)
   "Query the user for a password."
   (with-current-buffer (process-buffer proc)
-    (tramp-check-for-regexp proc tramp-password-prompt-regexp)
-    (tramp-message vec 3 "Sending %s" (match-string 1))
-    (tramp-enter-password proc)
-    ;; Hide password prompt.
-    (narrow-to-region (point-max) (point-max))))
+    (let ((enable-recursive-minibuffers t))
+      (tramp-check-for-regexp proc tramp-password-prompt-regexp)
+      (tramp-message vec 3 "Sending %s" (match-string 1))
+      (tramp-enter-password proc)
+      ;; Hide password prompt.
+      (narrow-to-region (point-max) (point-max)))))
 
 (defun tramp-action-succeed (proc vec)
   "Signal success in finding shell prompt."

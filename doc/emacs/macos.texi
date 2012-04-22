@@ -142,7 +142,7 @@ Emacs open a file.  A typical reason for this would be a user
 double-clicking a file in the Finder application.  By default, Emacs
 responds to this event by opening a new frame and visiting the file in
 that frame (@code{ns-find-file}).  As an exception, if the selected
-buffer is the @samp{*scratch*} buffer, Emacs visits the file in the
+buffer is the @file{*scratch*} buffer, Emacs visits the file in the
 selected frame.
 
 You can change how Emacs responds to a @code{ns-open-file} event by

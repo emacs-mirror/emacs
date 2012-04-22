@@ -70,9 +70,10 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/gnulib-common.m4 \
 	$(top_srcdir)/m4/include_next.m4 $(top_srcdir)/m4/inttypes.m4 \
 	$(top_srcdir)/m4/largefile.m4 $(top_srcdir)/m4/longlong.m4 \
-	$(top_srcdir)/m4/lstat.m4 $(top_srcdir)/m4/md5.m4 \
-	$(top_srcdir)/m4/mktime.m4 $(top_srcdir)/m4/multiarch.m4 \
-	$(top_srcdir)/m4/nocrash.m4 $(top_srcdir)/m4/pathmax.m4 \
+	$(top_srcdir)/m4/lstat.m4 $(top_srcdir)/m4/manywarnings.m4 \
+	$(top_srcdir)/m4/md5.m4 $(top_srcdir)/m4/mktime.m4 \
+	$(top_srcdir)/m4/multiarch.m4 $(top_srcdir)/m4/nocrash.m4 \
+	$(top_srcdir)/m4/pathmax.m4 \
 	$(top_srcdir)/m4/pthread_sigmask.m4 \
 	$(top_srcdir)/m4/readlink.m4 $(top_srcdir)/m4/sha1.m4 \
 	$(top_srcdir)/m4/sha256.m4 $(top_srcdir)/m4/sha512.m4 \
@@ -88,7 +89,8 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/symlink.m4 $(top_srcdir)/m4/sys_stat_h.m4 \
 	$(top_srcdir)/m4/time_h.m4 $(top_srcdir)/m4/time_r.m4 \
 	$(top_srcdir)/m4/tm_gmtoff.m4 $(top_srcdir)/m4/unistd_h.m4 \
-	$(top_srcdir)/m4/wchar_t.m4 $(top_srcdir)/configure.in
+	$(top_srcdir)/m4/warnings.m4 $(top_srcdir)/m4/wchar_t.m4 \
+	$(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -152,8 +154,6 @@ CYGWIN_OBJ = @CYGWIN_OBJ@
 C_SWITCH_MACHINE = @C_SWITCH_MACHINE@
 C_SWITCH_SYSTEM = @C_SWITCH_SYSTEM@
 C_SWITCH_X_SITE = @C_SWITCH_X_SITE@
-C_SWITCH_X_SYSTEM = @C_SWITCH_X_SYSTEM@
-C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_OBJ = @DBUS_OBJ@
@@ -329,9 +329,11 @@ GNULIB_VPRINTF_POSIX = @GNULIB_VPRINTF_POSIX@
 GNULIB_VSCANF = @GNULIB_VSCANF@
 GNULIB_VSNPRINTF = @GNULIB_VSNPRINTF@
 GNULIB_VSPRINTF_POSIX = @GNULIB_VSPRINTF_POSIX@
+GNULIB_WARN_CFLAGS = @GNULIB_WARN_CFLAGS@
 GNULIB_WCTOMB = @GNULIB_WCTOMB@
 GNULIB_WRITE = @GNULIB_WRITE@
 GNULIB__EXIT = @GNULIB__EXIT@
+GNUSTEP_CFLAGS = @GNUSTEP_CFLAGS@
 GNU_OBJC_CFLAGS = @GNU_OBJC_CFLAGS@
 GREP = @GREP@
 GSETTINGS_CFLAGS = @GSETTINGS_CFLAGS@
@@ -695,7 +697,9 @@ UNISTD_H_HAVE_WINSOCK2_H = @UNISTD_H_HAVE_WINSOCK2_H@
 UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS = @UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS@
 VERSION = @VERSION@
 VMLIMIT_OBJ = @VMLIMIT_OBJ@
+WARN_CFLAGS = @WARN_CFLAGS@
 WCHAR_T_SUFFIX = @WCHAR_T_SUFFIX@
+WERROR_CFLAGS = @WERROR_CFLAGS@
 WIDGET_OBJ = @WIDGET_OBJ@
 WINT_T_SUFFIX = @WINT_T_SUFFIX@
 XFT_CFLAGS = @XFT_CFLAGS@
@@ -814,6 +818,7 @@ MOSTLYCLEANFILES = core *.stackdump alloca.h alloca.h-t getopt.h \
 	stdio.h-t stdlib.h stdlib.h-t sys/stat.h sys/stat.h-t time.h \
 	time.h-t unistd.h unistd.h-t
 noinst_LIBRARIES = libgnu.a
+AM_CFLAGS = $(GNULIB_WARN_CFLAGS) $(WERROR_CFLAGS)
 DEFAULT_INCLUDES = -I. -I../src -I$(top_srcdir)/src
 libgnu_a_SOURCES = allocator.c careadlinkat.c md5.c sha1.c sha256.c \
 	sha512.c dtoastr.c filemode.c $(am__append_1) strftime.c

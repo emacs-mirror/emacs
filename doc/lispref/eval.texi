@@ -1,8 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/eval
 @node Evaluation, Control Structures, Symbols, Top
 @chapter Evaluation
 @cindex evaluation
@@ -807,7 +806,7 @@ The value of this variable is a list of the values returned by all the
 expressions that were read, evaluated, and printed from buffers
 (including the minibuffer) by the standard Emacs commands which do
 this.  (Note that this does @emph{not} include evaluation in
-@samp{*ielm*} buffers, nor evaluation using @kbd{C-j} in
+@file{*ielm*} buffers, nor evaluation using @kbd{C-j} in
 @code{lisp-interaction-mode}.)  The elements are ordered most recent
 first.
 

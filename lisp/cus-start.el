@@ -138,9 +138,18 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
 	     (eol-mnemonic-undecided mule string)
-	     (eol-mnemonic-unix mule string)
-	     (eol-mnemonic-dos mule string)
-	     (eol-mnemonic-mac mule string)
+	     ;; startup.el fiddles with the values.  IMO, would be
+	     ;; simpler to just use #ifdefs in coding.c.
+	     (eol-mnemonic-unix mule string nil
+				:standard
+				(if (memq system-type '(ms-dos windows-nt))
+				    "(Unix)" ":"))
+	     (eol-mnemonic-dos mule string nil
+			       :standard
+			       (if (memq system-type '(ms-dos windows-nt))
+				   "\\" "(DOS)"))
+	     (eol-mnemonic-mac mule string nil
+			       :standard "(Mac)")
 	     (file-coding-system-alist
 	      mule
 	      (alist

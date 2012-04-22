@@ -137,4 +137,3 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* Tell the garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the jmp_buf.  */
 #define GC_SETJMP_WORKS 1
-#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS

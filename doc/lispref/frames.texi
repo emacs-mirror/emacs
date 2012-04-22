@@ -2,7 +2,6 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/frames
 @node Frames, Positions, Windows, Top
 @chapter Frames
 @cindex frame
@@ -488,7 +487,7 @@ frame.  @code{title} and @code{name} are meaningful on all terminals.
 @item display
 The display on which to open this frame.  It should be a string of the
 form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
-@code{DISPLAY} environment variable.
+@env{DISPLAY} environment variable.
 
 @vindex display-type, a frame parameter
 @item display-type

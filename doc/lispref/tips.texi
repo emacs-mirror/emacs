@@ -3,7 +3,6 @@
 @c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/tips
 @node Tips, GNU Emacs Internals, GPL, Top
 @appendix Tips and Conventions
 @cindex tips for writing Lisp

@@ -514,17 +514,19 @@ window).")
   (if (window-valid-p ignore) (eq window ignore) ignore))
 
 (defun window-min-size (&optional window horizontal ignore)
-  "Return the minimum number of lines of WINDOW.
+  "Return the minimum size of WINDOW.
 WINDOW can be an arbitrary window and defaults to the selected
 one.  Optional argument HORIZONTAL non-nil means return the
-minimum number of columns of WINDOW.
+minimum number of columns of WINDOW; otherwise return the minimum
+number of WINDOW's lines.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE, if non-nil, means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE equal `safe' means live
+`window-min-width' settings.  If IGNORE equals `safe', live
 windows may get as small as `window-safe-min-height' lines and
-`window-safe-min-width' columns.  IGNORE a window means ignore
-restrictions for that window only."
+`window-safe-min-width' columns.  If IGNORE is a window, ignore
+restrictions for that window only.  Any other non-nil value
+means ignore all of the above restrictions for all windows."
   (window--min-size-1
    (window-normalize-window window) horizontal ignore))
 
@@ -614,12 +616,13 @@ columns.  If WINDOW cannot be shrunk by -DELTA lines or columns,
 return the minimum value in the range DELTA..0 by which WINDOW
 can be shrunk.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE equal `safe' means live
+`window-min-width' settings.  If IGNORE equals `safe', live
 windows may get as small as `window-safe-min-height' lines and
-`window-safe-min-width' columns.  IGNORE any window means ignore
-restrictions for that window only."
+`window-safe-min-width' columns.  If IGNORE is a window, ignore
+restrictions for that window only.  Any other non-nil value means
+ignore all of the above restrictions for all windows."
   (setq window (window-normalize-window window))
   (cond
    ((< delta 0)
@@ -734,20 +737,21 @@ window.  Return zero if WINDOW cannot be shrunk.
 Optional argument HORIZONTAL non-nil means return number of
 columns by which WINDOW can be shrunk.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE a window means ignore
-restrictions for that window only.  IGNORE equal `safe' means
+`window-min-width' settings.  If IGNORE is a window, ignore
+restrictions for that window only.  If IGNORE equals `safe',
 live windows may get as small as `window-safe-min-height' lines
-and `window-safe-min-width' columns.
+and `window-safe-min-width' columns.  Any other non-nil value
+means ignore all of the above restrictions for all windows.
 
-Optional argument TRAIL `before' means only windows to the left
-of or above WINDOW can be enlarged.  Optional argument TRAIL
-`after' means only windows to the right of or below WINDOW can be
-enlarged.
+Optional argument TRAIL restricts the windows that can be enlarged.
+If its value is `before', only windows to the left of or above WINDOW
+can be enlarged.  If it is `after', only windows to the right of or
+below WINDOW can be enlarged.
 
 Optional argument NOUP non-nil means don't go up in the window
-tree but try to enlarge windows within WINDOW's combination only.
+tree, but try to enlarge windows within WINDOW's combination only.
 
 Optional argument NODOWN non-nil means don't check whether WINDOW
 itself (and its child windows) can be shrunk; check only whether
@@ -808,24 +812,25 @@ at least one other window can be enlarged appropriately."
 	  (window--max-delta-1 parent delta horizontal ignore trail))))))
 
 (defun window-max-delta (&optional window horizontal ignore trail noup nodown)
-  "Return maximum number of lines WINDOW by which WINDOW can be enlarged.
+  "Return maximum number of lines by which WINDOW can be enlarged.
 WINDOW can be an arbitrary window and defaults to the selected
 window.  The return value is zero if WINDOW cannot be enlarged.
 
 Optional argument HORIZONTAL non-nil means return maximum number
 of columns by which WINDOW can be enlarged.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE a window means ignore
-restrictions for that window only.  IGNORE equal `safe' means
+`window-min-width' settings.  If IGNORE is a window, ignore
+restrictions for that window only.  If IGNORE equals `safe',
 live windows may get as small as `window-safe-min-height' lines
-and `window-safe-min-width' columns.
+and `window-safe-min-width' columns.  Any other non-nil value means
+ignore all of the above restrictions for all windows.
 
-Optional argument TRAIL `before' means only windows to the left
-of or below WINDOW can be shrunk.  Optional argument TRAIL
-`after' means only windows to the right of or above WINDOW can be
-shrunk.
+Optional argument TRAIL restricts the windows that can be enlarged.
+If its value is `before', only windows to the left of or above WINDOW
+can be enlarged.  If it is `after', only windows to the right of or
+below WINDOW can be enlarged.
 
 Optional argument NOUP non-nil means don't go up in the window
 tree but try to obtain the entire space from windows within
@@ -860,12 +865,13 @@ columns.  If WINDOW cannot be shrunk by -DELTA lines or columns,
 return the minimum value in the range DELTA..0 that can be used
 for shrinking WINDOW.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE a window means ignore
-restrictions for that window only.  IGNORE equal `safe' means
+`window-min-width' settings.  If IGNORE is a window, ignore
+restrictions for that window only.  If IGNORE equals `safe',
 live windows may get as small as `window-safe-min-height' lines
-and `window-safe-min-width' columns.
+and `window-safe-min-width' columns.  Any other non-nil value
+means ignore all of the above restrictions for all windows.
 
 Optional argument TRAIL `before' means only windows to the left
 of or below WINDOW can be shrunk.  Optional argument TRAIL
@@ -916,17 +922,18 @@ columns.  If WINDOW cannot be shrunk by -DELTA lines or columns,
 return the minimum value in the range DELTA..0 that can be used
 for shrinking WINDOW.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE a window means ignore
-restrictions for that window only.  IGNORE equal `safe' means
+`window-min-width' settings.  If IGNORE is a window, ignore
+restrictions for that window only.  If IGNORE equals `safe',
 live windows may get as small as `window-safe-min-height' lines
-and `window-safe-min-width' columns."
+and `window-safe-min-width' columns.  Any other non-nil value
+means ignore all of the above restrictions for all windows."
   (setq window (window-normalize-window window))
   (window--resizable window delta horizontal ignore))
 
 (defun window-total-size (&optional window horizontal)
-  "Return the total height or width of window WINDOW.
+  "Return the total height or width of WINDOW.
 If WINDOW is omitted or nil, it defaults to the selected window.
 
 If HORIZONTAL is omitted or nil, return the total height of
@@ -941,7 +948,7 @@ the total width, in columns, like `window-total-width'."
 
 ;; See discussion in bug#4543.
 (defun window-full-height-p (&optional window)
-  "Return t if WINDOW is as high as the containing frame.
+  "Return t if WINDOW is as high as its containing frame.
 More precisely, return t if and only if the total height of
 WINDOW equals the total height of the root window of WINDOW's
 frame.  WINDOW can be any window and defaults to the selected
@@ -951,7 +958,7 @@ one."
      (window-total-size (frame-root-window window))))
 
 (defun window-full-width-p (&optional window)
-  "Return t if WINDOW is as wide as the containing frame.
+  "Return t if WINDOW is as wide as its containing frame.
 More precisely, return t if and only if the total width of WINDOW
 equals the total width of the root window of WINDOW's frame.
 WINDOW can be any window and defaults to the selected one."
@@ -1115,7 +1122,7 @@ SIDE can be any of the symbols `left', `top', `right' or
   "Return window in DIRECTION as seen from WINDOW.
 DIRECTION must be one of `above', `below', `left' or `right'.
 WINDOW must be a live window and defaults to the selected one.
-IGNORE, when non-nil means a window can be returned even if its
+IGNORE non-nil means a window can be returned even if its
 `no-other-window' parameter is non-nil."
   (setq window (window-normalize-window window t))
   (unless (memq direction '(above below left right))
@@ -1420,7 +1427,7 @@ windows."
 (defun window--resize-mini-window (window delta)
   "Resize minibuffer window WINDOW by DELTA lines.
 If WINDOW cannot be resized by DELTA lines make it as large (or
-as small) as possible but don't signal an error."
+as small) as possible, but don't signal an error."
   (when (window-minibuffer-p window)
     (let* ((frame (window-frame window))
 	   (root (frame-root-window frame))
@@ -1461,12 +1468,13 @@ horizontally by DELTA columns.  In this case a positive DELTA
 means enlarge WINDOW by DELTA columns.  DELTA negative means
 WINDOW shall be shrunk by -DELTA columns.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE any window means ignore
-restrictions for that window only.  IGNORE equal `safe' means
+`window-min-width' settings.  If IGNORE is a window, ignore
+restrictions for that window only.  If IGNORE equals `safe',
 live windows may get as small as `window-safe-min-height' lines
-and `window-safe-min-width' columns.
+and `window-safe-min-width' columns.  Any other non-nil value
+means ignore all of the above restrictions for all windows.
 
 This function resizes other windows proportionally and never
 deletes any windows.  If you want to move only the low (right)
@@ -1516,9 +1524,9 @@ HORIZONTAL non-nil means set the new normal width of these
 windows.  WINDOW specifies a child window of PARENT that has been
 resized by THIS-DELTA lines (columns).
 
-Optional argument TRAIL either 'before or 'after means set values
-for windows before or after WINDOW only.  Optional argument
-OTHER-DELTA a number specifies that this many lines (columns)
+Optional argument TRAIL either `before' or `after' means set values
+only for windows before or after WINDOW.  Optional argument
+OTHER-DELTA, a number, specifies that this many lines (columns)
 have been obtained from (or returned to) an ancestor window of
 PARENT in order to resize WINDOW."
   (let* ((delta-normal
@@ -1618,12 +1626,13 @@ be a horizontally combined internal window.
 WINDOW, if specified, must denote a child window of PARENT that
 is resized by DELTA lines.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE equal `safe' means live
+`window-min-width' settings.  If IGNORE equals `safe', live
 windows may get as small as `window-safe-min-height' lines and
-`window-safe-min-width' columns.  IGNORE any window means ignore
-restrictions for that window only.
+`window-safe-min-width' columns.  If IGNORE is a window, ignore
+restrictions for that window only.  Any other non-nil value means
+ignore all of the above restrictions for all windows.
 
 Optional arguments TRAIL and EDGE, when non-nil, restrict the set
 of windows that shall be resized.  If TRAIL equals `before',
@@ -1790,12 +1799,13 @@ Optional argument HORIZONTAL non-nil means resize other windows
 when WINDOW is resized horizontally by DELTA columns.  WINDOW
 itself is not resized by this function.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE equal `safe' means live
+`window-min-width' settings.  If IGNORE equals `safe', live
 windows may get as small as `window-safe-min-height' lines and
-`window-safe-min-width' columns.  IGNORE any window means ignore
-restrictions for that window only.
+`window-safe-min-width' columns.  If IGNORE is a window, ignore
+restrictions for that window only.  Any other non-nil value means
+ignore all of the above restrictions for all windows.
 
 Optional arguments TRAIL and EDGE, when non-nil, refine the set
 of windows that shall be resized.  If TRAIL equals `before',
@@ -1891,12 +1901,13 @@ preferably only resize windows adjacent to EDGE."
 Optional argument HORIZONTAL non-nil means resize WINDOW
 horizontally by DELTA columns.
 
-Optional argument IGNORE non-nil means ignore any restrictions
+Optional argument IGNORE non-nil means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
-`window-min-width' settings.  IGNORE equal `safe' means live
+`window-min-width' settings.  If IGNORE equals `safe', live
 windows may get as small as `window-safe-min-height' lines and
-`window-safe-min-width' columns.  IGNORE any window means ignore
-restrictions for that window only.
+`window-safe-min-width' columns.  If IGNORE is a window, ignore
+restrictions for that window only.  Any other non-nil value
+means ignore all of the above restrictions for all windows.
 
 Optional argument ADD non-nil means add DELTA to the new total
 size of WINDOW.
@@ -1986,7 +1997,7 @@ any windows."
 Optional argument HORIZONTAL non-nil means move WINDOW's right
 edge by DELTA columns.  WINDOW defaults to the selected window.
 
-If DELTA is greater zero, then move the edge downwards or to the
+If DELTA is greater than zero, move the edge downwards or to the
 right.  If DELTA is less than zero, move the edge upwards or to
 the left.  If the edge can't be moved by DELTA lines or columns,
 move it as far as possible in the desired direction."
@@ -2091,7 +2102,7 @@ move it as far as possible in the desired direction."
 	  (error "Failed adjusting window %s" window)))))))
 
 (defun enlarge-window (delta &optional horizontal)
-  "Make selected window DELTA lines taller.
+  "Make the selected window DELTA lines taller.
 Interactively, if no argument is given, make the selected window
 one line taller.  If optional argument HORIZONTAL is non-nil,
 make selected window wider by DELTA columns.  If DELTA is
@@ -2112,7 +2123,7 @@ Return nil."
      horizontal))))
 
 (defun shrink-window (delta &optional horizontal)
-  "Make selected window DELTA lines smaller.
+  "Make the selected window DELTA lines smaller.
 Interactively, if no argument is given, make the selected window
 one line smaller.  If optional argument HORIZONTAL is non-nil,
 make selected window narrower by DELTA columns.  If DELTA is
@@ -3643,7 +3654,11 @@ specific buffers."
 		     (scroll-bars . ,(window-scroll-bars window))
 		     (vscroll . ,(window-vscroll window))
 		     (dedicated . ,(window-dedicated-p window))
-		     (point . ,(if writable point (copy-marker point)))
+		     (point . ,(if writable point
+                                 (copy-marker point
+                                              (buffer-local-value
+                                               'window-point-insertion-type
+                                               buffer))))
 		     (start . ,(if writable start (copy-marker start)))))))))
 	 (tail
 	  (when (memq type '(vc hc))
@@ -5439,7 +5454,7 @@ A value of t means point moves to the beginning or the end of the buffer
 \(depending on scrolling direction) when no more scrolling possible.
 When point is already on that position, then signal an error."
   :type 'boolean
-  :group 'scrolling
+  :group 'windows
   :version "24.1")
 
 (defun scroll-up-command (&optional arg)

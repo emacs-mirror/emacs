@@ -63,7 +63,7 @@ certain Lisp files, where to put the initial frame, and so forth.
   If the variable @code{inhibit-startup-screen} is non-@code{nil},
 Emacs does not display the startup screen.  In that case, if one or
 more files were specified on the command line, Emacs simply displays
-those files; otherwise, it displays a buffer named @samp{*scratch*},
+those files; otherwise, it displays a buffer named @file{*scratch*},
 which can be used to evaluate Emacs Lisp expressions interactively.
 @xref{Lisp Interaction}.  You can set the variable
 @code{inhibit-startup-screen} using the Customize facility
@@ -77,9 +77,13 @@ information about @file{site-start.el}.}
 by setting the variable @code{initial-buffer-choice} to a
 non-@code{nil} value.  (In that case, even if you specify one or more
 files on the command line, Emacs opens but does not display them.)
-The value of @code{initial-buffer-choice} can be either the name of
-the desired file or directory, or @code{t}, which means to display the
-@samp{*scratch*} buffer.
+The value of @code{initial-buffer-choice} should be the name of
+the desired file or directory.
+@ignore
+@c I do not think this should be mentioned.  AFAICS it is just a dodge
+@c around inhibit-startup-screen not being settable on a site-wide basis.
+or @code{t}, which means to display the @file{*scratch*} buffer.
+@end ignore
 
 @node Exiting, Basic, Entering Emacs, Top
 @section Exiting Emacs
@@ -144,14 +148,14 @@ stopping the program temporarily and returning control to the parent
 process (usually a shell); in most shells, you can resume Emacs after
 suspending it with the shell command @command{%emacs}.
 
-  Text-only terminals usually listen for certain special characters
-whose meaning is to kill or suspend the program you are running.
-@b{This terminal feature is turned off while you are in Emacs.}  The
-meanings of @kbd{C-z} and @kbd{C-x C-c} as keys in Emacs were inspired
-by the use of @kbd{C-z} and @kbd{C-c} on several operating systems as
-the characters for stopping or killing a program, but that is their
-only relationship with the operating system.  You can customize these
-keys to run any commands of your choice (@pxref{Keymaps}).
+  Text terminals usually listen for certain special characters whose
+meaning is to kill or suspend the program you are running.  @b{This
+terminal feature is turned off while you are in Emacs.}  The meanings
+of @kbd{C-z} and @kbd{C-x C-c} as keys in Emacs were inspired by the
+use of @kbd{C-z} and @kbd{C-c} on several operating systems as the
+characters for stopping or killing a program, but that is their only
+relationship with the operating system.  You can customize these keys
+to run any commands of your choice (@pxref{Keymaps}).
 
 @ifnottex
 @lowersections

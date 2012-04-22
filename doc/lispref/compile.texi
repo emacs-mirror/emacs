@@ -1,8 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/compile
 @node Byte Compilation, Advising Functions, Loading, Top
 @chapter Byte Compilation
 @cindex byte compilation
@@ -92,7 +91,7 @@ the @code{byte-compile} function.  You can compile a whole file with
 
   Sometimes, the byte compiler produces warning and/or error messages
 (@pxref{Compiler Errors}, for details).  These messages are recorded
-in a buffer called @samp{*Compile-Log*}, which uses Compilation mode.
+in a buffer called @file{*Compile-Log*}, which uses Compilation mode.
 @xref{Compilation Mode,,,emacs, The GNU Emacs Manual}.
 
 @cindex macro compilation
@@ -443,14 +442,14 @@ to what @code{eval-when-compile} does.
 @cindex compiler errors
 
   Byte compilation outputs all errors and warnings into the buffer
-@samp{*Compile-Log*}.  The messages include file names and line
+@file{*Compile-Log*}.  The messages include file names and line
 numbers that identify the location of the problem.  The usual Emacs
 commands for operating on compiler diagnostics work properly on these
 messages.
 
   When an error is due to invalid syntax in the program, the byte
 compiler might get confused about the errors' exact location.  One way
-to investigate is to switch to the buffer @w{@samp{*Compiler Input*}}.
+to investigate is to switch to the buffer @w{@file{ *Compiler Input*}}.
 (This buffer name starts with a space, so it does not show up in
 @kbd{M-x list-buffers}.)  This buffer contains the program being
 compiled, and point shows how far the byte compiler was able to read;
@@ -602,7 +601,7 @@ the stack.
 @deffn Command disassemble object &optional buffer-or-name
 This command displays the disassembled code for @var{object}.  In
 interactive use, or if @var{buffer-or-name} is @code{nil} or omitted,
-the output goes in a buffer named @samp{*Disassemble*}.  If
+the output goes in a buffer named @file{*Disassemble*}.  If
 @var{buffer-or-name} is non-@code{nil}, it must be a buffer or the
 name of an existing buffer.  Then the output goes there, at point, and
 point is left before the output.

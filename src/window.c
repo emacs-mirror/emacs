@@ -5947,6 +5947,8 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	    }
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
+	  XMARKER (p->pointm)->insertion_type
+	    = !NILP (Vwindow_point_insertion_type);
 
 	  p->start = Fcopy_marker (w->start, Qnil);
 	  p->start_at_line_beg = w->start_at_line_beg;

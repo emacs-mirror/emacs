@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -132,11 +132,6 @@
     (define-key map "\t" 'perl-indent-command)
     map)
   "Keymap used in Perl mode.")
-
-(autoload 'c-macro-expand "cmacexp"
-  "Display the result of expanding all C macros occurring in the region.
-The expansion is entirely correct because it uses the C preprocessor."
-  t)
 
 (defvar perl-mode-syntax-table
   (let ((st (make-syntax-table (standard-syntax-table))))
@@ -511,6 +506,14 @@ If nil, continued arguments are aligned with the first argument."
   :type '(choice integer (const nil))
   :group 'perl)
 
+(defcustom perl-indent-parens-as-block nil
+  "Non-nil means that non-block ()-, {}- and []-groups are indented as blocks.
+The closing bracket is aligned with the line of the opening bracket,
+not the contents of the brackets."
+  :version "24.2"
+  :type 'boolean
+  :group 'perl)
+
 (defcustom perl-tab-always-indent tab-always-indent
   "Non-nil means TAB in Perl mode always indents the current line.
 Otherwise it inserts a tab character if you type it past the first
@@ -853,7 +856,8 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
       (cond ((nth 3 state) 'noindent)	; In a quoted string?
 	    ((null containing-sexp)	; Line is at top level.
 	     (skip-chars-forward " \t\f")
-	     (if (= (following-char) ?{)
+	     (if (memq (following-char)
+		       (if perl-indent-parens-as-block '(?\{ ?\( ?\[) '(?\{)))
 		 0  ; move to beginning of line if it starts a function body
 	       ;; indent a little if this is a continuation line
 	       (perl-backward-to-noncomment)
@@ -897,7 +901,9 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 			  0 perl-continued-statement-offset)
 		      (current-column)
 		      (if (save-excursion (goto-char indent-point)
-					  (looking-at "[ \t]*{"))
+					  (looking-at
+					   (if perl-indent-parens-as-block
+					       "[ \t]*[{(\[]" "[ \t]*{")))
 			  perl-continued-brace-offset 0)))
 	       ;; This line starts a new statement.
 	       ;; Position at last unclosed open.

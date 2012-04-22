@@ -1061,6 +1061,8 @@ Go to the beginning of buffer if not found."
   (let ((km (copy-keymap recentf--shortcuts-keymap)))
     (set-keymap-parent km widget-keymap)
     (define-key km "q" 'recentf-cancel-dialog)
+    (define-key km "n" 'next-line)
+    (define-key km "p" 'previous-line)
     (define-key km [follow-link] "\C-m")
     km)
   "Keymap used in recentf dialogs.")

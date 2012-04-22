@@ -1,3 +1,13 @@
+2012-04-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* makefile.w32-in: Fix typo (Bug#10261).
+
+2012-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacs, misc, lispref, lispintro): New targets,
+	each runs makeinfo in its own subdirectory of 'doc'.
+	(info-gmake): Depend on these new targets.
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* config.nt, makefile.w32-in, emacs.rc, emacsclient.rc:
@@ -1185,7 +1195,7 @@
 2005-06-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/socket.h: Change arg 4 of sys_setsockopt to
-	`const void *', for consistency with Posix.
+	`const void *', for consistency with POSIX.
 
 2005-06-04  Eli Zaretskii  <eliz@gnu.org>
 

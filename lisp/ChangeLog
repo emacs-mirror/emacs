@@ -1,7 +1,710 @@
+2012-04-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/verilog-mode.el (verilog-mode): Check whether
+	which-func-modes is t before adding verilog-mode.
+	Reported by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2012-04-21  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc): Avoid error when process-contact returns t.
+
+2012-04-21  Michael Vehrs  <Michael.Burschik@gmx.de>
+
+	* woman.el: Add support for "T{ T}" tbl syntax, and fix the
+	filling of the last column of a table (Bug#5635).
+	(woman-find-next-control-line): New arg, specifying an additional
+	regexp component for the control line.
+	(woman2-roff-buffer): Use it.
+	(woman-break-table): New function.
+	(woman2-TS): Use it.
+
+2012-04-21  Chong Yidong  <cyd@gnu.org>
+
+	* woman.el (woman-set-buffer-display-table, woman-decode-region)
+	(woman-horizontal-escapes, woman-negative-vertical-space)
+	(woman-tab-to-tab-stop, woman2-fc, woman2-TS)
+	(WoMan-warn-ignored): Use ?\s instead of ?\ .
+
+2012-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Complete user names.
+
+2012-04-20  Leo Liu  <sdl.web@gmail.com>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add pcase, pcase-let
+	and pcase-let*.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* server.el (server-execute): Respect initial-buffer-choice if it
+	is a string and there are no files to open (Bug#2825).
+	(server-create-window-system-frame, server-create-tty-frame):
+	Don't switch buffers here.
+	(server-process-filter): Only try to open a window system frame if
+	compiled with graphical support (Bug#8314).
+
+2012-04-20  Dan Nicolaescu  <dann@gnu.org>
+
+	* battery.el (battery-echo-area-format): Display remaining time
+	for sysfs backend too (Bug#11269).
+	(battery-linux-sysfs): Fix conditional for the charge.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb): Revert previous change.
+	(gdb-inferior-io--init-proc): New function.
+	(gdb-init-1): Use it.
+	(gdb-inferior-io-sentinel): New sentinel for the gdb-inferior pty,
+	responsible for allocating a new pty and hooking it to gdb when
+	the old pty gets an EIO due to process exit.
+	(gdb-delchar-or-quit): New command.  Bind it in gdb-mi buffers.
+	(gdb-tooltip-print): Don't use obsolete tooltip-use-echo-area.
+	(gdb-inferior-io--maybe-delete-pty): Move into gdb-reset.
+
+2012-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (window-min-size, window-sizable, window-min-delta)
+	(window-max-delta, window--resizable, window-resizable)
+	(window-total-size, window-full-height-p, window-full-width-p)
+	(window-in-direction, window--resize-mini-window, window-resize)
+	(window--resize-child-windows-normal)
+	(window--resize-child-windows, window--resize-siblings)
+	(window--resize-this-window, adjust-window-trailing-edge)
+	(enlarge-window, shrink-window): Doc fixes.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty): New
+	function to call delete-process on the gdb-inferior buffer's pty.
+	(gdb-reset): Use it, instead of relying on kill-buffer to kill the
+	pty process (Bug#11273).
+	(gdb-update): New arg to suppress talking to the gdb process.
+	(gdb-done-or-error): Use it.
+	(gdb-stopped-functions): Rename from gdb-stopped-hooks.
+	(gdb): Call gdb-inferior-io--maybe-delete-pty as a workaround for
+	sentinel not being called.
+
+	* comint.el (make-comint-in-buffer, comint-exec): Doc fix.
+
+	* progmodes/grep.el (grep, rgrep): Doc fix (Bug#11268).
+
+2012-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* net/network-stream.el (open-network-stream): Doc fix.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print): Fix typos.
+
+2012-04-20  Alan Mackenzie  <acm@muc.de>
+
+	Ensure searching for keywords is case sensitive.
+
+	* progmodes/cc-cmds.el (c-electric-brace, c-electric-lt-gt)
+	(c-electric-paren, c-beginning-of-defun, c-end-of-defun)
+	(c-defun-name, c-mark-function, c-cpp-define-name)
+	(c-comment-indent, c-scan-conditionals, c-indent-defun)
+	(c-context-line-break): Bind case-fold-search to nil.
+
+	* progmodes/cc-mode.el (c-font-lock-fontify-region): Bind
+	case-fold-search to nil.
+
+2012-04-20  Chong Yidong  <cyd@gnu.org>
+
+	* mail/sendmail.el (mail-bury): Call return action with the right
+	Rmail buffer (Bug#11242).
+
+	* server.el (server-process-filter): Handle corner case where both
+	tty and nowait options are present (Bug#11102).
+
+2012-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* version.el (emacs-bzr-version, emacs-bzr-get-version): Doc fixes.
+	(top level): Put into the executable the ident-style '$Id:' tag on
+	windows-nt as well.
+
+2012-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function): Check that
+	electric-indent-mode is enabled in current buffer.
+
+2012-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* imenu.el (imenu-progress-message): Restore; it is "used" in
+	erc/erc-imenu.el and net/snmp-mode.el.
+
+2012-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* avoid.el (mouse-avoidance-mode): Mark unused arg.
+	(mouse-avoidance-nudge-mouse): Remove unused binding.
+
+	* bs.el (bs-toggle-readonly): Call `toggle-read-only' interactively.
+
+	* descr-text.el (describe-char):
+	* progmodes/python.el (python-describe-symbol):
+	Don't call `toggle-read-only', set `buffer-read-only'.
+
+	* imenu.el (imenu-default-goto-function): Mark unused args.
+	(imenu-progress-message): Remove obsolete macro; all callers changed.
+
+	* subr.el (keymap-canonicalize): Remove unused binding.
+	(read-passwd): Mark unused arg.
+
+	* tutorial.el (tutorial--display-changes): Remove unused binding.
+	(tutorial--save-tutorial-to): Remove unused variable.
+
+	* emacs-lisp/package.el (define-package, package-menu-mark-delete)
+	(package-menu-mark-install, package-menu-mark-unmark): Mark unused args.
+	(package-generate-autoloads, package-menu--generate)
+	(package-menu--find-upgrades): Remove unused bindings.
+
+	* emulation/cua-rect.el (cua-restrict-regexp-rectangle)
+	(cua-restrict-prefix-rectangle): Doc fixes.  Remove unused bindings.
+	(cua--mouse-ignore, cua--delete-rectangle, cua--extract-rectangle)
+	(cua--indent-rectangle, cua-open-rectangle, cua-close-rectangle)
+	(cua-blank-rectangle, cua-string-rectangle, cua-replace-in-rectangle)
+	(cua-incr-rectangle, cua-sequence-rectangle, cua--convert-rectangle-as)
+	(cua--rectangle-aux-replace, cua--left-fill-rectangle)
+	(cua-scroll-rectangle-up, cua-scroll-rectangle-down)
+	(cua-delete-char-rectangle): Mark unused args.
+	(cua-align-rectangle): Remove unused binding.
+
+	* mail/rmail.el (compilation--message->loc)
+	(epa--find-coding-system-for-mime-charset): Declare.
+
+	* net/dbus.el (dbus-register-service): Declare.
+	(dbus-name-owner-changed-handler): Remove unused binding.
+
+	* nxml/nxml-mode.el (nxml-electric-slash, nxml-in-mixed-content-p)
+	(nxml-compute-indent-from-matching-start-tag): Remove unused variables.
+	(nxml-scan-backward-within): Mark unused arg.
+	(nxml-dynamic-markup-word): Remove unused binding.
+
+	* mouse.el (mouse-menu-major-mode-map):
+	* emacs-lisp/authors.el (authors-scan-change-log)
+	(authors-add-to-author-list):
+	* emacs-lisp/avl-tree.el (avl-tree--enter-balance):
+	* emacs-lisp/smie.el (smie-auto-fill):
+	* mail/sendmail.el (mail-bury):
+	* mail/unrmail.el (unrmail):
+	* net/tls.el (open-tls-stream):
+	* textmodes/picture.el (picture-mouse-set-point):
+	Remove unused bindings.
+
+2012-04-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-action-password): Let-bind
+	`enable-recursive-minibuffers' to t.
+
+2012-04-18  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/gud.el (gud-key-prefix): Use :type 'key-sequence
+	instead of 'string to accommodate values like [f11].
+	Always use `vconcat' instead of `concat' on it, like in `gud-def'.
+	* progmodes/gdb-mi.el: Likewise.
+
+2012-04-18  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (edit-abbrevs): Move point to the abbrev table of
+	current buffer.
+	(prepare-abbrev-list-buffer): Enter edit-abbrevs-mode only if
+	LOCAL is nil.
+
+2012-04-18  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (line-move): Use forward-line if in batch mode
+	(Bug#11053).
+
+2012-04-18  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* files.el (after-find-file): Do not try to add a final newline if
+	the buffer is read-only (Bug#11156).
+
+2012-04-17  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-start-mail):
+	Pass (rmail-mail-return...) for the return-action.
+	Pass (rmail-yank-current-message...) for the yank-action.
+	(rmail-yank-current-message): New function.
+	(rmail-mail): Pass the Rmail buffer, not view buffer, for replybuffer.
+	(rmail-reply): Likewise.
+	(rmail-forward): Pass the Rmail buffer, not nil, for replybuffer.
+
+	* mail/sendmail.el (mail-bury): Choose the first rmail-mode
+	buffer, not the last.  Reject temp buffers.  Use the rmail-mode
+	buffer, not newbuf.
+
+2012-04-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-ensure-safe-dir): Simplify.
+
+2012-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: Provide smarter auto-filling.
+	(smie-auto-fill): New function.
+	(smie-setup): Use it.
+
+	* newcomment.el (comment-choose-indent): Obey comment-inline-offset.
+
+2012-04-17  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
+
+	* newcomment.el (comment-inline-offset): New custom var (bug#11090).
+	(comment-indent): Use it.
+
+2012-04-17  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: The overall change is to add cell renaming, that is
+	setting fancy names for cell symbols other than name matching
+	"\\`[A-Z]+[0-9]+\\'" regexp .
+	(ses-localvars): Add ses--renamed-cell-symb-list.
+	(ses-create-cell-variable): New defun.
+	(ses-destroy-cell-variable-range): Respect ses--numrows, ses--numcols.
+	(ses-relocate-formula): Relocate formulas only for cells the
+	symbols of which are not renamed, i.e. symbols whose names do not
+	match regexp "\\`[A-Z]+[0-9]+\\'".
+	(ses-relocate-all): Relocate values only for cells the symbols of
+	which are not renamed.
+	(ses-load): Create cells variables as the (ses-cell ...) are read,
+	in order to check row col consistency with cell symbol name only
+	for cells that are not renamed.
+	(ses-replace-name-in-formula): New defun.
+	(ses-rename-cell): New defun.
+
+2012-04-17  Peter Oliver  <bzr@mavit.org.uk>  (tiny change)
+
+	* progmodes/perl-mode.el (perl-indent-parens-as-block):
+	New option (bug#11118).
+	(perl-calculate-indent): Respect it.
+
+2012-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* dired-aux.el (dired-mark-read-string): Doc fix.
+
+2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dired-aux.el (dired-mark-read-string): Offer optional completion.
+	(dired-do-chxxx): Complete chown, chgrp over users, groups.  (Bug#7900)
+
+2012-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (mouse-drag-track):
+	* speedbar.el (speedbar-frame-mode):
+	Use auto-hscroll-mode rather than the alias automatic-hscrolling.
+
+2012-04-16  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el: Trivial cleanup.
+
+2012-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-string-prefix-p):
+	* vc/pcvs-util.el (cvs-string-prefix-p):
+	* textmodes/tex-mode.el (latex-string-prefix-p, tex-string-prefix-p):
+	* mpc.el (mpc-string-prefix-p):
+	Make all of these into obsolete aliases for string-prefix-p.
+	Update callers.
+	* vc/pcvs.el, vc/vc-dispatcher.el, vc/vc-dir.el: Update callers.
+
+	* textmodes/two-column.el: Move custom options to the start.
+	(frame-width): Remove compat definition.
+	(2C-associate-buffer, 2C-dissociate):
+	Use with-current-buffer rather than save-excursion.
+	(2C-dissociate): Force a mode-line update.
+	(2C-autoscroll): Use ignore-errors.
+
+	* emacs-lisp/eieio-opt.el (describe-class, describe-generic):
+	Autoload trivia.
+
+	* emacs-lisp/cl-extra.el (*random-state*):
+	Remove unnecessary declaration.
+
+	* calendar/cal-tex.el (cal-tex-end-document): Trivial clarification.
+
+	* play/cookie1.el (cookie-snarf):
+	Give an explicit error if input file cannot be read.
+
+	* play/yow.el (yow-file): Use expand-file-name rather than concat.
+
+	* progmodes/perl-mode.el (c-macro-expand):
+	Remove unnecessary autoload (it is in loaddefs.el).
+
+	* textmodes/picture.el (picture-desired-column)
+	(picture-update-desired-column): Convert comments to doc-strings.
+	(picture-substitute): Remove function.
+	(picture-mode-map): Initialize in the defvar.
+
+	* woman.el: Remove eval-after-load for tar-mode.
+	* tar-mode.el (tar-mode-map): Add woman binding and menu entry.
+	(woman-tar-extract-file): Autoload it.
+
+	* frame.el (automatic-hscrolling): Make this alias obsolete.
+
+2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-set-spellchecker-params): Post-process
+	`ispell-dictionary-alist' to use [:alpha:] and utf-8 if possible.
+	(ispell-dictionary-base-alist): Revert to original XEmacs
+	friendly version for default.  [:alpha:] will be added in
+	`ispell-set-spellchecker-params' if needed
+
+2012-04-16  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick--extension-regexp): New variable.
+	(imagemagick-register-types): Use it.
+	(imagemagick-types-inhibit): Add :set function.  Allow new value
+	of t to inhibit all types.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Avoid cl macros,
+	so we can preload it.
+
+	* loadup.el (fboundp): Preload regexp-opt, needed by
+	imagemagick-register-types.
+
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* frame.el (scrolling): Remove nearly unused customization group.
+
+	* scroll-all.el (scroll-all-mode): Move to windows group.
+
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el (goto-map): Bind goto-char to M-g c (Bug#11240).
+
+2012-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid the use of ((lambda ...) ...) in lexical-binding code.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Use funcall (bug#11241).
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (process-file-side-effects): Doc fix.
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (set-language-environment): Doc fix.
+
+2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-auth-key, server-generate-key): Doc fixes.
+	(server-get-auth-key): Doc fix.  Use `string-match-p'.
+	(server-start): Reflow docstring.
+
+2012-04-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* server.el (server-generate-key): `called-interactively-p'
+	requires a parameter.
+
+2012-04-14  Michal Nazarewicz  <mina86@mina86.com>
+
+	* server.el (server-auth-key): New variable.
+	(server-generate-key, server-get-auth-key): New function.
+	(server-start): Use the new variable and functions to allow
+	setting a permanent server key (bug#9423).
+
+2012-04-14  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/diff-mode.el (diff-file-prev/next): Fix typo.
+
+2012-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* hexl.el (hexl-rulerize): Rename from hexl-rulerise, since
+	Emacs uses American spelling.
+
+2012-04-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lock.el (emacs-lock-locked-buffer-functions): New hook.
+	(emacs-lock--exit-locked-buffer): Return the locked buffer.  Doc fix.
+	(emacs-lock--kill-emacs-hook, emacs-lock--kill-emacs-query-functions)
+	(emacs-lock--kill-buffer-query-functions): Run new hook.  (Bug#11017)
+
+2012-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/which-func.el (which-func-modes): Change default.
+
+2012-04-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-exchange-point-and-mark): Just call
+	exchange-point-and-mark if cua-enable-cua-keys is nil (Bug#11191).
+
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (custom-theme-set-variables): Doc fix.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule.el (set-auto-coding-for-load): Doc fix.
+
+2012-04-14  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-menus.el (cc-imenu-objc-generic-expression): Make
+	imenu work again for Objective C Mode.  Correct the *-index values,
+	these having been disturbed by a previous change in 2011-08.
+
+	* progmodes/cc-engine.el (c-before-change-check-<>-operators):
+	Correct two search limits.
+
+2012-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (command-line-1): Inhibit splash from daemon (bug#10996).
+
+2012-04-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/characters.el: Fix sorting.
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el: Add more missing Latin case pairs.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-set-class-variables): Doc fix.
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el: Add set-case-syntax-pair call for
+	LATIN CAPITAL LETTER Y WITH DIAERESIS RET and its lower-case
+	counterpart.  (Bug#11209)
+
+	* simple.el (shell-command-on-region): Doc fix.  (Bug#11208)
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (calendar-check-holidays): Doc fix.
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-dictionary-base-alist):
+	Add data for Hebrew.
+
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* net/rcirc.el (rcirc-cmd-quit):
+	Revert 2012-03-18 change (Bug#11192).
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-rpm.el (pcomplete/rpm): Handle -qf.
+
+2012-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuffer.el (completion-in-region-mode-map):
+	Bind completion-help-at-point to M-? rather than ?.  (Bug#11182)
+
+2012-04-13  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* hexl.el (hexl-insert-char): Make display sizes other than 16 work.
+
+2012-04-13  Masatake YAMATO  <yamato@redhat.com>
+
+	* minibuffer.el (minibuffer-local-filename-syntax): New variable
+	to allow `C-M-f' and `C-M-b' to move to the nearest path
+	separator (bug#9511).
+
+2012-04-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* avoid.el: Require cl when compiling.  And also move the
+	`provide' to the end.
+
+2012-04-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* avoid.el (mouse-avoidance-banish-position): New variable.
+	(mouse-avoidance-banish-destination): Use it (bug#10165).
+
+2012-04-13  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/which-func.el (which-func-modes): Add objc-mode.
+
+2012-04-13  Ken Brown  <kbrown@cornell.edu>
+
+	* net/browse-url.el (browse-url-file-url): Remove Cygwin hack;
+	this is no longer needed now that cygstart understands file:// URLs.
+	(browse-url-filename-alist): For the same reason, don't modify
+	file:// URLs on Cygwin.
+
+2012-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-base.el (cua--pre-command-handler-1): Don't activate
+	the region on shift if the binding is already shifted (bug#11221).
+
+2012-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mailpost.el: Move to obsolete/.
+
+2012-04-12  Drew Adams  <drew.adams@oracle.com>
+
+	* imenu.el (imenu--generic-function): Ignore invisible definitions
+	(bug#10123).
+
+2012-04-12  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* hexl.el (hexl-bits): New variable.
+	(hexl-options): Mention the variable in the doc string.
+	(hexl-rulerise, hexl-line-displen): New functions.
+	(hexl-mode): Mention the new variable.
+	(hexl-mode, hexl-current-address, hexl-current-address):
+	Use the displen.
+	(hexl-ascii-start-column): New function.
+	(hexl-address-to-marker, hexl-beginning-of-line, hexl-options)
+	(hexl-insert-char, hexl-mode-ruler): Use the displen (bug#4941).
+
+2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-large-region): For hunspell, use
+	'("-i" ENCODING), in 2 separate command-line arguments, to specify
+	the encoding, as expected by hunspell.
+
+2012-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* battery.el (battery--linux-sysfs-regexp): New const.
+	(battery-status-function): Use it.  Remove yeeloong special case.
+	(battery-yeeloong-sysfs): Remove.
+	(battery-echo-area-format): Remove yeeloong special case.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el (imenu-add-to-menubar): `current-local-map' can be nil.
+	Reported by Noah Friedman.
+
+	* subr.el (read-passwd): Use read-string.
+
+2012-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* vcursor.el (vcursor-move): Increase the priority of the overlay
+	(bug#9663).
+
+2012-04-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-kill-channel-buffers): New variable.
+	(rcirc-kill-buffer-hook): Use it to kill channel buffers (bug#5128).
+
+2012-04-11  William Stevenson  <yhvh2000@gmail.com>
+
+	* textmodes/artist.el (artist-mode): Convert artist-mode to use
+	define-minor-mode (bug#10760).
+
+2012-04-11  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* progmodes/grep.el (rgrep): Tweak the find command line so
+	that directories matching `grep-find-ignored-files' won't be
+	pruned (bug#10351).
+
+2012-04-11  Chong Yidong  <cyd@gnu.org>
+
+	* startup.el (command-line): Remove support for long-obsolete
+	variable font-lock-face-attributes.
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-status): Avoid condition-case-unless-debug.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (window--state-get-1): Obey window-point-insertion-type.
+
+2012-04-11  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* emacs-lisp/lisp.el (narrow-to-defun): `beginning-of-defun' goes
+	to previous function when point is on the first character of a
+	function.  Take care of that in `narrow-to-defun' (bug#6157).
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-status): Handle all errors,
+	not just file-errors.
+
+	* vc/vc-bzr.el (vc-bzr-sha1-program, sha1-program): Remove.
+	(vc-bzr-sha1): Use internal sha1.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-mode): Beware read-only dirs (bug#8954).
+
+2012-04-10  Sébastien Gross  <seb@chezwam.org>  (tiny change)
+
+	* progmodes/hideshow.el (hs-hide-all): Don't infloop on comments
+	that start in the middle of the line (bug#10496).
+
+2012-04-10  Dan Nicolaescu  <dann@gnu.org>
+
+	* battery.el (battery-linux-proc-acpi): Only one battery is
+	discharged at a time, but that seems to confuse battery.el when
+	computing `rate-type' for the battery not being discharged
+	(bug#10332).
+
+2012-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-make-program): Remove, unused.
+
+	* international/quail.el: Use dolist and simplify.
+	(quail-define-package, quail-update-keyboard-layout)
+	(quail-define-rules): Use dolist.
+	(quail-insert-kbd-layout, quail-get-translation): CSE.
+
+	* tmm.el: Use dolist, remove left over hook.
+	(tmm-prompt, tmm-define-keys, tmm-shortcut, tmm-get-keybind):
+	Use dolist.
+	(calendar-load-hook): Don't mess with it.
+
+	* vc/vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	Use derived-mode-p.  Run the diff asynchronously.
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* obsolete/mouse-sel.el: Add an Obsolete-since header.
+
+2012-04-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* misc.el: Display absolute path of loaded DLLs (bug#10424).
+	(list-dynamic-libraries--loaded): New function.
+	(list-dynamic-libraries--refresh): Use it.
+
+2012-04-10  Nathan Weizenbaum  <nweiz@google.com>
+
+	* progmodes/python.el (python-fill-paragraph):
+	Make python-fill-region in a multiline string work when font-lock is
+	disabled (bug#7018).
+
+2012-04-10  Laimonas Vėbra  <laimonas.vebra@gmail.com>  (tiny change)
+
+	* language/european.el (cp775): Add oem/legacy (en)coding on
+	DOS/MS Windows for the Baltic languages.  There are still plenty
+	of texts written in this encoding/codepage (bug#6519).
+
+2012-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (eol-mnemonic-unix, eol-mnemonic-dos, eol-mnemonic-mac):
+	Add :standard values, reducing "rogue" customs in emacs -Q a bit more.
+
+2012-04-10  Florian Adamsky  <florian@adamsky.it>  (tiny change)
+
+	* recentf.el (recentf-dialog-mode-map): Add two keybindings for
+	next-line "n" and previous-line "p" in order to make recentf more
+	consistent with ibuffer, dired or org-mode (bug#9387).
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.el (put-image): Return the overlay created instead of the
+	optional input string (bug#7834).  Note that this may break code
+	that is (for some reason or other) depending on `put-image'
+	returning the string.
+
+	* mouse-sel.el (mouse-sel-mode): Mark as obsolete (bug#6174).
+
+	* simple.el (zap-to-char): Allow zapping using input methods
+	(bug#1580).
+
+	* textmodes/fill.el (fill-region): Leave point and mark where they
+	were before filling (bug#5399).
+
+2012-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-bzr-get-version):
+	Handle lightweight checkouts of local branches.
+
 2012-04-09  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* international/characters.el: Recover lost case pairs.
-	(Bug#11209)
+	* international/characters.el: Recover lost case pairs.  (Bug#11209)
 
 2012-04-09  Chong Yidong  <cyd@gnu.org>
 
@@ -156,8 +859,8 @@
 2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-get-extended-character-mode): Disable
-	extended-char-mode for hunspell. hunspell does not support it and
-	treats ~word as ordinary words in pipe mode.
+	extended-char-mode for hunspell.  hunspell does not support it
+	and treats ~word as ordinary words in pipe mode.
 
 2012-03-30  Glenn Morris  <rgm@gnu.org>
 
@@ -387,7 +1090,7 @@
 	(hfy-face-to-css-default): Same as the earlier `hfy-face-to-css'.
 	(hfy-face-to-css): Re-defined to be a variable.
 	(hfy-compile-stylesheet): Modify.  Allow stylesheet to be built
-	over multiple runs. This is made possible by having the caller let
+	over multiple runs.  This is made possible by having the caller let
 	bind a special variable `hfy-user-sheet-assoc'.
 	(htmlfontify-string): New defun.
 	(hfy-compile-face-map): Make sure that the last char in the
@@ -620,7 +1323,7 @@
 
 2012-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el: (dbus-property-handler): Return empty array if
+	* net/dbus.el (dbus-property-handler): Return empty array if
 	there are no properties.
 
 2012-03-09  Leo Liu  <sdl.web@gmail.com>
@@ -957,10 +1660,6 @@
 
 2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* files.el (file-subdir-of-p): Fix typo.
-
-2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
-
 	* files.el (files-equal-p, file-subdir-of-p): New functions.
 	(copy-directory): Error when trying to copy a directory on itself.
 	Add missing copy-contents arg to tramp handler.
@@ -1224,7 +1923,7 @@
 2012-02-12  Alan Mackenzie  <acm@muc.de>
 
 	Fix infinite loop with long macros.
-	* cc-engine.el (c-state-safe-place): Handle macros properly.
+	* progmodes/cc-engine.el (c-state-safe-place): Handle macros properly.
 
 2012-02-12  Chong Yidong  <cyd@gnu.org>
 
@@ -1487,11 +2186,10 @@
 
 2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* progmodes/cc-mode.el
-	(c-standard-font-lock-fontify-region-function): Set the default at
-	load time, too, so that `font-lock-fontify-buffer' can be called
-	without setting up the entire mode first.  This fixes a bug in
-	`mm-inline-text' with C MIME parts.
+	* progmodes/cc-mode.el (c-standard-font-lock-fontify-region-function):
+	Set the default at load time, too, so that `font-lock-fontify-buffer'
+	can be called without setting up the entire mode first.  This fixes
+	a bug in `mm-inline-text' with C MIME parts.
 
 2012-02-06  Chong Yidong  <cyd@gnu.org>
 

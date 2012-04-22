@@ -63,6 +63,20 @@ For example:
 
 A sample value might look like: `\\(_P\\|_PROTO\\)'.")
 
+;;			  *Warning for cc-mode developers*
+;;
+;; `cc-imenu-objc-generic-expression' elements depend on
+;; `cc-imenu-c++-generic-expression'. So if you change this
+;; expression, you need to change following variables,
+;; `cc-imenu-objc-generic-expression-*-index',
+;; too. `cc-imenu-objc-function' uses these *-index variables, in
+;; order to know where the each regexp *group \\(foobar\\)* elements
+;; are started.
+;;
+;; *-index variables are initialized during `cc-imenu-objc-generic-expression'
+;; being initialized.
+;;
+
 (defvar cc-imenu-c++-generic-expression
   `(
     ;; Try to match ::operator definitions first. Otherwise `X::operator new ()'
@@ -187,23 +201,8 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
                ")"
                "[.," c-alnum " \t\n\r]*"
                "{"
-               )) 1))
-  "Imenu generic expression for Java mode.  See
-`imenu-generic-expression'.")
-
-;;                        *Warning for cc-mode developers*
-;;
-;; `cc-imenu-objc-generic-expression' elements depend on
-;; `cc-imenu-c++-generic-expression'. So if you change this
-;; expression, you need to change following variables,
-;; `cc-imenu-objc-generic-expression-*-index',
-;; too. `cc-imenu-objc-function' uses these *-index variables, in
-;; order to know where the each regexp *group \\(foobar\\)* elements
-;; are started.
-;;
-;; *-index variables are initialized during `cc-imenu-objc-generic-expression'
-;; being initialized.
-;;
+	       )) 1))
+  "Imenu generic expression for Java mode.  See `imenu-generic-expression'.")
 
 ;; Internal variables
 (defvar cc-imenu-objc-generic-expression-noreturn-index nil)
@@ -224,7 +223,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
    "\\|"
    ;; > General function name regexp
    ;; Pick a token by  (match-string 3)
-   (car (cdr (nth 2 cc-imenu-c++-generic-expression))) ; -> index += 5
+   (car (cdr (nth 2 cc-imenu-c++-generic-expression))) ; -> index += 6
    (prog2 (setq cc-imenu-objc-generic-expression-general-func-index 3) "")
    ;; > Special case for definitions using phony prototype macros like:
    ;; > `int main _PROTO( (int argc,char *argv[]) )'.
@@ -233,11 +232,11 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
        (concat
 	"\\|"
 	(car (cdr (nth 3 cc-imenu-c++-generic-expression))) ; -> index += 1
-	(prog2 (setq cc-imenu-objc-generic-expression-objc-base-index 9) "")
+	(prog2 (setq cc-imenu-objc-generic-expression-objc-base-index 10) "")
 	)
-     (prog2 (setq cc-imenu-objc-generic-expression-objc-base-index 8) "")
+     (prog2 (setq cc-imenu-objc-generic-expression-objc-base-index 9) "")
      "")				; -> index += 0
-   (prog2 (setq cc-imenu-objc-generic-expression-proto-index 8) "")
+   (prog2 (setq cc-imenu-objc-generic-expression-proto-index 9) "")
    ;;
    ;; For Objective-C
    ;; Pick a token by (match-string 8 or 9)

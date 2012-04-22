@@ -280,13 +280,13 @@ The function in this variable is called when selecting a normal index-item.")
 ;;  `(and
 ;;    imenu-scanning-message
 ;;    (let ((pos ,(if relpos
-;; 		    relpos
-;; 		  `(imenu--relative-position ,reverse))))
-;;      (if ,(if relpos t
-;; 	     `(> pos (+ 5 ,prevpos)))
-;; 	  (progn
-;; 	    (message imenu-scanning-message pos)
-;; 	    (setq ,prevpos pos)))))
+;;		   relpos
+;;		 `(imenu--relative-position ,reverse))))
+;;	(if ,(if relpos t
+;;	    `(> pos (+ 5 ,prevpos)))
+;;	 (progn
+;;	   (message imenu-scanning-message pos)
+;;	   (setq ,prevpos pos)))))
 )
 
 
@@ -338,13 +338,10 @@ Don't move point."
   (let ((index-alist '())
 	(index-var-alist '())
 	(index-type-alist '())
-	(index-unknown-alist '())
-	prev-pos)
+	(index-unknown-alist '()))
     (goto-char (point-max))
-    (imenu-progress-message prev-pos 0)
     ;; Search for the function
     (while (beginning-of-defun)
-      (imenu-progress-message prev-pos nil t)
 	  (save-match-data
 	    (and (looking-at "(def")
 		 (save-excursion
@@ -371,7 +368,6 @@ Don't move point."
 		     (forward-sexp 2)
 		     (push (imenu-example--name-and-position)
 		       index-unknown-alist)))))))
-    (imenu-progress-message prev-pos 100)
     (and index-var-alist
 	 (push (cons "Variables" index-var-alist)
 	       index-alist))
@@ -396,15 +392,13 @@ Don't move point."
 
 (defun imenu-example--create-c-index (&optional regexp)
   (let ((index-alist '())
-	prev-pos char)
+	char)
     (goto-char (point-min))
-    (imenu-progress-message prev-pos 0)
     ;; Search for the function
     (save-match-data
       (while (re-search-forward
 	      (or regexp imenu-example--function-name-regexp-c)
 	      nil t)
-	(imenu-progress-message prev-pos)
 	(backward-up-list 1)
 	(save-excursion
 	  (goto-char (scan-sexps (point) 1))
@@ -412,7 +406,6 @@ Don't move point."
 	;; Skip this function name if it is a prototype declaration.
 	(if (not (eq char ?\;))
 	    (push (imenu-example--name-and-position) index-alist))))
-    (imenu-progress-message prev-pos 100)
     (nreverse index-alist)))
 (make-obsolete 'imenu-example--create-c-index "your own" "23.2")
 
@@ -684,22 +677,19 @@ The alternate method, which is the one most often used, is to call
   (cond ((and imenu-prev-index-position-function
 	      imenu-extract-index-name-function)
 	 (let ((index-alist '()) (pos (point))
-	       prev-pos name)
+	       name)
 	   (goto-char (point-max))
-	   (imenu-progress-message prev-pos 0 t)
 	   ;; Search for the function
 	   (while (funcall imenu-prev-index-position-function)
              (when (= pos (point))
                (error "Infinite loop at %s:%d: imenu-prev-index-position-function does not move point" (buffer-name) pos))
              (setq pos (point))
-	     (imenu-progress-message prev-pos nil t)
 	     (save-excursion
 	       (setq name (funcall imenu-extract-index-name-function)))
 	     (and (stringp name)
  		  ;; [ydi] updated for imenu-use-markers
 		  (push (cons name (if imenu-use-markers (point-marker) (point)))
 			index-alist)))
-	   (imenu-progress-message prev-pos 100 t)
 	   index-alist))
 	;; Use generic expression if possible.
 	((and imenu-generic-expression)
@@ -765,7 +755,6 @@ They may also be nested index alists like:
 depending on PATTERNS."
 
   (let ((index-alist (list 'dummy))
-	prev-pos
         (case-fold-search (if (or (local-variable-p 'imenu-case-fold-search)
 				  (not (local-variable-p 'font-lock-defaults)))
 			      imenu-case-fold-search
@@ -782,7 +771,6 @@ depending on PATTERNS."
                 (modify-syntax-entry c (cdr syn) table))
               (car syn))))
     (goto-char (point-max))
-    (imenu-progress-message prev-pos 0 t)
     (unwind-protect			; for syntax table
 	(save-match-data
 	  (set-syntax-table table)
@@ -800,7 +788,17 @@ depending on PATTERNS."
 	      (goto-char (point-max))
 	      (while (and (if (functionp regexp)
 			      (funcall regexp)
-			    (re-search-backward regexp nil t))
+			    (and
+			     (re-search-backward regexp nil t)
+			     ;; Do not count invisible definitions.
+			     (let ((invis (invisible-p (point))))
+			       (or (not invis)
+				   (progn
+				     (while (and invis
+						 (not (bobp)))
+				       (setq invis (not (re-search-backward
+							 regexp nil 'move))))
+				     (not invis))))))
 			  ;; Exit the loop if we get an empty match,
 			  ;; because it means a bad regexp was specified.
 			  (not (= (match-beginning 0) (match-end 0))))
@@ -810,7 +808,6 @@ depending on PATTERNS."
 		(goto-char (match-beginning index))
 		(beginning-of-line)
 		(setq beg (point))
-		(imenu-progress-message prev-pos nil t)
 		;; Add this sort of submenu only when we've found an
 		;; item for it, avoiding empty, duff menus.
 		(unless (assoc menu-title index-alist)
@@ -835,7 +832,6 @@ depending on PATTERNS."
 		;; keep making progress backwards.
 		(goto-char start))))
 	  (set-syntax-table old-table)))
-    (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.
     ;; This is in case one submenu gets items from two different regexps.
     (dolist (item index-alist)
@@ -963,7 +959,8 @@ See the command `imenu' for more information."
 	  imenu-generic-expression
 	  (not (eq imenu-create-index-function
 		   'imenu-default-create-index-function)))
-      (unless (keymapp (lookup-key (current-local-map) [menu-bar index]))
+      (unless (and (current-local-map)
+                   (keymapp (lookup-key (current-local-map) [menu-bar index])))
 	(let ((newmap (make-sparse-keymap)))
 	  (set-keymap-parent newmap (current-local-map))
 	  (setq imenu--last-menubar-index-alist nil)
@@ -1028,7 +1025,7 @@ to `imenu-update-menubar'.")
     (imenu item)
     nil))
 
-(defun imenu-default-goto-function (name position &optional rest)
+(defun imenu-default-goto-function (_name position &optional _rest)
   "Move to the given position.
 
 NAME is ignored.  POSITION is where to move.  REST is also ignored.

@@ -1,8 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/text
 @node Text, Non-ASCII Characters, Markers, Top
 @chapter Text
 @cindex text
@@ -4345,7 +4344,7 @@ changed text, its length is simply the difference between the first two
 arguments.
 @end defvar
 
-  Output of messages into the @samp{*Messages*} buffer does not
+  Output of messages into the @file{*Messages*} buffer does not
 call these functions.
 
 @defmac combine-after-change-calls body@dots{}

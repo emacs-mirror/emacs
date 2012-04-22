@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'erc)
+(require 'auth-source)
 (eval-when-compile (require 'cl))
 
 (defgroup erc-autojoin nil
@@ -55,6 +56,13 @@
 Every element in the alist has the form (SERVER . CHANNELS).
 SERVER is a regexp matching the server, and channels is the
 list of channels to join.
+
+If the channel(s) require channel keys for joining, the passwords
+are found via auth-source.  For instance, if you use ~/.authinfo
+as your auth-source backend, then put something like the
+following in that file:
+
+machine irc.example.net login \"#fsf\" password sEcReT
 
 Customize this variable to set the value for your first connect.
 Once you are connected and join and part channels, this alist
@@ -131,7 +139,7 @@ This function is run from `erc-nickserv-identified-hook'."
 	(when (string-match (car l) server)
 	  (dolist (chan (cdr l))
 	    (unless (erc-member-ignore-case chan joined)
-	      (erc-server-send (concat "join " chan))))))))
+	      (erc-server-join-channel server chan)))))))
   nil)
 
 (defun erc-autojoin-channels (server nick)
@@ -148,9 +156,24 @@ This function is run from `erc-nickserv-identified-hook'."
     (dolist (l erc-autojoin-channels-alist)
       (when (string-match (car l) server)
 	(dolist (chan (cdr l))
-	  (erc-server-send (concat "join " chan))))))
+	  (erc-server-join-channel server chan)))))
   ;; Return nil to avoid stomping on any other hook funcs.
   nil)
+
+(defun erc-server-join-channel (server channel)
+  (let* ((secret (plist-get (nth 0 (auth-source-search
+				    :max 1
+				    :host server
+				    :port "irc"
+				    :user channel))
+			    :secret))
+	 (password (if (functionp secret)
+		       (funcall secret)
+		     secret)))
+    (erc-server-send (concat "join " channel
+			     (if password
+				 (concat " " password)
+			       "")))))
 
 (defun erc-autojoin-add (proc parsed)
   "Add the channel being joined to `erc-autojoin-channels-alist'."

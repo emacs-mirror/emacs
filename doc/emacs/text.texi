@@ -1548,7 +1548,7 @@ text that belongs inside.  Afterward, use the command @kbd{C-c @}}
 point, and inserts two newlines to start a new paragraph.  It outputs
 a message in the echo area if any mismatch is found.  @kbd{M-x
 tex-validate-region} checks a region, paragraph by paragraph.  The
-errors are listed in an @samp{*Occur*} buffer; you can use the usual
+errors are listed in an @file{*Occur*} buffer; you can use the usual
 Occur mode commands in that buffer, such as @kbd{C-c C-c}, to visit a
 particular mismatch (@pxref{Other Repeating Search}).
 
@@ -1694,7 +1694,7 @@ name with @samp{*} in the command string.  For example,
 @findex tex-recenter-output-buffer
 @kindex C-c C-l @r{(@TeX{} mode)}
   The terminal output from @TeX{}, including any error messages,
-appears in a buffer called @samp{*tex-shell*}.  If @TeX{} gets an
+appears in a buffer called @file{*tex-shell*}.  If @TeX{} gets an
 error, you can switch to this buffer and feed it input (this works as
 in Shell mode; @pxref{Interactive Shell}).  Without switching to this
 buffer you can scroll it so that its last line is visible by typing

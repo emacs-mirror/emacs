@@ -120,6 +120,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
+/* Work around GCC 4.7.0 bug with strict overflow checking; see
+   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
+   These lines can be removed once the GCC bug is fixed.  */
+#if (__GNUC__ == 4 && 3 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
+
 Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
 Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
 Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
@@ -1066,7 +1073,9 @@ is more appropriate for saving the process buffer.
 
 Binding the variable `inherit-process-coding-system' to non-nil before
 starting the process is an alternative way of setting the inherit flag
-for the process which will run.  */)
+for the process which will run.
+
+This function returns FLAG.  */)
   (register Lisp_Object process, Lisp_Object flag)
 {
   CHECK_PROCESS (process);
@@ -1079,7 +1088,8 @@ DEFUN ("set-process-query-on-exit-flag",
        2, 2, 0,
        doc: /* Specify if query is needed for PROCESS when Emacs is exited.
 If the second argument FLAG is non-nil, Emacs will query the user before
-exiting or killing a buffer if PROCESS is running.  */)
+exiting or killing a buffer if PROCESS is running.  This function
+returns FLAG.  */)
   (register Lisp_Object process, Lisp_Object flag)
 {
   CHECK_PROCESS (process);
@@ -2521,7 +2531,7 @@ could be "COM1", or "\\\\.\\COM10" for ports higher than COM9 (double
 the backslashes in strings).
 
 :speed SPEED -- (mandatory) is handled by `serial-process-configure',
-which is called by `make-serial-process'.
+which this function calls.
 
 :name NAME -- NAME is the name of the process.  If NAME is not given,
 the value of PORT is used.
@@ -2550,13 +2560,12 @@ but you can send outgoing data.  The stopped state is cleared by
 
 :plist PLIST -- Install PLIST as the initial plist of the process.
 
-:speed
 :bytesize
 :parity
 :stopbits
 :flowcontrol
--- These arguments are handled by `serial-process-configure', which is
-called by `make-serial-process'.
+-- This function calls `serial-process-configure' to handle these
+arguments.
 
 The original argument list, possibly modified by later configuration,
 is available via the function `process-contact'.
@@ -2790,7 +2799,7 @@ The stopped state is cleared by `continue-process' and set by
 :filter-multibyte BOOL -- If BOOL is non-nil, strings given to the
 process filter are multibyte, otherwise they are unibyte.
 If this keyword is not specified, the strings are multibyte if
-`default-enable-multibyte-characters' is non-nil.
+the default value of `enable-multibyte-characters' is non-nil.
 
 :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
 
@@ -4877,16 +4886,23 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
 		{
-                  /* Don't do anything if only a pty, with no associated
-		     process (bug#10933).  */
-                  if (XPROCESS (proc)->pid != -2) {
-                    /* Clear the descriptor now, so we only raise the signal
-		       once.  */
-                    FD_CLR (channel, &input_wait_mask);
-                    FD_CLR (channel, &non_keyboard_wait_mask);
-                    
-                    kill (getpid (), SIGCHLD);
-                  }
+		  struct Lisp_Process *p = XPROCESS (proc);
+
+		  /* Clear the descriptor now, so we only raise the
+		     signal once.  */
+		  FD_CLR (channel, &input_wait_mask);
+		  FD_CLR (channel, &non_keyboard_wait_mask);
+
+		  if (p->pid == -2)
+		    {
+		      /* If the EIO occurs on a pty, sigchld_handler's
+			 wait3() will not find the process object to
+			 delete.  Do it here.  */
+		      p->tick = ++process_tick;
+		      p->status = Qfailed;
+		    }
+                  else
+		    kill (getpid (), SIGCHLD);
 		}
 #endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the

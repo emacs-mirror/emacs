@@ -2,7 +2,6 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/debugging
 @node Debugging, Read and Print, Advising Functions, Top
 @chapter Debugging Lisp Programs
 
@@ -303,7 +302,7 @@ an implicit @code{progn} (@pxref{Sequencing}).
 @subsection Using the Debugger
 
   When the debugger is entered, it displays the previously selected
-buffer in one window and a buffer named @samp{*Backtrace*} in another
+buffer in one window and a buffer named @file{*Backtrace*} in another
 window.  The backtrace buffer contains one line for each level of Lisp
 function execution currently going on.  At the beginning of this buffer
 is a message describing the reason that the debugger was invoked (such
@@ -412,7 +411,7 @@ the variable values within the debugger.
 
 @item R
 Like @kbd{e}, but also save the result of evaluation in the
-buffer @samp{*Debugger-record*}.
+buffer @file{*Debugger-record*}.
 
 @item q
 Terminate the program being debugged; return to top-level Emacs
@@ -450,7 +449,7 @@ to invoke the debugger.
 
 @defun debug &rest debugger-args
 This function enters the debugger.  It switches buffers to a buffer
-named @samp{*Backtrace*} (or @samp{*Backtrace*<2>} if it is the second
+named @file{*Backtrace*} (or @file{*Backtrace*<2>} if it is the second
 recursive entry to the debugger, etc.), and fills it with information
 about the stack of Lisp function calls.  It then enters a recursive
 edit, showing the backtrace buffer in Debugger mode.
@@ -461,7 +460,7 @@ buffer and returns to whatever called @code{debug}.  This is the only
 way the function @code{debug} can return to its caller.
 
 The use of the @var{debugger-args} is that @code{debug} displays the
-rest of its arguments at the top of the @samp{*Backtrace*} buffer, so
+rest of its arguments at the top of the @file{*Backtrace*} buffer, so
 that the user can see them.  Except as described below, this is the
 @emph{only} way these arguments are used.
 
@@ -560,7 +559,7 @@ of @code{debug} (@pxref{Invoking the Debugger}).
 @cindex call stack
 This function prints a trace of Lisp function calls currently active.
 This is the function used by @code{debug} to fill up the
-@samp{*Backtrace*} buffer.  It is written in C, since it must have access
+@file{*Backtrace*} buffer.  It is written in C, since it must have access
 to the stack to determine which function calls are active.  The return
 value is always @code{nil}.
 

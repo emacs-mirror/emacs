@@ -62,6 +62,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lstat:
+  # Code from module manywarnings:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
@@ -100,6 +101,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
+  # Code from module warnings:
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -216,6 +218,7 @@ fi
 gl_TIME_MODULE_INDICATOR([time_r])
 AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
+AC_SUBST([WARN_CFLAGS])
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_pathmax=false
@@ -562,6 +565,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/largefile.m4
   m4/longlong.m4
   m4/lstat.m4
+  m4/manywarnings.m4
   m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
@@ -596,5 +600,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/tm_gmtoff.m4
   m4/unistd_h.m4
   m4/warn-on-use.m4
+  m4/warnings.m4
   m4/wchar_t.m4
 ])

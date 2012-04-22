@@ -412,7 +412,8 @@ means display it in the right marginal area."
 	  (prop (if (null area) image (list (list 'margin area) image))))
       (put-text-property 0 (length string) 'display prop string)
       (overlay-put overlay 'put-image t)
-      (overlay-put overlay 'before-string string))))
+      (overlay-put overlay 'before-string string)
+      overlay)))
 
 
 ;;;###autoload
@@ -684,26 +685,16 @@ The minimum delay between successive frames is 0.01s."
 		      image n count time-elapsed limit))))
 
 
-(defcustom imagemagick-types-inhibit
-  '(C HTML HTM TXT PDF)
-  "ImageMagick types that should not be visited in Image mode.
-This should be a list of symbols, each of which should be one of
-the ImageMagick types listed in `imagemagick-types'.  These image
-types are not registered by `imagemagick-register-types'.
-
-If Emacs is compiled without ImageMagick support, this variable
-has no effect."
-  :type '(choice (const :tag "Let ImageMagick handle all types it can" nil)
-		 (repeat symbol))
-  ;; Ideally, would have a :set function that checks if we already did
-  ;; imagemagick-register-types, and if so undoes it, then redoes it.
-  :version "24.1"
-  :group 'image)
+(defvar imagemagick--file-regexp nil
+  "File extension regexp for ImageMagick files, if any.
+This is the extension installed into `auto-mode-alist' and
+`image-type-file-name-regexps' by `imagemagick-register-types'.")
 
 ;;;###autoload
 (defun imagemagick-register-types ()
   "Register file types that can be handled by ImageMagick.
-This registers the ImageMagick types listed in `imagemagick-types',
+This function is called at startup, after loading the init file.
+It registers the ImageMagick types listed in `imagemagick-types',
 excluding those listed in `imagemagick-types-inhibit'.
 
 Registered image types are added to `auto-mode-alist', so that
@@ -713,14 +704,45 @@ recognizes these files as having image type `imagemagick'.
 
 If Emacs is compiled without ImageMagick support, do nothing."
   (when (fboundp 'imagemagick-types)
-    (let ((im-types '()))
-      (dolist (im-type (imagemagick-types))
-        (unless (memq im-type imagemagick-types-inhibit)
-          (push (downcase (symbol-name im-type)) im-types)))
-      (let ((extension (concat "\\." (regexp-opt im-types) "\\'")))
-        (push (cons extension 'image-mode) auto-mode-alist)
-        (push (cons extension 'imagemagick)
-              image-type-file-name-regexps)))))
+    (let ((re (if (eq imagemagick-types-inhibit t)
+		  ;; Use a bogus regexp to inhibit matches.
+		  "\\'a"
+		(let ((types))
+		  (dolist (type (imagemagick-types))
+		    (unless (memq type imagemagick-types-inhibit)
+		      (push (downcase (symbol-name type)) types)))
+		  (concat "\\." (regexp-opt types) "\\'"))))
+	  (ama-elt (car (member (cons imagemagick--file-regexp 'image-mode)
+				auto-mode-alist)))
+	  (itfnr-elt (car (member (cons imagemagick--file-regexp 'imagemagick)
+				  image-type-file-name-regexps))))
+      (if ama-elt
+	  (setcar ama-elt re)
+	(push (cons re 'image-mode) auto-mode-alist))
+      (if itfnr-elt
+	  (setcar itfnr-elt re)
+	(push (cons re 'imagemagick) image-type-file-name-regexps))
+      (setq imagemagick--file-regexp re))))
+
+(defcustom imagemagick-types-inhibit
+  '(C HTML HTM TXT PDF)
+  "List of ImageMagick types that should not be treated as images.
+This should be a list of symbols, each of which should be one of
+the ImageMagick types listed in `imagemagick-types'.  The listed
+image types are not registered by `imagemagick-register-types'.
+
+If the value is t, inhibit the use of ImageMagick for images.
+
+If Emacs is compiled without ImageMagick support, this variable
+has no effect."
+  :type '(choice (const :tag "Support all ImageMagick types" nil)
+		 (const :tag "Disable all ImageMagick types" t)
+		 (repeat symbol))
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+	 (imagemagick-register-types))
+  :version "24.1"
+  :group 'image)
 
 (provide 'image)
 

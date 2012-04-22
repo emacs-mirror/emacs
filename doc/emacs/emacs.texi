@@ -511,12 +511,12 @@ Frames and Graphical Displays
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
-* Text-Only Mouse::     Using the mouse in text-only terminals.
+* Text-Only Mouse::     Using the mouse in text terminals.
 
 International Character Set Support
 
 * International Chars::     Basic concepts of multibyte characters.
-* Enabling Multibyte::      Controlling whether to use multibyte characters.
+* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
 * Select Input Method::     Specifying your choice of input methods.

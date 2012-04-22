@@ -1,9 +1,9 @@
 ;;; bzrmerge.el --- help merge one Emacs bzr branch to another
 
-;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: 
+;; Keywords: maint
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
   (require 'cl))                        ; assert
 
 (defvar bzrmerge-skip-regexp
-  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version"
+  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version\\|from trunk"
   "Regexp matching logs of revisions that might be skipped.
 `bzrmerge-missing' will ask you if it should skip any matches.")
 

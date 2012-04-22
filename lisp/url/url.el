@@ -149,7 +149,9 @@ take effect.
 
 If SILENT, then don't message progress reports and the like.
 If INHIBIT-COOKIES, cookies will neither be stored nor sent to
-the server."
+the server.
+If URL is a multibyte string, it will be encoded as utf-8 and
+URL-encoded before it's used."
 ;;; XXX: There is code in Emacs that does dynamic binding
 ;;; of the following variables around url-retrieve:
 ;;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
@@ -171,11 +173,16 @@ the list of events, as described in the docstring of `url-retrieve'.
 
 If SILENT, don't message progress reports and the like.
 If INHIBIT-COOKIES, cookies will neither be stored nor sent to
-the server."
+the server.
+If URL is a multibyte string, it will be encoded as utf-8 and
+URL-encoded before it's used."
   (url-do-setup)
   (url-gc-dead-buffers)
   (if (stringp url)
        (set-text-properties 0 (length url) nil url))
+  (when (multibyte-string-p url)
+    (let ((url-unreserved-chars (append '(?: ?/) url-unreserved-chars)))
+      (setq url (url-hexify-string url))))
   (if (not (vectorp url))
       (setq url (url-generic-parse-url url)))
   (if (not (functionp callback))

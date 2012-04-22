@@ -23215,7 +23215,7 @@
 
 	* macterm.c (do_ae_open_documents) [MAC_OSX]: Call FSpMakeFSRef
 	and FSRefMakePath to convert FSSpec returned with Apple Event to
-	Posix pathname.
+	POSIX pathname.
 	(mac_initialize) [TARGET_API_MAC_CARBON]:
 	Call init_required_apple_events and disable the `Quit' menu item
 	provided automatically by the Carbon Toolbox.

@@ -81,28 +81,45 @@ to the system configuration; look at `system-configuration' instead."
 
 ;; Set during dumping, this is a defvar so that it can be setq'd.
 (defvar emacs-bzr-version nil "\
-String giving the bzr revision number from which this Emacs was built.
-This is nil if Emacs was not built from a bzr checkout, or if we could
+String giving the bzr revision from which this Emacs was built.
+Value is the bzr revision number and a revision ID separated by a blank.
+Value is nil if Emacs was not built from a bzr checkout, or if we could
 not determine the revision.")
 
-(defun emacs-bzr-get-version () "\
+(defun emacs-bzr-get-version (&optional dir) "\
 Try to return as a string the bzr revision number of the Emacs sources.
-Returns nil if the sources do not seem to be under bzr, or if we could
+Value is the bzr revision number and a revision ID separated by a blank.
+Value is nil if the sources do not seem to be under bzr, or if we could
 not determine the revision.  Note that this reports on the current state
-of the sources, which may not correspond to the running Emacs."
-  (let ((file (expand-file-name ".bzr/branch/last-revision" source-directory)))
-    (if (file-readable-p file)
-        (with-temp-buffer
-          (insert-file-contents file)
-          (goto-char (point-max))
-          (if (looking-back "\n")
-              (delete-char -1))
-          (buffer-string)))))
+of the sources, which may not correspond to the running Emacs.
+
+Optional argument DIR is a directory to use instead of `source-directory'."
+  (or dir (setq dir source-directory))
+  (when (file-directory-p (setq dir (expand-file-name ".bzr/branch" dir)))
+    (let (file loc)
+      (cond ((file-readable-p
+              (setq file (expand-file-name "last-revision" dir)))
+             (with-temp-buffer
+               (insert-file-contents file)
+               (goto-char (point-max))
+               (if (looking-back "\n")
+                   (delete-char -1))
+               (buffer-string)))
+            ;; OK, no last-revision.  Is it a lightweight checkout?
+            ((file-readable-p
+              (setq file (expand-file-name "location" dir)))
+             ;; If the parent branch is local, try looking there for the revid.
+             (if (setq loc (with-temp-buffer
+                             (insert-file-contents file)
+                             (if (looking-at "file://\\(.*\\)")
+                                 (match-string 1))))
+                 (emacs-bzr-get-version loc)))
+            ;; Could fall back to eg `bzr testament' at this point.
+            ))))
 
 ;; We put version info into the executable in the form that `ident' uses.
-(or (eq system-type 'windows-nt)
-    (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
-		      " $\n")))
+(purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
+		  " $\n"))
 
 ;; Local Variables:
 ;; version-control: never

@@ -2005,10 +2005,6 @@ advance_to_char_boundary (ptrdiff_t byte_pos)
   return byte_pos;
 }
 
-#ifdef REL_ALLOC
-extern void r_alloc_reset_variable (POINTER_TYPE *, POINTER_TYPE *);
-#endif /* REL_ALLOC */
-
 DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
        1, 1, 0,
        doc: /* Swap the text between current buffer and BUFFER.  */)
@@ -4769,13 +4765,6 @@ mmap_realloc (POINTER_TYPE **var, size_t nbytes)
 /***********************************************************************
 			    Buffer-text Allocation
  ***********************************************************************/
-
-#ifdef REL_ALLOC
-extern POINTER_TYPE *r_alloc (POINTER_TYPE **, size_t);
-extern POINTER_TYPE *r_re_alloc (POINTER_TYPE **, size_t);
-extern void r_alloc_free (POINTER_TYPE **ptr);
-#endif /* REL_ALLOC */
-
 
 /* Allocate NBYTES bytes for buffer B's text buffer.  */
 

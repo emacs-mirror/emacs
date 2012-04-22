@@ -1170,10 +1170,10 @@ Note that the style variables are always made local to the buffer."
   ;;
   ;;
   ;;     void myfunc(T* p) {}
-  ;;
+  ;; 
   ;; Type a space in the first blank line, and the fontification of the next
   ;; line was fouled up by context fontification.
-  (let ((new-beg beg) (new-end end) new-region)
+  (let ((new-beg beg) (new-end end) new-region case-fold-search)
     (if c-in-after-change-fontification
 	(setq c-in-after-change-fontification nil)
       (save-restriction

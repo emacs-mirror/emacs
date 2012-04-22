@@ -2285,10 +2285,10 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
        (,(concat
 	  "(" (regexp-opt
 	       '("cond" "if" "while" "while-no-input" "let" "let*" "letrec"
-		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
-		 "inline" "lambda" "save-restriction" "save-excursion"
-		 "save-selected-window" "save-window-excursion"
-		 "save-match-data" "save-current-buffer"
+		 "pcase" "pcase-let" "pcase-let*" "prog" "progn" "progv"
+                 "prog1" "prog2" "prog*" "inline" "lambda"
+                 "save-restriction" "save-excursion" "save-selected-window"
+                 "save-window-excursion" "save-match-data" "save-current-buffer"
 		 "combine-after-change-calls" "unwind-protect"
 		 "condition-case" "condition-case-unless-debug"
 		 "track-mouse" "eval-after-load" "eval-and-compile"

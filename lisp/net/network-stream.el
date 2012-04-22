@@ -125,9 +125,8 @@ values:
   certificate.  This parameter will only be used when doing TLS
   or STARTTLS connections.
 
-If :use-starttls-if-possible is non-nil, do opportunistic
-STARTTLS upgrades even if Emacs doesn't have built-in TLS
-functionality.
+:use-starttls-if-possible is a boolean that says to do opportunistic
+STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 
 :nowait is a boolean that says the connection should be made
   asynchronously, if possible."
