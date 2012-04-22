@@ -201,12 +201,6 @@ of just logging the error."
       (error "Could not locate 'eieio/eieio-tests.el'"))
     (message "EIEIO Base tests loading from: %S" lib)
     (load-file lib)
-    )
-  (let ((lib (locate-library "eieio/eieio-test-methodinvoke.el" t)))
-    (unless lib
-      (error "Could not locate 'eieio/eieio-test-methodinvoke.el'"))
-    (message "EIEIO MethodInvoke tests loading from: %S" lib)
-    (load-file lib)
     ))
 
 (provide 'cedet-utests)
