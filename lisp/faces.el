@@ -1532,35 +1532,29 @@ If SPEC is nil, return nil."
 			  face-attribute-name-alist)))))
 
 (defun face-spec-set (face spec &optional for-defface)
-  "Set FACE's face spec, which controls its appearance, to SPEC.
-If FOR-DEFFACE is t, set the base spec, the one that `defface'
-  and Custom set.  (In that case, the caller must put it in the
-  appropriate property, because that depends on the caller.)
-If FOR-DEFFACE is nil, set the overriding spec (and store it
-  in the `face-override-spec' property of FACE).
+  "Set and apply the face spec for FACE.
+If the optional argument FOR-DEFFACE is omitted or nil, set the
+overriding spec to SPEC, recording it in the `face-override-spec'
+property of FACE.  See `defface' for the format of SPEC.
 
-The appearance of FACE is controlled by the base spec,
-by any custom theme specs on top of that, and by the
-overriding spec on top of all the rest.
+If FOR-DEFFACE is non-nil, set the base spec (the one set by
+`defface' and Custom).  In this case, SPEC is ignored; the caller
+is responsible for putting the face spec in the `saved-face',
+`customized-face', or `face-defface-spec', as appropriate.
 
-FOR-DEFFACE can also be a frame, in which case we set the
-frame-specific attributes of FACE for that frame based on SPEC.
-That usage is deprecated.
-
-See `defface' for information about the format and meaning of SPEC."
-  (if (framep for-defface)
-      ;; Handle the deprecated case where third arg is a frame.
-      (face-spec-set-2 face for-defface spec)
-    (if for-defface
-	;; When we reset the face based on its custom spec, then it is
-	;; unmodified as far as Custom is concerned.
-	(put (or (get face 'face-alias) face) 'face-modified nil)
-      ;; When we change a face based on a spec from outside custom,
-      ;; record it for future frames.
-      (put (or (get face 'face-alias) face) 'face-override-spec spec))
-    ;; Reset each frame according to the rules implied by all its specs.
-    (dolist (frame (frame-list))
-      (face-spec-recalc face frame))))
+The appearance of FACE is controlled by the base spec, by any
+custom theme specs on top of that, and by the overriding spec on
+top of all the rest."
+  (if for-defface
+      ;; When we reset the face based on its custom spec, then it is
+      ;; unmodified as far as Custom is concerned.
+      (put (or (get face 'face-alias) face) 'face-modified nil)
+    ;; When we change a face based on a spec from outside custom,
+    ;; record it for future frames.
+    (put (or (get face 'face-alias) face) 'face-override-spec spec))
+  ;; Reset each frame according to the rules implied by all its specs.
+  (dolist (frame (frame-list))
+    (face-spec-recalc face frame)))
 
 (defun face-spec-recalc (face frame)
   "Reset the face attributes of FACE on FRAME according to its specs.

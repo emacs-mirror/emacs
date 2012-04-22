@@ -138,6 +138,9 @@ Only variables defined using `defcustom' are considered user options.
 The function `user-variable-p' is now an obsolete alias for
 `custom-variable-p'.
 
+** `face-spec-set' no longer sets frame-specific attributes when the
+third argument is a frame (that usage was obsolete since Emacs 22.2).
+
 
 * Lisp changes in Emacs 24.2
 

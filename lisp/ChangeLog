@@ -6,6 +6,9 @@
 	"reset-saved" operation bring back the default (Bug#9509).
 	(custom-face-state): Properly detect themed faces.
 
+	* faces.el (face-spec-set): Stop supporting deprecated form of
+	third arg.
+
 2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Move functions from C to Lisp.  Make non-blocking method calls
