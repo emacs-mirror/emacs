@@ -1708,17 +1708,20 @@ esac
 # Do the opsystem or machine files prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
-doug_lea_malloc=yes
-AC_CHECK_FUNC(malloc_get_state, ,doug_lea_malloc=no)
-AC_CHECK_FUNC(malloc_set_state, ,doug_lea_malloc=no)
-AC_CACHE_CHECK(whether __after_morecore_hook exists,
-	       emacs_cv_var___after_morecore_hook,
-[AC_LINK_IFELSE([AC_LANG_PROGRAM([[extern void (* __after_morecore_hook)();]],[[__after_morecore_hook = 0]])],
-  emacs_cv_var___after_morecore_hook=yes,
-  emacs_cv_var___after_morecore_hook=no)])
-if test $emacs_cv_var___after_morecore_hook = no; then
-  doug_lea_malloc=no
-fi
+
+AC_CACHE_CHECK(
+  [whether malloc is Doug Lea style],
+  [emacs_cv_var_doug_lea_malloc],
+  [AC_LINK_IFELSE(
+     [AC_LANG_PROGRAM(
+        [[#include <malloc.h>
+	  static void hook (void) {}]],
+        [[malloc_set_state (malloc_get_state ());
+	  __after_morecore_hook = hook;
+	  __malloc_initialize_hook = hook;]])],
+     [emacs_cv_var_doug_lea_malloc=yes],
+     [emacs_cv_var_doug_lea_malloc=no])])
+doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
 
 dnl See comments in aix4-2.h about maybe using system malloc there.

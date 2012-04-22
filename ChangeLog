@@ -1,3 +1,14 @@
+2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (doug_lea_malloc): Check for __malloc_initialize_hook.
+	With glibc 2.14 or later, when compiled with GCC 4.7.0's
+	-Werror=deprecated-declarations flag, use of hooks like
+	__malloc_initialize_hook causes compilation to fail because these
+	hooks are deprecated.  Modify 'configure' to check for these hooks too.
+	Simplify the 'configure' code to test for all the hooks at once.
+	(emacs_cv_var___after_morecore_hook): Remove, replacing with ...
+	(emacs_cv_var_doug_lea_malloc): ... this new var.
+
 2012-04-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Sync from gnulib version 4f11d6bebc3098c64ffde27079ab0d0cecfd0cdc
