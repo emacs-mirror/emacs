@@ -1,5 +1,8 @@
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.h (struct Lisp_Process): Members tick and update_tick
+	are now of type EMACS_INT, not int.
+
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
@@ -569,6 +572,7 @@
 	(Fsignal_process): Simplify by avoiding a goto.
 	Check for process-ids out of pid_t range rather than relying on
 	undefined behavior.
+	(process_tick, update_tick): Use EMACS_INT, not int.
 	(Fformat_network_address, read_process_output, send_process)
 	(Fprocess_send_region, status_notify):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.

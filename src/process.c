@@ -182,9 +182,9 @@ extern int h_errno;
 #endif
 
 /* Number of events of change of status of a process.  */
-static int process_tick;
+static EMACS_INT process_tick;
 /* Number of events for which the user or sentinel has been notified.  */
-static int update_tick;
+static EMACS_INT update_tick;
 
 /* Define NON_BLOCKING_CONNECT if we can support non-blocking connects.  */
 
