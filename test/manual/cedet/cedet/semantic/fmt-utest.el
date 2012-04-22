@@ -1,4 +1,4 @@
-;;; semantic-fmt-utest.el --- Parsing / Formatting tests
+;;; cedet/semantic/fmt-utest.el --- Parsing / Formatting tests
 ;;
 ;; Copyright (C) 2012 Eric M. Ludlam
 ;;
@@ -28,9 +28,8 @@
 ;; make sure that the semantic-tag-format-* functions in question
 ;; created the desired output.
 
-(require 'cedet-utests)
 (require 'semantic)
-(require 'semantic-format)
+(require 'semantic/format)
 
 ;;; Code:
 
@@ -58,7 +57,7 @@ Files to visit are in `semantic-fmt-utest-file-list'."
       (cedet-utest-log-setup "PARSE/FORMAT")
 
       (set-buffer (semantic-find-file-noselect
-		   (locate-library "semantic-fmt-utest.el")))
+		   (locate-library "cedet/semantic/fmt-utest.el")))
 
       (dolist (FILE fl)
 
@@ -156,6 +155,6 @@ Pass ARGS to format to create the log message."
   ;; Forward to CEDET utest framework.
   (apply 'cedet-utest-log args))
 
-(provide 'semantic-fmt-utest)
+(provide 'cedet/semantic/fmt-utest)
 
 ;;; semantic-fmt-utest.el ends here
