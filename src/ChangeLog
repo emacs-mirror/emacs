@@ -1,3 +1,10 @@
+2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c [__FreeBSD__]: Minor cleanups.
+	(list_system_processes, system_process_attributes) [__FreeBSD__]:
+	Use Emacs indenting style more consistently.  Avoid some casts.
+	Use 'double' consistently rather than mixing 'float' and 'double'.
+
 2012-04-21  Eduard Wiebe  <usenet@pusto.de>
 
 	* sysdep.c (list_system_processes, system_process_attributes): Add
