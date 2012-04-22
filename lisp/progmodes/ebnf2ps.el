@@ -1181,10 +1181,10 @@ Elements of ALIST that are not conses are ignored."
 ;;; Interface to the command system
 
 (defgroup postscript nil
-  "PostScript Group."
+  "Printing with PostScript"
   :tag "PostScript"
   :version "20"
-  :group 'emacs)
+  :group 'environment)
 
 
 (defgroup ebnf2ps nil

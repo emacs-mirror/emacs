@@ -95,7 +95,7 @@
 (eval-when-compile (require 'cl))
 
 (defgroup mpc ()
-  "A Client for the Music Player Daemon."
+  "Client for the Music Player Daemon (mpd)."
   :prefix "mpc-"
   :group 'multimedia
   :group 'applications)

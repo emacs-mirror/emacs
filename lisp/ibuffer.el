@@ -60,11 +60,10 @@
 (declare-function ibuffer-format-filter-group-data "ibuf-ext" (filter))
 
 (defgroup ibuffer nil
-  "An advanced replacement for `buffer-menu'.
-
-Ibuffer allows you to operate on buffers in a manner much like Dired.
-Operations include sorting, marking by regular expression, and
-the ability to filter the displayed buffers by various criteria."
+  "Advanced replacement for `buffer-menu'.
+Ibuffer lets you operate on buffers in a Dired-like way,
+with the ability to sort, mark by regular expression,
+and filter displayed buffers by various criteria."
   :version "22.1"
   :group 'convenience)
 

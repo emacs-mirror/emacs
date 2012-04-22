@@ -68,7 +68,7 @@
   "String to display in the mode line when current function is unknown.")
 
 (defgroup which-func nil
-  "Mode to display the current function name in the modeline."
+  "Display the current function name in the modeline."
   :group 'tools
   :version "20.3")
 

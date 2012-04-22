@@ -253,7 +253,7 @@ are the string substitutions (see `format')."
 (make-variable-buffer-local 'flymake-output-residual)
 
 (defgroup flymake nil
-  "A universal on-the-fly syntax checker."
+  "Universal on-the-fly syntax checker."
   :version "23.1"
   :group 'tools)
 

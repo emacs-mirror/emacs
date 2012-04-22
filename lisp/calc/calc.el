@@ -222,7 +222,7 @@
 
 
 (defgroup calc nil
-  "GNU Calc."
+  "Advanced desk calculator and mathematical tool."
   :prefix "calc-"
   :tag    "Calc"
   :group  'applications)

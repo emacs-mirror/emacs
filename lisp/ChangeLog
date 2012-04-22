@@ -1,3 +1,36 @@
+2012-04-22  Chong Yidong  <cyd@gnu.org>
+
+	* cus-edit.el (custom-commands, custom-reset-menu)
+	(Custom-reset-standard): Tweak labels.
+	(custom-reset-button-menu): Change default to t.
+	(custom-buffer-create-internal): For the custom-reset-button-menu
+	case, put the revert button first.
+	(custom-group-subtitle): New face.
+	(custom-group-value-create): Align docstring to a specific column.
+
+	* wid-edit.el (widget-documentation-link-add): Don't handle
+	indentation in this function.
+	(widget-documentation-string-indent-to): New function.
+	(widget-documentation-string-value-create): Use it.
+
+	* autorevert.el (auto-revert):
+	* epg-config.el (epg):
+	* ibuffer.el (ibuffer):
+	* mpc.el (mpc):
+	* ses.el (ses):
+	* eshell/eshell.el (eshell):
+	* net/ange-ftp.el (ange-ftp):
+	* progmodes/ebnf2ps.el (postscript):
+	* progmodes/flymake.el (flymake):
+	* progmodes/prolog.el (prolog):
+	* progmodes/verilog-mode.el (verilog-mode):
+	* progmodes/which-func.el (which-func):
+	* term/xterm.el (xterm):
+	* textmodes/picture.el (picture):
+	* textmodes/tildify.el (tildify):
+	* vc/ediff.el (ediff): Tweak defgroups to improve presentation in
+	customization buffers.
+
 2012-04-22  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-append-lower-brace-pair-to-state-cache):

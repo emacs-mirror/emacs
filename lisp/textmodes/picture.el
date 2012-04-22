@@ -31,7 +31,7 @@
 ;;; Code:
 
 (defgroup picture nil
-  "Picture mode --- editing using quarter-plane screen model."
+  "Editing text-based pictures (\"ASCII art\")."
   :prefix "picture-"
   :group 'wp)
 

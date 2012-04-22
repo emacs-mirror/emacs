@@ -223,7 +223,7 @@
   :group 'emacs)
 
 (defgroup languages nil
-  "Specialized modes for editing programming languages."
+  "Modes for editing programming languages."
   :group 'programming)
 
 (defgroup lisp nil
@@ -255,7 +255,7 @@
   :group 'applications)
 
 (defgroup news nil
-  "Support for netnews reading and posting."
+  "Reading and posting to newsgroups."
   :link '(custom-manual "(gnus)")
   :group 'applications)
 
@@ -297,7 +297,7 @@
   :group 'environment)
 
 (defgroup unix nil
-  "Front-ends/assistants for, or emulators of, UNIX features."
+  "Interfaces, assistants, and emulators for UNIX features."
   :group 'environment)
 
 (defgroup i18n nil
@@ -544,12 +544,6 @@ WIDGET is the widget to apply the filter entries of MENU on."
 	   (erase-buffer)
 	   (princ symbol (current-buffer))
 	   (goto-char (point-min))
-	   ;; FIXME: Boolean variables are not predicates, so they shouldn't
-	   ;; end with `-p'.  -stef
-	   ;; (when (and (eq (get symbol 'custom-type) 'boolean)
-	   ;; 	      (re-search-forward "-p\\'" nil t))
-	   ;;   (replace-match "" t t)
-	   ;;   (goto-char (point-min)))
 	   (if custom-unlispify-remove-prefixes
 	       (let ((prefixes custom-prefix-list)
 		     prefix)
@@ -732,26 +726,26 @@ groups after non-groups, if nil do not order groups at all."
 ;; `custom-buffer-create-internal' if `custom-buffer-verbose-help' is non-nil.
 
 (defvar custom-commands
-  '((" Set for current session " Custom-set t
-     "Apply all settings in this buffer to the current session"
+  '((" Apply " Custom-set t
+     "Apply settings (for the current session only)"
      "index"
      "Apply")
-    (" Save for future sessions " Custom-save
+    (" Apply and Save " Custom-save
      (or custom-file user-init-file)
-     "Apply all settings in this buffer and save them for future Emacs sessions."
+     "Apply settings and save for future sessions."
      "save"
      "Save")
-    (" Undo edits " Custom-reset-current t
-     "Restore all settings in this buffer to reflect their current values."
+    (" Undo Edits " Custom-reset-current t
+     "Restore customization buffer to reflect existing settings."
      "refresh"
      "Undo")
-    (" Reset to saved " Custom-reset-saved t
-     "Restore all settings in this buffer to their saved values (if any)."
+    (" Reset Customizations " Custom-reset-saved t
+     "Undo any settings applied only for the current session."
      "undo"
      "Reset")
-    (" Erase customizations " Custom-reset-standard
+    (" Erase Customizations " Custom-reset-standard
      (or custom-file user-init-file)
-     "Un-customize all settings in this buffer and save them with standard values."
+     "Un-customize settings in this and future sessions."
      "delete"
      "Uncustomize")
     (" Help for Customize " Custom-help t
@@ -766,9 +760,9 @@ groups after non-groups, if nil do not order groups at all."
   (info "(emacs)Easy Customization"))
 
 (defvar custom-reset-menu
-  '(("Undo Edits" . Custom-reset-current)
-    ("Reset to Saved" . Custom-reset-saved)
-    ("Erase Customizations (use standard values)" . Custom-reset-standard))
+  '(("Undo Edits in Customization Buffer" . Custom-reset-current)
+    ("Revert This Session's Customizations" . Custom-reset-saved)
+    ("Erase Customizations" . Custom-reset-standard))
   "Alist of actions for the `Reset' button.
 The key is a string containing the name of the action, the value is a
 Lisp function taking the widget as an element which will be called
@@ -901,7 +895,8 @@ making them as if they had never been customized at all."
 	    (memq (widget-get widget :custom-state)
 		  '(modified set changed saved rogue))
 	    (widget-apply widget :custom-mark-to-reset-standard)))
-     "Erase all customizations for settings in this buffer? " t)
+     "The settings will revert to their default values, in this
+and future sessions.  Really erase customizations? " t)
     (custom-reset-standard-save-and-update)))
 
 ;;; The Customize Commands
@@ -1552,11 +1547,12 @@ that option."
   (switch-to-buffer-other-window (custom-get-fresh-buffer name))
   (custom-buffer-create-internal options description))
 
-(defcustom custom-reset-button-menu nil
+(defcustom custom-reset-button-menu t
   "If non-nil, only show a single reset button in customize buffers.
 This button will have a menu with all three reset operations."
   :type 'boolean
-  :group 'custom-buffer)
+  :group 'custom-buffer
+  :version "24.2")
 
 (defcustom custom-buffer-verbose-help t
   "If non-nil, include explanatory text in the customization buffer."
@@ -1651,29 +1647,30 @@ or a regular expression.")
     ;; So now the buttons are always inserted in the buffer.  (Bug#1326)
     (if custom-buffer-verbose-help
 	(widget-insert "
- Operate on all settings in this buffer:\n"))
+Operate on all settings in this buffer:\n"))
     (let ((button (lambda (tag action active help _icon _label)
 		    (widget-insert " ")
 		    (if (eval active)
 			(widget-create 'push-button :tag tag
 				       :help-echo help :action action))))
 	  (commands custom-commands))
-      (apply button (pop commands)) ; Set for current session
-      (apply button (pop commands)) ; Save for future sessions
       (if custom-reset-button-menu
 	  (progn
-	    (widget-insert " ")
 	    (widget-create 'push-button
-			   :tag "Reset buffer"
+			   :tag " Revert... "
 			   :help-echo "Show a menu with reset operations."
 			   :mouse-down-action 'ignore
-			   :action 'custom-reset))
+			   :action 'custom-reset)
+	    (apply button (pop commands))  ; Apply
+	    (apply button (pop commands))) ; Apply and Save
+	(apply button (pop commands))   ; Apply
+	(apply button (pop commands))   ; Apply and Save
 	(widget-insert "\n")
-	(apply button (pop commands)) ; Undo edits
-	(apply button (pop commands)) ; Reset to saved
-	(apply button (pop commands)) ; Erase customization
+	(apply button (pop commands))   ; Undo
+	(apply button (pop commands))   ; Reset
+	(apply button (pop commands))   ; Erase
 	(widget-insert "  ")
-	(pop commands) ; Help (omitted)
+	(pop commands)                  ; Help (omitted)
 	(apply button (pop commands)))) ; Exit
     (widget-insert "\n\n"))
 
@@ -2824,7 +2821,7 @@ If STATE is nil, the value is computed by `custom-variable-state'."
      (lambda (widget)
        (and (default-boundp (widget-value widget))
 	    (memq (widget-get widget :custom-state) '(modified changed)))))
-    ("Reset to Saved" custom-variable-reset-saved
+    ("Revert This Session's Customization" custom-variable-reset-saved
      (lambda (widget)
        (and (or (get (widget-value widget) 'saved-value)
 		(get (widget-value widget) 'saved-variable-comment))
@@ -3620,7 +3617,7 @@ the present value is saved to its :shown-value property instead."
     ("Undo Edits" custom-redraw
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified changed))))
-    ("Reset to Saved" custom-face-reset-saved
+    ("Revert This Session's Customization" custom-face-reset-saved
      (lambda (widget)
        (or (get (widget-value widget) 'saved-face)
 	   (get (widget-value widget) 'saved-face-comment))))
@@ -3940,8 +3937,6 @@ restoring it to the state of a face that has never been customized."
 ;;; The `custom-group' Widget.
 
 (defcustom custom-group-tag-faces nil
-  ;; In XEmacs, this ought to play games with font size.
-  ;; Fixme: make it do so in Emacs.
   "Face used for group tags.
 The first member is used for level 1 groups, the second for level 2,
 and so forth.  The remaining group tags are shown with `custom-group-tag'."
@@ -3977,6 +3972,13 @@ and so forth.  The remaining group tags are shown with `custom-group-tag'."
   "Face used for low level group tags."
   :group 'custom-faces)
 (define-obsolete-face-alias 'custom-group-tag-face 'custom-group-tag "22.1")
+
+(defface custom-group-subtitle
+  `((t (:weight bold)))
+  "Face for the \"Subgroups:\" subtitle in Custom buffers."
+  :group 'custom-faces)
+
+(defvar custom-group-doc-align-col 20)
 
 (define-widget 'custom-group 'custom
   "Customize group."
@@ -4043,11 +4045,9 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (custom-browse-insert-prefix prefix)
 	   (push (widget-create-child-and-convert
 		  widget 'custom-browse-visibility
-		  ;; :tag-glyph "plus"
 		  :tag "+")
 		 buttons)
 	   (insert "-- ")
-	   ;; (widget-glyph-insert nil "-- " "horizontal")
 	   (push (widget-create-child-and-convert
 		  widget 'custom-browse-group-tag)
 		 buttons)
@@ -4057,8 +4057,6 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		(zerop (length members)))
 	   (custom-browse-insert-prefix prefix)
 	   (insert "[ ]-- ")
-	   ;; (widget-glyph-insert nil "[ ]" "empty")
-	   ;; (widget-glyph-insert nil "-- " "horizontal")
 	   (push (widget-create-child-and-convert
 		  widget 'custom-browse-group-tag)
 		 buttons)
@@ -4136,7 +4134,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		    :action 'custom-toggle-parent
 		    (not (eq state 'hidden)))
 		   buttons))
-	   (insert " : ")
+	   (if (>= (current-column) custom-group-doc-align-col)
+	       (insert "  "))
 	   ;; Create magic button.
 	   (let ((magic (widget-create-child-and-convert
 			 widget 'custom-magic nil)))
@@ -4146,7 +4145,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
 	   (if (and (eq custom-buffer-style 'links) (> level 1))
-	       (widget-put widget :documentation-indent 0))
+	       (widget-put widget :documentation-indent
+			   custom-group-doc-align-col))
 	   (widget-add-documentation-string-button
 	    widget :visibility-widget 'custom-visibility))
 
@@ -4224,25 +4224,34 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		  (count 0)
 		  (reporter (make-progress-reporter
 			     "Creating group entries..." 0 len))
+		  (have-subtitle (and (not (eq symbol 'emacs))
+				      (eq custom-buffer-order-groups 'last)))
+		  prev-type
 		  children)
-	     (setq children
-		   (mapcar
-		    (lambda (entry)
-		      (widget-insert "\n")
-		      (progress-reporter-update reporter (setq count (1+ count)))
-		      (let ((sym (nth 0 entry))
-			    (type (nth 1 entry)))
-			(prog1
-			    (widget-create-child-and-convert
-			     widget type
-			     :group widget
-			     :tag (custom-unlispify-tag-name sym)
-			     :custom-prefixes custom-prefix-list
-			     :custom-level (1+ level)
-			     :value sym)
-			  (unless (eq (preceding-char) ?\n)
-			    (widget-insert "\n")))))
-		    members))
+
+	     (dolist (entry members)
+	       (unless (eq prev-type 'custom-group)
+		 (widget-insert "\n"))
+	       (progress-reporter-update reporter (setq count (1+ count)))
+	       (let ((sym (nth 0 entry))
+		     (type (nth 1 entry)))
+		 (when (and have-subtitle (eq type 'custom-group))
+		   (setq have-subtitle nil)
+		   (widget-insert
+		    (propertize "Subgroups:\n" 'face 'custom-group-subtitle)))
+		 (setq prev-type type)
+		 (push (widget-create-child-and-convert
+			widget type
+			:group widget
+			:tag (custom-unlispify-tag-name sym)
+			:custom-prefixes custom-prefix-list
+			:custom-level (1+ level)
+			:value sym)
+		       children)
+		 (unless (eq (preceding-char) ?\n)
+		   (widget-insert "\n"))))
+
+	     (setq children (nreverse children))
 	     (mapc 'custom-magic-reset children)
 	     (widget-put widget :children children)
 	     (custom-group-state-update widget)
@@ -4267,7 +4276,7 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
     ("Undo Edits" custom-group-reset-current
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified))))
-    ("Reset to Saved" custom-group-reset-saved
+    ("Revert This Session's Customizations" custom-group-reset-saved
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified set))))
     ,@(when (or custom-file init-file-user)

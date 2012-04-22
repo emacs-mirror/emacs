@@ -27,7 +27,7 @@
 (defgroup xterm nil
   "XTerm support."
   :version "24.1"
-  :group 'emacs)
+  :group 'environment)
 
 (defcustom xterm-extra-capabilities 'check
   "Whether Xterm supports some additional, more modern, features.

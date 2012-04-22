@@ -393,7 +393,7 @@ Set `verilog-in-hooks' during this time, to assist AUTO caches."
     (parse-partial-sexp (point-min) (or pos (point)))))
 
 (defgroup verilog-mode nil
-  "Facilitates easy editing of Verilog source text."
+  "Major mode for Verilog source code."
   :version "22.2"
   :group 'languages)
 

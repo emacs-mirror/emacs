@@ -228,11 +228,10 @@
 (require 'esh-mode)
 
 (defgroup eshell nil
-  "A command shell implemented entirely in Emacs Lisp.
+  "Command shell implemented entirely in Emacs Lisp.
 It invokes no external processes beyond those requested by the
 user, and is intended to be a functional replacement for command
 shells such as bash, zsh, rc, 4dos."
-  :tag "The Emacs shell"
   :link '(info-link "(eshell)Top")
   :version "21.1"
   :group 'applications)

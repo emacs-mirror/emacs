@@ -295,7 +295,7 @@
 
 
 (defgroup prolog nil
-  "Major modes for editing and running Prolog and Mercury files."
+  "Editing and running Prolog and Mercury files."
   :group 'languages)
 
 (defgroup prolog-faces nil

@@ -74,7 +74,9 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
-** which-function-mode now applies to all applicable major modes by default.
+** Customize
+
+*** `custom-reset-button-menu' now defaults to t.
 
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
@@ -86,6 +88,8 @@ shared key for Emacs Server.
 closing brackets to be aligned with the line of the opening bracket.
 
 ** FIXME something happened to ses.el, 2012-04-17.
+
+** which-function-mode now applies to all applicable major modes by default.
 
 ** Obsolete packages:
 

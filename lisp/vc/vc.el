@@ -667,7 +667,7 @@
 ;; General customization
 
 (defgroup vc nil
-  "Version-control system in Emacs."
+  "Emacs interface to version control systems."
   :group 'tools)
 
 (defcustom vc-initial-comment nil
