@@ -291,6 +291,8 @@ xd_symbol_to_dbus_type (Lisp_Object object)
       }									\
   } while (0)
 
+#if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH \
+     || XD_DBUS_VALIDATE_OBJECT || HAVE_DBUS_VALIDATE_MEMBER)
 #define XD_DBUS_VALIDATE_OBJECT(object, func)				\
   do {									\
     if (!NILP (object))							\
@@ -304,6 +306,7 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 	dbus_error_free (&derror);					\
       }									\
   } while (0)
+#endif
 
 #if HAVE_DBUS_VALIDATE_BUS_NAME
 #define XD_DBUS_VALIDATE_BUS_NAME(bus_name)				\
@@ -864,7 +867,7 @@ static int
 xd_get_connection_references (DBusConnection *connection)
 {
   ptrdiff_t *refcount;
-  
+
   /* We cannot access the DBusConnection structure, it is not public.
      But we know, that the reference counter is the first field in
      that structure.  */

@@ -1,3 +1,7 @@
+2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dbusbind.c (XD_DBUS_VALIDATE_OBJECT): Define only if needed.
+
 2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Move functions from C to Lisp.  Make non-blocking method calls
