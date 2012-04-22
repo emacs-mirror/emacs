@@ -3157,7 +3157,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object decoded_comm;
 
   CHECK_NUMBER_OR_FLOAT (pid);
-  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+  CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
   if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0)
