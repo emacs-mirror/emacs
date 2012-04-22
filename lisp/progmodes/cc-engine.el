@@ -2612,13 +2612,24 @@ comment at the start of cc-engine.el for more info."
   (setq c-state-point-min (point-min)))
 
 (defun c-append-lower-brace-pair-to-state-cache (from &optional upper-lim)
-  ;; If there is a brace pair preceding FROM in the buffer (not necessarily
-  ;; immediately preceding), push a cons onto `c-state-cache' to represent it.
-  ;; FROM must not be inside a literal.  If UPPER-LIM is non-nil, we append
-  ;; the highest brace pair whose "}" is below UPPER-LIM.
+  ;; If there is a brace pair preceding FROM in the buffer, at the same level
+  ;; of nesting (not necessarily immediately preceding), push a cons onto
+  ;; `c-state-cache' to represent it.  FROM must not be inside a literal.  If
+  ;; UPPER-LIM is non-nil, we append the highest brace pair whose "}" is below
+  ;; UPPER-LIM.
   ;;
   ;; Return non-nil when this has been done.
   ;;
+  ;; The situation it copes with is this transformation:
+  ;;
+  ;; OLD:   {                       (.)    {...........}
+  ;;                                       ^             ^
+  ;;                                     FROM          HERE
+  ;;                                     
+  ;; NEW:   {             {....}    (.)    {.........
+  ;;                         ^           ^           ^
+  ;;                LOWER BRACE PAIR   HERE   or   HERE
+  ;;                                       
   ;; This routine should be fast.  Since it can get called a LOT, we maintain
   ;; `c-state-brace-pair-desert', a small cache of "failures", such that we
   ;; reduce the time wasted in repeated fruitless searches in brace deserts.
@@ -2637,10 +2648,25 @@ comment at the start of cc-engine.el for more info."
 	(unless (and c-state-brace-pair-desert
 		     (eq cache-pos (car c-state-brace-pair-desert))
 		     (<= from (cdr c-state-brace-pair-desert)))
-	  ;; Only search what we absolutely need to:
-	  (if (and c-state-brace-pair-desert
-		   (eq cache-pos (car c-state-brace-pair-desert)))
-	      (narrow-to-region (cdr c-state-brace-pair-desert) (point-max)))
+	  ;; DESERT-LIM.  Only search what we absolutely need to,
+	  (let ((desert-lim
+		 (and c-state-brace-pair-desert
+		      (eq cache-pos (car c-state-brace-pair-desert))
+		      (cdr c-state-brace-pair-desert)))
+		;; CACHE-LIM.  This limit will be necessary when an opening
+		;; paren at `cache-pos' has just had its matching close paren
+		;; inserted.  `cache-pos' continues to be a search bound, even
+		;; though the algorithm below would skip over the new paren
+		;; pair.
+		(cache-lim (and cache-pos (< cache-pos from) cache-pos)))
+	    (narrow-to-region
+		(cond
+		 ((and desert-lim cache-lim)
+		  (max desert-lim cache-lim))
+		 (desert-lim)
+		 (cache-lim)
+		 ((point-min)))
+		(point-max)))
 
 	  ;; In the next pair of nested loops, the inner one moves back past a
 	  ;; pair of (mis-)matching parens or brackets; the outer one moves
@@ -2674,7 +2700,7 @@ comment at the start of cc-engine.el for more info."
 			  (cons new-cons (cdr c-state-cache))))
 		 (t (setq c-state-cache (cons new-cons c-state-cache)))))
 
-	    ;; We haven't found a brace pair.  Record this.
+	    ;; We haven't found a brace pair.  Record this in the cache.
 	    (setq c-state-brace-pair-desert (cons cache-pos from))))))))
 
 (defsubst c-state-push-any-brace-pair (bra+1 macro-start-or-here)
