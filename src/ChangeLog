@@ -1,5 +1,32 @@
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Modernize and clean up gmalloc.c to assume C89 (Bug#9119).
+	* gmalloc.c: (_MALLOC_INTERNAL, _MALLOC_H, _PP, __ptr_t)
+	(__malloc_size_t, __malloc_ptrdiff_t):
+	Remove.  All uses removed, replaced by the definiens if needed,
+	since we can assume C89 or better now.
+	Include <stdint.h>, for PTRDIFF_MAX, uintptr_t.
+	(protect_malloc_state, align, get_contiguous_space)
+	(malloc_atfork_handler_prepare, malloc_atfork_handler_parent)
+	(malloc_atfork_handler_child, malloc_enable_thread)
+	(malloc_initialize_1, __malloc_initialize, morecore_nolock)
+	(_malloc_internal_nolock, _malloc_internal, malloc, _malloc)
+	(_free, _realloc, _free_internal_nolock, _free_internal, free, cfree)
+	(special_realloc, _realloc_internal_nolock, _realloc_internal)
+	(realloc, calloc, __default_morecore, memalign, valloc, checkhdr)
+	(freehook, mallochook, reallochook, mabort, mcheck, mprobe):
+	Define using prototypes, not old style.
+	(align, _malloc_internal_nolock, _free_internal_nolock, memalign):
+	Don't assume ptrdiff_t and uintptr_t are no wider than unsigned long.
+	(align): Don't assume that signed integer overflow wraps around.
+	Omit unused local var.
+	(malloc_initialize_1, morecore_nolock, _malloc_internal_nolock)
+	(_free_internal_nolock, memalign, mallochook, reallochook):
+	Omit no-longer-needed casts.
+	(valloc): Use getpagesize, not __getpagesize.
+	(MAGICWORD, MAGICFREE): Now randomish size_t values, not 32-bit.
+	(struct hdr): The 'magic' member is now size_t, not unsigned long.
+
 	* dbusbind.c (XD_DBUS_VALIDATE_OBJECT): Define only if needed.
 
 2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
