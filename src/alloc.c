@@ -49,10 +49,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include <verify.h>
 
-/* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
-   memory.  Can do this only if using gmalloc.c.  */
+/* GC_CHECK_MARKED_OBJECTS means do sanity checks on allocated objects.
+   Doable only if GC_MARK_STACK.  */
+#if ! GC_MARK_STACK
+# undef GC_CHECK_MARKED_OBJECTS
+#endif
 
-#if defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC
+/* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
+   memory.  Can do this only if using gmalloc.c and if not checking
+   marked objects.  */
+
+#if (defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC \
+     || defined GC_CHECK_MARKED_OBJECTS)
 #undef GC_MALLOC_CHECK
 #endif
 
@@ -391,11 +399,8 @@ static int live_float_p (struct mem_node *, void *);
 static int live_misc_p (struct mem_node *, void *);
 static void mark_maybe_object (Lisp_Object);
 static void mark_memory (void *, void *);
+#if GC_MARK_STACK || defined GC_MALLOC_CHECK
 static void mem_init (void);
-#if (defined GC_MALLOC_CHECK			     \
-     ? !defined SYSTEM_MALLOC && !defined SYNC_INPUT \
-     : GC_MARK_STACK)
-# define NEED_MEM_INSERT
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
 #endif
@@ -3578,8 +3583,6 @@ mem_find (void *start)
 }
 
 
-#ifdef NEED_MEM_INSERT
-
 /* Insert a new node into the tree for a block of memory with start
    address START, end address END, and type TYPE.  Value is a
    pointer to the node that was inserted.  */
@@ -3726,8 +3729,6 @@ mem_insert_fixup (struct mem_node *x)
      it to black so that property #5 is satisfied.  */
   mem_root->color = MEM_BLACK;
 }
-
-#endif /* NEED_MEM_INSERT */
 
 
 /*   (x)                   (y)
