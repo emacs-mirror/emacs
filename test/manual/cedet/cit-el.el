@@ -93,8 +93,8 @@ MAKE-TYPE indicates the makefile type being used."
   (if (string= make-type "Automake")
       (cit-srecode-fill-with-stuff "src/elfoo.el" cit-el-tags)
     (cit-srecode-fill-with-stuff "src/elfoo.el" (append
-						 cit-el-tags
-						 cit-el-tags-eieio)))
+						 cit-el-tags-eieio
+						 cit-el-tags)))
   ;; 1 e) Tell EDE where the srcs are
 
   ;; Making the autoloads first should PREPEND, but Lisp should append.
