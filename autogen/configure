@@ -7144,7 +7144,7 @@ fi
 
 
   nw="$nw -Waggregate-return"       # anachronistic
-  nw="$nw -Wlong-long"              # C90 is anachronistic (lib/gethrxtime.h)
+  nw="$nw -Wlong-long"              # C90 is anachronistic
   nw="$nw -Wc++-compat"             # We don't care about C++ compilers
   nw="$nw -Wundef"                  # Warns on '#if GNULIB_FOO' etc in gnulib
   nw="$nw -Wtraditional"            # Warns on #elif which we use often
@@ -11913,12 +11913,18 @@ $as_echo "no" >&6; }
 
 $as_echo "#define HAVE_DBUS 1" >>confdefs.h
 
-     for ac_func in dbus_watch_get_unix_fd
+               for ac_func in dbus_watch_get_unix_fd \
+		    dbus_validate_bus_name \
+                    dbus_validate_path \
+		    dbus_validate_interface \
+		    dbus_validate_member
 do :
-  ac_fn_c_check_func "$LINENO" "dbus_watch_get_unix_fd" "ac_cv_func_dbus_watch_get_unix_fd"
-if test "x$ac_cv_func_dbus_watch_get_unix_fd" = x""yes; then :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_DBUS_WATCH_GET_UNIX_FD 1
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
 fi
