@@ -75,6 +75,30 @@
 #endif /* MPS_BUILD_MV */
 
 
+/* ulongest_t -- longest unsigned integer type
+ *
+ * Define a longest unsigned integer type for testing and printing.  We'd
+ * like to use C99's uintmax_t and PRIuMAX here, but the MPS is in C89
+ * and C99 isn't supported by Microsoft.
+ *
+ * We avoid using the ones defined in mpstd.h because we want the tests to
+ * root out any incompatible assumptions by breaking.
+ */
+
+#ifdef MPS_PF_W3I6MV
+#define PRIuLONGEST "llu"
+#define PRIXLONGEST "llX"
+#define PRIwLONGEST "16"
+typedef unsigned long long ulongest_t;
+#else
+#define PRIuLONGEST "lu"
+#define PRIXLONGEST "lX"
+#define PRIwLONGEST "8"
+typedef unsigned long ulongest_t;
+#endif
+#define PRIXPTR     "0"PRIwLONGEST PRIXLONGEST
+
+
 /* testlib_unused -- declares that a variable is unused
  *
  * It should be used to prevent compiler warnings about unused

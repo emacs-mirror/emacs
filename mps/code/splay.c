@@ -801,7 +801,7 @@ typedef struct {
   SplayTestNodeMethod testNode;
   SplayTestTreeMethod testTree;
   void *p;
-  unsigned long s;
+  Size s;
   SplayTree tree;
 } SplayFindClosureStruct, *SplayFindClosure;
 
@@ -809,7 +809,7 @@ static Compare SplayFindFirstCompare(void *key, SplayNode node)
 {
   SplayFindClosure closure;
   void *closureP;
-  unsigned long closureS;
+  Size closureS;
   SplayTestNodeMethod testNode;
   SplayTestTreeMethod testTree;
   SplayTree tree;
@@ -840,7 +840,7 @@ static Compare SplayFindLastCompare(void *key, SplayNode node)
 {
   SplayFindClosure closure;
   void *closureP;
-  unsigned long closureS;
+  Size closureS;
   SplayTestNodeMethod testNode;
   SplayTestTreeMethod testTree;
   SplayTree tree;

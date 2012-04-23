@@ -92,13 +92,13 @@ static void *stack_start;
 static mps_thr_t stack_thr;
 
 
-static unsigned long cols(size_t bytes)
+static ulongest_t cols(size_t bytes)
 {
   double M;  /* Mebibytes */
-  unsigned long cM;  /* hundredths of a Mebibyte */
+  ulongest_t cM;  /* hundredths of a Mebibyte */
 
   M = (double)bytes / (1UL<<20);
-  cM = (unsigned long)(M * 100 + 0.5);  /* round to nearest */
+  cM = (ulongest_t)(M * 100.0 + 0.5);  /* round to nearest */
   return cM;
 }
 
@@ -424,8 +424,8 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
 {
   mps_word_t v;
-  unsigned long words;
-  unsigned long slots;
+  ulongest_t words;
+  ulongest_t slots;
 
   words = (size + (sizeof(mps_word_t) - 1) ) / sizeof(mps_word_t);
   if(words < 2)
@@ -440,8 +440,8 @@ static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
 
 static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small_ref)
 {
-  static unsigned long keepCount = 0;
-  unsigned long i;
+  static unsigned keepCount = 0;
+  unsigned i;
   
   mps_arena_park(arena);
   for(i = 0; i < 100; i++) {
@@ -474,7 +474,7 @@ static unsigned long df(unsigned randm, unsigned number)
 static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1in, unsigned keepTotal, unsigned keepRootspace, unsigned sizemethod)
 {
   unsigned keepCount = 0;
-  unsigned long objCount = 0;
+  unsigned objCount = 0;
   
   Insist(keepRootspace <= myrootExactCOUNT);
 
@@ -523,7 +523,7 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1i
   }
   printf("  ...made and kept: %u objects, storing cyclically in "
          "first %u roots "
-         "(actually created %lu objects, in accord with "
+         "(actually created %u objects, in accord with "
          "keep-1-in %u).\n",
          keepCount, keepRootspace, objCount, keep1in);
 }
@@ -531,7 +531,7 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1i
 
 static void Rootdrop(char rank_char)
 {
-  unsigned long i;
+  unsigned i;
   
   if(rank_char == 'A') {
     for(i = 0; i < myrootAmbigCOUNT; ++i) {
@@ -552,6 +552,10 @@ static void stackwipe(void)
 {
   unsigned iw;
   unsigned long aw[stackwipedepth];
+  
+  /* Do some pointless work that the compiler won't optimise away, so that
+     this function wipes over the stack by filling stuff into the "aw"
+     array. */
   
   /* http://xkcd.com/710/ */
   /* I don't want my friends to stop calling; I just want the */
@@ -808,7 +812,7 @@ static void testscriptA(const char *script)
   printf("  Create arena, size = %lu.\n", arenasize);
 
   /* arena */
-  die(mps_arena_create(&arena, mps_arena_class_vm(), arenasize),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)arenasize),
       "arena_create");
 
   /* thr: used to stop/restart multiple threads */
