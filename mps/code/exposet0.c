@@ -69,9 +69,9 @@ static void report(mps_arena_t arena)
     not_condemned = mps_message_gc_not_condemned_size(arena, message);
 
     printf("\nCollection %d finished:\n", ++nCollections);
-    printf("live %lu\n", (unsigned long)live);
-    printf("condemned %lu\n", (unsigned long)condemned);
-    printf("not_condemned %lu\n", (unsigned long)not_condemned);
+    printf("live %"PRIuLONGEST"\n", (ulongest_t)live);
+    printf("condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
+    printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
 
     mps_message_discard(arena, message);
 

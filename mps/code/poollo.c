@@ -108,7 +108,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
   Size tablebytes;      /* # bytes in each control array */
   Arena arena;
   /* number of bits needed in each control array */
-  unsigned long bits;
+  Count bits;
   void *p;
 
   AVERT(Seg, seg);
@@ -165,7 +165,7 @@ static void loSegFinish(Seg seg)
   Pool pool;
   Arena arena;
   Size tablesize;
-  unsigned long bits;
+  Count bits;
 
   AVERT(Seg, seg);
   loseg = SegLOSeg(seg);
@@ -236,7 +236,7 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
   Seg seg;
   Arena arena;
   Count agrains;
-  unsigned long tablesize;
+  Count bits;
   Addr segBase;
 
   AVER(bReturn != NULL);
@@ -260,9 +260,9 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
     return FALSE;
   }
 
-  tablesize = SegSize(seg) >> lo->alignShift;
+  bits = SegSize(seg) >> lo->alignShift;
   if(!BTFindLongResRange(&baseIndex, &limitIndex, loseg->alloc,
-                     0, tablesize, agrains)) {
+                     0, bits, agrains)) {
     return FALSE;
   }
 
@@ -408,7 +408,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
 /* a leaf pool, so there can't be any dangling references */
 static void LOWalk(Pool pool, Seg seg,
                    FormattedObjectsStepMethod f,
-                   void *p, unsigned long s)
+                   void *p, size_t s)
 {
   Addr base;
   LO lo;
@@ -491,7 +491,7 @@ static Res LOInit(Pool pool, va_list arg)
   pool->format = format;
   lo->poolStruct.alignment = format->alignment;
   lo->alignShift =
-    SizeLog2((unsigned long)PoolAlignment(&lo->poolStruct));
+    SizeLog2((Size)PoolAlignment(&lo->poolStruct));
   lo->gen = LOGen; /* may be modified in debugger */
   res = ChainCreate(&lo->chain, arena, 1, &loGenParam);
   if (res != ResOK)
@@ -669,7 +669,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 static Res LOWhiten(Pool pool, Trace trace, Seg seg)
 {
   LO lo;
-  unsigned long bits;
+  Count bits;
 
   AVERT(Pool, pool);
   lo = PoolPoolLO(pool);

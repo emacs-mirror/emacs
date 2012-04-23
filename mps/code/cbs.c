@@ -1380,7 +1380,6 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVER(size > 0);
-  AVER(sizeof(unsigned long) >= sizeof(Size));
   AVER(SizeIsAligned(size, cbs->alignment));
   AVER(cbs->fastFind);
   AVERT(CBSFindDelete, findDelete);
@@ -1463,7 +1462,6 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVER(size > 0);
-  AVER(sizeof(unsigned long) >= sizeof(Size));
   AVER(SizeIsAligned(size, cbs->alignment));
   AVER(cbs->fastFind);
   AVERT(CBSFindDelete, findDelete);
@@ -1551,7 +1549,6 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVER(sizeof(unsigned long) >= sizeof(Size));
   AVER(cbs->fastFind);
   AVERT(CBSFindDelete, findDelete);
 

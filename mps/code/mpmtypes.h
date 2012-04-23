@@ -132,7 +132,7 @@ typedef Res (*TraceFixMethod)(ScanState ss, Ref *refIO);
 
 /* This type is used by the PoolClass method Walk */
 typedef void (*FormattedObjectsStepMethod)(Addr obj, Format fmt, Pool pool,
-                                           void *v, unsigned long s);
+                                           void *v, size_t s);
 
 /* This type is used by the PoolClass method Walk */
 typedef void (*FreeBlockStepMethod)(Addr base, Addr limit, Pool pool, void *p);

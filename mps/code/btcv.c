@@ -61,7 +61,8 @@ static void btResRangeSymmetric(BT btlo, BT bthi, Count btSize,
 }
 
 
-typedef Bool (*BTFinderFn)(Index *, Index *, BT, Index, Index, unsigned long);
+typedef Bool (*BTFinderFn)(Index *foundBase_o, Index *foundLimit_o,
+                           BT bt, Index base, Index limit, Count length);
 
 
 /* btTestSingleRange -- Test expectations for calls to BTFind*ResRange*
@@ -70,7 +71,7 @@ typedef Bool (*BTFinderFn)(Index *, Index *, BT, Index, Index, unsigned long);
 
 static void btTestSingleRange(BTFinderFn finder, BT bt,
                               Index base, Index limit,
-                              unsigned long length,
+                              Count length,
                               Bool expect,
                               Index expectBase, Index expectLimit)
 {
@@ -94,7 +95,7 @@ static void btTestSingleRange(BTFinderFn finder, BT bt,
 
 static void btTestResRange(BT btlo, BT bthi, Count btSize,
                            Index base, Index limit,
-                           unsigned long length,
+                           Count length,
                            Bool expect,
                            Index expectBase, Index expectLimit)
 {
@@ -120,7 +121,7 @@ static void btTestResRange(BT btlo, BT bthi, Count btSize,
 
 static void btTestLongResRange(BT btlo, BT bthi, Count btSize,
                                Index base, Index limit,
-                               unsigned long length,
+                               Count length,
                                Bool expect,
                                Index expectBase, Index expectLimit)
 {
@@ -145,7 +146,7 @@ static void btTestLongResRange(BT btlo, BT bthi, Count btSize,
 
 static void btAllResTest(BT btlo, BT bthi, Count btSize,
                          Index base, Index limit,
-                         unsigned long length)
+                         Count length)
 {
   btResRangeSymmetric(btlo, bthi, btSize, 0, btSize);
   btTestResRange(btlo, bthi, btSize, base, limit, length,
@@ -164,7 +165,7 @@ static void btAllResTest(BT btlo, BT bthi, Count btSize,
 
 static void btNoResTest(BT btlo, BT bthi, Count btSize,
                         Index base, Index limit,
-                        unsigned long length)
+                        Count length)
 {
   btResRangeSymmetric(btlo, bthi, btSize, 0, btSize);
   btSetRangeSymmetric(btlo, bthi, btSize, base, limit);
@@ -185,7 +186,7 @@ static void btNoResTest(BT btlo, BT bthi, Count btSize,
 static void btResAndFindTest(BT btlo, BT bthi, Count btSize,
                              Index base, Index limit,
                              Index resBase, Index resLimit,
-                             unsigned long length)
+                             Count length)
 {
   btResRangeSymmetric(btlo, bthi, btSize, resBase, resLimit);
   if ((resLimit - resBase) < length) {
@@ -210,9 +211,9 @@ static void btResAndFindTest(BT btlo, BT bthi, Count btSize,
 
 static void btSingleResTest(BT btlo, BT bthi, Count btSize,
                             Index base, Index limit,
-                            unsigned long length)
+                            Count length)
 {
-  unsigned long resLen;
+  Count resLen;
   /* choose varying range lengths from too short to longer than needed */
   for (resLen = length - 1; resLen <= length + 1; resLen++) {
     if ((resLen > 0) && (resLen < (limit - base -2))) {
@@ -257,7 +258,7 @@ typedef unsigned Arrangement;
 /* Choose a limit for reset range 1 */
 static Index btArrangeRes1(Arrangement arrange,
                            Index base, Index res2Base,
-                           unsigned long length)
+                           Count length)
 {
   switch (arrange) {
 
@@ -295,7 +296,7 @@ typedef unsigned Pattern;
 /* Choose a limit for reset range 1 */
 static void btResetFirstRange(BT btlo, BT bthi, Count btSize,
                               Index res1Limit,
-                              unsigned long length,
+                              Count length,
                               Pattern pattern)
 {
   switch (pattern) {
@@ -329,9 +330,9 @@ static void btResetFirstRange(BT btlo, BT bthi, Count btSize,
 
 static void btDoubleResTest(BT btlo, BT bthi, Count btSize,
                             Index base, Index limit,
-                            unsigned long length)
+                            Count length)
 {
-  unsigned long res2Len;
+  Count res2Len;
 
   if (length < 2)
     return; /* no possibility of making the first range too small */
@@ -371,7 +372,7 @@ static void btDoubleResTest(BT btlo, BT bthi, Count btSize,
 
 static void btFindRangeTests(BT btlo, BT bthi, Count btSize,
                              Index base, Index limit,
-                             unsigned long length)
+                             Count length)
 {
   btAllResTest(btlo, bthi, btSize, base, limit, length);
   btNoResTest(btlo, bthi, btSize, base, limit, length);
