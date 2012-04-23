@@ -74,6 +74,15 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** Apropos
+
+*** The faces used by Apropos are now directly customizable.
+These faces are named `apropos-symbol', `apropos-keybinding', and so on;
+see the `apropos' Custom group for details.
+
+**** The old options whose values specified faces to use were removed
+(i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
+
 ** Customize
 
 *** `custom-reset-button-menu' now defaults to t.

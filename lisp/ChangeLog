@@ -9,6 +9,14 @@
 
 	* apropos.el (apropos-read-pattern): Make prompt less cryptic.
 	Fix word list splitting (Bug#11132).
+	(apropos-symbol, apropos-keybinding, apropos-label)
+	(apropos-property, apropos-function-button)
+	(apropos-variable-button, apropos-misc-button): New faces.
+	(apropos-symbol-face, apropos-keybinding-face)
+	(apropos-label-face, apropos-property-face, apropos-match-face):
+	Variables removed (Bug#8396).
+	(apropos-library-button, apropos-format-plist, apropos-print)
+	(apropos-print-doc, apropos-describe-plist): Callers changed.
 
 2012-04-23  Michael Albinus  <michael.albinus@gmx.de>
 
