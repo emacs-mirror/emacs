@@ -1,3 +1,7 @@
+2012-04-23  Andreas Politz  <politza@fh-trier.de>
+
+	* subr.el (accept-change-group): Fix arg usage (Bug#6095).
+
 2012-04-23  Chong Yidong  <cyd@gnu.org>
 
 	* cus-edit.el (customize-apropos, customize-apropos-options):

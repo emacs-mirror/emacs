@@ -2391,7 +2391,7 @@ to `accept-change-group' or `cancel-change-group'."
 This finishes the change group by accepting its changes as final."
   (dolist (elt handle)
     (with-current-buffer (car elt)
-      (if (eq elt t)
+      (if (eq (cdr elt) t)
 	  (setq buffer-undo-list t)))))
 
 (defun cancel-change-group (handle)
