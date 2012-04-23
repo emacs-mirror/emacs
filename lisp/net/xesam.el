@@ -449,7 +449,7 @@ If there is no registered search engine at all, the function returns `nil'."
 
 (defvar xesam-mode-map
   (let ((map (copy-keymap special-mode-map)))
-    (set-keymap-parent xesam-mode-map widget-keymap)
+    (set-keymap-parent map widget-keymap)
     map))
 
 (define-derived-mode xesam-mode special-mode "Xesam"

@@ -1,3 +1,8 @@
+2012-04-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/xesam.el (xesam-mode-map): Use let-bound map in
+	initialization.  (Bug#11292)
+
 2012-04-23  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	Preserve ispell session localwords when switching back to
