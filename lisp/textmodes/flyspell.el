@@ -1479,7 +1479,8 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 ;;*    declared correct.                                                */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-process-localwords (misspellings-buffer)
-  (let (localwords case-fold-search
+  (let ((localwords ispell-buffer-session-localwords)
+	case-fold-search
 	(ispell-casechars (ispell-get-casechars)))
     ;; Get localwords from the original buffer
     (save-excursion
@@ -2147,6 +2148,9 @@ If OPOINT is non-nil, restore point there after adjusting it for replacement."
 	 (setq ispell-pdict-modified-p '(t)))
 	((or (eq replace 'buffer) (eq replace 'session))
 	 (ispell-send-string (concat "@" word "\n"))
+	 (add-to-list 'ispell-buffer-session-localwords word)
+	 (or ispell-buffer-local-name ; session localwords might conflict
+	     (setq ispell-buffer-local-name (buffer-name)))
 	 (flyspell-unhighlight-at cursor-location)
 	 (if (null ispell-pdict-modified-p)
 	     (setq ispell-pdict-modified-p

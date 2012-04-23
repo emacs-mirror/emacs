@@ -1184,7 +1184,8 @@ The variable `ispell-library-directory' defines their location."
 	`(menu-item ,(purecopy "Change Dictionary...") ispell-change-dictionary
 		    :help ,(purecopy "Supply explicit dictionary file name")))
       (define-key ispell-menu-map [ispell-kill-ispell]
-	`(menu-item ,(purecopy "Kill Process") ispell-kill-ispell
+	`(menu-item ,(purecopy "Kill Process")
+		    (lambda () (interactive) (ispell-kill-ispell nil 'clear))
 		    :enable (and (boundp 'ispell-process) ispell-process
 				 (eq (ispell-process-status) 'run))
 		    :help ,(purecopy "Terminate Ispell subprocess")))
@@ -1268,7 +1269,7 @@ The variable `ispell-library-directory' defines their location."
 	     ["Continue Check"	ispell-continue			t]
 	     ["Complete Word Frag"ispell-complete-word-interior-frag t]
 	     ["Complete Word"	ispell-complete-word		t]
-	     ["Kill Process"	ispell-kill-ispell		t]
+	     ["Kill Process"	(ispell-kill-ispell nil 'clear) t]
 	     ["Customize..."	(customize-group 'ispell)	t]
 	     ;; flyspell-mode may not be bound...
 	     ;;["flyspell"	flyspell-mode
@@ -1536,6 +1537,11 @@ local variable syntax.")
 (defvar ispell-buffer-local-name nil
   "Contains the buffer name if local word definitions were used.
 Ispell is then restarted because the local words could conflict.")
+
+(defvar ispell-buffer-session-localwords nil
+  "List of words accepted for session in this buffer.")
+
+(make-variable-buffer-local 'ispell-buffer-session-localwords)
 
 (defvar ispell-parser 'use-mode-name
   "Indicates whether ispell should parse the current buffer as TeX Code.
@@ -2025,6 +2031,9 @@ Global `ispell-quit' set to start location to continue spell session."
 		    nil)
 		   ((or (= char ?a) (= char ?A)) ; accept word without insert
 		    (ispell-send-string (concat "@" word "\n"))
+		    (add-to-list 'ispell-buffer-session-localwords word)
+		    (or ispell-buffer-local-name ; session localwords might conflict
+			(setq ispell-buffer-local-name (buffer-name)))
 		    (if (null ispell-pdict-modified-p)
 			(setq ispell-pdict-modified-p
 			      (list ispell-pdict-modified-p)))
@@ -2770,13 +2779,16 @@ Keeps argument list for future ispell invocations for no async support."
 	      (process-kill-without-query ispell-process)))))))
 
 ;;;###autoload
-(defun ispell-kill-ispell (&optional no-error)
+(defun ispell-kill-ispell (&optional no-error clear)
   "Kill current Ispell process (so that you may start a fresh one).
-With NO-ERROR, just return non-nil if there was no Ispell running."
+With NO-ERROR, just return non-nil if there was no Ispell running.
+With CLEAR, buffer session localwords are cleaned."
   (interactive)
   ;; This hook is typically used by flyspell to flush some variables used
   ;; to optimize the common cases.
   (run-hooks 'ispell-kill-ispell-hook)
+  (if (or clear (interactive-p))
+      (setq ispell-buffer-session-localwords nil))
   (if (not (and ispell-process
 		(eq (ispell-process-status) 'run)))
       (or no-error
@@ -2837,6 +2849,7 @@ By just answering RET you can find out what the current dictionary is."
 	       (setq ispell-local-dictionary-overridden t))
 	   (error "Undefined dictionary: %s" dict))
 	 (ispell-internal-change-dictionary)
+	 (setq ispell-buffer-session-localwords nil)
 	 (message "%s Ispell dictionary set to %s"
 		  (if arg "Global" "Local")
 		  dict))))
@@ -3906,6 +3919,11 @@ Both should not be used to define a buffer-local dictionary."
   ;; Actually start a new ispell process, because we need
   ;; to send commands now to specify the local words to it.
   (ispell-init-process)
+  (dolist (session-localword ispell-buffer-session-localwords)
+    (ispell-send-string (concat "@" session-localword "\n")))
+  (or ispell-buffer-local-name
+      (if ispell-buffer-session-localwords
+	  (setq ispell-buffer-local-name (buffer-name))))
   (save-excursion
     (goto-char (point-min))
     (while (search-forward ispell-words-keyword nil t)

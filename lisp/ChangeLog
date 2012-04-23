@@ -1,5 +1,21 @@
 2012-04-23  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
+	Preserve ispell session localwords when switching back to
+	original buffer.
+
+	* ispell.el (ispell-buffer-session-localwords): New buffer-local
+	variable to hold buffer session localwords.
+	(ispell-kill-ispell): add option 'clear to delete session
+	localwords.
+	(ispell-command-loop, ispell-change-dictionary)
+	(ispell-buffer-local-words): Preserve session localwords when
+	needed.
+
+	* flyspell.el (flyspell-process-localwords, flyspell-do-correct):
+	Preserve session localwords when needed.
+
+2012-04-23  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
 	* ispell.el (ispell-insert-word) Remove unneeded function using
 	obsolete `translation-table-for-input'.
 	(ispell-word, ispell-process-line, ispell-complete-word): Use
