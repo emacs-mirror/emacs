@@ -7169,6 +7169,7 @@ tty_read_avail_input (struct terminal *terminal,
   return nread;
 }
 
+#if defined SYNC_INPUT || defined SIGIO
 static void
 handle_async_input (void)
 {
@@ -7195,6 +7196,7 @@ handle_async_input (void)
   --handling_signal;
 #endif
 }
+#endif /* SYNC_INPUT || SIGIO */
 
 #ifdef SYNC_INPUT
 void

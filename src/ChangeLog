@@ -1,3 +1,8 @@
+2012-04-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (handle_async_input): Define only if SYNC_INPUT || SIGIO.
+	Problem reported by Juanma Barranquero for Windows -Wunused-function.
+
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Modernize and clean up gmalloc.c to assume C89 (Bug#9119).
