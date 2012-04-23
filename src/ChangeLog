@@ -1,5 +1,13 @@
 2012-04-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Do not create empty overlays with the evaporate property (Bug#9642).
+	* buffer.c (Fmove_overlay): Delete an evaporating overlay
+	if it becomes empty after its bounds are adjusted to fit within
+	its buffer.  Without this fix, in a nonempty buffer (let ((o
+	(make-overlay 1 2))) (overlay-put o 'evaporate t) (move-overlay o 0 1))
+	yields an empty overlay that has the evaporate property, which is
+	not supposed to happen.
+
 	Fix minor GTK3 problems found by static checking.
 	* emacsgtkfixed.c (EMACS_TYPE_FIXED, EMACS_FIXED, EmacsFixed)
 	(EmacsFixedPrivate, EmacsFixedClass, struct _EmacsFixed)
