@@ -8,6 +8,7 @@
 	(customize-apropos-groups): Use apropos-read-pattern (Bug#11124).
 
 	* apropos.el (apropos-read-pattern): Make prompt less cryptic.
+	Fix word list splitting (Bug#11132).
 
 2012-04-23  Michael Albinus  <michael.albinus@gmx.de>
 
