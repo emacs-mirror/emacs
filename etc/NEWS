@@ -78,6 +78,10 @@ character when doing minibuffer filename prompts.
 
 *** `custom-reset-button-menu' now defaults to t.
 
+*** Non-option variables are never matched in `customize-apropos' and
+`customize-apropos-options' (i.e. the prefix argument does nothing for
+these commands now).
+
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
 

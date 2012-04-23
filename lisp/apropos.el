@@ -333,7 +333,7 @@ literally, or a string which is used as a regexp to search for.
 SUBJECT is a string that is included in the prompt to identify what
 kind of objects to search."
   (let ((pattern
-	 (read-string (concat "Apropos " subject " (word list or regexp): "))))
+	 (read-string (concat "Search for " subject " (word list or regexp): "))))
     (if (string-equal (regexp-quote pattern) pattern)
 	;; Split into words
 	(split-string pattern "[ \t]+")

@@ -1,3 +1,14 @@
+2012-04-23  Chong Yidong  <cyd@gnu.org>
+
+	* cus-edit.el (customize-apropos, customize-apropos-options):
+	Disable matching of non-option variables (Bug#11176).
+	(customize-option, customize-option-other-window)
+	(customize-changed-options): Doc fix.
+	(customize-apropos-options, customize-apropos-faces)
+	(customize-apropos-groups): Use apropos-read-pattern (Bug#11124).
+
+	* apropos.el (apropos-read-pattern): Make prompt less cryptic.
+
 2012-04-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/xesam.el (xesam-mode-map): Use let-bound map in
