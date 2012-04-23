@@ -1888,9 +1888,9 @@ maps searched are @var{keymap} and the global keymap.  If @var{keymap}
 is a list of keymaps, only those keymaps are searched.
 
 Usually it's best to use @code{overriding-local-map} as the expression
-for @var{keymap}.  Then @code{where-is-internal} searches precisely the
-keymaps that are active.  To search only the global map, pass
-@code{(keymap)} (an empty keymap) as @var{keymap}.
+for @var{keymap}.  Then @code{where-is-internal} searches precisely
+the keymaps that are active.  To search only the global map, pass the
+value @code{(keymap)} (an empty keymap) as @var{keymap}.
 
 If @var{firstonly} is @code{non-ascii}, then the value is a single
 vector representing the first key sequence found, rather than a list of
@@ -1904,27 +1904,24 @@ If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't
 follow indirect keymap bindings.  This makes it possible to search for
 an indirect definition itself.
 
-If another command @var{other-command} is remapped to @var{command}
-(@pxref{Remapping Commands}), this function searches for the bindings
-of @var{other-command} and treats them as though they are also
-bindings for @var{command}.  But if the @var{no-remap} argument is
-non-@code{nil}, this function instead includes the vector @code{[remap
-@var{other-command}]} in the list of possible key sequences, without
-searching for the bindings of @var{other-command}.
+The fifth argument, @var{no-remap}, determines how this function
+treats command remappings (@pxref{Remapping Commands}).  There are two
+cases of interest:
 
-On the other hand, if @var{command} is remapped to another command,
-this function still returns the original bindings of @var{command},
-even though those keys would actually invoke the other command.  To
-determine the remapping status of @var{command}, use the function
-@code{command-remapping} (@pxref{Remapping Commands}).
+@table @asis
+@item If a command @var{other-command} is remapped to @var{command}:
+If @var{no-remap} is @code{nil}, find the bindings for
+@var{other-command} and treat them as though they are also bindings
+for @var{command}.  If @var{no-remap} is non-@code{nil}, include the
+vector @code{[remap @var{other-command}]} in the list of possible key
+sequences, instead of finding those bindings.
 
-@smallexample
-@group
-(where-is-internal 'describe-function)
-    @result{} ([8 102] [f1 102] [help 102]
-         [menu-bar help-menu describe describe-function])
-@end group
-@end smallexample
+@item If @var{command} is remapped to @var{other-command}:
+If @var{no-remap} is @code{nil}, return the bindings for
+@var{other-command} rather than @var{command}.  If @var{no-remap} is
+non-@code{nil}, return the bindings for @var{command}, ignoring the
+fact that it is remapped.
+@end table
 @end defun
 
 @deffn Command describe-bindings &optional prefix buffer-or-name

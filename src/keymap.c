@@ -2569,16 +2569,17 @@ If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
 to other keymaps or slots.  This makes it possible to search for an
 indirect definition itself.
 
-If another command OTHER-COMMAND is remapped to DEFINITION, search for
-the bindings of OTHER-COMMAND and include them in the returned list.
-But if optional 5th arg NO-REMAP is non-nil, just include the vector
-[remap OTHER-COMMAND] in the returned list, without searching for
-those other bindings.
+The optional 5th arg NO-REMAP alters how command remapping is handled:
 
-If DEFINITION is remapped to another command, this function still
-returns its bindings, even though those key sequences actually invoke
-the other command.  Use `command-remapping' to find the remapping
-status of DEFINITION.  */)
+- If another command OTHER-COMMAND is remapped to DEFINITION, normally
+  search for the bindings of OTHER-COMMAND and include them in the
+  returned list.  But if NO-REMAP is non-nil, include the vector
+  [remap OTHER-COMMAND] in the returned list instead, without
+  searching for those other bindings.
+
+- If DEFINITION is remapped to OTHER-COMMAND, normally return the
+  bindings for OTHER-COMMAND.  But if NO-REMAP is non-nil, return the
+  bindings for DEFINITION instead, ignoring its remapping.  */)
   (Lisp_Object definition, Lisp_Object keymap, Lisp_Object firstonly, Lisp_Object noindirect, Lisp_Object no_remap)
 {
   /* The keymaps in which to search.  */
