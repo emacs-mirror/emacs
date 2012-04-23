@@ -1,3 +1,10 @@
+2012-04-23  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-insert-word) Remove unneeded function using
+	obsolete `translation-table-for-input'.
+	(ispell-word, ispell-process-line, ispell-complete-word): Use
+	plain `insert' instead of removed `ispell-insert-word'.
+
 2012-04-22  Chong Yidong  <cyd@gnu.org>
 
 	* cus-edit.el (custom-variable-menu)
