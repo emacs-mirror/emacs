@@ -86,7 +86,7 @@ static void report(mps_arena_t arena)
         nCollsStart += 1;
         printf("\n{\n  Collection %d started.  Because:\n", nCollsStart);
         printf("    %s\n", mps_message_gc_start_why(arena, message));
-        printf("    clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
+        printf("    clock: %"PRIuLONGEST"\n", (ulongest_t)mps_message_clock(arena, message));
         break;
       }
       case mps_message_type_gc(): {
@@ -98,10 +98,10 @@ static void report(mps_arena_t arena)
         not_condemned = mps_message_gc_not_condemned_size(arena, message);
 
         printf("\n  Collection %d finished:\n", nCollsDone);
-        printf("    live %lu\n", (unsigned long)live);
-        printf("    condemned %lu\n", (unsigned long)condemned);
-        printf("    not_condemned %lu\n", (unsigned long)not_condemned);
-        printf("    clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
+        printf("    live %"PRIuLONGEST"\n", (ulongest_t)live);
+        printf("    condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
+        printf("    not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
+        printf("    clock: %"PRIuLONGEST"\n", (ulongest_t)mps_message_clock(arena, message));
         printf("}\n");
 
         if(condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024) {
