@@ -564,7 +564,7 @@ The meaning is as follows:
 `:argN' STRING:
 `:pathN' STRING: This stands for the Nth argument of the
 signal.  `:pathN' arguments can be used for object path wildcard
-matches as specified by D-Bus, whilest an `:argN' argument
+matches as specified by D-Bus, while an `:argN' argument
 requires an exact match.
 
 `:arg-namespace' STRING: Register for the signals, which first

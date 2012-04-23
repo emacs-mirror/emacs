@@ -3601,7 +3601,7 @@ delete_tty (struct terminal *terminal)
 
 
 /* Mark the pointers in the tty_display_info objects.
-   Called by the Fgarbage_collector.  */
+   Called by Fgarbage_collect.  */
 
 void
 mark_ttys (void)

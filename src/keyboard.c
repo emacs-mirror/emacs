@@ -12393,7 +12393,7 @@ keys_of_keyboard (void)
 }
 
 /* Mark the pointers in the kboard objects.
-   Called by the Fgarbage_collector.  */
+   Called by Fgarbage_collect.  */
 void
 mark_kboards (void)
 {

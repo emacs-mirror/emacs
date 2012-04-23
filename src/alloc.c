@@ -5838,7 +5838,7 @@ mark_buffer (Lisp_Object buf)
 }
 
 /* Mark the Lisp pointers in the terminal objects.
-   Called by the Fgarbage_collector.  */
+   Called by Fgarbage_collect.  */
 
 static void
 mark_terminals (void)

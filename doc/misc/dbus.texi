@@ -1707,7 +1707,7 @@ is as follows:
 @code{:pathN} @var{string}:@*
 This stands for the Nth argument of the signal.  @code{:pathN}
 arguments can be used for object path wildcard matches as specified by
-D-Bus, whilest an @code{:argN} argument requires an exact match.
+D-Bus, while an @code{:argN} argument requires an exact match.
 
 @item @code{:arg-namespace} @var{string}:@*
 Register for the signals, which first argument defines the service or
