@@ -1,3 +1,12 @@
+2012-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): If the window start position is beyond
+	ZV, start the display from buffer beginning.  Prevents assertion
+	violation in init_iterator when the minibuffer window is scrolled
+	via the scroll bar.
+
+	* window.c (window_scroll_pixel_based): Likewise.
+
 2012-04-23  Chong Yidong  <cyd@gnu.org>
 
 	* keymap.c (where_is_internal): Doc fix (Bug#10872).

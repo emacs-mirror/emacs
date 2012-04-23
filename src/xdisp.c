@@ -1265,6 +1265,11 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
     }
 
   SET_TEXT_POS_FROM_MARKER (top, w->start);
+  /* Scrolling a minibuffer window via scroll bar when the echo area
+     shows long text sometimes resets the minibuffer contents behind
+     our backs.  */
+  if (CHARPOS (top) > ZV)
+    SET_TEXT_POS (top, BEGV, BEGV_BYTE);
 
   /* Compute exact mode line heights.  */
   if (WINDOW_WANTS_MODELINE_P (w))
