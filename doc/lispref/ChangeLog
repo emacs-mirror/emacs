@@ -1,3 +1,8 @@
+2012-04-23  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Scanning Keymaps): Fix description of NO-REMAP arg
+	to where-is-internal (Bug#10872).
+
 2012-04-21  Glenn Morris  <rgm@gnu.org>
 
 	* macros.texi (Indenting Macros): Fix typo.

@@ -1904,12 +1904,19 @@ If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't
 follow indirect keymap bindings.  This makes it possible to search for
 an indirect definition itself.
 
-When command remapping is in effect (@pxref{Remapping Commands}),
-@code{where-is-internal} figures out when a command will be run due to
-remapping and reports keys accordingly.  It also returns @code{nil} if
-@var{command} won't really be run because it has been remapped to some
-other command.  However, if @var{no-remap} is non-@code{nil}.
-@code{where-is-internal} ignores remappings.
+If another command @var{other-command} is remapped to @var{command}
+(@pxref{Remapping Commands}), this function searches for the bindings
+of @var{other-command} and treats them as though they are also
+bindings for @var{command}.  But if the @var{no-remap} argument is
+non-@code{nil}, this function instead includes the vector @code{[remap
+@var{other-command}]} in the list of possible key sequences, without
+searching for the bindings of @var{other-command}.
+
+On the other hand, if @var{command} is remapped to another command,
+this function still returns the original bindings of @var{command},
+even though those keys would actually invoke the other command.  To
+determine the remapping status of @var{command}, use the function
+@code{command-remapping} (@pxref{Remapping Commands}).
 
 @smallexample
 @group

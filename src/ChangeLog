@@ -1,3 +1,7 @@
+2012-04-23  Chong Yidong  <cyd@gnu.org>
+
+	* keymap.c (where_is_internal): Doc fix (Bug#10872).
+
 2012-04-20  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (Fcopy_file, Fset_file_selinux_context):
