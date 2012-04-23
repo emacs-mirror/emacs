@@ -1,5 +1,20 @@
 2012-04-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix minor GTK3 problems found by static checking.
+	* emacsgtkfixed.c (EMACS_TYPE_FIXED, EMACS_FIXED, EmacsFixed)
+	(EmacsFixedPrivate, EmacsFixedClass, struct _EmacsFixed)
+	(struct _EmacsFixedClass, emacs_fixed_get_type):
+	Move decls here from emacsgtkfixed.h, since they needn't be public.
+	(emacs_fixed_get_type): Now static.
+	(emacs_fixed_class_init): Omit unused local.
+	(emacs_fixed_child_type): Remove; unused.
+	* emacsgtkfixed.h (EMACS_TYPE_FIXED, EMACS_FIXED, EmacsFixed)
+	(EmacsFixedPrivate, EmacsFixedClass, struct _EmacsFixed)
+	(struct _EmacsFixedClass): Move to emacsgtkfixed.c.
+	(EMACS_FIXED_CLASS, EMACS_IS_FIXED, EMACS_IS_FIXED_CLASS)
+	(EMACS_FIXED_GET_CLASS): Remove; unused.
+	* gtkutil.c (xg_create_frame_widgets) [!HAVE_GTK3]: Omit unused local.
+
 	* keyboard.c (handle_async_input): Define only if SYNC_INPUT || SIGIO.
 	Problem reported by Juanma Barranquero for Windows -Wunused-function.
 
