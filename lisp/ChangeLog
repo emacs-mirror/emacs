@@ -1,3 +1,10 @@
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el: Simplify last change, and cleanup code.
+	(ruby-syntax-propertize-regexp): Remove.
+	(ruby-syntax-propertize-function): Split regexp into chunks.
+	Match following code directly.
+
 2012-04-24  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el: Handle Cucumber defs (bug#6286).
