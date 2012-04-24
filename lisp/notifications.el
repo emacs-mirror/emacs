@@ -354,21 +354,21 @@ of another `notifications-notify' call."
   "Return the capabilities of the notification server, a list of strings.
 The following capabilities can be expected:
 
-  `:actions'         The server will provide the specified actions
-                     to the user.
-  `:action-icons'    Supports using icons instead of text for
-                     displaying actions.
-  `:body'            Supports body text.
-  `:body-hyperlinks' The server supports hyperlinks in the notifications.
-  `:body-images'     The server supports images in the notifications.
-  `:body-markup'     Supports markup in the body text.
-  `:icon-multi'      The server will render an animation of all the
-                     frames in a given image array.
-  `:icon-static'     Supports display of exactly 1 frame of any
-                     given image array.  This value is mutually exclusive
-                     with `:icon-multi'.
-  `:persistence'     The server supports persistence of notifications.
-  `:sound'           The server supports sounds on notifications.
+  :actions         The server will provide the specified actions
+                   to the user.
+  :action-icons    Supports using icons instead of text for
+                   displaying actions.
+  :body            Supports body text.
+  :body-hyperlinks The server supports hyperlinks in the notifications.
+  :body-images     The server supports images in the notifications.
+  :body-markup     Supports markup in the body text.
+  :icon-multi      The server will render an animation of all the
+                   frames in a given image array.
+  :icon-static     Supports display of exactly 1 frame of any
+                   given image array.  This value is mutually exclusive
+                   with `:icon-multi'.
+  :persistence     The server supports persistence of notifications.
+  :sound           The server supports sounds on notifications.
 
 Further vendor-specific caps start with `:x-vendor', like `:x-gnome-foo-cap'."
   (dbus-ignore-errors
