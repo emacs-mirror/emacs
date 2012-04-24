@@ -1,3 +1,7 @@
+2012-04-24  Chong Yidong  <cyd@gnu.org>
+
+	* xselect.c (x_convert_selection): Initialize a pointer (Bug#11315).
+
 2012-04-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): If the window start position is beyond

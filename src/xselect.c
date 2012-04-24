@@ -931,6 +931,7 @@ x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
 
   /* Otherwise, record the converted selection to binary.  */
   cs = xmalloc (sizeof (struct selection_data));
+  cs->data = NULL;
   cs->nofree = 1;
   cs->property = property;
   cs->wait_object = NULL;
