@@ -1131,9 +1131,8 @@ See `add-log-current-defun-function'."
                         (nth 3 (syntax-ppss (match-beginning 0))))
                 (string-to-syntax "\\"))))
           ;; regexps
-          ("\\(^\\|[[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
-           (4 "\"/")
-           (6 "\"/"))
+          ("\\(^\\|[[=(,~?:;<>]\\|\\(?:^\\|\\s \\)\\(?:if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)?\\s *\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)"
+           (2 (ruby-syntax-propertize-regexp)))
           ("^=en\\(d\\)\\_>" (1 "!"))
           ("^\\(=\\)begin\\_>" (1 "!"))
           ;; Handle here documents.
@@ -1143,6 +1142,21 @@ See `add-log-current-defun-function'."
           ("\\(?:^\\|[[ \t\n<+(,=]\\)\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
            (1 (prog1 "|" (ruby-syntax-propertize-general-delimiters end)))))
          (point) end))
+
+      (defun ruby-syntax-propertize-regexp ()
+        (let ((syn (string-to-syntax "\"/")))
+          (goto-char (match-end 3))
+          (if (or
+               ;; after paren, comma, operator, control flow keyword,
+               ;; or a method from hardcoded list
+               (match-beginning 1)
+               ;; followed by comma or block
+               (looking-at "[imxo]*\\s *\\(?:,\\|\\<do\\>\\)"))
+              (progn
+                (put-text-property (1- (point)) (point)
+                                   'syntax-table syn)
+                syn)
+            (goto-char (match-end 2)))))
 
       (defun ruby-syntax-propertize-heredoc (limit)
         (let ((ppss (syntax-ppss))
