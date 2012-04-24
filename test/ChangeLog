@@ -1,3 +1,7 @@
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: New file, to test new syntax-propertize code.
+
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* automated/vc-bzr.el (vc-bzr-test-faulty-bzr-autoloads): New test.
