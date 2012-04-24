@@ -1,6 +1,7 @@
 2012-04-24  Michael Albinus  <michael.albinus@gmx.de>
 
-	* os.texi: (Notifications): Add notifications-get-capabilities.
+	* os.texi (Notifications): Extend possible notification hints.
+	Add notifications-get-capabilities.
 
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 

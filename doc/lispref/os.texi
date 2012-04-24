@@ -2271,7 +2271,7 @@ The notification title.
 @item :body @var{text}
 The notification body text.  Depending on the implementation of the
 notification server, the text could contain HTML markups, like
-@samp{"<b>bold text</b>"}, or hyperlinks.
+@samp{"<b>bold text</b>"}, hyperlinks, or images.
 
 @item :app-name @var{name}
 The name of the application sending the notification.  The default is
@@ -2300,6 +2300,10 @@ the notification never expires.  Default value is -1.
 
 @item :urgency @var{urgency}
 The urgency level.  It can be @code{low}, @code{normal}, or @code{critical}.
+
+@item :action-items 
+When this keyword is given, the @var{title} string of the actions is
+interpreted as icon name.
 
 @item :category @var{category}
 The type of notification this is, a string.
@@ -2330,6 +2334,17 @@ example would be @samp{"message-new-instant"}.
 @item :suppress-sound
 Causes the server to suppress playing any sounds, if it has that
 ability.
+
+@item :resident
+When set the server will not automatically remove the notification
+when an action has been invoked. The notification will remain resident
+in the server until it is explicitly removed by the user or by the
+sender. This hint is likely only useful when the server has the
+@code{:persistence} capability.
+
+@item :transient
+When set the server will treat the notification as transient and
+by-pass the server's persistence capability, if it should exist.
 
 @item :x @var{position}
 @itemx :y @var{position}
@@ -2402,35 +2417,39 @@ This function closes a notification with identifier @var{id}.
 Returns the capabilities of the notification server, a list of strings.
 The following capabilities can be expected:
 
-@table @asis
-@item "actions"
+@table @code
+@item :actions
 The server will provide the specified actions to the user.
 
-@item "body"
+@item :body
 Supports body text.
 
-@item "body-hyperlinks"
+@item :body-hyperlinks
 The server supports hyperlinks in the notifications.
 
-@item "body-images"
+@item :body-images
 The server supports images in the notifications.
 
-@item "body-markup"
+@item :body-markup
 Supports markup in the body text.
 
-@item "icon-multi"
+@item :icon-multi
 The server will render an animation of all the frames in a given image
 array.
 
-@item "icon-static"
+@item :icon-static
 Supports display of exactly 1 frame of any given image array.  This
-value is mutually exclusive with "icon-multi".
+value is mutually exclusive with @code{:icon-multi}.
 
-@item "sound"
+@item :persistence
+The server supports persistence of notifications.
+
+@item :sound
 The server supports sounds on notifications.
 @end table
 
-Further vendor-specific caps start with "x-vendor", like "x-gnome-foo-cap".
+Further vendor-specific caps start with @code{:x-vendor}, like
+@code{:x-gnome-foo-cap}.
 @end defun
 
 
