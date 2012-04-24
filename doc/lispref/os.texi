@@ -2355,6 +2355,9 @@ by the user.  The function receive the notification @var{id} and the closing
 @end itemize
 @end table
 
+Which parameters are accepted by the notification server can be
+checked via @code{notifications-get-capabilities}.
+
 This function returns a notification id, an integer, which can be used
 to manipulate the notification item with
 @code{notifications-close-notification} or the @code{:replaces-id}
@@ -2394,6 +2397,42 @@ A message window opens on the desktop.  Press "I agree"
 @defun notifications-close-notification id
 This function closes a notification with identifier @var{id}.
 @end defun
+
+@defun notifications-get-capabilities
+Returns the capabilities of the notification server, a list of strings.
+The following capabilities can be expected:
+
+@table @asis
+@item "actions"
+The server will provide the specified actions to the user.
+
+@item "body"
+Supports body text.
+
+@item "body-hyperlinks"
+The server supports hyperlinks in the notifications.
+
+@item "body-images"
+The server supports images in the notifications.
+
+@item "body-markup"
+Supports markup in the body text.
+
+@item "icon-multi"
+The server will render an animation of all the frames in a given image
+array.
+
+@item "icon-static"
+Supports display of exactly 1 frame of any given image array.  This
+value is mutually exclusive with "icon-multi".
+
+@item "sound"
+The server supports sounds on notifications.
+@end table
+
+Further vendor-specific caps start with "x-vendor", like "x-gnome-foo-cap".
+@end defun
+
 
 @node Dynamic Libraries
 @section Dynamically Loaded Libraries

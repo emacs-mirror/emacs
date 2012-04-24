@@ -64,13 +64,16 @@
   "D-Bus notifications service path.")
 
 (defconst notifications-interface "org.freedesktop.Notifications"
-  "D-Bus notifications service path.")
+  "D-Bus notifications service interface.")
 
 (defconst notifications-notify-method "Notify"
-  "D-Bus notifications service path.")
+  "D-Bus notifications notify method.")
 
 (defconst notifications-close-notification-method "CloseNotification"
-  "D-Bus notifications service path.")
+  "D-Bus notifications close notification method.")
+
+(defconst notifications-get-capabilities-method "GetCapabilities"
+  "D-Bus notifications get capabilities method.")
 
 (defconst notifications-action-signal "ActionInvoked"
   "D-Bus notifications action signal.")
@@ -187,6 +190,9 @@ Various PARAMS can be set:
                      by a call to CloseNotification
                    - `undefined' if the notification server hasn't provided
                      a reason
+
+Which parameters are accepted by the notification server can be
+checked via `notifications-get-capabilities'.
 
 This function returns a notification id, an integer, which can be
 used to manipulate the notification item with
@@ -321,5 +327,29 @@ of another `notifications-notify' call."
                     notifications-interface
                     notifications-close-notification-method
                     :int32 id))
+
+(defun notifications-get-capabilities ()
+  "Return the capabilities of the notification server, a list of strings.
+The following capabilities can be expected:
+
+  \"actions\"         The server will provide the specified actions
+                    to the user.
+  \"body\"            Supports body text.
+  \"body-hyperlinks\" The server supports hyperlinks in the notifications.
+  \"body-images\"     The server supports images in the notifications.
+  \"body-markup\"     Supports markup in the body text.
+  \"icon-multi\"      The server will render an animation of all the
+                    frames in a given image array.
+  \"icon-static\"     Supports display of exactly 1 frame of any
+                    given image array.  This value is mutually exclusive
+                    with \"icon-multi\".
+  \"sound\"           The server supports sounds on notifications.
+
+Further vendor-specific caps start with \"x-vendor\", like \"x-gnome-foo-cap\"."
+  (dbus-call-method :session
+                    notifications-service
+                    notifications-path
+                    notifications-interface
+                    notifications-get-capabilities-method))
 
 (provide 'notifications)
