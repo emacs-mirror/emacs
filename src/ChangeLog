@@ -1,3 +1,8 @@
+2012-04-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (init_gnutls_functions): Protect against (unlikely)
+	manipulation of :loaded-from data.
+
 2012-04-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnutls.c (init_gnutls_functions): The value of :loaded-from is

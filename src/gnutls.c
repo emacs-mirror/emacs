@@ -200,8 +200,12 @@ init_gnutls_functions (Lisp_Object libraries)
 
   max_log_level = global_gnutls_log_level;
 
-  GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
-	       SDATA (XCAR (Fget (Qgnutls_dll, QCloaded_from))));
+  {
+    Lisp_Object name = CAR_SAFE (Fget (Qgnutls_dll, QCloaded_from));
+    GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
+                 STRINGP (name) ? (const char *) SDATA (name) : "unknown");
+  }
+
   return 1;
 }
 
