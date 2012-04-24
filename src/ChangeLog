@@ -1,3 +1,9 @@
+2012-04-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (read_char): Don't wipe echo area for select window
+	events: These might get delayed via `mouse-autoselect-window'
+	(Bug#11304).
+
 2012-04-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnutls.c (init_gnutls_functions): Protect against (unlikely)

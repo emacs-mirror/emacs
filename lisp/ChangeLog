@@ -1,3 +1,8 @@
+2012-04-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (handle-select-window): Clear echo area since this is
+	no more done by read_char (Bug#11304).
+
 2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ibuffer.el (ibuffer-mode-map): Bind `/ m' to filter-used-mode

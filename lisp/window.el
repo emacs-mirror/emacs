@@ -5727,6 +5727,8 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
 	(setq mouse-autoselect-window-state nil)
 	;; Run `mouse-leave-buffer-hook' when autoselecting window.
 	(run-hooks 'mouse-leave-buffer-hook))
+      ;; Clear echo area.
+      (message nil)
       (select-window window))))
 
 (defun truncated-partial-width-window-p (&optional window)
