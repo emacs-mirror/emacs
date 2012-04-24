@@ -1,3 +1,7 @@
+2012-04-24  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el: Move hideshow setup to the end.
+
 2012-04-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (handle-select-window): Clear echo area since this is

@@ -2468,15 +2468,6 @@ with skeleton expansions for compound statement templates.
 	    nil t)
   (add-hook 'completion-at-point-functions
             'python-completion-at-point nil 'local)
-  ;; Fixme: should be in hideshow.  This seems to be of limited use
-  ;; since it isn't (can't be) indentation-based.  Also hide-level
-  ;; doesn't seem to work properly.
-  (add-to-list 'hs-special-modes-alist
-	       `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
-		 ,(lambda (_arg)
-		    (python-end-of-defun)
-		    (skip-chars-backward " \t\n"))
-		 nil))
   (set (make-local-variable 'skeleton-further-elements)
        '((< '(backward-delete-char-untabify (min python-indent
 						 (current-column))))
@@ -2716,6 +2707,17 @@ comint believe the user typed this string so that
     (setq debug-ignored-errors (delete error debug-ignored-errors)))
   ;; continue standard unloading
   nil)
+
+;;;; Finish up
+;; Fixme: should be in hideshow.  This seems to be of limited use
+;; since it isn't (can't be) indentation-based.  Also hide-level
+;; doesn't seem to work properly.
+(add-to-list 'hs-special-modes-alist
+             `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
+                           ,(lambda (_arg)
+                              (python-end-of-defun)
+                              (skip-chars-backward " \t\n"))
+                           nil))
 
 (provide 'python)
 (provide 'python-21)
