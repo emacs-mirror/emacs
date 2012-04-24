@@ -1,3 +1,8 @@
+2012-04-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* .gdbinit (xpr): Handle USE_2_TAGS_FOR_INTS.
+	(xgetint): Add missing shift for LSB tags.
+
 2012-04-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* keyboard.c (read_char): Don't wipe echo area for select window

@@ -54,7 +54,7 @@ end
 
 define xgetint
   set $bugfix = $arg0
-  set $int = gdb_use_union ? $bugfix.s.val : (gdb_use_lsb ? $bugfix : $bugfix << gdb_gctypebits) >> gdb_gctypebits
+  set $int = gdb_use_union ? $bugfix.s.val : (gdb_use_lsb ? $bugfix >> (gdb_gctypebits - 1) : $bugfix << gdb_gctypebits) >> gdb_gctypebits
 end
 
 define xgettype
@@ -1003,8 +1003,15 @@ end
 
 define xpr
   xtype
-  if $type == Lisp_Int
-    xint
+  if gdb_use_union
+    if $type == Lisp_Int
+      xint
+    end
+  end
+  if !gdb_use_union
+    if $type == Lisp_Int0 || $type == Lisp_Int1
+      xint
+    end
   end
   if $type == Lisp_Symbol
     xsymbol
