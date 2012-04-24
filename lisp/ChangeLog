@@ -1,3 +1,12 @@
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ibuffer.el (ibuffer-mode-map): Bind `/ m' to filter-used-mode
+	and `/ M' to filter-derived-mode.
+	* ibuf-ext.el (ibuffer-list-buffer-modes): Simplify; avoid add-to-list.
+	(ibuffer-filter-by-mode, ibuffer-filter-by-used-mode)
+	(ibuffer-mark-by-mode): Use default rather than initial-input.
+	(ibuffer-filter-by-derived-mode): Autoload and require-match.
+
 2012-04-24  Ivan Andrus  <darthandrus@gmail.com>  (tiny change)
 
 	* ibuf-ext.el (ibuffer-list-buffer-modes): Add `include-parents' arg.

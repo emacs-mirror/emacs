@@ -74,7 +74,8 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
-** New `derived-mode' filter for Ibuffer, bound to `/ w'.
+** New `derived-mode' filter for Ibuffer, bound to `/ M'.
+`/ m' is now bound to filter by used-mode, which used to be bound to `/ M'.
 
 ** Apropos
 
