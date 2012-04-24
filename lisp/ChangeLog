@@ -1,3 +1,25 @@
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el: Simplify last change, and cleanup code.
+	(ruby-syntax-propertize-regexp): Remove.
+	(ruby-syntax-propertize-function): Split regexp into chunks.
+	Match following code directly.
+
+2012-04-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Handle Cucumber defs (bug#6286).
+	(ruby-syntax-propertize-regexp): New function.
+	(ruby-syntax-propertize-function): Use it to handle regexp not preceded
+	by a special keyword.
+
+	* progmodes/ruby-mode.el: Handle general delimited literals (bug#6286).
+	(ruby-syntax-general-delimiters-goto-beg)
+	(ruby-syntax-propertize-general-delimiters): New functions.
+	(ruby-syntax-propertize-function): Use them to handle GDL.
+	(ruby-font-lock-keywords): Move old handling of GDL...
+	(ruby-font-lock-syntactic-keywords): .. to here.
+	(ruby-calculate-indent): Adjust indentation for GDL.
+
 2012-04-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el (notifications-interface)
