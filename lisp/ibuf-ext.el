@@ -973,8 +973,9 @@ Interactively, prompt for NAME, and use the current filters."
        (concat " [" (cadr type) ": " (format "%s]" (cdr qualifier)))))))
 
 
-(defun ibuffer-list-buffer-modes ()
+(defun ibuffer-list-buffer-modes (&optional include-parents)
   "Create an alist of buffer modes currently in use.
+If INCLUDE-PARENTS is non-nil then include parent modes.
 The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
   (let ((bufs (buffer-list))
 	(modes)
@@ -982,10 +983,13 @@ The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
     (while bufs
       (setq this-mode (buffer-local-value 'major-mode (car bufs))
 	    bufs (cdr bufs))
-      (add-to-list
-       'modes
-       `(,(symbol-name this-mode) .
-	 ,this-mode)))
+      (while this-mode
+	(add-to-list
+	 'modes
+	 `(,(symbol-name this-mode) .
+	   ,this-mode))
+	(setq this-mode (and include-parents
+			     (get this-mode 'derived-mode-parent)))))
     modes))
 
 
@@ -1026,6 +1030,16 @@ currently used by buffers."
 						      'major-mode buf))
 				      "")))))
   (eq qualifier (buffer-local-value 'major-mode buf)))
+
+(define-ibuffer-filter derived-mode
+    "Toggle current view to buffers whose major mode inherits from QUALIFIER."
+  (:description "derived mode"
+		:reader
+		(intern
+		 (completing-read "Filter by derived mode: "
+				  (ibuffer-list-buffer-modes t)
+				  nil nil "")))
+  (with-current-buffer buf (derived-mode-p qualifier)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-name "ibuf-ext")
 (define-ibuffer-filter name

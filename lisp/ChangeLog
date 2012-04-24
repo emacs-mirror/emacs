@@ -1,3 +1,9 @@
+2012-04-24  Ivan Andrus  <darthandrus@gmail.com>  (tiny change)
+
+	* ibuf-ext.el (ibuffer-list-buffer-modes): Add `include-parents' arg.
+	(ibuffer-filter-by-derived-mode): New filter.
+	* ibuffer.el (ibuffer-mode-map): Bind to `/ w'.
+
 2012-04-23  Andreas Politz  <politza@fh-trier.de>
 
 	* subr.el (accept-change-group): Fix arg usage (Bug#6095).

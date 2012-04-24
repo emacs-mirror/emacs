@@ -503,6 +503,7 @@ directory, like `default-directory'."
 
     (define-key map (kbd "/ m") 'ibuffer-filter-by-mode)
     (define-key map (kbd "/ M") 'ibuffer-filter-by-used-mode)
+    (define-key map (kbd "/ w") 'ibuffer-filter-by-derived-mode)
     (define-key map (kbd "/ n") 'ibuffer-filter-by-name)
     (define-key map (kbd "/ c") 'ibuffer-filter-by-content)
     (define-key map (kbd "/ e") 'ibuffer-filter-by-predicate)
@@ -2645,7 +2646,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "1400db1bc3d4a3010cbc4807a6725072")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "b2b8f11ad22546ad05d6db0b7d388ac1")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\

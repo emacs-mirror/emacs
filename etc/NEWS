@@ -74,6 +74,8 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** New `derived-mode' filter for Ibuffer, bound to `/ w'.
+
 ** Apropos
 
 *** The faces used by Apropos are now directly customizable.
