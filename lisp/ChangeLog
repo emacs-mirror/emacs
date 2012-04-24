@@ -22,8 +22,8 @@
 
 2012-04-24  Michael Albinus  <michael.albinus@gmx.de>
 
-	* notifications.el (notifications-specification-version): Change
-	to "1.2".
+	* notifications.el (top): Remove unneeded declarations.
+	(notifications-specification-version): Change to "1.2".
 	(notifications-interface, notifications-notify-method)
 	(notifications-close-notification-method): Fix docstring.
 	(notifications-get-capabilities-method): New defconst.
