@@ -1,3 +1,12 @@
+2012-04-24  Chong Yidong  <cyd@gnu.org>
+
+	* select.el (xselect--encode-string): New function, split from
+	xselect-convert-to-string.
+	(xselect-convert-to-string): Use it.
+	(xselect-convert-to-filename, xselect-convert-to-os)
+	(xselect-convert-to-host, xselect-convert-to-user): Ensure that
+	returned strings are properly encoded (Bug#11315).
+
 2012-04-22  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (delete-active-region): Move to killing custom group.
