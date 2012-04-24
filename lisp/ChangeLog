@@ -1,3 +1,13 @@
+2012-04-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Handle general delimited literals (bug#6286).
+	(ruby-syntax-general-delimiters-goto-beg)
+	(ruby-syntax-propertize-general-delimiters): New functions.
+	(ruby-syntax-propertize-function): Use them to handle GDL.
+	(ruby-font-lock-keywords): Move old handling of GDL...
+	(ruby-font-lock-syntactic-keywords): .. to here.
+	(ruby-calculate-indent): Adjust indentation for GDL.
+
 2012-04-24  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/python.el: Move hideshow setup to the end.
