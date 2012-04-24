@@ -137,6 +137,11 @@ details.
 +++
 *** There is a new function `dbus-setenv'.
 
++++
+** notifications.el supports now version 1.2 of the Notifications API.
+The function `notifications-get-capabilities' returns the supported
+server properties.
+
 ** Obsolete packages:
 
 *** mailpost.el
