@@ -655,6 +655,8 @@
 (require 'vc-dispatcher)
 (require 'ediff)
 
+(declare-function diff-setup-whitespace "diff-mode" ())
+
 (eval-when-compile
   (require 'cl)
   (require 'dired))
@@ -1524,17 +1526,18 @@ to override the value of `vc-diff-switches' and `diff-switches'."
   ;; possibility of an empty output is for an async process.
   (when (buffer-live-p buffer)
     (let ((window (get-buffer-window buffer t))
-          (emptyp (zerop (buffer-size buffer))))
+	  (emptyp (zerop (buffer-size buffer))))
       (with-current-buffer buffer
-        (and messages emptyp
-             (let ((inhibit-read-only t))
-               (insert (cdr messages) ".\n")
-               (message "%s" (cdr messages))))
-        (goto-char (point-min))
-        (when window
-          (shrink-window-if-larger-than-buffer window)))
+	(and messages emptyp
+	     (let ((inhibit-read-only t))
+	       (insert (cdr messages) ".\n")
+	       (message "%s" (cdr messages))))
+	(diff-setup-whitespace)
+	(goto-char (point-min))
+	(when window
+	  (shrink-window-if-larger-than-buffer window)))
       (when (and messages (not emptyp))
-        (message "%sdone" (car messages))))))
+	(message "%sdone" (car messages))))))
 
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")

@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(declare-function diff-setup-whitespace "diff-mode" ())
+
 (eval-when-compile (require 'cl))
 
 (defgroup diff nil
@@ -64,6 +66,7 @@ If optional args OLD-TEMP-FILE and/or NEW-TEMP-FILE are non-nil,
 delete the temporary files so named."
   (if old-temp-file (delete-file old-temp-file))
   (if new-temp-file (delete-file new-temp-file))
+  (diff-setup-whitespace)
   (save-excursion
     (goto-char (point-max))
     (let ((inhibit-read-only t))

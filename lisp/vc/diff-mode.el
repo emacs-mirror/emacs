@@ -1283,11 +1283,7 @@ a diff with \\[diff-reverse-direction].
   (set (make-local-variable 'end-of-defun-function)
        'diff-end-of-file)
 
-  ;; Set up `whitespace-mode' so that turning it on will show trailing
-  ;; whitespace problems on the modified lines of the diff.
-  (set (make-local-variable 'whitespace-style) '(face trailing))
-  (set (make-local-variable 'whitespace-trailing-regexp)
-       "^[-\+!<>].*?\\([\t ]+\\)$")
+  (diff-setup-whitespace)
 
   (setq buffer-read-only diff-default-read-only)
   ;; setup change hooks
@@ -1331,6 +1327,22 @@ the mode if ARG is omitted or nil.
     (add-hook 'post-command-hook 'diff-post-command-hook nil t)))
 
 ;;; Handy hook functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun diff-setup-whitespace ()
+  "Set up Whitespace mode variables for the current Diff mode buffer.
+This sets `whitespace-style' and `whitespace-trailing-regexp' so
+that Whitespace mode shows trailing whitespace problems on the
+modified lines of the diff."
+  (set (make-local-variable 'whitespace-style) '(face trailing))
+  (let ((style (save-excursion
+		 (goto-char (point-min))
+		 (when (re-search-forward diff-hunk-header-re nil t)
+		   (goto-char (match-beginning 0))
+		   (diff-hunk-style)))))
+    (set (make-local-variable 'whitespace-trailing-regexp)
+	 (if (eq style 'context)
+	     "^[-\+!] .*?\\([\t ]+\\)$"
+	   "^[-\+!<>].*?\\([\t ]+\\)$"))))
 
 (defun diff-delete-if-empty ()
   ;; An empty diff file means there's no more diffs to integrate, so we
