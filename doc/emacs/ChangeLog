@@ -1,3 +1,8 @@
+2012-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Bidirectional Editing): Improve indexing.  Minor
+	wording tweaks.
+
 2012-04-15  Chong Yidong  <cyd@gnu.org>
 
 	* misc.texi (emacsclient Options): More clarifications.

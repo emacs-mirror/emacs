@@ -1763,15 +1763,17 @@ non-@code{nil}, Emacs reorders characters that have right-to-left
 directionality when they are displayed.  The default value is
 @code{t}.
 
+@cindex base direction of paragraphs
+@cindex paragraph, base direction
   Each paragraph of bidirectional text can have its own @dfn{base
 direction}, either right-to-left or left-to-right.  (Paragraph
 @c paragraph-separate etc have no influence on this?
 boundaries are empty lines, i.e.@: lines consisting entirely of
-whitespace characters.)  Text in left-to-right paragraphs begins at
-the left margin of the window and is truncated or continued when it
-reaches the right margin.  By contrast, text in right-to-left
-paragraphs begins at the right margin and is continued or truncated at
-the left margin.
+whitespace characters.)  Text in left-to-right paragraphs begins on
+the screen at the left margin of the window and is truncated or
+continued when it reaches the right margin.  By contrast, text in
+right-to-left paragraphs is displayed starting at the right margin and
+is continued or truncated at the left margin.
 
 @vindex bidi-paragraph-direction
   Emacs determines the base direction of each paragraph dynamically,
