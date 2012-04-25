@@ -1340,20 +1340,6 @@ which may actually result in an URL rather than a filename."
 ;; We must inform complete about whether our completion function
 ;; will do filename style completion.
 
-(defun ffap-complete-as-file-p ()
-  ;; Will `minibuffer-completion-table' complete the minibuffer
-  ;; contents as a filename?  Assumes the minibuffer is current.
-  ;; Note: t and non-nil mean somewhat different reasons.
-  (if (eq minibuffer-completion-table 'ffap-read-file-or-url-internal)
-      (not (ffap-url-p (buffer-string))) ; t
-    (and minibuffer-completing-file-name '(t)))) ;list
-
-(and
- (featurep 'complete)
- (if (boundp 'PC-completion-as-file-name-predicate)
-     ;; modern version of complete.el, just set the variable:
-     (setq PC-completion-as-file-name-predicate 'ffap-complete-as-file-p)))
-
 
 ;;; Highlighting (`ffap-highlight'):
 ;;

@@ -205,8 +205,8 @@ Includes files as well as host names followed by a colon."
 			   ;; Avoid connecting to the remote host when we're
 			   ;; only completing the host name.
 			   (list string)
-			 (comint--table-subvert (pcomplete-all-entries)
-						"" "/ssh:")))
+			 (completion-table-subvert (pcomplete-all-entries)
+                                                   "" "/ssh:")))
                       ((string-match "/" string) ; Local file name.
                        (pcomplete-all-entries))
                       (t                ;Host name or local file name.

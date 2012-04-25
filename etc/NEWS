@@ -169,6 +169,14 @@ still be supported for Emacs 24.x.
 
 
 * Lisp changes in Emacs 24.2
+
+** Completion
+
+*** New function `completion-table-with-quoting' to handle completion
+in the presence of quoting, such as file completion in shell buffers.
+
+*** New function `completion-table-subvert' to use an existing completion
+table, but with a different prefix.
 
 * Changes in Emacs 24.2 on non-free operating systems
 
