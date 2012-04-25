@@ -1591,13 +1591,12 @@ Otherwise use brackets."
   (let ((init-file (or custom-file user-init-file)))
     ;; Insert verbose help at the top of the custom buffer.
     (when custom-buffer-verbose-help
-      (widget-insert (if init-file
-			 "To apply changes, use the Save or Set buttons."
-		       "Custom settings cannot be saved; maybe you started Emacs with `-q'.")
-		     "\nFor details, see ")
+      (unless init-file
+	(widget-insert "Custom settings cannot be saved; maybe you started Emacs with `-q'.\n"))
+      (widget-insert "For help using this buffer, see ")
       (widget-create 'custom-manual
-		     :tag "Saving Customizations"
-		     "(emacs)Saving Customizations")
+		     :tag "Easy Customization"
+		     "(emacs)Easy Customization")
       (widget-insert " in the ")
       (widget-create 'custom-manual
 		     :tag "Emacs manual"
