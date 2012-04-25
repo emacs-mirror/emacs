@@ -1601,7 +1601,7 @@ behavior, change `python-remove-cwd-from-path' to nil."
   ;; Fixme: Write a `coding' header to the temp file if the region is
   ;; non-ASCII.
   (interactive "r")
-  (let* ((f (make-temp-file "py"))
+  (let* ((f (make-temp-file "py" nil ".py"))
 	 (command
           ;; IPython puts the FakeModule module into __main__ so
           ;; emacs.eexecfile becomes useless.
