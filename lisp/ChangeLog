@@ -1,3 +1,11 @@
+2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el: Add support for completion of quoted/escaped data.
+	(completion-table-with-quoting, completion-table-subvert): New funs.
+	(completion--twq-try, completion--twq-all): New functions.
+	(completion--nth-completion): New function.
+	(completion-try-completion, completion-all-completions): Use it.
+
 2012-04-25  Chong Yidong  <cyd@gnu.org>
 
 	* vc/diff-mode.el (diff-setup-whitespace): New function.
@@ -16,32 +24,31 @@
 
 2012-04-25  Alex Harsanyi  <AlexHarsanyi@gmail.com>
 
-	Sync with soap-client repository.  Support SOAP simpleType.  (Bug#10331)
+	Sync with soap-client repository.  Support SOAP simpleType (Bug#10331).
 
 	* soap-client.el (soap-resolve-references-for-sequence-type)
-	(soap-resolve-references-for-array-type): hack to prevent self
+	(soap-resolve-references-for-array-type): Hack to prevent self
 	references, see Bug#9.
-	(soap-parse-envelope): report the contents of the 'detail' node
+	(soap-parse-envelope): Report the contents of the 'detail' node
 	when receiving a fault reply.
-	(soap-parse-envelope): report the contents of the entire 'detail'
-	node.
+	(soap-parse-envelope): Report the contents of the entire 'detail' node.
 
 	* soap-inspect.el (soap-sample-value-for-simple-type)
-	(soap-inspect-simple-type): new function
+	(soap-inspect-simple-type): New function.
 
-	* soap-client.el (soap-simple-type): new struct
+	* soap-client.el (soap-simple-type): New struct.
 	(soap-default-xsd-types, soap-default-soapenc-types)
-	(soap-decode-basic-type, soap-encode-basic-type): support
-	unsignedInt and double basic types
+	(soap-decode-basic-type, soap-encode-basic-type):
+	support unsignedInt and double basic types.
 	(soap-resolve-references-for-simple-type)
-	(soap-parse-simple-type, soap-encode-simple-type): new function
-	(soap-parse-schema): parse xsd:simpleType declarations
+	(soap-parse-simple-type, soap-encode-simple-type): New function.
+	(soap-parse-schema): Parse xsd:simpleType declarations.
 
 	* soap-client.el (soap-default-xsd-types)
-	(soap-default-soapenc-types): add integer, byte and anyURI types
-	(soap-parse-complex-type-complex-content): use `soap-wk2l' to find
-	the local name of "soapenc:Array"
-	(soap-decode-basic-type, soap-encode-basic-type): support encoding
+	(soap-default-soapenc-types): Add integer, byte and anyURI types.
+	(soap-parse-complex-type-complex-content): Use `soap-wk2l' to find
+	the local name of "soapenc:Array".
+	(soap-decode-basic-type, soap-encode-basic-type): Support encoding
 	decoding integer, byte and anyURI xsd types.
 
 2012-04-25  Chong Yidong  <cyd@gnu.org>
@@ -161,8 +168,8 @@
 
 	* ispell.el (ispell-insert-word) Remove unneeded function using
 	obsolete `translation-table-for-input'.
-	(ispell-word, ispell-process-line, ispell-complete-word): Use
-	plain `insert' instead of removed `ispell-insert-word'.
+	(ispell-word, ispell-process-line, ispell-complete-word):
+	Use plain `insert' instead of removed `ispell-insert-word'.
 
 2012-04-22  Chong Yidong  <cyd@gnu.org>
 
@@ -180,8 +187,8 @@
 	Move functions from C to Lisp.  Make non-blocking method calls
 	the default.  Implement further D-Bus standard interfaces.
 
-	* net/dbus.el (dbus-message-internal): Declare function.  Remove
-	unneeded function declarations.
+	* net/dbus.el (dbus-message-internal): Declare function.
+	Remove unneeded function declarations.
 	(defvar dbus-message-type-invalid, dbus-message-type-method-call)
 	(dbus-message-type-method-return, dbus-message-type-error)
 	(dbus-message-type-signal): Declare variables.  Remove local
@@ -197,8 +204,8 @@
 	(dbus-register-signal, dbus-register-method): New defuns, moved
 	from dbusbind.c
 	(dbus-call-method-handler, dbus-setenv)
-	(dbus-get-all-managed-objects, dbus-managed-objects-handler): New
-	defuns.
+	(dbus-get-all-managed-objects, dbus-managed-objects-handler):
+	New defuns.
 	(dbus-call-method-non-blocking): Make it an obsolete function.
 	(dbus-unregister-object, dbus-unregister-service)
 	(dbus-handle-event, dbus-register-property)
@@ -323,8 +330,8 @@
 
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
-	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty): New
-	function to call delete-process on the gdb-inferior buffer's pty.
+	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty):
+	New function to call delete-process on the gdb-inferior buffer's pty.
 	(gdb-reset): Use it, instead of relying on kill-buffer to kill the
 	pty process (Bug#11273).
 	(gdb-update): New arg to suppress talking to the gdb process.
@@ -355,8 +362,8 @@
 	(c-comment-indent, c-scan-conditionals, c-indent-defun)
 	(c-context-line-break): Bind case-fold-search to nil.
 
-	* progmodes/cc-mode.el (c-font-lock-fontify-region): Bind
-	case-fold-search to nil.
+	* progmodes/cc-mode.el (c-font-lock-fontify-region):
+	Bind case-fold-search to nil.
 
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
@@ -1107,8 +1114,8 @@
 
 2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-get-extended-character-mode): Disable
-	extended-char-mode for hunspell.  hunspell does not support it
+	* ispell.el (ispell-get-extended-character-mode):
+	Disable extended-char-mode for hunspell.  hunspell does not support it
 	and treats ~word as ordinary words in pipe mode.
 
 2012-03-30  Glenn Morris  <rgm@gnu.org>

@@ -45,17 +45,6 @@
 ;;   corresponding to the displayed completions because we only
 ;;   provide the start info but not the end info in
 ;;   completion-base-position.
-;; - quoting is problematic.  E.g. the double-dollar quoting used in
-;;   substitute-in-file-name (and hence read-file-name-internal) bumps
-;;   into various bugs:
-;; - choose-completion doesn't know how to quote the text it inserts.
-;;   E.g. it fails to double the dollars in file-name completion, or
-;;   to backslash-escape spaces and other chars in comint completion.
-;;   - when completing ~/tmp/fo$$o, the highlighting in *Completions*
-;;     is off by one position.
-;;   - all code like PCM which relies on all-completions to match
-;;     its argument gets confused because all-completions returns unquoted
-;;     texts (as desired for *Completions* output).
 ;; - C-x C-f ~/*/sr ? should not list "~/./src".
 ;; - minibuffer-force-complete completes ~/src/emacs/t<!>/lisp/minibuffer.el
 ;;   to ~/src/emacs/trunk/ and throws away lisp/minibuffer.el.
@@ -66,12 +55,9 @@
 ;; - Make things like icomplete-mode or lightning-completion work with
 ;;   completion-in-region-mode.
 ;; - extend `metadata':
-;;   - quoting/unquoting (so we can complete files names with envvars
-;;     and backslashes, and all-completion can list names without
-;;     quoting backslashes and dollars).
 ;;   - indicate how to turn all-completion's output into
 ;;     try-completion's output: e.g. completion-ignored-extensions.
-;;     maybe that could be merged with the "quote" operation above.
+;;     maybe that could be merged with the "quote" operation.
 ;;   - indicate that `all-completions' doesn't do prefix-completion
 ;;     but just returns some list that relates in some other way to
 ;;     the provided string (as is the case in filecache.el), in which
@@ -224,6 +210,42 @@ case sensitive instead."
     (let ((completion-ignore-case (not dont-fold)))
       (complete-with-action action table string pred))))
 
+(defun completion-table-subvert (table s1 s2)
+  "Completion table that replaces the prefix S1 with S2 in STRING.
+The result is a completion table which completes strings of the
+form (concat S1 S) in the same way as TABLE completes strings of
+the form (concat S2 S)."
+  (lambda (string pred action)
+    (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
+                                           completion-ignore-case))
+                    (concat s2 (substring string (length s1)))))
+           (res (if str (complete-with-action action table str pred))))
+      (when res
+        (cond
+         ((eq (car-safe action) 'boundaries)
+          (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
+            (list* 'boundaries
+                   (max (length s1)
+                        (+ beg (- (length s1) (length s2))))
+                   (and (eq (car-safe res) 'boundaries) (cddr res)))))
+         ((stringp res)
+          (if (eq t (compare-strings res 0 (length s2) s2 nil nil
+                                     completion-ignore-case))
+              (concat s1 (substring res (length s2)))))
+         ((eq action t)
+          (let ((bounds (completion-boundaries str table pred "")))
+            (if (>= (car bounds) (length s2))
+                res
+              (let ((re (concat "\\`"
+                                (regexp-quote (substring s2 (car bounds))))))
+                (delq nil
+                      (mapcar (lambda (c)
+                                (if (string-match re c)
+                                    (substring c (match-end 0))))
+                              res))))))
+         ;; E.g. action=nil and it's the only completion.
+         (res))))))
+
 (defun completion-table-with-context (prefix table string pred action)
   ;; TODO: add `suffix' maybe?
   (let ((pred
@@ -346,6 +368,186 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
     (completion--some (lambda (table)
                         (complete-with-action action table string pred))
                       tables)))
+
+(defun completion-table-with-quoting (table unquote requote)
+  ;; A difficult part of completion-with-quoting is to map positions in the
+  ;; quoted string to equivalent positions in the unquoted string and
+  ;; vice-versa.  There is no efficient and reliable algorithm that works for
+  ;; arbitrary quote and unquote functions.
+  ;; So to map from quoted positions to unquoted positions, we simply assume
+  ;; that `concat' and `unquote' commute (which tends to be the case).
+  ;; And we ask `requote' to do the work of mapping from unquoted positions
+  ;; back to quoted positions.
+  "Return a new completion table operating on quoted text.
+TABLE operates on the unquoted text.
+UNQUOTE is a function that takes a string and returns a new unquoted string.
+REQUOTE is a function of 2 args (UPOS QSTR) where
+  QSTR is a string entered by the user (and hence indicating
+  the user's preferred form of quoting); and
+  UPOS is a position within the unquoted form of QSTR.
+REQUOTE should return a pair (QPOS . QFUN) such that QPOS is the
+position corresponding to UPOS but in QSTR, and QFUN is a function
+of one argument (a string) which returns that argument appropriately quoted
+for use at QPOS."
+  ;; FIXME: One problem with the current setup is that `qfun' doesn't know if
+  ;; its argument is "the end of the completion", so if the quoting used double
+  ;; quotes (for example), we end up completing "fo" to "foobar and throwing
+  ;; away the closing double quote.
+  (lambda (string pred action)
+    (cond
+     ((eq action 'metadata)
+      (append (completion-metadata string table pred)
+              '((completion--unquote-requote . t))))
+
+     ((eq action 'lambda) ;;test-completion
+      (let ((ustring (funcall unquote string)))
+        (test-completion ustring table pred)))
+
+     ((eq (car-safe action) 'boundaries)
+      (let* ((ustring (funcall unquote string))
+             (qsuffix (cdr action))
+             (ufull (if (zerop (length qsuffix)) ustring
+                      (funcall unquote (concat string qsuffix))))
+             (_ (assert (string-prefix-p ustring ufull)))
+             (usuffix (substring ufull (length ustring)))
+             (boundaries (completion-boundaries ustring table pred usuffix))
+             (qlboundary (car (funcall requote (car boundaries) string)))
+             (qrboundary (if (zerop (cdr boundaries)) 0 ;Common case.
+                           (let* ((urfullboundary
+                                   (+ (cdr boundaries) (length ustring))))
+                             (- (car (funcall requote urfullboundary
+                                              (concat string qsuffix)))
+                                (length string))))))
+        (list* 'boundaries qlboundary qrboundary)))
+
+     ((eq action nil) ;;try-completion
+      (let* ((ustring (funcall unquote string))
+             (completion (try-completion ustring table pred)))
+        ;; Most forms of quoting allow several ways to quote the same string.
+        ;; So here we could simply requote `completion' in a kind of
+        ;; "canonical" quoted form without paying attention to the way
+        ;; `string' was quoted.  But since we have to solve the more complex
+        ;; problems of "pay attention to the original quoting" for
+        ;; all-completions, we may as well use it here, since it provides
+        ;; a nicer behavior.
+        (if (not (stringp completion)) completion
+          (car (completion--twq-try
+                string ustring completion 0 unquote requote)))))
+
+     ((eq action t) ;;all-completions
+      ;; When all-completions is used for completion-try/all-completions
+      ;; (e.g. for `pcm' style), we can't do the job properly here because
+      ;; the caller will match our output against some pattern derived from
+      ;; the user's (quoted) input, and we don't have access to that
+      ;; pattern, so we can't know how to requote our output so that it
+      ;; matches the quoting used in the pattern.  It is to fix this
+      ;; fundamental problem that we have to introduce the new
+      ;; unquote-requote method so that completion-try/all-completions can
+      ;; pass the unquoted string to the style functions.
+      (pcase-let*
+          ((ustring (funcall unquote string))
+           (completions (all-completions ustring table pred))
+           (boundary (car (completion-boundaries ustring table pred ""))))
+        (completion--twq-all
+         string ustring completions boundary unquote requote)))
+
+     ((eq action 'completion--unquote)
+      (let ((ustring (funcall unquote string))
+            (uprefix (funcall unquote (substring string 0 pred))))
+        ;; We presume (more or less) that `concat' and `unquote' commute.
+        (assert (string-prefix-p uprefix ustring))
+        (list ustring table (length uprefix)
+              (lambda (unquoted-result op)
+                (pcase op
+                  (`1 ;;try
+                   (if (not (stringp (car-safe unquoted-result)))
+                       unquoted-result
+                     (completion--twq-try
+                      string ustring
+                      (car unquoted-result) (cdr unquoted-result)
+                      unquote requote)))
+                  (`2 ;;all
+                   (let* ((last (last unquoted-result))
+                          (base (or (cdr last) 0)))
+                     (when last
+                       (setcdr last nil)
+                       (completion--twq-all string ustring
+                                            unquoted-result base
+                                            unquote requote))))))))))))
+
+(defun completion--twq-try (string ustring completion point
+                                   unquote requote)
+  ;; Basically two case: either the new result is
+  ;; - commonprefix1 <point> morecommonprefix <qpos> suffix
+  ;; - commonprefix <qpos> newprefix <point> suffix
+  (pcase-let*
+      ((prefix (fill-common-string-prefix ustring completion))
+       (suffix (substring completion (max point (length prefix))))
+       (`(,qpos . ,qfun) (funcall requote (length prefix) string))
+       (qstr1 (if (> point (length prefix))
+                  (funcall qfun (substring completion (length prefix) point))))
+       (qsuffix (funcall qfun suffix))
+       (qstring (concat (substring string 0 qpos) qstr1 qsuffix))
+       (qpoint
+        (cond
+         ((zerop point) 0)
+         ((> point (length prefix)) (+ qpos (length qstr1)))
+         (t (car (funcall requote point string))))))
+    ;; Make sure `requote' worked.
+    (assert (equal (funcall unquote qstring) completion))
+    (cons qstring qpoint)))
+
+(defun completion--twq-all (string ustring completions boundary
+                                   unquote requote)
+  (when completions
+    (pcase-let*
+        ((prefix
+          (let ((completion-regexp-list nil))
+            (try-completion "" (cons (substring ustring boundary)
+                                     completions))))
+         (`(,qfullpos . ,qfun)
+          (funcall requote (+ boundary (length prefix)) string))
+         (qfullprefix (substring string 0 qfullpos))
+         (_ (assert (let ((uboundarystr (substring ustring 0 boundary)))
+                      (equal (funcall unquote qfullprefix)
+                             (concat uboundarystr prefix)))))
+         (qboundary (car (funcall requote boundary string)))
+         (_ (assert (<= qboundary qfullpos)))
+         ;; FIXME: this split/quote/concat business messes up the carefully
+         ;; placed completions-common-part and completions-first-difference
+         ;; faces.  We could try within the mapcar loop to search for the
+         ;; boundaries of those faces, pass them to `requote' to find their
+         ;; equivalent positions in the quoted output and re-add the faces:
+         ;; this might actually lead to correct results but would be
+         ;; pretty expensive.
+         ;; The better solution is to not quote the *Completions* display,
+         ;; which nicely circumvents the problem.  The solution I used here
+         ;; instead is to hope that `qfun' preserves the text-properties and
+         ;; presume that the `first-difference' is not within the `prefix';
+         ;; this presumption is not always true, but at least in practice it is
+         ;; true in most cases.
+         (qprefix (propertize (substring qfullprefix qboundary)
+                              'face 'completions-common-part)))
+
+      ;; Here we choose to quote all elements returned, but a better option
+      ;; would be to return unquoted elements together with a function to
+      ;; requote them, so that *Completions* can show nicer unquoted values
+      ;; which only get quoted when needed by choose-completion.
+      (nconc
+       (mapcar (lambda (completion)
+                 (assert (string-prefix-p prefix completion))
+                 (let* ((new (substring completion (length prefix)))
+                        (qnew (funcall qfun new))
+                        (qcompletion (concat qprefix qnew)))
+                   (assert
+                    (equal (funcall unquote
+                                    (concat (substring string 0 qboundary)
+                                            qcompletion))
+                           (concat (substring ustring 0 boundary)
+                                   completion)))
+                   qcompletion))
+               completions)
+       qboundary))))
 
 ;; (defmacro complete-in-turn (a b) `(completion-table-in-turn ,a ,b))
 ;; (defmacro dynamic-completion-table (fun) `(completion-table-dynamic ,fun))
@@ -535,21 +737,47 @@ completing buffer and file names, respectively."
         (delete-dups (append (cdr over) (copy-sequence completion-styles)))
        completion-styles)))
 
+(defun completion--nth-completion (n string table pred point metadata)
+  "Call the Nth method of completion styles."
+  (unless metadata
+    (setq metadata
+          (completion-metadata (substring string 0 point) table pred)))
+  ;; We provide special support for quoting/unquoting here because it cannot
+  ;; reliably be done within the normal completion-table routines: Completion
+  ;; styles such as `substring' or `partial-completion' need to match the
+  ;; output of all-completions with the user's input, and since most/all
+  ;; quoting mechanisms allow several equivalent quoted forms, the
+  ;; completion-style can't do this matching (e.g. `substring' doesn't know
+  ;; that "\a\b\e" is a valid (quoted) substring of "label").
+  ;; The quote/unquote function needs to come from the completion table (rather
+  ;; than from completion-extra-properties) because it may apply only to some
+  ;; part of the string (e.g. substitute-in-file-name).
+  (let ((requote
+         (when (completion-metadata-get metadata 'completion--unquote-requote)
+           (let ((new (funcall table string point 'completion--unquote)))
+             (setq string (pop new))
+             (setq table (pop new))
+             (setq point (pop new))
+             (pop new))))
+       (result
+        (completion--some (lambda (style)
+                            (funcall (nth n (assq style
+                                                  completion-styles-alist))
+                                     string table pred point))
+                          (completion--styles metadata))))
+    (if requote
+        (funcall requote result n)
+      result)))
+
 (defun completion-try-completion (string table pred point &optional metadata)
   "Try to complete STRING using completion table TABLE.
 Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
 The return value can be either nil to indicate that there is no completion,
 t to indicate that STRING is the only possible completion,
-or a pair (STRING . NEWPOINT) of the completed result string together with
+or a pair (NEWSTRING . NEWPOINT) of the completed result string together with
 a new position for point."
-  (completion--some (lambda (style)
-                      (funcall (nth 1 (assq style completion-styles-alist))
-                               string table pred point))
-                    (completion--styles (or metadata
-                                            (completion-metadata
-                                             (substring string 0 point)
-                                             table pred)))))
+  (completion--nth-completion 1 string table pred point metadata))
 
 (defun completion-all-completions (string table pred point &optional metadata)
   "List the possible completions of STRING in completion table TABLE.
@@ -559,13 +787,7 @@ The return value is a list of completions and may contain the base-size
 in the last `cdr'."
   ;; FIXME: We need to additionally return the info needed for the
   ;; second part of completion-base-position.
-  (completion--some (lambda (style)
-                      (funcall (nth 2 (assq style completion-styles-alist))
-                               string table pred point))
-                    (completion--styles (or metadata
-                                            (completion-metadata
-                                             (substring string 0 point)
-                                             table pred)))))
+  (completion--nth-completion 2 string table pred point metadata))
 
 (defun minibuffer--bitset (modified completions exact)
   (logior (if modified    4 0)
