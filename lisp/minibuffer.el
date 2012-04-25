@@ -2280,7 +2280,7 @@ and `read-file-name-function'."
 ;; use (eq minibuffer-completion-table #'read-file-name-internal), which is
 ;; probably even worse.  Maybe We should add some read-file-name-setup-hook
 ;; instead, but for now, let's keep this non-obsolete.
-;;(make-obsolete-variable 'minibuffer-completing-file-name nil "24.1" 'get)
+;;(make-obsolete-variable 'minibuffer-completing-file-name nil "future" 'get)
 
 (defun read-file-name-default (prompt &optional dir default-filename mustmatch initial predicate)
   "Default method for reading file names.

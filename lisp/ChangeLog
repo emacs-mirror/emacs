@@ -1,5 +1,8 @@
 2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ffap.el: Remove old code for obsolete package.
+	(ffap-complete-as-file-p): Remove.
+
 	Use completion-table-with-quoting for comint and pcomplete.
 	* comint.el (comint--unquote&requote-argument)
 	(comint--unquote-argument, comint--requote-argument): New functions.
