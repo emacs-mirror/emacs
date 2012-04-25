@@ -66,6 +66,15 @@ use `soap-sample-value' instead."
     ;; TODO: we need better sample values for more types.
     (t (format "%s" (soap-basic-type-kind type)))))
 
+(defun soap-sample-value-for-simple-type (type)
+  "Provive a sample value for TYPE which is a simple type.
+This is a specific function which should not be called directly,
+use `soap-sample-value' instead."
+  (let ((enumeration (soap-simple-type-enumeration type)))
+    (if (> (length enumeration) 1)
+        (elt enumeration (random (length enumeration)))
+        (soap-sample-value-for-basic-type type))))
+
 (defun soap-sample-value-for-seqence-type (type)
   "Provide a sample value for TYPE which is a sequence type.
 Values for sequence types are ALISTS of (slot-name . VALUE) for
@@ -114,6 +123,9 @@ use `soap-sample-value' instead."
   ;; Install soap-sample-value methods for our types
   (put (aref (make-soap-basic-type) 0) 'soap-sample-value
        'soap-sample-value-for-basic-type)
+
+  (put (aref (make-soap-simple-type) 0) 'soap-sample-value
+       'soap-sample-value-for-simple-type)
 
   (put (aref (make-soap-sequence-type) 0) 'soap-sample-value
        'soap-sample-value-for-seqence-type)
@@ -203,6 +215,16 @@ entire WSDL can be inspected."
   (insert "Basic type: " (soap-element-fq-name basic-type))
   (insert "\nSample value\n")
   (pp (soap-sample-value basic-type) (current-buffer)))
+
+(defun soap-inspect-simple-type (simple-type)
+  "Insert information about SIMPLE-TYPE into the current buffer"
+  (insert "Simple type: " (soap-element-fq-name simple-type) "\n")
+  (insert "Base: " (symbol-name (soap-basic-type-kind simple-type)) "\n")
+  (let ((enumeration (soap-simple-type-enumeration simple-type)))
+    (when (> (length enumeration) 1)
+      (insert "Valid values: ")
+      (dolist (e enumeration)
+        (insert "\"" e "\" ")))))
 
 (defun soap-inspect-sequence-type (sequence)
   "Insert information about SEQUENCE into the current buffer."
@@ -330,6 +352,9 @@ entire WSDL can be inspected."
 
   (put (aref (make-soap-basic-type) 0) 'soap-inspect
        'soap-inspect-basic-type)
+
+  (put (aref (make-soap-simple-type) 0) 'soap-inspect
+       'soap-inspect-simple-type)
 
   (put (aref (make-soap-sequence-type) 0) 'soap-inspect
        'soap-inspect-sequence-type)

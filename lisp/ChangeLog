@@ -1,3 +1,33 @@
+2012-04-25  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	Sync with soap-client repository.  Support SOAP simpleType.  (Bug#10331)
+
+	* soap-client.el (soap-resolve-references-for-sequence-type)
+	(soap-resolve-references-for-array-type): hack to prevent self
+	references, see Bug#9.
+	(soap-parse-envelope): report the contents of the 'detail' node
+	when receiving a fault reply.
+	(soap-parse-envelope): report the contents of the entire 'detail'
+	node.
+
+	* soap-inspect.el (soap-sample-value-for-simple-type)
+	(soap-inspect-simple-type): new function
+
+	* soap-client.el (soap-simple-type): new struct
+	(soap-default-xsd-types, soap-default-soapenc-types)
+	(soap-decode-basic-type, soap-encode-basic-type): support
+	unsignedInt and double basic types
+	(soap-resolve-references-for-simple-type)
+	(soap-parse-simple-type, soap-encode-simple-type): new function
+	(soap-parse-schema): parse xsd:simpleType declarations
+
+	* soap-client.el (soap-default-xsd-types)
+	(soap-default-soapenc-types): add integer, byte and anyURI types
+	(soap-parse-complex-type-complex-content): use `soap-wk2l' to find
+	the local name of "soapenc:Array"
+	(soap-decode-basic-type, soap-encode-basic-type): support encoding
+	decoding integer, byte and anyURI xsd types.
+
 2012-04-25  Chong Yidong  <cyd@gnu.org>
 
 	* cus-edit.el (custom-buffer-create-internal): Update header text.
