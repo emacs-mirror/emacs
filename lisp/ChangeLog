@@ -1,3 +1,7 @@
+2012-04-25  Leo Liu  <sdl.web@gmail.com>
+
+	* files.el (auto-mode-alist): Use javascript-mode instead.
+
 2012-04-25  Alex Harsanyi  <AlexHarsanyi@gmail.com>
 
 	Sync with soap-client repository.  Support SOAP simpleType.  (Bug#10331)
