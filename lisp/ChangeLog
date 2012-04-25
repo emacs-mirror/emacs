@@ -1,3 +1,9 @@
+2012-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-init-1): Condition Windows-specific
+	settings on 'system-type', not on 'window-system'.  On MS-Windows,
+	set interactive-mode on in GDB.
+
 2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el: Simplify last change, and cleanup code.

@@ -862,8 +862,13 @@ detailed description of this mode.
   (gdb-clear-inferior-io)
   (gdb-inferior-io--init-proc (get-process "gdb-inferior"))
 
-  (if (eq window-system 'w32)
-      (gdb-input "-gdb-set new-console off" 'ignore))
+  (when (eq system-type 'windows-nt)
+    ;; Don't create a separate console window for the debuggee.
+    (gdb-input "-gdb-set new-console off" 'ignore)
+    ;; Force GDB to behave as if its input and output stream were
+    ;; connected to a TTY device (since on Windows we use pipes for
+    ;; communicating with GDB).
+    (gdb-input "-gdb-set interactive-mode on" 'ignore))
   (gdb-input "-gdb-set height 0" 'ignore)
 
   (when gdb-non-stop
