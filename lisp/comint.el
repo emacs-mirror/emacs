@@ -104,6 +104,7 @@
 (eval-when-compile (require 'cl))
 (require 'ring)
 (require 'ansi-color)
+(require 'regexp-opt)                   ;For regexp-opt-charset.
 
 ;; Buffer Local Variables:
 ;;============================================================================
@@ -3000,26 +3001,62 @@ interpreter (e.g., the percent notation of cmd.exe on Windows)."
 See `comint-word'."
   (comint-word comint-file-name-chars))
 
-(defun comint--unquote&expand-filename (filename)
-  ;; FIXME: The code below does unquote-then-expand which means that "\\$HOME"
-  ;; gets expanded to the same as "$HOME"
-  (comint-substitute-in-file-name
-   (comint-unquote-filename filename)))
+(defun comint--unquote&requote-argument (qstr &optional upos)
+  (unless upos (setq upos 0))
+  (let* ((qpos 0)
+         (dquotes nil)
+         (ustrs '())
+         (re (concat
+              "[\"']\\|\\\\\\(.\\)"
+              "\\|\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
+              "\\|{\\(?2:[^{}]+\\)}\\)"
+              (when (memq system-type '(ms-dos windows-nt))
+                "\\|%\\(?2:[^\\\\/]*\\)%")))
+         (qupos nil)
+         (push (lambda (str end)
+                 (push str ustrs)
+                 (setq upos (- upos (length str)))
+                 (unless (or qupos (> upos 0))
+                   (setq qupos (if (< end 0) (- end) (+ upos end))))))
+         match)
+    (while (setq match (string-match re qstr qpos))
+      (funcall push (substring qstr qpos match) match)
+      (cond
+       ((match-beginning 1) (funcall push (match-string 1 qstr) (match-end 0)))
+       ((match-beginning 2) (funcall push (getenv (match-string 2 qstr))
+                                     (- (match-end 0))))
+       ((eq (aref qstr match) ?\") (setq dquotes (not dquotes)))
+       ((eq (aref qstr match) ?\')
+        (cond
+         (dquotes (funcall push "'" (match-end 0)))
+         ((< match (1+ (length qstr)))
+          (let ((end (string-match "'" qstr (1+ match))))
+            (funcall push (substring qstr (1+ match) end)
+                     (or end (length qstr)))))
+         (t nil)))
+       (t (error "Unexpected case in comint--unquote&requote-argument!")))
+      (setq qpos (match-end 0)))
+    (funcall push (substring qstr qpos) (length qstr))
+    (list (mapconcat #'identity (nreverse ustrs) "")
+          qupos #'comint-quote-filename)))
+
+(defun comint--unquote-argument (str)
+  (car (comint--unquote&requote-argument str)))
+(define-obsolete-function-alias 'comint--unquote&expand-filename
+  #'comint--unquote-argument "24.2")
 
 (defun comint-match-partial-filename ()
   "Return the unquoted&expanded filename at point, or nil if none is found.
 Environment variables are substituted.  See `comint-word'."
   (let ((filename (comint--match-partial-filename)))
-    (and filename (comint--unquote&expand-filename filename))))
+    (and filename (comint--unquote-argument filename))))
 
 (defun comint-quote-filename (filename)
   "Return FILENAME with magic characters quoted.
 Magic characters are those in `comint-file-name-quote-list'."
   (if (null comint-file-name-quote-list)
       filename
-    (let ((regexp
-	   (format "[%s]"
-                   (mapconcat 'char-to-string comint-file-name-quote-list ""))))
+    (let ((regexp (regexp-opt-charset comint-file-name-quote-list)))
       (save-match-data
 	(let ((i 0))
 	  (while (string-match regexp filename i)
@@ -3033,6 +3070,12 @@ Magic characters are those in `comint-file-name-quote-list'."
       filename
     (save-match-data
       (replace-regexp-in-string "\\\\\\(.\\)" "\\1" filename t))))
+(make-obsolete 'comint-unquote-filename nil "24.2")
+
+(defun comint--requote-argument (upos qstr)
+  ;; See `completion-table-with-quoting'.
+  (let ((res (comint--unquote&requote-argument qstr upos)))
+    (cons (nth 1 res) (nth 2 res))))
 
 (defun comint-completion-at-point ()
   (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
@@ -3066,87 +3109,6 @@ Returns t if successful."
   (when (comint--match-partial-filename)
     (comint--complete-file-name-data)))
 
-;; FIXME: comint--common-suffix, comint--common-quoted-suffix, and
-;; comint--table-subvert don't fully solve the problem, since
-;; selecting a file from *Completions* won't quote it, among several
-;; other problems.
-
-(defun comint--common-suffix (s1 s2)
-  (assert (not (or (string-match "\n" s1) (string-match "\n" s2))))
-  ;; Since S2 is expected to be the "unquoted/expanded" version of S1,
-  ;; there shouldn't be any case difference, even if the completion is
-  ;; case-insensitive.
-  (let ((case-fold-search nil))
-    (string-match ".*?\\(.*\\)\n.*\\1\\'" (concat s1 "\n" s2))
-    (- (match-end 1) (match-beginning 1))))
-
-(defun comint--common-quoted-suffix (s1 s2)
-  ;; FIXME: Copied in pcomplete.el.
-  "Find the common suffix between S1 and S2 where S1 is the expanded S2.
-S1 is expected to be the unquoted and expanded version of S2.
-Returns (PS1 . PS2), i.e. the shortest prefixes of S1 and S2, such that
-S1 = (concat PS1 SS1) and S2 = (concat PS2 SS2) and
-SS1 = (unquote SS2)."
-  (let* ((cs (comint--common-suffix s1 s2))
-         (ss1 (substring s1 (- (length s1) cs)))
-         (qss1 (comint-quote-filename ss1))
-         qc s2b)
-    (if (and (not (equal ss1 qss1))
-             (setq qc (comint-quote-filename (substring ss1 0 1)))
-	     (setq s2b (- (length s2) cs (length qc) -1))
-	     (>= s2b 0)			;bug#11158.
-             (eq t (compare-strings s2 s2b (- (length s2) cs -1)
-                                    qc nil nil)))
-        ;; The difference found is just that one char is quoted in S2
-        ;; but not in S1, keep looking before this difference.
-        (comint--common-quoted-suffix
-         (substring s1 0 (- (length s1) cs))
-         (substring s2 0 s2b))
-      (cons (substring s1 0 (- (length s1) cs))
-            (substring s2 0 (- (length s2) cs))))))
-
-(defun comint--table-subvert (table s1 s2 &optional quote-fun unquote-fun)
-  "Completion table that replaces the prefix S1 with S2 in STRING.
-The result is a completion table which completes strings of the
-form (concat S1 S) in the same way as TABLE completes strings of
-the form (concat S2 S)."
-  (lambda (string pred action)
-    (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
-                                           completion-ignore-case))
-                    (let ((rest (substring string (length s1))))
-                      (concat s2 (if unquote-fun
-                                     (funcall unquote-fun rest) rest)))))
-           (res (if str (complete-with-action action table str pred))))
-      (when res
-        (cond
-         ((and (eq (car-safe action) 'boundaries))
-          (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
-            (list* 'boundaries
-                   (max (length s1)
-                        ;; FIXME: Adjust because of quoting/unquoting.
-                        (+ beg (- (length s1) (length s2))))
-                   (and (eq (car-safe res) 'boundaries) (cddr res)))))
-         ((stringp res)
-          (if (eq t (compare-strings res 0 (length s2) s2 nil nil
-                                     completion-ignore-case))
-              (let ((rest (substring res (length s2))))
-                (concat s1 (if quote-fun (funcall quote-fun rest) rest)))))
-         ((eq action t)
-          (let ((bounds (completion-boundaries str table pred "")))
-            (if (>= (car bounds) (length s2))
-                (if quote-fun (mapcar quote-fun res) res)
-              (let ((re (concat "\\`"
-                                (regexp-quote (substring s2 (car bounds))))))
-                (delq nil
-                      (mapcar (lambda (c)
-                                (if (string-match re c)
-                                    (let ((str (substring c (match-end 0))))
-                                      (if quote-fun
-                                          (funcall quote-fun str) str))))
-                              res))))))
-         ;; E.g. action=nil and it's the only completion.
-         (res))))))
-
 (defun comint-completion-file-name-table (string pred action)
   (if (not (file-name-absolute-p string))
       (completion-file-name-table string pred action)
@@ -3165,6 +3127,13 @@ the form (concat S2 S)."
           res)))
      (t (completion-file-name-table string pred action)))))
 
+(defvar comint-unquote-function #'comint--unquote-argument
+  "Function to use for completion of quoted data.
+See `completion-table-with-quoting' and `comint-requote-function'.")
+(defvar comint-requote-function #'comint--requote-argument
+  "Function to use for completion of quoted data.
+See `completion-table-with-quoting' and `comint-requote-function'.")
+
 (defun comint--complete-file-name-data ()
   "Return the completion data for file name at point."
   (let* ((filesuffix (cond ((not comint-completion-addsuffix) "")
@@ -3175,14 +3144,11 @@ the form (concat S2 S)."
 	 (filename (comint--match-partial-filename))
 	 (filename-beg (if filename (match-beginning 0) (point)))
 	 (filename-end (if filename (match-end 0) (point)))
-         (unquoted (if filename (comint--unquote&expand-filename filename) ""))
          (table
-          (let ((prefixes (comint--common-quoted-suffix
-                           unquoted filename)))
-            (comint--table-subvert
-             #'comint-completion-file-name-table
-             (cdr prefixes) (car prefixes)
-             #'comint-quote-filename #'comint-unquote-filename))))
+          (completion-table-with-quoting
+           #'comint-completion-file-name-table
+           comint-unquote-function
+           comint-requote-function)))
     (nconc
      (list
       filename-beg filename-end

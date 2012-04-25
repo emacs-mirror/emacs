@@ -1,5 +1,26 @@
 2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Use completion-table-with-quoting for comint and pcomplete.
+	* comint.el (comint--unquote&requote-argument)
+	(comint--unquote-argument, comint--requote-argument): New functions.
+	(comint--unquote&expand-filename, comint-unquote-filename): Obsolete.
+	(comint-quote-filename): Use regexp-opt-charset.
+	(comint--common-suffix, comint--common-quoted-suffix)
+	(comint--table-subvert): Remove.
+	(comint-unquote-function, comint-requote-function): New vars.
+	(comint--complete-file-name-data): Use them with
+	completion-table-with-quoting.
+	* pcmpl-unix.el (pcomplete/scp): Use completion-table-subvert.
+	* pcomplete.el (pcomplete-arg-quote-list)
+	(pcomplete-quote-arg-hook, pcomplete-quote-argument): Obsolete.
+	(pcomplete-unquote-argument-function): Default to non-nil.
+	(pcomplete-unquote-argument): Simplify.
+	(pcomplete--common-quoted-suffix): Remove.
+	(pcomplete-requote-argument-function): New var.
+	(pcomplete--common-suffix): New function.
+	(pcomplete-completions-at-point): Use completion-table-with-quoting
+	and completion-table-subvert.
+
 	* minibuffer.el: Use completion-table-with-quoting for read-file-name.
 	(minibuffer--double-dollars): Preserve properties.
 	(completion--sifn-requote): New function.
