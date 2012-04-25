@@ -1976,7 +1976,10 @@ This is only used when the minibuffer area has no active minibuffer.")
 ;;; Completion tables.
 
 (defun minibuffer--double-dollars (str)
-  (replace-regexp-in-string "\\$" "$$" str))
+  ;; Reuse the actual "$" from the string to preserve any text-property it
+  ;; might have, such as `face'.
+  (replace-regexp-in-string "\\$" (lambda (dollar) (concat dollar dollar))
+                            str))
 
 (defun completion--make-envvar-table ()
   (mapcar (lambda (enventry)
@@ -2102,58 +2105,40 @@ same as `substitute-in-file-name'."
 (make-obsolete-variable 'read-file-name-predicate
                         "use the regular PRED argument" "23.2")
 
-(defun completion--file-name-table (string pred action)
+(defun completion--sifn-requote (upos qstr)
+  (let ((qpos 0))
+    (while (and (> upos 0)
+                (string-match "\\$\\(\\$\\|\\([[:alnum:]_]+\\|{[^}]*}\\)\\)?"
+                              qstr qpos))
+      (cond
+       ((>= (- (match-beginning 0) qpos) upos) ; UPOS is before current match.
+        (setq qpos (+ qpos upos))
+        (setq upos 0))
+       ((not (match-end 1))             ;A sole $: probably an error.
+        (setq upos (- upos (- (match-end 0) qpos)))
+        (setq qpos (match-end 0)))
+       (t
+        (setq upos (- upos (- (match-beginning 0) qpos)))
+        (setq qpos (match-end 0))
+        (setq upos (- upos (length (substitute-in-file-name
+                                    (match-string 0 qstr))))))))
+    ;; If `upos' is negative, it's because it's within the expansion of an
+    ;; envvar, i.e. there is no exactly matching qpos, so we just use the next
+    ;; available qpos right after the envvar.
+    (cons (if (>= upos 0) (+ qpos upos) qpos)
+	  #'minibuffer--double-dollars)))
+
+(defalias 'completion--file-name-table
+  (completion-table-with-quoting #'completion-file-name-table
+                                 #'substitute-in-file-name
+                                 #'completion--sifn-requote)
   "Internal subroutine for `read-file-name'.  Do not call this.
 This is a completion table for file names, like `completion-file-name-table'
-except that it passes the file name through `substitute-in-file-name'."
-  (cond
-   ((eq (car-safe action) 'boundaries)
-    ;; For the boundaries, we can't really delegate to
-    ;; substitute-in-file-name+completion-file-name-table and then fix
-    ;; them up (as we do for the other actions), because it would
-    ;; require us to track the relationship between `str' and
-    ;; `string', which is difficult.  And in any case, if
-    ;; substitute-in-file-name turns "fo-$TO-ba" into "fo-o/b-ba",
-    ;; there's no way for us to return proper boundaries info, because
-    ;; the boundary is not (yet) in `string'.
-    ;;
-    ;; FIXME: Actually there is a way to return correct boundaries
-    ;; info, at the condition of modifying the all-completions
-    ;; return accordingly. But for now, let's not bother.
-    (completion-file-name-table string pred action))
-
-   (t
-    (let* ((default-directory
-             (if (stringp pred)
-                 ;; It used to be that `pred' was abused to pass `dir'
-                 ;; as an argument.
-                 (prog1 (file-name-as-directory (expand-file-name pred))
-                   (setq pred nil))
-               default-directory))
-           (str (condition-case nil
-                    (substitute-in-file-name string)
-                  (error string)))
-           (comp (completion-file-name-table
-                  str
-		  (with-no-warnings (or pred read-file-name-predicate))
-		  action)))
-
-      (cond
-       ((stringp comp)
-        ;; Requote the $s before returning the completion.
-        (minibuffer--double-dollars comp))
-       ((and (null action) comp
-             ;; Requote the $s before checking for changes.
-             (setq str (minibuffer--double-dollars str))
-             (not (string-equal string str)))
-        ;; If there's no real completion, but substitute-in-file-name
-        ;; changed the string, then return the new string.
-        str)
-       (t comp))))))
+except that it passes the file name through `substitute-in-file-name'.")
 
 (defalias 'read-file-name-internal
-  (completion-table-in-turn 'completion--embedded-envvar-table
-                            'completion--file-name-table)
+  (completion-table-in-turn #'completion--embedded-envvar-table
+                            #'completion--file-name-table)
   "Internal subroutine for `read-file-name'.  Do not call this.")
 
 (defvar read-file-name-function 'read-file-name-default

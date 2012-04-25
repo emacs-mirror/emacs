@@ -1,5 +1,10 @@
 2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el: Use completion-table-with-quoting for read-file-name.
+	(minibuffer--double-dollars): Preserve properties.
+	(completion--sifn-requote): New function.
+	(completion--file-name-table): Rewrite using it and c-t-with-quoting.
+
 	* minibuffer.el: Add support for completion of quoted/escaped data.
 	(completion-table-with-quoting, completion-table-subvert): New funs.
 	(completion--twq-try, completion--twq-all): New functions.
