@@ -2606,9 +2606,17 @@ problem."
     (let* ((filename (match-string 1 block))
            (lineno (string-to-number (match-string 2 block)))
            (funcname (match-string 3 block))
+           (msg (get-text-property 0 'compilation-message filename))
+           (loc (and msg (compilation--message->loc msg)))
            funcbuffer)
 
-      (cond ((file-exists-p filename)
+      (cond ((and loc (markerp (compilation--loc->marker loc)))
+             (setq funcbuffer (marker-buffer (compilation--loc->marker loc)))
+             (list (with-current-buffer funcbuffer
+                     (line-number-at-pos (compilation--loc->marker loc)))
+                   funcbuffer))
+
+            ((file-exists-p filename)
              (list lineno (find-file-noselect filename)))
 
             ((setq funcbuffer (python-pdbtrack-grub-for-buffer funcname lineno))
@@ -2626,15 +2634,12 @@ problem."
                                                   (buffer-substring
                                                    (point-min) (point-max)))
                                     )))))))
-               (list lineno funcbuffer))
+             (list lineno funcbuffer))
 
             ((= (elt filename 0) ?\<)
              (format "(Non-file source: '%s')" filename))
 
-            (t (format "Not found: %s(), %s" funcname filename)))
-      )
-    )
-  )
+            (t (format "Not found: %s(), %s" funcname filename))))))
 
 (defun python-pdbtrack-grub-for-buffer (funcname _lineno)
   "Find recent Python mode buffer named, or having function named FUNCNAME."
