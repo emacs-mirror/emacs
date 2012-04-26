@@ -47,7 +47,6 @@ srcs = \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
-  $(srcdir)/back.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \
   $(srcdir)/commands.texi \

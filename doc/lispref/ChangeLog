@@ -1,3 +1,8 @@
+2012-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (srcs):
+	* Makefile.in (srcs): Remove back.texi (which is unused).
+
 2012-04-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* os.texi (Notifications): Extend possible notification hints.
