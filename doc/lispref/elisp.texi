@@ -459,7 +459,7 @@ Functions
 * Closures::                Functions that enclose a lexical environment.
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
-                              will open code.
+                              will expand inline.
 * Declaring Functions::     Telling the compiler that a function is defined.
 * Function Safety::         Determining whether a function is safe to call.
 * Related Topics::          Cross-references to specific Lisp primitives
@@ -492,7 +492,7 @@ Common Problems Using Macros
 * Eval During Expansion::  Don't evaluate them; put them in the expansion.
 * Repeated Expansion::     Avoid depending on how many times expansion is done.
 
-Writing Customization Definitions
+Customization Settings
 
 * Common Keywords::         Common keyword arguments for all kinds of
                               customization declarations.
@@ -753,6 +753,7 @@ Defining Menus
                               various features.
 * Menu Separators::         Drawing a horizontal line through a menu.
 * Alias Menu Items::        Using command aliases in menu items.
+* Toolkit Differences::     Not all toolkits provide the same features.
 
 Major and Minor Modes
 
@@ -822,6 +823,21 @@ Multiline Font Lock Constructs
 * Font Lock Multiline::     Marking multiline chunks with a text property.
 * Region to Refontify::     Controlling which region gets refontified
                               after a buffer change.
+
+Automatic Indentation of code
+
+* SMIE::                    A simple minded indentation engine.
+
+Simple Minded Indentation Engine
+
+* SMIE setup::              SMIE setup and features.
+* Operator Precedence Grammars:: A very simple parsing technique.
+* SMIE Grammar::            Defining the grammar of a language.
+* SMIE Lexer::              Defining tokens.
+* SMIE Tricks::             Working around the parser's limitations.
+* SMIE Indentation::        Specifying indentation rules.
+* SMIE Indentation Helpers:: Helper functions for indentation rules.
+* SMIE Indentation Example:: Sample indentation rules.
 
 Documentation
 
@@ -1219,8 +1235,7 @@ Processes
 * Datagrams::               UDP network connections.
 * Low-Level Network::       Lower-level but more general function
                               to create connections and servers.
-* Misc Network::            Additional relevant functions for
-                              network connections.
+* Misc Network::            Additional relevant functions for net connections.
 * Serial Ports::            Communicating with serial ports.
 * Byte Packing::            Using bindat to pack and unpack binary data.
 
@@ -1340,6 +1355,7 @@ Images
 * GIF Images::              Special features for GIF format.
 * TIFF Images::             Special features for TIFF format.
 * PostScript Images::       Special features for PostScript format.
+* ImageMagick Images::      Special features available through ImageMagick.
 * Other Image Types::       Various other formats are supported.
 * Defining Images::         Convenient ways to define an image for later use.
 * Showing Images::          Convenient ways to display an image once
@@ -1395,13 +1411,6 @@ Operating System Interface
 * Notifications::           Desktop notifications.
 * Dynamic Libraries::       On-demand loading of support libraries.
 
-Preparing Lisp code for distribution
-
-* Packaging Basics::        The basic concepts of Emacs Lisp packages.
-* Simple Packages::         How to package a single .el file.
-* Multi-file Packages::     How to package multiple files.
-* Package Archives::        Maintaining package archives.
-
 Starting Up Emacs
 
 * Startup Summary::         Sequence of actions Emacs performs at startup.
@@ -1419,6 +1428,13 @@ Terminal Input
 
 * Input Modes::             Options for how input is processed.
 * Recording Input::         Saving histories of recent or all input events.
+
+Preparing Lisp code for distribution
+
+* Packaging Basics::        The basic concepts of Emacs Lisp packages.
+* Simple Packages::         How to package a single .el file.
+* Multi-file Packages::     How to package multiple files.
+* Package Archives::        Maintaining package archives.
 
 Tips and Conventions
 

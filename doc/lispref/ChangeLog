@@ -1,3 +1,9 @@
+2012-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi, vol1.texi, vol2.texi: Some fixes for detailed menu.
+	* modes.texi (Major Modes, Auto-Indentation):
+	* buffers.texi (Buffers): Some fixes for menu descriptions.
+
 2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Simple Lambda, Argument List):

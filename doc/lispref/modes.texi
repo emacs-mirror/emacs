@@ -284,7 +284,7 @@ buffer is put in Fundamental mode (@pxref{Major Mode Conventions}).
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
 * Basic Major Modes::       Modes that other modes are often derived from.
-* Mode Hooks::              Hooks run at the end of major mode commands.
+* Mode Hooks::              Hooks run at the end of major mode functions.
 * Tabulated List Mode::     Parent mode for buffers containing tabulated data.
 * Generic Modes::           Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
@@ -3375,7 +3375,7 @@ Another one is SMIE which takes an approach in the spirit
 of Lisp sexps and adapts it to non-Lisp languages.
 
 @menu
-* SMIE::                        A simple minded indentation engine
+* SMIE::                        A simple minded indentation engine.
 @end menu
 
 @node SMIE
@@ -3401,14 +3401,14 @@ languages cannot be parsed correctly using SMIE, at least not without
 resorting to some special tricks (@pxref{SMIE Tricks}).
 
 @menu
-* SMIE setup::                  SMIE setup and features
-* Operator Precedence Grammars::  A very simple parsing technique
-* SMIE Grammar::                Defining the grammar of a language
-* SMIE Lexer::                  Defining tokens
-* SMIE Tricks::                 Working around the parser's limitations
-* SMIE Indentation::            Specifying indentation rules
-* SMIE Indentation Helpers::    Helper functions for indentation rules
-* SMIE Indentation Example::    Sample indentation rules
+* SMIE setup::                  SMIE setup and features.
+* Operator Precedence Grammars::  A very simple parsing technique.
+* SMIE Grammar::                Defining the grammar of a language.
+* SMIE Lexer::                  Defining tokens.
+* SMIE Tricks::                 Working around the parser's limitations.
+* SMIE Indentation::            Specifying indentation rules.
+* SMIE Indentation Helpers::    Helper functions for indentation rules.
+* SMIE Indentation Example::    Sample indentation rules.
 @end menu
 
 @node SMIE setup
