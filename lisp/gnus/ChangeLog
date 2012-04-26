@@ -1,3 +1,13 @@
+2012-04-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el: Revive the editing feature.
+	(plstore-mode): New mode to edit plstore file.
+	(plstore-mode-toggle-display, plstore-mode-original)
+	(plstore-mode-decoded): New command.
+	(plstore--encode, plstore--decode, plstore--write-contents-functions)
+	(plstore--insert-buffer, plstore--make): New function.
+	(plstore-open, plstore-save): Simplify by using them.
+
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* nndraft.el (nndraft-request-list): Fix declaration.
