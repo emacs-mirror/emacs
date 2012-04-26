@@ -1,5 +1,8 @@
 2012-04-26  Chong Yidong  <cyd@gnu.org>
 
+	* image.el (image-type-from-buffer): Only return supported image
+	type (Bug#9045).
+
 	* vc/diff-mode.el (diff-beginning-of-hunk): Return a meaningful
 	value, for symmetry with diff-end-of-hunk.
 	(diff-split-hunk, diff-find-source-location)
