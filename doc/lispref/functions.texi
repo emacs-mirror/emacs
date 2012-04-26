@@ -267,13 +267,12 @@ function is the value returned by the last element of the body.
 @end example
 
 @noindent
-We can call this function by writing it as the @sc{car} of an
-expression, like this:
+We can call this function by passing it to @code{funcall}, like this:
 
 @example
 @group
-((lambda (a b c) (+ a b c))
- 1 2 3)
+(funcall (lambda (a b c) (+ a b c))
+         1 2 3)
 @end group
 @end example
 
@@ -288,8 +287,8 @@ this example:
 
 @example
 @group
-((lambda (a b c) (+ a b c))
- 1 (* 2 3) (- 5 4))
+(funcall (lambda (a b c) (+ a b c))
+         1 (* 2 3) (- 5 4))
 @end group
 @end example
 
@@ -400,16 +399,16 @@ after a @code{&rest} argument.
   Here are some examples of argument lists and proper calls:
 
 @smallexample
-((lambda (n) (1+ n))                ; @r{One required:}
- 1)                                 ; @r{requires exactly one argument.}
+(funcall (lambda (n) (1+ n))        ; @r{One required:}
+         1)                         ; @r{requires exactly one argument.}
      @result{} 2
-((lambda (n &optional n1)           ; @r{One required and one optional:}
-         (if n1 (+ n n1) (1+ n)))   ; @r{1 or 2 arguments.}
- 1 2)
+(funcall (lambda (n &optional n1)   ; @r{One required and one optional:}
+           (if n1 (+ n n1) (1+ n))) ; @r{1 or 2 arguments.}
+         1 2)
      @result{} 3
-((lambda (n &rest ns)               ; @r{One required and one rest:}
-         (+ n (apply '+ ns)))       ; @r{1 or more arguments.}
- 1 2 3 4 5)
+(funcall (lambda (n &rest ns)       ; @r{One required and one rest:}
+           (+ n (apply '+ ns)))     ; @r{1 or more arguments.}
+         1 2 3 4 5)
      @result{} 15
 @end smallexample
 

@@ -1,3 +1,8 @@
+2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Simple Lambda, Argument List):
+	* eval.texi (Function Indirection): Avoid deprecated form.
+
 2012-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* book-spine.texi, elisp.texi, vol1.texi, vol2.texi:

@@ -1052,6 +1052,8 @@ So do `defcustom' and other forms that call `defvar' as a subroutine.
 *** New function `special-variable-p' to check whether a variable is
 declared as dynamically bound.
 
+*** The form ((lambda ...) ...) is deprecated.
+
 ** An Emacs Lisp testing tool is now included.
 Emacs Lisp developers can use this tool to write automated tests for
 their code.  See the ERT info manual for details.

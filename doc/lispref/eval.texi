@@ -305,6 +305,22 @@ function, not a symbol.
 Executing the function itself evaluates its body; this does involve
 symbol function indirection when calling @code{erste}.
 
+  This form is rarely used and is now deprecated.  Instead, you should write it
+as:
+
+@smallexample
+@group
+(funcall (lambda (arg) (erste arg))
+         '(1 2 3))
+@end group
+@end smallexample
+or just
+@smallexample
+@group
+(let ((arg '(1 2 3))) (erste arg))
+@end group
+@end smallexample
+
   The built-in function @code{indirect-function} provides an easy way to
 perform symbol function indirection explicitly.
 
