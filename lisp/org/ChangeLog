@@ -16,11 +16,6 @@
 
 	* org-faces.el (org-date-selected): Fix docstring.
 
-2012-04-26  Bastien Guerry  <bzg@gnu.org>
-
-	* org-ctags.el (org-ctags-new-topic-template): Remove * character
-	in front of variable docstring.
-
 2012-04-26  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-list-struct-indent): Follow
