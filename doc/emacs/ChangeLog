@@ -1,5 +1,7 @@
 2012-04-26  Glenn Morris  <rgm@gnu.org>
 
+	* emacs.texi: Add "et al." to authors.
+
 	* ack.texi, basic.texi, buffers.texi, building.texi:
 	* calendar.texi, cmdargs.texi, commands.texi, custom.texi:
 	* dired.texi, display.texi, emerge-xtra.texi, files.texi:

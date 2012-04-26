@@ -72,7 +72,7 @@ developing GNU and promoting software freedom.''
 @sp 4
 @center @value{EDITION} Edition, Updated for Emacs Version @value{EMACSVER}.
 @sp 5
-@center Richard Stallman
+@center Richard Stallman et al.
 @page
 @vskip 0pt plus 1filll
 @insertcopying

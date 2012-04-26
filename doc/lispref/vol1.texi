@@ -89,8 +89,8 @@ developing GNU and promoting software freedom.''
 @subtitle For Emacs Version @value{EMACSVER}
 @subtitle Revision @value{VERSION}, @value{DATE}
 
-@author by Bil Lewis, Dan LaLiberte, Richard Stallman
-@author and the GNU Manual Group
+@author by Bil Lewis, Dan LaLiberte, Richard Stallman,
+@author the GNU Manual Group, et al.
 @page
 @vskip 0pt plus 1filll
 @insertcopying
