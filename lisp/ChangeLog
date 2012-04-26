@@ -1,3 +1,14 @@
+2012-04-26  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff-mode.el (diff-beginning-of-hunk): Return a meaningful
+	value, for symmetry with diff-end-of-hunk.
+	(diff-split-hunk, diff-find-source-location)
+	(diff-ignore-whitespace-hunk, diff-refine-hunk): Use it.
+	(diff-bounds-of-hunk, diff-bounds-of-file): New functions.
+	(diff-restrict-view, diff-hunk-kill, diff-file-kill): Use them to
+	compute the relevant hunk or file properly (Bug#6005).
+	(diff-file-junk-re): Add bzr's "modified file" tag (Bug#6041).
+
 2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/vc-mtn.el:
