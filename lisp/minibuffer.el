@@ -199,7 +199,7 @@ You should give VAR a non-nil `risky-local-variable' property."
     `(completion-table-dynamic
       (lambda (,str)
         (when (functionp ,var)
-          (setq ,var (,fun)))
+          (setq ,var (funcall #',fun)))
         ,var))))
 
 (defun completion-table-case-fold (table &optional dont-fold)

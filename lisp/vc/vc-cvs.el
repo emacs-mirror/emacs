@@ -1,4 +1,4 @@
-;;; vc-cvs.el --- non-resident support for CVS version-control
+;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995, 1998-2012 Free Software Foundation, Inc.
 
@@ -280,7 +280,7 @@ committed and support display of sticky tags."
 ;;; State-changing functions
 ;;;
 
-(defun vc-cvs-register (files &optional rev comment)
+(defun vc-cvs-register (files &optional _rev comment)
   "Register FILES into the CVS version-control system.
 COMMENT can be used to provide an initial description of FILES.
 Passes either `vc-cvs-register-switches' or `vc-register-switches'
@@ -502,7 +502,7 @@ Will fail unless you have administrative privileges on the repo."
 
 (declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
 
-(defun vc-cvs-print-log (files buffer &optional shortlog start-revision-ignored limit)
+(defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
   "Get change logs associated with FILES."
   (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.
@@ -1006,7 +1006,7 @@ state."
       (vc-exec-after
        `(vc-cvs-after-dir-status (quote ,update-function))))))
 
-(defun vc-cvs-dir-status-files (dir files default-state update-function)
+(defun vc-cvs-dir-status-files (dir files _default-state update-function)
   "Create a list of conses (file . state) for DIR."
   (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
   (vc-exec-after
@@ -1021,7 +1021,7 @@ state."
 	(buffer-substring (point) (point-max)))
     (file-error nil)))
 
-(defun vc-cvs-dir-extra-headers (dir)
+(defun vc-cvs-dir-extra-headers (_dir)
   "Extract and represent per-directory properties of a CVS working copy."
   (let ((repo
 	 (condition-case nil
@@ -1206,10 +1206,8 @@ is non-nil."
       res)))
 
 (defun vc-cvs-revision-completion-table (files)
-  (lexical-let ((files files)
-                table)
-    (setq table (lazy-completion-table
-                 table (lambda () (vc-cvs-revision-table (car files)))))
+  (letrec ((table (lazy-completion-table
+                   table (lambda () (vc-cvs-revision-table (car files))))))
     table))
 
 

@@ -1,3 +1,17 @@
+2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-mtn.el:
+	* vc/vc-hg.el:
+	* vc/vc-git.el:
+	* vc/vc-dir.el:
+	* vc/vc-cvs.el:
+	* vc/vc-bzr.el:
+	* vc/vc-arch.el:
+	* vc/vc.el: Replace lexical-let by lexical-binding.
+	* minibuffer.el (lazy-completion-table): Avoid ((λ ...) ...).
+	* emacs-lisp/cl-macs.el (lexical-let): Fix use in lexical-binding.
+	* emacs-lisp/cconv.el (cconv-analyse-form): Warn use of ((λ ...) ...).
+
 2012-04-26  Chong Yidong  <cyd@gnu.org>
 
 	* vc/ediff-wind.el (ediff-setup-windows-default): New function.

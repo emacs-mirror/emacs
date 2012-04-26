@@ -1483,18 +1483,24 @@ lexical closures as in Common Lisp.
 	   (cons 'progn body)
 	   (nconc (mapcar (function (lambda (x)
 				      (list (symbol-name (car x))
-					    (list 'symbol-value (caddr x))
+                                            (list 'symbol-value (caddr x))
 					    t))) vars)
 		  (list '(defun . cl-defun-expander))
 		  cl-macro-environment))))
     (if (not (get (car (last cl-closure-vars)) 'used))
-	(list 'let (mapcar (function (lambda (x)
-				       (list (caddr x) (cadr x)))) vars)
-	      (sublis (mapcar (function (lambda (x)
-					  (cons (caddr x)
-						(list 'quote (caddr x)))))
-			      vars)
-		      ebody))
+        ;; Turn (let ((foo (gensym))) (set foo <val>) ...(symbol-value foo)...)
+        ;; into (let ((foo <val>)) ...(symbol-value 'foo)...).
+        ;; This is good because it's more efficient but it only works with
+        ;; dynamic scoping, since with lexical scoping we'd need
+        ;; (let ((foo <val>)) ...foo...).
+	`(progn
+           ,@(mapcar (lambda (x) `(defvar ,(caddr x))) vars)
+           (let ,(mapcar (lambda (x) (list (caddr x) (cadr x))) vars)
+           ,(sublis (mapcar (lambda (x)
+                              (cons (caddr x)
+                                    (list 'quote (caddr x))))
+                            vars)
+                    ebody)))
       (list 'let (mapcar (function (lambda (x)
 				     (list (caddr x)
 					   (list 'make-symbol

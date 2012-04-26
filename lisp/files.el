@@ -3642,7 +3642,8 @@ and `file-local-variables-alist', without applying them."
   (when (and enable-local-variables
 	     (not (file-remote-p (or (buffer-file-name) default-directory))))
     ;; Find the variables file.
-    (let ((variables-file (dir-locals-find-file (or (buffer-file-name) default-directory)))
+    (let ((variables-file (dir-locals-find-file
+                           (or (buffer-file-name) default-directory)))
 	  (class nil)
 	  (dir-name nil))
       (cond
