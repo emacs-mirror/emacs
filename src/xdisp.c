@@ -383,11 +383,21 @@ static Lisp_Object Qline_height;
 #define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it) 0
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Test if the display element loaded in IT is a space or tab
-   character.  This is used to determine word wrapping.  */
+/* Test if the display element loaded in IT, or the underlying buffer
+   or string character, is a space or a TAB character.  This is used
+   to determine where word wrapping can occur.  */
 
-#define IT_DISPLAYING_WHITESPACE(it)				\
-  (it->what == IT_CHARACTER && (it->c == ' ' || it->c == '\t'))
+#define IT_DISPLAYING_WHITESPACE(it)					\
+  ((it->what == IT_CHARACTER && (it->c == ' ' || it->c == '\t'))	\
+   || ((STRINGP (it->string)						\
+	&& (SREF (it->string, IT_STRING_BYTEPOS (*it)) == ' '		\
+	    || SREF (it->string, IT_STRING_BYTEPOS (*it)) == '\t'))	\
+       || (it->s							\
+	   && (it->s[IT_BYTEPOS (*it)] == ' '				\
+	       || it->s[IT_BYTEPOS (*it)] == '\t'))			\
+       || (IT_BYTEPOS (*it) < ZV_BYTE					\
+	   && (*BYTE_POS_ADDR (IT_BYTEPOS (*it)) == ' '			\
+	       || *BYTE_POS_ADDR (IT_BYTEPOS (*it)) == '\t'))))		\
 
 /* Name of the face used to highlight trailing whitespace.  */
 

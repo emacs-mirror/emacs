@@ -1,5 +1,9 @@
 2012-04-26  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (IT_DISPLAYING_WHITESPACE): In addition to the loaded
+	display element, check also the underlying string or buffer
+	character.  (Bug#11341)
+
 	* w32menu.c: Include w32heap.h.
 	(add_menu_item): If the call to AppendMenuW (via
 	unicode_append_menu) fails, disable Unicode menus only if we are
