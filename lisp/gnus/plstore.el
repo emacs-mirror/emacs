@@ -547,6 +547,18 @@ If no one is selected, symmetric encryption will be performed.  "
       (plstore-mode-original)
     (plstore-mode-decoded)))
 
+(eval-when-compile
+  (defmacro plstore-called-interactively-p (kind)
+    (condition-case nil
+        (progn
+          (eval '(called-interactively-p 'any))
+          ;; Emacs >=23.2
+          `(called-interactively-p ,kind))
+      ;; Emacs <23.2
+      (wrong-number-of-arguments '(called-interactively-p))
+      ;; XEmacs
+      (void-function '(interactive-p)))))
+
 ;;;###autoload
 (define-derived-mode plstore-mode emacs-lisp-mode "PLSTORE"
   "Major mode for editing PLSTORE files."
@@ -554,7 +566,7 @@ If no one is selected, symmetric encryption will be performed.  "
   (add-hook 'write-contents-functions #'plstore--write-contents-functions)
   (define-key plstore-mode-map "\C-c\C-c" #'plstore-mode-toggle-display)
   ;; to create a new file with plstore-mode, mark it as already decoded
-  (if (called-interactively-p 'any)
+  (if (plstore-called-interactively-p 'any)
       (setq plstore-encoded t)
     (plstore-mode-decoded)))
 

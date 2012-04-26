@@ -1,5 +1,11 @@
 2012-04-26  Daiki Ueno  <ueno@unixuser.org>
 
+	* plstore.el (plstore-called-interactively-p): New compat macro copied
+	from message.el.
+	(plstore-mode): Use it.
+
+2012-04-26  Daiki Ueno  <ueno@unixuser.org>
+
 	* plstore.el: Revive the editing feature.
 	(plstore-mode): New mode to edit plstore file.
 	(plstore-mode-toggle-display, plstore-mode-original)
