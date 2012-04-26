@@ -1922,7 +1922,7 @@ single click definition has run when the first click was received.
   This constrains what you can do with double clicks, but user interface
 designers say that this constraint ought to be followed in any case.  A
 double click should do something similar to the single click, only
-``more so.''  The command for the double-click event should perform the
+``more so''.  The command for the double-click event should perform the
 extra work for the double click.
 
   If a double-click event has no binding, it changes to the
@@ -1970,7 +1970,7 @@ or @samp{triple-}, which always precede @samp{drag-} or @samp{down-}.
   A frame includes areas that don't show text from the buffer, such as
 the mode line and the scroll bar.  You can tell whether a mouse button
 comes from a special area of the screen by means of dummy ``prefix
-keys.''  For example, if you click the mouse in the mode line, you get
+keys''.  For example, if you click the mouse in the mode line, you get
 the prefix key @code{mode-line} before the ordinary mouse-button symbol.
 Thus, here is how to define the command for clicking the first button in
 a mode line to run @code{scroll-up-command}:

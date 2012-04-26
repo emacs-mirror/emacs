@@ -1033,7 +1033,7 @@ binding of @var{othertype} in @var{othermap} and uses that.
 This feature permits you to define one key as an alias for another key.
 For example, an entry whose @sc{car} is the keymap called @code{esc-map}
 and whose @sc{cdr} is 32 (the code for @key{SPC}) means, ``Use the global
-binding of @kbd{Meta-@key{SPC}}, whatever that may be.''
+binding of @kbd{Meta-@key{SPC}}, whatever that may be''.
 @end itemize
 
 @item @var{symbol}
@@ -2152,7 +2152,7 @@ This works because @code{toggle-debug-on-error} is defined as a command
 which toggles the variable @code{debug-on-error}.
 
 @dfn{Radio buttons} are a group of menu items, in which at any time one
-and only one is ``selected.''  There should be a variable whose value
+and only one is ``selected''.  There should be a variable whose value
 says which one is selected at any time.  The @var{selected} form for
 each radio button in the group should check whether the variable has the
 right value for selecting that button.  Clicking on the button should
@@ -2429,7 +2429,7 @@ Next we define the menu items:
 Note the symbols which the bindings are ``made for''; these appear
 inside square brackets, in the key sequence being defined.  In some
 cases, this symbol is the same as the command name; sometimes it is
-different.  These symbols are treated as ``function keys,'' but they are
+different.  These symbols are treated as ``function keys'', but they are
 not real function keys on the keyboard.  They do not affect the
 functioning of the menu itself, but they are ``echoed'' in the echo area
 when the user selects from the menu, and they appear in the output of

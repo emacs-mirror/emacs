@@ -104,7 +104,7 @@ interpretation.  @xref{Command Loop}.
 @dfn{form} (or an @dfn{expression}).  How Emacs evaluates a form
 depends on its data type.  Emacs has three different kinds of form
 that are evaluated differently: symbols, lists, and ``all other
-types.''  This section describes all three kinds, one by one, starting
+types''.  This section describes all three kinds, one by one, starting
 with the ``all other types'' which are self-evaluating forms.
 
 @menu

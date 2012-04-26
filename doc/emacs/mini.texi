@@ -88,7 +88,7 @@ Find file: /u2/emacs/src//etc/termcap
 @cindex slashes repeated in file name
 @findex file-name-shadow-mode
 Emacs interprets a double slash as ``ignore everything before the
-second slash in the pair.''  In the example above,
+second slash in the pair''.  In the example above,
 @file{/u2/emacs/src/} is ignored, so the argument you supplied is
 @file{/etc/termcap}.  The ignored part of the file name is dimmed if
 the terminal allows it.  (To disable this dimming, turn off File Name

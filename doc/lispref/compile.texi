@@ -275,7 +275,7 @@ reloading each file after recompiling it.
 use a special Lisp reader construct, @samp{#@@@var{count}}.  This
 construct skips the next @var{count} characters.  It also uses the
 @samp{#$} construct, which stands for ``the name of this file, as a
-string.''  It is usually best not to use these constructs in Lisp source
+string''.  It is usually best not to use these constructs in Lisp source
 files, since they are not designed to be clear to humans reading the
 file.
 

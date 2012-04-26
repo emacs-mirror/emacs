@@ -1,3 +1,13 @@
+2012-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi, basic.texi, buffers.texi, building.texi:
+	* calendar.texi, cmdargs.texi, commands.texi, custom.texi:
+	* dired.texi, display.texi, emerge-xtra.texi, files.texi:
+	* fortran-xtra.texi, help.texi, kmacro.texi, mini.texi, misc.texi:
+	* msdog-xtra.texi, picture-xtra.texi, programs.texi, rmail.texi:
+	* search.texi, trouble.texi, windows.texi:
+	Use Texinfo recommended convention for quotes+punctuation.
+
 2012-04-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Bidirectional Editing): Improve indexing.  Minor

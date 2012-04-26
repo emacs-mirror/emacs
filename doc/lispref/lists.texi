@@ -35,12 +35,12 @@ object that represents an ordered pair.  That is, it has two slots,
 and each slot @dfn{holds}, or @dfn{refers to}, some Lisp object.  One
 slot is known as the @sc{car}, and the other is known as the @sc{cdr}.
 (These names are traditional; see @ref{Cons Cell Type}.)  @sc{cdr} is
-pronounced ``could-er.''
+pronounced ``could-er''.
 
   We say that ``the @sc{car} of this cons cell is'' whatever object
 its @sc{car} slot currently holds, and likewise for the @sc{cdr}.
 
-  A list is a series of cons cells ``chained together,'' so that each
+  A list is a series of cons cells ``chained together'', so that each
 cell refers to the next one.  There is one cons cell for each element
 of the list.  By convention, the @sc{car}s of the cons cells hold the
 elements of the list, and the @sc{cdr}s are used to chain the list
@@ -1633,7 +1633,7 @@ a @sc{cdr} @code{equal} to @var{value}.
 
 @code{rassoc} is like @code{assoc} except that it compares the @sc{cdr} of
 each @var{alist} association instead of the @sc{car}.  You can think of
-this as ``reverse @code{assoc},'' finding the key for a given value.
+this as ``reverse @code{assoc}'', finding the key for a given value.
 @end defun
 
 @defun assq key alist
@@ -1674,7 +1674,7 @@ a @sc{cdr} @code{eq} to @var{value}.
 
 @code{rassq} is like @code{assq} except that it compares the @sc{cdr} of
 each @var{alist} association instead of the @sc{car}.  You can think of
-this as ``reverse @code{assq},'' finding the key for a given value.
+this as ``reverse @code{assq}'', finding the key for a given value.
 
 For example:
 

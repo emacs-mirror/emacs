@@ -97,7 +97,7 @@ minibuffer, with a directory omitted, specifies the file
 
   When typing a file name into the minibuffer, you can make use of a
 couple of shortcuts: a double slash is interpreted as ``ignore
-everything before the second slash in the pair,'' and @samp{~/} is
+everything before the second slash in the pair'', and @samp{~/} is
 interpreted as your home directory.  @xref{Minibuffer File}.
 
 @cindex environment variables in file names
@@ -1340,7 +1340,7 @@ correct the line numbers in the hunk headers, to ensure that the diff
 remains ``correct''.  To disable automatic line number correction,
 change the variable @code{diff-update-on-the-fly} to @code{nil}.
 
-  Diff mode treats each hunk as an ``error message,'' similar to
+  Diff mode treats each hunk as an ``error message'', similar to
 Compilation mode.  Thus, you can use commands such as @kbd{C-x '} to
 visit the corresponding source locations.  @xref{Compilation Mode}.
 

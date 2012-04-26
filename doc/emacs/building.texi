@@ -331,7 +331,7 @@ you can do anything else in Emacs).  @xref{MS-DOS}.
   Just as you can run a compiler from Emacs and then visit the lines
 with compilation errors, you can also run @command{grep} and then
 visit the lines on which matches were found.  This works by treating
-the matches reported by @command{grep} as if they were ``errors.''
+the matches reported by @command{grep} as if they were ``errors''.
 The output buffer uses Grep mode, which is a variant of Compilation
 mode (@pxref{Compilation Mode}).
 

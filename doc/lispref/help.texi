@@ -600,7 +600,7 @@ subcommands of the prefix key.
 
 @defopt help-event-list
 The value of this variable is a list of event types that serve as
-alternative ``help characters.''  These events are handled just like the
+alternative ``help characters''.  These events are handled just like the
 event specified by @code{help-char}.
 @end defopt
 

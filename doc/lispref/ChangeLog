@@ -1,3 +1,12 @@
+2012-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi, commands.texi, compile.texi, control.texi:
+	* customize.texi, display.texi, eval.texi, files.texi, frames.texi:
+	* hash.texi, help.texi, intro.texi, keymaps.texi, lists.texi:
+	* modes.texi, numbers.texi, objects.texi, streams.texi:
+	* symbols.texi, syntax.texi, text.texi, tips.texi, variables.texi:
+	Use Texinfo recommended convention for quotes+punctuation.
+
 2012-04-23  Chong Yidong  <cyd@gnu.org>
 
 	* keymaps.texi (Scanning Keymaps): Fix description of NO-REMAP arg

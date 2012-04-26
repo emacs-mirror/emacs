@@ -166,7 +166,7 @@ commands, even though strictly speaking the key is bound to a command.
 Usually we state the name of the command which really does the work in
 parentheses after mentioning the key that runs it.  For example, we
 will say that ``The command @kbd{C-n} (@code{next-line}) moves point
-vertically down,'' meaning that the command @code{next-line} moves
+vertically down'', meaning that the command @code{next-line} moves
 vertically down, and the key @kbd{C-n} is normally bound to it.
 
   Since we are discussing customization, we should tell you about

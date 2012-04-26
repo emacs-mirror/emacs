@@ -225,7 +225,7 @@ desired macro is at the head of the ring.  To execute the new macro
 ring head immediately, just type @kbd{C-k}.
 
   Note that Emacs treats the head of the macro ring as the ``last
-defined keyboard macro.''  For instance, @key{F4} will execute that
+defined keyboard macro''.  For instance, @key{F4} will execute that
 macro, and @kbd{C-x C-k n} will give it a name.
 
 @vindex kmacro-ring-max

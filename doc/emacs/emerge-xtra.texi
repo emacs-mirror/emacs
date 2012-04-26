@@ -151,7 +151,7 @@ input.  The mode line indicates Auto Advance mode with @samp{A}.
   If Skip Prefers mode is in effect, the @kbd{n} and @kbd{p} commands
 skip over differences in states ``prefer-A'' and ``prefer-B''
 (@pxref{State of Difference}).  Thus you see only differences for
-which neither version is presumed ``correct.''  The mode line
+which neither version is presumed ``correct''.  The mode line
 indicates Skip Prefers mode with @samp{S}.  This mode is only relevant
 when there is an ancestor.
 

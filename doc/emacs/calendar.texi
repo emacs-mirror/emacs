@@ -624,7 +624,7 @@ for all users in a @file{default.el} file.  @xref{Init File}.
   These calendar commands display the dates and times of the phases of
 the moon (new moon, first quarter, full moon, last quarter).  This
 feature is useful for debugging problems that ``depend on the phase of
-the moon.''
+the moon''.
 
 @table @kbd
 @item M
@@ -822,7 +822,7 @@ Display Mayan date for selected day (@code{calendar-mayan-print-date}).
 
   Otherwise, move point to the date you want to convert, then type the
 appropriate command starting with @kbd{p} from the table above.  The
-prefix @kbd{p} is a mnemonic for ``print,'' since Emacs ``prints'' the
+prefix @kbd{p} is a mnemonic for ``print'', since Emacs ``prints'' the
 equivalent date in the echo area. @kbd{p o} displays the
 date in all forms known to Emacs.  You can also use @kbd{Mouse-3} and
 then choose @kbd{Other calendars} from the menu that appears.  This
@@ -901,7 +901,7 @@ Islamic, or French names.
 @findex calendar-hebrew-list-yahrzeits
 @cindex yahrzeits
   One common issue concerning the Hebrew calendar is the computation
-of the anniversary of a date of death, called a ``yahrzeit.''  The Emacs
+of the anniversary of a date of death, called a ``yahrzeit''.  The Emacs
 calendar includes a facility for such calculations.  If you are in the
 calendar, the command @kbd{M-x calendar-hebrew-list-yahrzeits} asks you for
 a range of years and then displays a list of the yahrzeit dates for those
@@ -1426,8 +1426,8 @@ that applies to the fourth Thursday in November:
 @noindent
 The 11 specifies November (the eleventh month), the 4 specifies Thursday
 (the fourth day of the week, where Sunday is numbered zero), and the
-second 4 specifies the fourth Thursday (1 would mean ``first,'' 2 would
-mean ``second,'' @minus{}2 would mean ``second-to-last,'' and so on).
+second 4 specifies the fourth Thursday (1 would mean ``first'', 2 would
+mean ``second'', @minus{}2 would mean ``second-to-last'', and so on).
 The month can be a single month or a list of months.  Thus you could change
 the 11 above to @samp{'(1 2 3)} and have the entry apply to the last
 Thursday of January, February, and March.  If the month is @code{t}, the
@@ -1681,7 +1681,7 @@ timeclock-change}.
   Once you've collected data from a number of time intervals, you can use
 @kbd{M-x timeclock-workday-remaining} to see how much time is left to
 work today (assuming a typical average of 8 hours a day), and @kbd{M-x
-timeclock-when-to-leave} which will calculate when you're ``done.''
+timeclock-when-to-leave} which will calculate when you're ``done''.
 
 @vindex timeclock-modeline-display
 @findex timeclock-modeline-display
