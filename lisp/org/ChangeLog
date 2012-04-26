@@ -439,11 +439,6 @@
 	* org-attach.el (org-attach-store-link-p): Remove spurious quote
 	in customization form choice.
 
-2012-04-01  Tassilo Horn  <tassilo@member.fsf.org>
-
-	* org-contacts.el (org-contacts-check-mail-address): Add missing
-	word to `y-or-n-p' question.
-
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
 	* ob-sh.el (org-babel-execute:sh): Pass all params to subroutine.
@@ -1800,11 +1795,6 @@
 	* org-exp.el (org-export-date-timestamp-format): New option to
 	define the way a timestamp in #+DATE will be exported.
 	(org-infile-export-plist): Use the new option.
-
-2012-01-03  Bastien Guerry  <bzg@gnu.org>
-
-	* org-drill.el (org-drill-leech-method, org-drill-scope)
-	(org-drill-spaced-repetition-algorithm): Fix wrong :type spec.
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
@@ -5925,10 +5915,6 @@
 	* ob-exp.el (org-babel-exp-in-export-file): Bind
 	`org-link-search-inhibit-query' to t to inhibit prompts.
 
-2011-07-28  Julien Danjou  <julien@danjou.info>
-
-	* org-contacts.el: Merge org-contacts-wl.el.
-
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-exp.el (org-export-add-options-to-plist): Use the right
@@ -5962,10 +5948,6 @@
 
 	* org-agenda.el (org-agenda-open-link): Pass entire text of agenda
 	line to `org-offer-links-in-entry'.
-
-2011-07-28  Michael Markert  <markert.michael@googlemail.com>
-
-	* org-contacts-wl.el: New file.
 
 2011-07-28  Matt Lundin  <mdl@imapmail.org>
 
@@ -6731,9 +6713,6 @@
 	(org-cmp-alpha): Stop using prefix-length.
 	(org-agenda-open-link): Stop using prefix-length.
 	(org-agenda-change-all-lines): Stop using prefix-length.
-
-	* org-colview-xemacs.el (org-columns-display-here): Stop using
-	prefix-length. Always return claned items.
 
 	* org-colview.el (org-columns-display-here): Stop using
 	prefix-length. Always return claned items.
@@ -13091,16 +13070,6 @@
 
 	* org-capture.el (org-capture-templates): Fix customize type.
 
-2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
-
-	* org-colview-xemacs.el (org-columns-compile-map):
-	(org-columns-number-to-string):
-	(org-columns-string-to-number): Handle estimate ranges.
-	(org-estimate-mean-and-var): New function.
-	(org-estimate-combine): New function.
-	(org-estimate-print): New function.
-	(org-string-to-estimate): New function.
-
 2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-refile-targets):
@@ -14127,9 +14096,6 @@
 
 	* org-src.el (org-edit-src-find-region-and-lang): Test for
 	table.el as late as possible.
-
-	* org-colview-xemacs.el: Make sure this file is never loaded into
-	Emacs.  Remove all tests for XEmacs.
 
 	* org-colview.el: Make sure this file is never loaded into XEmacs.
 
@@ -15493,9 +15459,6 @@
 	* org-exp.el (org-export): Use "1" as a sign to export only the
 	subtree.
 
-	* org-colview-xemacs.el (org-columns-edit-value):
-	Use org-unrestricted property.
-
 	* org-colview.el (org-columns-edit-value):
 	Use org-unrestricted property.
 
@@ -15894,13 +15857,6 @@
 	(org-agenda-colview-summarize): Handle extended summary types
 	properly.
 
-	* org-colview-xemacs.el (org-columns-display-here): Don't try to
-	calculate values if the underlying property is not set.
-	(org-columns-string-to-number): Convert age strings back into
-	fractional days.
-	(org-agenda-colview-summarize): Handle extended summary types
-	properly.
-
 2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-exp.el (org-export-format-drawer-function): New variable.
@@ -16078,10 +16034,6 @@
 	(org-agenda-switch-to): Follow a link at point if
 	org-return-follows-link' is set and there is nothing else to do in
 	this line.
-
-2009-11-13  James TD Smith  <ahktenzero@mohorovi.cc>
-
-	* org-colview-xemacs.el: Add in changes from org-colview.el.
 
 2009-11-13  Dan Davison  <davison@stats.ox.ac.uk>
 
@@ -17208,9 +17160,6 @@
 	* org-colview.el (org-columns, org-columns-redo)
 	(org-agenda-columns): Don't use `goto-line'.
 
-	* org-colview-xemacs.el (org-columns, org-agenda-columns):
-	Don't use `goto-line'.
-
 	* org-agenda.el (org-agenda-mode): Force visual line motion off.
 	(org-agenda-add-entry-text-maxlines): Improve docstring.
 	(org-agenda-start-with-entry-text-mode): New option.
@@ -17314,10 +17263,6 @@
 
 	* org-colview.el (org-columns-edit-value, org-columns-new)
 	(org-insert-columns-dblock): Use org-icompleting-read.
-
-	* org-colview-xemacs.el (org-columns-edit-value)
-	(org-columns-new, org-insert-columns-dblock):
-	Use org-icompleting-read.
 
 	* org-attach.el (org-attach-delete-one, org-attach-open):
 	Use org-icompleting-read.
@@ -18013,10 +17958,6 @@
 	in column values.
 	(org-columns-capture-view): Exclude comment and archived trees.
 
-	* org-colview-xemacs.el (org-columns-capture-view):
-	Protect vertical bars in column values.
-	(org-columns-capture-view): Exclude comment and archived trees.
-
 	* org.el (org-quote-vert): New function.
 
 	* org-latex.el (org-export-latex-verbatim-wrap): New option.
@@ -18205,9 +18146,6 @@
 	* org-colview.el (org-dblock-write:columnview): Allow indented
 	#+TBLFM line.
 
-	* org-colview-xemacs.el (org-dblock-write:columnview):
-	Allow indented #+TBLFM line.
-
 	* org-clock.el (org-dblock-write:clocktable): Allow indented
 	#+TBLFM line.
 
@@ -18283,9 +18221,6 @@
 	* org-agenda.el (org-agenda-priority): Disable priority commands.
 
 	* org.el (org-enable-priority-commands): New option.
-
-	* org-colview-xemacs.el (org-columns-compute)
-	(org-columns-number-to-string): Fix problems with empty fields.
 
 	* org-colview.el (org-columns-compute)
 	(org-columns-number-to-string): Fix problems with empty fields.
@@ -18488,9 +18423,6 @@
 	of the region.
 	(org-export-region-as-latex): Use the property list.
 	(org-export-as-latex): ????
-
-	* org-colview-xemacs.el (org-columns-remove-overlays)
-	(org-columns): Fix call to `local-variable-p'.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -18925,12 +18857,6 @@
 	* org-colview.el (org-colview-initial-truncate-line-value):
 	New variable.
 	(org-columns-remove-overlays): Restore the value of `truncate-lines'.
-	(org-columns): Remember the value of `truncate-lines'.
-
-	* org-colview-xemacs.el (org-colview-initial-truncate-line-value):
-	New variable.
-	(org-columns-remove-overlays): Restore the value of
-	`truncate-lines'.
 	(org-columns): Remember the value of `truncate-lines'.
 
 	* org.el (org-columns-skip-arrchived-trees): New option.
@@ -19673,10 +19599,6 @@
 	* org-colview.el (org-colview-construct-allowed-dates):
 	Better error catching when a date/time property does not have allowed
 	values defined.
-
-	* org-colview-xemacs.el (org-colview-construct-allowed-dates):
-	Better error catching when a date/time property does not have
-	allowed values defined.
 
 2009-01-25  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -20425,10 +20347,6 @@
 	* org-colview.el (org-columns-edit-value, org-columns-new)
 	(org-insert-columns-dblock): Use `org-ido-completing-read'.
 
-	* org-colview-xemacs.el (org-columns-edit-value)
-	(org-columns-new, org-insert-columns-dblock):
-	Use `org-ido-completing-read'.
-
 	* org-attach.el (org-attach-delete-one, org-attach-open):
 	Use `org-ido-completing-read'.
 
@@ -21007,9 +20925,6 @@
 	* org-colview.el (org-columns-get-format-and-top-level):
 	Remove resetting the marker.
 
-	* org-colview-xemacs.el (org-columns-get-format-and-top-level):
-	Remove resetting the marker.
-
 	* org.el (org-entry-property-inherited-from): Improve docstring.
 	(org-entry-get-with-inheritance): Reset marker before starting the
 	search.
@@ -21184,11 +21099,6 @@
 	(org-columns-next-allowed-value):
 	Use `org-colview-construct-allowed-dates'.
 
-	* org-colview-xemacs.el (org-colview-construct-allowed-dates):
-	New function.
-	(org-columns-next-allowed-value):
-	Use `org-colview-construct-allowed-dates'.
-
 	* org.el (org-protect-slash): New function.
 	(org-get-refile-targets): Use `org-protect-slash'.
 
@@ -21316,9 +21226,6 @@
 	face property.
 
 	* org-colview.el (org-columns-display-here):
-	Use `org-columns-modify-value-for-display-function'.
-
-	* org-colview-xemacs.el (org-columns-display-here):
 	Use `org-columns-modify-value-for-display-function'.
 
 	* org.el (org-columns-modify-value-for-display-function): New option.
@@ -21511,8 +21418,6 @@
 
 	* org-colview.el (org-columns-next-allowed-value): Bug fix.
 
-	* org-colview-xemacs.el (org-columns-next-allowed-value): Bug fix.
-
 	* org-agenda.el (org-agenda-get-closed): Get the end time into the
 	agenda prefix as well.
 
@@ -21631,9 +21536,6 @@
 	`org-file-tags' to nil.
 
 	* org-colview.el (org-columns-next-allowed-value): Handle next
-	argument NTH to directly select a value.
-
-	* org-colview-xemacs.el (org-columns-next-allowed-value): Handle next
 	argument NTH to directly select a value.
 
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
@@ -21778,9 +21680,6 @@
 
 	* org-clock.el (org-clock-display, org-clock-out)
 	(org-update-mode-line): Use `org-time-clocksum-format'.
-
-	* org-colview-xemacs.el (org-columns-number-to-string):
-	Use `org-time-clocksum-format'.
 
 	* org-colview.el (org-columns-number-to-string):
 	Use `org-time-clocksum-format'.
