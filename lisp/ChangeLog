@@ -1,3 +1,8 @@
+2012-04-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/vc-git.el (vc-git-state): Fix regexp matching diff output.
+	(Bug#11344)
+
 2012-04-24  Chong Yidong  <cyd@gnu.org>
 
 	* select.el (xselect--encode-string): New function, split from
