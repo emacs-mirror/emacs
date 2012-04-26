@@ -786,19 +786,12 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
   "")
 
 
-(if (ediff-window-display-p)
-    (if (featurep 'xemacs)
-	(progn
-	  (defalias 'ediff-display-pixel-width 'device-pixel-width)
-	  (defalias 'ediff-display-pixel-height 'device-pixel-height))
-      (defalias 'ediff-display-pixel-width
-	(if (fboundp 'display-pixel-width)
-	    'display-pixel-width
-	  'x-display-pixel-width))
-      (defalias 'ediff-display-pixel-height
-	(if (fboundp 'display-pixel-height)
-	    'display-pixel-height
-	  'x-display-pixel-height))))
+(if (featurep 'xemacs)
+    (progn
+      (defalias 'ediff-display-pixel-width 'device-pixel-width)
+      (defalias 'ediff-display-pixel-height 'device-pixel-height))
+  (defalias 'ediff-display-pixel-width 'display-pixel-width)
+  (defalias 'ediff-display-pixel-height 'display-pixel-height))
 
 ;; A-list of current-diff-overlay symbols associated with buf types
 (defconst ediff-current-diff-overlay-alist

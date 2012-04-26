@@ -1,3 +1,12 @@
+2012-04-26  Chong Yidong  <cyd@gnu.org>
+
+	* vc/ediff-wind.el (ediff-setup-windows-default): New function.
+	(ediff-window-setup-function): Use it as the default, to set up
+	windows based on whether the current frame is graphical (Bug#2138).
+	(ediff-choose-window-setup-function-automatically): Make obsolete.
+
+	* vc/ediff-init.el: Always define ediff-pixel-width/height.
+
 2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ffap.el: Remove old code for obsolete package.
