@@ -48,6 +48,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "dispextern.h"
 
+#include "w32heap.h"	/* for osinfo_cache */
+
 #undef HAVE_DIALOGS /* TODO: Implement native dialogs.  */
 
 #ifndef TRUE
@@ -1498,8 +1500,11 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	    AppendMenu (menu, fuFlags,
 			item != NULL ? (UINT) item: (UINT) wv->call_data,
 			out_string);
-	  /* Don't use Unicode menus in future.  */
-	  unicode_append_menu = NULL;
+	  /* Don't use Unicode menus in future, unless this is Windows
+	     NT or later, where a failure of AppendMenuW does NOT mean
+	     Unicode menus are unsupported.  */
+	  if (osinfo_cache.dwPlatformId != VER_PLATFORM_WIN32_NT)
+	    unicode_append_menu = NULL;
 	}
 
       if (unicode_append_menu && (fuFlags & MF_OWNERDRAW))
