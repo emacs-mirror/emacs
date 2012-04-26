@@ -1,4 +1,4 @@
-;;; js.el --- Major mode for editing JavaScript
+;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
@@ -1036,17 +1036,12 @@ LIMIT defaults to point."
 
     (c-save-buffer-state
         (open-items
-         orig-match-start
-         orig-match-end
-         orig-depth
          parse
          prev-parse-point
          name
          case-fold-search
          filtered-class-styles
-         new-item
-         goal-point
-         end-prop)
+         goal-point)
 
       ;; Figure out which class styles we need to look for
       (setq filtered-class-styles
@@ -2956,8 +2951,8 @@ browser, respectively."
     (ido-mode -1))
 
   (with-js
-   (lexical-let ((tabs (js--get-tabs)) selected-tab-cname
-                 selected-tab prev-hitab)
+   (let ((tabs (js--get-tabs)) selected-tab-cname
+         selected-tab prev-hitab)
 
      ;; Disambiguate names
      (setq tabs (loop with tab-names = (make-hash-table :test 'equal)
@@ -3053,7 +3048,6 @@ browser, respectively."
                                                   "gBrowser"
                                                   "selectedTab")
 
-                         with index = 0
                          for match in ido-matches
                          for candidate-tab = (find-tab-by-cname match)
                          if (eq (fourth candidate-tab) tab-to-match)

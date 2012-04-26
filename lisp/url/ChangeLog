@@ -1,3 +1,8 @@
+2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.el (url-retrieve-synchronously): Replace lexical-let by
+	lexical-binding.
+
 2012-04-10  William Xu  <william.xwl@gmail.com>  (tiny change)
 
 	* url.el (url-retrieve-internal): Hexify multibye URL string first
@@ -28,8 +33,8 @@
 
 2012-03-11  Chong Yidong  <cyd@gnu.org>
 
-	* url-http.el (url-http-end-of-document-sentinel): Handle
-	keepalive expiry by calling url-http again (Bug#10223).
+	* url-http.el (url-http-end-of-document-sentinel):
+	Handle keepalive expiry by calling url-http again (Bug#10223).
 	(url-http): New arg, for the above.
 
 2012-03-11  Devon Sean McCullough  <emacs-hacker2012@jovi.net>
@@ -180,8 +185,8 @@
 
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* url-http.el (url-http-wait-for-headers-change-function): Remove
-	pointless "HTTP/0.9 How I hate thee!" message (bug#6735).
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Remove pointless "HTTP/0.9 How I hate thee!" message (bug#6735).
 
 2011-06-04  Andreas Schwab  <schwab@linux-m68k.org>
 

@@ -1353,21 +1353,21 @@ The default is a name found in the buffer around point."
 	 (default (if (pascal-comp-defun default nil 'lambda)
 		      default ""))
 	 (label
-          ;; Do completion with default
+          ;; Do completion with default.
           (completing-read (if (not (string= default ""))
                                (concat "Label (default " default "): ")
                              "Label: ")
                            ;; Complete with the defuns found in the
                            ;; current-buffer.
-                           (lexical-let ((buf (current-buffer)))
+                           (let ((buf (current-buffer)))
                              (lambda (s p a)
                                (with-current-buffer buf
                                  (pascal-comp-defun s p a))))
                            nil t "")))
-    ;; If there was no response on prompt, use default value
+    ;; If there was no response on prompt, use default value.
     (if (string= label "")
 	(setq label default))
-    ;; Goto right place in buffer if label is not an empty string
+    ;; Goto right place in buffer if label is not an empty string.
     (or (string= label "")
 	(progn
 	  (goto-char (point-min))

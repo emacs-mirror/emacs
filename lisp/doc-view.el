@@ -960,13 +960,12 @@ Those files are saved in the directory given by the function
       (odf
        ;; ODF files have to be converted to PDF before Ghostscript can
        ;; process it.
-       (lexical-let
-           ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
-	    (opdf (expand-file-name (concat (file-name-sans-extension
-					     (file-name-nondirectory doc-view-buffer-file-name))
-					    ".pdf")
-				    doc-view-current-cache-dir))
-            (png-file png-file))
+       (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
+             (opdf (expand-file-name (concat (file-name-sans-extension
+                                              (file-name-nondirectory doc-view-buffer-file-name))
+                                             ".pdf")
+                                     doc-view-current-cache-dir))
+             (png-file png-file))
 	 ;; The unoconv tool only supports a output directory, but no
 	 ;; file name.  It's named like the input file with the
 	 ;; extension replaced by pdf.

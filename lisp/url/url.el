@@ -1,4 +1,4 @@
-;;; url.el --- Uniform Resource Locator retrieval tool
+;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1999, 2001, 2004-2012  Free Software Foundation, Inc.
 
@@ -225,8 +225,8 @@ associated with it (the case for dired, info, or mailto URLs that need
 no further processing).  URL is either a string or a parsed URL."
   (url-do-setup)
 
-  (lexical-let ((retrieval-done nil)
-		(asynch-buffer nil))
+  (let ((retrieval-done nil)
+        (asynch-buffer nil))
     (setq asynch-buffer
 	  (url-retrieve url (lambda (&rest ignored)
 			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))

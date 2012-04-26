@@ -1,3 +1,16 @@
+2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+
+	* term/ns-win.el (ns-define-service):
+	* progmodes/pascal.el (pascal-goto-defun):
+	* progmodes/js.el (js--read-tab):
+	* progmodes/etags.el (tags-lazy-completion-table):
+	* emacs-lisp/syntax.el (syntax-propertize-via-font-lock):
+	* emacs-lisp/ewoc.el (ewoc--wrap):
+	* emacs-lisp/assoc.el (aput, adelete, amake):
+	* doc-view.el (doc-view-convert-current-doc):
+	* vc/diff.el (diff-no-select): Replace lexical-let by lexical-binding.
+
 2012-04-26  Chong Yidong  <cyd@gnu.org>
 
 	* image.el (image-type-from-buffer): Only return supported image

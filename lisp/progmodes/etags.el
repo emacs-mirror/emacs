@@ -1,4 +1,4 @@
-;;; etags.el --- etags facility for Emacs
+;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2012
 ;;   Free Software Foundation, Inc.
@@ -781,7 +781,7 @@ tags table and its (recursively) included tags tables."
 	      (setq tags-completion-table nil)))))
 
 (defun tags-lazy-completion-table ()
-  (lexical-let ((buf (current-buffer)))
+  (let ((buf (current-buffer)))
     (lambda (string pred action)
       (with-current-buffer buf
         (save-excursion
