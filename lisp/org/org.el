@@ -5057,8 +5057,7 @@ The following commands are available:
        'org-parse-arguments)
   (set (make-local-variable 'pcomplete-termination-string) "")
   (when (>= emacs-major-version 23)
-    (set (make-local-variable 'buffer-face-mode-face) 'org-default)
-    (buffer-face-mode))
+    (set (make-local-variable 'buffer-face-mode-face) 'org-default))
 
   ;; If empty file that did not turn on org-mode automatically, make it to.
   (if (and org-insert-mode-line-in-empty-file
@@ -14915,7 +14914,7 @@ So these are more for recording a certain time/date."
   (org-time-stamp arg 'inactive))
 
 (defvar org-date-ovl (make-overlay 1 1))
-(overlay-put org-date-ovl 'face 'org-warning)
+(overlay-put org-date-ovl 'face 'org-date-selected)
 (org-detach-overlay org-date-ovl)
 
 (defvar org-ans1) ; dynamically scoped parameter
@@ -15131,35 +15130,35 @@ user."
   (when org-read-date-display-live
     (when org-read-date-overlay
       (delete-overlay org-read-date-overlay))
-    (let ((p (point)))
-      (end-of-line 1)
-      (while (not (equal (buffer-substring
-			  (max (point-min) (- (point) 4)) (point))
-			 "    "))
-	(insert " "))
-      (goto-char p))
-    (let* ((ans (concat (buffer-substring (point-at-bol) (point-max))
-			" " (or org-ans1 org-ans2)))
-	   (org-end-time-was-given nil)
-	   (f (org-read-date-analyze ans org-def org-defdecode))
-	   (fmts (if org-dcst
-		     org-time-stamp-custom-formats
-		   org-time-stamp-formats))
-	   (fmt (if (or org-with-time
-			(and (boundp 'org-time-was-given) org-time-was-given))
-		    (cdr fmts)
-		  (car fmts)))
-	   (txt (concat "=> " (format-time-string fmt (apply 'encode-time f)))))
-      (when (and org-end-time-was-given
-		 (string-match org-plain-time-of-day-regexp txt))
-	(setq txt (concat (substring txt 0 (match-end 0)) "-"
-			  org-end-time-was-given
-			  (substring txt (match-end 0)))))
-      (when org-read-date-analyze-futurep
-	(setq txt (concat txt " (=>F)")))
-      (setq org-read-date-overlay
-	    (make-overlay (1- (point-at-eol)) (point-at-eol)))
-      (org-overlay-display org-read-date-overlay txt 'secondary-selection))))
+    (when (minibufferp (current-buffer))
+      (save-excursion
+	(end-of-line 1)
+	(while (not (equal (buffer-substring
+			    (max (point-min) (- (point) 4)) (point))
+			   "    "))
+	  (insert " ")))
+      (let* ((ans (concat (buffer-substring (point-at-bol) (point-max))
+			  " " (or org-ans1 org-ans2)))
+	     (org-end-time-was-given nil)
+	     (f (org-read-date-analyze ans org-def org-defdecode))
+	     (fmts (if org-dcst
+		       org-time-stamp-custom-formats
+		     org-time-stamp-formats))
+	     (fmt (if (or org-with-time
+			  (and (boundp 'org-time-was-given) org-time-was-given))
+		      (cdr fmts)
+		    (car fmts)))
+	     (txt (concat "=> " (format-time-string fmt (apply 'encode-time f)))))
+	(when (and org-end-time-was-given
+		   (string-match org-plain-time-of-day-regexp txt))
+	  (setq txt (concat (substring txt 0 (match-end 0)) "-"
+			    org-end-time-was-given
+			    (substring txt (match-end 0)))))
+	(when org-read-date-analyze-futurep
+	  (setq txt (concat txt " (=>F)")))
+	(setq org-read-date-overlay
+	      (make-overlay (1- (point-at-eol)) (point-at-eol)))
+	(org-overlay-display org-read-date-overlay txt 'secondary-selection)))))
 
 (defun org-read-date-analyze (ans org-def org-defdecode)
   "Analyze the combined answer of the date prompt."
@@ -17969,28 +17968,34 @@ See the individual commands for more information."
 
 (defun org-shiftmetaleft ()
   "Promote subtree or delete table column.
-Calls `org-promote-subtree', `org-outdent-item',
-or `org-table-delete-column', depending on context.
-See the individual commands for more information."
+Calls `org-promote-subtree', `org-outdent-item-tree', or
+`org-table-delete-column', depending on context.  See the
+individual commands for more information."
   (interactive)
   (cond
    ((run-hook-with-args-until-success 'org-shiftmetaleft-hook))
    ((org-at-table-p) (call-interactively 'org-table-delete-column))
    ((org-at-heading-p) (call-interactively 'org-promote-subtree))
-   ((org-at-item-p) (call-interactively 'org-outdent-item-tree))
+   ((if (not (org-region-active-p)) (org-at-item-p)
+      (save-excursion (goto-char (region-beginning))
+		      (org-at-item-p)))
+    (call-interactively 'org-outdent-item-tree))
    (t (org-modifier-cursor-error))))
 
 (defun org-shiftmetaright ()
   "Demote subtree or insert table column.
-Calls `org-demote-subtree', `org-indent-item',
-or `org-table-insert-column', depending on context.
-See the individual commands for more information."
+Calls `org-demote-subtree', `org-indent-item-tree', or
+`org-table-insert-column', depending on context.  See the
+individual commands for more information."
   (interactive)
   (cond
    ((run-hook-with-args-until-success 'org-shiftmetaright-hook))
    ((org-at-table-p) (call-interactively 'org-table-insert-column))
    ((org-at-heading-p) (call-interactively 'org-demote-subtree))
-   ((org-at-item-p) (call-interactively 'org-indent-item-tree))
+   ((if (not (org-region-active-p)) (org-at-item-p)
+      (save-excursion (goto-char (region-beginning))
+		      (org-at-item-p)))
+    (call-interactively 'org-indent-item-tree))
    (t (org-modifier-cursor-error))))
 
 (defun org-shiftmetaup (&optional arg)

@@ -1,3 +1,72 @@
+2012-04-26  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-table.el (org-table-number-fraction): Fix typo.
+
+2012-04-26  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob-python.el (org-babel-execute:python): Ensure newline precedes
+	automatically-added returns.
+
+2012-04-26  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-mouse.el (org-mode-hook): Do not move point when clicking on
+	a footnote reference.
+
+2012-04-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org-faces.el (org-date-selected): Fix docstring.
+
+2012-04-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org-ctags.el (org-ctags-new-topic-template): Remove * character
+	in front of variable docstring.
+
+2012-04-26  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct-indent): Follow
+	`org-list-demote-modify-bullet' specifications for ordered
+	bullets.
+	(org-list-indent-item-generic, org-indent-item-tree)
+	(org-outdent-item-tree): Fix bug when operating on a region.
+	(org-outdent-item, org-indent-item): Allow to operate on a region.
+
+	* org.el (org-shiftmetaleft, org-shiftmetaright): Allow to operate
+	on a region.
+
+2012-04-26  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-normalize): Fix positionning in
+	HTML export without a footnote section.
+
+2012-04-26  Madan Ramakrishnan  <madanr79@gmail.com>  (tiny change)
+
+	* org-agenda.el (org-agenda-bulk-mark): Truly make arg optional as
+	advertised by the function.
+
+2012-04-26  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
+
+	* org.el (org-read-date-display): Fix bug when displaying the
+	overlay.
+
+2012-04-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-mode): Don't use `buffer-face-mode' by default.
+
+2012-04-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org-faces.el (org-date-selected): New face.
+
+2012-04-26  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-odt.el (org-odt-format-org-link): Pay no heed to whether the
+	internal links destined for headlines provide a description or
+	not.  In fact, the `org-store-link' and `org-insert-link' create
+	internal links which do have a description.
+
+2012-04-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-program-exists): Fix docstring.
+
 2012-04-11  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-point-at-end-of-empty-headline): Only try to match

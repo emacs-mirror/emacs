@@ -664,7 +664,7 @@ Use alsa's aplay tool if available."
 	      (error (beep t) (beep t)))))))))
 
 (defun org-program-exists (program-name)
-  "Checks whenever we can locate program and launch it."
+  "Checks whenever we can locate PROGRAM-NAME using the `which' executable."
   (if (member system-type '(gnu/linux darwin))
       (= 0 (call-process "which" nil nil nil program-name))))
 

@@ -915,6 +915,7 @@ This means, between the beginning of line and the point."
 	  ((assq :checkbox context) (org-toggle-checkbox))
 	  ((assq :item-bullet context)
 	   (let ((org-cycle-include-plain-lists t)) (org-cycle)))
+	  ((org-footnote-at-reference-p) nil)
 	  (t ad-do-it))))))
 
 (defun org-mouse-move-tree-start (event)

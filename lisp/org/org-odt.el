@@ -1689,7 +1689,6 @@ ATTR is a string of other attributes of the a element."
 	     (or (not thefile) (string= thefile ""))
 	     (plist-get org-lparse-opt-plist :section-numbers)
 	     (setq sec-frag fragment)
-	     (org-find-text-property-in-string 'org-no-description fragment)
 	     (or (string-match  "\\`sec\\(\\(-[0-9]+\\)+\\)" sec-frag)
 		 (and (setq sec-frag
 			    (loop for alias in org-export-target-aliases do

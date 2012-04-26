@@ -649,34 +649,34 @@
   <!-- Description List -->
   <text:list-style style:name="OrgDescriptionList">
    <text:list-level-style-number text:level="1" style:num-format="">
-    <style:list-level-properties text:space-before="0.635cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="0.635cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="2" style:num-format="">
-    <style:list-level-properties text:space-before="1.27cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="1.27cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="3" style:num-format="">
-    <style:list-level-properties text:space-before="1.905cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="1.905cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="4" style:num-format="">
-    <style:list-level-properties text:space-before="2.54cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="2.54cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="5" style:num-format="">
-    <style:list-level-properties text:space-before="3.175cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="3.175cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="6" style:num-format="">
-    <style:list-level-properties text:space-before="3.81cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="3.81cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="7" style:num-format="">
-    <style:list-level-properties text:space-before="4.445cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="4.445cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="8" style:num-format="">
-    <style:list-level-properties text:space-before="5.08cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="5.08cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="9" style:num-format="">
-    <style:list-level-properties text:space-before="5.715cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="5.715cm"/>
    </text:list-level-style-number>
    <text:list-level-style-number text:level="10" style:num-format="">
-    <style:list-level-properties text:space-before="6.35cm" text:min-label-width="0.635cm"/>
+    <style:list-level-properties text:space-before="6.35cm"/>
    </text:list-level-style-number>
   </text:list-style>
 

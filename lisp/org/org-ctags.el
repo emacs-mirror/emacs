@@ -188,7 +188,7 @@ See the ctags documentation for more information.")
 Created as a local variable in each buffer.")
 
 (defcustom org-ctags-new-topic-template
-  "* <<%t>>\n\n\n\n\n\n"
+  "<<%t>>\n\n\n\n\n\n"
   "Text to insert when creating a new org file via opening a hyperlink.
 The following patterns are replaced in the string:
     `%t' - replaced with the capitalized title of the hyperlink"

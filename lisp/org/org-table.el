@@ -135,8 +135,8 @@ Other options offered by the customize interface are more restrictive."
 
 (defcustom org-table-number-fraction 0.5
   "Fraction of numbers in a column required to make the column align right.
-In a column all non-white fields are considered.  If at least this
-fraction of fields is matched by `org-table-number-fraction',
+In a column all non-white fields are considered.  If at least
+this fraction of fields is matched by `org-table-number-regexp',
 alignment to the right border applies."
   :group 'org-table-settings
   :type 'number)

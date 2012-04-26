@@ -64,7 +64,7 @@ This function is called by `org-babel-execute-src-block'."
 	 (preamble (cdr (assoc :preamble params)))
          (full-body
 	  (org-babel-expand-body:generic
-	   (concat body (if return-val (format "return %s" return-val) ""))
+	   (concat body (if return-val (format "\nreturn %s" return-val) ""))
 	   params (org-babel-variable-assignments:python params)))
          (result (org-babel-python-evaluate
 		  session full-body result-type result-params preamble)))
