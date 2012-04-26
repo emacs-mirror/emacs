@@ -35,7 +35,7 @@
 
 2012-04-26  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-normalize): Fix positionning in
+	* org-footnote.el (org-footnote-normalize): Fix positioning in
 	HTML export without a footnote section.
 
 2012-04-26  Madan Ramakrishnan  <madanr79@gmail.com>  (tiny change)
