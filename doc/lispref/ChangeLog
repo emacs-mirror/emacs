@@ -1,6 +1,6 @@
 2012-04-26  Glenn Morris  <rgm@gnu.org>
 
-	* front-cover-1.texi: Remove file.
+	* elisp-covers.texi, front-cover-1.texi: Remove files.
 
 	* tindex.pl: Remove file.
 
