@@ -101,6 +101,7 @@ returned.
 
 If no key-value pair matching KEY could be found in ALIST, or ALIST is
 nil then nil is returned.  ALIST is not altered."
+  (defvar copy)
   (let ((copy (copy-alist alist)))
     (cond ((null alist) nil)
 	  ((progn (asort 'copy key)

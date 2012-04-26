@@ -1,5 +1,6 @@
 2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/assoc.el (aget): Fix dynamic-scoping issue (bug#11352).
 
 	* term/ns-win.el (ns-define-service):
 	* progmodes/pascal.el (pascal-goto-defun):
