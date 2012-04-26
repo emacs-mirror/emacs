@@ -107,8 +107,7 @@ when editing big diffs)."
 ;;;;
 
 (easy-mmode-defmap diff-mode-shared-map
-  '(;; From Pavel Machek's patch-mode.
-    ("n" . diff-hunk-next)
+  '(("n" . diff-hunk-next)
     ("N" . diff-file-next)
     ("p" . diff-hunk-prev)
     ("P" . diff-file-prev)
@@ -116,27 +115,17 @@ when editing big diffs)."
     ([backtab] . diff-hunk-prev)
     ("k" . diff-hunk-kill)
     ("K" . diff-file-kill)
-    ;; From compilation-minor-mode.
-    ("}" . diff-file-next)
+    ("}" . diff-file-next)	; From compilation-minor-mode.
     ("{" . diff-file-prev)
     ("\C-m" . diff-goto-source)
     ([mouse-2] . diff-goto-source)
-    ;; From XEmacs's diff-mode.
     ("W" . widen)
-    ;;("." . diff-goto-source)		;display-buffer
-    ;;("f" . diff-goto-source)		;find-file
-    ("o" . diff-goto-source)		;other-window
-    ;;("w" . diff-goto-source)		;other-frame
-    ;;("N" . diff-narrow)
-    ;;("h" . diff-show-header)
-    ;;("j" . diff-show-difference)	;jump to Nth diff
-    ;;("q" . diff-quit)
-    ;; Not useful if you have to metafy them.
-    ;;(" " . scroll-up)
-    ;;("\177" . scroll-down)
+    ("o" . diff-goto-source)	; other-window
     ("A" . diff-ediff-patch)
     ("r" . diff-restrict-view)
-    ("R" . diff-reverse-direction))
+    ("R" . diff-reverse-direction)
+    ("/" . diff-undo)
+    ([remap undo] . diff-undo))
   "Basic keymap for `diff-mode', bound to various prefix keys."
   :inherit special-mode-map)
 
@@ -1904,6 +1893,11 @@ For use in `add-log-current-defun-function'."
                                   (match-end 0) end
                                   props 'diff-refine-preproc))))))))
 
+(defun diff-undo (&optional arg)
+  "Perform `undo', ignoring the buffer's read-only status."
+  (interactive "P")
+  (let ((inhibit-read-only t))
+    (undo arg)))
 
 (defun diff-add-change-log-entries-other-window ()
   "Iterate through the current diff and create ChangeLog entries.

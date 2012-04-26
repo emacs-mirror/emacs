@@ -14,6 +14,9 @@
 
 2012-04-26  Chong Yidong  <cyd@gnu.org>
 
+	* vc/diff-mode.el (diff-undo): New command (Bug#5302).
+	(diff-mode-shared-map): Bind it to / and [remap undo].
+
 	* vc/ediff-wind.el (ediff-setup-windows-default): New function.
 	(ediff-window-setup-function): Use it as the default, to set up
 	windows based on whether the current frame is graphical (Bug#2138).
