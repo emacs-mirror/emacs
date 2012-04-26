@@ -1,5 +1,7 @@
 2012-04-26  Glenn Morris  <rgm@gnu.org>
 
+	* tindex.pl: Remove file.
+
 	* makefile.w32-in (srcs):
 	* Makefile.in (srcs): Remove back.texi (which is unused).
 

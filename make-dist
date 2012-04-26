@@ -478,7 +478,7 @@ echo "Making links to \`doc/misc'"
 echo "Making links to \`doc/lispref'"
 (cd doc/lispref
  ln *.texi *.in makefile.w32-in README ChangeLog* ../../${tempdir}/doc/lispref
- ln *.txt *.el spellfile tindex.pl ../../${tempdir}/doc/lispref
+ ln *.txt *.el spellfile ../../${tempdir}/doc/lispref
  ln two-volume.make ../../${tempdir}/doc/lispref)
 
 echo "Making links to \`doc/lispintro'"
