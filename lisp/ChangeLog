@@ -1,3 +1,8 @@
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/pascal.el (pascal--extra-indent): Rename from ind, to
+	fix "missig prefix" warning.  All callers changed.
+
 2012-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/assoc.el: Move to obsolete/.
