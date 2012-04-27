@@ -952,13 +952,6 @@ Customizing the Calendar and Diary
 * Sexp Diary Entries::     More flexible diary entries.
 @end ifnottex
 
-Document Viewing
-
-* DocView Navigation::  Navigating DocView buffers.
-* DocView Searching::   Searching inside documents.
-* DocView Slicing::     Specifying which part of a page is displayed.
-* DocView Conversion::  Influencing and triggering conversion.
-
 Sending Mail
 
 * Mail Format::         Format of a mail message.
