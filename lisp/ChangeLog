@@ -1,3 +1,7 @@
+2012-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/assoc.el: Move to obsolete/.
+
 2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/assoc.el (aget): Fix dynamic-scoping issue (bug#11352).

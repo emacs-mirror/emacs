@@ -4,6 +4,7 @@
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Keywords: extensions
+;; Obsolete-since: 24.2
 
 ;; This file is part of GNU Emacs.
 
