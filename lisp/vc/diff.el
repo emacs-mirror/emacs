@@ -67,6 +67,7 @@ delete the temporary files so named."
   (if old-temp-file (delete-file old-temp-file))
   (if new-temp-file (delete-file new-temp-file))
   (diff-setup-whitespace)
+  (goto-char (point-min))
   (save-excursion
     (goto-char (point-max))
     (let ((inhibit-read-only t))

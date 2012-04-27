@@ -1,5 +1,7 @@
 2012-04-27  Chong Yidong  <cyd@gnu.org>
 
+	* vc/diff.el (diff-sentinel): Go to bob (Bug#10259).
+
 	* startup.el (x-apply-session-resources): New function.
 
 	* term/ns-win.el (ns-initialize-window-system):
