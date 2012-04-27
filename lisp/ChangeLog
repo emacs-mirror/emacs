@@ -34,7 +34,7 @@
 	* progmodes/which-func.el (which-func-current): Quote %
 	characters for mode-line processing.
 
-2012-04-21  Chong Yidong  <cyd@gnu.org>
+2012-04-27  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el (xml-parse-region, xml-parse-tag): Avoid errors due to
 	reaching eob (Bug#11286).

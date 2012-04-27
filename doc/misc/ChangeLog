@@ -8,6 +8,7 @@
 	* faq.texi (Major packages and programs): Remove section.
 	There is no point listing 6 packages (cf etc/MORE.STUFF).
 	(Finding Emacs and related packages): Move "Spell-checkers" here.
+
 2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Version): New node.

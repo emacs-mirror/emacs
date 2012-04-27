@@ -1,4 +1,4 @@
-2012-04-26  Jambunathan K  <kjambunathan@gmail.com>
+2012-04-27  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org/OrgOdtStyles.xml (OrgDescriptionList): Modify style.  With
 	this change, in a description list, if the description paragraph

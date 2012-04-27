@@ -2,8 +2,6 @@
 
 	* emacs.texi: Some fixes for detailed menu.
 
-2012-04-26  Glenn Morris  <rgm@gnu.org>
-
 	* emacs.texi: Add "et al." to authors.
 
 	* ack.texi, basic.texi, buffers.texi, building.texi:
@@ -14,10 +12,10 @@
 	* search.texi, trouble.texi, windows.texi:
 	Use Texinfo recommended convention for quotes+punctuation.
 
-2012-04-25  Eli Zaretskii  <eliz@gnu.org>
+2012-04-27  Eli Zaretskii  <eliz@gnu.org>
 
-	* mule.texi (Bidirectional Editing): Improve indexing.  Minor
-	wording tweaks.
+	* mule.texi (Bidirectional Editing): Improve indexing.
+	Minor wording tweaks.
 
 2012-04-15  Chong Yidong  <cyd@gnu.org>
 
