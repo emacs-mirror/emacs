@@ -1,3 +1,7 @@
+2012-04-27  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Update to 5.32.3.
+
 2012-04-27  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (read-key): Avoid running filter function when setting
