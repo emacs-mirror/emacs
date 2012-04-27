@@ -7,24 +7,6 @@ Please send Org bug reports to emacs-orgmode@gnu.org.
 
 * Incompatible changes
 
-** Emacs 21 support has been dropped
-   :PROPERTIES:
-   :OrgVersion:  7.01
-   :END:
-
-   Do not use Org mode 7.xx with Emacs 21, use [[http://orgmode.org/org-6.36c.zip][version 6.36c]] instead.
-
-** XEmacs support requires the XEmacs development version
-   :PROPERTIES:
-   :OrgVersion:  7.01
-   :END:
-
-   To use Org mode 7.xx with XEmacs, you need to run the developer
-   version of XEmacs.  We were about to drop XEmacs support entirely,
-   but Michael Sperber stepped in and made changes to XEmacs that made
-   it easier to keep the support.  Thanks to Michael for this
-   last-minute save.
-
 ** New keys for TODO sparse trees
    :PROPERTIES:
    :OrgVersion:  7.01
@@ -947,6 +929,7 @@ to mean anything.
     by viewing from the agenda.
 
     This was a request by Matt Lundin.
+
 * License
 
 This file is part of GNU Emacs.
