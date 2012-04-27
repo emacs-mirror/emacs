@@ -1,3 +1,7 @@
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi: Some fixes for detailed menu.
+
 2012-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi: Add "et al." to authors.
