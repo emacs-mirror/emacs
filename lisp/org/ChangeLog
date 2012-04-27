@@ -1,3 +1,8 @@
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* org-ctags.el (org-ctags-new-topic-template):
+	Revert 2012-04-09 removal of * from defcustom value, not doc.
+
 2012-04-27  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-table.el (org-table-number-fraction): Fix typo.
@@ -21950,7 +21955,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-	Copyright (C) 2008-2012  Free Software Foundation, Inc.
+	Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
