@@ -309,6 +309,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
   ;; Set to a system sound if you want a fancy bell.
   (set-message-beep 'ok)
+  (x-apply-session-resources)
   (setq w32-initialized t))
 
 (add-to-list 'handle-args-function-alist '(w32 . x-handle-args))

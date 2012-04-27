@@ -923,6 +923,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; http://lists.gnu.org/archive/html/emacs-devel/2011-06/msg00505.html
   (ns-set-resource nil "ApplePressAndHoldEnabled" "NO")
 
+  (x-apply-session-resources)
   (setq ns-initialized t))
 
 (add-to-list 'handle-args-function-alist '(ns . x-handle-args))

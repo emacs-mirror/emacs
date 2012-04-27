@@ -1445,6 +1445,7 @@ Request data types in the order specified by `x-select-request-type'."
   ;; 			:help "Paste (yank) text most recently cut/copied")
   ;; 	    nil))
 
+  (x-apply-session-resources)
   (setq x-initialized t))
 
 (add-to-list 'handle-args-function-alist '(x . x-handle-args))

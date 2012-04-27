@@ -1,5 +1,13 @@
 2012-04-27  Chong Yidong  <cyd@gnu.org>
 
+	* startup.el (x-apply-session-resources): New function.
+
+	* term/ns-win.el (ns-initialize-window-system):
+	* term/w32-win.el (w32-initialize-window-system):
+	* term/x-win.el (x-initialize-window-system): Use it to properly
+	set menu-bar-mode and other vars from X resources, even if the
+	initial frame is not a window-system frame (Bug#2299).
+
 	* subr.el (read-key): Avoid running filter function when setting
 	up temporary tool bar entries (Bug#9922).
 
