@@ -604,7 +604,7 @@ either.
 @section Indenting Macros
 
   Within a macro definition, you can use the @code{declare} form
-(@pxref{Defining Macros}) to specify how to @key{TAB} should indent
+(@pxref{Defining Macros}) to specify how @key{TAB} should indent
 calls to the macro.  An indentation specification is written like this:
 
 @example

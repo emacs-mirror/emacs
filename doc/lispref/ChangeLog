@@ -1,3 +1,54 @@
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi, vol1.texi, vol2.texi: Some fixes for detailed menu.
+	* modes.texi (Major Modes, Auto-Indentation):
+	* buffers.texi (Buffers): Some fixes for menu descriptions.
+
+2012-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+	* functions.texi (Simple Lambda, Argument List):
+	* eval.texi (Function Indirection): Avoid deprecated form.
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* book-spine.texi, elisp.texi, vol1.texi, vol2.texi:
+	Add "et al." to authors.
+
+	* buffers.texi, commands.texi, compile.texi, control.texi:
+	* customize.texi, display.texi, eval.texi, files.texi, frames.texi:
+	* hash.texi, help.texi, intro.texi, keymaps.texi, lists.texi:
+	* modes.texi, numbers.texi, objects.texi, streams.texi:
+	* symbols.texi, syntax.texi, text.texi, tips.texi, variables.texi:
+	Use Texinfo recommended convention for quotes+punctuation.
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Scanning Keymaps): Fix description of NO-REMAP arg
+	to where-is-internal (Bug#10872).
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* macros.texi (Indenting Macros): Fix typo.
+
+	* windows.texi (Basic Windows, Windows and Frames, Window Sizes)
+	(Resizing Windows, Deleting Windows, Selecting Windows)
+	(Choosing Window Options, Horizontal Scrolling)
+	(Cyclic Window Ordering, Window History, Dedicated Windows)
+	(Quitting Windows, Window Configurations, Textual Scrolling):
+	(Coordinates and Windows, Window Configurations)
+	(Window Parameters, Window Hooks): Copyedits.
+	(Splitting Windows, Deleting Windows):
+	Fix ignore-window-parameters logic.
+	(Selecting Windows, Choosing Window Options): Markup fixes.
+	(Window Start and End): Remove pointless example.
+	Remove cross-reference to deleted count-lines content.
+	(Textual Scrolling): Mention recenter-redisplay, recenter-top-bottom,
+	and recenter-positions.  Remove recenter example.
+
+	* elisp.texi, vol1.texi, vol2.texi: Bump VERSION and DATE.
+
+	* minibuf.texi (Intro to Minibuffers):
+	Tweak discussion of resizing minibuffer window.
+
 2012-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* elisp-covers.texi, front-cover-1.texi: Remove files.

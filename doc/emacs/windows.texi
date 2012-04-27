@@ -151,7 +151,7 @@ selects the window without moving point in it.
 @kindex C-x o
 @findex other-window
 With the keyboard, you can switch windows by typing @kbd{C-x o}
-(@code{other-window}).  That is an @kbd{o}, for ``other,'' not a zero.
+(@code{other-window}).  That is an @kbd{o}, for ``other'', not a zero.
 When there are more than two windows, this command moves through all the
 windows in a cyclic order, generally top to bottom and left to right.
 After the rightmost and bottommost window, it goes back to the one at
@@ -452,7 +452,7 @@ buffer.  @xref{Follow Mode}.
   The Windmove package defines commands for moving directionally
 between neighboring windows in a frame.  @kbd{M-x windmove-right}
 selects the window immediately to the right of the currently selected
-one, and similarly for the ``left,'' ``up,'' and ``down''
+one, and similarly for the ``left'', ``up'', and ``down''
 counterparts.  @kbd{M-x windmove-default-keybindings} binds these
 commands to @kbd{S-right} etc.; doing so disables shift selection for
 those keys (@pxref{Shift Selection}).

@@ -548,7 +548,7 @@ when invoked with the @samp{-nw} option.
 @cindex inferior processes under MS-DOS
 @findex compile @r{(MS-DOS)}
 @findex grep @r{(MS-DOS)}
-  Because MS-DOS is a single-process ``operating system,''
+  Because MS-DOS is a single-process ``operating system'',
 asynchronous subprocesses are not available.  In particular, Shell
 mode and its variants do not work.  Most Emacs features that use
 asynchronous subprocesses also don't work on MS-DOS, including

@@ -1032,7 +1032,7 @@ binding of @var{othertype} in @var{othermap} and uses that.
 This feature permits you to define one key as an alias for another key.
 For example, an entry whose @sc{car} is the keymap called @code{esc-map}
 and whose @sc{cdr} is 32 (the code for @key{SPC}) means, ``Use the global
-binding of @kbd{Meta-@key{SPC}}, whatever that may be.''
+binding of @kbd{Meta-@key{SPC}}, whatever that may be''.
 @end itemize
 
 @item @var{symbol}
@@ -1887,9 +1887,9 @@ maps searched are @var{keymap} and the global keymap.  If @var{keymap}
 is a list of keymaps, only those keymaps are searched.
 
 Usually it's best to use @code{overriding-local-map} as the expression
-for @var{keymap}.  Then @code{where-is-internal} searches precisely the
-keymaps that are active.  To search only the global map, pass
-@code{(keymap)} (an empty keymap) as @var{keymap}.
+for @var{keymap}.  Then @code{where-is-internal} searches precisely
+the keymaps that are active.  To search only the global map, pass the
+value @code{(keymap)} (an empty keymap) as @var{keymap}.
 
 If @var{firstonly} is @code{non-ascii}, then the value is a single
 vector representing the first key sequence found, rather than a list of
@@ -1903,20 +1903,24 @@ If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't
 follow indirect keymap bindings.  This makes it possible to search for
 an indirect definition itself.
 
-When command remapping is in effect (@pxref{Remapping Commands}),
-@code{where-is-internal} figures out when a command will be run due to
-remapping and reports keys accordingly.  It also returns @code{nil} if
-@var{command} won't really be run because it has been remapped to some
-other command.  However, if @var{no-remap} is non-@code{nil}.
-@code{where-is-internal} ignores remappings.
+The fifth argument, @var{no-remap}, determines how this function
+treats command remappings (@pxref{Remapping Commands}).  There are two
+cases of interest:
 
-@smallexample
-@group
-(where-is-internal 'describe-function)
-    @result{} ([8 102] [f1 102] [help 102]
-         [menu-bar help-menu describe describe-function])
-@end group
-@end smallexample
+@table @asis
+@item If a command @var{other-command} is remapped to @var{command}:
+If @var{no-remap} is @code{nil}, find the bindings for
+@var{other-command} and treat them as though they are also bindings
+for @var{command}.  If @var{no-remap} is non-@code{nil}, include the
+vector @code{[remap @var{other-command}]} in the list of possible key
+sequences, instead of finding those bindings.
+
+@item If @var{command} is remapped to @var{other-command}:
+If @var{no-remap} is @code{nil}, return the bindings for
+@var{other-command} rather than @var{command}.  If @var{no-remap} is
+non-@code{nil}, return the bindings for @var{command}, ignoring the
+fact that it is remapped.
+@end table
 @end defun
 
 @deffn Command describe-bindings &optional prefix buffer-or-name
@@ -2147,7 +2151,7 @@ This works because @code{toggle-debug-on-error} is defined as a command
 which toggles the variable @code{debug-on-error}.
 
 @dfn{Radio buttons} are a group of menu items, in which at any time one
-and only one is ``selected.''  There should be a variable whose value
+and only one is ``selected''.  There should be a variable whose value
 says which one is selected at any time.  The @var{selected} form for
 each radio button in the group should check whether the variable has the
 right value for selecting that button.  Clicking on the button should
@@ -2424,7 +2428,7 @@ Next we define the menu items:
 Note the symbols which the bindings are ``made for''; these appear
 inside square brackets, in the key sequence being defined.  In some
 cases, this symbol is the same as the command name; sometimes it is
-different.  These symbols are treated as ``function keys,'' but they are
+different.  These symbols are treated as ``function keys'', but they are
 not real function keys on the keyboard.  They do not affect the
 functioning of the menu itself, but they are ``echoed'' in the echo area
 when the user selects from the menu, and they appear in the output of

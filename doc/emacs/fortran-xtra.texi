@@ -207,7 +207,7 @@ the Fortran standard counts from 1.)  The variable
 @code{fortran-continuation-string} specifies what character to put in
 column 5.  A line that starts with a tab character followed by any digit
 except @samp{0} is also a continuation line.  We call this style of
-continuation @dfn{tab format}.  (Fortran 90 introduced ``free form,''
+continuation @dfn{tab format}.  (Fortran 90 introduced ``free form'',
 with another style of continuation lines).
 
 @vindex indent-tabs-mode @r{(Fortran mode)}

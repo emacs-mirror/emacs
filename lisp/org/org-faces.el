@@ -285,6 +285,16 @@ column view defines special faces for each outline level.  See the file
   "Face for date/time stamps."
   :group 'org-faces)
 
+(defface org-date-selected
+  (org-compatible-face nil
+    '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :bold nil))
+      (((class color) (min-colors 16) (background dark))  (:foreground "Pink" :bold nil))
+      (((class color) (min-colors 8)  (background light)) (:foreground "red"  :bold nil))
+      (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :bold nil))
+      (t (:inverse-video t))))
+  "Face for highlighting the calendar day when using `org-read-date'."
+  :group 'org-faces)
+
 (defface org-sexp-date
   '((((class color) (background light)) (:foreground "Purple"))
     (((class color) (background dark)) (:foreground "Cyan"))

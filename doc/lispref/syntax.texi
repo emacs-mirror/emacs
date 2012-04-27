@@ -56,7 +56,7 @@ Modes}, for an example of how to set up a syntax table.
 A syntax table can inherit the data for some characters from the
 standard syntax table, while specifying other characters itself.  The
 ``inherit'' syntax class means ``inherit this character's syntax from
-the standard syntax table.''  Just changing the standard syntax for a
+the standard syntax table''.  Just changing the standard syntax for a
 character affects all syntax tables that inherit from it.
 
 @defun syntax-table-p object
@@ -617,7 +617,7 @@ higher-level functions for moving over balanced expressions.
   A character's syntax controls how it changes the state of the
 parser, rather than describing the state itself.  For example, a
 string delimiter character toggles the parser state between
-``in-string'' and ``in-code,'' but the syntax of characters does not
+``in-string'' and ``in-code'', but the syntax of characters does not
 directly say whether they are inside a string.  For example (note that
 15 is the syntax code for generic string delimiters),
 

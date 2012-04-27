@@ -668,7 +668,7 @@ those two positions are the accessible ones.  @xref{Narrowing}.
 @cindex arguments to commands
 
   In the terminology of mathematics and computing, @dfn{argument}
-means ``data provided to a function or operation.''  You can give any
+means ``data provided to a function or operation''.  You can give any
 Emacs command a @dfn{numeric argument} (also called a @dfn{prefix
 argument}).  Some commands interpret the argument as a repetition
 count.  For example, giving @kbd{C-f} an argument of ten causes it to
@@ -762,7 +762,7 @@ described when they come up; they exist to make an individual command
 more convenient, and they are documented in that command's
 documentation string.
 
-  We use the term ``prefix argument'' as well as ``numeric argument,''
+  We use the term ``prefix argument'' as well as ``numeric argument'',
 to emphasize that you type these argument before the command, and to
 distinguish them from minibuffer arguments that come after the
 command.

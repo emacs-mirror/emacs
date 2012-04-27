@@ -1,3 +1,30 @@
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* xselect.c (x_convert_selection): Initialize a pointer (Bug#11315).
+
+2012-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): If the window start position is beyond
+	ZV, start the display from buffer beginning.  Prevents assertion
+	violation in init_iterator when the minibuffer window is scrolled
+	via the scroll bar.
+
+	* window.c (window_scroll_pixel_based): Likewise.
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* keymap.c (where_is_internal): Doc fix (Bug#10872).
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Fcopy_file, Fset_file_selinux_context):
+	Ignore ENOTSUP failures from setfilecon functions.  (Bug#11245)
+
+2012-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (swap_glyph_pointers, copy_row_except_pointers): Don't
+	overrun array limits of glyph row's used[] array.  (Bug#11288)
+
 2012-04-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (IT_DISPLAYING_WHITESPACE): In addition to the loaded

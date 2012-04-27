@@ -1,6 +1,6 @@
 ;;; check-declare.el --- Check declare-function statements
 
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
 ;; Keywords: lisp, tools, maint
@@ -28,7 +28,7 @@
 ;; checks that all such statements in a file or directory are accurate.
 ;; The entry points are `check-declare-file' and `check-declare-directory'.
 
-;; For more information, see Info node `elisp(Declaring Functions)'.
+;; For more information, see Info node `(elisp)Declaring Functions'.
 
 ;;; TODO:
 

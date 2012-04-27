@@ -199,7 +199,7 @@ C-b} (@code{picture-motion-reverse}) moves in the opposite direction.
 With no argument, it moves to a point underneath the next
 ``interesting'' character that follows whitespace in the previous
 nonblank line.  ``Next'' here means ``appearing at a horizontal position
-greater than the one point starts out at.''  With an argument, as in
+greater than the one point starts out at''.  With an argument, as in
 @kbd{C-u M-@key{TAB}}, this command moves to the next such interesting
 character in the current line.  @kbd{M-@key{TAB}} does not change the
 text; it only moves point.  ``Interesting'' characters are defined by

@@ -670,7 +670,7 @@ symbol is changed.
 
 @code{setq} does not evaluate @var{symbol}; it sets the symbol that you
 write.  We say that this argument is @dfn{automatically quoted}.  The
-@samp{q} in @code{setq} stands for ``quoted.''
+@samp{q} in @code{setq} stands for ``quoted''.
 
 The value of the @code{setq} form is the value of the last @var{form}.
 

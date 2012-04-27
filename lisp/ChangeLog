@@ -1,7 +1,57 @@
 2012-04-27  Chong Yidong  <cyd@gnu.org>
 
+	* subr.el (read-key): Avoid running filter function when setting
+	up temporary tool bar entries (Bug#9922).
+
+2012-04-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/vc-git.el (vc-git-state): Fix regexp matching diff output.
+	(Bug#11344)
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* select.el (xselect--encode-string): New function, split from
+	xselect-convert-to-string.
+	(xselect-convert-to-string): Use it.
+	(xselect-convert-to-filename, xselect-convert-to-os)
+	(xselect-convert-to-host, xselect-convert-to-user): Ensure that
+	returned strings are properly encoded (Bug#11315).
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (delete-active-region): Move to killing custom group.
+
+2012-04-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/which-func.el (which-func-current): Quote %
+	characters for mode-line processing.
+
+2012-04-21  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-parse-region, xml-parse-tag): Avoid errors due to
+	reaching eob (Bug#11286).
+
+2012-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-control-level): New variable.
+	(gdb): Make it buffer-local and init to zero.
+	(gdb-control-commands-regexp): New variable.
+	(gdb-send): Don't wrap in "-interpreter-exec console" if
+	gdb-control-level is positive.  Increment gdb-control-level
+	whenever the command matches gdb-control-commands-regexp, and
+	decrement it each time the command is "end".  (Bug#11279)
+
+2012-04-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (adjust-window-trailing-edge, enlarge-window)
+	(shrink-window, window-resize):
+	* mouse.el (mouse-drag-line): Fix resizing of minibuffer
+	windows (Bug#11276).
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
 	* progmodes/pascal.el (pascal--extra-indent): Rename from ind, to
-	fix "missig prefix" warning.  All callers changed.
+	fix "missing prefix" warning.  All callers changed.
 
 2012-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -603,6 +603,8 @@ NOARG must be t when this macro is used outside `gud-def'"
         (set (make-local-variable 'gud-marker-filter) #'gud-gdb-marker-filter))
       (funcall filter proc string))))
 
+(defvar gdb-control-level 0)
+
 ;;;###autoload
 (defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
@@ -677,6 +679,7 @@ detailed description of this mode.
     (set-process-filter proc #'gdb--check-interpreter))
 
   (set (make-local-variable 'gud-minor-mode) 'gdbmi)
+  (set (make-local-variable 'gdb-control-level) 0)
   (setq comint-input-sender 'gdb-send)
   (when (ring-empty-p comint-input-ring) ; cf shell-mode
     (let ((hfile (expand-file-name (or (getenv "GDBHISTFILE")
@@ -1705,6 +1708,16 @@ static char *magick[] = {
   :group 'gdb)
 
 
+(defvar gdb-control-commands-regexp
+  (concat
+   "^\\("
+   "commands\\|if\\|while\\|define\\|document\\|python\\|"
+   "while-stepping\\|stepping\\|ws\\|actions"
+   "\\)\\([[:blank:]]+.*\\)?$")
+  "Regexp matching GDB commands that enter a recursive reading loop.
+As long as GDB is in the recursive reading loop, it does not expect
+commands to be prefixed by \"-interpreter-exec console\".")
+
 (defun gdb-send (proc string)
   "A comint send filter for gdb."
   (with-current-buffer gud-comint-buffer
@@ -1714,11 +1727,15 @@ static char *magick[] = {
   (if (not (string= "" string))
       (setq gdb-last-command string)
     (if gdb-last-command (setq string gdb-last-command)))
-  (if (string-match "^-" string)
-      ;; MI command
+  (if (or (string-match "^-" string)
+	  (> gdb-control-level 0))
+      ;; Either MI command or we are feeding GDB's recursive reading loop.
       (progn
 	(setq gdb-first-done-or-error t)
-	(process-send-string proc (concat string "\n")))
+	(process-send-string proc (concat string "\n"))
+	(if (and (string-match "^end$" string)
+		 (> gdb-control-level 0))
+	    (setq gdb-control-level (1- gdb-control-level))))
     ;; CLI command
     (if (string-match "\\\\$" string)
 	(setq gdb-continuation (concat gdb-continuation string "\n"))
@@ -1729,7 +1746,12 @@ static char *magick[] = {
         (if gdb-enable-debug
             (push (cons 'mi-send to-send) gdb-debug-log))
         (process-send-string proc to-send))
-      (setq gdb-continuation nil))))
+      (if (and (string-match "^end$" string)
+	       (> gdb-control-level 0))
+	  (setq gdb-control-level (1- gdb-control-level)))
+      (setq gdb-continuation nil)))
+  (if (string-match gdb-control-commands-regexp string)
+      (setq gdb-control-level (1+ gdb-control-level))))
 
 (defun gdb-mi-quote (string)
   "Return STRING quoted properly as an MI argument.

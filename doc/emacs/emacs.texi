@@ -72,7 +72,7 @@ developing GNU and promoting software freedom.''
 @sp 4
 @center @value{EDITION} Edition, Updated for Emacs Version @value{EMACSVER}.
 @sp 5
-@center Richard Stallman
+@center Richard Stallman et al.
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -288,11 +288,11 @@ The Mark and the Region
 Killing and Moving Text
 
 * Deletion and Killing:: Commands that remove text.
-* Yanking::             Recovering killed text.  Moving text. (Pasting.)
+* Yanking::             Commands that insert text.
 * Cut and Paste::       Clipboard and selections on graphical displays.
-* Accumulating Text::   Other ways of copying text.
+* Accumulating Text::   Other methods to add text to the buffer.
 * Rectangles::          Operating on text in rectangular areas.
-* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} to kill and yank.
+* CUA Bindings::        Using @kbd{C-x}/@kbd{C-c}/@kbd{C-v} to kill and yank.
 
 Deletion and Killing
 
@@ -309,9 +309,9 @@ Yanking
 * Earlier Kills::       Yanking something killed some time ago.
 * Appending Kills::     Several kills in a row all yank together.
 
-Killing and Yanking on Graphical Displays
+"Cut and Paste" Operations on Graphical Displays
 
-* Clipboard::           How Emacs interacts with the system clipboard.
+* Clipboard::           How Emacs uses the system clipboard.
 * Primary Selection::   The temporarily selected text selection.
 * Secondary Selection:: Cutting without altering point and mark.
 
@@ -328,7 +328,7 @@ Registers
 Controlling the Display
 
 * Scrolling::              Commands to move text up and down in a window.
-* Recentering::            A scrolling command that centers the current line.
+* Recentering::            A scroll command that centers the current line.
 * Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Narrowing::              Restricting display and editing to a portion
@@ -486,7 +486,7 @@ Multiple Windows
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Window Convenience::  Convenience functions for window handling.
 
-Displaying Buffers
+Displaying a Buffer in a Window
 
 * Window Choice::       How @code{display-buffer} works.
 
@@ -509,7 +509,7 @@ Frames and Graphical Displays
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
-* Mouse Avoidance::     Moving the mouse pointer out of the way.
+* Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * Text-Only Mouse::     Using the mouse in text terminals.
 
@@ -540,7 +540,7 @@ International Character Set Support
 * Charsets::                How Emacs groups its internal character codes.
 * Bidirectional Editing::   Support for right-to-left scripts.
 
-Modes
+Major and Minor Modes
 
 * Major Modes::         Text mode vs. Lisp mode vs. C mode...
 * Minor Modes::         Each minor mode is a feature you can turn on
@@ -600,7 +600,7 @@ Org Mode
 * TeX Print::           Commands for printing part of a file with TeX.
 * TeX Misc::            Customization of TeX mode, and related features.
 
-Editing Enriched Text
+Enriched Text
 
 * Enriched Mode::           Entering and exiting Enriched mode.
 * Hard and Soft Newlines::  There are two different kinds of newlines.
@@ -783,7 +783,7 @@ Introduction to Version Control
 * Version Control Systems:: Supported version control back-end systems.
 * VCS Concepts::            Words and concepts related to version control.
 * VCS Merging::             How file conflicts are handled.
-* VCS Changesets::          Changesets in version control.
+* VCS Changesets::          How changes are grouped.
 * VCS Repositories::        Where version control repositories are stored.
 * Types of Log File::       The VCS log in contrast to the ChangeLog.
 
@@ -798,10 +798,10 @@ VC Directory Mode
 * VC Directory Buffer::   What the buffer looks like and means.
 * VC Directory Commands:: Commands to use in a VC directory buffer.
 
-Multiple Branches of a File
+Version Control Branches
 
 * Switching Branches::    How to get to another existing branch.
-* VC Pull::               Updating a branch from another branch.
+* VC Pull::               Updating the contents of a branch.
 * Merging::               Transferring changes between branches.
 * Creating Branches::     How to start a new branch.
 
@@ -828,12 +828,12 @@ Change Logs
 Tags Tables
 
 * Tag Syntax::          Tag syntax for various types of code and text files.
-* Create Tags Table::   Creating a tags table with @code{etags}.
+* Create Tags Table::   Creating a tags table with @command{etags}.
 * Etags Regexps::       Create arbitrary tags using regular expressions.
 * Select Tags Table::   How to visit a tags table.
 * Find Tag::            Commands to find the definition of a specific tag.
 * Tags Search::         Using a tags table for searching and replacing.
-* List Tags::           Listing and finding tags defined in a file.
+* List Tags::           Using tags for completion, and listing them.
 
 @ifnottex
 Merging Files with Emerge
@@ -952,16 +952,9 @@ Customizing the Calendar and Diary
 * Sexp Diary Entries::     More flexible diary entries.
 @end ifnottex
 
-Document Viewing
-
-* DocView Navigation::  Navigating DocView buffers.
-* DocView Searching::   Searching inside documents.
-* DocView Slicing::     Specifying which part of a page is displayed.
-* DocView Conversion::  Influencing and triggering conversion.
-
 Sending Mail
 
-* Mail Format::         Format of the mail being composed.
+* Mail Format::         Format of a mail message.
 * Mail Headers::        Details of some standard mail header fields.
 * Mail Aliases::        Abbreviating and grouping mail addresses.
 * Mail Commands::       Special commands for editing mail being composed.
@@ -1012,6 +1005,13 @@ Gnus
 * Gnus Group Buffer::   A short description of Gnus group commands.
 * Gnus Summary Buffer:: A short description of Gnus summary commands.
 
+Document Viewing
+
+* DocView Navigation::  Navigating DocView buffers.
+* DocView Searching::   Searching inside documents.
+* DocView Slicing::     Specifying which part of a page is displayed.
+* DocView Conversion::  Influencing and triggering conversion.
+
 Running Shell Commands from Emacs
 
 * Single Shell::        How to run one shell command and return.
@@ -1061,10 +1061,10 @@ Customization
 * Variables::           Many Emacs commands examine Emacs variables
                           to decide what to do; by setting variables,
                           you can control their functioning.
-* Key Bindings::        Keymaps say what command each key runs.
+* Key Bindings::        The keymaps say what command each key runs.
                           By changing them, you can "redefine" keys.
 * Init File::           How to write common customizations in the
-                          @file{.emacs} file.
+                          initialization file.
 
 Easy Customization Interface
 
@@ -1098,7 +1098,7 @@ Customizing Key Bindings
 * Local Keymaps::       Major and minor modes have their own keymaps.
 * Minibuffer Maps::     The minibuffer uses its own local keymaps.
 * Rebinding::           How to redefine one key's meaning conveniently.
-* Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
+* Init Rebinding::      Rebinding keys with your initialization file.
 * Modifier Keys::       Using modifier keys in key bindings.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
@@ -1107,7 +1107,7 @@ Customizing Key Bindings
                           before it can be executed.  This is done to protect
                           beginners from surprises.
 
-The Init File, @file{~/.emacs}
+The Emacs Initialization File
 
 * Init Syntax::         Syntax of constants in Emacs Lisp.
 * Init Examples::       How to do some things with an init file.
@@ -1167,7 +1167,7 @@ GTK resources
 
 * GTK Resource Basics::   Basic usage of GTK+ resources.
 * GTK Widget Names::      How GTK+ widgets are named.
-* GTK Names in Emacs::    GTK+ widgets used by Emacs.
+* GTK Names in Emacs::    GTK widgets used by Emacs.
 * GTK styles::            What can be customized in a GTK widget.
 
 Emacs and Mac OS / GNUstep
@@ -1183,7 +1183,8 @@ Emacs and Microsoft Windows/MS-DOS
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
 * ls in Lisp::          Emulation of @code{ls} for Dired.
-* Windows HOME::        Where Emacs looks for your @file{.emacs}.
+* Windows HOME::        Where Emacs looks for your @file{.emacs} and
+                          where it starts up.
 * Windows Keyboard::    Windows-specific keyboard features.
 * Windows Mouse::       Windows-specific mouse features.
 * Windows Processes::   Running subprocesses on Windows.

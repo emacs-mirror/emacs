@@ -1,3 +1,13 @@
+2012-04-27  Ippei Furuhashi  <top.tuna+orgmode@gmail.com>  (tiny change)
+
+	* org.texi (Agenda commands): Fix two typos: give corresponding
+	function names, according to `org-agenda-view-mode-dispatch'.
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Major packages and programs): Remove section.
+	There is no point listing 6 packages (cf etc/MORE.STUFF).
+	(Finding Emacs and related packages): Move "Spell-checkers" here.
 2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Version): New node.

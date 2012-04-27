@@ -2023,7 +2023,10 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
            (let ((map (make-sparse-keymap)))
              ;; Don't hide the menu-bar and tool-bar entries.
              (define-key map [menu-bar] (lookup-key global-map [menu-bar]))
-             (define-key map [tool-bar] (lookup-key global-map [tool-bar]))
+             (define-key map [tool-bar]
+	       ;; This hack avoids evaluating the :filter (Bug#9922).
+	       (or (cdr (assq 'tool-bar global-map))
+		   (lookup-key global-map [tool-bar])))
              map))
 	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
       (cancel-timer timer)
