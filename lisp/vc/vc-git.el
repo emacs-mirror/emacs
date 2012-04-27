@@ -220,7 +220,7 @@ matching the resulting Git log output, and KEYWORDS is a list of
     (let ((diff (vc-git--run-command-string
                  file "diff-index" "-p" "--raw" "-z" "HEAD" "--")))
       (if (and diff
-	       (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0\\(.\\)?"
+	       (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0\\(.*\n.\\)?"
 			     diff))
           (let ((diff-letter (match-string 1 diff)))
             (if (not (match-beginning 2))

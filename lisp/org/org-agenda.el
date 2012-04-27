@@ -8294,7 +8294,7 @@ This is a command that has to be installed in `calendar-mode-map'."
 (defun org-agenda-bulk-mark (&optional arg)
   "Mark the entry at point for future bulk action."
   (interactive "p")
-  (dotimes (i (max arg 1))
+  (dotimes (i (or arg 1))
     (unless (org-get-at-bol 'org-agenda-diary-link)
       (let* ((m (org-get-at-bol 'org-hd-marker))
 	     ov)

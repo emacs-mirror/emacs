@@ -1482,12 +1482,24 @@ edge of WINDOW consider using `adjust-window-trailing-edge'
 instead."
   (setq window (window-normalize-window window))
   (let* ((frame (window-frame window))
+	 (minibuffer-window (minibuffer-window frame))
 	 sibling)
     (cond
      ((eq window (frame-root-window frame))
       (error "Cannot resize the root window of a frame"))
      ((window-minibuffer-p window)
-      (window--resize-mini-window window delta))
+      (if horizontal
+	  (error "Cannot resize minibuffer window horizontally")
+	(window--resize-mini-window window delta)))
+     ((and (not horizontal)
+	   (window-full-height-p window)
+	   (eq (window-frame minibuffer-window) frame)
+	   (or (not resize-mini-windows)
+	       (eq minibuffer-window (active-minibuffer-window))))
+      ;; If WINDOW is full height and either `resize-mini-windows' is
+      ;; nil or the minibuffer window is active, resize the minibuffer
+      ;; window.
+      (window--resize-mini-window minibuffer-window (- delta)))
      ((window--resizable-p window delta horizontal ignore)
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
@@ -2002,17 +2014,25 @@ right.  If DELTA is less than zero, move the edge upwards or to
 the left.  If the edge can't be moved by DELTA lines or columns,
 move it as far as possible in the desired direction."
   (setq window (window-normalize-window window))
-  (let ((frame (window-frame window))
-	(right window)
-	left this-delta min-delta max-delta)
+  (let* ((frame (window-frame window))
+	 (minibuffer-window (minibuffer-window frame))
+	 (right window)
+	 left this-delta min-delta max-delta)
     ;; Find the edge we want to move.
     (while (and (or (not (window-combined-p right horizontal))
 		    (not (window-right right)))
 		(setq right (window-parent right))))
     (cond
-     ((and (not right) (not horizontal) (not resize-mini-windows)
-	   (eq (window-frame (minibuffer-window frame)) frame))
-      (window--resize-mini-window (minibuffer-window frame) (- delta)))
+     ((and (not right) (not horizontal)
+	   ;; Resize the minibuffer window if it's on the same frame as
+	   ;; and immediately below WINDOW and it's either active or
+	   ;; `resize-mini-windows' is nil.
+	   (eq (window-frame minibuffer-window) frame)
+	   (= (nth 1 (window-edges minibuffer-window))
+	      (nth 3 (window-edges window)))
+	   (or (not resize-mini-windows)
+	       (eq minibuffer-window (active-minibuffer-window))))
+      (window--resize-mini-window minibuffer-window (- delta)))
      ((or (not (setq left right)) (not (setq right (window-right right))))
       (if horizontal
 	  (error "No window on the right of this one")
@@ -2109,18 +2129,30 @@ make selected window wider by DELTA columns.  If DELTA is
 negative, shrink selected window by -DELTA lines or columns.
 Return nil."
   (interactive "p")
-  (cond
-   ((zerop delta))
-   ((window-size-fixed-p nil horizontal)
-    (error "Selected window has fixed size"))
-   ((window--resizable-p nil delta horizontal)
-    (window-resize nil delta horizontal))
-   (t
-    (window-resize
-     nil (if (> delta 0)
-	     (window-max-delta nil horizontal)
-	   (- (window-min-delta nil horizontal)))
-     horizontal))))
+  (let ((minibuffer-window (minibuffer-window)))
+    (cond
+     ((zerop delta))
+     ((window-size-fixed-p nil horizontal)
+      (error "Selected window has fixed size"))
+     ((window-minibuffer-p)
+      (if horizontal
+	  (error "Cannot resize minibuffer window horizontally")
+	(window--resize-mini-window (selected-window) delta)))
+     ((and (not horizontal)
+	   (window-full-height-p)
+	   (eq (window-frame minibuffer-window) (selected-frame))
+	   (not resize-mini-windows))
+      ;; If the selected window is full height and `resize-mini-windows'
+      ;; is nil, resize the minibuffer window.
+      (window--resize-mini-window minibuffer-window (- delta)))
+     ((window--resizable-p nil delta horizontal)
+      (window-resize nil delta horizontal))
+     (t
+      (window-resize
+       nil (if (> delta 0)
+	       (window-max-delta nil horizontal)
+	     (- (window-min-delta nil horizontal)))
+       horizontal)))))
 
 (defun shrink-window (delta &optional horizontal)
   "Make the selected window DELTA lines smaller.
@@ -2131,18 +2163,30 @@ negative, enlarge selected window by -DELTA lines or columns.
 Also see the `window-min-height' variable.
 Return nil."
   (interactive "p")
-  (cond
-   ((zerop delta))
-   ((window-size-fixed-p nil horizontal)
-    (error "Selected window has fixed size"))
-   ((window--resizable-p nil (- delta) horizontal)
-    (window-resize nil (- delta) horizontal))
-   (t
-    (window-resize
-     nil (if (> delta 0)
-	     (- (window-min-delta nil horizontal))
-	   (window-max-delta nil horizontal))
-     horizontal))))
+  (let ((minibuffer-window (minibuffer-window)))
+    (cond
+     ((zerop delta))
+     ((window-size-fixed-p nil horizontal)
+      (error "Selected window has fixed size"))
+     ((window-minibuffer-p)
+      (if horizontal
+	  (error "Cannot resize minibuffer window horizontally")
+	(window--resize-mini-window (selected-window) (- delta))))
+     ((and (not horizontal)
+	   (window-full-height-p)
+	   (eq (window-frame minibuffer-window) (selected-frame))
+	   (not resize-mini-windows))
+      ;; If the selected window is full height and `resize-mini-windows'
+      ;; is nil, resize the minibuffer window.
+      (window--resize-mini-window minibuffer-window delta))
+     ((window--resizable-p nil (- delta) horizontal)
+      (window-resize nil (- delta) horizontal))
+     (t
+      (window-resize
+       nil (if (> delta 0)
+	       (- (window-min-delta nil horizontal))
+	     (window-max-delta nil horizontal))
+       horizontal)))))
 
 (defun maximize-window (&optional window)
   "Maximize WINDOW.

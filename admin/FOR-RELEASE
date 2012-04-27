@@ -61,7 +61,7 @@ sk	Miroslav Vaško
 
 ** Consider bumping customize-changed-options-previous-release.
 
-** cusver-check from admin.el cam help find new defcustoms missing
+** cusver-check from admin.el can help find new defcustoms missing
 :version tags.
 
 * BUGS
@@ -229,7 +229,7 @@ syntax.texi       cyd
 text.texi         cyd
 tips.texi         rgm
 variables.texi    cyd
-windows.texi      
+windows.texi      rgm (skimmed)
 
 
 Local variables:

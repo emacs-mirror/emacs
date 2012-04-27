@@ -103,7 +103,7 @@ interpretation.  @xref{Command Loop}.
 @dfn{form} (or an @dfn{expression}).  How Emacs evaluates a form
 depends on its data type.  Emacs has three different kinds of form
 that are evaluated differently: symbols, lists, and ``all other
-types.''  This section describes all three kinds, one by one, starting
+types''.  This section describes all three kinds, one by one, starting
 with the ``all other types'' which are self-evaluating forms.
 
 @menu
@@ -303,6 +303,22 @@ function, not a symbol.
 @noindent
 Executing the function itself evaluates its body; this does involve
 symbol function indirection when calling @code{erste}.
+
+  This form is rarely used and is now deprecated.  Instead, you should write it
+as:
+
+@smallexample
+@group
+(funcall (lambda (arg) (erste arg))
+         '(1 2 3))
+@end group
+@end smallexample
+or just
+@smallexample
+@group
+(let ((arg '(1 2 3))) (erste arg))
+@end group
+@end smallexample
 
   The built-in function @code{indirect-function} provides an easy way to
 perform symbol function indirection explicitly.

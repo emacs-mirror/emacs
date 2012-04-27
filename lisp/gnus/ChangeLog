@@ -1,3 +1,7 @@
+2012-04-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnus.el (debbugs-gnu): Don't override existing autoload definition.
+
 2012-04-26  Daiki Ueno  <ueno@unixuser.org>
 
 	* plstore.el (plstore-called-interactively-p): New compat macro copied

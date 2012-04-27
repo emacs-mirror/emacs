@@ -323,7 +323,8 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 		  (cond
 		   ((null result)
 		    ;; Not looking at an xml start tag.
-		    (forward-char 1))
+		    (unless (eobp)
+		      (forward-char 1)))
 		   ((and xml (not xml-sub-parser))
 		    ;; Translation of rule [1] of XML specifications
 		    (error "XML: (Not Well-Formed) Only one root tag allowed"))
@@ -422,7 +423,8 @@ Returns one of:
      ((looking-at "<!--")
       (search-forward "-->")
       (skip-syntax-forward " ")
-      (xml-parse-tag parse-dtd xml-ns))
+      (unless (eobp)
+	(xml-parse-tag parse-dtd xml-ns)))
      ;;  end tag
      ((looking-at "</")
       '())

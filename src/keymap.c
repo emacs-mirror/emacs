@@ -2553,7 +2553,8 @@ where_is_internal (Lisp_Object definition, Lisp_Object keymaps,
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
        doc: /* Return list of keys that invoke DEFINITION.
 If KEYMAP is a keymap, search only KEYMAP and the global keymap.
-If KEYMAP is nil, search all the currently active keymaps.
+If KEYMAP is nil, search all the currently active keymaps, except
+ for `overriding-local-map' (which is ignored).
 If KEYMAP is a list of keymaps, search only those keymaps.
 
 If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,
@@ -2568,9 +2569,17 @@ If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
 to other keymaps or slots.  This makes it possible to search for an
 indirect definition itself.
 
-If optional 5th arg NO-REMAP is non-nil, don't search for key sequences
-that invoke a command which is remapped to DEFINITION, but include the
-remapped command in the returned list.  */)
+The optional 5th arg NO-REMAP alters how command remapping is handled:
+
+- If another command OTHER-COMMAND is remapped to DEFINITION, normally
+  search for the bindings of OTHER-COMMAND and include them in the
+  returned list.  But if NO-REMAP is non-nil, include the vector
+  [remap OTHER-COMMAND] in the returned list instead, without
+  searching for those other bindings.
+
+- If DEFINITION is remapped to OTHER-COMMAND, normally return the
+  bindings for OTHER-COMMAND.  But if NO-REMAP is non-nil, return the
+  bindings for DEFINITION instead, ignoring its remapping.  */)
   (Lisp_Object definition, Lisp_Object keymap, Lisp_Object firstonly, Lisp_Object noindirect, Lisp_Object no_remap)
 {
   /* The keymaps in which to search.  */

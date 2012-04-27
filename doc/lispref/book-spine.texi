@@ -20,8 +20,8 @@
 @center by
 @center Bil Lewis,
 @center Dan LaLiberte,
-@center and the
-@center GNU Manual Group
+@center the GNU Manual Group,
+@center et al.
 @sp 5
 @center Free Software Foundation
 @bye

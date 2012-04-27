@@ -1,3 +1,9 @@
+2012-04-26  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org/OrgOdtStyles.xml (OrgDescriptionList): Modify style.  With
+	this change, in a description list, if the description paragraph
+	spawns multiple lines then it will correctly indented.
+
 2012-04-20  Glenn Morris  <rgm@gnu.org>
 
 	* CONTRIBUTE: Expand a bit on copyright assignments.

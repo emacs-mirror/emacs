@@ -91,7 +91,6 @@ Emacs, the Emacs manual is often the best starting point.
 * Bugs and problems::
 * Compiling and installing Emacs::
 * Finding Emacs and related packages::
-* Major packages and programs::
 * Key bindings::
 * Alternate character sets::
 * Mail and news::
@@ -1050,7 +1049,7 @@ A new command @kbd{customize-themes} allows you to easily change the
 appearance of your Emacs.
 
 @item
-Emacs can be compiled with the Gtk+ 3 toolkit.
+Emacs can be compiled with the GTK+ 3 toolkit.
 
 @item
 Support for several new external libraries can be included at compile
@@ -3242,6 +3241,7 @@ problem (@pxref{Reporting bugs}).
 * Finding Emacs on the Internet::
 * Finding a package with particular functionality::
 * Packages that do not come with Emacs::
+* Spell-checkers::
 * Current GNU distributions::
 * Difference between Emacs and XEmacs::
 * Emacs for minimalists::
@@ -3322,6 +3322,29 @@ Several packages are stored in
 
 Read the file @file{etc/MORE.STUFF} for more information about
 external packages.
+
+@node Spell-checkers
+@section Spell-checkers
+@cindex Spell-checker
+@cindex Checking spelling
+@cindex Ispell
+@cindex Aspell
+@cindex Hunspell
+
+Various spell-checkers are compatible with Emacs, including:
+
+@table @b
+
+@item GNU Aspell
+@uref{http://aspell.net/}
+
+@item Ispell
+@uref{http://fmg-www.cs.ucla.edu/geoff/ispell.html}
+
+@item Hunspell
+@uref{http://hunspell.sourceforge.net/}
+
+@end table
 
 @node Current GNU distributions
 @section Where can I get other up-to-date GNU stuff?
@@ -3441,124 +3464,6 @@ See the file @file{nextstep/INSTALL} in the distribution.
 
 Beginning with version 22.1, Emacs supports Mac OS X natively.
 See the file @file{nextstep/INSTALL} in the distribution.
-
-@c ------------------------------------------------------------
-@node Major packages and programs
-@chapter Major packages and programs
-@cindex Major packages and programs
-
-@menu
-* VM::
-* AUCTeX::
-* BBDB::
-* Spell-checkers::
-* Emacs/W3::
-* EDB::
-* JDEE::
-@end menu
-
-@node VM
-@section VM (View Mail) --- another mail reader within Emacs, with MIME support
-@cindex VM
-@cindex Alternative mail software
-@cindex View Mail
-@cindex E-mail reader, VM
-
-@table @b
-
-@item Web site
-@uref{http://launchpad.net/vm}
-(was @uref{http://www.nongnu.org/viewmail/})
-
-@item Informational newsgroup
-@uref{news:gnu.emacs.vm.info}@*
-
-@item Bug reports newsgroup
-@uref{news:gnu.emacs.vm.bug}@*
-@end table
-
-VM was originally written by @uref{http://www.wonderworks.com/vm/,Kyle Jones}.
-@uref{ftp://ftp.wonderworks.com/pub/vm/,Older versions} of VM remain
-available.
-
-
-@node AUCTeX
-@section AUC@TeX{} --- enhanced @TeX{} modes with debugging facilities
-@cindex Mode for @TeX{}
-@cindex @TeX{} mode
-@cindex AUC@TeX{} mode for editing @TeX{}
-@cindex Writing and debugging @TeX{}
-
-AUC@TeX{} is a set of sophisticated major modes for @TeX{}, LaTeX,
-ConTeXt, and Texinfo offering context-sensitive syntax highlighting,
-indentation, formatting and folding, macro completion, @TeX{} shell
-functionality, and debugging.  Be also sure to check out
-@ref{Introduction, RefTeX, Introduction, reftex, Ref@TeX{} User Manual}.
-Current versions of AUC@TeX{} include the
-@uref{http://www.gnu.org/software/auctex/preview-latex.html,preview-latex}
-package for WYSIWYG previews of various LaTeX constructs in the Emacs
-source buffer.
-
-@uref{http://www.gnu.org/software/auctex/, AUCTeX}
-
-@node BBDB
-@section BBDB --- personal Info Rolodex integrated with mail/news readers
-@cindex BBDB
-@cindex Rolodex-like functionality
-@cindex Integrated contact database
-@cindex Contact database
-@cindex Big Brother Database
-@cindex Address book
-
-@uref{http://bbdb.sourceforge.net/, The Insidious Big Brother Database}
-
-@node Spell-checkers
-@section Spell-checkers
-@cindex Spell-checker
-@cindex Checking spelling
-@cindex Ispell
-@cindex Aspell
-@cindex Hunspell
-
-Various spell-checkers are compatible with Emacs, including:
-
-@table @b
-
-@item GNU Aspell
-@uref{http://aspell.net/}
-
-@item Ispell
-@uref{http://fmg-www.cs.ucla.edu/geoff/ispell.html}
-
-@item Hunspell
-@uref{http://hunspell.sourceforge.net/}
-
-@end table
-
-@node Emacs/W3
-@section Emacs/W3 --- A World Wide Web browser inside of Emacs
-@cindex WWW browser
-@cindex Web browser
-@cindex HTML browser in Emacs
-@cindex @code{w3-mode}
-
-@uref{http://www.gnu.org/software/w3/, Emacs/W3}
-
-@node EDB
-@section EDB --- Database program for Emacs; replaces forms editing modes
-@cindex EDB
-@cindex Database
-@cindex Forms mode
-
-@uref{http://gnuvola.org/software/edb/, The Emacs Database}
-
-@node JDEE
-@section JDEE --- Integrated development environment for Java
-@cindex Java development environment
-@cindex Integrated Java development environment
-@cindex JDEE
-
-@uref{http://jdee.sourceforge.net/, A Java Development Environment for Emacs}
 
 @c ------------------------------------------------------------
 @node Key bindings

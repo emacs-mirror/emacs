@@ -283,7 +283,7 @@ buffer is put in Fundamental mode (@pxref{Major Mode Conventions}).
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
 * Basic Major Modes::       Modes that other modes are often derived from.
-* Mode Hooks::              Hooks run at the end of major mode commands.
+* Mode Hooks::              Hooks run at the end of major mode functions.
 * Tabulated List Mode::     Parent mode for buffers containing tabulated data.
 * Generic Modes::           Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
@@ -384,7 +384,7 @@ reserved for users.
 
 A major mode can also rebind the keys @kbd{M-n}, @kbd{M-p} and
 @kbd{M-s}.  The bindings for @kbd{M-n} and @kbd{M-p} should normally
-be some kind of ``moving forward and backward,'' but this does not
+be some kind of ``moving forward and backward'', but this does not
 necessarily mean cursor motion.
 
 It is legitimate for a major mode to rebind a standard key sequence if
@@ -938,7 +938,7 @@ such a major mode, please correct it to follow these conventions.
 
   When you defined a major mode using @code{define-derived-mode}, it
 automatically makes sure these conventions are followed.  If you
-define a major mode ``by hand,'' not using @code{define-derived-mode},
+define a major mode ``by hand'', not using @code{define-derived-mode},
 use the following functions to handle these conventions automatically.
 
 @defun run-mode-hooks &rest hookvars
@@ -1122,8 +1122,8 @@ documentation for the mode command.  If you do not supply it,
 The argument @var{comment-list} is a list in which each element is
 either a character, a string of one or two characters, or a cons cell.
 A character or a string is set up in the mode's syntax table as a
-``comment starter.''  If the entry is a cons cell, the @sc{car} is set
-up as a ``comment starter'' and the @sc{cdr} as a ``comment ender.''
+``comment starter''.  If the entry is a cons cell, the @sc{car} is set
+up as a ``comment starter'' and the @sc{cdr} as a ``comment ender''.
 (Use @code{nil} for the latter if you want comments to end at the end
 of the line.)  Note that the syntax table mechanism has limitations
 about what comment starters and enders are actually possible.
@@ -1648,7 +1648,7 @@ See the command \\[hungry-electric-delete]."
 @end smallexample
 
 @noindent
-This defines a minor mode named ``Hungry mode,'' a command named
+This defines a minor mode named ``Hungry mode'', a command named
 @code{hungry-mode} to toggle it, a variable named @code{hungry-mode}
 which indicates whether the mode is enabled, and a variable named
 @code{hungry-mode-map} which holds the keymap that is active when the
@@ -3374,7 +3374,7 @@ Another one is SMIE which takes an approach in the spirit
 of Lisp sexps and adapts it to non-Lisp languages.
 
 @menu
-* SMIE::                        A simple minded indentation engine
+* SMIE::                        A simple minded indentation engine.
 @end menu
 
 @node SMIE
@@ -3400,14 +3400,14 @@ languages cannot be parsed correctly using SMIE, at least not without
 resorting to some special tricks (@pxref{SMIE Tricks}).
 
 @menu
-* SMIE setup::                  SMIE setup and features
-* Operator Precedence Grammars::  A very simple parsing technique
-* SMIE Grammar::                Defining the grammar of a language
-* SMIE Lexer::                  Defining tokens
-* SMIE Tricks::                 Working around the parser's limitations
-* SMIE Indentation::            Specifying indentation rules
-* SMIE Indentation Helpers::    Helper functions for indentation rules
-* SMIE Indentation Example::    Sample indentation rules
+* SMIE setup::                  SMIE setup and features.
+* Operator Precedence Grammars::  A very simple parsing technique.
+* SMIE Grammar::                Defining the grammar of a language.
+* SMIE Lexer::                  Defining tokens.
+* SMIE Tricks::                 Working around the parser's limitations.
+* SMIE Indentation::            Specifying indentation rules.
+* SMIE Indentation Helpers::    Helper functions for indentation rules.
+* SMIE Indentation Example::    Sample indentation rules.
 @end menu
 
 @node SMIE setup

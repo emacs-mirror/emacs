@@ -96,7 +96,7 @@ of the major mode, then global bindings (@code{describe-bindings}).
 @item C-h c @var{key}
 Show the name of the command that the key sequence @var{key} is bound
 to (@code{describe-key-briefly}).  Here @kbd{c} stands for
-``character.''  For more extensive information on @var{key}, use
+``character''.  For more extensive information on @var{key}, use
 @kbd{C-h k}.
 @item C-h d @var{topics} @key{RET}
 Display the commands and variables whose documentation matches

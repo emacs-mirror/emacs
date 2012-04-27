@@ -1085,12 +1085,16 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
   for (i = 0; i < LAST_AREA + 1; ++i)
     {
       struct glyph *temp = a->glyphs[i];
-      short used_tem = a->used[i];
 
       a->glyphs[i] = b->glyphs[i];
       b->glyphs[i] = temp;
-      a->used[i] = b->used[i];
-      b->used[i] = used_tem;
+      if (i < LAST_AREA)
+	{
+	  short used_tem = a->used[i];
+
+	  a->used[i] = b->used[i];
+	  b->used[i] = used_tem;
+	}
     }
   a->hash = b->hash;
   b->hash = hash_tem;
@@ -1105,7 +1109,7 @@ static inline void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
   struct glyph *pointers[1 + LAST_AREA];
-  short used[1 + LAST_AREA];
+  short used[LAST_AREA];
   unsigned hashval;
 
   /* Save glyph pointers of TO.  */

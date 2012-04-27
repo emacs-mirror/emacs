@@ -74,13 +74,13 @@ alternatives:
 Keys which are numbers are ``the same'' if they are @code{equal}, that
 is, if they are equal in value and either both are integers or both
 are floating point numbers; otherwise, two distinct objects are never
-``the same.''
+``the same''.
 
 @item eq
 Any two distinct Lisp objects are ``different'' as keys.
 
 @item equal
-Two Lisp objects are ``the same,'' as keys, if they are equal
+Two Lisp objects are ``the same'', as keys, if they are equal
 according to @code{equal}.
 @end table
 
@@ -128,7 +128,7 @@ doing that takes some extra time.
 The default size is 65.
 
 @item :rehash-size @var{rehash-size}
-When you add an association to a hash table and the table is ``full,''
+When you add an association to a hash table and the table is ``full'',
 it grows automatically.  This value specifies how to make the hash table
 larger, at that time.
 
@@ -262,7 +262,7 @@ will use @var{test-fn} to compare key values, and @var{hash-fn} to compute
 a ``hash code'' from a key value.
 
 The function @var{test-fn} should accept two arguments, two keys, and
-return non-@code{nil} if they are considered ``the same.''
+return non-@code{nil} if they are considered ``the same''.
 
 The function @var{hash-fn} should accept one argument, a key, and return
 an integer that is the ``hash code'' of that key.  For good results, the

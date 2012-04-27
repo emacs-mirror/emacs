@@ -817,7 +817,7 @@ For example,
 
 @noindent
 describes a variable for which @code{t} means yes, @code{nil} means no,
-and @code{foo} means ``ask.''
+and @code{foo} means ``ask''.
 
 @item (other @var{value})
 This alternative can match any Lisp value, but if the user chooses this
@@ -834,7 +834,7 @@ For example,
 
 @noindent
 describes a variable for which @code{t} means yes, @code{nil} means no,
-and anything else means ``ask.''  If the user chooses @samp{Ask} from
+and anything else means ``ask''.  If the user chooses @samp{Ask} from
 the menu of alternatives, that specifies the value @code{foo}; but any
 other value (not @code{t}, @code{nil} or @code{foo}) displays as
 @samp{Ask}, just like @code{foo}.

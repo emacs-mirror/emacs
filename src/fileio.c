@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2044,9 +2044,10 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 #if HAVE_LIBSELINUX
   if (conlength > 0)
     {
-      /* Set the modified context back to the file. */
+      /* Set the modified context back to the file.  */
       fail = fsetfilecon (ofd, con);
-      if (fail)
+      /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
+      if (fail && errno != ENOTSUP)
 	report_file_error ("Doing fsetfilecon", Fcons (newname, Qnil));
 
       freecon (con);
@@ -2917,10 +2918,11 @@ compiled with SELinux support.  */)
 		error ("Doing context_range_set");
 	    }
 
-	  /* Set the modified context back to the file. */
+	  /* Set the modified context back to the file.  */
 	  fail = lsetfilecon (SSDATA (encoded_absname),
 			      context_str (parsed_con));
-	  if (fail)
+          /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
+	  if (fail && errno != ENOTSUP)
 	    report_file_error ("Doing lsetfilecon", Fcons (absname, Qnil));
 
 	  context_free (parsed_con);
