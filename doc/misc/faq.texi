@@ -251,7 +251,7 @@ reference to follow it.
 Emacs manual.
 
 @node File-name conventions
-@section What are @file{etc/GNU}, @file{src/config.h}, @file{site-lisp/default.el}, etc.?
+@section What are @file{src/config.h}, @file{site-lisp/default.el}, etc.?
 @cindex File-name conventions
 @cindex Conventions for file names
 @cindex Directories and files that come with Emacs
@@ -4132,7 +4132,7 @@ set up @code{w32-bdf-filename-alist}:
 
 Now, create fontsets for the BDF fonts:
 
-@lisp
+@smallexample
   (create-fontset-from-fontset-spec
    "-*-fixed-medium-r-normal-*-16-*-*-*-c-*-fontset-bdf,
    japanese-jisx0208:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0208.1983-*,
@@ -4144,7 +4144,7 @@ Now, create fontsets for the BDF fonts:
    tibetan-1-column:-TibMdXA-fixed-medium-r-normal--16-160-72-72-m-80-MuleTibetan-1,
    ethiopic:-Admas-Ethiomx16f-Medium-R-Normal--16-150-100-100-M-160-Ethiopic-Unicode,
    tibetan:-TibMdXA-fixed-medium-r-normal--16-160-72-72-m-160-MuleTibetan-0")
-@end lisp
+@end smallexample
 
 Many of the international bdf fonts from Intlfonts are type 0, and
 therefore need to be added to font-encoding-alist:

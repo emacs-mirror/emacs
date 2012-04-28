@@ -2,6 +2,8 @@
 
 	* faq.texi: Convert @inforefs to @xrefs.
 	Fix some malformed cross-references.
+	(File-name conventions): Shorten section name to avoid overfull line.
+	(How to add fonts): Use smallexample to avoid overfull lines.
 
 2012-04-26  Ippei Furuhashi  <top.tuna+orgmode@gmail.com>  (tiny change)
 
