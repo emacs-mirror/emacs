@@ -42,7 +42,6 @@
 (require 'password-cache)
 (require 'mm-util)
 (require 'gnus-util)
-(require 'assoc)
 
 (eval-when-compile (require 'cl))
 (require 'eieio)
@@ -853,6 +852,21 @@ while \(:host t) would find all host entries."
 
 ;;; Backend specific parsing: netrc/authinfo backend
 
+(defun auth-source--aput-1 (alist key val)
+  (let ((seen ())
+        (rest alist))
+    (while (and (consp rest) (not (equal key (caar rest))))
+      (push (pop rest) seen))
+    (cons (cons key val)
+          (if (null rest) alist
+            (nconc (nreverse seen)
+                   (if (equal key (caar rest)) (cdr rest) rest))))))
+(defmacro auth-source--aput (var key val)
+  `(setq ,var (auth-source--aput-1 ,var ,key ,val)))
+
+(defun auth-source--aget (alist key)
+  (cdr (assoc key alist)))
+
 ;;; (auth-source-netrc-parse "~/.authinfo.gpg")
 (defun* auth-source-netrc-parse (&rest
                                  spec
@@ -888,10 +902,11 @@ Note that the MAX parameter is used so we can exit the parse early."
             ;; cache all netrc files (used to be just .gpg files)
             ;; Store the contents of the file heavily encrypted in memory.
             ;; (note for the irony-impaired: they are just obfuscated)
-            (aput 'auth-source-netrc-cache file
-                  (list :mtime (nth 5 (file-attributes file))
-                        :secret (lexical-let ((v (mapcar '1+ (buffer-string))))
-                                  (lambda () (apply 'string (mapcar '1- v)))))))
+            (auth-source--aput
+             auth-source-netrc-cache file
+             (list :mtime (nth 5 (file-attributes file))
+                   :secret (lexical-let ((v (mapcar '1+ (buffer-string))))
+                             (lambda () (apply 'string (mapcar '1- v)))))))
           (goto-char (point-min))
           ;; Go through the file, line by line.
           (while (and (not (eobp))
@@ -937,21 +952,21 @@ Note that the MAX parameter is used so we can exit the parse early."
                        (auth-source-search-collection
                         host
                         (or
-                         (aget alist "machine")
-                         (aget alist "host")
+                         (auth-source--aget alist "machine")
+                         (auth-source--aget alist "host")
                          t))
                        (auth-source-search-collection
                         user
                         (or
-                         (aget alist "login")
-                         (aget alist "account")
-                         (aget alist "user")
+                         (auth-source--aget alist "login")
+                         (auth-source--aget alist "account")
+                         (auth-source--aget alist "user")
                          t))
                        (auth-source-search-collection
                         port
                         (or
-                         (aget alist "port")
-                         (aget alist "protocol")
+                         (auth-source--aget alist "port")
+                         (auth-source--aget alist "protocol")
                          t))
                        (or
                         ;; the required list of keys is nil, or
@@ -1166,7 +1181,7 @@ See `auth-source-search' for details on SPEC."
                           ;; just the value otherwise
                           (t (symbol-value br)))))
           (when br-choice
-            (aput 'valist br br-choice)))))
+            (auth-source--aput valist br br-choice)))))
 
     ;; for extra required elements, see if the spec includes a value for them
     (dolist (er create-extra)
@@ -1175,17 +1190,18 @@ See `auth-source-search' for details on SPEC."
                         collect (nth i spec))))
         (dolist (k keys)
           (when (equal (symbol-name k) name)
-            (aput 'valist er (plist-get spec k))))))
+            (auth-source--aput valist er (plist-get spec k))))))
 
     ;; for each required element
     (dolist (r required)
-      (let* ((data (aget valist r))
+      (let* ((data (auth-source--aget valist r))
              ;; take the first element if the data is a list
              (data (or (auth-source-netrc-element-or-first data)
                        (plist-get current-data
                                   (intern (format ":%s" r) obarray))))
              ;; this is the default to be offered
-             (given-default (aget auth-source-creation-defaults r))
+             (given-default (auth-source--aget
+                             auth-source-creation-defaults r))
              ;; the default supplementals are simple:
              ;; for the user, try `given-default' and then (user-login-name);
              ;; otherwise take `given-default'
@@ -1197,22 +1213,22 @@ See `auth-source-search' for details on SPEC."
                                   (cons 'user
                                         (or
                                          (auth-source-netrc-element-or-first
-                                          (aget valist 'user))
+                                          (auth-source--aget valist 'user))
                                          (plist-get artificial :user)
                                          "[any user]"))
                                   (cons 'host
                                         (or
                                          (auth-source-netrc-element-or-first
-                                          (aget valist 'host))
+                                          (auth-source--aget valist 'host))
                                          (plist-get artificial :host)
                                          "[any host]"))
                                   (cons 'port
                                         (or
                                          (auth-source-netrc-element-or-first
-                                          (aget valist 'port))
+                                          (auth-source--aget valist 'port))
                                          (plist-get artificial :port)
                                          "[any port]"))))
-             (prompt (or (aget auth-source-creation-prompts r)
+             (prompt (or (auth-source--aget auth-source-creation-prompts r)
                          (case r
                            (secret "%p password for %u@%h: ")
                            (user "%p user name for %h: ")
@@ -1221,9 +1237,9 @@ See `auth-source-search' for details on SPEC."
                          (format "Enter %s (%%u@%%h:%%p): " r)))
              (prompt (auth-source-format-prompt
                       prompt
-                      `((?u ,(aget printable-defaults 'user))
-                        (?h ,(aget printable-defaults 'host))
-                        (?p ,(aget printable-defaults 'port))))))
+                      `((?u ,(auth-source--aget printable-defaults 'user))
+                        (?h ,(auth-source--aget printable-defaults 'host))
+                        (?p ,(auth-source--aget printable-defaults 'port))))))
 
         ;; Store the data, prompting for the password if needed.
         (setq data (or data
@@ -1384,7 +1400,7 @@ Respects `auth-source-save-behavior'.  Uses
                file)
               (message "Saved new authentication information to %s" file)
               nil))))
-      (aput 'auth-source-netrc-cache key "ran"))))
+      (auth-source--aput auth-source-netrc-cache key "ran"))))
 
 ;;; Backend specific parsing: Secrets API backend
 
@@ -1609,7 +1625,7 @@ authentication tokens:
                           ;; just the value otherwise
                           (t (symbol-value br)))))
           (when br-choice
-            (aput 'valist br br-choice)))))
+            (auth-source--aput valist br br-choice)))))
 
     ;; for extra required elements, see if the spec includes a value for them
     (dolist (er create-extra)
@@ -1618,17 +1634,18 @@ authentication tokens:
                         collect (nth i spec))))
         (dolist (k keys)
           (when (equal (symbol-name k) name)
-            (aput 'valist er (plist-get spec k))))))
+            (auth-source--aput valist er (plist-get spec k))))))
 
     ;; for each required element
     (dolist (r required)
-      (let* ((data (aget valist r))
+      (let* ((data (auth-source--aget valist r))
              ;; take the first element if the data is a list
              (data (or (auth-source-netrc-element-or-first data)
                        (plist-get current-data
                                   (intern (format ":%s" r) obarray))))
              ;; this is the default to be offered
-             (given-default (aget auth-source-creation-defaults r))
+             (given-default (auth-source--aget
+                             auth-source-creation-defaults r))
              ;; the default supplementals are simple:
              ;; for the user, try `given-default' and then (user-login-name);
              ;; otherwise take `given-default'
@@ -1640,22 +1657,22 @@ authentication tokens:
                                   (cons 'user
                                         (or
                                          (auth-source-netrc-element-or-first
-                                          (aget valist 'user))
+                                          (auth-source--aget valist 'user))
                                          (plist-get artificial :user)
                                          "[any user]"))
                                   (cons 'host
                                         (or
                                          (auth-source-netrc-element-or-first
-                                          (aget valist 'host))
+                                          (auth-source--aget valist 'host))
                                          (plist-get artificial :host)
                                          "[any host]"))
                                   (cons 'port
                                         (or
                                          (auth-source-netrc-element-or-first
-                                          (aget valist 'port))
+                                          (auth-source--aget valist 'port))
                                          (plist-get artificial :port)
                                          "[any port]"))))
-             (prompt (or (aget auth-source-creation-prompts r)
+             (prompt (or (auth-source--aget auth-source-creation-prompts r)
                          (case r
                            (secret "%p password for %u@%h: ")
                            (user "%p user name for %h: ")
@@ -1664,20 +1681,21 @@ authentication tokens:
                          (format "Enter %s (%%u@%%h:%%p): " r)))
              (prompt (auth-source-format-prompt
                       prompt
-                      `((?u ,(aget printable-defaults 'user))
-                        (?h ,(aget printable-defaults 'host))
-                        (?p ,(aget printable-defaults 'port))))))
+                      `((?u ,(auth-source--aget printable-defaults 'user))
+                        (?h ,(auth-source--aget printable-defaults 'host))
+                        (?p ,(auth-source--aget printable-defaults 'port))))))
 
         ;; Store the data, prompting for the password if needed.
         (setq data (or data
                        (if (eq r 'secret)
                            (or (eval default) (read-passwd prompt))
                          (if (stringp default)
-                             (read-string (if (string-match ": *\\'" prompt)
-                                              (concat (substring prompt 0 (match-beginning 0))
-                                                      " (default " default "): ")
-                                            (concat prompt "(default " default ") "))
-                                          nil nil default)
+                             (read-string
+                              (if (string-match ": *\\'" prompt)
+                                  (concat (substring prompt 0 (match-beginning 0))
+                                          " (default " default "): ")
+                                (concat prompt "(default " default ") "))
+                              nil nil default)
                            (eval default)))))
 
         (when data

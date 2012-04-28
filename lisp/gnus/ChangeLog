@@ -1,3 +1,9 @@
+2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* auth-source.el (auth-source--aput-1, auth-source--aput)
+	(auth-source--aget): New functions and macros.
+	Use them instead of aput/aget.
+
 2012-04-27  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnus.el (debbugs-gnu): Don't override existing autoload definition.

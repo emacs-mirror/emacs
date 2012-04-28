@@ -1,3 +1,17 @@
+2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid the obsolete `assoc' package.
+	* speedbar.el (speedbar-refresh): Avoid adelete.
+	(speedbar-file-lists): Simplify and avoid aput.
+	* man.el (Man--sections, Man--refpages): New vars, replacing
+	Man-sections-alist and Man-refpages-alist.
+	(Man-build-section-alist, Man-build-references-alist):
+	Use them; avoid aput.
+	(Man--last-section, Man--last-refpage): New vars.
+	(Man-follow-manual-reference): Use them.
+	Use the `default' arg of completing-read.
+	(Man-goto-section): Idem.  Move prompt to the `interactive' spec.
+
 2012-04-27  Chong Yidong  <cyd@gnu.org>
 
 	* vc/diff.el (diff-sentinel): Go to bob (Bug#10259).
