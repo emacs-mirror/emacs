@@ -1,3 +1,15 @@
+2012-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* xresources.texi (Resources):
+	* mule.texi (Language Environments):
+	* misc.texi (Amusements):
+	* maintaining.texi (VC Change Log):
+	* frames.texi (Fonts):
+	* custom.texi (Specifying File Variables, Minibuffer Maps):
+	* cmdargs.texi (Initial Options):
+	* building.texi (Flymake):
+	Reword to remove/reduce some overly long/short lines.
+
 2012-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi: Some fixes for detailed menu.

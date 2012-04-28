@@ -350,7 +350,7 @@ to the Emacs session.  The supported language environments
 @cindex Euro sign
 @cindex UTF-8
 @quotation
-ASCII, Belarusian, Bengali, Brazilian Portuguese, Bulgarian,
+ASCII, Belarusian, Bengali, Brazilian Portuguese, Bulgarian, Cham,
 Chinese-BIG5, Chinese-CNS, Chinese-EUC-TW, Chinese-GB, Chinese-GBK,
 Chinese-GB18030, Croatian, Cyrillic-ALT, Cyrillic-ISO, Cyrillic-KOI8,
 Czech, Devanagari, Dutch, English, Esperanto, Ethiopic, French,

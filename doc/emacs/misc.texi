@@ -2481,8 +2481,8 @@ find the one you select (@code{ffap-menu}).
 
 @findex animate-birthday-present
 @cindex animate
-  The @code{animate} package makes text dance.  For an example, try
-@kbd{M-x animate-birthday-present}.
+  The @code{animate} package makes text dance (e.g. try
+@kbd{M-x animate-birthday-present}).
 
 @findex blackbox
 @findex mpuz

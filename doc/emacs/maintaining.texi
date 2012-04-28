@@ -893,7 +893,7 @@ Display the change history for the current repository
 (@code{vc-print-root-log}).
 
 @item C-x v I
-Display the changes that will be received with a pull operation
+Display the changes that a pull operation will retrieve
 (@code{vc-log-incoming}).
 
 @item C-x v O
