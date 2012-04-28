@@ -13,6 +13,7 @@ foo () {
     case toto
     in a) hello                 # KNOWN INDENT BUG
     ;; b) hi                    # KNOWN INDENT BUG
+    ;; c) hi                    # KNOWN INDENT BUG
     esac
 
     case $toto in
@@ -34,7 +35,8 @@ foo () {
             sed -n "/^[_$as_cr_alnum]*_cv_[_$as_cr_alnum]*=/p"
             ;;
     esac |
-        cat                     # KNOWN INDENT BUG
+        grep '.' |              # KNOWN INDENT BUG
+        sed 1d
     
     case toto in
         -exec-prefix=* | --exec_prefix=* | --exec-prefix=* | --exec-prefi=* \

@@ -1,3 +1,8 @@
+2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/shell.sh:
+	* indent/shell.rc: Ad some test cases.
+
 2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/ruby.rb: New file, to test new syntax-propertize code.
