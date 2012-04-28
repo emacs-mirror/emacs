@@ -1,3 +1,12 @@
+2012-04-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not avoid creating empty evaporating overlays (Bug#9642).
+	* buffer.c (Fmove_overlay): Revert the change of 2012-04-23.
+	That is, do not delete an evaporating overlay if it becomes
+	empty after its bounds are adjusted to fit within its buffer.
+	This fix caused other problems, and I'm reverting it until we get
+	to the bottom of them.
+
 2012-04-27  Chong Yidong  <cyd@gnu.org>
 
 	* xselect.c (x_convert_selection): Initialize a pointer (Bug#11315).
