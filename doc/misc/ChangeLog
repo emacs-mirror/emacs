@@ -1,3 +1,8 @@
+2012-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi: Convert @inforefs to @xrefs.
+	Fix some malformed cross-references.
+
 2012-04-26  Ippei Furuhashi  <top.tuna+orgmode@gmail.com>  (tiny change)
 
 	* org.texi (Agenda commands): Fix two typos: give corresponding
