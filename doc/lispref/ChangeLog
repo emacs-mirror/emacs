@@ -1,3 +1,10 @@
+2012-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Packaging Basics):
+	* loading.texi (Autoload):
+	* files.texi (Magic File Names):
+	Reword to remove/reduce some overly long/short lines.
+
 2012-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi, vol1.texi, vol2.texi: Some fixes for detailed menu.
