@@ -1,3 +1,7 @@
+2012-04-29  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Change Hooks): Minor fix for after-change-functions.
+
 2012-04-28  Glenn Morris  <rgm@gnu.org>
 
 	* package.texi (Packaging Basics):
