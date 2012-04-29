@@ -1,3 +1,10 @@
+2012-04-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): If already at a newline from the
+	display string before the 'while' loop, don't walk back the glyphs
+	from it3.glyph_row.  Solves assertion violation when the display
+	string begins with a newline (egg.el).  (Bug#11367)
+
 2012-04-24  Chong Yidong  <cyd@gnu.org>
 
 	* xselect.c (x_convert_selection): Initialize a pointer (Bug#11315).
