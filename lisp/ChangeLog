@@ -1,3 +1,9 @@
+2012-04-29  Chong Yidong  <cyd@gnu.org>
+
+	* follow.el (follow-calc-win-end): Rewrite to handle partial
+	screen lines correctly (Bug#8390).
+	(follow-avoid-tail-recenter): Minor cleanup.
+
 2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Avoid the obsolete `assoc' package.
