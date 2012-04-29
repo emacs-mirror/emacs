@@ -1,3 +1,8 @@
+2012-04-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (scan_lisp_file) [DEBUG]: Also skip if and
+	byte-code forms.  (Bug#11380)
+
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
 	* emacsclient.c (decode_options): Move -t -n corner case handling
