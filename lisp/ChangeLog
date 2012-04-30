@@ -1,3 +1,8 @@
+2012-04-30  Leo Liu  <sdl.web@gmail.com>
+
+	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): Avoid buffer
+	read-only error.
+
 2012-04-29  Chong Yidong  <cyd@gnu.org>
 
 	* follow.el (follow-calc-win-end): Rewrite to handle partial
