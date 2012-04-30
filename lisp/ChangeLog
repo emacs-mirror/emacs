@@ -1,3 +1,8 @@
+2012-04-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer--action-function-custom-type): Fix
+	entry.
+
 2012-04-27  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-version): Update to 5.32.3.
