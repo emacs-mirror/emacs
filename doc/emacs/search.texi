@@ -456,7 +456,7 @@ apply to the lazy highlight, which always matches whole words.
 @cindex search for a regular expression
 
   A @dfn{regular expression} (or @dfn{regexp} for short) is a pattern
-that denotes a class of alternative strings to match.  GNU Emacs
+that denotes a class of alternative strings to match.  Emacs
 provides both incremental and nonincremental ways to search for a
 match for a regexp.  The syntax of regular expressions is explained in
 the next section.

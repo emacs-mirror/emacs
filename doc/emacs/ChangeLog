@@ -1,5 +1,7 @@
 2012-04-30  Glenn Morris  <rgm@gnu.org>
 
+	* search.texi (Regexp Search): Just say "Emacs".
+
 	* display.texi (Auto Scrolling):
 	Reword to avoid repetition and improve page break.
 
