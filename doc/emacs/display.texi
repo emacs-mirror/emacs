@@ -260,14 +260,11 @@ placed from the top margin of the window; thus, as with
   These two variables are ignored if either @code{scroll-step} or
 @code{scroll-conservatively} are set to a non-zero value.
 
-  Note that @code{scroll-margin}, described below, limits the amount
-of scrolling so as to put point outside of the top or bottom margin,
-even if aggressive scrolling specifies a fraction @var{f} that is
-larger than the window portion between the top and the bottom margins.
-
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
-to the top or bottom of a window.  Its value is a number of screen
+to the top or bottom of a window (even if aggressive scrolling
+specifies a fraction @var{f} that is larger than the window portion
+between the top and the bottom margins).  Its value is a number of screen
 lines; if point comes within that many lines of the top or bottom of
 the window, Emacs performs automatic scrolling.  By default,
 @code{scroll-margin} is 0.

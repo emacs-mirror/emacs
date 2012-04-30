@@ -1,3 +1,8 @@
+2012-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Auto Scrolling):
+	Reword to avoid repetition and improve page break.
+
 2012-04-28  Glenn Morris  <rgm@gnu.org>
 
 	* xresources.texi (Resources):
@@ -9225,7 +9230,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
