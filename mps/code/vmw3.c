@@ -151,7 +151,7 @@ Res VMCreate(VM *vmReturn, Size size)
   return ResOK;
 
 failReserve:
-  b = VirtualFree((LPVOID)vm, (DWORD)0, MEM_RELEASE);
+  b = VirtualFree((LPVOID)vm, (SIZE_T)0, MEM_RELEASE);
   AVER(b != 0);
   return res;
 }
@@ -171,10 +171,10 @@ void VMDestroy(VM vm)
    * fail and it would be nice to have a dead sig there. */
   vm->sig = SigInvalid;
 
-  b = VirtualFree((LPVOID)vm->base, (DWORD)0, MEM_RELEASE);
+  b = VirtualFree((LPVOID)vm->base, (SIZE_T)0, MEM_RELEASE);
   AVER(b != 0);
 
-  b = VirtualFree((LPVOID)vm, (DWORD)0, MEM_RELEASE);
+  b = VirtualFree((LPVOID)vm, (SIZE_T)0, MEM_RELEASE);
   AVER(b != 0);
   EVENT_P(VMDestroy, vm);
 }
@@ -238,7 +238,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   /* .improve.query-map: We could check that the pages we are about to
    * map are unmapped using VirtualQuery. */
 
-  b = VirtualAlloc((LPVOID)base, (DWORD)AddrOffset(base, limit),
+  b = VirtualAlloc((LPVOID)base, (SIZE_T)AddrOffset(base, limit),
                    MEM_COMMIT, PAGE_EXECUTE_READWRITE);
   if (b == NULL)
     return ResMEMORY;
@@ -268,7 +268,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   /* .improve.query-unmap: Could check that the pages we are about */
   /* to unmap are mapped, using VirtualQuery. */
-  b = VirtualFree((LPVOID)base, (DWORD)AddrOffset(base, limit), MEM_DECOMMIT);
+  b = VirtualFree((LPVOID)base, (SIZE_T)AddrOffset(base, limit), MEM_DECOMMIT);
   AVER(b != 0);  /* .assume.free.success */
   vm->mapped -= AddrOffset(base, limit);
 

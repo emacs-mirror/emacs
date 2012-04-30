@@ -483,8 +483,13 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   vmArena->spareSize = 0;
 
   /* .blacklist: We blacklist the zones corresponding to small integers. */
+  /* @@@@ (Addr)1 and (Addr)-1 don't correctly express the problem, that
+     we're trying to avoid false pointers from places that have had integers
+     stored.  Also, this only avoids 1 and -1 and should probably avoid
+     other patterns, such as two 32-bit 1s in a 64 bit field.
+     Should probably use a union!  RB 2012-03-26 */
   vmArena->blacklist =
-    ZoneSetAdd(arena, ZoneSetAdd(arena, ZoneSetEMPTY, (Addr)1), (Addr)-1);
+    ZoneSetAdd(arena, ZoneSetAdd(arena, ZoneSetEMPTY, (Addr)1LL), (Addr)-1LL);
 
   for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
     vmArena->genZoneSet[gen] = ZoneSetEMPTY;
