@@ -2938,12 +2938,11 @@ case "$opsys" in
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
   ##  We used to use -lc -lcurses, but this may be cleaner.
+  ## FIXME?  But TERMINFO = yes on hpux (it used to be explicitly
+  # set that way, now it uses the default).  Isn't this a contradiction?
   hpux*) LIBS_TERMCAP="-ltermcap" ;;
 
   openbsd) LIBS_TERMCAP="-lncurses" ;;
-
-  ## Must use system termcap, if we use any termcap.  It does special things.
-  sol2*) test "$TERMINFO" != yes && LIBS_TERMCAP="-ltermcap" ;;
 esac
 
 TERMCAP_OBJ=tparam.o

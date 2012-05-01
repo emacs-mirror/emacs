@@ -1,5 +1,7 @@
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (LIBS_TERMCAP): Remove unreachable branch for sol2.
+
 	* configure.in: Invert the TERMINFO logic,
 	since "yes" is far more common than "no".
 
