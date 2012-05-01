@@ -1,7 +1,7 @@
 ;;; cus-start.el --- define customization properties of builtins
-;;
-;; Copyright (C) 1997, 1999-2012  Free Software Foundation, Inc.
-;;
+
+;; Copyright (C) 1997, 1999-2012 Free Software Foundation, Inc.
+
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
 ;; Package: emacs
@@ -22,7 +22,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This file adds customize support for built-in variables.
 
 ;; While dumping Emacs, this file is loaded, but it only records
@@ -269,9 +269,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (const :tag "only shift-selection or mouse-drag" only)
 					    (const :tag "off" nil))
 				    "24.1")
-	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
-						    (integer :tag "time" 2)
-						    (other :tag "on")))
              (debug-on-event debug
                              (choice (const :tag "None" nil)
                                      (const :tag "When sent SIGUSR1" sigusr1)

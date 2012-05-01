@@ -1,5 +1,7 @@
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
+	* cus-start.el (suggest-key-bindings): Remove, now it is in Lisp.
+
 	* eshell/esh-cmd.el (eshell-debug-command): Doc fix.  Add :set.
 
 	* cus-edit.el (custom-variable-documentation): Simplify with format.
