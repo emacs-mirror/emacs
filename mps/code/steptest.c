@@ -50,11 +50,11 @@ static mps_gen_param_s testChain[genCOUNT] = {
  * during allocation.
  */
 
-static size_t step_frequencies[] = {
+static unsigned long step_frequencies[] = {
     1000,
     5000,
     10000,
-    1000000000,
+    1000000000, /* one billion */
 };
 
 #define TESTS (sizeof(step_frequencies) / sizeof(step_frequencies[0]))
@@ -414,11 +414,11 @@ static void *test(void *arg, size_t s)
 
     total_mps_time = alloc_time + step_time + no_step_time;
     printf("Collection statistics:\n");
-    printf("  %lu collections\n", (unsigned long)collections);
-    printf("  %lu bytes condemned.\n", (unsigned long)condemned);
+    printf("  %"PRIuLONGEST" collections\n", (ulongest_t)collections);
+    printf("  %"PRIuLONGEST" bytes condemned.\n", (ulongest_t)condemned);
     printf("  %lu bytes not condemned.\n",
            (unsigned long)not_condemned);
-    printf("  %lu bytes survived.\n", (unsigned long)live);
+    printf("  %"PRIuLONGEST" bytes survived.\n", (ulongest_t)live);
     if (condemned) {
         printf("  Mortality %5.2f%%.\n",
                (1.0 - ((double)live)/condemned) * 100.0);
@@ -471,7 +471,7 @@ static void *test(void *arg, size_t s)
     print_time("  (adjusted for clock timing: ",
                total_clock_time,
                " spent reading the clock;\n");
-    printf("   %lu clock reads; ", (unsigned long)clock_reads);
+    printf("   %"PRIuLONGEST" clock reads; ", (ulongest_t)clock_reads);
     print_time("", total_clock_time / clock_reads, " per read;");
     print_time(" recently measured as ", clock_time, ").\n");
     mps_ap_destroy(ap);

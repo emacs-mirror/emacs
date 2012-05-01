@@ -17,9 +17,9 @@ typedef struct SplayNodeStruct *SplayNode;
 typedef unsigned Compare;
 typedef Compare (*SplayCompareMethod)(void *key, SplayNode node);
 typedef Bool (*SplayTestNodeMethod)(SplayTree tree, SplayNode node,
-                                    void *closureP, unsigned long closureS);
+                                    void *closureP, Size closureS);
 typedef Bool (*SplayTestTreeMethod)(SplayTree tree, SplayNode node,
-                                    void *closureP, unsigned long closureS);
+                                    void *closureP, Size closureS);
 typedef void (*SplayUpdateNodeMethod)(SplayTree tree, SplayNode node,
                                       SplayNode leftChild,
                                       SplayNode rightChild);
@@ -67,11 +67,11 @@ extern SplayNode SplayTreeNext(SplayTree tree, SplayNode oldNode,
 extern Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
                            SplayTestNodeMethod testNode,
                            SplayTestTreeMethod testTree,
-                           void *closureP, unsigned long closureS);
+                           void *closureP, Size closureS);
 extern Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
                           SplayTestNodeMethod testNode,
                           SplayTestTreeMethod testTree,
-                          void *closureP, unsigned long closureS);
+                          void *closureP, Size closureS);
 
 extern void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key);
 

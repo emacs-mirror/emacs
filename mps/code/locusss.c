@@ -137,8 +137,8 @@ static void reportResults(PoolStat stat, char *name)
   printf("\nResults for ");
   printf("%s", name);
   printf("\n");
-  printf("   Allocated  %lu objects\n", (unsigned long)stat->aCount);
-  printf("   Freed      %lu objects\n", (unsigned long)stat->fCount);
+  printf("   Allocated  %"PRIuLONGEST" objects\n", (ulongest_t)stat->aCount);
+  printf("   Freed      %"PRIuLONGEST" objects\n", (ulongest_t)stat->fCount);
   printf("   There were %lu non-contiguous allocations\n",
          (unsigned long)stat->ncCount);
   printf("   Address range from %p to %p\n", stat->min, stat->max);

@@ -13,7 +13,7 @@
 
 
 /* <design/bt#if.size> */
-extern size_t (BTSize)(unsigned long length);
+extern Size (BTSize)(Count length);
 #define BTSize(n) (((n) + MPS_WORD_WIDTH-1) / MPS_WORD_WIDTH * sizeof(Word))
 
 /* <design/bt/#if.get> */
@@ -49,16 +49,16 @@ extern Bool BTIsResRange(BT bt, Index base, Index limit);
 
 extern Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
                                 BT bt, Index searchBase, Index searchLimit,
-                                unsigned long length);
+                                Count length);
 extern Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
                                     BT bt, Index searchBase, Index searchLimit,
-                                    unsigned long length);
+                                    Count length);
 extern Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
                                BT bt, Index searchBase, Index searchLimit,
-                               unsigned long length);
+                               Count length);
 extern Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
                                    BT bt, Index searchBase, Index searchLimit,
-                                   unsigned long length);
+                                   Count length);
 
 extern Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);
 

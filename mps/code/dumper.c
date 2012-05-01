@@ -20,10 +20,21 @@
 #include "ossu.h"
 #endif
 
-typedef unsigned long Word;
+typedef MPS_T_WORD Word;
 typedef struct AddrStruct *Addr;
 
 #include "eventcom.h"
+
+
+#ifdef MPS_PF_W3I6MV
+#define PRIuLONGEST "llu"
+#define PRIXPTR     "016llX"
+typedef unsigned long long ulongest_t;
+#else
+#define PRIuLONGEST "lu"
+#define PRIXPTR     "08lX"
+typedef unsigned long ulongest_t;
+#endif
 
 
 #define RELATION(type, code, always, kind, format) \
@@ -72,10 +83,10 @@ static void readEvent(char *type, char *format, Word code, Word length,
 
   for(; *format != '\0'; format++) {
     switch(*format) {
-      PROCESS('A', Addr, sizeof(Addr), "0x%08lX", unsigned long)
-      PROCESS('P', void *, sizeof(void *), "0x%08lX", unsigned long)
+      PROCESS('A', Addr, sizeof(Addr), "0x%"PRIXPTR, ulongest_t)
+      PROCESS('P', void *, sizeof(void *), "0x%"PRIXPTR, ulongest_t)
       PROCESS('U', unsigned, sizeof(unsigned),"%u", unsigned)
-      PROCESS('W', Word, sizeof(Word),"%lu", Word)
+      PROCESS('W', Word, sizeof(Word), "%"PRIuLONGEST, ulongest_t)
       PROCESS('D', double, sizeof(double), "%f", double)
       case 'S': {
         size_t n;

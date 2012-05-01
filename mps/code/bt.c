@@ -228,7 +228,7 @@ static Bool BTCheck(BT bt)
  * See <design/bt/#fun.size>
  */
 
-size_t (BTSize)(unsigned long n)
+Size (BTSize)(Count n)
 {
   /* check that the expression used in rounding up doesn't overflow */
   AVER(n+MPS_WORD_WIDTH-1 > n);
@@ -617,7 +617,7 @@ btFindResHighLabel:; \
 static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
                            BT bt,
                            Index searchBase, Index searchLimit,
-                           unsigned long minLength, unsigned long maxLength)
+                           Count minLength, Count maxLength)
 {
   Bool foundRes;         /* true if a reset bit is found */
   Index resBase;         /* base of a candidate reset range */
@@ -704,8 +704,8 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
 static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
                                BT bt,
                                Index searchBase, Index searchLimit,
-                               unsigned long minLength,
-                               unsigned long maxLength)
+                               Count minLength,
+                               Count maxLength)
 {
   Bool foundRes;         /* true if a reset bit is found */
   Index resLimit;        /* limit of a candidate reset range */
@@ -797,7 +797,7 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
 Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
                         BT bt,
                         Index searchBase, Index searchLimit,
-                        unsigned long length)
+                        Count length)
 {
   /* All parameters are checked by BTFindResRange. */
   return BTFindResRange(baseReturn, limitReturn,
@@ -815,7 +815,7 @@ Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
 Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
                             BT bt,
                             Index searchBase, Index searchLimit,
-                            unsigned long length)
+                            Count length)
 {
   /* All parameters are checked by BTFindResRangeHigh. */
   return BTFindResRangeHigh(baseReturn, limitReturn,
@@ -833,7 +833,7 @@ Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
 Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
                          BT bt,
                          Index searchBase, Index searchLimit,
-                         unsigned long length)
+                         Count length)
 {
   /* All parameters are checked by BTFindResRange. */
   return BTFindResRange(baseReturn, limitReturn,
@@ -852,7 +852,7 @@ Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
 Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
                              BT bt,
                              Index searchBase, Index searchLimit,
-                             unsigned long length)
+                             Count length)
 {
   /* All parameters are checked by BTFindResRangeHigh. */
   return BTFindResRangeHigh(baseReturn, limitReturn,
