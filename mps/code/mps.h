@@ -23,7 +23,7 @@
  */
 
 #ifndef MPS_T_WORD
-#if if defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
+#if defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
 #define MPS_T_WORD      unsigned __int64
 #else
 #define MPS_T_WORD      unsigned long       /* won't be true on W3I6MV */
@@ -641,8 +641,8 @@ extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
     {
 
 #define MPS_FIX1(ss, ref) \
-  (_mps_wt = 1uL << ((mps_word_t)(ref) >> _mps_w0 \
-                     & (sizeof(mps_word_t) * CHAR_BIT - 1)), \
+  (_mps_wt = (mps_word_t)1 << ((mps_word_t)(ref) >> _mps_w0 \
+                               & (sizeof(mps_word_t) * CHAR_BIT - 1)), \
    _mps_w2 |= _mps_wt, \
    _mps_w1 & _mps_wt)
 
