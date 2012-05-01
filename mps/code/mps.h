@@ -16,9 +16,19 @@
 #include <limits.h>
 
 
-/* Platform Dependencies */
+/* Platform Dependencies
+ *
+ * We went for over ten years without any platform ifdefs in this header.
+ * Then Microsoft made unsigned long shorter than a pointer on Win64.  Ugh.
+ */
 
+#ifndef MPS_T_WORD
+#if if defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
+#define MPS_T_WORD      unsigned __int64
+#else
 #define MPS_T_WORD      unsigned long       /* won't be true on W3I6MV */
+#endif
+#endif /* MPS_T_WORD */
 
 
 /* Abstract Types */
