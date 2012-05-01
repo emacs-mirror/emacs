@@ -2894,25 +2894,15 @@ for your system, together with its header files.
 For example, a libncurses-dev(el) or similar package.])
 fi
 
-## Use terminfo instead of termcap?
-## Note only system files NOT using terminfo are:
-## freebsd < 40000, ms-w32, msdos, netbsd < 599002500
-TERMINFO=no
+## Use termcap instead of terminfo?
+## Only true for: freebsd < 40000, ms-w32, msdos, netbsd < 599002500.
+TERMINFO=yes
 case "$opsys" in
-  ## cygwin: Fewer environment variables to go wrong, more terminal types.
-  ## hpux10-20: Use the system provided termcap(3) library.
-  ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
-  ##  is necessary.  Otherwise Emacs dumps core when run -nw.
-  aix4-2|cygwin|hpux*|irix6-5|openbsd|sol2*|unixware) TERMINFO=yes ;;
-
   ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
   ##  The ncurses library has been moved out of the System framework in
   ##  Mac OS X 10.2.  So if configure detects it, set the command-line
   ##  option to use it.
-  darwin|gnu*)
-    TERMINFO=yes
-    LIBS_TERMCAP="-lncurses"
-    ;;
+  darwin|gnu*) LIBS_TERMCAP="-lncurses" ;;
 
   freebsd)
     AC_MSG_CHECKING([whether FreeBSD is new enough to use terminfo])
@@ -2926,18 +2916,18 @@ fail;
     AC_MSG_RESULT($emacs_cv_freebsd_terminfo)
 
     if test $emacs_cv_freebsd_terminfo = yes; then
-      TERMINFO=yes
       LIBS_TERMCAP="-lncurses"
     else
+      TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi
     ;;
 
   netbsd)
     if test $ac_cv_search_tputs = -lterminfo; then
-      TERMINFO=yes
       LIBS_TERMCAP="-lterminfo"
     else
+      TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi
     ;;
