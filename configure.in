@@ -2932,9 +2932,8 @@ fail;
     fi
     ;;
 
-esac
+  openbsd) LIBS_TERMCAP="-lncurses" ;;
 
-case "$opsys" in
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
   ##  We used to use -lc -lcurses, but this may be cleaner.
@@ -2942,7 +2941,6 @@ case "$opsys" in
   # set that way, now it uses the default).  Isn't this a contradiction?
   hpux*) LIBS_TERMCAP="-ltermcap" ;;
 
-  openbsd) LIBS_TERMCAP="-lncurses" ;;
 esac
 
 TERMCAP_OBJ=tparam.o
