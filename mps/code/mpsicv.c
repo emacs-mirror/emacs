@@ -102,7 +102,8 @@ static void alignmentTest(mps_arena_t arena)
   int dummy = 0;
   size_t j, size;
 
-  die(mps_pool_create(&pool, arena, mps_class_mv(), 0x1000, 1024, 16384),
+  die(mps_pool_create(&pool, arena, mps_class_mv(),
+      (size_t)0x1000, (size_t)1024, (size_t)16384),
       "alignment pool create");
   size = max(sizeof(double), sizeof(long));
 #ifdef HAS_LONG_LONG
@@ -336,7 +337,8 @@ static void arena_commit_test(mps_arena_t arena)
   committed = mps_arena_committed(arena);
   reserved = mps_arena_reserved(arena);
   cdie(reserved >= committed, "reserved < committed");
-  die(mps_pool_create(&pool, arena, mps_class_mv(), 0x1000, 1024, 16384),
+  die(mps_pool_create(&pool, arena, mps_class_mv(),
+      (size_t)0x1000, (size_t)1024, (size_t)16384),
       "commit pool create");
   limit = mps_arena_commit_limit(arena);
   die(mps_arena_commit_limit_set(arena, committed), "commit_limit_set before");
@@ -411,7 +413,8 @@ static void *test(void *arg, size_t s)
 
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&mv, arena, mps_class_mv(), 0x10000, 32, 0x10000),
+  die(mps_pool_create(&mv, arena, mps_class_mv(),
+      (size_t)0x10000, (size_t)32, (size_t)0x10000),
       "pool_create(mv)");
 
   pool_create_v_test(arena, format, chain); /* creates amc pool */

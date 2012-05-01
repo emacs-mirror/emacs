@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
       switch(header[0]) {
 #include "eventdef.h"
       default:
-        error("Unknown event code %08lX", header[0]);
+        error("Unknown event code %"PRIXPTR, (ulongest_t)header[0]);
       }
     }
   } while(arg < argc);
