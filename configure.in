@@ -2868,7 +2868,7 @@ AC_DEFUN([tputs_link_source], [
 ])
 # Maybe curses should be tried earlier?
 # See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
-for tputs_library in '' ncurses terminfo termcap curses; do
+for tputs_library in '' tinfo ncurses terminfo termcap curses; do
   OLIBS=$LIBS
   if test -z "$tputs_library"; then
     LIBS_TERMCAP=
@@ -2888,7 +2888,8 @@ done
 AC_MSG_RESULT([$msg])
 if test "X$msg" = Xno; then
   AC_MSG_ERROR([The required function `tputs' was not found in any library.
-These libraries were tried: libncurses, libterminfo, libtermcap, libcurses.
+The following libraries were tried (in order):
+  libtinfo, libncurses, libterminfo, libtermcap, libcurses
 Please try installing whichever of these libraries is most appropriate
 for your system, together with its header files.
 For example, a libncurses-dev(el) or similar package.])
@@ -2897,12 +2898,18 @@ fi
 ## Use termcap instead of terminfo?
 ## Only true for: freebsd < 40000, ms-w32, msdos, netbsd < 599002500.
 TERMINFO=yes
+## FIXME?  In the cases below where we unconditionally set
+## LIBS_TERMCAP="-lncurses", this overrides LIBS_TERMCAP = -ltinfo,
+## if that was found above to have tputs.
+## Should we use the gnu* logic everywhere?
 case "$opsys" in
   ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
   ##  The ncurses library has been moved out of the System framework in
   ##  Mac OS X 10.2.  So if configure detects it, set the command-line
   ##  option to use it.
-  darwin|gnu*) LIBS_TERMCAP="-lncurses" ;;
+  darwin) LIBS_TERMCAP="-lncurses" ;;
+
+  gnu*) [ "x$LIBS_TERMCAP" = x ] && LIBS_TERMCAP="-lncurses" ;;
 
   freebsd)
     AC_MSG_CHECKING([whether FreeBSD is new enough to use terminfo])

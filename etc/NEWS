@@ -29,6 +29,9 @@ possibly-questionable C code.  On a recent GNU system there should be
 no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
+---
+** Emacs uses libtinfo in preference to libncurses, if available.
+
 
 * Startup Changes in Emacs 24.2
 
