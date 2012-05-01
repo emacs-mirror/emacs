@@ -239,7 +239,7 @@ return non-nil if the command is complex."
   "If non-nil, enable Eshell debugging code.
 This is slow, and only useful for debugging problems with Eshell.
 If you change this without using customize after Eshell has loaded,
-you must re-load 'eshell-cmd.el'."
+you must re-load 'esh-cmd.el'."
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
 	 (set sym val)
