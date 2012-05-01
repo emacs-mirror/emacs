@@ -94,10 +94,8 @@ C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 ## substituted in this or any other Makefile. Cf C_SWITCH_X_SITE.
 LD_SWITCH_X_SITE=
 
-## Next two must come before LD_SWITCH_SYSTEM.
-## If needed, a -R option that says where to find X windows at run time.
-LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
-## As above, but using -rpath instead.
+## This must come before LD_SWITCH_SYSTEM.
+## If needed, a -rpath option that says where to find X windows at run time.
 LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
 
 ## System-specific LDFLAGS.
