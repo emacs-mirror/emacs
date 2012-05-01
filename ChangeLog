@@ -1,5 +1,7 @@
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (HAVE_LIBNCURSES): Remove; it is required to be true.
+
 	* configure.in (LD_SWITCH_X_SITE_RPATH):
 	Rename from LD_SWITCH_X_SITE_AUX_RPATH.
 

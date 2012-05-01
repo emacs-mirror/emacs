@@ -1,3 +1,7 @@
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (HAVE_LIBNCURSES): Remove undef; not needed.
+
 2012-04-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
 
 	* makefile.w32-in: Fix typo (Bug#10261).

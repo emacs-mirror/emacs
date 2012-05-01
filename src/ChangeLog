@@ -1,5 +1,8 @@
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
+	* dispnew.c: Remove HAVE_LIBNCURSES test;
+	it is always true on relevant platforms.
+
 	* Makefile.in (LD_SWITCH_X_SITE_RPATH):
 	Rename from LD_SWITCH_X_SITE_AUX_RPATH.
 

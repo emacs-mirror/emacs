@@ -2893,12 +2893,6 @@ Please try installing whichever of these libraries is most appropriate
 for your system, together with its header files.
 For example, a libncurses-dev(el) or similar package.])
 fi
-# Must define this when any termcap library is found.
-AC_DEFINE(HAVE_LIBNCURSES, 1,
-          [Define to 1 if you have the `ncurses' library (-lncurses).])
-## FIXME This was the cpp logic, but I am not sure it is right.
-## The above test has not necessarily found libncurses.
-HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
@@ -2917,11 +2911,8 @@ case "$opsys" in
   ##  Mac OS X 10.2.  So if configure detects it, set the command-line
   ##  option to use it.
   darwin|gnu*)
-    ## (HAVE_LIBNCURSES was not always true, but is since 2010-03-18.)
-    if test "x$HAVE_LIBNCURSES" = "xyes"; then
-      TERMINFO=yes
-      LIBS_TERMCAP="-lncurses"
-    fi
+    TERMINFO=yes
+    LIBS_TERMCAP="-lncurses"
     ;;
 
   freebsd)
