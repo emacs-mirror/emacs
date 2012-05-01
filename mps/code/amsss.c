@@ -73,9 +73,9 @@ static void report(void)
         not_condemned = mps_message_gc_not_condemned_size(arena, message);
 
         printf("\nCollection complete %d:\n", ++nComplete);
-        printf("live %lu\n", (unsigned long)live);
-        printf("condemned %lu\n", (unsigned long)condemned);
-        printf("not_condemned %lu\n", (unsigned long)not_condemned);
+        printf("live %"PRIuLONGEST"\n", (ulongest_t)live);
+        printf("condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
+        printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
       }
       break;
     default:
@@ -153,8 +153,8 @@ static void *test(void *arg, size_t haveAmbigous)
   while(totalSize < totalSizeMAX) {
     if (totalSize > lastStep + totalSizeSTEP) {
       lastStep = totalSize;
-      printf("\nSize %lu bytes, %lu objects.\n",
-             (unsigned long)totalSize, objs);
+      printf("\nSize %"PRIuLONGEST" bytes, %lu objects.\n",
+             (ulongest_t)totalSize, objs);
       fflush(stdout);
       for(i = 0; i < exactRootsCOUNT; ++i)
         cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),

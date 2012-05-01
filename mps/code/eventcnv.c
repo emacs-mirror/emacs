@@ -11,6 +11,7 @@
 #include "eventcom.h"
 #include "eventpro.h"
 #include "mpmtypes.h"
+#include "testlib.h" /* for ulongest_t and associated print formats */
 
 #include <stddef.h> /* for size_t */
 #include <stdio.h> /* for printf */
@@ -60,14 +61,14 @@ static Bool partialLog = FALSE;
 static Word bucketSize = 0;
 
 
-/* error -- error signalling */
+/* everror -- error signalling */
 
-static void error(const char *format, ...)
+static void everror(const char *format, ...)
 {
   va_list args;
 
   fflush(stdout); /* sync */
-  fprintf(stderr, "%s: @%lu ", prog, (ulong)eventTime);
+  fprintf(stderr, "%s: @%"PRIuLONGEST" ", prog, (ulongest_t)eventTime);
   va_start(args, format);
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
@@ -92,7 +93,7 @@ static void usage(void)
 static void usageError(void)
 {
   usage();
-  error("Bad usage");
+  everror("Bad usage");
 }
 
 
@@ -197,7 +198,7 @@ static void processEvent(EventProc proc, Event event, Word etime)
 
   res = EventRecord(proc, event, etime);
   if (res != ResOK)
-    error("Can't record event: error %d.", res);
+    everror("Can't record event: error %d.", res);
   switch(event->any.code) {
   default:
     break;
@@ -239,11 +240,16 @@ static void printAddr(EventProc proc, Addr addr)
       putchar(' ');
       printStr(sym, (style == 'C'));
     } else {
-      printf((style == '\0') ? " sym%05lX" : " \"sym %lX\"",
-             (ulong)label);
+      printf((style == '\0') ?
+             " sym%05"PRIXLONGEST :
+             " \"sym %"PRIXLONGEST"\"",
+             (ulongest_t)label);
     }
   } else
-    printf((style != 'C') ? " %08lX" : " %lu", (ulong)addr);
+    printf(style != 'C' ?
+           " %0"PRIwLONGEST PRIXLONGEST :
+           " %"PRIuLONGEST,
+           (ulongest_t)addr);
 }
 
 
@@ -289,13 +295,13 @@ static void reportBucketResults(Word bucketLimit)
 {
   switch (style) {
   case '\0':
-    printf("%8lu:", (ulong)bucketLimit);
+    printf("%8"PRIuLONGEST":", (ulongest_t)bucketLimit);
     break;
   case 'L':
-    printf("(%lX", (ulong)bucketLimit);
+    printf("(%"PRIXLONGEST, (ulongest_t)bucketLimit);
     break;
   case 'C':
-    printf("%lu", (ulong)bucketLimit);
+    printf("%"PRIuLONGEST, (ulongest_t)bucketLimit);
     break;
   }
   if (reportEvents) {
@@ -333,16 +339,16 @@ static void printArg(EventProc proc,
       if (style == 'C') putchar(',');
       printAddr(proc, *(Addr *)arg);
     } else
-      printf(styleConv, (ulong)*(Addr *)arg);
+      printf(styleConv, (ulongest_t)*(Addr *)arg);
   } break;
   case 'P': {
-    printf(styleConv, (ulong)*(void **)arg);
+    printf(styleConv, (ulongest_t)*(void **)arg);
   } break;
   case 'U': {
-    printf(styleConv, (ulong)*(unsigned *)arg);
+    printf(styleConv, (ulongest_t)*(unsigned *)arg);
   } break;
   case 'W': {
-    printf(styleConv, (ulong)*(Word *)arg);
+    printf(styleConv, (ulongest_t)*(Word *)arg);
   } break;
   case 'D': {
     switch (style) {
@@ -359,7 +365,7 @@ static void printArg(EventProc proc,
     putchar(' ');
     printStr((EventStringStruct *)arg, (style == 'C' || style == 'L'));
   } break;
-  default: error("Can't print format >%c<", argType);
+  default: everror("Can't print format >%c<", argType);
   }
 }
 
@@ -396,13 +402,13 @@ static void readLog(EventProc proc)
   /* Init style. */
   switch (style) {
   case '\0':
-    styleConv = " %8lX"; break;
+    styleConv = " %8"PRIXLONGEST; break;
   case 'C':
-    styleConv = ", %lu"; break;
+    styleConv = ", %"PRIuLONGEST; break;
   case 'L':
-    styleConv = " %lX"; break;
+    styleConv = " %"PRIXLONGEST; break;
   default:
-    error("Unknown style code '%c'", style);
+    everror("Unknown style code '%c'", style);
   }
 
   while (TRUE) { /* loop for each event */
@@ -415,7 +421,7 @@ static void readLog(EventProc proc)
     /* Read and parse event. */
     res = EventRead(&event, proc);
     if (res == ResFAIL) break; /* eof */
-    if (res != ResOK) error("Truncated log");
+    if (res != ResOK) everror("Truncated log");
     eventTime = event->any.clock;
     code = EventGetCode(event);
 
@@ -451,11 +457,11 @@ static void readLog(EventProc proc)
 
      switch (style) {
      case '\0':
-       printf(" %8lu", (ulong)eventTime); break;
+       printf(" %8"PRIuLONGEST, (ulongest_t)eventTime); break;
      case 'C':
-       printf(", %lu", (ulong)eventTime); break;
+       printf(", %"PRIuLONGEST, (ulongest_t)eventTime); break;
      case 'L':
-       printf(" %lX", (ulong)eventTime); break;
+       printf(" %"PRIXLONGEST, (ulongest_t)eventTime); break;
      }
 
      switch (event->any.code) {
@@ -463,17 +469,23 @@ static void readLog(EventProc proc)
        switch (style) {
        case '\0': case 'C': {
          EventString sym = LabelText(proc, event->aw.w1);
-         printf((style == '\0') ? " %08lX " : ", %lu, ",
-                (ulong)event->aw.a0);
+         printf(style == '\0' ?
+                " %08"PRIXLONGEST" " :
+                ", %"PRIuLONGEST", ",
+                (ulongest_t)event->aw.a0);
          if (sym != NULL) {
            printStr(sym, (style == 'C'));
          } else {
-           printf((style == '\0') ? "sym %05lX" : "sym %lX\"",
-                  (ulong)event->aw.w1);
+           printf(style == '\0' ?
+                  "sym %05"PRIXLONGEST :
+                  "sym %"PRIXLONGEST"\"",
+                  (ulongest_t)event->aw.w1);
          }
        } break;
        case 'L': {
-         printf(" %lX %lX", (ulong)event->aw.a0, (ulong)event->aw.w1);
+         printf(" %"PRIXLONGEST" %"PRIXLONGEST,
+                (ulongest_t)event->aw.a0,
+                (ulongest_t)event->aw.w1);
        } break;
        }
      } break;
@@ -481,16 +493,16 @@ static void readLog(EventProc proc)
        switch (style) {
        case '\0': {
          if (event->pddwww.w3 == 0) {
-           printf(" %08lX        0      N/A      N/A      N/A      N/A",
-                  (ulong)event->pddwww.p0);
+           printf(" %08"PRIXLONGEST"        0      N/A      N/A      N/A      N/A",
+                  (ulongest_t)event->pddwww.p0);
          } else {
            double mean = event->pddwww.d1 / (double)event->pddwww.w3;
            /* .stddev: stddev = sqrt(meanSquared - mean^2), but see */
            /* <code/meter.c#limitation.variance>. */
            double stddev = sqrt(fabs(event->pddwww.d2
                                      - (mean * mean)));
-           printf(" %08lX %8u %8u %8u %#8.3g %#8.3g",
-                  (ulong)event->pddwww.p0, (uint)event->pddwww.w3,
+           printf(" %08"PRIXLONGEST" %8u %8u %8u %#8.3g %#8.3g",
+                  (ulongest_t)event->pddwww.p0, (uint)event->pddwww.w3,
                   (uint)event->pddwww.w4, (uint)event->pddwww.w5,
                   mean, stddev);
          }
@@ -505,7 +517,8 @@ static void readLog(EventProc proc)
                 (uint)event->pddwww.w5);
        } break;
        case 'L': {
-         printf(" %lX %#.10G %#.10G %X %X %X", (ulong)event->pddwww.p0,
+         printf(" %"PRIXLONGEST" %#.10G %#.10G %X %X %X",
+                (ulongest_t)event->pddwww.p0,
                 event->pddwww.d1, event->pddwww.d2,
                 (uint)event->pddwww.w3, (uint)event->pddwww.w4,
                 (uint)event->pddwww.w5);
@@ -513,14 +526,14 @@ static void readLog(EventProc proc)
        }
      } break;
      case EventPoolInit: { /* pool, arena, class */
-       printf(styleConv, (ulong)event->ppp.p0);
-       printf(styleConv, (ulong)event->ppp.p1);
+       printf(styleConv, (ulongest_t)event->ppp.p0);
+       printf(styleConv, (ulongest_t)event->ppp.p1);
        /* class is a Pointer, but we label them, so call printAddr */
        if (style != 'L') {
          if (style == 'C') putchar(',');
          printAddr(proc, (Addr)event->ppp.p2);
        } else
-         printf(styleConv, (ulong)event->ppp.p2);
+         printf(styleConv, (ulongest_t)event->ppp.p2);
      } break;
      default:
        for (i = 0; i < argCount; ++i) {
@@ -565,7 +578,7 @@ static void readLog(EventProc proc)
         if (eventEnabled[c])
           printf(" %04X %s\n", (unsigned)c, EventCode2Name(c));
       if (bucketSize == 0)
-        printf("\nevent clock stopped at %lu\n", (ulong)eventTime);
+        printf("\nevent clock stopped at %"PRIuLONGEST"\n", (ulongest_t)eventTime);
     }
   }
 }
@@ -602,9 +615,9 @@ int main(int argc, char *argv[])
   /* GCC -ansi -pedantic -Werror on FreeBSD will fail here
    * with the warning "statement with no effect". */
 
-  assert(CHECKCONV(ulong, Word));
-  assert(CHECKCONV(ulong, Addr));
-  assert(CHECKCONV(ulong, void *));
+  assert(CHECKCONV(ulongest_t, Word));
+  assert(CHECKCONV(ulongest_t, Addr));
+  assert(CHECKCONV(ulongest_t, void *));
   assert(CHECKCONV(unsigned, EventCode));
   assert(CHECKCONV(Addr, void *)); /* for labelled pointers */
 #endif
@@ -616,12 +629,12 @@ int main(int argc, char *argv[])
   else {
     input = fopen(filename, "rb");
     if (input == NULL)
-      error("unable to open \"%s\"\n", filename);
+      everror("unable to open \"%s\"\n", filename);
   }
 
   res = EventProcCreate(&proc, partialLog, logReader, (void *)input);
   if (res != ResOK)
-    error("Can't init EventProc module: error %d.", res);
+    everror("Can't init EventProc module: error %d.", res);
 
   readLog(proc);
 

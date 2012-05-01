@@ -34,6 +34,17 @@
 #endif
 
 
+#ifdef MPS_PF_W3I6MV
+#define PRIuLONGEST "llu"
+#define PRIXPTR     "016llX"
+typedef unsigned long long ulongest_t;
+#else
+#define PRIuLONGEST "lu"
+#define PRIXPTR     "08lX"
+typedef unsigned long ulongest_t;
+#endif
+
+
 typedef unsigned long ulong;
 
 
@@ -114,7 +125,7 @@ static void error(const char *format, ...)
   va_list args;
 
   fflush(stdout); /* sync */
-  fprintf(stderr, "Failed @%lu ", (ulong)eventTime);
+  fprintf(stderr, "Failed @%"PRIuLONGEST" ", (ulongest_t)eventTime);
   va_start(args, format);
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");

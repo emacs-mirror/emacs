@@ -174,7 +174,8 @@ static void findShortResRange(void)
       Bool b = BTFindShortResRange(&base, &limit, bt,
                                    args[1], args[2], args[0]);
       if (b)
-        printf("%lu - %lu\n",base, limit);
+        printf("%"PRIuLONGEST" - %"PRIuLONGEST"\n",
+               (ulongest_t)base, (ulongest_t)limit);
       else
         printf("FALSE\n");
     }
@@ -192,7 +193,8 @@ static void findShortResRangeHigh(void)
       Bool b = BTFindShortResRangeHigh(&base, &limit, bt,
                                        args[1], args[2], args[0]);
       if (b)
-        printf("%lu - %lu\n",base, limit);
+        printf("%"PRIuLONGEST" - %"PRIuLONGEST"\n",
+               (ulongest_t)base, (ulongest_t)limit);
       else
         printf("FALSE\n");
     }
@@ -209,7 +211,8 @@ static void findLongResRange(void)
       Bool b = BTFindLongResRange(&base, &limit, bt,
                                   args[1], args[2], args[0]);
       if (b)
-        printf("%lu - %lu\n",base, limit);
+        printf("%"PRIuLONGEST" - %"PRIuLONGEST"\n",
+               (ulongest_t)base, (ulongest_t)limit);
       else
         printf("FALSE\n");
     }

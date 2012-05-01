@@ -2251,7 +2251,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
 /* AMCWalk -- Apply function to (black) objects in segment */
 
 static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
-                    void *p, unsigned long s)
+                    void *p, size_t s)
 {
   Addr object, nextObject, limit;
   AMC amc;
@@ -2301,7 +2301,7 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 /* amcWalkAll -- Apply a function to all (black) objects in a pool */
 
 static void amcWalkAll(Pool pool, FormattedObjectsStepMethod f,
-                       void *p, unsigned long s)
+                       void *p, size_t s)
 {
   Arena arena;
   Ring ring, next, node;
@@ -2466,7 +2466,7 @@ typedef struct mps_amc_apply_closure_s {
 } mps_amc_apply_closure_s;
 
 static void mps_amc_apply_iter(Addr addr, Format format, Pool pool,
-                               void *p, unsigned long s)
+                               void *p, size_t s)
 {
   mps_amc_apply_closure_s *closure = p;
   /* Can't check addr */
