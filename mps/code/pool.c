@@ -482,7 +482,7 @@ void PoolTraceEnd(Pool pool, Trace trace)
 /* PoolWalk -- walk objects in this segment */
 
 void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
-              void *p, Size s)
+              void *p, size_t s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);

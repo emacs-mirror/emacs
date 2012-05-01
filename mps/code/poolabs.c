@@ -621,7 +621,7 @@ Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
 
 
 void PoolNoWalk(Pool pool, Seg seg,
-                FormattedObjectsStepMethod f, void *p, Size s)
+                FormattedObjectsStepMethod f, void *p, size_t s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);

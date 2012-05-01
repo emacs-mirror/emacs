@@ -269,13 +269,13 @@ BTCreate.  Meets .req.destroy.
 
 
 <a id="if.size" name="if.size">.if.size</a>:
-size_t BTSize(unsigned long n);
+size_t BTSize(Count n);
 
-BTSize(n) returns the number of bytes needed for a Bit Table of n bits.  It is 
-a checked error (an assertion will fail) for n to exceed ULONG_MAX - 
-MPS_WORD_WIDTH + 1.  This is used by clients that allocate storage for the BT 
-themselves.  Before BTCreate and BTDestroy were implemented that was the only 
-way to allocate a Bit Table, but is now deprecated.
+BTSize(n) returns the number of bytes needed for a Bit Table of n bits. 
+BTSize is a macro, but (BTSize)(n) will assert if n exceeds COUNT_MAX -
+MPS_WORD_WIDTH + 1.  This is used by clients that allocate storage for
+the BT themselves.  Before BTCreate and BTDestroy were implemented that
+was the only way to allocate a Bit Table, but is now deprecated.
 
 <a id="if.get" name="if.get">.if.get</a>:
 int BTGet(BT t, Index i);
@@ -330,7 +330,7 @@ the functions have the same prototype (for symmetry):
 Bool find(Index *baseReturn, Index *limitReturn,
           BT bt,
           Index searchBase, Index searchLimit,
-          unsigned long length);
+          Count length);
 
 bt is the Bit Table in which to search.  searchBase and searchLimit specify a 
 subset of the Bit Table to use, the functions will only find ranges that are 
@@ -349,7 +349,7 @@ and returns TRUE (1).
 Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
                          BT bt,
                          Index searchBase, Index searchLimit,
-                         unsigned long length);
+                         Count length);
 
 BTFindShortResRange(&amp;base, &amp;limit, table, searchBase, searchLimit, length) 
 finds a range of reset bits in the table, starting at searchBase and working 
@@ -361,7 +361,7 @@ requested length (the intention is that it will not waste time looking).
 Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
                              BT bt,
                              Index searchBase, Index searchLimit,
-                             unsigned long length);
+                             Count length);
 
 BTFindShortResRangeHigh(&amp;base, &amp;limit, table, searchBase, searchLimit, length) 
 finds a range of reset bits in the table, starting at searchLimit and working 
@@ -373,7 +373,7 @@ the requested length.
 Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
                         BT bt,
                         Index searchBase, Index searchLimit,
-                        unsigned long length);
+                        Count length);
 
 BTFindLongResRange(&amp;base, &amp;limit, table, searchBase, searchLimit, length) finds 
 a range of reset bits in the table, starting at searchBase and working 
@@ -385,7 +385,7 @@ be longer than the requested length).
 Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
                             BT bt,
                             Index searchBase, Index searchLimit,
-                            unsigned long length);
+                            Count length);
 
 BTFindLongResRangeHigh(&amp;base, &amp;limit, table, searchBase, searchLimit, length) 
 finds a range of reset bits in the table, starting at searchLimit and working 
@@ -556,8 +556,8 @@ following prototype (with a different name obviously):
 Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
                     BT bt,
                     Index searchBase, Index searchLimit,
-                    unsigned long minLength,
-                    unsigned long maxLength)
+                    Count minLength,
+                    Count maxLength)
 
 There are two length parameters, one specifying the minimum length of the range 
 to be found, the other the maximum length.  For BTFindShort* maxLength is equal 
