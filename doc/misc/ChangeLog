@@ -1,3 +1,7 @@
+2012-05-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Update for .gpg file being second.
+
 2012-04-27  Ippei Furuhashi  <top.tuna+orgmode@gmail.com>  (tiny change)
 
 	* org.texi (Agenda commands): Fix two typos: give corresponding

@@ -180,12 +180,15 @@ Here's a mixed example using two sources:
 @end defvar
 
 If you don't customize @code{auth-sources}, you'll have to live with
-the defaults: any host and any port are looked up in the netrc
-file @file{~/.authinfo.gpg}, which is a GnuPG encrypted file
-(@pxref{GnuPG and EasyPG Assistant Configuration}).
+the defaults: the unencrypted netrc file @file{~/.authinfo} will be
+used for any host and any port.
 
-If that fails, the unencrypted netrc files @file{~/.authinfo} and
-@file{~/.netrc} will be used.
+If that fails, any host and any port are looked up in the netrc file
+@file{~/.authinfo.gpg}, which is a GnuPG encrypted file (@pxref{GnuPG
+and EasyPG Assistant Configuration}).
+
+Finally, the unencrypted netrc file @file{~/.netrc} will be used for
+any host and any port.
 
 The typical netrc line example is without a port.
 
