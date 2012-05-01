@@ -474,9 +474,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `mail' library (-lmail). */
 #undef HAVE_LIBMAIL
 
-/* Define to 1 if you have the `ncurses' library (-lncurses). */
-#undef HAVE_LIBNCURSES
-
 /* Define to 1 if using libotf. */
 #undef HAVE_LIBOTF
 
