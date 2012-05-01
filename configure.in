@@ -2896,8 +2896,7 @@ fi
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
-## darwin|gnu without ncurses.
+## freebsd < 40000, ms-w32, msdos, netbsd < 599002500
 TERMINFO=no
 case "$opsys" in
   ## cygwin: Fewer environment variables to go wrong, more terminal types.
