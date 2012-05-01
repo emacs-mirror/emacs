@@ -24,12 +24,6 @@
  *    a block of memory that occupies the last page in memory, so
  *    that limit is representable and bigger than base.
  *
- *  .assume.dword-addr:  We assume that the windows type DWORD and
- *    the MM type Addr are the same size.
- *
- *  .assume.dword-align:  We assume that the windows type DWORD and
- *    the MM type Align are assignment-compatible.
- *
  *  .assume.lpvoid-addr:  We assume that the windows type LPVOID and
  *    the MM type Addr are assignment-compatible.
  *
@@ -110,14 +104,14 @@ Res VMCreate(VM *vmReturn, Size size)
   AVER(vmReturn != NULL);
 
   AVER(CHECKTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
-  AVER(sizeof(DWORD) == sizeof(Addr));  /* See .assume.dword-addr */
-  AVER(CHECKTYPE(DWORD, Align));  /* See .assume.dword-align */
+  AVER(CHECKTYPE(SIZE_T, Size));
 
   GetSystemInfo(&si);
   align = (Align)si.dwPageSize;
+  AVER((DWORD)align == si.dwPageSize); /* check it didn't truncate */
   AVER(SizeIsP2(align));    /* see .assume.sysalign */
   size = SizeAlignUp(size, align);
-  if ((size == 0) || (size > (Size)(DWORD)-1))
+  if ((size == 0) || (size > (Size)(SIZE_T)-1))
     return ResRESOURCE;
 
   /* Allocate the vm descriptor.  This is likely to be wasteful. */
