@@ -108,8 +108,8 @@ static void *test(void *arg, size_t s)
   while(totalSize < totalSizeMAX) {
     if(totalSize > lastStep + totalSizeSTEP) {
       lastStep = totalSize;
-      printf("\nSize %lu bytes, %lu objects.\n",
-             (unsigned long)totalSize, objs);
+      printf("\nSize %"PRIuLONGEST" bytes, %lu objects.\n",
+             (ulongest_t)totalSize, objs);
       fflush(stdout);
       for(i = 0; i < exactRootsCOUNT; ++i)
         cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),

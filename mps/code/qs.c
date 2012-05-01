@@ -311,8 +311,8 @@ static void validate(void)
     cdie(((QSCell)reg[1])->tag == QSInt, "validate int");
     if(((QSCell)reg[1])->value != list[i]) {
       fprintf(stdout,
-              "mps_res_t: Element %lu of the two lists do not match.\n",
-              (unsigned long)i);
+              "mps_res_t: Element %"PRIuLONGEST" of the two lists do not match.\n",
+              (ulongest_t)i);
       return;
     }
     reg[1] = (mps_word_t)((QSCell)reg[1])->tail;

@@ -136,6 +136,7 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->fix = PoolNoFix;
   class->fixEmergency = PoolNoFix;
   class->reclaim = PoolNoReclaim;
+  class->traceEnd = PoolTrivTraceEnd;
   class->rampBegin = PoolNoRampBegin;
   class->rampEnd = PoolNoRampEnd;
   class->framePush = PoolNoFramePush;
@@ -529,6 +530,13 @@ void PoolNoReclaim(Pool pool, Trace trace, Seg seg)
   NOTREACHED;
 }
 
+void PoolTrivTraceEnd(Pool pool, Trace trace)
+{
+  AVERT(Pool, pool);
+  AVERT(Trace, trace);
+  NOOP;
+}
+
 
 void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll)
 {
@@ -613,7 +621,7 @@ Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
 
 
 void PoolNoWalk(Pool pool, Seg seg,
-                FormattedObjectsStepMethod f, void *p, Size s)
+                FormattedObjectsStepMethod f, void *p, size_t s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);

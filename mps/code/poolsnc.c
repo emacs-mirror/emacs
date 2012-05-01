@@ -615,7 +615,7 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
 
 
 static void SNCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
-                    void *p, unsigned long s)
+                    void *p, size_t s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
