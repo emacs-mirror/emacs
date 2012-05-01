@@ -1,10 +1,16 @@
+2012-05-01  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (suggest-key-bindings, execute-extended-command):
+	Move from keyboard.c.
+
 2012-05-01  Chong Yidong  <cyd@gnu.org>
 
 	* follow.el: Eliminate advice.
 	(set-process-filter, process-filter, sit-for): Advice deleted.
 	(follow-mode-off-hook): Obsolete hook removed.
-	(follow-avoid-tail-recenter-p, follow-process-filter-alist): Vars
-	deleted.
+	(follow-avoid-tail-recenter-p, follow-process-filter-alist):
+	Vars deleted.
 	(follow-auto): Use a :set function.
 	(follow-mode): Rewritten.  Don't advise process filters.
 	(follow-switch-to-current-buffer-all, follow-scroll-up)
@@ -25,13 +31,13 @@
 	(follow-stop-intercept-process-output, follow-generic-filter):
 	Functions deleted.
 	(follow-scroll-bar-toolkit-scroll, follow-scroll-bar-drag)
-	(follow-scroll-bar-scroll-up, follow-scroll-bar-scroll-down): New
-	functions, replacing advice on scroll-bar-* commands.
+	(follow-scroll-bar-scroll-up, follow-scroll-bar-scroll-down):
+	New functions, replacing advice on scroll-bar-* commands.
 	(follow-mwheel-scroll): New function (Bug#4112).
 
 	* comint.el (comint-adjust-point): New function.
-	(comint-postoutput-scroll-to-bottom): Use it.  Call
-	follow-comint-scroll-to-bottom for Follow mode buffers.
+	(comint-postoutput-scroll-to-bottom): Use it.
+	Call follow-comint-scroll-to-bottom for Follow mode buffers.
 
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 

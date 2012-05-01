@@ -10341,146 +10341,6 @@ a special event, so ignore the prefix argument and don't clear it.  */)
 
 
 
-DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_command,
-       1, 1, "P",
-       doc: /* Read function name, then read its arguments and call it.
-
-To pass a numeric argument to the command you are invoking with, specify
-the numeric argument to this command.
-
-Noninteractively, the argument PREFIXARG is the prefix argument to
-give to the command you invoke, if it asks for an argument.  */)
-  (Lisp_Object prefixarg)
-{
-  Lisp_Object function;
-  EMACS_INT saved_last_point_position;
-  Lisp_Object saved_keys, saved_last_point_position_buffer;
-  Lisp_Object bindings, value;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-#ifdef HAVE_WINDOW_SYSTEM
-  /* The call to Fcompleting_read will start and cancel the hourglass,
-     but if the hourglass was already scheduled, this means that no
-     hourglass will be shown for the actual M-x command itself.
-     So we restart it if it is already scheduled.  Note that checking
-     hourglass_shown_p is not enough,  normally the hourglass is not shown,
-     just scheduled to be shown.  */
-  int hstarted = hourglass_started ();
-#endif
-
-  saved_keys = Fvector (this_command_key_count,
-			XVECTOR (this_command_keys)->contents);
-  saved_last_point_position_buffer = last_point_position_buffer;
-  saved_last_point_position = last_point_position;
-  GCPRO3 (saved_keys, prefixarg, saved_last_point_position_buffer);
-
-  function = call0 (intern ("read-extended-command"));
-
-#ifdef HAVE_WINDOW_SYSTEM
-  if (hstarted) start_hourglass ();
-#endif
-
-  if (STRINGP (function) && SCHARS (function) == 0)
-    error ("No command name given");
-
-  /* Set this_command_keys to the concatenation of saved_keys and
-     function, followed by a RET.  */
-  {
-    Lisp_Object *keys;
-    int i;
-
-    this_command_key_count = 0;
-    this_command_key_count_reset = 0;
-    this_single_command_key_start = 0;
-
-    keys = XVECTOR (saved_keys)->contents;
-    for (i = 0; i < ASIZE (saved_keys); i++)
-      add_command_key (keys[i]);
-
-    for (i = 0; i < SCHARS (function); i++)
-      add_command_key (Faref (function, make_number (i)));
-
-    add_command_key (make_number ('\015'));
-  }
-
-  last_point_position = saved_last_point_position;
-  last_point_position_buffer = saved_last_point_position_buffer;
-
-  UNGCPRO;
-
-  function = Fintern (function, Qnil);
-  KVAR (current_kboard, Vprefix_arg) = prefixarg;
-  Vthis_command = function;
-  real_this_command = function;
-
-  /* If enabled, show which key runs this command.  */
-  if (!NILP (Vsuggest_key_bindings)
-      && NILP (Vexecuting_kbd_macro)
-      && SYMBOLP (function))
-    bindings = Fwhere_is_internal (function, Voverriding_local_map,
-				   Qt, Qnil, Qnil);
-  else
-    bindings = Qnil;
-
-  value = Qnil;
-  GCPRO3 (bindings, value, function);
-  value = Fcommand_execute (function, Qt, Qnil, Qnil);
-
-  /* If the command has a key binding, print it now.  */
-  if (!NILP (bindings)
-      && ! (VECTORP (bindings) && EQ (Faref (bindings, make_number (0)),
-				      Qmouse_movement)))
-    {
-      /* But first wait, and skip the message if there is input.  */
-      Lisp_Object waited;
-
-      /* If this command displayed something in the echo area;
-	 wait a few seconds, then display our suggestion message.  */
-      if (NILP (echo_area_buffer[0]))
-	waited = sit_for (make_number (0), 0, 2);
-      else if (NUMBERP (Vsuggest_key_bindings))
-	waited = sit_for (Vsuggest_key_bindings, 0, 2);
-      else
-	waited = sit_for (make_number (2), 0, 2);
-
-      if (!NILP (waited) && ! CONSP (Vunread_command_events))
-	{
-	  Lisp_Object binding;
-	  char *newmessage;
-	  int message_p = push_message ();
-	  int count = SPECPDL_INDEX ();
-	  ptrdiff_t newmessage_len, newmessage_alloc;
-	  USE_SAFE_ALLOCA;
-
-	  record_unwind_protect (pop_message_unwind, Qnil);
-	  binding = Fkey_description (bindings, Qnil);
-	  newmessage_alloc =
-	    (sizeof "You can run the command `' with "
-	     + SBYTES (SYMBOL_NAME (function)) + SBYTES (binding));
-	  SAFE_ALLOCA (newmessage, char *, newmessage_alloc);
-	  newmessage_len =
-	    esprintf (newmessage, "You can run the command `%s' with %s",
-		      SDATA (SYMBOL_NAME (function)),
-		      SDATA (binding));
-	  message2 (newmessage,
-		    newmessage_len,
-		    STRING_MULTIBYTE (binding));
-	  if (NUMBERP (Vsuggest_key_bindings))
-	    waited = sit_for (Vsuggest_key_bindings, 0, 2);
-	  else
-	    waited = sit_for (make_number (2), 0, 2);
-
-	  if (!NILP (waited) && message_p)
-	    restore_message ();
-
-	  SAFE_FREE ();
-	  unbind_to (count, Qnil);
-	}
-    }
-
-  RETURN_UNGCPRO (value);
-}
-
-
 /* Return nonzero if input events are pending.  */
 
 int
@@ -11791,7 +11651,6 @@ syms_of_keyboard (void)
   defsubr (&Sset_quit_char);
   defsubr (&Sset_input_mode);
   defsubr (&Scurrent_input_mode);
-  defsubr (&Sexecute_extended_command);
   defsubr (&Sposn_at_point);
   defsubr (&Sposn_at_x_y);
 
@@ -12194,12 +12053,6 @@ as per the args of `display-warning' (which see).
 If this variable is non-nil, `delayed-warnings-hook' will be run
 immediately after running `post-command-hook'.  */);
   Vdelayed_warnings_list = Qnil;
-
-  DEFVAR_LISP ("suggest-key-bindings", Vsuggest_key_bindings,
-	       doc: /* Non-nil means show the equivalent key-binding when M-x command has one.
-The value can be a length of time to show the message for.
-If the value is non-nil and not a number, we wait 2 seconds.  */);
-  Vsuggest_key_bindings = Qt;
 
   DEFVAR_LISP ("timer-list", Vtimer_list,
 	       doc: /* List of active absolute time timers in order of increasing time.  */);

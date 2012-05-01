@@ -1,3 +1,8 @@
+2012-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fexecute_extended_command, Vsuggest_key_bindings):
+	Move to simple.el.
+
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* syssignal.h: Remove reference to BROKEN_SIGINFO (last used in
@@ -52,8 +57,8 @@
 
 2012-04-27  Eli Zaretskii  <eliz@gnu.org>
 
-	* dispnew.c (swap_glyph_pointers, copy_row_except_pointers): Don't
-	overrun array limits of glyph row's used[] array.  (Bug#11288)
+	* dispnew.c (swap_glyph_pointers, copy_row_except_pointers):
+	Don't overrun array limits of glyph row's used[] array.  (Bug#11288)
 
 2012-04-26  Eli Zaretskii  <eliz@gnu.org>
 
@@ -169,8 +174,8 @@
 	(XD_CHECK_DBUS_SERIAL): Rename from CHECK_DBUS_SERIAL_GET_SERIAL.
 	(xd_signature, xd_append_arg): Allow float for integer types.
 	(xd_get_connection_references): New function.
-	(xd_get_connection_address): Rename from xd_initialize.  Return
-	cached address.
+	(xd_get_connection_address): Rename from xd_initialize.
+	Return cached address.
 	(xd_remove_watch): Do not unset $DBUS_SESSION_BUS_ADDRESS.
 	(xd_close_bus): Rename from Fdbus_close_bus.  Not needed on Lisp
 	level.
@@ -188,8 +193,8 @@
 	(Vdbus_message_type_invalid, Vdbus_message_type_method_call)
 	(Vdbus_message_type_method_return, Vdbus_message_type_error)
 	(Vdbus_message_type_signal): New defvars.
-	(Vdbus_registered_buses, Vdbus_registered_objects_table): Adapt
-	docstring.
+	(Vdbus_registered_buses, Vdbus_registered_objects_table):
+	Adapt docstring.
 
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -219,8 +224,8 @@
 
 2012-04-21  Eduard Wiebe  <usenet@pusto.de>
 
-	* sysdep.c (list_system_processes, system_process_attributes): Add
-	implementation for FreeBSD (Bug#5243).
+	* sysdep.c (list_system_processes, system_process_attributes):
+	Add implementation for FreeBSD (Bug#5243).
 
 2012-04-21  Andreas Schwab  <schwab@linux-m68k.org>
 

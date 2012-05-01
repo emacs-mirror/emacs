@@ -1354,6 +1354,56 @@ to get different commands to edit and resubmit."
 	     "M-x ")
      obarray 'commandp t nil 'extended-command-history)))
 
+(defcustom suggest-key-bindings t
+  "Non-nil means show the equivalent key-binding when M-x command has one.
+The value can be a length of time to show the message for.
+If the value is non-nil and not a number, we wait 2 seconds."
+  :group 'keyboard
+  :type '(choice (const :tag "off" nil)
+                 (integer :tag "time" 2)
+                 (other :tag "on")))
+
+(defun execute-extended-command (prefixarg &optional command-name)
+  ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
+  ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
+  "Read function name, then read its arguments and call it.
+
+To pass a numeric argument to the command you are invoking with, specify
+the numeric argument to this command.
+
+Noninteractively, the argument PREFIXARG is the prefix argument to
+give to the command you invoke, if it asks for an argument."
+  (interactive (list current-prefix-arg (read-extended-command)))
+  ;; Emacs<24 calling-convention was with a single `prefixarg' argument.
+  (if (null command-name) (setq command-name (read-extended-command)))
+  (let* ((function (and (stringp command-name) (intern-soft command-name)))
+         (binding (and suggest-key-bindings
+                        (not executing-kbd-macro)
+                        (where-is-internal function overriding-local-map t))))
+    (unless (commandp function)
+      (error "`%s' is not a valid command name" command-name))
+    ;; Set this_command_keys to the concatenation of saved-keys and
+    ;; function, followed by a RET.
+    (setq this-command function)
+    (let ((prefix-arg prefixarg))
+      (command-execute function 'record))
+    ;; If enabled, show which key runs this command.
+    (when binding
+      ;; But first wait, and skip the message if there is input.
+      (let* ((waited
+              ;; If this command displayed something in the echo area;
+              ;; wait a few seconds, then display our suggestion message.
+              (sit-for (cond
+                        ((zerop (length (current-message))) 0)
+                        ((numberp suggest-key-bindings) suggest-key-bindings)
+                        (t 2)))))
+        (when (and waited (not (consp unread-command-events)))
+          (with-temp-message
+              (format "You can run the command `%s' with %s"
+                      function (key-description binding))
+            (sit-for (if (numberp suggest-key-bindings)
+                         suggest-key-bindings
+                       2))))))))
 
 (defvar minibuffer-history nil
   "Default minibuffer history list.
