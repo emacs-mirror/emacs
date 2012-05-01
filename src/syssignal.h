@@ -1,5 +1,6 @@
 /* syssignal.h - System-dependent definitions for signals.
-   Copyright (C) 1993, 1999, 2001-2012  Free Software Foundation, Inc.
+
+Copyright (C) 1993, 1999, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -82,24 +83,18 @@ void croak (char *) NO_RETURN;
 
 #define sigfree() sigsetmask (SIGEMPTYMASK)
 
-#if defined (SIGINFO) && defined (BROKEN_SIGINFO)
-#undef SIGINFO
-#endif
 #if defined (SIGIO) && defined (BROKEN_SIGIO)
 # undef SIGIO
 #endif
+/* Last user: m/ibmrs6000.h  */
 #if defined (SIGPOLL) && defined (BROKEN_SIGPOLL)
 #undef SIGPOLL
 #endif
-#if defined (SIGTSTP) && defined (BROKEN_SIGTSTP)
-#undef SIGTSTP
-#endif
-#if defined (SIGURG) && defined (BROKEN_SIGURG)
-#undef SIGURG
-#endif
+/* Last user: m/ibmrs6000.h  */
 #if defined (SIGAIO) && defined (BROKEN_SIGAIO)
 #undef SIGAIO
 #endif
+/* Last user: m/ibmrs6000.h  */
 #if defined (SIGPTY) && defined (BROKEN_SIGPTY)
 #undef SIGPTY
 #endif
