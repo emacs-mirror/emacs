@@ -1,3 +1,8 @@
+2012-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-quoting): Fix compatibility
+	all-completions code to not return a number in the last cdr.
+
 2012-04-30  Leo Liu  <sdl.web@gmail.com>
 
 	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): Avoid buffer

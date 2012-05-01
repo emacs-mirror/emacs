@@ -420,6 +420,13 @@ for use at QPOS."
                                 (length string))))))
         (list* 'boundaries qlboundary qrboundary)))
 
+     ;; In "normal" use a c-t-with-quoting completion table should never be
+     ;; called with action in (t nil) because `completion--unquote' should have
+     ;; been called before and would have returned a different completion table
+     ;; to apply to the unquoted text.  But there's still a lot of code around
+     ;; that likes to use all/try-completions directly, so we do our best to
+     ;; handle those calls as well as we can.
+
      ((eq action nil) ;;try-completion
       (let* ((ustring (funcall unquote string))
              (completion (try-completion ustring table pred)))
@@ -447,10 +454,14 @@ for use at QPOS."
       (pcase-let*
           ((ustring (funcall unquote string))
            (completions (all-completions ustring table pred))
-           (boundary (car (completion-boundaries ustring table pred ""))))
-        (completion--twq-all
-         string ustring completions boundary unquote requote)))
-
+           (boundary (car (completion-boundaries ustring table pred "")))
+           (completions
+            (completion--twq-all
+             string ustring completions boundary unquote requote))
+           (last (last completions)))
+        (when (consp last) (setcdr last nil))
+        completions))
+        
      ((eq action 'completion--unquote)
       (let ((ustring (funcall unquote string))
             (uprefix (funcall unquote (substring string 0 pred))))
