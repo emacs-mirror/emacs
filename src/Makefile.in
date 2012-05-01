@@ -96,7 +96,7 @@ LD_SWITCH_X_SITE=
 
 ## This must come before LD_SWITCH_SYSTEM.
 ## If needed, a -rpath option that says where to find X windows at run time.
-LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
+LD_SWITCH_X_SITE_RPATH=@LD_SWITCH_X_SITE_RPATH@
 
 ## System-specific LDFLAGS.
 LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@

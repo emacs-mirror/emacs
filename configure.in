@@ -973,7 +973,7 @@ AC_SUBST(LD_SWITCH_SYSTEM)
 
 ac_link="$ac_link $LD_SWITCH_SYSTEM"
 
-## This setting of LD_SWITCH_SYSTEM references LD_SWITCH_X_SITE_AUX_RPATH,
+## This setting of LD_SWITCH_SYSTEM references LD_SWITCH_X_SITE_RPATH,
 ## which has not been defined yet.  When this was handled with cpp,
 ## it was expanded to null when configure sourced the s/*.h file.
 ## Thus LD_SWITCH_SYSTEM had different values in configure and the Makefiles.
@@ -985,7 +985,7 @@ ac_link="$ac_link $LD_SWITCH_SYSTEM"
 ## LD_SWITCH_SYSTEM_TEMACS.
 case "$opsys" in
   netbsd|openbsd)
-   LD_SWITCH_SYSTEM="\$(LD_SWITCH_X_SITE_AUX_RPATH) $LD_SWITCH_SYSTEM" ;;
+   LD_SWITCH_SYSTEM="\$(LD_SWITCH_X_SITE_RPATH) $LD_SWITCH_SYSTEM" ;;
 esac
 
 
@@ -1499,11 +1499,11 @@ else
   window_system=x11
 fi
 
-LD_SWITCH_X_SITE_AUX_RPATH=
+LD_SWITCH_X_SITE_RPATH=
 if test "${x_libraries}" != NONE; then
   if test -n "${x_libraries}"; then
     LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
-    LD_SWITCH_X_SITE_AUX_RPATH=-Wl,-rpath`echo ${x_libraries} | sed -e "s/:/ -Wl,-rpath/g"`
+    LD_SWITCH_X_SITE_RPATH=-Wl,-rpath`echo ${x_libraries} | sed -e "s/:/ -Wl,-rpath/g"`
   fi
   x_default_search_path=""
   x_search_path=${x_libraries}
@@ -1526,7 +1526,7 @@ ${x_library}/X11/%T/%N%S"
     fi
   done
 fi
-AC_SUBST(LD_SWITCH_X_SITE_AUX_RPATH)
+AC_SUBST(LD_SWITCH_X_SITE_RPATH)
 
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
   C_SWITCH_X_SITE="$isystem"`echo ${x_includes} | sed -e "s/:/ $isystem/g"`
@@ -1854,9 +1854,9 @@ if test "${HAVE_X11}" = "yes"; then
   CPPFLAGS="$C_SWITCH_X_SITE $CPPFLAGS"
 
   # On Solaris, arrange for LD_RUN_PATH to point to the X libraries for tests.
-  # This is handled by LD_SWITCH_X_SITE_AUX_RPATH during the real build,
+  # This is handled by LD_SWITCH_X_SITE_RPATH during the real build,
   # but it's more convenient here to set LD_RUN_PATH since this
-  # also works on hosts that don't understand LD_SWITCH_X_SITE_AUX_RPATH.
+  # also works on hosts that don't understand LD_SWITCH_X_SITE_RPATH.
   if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
     LD_RUN_PATH=$x_libraries${LD_RUN_PATH+:}$LD_RUN_PATH
     export LD_RUN_PATH
@@ -3506,14 +3506,14 @@ case "$opsys" in
      LD_SWITCH_SYSTEM_TEMACS="-X $LD_SWITCH_SYSTEM_TEMACS"
    ;;
 
-  ## LD_SWITCH_X_SITE_AUX_RPATH is a -rpath option saying where to
+  ## LD_SWITCH_X_SITE_RPATH is a -rpath option saying where to
   ## find X at run-time.
   ## When handled by cpp, this was in LD_SWITCH_SYSTEM.  However, at the
-  ## point where configure sourced the s/*.h file, LD_SWITCH_X_SITE_AUX_RPATH
+  ## point where configure sourced the s/*.h file, LD_SWITCH_X_SITE_RPATH
   ## had not yet been defined and was expanded to null.  Hence LD_SWITCH_SYSTEM
   ## had different values in configure (in ac_link) and src/Makefile.in.
   ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
-  gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_AUX_RPATH)" ;;
+  gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_RPATH)" ;;
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac

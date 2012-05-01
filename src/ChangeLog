@@ -1,5 +1,8 @@
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (LD_SWITCH_X_SITE_RPATH):
+	Rename from LD_SWITCH_X_SITE_AUX_RPATH.
+
 	* Makefile.in (LD_SWITCH_X_SITE_AUX): Remove; no longer used.
 
 2012-04-30  Andreas Schwab  <schwab@linux-m68k.org>
