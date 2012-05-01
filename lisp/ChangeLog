@@ -27,6 +27,7 @@
 	(follow-scroll-bar-toolkit-scroll, follow-scroll-bar-drag)
 	(follow-scroll-bar-scroll-up, follow-scroll-bar-scroll-down): New
 	functions, replacing advice on scroll-bar-* commands.
+	(follow-mwheel-scroll): New function (Bug#4112).
 
 	* comint.el (comint-adjust-point): New function.
 	(comint-postoutput-scroll-to-bottom): Use it.  Call

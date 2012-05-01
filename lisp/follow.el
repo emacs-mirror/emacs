@@ -258,6 +258,7 @@ After that, changing the prefix key requires manipulating keymaps."
     (define-key mainmap [remap scroll-bar-drag] 'follow-scroll-bar-drag)
     (define-key mainmap [remap scroll-bar-scroll-up] 'follow-scroll-bar-scroll-up)
     (define-key mainmap [remap scroll-bar-scroll-down] 'follow-scroll-bar-scroll-down)
+    (define-key mainmap [remap mwheel-scroll] 'follow-mwheel-scroll)
 
     mainmap)
   "Minor mode keymap for Follow mode.")
@@ -1315,17 +1316,24 @@ non-first windows in Follow mode."
   (scroll-bar-scroll-down event)
   (follow-redraw-after-event event))
 
+(defun follow-mwheel-scroll (event)
+  (interactive "e")
+  (mwheel-scroll event)
+  (follow-redraw-after-event event))
+
 (defun follow-redraw-after-event (event)
-  "Re-align the Follow mode windows acted on by EVENT."
-  (let ((window (nth 0 (event-end event)))
-	(orig-win (selected-window)))
-    (when (and (buffer-local-value 'follow-mode (window-buffer window))
+  "Re-align the Follow mode windows affected by EVENT."
+  (let* ((window (nth 0 (event-end event)))
+	 (buffer (window-buffer window))
+	 (orig-win (selected-window)))
+    (when (and (buffer-local-value 'follow-mode buffer)
 	       ;; Ignore the case where we scroll the selected window;
 	       ;; that is handled by the post-command hook function.
 	       (not (eq window (selected-window))))
       (select-window window)
       (follow-redisplay)
-      (select-window orig-win))))
+      (unless (eq (window-buffer orig-win) buffer)
+	(select-window orig-win)))))
 
 ;;; Window size change
 
