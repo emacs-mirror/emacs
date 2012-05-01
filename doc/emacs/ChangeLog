@@ -1,3 +1,7 @@
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (@copying): Only print EDITION in the TeX version.
+
 2012-04-30  Glenn Morris  <rgm@gnu.org>
 
 	* search.texi (Regexp Search): Just say "Emacs".

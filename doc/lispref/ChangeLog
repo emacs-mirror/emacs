@@ -1,3 +1,8 @@
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (@copying):
+	* intro.texi (Introduction): Only print VERSION in the TeX version.
+
 2012-04-29  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Change Hooks): Minor fix for after-change-functions.

@@ -3,12 +3,27 @@
 @setfilename ../../info/emacs
 @settitle GNU Emacs Manual
 
-@c The edition number appears in several places in this file
+@c The edition number appears in more than one place in this file
+@c I don't really know what it means...
+@c For example, it has said "Sixteenth" since sometime in the Emacs 22
+@c series, all through 23, and into 24.  So it is not very useful IMO,
+@c and offers nothing that EMACSVER does not.  I guess it relates
+@c mainly to the published book sold by the FSF.  Hence no longer
+@c bother including it except iftex.  Really, I think it should not be
+@c here at all (since anyone can make a pdf version), but should just
+@c be something added by the FSF during the publishing process.
+@c Also, the lispref uses a float (3.0), whereas this uses an ordinal,
+@c so the format is not even consistent.
 @set EDITION   Sixteenth
 @include emacsver.texi
 
 @copying
+@iftex
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
+@end iftex
+@ifnottex
+This is the @cite{GNU Emacs Manual},
+@end ifnottex
 updated for Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1985-1987, 1993-2012 Free Software Foundation, Inc.
