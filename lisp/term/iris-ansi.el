@@ -1,4 +1,4 @@
-;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps -*- no-byte-compile: t -*-
+;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps
 
 ;; Copyright (C) 1997, 2001-2012 Free Software Foundation, Inc.
 

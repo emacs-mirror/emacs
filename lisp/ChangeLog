@@ -1,3 +1,12 @@
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* term/AT386.el, term/apollo.el, term/bobcat.el, term/cygwin.el:
+	* term/iris-ansi.el, term/linux.el, term/lk201.el, term/news.el:
+	* term/screen.el, term/vt102.el, term/vt125.el, term/vt200.el:
+	* term/vt201.el, term/vt220.el, term/vt240.el, term/vt300.el:
+	* term/vt320.el, term/vt400.el, term/vt420.el, term/wyse50.el:
+	Remove no-byte-compile setting.
+
 2012-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-table-with-quoting): Fix compatibility

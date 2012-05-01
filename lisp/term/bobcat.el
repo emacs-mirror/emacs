@@ -1,4 +1,3 @@
-;; -*- no-byte-compile: t -*-
 
 (defun terminal-init-bobcat ()
   "Terminal initialization function for bobcat."

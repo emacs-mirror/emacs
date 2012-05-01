@@ -1,4 +1,3 @@
-;; -*- no-byte-compile: t -*-
 ;; Treat a screen terminal similar to an xterm.
 (load "term/xterm")
 

@@ -1,4 +1,3 @@
-;; -*- no-byte-compile: t -*-
 ;; The Linux console handles Latin-1 by default.
 
 (defun terminal-init-linux ()
