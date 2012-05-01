@@ -1,3 +1,8 @@
+2012-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-open-connection-1): Don't leave an "opening..."
+	message once it's actually open.
+
 2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* auth-source.el (auth-source--aput-1, auth-source--aput)
