@@ -1,3 +1,9 @@
+2012-04-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* .gdbinit (xpr): Remove checks for no longer existing misc types.
+	(xintfwd, xboolfwd, xobjfwd, xbufobjfwd, xkbobjfwd, xbuflocal):
+	Remove.
+
 2012-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Do not avoid creating empty evaporating overlays (Bug#9642).

@@ -703,60 +703,6 @@ Print $ as a misc free-cell pointer.
 This command assumes that $ is an Emacs Lisp Misc value.
 end
 
-define xintfwd
-  xgetptr $
-  print (struct Lisp_Intfwd *) $ptr
-end
-document xintfwd
-Print $ as an integer forwarding pointer.
-This command assumes that $ is an Emacs Lisp Misc value.
-end
-
-define xboolfwd
-  xgetptr $
-  print (struct Lisp_Boolfwd *) $ptr
-end
-document xboolfwd
-Print $ as a boolean forwarding pointer.
-This command assumes that $ is an Emacs Lisp Misc value.
-end
-
-define xobjfwd
-  xgetptr $
-  print (struct Lisp_Objfwd *) $ptr
-end
-document xobjfwd
-Print $ as an object forwarding pointer.
-This command assumes that $ is an Emacs Lisp Misc value.
-end
-
-define xbufobjfwd
-  xgetptr $
-  print (struct Lisp_Buffer_Objfwd *) $ptr
-end
-document xbufobjfwd
-Print $ as a buffer-local object forwarding pointer.
-This command assumes that $ is an Emacs Lisp Misc value.
-end
-
-define xkbobjfwd
-  xgetptr $
-  print (struct Lisp_Kboard_Objfwd *) $ptr
-end
-document xkbobjfwd
-Print $ as a kboard-local object forwarding pointer.
-This command assumes that $ is an Emacs Lisp Misc value.
-end
-
-define xbuflocal
-  xgetptr $
-  print (struct Lisp_Buffer_Local_Value *) $ptr
-end
-document xbuflocal
-Print $ as a buffer-local-value pointer.
-This command assumes that $ is an Emacs Lisp Misc value.
-end
-
 define xsymbol
   set $sym = $
   xgetptr $sym
@@ -1030,35 +976,11 @@ define xpr
     if $misc == Lisp_Misc_Free
       xmiscfree
     end
-    if $misc == Lisp_Misc_Boolfwd
-      xboolfwd
-    end
     if $misc == Lisp_Misc_Marker
       xmarker
     end
-    if $misc == Lisp_Misc_Intfwd
-      xintfwd
-    end
-    if $misc == Lisp_Misc_Boolfwd
-      xboolfwd
-    end
-    if $misc == Lisp_Misc_Objfwd
-      xobjfwd
-    end
-    if $misc == Lisp_Misc_Buffer_Objfwd
-      xbufobjfwd
-    end
-    if $misc == Lisp_Misc_Buffer_Local_Value
-      xbuflocal
-    end
-#    if $misc == Lisp_Misc_Some_Buffer_Local_Value
-#      xvalue
-#    end
     if $misc == Lisp_Misc_Overlay
       xoverlay
-    end
-    if $misc == Lisp_Misc_Kboard_Objfwd
-      xkbobjfwd
     end
 #    if $misc == Lisp_Misc_Save_Value
 #      xsavevalue
