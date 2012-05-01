@@ -74,6 +74,7 @@
 #define MPS_ARCH_M2
 #define MPS_BUILD_CC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
@@ -91,6 +92,7 @@
 #define MPS_ARCH_M4
 #define MPS_BUILD_CC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
@@ -107,6 +109,7 @@
 #define MPS_ARCH_AL
 #define MPS_BUILD_MV
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
@@ -123,6 +126,7 @@
 #define MPS_ARCH_PP
 #define MPS_BUILD_MV
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
@@ -145,6 +149,7 @@
 #define MPS_ARCH_I3
 #define MPS_BUILD_MV
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
@@ -187,6 +192,7 @@
 #define MPS_ARCH_60
 #define MPS_BUILD_MW
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    1
@@ -205,6 +211,7 @@
 #define MPS_ARCH_PP
 #define MPS_BUILD_MW
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .macos.ppc.align */
@@ -225,6 +232,7 @@
 #define MPS_ARCH_60
 #define MPS_BUILD_AC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    1
@@ -245,6 +253,7 @@
 #define MPS_ARCH_PP
 #define MPS_BUILD_AC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .macos.ppc.align */
@@ -265,6 +274,7 @@
 #define MPS_ARCH_PP
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .macos.ppc.align */
@@ -285,6 +295,7 @@
 #define MPS_ARCH_I3
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4       /* I'm just guessing. */
@@ -319,6 +330,7 @@
 #define MPS_ARCH_S8
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
@@ -336,6 +348,7 @@
 #define MPS_ARCH_S8
 #define MPS_BUILD_LC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
@@ -353,6 +366,7 @@
 #define MPS_ARCH_S8
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
@@ -373,6 +387,7 @@
 #define MPS_ARCH_S9
 #define MPS_BUILD_SC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
@@ -389,6 +404,7 @@
 #define MPS_ARCH_AL
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
@@ -405,6 +421,7 @@
 #define MPS_ARCH_AL
 #define MPS_BUILD_CC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
@@ -424,6 +441,7 @@
 #define MPS_ARCH_I4
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
@@ -440,6 +458,7 @@
 #define MPS_ARCH_PP
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* @@@@ not tested */
@@ -457,6 +476,7 @@
 #define MPS_ARCH_I4
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4

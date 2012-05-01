@@ -1145,7 +1145,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
 /* AWLWalk -- walk all objects */
 
 static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
-                    void *p, unsigned long s)
+                    void *p, size_t s)
 {
   AWL awl;
   AWLSeg awlseg;
