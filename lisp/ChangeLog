@@ -1,3 +1,37 @@
+2012-05-01  Chong Yidong  <cyd@gnu.org>
+
+	* follow.el: Eliminate advice.
+	(set-process-filter, process-filter, sit-for): Advice deleted.
+	(follow-mode-off-hook): Obsolete hook removed.
+	(follow-avoid-tail-recenter-p, follow-process-filter-alist): Vars
+	deleted.
+	(follow-auto): Use a :set function.
+	(follow-mode): Rewritten.  Don't advise process filters.
+	(follow-switch-to-current-buffer-all, follow-scroll-up)
+	(follow-scroll-down): Assume follow-mode is bound.
+	(follow-comint-scroll-to-bottom)
+	(follow-align-compilation-windows): New functions.
+	(follow--window-sorter): New function.
+	(follow-all-followers): Use it to explicitly sort windows by their
+	positions; don't make assumptions about next-window order.
+	(follow-windows-start-end, follow-delete-other-windows-and-split)
+	(follow-calc-win-start): Doc fix.
+	(follow-windows-aligned-p, follow-select-if-visible): Don't call
+	vertical-motion unnecessarily.
+	(follow-adjust-window): New function.
+	(follow-post-command-hook): Use it.
+	(follow-call-set-process-filter, follow-call-process-filter)
+	(follow-intercept-process-output, follow-tidy-process-filter-alist)
+	(follow-stop-intercept-process-output, follow-generic-filter):
+	Functions deleted.
+	(follow-scroll-bar-toolkit-scroll, follow-scroll-bar-drag)
+	(follow-scroll-bar-scroll-up, follow-scroll-bar-scroll-down): New
+	functions, replacing advice on scroll-bar-* commands.
+
+	* comint.el (comint-adjust-point): New function.
+	(comint-postoutput-scroll-to-bottom): Use it.  Call
+	follow-comint-scroll-to-bottom for Follow mode buffers.
+
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* term/AT386.el, term/apollo.el, term/bobcat.el, term/cygwin.el:

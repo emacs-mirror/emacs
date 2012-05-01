@@ -2101,42 +2101,50 @@ This function should be a pre-command hook."
                        (select-window selected))))
 	       nil t))))))
 
+(defvar follow-mode)
+(declare-function follow-comint-scroll-to-bottom "follow" ())
+
 (defun comint-postoutput-scroll-to-bottom (_string)
   "Go to the end of buffer in some or all windows showing it.
-Does not scroll if the current line is the last line in the buffer.
+Do not scroll if the current line is the last line in the buffer.
 Depends on the value of `comint-move-point-for-output' and
 `comint-scroll-show-maximum-output'.
 
 This function should be in the list `comint-output-filter-functions'."
-  (let* ((selected (selected-window))
-	 (current (current-buffer))
-	 (process (get-buffer-process current))
-	 (scroll comint-move-point-for-output))
+  (let* ((current (current-buffer))
+	 (process (get-buffer-process current)))
     (unwind-protect
-	(if process
-	    (walk-windows
-             (lambda (window)
-               (when (eq (window-buffer window) current)
-                 (select-window window)
-                 (if (and (< (point) (process-mark process))
-                          (or (eq scroll t) (eq scroll 'all)
-                              ;; Maybe user wants point to jump to end.
-                              (and (eq scroll 'this) (eq selected window))
-                              (and (eq scroll 'others) (not (eq selected window)))
-                              ;; If point was at the end, keep it at end.
-                              (and (marker-position comint-last-output-start)
-                                   (>= (point) comint-last-output-start))))
-                     (goto-char (process-mark process)))
-                 ;; Optionally scroll so that the text
-                 ;; ends at the bottom of the window.
-                 (if (and comint-scroll-show-maximum-output
-                          (= (point) (point-max)))
-                     (save-excursion
-                       (goto-char (point-max))
-                       (recenter (- -1 scroll-margin))))
-                 (select-window selected)))
-	     nil t))
+	(cond
+	 ((null process))
+	 ((bound-and-true-p follow-mode)
+	  (follow-comint-scroll-to-bottom))
+	 (t
+	  (let ((selected (selected-window)))
+	    (dolist (w (get-buffer-window-list current nil t))
+	      (select-window w)
+	      (unwind-protect
+		  (progn
+		    (comint-adjust-point selected)
+		    ;; Optionally scroll to the bottom of the window.
+		    (and comint-scroll-show-maximum-output
+			 (eobp)
+			 (recenter (- -1 scroll-margin))))
+		(select-window selected))))))
       (set-buffer current))))
+
+(defun comint-adjust-point (selected)
+  "Move point in the selected window based on Comint settings.
+SELECTED is the window that was originally selected."
+  (let ((process (get-buffer-process (current-buffer))))
+    (and (< (point) (process-mark process))
+	 (or (memq comint-move-point-for-output '(t all))
+	     ;; Maybe user wants point to jump to end.
+	     (eq comint-move-point-for-output
+		 (if (eq (selected-window) selected) 'this 'others))
+	     ;; If point was at the end, keep it at end.
+	     (and (marker-position comint-last-output-start)
+		  (>= (point) comint-last-output-start)))
+	 (goto-char (process-mark process)))))
 
 (defun comint-truncate-buffer (&optional _string)
   "Truncate the buffer to `comint-buffer-maximum-size'.

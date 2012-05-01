@@ -100,6 +100,13 @@ these commands now).
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
 
+** Follow mode
+
+*** The obsolete variable `follow-mode-off-hook' has been removed.
+
+*** Follow mode no longer works by using advice.
+The option `follow-intercept-processes' has been removed.
+
 ** The `server-auth-key' variable can be used to set a permanent
 shared key for Emacs Server.
 
