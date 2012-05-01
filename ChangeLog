@@ -1,5 +1,8 @@
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (MAN_PAGES): Remove.
+	(install-arch-indep, uninstall): Don't use $MAN_PAGES.
+
 	* configure.in: Try libtinfo for tputs.
 	(LIBS_TERMCAP) [gnu*]: Use libtinfo if it was found.  (Bug#9741)
 

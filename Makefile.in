@@ -122,13 +122,9 @@ sharedstatedir=@sharedstatedir@
 libexecdir=@libexecdir@
 
 # Where to install Emacs's man pages.
-# This used to allow choice of the numeric extension, but this made
-# little sense since the files were always installed in man1/
-# (and they contain cross-references that expect them to be there).
+# Note they contain cross-references that expect them to be in section 1.
 mandir=@mandir@
 man1dir=$(mandir)/man1
-MAN_PAGES=ctags.1 ebrowse.1 emacs.1 emacsclient.1 etags.1 \
-          grep-changelog.1 rcs-checkin.1
 
 # Where to install and expect the info files describing Emacs.	In the
 # past, this defaulted to a subdirectory of ${prefix}/lib/emacs, but
@@ -642,7 +638,7 @@ install-arch-indep: mkdir info install-etc
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 	thisdir=`/bin/pwd`; \
 	cd ${mansrcdir}; \
-	for page in ${MAN_PAGES}; do \
+	for page in *.1; do \
 	  (cd $${thisdir}; \
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}; \
 	   chmod a+r $(DESTDIR)${man1dir}/$${page}; \
@@ -734,8 +730,8 @@ uninstall:
 	  done;)
 	(if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
 	    ext=.gz; else ext=; fi; \
-	 cd $(DESTDIR)${man1dir} && for page in ${MAN_PAGES}; do \
-	   rm -f $$page$$ext; done )
+	 cd ${mansrcdir} && for page in *.1; do \
+	   rm -f $(DESTDIR)${man1dir}/$$page$$ext; done )
 	(cd $(DESTDIR)${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 	(cd $(DESTDIR)${icondir} && rm -f hicolor/*x*/apps/emacs.png hicolor/*x*/apps/emacs22.png hicolor/scalable/apps/emacs.svg hicolor/scalable/mimetypes/emacs-document.svg )
 	-rm -f $(DESTDIR)${desktopdir}/emacs.desktop
