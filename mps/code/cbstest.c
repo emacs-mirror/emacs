@@ -501,7 +501,7 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
 
   expected = (high ? BTFindLongResRangeHigh : BTFindLongResRange)
                (&expectedBase, &expectedLimit, alloc,
-                (Index)0, (Index)ArraySize, (unsigned long)size);
+                (Index)0, (Index)ArraySize, (Count)size);
 
   if (expected) {
     oldSize = (expectedLimit - expectedBase) * Alignment;

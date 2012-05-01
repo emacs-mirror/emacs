@@ -410,6 +410,11 @@ CompareEQUAL: Indicates that two value compares the same
 CompareGREATER: Indicates that a value compares greater than another value. 
 
 
+ULongest
+
+<a id="ulongest" name="ulongest">.ulongest</a>: ULongest is the longest unsigned integer on the platform.  (We used to use "unsigned long" but this assumption is violated by 64-bit Windows.)  This type should be used for calculations where any integer might be passed.  Notably, it is used in WriteF to print any integer.
+
+
 ABSTRACT TYPES
 
 <a id="adts" name="adts">.adts</a>: The following types are abstract data types, implemented as pointers to 

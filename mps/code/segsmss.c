@@ -376,13 +376,13 @@ static void AMSTFinish(Pool pool)
   AVERT(AMST, amst);
 
   printf("\nDestroying pool, having performed:\n");
-  printf("    %lu splits          (S)\n", (unsigned long)amst->splits);
-  printf("    %lu merges          (M)\n", (unsigned long)amst->merges);
-  printf("    %lu aborted splits  (B)\n", (unsigned long)amst->badSplits);
-  printf("    %lu aborted merges  (D)\n", (unsigned long)amst->badMerges);
+  printf("    %"PRIuLONGEST" splits          (S)\n", (ulongest_t)amst->splits);
+  printf("    %"PRIuLONGEST" merges          (M)\n", (ulongest_t)amst->merges);
+  printf("    %"PRIuLONGEST" aborted splits  (B)\n", (ulongest_t)amst->badSplits);
+  printf("    %"PRIuLONGEST" aborted merges  (D)\n", (ulongest_t)amst->badMerges);
   printf("  which included:\n");
-  printf("    %lu buffered splits (C)\n", (unsigned long)amst->bsplits);
-  printf("    %lu buffered merges (J)\n", (unsigned long)amst->bmerges);
+  printf("    %"PRIuLONGEST" buffered splits (C)\n", (ulongest_t)amst->bsplits);
+  printf("    %"PRIuLONGEST" buffered merges (J)\n", (ulongest_t)amst->bmerges);
 
   AMSFinish(pool);
   amst->sig = SigInvalid;
@@ -799,8 +799,8 @@ static void *test(void *arg, size_t s)
   while(totalSize < totalSizeMAX) {
     if (totalSize > lastStep + totalSizeSTEP) {
       lastStep = totalSize;
-      printf("\nSize %lu bytes, %lu objects.\n",
-             (unsigned long)totalSize, objs);
+      printf("\nSize %"PRIuLONGEST" bytes, %"PRIuLONGEST" objects.\n",
+             (ulongest_t)totalSize, (ulongest_t)objs);
       printf("%s", indent);
       fflush(stdout);
       for(i = 0; i < exactRootsCOUNT; ++i)

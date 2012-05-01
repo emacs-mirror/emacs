@@ -36,7 +36,7 @@ static Bool FormattedObjectsStepClosureCheck(FormattedObjectsStepClosure c)
 
 
 static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
-                                      void *p, Size s)
+                                      void *p, size_t s)
 {
   FormattedObjectsStepClosure c;
   /* Can't check object */
@@ -56,7 +56,7 @@ static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
  * So called because it walks all formatted objects in an arena.  */
 
 static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsStepMethod f,
-                                      void *p, Size s)
+                                      void *p, size_t s)
 {
   Seg seg;
   FormattedObjectsStepClosure c;
@@ -186,7 +186,7 @@ static Bool rootsStepClosureCheck(rootsStepClosure rsc)
 static void rootsStepClosureInit(rootsStepClosure rsc,
                                  Globals arena, Trace trace,
                                  TraceFixMethod rootFix,
-                                 mps_roots_stepper_t f, void *p, Size s)
+                                 mps_roots_stepper_t f, void *p, size_t s)
 {
   ScanState ss;
 
