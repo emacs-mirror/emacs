@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996-1997, 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -2460,15 +2460,15 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "Return documentation of VARIABLE for use in Custom buffer.
 Normally just return the docstring.  But if VARIABLE automatically
 becomes buffer local when set, append a message to that effect."
-  (if (and (local-variable-if-set-p variable)
-	   (or (not (local-variable-p variable))
-	       (with-temp-buffer
-		 (local-variable-if-set-p variable))))
-      (concat (documentation-property variable 'variable-documentation)
+  (format "%s%s" (documentation-property variable 'variable-documentation)
+	  (if (and (local-variable-if-set-p variable)
+		   (or (not (local-variable-p variable))
+		       (with-temp-buffer
+			 (local-variable-if-set-p variable))))
 	      "\n
 This variable automatically becomes buffer-local when set outside Custom.
-However, setting it through Custom sets the default value.")
-    (documentation-property variable 'variable-documentation)))
+However, setting it through Custom sets the default value."
+	    "")))
 
 (define-widget 'custom-variable 'custom
   "A widget for displaying a Custom variable.

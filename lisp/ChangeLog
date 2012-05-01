@@ -1,3 +1,7 @@
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (custom-variable-documentation): Simplify with format.
+
 2012-05-01  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
