@@ -14415,9 +14415,8 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
     ;;
 
   netbsd)
-    if test $ac_cv_search_tputs = -lterminfo; then
+    if  "x$LIBS_TERMCAP" = "x-lterminfo" ; then
       TERMINFO=yes
-      LIBS_TERMCAP="-lterminfo"
     else
       LIBS_TERMCAP="-ltermcap"
     fi
