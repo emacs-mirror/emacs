@@ -119,6 +119,11 @@ char *(getcwd) (char *, size_t);
 # define IF_LINT(Code) /* empty */
 #endif
 
+#ifdef min
+#undef min
+#endif
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+
 
 /* Name used to invoke this program.  */
 const char *progname;
@@ -783,33 +788,35 @@ sock_err_message (const char *function_name)
 static void
 send_to_emacs (HSOCKET s, const char *data)
 {
-  while (data)
+  size_t dlen;
+
+  if (!data)
+    return;
+
+  dlen = strlen (data);
+  while (*data)
     {
-      size_t dlen = strlen (data);
-      if (dlen + sblen >= SEND_BUFFER_SIZE)
-	{
-	  int part = SEND_BUFFER_SIZE - sblen;
-	  strncpy (&send_buffer[sblen], data, part);
-	  data += part;
-	  sblen = SEND_BUFFER_SIZE;
-	}
-      else if (dlen)
-	{
-	  strcpy (&send_buffer[sblen], data);
-	  data = NULL;
-	  sblen += dlen;
-	}
-      else
-	break;
+      size_t part = min (dlen, SEND_BUFFER_SIZE - sblen);
+      memcpy (&send_buffer[sblen], data, part);
+      data += part;
+      sblen += part;
 
       if (sblen == SEND_BUFFER_SIZE
 	  || (sblen > 0 && send_buffer[sblen-1] == '\n'))
 	{
 	  int sent = send (s, send_buffer, sblen, 0);
+	  if (sent < 0)
+	    {
+	      message (TRUE, "%s: failed to send %d bytes to socket: %s\n",
+		       progname, sblen, strerror (errno));
+	      fail ();
+	    }
 	  if (sent != sblen)
-	    strcpy (send_buffer, &send_buffer[sent]);
+	    memmove (send_buffer, &send_buffer[sent], sblen - sent);
 	  sblen -= sent;
 	}
+
+      dlen -= part;
     }
 }
 
