@@ -737,9 +737,7 @@ uninstall:
 	     $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	    if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
 	       ext=.gz; else ext=; fi; \
-	    for f in `ls $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext 2>/dev/null`; do \
-	      rm -f $$f; \
-	    done; \
+	    rm -f $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext; \
 	  done;)
 	(if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
 	    ext=.gz; else ext=; fi; \

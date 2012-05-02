@@ -1,5 +1,8 @@
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (uninstall): Remove useless-use-of-for; that for
+	some reason caused problems on an old Solaris.
+
 	* Makefile.in (install-arch-indep, uninstall):
 	Ensure that INSTALL-type commands are run from top-level.
 
