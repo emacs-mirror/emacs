@@ -1,5 +1,8 @@
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (INFO_FILES): Add emacs-gnutls; accidentally
+	omitted from 2012-04-12 backport from trunk.
+
 	* info/dir: Make some entries consistent with the source texi files.
 
 	* configure.in (LIBS_TERMCAP): Fix netbsd logic, broken 2012-03-04.
@@ -10,7 +13,7 @@
 
 2012-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* info/dir, Makefile.in (INFO_FILES): Add emacs-gnutls.
+	* info/dir: Add emacs-gnutls.
 
 2012-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
