@@ -1,3 +1,16 @@
+2012-05-02  Chong Yidong  <cyd@gnu.org>
+
+	* allout.el (allout-exposure-change-functions)
+	(allout-structure-added-functions)
+	(allout-structure-deleted-functions)
+	(allout-structure-shifted-functions): Rename abnormal hooks from
+	*-hook, and convert to defcustoms.
+	(allout-after-copy-or-kill-hook, allout-post-undo-hook): Convert
+	to defcustoms.
+	(allout-mode-hook, allout-mode-deactivate-hook): Doc fix.
+
+	* allout-widgets.el: Hook callers changed.
+
 2012-05-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-yank-current-message): Use the encoding of
