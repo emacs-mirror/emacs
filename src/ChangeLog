@@ -1,3 +1,11 @@
+2012-05-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* intervals.c (adjust_intervals_for_insertion): Initialize `newi'
+	with RESET_INTERVAL.
+
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer):
+	Remove duplicated buffer name initialization.
+
 2012-05-02  Jim Meyering  <jim@meyering.net>
 
 	* xterm.c (x_term_init): Use memcpy instead of strncpy (Bug#11373).

@@ -1000,6 +1000,7 @@ adjust_intervals_for_insertion (INTERVAL tree,
 	  Lisp_Object pleft, pright;
 	  struct interval newi;
 
+	  RESET_INTERVAL (&newi);
 	  pleft = NULL_INTERVAL_P (prev) ? Qnil : prev->plist;
 	  pright = NULL_INTERVAL_P (i) ? Qnil : i->plist;
 	  newi.plist = merge_properties_sticky (pleft, pright);
