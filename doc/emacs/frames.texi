@@ -666,8 +666,8 @@ The font slant---normally @samp{r} (roman), @samp{i} (italic),
 Some font names support other values.
 @item widthtype
 The font width---normally @samp{normal}, @samp{condensed},
-@samp{extended}, or @samp{semicondensed} (some font names support
-other values).
+@samp{semicondensed}, or @samp{extended}.  Some font names support
+other values.
 @item style
 An optional additional style name.  Usually it is empty---most XLFDs
 have two hyphens in a row at this point.

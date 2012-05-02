@@ -2931,9 +2931,7 @@ fail;
     ;;
 
   netbsd)
-    if test $ac_cv_search_tputs = -lterminfo; then
-      LIBS_TERMCAP="-lterminfo"
-    else
+    if [ "x$LIBS_TERMCAP" != "x-lterminfo" ]; then
       TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi

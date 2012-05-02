@@ -1,3 +1,15 @@
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* viper.texi: Make direntry shorter (also it is no longer "newest").
+
+	* emacs-gnutls.texi, ert.texi, org.texi:
+	Fix dircategory, direntry to match info/dir.
+
+	* faq.texi: Convert @inforefs to @xrefs.
+	Fix some malformed cross-references.
+	(File-name conventions): Shorten section name to avoid overfull line.
+	(How to add fonts): Use smallexample to avoid overfull lines.
+
 2012-05-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth.texi (Help for users): Update for .gpg file being second.

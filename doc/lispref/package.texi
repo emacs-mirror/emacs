@@ -76,8 +76,8 @@ if any dependency cannot be found, the package cannot be installed.
 @end table
 
 @cindex content directory, package
-  Installing a package, either via the Package Menu, or via the
-command @code{package-install-file}, creates a subdirectory of
+  Installing a package, either via the command @code{package-install-file},
+or via the Package Menu, creates a subdirectory of
 @code{package-user-dir} named @file{@var{name}-@var{version}}, where
 @var{name} is the package's name and @var{version} its version
 (e.g. @file{~/.emacs.d/elpa/auctex-11.86/}).  We call this the

@@ -1,3 +1,22 @@
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (@copying): Only print EDITION in the TeX version.
+
+	* search.texi (Regexp Search): Just say "Emacs".
+
+	* display.texi (Auto Scrolling):
+	Reword to avoid repetition and improve page break.
+
+	* xresources.texi (Resources):
+	* mule.texi (Language Environments):
+	* misc.texi (Amusements):
+	* maintaining.texi (VC Change Log):
+	* frames.texi (Fonts):
+	* custom.texi (Specifying File Variables, Minibuffer Maps):
+	* cmdargs.texi (Initial Options):
+	* building.texi (Flymake):
+	Reword to remove/reduce some overly long/short lines.
+
 2012-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi: Some fixes for detailed menu.
@@ -9213,7 +9232,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

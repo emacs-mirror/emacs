@@ -4333,15 +4333,15 @@ buffer that is about to change is always the current buffer.
 
 @defvar after-change-functions
 This variable holds a list of functions to call after any buffer
-modification.  Each function receives three arguments: the beginning and
-end of the region just changed, and the length of the text that existed
-before the change.  All three arguments are integers.  The buffer that's
-about to change is always the current buffer.
+modification.  Each function receives three arguments: the beginning
+and end of the region just changed, and the length of the text that
+existed before the change.  All three arguments are integers.  The
+buffer has been changed is always the current buffer.
 
-The length of the old text is the difference between the buffer positions
-before and after that text as it was before the change.  As for the
-changed text, its length is simply the difference between the first two
-arguments.
+The length of the old text is the difference between the buffer
+positions before and after that text as it was before the change.  As
+for the changed text, its length is simply the difference between the
+first two arguments.
 @end defvar
 
   Output of messages into the @file{*Messages*} buffer does not

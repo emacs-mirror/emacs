@@ -1,3 +1,18 @@
+2012-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-yank-current-message): Use the encoding of
+	the yanked message in preference to the default value of
+	buffer-file-coding-system.
+
+2012-05-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer--action-function-custom-type): Fix
+	entry.
+
+2012-05-02  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Update to 5.32.3.
+
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (suggest-key-bindings): Remove, now it is in Lisp.

@@ -1084,6 +1084,14 @@ Robert J. Chassell
 \fi
 @end tex
 
+@c Note: this resetting of the page number back to 1 causes TeX to gripe
+@c about already having seen page numbers 1-4 before (in the preface):
+@c   pdfTeX warning (ext4): destination with the same identifier (name{1})
+@c   has been already used, duplicate ignored
+@c I guess that is harmless (what happens if a later part of the text
+@c makes a link to something in the first 4 pages though?).
+@c Note that eg the Emacs manual has a preface, but does not bother
+@c resetting the page numbers back to 1 after that.
 @iftex
 @headings off
 @evenheading @thispage @| @| @thischapter
@@ -14855,7 +14863,7 @@ action would serve our purpose, except that a hyphen is merely the
 most common character within symbols that is not typically a word
 constituent character; there are others, too.
 
-Alternatively, we can redefine the regular expression used in the
+Alternatively, we can redefine the regexp used in the
 @code{@value{COUNT-WORDS}} definition so as to include symbols.  This
 procedure has the merit of clarity, but the task is a little tricky.
 

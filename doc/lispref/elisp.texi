@@ -6,6 +6,7 @@
 
 @c Version of the manual and of Emacs.
 @c Please remember to update these in vol1.texi and vol2.texi as well.
+@c (See comments for EDITION in emacs.texi)
 @set VERSION  3.1
 @include emacsver.texi
 @set DATE July 2012
@@ -40,7 +41,12 @@
 @c @syncodeindex tp fn
 
 @copying
-This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
+@iftex
+This is edition @value{VERSION} of the @cite{GNU Emacs Lisp Reference Manual},@*
+@end iftex
+@ifnottex
+This is the @cite{GNU Emacs Lisp Reference Manual}
+@end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1990-1996, 1998-2012 Free Software Foundation, Inc.

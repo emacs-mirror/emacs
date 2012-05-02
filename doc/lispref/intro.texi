@@ -33,8 +33,12 @@ Lisp that have counterparts in many programming languages, and later
 chapters describe features that are peculiar to Emacs Lisp or relate
 specifically to editing.
 
-  This is edition @value{VERSION} of the GNU Emacs Lisp Reference
-Manual, corresponding to Emacs version @value{EMACSVER}.
+  This is
+@iftex
+edition @value{VERSION} of
+@end iftex
+the @cite{GNU Emacs Lisp Reference Manual},
+corresponding to Emacs version @value{EMACSVER}.
 
 @menu
 * Caveats::             Flaws and a request for help.

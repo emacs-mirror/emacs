@@ -1385,6 +1385,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		  Lisp_Object startpos, endpos;
 		  EMACS_INT start, end;
 		  struct it it3;
+		  int it3_moved;
 
 		  /* Find the first and the last buffer positions
 		     covered by the display string.  */
@@ -1441,6 +1442,15 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		     begins.  */
 		  start_display (&it3, w, top);
 		  move_it_to (&it3, -1, 0, top_y, -1, MOVE_TO_X | MOVE_TO_Y);
+		  /* If it3_moved stays zero after the 'while' loop
+		     below, that means we already were at a newline
+		     before the loop (e.g., the display string begins
+		     with a newline), so we don't need to (and cannot)
+		     inspect the glyphs of it3.glyph_row, because
+		     PRODUCE_GLYPHS will not produce anything for a
+		     newline, and thus it3.glyph_row stays at its
+		     stale content it got at top of the window.  */
+		  it3_moved = 0;
 		  /* Finally, advance the iterator until we hit the
 		     first display element whose character position is
 		     CHARPOS, or until the first newline from the
@@ -1452,6 +1462,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		      if (IT_CHARPOS (it3) == charpos
 			  || ITERATOR_AT_END_OF_LINE_P (&it3))
 			break;
+		      it3_moved = 1;
 		      set_iterator_to_next (&it3, 0);
 		    }
 		  top_x = it3.current_x - it3.pixel_width;
@@ -1462,7 +1473,8 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		     display string, move back over the glyphs
 		     produced from the string, until we find the
 		     rightmost glyph not from the string.  */
-		  if (IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
+		  if (it3_moved
+		      && IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
 		    {
 		      struct glyph *g = it3.glyph_row->glyphs[TEXT_AREA]
 					+ it3.glyph_row->used[TEXT_AREA];

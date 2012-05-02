@@ -1,3 +1,10 @@
+2012-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): If already at a newline from the
+	display string before the 'while' loop, don't walk back the glyphs
+	from it3.glyph_row.  Solves assertion violation when the display
+	string begins with a newline (egg.el).  (Bug#11367)
+
 2012-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (Fexecute_extended_command, Vsuggest_key_bindings):

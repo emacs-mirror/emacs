@@ -19,6 +19,7 @@ The Info Directory
 
 * Menu:
 
+Texinfo documentation system
 * Info: (info).                 How to use the documentation browsing system.
 
 Emacs
@@ -54,7 +55,7 @@ Emacs network features
                                   you're replying to, in flexible ways.
 * Sieve: (sieve).               Managing Sieve scripts in Emacs.
 * TRAMP: (tramp).               Transparent Remote Access, Multiple Protocol
-                                  GNU Emacs remote file access via rsh and rcp.
+                                  Emacs remote file access via rsh and rcp.
 
 Emacs misc features
 * Autotype: (autotype).         Convenient features for text that you enter
@@ -67,7 +68,7 @@ Emacs misc features
 * Ediff: (ediff).               A visual interface for comparing and
                                   merging programs.
 * EDT: (edt).                   An Emacs emulation of the EDT editor.
-* EIEIO: (eieio).               An object system for Emacs Lisp.
+* EIEIO: (eieio).               An objects system for Emacs Lisp.
 * ERT: (ert).                   Emacs Lisp regression testing tool.
 * Eshell: (eshell).             A command shell implemented in Emacs Lisp.
 * Flymake: (flymake).           A universal on-the-fly syntax checker.
@@ -77,18 +78,15 @@ Emacs misc features
 * RefTeX: (reftex).             Emacs support for LaTeX cross-references
                                   and citations.
 * Remember: (remember).         Simple information manager for Emacs.
-* Semantic: (semantic).         Source code parsing utilities for Emacs.
-* SES: (ses).                   Simple Emacs Spreadsheet
+* Semantic: (semantic).         Source code parser library and utilities.
+* SES: (ses).                   Simple Emacs Spreadsheet.
 * Speedbar: (speedbar).         File/Tag summarizing utility.
 * VIP: (vip).                   An older VI-emulation for Emacs.
-* VIPER: (viper).               The newest Emacs VI-emulation mode.
-                                  (also, A VI Plan for Emacs Rescue
-                                  or the VI PERil.)
+* VIPER: (viper).               A VI-emulation mode for Emacs.
 * WoMan: (woman).               Browse UN*X Manual Pages "W.O. (without) Man".
 
 Emacs lisp libraries
-* Auth-source: (auth).          A single configuration for multiple
-                                  applications.
+* Auth-source: (auth).          The Emacs auth-source library.
 * CL: (cl).                     Partial Common Lisp support for Emacs Lisp.
 * D-Bus: (dbus).                Using D-Bus in Emacs.
 * Emacs MIME: (emacs-mime).     Emacs MIME de/composition library.

@@ -1,3 +1,19 @@
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (@copying):
+	* intro.texi (Introduction): Only print VERSION in the TeX version.
+
+2012-05-02  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Change Hooks): Minor fix for after-change-functions.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Packaging Basics):
+	* loading.texi (Autoload):
+	* files.texi (Magic File Names):
+	Reword to remove/reduce some overly long/short lines.
+
 2012-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi, vol1.texi, vol2.texi: Some fixes for detailed menu.

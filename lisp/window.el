@@ -4611,7 +4611,7 @@ The actual non-nil value of this variable will be copied to the
   '(choice :tag "Function"
 	   (const :tag "--" ignore) ; default for insertion
 	   (const display-buffer-reuse-window)
-	   (const display-buffer-use-some-window)
+	   (const display-buffer-pop-up-window)
 	   (const display-buffer-same-window)
 	   (const display-buffer-pop-up-frame)
 	   (const display-buffer-use-some-window)

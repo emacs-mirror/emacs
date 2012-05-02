@@ -47,7 +47,7 @@ its own list of resources; to update it, use the command
 @command{xrdb}---for instance, @samp{xrdb ~/.Xdefaults}.
 
 @cindex registry, setting resources (MS-Windows)
-  (MS-Windows systems do not support X resource files; on Windows,
+  (MS-Windows systems do not support X resource files; on such systems,
 Emacs looks for X resources in the Windows Registry, first under the
 key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}, which affects only
 the current user and override the system-wide settings, and then under
