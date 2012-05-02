@@ -1,3 +1,10 @@
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* viper.texi: Make direntry shorter (also it is no longer "newest").
+
+	* emacs-gnutls.texi, ert.texi, org.texi:
+	Fix dircategory, direntry to match info/dir.
+
 2012-04-28  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi: Convert @inforefs to @xrefs.

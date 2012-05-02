@@ -30,9 +30,9 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
-@dircategory Emacs lisp libraries
+@dircategory Emacs network features
 @direntry
-* GnuTLS: (gnutls).          The Emacs GnuTLS Integration.
+* GnuTLS: (emacs-gnutls).       The Emacs GnuTLS integration.
 @end direntry
 
 @titlepage

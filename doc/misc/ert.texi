@@ -4,9 +4,9 @@
 @settitle Emacs Lisp Regression Testing
 @c %**end of header
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
-* ERT: (ert).        Emacs Lisp Regression Testing.
+* ERT: (ert).        Emacs Lisp regression testing tool.
 @end direntry
 
 @copying

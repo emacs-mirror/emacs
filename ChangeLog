@@ -1,5 +1,7 @@
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* info/dir: Make some entries consistent with the source texi files.
+
 	* configure.in (LIBS_TERMCAP): Fix netbsd logic, broken 2012-03-04.
 
 2012-04-18  Ludovic Courtès  <ludo@gnu.org>
