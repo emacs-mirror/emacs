@@ -1,3 +1,9 @@
+2012-05-02  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Font Lookup):
+	* frames.texi (Pointer Shape):
+	* processes.texi (Subprocess Creation): Use defopt for options.
+
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi (@copying):

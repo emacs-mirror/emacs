@@ -6,6 +6,12 @@
 
 2012-05-02  Chong Yidong  <cyd@gnu.org>
 
+	* cus-start.el (gc-cons-percentage, exec-suffixes)
+	(dos-display-scancodes, dos-hyper-key, dos-super-key)
+	(dos-keypad-mode, debug-on-signal, vertical-centering-font-regexp)
+	(make-cursor-line-fully-visible, void-text-area-pointer)
+	(font-list-limit): Add customization data.
+
 	* allout.el (allout-exposure-change-functions)
 	(allout-structure-added-functions)
 	(allout-structure-deleted-functions)

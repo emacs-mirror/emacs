@@ -96,12 +96,12 @@ Expansion}).  @code{nil} in this list refers to
   Executing a program can also try adding suffixes to the specified
 name:
 
-@defvar exec-suffixes
+@defopt exec-suffixes
 This variable is a list of suffixes (strings) to try adding to the
 specified program file name.  The list should include @code{""} if you
 want the name to be tried exactly as specified.  The default value is
 system-dependent.
-@end defvar
+@end defopt
 
   @strong{Please note:} The argument @var{program} contains only the
 name of the program; it may not contain any command-line arguments.  You

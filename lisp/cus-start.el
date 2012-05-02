@@ -48,6 +48,7 @@
 ;; :tag - custom-tag property
 (let ((all '(;; alloc.c
 	     (gc-cons-threshold alloc integer)
+	     (gc-cons-percentage alloc float)
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
 	     (mode-line-format mode-line sexp) ;Hard to do right.
@@ -132,6 +133,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (exec-path execute
 			(repeat (choice (const :tag "default directory" nil)
 					(directory :format "%v"))))
+	     (exec-suffixes execute (repeat string))
 	     ;; charset.c
 	     (charset-map-path installation
 			       (repeat (directory :format "%v")))
@@ -174,6 +176,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (inverse-video display boolean)
 	     (visible-bell display boolean)
 	     (no-redraw-on-reenter display boolean)
+
+	     ;; dosfns.c
+	     (dos-display-scancodes display boolean)
+	     (dos-hyper-key keyboard integer)
+	     (dos-super-key keyboard integer)
+	     (dos-keypad-mode keyboard integer)
+
 	     ;; editfns.c
 	     (user-full-name mail string)
 	     ;; eval.c
@@ -190,8 +199,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				     (const :tag "always" t)))
 	     (debug-ignored-errors debug (repeat (choice symbol regexp)))
 	     (debug-on-quit debug boolean)
-             ;; fileio.c
-             (delete-by-moving-to-trash auto-save boolean "23.1")
+	     (debug-on-signal debug boolean)
+	     ;; fileio.c
+	     (delete-by-moving-to-trash auto-save boolean "23.1")
 	     (auto-save-visited-file-name auto-save boolean)
 	     ;; filelock.c
 	     (temporary-file-directory
@@ -227,6 +237,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
 	     (focus-follows-mouse frames boolean "20.3")
+	     ;; fontset.c
+	     (vertical-centering-font-regexp display regexp)
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -419,6 +431,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (hscroll-margin windows integer "22.1")
 	     (hscroll-step windows number "22.1")
 	     (truncate-partial-width-windows display boolean "23.1")
+	     (make-cursor-line-fully-visible windows boolean)
 	     (mode-line-inverse-video mode-line boolean)
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
@@ -449,10 +462,21 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "System default" :value nil)) "23.3")
              (tool-bar-max-label-size frames integer "23.3")
 	     (auto-hscroll-mode scrolling boolean "21.1")
+	     (void-text-area-pointer cursor
+				     (choice
+				      (const :tag "Standard (text pointer)" :value nil)
+				      (const :tag "Arrow" :value arrow)
+				      (const :tag "Text pointer" :value text)
+				      (const :tag "Hand" :value hand)
+				      (const :tag "Vertical dragger" :value vdrag)
+				      (const :tag "Horizontal dragger" :value hdrag)
+				      (const :tag "Same as mode line" :value modeline)
+				      (const :tag "Hourglass" :value hourglass)))
 	     (display-hourglass cursor boolean)
 	     (hourglass-delay cursor number)
 
 	     ;; xfaces.c
+	     (font-list-limit display integer)
 	     (scalable-fonts-allowed display boolean "22.1")
 	     ;; xfns.c
 	     (x-bitmap-file-path installation

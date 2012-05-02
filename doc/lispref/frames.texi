@@ -1881,12 +1881,12 @@ of the buffer contents), the mouse pointer usually uses the
 @code{arrow} style, but you can specify a different style (one of
 those above) by setting @code{void-text-area-pointer}.
 
-@defvar void-text-area-pointer
+@defopt void-text-area-pointer
 This variable specifies the mouse pointer style for void text areas.
 These include the areas after the end of a line or below the last line
 in the buffer.  The default is to use the @code{arrow} (non-text)
 pointer style.
-@end defvar
+@end defopt
 
   When using X, you can specify what the @code{text} pointer style
 really looks like by setting the variable @code{x-pointer-shape}.
