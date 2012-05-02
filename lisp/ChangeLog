@@ -11,8 +11,8 @@
 	(allout-structure-deleted-functions)
 	(allout-structure-shifted-functions): Rename abnormal hooks from
 	*-hook, and convert to defcustoms.
-	(allout-after-copy-or-kill-hook, allout-post-undo-hook): Convert
-	to defcustoms.
+	(allout-after-copy-or-kill-hook, allout-post-undo-hook):
+	Convert to defcustoms.
 	(allout-mode-hook, allout-mode-deactivate-hook): Doc fix.
 
 	* allout-widgets.el: Hook callers changed.
@@ -25,8 +25,8 @@
 
 2012-05-02  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (display-buffer--action-function-custom-type): Fix
-	entry.
+	* window.el (display-buffer--action-function-custom-type):
+	Fix entry.
 
 2012-05-02  Alan Mackenzie  <acm@muc.de>
 
@@ -8254,7 +8254,7 @@
 	insecure exception for current topic.  Also note that auto-saves
 	are handled differently.
 
-	(allout-auto-save-temporarily-disabled), (allout-just-did-undo):
+	(allout-auto-save-temporarily-disabled, allout-just-did-undo):
 	State variables for tracking auto-save inhibition situation.
 
 	(allout-write-contents-hook-handler): Rename from
@@ -10701,8 +10701,8 @@
 	(newsticker--plainview-tool-bar-map): Move tool-bar icons to
 	etc/images/newsticker.
 
-	* net/newst-backend.el (newsticker--do-run-auto-mark-filter),
-	(newsticker--process-auto-mark-filter-match): : Tell user about
+	* net/newst-backend.el (newsticker--do-run-auto-mark-filter)
+	(newsticker--process-auto-mark-filter-match): Tell user about
 	auto-marking.
 
 2011-05-13  Didier Verna  <didier@xemacs.org>
