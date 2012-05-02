@@ -1,5 +1,9 @@
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (INFO_FILES): Remove variable.
+	(INFO_NONMISC): New variable.
+	(install-arch-indep, uninstall): Don't use $INFO_FILES.
+
 	* Makefile.in (uninstall): Remove useless-use-of-for; that for
 	some reason caused problems on an old Solaris.
 

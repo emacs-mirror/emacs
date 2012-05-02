@@ -43,7 +43,6 @@ emacsdir = $(srcdir)/../emacs
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I$(emacsdir)
 
-# Also add new entries to INFO_FILES in the top-level Makefile.in.
 INFO_TARGETS = \
 	$(infodir)/ada-mode \
 	$(infodir)/auth \
@@ -210,7 +209,11 @@ ENVADD = TEXINPUTS="$(srcdir):$(emacsdir):$(TEXINPUTS)" \
 
 mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
-.PHONY: info dvi pdf
+.PHONY: info dvi pdf echo-info
+
+## Used by top-level Makefile.
+echo-info:
+	@echo $(INFO_TARGETS) | sed 's|[^ ]*/||g'
 
 info: $(INFO_TARGETS)
 

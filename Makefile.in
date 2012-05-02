@@ -126,17 +126,10 @@ libexecdir=@libexecdir@
 mandir=@mandir@
 man1dir=$(mandir)/man1
 
-# Where to install and expect the info files describing Emacs.	In the
-# past, this defaulted to a subdirectory of ${prefix}/lib/emacs, but
-# since there are now many packages documented with the texinfo
-# system, it is inappropriate to imply that it is part of Emacs.
+# Where to install and expect the info files describing Emacs.
 infodir=@infodir@
-INFO_FILES=ada-mode auth autotype calc ccmode cl dbus dired-x ebrowse	\
-           ede ediff edt eieio efaq eintr elisp emacs emacs-gnutls	\
-           emacs-mime epa erc ert eshell eudc flymake forms gnus	\
-           idlwave info mairix-el message mh-e newsticker nxml-mode	\
-           org pcl-cvs pgg rcirc reftex remember sasl sc semantic ses	\
-           sieve smtpmail speedbar tramp url vip viper widget woman
+# Info files not in the doc/misc directory (we get those via make echo-info).
+INFO_NONMISC=emacs eintr elisp
 
 # If no makeinfo was found and configured --without-makeinfo, "no"; else "yes".
 HAVE_MAKEINFO=@HAVE_MAKEINFO@
@@ -617,8 +610,9 @@ install-arch-indep: mkdir info install-etc
 	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir; \
 	      chmod a+r $(DESTDIR)${infodir}/dir); \
 	   fi; \
+	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
 	   cd ${srcdir}/info ; \
-	   for elt in $(INFO_FILES); do \
+	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	       (cd $${thisdir}; \
@@ -718,8 +712,9 @@ uninstall:
 	done
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
 	thisdir=`/bin/pwd`; \
-	(cd $(DESTDIR)${infodir} && \
-	  for elt in $(INFO_FILES); do \
+	(info_misc=`cd doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
+	  cd $(DESTDIR)${infodir} && \
+	  for elt in ${INFO_NONMISC} $${info_misc}; do \
 	    (cd $${thisdir}; \
 	     $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	    if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
