@@ -1,3 +1,7 @@
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBS_TERMCAP): Fix netbsd logic, broken 2012-03-04.
+
 2012-04-18  Ludovic Courtès  <ludo@gnu.org>
 
 	* configure.in: Don't use the -R option (Bug#11251).
