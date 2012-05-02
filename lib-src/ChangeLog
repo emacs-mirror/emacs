@@ -1,3 +1,7 @@
+2012-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (min): Undef before redefining it.
+
 2012-05-02  Jim Meyering  <jim@meyering.net>
 
 	* emacsclient.c (send_to_emacs): Avoid invalid strcpy upon partial

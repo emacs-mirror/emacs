@@ -119,6 +119,9 @@ char *(getcwd) (char *, size_t);
 # define IF_LINT(Code) /* empty */
 #endif
 
+#ifdef min
+#undef min
+#endif
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 
 
