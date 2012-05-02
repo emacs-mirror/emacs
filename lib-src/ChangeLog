@@ -1,3 +1,8 @@
+2012-05-02  Jim Meyering  <meyering@redhat.com>
+
+	* lib-src/pop.c (pop_stat, pop_list, pop_multi_first, pop_last):
+	NUL-terminate the error buffer (Bug#11372).
+
 2012-04-15  Chong Yidong  <cyd@gnu.org>
 
 	* emacsclient.c (decode_options): Move -t -n corner case handling

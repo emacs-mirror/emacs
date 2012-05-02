@@ -1,3 +1,7 @@
+2012-05-02  Jim Meyering  <meyering@redhat.com>
+
+	* w32font.c (fill_in_logfont): NUL-terminate a string (Bug#11372).
+
 2012-04-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): If already at a newline from the
