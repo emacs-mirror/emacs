@@ -1,3 +1,8 @@
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep):
+	Combine adjacent install-data and install-info loops.
+
 2012-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MAN_PAGES): Remove.

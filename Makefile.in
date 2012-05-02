@@ -623,17 +623,9 @@ install-arch-indep: mkdir info install-etc
 	          ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
 	        else true; fi; \
 	      done; \
+	     (cd $${thisdir}; \
+	      ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	   done); \
-	else true; fi
-	-unset CDPATH; \
-	thisdir=`/bin/pwd`; \
-	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd $(DESTDIR)${infodir} && /bin/pwd)` ]; \
-	then \
-	  for elt in $(INFO_FILES); do \
-	    test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
-	    (cd $${thisdir}; \
-	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
-	  done; \
 	else true; fi
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 	thisdir=`/bin/pwd`; \
