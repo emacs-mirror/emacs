@@ -2,6 +2,8 @@
 
 	* xterm.c (x_term_init): Use memcpy instead of strncpy (Bug#11373).
 
+	* xfns.c (x_window): Use xstrdup (Bug#11375).
+
 2012-05-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): If already at a newline from the
