@@ -1,3 +1,21 @@
+2012-05-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix race conditions involving setenv, gmtime, localtime, asctime.
+	Without this fix, interrupts could mess up code that uses these
+	nonreentrant functions, since setting TZ invalidates existing
+	tm_zone or tzname values, and since most of these functions return
+	pointers to static storage.
+	* editfns.c (format_time_string, Fdecode_time, Fencode_time)
+	(Fcurrent_time_string, Fcurrent_time_zone, Fset_time_zone_rule):
+	Grow the critical sections to include not just invoking
+	localtime/gmtime, but also accessing these functions' results
+	including their tm_zone values if any, and any related TZ setting.
+	(format_time_string): Last arg is now struct tm *, not struct tm **,
+	so that the struct tm is saved in the critical section.  All
+	callers changed.  Simplify allocation of initial buffer, partly
+	motivated by the fact that memory allocation needs to be outside
+	the critical section.
+
 2012-05-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* intervals.c (adjust_intervals_for_insertion): Initialize `newi'
