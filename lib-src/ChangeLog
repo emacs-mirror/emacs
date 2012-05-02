@@ -1,3 +1,8 @@
+2012-05-02  Jim Meyering  <jim@meyering.net>
+
+	* emacsclient.c (send_to_emacs): Avoid invalid strcpy upon partial
+	send (Bug#11374).
+
 2012-04-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* make-docfile.c (scan_lisp_file) [DEBUG]: Also skip if and
