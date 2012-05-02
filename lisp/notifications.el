@@ -173,7 +173,7 @@ Various PARAMS can be set:
                  notification when an action has been invoked.
  :transient      When set the server will treat the notification as transient
                  and by-pass the server's persistence capability, if it
-                 should exist. 
+                 should exist.
  :x              Specifies the X location on the screen that the notification
                  should point to.  The \"y\" hint must also be specified.
  :y              Specifies the Y location on the screen that the notification
@@ -343,6 +343,8 @@ of another `notifications-notify' call."
                     notifications-interface
                     notifications-close-notification-method
                     :int32 id))
+
+(defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
 
 (defun notifications-get-capabilities ()
   "Return the capabilities of the notification server, a list of strings.

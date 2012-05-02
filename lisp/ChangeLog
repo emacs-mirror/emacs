@@ -1,3 +1,9 @@
+2012-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* notifications.el (dbus-debug):
+	* term/linux.el (gpm-mouse-enable):
+	* term/screen.el (xterm-register-default-colors): Declare.
+
 2012-05-02  Chong Yidong  <cyd@gnu.org>
 
 	* allout.el (allout-exposure-change-functions)

@@ -1,5 +1,7 @@
 ;; The Linux console handles Latin-1 by default.
 
+(declare-function gpm-mouse-enable "t-mouse" ())
+
 (defun terminal-init-linux ()
   "Terminal initialization function for linux."
   (unless (terminal-coding-system)
