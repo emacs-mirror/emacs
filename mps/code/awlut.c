@@ -43,9 +43,9 @@ static mps_word_t wrapper_wrapper[] = {
   UNINIT,                       /* wrapper */
   UNINIT,                       /* class */
   0,                            /* Extra word */
-  4uL<<2|2,                     /* F */
-  2uL<<(MPS_WORD_WIDTH - 8),    /* V */
-  1uL<<2|1,                     /* VL */
+  (mps_word_t)4<<2|2,                     /* F */
+  (mps_word_t)2<<(MPS_WORD_WIDTH - 8),    /* V */
+  (mps_word_t)1<<2|1,                     /* VL */
   1                             /* patterns */
 };
 
@@ -55,7 +55,7 @@ static mps_word_t string_wrapper[] = {
   UNINIT,                       /* class */
   0,                            /* extra word */
   0,                            /* F */
-  2uL<<(MPS_WORD_WIDTH - 8)|3uL<<3|4,   /* V */
+  (mps_word_t)2<<(MPS_WORD_WIDTH - 8)|(mps_word_t)3<<3|4,   /* V */
   1                             /* VL */
 };
 
@@ -63,8 +63,8 @@ static mps_word_t table_wrapper[] = {
   UNINIT,                       /* wrapper */
   UNINIT,                       /* class */
   0,                            /* extra word */
-  1uL<<2|1,                     /* F */
-  2uL<<(MPS_WORD_WIDTH - 8)|2,  /* V */
+  (mps_word_t)1<<2|1,                     /* F */
+  (mps_word_t)2<<(MPS_WORD_WIDTH - 8)|2,  /* V */
   1                             /* VL */
 };
 
