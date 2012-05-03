@@ -193,7 +193,7 @@
  * design.mps.poolepvm.arch.segment.size.
  */
 
-#define EPVMDefaultSubsequentSegSIZE (64ul * 1024)
+#define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
 /* Arena Configuration -- see <code/arena.c>

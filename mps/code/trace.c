@@ -123,7 +123,7 @@ Bool TraceIdCheck(TraceId ti)
 
 Bool TraceSetCheck(TraceSet ts)
 {
-  CHECKL(ts < (1uL << TraceLIMIT));
+  CHECKL(ts < ((ULongest)1 << TraceLIMIT));
   UNUSED(ts); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
