@@ -1,5 +1,8 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* buffers.texi (Buffers, Kill Buffer, Several Buffers)
+	(Indirect Buffers): Tweak line- and page-breaks.
+
 	* fixit.texi (Fixit, Undo): Reword to improve page-breaks.
 
 2012-05-01  Glenn Morris  <rgm@gnu.org>
