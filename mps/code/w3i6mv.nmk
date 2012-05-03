@@ -19,7 +19,7 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
       <root> <format> <buffer> <walk> <lockw3> \
-      <ref> <trace> <traceanc> <protan> \
+      <ref> <trace> <traceanc> <prmcan> <protw3> \
       <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> <span> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
