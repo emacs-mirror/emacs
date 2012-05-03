@@ -194,7 +194,7 @@ enum {
 static void version_diag(void)
 {
   DIAG_SINGLEF(( "MPSVersion",
-    "$S", MPSVersion(), NULL ));
+    "$S", (WriteFS)MPSVersion(), NULL ));
 }
 
 static void rules_diag(Rule rules)
@@ -207,8 +207,8 @@ static void rules_diag(Rule rules)
     " rules:\n", NULL ));
   for(ir = 0; rules[ir].action != NULL; ir++) {
     DIAG_DECL( Rule rule = &rules[ir]; )
-    DIAG_MOREF(( "$S$S/$S/$S\n", rule->action, rule->tag, 
-                 rule->para, rule->line,
+    DIAG_MOREF(( "$S$S/$S/$S\n", (WriteFS)rule->action, (WriteFS)rule->tag, 
+                 (WriteFS)rule->para, (WriteFS)rule->line,
                  NULL ));
   }
   DIAG_END("DiagFilter_Rules");
@@ -378,7 +378,7 @@ static void filterStream_Output(Diag diag, Rule rules)
     if(rules[ir].action[0] == '+' || diag->overflow) {
       if(nolinesyet) {
         res = WriteF(filterStream_under(),
-                     DIAG_PREFIX_TAGSTART "$S {", diag->tag, NULL);
+                     DIAG_PREFIX_TAGSTART "$S {", (WriteFS)diag->tag, NULL);
         AVER(res == ResOK);
         nolinesyet = FALSE;
       }
@@ -452,7 +452,7 @@ static void filterStream_TagEnd(mps_lib_FILE *stream, const char *tag)
     (void) WriteF(filterStream_under(),
                   "\nWARNING: diag tag \"$S\" is current, "
                   "but got DIAG_END(\"$S\").  (They must match).", 
-                  diag->tag, tag, NULL);
+                  (WriteFS)diag->tag, (WriteFS)tag, NULL);
   }
   AVER(StringEqual(diag->tag, tag));
 
@@ -551,7 +551,7 @@ static void diagTagBegin(mps_lib_FILE *stream, const char *tag)
     filterStream_TagBegin(stream, tag);
   } else {
     Res res;
-    res = WriteF(stream, DIAG_PREFIX_TAGSTART "$S {\n", tag, NULL);
+    res = WriteF(stream, DIAG_PREFIX_TAGSTART "$S {\n", (WriteFS)tag, NULL);
     AVER(res == ResOK);
   }
 }
@@ -672,7 +672,7 @@ static void patternOccurs_test(Bool expect, const char *patt,
 
 static void diag_test(void)
 {
-  DIAG_SINGLEF(( "DIAGTEST_Tag1", "text $U.\n", 42, NULL ));
+  DIAG_SINGLEF(( "DIAGTEST_Tag1", "text $U.\n", (WriteFU)42, NULL ));
 
   DIAG_SINGLEF(( "DIAGTEST_EmptyDiag", NULL ));
 
@@ -682,12 +682,12 @@ static void diag_test(void)
     StringEqual("Fred", "Fred"),
     NULL
   ));
-  DIAG_MOREF(("Fred = Tom: $U.\n", StringEqual("Fred", "Tom"), NULL));
-  DIAG_MOREF(("Tom = Fred: $U.\n", StringEqual("Tom", "Fred"), NULL));
-  DIAG_MOREF(("0 = Fred: $U.\n", StringEqual("", "Fred"), NULL));
-  DIAG_MOREF(("Fred = 0: $U.\n", StringEqual("Fred", ""), NULL));
-  DIAG_MOREF(("0 = 0: $U.\n", StringEqual("", ""), NULL));
-  DIAG_MOREF(("0 = 000: $U.\n", StringEqual("", "\0\0"), NULL));
+  DIAG_MOREF(("Fred = Tom: $U.\n", (WriteFU)StringEqual("Fred", "Tom"), NULL));
+  DIAG_MOREF(("Tom = Fred: $U.\n", (WriteFU)StringEqual("Tom", "Fred"), NULL));
+  DIAG_MOREF(("0 = Fred: $U.\n", (WriteFU)StringEqual("", "Fred"), NULL));
+  DIAG_MOREF(("Fred = 0: $U.\n", (WriteFU)StringEqual("Fred", ""), NULL));
+  DIAG_MOREF(("0 = 0: $U.\n", (WriteFU)StringEqual("", ""), NULL));
+  DIAG_MOREF(("0 = 000: $U.\n", (WriteFU)StringEqual("", "\0\0"), NULL));
   DIAG_END("DIAGTEST_StringEqual");
 
   DIAG_FIRSTF(( "DIAGTEST_patternOccurs", NULL ));
@@ -718,11 +718,11 @@ static void diag_test(void)
   DIAG_END("DIAGTEST_patternOccurs");
 
 #if 0
-  DIAG_FIRSTF(( "TestTag2", "text $U.\n", 42, NULL ));
+  DIAG_FIRSTF(( "TestTag2", "text $U.\n", (WriteFU)42, NULL ));
   DIAG_MOREF(( NULL ));
-  DIAG_MOREF(( "string $S.\n", "fooey!", NULL ));
+  DIAG_MOREF(( "string $S.\n", (WriteFS)"fooey!", NULL ));
   DIAG_MOREF(( NULL ));
-  DIAG_MOREF(( "Another string $S.\n", "baloney!", NULL ));
+  DIAG_MOREF(( "Another string $S.\n", (WriteFS)"baloney!", NULL ));
   DIAG_END( "TestTag2" );
 #endif
 }

@@ -296,9 +296,9 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
   } while (genNewSize >= gen->capacity * (Size)1024);
   
   DIAG_SINGLEF(( "ChainCondemnAuto",
-    "condemn gens [0..$U]", topCondemnedGenSerial,
-    " (of $U)", chain->genCount,
-    " of this chain $P.", (void*)chain,
+    "condemn gens [0..$U]", (WriteFU)topCondemnedGenSerial,
+    " (of $U)", (WriteFU)chain->genCount,
+    " of this chain $P.", (WriteFP)chain,
     NULL ));
 
   /* Condemn everything in these zones. */
