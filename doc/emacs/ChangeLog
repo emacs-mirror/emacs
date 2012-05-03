@@ -1,5 +1,8 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* custom.texi (Customization Groups, Custom Themes, Examining):
+	Improve page breaks.
+
 	* rmail.texi (Rmail Display): Use example rather than smallexample.
 
 	* calendar.texi: Convert inforefs to refs.

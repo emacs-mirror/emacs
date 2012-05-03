@@ -79,7 +79,7 @@ top-level @code{Emacs} group.  It looks like this, in part:
 
 @c we want the buffer example to all be on one page, but unfortunately
 @c that's quite a bit of text, so force all space to the bottom.
-@page
+@c @page
 @smallexample
 @group
 To apply changes, use the Save or Set buttons.
@@ -628,7 +628,7 @@ theme, its @samp{State} display shows @samp{THEMED} instead of
 @findex disable-theme
   You can enable a specific Custom theme in the current Emacs session
 by typing @kbd{M-x load-theme}.  This prompts for a theme name, loads
-the theme from the theme file, and enables the theme.  If a theme file
+the theme from the theme file, and enables it.  If a theme file
 has been loaded before, you can enable the theme without loading its
 file by typing @kbd{M-x enable-theme}.  To disable a Custom theme,
 type @kbd{M-x disable-theme}.
@@ -636,7 +636,7 @@ type @kbd{M-x disable-theme}.
 @findex describe-theme
   To see a description of a Custom theme, type @kbd{?} on its line in
 the @file{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
-anywhere in Emacs and enter the theme name in the minibuffer.
+anywhere in Emacs and enter the theme name.
 
 @node Creating Custom Themes
 @subsection Creating Custom Themes
@@ -762,7 +762,7 @@ C-h v fill-column @key{RET}
 @noindent
 displays something like this:
 
-@smallexample
+@example
 fill-column is a variable defined in `C source code'.
 fill-column's value is 70
 Local in buffer custom.texi; global value is 70
@@ -777,7 +777,7 @@ Documentation:
 Interactively, you can set the buffer local value using C-x f.
 
 You can customize this variable.
-@end smallexample
+@end example
 
 @noindent
 The line that says ``You can customize the variable'' indicates that
