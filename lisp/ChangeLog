@@ -1,3 +1,9 @@
+2012-05-03  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-show-mime): Catch an error caused by text
+	decoding, and show a warning message without signalling an error
+	(Bug#11282).
+
 2012-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el

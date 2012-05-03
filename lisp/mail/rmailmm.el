@@ -1300,26 +1300,40 @@ The arguments ARG and STATE have no effect in this case."
 	(rmail-mime-mbox-buffer rmail-buffer)
 	(rmail-mime-view-buffer rmail-view-buffer)
 	(rmail-mime-coding-system nil))
+    ;; If ENTITY is not a vector, it is a string describing an error.
     (if (vectorp entity)
 	(with-current-buffer rmail-mime-view-buffer
 	  (erase-buffer)
-	  (rmail-mime-insert entity)
-	  (if (consp rmail-mime-coding-system)
-	      ;; Decoding is done by rfc2047-decode-region only for a
-	      ;; header.  But, as the used coding system may have been
-	      ;; overridden by mm-charset-override-alist, we can't
-	      ;; trust (car rmail-mime-coding-system).  So, here we
-	      ;; try the decoding again with mm-charset-override-alist
-	      ;; bound to nil.
-	      (let ((mm-charset-override-alist nil))
-		(setq rmail-mime-coding-system
-		      (rmail-mime-find-header-encoding
-		       (rmail-mime-entity-header entity)))))
-	  (set-buffer-file-coding-system
-	   (if rmail-mime-coding-system
-	       (coding-system-base rmail-mime-coding-system)
-	     'undecided)
-	   t t))
+	  ;; This condition-case is for catching an error in the
+	  ;; internal MIME decoding (e.g. incorrect BASE64 form) that
+	  ;; may be signaled by rmail-mime-insert.
+	  ;; FIXME: The current code doesn't set a proper error symbol
+	  ;; in ERR.  We must find a way to propagate a correct error
+	  ;; symbol that is caused in the very deep code of text
+	  ;; decoding (e.g. an error by base64-decode-region called by
+	  ;; post-read-conversion function of utf-7).
+	  (condition-case err
+	      (progn
+		(rmail-mime-insert entity)
+		(if (consp rmail-mime-coding-system)
+		    ;; Decoding is done by rfc2047-decode-region only for a
+		    ;; header.  But, as the used coding system may have been
+		    ;; overridden by mm-charset-override-alist, we can't
+		    ;; trust (car rmail-mime-coding-system).  So, here we
+		    ;; try the decoding again with mm-charset-override-alist
+		    ;; bound to nil.
+		    (let ((mm-charset-override-alist nil))
+		      (setq rmail-mime-coding-system
+			    (rmail-mime-find-header-encoding
+			     (rmail-mime-entity-header entity)))))
+		(set-buffer-file-coding-system
+		 (if rmail-mime-coding-system
+		     (coding-system-base rmail-mime-coding-system)
+		   'undecided)
+		 t t))
+	    (error (setq entity (format "%s" err))))))
+    ;; Re-check ENTITY.  It may be set to an error string.
+    (when (stringp entity)
       ;; Decoding failed.  ENTITY is an error message.  Insert the
       ;; original message body as is, and show warning.
       (let ((region (with-current-buffer rmail-mime-mbox-buffer
