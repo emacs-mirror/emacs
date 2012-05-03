@@ -1,3 +1,11 @@
+2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not limit current-time-string to years 1000..9999.
+	* editfns.c (TM_YEAR_IN_ASCTIME_RANGE): Remove.
+	(Fcurrent_time_string): Support any year that is supported by the
+	underlying localtime representation.  Don't use asctime, as it
+	has undefined behavior for years outside the range -999..9999.
+
 2012-05-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix race conditions involving setenv, gmtime, localtime, asctime.

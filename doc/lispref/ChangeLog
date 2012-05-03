@@ -1,3 +1,8 @@
+2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* os.texi (Time of Day): Do not limit current-time-string
+	to years 1000..9999.
+
 2012-05-02  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Font Lookup):

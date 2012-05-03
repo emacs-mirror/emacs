@@ -1,3 +1,7 @@
+2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: Do not limit current-time-string to years 1000..9999.
+
 2012-04-27  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org/OrgOdtStyles.xml (OrgDescriptionList): Modify style.  With

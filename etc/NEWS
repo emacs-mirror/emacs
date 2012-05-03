@@ -197,6 +197,12 @@ in the presence of quoting, such as file completion in shell buffers.
 
 *** New function `completion-table-subvert' to use an existing completion
 table, but with a different prefix.
+
+** Time
+
+*** `current-time-string' no longer requires that its argument's year
+must be in the range 1000..9999.  It now works with any year supported
+by the underlying C implementation.
 
 * Changes in Emacs 24.2 on non-free operating systems
 
