@@ -1,3 +1,7 @@
+2012-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Update GNU Press contact details.
+
 2012-04-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (Syntax): Reword to avoid underfull hbox.

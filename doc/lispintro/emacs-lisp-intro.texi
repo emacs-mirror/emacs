@@ -234,27 +234,27 @@ Copyright @copyright{} 1990-1995, 1997, 2001-2012 Free Software Foundation, Inc.
 @iftex
 Published by the:@*
 
-GNU Press,                      @hfill  @uref{http://www.gnupress.org}@*
-a division of the               @hfill General: @email{press@@gnu.org}@*
-Free Software Foundation, Inc.  @hfill Orders:@w{ }  @email{sales@@gnu.org}@*
-51 Franklin Street, Fifth Floor @hfill Tel: +1 (617) 542-5942@*
-Boston, MA 02110-1301 USA       @hfill Fax: +1 (617) 542-2652@*
+GNU Press,               @hfill @uref{http://www.fsf.org/campaigns/gnu-press/}@*
+a division of the               @hfill email: @email{sales@@fsf.org}@*
+Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
+51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
+Boston, MA 02110-1301 USA       
 @end iftex
 
 @ifnottex
 Published by the:
 
 @example
-GNU Press,                          Website: http://www.gnupress.org
-a division of the                   General: press@@gnu.org
-Free Software Foundation, Inc.      Orders:  sales@@gnu.org
-51 Franklin Street, Fifth Floor     Tel: +1 (617) 542-5942
-Boston, MA 02110-1301 USA           Fax: +1 (617) 542-2652
+GNU Press,                        http://www.fsf.org/campaigns/gnu-press/
+a division of the                 email: sales@@fsf.org
+Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
+51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
+Boston, MA 02110-1301 USA          
 @end example
 @end ifnottex
 
 @sp 1
-@c Printed copies are available for $30 each.@*
+@c Printed copies are available from @uref{http://shop.fsf.org/} for $35 each.@*
 ISBN 1-882114-43-4
 
 Permission is granted to copy, distribute and/or modify this document
