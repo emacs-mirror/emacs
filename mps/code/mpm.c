@@ -34,7 +34,7 @@ unsigned CheckLevel = CHECKLEVEL_INITIAL;
 Bool MPMCheck(void)
 {
   CHECKL(sizeof(Word) * CHAR_BIT == MPS_WORD_WIDTH);
-  CHECKL(1uL << MPS_WORD_SHIFT == MPS_WORD_WIDTH);
+  CHECKL((Word)1 << MPS_WORD_SHIFT == MPS_WORD_WIDTH);
   CHECKL(AlignCheck(MPS_PF_ALIGN));
   /* Check that trace ids will fit in the TraceId type. */
   CHECKL(TraceLIMIT <= UINT_MAX);
@@ -52,10 +52,10 @@ Bool MPMCheck(void)
   CHECKL(!SizeIsAligned(31051, 1024));
   CHECKL(!SizeIsP2(0));
   CHECKL(SizeIsP2(128));
-  CHECKL(SizeLog2(1L) == 0);
-  CHECKL(SizeLog2(256L) == 8);
-  CHECKL(SizeLog2(65536L) == 16);
-  CHECKL(SizeLog2(131072L) == 17);
+  CHECKL(SizeLog2((Size)1) == 0);
+  CHECKL(SizeLog2((Size)256) == 8);
+  CHECKL(SizeLog2((Size)65536) == 16);
+  CHECKL(SizeLog2((Size)131072) == 17);
 
   /* .check.writef: We check that various types will fit in a Word; */
   /* See .writef.check.  Don't need to check WriteFS or WriteFF as they */
