@@ -109,6 +109,7 @@ revert-buffer-function,, Reverting, elisp, the Emacs Lisp Reference Manual}.
 
 In addition, it @emph{must} have a @code{buffer-stale-function}.
 
+@c FIXME only defvar in all of doc/emacs!
 @defvar buffer-stale-function
 The value of this variable is a function to check whether a non-file
 buffer needs reverting.  This should be a function with one optional
