@@ -1,3 +1,65 @@
+2012-05-03  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (font-lock-keywords):
+	Fix mis-highligting auto.  Reported by Craig Barner.
+	(verilog-auto, verilog-auto-undef): Add AUTOUNDEF to remove
+	defines from global name space. Reported by Dan Dever.
+	(verilog-auto-reset, verilog-auto-reset-widths)
+	(verilog-auto-tieoff): Support using unbased numbers for
+	AUTORESET and AUTOTIEOFF.
+	(verilog-submit-bug-report): Update variable list.
+	(verilog-read-auto-params): Fix AUTOINPUT regexps containing
+	parenthesis from not matching. Reported by Michael Rytting.
+	(verilog-auto-template-lint): Fix hash error when linting modules
+	with no used templates.
+	(verilog-warn, verilog-warn-error)
+	(verilog-warn-fatal): When non-interactive report multiple
+	warnings before exiting.  Suggested by Brad Dobbie.
+	(verilog-auto-template-lint, verilog-auto-template-warn-unused)
+	(verilog-read-auto-template): Add `verilog-auto-template-warn-unused'
+	to report unused template errors.  Reported by Brad Dobbie.
+	(verilog-read-decls): Fix AUTOWIRE etc on supply0, supply1 type
+	nets, bug438. Reported by Vns Blore.
+	(verilog-auto-inout-module, verilog-auto-reg)
+	(verilog-read-decls, verilog-read-sub-decls-sig)
+	(verilog-signals-edit-wire-reg, verilog-signals-with):
+	Fix passing of Verilog data types in ANSI input/output ports
+	such as "output logic" into the AUTOs. Special case "wire" and
+	"reg" for backwards compatibility presuming Verilog 2001.
+	(verilog-auto-ascii-enum): Add "auto enum" as alias.
+	(verilog-preprocess): Fix replication of preprocess output.
+	Reported by Brad Dobbie.
+	(verilog-auto-inst-interfaced-ports):
+	Create verilog-auto-inst-interfaced-ports, bug429.
+	Reported by Julian Gorfajn.
+	(verilog-after-save-font-hook)
+	(verilog-before-save-font-hook): New variable.
+	(verilog-modi-cache-results, verilog-save-font-mod-hooked)
+	(verilog-save-font-mods): Wrap disabling fontification, reported
+	by David Rogoff.
+	(verilog-do-indent, verilog-pretty-declarations-auto)
+	(verilog-sk-def-reg): Fix obeying `verilog-auto-lineup', bug305.
+	Reported by Pierre-David Pfister.
+	(verilog-set-auto-endcomments): Fix endtask auto comments outside
+	of class declarations, bug292.  Reported by Kevin Heilman.
+	(verilog-read-decls): Fix 'parameter type' not appearing in
+	AUTOINSTPARAM, bug340.  Reported by Jonathan Greenlaw.
+	(verilog-auto-logic): Fix when AUTOLOGIC present to properly do
+	AUTOINPUTs, bug411. Reported by Jonathan Greenlaw.
+	(verilog-read-auto-lisp): Avoid syntax-ppss warning on AUTOLISP.
+	Reported by David Kravitz.
+
+2012-05-03  Michael McNamara  <mac@mail.brushroad.com>
+
+	* progmodes/verilog-mode.el (verilog-pretty-expr): Don't line up
+	assignment with tests in ifs and for loops.
+	(verilog-extended-complete-re, verilog-complete-reg): Change so
+	that DPI inport functions don't look like fuction declarations.
+	(verilog-pretty-expr): Don't line up assignment
+	operations to the test and increment in if and for loops
+	(verilog-extended-complete-re, verilog-complete-reg): Change so
+	that DPI inport functions don't look like fuction declarations
+
 2012-05-03  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-show-mime): Catch an error caused by text
