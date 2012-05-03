@@ -379,8 +379,8 @@ delimited once again.  The reason @kbd{C-x C-p} includes only the
 following page delimiter in the region is to ensure that.
 
   A numeric argument to @kbd{C-x C-p} specifies which page to go to,
-relative to the current one.  Zero means the current page.  One means
-the next page, and @minus{}1 means the previous one.
+relative to the current one.  Zero means the current page, one
+the next page, and @minus{}1 the previous one.
 
 @kindex C-x l
 @findex count-lines-page
@@ -412,7 +412,7 @@ beginning of a line.
 specified width.  Emacs does filling in two ways.  In Auto Fill mode,
 inserting text with self-inserting characters also automatically fills
 it.  There are also explicit fill commands that you can use when editing
-text leaves it unfilled.
+text.
 
 @menu
 * Auto Fill::      Auto Fill mode breaks long lines automatically.
@@ -1240,6 +1240,7 @@ quad click: exit all folds and hide text.
 @end itemize
 @end table
 
+@c FIXME not marked as a user variable
 @vindex foldout-mouse-modifiers
   You can specify different modifier keys (instead of
 @kbd{Control-Meta-}) by setting @code{foldout-mouse-modifiers}; but if
@@ -1248,7 +1249,7 @@ it in order for this to take effect.
 
   To use the Foldout package, you can type @kbd{M-x load-library
 @key{RET} foldout @key{RET}}; or you can arrange for to do that
-automatically by putting this in your init file (@pxref{Init File}):
+automatically by putting the following in your init file:
 
 @example
 (eval-after-load "outline" '(require 'foldout))
@@ -1307,8 +1308,8 @@ with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<right>}
 if invoked on a body line.
 
   The following subsections give basic instructions for using Org mode
-as an organizer and as an authoring system.  @xref{Top,The Org Mode
-Manual,,org, The Org Manual}, for details.
+as an organizer and as an authoring system.  For details, @pxref{Top,
+The Org Mode Manual, Introduction, org, The Org Manual}.
 
 @menu
 * Org Organizer::   Managing TODO lists and agendas.
@@ -1886,8 +1887,8 @@ the tag at point.
 @kindex C-c / @r{(SGML mode)}
 @findex sgml-close-tag
 Insert a close tag for the innermost unterminated tag
-(@code{sgml-close-tag}).  If called from within a tag or a comment,
-close this element instead of inserting a close tag.
+(@code{sgml-close-tag}).  If called within a tag or a comment,
+close it instead of inserting a close tag.
 
 @item C-c 8
 @kindex C-c 8 @r{(SGML mode)}
@@ -1948,10 +1949,10 @@ always insert explicit closing tags as well.
 @cindex nroff
 @findex nroff-mode
 @vindex nroff-mode-hook
-  Nroff mode is a major mode derived from Text mode, which is
+  Nroff mode, a major mode derived from Text mode, is
 specialized for editing nroff files (e.g.@: Unix man pages).  Type
 @kbd{M-x nroff-mode} to enter this mode.  Entering Nroff mode runs the
-hook @code{text-mode-hook}, followed by @code{nroff-mode-hook}
+hook @code{text-mode-hook}, then @code{nroff-mode-hook}
 (@pxref{Hooks}).
 
   In Nroff mode, nroff command lines are treated as paragraph
@@ -2209,7 +2210,7 @@ for the right or left margin of a paragraph or a part of a paragraph.
 These margins also affect fill commands such as @kbd{M-q}
 (@pxref{Filling}).
 
-  The Indentation submenu of Text Properties provides four commands
+  The Indentation submenu of Text Properties offers commands
 for specifying indentation:
 
 @table @code
@@ -2292,10 +2293,9 @@ commands do nothing on text with this setting.  You can, however,
 still indent the left margin.
 @end table
 
+@vindex default-justification
   You can also specify justification styles using the Justification
 submenu in the Text Properties menu.
-
-@vindex default-justification
   The default justification style is specified by the per-buffer
 variable @code{default-justification}.  Its value should be one of the
 symbols @code{left}, @code{right}, @code{full}, @code{center}, or
@@ -2578,10 +2578,12 @@ to @code{nil}.
 @findex table-insert-row
   @kbd{M-x table-insert-row} inserts a row of cells before the current
 table row.  The current row, together with point, is pushed down past
-the new row.  To insert rows after the last row at the bottom of a
+the new row.  To insert a row after the last row at the bottom of a
 table, invoke this command with point below the table, just below the
-bottom edge.  A numeric prefix argument specifies the number of rows
-to insert.
+bottom edge.  You can insert more than one row at a time by using a
+numeric prefix argument.
+
+@c A numeric prefix argument specifies the number of rows to insert.
 
 @findex table-insert-column
   Similarly, @kbd{M-x table-insert-column} inserts a column of cells

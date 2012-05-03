@@ -1,5 +1,9 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* text.texi (Pages, Filling, Foldout, Org Mode, HTML Mode)
+	(Nroff Mode, Enriched Indentation, Table Rows and Columns):
+	Tweak line and page breaks.
+
 	* modes.texi (Major Modes, Minor Modes): Reword to improve page-breaks.
 	(Major Modes): Use example rather than smallexample.
 
