@@ -1,5 +1,8 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* modes.texi (Major Modes, Minor Modes): Reword to improve page-breaks.
+	(Major Modes): Use example rather than smallexample.
+
 	* mule.texi (Output Coding): Reword to improve page-breaks.
 
 	* frames.texi (Fonts): Tweak line and page breaks.
