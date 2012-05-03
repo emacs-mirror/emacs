@@ -104,7 +104,7 @@ use the @samp{--dired} option.
 @findex dired-other-frame
 @kindex C-x 5 d
   To display the Dired buffer in another window, use @kbd{C-x 4 d}
-(@code{dired-other-window}) instead of @kbd{C-x d}.  @kbd{C-x 5 d}
+(@code{dired-other-window}).  @kbd{C-x 5 d}
 (@code{dired-other-frame}) displays the Dired buffer in a separate
 frame.
 

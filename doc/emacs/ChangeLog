@@ -1,5 +1,7 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* dired.texi (Dired Enter): Improve page break.
+
 	* abbrevs.texi (Abbrev Concepts): Copyedits.
 
 	* maintaining.texi (Registering, Tag Syntax):
