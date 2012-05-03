@@ -1,5 +1,8 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* frames.texi (Fonts): Tweak line and page breaks.
+	Use example rather than smallexample.  Change cross-reference.
+
 	* buffers.texi (Buffers, Kill Buffer, Several Buffers)
 	(Indirect Buffers): Tweak line- and page-breaks.
 
