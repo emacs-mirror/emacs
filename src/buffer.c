@@ -392,7 +392,6 @@ even if it is dead.  The return value is never nil.  */)
 
   BVAR (b, mark) = Fmake_marker ();
   BUF_MARKERS (b) = NULL;
-  BVAR (b, name) = name;
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
@@ -612,7 +611,6 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
   BVAR (b, mark) = Fmake_marker ();
-  BVAR (b, name) = name;
 
   /* The multibyte status belongs to the base buffer.  */
   BVAR (b, enable_multibyte_characters) = BVAR (b->base_buffer, enable_multibyte_characters);

@@ -2115,21 +2115,21 @@ by doing (clear-string STRING)."
               (message "Password not repeated accurately; please start over")
               (sit-for 1))))
         success)
-    (let (minibuf)
+    (let ((hide-chars-fun
+           (lambda (beg end _len)
+             (clear-this-command-keys)
+             (setq beg (min end (max (minibuffer-prompt-end)
+                                     beg)))
+             (dotimes (i (- end beg))
+               (put-text-property (+ i beg) (+ 1 i beg)
+                                  'display (string ?.)))))
+          minibuf)
       (minibuffer-with-setup-hook
           (lambda ()
             (setq minibuf (current-buffer))
             ;; Turn off electricity.
             (set (make-local-variable 'post-self-insert-hook) nil)
-            (add-hook 'after-change-functions
-                      (lambda (beg end _len)
-                        (clear-this-command-keys)
-                        (setq beg (min end (max (minibuffer-prompt-end)
-                                                beg)))
-                        (dotimes (i (- end beg))
-                          (put-text-property (+ i beg) (+ 1 i beg)
-                                             'display (string ?.))))
-                      nil t))
+            (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (read-string prompt nil
                          (let ((sym (make-symbol "forget-history")))
@@ -2137,7 +2137,14 @@ by doing (clear-string STRING)."
                            sym)
                          default)
           (when (buffer-live-p minibuf)
-            (with-current-buffer minibuf (erase-buffer))))))))
+            (with-current-buffer minibuf
+              ;; Not sure why but it seems that there might be cases where the
+              ;; minibuffer is not always properly reset later on, so undo
+              ;; whatever we've done here (bug#11392).
+              (remove-hook 'after-change-functions hide-chars-fun 'local)
+              (kill-local-variable 'post-self-insert-hook)
+              ;; And of course, don't keep the sensitive data around.
+              (erase-buffer))))))))
 
 ;; This should be used by `call-interactively' for `n' specs.
 (defun read-number (prompt &optional default)

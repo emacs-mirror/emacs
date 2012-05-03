@@ -2267,19 +2267,7 @@ list that represents a doc string reference.
   (when (byte-compile-warning-enabled-p 'callargs)
     (byte-compile-nogroup-warn form))
   (push (nth 1 (nth 1 form)) byte-compile-bound-variables)
-  ;; Don't compile the expression because it may be displayed to the user.
-  ;; (when (eq (car-safe (nth 2 form)) 'quote)
-  ;;   ;; (nth 2 form) is meant to evaluate to an expression, so if we have the
-  ;;   ;; final value already, we can byte-compile it.
-  ;;   (setcar (cdr (nth 2 form))
-  ;;           (byte-compile-top-level (cadr (nth 2 form)) nil 'file)))
-  (let ((tail (nthcdr 4 form)))
-    (while tail
-      (unless (keywordp (car tail))      ;No point optimizing keywords.
-        ;; Compile the keyword arguments.
-        (setcar tail (byte-compile-top-level (car tail) nil 'file)))
-      (setq tail (cdr tail))))
-  form)
+  (byte-compile-keep-pending form))
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
 (defun byte-compile-file-form-require (form)

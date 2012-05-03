@@ -951,7 +951,9 @@ case "$opsys" in
    ## Let `ld' find image libs and similar things in /usr/local/lib.
    ## The system compiler, GCC, has apparently been modified to not
    ## look there, contrary to what a stock GCC would do.
-   LD_SWITCH_SYSTEM=-L/usr/local/lib
+### It's not our place to do this.  See bug#10313#17.
+###   LD_SWITCH_SYSTEM=-L/usr/local/lib
+      :
    ;;
 
   gnu-linux)
@@ -960,7 +962,9 @@ case "$opsys" in
    ;;
 
   netbsd)
-   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+### It's not our place to do this.  See bug#10313#17.
+###   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+      :
    ;;
 
   openbsd)

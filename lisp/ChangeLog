@@ -4,6 +4,18 @@
 	decoding, and show a warning message without signalling an error
 	(Bug#11282).
 
+2012-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el
+	(byte-compile-file-form-custom-declare-variable): Compile all elements,
+	since cconv.el might have introduced :fun-body, internal-make-closure,
+	and friends for bytecomp to handle (bug#11391).
+	* custom.el (defcustom): Avoid ((λ ..) ..).
+
+2012-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-passwd): Better clean after ourselves (bug#11392).
+
 2012-05-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* notifications.el (dbus-debug):

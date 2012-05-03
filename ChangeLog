@@ -1,5 +1,8 @@
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (LD_SWITCH_SYSTEM): Don't try to defeat
+	the choices made by FreeBSD and NetBSD.  (Bug#10313)
+
 	* Makefile.in (INFO_FILES): Remove variable.
 	(INFO_NONMISC): New variable.
 	(install-arch-indep, uninstall): Don't use $INFO_FILES.
@@ -9,13 +12,6 @@
 
 	* Makefile.in (install-arch-indep, uninstall):
 	Ensure that INSTALL-type commands are run from top-level.
-
-	* Makefile.in (INFO_FILES): Add emacs-gnutls; accidentally
-	omitted from 2012-04-12 backport from trunk.
-
-	* info/dir: Make some entries consistent with the source texi files.
-
-	* configure.in (LIBS_TERMCAP): Fix netbsd logic, broken 2012-03-04.
 
 	* info/dir: Make some entries consistent with the source texi files.
 
