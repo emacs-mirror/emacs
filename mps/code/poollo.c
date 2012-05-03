@@ -817,7 +817,7 @@ static Bool LOCheck(LO lo)
   CHECKD(Pool, &lo->poolStruct);
   CHECKL(lo->poolStruct.class == EnsureLOPoolClass());
   CHECKL(ShiftCheck(lo->alignShift));
-  CHECKL(1uL << lo->alignShift == PoolAlignment(&lo->poolStruct));
+  CHECKL((Align)1 << lo->alignShift == PoolAlignment(&lo->poolStruct));
   CHECKD(Chain, lo->chain);
   CHECKD(PoolGen, &lo->pgen);
   return TRUE;

@@ -1242,7 +1242,7 @@ static Bool AWLCheck(AWL awl)
   CHECKS(AWL, awl);
   CHECKD(Pool, &awl->poolStruct);
   CHECKL(awl->poolStruct.class == AWLPoolClassGet());
-  CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
+  CHECKL((Align)1 << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Chain, awl->chain);
   /* 30 is just a sanity check really, not a constraint. */
   CHECKL(0 <= awl->gen);

@@ -536,7 +536,7 @@ static Bool amcNailboardCheck(amcNailboard board)
   /* We know that shift corresponds to pool->align. */
   CHECKL(BoolCheck(board->newMarks));
   CHECKL(board->distinctNails <= board->nails);
-  CHECKL(1uL << board->markShift
+  CHECKL((Align)1 << board->markShift
          == PoolAlignment(amcGenPool(board->gen)));
   /* weak check for BTs @@@@ */
   CHECKL(board->mark != NULL);
@@ -2219,28 +2219,28 @@ static void AMCTraceEnd(Pool pool, Trace trace)
 
   if(amc->pageretstruct[ti].pRet >= pRetMin) {
     DIAG_SINGLEF(( "AMCTraceEnd_pageret",
-      " $U", ArenaEpoch(pool->arena),
-      " $U", trace->why,
-      " $S", trace->emergency ? "Emergency" : "-",
-      " $U", amc->pageretstruct[ti].pCond,
-      " $U", amc->pageretstruct[ti].pRet, ",",
-      " $U", amc->pageretstruct[ti].pCS,
-      " $U", amc->pageretstruct[ti].pRS, ",",
-      " $U", amc->pageretstruct[ti].sCM,
-      " $U", amc->pageretstruct[ti].pCM,
-      " $U", amc->pageretstruct[ti].sRM,
-      " $U", amc->pageretstruct[ti].pRM,
-      " $U", amc->pageretstruct[ti].pRM1,
-      " $U", amc->pageretstruct[ti].pRMrr,
-      " $U", amc->pageretstruct[ti].pRMr1, ",",
-      " $U", amc->pageretstruct[ti].sCL,
-      " $U", amc->pageretstruct[ti].pCL,
-      " $U", amc->pageretstruct[ti].sRL,
-      " $U", amc->pageretstruct[ti].pRL,
-      " $U", amc->pageretstruct[ti].pRLr,
-      " (page = $Ub,", ArenaAlign(pool->arena), 
-      " Large >= $Up,", AMCLargeSegPAGES, 
-      " pRetMin $U)", pRetMin,
+      " $U", (WriteFU)ArenaEpoch(pool->arena),
+      " $U", (WriteFU)trace->why,
+      " $S", (WriteFS)(trace->emergency ? "Emergency" : "-"),
+      " $U", (WriteFU)amc->pageretstruct[ti].pCond,
+      " $U", (WriteFU)amc->pageretstruct[ti].pRet, ",",
+      " $U", (WriteFU)amc->pageretstruct[ti].pCS,
+      " $U", (WriteFU)amc->pageretstruct[ti].pRS, ",",
+      " $U", (WriteFU)amc->pageretstruct[ti].sCM,
+      " $U", (WriteFU)amc->pageretstruct[ti].pCM,
+      " $U", (WriteFU)amc->pageretstruct[ti].sRM,
+      " $U", (WriteFU)amc->pageretstruct[ti].pRM,
+      " $U", (WriteFU)amc->pageretstruct[ti].pRM1,
+      " $U", (WriteFU)amc->pageretstruct[ti].pRMrr,
+      " $U", (WriteFU)amc->pageretstruct[ti].pRMr1, ",",
+      " $U", (WriteFU)amc->pageretstruct[ti].sCL,
+      " $U", (WriteFU)amc->pageretstruct[ti].pCL,
+      " $U", (WriteFU)amc->pageretstruct[ti].sRL,
+      " $U", (WriteFU)amc->pageretstruct[ti].pRL,
+      " $U", (WriteFU)amc->pageretstruct[ti].pRLr,
+      " (page = $Ub,", (WriteFU)ArenaAlign(pool->arena), 
+      " Large >= $Up,", (WriteFU)AMCLargeSegPAGES, 
+      " pRetMin $U)", (WriteFU)pRetMin,
       NULL ));
   }
 

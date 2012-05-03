@@ -1086,9 +1086,10 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
 
 
   DIAG_SINGLEF(( "vmArenaExtend_Start", 
-    "to accommodate size $W, try chunkSize $W", size, chunkSize,
+    "to accommodate size $W, try chunkSize $W", (WriteFW)size, (WriteFW)chunkSize,
     " (VMArenaReserved currently $W bytes)\n",
-    VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+    (WriteFW)VMArenaReserved(VMArena2Arena(vmArena)),
+    NULL ));
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   {
@@ -1111,9 +1112,10 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
           DIAG_SINGLEF(( "vmArenaExtend_FailMin", 
-            "no remaining address-space chunk >= min($W)", chunkMin,
+            "no remaining address-space chunk >= min($W)", (WriteFW)chunkMin,
             " (so VMArenaReserved remains $W bytes)\n",
-            VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+            (WriteFW)VMArenaReserved(VMArena2Arena(vmArena)),
+            NULL ));
           return ResRESOURCE;
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize);
@@ -1126,9 +1128,10 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
 vmArenaExtend_Done:
 
   DIAG_SINGLEF(( "vmArenaExtend_Done",
-    "Request for new chunk of VM $W bytes succeeded", chunkSize,
+    "Request for new chunk of VM $W bytes succeeded", (WriteFW)chunkSize,
     " (VMArenaReserved now $W bytes)\n", 
-    VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+    (WriteFW)VMArenaReserved(VMArena2Arena(vmArena)),
+    NULL ));
 
   return res;
 }
@@ -1628,16 +1631,16 @@ static void VMFree(Addr base, Size size, Pool pool)
  * Input:                208896
  * Output:  (Megabytes)  0m209
  */
-#define bPerM (1000000UL)  /* Megabytes */
-#define bThou (1000UL)
+#define bPerM ((Size)1000000)  /* Megabytes */
+#define bThou ((Size)1000)
 DIAG_DECL(
-static Count M_whole(size_t bytes)
+static Count M_whole(Size bytes)
 {
-  size_t M;  /* MBs */
+  Count M;  /* MBs */
   M = (bytes + (bThou / 2)) / bPerM;
   return M;
 }
-static Count M_frac(size_t bytes)
+static Count M_frac(Size bytes)
 {
   Count Mthou;  /* thousandths of a MB */
   Mthou = (bytes + (bThou / 2)) / bThou;
@@ -1689,16 +1692,22 @@ static void VMCompact(Arena arena, Trace trace)
        || vmem0 != vmem1
        || vmem1 != vmem2) {
       DIAG_SINGLEF(( "VMCompact",
-        "pre-collection vmem was $Um$3, ", M_whole(vmem0), M_frac(vmem0),
-        "peaked at $Um$3, ", M_whole(vmem1), M_frac(vmem1),
-        "released $Um$3, ", M_whole(vmemD), M_frac(vmemD),
-        "now $Um$3", M_whole(vmem2), M_frac(vmem2),
-        " (why $U", trace->why,
-        ": $Um$3", M_whole(trace->condemned), M_frac(trace->condemned),
-        "[->$Um$3", M_whole(live), M_frac(live),
-        " $U%-live", livePerc,
-        " $Um$3-stuck]", M_whole(trace->preservedInPlaceSize), M_frac(trace->preservedInPlaceSize),
-        " ($Um$3-not)", M_whole(trace->notCondemned), M_frac(trace->notCondemned),
+        "pre-collection vmem was $Um$3, ",
+        (WriteFU)M_whole(vmem0), (WriteFU)M_frac(vmem0),
+        "peaked at $Um$3, ", (WriteFU)M_whole(vmem1), (WriteFU)M_frac(vmem1),
+        "released $Um$3, ",  (WriteFU)M_whole(vmemD), (WriteFU)M_frac(vmemD),
+        "now $Um$3",         (WriteFU)M_whole(vmem2), (WriteFU)M_frac(vmem2),
+        " (why $U",          (WriteFU)trace->why,
+        ": $Um$3", 
+        (WriteFU)M_whole(trace->condemned), (WriteFU)M_frac(trace->condemned),
+        "[->$Um$3",          (WriteFU)M_whole(live), (WriteFU)M_frac(live),
+        " $U%-live",         (WriteFU)livePerc,
+        " $Um$3-stuck]", 
+        (WriteFU)M_whole(trace->preservedInPlaceSize), 
+        (WriteFU)M_frac(trace->preservedInPlaceSize),
+        " ($Um$3-not)", 
+        (WriteFU)M_whole(trace->notCondemned),
+        (WriteFU)M_frac(trace->notCondemned),
         " )",
         NULL));
     }
