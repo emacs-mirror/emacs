@@ -1,5 +1,12 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* programs.texi (Programs, Electric C): Copyedits.
+	(Program Modes): Add xref to Fortran.
+	(Left Margin Paren): Remove what was (oddly enough) the only use
+	of defvar in the entire Emacs manual.
+	(Hungry Delete): Remove footnote about ancient Emacs version.
+	(Other C Commands): Use example rather than smallexample.
+
 	* text.texi (Pages, Filling, Foldout, Org Mode, HTML Mode)
 	(Nroff Mode, Enriched Indentation, Table Rows and Columns):
 	Tweak line and page breaks.
