@@ -1,5 +1,8 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* maintaining.texi (Registering, Tag Syntax):
+	Tweak line and page breaks.
+
 	* programs.texi (Programs, Electric C): Copyedits.
 	(Program Modes): Add xref to Fortran.
 	(Left Margin Paren): Remove what was (oddly enough) the only use
