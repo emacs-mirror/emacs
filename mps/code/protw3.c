@@ -51,7 +51,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 {
   LPEXCEPTION_RECORD er;
-  DWORD iswrite;
+  ULONG_PTR iswrite;
   ULONG_PTR address;
   AccessSet mode;
   Addr base, limit;
