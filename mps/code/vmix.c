@@ -164,7 +164,9 @@ Res VMCreate(VM *vmReturn, Size size)
   DIAG_SINGLEF((
     "VM_ix_Create_ok",
     "[$W..<$W>..$W)", 
-    vm->base, (char*)vm->limit - (char*)vm->base, vm->limit,
+    (WriteFW)vm->base,
+    (WriteFW)AddrOffset(vm->base, vm->limit),
+    (WriteFW)vm->limit,
     NULL ));
 
   *vmReturn = vm;
@@ -188,7 +190,9 @@ void VMDestroy(VM vm)
   DIAG_SINGLEF((
     "VM_ix_Destroy",
     "[$W..<$W>..$W)", 
-    vm->base, (char*)vm->limit - (char*)vm->base, vm->limit,
+    (WriteFW)vm->base, 
+    (WriteFW)AddrOffset(vm->base, vm->limit),
+    (WriteFW)vm->limit,
     NULL ));
 
   /* This appears to be pretty pointless, since the descriptor */
