@@ -38,7 +38,9 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-#define objNULL           ((mps_addr_t)0xDECEA5ED)
+/* @@@@ W3I6MV Temporary fix (ull) to prevent Microsoft C complaining.  Need
+   to work out what to do about such cases. */
+#define objNULL           ((mps_addr_t)0xDECEA5EDull)
 
 
 static mps_pool_t pool;
@@ -210,7 +212,7 @@ static void *test(void *arg, size_t s)
   ramping = 1;
   objs = 0;
   while (collections < collectionsCOUNT) {
-    unsigned long c;
+    mps_word_t c;
     size_t r;
 
     c = mps_collections(arena);
