@@ -631,7 +631,7 @@ extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
     {
 
 #define MPS_FIX1(ss, ref) \
-  (_mps_wt = 1uL << ((mps_word_t)(ref) >> _mps_w0 \
+  (_mps_wt = (mps_word_t)1 << ((mps_word_t)(ref) >> _mps_w0 \
                      & (sizeof(mps_word_t) * CHAR_BIT - 1)), \
    _mps_w2 |= _mps_wt, \
    _mps_w1 & _mps_wt)

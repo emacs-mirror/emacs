@@ -247,7 +247,7 @@ extern mps_addr_t dylan_weak_dependent(mps_addr_t parent)
   ff = fword & 3;
   /* traceable fixed part */
   assert(ff == 1);
-  fl = fword & ~3uL;
+  fl = fword & ~(mps_word_t)3;
   /* at least one fixed field */
   assert(fl >= 1);
   return (mps_addr_t) object[1];
@@ -354,7 +354,7 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
 
 #define NONWORD_LENGTH(_vt, _es) \
   ((_es) < MPS_WORD_SHIFT ? \
-   ((_vt) + (1 << (MPS_WORD_SHIFT - (_es))) - 1) >> \
+   ((_vt) + ((mps_word_t)1 << (MPS_WORD_SHIFT - (_es))) - 1) >> \
      (MPS_WORD_SHIFT - (_es)) : \
    (_vt) << ((_es) - MPS_WORD_SHIFT))
 

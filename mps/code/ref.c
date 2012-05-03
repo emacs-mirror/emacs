@@ -27,7 +27,7 @@ Bool RankCheck(Rank rank)
 
 Bool RankSetCheck(RankSet rankSet)
 {
-  CHECKL(rankSet < (1uL << RankLIMIT));
+  CHECKL(rankSet < ((ULongest)1 << RankLIMIT));
   UNUSED(rankSet); /* <code/mpm.c#check.unused> */
   return TRUE;
 }

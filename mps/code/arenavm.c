@@ -1631,16 +1631,16 @@ static void VMFree(Addr base, Size size, Pool pool)
  * Input:                208896
  * Output:  (Megabytes)  0m209
  */
-#define bPerM (1000000UL)  /* Megabytes */
-#define bThou (1000UL)
+#define bPerM ((Size)1000000)  /* Megabytes */
+#define bThou ((Size)1000)
 DIAG_DECL(
-static Count M_whole(size_t bytes)
+static Count M_whole(Size bytes)
 {
-  size_t M;  /* MBs */
+  Count M;  /* MBs */
   M = (bytes + (bThou / 2)) / bPerM;
   return M;
 }
-static Count M_frac(size_t bytes)
+static Count M_frac(Size bytes)
 {
   Count Mthou;  /* thousandths of a MB */
   Mthou = (bytes + (bThou / 2)) / bThou;

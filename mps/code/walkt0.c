@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define testArenaSIZE     ((size_t)(64l << 20))
+#define testArenaSIZE     ((size_t)((size_t)64 << 20))
 #define avLEN             3
 #define exactRootsCOUNT   200
 #define objCOUNT          20000
