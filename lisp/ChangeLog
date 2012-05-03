@@ -1,3 +1,7 @@
+2012-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--twq-all): Beware completion-ignore-case.
+
 2012-05-03  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (font-lock-keywords):
