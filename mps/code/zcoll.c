@@ -97,7 +97,7 @@ static ulongest_t cols(size_t bytes)
   double M;  /* Mebibytes */
   ulongest_t cM;  /* hundredths of a Mebibyte */
 
-  M = (double)bytes / (1UL<<20);
+  M = (double)bytes / ((ulongest_t)1<<20);
   cM = (ulongest_t)(M * 100.0 + 0.5);  /* round to nearest */
   return cM;
 }
@@ -139,9 +139,9 @@ static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit
  * Output:  (Megabytes)  0m209
  */
 #if 0
-#define bPerM (1UL << 20)  /* Mebibytes */
+#define bPerM ((size_t)1 << 20)  /* Mebibytes */
 #else
-#define bPerM (1000000UL)  /* Megabytes */
+#define bPerM ((size_t)1000000)  /* Megabytes */
 #endif
 static void print_M(size_t bytes)
 {

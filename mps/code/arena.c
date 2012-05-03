@@ -172,7 +172,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
   arena->spareCommitted = (Size)0;
   arena->spareCommitLimit = ARENA_INIT_SPARE_COMMIT_LIMIT;
   /* alignment is usually overridden by init */
-  arena->alignment = 1 << ARENA_ZONESHIFT;
+  arena->alignment = (Align)1 << ARENA_ZONESHIFT;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
   arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */

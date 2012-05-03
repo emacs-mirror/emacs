@@ -157,7 +157,7 @@ extern Res TableCreate(Table *tableReturn, size_t length)
   if(table == NULL) goto failMallocTable;
   if (length < 2) length = 2;
   /* Table size is length rounded up to the next power of 2. */
-  table->length = 1 << (sizeFloorLog2(length-1) + 1);
+  table->length = (size_t)1 << (sizeFloorLog2(length-1) + 1);
   table->count = 0;
   table->limit = (size_t)(.5 * length);
   table->array = malloc(sizeof(TableEntryStruct) * length);
