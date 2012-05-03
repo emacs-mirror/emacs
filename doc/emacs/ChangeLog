@@ -1,5 +1,7 @@
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* mule.texi (Output Coding): Reword to improve page-breaks.
+
 	* frames.texi (Fonts): Tweak line and page breaks.
 	Use example rather than smallexample.  Change cross-reference.
 	(Text-Only Mouse): Fix xref.
