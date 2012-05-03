@@ -536,7 +536,7 @@ static Bool amcNailboardCheck(amcNailboard board)
   /* We know that shift corresponds to pool->align. */
   CHECKL(BoolCheck(board->newMarks));
   CHECKL(board->distinctNails <= board->nails);
-  CHECKL(1uL << board->markShift
+  CHECKL((Align)1 << board->markShift
          == PoolAlignment(amcGenPool(board->gen)));
   /* weak check for BTs @@@@ */
   CHECKL(board->mark != NULL);
