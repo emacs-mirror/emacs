@@ -1160,9 +1160,9 @@ enable mouse support.  You must have the gpm server installed and
 running on your system in order for this to work.
 
 @iftex
-@pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
+@xref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
 @end iftex
 @ifnottex
-@pxref{MS-DOS Mouse},
+@xref{MS-DOS Mouse},
 @end ifnottex
 for information about mouse support on MS-DOS.

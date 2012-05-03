@@ -2,6 +2,7 @@
 
 	* frames.texi (Fonts): Tweak line and page breaks.
 	Use example rather than smallexample.  Change cross-reference.
+	(Text-Only Mouse): Fix xref.
 
 	* buffers.texi (Buffers, Kill Buffer, Several Buffers)
 	(Indirect Buffers): Tweak line- and page-breaks.
