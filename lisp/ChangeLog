@@ -1,3 +1,8 @@
+2012-05-04  Chong Yidong  <cyd@gnu.org>
+
+	* select.el (xselect--encode-string): Always use utf-8 for TEXT on
+	Nextstep.
+
 2012-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-yank-current-message): Use the encoding of

@@ -228,24 +228,30 @@ two markers or an overlay.  Otherwise, it is nil."
 	  ;; But avoid modifying the string if it's a buffer name etc.
 	  (unless can-modify (setq str (substring str 0)))
 	  (remove-text-properties 0 (length str) '(composition nil) str)
-	  ;; TEXT is a polymorphic target.  Select the actual type
-	  ;; from `UTF8_STRING', `COMPOUND_TEXT', `STRING', and
-	  ;; `C_STRING'.
-	  (if (eq type 'TEXT)
-	      (if (not (multibyte-string-p str))
-		  (setq type 'C_STRING)
-		(let (non-latin-1 non-unicode eight-bit)
-		  (mapc #'(lambda (x)
-			    (if (>= x #x100)
-				(if (< x #x110000)
-				    (setq non-latin-1 t)
-				  (if (< x #x3FFF80)
-				      (setq non-unicode t)
-				    (setq eight-bit t)))))
-			str)
-		  (setq type (if non-unicode 'COMPOUND_TEXT
-			       (if non-latin-1 'UTF8_STRING
-				 (if eight-bit 'C_STRING 'STRING)))))))
+	  ;; For X selections, TEXT is a polymorphic target; choose
+	  ;; the actual type from `UTF8_STRING', `COMPOUND_TEXT',
+	  ;; `STRING', and `C_STRING'.  On Nextstep, always use UTF-8
+	  ;; (see ns_string_to_pasteboard_internal in nsselect.m).
+	  (when (eq type 'TEXT)
+	    (cond
+	     ((featurep 'ns)
+	      (setq type 'UTF8_STRING))
+	     ((not (multibyte-string-p str))
+	      (setq type 'C_STRING))
+	     (t
+	      (let (non-latin-1 non-unicode eight-bit)
+		(mapc #'(lambda (x)
+			  (if (>= x #x100)
+			      (if (< x #x110000)
+				  (setq non-latin-1 t)
+				(if (< x #x3FFF80)
+				    (setq non-unicode t)
+				  (setq eight-bit t)))))
+		      str)
+		(setq type (if non-unicode 'COMPOUND_TEXT
+			     (if non-latin-1 'UTF8_STRING
+			       (if eight-bit 'C_STRING
+				 'STRING))))))))
 	  (cond
 	   ((eq type 'UTF8_STRING)
 	    (if (or (not coding)
