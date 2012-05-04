@@ -268,8 +268,6 @@ its argument.  See also @code{integer-or-marker-p} and
 @defun floatp object
 This predicate tests whether its argument is a floating point
 number and returns @code{t} if so, @code{nil} otherwise.
-
-@code{floatp} does not exist in Emacs versions 18 and earlier.
 @end defun
 
 @defun integerp object
