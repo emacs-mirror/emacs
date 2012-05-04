@@ -1,5 +1,9 @@
 2012-05-04  Glenn Morris  <rgm@gnu.org>
 
+	* lists.texi (List-related Predicates, List Variables):
+	Tweak page-breaks.
+	(Sets And Lists): Convert inforef to xref.
+
 	* text.texi (Auto Filling): Don't mention Emacs 19.
 
 	* commands.texi (Event Input Misc): Don't mention unread-command-char.
