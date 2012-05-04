@@ -361,6 +361,13 @@ this list."
 ;;??? Do we want this?
 ;;;###autoload (define-key esc-map [?\C-/] 'dabbrev-completion)
 
+(defun dabbrev--ignore-case-p (abbrev)
+  (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+           case-fold-search
+         dabbrev-case-fold-search)
+       (or (not dabbrev-upcase-means-case-search)
+           (string= abbrev (downcase abbrev)))))
+
 ;;;###autoload
 (defun dabbrev-completion (&optional arg)
   "Completion on current word.
@@ -381,12 +388,7 @@ then it searches *all* buffers."
 	 (abbrev (dabbrev--abbrev-at-point))
          (beg (progn (search-backward abbrev) (point)))
          (end (progn (search-forward abbrev) (point)))
-	 (ignore-case-p
-          (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-                   case-fold-search
-                 dabbrev-case-fold-search)
-               (or (not dabbrev-upcase-means-case-search)
-                   (string= abbrev (downcase abbrev)))))
+	 (ignore-case-p (dabbrev--ignore-case-p abbrev))
 	 (list 'uninitialized)
          (table
           (lambda (s p a)
@@ -514,11 +516,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	  (setq expansion
 		(dabbrev--find-expansion
                  abbrev direction
-                 (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-                          case-fold-search
-                        dabbrev-case-fold-search)
-                      (or (not dabbrev-upcase-means-case-search)
-                          (string= abbrev (downcase abbrev))))))))
+                 (dabbrev--ignore-case-p abbrev)))))
     (cond
      ((not expansion)
       (dabbrev--reset-global-variables)
@@ -820,11 +818,7 @@ RECORD-CASE-PATTERN, if non-nil, means set `dabbrev--last-case-pattern'
 to record whether we upcased the expansion, downcased it, or did neither."
   ;;(undo-boundary)
   (let ((use-case-replace
-         (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-                  case-fold-search
-                dabbrev-case-fold-search)
-              (or (not dabbrev-upcase-means-case-search)
-                  (string= abbrev (downcase abbrev)))
+         (and (dabbrev--ignore-case-p abbrev)
               (if (eq dabbrev-case-replace 'case-replace)
                   case-replace
                 dabbrev-case-replace))))

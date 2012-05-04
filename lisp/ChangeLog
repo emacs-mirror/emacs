@@ -1,5 +1,9 @@
 2012-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dabbrev.el (dabbrev--ignore-case-p): New function.
+	(dabbrev-completion, dabbrev-expand, dabbrev--substitute-expansion):
+	Use it.
+
 	* files.el (automount-dir-prefix): Mark as obsolete.
 
 2012-05-04  Glenn Morris  <rgm@gnu.org>
