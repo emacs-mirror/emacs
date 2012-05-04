@@ -3,6 +3,12 @@
 	* select.el (xselect--encode-string): Always use utf-8 for TEXT on
 	Nextstep.
 
+2012-05-03  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-show-mime): Catch an error caused by text
+	decoding, and show a warning message without signalling an error
+	(Bug#11282).
+
 2012-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-yank-current-message): Use the encoding of
