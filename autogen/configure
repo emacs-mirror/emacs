@@ -1182,6 +1182,8 @@ UNEXEC_OBJ
 C_SWITCH_MACHINE
 LD_SWITCH_SYSTEM
 CANNOT_DUMP
+INFO_OPTS
+INFO_EXT
 HAVE_MAKEINFO
 GZIP_PROG
 INSTALL_INFO
@@ -8236,6 +8238,11 @@ Either install a suitable version of makeinfo, or re-run configure
 with the \`--without-makeinfo' option to build without the manuals. " "$LINENO" 5
   fi
 fi
+
+
+INFO_EXT=.info
+INFO_OPTS=--no-split
+
 
 
 
