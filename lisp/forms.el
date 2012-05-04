@@ -2030,8 +2030,10 @@ Usage: (setq forms-number-of-fields
 
 ;;; Debugging
 
-(defvar forms--debug nil
-  "Enables forms-mode debugging if not nil.")
+(defcustom forms--debug nil
+  "If non-nil, enable Forms mode debugging."
+  :type 'boolean
+  :group 'forms)
 
 (defun forms--debug (&rest args)
   "Internal debugging routine."

@@ -713,19 +713,6 @@ to an appropriate value, and optionally also set
 `rmail-insert-mime-forwarded-message-function', and
 `rmail-insert-mime-resent-message-function'.")
 
-;; FIXME this is unused since 23.1.
-(defvar rmail-decode-mime-charset t
-  "Non-nil means a message is decoded by MIME's charset specification.
-If this variable is nil, or the message has not MIME specification,
-the message is decoded as normal way.
-
-If the variable `rmail-enable-mime' is non-nil, this variable is
-ignored, and all the decoding work is done by a feature specified by
-the variable `rmail-mime-feature'.")
-
-(make-obsolete-variable 'rmail-decode-mime-charset
-			"it does nothing." "23.1")
-
 (defvar rmail-mime-charset-pattern
   (concat "^content-type:[ \t]*text/plain;"
 	  "\\(?:[ \t\n]*\\(?:format\\|delsp\\)=\"?[-a-z0-9]+\"?;\\)*"
@@ -4231,10 +4218,13 @@ This has an effect only if a summary buffer exists."
 ;;; Speedbar support for RMAIL files.
 (eval-when-compile (require 'speedbar))
 
-(defvar rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
-  "This regex is used to match folder names to be displayed in speedbar.
-Enabling this will permit speedbar to display your folders for easy
-browsing, and moving of messages.")
+(defcustom rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
+  "Regexp matching Rmail folder names to be displayed in Speedbar.
+Enabling this permits Speedbar to display your folders for easy
+browsing, and moving of messages."
+  :type 'regexp
+  :group 'rmail
+  :group 'speedbar)
 
 (defvar rmail-speedbar-last-user nil
   "The last user to be displayed in the speedbar.")

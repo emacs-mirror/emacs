@@ -38,9 +38,8 @@
 (setq null-device "NUL")
 
 ;; For distinguishing file types based upon suffixes.
-(defvar file-name-buffer-file-type-alist
-  '(
-    ("[:/].*config.sys$" . nil)		; config.sys text
+(defcustom file-name-buffer-file-type-alist
+  '(("[:/].*config.sys$" . nil)		; config.sys text
     ("\\.\\(obj\\|exe\\|com\\|lib\\|sys\\|bin\\|ico\\|pif\\|class\\)$" . t)
 					; MS-Dos stuff
     ("\\.\\(dll\\|drv\\|386\\|vxd\\|fon\\|fnt\\|fot\\|ttf\\|grp\\)$" . t)
@@ -57,7 +56,10 @@
     )
   "Alist for distinguishing text files from binary files.
 Each element has the form (REGEXP . TYPE), where REGEXP is matched
-against the file name, and TYPE is nil for text, t for binary.")
+against the file name, and TYPE is nil for text, t for binary."
+  :type '(repeat (cons regexp boolean))
+  :group 'dos-fns
+  :group 'w32)
 
 ;; Return the pair matching filename on file-name-buffer-file-type-alist,
 ;; or nil otherwise.
@@ -282,8 +284,11 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 
 ;;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
 
-(defvar direct-print-region-use-command-dot-com t
-  "Control whether command.com is used to print on Windows 9x.")
+(defcustom direct-print-region-use-command-dot-com t
+  "If non-nil, use command.com to print on Windows 9x."
+  :type 'boolean
+  :group 'dos-fns
+  :group 'w32)
 
 ;; Function to actually send data to the printer port.
 ;; Supports writing directly, and using various programs.

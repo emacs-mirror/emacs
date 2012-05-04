@@ -126,10 +126,12 @@ has no effect on buffers already displaying footnotes."
   :type 'string
   :group 'footnote)
 
-(defvar footnote-signature-separator (if (boundp 'message-signature-separator)
-					 message-signature-separator
-				       "^-- $")
-  "String used to recognize .signatures.")
+(defcustom footnote-signature-separator (if (boundp 'message-signature-separator)
+					    message-signature-separator
+					  "^-- $")
+  "Regexp used by Footnote mode to recognize signatures."
+  :type 'regexp
+  :group 'footnote)
 
 ;;; Private variables
 

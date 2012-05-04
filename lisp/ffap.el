@@ -1457,10 +1457,12 @@ and the functions `ffap-file-at-point' and `ffap-url-at-point'."
 
 ;;; Menu support (`ffap-menu'):
 
-(defvar ffap-menu-regexp nil
-  "If non-nil, overrides `ffap-next-regexp' during `ffap-menu'.
+(defcustom ffap-menu-regexp nil
+  "If non-nil, regexp overriding `ffap-next-regexp' in `ffap-menu'.
 Make this more restrictive for faster menu building.
-For example, try \":/\" for URL (and some ftp) references.")
+For example, try \":/\" for URL (and some ftp) references."
+  :type '(choice (const nil) regexp)
+  :group 'ffap)
 
 (defvar ffap-menu-alist nil
   "Buffer local cache of menu presented by `ffap-menu'.")

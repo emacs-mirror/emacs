@@ -1366,17 +1366,19 @@ call to `feedmail-run-the-queue'."
   (feedmail-say-debug ">in-> feedmail-mail-send-hook-splitter %s" feedmail-queue-runner-is-active)
   (if feedmail-queue-runner-is-active
       (run-hooks 'feedmail-mail-send-hook-queued)
-    (run-hooks 'feedmail-mail-send-hook))
-  )
+    (run-hooks 'feedmail-mail-send-hook)))
 
+(defcustom feedmail-mail-send-hook nil
+  "Hook run by `feedmail-mail-send-hook-splitter' for immediate mail.
+See documentation of `feedmail-mail-send-hook-splitter' for details."
+  :type 'hook
+  :group 'feedmail)
 
-(defvar feedmail-mail-send-hook nil
-  "See documentation for `feedmail-mail-send-hook-splitter'.")
-
-
-(defvar feedmail-mail-send-hook-queued nil
-  "See documentation for `feedmail-mail-send-hook-splitter'.")
-
+(defcustom feedmail-mail-send-hook-queued nil
+  "Hook run by `feedmail-mail-send-hook-splitter' for queued mail.
+See documentation of `feedmail-mail-send-hook-splitter' for details."
+  :type 'hook
+  :group 'feedmail)
 
 (defun feedmail-confirm-addresses-hook-example ()
   "An example of a `feedmail-last-chance-hook'.
@@ -1387,9 +1389,7 @@ It shows the simple addresses and gets a confirmation.  Use as:
     (erase-buffer)
     (insert (mapconcat 'identity feedmail-address-list " "))
     (if (not (y-or-n-p "How do you like them apples? "))
-	(error "FQM: Sending...gave up in last chance hook")
-      )))
-
+	(error "FQM: Sending...gave up in last chance hook"))))
 
 (defcustom feedmail-last-chance-hook nil
   "User's last opportunity to modify the message on its way out.
@@ -2027,12 +2027,6 @@ backup file names and the like)."
 	      (if (looking-at ".*\r\n.*\r\n")
 		  (while (search-forward "\r\n" nil t)
 		    (replace-match "\n" nil t)))
-;;		   ;; work around text-vs-binary weirdness
-;;		   ;; if we don't find the normal M-H-S, try reading the file a different way
-;; 		   (if (not (feedmail-find-eoh t))
-;;			   (let ((file-name-buffer-file-type-alist nil) (default-buffer-file-type nil))
-;;				 (erase-buffer)
-;;				 (insert-file-contents maybe-file)))
 	      (funcall feedmail-queue-runner-mode-setter arg)
 	      (condition-case signal-stuff ; don't give up the loop if user skips some
 		  (let ((feedmail-enable-queue nil)

@@ -1,3 +1,31 @@
+2012-05-04  Chong Yidong  <cyd@gnu.org>
+
+	* dos-w32.el (file-name-buffer-file-type-alist)
+	(direct-print-region-use-command-dot-com):
+	* ffap.el (ffap-menu-regexp):
+	* find-file.el (ff-special-constructs):
+	* follow.el (follow-debug):
+	* forms.el (forms--debug):
+	* iswitchb.el (iswitchb-all-frames):
+	* ido.el (ido-all-frames):
+	* emacs-lisp/timer.el (timer-max-repeats):
+	* mail/feedmail.el (feedmail-mail-send-hook)
+	(feedmail-mail-send-hook-queued):
+	* mail/footnote.el (footnote-signature-separator):
+	* mail/mailabbrev.el (mail-alias-separator-string)
+	(mail-abbrev-mode-regexp):
+	* mail/rmail.el (rmail-speedbar-match-folder-regexp):
+	* progmodes/idlwave.el (idlwave-libinfo-file)
+	(idlwave-default-completion-case-is-down)
+	(idlwave-library-routines): Convert defvars to defcustoms.
+
+	* mail/rmail.el (rmail-decode-mime-charset):
+	* progmodes/idlw-shell.el (idlwave-shell-print-expression-function)
+	(idlwave-shell-fix-inserted-breaks)
+	(idlwave-shell-activate-alt-keybindings)
+	(idlwave-shell-use-breakpoint-glyph):
+	* facemenu.el (facemenu-unlisted-faces): Delete obsolete vars.
+
 2012-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--twq-all): Beware completion-ignore-case.

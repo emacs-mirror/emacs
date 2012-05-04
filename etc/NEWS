@@ -187,6 +187,11 @@ third argument is a frame (that usage was obsolete since Emacs 22.2).
 but keywords or keyword-string pairs.  The old argument list will
 still be supported for Emacs 24.x.
 
+** The following obsolete variables and varaliases have been removed:
+
+*** `facemenu-unlisted-faces'
+*** `rmail-decode-mime-charset'
+
 
 * Lisp changes in Emacs 24.2
 

@@ -1,3 +1,7 @@
+2012-05-04  Chong Yidong  <cyd@gnu.org>
+
+	* os.texi (Timers): Use defopt for timer-max-repeats.
+
 2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* os.texi (Time of Day): Do not limit current-time-string

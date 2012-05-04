@@ -240,12 +240,14 @@ and idle timers such as are scheduled by `run-with-idle-timer'."
 (defvar timer-event-last-2 nil
   "Third-to-last timer that was run.")
 
-(defvar timer-max-repeats 10
+(defcustom timer-max-repeats 10
   "Maximum number of times to repeat a timer, if many repeats are delayed.
 Timer invocations can be delayed because Emacs is suspended or busy,
 or because the system's time changes.  If such an occurrence makes it
 appear that many invocations are overdue, this variable controls
-how many will really happen.")
+how many will really happen."
+  :type 'integer
+  :group 'internal)
 
 (defun timer-until (timer time)
   "Calculate number of seconds from when TIMER will run, until TIME.
