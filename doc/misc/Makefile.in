@@ -215,11 +215,12 @@ mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${i
 
 .PHONY: info dvi pdf echo-info
 
+# Default.
+info: $(INFO_TARGETS)
+
 ## Used by top-level Makefile.
 echo-info:
 	@echo $(INFO_TARGETS) | sed 's|[^ ]*/||g'
-
-info: $(INFO_TARGETS)
 
 # please modify this for all the web manual targets
 webhack: clean
