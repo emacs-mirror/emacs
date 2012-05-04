@@ -1,3 +1,7 @@
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* patcomp.el, play/bruce.el: Move to obsolete/.
+
 2012-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor Y10k bugs.

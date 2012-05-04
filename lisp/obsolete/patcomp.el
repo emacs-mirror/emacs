@@ -2,6 +2,8 @@
 
 ;; This file is part of GNU Emacs.
 
+;; Obsolete-since: 24.2
+
 ;;; Commentary:
 
 ;;; Code:

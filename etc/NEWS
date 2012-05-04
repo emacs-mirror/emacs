@@ -164,9 +164,13 @@ In most cases, assoc+member+push+delq work just as well.
 And in any case it's just a terrible package: ugly semantics, terrible
 inefficiency, and not namespace-clean.
 
+*** bruce.el
+
 *** mailpost.el
 
 *** mouse-sel.el
+
+*** patcomp.el
 
 
 * New Modes and Packages in Emacs 24.2
