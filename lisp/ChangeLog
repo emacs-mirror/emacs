@@ -1,3 +1,7 @@
+2012-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (automount-dir-prefix): Mark as obsolete.
+
 2012-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* patcomp.el, play/bruce.el: Move to obsolete/.

@@ -1627,6 +1627,7 @@ Choose the buffer's name using `generate-new-buffer-name'."
   "Regexp to match the automounter prefix in a directory name."
   :group 'files
   :type 'regexp)
+(make-obsolete-variable 'automount-dir-prefix 'directory-abbrev-alist "24.2")
 
 (defvar abbreviated-home-dir nil
   "The user's homedir abbreviated according to `directory-abbrev-alist'.")

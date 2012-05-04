@@ -212,6 +212,8 @@ table, but with a different prefix.
 *** `current-time-string' no longer requires that its argument's year
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
+
+** `automount-dir-prefix' is obsolete.
 
 * Changes in Emacs 24.2 on non-free operating systems
 
