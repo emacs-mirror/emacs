@@ -1,5 +1,7 @@
 2012-05-04  Glenn Morris  <rgm@gnu.org>
 
+	* text.texi (Auto Filling): Don't mention Emacs 19.
+
 	* commands.texi (Event Input Misc): Don't mention unread-command-char.
 	* numbers.texi (Predicates on Numbers): Don't mention Emacs 18.
 
