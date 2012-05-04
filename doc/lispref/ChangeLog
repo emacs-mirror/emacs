@@ -1,5 +1,9 @@
 2012-05-04  Glenn Morris  <rgm@gnu.org>
 
+	* intro.texi (Caveats): Copyedit.
+	(Lisp History): Convert inforef to xref.
+	(Lisp History, Printing Notation, Version Info): Improve page-breaks.
+
 	* elisp.texi (DATE): Forgot to change the month in 2012-04-21 change.
 
 2012-05-01  Glenn Morris  <rgm@gnu.org>
