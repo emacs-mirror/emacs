@@ -1,3 +1,15 @@
+2012-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor Y10k bugs.
+	* arc-mode.el (archive-unixdate):
+	* autoinsert.el (auto-insert-alist):
+	* calc/calc-forms.el (math-this-year):
+	* emacs-lisp/copyright.el (copyright-current-year)
+	(copyright-update-year, copyright):
+	* tar-mode.el (tar-clip-time-string):
+	* time.el (display-time-update):
+	Don't assume years have 4 digits.
+
 2012-05-04  Chong Yidong  <cyd@gnu.org>
 
 	* dos-w32.el (file-name-buffer-file-type-alist)

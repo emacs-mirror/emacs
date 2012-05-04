@@ -444,7 +444,7 @@
 
 
 (defun math-this-year ()
-  (string-to-number (substring (current-time-string) -4)))
+  (nth 5 (decode-time)))
 
 (defun math-leap-year-p (year)
   (if (Math-lessp year 1752)

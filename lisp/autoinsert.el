@@ -135,7 +135,7 @@ If this contains a %s, that will be replaced by the matching rule."
 
     (("\\.[1-9]\\'" . "Man page skeleton")
      "Short description: "
-     ".\\\" Copyright (C), " (substring (current-time-string) -4) "  "
+     ".\\\" Copyright (C), " (format-time-string "%Y") "  "
      (getenv "ORGANIZATION") | (progn user-full-name)
      "
 .\\\" You may distribute this file under the terms of the GNU Free
@@ -166,7 +166,7 @@ If this contains a %s, that will be replaced by the matching rule."
      "Short description: "
      ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str "
 
-;; Copyright (C) " (substring (current-time-string) -4) "  "
+;; Copyright (C) " (format-time-string "%Y") "  "
  (getenv "ORGANIZATION") | (progn user-full-name) "
 
 ;; Author: " (user-full-name)
@@ -222,7 +222,7 @@ If this contains a %s, that will be replaced by the matching rule."
 @copying\n"
       (setq short-description (read-string "Short description: "))
       ".\n\n"
-      "Copyright @copyright{} " (substring (current-time-string) -4) "  "
+      "Copyright @copyright{} " (format-time-string "%Y") "  "
       (getenv "ORGANIZATION") | (progn user-full-name) "
 
 @quotation
