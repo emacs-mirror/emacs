@@ -1,5 +1,7 @@
 2012-05-04  Glenn Morris  <rgm@gnu.org>
 
+	* objects.texi (Process Type, Overlay Type): Tweak page-breaks.
+
 	* intro.texi (Caveats): Copyedit.
 	(Lisp History): Convert inforef to xref.
 	(Lisp History, Printing Notation, Version Info): Improve page-breaks.
