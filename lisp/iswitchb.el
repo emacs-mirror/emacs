@@ -372,7 +372,7 @@ See also `iswitchb-newbuffer'."
   :type 'string
   :group 'iswitchb)
 
-(defvar iswitchb-all-frames 'visible
+(defcustom iswitchb-all-frames 'visible
   "Argument to pass to `walk-windows' when iswitchb is finding buffers.
 See documentation of `walk-windows' for useful values."
   :type '(choice (const :tag "Selected frame only" nil)
