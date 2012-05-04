@@ -1888,7 +1888,7 @@ use instead of point."
         ;; or on or before the digit of a 1-digit date.
         (if (not (and (looking-at "[ 0-9]?[0-9][^0-9]")
                       (get-text-property (point) 'date)))
-            (if error (error "Not on a date!"))
+            (if error (user-error "Not on a date!"))
           ;; Convert segment to real month and year.
           (if (zerop month) (setq month 12))
           ;; Go back to before the first date digit.
@@ -1902,8 +1902,6 @@ use instead of point."
                  ((and (= 12 month) (zerop segment)) (1- displayed-year))
                  ((and (= 1 month) (= segment 2)) (1+ displayed-year))
                  (t displayed-year))))))))
-
-(add-to-list 'debug-ignored-errors "Not on a date!")
 
 ;; The following version of calendar-gregorian-from-absolute is preferred for
 ;; reasons of clarity, BUT it's much slower than the version that follows it.

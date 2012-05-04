@@ -2132,14 +2132,14 @@ and runs `compilation-filter-hook'."
 	   (if (or (eq (get-text-property ,limit 'compilation-message)
 		       (get-text-property opt 'compilation-message))
 		   (eq pt opt))
-	       (error ,error compilation-error)
+	       (user-error ,error compilation-error)
 	     (setq pt ,limit)))
        ;; prop 'compilation-message usually has 2 changes, on and off, so
        ;; re-search if off
        (or (setq msg (get-text-property pt 'compilation-message))
 	   (if (setq pt (,property-change pt 'compilation-message nil ,limit))
 	       (setq msg (get-text-property pt 'compilation-message)))
-	   (error ,error compilation-error))
+	   (user-error ,error compilation-error))
        (or (< (compilation--message->type msg) compilation-skip-threshold)
 	   (if different-file
 	       (eq (prog1 last
@@ -2659,9 +2659,6 @@ The file-structure looks like this:
     (maphash (lambda (k v)
                (if (eq v fs) (remhash k compilation-locs)))
              compilation-locs)))
-
-(add-to-list 'debug-ignored-errors "\\`No more [-a-z ]+s yet\\'")
-(add-to-list 'debug-ignored-errors "\\`Moved past last .*")
 
 ;;; Compatibility with the old compile.el.
 

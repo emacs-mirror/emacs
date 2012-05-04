@@ -1,5 +1,50 @@
 2012-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (user-error): New function.
+	* window.el (switch-to-buffer):
+	* vc/smerge-mode.el (smerge-resolve-function, smerge-resolve)
+	(smerge-match-conflict):
+	* simple.el (previous-matching-history-element)
+	(next-matching-history-element, goto-history-element, undo-more)
+	(undo-start):
+	* progmodes/etags.el (visit-tags-table-buffer, find-tag-tag)
+	(find-tag-noselect, find-tag-in-order, etags-goto-tag-location)
+	(next-file, tags-loop-scan, list-tags, complete-tag):
+	* progmodes/compile.el (compilation-loop):
+	* mouse.el (mouse-minibuffer-check):
+	* man.el (Man-bgproc-sentinel, Man-goto-page):
+	* info.el (Info-find-node-2, Info-extract-pointer, Info-history-back)
+	(Info-history-forward, Info-follow-reference, Info-menu)
+	(Info-extract-menu-item, Info-extract-menu-counting)
+	(Info-forward-node, Info-backward-node, Info-next-menu-item)
+	(Info-last-menu-item, Info-next-preorder, Info-last-preorder)
+	(Info-next-reference, Info-prev-reference, Info-index)
+	(Info-index-next, Info-follow-nearest-node)
+	(Info-copy-current-node-name):
+	* imenu.el (imenu--make-index-alist)
+	(imenu-default-create-index-function, imenu-add-to-menubar):
+	* files.el (basic-save-buffer, recover-file):
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	* emacs-lisp/checkdoc.el (checkdoc-continue, checkdoc-comments)
+	(checkdoc-message-text, checkdoc-defun):
+	* dabbrev.el (dabbrev-completion, dabbrev--abbrev-at-point):
+	* cus-edit.el (customize-changed-options, customize-rogue)
+	(customize-saved, custom-variable-set, custom-variable-mark-to-save)
+	(custom-variable-mark-to-reset-standard)
+	(custom-variable-reset-backup, custom-face-mark-to-reset-standard)
+	(custom-file):
+	* completion.el (check-completion-length):
+	* comint.el (comint-search-arg)
+	(comint-previous-matching-input-string-position)
+	(comint-previous-matching-input)
+	(comint-replace-by-expanded-history-before-point, comint-send-input)
+	(comint-copy-old-input, comint-backward-matching-input)
+	(comint-goto-process-mark, comint-set-process-mark):
+	* calendar/calendar.el (calendar-cursor-to-date): Use it.
+	* bindings.el (debug-ignored-errors): Remove regexps, add `user-error'.
+
+2012-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* dabbrev.el (dabbrev--ignore-case-p): New function.
 	(dabbrev-completion, dabbrev-expand, dabbrev--substitute-expansion):
 	Use it.

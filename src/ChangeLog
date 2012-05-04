@@ -1,3 +1,13 @@
+2012-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (PUT_ERROR): New macro.
+	(syms_of_data): Use it.  Add new error type `user-error'.
+	* undo.c (user_error): New function.
+	(Fprimitive_undo): Use it.
+	* print.c (print_error_message): Adjust print style for `user-error'.
+	* keyboard.c (user_error): New function.
+	(Fexit_recursive_edit, Fabort_recursive_edit): Use it.
+
 2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Do not limit current-time-string to years 1000..9999.
@@ -19,8 +29,8 @@
 	localtime/gmtime, but also accessing these functions' results
 	including their tm_zone values if any, and any related TZ setting.
 	(format_time_string): Last arg is now struct tm *, not struct tm **,
-	so that the struct tm is saved in the critical section.  All
-	callers changed.  Simplify allocation of initial buffer, partly
+	so that the struct tm is saved in the critical section.
+	All callers changed.  Simplify allocation of initial buffer, partly
 	motivated by the fact that memory allocation needs to be outside
 	the critical section.
 

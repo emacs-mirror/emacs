@@ -1076,10 +1076,10 @@ See also `comint-read-input-ring'."
 (defun comint-search-arg (arg)
   ;; First make sure there is a ring and that we are after the process mark
   (cond ((not (comint-after-pmark-p))
-	 (error "Not at command line"))
+	 (user-error "Not at command line"))
 	((or (null comint-input-ring)
 	     (ring-empty-p comint-input-ring))
-	 (error "Empty input ring"))
+	 (user-error "Empty input ring"))
 	((zerop arg)
 	 ;; arg of zero resets search from beginning, and uses arg of 1
 	 (setq comint-input-ring-index nil)
@@ -1146,7 +1146,7 @@ Moves relative to `comint-input-ring-index'."
 Moves relative to START, or `comint-input-ring-index'."
   (if (or (not (ring-p comint-input-ring))
 	  (ring-empty-p comint-input-ring))
-      (error "No history"))
+      (user-error "No history"))
   (let* ((len (ring-length comint-input-ring))
 	 (motion (if (> arg 0) 1 -1))
 	 (n (mod (- (or start (comint-search-start arg)) motion) len))
@@ -1186,7 +1186,7 @@ If N is negative, find the next or Nth next match."
   (let ((pos (comint-previous-matching-input-string-position regexp n)))
     ;; Has a match been found?
     (if (null pos)
-	(error "Not found")
+	(user-error "Not found")
       ;; If leaving the edit line, save partial input
       (if (null comint-input-ring-index)	;not yet on ring
 	  (setq comint-stored-incomplete-input
@@ -1372,7 +1372,7 @@ actual side-effect."
 		 (goto-char (match-beginning 0))
 		 (if (not (search-forward old pos t))
 		     (or silent
-			 (error "Not found"))
+			 (user-error "Not found"))
 		   (replace-match new t t)
 		   (message "History item: substituted"))))
 	      (t
@@ -1777,7 +1777,7 @@ Similarly for Soar, Scheme, etc."
   (interactive)
   ;; Note that the input string does not include its terminal newline.
   (let ((proc (get-buffer-process (current-buffer))))
-    (if (not proc) (error "Current buffer has no process")
+    (if (not proc) (user-error "Current buffer has no process")
       (widen)
       (let* ((pmark (process-mark proc))
              (intxt (if (>= (point) (marker-position pmark))
@@ -2201,7 +2201,7 @@ Calls `comint-get-old-input' to get old input."
   (let ((input (funcall comint-get-old-input))
 	(process (get-buffer-process (current-buffer))))
     (if (not process)
-	(error "Current buffer has no process")
+	(user-error "Current buffer has no process")
       (goto-char (process-mark process))
       (insert input))))
 
@@ -2508,7 +2508,7 @@ If N is negative, find the next or Nth next match."
 	    (save-excursion
 	      (while (/= n 0)
 		(unless (re-search-backward regexp nil t dir)
-		  (error "Not found"))
+		  (user-error "Not found"))
 		(unless (get-char-property (point) 'field)
 		  (setq n (- n dir))))
 	      (field-beginning))))
@@ -3364,7 +3364,7 @@ The process mark separates output, and input already sent,
 from input that has not yet been sent."
   (interactive)
   (let ((proc (or (get-buffer-process (current-buffer))
-		  (error "Current buffer has no process"))))
+		  (user-error "Current buffer has no process"))))
     (goto-char (process-mark proc))
     (when (called-interactively-p 'interactive)
       (message "Point is now at the process mark"))))
@@ -3389,7 +3389,7 @@ the process mark is at the beginning of the accumulated input."
   "Set the process mark at point."
   (interactive)
   (let ((proc (or (get-buffer-process (current-buffer))
-		  (error "Current buffer has no process"))))
+		  (user-error "Current buffer has no process"))))
     (set-marker (process-mark proc) (point))
     (message "Process mark set")))
 
@@ -3741,14 +3741,6 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
                (match-end regexp-group))
               results))
       results)))
-
-(dolist (x '("^Not at command line$"
-             "^Empty input ring$"
-             "^No history$"
-             "^Not found$"			; Too common?
-             "^Current buffer has no process$"))
-  (add-to-list 'debug-ignored-errors x))
-
 
 ;; Converting process modes to use comint mode
 ;; ===========================================================================

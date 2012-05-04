@@ -916,7 +916,7 @@ is the starting location.  If this is nil, `point-min' is used instead."
 	(progn
 	  (goto-char wrong)
 	  (if (not take-notes)
-	      (error "%s" (checkdoc-error-text msg)))))
+	      (user-error "%s" (checkdoc-error-text msg)))))
     (checkdoc-show-diagnostics)
     (if (called-interactively-p 'interactive)
 	(message "No style warnings."))))
@@ -949,7 +949,7 @@ if there is one."
 	 (e (checkdoc-file-comments-engine))
          (checkdoc-generate-compile-warnings-flag
           (or take-notes checkdoc-generate-compile-warnings-flag)))
-    (if e (error "%s" (checkdoc-error-text e)))
+    (if e (user-error "%s" (checkdoc-error-text e)))
     (checkdoc-show-diagnostics)
     e))
 
@@ -987,7 +987,7 @@ Optional argument TAKE-NOTES causes all errors to be logged."
     (if (not (called-interactively-p 'interactive))
 	e
       (if e
-	  (error "%s" (checkdoc-error-text e))
+	  (user-error "%s" (checkdoc-error-text e))
 	(checkdoc-show-diagnostics)))
     (goto-char p))
   (if (called-interactively-p 'interactive)
@@ -1027,19 +1027,14 @@ space at the end of each line."
 	      (car (memq checkdoc-spellcheck-documentation-flag
                          '(defun t))))
 	     (beg (save-excursion (beginning-of-defun) (point)))
-	     (end (save-excursion (end-of-defun) (point)))
-	     (msg (checkdoc-this-string-valid)))
-	(if msg (if no-error
-		    (message "%s" (checkdoc-error-text msg))
-		  (error "%s" (checkdoc-error-text msg)))
-	  (setq msg (checkdoc-message-text-search beg end))
-	  (if msg (if no-error
-		      (message "%s" (checkdoc-error-text msg))
-		    (error "%s" (checkdoc-error-text msg)))
-	    (setq msg (checkdoc-rogue-space-check-engine beg end))
-	    (if msg (if no-error
-			(message "%s" (checkdoc-error-text msg))
-		      (error "%s" (checkdoc-error-text msg))))))
+	     (end (save-excursion (end-of-defun) (point))))
+        (dolist (fun (list #'checkdoc-this-string-valid
+                           (lambda () (checkdoc-message-text-search beg end))
+                           (lambda () (checkdoc-rogue-space-check-engine beg end))))
+          (let ((msg (funcall fun)))
+            (if msg (if no-error
+                        (message "%s" (checkdoc-error-text msg))
+                      (user-error "%s" (checkdoc-error-text msg))))))
 	(if (called-interactively-p 'interactive)
 	    (message "Checkdoc: done."))))))
 
@@ -2643,12 +2638,6 @@ function called to create the messages."
 	nil)))
 
 (custom-add-option 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
-
-(add-to-list 'debug-ignored-errors
-	     "Argument `.*' should appear (as .*) in the doc string")
-(add-to-list 'debug-ignored-errors
-	     "Lisp symbol `.*' should appear in quotes")
-(add-to-list 'debug-ignored-errors "Disambiguate .* by preceding .*")
 
 (provide 'checkdoc)
 

@@ -4497,7 +4497,7 @@ Before and after saving the buffer, this function runs
 	       (format
 		"%s has changed since visited or saved.  Save anyway? "
 		(file-name-nondirectory buffer-file-name)))
-	      (error "Save not confirmed"))
+	      (user-error "Save not confirmed"))
 	  (save-restriction
 	    (widen)
 	    (save-excursion
@@ -5364,7 +5364,7 @@ non-nil, it is called instead of rereading visited file contents."
 	     (insert-file-contents file-name nil)
 	     (set-buffer-file-coding-system coding-system))
 	   (after-find-file nil nil t))
-	  (t (error "Recover-file cancelled")))))
+	  (t (user-error "Recover-file cancelled")))))
 
 (defun recover-session ()
   "Recover auto save files from a previous Emacs session.

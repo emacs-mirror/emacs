@@ -2377,7 +2377,7 @@ extern Lisp_Object Qerror, Qquit, Qargs_out_of_range;
 extern Lisp_Object Qvoid_variable, Qvoid_function;
 extern Lisp_Object Qinvalid_read_syntax;
 extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
-extern Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
+extern Lisp_Object Quser_error, Qend_of_file, Qarith_error, Qmark_inactive;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 extern Lisp_Object Qtext_read_only;
 extern Lisp_Object Qinteractive_form;

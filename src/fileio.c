@@ -87,17 +87,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FILE_SYSTEM_CASE(filename)  (filename)
 #endif
 
-/* Nonzero during writing of auto-save files */
+/* Nonzero during writing of auto-save files.  */
 static int auto_saving;
 
-/* Nonzero umask during creation of auto-save directories */
+/* Nonzero umask during creation of auto-save directories.  */
 static int auto_saving_dir_umask;
 
 /* Set by auto_save_1 to mode of original file so Fwrite_region will create
-   a new file with the same mode as the original */
+   a new file with the same mode as the original.  */
 static int auto_save_mode_bits;
 
-/* Set by auto_save_1 if an error occurred during the last auto-save. */
+/* Set by auto_save_1 if an error occurred during the last auto-save.  */
 static int auto_save_error_occurred;
 
 /* The symbol bound to coding-system-for-read when
@@ -111,7 +111,7 @@ static Lisp_Object Qauto_save_coding;
    which gives a list of operations it handles..  */
 static Lisp_Object Qoperations;
 
-/* Lisp functions for translating file formats */
+/* Lisp functions for translating file formats.  */
 static Lisp_Object Qformat_decode, Qformat_annotate_function;
 
 /* Lisp function for setting buffer-file-coding-system and the

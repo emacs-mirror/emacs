@@ -406,10 +406,10 @@ then it searches *all* buffers."
                          (dabbrev--find-all-expansions abbrev ignore-case-p))
                         (completion-ignore-case ignore-case-p))
                     (or (consp completion-list)
-                        (error "No dynamic expansion for \"%s\" found%s"
-                               abbrev
-                               (if dabbrev--check-other-buffers
-                                   "" " in this-buffer")))
+                        (user-error "No dynamic expansion for \"%s\" found%s"
+                                    abbrev
+                                    (if dabbrev--check-other-buffers
+                                        "" " in this-buffer")))
                     (setq list
                           (cond
                            ((not (and ignore-case-p dabbrev-case-replace))
@@ -585,7 +585,7 @@ all skip characters."
   "Extract the symbol at point to serve as abbreviation."
   ;; Check for error
   (if (bobp)
-      (error "No possible abbreviation preceding point"))
+      (user-error "No possible abbreviation preceding point"))
   ;; Return abbrev at point
   (save-excursion
     ;; Record the end of the abbreviation.
@@ -603,7 +603,7 @@ all skip characters."
 				      "\\sw\\|\\s_")
 				  nil t)
 	      (forward-char 1)
-	    (error "No possible abbreviation preceding point"))))
+	    (user-error "No possible abbreviation preceding point"))))
     ;; Now find the beginning of that one.
     (dabbrev--goto-start-of-abbrev)
     (buffer-substring-no-properties
@@ -973,11 +973,6 @@ Leaves point at the location of the start of the expansion."
 	  (setq dabbrev--last-table
 		(cons found-string dabbrev--last-table))
 	  result)))))
-
-(dolist (mess '("^No dynamic expansion for .* found"
-		"^No further dynamic expansion for .* found$"
-		"^No possible abbreviation preceding point$"))
-  (add-to-list 'debug-ignored-errors mess))
 
 (provide 'dabbrev)
 

@@ -274,6 +274,17 @@ for the sake of consistency."
     (signal 'error (list (apply 'format args)))))
 (set-advertised-calling-convention 'error '(string &rest args) "23.1")
 
+(defun user-error (format &rest args)
+  "Signal a pilot error, making error message by passing all args to `format'.
+In Emacs, the convention is that error messages start with a capital
+letter but *do not* end with a period.  Please follow this convention
+for the sake of consistency.
+This is just like `error' except that `user-error's are expected to be the
+result of an incorrect manipulation on the part of the user, rather than the
+result of an actual problem."
+  (while t
+    (signal 'user-error (list (apply #'format format args)))))
+
 ;; We put this here instead of in frame.el so that it's defined even on
 ;; systems where frame.el isn't loaded.
 (defun frame-configuration-p (object)

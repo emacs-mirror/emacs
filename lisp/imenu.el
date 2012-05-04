@@ -579,7 +579,7 @@ See `imenu--index-alist' for the format of the index alist."
 		  (funcall imenu-create-index-function))))
 	(imenu--truncate-items imenu--index-alist)))
   (or imenu--index-alist noerror
-      (error "No items suitable for an index found in this buffer"))
+      (user-error "No items suitable for an index found in this buffer"))
   (or imenu--index-alist
       (setq imenu--index-alist (list nil)))
   ;; Add a rescan option to the index.
@@ -695,7 +695,7 @@ The alternate method, which is the one most often used, is to call
 	((and imenu-generic-expression)
 	 (imenu--generic-function imenu-generic-expression))
 	(t
-	 (error "This buffer cannot use `imenu-default-create-index-function'"))))
+	 (user-error "This buffer cannot use `imenu-default-create-index-function'"))))
 
 ;;;
 ;;; Generic index gathering function.
@@ -968,8 +968,8 @@ See the command `imenu' for more information."
 	    `(menu-item ,name ,(make-sparse-keymap "Imenu")))
 	  (use-local-map newmap)
 	  (add-hook 'menu-bar-update-hook 'imenu-update-menubar)))
-    (error "The mode `%s' does not support Imenu"
-           (format-mode-line mode-name))))
+    (user-error "The mode `%s' does not support Imenu"
+                (format-mode-line mode-name))))
 
 ;;;###autoload
 (defun imenu-add-menubar-index ()
@@ -1057,12 +1057,6 @@ for more information."
 	   (rest (if is-special-item (cddr index-item))))
       (apply function (car index-item) position rest))
     (run-hooks 'imenu-after-jump-hook)))
-
-(dolist (mess
-	 '("^No items suitable for an index found in this buffer$"
-	   "^This buffer cannot use `imenu-default-create-index-function'$"
-	   "^The mode `.*' does not support Imenu$"))
-  (add-to-list 'debug-ignored-errors mess))
 
 (provide 'imenu)
 

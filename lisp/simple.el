@@ -1465,7 +1465,7 @@ See also `minibuffer-history-case-insensitive-variables'."
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
 		   (car minibuffer-history-search-history)
-		 (error "No previous history search regexp"))
+		 (user-error "No previous history search regexp"))
 	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
   (unless (zerop n)
@@ -1491,9 +1491,9 @@ See also `minibuffer-history-case-insensitive-variables'."
 	(setq prevpos pos)
 	(setq pos (min (max 1 (+ pos (if (< n 0) -1 1))) (length history)))
 	(when (= pos prevpos)
-	  (error (if (= pos 1)
-		     "No later matching history item"
-		   "No earlier matching history item")))
+	  (user-error (if (= pos 1)
+                          "No later matching history item"
+                        "No earlier matching history item")))
 	(setq match-string
 	      (if (eq minibuffer-history-sexp-flag (minibuffer-depth))
 		  (let ((print-level nil))
@@ -1536,7 +1536,7 @@ makes the search case-sensitive."
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
 		   (car minibuffer-history-search-history)
-		 (error "No previous history search regexp"))
+		 (user-error "No previous history search regexp"))
 	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
   (previous-matching-history-element regexp (- n)))
@@ -1595,11 +1595,11 @@ The argument NABS specifies the absolute history position."
 	(setq minibuffer-text-before-history
 	      (minibuffer-contents-no-properties)))
     (if (< nabs minimum)
-	(if minibuffer-default
-	    (error "End of defaults; no next item")
-	  (error "End of history; no default available")))
+	(user-error (if minibuffer-default
+                        "End of defaults; no next item"
+                      "End of history; no default available")))
     (if (> nabs (length (symbol-value minibuffer-history-variable)))
-	(error "Beginning of history; no preceding item"))
+	(user-error "Beginning of history; no preceding item"))
     (unless (memq last-command '(next-history-element
 				 previous-history-element))
       (let ((prompt-end (minibuffer-prompt-end)))
@@ -1945,8 +1945,8 @@ Some change-hooks test this variable to do something different.")
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or (listp pending-undo-list)
-      (error (concat "No further undo information"
-		     (and undo-in-region " for region"))))
+      (user-error (concat "No further undo information"
+                          (and undo-in-region " for region"))))
   (let ((undo-in-progress t))
     ;; Note: The following, while pulling elements off
     ;; `pending-undo-list' will call primitive change functions which
@@ -1972,7 +1972,7 @@ If BEG and END are specified, then only undo elements
 that apply to text between BEG and END are used; other undo elements
 are ignored.  If BEG and END are nil, all undo elements are used."
   (if (eq buffer-undo-list t)
-      (error "No undo information in this buffer"))
+      (user-error "No undo information in this buffer"))
   (setq pending-undo-list
 	(if (and beg end (not (= beg end)))
 	    (undo-make-selective-list (min beg end) (max beg end))
@@ -3243,10 +3243,6 @@ move the yanking point; just return the Nth kill forward."
   "Non-nil means don't signal an error for killing read-only text."
   :type 'boolean
   :group 'killing)
-
-(put 'text-read-only 'error-conditions
-     '(text-read-only buffer-read-only error))
-(put 'text-read-only 'error-message (purecopy "Text is read-only"))
 
 (defun kill-region (beg end &optional yank-handler)
   "Kill (\"cut\") text between point and mark.

@@ -1071,7 +1071,7 @@ a case-insensitive match is tried."
                 (throw 'foo t))
 
               ;; No such anchor in tag table or node in tag table or file
-              (error "No such node or anchor: %s" nodename))
+              (user-error "No such node or anchor: %s" nodename))
 
 	    (Info-select-node)
 	    (goto-char (point-min))
@@ -2012,8 +2012,8 @@ if ERRORNAME is nil, just return nil."
 		(concat name ":" (Info-following-node-name-re)) bound t)
 	       (match-string-no-properties 1))
 	      ((not (eq errorname t))
-	       (error "Node has no %s"
-		      (capitalize (or errorname name)))))))))
+	       (user-error "Node has no %s"
+                           (capitalize (or errorname name)))))))))
 
 (defun Info-following-node-name-re (&optional allowedchars)
   "Return a regexp matching a node name.
@@ -2082,7 +2082,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   "Go back in the history to the last node visited."
   (interactive)
   (or Info-history
-      (error "This is the first Info node you looked at"))
+      (user-error "This is the first Info node you looked at"))
   (let ((history-forward
 	 (cons (list Info-current-file Info-current-node (point))
 	       Info-history-forward))
@@ -2102,7 +2102,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   "Go forward in the history of visited nodes."
   (interactive)
   (or Info-history-forward
-      (error "This is the last Info node you looked at"))
+      (user-error "This is the last Info node you looked at"))
   (let ((history-forward (cdr Info-history-forward))
 	filename nodename opoint)
     (setq filename (car (car Info-history-forward)))
@@ -2388,7 +2388,7 @@ new buffer."
 				       completions nil t)))
 	   (list (if (equal input "")
 		     default input) current-prefix-arg))
-       (error "No cross-references in this node"))))
+       (user-error "No cross-references in this node"))))
 
   (unless footnotename
     (error "No reference was specified"))
@@ -2419,7 +2419,8 @@ new buffer."
                                  (abs (- prev-ref (point))))
                               next-ref prev-ref))
                          ((or next-ref prev-ref))
-                         ((error "No cross-reference named %s" footnotename))))
+                         ((user-error "No cross-reference named %s"
+                                      footnotename))))
         (setq target (Info-extract-menu-node-name t))))
     (while (setq i (string-match "[ \t\n]+" target i))
       (setq target (concat (substring target 0 i) " "
@@ -2564,7 +2565,7 @@ new buffer."
      (save-excursion
        (goto-char (point-min))
        (if (not (search-forward "\n* menu:" nil t))
-	   (error "No menu in this node"))
+	   (user-error "No menu in this node"))
        (setq beg (point))
        (and (< (point) p)
 	    (save-excursion
@@ -2605,10 +2606,10 @@ new buffer."
       (let ((case-fold-search t))
 	(goto-char (point-min))
 	(or (search-forward "\n* menu:" nil t)
-	    (error "No menu in this node"))
+	    (user-error "No menu in this node"))
 	(or (re-search-forward (concat "\n\\* +" menu-item ":") nil t)
 	    (re-search-forward (concat "\n\\* +" menu-item) nil t)
-	    (error "No such item in menu"))
+	    (user-error "No such item in menu"))
 	(beginning-of-line)
 	(forward-char 2)
 	(Info-extract-menu-node-name nil (Info-index-node))))))
@@ -2624,7 +2625,7 @@ new buffer."
 		     (match-beginning 0))))
 	(goto-char (point-min))
 	(or (search-forward "\n* menu:" bound t)
-	    (error "No menu in this node"))
+	    (user-error "No menu in this node"))
 	(if count
 	    (or (search-forward "\n* " bound t count)
 		(error "Too few items in menu"))
@@ -2696,7 +2697,7 @@ N is the digit argument used to invoke this command."
 	       (if Info-history-skip-intermediate-nodes
 		   (setq Info-history old-history)))))
 	  (no-error nil)
-	  (t (error "No pointer forward from this node")))))
+	  (t (user-error "No pointer forward from this node")))))
 
 (defun Info-backward-node ()
   "Go backward one node, considering all nodes as forming one sequence."
@@ -2705,7 +2706,7 @@ N is the digit argument used to invoke this command."
 	(upnode (Info-extract-pointer "up" t))
 	(case-fold-search t))
     (cond ((and upnode (string-match "(" upnode))
-	   (error "First node in file"))
+	   (user-error "First node in file"))
 	  ((and upnode (or (null prevnode)
 			   ;; Use string-equal, not equal,
 			   ;; to ignore text properties.
@@ -2723,7 +2724,7 @@ N is the digit argument used to invoke this command."
 	     (if Info-history-skip-intermediate-nodes
 		 (setq Info-history old-history))))
 	  (t
-	   (error "No pointer backward from this node")))))
+	   (user-error "No pointer backward from this node")))))
 
 (defun Info-exit ()
   "Exit Info by selecting some other buffer."
@@ -2744,7 +2745,7 @@ N is the digit argument used to invoke this command."
 	    (and (search-forward "\n* " nil t)
 		 (Info-extract-menu-node-name)))))
     (if node (Info-goto-node node)
-      (error "No more items in menu"))))
+      (user-error "No more items in menu"))))
 
 (defun Info-last-menu-item ()
   "Go to the node of the previous menu item."
@@ -2757,7 +2758,7 @@ N is the digit argument used to invoke this command."
 		  (and (search-backward "\n* menu:" nil t)
 		       (point)))))
       (or (and beg (search-backward "\n* " beg t))
-	  (error "No previous items in menu")))
+	  (user-error "No previous items in menu")))
     (Info-goto-node (save-excursion
 		      (goto-char (match-end 0))
 		      (Info-extract-menu-node-name)))))
@@ -2782,7 +2783,7 @@ N is the digit argument used to invoke this command."
 	   (if Info-history-skip-intermediate-nodes
 	       (setq Info-history old-history))))
 	(t
-	 (error "No more nodes"))))
+	 (user-error "No more nodes"))))
 
 (defun Info-last-preorder ()
   "Go to the last node, popping up a level if there is none."
@@ -2822,7 +2823,7 @@ N is the digit argument used to invoke this command."
 	 (let ((case-fold-search t))
 	   (or (search-forward "\n* Menu:" nil t)
 	       (goto-char (point-max)))))
-	(t (error "No previous nodes"))))
+	(t (user-error "No previous nodes"))))
 
 (defun Info-scroll-up ()
   "Scroll one screenful forward in Info, considering all nodes as one sequence.
@@ -2911,11 +2912,11 @@ See `Info-scroll-down'."
 	  (or (re-search-forward pat nil t)
 	      (progn
 		(goto-char old-pt)
-		(error "No cross references in this node")))))
+		(user-error "No cross references in this node")))))
     (goto-char (or (match-beginning 1) (match-beginning 0)))
     (if (looking-at "\\* Menu:")
 	(if recur
-	    (error "No cross references in this node")
+	    (user-error "No cross references in this node")
 	  (Info-next-reference t))
       (if (looking-at "^\\* ")
 	  (forward-char 2)))))
@@ -2932,11 +2933,11 @@ See `Info-scroll-down'."
 	  (or (re-search-backward pat nil t)
 	      (progn
 		(goto-char old-pt)
-		(error "No cross references in this node")))))
+		(user-error "No cross references in this node")))))
     (goto-char (or (match-beginning 1) (match-beginning 0)))
     (if (looking-at "\\* Menu:")
 	(if recur
-	    (error "No cross references in this node")
+	    (user-error "No cross references in this node")
 	  (Info-prev-reference t))
       (if (looking-at "^\\* ")
 	  (forward-char 2)))))
@@ -3107,7 +3108,7 @@ Give an empty topic name to go to the Index node itself."
 	  (or matches
 	      (progn
 		(Info-goto-node orignode)
-		(error "No `%s' in index" topic)))
+		(user-error "No `%s' in index" topic)))
 	  ;; Here it is a feature that assoc is case-sensitive.
 	  (while (setq found (assoc topic matches))
 	    (setq exact (cons found exact)
@@ -3120,7 +3121,7 @@ Give an empty topic name to go to the Index node itself."
   "Go to the next matching index item from the last \\<Info-mode-map>\\[Info-index] command."
   (interactive "p")
   (or Info-index-alternatives
-      (error "No previous `i' command"))
+      (user-error "No previous `i' command"))
   (while (< num 0)
     (setq num (+ num (length Info-index-alternatives))))
   (while (> num 0)
@@ -3640,7 +3641,7 @@ If FORK is a string, it is the name to use for the new buffer."
 	   ;; Don't raise an error when mouse-1 is bound to this - it's
 	   ;; often used to simply select the window or frame.
 	   (eq 'mouse-1 (event-basic-type last-input-event)))
-      (error "Point neither on reference nor in menu item description")))
+      (user-error "Point neither on reference nor in menu item description")))
 
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node (&optional fork)
@@ -3907,7 +3908,7 @@ The name of the Info file is prepended to the node name in parentheses.
 With a zero prefix arg, put the name inside a function call to `info'."
   (interactive "P")
   (unless Info-current-node
-    (error "No current Info node"))
+    (user-error "No current Info node"))
   (let ((node (if (stringp Info-current-file)
 		  (concat "(" (file-name-nondirectory Info-current-file) ") "
 			  Info-current-node))))
@@ -4899,25 +4900,8 @@ BUFFER is the buffer speedbar is requesting buttons for."
       (erase-buffer))
   (Info-speedbar-hierarchy-buttons nil 0))
 
-(dolist (mess '("^First node in file$"
-		"^No `.*' in index$"
-		"^No cross-reference named"
-		"^No cross.references in this node$"
-		"^No current Info node$"
-		"^No menu in this node$"
-		"^No more items in menu$"
-		"^No more nodes$"
-		"^No pointer \\(?:forward\\|backward\\) from this node$"
-		"^No previous `i' command$"
-		"^No previous items in menu$"
-		"^No previous nodes$"
-		"^No such item in menu$"
-		"^No such node or anchor"
-		"^Node has no"
-		"^Point neither on reference nor in menu item description$"
-		"^This is the \\(?:first\\|last\\) Info node you looked at$"
-		search-failed))
-  (add-to-list 'debug-ignored-errors mess))
+;; FIXME: Really?  Why here?
+(add-to-list 'debug-ignored-errors 'search-failed)
 
 ;;;;  Desktop support
 
