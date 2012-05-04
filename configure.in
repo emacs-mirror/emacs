@@ -865,6 +865,12 @@ with the `--without-makeinfo' option to build without the manuals.] )
 fi
 AC_SUBST(HAVE_MAKEINFO)
 
+dnl Just so that there is only a single place we need to edit.
+INFO_EXT=.info
+INFO_OPTS=--no-split
+AC_SUBST(INFO_EXT)
+AC_SUBST(INFO_OPTS)
+
 dnl Add our options to ac_link now, after it is set up.
 
 if test x$GCC = xyes; then

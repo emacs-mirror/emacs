@@ -1,3 +1,12 @@
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_EXT, INFO_OPTS): New, set by configure.
+	(info, infoclean): Use $INFO_EXT.
+	(${infodir}/eintr$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+	* makefile.w32-in (INFO_EXT, INFO_OPTS): New.
+	(INFO_TARGETS, clean): Use $INFO_EXT.
+	($(infodir)/eintr$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (Syntax): Reword to avoid underfull hbox.

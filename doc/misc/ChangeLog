@@ -1,3 +1,12 @@
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_EXT, INFO_OPTS): New, set by configure.
+	(INFO_TARGETS): Use $INFO_EXT.
+	Make all rules generating info files use $INFO_EXT, $INFO_OPT, and -o.
+	* makefile.w32-in (INFO_EXT, INFO_OPTS): New.
+	(INFO_TARGETS): Use $INFO_EXT.
+	Make all rules generating info files use $INFO_EXT, $INFO_OPT, and -o.
+
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (echo-info): New phony target, used by top-level.
