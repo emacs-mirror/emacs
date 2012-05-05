@@ -1,5 +1,14 @@
 2012-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* repeat.el: Use lexical-binding.
+	(repeat-last-self-insert, repeat-num-input-keys-at-self-insert)
+	(repeat-undo-count): Remove.
+	(repeat):
+	* progmodes/octave-mod.el (octave-abbrev-start):
+	* progmodes/f90.el (f90-abbrev-start):
+	* face-remap.el (text-scale-adjust):
+	* kmacro.el (kmacro-call-macro): Use set-temporary-overlay-map.
+
 	* emacs-lisp/pcase.el (pcase--let*): New function.
 	(pcase--expand, pcase-codegen, pcase--q1): Use it to reduce nesting
 	a bit more.
