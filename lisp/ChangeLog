@@ -1,3 +1,9 @@
+2012-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): Set pcomplete-arg-quote-list like
+	shell-delimiter-argument-list (bug#11348).
+	(shell-parse-pcomplete-arguments): Obey pcomplete-arg-quote-list.
+
 2012-05-04  Chong Yidong  <cyd@gnu.org>
 
 	* select.el (xselect--encode-string): Always use utf-8 for TEXT on
