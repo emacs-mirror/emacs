@@ -8,9 +8,9 @@
 @cindex mistakes, correcting
 
   In this chapter we describe commands that are useful when you catch
-a mistake while editing.  The most fundamental command for correcting
-erroneous editing is the undo command @kbd{C-/} (which is also bound
-to @kbd{C-x u} and @kbd{C-_}).  This undoes a single command, or a
+a mistake while editing.  The most fundamental of these commands is
+the undo command @kbd{C-/} (also bound to @kbd{C-x u} and @kbd{C-_}).
+This undoes a single command, or a
 part of a command (as in the case of @code{query-replace}), or several
 consecutive character insertions.  Consecutive repetitions of
 @kbd{C-/} undo earlier and earlier changes, back to the limit of the
@@ -60,7 +60,6 @@ beginners to remember: @samp{u} stands for ``undo''.  It is also bound
 to @kbd{C-_} because typing @kbd{C-/} on some text terminals actually
 enters @kbd{C-_}.}.  This undoes the most recent change in the buffer,
 and moves point back to where it was before that change.
-
   Consecutive repetitions of @kbd{C-/} (or its aliases) undo earlier
 and earlier changes in the current buffer.  If all the recorded
 changes have already been undone, the undo command signals an error.
@@ -75,7 +74,7 @@ changes you have undone, type @kbd{C-f} or any other command that
 harmlessly breaks the sequence of undoing; then type @kbd{C-/} to undo
 the undo command.
 
-  On the other hand, if you want to resume undoing, without redoing
+  Alternatively, if you want to resume undoing, without redoing
 previous undo commands, use @kbd{M-x undo-only}.  This is like
 @code{undo}, but will not redo changes you have just undone.
 

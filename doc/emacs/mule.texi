@@ -991,12 +991,11 @@ and asks you to choose one of those coding systems.
 behaves a bit differently.  It additionally checks whether the
 @c What determines this?
 most-preferred coding system is recommended for use in MIME messages;
-if not, Emacs tells you that the most-preferred coding system is not
-recommended and prompts you for another coding system.  This is so you
-won't inadvertently send a message encoded in a way that your
-recipient's mail software will have difficulty decoding.  (You can
-still use an unsuitable coding system if you type its name in response
-to the question.)
+if not, it informs you of this fact and prompts you for another coding
+system.  This is so you won't inadvertently send a message encoded in
+a way that your recipient's mail software will have difficulty
+decoding.  (You can still use an unsuitable coding system if you enter
+its name at the prompt.)
 
 @c It seems that select-message-coding-system does this.
 @c Both sendmail.el and smptmail.el call it; i.e. smtpmail.el still
