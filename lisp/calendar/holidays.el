@@ -645,6 +645,33 @@ strings describing those holidays that apply on DATE, or nil if none do."
 (define-obsolete-function-alias
   'check-calendar-holidays 'calendar-check-holidays "23.1")
 
+
+;; Formerly cal-tex-list-holidays.
+(defun holiday-in-range (d1 d2)
+  "Generate a list of all holidays in range from absolute date D1 to D2."
+  (let* ((start (calendar-gregorian-from-absolute d1))
+         (displayed-month (calendar-extract-month start))
+         (displayed-year (calendar-extract-year start))
+         (end (calendar-gregorian-from-absolute d2))
+         (end-month (calendar-extract-month end))
+         (end-year (calendar-extract-year end))
+         (number-of-intervals
+          (1+ (/ (calendar-interval displayed-month displayed-year
+                                    end-month end-year)
+                 3)))
+         holidays in-range a)
+    (calendar-increment-month displayed-month displayed-year 1)
+    (dotimes (_idummy number-of-intervals)
+      (setq holidays (append holidays (calendar-holiday-list)))
+      (calendar-increment-month displayed-month displayed-year 3))
+    (dolist (hol holidays)
+      (and (car hol)
+           (setq a (calendar-absolute-from-gregorian (car hol)))
+           (and (<= d1 a) (<= a d2))
+           (setq in-range (append (list hol) in-range))))
+    in-range))
+
+
 (declare-function x-popup-menu "menu.c" (position menu))
 
 ;;;###cal-autoload

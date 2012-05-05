@@ -1,3 +1,10 @@
+2012-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (holiday-in-range):
+	Move here from cal-tex-list-holidays.
+	* calendar/cal-tex.el (cal-tex-list-holidays):
+	Make it an obsolete alias for holiday-in-range.  Update all callers.
+
 2012-05-05  Chong Yidong  <cyd@gnu.org>
 
 	* select.el (xselect--encode-string): Always use utf-8 for TEXT on

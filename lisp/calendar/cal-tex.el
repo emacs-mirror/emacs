@@ -237,31 +237,9 @@ The names are taken from `calendar-day-name-array'.")
   "LaTeX code to insert one box with date info in calendar.
 This definition is the heart of the calendar!")
 
-(autoload 'calendar-holiday-list "holidays")
+(autoload 'holiday-in-range "holidays")
 
-(defun cal-tex-list-holidays (d1 d2)
-  "Generate a list of all holidays from absolute date D1 to D2."
-  (let* ((start (calendar-gregorian-from-absolute d1))
-         (displayed-month (calendar-extract-month start))
-         (displayed-year (calendar-extract-year start))
-         (end (calendar-gregorian-from-absolute d2))
-         (end-month (calendar-extract-month end))
-         (end-year (calendar-extract-year end))
-         (number-of-intervals
-          (1+ (/ (calendar-interval displayed-month displayed-year
-                                    end-month end-year)
-                 3)))
-         holidays in-range a)
-    (calendar-increment-month displayed-month displayed-year 1)
-    (dotimes (_idummy number-of-intervals)
-      (setq holidays (append holidays (calendar-holiday-list)))
-      (calendar-increment-month displayed-month displayed-year 3))
-    (dolist (hol holidays)
-      (and (car hol)
-           (setq a (calendar-absolute-from-gregorian (car hol)))
-           (and (<= d1 a) (<= a d2))
-           (setq in-range (append (list hol) in-range))))
-    in-range))
+(define-obsolete-function-alias 'cal-tex-list-holidays 'holiday-in-range "24.2")
 
 (autoload 'diary-list-entries "diary-lib")
 
@@ -446,7 +424,7 @@ Optional EVENT indicates a buffer position to use instead of point."
                       (calendar-last-day-of-month end-month end-year)
                       end-year))))
          (diary-list (if cal-tex-diary (cal-tex-list-diary-entries d1 d2)))
-         (holidays (if cal-tex-holidays (cal-tex-list-holidays d1 d2)))
+         (holidays (if cal-tex-holidays (holiday-in-range d1 d2)))
          other-month other-year small-months-at-start)
     (cal-tex-insert-preamble (cal-tex-number-weeks month year 1) t "12pt")
     (cal-tex-cmd cal-tex-cal-one-month)
@@ -516,7 +494,7 @@ indicates a buffer position to use instead of point."
                       (calendar-last-day-of-month end-month end-year)
                       end-year))))
          (diary-list (if cal-tex-diary (cal-tex-list-diary-entries d1 d2)))
-         (holidays (if cal-tex-holidays (cal-tex-list-holidays d1 d2))))
+         (holidays (if cal-tex-holidays (holiday-in-range d1 d2))))
     (cal-tex-insert-preamble (cal-tex-number-weeks month year n) nil "12pt")
     (if (> n 1)
         (cal-tex-cmd cal-tex-cal-multi-month)
@@ -697,7 +675,7 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
-                       (cal-tex-list-holidays d1 d2))))
+                       (holiday-in-range d1 d2))))
     (cal-tex-preamble "11pt")
     (cal-tex-cmd "\\textwidth   6.5in")
     (cal-tex-cmd "\\textheight 10.5in")
@@ -752,7 +730,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
-                       (cal-tex-list-holidays d1 d2))))
+                       (holiday-in-range d1 d2))))
     (cal-tex-preamble "12pt")
     (cal-tex-cmd "\\textwidth   6.5in")
     (cal-tex-cmd "\\textheight 10.5in")
@@ -836,7 +814,7 @@ position to use instead of point."
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
-                       (cal-tex-list-holidays d1 d2)))
+                       (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries
                           ;; FIXME d1?
@@ -1052,7 +1030,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
-                       (cal-tex-list-holidays d1 d2)))
+                       (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries
                           ;; FIXME d1?
@@ -1149,7 +1127,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
-                       (cal-tex-list-holidays d1 d2)))
+                       (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries
                           ;; FIXME d1?
@@ -1292,7 +1270,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
-                       (cal-tex-list-holidays d1 d2)))
+                       (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries
                           ;; FIXME d1?
