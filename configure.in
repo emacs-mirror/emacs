@@ -2878,7 +2878,7 @@ fail;
     ;;
 
   netbsd)
-    if [ "x$LIBS_TERMCAP" = "x-lterminfo" ]; then
+    if test "x$LIBS_TERMCAP" = "x-lterminfo"; then
       TERMINFO=yes
     else
       LIBS_TERMCAP="-ltermcap"
