@@ -1,5 +1,9 @@
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
+	* streams.texi (Output Variables): Improve page break.
+
+	* edebug.texi (Edebug Display Update): Improve page break.
+
 	* compile.texi (Disassembly): Condense the examples.
 
 	* eval.texi, functions.texi, loading.texi, macros.texi:
