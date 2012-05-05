@@ -1,5 +1,8 @@
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
+	* internals.texi (Garbage Collection, Memory Usage)
+	(Writing Emacs Primitives): Tweak page breaks.
+
 	* streams.texi (Output Variables): Improve page break.
 
 	* edebug.texi (Edebug Display Update): Improve page break.
