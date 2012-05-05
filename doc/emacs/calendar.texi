@@ -26,8 +26,8 @@ the calendar, type @kbd{q}.
 
 @iftex
   This chapter describes the basic calendar features.
-@inforef{Advanced Calendar/Diary Usage,, emacs-xtra}, for information
-about more specialized features.
+For more advanced topics,
+@pxref{Advanced Calendar/Diary Usage,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 
 @menu
@@ -489,7 +489,7 @@ window.
 calendar, use the @kbd{x} command.  This displays the dates that are
 holidays in a different face.
 @iftex
-@inforef{Calendar Customizing, calendar-holiday-marker, emacs-xtra}.
+@xref{Calendar Customizing,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing, calendar-holiday-marker}.
@@ -1102,7 +1102,7 @@ current date is visible).
 the @kbd{m} command.  This marks the dates that have diary entries in
 a different face.
 @iftex
-@inforef{Calendar Customizing, diary-entry-marker, emacs-xtra}.
+@xref{Calendar Customizing,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing, diary-entry-marker}.
@@ -1126,7 +1126,7 @@ date, independently of the calendar display, and optionally for the next
 few days as well; the variable @code{diary-number-of-entries} specifies
 how many days to include.
 @iftex
-@inforef{Diary Customizing,, emacs-xtra}.
+@xref{Diary Customizing,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Diary Customizing, diary-number-of-entries}.
@@ -1270,7 +1270,7 @@ entries.  The basic commands are listed here; more sophisticated
 commands are in the next section (@pxref{Special Diary Entries}).
 Entries can also be based on non-Gregorian calendars.
 @iftex
-@inforef{Non-Gregorian Diary,, emacs-xtra}.
+@xref{Non-Gregorian Diary,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Non-Gregorian Diary}.
@@ -1438,7 +1438,7 @@ specifying the name of a face or a single-character string to use when
 marking the entry in the calendar.  Most generally, sexp diary entries
 can perform arbitrary computations to determine when they apply.
 @iftex
-@inforef{Sexp Diary Entries,, emacs-xtra}.
+@xref{Sexp Diary Entries,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Sexp Diary Entries}.
@@ -1512,7 +1512,7 @@ display the day's diary buffer, unless you set
 @code{appt-display-diary} to @code{nil}.  The appointments list is
 also updated whenever the diary file (or a file it includes; see
 @iftex
-@inforef{Fancy Diary Display,, emacs-xtra})
+@ref{Fancy Diary Display,,, emacs-xtra, Specialized Emacs Features})
 @end iftex
 @ifnottex
 @ref{Fancy Diary Display})
@@ -1576,7 +1576,7 @@ and adds the results to an Emacs diary file.  For example:
 You can use an @code{#include} directive to add the import file contents
 to the main diary file, if these are different files.
 @iftex
-@inforef{Fancy Diary Display,, emacs-xtra}.
+@xref{Fancy Diary Display,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Fancy Diary Display}.

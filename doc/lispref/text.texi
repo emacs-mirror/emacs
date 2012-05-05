@@ -1799,12 +1799,6 @@ special is done in that case.
 The value of @code{auto-fill-function} is @code{do-auto-fill} when
 Auto-Fill mode is enabled.  That is a function whose sole purpose is to
 implement the usual strategy for breaking a line.
-
-@quotation
-In older Emacs versions, this variable was named @code{auto-fill-hook},
-but since it is not called with the standard convention for hooks, it
-was renamed to @code{auto-fill-function} in version 19.
-@end quotation
 @end defvar
 
 @defvar normal-auto-fill-function

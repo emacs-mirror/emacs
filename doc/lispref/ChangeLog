@@ -1,3 +1,24 @@
+2012-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Process Type, Overlay Type): Tweak page-breaks.
+
+	* intro.texi (Caveats): Copyedit.
+	(Lisp History): Convert inforef to xref.
+	(Lisp History, Printing Notation, Version Info): Improve page-breaks.
+
+	* text.texi (Auto Filling): Don't mention Emacs 19.
+
+	* commands.texi (Event Input Misc): Don't mention unread-command-char.
+	* numbers.texi (Predicates on Numbers): Don't mention Emacs 18.
+
+	* elisp.texi (DATE): Forgot to change the month in 2012-04-21 change.
+
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* lists.texi (List-related Predicates, List Variables):
+	Tweak page-breaks.
+	(Sets And Lists): Convert inforef to xref.
+
 2012-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INFO_EXT, INFO_OPTS): New, set by configure.

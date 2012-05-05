@@ -2045,8 +2045,11 @@ fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
         /* Font families are interned, but allow for strings also in case of
            user input.  */
       else if (SYMBOLP (tmp))
-        strncpy (logfont->lfFaceName,
-		 SDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
+	{
+	  strncpy (logfont->lfFaceName,
+		   SDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
+	  logfont->lfFaceName[LF_FACESIZE-1] = '\0';
+	}
     }
 
   tmp = AREF (font_spec, FONT_ADSTYLE_INDEX);

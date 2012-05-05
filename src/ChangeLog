@@ -1,3 +1,7 @@
+2012-05-05  Jim Meyering  <meyering@redhat.com>
+
+	* w32font.c (fill_in_logfont): NUL-terminate a string (Bug#11372).
+
 2012-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* data.c (PUT_ERROR): New macro.

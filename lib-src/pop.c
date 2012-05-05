@@ -346,6 +346,7 @@ pop_stat (popserver server, int *count, int *size)
       if (0 == strncmp (fromserver, "-ERR", 4))
 	{
 	  strncpy (pop_error, fromserver, ERROR_MAX);
+	  pop_error[ERROR_MAX-1] = '\0';
 	}
       else
 	{
@@ -447,7 +448,10 @@ pop_list (popserver server, int message, int **IDs, int **sizes)
       if (strncmp (fromserver, "+OK ", 4))
 	{
 	  if (! strncmp (fromserver, "-ERR", 4))
-	    strncpy (pop_error, fromserver, ERROR_MAX);
+	    {
+	      strncpy (pop_error, fromserver, ERROR_MAX);
+	      pop_error[ERROR_MAX-1] = '\0';
+	    }
 	  else
 	    {
 	      strcpy (pop_error,
@@ -687,6 +691,7 @@ pop_multi_first (popserver server, const char *command, char **response)
   if (0 == strncmp (*response, "-ERR", 4))
     {
       strncpy (pop_error, *response, ERROR_MAX);
+      pop_error[ERROR_MAX-1] = '\0';
       return (-1);
     }
   else if (0 == strncmp (*response, "+OK", 3))
@@ -860,6 +865,7 @@ pop_last (popserver server)
   if (! strncmp (fromserver, "-ERR", 4))
     {
       strncpy (pop_error, fromserver, ERROR_MAX);
+      pop_error[ERROR_MAX-1] = '\0';
       return (-1);
     }
   else if (strncmp (fromserver, "+OK ", 4))
