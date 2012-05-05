@@ -1,3 +1,22 @@
+2012-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* eval.texi, functions.texi, loading.texi, macros.texi:
+	Where possible, use example rather than smallexample.
+
+	* symbols.texi: Where possible, use example rather than smallexample.
+	(Symbol Components): Fix typo.
+	(Other Plists): Tweak page break.
+
+	* sequences.texi (Arrays): Tweak page breaks.
+
+	* customize.texi: Where possible, use example rather than smallexample.
+	(Common Keywords, Variable Definitions, Applying Customizations)
+	(Custom Themes): Tweak page breaks.
+
+	* control.texi: Where possible, use example rather than smallexample.
+	(Sequencing, Conditionals, Signaling Errors, Handling Errors):
+	Tweak page breaks.
+
 2012-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* lists.texi (List-related Predicates, List Variables):
