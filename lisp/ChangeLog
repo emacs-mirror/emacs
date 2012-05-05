@@ -1,5 +1,12 @@
 2012-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el (pcase--let*): New function.
+	(pcase--expand, pcase-codegen, pcase--q1): Use it to reduce nesting
+	a bit more.
+	(pcase--split-pred): Be more clever about ruling out overlap between
+	a predicate and some constant pattern.
+	(pcase--q1): Use `null' instead of (eq foo nil).
+
 	* subr.el (setq-local, defvar-local): New macros.
 	(kbd): Redefine as an alias.
 	(with-selected-window): Leave unrelated frames alone.
