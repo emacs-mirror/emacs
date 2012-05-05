@@ -2782,6 +2782,11 @@ same, do nothing and return nil."
       (funcall mode)
       mode)))
 
+(defvar file-auto-mode-skip "^\\(#!\\|'\\\\\"\\)"
+  "Regexp of lines to skip when looking for file-local settings.
+If the first line matches this regular expression, then the -*-...-*- file-
+local settings will be consulted on the second line instead of the first.")
+
 (defun set-auto-mode-1 ()
   "Find the -*- spec in the buffer.
 Call with point at the place to start searching from.
@@ -2804,7 +2809,7 @@ have no effect."
                             ;; interpreter invocation.  The same holds
                             ;; for '\" in man pages (preprocessor
                             ;; magic for the `man' program).
-                            (and (looking-at "^\\(#!\\|'\\\\\"\\)") 2)) t)
+                            (and (looking-at file-auto-mode-skip) 2)) t)
      (progn
        (skip-chars-forward " \t")
        (setq beg (point))

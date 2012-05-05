@@ -1,3 +1,8 @@
+2012-05-05  Ransom Williams  <auvergnerw@gmail.com>  (tiny change)
+
+	* files.el (file-auto-mode-skip): New var.
+	(set-auto-mode-1): Use it.
+
 2012-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* repeat.el: Use lexical-binding.
