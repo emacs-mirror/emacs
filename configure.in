@@ -2919,7 +2919,7 @@ case "$opsys" in
   ##  option to use it.
   darwin) LIBS_TERMCAP="-lncurses" ;;
 
-  gnu*) [ "x$LIBS_TERMCAP" = x ] && LIBS_TERMCAP="-lncurses" ;;
+  gnu*) test -z "$LIBS_TERMCAP" && LIBS_TERMCAP="-lncurses" ;;
 
   freebsd)
     AC_MSG_CHECKING([whether FreeBSD is new enough to use terminfo])
@@ -2941,7 +2941,7 @@ fail;
     ;;
 
   netbsd)
-    if [ "x$LIBS_TERMCAP" != "x-lterminfo" ]; then
+    if test "x$LIBS_TERMCAP" != "x-lterminfo"; then
       TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi
