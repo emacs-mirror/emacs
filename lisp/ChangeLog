@@ -1,5 +1,15 @@
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-html.el: Optionally include holidays in the output.
+	Suggested by Ed Reingold <reingold@emr.cs.iit.edu>.
+	(cal-html-holidays): New option.
+	(cal-html-css-default): Add holiday entry.
+	(holiday-in-range): Autoload it.
+	(cal-html-htmlify-entry): Add optional class argument.
+	(cal-html-htmlify-list): Add optional holidays argument.
+	(cal-html-insert-agenda-days): Include holidays in the output.
+	(cal-html-one-month): Maybe include holidays.
+
 	* calendar/holidays.el (holiday-in-range):
 	Move here from cal-tex-list-holidays.
 	* calendar/cal-tex.el (cal-tex-list-holidays):

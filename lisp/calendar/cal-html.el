@@ -66,6 +66,12 @@
                  (string :tag "Sat"))
   :group 'calendar-html)
 
+(defcustom cal-html-holidays t
+  "If non-nil, include holidays as well as diary entries."
+  :version "24.2"
+  :type 'boolean
+  :group 'calendar-html)
+
 (defcustom cal-html-css-default
   (concat
    "<STYLE TYPE=\"text/css\">\n"
@@ -82,9 +88,11 @@
    "  SPAN.NO-YEAR  { color: #0b3; font-weight: bold; }\n"
    "  SPAN.ANN      { color: #0bb; font-weight: bold; }\n"
    "  SPAN.BLOCK    { color: #048; font-style: italic; }\n"
+   "  SPAN.HOLIDAY  { color: #f00; font-weight: bold; }\n"
    "</STYLE>\n\n")
   "Default cal-html css style.  You can override this with a \"cal.css\" file."
   :type 'string
+  :version "24.2"                       ; added SPAN.HOLIDAY
   :group 'calendar-html)
 
 ;;; End customizable variables.
@@ -227,6 +235,8 @@ Contains links to previous and next month and year, and current minical."
 ;;------------------------------------------------------------
 ;; minical: a small month calendar with links
 ;;------------------------------------------------------------
+(autoload 'holiday-in-range "holidays")
+
 (defun cal-html-insert-minical (month year)
   "Insert a minical for numeric MONTH of YEAR."
   (let* ((blank-days                    ; at start of month
@@ -313,10 +323,12 @@ Characters are replaced according to `cal-html-html-subst-list'."
     ""))
 
 
-(defun cal-html-htmlify-entry (entry)
-  "Convert a diary entry ENTRY to html with the appropriate class specifier."
+(defun cal-html-htmlify-entry (entry &optional class)
+  "Convert a diary entry ENTRY to html with the appropriate class specifier.
+Optional argument CLASS is the class specifier to use."
   (let ((start
          (cond
+          (class)
           ((string-match "block" (nth 2 entry)) "BLOCK")
           ((string-match "anniversary" (nth 2 entry)) "ANN")
           ((not (string-match
@@ -328,10 +340,12 @@ Characters are replaced according to `cal-html-html-subst-list'."
             (cal-html-htmlify-string (cadr entry)))))
 
 
-(defun cal-html-htmlify-list (date-list date)
+(defun cal-html-htmlify-list (date-list date &optional holidays)
   "Return a string of concatenated, HTML-ified diary entries.
-DATE-LIST is a list of diary entries.  Return only those matching DATE."
-  (mapconcat (lambda (x) (cal-html-htmlify-entry x))
+DATE-LIST is a list of diary entries.  Return only those matching DATE.
+Optional argument HOLIDAYS non-nil means the input is actually a list
+of holidays, rather than diary entries."
+  (mapconcat (lambda (x) (cal-html-htmlify-entry x (if holidays "HOLIDAY")))
              (let (result)
                (dolist (p date-list (reverse result))
                  (and (car p)
@@ -351,11 +365,11 @@ DATE-LIST is a list of diary entries.  Return only those matching DATE."
   (diary-list-entries (calendar-gregorian-from-absolute d1)
                       (1+ (- d2 d1)) t))
 
-
-(defun cal-html-insert-agenda-days (month year diary-list)
+(defun cal-html-insert-agenda-days (month year diary-list holiday-list)
   "Insert HTML commands for a range of days in monthly calendars.
 HTML commands are inserted for the days of the numeric MONTH in
-four-digit YEAR.  Diary entries in DIARY-LIST are included."
+four-digit YEAR.  Includes diary entries in DIARY-LIST, and
+holidays in HOLIDAY-LIST."
   (let ((blank-days                     ; at start of month
          (mod (- (calendar-day-of-week (list month 1 year))
                  calendar-week-start-day)
@@ -381,6 +395,8 @@ four-digit YEAR.  Diary entries in DIARY-LIST are included."
        cal-html-e-tableheader-string
        ;; Diary entries.
        cal-html-b-tabledata-string
+       (cal-html-htmlify-list holiday-list date t)
+       (and holiday-list diary-list "<BR>\n")
        (cal-html-htmlify-list diary-list date)
        cal-html-e-tabledata-string
        cal-html-e-tablerow-string)
@@ -395,16 +411,17 @@ four-digit YEAR.  Diary entries in DIARY-LIST are included."
 
 (defun cal-html-one-month (month year dir)
   "Write an HTML calendar file for numeric MONTH of YEAR in directory DIR."
-  (let ((diary-list (cal-html-list-diary-entries
-                     (calendar-absolute-from-gregorian (list month 1 year))
-                     (calendar-absolute-from-gregorian
+  (let* ((d1 (calendar-absolute-from-gregorian (list month 1 year)))
+         (d2 (calendar-absolute-from-gregorian
                       (list month
                             (calendar-last-day-of-month month year)
-                            year)))))
+                            year)))
+         (diary-list (cal-html-list-diary-entries d1 d2))
+         (holiday-list (if cal-html-holidays (holiday-in-range d1 d2))))
     (with-temp-buffer
       (insert cal-html-b-document-string)
       (cal-html-insert-month-header month year)
-      (cal-html-insert-agenda-days month year diary-list)
+      (cal-html-insert-agenda-days month year diary-list holiday-list)
       (insert cal-html-e-document-string)
       (write-file (expand-file-name
                    (cal-html-monthpage-name month year) dir)))))
