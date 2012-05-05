@@ -199,7 +199,12 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
+** New function `set-temporary-overlay-map'.
+
+** New macros `setq-local' and `defvar-local'.
+
 ** New error type and new function `user-error'.  Doesn't trigger the debugger.
+
 ** Completion
 
 *** New function `completion-table-with-quoting' to handle completion
