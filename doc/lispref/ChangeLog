@@ -1,5 +1,7 @@
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
+	* compile.texi (Disassembly): Condense the examples.
+
 	* eval.texi, functions.texi, loading.texi, macros.texi:
 	Where possible, use example rather than smallexample.
 
