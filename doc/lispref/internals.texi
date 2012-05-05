@@ -666,7 +666,8 @@ read-only (on certain operating systems) as a result of dumping Emacs.
 @cindex @code{defsubr}, Lisp symbol for a primitive
   Defining the C function is not enough to make a Lisp primitive
 available; you must also create the Lisp symbol for the primitive and
-store a suitable subr object in its function cell:
+store a suitable subr object in its function cell.  The code looks like
+this:
 
 @example
 defsubr (&@var{sname});
