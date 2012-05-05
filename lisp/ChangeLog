@@ -1,4 +1,4 @@
-2012-05-04  Chong Yidong  <cyd@gnu.org>
+2012-05-05  Chong Yidong  <cyd@gnu.org>
 
 	* select.el (xselect--encode-string): Always use utf-8 for TEXT on
 	Nextstep.

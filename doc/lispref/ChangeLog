@@ -13,8 +13,6 @@
 
 	* elisp.texi (DATE): Forgot to change the month in 2012-04-21 change.
 
-2012-05-04  Glenn Morris  <rgm@gnu.org>
-
 	* lists.texi (List-related Predicates, List Variables):
 	Tweak page-breaks.
 	(Sets And Lists): Convert inforef to xref.
