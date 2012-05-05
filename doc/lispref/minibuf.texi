@@ -513,8 +513,7 @@ duplicates, and to add @var{newelt} to the list even if it is empty.
 If the value of this variable is @code{nil}, standard functions that
 read from the minibuffer don't add new elements to the history list.
 This lets Lisp programs explicitly manage input history by using
-@code{add-to-history}.  By default, @code{history-add-new-input} is
-non-@code{nil}.
+@code{add-to-history}.  The default value is @code{t}.
 @end defvar
 
 @defopt history-length
@@ -697,7 +696,7 @@ You can also use a function as @var{collection}.  Then the function is
 solely responsible for performing completion; @code{try-completion}
 returns whatever this function returns.  The function is called with
 three arguments: @var{string}, @var{predicate} and @code{nil} (the
-reason for the third argument is so that the same function can be used
+third argument is so that the same function can be used
 in @code{all-completions} and do the appropriate thing in either
 case).  @xref{Programmed Completion}.
 
@@ -720,8 +719,8 @@ handle @code{completion-regexp-list} itself.)
 In the first of the following examples, the string @samp{foo} is
 matched by three of the alist @sc{car}s.  All of the matches begin with
 the characters @samp{fooba}, so that is the result.  In the second
-example, there is only one possible match, and it is exact, so the value
-is @code{t}.
+example, there is only one possible match, and it is exact, so the
+return value is @code{t}.
 
 @smallexample
 @group

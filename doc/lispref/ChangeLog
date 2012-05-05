@@ -1,5 +1,8 @@
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
+	* minibuf.texi (Minibuffer History, Basic Completion):
+	Tweak page breaks.
+
 	* internals.texi (Garbage Collection, Memory Usage)
 	(Writing Emacs Primitives): Tweak page breaks.
 
