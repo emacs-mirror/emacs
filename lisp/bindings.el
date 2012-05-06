@@ -40,7 +40,7 @@ corresponding to the mode line clicked."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
-    (toggle-read-only)
+    (with-no-warnings (toggle-read-only))
     (force-mode-line-update)))
 
 
@@ -1190,6 +1190,7 @@ if `inhibit-field-text-motion' is non-nil."
 ;; (define-key ctl-x-map "\-" 'inverse-add-global-abbrev)
 (define-key esc-map "'" 'abbrev-prefix-mark)
 (define-key ctl-x-map "'" 'expand-abbrev)
+(define-key ctl-x-map "\C-b" 'list-buffers)
 
 (define-key ctl-x-map "z" 'repeat)
 

@@ -85,6 +85,11 @@
     (define-key map [mouse-2] 'Electric-buffer-menu-mouse-select)
     map))
 
+(put 'Electric-buffer-menu-quit :advertised-binding "\C-c\C-c")
+(put 'Electric-buffer-menu-select :advertised-binding " ")
+(put 'Helper-help :advertised-binding (char-to-string help-char))
+(put 'Helper-describe-bindings :advertised-binding "?")
+
 (defvar electric-buffer-menu-mode-hook nil
   "Normal hook run by `electric-buffer-list'.")
 
@@ -251,15 +256,10 @@ Skip execution of select, save, and delete commands."
   (interactive)
   (ding)
   (message "%s"
-	   (if (and (eq (key-binding "\C-c\C-c") 'Electric-buffer-menu-quit)
-		    (eq (key-binding " ") 'Electric-buffer-menu-select)
-		    (eq (key-binding (char-to-string help-char)) 'Helper-help)
-		    (eq (key-binding "?") 'Helper-describe-bindings))
-	       (substitute-command-keys "Type C-c C-c to exit, Space to select, \\[Helper-help] for help, ? for commands")
-	     (substitute-command-keys "\
+	   (substitute-command-keys "\
 Type \\[Electric-buffer-menu-quit] to exit, \
 \\[Electric-buffer-menu-select] to select, \
-\\[Helper-help] for help, \\[Helper-describe-bindings] for commands.")))
+\\[Helper-help] for help, \\[Helper-describe-bindings] for commands."))
   (sit-for 4))
 
 (defun Electric-buffer-menu-mode-view-buffer ()

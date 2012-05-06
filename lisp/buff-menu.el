@@ -641,9 +641,6 @@ The current window remains selected."
 
 
 ;;;###autoload
-(define-key ctl-x-map "\C-b" 'list-buffers)
-
-;;;###autoload
 (defun list-buffers (&optional files-only)
   "Display a list of names of existing buffers.
 The list is displayed in a buffer named `*Buffer List*'.

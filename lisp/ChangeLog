@@ -15,6 +15,12 @@
 	functions.
 	(tabulated-list-sort-column): New command (Bug#11337).
 
+	* buff-menu.el (list-buffers): Move C-x C-b binding from
+	buff-menu.el to bindings.el.
+
+	* ebuff-menu.el (Electric-buffer-menu-undefined): Use the
+	:advertised-binding feature.
+
 2012-05-06  Troels Nielsen  <bn.troels@gmail.com>  (tiny change)
 
 	* progmodes/compile.el (compilation-internal-error-properties):
