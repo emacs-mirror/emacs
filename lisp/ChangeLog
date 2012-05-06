@@ -1,3 +1,8 @@
+2012-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-read-from-file):
+	Mention dir-locals in any error message.
+
 2012-05-06  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/package.el (package-built-in-p): Handle the `emacs'
