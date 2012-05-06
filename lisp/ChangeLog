@@ -1,3 +1,34 @@
+2012-05-06  Chong Yidong  <cyd@gnu.org>
+
+	* buff-menu.el: Convert to Tabulated List mode.
+	(Buffer-menu-buffer+size-width): Make obsolete.
+	(Buffer-menu-name-width, Buffer-menu-size-width): New variables.
+	(Buffer-menu-mode-map): Inherit from tabulated-list-mode-map.
+	(Buffer-menu-mode): Derive from tabulated-list-mode.  Move command
+	documentation into docstring of buffer-menu.
+	(Buffer-menu-toggle-files-only): Add an informative message.
+	(Buffer-menu-sort): Convert to alias for tabulated-list-sort.
+	(Buffer-menu-buffer, Buffer-menu-beginning, Buffer-menu-mark)
+	(Buffer-menu-unmark, Buffer-menu-backup-unmark)
+	(Buffer-menu-delete, Buffer-menu-save, Buffer-menu-not-modified)
+	(Buffer-menu-execute, Buffer-menu-select)
+	(Buffer-menu-marked-buffers, Buffer-menu-toggle-read-only)
+	(Buffer-menu-bury): Use Tabulated List machinery.
+	(Buffer-menu-mouse-select, Buffer-menu-sort-by-column)
+	(Buffer-menu-sort-button-map, Buffer-menu-make-sort-button):
+	Deleted.
+	(list-buffers--refresh): New function.
+	(list-buffers-noselect): Use it.
+	(tabulated-list-entry-size->, Buffer-menu--pretty-name)
+	(Buffer-menu--pretty-file-name): New helper functions.
+
+	* loadup.el: Preload tabulated-list.
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-sort): Rename from
+	tabulated-list-sort-column.
+	(tabulated-list-init-header): Add the initial aligning space even
+	if tabulated-list-padding is zero.
+
 2012-05-06  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* emacs-lisp/cl-macs.el (cl-expr-contains): Handle cons cells

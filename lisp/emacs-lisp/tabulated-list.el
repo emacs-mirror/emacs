@@ -144,7 +144,7 @@ If ADVANCE is non-nil, move forward by one line afterwards."
     (set-keymap-parent map button-buffer-map)
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
-    (define-key map "S" 'tabulated-list-sort-column)
+    (define-key map "S" 'tabulated-list-sort)
     (define-key map [follow-link] 'mouse-face)
     (define-key map [mouse-2] 'mouse-select-window)
     map)
@@ -174,8 +174,7 @@ If ADVANCE is non-nil, move forward by one line afterwards."
 			mouse-face highlight
 			keymap ,tabulated-list-sort-button-map))
 	(cols nil))
-    (if (> tabulated-list-padding 0)
-	(push (propertize " " 'display `(space :align-to ,x)) cols))
+    (push (propertize " " 'display `(space :align-to ,x)) cols)
     (dotimes (n (length tabulated-list-format))
       (let* ((col (aref tabulated-list-format n))
 	     (label (nth 0 col))
@@ -183,9 +182,6 @@ If ADVANCE is non-nil, move forward by one line afterwards."
 	     (props (nthcdr 3 col))
 	     (pad-right (or (plist-get props :pad-right) 1)))
 	(setq x (+ x pad-right width))
-	(and (<= tabulated-list-padding 0)
-	     (= n 0)
-	     (setq label (concat " " label)))
 	(push
 	 (cond
 	  ;; An unsortable column
@@ -402,7 +398,7 @@ this is the vector stored within it."
     (with-current-buffer (window-buffer (posn-window pos))
       (tabulated-list--sort-by-column-name name))))
 
-(defun tabulated-list-sort-column (&optional n)
+(defun tabulated-list-sort (&optional n)
   "Sort Tabulated List entries by the column at point.
 With a numeric prefix argument N, sort the Nth column."
   (interactive "P")
@@ -424,7 +420,6 @@ With a numeric prefix argument N, sort the Nth column."
 
 ;;; The mode definition:
 
-;;;###autoload
 (define-derived-mode tabulated-list-mode special-mode "Tabulated"
   "Generic major mode for browsing a list of items.
 This mode is usually not used directly; instead, other major

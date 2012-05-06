@@ -1,3 +1,7 @@
+2012-05-06  Chong Yidong  <cyd@gnu.org>
+
+	* lisp.mk (lisp): Update.
+
 2012-05-05  Jim Meyering  <meyering@redhat.com>
 
 	* w32font.c (fill_in_logfont): NUL-terminate a string (Bug#11372).

@@ -163,7 +163,7 @@ server properties.
 
 ** Tabulated List and packages derived from it
 
-*** New command `tabulated-list-sort-column' bound to `S' sorts column
+*** New command `tabulated-list-sort', bound to `S', sorts the column
 at point, or the Nth column if a numeric prefix argument is given.
 
 ** Obsolete packages:

@@ -129,6 +129,7 @@ lisp = \
 	$(lispsource)/textmodes/text-mode.elc \
 	$(lispsource)/textmodes/fill.elc \
 	$(lispsource)/replace.elc \
+	$(lispsource)/emacs-lisp/tabulated-list.elc \
 	$(lispsource)/buff-menu.elc \
 	$(lispsource)/fringe.elc \
 	$(lispsource)/emacs-lisp/regexp-opt.elc \
