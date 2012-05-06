@@ -1,3 +1,8 @@
+2012-05-06  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Mouse References, Mouse Commands): Fix index
+	entries (Bug#11362).
+
 2012-05-03  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Customization Groups, Custom Themes, Examining):

@@ -67,6 +67,7 @@ for doing so on MS-DOS).
 @node Mouse Commands
 @section Mouse Commands for Editing
 @cindex mouse buttons (what they do)
+@cindex mouse, selecting text using
 
 @kindex Mouse-1
 @kindex Mouse-2
@@ -106,6 +107,7 @@ setting the variable @code{x-mouse-click-focus-ignore-position} to
 selects the frame, without doing anything else; clicking again selects
 the window and sets the cursor position.
 
+@cindex mouse, dragging
 @findex mouse-set-region
   Holding down @kbd{Mouse-1} and ``dragging'' the mouse over a stretch
 of text activates the region around that text
@@ -235,8 +237,8 @@ Select the text you drag across, in the form of whole lines.
 
 @node Mouse References
 @section Following References with the Mouse
-@kindex Mouse-1 @r{(selection)}
-@kindex Mouse-2 @r{(selection)}
+@kindex Mouse-1 @r{(on buttons)}
+@kindex Mouse-2 @r{(on buttons)}
 @cindex hyperlinks
 @cindex links
 @cindex text buttons
