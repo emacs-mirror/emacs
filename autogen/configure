@@ -14906,7 +14906,7 @@ case "$opsys" in
   ##  option to use it.
   darwin) LIBS_TERMCAP="-lncurses" ;;
 
-  gnu*)  "x$LIBS_TERMCAP" = x  && LIBS_TERMCAP="-lncurses" ;;
+  gnu*) test -z "$LIBS_TERMCAP" && LIBS_TERMCAP="-lncurses" ;;
 
   freebsd)
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether FreeBSD is new enough to use terminfo" >&5
@@ -14950,7 +14950,7 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
     ;;
 
   netbsd)
-    if  "x$LIBS_TERMCAP" != "x-lterminfo" ; then
+    if test "x$LIBS_TERMCAP" != "x-lterminfo"; then
       TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi
