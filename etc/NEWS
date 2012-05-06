@@ -161,6 +161,11 @@ details.
 The function `notifications-get-capabilities' returns the supported
 server properties.
 
+** Tabulated List and packages derived from it
+
+*** New command `tabulated-list-sort-column' bound to `S' sorts column
+at point, or the Nth column if a numeric prefix argument is given.
+
 ** Obsolete packages:
 
 *** assoc.el

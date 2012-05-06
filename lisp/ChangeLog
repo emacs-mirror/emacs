@@ -1,3 +1,20 @@
+2012-05-06  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-format): Accept
+	additional plist in column descriptors.
+	(tabulated-list-init-header): Obey it.
+	(tabulated-list-get-entry): New function.
+	(tabulated-list-put-tag): Use it.  Use string-width instead of
+	length.
+	(tabulated-list--column-number): New function.
+	(tabulated-list-print): Use it.
+	(tabulated-list-print-col): New function.  Set
+	`tabulated-list-column-name' property on each column's text.
+	(tabulated-list-print-entry): Use it.
+	(tabulated-list-delete-entry, tabulated-list-set-col): New
+	functions.
+	(tabulated-list-sort-column): New command (Bug#11337).
+
 2012-05-06  Troels Nielsen  <bn.troels@gmail.com>  (tiny change)
 
 	* progmodes/compile.el (compilation-internal-error-properties):
