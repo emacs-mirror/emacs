@@ -1,3 +1,8 @@
+2012-05-06  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* man.el (Man-unindent): Use text-property-default-nonsticky to
+	prevent untabify from inheriting face properties (Bug#11408).
+
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-html.el: Optionally include holidays in the output.

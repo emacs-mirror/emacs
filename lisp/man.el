@@ -1475,7 +1475,12 @@ The following key bindings are currently in effect in the buffer:
 	    (nindent 0))
 	(narrow-to-region (car page) (car (cdr page)))
 	(if Man-uses-untabify-flag
-	    (untabify (point-min) (point-max)))
+	    ;; The space characters inserted by `untabify' inherit
+	    ;; sticky text properties, which is unnecessary and looks
+	    ;; ugly with underlining (Bug#11408).
+	    (let ((text-property-default-nonsticky
+		   (cons '(face . t) text-property-default-nonsticky)))
+	      (untabify (point-min) (point-max))))
 	(if (catch 'unindent
 	      (goto-char (point-min))
 	      (if (not (re-search-forward Man-first-heading-regexp nil t))
