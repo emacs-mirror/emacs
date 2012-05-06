@@ -1068,14 +1068,14 @@ FMTS is a list of format specs for transforming the file name.
 	 end-marker loc end-loc)
     (if (not (and marker (marker-buffer marker)))
 	(setq marker nil)		; no valid marker for this file
-      (setq loc (or line 1))		; normalize no linenumber to line 1
+      (unless line (setq line 1))       ; normalize no linenumber to line 1
       (catch 'marker			; find nearest loc, at least one exists
 	(dolist (x (cddr (compilation--file-struct->loc-tree
                           file-struct)))	; Loop over remaining lines.
-	  (if (> (car x) loc)		; Still bigger.
+	  (if (> (car x) line)		; Still bigger.
 	      (setq marker-line x)
-	    (if (> (- (or (car marker-line) 1) loc)
-		   (- loc (car x)))	; Current line is nearer.
+	    (if (> (- (or (car marker-line) 1) line)
+		   (- line (car x)))	; Current line is nearer.
 		(setq marker-line x))
 	    (throw 'marker t))))
       (setq marker (compilation--loc->marker (cadr marker-line))
@@ -1093,15 +1093,15 @@ FMTS is a list of format specs for transforming the file name.
 	  (save-restriction
 	    (widen)
 	    (goto-char (marker-position marker))
-	    (when (or end-col end-line)
+	    ;; Set end-marker if appropriate and go to line.
+	    (if (not (or end-col end-line))
+		(beginning-of-line (- line marker-line -1))
 	      (beginning-of-line (- (or end-line line) marker-line -1))
 	      (if (or (null end-col) (< end-col 0))
 		  (end-of-line)
 		(compilation-move-to-column end-col screen-columns))
-	      (setq end-marker (point-marker)))
-	    (beginning-of-line (if end-line
-				   (- line end-line -1)
-				 (- loc marker-line -1)))
+	      (setq end-marker (point-marker))
+	      (when end-line (beginning-of-line (- line end-line -1))))
 	    (if col
 		(compilation-move-to-column col screen-columns)
 	      (forward-to-indentation 0))
