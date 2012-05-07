@@ -1,3 +1,8 @@
+2012-05-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_DEBUG_MESSAGE): Don't print message twice in
+	batch mode.
+
 2012-05-06  Chong Yidong  <cyd@gnu.org>
 
 	* lisp.mk (lisp): Update.
@@ -245,7 +250,7 @@
 	(xd_close_bus): Rename from Fdbus_close_bus.  Not needed on Lisp
 	level.
 	(Fdbus_init_bus): New optional arg PRIVATE.  Cache address.
-	Return number of recounts.
+	Return number of refcounts.
 	(Fdbus_get_unique_name): Make stronger parameter check.
 	(Fdbus_message_internal): New defun.
 	(Fdbus_call_method, Fdbus_call_method_asynchronously)
