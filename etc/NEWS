@@ -65,6 +65,9 @@ ImageMagick to view images, set
 frames, if emacsclient is only told to open a new frame without
 specifying any file to visit or expression to evaluate.
 
+** Using "unibyte: t" in Lisp source files is obsolete.
+Using "coding: raw-text" instead.
+
 
 * Editing Changes in Emacs 24.2
 
@@ -128,7 +131,8 @@ see the `apropos' Custom group for details.
 
 ** Calendar
 
-*** The calendars produced by cal-html can optionally include holidays.
+*** The calendars produced by cal-html include holidays.
+Customize cal-html-holidays to change this.
 
 ** Customize
 

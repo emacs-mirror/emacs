@@ -30,6 +30,7 @@
 
 ;;; Code:
 
+;; FIXME?  Are these still relevant?  Nothing uses them AFAICS.
 (defconst mule-version "6.0 (HANACHIRUSATO)" "\
 Version number and name of this version of MULE (multilingual environment).")
 
@@ -1835,6 +1836,8 @@ If nothing is specified, the return value is nil."
 		       (re-search-forward
 			"\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
 			head-end t))
+              (display-warning 'mule "`unibyte: t' is obsolete; \
+use \"coding: 'raw-text\" instead." :warning)
 	      (setq coding-system 'raw-text))
 	    (when (and (not coding-system)
 		       (re-search-forward
