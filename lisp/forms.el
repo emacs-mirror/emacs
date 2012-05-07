@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Visit a file using a form.  See forms-d2.el for examples.
+;; Visit a file using a form.  See etc/forms for examples.
 ;;
 ;; === Naming conventions
 ;;

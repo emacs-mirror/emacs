@@ -1,5 +1,7 @@
 2012-05-07  Glenn Morris  <rgm@gnu.org>
 
+	* forms-d2.el, forms-pass.el: Move to ../etc/forms directory.
+
 	* international/mule.el (find-auto-coding): Make "unibyte: t" obsolete.
 
 2012-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>

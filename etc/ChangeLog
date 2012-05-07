@@ -1,3 +1,9 @@
+2012-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* forms/forms-d2.el, forms/forms-pass.el: Move here from ../lisp.
+	* forms/forms-d2.dat: Move to forms/ subdirectory.
+	* forms/README: New.
+
 2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: Do not limit current-time-string to years 1000..9999.
