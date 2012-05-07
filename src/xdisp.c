@@ -12727,6 +12727,9 @@ redisplay_internal (void)
      frames.  Zero means, only selected_window is considered.  */
   int consider_all_windows_p;
 
+  /* Non-zero means redisplay has to redisplay the miniwindow */
+  int update_miniwindow_p = 0;
+
   TRACE ((stderr, "redisplay_internal %d\n", redisplaying_p));
 
   /* No redisplay if running in batch mode or frame is not yet fully
@@ -12913,6 +12916,10 @@ redisplay_internal (void)
 	  && !MINI_WINDOW_P (XWINDOW (selected_window))))
     {
       int window_height_changed_p = echo_area_display (0);
+
+      if (message_cleared_p)
+	update_miniwindow_p = 1;
+
       must_finish = 1;
 
       /* If we don't display the current message, don't clear the
@@ -12949,7 +12956,7 @@ redisplay_internal (void)
 /* FIXME: this causes all frames to be updated, which seems unnecessary
    since only the current frame needs to be considered.  This function needs
    to be rewritten with two variables, consider_all_windows and
-   consider_all_frames. */
+   consider_all_frames.  */
       consider_all_windows_p = 1;
       ++windows_or_buffers_changed;
       ++update_mode_lines;
@@ -13135,7 +13142,8 @@ redisplay_internal (void)
 	 then we can't just move the cursor.  */
       else if (! (!NILP (Vtransient_mark_mode)
 		  && !NILP (BVAR (current_buffer, mark_active)))
-	       && (EQ (selected_window, BVAR (current_buffer, last_selected_window))
+	       && (EQ (selected_window,
+		       BVAR (current_buffer, last_selected_window))
 		   || highlight_nonselected_windows)
 	       && NILP (w->region_showing)
 	       && NILP (Vshow_trailing_whitespace)
@@ -13288,7 +13296,7 @@ redisplay_internal (void)
     }
   else if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
     {
-      Lisp_Object mini_window;
+      Lisp_Object mini_window = FRAME_MINIBUF_WINDOW (sf);
       struct frame *mini_frame;
 
       displayed_buffer = XBUFFER (XWINDOW (selected_window)->buffer);
@@ -13297,6 +13305,10 @@ redisplay_internal (void)
       internal_condition_case_1 (redisplay_window_1, selected_window,
 				 list_of_error,
 				 redisplay_window_error);
+      if (update_miniwindow_p)
+	internal_condition_case_1 (redisplay_window_1, mini_window,
+				   list_of_error,
+				   redisplay_window_error);
 
       /* Compare desired and current matrices, perform output.  */
 

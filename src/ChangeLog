@@ -1,3 +1,11 @@
+2012-05-07  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	Fix up display of the *Minibuf-0* buffer in the mini window.
+	* keyboard.c (read_char): Don't clear the echo area if there's no
+	message to clear.
+	* xdisp.c (redisplay_internal): Redisplay the mini window (with the
+	contents of *Minibuf-0*) if there' no message displayed in its stead.
+
 2012-05-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (XD_DEBUG_MESSAGE): Don't print message twice in

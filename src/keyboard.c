@@ -2996,8 +2996,10 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	  && !(EQ (Qselect_window, XCAR (c)))))
     {
       if (!NILP (echo_area_buffer[0]))
-	safe_run_hooks (Qecho_area_clear_hook);
-      clear_message (1, 0);
+	{
+	  safe_run_hooks (Qecho_area_clear_hook);
+	  clear_message (1, 0);
+	}
     }
 
  reread_for_input_method:
