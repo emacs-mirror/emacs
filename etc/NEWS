@@ -82,6 +82,38 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** reStructuredText mode
+
+*** Major merge with upstream development.
+
+*** Nearly all keys are rebound making room for more keys and comply
+better to usage in other modes. Bindings are described with C-c C-h.
+
+*** Major revision of indentation. Now works very similar to other
+modes. TAB is your friend.
+
+*** Major revision of filling. Works fine with most of
+reStructuredText syntax. Auto-filling is also supported.
+
+*** Major revision of comment handling.
+
+*** Major revision of fontification. Now works with `jit-lock-mode'.
+Thanks to Stefan Monnier for help.
+
+*** reStructuredText syntax is covered more closely in many cases.
+Among other things this improves the experience for Sphinx users.
+
+*** `rst-insert-list' inserts new list or continues existing lists.
+Based on code by Wei-Wei Guo.
+
+*** Customization is extended, corrected and improved.
+
+*** Negative prefix argument always works for `rst-adjust'.
+
+*** Window configuration is reset after displaying TOC.
+
+*** There is a package version in `rst-version'
+
 ** New `derived-mode' filter for Ibuffer, bound to `/ M'.
 `/ m' is now bound to filter by used-mode, which used to be bound to `/ M'.
 
