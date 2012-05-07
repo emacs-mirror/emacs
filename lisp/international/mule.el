@@ -1890,6 +1890,8 @@ use \"coding: 'raw-text\" instead." :warning)
 		(goto-char pos)
 		(when (and set-auto-coding-for-load
 			   (re-search-forward re-unibyte tail-end t))
+                  (display-warning 'mule "`unibyte: t' is obsolete; \
+use \"coding: 'raw-text\" instead." :warning)
 		  (setq coding-system 'raw-text))
 		(when (and (not coding-system)
 			   (re-search-forward re-coding tail-end t))
