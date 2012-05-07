@@ -269,6 +269,7 @@ ARG, show only buffers that are visiting files."
   (message
    "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
 
+;;;###autoload
 (defun list-buffers (&optional arg)
   "Display a list of existing buffers.
 The list is displayed in a buffer named \"*Buffer List*\".
@@ -543,6 +544,7 @@ The current window remains selected."
 
 ;;; Functions for populating the Buffer Menu.
 
+;;;###autoload
 (defun list-buffers-noselect (&optional files-only buffer-list)
   "Create and return a Buffer Menu buffer.
 This is called by `buffer-menu' and others as a subroutine.
@@ -571,7 +573,8 @@ means list those buffers and no others."
 		  '("R" 1 t :pad-right 0)
 		  '("M" 1 t)
 		  `("Buffer" ,name-width t)
-		  `("Size" ,size-width tabulated-list-entry-size->)
+		  `("Size" ,size-width tabulated-list-entry-size->
+                           :right-align t)
 		  `("Mode" ,Buffer-menu-mode-width t)
 		  '("File" 1 t))))
   (setq tabulated-list-use-header-line Buffer-menu-use-header-line)

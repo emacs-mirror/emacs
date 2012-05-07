@@ -1,3 +1,11 @@
+2012-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buff-menu.el (list-buffers--refresh): Mark `size' as right-align.
+	* emacs-lisp/tabulated-list.el (tabulated-list-init-header):
+	Handle new :right-align column property.
+	(tabulated-list-print-col): Idem, plus use `display' text-property to
+	try and preserve alignment for variable pitch fonts.
+
 2012-05-07  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/tabulated-list.el: Add no-header-line alternative.
@@ -11,8 +19,8 @@
 	(tabulated-list-col-sort): Handle non-header-line button case.
 	(tabulated-list--sort-by-column-name): Fix a corner case.
 
-	* buff-menu.el (list-buffers--refresh): Handle
-	Buffer-menu-use-header-line.
+	* buff-menu.el (list-buffers--refresh):
+	Handle Buffer-menu-use-header-line.
 
 2012-05-06  Chong Yidong  <cyd@gnu.org>
 
@@ -32,7 +40,7 @@
 	(Buffer-menu-bury): Use Tabulated List machinery.
 	(Buffer-menu-mouse-select, Buffer-menu-sort-by-column)
 	(Buffer-menu-sort-button-map, Buffer-menu-make-sort-button):
-	Deleted.
+	Delete.
 	(list-buffers--refresh): New function.
 	(list-buffers-noselect): Use it.
 	(tabulated-list-entry-size->, Buffer-menu--pretty-name)
