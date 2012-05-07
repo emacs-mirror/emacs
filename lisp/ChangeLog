@@ -1,3 +1,9 @@
+2012-05-07  Chong Yidong  <cyd@gnu.org>
+
+	* ansi-color.el (ansi-color-process-output): Check for validity of
+	comint-last-output-start before using it.  This avoids a bad
+	interaction with gdb-mi's input/output buffer.
+
 2012-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (dir-locals-read-from-file):
