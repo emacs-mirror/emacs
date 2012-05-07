@@ -574,6 +574,7 @@ means list those buffers and no others."
 		  `("Size" ,size-width tabulated-list-entry-size->)
 		  `("Mode" ,Buffer-menu-mode-width t)
 		  '("File" 1 t))))
+  (setq tabulated-list-use-header-line Buffer-menu-use-header-line)
   ;; Collect info for each buffer we're interested in.
   (let ((buffer-menu-buffer (current-buffer))
 	(show-non-file (not Buffer-menu-files-only))

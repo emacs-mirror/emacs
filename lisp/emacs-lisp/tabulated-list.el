@@ -56,6 +56,10 @@ where:
      right of the column (defaults to 1 if omitted).")
 (make-variable-buffer-local 'tabulated-list-format)
 
+(defvar tabulated-list-use-header-line t
+  "Whether the Tabulated List buffer should use a header line.")
+(make-variable-buffer-local 'tabulated-list-use-header-line)
+
 (defvar tabulated-list-entries nil
   "Entries displayed in the current Tabulated List buffer.
 This should be either a function, or a list.
@@ -154,6 +158,9 @@ If ADVANCE is non-nil, move forward by one line afterwards."
   (let ((map (make-sparse-keymap)))
     (define-key map [header-line mouse-1] 'tabulated-list-col-sort)
     (define-key map [header-line mouse-2] 'tabulated-list-col-sort)
+    (define-key map [mouse-1] 'tabulated-list-col-sort)
+    (define-key map [mouse-2] 'tabulated-list-col-sort)
+    (define-key map "\C-m" 'tabulated-list-sort)
     (define-key map [follow-link] 'mouse-face)
     map)
   "Local keymap for `tabulated-list-mode' sort buttons.")
@@ -166,6 +173,9 @@ If ADVANCE is non-nil, move forward by one line afterwards."
     (aset table 9660 (cons nil "v"))
     table)
   "The `glyphless-char-display' table in Tabulated List buffers.")
+
+(defvar tabulated-list--header-string nil)
+(defvar tabulated-list--header-overlay nil)
 
 (defun tabulated-list-init-header ()
   "Set up header line for the Tabulated List buffer."
@@ -185,7 +195,8 @@ If ADVANCE is non-nil, move forward by one line afterwards."
 	(push
 	 (cond
 	  ;; An unsortable column
-	  ((not (nth 2 col)) label)
+	  ((not (nth 2 col))
+	   (propertize label 'tabulated-list-column-name label))
 	  ;; The selected sort column
 	  ((equal (car col) (car tabulated-list-sort-key))
 	   (apply 'propertize
@@ -197,11 +208,11 @@ If ADVANCE is non-nil, move forward by one line afterwards."
 			    " ▲")
 			   (t " ▼")))
 		  'face 'bold
-		  'tabulated-list-column-name (car col)
+		  'tabulated-list-column-name label
 		  button-props))
 	  ;; Unselected sortable column.
 	  (t (apply 'propertize label
-		    'tabulated-list-column-name (car col)
+		    'tabulated-list-column-name label
 		    button-props)))
 	 cols)
 	(if (> pad-right 0)
@@ -209,7 +220,22 @@ If ADVANCE is non-nil, move forward by one line afterwards."
 			      'display `(space :align-to ,x)
 			      'face 'fixed-pitch)
 		  cols))))
-    (setq header-line-format (mapconcat 'identity (nreverse cols) ""))))
+    (setq cols (apply 'concat (nreverse cols)))
+    (if tabulated-list-use-header-line
+	(setq header-line-format cols)
+      (setq header-line-format nil)
+      (set (make-local-variable 'tabulated-list--header-string) cols))))
+
+(defun tabulated-list-print-fake-header ()
+  "Insert a fake Tabulated List \"header line\" at the start of the buffer."
+  (goto-char (point-min))
+  (let ((inhibit-read-only t))
+    (insert tabulated-list--header-string "\n")
+    (if tabulated-list--header-overlay
+	(move-overlay tabulated-list--header-overlay (point-min) (point))
+      (set (make-local-variable 'tabulated-list--header-overlay)
+	   (make-overlay (point-min) (point))))
+    (overlay-put tabulated-list--header-overlay 'face 'underline)))
 
 (defun tabulated-list-revert (&rest ignored)
   "The `revert-buffer-function' for `tabulated-list-mode'.
@@ -248,6 +274,8 @@ to the entry with the same ID element as the current line."
 	 (setq entry-id (tabulated-list-get-id))
 	 (setq saved-col (current-column)))
     (erase-buffer)
+    (unless tabulated-list-use-header-line
+      (tabulated-list-print-fake-header))
     ;; Sort the buffers, if necessary.
     (when (and tabulated-list-sort-key
 	       (car tabulated-list-sort-key))
@@ -391,12 +419,12 @@ this is the vector stored within it."
   "Sort Tabulated List entries by the column of the mouse click E."
   (interactive "e")
   (let* ((pos (event-start e))
-	 (obj (posn-object pos))
-	 (name (get-text-property (if obj (cdr obj) (posn-point pos))
-				  'tabulated-list-column-name
-				  (car obj))))
+	 (obj (posn-object pos)))
     (with-current-buffer (window-buffer (posn-window pos))
-      (tabulated-list--sort-by-column-name name))))
+      (tabulated-list--sort-by-column-name
+       (get-text-property (if obj (cdr obj) (posn-point pos))
+			  'tabulated-list-column-name
+			  (car obj))))))
 
 (defun tabulated-list-sort (&optional n)
   "Sort Tabulated List entries by the column at point.
@@ -409,7 +437,7 @@ With a numeric prefix argument N, sort the Nth column."
     (tabulated-list--sort-by-column-name name)))
 
 (defun tabulated-list--sort-by-column-name (name)
-  (when (derived-mode-p 'tabulated-list-mode)
+  (when (and name (derived-mode-p 'tabulated-list-mode))
     ;; Flip the sort order on a second click.
     (if (equal name (car tabulated-list-sort-key))
 	(setcdr tabulated-list-sort-key

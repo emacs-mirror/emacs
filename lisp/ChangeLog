@@ -1,3 +1,19 @@
+2012-05-07  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/tabulated-list.el: Add no-header-line alternative.
+	(tabulated-list-use-header-line): New var.
+	(tabulated-list-init-header): Use it.
+	(tabulated-list-print-fake-header): New function.
+	(tabulated-list-print): Use it.
+	(tabulated-list-sort-button-map): Add non-header-line commands.
+	(tabulated-list-init-header): Add column name property to basic
+	labels as well.
+	(tabulated-list-col-sort): Handle non-header-line button case.
+	(tabulated-list--sort-by-column-name): Fix a corner case.
+
+	* buff-menu.el (list-buffers--refresh): Handle
+	Buffer-menu-use-header-line.
+
 2012-05-06  Chong Yidong  <cyd@gnu.org>
 
 	* buff-menu.el: Convert to Tabulated List mode.
