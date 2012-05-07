@@ -3625,7 +3625,7 @@ is found.  Returns the new class name."
   (with-temp-buffer
     ;; This is with-demoted-errors, but we want to mention dir-locals
     ;; in any error message.
-    (let ((err (make-symbol "err")))
+    (let (err)
       (condition-case err
 	  (progn
 	    (insert-file-contents file)
