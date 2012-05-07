@@ -1,5 +1,8 @@
 2012-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* loadup.el: Preload newcomment.el.
+	* newcomment.el: Move autoload-only code to toplevel.
+
 	* buff-menu.el (list-buffers--refresh): Mark `size' as right-align.
 	* emacs-lisp/tabulated-list.el (tabulated-list-init-header):
 	Handle new :right-align column property.
