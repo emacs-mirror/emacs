@@ -1,3 +1,7 @@
+2012-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* play/zone.el (zone-pgm-stress): Don't pollute kill-ring.  (Bug#11388)
+
 2012-05-08  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
 	* progmodes/make-mode.el (makefile-browse):
