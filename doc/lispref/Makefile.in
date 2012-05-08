@@ -129,11 +129,11 @@ elisp.pdf: $(srcs)
 mostlyclean:
 	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
 	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
-	rm -f elisp[12]*
+	rm -f elisp[12]* vol[12].tmp
 
 clean: mostlyclean
 	rm -f elisp.dvi elisp.pdf elisp.ps
-	rm -f vol[12].dvi vol[12].pdf vol[12].ps vol[12].tmp
+	rm -f vol[12].dvi vol[12].pdf vol[12].ps
 	rm -rf elisp.html
 	rm -f emacs-lispref-${version}.tar*
 

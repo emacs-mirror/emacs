@@ -1,6 +1,6 @@
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (clean): Add some more vol1/2 items.
+	* Makefile.in (clean, mostlyclean): Add some more vol1/2 items.
 
 	* two-volume.make (emacsdir): New.
 	(tex): Add directory with emacsver.texi to TEXINPUTS.
