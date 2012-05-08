@@ -2262,9 +2262,11 @@ since only a single case-insensitive search through the alist is made."
      ("\\.makepp\\'" . makefile-makepp-mode)
      ,@(if (memq system-type '(berkeley-unix darwin))
 	   '(("\\.mk\\'" . makefile-bsdmake-mode)
+	     ("\\.make\\'" . makefile-bsdmake-mode)
 	     ("GNUmakefile\\'" . makefile-gmake-mode)
 	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
 	 '(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
+	   ("\\.make\\'" . makefile-gmake-mode)
 	   ("[Mm]akefile\\'" . makefile-gmake-mode)))
      ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here

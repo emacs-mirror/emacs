@@ -1,3 +1,7 @@
+2012-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (auto-mode-alist): Treat ".make" like ".mk".
+
 2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/log-edit.el: Add GNU coding standards highlighting.
