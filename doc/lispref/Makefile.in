@@ -132,7 +132,8 @@ mostlyclean:
 	rm -f elisp[12]*
 
 clean: mostlyclean
-	rm -f elisp.dvi elisp.pdf elisp.ps vol[12].pdf
+	rm -f elisp.dvi elisp.pdf elisp.ps
+	rm -f vol[12].dvi vol[12].pdf vol[12].ps vol[12].tmp
 	rm -rf elisp.html
 	rm -f emacs-lispref-${version}.tar*
 
