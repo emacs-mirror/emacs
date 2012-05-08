@@ -1,3 +1,8 @@
+2012-05-08  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* progmodes/make-mode.el (makefile-browse):
+	Remove unnecessary interactive.  (Bug#11324)
+
 2012-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* forms-d2.el, forms-pass.el: Move to ../etc/forms directory.

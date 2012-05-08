@@ -1493,7 +1493,6 @@ Insertion takes place at point."
   (setq buffer-read-only t))
 
 (defun makefile-browse (targets macros)
-  (interactive)
   (if (zerop (+ (length targets) (length macros)))
       (progn
 	(beep)
