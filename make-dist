@@ -1,7 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2012  Free Software Foundation, Inc.
+## Copyright (C) 1995, 1997-1998, 2000-2012 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -478,8 +478,8 @@ echo "Making links to \`doc/misc'"
 echo "Making links to \`doc/lispref'"
 (cd doc/lispref
  ln *.texi *.in makefile.w32-in README ChangeLog* ../../${tempdir}/doc/lispref
- ln *.txt *.el spellfile ../../${tempdir}/doc/lispref
- ln two-volume.make ../../${tempdir}/doc/lispref)
+ ln spellfile ../../${tempdir}/doc/lispref
+ ln two-volume.make two-volume-cross-refs.txt ../../${tempdir}/doc/lispref)
 
 echo "Making links to \`doc/lispintro'"
 (cd doc/lispintro

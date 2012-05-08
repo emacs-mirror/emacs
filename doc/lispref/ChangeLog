@@ -1,5 +1,7 @@
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
+	* two.el: Remove; unused since creation of two-volume.make.
+
 	* vol1.texi, vol2.texi: No need to keep menus in these files.
 
 2012-05-05  Glenn Morris  <rgm@gnu.org>
