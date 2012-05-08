@@ -1,5 +1,13 @@
 2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* imenu.el: Misc cleanup.  Make docstrings out of comments.
+	Use lexical-binding.
+	(imenu--index-alist, imenu--last-menubar-index-alist)
+	(imenu-menubar-modified-tick): Use defvar-local.
+	(imenu--split-menu): Remove unused var.
+	(imenu--cleanup-seen): Declare as global.
+	(imenu--cleanup): Use dolist.
+
 	* subr.el (defvar-local): Add debug spec and doc-string position.
 
 2012-05-08  Glenn Morris  <rgm@gnu.org>
