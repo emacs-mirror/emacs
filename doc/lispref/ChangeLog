@@ -1,3 +1,7 @@
+2012-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* vol1.texi, vol2.texi: No need to keep menus in these files.
+
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* objects.texi (Process Type, Overlay Type): Tweak page-breaks.
@@ -10994,7 +10998,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1998-2012  Free Software Foundation, Inc.
+  Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

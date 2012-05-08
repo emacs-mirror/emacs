@@ -108,7 +108,6 @@ Cover art by Etienne Suvasa.
 @insertcopying
 @end ifnottex
 
-@c Copy any updates to vol1.texi and vol2.texi.
 @menu
 * Introduction::            Introduction and conventions used.
 
@@ -189,7 +188,6 @@ Appendices
 @c be correctly identified by `texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
 @c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
-@c Copy any updates to vol1.texi and vol2.texi.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -1522,11 +1520,7 @@ Object Internals
 
 @include package.texi
 
-@c MOVE to Emacs Manual:  include misc-modes.texi
-
 @c appendices
-
-@c  REMOVE this:  include non-hacker.texi
 
 @include anti.texi
 @include doclicense.texi
