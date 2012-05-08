@@ -432,7 +432,7 @@ Shell buffers.  It implements `shell-completion-execonly' for
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        #'shell-parse-pcomplete-arguments)
   (set (make-local-variable 'pcomplete-arg-quote-list)
-       shell-delimiter-argument-list)
+       comint-file-name-quote-list)
   (set (make-local-variable 'pcomplete-termination-string)
        (cond ((not comint-completion-addsuffix) "")
              ((stringp comint-completion-addsuffix)

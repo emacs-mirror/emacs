@@ -1,3 +1,7 @@
+2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): Fix last change (bug#11348).
+
 2012-05-07  Chong Yidong  <cyd@gnu.org>
 
 	* ansi-color.el (ansi-color-process-output): Check for validity of
