@@ -1,3 +1,7 @@
+2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .dir-locals.el (log-edit-mode): Enable gnu-style checks.
+
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: No more doc/lispref/*.el.

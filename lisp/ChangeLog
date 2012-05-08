@@ -1,5 +1,12 @@
 2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/log-edit.el: Add GNU coding standards highlighting.
+	(log-edit-font-lock-gnu-style)
+	(log-edit-font-lock-gnu-keywords): New vars.
+	(log-edit-font-lock-keywords): New fun.
+	(log-edit-mode): Don't fold case in font-lock.
+	(log-edit-font-lock-keywords): Do not assume case-folding.
+
 	* imenu.el: Misc cleanup.  Make docstrings out of comments.
 	Use lexical-binding.
 	(imenu--index-alist, imenu--last-menubar-index-alist)
