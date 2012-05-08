@@ -1,3 +1,8 @@
+2012-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* two-volume.make (emacsdir): New.
+	(tex): Add directory with emacsver.texi to TEXINPUTS.
+
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Minibuffer History, Basic Completion):
