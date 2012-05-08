@@ -1,5 +1,13 @@
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
+	* lisp/language/burmese.el, language/cham.el, language/czech.el:
+	* language/english.el, language/georgian.el, language/greek.el:
+	* language/japanese.el, language/khmer.el, language/korean.el:
+	* language/lao.el, language/misc-lang.el, language/romanian.el:
+	* language/sinhala.el, language/slovak.el, language/tai-viet.el:
+	* language/thai.el, language/utf-8-lang.el:
+	Remove no-byte-compile setting.
+
 	* play/zone.el (zone-pgm-stress): Don't pollute kill-ring.  (Bug#11388)
 
 2012-05-08  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
