@@ -400,8 +400,9 @@ Thus, this does not include the shell's current directory.")
                      (t (match-string 3)))
                     arg))
              ((match-beginning 2)       ;Double quote.
-              (push (replace-regexp-in-string
-                     "\\\\\\(.\\)" "\\1" (match-string 2))
+              (push (if (null pcomplete-arg-quote-list) (match-string 2)
+                      (replace-regexp-in-string
+                       "\\\\\\(.\\)" "\\1" (match-string 2)))
                     arg))
              ((match-beginning 1)       ;Single quote.
               (push (match-string 1) arg))

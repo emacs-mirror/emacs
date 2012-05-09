@@ -1,3 +1,8 @@
+2012-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-parse-pcomplete-arguments): Obey
+	pcomplete-arg-quote-list inside double-quoted args as well (bug#11348).
+
 2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* shell.el (shell-completion-vars): Fix last change (bug#11348).
@@ -48,8 +53,8 @@
 
 2012-04-30  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (display-buffer--action-function-custom-type): Fix
-	entry.
+	* window.el (display-buffer--action-function-custom-type):
+	Fix entry.
 
 2012-04-27  Alan Mackenzie  <acm@muc.de>
 
@@ -152,8 +157,8 @@
 
 2012-04-19  Chong Yidong  <cyd@gnu.org>
 
-	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty): New
-	function to call delete-process on the gdb-inferior buffer's pty.
+	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty):
+	New function to call delete-process on the gdb-inferior buffer's pty.
 	(gdb-reset): Use it, instead of relying on kill-buffer to kill the
 	pty process (Bug#11273).
 	(gdb-update): New arg to suppress talking to the gdb process.
@@ -186,8 +191,8 @@
 	(c-comment-indent, c-scan-conditionals, c-indent-defun)
 	(c-context-line-break): bind case-fold-search to nil.
 
-	* progmodes/cc-mode.el (c-font-lock-fontify-region): bind
-	case-fold-search to nil.
+	* progmodes/cc-mode.el (c-font-lock-fontify-region):
+	bind case-fold-search to nil.
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
