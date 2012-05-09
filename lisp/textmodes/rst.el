@@ -422,6 +422,17 @@ in parentheses follows the development revision and the timestamp.")
 Each entry consists of the symbol naming the regex and an
 argument list for `rst-re'.")
 
+(defconst rst-re-alist
+  ;; Shadow global value we are just defining so we can construct it step by
+  ;; step
+  (let (rst-re-alist)
+    (dolist (re rst-re-alist-def)
+      (setq rst-re-alist
+	    (nconc rst-re-alist
+		   (list (list (car re) (apply 'rst-re (cdr re)))))))
+    rst-re-alist)
+  "Alist mapping symbols from `rst-re-alist-def' to regex strings.")
+
 ;; FIXME: Use `sregex` or `rx` instead of re-inventing the wheel
 (defun rst-re (&rest args)
   "Interpret ARGS as regular expressions and return a regex string.
@@ -459,7 +470,7 @@ After interpretation of ARGS the results are concatenated as for
 	      re)
 	     ((symbolp re)
 	      (cadr (assoc re rst-re-alist)))
-	     ((char-valid-p re)
+	     ((characterp re)
 	      (regexp-quote (char-to-string re)))
 	     ((listp re)
 	      (let ((nested
@@ -480,17 +491,6 @@ After interpretation of ARGS the results are concatenated as for
 	     (t
 	      (error "Unknown object type for building regex: %s" re))))
 	  args)))
-
-(defconst rst-re-alist
-  ;; Shadow global value we are just defining so we can construct it step by
-  ;; step
-  (let (rst-re-alist)
-    (dolist (re rst-re-alist-def)
-      (setq rst-re-alist
-	    (nconc rst-re-alist
-		   (list (list (car re) (apply 'rst-re (cdr re)))))))
-    rst-re-alist)
-  "Alist mapping symbols from `rst-re-alist-def' to regex strings.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1186,7 +1186,7 @@ are nil."
        ((looking-at (rst-re 'ttl-beg))
 	;; Try to use the underline
 	(let ((r (rst-classify-adornment
-		  (buffer-substring-no-properties 
+		  (buffer-substring-no-properties
 		   (line-beginning-position 2) (line-end-position 2))
 		  (line-end-position 2))))
 	  (if r
@@ -1198,12 +1198,6 @@ are nil."
 ;; The following function and variables are used to maintain information about
 ;; current section adornment in a buffer local cache. Thus they can be used for
 ;; font-locking and manipulation commands.
-
-(defun rst-reset-section-caches ()
-  "Reset all section cache variables.
-Should be called by interactive functions which deal with sections."
-  (setq rst-all-sections nil
-	rst-section-hierarchy nil))
 
 (defvar rst-all-sections nil
   "All section adornments in the buffer as found by `rst-find-all-adornments'.
@@ -1217,6 +1211,12 @@ t when no section adornments were found.")
 t when no section adornments were found. Value depends on
 `rst-all-sections'.")
 (make-variable-buffer-local 'rst-section-hierarchy)
+
+(defun rst-reset-section-caches ()
+  "Reset all section cache variables.
+Should be called by interactive functions which deal with sections."
+  (setq rst-all-sections nil
+	rst-section-hierarchy nil))
 
 (defun rst-find-all-adornments ()
   "Return all the section adornments in the current buffer.
@@ -3570,6 +3570,9 @@ details check the Rst Faces Defaults group."
      (2 rst-literal-face))
     )
   "Keywords to highlight in rst mode.")
+
+(defvar font-lock-beg)
+(defvar font-lock-end)
 
 (defun rst-font-lock-extend-region ()
   "Extend the region `font-lock-beg' / `font-lock-end' iff it may

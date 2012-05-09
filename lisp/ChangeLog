@@ -1,5 +1,10 @@
 2012-05-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* textmodes/rst.el: Silence byte-compiler warnings.
+	(rst-re-alist, rst-reset-section-caches): Move around.
+	(rst-re): Use `characterp', not `char-valid-p'.
+	(font-lock-beg, font-lock-end): Declare.
+
 	* progmodes/idlw-shell.el (specs): Remove reference to deleted
 	variable `idlwave-shell-activate-alt-keybindings' and simplify.
 
