@@ -1,5 +1,8 @@
 2012-05-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/idlw-shell.el (specs): Remove reference to deleted
+	variable `idlwave-shell-activate-alt-keybindings' and simplify.
+
 	* eshell/esh-cmd.el (eshell-debug-command): Fix typo in previous change.
 
 2012-05-08  Glenn Morris  <rgm@gnu.org>

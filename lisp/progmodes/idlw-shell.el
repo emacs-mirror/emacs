@@ -4183,12 +4183,8 @@ Otherwise, just expand the file name."
 	  ([(        ?[)]   ?[   idlwave-shell-goto-previous-bp t t)
 	  ([(        ?])]   ?]   idlwave-shell-goto-next-bp t t)
 	  ([(control ?f)]   ?f   idlwave-shell-window)))
-       (mod (cond ((and idlwave-shell-debug-modifiers
-			(listp idlwave-shell-debug-modifiers)
-			(not (equal '() idlwave-shell-debug-modifiers)))
-		   idlwave-shell-debug-modifiers)
-		  (idlwave-shell-activate-alt-keybindings
-		   '(alt))))
+       (mod (and (listp idlwave-shell-debug-modifiers)
+		 idlwave-shell-debug-modifiers))
        (shift (memq 'shift mod))
        (mod-noshift (delete 'shift (copy-sequence mod)))
        s k1 c2 k2 cmd electric only-buffer cannotshift)
