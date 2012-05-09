@@ -1,5 +1,19 @@
 2012-05-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Untag more efficiently if USE_LSB_TAG.
+	This is based on a proposal by YAMAMOTO Mitsuharu in
+	<http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01876.html>.
+	For an admittedly artificial (nth 8000 longlist) benchmark on
+	Fedora 15 x86-64, this yields a 25% CPU speedup.  Also, it shrinks
+	Emacs's overall text size by 1%.
+	* lisp.h (XUNTAG): New macro.
+	(XCONS, XVECTOR, XSTRING, XSYMBOL, XFLOAT, XMISC, XPROCESS, XWINDOW)
+	(XTERMINAL, XSUBR, XBUFFER, XCHAR_TABLE, XSUB_CHAR_TABLE, XBOOL_VECTOR)
+	(XSETTYPED_PSEUDOVECTOR, XHASH_TABLE, TYPED_PSEUDOVECTORP): Use it.
+	* eval.c (Fautoload):
+	* font.h (XFONT_SPEC, XFONT_ENTITY, XFONT_OBJECT):
+	* frame.h (XFRAME): Use XUNTAG.
+
 	Port recent dbusbind.c changes to 32-bit --with-wide-int.
 	* dbusbind.c (xd_append_arg, xd_retrieve_arg, Fdbus_message_internal):
 	Remove unportable assumptions about print widths of types like

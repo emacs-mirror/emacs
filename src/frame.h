@@ -501,7 +501,8 @@ struct frame
 
 typedef struct frame *FRAME_PTR;
 
-#define XFRAME(p) (eassert (FRAMEP(p)),(struct frame *) XPNTR (p))
+#define XFRAME(p) \
+  (eassert (FRAMEP (p)), (struct frame *) XUNTAG (p, Lisp_Vectorlike))
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
