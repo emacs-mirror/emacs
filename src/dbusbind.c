@@ -551,7 +551,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	CHECK_NATNUM (object);
 	{
 	  unsigned char val = XFASTINT (object) & 0xFF;
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -570,7 +570,8 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	CHECK_NUMBER (object);
 	{
 	  dbus_int16_t val = XINT (object);
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
+	  int pval = val;
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -580,7 +581,8 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	CHECK_NATNUM (object);
 	{
 	  dbus_uint16_t val = XFASTINT (object);
-	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
+	  unsigned int pval = val;
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -589,7 +591,8 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_INT32:
 	{
 	  dbus_int32_t val = extract_float (object);
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	  int pval = val;
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -601,7 +604,8 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 #endif
 	{
 	  dbus_uint32_t val = extract_float (object);
-	  XD_DEBUG_MESSAGE ("%c %u", dtype, val);
+	  unsigned int pval = val;
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -610,7 +614,8 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_INT64:
 	{
 	  dbus_int64_t val = extract_float (object);
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
+	  printmax_t pval = val;
+	  XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -619,7 +624,8 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_UINT64:
 	{
 	  dbus_uint64_t val = extract_float (object);
-	  XD_DEBUG_MESSAGE ("%c %"pI"d", dtype, val);
+	  uprintmax_t pval = val;
+	  XD_DEBUG_MESSAGE ("%c %"pMu, dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -754,7 +760,7 @@ xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
 	unsigned int val;
 	dbus_message_iter_get_basic (iter, &val);
 	val = val & 0xFF;
-	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	XD_DEBUG_MESSAGE ("%c %u", dtype, val);
 	return make_number (val);
       }
 
@@ -769,24 +775,30 @@ xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
     case DBUS_TYPE_INT16:
       {
 	dbus_int16_t val;
+	int pval;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	pval = val;
+	XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	return make_number (val);
       }
 
     case DBUS_TYPE_UINT16:
       {
 	dbus_uint16_t val;
+	int pval;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	pval = val;
+	XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	return make_number (val);
       }
 
     case DBUS_TYPE_INT32:
       {
 	dbus_int32_t val;
+	int pval;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	pval = val;
+	XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	return make_fixnum_or_float (val);
       }
 
@@ -796,24 +808,30 @@ xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
 #endif
       {
 	dbus_uint32_t val;
+	unsigned int pval = val;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	pval = val;
+	XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
 	return make_fixnum_or_float (val);
       }
 
     case DBUS_TYPE_INT64:
       {
 	dbus_int64_t val;
+	printmax_t pval;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
+	pval = val;
+	XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
 	return make_fixnum_or_float (val);
       }
 
     case DBUS_TYPE_UINT64:
       {
 	dbus_uint64_t val;
+	uprintmax_t pval;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
+	pval = val;
+	XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
 	return make_fixnum_or_float (val);
       }
 
@@ -889,7 +907,7 @@ xd_get_connection_address (Lisp_Object bus)
   if (NILP (val))
     XD_SIGNAL2 (build_string ("No connection to bus"), bus);
   else
-    connection = (DBusConnection *) XFASTINT (val);
+    connection = (DBusConnection *) (intptr_t) XFASTINT (val);
 
   if (!dbus_connection_get_is_connected (connection))
     XD_SIGNAL2 (build_string ("No connection to bus"), bus);
@@ -1096,7 +1114,7 @@ this connection to those buses.  */)
     XD_SIGNAL1 (build_string ("Cannot add watch functions"));
 
   /* Add bus to list of registered buses.  */
-  XSETFASTINT (val, connection);
+  XSETFASTINT (val, (intptr_t) connection);
   Vdbus_registered_buses = Fcons (Fcons (bus, val), Vdbus_registered_buses);
 
   /* We do not want to abort.  */
@@ -1174,6 +1192,7 @@ usage: (dbus-message-internal &rest REST)  */)
   unsigned int dtype;
   unsigned int mtype;
   dbus_uint32_t serial = 0;
+  unsigned int ui_serial;
   int timeout = -1;
   ptrdiff_t count;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
@@ -1249,11 +1268,12 @@ usage: (dbus-message-internal &rest REST)  */)
 			XD_OBJECT_TO_STRING (member));
       break;
     default: /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
+      ui_serial = serial;
       XD_DEBUG_MESSAGE ("%s %s %s %u",
 			XD_MESSAGE_TYPE_TO_STRING (mtype),
 			XD_OBJECT_TO_STRING (bus),
 			XD_OBJECT_TO_STRING (service),
-			serial);
+			ui_serial);
     }
 
   /* Retrieve bus address.  */

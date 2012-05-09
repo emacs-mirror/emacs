@@ -1,3 +1,13 @@
+2012-05-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port recent dbusbind.c changes to 32-bit --with-wide-int.
+	* dbusbind.c (xd_append_arg, xd_retrieve_arg, Fdbus_message_internal):
+	Remove unportable assumptions about print widths of types like
+	dbus_uint32_t.
+	(xd_get_connection_address, Fdbus_init_bus): Cast Emacs integer to
+	intptr_t when converting between pointer and integer, to avoid GCC
+	warnings about wrong width.
+
 2012-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (new_child): Force Windows to reserve only 64KB of
