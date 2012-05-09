@@ -1,3 +1,10 @@
+2012-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_registered_buses): New internal Lisp object.
+	Rename all occurences of Vdbus_registered_buses to xd_registered_buses.
+	(syms_of_dbusbind): Remove declaration of Vdbus_registered_buses.
+	Initialize xd_registered_buses.
+
 2012-05-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Untag more efficiently if USE_LSB_TAG.

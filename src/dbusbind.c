@@ -64,6 +64,11 @@ static Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
 static Lisp_Object QCdbus_registered_serial, QCdbus_registered_method;
 static Lisp_Object QCdbus_registered_signal;
 
+/* Alist of D-Bus buses we are polling for messages.
+   The key is the symbol or string of the bus, and the value is the
+   connection address.  */
+static Lisp_Object xd_registered_buses;
+
 /* Whether we are reading a D-Bus event.  */
 static int xd_in_read_queued_messages = 0;
 
@@ -903,7 +908,7 @@ xd_get_connection_address (Lisp_Object bus)
   DBusConnection *connection;
   Lisp_Object val;
 
-  val = CDR_SAFE (Fassoc (bus, Vdbus_registered_buses));
+  val = CDR_SAFE (Fassoc (bus, xd_registered_buses));
   if (NILP (val))
     XD_SIGNAL2 (build_string ("No connection to bus"), bus);
   else
@@ -1003,7 +1008,7 @@ xd_close_bus (Lisp_Object bus)
   Lisp_Object val;
 
   /* Check whether we are connected.  */
-  val = Fassoc (bus, Vdbus_registered_buses);
+  val = Fassoc (bus, xd_registered_buses);
   if (NILP (val))
     return;
 
@@ -1022,7 +1027,7 @@ xd_close_bus (Lisp_Object bus)
   dbus_connection_unref (connection);
 
   /* Remove bus from list of registered buses.  */
-  Vdbus_registered_buses = Fdelete (val, Vdbus_registered_buses);
+  xd_registered_buses = Fdelete (val, xd_registered_buses);
 
   /* Return.  */
   return;
@@ -1115,7 +1120,7 @@ this connection to those buses.  */)
 
   /* Add bus to list of registered buses.  */
   XSETFASTINT (val, (intptr_t) connection);
-  Vdbus_registered_buses = Fcons (Fcons (bus, val), Vdbus_registered_buses);
+  xd_registered_buses = Fcons (Fcons (bus, val), xd_registered_buses);
 
   /* We do not want to abort.  */
   putenv ((char *) "DBUS_FATAL_WARNINGS=0");
@@ -1608,7 +1613,7 @@ xd_read_message (Lisp_Object bus)
 static void
 xd_read_queued_messages (int fd, void *data, int for_read)
 {
-  Lisp_Object busp = Vdbus_registered_buses;
+  Lisp_Object busp = xd_registered_buses;
   Lisp_Object bus = Qnil;
   Lisp_Object key;
 
@@ -1728,14 +1733,6 @@ syms_of_dbusbind (void)
     doc: /* Message type of a signal message.  */);
   Vdbus_message_type_signal = make_number (DBUS_MESSAGE_TYPE_SIGNAL);
 
-  DEFVAR_LISP ("dbus-registered-buses",
-	       Vdbus_registered_buses,
-    doc: /* Alist of D-Bus buses we are polling for messages.
-
-The key is the symbol or string of the bus, and the value is the
-connection address.  */);
-  Vdbus_registered_buses = Qnil;
-
   DEFVAR_LISP ("dbus-registered-objects-table",
 	       Vdbus_registered_objects_table,
     doc: /* Hash table of registered functions for D-Bus.
@@ -1788,6 +1785,10 @@ be called when the D-Bus reply message arrives.  */);
 #else
   Vdbus_debug = Qnil;
 #endif
+
+  /* Initialize internal objects.  */
+  xd_registered_buses = Qnil;
+  staticpro (&xd_registered_buses);
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
 
