@@ -38,23 +38,6 @@
 	(Sequencing, Conditionals, Signaling Errors, Handling Errors):
 	Tweak page breaks.
 
-	* lists.texi (List-related Predicates, List Variables):
-	Tweak page-breaks.
-	(Sets And Lists): Convert inforef to xref.
-
-	* text.texi (Auto Filling): Don't mention Emacs 19.
-
-	* commands.texi (Event Input Misc): Don't mention unread-command-char.
-	* numbers.texi (Predicates on Numbers): Don't mention Emacs 18.
-
-	* objects.texi (Process Type, Overlay Type): Tweak page-breaks.
-
-	* intro.texi (Caveats): Copyedit.
-	(Lisp History): Convert inforef to xref.
-	(Lisp History, Printing Notation, Version Info): Improve page-breaks.
-
-	* elisp.texi (DATE): Forgot to change the month in 2012-04-21 change.
-
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* two.el: Remove; unused since creation of two-volume.make.

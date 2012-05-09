@@ -3,47 +3,6 @@
 	* frames.texi (Mouse References, Mouse Commands): Fix index
 	entries (Bug#11362).
 
-2012-05-09  Glenn Morris  <rgm@gnu.org>
-
-	* custom.texi (Customization Groups, Custom Themes, Examining):
-	Improve page breaks.
-
-	* rmail.texi (Rmail Display): Use example rather than smallexample.
-
-	* calendar.texi: Convert inforefs to refs.
-
-	* dired.texi (Dired Enter): Improve page break.
-
-	* abbrevs.texi (Abbrev Concepts): Copyedits.
-
-	* maintaining.texi (Registering, Tag Syntax):
-	Tweak line and page breaks.
-
-	* programs.texi (Programs, Electric C): Copyedits.
-	(Program Modes): Add xref to Fortran.
-	(Left Margin Paren): Remove what was (oddly enough) the only use
-	of defvar in the entire Emacs manual.
-	(Hungry Delete): Remove footnote about ancient Emacs version.
-	(Other C Commands): Use example rather than smallexample.
-
-	* text.texi (Pages, Filling, Foldout, Org Mode, HTML Mode)
-	(Nroff Mode, Enriched Indentation, Table Rows and Columns):
-	Tweak line and page breaks.
-
-	* modes.texi (Major Modes, Minor Modes): Reword to improve page-breaks.
-	(Major Modes): Use example rather than smallexample.
-
-	* mule.texi (Output Coding): Reword to improve page-breaks.
-
-	* frames.texi (Fonts): Tweak line and page breaks.
-	Use example rather than smallexample.  Change cross-reference.
-	(Text-Only Mouse): Fix xref.
-
-	* buffers.texi (Buffers, Kill Buffer, Several Buffers)
-	(Indirect Buffers): Tweak line- and page-breaks.
-
-	* fixit.texi (Fixit, Undo): Reword to improve page-breaks.
-
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Customization Groups, Custom Themes, Examining):

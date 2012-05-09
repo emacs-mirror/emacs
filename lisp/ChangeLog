@@ -27,11 +27,6 @@
 	shell-delimiter-argument-list (bug#11348).
 	(shell-parse-pcomplete-arguments): Obey pcomplete-arg-quote-list.
 
-2012-05-09  Chong Yidong  <cyd@gnu.org>
-
-	* select.el (xselect--encode-string): Always use utf-8 for TEXT on
-	Nextstep.
-
 2012-05-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/rst.el: Silence byte-compiler warnings.
