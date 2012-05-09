@@ -1,3 +1,7 @@
+2012-05-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eshell/esh-cmd.el (eshell-debug-command): Fix typo in previous change.
+
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (auto-mode-alist): Treat ".make" like ".mk".
