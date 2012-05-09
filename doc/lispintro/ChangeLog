@@ -1,12 +1,3 @@
-2012-05-09  Glenn Morris  <rgm@gnu.org>
-
-	* emacs-lisp-intro.texi (Making Errors): Don't mention Emacs 20.
-	(Void Function, Wrong Type of Argument, Recursion with list)
-	(Simple Extension): Assume a non-ancient Emacs.
-	(Void Variable, Switching Buffers): Improve page breaks.
-
-	* emacs-lisp-intro.texi: Update GNU Press contact details.
-
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (Making Errors): Don't mention Emacs 20.
