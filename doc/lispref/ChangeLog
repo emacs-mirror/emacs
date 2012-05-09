@@ -1,5 +1,9 @@
 2012-05-09  Glenn Morris  <rgm@gnu.org>
 
+	* vol1.texi, vol2.texi: Remove files.
+	* elisp.texi: Add VOL1,2 conditionals equivalent to vol1,2.texi
+	* two-volume.make: Use elisp.texi as input rather than vol1,2.texi.
+
 	* Makefile.in (clean, mostlyclean): Add some more vol1/2 items.
 
 	* two-volume.make (emacsdir): New.
