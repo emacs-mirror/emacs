@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2012  Free Software Foundation, Inc.
+# Copyright (C) 2007-2012 Free Software Foundation, Inc.
 # See end for copying conditions.
 
 # although it would be nice to use tex rather than pdftex to avoid
@@ -6,8 +6,9 @@
 # existing, etc., dvips | ps2pdf doesn't preserve the page size.
 # Instead of creating a special dvips config file, put up with the warnings.
 texinfodir=../misc
+emacsdir=../emacs
 
-tex = TEXINPUTS=".:$(texinfodir):${TEXINPUTS}" pdftex -interaction=nonstopmode
+tex = TEXINPUTS=".:$(texinfodir):${emacsdir}:${TEXINPUTS}" pdftex -interaction=nonstopmode
 
 all: vol1.pdf vol2.pdf
 

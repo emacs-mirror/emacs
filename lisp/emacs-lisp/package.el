@@ -469,8 +469,11 @@ NAME and VERSION are both strings."
 Optional arg MIN-VERSION, if non-nil, should be a version list
 specifying the minimum acceptable version."
   (require 'finder-inf nil t) ; For `package--builtins'.
-  (let ((elt (assq package package--builtins)))
-    (and elt (version-list-<= min-version (package-desc-vers (cdr elt))))))
+  (if (eq package 'emacs)
+      (version-list-<= min-version (version-to-list emacs-version))
+    (let ((elt (assq package package--builtins)))
+      (and elt (version-list-<= min-version
+				(package-desc-vers (cdr elt)))))))
 
 ;; This function goes ahead and activates a newer version of a package
 ;; if an older one was already activated.  This is not ideal; we'd at
@@ -943,7 +946,7 @@ If the buffer does not contain a conforming package, signal an
 error.  If there is a package, narrow the buffer to the file's
 boundaries."
   (goto-char (point-min))
-  (unless (re-search-forward "^;;; \\([^ ]*\\)\\.el --- \\(.*\\)$" nil t)
+  (unless (re-search-forward "^;;; \\([^ ]*\\)\\.el ---[ \t]*\\(.*?\\)[ \t]*\\(-\\*-.*-\\*-[ \t]*\\)?$" nil t)
     (error "Packages lacks a file header"))
   (let ((file-name (match-string-no-properties 1))
 	(desc      (match-string-no-properties 2))

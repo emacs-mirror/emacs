@@ -975,8 +975,8 @@ unless @code{edebug-continue-kbd-macro} is non-@code{nil}.
 @c needs an xref to be on just one line.
 When Edebug needs to display something (e.g., in trace mode), it saves
 the current window configuration from ``outside'' Edebug
-(@pxref{Window Configurations}).  When you exit Edebug (by continuing
-the program), it restores the previous window configuration.
+(@pxref{Window Configurations}).  When you exit Edebug, it restores
+the previous window configuration.
 
 Emacs redisplays only when it pauses.  Usually, when you continue
 execution, the program re-enters Edebug at a breakpoint or after

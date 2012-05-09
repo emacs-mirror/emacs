@@ -3629,19 +3629,21 @@ FILE is the name of the file holding the variables to apply.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    ;; Errors reading the file are not very informative.
-    ;; Eg just "Error: (end-of-file)" does not give any clue that the
-    ;; problem is related to dir-locals.
-    (with-demoted-errors
-      (insert-file-contents file)
-      (let* ((dir-name (file-name-directory file))
-	     (class-name (intern dir-name))
-	     (variables (let ((read-circle nil))
-			  (read (current-buffer)))))
-	(dir-locals-set-class-variables class-name variables)
-	(dir-locals-set-directory-class dir-name class-name
-					(nth 5 (file-attributes file)))
-	class-name))))
+    ;; This is with-demoted-errors, but we want to mention dir-locals
+    ;; in any error message.
+    (let (err)
+      (condition-case err
+	  (progn
+	    (insert-file-contents file)
+	    (let* ((dir-name (file-name-directory file))
+		   (class-name (intern dir-name))
+		   (variables (let ((read-circle nil))
+				(read (current-buffer)))))
+	      (dir-locals-set-class-variables class-name variables)
+	      (dir-locals-set-directory-class dir-name class-name
+					      (nth 5 (file-attributes file)))
+	      class-name))
+	(error (message "Error reading dir-locals: %S" err) nil)))))
 
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.

@@ -1,3 +1,37 @@
+2012-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): Fix last change (bug#11348).
+
+2012-05-09  Chong Yidong  <cyd@gnu.org>
+
+	* ansi-color.el (ansi-color-process-output): Check for validity of
+	comint-last-output-start before using it.  This avoids a bad
+	interaction with gdb-mi's input/output buffer.
+
+2012-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-read-from-file):
+	Mention dir-locals in any error message.
+
+2012-05-09  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/package.el (package-built-in-p): Handle the `emacs'
+	package (Bug#11410).
+
+	* emacs-lisp/package.el (package-buffer-info): Avoid putting local
+	variables into description.
+
+2012-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): Set pcomplete-arg-quote-list like
+	shell-delimiter-argument-list (bug#11348).
+	(shell-parse-pcomplete-arguments): Obey pcomplete-arg-quote-list.
+
+2012-05-09  Chong Yidong  <cyd@gnu.org>
+
+	* select.el (xselect--encode-string): Always use utf-8 for TEXT on
+	Nextstep.
+
 2012-05-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/rst.el: Silence byte-compiler warnings.
