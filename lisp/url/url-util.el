@@ -343,7 +343,10 @@ This is taken from RFC 3986 (section 2.3).")
 (defconst url-encoding-table
   (let ((vec (make-vector 256 nil)))
     (dotimes (byte 256)
-      (aset vec byte (format "%%%02x" byte)))
+      ;; RFC 3986 (Section 2.1): For consistency, URI producers and
+      ;; normalizers should use uppercase hexadecimal digits for all
+      ;; percent-encodings.
+      (aset vec byte (format "%%%02X" byte)))
     vec)
   "Vector translating bytes to URI-encoded %-sequences.")
 
@@ -362,7 +365,7 @@ result can be passed as the second arg to `url-hexify-string'."
 If STRING is multibyte, it is first converted to a utf-8 byte
 string.  Each byte corresponding to an allowed character is left
 as-is, while all other bytes are converted to a three-character
-string: \"%\" followed by two lowercase hex digits.
+string: \"%\" followed by two upper-case hex digits.
 
 The allowed characters are specified by ALLOWED-CHARS.  If this
 argument is nil, the list `url-unreserved-chars' determines the

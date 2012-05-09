@@ -3,7 +3,7 @@
 	* url-util.el (url-encode-url): New function for URL quoting.
 	(url-encoding-table, url-host-allowed-chars)
 	(url-path-allowed-chars): New constants.
-	(url--allowed-chars): New helper function.
+	(url--allowed-chars): New helper function.  Use upper-case.
 	(url-hexify-string): Use them.
 
 	* url-parse.el: Improve RFC 3986 conformance.
