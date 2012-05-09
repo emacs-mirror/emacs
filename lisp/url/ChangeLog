@@ -1,3 +1,25 @@
+2012-05-09  Chong Yidong  <cyd@gnu.org>
+
+	* url-util.el (url-encode-url): New function for URL quoting.
+	(url-encoding-table, url-host-allowed-chars)
+	(url-path-allowed-chars): New constants.
+	(url--allowed-chars): New helper function.
+	(url-hexify-string): Use them.
+
+	* url-parse.el: Improve RFC 3986 conformance.
+	(url-generic-parse-url): Do not populate the ATTRIBUTES slot,
+	since this is not reliable for general RFC 3986 URIs.  Keep the
+	whole path and query inside the FILENAME slot.  Improve docstring.
+	(url-recreate-url-attributes): Mark as obsolete.
+	(url-recreate-url): Handle missing scheme and userinfo.
+
+	* url-http.el (url-http-create-request): Ignore obsolete
+	attributes slot of url-object.
+
+	* url-vars.el (url-nonrelative-link): Make the regexp stricter.
+
+	* url.el (url-retrieve-internal): Use url-encode-url (Bug#7017).
+
 2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url.el (url-retrieve-synchronously): Replace lexical-let by

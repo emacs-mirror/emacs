@@ -304,8 +304,12 @@ undefined."
   :type '(choice (const :tag "None" :value nil) string)
   :group 'url)
 
+;; From RFC3986: Scheme names consist of a sequence of characters
+;; beginning with a letter and followed by any combination of letters,
+;; digits, plus ("+"), period ("."), or hyphen ("-").
+
 (defvar url-nonrelative-link
-  "\\`\\([-a-zA-Z0-9+.]+:\\)"
+  "\\`\\([a-zA-Z][-a-zA-Z0-9+.]*:\\)"
   "A regular expression that will match an absolute URL.")
 
 (defcustom url-max-redirections 30
