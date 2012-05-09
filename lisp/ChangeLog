@@ -1,3 +1,8 @@
+2012-05-09  Chong Yidong  <cyd@gnu.org>
+
+	* net/browse-url.el (browse-url-url-encode-chars): Use upper-case.
+	(browse-url-encode-url): Encode spaces and quotes (Bug#6300).
+
 2012-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* shell.el (shell-completion-vars): Fix last change (bug#11348).
