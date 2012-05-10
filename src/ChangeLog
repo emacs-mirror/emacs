@@ -1,3 +1,8 @@
+2012-05-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/gmalloc.$(O), $(BLD)/w32menu.$(O)):
+	Update dependencies.
+
 2012-05-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xgselect.c (xg_select): Put maxfds+1 into a var.
