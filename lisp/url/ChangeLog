@@ -1,3 +1,16 @@
+2012-05-10  Chong Yidong  <cyd@gnu.org>
+
+	* url-parse.el (url-path-and-query, url-port-if-non-default): New
+	functions.
+	(url-generic-parse-url): Don't set the portspec slot if it is not
+	specified; that is what `url-port' is for.
+	(url-port): Only require the scheme to be specified to call
+	url-scheme-get-property.
+
+	* url-util.el (url-encode-url): Use url-path-and-query.
+
+	* url-vars.el (url-mime-charset-string): Load mm-util lazily.
+
 2012-05-09  Chong Yidong  <cyd@gnu.org>
 
 	* url-util.el (url-encode-url): New function for URL quoting.
@@ -12,6 +25,7 @@
 	whole path and query inside the FILENAME slot.  Improve docstring.
 	(url-recreate-url-attributes): Mark as obsolete.
 	(url-recreate-url): Handle missing scheme and userinfo.
+	(url-path-and-query): New function.
 
 	* url-http.el (url-http-create-request): Ignore obsolete
 	attributes slot of url-object.

@@ -418,31 +418,26 @@ should return it unchanged."
 	 (user (url-user obj))
 	 (pass (url-password obj))
 	 (host (url-host obj))
-	 (file (url-filename obj))
-	 (frag (url-target obj))
-	 path query)
+	 (path-and-query (url-path-and-query obj))
+	 (path  (car path-and-query))
+	 (query (cdr path-and-query))
+	 (frag (url-target obj)))
     (if user
 	(setf (url-user obj) (url-hexify-string user)))
     (if pass
 	(setf (url-password obj) (url-hexify-string pass)))
-    (when host
-      ;; No special encoding for IPv6 literals.
-      (unless (string-match "\\`\\[.*\\]\\'" host)
-	(setf (url-host obj)
-	      (url-hexify-string host url-host-allowed-chars))))
-    ;; Split FILENAME slot into its PATH and QUERY components, and
-    ;; encode them separately.  The PATH component can contain
-    ;; unreserved characters, %-encodings, and /:@!$&'()*+,;=
-    (when file
-      (if (string-match "\\?" file)
-	  (setq path  (substring file 0 (match-beginning 0))
-		query (substring file (match-end 0)))
-	(setq path file))
-      (setq path (url-hexify-string path url-path-allowed-chars))
-      (if query
-	  (setq query (url-hexify-string query url-query-allowed-chars)))
-      (setf (url-filename obj)
-	    (if query (concat path "?" query) path)))
+    ;; No special encoding for IPv6 literals.
+    (and host
+	 (not (string-match "\\`\\[.*\\]\\'" host))
+	 (setf (url-host obj)
+	       (url-hexify-string host url-host-allowed-chars)))
+
+    (if path
+	(setq path (url-hexify-string path url-path-allowed-chars)))
+    (if query
+	(setq query (url-hexify-string query url-query-allowed-chars)))
+    (setf (url-filename obj) (if query (concat path "?" query) path))
+
     (if frag
 	(setf (url-target obj)
 	      (url-hexify-string frag url-query-allowed-chars)))

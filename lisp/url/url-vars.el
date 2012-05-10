@@ -21,8 +21,6 @@
 
 ;;; Code:
 
-(require 'mm-util)
-
 (defconst url-version "Emacs"
   "Version number of URL package.")
 
@@ -221,6 +219,7 @@ Should be an assoc list of headers/contents.")
 (defun url-mime-charset-string ()
   "Generate a list of preferred MIME charsets for HTTP requests.
 Generated according to current coding system priorities."
+  (require 'mm-util)
   (if (fboundp 'sort-coding-systems)
       (let ((ordered (sort-coding-systems
 		      (let (accum)

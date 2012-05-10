@@ -39,22 +39,52 @@
   silent (use-cookies t))
 
 (defsubst url-port (urlobj)
+  "Return the port number for the URL specified by URLOBJ."
   (or (url-portspec urlobj)
-      (if (url-fullness urlobj)
+      (if (url-type urlobj)
           (url-scheme-get-property (url-type urlobj) 'default-port))))
 
 (defsetf url-port (urlobj) (port) `(setf (url-portspec ,urlobj) ,port))
 
+(defun url-path-and-query (urlobj)
+  "Return the path and query components of URLOBJ.
+These two components are store together in the FILENAME slot of
+the object.  The return value of this function is (PATH . QUERY),
+where each of PATH and QUERY are strings or nil."
+  (let ((name (url-filename urlobj))
+	path query)
+    (when name
+      (if (string-match "\\?" name)
+	  (setq path  (substring name 0 (match-beginning 0))
+		query (substring name (match-end 0)))
+	(setq path name)))
+    (if (equal path "") (setq path nil))
+    (if (equal query "") (setq query nil))
+    (cons path query)))
+
+(defun url-port-if-non-default (urlobj)
+  "Return the port number specified by URLOBJ, if it is not the default.
+If the specified port number is the default, return nil."
+  (let ((port (url-portspec urlobj))
+	type)
+    (and port
+	 (or (null (setq type (url-type urlobj)))
+	     (not (equal port (url-scheme-get-property type 'default-port))))
+	 port)))
+
 ;;;###autoload
 (defun url-recreate-url (urlobj)
   "Recreate a URL string from the parsed URLOBJ."
-  (let ((type (url-type urlobj))
-	(user (url-user urlobj))
-	(pass (url-password urlobj))
-	(host (url-host urlobj))
-	(port (url-portspec urlobj))
-	(file (url-filename urlobj))
-	(frag (url-target urlobj)))
+  (let* ((type (url-type urlobj))
+	 (user (url-user urlobj))
+	 (pass (url-password urlobj))
+	 (host (url-host urlobj))
+	 ;; RFC 3986: "omit the port component and its : delimiter if
+	 ;; port is empty or if its value would be the same as that of
+	 ;; the scheme's default."
+	 (port (url-port-if-non-default urlobj))
+	 (file (url-filename urlobj))
+	 (frag (url-target urlobj)))
     (concat (if type (concat type ":"))
 	    (if (url-fullness urlobj) "//")
 	    (if (or user pass)
@@ -62,15 +92,7 @@
 			(if pass (concat ":" pass))
 			"@"))
 	    host
-	    ;; RFC 3986: "omit the port component and its : delimiter
-	    ;; if port is empty or if its value would be the same as
-	    ;; that of the scheme's default."
-	    (and port
-		 (or (null type)
-		     (not (equal port
-				 (url-scheme-get-property type
-							  'default-port))))
-		 (format ":%d" (url-port urlobj)))
+	    (if port (format ":%d" (url-port urlobj)))
 	    (or file "/")
 	    (if frag (concat "#" frag)))))
 
@@ -102,8 +124,8 @@ TARGET   is the fragment identifier component (used to refer to a
 ATTRIBUTES is nil; this slot originally stored the attribute and
          value alists for IMAP URIs, but this feature was removed
          since it conflicts with RFC 3986.
-FULLNESS is non-nil iff the authority component of the URI is
-         present.
+FULLNESS is non-nil iff the hierarchical sequence component of
+         the URL starts with two slashes, \"//\".
 
 The parser follows RFC 3986, except that it also tries to handle
 URIs that are not fully specified (e.g. lacking TYPE), and it
@@ -173,10 +195,6 @@ parses to
 		  (port
 		   (setq port (string-to-number port))))
             (setq host (downcase host)))
-
-          (and (null port)
-	       scheme
-	       (setq port (url-scheme-get-property scheme 'default-port)))
 
 	  ;; Now point is on the / ? or # which terminates the
 	  ;; authority, or at the end of the URI, or (if there is no

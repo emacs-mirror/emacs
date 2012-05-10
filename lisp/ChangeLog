@@ -1,3 +1,17 @@
+2012-05-10  Chong Yidong  <cyd@gnu.org>
+
+	* ffap.el (ffap-url-unwrap-local): Make it work right (Bug#9131).
+	Use url-generic-parse-url, and handle host names and Windows
+	filenames properly.
+	(ffap-url-unwrap-remote): Use url-generic-parse-url.
+	(ffap-url-unwrap-remote): Accept list values, specifying a list of
+	URL schemes to work on.
+	(ffap--toggle-read-only): New function.
+	(ffap-read-only, ffap-read-only-other-window)
+	(ffap-read-only-other-frame): Use it.
+	(ffap-fixup-url): Don't check ffap-ftp-regexp, since it is not
+	necessary for ffap-url-unwrap-remote.
+
 2012-05-10  Dave Abrahams  <dave@boostpro.com>
 
 	* cus-start.el (create-lockfiles): Add it.
