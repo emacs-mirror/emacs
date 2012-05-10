@@ -69,6 +69,7 @@ specifying any file to visit or expression to evaluate.
 ** You can prevent the creation of lock files by setting `create-lockfiles'
 to nil.  Use with caution, and only if you really need to.
 
++++
 ** Using "unibyte: t" in Lisp source files is obsolete.
 Use "coding: raw-text" instead.
 
