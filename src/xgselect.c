@@ -41,7 +41,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   GMainContext *context = g_main_context_default ();
   int have_wfds = wfds != NULL;
   int n_gfds = 0, our_tmo = 0, retval = 0, our_fds = 0;
-  int i, nfds, tmo_in_millisec;
+  int i, nfds, fds_lim, tmo_in_millisec;
 
   if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));
   else FD_ZERO (&all_rfds);
@@ -97,14 +97,14 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       if (our_tmo) tmop = &tmo;
     }
 
-  nfds = select (max_fds+1, &all_rfds, have_wfds ? &all_wfds : NULL,
-                 efds, tmop);
+  fds_lim = max_fds + 1;
+  nfds = select (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL, efds, tmop);
 
   if (nfds < 0)
     retval = nfds;
   else if (nfds > 0)
     {
-      for (i = 0; i < max_fds+1; ++i)
+      for (i = 0; i < fds_lim; ++i)
         {
           if (FD_ISSET (i, &all_rfds))
             {

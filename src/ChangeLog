@@ -1,5 +1,8 @@
 2012-05-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xgselect.c (xg_select): Put maxfds+1 into a var.
+	This is slightly clearer, and pacifies Ubuntu 12.04 gcc.
+
 	* sound.c (DEFAULT_ALSA_SOUND_DEVICE): Define only if HAVE_ALSA.
 
 2012-05-10  Dave Abrahams  <dave@boostpro.com>
