@@ -1,3 +1,11 @@
+2012-05-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	etags: pacify gcc -Wstack-protector on Ubuntu 12.04 x86
+	* etags.c: Include <stdarg.h>.
+	(error): Declare as printf-style, as that's what it really is.
+	All uses changed.
+	(add_regex): Use single char rather than array-of-one char.
+
 2012-05-05  Jim Meyering  <meyering@redhat.com>
 
 	* lib-src/pop.c (pop_stat, pop_list, pop_multi_first, pop_last):
