@@ -35,6 +35,7 @@ srcdir=@srcdir@
 ns_appresdir=@ns_appresdir@
 
 # Where to install LEIM files.
+# Should be $ns_appresdir/leim if $ns_appresdir is set.
 INSTALLDIR=$(DESTDIR)${datadir}/emacs/${version}/leim
 
 GZIP_PROG = @GZIP_PROG@
@@ -174,8 +175,6 @@ compile-main: ${TIT_MISC}
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
 
-MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
-
 install: all
 	if [ ! -d ${INSTALLDIR} ] ; then \
           umask 022; ${srcdir}/../build-aux/install-sh -d ${INSTALLDIR}; \
@@ -216,9 +215,9 @@ install: all
 	done ; \
 	find ${INSTALLDIR} -exec chown $${installuser} '{}' ';'
 	if [ "${ns_appresdir}" != "" ]; then \
-	  ( cd ${ns_appresdir} ; \
-	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
-	    rm -fr share ) ; \
+	  rm -rf ${ns_appresdir}/leim; \
+	  mv ${INSTALLDIR} ${ns_appresdir} || exit 1; \
+	  rmdir -p ${ns_appresdir}/share/emacs/${version} 2>/dev/null || true; \
 	else true ; fi
 
 clean mostlyclean:
