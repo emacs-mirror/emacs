@@ -1,3 +1,7 @@
+2012-05-10  Dave Abrahams  <dave@boostpro.com>
+
+	* cus-start.el (create-lockfiles): Add it.
+
 2012-05-09  Chong Yidong  <cyd@gnu.org>
 
 	* net/browse-url.el (browse-url-url-encode-chars): Use upper-case.

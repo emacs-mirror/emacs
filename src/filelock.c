@@ -550,6 +550,10 @@ lock_file (Lisp_Object fn)
   struct gcpro gcpro1;
   USE_SAFE_ALLOCA;
 
+  /* Don't do locking if the user has opted out.  */
+  if (! create_lockfiles)
+    return;
+
   /* Don't do locking while dumping Emacs.
      Uncompressing wtmp files uses call-process, which does not work
      in an uninitialized Emacs.  */
@@ -721,6 +725,10 @@ syms_of_filelock (void)
   DEFVAR_LISP ("temporary-file-directory", Vtemporary_file_directory,
 	       doc: /* The directory for writing temporary files.  */);
   Vtemporary_file_directory = Qnil;
+
+  DEFVAR_BOOL ("create-lockfiles", create_lockfiles,
+	       doc: /* Non-nil means use lockfiles to avoid editing collisions.  */);
+  create_lockfiles = 1;
 
 #ifdef CLASH_DETECTION
   defsubr (&Sunlock_buffer);

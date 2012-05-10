@@ -1,3 +1,8 @@
+2012-05-10  Dave Abrahams  <dave@boostpro.com>
+
+	* filelock.c (syms_of_filelock): New boolean create-lockfiles.
+	(lock_file): If create_lockfiles is 0, do nothing.  (Bug#11227)
+
 2012-05-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_registered_buses): New internal Lisp object.
