@@ -739,6 +739,11 @@ directory.)  Emacs removes the lock when you save the changes.  The
 idea is that the file is locked whenever an Emacs buffer visiting it
 has unsaved changes.
 
+@vindex create-lockfiles
+  You can prevent the creation of lock files by setting the variable
+@code{create-lockfiles} to @code{nil}.  @strong{Caution:} by
+doing so you will lose the benefits that this feature provides.
+
 @cindex collision
   If you begin to modify the buffer while the visited file is locked by
 someone else, this constitutes a @dfn{collision}.  When Emacs detects a

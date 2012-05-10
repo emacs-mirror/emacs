@@ -1,3 +1,7 @@
+2012-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Locks): Mention create-lockfiles option.
+
 2012-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* vol1.texi, vol2.texi: Remove files.

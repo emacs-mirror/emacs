@@ -726,7 +726,12 @@ system does not support locking.
 
   File locking is not supported on some systems.  On systems that do not
 support it, the functions @code{lock-buffer}, @code{unlock-buffer} and
-@code{file-locked-p} do nothing and return @code{nil}.
+@code{file-locked-p} do nothing and return @code{nil}.  It is also
+possible to disable locking, by setting the variable @code{create-lockfiles}.
+
+@defopt create-lockfiles
+If this variable is @code{nil}, Emacs does not lock files.
+@end defopt
 
 @defun ask-user-about-lock file other-user
 This function is called when the user tries to modify @var{file}, but it
