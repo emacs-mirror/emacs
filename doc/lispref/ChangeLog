@@ -2,6 +2,7 @@
 
 	* loading.texi (Loading Non-ASCII): Replace the obsolete "unibyte: t"
 	with "coding: raw-text".
+	Concept of multibyte sessions no longer exists.
 
 	* files.texi (File Locks): Mention create-lockfiles option.
 
