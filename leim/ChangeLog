@@ -1,5 +1,11 @@
 2012-05-10  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in: Install self-contained ns files directly to
+	their final destination.
+	(install_prefix): New.
+	(LEIM_INSTALLDIR): New, set by configure.
+	(install): Use LEIM_INSTALLDIR.
+
 	* Makefile.in (MV_DIRS): Remove.
 	(install): Simplify the --with-ns case.
 

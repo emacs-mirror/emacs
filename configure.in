@@ -1636,6 +1636,7 @@ fail;
 fi
 AC_SUBST(TEMACS_LDFLAGS2)
 
+LEIM_INSTALLDIR="\${install_prefix}/leim"
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
@@ -1651,6 +1652,7 @@ if test "${HAVE_NS}" = yes; then
      prefix=${ns_appresdir}
      exec_prefix=${ns_appbindir}
      libexecdir=${ns_appbindir}/libexec
+     LEIM_INSTALLDIR="\${ns_appresdir}/leim"
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
@@ -1658,6 +1660,7 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+AC_SUBST(LEIM_INSTALLDIR)
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
 AC_SUBST(LIB_STANDARD)
