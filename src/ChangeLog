@@ -1,3 +1,7 @@
+2012-05-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sound.c (DEFAULT_ALSA_SOUND_DEVICE): Define only if HAVE_ALSA.
+
 2012-05-10  Dave Abrahams  <dave@boostpro.com>
 
 	* filelock.c (syms_of_filelock): New boolean create-lockfiles.

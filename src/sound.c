@@ -124,9 +124,6 @@ static int parse_sound (Lisp_Object, Lisp_Object *);
 #ifndef DEFAULT_SOUND_DEVICE
 #define DEFAULT_SOUND_DEVICE "/dev/dsp"
 #endif
-#ifndef DEFAULT_ALSA_SOUND_DEVICE
-#define DEFAULT_ALSA_SOUND_DEVICE "default"
-#endif
 
 
 /* Structure forward declarations.  */
@@ -907,6 +904,10 @@ vox_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
  ***********************************************************************/
 
 /* This driver is available on GNU/Linux. */
+
+#ifndef DEFAULT_ALSA_SOUND_DEVICE
+#define DEFAULT_ALSA_SOUND_DEVICE "default"
+#endif
 
 static void
 alsa_sound_perror (const char *msg, int err)
