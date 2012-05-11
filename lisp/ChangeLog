@@ -1,5 +1,26 @@
 2012-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el: Use post-self-insert-hook&electric-pair-mode.
+	Provide SMIE-based indentation (not enabled by default yet).
+	(sh-mode-map): Don't bind electric keys.
+	Use electric-pair-mode instead of skeleton-pair.
+	(sh-assignment-regexp): Fit within 80 columns.
+	(sh-indent-supported): Specify actual shell name instead of boolean.
+	(sh--maybe-here-document): New fun, from sh-maybe-here-document.
+	(sh-maybe-here-document): Use it.  Make obsolete.
+	(sh-electric-here-document-mode) New minor mode.
+	(sh-mode): Use it.  Don't set sh-indent-supported-here here.
+	(sh-smie-sh-grammar, sh-smie--sh-operators, sh-smie--sh-operators-re)
+	(sh-smie--sh-operators-back-re, sh-indent-after-continuation)
+	(sh-smie-rc-grammar, sh-use-smie): New vars.
+	(sh-smie--keyword-p, sh-smie--newline-semi-p, sh-smie--sh-keyword-p)
+	(sh-smie-sh-forward-token, sh-smie--looking-back-at-continuation-p)
+	(sh-smie-sh-backward-token, sh-smie--continuation-start-indent)
+	(sh-smie-sh-rules, sh-smie-rc-rules, sh-smie--sh-keyword-in-p)
+	(sh-smie--rc-after-special-arg-p, sh-smie-rc-backward-token)
+	(sh-smie-sh-rules, sh-smie--rc-newline-semi-p): New functions.
+	(sh-set-shell): Use smie-setup if requested.
+
 	* term.el (term-set-escape-char): Properly set term-escape-char.
 	See http://stackoverflow.com/questions/10524656.
 

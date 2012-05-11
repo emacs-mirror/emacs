@@ -90,6 +90,11 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** `sh-script'
+*** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
+*** `sh-electric-here-document-mode' now controls auto-insertion of here-docs.
+*** `sh-use-smie' lets you choose a new indentation and navigation code.
+
 ** reStructuredText mode
 
 *** Major merge with upstream development.
