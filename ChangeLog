@@ -2,6 +2,7 @@
 
 	* Makefile.in (install-arch-indep): There are no more Makefile.c files.
 	Use INSTALL_DATA for the DOC file.
+	Remove dead code for ./lisp that never executes.
 
 2012-05-10  Glenn Morris  <rgm@gnu.org>
 

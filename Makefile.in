@@ -588,19 +588,6 @@ install-arch-indep: mkdir info install-etc
 	    if test "`echo DOC-*`" != "DOC-*"; then rm -f DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
-	if [ -r ./lisp ] \
-	   && [ -r ./lisp/simple.el ] \
-	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd $(DESTDIR)${lispdir}; /bin/pwd)` ] \
-	   && [ x`(cd ${srcdir}/lisp; /bin/pwd)` != x`(cd ./lisp; /bin/pwd)` ]; \
-	then \
-	   echo "Copying lisp/*.el and lisp/*.elc to $(DESTDIR)${lispdir} ..." ; \
-	   (cd lisp; tar -chf - *.el *.elc) \
-	     |(cd $(DESTDIR)${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(DESTDIR)${lispdir}; \
-	    $(set_installuser); \
-	    find . -exec chown $${installuser} {} ';') ; \
-	else true; fi
-	-unset CDPATH; \
 	if [ -n "${GZIP_PROG}" ]; \
 	then \
 	   echo "Compressing *.el ..." ; \
