@@ -876,18 +876,21 @@ is buffer-local."
 
 ;; Set up term-raw-map, etc.
 
-(defun term-set-escape-char (c)
+(defun term-set-escape-char (key)
   "Change `term-escape-char' and keymaps that depend on it."
   (when term-escape-char
+    ;; Undo previous term-set-escape-char.
     (define-key term-raw-map term-escape-char 'term-send-raw))
-  (setq c (make-string 1 c))
-  (define-key term-raw-map c term-raw-escape-map)
+  (setq term-escape-char (vector key))
+  (define-key term-raw-map term-escape-char term-raw-escape-map)
   ;; Define standard bindings in term-raw-escape-map
   (define-key term-raw-escape-map "\C-v"
     (lookup-key (current-global-map) "\C-v"))
   (define-key term-raw-escape-map "\C-u"
     (lookup-key (current-global-map) "\C-u"))
-  (define-key term-raw-escape-map c 'term-send-raw)
+  ;; FIXME: If we later call term-set-escape-char again with another key,
+  ;; we should undo this binding.
+  (define-key term-raw-escape-map term-escape-char 'term-send-raw)
   (define-key term-raw-escape-map "\C-q" 'term-pager-toggle)
   ;; The keybinding for term-char-mode is needed by the menubar code.
   (define-key term-raw-escape-map "\C-k" 'term-char-mode)

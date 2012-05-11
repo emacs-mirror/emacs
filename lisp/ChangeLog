@@ -1,3 +1,8 @@
+2012-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.el (term-set-escape-char): Properly set term-escape-char.
+	See http://stackoverflow.com/questions/10524656.
+
 2012-05-10  Chong Yidong  <cyd@gnu.org>
 
 	* ffap.el (ffap-url-unwrap-local): Make it work right (Bug#9131).
