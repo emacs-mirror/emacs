@@ -1,5 +1,19 @@
 2012-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/prolog.el: Use SMIE.  Cleanup regexp setup.
+	(prolog-upper-case-string, prolog-lower-case-string)
+	(prolog-atom-char-regexp, prolog-atom-regexp): Initialize in defconst.
+	(prolog-use-smie, prolog-smie-grammar): New vars.
+	(prolog-smie-forward-token, prolog-smie-backward-token)
+	(prolog-smie-rules): New funs.
+	(prolog-comment-indent): Remove.
+	(prolog-mode-variables): Use default comment indentation instead.
+	Setup SMIE.
+	(prolog-build-case-strings, prolog-set-atom-regexps): Remove.
+	(prolog-mode): Don't call them any more.
+	(prolog-electric-colon, prolog-electric-dash)
+	(prolog-edit-menu-insert-move): Use indent-according-to-mode.
+
 	* dabbrev.el (dabbrev-expand): Make "no expansion found" a user-error.
 
 	* minibuffer.el (completion--twq-all): Again, allow case differences.
