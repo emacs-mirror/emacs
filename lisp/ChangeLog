@@ -1,5 +1,10 @@
 2012-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term.el: Move keymap initialization code to be more idiomatic.
+	(term-signals-menu, term-mode-map, term-raw-map, term-raw-escape-map)
+	(term-terminal-menu): Move initialization into declaration.
+	(term-escape-char): Let the user set it in her .emacs.
+
 	* progmodes/sh-script.el: Use post-self-insert-hook&electric-pair-mode.
 	Provide SMIE-based indentation (not enabled by default yet).
 	(sh-mode-map): Don't bind electric keys.
