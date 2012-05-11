@@ -1,3 +1,13 @@
+2012-05-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_single_display_spec): Return 1 for left-margin
+	and right-margin display specs even if the spec is invalid or we
+	are on a TTY, and thus unable to display on the fringes.  That's
+	because the text with the property will not be displayed anyway,
+	so we need to signal to the caller that this is a "replacing"
+	display spec.  This fixes display when the spec is invalid or we
+	are on a TTY.
+
 2012-05-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* unexaix.c (make_hdr): Fix typo in prototype.

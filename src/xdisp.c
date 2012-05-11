@@ -4681,10 +4681,10 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  if (!FRAME_WINDOW_P (it->f))
 	    /* If we return here, POSITION has been advanced
 	       across the text with this property.  */
-	    return 0;
+	    return 1;
 	}
       else if (!frame_window_p)
-	return 0;
+	return 1;
 
 #ifdef HAVE_WINDOW_SYSTEM
       value = XCAR (XCDR (spec));
@@ -4692,7 +4692,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  || !(fringe_bitmap = lookup_fringe_bitmap (value)))
 	/* If we return here, POSITION has been advanced
 	   across the text with this property.  */
-	return 0;
+	return 1;
 
       if (it)
 	{
