@@ -455,6 +455,8 @@ MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
 ### Install the executables that were compiled specifically for this machine.
 ### It would be nice to do something for a parallel make
 ### to ensure that install-arch-indep finishes before this starts.
+### (TODO Why would it be nice?  Why not just make this depend on
+### install-arch-indep then?)
 install-arch-dep: mkdir
 	(cd lib-src; \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
@@ -579,11 +581,10 @@ install-arch-indep: mkdir info install-etc
 	     docfile="DOC"; \
 	   fi; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${docdir} ..." ; \
-	   (cd ./etc; tar -chf - $${docfile}) \
-	     |(cd $(DESTDIR)${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
+	   ${INSTALL_DATA} etc/$${docfile} $(DESTDIR)${docdir}/$${docfile}; \
 	   (cd $(DESTDIR)$(docdir); \
 	    $(set_installuser); \
-	    chown $${installuser} DOC*; chmod a+r DOC*; \
+	    chown $${installuser} DOC*; \
 	    if test "`echo DOC-*`" != "DOC-*"; then rm -f DOC; fi); \
 	else true; fi
 	-unset CDPATH; \

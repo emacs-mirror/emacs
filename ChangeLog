@@ -1,6 +1,7 @@
 2012-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): There are no more Makefile.c files.
+	Use INSTALL_DATA for the DOC file.
 
 2012-05-10  Glenn Morris  <rgm@gnu.org>
 
