@@ -1,3 +1,10 @@
+2012-05-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove unused function hourglass_started.
+	* dispextern.h (hourglass_started):
+	* w32fns.c (hourglass_started):
+	* xdisp.c (hourglass_started): Remove.
+
 2012-05-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/gmalloc.$(O), $(BLD)/w32menu.$(O)):

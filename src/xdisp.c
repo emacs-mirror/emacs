@@ -28882,14 +28882,6 @@ init_xdisp (void)
 
 /* Platform-independent portion of hourglass implementation. */
 
-/* Return non-zero if hourglass timer has been started or hourglass is
-   shown.  */
-int
-hourglass_started (void)
-{
-  return hourglass_shown_p || hourglass_atimer != NULL;
-}
-
 /* Cancel a currently active hourglass timer, and start a new one.  */
 void
 start_hourglass (void)
