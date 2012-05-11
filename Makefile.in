@@ -495,9 +495,17 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 
 ## Note that we copy DOC* and then delete DOC
 ## as a workaround for a bug in tar on Ultrix 4.2.
+## Ultrix is no longer supported since 23.1, but the relevant line
+## has another effect.  We copy the entire etc/ directory from the
+## source tree first.  For an in-tree build, this will include
+## any DOC* files there may be.  So rm DOC does have an effect.
+## FIXME When we copy etc we should exclude DOC*, then copy only
+## the relevant one.  We cannot delete DOC* from the destination directory,
+## because that may include pre-existing files from another emacs.
 
 ## We install only the relevant DOC file if possible
 ## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
+## (Note "otherwise" is inaccurate since 2009-08-23.)
 
 ## If people complain about the h flag in tar command, take that out.
 ## That flag is also used in leim/Makefile.in
@@ -538,8 +546,7 @@ install-arch-indep: mkdir info install-etc
 		rm -f  $${subdir}/*~ ; \
 		rm -f  $${subdir}/*.orig ; \
 		[ "$${dir}" != "${srcdir}/etc" ] && \
-		 rm -f $${subdir}/[mM]akefile*.c $${subdir}/[mM]akefile*[.-]in \
-		   $${subdir}/[mM]akefile ; \
+		 rm -f $${subdir}/[mM]akefile*[.-]in $${subdir}/[mM]akefile ; \
 		rm -f  $${subdir}/ChangeLog* ; \
 	      done) ; \
 	done
