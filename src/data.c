@@ -51,7 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 static Lisp_Object Qsubr;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
-Lisp_Object Qerror, Qquit, Qargs_out_of_range;
+Lisp_Object Qerror, Quser_error, Qquit, Qargs_out_of_range;
 static Lisp_Object Qwrong_type_argument;
 Lisp_Object Qvoid_variable, Qvoid_function;
 static Lisp_Object Qcyclic_function_indirection;
@@ -2937,6 +2937,7 @@ syms_of_data (void)
   DEFSYM (Qtop_level, "top-level");
 
   DEFSYM (Qerror, "error");
+  DEFSYM (Quser_error, "user-error");
   DEFSYM (Qquit, "quit");
   DEFSYM (Qwrong_type_argument, "wrong-type-argument");
   DEFSYM (Qargs_out_of_range, "args-out-of-range");
@@ -3004,102 +3005,42 @@ syms_of_data (void)
   Fput (Qerror, Qerror_message,
 	make_pure_c_string ("error"));
 
-  Fput (Qquit, Qerror_conditions,
-	pure_cons (Qquit, Qnil));
-  Fput (Qquit, Qerror_message,
-	make_pure_c_string ("Quit"));
+#define PUT_ERROR(sym, tail, msg)			\
+  Fput (sym, Qerror_conditions, pure_cons (sym, tail)); \
+  Fput (sym, Qerror_message, make_pure_c_string (msg))
 
-  Fput (Qwrong_type_argument, Qerror_conditions,
-	pure_cons (Qwrong_type_argument, error_tail));
-  Fput (Qwrong_type_argument, Qerror_message,
-	make_pure_c_string ("Wrong type argument"));
+  PUT_ERROR (Qquit, Qnil, "Quit");
 
-  Fput (Qargs_out_of_range, Qerror_conditions,
-	pure_cons (Qargs_out_of_range, error_tail));
-  Fput (Qargs_out_of_range, Qerror_message,
-	make_pure_c_string ("Args out of range"));
-
-  Fput (Qvoid_function, Qerror_conditions,
-	pure_cons (Qvoid_function, error_tail));
-  Fput (Qvoid_function, Qerror_message,
-	make_pure_c_string ("Symbol's function definition is void"));
-
-  Fput (Qcyclic_function_indirection, Qerror_conditions,
-	pure_cons (Qcyclic_function_indirection, error_tail));
-  Fput (Qcyclic_function_indirection, Qerror_message,
-	make_pure_c_string ("Symbol's chain of function indirections contains a loop"));
-
-  Fput (Qcyclic_variable_indirection, Qerror_conditions,
-	pure_cons (Qcyclic_variable_indirection, error_tail));
-  Fput (Qcyclic_variable_indirection, Qerror_message,
-	make_pure_c_string ("Symbol's chain of variable indirections contains a loop"));
-
+  PUT_ERROR (Quser_error, error_tail, "");
+  PUT_ERROR (Qwrong_type_argument, error_tail, "Wrong type argument");
+  PUT_ERROR (Qargs_out_of_range, error_tail, "Args out of range");
+  PUT_ERROR (Qvoid_function, error_tail,
+	     "Symbol's function definition is void");
+  PUT_ERROR (Qcyclic_function_indirection, error_tail,
+	     "Symbol's chain of function indirections contains a loop");
+  PUT_ERROR (Qcyclic_variable_indirection, error_tail,
+	     "Symbol's chain of variable indirections contains a loop");
   DEFSYM (Qcircular_list, "circular-list");
-  Fput (Qcircular_list, Qerror_conditions,
-	pure_cons (Qcircular_list, error_tail));
-  Fput (Qcircular_list, Qerror_message,
-	make_pure_c_string ("List contains a loop"));
-
-  Fput (Qvoid_variable, Qerror_conditions,
-	pure_cons (Qvoid_variable, error_tail));
-  Fput (Qvoid_variable, Qerror_message,
-	make_pure_c_string ("Symbol's value as variable is void"));
-
-  Fput (Qsetting_constant, Qerror_conditions,
-	pure_cons (Qsetting_constant, error_tail));
-  Fput (Qsetting_constant, Qerror_message,
-	make_pure_c_string ("Attempt to set a constant symbol"));
-
-  Fput (Qinvalid_read_syntax, Qerror_conditions,
-	pure_cons (Qinvalid_read_syntax, error_tail));
-  Fput (Qinvalid_read_syntax, Qerror_message,
-	make_pure_c_string ("Invalid read syntax"));
-
-  Fput (Qinvalid_function, Qerror_conditions,
-	pure_cons (Qinvalid_function, error_tail));
-  Fput (Qinvalid_function, Qerror_message,
-	make_pure_c_string ("Invalid function"));
-
-  Fput (Qwrong_number_of_arguments, Qerror_conditions,
-	pure_cons (Qwrong_number_of_arguments, error_tail));
-  Fput (Qwrong_number_of_arguments, Qerror_message,
-	make_pure_c_string ("Wrong number of arguments"));
-
-  Fput (Qno_catch, Qerror_conditions,
-	pure_cons (Qno_catch, error_tail));
-  Fput (Qno_catch, Qerror_message,
-	make_pure_c_string ("No catch for tag"));
-
-  Fput (Qend_of_file, Qerror_conditions,
-	pure_cons (Qend_of_file, error_tail));
-  Fput (Qend_of_file, Qerror_message,
-	make_pure_c_string ("End of file during parsing"));
+  PUT_ERROR (Qcircular_list, error_tail, "List contains a loop");
+  PUT_ERROR (Qvoid_variable, error_tail, "Symbol's value as variable is void");
+  PUT_ERROR (Qsetting_constant, error_tail,
+	     "Attempt to set a constant symbol");
+  PUT_ERROR (Qinvalid_read_syntax, error_tail, "Invalid read syntax");
+  PUT_ERROR (Qinvalid_function, error_tail, "Invalid function");
+  PUT_ERROR (Qwrong_number_of_arguments, error_tail,
+	     "Wrong number of arguments");
+  PUT_ERROR (Qno_catch, error_tail, "No catch for tag");
+  PUT_ERROR (Qend_of_file, error_tail, "End of file during parsing");
 
   arith_tail = pure_cons (Qarith_error, error_tail);
-  Fput (Qarith_error, Qerror_conditions,
-	arith_tail);
-  Fput (Qarith_error, Qerror_message,
-	make_pure_c_string ("Arithmetic error"));
+  Fput (Qarith_error, Qerror_conditions, arith_tail);
+  Fput (Qarith_error, Qerror_message, make_pure_c_string ("Arithmetic error"));
 
-  Fput (Qbeginning_of_buffer, Qerror_conditions,
-	pure_cons (Qbeginning_of_buffer, error_tail));
-  Fput (Qbeginning_of_buffer, Qerror_message,
-	make_pure_c_string ("Beginning of buffer"));
-
-  Fput (Qend_of_buffer, Qerror_conditions,
-	pure_cons (Qend_of_buffer, error_tail));
-  Fput (Qend_of_buffer, Qerror_message,
-	make_pure_c_string ("End of buffer"));
-
-  Fput (Qbuffer_read_only, Qerror_conditions,
-	pure_cons (Qbuffer_read_only, error_tail));
-  Fput (Qbuffer_read_only, Qerror_message,
-	make_pure_c_string ("Buffer is read-only"));
-
-  Fput (Qtext_read_only, Qerror_conditions,
-	pure_cons (Qtext_read_only, error_tail));
-  Fput (Qtext_read_only, Qerror_message,
-	make_pure_c_string ("Text is read-only"));
+  PUT_ERROR (Qbeginning_of_buffer, error_tail, "Beginning of buffer");
+  PUT_ERROR (Qend_of_buffer, error_tail, "End of buffer");
+  PUT_ERROR (Qbuffer_read_only, error_tail, "Buffer is read-only");
+  PUT_ERROR (Qtext_read_only, pure_cons (Qbuffer_read_only, error_tail),
+	     "Text is read-only");
 
   DEFSYM (Qrange_error, "range-error");
   DEFSYM (Qdomain_error, "domain-error");
@@ -3107,30 +3048,17 @@ syms_of_data (void)
   DEFSYM (Qoverflow_error, "overflow-error");
   DEFSYM (Qunderflow_error, "underflow-error");
 
-  Fput (Qdomain_error, Qerror_conditions,
-	pure_cons (Qdomain_error, arith_tail));
-  Fput (Qdomain_error, Qerror_message,
-	make_pure_c_string ("Arithmetic domain error"));
+  PUT_ERROR (Qdomain_error, arith_tail, "Arithmetic domain error");
 
-  Fput (Qrange_error, Qerror_conditions,
-	pure_cons (Qrange_error, arith_tail));
-  Fput (Qrange_error, Qerror_message,
-	make_pure_c_string ("Arithmetic range error"));
+  PUT_ERROR (Qrange_error, arith_tail, "Arithmetic range error");
 
-  Fput (Qsingularity_error, Qerror_conditions,
-	pure_cons (Qsingularity_error, Fcons (Qdomain_error, arith_tail)));
-  Fput (Qsingularity_error, Qerror_message,
-	make_pure_c_string ("Arithmetic singularity error"));
+  PUT_ERROR (Qsingularity_error, Fcons (Qdomain_error, arith_tail),
+	     "Arithmetic singularity error");
 
-  Fput (Qoverflow_error, Qerror_conditions,
-	pure_cons (Qoverflow_error, Fcons (Qdomain_error, arith_tail)));
-  Fput (Qoverflow_error, Qerror_message,
-	make_pure_c_string ("Arithmetic overflow error"));
-
-  Fput (Qunderflow_error, Qerror_conditions,
-	pure_cons (Qunderflow_error, Fcons (Qdomain_error, arith_tail)));
-  Fput (Qunderflow_error, Qerror_message,
-	make_pure_c_string ("Arithmetic underflow error"));
+  PUT_ERROR (Qoverflow_error, Fcons (Qdomain_error, arith_tail),
+	     "Arithmetic overflow error");
+  PUT_ERROR (Qunderflow_error, Fcons (Qdomain_error, arith_tail),
+	     "Arithmetic underflow error");
 
   staticpro (&Qnil);
   staticpro (&Qt);

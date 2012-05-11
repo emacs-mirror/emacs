@@ -1254,8 +1254,8 @@ that were added or redefined since that version."
     (if found
 	(custom-buffer-create (custom-sort-items found t 'first)
 			      "*Customize Changed Options*")
-      (error "No user option defaults have been changed since Emacs %s"
-	     since-version))))
+      (user-error "No user option defaults have been changed since Emacs %s"
+                  since-version))))
 
 (defun customize-package-emacs-version (symbol package-version)
   "Return the Emacs version in which SYMBOL's meaning last changed.
@@ -1386,7 +1386,7 @@ suggest to customize that face, if it's customizable."
 					 (default-value symbol))))
 		    (push (list symbol 'custom-variable) found)))))
     (if (not found)
-	(error "No rogue user options")
+	(user-error "No rogue user options")
       (custom-buffer-create (custom-sort-items found t nil)
 			    "*Customize Rogue*"))))
 ;;;###autoload
@@ -1403,8 +1403,8 @@ suggest to customize that face, if it's customizable."
 			 (get symbol 'saved-variable-comment))
 		     (boundp symbol)
 		     (push (list symbol 'custom-variable) found))))
-    (if (not found )
-	(error "No saved user options")
+    (if (not found)
+	(user-error "No saved user options")
       (custom-buffer-create (custom-sort-items found t nil)
 			    "*Customize Saved*"))))
 
@@ -2879,7 +2879,7 @@ Optional EVENT is the location for the menu."
 	 (comment (widget-value comment-widget))
 	 val)
     (cond ((eq state 'hidden)
-	   (error "Cannot set hidden variable"))
+	   (user-error "Cannot set hidden variable"))
 	  ((setq val (widget-apply child :validate))
 	   (goto-char (widget-get val :from))
 	   (error "%s" (widget-get val :error)))
@@ -2921,7 +2921,7 @@ Optional EVENT is the location for the menu."
 	 (comment (widget-value comment-widget))
 	 val)
     (cond ((eq state 'hidden)
-	   (error "Cannot set hidden variable"))
+	   (user-error "Cannot set hidden variable"))
 	  ((setq val (widget-apply child :validate))
 	   (goto-char (widget-get val :from))
 	   (error "Saving %s: %s" symbol (widget-get val :error)))
@@ -2995,7 +2995,7 @@ redraw the widget immediately."
   (let* ((symbol (widget-value widget)))
     (if (get symbol 'standard-value)
 	(custom-variable-backup-value widget)
-      (error "No standard setting known for %S" symbol))
+      (user-error "No standard setting known for %S" symbol))
     (put symbol 'variable-comment nil)
     (put symbol 'customized-value nil)
     (put symbol 'customized-variable-comment nil)
@@ -3057,7 +3057,7 @@ to switch between two values."
 	  (condition-case nil
 	      (funcall set symbol (car value))
 	     (error nil)))
-      (error "No backup value for %s" symbol))
+      (user-error "No backup value for %s" symbol))
     (put symbol 'customized-value (list (custom-quote (car value))))
     (put symbol 'variable-comment comment)
     (put symbol 'customized-variable-comment comment)
@@ -3795,7 +3795,7 @@ redraw the widget immediately."
 	 (value (get symbol 'face-defface-spec))
 	 (comment-widget (widget-get widget :comment-widget)))
     (unless value
-      (error "No standard setting for this face"))
+      (user-error "No standard setting for this face"))
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
     (custom-push-theme 'theme-face symbol 'user 'reset)
@@ -4414,7 +4414,7 @@ if only the first line of the docstring is shown."))
       ;; sense.
       (if no-error
 	  nil
-	(error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+	(user-error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
     (file-chase-links (or custom-file user-init-file))))
 
 ;; If recentf-mode is non-nil, this is defined.
@@ -4875,18 +4875,7 @@ if that value is non-nil."
 (put 'custom-mode 'mode-class 'special)
 (define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
 
-(dolist (regexp
-	 '("^No user option defaults have been changed since Emacs "
-	   "^Invalid face:? "
-	   "^No \\(?:customized\\|rogue\\|saved\\) user options"
-	   "^No customizable items matching "
-	   "^There are unset changes"
-	   "^Cannot set hidden variable"
-	   "^No \\(?:saved\\|backup\\) value for "
-	   "^No standard setting known for "
-	   "^No standard setting for this face"
-	   "^Saving settings from \"emacs -q\" would overwrite existing customizations"))
-  (add-to-list 'debug-ignored-errors regexp))
+(add-to-list 'debug-ignored-errors "^Invalid face:? ")
 
 ;;; The End.
 

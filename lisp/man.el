@@ -1273,8 +1273,8 @@ manpage command."
 	  (if (not Man-page-list)
  	      (let ((args Man-arguments))
 		(kill-buffer (current-buffer))
-		(error "Can't find the %s manpage"
-		       (Man-page-from-arguments args)))
+		(user-error "Can't find the %s manpage"
+                            (Man-page-from-arguments args)))
 	    (set-buffer-modified-p nil))))
 	;; Restore case-fold-search before calling
 	;; Man-notify-when-ready because it may switch buffers.
@@ -1475,7 +1475,12 @@ The following key bindings are currently in effect in the buffer:
 	    (nindent 0))
 	(narrow-to-region (car page) (car (cdr page)))
 	(if Man-uses-untabify-flag
-	    (untabify (point-min) (point-max)))
+	    ;; The space characters inserted by `untabify' inherit
+	    ;; sticky text properties, which is unnecessary and looks
+	    ;; ugly with underlining (Bug#11408).
+	    (let ((text-property-default-nonsticky
+		   (cons '(face . t) text-property-default-nonsticky)))
+	      (untabify (point-min) (point-max))))
 	(if (catch 'unindent
 	      (goto-char (point-min))
 	      (if (not (re-search-forward Man-first-heading-regexp nil t))
@@ -1649,7 +1654,7 @@ Specify which REFERENCE to use; default is based on word at point."
   (when Man-page-list
     (if (or (< page 1)
 	    (> page (length Man-page-list)))
-	(error "No manpage %d found" page))
+	(user-error "No manpage %d found" page))
     (let* ((page-range (nth (1- page) Man-page-list))
 	   (page-start (car page-range))
 	   (page-end (car (cdr page-range))))
@@ -1741,9 +1746,6 @@ Uses `Man-name-local-regexp'."
 
 ;; Init the man package variables, if not already done.
 (Man-init-defvars)
-
-(add-to-list 'debug-ignored-errors "^No manpage [0-9]* found$")
-(add-to-list 'debug-ignored-errors "^Can't find the .* manpage$")
 
 (provide 'man)
 

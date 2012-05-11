@@ -303,26 +303,29 @@ a top-level keymap, `text-scale-increase' or
 `text-scale-decrease' may be more appropriate."
   (interactive "p")
   (let ((first t)
-	(step t)
 	(ev last-command-event)
 	(echo-keystrokes nil))
-    (while step
-      (let ((base (event-basic-type ev)))
-	(cond ((or (eq base ?+) (eq base ?=))
-	       (setq step inc))
-	      ((eq base ?-)
-	       (setq step (- inc)))
-	      ((eq base ?0)
-	       (setq step 0))
-	      (first
-	       (setq step inc))
-	      (t
-	       (setq step nil))))
-      (when step
-	(text-scale-increase step)
-	(setq inc 1 first nil)
-	(setq ev (read-event "+,-,0 for further adjustment: "))))
-    (push ev unread-command-events)))
+    (let* ((base (event-basic-type ev))
+           (step
+            (pcase base
+              ((or `?+ `?=) inc)
+              (`?- (- inc))
+              (`?0 0)
+              (t inc))))
+      (text-scale-increase step)
+      ;; FIXME: do it after everu "iteration of the loop".
+      (message "+,-,0 for further adjustment: ")
+      (set-temporary-overlay-map
+       (let ((map (make-sparse-keymap)))
+         (dolist (mods '(() (control)))
+           (define-key map (vector (append mods '(?-))) 'text-scale-decrease)
+           (define-key map (vector (append mods '(?+))) 'text-scale-increase)
+           ;; = is unshifted + on most keyboards.
+           (define-key map (vector (append mods '(?=))) 'text-scale-increase)
+           (define-key map (vector (append mods '(?0)))
+             (lambda () (interactive) (text-scale-increase 0))))
+         map)
+       t))))
 
 
 ;; ----------------------------------------------------------------

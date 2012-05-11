@@ -1,3 +1,105 @@
+2012-05-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove unused function hourglass_started.
+	* dispextern.h (hourglass_started):
+	* w32fns.c (hourglass_started):
+	* xdisp.c (hourglass_started): Remove.
+
+2012-05-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/gmalloc.$(O), $(BLD)/w32menu.$(O)):
+	Update dependencies.
+
+2012-05-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xgselect.c (xg_select): Put maxfds+1 into a var.
+	This is slightly clearer, and pacifies Ubuntu 12.04 gcc.
+
+	* sound.c (DEFAULT_ALSA_SOUND_DEVICE): Define only if HAVE_ALSA.
+
+2012-05-10  Dave Abrahams  <dave@boostpro.com>
+
+	* filelock.c (syms_of_filelock): New boolean create-lockfiles.
+	(lock_file): If create_lockfiles is 0, do nothing.  (Bug#11227)
+
+2012-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_registered_buses): New internal Lisp object.
+	Rename all occurences of Vdbus_registered_buses to xd_registered_buses.
+	(syms_of_dbusbind): Remove declaration of Vdbus_registered_buses.
+	Initialize xd_registered_buses.
+
+2012-05-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Untag more efficiently if USE_LSB_TAG.
+	This is based on a proposal by YAMAMOTO Mitsuharu in
+	<http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01876.html>.
+	For an admittedly artificial (nth 8000 longlist) benchmark on
+	Fedora 15 x86-64, this yields a 25% CPU speedup.  Also, it shrinks
+	Emacs's overall text size by 1%.
+	* lisp.h (XUNTAG): New macro.
+	(XCONS, XVECTOR, XSTRING, XSYMBOL, XFLOAT, XMISC, XPROCESS, XWINDOW)
+	(XTERMINAL, XSUBR, XBUFFER, XCHAR_TABLE, XSUB_CHAR_TABLE, XBOOL_VECTOR)
+	(XSETTYPED_PSEUDOVECTOR, XHASH_TABLE, TYPED_PSEUDOVECTORP): Use it.
+	* eval.c (Fautoload):
+	* font.h (XFONT_SPEC, XFONT_ENTITY, XFONT_OBJECT):
+	* frame.h (XFRAME): Use XUNTAG.
+
+	Port recent dbusbind.c changes to 32-bit --with-wide-int.
+	* dbusbind.c (xd_append_arg, xd_retrieve_arg, Fdbus_message_internal):
+	Remove unportable assumptions about print widths of types like
+	dbus_uint32_t.
+	(xd_get_connection_address, Fdbus_init_bus): Cast Emacs integer to
+	intptr_t when converting between pointer and integer, to avoid GCC
+	warnings about wrong width.
+
+2012-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (new_child): Force Windows to reserve only 64KB of
+	stack for each reader_thread, instead of defaulting to 8MB
+	determined by the linker.  This avoids failures in creating
+	subprocesses on Windows 7, see the discussion in this thread:
+	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00119.html.
+
+2012-05-07  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	Fix up display of the *Minibuf-0* buffer in the mini window.
+	* keyboard.c (read_char): Don't clear the echo area if there's no
+	message to clear.
+	* xdisp.c (redisplay_internal): Redisplay the mini window (with the
+	contents of *Minibuf-0*) if there's no message displayed in its stead.
+
+2012-05-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_DEBUG_MESSAGE): Don't print message twice in
+	batch mode.
+
+2012-05-06  Chong Yidong  <cyd@gnu.org>
+
+	* lisp.mk (lisp): Update.
+
+2012-05-05  Jim Meyering  <meyering@redhat.com>
+
+	* w32font.c (fill_in_logfont): NUL-terminate a string (Bug#11372).
+
+2012-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (PUT_ERROR): New macro.
+	(syms_of_data): Use it.  Add new error type `user-error'.
+	* undo.c (user_error): New function.
+	(Fprimitive_undo): Use it.
+	* print.c (print_error_message): Adjust print style for `user-error'.
+	* keyboard.c (user_error): New function.
+	(Fexit_recursive_edit, Fabort_recursive_edit): Use it.
+
+2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not limit current-time-string to years 1000..9999.
+	* editfns.c (TM_YEAR_IN_ASCTIME_RANGE): Remove.
+	(Fcurrent_time_string): Support any year that is supported by the
+	underlying localtime representation.  Don't use asctime, as it
+	has undefined behavior for years outside the range -999..9999.
+
 2012-05-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix race conditions involving setenv, gmtime, localtime, asctime.
@@ -11,8 +113,8 @@
 	localtime/gmtime, but also accessing these functions' results
 	including their tm_zone values if any, and any related TZ setting.
 	(format_time_string): Last arg is now struct tm *, not struct tm **,
-	so that the struct tm is saved in the critical section.  All
-	callers changed.  Simplify allocation of initial buffer, partly
+	so that the struct tm is saved in the critical section.
+	All callers changed.  Simplify allocation of initial buffer, partly
 	motivated by the fact that memory allocation needs to be outside
 	the critical section.
 
@@ -219,7 +321,7 @@
 	(xd_close_bus): Rename from Fdbus_close_bus.  Not needed on Lisp
 	level.
 	(Fdbus_init_bus): New optional arg PRIVATE.  Cache address.
-	Return number of recounts.
+	Return number of refcounts.
 	(Fdbus_get_unique_name): Make stronger parameter check.
 	(Fdbus_message_internal): New defun.
 	(Fdbus_call_method, Fdbus_call_method_asynchronously)

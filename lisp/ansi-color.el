@@ -217,8 +217,12 @@ The comint output is assumed to lie between the marker
 `comint-last-output-start' and the process-mark.
 
 This is a good function to put in `comint-output-filter-functions'."
-  (let ((start-marker (or comint-last-output-start
-			  (point-min-marker)))
+  (let ((start-marker (if (and (markerp comint-last-output-start)
+			       (eq (marker-buffer comint-last-output-start)
+				   (current-buffer))
+			       (marker-position comint-last-output-start))
+			  comint-last-output-start
+			(point-min-marker)))
 	(end-marker (process-mark (get-buffer-process (current-buffer)))))
     (cond ((eq ansi-color-for-comint-mode nil))
 	  ((eq ansi-color-for-comint-mode 'filter)

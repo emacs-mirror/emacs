@@ -1,3 +1,8 @@
+2012-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor Y10k bug.
+	* nnweb.el (nnweb-google-parse-1): Don't assume years have 4 digits.
+
 2012-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnimap.el (nnimap-open-connection-1): Don't leave an "opening..."

@@ -31,6 +31,15 @@ its own at the start of a line.  It looks better if you reword/respace
 things to avoid these.  (AFAIK, there is no way to find these except
 paging through the whole manual.)  This should be the very last thing
 you do, since any change can alter the layout.
+(Actually, there is probably little point in trying to do this.
+It's only really relevant if printed versions of the manuals are going
+to be published.  End-users are not likely to print out all 1000+
+pages of the manuals, and even if they do, the resulting page breaks
+depend on what paper and font size they use.  This also means that if
+you _are_ going to do this, it should be done with the paper and font
+size that the GNU Press are going to use when they print the manuals.
+I think this is different to what you get if you just use eg `make
+emacs.pdf' (e.g., enable "smallbook").
 
 ** Check the keybindings in the refcards are correct, and add any new ones.
 Regenerate the pdf versions in etc/refcards/.

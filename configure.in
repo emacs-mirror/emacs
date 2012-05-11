@@ -865,6 +865,12 @@ with the `--without-makeinfo' option to build without the manuals.] )
 fi
 AC_SUBST(HAVE_MAKEINFO)
 
+dnl Just so that there is only a single place we need to edit.
+INFO_EXT=.info
+INFO_OPTS=--no-split
+AC_SUBST(INFO_EXT)
+AC_SUBST(INFO_OPTS)
+
 dnl Add our options to ac_link now, after it is set up.
 
 if test x$GCC = xyes; then
@@ -1630,6 +1636,7 @@ fail;
 fi
 AC_SUBST(TEMACS_LDFLAGS2)
 
+LEIM_INSTALLDIR="\${install_prefix}/leim"
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
@@ -1645,6 +1652,7 @@ if test "${HAVE_NS}" = yes; then
      prefix=${ns_appresdir}
      exec_prefix=${ns_appbindir}
      libexecdir=${ns_appbindir}/libexec
+     LEIM_INSTALLDIR="\${ns_appresdir}/leim"
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
@@ -1652,6 +1660,7 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+AC_SUBST(LEIM_INSTALLDIR)
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
 AC_SUBST(LIB_STANDARD)
@@ -2913,7 +2922,7 @@ case "$opsys" in
   ##  option to use it.
   darwin) LIBS_TERMCAP="-lncurses" ;;
 
-  gnu*) [ "x$LIBS_TERMCAP" = x ] && LIBS_TERMCAP="-lncurses" ;;
+  gnu*) test -z "$LIBS_TERMCAP" && LIBS_TERMCAP="-lncurses" ;;
 
   freebsd)
     AC_MSG_CHECKING([whether FreeBSD is new enough to use terminfo])
@@ -2935,7 +2944,7 @@ fail;
     ;;
 
   netbsd)
-    if [ "x$LIBS_TERMCAP" != "x-lterminfo" ]; then
+    if test "x$LIBS_TERMCAP" != "x-lterminfo"; then
       TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi

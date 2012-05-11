@@ -87,7 +87,7 @@ structure made out of cons cells as a @dfn{list structure}.
 whether it is a cons cell or is a list, or whether it is the
 distinguished object @code{nil}.  (Many of these predicates can be
 defined in terms of the others, but they are used so often that it is
-worth having all of them.)
+worth having them.)
 
 @defun consp object
 This function returns @code{t} if @var{object} is a cons cell, @code{nil}
@@ -763,8 +763,7 @@ if it already has one; otherwise, it is equivalent to @code{nil}.
 
 The argument @var{symbol} is not implicitly quoted;
 @code{add-to-ordered-list} is an ordinary function, like @code{set}
-and unlike @code{setq}.  Quote the argument yourself if that is what
-you want.
+and unlike @code{setq}.  Quote the argument yourself if necessary.
 
 The ordering information is stored in a hash table on @var{symbol}'s
 @code{list-order} property.
@@ -1269,7 +1268,7 @@ functions for sets include @code{memq} and @code{delq}, and their
 @b{Common Lisp note:} Common Lisp has functions @code{union} (which
 avoids duplicate elements) and @code{intersection} for set operations.
 Although standard GNU Emacs Lisp does not have them, the @file{cl}
-library provides versions.  @inforef{Top, Overview, cl}.
+library provides versions.  @xref{Top,, Overview, cl, Common Lisp Extensions}.
 @end quotation
 
 @defun memq object list

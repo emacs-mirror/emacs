@@ -393,8 +393,11 @@ Thus, this does not include the shell's current directory.")
             (goto-char (match-end 0))
             (cond
              ((match-beginning 3)       ;Backslash escape.
-              (push (if (= (match-beginning 3) (match-end 3))
-                        "\\" (match-string 3))
+              (push (cond
+                     ((null pcomplete-arg-quote-list)
+                      (goto-char (match-beginning 3)) "\\")
+                     ((= (match-beginning 3) (match-end 3)) "\\")
+                     (t (match-string 3)))
                     arg))
              ((match-beginning 2)       ;Double quote.
               (push (replace-regexp-in-string
@@ -429,7 +432,7 @@ Shell buffers.  It implements `shell-completion-execonly' for
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        #'shell-parse-pcomplete-arguments)
   (set (make-local-variable 'pcomplete-arg-quote-list)
-       (append "\\ \t\n\r\"'`$|&;(){}[]<>#" nil))
+       comint-file-name-quote-list)
   (set (make-local-variable 'pcomplete-termination-string)
        (cond ((not comint-completion-addsuffix) "")
              ((stringp comint-completion-addsuffix)

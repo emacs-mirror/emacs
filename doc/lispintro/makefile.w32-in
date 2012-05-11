@@ -1,6 +1,6 @@
 #### -*- Makefile -*- for the Emacs Lisp Introduction manual.
 
-# Copyright (C) 2003-2012  Free Software Foundation, Inc.
+# Copyright (C) 2003-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -24,10 +24,12 @@ infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
+INFO_EXT=.info
+INFO_OPTS=--no-split
 INFO_SOURCES = $(srcdir)/emacs-lisp-intro.texi $(srcdir)/doclicense.texi
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing
-INFO_TARGETS = $(infodir)/eintr
+INFO_TARGETS = $(infodir)/eintr$(INFO_EXT)
 DVI_TARGETS = emacs-lisp-intro.dvi
 
 MAKEINFO = makeinfo
@@ -47,8 +49,8 @@ $(infodir)/dir:
 
 dvi: $(DVI_TARGETS)
 
-$(infodir)/eintr: $(INFO_SOURCES)
-	$(MAKEINFO) -o $@ $(srcdir)/emacs-lisp-intro.texi
+$(infodir)/eintr$(INFO_EXT): $(INFO_SOURCES)
+	$(MAKEINFO) $(INFO_OPTS) -o $@ $(srcdir)/emacs-lisp-intro.texi
 
 emacs-lisp-intro.dvi: $(INFO_SOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-lisp-intro.texi
@@ -66,7 +68,7 @@ mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr *.tp
 
 clean: mostlyclean
-	- $(DEL) *.dvi $(infodir)/eintr*
+	- $(DEL) *.dvi $(infodir)/eintr$(INFO_EXT)*
 
 distclean: clean
 	- $(DEL) makefile

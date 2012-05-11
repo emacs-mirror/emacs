@@ -1163,6 +1163,7 @@ HAVE_XSERVER
 LIB_STANDARD
 NS_OBJC_OBJ
 NS_OBJ
+LEIM_INSTALLDIR
 TEMACS_LDFLAGS2
 LD_SWITCH_X_SITE_RPATH
 XMKMF
@@ -1182,6 +1183,8 @@ UNEXEC_OBJ
 C_SWITCH_MACHINE
 LD_SWITCH_SYSTEM
 CANNOT_DUMP
+INFO_OPTS
+INFO_EXT
 HAVE_MAKEINFO
 GZIP_PROG
 INSTALL_INFO
@@ -8238,6 +8241,11 @@ with the \`--without-makeinfo' option to build without the manuals. " "$LINENO" 
 fi
 
 
+INFO_EXT=.info
+INFO_OPTS=--no-split
+
+
+
 
 if test x$GCC = xyes; then
   test "x$GCC_LINK_TEST_OPTIONS" != x && \
@@ -8336,7 +8344,9 @@ case "$opsys" in
    ## Let `ld' find image libs and similar things in /usr/local/lib.
    ## The system compiler, GCC, has apparently been modified to not
    ## look there, contrary to what a stock GCC would do.
-   LD_SWITCH_SYSTEM=-L/usr/local/lib
+### It's not our place to do this.  See bug#10313#17.
+###   LD_SWITCH_SYSTEM=-L/usr/local/lib
+      :
    ;;
 
   gnu-linux)
@@ -8345,7 +8355,9 @@ case "$opsys" in
    ;;
 
   netbsd)
-   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+### It's not our place to do this.  See bug#10313#17.
+###   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+      :
    ;;
 
   openbsd)
@@ -10411,6 +10423,7 @@ $as_echo "#define NS_HAVE_NSINTEGER 1" >>confdefs.h
 fi
 
 
+LEIM_INSTALLDIR="\${install_prefix}/leim"
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
@@ -10426,6 +10439,7 @@ if test "${HAVE_NS}" = yes; then
      prefix=${ns_appresdir}
      exec_prefix=${ns_appbindir}
      libexecdir=${ns_appbindir}/libexec
+     LEIM_INSTALLDIR="\${ns_appresdir}/leim"
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
@@ -10433,6 +10447,7 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
 
 
 
@@ -14895,7 +14910,7 @@ case "$opsys" in
   ##  option to use it.
   darwin) LIBS_TERMCAP="-lncurses" ;;
 
-  gnu*)  "x$LIBS_TERMCAP" = x  && LIBS_TERMCAP="-lncurses" ;;
+  gnu*) test -z "$LIBS_TERMCAP" && LIBS_TERMCAP="-lncurses" ;;
 
   freebsd)
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether FreeBSD is new enough to use terminfo" >&5
@@ -14939,7 +14954,7 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
     ;;
 
   netbsd)
-    if  "x$LIBS_TERMCAP" != "x-lterminfo" ; then
+    if test "x$LIBS_TERMCAP" != "x-lterminfo"; then
       TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi

@@ -342,12 +342,11 @@ Can be nil if the style is undecided, or else:
         ))))
 
 (defvar smerge-resolve-function
-  (lambda () (error "Don't know how to resolve"))
+  (lambda () (user-error "Don't know how to resolve"))
   "Mode-specific merge function.
 The function is called with zero or one argument (non-nil if the resolution
 function should only apply safe heuristics) and with the match data set
 according to `smerge-match-conflict'.")
-(add-to-list 'debug-ignored-errors "Don't know how to resolve")
 
 (defvar smerge-text-properties
   `(help-echo "merge conflict: mouse-3 shows a menu"
@@ -626,7 +625,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
             (set-match-data md)
 	    (smerge-keep-n choice))
            (t
-            (error "Don't know how to resolve"))))
+            (user-error "Don't know how to resolve"))))
       (if (buffer-name buf) (kill-buffer buf))
       (if m (delete-file m))
       (if b (delete-file b))
@@ -810,9 +809,7 @@ An error is raised if not inside a conflict."
 				  (when base-start (1- base-start)) base-start
 				  (1- other-start) other-start))
 	  t)
-      (search-failed (error "Point not in conflict region")))))
-
-(add-to-list 'debug-ignored-errors "Point not in conflict region")
+      (search-failed (user-error "Point not in conflict region")))))
 
 (defun smerge-conflict-overlay (pos)
   "Return the conflict overlay at POS if any."

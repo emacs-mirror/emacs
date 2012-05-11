@@ -143,11 +143,16 @@
 
 ;;; Count number of times X refers to Y.  Return nil for 0 times.
 (defun cl-expr-contains (x y)
+  ;; FIXME: This is naive, and it will count Y as referred twice in
+  ;; (let ((Y 1)) Y) even though it should be 0.  Also it is often called on
+  ;; non-macroexpanded code, so it may also miss some occurrences that would
+  ;; only appear in the expanded code.
   (cond ((equal y x) 1)
 	((and (consp x) (not (memq (car-safe x) '(quote function function*))))
 	 (let ((sum 0))
-	   (while x
+	   (while (consp x)
 	     (setq sum (+ sum (or (cl-expr-contains (pop x) y) 0))))
+	   (setq sum (+ sum (or (cl-expr-contains x y) 0)))
 	   (and (> sum 0) sum)))
 	(t nil)))
 

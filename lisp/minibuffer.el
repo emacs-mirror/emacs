@@ -546,16 +546,19 @@ for use at QPOS."
       ;; which only get quoted when needed by choose-completion.
       (nconc
        (mapcar (lambda (completion)
-                 (assert (string-prefix-p prefix completion))
+                 (assert (string-prefix-p prefix completion 'ignore-case) t)
                  (let* ((new (substring completion (length prefix)))
                         (qnew (funcall qfun new))
                         (qcompletion (concat qprefix qnew)))
                    (assert
-                    (equal (funcall unquote
+                    (eq t (compare-strings
+                           (funcall unquote
                                     (concat (substring string 0 qboundary)
                                             qcompletion))
+                           nil nil
                            (concat (substring ustring 0 boundary)
-                                   completion)))
+                                   completion)
+                           nil nil 'ignore-case)))
                    qcompletion))
                completions)
        qboundary))))

@@ -1196,11 +1196,14 @@ sections.
 
 @defun current-time-string &optional time-value
 This function returns the current time and date as a human-readable
-string.  The format of the string is unvarying; the number of
-characters used for each part is always the same, so you can reliably
-use @code{substring} to extract pieces of it.  You should count
+string.  The format does not vary for the initial part of the string,
+which contains the day of week, month, day of month, and time of day
+in that order: the number of characters used for these fields is
+always the same, so you can reliably
+use @code{substring} to extract them.  You should count
 characters from the beginning of the string rather than from the end,
-as additional information may some day be added at the end.
+as the year might not have exactly four digits, and additional
+information may some day be added at the end.
 
 The argument @var{time-value}, if given, specifies a time to format
 (represented as a list of integers), instead of the current time.
@@ -1732,11 +1735,11 @@ between them).  If you want a timer to run again no less than @var{n}
 seconds after the last invocation, don't use the @var{repeat} argument.
 Instead, the timer function should explicitly reschedule the timer.
 
-@defvar timer-max-repeats
+@defopt timer-max-repeats
 This variable's value specifies the maximum number of times to repeat
 calling a timer function in a row, when many previously scheduled
 calls were unavoidably delayed.
-@end defvar
+@end defopt
 
 @defmac with-timeout (seconds timeout-forms@dots{}) body@dots{}
 Execute @var{body}, but give up after @var{seconds} seconds.  If
@@ -2301,7 +2304,7 @@ the notification never expires.  Default value is -1.
 @item :urgency @var{urgency}
 The urgency level.  It can be @code{low}, @code{normal}, or @code{critical}.
 
-@item :action-items 
+@item :action-items
 When this keyword is given, the @var{title} string of the actions is
 interpreted as icon name.
 

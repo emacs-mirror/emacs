@@ -865,7 +865,6 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 {
   Lisp_Object errname, errmsg, file_error, tail;
   struct gcpro gcpro1;
-  int i;
 
   if (context != 0)
     write_string_1 (context, -1, stream);
@@ -893,9 +892,8 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
     }
   else
     {
-      Lisp_Object error_conditions;
+      Lisp_Object error_conditions = Fget (errname, Qerror_conditions);
       errmsg = Fget (errname, Qerror_message);
-      error_conditions = Fget (errname, Qerror_conditions);
       file_error = Fmemq (Qfile_error, error_conditions);
     }
 
@@ -909,22 +907,30 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   if (!NILP (file_error) && CONSP (tail))
     errmsg = XCAR (tail), tail = XCDR (tail);
 
-  if (STRINGP (errmsg))
-    Fprinc (errmsg, stream);
-  else
-    write_string_1 ("peculiar error", -1, stream);
+  {
+    const char *sep = ": ";
 
-  for (i = 0; CONSP (tail); tail = XCDR (tail), i = 1)
-    {
-      Lisp_Object obj;
+    if (!STRINGP (errmsg))
+      write_string_1 ("peculiar error", -1, stream);
+    else if (SCHARS (errmsg))
+      Fprinc (errmsg, stream);
+    else
+      sep = NULL;
 
-      write_string_1 (i ? ", " : ": ", 2, stream);
-      obj = XCAR (tail);
-      if (!NILP (file_error) || EQ (errname, Qend_of_file))
-	Fprinc (obj, stream);
-      else
-	Fprin1 (obj, stream);
-    }
+    for (; CONSP (tail); tail = XCDR (tail), sep = ", ")
+      {
+	Lisp_Object obj;
+	
+	if (sep)
+	  write_string_1 (sep, 2, stream);
+	obj = XCAR (tail);
+	if (!NILP (file_error)
+	    || EQ (errname, Qend_of_file) || EQ (errname, Quser_error))
+	  Fprinc (obj, stream);
+	else
+	  Fprin1 (obj, stream);
+      }
+  }
 
   UNGCPRO;
 }

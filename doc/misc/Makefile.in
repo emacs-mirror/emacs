@@ -38,62 +38,66 @@ infodir=../../info
 ## Currently only used by efaq and calc.
 emacsdir = $(srcdir)/../emacs
 
+INFO_EXT=@INFO_EXT@
+# Options used only when making info output.
+INFO_OPTS=@INFO_OPTS@
+
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I$(emacsdir)
 
 INFO_TARGETS = \
-	$(infodir)/ada-mode \
-	$(infodir)/auth \
-	$(infodir)/autotype \
-	$(infodir)/calc \
-	$(infodir)/ccmode \
-	$(infodir)/cl \
-	$(infodir)/dbus \
-	$(infodir)/dired-x \
-	$(infodir)/ebrowse \
-	$(infodir)/ede \
-	$(infodir)/ediff \
-	$(infodir)/edt \
-	$(infodir)/eieio \
-	$(infodir)/emacs-mime \
-	$(infodir)/epa \
-	$(infodir)/erc \
-	$(infodir)/ert \
-	$(infodir)/eshell \
-	$(infodir)/eudc \
-	$(infodir)/efaq \
-	$(infodir)/flymake \
-	$(infodir)/forms \
-	$(infodir)/gnus \
-	$(infodir)/emacs-gnutls \
-	$(infodir)/idlwave \
-	$(infodir)/info \
-	$(infodir)/mairix-el \
-	$(infodir)/message \
-	$(infodir)/mh-e \
-	$(infodir)/newsticker \
-	$(infodir)/nxml-mode \
-	$(infodir)/org \
-	$(infodir)/pcl-cvs \
-	$(infodir)/pgg \
-	$(infodir)/rcirc \
-	$(infodir)/remember \
-	$(infodir)/reftex \
-	$(infodir)/sasl \
-	$(infodir)/sc \
-	$(infodir)/semantic \
-	$(infodir)/ses \
-	$(infodir)/sieve \
-	$(infodir)/smtpmail \
-	$(infodir)/speedbar \
-	$(infodir)/tramp \
-	$(infodir)/url \
-	$(infodir)/vip \
-	$(infodir)/viper \
-	$(infodir)/widget \
-	$(infodir)/woman
+	$(infodir)/ada-mode$(INFO_EXT) \
+	$(infodir)/auth$(INFO_EXT) \
+	$(infodir)/autotype$(INFO_EXT) \
+	$(infodir)/calc$(INFO_EXT) \
+	$(infodir)/ccmode$(INFO_EXT) \
+	$(infodir)/cl$(INFO_EXT) \
+	$(infodir)/dbus$(INFO_EXT) \
+	$(infodir)/dired-x$(INFO_EXT) \
+	$(infodir)/ebrowse$(INFO_EXT) \
+	$(infodir)/ede$(INFO_EXT) \
+	$(infodir)/ediff$(INFO_EXT) \
+	$(infodir)/edt$(INFO_EXT) \
+	$(infodir)/eieio$(INFO_EXT) \
+	$(infodir)/emacs-mime$(INFO_EXT) \
+	$(infodir)/epa$(INFO_EXT) \
+	$(infodir)/erc$(INFO_EXT) \
+	$(infodir)/ert$(INFO_EXT) \
+	$(infodir)/eshell$(INFO_EXT) \
+	$(infodir)/eudc$(INFO_EXT) \
+	$(infodir)/efaq$(INFO_EXT) \
+	$(infodir)/flymake$(INFO_EXT) \
+	$(infodir)/forms$(INFO_EXT) \
+	$(infodir)/gnus$(INFO_EXT) \
+	$(infodir)/emacs-gnutls$(INFO_EXT) \
+	$(infodir)/idlwave$(INFO_EXT) \
+	$(infodir)/info$(INFO_EXT) \
+	$(infodir)/mairix-el$(INFO_EXT) \
+	$(infodir)/message$(INFO_EXT) \
+	$(infodir)/mh-e$(INFO_EXT) \
+	$(infodir)/newsticker$(INFO_EXT) \
+	$(infodir)/nxml-mode$(INFO_EXT) \
+	$(infodir)/org$(INFO_EXT) \
+	$(infodir)/pcl-cvs$(INFO_EXT) \
+	$(infodir)/pgg$(INFO_EXT) \
+	$(infodir)/rcirc$(INFO_EXT) \
+	$(infodir)/remember$(INFO_EXT) \
+	$(infodir)/reftex$(INFO_EXT) \
+	$(infodir)/sasl$(INFO_EXT) \
+	$(infodir)/sc$(INFO_EXT) \
+	$(infodir)/semantic$(INFO_EXT) \
+	$(infodir)/ses$(INFO_EXT) \
+	$(infodir)/sieve$(INFO_EXT) \
+	$(infodir)/smtpmail$(INFO_EXT) \
+	$(infodir)/speedbar$(INFO_EXT) \
+	$(infodir)/tramp$(INFO_EXT) \
+	$(infodir)/url$(INFO_EXT) \
+	$(infodir)/vip$(INFO_EXT) \
+	$(infodir)/viper$(INFO_EXT) \
+	$(infodir)/widget$(INFO_EXT) \
+	$(infodir)/woman$(INFO_EXT)
 
 DVI_TARGETS = \
 	ada-mode.dvi \
@@ -211,11 +215,12 @@ mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${i
 
 .PHONY: info dvi pdf echo-info
 
+# Default.
+info: $(INFO_TARGETS)
+
 ## Used by top-level Makefile.
 echo-info:
 	@echo $(INFO_TARGETS) | sed 's|[^ ]*/||g'
-
-info: $(INFO_TARGETS)
 
 # please modify this for all the web manual targets
 webhack: clean
@@ -233,190 +238,211 @@ pdf: $(PDF_TARGETS)
 # Note: "<" is not portable in ordinary make rules.
 
 ## "short" target names for convenience, to just rebuild one manual.
-ada-mode : $(infodir)/ada-mode
-$(infodir)/ada-mode: ada-mode.texi
+ada-mode : $(infodir)/ada-mode$(INFO_EXT)
+$(infodir)/ada-mode$(INFO_EXT): ada-mode.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) ada-mode.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ada-mode.texi
 ada-mode.dvi: ${srcdir}/ada-mode.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ada-mode.texi
 ada-mode.pdf: ${srcdir}/ada-mode.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/ada-mode.texi
 
-auth : $(infodir)/auth
-$(infodir)/auth: auth.texi
+auth : $(infodir)/auth$(INFO_EXT)
+$(infodir)/auth$(INFO_EXT): auth.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) auth.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ auth.texi
 auth.dvi: ${srcdir}/auth.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/auth.texi
 auth.pdf: ${srcdir}/auth.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/auth.texi
 
-autotype : $(infodir)/autotype
-$(infodir)/autotype: autotype.texi
+autotype : $(infodir)/autotype$(INFO_EXT)
+$(infodir)/autotype$(INFO_EXT): autotype.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) autotype.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ autotype.texi
 autotype.dvi: ${srcdir}/autotype.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/autotype.texi
 autotype.pdf: ${srcdir}/autotype.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/autotype.texi
 
-calc : $(infodir)/calc
-$(infodir)/calc: calc.texi $(emacsdir)/emacsver.texi
+calc : $(infodir)/calc$(INFO_EXT)
+$(infodir)/calc$(INFO_EXT): calc.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) calc.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ calc.texi
 calc.dvi: ${srcdir}/calc.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/calc.texi
 calc.pdf: ${srcdir}/calc.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/calc.texi
 
-ccmode : $(infodir)/ccmode
-$(infodir)/ccmode: cc-mode.texi
+ccmode : $(infodir)/ccmode$(INFO_EXT)
+$(infodir)/ccmode$(INFO_EXT): cc-mode.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) cc-mode.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ cc-mode.texi
 cc-mode.dvi: ${srcdir}/cc-mode.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/cc-mode.texi
 cc-mode.pdf: ${srcdir}/cc-mode.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/cc-mode.texi
 
-cl : $(infodir)/cl
-$(infodir)/cl: cl.texi
+cl : $(infodir)/cl$(INFO_EXT)
+$(infodir)/cl$(INFO_EXT): cl.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) cl.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ cl.texi
 cl.dvi: ${srcdir}/cl.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/cl.texi
 cl.pdf: ${srcdir}/cl.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/cl.texi
 
-dbus : $(infodir)/dbus
-$(infodir)/dbus: dbus.texi
+dbus : $(infodir)/dbus$(INFO_EXT)
+$(infodir)/dbus$(INFO_EXT): dbus.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) dbus.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ dbus.texi
 dbus.dvi: ${srcdir}/dbus.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/dbus.texi
 dbus.pdf: ${srcdir}/dbus.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/dbus.texi
 
-dired-x : $(infodir)/dired-x
-$(infodir)/dired-x: dired-x.texi $(emacsdir)/emacsver.texi
+dired-x : $(infodir)/dired-x$(INFO_EXT)
+$(infodir)/dired-x$(INFO_EXT): dired-x.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) dired-x.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ dired-x.texi
 dired-x.dvi: ${srcdir}/dired-x.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/dired-x.texi
 dired-x.pdf: ${srcdir}/dired-x.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/dired-x.texi
 
-ebrowse : $(infodir)/ebrowse
-$(infodir)/ebrowse: ebrowse.texi
+ebrowse : $(infodir)/ebrowse$(INFO_EXT)
+$(infodir)/ebrowse$(INFO_EXT): ebrowse.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) ebrowse.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ebrowse.texi
 ebrowse.dvi: ${srcdir}/ebrowse.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ebrowse.texi
 ebrowse.pdf: ${srcdir}/ebrowse.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/ebrowse.texi
 
-ede : $(infodir)/ede
-$(infodir)/ede: ede.texi
+ede : $(infodir)/ede$(INFO_EXT)
+$(infodir)/ede$(INFO_EXT): ede.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) ede.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ede.texi
 ede.dvi: ${srcdir}/ede.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ede.texi
 ede.pdf: ${srcdir}/ede.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/ede.texi
 
-ediff : $(infodir)/ediff
-$(infodir)/ediff: ediff.texi
+ediff : $(infodir)/ediff$(INFO_EXT)
+$(infodir)/ediff$(INFO_EXT): ediff.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) ediff.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ediff.texi
 ediff.dvi: ${srcdir}/ediff.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
 ediff.pdf: ${srcdir}/ediff.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/ediff.texi
 
-edt : $(infodir)/edt
-$(infodir)/edt: edt.texi
+edt : $(infodir)/edt$(INFO_EXT)
+$(infodir)/edt$(INFO_EXT): edt.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) edt.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ edt.texi
 edt.dvi: ${srcdir}/edt.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/edt.texi
 edt.pdf: ${srcdir}/edt.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/edt.texi
 
-eieio : $(infodir)/eieio
-$(infodir)/eieio: eieio.texi
+eieio : $(infodir)/eieio$(INFO_EXT)
+$(infodir)/eieio$(INFO_EXT): eieio.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) eieio.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ eieio.texi
 eieio.dvi: ${srcdir}/eieio.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/eieio.texi
 eieio.pdf: ${srcdir}/eieio.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/eieio.texi
 
-emacs-gnutls : $(infodir)/emacs-gnutls
-$(infodir)/emacs-gnutls: emacs-gnutls.texi
+emacs-gnutls : $(infodir)/emacs-gnutls$(INFO_EXT)
+$(infodir)/emacs-gnutls$(INFO_EXT): emacs-gnutls.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) emacs-gnutls.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ emacs-gnutls.texi
 emacs-gnutls.dvi: ${srcdir}/emacs-gnutls.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-gnutls.texi
 emacs-gnutls.pdf: ${srcdir}/emacs-gnutls.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-gnutls.texi
 
-emacs-mime : $(infodir)/emacs-mime
-$(infodir)/emacs-mime: emacs-mime.texi
+emacs-mime : $(infodir)/emacs-mime$(INFO_EXT)
+$(infodir)/emacs-mime$(INFO_EXT): emacs-mime.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) --enable-encoding emacs-mime.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) --enable-encoding -o $@ emacs-mime.texi
 emacs-mime.dvi: ${srcdir}/emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
 emacs-mime.pdf: ${srcdir}/emacs-mime.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-mime.texi
 
-epa : $(infodir)/epa
-$(infodir)/epa: epa.texi
+epa : $(infodir)/epa$(INFO_EXT)
+$(infodir)/epa$(INFO_EXT): epa.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) epa.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ epa.texi
 epa.dvi: ${srcdir}/epa.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/epa.texi
 epa.pdf: ${srcdir}/epa.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/epa.texi
 
-erc : $(infodir)/erc
-$(infodir)/erc: erc.texi
+erc : $(infodir)/erc$(INFO_EXT)
+$(infodir)/erc$(INFO_EXT): erc.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) erc.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ erc.texi
 erc.dvi: ${srcdir}/erc.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/erc.texi
 erc.pdf: ${srcdir}/erc.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/erc.texi
 
-ert : $(infodir)/ert
-$(infodir)/ert: ert.texi
+ert : $(infodir)/ert$(INFO_EXT)
+$(infodir)/ert$(INFO_EXT): ert.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) ert.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ert.texi
 ert.dvi: ${srcdir}/ert.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ert.texi
 ert.pdf: ${srcdir}/ert.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/ert.texi
 
-eshell : $(infodir)/eshell
-$(infodir)/eshell: eshell.texi
+eshell : $(infodir)/eshell$(INFO_EXT)
+$(infodir)/eshell$(INFO_EXT): eshell.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) eshell.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ eshell.texi
 eshell.dvi: ${srcdir}/eshell.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/eshell.texi
 eshell.pdf: ${srcdir}/eshell.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/eshell.texi
 
-eudc : $(infodir)/eudc
-$(infodir)/eudc: eudc.texi
+eudc : $(infodir)/eudc$(INFO_EXT)
+$(infodir)/eudc$(INFO_EXT): eudc.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) eudc.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ eudc.texi
 eudc.dvi: ${srcdir}/eudc.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/eudc.texi
 eudc.pdf: ${srcdir}/eudc.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/eudc.texi
 
-efaq : $(infodir)/efaq
-$(infodir)/efaq: faq.texi $(emacsdir)/emacsver.texi
+efaq : $(infodir)/efaq$(INFO_EXT)
+$(infodir)/efaq$(INFO_EXT): faq.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) faq.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ faq.texi
 faq.dvi: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/faq.texi
 faq.pdf: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
@@ -431,29 +457,32 @@ emacs-faq.html: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 emacs-faq.text: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) --plaintext -o $@ ${srcdir}/faq.texi
 
-flymake : $(infodir)/flymake
-$(infodir)/flymake: flymake.texi
+flymake : $(infodir)/flymake$(INFO_EXT)
+$(infodir)/flymake$(INFO_EXT): flymake.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) flymake.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ flymake.texi
 flymake.dvi: ${srcdir}/flymake.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/flymake.texi
 flymake.pdf: ${srcdir}/flymake.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/flymake.texi
 
-forms : $(infodir)/forms
-$(infodir)/forms: forms.texi
+forms : $(infodir)/forms$(INFO_EXT)
+$(infodir)/forms$(INFO_EXT): forms.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) forms.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ forms.texi
 forms.dvi: ${srcdir}/forms.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/forms.texi
 forms.pdf: ${srcdir}/forms.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/forms.texi
 
 # gnus/message/emacs-mime/sieve/pgg are part of Gnus:
-gnus : $(infodir)/gnus
-$(infodir)/gnus: gnus.texi gnus-faq.texi
+gnus : $(infodir)/gnus$(INFO_EXT)
+$(infodir)/gnus$(INFO_EXT): gnus.texi gnus-faq.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) gnus.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ gnus.texi
 gnus.dvi: ${srcdir}/gnus.texi gnus-faq.texi
 	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
@@ -465,240 +494,263 @@ gnus.pdf: ${srcdir}/gnus.texi gnus-faq.texi
 	cp gnustmp.pdf $@
 	rm gnustmp.*
 
-# This is produced with --no-split to avoid making files whose
-# names clash on DOS 8+3 filesystems
-idlwave : $(infodir)/idlwave
-$(infodir)/idlwave: idlwave.texi
+# NB this one needs --no-split even without a .info extension.
+idlwave : $(infodir)/idlwave$(INFO_EXT)
+$(infodir)/idlwave$(INFO_EXT): idlwave.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) --no-split idlwave.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ idlwave.texi
 idlwave.dvi: ${srcdir}/idlwave.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/idlwave.texi
 idlwave.pdf: ${srcdir}/idlwave.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/idlwave.texi
 
-# The following target uses an explicit -o switch to work around
-# the @setfilename directive in info.texi, which is required for
-# the Texinfo distribution.
-###info : $(infodir)/info   # circular!
-$(infodir)/info: info.texi
+# NB this one needs --no-split even without a .info extension.
+info : $(infodir)/info$(INFO_EXT)
+$(infodir)/info$(INFO_EXT): info.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) --no-split -o $@ info.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ info.texi
 info.dvi: ${srcdir}/info.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/info.texi
 info.pdf: ${srcdir}/info.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/info.texi
 
-mairix-el : $(infodir)/mairix-el
-$(infodir)/mairix-el: mairix-el.texi
+mairix-el : $(infodir)/mairix-el$(INFO_EXT)
+$(infodir)/mairix-el$(INFO_EXT): mairix-el.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) mairix-el.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ mairix-el.texi
 mairix-el.dvi: ${srcdir}/mairix-el.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/mairix-el.texi
 mairix-el.pdf: ${srcdir}/mairix-el.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/mairix-el.texi
 
-message : $(infodir)/message
-$(infodir)/message: message.texi
+message : $(infodir)/message$(INFO_EXT)
+$(infodir)/message$(INFO_EXT): message.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) message.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ message.texi
 message.dvi: ${srcdir}/message.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/message.texi
 message.pdf: ${srcdir}/message.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/message.texi
 
-mh-e : $(infodir)/mh-e
-$(infodir)/mh-e: mh-e.texi
+mh-e : $(infodir)/mh-e$(INFO_EXT)
+$(infodir)/mh-e$(INFO_EXT): mh-e.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) mh-e.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ mh-e.texi
 mh-e.dvi: ${srcdir}/mh-e.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/mh-e.texi
 mh-e.pdf: ${srcdir}/mh-e.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/mh-e.texi
 
-newsticker : $(infodir)/newsticker
-$(infodir)/newsticker: newsticker.texi
+newsticker : $(infodir)/newsticker$(INFO_EXT)
+$(infodir)/newsticker$(INFO_EXT): newsticker.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) newsticker.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ newsticker.texi
 newsticker.dvi: ${srcdir}/newsticker.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/newsticker.texi
 newsticker.pdf: ${srcdir}/newsticker.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/newsticker.texi
 
-nxml-mode : $(infodir)/nxml-mode
-$(infodir)/nxml-mode: nxml-mode.texi
+nxml-mode : $(infodir)/nxml-mode$(INFO_EXT)
+$(infodir)/nxml-mode$(INFO_EXT): nxml-mode.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) nxml-mode.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ nxml-mode.texi
 nxml-mode.dvi: ${srcdir}/nxml-mode.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/nxml-mode.texi
 nxml-mode.pdf: ${srcdir}/nxml-mode.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/nxml-mode.texi
 
-org : $(infodir)/org
-$(infodir)/org: org.texi
+org : $(infodir)/org$(INFO_EXT)
+$(infodir)/org$(INFO_EXT): org.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) org.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ org.texi
 org.dvi: ${srcdir}/org.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/org.texi
 org.pdf: ${srcdir}/org.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/org.texi
 
-pcl-cvs : $(infodir)/pcl-cvs
-$(infodir)/pcl-cvs: pcl-cvs.texi
+pcl-cvs : $(infodir)/pcl-cvs$(INFO_EXT)
+$(infodir)/pcl-cvs$(INFO_EXT): pcl-cvs.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) pcl-cvs.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ pcl-cvs.texi
 pcl-cvs.dvi: ${srcdir}/pcl-cvs.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/pcl-cvs.texi
 pcl-cvs.pdf: ${srcdir}/pcl-cvs.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/pcl-cvs.texi
 
-pgg : $(infodir)/pgg
-$(infodir)/pgg: pgg.texi
+pgg : $(infodir)/pgg$(INFO_EXT)
+$(infodir)/pgg$(INFO_EXT): pgg.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) pgg.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ pgg.texi
 pgg.dvi: ${srcdir}/pgg.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/pgg.texi
 pgg.pdf: ${srcdir}/pgg.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/pgg.texi
 
-rcirc : $(infodir)/rcirc
-$(infodir)/rcirc: rcirc.texi
+rcirc : $(infodir)/rcirc$(INFO_EXT)
+$(infodir)/rcirc$(INFO_EXT): rcirc.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) rcirc.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ rcirc.texi
 rcirc.dvi: ${srcdir}/rcirc.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/rcirc.texi
 rcirc.pdf: ${srcdir}/rcirc.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/rcirc.texi
 
-reftex : $(infodir)/reftex
-$(infodir)/reftex: reftex.texi
+reftex : $(infodir)/reftex$(INFO_EXT)
+$(infodir)/reftex$(INFO_EXT): reftex.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) reftex.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ reftex.texi
 reftex.dvi: ${srcdir}/reftex.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/reftex.texi
 reftex.pdf: ${srcdir}/reftex.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/reftex.texi
 
-remember : $(infodir)/remember
-$(infodir)/remember: remember.texi
+remember : $(infodir)/remember$(INFO_EXT)
+$(infodir)/remember$(INFO_EXT): remember.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) remember.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ remember.texi
 remember.dvi: ${srcdir}/remember.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/remember.texi
 remember.pdf: ${srcdir}/remember.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/remember.texi
 
-sasl : $(infodir)/sasl
-$(infodir)/sasl: sasl.texi
+sasl : $(infodir)/sasl$(INFO_EXT)
+$(infodir)/sasl$(INFO_EXT): sasl.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) sasl.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ sasl.texi
 sasl.dvi: ${srcdir}/sasl.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/sasl.texi
 sasl.pdf: ${srcdir}/sasl.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/sasl.texi
 
-sc : $(infodir)/sc
-$(infodir)/sc: sc.texi
+sc : $(infodir)/sc$(INFO_EXT)
+$(infodir)/sc$(INFO_EXT): sc.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) sc.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ sc.texi
 sc.dvi: ${srcdir}/sc.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/sc.texi
 sc.pdf: ${srcdir}/sc.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/sc.texi
 
-semantic : $(infodir)/semantic
-$(infodir)/semantic: semantic.texi sem-user.texi
+semantic : $(infodir)/semantic$(INFO_EXT)
+$(infodir)/semantic$(INFO_EXT): semantic.texi sem-user.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) semantic.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ semantic.texi
 semantic.dvi: ${srcdir}/semantic.texi sem-user.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/semantic.texi
 semantic.pdf: ${srcdir}/semantic.texi sem-user.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/semantic.texi
 
-ses : $(infodir)/ses
-$(infodir)/ses: ses.texi
+ses : $(infodir)/ses$(INFO_EXT)
+$(infodir)/ses$(INFO_EXT): ses.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) ses.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ses.texi
 ses.dvi: ${srcdir}/ses.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ses.texi
 ses.pdf: ${srcdir}/ses.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/ses.texi
 
-sieve : $(infodir)/sieve
-$(infodir)/sieve: sieve.texi
+sieve : $(infodir)/sieve$(INFO_EXT)
+$(infodir)/sieve$(INFO_EXT): sieve.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) sieve.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ sieve.texi
 sieve.dvi: ${srcdir}/sieve.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
 sieve.pdf: ${srcdir}/sieve.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/sieve.texi
 
-smtpmail : $(infodir)/smtpmail
-$(infodir)/smtpmail: smtpmail.texi
+smtpmail : $(infodir)/smtpmail$(INFO_EXT)
+$(infodir)/smtpmail$(INFO_EXT): smtpmail.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) smtpmail.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ smtpmail.texi
 smtpmail.dvi: ${srcdir}/smtpmail.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/smtpmail.texi
 smtpmail.pdf: ${srcdir}/smtpmail.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/smtpmail.texi
 
-speedbar : $(infodir)/speedbar
-$(infodir)/speedbar: speedbar.texi
+speedbar : $(infodir)/speedbar$(INFO_EXT)
+$(infodir)/speedbar$(INFO_EXT): speedbar.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) speedbar.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ speedbar.texi
 speedbar.dvi: ${srcdir}/speedbar.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/speedbar.texi
 speedbar.pdf: ${srcdir}/speedbar.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/speedbar.texi
 
-tramp : $(infodir)/tramp
-$(infodir)/tramp: tramp.texi trampver.texi
+tramp : $(infodir)/tramp$(INFO_EXT)
+$(infodir)/tramp$(INFO_EXT): tramp.texi trampver.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) -D emacs tramp.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ -D emacs tramp.texi
 tramp.dvi: ${srcdir}/tramp.texi trampver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/tramp.texi
 tramp.pdf: ${srcdir}/tramp.texi trampver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/tramp.texi
 
-url : $(infodir)/url
-$(infodir)/url: url.texi
+url : $(infodir)/url$(INFO_EXT)
+$(infodir)/url$(INFO_EXT): url.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) url.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ url.texi
 url.dvi: ${srcdir}/url.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/url.texi
 url.pdf: ${srcdir}/url.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/url.texi
 
-vip : $(infodir)/vip
-$(infodir)/vip: vip.texi
+vip : $(infodir)/vip$(INFO_EXT)
+$(infodir)/vip$(INFO_EXT): vip.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) vip.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ vip.texi
 vip.dvi: ${srcdir}/vip.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/vip.texi
 vip.pdf: ${srcdir}/vip.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/vip.texi
 
-viper : $(infodir)/viper
-$(infodir)/viper: viper.texi
+viper : $(infodir)/viper$(INFO_EXT)
+$(infodir)/viper$(INFO_EXT): viper.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) viper.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ viper.texi
 viper.dvi: ${srcdir}/viper.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/viper.texi
 viper.pdf: ${srcdir}/viper.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/viper.texi
 
-widget : $(infodir)/widget
-$(infodir)/widget: widget.texi
+widget : $(infodir)/widget$(INFO_EXT)
+$(infodir)/widget$(INFO_EXT): widget.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) widget.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ widget.texi
 widget.dvi: ${srcdir}/widget.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/widget.texi
 widget.pdf: ${srcdir}/widget.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/widget.texi
 
-woman : $(infodir)/woman
-$(infodir)/woman: woman.texi
+woman : $(infodir)/woman$(INFO_EXT)
+$(infodir)/woman$(INFO_EXT): woman.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) woman.texi
+	cd $(srcdir); \
+	  $(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ woman.texi
 woman.dvi: ${srcdir}/woman.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/woman.texi
 woman.pdf: ${srcdir}/woman.texi

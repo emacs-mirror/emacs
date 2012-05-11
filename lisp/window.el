@@ -5094,11 +5094,11 @@ Return the buffer switched to."
      ((eq buffer (window-buffer)))
      ((window-minibuffer-p)
       (if force-same-window
-          (error "Cannot switch buffers in minibuffer window")
+          (user-error "Cannot switch buffers in minibuffer window")
         (pop-to-buffer buffer norecord)))
      ((eq (window-dedicated-p) t)
       (if force-same-window
-          (error "Cannot switch buffers in a dedicated window")
+          (user-error "Cannot switch buffers in a dedicated window")
         (pop-to-buffer buffer norecord)))
      (t (set-window-buffer nil buffer)))
 

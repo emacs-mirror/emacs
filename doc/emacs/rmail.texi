@@ -1232,9 +1232,9 @@ rmail-epa-decrypt} to decrypt it, using the EasyPG library
 Address mode:
 
 @c FIXME goto-addr.el commentary says to use goto-address instead.
-@smallexample
+@example
 (add-hook 'rmail-show-message-hook 'goto-address-mode)
-@end smallexample
+@end example
 
 @noindent
 Then you can browse these URLs by clicking on them with @kbd{Mouse-2}

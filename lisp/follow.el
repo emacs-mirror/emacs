@@ -321,9 +321,10 @@ The commands in this list are checked at load time.
 To mark other commands as suitable for caching, set the symbol
 property `follow-mode-use-cache' to non-nil.")
 
-(defvar follow-debug nil
-  "Non-nil when debugging Follow mode.")
-
+(defcustom follow-debug nil
+  "If non-nil, emit Follow mode debugging messages."
+  :type 'boolean
+  :group 'follow)
 
 ;; Internal variables:
 

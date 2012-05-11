@@ -989,18 +989,13 @@ If Abbrev mode is turned on, typing ` (grave accent) followed by ? or
 executed normally.
 Note that all Octave mode abbrevs start with a grave accent."
   (interactive)
-  (if (not abbrev-mode)
-      (self-insert-command 1)
-    (let (c)
-      (insert last-command-event)
-      (if (if (featurep 'xemacs)
-	      (or (eq (event-to-character (setq c (next-event))) ??)
-		  (eq (event-to-character c) help-char))
-	    (or (eq (setq c (read-event)) ??)
-		(eq c help-char)))
-	  (let ((abbrev-table-name-list '(octave-abbrev-table)))
-	    (list-abbrevs))
-	(setq unread-command-events (list c))))))
+  (self-insert-command 1)
+  (when abbrev-mode
+    (set-temporary-overlay-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map [??] 'list-abbrevs)
+       (define-key map (vector help-char) 'list-abbrevs)
+       map))))
 
 (define-skeleton octave-insert-defun
   "Insert an Octave function skeleton.

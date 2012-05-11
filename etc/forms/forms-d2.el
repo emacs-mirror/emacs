@@ -1,4 +1,4 @@
-;;; forms-d2.el --- demo forms-mode -*- no-byte-compile: t -*-
+;;; forms-d2.el --- demo forms-mode
 
 ;; Copyright (C) 1991, 1994-1997, 2001-2012 Free Software Foundation, Inc.
 
@@ -27,7 +27,7 @@
 ;;; Code:
 
 ;; Set the name of the data file.
-(setq forms-file (expand-file-name "forms-d2.dat" data-directory))
+(setq forms-file (expand-file-name "forms/forms-d2.dat" data-directory))
 
 ;; Use 'forms-enumerate' to set field names and number thereof.
 (setq forms-number-of-fields

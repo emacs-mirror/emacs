@@ -186,8 +186,10 @@
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
+(load "newcomment")
 
 (load "replace")
+(load "emacs-lisp/tabulated-list")
 (load "buff-menu")
 
 (if (fboundp 'x-create-frame)

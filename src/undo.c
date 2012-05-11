@@ -436,6 +436,13 @@ truncate_undo_list (struct buffer *b)
 
   unbind_to (count, Qnil);
 }
+
+static void user_error (const char*) NO_RETURN;
+static void user_error (const char *msg)
+{
+  xsignal1 (Quser_error, build_string (msg));
+}
+
 
 DEFUN ("primitive-undo", Fprimitive_undo, Sprimitive_undo, 2, 2, 0,
        doc: /* Undo N records from the front of the list LIST.
@@ -528,7 +535,7 @@ Return what remains of the list.  */)
 		  end = Fcdr (cdr);
 
 		  if (XINT (beg) < BEGV || XINT (end) > ZV)
-		    error ("Changes to be undone are outside visible portion of buffer");
+		    user_error ("Changes to be undone are outside visible portion of buffer");
 		  Fput_text_property (beg, end, prop, val, Qnil);
 		}
 	      else if (INTEGERP (car) && INTEGERP (cdr))
@@ -537,7 +544,7 @@ Return what remains of the list.  */)
 
 		  if (XINT (car) < BEGV
 		      || XINT (cdr) > ZV)
-		    error ("Changes to be undone are outside visible portion of buffer");
+		    user_error ("Changes to be undone are outside visible portion of buffer");
 		  /* Set point first thing, so that undoing this undo
 		     does not send point back to where it is now.  */
 		  Fgoto_char (car);
@@ -588,14 +595,14 @@ Return what remains of the list.  */)
 		  if (pos < 0)
 		    {
 		      if (-pos < BEGV || -pos > ZV)
-			error ("Changes to be undone are outside visible portion of buffer");
+			user_error ("Changes to be undone are outside visible portion of buffer");
 		      SET_PT (-pos);
 		      Finsert (1, &membuf);
 		    }
 		  else
 		    {
 		      if (pos < BEGV || pos > ZV)
-			error ("Changes to be undone are outside visible portion of buffer");
+			user_error ("Changes to be undone are outside visible portion of buffer");
 		      SET_PT (pos);
 
 		      /* Now that we record marker adjustments

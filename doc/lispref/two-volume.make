@@ -1,32 +1,45 @@
-# Copyright (C) 2007-2012  Free Software Foundation, Inc.
+# Copyright (C) 2007-2012 Free Software Foundation, Inc.
 # See end for copying conditions.
 
 # although it would be nice to use tex rather than pdftex to avoid
 # colors, spurious warnings about names being referenced but not
 # existing, etc., dvips | ps2pdf doesn't preserve the page size.
 # Instead of creating a special dvips config file, put up with the warnings.
+# (Note added 2012/05: for me, using texlive-2007-57, pdftex
+# doesn't work for reason, but tex does.)
 texinfodir=../misc
+emacsdir=../emacs
 
-tex = TEXINPUTS=".:$(texinfodir):${TEXINPUTS}" pdftex -interaction=nonstopmode
+tex = TEXINPUTS=".:$(texinfodir):${emacsdir}:${TEXINPUTS}" pdftex -interaction=nonstopmode
 
 all: vol1.pdf vol2.pdf
 
-# vol1.texi and vol2.texi specially define \tocreadfilename so we can
-# use our premade .toc's.
+# There's probably a better way to do this, without using a temp file.
+# Something like:
+# tex -jobname=vol1 '\def\SETVOL1 \input{elisp.texi}'
+# but I don't know what to use for "\def\SETVOL1".
+tex1 = sed '/^@setfilename/a\
+@set VOL1' elisp.texi > elisp1tmp.tex && $(tex) -jobname=vol1 elisp1tmp.tex
+
+tex2 = sed '/^@setfilename/a\
+@set VOL2' elisp.texi > elisp2tmp.tex && $(tex) -jobname=vol2 elisp2tmp.tex
+
+# elisp.texi specially defines \tocreadfilename when VOL1 or VOL2 is
+# set, so we can use our premade .toc's.
 # 
 vol1.pdf: elisp1med-fns-ready elisp1med-aux-ready elisp1med-toc-ready
 	@echo -e "\f Final TeX run for volume 1..."
 	cp elisp1med-toc-ready elisp1-toc-ready.toc
 	cp elisp1med-fns-ready vol1.fns
 	cp elisp1med-aux-ready vol1.aux
-	$(tex) vol1.texi
+	$(tex1)
 #
 vol2.pdf: elisp2med-fns-ready elisp2med-aux-ready elisp2med-toc-ready
 	@echo "Final TeX run for volume 2..."
 	cp elisp2med-toc-ready elisp2-toc-ready.toc
 	cp elisp2med-fns-ready vol2.fns
 	cp elisp2med-aux-ready vol2.aux
-	$(tex) vol2.texi
+	$(tex2)
 
 #  intermediate toc files.
 # 
@@ -104,7 +117,7 @@ elisp1med-init: elisp1-fns-ready elisp1-aux-ready elisp1init-toc-ready $(texinfo
 	cp elisp1init-toc-ready elisp1-toc-ready.toc
 	cp elisp1-fns-ready vol1.fns
 	cp elisp1-aux-ready vol1.aux
-	$(tex) vol1.texi
+	$(tex1)
 	texindex vol1.??
 	mv vol1.aux elisp1med-aux
 	mv vol1.toc elisp1med-toc
@@ -114,7 +127,7 @@ elisp2med-init: elisp2-fns-ready elisp2-aux-ready elisp2init-toc-ready $(texinfo
 	cp elisp2init-toc-ready elisp2-toc-ready.toc
 	cp elisp2-fns-ready vol2.fns
 	cp elisp2-aux-ready vol2.aux
-	$(tex) vol2.texi
+	$(tex2)
 	texindex vol2.??
 	mv vol2.aux elisp2med-aux
 	mv vol2.toc elisp2med-toc
@@ -188,19 +201,19 @@ elisp2-fn-vol-added: elisp2-init
 # but we run texindex and TeX a second time just to get them closer.
 # Otherwise it might take even longer for them to converge.
 # 
-elisp1-init: vol1.texi
+elisp1-init: elisp.texi
 	@echo -e "\f Initial TeX run for volume 1..."
 	rm -f vol1.aux vol1.toc
-	$(tex) $<
+	$(tex1)
 	texindex vol1.??
 	mv vol1.aux elisp1-aux
 	mv vol1.toc elisp1-toc
 	touch $@
 #
-elisp2-init: vol2.texi
+elisp2-init: elisp.texi
 	@echo "Initial TeX run for volume 2..."
 	rm -f vol2.aux vol2.toc
-	$(tex) $<
+	$(tex2)
 	texindex vol2.??
 	mv vol2.aux elisp2-aux
 	mv vol2.toc elisp2-toc

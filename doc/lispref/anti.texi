@@ -7,8 +7,7 @@
 
 @node Antinews, GNU Free Documentation License, Packaging, Top
 @appendix Emacs 23 Antinews
-@c Update the elisp.texi, vol1.texi, vol2.texi Antinews menu entries
-@c with the above version number.
+@c Update the elisp.texi Antinews menu entry with the above version number.
 
 For those users who live backwards in time, here is information about
 downgrading to Emacs version 23.4.  We hope you will enjoy the greater

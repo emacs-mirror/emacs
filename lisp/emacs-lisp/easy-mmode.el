@@ -572,8 +572,6 @@ BODY is executed after moving to the destination location."
                  (when was-narrowed (,narrowfun)))))))
     (unless name (setq name base-name))
     `(progn
-       (add-to-list 'debug-ignored-errors
-		    ,(concat "^No \\(previous\\|next\\) " (regexp-quote name)))
        (defun ,next-sym (&optional count)
 	 ,(format "Go to the next COUNT'th %s." name)
 	 (interactive "p")
@@ -584,7 +582,7 @@ BODY is executed after moving to the destination location."
              `(if (not (re-search-forward ,re nil t count))
                   (if (looking-at ,re)
                       (goto-char (or ,(if endfun `(,endfun)) (point-max)))
-                    (error "No next %s" ,name))
+                    (user-error "No next %s" ,name))
                 (goto-char (match-beginning 0))
                 (when (and (eq (current-buffer) (window-buffer (selected-window)))
                            (called-interactively-p 'interactive))
@@ -603,7 +601,7 @@ BODY is executed after moving to the destination location."
 	 (if (< count 0) (,next-sym (- count))
            ,(funcall when-narrowed
              `(unless (re-search-backward ,re nil t count)
-                (error "No previous %s" ,name)))
+                (user-error "No previous %s" ,name)))
            ,@body))
        (put ',prev-sym 'definition-name ',base))))
 

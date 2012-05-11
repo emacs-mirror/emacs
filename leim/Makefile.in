@@ -34,8 +34,12 @@ datadir=@datadir@
 srcdir=@srcdir@
 ns_appresdir=@ns_appresdir@
 
+install_prefix=$(DESTDIR)${datadir}/emacs/${version}
+
 # Where to install LEIM files.
-INSTALLDIR=$(DESTDIR)${datadir}/emacs/${version}/leim
+# For most builds, this is ${install_prefix}/leim.
+# For self-contained ns builds, it is ${ns_appresdir}/leim.
+LEIM_INSTALLDIR=@LEIM_INSTALLDIR@
 
 GZIP_PROG = @GZIP_PROG@
 
@@ -174,52 +178,45 @@ compile-main: ${TIT_MISC}
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
 
-MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
-
 install: all
-	if [ ! -d ${INSTALLDIR} ] ; then \
-          umask 022; ${srcdir}/../build-aux/install-sh -d ${INSTALLDIR}; \
+	if [ ! -d ${LEIM_INSTALLDIR} ] ; then \
+          umask 022; ${srcdir}/../build-aux/install-sh -d ${LEIM_INSTALLDIR}; \
 	else true; fi
-	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
-	  rm -f ${INSTALLDIR}/leim-list.el; \
-	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/ja-dic ; \
-	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
+	if [ x`(cd ${LEIM_INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
+	  rm -f ${LEIM_INSTALLDIR}/leim-list.el; \
+	  rm -rf ${LEIM_INSTALLDIR}/quail ${LEIM_INSTALLDIR}/ja-dic ; \
+	  echo "Copying leim files to ${LEIM_INSTALLDIR} ..." ; \
 	  if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
 	    tar -chf - leim-list.el quail ja-dic \
-		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+		| (cd ${LEIM_INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  else \
 	    tar -chf - leim-list.el quail \
-		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+		| (cd ${LEIM_INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	    cd ${srcdir}; \
 	    tar -chf - quail/* ja-dic \
-		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+		| (cd ${LEIM_INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  fi; \
-	  rm -f  ${INSTALLDIR}/.gitignore ${INSTALLDIR}/*/.gitignore; \
-	  rm -f  ${INSTALLDIR}/.arch-inventory ${INSTALLDIR}/*/.arch-inventory; \
-	  rm -f  ${INSTALLDIR}/\#*        ${INSTALLDIR}/*/\#* ; \
-	  rm -f  ${INSTALLDIR}/.\#*       ${INSTALLDIR}/*/.\#* ; \
-	  rm -f  ${INSTALLDIR}/*~         ${INSTALLDIR}/*/*~ ; \
-	  rm -f  ${INSTALLDIR}/*.orig     ${INSTALLDIR}/*/*.orig ; \
+	  rm -f  ${LEIM_INSTALLDIR}/.gitignore ${LEIM_INSTALLDIR}/*/.gitignore; \
+	  rm -f  ${LEIM_INSTALLDIR}/.arch-inventory ${LEIM_INSTALLDIR}/*/.arch-inventory; \
+	  rm -f  ${LEIM_INSTALLDIR}/\#*        ${LEIM_INSTALLDIR}/*/\#* ; \
+	  rm -f  ${LEIM_INSTALLDIR}/.\#*       ${LEIM_INSTALLDIR}/*/.\#* ; \
+	  rm -f  ${LEIM_INSTALLDIR}/*~         ${LEIM_INSTALLDIR}/*/*~ ; \
+	  rm -f  ${LEIM_INSTALLDIR}/*.orig     ${LEIM_INSTALLDIR}/*/*.orig ; \
 	else true; fi
 	-unset CDPATH; \
 	if [ -n "${GZIP_PROG}" ]; \
 	then \
 	   echo "Compressing *.el ..." ; \
-	   (cd ${INSTALLDIR}; for f in `find . -name "*.elc" -print`; do \
+	   (cd ${LEIM_INSTALLDIR}; for f in `find . -name "*.elc" -print`; do \
 		${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
 	    done) \
 	else true; fi
-	-chmod -R a+r ${INSTALLDIR}
+	-chmod -R a+r ${LEIM_INSTALLDIR}
 	for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 	  `id -un 2> /dev/null`; do \
 	  [ -n "$${installuser}" ] && break ; \
 	done ; \
-	find ${INSTALLDIR} -exec chown $${installuser} '{}' ';'
-	if [ "${ns_appresdir}" != "" ]; then \
-	  ( cd ${ns_appresdir} ; \
-	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
-	    rm -fr share ) ; \
-	else true ; fi
+	find ${LEIM_INSTALLDIR} -exec chown $${installuser} '{}' ';'
 
 clean mostlyclean:
 	rm -f ${TIT_MISC} ${TIT_MISC:.el=.elc} \

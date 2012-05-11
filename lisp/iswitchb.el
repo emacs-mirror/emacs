@@ -372,9 +372,14 @@ See also `iswitchb-newbuffer'."
   :type 'string
   :group 'iswitchb)
 
-(defvar iswitchb-all-frames 'visible
-  "Argument to pass to `walk-windows' when finding visible buffers.
-See documentation of `walk-windows' for useful values.")
+(defcustom iswitchb-all-frames 'visible
+  "Argument to pass to `walk-windows' when iswitchb is finding buffers.
+See documentation of `walk-windows' for useful values."
+  :type '(choice (const :tag "Selected frame only" nil)
+		 (const :tag "All existing frames" t)
+		 (const :tag "All visible frames" visible)
+		 (const :tag "All frames on this terminal" 0))
+  :group 'iswitchb)
 
 (defcustom iswitchb-minibuffer-setup-hook nil
   "Iswitchb-specific customization of minibuffer setup.

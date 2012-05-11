@@ -456,9 +456,6 @@ value of `!DIR'.  See also `idlwave-library-path'."
 (defvar idlwave-xml-system-rinfo-converted-file "idl_xml_rinfo.el")
 (defvar idlwave-path-file "idlpath.el")
 
-(defvar idlwave-libinfo-file nil
-  "Obsolete variable, no longer used.")
-
 (defcustom idlwave-special-lib-alist nil
   "Alist of regular expressions matching special library directories.
 When listing routine source locations, IDLWAVE gives a short hint where
@@ -554,10 +551,6 @@ Completing on the empty string then offers downcase versions of the possible
 completions."
   :group 'idlwave-completion
   :type 'boolean)
-
-(defvar idlwave-default-completion-case-is-down nil
-  "Obsolete variable.  See `idlwave-complete-empty-string-as-lower-case' and
-`idlwave-completion-case'.")
 
 (defcustom idlwave-buffer-case-takes-precedence nil
   "Non-nil means, the case of tokens in buffers dominates over system stuff.
@@ -4524,8 +4517,6 @@ information updated immediately, leave NO-CONCATENATE nil."
 		   idlwave-init-rinfo-when-idle-after
 		   nil 'idlwave-load-rinfo-next-step)))
 	(error nil))))
-
-(defvar idlwave-library-routines nil "Obsolete variable.")
 
 ;;------ XML Help routine info system
 (defun idlwave-load-system-routine-info ()

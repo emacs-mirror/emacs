@@ -1,3 +1,28 @@
+2012-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): There are no more Makefile.c files.
+	Use INSTALL_DATA for the DOC file.
+
+2012-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LEIM_INSTALLDIR): New output variable.
+
+2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .dir-locals.el (log-edit-mode): Enable gnu-style checks.
+
+2012-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No more doc/lispref/*.el.
+
+2012-05-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Fix quoting bugs.
+
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (INFO_EXT, INFO_OPTS): New output variables.
+
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LD_SWITCH_SYSTEM): Don't try to defeat

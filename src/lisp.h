@@ -475,6 +475,7 @@ enum pvec_type
      (var) = (type) | (intptr_t) (ptr))
 
 #define XPNTR(a) ((intptr_t) ((a) & ~TYPEMASK))
+#define XUNTAG(a, type) ((intptr_t) ((a) - (type)))
 
 #else  /* not USE_LSB_TAG */
 
@@ -581,6 +582,13 @@ extern Lisp_Object make_number (EMACS_INT);
 # define XSETFASTINT(a, b) (XSETINT (a, b))
 #endif
 
+/* Extract the pointer value of the Lisp object A, under the
+   assumption that A's type is TYPE.  This is a fallback
+   implementation if nothing faster is available.  */
+#ifndef XUNTAG
+# define XUNTAG(a, type) XPNTR (a)
+#endif
+
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 
 /* Number of bits in a fixnum, including the sign bit.  */
@@ -607,15 +615,20 @@ extern Lisp_Object make_number (EMACS_INT);
 
 /* Extract a value or address from a Lisp_Object.  */
 
-#define XCONS(a) (eassert (CONSP (a)), (struct Lisp_Cons *) XPNTR (a))
-#define XVECTOR(a) (eassert (VECTORLIKEP (a)), (struct Lisp_Vector *) XPNTR (a))
-#define XSTRING(a) (eassert (STRINGP (a)), (struct Lisp_String *) XPNTR (a))
-#define XSYMBOL(a) (eassert (SYMBOLP (a)), (struct Lisp_Symbol *) XPNTR (a))
-#define XFLOAT(a) (eassert (FLOATP (a)), (struct Lisp_Float *) XPNTR (a))
+#define XCONS(a)   (eassert (CONSP (a)), \
+		    (struct Lisp_Cons *) XUNTAG (a, Lisp_Cons))
+#define XVECTOR(a) (eassert (VECTORLIKEP (a)), \
+		    (struct Lisp_Vector *) XUNTAG (a, Lisp_Vectorlike))
+#define XSTRING(a) (eassert (STRINGP (a)), \
+		    (struct Lisp_String *) XUNTAG (a, Lisp_String))
+#define XSYMBOL(a) (eassert (SYMBOLP (a)), \
+		    (struct Lisp_Symbol *) XUNTAG (a, Lisp_Symbol))
+#define XFLOAT(a)  (eassert (FLOATP (a)), \
+		    (struct Lisp_Float *) XUNTAG (a, Lisp_Float))
 
 /* Misc types.  */
 
-#define XMISC(a)   ((union Lisp_Misc *) XPNTR (a))
+#define XMISC(a)	((union Lisp_Misc *) XUNTAG (a, Lisp_Misc))
 #define XMISCANY(a)	(eassert (MISCP (a)), &(XMISC (a)->u_any))
 #define XMISCTYPE(a)   (XMISCANY (a)->type)
 #define XMARKER(a)	(eassert (MARKERP (a)), &(XMISC (a)->u_marker))
@@ -635,14 +648,24 @@ extern Lisp_Object make_number (EMACS_INT);
 
 /* Pseudovector types.  */
 
-#define XPROCESS(a) (eassert (PROCESSP (a)), (struct Lisp_Process *) XPNTR (a))
-#define XWINDOW(a) (eassert (WINDOWP (a)), (struct window *) XPNTR (a))
-#define XTERMINAL(a) (eassert (TERMINALP (a)), (struct terminal *) XPNTR (a))
-#define XSUBR(a) (eassert (SUBRP (a)), (struct Lisp_Subr *) XPNTR (a))
-#define XBUFFER(a) (eassert (BUFFERP (a)), (struct buffer *) XPNTR (a))
-#define XCHAR_TABLE(a) (eassert (CHAR_TABLE_P (a)), (struct Lisp_Char_Table *) XPNTR (a))
-#define XSUB_CHAR_TABLE(a) (eassert (SUB_CHAR_TABLE_P (a)), (struct Lisp_Sub_Char_Table *) XPNTR (a))
-#define XBOOL_VECTOR(a) (eassert (BOOL_VECTOR_P (a)), (struct Lisp_Bool_Vector *) XPNTR (a))
+#define XPROCESS(a) (eassert (PROCESSP (a)), \
+		     (struct Lisp_Process *) XUNTAG (a, Lisp_Vectorlike))
+#define XWINDOW(a) (eassert (WINDOWP (a)), \
+		    (struct window *) XUNTAG (a, Lisp_Vectorlike))
+#define XTERMINAL(a) (eassert (TERMINALP (a)), \
+		      (struct terminal *) XUNTAG (a, Lisp_Vectorlike))
+#define XSUBR(a) (eassert (SUBRP (a)), \
+		  (struct Lisp_Subr *) XUNTAG (a, Lisp_Vectorlike))
+#define XBUFFER(a) (eassert (BUFFERP (a)), \
+		    (struct buffer *) XUNTAG (a, Lisp_Vectorlike))
+#define XCHAR_TABLE(a) (eassert (CHAR_TABLE_P (a)), \
+			(struct Lisp_Char_Table *) XUNTAG (a, Lisp_Vectorlike))
+#define XSUB_CHAR_TABLE(a) (eassert (SUB_CHAR_TABLE_P (a)), \
+			    ((struct Lisp_Sub_Char_Table *) \
+			     XUNTAG (a, Lisp_Vectorlike)))
+#define XBOOL_VECTOR(a) (eassert (BOOL_VECTOR_P (a)), \
+			 ((struct Lisp_Bool_Vector *) \
+			  XUNTAG (a, Lisp_Vectorlike)))
 
 /* Construct a Lisp_Object from a value or address.  */
 
@@ -669,7 +692,9 @@ extern Lisp_Object make_number (EMACS_INT);
 /* The cast to struct vectorlike_header * avoids aliasing issues.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
   XSETTYPED_PSEUDOVECTOR(a, b,       \
-			 ((struct vectorlike_header *) XPNTR (a))->size, \
+			 (((struct vectorlike_header *)	\
+			   XUNTAG (a, Lisp_Vectorlike)) \
+			  ->size),			\
 			 code)
 #define XSETTYPED_PSEUDOVECTOR(a, b, size, code)			\
   (XSETVECTOR (a, b),							\
@@ -1277,7 +1302,7 @@ struct Lisp_Hash_Table
 
 
 #define XHASH_TABLE(OBJ) \
-     ((struct Lisp_Hash_Table *) XPNTR (OBJ))
+     ((struct Lisp_Hash_Table *) XUNTAG (OBJ, Lisp_Vectorlike))
 
 #define XSET_HASH_TABLE(VAR, PTR) \
      (XSETPSEUDOVECTOR (VAR, PTR, PVEC_HASH_TABLE))
@@ -1735,7 +1760,7 @@ typedef struct {
    code is CODE.  */
 #define TYPED_PSEUDOVECTORP(x, t, code)				\
   (VECTORLIKEP (x)						\
-   && (((((struct t *) XPNTR (x))->size				\
+   && (((((struct t *) XUNTAG (x, Lisp_Vectorlike))->size	\
 	 & (PSEUDOVECTOR_FLAG | (code))))			\
        == (PSEUDOVECTOR_FLAG | (code))))
 
@@ -2377,7 +2402,7 @@ extern Lisp_Object Qerror, Qquit, Qargs_out_of_range;
 extern Lisp_Object Qvoid_variable, Qvoid_function;
 extern Lisp_Object Qinvalid_read_syntax;
 extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
-extern Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
+extern Lisp_Object Quser_error, Qend_of_file, Qarith_error, Qmark_inactive;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 extern Lisp_Object Qtext_read_only;
 extern Lisp_Object Qinteractive_form;

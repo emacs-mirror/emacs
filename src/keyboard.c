@@ -1200,6 +1200,12 @@ This also exits all active minibuffers.  */)
   Fthrow (Qtop_level, Qnil);
 }
 
+static void user_error (const char*) NO_RETURN;
+static void user_error (const char *msg)
+{
+  xsignal1 (Quser_error, build_string (msg));
+}
+
 static Lisp_Object Fexit_recursive_edit (void) NO_RETURN;
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
        doc: /* Exit from the innermost recursive edit or minibuffer.  */)
@@ -1208,7 +1214,7 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
   if (command_loop_level > 0 || minibuf_level > 0)
     Fthrow (Qexit, Qnil);
 
-  error ("No recursive edit is in progress");
+  user_error ("No recursive edit is in progress");
 }
 
 static Lisp_Object Fabort_recursive_edit (void) NO_RETURN;
@@ -1219,7 +1225,7 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
   if (command_loop_level > 0 || minibuf_level > 0)
     Fthrow (Qexit, Qt);
 
-  error ("No recursive edit is in progress");
+  user_error ("No recursive edit is in progress");
 }
 
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
@@ -2990,8 +2996,10 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	  && !(EQ (Qselect_window, XCAR (c)))))
     {
       if (!NILP (echo_area_buffer[0]))
-	safe_run_hooks (Qecho_area_clear_hook);
-      clear_message (1, 0);
+	{
+	  safe_run_hooks (Qecho_area_clear_hook);
+	  clear_message (1, 0);
+	}
     }
 
  reread_for_input_method:

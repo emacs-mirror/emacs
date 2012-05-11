@@ -39,30 +39,62 @@
   silent (use-cookies t))
 
 (defsubst url-port (urlobj)
+  "Return the port number for the URL specified by URLOBJ."
   (or (url-portspec urlobj)
-      (if (url-fullness urlobj)
+      (if (url-type urlobj)
           (url-scheme-get-property (url-type urlobj) 'default-port))))
 
 (defsetf url-port (urlobj) (port) `(setf (url-portspec ,urlobj) ,port))
 
+(defun url-path-and-query (urlobj)
+  "Return the path and query components of URLOBJ.
+These two components are store together in the FILENAME slot of
+the object.  The return value of this function is (PATH . QUERY),
+where each of PATH and QUERY are strings or nil."
+  (let ((name (url-filename urlobj))
+	path query)
+    (when name
+      (if (string-match "\\?" name)
+	  (setq path  (substring name 0 (match-beginning 0))
+		query (substring name (match-end 0)))
+	(setq path name)))
+    (if (equal path "") (setq path nil))
+    (if (equal query "") (setq query nil))
+    (cons path query)))
+
+(defun url-port-if-non-default (urlobj)
+  "Return the port number specified by URLOBJ, if it is not the default.
+If the specified port number is the default, return nil."
+  (let ((port (url-portspec urlobj))
+	type)
+    (and port
+	 (or (null (setq type (url-type urlobj)))
+	     (not (equal port (url-scheme-get-property type 'default-port))))
+	 port)))
+
 ;;;###autoload
 (defun url-recreate-url (urlobj)
   "Recreate a URL string from the parsed URLOBJ."
-  (concat (url-type urlobj) ":" (if (url-host urlobj) "//" "")
-	  (if (url-user urlobj)
-	      (concat (url-user urlobj)
-		      (if (url-password urlobj)
-			  (concat ":" (url-password urlobj)))
-		      "@"))
-	  (url-host urlobj)
-	  (if (and (url-port urlobj)
-		   (not (equal (url-port urlobj)
-			       (url-scheme-get-property (url-type urlobj) 'default-port))))
-	      (format ":%d" (url-port urlobj)))
-	  (or (url-filename urlobj) "/")          
-	  (url-recreate-url-attributes urlobj)
-	  (if (url-target urlobj)
-	      (concat "#" (url-target urlobj)))))
+  (let* ((type (url-type urlobj))
+	 (user (url-user urlobj))
+	 (pass (url-password urlobj))
+	 (host (url-host urlobj))
+	 ;; RFC 3986: "omit the port component and its : delimiter if
+	 ;; port is empty or if its value would be the same as that of
+	 ;; the scheme's default."
+	 (port (url-port-if-non-default urlobj))
+	 (file (url-filename urlobj))
+	 (frag (url-target urlobj)))
+    (concat (if type (concat type ":"))
+	    (if (url-fullness urlobj) "//")
+	    (if (or user pass)
+		(concat user
+			(if pass (concat ":" pass))
+			"@"))
+	    host
+	    (if port (format ":%d" (url-port urlobj)))
+	    (or file "/")
+	    (if frag (concat "#" frag)))))
 
 (defun url-recreate-url-attributes (urlobj)
   "Recreate the attributes of an URL string from the parsed URLOBJ."
@@ -73,107 +105,125 @@
                              (concat (car x) "=" (cdr x))
                            (car x)))
                        (url-attributes urlobj) ";"))))
+(make-obsolete 'url-recreate-url-attributes nil "24.2")
 
 ;;;###autoload
 (defun url-generic-parse-url (url)
   "Return an URL-struct of the parts of URL.
 The CL-style struct contains the following fields:
-TYPE USER PASSWORD HOST PORTSPEC FILENAME TARGET ATTRIBUTES FULLNESS."
-  ;; See RFC 3986.
-  (cond
-   ((null url)
-    (url-parse-make-urlobj))
-   ((or (not (string-match url-nonrelative-link url))
-	(= ?/ (string-to-char url)))
-    ;; This isn't correct, as a relative URL can be a fragment link
-    ;; (e.g. "#foo") and many other things (see section 4.2).
-    ;; However, let's not fix something that isn't broken, especially
-    ;; when close to a release.
-    (url-parse-make-urlobj nil nil nil nil nil url))
-   (t
+
+TYPE     is the URI scheme (string or nil).
+USER     is the user name (string or nil).
+PASSWORD is the password (string [deprecated] or nil).
+HOST     is the host (a registered name, IP literal in square
+         brackets, or IPv4 address in dotted-decimal form).
+PORTSPEC is the specified port (a number), or nil.
+FILENAME is the path AND the query component of the URI.
+TARGET   is the fragment identifier component (used to refer to a
+         subordinate resource, e.g. a part of a webpage).
+ATTRIBUTES is nil; this slot originally stored the attribute and
+         value alists for IMAP URIs, but this feature was removed
+         since it conflicts with RFC 3986.
+FULLNESS is non-nil iff the hierarchical sequence component of
+         the URL starts with two slashes, \"//\".
+
+The parser follows RFC 3986, except that it also tries to handle
+URIs that are not fully specified (e.g. lacking TYPE), and it
+does not check for or perform %-encoding.
+
+Here is an example.  The URL
+
+  foo://bob:pass@example.com:42/a/b/c.dtb?type=animal&name=narwhal#nose
+
+parses to
+
+  TYPE     = \"foo\"
+  USER     = \"bob\"
+  PASSWORD = \"pass\"
+  HOST     = \"example.com\"
+  PORTSPEC = 42
+  FILENAME = \"/a/b/c.dtb?type=animal&name=narwhal\"
+  TARGET   = \"nose\"
+  ATTRIBUTES = nil
+  FULLNESS = t"
+  (if (null url)
+      (url-parse-make-urlobj)
     (with-temp-buffer
       ;; Don't let those temp-buffer modifications accidentally
       ;; deactivate the mark of the current-buffer.
       (let ((deactivate-mark nil))
         (set-syntax-table url-parse-syntax-table)
-        (let ((save-pos nil)
-              (prot nil)
-              (user nil)
-              (pass nil)
-              (host nil)
-              (port nil)
-              (file nil)
-              (refs nil)
-              (attr nil)
-              (full nil)
+	(erase-buffer)
+	(insert url)
+	(goto-char (point-min))
+        (let ((save-pos (point))
+              scheme user pass host port file fragment full
               (inhibit-read-only t))
-          (erase-buffer)
-          (insert url)
-          (goto-char (point-min))
-          (setq save-pos (point))
 
           ;; 3.1. Scheme
-          (unless (looking-at "//")
-            (skip-chars-forward "a-zA-Z+.\\-")
-            (downcase-region save-pos (point))
-            (setq prot (buffer-substring save-pos (point)))
-            (skip-chars-forward ":")
-            (setq save-pos (point)))
+	  ;; This is nil for a URI that is not fully specified.
+          (when (looking-at "\\([a-zA-Z][-a-zA-Z0-9+.]*\\):")
+	    (goto-char (match-end 0))
+            (setq save-pos (point))
+	    (setq scheme (downcase (match-string 1))))
 
           ;; 3.2. Authority
           (when (looking-at "//")
             (setq full t)
             (forward-char 2)
             (setq save-pos (point))
-            (skip-chars-forward "^/")
+            (skip-chars-forward "^/?#")
             (setq host (buffer-substring save-pos (point)))
+	    ;; 3.2.1 User Information
             (if (string-match "^\\([^@]+\\)@" host)
                 (setq user (match-string 1 host)
-                      host (substring host (match-end 0) nil)))
-            (if (and user (string-match "\\([^:]+\\):\\(.*\\)" user))
+                      host (substring host (match-end 0))))
+            (if (and user (string-match "\\`\\([^:]*\\):\\(.*\\)" user))
                 (setq pass (match-string 2 user)
                       user (match-string 1 user)))
-            ;; This gives wrong results for IPv6 literal addresses.
-            (if (string-match ":\\([0-9+]+\\)" host)
-                (setq port (string-to-number (match-string 1 host))
-                      host (substring host 0 (match-beginning 0))))
-            (if (string-match ":$" host)
-                (setq host (substring host 0 (match-beginning 0))))
-            (setq host (downcase host)
-                  save-pos (point)))
+            (cond
+	     ;; IPv6 literal address.
+	     ((string-match "^\\(\\[[^]]+\\]\\)\\(?::\\([0-9]*\\)\\)?$" host)
+	      (setq port (match-string 2 host)
+		    host (match-string 1 host)))
+	     ;; Registered name or IPv4 address.
+	     ((string-match ":\\([0-9]*\\)$" host)
+	      (setq port (match-string 1 host)
+		    host (substring host 0 (match-beginning 0)))))
+	    (cond ((equal port "")
+		   (setq port nil))
+		  (port
+		   (setq port (string-to-number port))))
+            (setq host (downcase host)))
 
-          (if (not port)
-              (setq port (url-scheme-get-property prot 'default-port)))
+	  ;; Now point is on the / ? or # which terminates the
+	  ;; authority, or at the end of the URI, or (if there is no
+	  ;; authority) at the beginning of the absolute path.
 
-          ;; 3.3. Path
-          ;; Gross hack to preserve ';' in data URLs
           (setq save-pos (point))
+          (if (string= "data" scheme)
+	      ;; For the "data" URI scheme, all the rest is the FILE.
+	      (setq file (buffer-substring save-pos (point-max)))
+	    ;; For hysterical raisins, our data structure returns the
+	    ;; path and query components together in one slot.
+	    ;; 3.3. Path
+	    (skip-chars-forward "^?#")
+	    ;; 3.4. Query
+	    (when (looking-at "?")
+	      (skip-chars-forward "^#"))
+	    (setq file (buffer-substring save-pos (point)))
+	    ;; 3.5 Fragment
+	    (when (looking-at "#")
+	      (let ((opoint (point)))
+		(forward-char 1)
+		(unless (eobp)
+		  (setq fragment (buffer-substring (point) (point-max))))
+		(delete-region opoint (point-max)))))
 
-          ;; 3.4. Query
-          (if (string= "data" prot)
-              (goto-char (point-max))
-            ;; Now check for references
-            (skip-chars-forward "^#")
-            (if (eobp)
-                nil
-              (delete-region
-               (point)
-               (progn
-                 (skip-chars-forward "#")
-                 (setq refs (buffer-substring (point) (point-max)))
-                 (point-max))))
-            (goto-char save-pos)
-            (skip-chars-forward "^;")
-            (unless (eobp)
-              (setq attr (url-parse-args (buffer-substring (point) (point-max))
-                                         t)
-		    attr (nreverse attr))))
-
-          (setq file (buffer-substring save-pos (point)))
           (if (and host (string-match "%[0-9][0-9]" host))
               (setq host (url-unhex-string host)))
-          (url-parse-make-urlobj
-           prot user pass host port file refs attr full)))))))
+          (url-parse-make-urlobj scheme user pass host port file
+				 fragment nil full))))))
 
 (defmacro url-bit-for-url (method lookfor url)
   `(let* ((urlobj (url-generic-parse-url url))

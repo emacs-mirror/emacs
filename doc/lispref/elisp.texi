@@ -1,20 +1,71 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename elisp
+
+@ifset VOL1
+@set volflag
+@set voltitle Volume 1
+@end ifset
+
+@ifset VOL2
+@set volflag
+@set voltitle Volume 2
+@end ifset
+
+@ifset volflag
+@settitle GNU Emacs Lisp Reference Manual: @value{voltitle}
+@end ifset
+@ifclear volflag
 @settitle GNU Emacs Lisp Reference Manual
+@end ifclear
+
 @c %**end of header
 
+@c See two-volume-cross-refs.txt.
+@tex
+@ifset VOL1
+\message{Formatting for two volume edition...Volume 1...}
+%
+% Read special toc file, set up in two-volume.make.
+\gdef\tocreadfilename{elisp1-toc-ready.toc}
+%
+% Don't make outlines, they're not needed and \readdatafile can't pay
+% attention to the special definition above.
+\global\let\pdfmakeoutlines=\relax
+%
+% Start volume 1 chapter numbering at 1; this must be listed as chapno0.
+\global\chapno=0
+@end ifset
+@ifset VOL2
+\message{Formatting for two volume edition...Volume 2...}
+%
+% Read special toc file, set up in two-volume.make.
+\gdef\tocreadfilename{elisp2-toc-ready.toc}
+%
+% Don't make outlines, they're not needed and \readdatafile can't pay
+% attention to the special definition above.
+\global\let\pdfmakeoutlines=\relax
+%
+% Start volume 2 chapter numbering at 27; this must be listed as chapno26
+\global\chapno=26
+@end ifset
+@end tex
+
+
 @c Version of the manual and of Emacs.
-@c Please remember to update these in vol1.texi and vol2.texi as well.
 @c (See comments for EDITION in emacs.texi)
 @set VERSION  3.1
 @include emacsver.texi
-@set DATE July 2012
+@set DATE May 2012
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
 @c @smallbook
+
+@ifset volflag
+@smallbook
+@end ifset
 
 @ifset smallbook
 @smallbook
@@ -75,6 +126,9 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
+@ifset volflag
+@subtitle @value{voltitle}
+@end ifset
 @subtitle For Emacs Version @value{EMACSVER}
 @subtitle Revision @value{VERSION}, @value{DATE}
 
@@ -108,7 +162,6 @@ Cover art by Etienne Suvasa.
 @insertcopying
 @end ifnottex
 
-@c Copy any updates to vol1.texi and vol2.texi.
 @menu
 * Introduction::            Introduction and conventions used.
 
@@ -189,7 +242,6 @@ Appendices
 @c be correctly identified by `texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
 @c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
-@c Copy any updates to vol1.texi and vol2.texi.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -1470,6 +1522,7 @@ Object Internals
 @end detailmenu
 @end menu
 
+@ifclear VOL2
 @include intro.texi
 @include objects.texi
 @include numbers.texi
@@ -1503,6 +1556,12 @@ Object Internals
 @include files.texi
 
 @include backups.texi
+
+@end ifclear
+
+@c ================ Beginning of Volume 2 ================
+@ifclear VOL1
+
 @include buffers.texi
 @include windows.texi
 @include frames.texi
@@ -1522,11 +1581,7 @@ Object Internals
 
 @include package.texi
 
-@c MOVE to Emacs Manual:  include misc-modes.texi
-
 @c appendices
-
-@c  REMOVE this:  include non-hacker.texi
 
 @include anti.texi
 @include doclicense.texi
@@ -1538,6 +1593,8 @@ Object Internals
 @include hooks.texi
 
 @include index.texi
+
+@end ifclear
 
 @ignore
 @node New Symbols, , Index, Top

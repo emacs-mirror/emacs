@@ -298,7 +298,7 @@ Use the former if the menu bar is showing, otherwise the latter."
   (let ((w (posn-window (event-start event))))
     (and (window-minibuffer-p w)
 	 (not (minibuffer-window-active-p w))
-	 (error "Minibuffer window is not active")))
+	 (user-error "Minibuffer window is not active")))
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook))
 

@@ -396,7 +396,7 @@ write-date, checksum, link-type, and link-name."
 
 (defun tar-clip-time-string (time)
   (let ((str (current-time-string time)))
-    (concat " " (substring str 4 16) (substring str 19 24))))
+    (concat " " (substring str 4 16) (format-time-string " %Y" time))))
 
 (defun tar-grind-file-mode (mode)
   "Construct a `-rw--r--r--' string indicating MODE.

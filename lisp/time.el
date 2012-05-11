@@ -465,7 +465,7 @@ update which can wait for the next redisplay."
          (seconds (substring time 17 19))
          (time-zone (car (cdr (current-time-zone now))))
          (day (substring time 8 10))
-         (year (substring time 20 24))
+         (year (format-time-string "%Y" now))
          (monthname (substring time 4 7))
          (month
           (cdr

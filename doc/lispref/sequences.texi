@@ -247,7 +247,7 @@ The length of the array is fixed once you create it; you cannot
 change the length of an existing array.
 
 @item
-For purposes of evaluation, the array is a constant---in other words,
+For purposes of evaluation, the array is a constant---i.e.,
 it evaluates to itself.
 
 @item

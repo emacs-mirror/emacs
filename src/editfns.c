@@ -73,13 +73,6 @@ extern char **environ;
 
 #define TM_YEAR_BASE 1900
 
-/* Nonzero if TM_YEAR is a struct tm's tm_year value that causes
-   asctime to have well-defined behavior.  */
-#ifndef TM_YEAR_IN_ASCTIME_RANGE
-# define TM_YEAR_IN_ASCTIME_RANGE(tm_year) \
-    (1000 - TM_YEAR_BASE <= (tm_year) && (tm_year) <= 9999 - TM_YEAR_BASE)
-#endif
-
 #ifdef WINDOWSNT
 extern Lisp_Object w32_get_internal_run_time (void);
 #endif
@@ -1943,29 +1936,37 @@ but this is considered obsolete.  */)
 {
   time_t value;
   struct tm *tm;
-  char *tem = NULL;
-  char buf[sizeof "Mon Apr 30 12:49:17 2012" - 1];
+  char buf[sizeof "Mon Apr 30 12:49:17 " + INT_STRLEN_BOUND (int) + 1];
+  int len IF_LINT (= 0);
 
   if (! lisp_time_argument (specified_time, &value, NULL))
     error ("Invalid time specification");
 
-  /* Convert to a string, checking for out-of-range time stamps.
-     Omit the trailing newline.
-     Don't use 'ctime', as that might dump core if VALUE is out of
-     range.  */
+  /* Convert to a string in ctime format, except without the trailing
+     newline, and without the 4-digit year limit.  Don't use asctime
+     or ctime, as they might dump core if the year is outside the
+     range -999 .. 9999.  */
   BLOCK_INPUT;
   tm = localtime (&value);
-  if (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year))
+  if (tm)
     {
-      tem = asctime (tm);
-      if (tem)
-	memcpy (buf, tem, sizeof buf);
+      static char const wday_name[][4] =
+	{ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+      static char const mon_name[][4] =
+	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+	  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+      printmax_t year_base = TM_YEAR_BASE;
+
+      len = sprintf (buf, "%s %s%3d %02d:%02d:%02d %"pMd,
+		     wday_name[tm->tm_wday], mon_name[tm->tm_mon], tm->tm_mday,
+		     tm->tm_hour, tm->tm_min, tm->tm_sec,
+		     tm->tm_year + year_base);
     }
   UNBLOCK_INPUT;
-  if (! tem)
+  if (! tm)
     time_overflow ();
 
-  return make_unibyte_string (buf, sizeof buf);
+  return make_unibyte_string (buf, len);
 }
 
 /* Yield A - B, measured in seconds.

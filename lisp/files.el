@@ -1627,6 +1627,7 @@ Choose the buffer's name using `generate-new-buffer-name'."
   "Regexp to match the automounter prefix in a directory name."
   :group 'files
   :type 'regexp)
+(make-obsolete-variable 'automount-dir-prefix 'directory-abbrev-alist "24.2")
 
 (defvar abbreviated-home-dir nil
   "The user's homedir abbreviated according to `directory-abbrev-alist'.")
@@ -2261,9 +2262,11 @@ since only a single case-insensitive search through the alist is made."
      ("\\.makepp\\'" . makefile-makepp-mode)
      ,@(if (memq system-type '(berkeley-unix darwin))
 	   '(("\\.mk\\'" . makefile-bsdmake-mode)
+	     ("\\.make\\'" . makefile-bsdmake-mode)
 	     ("GNUmakefile\\'" . makefile-gmake-mode)
 	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
 	 '(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
+	   ("\\.make\\'" . makefile-gmake-mode)
 	   ("[Mm]akefile\\'" . makefile-gmake-mode)))
      ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here
@@ -2781,6 +2784,11 @@ same, do nothing and return nil."
       (funcall mode)
       mode)))
 
+(defvar file-auto-mode-skip "^\\(#!\\|'\\\\\"\\)"
+  "Regexp of lines to skip when looking for file-local settings.
+If the first line matches this regular expression, then the -*-...-*- file-
+local settings will be consulted on the second line instead of the first.")
+
 (defun set-auto-mode-1 ()
   "Find the -*- spec in the buffer.
 Call with point at the place to start searching from.
@@ -2803,7 +2811,7 @@ have no effect."
                             ;; interpreter invocation.  The same holds
                             ;; for '\" in man pages (preprocessor
                             ;; magic for the `man' program).
-                            (and (looking-at "^\\(#!\\|'\\\\\"\\)") 2)) t)
+                            (and (looking-at file-auto-mode-skip) 2)) t)
      (progn
        (skip-chars-forward " \t")
        (setq beg (point))
@@ -3621,19 +3629,21 @@ FILE is the name of the file holding the variables to apply.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    ;; Errors reading the file are not very informative.
-    ;; Eg just "Error: (end-of-file)" does not give any clue that the
-    ;; problem is related to dir-locals.
-    (with-demoted-errors
-      (insert-file-contents file)
-      (let* ((dir-name (file-name-directory file))
-	     (class-name (intern dir-name))
-	     (variables (let ((read-circle nil))
-			  (read (current-buffer)))))
-	(dir-locals-set-class-variables class-name variables)
-	(dir-locals-set-directory-class dir-name class-name
-					(nth 5 (file-attributes file)))
-	class-name))))
+    ;; This is with-demoted-errors, but we want to mention dir-locals
+    ;; in any error message.
+    (let (err)
+      (condition-case err
+	  (progn
+	    (insert-file-contents file)
+	    (let* ((dir-name (file-name-directory file))
+		   (class-name (intern dir-name))
+		   (variables (let ((read-circle nil))
+				(read (current-buffer)))))
+	      (dir-locals-set-class-variables class-name variables)
+	      (dir-locals-set-directory-class dir-name class-name
+					      (nth 5 (file-attributes file)))
+	      class-name))
+	(error (message "Error reading dir-locals: %S" err) nil)))))
 
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
@@ -4496,7 +4506,7 @@ Before and after saving the buffer, this function runs
 	       (format
 		"%s has changed since visited or saved.  Save anyway? "
 		(file-name-nondirectory buffer-file-name)))
-	      (error "Save not confirmed"))
+	      (user-error "Save not confirmed"))
 	  (save-restriction
 	    (widen)
 	    (save-excursion
@@ -5363,7 +5373,7 @@ non-nil, it is called instead of rereading visited file contents."
 	     (insert-file-contents file-name nil)
 	     (set-buffer-file-coding-system coding-system))
 	   (after-find-file nil nil t))
-	  (t (error "Recover-file cancelled")))))
+	  (t (user-error "Recover-file cancelled")))))
 
 (defun recover-session ()
   "Recover auto save files from a previous Emacs session.

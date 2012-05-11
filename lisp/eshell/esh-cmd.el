@@ -242,7 +242,7 @@ If you change this without using customize after Eshell has loaded,
 you must re-load 'esh-cmd.el'."
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
-	 (set sym val)
+	 (set symbol value)
 	 (load-library "esh-cmd"))
   :type 'boolean
   :group 'eshell-cmd)
