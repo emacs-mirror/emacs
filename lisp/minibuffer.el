@@ -519,9 +519,10 @@ for use at QPOS."
          (`(,qfullpos . ,qfun)
           (funcall requote (+ boundary (length prefix)) string))
          (qfullprefix (substring string 0 qfullpos))
-         (_ (assert (let ((uboundarystr (substring ustring 0 boundary)))
-                      (equal (funcall unquote qfullprefix)
-                             (concat uboundarystr prefix)))))
+         (_ (assert (eq t (compare-strings
+                           (funcall unquote qfullprefix) nil nil
+                           (concat (substring ustring 0 boundary) prefix)
+                           nil nil 'ignore-case))))
          (qboundary (car (funcall requote boundary string)))
          (_ (assert (<= qboundary qfullpos)))
          ;; FIXME: this split/quote/concat business messes up the carefully
