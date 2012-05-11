@@ -527,8 +527,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	    (search-backward old)
 	    (insert abbrev)
 	    (delete-region (point) (+ (point) (length old)))))
-      (error "No%s dynamic expansion for `%s' found"
-	     (if old " further" "") abbrev))
+      (user-error "No%s dynamic expansion for `%s' found"
+                  (if old " further" "") abbrev))
      (t
       (if (not (or (eq dabbrev--last-buffer dabbrev--last-buffer-found)
 		   (minibuffer-window-active-p (selected-window))))

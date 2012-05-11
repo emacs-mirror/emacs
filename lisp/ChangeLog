@@ -1,5 +1,7 @@
 2012-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dabbrev.el (dabbrev-expand): Make "no expansion found" a user-error.
+
 	* minibuffer.el (completion--twq-all): Again, allow case differences.
 
 	* term.el: Move keymap initialization code to be more idiomatic.
