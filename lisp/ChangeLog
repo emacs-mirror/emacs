@@ -1,3 +1,7 @@
+2012-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rlogin.el (rlogin-mode-map): Fix last change.
+
 2012-05-09  Jason L. Wright  <jason.wright@inl.gov>  (tiny change)
 
 	* mail/smtpmail.el (smtpmail-send-command): Send the command and
