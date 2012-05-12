@@ -50,7 +50,11 @@
 
 (defcustom Buffer-menu-buffer+size-width nil
   "Combined width of buffer name and size columns in Buffer Menu.
-If nil, use `Buffer-menu-name-width' and `Buffer-menu-size-width'."
+If nil, use `Buffer-menu-name-width' and `Buffer-menu-size-width'.
+
+If non-nil, the value of `Buffer-menu-name-width' is overridden;
+the name column is assigned width `Buffer-menu-buffer+size-width'
+minus `Buffer-menu-size-width'.  This use is deprecated."
   :type 'number
   :group 'Buffer-menu
   :version "24.2")
