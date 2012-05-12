@@ -1,5 +1,14 @@
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in: Make it look more like the other doc Makefiles.
+	Use explicit $srcdir in all dependencies.
+	Remove cd $srcdir from rules.
+	(VPATH): Remove.
+	(infodir): Set to an absolute path.
+	(INFO_TARGETS): Use short names.
+	(mkinfodir): infodir is now absolute.
+	(echo-info, maintainer-clean): Update for new format of INFO_TARGETS.
+
 	* Makefile.in (info.info): Rename from info, to avoid duplication.
 	(.SUFFIXES): Disable implicit rules.
 
