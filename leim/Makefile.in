@@ -41,6 +41,8 @@ install_prefix=$(DESTDIR)${datadir}/emacs/${version}
 # For self-contained ns builds, it is ${ns_appresdir}/leim.
 LEIM_INSTALLDIR=@LEIM_INSTALLDIR@
 
+MKDIR_P = @MKDIR_P@
+
 GZIP_PROG = @GZIP_PROG@
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
@@ -179,9 +181,7 @@ compile-main: ${TIT_MISC}
 	done
 
 install: all
-	if [ ! -d ${LEIM_INSTALLDIR} ] ; then \
-          umask 022; ${srcdir}/../build-aux/install-sh -d ${LEIM_INSTALLDIR}; \
-	else true; fi
+	umask 022; ${MKDIR_P} ${LEIM_INSTALLDIR}
 	if [ x`(cd ${LEIM_INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
 	  rm -f ${LEIM_INSTALLDIR}/leim-list.el; \
 	  rm -rf ${LEIM_INSTALLDIR}/quail ${LEIM_INSTALLDIR}/ja-dic ; \
