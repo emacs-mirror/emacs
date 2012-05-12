@@ -665,7 +665,7 @@ woman.pdf: ${srcdir}/woman.texi
 
 mostlyclean:
 	rm -f *.aux *.log *.toc *.c[mp] *.c[mp]s *.fn *.fns \
-	  *.ky *.kys *.op *.ops *.p[gj] *.p[gj]s *.sc *.scs \
+	  *.ky *.kys *.op *.ops *.p[gj] *.p[gj]s *.sc *.scs *.ss \
 	  *.t[gp] *.t[gp]s *.vr *.vrs
 	rm -f gnustmp.*
 
