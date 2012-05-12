@@ -1,6 +1,9 @@
 2012-05-12  Chong Yidong  <cyd@gnu.org>
 
 	* buff-menu.el (Buffer-menu-buffer+size-width): Doc fix (Bug#11454).
+	(Buffer-menu-mouse-select): Restore function (Bug#11459).
+	(Buffer-menu-mode-map): Bind it.
+	(Buffer-menu--pretty-name): Add a mouse-face property.
 
 2012-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 

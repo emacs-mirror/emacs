@@ -130,6 +130,9 @@ commands.")
     (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
 
+    (define-key map [mouse-2] 'Buffer-menu-mouse-select)
+    (define-key map [follow-link] 'mouse-face)
+
     (define-key map [menu-bar Buffer-menu-mode] (cons (purecopy "Buffer-Menu") menu-map))
     (define-key menu-map [quit]
       `(menu-item ,(purecopy "Quit") quit-window
@@ -565,6 +568,17 @@ means list those buffers and no others."
       (tabulated-list-print))
     buffer))
 
+(defun Buffer-menu-mouse-select (event)
+  "Select the buffer whose line you click on."
+  (interactive "e")
+  (select-window (posn-window (event-end event)))
+  (let ((buffer (tabulated-list-get-id (posn-point (event-end event)))))
+    (when (buffer-live-p buffer)
+      (if (and (window-dedicated-p (selected-window))
+	       (eq (selected-window) (frame-root-window)))
+	  (switch-to-buffer-other-frame buffer)
+	(switch-to-buffer buffer)))))
+
 (defun list-buffers--refresh (&optional buffer-list old-buffer)
   ;; Set up `tabulated-list-format'.
   (let ((name-width Buffer-menu-name-width)
@@ -617,7 +631,9 @@ means list those buffers and no others."
      (string-to-number (aref (cadr entry2) 4))))
 
 (defun Buffer-menu--pretty-name (name)
-  (propertize name 'font-lock-face 'buffer-menu-buffer))
+  (propertize name
+	      'font-lock-face 'buffer-menu-buffer
+	      'mouse-face 'highlight))
 
 (defun Buffer-menu--pretty-file-name (file)
   (cond (file
