@@ -1,3 +1,8 @@
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	(mkinfodir): Use $MKDIR_P.
+
 2012-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* forms.texi (Long Example): Update for changed location of files.
@@ -8995,7 +9000,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

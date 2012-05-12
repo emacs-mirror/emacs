@@ -229,7 +229,7 @@ gamedir=@gamedir@
 # Note that if the system does not provide a suitable install,
 # configure will use build-aux/install-sh.  Annoyingly, it does
 # not use an absolute path.  So we must take care to always run
-# INSTALL-type commands from the top-level directory.
+# INSTALL-type commands from the directory containing the Makefile.
 # This explains (I think) the cd thisdir seen in several install rules.
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -237,6 +237,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_INFO = @INSTALL_INFO@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
+MKDIR_P = @MKDIR_P@
 
 # We use gzip to compress installed .el files.
 GZIP_PROG = @GZIP_PROG@
@@ -659,10 +660,7 @@ install-leim: leim/Makefile mkdir
 install-strip:
 	$(MAKE) $(MFLAGS) INSTALL_STRIP=-s install
 
-### Build all the directories we're going to install Emacs in.	Since
-### we may be creating several layers of directories (for example,
-### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use install-sh -d
-### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
+### Build all the directories we're going to install Emacs in.
 ### We set the umask so that any created directories are world-readable.
 ### FIXME it would be good to warn about non-standard permissions of
 ### pre-existing directories, but that does not seem easy.
@@ -675,7 +673,7 @@ mkdir: FRC
 	done ; \
 	icondirs=`echo "$${icondirs}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},g'` ; \
 	umask 022 ; \
-	$(srcdir)/build-aux/install-sh -d $(DESTDIR)${datadir} ${COPYDESTS} \
+	$(MKDIR_P) $(DESTDIR)${datadir} ${COPYDESTS} \
 	  $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
 	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
 	  $(DESTDIR)${datadir}/emacs/site-lisp \

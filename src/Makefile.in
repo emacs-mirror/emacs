@@ -40,6 +40,7 @@ version = @version@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
+MKDIR_P = @MKDIR_P@
 # Don't use LIBS.  configure puts stuff in it that either shouldn't be
 # linked with Emacs or is duplicated by the other stuff below.
 # LIBS = @LIBS@
@@ -284,7 +285,7 @@ CANNOT_DUMP=@CANNOT_DUMP@
 DEPDIR=deps
 ## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS=@DEPFLAGS@
-## test -d $(DEPDIR) || mkdir $(DEPDIR) (if AUTO_DEPEND); else ':'.
+## ${MKDIR_P} ${DEPDIR} (if AUTO_DEPEND); else ':'.
 MKDEPDIR=@MKDEPDIR@
 
 ## DO NOT use -R.  There is a special hack described in lastfile.c

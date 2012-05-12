@@ -1,3 +1,8 @@
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	* ns.mk (${ns_appdir}, ${ns_appbindir}Emacs): Use $MKDIR_P.
+
 2012-05-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove unused function hourglass_started.

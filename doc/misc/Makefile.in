@@ -38,6 +38,8 @@ infodir=../../info
 ## Currently only used by efaq and calc.
 emacsdir = $(srcdir)/../emacs
 
+MKDIR_P = @MKDIR_P@
+
 INFO_EXT=@INFO_EXT@
 # Options used only when making info output.
 INFO_OPTS=@INFO_OPTS@
@@ -211,7 +213,7 @@ TEXI2PDF = texi2pdf
 ENVADD = TEXINPUTS="$(srcdir):$(emacsdir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
-mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @${MKDIR_P} ${srcdir}/${infodir}
 
 .PHONY: info dvi pdf echo-info
 
