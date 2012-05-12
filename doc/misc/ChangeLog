@@ -1,5 +1,7 @@
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (mostlyclean): Add more TeX intermediates.
+
 	* Makefile.in: Make it look more like the other doc Makefiles.
 	Use explicit $srcdir in all dependencies.
 	Remove cd $srcdir from rules.

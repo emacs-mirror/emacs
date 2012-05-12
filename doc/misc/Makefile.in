@@ -664,8 +664,9 @@ woman.pdf: ${srcdir}/woman.texi
 .PHONY: mostlyclean clean distclean maintainer-clean
 
 mostlyclean:
-	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
-	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
+	rm -f *.aux *.log *.toc *.c[mp] *.c[mp]s *.fn *.fns \
+	  *.ky *.kys *.op *.ops *.p[gj] *.p[gj]s *.sc *.scs \
+	  *.t[gp] *.t[gp]s *.vr *.vrs
 	rm -f gnustmp.*
 
 clean: mostlyclean

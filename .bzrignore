@@ -37,6 +37,8 @@ TAGS-LISP
 cxxdefs.h
 # Intermediate files when making pdf versions of the manuals.
 doc/**/*.aux
+doc/**/*.cm
+doc/**/*.cms
 doc/**/*.cp
 doc/**/*.cps
 doc/**/*.fn
@@ -47,8 +49,17 @@ doc/**/*.log
 doc/**/*.op
 doc/**/*.ops
 doc/**/*.pg
+doc/**/*.pgs
+doc/**/*.pj
+doc/**/*.pjs
+doc/**/*.sc
+doc/**/*.scs
+doc/**/*.ss
+doc/**/*.tg
+doc/**/*.tgs
 doc/**/*.toc
 doc/**/*.tp
+doc/**/*.tps
 doc/**/*.vr
 doc/**/*.vrs
 doc/**/*.pdf
