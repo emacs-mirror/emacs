@@ -128,6 +128,7 @@ lisp = \
 	$(lispsource)/emacs-lisp/lisp-mode.elc \
 	$(lispsource)/textmodes/text-mode.elc \
 	$(lispsource)/textmodes/fill.elc \
+	$(lispsource)/newcomment.elc \
 	$(lispsource)/replace.elc \
 	$(lispsource)/emacs-lisp/tabulated-list.elc \
 	$(lispsource)/buff-menu.elc \

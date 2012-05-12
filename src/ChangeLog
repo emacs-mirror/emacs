@@ -1,3 +1,7 @@
+2012-05-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.mk (lisp): Add newcomment.elc.
+
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MKDIR_P): New, set by configure.
