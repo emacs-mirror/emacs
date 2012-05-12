@@ -1,5 +1,7 @@
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (info.info): Rename from info, to avoid duplication.
+
 	* Makefile.in (MKDIR_P): New, set by configure.
 	(mkinfodir): Use $MKDIR_P.
 

@@ -508,7 +508,8 @@ idlwave.pdf: ${srcdir}/idlwave.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/idlwave.texi
 
 # NB this one needs --no-split even without a .info extension.
-info : $(infodir)/info$(INFO_EXT)
+# Avoid name clash with overall "info" target.
+info.info : $(infodir)/info$(INFO_EXT)
 $(infodir)/info$(INFO_EXT): info.texi
 	$(mkinfodir)
 	cd $(srcdir); \
