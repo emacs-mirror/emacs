@@ -216,6 +216,8 @@ ENVADD = TEXINPUTS="$(srcdir):$(emacsdir):$(TEXINPUTS)" \
 mkinfodir = @${MKDIR_P} ${srcdir}/${infodir}
 
 .PHONY: info dvi pdf echo-info
+## Prevent implicit rule triggering for foo.info.
+.SUFFIXES:
 
 # Default.
 info: $(INFO_TARGETS)
