@@ -1,5 +1,7 @@
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (ns_appbindir): Remove trailing "/".
+
 	* configure.in (AC_PROG_MKDIR_P): Call it, to set MKDIR_P.
 	(MKDEPDIR): Use $MKDIR_P.
 	* Makefile.in (MKDIR_P): New, set by configure.

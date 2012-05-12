@@ -1,3 +1,7 @@
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* ns.mk: Update for ns_appbindir no longer having trailing "/".
+
 2012-05-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.mk (lisp): Add newcomment.elc.

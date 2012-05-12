@@ -30,10 +30,10 @@ ${ns_appdir}: ${ns_appsrc}
 	${MKDIR_P} ${ns_appdir}
 	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; umask 022; tar xf - )
 
-${ns_appbindir}Emacs: emacs${EXEEXT}
+${ns_appbindir}/Emacs: emacs${EXEEXT}
 	${MKDIR_P} ${ns_appbindir}
-	cp -f emacs${EXEEXT} ${ns_appbindir}Emacs
+	cp -f emacs${EXEEXT} ${ns_appbindir}/Emacs
 
-ns-app: ${ns_appdir} ${ns_appbindir}Emacs
+ns-app: ${ns_appdir} ${ns_appbindir}/Emacs
 
 ### ns.mk ends here
