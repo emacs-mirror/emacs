@@ -35,6 +35,11 @@
 
 ;;; Code:
 
+;; The reason `tabulated-list-format' and other variables are
+;; permanent-local is to make it convenient to switch to a different
+;; major mode, switch back, and have the original Tabulated List data
+;; still valid.  See, for example, ebuff-menu.el.
+
 (defvar tabulated-list-format nil
   "The format of the current Tabulated List mode buffer.
 This should be a vector of elements (NAME WIDTH SORT . PROPS),
@@ -56,6 +61,7 @@ where:
    - `:pad-right': Number of additional padding spaces to the
      right of the column (defaults to 1 if omitted).")
 (make-variable-buffer-local 'tabulated-list-format)
+(put 'tabulated-list-format 'permanent-local t)
 
 (defvar tabulated-list-use-header-line t
   "Whether the Tabulated List buffer should use a header line.")
@@ -80,12 +86,14 @@ where:
 If `tabulated-list-entries' is a function, it is called with no
 arguments and must return a list of the above form.")
 (make-variable-buffer-local 'tabulated-list-entries)
+(put 'tabulated-list-entries 'permanent-local t)
 
 (defvar tabulated-list-padding 0
   "Number of characters preceding each Tabulated List mode entry.
 By default, lines are padded with spaces, but you can use the
 function `tabulated-list-put-tag' to change this.")
 (make-variable-buffer-local 'tabulated-list-padding)
+(put 'tabulated-list-padding 'permanent-local t)
 
 (defvar tabulated-list-revert-hook nil
   "Hook run before reverting a Tabulated List buffer.
@@ -107,6 +115,7 @@ NAME is a string matching one of the column names in
 `tabulated-list-format' then specifies how to sort).  FLIP, if
 non-nil, means to invert the resulting sort.")
 (make-variable-buffer-local 'tabulated-list-sort-key)
+(put 'tabulated-list-sort-key 'permanent-local t)
 
 (defsubst tabulated-list-get-id (&optional pos)
   "Return the entry ID of the Tabulated List entry at POS.
