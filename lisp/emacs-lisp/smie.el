@@ -728,7 +728,8 @@ Possible return values:
                 (if (and halfsexp (numberp (funcall op-forw toklevels)))
                     (push toklevels levels)
                   (throw 'return
-                         (prog1 (list (or (car toklevels) t) (point) token)
+                         (prog1 (list (or (funcall op-forw toklevels) t)
+                                      (point) token)
                            (goto-char pos)))))
                (t
                 (let ((lastlevels levels))
@@ -773,7 +774,8 @@ Possible return values:
                    ((and lastlevels
                          (smie--associative-p (car lastlevels)))
                     (throw 'return
-                           (prog1 (list (or (car toklevels) t) (point) token)
+                           (prog1 (list (or (funcall op-forw toklevels) t)
+                                        (point) token)
                              (goto-char pos))))
                    ;; - it's an associative operator within a larger construct
                    ;;   (e.g. an "elsif"), so we should just ignore it and keep

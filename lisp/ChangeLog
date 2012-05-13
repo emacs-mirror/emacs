@@ -1,3 +1,8 @@
+2012-05-13  Johan Bockgård  <bojohan@gnu.org>
+
+	* emacs-lisp/smie.el (smie-next-sexp): Use accessor `op-forw' rather
+	than hard-coding `car', to fix misbehavior when moving forward.
+
 2012-05-13  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/tabulated-list.el (tabulated-list-format)
