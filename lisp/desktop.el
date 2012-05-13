@@ -145,6 +145,8 @@ backward compatibility.")
   "Save status of Emacs when you exit."
   :group 'frames)
 
+;; Maintained for backward compatibility
+(define-obsolete-variable-alias 'desktop-enable 'desktop-save-mode "22.1")
 ;;;###autoload
 (define-minor-mode desktop-save-mode
   "Toggle desktop saving (Desktop Save mode).
@@ -157,10 +159,6 @@ one session to another.  See variable `desktop-save' and function
 `desktop-read' for details."
   :global t
   :group 'desktop)
-
-;; Maintained for backward compatibility
-(define-obsolete-variable-alias 'desktop-enable
-                                'desktop-save-mode "22.1")
 
 (defun desktop-save-mode-off ()
   "Disable `desktop-save-mode'.  Provided for use in hooks."

@@ -36,12 +36,12 @@
 (eval-when-compile (require 'cl))
 
 ;;;###autoload
+(define-obsolete-variable-alias 'disabled-command-hook
+  'disabled-command-function "22.1")
+;;;###autoload
 (defvar disabled-command-function 'disabled-command-function
   "Function to call to handle disabled commands.
 If nil, the feature is disabled, i.e., all commands work normally.")
-
-;;;###autoload
-(define-obsolete-variable-alias 'disabled-command-hook 'disabled-command-function "22.1")
 
 ;; It is ok here to assume that this-command is a symbol
 ;; because we won't get called otherwise.

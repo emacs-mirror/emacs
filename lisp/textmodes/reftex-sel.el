@@ -71,6 +71,8 @@
     (define-key map "-" 'negative-argument)
     map))
 
+(define-obsolete-variable-alias
+  'reftex-select-label-map 'reftex-select-label-mode-map "24.1")
 (defvar reftex-select-label-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)
@@ -102,8 +104,6 @@
   "Keymap used for *RefTeX Select* buffer, when selecting a label.
 This keymap can be used to configure the label selection process which is
 started with the command \\[reftex-reference].")
-(define-obsolete-variable-alias
-  'reftex-select-label-map 'reftex-select-label-mode-map "24.1")
 
 (define-derived-mode reftex-select-label-mode fundamental-mode "LSelect"
   "Major mode for selecting a label in a LaTeX document.
@@ -126,6 +126,8 @@ During a selection process, these are the local bindings.
   ;; We do not set a local map - reftex-select-item does this.
   )
 
+(define-obsolete-variable-alias
+  'reftex-select-bib-map 'reftex-select-bib-mode-map "24.1")
 (defvar reftex-select-bib-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)
@@ -147,8 +149,6 @@ During a selection process, these are the local bindings.
   "Keymap used for *RefTeX Select* buffer, when selecting a BibTeX entry.
 This keymap can be used to configure the BibTeX selection process which is
 started with the command \\[reftex-citation].")
-(define-obsolete-variable-alias
-  'reftex-select-bib-map 'reftex-select-bib-mode-map "24.1")
 
 (define-derived-mode reftex-select-bib-mode fundamental-mode "BSelect"
   "Major mode for selecting a citation key in a LaTeX document.

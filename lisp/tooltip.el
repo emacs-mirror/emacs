@@ -154,14 +154,14 @@ This variable is obsolete; instead of setting it to t, disable
 
 ;;; Variables that are not customizable.
 
+(define-obsolete-variable-alias 'tooltip-hook 'tooltip-functions "23.1")
+
 (defvar tooltip-functions nil
   "Functions to call to display tooltips.
 Each function is called with one argument EVENT which is a copy
 of the last mouse movement event that occurred.  If one of these
 functions displays the tooltip, it should return non-nil and the
 rest are not called.")
-
-(define-obsolete-variable-alias 'tooltip-hook 'tooltip-functions "23.1")
 
 (defvar tooltip-timeout-id nil
   "The id of the timeout started when Emacs becomes idle.")

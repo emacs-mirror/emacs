@@ -199,6 +199,9 @@ commands.")
     map)
   "Local keymap for `Buffer-menu-mode' buffers.")
 
+(define-obsolete-variable-alias 'buffer-menu-mode-hook
+  'Buffer-menu-mode-hook "23.1")
+
 (define-derived-mode Buffer-menu-mode tabulated-list-mode "Buffer Menu"
   "Major mode for Buffer Menu buffers.
 The Buffer Menu is invoked by the commands \\[list-buffers], \\[buffer-menu], and
@@ -206,9 +209,6 @@ The Buffer Menu is invoked by the commands \\[list-buffers], \\[buffer-menu], an
   (set (make-local-variable 'buffer-stale-function)
        (lambda (&optional _noconfirm) 'fast))
   (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
-
-(define-obsolete-variable-alias 'buffer-menu-mode-hook
-  'Buffer-menu-mode-hook "23.1")
 
 (defun buffer-menu (&optional arg)
   "Switch to the Buffer Menu.

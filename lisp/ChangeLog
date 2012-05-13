@@ -1,3 +1,38 @@
+2012-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Move define-obsolete-variable-alias before the var's definition.
+	* vc/log-edit.el (vc-comment-ring, vc-comment-ring-index):
+	* tooltip.el (tooltip-hook):
+	* textmodes/reftex-toc.el (reftex-toc-map):
+	* textmodes/reftex-sel.el (reftex-select-label-map)
+	(reftex-select-bib-map):
+	* textmodes/reftex-index.el (reftex-index-map)
+	(reftex-index-phrases-map):
+	* speedbar.el (speedbar-syntax-table, speedbar-key-map):
+	* progmodes/meta-mode.el (meta-mode-map):
+	* novice.el (disabled-command-hook):
+	* loadhist.el (unload-hook-features-list):
+	* frame.el (blink-cursor):
+	* files.el (find-file-not-found-hooks, write-file-hooks)
+	(write-contents-hooks):
+	* emulation/tpu-edt.el (GOLD-map):
+	* emacs-lock.el (emacs-lock-from-exiting):
+	* emacs-lisp/generic.el (generic-font-lock-defaults):
+	* emacs-lisp/chart.el (chart-map):
+	* dos-fns.el (register-name-alist):
+	* dired-x.el (dired-omit-files-p):
+	* desktop.el (desktop-enable):
+	* cus-edit.el (custom-mode-hook):
+	* buff-menu.el (buffer-menu-mode-hook):
+	* bookmark.el (bookmark-read-annotation-text-func)
+	(bookmark-exit-hooks):
+	* allout.el (allout-mode-deactivate-hook)
+	(allout-exposure-change-hook, allout-structure-added-hook)
+	(allout-structure-deleted-hook, allout-structure-shifted-hook):
+	* dirtrack.el (dirtrack-toggle, dirtrackp, dirtrack-debug-toggle)
+	(dirtrack-debug): Move call to define-obsolete-variable-alias so it
+	comes before the corresponding variable's definition.
+
 2012-05-12  Chong Yidong  <cyd@gnu.org>
 
 	* buff-menu.el (Buffer-menu-buffer+size-width): Doc fix (Bug#11454).

@@ -62,8 +62,8 @@
 (require 'eieio)
 
 ;;; Code:
-(defvar chart-mode-map (make-sparse-keymap) "Keymap used in chart mode.")
 (define-obsolete-variable-alias 'chart-map 'chart-mode-map "24.1")
+(defvar chart-mode-map (make-sparse-keymap) "Keymap used in chart mode.")
 
 (defvar chart-local-object nil
   "Local variable containing the locally displayed chart object.")

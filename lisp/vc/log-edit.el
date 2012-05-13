@@ -195,7 +195,10 @@ when this variable is set to nil.")
 
 (defconst log-edit-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
+(define-obsolete-variable-alias 'vc-comment-ring 'log-edit-comment-ring "22.1")
 (defvar log-edit-comment-ring (make-ring log-edit-maximum-comment-ring-size))
+(define-obsolete-variable-alias 'vc-comment-ring-index
+  'log-edit-comment-ring-index "22.1")
 (defvar log-edit-comment-ring-index nil)
 (defvar log-edit-last-comment-match "")
 
@@ -301,8 +304,6 @@ automatically."
 	(insert "\n"))))
 
 ;; Compatibility with old names.
-(define-obsolete-variable-alias 'vc-comment-ring 'log-edit-comment-ring "22.1")
-(define-obsolete-variable-alias 'vc-comment-ring-index 'log-edit-comment-ring-index "22.1")
 (define-obsolete-function-alias 'vc-previous-comment 'log-edit-previous-comment "22.1")
 (define-obsolete-function-alias 'vc-next-comment 'log-edit-next-comment "22.1")
 (define-obsolete-function-alias 'vc-comment-search-reverse 'log-edit-comment-search-backward "22.1")
