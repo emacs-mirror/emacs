@@ -14,6 +14,9 @@
 	proceed to consider_string_end without incrementing string
 	position.  Don't increment display vector index past the end of
 	the display vector.  (Bug#11417)
+	(pos_visible_p): Don't report a position visible when move_it_to
+	stopped at the last line of window, which happens to be scanned
+	backwards by the bidi iteration.  (Bug#11464)
 
 2012-05-11  Eli Zaretskii  <eliz@gnu.org>
 

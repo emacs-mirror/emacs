@@ -1304,8 +1304,8 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 	 glyph.  */
       int top_x = it.current_x;
       int top_y = it.current_y;
-      enum it_method it_method = it.method;
       /* Calling line_bottom_y may change it.method, it.position, etc.  */
+      enum it_method it_method = it.method;
       int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
 
@@ -1313,6 +1313,31 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 	visible_p = bottom_y > window_top_y;
       else if (top_y < it.last_visible_y)
 	visible_p = 1;
+      if (bottom_y >= it.last_visible_y
+	  && it.bidi_p && it.bidi_it.scan_dir == -1
+	  && IT_CHARPOS (it) < charpos)
+	{
+	  /* When the last line of the window is scanned backwards
+	     under bidi iteration, we could be duped into thinking
+	     that we have passed CHARPOS, when in fact move_it_to
+	     simply stopped short of CHARPOS because it reached
+	     last_visible_y.  To see if that's what happened, we call
+	     move_it_to again with a slightly larger vertical limit,
+	     and see if it actually moved vertically; if it did, we
+	     didn't really reach CHARPOS, which is beyond window end.  */
+	  struct it save_it = it;
+	  /* Why 10? because we don't know how many canonical lines
+	     will the height of the next line(s) be.  So we guess.  */
+	  int ten_more_lines =
+	    10 * FRAME_LINE_HEIGHT (XFRAME (WINDOW_FRAME (w)));
+
+	  move_it_to (&it, charpos, -1, bottom_y + ten_more_lines, -1,
+		      MOVE_TO_POS | MOVE_TO_Y);
+	  if (it.current_y > top_y)
+	    visible_p = 0;
+
+	  it = save_it;
+	}
       if (visible_p)
 	{
 	  if (it_method == GET_FROM_DISPLAY_VECTOR)
