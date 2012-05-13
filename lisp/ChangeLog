@@ -1,3 +1,9 @@
+2012-05-06  Troels Nielsen  <bn.troels@gmail.com>  (tiny change)
+
+	* progmodes/compile.el (compilation-internal-error-properties):
+	Calculate start position correctly when end-col is set but
+	end-line is not (Bug#11382).
+
 2012-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/rlogin.el (rlogin-mode-map): Fix last change.
