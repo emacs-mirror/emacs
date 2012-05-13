@@ -1,3 +1,20 @@
+2012-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_stop): Don't call get_overlay_strings_1 if we
+	already have overlays loaded.
+	(handle_single_display_spec): Before returning without displaying
+	fringe bitmap, synchronize the bidi iterator with the main display
+	iterator, by calling iterate_out_of_display_property.
+	(iterate_out_of_display_property): Detect buffer iteration by
+	testing that it->string is a Lisp string.
+	(get_next_display_element): When the current object is exhausted,
+	and there's something on it->stack, call set_iterator_to_next to
+	proceed with what's on the stack, instead of returning zero.
+	(set_iterator_to_next): If called at the end of a Lisp string,
+	proceed to consider_string_end without incrementing string
+	position.  Don't increment display vector index past the end of
+	the display vector.  (Bug#11417)
+
 2012-05-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_single_display_spec): Return 1 for left-margin
