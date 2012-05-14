@@ -1,5 +1,16 @@
 2012-05-14  Wolfgang Jenkner  <wjenkner@inode.at>
 
+	* image-mode.el: Fit to width/height for rotated images (bug#11431).
+	(image-transform-scale, image-transform-right-angle-fudge): New vars.
+	(image-transform-width, image-transform-fit-width): New functions.
+	(image-transform-properties): Use them.
+	(image-transform-check-size): New function.
+	(image-toggle-display-image): Use it (for testing).
+	(image-transform-set-rotation): Reduce angle mod 360.
+	Delete obsolete comment.
+
+2012-05-14  Wolfgang Jenkner  <wjenkner@inode.at>
+
 	* image-mode.el: Fix scaling (bug#11399).
 	(image-transform-resize): Doc fix.
 	(image-transform-properties): Default scale is 1 and height should
