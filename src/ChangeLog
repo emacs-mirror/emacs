@@ -1,3 +1,11 @@
+2012-05-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* unexaix.c: Port to more-recent AIX compilers.
+	(report_error, report_error_1, make_hdr, copy_sym)
+	(mark_x, adjust_lnnoptrs, unrelocate_symbols):
+	Make arguments const char *, not char *, to avoid violations of C
+	standard and to fix some AIX warnings reported by Gilles Pion.
+
 2012-05-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_stop): Don't call get_overlay_strings_1 if we
