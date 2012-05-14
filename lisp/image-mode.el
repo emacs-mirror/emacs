@@ -608,23 +608,23 @@ Otherwise it plays once, then stops."
 
 
 ;; Not yet implemented.
-;;; (defvar image-transform-minor-mode-map
-;;;   (let ((map (make-sparse-keymap)))
-;;;     ;; (define-key map  [(control ?+)] 'image-scale-in)
-;;;     ;; (define-key map  [(control ?-)] 'image-scale-out)
-;;;     ;; (define-key map  [(control ?=)] 'image-scale-none)
-;;;     ;; (define-key map "c f h" 'image-scale-fit-height)
-;;;     ;; (define-key map "c ]" 'image-rotate-right)
-;;;     map)
-;;;   "Minor mode keymap `image-transform-mode'.")
-;;;
-;;; (define-minor-mode image-transform-mode
-;;;   "Minor mode for scaling and rotating images.
-;;; With a prefix argument ARG, enable the mode if ARG is positive,
-;;; and disable it otherwise.  If called from Lisp, enable the mode
-;;; if ARG is omitted or nil.  This minor mode requires Emacs to have
-;;; been compiled with ImageMagick support."
-;;;   nil "image-transform" image-transform-minor-mode-map)
+;; (defvar image-transform-minor-mode-map
+;;   (let ((map (make-sparse-keymap)))
+;;     ;; (define-key map  [(control ?+)] 'image-scale-in)
+;;     ;; (define-key map  [(control ?-)] 'image-scale-out)
+;;     ;; (define-key map  [(control ?=)] 'image-scale-none)
+;;     ;; (define-key map "c f h" 'image-scale-fit-height)
+;;     ;; (define-key map "c ]" 'image-rotate-right)
+;;     map)
+;;   "Minor mode keymap `image-transform-mode'.")
+;;
+;; (define-minor-mode image-transform-mode
+;;   "Minor mode for scaling and rotating images.
+;; With a prefix argument ARG, enable the mode if ARG is positive,
+;; and disable it otherwise.  If called from Lisp, enable the mode
+;; if ARG is omitted or nil.  This minor mode requires Emacs to have
+;; been compiled with ImageMagick support."
+;;   nil "image-transform" image-transform-minor-mode-map)
 
 
 ;; FIXME this doesn't seem mature yet. Document in manual when it is.
@@ -634,7 +634,7 @@ Its value should be one of the following:
  - nil, meaning no resizing.
  - `fit-height', meaning to fit the image to the window height.
  - `fit-width', meaning to fit the image to the window width.
- - A number, which is a scale factor (the default size is 100).")
+ - A number, which is a scale factor (the default size is 1).")
 
 (defvar image-transform-rotation 0.0
   "Rotation angle for the image in the current Image mode buffer.")
@@ -655,8 +655,8 @@ compiled with ImageMagick support."
 	   (height
 	    (cond
 	     ((numberp image-transform-resize)
-	      (unless (= image-transform-resize 100)
-		(* image-transform-resize (cdr size))))
+	      (unless (= image-transform-resize 1)
+		(floor (* image-transform-resize (cdr size)))))
 	     ((eq image-transform-resize 'fit-height)
 	      (- (nth 3 (window-inside-pixel-edges))
 		 (nth 1 (window-inside-pixel-edges))))))
@@ -669,7 +669,6 @@ compiled with ImageMagick support."
 	,@(if (not (equal 0.0 image-transform-rotation))
 	      (list :rotation image-transform-rotation))))))
 
-;; FIXME 2 works, but eg 1.9 or 0.5 don't?
 (defun image-transform-set-scale (scale)
   "Prompt for a number, and resize the current image by that amount.
 This command has no effect unless Emacs is compiled with

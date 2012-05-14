@@ -1,3 +1,10 @@
+2012-05-14  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* image-mode.el: Fix scaling (bug#11399).
+	(image-transform-resize): Doc fix.
+	(image-transform-properties): Default scale is 1 and height should
+	be an integer.
+
 2012-05-13  Johan Bockgård  <bojohan@gnu.org>
 
 	* emacs-lisp/smie.el (smie-next-sexp): Use accessor `op-forw' rather
