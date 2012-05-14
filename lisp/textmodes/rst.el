@@ -422,17 +422,6 @@ in parentheses follows the development revision and the timestamp.")
 Each entry consists of the symbol naming the regex and an
 argument list for `rst-re'.")
 
-(defconst rst-re-alist
-  ;; Shadow global value we are just defining so we can construct it step by
-  ;; step
-  (let (rst-re-alist)
-    (dolist (re rst-re-alist-def)
-      (setq rst-re-alist
-	    (nconc rst-re-alist
-		   (list (list (car re) (apply 'rst-re (cdr re)))))))
-    rst-re-alist)
-  "Alist mapping symbols from `rst-re-alist-def' to regex strings.")
-
 ;; FIXME: Use `sregex` or `rx` instead of re-inventing the wheel
 (defun rst-re (&rest args)
   "Interpret ARGS as regular expressions and return a regex string.
@@ -491,6 +480,18 @@ After interpretation of ARGS the results are concatenated as for
 	     (t
 	      (error "Unknown object type for building regex: %s" re))))
 	  args)))
+
+;; FIXME: Remove circular dependency between `rst-re' and `rst-re-alist'.
+(defconst rst-re-alist
+  ;; Shadow global value we are just defining so we can construct it step by
+  ;; step
+  (let (rst-re-alist)
+    (dolist (re rst-re-alist-def)
+      (setq rst-re-alist
+	    (nconc rst-re-alist
+		   (list (list (car re) (apply 'rst-re (cdr re)))))))
+    rst-re-alist)
+  "Alist mapping symbols from `rst-re-alist-def' to regex strings.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
