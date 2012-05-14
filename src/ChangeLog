@@ -1,3 +1,7 @@
+2012-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* nsterm.m (ns_init_paths): Fix typo ("libexec" not "lib-exec").
+
 2012-05-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c (kbd_buffer_get_event) [!HAVE_DBUS]: Omit unused local.

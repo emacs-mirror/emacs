@@ -342,7 +342,7 @@ ns_init_paths (void)
     {
       NSArray *paths = [binDir stringsByAppendingPaths:
                                   [NSArray arrayWithObjects: @"bin",
-                                                             @"lib-exec", nil]];
+                                                             @"libexec", nil]];
       NSEnumerator *pathEnum = [paths objectEnumerator];
       resourcePaths = @"";
       while (resourcePath = [pathEnum nextObject])
