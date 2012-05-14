@@ -1,3 +1,8 @@
+2012-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* keyboard.c (kbd_buffer_get_event): Read special events also in
+	batch mode.  (Bug#11415)
+
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* ns.mk: Update for ns_appbindir no longer having trailing "/".

@@ -3803,6 +3803,7 @@ kbd_buffer_get_event (KBOARD **kbp,
     }
 #endif	/* subprocesses */
 
+#ifndef HAVE_DBUS  /* We want to read D-Bus events in batch mode.  */
   if (noninteractive
       /* In case we are running as a daemon, only do this before
 	 detaching from the terminal.  */
@@ -3813,6 +3814,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       *kbp = current_kboard;
       return obj;
     }
+#endif	/* ! HAVE_DBUS  */
 
   /* Wait until there is input available.  */
   for (;;)
