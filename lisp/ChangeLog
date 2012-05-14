@@ -1,3 +1,7 @@
+2012-05-14  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el (rst-re-alist): Fix loading (bug#11462).
+
 2012-05-14  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* image-mode.el: Fit to width/height for rotated images (bug#11431).
