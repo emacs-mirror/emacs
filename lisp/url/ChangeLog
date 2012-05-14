@@ -1,3 +1,8 @@
+2012-05-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-expand.el (url-default-expander): Copy over the fullness of
+	the new URL object based on the definition URL object.
+
 2012-05-10  Chong Yidong  <cyd@gnu.org>
 
 	* url-parse.el (url-path-and-query, url-port-if-non-default): New
