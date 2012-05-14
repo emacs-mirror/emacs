@@ -1,6 +1,28 @@
+2012-05-14  Troels Nielsen  <bn.troels@gmail.com>  (tiny change)
+
+	* progmodes/compile.el (compilation-internal-error-properties):
+	Calculate start position correctly when end-col is set but
+	end-line is not (Bug#11382).
+
+2012-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rlogin.el (rlogin-mode-map): Fix last change.
+
+2012-05-14  Jason L. Wright  <jason.wright@inl.gov>  (tiny change)
+
+	* mail/smtpmail.el (smtpmail-send-command): Send the command and
+	the following \r\n using a single `process-send-string', since the
+	Lotus SMTP server refuses to accept any commands if they are sent
+	with two `process-send-string's (Bug#11444).
+
+2012-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-parse-pcomplete-arguments): Obey
+	pcomplete-arg-quote-list inside double-quoted args (Bug#11348).
+
 2012-05-14  Wolfgang Jenkner  <wjenkner@inode.at>
 
-	* image-mode.el: Fit to width/height for rotated images (bug#11431).
+	* image-mode.el: Fit to width/height for rotated images (Bug#11431).
 	(image-transform-scale, image-transform-right-angle-fudge): New vars.
 	(image-transform-width, image-transform-fit-width): New functions.
 	(image-transform-properties): Use them.

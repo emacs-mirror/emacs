@@ -1,3 +1,38 @@
+2012-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_stop): Don't call get_overlay_strings_1 if we
+	already have overlays loaded.
+	(handle_single_display_spec): Before returning without displaying
+	fringe bitmap, synchronize the bidi iterator with the main display
+	iterator, by calling iterate_out_of_display_property.
+	(iterate_out_of_display_property): Detect buffer iteration by
+	testing that it->string is a Lisp string.
+	(get_next_display_element): When the current object is exhausted,
+	and there's something on it->stack, call set_iterator_to_next to
+	proceed with what's on the stack, instead of returning zero.
+	(set_iterator_to_next): If called at the end of a Lisp string,
+	proceed to consider_string_end without incrementing string
+	position.  Don't increment display vector index past the end of
+	the display vector.  (Bug#11417)
+	(pos_visible_p): Don't report a position visible when move_it_to
+	stopped at the last line of window, which happens to be scanned
+	backwards by the bidi iteration.  (Bug#11464)
+
+2012-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_single_display_spec): Return 1 for left-margin
+	and right-margin display specs even if the spec is invalid or we
+	are on a TTY, and thus unable to display on the fringes.  That's
+	because the text with the property will not be displayed anyway,
+	so we need to signal to the caller that this is a "replacing"
+	display spec.  This fixes display when the spec is invalid or we
+	are on a TTY.
+
+2012-05-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* unexaix.c (make_hdr): Fix typo in prototype.
+	This bug broke the build on AIX.  Problem reported by Gilles Pion.
+
 2012-05-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* keyboard.c (kbd_buffer_get_event): Read special events also in

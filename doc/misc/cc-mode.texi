@@ -701,7 +701,7 @@ in some circumstances---@code{c-insert-tab-function} then defines
 precisely what sort of ``whitespace'' this will be.  Set the standard
 Emacs variable @code{indent-tabs-mode} to @code{t} if you want real
 @samp{tab} characters to be used in the indentation, to @code{nil} if
-you want only spaces.  @xref{Just Spaces,,, @emacsman{},
+you want only spaces.  @xref{Just Spaces,,,@emacsman{},
 @emacsmantitle{}}.
 
 @defopt c-tab-always-indent
@@ -1058,8 +1058,8 @@ set this up for you, so you probably won't have to bother.
 @cindex Auto Fill mode
 @cindex paragraph filling
 Line breaks are by default handled (almost) the same regardless of
-whether they are made by auto fill mode (@pxref{Auto Fill,,,
-@emacsman{}, @emacsmantitle{}}), by paragraph filling (e.g. with
+whether they are made by auto fill mode (@pxref{Auto
+Fill,,,@emacsman{}, @emacsmantitle{}}), by paragraph filling (e.g. with
 @kbd{M-q}), or explicitly with @kbd{M-j} or similar methods.  In
 string literals, the new line gets the same indentation as the
 previous nonempty line.@footnote{You can change this default by
@@ -1402,7 +1402,7 @@ continuation of the preceding @code{if}.
 @vindex abbrev-mode
 @findex abbrev-mode
 @cindex Abbrev mode
-@ccmode{} uses Abbrev mode (@pxref{Abbrevs,,, @emacsman{}, @emacsmantitle{}})
+@ccmode{} uses Abbrev mode (@pxref{Abbrevs,,,@emacsman{}, @emacsmantitle{}})
 to accomplish this. It's therefore turned on by default in all language
 modes except IDL mode, since CORBA IDL doesn't have any statements.
 @end deffn
@@ -2295,14 +2295,14 @@ to create them.
 A @dfn{file local variable setting} is a setting which applies to an
 individual source file.  You put this in a @dfn{local variables list},
 a special block at the end of the source file (@pxref{Specifying File
-Variables,,, @emacsman{}}).
+Variables,,,@emacsman{}}).
 
 @item File Styles
 A @dfn{file style} is a rarely used variant of the ``style'' mechanism
 described above, which applies to an individual source file.
 @xref{File Styles}.  You use this by setting certain special variables
-in a local variables list (@pxref{Specifying File Variables,,,
-@emacsman{}}).
+in a local variables list (@pxref{Specifying File
+Variables,,,@emacsman{}}).
 
 @item Hooks with Styles
 For ultimate flexibility, you can use hooks and styles together.  For
@@ -2897,7 +2897,7 @@ these offsets or the parent style name.
 
 The Emacs manual describes how you can customize certain variables on a
 per-file basis by including a @dfn{file local variable} block at the end
-of the file (@pxref{File Variables,, Local Variables in Files, @emacsman{},
+of the file (@pxref{File Variables,, Local Variables in Files,@emacsman{},
 @emacsmantitle{}}).
 
 So far, you've only seen a functional interface for setting styles in
@@ -3139,8 +3139,9 @@ results in the current implementation.
 @end defopt
 
 @vindex comment-multi-line
-If inside a comment and @code{comment-multi-line} (@pxref{Auto Fill,,,
-@emacsman{}, @emacsmantitle{}} is non-@code{nil}, the indentation and
+If inside a comment and @code{comment-multi-line} (@pxref{Auto
+Fill,,,@emacsman{}, @emacsmantitle{}} is non-@code{nil}, the
+indentation and
 line prefix are preserved.  If inside a comment and
 @code{comment-multi-line} is @code{nil}, a new comment of the same
 type is started on the next line and indented as appropriate for
@@ -6771,7 +6772,7 @@ The stuff that didn't fit in anywhere else is documented here.
 Controls whether a final newline is enforced when the file is saved.
 The value is an association list that for each language mode specifies
 the value to give to @code{require-final-newline} (@pxref{Saving
-Buffers,,, @lispref{}, @lispreftitle{}}) at mode initialization.  If a
+Buffers,,,@lispref{}, @lispreftitle{}}) at mode initialization.  If a
 language isn't present on the association list, CC Mode won't touch
 @code{require-final-newline} in buffers for that language.
 
