@@ -3786,7 +3786,6 @@ kbd_buffer_get_event (KBOARD **kbp,
                       int *used_mouse_menu,
                       struct timeval *end_time)
 {
-  register int c;
   Lisp_Object obj;
 
 #ifdef subprocesses
@@ -3809,7 +3808,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	 detaching from the terminal.  */
       || (IS_DAEMON && daemon_pipe[1] >= 0))
     {
-      c = getchar ();
+      int c = getchar ();
       XSETINT (obj, c);
       *kbp = current_kboard;
       return obj;

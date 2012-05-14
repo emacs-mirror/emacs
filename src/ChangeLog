@@ -1,5 +1,7 @@
 2012-05-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (kbd_buffer_get_event) [!HAVE_DBUS]: Omit unused local.
+
 	* unexaix.c: Port to more-recent AIX compilers.
 	(report_error, report_error_1, make_hdr, copy_sym)
 	(mark_x, adjust_lnnoptrs, unrelocate_symbols):
