@@ -415,7 +415,7 @@ $(infodir)/gnus$(INFO_EXT): ${srcdir}/gnus.texi ${srcdir}/gnus-faq.texi
 gnus.dvi: ${srcdir}/gnus.texi ${srcdir}/gnus-faq.texi
 	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
-	cp gnustmp.dvi $*.dvi
+	cp gnustmp.dvi $@
 	rm gnustmp.*
 gnus.pdf: ${srcdir}/gnus.texi ${srcdir}/gnus-faq.texi
 	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi

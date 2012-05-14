@@ -110,7 +110,7 @@ report_error_1 (int fd, char *msg, int a1, int a2)
   error (msg, a1, a2);
 }
 
-static int make_hdr (int, int, unsigned, unsigned, unsigned, char *, char *);
+static int make_hdr (int, int, char *, char *);
 static void mark_x (char *);
 static int copy_text_and_data (int);
 static int copy_sym (int, int, char *, char *);
