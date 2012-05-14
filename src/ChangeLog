@@ -1,6 +1,7 @@
 2012-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* nsterm.m (ns_init_paths): Fix typo ("libexec" not "lib-exec").
+	Put "libexec" before "bin", for the sake of init_callproc_1.
 
 2012-05-14  Paul Eggert  <eggert@cs.ucla.edu>
 
