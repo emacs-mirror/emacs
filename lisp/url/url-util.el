@@ -263,23 +263,64 @@ Will not do anything if `url-show-status' is nil."
 ;;;###autoload
 (defun url-parse-query-string (query &optional downcase allow-newlines)
   (let (retval pairs cur key val)
-    (setq pairs (split-string query "&"))
+    (setq pairs (split-string query "[;&]"))
     (while pairs
       (setq cur (car pairs)
 	    pairs (cdr pairs))
-      (if (not (string-match "=" cur))
-	  nil				; Grace
-	(setq key (url-unhex-string (substring cur 0 (match-beginning 0))
-				    allow-newlines))
-	(setq val (url-unhex-string (substring cur (match-end 0) nil)
-				    allow-newlines))
-	(if downcase
-	    (setq key (downcase key)))
-	(setq cur (assoc key retval))
-	(if cur
-	    (setcdr cur (cons val (cdr cur)))
-	  (setq retval (cons (list key val) retval)))))
+      (unless (string-match "=" cur)
+        (setq cur (concat cur "=")))
+
+      (when (string-match "=" cur)
+        (setq key (url-unhex-string (substring cur 0 (match-beginning 0))
+                                    allow-newlines))
+        (setq val (url-unhex-string (substring cur (match-end 0) nil)
+                                    allow-newlines))
+        (if downcase
+            (setq key (downcase key)))
+        (setq cur (assoc key retval))
+        (if cur
+            (setcdr cur (cons val (cdr cur)))
+          (setq retval (cons (list key val) retval)))))
     retval))
+
+;;;###autoload
+(defun url-build-query-string (query &optional semicolons keep-empty)
+  "Build a query-string.
+
+Given a QUERY in the form:
+'((key1 val1)
+  (key2 val2)
+  (key3 val1 val2)
+  (key4)
+  (key5 ""))
+
+\(This is the same format as produced by `url-parse-query-string')
+
+This will return a string
+\"key1=val1&key2=val2&key3=val1&key3=val2&key4&key5\". Keys may
+be strings or symbols; if they are symbols, the symbol name will
+be used.
+
+When SEMICOLONS is given, the separator will be \";\".
+
+When KEEP-EMPTY is given, empty values will show as \"key=\"
+instead of just \"key\" as in the example above."
+  (mapconcat
+   (lambda (key-vals)
+     (let ((escaped
+            (mapcar (lambda (sym)
+                      (url-hexify-string (format "%s" sym))) key-vals)))
+       (mapconcat (lambda (val)
+                    (let ((vprint (format "%s" val))
+                          (eprint (format "%s" (car escaped))))
+                      (concat eprint
+                              (if (or keep-empty
+                                      (and val (not (zerop (length vprint)))))
+                                  "="
+                                "")
+                              vprint)))
+                  (or (cdr escaped) '("")) (if semicolons ";" "&"))))
+   query (if semicolons ";" "&")))
 
 (defun url-unhex (x)
   (if (> x ?9)
