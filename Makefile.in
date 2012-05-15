@@ -476,7 +476,7 @@ install-arch-dep: mkdir
 	  ( cd ${ns_appbindir} ; \
 	    if cd libexec ; then dir=emacs/*/*/* ; $(MV_DIRS); \
 	    rm -fr emacs; if cd ../bin; then rm -f emacs emacs-24*; \
-	    ln -sf ../libexec/* . ; fi ; fi ) ; \
+	    fi ; fi ) ; \
 	else true ; fi
 
 ## FIXME is the emacs-24* bit above really necessary and correct?

@@ -1,3 +1,8 @@
+2012-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-dep): NS install no longer needs to
+	symlink libexec/* into bin/, since 2012-05-14 ns_init_paths change.
+
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (ns_appbindir): Remove trailing "/".
