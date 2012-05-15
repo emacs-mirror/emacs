@@ -1,3 +1,7 @@
+2012-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): Fix last change.  (Bug#11464)
+
 2012-05-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_stop): Don't call get_overlay_strings_1 if we
