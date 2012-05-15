@@ -471,7 +471,7 @@ install-arch-dep: mkdir
 	if test "${ns_appresdir}" != ""; then \
 	  ( cd ${ns_appresdir} ; \
 	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
-	    if test -d share/info ; then dir=share/info; $(MV_DIRS) ; fi ; \
+	    if test -d share/info ; then rm -fr info; mv share/info . ; fi ; \
 	    rm -fr share ) ; \
 	  ( cd ${ns_appbindir} ; \
 	    if cd libexec ; then dir=emacs/*/*/* ; $(MV_DIRS); \
