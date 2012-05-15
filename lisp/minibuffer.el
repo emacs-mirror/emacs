@@ -508,6 +508,9 @@ for use at QPOS."
     (assert (equal (funcall unquote qstring) completion))
     (cons qstring qpoint)))
 
+(defun completion--string-equal-p (s1 s2)
+  (eq t (compare-strings s1 nil nil s2 nil nil 'ignore-case)))
+
 (defun completion--twq-all (string ustring completions boundary
                                    unquote requote)
   (when completions
@@ -519,10 +522,10 @@ for use at QPOS."
          (`(,qfullpos . ,qfun)
           (funcall requote (+ boundary (length prefix)) string))
          (qfullprefix (substring string 0 qfullpos))
-         (_ (assert (eq t (compare-strings
-                           (funcall unquote qfullprefix) nil nil
-                           (concat (substring ustring 0 boundary) prefix)
-                           nil nil 'ignore-case))))
+         (_ (assert (completion--string-equal-p
+		     (funcall unquote qfullprefix)
+		     (concat (substring ustring 0 boundary) prefix))
+		    t))
          (qboundary (car (funcall requote boundary string)))
          (_ (assert (<= qboundary qfullpos)))
          ;; FIXME: this split/quote/concat business messes up the carefully
@@ -552,14 +555,13 @@ for use at QPOS."
                         (qnew (funcall qfun new))
                         (qcompletion (concat qprefix qnew)))
                    (assert
-                    (eq t (compare-strings
-                           (funcall unquote
-                                    (concat (substring string 0 qboundary)
-                                            qcompletion))
-                           nil nil
-                           (concat (substring ustring 0 boundary)
-                                   completion)
-                           nil nil 'ignore-case)))
+                    (completion--string-equal-p
+		     (funcall unquote
+			      (concat (substring string 0 qboundary)
+				      qcompletion))
+		     (concat (substring ustring 0 boundary)
+			     completion))
+		    t)
                    qcompletion))
                completions)
        qboundary))))
@@ -2121,7 +2123,25 @@ same as `substitute-in-file-name'."
                         "use the regular PRED argument" "23.2")
 
 (defun completion--sifn-requote (upos qstr)
+  ;; We're looking for `qupos' such that:
+  ;; (equal (substring (substitute-in-file-name qstr) 0 upos)
+  ;;        (substitute-in-file-name (substring qstr 0 qupos)))
+  ;; Big problem here: we have to reverse engineer substitute-in-file-name to
+  ;; find the position corresponding to UPOS in QSTR, but
+  ;; substitute-in-file-name can do anything, depending on file-name-handlers.
+  ;; Kind of like in rfn-eshadow-update-overlay, only worse.
   (let ((qpos 0))
+    ;; Handle substitute-in-file-name's truncation behavior.
+    (while (and (string-match "[\\/][~/\\]" qstr qpos)
+                ;; Hopefully our regexp covers all truncation cases.
+                ;; Also let's make sure sifn indeed truncates here.
+                (let ((tpos (1+ (match-beginning 0))))
+                  (equal (substitute-in-file-name qstr)
+                         (substitute-in-file-name (substring qstr tpos)))))
+      (setq qpos tpos))
+    ;; `upos' is relative to the position corresponding to `qpos' in
+    ;; (substitute-in-file-name qstr), so as qpos moves forward, upos
+    ;; gets smaller.
     (while (and (> upos 0)
                 (string-match "\\$\\(\\$\\|\\([[:alnum:]_]+\\|{[^}]*}\\)\\)?"
                               qstr qpos))

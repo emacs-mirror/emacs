@@ -1,5 +1,10 @@
 2012-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion--sifn-requote): Handle sifn's truncation
+	behavior.
+	(completion--string-equal-p): New function.
+	(completion--twq-all): Use it to get better assertion failure data.
+
 	Only handle ".." and '..' quoting in shell-mode (bug#11466).
 	* shell.el (shell--unquote&requote-argument, shell--unquote-argument)
 	(shell--requote-argument): New functions.
