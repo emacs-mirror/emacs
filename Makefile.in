@@ -473,9 +473,9 @@ install-arch-dep: mkdir
 	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
 	    if test -d share/info ; then rm -fr info; mv share/info . ; fi ; \
 	    rm -fr share ) ; \
-	  ( cd ${ns_appbindir} ; \
-	    if cd libexec ; then dir=emacs/*/*/* ; $(MV_DIRS); \
-	    rm -fr emacs; rm -f ../bin/emacs ../bin/$(EMACSFULL) ; \
+	  ( if cd ${ns_appbindir}/libexec ; then \
+	      mv -f emacs/${version}/${configuration}/* . ; rm -fr emacs ; \
+	      rm -f ../bin/emacs ../bin/$(EMACSFULL) ; \
 	    fi ) ; \
 	else true ; fi
 

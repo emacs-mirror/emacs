@@ -1,6 +1,7 @@
 2012-05-15  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (install-arch-dep): Replace use of MV_DIRS with info.
+	* Makefile.in (install-arch-dep): Replace use of MV_DIRS with info,
+	and with libexec.
 
 	* Makefile.in (install-arch-dep): Do not hard-code version number.
 
