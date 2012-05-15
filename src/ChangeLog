@@ -1,3 +1,7 @@
+2012-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (init_obarray): Declare Qt and Qnil as special.
+
 2012-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* nsterm.m (ns_init_paths): Fix typo ("libexec" not "lib-exec").
