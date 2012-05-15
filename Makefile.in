@@ -470,7 +470,9 @@ install-arch-dep: mkdir
 	  ( cd ${ns_appresdir} ; \
 	    if test -d share/emacs ; then \
 	      for dir in share/emacs/${version}/*; do \
-	        rm -fr `basename "$$dir"`; mv "$$dir" . ; done; fi ; \
+	        rm -fr `basename "$$dir"`; mv "$$dir" . ; \
+	      done ; \
+	    fi ; \
 	    if test -d share/info ; then rm -fr info; mv share/info . ; fi ; \
 	    rm -fr share ) ; \
 	  ( if cd ${ns_appbindir}/libexec ; then \
