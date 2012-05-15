@@ -1,5 +1,7 @@
 2012-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el (pcase-let*, pcase-let): Fix edebug spec.
+
 	* minibuffer.el (completion--sifn-requote): Handle sifn's truncation
 	behavior.
 	(completion--string-equal-p): New function.

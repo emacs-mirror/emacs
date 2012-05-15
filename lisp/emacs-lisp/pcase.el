@@ -113,7 +113,8 @@ like `(,a . ,(pred (< a))) or, with more checks:
   "Like `let*' but where you can use `pcase' patterns for bindings.
 BODY should be an expression, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
-  (declare (indent 1) (debug let))
+  (declare (indent 1)
+           (debug ((&rest &or (sexp &optional form) symbolp) body)))
   (cond
    ((null bindings) (if (> (length body) 1) `(progn ,@body) (car body)))
    ((pcase--trivial-upat-p (caar bindings))
@@ -132,7 +133,7 @@ of the form (UPAT EXP)."
   "Like `let' but where you can use `pcase' patterns for bindings.
 BODY should be a list of expressions, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
-  (declare (indent 1) (debug let))
+  (declare (indent 1) (debug pcase-let*))
   (if (null (cdr bindings))
       `(pcase-let* ,bindings ,@body)
     (let ((matches '()))
