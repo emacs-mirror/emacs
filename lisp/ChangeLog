@@ -1,3 +1,8 @@
+2012-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent--bolp-1): New function.
+	(smie-indent-keyword): Use it.
+
 2012-05-14  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el (rst-re-alist): Fix loading (bug#11462).
@@ -15,8 +20,8 @@
 
 2012-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* shell.el (shell-parse-pcomplete-arguments): Obey
-	pcomplete-arg-quote-list inside double-quoted args (Bug#11348).
+	* shell.el (shell-parse-pcomplete-arguments):
+	Obey pcomplete-arg-quote-list inside double-quoted args (Bug#11348).
 
 2012-05-14  Wolfgang Jenkner  <wjenkner@inode.at>
 
