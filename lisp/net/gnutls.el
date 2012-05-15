@@ -66,14 +66,12 @@ The files may not exist, in which case they will be ignored."
                  (repeat (file :tag "Bundle filename"))))
 
 ;;;###autoload
-(defcustom gnutls-min-prime-bits nil
-  "The minimum number of bits to be used in Diffie-Hellman key exchange.
+(defcustom gnutls-min-prime-bits 256
+  "Minimum number of bits to be used in Diffie-Hellman key exchange.
+During a client-server handshake, if the server sends a prime
+with fewer than this number of bits, the handshake will fail.
 
-This sets the minimum accepted size of the key to be used in a
-client-server handshake.  If the server sends a prime with fewer than
-the specified number of bits the handshake will fail.
-
-A value of nil says to use the default gnutls value."
+A value of nil says to use the default GnuTLS value."
   :type '(choice (const :tag "Use default value" nil)
                  (integer :tag "Number of bits" 512))
   :group 'gnutls)
