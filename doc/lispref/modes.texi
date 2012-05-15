@@ -735,13 +735,15 @@ modes.  It is normally bound to @kbd{C-h m}.  It uses the value of the
 variable @code{major-mode} (@pxref{Major Modes}), which is why every
 major mode command needs to set that variable.
 
-@deffn Command describe-mode
-This function displays the documentation of the current major mode.
+@deffn Command describe-mode &optional buffer
+This command displays the documentation of the current buffer's major
+mode and minor modes.  It uses the @code{documentation} function to
+retrieve the documentation strings of the major and minor mode
+commands (@pxref{Accessing Documentation}).
 
-The @code{describe-mode} function calls the @code{documentation}
-function using the value of @code{major-mode} as an argument.  Thus, it
-displays the documentation string of the major mode command.
-(@xref{Accessing Documentation}.)
+If called from Lisp with a non-nil @var{buffer} argument, this
+function displays the documentation for that buffer's major and minor
+modes, rather than those of the current buffer.
 @end deffn
 
 @node Derived Modes

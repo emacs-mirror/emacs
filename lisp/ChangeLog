@@ -1,5 +1,7 @@
 2012-05-15  Chong Yidong  <cyd@gnu.org>
 
+	* help.el (describe-mode): Doc fix.
+
 	* net/gnutls.el (gnutls-min-prime-bits): Default to 256 (Bug#11267).
 
 2012-05-06  Troels Nielsen  <bn.troels@gmail.com>  (tiny change)

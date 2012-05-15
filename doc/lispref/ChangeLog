@@ -1,3 +1,14 @@
+2012-05-15  Chong Yidong  <cyd@gnu.org>
+
+	* functions.texi (Obsolete Functions): Fix doc for
+	set-advertised-calling-convention.
+
+	* modes.texi (Mode Help): Fix describe-mode.
+
+	* display.texi (Face Functions): Fix define-obsolete-face-alias.
+
+	* variables.texi (Variable Aliases): Fix make-obsolete-variable.
+
 2012-05-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* commands.texi (Recursive Editing): recursive-edit is a

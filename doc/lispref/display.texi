@@ -2663,11 +2663,13 @@ makes @code{modeline} an alias for the @code{mode-line} face.
 (put 'modeline 'face-alias 'mode-line)
 @end example
 
-@defun define-obsolete-face-alias obsolete-face current-face &optional when
-This function defines a face alias and marks it as obsolete, indicating
-that it may be removed in future.  The optional string @var{when}
-indicates when the face was made obsolete (for example, a release number).
-@end defun
+@defmac define-obsolete-face-alias obsolete-face current-face when
+This macro defines @code{obsolete-face} as an alias for
+@var{current-face}, and also marks it as obsolete, indicating that it
+may be removed in future.  @var{when} should be a string indicating
+when @code{obsolete-face} was made obsolete (usually a version number
+string).
+@end defmac
 
 @node Auto Faces
 @subsection Automatic Face Assignment
