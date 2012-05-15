@@ -1,3 +1,55 @@
+2012-05-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* commands.texi (Recursive Editing): recursive-edit is a
+	command.
+
+	* compile.texi (Docs and Compilation):
+	byte-compile-dynamic-docstrings is an option.
+
+	* debugging.texi (Invoking the Debugger): debug is a command.
+
+	* display.texi (Progress): progress-reporter-update and
+	progress-reporter-force-update have VALUE argument optional.
+	(Animated Images): Use non-@code{nil} instead of non-nil.
+
+	* files.texi (Format Conversion Round-Trip): Use non-@code{nil}
+	instead of non-nil.
+
+	* frames.texi (Creating Frames): make-frame is a command.
+	(Input Focus): select-frame is a command.
+	(Pointer Shape): void-text-area-pointer is an option.
+
+	* help.texi (Describing Characters): read-kbd-macro is a
+	command.
+	(Help Functions): describe-prefix-bindings is a command.
+
+	* markers.texi (Creating Markers): Both arguments of copy-marker
+	are optional.
+
+	* minibuf.texi (Reading File Names): Use @kbd instead of @code.
+
+	* modes.texi (Mode Line Variables): mode-line-remote and
+	mode-line-client are not options.
+	(Imenu): imenu-add-to-menubar is a command.
+	(SMIE Indentation Helpers): Use non-@code{nil} instead of
+	non-nil.
+
+	* os.texi (Sound Output): play-sound-file is a command.
+
+	* package.texi (Package Archives): Use @key{RET} instead of
+	@kbd{RET}.
+
+	* processes.texi (Signals to Processes): Use @key{RET} instead
+	of @code{RET}.
+	(Signals to Processes): signal-process is a command.
+
+	* text.texi (Clickable Text): Use @key{RET} instead of
+	@kbd{RET}.
+	(Base 64): base64-encode-string is not a command while
+	base64-decode-region is.
+
+	* windows.texi (Switching Buffers): pop-to-buffer is a command.
+
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (clean, mostlyclean): Add some more vol1/2 items.

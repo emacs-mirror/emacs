@@ -2106,10 +2106,10 @@ calls the functions in the list @code{play-sound-functions}.
 Each function is called with one argument, @var{sound}.
 @end defun
 
-@defun play-sound-file file &optional volume device
+@deffn Command play-sound-file file &optional volume device
 This function is an alternative interface to playing a sound @var{file}
 specifying an optional @var{volume} and @var{device}.
-@end defun
+@end deffn
 
 @defvar play-sound-functions
 A list of functions to be called before playing a sound.  Each function

@@ -3531,7 +3531,7 @@ properties.  For simplicity, we will refer to the clickable text as a
 @dfn{link}.
 
   Implementing a link involves three separate steps: (1) indicating
-clickability when the mouse moves over the link; (2) making @kbd{RET}
+clickability when the mouse moves over the link; (2) making @key{RET}
 or @kbd{Mouse-2} on that link do something; and (3) setting up a
 @code{follow-link} condition so that the link obeys
 @code{mouse-1-click-follows-link}.
@@ -4069,7 +4069,7 @@ text, to avoid overlong lines.  However, if the optional argument
 the output is just one long line.
 @end deffn
 
-@deffn Command base64-encode-string string &optional no-line-break
+@defun base64-encode-string string &optional no-line-break
 This function converts the string @var{string} into base 64 code.  It
 returns a string containing the encoded text.  As for
 @code{base64-encode-region}, an error is signaled if a character in the
@@ -4079,15 +4079,15 @@ Normally, this function inserts newline characters into the encoded
 text, to avoid overlong lines.  However, if the optional argument
 @var{no-line-break} is non-@code{nil}, these newlines are not added, so
 the result string is just one long line.
-@end deffn
+@end defun
 
-@defun base64-decode-region beg end
+@deffn Command base64-decode-region beg end
 This function converts the region from @var{beg} to @var{end} from base
 64 code into the corresponding decoded text.  It returns the length of
 the decoded text.
 
 The decoding functions ignore newline characters in the encoded text.
-@end defun
+@end deffn
 
 @defun base64-decode-string string
 This function converts the string @var{string} from base 64 code into

@@ -291,10 +291,10 @@ is by adding this string to the file's first line:
 -*-byte-compile-dynamic-docstrings: nil;-*-
 @end example
 
-@defvar byte-compile-dynamic-docstrings
+@defopt byte-compile-dynamic-docstrings
 If this is non-@code{nil}, the byte compiler generates compiled files
 that are set up for dynamic loading of documentation strings.
-@end defvar
+@end defopt
 
 @node Dynamic Loading
 @section Dynamic Loading of Individual Functions
