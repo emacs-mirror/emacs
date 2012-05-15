@@ -475,14 +475,13 @@ install-arch-dep: mkdir
 	    rm -fr share ) ; \
 	  ( cd ${ns_appbindir} ; \
 	    if cd libexec ; then dir=emacs/*/*/* ; $(MV_DIRS); \
-	    rm -fr emacs; if cd ../bin; then rm -f emacs emacs-24*; \
-	    fi ; fi ) ; \
+	    rm -fr emacs; rm -f ../bin/emacs ../bin/$(EMACSFULL) ; \
+	    fi ) ; \
 	else true ; fi
 
-## FIXME is the emacs-24* bit above really necessary and correct?
-## What if I have 24.1 and 24.2 installed at the same time?
-## In any case, it should use something like echo $version | sed 's/\..*//'
-## instead of hard-coding a version.
+## FIXME NS self-contained: rather than installing emacs and
+## EMACSFULL, then deleting them, obviously it would be better to not
+## install them in the first place.
 
 ## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.
