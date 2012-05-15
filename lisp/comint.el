@@ -2968,19 +2968,20 @@ This is a good thing to set in mode hooks.")
   "Return the word of WORD-CHARS at point, or nil if none is found.
 Word constituents are considered to be those in WORD-CHARS, which is like the
 inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters."
+  ;; FIXME: Need to handle "..." and '...' quoting in shell.el!
+  ;; This should be combined with pomplete-parsing somehow.
   (save-excursion
     (let ((here (point))
 	  giveup)
       (while (not giveup)
 	(let ((startpoint (point)))
 	  (skip-chars-backward (concat "\\\\" word-chars))
-	  ;; Fixme: This isn't consistent with Bash, at least -- not
-	  ;; all non-ASCII chars should be word constituents.
-	  (if (and (> (- (point) 2) (point-min))
-		   (= (char-after (- (point) 2)) ?\\))
+	  (if (and comint-file-name-quote-list
+		   (eq (char-before (1- (point))) ?\\))
 	      (forward-char -2))
-	  (if (and (> (- (point) 1) (point-min))
-		   (>= (char-after (- (point) 1)) 128))
+	  ;; FIXME: This isn't consistent with Bash, at least -- not
+	  ;; all non-ASCII chars should be word constituents.
+	  (if (and (not (bobp)) (>= (char-before) 128))
 	      (forward-char -1))
 	  (if (= (point) startpoint)
 	      (setq giveup t))))
@@ -3012,14 +3013,14 @@ See `comint-word'."
 (defun comint--unquote&requote-argument (qstr &optional upos)
   (unless upos (setq upos 0))
   (let* ((qpos 0)
-         (dquotes nil)
          (ustrs '())
          (re (concat
-              "[\"']\\|\\\\\\(.\\)"
-              "\\|\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
-              "\\|{\\(?2:[^{}]+\\)}\\)"
+              "\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
+              "\\|{\\(?1:[^{}]+\\)}\\)"
               (when (memq system-type '(ms-dos windows-nt))
-                "\\|%\\(?2:[^\\\\/]*\\)%")))
+                "\\|%\\(?1:[^\\\\/]*\\)%")
+              (when comint-file-name-quote-list
+                "\\|\\\\\\(.\\)")))
          (qupos nil)
          (push (lambda (str end)
                  (push str ustrs)
@@ -3030,18 +3031,9 @@ See `comint-word'."
     (while (setq match (string-match re qstr qpos))
       (funcall push (substring qstr qpos match) match)
       (cond
-       ((match-beginning 1) (funcall push (match-string 1 qstr) (match-end 0)))
-       ((match-beginning 2) (funcall push (getenv (match-string 2 qstr))
+       ((match-beginning 2) (funcall push (match-string 2 qstr) (match-end 0)))
+       ((match-beginning 1) (funcall push (getenv (match-string 1 qstr))
                                      (- (match-end 0))))
-       ((eq (aref qstr match) ?\") (setq dquotes (not dquotes)))
-       ((eq (aref qstr match) ?\')
-        (cond
-         (dquotes (funcall push "'" (match-end 0)))
-         ((< match (1+ (length qstr)))
-          (let ((end (string-match "'" qstr (1+ match))))
-            (funcall push (substring qstr (1+ match) end)
-                     (or end (length qstr)))))
-         (t nil)))
        (t (error "Unexpected case in comint--unquote&requote-argument!")))
       (setq qpos (match-end 0)))
     (funcall push (substring qstr qpos) (length qstr))
@@ -3140,7 +3132,7 @@ Returns t if successful."
 See `completion-table-with-quoting' and `comint-requote-function'.")
 (defvar comint-requote-function #'comint--requote-argument
   "Function to use for completion of quoted data.
-See `completion-table-with-quoting' and `comint-requote-function'.")
+See `completion-table-with-quoting' and `comint-unquote-function'.")
 
 (defun comint--complete-file-name-data ()
   "Return the completion data for file name at point."

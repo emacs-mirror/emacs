@@ -1,5 +1,15 @@
 2012-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Only handle ".." and '..' quoting in shell-mode (bug#11466).
+	* shell.el (shell--unquote&requote-argument, shell--unquote-argument)
+	(shell--requote-argument): New functions.
+	(shell-completion-vars): Use them.
+	(shell--parse-pcomplete-arguments): Rename from
+	shell-parse-pcomplete-arguments.
+	* comint.el (comint-word): Obey comint-file-name-quote-list.  Simplify.
+	(comint--unquote&requote-argument): Don't handle ".." and '..' quoting.
+	Obey comint-file-name-quote-list.
+
 	* emacs-lisp/smie.el (smie-indent--bolp-1): New function.
 	(smie-indent-keyword): Use it.
 
