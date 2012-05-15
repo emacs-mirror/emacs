@@ -1,6 +1,6 @@
 2012-05-15  Ian Eure  <ian@simplegeo.com>
 
-	* url-util.el (url-build-query-string): New function.
+	* url-util.el (url-build-query-string): New function (Bug#8706).
 	(url-parse-query-string): Allow that '=' is not required and split
 	URL parameters on ';', not just '&'.
 
