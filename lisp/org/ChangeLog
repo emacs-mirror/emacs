@@ -1,3 +1,8 @@
+2012-05-16  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob.el (org-babel-parse-src-block-match): Save match data during
+	indentation check.
+
 2012-05-16  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-scan-tags): Correctly match TODO keywords.

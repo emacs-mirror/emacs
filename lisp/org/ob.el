@@ -1159,7 +1159,8 @@ may be specified in the properties of the current outline entry."
 		      (substring body 0 sub-length)
 		    (or body "")))))
 	 (preserve-indentation (or org-src-preserve-indentation
-				   (string-match "-i\\>" switches))))
+				   (save-match-data
+				     (string-match "-i\\>" switches)))))
     (list lang
           ;; get block body less properties, protective commas, and indentation
           (with-temp-buffer
