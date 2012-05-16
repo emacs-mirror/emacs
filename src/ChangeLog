@@ -1,3 +1,7 @@
+2012-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xgselect.c (xg_select): Just invoke 'select' if -nw (Bug#9754).
+
 2012-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (init_obarray): Declare Qt and Qnil as special.
