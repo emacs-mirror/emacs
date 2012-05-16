@@ -67,9 +67,13 @@ The files may not exist, in which case they will be ignored."
 
 ;;;###autoload
 (defcustom gnutls-min-prime-bits 256
-  "Minimum number of bits to be used in Diffie-Hellman key exchange.
-During a client-server handshake, if the server sends a prime
-with fewer than this number of bits, the handshake will fail.
+  ;; Several mail servers send fewer bits than the GnuTLS default.
+  ;; Currently, 256 appears to be a reasonable choice (Bug#11267).
+  "Minimum number of prime bits accepted by GnuTLS for key exchange.
+During a Diffie-Hellman handshake, if the server sends a prime
+number with fewer than this number of bits, the handshake is
+rejected.  \(The smaller the prime number, the less secure the
+key exchange is against man-in-the-middle attacks.)
 
 A value of nil says to use the default GnuTLS value."
   :type '(choice (const :tag "Use default value" nil)

@@ -1,3 +1,7 @@
+2012-05-16  Chong Yidong  <cyd@gnu.org>
+
+	* net/gnutls.el (gnutls-min-prime-bits): Improve docstring.
+
 2012-05-15  Chong Yidong  <cyd@gnu.org>
 
 	* help.el (describe-mode): Doc fix.
