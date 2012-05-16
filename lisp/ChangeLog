@@ -1,3 +1,9 @@
+2012-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--sifn-requote): Fix last change.
+	(minibuffer-local-must-match-filename-map):
+	Move define-obsolete-variable-alias before its var.
+
 2012-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase-let*, pcase-let): Fix edebug spec.

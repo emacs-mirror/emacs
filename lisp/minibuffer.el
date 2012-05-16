@@ -1952,10 +1952,10 @@ The completion method is determined by `completion-at-point-functions'."
 Gets combined either with `minibuffer-local-completion-map' or
 with `minibuffer-local-must-match-map'.")
 
-(defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
-(make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
 (define-obsolete-variable-alias 'minibuffer-local-must-match-filename-map
   'minibuffer-local-filename-must-match-map "23.1")
+(defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
+(make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
 
 (let ((map minibuffer-local-ns-map))
   (define-key map " " 'exit-minibuffer)
@@ -2132,13 +2132,15 @@ same as `substitute-in-file-name'."
   ;; Kind of like in rfn-eshadow-update-overlay, only worse.
   (let ((qpos 0))
     ;; Handle substitute-in-file-name's truncation behavior.
-    (while (and (string-match "[\\/][~/\\]" qstr qpos)
-                ;; Hopefully our regexp covers all truncation cases.
-                ;; Also let's make sure sifn indeed truncates here.
-                (let ((tpos (1+ (match-beginning 0))))
-                  (equal (substitute-in-file-name qstr)
-                         (substitute-in-file-name (substring qstr tpos)))))
-      (setq qpos tpos))
+    (let (tpos)
+      (while (and (string-match "[\\/][~/\\]" qstr qpos)
+                  ;; Hopefully our regexp covers all truncation cases.
+                  ;; Also let's make sure sifn indeed truncates here.
+                  (progn
+                    (setq tpos (1+ (match-beginning 0)))
+                    (equal (substitute-in-file-name qstr)
+                           (substitute-in-file-name (substring qstr tpos)))))
+        (setq qpos tpos)))
     ;; `upos' is relative to the position corresponding to `qpos' in
     ;; (substitute-in-file-name qstr), so as qpos moves forward, upos
     ;; gets smaller.
