@@ -739,7 +739,10 @@ before the current command."
 	 (eq flyspell-pre-pre-buffer flyspell-pre-buffer))
     nil)
    ((or (and (= flyspell-pre-point (- (point) 1))
-	     (eq (char-syntax (char-after flyspell-pre-point)) ?w))
+	     (or (eq (char-syntax (char-after flyspell-pre-point)) ?w)
+		 (string-match-p (ispell-get-otherchars)
+		  		 (buffer-substring-no-properties
+		  		  flyspell-pre-point (1+ flyspell-pre-point)))))
 	(= flyspell-pre-point (point))
 	(= flyspell-pre-point (+ (point) 1)))
     nil)
@@ -753,7 +756,10 @@ before the current command."
 	     ;; If other post-command-hooks change the buffer,
 	     ;; flyspell-pre-point can lie past eob (bug#468).
 	     (null (char-after flyspell-pre-point))
-	     (eq (char-syntax (char-after flyspell-pre-point)) ?w)))
+	     (or (eq (char-syntax (char-after flyspell-pre-point)) ?w)
+		 (string-match-p (ispell-get-otherchars)
+				 (buffer-substring-no-properties
+				  flyspell-pre-point (1+ flyspell-pre-point))))))
     nil)
    ((not (eq (current-buffer) flyspell-pre-buffer))
     t)
@@ -815,6 +821,7 @@ Mostly we check word delimiters."
 	 (save-excursion
 	   (backward-char 1)
 	   (and (looking-at (flyspell-get-not-casechars))
+		(not (looking-at (ispell-get-otherchars)))
 		(or flyspell-consider-dash-as-word-delimiter-flag
 		    (not (looking-at "-"))))))
     ;; yes because we have reached or typed a word delimiter.
@@ -880,6 +887,7 @@ Mostly we check word delimiters."
 				     (save-excursion
 				       (backward-char 1)
 				       (and (and (looking-at (flyspell-get-not-casechars)) 1)
+					    (not (looking-at (ispell-get-otherchars)))
 					    (and (or flyspell-consider-dash-as-word-delimiter-flag
 						     (not (looking-at "\\-"))) 2))))))
 			  c))))
@@ -895,6 +903,7 @@ Mostly we check word delimiters."
 				       (save-excursion
 					 (backward-char 1)
 					 (and (looking-at (flyspell-get-not-casechars))
+					      (not (looking-at (ispell-get-otherchars)))
 					      (or flyspell-consider-dash-as-word-delimiter-flag
 						  (not (looking-at "\\-"))))))))
 			    c))

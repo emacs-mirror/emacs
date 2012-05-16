@@ -1,3 +1,9 @@
+2012-05-16  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* flyspell.el (flyspell-check-pre-word-p, flyspell-check-word-p)
+	(flyspell-debug-signal-word-checked): Delay for otherchars as for
+	normal word components.
+
 2012-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--sifn-requote): Fix last change.
