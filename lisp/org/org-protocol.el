@@ -225,7 +225,7 @@ Consider using the interactive functions `org-protocol-create' and
   :type 'alist)
 
 (defcustom org-protocol-protocol-alist nil
-  "* Register custom handlers for org-protocol.
+  "Register custom handlers for org-protocol.
 
 Each element of this list must be of the form:
 

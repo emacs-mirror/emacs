@@ -2368,7 +2368,7 @@ of the new mark."
 		       (looking-at org-table-auto-recalculate-regexp))
        (org-table-recalculate) t))
 
-(defvar org-table-modes)
+(defvar org-tbl-calc-modes) ;; Dynamically bound in `org-table-eval-formula'
 (defsubst org-set-calc-mode (var &optional value)
   (if (stringp var)
       (setq var (assoc var '(("D" calc-angle-mode deg)
@@ -2376,10 +2376,10 @@ of the new mark."
 			     ("F" calc-prefer-frac t)
 			     ("S" calc-symbolic-mode t)))
 	    value (nth 2 var) var (nth 1 var)))
-  (if (memq var org-table-modes)
-      (setcar (cdr (memq var org-table-modes)) value)
-    (cons var (cons value org-table-modes)))
-  org-table-modes)
+  (if (memq var org-tbl-calc-modes)
+      (setcar (cdr (memq var org-tbl-calc-modes)) value)
+    (cons var (cons value org-tbl-calc-modes)))
+  org-tbl-calc-modes)
 
 (defun org-table-eval-formula (&optional arg equation
 					 suppress-align suppress-const
@@ -2437,7 +2437,7 @@ not overwrite the stored one."
 			equation
 		      (org-table-get-formula equation (equal arg '(4)))))
 	   (n0 (org-table-current-column))
-	   (modes (copy-sequence org-calc-default-modes))
+	   (org-tbl-calc-modes (copy-sequence org-calc-default-modes))
 	   (numbers nil) ; was a variable, now fixed default
 	   (keep-empty nil)
 	   n form form0 formrpl formrg bw fmt x ev orig c lispp literal
@@ -2453,12 +2453,13 @@ not overwrite the stored one."
 	      (setq c (string-to-char (match-string 1 fmt))
 		    n (string-to-number (match-string 2 fmt)))
 	      (if (= c ?p)
-		  (setq modes (org-set-calc-mode 'calc-internal-prec n))
-		(setq modes (org-set-calc-mode
-			     'calc-float-format
-			     (list (cdr (assoc c '((?n . float) (?f . fix)
-						   (?s . sci) (?e . eng))))
-				   n))))
+		  (setq org-tbl-calc-modes (org-set-calc-mode 'calc-internal-prec n))
+		(setq org-tbl-calc-modes
+		      (org-set-calc-mode
+		       'calc-float-format
+		       (list (cdr (assoc c '((?n . float) (?f . fix)
+					     (?s . sci) (?e . eng))))
+			     n))))
 	      (setq fmt (replace-match "" t t fmt)))
 	    (if (string-match "T" fmt)
 		(setq duration t numbers t
@@ -2479,7 +2480,7 @@ not overwrite the stored one."
 		(setq keep-empty t
 		      fmt (replace-match "" t t fmt)))
 	    (while (string-match "[DRFS]" fmt)
-	      (setq modes (org-set-calc-mode (match-string 0 fmt)))
+	      (setq org-tbl-calc-modes (org-set-calc-mode (match-string 0 fmt)))
 	      (setq fmt (replace-match "" t t fmt)))
 	    (unless (string-match "\\S-" fmt)
 	      (setq fmt nil))))
@@ -2588,7 +2589,7 @@ not overwrite the stored one."
 				   duration-output-format) ev))
 	  (or (fboundp 'calc-eval)
 	      (error "Calc does not seem to be installed, and is needed to evaluate the formula"))
-	  (setq ev (calc-eval (cons form modes) (if numbers 'num))
+	  (setq ev (calc-eval (cons form org-tbl-calc-modes) (if numbers 'num))
 		ev (if duration (org-table-time-seconds-to-string
 				 (string-to-number ev)
 				 duration-output-format) ev)))
@@ -3309,15 +3310,18 @@ If S is a string representing a number, keep this number."
   "Convert a number of seconds to a time string.
 If OUTPUT-FORMAT is non-nil, return a number of days, hours,
 minutes or seconds."
-  (cond ((eq output-format 'days)
-	 (format "%.3f" (/ (float secs) 86400)))
-	((eq output-format 'hours)
-	 (format "%.2f" (/ (float secs) 3600)))
-	((eq output-format 'minutes)
-	 (format "%.1f" (/ (float secs) 60)))
-	((eq output-format 'seconds)
-	 (format "%d" secs))
-	(t (org-format-seconds "%.2h:%.2m:%.2s" secs))))
+  (let* ((secs0 (abs secs))
+	 (res
+	  (cond ((eq output-format 'days)
+		 (format "%.3f" (/ (float secs0) 86400)))
+		((eq output-format 'hours)
+		 (format "%.2f" (/ (float secs0) 3600)))
+		((eq output-format 'minutes)
+		 (format "%.1f" (/ (float secs0) 60)))
+		((eq output-format 'seconds)
+		 (format "%d" secs0))
+		(t (org-format-seconds "%.2h:%.2m:%.2s" secs0)))))
+    (if (< secs 0) (concat "-" res) res)))
 
 (defun org-table-fedit-convert-buffer (function)
   "Convert all references in this buffer, using FUNCTION."

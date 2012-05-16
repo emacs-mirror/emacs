@@ -1,3 +1,7 @@
+2012-05-16  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Durations and time values): Fix typo.
+
 2012-05-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* cc-mode.texi: Avoid space before macro in 4th argument of cross

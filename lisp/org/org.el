@@ -6,7 +6,7 @@
 ;; Maintainer: Bastien Guerry <bzg at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.8.09
+;; Version: 7.8.10
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -206,7 +206,7 @@ identifier."
 
 ;;; Version
 
-(defconst org-version "7.8.09"
+(defconst org-version "7.8.10"
   "The version number of the file org.el.")
 
 ;;;###autoload
@@ -4789,10 +4789,11 @@ but the stars and the body are.")
 		    "\\|" org-clock-string "\\)\\)?"
 		    " *\\([[<][0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^]\r\n>]*?[]>]\\|<%%([^\r\n>]*>\\)")
 	    org-planning-or-clock-line-re
-	    (concat "\\(?:^[ \t]*\\(" org-scheduled-string
-		    "\\|" org-deadline-string
-		    "\\|" org-closed-string "\\|" org-clock-string
-		    "\\)\\>\\)")
+	    (concat "^[ \t]*\\("
+		    org-scheduled-string "\\|"
+		    org-deadline-string "\\|"
+		    org-closed-string "\\|"
+		    org-clock-string "\\)")
 	    org-all-time-keywords
 	    (mapcar (lambda (w) (substring w 0 -1))
 		    (list org-scheduled-string org-deadline-string
@@ -5916,16 +5917,19 @@ needs to be inserted at a specific position in the font-lock sequence.")
     (when org-pretty-entities
       (catch 'match
 	(while (re-search-forward
-		"\\\\\\(frac[13][24]\\|[a-zA-Z]+\\)\\($\\|[^[:alpha:]\n]\\)"
+		"\\\\\\(frac[13][24]\\|[a-zA-Z]+\\)\\($\\|{}\\|[^[:alpha:]\n]\\)"
 		limit t)
 	  (if (and (not (org-in-indented-comment-line))
 		   (setq ee (org-entity-get (match-string 1)))
 		   (= (length (nth 6 ee)) 1))
-	      (progn
+	      (let*
+		  ((end (if (equal (match-string 2) "{}")
+			    (match-end 2)
+			  (match-end 1))))
 		(add-text-properties
-		 (match-beginning 0) (match-end 1)
+		 (match-beginning 0) end
 		 (list 'font-lock-fontified t))
-		(compose-region (match-beginning 0) (match-end 1)
+		(compose-region (match-beginning 0) end
 				(nth 6 ee) nil)
 		(backward-char 1)
 		(throw 'match t))))
@@ -6255,34 +6259,36 @@ in special contexts.
 
 (defun org-cycle-internal-global ()
   "Do the global cycling action."
-  (cond
-   ((and (eq last-command this-command)
-	 (eq org-cycle-global-status 'overview))
-    ;; We just created the overview - now do table of contents
-    ;; This can be slow in very large buffers, so indicate action
-    (run-hook-with-args 'org-pre-cycle-hook 'contents)
-    (message "CONTENTS...")
-    (org-content)
-    (message "CONTENTS...done")
-    (setq org-cycle-global-status 'contents)
-    (run-hook-with-args 'org-cycle-hook 'contents))
+  ;; Hack to avoid display of messages for .org  attachments in Gnus
+  (let ((ga (string-match "\\*fontification" (buffer-name))))
+    (cond
+     ((and (eq last-command this-command)
+	   (eq org-cycle-global-status 'overview))
+      ;; We just created the overview - now do table of contents
+      ;; This can be slow in very large buffers, so indicate action
+      (run-hook-with-args 'org-pre-cycle-hook 'contents)
+      (unless ga (message "CONTENTS..."))
+      (org-content)
+      (unless ga (message "CONTENTS...done"))
+      (setq org-cycle-global-status 'contents)
+      (run-hook-with-args 'org-cycle-hook 'contents))
 
-   ((and (eq last-command this-command)
-	 (eq org-cycle-global-status 'contents))
-    ;; We just showed the table of contents - now show everything
-    (run-hook-with-args 'org-pre-cycle-hook 'all)
-    (show-all)
-    (message "SHOW ALL")
-    (setq org-cycle-global-status 'all)
-    (run-hook-with-args 'org-cycle-hook 'all))
+     ((and (eq last-command this-command)
+	   (eq org-cycle-global-status 'contents))
+      ;; We just showed the table of contents - now show everything
+      (run-hook-with-args 'org-pre-cycle-hook 'all)
+      (show-all)
+      (unless ga (message "SHOW ALL"))
+      (setq org-cycle-global-status 'all)
+      (run-hook-with-args 'org-cycle-hook 'all))
 
-   (t
-    ;; Default action: go to overview
-    (run-hook-with-args 'org-pre-cycle-hook 'overview)
-    (org-overview)
-    (message "OVERVIEW")
-    (setq org-cycle-global-status 'overview)
-    (run-hook-with-args 'org-cycle-hook 'overview))))
+     (t
+      ;; Default action: go to overview
+      (run-hook-with-args 'org-pre-cycle-hook 'overview)
+      (org-overview)
+      (unless ga (message "OVERVIEW"))
+      (setq org-cycle-global-status 'overview)
+      (run-hook-with-args 'org-cycle-hook 'overview)))))
 
 (defun org-cycle-internal-local ()
   "Do the local cycling action."
@@ -8574,7 +8580,7 @@ call CMD."
 ;;; Link abbreviations
 
 (defun org-link-expand-abbrev (link)
-  "Apply replacements as defined in `org-link-abbrev-alist."
+  "Apply replacements as defined in `org-link-abbrev-alist'."
   (if (string-match "^\\([^:]*\\)\\(::?\\(.*\\)\\)?$" link)
       (let* ((key (match-string 1 link))
 	     (as (or (assoc key org-link-abbrev-alist-local)
@@ -9432,7 +9438,7 @@ If the link is in hidden text, expose it."
 	   (string-match "\\([a-zA-Z0-9]+\\):\\(.*\\)" s))
       (progn
 	(setq s (funcall org-link-translation-function
-			 (match-string 1) (match-string 2)))
+			 (match-string 1 s) (match-string 2 s)))
 	(concat (car s) ":" (cdr s)))
     s))
 
@@ -12823,7 +12829,9 @@ headlines matching this string."
 		     " *\\(\\<\\("
 		     (mapconcat 'regexp-quote org-todo-keywords-1 "\\|")
 		     (org-re
-		      "\\>\\)\\)? *\\(.*?\\)\\(:[[:alnum:]_@#%:]+:\\)?[ \t]*$")))
+		      (if todo-only
+			  "\\>\\)\\)[ \t]+\\(.*?\\)\\(:[[:alnum:]_@#%:]+:\\)?[ \t]*$"
+			"\\>\\)\\)? *\\([^ ].*?\\)\\(:[[:alnum:]_@#%:]+:\\)?[ \t]*$"))))
 	 (props (list 'face 'default
 		      'done-face 'org-agenda-done
 		      'undone-face 'default

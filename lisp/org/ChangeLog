@@ -1,3 +1,79 @@
+2012-05-16  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-scan-tags): Correctly match TODO keywords.
+
+2012-05-16  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct): Fix white spaces.
+	(org-list-swap-items, org-list-send-item): Fix visibility
+	preservation.
+
+2012-05-16  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-swap-items, org-list-send-item): Preserve
+	visibility when moving items.
+
+2012-05-16  Mark E. Shoulson  <mark@kli.org>  (tiny change)
+
+	* org.el (org-fontify-entities): Hide {} when prettifying
+	entities.
+
+2012-05-16  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-cycle-internal-global): Prevent the display of
+	messages when cycling from with a Gnus article buffer.
+
+2012-05-16  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el (org-table-time-seconds-to-string): Fix bug about
+	handling a negative duration value.
+
+2012-05-16  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-link-expand-abbrev): Fix docstring.
+
+2012-05-16  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-translate-link): Fix bug.
+
+2012-05-16  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-bulk-mark-regexp): Fix bug when
+	setting the number of marked entries.
+
+2012-05-16  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el (org-tbl-calc-modes): Rename from
+	`org-table-modes'.
+	(org-set-calc-mode, org-table-eval-formula): Use it.
+
+2012-05-16  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob.el (org-babel-find-named-result): Fix bug finding empty named
+	results.
+
+2012-05-16  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-set-regexps-and-options): Fix
+	`org-planning-or-clock-line-re' regexp.  Indeed "\\>" will never
+	match since time keywords must end with colons, which are not word
+	constituent.
+
+2012-05-16  Bastien Guerry  <bzg@gnu.org>
+
+	* org-ctags.el (org-ctags-new-topic-template): Fix the option
+	default value back again.
+
+2012-05-16  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org-bibtex.el (org-bibtex-export-to-kill-ring): Don't rely on
+	kill-new to return a string.
+
+2012-05-16  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org-bibtex.el (org-bibtex-headline): Remove call to
+	bibtex-reformat which often hangs.
+
 2012-04-26  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-table.el (org-table-number-fraction): Fix typo.

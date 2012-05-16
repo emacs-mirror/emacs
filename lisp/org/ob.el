@@ -1498,7 +1498,7 @@ buffer or nil if no such result exists."
     (catch 'is-a-code-block
       (when (re-search-forward
 	     (concat org-babel-result-regexp
-		     "[ \t]" (regexp-quote name) "[ \t\n\f\v\r]+") nil t)
+		     "[ \t]" (regexp-quote name) "[ \t]*[\n\f\v\r]") nil t)
 	(when (and (string= "name" (downcase (match-string 1)))
 		   (or (beginning-of-line 1)
 		       (looking-at org-babel-src-block-regexp)
