@@ -1,3 +1,10 @@
+2012-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Try to fix building with gcc >= 4.6 on Darwin.
+	(CPP): Do not unconditionally set it on Darwin.
+	Instead, try to test if -no-cpp-precomp is accepted.
+	(CPP_TEST_OPTIONS, SPECIFIED_CPP): New.  (Bug#9755)
+
 2012-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-dep): Replace use of MV_DIRS.

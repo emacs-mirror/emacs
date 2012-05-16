@@ -492,12 +492,11 @@ case "${canonical}" in
       * )            unported=yes ;;
     esac
     opsys=darwin
-    # Define CPP as follows to make autoconf work correctly.
-    CPP="${CC-cc} -E -no-cpp-precomp"
     # Use fink packages if available.
+    # FIXME?  Is it really our business to decide this for the user?
     if test -d /sw/include && test -d /sw/lib; then
       GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
-      CPP="${CPP} ${GCC_TEST_OPTIONS}"
+      CPP_TEST_OPTIONS=${GCC_TEST_OPTIONS}
       NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
     fi
   ;;
@@ -581,9 +580,7 @@ case "${canonical}" in
     machine=intel386
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
-      *-darwin* )               opsys=darwin
-                                CPP="${CC-cc} -E -no-cpp-precomp"
- 				;;
+      *-darwin* )               opsys=darwin ;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5OpenUNIX* )  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
@@ -633,13 +630,18 @@ test -n "$CC" && cc_specified=yes
 # Save the value of CFLAGS that the user specified.
 SPECIFIED_CFLAGS="$CFLAGS"
 
+# Save specified CPP (if any), before AC_PROG_CPP runs.
+SPECIFIED_CPP="$CPP"
+
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC
 AM_PROG_CC_C_O
 
 # Initialize gnulib right after verifying that the C compiler works.
+# Note: this ends up setting CPP.
 gl_EARLY
 
+dnl Note: looks like gl_EARLY has already done this (via AC_PROG_CPP).
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
@@ -663,6 +665,46 @@ fail;
   fi
 fi
 
+## If using gcc, and on darwin, see if using Apple's gcc, where old
+## (pre gcc 3.3?) versions need -no-cpp-precomp to workaround some
+## (unrecorded) issue.
+## Frankly, I suspect this option is no longer needed on any system
+## still in use today.  It is at best a no-op since Apple's version
+## of gcc 3.3 (?), which corresponds (?) to Xcode 1.5 from 2004.
+## This was for OS X 10.3, and the nextstep port (for example)
+## only supports 10.4 or later (although you could be building a
+## non-ns version on some older OS X I guess).
+if test x"$opsys" = xdarwin && test x"$GCC" = xyes; then
+  AC_MSG_CHECKING([whether we are using an Apple version of GCC])
+  AC_CACHE_VAL(emacs_cv_apple_gcc,
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+[[#ifndef __APPLE_CC__
+fail;
+#endif
+]])], emacs_cv_apple_gcc=yes, emacs_cv_apple_gcc=no)])
+  AC_MSG_RESULT($emacs_cv_apple_gcc)
+
+  ## This only tests that adding the option does not cause an error.
+  ## FIXME It may still cause "unrecognized option"
+  ## (in gcc < 4.6 --no-foo does that; newer versions throw an error).
+  ## The message appears on stderr, so AC_EGREP_CPP is no use.
+  ## It would be better to test if it is actually needed.
+  ## For that, someone would have actually had to document what the
+  ## issues it worked around were, so we could test for them.
+  if test $emacs_cv_apple_gcc = yes; then
+    AC_MSG_CHECKING([whether preprocessor accepts -no-cpp-precomp])
+    save_CPP="$CPP"
+    test x$SPECIFIED_CPP = x && CPP="${CC-cc} -E"
+    CPP="$CPP -no-cpp-precomp"
+    dnl NB this will run AC_PROG_CPP first if it has not already happened.
+    AC_CACHE_VAL(emacs_cv_precomp,
+    [AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]],[[]])], emacs_cv_precomp=yes, emacs_cv_precomp=no)])
+    AC_MSG_RESULT($emacs_cv_precomp)
+
+    test $emacs_cv_precomp = no && CPP="$save_CPP"
+  fi
+fi
+
 #### Some systems specify a CPP to use unless we are using GCC.
 #### Now that we know whether we are using GCC, we can decide whether
 #### to use that one.
@@ -670,6 +712,8 @@ if test "x$NON_GNU_CPP" != x && test x$GCC != xyes && test "x$CPP" = x
 then
   CPP="$NON_GNU_CPP"
 fi
+
+test "x$CPP_TEST_OPTIONS" != x && CPP="$CPP $CPP_TEST_OPTIONS"
 
 #### Some systems specify a CC to use unless we are using GCC.
 #### Now that we know whether we are using GCC, we can decide whether
@@ -805,12 +849,16 @@ fi
 
 #### Some other nice autoconf tests.
 
-dnl checks for programs
+dnl Note: looks like gl_EARLY has already done this.
 AC_PROG_CPP
 AC_PROG_INSTALL
+
+dnl Note: looks like configure does this very early on anyway.
 AC_PROG_MKDIR_P
+
+dnl Note: looks like gl_EARLY has already done this.
 if test "x$RANLIB" = x; then
-  AC_PROG_RANLIB
+   AC_PROG_RANLIB
 fi
 
 ## Although we're running on an amd64 kernel, we're actually compiling for
