@@ -1,3 +1,15 @@
+2012-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Simplify by removing CPP etc.
+	(CPP_TEST_OPTIONS, NON_GNU_CPP, cc_specified, SPECIFIED_CFLAGS)
+	(SPECIFED_CPP, CPP, NON_GNU_CC, AC_PROG_CPP): Remove; not needed.
+	In particular we no longer need to fiddle with CPP, since we don't
+	use CPP specially any more.
+	(gl_EARLY): Invoke this after adjusting CC, so that it uses the
+	adjusted compiler.
+	(AC_PROG_INSTALL, AC_PROG_MKDIR_P, AC_PROG_RANLIB): Comment out,
+	since gl_EARLY and/or Autoconf already does these.
+
 2012-05-16  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Try to fix building with gcc >= 4.6 on Darwin.
