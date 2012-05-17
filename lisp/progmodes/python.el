@@ -1024,7 +1024,7 @@ commands.)"
                           global-proc-buffer-name))))
 
 (defun python-shell-send-string (string &optional process)
-  "Send STRING to inferior Python process."
+  "Send STRING to inferior Python PROCESS."
   (interactive "sPython command: ")
   (let ((process (or process (python-shell-get-or-create-process))))
     (when (called-interactively-p 'interactive)
@@ -1084,6 +1084,41 @@ When argument ARG is non-nil sends the innermost defun."
       "__pyfile = open('%s'); exec(compile(__pyfile.read(), '%s', 'exec')); __pyfile.close()"
       full-file-name full-file-name)
      process)))
+
+(defun python-shell-clear-latest-output ()
+  "Clear latest output from the Python shell.
+Return the cleaned output."
+  (interactive)
+  (when (and comint-last-output-start
+             comint-last-prompt-overlay)
+    (save-excursion
+      (let* ((last-output-end
+              (save-excursion
+                (goto-char
+                 (overlay-start comint-last-prompt-overlay))
+                (forward-comment -1)
+                (point-marker)))
+             (last-output
+              (buffer-substring-no-properties
+               comint-last-output-start last-output-end)))
+        (when (< 0 (length last-output))
+          (goto-char comint-last-output-start)
+          (delete-region comint-last-output-start last-output-end)
+          (delete-char -1)
+          last-output)))))
+
+(defun python-shell-send-and-clear-output (string process)
+  "Send STRING to PROCESS and clear the output.
+Return the cleaned output."
+  (interactive)
+  (python-shell-send-string string process)
+  (accept-process-output process)
+  (with-current-buffer (process-buffer process)
+    (let ((output (python-shell-clear-latest-output)))
+      (forward-line -1)
+      (kill-whole-line)
+      (goto-char (overlay-end comint-last-prompt-overlay))
+      output)))
 
 (defun python-shell-switch-to-shell ()
   "Switch to inferior Python process buffer."
@@ -1146,22 +1181,11 @@ It is specially designed to be added to the
 (defun python-shell-completion--get-completions (input process)
   "Retrieve available completions for INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
-    (let ((completions))
-      (python-shell-send-string
-       (format python-shell-completion-strings-code input)
-       process)
-      (accept-process-output process)
-      (when comint-last-output-start
-        (setq completions
-              (split-string
-               (buffer-substring-no-properties
-                comint-last-output-start
-                (save-excursion
-                  (goto-char comint-last-output-start)
-                  (line-end-position)))
-               ";\\|\"\\|'\\|(" t))
-        (comint-delete-output)
-        completions))))
+    (split-string
+     (or (python-shell-send-and-clear-output
+          (format python-shell-completion-strings-code input)
+          process) "")
+     ";\\|\"\\|'\\|(" t)))
 
 (defun python-shell-completion--get-completion (input completions)
   "Get completion for INPUT using COMPLETIONS."
