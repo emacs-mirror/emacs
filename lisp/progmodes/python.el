@@ -1002,7 +1002,8 @@ commands.)"
   (let* ((contents (buffer-substring start end))
          (current-file (buffer-file-name))
          (process (python-shell-get-or-create-process))
-         (temp-file (make-temp-file "py")))
+         (temp-file (make-temp-file "py"))
+         (process-buffer (process-buffer process)))
     (with-temp-file temp-file
       (insert contents)
       (delete-trailing-whitespace)
@@ -1012,7 +1013,11 @@ commands.)"
                                          (line-end-position)))))
     (with-current-buffer (process-buffer process)
       (setq inferior-python-mode-current-file current-file)
-      (setq inferior-python-mode-current-temp-file temp-file))
+      (setq inferior-python-mode-current-temp-file temp-file)
+      (delete-region (save-excursion
+                       (move-to-column 0)
+                       (point-marker))
+                       (line-end-position)))
     (comint-send-string process (format "execfile(r'%s')\n" temp-file))))
 
 (defun python-shell-send-buffer ()
@@ -1145,7 +1150,6 @@ It is specially designed to be added to the
              (with-output-to-temp-buffer "*Python Completions*"
                (display-completion-list
                 (all-completions input completions))))))))
-
 
 (defun python-shell-completion-complete-or-indent ()
   "Complete or indent depending on the context.
