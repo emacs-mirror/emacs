@@ -644,33 +644,46 @@ START is the buffer position where the sexp starts."
                      (back-to-indentation)
                      (when (looking-at "\\.")
                        (forward-line -1)
-                       (back-to-indentation)
-                       (forward-char (length
-                                      (with-syntax-table python-dotty-syntax-table
-                                        (current-word))))
-                       (re-search-backward "\\." (line-beginning-position) t 1)
-                       (current-column))))
-                  (indentation (cond (block-continuation
-                                      (goto-char block-continuation)
-                                      (re-search-forward
-                                       (python-rx block-start (* space))
-                                       (line-end-position) t)
-                                      (current-column))
-                                     (assignment-continuation
-                                      (goto-char assignment-continuation)
-                                      (re-search-forward
-                                       (python-rx simple-operator)
-                                       (line-end-position) t)
-                                      (forward-char 1)
-                                      (re-search-forward
-                                       (python-rx (* space))
-                                       (line-end-position) t)
-                                      (current-column))
-                                     (dot-continuation
-                                      dot-continuation)
-                                     (t
-                                      (goto-char context-start)
-                                      (current-indentation)))))
+                       (goto-char (line-end-position))
+                       (while (and (re-search-backward "\\." (line-beginning-position) t)
+                                   (or (python-info-ppss-context 'comment)
+                                       (python-info-ppss-context 'string)
+                                       (python-info-ppss-context 'paren))))
+                       (if (and (looking-at "\\.")
+                                (not (or (python-info-ppss-context 'comment)
+                                         (python-info-ppss-context 'string)
+                                         (python-info-ppss-context 'paren))))
+                           (current-column)
+                         (+ (current-indentation) python-indent-offset)))))
+                  (indentation (cond
+                                (dot-continuation
+                                 dot-continuation)
+                                (block-continuation
+                                 (goto-char block-continuation)
+                                 (re-search-forward
+                                  (python-rx block-start (* space))
+                                  (line-end-position) t)
+                                 (current-column))
+                                (assignment-continuation
+                                 (goto-char assignment-continuation)
+                                 (re-search-forward
+                                  (python-rx simple-operator)
+                                  (line-end-position) t)
+                                 (forward-char 1)
+                                 (re-search-forward
+                                  (python-rx (* space))
+                                  (line-end-position) t)
+                                 (current-column))
+                                (t
+                                 (goto-char context-start)
+                                 (if (not (member
+                                           (save-excursion
+                                             (back-to-indentation)
+                                             (message (current-word)))
+                                           '("return" "import" "from")))
+                                     (current-indentation)
+                                   (+ (current-indentation)
+                                      python-indent-offset))))))
              indentation))
           ('inside-paren
            (or (save-excursion
@@ -1002,7 +1015,6 @@ With negative argument, move backward repeatedly to start of sentence."
     (python-nav-sentence-start)
     (forward-line -1)
     (setq arg (1+ arg))))
-
 
 
 ;;; Shell integration
