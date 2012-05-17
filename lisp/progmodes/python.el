@@ -1213,7 +1213,6 @@ FILE-NAME."
          (file-name (or (expand-file-name file-name) temp-file-name)))
     (when (not file-name)
       (error "If FILE-NAME is nil then TEMP-FILE-NAME must be non-nil"))
-    (find-file-noselect file-name)
     (with-current-buffer (process-buffer process)
       (setq inferior-python-mode-current-file
             (convert-standard-filename file-name)))
