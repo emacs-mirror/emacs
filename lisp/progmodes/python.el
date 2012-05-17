@@ -871,8 +871,10 @@ With numeric ARG, just insert that many colons.  With
 ;;; Navigation
 
 (defvar python-nav-beginning-of-defun-regexp
-  (python-rx line-start (* space) defun (+ space) symbol-name)
-  "Regular expresion matching beginning of innermost class or function.")
+  (python-rx line-start (* space) defun (+ space) (group symbol-name))
+  "Regular expresion matching beginning of class or function.
+The name of the class or function should be in a group so it can
+be retrieved via `match-string'.")
 
 (defun python-nav-beginning-of-defun (&optional nodecorators)
   "Move point to `beginning-of-defun'.
@@ -1960,8 +1962,7 @@ not inside a defun."
           (when (or (not min-indent)
                     (< (current-indentation) min-indent))
             (setq min-indent (current-indentation))
-            (back-to-indentation)
-            (looking-at "\\(?:def\\|class\\) +\\([^(]+\\)[^:]+:\\s-*\n")
+            (looking-at python-nav-beginning-of-defun-regexp)
             (setq names (cons (match-string-no-properties 1) names))))))
     (when names
       (mapconcat (lambda (string) string) names "."))))
