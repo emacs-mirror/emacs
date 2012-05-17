@@ -84,12 +84,13 @@
 
 ;; Better decorator support for beginning of defun
 
-;; Fix shell autocompletion when: obj.<tab>
-
-;; Remove garbage prompts left from calls to `comint-send-string' and
-;; other comint related cleanups.
-
 ;; Review code and cleanup
+
+;; (Perhaps) python-check
+
+;; (Perhaps) ffap support
+
+;; (Perhaps) some skeletons (I never use them because of yasnippet)
 
 ;;; Code:
 
