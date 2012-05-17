@@ -1684,6 +1684,12 @@ to complete."
 
 ;;; PDB Track integration
 
+(defcustom python-pdbtrack-activate t
+  "Non-nil makes python shell enable pdbtracking."
+  :type 'boolean
+  :group 'python
+  :safe 'booleanp)
+
 (defcustom python-pdbtrack-stacktrace-info-regexp
   "^> \\([^\"(<]+\\)(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
   "Regular Expression matching stacktrace information.
@@ -1717,7 +1723,7 @@ Returns the tracked buffer."
 (defun python-pdbtrack-comint-output-filter-function (output)
   "Move overlay arrow to current pdb line in tracked buffer.
 Argument OUTPUT is a string with the output from the comint process."
-  (when (not (string= output ""))
+  (when (and python-pdbtrack-activate (not (string= output "")))
     (let* ((full-output (ansi-color-filter-apply
                          (buffer-substring comint-last-input-end (point-max))))
            (line-number)
