@@ -946,6 +946,10 @@ OUTPUT is a string with the contents of the buffer."
             'python-pdbtrack-comint-output-filter-function)
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-shell-compilation-regexp-alist)
+  (define-key inferior-python-mode-map [remap complete-symbol]
+    'completion-at-point)
+  (add-hook 'completion-at-point-functions
+            'python-shell-completion-complete-at-point nil 'local)
   (compilation-shell-minor-mode 1))
 
 (defun run-python (dedicated cmd)
