@@ -714,7 +714,8 @@ static mps_class_t mps_class_amst(void)
 #define totalSizeMAX    sizeScale * 800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-#define objNULL         ((mps_addr_t)0xDECEA5ED)
+/* @@@@ Temporary fix W3I6MV */
+#define objNULL         ((mps_addr_t)0xDECEA5EDDECEA5ED)
 #define testArenaSIZE   ((size_t)16<<20)
 #define initTestFREQ    6000
 #define stressTestFREQ  40
@@ -778,7 +779,11 @@ static void *test(void *arg, size_t s)
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
   for(i = 0; i < ambigRootsCOUNT; ++i)
+/* @@@@ Temporary fix W3I6MV */
+#pragma warning( push )
+#pragma warning( disable : 4306 )
     ambigRoots[i] = (mps_addr_t)rnd();
+#pragma warning( pop )
 
   die(mps_root_create_table_masked(&exactRoot, arena,
                                    MPS_RANK_EXACT, (mps_rm_t)0,
