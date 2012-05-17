@@ -1,38 +1,34 @@
 ;;; python.el --- Python's flying circus support for Emacs
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fabian@anue.biz>
 ;; URL: https://github.com/fgallina/python.el
-;; Version: 0.23.1
+;; Version: 0.24.2
 ;; Maintainer: FSF
 ;; Created: Jul 2010
 ;; Keywords: languages
 
-;; This file is NOT part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; python.el is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published
+;; by the Free Software Foundation, either version 3 of the License,
+;; or (at your option) any later version.
 
-;; python.el is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with python.el.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Major mode for editing Python files with some fontification and
 ;; indentation bits extracted from original Dave Love's python.el
 ;; found in GNU/Emacs.
-
-;; While it probably has less features than Dave Love's python.el and
-;; PSF's python-mode.el it provides the main stuff you'll need while
-;; keeping it simple :)
 
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Shell virtualenv support, Pdb
