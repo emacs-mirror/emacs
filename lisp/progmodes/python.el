@@ -590,14 +590,7 @@ START is the buffer position where the sexp starts."
         ;; After normal line
         ((setq start (save-excursion
                        (while (and (forward-comment -1) (not (bobp))))
-                       (while (and (not (back-to-indentation))
-                                   (not (bobp))
-                                   (if (python-info-ppss-context 'paren)
-                                       (forward-line -1)
-                                     (if (save-excursion
-                                           (forward-line -1)
-                                           (python-info-line-ends-backslash-p))
-                                         (forward-line -1)))))
+                       (python-nav-sentence-start)
                        (point-marker)))
          'after-line)
         ;; Do not indent
@@ -954,6 +947,28 @@ Returns nil if point is not in a def or class."
                     (> (current-indentation) beg-defun-indent))))
     (forward-comment 1)
     (goto-char (line-beginning-position))))
+
+(defun python-nav-sentence-start ()
+  "Move to start of current sentence."
+  (interactive "^")
+  (while (and (not (back-to-indentation))
+              (not (bobp))
+              (when (or
+                     (save-excursion
+                       (forward-line -1)
+                       (python-info-line-ends-backslash-p))
+                     (python-info-ppss-context 'paren))
+                  (forward-line -1)))))
+
+(defun python-nav-sentence-end ()
+  "Move to end of current sentence."
+  (interactive "^")
+  (while (and (goto-char (line-end-position))
+              (not (eobp))
+              (when (or
+                     (python-info-line-ends-backslash-p)
+                     (python-info-ppss-context 'paren))
+                  (forward-line 1)))))
 
 
 ;;; Shell integration
