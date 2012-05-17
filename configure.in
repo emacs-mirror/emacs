@@ -1593,6 +1593,9 @@ if test "${HAVE_NS}" = yes; then
      dnl This one isn't really used, only archlibdir is.
      libexecdir="\${ns_appbindir}/libexec"
      archlibdir="\${ns_appbindir}/libexec"
+     docdir="\${ns_appresdir}/etc"
+     etcdir="\${ns_appresdir}/etc"
+     lispdir="\${ns_appresdir}/lisp"
      LEIM_INSTALLDIR="\${ns_appresdir}/leim"
   fi
   ns_frag=$srcdir/src/ns.mk

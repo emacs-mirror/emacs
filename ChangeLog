@@ -1,5 +1,8 @@
 2012-05-17  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (docdir, etcdir, lispdir):
+	For a self-contained ns build, set these to the appropriate values.
+
 	* configure.in (ns_self_contained): New output variable.
 	* Makefile.in (ns_self_contained): New, set by configure.
 	(install-arch-dep): For a self-contained ns build,
