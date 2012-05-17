@@ -1023,7 +1023,7 @@ commands.)"
   "Send STRING to inferior Python process."
   (interactive "sPython command: ")
   (let ((process (or process (python-shell-get-or-create-process))))
-    (when (called-interactively-p)
+    (when (called-interactively-p 'interactive)
       (message (format "Sent: %s..." string)))
     (comint-send-string process string)
     (when (or (not (string-match "\n$" string))
