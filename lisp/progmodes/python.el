@@ -453,7 +453,9 @@ START is the buffer position where the sexp starts."
       (cons
        (cond
         ;; Beginning of buffer
-        ((bobp)
+        ((save-excursion
+           (goto-char (line-beginning-position))
+           (bobp))
          'no-indent)
         ;; Inside a paren
         ((setq start (nth 1 ppss))
