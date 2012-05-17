@@ -1591,8 +1591,7 @@ Returns the output.  See `python-shell-send-string-no-output'."
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
   (interactive "r")
-  (let ((deactivate-mark nil))
-    (python-shell-send-string (buffer-substring start end) nil t)))
+  (python-shell-send-string (buffer-substring start end) nil t))
 
 (defun python-shell-send-buffer ()
   "Send the entire buffer to inferior Python process."
