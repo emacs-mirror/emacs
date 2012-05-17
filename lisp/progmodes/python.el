@@ -1750,24 +1750,32 @@ completions on the current context."
               (buffer-substring-no-properties
                (overlay-start comint-last-prompt-overlay)
                (overlay-end comint-last-prompt-overlay))))
-           (completion-code
+           (completion-context
             ;; Check wether a prompt matches a pdb string, an import statement
             ;; or just the standard prompt and use the correct
             ;; python-shell-completion-*-code string
             (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
                         (string-match
                          (concat "^" python-shell-prompt-pdb-regexp) prompt))
-                   python-shell-completion-pdb-string-code)
+                   'pdb)
                   ((and (>
                          (length python-shell-completion-module-string-code) 0)
                         (string-match
                          (concat "^" python-shell-prompt-regexp) prompt)
                         (string-match "^\\(from\\|import\\)[ \t]" line))
-                   python-shell-completion-module-string-code)
+                   'import)
                   ((string-match
                     (concat "^" python-shell-prompt-regexp) prompt)
-                   python-shell-completion-string-code)
+                   'default)
                   (t nil)))
+	   (completion-code
+	    (case completion-context
+	      ('pdb python-shell-completion-pdb-string-code)
+	      ('import python-shell-completion-module-string-code)
+	      ('default python-shell-completion-string-code)
+	      (t nil)))
+	   (input
+	    (if (eq completion-context 'import) line input))
            (completions
             (and completion-code (> (length input) 0)
                  (python-shell-completion--get-completions
