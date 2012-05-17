@@ -984,6 +984,14 @@ It should not contain a caret (^) at the beginning."
   :group 'python
   :safe 'stringp)
 
+(defcustom python-shell-send-setup-max-wait 5
+  "Seconds to wait for process output before code setup.
+If output is received before the especified time then control is
+returned in that moment and not after waiting."
+  :type 'number
+  :group 'python
+  :safe 'numberp)
+
 (defcustom python-shell-setup-codes '(python-shell-completion-setup-code
                                       python-ffap-setup-code
                                       python-eldoc-setup-code)
@@ -1260,7 +1268,7 @@ This function takes the list of setup code to send from the
 `python-shell-setup-codes' list."
   (let ((msg "Sent %s")
         (process (get-buffer-process (current-buffer))))
-    (accept-process-output process 1)
+    (accept-process-output process python-shell-send-setup-max-wait)
     (dolist (code python-shell-setup-codes)
       (when code
         (when (consp code)
