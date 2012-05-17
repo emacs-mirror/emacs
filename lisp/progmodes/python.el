@@ -1252,23 +1252,64 @@ variable.
     'python-shell-completion-complete-or-indent)
   (compilation-shell-minor-mode 1))
 
-(defun python-shell-make-comint (cmd proc-name)
+(defun python-shell-make-comint (cmd proc-name &optional pop)
   "Create a python shell comint buffer.
-CMD is the pythone command to be executed and PROC-NAME is the
+CMD is the python command to be executed and PROC-NAME is the
 process name the comint buffer will get.  After the comint buffer
-is created the `inferior-python-mode' is activated and the buffer
-is shown."
+is created the `inferior-python-mode' is activated.  If POP is
+non-nil the buffer is shown."
   (save-excursion
     (let* ((proc-buffer-name (format "*%s*" proc-name))
            (process-environment (python-shell-calculate-process-enviroment))
            (exec-path (python-shell-calculate-exec-path)))
       (when (not (comint-check-proc proc-buffer-name))
-        (let ((cmdlist (split-string-and-unquote cmd)))
-          (set-buffer
-           (apply 'make-comint proc-name (car cmdlist) nil
-                  (cdr cmdlist)))
-          (inferior-python-mode)))
-      (pop-to-buffer proc-buffer-name))))
+        (let* ((cmdlist (split-string-and-unquote cmd))
+               (buffer (apply 'make-comint proc-name (car cmdlist) nil
+                              (cdr cmdlist)))
+               (python-shell-interpreter-1 python-shell-interpreter)
+               (python-shell-interpreter-args-1 python-shell-interpreter-args)
+               (python-shell-prompt-regexp-1 python-shell-prompt-regexp)
+               (python-shell-prompt-output-regexp-1
+                python-shell-prompt-output-regexp)
+               (python-shell-prompt-block-regexp-1
+                python-shell-prompt-block-regexp)
+               (python-shell-completion-setup-code-1
+                python-shell-completion-setup-code)
+               (python-shell-completion-string-code-1
+                python-shell-completion-string-code)
+               (python-eldoc-setup-code-1 python-eldoc-setup-code)
+               (python-eldoc-string-code-1 python-eldoc-string-code)
+               (python-ffap-setup-code-1 python-ffap-setup-code)
+               (python-ffap-string-code-1 python-ffap-string-code)
+               (python-shell-setup-codes-1 python-shell-setup-codes))
+          (with-current-buffer buffer
+            (inferior-python-mode)
+            (set (make-local-variable 'python-shell-interpreter)
+                 python-shell-interpreter-1)
+            (set (make-local-variable 'python-shell-interpreter-args)
+                 python-shell-interpreter-args-1)
+            (set (make-local-variable 'python-shell-prompt-regexp)
+                 python-shell-prompt-regexp-1)
+            (set (make-local-variable 'python-shell-prompt-output-regexp)
+                 python-shell-prompt-output-regexp-1)
+            (set (make-local-variable 'python-shell-prompt-block-regexp)
+                 python-shell-prompt-block-regexp-1)
+            (set (make-local-variable 'python-shell-completion-setup-code)
+                 python-shell-completion-setup-code-1)
+            (set (make-local-variable 'python-shell-completion-string-code)
+                 python-shell-completion-string-code-1)
+            (set (make-local-variable 'python-eldoc-setup-code)
+                 python-eldoc-setup-code-1)
+            (set (make-local-variable 'python-eldoc-string-code)
+                 python-eldoc-string-code-1)
+            (set (make-local-variable 'python-ffap-setup-code)
+                 python-ffap-setup-code-1)
+            (set (make-local-variable 'python-ffap-string-code)
+                 python-ffap-string-code-1)
+            (set (make-local-variable 'python-shell-setup-codes)
+                 python-shell-setup-codes-1))))
+      (when pop
+        (pop-to-buffer proc-buffer-name)))))
 
 (defun run-python (dedicated cmd)
   "Run an inferior Python process.
@@ -1289,7 +1330,7 @@ run).
         (y-or-n-p "Make dedicated process? ")
         (read-string "Run Python: " (python-shell-parse-command)))
      (list nil (python-shell-parse-command))))
-  (python-shell-make-comint cmd (python-shell-get-process-name dedicated))
+  (python-shell-make-comint cmd (python-shell-get-process-name dedicated) t)
   dedicated)
 
 (defun run-python-internal ()
