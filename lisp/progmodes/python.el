@@ -1002,8 +1002,7 @@ commands.)"
   (let* ((contents (buffer-substring start end))
          (current-file (buffer-file-name))
          (process (python-shell-get-or-create-process))
-         (temp-file (make-temp-file "py"))
-         (process-buffer (process-buffer process)))
+         (temp-file (make-temp-file "py")))
     (with-temp-file temp-file
       (insert contents)
       (delete-trailing-whitespace)
@@ -1013,12 +1012,8 @@ commands.)"
                                          (line-end-position)))))
     (with-current-buffer (process-buffer process)
       (setq inferior-python-mode-current-file current-file)
-      (setq inferior-python-mode-current-temp-file temp-file)
-      (delete-region (save-excursion
-                       (move-to-column 0)
-                       (point-marker))
-                       (line-end-position)))
-    (comint-send-string process (format "execfile(r'%s')\n" temp-file))))
+      (setq inferior-python-mode-current-temp-file temp-file))
+    (python-shell-send-file temp-file process)))
 
 (defun python-shell-send-buffer ()
   "Send the entire buffer to inferior Python process."
@@ -1041,12 +1036,19 @@ When argument ARG is non-nil sends the innermost defun."
                             (or (python-end-of-defun-function)
                                 (progn (end-of-line) (point-marker)))))))
 
-(defun python-shell-send-file (file-name)
+(defun python-shell-send-file (file-name &optional process)
   "Send FILE-NAME to inferior Python process."
   (interactive "fFile to send: ")
-  (comint-send-string
-   (python-shell-get-or-create-process)
-   (format "execfile('%s')\n" (expand-file-name file-name))))
+  (let ((process (or process (python-shell-get-or-create-process))))
+    (accept-process-output process)
+    (with-current-buffer (process-buffer process)
+      (delete-region (save-excursion
+                       (move-to-column 0)
+                       (point-marker))
+                     (line-end-position)))
+    (comint-send-string
+     process
+     (format "execfile('%s')\n" (expand-file-name file-name)))))
 
 (defun python-shell-switch-to-shell ()
   "Switch to inferior Python process buffer."
@@ -1098,8 +1100,7 @@ It is specially designed to be added to the
         (insert python-shell-completion-setup-code)
         (delete-trailing-whitespace)
         (goto-char (point-min)))
-      (comint-send-string process
-                          (format "execfile(r'%s')\n" temp-file))
+      (python-shell-send-file temp-file process)
       (message (format "Completion setup code sent.")))
     (add-to-list (make-local-variable
                   'comint-dynamic-complete-functions)
@@ -1423,8 +1424,7 @@ It is specially designed to be added to the
         (insert python-eldoc-setup-code)
         (delete-trailing-whitespace)
         (goto-char (point-min)))
-      (comint-send-string (get-buffer-process (current-buffer))
-                          (format "execfile(r'%s')\n" temp-file))
+      (python-shell-send-file temp-file (get-buffer-process (current-buffer)))
       (message (format "Completion setup code sent.")))))
 
 (defun python-eldoc-function ()
