@@ -413,7 +413,7 @@ static void readLog(EventProc proc)
 
   while (TRUE) { /* loop for each event */
     char *eventFormat;
-    int argCount, i;
+    size_t argCount, i;
     Event event;
     EventCode code;
     Res res;
