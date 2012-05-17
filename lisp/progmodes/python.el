@@ -599,24 +599,32 @@ START is the buffer position where the sexp starts."
                                       (current-indentation)))))
              indentation))
           ('inside-paren
-           (-
-            (save-excursion
-              (goto-char context-start)
-              (forward-char)
-              (save-restriction
-                (narrow-to-region
-                 (line-beginning-position)
-                 (line-end-position))
-                (forward-comment 1))
-              (if (looking-at "$")
-                  (+ (current-indentation) python-indent-offset)
-                (forward-comment 1)
-                (current-column)))
-            (if (progn
-                  (back-to-indentation)
-                  (looking-at (regexp-opt '(")" "]" "}"))))
-                python-indent-offset
-              0))))))))
+           (or (save-excursion
+                 (forward-comment 1)
+                 (looking-at (regexp-opt '(")" "]" "}")))
+                 (forward-char 1)
+                 (when (not (nth 1 (syntax-ppss)))
+                   (goto-char context-start)
+                   (back-to-indentation)
+                   (current-column)))
+               (-
+                (save-excursion
+                  (goto-char context-start)
+                  (forward-char)
+                  (save-restriction
+                    (narrow-to-region
+                     (line-beginning-position)
+                     (line-end-position))
+                    (forward-comment 1))
+                  (if (looking-at "$")
+                      (+ (current-indentation) python-indent-offset)
+                    (forward-comment 1)
+                    (current-column)))
+                (if (progn
+                      (back-to-indentation)
+                      (looking-at (regexp-opt '(")" "]" "}"))))
+                    python-indent-offset
+                  0)))))))))
 
 (defun python-indent-calculate-levels ()
   "Calculate `python-indent-levels' and reset `python-indent-current-level'."
