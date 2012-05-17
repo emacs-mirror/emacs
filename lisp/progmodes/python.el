@@ -360,7 +360,9 @@ This variant of `rx' supports common python named REGEXPS."
           ;; documentation, but since they also qualify as constants they are
           ;; fontified like that in order to keep font-lock consistent between
           ;; Python versions.
-          "nonlocal")
+          "nonlocal"
+          ;; Extra:
+          "self")
          symbol-end)
     ;; functions
     (,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
