@@ -90,6 +90,11 @@ configuration=@configuration@
 
 # ==================== Where To Install Things ====================
 
+# Location to install Emacs.app under GNUstep / Mac OS X.
+# Later values may use these.
+ns_appbindir=@ns_appbindir@
+ns_appresdir=@ns_appresdir@
+
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  The default values for many of
 # the variables below are expressed in terms of this one, so you may
@@ -117,8 +122,10 @@ datadir=@datadir@
 sharedstatedir=@sharedstatedir@
 
 # Where to install and expect executable files to be run by Emacs
-# rather than directly by users, and other architecture-dependent
-# data.	 ${archlibdir} is a subdirectory of this.
+# rather than directly by users (and other architecture-dependent
+# data, although Emacs does not have any).  The executables
+# are actually installed in ${archlibdir}, which is (normally)
+# a subdirectory of this.
 libexecdir=@libexecdir@
 
 # Where to install Emacs's man pages.
@@ -157,10 +164,6 @@ VPATH=@srcdir@
 
 # Where to find the application default.
 x_default_search_path=@x_default_search_path@
-
-# Location to install Emacs.app under NeXT/Open/GNUstep / Cocoa
-ns_appbindir=@ns_appbindir@
-ns_appresdir=@ns_appresdir@
 
 # Where the etc/emacs.desktop file is to be installed.
 desktopdir=$(datarootdir)/applications
@@ -475,10 +478,7 @@ install-arch-dep: mkdir
 	    fi ; \
 	    if test -d share/info ; then rm -fr info; mv share/info . ; fi ; \
 	    rm -fr share ) ; \
-	  ( if cd ${ns_appbindir}/libexec ; then \
-	      mv -f emacs/${version}/${configuration}/* . ; rm -fr emacs ; \
-	      rm -f ../bin/emacs ../bin/$(EMACSFULL) ; \
-	    fi ) ; \
+	  rm -f ${ns_appbindir}/bin/emacs ${ns_appbindir}/bin/$(EMACSFULL); \
 	else true ; fi
 
 ## FIXME NS self-contained: rather than installing emacs and

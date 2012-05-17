@@ -1588,7 +1588,9 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
      exec_prefix=${ns_appbindir}
-     libexecdir=${ns_appbindir}/libexec
+     dnl This one isn't really used, only archlibdir is.
+     libexecdir="\${ns_appbindir}/libexec"
+     archlibdir="\${ns_appbindir}/libexec"
      LEIM_INSTALLDIR="\${ns_appresdir}/leim"
   fi
   ns_frag=$srcdir/src/ns.mk

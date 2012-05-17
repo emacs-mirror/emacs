@@ -45,6 +45,10 @@ TRANSFORM = @program_transform_name@
 
 # ==================== Where To Install Things ====================
 
+# Location to install Emacs.app under GNUstep / Mac OS X.
+# Later values may use this.
+ns_appbindir=@ns_appbindir@
+
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  The default values for many of
 # the variables below are expressed in terms of this one, so you may
