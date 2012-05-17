@@ -1635,10 +1635,12 @@ When argument ARG is non-nil sends the innermost defun."
     (python-shell-send-region
      (progn
        (or (python-beginning-of-defun-function)
-           (progn (beginning-of-line) (point-marker))))
+           (beginning-of-line))
+       (point-marker))
      (progn
        (or (python-end-of-defun-function)
-           (progn (end-of-line) (point-marker)))))))
+           (end-of-line))
+       (point-marker)))))
 
 (defun python-shell-send-file (file-name &optional process temp-file-name)
   "Send FILE-NAME to inferior Python PROCESS.
