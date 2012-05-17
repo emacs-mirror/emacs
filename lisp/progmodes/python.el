@@ -990,6 +990,27 @@ With numeric ARG, just insert that many colons.  With
             (indent-line-to indentation)))))))
 (put 'python-indent-electric-colon 'delete-selection t)
 
+(defun python-indent-post-self-insert-function ()
+  "Adjust closing paren line indentation after a char is added.
+This function is intended to be added to the
+`post-self-insert-hook.'  If a line renders a paren alone, after
+adding a char before it, the line will be re-indented
+automatically if needed."
+  (when (and (eq (char-before) last-command-event)
+             (= (current-indentation) 0)
+             (not (bolp))
+             (memq (char-after) '(?\) ?\] ?\})))
+    (let ((indentation (save-excursion
+                         ;; If after going to the beginning of line the point
+                         ;; is still inside a paren it's ok to do the trick
+                         (goto-char (line-beginning-position))
+                         (when (python-info-ppss-context 'paren)
+                           (python-indent-calculate-indentation)))))
+      (when (and indentation
+                 (< (current-indentation) indentation))
+        (save-excursion
+          (indent-line-to indentation))))))
+
 
 ;;; Navigation
 
@@ -2777,6 +2798,9 @@ if that value is non-nil."
 
   (add-hook 'completion-at-point-functions
             'python-completion-complete-at-point nil 'local)
+
+  (add-hook 'post-self-insert-hook
+            'python-indent-post-self-insert-function nil 'local)
 
   (setq imenu-create-index-function #'python-imenu-create-index)
 
