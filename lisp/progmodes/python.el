@@ -584,6 +584,7 @@ START is the buffer position where the sexp starts."
                            (while (and (forward-line -1)
                                        (python-info-continuation-line-p)
                                        (not (bobp))))
+                           (back-to-indentation)
                            (when (not (looking-at block-regexp))
                              (forward-line 1)))
                          (back-to-indentation)
@@ -591,7 +592,9 @@ START is the buffer position where the sexp starts."
                                     (or (re-search-forward
                                          block-start-line-end
                                          (line-end-position) t)
-                                        (python-info-continuation-line-p)))
+                                        (save-excursion
+                                          (goto-char (line-end-position))
+                                          (python-info-continuation-line-p))))
                            (point-marker)))))
          'after-beginning-of-block)
         ;; After normal line
