@@ -51,10 +51,10 @@
 ;; block of code of your current buffer in an inferior Python process.
 
 ;; Shell completion: hitting tab will try to complete the current
-;; word. Shell completion is implemented in a manner that if you
+;; word.  Shell completion is implemented in a manner that if you
 ;; change the `python-shell-interpreter' to any other (for example
 ;; IPython) it should be easy to integrate another way to calculate
-;; completions. You just need to especify your custom
+;; completions.  You just need to especify your custom
 ;; `python-shell-completion-setup-code' and
 ;; `python-shell-completion-strings-code'
 
@@ -62,12 +62,12 @@
 ;; call to pdb (or ipdb) it will prompt the block of code and will
 ;; follow the execution of pdb marking the current line with an arrow.
 
-;; Symbol completion: you can complete the symbol at point. It uses
+;; Symbol completion: you can complete the symbol at point.  It uses
 ;; the shell completion in background so you should run
 ;; `python-shell-send-buffer' from time to time to get better results.
 
 ;; Eldoc: returns documentation for object at point by using the
-;; inferior python subprocess to inspect its documentation. As you
+;; inferior python subprocess to inspect its documentation.  As you
 ;; might guessed you should run `python-shell-send-buffer' from time
 ;; to time to get better results too.
 
@@ -193,7 +193,7 @@
                                      ">>=" "<<=" "&=" "^=" "|=")))))
 
 (defmacro python-rx (&rest regexps)
- "Python mode especialized rx macro which supports common python named regexps."
+ "Python mode especialized rx macro which supports common python named REGEXPS."
  (let ((rx-constituents (append python-rx-constituents rx-constituents)))
    (cond ((null regexps)
           (error "No regexp"))
@@ -1069,7 +1069,7 @@ When argument ARG is non-nil sends the innermost defun."
                                 (progn (end-of-line) (point-marker)))))))
 
 (defun python-shell-send-file (file-name &optional process)
-  "Send FILE-NAME to inferior Python process."
+  "Send FILE-NAME to inferior Python PROCESS."
   (interactive "fFile to send: ")
   (let ((process (or process (python-shell-get-or-create-process)))
         (full-file-name (expand-file-name file-name)))
@@ -1295,7 +1295,7 @@ inferior python process is updated properly."
   (interactive)
   (let ((process (python-shell-get-process)))
     (if (not process)
-        (error "Completion needs an inferior Python process running.")
+        (error "Completion needs an inferior Python process running")
       (let* ((input (when (comint-word (current-word))
                       (with-syntax-table python-dotty-syntax-table
                         (buffer-substring (point-marker)
@@ -1351,7 +1351,8 @@ inferior python process is updated properly."
   "`fill-paragraph-function' handling multi-line strings and possibly comments.
 If any of the current line is in or at the end of a multi-line string,
 fill the string or the paragraph of it that point is in, preserving
-the string's indentation."
+the string's indentation.
+Optional argument JUSTIFY defines if the paragraph should be justified."
   (interactive "P")
   (save-excursion
     (back-to-indentation)
