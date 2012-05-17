@@ -1245,6 +1245,24 @@ variable.
     'python-shell-completion-complete-or-indent)
   (compilation-shell-minor-mode 1))
 
+(defun python-shell-make-comint (cmd proc-name)
+  "Create a python shell comint buffer.
+CMD is the pythone command to be executed and PROC-NAME is the
+process name the comint buffer will get.  After the comint buffer
+is created the `inferior-python-mode' is activated and the buffer
+is shown."
+  (save-excursion
+    (let* ((proc-buffer-name (format "*%s*" proc-name))
+           (process-environment (python-shell-calculate-process-enviroment))
+           (exec-path (python-shell-calculate-exec-path)))
+      (when (not (comint-check-proc proc-buffer-name))
+        (let ((cmdlist (split-string-and-unquote cmd)))
+          (set-buffer
+           (apply 'make-comint proc-name (car cmdlist) nil
+                  (cdr cmdlist)))
+          (inferior-python-mode)))
+      (pop-to-buffer proc-buffer-name))))
+
 (defun run-python (dedicated cmd)
   "Run an inferior Python process.
 Input and output via buffer named after
@@ -1264,17 +1282,7 @@ run).
         (y-or-n-p "Make dedicated process? ")
         (read-string "Run Python: " (python-shell-parse-command)))
      (list nil (python-shell-parse-command))))
-  (let* ((proc-name (python-shell-get-process-name dedicated))
-         (proc-buffer-name (format "*%s*" proc-name))
-         (process-environment (python-shell-calculate-process-enviroment))
-         (exec-path (python-shell-calculate-exec-path)))
-    (when (not (comint-check-proc proc-buffer-name))
-      (let ((cmdlist (split-string-and-unquote cmd)))
-        (set-buffer
-         (apply 'make-comint proc-name (car cmdlist) nil
-                (cdr cmdlist)))
-        (inferior-python-mode)))
-    (pop-to-buffer proc-buffer-name))
+  (python-shell-make-comint cmd (python-shell-get-process-name dedicated))
   dedicated)
 
 (defun run-python-internal ()
@@ -1292,18 +1300,9 @@ with user shells.  Runs the hook
 run).  \(Type \\[describe-mode] in the process buffer for a list
 of commands.)"
   (interactive)
-  (save-excursion
-    (let* ((cmd (python-shell-parse-command))
-           (proc-name (python-shell-internal-get-process-name))
-           (proc-buffer-name (format "*%s*" proc-name))
-           (process-environment (python-shell-calculate-process-enviroment))
-           (exec-path (python-shell-calculate-exec-path)))
-      (when (not (comint-check-proc proc-buffer-name))
-        (let ((cmdlist (split-string-and-unquote cmd)))
-          (set-buffer
-           (apply 'make-comint proc-name (car cmdlist) nil
-                  (cdr cmdlist)))
-          (inferior-python-mode))))))
+  (python-shell-make-comint
+   (python-shell-parse-command)
+   (python-shell-internal-get-process-name)))
 
 (defun python-shell-get-process ()
   "Get inferior Python process for current buffer and return it."
