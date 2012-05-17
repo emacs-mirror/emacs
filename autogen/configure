@@ -1163,6 +1163,7 @@ HAVE_XSERVER
 LIB_STANDARD
 NS_OBJC_OBJ
 NS_OBJ
+ns_self_contained
 LEIM_INSTALLDIR
 TEMACS_LDFLAGS2
 LD_SWITCH_X_SITE_RPATH
@@ -10109,6 +10110,7 @@ fi
 
 
 LEIM_INSTALLDIR="\${install_prefix}/leim"
+ns_self_contained=no
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
@@ -10121,9 +10123,15 @@ if test "${HAVE_NS}" = yes; then
   with_xft=no
   # set up packaging dirs
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
+     ns_self_contained=yes
      prefix=${ns_appresdir}
      exec_prefix=${ns_appbindir}
-     libexecdir=${ns_appbindir}/libexec
+          libexecdir="\${ns_appbindir}/libexec"
+     archlibdir="\${ns_appbindir}/libexec"
+     docdir="\${ns_appresdir}/etc"
+     etcdir="\${ns_appresdir}/etc"
+               infodir="\${ns_appresdir}/info"
+     lispdir="\${ns_appresdir}/lisp"
      LEIM_INSTALLDIR="\${ns_appresdir}/leim"
   fi
   ns_frag=$srcdir/src/ns.mk
@@ -10132,6 +10140,7 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
 
 
 
