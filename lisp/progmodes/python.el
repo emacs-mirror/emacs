@@ -1065,7 +1065,8 @@ When argument ARG is non-nil sends the innermost defun."
 (defun python-shell-send-file (file-name &optional process)
   "Send FILE-NAME to inferior Python process."
   (interactive "fFile to send: ")
-  (let ((process (or process (python-shell-get-or-create-process))))
+  (let ((process (or process (python-shell-get-or-create-process)))
+        (full-file-name (expand-file-name file-name)))
     (accept-process-output process)
     (with-current-buffer (process-buffer process)
       (delete-region (save-excursion
@@ -1074,7 +1075,9 @@ When argument ARG is non-nil sends the innermost defun."
                      (line-end-position)))
     (comint-send-string
      process
-     (format "execfile('%s')\n" (expand-file-name file-name)))))
+     (format
+      "with open('%s') as __pyfile: exec(compile(__pyfile.read(), '%s', 'exec'))\n\n"
+      full-file-name full-file-name))))
 
 (defun python-shell-switch-to-shell ()
   "Switch to inferior Python process buffer."
