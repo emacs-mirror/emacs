@@ -1160,7 +1160,7 @@ Return the output."
                (> (length python-shell-prompt-output-regexp) 0))
       (setq output-buffer
             (with-temp-buffer
-              (insert-string output-buffer)
+              (insert output-buffer)
               (goto-char (point-min))
               (forward-comment 1)
               (buffer-substring-no-properties
