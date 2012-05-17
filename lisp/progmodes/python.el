@@ -325,8 +325,12 @@
     (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
      (1 font-lock-type-face))
     ;; Constants
-    (,(rx symbol-start (group "None" symbol-end))
-     (1 font-lock-constant-face))
+    (,(rx symbol-start
+          ;; copyright, license, credits, quit, exit are added by the
+          ;; site module and since they are not intended to be used in
+          ;; programs they are not added here either.
+          (or "None" "True" "False" "Ellipsis" "__debug__" "NotImplemented")
+          symbol-end) . font-lock-constant-face)
     ;; Decorators.
     (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
                                             (0+ "." (1+ (or word ?_)))))
@@ -339,7 +343,7 @@
               "FutureWarning" "GeneratorExit" "IOError" "ImportError"
               "ImportWarning" "IndentationError" "IndexError" "KeyError"
               "KeyboardInterrupt" "LookupError" "MemoryError" "NameError"
-              "NotImplemented" "NotImplementedError" "OSError" "OverflowError"
+              "NotImplementedError" "OSError" "OverflowError"
               "PendingDeprecationWarning" "ReferenceError" "RuntimeError"
               "RuntimeWarning" "StandardError" "StopIteration" "SyntaxError"
               "SyntaxWarning" "SystemError" "SystemExit" "TabError" "TypeError"
@@ -350,19 +354,18 @@
     ;; Builtins
     (,(rx (or line-start (not (any ". \t"))) (* (any " \t")) symbol-start
 	  (group
-           (or "_" "__debug__" "__doc__" "__import__" "__name__" "__package__"
-               "abs" "all" "any" "apply" "basestring" "bin" "bool" "buffer"
-               "bytearray" "bytes" "callable" "chr" "classmethod" "cmp" "coerce"
-               "compile" "complex" "copyright" "credits" "delattr" "dict" "dir"
-               "divmod" "enumerate" "eval" "execfile" "exit" "file" "filter"
-               "float" "format" "frozenset" "getattr" "globals" "hasattr" "hash"
-               "help" "hex" "id" "input" "int" "intern" "isinstance" "issubclass"
-               "iter" "len" "license" "list" "locals" "long" "map" "max" "min"
-               "next" "object" "oct" "open" "ord" "pow" "print" "property" "quit"
-               "range" "raw_input" "reduce" "reload" "repr" "reversed" "round"
-               "set" "setattr" "slice" "sorted" "staticmethod" "str" "sum"
-               "super" "tuple" "type" "unichr" "unicode" "vars" "xrange" "zip"
-               "True" "False" "Ellipsis")) symbol-end)
+           (or "_" "__doc__" "__import__" "__name__" "__package__" "abs" "all"
+               "any" "apply" "basestring" "bin" "bool" "buffer" "bytearray"
+               "bytes" "callable" "chr" "classmethod" "cmp" "coerce" "compile"
+               "complex" "delattr" "dict" "dir" "divmod" "enumerate" "eval"
+               "execfile" "file" "filter" "float" "format" "frozenset"
+               "getattr" "globals" "hasattr" "hash" "help" "hex" "id" "input"
+               "int" "intern" "isinstance" "issubclass" "iter" "len" "list"
+               "locals" "long" "map" "max" "min" "next" "object" "oct" "open"
+               "ord" "pow" "print" "property" "range" "raw_input" "reduce"
+               "reload" "repr" "reversed" "round" "set" "setattr" "slice"
+               "sorted" "staticmethod" "str" "sum" "super" "tuple" "type"
+               "unichr" "unicode" "vars" "xrange" "zip")) symbol-end)
      (1 font-lock-builtin-face))
     ;; asignations
     ;; support for a = b = c = 5
