@@ -189,6 +189,13 @@
 
 (defvar python-mode-map
   (let ((map (make-sparse-keymap)))
+    ;; Movement
+    (substitute-key-definition 'backward-sentence
+                               'python-nav-backward-sentence
+                               map global-map)
+    (substitute-key-definition 'forward-sentence
+                               'python-nav-forward-sentence
+                               map global-map)
     ;; Indent specific
     (define-key map "\177" 'python-indent-dedent-line-backspace)
     (define-key map (kbd "<backtab>") 'python-indent-dedent-line)
@@ -957,6 +964,7 @@ Returns nil if point is not in a def or class."
                      (save-excursion
                        (forward-line -1)
                        (python-info-line-ends-backslash-p))
+                     (python-info-ppss-context 'string)
                      (python-info-ppss-context 'paren))
                   (forward-line -1)))))
 
@@ -967,8 +975,34 @@ Returns nil if point is not in a def or class."
               (not (eobp))
               (when (or
                      (python-info-line-ends-backslash-p)
+                     (python-info-ppss-context 'string)
                      (python-info-ppss-context 'paren))
                   (forward-line 1)))))
+
+(defun python-nav-backward-sentence (&optional arg)
+  "Move backward to start of sentence.  With arg, do it arg times.
+See `python-nav-forward-sentence' for more information."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (python-nav-forward-sentence (- arg)))
+
+(defun python-nav-forward-sentence (&optional arg)
+  "Move forward to next end of sentence.  With argument, repeat.
+With negative argument, move backward repeatedly to start of sentence."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (while (> arg 0)
+    (forward-comment 9999)
+    (python-nav-sentence-end)
+    (forward-line 1)
+    (setq arg (1- arg)))
+  (while (< arg 0)
+    (python-nav-sentence-end)
+    (forward-comment -9999)
+    (python-nav-sentence-start)
+    (forward-line -1)
+    (setq arg (1+ arg))))
+
 
 
 ;;; Shell integration
