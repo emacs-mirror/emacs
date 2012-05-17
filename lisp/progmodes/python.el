@@ -1223,6 +1223,13 @@ It should not contain a caret (^) at the beginning."
   :group 'python
   :safe 'stringp)
 
+(defcustom python-shell-enable-syntax-highlighting t
+  "Should syntax highlighting be enabled in the python shell buffer?
+Restart the python shell after changing this variable for it to take effect."
+  :type 'boolean
+  :group 'python
+  :safe 'booleanp)
+
 (defcustom python-shell-send-setup-max-wait 5
   "Seconds to wait for process output before code setup.
 If output is received before the especified time then control is
@@ -1382,6 +1389,7 @@ controls which Python interpreter is run.  Variables
 `python-shell-prompt-regexp',
 `python-shell-prompt-output-regexp',
 `python-shell-prompt-block-regexp',
+`python-shell-enable-syntax-highlighting',
 `python-shell-completion-setup-code',
 `python-shell-completion-string-code',
 `python-shell-completion-module-string-code',
@@ -1415,6 +1423,12 @@ variable.
                'python-shell-completion-complete-at-point)
   (define-key inferior-python-mode-map (kbd "<tab>")
     'python-shell-completion-complete-or-indent)
+  (when python-shell-enable-syntax-highlighting
+    (set
+     (make-local-variable 'font-lock-defaults)
+     '(python-font-lock-keywords
+       nil nil nil nil
+       (font-lock-syntactic-keywords . python-font-lock-syntactic-keywords))))
   (compilation-shell-minor-mode 1))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop)
