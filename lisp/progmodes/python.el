@@ -119,12 +119,15 @@
 
 ;;; Code:
 
-(require 'comint)
 (require 'ansi-color)
-(require 'outline)
+(require 'comint)
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  ;; Avoid compiler warnings
+  (defvar view-return-to-alist)
+  (defvar compilation-error-regexp-alist)
+  (defvar outline-heading-end-regexp))
 
 (autoload 'comint-mode "comint")
 
@@ -218,22 +221,23 @@
 
 ;;; Python specialized rx
 
-(defconst python-rx-constituents
-  (list
-   `(block-start          . ,(rx symbol-start
-                               (or "def" "class" "if" "elif" "else" "try"
-                                   "except" "finally" "for" "while" "with")
-                               symbol-end))
-   `(defun                . ,(rx symbol-start (or "def" "class") symbol-end))
-   `(open-paren           . ,(rx (or "{" "[" "(")))
-   `(close-paren          . ,(rx (or "}" "]" ")")))
-   `(simple-operator      . ,(rx (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%)))
-   `(not-simple-operator  . ,(rx (not (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))))
-   `(operator             . ,(rx (or "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
-                                     "=" "%" "**" "//" "<<" ">>" "<=" "!="
-                                     "==" ">=" "is" "not")))
-   `(assignment-operator  . ,(rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
-                                     ">>=" "<<=" "&=" "^=" "|=")))))
+(eval-when-compile
+  (defconst python-rx-constituents
+    (list
+     `(block-start          . ,(rx symbol-start
+                                   (or "def" "class" "if" "elif" "else" "try"
+                                       "except" "finally" "for" "while" "with")
+                                   symbol-end))
+     `(defun                . ,(rx symbol-start (or "def" "class") symbol-end))
+     `(open-paren           . ,(rx (or "{" "[" "(")))
+     `(close-paren          . ,(rx (or "}" "]" ")")))
+     `(simple-operator      . ,(rx (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%)))
+     `(not-simple-operator  . ,(rx (not (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))))
+     `(operator             . ,(rx (or "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
+                                       "=" "%" "**" "//" "<<" ">>" "<=" "!="
+                                       "==" ">=" "is" "not")))
+     `(assignment-operator  . ,(rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
+                                       ">>=" "<<=" "&=" "^=" "|="))))))
 
 (defmacro python-rx (&rest regexps)
  "Python mode especialized rx macro which supports common python named REGEXPS."
@@ -1537,14 +1541,14 @@ The skeleton will be bound to python-skeleton-NAME and will
 be added to `python-mode-abbrev-table'."
   (let* ((name (symbol-name name))
 	 (function-name (intern (concat "python-skeleton-" name))))
-    (define-abbrev python-mode-abbrev-table name "" function-name)
-    (setq python-skeleton-available
-          (cons function-name python-skeleton-available))
-    `(define-skeleton ,function-name
-       ,(or doc
-            (format "Insert %s statement." name))
-       ,@skel)))
-
+    `(progn
+       (define-abbrev python-mode-abbrev-table ,name "" ',function-name)
+       (setq python-skeleton-available
+             (cons ',function-name python-skeleton-available))
+       (define-skeleton ,function-name
+         ,(or doc
+              (format "Insert %s statement." name))
+         ,@skel))))
 (put 'python-skeleton-define 'lisp-indent-function 2)
 
 (defmacro python-define-auxiliary-skeleton (name doc &optional &rest skel)
