@@ -1141,46 +1141,47 @@ It is specially designed to be added to the
 (defun python-shell-completion-complete-at-point ()
   "Perform completion at point in inferior Python process."
   (interactive)
-  (when (and comint-last-prompt-overlay
-             (> (point-marker) (overlay-end comint-last-prompt-overlay)))
-    (let* ((process (get-buffer-process (current-buffer)))
-           (input (comint-word (current-word)))
-           (completions (when input
-                          (delete-region (point-marker)
-                                         (progn
-                                           (forward-char (- (length input)))
-                                           (point-marker)))
-                          (process-send-string
-                           process
-                           (format
-                            python-shell-completion-strings-code input))
-                          (accept-process-output process)
-                          (save-excursion
-                            (re-search-backward comint-prompt-regexp
-                                                comint-last-input-end t)
+  (with-syntax-table python-dotty-syntax-table
+    (when (and comint-last-prompt-overlay
+               (> (point-marker) (overlay-end comint-last-prompt-overlay)))
+      (let* ((process (get-buffer-process (current-buffer)))
+             (input (comint-word (current-word)))
+             (completions (when input
+                            (delete-region (point-marker)
+                                           (progn
+                                             (forward-char (- (length input)))
+                                             (point-marker)))
+                            (message (format python-shell-completion-strings-code input))
+                            (python-shell-send-string
+                             (format python-shell-completion-strings-code input)
+                             process)
                             (split-string
-                             (buffer-substring-no-properties
-                              (point-marker) comint-last-input-end)
-                             ";\\|\"\\|'\\|(" t))))
-           (completion (when completions (try-completion input completions))))
-      (when completions
-        (save-excursion
-          (forward-line -1)
-          (kill-line 1)))
-      (cond ((eq completion t)
-             (when input (insert input)))
-            ((null completion)
-             (when input (insert input))
-             (message "Can't find completion for \"%s\"" input)
-             (ding))
-            ((not (string= input completion))
-             (insert completion))
-            (t
-             (message "Making completion list...")
-             (when input (insert input))
-             (with-output-to-temp-buffer "*Python Completions*"
-               (display-completion-list
-                (all-completions input completions))))))))
+                             (save-excursion
+                               (if (not comint-last-output-start)
+                                   ""
+                                 (goto-char comint-last-output-start)
+                                 (buffer-substring-no-properties
+                                  (point-marker) (line-end-position))))
+                             ";\\|\"\\|'\\|(" t)))
+             (completion (when completions (try-completion input completions))))
+        (when completions
+          (save-excursion
+            (forward-line -1)
+            (kill-line 1)))
+        (cond ((eq completion t)
+               (when input (insert input)))
+              ((null completion)
+               (when input (insert input))
+               (message "Can't find completion for \"%s\"" input)
+               (ding))
+              ((not (string= input completion))
+               (insert completion))
+              (t
+               (message "Making completion list...")
+               (when input (insert input))
+               (with-output-to-temp-buffer "*Python Completions*"
+                 (display-completion-list
+                  (all-completions input completions)))))))))
 
 (defun python-shell-completion-complete-or-indent ()
   "Complete or indent depending on the context.
