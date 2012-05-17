@@ -1061,6 +1061,17 @@ commands.)"
       (message (format "Sent: %s..."
                        (buffer-substring (point-min)
                                          (line-end-position)))))
+    ;; Fix Windows/MS-DOS temp file path
+    (when (or (eq system-type 'windows-nt)
+              (eq system-type 'ms-dos)
+              (eq system-type 'cygwin))
+      (setq temp-file
+            (with-temp-buffer
+              (insert temp-file)
+              (goto-char (point-min))
+              (while (search-forward "/" nil t)
+                (replace-match "\\" nil t))
+              (buffer-substring (point-min) (point-max)))))
     (with-current-buffer (process-buffer process)
       (setq inferior-python-mode-current-file current-file)
       (setq inferior-python-mode-current-temp-file temp-file))
