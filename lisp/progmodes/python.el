@@ -1426,12 +1426,25 @@ of commands.)"
                             dedicated-proc-buffer-name
                           global-proc-buffer-name))))
 
+(defvar python-shell-internal-buffer nil
+  "Current internal shell buffer for the current buffer.
+This is really not necessary at all for the code to work but it's
+there for compatibility with CEDET.")
+(make-variable-buffer-local 'python-shell-internal-buffer)
+
 (defun python-shell-internal-get-or-create-process ()
   "Get or create an inferior Internal Python process."
   (let* ((proc-name (python-shell-internal-get-process-name))
          (proc-buffer-name (format "*%s*" proc-name)))
     (run-python-internal)
+    (setq python-shell-internal-buffer proc-buffer-name)
     (get-buffer-process proc-buffer-name)))
+
+(define-obsolete-function-alias
+  'python-proc 'python-shell-internal-get-or-create-process "23.3")
+
+(define-obsolete-variable-alias
+  'python-buffer 'python-shell-internal-buffer "23.3")
 
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
@@ -1486,10 +1499,10 @@ Returns the output.  See `python-shell-send-string-no-output'."
    (python-shell-internal-get-or-create-process) nil))
 
 (define-obsolete-function-alias
-  'python-send-receive 'python-shell-internal-send-string "23.3"
-  "Send STRING to inferior Python (if any) and return result.
-The result is what follows `_emacs_out' in the output.
-This is a no-op if `python-check-comint-prompt' returns nil.")
+  'python-send-receive 'python-shell-internal-send-string "23.3")
+
+(define-obsolete-function-alias
+  'python-send-string 'python-shell-internal-send-string "23.3")
 
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
