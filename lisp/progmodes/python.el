@@ -2149,6 +2149,12 @@ The skeleton will be bound to python-skeleton-NAME."
   :type 'string
   :group 'python)
 
+(defcustom python-check-buffer-name
+  "*Python check: %s*"
+  "Buffer name used for check commands."
+  :type 'string
+  :group 'python)
+
 (defvar python-check-custom-command nil
   "Internal use.")
 
@@ -2170,7 +2176,9 @@ Runs COMMAND, a shell command, as if by `compile'.  See
   (save-some-buffers (not compilation-ask-about-save) nil)
   (let ((process-environment (python-shell-calculate-process-environment))
         (exec-path (python-shell-calculate-exec-path)))
-    (compilation-start command)))
+    (compilation-start command nil
+                       (lambda (mode-name)
+                         (format python-check-buffer-name command)))))
 
 
 ;;; Eldoc
