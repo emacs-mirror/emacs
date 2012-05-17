@@ -681,14 +681,15 @@ START is the buffer position where the sexp starts."
                                  (current-column))
                                 (t
                                  (goto-char context-start)
-                                 (if (not (member
-                                           (save-excursion
-                                             (back-to-indentation)
-                                             (message (current-word)))
-                                           '("return" "import" "from")))
+                                 (if (not
+                                      (save-excursion
+                                        (back-to-indentation)
+                                        (looking-at
+                                         "\\(?:return\\|from\\|import\\)\s+")))
                                      (current-indentation)
                                    (+ (current-indentation)
-                                      python-indent-offset))))))
+                                      (length
+                                       (match-string-no-properties 0))))))))
              indentation))
           ('inside-paren
            (or (save-excursion
