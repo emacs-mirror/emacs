@@ -321,9 +321,9 @@
                                    (* (any word ?_))))
      `(defun                . ,(rx symbol-start (or "def" "class") symbol-end))
      `(if-name-main         . ,(rx line-start "if" (+ space) "__name__"
-				   (+ space) "==" (+ space)
-				   (any ?' ?\") "__main__" (any ?' ?\")
-				   (* space) ?:))
+                                   (+ space) "==" (+ space)
+                                   (any ?' ?\") "__main__" (any ?' ?\")
+                                   (* space) ?:))
      `(symbol-name          . ,(rx (any letter ?_) (* (any word ?_))))
      `(open-paren           . ,(rx (or "{" "[" "(")))
      `(close-paren          . ,(rx (or "}" "]" ")")))
@@ -1620,11 +1620,11 @@ With prefix arg include lines protected by \"if __name__ == '__main__':\""
     (python-shell-send-region
      (point-min)
      (or (and
-	  (not arg)
-	  (save-excursion
-	    (re-search-forward (python-rx if-name-main) nil t))
-	  (match-beginning 0))
-	 (point-max)))))
+          (not arg)
+          (save-excursion
+            (re-search-forward (python-rx if-name-main) nil t))
+          (match-beginning 0))
+         (point-max)))))
 
 (defun python-shell-send-defun (arg)
   "Send the current defun to inferior Python process.
@@ -1795,16 +1795,16 @@ completions on the current context."
                     (concat "^" python-shell-prompt-regexp) prompt)
                    'default)
                   (t nil)))
-	   (completion-code
-	    (case completion-context
-	      ('pdb python-shell-completion-pdb-string-code)
-	      ('import python-shell-completion-module-string-code)
-	      ('default python-shell-completion-string-code)
-	      (t nil)))
-	   (input
-	    (if (eq completion-context 'import)
-		(replace-regexp-in-string "^[ \t]+" "" line)
-	      input))
+           (completion-code
+            (case completion-context
+              ('pdb python-shell-completion-pdb-string-code)
+              ('import python-shell-completion-module-string-code)
+              ('default python-shell-completion-string-code)
+              (t nil)))
+           (input
+            (if (eq completion-context 'import)
+                (replace-regexp-in-string "^[ \t]+" "" line)
+              input))
            (completions
             (and completion-code (> (length input) 0)
                  (python-shell-completion--get-completions
