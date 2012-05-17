@@ -1609,6 +1609,13 @@ and use the following as the value of this variable:
   :group 'python
   :safe 'stringp)
 
+(defcustom python-shell-completion-pdb-string-code
+  "';'.join(globals().keys() + locals().keys())"
+  "Python code used to get completions separated by semicolons for [i]pdb."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
+
 (defvar python-shell-completion-original-window-configuration nil)
 
 (defun python-shell-completion--get-completions (input process completion-code)
@@ -1628,14 +1635,20 @@ completions on the current context."
 		  (buffer-substring (point-at-bol) (point)) nil nil))
 	   (input (substring-no-properties
 		   (or (comint-word (current-word)) "") nil nil))
-	   (completions
-	    (if (and (> (length python-shell-completion-module-string-code) 0)
+	   (completion-code
+            (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
+                        (string-match python-shell-prompt-pdb-regexp
+                                      (buffer-substring-no-properties
+                                       (overlay-start comint-last-prompt-overlay)
+                                       (overlay-end comint-last-prompt-overlay))))
+                   python-shell-completion-pdb-string-code)
+                  ((and (> (length python-shell-completion-module-string-code) 0)
 		     (string-match "^\\(from\\|import\\)[ \t]" line))
-		(python-shell-completion--get-completions
-		 line process python-shell-completion-module-string-code)
-	      (and (> (length input) 0)
-		   (python-shell-completion--get-completions
-		    input process python-shell-completion-string-code))))
+                   python-shell-completion-module-string-code)
+                  (t python-shell-completion-string-code)))
+           (completions
+            (and (> (length input) 0)
+                 (python-shell-completion--get-completions line process completion-code)))
 	   (completion (when completions
 			 (try-completion input completions))))
       (cond ((eq completion t)
