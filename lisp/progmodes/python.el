@@ -486,7 +486,8 @@ It makes underscores and dots word constituent chars.")
 (defcustom python-indent-guess-indent-offset t
   "Non-nil tells Python mode to guess `python-indent-offset' value."
   :type 'boolean
-  :group 'python)
+  :group 'python
+  :safe 'booleanp)
 
 (defvar python-indent-current-level 0
   "Current indentation level `python-indent-line-function' is using.")
@@ -1017,8 +1018,11 @@ With negative argument, move backward repeatedly to start of sentence."
 
 ;;; Shell integration
 
-(defvar python-shell-buffer-name "Python"
-  "Default buffer name for Python interpreter.")
+(defcustom python-shell-buffer-name "Python"
+  "Default buffer name for Python interpreter."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
 (defcustom python-shell-interpreter "python"
   "Default Python interpreter for shell."
@@ -1026,8 +1030,11 @@ With negative argument, move backward repeatedly to start of sentence."
   :group 'python
   :safe 'stringp)
 
-(defvar python-shell-internal-buffer-name "Python Internal"
-  "Default buffer name for the Internal Python interpreter.")
+(defcustom python-shell-internal-buffer-name "Python Internal"
+  "Default buffer name for the Internal Python interpreter."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
 (defcustom python-shell-interpreter-args "-i"
   "Default arguments for the Python interpreter."
@@ -1049,7 +1056,7 @@ It should not contain a caret (^) at the beginning."
   :group 'python
   :safe 'stringp)
 
-(defcustom python-shell-prompt-output-regexp nil
+(defcustom python-shell-prompt-output-regexp ""
   "Regular Expression matching output prompt of python shell.
 It should not contain a caret (^) at the beginning."
   :type 'string
@@ -1067,9 +1074,9 @@ It should not contain a caret (^) at the beginning."
   "Seconds to wait for process output before code setup.
 If output is received before the especified time then control is
 returned in that moment and not after waiting."
-  :type 'number
+  :type 'integer
   :group 'python
-  :safe 'numberp)
+  :safe 'integerp)
 
 (defcustom python-shell-process-environment nil
   "List of enviroment variables for Python shell.
@@ -1486,7 +1493,7 @@ This function takes the list of setup code to send from the
 
 ;;; Shell completion
 
-(defvar python-shell-completion-setup-code
+(defcustom python-shell-completion-setup-code
   "try:
     import readline
 except ImportError:
@@ -1507,11 +1514,17 @@ else:
         except NameError:
             pass
         return completions"
-  "Code used to setup completion in inferior Python processes.")
+  "Code used to setup completion in inferior Python processes."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
-(defvar python-shell-completion-string-code
+(defcustom python-shell-completion-string-code
   "';'.join(__COMPLETER_all_completions('''%s'''))\n"
-  "Python code used to get a string of completions separated by semicolons.")
+  "Python code used to get a string of completions separated by semicolons."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
 (defun python-shell-completion--get-completions (input process)
   "Retrieve available completions for INPUT using PROCESS."
@@ -1569,14 +1582,17 @@ to complete."
 
 ;;; PDB Track integration
 
-(defvar python-pdbtrack-stacktrace-info-regexp
+(defcustom python-pdbtrack-stacktrace-info-regexp
   "> %s(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
   "Regular Expression matching stacktrace information.
-Used to extract the current line and module beign inspected.  The
+Used to extract the current line and module being inspected.  The
 regexp should not start with a caret (^) and can contain a string
 placeholder (\%s) which is replaced with the filename beign
 inspected (so other files in the debugging process are not
-opened)")
+opened)"
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
 (defvar python-pdbtrack-tracking-buffers '()
   "Alist containing elements of form (#<buffer> . #<buffer>).
@@ -1822,11 +1838,11 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
 This happens when pressing \"if<SPACE>\", for example, to prompt for
 the if condition."
   :type 'boolean
-  :group 'python)
+  :group 'python
+  :safe 'booleanp)
 
 (defvar python-skeleton-available '()
   "Internal list of available skeletons.")
-(make-variable-buffer-local 'inferior-python-mode-current-file)
 
 (define-abbrev-table 'python-mode-abbrev-table ()
   "Abbrev table for Python mode."
@@ -1948,7 +1964,7 @@ The skeleton will be bound to python-skeleton-NAME."
 
 ;;; FFAP
 
-(defvar python-ffap-setup-code
+(defcustom python-ffap-setup-code
   "def __FFAP_get_module_path(module):
     try:
         import os
@@ -1958,11 +1974,17 @@ The skeleton will be bound to python-skeleton-NAME."
         return path
     except:
         return ''"
-  "Python code to get a module path.")
+  "Python code to get a module path."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
-(defvar python-ffap-string-code
+(defcustom python-ffap-string-code
   "__FFAP_get_module_path('''%s''')\n"
-  "Python code used to get a string with the path of a module.")
+  "Python code used to get a string with the path of a module."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
 (defun python-ffap-module-path (module)
   "Function for `ffap-alist' to return path for MODULE."
@@ -1986,9 +2008,12 @@ The skeleton will be bound to python-skeleton-NAME."
 
 ;;; Code check
 
-(defvar python-check-command
+(defcustom python-check-command
   "pychecker --stdlib"
-  "Command used to check a Python file.")
+  "Command used to check a Python file."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
 (defvar python-check-custom-command nil
   "Internal use.")
@@ -2014,7 +2039,7 @@ Runs COMMAND, a shell command, as if by `compile'.  See
 
 ;;; Eldoc
 
-(defvar python-eldoc-setup-code
+(defcustom python-eldoc-setup-code
   "def __PYDOC_get_help(obj):
     try:
         import inspect
@@ -2045,11 +2070,17 @@ Runs COMMAND, a shell command, as if by `compile'.  See
         exec('print doc')
     except SyntaxError:
         print(doc)"
-  "Python code to setup documentation retrieval.")
+  "Python code to setup documentation retrieval."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
-(defvar python-eldoc-string-code
+(defcustom python-eldoc-string-code
   "__PYDOC_get_help('''%s''')\n"
-  "Python code used to get a string with the documentation of an object.")
+  "Python code used to get a string with the documentation of an object."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
 
 (defun python-eldoc--get-doc-at-point (&optional force-input force-process)
   "Internal implementation to get documentation at point.
