@@ -1726,9 +1726,11 @@ completions on the current context."
                   (buffer-substring (point-at-bol) (point)) nil nil))
            (input (substring-no-properties
                    (or (comint-word (current-word)) "") nil nil))
-           (prompt (buffer-substring-no-properties
-                    (overlay-start comint-last-prompt-overlay)
-                    (overlay-end comint-last-prompt-overlay)))
+           (prompt
+            (with-current-buffer (process-buffer process)
+              (buffer-substring-no-properties
+               (overlay-start comint-last-prompt-overlay)
+               (overlay-end comint-last-prompt-overlay))))
            (completion-code
             (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
                         (string-match
