@@ -401,14 +401,25 @@ These make `python-indent-calculate-indentation' subtract the value of
 `python-indent-offset'.")
 
 (defun python-indent-guess-indent-offset ()
-  "Guess and set the value for `python-indent-offset' given the current buffer."
-  (let ((guessed-indentation (save-excursion
-                               (goto-char (point-min))
-                               (re-search-forward ":\\s-*\n" nil t)
-                               (while (and (not (eobp)) (forward-comment 1)))
-                               (current-indentation))))
-    (when (not (equal guessed-indentation 0))
-      (setq python-indent-offset guessed-indentation))))
+  "Guess and set `python-indent-offset' for the current buffer."
+  (save-excursion
+    (let ((found-block))
+      (while (and (not found-block)
+                  (re-search-forward
+                    (python-rx line-start block-start) nil t))
+        (when (not (syntax-ppss-context (syntax-ppss)))
+          (setq found-block t)))
+      (if (not found-block)
+          (message "Can't guess python-indent-offset, using defaults: %s"
+                   python-indent-offset)
+        (while (and (progn
+                      (goto-char (line-end-position))
+                      (python-info-continuation-line-p))
+                    (not (eobp)))
+          (forward-line 1))
+        (forward-line 1)
+        (forward-comment 1)
+        (setq python-indent-offset (current-indentation))))))
 
 (defun python-indent-context (&optional stop)
   "Return information on indentation context.
