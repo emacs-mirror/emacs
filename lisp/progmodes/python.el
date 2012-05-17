@@ -1413,14 +1413,19 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
   "def __PYDOC_get_help(obj):
     try:
         import pydoc
-        obj = eval(obj, globals())
-        return pydoc.getdoc(obj)
+        if hasattr(obj, 'startswith'):
+            obj = eval(obj, globals())
+        doc = pydoc.getdoc(obj)
     except:
-        return ''"
+        doc = ''
+    try:
+        exec('print doc')
+    except SyntaxError:
+        print(doc)"
   "Python code to setup documentation retrieval.")
 
 (defvar python-eldoc-string-code
-  "print __PYDOC_get_help('''%s''')\n"
+  "__PYDOC_get_help('''%s''')\n"
   "Python code used to get a string with the documentation of an object.")
 
 (defun python-eldoc-setup ()
