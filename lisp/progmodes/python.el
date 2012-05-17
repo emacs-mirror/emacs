@@ -1080,12 +1080,9 @@ Returns nil if point is not in a def or class."
     (while (and (forward-line 1)
                 (not (eobp))
                 (or (not (current-word))
-                    ;; This checks if the indentation is less than the base
-                    ;; one and if the line is not a comment
-                    (or (> (current-indentation) beg-defun-indent)
-                        (equal
-                         (char-after
-                          (+ (point) (current-indentation))) ?#)))))
+                    (equal (char-after (+ (point) (current-indentation))) ?#)
+                    (> (current-indentation) beg-defun-indent)
+                    (not (looking-at python-nav-beginning-of-defun-regexp)))))
     (python-util-forward-comment)
     (goto-char (line-beginning-position))))
 
