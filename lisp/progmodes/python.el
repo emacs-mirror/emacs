@@ -1010,84 +1010,86 @@ automatically if needed."
 The name of the defun should be grouped so it can be retrieved
 via `match-string'.")
 
-(defun python-nav-beginning-of-defun (&optional nodecorators)
+(defun python-nav-beginning-of-defun (&optional arg)
   "Move point to `beginning-of-defun'.
-When NODECORATORS is non-nil decorators are not included.  This
-is the main part of`python-beginning-of-defun-function'
-implementation.  Return non-nil if point is moved to the
-`beginning-of-defun'."
-  (let ((indent-pos (save-excursion
-                      (back-to-indentation)
-                      (point-marker)))
-        (found)
-        (include-decorators
-         (lambda ()
-           (when (not nodecorators)
-             (when (save-excursion
-                     (forward-line -1)
-                     (looking-at (python-rx decorator)))
-               (while (and (not (bobp))
-                           (forward-line -1)
-                           (looking-at (python-rx decorator))))
-               (when (not (bobp)) (forward-line 1)))))))
-    (if (and (> (point) indent-pos)
-             (save-excursion
-               (goto-char (line-beginning-position))
-               (looking-at python-nav-beginning-of-defun-regexp)))
-        (progn
-          (goto-char (line-beginning-position))
-          (funcall include-decorators)
-          (setq found t))
-      (goto-char (line-beginning-position))
-      (when (re-search-backward python-nav-beginning-of-defun-regexp nil t)
-        (setq found t))
-      (goto-char (or (python-info-ppss-context 'string) (point)))
-      (funcall include-decorators))
-    found))
-
-(defun python-beginning-of-defun-function (&optional arg nodecorators)
-  "Move point to the beginning of def or class.
-With positive ARG move that number of functions forward.  With
-negative do the same but backwards.  When NODECORATORS is non-nil
-decorators are not included.  Return non-nil if point is moved to the
-`beginning-of-defun'."
+With positive ARG move search backwards.  With negative do the
+same but forward.  When ARG is nil or 0 defaults to 1.  This is
+the main part of `python-beginning-of-defun-function'.  Return
+non-nil if point is moved to `beginning-of-defun'."
   (when (or (null arg) (= arg 0)) (setq arg 1))
-  (cond ((and (eq this-command 'mark-defun)
-              (looking-at python-nav-beginning-of-defun-regexp)))
-        ((> arg 0)
-         (dotimes (i arg (python-nav-beginning-of-defun nodecorators))))
-        (t
-         (let ((found))
-           (dotimes (i (- arg) found)
-             (python-end-of-defun-function)
-             (python-util-forward-comment)
-             (goto-char (line-end-position))
-             (when (not (eobp))
-               (setq found
-                     (python-nav-beginning-of-defun nodecorators))))))))
+  (let* ((re-search-fn (if (> arg 0)
+                           #'re-search-backward
+                         #'re-search-forward))
+         (line-beg-pos (line-beginning-position))
+         (line-content-start (+ line-beg-pos (current-indentation)))
+         (pos (point-marker))
+         (found
+          (progn
+            (when (and (< arg 0)
+                       (python-info-looking-at-beginning-of-defun))
+              (end-of-line 1))
+            (while (and (funcall re-search-fn
+                                 python-nav-beginning-of-defun-regexp nil t)
+                        (python-info-ppss-context-type)))
+            (and (python-info-looking-at-beginning-of-defun)
+                 (or (not (= (line-number-at-pos pos)
+                             (line-number-at-pos)))
+                     (and (>= (point) line-beg-pos)
+                          (<= (point) line-content-start)
+                          (> pos line-content-start)))))))
+    (if found
+        (or (beginning-of-line 1) t)
+      (and (goto-char pos) nil))))
+
+(defun python-beginning-of-defun-function (&optional arg)
+  "Move point to the beginning of def or class.
+With positive ARG move that number of functions backwards.  With
+negative do the same but forward.  When ARG is nil or 0 defaults
+to 1.  Return non-nil if point is moved to `beginning-of-defun'."
+  (when (or (null arg) (= arg 0)) (setq arg 1))
+  (let ((found))
+    (cond ((and (eq this-command 'mark-defun)
+                (python-info-looking-at-beginning-of-defun)))
+          (t
+           (dotimes (i (if (> arg 0) arg (- arg)))
+             (when (and (python-nav-beginning-of-defun arg)
+                        (not found))
+               (setq found t)))))
+    found))
 
 (defun python-end-of-defun-function ()
   "Move point to the end of def or class.
 Returns nil if point is not in a def or class."
   (interactive)
-  (let ((beg-defun-indent)
-        (decorator-regexp "[[:space:]]*@"))
-    (when (looking-at decorator-regexp)
-      (while (and (not (eobp))
-                  (forward-line 1)
-                  (looking-at decorator-regexp))))
-    (when (not (looking-at python-nav-beginning-of-defun-regexp))
-      (python-beginning-of-defun-function))
-    (setq beg-defun-indent (current-indentation))
-    (forward-line 1)
-    (while (and (forward-line 1)
-                (not (eobp))
-                (or (not (current-word))
-                    (equal (char-after (+ (point) (current-indentation))) ?#)
-                    (> (current-indentation) beg-defun-indent)
-                    (not (looking-at python-nav-beginning-of-defun-regexp)))))
-    (python-util-forward-comment)
-    (goto-char (line-beginning-position))))
+  (let ((beg-defun-indent))
+    (when (or (python-info-looking-at-beginning-of-defun)
+              (python-beginning-of-defun-function 1)
+              (python-beginning-of-defun-function -1))
+      (setq beg-defun-indent (current-indentation))
+      (forward-line 1)
+      ;; Go as forward as possible
+      (while (and (or
+                   (python-nav-beginning-of-defun -1)
+                   (and (goto-char (point-max)) nil))
+                  (> (current-indentation) beg-defun-indent)))
+      (beginning-of-line 1)
+      ;; Go as backwards as possible
+      (while (and (forward-line -1)
+                  (not (bobp))
+                  (or (not (current-word))
+                      (equal (char-after (+ (point) (current-indentation))) ?#)
+                      (<= (current-indentation) beg-defun-indent)
+                      (looking-at (python-rx decorator))
+                      (python-info-ppss-context-type))))
+      (forward-line 1)
+      ;; If point falls inside a paren or string context the point is
+      ;; forwarded at the end of it (or end of buffer if its not closed)
+      (let ((context-type (python-info-ppss-context-type)))
+        (when (memq context-type '(paren string))
+          ;; Slow but safe.
+          (while (and (not (eobp))
+                      (python-info-ppss-context-type))
+            (forward-line 1)))))))
 
 (defun python-nav-sentence-start ()
   "Move to start of current sentence."
@@ -1166,7 +1168,7 @@ list of defun is regenerated again."
 (defun python-nav-read-defun (&optional rescan)
   "Read a defun name of current buffer and return its point marker.
 A cons cell with the form (DEFUN-NAME . POINT-MARKER) is returned
-when defun is completed, else nil. With optional argument RESCAN
+when defun is completed, else nil.  With optional argument RESCAN
 forces `python-nav-list-defun-positions' to invalidate its
 cache."
   (let ((defs (python-nav-list-defun-positions nil rescan)))
@@ -1650,17 +1652,23 @@ With prefix arg include lines protected by \"if __name__ == '__main__':\""
 
 (defun python-shell-send-defun (arg)
   "Send the current defun to inferior Python process.
-When argument ARG is non-nil sends the innermost defun."
+When argument ARG is non-nil do not include decorators."
   (interactive "P")
   (save-excursion
     (python-shell-send-region
      (progn
-       (or (python-beginning-of-defun-function)
-           (beginning-of-line))
+       (end-of-line 1)
+       (while (and (or (python-beginning-of-defun-function)
+                       (beginning-of-line 1))
+                   (> (current-indentation) 0)))
+       (when (not arg)
+         (while (and (forward-line -1)
+                     (looking-at (python-rx decorator))))
+         (forward-line 1))
        (point-marker))
      (progn
        (or (python-end-of-defun-function)
-           (end-of-line))
+           (end-of-line 1))
        (point-marker)))))
 
 (defun python-shell-send-file (file-name &optional process temp-file-name)
@@ -2553,10 +2561,9 @@ not inside a defun."
     (save-restriction
       (widen)
       (save-excursion
-        (goto-char (line-end-position))
-        (python-util-forward-comment -1)
+        (end-of-line 1)
         (setq min-indent (current-indentation))
-        (while (python-beginning-of-defun-function 1 t)
+        (while (python-beginning-of-defun-function 1)
           (when (or (< (current-indentation) min-indent)
                     first-run)
             (setq first-run nil)
@@ -2741,6 +2748,13 @@ The type returned can be 'comment, 'string or 'paren."
      ((nth 1 ppss)
       'paren)
      (t nil))))
+
+(defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss)
+  "Return nil of point is at `beginning-of-defun'."
+  (and (not (python-info-ppss-context-type))
+       (save-excursion
+         (beginning-of-line 1)
+         (looking-at python-nav-beginning-of-defun-regexp))))
 
 
 ;;; Utility functions
