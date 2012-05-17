@@ -107,12 +107,12 @@ static ulongest_t cols(size_t bytes)
  */
 static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit)
 {
-  int n = cols(notcon);
-  int c = cols(notcon + con);
-  int l = cols(notcon + live);  /* a fraction of con */
-  int a = cols(alimit);
-  int count;
-  int i;
+  ulongest_t n = cols(notcon);
+  ulongest_t c = cols(notcon + con);
+  ulongest_t l = cols(notcon + live);  /* a fraction of con */
+  ulongest_t a = cols(alimit);
+  ulongest_t count;
+  ulongest_t i;
   
   /* if we can show alimit within 200 cols, do so */
   count = (a < 200) ? a + 1 : c;
@@ -280,21 +280,21 @@ static void get(mps_arena_t arena)
  *   - how the mutator accesses objects (barrier hits).
  */
 
-enum {
-  CatalogRootIndex = 0,
-  CatalogSig = 0x0000CA2A,  /* CATAlog */
-  CatalogFix = 1,
-  CatalogVar = 10,
-  PageSig =    0x0000BA9E,  /* PAGE */
-  PageFix = 1,
-  PageVar = 100,
-  ArtSig =     0x0000A621,  /* ARTIcle */
-  ArtFix = 1,
-  ArtVar = 100,
-  PolySig =    0x0000B071,  /* POLYgon */
-  PolyFix = 1,
-  PolyVar = 100
-};
+
+#define CatalogRootIndex 0
+#define CatalogSig MPS_WORD_CONST(0x0000CA2A)  /* CATAlog */
+#define CatalogFix 1
+#define CatalogVar 10
+#define PageSig    MPS_WORD_CONST(0x0000BA9E)  /* PAGE */
+#define PageFix 1
+#define PageVar 100
+#define ArtSig     MPS_WORD_CONST(0x0000A621)  /* ARTIcle */
+#define ArtFix 1
+#define ArtVar 100
+#define PolySig    MPS_WORD_CONST(0x0000B071)  /* POLYgon */
+#define PolyFix 1
+#define PolyVar 100
+
 
 static void CatalogCheck(void)
 {
@@ -326,7 +326,7 @@ static void CatalogCheck(void)
       if(w == DYLAN_INT(0))
         break;
       Art = (void *)w;
-      Insist(DYLAN_VECTOR_SLOT(Art, 0) = DYLAN_INT(ArtSig));
+      Insist(DYLAN_VECTOR_SLOT(Art, 0) == DYLAN_INT(ArtSig));
       Arts += 1;
 
       for(k = 0; k < ArtVar; k += 1) {
@@ -335,7 +335,7 @@ static void CatalogCheck(void)
         if(w == DYLAN_INT(0))
           break;
         Poly = (void *)w;
-        Insist(DYLAN_VECTOR_SLOT(Poly, 0) = DYLAN_INT(PolySig));
+        Insist(DYLAN_VECTOR_SLOT(Poly, 0) == DYLAN_INT(PolySig));
         Polys += 1;
       }
     }
