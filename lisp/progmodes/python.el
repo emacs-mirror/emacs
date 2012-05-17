@@ -701,7 +701,12 @@ START is the buffer position where the sexp starts."
             ((save-excursion
                (back-to-indentation)
                (when (looking-at "\\.")
-                 (forward-line -1)
+                 ;; If after moving one line back point is inside a paren it
+                 ;; needs to move back until it's not anymore
+                 (while (prog2
+                            (forward-line -1)
+                            (and (not (bobp))
+                                 (python-info-ppss-context 'paren))))
                  (goto-char (line-end-position))
                  (while (and (re-search-backward
                               "\\." (line-beginning-position) t)
@@ -742,10 +747,12 @@ START is the buffer position where the sexp starts."
                  (current-column))))
             (t
              (forward-line -1)
+             (goto-char (python-info-beginning-of-backlash))
              (if (save-excursion
                    (and
-                    (python-info-line-ends-backslash-p)
                     (forward-line -1)
+                    (goto-char
+                     (or (python-info-beginning-of-backlash) (point)))
                     (python-info-line-ends-backslash-p)))
                  ;; The two previous lines ended in a backslash so we must
                  ;; respect previous line indentation.
@@ -2535,11 +2542,31 @@ not inside a defun."
 With optional argument LINE-NUMBER, check that line instead."
   (save-excursion
     (save-restriction
+      (widen)
       (when line-number
         (goto-char line-number))
+      (while (and (not (eobp))
+                  (goto-char (line-end-position))
+                  (python-info-ppss-context 'paren)
+                  (not (equal (char-before (point)) ?\\)))
+        (forward-line 1))
+      (when (equal (char-before) ?\\)
+        (point-marker)))))
+
+(defun python-info-beginning-of-backlash (&optional line-number)
+  "Return the point where the backlashed line starts."
+  (save-excursion
+    (save-restriction
       (widen)
-      (goto-char (line-end-position))
-      (equal (char-after (1- (point))) ?\\))))
+      (when line-number
+        (goto-char line-number))
+      (when (python-info-line-ends-backslash-p)
+        (while (save-excursion
+                 (goto-char (line-beginning-position))
+                 (python-info-ppss-context 'paren))
+          (forward-line -1))
+        (back-to-indentation)
+        (point-marker)))))
 
 (defun python-info-continuation-line-p ()
   "Check if current line is continuation of another.
