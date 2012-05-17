@@ -1281,10 +1281,6 @@ uniqueness for different types of configurations."
 OUTPUT is a string with the contents of the buffer."
   (ansi-color-filter-apply output))
 
-(defvar inferior-python-mode-current-file nil
-  "Current file from which a region was sent.")
-(make-variable-buffer-local 'inferior-python-mode-current-file)
-
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for Python inferior process.
 Runs a Python interpreter as a subprocess of Emacs, with Python
@@ -1530,9 +1526,6 @@ FILE-NAME."
          (file-name (or (expand-file-name file-name) temp-file-name)))
     (when (not file-name)
       (error "If FILE-NAME is nil then TEMP-FILE-NAME must be non-nil"))
-    (with-current-buffer (process-buffer process)
-      (setq inferior-python-mode-current-file
-            (convert-standard-filename file-name)))
     (python-shell-send-string
      (format
       (concat "__pyfile = open('''%s''');"
@@ -1680,81 +1673,77 @@ to complete."
 ;;; PDB Track integration
 
 (defcustom python-pdbtrack-stacktrace-info-regexp
-  "> %s(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
+  "^> \\([^\"(<]+\\)(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
   "Regular Expression matching stacktrace information.
-Used to extract the current line and module being inspected.  The
-regexp should not start with a caret (^) and can contain a string
-placeholder (\%s) which is replaced with the filename beign
-inspected (so other files in the debugging process are not
-opened)"
+Used to extract the current line and module being inspected."
   :type 'string
   :group 'python
   :safe 'stringp)
 
-(defvar python-pdbtrack-tracking-buffers '()
+(defvar python-pdbtrack-tracking-buffers nil
   "Alist containing elements of form (#<buffer> . #<buffer>).
 The car of each element of the alist is the tracking buffer and
 the cdr is the tracked buffer.")
 
-(defun python-pdbtrack-get-or-add-tracking-buffers ()
-  "Get/Add a tracked buffer for the current buffer.
+(defun python-pdbtrack-get-or-add-tracking-buffers (file-name)
+  "Get/Add a tracked buffer for the current buffer and FILE-NAME.
 Internally it uses the `python-pdbtrack-tracking-buffers' alist.
 Returns a cons with the form:
  * (#<tracking buffer> . #< tracked buffer>)."
-  (or
-   (assq (current-buffer) python-pdbtrack-tracking-buffers)
-   (let* ((file (with-current-buffer (current-buffer)
-                  inferior-python-mode-current-file))
-          (tracking-buffers
-           `(,(current-buffer) .
-             ,(or (get-file-buffer file)
-                  (find-file-noselect file)))))
-     (set-buffer (cdr tracking-buffers))
-     (python-mode)
-     (set-buffer (car tracking-buffers))
-     (setq python-pdbtrack-tracking-buffers
-           (cons tracking-buffers python-pdbtrack-tracking-buffers))
-     tracking-buffers)))
+  (let ((tracking-buffers
+         (cons (current-buffer)
+               (or (get-file-buffer file-name)
+                   (find-file-noselect file-name)))))
+    (set-buffer (cdr tracking-buffers))
+    (when (not (eq major-mode 'python-mode))
+      (python-mode))
+    (set-buffer (car tracking-buffers))
+    (assq-delete-all (current-buffer) python-pdbtrack-tracking-buffers)
+    (setq python-pdbtrack-tracking-buffers
+          (cons tracking-buffers python-pdbtrack-tracking-buffers))
+    tracking-buffers))
 
 (defun python-pdbtrack-comint-output-filter-function (output)
   "Move overlay arrow to current pdb line in tracked buffer.
 Argument OUTPUT is a string with the output from the comint process."
   (when (not (string= output ""))
-    (let ((full-output (ansi-color-filter-apply
-                        (buffer-substring comint-last-input-end
-                                          (point-max)))))
-      (if (string-match python-shell-prompt-pdb-regexp full-output)
-          (let* ((tracking-buffers (python-pdbtrack-get-or-add-tracking-buffers))
-                 (line-num
-                  (save-excursion
-                    (string-match
-                     (format python-pdbtrack-stacktrace-info-regexp
-                             (regexp-quote
-                              inferior-python-mode-current-file))
-                     full-output)
-                    (string-to-number (or (match-string-no-properties 1 full-output) ""))))
-                 (tracked-buffer-window (get-buffer-window (cdr tracking-buffers)))
+    (let* ((full-output (ansi-color-filter-apply
+                         (buffer-substring comint-last-input-end (point-max))))
+           (line-number)
+           (file-name
+            (with-temp-buffer
+              ;; OK, this sucks but for some reason
+              ;; string-match was not doing his trick.
+              (insert full-output)
+              (goto-char (point-min))
+              (when (looking-at python-pdbtrack-stacktrace-info-regexp)
+                (setq line-number (string-to-number
+                                   (match-string-no-properties 2)))
+                (match-string-no-properties 1)))))
+      (if (and file-name line-number)
+          (let* ((tracking-buffers
+                  (python-pdbtrack-get-or-add-tracking-buffers file-name))
+                 (tracked-buffer-window
+                  (get-buffer-window (cdr tracking-buffers)))
                  (tracked-buffer-line-pos))
-            (when line-num
-              (with-current-buffer (cdr tracking-buffers)
-                (set (make-local-variable 'overlay-arrow-string) "=>")
-                (set (make-local-variable 'overlay-arrow-position) (make-marker))
-                (setq tracked-buffer-line-pos (progn
-                                                (goto-char (point-min))
-                                                (forward-line (1- line-num))
-                                                (point-marker)))
-                (when tracked-buffer-window
-                  (set-window-point tracked-buffer-window tracked-buffer-line-pos))
-                (set-marker overlay-arrow-position tracked-buffer-line-pos)))
+            (with-current-buffer (cdr tracking-buffers)
+              (set (make-local-variable 'overlay-arrow-string) "=>")
+              (set (make-local-variable 'overlay-arrow-position) (make-marker))
+              (setq tracked-buffer-line-pos (progn
+                                              (goto-char (point-min))
+                                              (forward-line (1- line-number))
+                                              (point-marker)))
+              (when tracked-buffer-window
+                (set-window-point
+                 tracked-buffer-window tracked-buffer-line-pos))
+              (set-marker overlay-arrow-position tracked-buffer-line-pos))
             (pop-to-buffer (cdr tracking-buffers))
             (switch-to-buffer-other-window (car tracking-buffers)))
         (let ((tracking-buffers (assq (current-buffer)
                                       python-pdbtrack-tracking-buffers)))
           (when tracking-buffers
-            (if inferior-python-mode-current-file
-                (with-current-buffer (cdr tracking-buffers)
-                  (set-marker overlay-arrow-position nil))
-              (kill-buffer (cdr tracking-buffers)))
+            (with-current-buffer (cdr tracking-buffers)
+              (set-marker overlay-arrow-position nil))
             (setq python-pdbtrack-tracking-buffers
                   (assq-delete-all (current-buffer)
                                    python-pdbtrack-tracking-buffers)))))))
