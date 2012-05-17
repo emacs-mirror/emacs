@@ -273,7 +273,8 @@
     ;; asignations
     ;; support for a = b = c = 5
     (,(lambda (limit)
-        (let ((re (python-rx (group (+ (any word ?. ?_))) (* space)
+        (let ((re (python-rx (group (+ (any word ?. ?_)))
+                             (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
                              assignment-operator)))
           (when (re-search-forward re limit t)
             (while (and (not (equal (nth 0 (syntax-ppss)) 0))
