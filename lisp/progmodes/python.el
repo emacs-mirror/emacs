@@ -49,14 +49,16 @@
 ;; causes the current line to be dedented automatically if needed.
 
 ;; Movement: `beginning-of-defun' and `end-of-defun' functions are
-;; properly implemented.  Also there are specialized
+;; properly implemented.  There are also specialized
 ;; `forward-sentence' and `backward-sentence' replacements
 ;; (`python-nav-forward-sentence', `python-nav-backward-sentence'
 ;; respectively).  Extra functions `python-nav-sentence-start' and
 ;; `python-nav-sentence-end' are included to move to the beginning and
 ;; to the end of a setence while taking care of multiline definitions.
+;; `python-nav-jump-to-defun' is provided and allows jumping to a
+;; function or class definition quickly in the current buffer.
 
-;; Shell interaction: is provided and allows you easily execute any
+;; Shell interaction: is provided and allows you to execute easily any
 ;; block of code of your current buffer in an inferior Python process.
 
 ;; Shell completion: hitting tab will try to complete the current
@@ -213,6 +215,7 @@
     (substitute-key-definition 'forward-sentence
                                'python-nav-forward-sentence
                                map global-map)
+    (define-key map "\C-c\C-j" 'python-nav-jump-to-defun)
     ;; Indent specific
     (define-key map "\177" 'python-indent-dedent-line-backspace)
     (define-key map (kbd "<backtab>") 'python-indent-dedent-line)
@@ -247,16 +250,17 @@
 	["Shift region right" python-indent-shift-right :active mark-active
 	 :help "Shift region right by a single indentation step"]
 	"-"
-	["Mark def/class" mark-defun
-	 :help "Mark outermost definition around point"]
-	"-"
 	["Start of def/class" beginning-of-defun
 	 :help "Go to start of outermost definition around point"]
 	["End of def/class" end-of-defun
 	 :help "Go to end of definition around point"]
-        "-"
+	["Mark def/class" mark-defun
+	 :help "Mark outermost definition around point"]
+	["Jump to def/class" python-nav-jump-to-defun
+	 :help "Jump to a class or function definition"]
+        "--"
 	("Skeletons")
-        "-"
+        "---"
 	["Start interpreter" run-python
 	 :help "Run inferior Python process in a separate buffer"]
 	["Switch to shell" python-shell-switch-to-shell
@@ -272,7 +276,7 @@
 	["Eval file" python-shell-send-file
 	 :help "Eval file in inferior Python session"]
 	["Debugger" pdb :help "Run pdb under GUD"]
-        "-"
+        "----"
 	["Check file" python-check
 	 :help "Check file for errors"]
 	["Help on symbol" python-eldoc-at-point
@@ -898,7 +902,7 @@ With numeric ARG, just insert that many colons.  With
 
 (defvar python-nav-beginning-of-defun-regexp
   (python-rx line-start (* space) defun (+ space) (group symbol-name))
-  "Regular expresion matching beginning of class or function.
+  "Regexp matching class or function definition.
 The name of the defun should be grouped so it can be retrieved
 via `match-string'.")
 
@@ -1023,6 +1027,51 @@ With negative argument, move backward repeatedly to start of sentence."
     (python-nav-sentence-start)
     (forward-line -1)
     (setq arg (1+ arg))))
+
+(defun python-nav-list-defun-positions (&optional include-type)
+  "Make an Alist of defun names and point markers for current buffer.
+When optional argument INCLUDE-TYPE is non-nil the type is
+included the defun name."
+  (let ((defs))
+    (save-restriction
+      (widen)
+      (save-excursion
+        (goto-char (point-max))
+        (while (re-search-backward python-nav-beginning-of-defun-regexp nil t)
+          (when (and (not (python-info-ppss-context 'string))
+                     (not (python-info-ppss-context 'comment))
+                     (not (python-info-ppss-context 'parent)))
+            (add-to-list
+             'defs (cons
+                    (python-info-current-defun include-type)
+                    (point-marker)))))
+        defs))))
+
+(defun python-nav-read-defun ()
+  "Read a defun name of current buffer and return its point marker.
+A cons cell with the form (DEFUN-NAME . POINT-MARKER) is returned
+when defun is completed, else nil."
+  (let ((defs (python-nav-list-defun-positions)))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (setq minibuffer-completion-table (mapcar 'car defs)))
+      (let ((stringdef
+             (read-from-minibuffer
+              "Jump to definition: " nil
+              minibuffer-local-must-match-map)))
+        (when (not (string= stringdef ""))
+          (assoc-string stringdef defs))))))
+
+(defun python-nav-jump-to-defun (def)
+  "Jump to the definition of DEF in current file."
+  (interactive
+   (list (python-nav-read-defun)))
+  (when (not (called-interactively-p 'interactive))
+    (setq def (assoc-string def (python-nav-list-defun-positions))))
+  (let ((def-marker (cdr def)))
+    (when (markerp def-marker)
+      (goto-char (marker-position def-marker))
+      (back-to-indentation))))
 
 
 ;;; Shell integration
@@ -2223,7 +2272,7 @@ Argument PLAIN-INDEX is the calculated plain index used to build the tree."
                                       full-element plain-index))))
 
 (defun python-imenu-make-tree (index)
-"Build the imenu alist tree from plain INDEX.
+  "Build the imenu alist tree from plain INDEX.
 
 The idea of this function is that given the alist:
 
@@ -2249,21 +2298,17 @@ This tree gets built:
 
 Internally it uses `python-imenu-make-element-tree' to create all
 branches for each element."
-(setq python-imenu-index-alist nil)
-(mapc (lambda (element)
-        (python-imenu-make-element-tree element element index))
-      (mapcar (lambda (element)
-              (split-string (car element) "\\." t)) index))
-python-imenu-index-alist)
+  (setq python-imenu-index-alist nil)
+  (mapc (lambda (element)
+          (python-imenu-make-element-tree element element index))
+        (mapcar (lambda (element)
+                  (split-string (car element) "\\." t)) index))
+  python-imenu-index-alist)
 
 (defun python-imenu-create-index ()
   "`imenu-create-index-function' for Python."
-  (let ((index))
-    (goto-char (point-max))
-    (while (python-beginning-of-defun-function 1 t)
-      (let ((defun-dotted-name
-              (python-info-current-defun python-imenu-include-defun-type)))
-        (push (cons defun-dotted-name (point)) index)))
+  (let ((index
+         (python-nav-list-defun-positions python-imenu-include-defun-type)))
     (if python-imenu-make-tree
         (python-imenu-make-tree index)
       index)))
