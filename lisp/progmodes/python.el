@@ -723,14 +723,11 @@ START is the buffer position where the sexp starts."
   (let* ((indentation (python-indent-calculate-indentation))
          (remainder (% indentation python-indent-offset))
          (steps (/ (- indentation remainder) python-indent-offset)))
-    (setq python-indent-levels '(0))
+    (setq python-indent-levels (list 0))
     (dotimes (step steps)
-      (setq python-indent-levels
-            (cons (* python-indent-offset (1+ step)) python-indent-levels)))
+      (push (* python-indent-offset (1+ step)) python-indent-levels))
     (when (not (eq 0 remainder))
-      (setq python-indent-levels
-            (cons (+ (* python-indent-offset steps) remainder)
-                  python-indent-levels)))
+      (push (+ (* python-indent-offset steps) remainder) python-indent-levels))
     (setq python-indent-levels (nreverse python-indent-levels))
     (setq python-indent-current-level (1- (length python-indent-levels)))))
 
