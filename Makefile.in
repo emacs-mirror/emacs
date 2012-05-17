@@ -637,15 +637,18 @@ install-arch-indep: mkdir info install-etc
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.
-install-etc: mkdir
+install-etc:
+	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
 	${INSTALL_DATA} ${srcdir}/etc/emacs.desktop \
 	  $(DESTDIR)${desktopdir}/emacs.desktop
-	for icon in $(iconsrcdir)/*/*/apps/*.* \
-	  $(iconsrcdir)/*/*/mimetypes/*.*; do \
-	  if [ -r $${icon} ]; then \
-	    iicon=`echo "$${icon}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},'` ; \
-	    ${INSTALL_DATA} $${icon} $${iicon} ; \
-	  fi ; \
+	cd ${iconsrcdir} || exit 1; umask 022 ; \
+	for dir in */*/apps */*/mimetypes; do \
+	  [ -d $${dir} ] || continue ; \
+	  ${MKDIR_P} ${icondir}/$${dir} ; \
+	  for icon in $${dir}/*.*; do \
+	    [ -r $${icon} ] || continue ; \
+	    ${INSTALL_DATA} $${icon} ${icondir}/$${icon} || exit 1 ; \
+	  done ; \
 	done
 
 ### Install LEIM files.  Although they are machine-independent, we
@@ -664,19 +667,11 @@ install-strip:
 ### FIXME it would be good to warn about non-standard permissions of
 ### pre-existing directories, but that does not seem easy.
 mkdir: FRC
-	icondirs= ; \
-	for dir in $(iconsrcdir)/*/*/apps $(iconsrcdir)/*/*/mimetypes; do \
-	  if [ -d $${dir} ]; then \
-	    icondirs="$${icondirs} $${dir}" ; \
-	  fi ; \
-	done ; \
-	icondirs=`echo "$${icondirs}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},g'` ; \
 	umask 022 ; \
 	$(MKDIR_P) $(DESTDIR)${datadir} ${COPYDESTS} \
 	  $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
 	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
-	  $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'` \
-	  $(DESTDIR)${desktopdir} $${icondirs}
+	  $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would create).
