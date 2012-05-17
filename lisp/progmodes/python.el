@@ -79,7 +79,7 @@
 ;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
 ;;  python-shell-completion-setup-code
 ;;    "from IPython.core.completerlib import module_completion"
-;;  python-shell-module-completion-string-code
+;;  python-shell-completion-module-string-code
 ;;    "';'.join(module_completion('''%s'''))\n"
 ;;  python-shell-completion-string-code
 ;;    "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
@@ -1296,7 +1296,7 @@ controls which Python interpreter is run.  Variables
 `python-shell-prompt-block-regexp',
 `python-shell-completion-setup-code',
 `python-shell-completion-string-code',
-`python-shell-module-completion-string-code',
+`python-shell-completion-module-string-code',
 `python-eldoc-setup-code', `python-eldoc-string-code',
 `python-ffap-setup-code' and `python-ffap-string-code' can
 customize this mode for different Python interpreters.
@@ -1594,7 +1594,7 @@ else:
   :group 'python
   :safe 'stringp)
 
-(defcustom python-shell-module-completion-string-code ""
+(defcustom python-shell-completion-module-string-code ""
   "Python code used to get completions separated by semicolons for imports.
 
 For IPython v0.11, add the following line to
@@ -1609,7 +1609,7 @@ and use the following as the value of this variable:
   :group 'python
   :safe 'stringp)
 
-(defvar python-completion-original-window-configuration nil)
+(defvar python-shell-completion-original-window-configuration nil)
 
 (defun python-shell-completion--get-completions (input process completion-code)
   "Retrieve available completions for INPUT using PROCESS.
@@ -1629,10 +1629,10 @@ completions on the current context."
 	   (input (substring-no-properties
 		   (or (comint-word (current-word)) "") nil nil))
 	   (completions
-	    (if (and (> (length python-shell-module-completion-string-code) 0)
+	    (if (and (> (length python-shell-completion-module-string-code) 0)
 		     (string-match "^\\(from\\|import\\)[ \t]" line))
 		(python-shell-completion--get-completions
-		 line process python-shell-module-completion-string-code)
+		 line process python-shell-completion-module-string-code)
 	      (and (> (length input) 0)
 		   (python-shell-completion--get-completions
 		    input process python-shell-completion-string-code))))
@@ -1640,10 +1640,10 @@ completions on the current context."
 			 (try-completion input completions))))
       (cond ((eq completion t)
 	     (if (eq this-command last-command)
-		 (when python-completion-original-window-configuration
+		 (when python-shell-completion-original-window-configuration
 		   (set-window-configuration
-		    python-completion-original-window-configuration)))
-	     (setq python-completion-original-window-configuration nil)
+		    python-shell-completion-original-window-configuration)))
+	     (setq python-shell-completion-original-window-configuration nil)
 	     t)
 	    ((null completion)
 	     (message "Can't find completion for \"%s\"" input)
@@ -1654,8 +1654,8 @@ completions on the current context."
 		  (insert completion)
 		  t))
           (t
-	   (unless python-completion-original-window-configuration
-	      (setq python-completion-original-window-configuration
+	   (unless python-shell-completion-original-window-configuration
+	      (setq python-shell-completion-original-window-configuration
 		  (current-window-configuration)))
            (with-output-to-temp-buffer "*Python Completions*"
              (display-completion-list
