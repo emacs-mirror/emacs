@@ -35,8 +35,9 @@
 ;; keeping it simple :)
 
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
-;; interaction, Shell completion, Pdb tracking, Symbol completion,
-;; Skeletons, FFAP, Code Check, Eldoc, imenu.
+;; interaction, Shell completion, Shell virtualenv support, Pdb
+;; tracking, Symbol completion, Skeletons, FFAP, Code Check, Eldoc,
+;; imenu.
 
 ;; Syntax highlighting: Fontification of code is provided and supports
 ;; python's triple quoted strings properly.
@@ -84,12 +85,12 @@
 ;; pyreadline from http://ipython.scipy.org/moin/PyReadline/Intro and
 ;; you should be good to go.
 
-;; The shell also contains support for virtualenvs and other special
-;; environment modification thanks to
+;; Shell virtualenv support: The shell also contains support for
+;; virtualenvs and other special environment modifications thanks to
 ;; `python-shell-process-environment' and `python-shell-exec-path'.
 ;; These two variables allows you to modify execution paths and
 ;; enviroment variables to make easy for you to setup virtualenv rules
-;; or behaviors modifications when running shells.  Here is an example
+;; or behavior modifications when running shells.  Here is an example
 ;; of how to make shell processes to be run using the /path/to/env/
 ;; virtualenv:
 
@@ -103,6 +104,15 @@
 ;;                           ":"))
 ;;        "VIRTUAL_ENV=/path/to/env/"))
 ;; (python-shell-exec-path . ("/path/to/env/bin/"))
+
+;; Since the above is cumbersome and can be programatically
+;; calculated, the variable `python-shell-virtualenv-path' is
+;; provided.  When this variable is set with the path of the
+;; virtualenv to use, `process-environment' and `exec-path' get proper
+;; values in order to run shells inside the specified virtualenv.  So
+;; the following will achieve the same as the previous example:
+
+;; (setq python-shell-virtualenv-path "/path/to/env/")
 
 ;; Pdb tracking: when you execute a block of code that contains some
 ;; call to pdb (or ipdb) it will prompt the block of code and will
@@ -159,11 +169,6 @@
 ;; (require 'python)
 
 ;;; TODO:
-
-;; Ordered by priority:
-
-;; Give a better interface for virtualenv support in interactive
-;; shells
 
 ;;; Code:
 
@@ -1085,6 +1090,16 @@ default `exec-path'."
   :group 'python
   :safe 'listp)
 
+(defcustom python-shell-virtualenv-path nil
+  "Path to virtualenv root.
+This variable, when set to a string, makes the values stored in
+`python-shell-process-environment' and `python-shell-exec-path'
+to be modified properly so shells are started with the specified
+virtualenv."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
+
 (defcustom python-shell-setup-codes '(python-shell-completion-setup-code
                                       python-ffap-setup-code
                                       python-eldoc-setup-code)
@@ -1141,11 +1156,41 @@ uniqueness for different types of configurations."
             (python-shell-parse-command)
             (mapconcat #'symbol-value python-shell-setup-codes "")
             (mapconcat #'indentity python-shell-process-environment "")
+            (or python-shell-virtualenv-path "")
             (mapconcat #'indentity python-shell-exec-path "")))))
 
 (defun python-shell-parse-command ()
   "Calculate the string used to execute the inferior Python process."
   (format "%s %s" python-shell-interpreter python-shell-interpreter-args))
+
+(defun python-shell-calculate-process-enviroment ()
+  "Calculate process enviroment given `python-shell-virtualenv-path'."
+  (let ((env (python-util-merge 'list python-shell-process-environment
+                                process-environment 'string=))
+        (virtualenv (if python-shell-virtualenv-path
+                        (directory-file-name python-shell-virtualenv-path)
+                      nil)))
+    (if (not virtualenv)
+        env
+      (dolist (envvar env)
+        (let* ((split (split-string envvar "=" t))
+               (name (nth 0 split))
+               (value (nth 1 split)))
+          (when (not (string= name "PYTHONHOME"))
+            (when (string= name "PATH")
+              (setq value (format "%s/bin:%s" virtualenv value)))
+            (setq env (cons (format "%s=%s" name value) env)))))
+      (cons (format "VIRTUAL_ENV=%s" virtualenv) env))))
+
+(defun python-shell-calculate-exec-path ()
+  "Calculate exec path given `python-shell-virtualenv-path'."
+  (let ((path (python-util-merge 'list python-shell-exec-path
+                                 exec-path 'string=)))
+    (if (not python-shell-virtualenv-path)
+        path
+      (cons (format "%s/bin"
+                    (directory-file-name python-shell-virtualenv-path))
+            path))))
 
 (defun python-comint-output-filter-function (output)
   "Hook run after content is put into comint buffer.
@@ -1220,16 +1265,8 @@ run).
      (list nil (python-shell-parse-command))))
   (let* ((proc-name (python-shell-get-process-name dedicated))
          (proc-buffer-name (format "*%s*" proc-name))
-         (process-environment
-          (if python-shell-process-environment
-              (python-util-merge 'list python-shell-process-environment
-                                 process-environment 'string=)
-            process-environment))
-         (exec-path
-          (if python-shell-exec-path
-              (python-util-merge 'list python-shell-exec-path
-                                 exec-path 'string=)
-            exec-path)))
+         (process-environment (python-shell-calculate-process-enviroment))
+         (exec-path (python-shell-calculate-exec-path)))
     (when (not (comint-check-proc proc-buffer-name))
       (let ((cmdlist (split-string-and-unquote cmd)))
         (set-buffer
@@ -1258,16 +1295,8 @@ of commands.)"
     (let* ((cmd (python-shell-parse-command))
            (proc-name (python-shell-internal-get-process-name))
            (proc-buffer-name (format "*%s*" proc-name))
-           (process-environment
-            (if python-shell-process-environment
-                (python-util-merge 'list python-shell-process-environment
-                                   process-environment 'string=)
-              process-environment))
-           (exec-path
-            (if python-shell-exec-path
-                (python-util-merge 'list python-shell-exec-path
-                                   exec-path 'string=)
-              exec-path)))
+           (process-environment (python-shell-calculate-process-enviroment))
+           (exec-path (python-shell-calculate-exec-path)))
       (when (not (comint-check-proc proc-buffer-name))
         (let ((cmdlist (split-string-and-unquote cmd)))
           (set-buffer
