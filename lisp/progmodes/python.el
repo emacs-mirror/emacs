@@ -1635,20 +1635,27 @@ completions on the current context."
 		  (buffer-substring (point-at-bol) (point)) nil nil))
 	   (input (substring-no-properties
 		   (or (comint-word (current-word)) "") nil nil))
+           (prompt (buffer-substring-no-properties
+                    (overlay-start comint-last-prompt-overlay)
+                    (overlay-end comint-last-prompt-overlay)))
 	   (completion-code
             (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
-                        (string-match python-shell-prompt-pdb-regexp
-                                      (buffer-substring-no-properties
-                                       (overlay-start comint-last-prompt-overlay)
-                                       (overlay-end comint-last-prompt-overlay))))
+                        (string-match
+                         (concat "^" python-shell-prompt-pdb-regexp) prompt))
                    python-shell-completion-pdb-string-code)
                   ((and (> (length python-shell-completion-module-string-code) 0)
-		     (string-match "^\\(from\\|import\\)[ \t]" line))
+                        (string-match
+                         (concat "^" python-shell-prompt-regexp) prompt)
+                        (string-match "^\\(from\\|import\\)[ \t]" line))
                    python-shell-completion-module-string-code)
-                  (t python-shell-completion-string-code)))
+                  ((string-match
+                    (concat "^" python-shell-prompt-regexp) prompt)
+                   python-shell-completion-string-code)
+                  (t nil)))
            (completions
-            (and (> (length input) 0)
-                 (python-shell-completion--get-completions line process completion-code)))
+            (and completion-code (> (length input) 0)
+                 (python-shell-completion--get-completions
+                  line process completion-code)))
 	   (completion (when completions
 			 (try-completion input completions))))
       (cond ((eq completion t)
@@ -1661,19 +1668,19 @@ completions on the current context."
 	    ((null completion)
 	     (message "Can't find completion for \"%s\"" input)
 	     (ding)
-           nil)
-          ((not (string= input completion))
-           (progn (delete-char (- (length input)))
-		  (insert completion)
-		  t))
-          (t
-	   (unless python-shell-completion-original-window-configuration
-	      (setq python-shell-completion-original-window-configuration
-		  (current-window-configuration)))
-           (with-output-to-temp-buffer "*Python Completions*"
-             (display-completion-list
-              (all-completions input completions)))
-           t)))))
+             nil)
+            ((not (string= input completion))
+             (progn (delete-char (- (length input)))
+                    (insert completion)
+                    t))
+            (t
+             (unless python-shell-completion-original-window-configuration
+               (setq python-shell-completion-original-window-configuration
+                     (current-window-configuration)))
+             (with-output-to-temp-buffer "*Python Completions*"
+               (display-completion-list
+                (all-completions input completions)))
+             t)))))
 
 (defun python-shell-completion-complete-at-point ()
   "Perform completion at point in inferior Python process."
