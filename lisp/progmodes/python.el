@@ -1609,38 +1609,38 @@ else:
       (when (> (length completions) 2)
         (split-string completions "^'\\|^\"\\|;\\|'$\\|\"$" t)))))
 
-(defun python-shell-completion--get-completion (input completions)
-  "Get completion for INPUT using COMPLETIONS."
-  (let ((completion (when completions
+(defun python-shell-completion--do-completion-at-point (process)
+  "Do completion for INPUT using COMPLETIONS."
+  (with-syntax-table python-dotty-syntax-table
+    (let* ((input (substring-no-properties
+                       (or (comint-word (current-word)) "") nil nil))
+	 (completions (python-shell-completion--get-completions
+                             input process))
+	 (completion (when completions
                       (try-completion input completions))))
-    (cond ((eq completion t)
-           input)
-          ((null completion)
-           (message "Can't find completion for \"%s\"" input)
-           (ding)
-           input)
+      (cond ((eq completion t)
+           t)
+	    ((null completion)
+	     (message "Can't find completion for \"%s\"" input)
+	     (ding)
+           nil)
           ((not (string= input completion))
-           completion)
+           (progn (delete-char (- (length input)))
+		  (insert completion)
+		  t))
           (t
-           (message "Making completion list...")
            (with-output-to-temp-buffer "*Python Completions*"
              (display-completion-list
               (all-completions input completions)))
-           input))))
+           t)))))
 
 (defun python-shell-completion-complete-at-point ()
   "Perform completion at point in inferior Python process."
   (interactive)
-  (with-syntax-table python-dotty-syntax-table
-    (when (and comint-last-prompt-overlay
-               (> (point-marker) (overlay-end comint-last-prompt-overlay)))
-      (let* ((process (get-buffer-process (current-buffer)))
-             (input (substring-no-properties
-                     (or (comint-word (current-word)) "") nil nil)))
-        (delete-char (- (length input)))
-        (insert
-         (python-shell-completion--get-completion
-          input (python-shell-completion--get-completions input process)))))))
+  (and comint-last-prompt-overlay
+       (> (point-marker) (overlay-end comint-last-prompt-overlay))
+       (python-shell-completion--do-completion-at-point
+	(get-buffer-process (current-buffer)))))
 
 (defun python-shell-completion-complete-or-indent ()
   "Complete or indent depending on the context.
@@ -1749,15 +1749,7 @@ inferior python process is updated properly."
   (let ((process (python-shell-get-process)))
     (if (not process)
         (error "Completion needs an inferior Python process running")
-      (with-syntax-table python-dotty-syntax-table
-        (let* ((input (substring-no-properties
-                       (or (comint-word (current-word)) "") nil nil))
-               (completions (python-shell-completion--get-completions
-                             input process)))
-          (delete-char (- (length input)))
-          (insert
-           (python-shell-completion--get-completion
-            input completions)))))))
+      (python-shell-completion--do-completion-at-point process))))
 
 (add-to-list 'debug-ignored-errors "^Completion needs an inferior Python process running.")
 
