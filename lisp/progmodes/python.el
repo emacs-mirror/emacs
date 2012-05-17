@@ -1473,7 +1473,7 @@ run).
         (y-or-n-p "Make dedicated process? ")
         (read-string "Run Python: " (python-shell-parse-command)))
      (list nil (python-shell-parse-command))))
-  (python-shell-make-comint cmd (python-shell-get-process-name dedicated) t)
+  (python-shell-make-comint cmd (python-shell-get-process-name dedicated))
   dedicated)
 
 (defun run-python-internal ()
@@ -1511,8 +1511,7 @@ of commands.)"
 
 (defun python-shell-get-or-create-process ()
   "Get or create an inferior Python process for current buffer and return it."
-  (let* ((old-buffer (current-buffer))
-         (dedicated-proc-name (python-shell-get-process-name t))
+  (let* ((dedicated-proc-name (python-shell-get-process-name t))
          (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
          (global-proc-name  (python-shell-get-process-name nil))
          (global-proc-buffer-name (format "*%s*" global-proc-name))
@@ -1524,7 +1523,6 @@ of commands.)"
           (setq dedicated-running t)
         (setq global-running t)))
     ;; Always prefer dedicated
-    (switch-to-buffer old-buffer)
     (get-buffer-process (if dedicated-running
                             dedicated-proc-buffer-name
                           global-proc-buffer-name))))
