@@ -1269,7 +1269,7 @@ non-nil the buffer is shown."
                (current-buffer (current-buffer)))
           (with-current-buffer buffer
             (inferior-python-mode)
-            (python-clone-local-variables current-buffer))))
+            (python-util-clone-local-variables current-buffer))))
       (when pop
         (pop-to-buffer proc-buffer-name)))))
 
@@ -2443,7 +2443,7 @@ Return the index of the matching item, or nil if not found."
       (- (length seq) (length member-result)))))
 
 ;; Stolen from org-mode
-(defun python-clone-local-variables (from-buffer &optional regexp)
+(defun python-util-clone-local-variables (from-buffer &optional regexp)
   "Clone local variables from FROM-BUFFER.
 Optional argument REGEXP selects variables to clone and defaults
 to \"^python-\"."
