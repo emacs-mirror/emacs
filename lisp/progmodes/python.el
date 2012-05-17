@@ -956,10 +956,6 @@ OUTPUT is a string with the contents of the buffer."
   "Current file from which a region was sent.")
 (make-variable-buffer-local 'inferior-python-mode-current-file)
 
-(defvar inferior-python-mode-current-temp-file nil
-  "Current temp file sent to process.")
-(make-variable-buffer-local 'inferior-python-mode-current-file)
-
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for Python inferior process."
   (set-syntax-table python-mode-syntax-table)
@@ -1077,10 +1073,7 @@ commands.)"
       (message (format "Sent: %s..."
                        (buffer-substring (point-min)
                                          (line-end-position)))))
-    (with-current-buffer (process-buffer process)
-      (setq inferior-python-mode-current-file current-file)
-      (setq inferior-python-mode-current-temp-file temp-file))
-    (python-shell-send-file temp-file process)))
+    (python-shell-send-file current-file process temp-file)))
 
 (defun python-shell-send-buffer ()
   "Send the entire buffer to inferior Python process."
@@ -1103,15 +1096,26 @@ When argument ARG is non-nil sends the innermost defun."
                             (or (python-end-of-defun-function)
                                 (progn (end-of-line) (point-marker)))))))
 
-(defun python-shell-send-file (file-name &optional process)
-  "Send FILE-NAME to inferior Python PROCESS."
+(defun python-shell-send-file (file-name &optional process temp-file-name)
+  "Send FILE-NAME to inferior Python PROCESS.
+If TEMP-FILE-NAME is passed then that file is used for processing
+instead, while internally the shell will continue to use
+FILE-NAME."
   (interactive "fFile to send: ")
   (let ((process (or process (python-shell-get-or-create-process)))
-        (full-file-name (expand-file-name file-name)))
+        (file-name (convert-standard-filename (expand-file-name file-name)))
+        (temp-file-name (when temp-file-name
+                          (convert-standard-filename
+                           (expand-file-name temp-file-name)))))
+    (find-file-noselect file-name)
+    (with-current-buffer (process-buffer process)
+      (setq inferior-python-mode-current-file file-name))
     (python-shell-send-string
      (format
-      "__pyfile = open('%s'); exec(compile(__pyfile.read(), '%s', 'exec')); __pyfile.close()"
-      full-file-name full-file-name)
+      (concat "__pyfile = open('''%s''');"
+              "exec(compile(__pyfile.read(), '''%s''', 'exec'));"
+              "__pyfile.close()")
+      (or temp-file-name file-name) file-name)
      process)))
 
 (defun python-shell-clear-latest-output ()
@@ -1289,8 +1293,7 @@ Returns a cons with the form:
   (or
    (assq (current-buffer) python-pdbtrack-tracking-buffers)
    (let* ((file (with-current-buffer (current-buffer)
-                  (or inferior-python-mode-current-file
-                      inferior-python-mode-current-temp-file)))
+                  inferior-python-mode-current-file))
           (tracking-buffers
            `(,(current-buffer) .
              ,(or (get-file-buffer file)
@@ -1316,7 +1319,7 @@ Argument OUTPUT is a string with the output from the comint process."
                     (string-match
                      (format python-pdbtrack-stacktrace-info-regexp
                              (regexp-quote
-                              inferior-python-mode-current-temp-file))
+                              inferior-python-mode-current-file))
                      full-output)
                     (string-to-number (or (match-string-no-properties 1 full-output) ""))))
                  (tracked-buffer-window (get-buffer-window (cdr tracking-buffers)))
@@ -1577,6 +1580,10 @@ It is specially designed to be added to the
       (message (format "Eldoc setup code sent.")))))
 
 (defun python-eldoc--get-doc-at-point (&optional force-input force-process)
+  "Internal implementation to get documentation at point.
+If not FORCE-INPUT is passed then what `current-word' returns
+will be used.  If not FORCE-PROCESS is passed what
+`python-shell-get-process' returns is used."
   (let ((process (or force-process (python-shell-get-process))))
     (if (not process)
         "Eldoc needs an inferior Python process running."
