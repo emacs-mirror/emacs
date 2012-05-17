@@ -870,6 +870,12 @@ With numeric ARG, just insert that many colons.  With
 
 ;;; Navigation
 
+(defcustom python-use-beginning-of-innermost-defun nil
+  "Set if `beginning-of-defun-function' should go to innermost defun."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
+
 (defvar python-beginning-of-defun-regexp
   "^\\(def\\|class\\)[[:space:]]+[[:word:]]+"
   "Regular expresion matching beginning of outermost class or function.")
@@ -919,8 +925,17 @@ innermost definition."
         nil))))
 
 (defun python-beginning-of-defun-function ()
+  "Move point to the beginning of \(inner|outer)most def or class.
+The point is moved to the beginning of innermost or outermost def
+or class given the value of
+`python-use-beginning-of-innermost-defun'.  Returns nil if point
+is not in a def or class."
+  (python-beginning-of-defun python-use-beginning-of-innermost-defun))
+
+(defun python-beginning-of-outermost-defun ()
   "Move point to the beginning of outermost def or class.
 Returns nil if point is not in a def or class."
+  (interactive)
   (python-beginning-of-defun nil))
 
 (defun python-beginning-of-innermost-defun ()
