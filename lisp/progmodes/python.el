@@ -963,14 +963,14 @@ Returns nil if point is not in a def or class."
 
 (defcustom python-shell-interpreter "python"
   "Default Python interpreter for shell."
-  :group 'python
   :type 'string
+  :group 'python
   :safe 'stringp)
 
 (defcustom python-shell-interpreter-args "-i"
   "Default arguments for the Python interpreter."
-  :group 'python
   :type 'string
+  :group 'python
   :safe 'stringp)
 
 (defcustom python-shell-prompt-regexp ">>> "
@@ -1000,6 +1000,18 @@ The regex should not contain a caret (^) at the beginning."
   :type 'string
   :group 'python
   :safe 'stringp)
+
+(defcustom python-shell-setup-codes '(python-shell-completion-setup-code
+                                      python-ffap-setup-code
+                                      python-eldoc-setup-code)
+  "List of code run by `python-shell-send-setup-codes'.
+Each variable can be either a simple string with the code to
+execute or a cons with the form (CODE . DESCRIPTION), where CODE
+is a string with the code to execute and DESCRIPTION is the
+description of it."
+  :type '(repeat symbol)
+  :group 'python
+  :safe 'listp)
 
 (defcustom python-shell-compilation-regexp-alist
   `((,(rx line-start (1+ (any " \t")) "File \""
@@ -1256,6 +1268,24 @@ FILE-NAME."
   (interactive)
   (pop-to-buffer (process-buffer (python-shell-get-or-create-process)) t))
 
+(defun python-shell-send-setup-code ()
+  "Send all setup code for shell.
+This function takes the list of setup code to send from the
+`python-shell-setup-codes' list."
+  (let ((msg "Sent %s")
+        (process (get-buffer-process (current-buffer))))
+    (accept-process-output process 1)
+    (dolist (code python-shell-setup-codes)
+      (when code
+        (when (consp code)
+          (setq msg (cdr code)))
+        (message (format msg code))
+        (python-shell-send-string-no-output
+         (symbol-value code) process)))))
+
+(add-hook 'inferior-python-mode-hook
+          #'python-shell-send-setup-code)
+
 
 ;;; Shell completion
 
@@ -1285,16 +1315,6 @@ else:
 (defvar python-shell-completion-string-code
   "';'.join(__COMPLETER_all_completions('''%s'''))\n"
   "Python code used to get a string of completions separated by semicolons.")
-
-(defun python-shell-completion-setup ()
-  "Send `python-shell-completion-setup-code' to inferior Python process.
-It is specially designed to be added to the
-`inferior-python-mode-hook'."
-  (when (> (length python-shell-completion-setup-code) 0)
-    (python-shell-send-string-no-output
-     python-shell-completion-setup-code
-     (get-buffer-process (current-buffer)))
-    (message "Completion setup code sent.")))
 
 (defun python-shell-completion--get-completions (input process)
   "Retrieve available completions for INPUT using PROCESS."
@@ -1348,9 +1368,6 @@ complete."
                                       (point-marker)))
       (indent-for-tab-command)
     (comint-dynamic-complete)))
-
-(add-hook 'inferior-python-mode-hook
-          #'python-shell-completion-setup)
 
 
 ;;; PDB Track integration
@@ -1698,17 +1715,6 @@ The skeleton will be bound to python-skeleton-NAME."
   "__FFAP_get_module_path('''%s''')\n"
   "Python code used to get a string with the path of a module.")
 
-(defun python-ffap-setup ()
-  "Send `python-ffap-setup-code' to inferior Python process.
-It is specially designed to be added to the
-`inferior-python-mode-hook'."
-
-  (when (> (length python-ffap-setup-code) 0)
-    (python-shell-send-string-no-output
-     python-ffap-setup-code
-     (get-buffer-process (current-buffer)))
-    (message "FFAP setup code sent.")))
-
 (defun python-ffap-module-path (module)
   "Function for `ffap-alist' to return path for MODULE."
   (let ((process (or
@@ -1727,9 +1733,6 @@ It is specially designed to be added to the
   '(progn
      (push '(python-mode . python-ffap-module-path) ffap-alist)
      (push '(inferior-python-mode . python-ffap-module-path) ffap-alist)))
-
-(add-hook 'inferior-python-mode-hook
-          #'python-ffap-setup)
 
 
 ;;; Code check
@@ -1780,16 +1783,6 @@ Runs COMMAND, a shell command, as if by `compile'.  See
 (defvar python-eldoc-string-code
   "__PYDOC_get_help('''%s''')\n"
   "Python code used to get a string with the documentation of an object.")
-
-(defun python-eldoc-setup ()
-  "Send `python-eldoc-setup-code' to inferior Python process.
-It is specially designed to be added to the
-`inferior-python-mode-hook'."
-  (when (> (length python-eldoc-setup-code) 0)
-    (python-shell-send-string-no-output
-     python-eldoc-setup-code
-     (get-buffer-process (current-buffer)))
-    (message "Eldoc setup code sent.")))
 
 (defun python-eldoc--get-doc-at-point (&optional force-input force-process)
   "Internal implementation to get documentation at point.
@@ -1861,9 +1854,6 @@ Interactively, prompt for symbol."
               (insert
                (python-eldoc--get-doc-at-point symbol process))
               (help-print-return-message)))))))
-
-(add-hook 'inferior-python-mode-hook
-          #'python-eldoc-setup)
 
 
 ;;; Misc helpers
