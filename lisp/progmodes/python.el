@@ -68,7 +68,7 @@
 ;; `python-shell-completion-string-code'.
 
 ;; Here is a complete example of the settings you would use for
-;; iPython
+;; iPython 0.11:
 
 ;; (setq
 ;;  python-shell-interpreter "ipython"
@@ -77,7 +77,13 @@
 ;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
 ;;  python-shell-completion-setup-code ""
 ;;  python-shell-completion-string-code
-;;  "';'.join(__IP.complete('''%s'''))\n")
+;;  "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+
+;; For iPython 0.10 everything would be the same except for
+;; `python-shell-completion-string-code':
+
+;; (setq python-shell-completion-string-code
+;;       "';'.join(__IP.complete('''%s'''))\n")
 
 ;; Please note that the default completion system depends on the
 ;; readline module, so if you are using some Operating System that
@@ -1393,24 +1399,16 @@ the output."
                       "")))))
     (python-shell-send-string string process msg)
     (accept-process-output process)
-    ;; Cleanup output prompt regexp
-    (when (and (not (string= "" output-buffer))
-               (> (length python-shell-prompt-output-regexp) 0))
-      (setq output-buffer
-            (with-temp-buffer
-              (insert output-buffer)
-              (goto-char (point-min))
-              (forward-comment 9999)
-              (buffer-substring-no-properties
-               (or
-                (and (looking-at python-shell-prompt-output-regexp)
-                     (re-search-forward
-                      python-shell-prompt-output-regexp nil t 1))
-                (point-marker))
-               (point-max)))))
     (mapconcat
      (lambda (string) string)
-     (butlast (split-string output-buffer "\n")) "\n")))
+     (split-string
+      output-buffer
+      (if (> (length python-shell-prompt-output-regexp) 0)
+          (format "\n*%s$\\|^%s"
+                  python-shell-prompt-regexp
+                  (or python-shell-prompt-output-regexp ""))
+        (format "\n$\\|^%s"
+                python-shell-prompt-regexp)) t) "\n")))
 
 (defun python-shell-internal-send-string (string)
   "Send STRING to the Internal Python interpreter.
