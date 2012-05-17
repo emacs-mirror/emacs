@@ -1574,6 +1574,7 @@ fi
 AC_SUBST(TEMACS_LDFLAGS2)
 
 LEIM_INSTALLDIR="\${install_prefix}/leim"
+ns_self_contained=no
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
@@ -1586,6 +1587,7 @@ if test "${HAVE_NS}" = yes; then
   with_xft=no
   # set up packaging dirs
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
+     ns_self_contained=yes
      prefix=${ns_appresdir}
      exec_prefix=${ns_appbindir}
      dnl This one isn't really used, only archlibdir is.
@@ -1600,6 +1602,7 @@ fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
 AC_SUBST(LEIM_INSTALLDIR)
+AC_SUBST(ns_self_contained)
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
 AC_SUBST(LIB_STANDARD)

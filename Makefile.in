@@ -94,6 +94,8 @@ configuration=@configuration@
 # Later values may use these.
 ns_appbindir=@ns_appbindir@
 ns_appresdir=@ns_appresdir@
+# Either yes or no depending on whether this is a relocatable Emacs.app.
+ns_self_contained=@ns_self_contained@
 
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  The default values for many of
@@ -465,13 +467,13 @@ install-arch-dep: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
 	    INSTALL_STRIP=${INSTALL_STRIP})
-	if test "${ns_appresdir}" = ""; then \
+	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
 	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) ; \
 	  rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
 	  ln $(DESTDIR)${bindir}/$(EMACSFULL) $(DESTDIR)${bindir}/$(EMACS) || true ; \
 	else \
-	  ( cd ${ns_appresdir} ; \
+	  ( cd ${ns_appresdir} || exit 1 ; \
 	    if test -d share/emacs ; then \
 	      for dir in share/emacs/${version}/*; do \
 	        rm -fr `basename "$$dir"`; mv "$$dir" . ; \
