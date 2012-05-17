@@ -456,6 +456,16 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 install: all install-arch-indep install-arch-dep install-leim blessmail
 	@true
 
+## Ensure that $subdir contains a subdirs.el file.
+write_subdir=if [ -f $${subdir}/subdirs.el ]; \
+	then true; \
+	else \
+	  (echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
+	   echo "    (normal-top-level-add-subdirs-to-load-path))") \
+	    > $${subdir}/subdirs.el; \
+	fi; \
+	chmod a+r $${subdir}/subdirs.el
+
 ### Install the executables that were compiled specifically for this machine.
 ### It would be nice to do something for a parallel make
 ### to ensure that install-arch-indep finishes before this starts.
@@ -516,16 +526,6 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
-
-## Ensure that $subdir contains a subdirs.el file.
-write_subdir=if [ -f $${subdir}/subdirs.el ]; \
-	then true; \
-	else \
-	  (echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
-	   echo "    (normal-top-level-add-subdirs-to-load-path))") \
-	    > $${subdir}/subdirs.el; \
-	fi; \
-	chmod a+r $${subdir}/subdirs.el
 
 install-arch-indep: mkdir info install-etc
 	-set ${COPYDESTS} ; \
