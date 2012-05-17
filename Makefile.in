@@ -465,11 +465,12 @@ install-arch-dep: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
 	    INSTALL_STRIP=${INSTALL_STRIP})
-	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL)
-	-chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL)
-	rm -f $(DESTDIR)${bindir}/$(EMACS)
-	-ln $(DESTDIR)${bindir}/$(EMACSFULL) $(DESTDIR)${bindir}/$(EMACS)
-	if test "${ns_appresdir}" != ""; then \
+	if test "${ns_appresdir}" = ""; then \
+	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
+	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) ; \
+	  rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
+	  ln $(DESTDIR)${bindir}/$(EMACSFULL) $(DESTDIR)${bindir}/$(EMACS) || true ; \
+	else \
 	  ( cd ${ns_appresdir} ; \
 	    if test -d share/emacs ; then \
 	      for dir in share/emacs/${version}/*; do \
@@ -478,12 +479,7 @@ install-arch-dep: mkdir
 	    fi ; \
 	    if test -d share/info ; then rm -fr info; mv share/info . ; fi ; \
 	    rm -fr share ) ; \
-	  rm -f ${ns_appbindir}/bin/emacs ${ns_appbindir}/bin/$(EMACSFULL); \
-	else true ; fi
-
-## FIXME NS self-contained: rather than installing emacs and
-## EMACSFULL, then deleting them, obviously it would be better to not
-## install them in the first place.
+	fi
 
 ## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.

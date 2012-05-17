@@ -1,5 +1,8 @@
 2012-05-17  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-arch-dep): For a self-contained ns build,
+	don't bother installing binaries then immediately deleting them.
+
 	* Makefile.in (ns_appbindir, ns_appresdir):
 	Move them before things that may refer to them.
 	(install-arch-dep): No need to relocate self-contained ns libexec.
