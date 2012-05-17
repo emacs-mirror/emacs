@@ -1720,7 +1720,24 @@ completions on the current context."
 (defun python-shell-completion--do-completion-at-point (process)
   "Do completion at point for PROCESS."
   (with-syntax-table python-dotty-syntax-table
-    (let* ((beg (save-excursion (skip-syntax-backward "w") (point)))
+    (let* ((beg
+            (save-excursion
+              (let* ((paren-depth (car (syntax-ppss)))
+                     (syntax-string "w_")
+                     (syntax-list (string-to-syntax syntax-string)))
+                ;; Stop scanning for the beginning of the completion subject
+                ;; after the char before point matches a delimiter
+                (while (member (car (syntax-after (1- (point)))) syntax-list)
+                  (skip-syntax-backward syntax-string)
+                  (when (or (equal (char-before) ?\))
+                            (equal (char-before) ?\"))
+                    (forward-char -1))
+                  (while (or
+                          ;; honor initial paren depth
+                          (> (car (syntax-ppss)) paren-depth)
+                          (python-info-ppss-context 'string))
+                    (forward-char -1))))
+              (point)))
            (end (point))
            (line (buffer-substring-no-properties (point-at-bol) end))
            (input (buffer-substring-no-properties beg end))
@@ -1752,7 +1769,7 @@ completions on the current context."
            (completions
             (and completion-code (> (length input) 0)
                  (python-shell-completion--get-completions
-                  line process completion-code))))
+                  input process completion-code))))
       (list beg end completions))))
 
 (defun python-shell-completion-complete-at-point ()
