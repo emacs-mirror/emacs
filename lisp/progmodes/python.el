@@ -830,19 +830,24 @@ lie."
       (setq count python-indent-offset))
     (indent-rigidly start end count)))
 
-;; Directly from Dave Love's python.el
 (defun python-indent-electric-colon (arg)
   "Insert a colon and maybe outdent the line if it is a statement like `else'.
 With numeric ARG, just insert that many colons.  With \\[universal-argument],
 just insert a single colon."
   (interactive "*P")
   (self-insert-command (if (not (integerp arg)) 1 arg))
-  (and (not arg)
-       (eolp)
-       (not (or (python-info-ppss-context 'string)
-                (python-info-ppss-context 'comment)))
-       (> (current-indentation) (python-indent-calculate-indentation))
-       (save-excursion (python-indent-line))))
+  (when (and (not arg)
+             (eolp)
+             (not (equal ?: (char-after (- (point-marker) 2))))
+             (not (or (python-info-ppss-context 'string)
+                      (python-info-ppss-context 'comment))))
+    (let ((indentation (current-indentation))
+          (calculated-indentation (python-indent-calculate-indentation)))
+      (when (> indentation calculated-indentation)
+        (save-excursion
+          (indent-line-to calculated-indentation)
+          (when (not (python-info-closing-block))
+            (indent-line-to indentation)))))))
 (put 'python-indent-electric-colon 'delete-selection t)
 
 
