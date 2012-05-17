@@ -692,7 +692,7 @@ START is the buffer position where the sexp starts."
              indentation))
           ('inside-paren
            (or (save-excursion
-                 (forward-comment 9999)
+                 (skip-syntax-forward "\s" (line-end-position))
                  (when (and (looking-at (regexp-opt '(")" "]" "}")))
                             (not (forward-char 1))
                             (not (python-info-ppss-context 'paren)))
