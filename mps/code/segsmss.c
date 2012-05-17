@@ -714,8 +714,7 @@ static mps_class_t mps_class_amst(void)
 #define totalSizeMAX    sizeScale * 800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-/* @@@@ Temporary fix W3I6MV */
-#define objNULL         ((mps_addr_t)0xDECEA5EDDECEA5ED)
+#define objNULL         ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 #define testArenaSIZE   ((size_t)16<<20)
 #define initTestFREQ    6000
 #define stressTestFREQ  40

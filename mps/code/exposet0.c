@@ -45,7 +45,7 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-#define objNULL           ((mps_addr_t)0xDECEA5ED)
+#define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 
 static mps_pool_t pool_g;
