@@ -1467,16 +1467,14 @@ the output."
                       "")))))
     (python-shell-send-string string process msg)
     (accept-process-output process)
-    (mapconcat
-     (lambda (string) string)
-     (split-string
-      output-buffer
-      (if (> (length python-shell-prompt-output-regexp) 0)
-          (format "\n*%s$\\|^%s"
-                  python-shell-prompt-regexp
-                  (or python-shell-prompt-output-regexp ""))
-        (format "\n$\\|^%s"
-                python-shell-prompt-regexp)) t) "\n")))
+    (replace-regexp-in-string
+     (if (> (length python-shell-prompt-output-regexp) 0)
+         (format "\n*%s$\\|^%s\\|\n$"
+                 python-shell-prompt-regexp
+                 (or python-shell-prompt-output-regexp ""))
+       (format "\n*$\\|^%s\\|\n$"
+               python-shell-prompt-regexp))
+     "" output-buffer)))
 
 (defun python-shell-internal-send-string (string)
   "Send STRING to the Internal Python interpreter.
