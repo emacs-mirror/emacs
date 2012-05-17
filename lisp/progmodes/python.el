@@ -1094,32 +1094,49 @@ commands.)"
                             dedicated-proc-buffer-name
                           global-proc-buffer-name))))
 
-(defun python-shell-send-string (string &optional process)
-  "Send STRING to inferior Python PROCESS."
+(defun python-shell-send-string (string &optional process msg)
+  "Send STRING to inferior Python PROCESS.
+When MSG is non-nil messages the first line of STRING."
   (interactive "sPython command: ")
-  (let ((process (or process (python-shell-get-or-create-process))))
-    (when (called-interactively-p 'interactive)
-      (message (format "Sent: %s..." string)))
-    (comint-send-string process string)
-    (when (or (not (string-match "\n$" string))
-              (string-match "\n[ \t].*\n?$" string))
-      (comint-send-string process "\n"))))
+  (let ((process (or process (python-shell-get-or-create-process)))
+        (lines (split-string string "\n" t)))
+    (when msg
+      (message (format "Sent: %s..." (nth 0 lines))))
+    (if (> (length lines) 1)
+        (let* ((temp-file-name (make-temp-file "py"))
+               (file-name (or (buffer-file-name) temp-file-name)))
+          (with-temp-file temp-file-name
+            (insert string)
+            (delete-trailing-whitespace))
+          (python-shell-send-file file-name process temp-file-name))
+      (comint-send-string process string)
+      (when (or (not (string-match "\n$" string))
+                (string-match "\n[ \t].*\n?$" string))
+        (comint-send-string process "\n")))))
+
+(defun python-shell-send-string-no-output (string &optional process msg)
+  "Send STRING to PROCESS and inhibit output.
+When MSG is non-nil messages the first line of STRING.
+Return the output."
+  (let* ((output-buffer)
+         (process (or process (python-shell-get-or-create-process)))
+         (comint-preoutput-filter-functions
+          (append comint-preoutput-filter-functions
+                  '(ansi-color-filter-apply
+                    (lambda (string)
+                      (setq output-buffer (concat output-buffer string))
+                      "")))))
+    (python-shell-send-string string process msg)
+    (accept-process-output process)
+    (mapconcat
+     (lambda (string) string)
+     (butlast (split-string output-buffer "\n")) "\n")))
 
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
   (interactive "r")
-  (let* ((contents (buffer-substring start end))
-         (current-file (buffer-file-name))
-         (process (python-shell-get-or-create-process))
-         (temp-file (make-temp-file "py")))
-    (with-temp-file temp-file
-      (insert contents)
-      (delete-trailing-whitespace)
-      (goto-char (point-min))
-      (message (format "Sent: %s..."
-                       (buffer-substring (point-min)
-                                         (line-end-position)))))
-    (python-shell-send-file current-file process temp-file)))
+  (let ((deactivate-mark nil))
+    (python-shell-send-string (buffer-substring start end) nil t)))
 
 (defun python-shell-send-buffer ()
   "Send the entire buffer to inferior Python process."
@@ -1148,10 +1165,12 @@ If TEMP-FILE-NAME is passed then that file is used for processing
 instead, while internally the shell will continue to use
 FILE-NAME."
   (interactive "fFile to send: ")
-  (let ((process (or process (python-shell-get-or-create-process)))
-        (file-name (expand-file-name file-name))
-        (temp-file-name (when temp-file-name
-                          (expand-file-name temp-file-name))))
+  (let* ((process (or process (python-shell-get-or-create-process)))
+         (temp-file-name (when temp-file-name
+                           (expand-file-name temp-file-name)))
+         (file-name (or (expand-file-name file-name) temp-file-name)))
+    (when (not file-name)
+      (error "If FILE-NAME is nil then TEMP-FILE-NAME must be non-nil"))
     (find-file-noselect file-name)
     (with-current-buffer (process-buffer process)
       (setq inferior-python-mode-current-file
@@ -1163,41 +1182,6 @@ FILE-NAME."
               "__pyfile.close()")
       (or temp-file-name file-name) file-name)
      process)))
-
-(defun python-shell-clear-latest-output ()
-  "Clear latest output from the Python shell.
-Return the cleaned output."
-  (interactive)
-  (when (and comint-last-output-start
-             comint-last-prompt-overlay)
-    (save-excursion
-      (let* ((last-output-end
-              (save-excursion
-                (goto-char
-                 (overlay-start comint-last-prompt-overlay))
-                (forward-comment -1)
-                (point-marker)))
-             (last-output
-              (buffer-substring-no-properties
-               comint-last-output-start last-output-end)))
-        (when (< 0 (length last-output))
-          (goto-char comint-last-output-start)
-          (delete-region comint-last-output-start last-output-end)
-          (delete-char -1)
-          last-output)))))
-
-(defun python-shell-send-and-clear-output (string process)
-  "Send STRING to PROCESS and clear the output.
-Return the cleaned output."
-  (interactive)
-  (python-shell-send-string string process)
-  (accept-process-output process)
-  (with-current-buffer (process-buffer process)
-    (let ((output (python-shell-clear-latest-output)))
-      (forward-line -1)
-      (kill-whole-line)
-      (goto-char (overlay-end comint-last-prompt-overlay))
-      output)))
 
 (defun python-shell-switch-to-shell ()
   "Switch to inferior Python process buffer."
@@ -1243,14 +1227,10 @@ Also binds <tab> to `python-shell-complete-or-indent' in the
 It is specially designed to be added to the
 `inferior-python-mode-hook'."
   (when python-shell-completion-setup-code
-    (let ((temp-file (make-temp-file "py"))
-          (process (get-buffer-process (current-buffer))))
-      (with-temp-file temp-file
-        (insert python-shell-completion-setup-code)
-        (delete-trailing-whitespace)
-        (goto-char (point-min)))
-      (python-shell-send-file temp-file process)
-      (message (format "Completion setup code sent.")))
+    (python-shell-send-string-no-output
+     python-shell-completion-setup-code
+     (get-buffer-process (current-buffer)))
+    (message "Completion setup code sent.")
     (add-to-list (make-local-variable
                   'comint-dynamic-complete-functions)
                  'python-shell-completion-complete-at-point)
@@ -1261,7 +1241,7 @@ It is specially designed to be added to the
   "Retrieve available completions for INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
     (split-string
-     (or (python-shell-send-and-clear-output
+     (or (python-shell-send-string-no-output
           (format python-shell-completion-strings-code input)
           process) "")
      ";\\|\"\\|'\\|(" t)))
@@ -1664,13 +1644,10 @@ The skeleton will be bound to python-skeleton-NAME."
 It is specially designed to be added to the
 `inferior-python-mode-hook'."
   (when python-ffap-setup-code
-    (let ((temp-file (make-temp-file "py")))
-      (with-temp-file temp-file
-        (insert python-ffap-setup-code)
-        (delete-trailing-whitespace)
-        (goto-char (point-min)))
-      (python-shell-send-file temp-file (get-buffer-process (current-buffer)))
-      (message (format "FFAP setup code sent.")))))
+    (python-shell-send-string-no-output
+     python-ffap-setup-code
+     (get-buffer-process (current-buffer)))
+    (message "FFAP setup code sent.")))
 
 (defun python-ffap-module-path (module)
   "Function for `ffap-alist' to return path for MODULE."
@@ -1681,7 +1658,7 @@ It is specially designed to be added to the
     (if (not process)
         nil
       (let ((module-file
-             (python-shell-send-and-clear-output
+             (python-shell-send-string-no-output
               (format python-ffap-string-code module) process)))
         (when module-file
            (substring-no-properties module-file 1 -1))))))
@@ -1749,13 +1726,10 @@ Runs COMMAND, a shell command, as if by `compile'.  See
 It is specially designed to be added to the
 `inferior-python-mode-hook'."
   (when python-eldoc-setup-code
-    (let ((temp-file (make-temp-file "py")))
-      (with-temp-file temp-file
-        (insert python-eldoc-setup-code)
-        (delete-trailing-whitespace)
-        (goto-char (point-min)))
-      (python-shell-send-file temp-file (get-buffer-process (current-buffer)))
-      (message (format "Eldoc setup code sent.")))))
+    (python-shell-send-string-no-output
+     python-eldoc-setup-code
+     (get-buffer-process (current-buffer)))
+    (message "Eldoc setup code sent.")))
 
 (defun python-eldoc--get-doc-at-point (&optional force-input force-process)
   "Internal implementation to get documentation at point.
@@ -1786,7 +1760,7 @@ will be used.  If not FORCE-PROCESS is passed what
                          (forward-char)
                          (delete-region (point-marker) (search-forward "self."))
                          (setq input (buffer-substring (point-min) (point-max)))))
-                     (python-shell-send-and-clear-output
+                     (python-shell-send-string-no-output
                       (format python-eldoc-string-code input) process))))
         (with-current-buffer (process-buffer process)
           (when comint-last-prompt-overlay
