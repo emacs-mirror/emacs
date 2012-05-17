@@ -3,6 +3,8 @@
 ;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fabian@anue.biz>
+;; URL: https://github.com/fgallina/python.el
+;; Version: 0.23.1
 ;; Maintainer: FSF
 ;; Created: Jul 2010
 ;; Keywords: languages
