@@ -142,6 +142,7 @@
     (define-key map (kbd "<backtab>") 'python-indent-dedent-line)
     (define-key map "\C-c<" 'python-indent-shift-left)
     (define-key map "\C-c>" 'python-indent-shift-right)
+    (define-key map ":" 'python-indent-electric-colon)
     ;; Shell interaction
     (define-key map "\C-c\C-s" 'python-shell-send-string)
     (define-key map "\C-c\C-r" 'python-shell-send-region)
@@ -785,6 +786,19 @@ lie."
       (setq count (prefix-numeric-value count))
     (setq count python-indent-offset))
   (indent-rigidly start end count))
+
+;; Directly from Dave Love's python.el
+(defun python-indent-electric-colon (arg)
+  "Insert a colon and maybe outdent the line if it is a statement like `else'.
+With numeric ARG, just insert that many colons.  With \\[universal-argument],
+just insert a single colon."
+  (interactive "*P")
+  (self-insert-command (if (not (integerp arg)) 1 arg))
+  (and (not arg)
+       (eolp)
+       (not (nth 8 (syntax-ppss)))
+       (save-excursion (python-indent-line))))
+(put 'python-indent-electric-colon 'delete-selection t)
 
 
 ;;; Navigation
