@@ -77,9 +77,12 @@
 ;;  python-shell-interpreter-args ""
 ;;  python-shell-prompt-regexp "In \\[[0-9]+\\]: "
 ;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-;;  python-shell-completion-setup-code ""
+;;  python-shell-completion-setup-code
+;;    "from IPython.core.completerlib import module_completion"
+;;  python-shell-module-completion-string-code
+;;    "';'.join(module_completion('''%s'''))\n"
 ;;  python-shell-completion-string-code
-;;  "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+;;    "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
 
 ;; For iPython 0.10 everything would be the same except for
 ;; `python-shell-completion-string-code':
@@ -1292,10 +1295,11 @@ controls which Python interpreter is run.  Variables
 `python-shell-prompt-output-regexp',
 `python-shell-prompt-block-regexp',
 `python-shell-completion-setup-code',
-`python-shell-completion-string-code', `python-eldoc-setup-code',
-`python-eldoc-string-code', `python-ffap-setup-code' and
-`python-ffap-string-code' can customize this mode for different
-Python interpreters.
+`python-shell-completion-string-code',
+`python-shell-module-completion-string-code',
+`python-eldoc-setup-code', `python-eldoc-string-code',
+`python-ffap-setup-code' and `python-ffap-string-code' can
+customize this mode for different Python interpreters.
 
 You can also add additional setup code to be run at
 initialization of the interpreter via `python-shell-setup-codes'
