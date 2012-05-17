@@ -1020,6 +1020,9 @@ With negative argument, move backward repeatedly to start of sentence."
   :group 'python
   :safe 'stringp)
 
+(defvar python-shell-internal-buffer-name "Python Internal"
+  "Default buffer name for the Internal Python interpreter.")
+
 (defcustom python-shell-interpreter-args "-i"
   "Default arguments for the Python interpreter."
   :type 'string
@@ -1126,6 +1129,20 @@ in the `same-window-buffer-names' list."
                                             (format "*%s*" process-name)))
     process-name))
 
+(defun python-shell-internal-get-process-name ()
+  "Calculate the appropiate process name for Internal Python process.
+The name is calculated from `python-shell-global-buffer-name' and
+a hash of all relevant global shell settings in order to ensure
+uniqueness for different types of configurations."
+  (format "%s [%s]"
+          python-shell-internal-buffer-name
+          (md5
+           (concat
+            (python-shell-parse-command)
+            (mapconcat #'symbol-value python-shell-setup-codes "")
+            (mapconcat #'indentity python-shell-process-environment "")
+            (mapconcat #'indentity python-shell-exec-path "")))))
+
 (defun python-shell-parse-command ()
   "Calculate the string used to execute the inferior Python process."
   (format "%s %s" python-shell-interpreter python-shell-interpreter-args))
@@ -1222,6 +1239,42 @@ run).
     (pop-to-buffer proc-buffer-name))
   dedicated)
 
+(defun run-python-internal ()
+  "Run an inferior Internal Python process.
+Input and output via buffer named after
+`python-shell-internal-buffer-name' and what
+`python-shell-internal-get-process-name' returns.  This new kind
+of shell is intended to be used for generic communication related
+to defined configurations.  The main difference with global or
+dedicated shells is that these ones are attached to a
+configuration, not a buffer.  This means that can be used for
+example to retrieve the sys.path and other stuff, without messing
+with user shells.  Runs the hook
+`inferior-python-mode-hook' (after the `comint-mode-hook' is
+run).  \(Type \\[describe-mode] in the process buffer for a list
+of commands.)"
+  (interactive)
+  (save-excursion
+    (let* ((cmd (python-shell-parse-command))
+           (proc-name (python-shell-internal-get-process-name))
+           (proc-buffer-name (format "*%s*" proc-name))
+           (process-environment
+            (if python-shell-process-environment
+                (python-util-merge 'list python-shell-process-environment
+                                   process-environment 'string=)
+              process-environment))
+           (exec-path
+            (if python-shell-exec-path
+                (python-util-merge 'list python-shell-exec-path
+                                   exec-path 'string=)
+              exec-path)))
+      (when (not (comint-check-proc proc-buffer-name))
+        (let ((cmdlist (split-string-and-unquote cmd)))
+          (set-buffer
+           (apply 'make-comint proc-name (car cmdlist) nil
+                  (cdr cmdlist)))
+          (inferior-python-mode))))))
+
 (defun python-shell-get-process ()
   "Get inferior Python process for current buffer and return it."
   (let* ((dedicated-proc-name (python-shell-get-process-name t))
@@ -1253,6 +1306,13 @@ run).
     (get-buffer-process (if dedicated-running
                             dedicated-proc-buffer-name
                           global-proc-buffer-name))))
+
+(defun python-shell-internal-get-or-create-process ()
+  "Get or create an inferior Internal Python process."
+  (let* ((proc-name (python-shell-internal-get-process-name))
+         (proc-buffer-name (format "*%s*" proc-name)))
+    (run-python-internal)
+    (get-buffer-process proc-buffer-name)))
 
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
@@ -1306,6 +1366,21 @@ the output."
     (mapconcat
      (lambda (string) string)
      (butlast (split-string output-buffer "\n")) "\n")))
+
+(defun python-shell-internal-send-string (string)
+  "Send STRING to the Internal Python interpreter.
+Returns the output.  See `python-shell-send-string-no-output'."
+  (python-shell-send-string-no-output
+   ;; Makes this function compatible with the old
+   ;; python-send-receive. (At least for CEDET).
+   (replace-regexp-in-string "_emacs_out +" "" string)
+   (python-shell-internal-get-or-create-process) nil))
+
+(define-obsolete-function-alias
+  'python-send-receive 'python-shell-internal-send-string "23.3"
+  "Send STRING to inferior Python (if any) and return result.
+The result is what follows `_emacs_out' in the output.
+This is a no-op if `python-check-comint-prompt' returns nil.")
 
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
