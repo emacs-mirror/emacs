@@ -1274,7 +1274,8 @@ non-nil the buffer is shown."
             (inferior-python-mode)
             (python-util-clone-local-variables current-buffer))))
       (when pop
-        (pop-to-buffer proc-buffer-name)))))
+        (pop-to-buffer proc-buffer-name))
+      proc-buffer-name)))
 
 (defun run-python (dedicated cmd)
   "Run an inferior Python process.
@@ -1313,9 +1314,11 @@ with user shells.  Runs the hook
 run).  \(Type \\[describe-mode] in the process buffer for a list
 of commands.)"
   (interactive)
-  (python-shell-make-comint
-   (python-shell-parse-command)
-   (python-shell-internal-get-process-name)))
+  (set-process-query-on-exit-flag
+   (get-buffer-process
+    (python-shell-make-comint
+     (python-shell-parse-command)
+     (python-shell-internal-get-process-name))) nil))
 
 (defun python-shell-get-process ()
   "Get inferior Python process for current buffer and return it."
