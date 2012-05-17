@@ -1799,7 +1799,7 @@ to complete."
                     (buffer-substring (comint-line-beginning-position)
                                       (point-marker)))
       (indent-for-tab-command)
-    (comint-dynamic-complete)))
+    (completion-at-point)))
 
 
 ;;; PDB Track integration
