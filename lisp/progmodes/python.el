@@ -72,6 +72,12 @@
 ;;  python-shell-completion-string-code
 ;;  "';'.join(__IP.complete('''%s'''))\n")
 
+;; Please note that the default completion system depends on the
+;; readline module, so if you are using some Operating System that
+;; bundles Python without it (like Windows) just install the
+;; pyreadline from http://ipython.scipy.org/moin/PyReadline/Intro and
+;; you should be good to go.
+
 ;; Pdb tracking: when you execute a block of code that contains some
 ;; call to pdb (or ipdb) it will prompt the block of code and will
 ;; follow the execution of pdb marking the current line with an arrow.
