@@ -2838,6 +2838,8 @@ if that value is non-nil."
   (set (make-local-variable 'add-log-current-defun-function)
        #'python-info-current-defun)
 
+  (add-hook 'which-func-functions #'python-info-current-defun nil t)
+
   (set (make-local-variable 'skeleton-further-elements)
        '((abbrev-mode nil)
          (< '(backward-delete-char-untabify (min python-indent-offset
