@@ -1,5 +1,9 @@
 2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-macs.el, emacs-lisp/cl.el: Move indent info.
+
+2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/pcase.el (pcase--u1): Avoid ((lambda ...) ...).
 
 	* emacs-lisp/cl.el: Add edebug specs from cl-specs.el.

@@ -651,42 +651,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 ;;; Miscellaneous.
 
-;; Define data for indentation and edebug.
-(dolist (entry
-         '(((defun* defmacro*) 2)
-           ((function*) nil
-            (&or symbolp ([&optional 'macro] 'lambda (&rest sexp) &rest form)))
-           ((eval-when) 1 (sexp &rest form))
-           ((declare) nil (&rest sexp))
-           ((the) 1 (sexp &rest form))
-           ((case ecase typecase etypecase) 1 (form &rest (sexp &rest form)))
-           ((block return-from) 1 (sexp &rest form))
-           ((return) nil (&optional form))
-           ((do do*) 2 ((&rest &or symbolp (symbolp &optional form form))
-                        (form &rest form)
-                        &rest form))
-           ((do-symbols) 1 ((symbolp form &optional form form) &rest form))
-           ((do-all-symbols) 1 ((symbolp form &optional form) &rest form))
-           ((psetq setf psetf) nil edebug-setq-form)
-           ((progv) 2 (&rest form))
-           ((flet labels macrolet) 1
-            ((&rest (sexp sexp &rest form)) &rest form))
-           ((symbol-macrolet lexical-let lexical-let*) 1
-            ((&rest &or symbolp (symbolp form)) &rest form))
-           ((multiple-value-bind) 2 ((&rest symbolp) &rest form))
-           ((multiple-value-setq) 1 ((&rest symbolp) &rest form))
-           ((incf decf remf pushnew shiftf rotatef) nil (&rest form))
-           ((letf letf*) 1 ((&rest (&rest form)) &rest form))
-           ((callf destructuring-bind) 2 (sexp form &rest form))
-           ((callf2) 3 (sexp form form &rest form))
-           ((loop) nil (&rest &or symbolp form))
-           ((ignore-errors) 0 (&rest form))))
-  (dolist (func (car entry))
-    (put func 'lisp-indent-function (nth 1 entry))
-    (put func 'lisp-indent-hook (nth 1 entry))
-    (or (get func 'edebug-form-spec)
-        (put func 'edebug-form-spec (nth 2 entry)))))
-
 ;; Autoload the other portions of the package.
 ;; We want to replace the basic versions of dolist, dotimes, declare below.
 (fmakunbound 'dolist)
