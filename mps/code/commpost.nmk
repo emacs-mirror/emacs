@@ -322,7 +322,7 @@ $(PFM)\$(VARIETY)\mpsplcb.lib: $(PFM)\$(VARIETY)\mpslibcb.obj
 
 {$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
 	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**)
+	$(LINKER) $(LINKFLAGS) /PDB:$*.pdb /OUT:$@ $(**)
 
 
 # C. COPYRIGHT AND LICENSE
