@@ -2302,22 +2302,29 @@ not inside a defun."
 
 (defun python-info-continuation-line-p ()
   "Return non-nil if current line is continuation of another."
-  (or (python-info-line-ends-backslash-p)
-      (string-match ",[[:space:]]*$" (buffer-substring
-                                      (line-beginning-position)
-                                      (line-end-position)))
-      (save-excursion
-        (let ((innermost-paren (progn
-                                 (goto-char (line-end-position))
-                                 (python-info-ppss-context 'paren))))
-          (when (and innermost-paren
-                     (and (<= (line-beginning-position) innermost-paren)
-                          (>= (line-end-position) innermost-paren)))
-            (goto-char innermost-paren)
-            (looking-at (python-rx open-paren (* space) line-end)))))
-      (save-excursion
-        (back-to-indentation)
-        (python-info-ppss-context 'paren))))
+  (let ((current-ppss-context-type (python-info-ppss-context-type)))
+    (and
+     (equal (save-excursion
+              (goto-char (line-end-position))
+              (forward-comment 9999)
+              (python-info-ppss-context-type))
+            current-ppss-context-type)
+     (or (python-info-line-ends-backslash-p)
+         (string-match ",[[:space:]]*$" (buffer-substring
+                                         (line-beginning-position)
+                                         (line-end-position)))
+         (save-excursion
+           (let ((innermost-paren (progn
+                                    (goto-char (line-end-position))
+                                    (python-info-ppss-context 'paren))))
+             (when (and innermost-paren
+                        (and (<= (line-beginning-position) innermost-paren)
+                             (>= (line-end-position) innermost-paren)))
+               (goto-char innermost-paren)
+               (looking-at (python-rx open-paren (* space) line-end)))))
+         (save-excursion
+           (back-to-indentation)
+           (python-info-ppss-context 'paren))))))
 
 (defun python-info-block-continuation-line-p ()
   "Return non-nil if current line is a continuation of a block."
@@ -2351,7 +2358,7 @@ not inside a defun."
 
 (defun python-info-ppss-context (type &optional syntax-ppss)
   "Return non-nil if point is on TYPE using SYNTAX-PPSS.
-TYPE can be 'comment, 'string or 'parent.  It returns the start
+TYPE can be 'comment, 'string or 'paren.  It returns the start
 character address of the specified TYPE."
   (let ((ppss (or syntax-ppss (syntax-ppss))))
     (case type
@@ -2363,6 +2370,20 @@ character address of the specified TYPE."
       ('paren
        (nth 1 ppss))
       (t nil))))
+
+(defun python-info-ppss-context-type (&optional syntax-ppss)
+  "Return the context type using SYNTAX-PPSS.
+The type returned can be 'comment, 'string or 'paren."
+  (let ((ppss (or syntax-ppss (syntax-ppss))))
+    (cond
+     ((and (nth 4 ppss)
+           (nth 8 ppss))
+      'comment)
+     ((nth 8 ppss)
+      'string)
+     ((nth 1 ppss)
+      'paren)
+     (t nil))))
 
 
 ;;; Utility functions
