@@ -63,8 +63,7 @@ static int test_number = 0;
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-/* @@@@ Temporary fix W3I6MV */
-#define objNULL           ((mps_addr_t)0xDECEA5EDull)
+#define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 static mps_pool_t pool;
 static mps_ap_t ap;

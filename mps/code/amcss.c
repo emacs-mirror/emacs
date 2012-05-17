@@ -38,9 +38,7 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-/* @@@@ W3I6MV Temporary fix (ull) to prevent Microsoft C complaining.  Need
-   to work out what to do about such cases. */
-#define objNULL           ((mps_addr_t)0xDECEA5EDull)
+#define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 
 static mps_pool_t pool;
