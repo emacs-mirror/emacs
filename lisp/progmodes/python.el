@@ -136,6 +136,7 @@
     (define-key map "\C-c\C-z" 'python-shell-switch-to-shell)
     ;; Some util commands
     (define-key map "\C-c\C-v" 'python-check)
+    (define-key map "\C-c\C-f" 'python-eldoc-at-point)
     ;; Utilities
     (substitute-key-definition 'complete-symbol 'completion-at-point
 			       map global-map)
@@ -175,6 +176,8 @@
         "-"
 	["Check file" python-check
 	 :help "Check file for errors"]
+	["Help on symbol" python-eldoc-at-point
+	 :help "Get help on symbol at point"]
 	["Complete symbol" completion-at-point
 	 :help "Complete symbol before point"]))
     map)
@@ -1554,20 +1557,16 @@ It is specially designed to be added to the
       (python-shell-send-file temp-file (get-buffer-process (current-buffer)))
       (message (format "Eldoc setup code sent.")))))
 
-(defun python-eldoc-function ()
-  "`eldoc-documentation-function' for Python.
-For this to work the best as possible you should call
-`python-shell-send-buffer' from time to time so context in
-inferior python process is updated properly."
-  (interactive)
-  (let ((process (python-shell-get-process)))
+(defun python-eldoc--get-doc-at-point (&optional force-input force-process)
+  (let ((process (or force-process (python-shell-get-process))))
     (if (not process)
         "Eldoc needs an inferior Python process running."
       (let* ((current-defun (python-info-current-defun))
-             (input (with-syntax-table python-dotty-syntax-table
-                      (if (not current-defun)
-                          (current-word)
-                        (concat current-defun "." (current-word)))))
+             (input (or force-input
+                        (with-syntax-table python-dotty-syntax-table
+                          (if (not current-defun)
+                              (current-word)
+                            (concat current-defun "." (current-word))))))
              (ppss (syntax-ppss))
              (help (when (and input
                               (not (string= input (concat current-defun ".")))
@@ -1592,6 +1591,38 @@ inferior python process is updated properly."
         (when (and help
                    (not (string= help "\n")))
           help)))))
+
+(defun python-eldoc-function ()
+  "`eldoc-documentation-function' for Python.
+For this to work the best as possible you should call
+`python-shell-send-buffer' from time to time so context in
+inferior python process is updated properly."
+  (python-eldoc--get-doc-at-point))
+
+(defun python-eldoc-at-point (symbol)
+  "Get help on SYMBOL using `help'.
+Interactively, prompt for symbol."
+    (interactive
+     (let ((symbol (with-syntax-table python-dotty-syntax-table
+                     (current-word)))
+           (enable-recursive-minibuffers t))
+       (list (read-string (if symbol
+                              (format "Describe symbol (default %s): " symbol)
+                            "Describe symbol: ")
+                          nil nil symbol))))
+    (let ((process (python-shell-get-process)))
+      (if (not process)
+          (message "Eldoc needs an inferior Python process running.")
+        (let ((temp-buffer-show-hook
+               (lambda ()
+                 (toggle-read-only 1)
+                 (setq view-return-to-alist
+                       (list (cons (selected-window) help-return-method))))))
+          (with-output-to-temp-buffer (help-buffer)
+            (with-current-buffer standard-output
+              (insert
+               (python-eldoc--get-doc-at-point symbol process))
+              (help-print-return-message)))))))
 
 (add-hook 'inferior-python-mode-hook
           #'python-eldoc-setup)
