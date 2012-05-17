@@ -1152,13 +1152,13 @@ run).
          (proc-buffer-name (format "*%s*" proc-name))
          (process-environment
           (if python-shell-process-environment
-              (merge 'list python-shell-process-environment
-                     process-environment 'string=)
+              (python-util-merge 'list python-shell-process-environment
+                                 process-environment 'string=)
             process-environment))
          (exec-path
           (if python-shell-exec-path
-              (merge 'list python-shell-exec-path
-                     exec-path 'string=)
+              (python-util-merge 'list python-shell-exec-path
+                                 exec-path 'string=)
             exec-path)))
     (when (not (comint-check-proc proc-buffer-name))
       (let ((cmdlist (split-string-and-unquote cmd)))
@@ -1956,7 +1956,7 @@ Interactively, prompt for symbol."
   :group 'python
   :safe 'booleanp)
 
-(defcustom python-imenu-make-tree nil
+(defcustom python-imenu-make-tree t
   "Non-nil make imenu to build a tree menu.
 Set to nil for speed."
   :type 'boolean
@@ -1992,7 +1992,8 @@ Argument PLAIN-INDEX is the calculated plain index used to build the tree."
                                      (mapconcat #'identity full-element ".")
                                      plain-index)))
              (subelement-name (car element-list))
-             (subelement-position (position subelement-name full-element))
+             (subelement-position (python-util-position
+                                   subelement-name full-element))
              (subelement-path (when subelement-position
                                 (butlast
                                  full-element
@@ -2045,10 +2046,10 @@ This tree gets built:
 Internally it uses `python-imenu-make-element-tree' to create all
 branches for each element."
 (setq python-imenu-index-alist nil)
-(mapcar (lambda (element)
-          (python-imenu-make-element-tree element element index))
-        (mapcar (lambda (element)
-                  (split-string (car element) "\\." t)) index))
+(mapc (lambda (element)
+        (python-imenu-make-element-tree element element index))
+      (mapcar (lambda (element)
+              (split-string (car element) "\\." t)) index))
 python-imenu-index-alist)
 
 (defun python-imenu-create-index ()
@@ -2193,6 +2194,29 @@ character address of the specified TYPE."
       ('paren
        (nth 1 ppss))
       (t nil))))
+
+
+;;; Utility functions
+
+;; Stolen from GNUS
+(defun python-util-merge (type list1 list2 pred)
+  "Destructively merge lists LIST1 and LIST2 to produce a new list.
+Argument TYPE is for compatibility and ignored.
+Ordering of the elements is preserved according to PRED, a `less-than'
+predicate on the elements."
+  (let ((res nil))
+    (while (and list1 list2)
+      (if (funcall pred (car list2) (car list1))
+          (push (pop list2) res)
+        (push (pop list1) res)))
+    (nconc (nreverse res) list1 list2)))
+
+(defun python-util-position (item seq)
+  "Find the first occurrence of ITEM in SEQ.
+Return the index of the matching item, or nil if not found."
+  (let ((member-result (member item seq)))
+    (when member-result
+      (- (length seq) (length member-result)))))
 
 
 ;;;###autoload
