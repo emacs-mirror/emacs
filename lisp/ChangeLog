@@ -1,3 +1,8 @@
+2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-transform-lambda): Don't add spurious
+	parens around the arg list (bug#11499).
+
 2012-05-17  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (word-search-regexp, word-search-backward)

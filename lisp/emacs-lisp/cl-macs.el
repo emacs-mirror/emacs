@@ -318,8 +318,9 @@ It is a list of elements of the form either:
                         (require 'help-fns)
                         (cons (help-add-fundoc-usage
                                (if (stringp (car hdr)) (pop hdr))
-                               (format "(fn %S)"
-                                       (cl--make-usage-args orig-args)))
+                               (format "%S"
+                                       (cons 'fn
+                                             (cl--make-usage-args orig-args))))
                               hdr)))
 		    (list (nconc (list 'let* bind-lets)
 				 (nreverse bind-forms) body)))))))
