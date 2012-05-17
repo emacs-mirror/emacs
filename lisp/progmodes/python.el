@@ -46,8 +46,7 @@
 ;; causes the current line to be dedented automatically if needed.
 
 ;; Movement: `beginning-of-defun' and `end-of-defun' functions are
-;; properly implemented.  A `beginning-of-innermost-defun' is defined
-;; to navigate nested defuns.
+;; properly implemented.
 
 ;; Shell interaction: is provided and allows you easily execute any
 ;; block of code of your current buffer in an inferior Python process.
@@ -224,8 +223,6 @@
 	"-"
 	["Start of def/class" beginning-of-defun
 	 :help "Go to start of outermost definition around point"]
-	["Start of def/class" python-beginning-of-innermost-defun
-	 :help "Go to start of innermost definition around point"]
 	["End of def/class" end-of-defun
 	 :help "Go to end of definition around point"]
         "-"
@@ -266,7 +263,10 @@
                                    (or "def" "class" "if" "elif" "else" "try"
                                        "except" "finally" "for" "while" "with")
                                    symbol-end))
+     `(decorator            . ,(rx line-start (* space) ?@ (any letter ?_)
+                                    (* (any word ?_))))
      `(defun                . ,(rx symbol-start (or "def" "class") symbol-end))
+     `(symbol-name          . ,(rx (any letter ?_) (* (any word ?_))))
      `(open-paren           . ,(rx (or "{" "[" "(")))
      `(close-paren          . ,(rx (or "}" "]" ")")))
      `(simple-operator      . ,(rx (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%)))
@@ -870,109 +870,73 @@ With numeric ARG, just insert that many colons.  With
 
 ;;; Navigation
 
-(defcustom python-use-beginning-of-innermost-defun nil
-  "Set if `beginning-of-defun-function' should go to innermost defun."
-  :type 'string
-  :group 'python
-  :safe 'stringp)
-
-(defvar python-beginning-of-defun-regexp
-  "^\\(def\\|class\\)[[:space:]]+[[:word:]]+"
-  "Regular expresion matching beginning of outermost class or function.")
-
-(defvar python-beginning-of-innermost-defun-regexp
-  "^[[:space:]]*\\(def\\|class\\)[[:space:]]+[[:word:]]+"
+(defvar python-nav-beginning-of-defun-regexp
+  (python-rx line-start (* space) defun (+ space) symbol-name)
   "Regular expresion matching beginning of innermost class or function.")
 
-(defun python-beginning-of-defun (&optional innermost)
-  "Move point to the beginning of innermost/outermost def or class.
-If INNERMOST is non-nil then move to the beginning of the
-innermost definition."
-  (let ((starting-point (point-marker))
-        (nonblank-line-indent)
-        (defun-indent)
-        (defun-point)
-        (regexp (if innermost
-                    python-beginning-of-innermost-defun-regexp
-                  python-beginning-of-defun-regexp)))
-    (back-to-indentation)
-    (if (and (not (looking-at "@"))
-             (not (looking-at regexp)))
-        (forward-comment -1)
-      (while (and (not (eobp))
-                  (forward-line 1)
-                  (not (back-to-indentation))
-                  (looking-at "@"))))
-    (when (not (looking-at regexp))
-        (re-search-backward regexp nil t))
-    (setq nonblank-line-indent (+ (current-indentation) python-indent-offset))
-    (setq defun-indent (current-indentation))
-    (setq defun-point (point-marker))
-    (if (> nonblank-line-indent defun-indent)
+(defun python-nav-beginning-of-defun ()
+  "Move point to beginning-of-defun.
+This is the main part of`python-beginning-of-defun-function'
+implementation."
+  (let ((indent-pos (save-excursion
+                      (back-to-indentation)
+                      (point-marker)))
+        (include-decorators
+         (lambda ()
+           (when (save-excursion
+                   (forward-line -1)
+                   (looking-at (python-rx decorator)))
+             (while (and (not (bobp))
+                         (forward-line -1)
+                         (looking-at (python-rx decorator))))
+             (when (not (bobp)) (forward-line 1))))))
+    (if (and (> (point) indent-pos)
+             (save-excursion
+               (goto-char (line-beginning-position))
+               (looking-at python-nav-beginning-of-defun-regexp)))
         (progn
-          (goto-char defun-point)
-          (forward-line -1)
-          (while (and (looking-at "@")
-                      (forward-line -1)
-                      (not (bobp))
-                      (not (back-to-indentation))))
-          (unless (bobp)
-            (forward-line 1))
-          (point-marker))
-      (if innermost
-          (python-beginning-of-defun)
-        (goto-char starting-point)
-        nil))))
+          (goto-char (line-beginning-position))
+          (funcall include-decorators))
+      (goto-char (line-beginning-position))
+      (re-search-backward python-nav-beginning-of-defun-regexp nil t)
+      (goto-char (or (python-info-ppss-context 'string) (point)))
+      (funcall include-decorators))))
 
-(defun python-beginning-of-defun-function ()
-  "Move point to the beginning of \(inner|outer)most def or class.
-The point is moved to the beginning of innermost or outermost def
-or class given the value of
-`python-use-beginning-of-innermost-defun'.  Returns nil if point
-is not in a def or class."
-  (python-beginning-of-defun python-use-beginning-of-innermost-defun))
-
-(defun python-beginning-of-outermost-defun ()
-  "Move point to the beginning of outermost def or class.
-Returns nil if point is not in a def or class."
-  (interactive)
-  (python-beginning-of-defun nil))
-
-(defun python-beginning-of-innermost-defun ()
-  "Move point to the beginning of innermost def or class.
-Returns nil if point is not in a def or class."
-  (interactive)
-  (python-beginning-of-defun t))
+(defun python-beginning-of-defun-function (&optional arg)
+  "Move point to the beginning of def or class.
+With positive ARG move that number of functions forward.  With
+negative do the same but backwards."
+  (when (or (null arg) (= arg 0)) (setq arg 1))
+  (if (> arg 0)
+      (dotimes (i arg)
+        (python-nav-beginning-of-defun))
+    (dotimes (i (- arg))
+      (python-end-of-defun-function)
+      (forward-comment 1)
+      (goto-char (line-end-position))
+      (when (not (eobp))
+        (python-nav-beginning-of-defun)))))
 
 (defun python-end-of-defun-function ()
   "Move point to the end of def or class.
 Returns nil if point is not in a def or class."
-  (let ((starting-point (point-marker))
-        (defun-regexp (python-rx defun))
-        (beg-defun-indent))
-    (back-to-indentation)
-    (if (looking-at "@")
-	(while (and (not (eobp))
-		    (forward-line 1)
-		    (not (back-to-indentation))
-		    (looking-at "@")))
-      (while (and (not (bobp))
-		  (not (progn (back-to-indentation) (current-word)))
-		  (forward-line -1))))
-    (when (or (not (equal (current-indentation) 0))
-              (string-match defun-regexp (current-word)))
-      (setq beg-defun-indent (save-excursion
-        		       (or (looking-at defun-regexp)
-        			   (python-beginning-of-innermost-defun))
-        		       (current-indentation)))
-      (while (and (forward-line 1)
-        	  (not (eobp))
-        	  (or (not (current-word))
-                      (> (current-indentation) beg-defun-indent))))
-      (while (and (forward-comment -1)
-        	  (not (bobp))))
-      (forward-line 1)
-      (point-marker))))
+  (interactive)
+  (let ((beg-defun-indent)
+        (decorator-regexp "[[:space:]]*@"))
+    (when (looking-at decorator-regexp)
+      (while (and (not (eobp))
+                  (forward-line 1)
+                  (looking-at decorator-regexp))))
+    (when (not (looking-at python-nav-beginning-of-defun-regexp))
+      (python-beginning-of-defun-function))
+    (setq beg-defun-indent (current-indentation))
+    (forward-line 1)
+    (while (and (forward-line 1)
+                (not (eobp))
+                (or (not (current-word))
+                    (> (current-indentation) beg-defun-indent))))
+    (forward-comment 1)
+    (goto-char (line-beginning-position))))
 
 
 ;;; Shell integration
