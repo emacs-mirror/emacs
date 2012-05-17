@@ -88,8 +88,6 @@
 
 ;; (Perhaps) python-check
 
-;; (Perhaps) ffap support
-
 ;; (Perhaps) some skeletons (I never use them because of yasnippet)
 
 ;;; Code:
@@ -1431,6 +1429,62 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
      (t t))))
 
 
+;;; FFAP
+
+(defvar python-ffap-setup-code
+  "def __FFAP_get_module_path(module):
+    try:
+        import os
+        path = __import__(module).__file__
+        if path[-4:] == '.pyc' and os.path.exists(path[0:-1]):
+            path = path[:-1]
+        return path
+    except:
+        return ''"
+  "Python code to get a module path.")
+
+(defvar python-ffap-string-code
+  "__FFAP_get_module_path('''%s''')\n"
+  "Python code used to get a string with the path of a module.")
+
+(defun python-ffap-setup ()
+  "Send `python-ffap-setup-code' to inferior Python process.
+It is specially designed to be added to the
+`inferior-python-mode-hook'."
+  (when python-ffap-setup-code
+    (let ((temp-file (make-temp-file "py")))
+      (with-temp-file temp-file
+        (insert python-ffap-setup-code)
+        (delete-trailing-whitespace)
+        (goto-char (point-min)))
+      (python-shell-send-file temp-file (get-buffer-process (current-buffer)))
+      (message (format "FFAP setup code sent.")))))
+
+(defun python-ffap-module-path (module)
+  "Function for `ffap-alist' to return path for MODULE."
+  (let ((process (or
+                  (and (eq major-mode 'inferior-python-mode)
+                       (get-buffer-process (current-buffer)))
+                  (python-shell-get-process))))
+    (if (not process)
+        nil
+      (let ((module-file
+             (python-shell-send-and-clear-output
+              (format python-ffap-string-code module) process)))
+        (when module-file
+          (ffap-locate-file
+           (substring-no-properties module-file 1 -1)
+           nil nil))))))
+
+(eval-after-load "ffap"
+  '(progn
+     (push '(python-mode . python-ffap-module-path) ffap-alist)
+     (push '(inferior-python-mode . python-ffap-module-path) ffap-alist)))
+
+(add-hook 'inferior-python-mode-hook
+          #'python-ffap-setup)
+
+
 ;;; Eldoc
 
 (defvar python-eldoc-setup-code
@@ -1463,7 +1517,7 @@ It is specially designed to be added to the
         (delete-trailing-whitespace)
         (goto-char (point-min)))
       (python-shell-send-file temp-file (get-buffer-process (current-buffer)))
-      (message (format "Completion setup code sent.")))))
+      (message (format "Eldoc setup code sent.")))))
 
 (defun python-eldoc-function ()
   "`eldoc-documentation-function' for Python.
