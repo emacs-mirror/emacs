@@ -1924,10 +1924,28 @@ Runs COMMAND, a shell command, as if by `compile'.  See
 (defvar python-eldoc-setup-code
   "def __PYDOC_get_help(obj):
     try:
-        import pydoc
+        import inspect
         if hasattr(obj, 'startswith'):
             obj = eval(obj, globals())
-        doc = pydoc.getdoc(obj)
+        doc = inspect.getdoc(obj)
+        if not doc and callable(obj):
+            target = None
+            if inspect.isclass(obj) and hasattr(obj, '__init__'):
+                target = obj.__init__
+                objtype = 'class'
+            else:
+                target = obj
+                objtype = 'def'
+            if target:
+                args = inspect.formatargspec(
+                    *inspect.getargspec(target)
+                )
+                name = obj.__name__
+                doc = '{objtype} {name}{args}'.format(
+                    objtype=objtype, name=name, args=args
+                )
+        else:
+            doc = doc.splitlines()[0]
     except:
         doc = ''
     try:
@@ -2000,16 +2018,7 @@ Interactively, prompt for symbol."
     (let ((process (python-shell-get-process)))
       (if (not process)
           (message "Eldoc needs an inferior Python process running.")
-        (let ((temp-buffer-show-hook
-               (lambda ()
-                 (toggle-read-only 1)
-                 (setq view-return-to-alist
-                       (list (cons (selected-window) help-return-method))))))
-          (with-output-to-temp-buffer (help-buffer)
-            (with-current-buffer standard-output
-              (insert
-               (python-eldoc--get-doc-at-point symbol process))
-              (help-print-return-message)))))))
+        (message (python-eldoc--get-doc-at-point symbol process)))))
 
 
 ;;; Imenu
@@ -2144,9 +2153,9 @@ not inside a defun."
       (save-excursion
         (goto-char (line-end-position))
         (forward-comment -9999)
+        (setq min-indent (current-indentation))
         (while (python-beginning-of-defun-function 1 t)
-          (when (or (not min-indent)
-                    (< (current-indentation) min-indent))
+          (when (< (current-indentation) min-indent)
             (setq min-indent (current-indentation))
             (looking-at python-nav-beginning-of-defun-regexp)
             (setq names (cons
