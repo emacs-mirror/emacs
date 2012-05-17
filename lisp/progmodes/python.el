@@ -1501,6 +1501,38 @@ inferior python process is updated properly."
 
 ;;; Fill paragraph
 
+(defcustom python-fill-comment-function 'python-fill-comment
+  "Function to fill comments.
+This is the function used by `python-fill-paragraph-function' to
+fill comments."
+  :type 'symbol
+  :group 'python
+  :safe 'symbolp)
+
+(defcustom python-fill-string-function 'python-fill-string
+  "Function to fill strings.
+This is the function used by `python-fill-paragraph-function' to
+fill strings."
+  :type 'symbol
+  :group 'python
+  :safe 'symbolp)
+
+(defcustom python-fill-decorator-function 'python-fill-decorator
+  "Function to fill decorators.
+This is the function used by `python-fill-paragraph-function' to
+fill decorators."
+  :type 'symbol
+  :group 'python
+  :safe 'symbolp)
+
+(defcustom python-fill-paren-function 'python-fill-paren
+  "Function to fill parens.
+This is the function used by `python-fill-paragraph-function' to
+fill parens."
+  :type 'symbol
+  :group 'python
+  :safe 'symbolp)
+
 (defun python-fill-paragraph-function (&optional justify)
   "`fill-paragraph-function' handling multi-line strings and possibly comments.
 If any of the current line is in or at the end of a multi-line string,
@@ -1512,81 +1544,98 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
     (back-to-indentation)
     (cond
      ;; Comments
-     ((fill-comment-paragraph justify))
-     ;; Docstrings
+     ((funcall python-fill-comment-function justify))
+     ;; Strings/Docstrings
      ((save-excursion (skip-chars-forward "\"'uUrR")
                       (python-info-ppss-context 'string))
-      (let ((marker (point-marker))
-            (string-start-marker
-             (progn
-               (skip-chars-forward "\"'uUrR")
-               (goto-char (python-info-ppss-context 'string))
-               (skip-chars-forward "\"'uUrR")
-               (point-marker)))
-            (reg-start (line-beginning-position))
-            (string-end-marker
-             (progn
-               (while (python-info-ppss-context 'string)
-                 (goto-char (1+ (point-marker))))
-               (skip-chars-backward "\"'")
-               (point-marker)))
-            (reg-end (line-end-position))
-            (fill-paragraph-function))
-        (save-restriction
-          (narrow-to-region reg-start reg-end)
-          (save-excursion
-            (goto-char string-start-marker)
-            (delete-region (point-marker) (progn
-                                            (skip-syntax-forward "> ")
-                                            (point-marker)))
-            (goto-char string-end-marker)
-            (delete-region (point-marker) (progn
-                                            (skip-syntax-backward "> ")
-                                            (point-marker)))
-            (save-excursion
-              (goto-char marker)
-              (fill-paragraph justify))
-            ;; If there is a newline in the docstring lets put triple
-            ;; quote in it's own line to follow pep 8
-            (when (save-excursion
-                    (re-search-backward "\n" string-start-marker t))
-              (newline)
-              (newline-and-indent))
-            (fill-paragraph justify)))) t)
+      (funcall python-fill-string-function justify))
      ;; Decorators
      ((equal (char-after (save-excursion
                            (back-to-indentation)
-                           (point-marker))) ?@) t)
+                           (point-marker))) ?@)
+      (funcall python-fill-decorator-function justify))
      ;; Parens
      ((or (python-info-ppss-context 'paren)
           (looking-at (python-rx open-paren))
           (save-excursion
             (skip-syntax-forward "^(" (line-end-position))
             (looking-at (python-rx open-paren))))
-      (save-restriction
-        (narrow-to-region (progn
-                            (while (python-info-ppss-context 'paren)
-                              (goto-char (1- (point-marker))))
-                            (point-marker)
-                            (line-beginning-position))
-                          (progn
-                            (when (not (python-info-ppss-context 'paren))
-                              (end-of-line)
-                              (when (not (python-info-ppss-context 'paren))
-                                (skip-syntax-backward "^)")))
-                            (while (python-info-ppss-context 'paren)
-                              (goto-char (1+ (point-marker))))
-                            (point-marker)))
-        (let ((paragraph-start "\f\\|[ \t]*$")
-              (paragraph-separate ",")
-              (fill-paragraph-function))
-          (goto-char (point-min))
-          (fill-paragraph justify))
-        (while (not (eobp))
-          (forward-line 1)
-          (python-indent-line)
-          (goto-char (line-end-position)))) t)
+      (funcall python-fill-paren-function justify))
      (t t))))
+
+(defun python-fill-comment (&optional justify)
+  "Comment fill function for `python-fill-paragraph-function'."
+  (fill-comment-paragraph justify))
+
+(defun python-fill-string (&optional justify)
+  "String fill function for `python-fill-paragraph-function'."
+  (let ((marker (point-marker))
+        (string-start-marker
+         (progn
+           (skip-chars-forward "\"'uUrR")
+           (goto-char (python-info-ppss-context 'string))
+           (skip-chars-forward "\"'uUrR")
+           (point-marker)))
+        (reg-start (line-beginning-position))
+        (string-end-marker
+         (progn
+           (while (python-info-ppss-context 'string)
+             (goto-char (1+ (point-marker))))
+           (skip-chars-backward "\"'")
+           (point-marker)))
+        (reg-end (line-end-position))
+        (fill-paragraph-function))
+    (save-restriction
+      (narrow-to-region reg-start reg-end)
+      (save-excursion
+        (goto-char string-start-marker)
+        (delete-region (point-marker) (progn
+                                        (skip-syntax-forward "> ")
+                                        (point-marker)))
+        (goto-char string-end-marker)
+        (delete-region (point-marker) (progn
+                                        (skip-syntax-backward "> ")
+                                        (point-marker)))
+        (save-excursion
+          (goto-char marker)
+          (fill-paragraph justify))
+        ;; If there is a newline in the docstring lets put triple
+        ;; quote in it's own line to follow pep 8
+        (when (save-excursion
+                (re-search-backward "\n" string-start-marker t))
+          (newline)
+          (newline-and-indent))
+        (fill-paragraph justify)))) t)
+
+(defun python-fill-decorator (&optional justify)
+  "Decorator fill function for `python-fill-paragraph-function'."
+  t)
+
+(defun python-fill-paren (&optional justify)
+  "Paren fill function for `python-fill-paragraph-function'."
+  (save-restriction
+    (narrow-to-region (progn
+                        (while (python-info-ppss-context 'paren)
+                          (goto-char (1- (point-marker))))
+                        (point-marker)
+                        (line-beginning-position))
+                      (progn
+                        (when (not (python-info-ppss-context 'paren))
+                          (end-of-line)
+                          (when (not (python-info-ppss-context 'paren))
+                            (skip-syntax-backward "^)")))
+                        (while (python-info-ppss-context 'paren)
+                          (goto-char (1+ (point-marker))))
+                        (point-marker)))
+    (let ((paragraph-start "\f\\|[ \t]*$")
+          (paragraph-separate ",")
+          (fill-paragraph-function))
+      (goto-char (point-min))
+      (fill-paragraph justify))
+    (while (not (eobp))
+      (forward-line 1)
+      (python-indent-line)
+      (goto-char (line-end-position)))) t)
 
 
 ;;; Skeletons
