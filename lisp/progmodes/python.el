@@ -878,10 +878,12 @@ With numeric ARG, just insert that many colons.  With
   "Move point to `beginning-of-defun'.
 When NODECORATORS is non-nil decorators are not included.  This
 is the main part of`python-beginning-of-defun-function'
-implementation."
+implementation.  Return non-nil if point is moved to the
+beginning-of-defun."
   (let ((indent-pos (save-excursion
                       (back-to-indentation)
                       (point-marker)))
+        (found)
         (include-decorators
          (lambda ()
            (when (not nodecorators)
@@ -898,27 +900,32 @@ implementation."
                (looking-at python-nav-beginning-of-defun-regexp)))
         (progn
           (goto-char (line-beginning-position))
-          (funcall include-decorators))
+          (funcall include-decorators)
+          (setq found t))
       (goto-char (line-beginning-position))
-      (re-search-backward python-nav-beginning-of-defun-regexp nil t)
+      (when (re-search-backward python-nav-beginning-of-defun-regexp nil t)
+        (setq found t))
       (goto-char (or (python-info-ppss-context 'string) (point)))
-      (funcall include-decorators))))
+      (funcall include-decorators))
+    found))
 
 (defun python-beginning-of-defun-function (&optional arg nodecorators)
   "Move point to the beginning of def or class.
 With positive ARG move that number of functions forward.  With
 negative do the same but backwards.  When NODECORATORS is non-nil
-decorators are not included."
+decorators are not included.  Return non-nil if point is moved to the
+beginning-of-defun."
   (when (or (null arg) (= arg 0)) (setq arg 1))
   (if (> arg 0)
-      (dotimes (i arg)
-        (python-nav-beginning-of-defun nodecorators))
-    (dotimes (i (- arg))
-      (python-end-of-defun-function)
-      (forward-comment 1)
-      (goto-char (line-end-position))
-      (when (not (eobp))
-        (python-nav-beginning-of-defun nodecorators)))))
+      (dotimes (i arg (python-nav-beginning-of-defun nodecorators)))
+    (let ((found))
+      (dotimes (i (- arg) found)
+        (python-end-of-defun-function)
+        (forward-comment 1)
+        (goto-char (line-end-position))
+        (when (not (eobp))
+          (setq found
+                (python-nav-beginning-of-defun nodecorators)))))))
 
 (defun python-end-of-defun-function ()
   "Move point to the end of def or class.
@@ -1949,7 +1956,7 @@ not inside a defun."
         (goto-char (line-end-position))
         (forward-comment -1)
         (while (and (not (equal 0 (current-indentation)))
-                    (not (python-beginning-of-defun-function 1 t)))
+                    (python-beginning-of-defun-function 1 t))
           (when (or (not min-indent)
                     (< (current-indentation) min-indent))
             (setq min-indent (current-indentation))
