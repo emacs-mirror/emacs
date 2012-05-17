@@ -320,6 +320,10 @@
      `(decorator            . ,(rx line-start (* space) ?@ (any letter ?_)
                                    (* (any word ?_))))
      `(defun                . ,(rx symbol-start (or "def" "class") symbol-end))
+     `(if-name-main         . ,(rx line-start "if" (+ space) "__name__"
+				   (+ space) "==" (+ space)
+				   (any ?' ?\") "__main__" (any ?' ?\")
+				   (* space) ?:))
      `(symbol-name          . ,(rx (any letter ?_) (* (any word ?_))))
      `(open-paren           . ,(rx (or "{" "[" "(")))
      `(close-paren          . ,(rx (or "}" "]" ")")))
@@ -1593,12 +1597,21 @@ Returns the output.  See `python-shell-send-string-no-output'."
   (interactive "r")
   (python-shell-send-string (buffer-substring start end) nil t))
 
-(defun python-shell-send-buffer ()
-  "Send the entire buffer to inferior Python process."
-  (interactive)
+(defun python-shell-send-buffer (&optional arg)
+  "Send the entire buffer to inferior Python process.
+
+With prefix arg include lines protected by \"if __name__ == '__main__':\""
+  (interactive "P")
   (save-restriction
     (widen)
-    (python-shell-send-region (point-min) (point-max))))
+    (python-shell-send-region
+     (point-min)
+     (or (and
+	  (not arg)
+	  (save-excursion
+	    (re-search-forward (python-rx if-name-main) nil t))
+	  (match-beginning 0))
+	 (point-max)))))
 
 (defun python-shell-send-defun (arg)
   "Send the current defun to inferior Python process.
