@@ -1018,11 +1018,12 @@ commands.)"
                             dedicated-proc-buffer-name
                           global-proc-buffer-name))))
 
-(defun python-shell-send-string (string)
+(defun python-shell-send-string (string &optional process)
   "Send STRING to inferior Python process."
   (interactive "sPython command: ")
-  (let ((process (python-shell-get-or-create-process)))
-    (message (format "Sent: %s..." string))
+  (let ((process (or process (python-shell-get-or-create-process))))
+    (when (called-interactively-p)
+      (message (format "Sent: %s..." string)))
     (comint-send-string process string)
     (when (or (not (string-match "\n$" string))
               (string-match "\n[ \t].*\n?$" string))
@@ -1073,17 +1074,11 @@ When argument ARG is non-nil sends the innermost defun."
   (interactive "fFile to send: ")
   (let ((process (or process (python-shell-get-or-create-process)))
         (full-file-name (expand-file-name file-name)))
-    (accept-process-output process)
-    (with-current-buffer (process-buffer process)
-      (delete-region (save-excursion
-                       (move-to-column 0)
-                       (point-marker))
-                     (line-end-position)))
-    (comint-send-string
-     process
+    (python-shell-send-string
      (format
-      "with open('%s') as __pyfile: exec(compile(__pyfile.read(), '%s', 'exec'))\n\n"
-      full-file-name full-file-name))))
+      "__pyfile = open('%s'); exec(compile(__pyfile.read(), '%s', 'exec')); __pyfile.close()"
+      full-file-name full-file-name)
+     process)))
 
 (defun python-shell-switch-to-shell ()
   "Switch to inferior Python process buffer."
