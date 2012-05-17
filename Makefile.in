@@ -479,7 +479,6 @@ install-arch-dep: mkdir
 	        rm -fr `basename "$$dir"`; mv "$$dir" . ; \
 	      done ; \
 	    fi ; \
-	    if test -d share/info ; then rm -fr info; mv share/info . ; fi ; \
 	    rm -fr share ) ; \
 	fi
 

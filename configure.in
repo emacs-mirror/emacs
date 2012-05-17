@@ -1595,6 +1595,9 @@ if test "${HAVE_NS}" = yes; then
      archlibdir="\${ns_appbindir}/libexec"
      docdir="\${ns_appresdir}/etc"
      etcdir="\${ns_appresdir}/etc"
+     dnl FIXME maybe set datarootdir instead.
+     dnl That would also get applications, icons, man.
+     infodir="\${ns_appresdir}/info"
      lispdir="\${ns_appresdir}/lisp"
      LEIM_INSTALLDIR="\${ns_appresdir}/leim"
   fi
