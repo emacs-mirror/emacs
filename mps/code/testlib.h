@@ -160,7 +160,7 @@ extern void verror(const char *format, va_list args);
 
 #define insist1(cond, condstring) \
   if(cond) \
-    do {} while(0); \
+    NOOP; \
   else \
     cdie(cond, condstring "\n" __FILE__ "\n" STR(__LINE__))
 
