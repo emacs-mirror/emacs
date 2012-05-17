@@ -1611,6 +1611,8 @@ and use the following as the value of this variable:
   :group 'python
   :safe 'stringp)
 
+(defvar python-completion-original-window-configuration nil)
+
 (defun python-shell-completion--get-completions (input process completion-code)
   "Retrieve available completions for INPUT using PROCESS.
 Argument COMPLETION-CODE is the python code used to get
@@ -1638,7 +1640,12 @@ completions on the current context."
 	   (completion (when completions
 			 (try-completion input completions))))
       (cond ((eq completion t)
-           t)
+	     (if (eq this-command last-command)
+		 (when python-completion-original-window-configuration
+		   (set-window-configuration
+		    python-completion-original-window-configuration)))
+	     (setq python-completion-original-window-configuration nil)
+	     t)
 	    ((null completion)
 	     (message "Can't find completion for \"%s\"" input)
 	     (ding)
@@ -1648,6 +1655,9 @@ completions on the current context."
 		  (insert completion)
 		  t))
           (t
+	   (unless python-completion-original-window-configuration
+	      (setq python-completion-original-window-configuration
+		  (current-window-configuration)))
            (with-output-to-temp-buffer "*Python Completions*"
              (display-completion-list
               (all-completions input completions)))
