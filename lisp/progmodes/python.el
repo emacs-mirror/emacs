@@ -519,7 +519,7 @@ These make `python-indent-calculate-indentation' subtract the value of
                        (not (python-info-ppss-context 'comment))
                        (progn
                          (goto-char (line-end-position))
-                         (forward-comment -1)
+                         (forward-comment -9999)
                          (eq ?: (char-before))))
               (setq found-block t)))
           (if (not found-block)
@@ -531,7 +531,7 @@ These make `python-indent-calculate-indentation' subtract the value of
                         (not (eobp)))
               (forward-line 1))
             (forward-line 1)
-            (forward-comment 1)
+            (forward-comment 9999)
             (let ((indent-offset (current-indentation)))
               (when (> indent-offset 0)
                 (setq python-indent-offset indent-offset))))))))
@@ -578,7 +578,7 @@ START is the buffer position where the sexp starts."
                        (let ((block-regexp (python-rx block-start))
                              (block-start-line-end ":[[:space:]]*$"))
                          (back-to-indentation)
-                         (while (and (forward-comment -1) (not (bobp))))
+                         (while (and (forward-comment -9999) (not (bobp))))
                          (back-to-indentation)
                          (when (or (python-info-continuation-line-p)
                                    (and (not (looking-at block-regexp))
@@ -601,7 +601,7 @@ START is the buffer position where the sexp starts."
          'after-beginning-of-block)
         ;; After normal line
         ((setq start (save-excursion
-                       (while (and (forward-comment -1) (not (bobp))))
+                       (while (and (forward-comment -9999) (not (bobp))))
                        (python-nav-sentence-start)
                        (point-marker)))
          'after-line)
@@ -692,7 +692,7 @@ START is the buffer position where the sexp starts."
              indentation))
           ('inside-paren
            (or (save-excursion
-                 (forward-comment 1)
+                 (forward-comment 9999)
                  (when (and (looking-at (regexp-opt '(")" "]" "}")))
                             (not (forward-char 1))
                             (not (python-info-ppss-context 'paren)))
@@ -707,10 +707,10 @@ START is the buffer position where the sexp starts."
                     (narrow-to-region
                      (line-beginning-position)
                      (line-end-position))
-                    (forward-comment 1))
+                    (forward-comment 9999))
                   (if (looking-at "$")
                       (+ (current-indentation) python-indent-offset)
-                    (forward-comment 1)
+                    (forward-comment 9999)
                     (current-column)))
                 (if (progn
                       (back-to-indentation)
@@ -946,7 +946,7 @@ decorators are not included.  Return non-nil if point is moved to the
     (let ((found))
       (dotimes (i (- arg) found)
         (python-end-of-defun-function)
-        (forward-comment 1)
+        (forward-comment 9999)
         (goto-char (line-end-position))
         (when (not (eobp))
           (setq found
@@ -970,7 +970,7 @@ Returns nil if point is not in a def or class."
                 (not (eobp))
                 (or (not (current-word))
                     (> (current-indentation) beg-defun-indent))))
-    (forward-comment 1)
+    (forward-comment 9999)
     (goto-char (line-beginning-position))))
 
 (defun python-nav-sentence-start ()
@@ -1308,7 +1308,7 @@ the output."
             (with-temp-buffer
               (insert output-buffer)
               (goto-char (point-min))
-              (forward-comment 1)
+              (forward-comment 9999)
               (buffer-substring-no-properties
                (or
                 (and (looking-at python-shell-prompt-output-regexp)
@@ -2145,7 +2145,7 @@ not inside a defun."
       (widen)
       (save-excursion
         (goto-char (line-end-position))
-        (forward-comment -1)
+        (forward-comment -9999)
         (while (python-beginning-of-defun-function 1 t)
           (when (or (not min-indent)
                     (< (current-indentation) min-indent))
