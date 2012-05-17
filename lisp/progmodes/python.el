@@ -278,7 +278,8 @@
           (when (re-search-forward re limit t)
             (while (and (not (equal (nth 0 (syntax-ppss)) 0))
                         (re-search-forward re limit t)))
-            (if (equal (nth 0 (syntax-ppss)) 0)
+            (if (and (equal (nth 0 (syntax-ppss)) 0)
+                     (not (equal (char-after (point-marker)) ?=)))
                 t
               (set-match-data nil)))))
      (1 font-lock-variable-name-face nil nil))
