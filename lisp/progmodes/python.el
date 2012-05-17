@@ -1232,11 +1232,11 @@ uniqueness for different types of configurations."
             python-shell-prompt-block-regexp
             python-shell-prompt-output-regexp
             (mapconcat #'symbol-value python-shell-setup-codes "")
-            (mapconcat #'indentity python-shell-process-environment "")
-            (mapconcat #'indentity python-shell-extra-pythonpaths "")
-            (mapconcat #'indentity python-shell-exec-path "")
+            (mapconcat #'identity python-shell-process-environment "")
+            (mapconcat #'identity python-shell-extra-pythonpaths "")
+            (mapconcat #'identity python-shell-exec-path "")
             (or python-shell-virtualenv-path "")
-            (mapconcat #'indentity python-shell-exec-path "")))))
+            (mapconcat #'identity python-shell-exec-path "")))))
 
 (defun python-shell-parse-command ()
   "Calculate the string used to execute the inferior Python process."
