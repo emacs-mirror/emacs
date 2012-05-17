@@ -1680,28 +1680,27 @@ Used to extract the current line and module being inspected."
   :group 'python
   :safe 'stringp)
 
-(defvar python-pdbtrack-tracking-buffers nil
-  "Alist containing elements of form (#<buffer> . #<buffer>).
-The car of each element of the alist is the tracking buffer and
-the cdr is the tracked buffer.")
+(defvar python-pdbtrack-tracked-buffer nil
+  "Variable containing the value of the current tracked buffer.
+Never set this variable directly, use
+`python-pdbtrack-set-tracked-buffer' instead.")
+(make-variable-buffer-local 'python-pdbtrack-tracked-buffer)
 
-(defun python-pdbtrack-get-or-add-tracking-buffers (file-name)
-  "Get/Add a tracked buffer for the current buffer and FILE-NAME.
-Internally it uses the `python-pdbtrack-tracking-buffers' alist.
-Returns a cons with the form:
- * (#<tracking buffer> . #< tracked buffer>)."
-  (let ((tracking-buffers
-         (cons (current-buffer)
-               (or (get-file-buffer file-name)
-                   (find-file-noselect file-name)))))
-    (set-buffer (cdr tracking-buffers))
-    (when (not (eq major-mode 'python-mode))
-      (python-mode))
-    (set-buffer (car tracking-buffers))
-    (assq-delete-all (current-buffer) python-pdbtrack-tracking-buffers)
-    (setq python-pdbtrack-tracking-buffers
-          (cons tracking-buffers python-pdbtrack-tracking-buffers))
-    tracking-buffers))
+(defvar python-pdbtrack-buffers-to-kill nil
+  "List of buffers to be deleted after tracking finishes.")
+(make-variable-buffer-local 'python-pdbtrack-buffers-to-kill)
+
+(defun python-pdbtrack-set-tracked-buffer (file-name)
+  "Set the buffer for FILE-NAME as the tracked buffer.
+Internally it uses the `python-pdbtrack-tracked-buffer' variable.
+Returns the tracked buffer."
+  (let ((file-buffer (get-file-buffer file-name)))
+    (if file-buffer
+        (setq python-pdbtrack-tracked-buffer file-buffer)
+      (setq file-buffer (find-file-noselect file-name))
+      (when (not (member file-buffer python-pdbtrack-buffers-to-kill))
+        (add-to-list 'python-pdbtrack-buffers-to-kill file-buffer)))
+    file-buffer))
 
 (defun python-pdbtrack-comint-output-filter-function (output)
   "Move overlay arrow to current pdb line in tracked buffer.
@@ -1712,21 +1711,24 @@ Argument OUTPUT is a string with the output from the comint process."
            (line-number)
            (file-name
             (with-temp-buffer
-              ;; OK, this sucks but for some reason
-              ;; string-match was not doing his trick.
               (insert full-output)
               (goto-char (point-min))
-              (when (looking-at python-pdbtrack-stacktrace-info-regexp)
+              ;; OK, this sucked but now it became a cool hack. The
+              ;; stacktrace information normally is on the first line
+              ;; but in some cases (like when doing a step-in) it is
+              ;; on the second.
+              (when (or (looking-at python-pdbtrack-stacktrace-info-regexp)
+                        (and (forward-line)
+                             (looking-at python-pdbtrack-stacktrace-info-regexp)))
                 (setq line-number (string-to-number
                                    (match-string-no-properties 2)))
                 (match-string-no-properties 1)))))
       (if (and file-name line-number)
-          (let* ((tracking-buffers
-                  (python-pdbtrack-get-or-add-tracking-buffers file-name))
-                 (tracked-buffer-window
-                  (get-buffer-window (cdr tracking-buffers)))
+          (let* ((tracked-buffer (python-pdbtrack-set-tracked-buffer file-name))
+                 (shell-buffer (current-buffer))
+                 (tracked-buffer-window (get-buffer-window tracked-buffer))
                  (tracked-buffer-line-pos))
-            (with-current-buffer (cdr tracking-buffers)
+            (with-current-buffer tracked-buffer
               (set (make-local-variable 'overlay-arrow-string) "=>")
               (set (make-local-variable 'overlay-arrow-position) (make-marker))
               (setq tracked-buffer-line-pos (progn
@@ -1737,16 +1739,16 @@ Argument OUTPUT is a string with the output from the comint process."
                 (set-window-point
                  tracked-buffer-window tracked-buffer-line-pos))
               (set-marker overlay-arrow-position tracked-buffer-line-pos))
-            (pop-to-buffer (cdr tracking-buffers))
-            (switch-to-buffer-other-window (car tracking-buffers)))
-        (let ((tracking-buffers (assq (current-buffer)
-                                      python-pdbtrack-tracking-buffers)))
-          (when tracking-buffers
-            (with-current-buffer (cdr tracking-buffers)
-              (set-marker overlay-arrow-position nil))
-            (setq python-pdbtrack-tracking-buffers
-                  (assq-delete-all (current-buffer)
-                                   python-pdbtrack-tracking-buffers)))))))
+            (pop-to-buffer tracked-buffer)
+            (switch-to-buffer-other-window shell-buffer))
+        (when python-pdbtrack-tracked-buffer
+          (with-current-buffer python-pdbtrack-tracked-buffer
+            (set-marker overlay-arrow-position nil))
+          (mapc #'(lambda (buffer)
+                    (ignore-errors (kill-buffer buffer)))
+                python-pdbtrack-buffers-to-kill)
+          (setq python-pdbtrack-tracked-buffer nil
+                python-pdbtrack-buffers-to-kill nil)))))
   output)
 
 
