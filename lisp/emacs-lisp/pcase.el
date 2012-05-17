@@ -557,7 +557,8 @@ Otherwise, it defers to REST which is a list of branches of the form
                                         (let ((newsym (make-symbol "x")))
                                           (push (list newsym sym) env)
                                           (setq sym newsym)))
-                                      (if (functionp exp) `(,exp ,sym)
+                                      (if (functionp exp)
+                                          `(funcall #',exp ,sym)
                                         `(,@exp ,sym)))))
                          (if (null vs)
                              call

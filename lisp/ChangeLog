@@ -1,5 +1,7 @@
 2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el (pcase--u1): Avoid ((lambda ...) ...).
+
 	* emacs-lisp/cl.el: Add edebug specs from cl-specs.el.
 	* emacs-lisp/cl-macs.el: Idem.
 	* emacs-lisp/cl-specs.el: Remove.
