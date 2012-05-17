@@ -797,6 +797,7 @@ just insert a single colon."
   (and (not arg)
        (eolp)
        (not (nth 8 (syntax-ppss)))
+       (> (current-indentation) (python-indent-calculate-indentation))
        (save-excursion (python-indent-line))))
 (put 'python-indent-electric-colon 'delete-selection t)
 
