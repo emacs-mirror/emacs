@@ -1065,7 +1065,7 @@ commands.)"
   (let* ((contents (buffer-substring start end))
          (current-file (buffer-file-name))
          (process (python-shell-get-or-create-process))
-         (temp-file (convert-standard-filename (make-temp-file "py"))))
+         (temp-file (make-temp-file "py")))
     (with-temp-file temp-file
       (insert contents)
       (delete-trailing-whitespace)
@@ -1103,13 +1103,13 @@ instead, while internally the shell will continue to use
 FILE-NAME."
   (interactive "fFile to send: ")
   (let ((process (or process (python-shell-get-or-create-process)))
-        (file-name (convert-standard-filename (expand-file-name file-name)))
+        (file-name (expand-file-name file-name))
         (temp-file-name (when temp-file-name
-                          (convert-standard-filename
-                           (expand-file-name temp-file-name)))))
+                          (expand-file-name temp-file-name))))
     (find-file-noselect file-name)
     (with-current-buffer (process-buffer process)
-      (setq inferior-python-mode-current-file file-name))
+      (setq inferior-python-mode-current-file
+            (convert-standard-filename file-name)))
     (python-shell-send-string
      (format
       (concat "__pyfile = open('''%s''');"
