@@ -116,8 +116,8 @@
 ;; out of the box.  This feature needs an inferior python shell
 ;; running.
 
-;; Code check: Check the current file for errors using
-;; `python-check-command'
+;; Code check: Check the current file for errors with `python-check'
+;; using the program defined in `python-check-command'.
 
 ;; Eldoc: returns documentation for object at point by using the
 ;; inferior python subprocess to inspect its documentation.  As you
