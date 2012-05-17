@@ -34,7 +34,7 @@
 
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Pdb tracking, Symbol completion,
-;; Skeletons, FFAP, Code Check, Eldoc.
+;; Skeletons, FFAP, Code Check, Eldoc, imenu.
 
 ;; Syntax highlighting: Fontification of code is provided and supports
 ;; python's triple quoted strings properly.
@@ -123,6 +123,11 @@
 ;; inferior python subprocess to inspect its documentation.  As you
 ;; might guessed you should run `python-shell-send-buffer' from time
 ;; to time to get better results too.
+
+;; imenu: This mode supports imenu. It builds a plain or tree menu
+;; depending on the value of `python-imenu-make-tree'. Also you can
+;; customize if menu items should include its type using
+;; `python-imenu-include-defun-type'.
 
 ;; If you used python-mode.el you probably will miss auto-indentation
 ;; when inserting newlines.  To achieve the same behavior you have
@@ -873,15 +878,15 @@ With numeric ARG, just insert that many colons.  With
 (defvar python-nav-beginning-of-defun-regexp
   (python-rx line-start (* space) defun (+ space) (group symbol-name))
   "Regular expresion matching beginning of class or function.
-The name of the class or function should be in a group so it can
-be retrieved via `match-string'.")
+The name of the defun should be grouped so it can be retrieved
+via `match-string'.")
 
 (defun python-nav-beginning-of-defun (&optional nodecorators)
   "Move point to `beginning-of-defun'.
 When NODECORATORS is non-nil decorators are not included.  This
 is the main part of`python-beginning-of-defun-function'
 implementation.  Return non-nil if point is moved to the
-beginning-of-defun."
+`beginning-of-defun'."
   (let ((indent-pos (save-excursion
                       (back-to-indentation)
                       (point-marker)))
@@ -916,7 +921,7 @@ beginning-of-defun."
 With positive ARG move that number of functions forward.  With
 negative do the same but backwards.  When NODECORATORS is non-nil
 decorators are not included.  Return non-nil if point is moved to the
-beginning-of-defun."
+`beginning-of-defun'."
   (when (or (null arg) (= arg 0)) (setq arg 1))
   (if (> arg 0)
       (dotimes (i arg (python-nav-beginning-of-defun nodecorators)))
@@ -1943,10 +1948,127 @@ Interactively, prompt for symbol."
               (help-print-return-message)))))))
 
 
+;;; Imenu
+
+(defcustom python-imenu-include-defun-type t
+  "Non-nil make imenu items to include its type."
+  :type 'boolean
+  :group 'python
+  :safe 'booleanp)
+
+(defcustom python-imenu-make-tree nil
+  "Non-nil make imenu to build a tree menu.
+Set to nil for speed."
+  :type 'boolean
+  :group 'python
+  :safe 'booleanp)
+
+(defcustom python-imenu-subtree-root-label "<Jump to %s>"
+  "Label displayed to navigate to root from a subtree.
+It can contain a \"%s\" which will be replaced with the root name."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
+
+(defvar python-imenu-index-alist nil
+  "Calculated index tree for imenu.")
+
+(defun python-imenu-tree-assoc (keylist tree)
+  "Using KEYLIST traverse TREE."
+  (if keylist
+      (python-imenu-tree-assoc (cdr keylist)
+                               (ignore-errors (assoc (car keylist) tree)))
+    tree))
+
+(defun python-imenu-make-element-tree (element-list full-element plain-index)
+  "Make a tree from plain alist of module names.
+ELEMENT-LIST is the defun name splitted by \".\" and FULL-ELEMENT
+is the same thing, the difference is that FULL-ELEMENT remains
+untouched in all recursive calls.
+Argument PLAIN-INDEX is the calculated plain index used to build the tree."
+  (when (not (python-imenu-tree-assoc full-element python-imenu-index-alist))
+    (when element-list
+      (let* ((subelement-point (cdr (assoc
+                                     (mapconcat #'identity full-element ".")
+                                     plain-index)))
+             (subelement-name (car element-list))
+             (subelement-position (position subelement-name full-element))
+             (subelement-path (when subelement-position
+                                (butlast
+                                 full-element
+                                 (- (length full-element)
+                                    subelement-position)))))
+        (let ((path-ref (python-imenu-tree-assoc subelement-path
+                                                 python-imenu-index-alist)))
+          (if (not path-ref)
+              (push (cons subelement-name subelement-point)
+                    python-imenu-index-alist)
+            (when (not (listp (cdr path-ref)))
+              ;; Modifiy root cdr to be a list
+              (setcdr path-ref
+                      (list (cons (format python-imenu-subtree-root-label
+                                          (car path-ref))
+                                  (cdr (assoc
+                                        (mapconcat #'identity
+                                                   subelement-path ".")
+                                        plain-index))))))
+            (when (not (assoc subelement-name path-ref))
+              (push (cons subelement-name subelement-point) (cdr path-ref))))))
+      (python-imenu-make-element-tree (cdr element-list)
+                                      full-element plain-index))))
+
+(defun python-imenu-make-tree (index)
+"Build the imenu alist tree from plain INDEX.
+
+The idea of this function is that given the alist:
+
+ '((\"Test\" . 100)
+   (\"Test.__init__\" . 200)
+   (\"Test.some_method\" . 300)
+   (\"Test.some_method.another\" . 400)
+   (\"Test.something_else\" . 500)
+   (\"test\" . 600)
+   (\"test.reprint\" . 700)
+   (\"test.reprint\" . 800))
+
+This tree gets built:
+
+ '((\"Test\" . ((\"jump to...\" . 100)
+                (\"__init__\" . 200)
+                (\"some_method\" . ((\"jump to...\" . 300)
+                                    (\"another\" . 400)))
+                (\"something_else\" . 500)))
+   (\"test\" . ((\"jump to...\" . 600)
+                (\"reprint\" . 700)
+                (\"reprint\" . 800))))
+
+Internally it uses `python-imenu-make-element-tree' to create all
+branches for each element."
+(setq python-imenu-index-alist nil)
+(mapcar (lambda (element)
+          (python-imenu-make-element-tree element element index))
+        (mapcar (lambda (element)
+                  (split-string (car element) "\\." t)) index))
+python-imenu-index-alist)
+
+(defun python-imenu-create-index ()
+  "`imenu-create-index-function' for Python."
+  (let ((index))
+    (goto-char (point-max))
+    (while (python-beginning-of-defun-function 1 t)
+      (let ((defun-dotted-name
+              (python-info-current-defun python-imenu-include-defun-type)))
+        (push (cons defun-dotted-name (point)) index)))
+    (if python-imenu-make-tree
+        (python-imenu-make-tree index)
+      index)))
+
+
 ;;; Misc helpers
 
-(defun python-info-current-defun ()
+(defun python-info-current-defun (&optional include-type)
   "Return name of surrounding function with Python compatible dotty syntax.
+Optional argument INCLUDE-TYPE indicates to include the type of the defun.
 This function is compatible to be used as
 `add-log-current-defun-function' since it returns nil if point is
 not inside a defun."
@@ -1957,13 +2079,18 @@ not inside a defun."
       (save-excursion
         (goto-char (line-end-position))
         (forward-comment -1)
-        (while (and (not (equal 0 (current-indentation)))
-                    (python-beginning-of-defun-function 1 t))
+        (while (python-beginning-of-defun-function 1 t)
           (when (or (not min-indent)
                     (< (current-indentation) min-indent))
             (setq min-indent (current-indentation))
             (looking-at python-nav-beginning-of-defun-regexp)
-            (setq names (cons (match-string-no-properties 1) names))))))
+            (setq names (cons
+                         (if (not include-type)
+                             (match-string-no-properties 1)
+                           (mapconcat 'identity
+                                      (split-string
+                                       (match-string-no-properties 0)) " "))
+                         names))))))
     (when names
       (mapconcat (lambda (string) string) names "."))))
 
@@ -2102,6 +2229,8 @@ if that value is non-nil."
 
   (add-hook 'completion-at-point-functions
             'python-completion-complete-at-point nil 'local)
+
+  (setq imenu-create-index-function #'python-imenu-create-index)
 
   (set (make-local-variable 'add-log-current-defun-function)
        #'python-info-current-defun)
