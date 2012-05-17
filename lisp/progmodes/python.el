@@ -162,9 +162,8 @@
 
 ;; Ordered by priority:
 
-;; Better decorator support for beginning of defun
-
-;; Review code and cleanup
+;; Give a better interface for virtualenv support in interactive
+;; shells
 
 ;;; Code:
 
