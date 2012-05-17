@@ -1,5 +1,11 @@
 2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl.el: Add edebug specs from cl-specs.el.
+	* emacs-lisp/cl-macs.el: Idem.
+	* emacs-lisp/cl-specs.el: Remove.
+
+2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Minor renaming of internal CL functions and variables.
 	* emacs-lisp/cl-seq.el (cl--adjoin): Rename from cl-adjoin.
 	(cl--position): Rename from cl-position.

@@ -120,6 +120,7 @@ a future Emacs interpreter will be able to use it.")
   "Increment PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the incremented value of PLACE."
+  (declare (debug (place &optional form)))
   (if (symbolp place)
       (list 'setq place (if x (list '+ place x) (list '1+ place)))
     (list 'callf '+ place (or x 1))))
@@ -128,6 +129,7 @@ The return value is the incremented value of PLACE."
   "Decrement PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the decremented value of PLACE."
+  (declare (debug incf))
   (if (symbolp place)
       (list 'setq place (if x (list '- place x) (list '1- place)))
     (list 'callf '- place (or x 1))))
@@ -140,6 +142,7 @@ The return value is the decremented value of PLACE."
 Analogous to (prog1 (car PLACE) (setf PLACE (cdr PLACE))), though more
 careful about evaluating each argument only once and in the right order.
 PLACE may be a symbol, or any generalized variable allowed by `setf'."
+  (declare (debug (place)))
   (if (symbolp place)
       (list 'car (list 'prog1 place (list 'setq place (list 'cdr place))))
     (cl-do-pop place)))
@@ -149,6 +152,7 @@ PLACE may be a symbol, or any generalized variable allowed by `setf'."
 Analogous to (setf PLACE (cons X PLACE)), though more careful about
 evaluating each argument only once and in the right order.  PLACE may
 be a symbol, or any generalized variable allowed by `setf'."
+  (declare (debug (form place)))
   (if (symbolp place) (list 'setq place (list 'cons x place))
     (list 'callf2 'cons x place)))
 
@@ -158,6 +162,10 @@ Like (push X PLACE), except that the list is unmodified if X is `eql' to
 an element already on the list.
 \nKeywords supported:  :test :test-not :key
 \n(fn X PLACE [KEYWORD VALUE]...)"
+  (declare (debug
+            (form place &rest
+                  &or [[&or ":test" ":test-not" ":key"] function-form]
+                  [keywordp form])))
   (if (symbolp place)
       (if (null keys)
  	  `(let ((x ,x))

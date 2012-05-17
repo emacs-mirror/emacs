@@ -191,6 +191,28 @@ The name is made by appending a number to PREFIX, default \"G\"."
 
 ;;; Program structure.
 
+(def-edebug-spec cl-declarations
+  (&rest ("declare" &rest sexp)))
+
+(def-edebug-spec cl-declarations-or-string
+  (&or stringp cl-declarations))
+
+(def-edebug-spec cl-lambda-list
+  (([&rest arg]
+    [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
+    [&optional ["&rest" arg]]
+    [&optional ["&key" [cl-&key-arg &rest cl-&key-arg]
+		&optional "&allow-other-keys"]]
+    [&optional ["&aux" &rest
+		&or (symbolp &optional def-form) symbolp]]
+    )))
+
+(def-edebug-spec cl-&optional-arg
+  (&or (arg &optional def-form arg) arg))
+
+(def-edebug-spec cl-&key-arg
+  (&or ([&or (symbolp arg) arg] &optional def-form arg) arg))
+
 ;;;###autoload
 (defmacro defun* (name args &rest body)
   "Define NAME as a function.
@@ -198,9 +220,54 @@ Like normal `defun', except ARGLIST allows full Common Lisp conventions,
 and BODY is implicitly surrounded by (block NAME ...).
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
+  (declare (debug
+            ;; Same as defun but use cl-lambda-list.
+            (&define [&or name ("setf" :name setf name)]
+                     cl-lambda-list
+                     cl-declarations-or-string
+                     [&optional ("interactive" interactive)]
+                     def-body)))
   (let* ((res (cl-transform-lambda (cons args body) name))
 	 (form (list* 'defun name (cdr res))))
     (if (car res) (list 'progn (car res) form) form)))
+
+;; The lambda list for macros is different from that of normal lambdas.
+;; Note that &environment is only allowed as first or last items in the
+;; top level list.
+
+(def-edebug-spec cl-macro-list
+  (([&optional "&environment" arg]
+    [&rest cl-macro-arg]
+    [&optional ["&optional" &rest
+		&or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
+    [&optional [[&or "&rest" "&body"] cl-macro-arg]]
+    [&optional ["&key" [&rest
+			[&or ([&or (symbolp cl-macro-arg) arg]
+			      &optional def-form cl-macro-arg)
+			     arg]]
+		&optional "&allow-other-keys"]]
+    [&optional ["&aux" &rest
+		&or (symbolp &optional def-form) symbolp]]
+    [&optional "&environment" arg]
+    )))
+
+(def-edebug-spec cl-macro-arg
+  (&or arg cl-macro-list1))
+
+(def-edebug-spec cl-macro-list1
+  (([&optional "&whole" arg]  ;; only allowed at lower levels
+    [&rest cl-macro-arg]
+    [&optional ["&optional" &rest
+		&or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
+    [&optional [[&or "&rest" "&body"] cl-macro-arg]]
+    [&optional ["&key" [&rest
+			[&or ([&or (symbolp cl-macro-arg) arg]
+			      &optional def-form cl-macro-arg)
+			     arg]]
+		&optional "&allow-other-keys"]]
+    [&optional ["&aux" &rest
+		&or (symbolp &optional def-form) symbolp]]
+    . [&or arg nil])))
 
 ;;;###autoload
 (defmacro defmacro* (name args &rest body)
@@ -209,15 +276,32 @@ Like normal `defmacro', except ARGLIST allows full Common Lisp conventions,
 and BODY is implicitly surrounded by (block NAME ...).
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
+  (declare (debug
+            (&define name cl-macro-list cl-declarations-or-string def-body)))
   (let* ((res (cl-transform-lambda (cons args body) name))
 	 (form (list* 'defmacro name (cdr res))))
     (if (car res) (list 'progn (car res) form) form)))
+
+(def-edebug-spec cl-lambda-expr
+  (&define ("lambda" cl-lambda-list
+	    ;;cl-declarations-or-string
+	    ;;[&optional ("interactive" interactive)]
+	    def-body)))
+
+;; Redefine function-form to also match function*
+(def-edebug-spec function-form
+  ;; form at the end could also handle "function",
+  ;; but recognize it specially to avoid wrapping function forms.
+  (&or ([&or "quote" "function"] &or symbolp lambda-expr)
+       ("function*" function*)
+       form))
 
 ;;;###autoload
 (defmacro function* (func)
   "Introduce a function.
 Like normal `function', except that if argument is a lambda form,
 its argument list allows full Common Lisp conventions."
+  (declare (debug (&or symbolp cl-lambda-expr)))
   (if (eq (car-safe func) 'lambda)
       (let* ((res (cl-transform-lambda (cdr func) 'cl-none))
 	     (form (list 'function (cons 'lambda (cdr res)))))
@@ -471,6 +555,7 @@ It is a list of elements of the form either:
 
 ;;;###autoload
 (defmacro destructuring-bind (args expr &rest body)
+  (declare (debug (&define cl-macro-list def-form cl-declarations def-body)))
   (let* ((bind-lets nil) (bind-forms nil) (bind-inits nil)
 	 (bind-defs nil) (bind-block 'cl-none) (bind-enquote nil))
     (cl-do-arglist (or args '(&aux)) expr)
@@ -491,6 +576,7 @@ If `load' is in WHEN, BODY is evaluated when loaded after top-level compile.
 If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 
 \(fn (WHEN...) BODY...)"
+  (declare (debug ((&rest &or "compile" "load" "eval") body)))
   (if (and (fboundp 'cl-compiling-file) (cl-compiling-file)
 	   (not cl-not-toplevel) (not (boundp 'for-effect)))  ; horrible kludge
       (let ((comp (or (memq 'compile when) (memq :compile-toplevel when)))
@@ -519,6 +605,7 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 (defmacro load-time-value (form &optional read-only)
   "Like `progn', but evaluates the body at load time.
 The result of the body appears to the compiler as a quoted constant."
+  (declare (debug (form &optional sexp)))
   (if (cl-compiling-file)
       (let* ((temp (gentemp "--cl-load-time--"))
 	     (set (list 'set (list 'quote temp) form)))
@@ -548,6 +635,7 @@ place of a KEYLIST of one atom.  A KEYLIST of t or `otherwise' is
 allowed only in the final clause, and matches if no other keys match.
 Key values are compared by `eql'.
 \n(fn EXPR (KEYLIST BODY...)...)"
+  (declare (debug (form &rest (sexp body))))
   (let* ((temp (if (cl-simple-expr-p expr 3) expr (make-symbol "--cl-var--")))
 	 (head-list nil)
 	 (body (cons
@@ -578,6 +666,7 @@ Key values are compared by `eql'.
   "Like `case', but error if no case fits.
 `otherwise'-clauses are not allowed.
 \n(fn EXPR (KEYLIST BODY...)...)"
+  (declare (debug case))
   (list* 'case expr (append clauses '((ecase-error-flag)))))
 
 ;;;###autoload
@@ -588,6 +677,7 @@ satisfies TYPE, the corresponding BODY is evaluated.  If no clause succeeds,
 typecase returns nil.  A TYPE of t or `otherwise' is allowed only in the
 final clause, and matches if no other keys match.
 \n(fn EXPR (TYPE BODY...)...)"
+  (declare (debug (form &rest ([&or cl-type-spec "otherwise"] body))))
   (let* ((temp (if (cl-simple-expr-p expr 3) expr (make-symbol "--cl-var--")))
 	 (type-list nil)
 	 (body (cons
@@ -612,6 +702,7 @@ final clause, and matches if no other keys match.
   "Like `typecase', but error if no case fits.
 `otherwise'-clauses are not allowed.
 \n(fn EXPR (TYPE BODY...)...)"
+  (declare (debug typecase))
   (list* 'typecase expr (append clauses '((ecase-error-flag)))))
 
 
@@ -627,6 +718,7 @@ quoted symbol or other form; and second, NAME is lexically rather than
 dynamically scoped:  Only references to it within BODY will work.  These
 references may appear inside macro expansions, but not inside functions
 called from BODY."
+  (declare (debug (symbolp body)))
   (if (cl-safe-expr-p (cons 'progn body)) (cons 'progn body)
     (list 'cl-block-wrapper
 	  (list* 'catch (list 'quote (intern (format "--cl-block-%s--" name)))
@@ -636,6 +728,7 @@ called from BODY."
 (defmacro return (&optional result)
   "Return from the block named nil.
 This is equivalent to `(return-from nil RESULT)'."
+  (declare (debug (&optional form)))
   (list 'return-from nil result))
 
 ;;;###autoload
@@ -645,6 +738,7 @@ This jumps out to the innermost enclosing `(block NAME ...)' form,
 returning RESULT from that form (or nil if RESULT is omitted).
 This is compatible with Common Lisp, but note that `defun' and
 `defmacro' do not create implicit blocks as they do in Common Lisp."
+  (declare (debug (symbolp &optional form)))
   (let ((name2 (intern (format "--cl-block-%s--" name))))
     (list 'cl-block-throw (list 'quote name2) result)))
 
@@ -674,6 +768,7 @@ Valid clauses are:
   finally return EXPR, named NAME.
 
 \(fn CLAUSE...)"
+  (declare (debug (&rest &or symbolp form)))
   (if (not (memq t (mapcar 'symbolp (delq nil (delq t (copy-list loop-args))))))
       (list 'block nil (list* 'while t loop-args))
     (let ((loop-name nil)	(loop-bindings nil)
@@ -724,6 +819,158 @@ Valid clauses are:
 	(if loop-symbol-macs
 	    (setq body (list (list* 'symbol-macrolet loop-symbol-macs body))))
 	(list* 'block loop-name body)))))
+
+;; Below is a complete spec for loop, in several parts that correspond
+;; to the syntax given in CLtL2.  The specs do more than specify where
+;; the forms are; it also specifies, as much as Edebug allows, all the
+;; syntactically valid loop clauses.  The disadvantage of this
+;; completeness is rigidity, but the "for ... being" clause allows
+;; arbitrary extensions of the form: [symbolp &rest &or symbolp form].
+
+;; (def-edebug-spec loop
+;;   ([&optional ["named" symbolp]]
+;;    [&rest
+;;     &or
+;;     ["repeat" form]
+;;     loop-for-as
+;;     loop-with
+;;     loop-initial-final]
+;;    [&rest loop-clause]
+;;    ))
+
+;; (def-edebug-spec loop-with
+;;   ("with" loop-var
+;;    loop-type-spec
+;;    [&optional ["=" form]]
+;;    &rest ["and" loop-var
+;; 	  loop-type-spec
+;; 	  [&optional ["=" form]]]))
+
+;; (def-edebug-spec loop-for-as
+;;   ([&or "for" "as"] loop-for-as-subclause
+;;    &rest ["and" loop-for-as-subclause]))
+
+;; (def-edebug-spec loop-for-as-subclause
+;;   (loop-var
+;;    loop-type-spec
+;;    &or
+;;    [[&or "in" "on" "in-ref" "across-ref"]
+;;     form &optional ["by" function-form]]
+
+;;    ["=" form &optional ["then" form]]
+;;    ["across" form]
+;;    ["being"
+;;     [&or "the" "each"]
+;;     &or
+;;     [[&or "element" "elements"]
+;;      [&or "of" "in" "of-ref"] form
+;;      &optional "using" ["index" symbolp]];; is this right?
+;;     [[&or "hash-key" "hash-keys"
+;; 	  "hash-value" "hash-values"]
+;;      [&or "of" "in"]
+;;      hash-table-p &optional ["using" ([&or "hash-value" "hash-values"
+;; 					   "hash-key" "hash-keys"] sexp)]]
+
+;;     [[&or "symbol" "present-symbol" "external-symbol"
+;; 	  "symbols" "present-symbols" "external-symbols"]
+;;      [&or "in" "of"] package-p]
+
+;;     ;; Extensions for Emacs Lisp, including Lucid Emacs.
+;;     [[&or "frame" "frames"
+;; 	  "screen" "screens"
+;; 	  "buffer" "buffers"]]
+
+;;     [[&or "window" "windows"]
+;;      [&or "of" "in"] form]
+
+;;     [[&or "overlay" "overlays"
+;; 	  "extent" "extents"]
+;;      [&or "of" "in"] form
+;;      &optional [[&or "from" "to"] form]]
+
+;;     [[&or "interval" "intervals"]
+;;      [&or "in" "of"] form
+;;      &optional [[&or "from" "to"] form]
+;;      ["property" form]]
+
+;;     [[&or "key-code" "key-codes"
+;; 	  "key-seq" "key-seqs"
+;; 	  "key-binding" "key-bindings"]
+;;      [&or "in" "of"] form
+;;      &optional ["using" ([&or "key-code" "key-codes"
+;; 			      "key-seq" "key-seqs"
+;; 			      "key-binding" "key-bindings"]
+;; 			 sexp)]]
+;;     ;; For arbitrary extensions, recognize anything else.
+;;     [symbolp &rest &or symbolp form]
+;;     ]
+
+;;    ;; arithmetic - must be last since all parts are optional.
+;;    [[&optional [[&or "from" "downfrom" "upfrom"] form]]
+;;     [&optional [[&or "to" "downto" "upto" "below" "above"] form]]
+;;     [&optional ["by" form]]
+;;     ]))
+
+;; (def-edebug-spec loop-initial-final
+;;   (&or ["initially"
+;; 	;; [&optional &or "do" "doing"]  ;; CLtL2 doesn't allow this.
+;; 	&rest loop-non-atomic-expr]
+;;        ["finally" &or
+;; 	[[&optional &or "do" "doing"] &rest loop-non-atomic-expr]
+;; 	["return" form]]))
+
+;; (def-edebug-spec loop-and-clause
+;;   (loop-clause &rest ["and" loop-clause]))
+
+;; (def-edebug-spec loop-clause
+;;   (&or
+;;    [[&or "while" "until" "always" "never" "thereis"] form]
+
+;;    [[&or "collect" "collecting"
+;; 	 "append" "appending"
+;; 	 "nconc" "nconcing"
+;; 	 "concat" "vconcat"] form
+;; 	 [&optional ["into" loop-var]]]
+
+;;    [[&or "count" "counting"
+;; 	 "sum" "summing"
+;; 	 "maximize" "maximizing"
+;; 	 "minimize" "minimizing"] form
+;; 	 [&optional ["into" loop-var]]
+;; 	 loop-type-spec]
+
+;;    [[&or "if" "when" "unless"]
+;;     form loop-and-clause
+;;     [&optional ["else" loop-and-clause]]
+;;     [&optional "end"]]
+
+;;    [[&or "do" "doing"] &rest loop-non-atomic-expr]
+
+;;    ["return" form]
+;;    loop-initial-final
+;;    ))
+
+;; (def-edebug-spec loop-non-atomic-expr
+;;   ([&not atom] form))
+
+;; (def-edebug-spec loop-var
+;;   ;; The symbolp must be last alternative to recognize e.g. (a b . c)
+;;   ;; loop-var =>
+;;   ;; (loop-var . [&or nil loop-var])
+;;   ;; (symbolp . [&or nil loop-var])
+;;   ;; (symbolp . loop-var)
+;;   ;; (symbolp . (symbolp . [&or nil loop-var]))
+;;   ;; (symbolp . (symbolp . loop-var))
+;;   ;; (symbolp . (symbolp . symbolp)) == (symbolp symbolp . symbolp)
+;;   (&or (loop-var . [&or nil loop-var]) [gate symbolp]))
+
+;; (def-edebug-spec loop-type-spec
+;;   (&optional ["of-type" loop-d-type-spec]))
+
+;; (def-edebug-spec loop-d-type-spec
+;;   (&or (loop-d-type-spec . [&or nil loop-d-type-spec]) cl-type-spec))
+
+
 
 (defun cl-parse-loop-clause ()		; uses loop-*
   (let ((word (pop loop-args))
@@ -1232,6 +1479,10 @@ Valid clauses are:
   "The Common Lisp `do' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
+  (declare (debug
+            ((&rest &or symbolp (symbolp &optional form form))
+             (form body)
+             cl-declarations body)))
   (cl-expand-do-loop steps endtest body nil))
 
 ;;;###autoload
@@ -1239,6 +1490,7 @@ Valid clauses are:
   "The Common Lisp `do*' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
+  (declare (debug do))
   (cl-expand-do-loop steps endtest body t))
 
 (defun cl-expand-do-loop (steps endtest body star)
@@ -1270,6 +1522,7 @@ Then evaluate RESULT to get return value, default nil.
 An implicit nil block is established around the loop.
 
 \(fn (VAR LIST [RESULT]) BODY...)"
+  (declare (debug ((symbolp form &optional form) cl-declarations body)))
   (let ((temp (make-symbol "--cl-dolist-temp--")))
     ;; FIXME: Copy&pasted from subr.el.
     `(block nil
@@ -1303,6 +1556,7 @@ to COUNT, exclusive.  Then evaluate RESULT to get return value, default
 nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
+  (declare (debug dolist))
   (let ((temp (make-symbol "--cl-dotimes-temp--"))
 	(end (nth 1 spec)))
     ;; FIXME: Copy&pasted from subr.el.
@@ -1335,6 +1589,7 @@ Evaluate BODY with VAR bound to each interned symbol, or to each symbol
 from OBARRAY.
 
 \(fn (VAR [OBARRAY [RESULT]]) BODY...)"
+  (declare (debug ((symbolp &optional form form) cl-declarations body)))
   ;; Apparently this doesn't have an implicit block.
   (list 'block nil
 	(list 'let (list (car spec))
@@ -1345,6 +1600,7 @@ from OBARRAY.
 
 ;;;###autoload
 (defmacro do-all-symbols (spec &rest body)
+  (declare (debug ((symbolp &optional form) cl-declarations body)))
   (list* 'do-symbols (list (car spec) nil (cadr spec)) body))
 
 
@@ -1357,6 +1613,7 @@ This is like `setq', except that all VAL forms are evaluated (in order)
 before assigning any symbols SYM to the corresponding values.
 
 \(fn SYM VAL SYM VAL ...)"
+  (declare (debug setq))
   (cons 'psetf args))
 
 
@@ -1370,6 +1627,7 @@ Each symbol in the first list is bound to the corresponding value in the
 second list (or made unbound if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time."
+  (declare (debug (form form body)))
   (list 'let '((cl-progv-save nil))
 	(list 'unwind-protect
 	      (list* 'progn (list 'cl-progv-before symbols values) body)
@@ -1385,6 +1643,7 @@ function definitions in place, then the definitions are undone (the FUNCs
 go back to their previous definitions, or lack thereof).
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (declare (debug ((&rest (defun*)) cl-declarations body)))
   (list* 'letf*
 	 (mapcar
 	  (function
@@ -1417,6 +1676,7 @@ This is like `flet', except the bindings are lexical instead of dynamic.
 Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (declare (debug flet))
   (let ((vars nil) (sets nil) (cl-macro-environment cl-macro-environment))
     (while bindings
       ;; Use `gensym' rather than `make-symbol'.  It's important that
@@ -1441,6 +1701,10 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 This is like `flet', but for macros instead of functions.
 
 \(fn ((NAME ARGLIST BODY...) ...) FORM...)"
+  (declare (debug
+            ((&rest (&define name (&rest arg) cl-declarations-or-string
+                             def-body))
+             cl-declarations body)))
   (if (cdr bindings)
       (list 'macrolet
 	    (list (car bindings)) (list* 'macrolet (cdr bindings) body))
@@ -1459,6 +1723,7 @@ Within the body FORMs, references to the variable NAME will be replaced
 by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 
 \(fn ((NAME EXPANSION) ...) FORM...)"
+  (declare (debug ((&rest (symbol sexp)) cl-declarations body)))
   (if (cdr bindings)
       (list 'symbol-macrolet
 	    (list (car bindings)) (list* 'symbol-macrolet (cdr bindings) body))
@@ -1475,6 +1740,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp.
 \n(fn BINDINGS BODY)"
+  (declare (debug let))
   (let* ((cl-closure-vars cl-closure-vars)
 	 (vars (mapcar (function
 			(lambda (x)
@@ -1527,6 +1793,7 @@ successive bindings within BINDINGS, will create lexical closures
 as in Common Lisp.  This is similar to the behavior of `let*' in
 Common Lisp.
 \n(fn BINDINGS BODY)"
+  (declare (debug let))
   (if (null bindings) (cons 'progn body)
     (setq bindings (reverse bindings))
     (while bindings
@@ -1552,6 +1819,7 @@ simulate true multiple return values.  For compatibility, (values A B C) is
 a synonym for (list A B C).
 
 \(fn (SYM...) FORM BODY)"
+  (declare (debug ((&rest symbolp) form body)))
   (let ((temp (make-symbol "--cl-var--")) (n -1))
     (list* 'let* (cons (list temp form)
 		       (mapcar (function
@@ -1569,6 +1837,7 @@ each of the symbols SYM in turn.  This is analogous to the Common Lisp
 values.  For compatibility, (values A B C) is a synonym for (list A B C).
 
 \(fn (SYM...) FORM)"
+  (declare (debug ((&rest symbolp) form)))
   (cond ((null vars) (list 'progn form nil))
 	((null (cdr vars)) (list 'setq (car vars) (list 'car form)))
 	(t
@@ -1588,9 +1857,13 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 ;;; Declarations.
 
 ;;;###autoload
-(defmacro locally (&rest body) (cons 'progn body))
+(defmacro locally (&rest body)
+  (declare (debug t))
+  (cons 'progn body))
 ;;;###autoload
-(defmacro the (type form) form)
+(defmacro the (type form)
+  (declare (debug (cl-type-spec form)))
+  form)
 
 (defvar cl-proclaim-history t)    ; for future compilers
 (defvar cl-declare-stack t)       ; for future compilers
@@ -1670,6 +1943,8 @@ list, a store-variables list (of length one), a store-form, and an access-
 form.  See `defsetf' for a simpler way to define most setf-methods.
 
 \(fn NAME ARGLIST BODY...)"
+  (declare (debug
+            (&define name cl-lambda-list cl-declarations-or-string def-body)))
   (append '(eval-when (compile load eval))
 	  (if (stringp (car body))
 	      (list (list 'put (list 'quote func) '(quote setf-documentation)
@@ -1699,6 +1974,11 @@ Example:
   (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))
 
 \(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
+  (declare (debug
+            (&define name
+                     [&or [symbolp &optional stringp]
+                          [cl-lambda-list (symbolp)]]
+                     cl-declarations-or-string def-body)))
   (if (and (listp arg1) (consp args))
       (let* ((largs nil) (largsr nil)
 	     (temps nil) (tempsr nil)
@@ -2037,6 +2317,7 @@ For example, (setf (cadar x) y) is equivalent to (setcar (cdar x) y).
 The return value is the last VAL in the list.
 
 \(fn PLACE VAL PLACE VAL ...)"
+  (declare (debug (&rest [place form])))
   (if (cdr (cdr args))
       (let ((sets nil))
 	(while args (push (list 'setf (pop args) (pop args)) sets))
@@ -2054,6 +2335,7 @@ This is like `setf', except that all VAL forms are evaluated (in order)
 before assigning any PLACEs to the corresponding values.
 
 \(fn PLACE VAL PLACE VAL ...)"
+  (declare (debug setf))
   (let ((p args) (simple t) (vars nil))
     (while p
       (if (or (not (symbolp (car p))) (cl-expr-depends-p (nth 1 p) vars))
@@ -2089,6 +2371,7 @@ before assigning any PLACEs to the corresponding values.
   "Remove TAG from property list PLACE.
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The form returns true if TAG was found and removed, nil otherwise."
+  (declare (debug (place form)))
   (let* ((method (cl-setf-do-modify place t))
 	 (tag-temp (and (not (cl-const-expr-p tag)) (make-symbol "--cl-remf-tag--")))
 	 (val-temp (and (not (cl-simple-expr-p place))
@@ -2112,6 +2395,7 @@ Example: (shiftf A B C) sets A to B, B to C, and returns the old A.
 Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 
 \(fn PLACE... VAL)"
+  (declare (debug (&rest place)))
   (cond
    ((null args) place)
    ((symbolp place) `(prog1 ,place (setq ,place (shiftf ,@args))))
@@ -2128,6 +2412,7 @@ Example: (rotatef A B C) sets A to B, B to C, and C to A.  It returns nil.
 Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 
 \(fn PLACE...)"
+  (declare (debug (&rest place)))
   (if (not (memq nil (mapcar 'symbolp args)))
       (and (cdr args)
 	   (let ((sets nil)
@@ -2159,6 +2444,7 @@ As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
 the PLACE is not modified before executing BODY.
 
 \(fn ((PLACE VALUE) ...) BODY...)"
+  (declare (debug ((&rest (gate place &optional form)) body)))
   (if (and (not (cdr bindings)) (cdar bindings) (symbolp (caar bindings)))
       (list* 'let bindings body)
     (let ((lets nil) (sets nil)
@@ -2216,6 +2502,7 @@ As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
 the PLACE is not modified before executing BODY.
 
 \(fn ((PLACE VALUE) ...) BODY...)"
+  (declare (debug letf))
   (if (null bindings)
       (cons 'progn body)
     (setq bindings (reverse bindings))
@@ -2230,6 +2517,7 @@ FUNC should be an unquoted function name.  PLACE may be a symbol,
 or any generalized variable allowed by `setf'.
 
 \(fn FUNC PLACE ARGS...)"
+  (declare (debug (function* place &rest form)))
   (let* ((method (cl-setf-do-modify place (cons 'list args)))
 	 (rargs (cons (nth 2 method) args)))
     (list 'let* (car method)
@@ -2244,6 +2532,7 @@ or any generalized variable allowed by `setf'.
 Like `callf', but PLACE is the second argument of FUNC, not the first.
 
 \(fn FUNC ARG1 PLACE ARGS...)"
+  (declare (debug (function* form place &rest form)))
   (if (and (cl-safe-expr-p arg1) (cl-simple-expr-p place) (symbolp func))
       (list 'setf place (list* func arg1 place args))
     (let* ((method (cl-setf-do-modify place (cons 'list args)))
@@ -2260,6 +2549,9 @@ Like `callf', but PLACE is the second argument of FUNC, not the first.
   "Define a `setf'-like modify macro.
 If NAME is called, it combines its PLACE argument with the other arguments
 from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
+  (declare (debug
+            (&define name cl-lambda-list ;; should exclude &key
+                     symbolp &optional stringp)))
   (if (memq '&key arglist) (error "&key not allowed in define-modify-macro"))
   (let ((place (make-symbol "--cl-place--")))
     (list 'defmacro* name (cons place arglist) doc
@@ -2288,6 +2580,25 @@ one keyword is supported, `:read-only'.  If this has a non-nil
 value, that slot cannot be set via `setf'.
 
 \(fn NAME SLOTS...)"
+  (declare (debug
+            (&define                    ;Makes top-level form not be wrapped.
+             [&or symbolp
+                  (gate
+                   symbolp &rest
+                   (&or [":conc-name" symbolp]
+                        [":constructor" symbolp &optional cl-lambda-list]
+                        [":copier" symbolp]
+                        [":predicate" symbolp]
+                        [":include" symbolp &rest sexp] ;; Not finished.
+                        ;; The following are not supported.
+                        ;; [":print-function" ...]
+                        ;; [":type" ...]
+                        ;; [":initial-offset" ...]
+                        ))]
+             [&optional stringp]
+             ;; All the above is for the following def-form.
+             &rest &or symbolp (symbolp def-form
+                                        &optional ":read-only" sexp))))
   (let* ((name (if (consp struct) (car struct) struct))
 	 (opts (cdr-safe struct))
 	 (slots nil)
@@ -2536,6 +2847,7 @@ value, that slot cannot be set via `setf'.
 (defmacro deftype (name arglist &rest body)
   "Define NAME as a new data type.
 The type name can then be used in `typecase', `check-type', etc."
+  (declare (debug defmacro*))
   (list 'eval-when '(compile load eval)
 	(cl-transform-function-property
 	 name 'cl-deftype-handler (cons (list* '&cl-defs ''('*) arglist) body))))
@@ -2587,6 +2899,7 @@ TYPE is a Common Lisp-style type specifier."
 (defmacro check-type (form type &optional string)
   "Verify that FORM is of type TYPE; signal an error if not.
 STRING is an optional description of the desired type."
+  (declare (debug (place cl-type-spec &optional stringp)))
   (and (or (not (cl-compiling-file))
 	   (< cl-optimize-speed 3) (= cl-optimize-safety 3))
        (let* ((temp (if (cl-simple-expr-p form 3)
@@ -2605,6 +2918,7 @@ Second arg SHOW-ARGS means to include arguments of FORM in message.
 Other args STRING and ARGS... are arguments to be passed to `error'.
 They are not evaluated unless the assertion fails.  If STRING is
 omitted, a default message listing FORM itself is used."
+  (declare (debug (form &rest form)))
   (and (or (not (cl-compiling-file))
 	   (< cl-optimize-speed 3) (= cl-optimize-safety 3))
        (let ((sargs (and show-args
@@ -2635,6 +2949,7 @@ compiler macros are expanded repeatedly until no further expansions are
 possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
 original function call alone by declaring an initial `&whole foo' parameter
 and then returning foo."
+  (declare (debug defmacro*))
   (let ((p args) (res nil))
     (while (consp p) (push (pop p) res))
     (setq args (nconc (nreverse res) (and p (list '&rest p)))))
@@ -2709,6 +3024,7 @@ ARGLIST allows full Common Lisp conventions, and BODY is implicitly
 surrounded by (block NAME ...).
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
+  (declare (debug defun*))
   (let* ((argns (cl-arglist-args args)) (p argns)
 	 (pbody (cons 'progn body))
 	 (unsafe (not (cl-safe-expr-p pbody))))
