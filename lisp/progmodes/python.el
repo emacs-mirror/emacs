@@ -1184,7 +1184,7 @@ cache."
 
 (defun python-nav-jump-to-defun (def)
   "Jump to the definition of DEF in current file.
-Locations are cached; use a C-u prefix argument to force a
+Locations are cached; use a `C-u' prefix argument to force a
 rescan."
   (interactive
    (list (python-nav-read-defun current-prefix-arg)))
@@ -1637,7 +1637,7 @@ Returns the output.  See `python-shell-send-string-no-output'."
 (defun python-shell-send-buffer (&optional arg)
   "Send the entire buffer to inferior Python process.
 
-With prefix arg include lines protected by \"if __name__ == '__main__':\""
+With prefix ARG include lines surrounded by \"if __name__ == '__main__':\""
   (interactive "P")
   (save-restriction
     (widen)
@@ -1961,7 +1961,7 @@ inferior python process is updated properly."
   (interactive)
   (let ((process (python-shell-get-process)))
     (if (not process)
-        (error "Completion needs an inferior Python process running.")
+        (error "Completion needs an inferior Python process running")
       (python-shell-completion--do-completion-at-point process))))
 
 (add-to-list 'debug-ignored-errors
@@ -2639,7 +2639,8 @@ With optional argument LINE-NUMBER, check that line instead."
         (point-marker)))))
 
 (defun python-info-beginning-of-backlash (&optional line-number)
-  "Return the point where the backlashed line starts."
+  "Return the point where the backlashed line start.
+Optional argument LINE-NUMBER forces the line number to check against."
   (save-excursion
     (save-restriction
       (widen)
@@ -2750,8 +2751,8 @@ The type returned can be 'comment, 'string or 'paren."
      (t nil))))
 
 (defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss)
-  "Return nil of point is at `beginning-of-defun'."
-  (and (not (python-info-ppss-context-type))
+  "Check if point is at `beginning-of-defun' using SYNTAX-PPSS."
+  (and (not (python-info-ppss-context-type (or syntax-ppss (syntax-ppss))))
        (save-excursion
          (beginning-of-line 1)
          (looking-at python-nav-beginning-of-defun-regexp))))
@@ -2781,7 +2782,8 @@ to \"^python-\"."
    (buffer-local-variables from-buffer)))
 
 (defun python-util-forward-comment (&optional direction)
-  "Python mode specific version of `forward-comment'."
+  "Python mode specific version of `forward-comment'.
+Optional argument DIRECTION defines the direction to move to."
   (let ((comment-start (python-info-ppss-context 'comment))
         (factor (if (< (or direction 0) 0)
                     -99999
