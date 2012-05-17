@@ -1217,7 +1217,7 @@ virtualenv."
   :group 'python)
 
 (defun python-shell-get-process-name (dedicated)
-  "Calculate the appropiate process name for inferior Python process.
+  "Calculate the appropriate process name for inferior Python process.
 If DEDICATED is t and the variable `buffer-file-name' is non-nil
 returns a string with the form
 `python-shell-buffer-name'[variable `buffer-file-name'] else
@@ -1234,7 +1234,7 @@ in the `same-window-buffer-names' list."
     process-name))
 
 (defun python-shell-internal-get-process-name ()
-  "Calculate the appropiate process name for Internal Python process.
+  "Calculate the appropriate process name for Internal Python process.
 The name is calculated from `python-shell-global-buffer-name' and
 a hash of all relevant global shell settings in order to ensure
 uniqueness for different types of configurations."
