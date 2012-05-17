@@ -874,22 +874,24 @@ With numeric ARG, just insert that many colons.  With
   (python-rx line-start (* space) defun (+ space) symbol-name)
   "Regular expresion matching beginning of innermost class or function.")
 
-(defun python-nav-beginning-of-defun ()
+(defun python-nav-beginning-of-defun (&optional nodecorators)
   "Move point to beginning-of-defun.
-This is the main part of`python-beginning-of-defun-function'
+When NODECORATORS is non-nil decorators are not included.  This
+is the main part of`python-beginning-of-defun-function'
 implementation."
   (let ((indent-pos (save-excursion
                       (back-to-indentation)
                       (point-marker)))
         (include-decorators
          (lambda ()
-           (when (save-excursion
-                   (forward-line -1)
-                   (looking-at (python-rx decorator)))
-             (while (and (not (bobp))
-                         (forward-line -1)
-                         (looking-at (python-rx decorator))))
-             (when (not (bobp)) (forward-line 1))))))
+           (when (not nodecorators)
+             (when (save-excursion
+                     (forward-line -1)
+                     (looking-at (python-rx decorator)))
+               (while (and (not (bobp))
+                           (forward-line -1)
+                           (looking-at (python-rx decorator))))
+               (when (not (bobp)) (forward-line 1)))))))
     (if (and (> (point) indent-pos)
              (save-excursion
                (goto-char (line-beginning-position))
@@ -902,20 +904,21 @@ implementation."
       (goto-char (or (python-info-ppss-context 'string) (point)))
       (funcall include-decorators))))
 
-(defun python-beginning-of-defun-function (&optional arg)
+(defun python-beginning-of-defun-function (&optional arg nodecorators)
   "Move point to the beginning of def or class.
 With positive ARG move that number of functions forward.  With
-negative do the same but backwards."
+negative do the same but backwards.  When NODECORATORS is non-nil
+decorators are not included."
   (when (or (null arg) (= arg 0)) (setq arg 1))
   (if (> arg 0)
       (dotimes (i arg)
-        (python-nav-beginning-of-defun))
+        (python-nav-beginning-of-defun nodecorators))
     (dotimes (i (- arg))
       (python-end-of-defun-function)
       (forward-comment 1)
       (goto-char (line-end-position))
       (when (not (eobp))
-        (python-nav-beginning-of-defun)))))
+        (python-nav-beginning-of-defun nodecorators)))))
 
 (defun python-end-of-defun-function ()
   "Move point to the end of def or class.
@@ -1934,18 +1937,21 @@ Interactively, prompt for symbol."
 This function is compatible to be used as
 `add-log-current-defun-function' since it returns nil if point is
 not inside a defun."
-  (let ((names '()))
+  (let ((names '())
+        (min-indent))
     (save-restriction
       (widen)
       (save-excursion
-        (beginning-of-line)
-        (when (not (>= (current-indentation) python-indent-offset))
-          (while (and (not (eobp)) (forward-comment 1))))
+        (forward-comment -1)
+        (goto-char (line-end-position))
         (while (and (not (equal 0 (current-indentation)))
-                         (python-beginning-of-defun-function))
-          (back-to-indentation)
-          (looking-at "\\(?:def\\|class\\) +\\([^(]+\\)[^:]+:\\s-*\n")
-          (setq names (cons (match-string-no-properties 1) names)))))
+                    (not (python-beginning-of-defun-function 1 t)))
+          (when (or (not min-indent)
+                    (< (current-indentation) min-indent))
+            (setq min-indent (current-indentation))
+            (back-to-indentation)
+            (looking-at "\\(?:def\\|class\\) +\\([^(]+\\)[^:]+:\\s-*\n")
+            (setq names (cons (match-string-no-properties 1) names))))))
     (when names
       (mapconcat (lambda (string) string) names "."))))
 
