@@ -352,21 +352,20 @@
               "UserWarning" "ValueError" "Warning" "ZeroDivisionError")
           symbol-end) . font-lock-type-face)
     ;; Builtins
-    (,(rx (or line-start (not (any ". \t"))) (* (any " \t")) symbol-start
-	  (group
-           (or "_" "__doc__" "__import__" "__name__" "__package__" "abs" "all"
-               "any" "apply" "basestring" "bin" "bool" "buffer" "bytearray"
-               "bytes" "callable" "chr" "classmethod" "cmp" "coerce" "compile"
-               "complex" "delattr" "dict" "dir" "divmod" "enumerate" "eval"
-               "execfile" "file" "filter" "float" "format" "frozenset"
-               "getattr" "globals" "hasattr" "hash" "help" "hex" "id" "input"
-               "int" "intern" "isinstance" "issubclass" "iter" "len" "list"
-               "locals" "long" "map" "max" "min" "next" "object" "oct" "open"
-               "ord" "pow" "print" "property" "range" "raw_input" "reduce"
-               "reload" "repr" "reversed" "round" "set" "setattr" "slice"
-               "sorted" "staticmethod" "str" "sum" "super" "tuple" "type"
-               "unichr" "unicode" "vars" "xrange" "zip")) symbol-end)
-     (1 font-lock-builtin-face))
+    (,(rx symbol-start
+          (or "_" "__doc__" "__import__" "__name__" "__package__" "abs" "all"
+              "any" "apply" "basestring" "bin" "bool" "buffer" "bytearray"
+              "bytes" "callable" "chr" "classmethod" "cmp" "coerce" "compile"
+              "complex" "delattr" "dict" "dir" "divmod" "enumerate" "eval"
+              "execfile" "file" "filter" "float" "format" "frozenset"
+              "getattr" "globals" "hasattr" "hash" "help" "hex" "id" "input"
+              "int" "intern" "isinstance" "issubclass" "iter" "len" "list"
+              "locals" "long" "map" "max" "min" "next" "object" "oct" "open"
+              "ord" "pow" "print" "property" "range" "raw_input" "reduce"
+              "reload" "repr" "reversed" "round" "set" "setattr" "slice"
+              "sorted" "staticmethod" "str" "sum" "super" "tuple" "type"
+              "unichr" "unicode" "vars" "xrange" "zip")
+          symbol-end) . font-lock-builtin-face)
     ;; asignations
     ;; support for a = b = c = 5
     (,(lambda (limit)
