@@ -1266,48 +1266,10 @@ non-nil the buffer is shown."
         (let* ((cmdlist (split-string-and-unquote cmd))
                (buffer (apply 'make-comint proc-name (car cmdlist) nil
                               (cdr cmdlist)))
-               (python-shell-interpreter-1 python-shell-interpreter)
-               (python-shell-interpreter-args-1 python-shell-interpreter-args)
-               (python-shell-prompt-regexp-1 python-shell-prompt-regexp)
-               (python-shell-prompt-output-regexp-1
-                python-shell-prompt-output-regexp)
-               (python-shell-prompt-block-regexp-1
-                python-shell-prompt-block-regexp)
-               (python-shell-completion-setup-code-1
-                python-shell-completion-setup-code)
-               (python-shell-completion-string-code-1
-                python-shell-completion-string-code)
-               (python-eldoc-setup-code-1 python-eldoc-setup-code)
-               (python-eldoc-string-code-1 python-eldoc-string-code)
-               (python-ffap-setup-code-1 python-ffap-setup-code)
-               (python-ffap-string-code-1 python-ffap-string-code)
-               (python-shell-setup-codes-1 python-shell-setup-codes))
+               (current-buffer (current-buffer)))
           (with-current-buffer buffer
             (inferior-python-mode)
-            (set (make-local-variable 'python-shell-interpreter)
-                 python-shell-interpreter-1)
-            (set (make-local-variable 'python-shell-interpreter-args)
-                 python-shell-interpreter-args-1)
-            (set (make-local-variable 'python-shell-prompt-regexp)
-                 python-shell-prompt-regexp-1)
-            (set (make-local-variable 'python-shell-prompt-output-regexp)
-                 python-shell-prompt-output-regexp-1)
-            (set (make-local-variable 'python-shell-prompt-block-regexp)
-                 python-shell-prompt-block-regexp-1)
-            (set (make-local-variable 'python-shell-completion-setup-code)
-                 python-shell-completion-setup-code-1)
-            (set (make-local-variable 'python-shell-completion-string-code)
-                 python-shell-completion-string-code-1)
-            (set (make-local-variable 'python-eldoc-setup-code)
-                 python-eldoc-setup-code-1)
-            (set (make-local-variable 'python-eldoc-string-code)
-                 python-eldoc-string-code-1)
-            (set (make-local-variable 'python-ffap-setup-code)
-                 python-ffap-setup-code-1)
-            (set (make-local-variable 'python-ffap-string-code)
-                 python-ffap-string-code-1)
-            (set (make-local-variable 'python-shell-setup-codes)
-                 python-shell-setup-codes-1))))
+            (python-clone-local-variables current-buffer))))
       (when pop
         (pop-to-buffer proc-buffer-name)))))
 
@@ -2479,6 +2441,20 @@ Return the index of the matching item, or nil if not found."
   (let ((member-result (member item seq)))
     (when member-result
       (- (length seq) (length member-result)))))
+
+;; Stolen from org-mode
+(defun python-clone-local-variables (from-buffer &optional regexp)
+  "Clone local variables from FROM-BUFFER.
+Optional argument REGEXP selects variables to clone and defaults
+to \"^python-\"."
+  (mapc
+   (lambda (pair)
+     (and (symbolp (car pair))
+          (string-match (or regexp "^python-")
+                        (symbol-name (car pair)))
+	  (set (make-local-variable (car pair))
+	       (cdr pair))))
+   (buffer-local-variables from-buffer)))
 
 
 ;;;###autoload
