@@ -345,14 +345,22 @@ This variant of `rx' supports common python named REGEXPS."
 
 
 ;;; Font-lock and syntax
-
 (defvar python-font-lock-keywords
   ;; Keywords
   `(,(rx symbol-start
-         (or "and" "del" "from" "not" "while" "as" "elif" "global" "or" "with"
-             "assert" "else" "if" "pass" "yield" "break" "except" "import"
-             "print" "class" "exec" "in" "raise" "continue" "finally" "is"
-             "return" "def" "for" "lambda" "try" "self")
+         (or
+          "and" "del" "from" "not" "while" "as" "elif" "global" "or" "with"
+          "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
+          "in" "raise" "continue" "finally" "is" "return" "def" "for" "lambda"
+          "try"
+          ;; Python 2:
+          "print" "exec"
+          ;; Python 3:
+          ;; False, None, and True are listed as keywords on the Python 3
+          ;; documentation, but since they also qualify as constants they are
+          ;; fontified like that in order to keep font-lock consistent between
+          ;; Python versions.
+          "nonlocal")
          symbol-end)
     ;; functions
     (,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
@@ -362,10 +370,11 @@ This variant of `rx' supports common python named REGEXPS."
      (1 font-lock-type-face))
     ;; Constants
     (,(rx symbol-start
-          ;; copyright, license, credits, quit, exit are added by the
-          ;; site module and since they are not intended to be used in
-          ;; programs they are not added here either.
-          (or "None" "True" "False" "Ellipsis" "__debug__" "NotImplemented")
+          (or
+           "Ellipsis" "False" "None" "NotImplemented" "True" "__debug__"
+           ;; copyright, license, credits, quit and exit are added by the site
+           ;; module and they are not intended to be used in programs
+           "copyright" "credits" "exit" "license" "quit")
           symbol-end) . font-lock-constant-face)
     ;; Decorators.
     (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
@@ -373,34 +382,45 @@ This variant of `rx' supports common python named REGEXPS."
      (1 font-lock-type-face))
     ;; Builtin Exceptions
     (,(rx symbol-start
-          (or "ArithmeticError" "AssertionError" "AttributeError"
-              "BaseException" "BufferError" "BytesWarning" "DeprecationWarning"
-              "EOFError" "EnvironmentError" "Exception" "FloatingPointError"
-              "FutureWarning" "GeneratorExit" "IOError" "ImportError"
-              "ImportWarning" "IndentationError" "IndexError" "KeyError"
-              "KeyboardInterrupt" "LookupError" "MemoryError" "NameError"
-              "NotImplementedError" "OSError" "OverflowError"
-              "PendingDeprecationWarning" "ReferenceError" "RuntimeError"
-              "RuntimeWarning" "StandardError" "StopIteration" "SyntaxError"
-              "SyntaxWarning" "SystemError" "SystemExit" "TabError" "TypeError"
-              "UnboundLocalError" "UnicodeDecodeError" "UnicodeEncodeError"
-              "UnicodeError" "UnicodeTranslateError" "UnicodeWarning"
-              "UserWarning" "ValueError" "Warning" "ZeroDivisionError")
+          (or
+           "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
+           "DeprecationWarning" "EOFError" "EnvironmentError" "Exception"
+           "FloatingPointError" "FutureWarning" "GeneratorExit" "IOError"
+           "ImportError" "ImportWarning" "IndexError" "KeyError"
+           "KeyboardInterrupt" "LookupError" "MemoryError" "NameError"
+           "NotImplementedError" "OSError" "OverflowError"
+           "PendingDeprecationWarning" "ReferenceError" "RuntimeError"
+           "RuntimeWarning" "StopIteration" "SyntaxError" "SyntaxWarning"
+           "SystemError" "SystemExit" "TypeError" "UnboundLocalError"
+           "UnicodeDecodeError" "UnicodeEncodeError" "UnicodeError"
+           "UnicodeTranslateError" "UnicodeWarning" "UserWarning" "VMSError"
+           "ValueError" "Warning" "WindowsError" "ZeroDivisionError"
+           ;; Python 2:
+           "StandardError"
+           ;; Python 3:
+           "BufferError" "BytesWarning" "IndentationError" "ResourceWarning"
+           "TabError")
           symbol-end) . font-lock-type-face)
     ;; Builtins
     (,(rx symbol-start
-          (or "_" "__doc__" "__import__" "__name__" "__package__" "abs" "all"
-              "any" "apply" "basestring" "bin" "bool" "buffer" "bytearray"
-              "bytes" "callable" "chr" "classmethod" "cmp" "coerce" "compile"
-              "complex" "delattr" "dict" "dir" "divmod" "enumerate" "eval"
-              "execfile" "file" "filter" "float" "format" "frozenset"
-              "getattr" "globals" "hasattr" "hash" "help" "hex" "id" "input"
-              "int" "intern" "isinstance" "issubclass" "iter" "len" "list"
-              "locals" "long" "map" "max" "min" "next" "object" "oct" "open"
-              "ord" "pow" "print" "property" "range" "raw_input" "reduce"
-              "reload" "repr" "reversed" "round" "set" "setattr" "slice"
-              "sorted" "staticmethod" "str" "sum" "super" "tuple" "type"
-              "unichr" "unicode" "vars" "xrange" "zip")
+          (or
+           "abs" "all" "any" "bin" "bool" "callable" "chr" "classmethod"
+           "compile" "complex" "delattr" "dict" "dir" "divmod" "enumerate"
+           "eval" "filter" "float" "format" "frozenset" "getattr" "globals"
+           "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
+           "issubclass" "iter" "len" "list" "locals" "map" "max" "memoryview"
+           "min" "next" "object" "oct" "open" "ord" "pow" "print" "property"
+           "range" "repr" "reversed" "round" "set" "setattr" "slice" "sorted"
+           "staticmethod" "str" "sum" "super" "tuple" "type" "vars" "zip"
+           "__import__"
+           ;; Python 2:
+           "basestring" "cmp" "execfile" "file" "long" "raw_input" "reduce"
+           "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
+           "intern"
+           ;; Python 3:
+           "ascii" "bytearray" "bytes" "exec"
+           ;; Extra:
+           "__all__" "__doc__" "__name__" "__package__")
           symbol-end) . font-lock-builtin-face)
     ;; asignations
     ;; support for a = b = c = 5
