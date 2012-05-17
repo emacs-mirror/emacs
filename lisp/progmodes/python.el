@@ -122,6 +122,10 @@
 
 ;; (setq python-shell-virtualenv-path "/path/to/env/")
 
+;; Also the `python-shell-extra-pythonpaths' variable have been
+;; introduced as simple way of adding paths to the PYTHONPATH without
+;; affecting existing values.
+
 ;; Pdb tracking: when you execute a block of code that contains some
 ;; call to pdb (or ipdb) it will prompt the block of code and will
 ;; follow the execution of pdb marking the current line with an arrow.
@@ -1146,6 +1150,14 @@ the default `process-environment'."
   :group 'python
   :safe 'listp)
 
+(defcustom python-shell-extra-pythonpaths nil
+  "List of extra pythonpaths for Python shell.
+The values of this variable are added to the existing value of
+PYTHONPATH in the `process-environment' variable."
+  :type '(repeat string)
+  :group 'python
+  :safe 'listp)
+
 (defcustom python-shell-exec-path nil
   "List of path to search for binaries.
 This variable follows the same rules as `exec-path' since it
@@ -1237,11 +1249,20 @@ uniqueness for different types of configurations."
         (virtualenv (if python-shell-virtualenv-path
                         (directory-file-name python-shell-virtualenv-path)
                       nil)))
+    (when python-shell-extra-pythonpaths
+      (setenv "PYTHONPATH"
+              (format "%s%s%s"
+                      (mapconcat 'identity
+                                 python-shell-extra-pythonpaths
+                                 path-separator)
+                      path-separator
+                      (or (getenv "PYTHONPATH") ""))))
     (if (not virtualenv)
         process-environment
       (setenv "PYTHONHOME" nil)
       (setenv "PATH" (format "%s/bin%s%s"
-                             virtualenv path-separator (getenv "PATH")))
+                             virtualenv path-separator
+                             (or (getenv "PATH") "")))
       (setenv "VIRTUAL_ENV" virtualenv))
     process-environment))
 
