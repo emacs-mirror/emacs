@@ -786,7 +786,8 @@ innermost definition."
                       (forward-line -1)
                       (not (bobp))
                       (not (back-to-indentation))))
-          (forward-line 1)
+          (unless (bobp)
+            (forward-line 1))
           (point-marker))
       (if innermost
           (python-beginning-of-defun)
