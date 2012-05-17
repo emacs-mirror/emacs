@@ -618,6 +618,17 @@ START is the buffer position where the sexp starts."
                    (save-excursion
                      (forward-line -1)
                      (python-info-assignment-continuation-line-p)))
+                  (dot-continuation
+                   (save-excursion
+                     (back-to-indentation)
+                     (when (looking-at "\\.")
+                       (forward-line -1)
+                       (back-to-indentation)
+                       (forward-char (length
+                                      (with-syntax-table python-dotty-syntax-table
+                                        (current-word))))
+                       (re-search-backward "\\." (line-beginning-position) t 1)
+                       (current-column))))
                   (indentation (cond (block-continuation
                                       (goto-char block-continuation)
                                       (re-search-forward
@@ -634,6 +645,8 @@ START is the buffer position where the sexp starts."
                                        (python-rx (* space))
                                        (line-end-position) t)
                                       (current-column))
+                                     (dot-continuation
+                                      dot-continuation)
                                      (t
                                       (goto-char context-start)
                                       (current-indentation)))))
@@ -1956,6 +1969,7 @@ not inside a defun."
                                                     not-simple-operator)
                                          (line-end-position) t)
                       (not (or (python-info-ppss-context 'string)
+                               (python-info-ppss-context 'paren)
                                (python-info-ppss-context 'comment))))))
       (point-marker))))
 
