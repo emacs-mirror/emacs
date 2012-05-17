@@ -89,7 +89,7 @@
 ;; virtualenvs and other special environment modifications thanks to
 ;; `python-shell-process-environment' and `python-shell-exec-path'.
 ;; These two variables allows you to modify execution paths and
-;; enviroment variables to make easy for you to setup virtualenv rules
+;; environment variables to make easy for you to setup virtualenv rules
 ;; or behavior modifications when running shells.  Here is an example
 ;; of how to make shell processes to be run using the /path/to/env/
 ;; virtualenv:
@@ -1079,11 +1079,11 @@ returned in that moment and not after waiting."
   :safe 'integerp)
 
 (defcustom python-shell-process-environment nil
-  "List of enviroment variables for Python shell.
-This variable follows the same rules as `process-enviroment'
+  "List of environment variables for Python shell.
+This variable follows the same rules as `process-environment'
 since it merges with it before the process creation routines are
 called.  When this variable is nil, the Python shell is run with
-the default `process-enviroment'."
+the default `process-environment'."
   :type '(repeat string)
   :group 'python
   :safe 'listp)
@@ -1171,8 +1171,8 @@ uniqueness for different types of configurations."
   "Calculate the string used to execute the inferior Python process."
   (format "%s %s" python-shell-interpreter python-shell-interpreter-args))
 
-(defun python-shell-calculate-process-enviroment ()
-  "Calculate process enviroment given `python-shell-virtualenv-path'."
+(defun python-shell-calculate-process-environment ()
+  "Calculate process environment given `python-shell-virtualenv-path'."
   (let ((env (python-util-merge 'list python-shell-process-environment
                                 process-environment 'string=))
         (virtualenv (if python-shell-virtualenv-path
@@ -1260,7 +1260,7 @@ is created the `inferior-python-mode' is activated.  If POP is
 non-nil the buffer is shown."
   (save-excursion
     (let* ((proc-buffer-name (format "*%s*" proc-name))
-           (process-environment (python-shell-calculate-process-enviroment))
+           (process-environment (python-shell-calculate-process-environment))
            (exec-path (python-shell-calculate-exec-path)))
       (when (not (comint-check-proc proc-buffer-name))
         (let* ((cmdlist (split-string-and-unquote cmd))
