@@ -66,6 +66,10 @@
 ;; the shell completion in background so you should run
 ;; `python-shell-send-buffer' from time to time to get better results.
 
+;; FFAP: You can find the filename for a given module when using ffap
+;; out of the box.  This feature needs an inferior python shell
+;; running.
+
 ;; Eldoc: returns documentation for object at point by using the
 ;; inferior python subprocess to inspect its documentation.  As you
 ;; might guessed you should run `python-shell-send-buffer' from time
@@ -1472,9 +1476,7 @@ It is specially designed to be added to the
              (python-shell-send-and-clear-output
               (format python-ffap-string-code module) process)))
         (when module-file
-          (ffap-locate-file
-           (substring-no-properties module-file 1 -1)
-           nil nil))))))
+           (substring-no-properties module-file 1 -1))))))
 
 (eval-after-load "ffap"
   '(progn
