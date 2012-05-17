@@ -1181,11 +1181,7 @@ virtualenv."
 (defcustom python-shell-setup-codes '(python-shell-completion-setup-code
                                       python-ffap-setup-code
                                       python-eldoc-setup-code)
-  "List of code run by `python-shell-send-setup-codes'.
-Each variable can contain either a simple string with the code to
-execute or a cons with the form (CODE . DESCRIPTION), where CODE
-is a string with the code to execute and DESCRIPTION is the
-description of it."
+  "List of code run by `python-shell-send-setup-codes'."
   :type '(repeat symbol)
   :group 'python
   :safe 'listp)
@@ -1232,8 +1228,13 @@ uniqueness for different types of configurations."
           (md5
            (concat
             (python-shell-parse-command)
+            python-shell-prompt-regexp
+            python-shell-prompt-block-regexp
+            python-shell-prompt-output-regexp
             (mapconcat #'symbol-value python-shell-setup-codes "")
             (mapconcat #'indentity python-shell-process-environment "")
+            (mapconcat #'indentity python-shell-extra-pythonpaths "")
+            (mapconcat #'indentity python-shell-exec-path "")
             (or python-shell-virtualenv-path "")
             (mapconcat #'indentity python-shell-exec-path "")))))
 
@@ -1548,8 +1549,6 @@ This function takes the list of setup code to send from the
     (accept-process-output process python-shell-send-setup-max-wait)
     (dolist (code python-shell-setup-codes)
       (when code
-        (when (consp code)
-          (setq msg (cdr code)))
         (message (format msg code))
         (python-shell-send-string-no-output
          (symbol-value code) process)))))
