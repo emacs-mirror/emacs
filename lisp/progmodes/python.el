@@ -41,7 +41,9 @@
 
 ;; Indentation: Automatic indentation with indentation cycling is
 ;; provided, it allows you to navigate different available levels of
-;; indentation by hitting <tab> several times.
+;; indentation by hitting <tab> several times.  Also when inserting a
+;; colon the `python-indent-electric-colon' command is invoked and
+;; causes the current line to be dedented automatically if needed.
 
 ;; Movement: `beginning-of-defun' and `end-of-defun' functions are
 ;; properly implemented.  A `beginning-of-innermost-defun' is defined
