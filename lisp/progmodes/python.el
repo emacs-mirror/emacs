@@ -456,13 +456,15 @@ This variant of `rx' supports common python named REGEXPS."
               (set-match-data nil)))))
      (1 font-lock-variable-name-face nil nil))))
 
-(defconst python-font-lock-syntactic-keywords
+(defconst python-syntax-propertize-function
   ;; Make outer chars of matching triple-quote sequences into generic
   ;; string delimiters.  Fixme: Is there a better way?
   ;; First avoid a sequence preceded by an odd number of backslashes.
-  `((,(concat "\\(?:\\([RUru]\\)[Rr]?\\|^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
-              "\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)")
-     (3 (python-quote-syntax)))))
+  (syntax-propertize-rules
+   (;; ¡Backrefs don't work in syntax-propertize-rules!
+    (concat "\\(?:\\([RUru]\\)[Rr]?\\|^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
+            "\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)")
+    (3 (ignore (python-quote-syntax))))))
 
 (defun python-quote-syntax ()
   "Put `syntax-table' property correctly on triple quote.
@@ -1444,11 +1446,10 @@ variable.
   (define-key inferior-python-mode-map (kbd "<tab>")
     'python-shell-completion-complete-or-indent)
   (when python-shell-enable-font-lock
-    (set
-     (make-local-variable 'font-lock-defaults)
-     '(python-font-lock-keywords
-       nil nil nil nil
-       (font-lock-syntactic-keywords . python-font-lock-syntactic-keywords))))
+    (set (make-local-variable 'font-lock-defaults)
+         '(python-font-lock-keywords nil nil nil nil))
+    (set (make-local-variable 'syntax-propertize-function)
+         python-syntax-propertize-function))
   (compilation-shell-minor-mode 1))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop)
@@ -2805,9 +2806,10 @@ if that value is non-nil."
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
 
   (set (make-local-variable 'font-lock-defaults)
-       '(python-font-lock-keywords
-         nil nil nil nil
-         (font-lock-syntactic-keywords . python-font-lock-syntactic-keywords)))
+       '(python-font-lock-keywords nil nil nil nil))
+
+  (set (make-local-variable 'syntax-propertize-function)
+       python-syntax-propertize-function)
 
   (set (make-local-variable 'indent-line-function)
        #'python-indent-line-function)
