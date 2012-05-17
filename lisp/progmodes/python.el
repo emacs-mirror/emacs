@@ -46,7 +46,12 @@
 ;; causes the current line to be dedented automatically if needed.
 
 ;; Movement: `beginning-of-defun' and `end-of-defun' functions are
-;; properly implemented.
+;; properly implemented.  Also there are specialized
+;; `forward-sentence' and `backward-sentence' replacements
+;; (`python-nav-forward-sentence', `python-nav-backward-sentence'
+;; respectively).  Extra functions `python-nav-sentence-start' and
+;; `python-nav-sentence-end' are included to move to the beginning and
+;; to the end of a setence while taking care of multiline definitions.
 
 ;; Shell interaction: is provided and allows you easily execute any
 ;; block of code of your current buffer in an inferior Python process.
@@ -57,7 +62,7 @@
 ;; IPython) it should be easy to integrate another way to calculate
 ;; completions.  You just need to specify your custom
 ;; `python-shell-completion-setup-code' and
-;; `python-shell-completion-string-code'
+;; `python-shell-completion-string-code'.
 
 ;; Here is a complete example of the settings you would use for
 ;; iPython
@@ -124,8 +129,8 @@
 ;; might guessed you should run `python-shell-send-buffer' from time
 ;; to time to get better results too.
 
-;; imenu: This mode supports imenu. It builds a plain or tree menu
-;; depending on the value of `python-imenu-make-tree'. Also you can
+;; imenu: This mode supports imenu.  It builds a plain or tree menu
+;; depending on the value of `python-imenu-make-tree'.  Also you can
 ;; customize if menu items should include its type using
 ;; `python-imenu-include-defun-type'.
 
@@ -291,7 +296,7 @@
     "Additional Python specific sexps for `python-rx'"))
 
 (defmacro python-rx (&rest regexps)
- "Python mode especialized rx macro which supports common python named REGEXPS."
+ "Python mode specialized rx macro which supports common python named REGEXPS."
  (let ((rx-constituents (append python-rx-constituents rx-constituents)))
    (cond ((null regexps)
           (error "No regexp"))
@@ -993,14 +998,14 @@ Returns nil if point is not in a def or class."
                   (forward-line 1)))))
 
 (defun python-nav-backward-sentence (&optional arg)
-  "Move backward to start of sentence.  With arg, do it arg times.
+  "Move backward to start of sentence.  With ARG, do it arg times.
 See `python-nav-forward-sentence' for more information."
   (interactive "^p")
   (or arg (setq arg 1))
   (python-nav-forward-sentence (- arg)))
 
 (defun python-nav-forward-sentence (&optional arg)
-  "Move forward to next end of sentence.  With argument, repeat.
+  "Move forward to next end of sentence.  With ARG, repeat.
 With negative argument, move backward repeatedly to start of sentence."
   (interactive "^p")
   (or arg (setq arg 1))
@@ -2261,10 +2266,10 @@ character address of the specified TYPE."
 
 ;; Stolen from GNUS
 (defun python-util-merge (type list1 list2 pred)
-  "Destructively merge lists LIST1 and LIST2 to produce a new list.
-Argument TYPE is for compatibility and ignored.
-Ordering of the elements is preserved according to PRED, a `less-than'
-predicate on the elements."
+  "Destructively merge lists to produce a new one.
+Argument TYPE is for compatibility and ignored.  LIST1 and LIST2
+are the list to be merged.  Ordering of the elements is preserved
+according to PRED, a `less-than' predicate on the elements."
   (let ((res nil))
     (while (and list1 list2)
       (if (funcall pred (car list2) (car list1))
