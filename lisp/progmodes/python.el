@@ -1892,7 +1892,7 @@ inferior python process is updated properly."
   (interactive)
   (let ((process (python-shell-get-process)))
     (if (not process)
-        (error "Completion needs an inferior Python process running")
+        (error "Completion needs an inferior Python process running.")
       (python-shell-completion--do-completion-at-point process))))
 
 (add-to-list 'debug-ignored-errors
