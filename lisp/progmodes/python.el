@@ -869,15 +869,7 @@ to (`nth' `python-indent-current-level' `python-indent-levels')"
   (beginning-of-line)
   (delete-horizontal-space)
   (indent-to (nth python-indent-current-level python-indent-levels))
-  (save-restriction
-    (widen)
-    (let ((closing-block-point (python-info-closing-block)))
-      (when closing-block-point
-        (message "Closes %s" (buffer-substring
-                              closing-block-point
-                              (save-excursion
-                                (goto-char closing-block-point)
-                                (line-end-position))))))))
+  (python-info-closing-block-message))
 
 (defun python-indent-line-function ()
   "`indent-line-function' for Python mode.
@@ -983,10 +975,11 @@ With numeric ARG, just insert that many colons.  With
                       (python-info-ppss-context 'comment))))
     (let ((indentation (current-indentation))
           (calculated-indentation (python-indent-calculate-indentation)))
+      (python-info-closing-block-message)
       (when (> indentation calculated-indentation)
         (save-excursion
           (indent-line-to calculated-indentation)
-          (when (not (python-info-closing-block))
+          (when (not (python-info-closing-block-message))
             (indent-line-to indentation)))))))
 (put 'python-indent-electric-colon 'delete-selection t)
 
@@ -2599,6 +2592,20 @@ not inside a defun."
          ((string= closing-word "finally")
           (when (member (current-word) '("except" "else"))
             (point-marker))))))))
+
+(defun python-info-closing-block-message (&optional closing-block-point)
+  "Message the contents of the block the current line closes.
+With optional argument CLOSING-BLOCK-POINT use that instead of
+recalculating it calling `python-info-closing-block'."
+  (let ((point (or closing-block-point (python-info-closing-block))))
+    (when point
+      (save-restriction
+        (widen)
+        (message "Closes %s" (save-excursion
+                               (goto-char point)
+                               (back-to-indentation)
+                               (buffer-substring
+                                (point) (line-end-position))))))))
 
 (defun python-info-line-ends-backslash-p (&optional line-number)
   "Return non-nil if current line ends with backslash.
