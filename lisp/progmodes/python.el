@@ -90,6 +90,18 @@
 ;; (setq python-shell-completion-string-code
 ;;       "';'.join(__IP.complete('''%s'''))\n")
 
+;; Unfortunately running iPython on Windows needs some more tweaking.
+;; The way you must set `python-shell-interpreter' and
+;; `python-shell-interpreter-args' is as follows:
+
+;; (setq
+;;  python-shell-interpreter "C:\\Python27\\python.exe"
+;;  python-shell-interpreter-args
+;;  "-i C:\\Python27\\Scripts\\ipython-script.py")
+
+;; That will spawn the iPython process correctly (Of course you need
+;; to modify the paths according to your system).
+
 ;; Please note that the default completion system depends on the
 ;; readline module, so if you are using some Operating System that
 ;; bundles Python without it (like Windows) just install the
@@ -1565,7 +1577,7 @@ This function takes the list of setup code to send from the
     (dolist (code python-shell-setup-codes)
       (when code
         (message (format msg code))
-        (python-shell-send-string-no-output
+        (python-shell-send-string
          (symbol-value code) process)))))
 
 (add-hook 'inferior-python-mode-hook
