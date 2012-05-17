@@ -179,7 +179,7 @@ LFTI = $(LINKFLAGSCOOL)   $(LINKFLAGSINTERNAL)
 # %%VARIETY: define a macro containing the flags for the new variety
 LIBMAN = lib                  # can't call this LIB - it screws the environment
 LIBFLAGSCOMMON = /nologo
-LIBFLAGSINTERNAL = /DEBUG
+LIBFLAGSINTERNAL =
 LIBFLAGSEXTERNAL =
 
 LIBFLAGSWE = $(LIBFLAGSEXTERNAL)
