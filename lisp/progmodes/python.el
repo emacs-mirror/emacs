@@ -78,6 +78,26 @@
 ;; pyreadline from http://ipython.scipy.org/moin/PyReadline/Intro and
 ;; you should be good to go.
 
+;; The shell also contains support for virtualenvs and other special
+;; environment modification thanks to
+;; `python-shell-process-environment' and `python-shell-exec-path'.
+;; These two variables allows you to modify execution paths and
+;; enviroment variables to make easy for you to setup virtualenv rules
+;; or behaviors modifications when running shells.  Here is an example
+;; of how to make shell processes to be run using the /path/to/env/
+;; virtualenv:
+
+;; (setq python-shell-process-environment
+;;       (list
+;;        (format "PATH=%s" (mapconcat
+;;                           'identity
+;;                           (reverse
+;;                            (cons (getenv "PATH")
+;;                                  '("/path/to/env/bin/")))
+;;                           ":"))
+;;        "VIRTUAL_ENV=/path/to/env/"))
+;; (python-shell-exec-path . ("/path/to/env/bin/"))
+
 ;; Pdb tracking: when you execute a block of code that contains some
 ;; call to pdb (or ipdb) it will prompt the block of code and will
 ;; follow the execution of pdb marking the current line with an arrow.
@@ -992,6 +1012,26 @@ returned in that moment and not after waiting."
   :group 'python
   :safe 'numberp)
 
+(defcustom python-shell-process-environment nil
+  "List of enviroment variables for Python shell.
+This variable follows the same rules as `process-enviroment'
+since it merges with it before the process creation routines are
+called.  When this variable is nil, the Python shell is run with
+the default `process-enviroment'."
+  :type '(repeat string)
+  :group 'python
+  :safe 'listp)
+
+(defcustom python-shell-exec-path nil
+  "List of path to search for binaries.
+This variable follows the same rules as `exec-path' since it
+merges with it before the process creation routines are called.
+When this variable is nil, the Python shell is run with the
+default `exec-path'."
+  :type '(repeat string)
+  :group 'python
+  :safe 'listp)
+
 (defcustom python-shell-setup-codes '(python-shell-completion-setup-code
                                       python-ffap-setup-code
                                       python-eldoc-setup-code)
@@ -1112,7 +1152,17 @@ run).
         (read-string "Run Python: " (python-shell-parse-command)))
      (list nil (python-shell-parse-command))))
   (let* ((proc-name (python-shell-get-process-name dedicated))
-         (proc-buffer-name (format "*%s*" proc-name)))
+         (proc-buffer-name (format "*%s*" proc-name))
+         (process-environment
+          (if python-shell-process-environment
+              (merge 'list python-shell-process-environment
+                     process-environment 'string=)
+            process-environment))
+         (exec-path
+          (if python-shell-exec-path
+              (merge 'list python-shell-exec-path
+                     exec-path 'string=)
+            exec-path)))
     (when (not (comint-check-proc proc-buffer-name))
       (let ((cmdlist (split-string-and-unquote cmd)))
         (set-buffer
