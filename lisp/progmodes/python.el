@@ -1942,8 +1942,8 @@ not inside a defun."
     (save-restriction
       (widen)
       (save-excursion
-        (forward-comment -1)
         (goto-char (line-end-position))
+        (forward-comment -1)
         (while (and (not (equal 0 (current-indentation)))
                     (not (python-beginning-of-defun-function 1 t)))
           (when (or (not min-indent)
