@@ -304,7 +304,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.
     (while (>= (decf i) 0) (setq v (+ (* v 3) (aref time i))))
     v))
 
-(defvar *gensym-counter* (* (logand (cl-random-time) 1023) 100))
+(defvar cl--gensym-counter (* (logand (cl-random-time) 1023) 100))
 
 
 ;;; Numbers.
@@ -331,7 +331,7 @@ always returns nil."
   "Return t if INTEGER is even."
   (eq (logand integer 1) 0))
 
-(defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
+(defvar cl--random-state (vector 'cl-random-state-tag -1 30 (cl-random-time)))
 
 (defconst most-positive-float nil
   "The largest value that a Lisp float can hold.
@@ -608,7 +608,7 @@ Otherwise, return LIST unmodified.
 	 (if (memq cl-item cl-list) cl-list (cons cl-item cl-list)))
 	((or (equal cl-keys '(:test equal)) (null cl-keys))
 	 (if (member cl-item cl-list) cl-list (cons cl-item cl-list)))
-	(t (apply 'cl-adjoin cl-item cl-list cl-keys))))
+	(t (apply 'cl--adjoin cl-item cl-list cl-keys))))
 
 (defun subst (cl-new cl-old cl-tree &rest cl-keys)
   "Substitute NEW for OLD everywhere in TREE (non-destructively).

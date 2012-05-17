@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "5a8a7f7ec2dc453113b8cbda577f2acb")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "1a3a04c6a0286373093bea4b9bcf2e91")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -169,7 +169,7 @@ Optional second arg STATE is a random-state object.
 \(fn LIM &optional STATE)" nil nil)
 
 (autoload 'make-random-state "cl-extra" "\
-Return a copy of random-state STATE, or of `*random-state*' if omitted.
+Return a copy of random-state STATE, or of the internal state if omitted.
 If STATE is t, return a new state object seeded from the time of day.
 
 \(fn &optional STATE)" nil nil)
@@ -286,7 +286,7 @@ This also does some trivial optimizations to make the form prettier.
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "e10ebd95224fcfbe6a5edc59f40d695a")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "69ccd3344cea28acc44dd28eca07292f")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -764,13 +764,13 @@ surrounded by (block NAME ...).
 ;;;;;;  nsubst subst-if-not subst-if subsetp nset-exclusive-or set-exclusive-or
 ;;;;;;  nset-difference set-difference nintersection intersection
 ;;;;;;  nunion union rassoc-if-not rassoc-if rassoc* assoc-if-not
-;;;;;;  assoc-if assoc* cl-adjoin member-if-not member-if member*
+;;;;;;  assoc-if assoc* cl--adjoin member-if-not member-if member*
 ;;;;;;  merge stable-sort sort* search mismatch count-if-not count-if
 ;;;;;;  count position-if-not position-if position find-if-not find-if
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "99095e49c83af1c8bec0fdcf517b3f95")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "2d8563fcbdf4bc77e569d0aeb0a35cfc")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\
@@ -1047,7 +1047,7 @@ Keywords supported:  :key
 
 \(fn PREDICATE LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload 'cl-adjoin "cl-seq" "\
+(autoload 'cl--adjoin "cl-seq" "\
 
 
 \(fn CL-ITEM CL-LIST &rest CL-KEYS)" nil nil)

@@ -167,15 +167,15 @@
 
 ;;; Symbols.
 
-(defvar *gensym-counter*)
+(defvar cl--gensym-counter)
 ;;;###autoload
 (defun gensym (&optional prefix)
   "Generate a new uninterned symbol.
 The name is made by appending a number to PREFIX, default \"G\"."
   (let ((pfix (if (stringp prefix) prefix "G"))
 	(num (if (integerp prefix) prefix
-	       (prog1 *gensym-counter*
-		 (setq *gensym-counter* (1+ *gensym-counter*))))))
+	       (prog1 cl--gensym-counter
+		 (setq cl--gensym-counter (1+ cl--gensym-counter))))))
     (make-symbol (format "%s%d" pfix num))))
 
 ;;;###autoload
@@ -184,8 +184,8 @@ The name is made by appending a number to PREFIX, default \"G\"."
 The name is made by appending a number to PREFIX, default \"G\"."
   (let ((pfix (if (stringp prefix) prefix "G"))
 	name)
-    (while (intern-soft (setq name (format "%s%d" pfix *gensym-counter*)))
-      (setq *gensym-counter* (1+ *gensym-counter*)))
+    (while (intern-soft (setq name (format "%s%d" pfix cl--gensym-counter)))
+      (setq cl--gensym-counter (1+ cl--gensym-counter)))
     (intern name)))
 
 

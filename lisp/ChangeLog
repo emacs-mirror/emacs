@@ -1,5 +1,14 @@
 2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Minor renaming of internal CL functions and variables.
+	* emacs-lisp/cl-seq.el (cl--adjoin): Rename from cl-adjoin.
+	(cl--position): Rename from cl-position.
+	(cl--delete-duplicates): Rename from cl-delete-duplicates.
+	* emacs-lisp/cl.el (cl--gensym-counter): Rename from *gensym-counter*.
+	(cl--random-state): Rename from *random-state*.
+
+2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/cl-macs.el (cl-transform-lambda): Don't add spurious
 	parens around the arg list (bug#11499).
 
