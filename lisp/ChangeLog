@@ -1,3 +1,139 @@
+2012-09-20  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el Add and revise further doc strings and
+	comments; major code rearrangement.
+	(todos-merged-files, todos-prompt-merged-files)
+	(todos-print-priorities, todos-tmp-buffer-name)
+	(todos-top-priorities-widgets, todos-update-merged-files)
+	(todos-merged-top-priorities, todos-merged-diary-items)
+	(todos-merged-regexp-items, todos-merged-custom-items)
+	(todos-raw-mode, todos-change-default-file)
+	(todos-toggle-diary-inclusion, todos-toggle-item-diary-nonmarking)
+	(todos-toggle-diary-nonmarking, todos-validate-category-name):
+	Remove.
+	(todos-category-string-matcher): Comment out.
+	(todos-categories): New defgroup.
+	(todos-initial-file, todos-filter-buffer)
+	(todos-top-priorities-buffer, todos-categories-category-label)
+	(todos-diary-items-buffer, todos-regexp-items-buffer)
+	(todos-custom-items-buffer, todos-filter-files)
+	(todos-highlight-item, todos-todo-mode-date-time-regexp):
+	New defcustoms.
+	(todos-diary-expired): New face.
+	(todos-print-buffer, todos-multiple-files)
+	(todos-multiple-files-widget, todos-key-bindings): New variables.
+	(todos-short-file-name, todos-reevaluate-default-file-defcustom)
+	(todos-special-buffer-name)
+	(todos-reevaluate-filter-files-defcustom)
+	(todos-reset-highlight-item, todos-reevaluate-defcustoms)
+	(todos-nondiary-marker-matcher, todos-diary-nonmarking-matcher)
+	(todos-diary-expired-matcher, todos-category-string-matcher-1)
+	(todos-category-string-matcher-2, todos-repair-categories-sexp)
+	(todos-validate-name, todos-multiple-files)
+	(todos-display-categories-1, todos-update-categories-display)
+	(todos-modes-set-3, todos-mode-external-set): New functions.
+	(todos-set-top-priorities-in-file)
+	(todos-set-top-priorities-in-category)
+	(todos-top-priorities-multifile, todos-diary-items-multifile)
+	(todos-regexp-items-multifile, todos-custom-items-multifile)
+	(todos-convert-legacy-files, todos-jump-to-item)
+	(todos-edit-multiline-item, todos-edit-item-date-from-calendar)
+	(todos-edit-item-diary-inclusion)
+	(todos-edit-category-diary-inclusion)
+	(todos-edit-item-diary-nonmarking)
+	(todos-edit-category-diary-nonmarking): New commands.
+	(todos, todos-faces): Update :version.
+	(todos-done-separator, todos-completion-ignore-case):
+	Change default value.
+	(todos-done-separator): Change :set function.
+	(todos-indent-to-here): Add :validate function to :type.
+	(todos-prefix-string, todos-mark, todos-button)
+	(todos-sorted-column, todos-archived-only, todos-search)
+	(todos-done, todos-done-sep): Provide full face definitions
+	instead of inheriting.
+	(todos-edit-buffer, todos-categories-buffer): Change from
+	defcustom to defvar.
+	(todos-category-beg, todos-category-done): Change from defvar to
+	defconst.
+	(todos-files): Check if todos-files-directory exists.
+	(todos-default-todos-file, todos-mode-line-control, todos-print):
+	Use todos-short-file-name.
+	(todos-font-lock-keywords): Use todos-nondiary-marker-matcher,
+	todos-diary-nonmarking-matcher, todos-category-string-matcher-1,
+	todos-category-string-matcher-2, todos-diary-expired-matcher.
+	(todos-category-select): Use todos-done-string-start, and
+	condition search on todos-show-with-done; don't make display
+	overlay for done items separator string if there already is one;
+	use todos-highlight-item, require hl-line and activate
+	hl-line-mode here in order to avoid a hang if done in todos-mode
+	or the mode hook.
+	(todos-update-categories-sexp): Use todos-categories-full if set,
+	otherwise todos-categories.
+	(todos-make-categories-list): Don't test for archive file when
+	processing a legacy todo-mode file.
+	(todos-check-format): Add check for todos-categories sexp.
+	(todos-diary-item-p): Use todos-nondiary-start instead of
+	todos-date-pattern.
+	(todos-marked-item-p): Rename from todos-item-marked-p.
+	(todos-read-file-name): Don't accept empty name; validate.
+	(todos-read-category): Validate new name before prompting whether
+	to add new category; force quit if user answers no.
+	(todos-filter-items): Improve implementation.
+	(todos-set-top-priorities): Rewrite as a noninteractive function
+	using minibuffer input instead of widgets.
+	(todos-insert-sort-button): Call todos-display-sorted with
+	argument nil to display categories in numerical order, instead of
+	calling todos-display-categories.
+	(powerset-recursive): Borrow and slightly reformulate the (GDFL'd)
+	Common Lisp powerset function at
+	http://rosettacode.org/wiki/Power_set#Common_Lisp.
+	(powerset-bitwise): Implement in Emacs Lisp the (GDFL'd) C
+	powerset function at http://rosettacode.org/wiki/Power_set#C.
+	(todos-powerset): Defalias to powerset-bitwise.
+	(todos-mode-map): Generate from todos-key-bindings instead of
+	listing each key definition.
+	(todos-categories-mode-map): Add two bindings.
+	(todos-filter-items-mode-map): Add some bindings, remove others.
+	(todos-mode): Derive from special-mode; use todos-modes-set-3; add
+	function setting todos-done-separator to
+	window-configuration-change-hook.
+	(todos-unload-hook): Remove function setting todos-done-separator
+	from window-configuration-change-hook.
+	(todos-archive-mode): Derive from todos-mode; use todos-modes-set-3.
+	(todos-edit-mode): Derive from text-mode; use todos-mode-external-set.
+	(todos-categories-mode): Derive from special-mode; use
+	todos-mode-external-set.
+	(todos-filter-items-mode): Derive from special-mode.
+	(todos-quit): Save archive file if it hasn't yet been saved.
+	(todos-display-categories): Delegate all functionality to
+	todos-display-categories-1 and todos-update-categories-display.
+	(todos-toggle-view-done-items): Improve implementation.
+	(todos-highlight-item): Require hl-line.
+	(todos-toggle-display-date-time): Remove argument and make it
+	apply only to whole file.
+	(todos-top-priorities, todos-diary-items, todos-regexp-items)
+	(todos-custom-items): Use todos-special-buffer-name.
+	(todos-add-file): Use todos-short-file-name and
+	todos-reevaluate-defcustoms; remove validation, since it's now
+	done in todos-read-file-name.
+	(todos-add-category): Also update todos-categories-full if non-nil.
+	(todos-delete-category): Delete file after confirmation if only
+	category is deleted.
+	(todos-move-category): Use todos-short-file-name and
+	todos-reevaluate-defcustoms.
+	(todos-insert-item): Fix getting date from the calendar and
+	insertion of time string.
+	(todos-set-date-from-calendar): Enter calendar buffer, suppressing
+	display of diary entries.
+	(todos-edit-multiline): Add optional argument to restrict editing
+	buffer to current item, otherwise make entire buffer (i.e. whole
+	file) editable.
+	(todos-edit-quit): When whole file is editable, check file format
+	validity before killing buffer, and if valid, recalculate
+	categories sexp to be safe.
+	(todos-edit-item-header): Allow choosing date from calendar.
+	(todos-item-done): Handle marked items.
+
 2012-09-19  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-item-start): Restore commented out code
