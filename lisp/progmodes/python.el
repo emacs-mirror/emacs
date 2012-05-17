@@ -70,6 +70,9 @@
 ;; out of the box.  This feature needs an inferior python shell
 ;; running.
 
+;; Code check: Check the current file for errors using
+;; `python-check-command'
+
 ;; Eldoc: returns documentation for object at point by using the
 ;; inferior python subprocess to inspect its documentation.  As you
 ;; might guessed you should run `python-shell-send-buffer' from time
@@ -89,8 +92,6 @@
 ;; Better decorator support for beginning of defun
 
 ;; Review code and cleanup
-
-;; (Perhaps) python-check
 
 ;; (Perhaps) some skeletons (I never use them because of yasnippet)
 
@@ -133,6 +134,8 @@
     (define-key map "\C-c\C-c" 'python-shell-send-buffer)
     (define-key map "\C-c\C-l" 'python-shell-send-file)
     (define-key map "\C-c\C-z" 'python-shell-switch-to-shell)
+    ;; Some util commands
+    (define-key map "\C-c\C-v" 'python-check)
     ;; Utilities
     (substitute-key-definition 'complete-symbol 'completion-at-point
 			       map global-map)
@@ -170,6 +173,8 @@
 	 :help "Eval file in inferior Python session"]
 	["Debugger" pdb :help "Run pdb under GUD"]
         "-"
+	["Check file" python-check
+	 :help "Check file for errors"]
 	["Complete symbol" completion-at-point
 	 :help "Complete symbol before point"]))
     map)
@@ -1485,6 +1490,34 @@ It is specially designed to be added to the
 
 (add-hook 'inferior-python-mode-hook
           #'python-ffap-setup)
+
+
+;;; Code check
+
+(defvar python-check-command
+  "pychecker --stdlib"
+  "Command used to check a Python file.")
+
+(defvar python-check-custom-command nil
+  "Internal use.")
+
+(defun python-check (command)
+  "Check a Python file (default current buffer's file).
+Runs COMMAND, a shell command, as if by `compile'.  See
+`python-check-command' for the default."
+  (interactive
+   (list (read-string "Check command: "
+		      (or python-check-custom-command
+			  (concat python-check-command " "
+                                  (shell-quote-argument
+                                   (or
+                                    (let ((name (buffer-file-name)))
+                                      (and name
+                                           (file-name-nondirectory name)))
+                                    "")))))))
+  (setq python-check-custom-command command)
+  (save-some-buffers (not compilation-ask-about-save) nil)
+  (compilation-start command))
 
 
 ;;; Eldoc
