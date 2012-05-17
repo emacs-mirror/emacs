@@ -875,7 +875,7 @@ With numeric ARG, just insert that many colons.  With
   "Regular expresion matching beginning of innermost class or function.")
 
 (defun python-nav-beginning-of-defun (&optional nodecorators)
-  "Move point to beginning-of-defun.
+  "Move point to `beginning-of-defun'.
 When NODECORATORS is non-nil decorators are not included.  This
 is the main part of`python-beginning-of-defun-function'
 implementation."
@@ -1566,11 +1566,13 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
      (t t))))
 
 (defun python-fill-comment (&optional justify)
-  "Comment fill function for `python-fill-paragraph-function'."
+  "Comment fill function for `python-fill-paragraph-function'.
+JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (fill-comment-paragraph justify))
 
 (defun python-fill-string (&optional justify)
-  "String fill function for `python-fill-paragraph-function'."
+  "String fill function for `python-fill-paragraph-function'.
+JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (let ((marker (point-marker))
         (string-start-marker
          (progn
@@ -1610,11 +1612,13 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
         (fill-paragraph justify)))) t)
 
 (defun python-fill-decorator (&optional justify)
-  "Decorator fill function for `python-fill-paragraph-function'."
+  "Decorator fill function for `python-fill-paragraph-function'.
+JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   t)
 
 (defun python-fill-paren (&optional justify)
-  "Paren fill function for `python-fill-paragraph-function'."
+  "Paren fill function for `python-fill-paragraph-function'.
+JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (save-restriction
     (narrow-to-region (progn
                         (while (python-info-ppss-context 'paren)
