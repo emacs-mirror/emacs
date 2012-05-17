@@ -2354,6 +2354,8 @@ if that value is non-nil."
                              ,(lambda (arg)
                                 (python-end-of-defun-function)) nil))
 
+  (set (make-local-variable 'mode-require-final-newline) t)
+
   (set (make-local-variable 'outline-regexp)
        (python-rx (* space) block-start))
   (set (make-local-variable 'outline-heading-end-regexp) ":\\s-*\n")
