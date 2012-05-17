@@ -572,7 +572,7 @@ START is the buffer position where the sexp starts."
                        (let ((block-regexp (python-rx block-start))
                              (block-start-line-end ":[[:space:]]*$"))
                          (back-to-indentation)
-                         (while (and (forward-comment -9999) (not (bobp))))
+                         (forward-comment -9999)
                          (back-to-indentation)
                          (when (or (python-info-continuation-line-p)
                                    (and (not (looking-at block-regexp))
@@ -595,7 +595,8 @@ START is the buffer position where the sexp starts."
          'after-beginning-of-block)
         ;; After normal line
         ((setq start (save-excursion
-                       (while (and (forward-comment -9999) (not (bobp))))
+                       (back-to-indentation)
+                       (forward-comment -9999)
                        (python-nav-sentence-start)
                        (point-marker)))
          'after-line)
