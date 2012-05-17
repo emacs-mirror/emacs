@@ -641,13 +641,16 @@ install-etc:
 	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
 	${INSTALL_DATA} ${srcdir}/etc/emacs.desktop \
 	  $(DESTDIR)${desktopdir}/emacs.desktop
+	thisdir=`/bin/pwd` ; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
-	  ${MKDIR_P} ${icondir}/$${dir} ; \
+	  ( cd $${thisdir}; ${MKDIR_P} ${icondir}/$${dir} ) ; \
 	  for icon in $${dir}/*.*; do \
 	    [ -r $${icon} ] || continue ; \
-	    ${INSTALL_DATA} $${icon} ${icondir}/$${icon} || exit 1 ; \
+	    ( cd $${thisdir} ; \
+	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} ${icondir}/$${icon} ) \
+	    || exit 1 ; \
 	  done ; \
 	done
 
