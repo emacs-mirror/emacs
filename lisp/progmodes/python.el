@@ -2149,7 +2149,8 @@ This function is compatible to be used as
 `add-log-current-defun-function' since it returns nil if point is
 not inside a defun."
   (let ((names '())
-        (min-indent))
+        (min-indent)
+        (first-run t))
     (save-restriction
       (widen)
       (save-excursion
@@ -2157,7 +2158,9 @@ not inside a defun."
         (forward-comment -9999)
         (setq min-indent (current-indentation))
         (while (python-beginning-of-defun-function 1 t)
-          (when (< (current-indentation) min-indent)
+          (when (or (< (current-indentation) min-indent)
+                    first-run)
+            (setq first-run nil)
             (setq min-indent (current-indentation))
             (looking-at python-nav-beginning-of-defun-regexp)
             (setq names (cons
