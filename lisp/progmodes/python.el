@@ -54,7 +54,7 @@
 ;; word.  Shell completion is implemented in a manner that if you
 ;; change the `python-shell-interpreter' to any other (for example
 ;; IPython) it should be easy to integrate another way to calculate
-;; completions.  You just need to especify your custom
+;; completions.  You just need to specify your custom
 ;; `python-shell-completion-setup-code' and
 ;; `python-shell-completion-strings-code'
 
@@ -77,6 +77,21 @@
 ;; inferior python subprocess to inspect its documentation.  As you
 ;; might guessed you should run `python-shell-send-buffer' from time
 ;; to time to get better results too.
+
+;; If you used python-mode.el you probably will miss auto-indentation
+;; when inserting newlines.  To achieve the same behavior you have
+;; two options:
+
+;; 1) Use GNU/Emacs' standard binding for `newline-and-indent': C-j.
+
+;; 2) Add the following hook in your .emacs:
+
+;; (add-hook 'python-mode-hook
+;;   #'(lambda ()
+;;       (define-key python-mode-map "\C-m" 'newline-and-indent)))
+
+;; I'd recommend the first one since you'll get the same behavior for
+;; all modes out-of-the-box.
 
 ;;; Installation:
 
