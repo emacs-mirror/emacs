@@ -990,19 +990,16 @@ This function is intended to be added to the
 adding a char before it, the line will be re-indented
 automatically if needed."
   (when (and (eq (char-before) last-command-event)
-             (= (current-indentation) 0)
              (not (bolp))
              (memq (char-after) '(?\) ?\] ?\})))
-    (let ((indentation (save-excursion
-                         ;; If after going to the beginning of line the point
-                         ;; is still inside a paren it's ok to do the trick
-                         (goto-char (line-beginning-position))
-                         (when (python-info-ppss-context 'paren)
-                           (python-indent-calculate-indentation)))))
-      (when (and indentation
-                 (< (current-indentation) indentation))
-        (save-excursion
-          (indent-line-to indentation))))))
+    (save-excursion
+      (goto-char (line-beginning-position))
+      ;; If after going to the beginning of line the point
+      ;; is still inside a paren it's ok to do the trick
+      (when (python-info-ppss-context 'paren)
+        (let ((indentation (python-indent-calculate-indentation)))
+          (when (< (current-indentation) indentation)
+            (indent-line-to indentation)))))))
 
 
 ;;; Navigation
