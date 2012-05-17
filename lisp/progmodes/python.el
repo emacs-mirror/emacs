@@ -568,7 +568,12 @@ START is the buffer position where the sexp starts."
             (save-excursion
               (goto-char context-start)
               (forward-char)
-              (if (looking-at "[[:space:]]*$")
+              (save-restriction
+                (narrow-to-region
+                 (line-beginning-position)
+                 (line-end-position))
+                (forward-comment 1))
+              (if (looking-at "$")
                   (+ (current-indentation) python-indent-offset)
                 (forward-comment 1)
                 (current-column)))
