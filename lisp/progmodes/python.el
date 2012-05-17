@@ -402,24 +402,31 @@ These make `python-indent-calculate-indentation' subtract the value of
 
 (defun python-indent-guess-indent-offset ()
   "Guess and set `python-indent-offset' for the current buffer."
-  (save-excursion
-    (let ((found-block))
-      (while (and (not found-block)
-                  (re-search-forward
-                    (python-rx line-start block-start) nil t))
-        (when (not (syntax-ppss-context (syntax-ppss)))
-          (setq found-block t)))
-      (if (not found-block)
-          (message "Can't guess python-indent-offset, using defaults: %s"
-                   python-indent-offset)
-        (while (and (progn
-                      (goto-char (line-end-position))
-                      (python-info-continuation-line-p))
-                    (not (eobp)))
-          (forward-line 1))
-        (forward-line 1)
-        (forward-comment 1)
-        (setq python-indent-offset (current-indentation))))))
+    (save-excursion
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (let ((found-block))
+          (while (and (not found-block)
+                      (re-search-forward
+                       (python-rx line-start block-start) nil t))
+            (when (and (not (syntax-ppss-context (syntax-ppss)))
+                       (progn
+                         (goto-char (line-end-position))
+                         (forward-comment -1)
+                         (eq ?: (char-before))))
+              (setq found-block t)))
+          (if (not found-block)
+              (message "Can't guess python-indent-offset, using defaults: %s"
+                       python-indent-offset)
+            (while (and (progn
+                          (goto-char (line-end-position))
+                          (python-info-continuation-line-p))
+                        (not (eobp)))
+              (forward-line 1))
+            (forward-line 1)
+            (forward-comment 1)
+            (setq python-indent-offset (current-indentation)))))))
 
 (defun python-indent-context (&optional stop)
   "Return information on indentation context.
