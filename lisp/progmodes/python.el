@@ -1052,16 +1052,19 @@ negative do the same but backwards.  When NODECORATORS is non-nil
 decorators are not included.  Return non-nil if point is moved to the
 `beginning-of-defun'."
   (when (or (null arg) (= arg 0)) (setq arg 1))
-  (if (> arg 0)
-      (dotimes (i arg (python-nav-beginning-of-defun nodecorators)))
-    (let ((found))
-      (dotimes (i (- arg) found)
-        (python-end-of-defun-function)
-        (python-util-forward-comment)
-        (goto-char (line-end-position))
-        (when (not (eobp))
-          (setq found
-                (python-nav-beginning-of-defun nodecorators)))))))
+  (cond ((and (eq this-command 'mark-defun)
+              (looking-at python-nav-beginning-of-defun-regexp)))
+        ((> arg 0)
+         (dotimes (i arg (python-nav-beginning-of-defun nodecorators))))
+        (t
+         (let ((found))
+           (dotimes (i (- arg) found)
+             (python-end-of-defun-function)
+             (python-util-forward-comment)
+             (goto-char (line-end-position))
+             (when (not (eobp))
+               (setq found
+                     (python-nav-beginning-of-defun nodecorators))))))))
 
 (defun python-end-of-defun-function ()
   "Move point to the end of def or class.
