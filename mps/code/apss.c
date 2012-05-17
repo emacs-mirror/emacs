@@ -113,23 +113,33 @@ allocFail:
 #define alignUp(w, a)       (((w) + (a) - 1) & ~((size_t)(a) - 1))
 
 
-/* randomSize8 -- produce sizes both latge and small, 8-byte aligned */
+/* randomSize8 -- produce sizes both large and small, 8-byte aligned */
 
 static size_t randomSize8(int i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
-  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, 8);
+  /* @@@@ Temporary fix for W3I6MV round up sizes to 16-byte alignment was 8 */
+  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, 16);
 }
 
 
 /* testInArena -- test all the pool classes in the given arena */
 
-static mps_pool_debug_option_s bothOptions =
-  { (void *)"postpost", 8, (void *)"DEAD", 4 };
 
-static mps_pool_debug_option_s fenceOptions =
-  { (void *)"\0XXX ''\"\"'' XXX\0", 16, NULL, 0 };
+static mps_pool_debug_option_s bothOptions = {
+  /* .fence_template = */   (void *)"postpostpostpost",
+  /* .fence_size = */       16,
+  /* .free_template = */    (void *)"DEAD",
+  /* .free_size = */        4
+};
+
+static mps_pool_debug_option_s fenceOptions = {
+  /* .fence_template = */   (void *)"\0XXX ''\"\"'' XXX\0",
+  /* .fence_size = */       16,
+  /* .free_template = */    NULL,
+  /* .free_size = */        0
+};
 
 static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 {
@@ -139,7 +149,7 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
   /* yet (MV Debug works here, because it fakes it through PoolAlloc). */
   printf("MVFF\n\n");
   res = stress(mps_class_mvff(), randomSize8, arena,
-               (size_t)65536, (size_t)32, (size_t)4, TRUE, TRUE, TRUE);
+               (size_t)65536, (size_t)32, sizeof(void *), TRUE, TRUE, TRUE);
   if (res == MPS_RES_COMMIT_LIMIT) return;
   die(res, "stress MVFF");
   printf("MV debug\n\n");
