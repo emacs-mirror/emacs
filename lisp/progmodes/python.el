@@ -1231,27 +1231,24 @@ uniqueness for different types of configurations."
 
 (defun python-shell-calculate-process-environment ()
   "Calculate process environment given `python-shell-virtualenv-path'."
-  (let ((env (python-util-merge 'list python-shell-process-environment
-                                process-environment 'string=))
+  (let ((process-environment (append
+                              python-shell-process-environment
+                              process-environment nil))
         (virtualenv (if python-shell-virtualenv-path
                         (directory-file-name python-shell-virtualenv-path)
                       nil)))
     (if (not virtualenv)
-        env
-      (dolist (envvar env)
-        (let* ((split (split-string envvar "=" t))
-               (name (nth 0 split))
-               (value (nth 1 split)))
-          (when (not (string= name "PYTHONHOME"))
-            (when (string= name "PATH")
-              (setq value (format "%s/bin:%s" virtualenv value)))
-            (setq env (cons (format "%s=%s" name value) env)))))
-      (cons (format "VIRTUAL_ENV=%s" virtualenv) env))))
+        process-environment
+      (setenv "PYTHONHOME" nil)
+      (setenv "PATH" (format "%s/bin%s%s"
+                             virtualenv path-separator (getenv "PATH")))
+      (setenv "VIRTUAL_ENV" virtualenv))
+    process-environment))
 
 (defun python-shell-calculate-exec-path ()
   "Calculate exec path given `python-shell-virtualenv-path'."
-  (let ((path (python-util-merge 'list python-shell-exec-path
-                                 exec-path 'string=)))
+  (let ((path (append python-shell-exec-path
+                      exec-path nil)))
     (if (not python-shell-virtualenv-path)
         path
       (cons (format "%s/bin"
@@ -2470,19 +2467,6 @@ The type returned can be 'comment, 'string or 'paren."
 
 
 ;;; Utility functions
-
-;; Stolen from GNUS
-(defun python-util-merge (type list1 list2 pred)
-  "Destructively merge lists to produce a new one.
-Argument TYPE is for compatibility and ignored.  LIST1 and LIST2
-are the list to be merged.  Ordering of the elements is preserved
-according to PRED, a `less-than' predicate on the elements."
-  (let ((res nil))
-    (while (and list1 list2)
-      (if (funcall pred (car list2) (car list1))
-          (push (pop list2) res)
-        (push (pop list1) res)))
-    (nconc (nreverse res) list1 list2)))
 
 (defun python-util-position (item seq)
   "Find the first occurrence of ITEM in SEQ.
