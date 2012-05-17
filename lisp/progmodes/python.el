@@ -1601,8 +1601,7 @@ else:
   :safe 'stringp)
 
 (defcustom python-shell-module-completion-string-code ""
-  "Python code used to get a string of completions separated by
-  semicolons on a module import line.
+  "Python code used to get completions separated by semicolons for imports.
 
 For IPython v0.11, add the following line to
 `python-shell-completion-setup-code':
@@ -1616,10 +1615,10 @@ and use the following as the value of this variable:
   :group 'python
   :safe 'stringp)
 
-(defvar python-shell-import-line-regexp "^\\(from\\|import\\)[ \t]")
-
 (defun python-shell-completion--get-completions (input process completion-code)
-  "Retrieve available completions for INPUT using PROCESS."
+  "Retrieve available completions for INPUT using PROCESS.
+Argument COMPLETION-CODE is the python code used to get
+completions on the current context."
   (with-current-buffer (process-buffer process)
     (let ((completions (python-shell-send-string-no-output
                         (format completion-code input) process)))
@@ -1627,7 +1626,7 @@ and use the following as the value of this variable:
         (split-string completions "^'\\|^\"\\|;\\|'$\\|\"$" t)))))
 
 (defun python-shell-completion--do-completion-at-point (process)
-  "Do completion for INPUT using COMPLETIONS."
+  "Do completion at point for PROCESS."
   (with-syntax-table python-dotty-syntax-table
     (let* ((line (substring-no-properties
 		  (buffer-substring (point-at-bol) (point)) nil nil))
@@ -1635,7 +1634,7 @@ and use the following as the value of this variable:
 		   (or (comint-word (current-word)) "") nil nil))
 	   (completions
 	    (if (and (> (length python-shell-module-completion-string-code) 0)
-		     (string-match python-shell-import-line-regexp line))
+		     (string-match "^\\(from\\|import\\)[ \t]" line))
 		(python-shell-completion--get-completions
 		 line process python-shell-module-completion-string-code)
 	      (python-shell-completion--get-completions
