@@ -1494,18 +1494,8 @@ inferior python process is updated properly."
                          (forward-char)
                          (delete-region (point-marker) (search-forward "self."))
                          (setq input (buffer-substring (point-min) (point-max)))))
-                     (process-send-string
-                      process (format python-eldoc-string-code input))
-                     (accept-process-output process)
-                     (with-current-buffer (process-buffer process)
-                       (when comint-last-prompt-overlay
-                         (save-excursion
-                           (goto-char comint-last-input-end)
-                           (re-search-forward comint-prompt-regexp
-                                              (line-end-position) t)
-                           (buffer-substring-no-properties
-                            (point-marker)
-                            (overlay-start comint-last-prompt-overlay))))))))
+                     (python-shell-send-and-clear-output
+                      (format python-eldoc-string-code input) process))))
         (with-current-buffer (process-buffer process)
           (when comint-last-prompt-overlay
             (delete-region comint-last-input-end
