@@ -2144,7 +2144,7 @@ The skeleton will be bound to python-skeleton-NAME."
 ;;; Code check
 
 (defcustom python-check-command
-  "pychecker --stdlib"
+  "pyflakes"
   "Command used to check a Python file."
   :type 'string
   :group 'python)
@@ -2168,7 +2168,9 @@ Runs COMMAND, a shell command, as if by `compile'.  See
                                     "")))))))
   (setq python-check-custom-command command)
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (compilation-start command))
+  (let ((process-environment (python-shell-calculate-process-environment))
+        (exec-path (python-shell-calculate-exec-path)))
+    (compilation-start command)))
 
 
 ;;; Eldoc
