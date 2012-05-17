@@ -1251,18 +1251,17 @@ the output."
     (python-shell-send-region (point-min) (point-max))))
 
 (defun python-shell-send-defun (arg)
-  "Send the (inner|outer)most def or class to inferior Python process.
+  "Send the current defun to inferior Python process.
 When argument ARG is non-nil sends the innermost defun."
   (interactive "P")
   (save-excursion
-    (python-shell-send-region (progn
-                            (or (if arg
-                                    (python-beginning-of-innermost-defun)
-                                  (python-beginning-of-defun-function))
-                                (progn (beginning-of-line) (point-marker))))
-                          (progn
-                            (or (python-end-of-defun-function)
-                                (progn (end-of-line) (point-marker)))))))
+    (python-shell-send-region
+     (progn
+       (or (python-beginning-of-defun-function)
+           (progn (beginning-of-line) (point-marker))))
+     (progn
+       (or (python-end-of-defun-function)
+           (progn (end-of-line) (point-marker)))))))
 
 (defun python-shell-send-file (file-name &optional process temp-file-name)
   "Send FILE-NAME to inferior Python PROCESS.
@@ -1943,7 +1942,7 @@ not inside a defun."
         (when (not (>= (current-indentation) python-indent-offset))
           (while (and (not (eobp)) (forward-comment 1))))
         (while (and (not (equal 0 (current-indentation)))
-                         (python-beginning-of-innermost-defun))
+                         (python-beginning-of-defun-function))
           (back-to-indentation)
           (looking-at "\\(?:def\\|class\\) +\\([^(]+\\)[^:]+:\\s-*\n")
           (setq names (cons (match-string-no-properties 1) names)))))
