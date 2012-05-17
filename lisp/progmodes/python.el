@@ -1104,8 +1104,7 @@ when defun is completed, else nil."
 (defcustom python-shell-interpreter "python"
   "Default Python interpreter for shell."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defcustom python-shell-internal-buffer-name "Python Internal"
   "Default buffer name for the Internal Python interpreter."
@@ -1116,8 +1115,7 @@ when defun is completed, else nil."
 (defcustom python-shell-interpreter-args "-i"
   "Default arguments for the Python interpreter."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defcustom python-shell-prompt-regexp ">>> "
   "Regular Expression matching top\-level input prompt of python shell.
@@ -1609,15 +1607,13 @@ else:
         return completions"
   "Code used to setup completion in inferior Python processes."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defcustom python-shell-completion-string-code
   "';'.join(__COMPLETER_all_completions('''%s'''))\n"
   "Python code used to get a string of completions separated by semicolons."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defcustom python-shell-completion-module-string-code ""
   "Python code used to get completions separated by semicolons for imports.
@@ -1631,15 +1627,13 @@ and use the following as the value of this variable:
 
 ';'.join(module_completion('''%s'''))\n"
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defcustom python-shell-completion-pdb-string-code
   "';'.join(globals().keys() + locals().keys())"
   "Python code used to get completions separated by semicolons for [i]pdb."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defvar python-shell-completion-original-window-configuration nil)
 
@@ -2119,15 +2113,13 @@ The skeleton will be bound to python-skeleton-NAME."
         return ''"
   "Python code to get a module path."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defcustom python-ffap-string-code
   "__FFAP_get_module_path('''%s''')\n"
   "Python code used to get a string with the path of a module."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defun python-ffap-module-path (module)
   "Function for `ffap-alist' to return path for MODULE."
@@ -2155,8 +2147,7 @@ The skeleton will be bound to python-skeleton-NAME."
   "pychecker --stdlib"
   "Command used to check a Python file."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defvar python-check-custom-command nil
   "Internal use.")
@@ -2215,15 +2206,13 @@ Runs COMMAND, a shell command, as if by `compile'.  See
         print(doc)"
   "Python code to setup documentation retrieval."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defcustom python-eldoc-string-code
   "__PYDOC_get_help('''%s''')\n"
   "Python code used to get a string with the documentation of an object."
   :type 'string
-  :group 'python
-  :safe 'stringp)
+  :group 'python)
 
 (defun python-eldoc--get-doc-at-point (&optional force-input force-process)
   "Internal implementation to get documentation at point.
