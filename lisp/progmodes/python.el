@@ -1600,24 +1600,48 @@ else:
   :group 'python
   :safe 'stringp)
 
-(defun python-shell-completion--get-completions (input process)
+(defcustom python-shell-module-completion-string-code ""
+  "Python code used to get a string of completions separated by
+  semicolons on a module import line.
+
+For IPython v0.11, add the following line to
+`python-shell-completion-setup-code':
+
+from IPython.core.completerlib import module_completion
+
+and use the following as the value of this variable:
+
+';'.join(module_completion('''%s'''))\n"
+  :type 'string
+  :group 'python
+  :safe 'stringp)
+
+(defvar python-shell-import-line-regexp "^\\(from\\|import\\)[ \t]")
+
+(defun python-shell-completion--get-completions (input process completion-code)
   "Retrieve available completions for INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
     (let ((completions (python-shell-send-string-no-output
-                        (format python-shell-completion-string-code input)
-                        process)))
+                        (format completion-code input) process)))
       (when (> (length completions) 2)
         (split-string completions "^'\\|^\"\\|;\\|'$\\|\"$" t)))))
 
 (defun python-shell-completion--do-completion-at-point (process)
   "Do completion for INPUT using COMPLETIONS."
   (with-syntax-table python-dotty-syntax-table
-    (let* ((input (substring-no-properties
-                       (or (comint-word (current-word)) "") nil nil))
-	 (completions (python-shell-completion--get-completions
-                             input process))
-	 (completion (when completions
-                      (try-completion input completions))))
+    (let* ((line (substring-no-properties
+		  (buffer-substring (point-at-bol) (point)) nil nil))
+	   (input (substring-no-properties
+		   (or (comint-word (current-word)) "") nil nil))
+	   (completions
+	    (if (and (> (length python-shell-module-completion-string-code) 0)
+		     (string-match python-shell-import-line-regexp line))
+		(python-shell-completion--get-completions
+		 line process python-shell-module-completion-string-code)
+	      (python-shell-completion--get-completions
+	       input process python-shell-completion-string-code)))
+	   (completion (when completions
+			 (try-completion input completions))))
       (cond ((eq completion t)
            t)
 	    ((null completion)
