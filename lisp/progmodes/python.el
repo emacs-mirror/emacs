@@ -465,6 +465,7 @@ This variant of `rx' supports common python named REGEXPS."
   ;; string delimiters.  Fixme: Is there a better way?
   ;; First avoid a sequence preceded by an odd number of backslashes.
   `((,(concat "\\(?:\\([RUru]\\)[Rr]?\\|^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
+              "\\(?:''''''\\|\"\"\"\"\"\"\\)" ; Empty triple-quote
               "\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)")
      (3 (python-quote-syntax)))))
 
