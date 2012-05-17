@@ -970,7 +970,8 @@ commands.)"
 
 (defun python-shell-get-or-create-process ()
   "Get or create an inferior Python process for current buffer and return it."
-  (let* ((dedicated-proc-name (python-shell-get-process-name t))
+  (let* ((old-buffer (current-buffer))
+         (dedicated-proc-name (python-shell-get-process-name t))
          (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
          (global-proc-name  (python-shell-get-process-name nil))
          (global-proc-buffer-name (format "*%s*" global-proc-name))
@@ -982,6 +983,7 @@ commands.)"
           (setq dedicated-running t)
         (setq global-running t)))
     ;; Always prefer dedicated
+    (switch-to-buffer old-buffer)
     (get-buffer-process (if dedicated-running
                             dedicated-proc-buffer-name
                           global-proc-buffer-name))))
