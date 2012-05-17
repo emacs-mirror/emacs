@@ -437,7 +437,9 @@ These make `python-indent-calculate-indentation' subtract the value of
               (forward-line 1))
             (forward-line 1)
             (forward-comment 1)
-            (setq python-indent-offset (current-indentation)))))))
+            (let ((indent-offset (current-indentation)))
+              (when (> indent-offset 0)
+                (setq python-indent-offset indent-offset))))))))
 
 (defun python-indent-context (&optional stop)
   "Return information on indentation context.
