@@ -1,3 +1,10 @@
+2012-05-17  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (word-search-regexp, word-search-backward)
+	(word-search-forward, word-search-backward-lax)
+	(word-search-forward-lax): Move functions from search.c
+	(bug#10145, bug#11381).
+
 2012-05-16  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* flyspell.el (flyspell-check-pre-word-p, flyspell-check-word-p)

@@ -1,3 +1,10 @@
+2012-05-17  Juri Linkov  <juri@jurta.org>
+
+	* search.c (Fword_search_regexp, Fword_search_backward)
+	(Fword_search_forward, Fword_search_backward_lax)
+	(Fword_search_forward_lax): Move functions to isearch.el
+	(bug#10145, bug#11381).
+
 2012-05-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xgselect.c (xg_select): Just invoke 'select' if -nw (Bug#9754).
