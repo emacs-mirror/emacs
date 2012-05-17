@@ -29,8 +29,7 @@
 #define patternFREQ      100
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-/* @@@@ Temporary fix W3I6MV ull */
-#define objNULL         ((mps_addr_t)0xDECEA5EDull)
+#define objNULL         ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 #define FILLER_OBJECT_SIZE 1023
 
 #define genCOUNT          2
@@ -263,10 +262,10 @@ static void addr_pool_test(mps_arena_t arena,
   mps_addr_t addr;
   /* DISTInguished values are to observe overwrites. */
   /* @@@@ Temporary fix W3I6MV ull */
-  mps_pool_t poolDistinguished = (mps_pool_t)0x000d1521ull;
+  mps_pool_t poolDistinguished = (mps_pool_t)MPS_WORD_CONST(0x000d1521);
   mps_pool_t pool = poolDistinguished;
   /* @@@@ Temporary fix W3I6MV ull */
-  mps_fmt_t fmtDistinguished = (mps_fmt_t)0x000d1521ull;
+  mps_fmt_t fmtDistinguished = (mps_fmt_t)MPS_WORD_CONST(0x000d1521);
   mps_fmt_t fmt = fmtDistinguished;
 
   /* 0a -- obj1 in pool1 (unformatted) */
@@ -441,7 +440,7 @@ static void *test(void *arg, size_t s)
   die(mps_root_create_table_masked(&exactRoot, arena,
                                    MPS_RANK_EXACT, (mps_rm_t)0,
                                    &exactRoots[0], exactRootsCOUNT,
-                                   (mps_word_t)1ull),
+                                   MPS_WORD_CONST(1)),
       "root_create_table(exact)");
   die(mps_root_create_table(&ambigRoot, arena,
                             MPS_RANK_AMBIG, (mps_rm_t)0,
