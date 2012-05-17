@@ -261,10 +261,8 @@ static void addr_pool_test(mps_arena_t arena,
   mps_bool_t b;
   mps_addr_t addr;
   /* DISTInguished values are to observe overwrites. */
-  /* @@@@ Temporary fix W3I6MV ull */
   mps_pool_t poolDistinguished = (mps_pool_t)MPS_WORD_CONST(0x000d1521);
   mps_pool_t pool = poolDistinguished;
-  /* @@@@ Temporary fix W3I6MV ull */
   mps_fmt_t fmtDistinguished = (mps_fmt_t)MPS_WORD_CONST(0x000d1521);
   mps_fmt_t fmt = fmtDistinguished;
 
