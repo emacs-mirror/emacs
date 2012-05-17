@@ -58,7 +58,19 @@
 ;; IPython) it should be easy to integrate another way to calculate
 ;; completions.  You just need to specify your custom
 ;; `python-shell-completion-setup-code' and
-;; `python-shell-completion-strings-code'
+;; `python-shell-completion-string-code'
+
+;; Here is a complete example of the settings you would use for
+;; iPython
+
+;; (setq
+;;  python-shell-interpreter "ipython"
+;;  python-shell-interpreter-args ""
+;;  python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+;;  python-shell-completion-setup-code ""
+;;  python-shell-completion-string-code
+;;  "';'.join(__IP.complete('''%s'''))\n")
 
 ;; Pdb tracking: when you execute a block of code that contains some
 ;; call to pdb (or ipdb) it will prompt the block of code and will
@@ -948,6 +960,13 @@ The regex should not contain a caret (^) at the beginning."
   :group 'python
   :safe 'stringp)
 
+(defcustom python-shell-prompt-output-regexp nil
+  "Regex matching output prompt of python shell.
+The regex should not contain a caret (^) at the beginning."
+  :type 'string
+  :group 'python
+  :safe 'stringp)
+
 (defcustom python-shell-prompt-pdb-regexp "[(<]*[Ii]?[Pp]db[>)]+ "
   "Regex matching pdb input prompt of python shell.
 The regex should not contain a caret (^) at the beginning."
@@ -1003,7 +1022,11 @@ OUTPUT is a string with the contents of the buffer."
 (make-variable-buffer-local 'inferior-python-mode-current-file)
 
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
-  "Major mode for Python inferior process."
+  "Major mode for Python inferior process.
+Adds `python-shell-completion-complete-at-point' to the
+`comint-dynamic-complete-functions' list.  Also binds <tab> to
+`python-shell-complete-or-indent' in the
+`inferior-python-mode-map'."
   (set-syntax-table python-mode-syntax-table)
   (setq mode-line-process '(":%s"))
   (setq comint-prompt-regexp (format "^\\(?:%s\\|%s\\|%s\\)"
@@ -1021,6 +1044,10 @@ OUTPUT is a string with the contents of the buffer."
     'completion-at-point)
   (add-hook 'completion-at-point-functions
             'python-shell-completion-complete-at-point nil 'local)
+  (add-to-list (make-local-variable 'comint-dynamic-complete-functions)
+               'python-shell-completion-complete-at-point)
+  (define-key inferior-python-mode-map (kbd "<tab>")
+    'python-shell-completion-complete-or-indent)
   (compilation-shell-minor-mode 1))
 
 (defun run-python (dedicated cmd)
@@ -1128,6 +1155,21 @@ Return the output."
                       "")))))
     (python-shell-send-string string process msg)
     (accept-process-output process)
+    ;; Cleanup output prompt regexp
+    (when (and (not (string= "" output-buffer))
+               (> (length python-shell-prompt-output-regexp) 0))
+      (setq output-buffer
+            (with-temp-buffer
+              (insert-string output-buffer)
+              (goto-char (point-min))
+              (forward-comment 1)
+              (buffer-substring-no-properties
+               (or
+                (and (looking-at python-shell-prompt-output-regexp)
+                     (re-search-forward
+                      python-shell-prompt-output-regexp nil t 1))
+                (point-marker))
+               (point-max)))))
     (mapconcat
      (lambda (string) string)
      (butlast (split-string output-buffer "\n")) "\n")))
@@ -1214,37 +1256,28 @@ else:
         return completions"
   "Code used to setup completion in inferior Python processes.")
 
-(defvar python-shell-completion-strings-code
+(defvar python-shell-completion-string-code
   "';'.join(__COMPLETER_all_completions('''%s'''))\n"
   "Python code used to get a string of completions separated by semicolons.")
 
 (defun python-shell-completion-setup ()
   "Send `python-shell-completion-setup-code' to inferior Python process.
-Also binds <tab> to `python-shell-complete-or-indent' in the
-`inferior-python-mode-map' and adds
-`python-shell-completion-complete-at-point' to the
-`comint-dynamic-complete-functions' list.
 It is specially designed to be added to the
 `inferior-python-mode-hook'."
-  (when python-shell-completion-setup-code
+  (when (> (length python-shell-completion-setup-code) 0)
     (python-shell-send-string-no-output
      python-shell-completion-setup-code
      (get-buffer-process (current-buffer)))
-    (message "Completion setup code sent.")
-    (add-to-list (make-local-variable
-                  'comint-dynamic-complete-functions)
-                 'python-shell-completion-complete-at-point)
-    (define-key inferior-python-mode-map (kbd "<tab>")
-      'python-shell-completion-complete-or-indent)))
+    (message "Completion setup code sent.")))
 
 (defun python-shell-completion--get-completions (input process)
   "Retrieve available completions for INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
-    (split-string
-     (or (python-shell-send-string-no-output
-          (format python-shell-completion-strings-code input)
-          process) "")
-     ";\\|\"\\|'\\|(" t)))
+    (let ((completions (python-shell-send-string-no-output
+                        (format python-shell-completion-string-code input)
+                        process)))
+      (when (> (length completions) 2)
+        (split-string completions "^'\\|^\"\\|;\\|'$\\|\"$" t)))))
 
 (defun python-shell-completion--get-completion (input completions)
   "Get completion for INPUT using COMPLETIONS."
@@ -1509,8 +1542,6 @@ the if condition."
   :regexp "\\(?:^\\|[^/]\\)\\<\\([[:word:]/]+\\)\\W*"
   ;; Only expand in code.
   :enable-function (lambda ()
-                     (message "ppss %s" (not (nth 8 (syntax-ppss))))
-                     (message "autoinsert %s" python-skeleton-autoinsert)
                      (and
                       (not (nth 8 (syntax-ppss)))
                       python-skeleton-autoinsert)))
@@ -1643,7 +1674,8 @@ The skeleton will be bound to python-skeleton-NAME."
   "Send `python-ffap-setup-code' to inferior Python process.
 It is specially designed to be added to the
 `inferior-python-mode-hook'."
-  (when python-ffap-setup-code
+
+  (when (> (length python-ffap-setup-code) 0)
     (python-shell-send-string-no-output
      python-ffap-setup-code
      (get-buffer-process (current-buffer)))
@@ -1725,7 +1757,7 @@ Runs COMMAND, a shell command, as if by `compile'.  See
   "Send `python-eldoc-setup-code' to inferior Python process.
 It is specially designed to be added to the
 `inferior-python-mode-hook'."
-  (when python-eldoc-setup-code
+  (when (> (length python-eldoc-setup-code) 0)
     (python-shell-send-string-no-output
      python-eldoc-setup-code
      (get-buffer-process (current-buffer)))
