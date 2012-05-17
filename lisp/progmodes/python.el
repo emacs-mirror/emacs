@@ -1633,8 +1633,9 @@ completions on the current context."
 		     (string-match "^\\(from\\|import\\)[ \t]" line))
 		(python-shell-completion--get-completions
 		 line process python-shell-module-completion-string-code)
-	      (python-shell-completion--get-completions
-	       input process python-shell-completion-string-code)))
+	      (and (> (length input) 0)
+		   (python-shell-completion--get-completions
+		    input process python-shell-completion-string-code))))
 	   (completion (when completions
 			 (try-completion input completions))))
       (cond ((eq completion t)
