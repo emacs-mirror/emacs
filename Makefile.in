@@ -441,9 +441,6 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-## On AIX, use tar xBf.
-## On Xenix, use tar xpf.
-
 .PHONY: install
 
 install: all install-arch-indep install-arch-dep blessmail
@@ -516,9 +513,6 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## We install only the relevant DOC file if possible
 ## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
 ## (Note "otherwise" is inaccurate since 2009-08-23.)
-
-## If people complain about the h flag in tar command, take that out.
-## That flag is also used in leim/Makefile.in
 
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
