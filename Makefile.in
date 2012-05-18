@@ -488,6 +488,10 @@ install-arch-dep: install-arch-indep
 ## icons (duplicates etc/images/icons/hicolor)
 ## man   (maybe we should be installing this one, like info)
 
+## This is install-etc for everything except self-contained-ns builds.
+## For them, it is empty.
+INSTALL_ARCH_INDEP_EXTRA = @INSTALL_ARCH_INDEP_EXTRA@
+
 ## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.
 set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
@@ -522,10 +526,6 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## place with their files read-only (perhaps because they are checked
 ## into RCS).  In order to make this safe, we make sure that the
 ## source exists and is distinct from the destination.
-
-## This is install-etc for everything except self-contained-ns builds.
-## For them, it is empty.
-INSTALL_ARCH_INDEP_EXTRA = @INSTALL_ARCH_INDEP_EXTRA@
 
 ## I'm not sure creating locallisppath here serves any useful purpose.
 ## If it has the default value, then the later write_subdir commands
