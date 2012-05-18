@@ -1,5 +1,8 @@
 2012-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (GCC_TEST_OPTIONS, NON_GCC_TEST_OPTIONS) <darwin>:
+	No longer unconditonally add /sw directories.  (Bug#2280)
+
 	* Makefile.in (install-arch-dep): Depend on install-arch-indep.
 	(install-arch-indep): Depend on install-leim.
 	(install): Remove explicit install-leim dependence.

@@ -492,12 +492,12 @@ case "${canonical}" in
       * )            unported=yes ;;
     esac
     opsys=darwin
-    # Use fink packages if available.
-    # FIXME?  Is it really our business to decide this for the user?
-    if test -d /sw/include && test -d /sw/lib; then
-      GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
-      NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
-    fi
+    ## Use fink packages if available.
+    ## FIXME find a better way to do this: http://debbugs.gnu.org/11507
+##    if test -d /sw/include && test -d /sw/lib; then
+##      GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
+##      NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
+##    fi
   ;;
 
   ## HP 9000 series 700 and 800, running HP/UX
