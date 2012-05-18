@@ -1,3 +1,9 @@
+2012-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Ensure a space between %var% expansion and
+	redirection symbol '>', which breaks when %var% ends in a digit,
+	such as 1.
+
 2012-04-11  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
 
 	* makefile.w32-in: Fix typo (Bug#10261).
