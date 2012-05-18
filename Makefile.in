@@ -563,14 +563,13 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 	  ${write_subdir}
 	subdir=$(DESTDIR)${datadir}/emacs/site-lisp ; \
 	  ${write_subdir} || true
-	-unset CDPATH; \
-	if [ -n "${GZIP_PROG}" ]; \
-	then \
-	   echo "Compressing *.el ..." ; \
-	   (cd $(DESTDIR)${lispdir}; for f in `find . -name "*.elc" -print`; do \
-		${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
-	    done) \
-	else true; fi
+	[ -z "${GZIP_PROG}" ] || \
+	  ( echo "Compressing *.el ..." ; \
+	    unset CDPATH; \
+	    cd $(DESTDIR)${lispdir}; \
+	    for f in `find . -name "*.elc" -print`; do \
+	      ${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	    done )
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 
 ## We install only the relevant DOC file if possible
@@ -601,14 +600,11 @@ install-info: info
 	umask 022; ${MKDIR_P} $(DESTDIR)${infodir}
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
-	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd $(DESTDIR)${infodir} && /bin/pwd)` ]; \
-	then \
+	[ `(cd ${srcdir}/info && /bin/pwd)` = `(cd $(DESTDIR)${infodir} && /bin/pwd)` ] || \
 	  (cd $(DESTDIR)${infodir};  \
-	   if [ -f dir ]; then true; \
-	   else	\
+	   [ -f dir ] || \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir) ; \
-	   fi; \
 	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
@@ -616,15 +612,13 @@ install-info: info
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	       (cd $${thisdir}; \
 	        ${INSTALL_DATA} ${srcdir}/info/$$f $(DESTDIR)${infodir}/$$f); \
-	        if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
-	          rm -f $(DESTDIR)${infodir}/$$f.gz; \
-	          ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
-	        else true; fi; \
+	        ( [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ] ) || continue ; \
+	        rm -f $(DESTDIR)${infodir}/$$f.gz; \
+	        ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
 	      done; \
 	     (cd $${thisdir}; \
 	      ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
-	   done); \
-	else true; fi
+	   done)
 
 install-man:
 	umask 022; ${MKDIR_P} $(DESTDIR)${man1dir}
@@ -632,11 +626,10 @@ install-man:
 	cd ${mansrcdir}; \
 	for page in *.1; do \
 	  (cd $${thisdir}; \
-	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}; \
-	   if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
-	     rm -f $(DESTDIR)${man1dir}/$${page}.gz; \
-	     ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${page}; \
-	   else true; fi ); \
+	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}); \
+	  ( [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ] ) || continue ; \
+	  rm -f $(DESTDIR)${man1dir}/$${page}.gz; \
+	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${page}; \
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.

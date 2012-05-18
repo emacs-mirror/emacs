@@ -1,5 +1,8 @@
 2012-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-arch-indep, install-info, install-man):
+	Simplify some one-sided ifs.
+
 	* Makefile.in: Install only the relevant DOC file.
 	(install-arch-indep): Delete etc/DOC*.
 	(install-doc): No more need to delete etc/DOC.
