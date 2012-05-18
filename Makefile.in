@@ -444,7 +444,7 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 ## On AIX, use tar xBf.
 ## On Xenix, use tar xpf.
 
-.PHONY: install mkdir
+.PHONY: install
 
 ### We do install-arch-indep first because
 ### the executable needs the Lisp files and DOC file to work properly.
@@ -532,7 +532,17 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## place with their files read-only (perhaps because they are checked
 ## into RCS).  In order to make this safe, we make sure that the
 ## source exists and is distinct from the destination.
-install-arch-indep: mkdir info install-etc
+
+## I'm not sure creating locallisppath here serves any useful purpose.
+## If it has the default value, then the later write_subdir commands
+## will ensure all these components exist.
+## This will only do something if locallisppath has a non-standard value.
+## Is it really Emacs's job to create those directories?
+## Should we also be ensuring they contain subdirs.el files?
+## It would be easy to do, just use write_subdir.
+install-arch-indep: info install-etc
+	umask 022 ; \
+	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	$(set_installuser); \
@@ -662,17 +672,6 @@ install-leim: leim/Makefile
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:
 	$(MAKE) $(MFLAGS) INSTALL_STRIP=-s install
-
-## Note sure this serves any useful purpose.
-## If locallisppath has the default value, then the write_subdir commands
-## in install-arch-indep will create all these components.
-## This will only do something if locallisppath has a non-standard value.
-## Is it really Emacs job to create those directories?
-## Should we also be ensuring they contain subdirs.el files?
-## It would be easy to do.
-mkdir: FRC
-	umask 022 ; \
-	$(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would create).

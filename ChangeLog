@@ -1,5 +1,9 @@
 2012-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-arch-indep):
+	Move last element of mkdir rule here.
+	(mkdir): Remove rule.
+
 	* Makefile.in (install-arch-indep): Remove unneeded chmods.
 	INSTALL_DATA does this for us.
 
