@@ -539,7 +539,8 @@ install-arch-indep: info install-etc install-leim
 	for dir in ${COPYDIR} ; do \
 	  [ -d $${dir} ] || exit 1 ; \
 	  dest=$$1 ; shift ; \
-	  [ `(cd $${dest} && /bin/pwd)` = `(cd $${dir} && /bin/pwd)` ] && \
+	  [ -d $${dest} ] && \
+	    [ `(cd $${dest} && /bin/pwd)` = `(cd $${dir} && /bin/pwd)` ] && \
 	    continue ; \
 	  rm -rf $${dest} ; \
 	  umask 022; ${MKDIR_P} $${dest} ; \
