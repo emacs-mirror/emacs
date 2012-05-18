@@ -1,5 +1,7 @@
 2012-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (mandir): May as well include it in the NS app bundle.
+
 	* configure.in (INSTALL_ARCH_INDEP_EXTRA): New output variable.
 	* Makefile.in (INSTALL_ARCH_INDEP_EXTRA): New, set by configure.
 	(install-arch-indep): Don't install-etc for self-contained ns builds.
