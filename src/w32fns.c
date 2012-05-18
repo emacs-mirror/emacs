@@ -4003,7 +4003,7 @@ unwind_create_frame (Lisp_Object frame)
 #if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }
@@ -5236,7 +5236,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 
 #if GLYPH_DEBUG
   image_cache_refcount =
-    FRAME_IMAGE_CACHE ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
   FRAME_KBOARD (f) = kb;

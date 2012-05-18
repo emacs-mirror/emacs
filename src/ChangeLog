@@ -1,3 +1,14 @@
+2012-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix compilation with -DGLYPH_DEBUG=1 on MS-Windows.
+
+	* w32term.c [GLYPH_DEBUG]: Add prototype for x_check_font.
+	(x_check_font) [GLYPH_DEBUG]: New function, copied from xterm.c
+
+	* w32fns.c (unwind_create_frame) [GLYPH_DEBUG]: Fix broken
+	reference to image_cache->refcount.
+	(x_create_tip_frame): Fix broken use of FRAME_IMAGE_CACHE.
+
 2012-05-17  Juri Linkov  <juri@jurta.org>
 
 	* search.c (Fword_search_regexp, Fword_search_backward)
