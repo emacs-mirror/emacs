@@ -828,7 +828,7 @@ Mostly we check word delimiters."
 	     (backward-char 1)
 	     (and (looking-at (flyspell-get-not-casechars))
 		  (or (string= "" ispell-otherchars)
-		      (not (looking-at (ispell-get-otherchars))))
+		      (not (looking-at ispell-otherchars)))
 		  (or flyspell-consider-dash-as-word-delimiter-flag
 		      (not (looking-at "-"))))))
       ;; yes because we have reached or typed a word delimiter.
@@ -896,7 +896,7 @@ Mostly we check word delimiters."
 				       (backward-char 1)
 				       (and (and (looking-at (flyspell-get-not-casechars)) 1)
 					    (or (string= "" ispell-otherchars)
-						(not (looking-at (ispell-get-otherchars))))
+						(not (looking-at ispell-otherchars)))
 					    (and (or flyspell-consider-dash-as-word-delimiter-flag
 						     (not (looking-at "\\-"))) 2))))))
 			  c))))
@@ -913,7 +913,7 @@ Mostly we check word delimiters."
 					 (backward-char 1)
 					 (and (looking-at (flyspell-get-not-casechars))
 					      (or (string= "" ispell-otherchars)
-						  (not (looking-at (ispell-get-otherchars))))
+						  (not (looking-at ispell-otherchars)))
 					      (or flyspell-consider-dash-as-word-delimiter-flag
 						  (not (looking-at "\\-"))))))))
 			    c))
