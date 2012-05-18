@@ -656,6 +656,15 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (fmakunbound 'dolist)
 (fmakunbound 'dotimes)
 (fmakunbound 'declare)
+;;;###autoload
+(progn
+  ;; Autoload, so autoload.el and font-lock can use it even when CL
+  ;; is not loaded.
+  (put 'defun*    'doc-string-elt 3)
+  (put 'defmacro* 'doc-string-elt 3)
+  (put 'defsubst 'doc-string-elt 3)
+  (put 'defstruct 'doc-string-elt 2))
+
 (load "cl-loaddefs" nil 'quiet)
 
 ;; This goes here so that cl-macs can find it if it loads right now.

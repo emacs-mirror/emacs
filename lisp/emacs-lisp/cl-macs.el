@@ -227,6 +227,7 @@ and BODY is implicitly surrounded by (block NAME ...).
                      cl-declarations-or-string
                      [&optional ("interactive" interactive)]
                      def-body))
+           (doc-string 3)
            (indent 2))
   (let* ((res (cl-transform-lambda (cons args body) name))
 	 (form (list* 'defun name (cdr res))))
@@ -279,6 +280,7 @@ and BODY is implicitly surrounded by (block NAME ...).
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
             (&define name cl-macro-list cl-declarations-or-string def-body))
+           (doc-string 3)
            (indent 2))
   (let* ((res (cl-transform-lambda (cons args body) name))
 	 (form (list* 'defmacro name (cdr res))))
@@ -2587,7 +2589,8 @@ one keyword is supported, `:read-only'.  If this has a non-nil
 value, that slot cannot be set via `setf'.
 
 \(fn NAME SLOTS...)"
-  (declare (debug
+  (declare (doc-string 2)
+           (debug
             (&define                    ;Makes top-level form not be wrapped.
              [&or symbolp
                   (gate
@@ -2854,7 +2857,7 @@ value, that slot cannot be set via `setf'.
 (defmacro deftype (name arglist &rest body)
   "Define NAME as a new data type.
 The type name can then be used in `typecase', `check-type', etc."
-  (declare (debug defmacro*))
+  (declare (debug defmacro*) (doc-string 3))
   (list 'eval-when '(compile load eval)
 	(cl-transform-function-property
 	 name 'cl-deftype-handler (cons (list* '&cl-defs ''('*) arglist) body))))

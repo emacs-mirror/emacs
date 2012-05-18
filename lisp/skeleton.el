@@ -121,7 +121,7 @@ are integer buffer positions in the reverse order of the insertion order.")
   "Define a user-configurable COMMAND that enters a statement skeleton.
 DOCUMENTATION is that of the command.
 SKELETON is as defined under `skeleton-insert'."
-  (declare (debug (&define name stringp skeleton-edebug-spec)))
+  (declare (doc-string 2) (debug (&define name stringp skeleton-edebug-spec)))
   (if skeleton-debug
       (set command skeleton))
   `(progn

@@ -1,3 +1,18 @@
+2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (doc-string-elt): Move those properties to
+	their respective macro declarations.
+	* skeleton.el (define-skeleton):
+	* progmodes/compile.el (define-compilation-mode):
+	* ibuf-macs.el (define-ibuffer-sorter, define-ibuffer-op)
+	(define-ibuffer-filter):
+	* emacs-lisp/generic.el (define-generic-mode):
+	* emacs-lisp/easy-mmode.el (define-minor-mode)
+	(define-globalized-minor-mode):
+	* emacs-lisp/cl-macs.el (defun*, defmacro*, defstruct, deftype):
+	* emacs-lisp/byte-run.el (defsubst):
+	* custom.el (deftheme): Add doc-string metadata.
+
 2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el, emacs-lisp/cl.el: Move indent info.
