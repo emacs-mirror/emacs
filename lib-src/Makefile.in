@@ -259,6 +259,7 @@ $(DESTDIR)${archlibdir}: all
 install: $(DESTDIR)${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
+	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	for file in ${INSTALLABLES} ; do \
 	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	  chmod a+rx $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
