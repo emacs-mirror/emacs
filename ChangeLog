@@ -1,3 +1,7 @@
+2012-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Combine adjacent loops.
+
 2012-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-etc, mkdir):

@@ -446,17 +446,16 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 
 .PHONY: install mkdir
 
-## We delete each directory in ${COPYDESTS} before we copy into it;
-## that way, we can reinstall over directories that have been put in
-## place with their files read-only (perhaps because they are checked
-## into RCS).  In order to make this safe, we make sure that the
-## source exists and is distinct from the destination.
 ### We do install-arch-indep first because
 ### the executable needs the Lisp files and DOC file to work properly.
 install: all install-arch-indep install-arch-dep install-leim blessmail
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
+## Here and elsewhere, we set the umask so that any created files are
+## world-readable.
+## TODO it might be good to warn about non-standard permissions of
+## pre-existing directories, but that does not seem easy.
 write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 	then true; \
 	else \
@@ -527,42 +526,40 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
 
+## We delete each directory in ${COPYDESTS} before we copy into it;
+## that way, we can reinstall over directories that have been put in
+## place with their files read-only (perhaps because they are checked
+## into RCS).  In order to make this safe, we make sure that the
+## source exists and is distinct from the destination.
 install-arch-indep: mkdir info install-etc
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
-	for dir in ${COPYDIR} ; do \
-	  if [ `(cd $$1 && /bin/pwd)` != `(cd $${dir} && /bin/pwd)` ] ; then \
-	    rm -rf $$1 ; \
-	  fi ; \
-	  shift ; \
-	done
-	-set ${COPYDESTS} ; \
-	mkdir ${COPYDESTS} ; \
-	chmod ugo+rx ${COPYDESTS} ; \
-	unset CDPATH; \
 	$(set_installuser); \
 	for dir in ${COPYDIR} ; do \
+	  [ -d $${dir} ] || exit 1 ; \
 	  dest=$$1 ; shift ; \
-	  [ -d $${dir} ] \
-	  && [ `(cd $${dir} && /bin/pwd)` != `(cd $${dest} && /bin/pwd)` ] \
-	  && (echo "Copying $${dir} to $${dest}..." ; \
-	      (cd $${dir}; tar -chf - . ) \
-		| (cd $${dest}; umask 022; \
-                   tar -xvf - && cat > /dev/null) || exit 1; \
-	      find $${dest} -exec chown $${installuser} {} ';' ;\
-	      for subdir in `find $${dest} -type d -print` ; do \
-		chmod a+rx $${subdir} ; \
-		rm -f  $${subdir}/.gitignore ; \
-		rm -f  $${subdir}/.arch-inventory ; \
-		rm -f  $${subdir}/.DS_Store ; \
-		rm -f  $${subdir}/\#* ; \
-		rm -f  $${subdir}/.\#* ; \
-		rm -f  $${subdir}/*~ ; \
-		rm -f  $${subdir}/*.orig ; \
-		[ "$${dir}" != "${srcdir}/etc" ] && \
-		 rm -f $${subdir}/[mM]akefile*[.-]in $${subdir}/[mM]akefile ; \
-		rm -f  $${subdir}/ChangeLog* ; \
-	      done) ; \
+	  [ `(cd $${dest} && /bin/pwd)` = `(cd $${dir} && /bin/pwd)` ] && \
+	    continue ; \
+	  rm -rf $${dest} ; \
+	  umask 022; ${MKDIR_P} $${dest} ; \
+	  (echo "Copying $${dir} to $${dest}..." ; \
+	   (cd $${dir}; tar -chf - . ) \
+	     | (cd $${dest}; umask 022; \
+		tar -xvf - && cat > /dev/null) || exit 1; \
+	   find $${dest} -exec chown $${installuser} {} ';' ;\
+	   for subdir in `find $${dest} -type d -print` ; do \
+	     chmod a+rx $${subdir} ; \
+	     rm -f  $${subdir}/.gitignore ; \
+	     rm -f  $${subdir}/.arch-inventory ; \
+	     rm -f  $${subdir}/.DS_Store ; \
+	     rm -f  $${subdir}/\#* ; \
+	     rm -f  $${subdir}/.\#* ; \
+	     rm -f  $${subdir}/*~ ; \
+	     rm -f  $${subdir}/*.orig ; \
+	     [ "$${dir}" != "${srcdir}/etc" ] && \
+	      rm -f $${subdir}/[mM]akefile*[.-]in $${subdir}/[mM]akefile ; \
+	     rm -f  $${subdir}/ChangeLog* ; \
+	   done) ; \
 	done
 	-rm -f $(DESTDIR)${lispdir}/subdirs.el
 	$(srcdir)/update-subdirs $(DESTDIR)${lispdir}
@@ -641,16 +638,16 @@ install-etc:
 	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
 	${INSTALL_DATA} ${srcdir}/etc/emacs.desktop \
 	  $(DESTDIR)${desktopdir}/emacs.desktop
-	thisdir=`/bin/pwd` ; \
+	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
 	  ( cd $${thisdir}; ${MKDIR_P} ${icondir}/$${dir} ) ; \
 	  for icon in $${dir}/*.*; do \
 	    [ -r $${icon} ] || continue ; \
-	    ( cd $${thisdir} ; \
+	    ( cd $${thisdir}; \
 	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} ${icondir}/$${icon} ) \
-	    || exit 1 ; \
+	    || exit 1; \
 	  done ; \
 	done
 
@@ -666,9 +663,6 @@ install-strip:
 	$(MAKE) $(MFLAGS) INSTALL_STRIP=-s install
 
 ### Build some of the directories we're going to install Emacs in.
-### We set the umask so that any created directories are world-readable.
-### FIXME it would be good to warn about non-standard permissions of
-### pre-existing directories, but that does not seem easy.
 mkdir: FRC
 	umask 022 ; \
 	$(MKDIR_P) $(DESTDIR)${datadir} ${COPYDESTS} \
