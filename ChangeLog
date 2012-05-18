@@ -1,5 +1,9 @@
 2012-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-arch-dep): Depend on install-arch-indep.
+	(install-arch-indep): Depend on install-leim.
+	(install): Remove explicit install-leim dependence.
+
 	* Makefile.in (install-arch-indep):
 	Move last element of mkdir rule here.
 	(mkdir): Remove rule.
