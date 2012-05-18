@@ -1,3 +1,17 @@
+2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el: Commenting style, plus code simplifications.
+	(flyspell-default-deplacement-commands): Don't spell check after
+	repeated window/frame switches (e.g. triggered by mouse-movement).
+	(flyspell-delay-commands, flyspell-deplacement-commands): Use mapc.
+	(flyspell-debug-signal-word-checked): Simplify and fit in 80 cols.
+	(flyspell-casechars-cache, flyspell-ispell-casechars-cache)
+	(flyspell-not-casechars-cache, flyspell-ispell-not-casechars-cache):
+	Remove unused vars.
+	(flyspell-get-casechars, flyspell-get-not-casechars):
+	Simplify; Don't bother removing a ] just to add it back.
+	* textmodes/ispell.el (ispell-program-name): Use executable-find.
+
 2012-05-18  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
 
 	* calc/calc-lang.el (math-C-parse-bess, math-C-parse-fma):
