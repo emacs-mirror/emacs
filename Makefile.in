@@ -443,7 +443,7 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 
 .PHONY: install
 
-install: all install-arch-indep install-arch-dep blessmail
+install: all install-arch-indep install-doc install-arch-dep blessmail
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -464,7 +464,7 @@ write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 ### Install the executables that were compiled specifically for this machine.
 ### We do install-arch-indep first because the executable needs the
 ### Lisp files and DOC file to work properly.
-install-arch-dep: install-arch-indep
+install-arch-dep: install-arch-indep install-doc
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	(cd lib-src; \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
@@ -523,7 +523,7 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Is it really Emacs's job to create those directories?
 ## Should we also be ensuring they contain subdirs.el files?
 ## It would be easy to do, just use write_subdir.
-install-arch-indep: install-leim install-doc install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
+install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
 	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
 	-set ${COPYDESTS} ; \
@@ -582,7 +582,10 @@ install-arch-indep: install-leim install-doc install-info install-man ${INSTALL_
 ## has another effect.  We copy the entire etc/ directory from the
 ## source tree first.  For an in-tree build, this will include
 ## any DOC* files there may be.  So rm DOC does have an effect.
-install-doc:
+
+## Note that install-arch-indep deletes and recreates the entire
+## installed etc/ directory, so we need it to run before this does.
+install-doc: install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} $(DESTDIR)${docdir} ; \
 	if [ `(cd ./etc; /bin/pwd)` != `(cd $(DESTDIR)${docdir}; /bin/pwd)` ]; \
