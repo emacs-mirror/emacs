@@ -1,5 +1,7 @@
 2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/vc-bzr.el (vc-bzr-state-heuristic): Save match-data around sha1.
+
 	* textmodes/flyspell.el: Commenting style, plus code simplifications.
 	(flyspell-default-deplacement-commands): Don't spell check after
 	repeated window/frame switches (e.g. triggered by mouse-movement).
