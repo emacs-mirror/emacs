@@ -1,5 +1,8 @@
 2012-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-arch-indep): Split into several rules.
+	(install-doc, innstall-info, install-man): New rules.
+
 	* configure.in (mandir): May as well include it in the NS app bundle.
 
 	* configure.in (INSTALL_ARCH_INDEP_EXTRA): New output variable.
