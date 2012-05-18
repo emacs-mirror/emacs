@@ -603,8 +603,7 @@ install-arch-indep: mkdir info install-etc
 	   if [ -f dir ]; then true; \
 	   else	\
 	     (cd $${thisdir}; \
-	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir; \
-	      chmod a+r $(DESTDIR)${infodir}/dir); \
+	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir) ; \
 	   fi; \
 	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
 	   cd ${srcdir}/info ; \
@@ -613,7 +612,6 @@ install-arch-indep: mkdir info install-etc
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	       (cd $${thisdir}; \
 	        ${INSTALL_DATA} ${srcdir}/info/$$f $(DESTDIR)${infodir}/$$f); \
-	        chmod a+r $(DESTDIR)${infodir}/$$f; \
 	        if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
 	          rm -f $(DESTDIR)${infodir}/$$f.gz; \
 	          ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
@@ -630,7 +628,6 @@ install-arch-indep: mkdir info install-etc
 	for page in *.1; do \
 	  (cd $${thisdir}; \
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}; \
-	   chmod a+r $(DESTDIR)${man1dir}/$${page}; \
 	   if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
 	     rm -f $(DESTDIR)${man1dir}/$${page}.gz; \
 	     ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${page}; \
