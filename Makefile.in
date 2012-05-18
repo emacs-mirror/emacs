@@ -499,22 +499,22 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 	done
 
 ### Install the files that are machine-independent.
-### Most of them come straight from the distribution;
-### the exception is the DOC-* files, which are copied
-### from the build directory.
-
-## FIXME When we copy etc we should exclude DOC*, then copy only
-## the relevant one.  We cannot delete DOC* from the destination directory,
-## because that may include pre-existing files from another emacs.
-
-## Note that the Makefiles in the etc directory are potentially useful
-## in an installed Emacs, so should not be excluded.
+### Most of them come straight from the distribution; the exception is
+### the DOC file, which is copied from the build directory.
 
 ## We delete each directory in ${COPYDESTS} before we copy into it;
 ## that way, we can reinstall over directories that have been put in
 ## place with their files read-only (perhaps because they are checked
 ## into RCS).  In order to make this safe, we make sure that the
 ## source exists and is distinct from the destination.
+
+## We delete etc/DOC* because there may be irrelevant DOC files from
+## other builds in the source directory.  This is ok because we just
+## deleted the entire installed etc/ directory and recreated it.
+## install-doc installs the relevant DOC.
+
+## Note that the Makefiles in the etc directory are potentially useful
+## in an installed Emacs, so should not be excluded.
 
 ## I'm not sure creating locallisppath here serves any useful purpose.
 ## If it has the default value, then the later write_subdir commands
@@ -541,6 +541,7 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 	   (cd $${dir}; tar -chf - . ) \
 	     | (cd $${dest}; umask 022; \
 		tar -xvf - && cat > /dev/null) || exit 1; \
+	   [ "$${dir}" != "${srcdir}/etc" ] || rm -f $${dest}/DOC* ; \
 	   find $${dest} -exec chown $${installuser} {} ';' ;\
 	   for subdir in `find $${dest} -type d -print` ; do \
 	     chmod a+rx $${subdir} ; \
@@ -576,13 +577,6 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 ## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
 ## (Note "otherwise" is inaccurate since 2009-08-23.)
 
-## Note that we copy DOC* and then delete DOC
-## as a workaround for a bug in tar on Ultrix 4.2.
-## Ultrix is no longer supported since 23.1, but the relevant line
-## has another effect.  We copy the entire etc/ directory from the
-## source tree first.  For an in-tree build, this will include
-## any DOC* files there may be.  So rm DOC does have an effect.
-
 ## Note that install-arch-indep deletes and recreates the entire
 ## installed etc/ directory, so we need it to run before this does.
 install-doc: install-arch-indep
@@ -599,10 +593,8 @@ install-doc: install-arch-indep
 	   fi; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${docdir} ..." ; \
 	   ${INSTALL_DATA} etc/$${docfile} $(DESTDIR)${docdir}/$${docfile}; \
-	   (cd $(DESTDIR)$(docdir); \
-	    $(set_installuser); \
-	    chown $${installuser} DOC*; \
-	    if test "`echo DOC-*`" != "DOC-*"; then rm -f DOC; fi); \
+	   $(set_installuser); \
+	     chown $${installuser} $(DESTDIR)${docdir}/$${docfile} || true ; \
 	else true; fi
 
 install-info: info
