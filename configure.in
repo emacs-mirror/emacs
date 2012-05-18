@@ -1573,6 +1573,7 @@ fail;
 fi
 AC_SUBST(TEMACS_LDFLAGS2)
 
+INSTALL_ARCH_INDEP_EXTRA=install-etc
 LEIM_INSTALLDIR="\${install_prefix}/leim"
 ns_self_contained=no
 ns_frag=/dev/null
@@ -1600,6 +1601,7 @@ if test "${HAVE_NS}" = yes; then
      infodir="\${ns_appresdir}/info"
      lispdir="\${ns_appresdir}/lisp"
      LEIM_INSTALLDIR="\${ns_appresdir}/leim"
+     INSTALL_ARCH_INDEP_EXTRA=
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
@@ -1607,6 +1609,7 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+AC_SUBST(INSTALL_ARCH_INDEP_EXTRA)
 AC_SUBST(LEIM_INSTALLDIR)
 AC_SUBST(ns_self_contained)
 AC_SUBST(NS_OBJ)

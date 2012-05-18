@@ -523,6 +523,10 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## into RCS).  In order to make this safe, we make sure that the
 ## source exists and is distinct from the destination.
 
+## This is install-etc for everything except self-contained-ns builds.
+## For them, it is empty.
+INSTALL_ARCH_INDEP_EXTRA = @INSTALL_ARCH_INDEP_EXTRA@
+
 ## I'm not sure creating locallisppath here serves any useful purpose.
 ## If it has the default value, then the later write_subdir commands
 ## will ensure all these components exist.
@@ -530,7 +534,7 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Is it really Emacs's job to create those directories?
 ## Should we also be ensuring they contain subdirs.el files?
 ## It would be easy to do, just use write_subdir.
-install-arch-indep: info install-etc install-leim
+install-arch-indep: info install-leim ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
 	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
 	-set ${COPYDESTS} ; \
