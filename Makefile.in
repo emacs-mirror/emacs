@@ -357,7 +357,7 @@ sync-from-gnulib: $(gnulib_srcdir)
 
 # These targets should be "${SUBDIR} without `src'".
 lib lib-src lisp: Makefile FRC
-	cd $@; $(MAKE) all $(MFLAGS)                           \
+	cd $@ && $(MAKE) all $(MFLAGS)                         \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
 

@@ -1,5 +1,7 @@
 2012-05-19  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (lib, lib-src, lisp): Check cd return value.
+
 	* Makefile.in (leim): No need to set PARALLEL.
 
 2012-05-18  Glenn Morris  <rgm@gnu.org>
