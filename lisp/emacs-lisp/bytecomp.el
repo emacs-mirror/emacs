@@ -1002,12 +1002,14 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 (defvar byte-compile-last-warned-form nil)
 (defvar byte-compile-last-logged-file nil)
+(defvar byte-compile-root-dir nil
+  "Directory relative to which file names in error messages are written.")
 
 ;; This is used as warning-prefix for the compiler.
 ;; It is always called with the warnings buffer current.
 (defun byte-compile-warning-prefix (level entry)
   (let* ((inhibit-read-only t)
-	 (dir default-directory)
+	 (dir (or byte-compile-root-dir default-directory))
 	 (file (cond ((stringp byte-compile-current-file)
 		      (format "%s:" (file-relative-name
                                      byte-compile-current-file dir)))
@@ -4515,29 +4517,30 @@ already up-to-date."
     (kill-emacs (if error 1 0))))
 
 (defun batch-byte-compile-file (file)
-  (if debug-on-error
-      (byte-compile-file file)
-    (condition-case err
-	(byte-compile-file file)
-      (file-error
-       (message (if (cdr err)
-		    ">>Error occurred processing %s: %s (%s)"
-		  ">>Error occurred processing %s: %s")
-		file
-		(get (car err) 'error-message)
-		(prin1-to-string (cdr err)))
-       (let ((destfile (byte-compile-dest-file file)))
-	 (if (file-exists-p destfile)
-	     (delete-file destfile)))
-       nil)
-      (error
-       (message (if (cdr err)
-		    ">>Error occurred processing %s: %s (%s)"
-		  ">>Error occurred processing %s: %s")
-		file
-		(get (car err) 'error-message)
-		(prin1-to-string (cdr err)))
-       nil))))
+  (let ((byte-compile-root-dir (or byte-compile-root-dir default-directory)))
+    (if debug-on-error
+        (byte-compile-file file)
+      (condition-case err
+          (byte-compile-file file)
+        (file-error
+         (message (if (cdr err)
+                      ">>Error occurred processing %s: %s (%s)"
+                    ">>Error occurred processing %s: %s")
+                  file
+                  (get (car err) 'error-message)
+                  (prin1-to-string (cdr err)))
+         (let ((destfile (byte-compile-dest-file file)))
+           (if (file-exists-p destfile)
+               (delete-file destfile)))
+         nil)
+        (error
+         (message (if (cdr err)
+                      ">>Error occurred processing %s: %s (%s)"
+                    ">>Error occurred processing %s: %s")
+                  file
+                  (get (car err) 'error-message)
+                  (prin1-to-string (cdr err)))
+         nil)))))
 
 (defun byte-compile-refresh-preloaded ()
   "Reload any Lisp file that was changed since Emacs was dumped.
