@@ -630,11 +630,11 @@ install-etc:
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
-	  ( cd $${thisdir}; ${MKDIR_P} ${icondir}/$${dir} ) ; \
+	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
 	  for icon in $${dir}/*.*; do \
 	    [ -r $${icon} ] || continue ; \
 	    ( cd $${thisdir}; \
-	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} ${icondir}/$${icon} ) \
+	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${icon} ) \
 	    || exit 1; \
 	  done ; \
 	done

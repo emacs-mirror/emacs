@@ -1,3 +1,7 @@
+2012-05-19  Ulrich Mueller  <ulm@gentoo.org>
+
+	* Makefile.in (install-etc): Respect DESTDIR.  (Bug#11518)
+
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in (AC_CHECK_FUNCS): Remove XSetWMProtocols,
