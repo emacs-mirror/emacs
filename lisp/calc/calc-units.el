@@ -374,7 +374,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
      (if (math-units-in-expr-p expr nil)
          (progn
            (if calc-ensure-consistent-units
-               (math-check-unit-consistency expr units))
+               (math-check-unit-consistency expr (nth pos units)))
            (calc-enter-result 1 (format "cun%d" num)
                               (math-convert-units expr (nth pos units))))
        (calc-enter-result 1 (format "*un%d" num)
