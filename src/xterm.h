@@ -1038,6 +1038,7 @@ extern void x_clipboard_manager_save_all (void);
 
 extern struct x_display_info * check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_focus_frame (struct frame *);
+extern int x_in_use;
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);

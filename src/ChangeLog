@@ -1,3 +1,11 @@
+2012-05-19  Ken Brown  <kbrown@cornell.edu>
+
+	* xfns.c (x_in_use): Remove `static' qualifier.
+	* xterm.h (x_in_use): Declare.
+	* xgselect.c: Include xterm.h.
+	(xg_select): Test `x_in_use' instead of `inhibit_window_system'
+	and `display_arg' (bug#9754).
+
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* s/ms-w32.h (HAVE_GETDOMAINNAME): Remove; not needed.

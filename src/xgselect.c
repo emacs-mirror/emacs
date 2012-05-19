@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http§://www.gnu.org/licenses/>.  */
 #include <glib.h>
 #include <errno.h>
 #include <setjmp.h>
+#include "xterm.h"
 
 static GPollFD *gfds;
 static ptrdiff_t gfds_size;
@@ -43,7 +44,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   int n_gfds = 0, our_tmo = 0, retval = 0, our_fds = 0;
   int i, nfds, fds_lim, tmo_in_millisec;
 
-  if (inhibit_window_system || !display_arg)
+  if (!x_in_use)
     return select (max_fds, rfds, wfds, efds, timeout);
 
   if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));

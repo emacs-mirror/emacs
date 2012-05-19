@@ -136,7 +136,7 @@ char *gray_bitmap_bits = gray_bits;
 
 /* Nonzero if using X.  */
 
-static int x_in_use;
+int x_in_use;
 
 static Lisp_Object Qnone;
 static Lisp_Object Qsuppress_icon;
