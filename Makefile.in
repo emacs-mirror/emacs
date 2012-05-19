@@ -511,6 +511,12 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Is it really Emacs's job to create those directories?
 ## Should we also be ensuring they contain subdirs.el files?
 ## It would be easy to do, just use write_subdir.
+
+## Note that we use tar instead of plain old cp -R/-r because the latter
+## is apparently not portable (even in 2012!).
+## http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00278.html
+## I have no idea which platforms Emacs supports where cp -R does not
+## work correctly, and therefore no idea when tar can be replaced.
 install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
 	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`

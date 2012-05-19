@@ -131,7 +131,9 @@ ${CHINESE_TIT}: changed.tit
 ## Otherwise in a parallel build multiple Emacs instances could
 ## interfere with each other.  If we used GNU make we could probably
 ## parallelize this without the need for an explicit rule for each
-## file.
+## file.  Something like the pattern rule:
+## quail/%.el: CXTERM-DIC/%.tit
+## It doesn't seem possible to do this with VPATH and suffix rules.
 changed.tit: ${SUBDIRS} ${TIT_SOURCES}
 	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
