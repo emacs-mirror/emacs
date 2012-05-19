@@ -921,9 +921,12 @@ If EXPR is nil, return nil."
 	   (math-single-units-in-expr-p (nth 1 expr))))
 	(t 'wrong)))
 
-(defun math-consistent-units-p (expr1 expr2)
-  "Non-nil if EXPR1 and EXPR2 have consistent units."
-  (math-numberp (math-get-units (list '/ expr1 expr2))))
+(defun math-consistent-units-p (expr newunits)
+  "Non-nil if EXPR and NEWUNITS have consistent units."
+  (or
+   (and (eq (car-safe newunits) 'var)
+        (assq (nth 1 newunits) math-standard-units-systems))
+   (math-numberp (math-get-units (list '/ expr newunits)))))
 
 (defun math-check-unit-consistency (expr units)
   "Give an error if EXPR and UNITS do not have consistent units."
