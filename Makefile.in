@@ -258,14 +258,8 @@ TRANSFORM = @program_transform_name@
 EMACS = `echo emacs${EXEEXT} | sed '$(TRANSFORM)'`
 EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 
-# Subdirectories to make recursively.  `lisp' is not included
-# because the compiled lisp files are part of the distribution.
-# leim is not included because it needs special handling.
-#
-# Actually, we now include `lisp' as well, since the compiled files
-# are not included any more in case of bootstrap or in case Emacs was
-# checked out from a VCS.
-SUBDIR = lib lib-src src lisp
+# Subdirectories to make recursively.
+SUBDIR = lib lib-src src lisp leim
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
@@ -280,7 +274,7 @@ SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir}
 
-all: ${SUBDIR} leim
+all: ${SUBDIR}
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
@@ -305,18 +299,15 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
-# For parallel make, src should be built before leim.
-leim:   src Makefile FRC
-	cd leim && $(MAKE) all $(MFLAGS)
-
 lib-src src: lib
 
 src:	lib-src FRC
 
-.RECURSIVE: ${SUBDIR} leim
+.RECURSIVE: ${SUBDIR}
 
-# We need to build `emacs' in `src' to compile the *.elc files in `lisp'.
-lisp: src
+# We need to build `emacs' in `src' to compile the *.elc files in `lisp'
+# and `leim'.
+lisp leim: src
 
 # Maintainers can put a copy of gnulib into $(gnulib_srcdir).
 gnulib_srcdir = ../gnulib
@@ -356,7 +347,7 @@ sync-from-gnulib: $(gnulib_srcdir)
 .PHONY: sync-from-gnulib
 
 # These targets should be "${SUBDIR} without `src'".
-lib lib-src lisp: Makefile FRC
+lib lib-src lisp leim: Makefile FRC
 	cd $@ && $(MAKE) all $(MFLAGS)                         \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -818,7 +809,7 @@ maintainer-clean: bootstrap-clean FRC
 ### the coding standards seem to come from.  It's like distclean, but
 ### it deletes backup and autosave files too.
 extraclean:
-	for i in ${SUBDIR} leim; do (cd $$i; $(MAKE) $(MFLAGS) extraclean); done
+	for i in ${SUBDIR}; do (cd $$i; $(MAKE) $(MFLAGS) extraclean); done
 	${top_maintainer_clean}
 	-rm -f config-tmp-*
 	-rm -f *~ \#*
