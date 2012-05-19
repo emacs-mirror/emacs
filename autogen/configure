@@ -4457,7 +4457,6 @@ case "${canonical}" in
       m68k-*)      machine=m68k ;;
       powerpc-*)   machine=macppc ;;
       sparc*-)     machine=sparc ;;
-      vax-*)       machine=vax ;;
     esac
   ;;
 
@@ -4470,7 +4469,6 @@ case "${canonical}" in
       i386-*)    machine=intel386 ;;
       powerpc-*) machine=macppc ;;
       sparc*)    machine=sparc ;;
-      vax-*)     machine=vax ;;
     esac
   ;;
 
@@ -10133,6 +10131,7 @@ if test "${HAVE_NS}" = yes; then
      docdir="\${ns_appresdir}/etc"
      etcdir="\${ns_appresdir}/etc"
                infodir="\${ns_appresdir}/info"
+     mandir="\${ns_appresdir}/man"
      lispdir="\${ns_appresdir}/lisp"
      LEIM_INSTALLDIR="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
@@ -14315,7 +14314,7 @@ esac
 
 for ac_func in gethostname getdomainname \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
-random lrand48 logb frexp fmod rint cbrt ftime setsid \
+random lrand48 logb frexp fmod rint cbrt setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm \

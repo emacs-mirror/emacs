@@ -254,9 +254,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `fsync' function. */
 #undef HAVE_FSYNC
 
-/* Define to 1 if you have the `ftime' function. */
-#undef HAVE_FTIME
-
 /* Define to 1 if you have the `gai_strerror' function. */
 #undef HAVE_GAI_STRERROR
 
