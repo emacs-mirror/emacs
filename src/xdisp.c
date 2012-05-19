@@ -1313,7 +1313,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 	visible_p = bottom_y > window_top_y;
       else if (top_y < it.last_visible_y)
 	visible_p = 1;
-      if (bottom_y <= it.last_visible_y
+      if (bottom_y >= it.last_visible_y
 	  && it.bidi_p && it.bidi_it.scan_dir == -1
 	  && IT_CHARPOS (it) < charpos)
 	{
@@ -8689,8 +8689,18 @@ move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos
 		{
 		  /* If TO_Y is in this line and TO_X was reached
 		     above, we scanned too far.  We have to restore
-		     IT's settings to the ones before skipping.  */
+		     IT's settings to the ones before skipping.  But
+		     keep the more accurate values of max_ascent and
+		     max_descent we've found while skipping the rest
+		     of the line, for the sake of callers, such as
+		     pos_visible_p, that need to know the line
+		     height.  */
+		  int max_ascent = it->max_ascent;
+		  int max_descent = it->max_descent;
+
 		  RESTORE_IT (it, &it_backup, backup_data);
+		  it->max_ascent = max_ascent;
+		  it->max_descent = max_descent;
 		  reached = 6;
 		}
 	      else

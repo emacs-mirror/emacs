@@ -1,3 +1,13 @@
+2012-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_to): Under MOVE_TO_Y, when restoring iterator
+	state after an additional call to move_it_in_display_line_to, keep
+	the values of it->max_ascent and it->max_descent found for the
+	entire line.
+	(pos_visible_p): Revert the comparison against bottom_y to what it
+	was in revid eliz@gnu.org-20120513182235-4p6386j761ld0nwb.
+	(Bug#11464)
+
 2012-05-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): Fix last change.  (Bug#11464)
