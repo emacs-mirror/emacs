@@ -1,3 +1,8 @@
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* m/vax.h: Remove; no longer needed since HAVE_FTIME is being removed.
+	* s/ms-w32.h (HAVE_FTIME): Remove; not needed.
+
 2012-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix compilation with -DGLYPH_DEBUG=1 on MS-Windows.

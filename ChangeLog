@@ -1,3 +1,9 @@
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (machine): Do not set to 'vax', since src/m/vax.h
+	is being removed.
+	(AC_CHECK_FUNCS): Remove ftime.
+
 2012-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): Remove unneeded subshell.

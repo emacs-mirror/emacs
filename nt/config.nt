@@ -221,7 +221,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_FMOD
 #undef HAVE_RINT
 #undef HAVE_CBRT
-#undef HAVE_FTIME
 #undef HAVE_RES_INIT /* For -lresolv on Suns.  */
 #undef HAVE_SETSID
 #undef HAVE_FPATHCONF

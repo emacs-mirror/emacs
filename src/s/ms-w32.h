@@ -147,7 +147,6 @@ struct sigaction {
 #define HAVE_FMOD 1
 #undef  HAVE_RINT
 #undef  HAVE_CBRT
-#define HAVE_FTIME 1
 #undef  HAVE_RES_INIT /* For -lresolv on Suns.  */
 #undef  HAVE_SETSID
 #undef  HAVE_FPATHCONF

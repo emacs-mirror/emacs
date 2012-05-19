@@ -466,7 +466,6 @@ case "${canonical}" in
       m68k-*)      machine=m68k ;;
       powerpc-*)   machine=macppc ;;
       sparc*-)     machine=sparc ;;
-      vax-*)       machine=vax ;;
     esac
   ;;
 
@@ -479,7 +478,6 @@ case "${canonical}" in
       i386-*)    machine=intel386 ;;
       powerpc-*) machine=macppc ;;
       sparc*)    machine=sparc ;;
-      vax-*)     machine=vax ;;
     esac
   ;;
 
@@ -2777,7 +2775,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 AC_CHECK_FUNCS(gethostname getdomainname \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
-random lrand48 logb frexp fmod rint cbrt ftime setsid \
+random lrand48 logb frexp fmod rint cbrt setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
