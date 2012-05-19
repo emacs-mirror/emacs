@@ -1,5 +1,8 @@
 2012-05-19  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-arch-indep): Remove unneeded chmod.
+	Set permissions of lisp/subdirs.el.
+
 	* Makefile.in (SUBDIR): Add leim.  Update users.
 
 	* Makefile.in (lib, lib-src, lisp): Check cd return value.
