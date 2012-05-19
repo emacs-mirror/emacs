@@ -123,8 +123,15 @@ TIT_SOURCES= \
 ${CHINESE_TIT}: changed.tit
 	@true
 
-## FIXME remove subdirs if poss - time-stamping.
+## FIXME remove subdirs if possible - time-stamping.
 ## Emacs should make the directory if it does not exist.
+
+## The changed.* files act to serialize this part of the build.
+## A single Emacs invocation creates all the CHINESE_TIT files.
+## Otherwise in a parallel build multiple Emacs instances could
+## interfere with each other.  If we used GNU make we could probably
+## parallelize this without the need for an explicit rule for each
+## file.
 changed.tit: ${SUBDIRS} ${TIT_SOURCES}
 	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
