@@ -45,6 +45,10 @@ TRANSFORM = @program_transform_name@
 
 # ==================== Where To Install Things ====================
 
+# Location to install Emacs.app under GNUstep / Mac OS X.
+# Later values may use this.
+ns_appbindir=@ns_appbindir@
+
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  The default values for many of
 # the variables below are expressed in terms of this one, so you may
@@ -106,6 +110,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
+MKDIR_P = @MKDIR_P@
 
 # ========================== Lists of Files ===========================
 
@@ -231,13 +236,13 @@ maybe-blessmail: $(BLESSMAIL_TARGET)
 $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
-	umask 022; $(top_srcdir)/build-aux/install-sh -d $(DESTDIR)${archlibdir}
+	umask 022; ${MKDIR_P} $(DESTDIR)${archlibdir}
 	if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
 	  done ; \
         fi
-	umask 022; $(top_srcdir)/build-aux/install-sh -d $(DESTDIR)${gamedir}; \
+	umask 022; ${MKDIR_P} $(DESTDIR)${gamedir}; \
 	touch $(DESTDIR)${gamedir}/snake-scores; \
 	touch $(DESTDIR)${gamedir}/tetris-scores
 	-if chown ${gameuser} $(DESTDIR)${archlibdir}/update-game-score && chmod u+s $(DESTDIR)${archlibdir}/update-game-score; then \
@@ -254,6 +259,7 @@ $(DESTDIR)${archlibdir}: all
 install: $(DESTDIR)${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
+	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	for file in ${INSTALLABLES} ; do \
 	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	  chmod a+rx $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \

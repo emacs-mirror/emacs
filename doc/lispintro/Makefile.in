@@ -26,6 +26,8 @@ infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
+MKDIR_P = @MKDIR_P@
+
 INFO_EXT=@INFO_EXT@
 # Options used only when making info output.
 INFO_OPTS=@INFO_OPTS@
@@ -39,7 +41,7 @@ DVIPS = dvips
 ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
-mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @${MKDIR_P} ${infodir}
 
 .PHONY: info dvi html pdf ps
 

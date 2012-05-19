@@ -263,12 +263,16 @@ object is returned instead of a list containing this single Lisp object.
 	 (apply
 	  'dbus-message-internal dbus-message-type-method-call
 	  bus service path interface method 'dbus-call-method-handler args)))
+
     ;; Wait until `dbus-call-method-handler' has put the result into
     ;; `dbus-return-values-table'.  If no timeout is given, use the
-    ;; default 25".
+    ;; default 25".  Events which are not from D-Bus must be restored.
     (with-timeout ((if timeout (/ timeout 1000.0) 25))
       (while (eq (gethash key dbus-return-values-table :ignore) :ignore)
-	(read-event nil nil 0.1)))
+	(let ((event (let (unread-command-events) (read-event))))
+	  (when (and event (not (ignore-errors (dbus-check-event event))))
+	    (setq unread-command-events
+		  (append unread-command-events (list event)))))))
 
     ;; Cleanup `dbus-return-values-table'.  Return the result.
     (prog1
@@ -1089,9 +1093,7 @@ denoting the bus address.  SERVICE must be a known service name,
 and PATH must be a valid object path.  The last two parameters
 are strings.  The result, the introspection data, is a string in
 XML format."
-  ;; We don't want to raise errors.  `dbus-call-method-non-blocking'
-  ;; is used, because the handler can be registered in our Emacs
-  ;; instance; caller and callee would block each other.
+  ;; We don't want to raise errors.
   (dbus-ignore-errors
     (dbus-call-method
      bus service path dbus-interface-introspectable "Introspect"
@@ -1534,7 +1536,7 @@ The result is a list of objects.  Every object is a cons of an
 existing path name, and the list of available interface objects.
 An interface object is another cons, which car is the interface
 name, and the cdr is the list of properties as returned by
-`dbus-get-all-properties' for that path and interface. Example:
+`dbus-get-all-properties' for that path and interface.  Example:
 
 \(dbus-get-all-managed-objects :session \"org.gnome.SettingsDaemon\" \"/\")
 

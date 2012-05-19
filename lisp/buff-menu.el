@@ -50,7 +50,11 @@
 
 (defcustom Buffer-menu-buffer+size-width nil
   "Combined width of buffer name and size columns in Buffer Menu.
-If nil, use `Buffer-menu-name-width' and `Buffer-menu-size-width'."
+If nil, use `Buffer-menu-name-width' and `Buffer-menu-size-width'.
+
+If non-nil, the value of `Buffer-menu-name-width' is overridden;
+the name column is assigned width `Buffer-menu-buffer+size-width'
+minus `Buffer-menu-size-width'.  This use is deprecated."
   :type 'number
   :group 'Buffer-menu
   :version "24.2")
@@ -126,6 +130,9 @@ commands.")
     (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
 
+    (define-key map [mouse-2] 'Buffer-menu-mouse-select)
+    (define-key map [follow-link] 'mouse-face)
+
     (define-key map [menu-bar Buffer-menu-mode] (cons (purecopy "Buffer-Menu") menu-map))
     (define-key menu-map [quit]
       `(menu-item ,(purecopy "Quit") quit-window
@@ -192,6 +199,9 @@ commands.")
     map)
   "Local keymap for `Buffer-menu-mode' buffers.")
 
+(define-obsolete-variable-alias 'buffer-menu-mode-hook
+  'Buffer-menu-mode-hook "23.1")
+
 (define-derived-mode Buffer-menu-mode tabulated-list-mode "Buffer Menu"
   "Major mode for Buffer Menu buffers.
 The Buffer Menu is invoked by the commands \\[list-buffers], \\[buffer-menu], and
@@ -199,9 +209,6 @@ The Buffer Menu is invoked by the commands \\[list-buffers], \\[buffer-menu], an
   (set (make-local-variable 'buffer-stale-function)
        (lambda (&optional _noconfirm) 'fast))
   (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
-
-(define-obsolete-variable-alias 'buffer-menu-mode-hook
-  'Buffer-menu-mode-hook "23.1")
 
 (defun buffer-menu (&optional arg)
   "Switch to the Buffer Menu.
@@ -561,6 +568,17 @@ means list those buffers and no others."
       (tabulated-list-print))
     buffer))
 
+(defun Buffer-menu-mouse-select (event)
+  "Select the buffer whose line you click on."
+  (interactive "e")
+  (select-window (posn-window (event-end event)))
+  (let ((buffer (tabulated-list-get-id (posn-point (event-end event)))))
+    (when (buffer-live-p buffer)
+      (if (and (window-dedicated-p (selected-window))
+	       (eq (selected-window) (frame-root-window)))
+	  (switch-to-buffer-other-frame buffer)
+	(switch-to-buffer buffer)))))
+
 (defun list-buffers--refresh (&optional buffer-list old-buffer)
   ;; Set up `tabulated-list-format'.
   (let ((name-width Buffer-menu-name-width)
@@ -613,7 +631,9 @@ means list those buffers and no others."
      (string-to-number (aref (cadr entry2) 4))))
 
 (defun Buffer-menu--pretty-name (name)
-  (propertize name 'font-lock-face 'buffer-menu-buffer))
+  (propertize name
+	      'font-lock-face 'buffer-menu-buffer
+	      'mouse-face 'highlight))
 
 (defun Buffer-menu--pretty-file-name (file)
   (cond (file

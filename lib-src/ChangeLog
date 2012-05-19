@@ -1,3 +1,16 @@
+2012-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Ensure $bindir exists.
+
+2012-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ns_appbindir): New, set by configure.
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	($(DESTDIR)${archlibdir}): Use $MKDIR_P.
+
 2012-05-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	etags: pacify gcc -Wstack-protector on Ubuntu 12.04 x86

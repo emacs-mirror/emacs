@@ -208,85 +208,88 @@ in the repository root directory of FILE."
   ;;           + working ( = packed_stat )
   ;; parent = common ( as above ) + history ( = rev_id )
   ;; kinds = (r)elocated, (a)bsent, (d)irectory, (f)ile, (l)ink
-  (let ((root (vc-bzr-root file)))
-    (when root    ; Short cut.
-      (let ((dirstate (expand-file-name vc-bzr-admin-dirstate root)))
-        (condition-case nil
-            (with-temp-buffer
-              (insert-file-contents dirstate)
-              (goto-char (point-min))
-              (if (not (looking-at "#bazaar dirstate flat format 3"))
-                  (vc-bzr-state file)   ; Some other unknown format?
-                (let* ((relfile (file-relative-name file root))
-                       (reldir (file-name-directory relfile)))
-                  (if (re-search-forward
-                       (concat "^\0"
-                               (if reldir (regexp-quote
-                                           (directory-file-name reldir)))
-                               "\0"
-                               (regexp-quote (file-name-nondirectory relfile))
-                               "\0"
-                               "[^\0]*\0"     ;id?
-                               "\\([^\0]*\\)\0" ;"a/f/d", a=removed?
-                               "\\([^\0]*\\)\0" ;sha1 (empty if conflicted)?
-                               "\\([^\0]*\\)\0" ;size?p
-                               ;; y/n.  Whether or not the current copy
-                               ;; was executable the last time bzr checked?
-                               "[^\0]*\0"
-                               "[^\0]*\0"       ;?
-                               ;; Parent information.  Absent in a new repo.
-                               "\\(?:\\([^\0]*\\)\0" ;"a/f/d" a=added?
-                               "\\([^\0]*\\)\0" ;sha1 again?
-                               "\\([^\0]*\\)\0" ;size again?
-                               ;; y/n.  Whether or not the repo thinks
-                               ;; the file should be executable?
-                               "\\([^\0]*\\)\0"
-                               "[^\0]*\0\\)?" ;last revid?
-                               ;; There are more fields when merges are pending.
-                               )
-                       nil t)
-                      ;; Apparently the second sha1 is the one we want: when
-                      ;; there's a conflict, the first sha1 is absent (and the
-                      ;; first size seems to correspond to the file with
-                      ;; conflict markers).
-                      (cond
-                       ((eq (char-after (match-beginning 1)) ?a) 'removed)
-                       ;; If there is no parent, this must be a new repo.
-                       ;; If file is in dirstate, can only be added (b#8025).
-                       ((or (not (match-beginning 4))
-                            (eq (char-after (match-beginning 4)) ?a)) 'added)
-                       ((or (and (eq (string-to-number (match-string 3))
-                                 (nth 7 (file-attributes file)))
-                                 (equal (match-string 5)
-                                        (vc-bzr-sha1 file))
-                                 ;; For a file, does the executable state match?
-                                 ;; (Bug#7544)
-                                 (or (not
-                                      (eq (char-after (match-beginning 1)) ?f))
-                                     (let ((exe
-                                            (memq
-                                             ?x
-                                             (mapcar
-                                              'identity
-                                              (nth 8 (file-attributes file))))))
-                                       (if (eq (char-after (match-beginning 7))
-                                               ?y)
-                                           exe
-                                         (not exe)))))
-			    (and
-			     ;; It looks like for lightweight
-			     ;; checkouts \2 is empty and we need to
-			     ;; look for size in \6.
-			     (eq (match-beginning 2) (match-end 2))
-			     (eq (string-to-number (match-string 6))
-				 (nth 7 (file-attributes file)))
-			     (equal (match-string 5)
-				    (vc-bzr-sha1 file))))
-                        'up-to-date)
-                       (t 'edited))
-                    'unregistered))))
-          ;; The dirstate file can't be read, or some other problem.
-          (error (vc-bzr-state file)))))))
+  (let* ((root (vc-bzr-root file))
+         (dirstate (expand-file-name vc-bzr-admin-dirstate root)))
+    (when root                          ; Short cut.
+      (condition-case err
+          (with-temp-buffer
+            (insert-file-contents dirstate)
+            (goto-char (point-min))
+            (if (not (looking-at "#bazaar dirstate flat format 3"))
+                (vc-bzr-state file)     ; Some other unknown format?
+              (let* ((relfile (file-relative-name file root))
+                     (reldir (file-name-directory relfile)))
+                (cond
+                 ((not
+                   (re-search-forward
+                    (concat "^\0"
+                            (if reldir (regexp-quote
+                                        (directory-file-name reldir)))
+                            "\0"
+                            (regexp-quote (file-name-nondirectory relfile))
+                            "\0"
+                            "[^\0]*\0"             ;id?
+                            "\\([^\0]*\\)\0"       ;"a/f/d", a=removed?
+                            "\\([^\0]*\\)\0"       ;sha1 (empty if conflicted)?
+                            "\\([^\0]*\\)\0"       ;size?p
+                            ;; y/n.  Whether or not the current copy
+                            ;; was executable the last time bzr checked?
+                            "[^\0]*\0"
+                            "[^\0]*\0"  ;?
+                            ;; Parent information.  Absent in a new repo.
+                            "\\(?:\\([^\0]*\\)\0"  ;"a/f/d" a=added?
+                            "\\([^\0]*\\)\0"       ;sha1 again?
+                            "\\([^\0]*\\)\0"       ;size again?
+                            ;; y/n.  Whether or not the repo thinks
+                            ;; the file should be executable?
+                            "\\([^\0]*\\)\0"
+                            "[^\0]*\0\\)?" ;last revid?
+                            ;; There are more fields when merges are pending.
+                            )
+                    nil t))
+                  'unregistered)
+                 ;; Apparently the second sha1 is the one we want: when
+                 ;; there's a conflict, the first sha1 is absent (and the
+                 ;; first size seems to correspond to the file with
+                 ;; conflict markers).
+                 ((eq (char-after (match-beginning 1)) ?a) 'removed)
+                 ;; If there is no parent, this must be a new repo.
+                 ;; If file is in dirstate, can only be added (b#8025).
+                 ((or (not (match-beginning 4))
+                      (eq (char-after (match-beginning 4)) ?a)) 'added)
+                 ((or (and (eq (string-to-number (match-string 3))
+                               (nth 7 (file-attributes file)))
+                           (equal (match-string 5)
+                                  (save-match-data (vc-bzr-sha1 file)))
+                           ;; For a file, does the executable state match?
+                           ;; (Bug#7544)
+                           (or (not
+                                (eq (char-after (match-beginning 1)) ?f))
+                               (let ((exe
+                                      (memq
+                                       ?x
+                                       (mapcar
+                                        'identity
+                                        (nth 8 (file-attributes file))))))
+                                 (if (eq (char-after (match-beginning 7))
+                                         ?y)
+                                     exe
+                                   (not exe)))))
+                      (and
+                       ;; It looks like for lightweight
+                       ;; checkouts \2 is empty and we need to
+                       ;; look for size in \6.
+                       (eq (match-beginning 2) (match-end 2))
+                       (eq (string-to-number (match-string 6))
+                           (nth 7 (file-attributes file)))
+                       (equal (match-string 5)
+                              (vc-bzr-sha1 file))))
+                  'up-to-date)
+                 (t 'edited)))))
+        ;; The dirstate file can't be read, or some other problem.
+        (error
+         (message "Falling back on \"slow\" status detection (%S)" err)
+         (vc-bzr-state file))))))
 
 
 (defun vc-bzr-registered (file)

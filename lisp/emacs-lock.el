@@ -186,6 +186,8 @@ Return a value appropriate for `kill-buffer-query-functions' (which see)."
                ;; anything else (turn off)
                mode))))
 
+(define-obsolete-variable-alias 'emacs-lock-from-exiting
+  'emacs-lock-mode "24.1")
 ;;;###autoload
 (define-minor-mode emacs-lock-mode
   "Toggle Emacs Lock mode in the current buffer.
@@ -244,8 +246,6 @@ Other values are interpreted as usual."
     nil))
 
 ;;; Compatibility
-
-(define-obsolete-variable-alias 'emacs-lock-from-exiting 'emacs-lock-mode "24.1")
 
 (defun toggle-emacs-lock ()
   "Toggle `emacs-lock-from-exiting' for the current buffer."

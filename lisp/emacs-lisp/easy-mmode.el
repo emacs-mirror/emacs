@@ -142,7 +142,8 @@ For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
     :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
     ...BODY CODE...)"
-  (declare (debug (&define name stringp
+  (declare (doc-string 2)
+           (debug (&define name stringp
 			   [&optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp]
@@ -335,7 +336,7 @@ enabled, then disabling and reenabling MODE should make MODE work
 correctly with the current major mode.  This is important to
 prevent problems with derived modes, that is, major modes that
 call another major mode in their body."
-
+  (declare (doc-string 2))
   (let* ((global-mode-name (symbol-name global-mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode))
 	 (pretty-global-name (easy-mmode-pretty-mode-name global-mode))

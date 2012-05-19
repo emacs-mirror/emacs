@@ -688,6 +688,7 @@ Possible return values:
     is too high.  FORW-LEVEL is the forw-level of TOKEN,
     POS is its start position in the buffer.
   (t POS TOKEN): same thing when we bump on the wrong side of a paren.
+    Instead of t, the `car' can also be some other non-nil non-number value.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (catch 'return
@@ -728,7 +729,8 @@ Possible return values:
                 (if (and halfsexp (numberp (funcall op-forw toklevels)))
                     (push toklevels levels)
                   (throw 'return
-                         (prog1 (list (or (car toklevels) t) (point) token)
+                         (prog1 (list (or (funcall op-forw toklevels) t)
+                                      (point) token)
                            (goto-char pos)))))
                (t
                 (let ((lastlevels levels))
@@ -773,7 +775,8 @@ Possible return values:
                    ((and lastlevels
                          (smie--associative-p (car lastlevels)))
                     (throw 'return
-                           (prog1 (list (or (car toklevels) t) (point) token)
+                           (prog1 (list (or (funcall op-forw toklevels) t)
+                                        (point) token)
                              (goto-char pos))))
                    ;; - it's an associative operator within a larger construct
                    ;;   (e.g. an "elsif"), so we should just ignore it and keep
@@ -793,6 +796,7 @@ Possible return values:
     is too high.  LEFT-LEVEL is the left-level of TOKEN,
     POS is its start position in the buffer.
   (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
+    Instead of t, the `car' can also be some other non-nil non-number value.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (smie-next-sexp
@@ -812,7 +816,8 @@ Possible return values:
   (RIGHT-LEVEL POS TOKEN): we couldn't skip TOKEN because its left-level
     is too high.  RIGHT-LEVEL is the right-level of TOKEN,
     POS is its end position in the buffer.
-  (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
+  (t POS TOKEN): same thing but for a close-paren or the end of buffer.
+    Instead of t, the `car' can also be some other non-nil non-number value.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (smie-next-sexp
@@ -1073,6 +1078,16 @@ the beginning of a line."
 (defun smie-indent--bolp ()
   "Return non-nil if the current token is the first on the line."
   (save-excursion (skip-chars-backward " \t") (bolp)))
+
+(defun smie-indent--bolp-1 ()
+  ;; Like smie-indent--bolp but also returns non-nil if it's the first
+  ;; non-comment token.  Maybe we should simply always use this?
+  "Return non-nil if the current token is the first on the line.
+Comments are treated as spaces."
+  (let ((bol (line-beginning-position)))
+    (save-excursion
+      (forward-comment (- (point)))
+      (<= (point) bol))))
 
 ;; Dynamically scoped.
 (defvar smie--parent) (defvar smie--after) (defvar smie--token)
@@ -1350,9 +1365,12 @@ should not be computed on the basis of the following token."
         ;; - middle-of-line: "trust current position".
         (cond
          ((smie-indent--rule :before token))
-         ((smie-indent--bolp)           ;I.e. non-virtual indent.
+         ((smie-indent--bolp-1)         ;I.e. non-virtual indent.
           ;; For an open-paren-like thingy at BOL, always indent only
           ;; based on other rules (typically smie-indent-after-keyword).
+          ;; FIXME: we do the same if after a comment, since we may be trying
+          ;; to compute the indentation of this comment and we shouldn't indent
+          ;; based on the indentation of subsequent code.
           nil)
          (t
           ;; By default use point unless we're hanging.
@@ -1453,6 +1471,12 @@ should not be computed on the basis of the following token."
        (save-excursion
          (forward-comment (point-max))
          (skip-chars-forward " \t\r\n")
+         ;; FIXME: We assume here that smie-indent-calculate will compute the
+         ;; indentation of the next token based on text before the comment, but
+         ;; this is not guaranteed, so maybe we should let
+         ;; smie-indent-calculate return some info about which buffer position
+         ;; was used as the "indentation base" and check that this base is
+         ;; before `pos'.
          (smie-indent-calculate))))
 
 (defun smie-indent-comment-continue ()

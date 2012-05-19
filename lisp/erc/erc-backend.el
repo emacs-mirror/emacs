@@ -393,6 +393,13 @@ isn't displayed."
   :type 'integer
   :group 'erc-server)
 
+(defcustom erc-server-timestamp-format "%Y-%m-%d %T"
+  "Timestamp format used with server response messages.
+This string is processed using `format-time-string'."
+  :version "24.2"
+  :type 'string
+  :group 'erc-server)
+
 ;;; Flood-related
 
 ;; Most of this is courtesy of Jorgen Schaefer and Circe
@@ -1454,7 +1461,8 @@ add things to `%s' instead."
   "The channel topic has changed." nil
   (let* ((ch (first (erc-response.command-args parsed)))
          (topic (erc-trim-string (erc-response.contents parsed)))
-         (time (format-time-string "%T %m/%d/%y" (current-time))))
+         (time (format-time-string erc-server-timestamp-format
+                                   (current-time))))
     (multiple-value-bind (nick login host)
         (values-list (erc-parse-user (erc-response.sender parsed)))
       (erc-update-channel-member ch nick nick nil nil nil host login)
@@ -1647,7 +1655,7 @@ See `erc-display-server-message'." nil
   (multiple-value-bind (nick seconds-idle on-since time)
       (values-list (cdr (erc-response.command-args parsed)))
     (setq time (when on-since
-                 (format-time-string "%T %Y/%m/%d"
+                 (format-time-string erc-server-timestamp-format
                                      (erc-string-to-emacs-time on-since))))
     (erc-update-user-nick nick nick nil nil nil
                           (and time (format "on since %s" time)))
@@ -1724,7 +1732,8 @@ See `erc-display-server-message'." nil
                (third (erc-response.command-args parsed)))))
     (erc-display-message
      parsed 'notice (erc-get-buffer channel proc)
-     's329 ?c channel ?t (format-time-string "%A %Y/%m/%d %X" time))))
+     's329 ?c channel ?t (format-time-string erc-server-timestamp-format
+                                             time))))
 
 (define-erc-response-handler (330)
   "Nick is authed as (on Quakenet network)." nil
@@ -1761,7 +1770,7 @@ See `erc-display-server-message'." nil
   "Who set the topic, and when." nil
   (multiple-value-bind (channel nick time)
       (values-list (cdr (erc-response.command-args parsed)))
-    (setq time (format-time-string "%T %Y/%m/%d"
+    (setq time (format-time-string erc-server-timestamp-format
                                    (erc-string-to-emacs-time time)))
     (erc-update-channel-topic channel
                               (format "\C-o (%s, %s)" nick time)

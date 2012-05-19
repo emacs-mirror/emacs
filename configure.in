@@ -466,7 +466,6 @@ case "${canonical}" in
       m68k-*)      machine=m68k ;;
       powerpc-*)   machine=macppc ;;
       sparc*-)     machine=sparc ;;
-      vax-*)       machine=vax ;;
     esac
   ;;
 
@@ -479,7 +478,6 @@ case "${canonical}" in
       i386-*)    machine=intel386 ;;
       powerpc-*) machine=macppc ;;
       sparc*)    machine=sparc ;;
-      vax-*)     machine=vax ;;
     esac
   ;;
 
@@ -492,14 +490,12 @@ case "${canonical}" in
       * )            unported=yes ;;
     esac
     opsys=darwin
-    # Define CPP as follows to make autoconf work correctly.
-    CPP="${CC-cc} -E -no-cpp-precomp"
-    # Use fink packages if available.
-    if test -d /sw/include && test -d /sw/lib; then
-      GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
-      CPP="${CPP} ${GCC_TEST_OPTIONS}"
-      NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
-    fi
+    ## Use fink packages if available.
+    ## FIXME find a better way to do this: http://debbugs.gnu.org/11507
+##    if test -d /sw/include && test -d /sw/lib; then
+##      GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
+##      NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
+##    fi
   ;;
 
   ## HP 9000 series 700 and 800, running HP/UX
@@ -532,7 +528,6 @@ case "${canonical}" in
     # Without defining _LANGUAGE_C, things get masked out in the headers
     # so that, for instance, grepping for `free' in stdlib.h fails and
     # AC_HEADER_STD_C fails.   (MIPSPro 7.2.1.2m compilers, Irix 6.5.3m).
-    NON_GNU_CPP="/lib/cpp -D_LANGUAGE_C"
     NON_GCC_TEST_OPTIONS="-D_LANGUAGE_C"
   ;;
 
@@ -549,18 +544,15 @@ case "${canonical}" in
     case "${canonical}" in
       *-sunos5.6* | *-solaris2.6* )
 		opsys=sol2-6
-		NON_GNU_CPP=/usr/ccs/lib/cpp
 		RANLIB="ar -ts"
 		;;
       *-sunos5.[7-9]* | *-solaris2.[7-9]* )
 		opsys=sol2-6
 		emacs_check_sunpro_c=yes
-		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-10
 		emacs_check_sunpro_c=yes
-		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
     esac
     ## Watch out for a compiler that we know will not work.
@@ -581,12 +573,10 @@ case "${canonical}" in
     machine=intel386
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
-      *-darwin* )               opsys=darwin
-                                CPP="${CC-cc} -E -no-cpp-precomp"
- 				;;
-      *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
-      *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
-      *-sysv5OpenUNIX* )  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
+      *-darwin* )               opsys=darwin ;;
+      *-sysv4.2uw* )	  	opsys=unixware ;;
+      *-sysv5uw* )	  	opsys=unixware ;;
+      *-sysv5OpenUNIX* )  	opsys=unixware ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
   ;;
@@ -628,63 +618,19 @@ opsysfile="s/${opsys}.h"
 
 
 #### Choose a compiler.
-test -n "$CC" && cc_specified=yes
-
-# Save the value of CFLAGS that the user specified.
-SPECIFIED_CFLAGS="$CFLAGS"
 
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC
 AM_PROG_CC_C_O
-
-# Initialize gnulib right after verifying that the C compiler works.
-gl_EARLY
-
-# On Suns, sometimes $CPP names a directory.
-if test -n "$CPP" && test -d "$CPP"; then
-  CPP=
-fi
-
-## If not using gcc, and on Solaris, and no CPP specified, see if
-## using a Sun compiler, which needs -Xs to prevent whitespace.
-if test x"$GCC" != xyes && test x"$emacs_check_sunpro_c" = xyes && \
- test x"$CPP" = x; then
-  AC_MSG_CHECKING([whether we are using a Sun C compiler])
-  AC_CACHE_VAL(emacs_cv_sunpro_c,
-  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
-[[#ifndef __SUNPRO_C
-fail;
-#endif
-]])], emacs_cv_sunpro_c=yes, emacs_cv_sunpro_c=no)])
-  AC_MSG_RESULT($emacs_cv_sunpro_c)
-
-  if test x"$emacs_cv_sunpro_c" = xyes; then
-    NON_GNU_CPP="$CC -E -Xs"
-  fi
-fi
-
-#### Some systems specify a CPP to use unless we are using GCC.
-#### Now that we know whether we are using GCC, we can decide whether
-#### to use that one.
-if test "x$NON_GNU_CPP" != x && test x$GCC != xyes && test "x$CPP" = x
-then
-  CPP="$NON_GNU_CPP"
-fi
-
-#### Some systems specify a CC to use unless we are using GCC.
-#### Now that we know whether we are using GCC, we can decide whether
-#### to use that one.
-if test "x$NON_GNU_CC" != x && test x$GCC != xyes &&
-  test x$cc_specified != xyes
-then
-  CC="$NON_GNU_CC"
-fi
 
 if test x$GCC = xyes; then
   test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
 else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
+
+# Initialize gnulib right after choosing the compiler.
+gl_EARLY
 
 AC_ARG_ENABLE([gcc-warnings],
   [AS_HELP_STRING([--enable-gcc-warnings],
@@ -803,14 +749,13 @@ fi
 
 
 
-#### Some other nice autoconf tests.
-
-dnl checks for programs
-AC_PROG_CPP
-AC_PROG_INSTALL
-if test "x$RANLIB" = x; then
-  AC_PROG_RANLIB
-fi
+dnl Some other nice autoconf tests.
+dnl These are commented out, since gl_EARLY and/or Autoconf already does them.
+dnl AC_PROG_INSTALL
+dnl AC_PROG_MKDIR_P
+dnl if test "x$RANLIB" = x; then
+dnl   AC_PROG_RANLIB
+dnl fi
 
 ## Although we're running on an amd64 kernel, we're actually compiling for
 ## the x86 architecture.  The user should probably have provided an
@@ -899,11 +844,6 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
   [AC_MSG_RESULT(yes)],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
-
-
-# The value of CPP is a quoted variable reference, so we need to do this
-# to get its actual value...
-CPP=`eval "echo $CPP"`
 
 
 dnl The function dump-emacs will not be defined and temacs will do
@@ -1480,10 +1420,8 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    fi
    if test $ac_enable_autodepend = yes; then
       DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d -MP'
-      ## In parallel builds, another make might create depdir between
-      ## the first test and mkdir, so stick another test on the end.
-      ## Or use install-sh -d?  mkdir -p is not portable.
-      MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR} || test -d ${DEPDIR}'
+      ## MKDIR_P is documented (see AC_PROG_MKDIR_P) to be parallel-safe.
+      MKDEPDIR='${MKDIR_P} ${DEPDIR}'
       deps_frag=autodeps.mk
    fi
 fi
@@ -1569,20 +1507,17 @@ CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
 TEMACS_LDFLAGS2="\${LDFLAGS}"
 GNU_OBJC_CFLAGS=
-dnl I don't think it's especially important, but src/Makefile.in
-dnl (now the only user of ns_appdir) used to go to the trouble of adding a
-dnl trailing "/" to it, so now we do it here.
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=${ns_appdir}/Contents/MacOS/
+     ns_appbindir=${ns_appdir}/Contents/MacOS
      ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=${ns_appdir}/
+     ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
      dnl FIXME sourcing this several times in subshells seems inefficient.
@@ -1636,7 +1571,9 @@ fail;
 fi
 AC_SUBST(TEMACS_LDFLAGS2)
 
+INSTALL_ARCH_INDEP_EXTRA=install-etc
 LEIM_INSTALLDIR="\${install_prefix}/leim"
+ns_self_contained=no
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
@@ -1649,10 +1586,21 @@ if test "${HAVE_NS}" = yes; then
   with_xft=no
   # set up packaging dirs
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
+     ns_self_contained=yes
      prefix=${ns_appresdir}
      exec_prefix=${ns_appbindir}
-     libexecdir=${ns_appbindir}/libexec
+     dnl This one isn't really used, only archlibdir is.
+     libexecdir="\${ns_appbindir}/libexec"
+     archlibdir="\${ns_appbindir}/libexec"
+     docdir="\${ns_appresdir}/etc"
+     etcdir="\${ns_appresdir}/etc"
+     dnl FIXME maybe set datarootdir instead.
+     dnl That would also get applications, icons, man.
+     infodir="\${ns_appresdir}/info"
+     mandir="\${ns_appresdir}/man"
+     lispdir="\${ns_appresdir}/lisp"
      LEIM_INSTALLDIR="\${ns_appresdir}/leim"
+     INSTALL_ARCH_INDEP_EXTRA=
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
@@ -1660,7 +1608,9 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+AC_SUBST(INSTALL_ARCH_INDEP_EXTRA)
 AC_SUBST(LEIM_INSTALLDIR)
+AC_SUBST(ns_self_contained)
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
 AC_SUBST(LIB_STANDARD)
@@ -2825,7 +2775,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 AC_CHECK_FUNCS(gethostname getdomainname \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
-random lrand48 logb frexp fmod rint cbrt ftime setsid \
+random lrand48 logb frexp fmod rint cbrt setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
@@ -3938,7 +3888,7 @@ dnl the use of force in the `epaths-force' rule in Makefile.in.
 AC_CONFIG_COMMANDS([epaths], [
 echo creating src/epaths.h
 ${MAKE-make} epaths-force
-], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
+], [GCC="$GCC" CPPFLAGS="$CPPFLAGS"])
 
 AC_CONFIG_COMMANDS([gdbinit], [
 if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then

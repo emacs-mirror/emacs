@@ -38,10 +38,13 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   SELECT_TYPE all_rfds, all_wfds;
   EMACS_TIME tmo, *tmop = timeout;
 
-  GMainContext *context = g_main_context_default ();
+  GMainContext *context;
   int have_wfds = wfds != NULL;
   int n_gfds = 0, our_tmo = 0, retval = 0, our_fds = 0;
   int i, nfds, fds_lim, tmo_in_millisec;
+
+  if (inhibit_window_system || !display_arg)
+    return select (max_fds, rfds, wfds, efds, timeout);
 
   if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));
   else FD_ZERO (&all_rfds);
@@ -49,6 +52,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   else FD_ZERO (&all_wfds);
 
   /* Update event sources in GLib. */
+  context = g_main_context_default ();
   g_main_context_pending (context);
 
   do {

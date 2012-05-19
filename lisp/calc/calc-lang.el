@@ -133,8 +133,39 @@
      ( asin	   . calcFunc-arcsin )
      ( asinh	   . calcFunc-arcsinh )
      ( atan	   . calcFunc-arctan )
-     ( atan2	   . calcFunc-arctan2 )
-     ( atanh	   . calcFunc-arctanh )))
+     ( atan2       . calcFunc-arctan2 )
+     ( atanh       . calcFunc-arctanh )
+     ( fma         . (math-C-parse-fma))
+     ( fmax        . calcFunc-max )
+     ( j0          . (math-C-parse-bess))
+     ( jn          . calcFunc-besJ )
+     ( j1          . (math-C-parse-bess))
+     ( yn          . calcFunc-besY )
+     ( y0          . (math-C-parse-bess))
+     ( y1          . (math-C-parse-bess))
+     ( tgamma      . calcFunc-gamma )))
+
+(defun math-C-parse-bess (f val)
+  "Parse C's j0, j1, y0, y1 functions."
+  (let ((args (math-read-expr-list)))
+    (math-read-token)
+    (append
+     (cond ((eq val 'j0) '(calcFunc-besJ 0))
+           ((eq val 'j1) '(calcFunc-besJ 1))
+           ((eq val 'y0) '(calcFunc-besY 0))
+           ((eq val 'y1) '(calcFunc-besY 1)))
+     args)))
+
+(defun math-C-parse-fma (f val)
+  "Parse C's fma function fma(x,y,z) => (x * y + z)."
+  (let ((args (math-read-expr-list)))
+    (math-read-token)
+    (list 'calcFunc-add
+          (list 'calcFunc-mul
+                (nth 0 args)
+                (nth 1 args))
+          (nth 2 args))))
+
 
 (put 'c 'math-variable-table
   '( ( M_PI	   . var-pi )

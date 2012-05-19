@@ -418,6 +418,13 @@ in normal mode."
   :group 'calc
   :type 'boolean)
 
+(defcustom calc-ensure-consistent-units
+  nil
+  "If non-nil, make sure new units are consistent with current units
+when converting units."
+  :group 'calc
+  :type 'boolean)
+
 (defcustom calc-undo-length
   100
   "The number of undo steps that will be preserved when Calc is quit."

@@ -1,3 +1,14 @@
+2012-05-14  Mike Kazantsev  <mk.fraggod@gmail.com>  (tiny change)
+
+	* erc-dcc.el (erc-dcc-handle-ctcp-send): Fix a regression
+	introduced on 2011-11-28 when fixing quoted filenames matching,
+	the regex group was not corrected.
+
+2012-05-13  Teemu Likonen  <tlikonen@iki.fi>
+
+	* erc-backend.el (erc-server-timestamp-format): New variable to
+	allow specifying the timestamp format (bug#10779).
+
 2012-04-11  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* erc-services.el (erc-nickserv-passwords): Don't display the

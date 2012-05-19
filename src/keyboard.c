@@ -3786,7 +3786,6 @@ kbd_buffer_get_event (KBOARD **kbp,
                       int *used_mouse_menu,
                       struct timeval *end_time)
 {
-  register int c;
   Lisp_Object obj;
 
 #ifdef subprocesses
@@ -3803,16 +3802,18 @@ kbd_buffer_get_event (KBOARD **kbp,
     }
 #endif	/* subprocesses */
 
+#ifndef HAVE_DBUS  /* We want to read D-Bus events in batch mode.  */
   if (noninteractive
       /* In case we are running as a daemon, only do this before
 	 detaching from the terminal.  */
       || (IS_DAEMON && daemon_pipe[1] >= 0))
     {
-      c = getchar ();
+      int c = getchar ();
       XSETINT (obj, c);
       *kbp = current_kboard;
       return obj;
     }
+#endif	/* ! HAVE_DBUS  */
 
   /* Wait until there is input available.  */
   for (;;)

@@ -1,3 +1,35 @@
+2012-05-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* doc/misc/calc.texi
+	(Basic Operations on Units, Customizing Calc):
+	Mention `calc-ensure-consistent-units'.
+
+2012-05-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* cc-mode.texi: Avoid space before macro in 4th argument of cross
+	reference commands.  (Bug#11461)
+
+	* Makefile.in (gnus.dvi): Use $@ instead of $*.dvi.
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mostlyclean): Add more TeX intermediates.
+
+	* Makefile.in: Make it look more like the other doc Makefiles.
+	Use explicit $srcdir in all dependencies.
+	Remove cd $srcdir from rules.
+	(VPATH): Remove.
+	(infodir): Set to an absolute path.
+	(INFO_TARGETS): Use short names.
+	(mkinfodir): infodir is now absolute.
+	(echo-info, maintainer-clean): Update for new format of INFO_TARGETS.
+
+	* Makefile.in (info.info): Rename from info, to avoid duplication.
+	(.SUFFIXES): Disable implicit rules.
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	(mkinfodir): Use $MKDIR_P.
+
 2012-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* forms.texi (Long Example): Update for changed location of files.
@@ -8995,7 +9027,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

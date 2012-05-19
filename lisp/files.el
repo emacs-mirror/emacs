@@ -415,13 +415,13 @@ location of point in the current buffer."
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-not-found-hooks 'permanent-local t)
+(define-obsolete-variable-alias 'find-file-not-found-hooks
+    'find-file-not-found-functions "22.1")
 (defvar find-file-not-found-functions nil
   "List of functions to be called for `find-file' on nonexistent file.
 These functions are called as soon as the error is detected.
 Variable `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
-(define-obsolete-variable-alias 'find-file-not-found-hooks
-    'find-file-not-found-functions "22.1")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
@@ -435,6 +435,7 @@ functions are called."
   :options '(auto-insert)
   :version "22.1")
 
+(define-obsolete-variable-alias 'write-file-hooks 'write-file-functions "22.1")
 (defvar write-file-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
@@ -451,13 +452,14 @@ coding system and setting mode bits.  (See Info
 node `(elisp)Saving Buffers'.)  To perform various checks or
 updates before the buffer is saved, use `before-save-hook'.")
 (put 'write-file-functions 'permanent-local t)
-(define-obsolete-variable-alias 'write-file-hooks 'write-file-functions "22.1")
 
 (defvar local-write-file-hooks nil)
 (make-variable-buffer-local 'local-write-file-hooks)
 (put 'local-write-file-hooks 'permanent-local t)
 (make-obsolete-variable 'local-write-file-hooks 'write-file-functions "22.1")
 
+(define-obsolete-variable-alias 'write-contents-hooks
+    'write-contents-functions "22.1")
 (defvar write-contents-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
@@ -475,8 +477,6 @@ For hooks that _do_ pertain to the particular visited file, use
 To perform various checks or updates before the buffer is saved,
 use `before-save-hook'.")
 (make-variable-buffer-local 'write-contents-functions)
-(define-obsolete-variable-alias 'write-contents-hooks
-    'write-contents-functions "22.1")
 
 (defcustom enable-local-variables t
   "Control use of local variables in files you visit.

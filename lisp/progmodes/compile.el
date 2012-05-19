@@ -1884,6 +1884,9 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
   (setq buffer-read-only t)
   (run-mode-hooks 'compilation-mode-hook))
 
+;;;###autoload
+(put 'define-compilation-mode 'doc-string-elt 3)
+
 (defmacro define-compilation-mode (mode name doc &rest body)
   "This is like `define-derived-mode' without the PARENT argument.
 The parent is always `compilation-mode' and the customizable `compilation-...'

@@ -132,6 +132,8 @@ If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
   :group 'dired-x)
 
+;; For backward compatibility
+(define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 (define-minor-mode dired-omit-mode
   "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
 With a prefix argument ARG, enable Dired-Omit mode if ARG is
@@ -156,9 +158,6 @@ See Info node `(dired-x) Omitting Variables' for more information."
     (revert-buffer)))
 
 (put 'dired-omit-mode 'safe-local-variable 'booleanp)
-
-;; For backward compatibility
-(define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 
 (defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
   "Filenames matching this regexp will not be displayed.

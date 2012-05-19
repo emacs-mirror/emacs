@@ -41,6 +41,8 @@ install_prefix=$(DESTDIR)${datadir}/emacs/${version}
 # For self-contained ns builds, it is ${ns_appresdir}/leim.
 LEIM_INSTALLDIR=@LEIM_INSTALLDIR@
 
+MKDIR_P = @MKDIR_P@
+
 GZIP_PROG = @GZIP_PROG@
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
@@ -121,8 +123,15 @@ TIT_SOURCES= \
 ${CHINESE_TIT}: changed.tit
 	@true
 
-## FIXME remove subdirs if poss - time-stamping.
+## FIXME remove subdirs if possible - time-stamping.
 ## Emacs should make the directory if it does not exist.
+
+## The changed.* files act to serialize this part of the build.
+## A single Emacs invocation creates all the CHINESE_TIT files.
+## Otherwise in a parallel build multiple Emacs instances could
+## interfere with each other.  If we used GNU make we could probably
+## parallelize this without the need for an explicit rule for each
+## file.
 changed.tit: ${SUBDIRS} ${TIT_SOURCES}
 	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
@@ -179,9 +188,7 @@ compile-main: ${TIT_MISC}
 	done
 
 install: all
-	if [ ! -d ${LEIM_INSTALLDIR} ] ; then \
-          umask 022; ${srcdir}/../build-aux/install-sh -d ${LEIM_INSTALLDIR}; \
-	else true; fi
+	umask 022; ${MKDIR_P} ${LEIM_INSTALLDIR}
 	if [ x`(cd ${LEIM_INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
 	  rm -f ${LEIM_INSTALLDIR}/leim-list.el; \
 	  rm -rf ${LEIM_INSTALLDIR}/quail ${LEIM_INSTALLDIR}/ja-dic ; \

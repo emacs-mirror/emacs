@@ -4825,6 +4825,7 @@ If several parents are listed, go to the first of them."
     (set (make-local-variable 'widget-link-suffix) ""))
   (setq show-trailing-whitespace nil))
 
+(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
 (define-derived-mode Custom-mode nil "Custom"
   "Major mode for editing customization buffers.
 
@@ -4873,7 +4874,6 @@ if that value is non-nil."
   (Custom-mode))
 (make-obsolete 'custom-mode 'Custom-mode "23.1")
 (put 'custom-mode 'mode-class 'special)
-(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
 
 (add-to-list 'debug-ignored-errors "^Invalid face:? ")
 

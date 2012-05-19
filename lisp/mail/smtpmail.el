@@ -932,8 +932,7 @@ Returns an error if the server cannot be contacted."
       (insert (match-string 0 command) "<omitted>\r\n")
     (insert command "\r\n"))
   (setq smtpmail-read-point (point))
-  (process-send-string process command)
-  (process-send-string process "\r\n"))
+  (process-send-string process (concat command "\r\n")))
 
 (defun smtpmail-send-data-1 (process data)
   (goto-char (point-max))

@@ -1,3 +1,102 @@
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* m/vax.h: Remove; no longer needed since HAVE_FTIME is being removed.
+	* s/ms-w32.h (HAVE_FTIME): Remove; not needed.
+
+2012-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix compilation with -DGLYPH_DEBUG=1 on MS-Windows.
+
+	* w32term.c [GLYPH_DEBUG]: Add prototype for x_check_font.
+	(x_check_font) [GLYPH_DEBUG]: New function, copied from xterm.c
+
+	* w32fns.c (unwind_create_frame) [GLYPH_DEBUG]: Fix broken
+	reference to image_cache->refcount.
+	(x_create_tip_frame): Fix broken use of FRAME_IMAGE_CACHE.
+
+2012-05-17  Juri Linkov  <juri@jurta.org>
+
+	* search.c (Fword_search_regexp, Fword_search_backward)
+	(Fword_search_forward, Fword_search_backward_lax)
+	(Fword_search_forward_lax): Move functions to isearch.el
+	(bug#10145, bug#11381).
+
+2012-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xgselect.c (xg_select): Just invoke 'select' if -nw (Bug#9754).
+
+2012-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (init_obarray): Declare Qt and Qnil as special.
+
+2012-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* nsterm.m (ns_init_paths): Fix typo ("libexec" not "lib-exec").
+	Put "libexec" before "bin", for the sake of init_callproc_1.
+
+2012-05-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (kbd_buffer_get_event) [!HAVE_DBUS]: Omit unused local.
+
+	* unexaix.c: Port to more-recent AIX compilers.
+	(report_error, report_error_1, make_hdr, copy_sym)
+	(mark_x, adjust_lnnoptrs, unrelocate_symbols):
+	Make arguments const char *, not char *, to avoid violations of C
+	standard and to fix some AIX warnings reported by Gilles Pion.
+
+2012-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_stop): Don't call get_overlay_strings_1 if we
+	already have overlays loaded.
+	(handle_single_display_spec): Before returning without displaying
+	fringe bitmap, synchronize the bidi iterator with the main display
+	iterator, by calling iterate_out_of_display_property.
+	(iterate_out_of_display_property): Detect buffer iteration by
+	testing that it->string is a Lisp string.
+	(get_next_display_element): When the current object is exhausted,
+	and there's something on it->stack, call set_iterator_to_next to
+	proceed with what's on the stack, instead of returning zero.
+	(set_iterator_to_next): If called at the end of a Lisp string,
+	proceed to consider_string_end without incrementing string
+	position.  Don't increment display vector index past the end of
+	the display vector.  (Bug#11417)
+	(pos_visible_p): Don't report a position visible when move_it_to
+	stopped at the last line of window, which happens to be scanned
+	backwards by the bidi iteration.  (Bug#11464)
+
+2012-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_single_display_spec): Return 1 for left-margin
+	and right-margin display specs even if the spec is invalid or we
+	are on a TTY, and thus unable to display on the fringes.  That's
+	because the text with the property will not be displayed anyway,
+	so we need to signal to the caller that this is a "replacing"
+	display spec.  This fixes display when the spec is invalid or we
+	are on a TTY.
+
+2012-05-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* unexaix.c (make_hdr): Fix typo in prototype.
+	This bug broke the build on AIX.  Problem reported by Gilles Pion.
+
+2012-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* keyboard.c (kbd_buffer_get_event): Read special events also in
+	batch mode.  (Bug#11415)
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* ns.mk: Update for ns_appbindir no longer having trailing "/".
+
+2012-05-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.mk (lisp): Add newcomment.elc.
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	* ns.mk (${ns_appdir}, ${ns_appbindir}Emacs): Use $MKDIR_P.
+
 2012-05-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove unused function hourglass_started.

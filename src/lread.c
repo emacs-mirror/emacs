@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <errno.h>
-#include <limits.h>	/* for CHAR_BIT */
+#include <limits.h>	/* For CHAR_BIT.  */
 #include <setjmp.h>
 #include "lisp.h"
 #include "intervals.h"
@@ -3990,10 +3990,12 @@ init_obarray (void)
   /* XSYMBOL (Qnil)->function = Qunbound; */
   SET_SYMBOL_VAL (XSYMBOL (Qnil), Qnil);
   XSYMBOL (Qnil)->constant = 1;
+  XSYMBOL (Qnil)->declared_special = 1;
   XSYMBOL (Qnil)->plist = Qnil;
 
   Qt = intern_c_string ("t");
   SET_SYMBOL_VAL (XSYMBOL (Qt), Qt);
+  XSYMBOL (Qnil)->declared_special = 1;
   XSYMBOL (Qt)->constant = 1;
 
   /* Qt is correct even if CANNOT_DUMP.  loadup.el will set to nil at end.  */

@@ -532,6 +532,7 @@ was inserted."
     (setq image-type type)
     (if (eq major-mode 'image-mode)
 	(setq mode-name (format "Image[%s]" type)))
+    (image-transform-check-size)
     (if (called-interactively-p 'any)
 	(message "Repeat this command to go back to displaying the file as text"))))
 
@@ -608,23 +609,23 @@ Otherwise it plays once, then stops."
 
 
 ;; Not yet implemented.
-;;; (defvar image-transform-minor-mode-map
-;;;   (let ((map (make-sparse-keymap)))
-;;;     ;; (define-key map  [(control ?+)] 'image-scale-in)
-;;;     ;; (define-key map  [(control ?-)] 'image-scale-out)
-;;;     ;; (define-key map  [(control ?=)] 'image-scale-none)
-;;;     ;; (define-key map "c f h" 'image-scale-fit-height)
-;;;     ;; (define-key map "c ]" 'image-rotate-right)
-;;;     map)
-;;;   "Minor mode keymap `image-transform-mode'.")
-;;;
-;;; (define-minor-mode image-transform-mode
-;;;   "Minor mode for scaling and rotating images.
-;;; With a prefix argument ARG, enable the mode if ARG is positive,
-;;; and disable it otherwise.  If called from Lisp, enable the mode
-;;; if ARG is omitted or nil.  This minor mode requires Emacs to have
-;;; been compiled with ImageMagick support."
-;;;   nil "image-transform" image-transform-minor-mode-map)
+;; (defvar image-transform-minor-mode-map
+;;   (let ((map (make-sparse-keymap)))
+;;     ;; (define-key map  [(control ?+)] 'image-scale-in)
+;;     ;; (define-key map  [(control ?-)] 'image-scale-out)
+;;     ;; (define-key map  [(control ?=)] 'image-scale-none)
+;;     ;; (define-key map "c f h" 'image-scale-fit-height)
+;;     ;; (define-key map "c ]" 'image-rotate-right)
+;;     map)
+;;   "Minor mode keymap `image-transform-mode'.")
+;;
+;; (define-minor-mode image-transform-mode
+;;   "Minor mode for scaling and rotating images.
+;; With a prefix argument ARG, enable the mode if ARG is positive,
+;; and disable it otherwise.  If called from Lisp, enable the mode
+;; if ARG is omitted or nil.  This minor mode requires Emacs to have
+;; been compiled with ImageMagick support."
+;;   nil "image-transform" image-transform-minor-mode-map)
 
 
 ;; FIXME this doesn't seem mature yet. Document in manual when it is.
@@ -634,10 +635,123 @@ Its value should be one of the following:
  - nil, meaning no resizing.
  - `fit-height', meaning to fit the image to the window height.
  - `fit-width', meaning to fit the image to the window width.
- - A number, which is a scale factor (the default size is 100).")
+ - A number, which is a scale factor (the default size is 1).")
+
+(defvar image-transform-scale 1.0
+  "The scale factor of the image being displayed.")
 
 (defvar image-transform-rotation 0.0
   "Rotation angle for the image in the current Image mode buffer.")
+
+(defvar image-transform-right-angle-fudge 0.0001
+  "Snap distance to a multiple of a right angle.
+There's no deep theory behind the default value, it should just
+be somewhat larger than ImageMagick's MagickEpsilon.")
+
+(defsubst image-transform-width (width height)
+  "Return the bounding box width of a rotated WIDTH x HEIGHT rectangle.
+The rotation angle is the value of `image-transform-rotation' in degrees."
+  (let ((angle (degrees-to-radians image-transform-rotation)))
+    ;; Assume, w.l.o.g., that the vertices of the rectangle have the
+    ;; coordinates (+-w/2, +-h/2) and that (0, 0) is the center of the
+    ;; rotation by the angle A.  The projections onto the first axis
+    ;; of the vertices of the rotated rectangle are +- (w/2) cos A +-
+    ;; (h/2) sin A, and the difference between the largest and the
+    ;; smallest of the four values is the expression below.
+    (+ (* width (abs (cos angle))) (* height (abs (sin angle))))))
+
+;; The following comment and code snippet are from
+;; ImageMagick-6.7.4-4/magick/distort.c
+
+;;    /* Set the output image geometry to calculated 'bestfit'.
+;;       Yes this tends to 'over do' the file image size, ON PURPOSE!
+;;       Do not do this for DePolar which needs to be exact for virtual tiling.
+;;    */
+;;    if ( fix_bounds ) {
+;;      geometry.x = (ssize_t) floor(min.x-0.5);
+;;      geometry.y = (ssize_t) floor(min.y-0.5);
+;;      geometry.width=(size_t) ceil(max.x-geometry.x+0.5);
+;;      geometry.height=(size_t) ceil(max.y-geometry.y+0.5);
+;;    }
+
+;; Other parts of the same file show that here the origin is in the
+;; left lower corner of the image rectangle, the center of the
+;; rotation is the center of the rectangle and min.x and max.x
+;; (resp. min.y and max.y) are the smallest and the largest of the
+;; projections of the vertices onto the first (resp. second) axis.
+
+(defun image-transform-fit-width (width height length)
+  "Return (w . h) so that a rotated w x h image has exactly width LENGTH.
+The rotation angle is the value of `image-transform-rotation'.
+Write W for WIDTH and H for HEIGHT.  Then the w x h rectangle is
+an \"approximately uniformly\" scaled W x H rectangle, which
+currently means that w is one of floor(s W) + {0, 1, -1} and h is
+floor(s H), where s can be recovered as the value of `image-transform-scale'.
+The value of `image-transform-rotation' may be replaced by
+a slightly different angle.  Currently this is done for values
+close to a multiple of 90, see `image-transform-right-angle-fudge'."
+  (cond ((< (abs (- (mod (+ image-transform-rotation 90) 180) 90))
+	    image-transform-right-angle-fudge)
+	 (assert (not (zerop width)) t)
+	 (setq image-transform-rotation
+	       (float (round image-transform-rotation))
+	       image-transform-scale (/ (float length) width))
+	 (cons length nil))
+	((< (abs (- (mod (+ image-transform-rotation 45) 90) 45))
+	    image-transform-right-angle-fudge)
+	 (assert (not (zerop height)) t)
+	 (setq image-transform-rotation
+	       (float (round image-transform-rotation))
+	       image-transform-scale (/ (float length) height))
+	 (cons nil length))
+	(t
+	 (assert (not (and (zerop width) (zerop height))) t)
+	 (setq image-transform-scale
+	       (/ (float (1- length)) (image-transform-width width height)))
+	 ;; Assume we have a w x h image and an angle A, and let l =
+	 ;; l(w, h) = w |cos A| + h |sin A|, which is the actual width
+	 ;; of the bounding box of the rotated image, as calculated by
+	 ;; `image-transform-width'.  The code snippet quoted above
+	 ;; means that ImageMagick puts the rotated image in
+	 ;; a bounding box of width L = 2 ceil((w+l+1)/2) - w.
+	 ;; Elementary considerations show that this is equivalent to
+	 ;; L - w being even and L-3 < l(w, h) <= L-1.  In our case, L is
+	 ;; the given `length' parameter and our job is to determine
+	 ;; reasonable values for w and h which satisfy these
+	 ;; conditions.
+	 (let ((w (floor (* image-transform-scale width)))
+	       (h (floor (* image-transform-scale height))))
+	   ;; Let w and h as bound above.  Then l(w, h) <= l(s W, s H)
+	   ;; = L-1 < l(w+1, h+1) = l(w, h) + l(1, 1) <= l(w, h) + 2,
+	   ;; hence l(w, h) > (L-1) - 2 = L-3.
+	   (cons
+	    (cond ((= (mod w 2) (mod length 2))
+		   w)
+		  ;; l(w+1, h) >= l(w, h) > L-3, but does l(w+1, h) <=
+		  ;; L-1 hold?
+		  ((<= (image-transform-width (1+ w) h) (1- length))
+		   (1+ w))
+		  ;; No, it doesn't, but this implies that l(w-1, h) =
+		  ;; l(w+1, h) - l(2, 0) >= l(w+1, h) - 2 > (L-1) -
+		  ;; 2 = L-3.  Clearly, l(w-1, h) <= l(w, h) <= L-1.
+		  (t
+		   (1- w)))
+	    h)))))
+
+(defun image-transform-check-size ()
+  "Check that the image exactly fits the width/height of the window."
+  (unless (numberp image-transform-resize)
+    (let ((size (image-display-size (image-get-display-property) t)))
+      (cond ((eq image-transform-resize 'fit-width)
+	     (assert (= (car size)
+			(- (nth 2 (window-inside-pixel-edges))
+			   (nth 0 (window-inside-pixel-edges))))
+		     t))
+	    ((eq image-transform-resize 'fit-height)
+	     (assert (= (cdr size)
+			(- (nth 3 (window-inside-pixel-edges))
+			   (nth 1 (window-inside-pixel-edges))))
+		     t))))))
 
 (defun image-transform-properties (spec)
   "Return rescaling/rotation properties for image SPEC.
@@ -647,29 +761,36 @@ return value is suitable for appending to an image spec.
 
 Rescaling and rotation properties only take effect if Emacs is
 compiled with ImageMagick support."
+  (setq image-transform-scale 1.0)
   (when (or image-transform-resize
-	    (not (equal image-transform-rotation 0.0)))
+	    (/= image-transform-rotation 0.0))
     ;; Note: `image-size' looks up and thus caches the untransformed
     ;; image.  There's no easy way to prevent that.
     (let* ((size (image-size spec t))
-	   (height
+	   (resized
 	    (cond
 	     ((numberp image-transform-resize)
-	      (unless (= image-transform-resize 100)
-		(* image-transform-resize (cdr size))))
+	      (unless (= image-transform-resize 1)
+		(setq image-transform-scale image-transform-resize)
+		(cons nil (floor (* image-transform-resize (cdr size))))))
+	     ((eq image-transform-resize 'fit-width)
+	      (image-transform-fit-width
+	       (car size) (cdr size)
+	       (- (nth 2 (window-inside-pixel-edges))
+		  (nth 0 (window-inside-pixel-edges)))))
 	     ((eq image-transform-resize 'fit-height)
-	      (- (nth 3 (window-inside-pixel-edges))
-		 (nth 1 (window-inside-pixel-edges))))))
-	   (width (if (eq image-transform-resize 'fit-width)
-		      (- (nth 2 (window-inside-pixel-edges))
-			 (nth 0 (window-inside-pixel-edges))))))
-      ;;TODO fit-to-* should consider the rotation angle
-      `(,@(if height (list :height height))
-	,@(if width (list :width width))
-	,@(if (not (equal 0.0 image-transform-rotation))
-	      (list :rotation image-transform-rotation))))))
+	      (let ((res (image-transform-fit-width
+			  (cdr size) (car size)
+			  (- (nth 3 (window-inside-pixel-edges))
+			     (nth 1 (window-inside-pixel-edges))))))
+		(cons (cdr res) (car res)))))))
+      `(,@(when (car resized)
+	    (list :width (car resized)))
+	,@(when (cdr resized)
+	    (list :height (cdr resized)))
+	,@(unless (= 0.0 image-transform-rotation)
+	    (list :rotation image-transform-rotation))))))
 
-;; FIXME 2 works, but eg 1.9 or 0.5 don't?
 (defun image-transform-set-scale (scale)
   "Prompt for a number, and resize the current image by that amount.
 This command has no effect unless Emacs is compiled with
@@ -699,9 +820,7 @@ ImageMagick support."
 ROTATION should be in degrees.  This command has no effect unless
 Emacs is compiled with ImageMagick support."
   (interactive "nRotation angle (in degrees): ")
-  ;;TODO 0 90 180 270 degrees are the only reasonable angles here
-  ;;otherwise combining with rescaling will get very awkward
-  (setq image-transform-rotation (float rotation))
+  (setq image-transform-rotation (float (mod rotation 360)))
   (image-toggle-display-image))
 
 (provide 'image-mode)

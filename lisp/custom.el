@@ -1048,6 +1048,7 @@ The optional argument DOC is a doc string describing the theme.
 
 Any theme `foo' should be defined in a file called `foo-theme.el';
 see `custom-make-theme-feature' for more information."
+  (declare (doc-string 2))
   (let ((feature (custom-make-theme-feature theme)))
     ;; It is better not to use backquote in this file,
     ;; because that makes a bootstrapping problem

@@ -622,6 +622,28 @@ executed once when the buffer is created."
   :type 'hook
   :group 'term)
 
+(defvar term-signals-menu
+  (let ((map (make-sparse-keymap "Signals")))
+    (define-key map [eof]
+      '(menu-item "EOF" term-send-eof
+        :help "Send an EOF to the current buffer's process"))
+    (define-key map [kill]
+      '(menu-item "KILL" term-kill-subjob
+        :help "Send kill signal to the current subjob"))
+    (define-key map [quit]
+      '(menu-item "QUIT" term-quit-subjob
+        :help "Send quit signal to the current subjob."))
+    (define-key map [cont]
+      '(menu-item "CONT" term-continue-subjob
+        :help "Send CONT signal to process buffer's process group"))
+    (define-key map [stop]
+      '(menu-item "STOP" term-stop-subjob
+        :help "Stop the current subjob"))
+    (define-key map [brk]
+      '(menu-item "BREAK" term-interrupt-subjob
+        :help "Interrupt the current subjob"))
+    (cons "Signals" map)))
+
 (defvar term-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\ep" 'term-previous-input)
@@ -653,28 +675,66 @@ executed once when the buffer is created."
     (define-key map "\C-c\C-j" 'term-line-mode)
     (define-key map "\C-c\C-q" 'term-pager-toggle)
 
-    ;;  ;; completion:
-    ;;  (define-key map [menu-bar completion]
-    ;;    (cons "Complete" (make-sparse-keymap "Complete")))
-    ;;  (define-key map [menu-bar completion complete-expand]
-    ;;    '("Expand File Name" . term-replace-by-expanded-filename))
-    ;;  (define-key map [menu-bar completion complete-listing]
-    ;;    '("File Completion Listing" . term-dynamic-list-filename-completions))
-    ;;  (define-key map [menu-bar completion complete-file]
-    ;;    '("Complete File Name" . term-dynamic-complete-filename))
-    ;;  (define-key map [menu-bar completion complete]
-    ;;    '("Complete Before Point" . term-dynamic-complete))
-    ;;  ;; Put them in the menu bar:
-    ;;  (setq menu-bar-final-items (append '(terminal completion inout signals)
-    ;;				     menu-bar-final-items))
+    ;; completion:  (line mode only)
+    (let ((completion-menu (make-sparse-keymap "Complete")))
+      (define-key map [menu-bar completion]
+        (cons "Complete" completion-menu))
+      (define-key completion-menu [complete-expand]
+        '("Expand File Name" . term-replace-by-expanded-filename))
+      (define-key completion-menu [complete-listing]
+        '("File Completion Listing" . term-dynamic-list-filename-completions))
+      (define-key completion-menu [complete-file]
+        '("Complete File Name" . term-dynamic-complete-filename))
+      (define-key completion-menu [complete]
+        '("Complete Before Point" . term-dynamic-complete)))
+
+    ;; Input history: (line mode only)
+    (let ((inout-menu (make-sparse-keymap "In/Out")))
+      (define-key map [menu-bar inout]
+        (cons "In/Out" inout-menu))
+      (define-key inout-menu [kill-output]
+        '("Kill Current Output Group" . term-kill-output))
+      (define-key inout-menu [next-prompt]
+        '("Forward Output Group" . term-next-prompt))
+      (define-key inout-menu [previous-prompt]
+        '("Backward Output Group" . term-previous-prompt))
+      (define-key inout-menu [show-maximum-output]
+        '("Show Maximum Output" . term-show-maximum-output))
+      (define-key inout-menu [show-output]
+        '("Show Current Output Group" . term-show-output))
+      (define-key inout-menu [kill-input]
+        '("Kill Current Input" . term-kill-input))
+      (define-key inout-menu [copy-input]
+        '("Copy Old Input" . term-copy-old-input))
+      (define-key inout-menu [forward-matching-history]
+        '("Forward Matching Input..." . term-forward-matching-input))
+      (define-key inout-menu [backward-matching-history]
+        '("Backward Matching Input..." . term-backward-matching-input))
+      (define-key inout-menu [next-matching-history]
+        '("Next Matching Input..." . term-next-matching-input))
+      (define-key inout-menu [previous-matching-history]
+        '("Previous Matching Input..." . term-previous-matching-input))
+      (define-key inout-menu [next-matching-history-from-input]
+        '("Next Matching Current Input" . term-next-matching-input-from-input))
+      (define-key inout-menu [previous-matching-history-from-input]
+        '("Previous Matching Current Input" .
+          term-previous-matching-input-from-input))
+      (define-key inout-menu [next-history]
+        '("Next Input" . term-next-input))
+      (define-key inout-menu [previous-history]
+        '("Previous Input" . term-previous-input))
+      (define-key inout-menu [list-history]
+        '("List Input History" . term-dynamic-list-input-ring))
+      (define-key inout-menu [expand-history]
+        '("Expand History Before Point" . term-replace-by-expanded-history)))
+
+    (define-key map [menu-bar signals] term-signals-menu)
+
     map))
 
-(defvar term-raw-map nil
-  "Keyboard map for sending characters directly to the inferior process.")
 (defvar term-escape-char nil
   "Escape character for char sub-mode of term mode.
 Do not change it directly; use `term-set-escape-char' instead.")
-(defvar term-raw-escape-map nil)
 
 (defvar term-pager-break-map nil)
 
@@ -712,9 +772,6 @@ Buffer local variable.")
 (defmacro term-pager-enabled () 'term-pager-count)
 (defmacro term-handling-pager () 'term-pager-old-local-map)
 (defmacro term-using-alternate-sub-buffer () 'term-saved-home-marker)
-
-(defvar term-signals-menu)
-(defvar term-terminal-menu)
 
 ;; Let's silence the byte-compiler -mm
 (defvar term-ansi-at-host nil)
@@ -770,169 +827,94 @@ is buffer-local."
   :group 'term
   :type 'integer)
 
-(when (featurep 'xemacs)
-  (defvar term-terminal-menu
-    '("Terminal"
-      [ "Character mode" term-char-mode (term-in-line-mode)]
-      [ "Line mode" term-line-mode (term-in-char-mode)]
-      [ "Enable paging" term-pager-toggle (not term-pager-count)]
-      [ "Disable paging" term-pager-toggle term-pager-count])))
-
-;; Menu bars:
-(unless (featurep 'xemacs)
-  ;; terminal:
-  (let (newmap)
-    (setq newmap (make-sparse-keymap "Terminal"))
-    (define-key newmap [terminal-pager-enable]
-      '(menu-item "Enable paging" term-fake-pager-enable
-		  :help "Enable paging feature"))
-    (define-key newmap [terminal-pager-disable]
-      '(menu-item "Disable paging" term-fake-pager-disable
-		  :help "Disable paging feature"))
-    (define-key newmap [terminal-char-mode]
-      '(menu-item "Character mode" term-char-mode
-		  :help "Switch to char (raw) sub-mode of term mode"))
-    (define-key newmap [terminal-line-mode]
-      '(menu-item "Line mode" term-line-mode
-		  :help "Switch to line (cooked) sub-mode of term mode"))
-    (setq term-terminal-menu (cons "Terminal" newmap))
-
-    ;; completion:  (line mode only)
-    (defvar term-completion-menu (make-sparse-keymap "Complete"))
-    (define-key term-mode-map [menu-bar completion]
-      (cons "Complete" term-completion-menu))
-    (define-key term-completion-menu [complete-expand]
-      '("Expand File Name" . term-replace-by-expanded-filename))
-    (define-key term-completion-menu [complete-listing]
-      '("File Completion Listing" . term-dynamic-list-filename-completions))
-    (define-key term-completion-menu [menu-bar completion complete-file]
-      '("Complete File Name" . term-dynamic-complete-filename))
-    (define-key term-completion-menu [menu-bar completion complete]
-      '("Complete Before Point" . term-dynamic-complete))
-
-    ;; Input history: (line mode only)
-    (defvar term-inout-menu (make-sparse-keymap "In/Out"))
-    (define-key term-mode-map [menu-bar inout]
-      (cons "In/Out" term-inout-menu))
-    (define-key term-inout-menu [kill-output]
-      '("Kill Current Output Group" . term-kill-output))
-    (define-key term-inout-menu [next-prompt]
-      '("Forward Output Group" . term-next-prompt))
-    (define-key term-inout-menu [previous-prompt]
-      '("Backward Output Group" . term-previous-prompt))
-    (define-key term-inout-menu [show-maximum-output]
-      '("Show Maximum Output" . term-show-maximum-output))
-    (define-key term-inout-menu [show-output]
-      '("Show Current Output Group" . term-show-output))
-    (define-key term-inout-menu [kill-input]
-      '("Kill Current Input" . term-kill-input))
-    (define-key term-inout-menu [copy-input]
-      '("Copy Old Input" . term-copy-old-input))
-    (define-key term-inout-menu [forward-matching-history]
-      '("Forward Matching Input..." . term-forward-matching-input))
-    (define-key term-inout-menu [backward-matching-history]
-      '("Backward Matching Input..." . term-backward-matching-input))
-    (define-key term-inout-menu [next-matching-history]
-      '("Next Matching Input..." . term-next-matching-input))
-    (define-key term-inout-menu [previous-matching-history]
-      '("Previous Matching Input..." . term-previous-matching-input))
-    (define-key term-inout-menu [next-matching-history-from-input]
-      '("Next Matching Current Input" . term-next-matching-input-from-input))
-    (define-key term-inout-menu [previous-matching-history-from-input]
-      '("Previous Matching Current Input" .
-		term-previous-matching-input-from-input))
-    (define-key term-inout-menu [next-history]
-      '("Next Input" . term-next-input))
-    (define-key term-inout-menu [previous-history]
-      '("Previous Input" . term-previous-input))
-    (define-key term-inout-menu [list-history]
-      '("List Input History" . term-dynamic-list-input-ring))
-    (define-key term-inout-menu [expand-history]
-      '("Expand History Before Point" . term-replace-by-expanded-history))
-
-    ;; Signals
-    (setq newmap (make-sparse-keymap "Signals"))
-    (define-key term-mode-map [menu-bar signals]
-      (setq term-signals-menu (cons "Signals" newmap)))
-    (define-key newmap [eof]
-      '(menu-item "EOF" term-send-eof
-		  :help "Send an EOF to the current buffer's process"))
-    (define-key newmap [kill]
-      '(menu-item "KILL" term-kill-subjob
-		  :help "Send kill signal to the current subjob"))
-    (define-key newmap [quit]
-      '(menu-item "QUIT" term-quit-subjob
-		  :help "Send quit signal to the current subjob."))
-    (define-key newmap [cont]
-      '(menu-item "CONT" term-continue-subjob
-		  :help "Send CONT signal to process buffer's process group"))
-    (define-key newmap [stop]
-      '(menu-item "STOP" term-stop-subjob
-		  :help "Stop the current subjob"))
-    (define-key newmap [brk]
-      '(menu-item "BREAK" term-interrupt-subjob
-		  :help "Interrupt the current subjob"))
-    ))
+(defvar term-terminal-menu
+  (if (featurep 'xemacs)
+      '("Terminal"
+        [ "Character mode" term-char-mode (term-in-line-mode)]
+        [ "Line mode" term-line-mode (term-in-char-mode)]
+        [ "Enable paging" term-pager-toggle (not term-pager-count)]
+        [ "Disable paging" term-pager-toggle term-pager-count])
+    (let ((map (make-sparse-keymap "Terminal")))
+      (define-key map [terminal-pager-enable]
+        '(menu-item "Enable paging" term-fake-pager-enable
+          :help "Enable paging feature"))
+      (define-key map [terminal-pager-disable]
+        '(menu-item "Disable paging" term-fake-pager-disable
+          :help "Disable paging feature"))
+      (define-key map [terminal-char-mode]
+        '(menu-item "Character mode" term-char-mode
+          :help "Switch to char (raw) sub-mode of term mode"))
+      (define-key map [terminal-line-mode]
+        '(menu-item "Line mode" term-line-mode
+          :help "Switch to line (cooked) sub-mode of term mode"))
+      (cons "Terminal" map))))
 
 ;; Set up term-raw-map, etc.
 
-(defun term-set-escape-char (c)
+(defvar term-raw-map
+  (let* ((map (make-keymap))
+         (esc-map (make-keymap))
+         (i 0))
+    (while (< i 128)
+      (define-key map (make-string 1 i) 'term-send-raw)
+      ;; Avoid O and [. They are used in escape sequences for various keys.
+      (unless (or (eq i ?O) (eq i 91))
+        (define-key esc-map (make-string 1 i) 'term-send-raw-meta))
+      (setq i (1+ i)))
+    (define-key map [remap self-insert-command] 'term-send-raw)
+    (define-key map "\e" esc-map)
+
+    ;; Added nearly all the 'gray keys' -mm
+
+    (if (featurep 'xemacs)
+        (define-key map [button2] 'term-mouse-paste)
+      (define-key map [mouse-2] 'term-mouse-paste)
+      (define-key map [menu-bar terminal] term-terminal-menu)
+      (define-key map [menu-bar signals] term-signals-menu))
+    (define-key map [up] 'term-send-up)
+    (define-key map [down] 'term-send-down)
+    (define-key map [right] 'term-send-right)
+    (define-key map [left] 'term-send-left)
+    (define-key map [delete] 'term-send-del)
+    (define-key map [deletechar] 'term-send-del)
+    (define-key map [backspace] 'term-send-backspace)
+    (define-key map [home] 'term-send-home)
+    (define-key map [end] 'term-send-end)
+    (define-key map [insert] 'term-send-insert)
+    (define-key map [S-prior] 'scroll-down)
+    (define-key map [S-next] 'scroll-up)
+    (define-key map [S-insert] 'term-paste)
+    (define-key map [prior] 'term-send-prior)
+    (define-key map [next] 'term-send-next)
+    map)
+  "Keyboard map for sending characters directly to the inferior process.")
+
+(defvar term-raw-escape-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map 'Control-X-prefix)
+    ;; Define standard bindings in term-raw-escape-map.
+    (define-key map "\C-v" (lookup-key (current-global-map) "\C-v"))
+    (define-key map "\C-u" (lookup-key (current-global-map) "\C-u"))
+    (define-key map "\C-q" 'term-pager-toggle)
+    ;; The keybinding for term-char-mode is needed by the menubar code.
+    (define-key map "\C-k" 'term-char-mode)
+    (define-key map "\C-j" 'term-line-mode)
+    ;; It's convenient to have execute-extended-command here.
+    (define-key map [?\M-x] 'execute-extended-command)
+    map))
+
+(defun term-set-escape-char (key)
   "Change `term-escape-char' and keymaps that depend on it."
   (when term-escape-char
+    ;; Undo previous term-set-escape-char.
     (define-key term-raw-map term-escape-char 'term-send-raw))
-  (setq c (make-string 1 c))
-  (define-key term-raw-map c term-raw-escape-map)
-  ;; Define standard bindings in term-raw-escape-map
-  (define-key term-raw-escape-map "\C-v"
-    (lookup-key (current-global-map) "\C-v"))
-  (define-key term-raw-escape-map "\C-u"
-    (lookup-key (current-global-map) "\C-u"))
-  (define-key term-raw-escape-map c 'term-send-raw)
-  (define-key term-raw-escape-map "\C-q" 'term-pager-toggle)
-  ;; The keybinding for term-char-mode is needed by the menubar code.
-  (define-key term-raw-escape-map "\C-k" 'term-char-mode)
-  (define-key term-raw-escape-map "\C-j" 'term-line-mode)
-  ;; It's convenient to have execute-extended-command here.
-  (define-key term-raw-escape-map [?\M-x] 'execute-extended-command))
+  (setq term-escape-char (vector key))
+  (define-key term-raw-map term-escape-char term-raw-escape-map)
+  ;; FIXME: If we later call term-set-escape-char again with another key,
+  ;; we should undo this binding.
+  (define-key term-raw-escape-map term-escape-char 'term-send-raw))
 
-(let* ((map (make-keymap))
-       (esc-map (make-keymap))
-       (i 0))
-  (while (< i 128)
-    (define-key map (make-string 1 i) 'term-send-raw)
-    ;; Avoid O and [. They are used in escape sequences for various keys.
-    (unless (or (eq i ?O) (eq i 91))
-		(define-key esc-map (make-string 1 i) 'term-send-raw-meta))
-    (setq i (1+ i)))
-  (define-key map [remap self-insert-command] 'term-send-raw)
-  (define-key map "\e" esc-map)
-  (setq term-raw-map map)
-  (setq term-raw-escape-map (copy-keymap 'Control-X-prefix))
-
-  ;; Added nearly all the 'gray keys' -mm
-
-  (if (featurep 'xemacs)
-      (define-key term-raw-map [button2] 'term-mouse-paste)
-    (define-key term-raw-map [mouse-2] 'term-mouse-paste)
-    (define-key term-raw-map [menu-bar terminal] term-terminal-menu)
-    (define-key term-raw-map [menu-bar signals] term-signals-menu))
-  (define-key term-raw-map [up] 'term-send-up)
-  (define-key term-raw-map [down] 'term-send-down)
-  (define-key term-raw-map [right] 'term-send-right)
-  (define-key term-raw-map [left] 'term-send-left)
-  (define-key term-raw-map [delete] 'term-send-del)
-  (define-key term-raw-map [deletechar] 'term-send-del)
-  (define-key term-raw-map [backspace] 'term-send-backspace)
-  (define-key term-raw-map [home] 'term-send-home)
-  (define-key term-raw-map [end] 'term-send-end)
-  (define-key term-raw-map [insert] 'term-send-insert)
-  (define-key term-raw-map [S-prior] 'scroll-down)
-  (define-key term-raw-map [S-next] 'scroll-up)
-  (define-key term-raw-map [S-insert] 'term-paste)
-  (define-key term-raw-map [prior] 'term-send-prior)
-  (define-key term-raw-map [next] 'term-send-next))
-
-(term-set-escape-char ?\C-c)
+(term-set-escape-char (or term-escape-char ?\C-c))
 
 (defvar overflow-newline-into-fringe)
 

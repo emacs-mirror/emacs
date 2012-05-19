@@ -96,7 +96,7 @@ The return value of this function is not used."
 ;; This has a special byte-hunk-handler in bytecomp.el.
 (defmacro defsubst (name arglist &rest body)
   "Define an inline function.  The syntax is just like that of `defun'."
-  (declare (debug defun))
+  (declare (debug defun) (doc-string 3))
   (or (memq (get name 'byte-optimizer)
 	    '(nil byte-compile-inline-expand))
       (error "`%s' is a primitive" name))

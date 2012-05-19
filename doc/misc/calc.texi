@@ -27778,6 +27778,11 @@ acres per meter-second.)  Remainder units are expressed in terms of
 ``fundamental'' units like @samp{m} and @samp{s}, regardless of the
 input units.
 
+If you want to disallow using inconsistent units, you can set the customizable variable
+@code{calc-ensure-consistent-units} to @code{t} (@pxref{Customizing Calc}).  In this case, 
+if you request units which are inconsistent with the original units, you will be warned about
+it and no conversion will occur.
+
 One special exception is that if you specify a single unit name, and
 a compatible unit appears somewhere in the units expression, then
 that compatible unit will be converted to the new unit and the
@@ -35589,6 +35594,19 @@ as @samp{a/(b*c)}. If @code{calc-multiplication-has-precedence} is
 (and, like division, is left associative), and so for example
 @samp{a/b*c} will be interpreted as @samp{(a/b)*c}.  The default value
 of @code{calc-multiplication-has-precedence} is @code{t}.
+@end defvar
+
+@defvar calc-ensure-consistent-units
+When converting units, the variable @code{calc-ensure-consistent-units} 
+determines whether or not the target units need to be consistent with the 
+original units.  If @code{calc-ensure-consistent-units} is @code{nil}, then
+the target units don't need to have the same dimensions as the original units; 
+for example, converting @samp{100 ft/s} to @samp{m} will produce @samp{30.48 m/s}.   
+If  @code{calc-ensure-consistent-units} is non-@code{nil}, then the target units 
+need to have the same dimensions as the original units; for example, converting 
+@samp{100 ft/s} to @samp{m} will result in an error, since @samp{ft/s} and @samp{m} 
+have different dimensions. The default value of @code{calc-ensure-consistent-units} 
+is @code{nil}.
 @end defvar
 
 @defvar calc-undo-length
