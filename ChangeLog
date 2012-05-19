@@ -11,7 +11,6 @@
 2012-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): Remove unneeded subshell.
-	Combine some rm commands.
 
 	* Makefile.in (install-arch-indep): Remove unneeded chmod.
 	Set permissions of lisp/subdirs.el.
