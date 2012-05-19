@@ -370,8 +370,11 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
      (unless (< pos (length units))
        (error "Unit number %d not defined" pos))
      (if (math-units-in-expr-p expr nil)
-	 (calc-enter-result 1 (format "cun%d" num)
-			    (math-convert-units expr (nth pos units)))
+         (progn
+           (if calc-ensure-consistent-units
+               (math-check-unit-consistency expr units))
+           (calc-enter-result 1 (format "cun%d" num)
+                              (math-convert-units expr (nth pos units))))
        (calc-enter-result 1 (format "*un%d" num)
 			  (math-simplify-units
 			   (math-mul expr (nth pos units))))))))
@@ -477,6 +480,8 @@ If EXPR is nil, return nil."
      (setq units (math-read-expr new-units))
      (when (eq (car-safe units) 'error)
        (error "Bad format in units expression: %s" (nth 2 units)))
+     (if calc-ensure-consistent-units
+         (math-check-unit-consistency expr units))
      (math-put-default-units units)
      (let ((unew (math-units-in-expr-p units t))
 	   (std (and (eq (car-safe units) 'var)
@@ -560,7 +565,7 @@ If EXPR is nil, return nil."
 (defun calc-extract-units ()
   (interactive)
   (calc-slow-wrapper
-   (calc-enter-result 1 "rmun" (math-simplify-units
+   (calc-enter-result 1 "exun" (math-simplify-units
 				(math-extract-units (calc-top-n 1))))))
 
 ;; The variables calc-num-units and calc-den-units are local to
@@ -913,6 +918,17 @@ If EXPR is nil, return nil."
 	     'wrong
 	   (math-single-units-in-expr-p (nth 1 expr))))
 	(t 'wrong)))
+
+(defun math-consistent-units-p (expr1 expr2)
+  "Non-nil if EXPR1 and EXPR2 have consistent units."
+  (math-numberp (math-get-units (list '/ expr1 expr2))))
+
+(defun math-check-unit-consistency (expr units)
+  "Give an error if EXPR and UNITS do not have consistent units."
+  (unless  (math-consistent-units-p expr units)
+    (error "New units (%s) are inconsistent with current units (%s)"
+           (math-format-value units)
+           (math-format-value (math-get-units expr)))))
 
 (defun math-check-unit-name (v)
   (and (eq (car-safe v) 'var)
