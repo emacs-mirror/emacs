@@ -517,6 +517,8 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00278.html
 ## I have no idea which platforms Emacs supports where cp -R does not
 ## work correctly, and therefore no idea when tar can be replaced.
+## See also these comments from 2004 about cp -r working fine:
+## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
 	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
