@@ -1,6 +1,28 @@
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Add and revise further doc strings and
+	comments.
+	(todos-filter-function, todos-custom-items)
+	(todos-custom-items-multifile): Remove.
+	(todos-filter-done-items): New defcustom.
+	(todos-item-end, todos-backward-item): Handle todos-filter-items-mode.
+	(todos-filter-items): Check return value of caller first; tag
+	archived items for todos-jump-to-item; delete categories sexp
+	before processing filter; check todos-filter-done-items for
+	whether to leave done items; remove custom filter; fix regexp for
+	file and category tags; don't invoke buffer fontification.
+	(powerset-recursive): Fix typo.
+	(todos-key-bindings): Remove unused bindings.
+	(todos-top-priorities-multifile, todos-diary-items-multifile)
+	(todos-regexp-items-multifile): Use variable todos-multiple-files.
+	(todos-jump-to-item): Fix regexp; handle archive tags; take
+	todos-filter-done-items into account.
+	(todos-insert-item-from-calendar): Relocate to end of file
+	together with key-binding as addition to calendar.el.
+
 2012-09-20  Stephen Berman  <stephen.berman@gmx.net>
 
-	* calendar/todos.el Add and revise further doc strings and
+	* calendar/todos.el: Add and revise further doc strings and
 	comments; major code rearrangement.
 	(todos-merged-files, todos-prompt-merged-files)
 	(todos-print-priorities, todos-tmp-buffer-name)
