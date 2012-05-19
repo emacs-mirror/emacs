@@ -356,6 +356,8 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 				  (math-to-standard-units (calc-top-n 1)
 							  nil))))))
 
+(defvar calc-ensure-consistent-units)
+
 (defun calc-quick-units ()
   (interactive)
   (calc-slow-wrapper
