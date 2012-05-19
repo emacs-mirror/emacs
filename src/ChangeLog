@@ -1,5 +1,7 @@
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* s/ms-w32.h (HAVE_GETDOMAINNAME): Remove; not needed.
+
 	* m/vax.h: Remove; no longer needed since HAVE_FTIME is being removed.
 	* s/ms-w32.h (HAVE_FTIME): Remove; not needed.
 

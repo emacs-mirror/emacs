@@ -1,3 +1,8 @@
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sed2v2.inp (HAVE_MBLEN): Remove.
+	* sed2x.inp (HAVE_XSETWMPROTOCOLS): Remove.
+
 2012-04-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedleim.inp (RUN_EMACS): Replace BUILT_EMACS with EMACS.

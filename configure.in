@@ -1873,7 +1873,7 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 
   AC_CHECK_FUNCS(XrmSetDatabase XScreenResourceString \
-XScreenNumberOfScreen XSetWMProtocols)
+XScreenNumberOfScreen)
 fi
 
 if test "${window_system}" = "x11"; then
@@ -2773,15 +2773,15 @@ esac
 AC_SUBST(BLESSMAIL_TARGET)
 
 
-AC_CHECK_FUNCS(gethostname getdomainname \
+AC_CHECK_FUNCS(gethostname \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
-sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap fsync sync \
-difftime mempcpy mblen mbrlen posix_memalign \
+__fpending strsignal setitimer \
+sendto recvfrom getsockname getpeername \
+gai_strerror mkstemp getline getdelim fsync sync \
+difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 cfmakeraw cfsetspeed copysign __executable_start)
 

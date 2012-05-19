@@ -179,7 +179,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef GETTIMEOFDAY_ONE_ARGUMENT
 #endif
 #undef HAVE_GETHOSTNAME
-#undef HAVE_GETDOMAINNAME
 #undef HAVE_DUP2
 #undef HAVE_RENAME
 #undef HAVE_CLOSEDIR
@@ -205,7 +204,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_XRMSETDATABASE
 #undef HAVE_XSCREENRESOURCESTRING
 #undef HAVE_XSCREENNUMBEROFSCREEN
-#undef HAVE_XSETWMPROTOCOLS
 
 #undef HAVE_MKDIR
 #undef HAVE_RMDIR
@@ -244,8 +242,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SENDTO 1
 #define HAVE_RECVFROM 1
-#define HAVE_GETSOCKOPT 1
-#define HAVE_SETSOCKOPT 1
 #define HAVE_GETSOCKNAME 1
 #define HAVE_GETPEERNAME 1
 #define HAVE_SNPRINTF 1

@@ -1,5 +1,9 @@
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* configure.in (AC_CHECK_FUNCS): Remove XSetWMProtocols,
+	getdomainname, mblen (twice), mbrlen (twice), mbsinit, ualarm,
+	getsockopt, setsockopt, mremap, mempcpy.
+
 	* configure.in (machine): Do not set to 'vax', since src/m/vax.h
 	is being removed.
 	(AC_CHECK_FUNCS): Remove ftime.

@@ -1,5 +1,8 @@
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* config.nt (HAVE_GETDOMAINNAME, HAVE_XSETWMPROTOCOLS)
+	(HAVE_GETSOCKOPT, HAVE_SETSOCKOPT): Remove; not needed.
+
 	* config.nt (HAVE_FTIME): Remove undef; not needed.
 
 2012-05-01  Glenn Morris  <rgm@gnu.org>

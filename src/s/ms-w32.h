@@ -122,7 +122,6 @@ struct sigaction {
 
 #define HAVE_GETTIMEOFDAY 1
 #define HAVE_GETHOSTNAME 1
-#undef  HAVE_GETDOMAINNAME
 #define HAVE_DUP2 1
 #define HAVE_RENAME 1
 #define HAVE_CLOSEDIR 1
