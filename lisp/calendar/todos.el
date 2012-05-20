@@ -779,6 +779,88 @@ categories display according to priority."
   :group 'todos-faces)
 (defvar todos-done-sep-face 'todos-done-sep)
 
+(defun todos-date-string-matcher (lim)
+  "Search for Todos date string within LIM for font-locking."
+  (re-search-forward
+   (concat todos-date-string-start "\\(?1:" todos-date-pattern "\\)") lim t))
+
+(defun todos-time-string-matcher (lim)
+  "Search for Todos time string within LIM for font-locking."
+  (re-search-forward (concat todos-date-string-start todos-date-pattern
+			     " \\(?1:" diary-time-regexp "\\)") lim t))
+
+(defun todos-nondiary-marker-matcher (lim)
+  "Search for Todos nondiary markers within LIM for font-locking."
+  (re-search-forward (concat "^\\(?1:" (regexp-quote todos-nondiary-start) "\\)"
+			     todos-date-pattern "\\(?: " diary-time-regexp
+			     "\\)?\\(?2:" (regexp-quote todos-nondiary-end) "\\)")
+		     lim t))
+
+(defun todos-diary-nonmarking-matcher (lim)
+  "Search for diary nonmarking symbol within LIM for font-locking."
+  (re-search-forward (concat "^\\(?1:" (regexp-quote diary-nonmarking-symbol)
+			     "\\)" todos-date-pattern) lim t))
+
+(defun todos-diary-expired-matcher (lim)
+  "Search for expired diary item date within LIM for font-locking."
+  (when (re-search-forward (concat "^\\(?:"
+				   (regexp-quote diary-nonmarking-symbol)
+				   "\\)?\\(?1:" todos-date-pattern "\\) \\(?2:"
+				   diary-time-regexp "\\)?") lim t)
+    (let* ((date (match-string-no-properties 1))
+    	   (time (match-string-no-properties 2))
+	   ;; days-between needs a non-empty time string.
+    	   (date-time (concat date " " (or time "00:00"))))
+      (or (and (not (string-match ".+day\\|\\*" date))
+	       (< (days-between date-time (current-time-string)) 0))
+	  (todos-diary-expired-matcher lim)))))
+
+(defun todos-done-string-matcher (lim)
+  "Search for Todos done header within LIM for font-locking."
+  (re-search-forward (concat todos-done-string-start
+		      "[^][]+]")
+		     lim t))
+
+(defun todos-comment-string-matcher (lim)
+  "Search for Todos done comment within LIM for font-locking."
+  (re-search-forward (concat "\\[\\(?1:" todos-comment-string "\\):")
+		     lim t))
+
+;; (defun todos-category-string-matcher (lim)
+;;   "Search for Todos category name within LIM for font-locking.
+;; This is for fontifying category names appearing in Todos filter
+;; mode."
+;;   (if (eq major-mode 'todos-filter-items-mode)
+;;       (re-search-forward
+;;        (concat "^\\(?:" todos-date-string-start "\\)?" todos-date-pattern
+;;        	       "\\(?: " diary-time-regexp "\\)?\\(?:"
+;;        	       (regexp-quote todos-nondiary-end) "\\)? \\(?1:\\[.+\\]\\)")
+;;        lim t)))
+
+(defun todos-category-string-matcher-1 (lim)
+  "Search for Todos category name within LIM for font-locking.
+This is for fontifying category names appearing in Todos filter
+mode following done items."
+  (if (eq major-mode 'todos-filter-items-mode)
+      (re-search-forward (concat todos-done-string-start todos-date-pattern
+				 "\\(?: " diary-time-regexp
+				 ;; Use non-greedy operator to prevent
+				 ;; capturing possible following non-diary
+				 ;; date string.
+				 "\\)?] \\(?1:\\[.+?\\]\\)")
+			 lim t)))
+
+(defun todos-category-string-matcher-2 (lim)
+  "Search for Todos category name within LIM for font-locking.
+This is for fontifying category names appearing in Todos filter
+mode following todo (not done) items."
+  (if (eq major-mode 'todos-filter-items-mode)
+      (re-search-forward (concat todos-date-string-start todos-date-pattern
+				 "\\(?: " diary-time-regexp "\\)?\\(?:"
+				 (regexp-quote todos-nondiary-end)
+				 "\\)? \\(?1:\\[.+\\]\\)")
+			 lim t)))
+
 (defvar todos-font-lock-keywords
   (list
    '(todos-nondiary-marker-matcher 1 todos-done-sep-face t)
@@ -932,88 +1014,6 @@ users option `todos-show-current-file' is non-nil).")
 (defvar todos-done-string-start
   (concat "^\\[" (regexp-quote todos-done-string))
   "Regular expression matching start of done item.")
-
-(defun todos-date-string-matcher (lim)
-  "Search for Todos date string within LIM for font-locking."
-  (re-search-forward
-   (concat todos-date-string-start "\\(?1:" todos-date-pattern "\\)") lim t))
-
-(defun todos-time-string-matcher (lim)
-  "Search for Todos time string within LIM for font-locking."
-  (re-search-forward (concat todos-date-string-start todos-date-pattern
-			     " \\(?1:" diary-time-regexp "\\)") lim t))
-
-(defun todos-nondiary-marker-matcher (lim)
-  "Search for Todos nondiary markers within LIM for font-locking."
-  (re-search-forward (concat "^\\(?1:" (regexp-quote todos-nondiary-start) "\\)"
-			     todos-date-pattern "\\(?: " diary-time-regexp
-			     "\\)?\\(?2:" (regexp-quote todos-nondiary-end) "\\)")
-		     lim t))
-
-(defun todos-diary-nonmarking-matcher (lim)
-  "Search for diary nonmarking symbol within LIM for font-locking."
-  (re-search-forward (concat "^\\(?1:" (regexp-quote diary-nonmarking-symbol)
-			     "\\)" todos-date-pattern) lim t))
-
-(defun todos-diary-expired-matcher (lim)
-  "Search for expired diary item date within LIM for font-locking."
-  (when (re-search-forward (concat "^\\(?:"
-				   (regexp-quote diary-nonmarking-symbol)
-				   "\\)?\\(?1:" todos-date-pattern "\\) \\(?2:"
-				   diary-time-regexp "\\)?") lim t)
-    (let* ((date (match-string-no-properties 1))
-    	   (time (match-string-no-properties 2))
-	   ;; days-between needs a non-empty time string.
-    	   (date-time (concat date " " (or time "00:00"))))
-      (or (and (not (string-match ".+day\\|\\*" date))
-	       (< (days-between date-time (current-time-string)) 0))
-	  (todos-diary-expired-matcher lim)))))
-
-(defun todos-done-string-matcher (lim)
-  "Search for Todos done header within LIM for font-locking."
-  (re-search-forward (concat todos-done-string-start
-		      "[^][]+]")
-		     lim t))
-
-(defun todos-comment-string-matcher (lim)
-  "Search for Todos done comment within LIM for font-locking."
-  (re-search-forward (concat "\\[\\(?1:" todos-comment-string "\\):")
-		     lim t))
-
-;; (defun todos-category-string-matcher (lim)
-;;   "Search for Todos category name within LIM for font-locking.
-;; This is for fontifying category names appearing in Todos filter
-;; mode."
-;;   (if (eq major-mode 'todos-filter-items-mode)
-;;       (re-search-forward
-;;        (concat "^\\(?:" todos-date-string-start "\\)?" todos-date-pattern
-;;        	       "\\(?: " diary-time-regexp "\\)?\\(?:"
-;;        	       (regexp-quote todos-nondiary-end) "\\)? \\(?1:\\[.+\\]\\)")
-;;        lim t)))
-
-(defun todos-category-string-matcher-1 (lim)
-  "Search for Todos category name within LIM for font-locking.
-This is for fontifying category names appearing in Todos filter
-mode following done items."
-  (if (eq major-mode 'todos-filter-items-mode)
-      (re-search-forward (concat todos-done-string-start todos-date-pattern
-				 "\\(?: " diary-time-regexp
-				 ;; Use non-greedy operator to prevent
-				 ;; capturing possible following non-diary
-				 ;; date string.
-				 "\\)?] \\(?1:\\[.+?\\]\\)")
-			 lim t)))
-
-(defun todos-category-string-matcher-2 (lim)
-  "Search for Todos category name within LIM for font-locking.
-This is for fontifying category names appearing in Todos filter
-mode following todo (not done) items."
-  (if (eq major-mode 'todos-filter-items-mode)
-      (re-search-forward (concat todos-date-string-start todos-date-pattern
-				 "\\(?: " diary-time-regexp "\\)?\\(?:"
-				 (regexp-quote todos-nondiary-end)
-				 "\\)? \\(?1:\\[.+\\]\\)")
-			 lim t)))
 
 (defun todos-category-number (cat)
   "Return the number of category CAT in this Todos file.
@@ -1282,11 +1282,10 @@ editing or a bug in todos.el."
   (unless (looking-at "^$")
     (let ((done (todos-done-item-p)))
       (todos-forward-item)
-      (unless (eq major-mode 'todos-filter-items-mode)
-	;; Adjust if item is last unfinished one before displayed done items.
-	(when (and (not done) (todos-done-item-p))
-	  (forward-line -1))
-	(backward-char)))
+      ;; Adjust if item is last unfinished one before displayed done items.
+      (when (and (not done) (todos-done-item-p))
+	(forward-line -1))
+      (backward-char))
     (point)))
 
 (defun todos-item-string ()
@@ -2238,8 +2237,8 @@ which is the value of the user option
     ;(""	     . todos-display-categories-alphabetically)
     ("H"	     . todos-highlight-item)
     ("N"	     . todos-toggle-item-numbering)
-    ("D"	     . todos-toggle-display-date-time)
-    ("*"	     . todos-toggle-mark-item)
+    ("D"	     . todos-hide-show-date-time)
+    ("*"	     . todos-mark-unmark-item)
     ("C*"	     . todos-mark-category)
     ("Cu"	     . todos-unmark-category)
     ("PP"	     . todos-print)
@@ -2254,7 +2253,7 @@ which is the value of the user option
     ("Fe"	     . todos-edit-multiline)
     ("Fh"	     . todos-highlight-item)
     ("Fn"	     . todos-toggle-item-numbering)
-    ("Fd"	     . todos-toggle-display-date-time)
+    ("Fd"	     . todos-hide-show-date-time)
     ("Ftt"	     . todos-top-priorities)
     ("Ftm"	     . todos-top-priorities-multifile)
     ("Fts"	     . todos-set-top-priorities-in-file)
@@ -2345,7 +2344,7 @@ which is the value of the user option
      ;; ["List Categories Alphabetically" todos-display-categories-alphabetically t]
      ["Turn Item Highlighting on/off" todos-highlight-item t]
      ["Turn Item Numbering on/off" todos-toggle-item-numbering t]
-     ["Turn Item Time Stamp on/off" todos-toggle-display-date-time t]
+     ["Turn Item Time Stamp on/off" todos-hide-show-date-time t]
      ["View/Hide Done Items" todos-toggle-view-done-items t]
      "---"
      ["View Diary Items" todos-diary-items t]
@@ -2399,7 +2398,7 @@ which is the value of the user option
     (define-key map "C" 'todos-display-categories)
     (define-key map "H" 'todos-highlight-item)
     (define-key map "N" 'todos-toggle-item-numbering)
-    ;; (define-key map "" 'todos-toggle-display-date-time)
+    ;; (define-key map "" 'todos-hide-show-date-time)
     (define-key map "P" 'todos-print)
     (define-key map "q" 'todos-quit)
     (define-key map "s" 'todos-save)
@@ -2447,7 +2446,7 @@ which is the value of the user option
     (define-key map "p" 'todos-backward-item)
     (define-key map "H" 'todos-highlight-item)
     (define-key map "N" 'todos-toggle-item-numbering)
-    (define-key map "D" 'todos-toggle-display-date-time)
+    (define-key map "D" 'todos-hide-show-date-time)
     (define-key map "P" 'todos-print)
     (define-key map "q" 'todos-quit)
     (define-key map "s" 'todos-save)
@@ -2637,6 +2636,10 @@ and done items are always shown on visiting a category."
 		     (concat (file-name-sans-extension todos-current-todos-file)
 			     ".todo"))
 		    (t
+		     ;; FIXME: If an archive is value of
+		     ;; todos-current-todos-file, todos-show will revisit
+		     ;; rather than the corresponding todo file -- ok or make
+		     ;; it customizable?
 		     (or todos-current-todos-file
 			 (and todos-show-current-file
 			      todos-global-current-todos-file)
@@ -2775,7 +2778,7 @@ last category displayed."
       (hl-line-mode -1)
     (hl-line-mode 1)))
 
-(defun todos-toggle-display-date-time () ;(&optional all)
+(defun todos-hide-show-date-time () ;(&optional all)
   "Hide or show date-time header of todo items.";; in current category.
 ;; With non-nil prefix argument ALL do this in the whole file."
   (interactive "P")
@@ -2804,7 +2807,7 @@ last category displayed."
 		(overlay-put ov 'display "")))
 	    (todos-forward-item)))))))
 
-(defun todos-toggle-mark-item (&optional n all)
+(defun todos-mark-unmark-item (&optional n all)
   "Mark item at point if unmarked, or unmark it if marked.
 
 With a positive numerical prefix argument N, change the
@@ -2845,7 +2848,7 @@ is \"*\", then the mark is \"@\"."
   "Put the \"*\" mark on all items in this category.
 \(If `todos-prefix' is \"*\", then the mark is \"@\".)"
   (interactive)
-  (todos-toggle-mark-item 0 t))
+  (todos-mark-unmark-item 0 t))
 
 (defun todos-unmark-category ()
   "Remove the \"*\" mark from all items in this category.
@@ -3292,15 +3295,15 @@ With numerical prefix COUNT, move point COUNT items upward,"
     (todos-item-start)
     (unless (bobp)
       (re-search-backward todos-item-start nil t (or count 1)))
-    (unless (eq major-mode 'todos-filter-items-mode)
-      ;; If points advances by one from a done to a todo item, go back to the
-      ;; space above todos-done-separator, since that is a legitimate place to
-      ;; insert an item.  But skip this space if count > 1, since that should
-      ;; only stop on an item (FIXME: or not?)
-      (when (and done (not (todos-done-item-p))
-		 (or (not count) (= count 1)))
-	(re-search-forward (concat "^" (regexp-quote todos-category-done)) nil t)
-	(forward-line -1)))))
+    ;; Unless this is a regexp filtered items buffer (which can contain
+    ;; intermixed todo and done items), if points advances by one from a done
+    ;; to a todo item, go back to the space above todos-done-separator, since
+    ;; that is a legitimate place to insert an item.  But skip this space if
+    ;; count > 1, since that should only stop on an item (FIXME: or not?)
+    (when (and done (not (todos-done-item-p)) (or (not count) (= count 1))
+	       (not (equal (buffer-name) todos-regexp-items-buffer)))
+      (re-search-forward (concat "^" (regexp-quote todos-category-done)) nil t)
+      (forward-line -1))))
 
 ;; FIXME: (i) Extend search to other Todos files. (ii) Allow navigating among
 ;; hits.
@@ -3823,16 +3826,16 @@ the new item:
 
 To facilitate using these arguments when inserting a new todo
 item, convenience commands have been defined for all admissible
-combinations (96 in all!) together with mnenomic key bindings
-based on on the name of the arguments and their order in the
-command's argument list: diar_y_ - nonmar_k_ing - _c_alendar or
-_d_ate or day_n_ame - _t_ime - _r_egion or _h_ere.  These key
-combinations are appended to the basic insertion key (i) and keys
-that allow a following key must be doubled when used finally.
-For example, `iyh' will insert a new item with today's date,
-marked according to the DIARY argument described above, and with
-priority according to the HERE argument; while `iyy' does the
-same except the priority is not given by HERE but by prompting."
+combinations together with mnenomic key bindings based on on the
+name of the arguments and their order in the command's argument
+list: diar_y_ - nonmar_k_ing - _c_alendar or _d_ate or day_n_ame
+- _t_ime - _r_egion or _h_ere.  These key combinations are
+appended to the basic insertion key (i) and keys that allow a
+following key must be doubled when used finally.  For example,
+`iyh' will insert a new item with today's date, marked according
+to the DIARY argument described above, and with priority
+according to the HERE argument; while `iyy' does the same except
+the priority is not given by HERE but by prompting."
 ;;   An alternative interface for customizing key
 ;; binding is also provided with the function
 ;; `todos-insertion-bindings'."		;FIXME
@@ -4269,6 +4272,10 @@ items in this category."
 With non-nil argument LOWER lower item's priority."
   (interactive)
   (unless (or (todos-done-item-p)
+	      (and (eq major-mode 'todos-filter-items-mode)
+		   ;; Items in Top Priorities buffer can be reprioritized.
+		   (not (string-match (regexp-quote todos-top-priorities-buffer)
+				      (buffer-name))))
 	      ;; Point is between todo and done items.
 	      (looking-at "^$"))
     (let (buffer-read-only)
@@ -4282,7 +4289,7 @@ With non-nil argument LOWER lower item's priority."
 	      (> (count-lines (point-min) (point)) 0))
 	  (let ((item (todos-item-string))
 		(marked (todos-marked-item-p)))
-	    ;; In Todos Top Priorities mode, an item's priority can be changed
+	    ;; In Top Priorities buffer, an item's priority can be changed
 	    ;; wrt items in another category, but not wrt items in the same
 	    ;; category.
 	    (when (eq major-mode 'todos-filter-items-mode)

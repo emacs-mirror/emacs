@@ -1,5 +1,21 @@
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Further comment revision and code
+	rearrangement.
+	(todos-item-end): Revert last change.
+	(todos-key-bindings, todos-menu, todos-archive-mode-map)
+	(todos-filter-items-mode-map): Use renamed commands.
+	(todos-hide-show-date-time): Rename from
+	todos-toggle-display-date-time.
+	(todos-mark-unmark-item): Rename from todos-toggle-mark-item and
+	adjust caller.
+	(todos-backward-item): Exempt special handling only from
+	todos-regexp-items-buffer instead of todos-filter-items-mode.
+	(todos-raise-item-priority): Don't allow item reprioritizing in
+	Todos filter items mode except for top priority items.
+
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Add and revise further doc strings and
 	comments.
 	(todos-filter-function, todos-custom-items)
