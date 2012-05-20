@@ -1,3 +1,8 @@
+2012-05-20  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c (_free_internal_nolock, _realloc_internal_nolock)
+	[CYGWIN]:  Cast ptr to (char *) before comparing to _heapbase.
+
 2012-05-19  Ken Brown  <kbrown@cornell.edu>
 
 	* xfns.c (x_in_use): Remove `static' qualifier.
