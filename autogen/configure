@@ -10903,7 +10903,7 @@ $as_echo "#define HAVE_XKBGETKEYBOARD 1" >>confdefs.h
   fi
 
   for ac_func in XrmSetDatabase XScreenResourceString \
-XScreenNumberOfScreen XSetWMProtocols
+XScreenNumberOfScreen
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -14312,15 +14312,15 @@ esac
 
 
 
-for ac_func in gethostname getdomainname \
+for ac_func in gethostname \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
-sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap fsync sync \
-difftime mempcpy mblen mbrlen posix_memalign \
+__fpending strsignal setitimer \
+sendto recvfrom getsockname getpeername \
+gai_strerror mkstemp getline getdelim fsync sync \
+difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 cfmakeraw cfsetspeed copysign __executable_start
 do :

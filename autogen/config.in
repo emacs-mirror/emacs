@@ -269,9 +269,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `getdelim' function. */
 #undef HAVE_GETDELIM
 
-/* Define to 1 if you have the `getdomainname' function. */
-#undef HAVE_GETDOMAINNAME
-
 /* Define to 1 if you have the `getgrent' function. */
 #undef HAVE_GETGRENT
 
@@ -310,9 +307,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `getsockname' function. */
 #undef HAVE_GETSOCKNAME
-
-/* Define to 1 if you have the `getsockopt' function. */
-#undef HAVE_GETSOCKOPT
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
@@ -540,23 +534,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <malloc/malloc.h> header file. */
 #undef HAVE_MALLOC_MALLOC_H
 
-/* Define to 1 if you have the `mblen' function. */
-#undef HAVE_MBLEN
-
-/* Define to 1 if you have the `mbrlen' function. */
-#undef HAVE_MBRLEN
-
-/* Define to 1 if you have the `mbsinit' function. */
-#undef HAVE_MBSINIT
-
 /* Define to 1 if <wchar.h> declares mbstate_t. */
 #undef HAVE_MBSTATE_T
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the `mempcpy' function. */
-#undef HAVE_MEMPCPY
 
 /* Define to 1 if you have mouse menus. (This is automatic if you use X, but
    the option to specify it remains.) It is also defined with other window
@@ -574,9 +556,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have mouse support. */
 #undef HAVE_MOUSE
-
-/* Define to 1 if you have the `mremap' function. */
-#undef HAVE_MREMAP
 
 /* Define to 1 if you have the <net/if_dl.h> header file. */
 #undef HAVE_NET_IF_DL_H
@@ -671,9 +650,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `setsid' function. */
 #undef HAVE_SETSID
-
-/* Define to 1 if you have the `setsockopt' function. */
-#undef HAVE_SETSOCKOPT
 
 /* Define to 1 if you have the `shutdown' function. */
 #undef HAVE_SHUTDOWN
@@ -854,9 +830,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `tzset' function. */
 #undef HAVE_TZSET
 
-/* Define to 1 if you have the `ualarm' function. */
-#undef HAVE_UALARM
-
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -935,9 +908,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `XScreenResourceString' function. */
 #undef HAVE_XSCREENRESOURCESTRING
-
-/* Define to 1 if you have the `XSetWMProtocols' function. */
-#undef HAVE_XSETWMPROTOCOLS
 
 /* Define if you have usable i18n support. */
 #undef HAVE_X_I18N
