@@ -285,7 +285,7 @@ mkdir ${tempdir}
 echo "Making links to top-level files"
 ln INSTALL README BUGS ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
-ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
+ln config.bat make-dist update-subdirs .dir-locals.el ${tempdir}
 ln aclocal.m4 ${tempdir}
 
 echo "Creating subdirectories"

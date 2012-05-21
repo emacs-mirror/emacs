@@ -1,3 +1,8 @@
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* vpath.sed: Remove unused file.
+	* make-dist: No more vpath.sed.
+
 2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use full name for m4/gnulib-comp.m4.  (Bug#11529)
