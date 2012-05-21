@@ -16,7 +16,7 @@ Software Foundation's online store at <http://shop.fsf.org/>.
 
 If necessary, you can read the manual without an info program:
 
-    cat info/emacs* | more "+/^File: emacs,  Node: Bugs,"
+    cat info/emacs* | more "+/^File: emacs.*,  Node: Bugs,"
 
 
 Please first check the file etc/PROBLEMS (e.g. with C-h C-p in Emacs) to
