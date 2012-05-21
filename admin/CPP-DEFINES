@@ -201,7 +201,6 @@ NO_MATHERR
 NO_TERMIO
 NSIG
 NSIG_MINIMUM
-NULL
 NULL_DEVICE
 ORDINARY_LINK
 O_APPEND
@@ -272,7 +271,6 @@ chdir
 chmod
 chown
 close
-const
 creat
 ctime
 dup

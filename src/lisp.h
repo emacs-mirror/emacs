@@ -2780,7 +2780,7 @@ extern int pos_visible_p (struct window *, EMACS_INT, int *,
 extern void syms_of_xsettings (void);
 
 /* Defined in vm-limit.c.  */
-extern void memory_warnings (POINTER_TYPE *, void (*warnfun) (const char *));
+extern void memory_warnings (void *, void (*warnfun) (const char *));
 
 /* Defined in alloc.c */
 extern void check_pure_size (void);
@@ -3597,9 +3597,9 @@ extern int initialized;
 
 extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
-extern POINTER_TYPE *xmalloc (size_t);
-extern POINTER_TYPE *xrealloc (POINTER_TYPE *, size_t);
-extern void xfree (POINTER_TYPE *);
+extern void *xmalloc (size_t);
+extern void *xrealloc (void *, size_t);
+extern void xfree (void *);
 extern void *xnmalloc (ptrdiff_t, ptrdiff_t);
 extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t);
 extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);

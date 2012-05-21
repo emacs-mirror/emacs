@@ -1355,27 +1355,6 @@ AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 #include <net/if.h>
 #endif])
 
-dnl checks for compiler characteristics
-
-dnl Testing __STDC__ to determine prototype support isn't good enough.
-dnl DEC C, for instance, doesn't define it with default options, and
-dnl is used on 64-bit systems (OSF Alphas).  Similarly for volatile
-dnl and void *.
-AC_C_PROTOTYPES
-AC_C_VOLATILE
-AC_C_CONST
-AC_CACHE_CHECK([for void * support], emacs_cv_void_star,
-  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[void * foo;]])],
-                   emacs_cv_void_star=yes, emacs_cv_void_star=no)])
-if test $emacs_cv_void_star = yes; then
-  AC_DEFINE(POINTER_TYPE, void)
-else
-  AC_DEFINE(POINTER_TYPE, char)
-fi
-AH_TEMPLATE(POINTER_TYPE,
-	    [Define as `void' if your compiler accepts `void *'; otherwise
-	     define as `char'.])dnl
-
 dnl Check for endianness.
 AC_C_BIGENDIAN
 
@@ -3662,10 +3641,6 @@ AH_BOTTOM([
 #if !defined BITS_PER_LONG_LONG && HAVE_LONG_LONG_INT
 #define BITS_PER_LONG_LONG 64
 #endif
-
-/* Define if the compiler supports function prototypes.  It may do so but
-   not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
-#undef PROTOTYPES
 
 #include <string.h>
 #include <stdlib.h>

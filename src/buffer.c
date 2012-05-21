@@ -2051,10 +2051,10 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   eassert (current_buffer->text == &current_buffer->own_text);
   eassert (other_buffer->text == &other_buffer->own_text);
 #ifdef REL_ALLOC
-  r_alloc_reset_variable ((POINTER_TYPE **) &current_buffer->own_text.beg,
-			  (POINTER_TYPE **) &other_buffer->own_text.beg);
-  r_alloc_reset_variable ((POINTER_TYPE **) &other_buffer->own_text.beg,
-			  (POINTER_TYPE **) &current_buffer->own_text.beg);
+  r_alloc_reset_variable ((void **) &current_buffer->own_text.beg,
+			  (void **) &other_buffer->own_text.beg);
+  r_alloc_reset_variable ((void **) &other_buffer->own_text.beg,
+			  (void **) &current_buffer->own_text.beg);
 #endif /* REL_ALLOC */
 
   swapfield (pt, EMACS_INT);
@@ -4383,7 +4383,7 @@ struct mmap_region
   /* Pointer to the location holding the address of the memory
      allocated with the mmap'd block.  The variable actually points
      after this structure.  */
-  POINTER_TYPE **var;
+  void **var;
 
   /* Next and previous in list of all mmap'd regions.  */
   struct mmap_region *next, *prev;
@@ -4430,7 +4430,7 @@ static int mmap_initialized_p;
    to the start of the user-visible part of the region.  */
 
 #define MMAP_USER_AREA(P) \
-     ((POINTER_TYPE *) ((char *) (P) + MMAP_REGION_STRUCT_SIZE))
+     ((void *) ((char *) (P) + MMAP_REGION_STRUCT_SIZE))
 
 #define MEM_ALIGN	sizeof (double)
 
@@ -4479,7 +4479,7 @@ mmap_init (void)
    is at END - 1.  */
 
 static struct mmap_region *
-mmap_find (POINTER_TYPE *start, POINTER_TYPE *end)
+mmap_find (void *start, void *end)
 {
   struct mmap_region *r;
   char *s = (char *) start, *e = (char *) end;
@@ -4517,7 +4517,7 @@ mmap_free_1 (struct mmap_region *r)
   else
     mmap_regions = r->next;
 
-  if (munmap ((POINTER_TYPE *) r, r->nbytes_mapped) == -1)
+  if (munmap (r, r->nbytes_mapped) == -1)
     {
       fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
       return 0;
@@ -4559,13 +4559,13 @@ mmap_enlarge (struct mmap_region *r, int npages)
 	 I'm not sure this is worth doing, let's see.  */
       if (!MMAP_ALLOCATED_P (region_end, region_end + nbytes))
 	{
-	  POINTER_TYPE *p;
+	  void *p;
 
 	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
 		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, mmap_fd, 0);
 	  if (p == MAP_FAILED)
 	    ; /* fprintf (stderr, "mmap: %s\n", emacs_strerror (errno)); */
-	  else if (p != (POINTER_TYPE *) region_end)
+	  else if (p != region_end)
 	    {
 	      /* Kernels are free to choose a different address.  In
 		 that case, unmap what we've mapped above; we have
@@ -4627,8 +4627,8 @@ mmap_set_vars (int restore_p)
    If we can't allocate the necessary memory, set *VAR to null, and
    return null.  */
 
-static POINTER_TYPE *
-mmap_alloc (POINTER_TYPE **var, size_t nbytes)
+static void *
+mmap_alloc (void **var, size_t nbytes)
 {
   void *p;
   size_t map;
@@ -4669,7 +4669,7 @@ mmap_alloc (POINTER_TYPE **var, size_t nbytes)
    PTR.  Store 0 in *PTR to show there's no block allocated.  */
 
 static void
-mmap_free (POINTER_TYPE **var)
+mmap_free (void **var)
 {
   mmap_init ();
 
@@ -4686,10 +4686,10 @@ mmap_free (POINTER_TYPE **var)
    and return this value.  If more memory cannot be allocated, then
    leave *VAR unchanged, and return null.  */
 
-static POINTER_TYPE *
-mmap_realloc (POINTER_TYPE **var, size_t nbytes)
+static void *
+mmap_realloc (void **var, size_t nbytes)
 {
-  POINTER_TYPE *result;
+  void *result;
 
   mmap_init ();
 
@@ -4708,7 +4708,7 @@ mmap_realloc (POINTER_TYPE **var, size_t nbytes)
       if (room < nbytes)
 	{
 	  /* Must enlarge.  */
-	  POINTER_TYPE *old_ptr = *var;
+	  void *old_ptr = *var;
 
 	  /* Try to map additional pages at the end of the region.
 	     If that fails, allocate a new region,  copy data
@@ -4770,13 +4770,13 @@ mmap_realloc (POINTER_TYPE **var, size_t nbytes)
 static void
 alloc_buffer_text (struct buffer *b, ptrdiff_t nbytes)
 {
-  POINTER_TYPE *p;
+  void *p;
 
   BLOCK_INPUT;
 #if defined USE_MMAP_FOR_BUFFERS
-  p = mmap_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+  p = mmap_alloc ((void **) &b->text->beg, nbytes);
 #elif defined REL_ALLOC
-  p = r_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+  p = r_alloc ((void **) &b->text->beg, nbytes);
 #else
   p = xmalloc (nbytes);
 #endif
@@ -4797,14 +4797,14 @@ alloc_buffer_text (struct buffer *b, ptrdiff_t nbytes)
 void
 enlarge_buffer_text (struct buffer *b, EMACS_INT delta)
 {
-  POINTER_TYPE *p;
+  void *p;
   ptrdiff_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
 		      + delta);
   BLOCK_INPUT;
 #if defined USE_MMAP_FOR_BUFFERS
-  p = mmap_realloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+  p = mmap_realloc ((void **) &b->text->beg, nbytes);
 #elif defined REL_ALLOC
-  p = r_re_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+  p = r_re_alloc ((void **) &b->text->beg, nbytes);
 #else
   p = xrealloc (b->text->beg, nbytes);
 #endif
@@ -4828,9 +4828,9 @@ free_buffer_text (struct buffer *b)
   BLOCK_INPUT;
 
 #if defined USE_MMAP_FOR_BUFFERS
-  mmap_free ((POINTER_TYPE **) &b->text->beg);
+  mmap_free ((void **) &b->text->beg);
 #elif defined REL_ALLOC
-  r_alloc_free ((POINTER_TYPE **) &b->text->beg);
+  r_alloc_free ((void **) &b->text->beg);
 #else
   xfree (b->text->beg);
 #endif

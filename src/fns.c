@@ -42,10 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* HAVE_MENUS */
 
-#ifndef NULL
-#define NULL ((POINTER_TYPE *)0)
-#endif
-
 Lisp_Object Qstring_lessp;
 static Lisp_Object Qprovide, Qrequire;
 static Lisp_Object Qyes_or_no_p_history;

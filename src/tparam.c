@@ -22,10 +22,6 @@ Boston, MA 02110-1301, USA.  */
 #include <setjmp.h>
 #include "lisp.h"		/* for xmalloc */
 #include "tparam.h"
-
-#ifndef NULL
-#define NULL (char *) 0
-#endif
 
 /* Assuming STRING is the value of a termcap string entry
    containing `%' constructs to expand parameters,

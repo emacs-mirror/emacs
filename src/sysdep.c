@@ -52,9 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define read sys_read
 #define write sys_write
 #include <windows.h>
-#ifndef NULL
-#define NULL 0
-#endif
 #endif /* not WINDOWSNT */
 
 #include <sys/types.h>

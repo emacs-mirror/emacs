@@ -23,10 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "window.h"
 
-#ifndef NULL
-#define NULL (void *)0
-#endif
-
 /* Test for membership, allowing for t (actually any non-cons) to mean the
    universal set.  */
 

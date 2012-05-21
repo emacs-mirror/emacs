@@ -1,9 +1,8 @@
-2012-05-21  Glenn Morris  <rgm@gnu.org>
-
-	* configure.in (LEIM_INSTALLDIR):
-	Rename to leimdir, treat like lispdir.
-
 2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later.
+	* configure.in (AC_C_PROTOTYPES, AC_C_VOLATILE, AC_C_CONST)
+	(POINTER_TYPE, PROTOTYPES): Remove.
 
 	Make merging from gnulib a script, not a makefile action.
 	Putting it in a makefile has some problems with reflection, as
@@ -12,6 +11,11 @@
 	* Makefile.in (gnulib_srcdir, $(gnulib_srcdir), DOS_gnulib_comp.m4)
 	(GNULIB_MODULES, GNULIB_TOOL_FLAGS, sync-from-gnulib):
 	Remove, moving the actions to the script admin/merge-gnulib.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LEIM_INSTALLDIR):
+	Rename to leimdir, treat like lispdir.
 
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 

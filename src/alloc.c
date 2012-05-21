@@ -66,7 +66,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #ifndef HAVE_UNISTD_H
-extern POINTER_TYPE *sbrk ();
+extern void *sbrk ();
 #endif
 
 #include <fcntl.h>
@@ -306,7 +306,7 @@ enum mem_type
   MEM_TYPE_VECTORLIKE
 };
 
-static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
+static void *lisp_malloc (size_t, enum mem_type);
 
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
@@ -388,7 +388,7 @@ static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
 static struct Lisp_Vector *allocate_vectorlike (EMACS_INT);
-static void lisp_free (POINTER_TYPE *);
+static void lisp_free (void *);
 static void mark_stack (void);
 static int live_vector_p (struct mem_node *, void *);
 static int live_buffer_p (struct mem_node *, void *);
@@ -435,15 +435,15 @@ static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 static int staticidx = 0;
 
-static POINTER_TYPE *pure_alloc (size_t, int);
+static void *pure_alloc (size_t, int);
 
 
 /* Value is SZ rounded up to the next multiple of ALIGNMENT.
    ALIGNMENT must be a power of 2.  */
 
 #define ALIGN(ptr, ALIGNMENT) \
-  ((POINTER_TYPE *) ((((uintptr_t) (ptr)) + (ALIGNMENT) - 1) \
-		     & ~((ALIGNMENT) - 1)))
+  ((void *) (((uintptr_t) (ptr) + (ALIGNMENT) - 1) \
+	     & ~ ((ALIGNMENT) - 1)))
 
 
 
@@ -604,7 +604,7 @@ static ptrdiff_t check_depth;
 
 /* Like malloc, but wraps allocated block with header and trailer.  */
 
-static POINTER_TYPE *
+static void *
 overrun_check_malloc (size_t size)
 {
   register unsigned char *val;
@@ -622,15 +622,15 @@ overrun_check_malloc (size_t size)
 	      XMALLOC_OVERRUN_CHECK_SIZE);
     }
   --check_depth;
-  return (POINTER_TYPE *)val;
+  return val;
 }
 
 
 /* Like realloc, but checks old block for overrun, and wraps new block
    with header and trailer.  */
 
-static POINTER_TYPE *
-overrun_check_realloc (POINTER_TYPE *block, size_t size)
+static void *
+overrun_check_realloc (void *block, size_t size)
 {
   register unsigned char *val = (unsigned char *) block;
   int overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_OVERHEAD : 0;
@@ -652,7 +652,7 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
       memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE);
     }
 
-  val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + overhead);
+  val = realloc (val, size + overhead);
 
   if (val && check_depth == 1)
     {
@@ -663,13 +663,13 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
 	      XMALLOC_OVERRUN_CHECK_SIZE);
     }
   --check_depth;
-  return (POINTER_TYPE *)val;
+  return val;
 }
 
 /* Like free, but checks block for overrun.  */
 
 static void
-overrun_check_free (POINTER_TYPE *block)
+overrun_check_free (void *block)
 {
   unsigned char *val = (unsigned char *) block;
 
@@ -718,13 +718,13 @@ overrun_check_free (POINTER_TYPE *block)
 
 /* Like malloc but check for no memory and block interrupt input..  */
 
-POINTER_TYPE *
+void *
 xmalloc (size_t size)
 {
-  register POINTER_TYPE *val;
+  void *val;
 
   MALLOC_BLOCK_INPUT;
-  val = (POINTER_TYPE *) malloc (size);
+  val = malloc (size);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val && size)
@@ -735,18 +735,18 @@ xmalloc (size_t size)
 
 /* Like realloc but check for no memory and block interrupt input..  */
 
-POINTER_TYPE *
-xrealloc (POINTER_TYPE *block, size_t size)
+void *
+xrealloc (void *block, size_t size)
 {
-  register POINTER_TYPE *val;
+  void *val;
 
   MALLOC_BLOCK_INPUT;
   /* We must call malloc explicitly when BLOCK is 0, since some
      reallocs don't do this.  */
   if (! block)
-    val = (POINTER_TYPE *) malloc (size);
+    val = malloc (size);
   else
-    val = (POINTER_TYPE *) realloc (block, size);
+    val = realloc (block, size);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val && size)
@@ -758,7 +758,7 @@ xrealloc (POINTER_TYPE *block, size_t size)
 /* Like free but block interrupt input.  */
 
 void
-xfree (POINTER_TYPE *block)
+xfree (void *block)
 {
   if (!block)
     return;
@@ -893,7 +893,7 @@ safe_alloca_unwind (Lisp_Object arg)
 static void *lisp_malloc_loser;
 #endif
 
-static POINTER_TYPE *
+static void *
 lisp_malloc (size_t nbytes, enum mem_type type)
 {
   register void *val;
@@ -938,7 +938,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
    call to lisp_malloc.  */
 
 static void
-lisp_free (POINTER_TYPE *block)
+lisp_free (void *block)
 {
   MALLOC_BLOCK_INPUT;
   free (block);
@@ -1034,7 +1034,7 @@ static struct ablock *free_ablock;
 /* Allocate an aligned block of nbytes.
    Alignment is on a multiple of BLOCK_ALIGN and `nbytes' has to be
    smaller or equal to BLOCK_BYTES.  */
-static POINTER_TYPE *
+static void *
 lisp_align_malloc (size_t nbytes, enum mem_type type)
 {
   void *base, *val;
@@ -1141,7 +1141,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 }
 
 static void
-lisp_align_free (POINTER_TYPE *block)
+lisp_align_free (void *block)
 {
   struct ablock *ablock = block;
   struct ablocks *abase = ABLOCK_ABASE (ablock);
@@ -4722,10 +4722,10 @@ valid_lisp_object_p (Lisp_Object obj)
    pointer to it.  TYPE is the Lisp type for which the memory is
    allocated.  TYPE < 0 means it's not used for a Lisp object.  */
 
-static POINTER_TYPE *
+static void *
 pure_alloc (size_t size, int type)
 {
-  POINTER_TYPE *result;
+  void *result;
 #ifdef USE_LSB_TAG
   size_t alignment = (1 << GCTYPEBITS);
 #else

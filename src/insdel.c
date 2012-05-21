@@ -31,10 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "region-cache.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
-
 static void insert_from_string_1 (Lisp_Object string,
 				  EMACS_INT pos, EMACS_INT pos_byte,
 				  EMACS_INT nchars, EMACS_INT nbytes,

@@ -434,17 +434,7 @@ init_syntax_once (void)
 
 #endif /* not emacs */
 
-/* We remove any previous definition of `SIGN_EXTEND_CHAR',
-   since ours (we hope) works properly with all combinations of
-   machines, compilers, `char' and `unsigned char' argument types.
-   (Per Bothner suggested the basic approach.)  */
-#undef SIGN_EXTEND_CHAR
-#if __STDC__
-# define SIGN_EXTEND_CHAR(c) ((signed char) (c))
-#else  /* not __STDC__ */
-/* As in Harbison and Steele.  */
-# define SIGN_EXTEND_CHAR(c) ((((unsigned char) (c)) ^ 128) - 128)
-#endif
+#define SIGN_EXTEND_CHAR(c) ((signed char) (c))
 
 /* Should we use malloc or alloca?  If REGEX_MALLOC is not defined, we
    use `alloca' instead of `malloc'.  This is because using malloc in
@@ -553,12 +543,12 @@ typedef char boolean;
 #define false 0
 #define true 1
 
-static regoff_t re_match_2_internal _RE_ARGS ((struct re_pattern_buffer *bufp,
-					       re_char *string1, size_t size1,
-					       re_char *string2, size_t size2,
-					       ssize_t pos,
-					       struct re_registers *regs,
-					       ssize_t stop));
+static regoff_t re_match_2_internal (struct re_pattern_buffer *bufp,
+				     re_char *string1, size_t size1,
+				     re_char *string2, size_t size2,
+				     ssize_t pos,
+				     struct re_registers *regs,
+				     ssize_t stop);
 
 /* These are the command codes that appear in compiled regular
    expressions.  Some opcodes are followed by argument bytes.  A
@@ -735,11 +725,8 @@ typedef enum
   } while (0)
 
 #ifdef DEBUG
-static void extract_number _RE_ARGS ((int *dest, re_char *source));
 static void
-extract_number (dest, source)
-    int *dest;
-    re_char *source;
+extract_number (int *dest, re_char *source)
 {
   int temp = SIGN_EXTEND_CHAR (*(source + 1));
   *dest = *source & 0377;
@@ -763,12 +750,8 @@ extract_number (dest, source)
   } while (0)
 
 #ifdef DEBUG
-static void extract_number_and_incr _RE_ARGS ((int *destination,
-					       re_char **source));
 static void
-extract_number_and_incr (destination, source)
-    int *destination;
-    re_char **source;
+extract_number_and_incr (int *destination, re_char **source)
 {
   extract_number (destination, *source);
   *source += 2;
@@ -1672,25 +1655,22 @@ do {									\
 
 /* Subroutine declarations and macros for regex_compile.  */
 
-static reg_errcode_t regex_compile _RE_ARGS ((re_char *pattern, size_t size,
-					      reg_syntax_t syntax,
-					      struct re_pattern_buffer *bufp));
-static void store_op1 _RE_ARGS ((re_opcode_t op, unsigned char *loc, int arg));
-static void store_op2 _RE_ARGS ((re_opcode_t op, unsigned char *loc,
-				 int arg1, int arg2));
-static void insert_op1 _RE_ARGS ((re_opcode_t op, unsigned char *loc,
-				  int arg, unsigned char *end));
-static void insert_op2 _RE_ARGS ((re_opcode_t op, unsigned char *loc,
-				  int arg1, int arg2, unsigned char *end));
-static boolean at_begline_loc_p _RE_ARGS ((re_char *pattern,
-					   re_char *p,
-					   reg_syntax_t syntax));
-static boolean at_endline_loc_p _RE_ARGS ((re_char *p,
-					   re_char *pend,
-					   reg_syntax_t syntax));
-static re_char *skip_one_char _RE_ARGS ((re_char *p));
-static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
-				    char *fastmap, const int multibyte));
+static reg_errcode_t regex_compile (re_char *pattern, size_t size,
+				    reg_syntax_t syntax,
+				    struct re_pattern_buffer *bufp);
+static void store_op1 (re_opcode_t op, unsigned char *loc, int arg);
+static void store_op2 (re_opcode_t op, unsigned char *loc, int arg1, int arg2);
+static void insert_op1 (re_opcode_t op, unsigned char *loc,
+			int arg, unsigned char *end);
+static void insert_op2 (re_opcode_t op, unsigned char *loc,
+			int arg1, int arg2, unsigned char *end);
+static boolean at_begline_loc_p (re_char *pattern, re_char *p,
+				 reg_syntax_t syntax);
+static boolean at_endline_loc_p (re_char *p, re_char *pend,
+				 reg_syntax_t syntax);
+static re_char *skip_one_char (re_char *p);
+static int analyse_first (re_char *p, re_char *pend,
+			  char *fastmap, const int multibyte);
 
 /* Fetch the next character in the uncompiled pattern, with no
    translation.  */
@@ -2442,9 +2422,8 @@ regex_grow_registers (int num_regs)
 
 #endif /* not MATCH_MAY_ALLOCATE */
 
-static boolean group_in_compile_stack _RE_ARGS ((compile_stack_type
-						 compile_stack,
-						 regnum_t regnum));
+static boolean group_in_compile_stack (compile_stack_type compile_stack,
+				       regnum_t regnum);
 
 /* `regex_compile' compiles PATTERN (of length SIZE) according to SYNTAX.
    Returns one of error codes defined in `regex.h', or zero for success.
@@ -4554,10 +4533,10 @@ WEAK_ALIAS (__re_search_2, re_search_2)
 
 /* Declarations and macros for re_match_2.  */
 
-static int bcmp_translate _RE_ARGS ((re_char *s1, re_char *s2,
-                                     register ssize_t len,
-                                     RE_TRANSLATE_TYPE translate,
-                                     const int multibyte));
+static int bcmp_translate (re_char *s1, re_char *s2,
+			   register ssize_t len,
+			   RE_TRANSLATE_TYPE translate,
+			   const int multibyte);
 
 /* This converts PTR, a pointer into one of the search strings `string1'
    and `string2' into an offset from the beginning of that string.  */

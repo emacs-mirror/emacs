@@ -1,3 +1,18 @@
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later.
+	* alloc.c, buffer.c, lisp.h: Replace POINTER_TYPE with void.
+	* alloc.c (overrun_check_malloc, overrun_check_realloc, xmalloc)
+	(xrealloc):
+	* buffer.c (mmap_free_1, mmap_enlarge): Omit needless casts.
+	* editfns.c, fns.c, gmalloc.c, insdel.c, sysdep.c, termcap.c (NULL):
+	* textprop.c, tparam.c (NULL): Remove.
+	* ralloc.c, vm-limit.c (POINTER): Assume void * works.
+	* regex.c (SIGN_EXTEND_CHAR): Assume signed char works.
+	* regex.h (_RE_ARGS): Remove.  All uses rewritten to use prototypes.
+	* unexelf.c (ElfBitsW): Assume c89 preprocessor or better.
+	* xterm.c (input_signal_count): Assume volatile works.
+
 2012-05-21  Ken Brown  <kbrown@cornell.edu>
 
 	* xgselect.c (xg_select): Fix first argument in call to 'select'

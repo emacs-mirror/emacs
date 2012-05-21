@@ -59,10 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "blockinput.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
-
 #ifndef USER_FULL_NAME
 #define USER_FULL_NAME pw->pw_gecos
 #endif

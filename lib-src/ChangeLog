@@ -1,3 +1,9 @@
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later.
+	* etags.c (static, const): Remove macros.
+	(PTR): Remove; all uses replaced with void *.  Omit needless casts.
+
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (insrcdir, $(DESTDIR)${archlibdir}):

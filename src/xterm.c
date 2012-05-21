@@ -256,11 +256,7 @@ static Time last_user_time;
 /* Incremented by XTread_socket whenever it really tries to read
    events.  */
 
-#ifdef __STDC__
 static int volatile input_signal_count;
-#else
-static int input_signal_count;
-#endif
 
 /* Used locally within XTread_socket.  */
 

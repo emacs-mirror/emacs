@@ -1,5 +1,8 @@
 2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Assume C89 or later.
+	* CPP-DEFINES: Remove NULL, const.
+
 	Make merging from gnulib a script, not a makefile action.
 	* merge-gnulib: New script, with actions moved here from
 	../Makefile.in.
