@@ -33,7 +33,7 @@ static GPollFD *gfds;
 static ptrdiff_t gfds_size;
 
 int
-xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
+xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	   EMACS_TIME *timeout)
 {
   SELECT_TYPE all_rfds, all_wfds;
@@ -41,11 +41,11 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   GMainContext *context;
   int have_wfds = wfds != NULL;
-  int n_gfds = 0, our_tmo = 0, retval = 0, our_fds = 0;
-  int i, nfds, fds_lim, tmo_in_millisec;
+  int n_gfds = 0, our_tmo = 0, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
+  int i, nfds, tmo_in_millisec;
 
   if (!x_in_use)
-    return select (max_fds, rfds, wfds, efds, timeout);
+    return select (fds_lim, rfds, wfds, efds, timeout);
 
   if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));
   else FD_ZERO (&all_rfds);

@@ -1,3 +1,8 @@
+2012-05-21  Ken Brown  <kbrown@cornell.edu>
+
+	* xgselect.c (xg_select): Fix first argument in call to 'select'
+	(bug#11508).
+
 2012-05-20  Ken Brown  <kbrown@cornell.edu>
 
 	* gmalloc.c (_free_internal_nolock, _realloc_internal_nolock)
