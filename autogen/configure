@@ -1099,6 +1099,7 @@ etcdir
 x_default_search_path
 lisppath
 locallisppath
+leimdir
 lispdir
 srcdir
 canonical
@@ -1164,7 +1165,6 @@ LIB_STANDARD
 NS_OBJC_OBJ
 NS_OBJ
 ns_self_contained
-LEIM_INSTALLDIR
 INSTALL_ARCH_INDEP_EXTRA
 TEMACS_LDFLAGS2
 LD_SWITCH_X_SITE_RPATH
@@ -3731,6 +3731,7 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 lispdir='${datadir}/emacs/${version}/lisp'
+leimdir='${datadir}/emacs/${version}/leim'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${lispdir}:${datadir}/emacs/${version}/leim'
@@ -10109,7 +10110,6 @@ fi
 
 
 INSTALL_ARCH_INDEP_EXTRA=install-etc
-LEIM_INSTALLDIR="\${install_prefix}/leim"
 ns_self_contained=no
 ns_frag=/dev/null
 NS_OBJ=
@@ -10133,7 +10133,7 @@ if test "${HAVE_NS}" = yes; then
                infodir="\${ns_appresdir}/info"
      mandir="\${ns_appresdir}/man"
      lispdir="\${ns_appresdir}/lisp"
-     LEIM_INSTALLDIR="\${ns_appresdir}/leim"
+     leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
   ns_frag=$srcdir/src/ns.mk
@@ -10142,7 +10142,6 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
-
 
 
 
@@ -15972,6 +15971,7 @@ version=$PACKAGE_VERSION
 
 
 ## Unused?
+
 
 
 
