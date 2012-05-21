@@ -1,3 +1,8 @@
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LEIM_INSTALLDIR):
+	Rename to leimdir, treat like lispdir.
+
 2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make merging from gnulib a script, not a makefile action.

@@ -1,5 +1,9 @@
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install_prefix): Remove.
+	(LEIM_INSTALLDIR): Rename to leimdir.
+	(install): Update for this change.
+
 	* Makefile.in (leim-list.el, install): Scrap superfluous subshells.
 
 2012-05-12  Glenn Morris  <rgm@gnu.org>
