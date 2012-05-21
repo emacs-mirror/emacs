@@ -523,7 +523,7 @@ install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	-rm -f $(DESTDIR)${leimdir}/leim-list.el
 	${INSTALL_DATA} leim/leim-list.el $(DESTDIR)${leimdir}/leim-list.el
 	-rm -f $(DESTDIR)${lispdir}/subdirs.el
-	umask 022; $(srcdir)/update-subdirs $(DESTDIR)${lispdir}
+	umask 022; $(srcdir)/build-aux/update-subdirs $(DESTDIR)${lispdir}
 	subdir=$(DESTDIR)${datadir}/emacs/${version}/site-lisp ; \
 	  ${write_subdir}
 	subdir=$(DESTDIR)${datadir}/emacs/site-lisp ; \

@@ -1,3 +1,8 @@
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (update-subdirs-SH):
+	* Makefile.in (update-subdirs): Update for moved update-subdirs.
+
 2012-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hi-lock.el (hi-lock-face-defaults): Move obsolete before definition.

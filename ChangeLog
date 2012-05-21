@@ -1,5 +1,8 @@
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* update-subdirs: Move to build-aux/.
+	* make-dist, Makefile.in (install-arch-indep): Update for this change.
+
 	* Makefile.in (leimdir): New, set by configure.
 	(COPYDIR, COPYDESTS): Add leim directories.
 	(install-leim): Remove.
