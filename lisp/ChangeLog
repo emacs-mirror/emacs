@@ -1,5 +1,7 @@
 2012-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* hi-lock.el (hi-lock-face-defaults): Move obsolete before definition.
+
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Simplify Maven regexp, and make sure the file can't start with a space
 	(bug#11517).
@@ -18,10 +20,11 @@
 
 	* calc/calc.el (calc-ensure-consistent-units): New variable.
 
-	* calc/calc-units.el (math-consistent-units-p, math-check-unit-consistency):
-	New functions.
-	(calc-quick-units, calc-convert-units): Use `math-check-unit-consistency' when
-	`calc-ensure-consistent-units' is non-nil.
+	* calc/calc-units.el (math-consistent-units-p)
+	(math-check-unit-consistency): New functions.
+	(calc-quick-units, calc-convert-units):
+	Use `math-check-unit-consistency' when `calc-ensure-consistent-units'
+	is non-nil.
 	(calc-extract-units): Fix typo.
 
 2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
