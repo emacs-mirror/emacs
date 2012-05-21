@@ -323,11 +323,7 @@ static void *test(void *arg, size_t s)
     for(i = 0; i < exactRootsCOUNT; ++i)
         exactRoots[i] = objNULL;
     for(i = 0; i < ambigRootsCOUNT; ++i)
-/* @@@@ Temporary fix W3I6MV */
-#pragma warning( push )
-#pragma warning( disable : 4306 )
-    ambigRoots[i] = (mps_addr_t)rnd();
-#pragma warning( pop )
+    ambigRoots[i] = rnd_addr();
 
     die(mps_root_create_table_masked(&exactRoot, arena,
                                      MPS_RANK_EXACT, (mps_rm_t)0,
