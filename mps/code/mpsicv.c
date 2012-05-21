@@ -427,11 +427,7 @@ static void *test(void *arg, size_t s)
     exactRoots[j] = objNULL;
   }
   for(j = 0; j < ambigRootsCOUNT; ++j) {
-/* @@@@ Temporary fix W3I6MV */
-#pragma warning( push )
-#pragma warning( disable : 4306 )
-    ambigRoots[j] = (mps_addr_t)rnd();
-#pragma warning( pop )
+    ambigRoots[j] = rnd_addr();
   }
 
 /* @@@@ Temporary fix W3I6MV ull */
