@@ -529,7 +529,7 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 	  [ -d $${dir} ] || exit 1 ; \
 	  dest=$$1 ; shift ; \
 	  [ -d $${dest} ] && \
-	    [ `(cd $${dest} && /bin/pwd)` = `(cd $${dir} && /bin/pwd)` ] && \
+	    [ `cd $${dest} && /bin/pwd` = `cd $${dir} && /bin/pwd` ] && \
 	    continue ; \
 	  rm -rf $${dest} ; \
 	  umask 022; ${MKDIR_P} $${dest} ; \
@@ -578,7 +578,7 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 install-doc: install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} $(DESTDIR)${docdir} ; \
-	if [ `(cd ./etc; /bin/pwd)` != `(cd $(DESTDIR)${docdir}; /bin/pwd)` ]; \
+	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${docdir}; /bin/pwd` ]; \
 	then \
 	   fullversion=`./src/emacs --version | sed -n '1 s/GNU Emacs *//p'`; \
 	   if [ -f "./etc/DOC-$${fullversion}" ]; \
@@ -597,7 +597,7 @@ install-info: info
 	umask 022; ${MKDIR_P} $(DESTDIR)${infodir}
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
-	[ `(cd ${srcdir}/info && /bin/pwd)` = `(cd $(DESTDIR)${infodir} && /bin/pwd)` ] || \
+	[ `cd ${srcdir}/info && /bin/pwd` = `cd $(DESTDIR)${infodir} && /bin/pwd` ] || \
 	  (cd $(DESTDIR)${infodir};  \
 	   [ -f dir ] || \
 	     (cd $${thisdir}; \
@@ -670,8 +670,8 @@ uninstall:
 	-unset CDPATH; \
 	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
 	  if [ -d $${dir} ]; then			\
-	    case `(cd $${dir} ; /bin/pwd)` in		\
-	      `(cd ${srcdir} ; /bin/pwd)`* ) ;;		\
+	    case `cd $${dir} ; /bin/pwd` in		\
+	      `cd ${srcdir} ; /bin/pwd`* ) ;;		\
 	      * ) rm -rf $${dir} ;;			\
 	    esac ;					\
 	    case $${dir} in				\

@@ -1,3 +1,8 @@
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep, install-doc, install-info)
+	(uninstall): Scrap superfluous subshells.
+
 2012-05-19  Ulrich Mueller  <ulm@gentoo.org>
 
 	* Makefile.in (install-etc): Respect DESTDIR.  (Bug#11518)

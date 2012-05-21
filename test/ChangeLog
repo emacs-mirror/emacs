@@ -1,3 +1,7 @@
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Scrap superfluous subshell.
+
 2012-05-15  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* automated/url-util-tests.el: New file to test

@@ -190,7 +190,7 @@ $(EXE_FILES): ../lib/libgnu.a
 ## These targets copy the scripts into the build directory so that
 ## they can be run from there in an uninstalled Emacs.
 ## Nothing to do if pwd = srcdir.
-insrcdir=[ "`/bin/pwd`" = "`(cd $(srcdir) && /bin/pwd)`" ]
+insrcdir=[ "`/bin/pwd`" = "`cd $(srcdir) && /bin/pwd`" ]
 
 stamp-rcs2log: $(srcdir)/rcs2log
 	$(insrcdir) || cp -p $(srcdir)/rcs2log rcs2log
@@ -237,7 +237,7 @@ $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
 	umask 022; ${MKDIR_P} $(DESTDIR)${archlibdir}
-	if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
+	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
 	  done ; \
@@ -249,8 +249,8 @@ $(DESTDIR)${archlibdir}: all
 	  chown ${gameuser} $(DESTDIR)${gamedir}; \
 	  chmod u=rwx,g=rwx,o=rx $(DESTDIR)${gamedir}; \
 	fi
-	if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` \
-             != `(cd ${srcdir} && /bin/pwd)` ]; then \
+	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` \
+             != `cd ${srcdir} && /bin/pwd` ]; then \
 	  for file in ${SCRIPTS}; do \
 	    $(INSTALL_SCRIPT) ${srcdir}/$$file $(DESTDIR)${archlibdir}/$$file; \
 	  done ; \
