@@ -1,5 +1,14 @@
 2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use full name for m4/gnulib-comp.m4.  (Bug#11529)
+	Previously the file was named m4/gl-comp.m4 due to DOS 8+3 restrictions,
+	even though the file's name in gnulib is m4/gnulib-comp.m4.
+	This had a problem when merging from gnulib, as the code temporarily
+	renamed it to the full name, causing problems when interrupted.
+	Now the file has its full name, with the idea that we will find
+	a solution for MS-DOS that does not affect the rest of Emacs.
+	* m4/gnulib-comp.m4: Rename from m4/gl-comp.m4.
+
 	Assume C89 or later.
 	* configure.in (AC_C_PROTOTYPES, AC_C_VOLATILE, AC_C_CONST)
 	(POINTER_TYPE, PROTOTYPES): Remove.

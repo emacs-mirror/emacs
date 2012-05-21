@@ -79,10 +79,8 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
   exit 1
 }
 
-cp -- "$src"m4/gl-comp.m4 "$src"m4/gnulib-comp.m4 &&
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS $GNULIB_MODULES &&
 rm -- "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 &&
-mv -- "$src"m4/gnulib-comp.m4 "$src"m4/gl-comp.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&
 autoreconf -i -I m4 -- ${src:+"$src"}
