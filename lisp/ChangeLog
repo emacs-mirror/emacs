@@ -1,3 +1,9 @@
+2012-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Simplify Maven regexp, and make sure the file can't start with a space
+	(bug#11517).
+
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs):

@@ -209,7 +209,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     ;; due to matching filenames via \\(.*?\\).  This might be faster.
     (maven
      ;; Maven is a popular free software build tool for Java.
-     "\\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\] " 1 2 3)
+     "\\([^ \n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\] " 1 2 3)
 
     (jikes-line
      "^ *\\([0-9]+\\)\\.[ \t]+.*\n +\\(<-*>\n\\*\\*\\* \\(?:Error\\|Warnin\\(g\\)\\)\\)"
