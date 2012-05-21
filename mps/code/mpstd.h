@@ -440,6 +440,19 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
+/* @@@@ Determine symbols for XCI6LL */
+#elif defined(CONFIG_PF_XCI6LL)
+#define MPS_PF_XCI6LL
+#define MPS_PF_STRING   "xci6ll"
+#define MPS_OS_XC
+#define MPS_ARCH_I6
+#define MPS_BUILD_LL
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
+
 #else
 #error "Unable to detect target platform"
 #endif
