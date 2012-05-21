@@ -1,5 +1,10 @@
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (leimdir): New, set by configure.
+	(COPYDIR, COPYDESTS): Add leim directories.
+	(install-leim): Remove.
+	(install-arch-indep): Handle leim installation directly.
+
 	* vpath.sed: Remove unused file.
 	* make-dist: No more vpath.sed.
 

@@ -1,5 +1,9 @@
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install): Remove, let top-level do it.
+	(version, prefix, datarootdir, datadir, ns_appresdir, leimdir):
+	(MKDIR_P, GZIP_PROG): Remove, no longer used.
+
 	* Makefile.in (install_prefix): Remove.
 	(LEIM_INSTALLDIR): Rename to leimdir.
 	(install): Update for this change.

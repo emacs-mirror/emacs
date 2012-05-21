@@ -181,11 +181,12 @@ iconsrcdir=$(srcdir)/etc/images/icons
 # These variables hold the values Emacs will actually use.  They are
 # based on the values of the standard Make variables above.
 
-# Where to install the lisp files distributed with
+# Where to install the lisp, leim files distributed with
 # Emacs.  This includes the Emacs version, so that the
 # lisp files for different versions of Emacs will install
 # themselves in separate directories.
 lispdir=@lispdir@
+leimdir=@leimdir@
 
 # Directories Emacs should search for lisp files specific
 # to this site (i.e. customizations), before consulting
@@ -267,12 +268,11 @@ SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
-# leim's makefile also knows how to install it, so we don't do that here.
-# When installing the info files, we need to do special things to
-# avoid nuking an existing dir file, so we don't do that here;
-# instead, we have written out explicit code in the `install' targets.
-COPYDIR = ${srcdir}/etc ${srcdir}/lisp
-COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir}
+# Directories that cannot simply be copied, eg info,
+# are treated separately.
+# quail appears twice because in out-of-tree builds, it exists twice.
+COPYDIR = ${srcdir}/etc ${srcdir}/lisp ${srcdir}/leim/ja-dic ${srcdir}/leim/quail leim/quail
+COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}/ja-dic $(DESTDIR)${leimdir}/quail $(DESTDIR)${leimdir}/quail 
 
 all: ${SUBDIR}
 
@@ -482,7 +482,7 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## work correctly, and therefore no idea when tar can be replaced.
 ## See also these comments from 2004 about cp -r working fine:
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
-install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
+install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
 	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
 	-set ${COPYDESTS} ; \
@@ -494,8 +494,13 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 	  [ -d $${dest} ] && \
 	    [ `cd $${dest} && /bin/pwd` = `cd $${dir} && /bin/pwd` ] && \
 	    continue ; \
-	  rm -rf $${dest} ; \
-	  umask 022; ${MKDIR_P} $${dest} ; \
+	  if [ "$${dir}" = "leim/quail" ]; then \
+	    [ `cd $${dir} && /bin/pwd` = `cd ${srcdir}/leim/quail && /bin/pwd` ] && \
+	      continue ; \
+	  else \
+	    rm -rf $${dest} ; \
+	    umask 022; ${MKDIR_P} $${dest} ; \
+	  fi ; \
 	  echo "Copying $${dir} to $${dest}..." ; \
 	  (cd $${dir}; tar -chf - . ) \
 	    | (cd $${dest}; umask 022; \
@@ -515,6 +520,8 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 	  done ; \
 	  find $${dest} -exec chown $${installuser} {} ';' ;\
 	done
+	-rm -f $(DESTDIR)${leimdir}/leim-list.el
+	${INSTALL_DATA} leim/leim-list.el $(DESTDIR)${leimdir}/leim-list.el
 	-rm -f $(DESTDIR)${lispdir}/subdirs.el
 	umask 022; $(srcdir)/update-subdirs $(DESTDIR)${lispdir}
 	subdir=$(DESTDIR)${datadir}/emacs/${version}/site-lisp ; \
@@ -524,9 +531,13 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 	[ -z "${GZIP_PROG}" ] || \
 	  ( echo "Compressing *.el ..." ; \
 	    unset CDPATH; \
-	    cd $(DESTDIR)${lispdir}; \
-	    for f in `find . -name "*.elc" -print`; do \
-	      ${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	    thisdir=`/bin/pwd`; \
+	    for dir in $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}; do \
+	      cd $${thisdir} ; \
+	      cd $${dir} || exit 1 ; \
+	      for f in `find . -name "*.elc" -print`; do \
+	        ${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	      done ; \
 	    done )
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 
@@ -609,13 +620,6 @@ install-etc:
 	    || exit 1; \
 	  done ; \
 	done
-
-### Install LEIM files.  Although they are machine-independent, we
-### have separate target here instead of including it in
-### `install-arch-indep'.  People who extracted LEIM files after they
-### installed Emacs itself can install only LEIM files by this target.
-install-leim: leim/Makefile
-	cd leim && $(MAKE) $(MFLAGS) install
 
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:
