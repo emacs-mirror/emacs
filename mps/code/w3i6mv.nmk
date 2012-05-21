@@ -14,6 +14,7 @@ DONGLELIB = $(RAINBOWPATH)\spromeps.lib
 # which causes the linker step to fail when building the DLL, mpsdy.dll.
 PFMDEFS = /DCONFIG_PF_STRING="w3i6mv" /DCONFIG_PF_W3I6MV \
       /DWIN32 /D_WINDOWS /Gs /I$(RAINBOWPATH)
+MASM = ml64
 
 MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
@@ -21,7 +22,7 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <traceanc> <prmcan> <protw3> \
       <shield> <vmw3> \
-      <than> <ssan> <mpsi> <mpsiw3> <ld> <span> \
+      <than> <ssw3i6> <mpsi> <mpsiw3> <ld> <span> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
       <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version>
 SW  = <ring> <mpm> <bt> <protocol> <boot> \
