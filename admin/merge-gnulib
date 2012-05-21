@@ -1,0 +1,88 @@
+#! /bin/sh
+# Merge gnulib sources into Emacs sources.
+# Typical usage:
+#
+#	admin/merge-gnulib
+
+# Copyright 2012 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+# written by Paul Eggert
+
+GNULIB_URL=git://git.savannah.gnu.org/gnulib.git
+
+GNULIB_MODULES='
+  alloca-opt
+  careadlinkat crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
+  dtoastr dup2
+  filemode getloadavg getopt-gnu ignore-value intprops lstat
+  manywarnings mktime pthread_sigmask readlink
+  socklen stdarg stdio strftime strtoimax strtoumax symlink sys_stat
+  warnings
+'
+
+GNULIB_TOOL_FLAGS='
+  --avoid=msvc-inval --avoid=msvc-nothrow
+  --avoid=raise --avoid=threadlib
+  --conditional-dependencies --import --no-changelog --no-vc-files
+  --makefile-name=gnulib.mk
+'
+
+# The source directory, with a trailing '/'.
+# If empty, the source directory is the working directory.
+src=$2
+case $src in
+  */ | '') ;;
+  *) src=$src/ ;;
+esac
+
+# Gnulib's source directory.
+gnulib_srcdir=${1-$src../gnulib}
+
+case $gnulib_srcdir in
+  -*) src=- ;;
+esac
+case $src in
+  -*)
+    echo >&2 "$0: usage: $0 [GNULIB_SRCDIR [SRCDIR]]
+
+    SRCDIR is the Emacs source directory (default: working directory).
+    GNULIB_SRCDIR is the Gnulib source directory (default: SRCDIR/../gnulib)."
+    exit 1 ;;
+esac
+
+test -x "$src"autogen.sh || {
+  echo >&2 "$0: '${src:-.}' is not an Emacs source directory."
+  exit 1
+}
+
+test -d "$gnulib_srcdir" ||
+git clone -- "$GNULIB_URL" "$gnulib_srcdir" ||
+exit
+
+test -x "$gnulib_srcdir"/gnulib-tool || {
+  echo >&2 "$0: '$gnulib_srcdir' is not a Gnulib source directory."
+  exit 1
+}
+
+cp -- "$src"m4/gl-comp.m4 "$src"m4/gnulib-comp.m4 &&
+"$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS $GNULIB_MODULES &&
+rm -- "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 &&
+mv -- "$src"m4/gnulib-comp.m4 "$src"m4/gl-comp.m4 &&
+cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
+cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&
+autoreconf -i -I m4 -- ${src:+"$src"}

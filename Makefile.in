@@ -309,43 +309,6 @@ src:	lib-src FRC
 # and `leim'.
 lisp leim: src
 
-# Maintainers can put a copy of gnulib into $(gnulib_srcdir).
-gnulib_srcdir = ../gnulib
-$(gnulib_srcdir):
-	git clone git://git.savannah.gnu.org/gnulib.git $@
-
-# A shorter name that satisfies MS-DOS 8+3 constraints.
-DOS_gnulib_comp.m4 = gl-comp.m4
-
-# Update modules from gnulib, for maintainers, who should have it in
-# $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
-# as per $(gnulib_srcdir)/DEPENDENCIES.
-GNULIB_MODULES = \
-  alloca-opt \
-  careadlinkat crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512 dtoastr \
-  dup2 \
-  filemode getloadavg getopt-gnu ignore-value intprops lstat \
-  manywarnings mktime pthread_sigmask readlink \
-  socklen stdarg stdio strftime strtoimax strtoumax symlink sys_stat \
-  warnings
-GNULIB_TOOL_FLAGS = \
- --avoid=msvc-inval --avoid=msvc-nothrow \
- --avoid=raise --avoid=threadlib \
- --conditional-dependencies --import --no-changelog --no-vc-files \
- --makefile-name=gnulib.mk
-sync-from-gnulib: $(gnulib_srcdir)
-	-cd $(srcdir)/m4 && cp $(DOS_gnulib_comp.m4) gnulib-comp.m4
-	cd $(srcdir) && \
-	  $(gnulib_srcdir)/gnulib-tool $(GNULIB_TOOL_FLAGS) $(GNULIB_MODULES)
-	cd $(srcdir)/m4 && rm gnulib-cache.m4 warn-on-use.m4
-	cd $(srcdir)/m4 && mv gnulib-comp.m4 $(DOS_gnulib_comp.m4)
-	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
-	cp \
-	  $(gnulib_srcdir)/build-aux/move-if-change \
-	  $(srcdir)/build-aux
-	cd $(srcdir) && autoreconf -i -I m4
-.PHONY: sync-from-gnulib
-
 # These targets should be "${SUBDIR} without `src'".
 lib lib-src lisp leim: Makefile FRC
 	cd $@ && $(MAKE) all $(MFLAGS)                         \

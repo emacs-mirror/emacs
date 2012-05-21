@@ -1,3 +1,13 @@
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make merging from gnulib a script, not a makefile action.
+	Putting it in a makefile has some problems with reflection, as
+	merging from gnulib updates 'configure', which can update the makefile.
+	Putting it in a standalone script breaks this loop.
+	* Makefile.in (gnulib_srcdir, $(gnulib_srcdir), DOS_gnulib_comp.m4)
+	(GNULIB_MODULES, GNULIB_TOOL_FLAGS, sync-from-gnulib):
+	Remove, moving the actions to the script admin/merge-gnulib.
+
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep, install-doc, install-info)
