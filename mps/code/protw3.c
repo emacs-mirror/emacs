@@ -32,7 +32,6 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   DWORD newProtect;
   DWORD oldProtect;
 
-  AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base != 0);
 
