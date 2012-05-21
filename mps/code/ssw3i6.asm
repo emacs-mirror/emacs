@@ -1,7 +1,7 @@
 ; @@@@ FIXME: W3I6MV add copyright and license
 ; $Id$
 
-text SEGMENT
+.CODE
 EXTERN TraceScanArea : PROC
 
 StackScan PROC FRAME
@@ -49,5 +49,4 @@ StackScan PROC FRAME
 
 StackScan ENDP
 
-text ENDS
 END
