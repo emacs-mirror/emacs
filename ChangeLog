@@ -1,3 +1,8 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ACLOCAL_INPUTS): Fix up gnulib-comp.m4 name.  (Bug#11529)
+	Without this further fix, aclocal was being invoked unnecessarily.
+
 2012-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (blessmail, install-arch-dep, uninstall):
