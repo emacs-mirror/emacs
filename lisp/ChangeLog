@@ -1,3 +1,9 @@
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (info-emacs-bug): New command.
+	* menu-bar.el (menu-bar-help-menu): Add "How to Report a Bug" to Help.
+	* mail/emacsbug.el (report-emacs-bug): Replace with info-emacs-bug.
+
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (update-subdirs-SH):

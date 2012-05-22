@@ -316,7 +316,7 @@ usually do not have translators for other languages.\n\n")))
     (fill-region (line-beginning-position 0) (point))
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
-    (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
+    (define-key (current-local-map) "\C-c\C-i" 'info-emacs-bug)
     (if can-insert-mail
 	(define-key (current-local-map) "\C-cm"
 	  'report-emacs-bug-insert-to-mailer))
@@ -353,10 +353,7 @@ usually do not have translators for other languages.\n\n")))
           (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
-(defun report-emacs-bug-info ()
-  "Go to the Info node on reporting Emacs bugs."
-  (interactive)
-  (info "(emacs)Bugs"))
+(define-obsolete-function-alias 'report-emacs-bug-info 'info-emacs-bug "24.2")
 
 ;; It's the default mail mode, so it seems OK to use its features.
 (autoload 'message-bogus-recipient-p "message")
