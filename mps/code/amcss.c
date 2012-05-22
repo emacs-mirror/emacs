@@ -221,7 +221,7 @@ static void *test(void *arg, size_t s)
       printf("%lu objects (mps_collections says: %lu)\n", objs, c);
 
       /* test mps_arena_has_addr */
-      {
+      if (sizeof(mps_addr_t) == 4) { /* @@@@ W3I6MV This test is bogus for 64-bit address space. */
         size_t hitRatio;
         int hitsWanted = 4;  /* aim for 4 hits (on average) */
         /* [Note: The for-loop condition used to be "i < 4 * hitRatio",
