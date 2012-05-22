@@ -340,7 +340,7 @@ src: Makefile FRC
 	  VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src FRC
-	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \
+	cd lib-src && $(MAKE) maybe-blessmail $(MFLAGS) \
 	  MAKE='${MAKE}' archlibdir='$(archlibdir)'
 
 # We used to have one rule per */Makefile.in, but that leads to race
@@ -417,11 +417,11 @@ write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 ### Lisp files and DOC file to work properly.
 install-arch-dep: install-arch-indep install-doc
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
-	(cd lib-src; \
+	cd lib-src && \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
-	    INSTALL_STRIP=${INSTALL_STRIP})
+	    INSTALL_STRIP=${INSTALL_STRIP}
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
 	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) ; \
@@ -630,10 +630,10 @@ install-strip:
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall:
-	(cd lib-src; 					\
+	cd lib-src && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
-	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir})
+	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
 	-unset CDPATH; \
 	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
 	  if [ -d $${dir} ]; then			\
