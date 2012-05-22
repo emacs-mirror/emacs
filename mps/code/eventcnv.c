@@ -247,7 +247,7 @@ static void printAddr(EventProc proc, Addr addr)
     }
   } else
     printf(style != 'C' ?
-           " %0"PRIwLONGEST PRIXLONGEST :
+           " %0"PRIwWORD PRIXLONGEST :
            " %"PRIuLONGEST,
            (ulongest_t)addr);
 }

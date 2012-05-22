@@ -95,7 +95,7 @@ static size_t eventType2Index(EventType type)
   for(i = 0; i < eventTypeCount; ++i)
     if (eventTypes[i].type == type)
       return i;
-  error("Unknown event type %0"PRIwLONGEST PRIXLONGEST, (ulongest_t)type);
+  error("Unknown event type %0"PRIwWORD PRIXLONGEST, (ulongest_t)type);
   return 0;
 }
 
@@ -110,7 +110,7 @@ static size_t eventCode2Index(EventCode code, Bool errorp)
     if (eventTypes[i].code == code)
       return i;
   if (errorp)
-    error("Unknown event code %0"PRIwLONGEST PRIXLONGEST, (ulongest_t)code);
+    error("Unknown event code %0"PRIwWORD PRIXLONGEST, (ulongest_t)code);
   return 0;
 }
 
