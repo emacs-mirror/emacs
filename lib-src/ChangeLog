@@ -1,3 +1,7 @@
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Remove unneeded chmods.
+
 2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C89 or later.
