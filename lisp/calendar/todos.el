@@ -2243,7 +2243,6 @@ which is the value of the user option
     ("PF"	     . todos-print-to-file)
     ("v"	     . todos-hide-show-done-items)
     ("V"	     . todos-show-done-only)
-    ("Av"	     . todos-view-archived-items)
     ("As"	     . todos-show-archive)
     ("Ac"	     . todos-choose-archive)
     ("Y"	     . todos-diary-items)
@@ -2290,7 +2289,7 @@ which is the value of the user option
     ;; (""	     . todos-edit-category-diary-inclusion)
     ("eyn"	     . todos-edit-item-diary-nonmarking)
     ;;(""	     . todos-edit-category-diary-nonmarking)
-    ("ec"	     . todos-comment-done-item) ;FIXME: or just "c"?
+    ("ec"	     . todos-done-item-add-or-edit-comment) ;FIXME: or just "c"?
     ("i"	     . ,todos-insertion-map)
     ("k"	     . todos-delete-item)
     ("m"	     . todos-move-item)
@@ -2349,7 +2348,6 @@ which is the value of the user option
      ["View Top Priority Items" todos-top-priorities t]
      ["View Multifile Top Priority Items" todos-top-priorities-multifile t]
      "---"
-     ["View Archive" todos-view-archive t]
      ["Print Category"     todos-print t])
     ("Editing"
      ["Insert New Item"      todos-insert-item t]
@@ -2731,55 +2729,6 @@ are shown in `todos-archived-only' face."
   (setq todos-show-done-only (not todos-show-done-only))
   (todos-category-select))
 
-;; (defun todos-view-archived-items ()
-;;   "Display the archived items of the current category.
-;; The buffer showing these items is in Todos Archive mode."
-;;   (interactive)
-;;   (let ((cat (todos-current-category)))
-;;     (if (zerop (todos-get-count 'archived cat))
-;; 	(message "There are no archived items from this category.")
-;;       (let* ((tfile-base (file-name-sans-extension todos-current-todos-file))
-;; 	     (afile (concat tfile-base ".toda")))
-;; 	(set-window-buffer (selected-window) (set-buffer
-;; 					      (find-file-noselect afile)))
-;; 	(todos-category-number cat)
-;; 	(todos-jump-to-category cat)))))
-
-;; (defun todos-show-archive (&optional ask)
-;;   "Visit the archive of the current Todos category, if it exists.
-;; If the category has no archived items, prompt to visit the
-;; archive anyway.  If there is no archive for this file or with
-;; non-nil argument ASK, prompt to visit another archive.
-
-;; With non-nil argument ASK prompt to choose an archive to visit;
-;; see `todos-choose-archive'.  The buffer showing the archive is in
-;; Todos Archive mode.  The first visit in a session displays the
-;; first category in the archive, subsequent visits return to the
-;; last category displayed."		;FIXME
-;;   (interactive)
-;;   (let* ((cat (todos-current-category))
-;; 	 (count (todos-get-count 'archived cat))
-;; 	 (tfile-base (file-name-sans-extension todos-current-todos-file))
-;; 	 (afile (if ask
-;; 		    (todos-read-file-name "Choose a Todos archive: " t t)
-;; 		  (concat tfile-base ".toda")))
-;; 	 (answer t))
-;;     (when (not (file-exists-p afile))
-;;       (if (y-or-n-p "This file has no archive; visit another archive? ")
-;; 	  (setq afile (todos-read-file-name "Choose a Todos archive: " t t))
-;; 	(setq answer nil)))
-;;     (when answer
-;;       (if (zerop count)
-;; 	  (when (y-or-n-p (concat "This category has no archived items; "
-;; 				  "visit archive anyway? "))
-;; 	    (set-window-buffer (selected-window)
-;; 			       (set-buffer (find-file-noselect afile)))
-;; 	    (todos-category-select))
-;; 	(set-window-buffer (selected-window)
-;; 			   (set-buffer (find-file-noselect afile)))
-;; 	(todos-category-number cat)
-;; 	(todos-jump-to-category cat)))))
-
 (defun todos-show-archive (&optional ask)
   "Visit the archive of the current Todos category, if it exists.
 If the category has no archived items, prompt to visit the
@@ -2796,28 +2745,26 @@ last category displayed."		;FIXME
 	 (count (todos-get-count 'archived cat))
 	 (archive (concat (file-name-sans-extension todos-current-todos-file)
 			  ".toda"))
-	 (answer 'this-archive))
-    (when (or ask
-	      (and (not (file-exists-p archive))
-		   (y-or-n-p (concat "This file has no archive; "
-				     "visit another archive? "))))
-		   (setq archive (todos-read-file-name
-				  "Choose a Todos archive: " t t))
-		   'other-archive))
-    (when (and (eq answer 'this-archive)
-	       (zerop count))
-      (setq answer (if (y-or-n-p
-			(concat "This category has no archived items;"
-				" visit archive anyway? "))
-		       'other-cat
-		     'same-cat)))
-    (when answer
+	 place)
+    (setq place (cond (ask 'other-archive)
+		      ((file-exists-p archive) 'this-archive)
+		      (t (when (y-or-n-p (concat "This file has no archive; "
+						 "visit another archive? "))
+			   'other-archive))))
+    (when (eq place 'other-archive)
+      (setq archive (todos-read-file-name "Choose a Todos archive: " t t)))
+    (when (and (eq place 'this-archive) (zerop count))
+      (setq place (when (y-or-n-p
+			  (concat "This category has no archived items;"
+				  " visit archive anyway? "))
+		     'other-cat)))
+    (when place
       (set-window-buffer (selected-window)
 			 (set-buffer (find-file-noselect archive)))
-      (if (eq answer 'same-cat)
-	  (todos-category-number cat)
-	(setq todos-category-number 1))
-      (todos-category-select)))
+      (if (member place '(other-archive other-cat))
+	  (setq todos-category-number 1)
+	(todos-category-number cat))
+      (todos-category-select))))
 
 (defun todos-choose-archive ()
   "Choose an archive and visit it."
@@ -4378,7 +4325,7 @@ With non-nil argument LOWER lower item's priority."
   (todos-raise-item-priority t))
 
 ;; FIXME: incorporate todos-(raise|lower)-item-priority ?
-;; FIXME: does this DTRT in todos-categories-mode?
+;; FIXME: this does not DTRT in todos-categories-mode
 (defun todos-set-item-priority (item cat &optional new)
   "Set todo ITEM's priority in category CAT, moving item as needed.
 Interactively, the item and the category are the current ones,
@@ -4590,14 +4537,25 @@ relocated to the category's (by default hidden) done section."
 	(save-excursion (todos-category-select))))))
 
 ;; FIXME: only if there's no comment, or edit an existing comment?
-(defun todos-comment-done-item ()
-  "Add a comment to this done item."
+(defun todos-done-item-add-or-edit-comment ()
+  "Add a comment to this done item or edit an existing comment."
   (interactive)
   (when (todos-done-item-p)
-    (let ((comment (read-string "Enter a comment: "))
-	  buffer-read-only)
-      (todos-item-end)
-      (insert " [" todos-comment-string ": " comment "]"))))
+    (let ((item (todos-item-string))
+	  (end (save-excursion (todos-item-end)))
+	  comment buffer-read-only)
+      (save-excursion
+	(todos-item-start)
+	(if (re-search-forward (concat " \\["
+				       (regexp-quote todos-comment-string)
+				       ": \\([^]]+\\)\\]") end t)
+	    (progn
+	      (setq comment (read-string "Edit comment: "
+					 (cons (match-string 1) 1)))
+	      (replace-match comment nil nil nil 1))
+	  (setq comment (read-string "Enter a comment: "))
+	  (todos-item-end)
+	  (insert " [" todos-comment-string ": " comment "]"))))))
 
 ;; FIXME: implement this or done item editing?
 (defun todos-uncomment-done-item ()
@@ -4722,8 +4680,7 @@ this category does not exist in the archive, it is created."
 		(todos-update-count 'done (if (or marked all) count 1))
 		(todos-update-categories-sexp)
 		;; Save to file now (using write-region in order not to visit
-		;; afile) so we can visit it later with todos-view-archived-items
-		;; or todos-show-archive.
+		;; afile) so we can visit it later with todos-show-archive.
 		(write-region nil nil afile)
 		(setq todos-current-todos-file current)))
 	    (with-current-buffer tbuf

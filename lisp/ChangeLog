@@ -1,5 +1,15 @@
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-key-bindings): Remove binding of
+	deleted command.
+	(todos-menu): Remove entry of deleted command.
+	(todos-show-archive): Fix last change.
+	(todos-done-item-add-or-edit-comment): Rename from
+	todos-comment-done-item and adjust callers; prompt to edit an
+	existing comment.
+
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: (todos-set-show-current-file): Rename from
 	todos-toggle-show-current-file and adjust callers.
 	(todos-number-priorities): Rename from todos-number-prefix and
