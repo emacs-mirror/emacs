@@ -1,3 +1,8 @@
+2012-05-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Follow-up to revno:108341.
+	(TAGS, TAGS-gmake, CONFIG_H): Remove further references to m/intel386.h.
+
 2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove src/m/*.
