@@ -1,5 +1,8 @@
 2012-05-22  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/which-func.el (which-func-ff-hook):
+	Check against user-error, not error.
+
 	* emacs-lisp/edebug.el (top): Do not load or setup up loading of
 	cl-specs.el, which no longer exists.
 
