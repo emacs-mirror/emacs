@@ -642,7 +642,7 @@
 	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 8.3.
 	(Preface): Updated support information.
-	(From Bill Wohler): Reset text to original version. As a
+	(From Bill Wohler): Reset text to original version.  As a
 	historical quote, the tense should be correct in the time that it
 	was written.
 
@@ -659,11 +659,11 @@
 
 2011-08-15  Suvayu Ali  <fatkasuvayu+linux@gmail.com>  (tiny change)
 
-	* org.texi (Images in LaTeX export): rewrite.
+	* org.texi (Images in LaTeX export): Rewrite.
 
 2011-08-15  Bastien Guerry  <bzg@gnu.org>
 
-	* org.texi (Using the mapping API): mention 'region as a possible
+	* org.texi (Using the mapping API): Mention 'region as a possible
 	scope for `org-map-entries'.
 
 2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -672,7 +672,7 @@
 
 2011-08-15  Bastien Guerry  <bzg@gnu.org>
 
-	* org.texi (Template expansion): order template sequences in the
+	* org.texi (Template expansion): Order template sequences in the
 	proper order.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
@@ -686,11 +686,11 @@
 
 2011-08-15  Achim Gratz  <stromeko@nexgo.de>
 
-	* org.texi: document that both CLOCK_INTO_DRAWER and
+	* org.texi: Document that both CLOCK_INTO_DRAWER and
 	LOG_INTO_DRAWER can be used to override the contents of variable
 	org-clock-into-drawer (or if unset, org-log-into-drawer).
 
-	* org.texi: replace @xref->@pxref.
+	* org.texi: Replace @xref->@pxref.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -714,7 +714,7 @@
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Structure of code blocks): explicitly state that the
+	* org.texi (Structure of code blocks): Explicitly state that the
 	behavior of multiple blocks of the same name is undefined
 
 2011-08-15  Christian Egli  <christian.egli@sbszh.ch>
@@ -838,7 +838,7 @@
 
 2011-08-15  Bastien Guerry  <bzg@gnu.org>
 
-	* org.texi (LaTeX and PDF export): add a note about a limitation
+	* org.texi (LaTeX and PDF export): Add a note about a limitation
 	of the LaTeX export: the org file has to be properly structured.
 
 2011-08-15  Bastien Guerry  <bzg@gnu.org>
@@ -1648,7 +1648,7 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi: multi-line header arguments :PROPERTIES: :ID:
+	* org.texi: Multi-line header arguments :PROPERTIES: :ID:
 	b77c8857-6c76-4ea9-8a61-ddc2648d96c4 :END:.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>

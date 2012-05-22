@@ -167,7 +167,7 @@
 	(Input Methods): Copyedits.  Use "^" for the postfix example,
 	because it is less confusing inside Info's `quotes'.
 
-	* custom.texi (Specifying File Variables):  Fix "unibyte" description.
+	* custom.texi (Specifying File Variables): Fix "unibyte" description.
 	Update for "Disabling Multibyte" node name change.
 	* emacs.texi: Update for "Disabling Multibyte" node name change.
 

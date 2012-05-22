@@ -58,7 +58,7 @@
 2012-05-20  Ken Brown  <kbrown@cornell.edu>
 
 	* gmalloc.c (_free_internal_nolock, _realloc_internal_nolock)
-	[CYGWIN]:  Cast ptr to (char *) before comparing to _heapbase.
+	[CYGWIN]: Cast ptr to (char *) before comparing to _heapbase.
 
 2012-05-19  Ken Brown  <kbrown@cornell.edu>
 
@@ -435,7 +435,7 @@
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Modernize and clean up gmalloc.c to assume C89 (Bug#9119).
-	* gmalloc.c: (_MALLOC_INTERNAL, _MALLOC_H, _PP, __ptr_t)
+	* gmalloc.c (_MALLOC_INTERNAL, _MALLOC_H, _PP, __ptr_t)
 	(__malloc_size_t, __malloc_ptrdiff_t):
 	Remove.  All uses removed, replaced by the definiens if needed,
 	since we can assume C89 or better now.

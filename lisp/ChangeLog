@@ -3,7 +3,7 @@
 	* progmodes/which-func.el (which-func-ff-hook):
 	Check against user-error, not error.
 
-	* emacs-lisp/edebug.el (top): Do not load or setup up loading of
+	* emacs-lisp/edebug.el (top): Do not load or set up loading of
 	cl-specs.el, which no longer exists.
 
 2012-05-22  Glenn Morris  <rgm@gnu.org>
@@ -66,7 +66,7 @@
 
 	* calc/calc-lang.el (math-C-parse-bess, math-C-parse-fma):
 	New functions.
-	(math-function-table):  Add support for more C functions.
+	(math-function-table): Add support for more C functions.
 
 2012-05-18  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
