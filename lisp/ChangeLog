@@ -1,5 +1,23 @@
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: (todos-set-show-current-file): Rename from
+	todos-toggle-show-current-file and adjust callers.
+	(todos-number-priorities): Rename from todos-number-prefix and
+	adjust users.
+	(todos-update-count): Rename from todos-set-count and adjust
+	callers.
+	(todos-hide-show-item-numbering): Rename from
+	todos-toggle-item-numbering and adjust callers.
+	(todos-hide-show-done-items): Rename from
+	todos-toggle-view-done-items and adjust callers.
+	(todos-show-done-only): Rename from todos-toggle-show-done-only.
+	(todos-view-archived-items): Comment out.
+	(todos-show-archive): Prompt to choose another archive file if
+	current Todos file lacks an archive; prompt to visit archive
+	anyway when current category has no archived items.
+
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Further comment revision and code
 	rearrangement.
 	(todos-item-end): Revert last change.
