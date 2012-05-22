@@ -20,7 +20,7 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <traceanc> <protw3> <proti3> <prmci3w3> \
       <shield> <vmw3> \
-      <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> <spi3> \
+      <thw3> <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> <spi3> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
       <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version>
 SW  = <ring> <mpm> <bt> <protocol> <boot> \
@@ -29,7 +29,7 @@ SW  = <ring> <mpm> <bt> <protocol> <boot> \
       <root> <format> <buffer> <walk> \
       <ref> <trace> <traceanc> <protsw> <prmcan> \
       <shield> <vmw3> \
-      <thw3i3> <ssan> <mpsi> <ld> \
+      <thw3> <thw3i3> <ssan> <mpsi> <ld> \
       <event> <seg> <sac> <poolmrg> <message> <mpsioan> \
       <poolams> <poolamsi> <dbgpool> <dbgpooli> \
       <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version> <poolmvff>
