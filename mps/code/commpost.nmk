@@ -306,7 +306,7 @@ $(PFM)\$(VARIETY)\mpsplcb.lib: $(PFM)\$(VARIETY)\mpslibcb.obj
 	$(ECHO) $@
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-	$(MASM) /nologo /c /coff /Fo$@ $<
+	$(MASM) /nologo /c /Fo$@ $<
 
 # Coverage files
 #{$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
