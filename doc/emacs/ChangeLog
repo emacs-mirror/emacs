@@ -1,3 +1,7 @@
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Acknowledgments): Add another contributor.
+
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MKDIR_P): New, set by configure.
