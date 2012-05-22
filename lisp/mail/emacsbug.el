@@ -339,7 +339,7 @@ usually do not have translators for other languages.\n\n")))
 		    "  Type \\[report-emacs-bug-insert-to-mailer] to copy text to your preferred mail program.\n")))
 	(terpri)
 	(princ (substitute-command-keys
-		"  Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
+		"  Type \\[info-emacs-bug] to visit in Info the Emacs Manual section
     about when and how to write a bug report, and what
     information you should include to help fix the bug.")))
       (shrink-window-if-larger-than-buffer (get-buffer-window "*Bug Help*")))
