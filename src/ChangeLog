@@ -1,3 +1,35 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	This directory predates autoconf and is no longer needed nowadays.
+	Move its few remaining bits of functionality to where they're needed.
+	* m/README, m/alpha.h, m/amdx86-64.h, m/ia64.h, m/ibmrs6000.h:
+	* m/ibms390x.h, m/intel386.h, m/m68k.h, m/macppc.h, m/sparc.h:
+	* m/template.h: Remove.
+	* Makefile.in (M_FILE): Remove.  All uses removed.
+	* alloc.c (POINTERS_MIGHT_HIDE_IN_OBJECTS):
+	* lisp.h (USE_LSB_TAG):
+	* mem-limits.h (EXCEEDS_LISP_PTR):
+	Use VAL_MAX, not VALBITS, in #if.
+	* lisp.h (EMACS_INT_MAX): New macro, useful in #if.
+	(EMACS_UINT): Define unconditionally now.
+	(BITS_PER_CHAR, BITS_PER_SHORT, BITS_PER_INT, BITS_PER_LONG)
+	(BITS_PER_EMACS_INT): New constants, replacing
+	what used to be in config.h, but not useful in #if.
+	(GCTYPEBITS, VALBITS): Define unconditionally, since m/* files don't
+	define them any more.
+	(VAL_MAX): New macro.
+	(VALMASK): Use it.
+	* puresize.h (PURESIZE_RATIO): Use EMACS_INT_MAX, not
+	BITS_PER_EMACS_INT, in #if.
+	* s/aix4-2.h (BROKEN_FIONREAD, BROKEN_SIGAIO, BROKEN_SIGPTY)
+	(BROKEN_SIGPOLL): Move here from m/ibmrs6000.h, which was removed.
+	* s/gnu-linux.h (ULIMIT_BREAK_VALUE) [__i386__]:
+	* s/ms-w32.h (DATA_START):
+	Move here from removed file m/intel386.h.
+	* s/gnu.h (NLIST_STRUCT): Remove undef; 'configure' does this.
+	* s/irix6-5.h (_LP64): Remove; lisp.h no longer needs this.
+
 2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C89 or later.

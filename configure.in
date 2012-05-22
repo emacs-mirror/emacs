@@ -375,8 +375,8 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Given the configuration name, set machfile and opsysfile to the
-#### names of the m/*.h and s/*.h files we should use.
+#### Given the configuration name, set opsysfile to the
+#### name of s/*.h file we should use.
 
 ### Canonicalize the configuration name.
 
@@ -396,13 +396,11 @@ dnl quotation begins
 
 ### If you add support for a new configuration, add code to this
 ### switch statement to recognize your configuration name and select
-### the appropriate operating system and machine description files.
+### the appropriate operating system file.
 
-### You would hope that you could choose an m/*.h file pretty much
-### based on the machine portion of the configuration name, and an s/*.h
+### You would hope that you could choose an s/*.h
 ### file based on the operating system portion.  However, it turns out
-### that each m/*.h file is pretty manufacturer-specific - for
-### example mips.h is MIPS
+### that each s/*.h file is pretty manufacturer-specific.
 ### So we basically have to have a special case for each
 ### configuration name.
 ###
@@ -412,82 +410,40 @@ dnl quotation begins
 ### prepared to handle anything reasonably.  If version numbers
 ### matter, be sure /etc/MACHINES says something about it.
 
-machine='' opsys='' unported=no
+opsys='' unported=no
 case "${canonical}" in
 
   ## GNU/Linux and similar ports
   *-*-linux* )
     opsys=gnu-linux
-    case ${canonical} in
-      alpha*)	machine=alpha ;;
-      s390x-*)	machine=ibms390x ;;
-      powerpc*)	machine=macppc ;;
-      sparc*)	machine=sparc ;;
-      ia64*)	machine=ia64 ;;
-      m68k*)	machine=m68k ;;
-      x86_64*)	machine=amdx86-64 ;;
-    esac
   ;;
 
   ## FreeBSD ports
   *-*-freebsd* )
     opsys=freebsd
-    case "${canonical}" in
-      alpha*)           machine=alpha ;;
-      amd64-*|x86_64-*) machine=amdx86-64 ;;
-      ia64-*)           machine=ia64 ;;
-      i[3456]86-*)      machine=intel386 ;;
-      powerpc-*)        machine=macppc ;;
-      sparc-*)          machine=sparc ;;
-      sparc64-*)        machine=sparc ;;
-    esac
   ;;
 
   ## FreeBSD kernel + glibc based userland
   *-*-kfreebsd*gnu* )
     opsys=gnu-kfreebsd
-    case "${canonical}" in
-      alpha*)           machine=alpha ;;
-      amd64-*|x86_64-*) machine=amdx86-64 ;;
-      ia64-*)           machine=ia64 ;;
-      i[3456]86-*)      machine=intel386 ;;
-      powerpc-*)        machine=macppc ;;
-      sparc-*)          machine=sparc ;;
-      sparc64-*)        machine=sparc ;;
-    esac
   ;;
 
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
-    case "${canonical}" in
-      alpha*)      machine=alpha ;;
-      x86_64-*)    machine=amdx86-64 ;;
-      i[3456]86-*) machine=intel386 ;;
-      m68k-*)      machine=m68k ;;
-      powerpc-*)   machine=macppc ;;
-      sparc*-)     machine=sparc ;;
-    esac
   ;;
 
   ## OpenBSD ports
   *-*-openbsd* )
     opsys=openbsd
-    case "${canonical}" in
-      alpha*)    machine=alpha ;;
-      x86_64-*)  machine=amdx86-64 ;;
-      i386-*)    machine=intel386 ;;
-      powerpc-*) machine=macppc ;;
-      sparc*)    machine=sparc ;;
-    esac
   ;;
 
   ## Apple Darwin / Mac OS X
   *-apple-darwin* )
     case "${canonical}" in
-      i[3456]86-* )  machine=intel386 ;;
-      powerpc-* )    machine=macppc ;;
-      x86_64-* )     machine=amdx86-64 ;;
+      i[3456]86-* )  ;;
+      powerpc-* )    ;;
+      x86_64-* )     ;;
       * )            unported=yes ;;
     esac
     opsys=darwin
@@ -510,16 +466,16 @@ case "${canonical}" in
 
   ## IBM machines
   rs6000-ibm-aix4.[23]* )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   powerpc-ibm-aix4.[23]*  )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   rs6000-ibm-aix[56]* )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   powerpc-ibm-aix[56]*  )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
 
   ## Silicon Graphics machines
@@ -537,9 +493,9 @@ case "${canonical}" in
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
     | x86_64-*-solaris2*    | x86_64-*-sunos5*)
     case "${canonical}" in
-      i[3456]86-*-* )     machine=intel386 ;;
-      amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
-      sparc* )		machine=sparc ;;
+      i[3456]86-*-* )   ;;
+      amd64-*-*|x86_64-*-*) ;;
+      sparc* )		;;
       * )		unported=yes ;;
     esac
     case "${canonical}" in
@@ -571,7 +527,6 @@ case "${canonical}" in
 
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
-    machine=intel386
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
       *-darwin* )               opsys=darwin ;;
@@ -610,11 +565,6 @@ if test $unported = yes; then
 Check `etc/MACHINES' for recognized configuration names.])
 fi
 
-if test -n "$machine"; then
-  machfile="m/${machine}.h"
-else
-  machfile=
-fi
 opsysfile="s/${opsys}.h"
 
 
@@ -757,19 +707,6 @@ dnl AC_PROG_MKDIR_P
 dnl if test "x$RANLIB" = x; then
 dnl   AC_PROG_RANLIB
 dnl fi
-
-## Although we're running on an amd64 kernel, we're actually compiling for
-## the x86 architecture.  The user should probably have provided an
-## explicit --build to `configure', but if everything else than the kernel
-## is running in i386 mode, we can help them out.
-if test "$machine" = "amdx86-64"; then
-  AC_CHECK_DECL([i386])
-  if test "$ac_cv_have_decl_i386" = "yes"; then
-    canonical=`echo "$canonical" | sed -e 's/^amd64/i386/' -e 's/^x86_64/i386/'`
-    machine=intel386
-    machfile="m/${machine}.h"
-  fi
-fi
 
 AC_PATH_PROG(INSTALL_INFO, install-info)
 AC_PATH_PROG(INSTALL_INFO, install-info,, /usr/sbin)
@@ -941,7 +878,8 @@ esac
 
 
 C_SWITCH_MACHINE=
-if test "$machine" = "alpha"; then
+case $canonical in
+ alpha*)
   AC_CHECK_DECL([__ELF__])
   if test "$ac_cv_have_decl___ELF__" = "yes"; then
     ## With ELF, make sure that all common symbols get allocated to in the
@@ -957,7 +895,8 @@ if test "$machine" = "alpha"; then
   else
     UNEXEC_OBJ=unexalpha.o
   fi
-fi
+  ;;
+esac
 AC_SUBST(C_SWITCH_MACHINE)
 
 AC_SUBST(UNEXEC_OBJ)
@@ -1642,7 +1581,7 @@ case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
 
-# Do the opsystem or machine files prohibit the use of the GNU malloc?
+# Does the opsystem file prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
 
@@ -3219,13 +3158,7 @@ AC_SUBST(GNUSTEP_CFLAGS)
 AC_SUBST(CFLAGS)
 ## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
-if test -n "${machfile}"; then
-  M_FILE="\$(srcdir)/${machfile}"
-else
-  M_FILE=
-fi
 S_FILE="\$(srcdir)/${opsysfile}"
-AC_SUBST(M_FILE)
 AC_SUBST(S_FILE)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
@@ -3238,10 +3171,6 @@ AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
 		   [Define to the options passed to configure.])
-if test -n "$machfile"; then
-  AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}",
-		     [Define to the used machine dependent file.])
-fi
 AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
 		   [Define to the used os dependent file.])
 
@@ -3420,8 +3349,7 @@ case "$opsys" in
    ##   #ifndef LD_SWITCH_SYSTEM
    ##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
    ## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
-   ## not using gcc, darwin system not on an alpha (ie darwin, since
-   ## darwin + alpha does not occur).
+   ## not using gcc, darwin.
    ## Because this was done in src/Makefile.in, the resulting part of
    ## LD_SWITCH_SYSTEM was not used in configure (ie, in ac_link).
    ## It therefore seems cleaner to put this in LD_SWITCH_SYSTEM_TEMACS,
@@ -3461,12 +3389,12 @@ case "$opsys" in
   ## will also work on earlier NetBSD releases.
   netbsd|openbsd) LD_FIRSTFLAG="-nostartfiles" ;;
 
-  ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
+  ## powerpc*: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
   ##   MkLinux/LinuxPPC needs this.
-  ## ibms390x only supports opsys = gnu-linux so it can be added here.
+  ## s390x-* only supports opsys = gnu-linux so it can be added here.
   gnu-*)
-    case "$machine" in
-      macppc|ibms390x) LD_FIRSTFLAG="-nostdlib" ;;
+    case "$canonical" in
+      powerpc*|s390x-*) LD_FIRSTFLAG="-nostdlib" ;;
     esac
     ;;
 esac
@@ -3478,7 +3406,7 @@ if test "x$ORDINARY_LINK" = "xyes"; then
   AC_DEFINE(ORDINARY_LINK, 1, [Define if the C compiler is the linker.])
 
 ## The system files defining neither ORDINARY_LINK nor LD_FIRSTFLAG are:
-## freebsd, gnu-* not on macppc|ibms390x.
+## freebsd, gnu-* not on powerpc*|s390x*.
 elif test "x$GCC" = "xyes" && test "x$LD_FIRSTFLAG" = "x"; then
 
   ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
@@ -3586,11 +3514,8 @@ AH_BOTTOM([
 
 #define subprocesses
 
-/* Include the os and machine dependent files.  */
+/* Include the os dependent file.  */
 #include config_opsysfile
-#ifdef config_machfile
-# include config_machfile
-#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
@@ -3612,34 +3537,6 @@ AH_BOTTOM([
 /* If make_number is a function, avoid it.  */
 #define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
 #endif
-#endif
-
-/* These default definitions are good for almost all machines.
-   Any exceptions should override them in m/MACHINE.h.
-   They must be usable in preprocessor conditionals.  */
-
-#ifndef BITS_PER_CHAR
-#define BITS_PER_CHAR 8
-#endif
-
-#ifndef BITS_PER_SHORT
-#define BITS_PER_SHORT 16
-#endif
-
-#ifndef BITS_PER_INT
-#define BITS_PER_INT 32
-#endif
-
-#ifndef BITS_PER_LONG
-#ifdef _LP64
-#define BITS_PER_LONG 64
-#else
-#define BITS_PER_LONG 32
-#endif
-#endif
-
-#if !defined BITS_PER_LONG_LONG && HAVE_LONG_LONG_INT
-#define BITS_PER_LONG_LONG 64
 #endif
 
 #include <string.h>
@@ -3709,17 +3606,12 @@ if test "${HAVE_GTK}" = "yes"; then
   USE_X_TOOLKIT=GTK
 fi
 
-and_machfile=
-if test -n "$machfile"; then
-  and_machfile=" and \`${machfile}'"
-fi
-
 echo "
 Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
-  What operating system and machine description files should Emacs use?
-        \`${opsysfile}'${and_machfile}
+  What operating system file should Emacs use?
+        \`${opsysfile}'
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}

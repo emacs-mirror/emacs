@@ -421,17 +421,6 @@ typedef unsigned short mode_t;
 #undef config_opsysfile
 #include "s/ms-w32.h"
 
-/* The configuration script defines machfile to be the name of the
-   m/MACHINE.h file that describes the machine you are using.  The file is
-   chosen based on the configuration name you give.
-
-   See the file ../etc/MACHINES for a list of machines and the
-   configuration names to use for them.
-
-   See m/template.h for documentation on writing m/MACHINE.h files.  */
-#undef config_machfile
-#include "m/intel386.h"
-
 /* Define `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
@@ -465,28 +454,6 @@ extern char *getenv ();
 
 #endif /* EMACS_CONFIG_H */
 
-/* These default definitions are good for almost all machines.
-   The exceptions override them in m/MACHINE.h.  */
-
-#ifndef BITS_PER_CHAR
-#define BITS_PER_CHAR 8
-#endif
-
-#ifndef BITS_PER_SHORT
-#define BITS_PER_SHORT 16
-#endif
-
-/* Note that lisp.h uses this in a preprocessor conditional, so it
-   would not work to use sizeof.  That being so, we do all of them
-   without sizeof, for uniformity's sake.  */
-#ifndef BITS_PER_INT
-#define BITS_PER_INT 32
-#endif
-
-#ifndef BITS_PER_LONG
-#define BITS_PER_LONG 32
-#endif
-
 #if defined (__MINGW32__) || _MSC_VER >= 1400
 
 /* Define to 1 if the system has the type `long long int'. */
@@ -505,7 +472,7 @@ extern char *getenv ();
 
 /* Use pre-C99-style 64-bit integers.  */
 # define EMACS_INT __int64
-# define BITS_PER_EMACS_INT 64
+# define EMACS_INT_MAX _I64_MAX
 # define pI "I64"
 
 # endif

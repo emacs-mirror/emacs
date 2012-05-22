@@ -1,5 +1,17 @@
 2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove src/m/*.
+	* configure.in: Remove all mention of src/m/*.
+	(machine, machfile, M_FILE, config_machfile, and_machfile): Remove.
+	All uses removed.
+	(BITS_PER_CHAR, BITS_PER_SHORT, BITS_PER_INT, BITS_PER_LONG)
+	(BITS_PER_LONG_LONG): Move to src/lisp.h.
+	* lib/makefile.w32-in: Remove dependencies on
+	$(EMACS_ROOT)/src/m/intel386.h.
+	* make-dist: Don't make links to src/m.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
 	* Makefile.in (ACLOCAL_INPUTS): Fix up gnulib-comp.m4 name.  (Bug#11529)
 	Without this further fix, aclocal was being invoked unnecessarily.
 

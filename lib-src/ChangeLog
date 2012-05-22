@@ -1,3 +1,9 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* makefile.w32-in: Remove dependencies on
+	$(EMACS_ROOT)/src/m/intel386.h.
+
 2012-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install): Remove unneeded chmods.

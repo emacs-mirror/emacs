@@ -1,3 +1,8 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* mainmake.v2 (TAGS tags): Don't look at $(CURDIR)/src/m/intel386.h.
+
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sed2v2.inp (HAVE_MBLEN): Remove.

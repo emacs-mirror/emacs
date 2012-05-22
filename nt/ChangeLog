@@ -1,3 +1,11 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* config.nt: Do not include "m/intel386.h"; file was removed.
+	(BITS_PER_CHAR, BITS_PER_SHORT, BITS_PER_INT, BITS_PER_LONG):
+	Move to src/lisp.h.
+	(EMACS_INT_MAX): New macro.
+
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* config.nt (HAVE_GETDOMAINNAME, HAVE_XSETWMPROTOCOLS)

@@ -41,25 +41,36 @@ extern void check_cons_list (void);
    Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
 /* #undef WIDE_EMACS_INT */
 
-/* These are default choices for the types to use.  */
+/* EMACS_INT - signed integer wide enough to hold an Emacs value
+   EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if
+   pI - printf length modifier for EMACS_INT
+   EMACS_UINT - unsigned variant of EMACS_INT */
 #ifndef EMACS_INT
-# if BITS_PER_LONG < BITS_PER_LONG_LONG && defined WIDE_EMACS_INT
+# if LONG_MAX < LLONG_MAX && defined WIDE_EMACS_INT
 #  define EMACS_INT long long
-#  define BITS_PER_EMACS_INT BITS_PER_LONG_LONG
+#  define EMACS_INT_MAX LLONG_MAX
 #  define pI "ll"
-# elif BITS_PER_INT < BITS_PER_LONG
+# elif INT_MAX < LONG_MAX
 #  define EMACS_INT long
-#  define BITS_PER_EMACS_INT BITS_PER_LONG
+#  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
 # else
 #  define EMACS_INT int
-#  define BITS_PER_EMACS_INT BITS_PER_INT
+#  define EMACS_INT_MAX INT_MAX
 #  define pI ""
 # endif
 #endif
-#ifndef EMACS_UINT
-# define EMACS_UINT unsigned EMACS_INT
-#endif
+#define EMACS_UINT unsigned EMACS_INT
+
+/* Number of bits in some machine integer types.  */
+enum
+  {
+    BITS_PER_CHAR      = CHAR_BIT,
+    BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
+    BITS_PER_INT       = CHAR_BIT * sizeof (int),
+    BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
+    BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
+  };
 
 /* printmax_t and uprintmax_t are types for printing large integers.
    These are the widest integers that are supported for printing.
@@ -164,13 +175,13 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
 
-#ifndef GCTYPEBITS
 #define GCTYPEBITS 3
-#endif
-
-#ifndef VALBITS
 #define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
-#endif
+
+/* The maximum value that can be stored in a EMACS_INT, assuming all
+   bits other than the type bits contribute to a nonnegative signed value.
+   This can be used in #if, e.g., '#if VAL_MAX < UINTPTR_MAX' below.  */
+#define VAL_MAX (EMACS_INT_MAX >> (GCTYPEBITS - 1))
 
 #ifndef NO_DECL_ALIGN
 # ifndef DECL_ALIGN
@@ -195,12 +206,12 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
      || defined DARWIN_OS || defined __sun)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
-/* On hosts where VALBITS is greater than the pointer width in bits,
+/* On hosts where pointers-as-ints do not exceed VAL_MAX,
    USE_LSB_TAG is:
     a. unnecessary, because the top bits of an EMACS_INT are unused, and
     b. slower, because it typically requires extra masking.
    So, define USE_LSB_TAG only on hosts where it might be useful.  */
-#  if UINTPTR_MAX >> VALBITS != 0
+#  if VAL_MAX < UINTPTR_MAX
 #   define USE_LSB_TAG
 #  endif
 # endif
@@ -479,7 +490,7 @@ enum pvec_type
 
 #else  /* not USE_LSB_TAG */
 
-#define VALMASK ((((EMACS_INT) 1) << VALBITS) - 1)
+#define VALMASK VAL_MAX
 
 /* One need to override this if there must be high bits set in data space
    (doing the result of the below & ((1 << (GCTYPE + 1)) - 1) would work

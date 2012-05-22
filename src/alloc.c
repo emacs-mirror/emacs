@@ -4297,8 +4297,8 @@ mark_maybe_pointer (void *p)
    wider than a pointer might allocate a Lisp_Object in non-adjacent halves.
    If USE_LSB_TAG, the bottom half is not a valid pointer, but it should
    suffice to widen it to to a Lisp_Object and check it that way.  */
-#if defined USE_LSB_TAG || UINTPTR_MAX >> VALBITS != 0
-# if !defined USE_LSB_TAG && UINTPTR_MAX >> VALBITS >> GCTYPEBITS != 0
+#if defined USE_LSB_TAG || VAL_MAX < UINTPTR_MAX
+# if !defined USE_LSB_TAG && VAL_MAX < UINTPTR_MAX >> GCTYPEBITS
   /* If tag bits straddle pointer-word boundaries, neither mark_maybe_pointer
      nor mark_maybe_object can follow the pointers.  This should not occur on
      any practical porting target.  */

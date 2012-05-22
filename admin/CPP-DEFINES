@@ -63,16 +63,11 @@ USER_FULL_NAME   If defined, overrides the default pw->pw_gecos for getting at t
 
 ** Replace, the definition is trivial: SWITCH_ENUM_CAST
 
-** Defines from src/m/*.h and src/s/*.h.  Some of these might not be used in the code anymore, so they can be removed.  The HAVE_* definitions are probably handled by autoconf, so it might be possible to just remove them from src/[sm]/*.h.
+** Defines from src/s/*.h.  Some of these might not be used in the code anymore, so they can be removed.  The HAVE_* definitions are probably handled by autoconf, so it might be possible to just remove them from src/s/*.h.
 
 
 AIX
 AMPERSAND_FULL_NAME
-BITS_PER_EMACS_INT
-BITS_PER_LONG
-BITS_PER_CHAR
-BITS_PER_SHORT
-BITS_PER_INT
 BROKEN_DATAGRAM_SOCKETS
 BROKEN_FIONREAD
 BROKEN_GET_CURRENT_DIR_NAME

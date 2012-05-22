@@ -1,3 +1,11 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* CPP-DEFINES: Do not mention src/m/*.h.
+	(BITS_PER_EMACS_INT, BITS_PER_LONG, BITS_PER_CHAR)
+	(BITS_PER_SHORT, BITS_PER_INT): Remove.
+	* MAINTAINERS: Remove src/m/.
+
 2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use full name for m4/gnulib-comp.m4.  (Bug#11529)

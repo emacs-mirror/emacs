@@ -354,7 +354,6 @@ SRC		= .
 $(BLD)/alloca.$(O) : \
 	$(SRC)/alloca.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(EMACS_ROOT)/src/blockinput.h
 
@@ -363,7 +362,6 @@ $(BLD)/ctags.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(SRC)/ntlib.h \
 	$(EMACS_ROOT)/lib/getopt.h
@@ -372,14 +370,12 @@ $(BLD)/ebrowse.$(O) : \
 	$(SRC)/ebrowse.c \
 	$(EMACS_ROOT)/lib/min-max.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h
 
 $(BLD)/emacsclient.$(O) : \
 	$(SRC)/emacsclient.c \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h
 
 $(BLD)/etags.$(O) : \
@@ -387,7 +383,6 @@ $(BLD)/etags.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(SRC)/ntlib.h \
 	$(EMACS_ROOT)/lib/getopt.h
@@ -395,7 +390,6 @@ $(BLD)/etags.$(O) : \
 $(BLD)/getdate.$(O) : \
 	$(SRC)/getdate.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(MSTOOLS_SYS)/types.h
 
@@ -415,7 +409,6 @@ $(BLD)/make-path.$(O) : \
 $(BLD)/movemail.$(O) : \
 	$(SRC)/movemail.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
@@ -439,7 +432,6 @@ $(BLD)/pop.$(O) : \
 $(BLD)/profile.$(O) : \
 	$(SRC)/profile.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(EMACS_ROOT)/lib-src/../src/systime.h
 
@@ -455,7 +447,6 @@ $(BLD)/test-distrib.$(O) : \
 $(BLD)/timer.$(O) : \
 	$(SRC)/timer.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h
 
 # The following dependencies are for supporting parallel builds, where

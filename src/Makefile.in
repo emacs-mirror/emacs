@@ -56,9 +56,8 @@ lwlibdir = ../lwlib
 lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
-M_FILE = @M_FILE@
 S_FILE = @S_FILE@
-config_h = config.h $(M_FILE) $(S_FILE)
+config_h = config.h $(S_FILE)
 
 bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
 
@@ -534,10 +533,10 @@ extraclean: distclean
 ctagsfiles1 = [xyzXYZ]*.[hcm]
 ctagsfiles2 = [a-wA-W]*.[hcm]
 
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
+TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags
