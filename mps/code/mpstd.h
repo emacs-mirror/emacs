@@ -440,8 +440,13 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
-/* @@@@ Determine symbols for XCI6LL */
-#elif defined(CONFIG_PF_XCI6LL)
+/* Apple clang version 3.1, clang -E -dM */
+
+#elif defined(__APPLE__) && defined(__x86_64__) && defined(__MACH__) \
+      && defined(__clang__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_XCI6LL)
+#error "specified CONFIG_PF_... inconsistent with detected xci6ll"
+#endif
 #define MPS_PF_XCI6LL
 #define MPS_PF_STRING   "xci6ll"
 #define MPS_OS_XC
