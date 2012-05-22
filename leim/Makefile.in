@@ -39,9 +39,7 @@ buildlisppath=${srcdir}/../lisp
 RUN_EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
 	${EMACS} -batch --no-site-file --no-site-lisp
 
-# Subdirectories to be made if ${srcdir} is different from the current
-# directory.
-SUBDIRS=quail
+MKDIR_P = @MKDIR_P@
 
 # Files generated from TIT dictionaries for Chinese GB character set.
 TIT_GB=\
@@ -83,11 +81,7 @@ TIT_MISC=${CHINESE_TIT} ${MISC}
 	@echo Compiling $<
 	@${RUN_EMACS} -l ${buildlisppath}/international/quail -f batch-byte-compile $<
 
-all: ${SUBDIRS} leim-list.el compile-main
-
-${SUBDIRS}:
-	mkdir $@
-	touch stamp-subdir
+all: leim-list.el compile-main
 
 TIT_SOURCES= \
 	${srcdir}/CXTERM-DIC/4Corner.tit \
@@ -107,9 +101,6 @@ TIT_SOURCES= \
 ${CHINESE_TIT}: changed.tit
 	@true
 
-## FIXME remove subdirs if possible - time-stamping.
-## Emacs should make the directory if it does not exist.
-
 ## The changed.* files act to serialize this part of the build.
 ## A single Emacs invocation creates all the CHINESE_TIT files.
 ## Otherwise in a parallel build multiple Emacs instances could
@@ -118,7 +109,8 @@ ${CHINESE_TIT}: changed.tit
 ## file.  Something like the pattern rule:
 ## quail/%.el: CXTERM-DIC/%.tit
 ## It doesn't seem possible to do this with VPATH and suffix rules.
-changed.tit: ${SUBDIRS} ${TIT_SOURCES}
+changed.tit: ${TIT_SOURCES}
+	@${MKDIR_P} quail
 	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
 	  echo "changed" > $@
@@ -134,12 +126,13 @@ MISC_SOURCES= \
 ${MISC}: changed.misc
 	@true
 
-changed.misc: ${SUBDIRS} ${MISC_SOURCES}
+changed.misc: ${MISC_SOURCES}
+	@${MKDIR_P} quail
 	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	  -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; \
 	  echo "changed" > $@
 
-leim-list.el: ${SUBDIRS} ${TIT_MISC} ${srcdir}/leim-ext.el
+leim-list.el: ${TIT_MISC} ${srcdir}/leim-ext.el
 	rm -f leim-list.el
 	if [ x`cd ${srcdir} && /bin/pwd` = x`/bin/pwd` ] ; then \
 	  ${RUN_EMACS} -l ${buildlisppath}/international/quail \
@@ -184,7 +177,7 @@ bootstrap-clean: clean
 	$(setwins); for w in $$wins; do rm -f $$w/*.elc; done
 
 distclean: clean
-	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
+	-[ `cd ${srcdir} && /bin/pwd` != `/bin/pwd` ] && rm -rf quail
 	rm -f Makefile
 
 maintainer-clean: distclean bootstrap-clean

@@ -1,3 +1,12 @@
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SUBDIRS): Remove variable and rule.
+	(MKDIR_P): Add it back.
+	(all, changed.tit, changed.misc, leim-list.el):
+	Don't depend on SUBDIRS.
+	(changed.tit, changed.misc): Ensure output directory exists.
+	(distclean): Don't use SUBDIRS.
+
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install): Remove, let top-level do it.
