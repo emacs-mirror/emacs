@@ -430,7 +430,6 @@ static void *test(void *arg, size_t s)
     ambigRoots[j] = rnd_addr();
   }
 
-/* @@@@ Temporary fix W3I6MV ull */
   die(mps_root_create_table_masked(&exactRoot, arena,
                                    MPS_RANK_EXACT, (mps_rm_t)0,
                                    &exactRoots[0], exactRootsCOUNT,
