@@ -99,7 +99,7 @@
 #include "protsgix.c"
 #include "prmcan.c"
 #include "span.c"
-#include "ssan.c"
+#include "ssixi6.c"
 
 #else
 

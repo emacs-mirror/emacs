@@ -104,6 +104,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3104AFA5156D27E7000A585A /* ssixi6.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ssixi6.c; sourceTree = "<group>"; };
 		3124CAB8156BE3EC00753214 /* awlut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awlut; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAC2156BE40100753214 /* awlut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awlut.c; sourceTree = "<group>"; };
 		3124CAC6156BE48D00753214 /* fmtdy.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmtdy.c; sourceTree = "<group>"; };
@@ -161,7 +162,6 @@
 		31EEAC4E156AB3E300714D05 /* prmcan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = prmcan.c; sourceTree = "<group>"; };
 		31EEAC4F156AB3E300714D05 /* protix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protix.c; sourceTree = "<group>"; };
 		31EEAC50156AB3E300714D05 /* protsgix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protsgix.c; sourceTree = "<group>"; };
-		31EEAC51156AB3E300714D05 /* ssan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ssan.c; sourceTree = "<group>"; };
 		31EEAC52156AB3E300714D05 /* than.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = than.c; sourceTree = "<group>"; };
 		31EEAC53156AB3E300714D05 /* vmix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vmix.c; sourceTree = "<group>"; };
 		31EEAC5B156AB41900714D05 /* poolamc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolamc.c; sourceTree = "<group>"; };
@@ -245,7 +245,7 @@
 		31A47BA7156C1E6E0039B1C2 /* I6 */ = {
 			isa = PBXGroup;
 			children = (
-				31EEAC51156AB3E300714D05 /* ssan.c */,
+				3104AFA5156D27E7000A585A /* ssixi6.c */,
 			);
 			name = I6;
 			sourceTree = "<group>";
