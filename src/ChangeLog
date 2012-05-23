@@ -1,3 +1,18 @@
+2012-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h [REL_ALLOC]: Add prototypes for external functions
+	defined on ralloc.c.
+
+	* buffer.c [REL_ALLOC]: Remove prototypes of
+	r_alloc_reset_variable, r_alloc, r_re_alloc, and r_alloc_free,
+	they are now on lisp.h.
+
+	* ralloc.c (r_alloc_inhibit_buffer_relocation): New function.
+
+	* search.c (search_buffer): Use it to inhibit relocation of buffer
+	text while re_search_2 is doing its job, because re_search_2 is
+	passed C pointers to buffer text.  (Bug#11519)
+
 2012-05-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (internal_terminal_init) <Vwindow_system_version>:

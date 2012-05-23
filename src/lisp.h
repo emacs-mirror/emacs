@@ -3565,6 +3565,15 @@ void syms_of_dbusbind (void);
 /* Defined in msdos.c, w32.c */
 extern char *emacs_root_dir (void);
 #endif /* DOS_NT */
+
+#ifdef REL_ALLOC
+/* Defined in ralloc.c */
+extern void r_alloc_reset_variable (POINTER_TYPE **, POINTER_TYPE **);
+extern POINTER_TYPE *r_alloc (POINTER_TYPE **, size_t);
+extern POINTER_TYPE *r_re_alloc (POINTER_TYPE **, size_t);
+extern void r_alloc_free (POINTER_TYPE **ptr);
+extern void r_alloc_inhibit_buffer_relocation (int);
+#endif	/* REL_ALLOC */
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
