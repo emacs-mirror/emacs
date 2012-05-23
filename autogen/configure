@@ -1086,7 +1086,6 @@ ns_appresdir
 ns_appbindir
 ns_appdir
 S_FILE
-M_FILE
 X_TOOLKIT_TYPE
 GNUSTEP_CFLAGS
 C_SWITCH_X_SITE
@@ -2381,45 +2380,6 @@ $as_echo "$ac_res" >&6; }
 
 } # ac_fn_c_check_header_compile
 
-# ac_fn_c_check_decl LINENO SYMBOL VAR
-# ------------------------------------
-# Tests whether SYMBOL is declared, setting cache variable VAR accordingly.
-ac_fn_c_check_decl ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $2 is declared" >&5
-$as_echo_n "checking whether $2 is declared... " >&6; }
-if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-#ifndef $2
-  (void) $2;
-#endif
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$3=yes"
-else
-  eval "$3=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$3
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
-
-} # ac_fn_c_check_decl
-
 # ac_fn_c_try_link LINENO
 # -----------------------
 # Try to link conftest.$ac_ext, and return whether this succeeded.
@@ -2465,6 +2425,45 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_try_link
+
+# ac_fn_c_check_decl LINENO SYMBOL VAR
+# ------------------------------------
+# Tests whether SYMBOL is declared, setting cache variable VAR accordingly.
+ac_fn_c_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $2 is declared" >&5
+$as_echo_n "checking whether $2 is declared... " >&6; }
+if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+#ifndef $2
+  (void) $2;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
+
+} # ac_fn_c_check_decl
 
 # ac_fn_c_check_header_preproc LINENO HEADER VAR
 # ----------------------------------------------
@@ -4304,8 +4303,8 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Given the configuration name, set machfile and opsysfile to the
-#### names of the m/*.h and s/*.h files we should use.
+#### Given the configuration name, set opsysfile to the
+#### name of s/*.h file we should use.
 
 ### Canonicalize the configuration name.
 
@@ -4387,13 +4386,11 @@ configuration=${host_alias-${build_alias-$host}}
 
 ### If you add support for a new configuration, add code to this
 ### switch statement to recognize your configuration name and select
-### the appropriate operating system and machine description files.
+### the appropriate operating system file.
 
-### You would hope that you could choose an m/*.h file pretty much
-### based on the machine portion of the configuration name, and an s/*.h
+### You would hope that you could choose an s/*.h
 ### file based on the operating system portion.  However, it turns out
-### that each m/*.h file is pretty manufacturer-specific - for
-### example mips.h is MIPS
+### that each s/*.h file is pretty manufacturer-specific.
 ### So we basically have to have a special case for each
 ### configuration name.
 ###
@@ -4403,82 +4400,40 @@ configuration=${host_alias-${build_alias-$host}}
 ### prepared to handle anything reasonably.  If version numbers
 ### matter, be sure /etc/MACHINES says something about it.
 
-machine='' opsys='' unported=no
+opsys='' unported=no
 case "${canonical}" in
 
   ## GNU/Linux and similar ports
   *-*-linux* )
     opsys=gnu-linux
-    case ${canonical} in
-      alpha*)	machine=alpha ;;
-      s390x-*)	machine=ibms390x ;;
-      powerpc*)	machine=macppc ;;
-      sparc*)	machine=sparc ;;
-      ia64*)	machine=ia64 ;;
-      m68k*)	machine=m68k ;;
-      x86_64*)	machine=amdx86-64 ;;
-    esac
   ;;
 
   ## FreeBSD ports
   *-*-freebsd* )
     opsys=freebsd
-    case "${canonical}" in
-      alpha*)           machine=alpha ;;
-      amd64-*|x86_64-*) machine=amdx86-64 ;;
-      ia64-*)           machine=ia64 ;;
-      i[3456]86-*)      machine=intel386 ;;
-      powerpc-*)        machine=macppc ;;
-      sparc-*)          machine=sparc ;;
-      sparc64-*)        machine=sparc ;;
-    esac
   ;;
 
   ## FreeBSD kernel + glibc based userland
   *-*-kfreebsd*gnu* )
     opsys=gnu-kfreebsd
-    case "${canonical}" in
-      alpha*)           machine=alpha ;;
-      amd64-*|x86_64-*) machine=amdx86-64 ;;
-      ia64-*)           machine=ia64 ;;
-      i[3456]86-*)      machine=intel386 ;;
-      powerpc-*)        machine=macppc ;;
-      sparc-*)          machine=sparc ;;
-      sparc64-*)        machine=sparc ;;
-    esac
   ;;
 
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
-    case "${canonical}" in
-      alpha*)      machine=alpha ;;
-      x86_64-*)    machine=amdx86-64 ;;
-      i[3456]86-*) machine=intel386 ;;
-      m68k-*)      machine=m68k ;;
-      powerpc-*)   machine=macppc ;;
-      sparc*-)     machine=sparc ;;
-    esac
   ;;
 
   ## OpenBSD ports
   *-*-openbsd* )
     opsys=openbsd
-    case "${canonical}" in
-      alpha*)    machine=alpha ;;
-      x86_64-*)  machine=amdx86-64 ;;
-      i386-*)    machine=intel386 ;;
-      powerpc-*) machine=macppc ;;
-      sparc*)    machine=sparc ;;
-    esac
   ;;
 
   ## Apple Darwin / Mac OS X
   *-apple-darwin* )
     case "${canonical}" in
-      i[3456]86-* )  machine=intel386 ;;
-      powerpc-* )    machine=macppc ;;
-      x86_64-* )     machine=amdx86-64 ;;
+      i[3456]86-* )  ;;
+      powerpc-* )    ;;
+      x86_64-* )     ;;
       * )            unported=yes ;;
     esac
     opsys=darwin
@@ -4501,16 +4456,16 @@ case "${canonical}" in
 
   ## IBM machines
   rs6000-ibm-aix4.[23]* )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   powerpc-ibm-aix4.[23]*  )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   rs6000-ibm-aix[56]* )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   powerpc-ibm-aix[56]*  )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
 
   ## Silicon Graphics machines
@@ -4528,9 +4483,9 @@ case "${canonical}" in
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
     | x86_64-*-solaris2*    | x86_64-*-sunos5*)
     case "${canonical}" in
-      i[3456]86-*-* )     machine=intel386 ;;
-      amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
-      sparc* )		machine=sparc ;;
+      i[3456]86-*-* )   ;;
+      amd64-*-*|x86_64-*-*) ;;
+      sparc* )		;;
       * )		unported=yes ;;
     esac
     case "${canonical}" in
@@ -4562,7 +4517,6 @@ case "${canonical}" in
 
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
-    machine=intel386
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
       *-darwin* )               opsys=darwin ;;
@@ -4600,11 +4554,6 @@ if test $unported = yes; then
 Check \`etc/MACHINES' for recognized configuration names." "$LINENO" 5
 fi
 
-if test -n "$machine"; then
-  machfile="m/${machine}.h"
-else
-  machfile=
-fi
 opsysfile="s/${opsys}.h"
 
 
@@ -7683,23 +7632,6 @@ fi
 
 
 
-## Although we're running on an amd64 kernel, we're actually compiling for
-## the x86 architecture.  The user should probably have provided an
-## explicit --build to `configure', but if everything else than the kernel
-## is running in i386 mode, we can help them out.
-if test "$machine" = "amdx86-64"; then
-  ac_fn_c_check_decl "$LINENO" "i386" "ac_cv_have_decl_i386" "$ac_includes_default"
-if test "x$ac_cv_have_decl_i386" = x""yes; then :
-
-fi
-
-  if test "$ac_cv_have_decl_i386" = "yes"; then
-    canonical=`echo "$canonical" | sed -e 's/^amd64/i386/' -e 's/^x86_64/i386/'`
-    machine=intel386
-    machfile="m/${machine}.h"
-  fi
-fi
-
 # Extract the first word of "install-info", so it can be a program name with args.
 set dummy install-info; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -8075,7 +8007,8 @@ esac
 
 
 C_SWITCH_MACHINE=
-if test "$machine" = "alpha"; then
+case $canonical in
+ alpha*)
   ac_fn_c_check_decl "$LINENO" "__ELF__" "ac_cv_have_decl___ELF__" "$ac_includes_default"
 if test "x$ac_cv_have_decl___ELF__" = x""yes; then :
 
@@ -8095,7 +8028,8 @@ fi
   else
     UNEXEC_OBJ=unexalpha.o
   fi
-fi
+  ;;
+esac
 
 
 
@@ -10066,7 +10000,7 @@ case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
 
-# Do the opsystem or machine files prohibit the use of the GNU malloc?
+# Does the opsystem file prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
 
@@ -15837,13 +15771,7 @@ version=$PACKAGE_VERSION
 
 ## Used in lwlib/Makefile.in.
 
-if test -n "${machfile}"; then
-  M_FILE="\$(srcdir)/${machfile}"
-else
-  M_FILE=
-fi
 S_FILE="\$(srcdir)/${opsysfile}"
-
 
 
 
@@ -15862,13 +15790,6 @@ cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIG_OPTIONS "${ac_configure_args}"
 _ACEOF
 
-if test -n "$machfile"; then
-
-cat >>confdefs.h <<_ACEOF
-#define config_machfile "${machfile}"
-_ACEOF
-
-fi
 
 cat >>confdefs.h <<_ACEOF
 #define config_opsysfile "${opsysfile}"
@@ -22368,8 +22289,7 @@ case "$opsys" in
    ##   #ifndef LD_SWITCH_SYSTEM
    ##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
    ## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
-   ## not using gcc, darwin system not on an alpha (ie darwin, since
-   ## darwin + alpha does not occur).
+   ## not using gcc, darwin.
    ## Because this was done in src/Makefile.in, the resulting part of
    ## LD_SWITCH_SYSTEM was not used in configure (ie, in ac_link).
    ## It therefore seems cleaner to put this in LD_SWITCH_SYSTEM_TEMACS,
@@ -22409,12 +22329,12 @@ case "$opsys" in
   ## will also work on earlier NetBSD releases.
   netbsd|openbsd) LD_FIRSTFLAG="-nostartfiles" ;;
 
-  ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
+  ## powerpc*: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
   ##   MkLinux/LinuxPPC needs this.
-  ## ibms390x only supports opsys = gnu-linux so it can be added here.
+  ## s390x-* only supports opsys = gnu-linux so it can be added here.
   gnu-*)
-    case "$machine" in
-      macppc|ibms390x) LD_FIRSTFLAG="-nostdlib" ;;
+    case "$canonical" in
+      powerpc*|s390x-*) LD_FIRSTFLAG="-nostdlib" ;;
     esac
     ;;
 esac
@@ -22428,7 +22348,7 @@ $as_echo "#define ORDINARY_LINK 1" >>confdefs.h
 
 
 ## The system files defining neither ORDINARY_LINK nor LD_FIRSTFLAG are:
-## freebsd, gnu-* not on macppc|ibms390x.
+## freebsd, gnu-* not on powerpc*|s390x*.
 elif test "x$GCC" = "xyes" && test "x$LD_FIRSTFLAG" = "x"; then
 
   ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
@@ -22501,17 +22421,12 @@ if test "${HAVE_GTK}" = "yes"; then
   USE_X_TOOLKIT=GTK
 fi
 
-and_machfile=
-if test -n "$machfile"; then
-  and_machfile=" and \`${machfile}'"
-fi
-
 echo "
 Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
-  What operating system and machine description files should Emacs use?
-        \`${opsysfile}'${and_machfile}
+  What operating system file should Emacs use?
+        \`${opsysfile}'
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
