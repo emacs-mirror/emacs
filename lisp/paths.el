@@ -101,16 +101,6 @@ This variable `Info-default-directory-list' is used as the default
 for initializing `Info-directory-list' when Info is started, unless
 the environment variable INFOPATH is set.")
 
-(defvar news-inews-program
-  (purecopy
-  (cond ((file-exists-p "/usr/bin/inews") "/usr/bin/inews")
-	((file-exists-p "/usr/local/inews") "/usr/local/inews")
-	((file-exists-p "/usr/local/bin/inews") "/usr/local/bin/inews")
-	((file-exists-p "/usr/contrib/lib/news/inews") "/usr/contrib/lib/news/inews")
-	((file-exists-p "/usr/lib/news/inews") "/usr/lib/news/inews")
-	(t "inews")))
-  "Program to post news.")
-
 (defcustom remote-shell-program
   (purecopy
   (cond
