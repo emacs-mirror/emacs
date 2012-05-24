@@ -1,3 +1,8 @@
+2012-05-24  Ken Brown  <kbrown@cornell.edu>
+
+	* callproc.c (Fcall_process): Restore a line that was accidentally
+	commented out in the 2011-02-13 change (bug#11547).
+
 2012-05-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.h [REL_ALLOC]: Add prototypes for external functions
