@@ -852,11 +852,6 @@ extern EMACS_INT minibuf_level;
 
 extern int update_mode_lines;
 
-/* Nonzero if BEGV - BEG or Z - ZV of current buffer has changed since
-   last redisplay that finished.  */
-
-extern int clip_changed;
-
 /* Nonzero if window sizes or contents have changed since last
    redisplay that finished */
 
