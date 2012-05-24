@@ -149,6 +149,13 @@ its character representation and its display representation.")
   :version "21.1")
 
 ;;;###autoload
+(put 'rmail-spool-directory 'standard-value
+     '((cond ((file-exists-p "/var/mail") "/var/mail/")
+	     ((file-exists-p "/var/spool/mail") "/var/spool/mail/")
+	     ((memq system-type '(hpux usg-unix-v irix)) "/usr/mail/")
+	     (t "/usr/spool/mail/"))))
+
+;;;###autoload
 (defcustom rmail-spool-directory
   (purecopy
   (cond ((file-exists-p "/var/mail")
@@ -165,6 +172,8 @@ Its name should end with a slash."
   :initialize 'custom-initialize-delay
   :type 'directory
   :group 'rmail)
+
+;;;###autoload(custom-initialize-delay 'rmail-spool-directory nil)
 
 (defcustom rmail-movemail-program nil
   "If non-nil, the file name of the `movemail' program."
