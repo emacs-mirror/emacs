@@ -118,12 +118,6 @@ the environment variable INFOPATH is set.")
 	(t "inews")))
   "Program to post news.")
 
-;; set this to your local server
-(defvar gnus-default-nntp-server (purecopy "") "\
-The name of the host running an NNTP server.
-The null string means use the local host as the server site.")
-
-
 (defcustom remote-shell-program
   (purecopy
   (cond

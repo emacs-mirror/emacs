@@ -1,5 +1,7 @@
 2012-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (gnus-default-nntp-server): Remove (gnus.el defines it).
+
 	* paths.el (rmail-file-name, rmail-spool-directory): Move from here...
 	* mail/rmail.el (rmail-file-name, rmail-spool-directory): ... to here.
 	Make the latter a defcustom, with a delayed initialization.
