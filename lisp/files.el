@@ -998,7 +998,7 @@ Tip: You can use this expansion of remote identifier components
   ;; in this day and age.  Almost everyone will use ssh, and have
   ;; whatever command they want to use in PATH.
   (purecopy
-   (let ((list '("ssh" "slogin" "rlogin" "remsh" "rcmd" "rsh")))
+   (let ((list '("ssh" "remsh" "rcmd" "rsh")))
      (while (and list
 		 (not (executable-find (car list)))
 		 (setq list (cdr list))))
