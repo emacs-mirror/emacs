@@ -1,5 +1,9 @@
 2012-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (prune-directory-list, remote-shell-program): Move to...
+	* files.el (prune-directory-list, remote-shell-program): ...here.
+	For the latter, delay initialization, prefer ssh, just search PATH.
+
 	* paths.el (term-file-prefix): Move to faces.el (the only user).
 	* faces.el (term-file-prefix): Move here, make it a defcustom.
 
