@@ -18,6 +18,7 @@
 #include "config.h"     /* this must come first: it defines target options */
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "mpslib.h"
+#include "mpstd.h"      /* for MPS_T_ULONGEST */
 
 #include <stdarg.h>
 #include <stddef.h>
