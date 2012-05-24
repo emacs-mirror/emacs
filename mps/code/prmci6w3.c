@@ -1,4 +1,4 @@
-/* prmci3w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
+/* prmci6w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -10,8 +10,6 @@
  *
  * SOURCES
  *
- * .source.i486: Intel486 Microprocessor Family Programmer's
- * Reference Manual (book.intel92).
  *
  * ASSUMPTIONS
  *
@@ -20,41 +18,49 @@
  */
 
 #include "prmcw3.h"
-#include "prmci3.h"
+#include "prmci6.h"
 #include "mpm.h"
 
-SRCID(prmci3w3, "$Id$");
+SRCID(prmci6w3, "$Id$");
 
 
-/* Prmci3AddressHoldingReg -- Return an address for a given machine register */
+/* Prmci6AddressHoldingReg -- Return an address for a given machine register */
 
-MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
+MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 {
   PCONTEXT wincont;
 
-  AVER(regnum <= 7);
+  AVER(regnum <= 16);
   AVER(regnum >= 0);
 
   wincont = context->ep->ContextRecord;
 
   switch (regnum) {
-  case 0: return (MRef)&wincont->Eax;
-  case 1: return (MRef)&wincont->Ecx;
-  case 2: return (MRef)&wincont->Edx;
-  case 3: return (MRef)&wincont->Ebx;
-  case 4: return (MRef)&wincont->Esp;
-  case 5: return (MRef)&wincont->Ebp;
-  case 6: return (MRef)&wincont->Esi;
-  case 7: return (MRef)&wincont->Edi;
+  case  0: return (MRef)&wincont->Rax;
+  case  1: return (MRef)&wincont->Rcx;
+  case  2: return (MRef)&wincont->Rdx;
+  case  3: return (MRef)&wincont->Rbx;
+  case  4: return (MRef)&wincont->Rsp;
+  case  5: return (MRef)&wincont->Rbp;
+  case  6: return (MRef)&wincont->Rsi;
+  case  7: return (MRef)&wincont->Rdi;
+  case  8: return (MRef)&wincont->R8;
+  case  9: return (MRef)&wincont->R9;
+  case 10: return (MRef)&wincont->R10;
+  case 11: return (MRef)&wincont->R11;
+  case 12: return (MRef)&wincont->R12;
+  case 13: return (MRef)&wincont->R13;
+  case 14: return (MRef)&wincont->R14;
+  case 15: return (MRef)&wincont->R15;
   }
   NOTREACHED;
   return NULL; /* suppress warning */
 }
 
 
-/* Prmci3DecodeFaultContext -- decode fault context */
+/* Prmci6DecodeFaultContext -- decode fault context */
 
-void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
+void Prmci6DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
                               MutatorFaultContext context)
 {
   LPEXCEPTION_RECORD er;
@@ -66,15 +72,15 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
   AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
 
   *faultmemReturn = (MRef)er->ExceptionInformation[1];
-  *insvecReturn = (Byte*)context->ep->ContextRecord->Eip;
+  *insvecReturn = (Byte*)context->ep->ContextRecord->Rip;
 }
 
 
-/* Prmci3StepOverIns -- skip an instruction by changing the context */
+/* Prmci6StepOverIns -- skip an instruction by changing the context */
 
-void Prmci3StepOverIns(MutatorFaultContext context, Size inslen)
+void Prmci6StepOverIns(MutatorFaultContext context, Size inslen)
 {
-  context->ep->ContextRecord->Eip += (DWORD)inslen;
+  context->ep->ContextRecord->Rip += (DWORD64)inslen;
 }
 
 
