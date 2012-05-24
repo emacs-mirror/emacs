@@ -1,5 +1,7 @@
 2012-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (news-directory, news-path): Move to gnus/nnspool.el.
+
 	* paths.el (gnus-default-nntp-server): Remove (gnus.el defines it).
 
 	* paths.el (rmail-file-name, rmail-spool-directory): Move from here...

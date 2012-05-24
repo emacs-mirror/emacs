@@ -101,13 +101,6 @@ This variable `Info-default-directory-list' is used as the default
 for initializing `Info-directory-list' when Info is started, unless
 the environment variable INFOPATH is set.")
 
-(defvar news-directory
-  (purecopy (if (file-exists-p "/usr/spool/news/")
-      "/usr/spool/news/"
-    "/var/spool/news/"))
-  "The root directory below which all news files are stored.")
-(defvaralias 'news-path 'news-directory)
-
 (defvar news-inews-program
   (purecopy
   (cond ((file-exists-p "/usr/bin/inews") "/usr/bin/inews")

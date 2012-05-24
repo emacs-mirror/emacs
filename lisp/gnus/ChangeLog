@@ -1,5 +1,8 @@
 2012-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* nnspool.el (news-directory, news-path): Move here from paths.el.
+	Don't see a need for these to be autoloaded.
+
 	* gnus.el (gnus-default-nntp-server): Make it a defcustom.
 	Merge in doc from paths.el version.  Don't see any need for this to be
 	autoloaded, or for the warning about users not setting it.
