@@ -123,27 +123,6 @@ the environment variable INFOPATH is set.")
 The name of the host running an NNTP server.
 The null string means use the local host as the server site.")
 
-(defcustom rmail-file-name (purecopy "~/RMAIL") "\
-Name of user's primary mail file."
-  :type 'string
-  :group 'rmail
-  :version "21.1")
-
-(defvar rmail-spool-directory
-  (purecopy
-  (cond ((file-exists-p "/var/mail")
-	 ;; SVR4 and recent BSD are said to use this.
-	 ;; Rather than trying to know precisely which systems use it,
-	 ;; let's assume this dir is never used for anything else.
-	 "/var/mail/")
-	;; Many GNU/Linux systems use this name.
-	((file-exists-p "/var/spool/mail")
-	 "/var/spool/mail/")
-	((memq system-type '(hpux usg-unix-v irix))
-	 "/usr/mail/")
-	(t "/usr/spool/mail/")))
-  "Name of directory used by system mailer for delivering new mail.
-Its name should end with a slash.")
 
 (defcustom remote-shell-program
   (purecopy

@@ -1,5 +1,9 @@
 2012-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (rmail-file-name, rmail-spool-directory): Move from here...
+	* mail/rmail.el (rmail-file-name, rmail-spool-directory): ... to here.
+	Make the latter a defcustom, with a delayed initialization.
+
 	* paths.el (gnus-nntp-service, gnus-local-organization): Remove.
 	These were deleted from Gnus itself late 2010.
 
