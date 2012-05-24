@@ -1,5 +1,8 @@
 2012-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (term-file-prefix): Move to faces.el (the only user).
+	* faces.el (term-file-prefix): Move here, make it a defcustom.
+
 	* paths.el (news-directory, news-path, news-inews-program):
 	Move to gnus/nnspool.el.
 

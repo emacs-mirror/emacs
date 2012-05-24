@@ -127,9 +127,4 @@ the environment variable INFOPATH is set.")
   :group 'environment
   :type 'file)
 
-(defvar term-file-prefix (purecopy "term/") "\
-If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
-You may set this variable to nil in your `.emacs' file if you do not wish
-the terminal-initialization file to be loaded.")
-
 ;;; paths.el ends here
