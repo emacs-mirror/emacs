@@ -149,16 +149,16 @@ static size_t randomSize8(int i)
 /* testInArena -- test all the pool classes in the given arena */
 
 static mps_pool_debug_option_s debugOptions =
-  { (void *)"postpost", 8, NULL, 0 };
+  { (void *)"postpostpostpost", 16, NULL, 0 };
 
-static mps_sac_classes_s classes[4] = { {8, 1, 1}, {16, 1, 2}, {136, 9, 5},
+static mps_sac_classes_s classes[4] = { {16, 1, 1}, {32, 1, 2}, {144, 9, 5},
                                         {topClassSIZE, 9, 4} };
 
 static int testInArena(mps_arena_t arena)
 {
   printf("MVFF\n\n");
   die(stress(mps_class_mvff(), classCOUNT, classes, randomSize8, arena,
-             (size_t)65536, (size_t)32, (size_t)4, TRUE, TRUE, TRUE),
+             (size_t)65536, (size_t)32, sizeof(void *), TRUE, TRUE, TRUE),
       "stress MVFF");
   printf("MV debug\n\n");
   die(stress(mps_class_mv_debug(), classCOUNT, classes, randomSize8, arena,
