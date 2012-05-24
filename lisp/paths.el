@@ -1,6 +1,6 @@
 ;;; paths.el --- define pathnames for use by various Emacs commands -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1986, 1988, 1994, 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1988, 1994, 1999-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -122,15 +122,6 @@ the environment variable INFOPATH is set.")
 (defvar gnus-default-nntp-server (purecopy "") "\
 The name of the host running an NNTP server.
 The null string means use the local host as the server site.")
-
-(defvar gnus-nntp-service (purecopy "nntp") "\
-NNTP service name, usually \"nntp\" or 119.
-Go to a local news spool if its value is nil, in which case `gnus-nntp-server'
-should be set to `(system-name)'.")
-
-(defvar gnus-local-organization nil "\
-*The name of your organization, as a string.
-The `ORGANIZATION' environment variable is used instead if defined.")
 
 (defcustom rmail-file-name (purecopy "~/RMAIL") "\
 Name of user's primary mail file."

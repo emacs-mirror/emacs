@@ -1,3 +1,8 @@
+2012-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* paths.el (gnus-nntp-service, gnus-local-organization): Remove.
+	These were deleted from Gnus itself late 2010.
+
 2012-05-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/which-func.el (which-func-ff-hook):
