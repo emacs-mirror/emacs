@@ -1,4 +1,4 @@
-/* prmci3.h: PROTECTION MUTATOR CONTEXT (Intel 386)
+/* prmci6.h: PROTECTION MUTATOR CONTEXT (x64)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -6,21 +6,21 @@
  * .readership: MPS developers.
  */
 
-#ifndef prmci3_h
-#define prmci3_h
+#ifndef prmci6_h
+#define prmci6_h
 
 
 #include "mpm.h"
 
 typedef Word *MRef;                  /* pointer to a machine word */
 
-MRef Prmci3AddressHoldingReg(MutatorFaultContext, unsigned int);
+MRef Prmci6AddressHoldingReg(MutatorFaultContext, unsigned int);
 
-void Prmci3DecodeFaultContext(MRef *, Byte **, MutatorFaultContext);
+void Prmci6DecodeFaultContext(MRef *, Byte **, MutatorFaultContext);
 
-void Prmci3StepOverIns(MutatorFaultContext, Size);
+void Prmci6StepOverIns(MutatorFaultContext, Size);
 
-#endif /* prmci3_h */
+#endif /* prmci6_h */
 
 
 /* C. COPYRIGHT AND LICENSE
