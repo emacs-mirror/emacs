@@ -549,6 +549,10 @@ since it could result in memory overflow and make Emacs crash."
 		      ;; the condition for loadup.el to preload tool-bar.el.
 		      ((string-match "tool-bar-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
+		      ((equal "vertical-centering-font-regexp"
+			      (symbol-name symbol))
+		       ;; Any function from fontset.c will do.
+		       (fboundp 'new-fontset))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
