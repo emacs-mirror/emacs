@@ -1,8 +1,6 @@
 2012-05-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
-	* process.h (struct Lisp_Process): Members tick and update_tick
-	are now of type EMACS_INT, not int.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
 	(string_bytes, check_sblock, allocate_string_data):
@@ -46,6 +44,7 @@
 	(Foverlays_at, Fnext_overlay_change, Fprevious_overlay_change):
 	Omit pointer cast, which isn't needed anyway, and doesn't work
 	after the EMACS_INT -> ptrdiff_t change.
+	(Fmove_overlay): Clip BEG and END to ptrdiff_t to avoid overflow.
 	* buffer.h: Adjust decls to match defn changes elsewhere.
 	(struct buffer_text, struct buffer):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
@@ -587,6 +586,8 @@
 	overflow checking on durations.
 	(emacs_get_tty_pgrp, Fprocess_running_child_p, process_send_signal):
 	Don't assume pid_t fits in int.
+	* process.h (struct Lisp_Process): Members tick and update_tick
+	are now of type EMACS_INT, not int.
 	* puresize.h (PURESIZE_RATIO): Shrink this to 8/6 on 32-bit hosts
 	configured --with-wide-int.
 	* scroll.c (calculate_scrolling, calculate_direct_scrolling)

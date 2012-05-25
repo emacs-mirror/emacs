@@ -3697,20 +3697,17 @@ buffer.  */)
 
   CHECK_NUMBER_COERCE_MARKER (beg);
   CHECK_NUMBER_COERCE_MARKER (end);
-
-  if (XINT (beg) > XINT (end))
-    {
-      Lisp_Object temp;
-      temp = beg; beg = end; end = temp;
-    }
-
-  Fset_marker (OVERLAY_START (overlay), beg, buffer);
-  Fset_marker (OVERLAY_END (overlay), end, buffer);
-  n_beg = marker_position (OVERLAY_START (overlay));
-  n_end = marker_position (OVERLAY_END (overlay));
+  n_beg = clip_to_bounds (PTRDIFF_MIN, XINT (beg), PTRDIFF_MAX);
+  n_end = clip_to_bounds (PTRDIFF_MIN, XINT (end), PTRDIFF_MAX);
 
   if (n_beg == n_end && ! NILP (Foverlay_get (overlay, Qevaporate)))
     return Fdelete_overlay (overlay);
+
+  if (n_beg > n_end)
+    {
+      ptrdiff_t temp;
+      temp = n_beg; n_beg = n_end; n_end = temp;
+    }
 
   specbind (Qinhibit_quit, Qt);
 
@@ -3761,8 +3758,12 @@ buffer.  */)
       eassert (XOVERLAY (overlay)->next == NULL);
     }
 
+  Fset_marker (OVERLAY_START (overlay), beg, buffer);
+  Fset_marker (OVERLAY_END   (overlay), end, buffer);
+
   /* Put the overlay on the wrong list.  */
-  if (n_end < b->overlay_center)
+  end = OVERLAY_END (overlay);
+  if (OVERLAY_POSITION (end) < b->overlay_center)
     {
       XOVERLAY (overlay)->next = b->overlays_after;
       b->overlays_after = XOVERLAY (overlay);
