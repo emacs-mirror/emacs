@@ -58,8 +58,9 @@
 ;; GUD commands must be visible in C buffers visited by GUD
 
 (defgroup gud nil
-  "Grand Unified Debugger mode for gdb and other debuggers under Emacs.
-Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python) and jdb."
+  "The \"Grand Unified Debugger\" interface.
+Supported debuggers include gdb, sdb, dbx, xdb, perldb,
+pdb (Python), and jdb."
   :group 'processes
   :group 'tools)
 

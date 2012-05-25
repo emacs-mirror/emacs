@@ -1,4 +1,4 @@
-;;; AT386.el --- terminal support package for IBM AT keyboards -*- no-byte-compile: t -*-
+;;; AT386.el --- terminal support package for IBM AT keyboards
 
 ;; Copyright (C) 1992, 2001-2012 Free Software Foundation, Inc.
 

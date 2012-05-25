@@ -1,9 +1,10 @@
-;;; assoc.el --- insert/delete functions on association lists
+;;; assoc.el --- insert/delete functions on association lists  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Keywords: extensions
+;; Obsolete-since: 24.2
 
 ;; This file is part of GNU Emacs.
 
@@ -36,7 +37,7 @@ the order of any other key-value pair.  Side effect sets alist to new
 sorted list."
   (set alist-symbol
        (sort (copy-alist (symbol-value alist-symbol))
-	     (function (lambda (a b) (equal (car a) key))))))
+             (lambda (a _b) (equal (car a) key)))))
 
 
 (defun aelement (key value)
@@ -71,8 +72,8 @@ If VALUE is not supplied, or is nil, the key-value pair will not be
 modified, but will be moved to the head of the alist.  If the key-value
 pair cannot be found in the alist, it will be inserted into the head
 of the alist (with value nil if VALUE is nil or not supplied)."
-  (lexical-let ((elem (aelement key value))
-		alist)
+  (let ((elem (aelement key value))
+        alist)
     (asort alist-symbol key)
     (setq alist (symbol-value alist-symbol))
     (cond ((null alist) (set alist-symbol elem))
@@ -86,7 +87,7 @@ of the alist (with value nil if VALUE is nil or not supplied)."
 Alist is referenced by ALIST-SYMBOL and the key-value pair to remove
 is pair matching KEY.  Returns the altered alist."
   (asort alist-symbol key)
-  (lexical-let ((alist (symbol-value alist-symbol)))
+  (let ((alist (symbol-value alist-symbol)))
     (cond ((null alist) nil)
 	  ((anot-head-p alist key) alist)
 	  (t (set alist-symbol (cdr alist))))))
@@ -101,6 +102,7 @@ returned.
 
 If no key-value pair matching KEY could be found in ALIST, or ALIST is
 nil then nil is returned.  ALIST is not altered."
+  (defvar copy)
   (let ((copy (copy-alist alist)))
     (cond ((null alist) nil)
 	  ((progn (asort 'copy key)
@@ -123,10 +125,10 @@ KEYLIST and VALUELIST should have the same number of elements, but
 this isn't enforced.  If VALUELIST is smaller than KEYLIST, remaining
 keys are associated with nil.  If VALUELIST is larger than KEYLIST,
 extra values are ignored.  Returns the created alist."
-  (lexical-let ((keycar (car keylist))
-		(keycdr (cdr keylist))
-		(valcar (car valuelist))
-		(valcdr (cdr valuelist)))
+  (let ((keycar (car keylist))
+        (keycdr (cdr keylist))
+        (valcar (car valuelist))
+        (valcdr (cdr valuelist)))
     (cond ((null keycdr)
 	   (aput alist-symbol keycar valcar))
 	  (t

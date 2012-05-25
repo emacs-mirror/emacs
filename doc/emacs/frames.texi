@@ -67,6 +67,7 @@ for doing so on MS-DOS).
 @node Mouse Commands
 @section Mouse Commands for Editing
 @cindex mouse buttons (what they do)
+@cindex mouse, selecting text using
 
 @kindex Mouse-1
 @kindex Mouse-2
@@ -106,6 +107,7 @@ setting the variable @code{x-mouse-click-focus-ignore-position} to
 selects the frame, without doing anything else; clicking again selects
 the window and sets the cursor position.
 
+@cindex mouse, dragging
 @findex mouse-set-region
   Holding down @kbd{Mouse-1} and ``dragging'' the mouse over a stretch
 of text activates the region around that text
@@ -235,8 +237,8 @@ Select the text you drag across, in the form of whole lines.
 
 @node Mouse References
 @section Following References with the Mouse
-@kindex Mouse-1 @r{(selection)}
-@kindex Mouse-2 @r{(selection)}
+@kindex Mouse-1 @r{(on buttons)}
+@kindex Mouse-2 @r{(on buttons)}
 @cindex hyperlinks
 @cindex links
 @cindex text buttons
@@ -492,13 +494,13 @@ this for future sessions, click on @samp{Save Options} in the
 @samp{Options} menu.
 
 @item
-Add a line to your init file (@pxref{Init File}), modifying the
-variable @code{default-frame-alist} to specify the @code{font}
-parameter (@pxref{Creating Frames}), like this:
+Add a line to your init file, modifying the variable
+@code{default-frame-alist} to specify the @code{font} parameter
+(@pxref{Frame Parameters}), like this:
 
-@smallexample
+@example
 (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
-@end smallexample
+@end example
 
 @cindex X defaults file
 @cindex X resources file
@@ -506,14 +508,14 @@ parameter (@pxref{Creating Frames}), like this:
 Add an @samp{emacs.font} X resource setting to your X resource file,
 like this:
 
-@smallexample
+@example
 emacs.font: DejaVu Sans Mono-12
-@end smallexample
+@end example
 
 @noindent
 You must restart X, or use the @command{xrdb} command, for the X
-resources file to take effect.  @xref{Resources}.  When specifying a
-font in your X resources file, you should not quote it.
+resources file to take effect.  @xref{Resources}.  Do not quote
+font names in X resource files.
 
 @item
 If you are running Emacs on the GNOME desktop, you can tell Emacs to
@@ -535,9 +537,9 @@ names the font that it's rendered in.
 first is to use a @dfn{Fontconfig pattern}.  Fontconfig patterns have
 the following form:
 
-@smallexample
+@example
 @var{fontname}[-@var{fontsize}][:@var{name1}=@var{values1}][:@var{name2}=@var{values2}]...
-@end smallexample
+@end example
 
 @noindent
 Within this format, any of the elements in braces may be omitted.
@@ -577,13 +579,13 @@ One of @samp{monospace}, @samp{proportional}, @samp{dual-width}, or
 @noindent
 Here are some examples of Fontconfig patterns:
 
-@smallexample
+@example
 Monospace
 Monospace-12
 Monospace-12:bold
 DejaVu Sans Mono:bold:italic
 Monospace-12:weight=bold:slant=italic
-@end smallexample
+@end example
 
 For a more detailed description of Fontconfig patterns, see the
 Fontconfig manual, which is distributed with Fontconfig and available
@@ -593,9 +595,9 @@ online at @url{http://fontconfig.org/fontconfig-user.html}.
   The second way to specify a font is to use a @dfn{GTK font pattern}.
 These have the syntax
 
-@smallexample
+@example
 @var{fontname} [@var{properties}] [@var{fontsize}]
-@end smallexample
+@end example
 
 @noindent
 where @var{fontname} is the family name, @var{properties} is a list of
@@ -619,10 +621,10 @@ omitted, a default width is used.
 @noindent
 Here are some examples of GTK font patterns:
 
-@smallexample
+@example
 Monospace 12
 Monospace Bold Italic 12
-@end smallexample
+@end example
 
 @cindex XLFD
 @cindex X Logical Font Description
@@ -631,9 +633,9 @@ Logical Font Description}).  This is the traditional method for
 specifying fonts under X.  Each XLFD consists of fourteen words or
 numbers, separated by dashes, like this:
 
-@smallexample
+@example
 -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
-@end smallexample
+@end example
 
 @noindent
 A wildcard character (@samp{*}) in an XLFD matches any sequence of
@@ -644,10 +646,10 @@ results, supply all 14 dashes and use wildcards only within a field.
 Case is insignificant in an XLFD.  The syntax for an XLFD is as
 follows:
 
-@smallexample
+@example
 -@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
 @dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{registry}-@var{encoding}
-@end smallexample
+@end example
 
 @noindent
 The entries have the following meanings:
@@ -666,8 +668,8 @@ The font slant---normally @samp{r} (roman), @samp{i} (italic),
 Some font names support other values.
 @item widthtype
 The font width---normally @samp{normal}, @samp{condensed},
-@samp{extended}, or @samp{semicondensed} (some font names support
-other values).
+@samp{semicondensed}, or @samp{extended}.  Some font names support
+other values.
 @item style
 An optional additional style name.  Usually it is empty---most XLFDs
 have two hyphens in a row at this point.
@@ -706,9 +708,9 @@ nickname''.  Certain fonts have shorter nicknames, which you can use
 instead of a normal font specification.  For instance, @samp{6x13} is
 equivalent to
 
-@smallexample
+@example
 -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
-@end smallexample
+@end example
 
 @cindex client-side fonts
 @cindex server-side fonts
@@ -1160,9 +1162,9 @@ enable mouse support.  You must have the gpm server installed and
 running on your system in order for this to work.
 
 @iftex
-@pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
+@xref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
 @end iftex
 @ifnottex
-@pxref{MS-DOS Mouse},
+@xref{MS-DOS Mouse},
 @end ifnottex
 for information about mouse support on MS-DOS.

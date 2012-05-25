@@ -103,7 +103,7 @@ interpretation.  @xref{Command Loop}.
 @dfn{form} (or an @dfn{expression}).  How Emacs evaluates a form
 depends on its data type.  Emacs has three different kinds of form
 that are evaluated differently: symbols, lists, and ``all other
-types.''  This section describes all three kinds, one by one, starting
+types''.  This section describes all three kinds, one by one, starting
 with the ``all other types'' which are self-evaluating forms.
 
 @menu
@@ -260,16 +260,13 @@ use @code{fset} to set the function cell of a symbol and
 into the function cell of @code{first}, and the symbol @code{first} into
 the function cell of @code{erste}.
 
-@smallexample
+@example
 @group
 ;; @r{Build this function cell linkage:}
 ;;   -------------       -----        -------        -------
 ;;  | #<subr car> | <-- | car |  <-- | first |  <-- | erste |
 ;;   -------------       -----        -------        -------
 @end group
-@end smallexample
-
-@smallexample
 @group
 (symbol-function 'car)
      @result{} #<subr car>
@@ -286,23 +283,39 @@ the function cell of @code{erste}.
 (erste '(1 2 3))   ; @r{Call the function referenced by @code{erste}.}
      @result{} 1
 @end group
-@end smallexample
+@end example
 
   By contrast, the following example calls a function without any symbol
 function indirection, because the first element is an anonymous Lisp
 function, not a symbol.
 
-@smallexample
+@example
 @group
 ((lambda (arg) (erste arg))
  '(1 2 3))
      @result{} 1
 @end group
-@end smallexample
+@end example
 
 @noindent
 Executing the function itself evaluates its body; this does involve
 symbol function indirection when calling @code{erste}.
+
+  This form is rarely used and is now deprecated.  Instead, you should write it
+as:
+
+@example
+@group
+(funcall (lambda (arg) (erste arg))
+         '(1 2 3))
+@end group
+@end example
+or just
+@example
+@group
+(let ((arg '(1 2 3))) (erste arg))
+@end group
+@end example
 
   The built-in function @code{indirect-function} provides an easy way to
 perform symbol function indirection explicitly.
@@ -325,12 +338,12 @@ loop in the chain of symbols.
 
 Here is how you could define @code{indirect-function} in Lisp:
 
-@smallexample
+@example
 (defun indirect-function (function)
   (if (symbolp function)
       (indirect-function (symbol-function function))
     function))
-@end smallexample
+@end example
 @end defun
 
 @node Function Forms

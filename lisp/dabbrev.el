@@ -361,6 +361,13 @@ this list."
 ;;??? Do we want this?
 ;;;###autoload (define-key esc-map [?\C-/] 'dabbrev-completion)
 
+(defun dabbrev--ignore-case-p (abbrev)
+  (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+           case-fold-search
+         dabbrev-case-fold-search)
+       (or (not dabbrev-upcase-means-case-search)
+           (string= abbrev (downcase abbrev)))))
+
 ;;;###autoload
 (defun dabbrev-completion (&optional arg)
   "Completion on current word.
@@ -381,12 +388,7 @@ then it searches *all* buffers."
 	 (abbrev (dabbrev--abbrev-at-point))
          (beg (progn (search-backward abbrev) (point)))
          (end (progn (search-forward abbrev) (point)))
-	 (ignore-case-p
-          (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-                   case-fold-search
-                 dabbrev-case-fold-search)
-               (or (not dabbrev-upcase-means-case-search)
-                   (string= abbrev (downcase abbrev)))))
+	 (ignore-case-p (dabbrev--ignore-case-p abbrev))
 	 (list 'uninitialized)
          (table
           (lambda (s p a)
@@ -404,10 +406,10 @@ then it searches *all* buffers."
                          (dabbrev--find-all-expansions abbrev ignore-case-p))
                         (completion-ignore-case ignore-case-p))
                     (or (consp completion-list)
-                        (error "No dynamic expansion for \"%s\" found%s"
-                               abbrev
-                               (if dabbrev--check-other-buffers
-                                   "" " in this-buffer")))
+                        (user-error "No dynamic expansion for \"%s\" found%s"
+                                    abbrev
+                                    (if dabbrev--check-other-buffers
+                                        "" " in this-buffer")))
                     (setq list
                           (cond
                            ((not (and ignore-case-p dabbrev-case-replace))
@@ -514,11 +516,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	  (setq expansion
 		(dabbrev--find-expansion
                  abbrev direction
-                 (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-                          case-fold-search
-                        dabbrev-case-fold-search)
-                      (or (not dabbrev-upcase-means-case-search)
-                          (string= abbrev (downcase abbrev))))))))
+                 (dabbrev--ignore-case-p abbrev)))))
     (cond
      ((not expansion)
       (dabbrev--reset-global-variables)
@@ -529,8 +527,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	    (search-backward old)
 	    (insert abbrev)
 	    (delete-region (point) (+ (point) (length old)))))
-      (error "No%s dynamic expansion for `%s' found"
-	     (if old " further" "") abbrev))
+      (user-error "No%s dynamic expansion for `%s' found"
+                  (if old " further" "") abbrev))
      (t
       (if (not (or (eq dabbrev--last-buffer dabbrev--last-buffer-found)
 		   (minibuffer-window-active-p (selected-window))))
@@ -587,7 +585,7 @@ all skip characters."
   "Extract the symbol at point to serve as abbreviation."
   ;; Check for error
   (if (bobp)
-      (error "No possible abbreviation preceding point"))
+      (user-error "No possible abbreviation preceding point"))
   ;; Return abbrev at point
   (save-excursion
     ;; Record the end of the abbreviation.
@@ -605,7 +603,7 @@ all skip characters."
 				      "\\sw\\|\\s_")
 				  nil t)
 	      (forward-char 1)
-	    (error "No possible abbreviation preceding point"))))
+	    (user-error "No possible abbreviation preceding point"))))
     ;; Now find the beginning of that one.
     (dabbrev--goto-start-of-abbrev)
     (buffer-substring-no-properties
@@ -820,11 +818,7 @@ RECORD-CASE-PATTERN, if non-nil, means set `dabbrev--last-case-pattern'
 to record whether we upcased the expansion, downcased it, or did neither."
   ;;(undo-boundary)
   (let ((use-case-replace
-         (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-                  case-fold-search
-                dabbrev-case-fold-search)
-              (or (not dabbrev-upcase-means-case-search)
-                  (string= abbrev (downcase abbrev)))
+         (and (dabbrev--ignore-case-p abbrev)
               (if (eq dabbrev-case-replace 'case-replace)
                   case-replace
                 dabbrev-case-replace))))
@@ -979,11 +973,6 @@ Leaves point at the location of the start of the expansion."
 	  (setq dabbrev--last-table
 		(cons found-string dabbrev--last-table))
 	  result)))))
-
-(dolist (mess '("^No dynamic expansion for .* found"
-		"^No further dynamic expansion for .* found$"
-		"^No possible abbreviation preceding point$"))
-  (add-to-list 'debug-ignored-errors mess))
 
 (provide 'dabbrev)
 

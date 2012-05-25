@@ -671,8 +671,7 @@
 ;;;; ------------------------------------------------------------
 
 (defgroup ange-ftp nil
-  "Accessing remote files and directories using FTP
-   made as simple and transparent as possible."
+  "Accessing remote files and directories using FTP."
   :group 'files
   :group 'comm
   :prefix "ange-ftp-")

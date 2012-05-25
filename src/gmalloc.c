@@ -1,9 +1,3 @@
-/* This file is no longer automatically generated from libc.  */
-
-#define _MALLOC_INTERNAL
-
-/* The malloc headers and source files from the C library follow here.  */
-
 /* Declarations for `malloc' and friends.
    Copyright (C) 1990, 1991, 1992, 1993, 1995, 1996, 1999, 2002, 2003, 2004,
                  2005, 2006, 2007 Free Software Foundation, Inc.
@@ -27,12 +21,6 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifndef _MALLOC_H
-
-#define _MALLOC_H	1
-
-#ifdef _MALLOC_INTERNAL
-
 #ifdef	HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -41,21 +29,14 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 #define USE_PTHREAD
 #endif
 
-#undef	PP
-#define	PP(args)	args
-#undef	__ptr_t
-#define	__ptr_t		void *
-
 #include <string.h>
 #include <limits.h>
+#include <stdint.h>
 #include <unistd.h>
 
 #ifdef USE_PTHREAD
 #include <pthread.h>
 #endif
-
-#endif	/* _MALLOC_INTERNAL.  */
-
 
 #ifdef	__cplusplus
 extern "C"
@@ -63,39 +44,28 @@ extern "C"
 #endif
 
 #include <stddef.h>
-#define	__malloc_size_t		size_t
-#define	__malloc_ptrdiff_t	ptrdiff_t
 
 
 /* Allocate SIZE bytes of memory.  */
-extern __ptr_t malloc PP ((__malloc_size_t __size));
+extern void *malloc (size_t size);
 /* Re-allocate the previously allocated block
-   in __ptr_t, making the new block SIZE bytes long.  */
-extern __ptr_t realloc PP ((__ptr_t __ptr, __malloc_size_t __size));
+   in ptr, making the new block SIZE bytes long.  */
+extern void *realloc (void *ptr, size_t size);
 /* Allocate NMEMB elements of SIZE bytes each, all initialized to 0.  */
-extern __ptr_t calloc PP ((__malloc_size_t __nmemb, __malloc_size_t __size));
+extern void *calloc (size_t nmemb, size_t size);
 /* Free a block allocated by `malloc', `realloc' or `calloc'.  */
-extern void free PP ((__ptr_t __ptr));
+extern void free (void *ptr);
 
 /* Allocate SIZE bytes allocated to ALIGNMENT bytes.  */
-#if !defined (_MALLOC_INTERNAL) || defined (MSDOS) /* Avoid conflict.  */
-extern __ptr_t memalign PP ((__malloc_size_t __alignment,
-			     __malloc_size_t __size));
-extern int posix_memalign PP ((__ptr_t *, __malloc_size_t,
-			       __malloc_size_t size));
-#endif
-
-/* Allocate SIZE bytes on a page boundary.  */
-#if ! (defined (_MALLOC_INTERNAL) && defined (GMALLOC_INHIBIT_VALLOC))
-extern __ptr_t valloc PP ((__malloc_size_t __size));
+#ifdef MSDOS
+extern void *memalign (size_t, size_t);
+extern int posix_memalign (void **, size_t, size_t);
 #endif
 
 #ifdef USE_PTHREAD
 /* Set up mutexes and make malloc etc. thread-safe.  */
-extern void malloc_enable_thread PP ((void));
+extern void malloc_enable_thread (void);
 #endif
-
-#ifdef _MALLOC_INTERNAL
 
 /* The allocator divides the heap into blocks of fixed size; large
    requests receive one or more whole blocks, and small requests
@@ -128,22 +98,22 @@ typedef union
 	  {
 	    struct
 	      {
-		__malloc_size_t nfree; /* Free frags in a fragmented block.  */
-		__malloc_size_t first; /* First free fragment of the block.  */
+		size_t nfree; /* Free frags in a fragmented block.  */
+		size_t first; /* First free fragment of the block.  */
 	      } frag;
 	    /* For a large object, in its first block, this has the number
 	       of blocks in the object.  In the other blocks, this has a
 	       negative number which says how far back the first block is.  */
-	    __malloc_ptrdiff_t size;
+	    ptrdiff_t size;
 	  } info;
       } busy;
     /* Heap information for a free block
        (that may be the first of a free cluster).  */
     struct
       {
-	__malloc_size_t size;	/* Size (in blocks) of a free cluster.  */
-	__malloc_size_t next;	/* Index of next free cluster.  */
-	__malloc_size_t prev;	/* Index of previous free cluster.  */
+	size_t size;	/* Size (in blocks) of a free cluster.  */
+	size_t next;	/* Index of next free cluster.  */
+	size_t prev;	/* Index of previous free cluster.  */
       } free;
   } malloc_info;
 
@@ -155,13 +125,13 @@ extern malloc_info *_heapinfo;
 
 /* Address to block number and vice versa.  */
 #define BLOCK(A)	(((char *) (A) - _heapbase) / BLOCKSIZE + 1)
-#define ADDRESS(B)	((__ptr_t) (((B) - 1) * BLOCKSIZE + _heapbase))
+#define ADDRESS(B)	((void *) (((B) - 1) * BLOCKSIZE + _heapbase))
 
 /* Current search index for the heap table.  */
-extern __malloc_size_t _heapindex;
+extern size_t _heapindex;
 
 /* Limit of valid info table indices.  */
-extern __malloc_size_t _heaplimit;
+extern size_t _heaplimit;
 
 /* Doubly linked lists of free fragments.  */
 struct list
@@ -177,26 +147,26 @@ extern struct list _fraghead[];
 struct alignlist
   {
     struct alignlist *next;
-    __ptr_t aligned;		/* The address that memaligned returned.  */
-    __ptr_t exact;		/* The address that malloc returned.  */
+    void *aligned;		/* The address that memaligned returned.  */
+    void *exact;		/* The address that malloc returned.  */
   };
 extern struct alignlist *_aligned_blocks;
 
 /* Instrumentation.  */
-extern __malloc_size_t _chunks_used;
-extern __malloc_size_t _bytes_used;
-extern __malloc_size_t _chunks_free;
-extern __malloc_size_t _bytes_free;
+extern size_t _chunks_used;
+extern size_t _bytes_used;
+extern size_t _chunks_free;
+extern size_t _bytes_free;
 
 /* Internal versions of `malloc', `realloc', and `free'
    used when these functions need to call each other.
    They are the same but don't call the hooks.  */
-extern __ptr_t _malloc_internal PP ((__malloc_size_t __size));
-extern __ptr_t _realloc_internal PP ((__ptr_t __ptr, __malloc_size_t __size));
-extern void _free_internal PP ((__ptr_t __ptr));
-extern __ptr_t _malloc_internal_nolock PP ((__malloc_size_t __size));
-extern __ptr_t _realloc_internal_nolock PP ((__ptr_t __ptr, __malloc_size_t __size));
-extern void _free_internal_nolock PP ((__ptr_t __ptr));
+extern void *_malloc_internal (size_t);
+extern void *_realloc_internal (void *, size_t);
+extern void _free_internal (void *);
+extern void *_malloc_internal_nolock (size_t);
+extern void *_realloc_internal_nolock (void *, size_t);
+extern void _free_internal_nolock (void *);
 
 #ifdef USE_PTHREAD
 extern pthread_mutex_t _malloc_mutex, _aligned_blocks_mutex;
@@ -228,39 +198,36 @@ extern int _malloc_thread_enabled_p;
 #define UNLOCK_ALIGNED_BLOCKS()
 #endif
 
-#endif /* _MALLOC_INTERNAL.  */
-
 /* Given an address in the middle of a malloc'd object,
    return the address of the beginning of the object.  */
-extern __ptr_t malloc_find_object_address PP ((__ptr_t __ptr));
+extern void *malloc_find_object_address (void *ptr);
 
 /* Underlying allocation function; successive calls should
    return contiguous pieces of memory.  */
-extern __ptr_t (*__morecore) PP ((__malloc_ptrdiff_t __size));
+extern void *(*__morecore) (ptrdiff_t size);
 
 /* Default value of `__morecore'.  */
-extern __ptr_t __default_morecore PP ((__malloc_ptrdiff_t __size));
+extern void *__default_morecore (ptrdiff_t size);
 
 /* If not NULL, this function is called after each time
    `__morecore' is called to increase the data size.  */
-extern void (*__after_morecore_hook) PP ((void));
+extern void (*__after_morecore_hook) (void);
 
 /* Number of extra blocks to get each time we ask for more core.
    This reduces the frequency of calling `(*__morecore)'.  */
-extern __malloc_size_t __malloc_extra_blocks;
+extern size_t __malloc_extra_blocks;
 
 /* Nonzero if `malloc' has been called and done its initialization.  */
 extern int __malloc_initialized;
 /* Function called to initialize malloc data structures.  */
-extern int __malloc_initialize PP ((void));
+extern int __malloc_initialize (void);
 
 /* Hooks for debugging versions.  */
-extern void (*__malloc_initialize_hook) PP ((void));
-extern void (*__free_hook) PP ((__ptr_t __ptr));
-extern __ptr_t (*__malloc_hook) PP ((__malloc_size_t __size));
-extern __ptr_t (*__realloc_hook) PP ((__ptr_t __ptr, __malloc_size_t __size));
-extern __ptr_t (*__memalign_hook) PP ((__malloc_size_t __size,
-				       __malloc_size_t __alignment));
+extern void (*__malloc_initialize_hook) (void);
+extern void (*__free_hook) (void *ptr);
+extern void *(*__malloc_hook) (size_t size);
+extern void *(*__realloc_hook) (void *ptr, size_t size);
+extern void *(*__memalign_hook) (size_t size, size_t alignment);
 
 /* Return values for `mprobe': these are the kinds of inconsistencies that
    `mcheck' enables detection of.  */
@@ -277,52 +244,37 @@ enum mcheck_status
    before `malloc' is ever called.  ABORTFUNC is called with an error code
    (see enum above) when an inconsistency is detected.  If ABORTFUNC is
    null, the standard function prints on stderr and then calls `abort'.  */
-extern int mcheck PP ((void (*__abortfunc) PP ((enum mcheck_status))));
+extern int mcheck (void (*abortfunc) (enum mcheck_status));
 
 /* Check for aberrations in a particular malloc'd block.  You must have
    called `mcheck' already.  These are the same checks that `mcheck' does
    when you free or reallocate a block.  */
-extern enum mcheck_status mprobe PP ((__ptr_t __ptr));
+extern enum mcheck_status mprobe (void *ptr);
 
 /* Activate a standard collection of tracing hooks.  */
-extern void mtrace PP ((void));
-extern void muntrace PP ((void));
+extern void mtrace (void);
+extern void muntrace (void);
 
 /* Statistics available to the user.  */
 struct mstats
   {
-    __malloc_size_t bytes_total; /* Total size of the heap. */
-    __malloc_size_t chunks_used; /* Chunks allocated by the user. */
-    __malloc_size_t bytes_used;	/* Byte total of user-allocated chunks. */
-    __malloc_size_t chunks_free; /* Chunks in the free list. */
-    __malloc_size_t bytes_free;	/* Byte total of chunks in the free list. */
+    size_t bytes_total;	/* Total size of the heap. */
+    size_t chunks_used;	/* Chunks allocated by the user. */
+    size_t bytes_used;	/* Byte total of user-allocated chunks. */
+    size_t chunks_free;	/* Chunks in the free list. */
+    size_t bytes_free;	/* Byte total of chunks in the free list. */
   };
 
 /* Pick up the current statistics. */
-extern struct mstats mstats PP ((void));
+extern struct mstats mstats (void);
 
 /* Call WARNFUN with a warning message when memory usage is high.  */
-extern void memory_warnings PP ((__ptr_t __start,
-				 void (*__warnfun) PP ((const char *))));
-
-
-/* Relocating allocator.  */
-
-/* Allocate SIZE bytes, and store the address in *HANDLEPTR.  */
-extern __ptr_t r_alloc PP ((__ptr_t *__handleptr, __malloc_size_t __size));
-
-/* Free the storage allocated in HANDLEPTR.  */
-extern void r_alloc_free PP ((__ptr_t *__handleptr));
-
-/* Adjust the block at HANDLEPTR to be SIZE bytes long.  */
-extern __ptr_t r_re_alloc PP ((__ptr_t *__handleptr, __malloc_size_t __size));
-
+extern void memory_warnings (void *start, void (*warnfun) (const char *));
 
 #ifdef	__cplusplus
 }
 #endif
 
-#endif /* malloc.h  */
 /* Memory allocator `malloc'.
    Copyright 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
@@ -345,10 +297,6 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifndef	_MALLOC_INTERNAL
-#define _MALLOC_INTERNAL
-#include <malloc.h>
-#endif
 #include <errno.h>
 
 /* On Cygwin there are two heaps.  temacs uses the static heap
@@ -362,15 +310,15 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    this is changed in the future, we'll have to similarly deal with
    reinitializing ralloc. */
 #ifdef CYGWIN
-extern __ptr_t bss_sbrk PP ((ptrdiff_t __size));
+extern void *bss_sbrk (ptrdiff_t size);
 extern int bss_sbrk_did_unexec;
 char *bss_sbrk_heapbase;	/* _heapbase for static heap */
 malloc_info *bss_sbrk_heapinfo;	/* _heapinfo for static heap */
 #endif
-__ptr_t (*__morecore) PP ((__malloc_ptrdiff_t __size)) = __default_morecore;
+void *(*__morecore) (ptrdiff_t size) = __default_morecore;
 
 /* Debugging hook for `malloc'.  */
-__ptr_t (*__malloc_hook) PP ((__malloc_size_t __size));
+void *(*__malloc_hook) (size_t size);
 
 /* Pointer to the base of the first block.  */
 char *_heapbase;
@@ -379,30 +327,30 @@ char *_heapbase;
 malloc_info *_heapinfo;
 
 /* Number of info entries.  */
-static __malloc_size_t heapsize;
+static size_t heapsize;
 
 /* Search index in the info table.  */
-__malloc_size_t _heapindex;
+size_t _heapindex;
 
 /* Limit of valid info table indices.  */
-__malloc_size_t _heaplimit;
+size_t _heaplimit;
 
 /* Free lists for each fragment size.  */
 struct list _fraghead[BLOCKLOG];
 
 /* Instrumentation.  */
-__malloc_size_t _chunks_used;
-__malloc_size_t _bytes_used;
-__malloc_size_t _chunks_free;
-__malloc_size_t _bytes_free;
+size_t _chunks_used;
+size_t _bytes_used;
+size_t _chunks_free;
+size_t _bytes_free;
 
 /* Are you experienced?  */
 int __malloc_initialized;
 
-__malloc_size_t __malloc_extra_blocks;
+size_t __malloc_extra_blocks;
 
-void (*__malloc_initialize_hook) PP ((void));
-void (*__after_morecore_hook) PP ((void));
+void (*__malloc_initialize_hook) (void);
+void (*__after_morecore_hook) (void);
 
 #if defined GC_MALLOC_CHECK && defined GC_PROTECT_MALLOC_STATE
 
@@ -419,12 +367,11 @@ void (*__after_morecore_hook) PP ((void));
 #include <sys/mman.h>
 
 static int state_protected_p;
-static __malloc_size_t last_state_size;
+static size_t last_state_size;
 static malloc_info *last_heapinfo;
 
 void
-protect_malloc_state (protect_p)
-     int protect_p;
+protect_malloc_state (int protect_p)
 {
   /* If _heapinfo has been relocated, make sure its old location
      isn't left read-only; it will be reused by malloc.  */
@@ -453,29 +400,25 @@ protect_malloc_state (protect_p)
 
 
 /* Aligned allocation.  */
-static __ptr_t align PP ((__malloc_size_t));
-static __ptr_t
-align (size)
-     __malloc_size_t size;
+static void *
+align (size_t size)
 {
-  __ptr_t result;
-  unsigned long int adj;
+  void *result;
+  ptrdiff_t adj;
 
   /* align accepts an unsigned argument, but __morecore accepts a
-     signed one.  This could lead to trouble if SIZE overflows a
-     signed int type accepted by __morecore.  We just punt in that
+     signed one.  This could lead to trouble if SIZE overflows the
+     ptrdiff_t type accepted by __morecore.  We just punt in that
      case, since they are requesting a ludicrous amount anyway.  */
-  if ((__malloc_ptrdiff_t)size < 0)
+  if (PTRDIFF_MAX < size)
     result = 0;
   else
     result = (*__morecore) (size);
-  adj = (unsigned long int) ((unsigned long int) ((char *) result -
-						  (char *) NULL)) % BLOCKSIZE;
+  adj = (uintptr_t) result % BLOCKSIZE;
   if (adj != 0)
     {
-      __ptr_t new;
       adj = BLOCKSIZE - adj;
-      new = (*__morecore) (adj);
+      (*__morecore) (adj);
       result = (char *) result + adj;
     }
 
@@ -488,14 +431,11 @@ align (size)
 /* Get SIZE bytes, if we can get them starting at END.
    Return the address of the space we got.
    If we cannot get space at END, fail and return 0.  */
-static __ptr_t get_contiguous_space PP ((__malloc_ptrdiff_t, __ptr_t));
-static __ptr_t
-get_contiguous_space (size, position)
-     __malloc_ptrdiff_t size;
-     __ptr_t position;
+static void *
+get_contiguous_space (ptrdiff_t size, void *position)
 {
-  __ptr_t before;
-  __ptr_t after;
+  void *before;
+  void *after;
 
   before = (*__morecore) (0);
   /* If we can tell in advance that the break is at the wrong place,
@@ -525,7 +465,7 @@ get_contiguous_space (size, position)
 static inline void
 register_heapinfo (void)
 {
-  __malloc_size_t block, blocks;
+  size_t block, blocks;
 
   block = BLOCK (_heapinfo);
   blocks = BLOCKIFY (heapsize * sizeof (malloc_info));
@@ -548,21 +488,21 @@ pthread_mutex_t _aligned_blocks_mutex = PTHREAD_MUTEX_INITIALIZER;
 int _malloc_thread_enabled_p;
 
 static void
-malloc_atfork_handler_prepare ()
+malloc_atfork_handler_prepare (void)
 {
   LOCK ();
   LOCK_ALIGNED_BLOCKS ();
 }
 
 static void
-malloc_atfork_handler_parent ()
+malloc_atfork_handler_parent (void)
 {
   UNLOCK_ALIGNED_BLOCKS ();
   UNLOCK ();
 }
 
 static void
-malloc_atfork_handler_child ()
+malloc_atfork_handler_child (void)
 {
   UNLOCK_ALIGNED_BLOCKS ();
   UNLOCK ();
@@ -570,7 +510,7 @@ malloc_atfork_handler_child ()
 
 /* Set up mutexes and make malloc etc. thread-safe.  */
 void
-malloc_enable_thread ()
+malloc_enable_thread (void)
 {
   if (_malloc_thread_enabled_p)
     return;
@@ -589,7 +529,7 @@ malloc_enable_thread ()
 #endif
 
 static void
-malloc_initialize_1 ()
+malloc_initialize_1 (void)
 {
 #ifdef GC_MCHECK
   mcheck (NULL);
@@ -609,7 +549,7 @@ malloc_initialize_1 ()
     (*__malloc_initialize_hook) ();
 
   heapsize = HEAP / BLOCKSIZE;
-  _heapinfo = (malloc_info *) align (heapsize * sizeof (malloc_info));
+  _heapinfo = align (heapsize * sizeof (malloc_info));
   if (_heapinfo == NULL)
     return;
   memset (_heapinfo, 0, heapsize * sizeof (malloc_info));
@@ -630,7 +570,7 @@ malloc_initialize_1 ()
    main will call malloc which calls this function.  That is before any threads
    or signal handlers has been set up, so we don't need thread protection.  */
 int
-__malloc_initialize ()
+__malloc_initialize (void)
 {
   if (__malloc_initialized)
     return 0;
@@ -644,14 +584,12 @@ static int morecore_recursing;
 
 /* Get neatly aligned memory, initializing or
    growing the heap info table as necessary. */
-static __ptr_t morecore_nolock PP ((__malloc_size_t));
-static __ptr_t
-morecore_nolock (size)
-     __malloc_size_t size;
+static void *
+morecore_nolock (size_t size)
 {
-  __ptr_t result;
+  void *result;
   malloc_info *newinfo, *oldinfo;
-  __malloc_size_t newsize;
+  size_t newsize;
 
   if (morecore_recursing)
     /* Avoid recursion.  The caller will know how to handle a null return.  */
@@ -664,7 +602,7 @@ morecore_nolock (size)
   PROTECT_MALLOC_STATE (0);
 
   /* Check if we need to grow the info table.  */
-  if ((__malloc_size_t) BLOCK ((char *) result + size) > heapsize)
+  if ((size_t) BLOCK ((char *) result + size) > heapsize)
     {
       /* Calculate the new _heapinfo table size.  We do not account for the
 	 added blocks in the table itself, as we hope to place them in
@@ -673,7 +611,7 @@ morecore_nolock (size)
       newsize = heapsize;
       do
 	newsize *= 2;
-      while ((__malloc_size_t) BLOCK ((char *) result + size) > newsize);
+      while ((size_t) BLOCK ((char *) result + size) > newsize);
 
       /* We must not reuse existing core for the new info table when called
 	 from realloc in the case of growing a large block, because the
@@ -689,8 +627,8 @@ morecore_nolock (size)
 	     `morecore_recursing' flag and return null.  */
 	  int save = errno;	/* Don't want to clobber errno with ENOMEM.  */
 	  morecore_recursing = 1;
-	  newinfo = (malloc_info *) _realloc_internal_nolock
-	    (_heapinfo, newsize * sizeof (malloc_info));
+	  newinfo = _realloc_internal_nolock (_heapinfo,
+					      newsize * sizeof (malloc_info));
 	  morecore_recursing = 0;
 	  if (newinfo == NULL)
 	    errno = save;
@@ -710,7 +648,7 @@ morecore_nolock (size)
       /* Allocate new space for the malloc info table.  */
       while (1)
   	{
- 	  newinfo = (malloc_info *) align (newsize * sizeof (malloc_info));
+ 	  newinfo = align (newsize * sizeof (malloc_info));
 
  	  /* Did it fail?  */
  	  if (newinfo == NULL)
@@ -721,8 +659,8 @@ morecore_nolock (size)
 
  	  /* Is it big enough to record status for its own space?
  	     If so, we win.  */
- 	  if ((__malloc_size_t) BLOCK ((char *) newinfo
- 				       + newsize * sizeof (malloc_info))
+ 	  if ((size_t) BLOCK ((char *) newinfo
+			      + newsize * sizeof (malloc_info))
  	      < newsize)
  	    break;
 
@@ -759,13 +697,12 @@ morecore_nolock (size)
 }
 
 /* Allocate memory from the heap.  */
-__ptr_t
-_malloc_internal_nolock (size)
-     __malloc_size_t size;
+void *
+_malloc_internal_nolock (size_t size)
 {
-  __ptr_t result;
-  __malloc_size_t block, blocks, lastblocks, start;
-  register __malloc_size_t i;
+  void *result;
+  size_t block, blocks, lastblocks, start;
+  register size_t i;
   struct list *next;
 
   /* ANSI C allows `malloc (0)' to either return NULL, or to return a
@@ -790,7 +727,7 @@ _malloc_internal_nolock (size)
     {
       /* Small allocation to receive a fragment of a block.
 	 Determine the logarithm to base two of the fragment size. */
-      register __malloc_size_t log = 1;
+      register size_t log = 1;
       --size;
       while ((size /= 2) != 0)
 	++log;
@@ -803,15 +740,14 @@ _malloc_internal_nolock (size)
 	  /* There are free fragments of this size.
 	     Pop a fragment out of the fragment list and return it.
 	     Update the block's nfree and first counters. */
-	  result = (__ptr_t) next;
+	  result = next;
 	  next->prev->next = next->next;
 	  if (next->next != NULL)
 	    next->next->prev = next->prev;
 	  block = BLOCK (result);
 	  if (--_heapinfo[block].busy.info.frag.nfree != 0)
-	    _heapinfo[block].busy.info.frag.first = (unsigned long int)
-	      ((unsigned long int) ((char *) next->next - (char *) NULL)
-	       % BLOCKSIZE) >> log;
+	    _heapinfo[block].busy.info.frag.first =
+	      (uintptr_t) next->next % BLOCKSIZE >> log;
 
 	  /* Update the statistics.  */
 	  ++_chunks_used;
@@ -843,7 +779,7 @@ _malloc_internal_nolock (size)
 	  next->prev = &_fraghead[log];
 	  _fraghead[log].next = next;
 
-	  for (i = 2; i < (__malloc_size_t) (BLOCKSIZE >> log); ++i)
+	  for (i = 2; i < (size_t) (BLOCKSIZE >> log); ++i)
 	    {
 	      next = (struct list *) ((char *) result + (i << log));
 	      next->next = _fraghead[log].next;
@@ -877,7 +813,7 @@ _malloc_internal_nolock (size)
 	  if (block == start)
 	    {
 	      /* Need to get more from the system.  Get a little extra.  */
-	      __malloc_size_t wantblocks = blocks + __malloc_extra_blocks;
+	      size_t wantblocks = blocks + __malloc_extra_blocks;
 	      block = _heapinfo[0].free.prev;
 	      lastblocks = _heapinfo[block].free.size;
 	      /* Check to see if the new core will be contiguous with the
@@ -959,11 +895,10 @@ _malloc_internal_nolock (size)
   return result;
 }
 
-__ptr_t
-_malloc_internal (size)
-     __malloc_size_t size;
+void *
+_malloc_internal (size_t size)
 {
-  __ptr_t result;
+  void *result;
 
   LOCK ();
   result = _malloc_internal_nolock (size);
@@ -972,11 +907,10 @@ _malloc_internal (size)
   return result;
 }
 
-__ptr_t
-malloc (size)
-     __malloc_size_t size;
+void *
+malloc (size_t size)
 {
-  __ptr_t (*hook) (__malloc_size_t);
+  void *(*hook) (size_t);
 
   if (!__malloc_initialized && !__malloc_initialize ())
     return NULL;
@@ -998,24 +932,24 @@ malloc (size)
 /* On some ANSI C systems, some libc functions call _malloc, _free
    and _realloc.  Make them use the GNU functions.  */
 
-__ptr_t
-_malloc (size)
-     __malloc_size_t size;
+extern void *_malloc (size_t);
+extern void _free (void *);
+extern void *_realloc (void *, size_t);
+
+void *
+_malloc (size_t size)
 {
   return malloc (size);
 }
 
 void
-_free (ptr)
-     __ptr_t ptr;
+_free (void *ptr)
 {
   free (ptr);
 }
 
-__ptr_t
-_realloc (ptr, size)
-     __ptr_t ptr;
-     __malloc_size_t size;
+void *
+_realloc (void *ptr, size_t size)
 {
   return realloc (ptr, size);
 }
@@ -1043,14 +977,9 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifndef	_MALLOC_INTERNAL
-#define _MALLOC_INTERNAL
-#include <malloc.h>
-#endif
-
 
 /* Debugging hook for free.  */
-void (*__free_hook) PP ((__ptr_t __ptr));
+void (*__free_hook) (void *__ptr);
 
 /* List of blocks allocated by memalign.  */
 struct alignlist *_aligned_blocks = NULL;
@@ -1058,15 +987,14 @@ struct alignlist *_aligned_blocks = NULL;
 /* Return memory to the heap.
    Like `_free_internal' but don't lock mutex.  */
 void
-_free_internal_nolock (ptr)
-     __ptr_t ptr;
+_free_internal_nolock (void *ptr)
 {
   int type;
-  __malloc_size_t block, blocks;
-  register __malloc_size_t i;
+  size_t block, blocks;
+  register size_t i;
   struct list *prev, *next;
-  __ptr_t curbrk;
-  const __malloc_size_t lesscore_threshold
+  void *curbrk;
+  const size_t lesscore_threshold
     /* Threshold of free space at which we will return some to the system.  */
     = FINAL_FREE_BLOCKS + 2 * __malloc_extra_blocks;
 
@@ -1076,7 +1004,7 @@ _free_internal_nolock (ptr)
     return;
 
 #ifdef CYGWIN
-  if (ptr < _heapbase)
+  if ((char *) ptr < _heapbase)
     /* We're being asked to free something in the static heap. */
     return;
 #endif
@@ -1162,12 +1090,12 @@ _free_internal_nolock (ptr)
 	     It's possible that moving _heapinfo will allow us to
 	     return some space to the system.  */
 
- 	  __malloc_size_t info_block = BLOCK (_heapinfo);
- 	  __malloc_size_t info_blocks = _heapinfo[info_block].busy.info.size;
- 	  __malloc_size_t prev_block = _heapinfo[block].free.prev;
- 	  __malloc_size_t prev_blocks = _heapinfo[prev_block].free.size;
- 	  __malloc_size_t next_block = _heapinfo[block].free.next;
- 	  __malloc_size_t next_blocks = _heapinfo[next_block].free.size;
+ 	  size_t info_block = BLOCK (_heapinfo);
+ 	  size_t info_blocks = _heapinfo[info_block].busy.info.size;
+ 	  size_t prev_block = _heapinfo[block].free.prev;
+ 	  size_t prev_blocks = _heapinfo[prev_block].free.size;
+ 	  size_t next_block = _heapinfo[block].free.next;
+ 	  size_t next_blocks = _heapinfo[next_block].free.size;
 
 	  if (/* Win if this block being freed is last in core, the info table
 		 is just before it, the previous free block is just before the
@@ -1190,7 +1118,7 @@ _free_internal_nolock (ptr)
 	      )
 	    {
 	      malloc_info *newinfo;
-	      __malloc_size_t oldlimit = _heaplimit;
+	      size_t oldlimit = _heaplimit;
 
 	      /* Free the old info table, clearing _heaplimit to avoid
 		 recursion into this code.  We don't want to return the
@@ -1205,8 +1133,7 @@ _free_internal_nolock (ptr)
 	      _heapindex = 0;
 
 	      /* Allocate new space for the info table and move its data.  */
-	      newinfo = (malloc_info *) _malloc_internal_nolock (info_blocks
-								 * BLOCKSIZE);
+	      newinfo = _malloc_internal_nolock (info_blocks * BLOCKSIZE);
 	      PROTECT_MALLOC_STATE (0);
 	      memmove (newinfo, _heapinfo, info_blocks * BLOCKSIZE);
 	      _heapinfo = newinfo;
@@ -1222,7 +1149,7 @@ _free_internal_nolock (ptr)
 	  /* Now see if we can return stuff to the system.  */
 	  if (block + blocks == _heaplimit && blocks >= lesscore_threshold)
 	    {
-	      register __malloc_size_t bytes = blocks * BLOCKSIZE;
+	      register size_t bytes = blocks * BLOCKSIZE;
 	      _heaplimit -= blocks;
 	      (*__morecore) (-bytes);
 	      _heapinfo[_heapinfo[block].free.prev].free.next
@@ -1255,7 +1182,7 @@ _free_internal_nolock (ptr)
 	  /* If all fragments of this block are free, remove them
 	     from the fragment list and free the whole block.  */
 	  next = prev;
-	  for (i = 1; i < (__malloc_size_t) (BLOCKSIZE >> type); ++i)
+	  for (i = 1; i < (size_t) (BLOCKSIZE >> type); ++i)
 	    next = next->next;
 	  prev->prev->next = next;
 	  if (next != NULL)
@@ -1280,7 +1207,7 @@ _free_internal_nolock (ptr)
 	  /* If some fragments of this block are free, link this
 	     fragment into the fragment list after the first free
 	     fragment of this block. */
-	  next = (struct list *) ptr;
+	  next = ptr;
 	  next->next = prev->next;
 	  next->prev = prev;
 	  prev->next = next;
@@ -1293,11 +1220,10 @@ _free_internal_nolock (ptr)
 	  /* No fragments of this block are free, so link this
 	     fragment into the fragment list and announce that
 	     it is the first free fragment of this block. */
-	  prev = (struct list *) ptr;
+	  prev = ptr;
 	  _heapinfo[block].busy.info.frag.nfree = 1;
-	  _heapinfo[block].busy.info.frag.first = (unsigned long int)
-	    ((unsigned long int) ((char *) ptr - (char *) NULL)
-	     % BLOCKSIZE >> type);
+	  _heapinfo[block].busy.info.frag.first =
+	    (uintptr_t) ptr % BLOCKSIZE >> type;
 	  prev->next = _fraghead[type].next;
 	  prev->prev = &_fraghead[type];
 	  prev->prev->next = prev;
@@ -1313,8 +1239,7 @@ _free_internal_nolock (ptr)
 /* Return memory to the heap.
    Like `free' but don't call a __free_hook if there is one.  */
 void
-_free_internal (ptr)
-     __ptr_t ptr;
+_free_internal (void *ptr)
 {
   LOCK ();
   _free_internal_nolock (ptr);
@@ -1324,10 +1249,9 @@ _free_internal (ptr)
 /* Return memory to the heap.  */
 
 void
-free (ptr)
-     __ptr_t ptr;
+free (void *ptr)
 {
-  void (*hook) (__ptr_t) = __free_hook;
+  void (*hook) (void *) = __free_hook;
 
   if (hook != NULL)
     (*hook) (ptr);
@@ -1340,8 +1264,7 @@ free (ptr)
 weak_alias (free, cfree)
 #else
 void
-cfree (ptr)
-     __ptr_t ptr;
+cfree (void *ptr)
 {
   free (ptr);
 }
@@ -1368,32 +1291,24 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifndef	_MALLOC_INTERNAL
-#define _MALLOC_INTERNAL
-#include <malloc.h>
-#endif
-
-
 #define min(A, B) ((A) < (B) ? (A) : (B))
 
 /* On Cygwin the dumped emacs may try to realloc storage allocated in
    the static heap.  We just malloc space in the new heap and copy the
    data.  */
 #ifdef CYGWIN
-__ptr_t
-special_realloc (ptr, size)
-     __ptr_t ptr;
-     __malloc_size_t size;
+void *
+special_realloc (void *ptr, size_t size)
 {
-  __ptr_t result;
+  void *result;
   int type;
-  __malloc_size_t block, oldsize;
+  size_t block, oldsize;
 
   block = ((char *) ptr - bss_sbrk_heapbase) / BLOCKSIZE + 1;
   type = bss_sbrk_heapinfo[block].busy.type;
   oldsize =
     type == 0 ? bss_sbrk_heapinfo[block].busy.info.size * BLOCKSIZE
-    : (__malloc_size_t) 1 << type;
+    : (size_t) 1 << type;
   result = _malloc_internal_nolock (size);
   if (result != NULL)
     memcpy (result, ptr, min (oldsize, size));
@@ -1402,7 +1317,7 @@ special_realloc (ptr, size)
 #endif
 
 /* Debugging hook for realloc.  */
-__ptr_t (*__realloc_hook) PP ((__ptr_t __ptr, __malloc_size_t __size));
+void *(*__realloc_hook) (void *ptr, size_t size);
 
 /* Resize the given region to the new size, returning a pointer
    to the (possibly moved) region.  This is optimized for speed;
@@ -1410,14 +1325,12 @@ __ptr_t (*__realloc_hook) PP ((__ptr_t __ptr, __malloc_size_t __size));
    achieved by unconditionally allocating and copying to a
    new region.  This module has incestuous knowledge of the
    internals of both free and malloc. */
-__ptr_t
-_realloc_internal_nolock (ptr, size)
-     __ptr_t ptr;
-     __malloc_size_t size;
+void *
+_realloc_internal_nolock (void *ptr, size_t size)
 {
-  __ptr_t result;
+  void *result;
   int type;
-  __malloc_size_t block, blocks, oldlimit;
+  size_t block, blocks, oldlimit;
 
   if (size == 0)
     {
@@ -1428,7 +1341,7 @@ _realloc_internal_nolock (ptr, size)
     return _malloc_internal_nolock (size);
 
 #ifdef CYGWIN
-  if (ptr < _heapbase)
+  if ((char *) ptr < _heapbase)
     /* ptr points into the static heap */
     return special_realloc (ptr, size);
 #endif
@@ -1497,7 +1410,7 @@ _realloc_internal_nolock (ptr, size)
 	        (void) _malloc_internal_nolock (blocks * BLOCKSIZE);
 	      else
 		{
-		  __ptr_t previous
+		  void *previous
 		    = _malloc_internal_nolock ((block - _heapindex) * BLOCKSIZE);
 		  (void) _malloc_internal_nolock (blocks * BLOCKSIZE);
 		  _free_internal_nolock (previous);
@@ -1512,8 +1425,8 @@ _realloc_internal_nolock (ptr, size)
     default:
       /* Old size is a fragment; type is logarithm
 	 to base two of the fragment size.  */
-      if (size > (__malloc_size_t) (1 << (type - 1)) &&
-	  size <= (__malloc_size_t) (1 << type))
+      if (size > (size_t) (1 << (type - 1)) &&
+	  size <= (size_t) (1 << type))
 	/* The new size is the same kind of fragment.  */
 	result = ptr;
       else
@@ -1523,7 +1436,7 @@ _realloc_internal_nolock (ptr, size)
 	  result = _malloc_internal_nolock (size);
 	  if (result == NULL)
 	    goto out;
-	  memcpy (result, ptr, min (size, (__malloc_size_t) 1 << type));
+	  memcpy (result, ptr, min (size, (size_t) 1 << type));
 	  _free_internal_nolock (ptr);
 	}
       break;
@@ -1534,12 +1447,10 @@ _realloc_internal_nolock (ptr, size)
   return result;
 }
 
-__ptr_t
-_realloc_internal (ptr, size)
-     __ptr_t ptr;
-     __malloc_size_t size;
+void *
+_realloc_internal (void *ptr, size_t size)
 {
-  __ptr_t result;
+  void *result;
 
   LOCK ();
   result = _realloc_internal_nolock (ptr, size);
@@ -1548,12 +1459,10 @@ _realloc_internal (ptr, size)
   return result;
 }
 
-__ptr_t
-realloc (ptr, size)
-     __ptr_t ptr;
-     __malloc_size_t size;
+void *
+realloc (void *ptr, size_t size)
 {
-  __ptr_t (*hook) (__ptr_t, __malloc_size_t);
+  void *(*hook) (void *, size_t);
 
   if (!__malloc_initialized && !__malloc_initialize ())
     return NULL;
@@ -1581,19 +1490,12 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifndef	_MALLOC_INTERNAL
-#define	_MALLOC_INTERNAL
-#include <malloc.h>
-#endif
-
 /* Allocate an array of NMEMB elements each SIZE bytes long.
    The entire array is initialized to zeros.  */
-__ptr_t
-calloc (nmemb, size)
-     register __malloc_size_t nmemb;
-     register __malloc_size_t size;
+void *
+calloc (register size_t nmemb, register size_t size)
 {
-  register __ptr_t result = malloc (nmemb * size);
+  register void *result = malloc (nmemb * size);
 
   if (result != NULL)
     (void) memset (result, 0, nmemb * size);
@@ -1618,11 +1520,6 @@ along with the GNU C Library; see the file COPYING.  If not, write to
 the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.  */
 
-#ifndef	_MALLOC_INTERNAL
-#define	_MALLOC_INTERNAL
-#include <malloc.h>
-#endif
-
 /* uClibc defines __GNU_LIBRARY__, but it is not completely
    compatible.  */
 #if !defined (__GNU_LIBRARY__) || defined (__UCLIBC__)
@@ -1631,30 +1528,24 @@ MA 02110-1301, USA.  */
 /* It is best not to declare this and cast its result on foreign operating
    systems with potentially hostile include files.  */
 
-#include <stddef.h>
-extern __ptr_t __sbrk PP ((ptrdiff_t increment));
+extern void *__sbrk (ptrdiff_t increment);
 #endif /* __GNU_LIBRARY__ && ! defined (__UCLIBC__) */
-
-#ifndef NULL
-#define NULL 0
-#endif
 
 /* Allocate INCREMENT more bytes of data space,
    and return the start of data space, or NULL on errors.
    If INCREMENT is negative, shrink data space.  */
-__ptr_t
-__default_morecore (increment)
-     __malloc_ptrdiff_t increment;
+void *
+__default_morecore (ptrdiff_t increment)
 {
-  __ptr_t result;
+  void *result;
 #if defined (CYGWIN)
   if (!bss_sbrk_did_unexec)
     {
       return bss_sbrk (increment);
     }
 #endif
-  result = (__ptr_t) __sbrk (increment);
-  if (result == (__ptr_t) -1)
+  result = (void *) __sbrk (increment);
+  if (result == (void *) -1)
     return NULL;
   return result;
 }
@@ -1675,22 +1566,14 @@ License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#ifndef	_MALLOC_INTERNAL
-#define _MALLOC_INTERNAL
-#include <malloc.h>
-#endif
+void *(*__memalign_hook) (size_t size, size_t alignment);
 
-__ptr_t (*__memalign_hook) PP ((__malloc_size_t __size,
-				__malloc_size_t __alignment));
-
-__ptr_t
-memalign (alignment, size)
-     __malloc_size_t alignment;
-     __malloc_size_t size;
+void *
+memalign (size_t alignment, size_t size)
 {
-  __ptr_t result;
-  unsigned long int adj, lastadj;
-  __ptr_t (*hook) (__malloc_size_t, __malloc_size_t) = __memalign_hook;
+  void *result;
+  size_t adj, lastadj;
+  void *(*hook) (size_t, size_t) = __memalign_hook;
 
   if (hook)
     return (*hook) (alignment, size);
@@ -1703,7 +1586,7 @@ memalign (alignment, size)
 
   /* Figure out how much we will need to pad this particular block
      to achieve the required alignment.  */
-  adj = (unsigned long int) ((char *) result - (char *) NULL) % alignment;
+  adj = (uintptr_t) result % alignment;
 
   do
     {
@@ -1714,7 +1597,7 @@ memalign (alignment, size)
 	return NULL;
 
       lastadj = adj;
-      adj = (unsigned long int) ((char *) result - (char *) NULL) % alignment;
+      adj = (uintptr_t) result % alignment;
       /* It's conceivable we might have been so unlucky as to get a
 	 different block with weaker alignment.  If so, this block is too
 	 short to contain SIZE after alignment correction.  So we must
@@ -1735,7 +1618,7 @@ memalign (alignment, size)
 	  break;
       if (l == NULL)
 	{
-	  l = (struct alignlist *) malloc (sizeof (struct alignlist));
+	  l = malloc (sizeof (struct alignlist));
 	  if (l != NULL)
 	    {
 	      l->next = _aligned_blocks;
@@ -1767,15 +1650,12 @@ memalign (alignment, size)
 #endif
 
 int
-posix_memalign (memptr, alignment, size)
-     __ptr_t *memptr;
-     __malloc_size_t alignment;
-     __malloc_size_t size;
+posix_memalign (void **memptr, size_t alignment, size_t size)
 {
-  __ptr_t mem;
+  void *mem;
 
   if (alignment == 0
-      || alignment % sizeof (__ptr_t) != 0
+      || alignment % sizeof (void *) != 0
       || (alignment & (alignment - 1)) != 0)
     return EINVAL;
 
@@ -1809,43 +1689,27 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#if defined (_MALLOC_INTERNAL) && defined (GMALLOC_INHIBIT_VALLOC)
-
 /* Emacs defines GMALLOC_INHIBIT_VALLOC to avoid this definition
    on MSDOS, where it conflicts with a system header file.  */
 
-#define ELIDE_VALLOC
+#ifndef	GMALLOC_INHIBIT_VALLOC
 
+/* Allocate SIZE bytes on a page boundary.  */
+extern void *valloc (size_t);
+
+#if defined _SC_PAGESIZE || !defined HAVE_GETPAGESIZE
+# include "getpagesize.h"
+#elif !defined getpagesize
+extern int getpagesize (void);
 #endif
 
-#ifndef	ELIDE_VALLOC
+static size_t pagesize;
 
-#if defined (__GNU_LIBRARY__) || defined (_LIBC)
-#include <stddef.h>
-#include <sys/cdefs.h>
-#if defined (__GLIBC__) && __GLIBC__ >= 2
-/* __getpagesize is already declared in <unistd.h> with return type int */
-#else
-extern size_t __getpagesize PP ((void));
-#endif
-#else
-#include "getpagesize.h"
-#define	 __getpagesize()	getpagesize ()
-#endif
-
-#ifndef	_MALLOC_INTERNAL
-#define	_MALLOC_INTERNAL
-#include <malloc.h>
-#endif
-
-static __malloc_size_t pagesize;
-
-__ptr_t
-valloc (size)
-     __malloc_size_t size;
+void *
+valloc (size_t size)
 {
   if (pagesize == 0)
-    pagesize = __getpagesize ();
+    pagesize = getpagesize ();
 
   return memalign (pagesize, size);
 }
@@ -1876,41 +1740,31 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifdef emacs
 #include <stdio.h>
-#else
-#ifndef	_MALLOC_INTERNAL
-#define	_MALLOC_INTERNAL
-#include <malloc.h>
-#include <stdio.h>
-#endif
-#endif
 
 /* Old hook values.  */
-static void (*old_free_hook) (__ptr_t ptr);
-static __ptr_t (*old_malloc_hook) (__malloc_size_t size);
-static __ptr_t (*old_realloc_hook) (__ptr_t ptr, __malloc_size_t size);
+static void (*old_free_hook) (void *ptr);
+static void *(*old_malloc_hook) (size_t size);
+static void *(*old_realloc_hook) (void *ptr, size_t size);
 
 /* Function to call when something awful happens.  */
 static void (*abortfunc) (enum mcheck_status);
 
 /* Arbitrary magical numbers.  */
-#define MAGICWORD	0xfedabeeb
-#define MAGICFREE	0xd8675309
+#define MAGICWORD	(SIZE_MAX / 11 ^ SIZE_MAX / 13 << 3)
+#define MAGICFREE	(SIZE_MAX / 17 ^ SIZE_MAX / 19 << 4)
 #define MAGICBYTE	((char) 0xd7)
 #define MALLOCFLOOD	((char) 0x93)
 #define FREEFLOOD	((char) 0x95)
 
 struct hdr
   {
-    __malloc_size_t size;		/* Exact size requested by user.  */
-    unsigned long int magic;	/* Magic number to check header integrity.  */
+    size_t size;	/* Exact size requested by user.  */
+    size_t magic;	/* Magic number to check header integrity.  */
   };
 
-static enum mcheck_status checkhdr (const struct hdr *);
 static enum mcheck_status
-checkhdr (hdr)
-     const struct hdr *hdr;
+checkhdr (const struct hdr *hdr)
 {
   enum mcheck_status status;
   switch (hdr->magic)
@@ -1933,10 +1787,8 @@ checkhdr (hdr)
   return status;
 }
 
-static void freehook (__ptr_t);
 static void
-freehook (ptr)
-     __ptr_t ptr;
+freehook (void *ptr)
 {
   struct hdr *hdr;
 
@@ -1955,15 +1807,13 @@ freehook (ptr)
   __free_hook = freehook;
 }
 
-static __ptr_t mallochook (__malloc_size_t);
-static __ptr_t
-mallochook (size)
-     __malloc_size_t size;
+static void *
+mallochook (size_t size)
 {
   struct hdr *hdr;
 
   __malloc_hook = old_malloc_hook;
-  hdr = (struct hdr *) malloc (sizeof (struct hdr) + size + 1);
+  hdr = malloc (sizeof (struct hdr) + size + 1);
   __malloc_hook = mallochook;
   if (hdr == NULL)
     return NULL;
@@ -1971,18 +1821,15 @@ mallochook (size)
   hdr->size = size;
   hdr->magic = MAGICWORD;
   ((char *) &hdr[1])[size] = MAGICBYTE;
-  memset ((__ptr_t) (hdr + 1), MALLOCFLOOD, size);
-  return (__ptr_t) (hdr + 1);
+  memset (hdr + 1, MALLOCFLOOD, size);
+  return hdr + 1;
 }
 
-static __ptr_t reallochook (__ptr_t, __malloc_size_t);
-static __ptr_t
-reallochook (ptr, size)
-     __ptr_t ptr;
-     __malloc_size_t size;
+static void *
+reallochook (void *ptr, size_t size)
 {
   struct hdr *hdr = NULL;
-  __malloc_size_t osize = 0;
+  size_t osize = 0;
 
   if (ptr)
     {
@@ -1997,7 +1844,7 @@ reallochook (ptr, size)
   __free_hook = old_free_hook;
   __malloc_hook = old_malloc_hook;
   __realloc_hook = old_realloc_hook;
-  hdr = (struct hdr *) realloc ((__ptr_t) hdr, sizeof (struct hdr) + size + 1);
+  hdr = realloc (hdr, sizeof (struct hdr) + size + 1);
   __free_hook = freehook;
   __malloc_hook = mallochook;
   __realloc_hook = reallochook;
@@ -2009,12 +1856,11 @@ reallochook (ptr, size)
   ((char *) &hdr[1])[size] = MAGICBYTE;
   if (size > osize)
     memset ((char *) (hdr + 1) + osize, MALLOCFLOOD, size - osize);
-  return (__ptr_t) (hdr + 1);
+  return hdr + 1;
 }
 
 static void
-mabort (status)
-     enum mcheck_status status;
+mabort (enum mcheck_status status)
 {
   const char *msg;
   switch (status)
@@ -2047,8 +1893,7 @@ mabort (status)
 static int mcheck_used = 0;
 
 int
-mcheck (func)
-     void (*func) (enum mcheck_status);
+mcheck (void (*func) (enum mcheck_status))
 {
   abortfunc = (func != NULL) ? func : &mabort;
 
@@ -2068,7 +1913,7 @@ mcheck (func)
 }
 
 enum mcheck_status
-mprobe (__ptr_t ptr)
+mprobe (void *ptr)
 {
   return mcheck_used ? checkhdr (ptr) : MCHECK_DISABLED;
 }

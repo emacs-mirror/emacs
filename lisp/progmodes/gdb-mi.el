@@ -459,9 +459,14 @@ Most recent commands are listed first.  This list stores only the last
 `gdb-debug-log-max' values.  This variable is used to debug GDB-MI.")
 
 ;;;###autoload
-(defcustom gdb-enable-debug nil
-  "Non-nil means record the process input and output in `gdb-debug-log'."
-  :type 'boolean
+(define-minor-mode gdb-enable-debug
+  "Toggle logging of transaction between Emacs and Gdb.
+The log is stored in `gdb-debug-log' as an alist with elements
+whose cons is send, send-item or recv and whose cdr is the string
+being transferred.  This list may grow up to a size of
+`gdb-debug-log-max' after which the oldest element (at the end of
+the list) is deleted every time a new one is added (at the front)."
+  :global t
   :group 'gdb
   :version "22.1")
 
@@ -511,21 +516,6 @@ Also display the main routine in the disassembly buffer if present."
 			(process-status (get-buffer-process buffer)) status))
 	  ;; Force mode line redisplay soon.
 	  (force-mode-line-update)))))
-
-(defun gdb-enable-debug (arg)
-  "Toggle logging of transaction between Emacs and Gdb.
-The log is stored in `gdb-debug-log' as an alist with elements
-whose cons is send, send-item or recv and whose cdr is the string
-being transferred.  This list may grow up to a size of
-`gdb-debug-log-max' after which the oldest element (at the end of
-the list) is deleted every time a new one is added (at the front)."
-  (interactive "P")
-  (setq gdb-enable-debug
-	(if (null arg)
-	    (not gdb-enable-debug)
-	  (> (prefix-numeric-value arg) 0)))
-  (message (format "Logging of transaction %sabled"
-		   (if gdb-enable-debug "en" "dis"))))
 
 ;; These two are used for menu and toolbar
 (defun gdb-control-all-threads ()
@@ -603,6 +593,8 @@ NOARG must be t when this macro is used outside `gud-def'"
         (set (make-local-variable 'gud-marker-filter) #'gud-gdb-marker-filter))
       (funcall filter proc string))))
 
+(defvar gdb-control-level 0)
+
 ;;;###autoload
 (defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
@@ -677,6 +669,7 @@ detailed description of this mode.
     (set-process-filter proc #'gdb--check-interpreter))
 
   (set (make-local-variable 'gud-minor-mode) 'gdbmi)
+  (set (make-local-variable 'gdb-control-level) 0)
   (setq comint-input-sender 'gdb-send)
   (when (ring-empty-p comint-input-ring) ; cf shell-mode
     (let ((hfile (expand-file-name (or (getenv "GDBHISTFILE")
@@ -827,7 +820,7 @@ detailed description of this mode.
   (run-hooks 'gdb-mode-hook))
 
 (defun gdb-init-1 ()
-  ;; (re-)initialize
+  ;; (Re-)initialize.
   (setq gdb-selected-frame nil
 	gdb-frame-number nil
         gdb-thread-number nil
@@ -862,8 +855,13 @@ detailed description of this mode.
   (gdb-clear-inferior-io)
   (gdb-inferior-io--init-proc (get-process "gdb-inferior"))
 
-  (if (eq window-system 'w32)
-      (gdb-input "-gdb-set new-console off" 'ignore))
+  (when (eq system-type 'windows-nt)
+    ;; Don't create a separate console window for the debuggee.
+    (gdb-input "-gdb-set new-console off" 'ignore)
+    ;; Force GDB to behave as if its input and output stream were
+    ;; connected to a TTY device (since on Windows we use pipes for
+    ;; communicating with GDB).
+    (gdb-input "-gdb-set interactive-mode on" 'ignore))
   (gdb-input "-gdb-set height 0" 'ignore)
 
   (when gdb-non-stop
@@ -871,7 +869,7 @@ detailed description of this mode.
 
   (gdb-input "-enable-pretty-printing" 'ignore)
 
-  ;; find source file and compilation directory here
+  ;; Find source file and compilation directory here.
   (if gdb-create-source-file-list
       ;; Needs GDB 6.2 onwards.
       (gdb-input "-file-list-exec-source-files" 'gdb-get-source-file-list))
@@ -971,15 +969,17 @@ no input, and GDB is waiting for input."
     (gdb-create-define-alist)
     (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))
 
-(defmacro gdb-if-arrow (arrow-position &rest body)
-  `(if ,arrow-position
-       (let ((buffer (marker-buffer ,arrow-position)) (line))
-         (if (equal buffer (window-buffer (posn-window end)))
-             (with-current-buffer buffer
-               (when (or (equal start end)
-                         (equal (posn-point start)
-                                (marker-position ,arrow-position)))
-                 ,@body))))))
+(defmacro gdb--if-arrow (arrow-position start-posn end-posn &rest body)
+  (declare (indent 3))
+  (let ((buffer (make-symbol "buffer")))
+    `(if ,arrow-position
+         (let ((,buffer (marker-buffer ,arrow-position)))
+           (if (equal ,buffer (window-buffer (posn-window ,end-posn)))
+               (with-current-buffer ,buffer
+                 (when (or (equal ,start-posn ,end-posn)
+                           (equal (posn-point ,start-posn)
+                                  (marker-position ,arrow-position)))
+                   ,@body)))))))
 
 (defun gdb-mouse-until (event)
   "Continue running until a source line past the current line.
@@ -989,15 +989,15 @@ with mouse-1 (default bindings)."
   (interactive "e")
   (let ((start (event-start event))
 	(end (event-end event)))
-    (gdb-if-arrow gud-overlay-arrow-position
-		  (setq line (line-number-at-pos (posn-point end)))
-		  (gud-call (concat "until " (number-to-string line))))
-    (gdb-if-arrow gdb-disassembly-position
-		  (save-excursion
-		    (goto-char (point-min))
-		    (forward-line (1- (line-number-at-pos (posn-point end))))
-		    (forward-char 2)
-		    (gud-call (concat "until *%a"))))))
+    (gdb--if-arrow gud-overlay-arrow-position start end
+      (let ((line (line-number-at-pos (posn-point end))))
+        (gud-call (concat "until " (number-to-string line)))))
+    (gdb--if-arrow gdb-disassembly-position start end
+      (save-excursion
+        (goto-char (point-min))
+        (forward-line (1- (line-number-at-pos (posn-point end))))
+        (forward-char 2)
+        (gud-call (concat "until *%a"))))))
 
 (defun gdb-mouse-jump (event)
   "Set execution address/line.
@@ -1008,19 +1008,17 @@ line, and no execution takes place."
   (interactive "e")
   (let ((start (event-start event))
 	(end (event-end event)))
-    (gdb-if-arrow gud-overlay-arrow-position
-		  (setq line (line-number-at-pos (posn-point end)))
-		  (progn
-		    (gud-call (concat "tbreak " (number-to-string line)))
-		    (gud-call (concat "jump " (number-to-string line)))))
-    (gdb-if-arrow gdb-disassembly-position
-		  (save-excursion
-		    (goto-char (point-min))
-		    (forward-line (1- (line-number-at-pos (posn-point end))))
-		    (forward-char 2)
-		    (progn
-		      (gud-call (concat "tbreak *%a"))
-		      (gud-call (concat "jump *%a")))))))
+    (gdb--if-arrow gud-overlay-arrow-position start end
+      (let ((line (line-number-at-pos (posn-point end))))
+        (gud-call (concat "tbreak " (number-to-string line)))
+        (gud-call (concat "jump " (number-to-string line)))))
+    (gdb--if-arrow gdb-disassembly-position start end
+      (save-excursion
+        (goto-char (point-min))
+        (forward-line (1- (line-number-at-pos (posn-point end))))
+        (forward-char 2)
+        (gud-call (concat "tbreak *%a"))
+        (gud-call (concat "jump *%a"))))))
 
 (defcustom gdb-show-changed-values t
   "If non-nil change the face of out of scope variables and changed values.
@@ -1042,10 +1040,11 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :group 'gdb
   :version "22.2")
 
-(defcustom gdb-speedbar-auto-raise nil
-  "If non-nil raise speedbar every time display of watch expressions is\
- updated."
-  :type 'boolean
+(define-minor-mode gdb-speedbar-auto-raise
+  "Minor mode to automatically raise the speedbar for watch expressions.
+With prefix argument ARG, automatically raise speedbar if ARG is
+positive, otherwise don't automatically raise it."
+  :global t
   :group 'gdb
   :version "22.1")
 
@@ -1054,18 +1053,6 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :type 'boolean
   :group 'gdb
   :version "22.1")
-
-(defun gdb-speedbar-auto-raise (arg)
-  "Toggle automatic raising of the speedbar for watch expressions.
-With prefix argument ARG, automatically raise speedbar if ARG is
-positive, otherwise don't automatically raise it."
-  (interactive "P")
-  (setq gdb-speedbar-auto-raise
-	(if (null arg)
-	    (not gdb-speedbar-auto-raise)
-	  (> (prefix-numeric-value arg) 0)))
-  (message (format "Auto raising %sabled"
-		   (if gdb-speedbar-auto-raise "en" "dis"))))
 
 (define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
 (define-key global-map (vconcat gud-key-prefix "\C-w") 'gud-watch)
@@ -1204,8 +1191,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 (defun gdb-edit-value (_text _token _indent)
   "Assign a value to a variable displayed in the speedbar."
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
-	 (varnum (car var)) (value))
-    (setq value (read-string "New value: "))
+	 (varnum (car var))
+         (value (read-string "New value: ")))
     (gdb-input (concat "-var-assign " varnum " " value)
 	       `(lambda () (gdb-edit-value-handler ,value)))))
 
@@ -1700,6 +1687,16 @@ static char *magick[] = {
   :group 'gdb)
 
 
+(defvar gdb-control-commands-regexp
+  (concat
+   "^\\("
+   "commands\\|if\\|while\\|define\\|document\\|python\\|"
+   "while-stepping\\|stepping\\|ws\\|actions"
+   "\\)\\([[:blank:]]+.*\\)?$")
+  "Regexp matching GDB commands that enter a recursive reading loop.
+As long as GDB is in the recursive reading loop, it does not expect
+commands to be prefixed by \"-interpreter-exec console\".")
+
 (defun gdb-send (proc string)
   "A comint send filter for gdb."
   (with-current-buffer gud-comint-buffer
@@ -1709,11 +1706,15 @@ static char *magick[] = {
   (if (not (string= "" string))
       (setq gdb-last-command string)
     (if gdb-last-command (setq string gdb-last-command)))
-  (if (string-match "^-" string)
-      ;; MI command
+  (if (or (string-match "^-" string)
+	  (> gdb-control-level 0))
+      ;; Either MI command or we are feeding GDB's recursive reading loop.
       (progn
 	(setq gdb-first-done-or-error t)
-	(process-send-string proc (concat string "\n")))
+	(process-send-string proc (concat string "\n"))
+	(if (and (string-match "^end$" string)
+		 (> gdb-control-level 0))
+	    (setq gdb-control-level (1- gdb-control-level))))
     ;; CLI command
     (if (string-match "\\\\$" string)
 	(setq gdb-continuation (concat gdb-continuation string "\n"))
@@ -1724,7 +1725,12 @@ static char *magick[] = {
         (if gdb-enable-debug
             (push (cons 'mi-send to-send) gdb-debug-log))
         (process-send-string proc to-send))
-      (setq gdb-continuation nil))))
+      (if (and (string-match "^end$" string)
+	       (> gdb-control-level 0))
+	  (setq gdb-control-level (1- gdb-control-level)))
+      (setq gdb-continuation nil)))
+  (if (string-match gdb-control-commands-regexp string)
+      (setq gdb-control-level (1+ gdb-control-level))))
 
 (defun gdb-mi-quote (string)
   "Return STRING quoted properly as an MI argument.
@@ -1838,7 +1844,7 @@ is running."
     (setq gud-running
           (string= (bindat-get-field (gdb-current-buffer-thread) 'state)
                    "running"))
-    ;; Set frame number to "0" when _current_ threads stops
+    ;; Set frame number to "0" when _current_ threads stops.
     (when (and (gdb-current-buffer-thread)
                (not (eq gud-running old-value)))
       (setq gdb-frame-number "0"))))
@@ -1906,10 +1912,10 @@ is running."
 	     (> (length gdb-debug-log) gdb-debug-log-max))
 	(setcdr (nthcdr (1- gdb-debug-log-max) gdb-debug-log) nil)))
 
-  ;; Recall the left over gud-marker-acc from last time
+  ;; Recall the left over gud-marker-acc from last time.
   (setq gud-marker-acc (concat gud-marker-acc string))
 
-  ;; Start accumulating output for the GUD buffer
+  ;; Start accumulating output for the GUD buffer.
   (setq gdb-filter-output "")
   (let (output-record-list)
 
@@ -1955,9 +1961,8 @@ is running."
 (defun gdb-gdb (_output-field))
 
 (defun gdb-shell (output-field)
-  (let ((gdb-output-sink gdb-output-sink))
-    (setq gdb-filter-output
-          (concat output-field gdb-filter-output))))
+  (setq gdb-filter-output
+        (concat output-field gdb-filter-output)))
 
 (defun gdb-ignored-notification (_output-field))
 
@@ -2041,14 +2046,15 @@ current thread and update GDB buffers."
 			     (concat " --thread " thread-id)))
 		 'gdb-register-names-handler))
 
-;;; Don't set gud-last-frame here as it's currently done in gdb-frame-handler
-;;; because synchronous GDB doesn't give these fields with CLI.
-;;;     (when file
-;;;       (setq
-;;;        ;; Extract the frame position from the marker.
-;;;        gud-last-frame (cons file
-;;; 			    (string-to-number
-;;; 			     (match-string 6 gud-marker-acc)))))
+    ;; Don't set gud-last-frame here as it's currently done in
+    ;; gdb-frame-handler because synchronous GDB doesn't give these fields
+    ;; with CLI.
+    ;;(when file
+    ;;  (setq
+    ;;   ;; Extract the frame position from the marker.
+    ;;   gud-last-frame (cons file
+    ;;    		    (string-to-number
+    ;;    		     (match-string 6 gud-marker-acc)))))
 
     (setq gdb-inferior-status (or reason "unknown"))
     (gdb-force-mode-line-update
@@ -2332,8 +2338,9 @@ calling `gdb-table-string'."
 (defun gdb-get-many-fields (struct &rest fields)
   "Return a list of FIELDS values from STRUCT."
   (let ((values))
-    (dolist (field fields values)
-      (setq values (append values (list (bindat-get-field struct field)))))))
+    (dolist (field fields)
+      (push (bindat-get-field struct field) values))
+    (nreverse values)))
 
 (defmacro def-gdb-auto-update-trigger (trigger-name gdb-command
                                                     handler-name
@@ -4107,31 +4114,19 @@ window is dedicated."
                              nil win5))
     (select-window win0)))
 
-(defcustom gdb-many-windows nil
+(define-minor-mode gdb-many-windows
   "If nil just pop up the GUD buffer unless `gdb-show-main' is t.
 In this case it starts with two windows: one displaying the GUD
 buffer and the other with the source file with the main routine
 of the debugged program.  Non-nil means display the layout shown for
 `gdb'."
-  :type 'boolean
+  :global t
   :group 'gdb
-  :version "22.1")
-
-(defun gdb-many-windows (arg)
-  "Toggle the number of windows in the basic arrangement.
-With arg, display additional buffers iff arg is positive."
-  (interactive "P")
-  (setq gdb-many-windows
-        (if (null arg)
-            (not gdb-many-windows)
-          (> (prefix-numeric-value arg) 0)))
-  (message (format "Display of other windows %sabled"
-                   (if gdb-many-windows "en" "dis")))
+  :version "22.1"
   (if (and gud-comint-buffer
            (buffer-name gud-comint-buffer))
-      (condition-case nil
-          (gdb-restore-windows)
-        (error nil))))
+      (ignore-errors
+        (gdb-restore-windows))))
 
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdb.

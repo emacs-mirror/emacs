@@ -1,4 +1,4 @@
-;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system
+;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 2005-2012  Free Software Foundation, Inc.
 
@@ -44,7 +44,7 @@
     (error "%s: Loading ns-win.el but not compiled for GNUstep/MacOS"
            (invocation-name)))
 
-(eval-when-compile (require 'cl))       ; lexical-let
+(eval-when-compile (require 'cl))
 
 ;; Documentation-purposes only: actually loaded in loadup.el.
 (require 'frame)
@@ -65,7 +65,7 @@
 ;; nsterm.m.
 (defvar ns-input-file)
 
-(defun ns-handle-nxopen (switch &optional temp)
+(defun ns-handle-nxopen (_switch &optional temp)
   (setq unread-command-events (append unread-command-events
                                       (if temp '(ns-open-temp-file)
                                         '(ns-open-file)))
@@ -74,7 +74,7 @@
 (defun ns-handle-nxopentemp (switch)
   (ns-handle-nxopen switch t))
 
-(defun ns-ignore-1-arg (switch)
+(defun ns-ignore-1-arg (_switch)
   (setq x-invocation-args (cdr x-invocation-args)))
 
 (defun ns-parse-geometry (geom)
@@ -201,21 +201,20 @@ The properties returned may include `top', `left', `height', and `width'."
                 (mapconcat 'identity (cons "ns-service" path) "-")))))
     ;; This defines the function.
     (defalias name
-      (lexical-let ((service service))
-        (lambda (arg)
-          (interactive "p")
-          (let* ((in-string
-                  (cond ((stringp arg) arg)
-                        (mark-active
-                         (buffer-substring (region-beginning) (region-end)))))
-                 (out-string (ns-perform-service service in-string)))
-            (cond
-             ((stringp arg) out-string)
-             ((and out-string (or (not in-string)
-                                  (not (string= in-string out-string))))
-              (if mark-active (delete-region (region-beginning) (region-end)))
-              (insert out-string)
-              (setq deactivate-mark nil)))))))
+      (lambda (arg)
+        (interactive "p")
+        (let* ((in-string
+                (cond ((stringp arg) arg)
+                      (mark-active
+                       (buffer-substring (region-beginning) (region-end)))))
+               (out-string (ns-perform-service service in-string)))
+          (cond
+           ((stringp arg) out-string)
+           ((and out-string (or (not in-string)
+                                (not (string= in-string out-string))))
+            (if mark-active (delete-region (region-beginning) (region-end)))
+            (insert out-string)
+            (setq deactivate-mark nil))))))
     (cond
      ((lookup-key global-map mapping)
       (while (cdr path)
@@ -924,6 +923,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; http://lists.gnu.org/archive/html/emacs-devel/2011-06/msg00505.html
   (ns-set-resource nil "ApplePressAndHoldEnabled" "NO")
 
+  (x-apply-session-resources)
   (setq ns-initialized t))
 
 (add-to-list 'handle-args-function-alist '(ns . x-handle-args))

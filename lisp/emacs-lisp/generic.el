@@ -97,10 +97,11 @@
 ;; Internal Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-obsolete-variable-alias 'generic-font-lock-defaults
+  'generic-font-lock-keywords "22.1")
 (defvar generic-font-lock-keywords nil
   "Keywords for `font-lock-defaults' in a generic mode.")
 (make-variable-buffer-local 'generic-font-lock-keywords)
-(define-obsolete-variable-alias 'generic-font-lock-defaults 'generic-font-lock-keywords "22.1")
 
 ;;;###autoload
 (defvar generic-mode-list nil
@@ -150,7 +151,8 @@ mode hook `MODE-hook'.
 See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
 			[&optional stringp] &rest [keywordp form]))
-	   (indent 1))
+	   (indent 1)
+           (doc-string 7))
 
   ;; Backward compatibility.
   (when (eq (car-safe mode) 'quote)

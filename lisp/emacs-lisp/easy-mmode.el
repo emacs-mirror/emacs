@@ -142,7 +142,8 @@ For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
     :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
     ...BODY CODE...)"
-  (declare (debug (&define name stringp
+  (declare (doc-string 2)
+           (debug (&define name stringp
 			   [&optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp]
@@ -335,7 +336,7 @@ enabled, then disabling and reenabling MODE should make MODE work
 correctly with the current major mode.  This is important to
 prevent problems with derived modes, that is, major modes that
 call another major mode in their body."
-
+  (declare (doc-string 2))
   (let* ((global-mode-name (symbol-name global-mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode))
 	 (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
@@ -572,8 +573,6 @@ BODY is executed after moving to the destination location."
                  (when was-narrowed (,narrowfun)))))))
     (unless name (setq name base-name))
     `(progn
-       (add-to-list 'debug-ignored-errors
-		    ,(concat "^No \\(previous\\|next\\) " (regexp-quote name)))
        (defun ,next-sym (&optional count)
 	 ,(format "Go to the next COUNT'th %s." name)
 	 (interactive "p")
@@ -584,7 +583,7 @@ BODY is executed after moving to the destination location."
              `(if (not (re-search-forward ,re nil t count))
                   (if (looking-at ,re)
                       (goto-char (or ,(if endfun `(,endfun)) (point-max)))
-                    (error "No next %s" ,name))
+                    (user-error "No next %s" ,name))
                 (goto-char (match-beginning 0))
                 (when (and (eq (current-buffer) (window-buffer (selected-window)))
                            (called-interactively-p 'interactive))
@@ -603,7 +602,7 @@ BODY is executed after moving to the destination location."
 	 (if (< count 0) (,next-sym (- count))
            ,(funcall when-narrowed
              `(unless (re-search-backward ,re nil t count)
-                (error "No previous %s" ,name)))
+                (user-error "No previous %s" ,name)))
            ,@body))
        (put ',prev-sym 'definition-name ',base))))
 

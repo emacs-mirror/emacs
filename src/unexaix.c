@@ -78,13 +78,13 @@ static long data_scnptr;
 static long load_scnptr;
 static long orig_load_scnptr;
 static long orig_data_scnptr;
-static int unrelocate_symbols (int, int, char *, char *);
+static int unrelocate_symbols (int, int, const char *, const char *);
 
 #ifndef MAX_SECTIONS
 #define MAX_SECTIONS	10
 #endif
 
-static int adjust_lnnoptrs (int, int, char *);
+static int adjust_lnnoptrs (int, int, const char *);
 
 static int pagemask;
 
@@ -92,7 +92,7 @@ static int pagemask;
 #include "lisp.h"
 
 static void
-report_error (char *file, int fd)
+report_error (const char *file, int fd)
 {
   if (fd)
     close (fd);
@@ -104,16 +104,16 @@ report_error (char *file, int fd)
 #define ERROR2(msg,x,y) report_error_1 (new, msg, x, y); return -1
 
 static void
-report_error_1 (int fd, char *msg, int a1, int a2)
+report_error_1 (int fd, const char *msg, int a1, int a2)
 {
   close (fd);
   error (msg, a1, a2);
 }
 
-static int make_hdr (int, int, unsigned, unsigned, unsigned, char *, char *);
-static void mark_x (char *);
+static int make_hdr (int, int, const char *, const char *);
+static void mark_x (const char *);
 static int copy_text_and_data (int);
-static int copy_sym (int, int, char *, char *);
+static int copy_sym (int, int, const char *, const char *);
 static void write_segment (int, char *, char *);
 
 /* ****************************************************************
@@ -159,7 +159,7 @@ unexec (const char *new_name, const char *a_name)
  */
 static int
 make_hdr (int new, int a_out,
-	  char *a_name, char *new_name)
+	  const char *a_name, const char *new_name)
 {
   int scns;
   unsigned int bss_start;
@@ -429,7 +429,7 @@ write_segment (int new, char *ptr, char *end)
  * Copy the relocation information and symbol table from the a.out to the new
  */
 static int
-copy_sym (int new, int a_out, char *a_name, char *new_name)
+copy_sym (int new, int a_out, const char *a_name, const char *new_name)
 {
   char page[UnexBlockSz];
   int n;
@@ -465,7 +465,7 @@ copy_sym (int new, int a_out, char *a_name, char *new_name)
  * After successfully building the new a.out, mark it executable
  */
 static void
-mark_x (char *name)
+mark_x (const char *name)
 {
   struct stat sbuf;
   int um;
@@ -483,7 +483,7 @@ mark_x (char *name)
 }
 
 static int
-adjust_lnnoptrs (int writedesc, int readdesc, char *new_name)
+adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
 {
   int nsyms;
   int naux;
@@ -530,7 +530,8 @@ adjust_lnnoptrs (int writedesc, int readdesc, char *new_name)
 }
 
 static int
-unrelocate_symbols (int new, int a_out, char *a_name, char *new_name)
+unrelocate_symbols (int new, int a_out,
+		    const char *a_name, const char *new_name)
 {
   int i;
   LDHDR ldhdr;

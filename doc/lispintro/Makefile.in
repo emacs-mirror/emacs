@@ -26,6 +26,12 @@ infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
+MKDIR_P = @MKDIR_P@
+
+INFO_EXT=@INFO_EXT@
+# Options used only when making info output.
+INFO_OPTS=@INFO_OPTS@
+
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I $(srcdir)
 TEXI2DVI = texi2dvi
@@ -35,11 +41,11 @@ DVIPS = dvips
 ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
-mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @${MKDIR_P} ${infodir}
 
 .PHONY: info dvi html pdf ps
 
-info: ${infodir}/eintr
+info: ${infodir}/eintr$(INFO_EXT)
 
 dvi: emacs-lisp-intro.dvi
 html: emacs-lisp-intro.html
@@ -49,9 +55,9 @@ ps: emacs-lisp-intro.ps
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
 # Note: "<" is not portable in ordinary make rules.
-${infodir}/eintr: ${srcdir}/emacs-lisp-intro.texi
+${infodir}/eintr$(INFO_EXT): ${srcdir}/emacs-lisp-intro.texi
 	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
 
 emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-lisp-intro.texi
@@ -79,7 +85,7 @@ clean: mostlyclean
 distclean: clean
 
 infoclean:
-	-cd $(infodir) && rm -f eintr eintr-[1-9]
+	-cd $(infodir) && rm -f eintr$(INFO_EXT) eintr$(INFO_EXT)-[1-9]
 
 maintainer-clean: distclean infoclean
 

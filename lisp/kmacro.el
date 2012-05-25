@@ -625,8 +625,10 @@ for details on how to adjust or disable this behavior.
 To make a macro permanent so you can call it even after defining
 others, use \\[kmacro-name-last-macro]."
   (interactive "p")
-  (let ((repeat-key (and (null no-repeat)
-			 (> (length (this-single-command-keys)) 1)
+  (let ((repeat-key (and (or (and (null no-repeat)
+                                  (> (length (this-single-command-keys)) 1))
+                             ;; Used when we're in the process of repeating.
+                             (eq no-repeat 'repeating))
 			 last-input-event))
 	repeat-key-str)
     (if end-macro
@@ -640,24 +642,16 @@ others, use \\[kmacro-name-last-macro]."
 			 repeat-key
 		       kmacro-call-repeat-key)))
       (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
-      (while repeat-key
-	;; Issue a hint to the user, if the echo area isn't in use.
-	(unless (current-message)
-	  (message "(Type %s to repeat macro%s)"
-		   repeat-key-str
-		   (if (and kmacro-call-repeat-with-arg
-			    arg (> arg 1))
-		       (format " %d times" arg) "")))
-	(if (equal repeat-key (read-event))
-	    (progn
-	      (clear-this-command-keys t)
-	      (call-last-kbd-macro (and kmacro-call-repeat-with-arg arg)
-				   #'kmacro-loop-setup-function)
-	      (setq last-input-event nil))
-	  (setq repeat-key nil)))
-      (when last-input-event
-	(clear-this-command-keys t)
-	(setq unread-command-events (list last-input-event))))))
+      ;; Can't use the `keep-pred' arg because this overlay keymap needs to be
+      ;; removed during the next run of the kmacro (i.e. we need to add&remove
+      ;; this overlay-map at each repetition).
+      (set-temporary-overlay-map
+       (let ((map (make-sparse-keymap)))
+         (define-key map (vector repeat-key)
+           `(lambda () (interactive)
+              (kmacro-call-macro ,(and kmacro-call-repeat-with-arg arg)
+                                 'repeating)))
+         map)))))
 
 
 ;;; Combined function key bindings:

@@ -1,6 +1,6 @@
 #### -*- Makefile -*- for the Emacs Manual
 
-# Copyright (C) 2003-2012  Free Software Foundation, Inc.
+# Copyright (C) 2003-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -30,7 +30,9 @@ infodir = $(srcdir)/../../info
 MAKEINFO = makeinfo
 MAKEINFO_OPTS = --force --enable-encoding -I$(srcdir)
 MULTI_INSTALL_INFO = $(srcdir)\..\..\nt\multi-install-info.bat
-INFO_TARGETS = $(infodir)/emacs
+INFO_EXT=.info
+INFO_OPTS=--no-split
+INFO_TARGETS = $(infodir)/emacs$(INFO_EXT)
 DVI_TARGETS = 	emacs.dvi
 INFOSOURCES = info.texi
 
@@ -114,8 +116,8 @@ dvi: $(DVI_TARGETS)
 $(infodir)/dir:
 	$(MULTI_INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
 
-$(infodir)/emacs: $(EMACSSOURCES)
-	$(MAKEINFO) $(MAKEINFO_OPTS) emacs.texi
+$(infodir)/emacs$(INFO_EXT): $(EMACSSOURCES)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ emacs.texi
 
 emacs.dvi: $(EMACSSOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs.texi
@@ -129,6 +131,7 @@ emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
+## FIXME $(infodir)/emacs* deletes too much, eg emacs-mime.
 clean: mostlyclean
 	- $(DEL) *.dvi
 	- $(DEL) $(infodir)/emacs*

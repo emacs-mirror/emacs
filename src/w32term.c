@@ -231,6 +231,10 @@ static void my_set_focus (struct frame *, HWND);
 static void my_set_foreground_window (HWND);
 static void my_destroy_window (struct frame *, HWND);
 
+#if GLYPH_DEBUG
+static void x_check_font (struct frame *, struct font *);
+#endif
+
 static Lisp_Object Qvendor_specific_keysyms;
 
 
@@ -5903,6 +5907,27 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
   XSetWMHints (FRAME_X_DISPLAY (f), window, &f->display.x->wm_hints);
 #endif
 }
+
+
+/***********************************************************************
+				Fonts
+ ***********************************************************************/
+
+#if GLYPH_DEBUG
+
+/* Check that FONT is valid on frame F.  It is if it can be found in F's
+   font table.  */
+
+static void
+x_check_font (struct frame *f, struct font *font)
+{
+  xassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
+  if (font->driver->check)
+    xassert (font->driver->check (f, font) == 0);
+}
+
+#endif /* GLYPH_DEBUG != 0 */
+
 
 
 /***********************************************************************

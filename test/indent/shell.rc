@@ -1,7 +1,10 @@
 #!/bin/rc
 
 if (foo) {
-    echo 1
+    echo 1 \
+         toto \
+         tutu
+    titi
 }
 if not {
     echo 2
@@ -23,6 +26,10 @@ switch ($a) {
         for (i in a b c)
             echo "$i"           # KNOWN INDENT BUG
         echo titi
+        if (foo)
+            echo 3		# KNOWN INDENT BUG
+        if not
+            echo 4		# KNOWN INDENT BUG
 
     case *
 	echo other

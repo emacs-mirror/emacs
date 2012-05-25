@@ -1,3 +1,33 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* CPP-DEFINES: Do not mention src/m/*.h.
+	(BITS_PER_EMACS_INT, BITS_PER_LONG, BITS_PER_CHAR)
+	(BITS_PER_SHORT, BITS_PER_INT): Remove.
+	* MAINTAINERS: Remove src/m/.
+
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use full name for m4/gnulib-comp.m4.  (Bug#11529)
+	* merge-gnulib: Leave m4/gnulib-comp.m4's name alone.
+
+	Assume C89 or later.
+	* CPP-DEFINES: Remove NULL, const.
+
+	Make merging from gnulib a script, not a makefile action.
+	* merge-gnulib: New script, with actions moved here from
+	../Makefile.in.
+
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* CPP-DEFINES (HAVE_GETDOMAINNAME): Remove.
+
+	* CPP-DEFINES (HAVE_FTIME): Remove.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-skip-regexp): Add "Auto-commit".
+
 2012-04-10  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-skip-regexp): Add "from trunk".
@@ -1262,7 +1292,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

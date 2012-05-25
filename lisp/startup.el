@@ -41,7 +41,7 @@
 (defcustom initial-buffer-choice nil
   "Buffer to show after starting Emacs.
 If the value is nil and `inhibit-startup-screen' is nil, show the
-startup screen.  If the value is string, visit the specified file
+startup screen.  If the value is a string, visit the specified file
 or directory using `find-file'.  If t, open the `*scratch*'
 buffer."
   :type '(choice
@@ -905,33 +905,12 @@ Amongst another things, it parses the command-line arguments."
 
   (run-hooks 'before-init-hook)
 
-  ;; Under X, this creates the X frame and deletes the terminal frame.
+  ;; Under X, create the X frame and delete the terminal frame.
   (unless (daemonp)
-
-    ;; If X resources are available, use them to initialize the values
-    ;; of `tool-bar-mode' and `menu-bar-mode', as well as the value of
-    ;; `no-blinking-cursor' and the `cursor' face.
-    (cond
-     ((or noninteractive emacs-basic-display)
-      (setq menu-bar-mode nil
-	    tool-bar-mode nil
-	    no-blinking-cursor t))
-     ((memq initial-window-system '(x w32 ns))
-      (let ((no-vals  '("no" "off" "false" "0")))
-	(if (member (x-get-resource "menuBar" "MenuBar") no-vals)
-	    (setq menu-bar-mode nil))
-	(if (member (x-get-resource "toolBar" "ToolBar") no-vals)
-	    (setq tool-bar-mode nil))
-	(if (member (x-get-resource "cursorBlink" "CursorBlink")
-		    no-vals)
-	    (setq no-blinking-cursor t)))
-      ;; If the cursorColor X resource exists, alter the `cursor' face
-      ;; spec, but mark it as changed outside of Customize.
-      (let ((color (x-get-resource "cursorColor" "Foreground")))
-	(when color
-	  (put 'cursor 'theme-face
-	       `((changed ((t :background ,color)))))
-	  (put 'cursor 'face-modified t)))))
+    (if (or noninteractive emacs-basic-display)
+	(setq menu-bar-mode nil
+	      tool-bar-mode nil
+	      no-blinking-cursor t))
     (frame-initialize))
 
   (when (fboundp 'x-create-frame)
@@ -1265,6 +1244,29 @@ the `--debug-init' option to view a complete error backtrace."
            (stringp x-session-previous-id))
       (with-no-warnings
 	(emacs-session-restore x-session-previous-id))))
+
+(defun x-apply-session-resources ()
+  "Apply X resources which specify initial values for Emacs variables.
+This is called from a window-system initialization function, such
+as `x-initialize-window-system' for X, either at startup (prior
+to reading the init file), or afterwards when the user first
+opens a graphical frame.
+
+This can set the values of `menu-bar-mode', `tool-bar-mode', and
+`no-blinking-cursor', as well as the `cursor' face.  Changed
+settings will be marked as \"CHANGED outside of Customize\"."
+  (let ((no-vals  '("no" "off" "false" "0"))
+	(settings '(("menuBar" "MenuBar" menu-bar-mode nil)
+		    ("toolBar" "ToolBar" tool-bar-mode nil)
+		    ("cursorBlink" "CursorBlink" no-blinking-cursor t))))
+    (dolist (x settings)
+      (if (member (x-get-resource (nth 0 x) (nth 1 x)) no-vals)
+	  (set (nth 2 x) (nth 3 x)))))
+  (let ((color (x-get-resource "cursorColor" "Foreground")))
+    (when color
+      (put 'cursor 'theme-face
+	   `((changed ((t :background ,color)))))
+      (put 'cursor 'face-modified t))))
 
 (defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.

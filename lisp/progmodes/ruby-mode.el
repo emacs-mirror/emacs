@@ -784,7 +784,7 @@ and `\\' when preceded by `?'."
                       (not (looking-at "[a-z_]"))))
                (and (looking-at ruby-operator-re)
                     (not (ruby-special-char-p))
-                    ;; operator at the end of line
+                    ;; Operator at the end of line.
                     (let ((c (char-after (point))))
                       (and
 ;;                     (or (null begin)
@@ -794,8 +794,9 @@ and `\\' when preceded by `?'."
 ;;                           (not (or (eolp) (looking-at "#")
 ;;                                    (and (eq (car (nth 1 state)) ?{)
 ;;                                         (looking-at "|"))))))
-                       (or (not (eq ?/ c))
-                           (null (nth 0 (ruby-parse-region (or begin parse-start) (point)))))
+                       ;; Not a regexp or general delimited literal.
+                       (null (nth 0 (ruby-parse-region (or begin parse-start)
+                                                       (point))))
                        (or (not (eq ?| (char-after (point))))
                            (save-excursion
                              (or (eolp) (forward-char -1))
@@ -1110,6 +1111,8 @@ See `add-log-current-defun-function'."
             mlist)))))
 
 (declare-function ruby-syntax-propertize-heredoc "ruby-mode" (limit))
+(declare-function ruby-syntax-general-delimiters-goto-beg "ruby-mode" ())
+(declare-function ruby-syntax-propertize-general-delimiters "ruby-mode" (limit))
 
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.
@@ -1118,26 +1121,48 @@ See `add-log-current-defun-function'."
         "Syntactic keywords for Ruby mode.  See `syntax-propertize-function'."
         (goto-char start)
         (ruby-syntax-propertize-heredoc end)
+        (ruby-syntax-general-delimiters-goto-beg)
         (funcall
          (syntax-propertize-rules
-          ;; #{ }, #$hoge, #@foo are not comments
+          ;; #{ }, #$hoge, #@foo are not comments.
           ("\\(#\\)[{$@]" (1 "."))
-          ;; $' $" $` .... are variables
-          ;; ?' ?" ?` are ascii codes
+          ;; $' $" $` .... are variables.
+          ;; ?' ?" ?` are ascii codes.
           ("\\([?$]\\)[#\"'`]"
            (1 (unless (save-excursion
                         ;; Not within a string.
                         (nth 3 (syntax-ppss (match-beginning 0))))
                 (string-to-syntax "\\"))))
-          ;; regexps
-          ("\\(^\\|[[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
-           (4 "\"/")
-           (6 "\"/"))
+          ;; Regexps: regexps are distinguished from division either because
+          ;; of the keyword/symbol before them, or because of the code
+          ;; following them.
+          ((concat
+            ;; Special tokens that can't be followed by a division operator.
+            "\\(?:\\(^\\|[[=(,~?:;<>]\\|\\(?:^\\|\\s \\)"
+            (regexp-opt '("if" "elsif" "unless" "while" "until" "when" "and"
+                          "or" "&&" "||"
+                          "gsub" "gsub!" "sub" "sub!" "scan" "split" "split!"))
+            "\\)\\s *\\)?"
+            ;; The regular expression itself.
+            "\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)"
+            ;; Special code that cannot follow a division operator.
+            ;; FIXME: Just because the second slash of "/foo/ do bar" can't
+            ;; be a division, doesn't mean it can't *start* a regexp, as in
+            ;; "x = toto/foo; if /do bar/".
+            "\\([imxo]*\\s *\\(?:,\\|\\_<do\\_>\\)\\)?")
+           (2 (when (or (match-beginning 1) (match-beginning 4))
+                (string-to-syntax "\"/")))
+           (3 (if (or (match-beginning 1) (match-beginning 4))
+                  (string-to-syntax "\"/")
+                (goto-char (match-end 2)))))
           ("^=en\\(d\\)\\_>" (1 "!"))
           ("^\\(=\\)begin\\_>" (1 "!"))
           ;; Handle here documents.
           ((concat ruby-here-doc-beg-re ".*\\(\n\\)")
-           (7 (prog1 "\"" (ruby-syntax-propertize-heredoc end)))))
+           (7 (prog1 "\"" (ruby-syntax-propertize-heredoc end))))
+          ;; Handle percent literals: %w(), %q{}, etc.
+          ("\\(?:^\\|[[ \t\n<+(,=]\\)\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
+           (1 (prog1 "|" (ruby-syntax-propertize-general-delimiters end)))))
          (point) end))
 
       (defun ruby-syntax-propertize-heredoc (limit)
@@ -1163,6 +1188,41 @@ See `add-log-current-defun-function'."
               ;; Make extra sure we don't move back, lest we could fall into an
               ;; inf-loop.
               (if (< (point) start) (goto-char start))))))
+
+      (defun ruby-syntax-general-delimiters-goto-beg ()
+        (let ((state (syntax-ppss)))
+          ;; Move to the start of the literal, in case it's multiline.
+          ;; TODO: determine the literal type more reliably here?
+          (when (eq t (nth 3 state))
+            (goto-char (nth 8 state))
+            (beginning-of-line))))
+
+      (defun ruby-syntax-propertize-general-delimiters (limit)
+        (goto-char (match-beginning 2))
+        (let* ((op (char-after))
+               (ops (char-to-string op))
+               (cl (or (cdr (aref (syntax-table) op))
+                       (cdr (assoc op '((?< . ?>))))))
+               parse-sexp-lookup-properties)
+          (ignore-errors
+            (if cl
+                (progn  ; Paired delimiters.
+                  ;; Delimiter pairs of the same kind can be nested
+                  ;; inside the literal, as long as they are balanced.
+                  ;; Create syntax table that ignores other characters.
+                  (with-syntax-table (make-char-table 'syntax-table nil)
+                    (modify-syntax-entry op (concat "(" (char-to-string cl)))
+                    (modify-syntax-entry cl (concat ")" ops))
+                    (modify-syntax-entry ?\\ "\\")
+                    (save-restriction
+                      (narrow-to-region (point) limit)
+                      (forward-list))))  ; skip to the paired character
+              ;; Single character delimiter.
+              (re-search-forward (concat "[^\\]\\(?:\\\\\\\\\\)*"
+                                         (regexp-quote ops)) limit nil))
+            ;; If we reached here, the closing delimiter was found.
+            (put-text-property (1- (point)) (point)
+                               'syntax-table (string-to-syntax "|")))))
       )
 
   ;; For Emacsen where syntax-propertize-rules is not (yet) available,
@@ -1207,6 +1267,10 @@ This should only be called after matching against `ruby-here-doc-end-re'."
      (4 (7 . ?/))
      (6 (7 . ?/)))
     ("^=en\\(d\\)\\_>" 1 "!")
+    ;; General delimited string.
+    ("\\(^\\|[[ \t\n<+(,=]\\)\\(%[xrqQwW]?\\([^<[{(a-zA-Z0-9 \n]\\)[^\n\\\\]*\\(\\\\.[^\n\\\\]*\\)*\\(\\3\\)\\)"
+     (3 "\"")
+     (5 "\""))
     ("^\\(=\\)begin\\_>" 1 (ruby-comment-beg-syntax))
     ;; Currently, the following case is highlighted incorrectly:
     ;;
@@ -1415,9 +1479,6 @@ See `font-lock-syntax-table'.")
      1 font-lock-variable-name-face)
    '("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
-   ;; general delimited string
-   '("\\(^\\|[[ \t\n<+(,=]\\)\\(%[xrqQwW]?\\([^<[{(a-zA-Z0-9 \n]\\)[^\n\\\\]*\\(\\\\.[^\n\\\\]*\\)*\\(\\3\\)\\)"
-     (2 font-lock-string-face))
    ;; constants
    '("\\(^\\|[^_]\\)\\b\\([A-Z]+\\(\\w\\|_\\)*\\)"
      2 font-lock-type-face)

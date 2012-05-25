@@ -338,11 +338,18 @@ ns_init_paths (void)
 /*NSLog (@"loadPath: '%@'\n", resourcePaths); */
     }
 
+  /* Normally, Emacs does not add its own bin/ directory to the PATH.
+     However, a self-contained NS build has a different layout, with
+     bin/ and libexec/ subdirectories in the directory that contains
+     Emacs.app itself.
+     We put libexec first, because init_callproc_1 uses the first
+     element to initialize exec-directory.  An alternative would be
+     for init_callproc to check for invocation-directory/libexec.  */
   if (!getenv ("EMACSPATH"))
     {
       NSArray *paths = [binDir stringsByAppendingPaths:
-                                  [NSArray arrayWithObjects: @"bin",
-                                                             @"lib-exec", nil]];
+                                  [NSArray arrayWithObjects: @"libexec",
+                                                             @"bin", nil]];
       NSEnumerator *pathEnum = [paths objectEnumerator];
       resourcePaths = @"";
       while (resourcePath = [pathEnum nextObject])

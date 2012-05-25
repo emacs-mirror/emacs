@@ -1,4 +1,4 @@
-;;; repeat.el --- convenient way to repeat the previous command
+;;; repeat.el --- convenient way to repeat the previous command  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998, 2001-2012 Free Software Foundation, Inc.
 
@@ -156,15 +156,6 @@ member of that sequence.  If this variable is nil, no re-execution occurs."
 ;; `repeat' now repeats that command instead of `real-last-command' to
 ;; avoid a "... must be bound to an event with parameters" error.
 
-(defvar repeat-last-self-insert nil
-  "If last repeated command was `self-insert-command', it inserted this.")
-
-;; That'll require another keystroke count so we know we're in a string of
-;; repetitions of self-insert commands:
-
-(defvar repeat-num-input-keys-at-self-insert -1
-  "# key sequences read in Emacs session when `self-insert-command' repeated.")
-
 ;;;;; *************** ANALOGOUS HACKS TO `repeat' ITSELF **************** ;;;;;
 
 ;; That mechanism of checking num-input-keys to figure out what's really
@@ -198,14 +189,6 @@ this function is always whether the value of `this-command' would've been
 
 (defvar repeat-previous-repeated-command nil
   "The previous repeated command.")
-
-;; The following variable counts repeated self-insertions.  The idea is
-;; that repeating a self-insertion command and subsequently undoing it
-;; should have almost the same effect as if the characters were inserted
-;; manually.  The basic difference is that we leave in one undo-boundary
-;; between the original insertion and its first repetition.
-(defvar repeat-undo-count nil
-  "Number of self-insertions since last `undo-boundary'.")
 
 ;;;###autoload
 (defun repeat (repeat-arg)
@@ -254,7 +237,7 @@ recently executed command not bound to an input event\"."
   (let ((repeat-repeat-char
          (if (eq repeat-on-final-keystroke t)
 	     last-command-event
-           ;; allow only specified final keystrokes
+           ;; Allow only specified final keystrokes.
            (car (memq last-command-event
                       (listify-key-sequence
                        repeat-on-final-keystroke))))))
@@ -269,90 +252,45 @@ recently executed command not bound to an input event\"."
         (setq current-prefix-arg repeat-arg)
         (repeat-message
 	 "Repeating command %S %S" repeat-arg last-repeatable-command))
-      (if (eq last-repeatable-command 'self-insert-command)
-          (let ((insertion
-                 (if (<= (- num-input-keys
-                            repeat-num-input-keys-at-self-insert)
-                         1)
-                     repeat-last-self-insert
-                   (let ((range (nth 1 buffer-undo-list)))
-                     (condition-case nil
-                         (setq repeat-last-self-insert
-                               (buffer-substring (car range)
-                                                 (cdr range)))
-                       (error (error "%s %s %s" ;Danger, Will Robinson!
-                                     "repeat can't intuit what you"
-                                     "inserted before auto-fill"
-                                     "clobbered it, sorry")))))))
-            (setq repeat-num-input-keys-at-self-insert num-input-keys)
-	    ;; If the self-insert had a repeat count, INSERTION
-	    ;; includes that many copies of the same character.
-	    ;; So use just the first character
-	    ;; and repeat it the right number of times.
-	    (setq insertion (substring insertion -1))
-	    (let ((count (prefix-numeric-value repeat-arg))
-		  (i 0))
-	      ;; Run pre- and post-command hooks for self-insertion too.
-	      (run-hooks 'pre-command-hook)
-	      (cond
-	       ((not repeat-undo-count))
-	       ((< repeat-undo-count 20)
-		;; Don't make an undo-boundary here.
-		(setq repeat-undo-count (1+ repeat-undo-count)))
-	       (t
-		;; Make an undo-boundary after 20 repetitions only.
-		(undo-boundary)
-		(setq repeat-undo-count 1)))
-	      (while (< i count)
-		(repeat-self-insert insertion)
-		(setq i (1+ i)))
-	      (run-hooks 'post-command-hook)))
-	(let ((indirect (indirect-function last-repeatable-command)))
-	  ;; Make each repetition undo separately.
-	  (undo-boundary)
-	  (if (or (stringp indirect)
-		  (vectorp indirect))
-	      ;; Bind real-last-command so that executing the macro does
-	      ;; not alter it.  Do the same for last-repeatable-command.
-	      (let ((real-last-command real-last-command)
-		    (last-repeatable-command last-repeatable-command))
-		(execute-kbd-macro last-repeatable-command))
-            (run-hooks 'pre-command-hook)
-	    (call-interactively last-repeatable-command)
-            (run-hooks 'post-command-hook)))))
+      (when (eq last-repeatable-command 'self-insert-command)
+        ;; We used to use a much more complex code to try and figure out
+        ;; what key was used to run that self-insert-command:
+        ;; (if (<= (- num-input-keys
+        ;;            repeat-num-input-keys-at-self-insert)
+        ;;         1)
+        ;;     repeat-last-self-insert
+        ;;   (let ((range (nth 1 buffer-undo-list)))
+        ;;     (condition-case nil
+        ;;         (setq repeat-last-self-insert
+        ;;               (buffer-substring (car range)
+        ;;                                 (cdr range)))
+        ;;       (error (error "%s %s %s"  ;Danger, Will Robinson!
+        ;;                     "repeat can't intuit what you"
+        ;;                     "inserted before auto-fill"
+        ;;                     "clobbered it, sorry")))))
+        (setq last-command-event (char-before)))
+      (let ((indirect (indirect-function last-repeatable-command)))
+        (if (or (stringp indirect)
+                (vectorp indirect))
+            ;; Bind last-repeatable-command so that executing the macro does
+            ;; not alter it.
+            (let ((last-repeatable-command last-repeatable-command))
+              (execute-kbd-macro last-repeatable-command))
+          (call-interactively last-repeatable-command))))
     (when repeat-repeat-char
-      ;; A simple recursion here gets into trouble with max-lisp-eval-depth
-      ;; on long sequences of repetitions of a command like `forward-word'
-      ;; (only 32 repetitions are possible given the default value of 200 for
-      ;; max-lisp-eval-depth), but if I now locally disable the repeat char I
-      ;; can iterate indefinitely here around a single level of recursion.
-      (let (repeat-on-final-keystroke
-	    ;; Bind `undo-inhibit-record-point' to t in order to avoid
-	    ;; recording point in `buffer-undo-list' here.  We have to
-	    ;; do this since the command loop does not set the last
-	    ;; position of point thus confusing the point recording
-	    ;; mechanism when inserting or deleting text.
-	    (undo-inhibit-record-point t))
-	(setq real-last-command 'repeat)
-	(setq repeat-undo-count 1)
-	(unwind-protect
-	    (while (let ((evt (read-key)))
-                     ;; For clicks, we need to strip the meta-data to
-                     ;; check the underlying event name.
-                     (eq (or (car-safe evt) evt)
-                         (or (car-safe repeat-repeat-char)
-                             repeat-repeat-char)))
-	      (repeat repeat-arg))
-	  ;; Make sure `repeat-undo-count' is reset.
-	  (setq repeat-undo-count nil))
-        (setq unread-command-events (list last-input-event))))))
-
-(defun repeat-self-insert (string)
-  (let ((i 0))
-    (while (< i (length string))
-      (let ((last-command-event (aref string i)))
-	(self-insert-command 1))
-      (setq i (1+ i)))))
+      (set-temporary-overlay-map
+       (let ((map (make-sparse-keymap)))
+         (define-key map (vector repeat-repeat-char)
+           (if (null repeat-message-function) 'repeat
+             ;; If repeat-message-function is let-bound, preserve it for the
+             ;; next "iterations of the loop".
+             (let ((fun repeat-message-function))
+               (lambda ()
+                 (interactive)
+                 (let ((repeat-message-function fun))
+                   (setq this-command 'repeat)
+                   (call-interactively 'repeat))))))
+         map)))))
 
 (defun repeat-message (format &rest args)
   "Like `message' but displays with `repeat-message-function' if non-nil."

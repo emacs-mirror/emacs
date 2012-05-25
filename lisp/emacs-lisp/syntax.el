@@ -1,4 +1,4 @@
-;;; syntax.el --- helper functions to find syntactic context
+;;; syntax.el --- helper functions to find syntactic context  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
@@ -274,13 +274,12 @@ Note: back-references in REGEXPs do not work."
   "Propertize for syntax in START..END using font-lock syntax.
 KEYWORDS obeys the format used in `font-lock-syntactic-keywords'.
 The return value is a function suitable for `syntax-propertize-function'."
-  (lexical-let ((keywords keywords))
-    (lambda (start end)
-      (with-no-warnings
-        (let ((font-lock-syntactic-keywords keywords))
-          (font-lock-fontify-syntactic-keywords-region start end)
-          ;; In case it was eval'd/compiled.
-          (setq keywords font-lock-syntactic-keywords))))))
+  (lambda (start end)
+    (with-no-warnings
+      (let ((font-lock-syntactic-keywords keywords))
+        (font-lock-fontify-syntactic-keywords-region start end)
+        ;; In case it was eval'd/compiled.
+        (setq keywords font-lock-syntactic-keywords)))))
 
 (defun syntax-propertize (pos)
   "Ensure that syntax-table properties are set until POS."

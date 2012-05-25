@@ -829,6 +829,7 @@ The environment marked is the one that contains point or follows point."
     st)
   "Syntax table used in Metafont or MetaPost mode.")
 
+(define-obsolete-variable-alias 'meta-mode-map 'meta-common-mode-map "24.1")
 (defvar meta-common-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Comment Paragraphs:
@@ -858,7 +859,6 @@ The environment marked is the one that contains point or follows point."
     ;; (define-key map "\C-c\C-l"  'meta-recenter-output)
     map)
   "Keymap used in Metafont or MetaPost mode.")
-(define-obsolete-variable-alias 'meta-mode-map 'meta-common-mode-map "24.1")
 
 (easy-menu-define
  meta-mode-menu meta-common-mode-map

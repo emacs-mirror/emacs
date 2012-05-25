@@ -1,5 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000-2012  Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -243,9 +243,9 @@ update-subdirs-CMD: doit
 	echo ;; End:>> $(lisp)/subdirs.el
 
 update-subdirs-SH: doit
-	$(srcdir)/update-subdirs $(lisp); \
+	$(srcdir)/build-aux/update-subdirs $(lisp); \
 	for file in $(WINS_SUBDIR); do \
-	   $(srcdir)/update-subdirs $$file; \
+	   $(srcdir)/build-aux/update-subdirs $$file; \
 	done;
 
 updates: update-subdirs autoloads mh-autoloads finder-data custom-deps

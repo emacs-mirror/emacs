@@ -861,7 +861,7 @@ you said `no'.
 @chapter Long Example
 
 The following example exploits most of the features of Forms mode.
-This example is included in the distribution as file @file{forms-d2.el}.
+This example is included in the distribution as file @file{etc/forms/forms-d2.el}.
 
 @example
 ;; demo2 -- demo forms-mode     -*- emacs-lisp -*-
@@ -869,7 +869,8 @@ This example is included in the distribution as file @file{forms-d2.el}.
 ;; @r{This sample forms exploit most of the features of forms mode.}
 
 ;; @r{Set the name of the data file.}
-(setq forms-file "forms-d2.dat")
+(setq forms-file
+       (expand-file-name "forms/forms-d2.dat" data-directory))
 
 ;; @r{Use @code{forms-enumerate} to set field names and number thereof.}
 (setq forms-number-of-fields

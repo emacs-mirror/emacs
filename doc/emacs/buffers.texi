@@ -46,7 +46,7 @@ This is because Emacs tracks buffer positions using that data type.
 For typical 64-bit machines, this maximum buffer size is @math{2^61 -
 2} bytes, or about 2 EiB.  For typical 32-bit machines, the maximum is
 usually @math{2^29 - 2} bytes, or about 512 MiB.  Buffer sizes are
-also limited by the amount of memory present in the system.
+also limited by the amount of memory in the system.
 
 @menu
 * Select Buffer::       Creating a new buffer or reselecting an old one.
@@ -180,7 +180,7 @@ buffers that were current most recently come first.
 
   @samp{.} in the first field of a line indicates that the buffer is
 current.  @samp{%} indicates a read-only buffer.  @samp{*} indicates
-that the buffer is ``modified.''  If several buffers are modified, it
+that the buffer is ``modified''.  If several buffers are modified, it
 may be time to save some with @kbd{C-x s} (@pxref{Save Commands}).
 Here is an example of a buffer list:
 
@@ -326,8 +326,8 @@ for a mere hour.
 @cindex Midnight mode
 @vindex midnight-mode
 @vindex midnight-hook
-  You can also have this buffer purging done for you, every day at
-midnight, by enabling Midnight mode.  Midnight mode operates each day
+  You can also have this buffer purging done for you, once a day,
+by enabling Midnight mode.  Midnight mode operates each day
 at midnight; at that time, it runs @code{clean-buffer-list}, or
 whichever functions you have placed in the normal hook
 @code{midnight-hook} (@pxref{Hooks}).  To enable Midnight mode, use
@@ -361,7 +361,7 @@ the buffer menu in another window, and selects that window.
 
   The buffer menu is a read-only buffer, and can be changed only
 through the special commands described in this section.  The usual
-Emacs cursor motion commands can be used in this buffer.  The
+cursor motion commands can be used in this buffer.  The
 following commands apply to the buffer described on the current line:
 
 @table @kbd
@@ -392,7 +392,7 @@ line:
 
 @table @kbd
 @item ~
-Mark the buffer ``unmodified.''  The command @kbd{~} does this
+Mark the buffer ``unmodified''.  The command @kbd{~} does this
 immediately when you type it.
 @item %
 Toggle the buffer's read-only flag.  The command @kbd{%} does
@@ -476,13 +476,13 @@ Auto Revert mode applies to the @file{*Buffer List*} buffer only if
 
   An @dfn{indirect buffer} shares the text of some other buffer, which
 is called the @dfn{base buffer} of the indirect buffer.  In some ways it
-is the analogue, for buffers, of a symbolic link between files.
+is a buffer analogue of a symbolic link between files.
 
 @table @kbd
 @findex make-indirect-buffer
 @item M-x make-indirect-buffer @key{RET} @var{base-buffer} @key{RET} @var{indirect-name} @key{RET}
-Create an indirect buffer named @var{indirect-name} whose base buffer
-is @var{base-buffer}.
+Create an indirect buffer named @var{indirect-name} with base buffer
+@var{base-buffer}.
 @findex clone-indirect-buffer
 @item M-x clone-indirect-buffer @key{RET}
 Create an indirect buffer that is a twin copy of the current buffer.
@@ -520,10 +520,9 @@ buffer in another window.  These functions run the hook
 @code{clone-indirect-buffer-hook} after creating the indirect buffer.
 
   The more general way to make an indirect buffer is with the command
-@kbd{M-x make-indirect-buffer}.  It creates an indirect buffer from
-buffer @var{base-buffer}, under the name @var{indirect-name}.  It
-prompts for both @var{base-buffer} and @var{indirect-name} using the
-minibuffer.
+@kbd{M-x make-indirect-buffer}.  It creates an indirect buffer
+named @var{indirect-name} from a buffer @var{base-buffer}, prompting for
+both using the minibuffer.
 
 @node Buffer Convenience
 @section Convenience Features and Customization of Buffer Handling
@@ -590,7 +589,7 @@ rule or another is easier for you to remember and apply quickly.
   Iswitchb global minor mode provides convenient switching between
 buffers using substrings of their names.  It replaces the normal
 definitions of @kbd{C-x b}, @kbd{C-x 4 b}, @kbd{C-x 5 b}, and @kbd{C-x
-4 C-o} with alternative commands that are somewhat ``smarter.''
+4 C-o} with alternative commands that are somewhat ``smarter''.
 
   When one of these commands prompts you for a buffer name, you can
 type in just a substring of the name you want to choose.  As you enter

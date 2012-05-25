@@ -57,16 +57,17 @@ including @code{beginning-of-line}, @code{forward-word},
 @code{forward-sentence}, and @code{forward-paragraph}, stop at the
 boundary between the prompt and the actual text.
 
+@c See http://debbugs.gnu.org/11276
   The minibuffer's window is normally a single line; it grows
-automatically if the contents require more space.  You can explicitly
-@c FIXME?  Works in 23.4, not 24.0.95.  (Bug#11276)
-resize it temporarily with the window sizing commands; it reverts to
-its normal size when the minibuffer is exited.  You can resize it
-@c FIXME?  Doesn't work in any version of Emacs?
+automatically if the contents require more space.  Whilst it is
+active, you can explicitly resize it temporarily with the window
+sizing commands; it reverts to its normal size when the minibuffer is
+exited.  When the minibuffer is not active, you can resize it
 permanently by using the window sizing commands in the frame's other
-window, when the minibuffer is not active.  If the frame contains just
-a minibuffer, you can change the minibuffer's size by changing the
-frame's size.
+window, or dragging the mode line with the mouse.  (Due to details of
+the current implementation, for this to work @code{resize-mini-windows}
+must be @code{nil}.)  If the frame contains just a minibuffer, you can
+change the minibuffer's size by changing the frame's size.
 
   Use of the minibuffer reads input events, and that alters the values
 of variables such as @code{this-command} and @code{last-command}
@@ -511,8 +512,7 @@ duplicates, and to add @var{newelt} to the list even if it is empty.
 If the value of this variable is @code{nil}, standard functions that
 read from the minibuffer don't add new elements to the history list.
 This lets Lisp programs explicitly manage input history by using
-@code{add-to-history}.  By default, @code{history-add-new-input} is
-non-@code{nil}.
+@code{add-to-history}.  The default value is @code{t}.
 @end defvar
 
 @defopt history-length
@@ -695,7 +695,7 @@ You can also use a function as @var{collection}.  Then the function is
 solely responsible for performing completion; @code{try-completion}
 returns whatever this function returns.  The function is called with
 three arguments: @var{string}, @var{predicate} and @code{nil} (the
-reason for the third argument is so that the same function can be used
+third argument is so that the same function can be used
 in @code{all-completions} and do the appropriate thing in either
 case).  @xref{Programmed Completion}.
 
@@ -718,8 +718,8 @@ handle @code{completion-regexp-list} itself.)
 In the first of the following examples, the string @samp{foo} is
 matched by three of the alist @sc{car}s.  All of the matches begin with
 the characters @samp{fooba}, so that is the result.  In the second
-example, there is only one possible match, and it is exact, so the value
-is @code{t}.
+example, there is only one possible match, and it is exact, so the
+return value is @code{t}.
 
 @smallexample
 @group

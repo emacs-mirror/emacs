@@ -59,10 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "blockinput.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
-
 #ifndef USER_FULL_NAME
 #define USER_FULL_NAME pw->pw_gecos
 #endif
@@ -73,20 +69,13 @@ extern char **environ;
 
 #define TM_YEAR_BASE 1900
 
-/* Nonzero if TM_YEAR is a struct tm's tm_year value that causes
-   asctime to have well-defined behavior.  */
-#ifndef TM_YEAR_IN_ASCTIME_RANGE
-# define TM_YEAR_IN_ASCTIME_RANGE(tm_year) \
-    (1000 - TM_YEAR_BASE <= (tm_year) && (tm_year) <= 9999 - TM_YEAR_BASE)
-#endif
-
 #ifdef WINDOWSNT
 extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
 static void time_overflow (void) NO_RETURN;
 static Lisp_Object format_time_string (char const *, ptrdiff_t, Lisp_Object,
-				       int, time_t *, struct tm **);
+				       int, time_t *, struct tm *);
 static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
 
@@ -1691,7 +1680,7 @@ usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
   time_t t;
-  struct tm *tm;
+  struct tm tm;
 
   CHECK_STRING (format_string);
   format_string = code_convert_string_norecord (format_string,
@@ -1702,53 +1691,54 @@ usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
 
 static Lisp_Object
 format_time_string (char const *format, ptrdiff_t formatlen,
-		    Lisp_Object timeval, int ut, time_t *tval, struct tm **tmp)
+		    Lisp_Object timeval, int ut, time_t *tval, struct tm *tmp)
 {
-  ptrdiff_t size;
+  char buffer[4000];
+  char *buf = buffer;
+  size_t size = sizeof buffer;
+  size_t len;
+  Lisp_Object bufstring;
   int usec;
   int ns;
   struct tm *tm;
+  USE_SAFE_ALLOCA;
 
   if (! lisp_time_argument (timeval, tval, &usec))
     error ("Invalid time specification");
   ns = usec * 1000;
 
-  /* This is probably enough.  */
-  size = formatlen;
-  if (size <= (STRING_BYTES_BOUND - 50) / 6)
-    size = size * 6 + 50;
-
-  BLOCK_INPUT;
-  tm = ut ? gmtime (tval) : localtime (tval);
-  UNBLOCK_INPUT;
-  if (! tm)
-    time_overflow ();
-  *tmp = tm;
-
-  synchronize_system_time_locale ();
-
   while (1)
     {
-      char *buf = (char *) alloca (size + 1);
-      size_t result;
+      BLOCK_INPUT;
+
+      synchronize_system_time_locale ();
+
+      tm = ut ? gmtime (tval) : localtime (tval);
+      if (! tm)
+	{
+	  UNBLOCK_INPUT;
+	  time_overflow ();
+	}
+      *tmp = *tm;
 
       buf[0] = '\1';
-      BLOCK_INPUT;
-      result = emacs_nmemftime (buf, size, format, formatlen, tm, ut, ns);
-      UNBLOCK_INPUT;
-      if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
-	return code_convert_string_norecord (make_unibyte_string (buf, result),
-					     Vlocale_coding_system, 0);
+      len = emacs_nmemftime (buf, size, format, formatlen, tm, ut, ns);
+      if ((0 < len && len < size) || (len == 0 && buf[0] == '\0'))
+	break;
 
-      /* If buffer was too small, make it bigger and try again.  */
-      BLOCK_INPUT;
-      result = emacs_nmemftime (NULL, (size_t) -1, format, formatlen,
-				tm, ut, ns);
+      /* Buffer was too small, so make it bigger and try again.  */
+      len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen, tm, ut, ns);
       UNBLOCK_INPUT;
-      if (STRING_BYTES_BOUND <= result)
+      if (STRING_BYTES_BOUND <= len)
 	string_overflow ();
-      size = result + 1;
+      size = len + 1;
+      SAFE_ALLOCA (buf, char *, size);
     }
+
+  UNBLOCK_INPUT;
+  bufstring = make_unibyte_string (buf, len);
+  SAFE_FREE ();
+  return code_convert_string_norecord (bufstring, Vlocale_coding_system, 0);
 }
 
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 1, 0,
@@ -1778,31 +1768,32 @@ DOW and ZONE.)  */)
 
   BLOCK_INPUT;
   decoded_time = localtime (&time_spec);
+  /* Make a copy, in case a signal handler modifies TZ or the struct.  */
+  if (decoded_time)
+    save_tm = *decoded_time;
   UNBLOCK_INPUT;
   if (! (decoded_time
-	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= decoded_time->tm_year
-	 && decoded_time->tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
+	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= save_tm.tm_year
+	 && save_tm.tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
     time_overflow ();
-  XSETFASTINT (list_args[0], decoded_time->tm_sec);
-  XSETFASTINT (list_args[1], decoded_time->tm_min);
-  XSETFASTINT (list_args[2], decoded_time->tm_hour);
-  XSETFASTINT (list_args[3], decoded_time->tm_mday);
-  XSETFASTINT (list_args[4], decoded_time->tm_mon + 1);
+  XSETFASTINT (list_args[0], save_tm.tm_sec);
+  XSETFASTINT (list_args[1], save_tm.tm_min);
+  XSETFASTINT (list_args[2], save_tm.tm_hour);
+  XSETFASTINT (list_args[3], save_tm.tm_mday);
+  XSETFASTINT (list_args[4], save_tm.tm_mon + 1);
   /* On 64-bit machines an int is narrower than EMACS_INT, thus the
      cast below avoids overflow in int arithmetics.  */
-  XSETINT (list_args[5], TM_YEAR_BASE + (EMACS_INT) decoded_time->tm_year);
-  XSETFASTINT (list_args[6], decoded_time->tm_wday);
-  list_args[7] = (decoded_time->tm_isdst)? Qt : Qnil;
+  XSETINT (list_args[5], TM_YEAR_BASE + (EMACS_INT) save_tm.tm_year);
+  XSETFASTINT (list_args[6], save_tm.tm_wday);
+  list_args[7] = save_tm.tm_isdst ? Qt : Qnil;
 
-  /* Make a copy, in case gmtime modifies the struct.  */
-  save_tm = *decoded_time;
   BLOCK_INPUT;
   decoded_time = gmtime (&time_spec);
-  UNBLOCK_INPUT;
   if (decoded_time == 0)
     list_args[8] = Qnil;
   else
     XSETINT (list_args[8], tm_diff (&save_tm, decoded_time));
+  UNBLOCK_INPUT;
   return Flist (9, list_args);
 }
 
@@ -1887,21 +1878,23 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
       else
 	error ("Invalid time zone specification");
 
+      BLOCK_INPUT;
+
       /* Set TZ before calling mktime; merely adjusting mktime's returned
 	 value doesn't suffice, since that would mishandle leap seconds.  */
       set_time_zone_rule (tzstring);
 
-      BLOCK_INPUT;
       value = mktime (&tm);
-      UNBLOCK_INPUT;
 
       /* Restore TZ to previous value.  */
       newenv = environ;
       environ = oldenv;
-      xfree (newenv);
 #ifdef LOCALTIME_CACHE
       tzset ();
 #endif
+      UNBLOCK_INPUT;
+
+      xfree (newenv);
     }
 
   if (value == (time_t) -1)
@@ -1928,24 +1921,37 @@ but this is considered obsolete.  */)
 {
   time_t value;
   struct tm *tm;
-  register char *tem;
+  char buf[sizeof "Mon Apr 30 12:49:17 " + INT_STRLEN_BOUND (int) + 1];
+  int len IF_LINT (= 0);
 
   if (! lisp_time_argument (specified_time, &value, NULL))
     error ("Invalid time specification");
 
-  /* Convert to a string, checking for out-of-range time stamps.
-     Don't use 'ctime', as that might dump core if VALUE is out of
-     range.  */
+  /* Convert to a string in ctime format, except without the trailing
+     newline, and without the 4-digit year limit.  Don't use asctime
+     or ctime, as they might dump core if the year is outside the
+     range -999 .. 9999.  */
   BLOCK_INPUT;
   tm = localtime (&value);
+  if (tm)
+    {
+      static char const wday_name[][4] =
+	{ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+      static char const mon_name[][4] =
+	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+	  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+      printmax_t year_base = TM_YEAR_BASE;
+
+      len = sprintf (buf, "%s %s%3d %02d:%02d:%02d %"pMd,
+		     wday_name[tm->tm_wday], mon_name[tm->tm_mon], tm->tm_mday,
+		     tm->tm_hour, tm->tm_min, tm->tm_sec,
+		     tm->tm_year + year_base);
+    }
   UNBLOCK_INPUT;
-  if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year) && (tem = asctime (tm))))
+  if (! tm)
     time_overflow ();
 
-  /* Remove the trailing newline.  */
-  tem[strlen (tem) - 1] = '\0';
-
-  return build_string (tem);
+  return make_unibyte_string (buf, len);
 }
 
 /* Yield A - B, measured in seconds.
@@ -1989,22 +1995,22 @@ the data it can't find.  */)
   (Lisp_Object specified_time)
 {
   time_t value;
+  int offset;
   struct tm *t;
   struct tm localtm;
-  struct tm *localt;
   Lisp_Object zone_offset, zone_name;
 
   zone_offset = Qnil;
   zone_name = format_time_string ("%Z", sizeof "%Z" - 1, specified_time,
-				  0, &value, &localt);
-  localtm = *localt;
+				  0, &value, &localtm);
   BLOCK_INPUT;
   t = gmtime (&value);
+  if (t)
+    offset = tm_diff (&localtm, t);
   UNBLOCK_INPUT;
 
   if (t)
     {
-      int offset = tm_diff (&localtm, t);
       zone_offset = make_number (offset);
       if (SCHARS (zone_name) == 0)
 	{
@@ -2042,9 +2048,16 @@ only the former.  */)
   (Lisp_Object tz)
 {
   const char *tzstring;
+  char **old_environbuf;
+
+  if (! (NILP (tz) || EQ (tz, Qt)))
+    CHECK_STRING (tz);
+
+  BLOCK_INPUT;
 
   /* When called for the first time, save the original TZ.  */
-  if (!environbuf)
+  old_environbuf = environbuf;
+  if (!old_environbuf)
     initial_tz = (char *) getenv ("TZ");
 
   if (NILP (tz))
@@ -2052,15 +2065,14 @@ only the former.  */)
   else if (EQ (tz, Qt))
     tzstring = "UTC0";
   else
-    {
-      CHECK_STRING (tz);
-      tzstring = SSDATA (tz);
-    }
+    tzstring = SSDATA (tz);
 
   set_time_zone_rule (tzstring);
-  xfree (environbuf);
   environbuf = environ;
 
+  UNBLOCK_INPUT;
+
+  xfree (old_environbuf);
   return Qnil;
 }
 

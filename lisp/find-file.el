@@ -181,21 +181,21 @@ To override this, give an argument to `ff-find-other-file'."
   :group 'ff)
 
 ;;;###autoload
-(defvar ff-special-constructs
-  `(
-    ;; C/C++ include, for NeXTstep too
-    (,(purecopy "^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") .
+(defcustom ff-special-constructs
+  ;; C/C++ include, for NeXTstep too
+  `((,(purecopy "^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") .
      (lambda ()
-       (buffer-substring (match-beginning 2) (match-end 2))))
-    )
+       (buffer-substring (match-beginning 2) (match-end 2)))))
   ;; We include `ff-treat-as-special' documentation here so that autoload
   ;; can make it available to be read prior to loading this file.
-  "List of special constructs for `ff-treat-as-special' to recognize.
+  "List of special constructs recognized by `ff-treat-as-special'.
 Each element, tried in order, has the form (REGEXP . EXTRACT).
 If REGEXP matches the current line (from the beginning of the line),
 `ff-treat-as-special' calls function EXTRACT with no args.
 If EXTRACT returns nil, keep trying.  Otherwise, return the
-filename that EXTRACT returned.")
+filename that EXTRACT returned."
+  :type '(repeat (cons regexp function))
+  :group 'ff)
 
 (defvaralias 'ff-related-file-alist 'ff-other-file-alist)
 (defcustom ff-other-file-alist 'cc-other-file-alist

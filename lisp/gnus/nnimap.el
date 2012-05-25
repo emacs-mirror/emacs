@@ -475,6 +475,8 @@ textual parts.")
 	    (when nnimap-object
 	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
+              (nnheader-message 7 "Opening connection to %s...done"
+				nnimap-address)
 	      (nnimap-process nnimap-object))))))))
 
 (autoload 'rfc2104-hash "rfc2104")

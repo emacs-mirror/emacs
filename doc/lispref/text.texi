@@ -555,7 +555,7 @@ error; if some of the text in it is read-only, it signals a
 asking for any confirmation.  It returns @code{nil}.
 
 Normally, deleting a large amount of text from a buffer inhibits further
-auto-saving of that buffer ``because it has shrunk.''  However,
+auto-saving of that buffer ``because it has shrunk''.  However,
 @code{erase-buffer} does not do this, the idea being that the future
 text is not really related to the former text, and its size should not
 be compared with that of the former text.
@@ -806,7 +806,7 @@ that treat it as a ring.
 
   Some people think this use of the word ``kill'' is unfortunate, since
 it refers to operations that specifically @emph{do not} destroy the
-entities ``killed.''  This is in sharp contrast to ordinary life, in
+entities ``killed''.  This is in sharp contrast to ordinary life, in
 which death is permanent and ``killed'' entities do not come back to
 life.  Therefore, other metaphors have been proposed.  For example, the
 term ``cut ring'' makes sense to people who, in pre-computer days, used
@@ -845,7 +845,7 @@ the entry made by the first one.
 
   For yanking, one entry in the kill ring is designated the ``front'' of
 the ring.  Some yank commands ``rotate'' the ring by designating a
-different element as the ``front.''  But this virtual rotation doesn't
+different element as the ``front''.  But this virtual rotation doesn't
 change the list itself---the most recent entry always comes first in the
 list.
 
@@ -1093,8 +1093,8 @@ programs, when you are using a window system.  Its value should be
 @code{nil} or a function of no arguments.
 
 If the value is a function, @code{current-kill} calls it to get the
-``most recent kill.''  If the function returns a non-@code{nil} value,
-then that value is used as the ``most recent kill.''  If it returns
+``most recent kill''.  If the function returns a non-@code{nil} value,
+then that value is used as the ``most recent kill''.  If it returns
 @code{nil}, then the front of the kill ring is used.
 
 To facilitate support for window systems that support multiple
@@ -1799,12 +1799,6 @@ special is done in that case.
 The value of @code{auto-fill-function} is @code{do-auto-fill} when
 Auto-Fill mode is enabled.  That is a function whose sole purpose is to
 implement the usual strategy for breaking a line.
-
-@quotation
-In older Emacs versions, this variable was named @code{auto-fill-hook},
-but since it is not called with the standard convention for hooks, it
-was renamed to @code{auto-fill-function} in version 19.
-@end quotation
 @end defvar
 
 @defvar normal-auto-fill-function
@@ -3504,7 +3498,7 @@ once for the same part of the buffer, you can use the variable
 If this variable's value is non-@code{nil}, it is a symbol which is used
 as a text property name.  A non-@code{nil} value for that text property
 means, ``the other text properties for this character have already been
-computed.''
+computed''.
 
 If all the characters in the range specified for @code{buffer-substring}
 have a non-@code{nil} value for this property, @code{buffer-substring}
@@ -3808,7 +3802,7 @@ after @var{old-pos}.)  If @var{escape-from-edge} is non-@code{nil},
 @var{new-pos} can be anywhere in the two adjacent fields.
 Additionally, if two fields are separated by another field with the
 special value @code{boundary}, then any point within this special
-field is also considered to be ``on the boundary.''
+field is also considered to be ``on the boundary''.
 
 Commands like @kbd{C-a} with no argument, that normally move backward
 to a specific kind of location and stay there once there, probably
@@ -4333,15 +4327,15 @@ buffer that is about to change is always the current buffer.
 
 @defvar after-change-functions
 This variable holds a list of functions to call after any buffer
-modification.  Each function receives three arguments: the beginning and
-end of the region just changed, and the length of the text that existed
-before the change.  All three arguments are integers.  The buffer that's
-about to change is always the current buffer.
+modification.  Each function receives three arguments: the beginning
+and end of the region just changed, and the length of the text that
+existed before the change.  All three arguments are integers.  The
+buffer has been changed is always the current buffer.
 
-The length of the old text is the difference between the buffer positions
-before and after that text as it was before the change.  As for the
-changed text, its length is simply the difference between the first two
-arguments.
+The length of the old text is the difference between the buffer
+positions before and after that text as it was before the change.  As
+for the changed text, its length is simply the difference between the
+first two arguments.
 @end defvar
 
   Output of messages into the @file{*Messages*} buffer does not

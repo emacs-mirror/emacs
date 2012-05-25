@@ -46,7 +46,6 @@
 /^#undef HAVE_SETRLIMIT *$/s/^.*$/#define HAVE_SETRLIMIT 1/
 /^#undef HAVE_GETRUSAGE *$/s/^.*$/#define HAVE_GETRUSAGE 1/
 /^#undef HAVE_TM_GMTOFF *$/s/^.*$/#define HAVE_TM_GMTOFF 1/
-/^#undef HAVE_MBLEN *$/s/^.*$/#define HAVE_MBLEN 1/
 /^#undef HAVE_STRUCT_TIMEZONE *$/s/^.*$/#define HAVE_STRUCT_TIMEZONE 1/
 /^#undef HAVE_SIZE_T *$/s/^.*$/#define HAVE_SIZE_T 1/
 /^#undef HAVE_MKSTEMP *$/s/^.*$/#define HAVE_MKSTEMP 1/
@@ -119,4 +118,3 @@ s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
 # might be defined in sys/config.h we include at the top of config.h.
 /^#undef BSTRING/s|#undef|# undef|
 /^#undef .*$/s|^.*$|/* & */|
-

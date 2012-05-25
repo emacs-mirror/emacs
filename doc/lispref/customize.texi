@@ -157,7 +157,7 @@ Packages distributed as part of Emacs that use the
 @defvar customize-package-emacs-version-alist
 This alist provides a mapping for the versions of Emacs that are
 associated with versions of a package listed in the
-@code{:package-version} keyword.  Its elements look like this:
+@code{:package-version} keyword.  Its elements are:
 
 @example
 (@var{package} (@var{pversion} . @var{eversion})@dots{})
@@ -168,6 +168,8 @@ elements that contain a package version @var{pversion} with an
 associated Emacs version @var{eversion}.  These versions are strings.
 For example, the MH-E package updates this alist with the following:
 
+@c Must be small else too wide.
+@c FIXME obviously this is out of date (in the code).
 @smallexample
 (add-to-list 'customize-package-emacs-version-alist
              '(MH-E ("6.0" . "22.1") ("6.1" . "22.1") ("7.0" . "22.1")
@@ -394,7 +396,7 @@ Set the variable's @code{safe-local-variable} property to
 @item :set-after @var{variables}
 @kindex set-after@r{, @code{defcustom} keyword}
 When setting variables according to saved customizations, make sure to
-set the variables @var{variables} before this one; in other words, delay
+set the variables @var{variables} before this one; i.e., delay
 setting this variable until after those others have been handled.  Use
 @code{:set-after} if setting this variable won't work properly unless
 those other variables already have their intended values.
@@ -673,9 +675,9 @@ The argument to the @code{:options} keywords should be a list of
 specifications for reasonable keys in the alist.  Ordinarily, they are
 simply atoms, which stand for themselves.  For example:
 
-@smallexample
+@example
 :options '("foo" "bar" "baz")
-@end smallexample
+@end example
 
 @noindent
 specifies that there are three ``known'' keys, namely @code{"foo"},
@@ -687,9 +689,9 @@ integer.  You can specify this by using a list instead of an atom in
 the list.  The first element will specify the key, like before, while
 the second element will specify the value type.  For example:
 
-@smallexample
+@example
 :options '("foo" ("bar" integer) "baz")
-@end smallexample
+@end example
 
 Finally, you may want to change how the key is presented.  By default,
 the key is simply shown as a @code{const}, since the user cannot change
@@ -699,37 +701,37 @@ you may want to use a more specialized type for presenting the key, like
 This is done by using a customization type specification instead of a
 symbol for the key.
 
-@smallexample
+@example
 :options '("foo" ((function-item some-function) integer)
            "baz")
-@end smallexample
+@end example
 
 Many alists use lists with two elements, instead of cons cells.  For
 example,
 
-@smallexample
+@example
 (defcustom list-alist '(("foo" 1) ("bar" 2) ("baz" 3))
   "Each element is a list of the form (KEY VALUE).")
-@end smallexample
+@end example
 
 @noindent
 instead of
 
-@smallexample
+@example
 (defcustom cons-alist '(("foo" . 1) ("bar" . 2) ("baz" . 3))
   "Each element is a cons-cell (KEY . VALUE).")
-@end smallexample
+@end example
 
 Because of the way lists are implemented on top of cons cells, you can
 treat @code{list-alist} in the example above as a cons cell alist, where
 the value type is a list with a single element containing the real
 value.
 
-@smallexample
+@example
 (defcustom list-alist '(("foo" 1) ("bar" 2) ("baz" 3))
   "Each element is a list of the form (KEY VALUE)."
   :type '(alist :value-type (group integer)))
-@end smallexample
+@end example
 
 The @code{group} widget is used here instead of @code{list} only because
 the formatting is better suited for the purpose.
@@ -737,14 +739,14 @@ the formatting is better suited for the purpose.
 Similarly, you can have alists with more values associated with each
 key, using variations of this trick:
 
-@smallexample
+@example
 (defcustom person-data '(("brian"  50 t)
                          ("dorith" 55 nil)
                          ("ken"    52 t))
   "Alist of basic info about people.
 Each element has the form (NAME AGE MALE-FLAG)."
   :type '(alist :value-type (group integer boolean)))
-@end smallexample
+@end example
 
 @item (plist :key-type @var{key-type} :value-type @var{value-type})
 This customization type is similar to @code{alist} (see above), except
@@ -817,7 +819,7 @@ For example,
 
 @noindent
 describes a variable for which @code{t} means yes, @code{nil} means no,
-and @code{foo} means ``ask.''
+and @code{foo} means ``ask''.
 
 @item (other @var{value})
 This alternative can match any Lisp value, but if the user chooses this
@@ -834,7 +836,7 @@ For example,
 
 @noindent
 describes a variable for which @code{t} means yes, @code{nil} means no,
-and anything else means ``ask.''  If the user chooses @samp{Ask} from
+and anything else means ``ask''.  If the user chooses @samp{Ask} from
 the menu of alternatives, that specifies the value @code{foo}; but any
 other value (not @code{t}, @code{nil} or @code{foo}) displays as
 @samp{Ask}, just like @code{foo}.
@@ -1255,7 +1257,7 @@ customization settings for variables and faces, respectively.  When
 the user invokes @samp{Save for future sessions} in the Customize
 interface, that takes effect by writing a @code{custom-set-variables}
 and/or a @code{custom-set-faces} form into the custom file, to be
-evaluated the next time Emacs starts up.
+evaluated the next time Emacs starts.
 
 @defun custom-set-variables &rest args
 This function installs the variable customizations specified by
@@ -1326,11 +1328,10 @@ the theme; this is the description shown when the user invokes the
 @code{describe-theme} command or types @kbd{?} in the @samp{*Custom
 Themes*} buffer.
 
-Two special theme names are disallowed: @code{user} is a ``dummy''
-theme which stores the user's direct customization settings, and
-@code{changed} is a ``dummy'' theme which stores changes made outside
-of the Customize system.  If you specify either of these as the
-@var{theme} argument, @code{deftheme} signals an error.
+Two special theme names are disallowed (using them causes an error):
+@code{user} is a ``dummy'' theme that stores the user's direct
+customization settings, and @code{changed} is a ``dummy'' theme that
+stores changes made outside of the Customize system.
 @end defmac
 
 @defmac provide-theme theme
@@ -1378,7 +1379,7 @@ displays the source file and asks for confirmation from the user
 before loading any non-built-in theme for the first time.
 
   The following functions are useful for programmatically enabling and
-disabling Custom themes:
+disabling themes:
 
 @defun custom-theme-p theme
 This function return a non-@code{nil} value if @var{theme} (a symbol)
@@ -1391,14 +1392,11 @@ it returns @code{nil}.
 This function loads the Custom theme named @var{theme} from its source
 file, looking for the source file in the directories specified by the
 variable @code{custom-theme-load-path}.  @xref{Custom Themes,,, emacs,
-The GNU Emacs Manual}.  It also @dfn{enables} the theme, causing its
-variable and face settings to take effect.
-
-If the optional argument @var{no-confirm} is non-@code{nil}, this
-skips prompting the user for confirmation before loading the theme.
-
-If the optional argument @var{no-enable} is non-@code{nil}, the theme
-is loaded but not enabled.
+The GNU Emacs Manual}.  It also @dfn{enables} the theme (unless the
+optional argument @var{no-enable} is non-@code{nil}), causing its
+variable and face settings to take effect.  It prompts the user for
+confirmation before loading the theme, unless the optional argument
+@var{no-confirm} is non-@code{nil}.
 @end deffn
 
 @deffn Command enable-theme theme

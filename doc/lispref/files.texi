@@ -71,8 +71,8 @@ back into the file.
 
   In spite of the distinction between files and buffers, people often
 refer to a file when they mean a buffer and vice-versa.  Indeed, we say,
-``I am editing a file,'' rather than, ``I am editing a buffer that I
-will soon save as a file of the same name.''  Humans do not usually need
+``I am editing a file'', rather than, ``I am editing a buffer that I
+will soon save as a file of the same name''.  Humans do not usually need
 to make the distinction explicit.  When dealing with a computer program,
 however, it is good to keep the distinction in mind.
 
@@ -688,7 +688,7 @@ The file lock is really a file, a symbolic link with a special name,
 stored in the same directory as the file you are editing.
 
   When you access files using NFS, there may be a small probability that
-you and another user will both lock the same file ``simultaneously.''
+you and another user will both lock the same file ``simultaneously''.
 If this happens, it is possible for the two users to make changes
 simultaneously, but Emacs will still warn the user who saves second.
 Also, the detection of modification of a buffer visiting a file changed
@@ -726,7 +726,12 @@ system does not support locking.
 
   File locking is not supported on some systems.  On systems that do not
 support it, the functions @code{lock-buffer}, @code{unlock-buffer} and
-@code{file-locked-p} do nothing and return @code{nil}.
+@code{file-locked-p} do nothing and return @code{nil}.  It is also
+possible to disable locking, by setting the variable @code{create-lockfiles}.
+
+@defopt create-lockfiles
+If this variable is @code{nil}, Emacs does not lock files.
+@end defopt
 
 @defun ask-user-about-lock file other-user
 This function is called when the user tries to modify @var{file}, but it
@@ -1806,7 +1811,7 @@ return value, but backup version numbers are kept.
 @end defun
 
 @defun file-name-extension filename &optional period
-This function returns @var{filename}'s final ``extension,'' if any,
+This function returns @var{filename}'s final ``extension'', if any,
 after applying @code{file-name-sans-versions} to remove any
 version/backup part.  The extension, in a file name, is the part that
 follows the last @samp{.} in the last name component (minus any
@@ -2798,7 +2803,7 @@ unlocking the buffer if it is locked.
 possibly others to be added in the future.  It need not implement all
 these operations itself---when it has nothing special to do for a
 certain operation, it can reinvoke the primitive, to handle the
-operation ``in the usual way.''  It should always reinvoke the primitive
+operation ``in the usual way''.  It should always reinvoke the primitive
 for an operation it does not recognize.  Here's one way to do this:
 
 @smallexample
@@ -2950,7 +2955,8 @@ between consecutive checks.  For example:
 
 @example
 (defun display-time-file-nonempty-p (file)
-  (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))
+  (let ((remote-file-name-inhibit-cache
+         (- display-time-interval 5)))
     (and (file-exists-p file)
          (< 0 (nth 7 (file-attributes (file-chase-links file)))))))
 @end example

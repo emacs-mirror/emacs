@@ -127,7 +127,7 @@
 (require 'ediff-mult)  ; required because of the registry stuff
 
 (defgroup ediff nil
-  "A comprehensive visual interface to diff & patch."
+  "Comprehensive visual interface to `diff' and `patch'."
   :tag "Ediff"
   :group 'tools)
 

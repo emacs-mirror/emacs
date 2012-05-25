@@ -640,7 +640,7 @@ have the form (KEY . VALUE).  Here, KEY is ...
 
 @item
 Never change the case of a Lisp symbol when you mention it in a doc
-string.  If the symbol's name is @code{foo}, write ``foo,'' not
+string.  If the symbol's name is @code{foo}, write ``foo'', not
 ``Foo'' (which is a different symbol).
 
 This might appear to contradict the policy of writing function
@@ -772,9 +772,9 @@ is indicative and has a proper subject.
 
 @item
 The documentation string for a function that is a yes-or-no predicate
-should start with words such as ``Return t if,'' to indicate
-explicitly what constitutes ``truth.''  The word ``return'' avoids
-starting the sentence with lower-case ``t,'' which could be somewhat
+should start with words such as ``Return t if'', to indicate
+explicitly what constitutes ``truth''.  The word ``return'' avoids
+starting the sentence with lower-case ``t'', which could be somewhat
 distracting.
 
 @item
@@ -797,8 +797,8 @@ returned.''
 
 @item
 Avoid using the word ``cause'' (or its equivalents) unnecessarily.
-Instead of, ``Cause Emacs to display text in boldface,'' write just
-``Display text in boldface.''
+Instead of, ``Cause Emacs to display text in boldface'', write just
+``Display text in boldface''.
 
 @item
 Avoid using ``iff'' (a mathematics term meaning ``if and only if''),
@@ -821,7 +821,7 @@ to set, use @code{defcustom}.  @xref{Defining Variables}.
 
 @item
 The documentation string for a variable that is a yes-or-no flag should
-start with words such as ``Non-nil means,'' to make it clear that
+start with words such as ``Non-nil means'', to make it clear that
 all non-@code{nil} values are equivalent and indicate explicitly what
 @code{nil} and non-@code{nil} mean.
 @end itemize

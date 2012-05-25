@@ -1,5 +1,4 @@
 ;;; follow.el --- synchronize windows showing the same buffer
-
 ;; Copyright (C) 1995-1997, 1999, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
@@ -23,8 +22,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;;{{{ Documentation
 
 ;; `Follow mode' is a minor mode for Emacs and XEmacs that
 ;; combines windows into one tall virtual window.
@@ -109,23 +106,10 @@
 ;; (setq truncate-partial-width-windows nil)
 
 
-;; Since the display of XEmacs is pixel-oriented, a line could be
-;; clipped in half at the bottom of the window.
-;;
-;; To make XEmacs avoid clipping (normal) lines, please place the
-;; following line in your init-file:
-;;
-;; (setq pixel-vertical-clip-threshold 30)
-
-
 ;; The correct way to configure Follow mode, or any other mode for
 ;; that matter, is to create one or more functions that do
 ;; whatever you would like to do.  These functions are then added to
 ;; a hook.
-;;
-;; When `Follow' mode is activated, functions stored in the hook
-;; `follow-mode-hook' are called.  When it is deactivated
-;; `follow-mode-off-hook' is run.
 ;;
 ;; The keymap `follow-key-map' contains key bindings activated by
 ;; `follow-mode'.
@@ -198,80 +182,29 @@
 ;;    Example from my ~/.emacs:
 ;;	(global-set-key [f8] 'follow-mode)
 
-
 ;; Implementation:
 ;;
-;; In an ideal world, follow mode would have been implemented in the
-;; kernel of the display routines, making sure that the windows (using
-;; follow mode) ALWAYS are aligned.  On planet Earth, however, we must
-;; accept a solution where we ALMOST ALWAYS can make sure that the
-;; windows are aligned.
+;; The main method by which Follow mode aligns windows is via the
+;; function `follow-post-command-hook', which is run after each
+;; command.  This "fixes up" the alignment of other windows which are
+;; showing the same Follow mode buffer, on the same frame as the
+;; selected window.  It does not try to deal with buffers other than
+;; the buffer of the selected frame, or windows on other frames.
 ;;
-;; Follow mode does this in three places:
-;; 1) After each user command.
-;; 2) After a process output has been performed.
-;; 3) When a scrollbar has been moved.
-;;
-;; This will cover most situations. (Let me know if there are other
-;; situations that should be covered.)
-;;
-;; Note that only the selected window is checked, for the reason of
-;; efficiency and code complexity.  (I.e. it is possible to make a
-;; non-selected window unaligned.  It will, however, pop right back
-;; when it is selected.)
-
-;;}}}
+;; Comint mode specially calls `follow-comint-scroll-to-bottom' on
+;; Follow mode buffers.  This function scrolls the bottom-most window
+;; in a window chain and aligns the other windows accordingly.  Follow
+;; mode adds a function to `compilation-filter-hook' to align
+;; compilation buffers.
 
 ;;; Code:
 
-;;{{{ Preliminaries
-
-;; Make the compiler shut up!
-;; There are two strategies:
-;; 1) Shut warnings off completely.
-;; 2) Handle each warning separately.
-;;
-;; Since I would like to see real errors, I've selected the latter
-;; method.
-;;
-;; The problem with undefined variables and functions has been solved
-;; by using `set', `symbol-value' and `symbol-function' rather than
-;; `setq' and direct references to variables and functions.
-;;
-;; For example:
-;;	(if (boundp 'foo)   ... (symbol-value 'foo) )
-;;	(set 'foo ...)   <-- XEmacs doesn't fall for this one.
-;;	(funcall (symbol-function 'set) 'bar ...)
-;;
-;; Note: When this file is interpreted, `eval-when-compile' is
-;; evaluated.  Since it doesn't hurt to evaluate it, but it is a bit
-;; annoying, we test if the byte-compiler has been loaded.  This can,
-;; of course, lead to some occasional unintended evaluation...
-;;
-;; Should someone come up with a better solution, please let me
-;; know.
-
 (require 'easymenu)
 
-(eval-when-compile
-  (if (or (featurep 'bytecomp)
-	  (featurep 'byte-compile))
-      (cond ((featurep 'xemacs)
-	     ;; Make XEmacs shut up!  I'm using standard Emacs
-	     ;; functions, they are NOT obsolete!
-	     (if (eq (get 'force-mode-line-update 'byte-compile)
-		     'byte-compile-obsolete)
-		 (put 'force-mode-line-update 'byte-compile 'nil))
-	     (if (eq (get 'frame-first-window 'byte-compile)
-		     'byte-compile-obsolete)
-		 (put 'frame-first-window 'byte-compile 'nil))))))
-
-;;}}}
-;;{{{ Variables
+;;; Variables
 
 (defgroup follow nil
   "Synchronize windows showing the same buffer."
-  :prefix "follow-"
   :group 'windows
   :group 'convenience)
 
@@ -280,28 +213,15 @@
   :type 'hook
   :group 'follow)
 
-(defcustom follow-mode-off-hook nil
-  "Hooks to run when Follow mode is turned off."
-  :type 'hook
-  :group 'follow)
-(make-obsolete-variable 'follow-mode-off-hook 'follow-mode-hook "22.2")
-
-;;{{{ Keymap/Menu
+;;; Keymap/Menu
 
 ;; Define keys for the follow-mode minor mode map and replace some
-;; functions in the global map.  All `follow' mode special functions
-;; can be found on (the somewhat cumbersome) "C-c . <key>"
-;; (Control-C dot <key>). (As of Emacs 19.29 the keys
-;; C-c <punctuation character> are reserved for minor modes.)
+;; functions in the global map.  All Follow mode special functions can
+;; be found on the `C-c .' prefix key.
 ;;
-;; To change the prefix, redefine `follow-mode-prefix' before
-;; `follow' is loaded, or see the section on `follow-mode-hook'
-;; above for an example of how to bind the keys the way you like.
-;;
-;; Please note that the keymap is defined the first time this file is
-;; loaded.  Also note that the only valid way to manipulate the
-;; keymap is to use `define-key'.  Don't change it using `setq' or
-;; similar!
+;; To change the prefix, redefine `follow-mode-prefix' before `follow'
+;; is loaded, or see the section on `follow-mode-hook' above for an
+;; example of how to bind the keys the way you like.
 
 (defcustom follow-mode-prefix "\C-c."
   "Prefix key to use for follow commands in Follow mode.
@@ -334,6 +254,12 @@ After that, changing the prefix key requires manipulating keymaps."
     ;; the look and feel of Follow mode.)
     (define-key mainmap [remap end-of-buffer] 'follow-end-of-buffer)
 
+    (define-key mainmap [remap scroll-bar-toolkit-scroll] 'follow-scroll-bar-toolkit-scroll)
+    (define-key mainmap [remap scroll-bar-drag] 'follow-scroll-bar-drag)
+    (define-key mainmap [remap scroll-bar-scroll-up] 'follow-scroll-bar-scroll-up)
+    (define-key mainmap [remap scroll-bar-scroll-down] 'follow-scroll-bar-scroll-down)
+    (define-key mainmap [remap mwheel-scroll] 'follow-mwheel-scroll)
+
     mainmap)
   "Minor mode keymap for Follow mode.")
 
@@ -345,16 +271,8 @@ After that, changing the prefix key requires manipulating keymaps."
     '(["Follow mode"	follow-mode
        :style toggle :selected follow-mode])))
 
-;; If there is a `tools' menu, we use it.  However, we can't add a
-;; minor-mode specific item to it (it's broken), so we make the
-;; contents ghosted when not in use, and add ourselves to the
-;; global map.
 (easy-menu-add-item nil '("Tools")
   '("Follow"
-    ;; The Emacs code used to just gray out operations when follow-mode was
-    ;; not enabled, whereas the XEmacs code used to remove it altogether.
-    ;; Not sure which is preferable, but clearly the preference should not
-    ;; depend on the flavor.
     :filter follow-menu-filter
     ["Scroll Up"	follow-scroll-up	follow-mode]
     ["Scroll Down"	follow-scroll-down	follow-mode]
@@ -373,8 +291,6 @@ After that, changing the prefix key requires manipulating keymaps."
     "--"
     ["Follow mode"	follow-mode :style toggle :selected follow-mode]))
 
-;;}}}
-
 (defcustom follow-mode-line-text " Follow"
   "Text shown in the mode line when Follow mode is active.
 Defaults to \" Follow\".  Examples of other values
@@ -385,30 +301,12 @@ are \" Fw\", or simply \"\"."
 (defcustom follow-auto nil
   "Non-nil activates Follow mode whenever a file is loaded."
   :type 'boolean
-  :group 'follow)
-
-(defcustom follow-intercept-processes (fboundp 'start-process)
-  "When non-nil, Follow mode will monitor process output."
-  :type 'boolean
-  :group 'follow)
-
-(defvar follow-avoid-tail-recenter-p (not (featurep 'xemacs))
-  "When non-nil, patch Emacs so that tail windows won't be recentered.
-
-A \"tail window\" is a window that displays only the end of
-the buffer.  Normally it is practical for the user that empty
-windows are recentered automatically.  However, when using
-Follow mode it breaks the display when the end is displayed
-in a window \"above\" the last window.  This is for
-example the case when displaying a short page in info.
-
-Must be set before Follow mode is loaded.
-
-Please note that it is not possible to fully prevent Emacs from
-recentering empty windows.  Please report if you find a repeatable
-situation in which Emacs recenters empty windows.
-
-XEmacs, as of 19.12, does not recenter windows, good!")
+  :group 'follow
+  :set (lambda (symbol value)
+	 (if value
+	     (add-hook 'find-file-hook 'follow-find-file-hook t)
+	   (remove-hook 'find-file-hook 'follow-find-file-hook))
+	 (set-default symbol value)))
 
 (defvar follow-cache-command-list
   '(next-line previous-line forward-char backward-char)
@@ -423,17 +321,15 @@ The commands in this list are checked at load time.
 To mark other commands as suitable for caching, set the symbol
 property `follow-mode-use-cache' to non-nil.")
 
-(defvar follow-debug nil
-  "Non-nil when debugging Follow mode.")
-
+(defcustom follow-debug nil
+  "If non-nil, emit Follow mode debugging messages."
+  :type 'boolean
+  :group 'follow)
 
 ;; Internal variables:
 
 (defvar follow-internal-force-redisplay nil
   "True when Follow mode should redisplay the windows.")
-
-(defvar follow-process-filter-alist '()
-  "The original filters for processes intercepted by Follow mode.")
 
 (defvar follow-active-menu nil
   "The menu visible when Follow mode is active.")
@@ -448,8 +344,7 @@ Used by `follow-window-size-change'.")
 (defvar follow-windows-start-end-cache nil
   "Cache used by `follow-window-start-end'.")
 
-;;}}}
-;;{{{ Debug messages
+;;; Debug messages
 
 ;; This inline function must be as small as possible!
 ;; Maybe we should define a macro that expands to nil if
@@ -460,15 +355,12 @@ Used by `follow-window-size-change'.")
   (if (and (boundp 'follow-debug) follow-debug)
       (apply 'message args)))
 
-;;}}}
-;;{{{ Cache
+;;; Cache
 
 (dolist (cmd follow-cache-command-list)
   (put cmd 'follow-mode-use-cache t))
 
-;;}}}
-
-;;{{{ The mode
+;;; The mode
 
 ;;;###autoload
 (defun turn-on-follow-mode ()
@@ -514,49 +406,35 @@ To split one large window into two side-by-side windows, the commands
 
 Only windows displayed in the same frame follow each other.
 
-If the variable `follow-intercept-processes' is non-nil, Follow mode
-will listen to the output of processes and redisplay accordingly.
-\(This is the default.)
-
 This command runs the normal hook `follow-mode-hook'.
 
 Keys specific to Follow mode:
 \\{follow-mode-map}"
   :keymap follow-mode-map
-  (when (and follow-mode follow-intercept-processes)
-    (follow-intercept-process-output))
-  (cond (follow-mode ; On
-         ;; XEmacs: If this is non-nil, the window will scroll before
-         ;; the point will have a chance to get into the next window.
-         (when (boundp 'scroll-on-clipped-lines)
-	   (setq scroll-on-clipped-lines nil))
-         (force-mode-line-update)
-         (add-hook 'post-command-hook 'follow-post-command-hook t))
-
-        ((not follow-mode) ; Off
-         (force-mode-line-update))))
-
-;;}}}
-;;{{{ Find file hook
-
-;; This will start follow-mode whenever a new file is loaded, if
-;; the variable `follow-auto' is non-nil.
-
-(add-hook 'find-file-hook 'follow-find-file-hook t)
+  (if follow-mode
+      (progn
+	(add-hook 'compilation-filter-hook 'follow-align-compilation-windows t t)
+	(add-hook 'post-command-hook 'follow-post-command-hook t)
+	(add-hook 'window-size-change-functions 'follow-window-size-change t))
+    ;; Remove globally-installed hook functions only if there is no
+    ;; other Follow mode buffer.
+    (let ((buffers (buffer-list))
+	  following)
+      (while (and (not following) buffers)
+	(setq following (buffer-local-value 'follow-mode (car buffers))
+	      buffers (cdr buffers)))
+      (unless following
+	(remove-hook 'post-command-hook 'follow-post-command-hook)
+	(remove-hook 'window-size-change-functions 'follow-window-size-change)))
+    (remove-hook 'compilation-filter-hook 'follow-align-compilation-windows t)))
 
 (defun follow-find-file-hook ()
   "Find-file hook for Follow mode.  See the variable `follow-auto'."
-  (if follow-auto (follow-mode t)))
+  (if follow-auto (follow-mode 1)))
 
-;;}}}
+;;; User functions
 
-;;{{{ User functions
-
-;;;
-;;; User functions usable when in Follow mode.
-;;;
-
-;;{{{ Scroll
+;;; Scroll
 
 ;; `scroll-up' and `-down', but for windows in Follow mode.
 ;;
@@ -584,7 +462,7 @@ Negative ARG means scroll downward.
 
 Works like `scroll-up' when not in Follow mode."
   (interactive "P")
-  (cond ((not (and (boundp 'follow-mode) follow-mode))
+  (cond ((not follow-mode)
 	 (scroll-up arg))
 	(arg
 	 (save-excursion (scroll-up arg))
@@ -613,7 +491,7 @@ Negative ARG means scroll upward.
 
 Works like `scroll-up' when not in Follow mode."
   (interactive "P")
-  (cond ((not (and (boundp 'follow-mode) follow-mode))
+  (cond ((not follow-mode)
 	 (scroll-up arg))
 	(arg
 	 (save-excursion (scroll-down arg)))
@@ -633,8 +511,48 @@ Works like `scroll-up' when not in Follow mode."
 	     (vertical-motion (- next-screen-context-lines 1))
 	     (setq follow-internal-force-redisplay t))))))
 
-;;}}}
-;;{{{ Buffer
+(declare-function comint-adjust-point "comint" (window))
+(defvar comint-scroll-show-maximum-output)
+
+(defun follow-comint-scroll-to-bottom (&optional window)
+  "Scroll the bottom-most window in the current Follow chain.
+This is to be called by `comint-postoutput-scroll-to-bottom'."
+  (let* ((buffer (current-buffer))
+	 (selected (selected-window))
+	 (is-selected (eq (window-buffer) buffer))
+	 some-window)
+    (when (or is-selected
+	      (setq some-window (get-buffer-window)))
+      (let* ((pos (progn (comint-adjust-point nil) (point)))
+	     (win (if is-selected
+		      selected
+		    (car (last (follow-all-followers some-window))))))
+	(select-window win)
+	(goto-char pos)
+	(setq follow-windows-start-end-cache nil)
+	(follow-adjust-window win pos)
+	(unless is-selected
+	  (select-window selected)
+	  (set-buffer buffer))))))
+
+(defun follow-align-compilation-windows ()
+  "Align the windows of the current Follow mode buffer.
+This is to be called from `compilation-filter-hook'."
+  (let ((buffer (current-buffer))
+	(win (get-buffer-window))
+	(selected (selected-window)))
+    (when (and follow-mode (waiting-for-user-input-p) win)
+      (let ((windows (follow-all-followers win)))
+	(unless (eq (window-buffer selected) buffer)
+	  (setq win (car windows))
+	  (select-window win))
+	(follow-redisplay windows win t)
+	(setq follow-windows-start-end-cache nil)
+	(unless (eq selected win)
+	  (select-window selected)
+	  (set-buffer buffer))))))
+
+;;; Buffer
 
 ;;;###autoload
 (defun follow-delete-other-windows-and-split (&optional arg)
@@ -649,11 +567,7 @@ two windows always will display two successive pages.
 
 If ARG is positive, the leftmost window is selected.  If negative,
 the rightmost is selected.  If ARG is nil, the leftmost window is
-selected if the original window is the first one in the frame.
-
-To bind this command to a hotkey, place the following line
-in your `~/.emacs' file, replacing [f7] by your favorite key:
-    (global-set-key [f7] 'follow-delete-other-windows-and-split)"
+selected if the original window is the first one in the frame."
   (interactive "P")
   (let ((other (or (and (null arg)
 			(not (eq (selected-window)
@@ -689,28 +603,22 @@ Defaults to current buffer."
 				  (current-buffer))))
   (or buffer (setq buffer (current-buffer)))
   (let ((orig-window (selected-window)))
-    (walk-windows
-     (function
-      (lambda (win)
-	(select-window win)
-	(switch-to-buffer buffer))))
+    (walk-windows (lambda (win)
+		    (select-window win)
+		    (switch-to-buffer buffer))
+		  'no-minibuf)
     (select-window orig-window)
     (follow-redisplay)))
 
 
 (defun follow-switch-to-current-buffer-all ()
-  "Show current buffer in all windows on this frame, and enter Follow mode.
-
-To bind this command to a hotkey place the following line
-in your `~/.emacs' file:
-	(global-set-key [f7] 'follow-switch-to-current-buffer-all)"
+  "Show current buffer in all windows on this frame, and enter Follow mode."
   (interactive)
-  (or (and (boundp 'follow-mode) follow-mode)
-      (follow-mode 1))
+  (unless follow-mode
+    (follow-mode 1))
   (follow-switch-to-buffer-all))
 
-;;}}}
-;;{{{ Movement
+;;; Movement
 
 ;; Note, these functions are not very useful, at least not unless you
 ;; rebind the rather cumbersome key sequence `C-c . p'.
@@ -744,8 +652,7 @@ in your `~/.emacs' file:
   (interactive)
   (select-window (car (reverse (follow-all-followers)))))
 
-;;}}}
-;;{{{ Redraw
+;;; Redraw
 
 (defun follow-recenter (&optional arg)
   "Recenter the middle window around point.
@@ -777,9 +684,7 @@ from the bottom."
 	   (win (nth (/ (- (length windows) 1) 2) windows)))
       (select-window win)
       (goto-char dest)
-      (recenter)
-      ;;(setq follow-internal-force-redisplay t)
-      )))
+      (recenter))))
 
 
 (defun follow-redraw ()
@@ -792,8 +697,7 @@ Follow mode since the windows should always be aligned."
   (sit-for 0)
   (follow-redisplay))
 
-;;}}}
-;;{{{ End of buffer
+;;; End of buffer
 
 (defun follow-end-of-buffer (&optional arg)
   "Move point to the end of the buffer, Follow mode style.
@@ -816,38 +720,37 @@ of the way from the true end."
     (with-no-warnings
       (end-of-buffer arg))))
 
-;;}}}
+;;; Display
 
-;;}}}
+(defun follow--window-sorter (w1 w2)
+  "Sorting function for W1 and W2 based on their positions.
+Return non-nil if W1 is above W2; if their top-lines
+are at the same position, return non-nil if W1 is to the
+left of W2."
+  (let* ((edge-1 (window-pixel-edges w1))
+	 (edge-2 (window-pixel-edges w2))
+	 (y1 (nth 1 edge-1))
+	 (y2 (nth 1 edge-2)))
+    (if (= y1 y2)
+	(< (car edge-1) (car edge-2))
+      (< y1 y2))))
 
-;;{{{ Display
-
-;;;; The display routines
-
-;;{{{ Information gathering functions
-
-(defun follow-all-followers (&optional testwin)
-  "Return all windows displaying the same buffer as the TESTWIN.
-The list contains only windows displayed in the same frame as TESTWIN.
-If TESTWIN is nil the selected window is used."
-  (or (window-live-p testwin)
-      (setq testwin (selected-window)))
-  (let* ((top (frame-first-window (window-frame testwin)))
-	 (win top)
-	 (done nil)
-	 (windows '())
-	 (buffer (window-buffer testwin)))
-    (while (and (not done) win)
-      (if (eq (window-buffer win) buffer)
-	  (setq windows (cons win windows)))
-      (setq win (next-window win 'not))
-      (if (eq win top)
-	  (setq done t)))
-    (nreverse windows)))
-
+(defun follow-all-followers (&optional win)
+  "Return all windows displaying the same buffer as the WIN.
+The list is sorted with topmost and leftmost windows first, and
+contains only windows in the same frame as WIN.  If WIN is nil,
+it defaults to the selected window."
+  (unless (window-live-p win)
+    (setq win (selected-window)))
+  (let ((buffer (window-buffer win))
+	windows)
+    (dolist (w (window-list (window-frame win) 'no-minibuf win))
+      (if (eq (window-buffer w) buffer)
+	  (push w windows)))
+    (sort windows 'follow--window-sorter)))
 
 (defun follow-split-followers (windows &optional win)
-  "Split the WINDOWS into the sets: predecessors and successors.
+  "Split WINDOWS into two sets: predecessors and successors.
 Return `(PRED . SUCC)' where `PRED' and `SUCC' are ordered starting
 from the selected window."
   (or win
@@ -858,62 +761,35 @@ from the selected window."
       (setq windows (cdr windows)))
     (cons pred (cdr windows))))
 
-
-;; This function is optimized function for speed!
-
 (defun follow-calc-win-end (&optional win)
-  "Calculate the presumed window end for WIN.
+  "Calculate the end position for window WIN.
+Return (END-POS END-OF-BUFFER).
 
-Actually, the position returned is the start of the next
-window, normally is the end plus one.
+Actually, the position returned is the start of the line after
+the last fully-visible line in WIN.  If WIN is nil, the selected
+window is used."
+  (let* ((win (or win (selected-window)))
+	 (edges (window-inside-pixel-edges win))
+	 (ht (- (nth 3 edges) (nth 1 edges)))
+	 (last-line-pos (posn-point (posn-at-x-y 0 (1- ht) win))))
+    (if (pos-visible-in-window-p last-line-pos win)
+	(let ((end (window-end win t)))
+	  (list end (= end (point-max))))
+      (list last-line-pos nil))))
 
-If WIN is nil, the selected window is used.
-
-Returns (end-pos end-of-buffer-p)"
-  (if (featurep 'xemacs)
-      ;; XEmacs can calculate the end of the window by using
-      ;; the 'guarantee options. GOOD!
-      (let ((end (window-end win t)))
-	(if (= end (point-max (window-buffer win)))
-	    (list end t)
-	  (list (+ end 1) nil)))
-    ;; Emacs: We have to calculate the end by ourselves.
-    ;; This code works on both XEmacs and Emacs, but now
-    ;; that XEmacs has got custom-written code, this could
-    ;; be optimized for Emacs.
-    (let (height buffer-end-p)
-      (with-selected-window (or win (selected-window))
-	(save-excursion
-	  (goto-char (window-start))
-	  (setq height
-		(- (window-height)
-		   (if header-line-format 2 1)))
-	  (setq buffer-end-p
-		(if (bolp)
-		    (not (= height (vertical-motion height)))
-		  (save-restriction
-		    ;; Fix a mis-feature in `vertical-motion':
-		    ;; The start of the window is assumed to
-		    ;; coincide with the start of a line.
-		    (narrow-to-region (point) (point-max))
-		    (not (= height (vertical-motion height))))))
-	  (list (point) buffer-end-p))))))
-
-
-;; Can't use `save-window-excursion' since it triggers a redraw.
 (defun follow-calc-win-start (windows pos win)
-  "Calculate where WIN will start if the first in WINDOWS start at POS.
-
-If WIN is nil the point below all windows is returned."
-  (let (start)
-    (while (and windows (not (eq (car windows) win)))
-      (setq start (window-start (car windows)))
+  "Determine the start of window WIN in a Follow mode window chain.
+WINDOWS is a list of chained windows, and POS is the starting
+position for the first window in the list.  If WIN is nil, return
+the point below all windows."
+  (while (and windows (not (eq (car windows) win)))
+    (let ((old-start (window-start (car windows))))
+      ;; Can't use `save-window-excursion' since it triggers a redraw.
       (set-window-start (car windows) pos 'noforce)
       (setq pos (car (follow-calc-win-end (car windows))))
-      (set-window-start (car windows) start 'noforce)
-      (setq windows (cdr windows)))
-    pos))
-
+      (set-window-start (car windows) old-start 'noforce)
+      (setq windows (cdr windows))))
+  pos)
 
 ;; The result from `follow-windows-start-end' is cached when using
 ;; a handful simple commands, like cursor movement commands.
@@ -932,23 +808,8 @@ Note that this handles the case when the cache has been set to nil."
       (setq cache (cdr cache)))
     (and res (null windows) (null cache))))
 
-
-(defsubst follow-invalidate-cache ()
-  "Force `follow-windows-start-end' to recalculate the end of the window."
-  (setq follow-windows-start-end-cache nil))
-
-
-;; Build a list of windows and their start and end positions.
-;; Useful to avoid calculating start/end position whenever they are needed.
-;; The list has the format:
-;; ((Win Start End End-of-buffer-visible-p) ...)
-
-;; Used to have a `save-window-excursion', but it obviously triggered
-;; redraws of the display. Check if I used it for anything.
-
-
 (defun follow-windows-start-end (windows)
-  "Builds a list of (WIN START END BUFFER-END-P) for every window in WINDOWS."
+  "Return a list of (WIN START END BUFFER-END-P) for window list WINDOWS."
   (if (follow-cache-valid-p windows)
       follow-windows-start-end-cache
     (let ((orig-win (selected-window))
@@ -959,7 +820,6 @@ Note that this handles the case when the cache has been set to nil."
 	      win-start-end))
       (select-window orig-win)
       (setq follow-windows-start-end-cache (nreverse win-start-end)))))
-
 
 (defsubst follow-pos-visible (pos win win-start-end)
   "Non-nil when POS is visible in WIN."
@@ -974,20 +834,16 @@ Note that this handles the case when the cache has been set to nil."
 ;; should start at a full screen line.
 
 (defsubst follow-windows-aligned-p (win-start-end)
-  "Non-nil if the follower windows are aligned."
-  (let ((res t))
-    (save-excursion
-      (goto-char (window-start (caar win-start-end)))
-      (unless (bolp)
-	(vertical-motion 0 (caar win-start-end))
-	(setq res (eq (point) (window-start (caar win-start-end))))))
-    (while (and res (cdr win-start-end))
-      ;; At least two followers left
-      (setq res (eq (car (cdr (cdr (car win-start-end))))
-		    (car (cdr (car (cdr win-start-end))))))
+  "Non-nil if the follower windows are aligned.
+The argument, WIN-START-END, should be a list of the form
+returned by `follow-windows-start-end'."
+  (let ((result t))
+    (while (and win-start-end result)
+      (if (cdr win-start-end)
+	  (setq result (eq (nth 2 (car win-start-end))
+			   (nth 1 (cadr win-start-end)))))
       (setq win-start-end (cdr win-start-end)))
-    res))
-
+    result))
 
 ;; Check if the point is visible in all windows. (So that
 ;; no one will be recentered.)
@@ -1023,42 +879,21 @@ Note that this handles the case when the cache has been set to nil."
 	(vertical-motion 1 win)
 	(set-window-start win (point) 'noforce)))))
 
-;;}}}
-;;{{{ Selection functions
-
-;; Make a window in WINDOWS selected if it currently
-;; is displaying the position DEST.
-;;
-;; We don't select a window if it just has been moved.
-
 (defun follow-select-if-visible (dest win-start-end)
   "Select and return a window, if DEST is visible in it.
 Return the selected window."
-  (let (win win-end)
+  (let (win win-end wse)
     (while (and (not win) win-start-end)
       ;; Don't select a window that was just moved. This makes it
-      ;; possible to later select the last window after a `end-of-buffer'
-      ;; command.
-      (when (follow-pos-visible dest (caar win-start-end) win-start-end)
-	(setq win (caar win-start-end)
-	      win-end (car (cddr (car win-start-end))))
+      ;; possible to later select the last window after a
+      ;; `end-of-buffer' command.
+      (setq wse (car win-start-end))
+      (when (follow-pos-visible dest (car wse) win-start-end)
+	(setq win (car wse)
+	      win-end (nth 2 wse))
 	(select-window win))
       (setq win-start-end (cdr win-start-end)))
-    ;; The last line of the window may be partially visible; if so,
-    ;; and if point is visible in the next window, select the next
-    ;; window instead.
-    (and win
-	 (/= dest (point-max))
-    	 win-start-end
-    	 (follow-pos-visible dest (caar win-start-end) win-start-end)
-	 (save-excursion
-	   (goto-char dest)
-	   (vertical-motion 1 win)
-	   (>= (point) win-end))
-    	 (setq win (caar win-start-end))
-    	 (select-window win))
     win))
-
 
 ;; Lets select a window showing the end. Make sure we only select it if
 ;; it wasn't just moved here. (I.e. M-> shall not unconditionally place
@@ -1112,8 +947,8 @@ Otherwise, return nil."
 	      (set-window-start (car windows) (point) 'noforce)
 	      (setq end-pos-end-p (follow-calc-win-end (car windows)))
 	      (goto-char (car end-pos-end-p))
-	      ;; Visible, if dest above end, or if eob is visible inside
-	      ;; the window.
+	      ;; Visible, if dest above end, or if eob is visible
+	      ;; inside the window.
 	      (if (or (car (cdr end-pos-end-p))
 		      (< dest (point)))
 		  (setq win (car windows))
@@ -1124,9 +959,7 @@ Otherwise, return nil."
       (goto-char dest))
     win))
 
-
-;;}}}
-;;{{{ Redisplay
+;;; Redisplay
 
 ;; Redraw all the windows on the screen, starting with the top window.
 ;; The window used as as marker is WIN, or the selected window if WIN
@@ -1167,7 +1000,6 @@ repositioning the other windows."
 	(set-window-start w start))
       (setq start (car (follow-calc-win-end w))))))
 
-
 (defun follow-estimate-first-window-start (windows win start)
   "Estimate the position of the first window.
 The estimate is computed by assuming that the window WIN, which
@@ -1206,9 +1038,6 @@ should be a member of WINDOWS, starts at position START."
 
 ;; Find the starting point, start at GUESS and search upward.  Return
 ;; a point on the same line as GUESS, or above.
-;;
-;; (Is this ever used? I must make sure it works just in case it is
-;; ever called.)
 
 (defun follow-calculate-first-window-start-from-below
        (windows guess &optional win start)
@@ -1240,65 +1069,40 @@ should be a member of WINDOWS, starts at position START."
 		 (setq res (point))))))
       res)))
 
-;;}}}
-;;{{{ Avoid tail recenter
+;;; Avoid tail recenter
 
-;; This sets the window internal flag `force_start'. The effect is that
-;; windows only displaying the tail aren't recentered.
-;; Has to be called before every redisplay... (Great isn't it?)
+;; This sets the window internal flag `force_start'. The effect is
+;; that windows only displaying the tail aren't recentered.
 ;;
-;; XEmacs doesn't recenter the tail, GOOD!
-;;
-;; A window displaying only the tail, is a window whose
-;; window-start position is equal to (point-max) of the buffer it
-;; displays.
-;;
-;; This function is also added to `post-command-idle-hook', introduced
-;; in Emacs 19.30.  This is needed since the vaccine injected by the
-;; call from `post-command-hook' only works until the next redisplay.
-;; It is possible that the functions in the `post-command-idle-hook'
-;; can cause a redisplay, and hence a new vaccine is needed.
-;;
-;; Sometimes, calling this function could actually cause a redisplay,
-;; especially if it is placed in the debug filter section.  I must
-;; investigate this further...
+;; A window displaying only the tail, is a window whose window-start
+;; position is equal to (point-max) of the buffer it displays.
 
 (defun follow-avoid-tail-recenter (&rest _rest)
   "Make sure windows displaying the end of a buffer aren't recentered.
-
 This is done by reading and rewriting the start position of
 non-first windows in Follow mode."
-  (if follow-avoid-tail-recenter-p
-      (let* ((orig-buffer (current-buffer))
-	    (top (frame-first-window (selected-frame)))
-	    (win top)
-	    (who '())			; list of (buffer . frame)
-	    start
-	    pair)			; (buffer . frame)
-	;; If the only window in the frame is a minibuffer
-	;; window, `next-window' will never find it again...
-	(if (window-minibuffer-p top)
-	    nil
-	  (while  ;; look, no body!
-	      (progn
-		(setq start (window-start win))
-		(set-buffer (window-buffer win))
-		(setq pair (cons (window-buffer win) (window-frame win)))
-		(if (member pair who)
-		    (if (and (boundp 'follow-mode) follow-mode
-			     (eq (point-max) start))
-			;; Write the same window start back, but don't
-			;; set the NOFORCE flag.
-			(set-window-start win start))
-		  (setq who (cons pair who)))
-		(setq win (next-window win 'not t))
-		(not (eq win top))))  ;; Loop while this is true.
-	  (set-buffer orig-buffer)))))
+  (let* ((orig-buffer (current-buffer))
+	 (top (frame-first-window (selected-frame)))
+	 (win top)
+	 who) ; list of (buffer . frame)
+    ;; If the only window in the frame is a minibuffer
+    ;; window, `next-window' will never find it again...
+    (unless (window-minibuffer-p top)
+      (while  ;; look, no body!
+	  (let ((start (window-start win))
+		(pair (cons (window-buffer win) (window-frame win))))
+	    (set-buffer (window-buffer win))
+	    (cond ((null (member pair who))
+		   (setq who (cons pair who)))
+		  ((and follow-mode (eq (point-max) start))
+		   ;; Write the same window start back, but don't
+		   ;; set the NOFORCE flag.
+		   (set-window-start win start)))
+	    (setq win (next-window win 'not t))
+	    (not (eq win top))))  ;; Loop while this is true.
+      (set-buffer orig-buffer))))
 
-;;}}}
-
-;;}}}
-;;{{{ Post Command Hook
+;;; Post Command Hook
 
 ;; The magic little box. This function is called after every command.
 
@@ -1319,149 +1123,151 @@ non-first windows in Follow mode."
       (with-current-buffer (window-buffer win)
 	(unless (and (symbolp this-command)
 		     (get this-command 'follow-mode-use-cache))
-	  (follow-invalidate-cache))
-	(when (and follow-mode
-		   (not (window-minibuffer-p win)))
-	  ;; The buffer shown in the selected window is in follow
-	  ;; mode.  Find the current state of the display.
-	  (let* ((windows (follow-all-followers win))
-		 (dest (point))
-		 (win-start-end (progn
-				  (follow-update-window-start (car windows))
-				  (follow-windows-start-end windows)))
-		 (aligned (follow-windows-aligned-p win-start-end))
-		 (visible (follow-pos-visible dest win win-start-end))
-		 selected-window-up-to-date)
-	    (unless (and aligned visible)
-	      (follow-invalidate-cache))
-	    (follow-avoid-tail-recenter)
-	    ;; Select a window to display point.
-	    (unless follow-internal-force-redisplay
-	      (if (eq dest (point-max))
-		  ;; At point-max, we have to be careful since the
-		  ;; display can be aligned while `dest' can be
-		  ;; visible in several windows.
-		  (cond
-		   ;; Select the current window, but only when the
-		   ;; display is correct. (When inserting characters
-		   ;; in a tail window, the display is not correct, as
-		   ;; they are shown twice.)
-		   ;;
-		   ;; Never stick to the current window after a
-		   ;; deletion.  The reason is cosmetic: when typing
-		   ;; `DEL' in a window showing only the end of the
-		   ;; file, a character would be removed from the
-		   ;; window above, which is very unintuitive.
-		   ((and visible
-			 aligned
-			 (not (memq this-command
-				    '(backward-delete-char
-				      delete-backward-char
-				      backward-delete-char-untabify
-				      kill-region))))
-		    (follow-debug-message "Max: same"))
-		   ;; If the end is visible, and the window doesn't
-		   ;; seems like it just has been moved, select it.
-		   ((follow-select-if-end-visible win-start-end)
-		    (follow-debug-message "Max: end visible")
-		    (setq visible t aligned nil)
-		    (goto-char dest))
-		   ;; Just show the end...
-		   (t
-		    (follow-debug-message "Max: default")
-		    (select-window (car (reverse windows)))
-		    (goto-char dest)
-		    (setq visible nil aligned nil)))
+	  (setq follow-windows-start-end-cache nil)))
+      (follow-adjust-window win (point)))))
 
-		;; We're not at the end, here life is much simpler.
-		(cond
-		 ;; This is the normal case!
-		 ;; It should be optimized for speed.
-		 ((and visible aligned)
-		  (follow-debug-message "same"))
-		 ;; Pick a position in any window.  If the display is
-		 ;; ok, this will pick the `correct' window.
-		 ((follow-select-if-visible dest win-start-end)
-		  (follow-debug-message "visible")
-		  (goto-char dest)
-		  ;; We have to perform redisplay, since scrolling is
-		  ;; needed in case the line is partially visible.
-		  (setq visible nil))
-		 ;; Not visible anywhere else, lets pick this one.
-		 ;; (Is this case used?)
-		 (visible
-		  (follow-debug-message "visible in selected."))
-		 ;; Far out!
-		 ((eq dest (point-min))
-		  (follow-debug-message "min")
-		  (select-window (car windows))
-		  (goto-char dest)
-		  (set-window-start (selected-window) (point-min))
-		  (setq win-start-end (follow-windows-start-end windows))
-		  (follow-invalidate-cache)
-		  (setq visible t aligned nil))
-		 ;; If we can position the cursor without moving the first
-		 ;; window, do it. This is the case that catches `RET'
-		 ;; at the bottom of a window.
-		 ((follow-select-if-visible-from-first dest windows)
-		  (follow-debug-message "Below first")
-		  (setq visible t aligned t))
-		 ;; None of the above. For simplicity, we stick to the
-		 ;; selected window.
-		 (t
-		  (follow-debug-message "None")
-		  (setq visible nil aligned nil))))
-	      ;; If a new window has been selected, make sure that the
-	      ;; old is not scrolled when the point is outside the
-	      ;; window.
-	      (unless (eq win (selected-window))
-		(let ((p (window-point win)))
-		  (set-window-start win (window-start win) nil)
-		  (set-window-point win p))))
-	    (unless visible
-	      ;; If point may not be visible in the selected window,
-	      ;; perform a redisplay; this ensures scrolling.
-	      (redisplay)
-	      (setq selected-window-up-to-date t)
-	      (follow-avoid-tail-recenter)
-	      (setq win-start-end (follow-windows-start-end windows))
-	      (follow-invalidate-cache)
-	      (setq aligned nil))
-	    ;; Now redraw the windows around the selected window.
-	    (unless (and (not follow-internal-force-redisplay)
-			 (or aligned
-			     (follow-windows-aligned-p win-start-end))
-			 (follow-point-visible-all-windows-p
-			  win-start-end))
-	      (setq follow-internal-force-redisplay nil)
-	      (follow-redisplay windows (selected-window)
-				selected-window-up-to-date)
-	      (setq win-start-end (follow-windows-start-end windows))
-	      (follow-invalidate-cache)
-	      ;; When the point ends up in another window. This
-	      ;; happens when dest is in the beginning of the file and
-	      ;; the selected window is not the first.  It can also,
-	      ;; in rare situations happen when long lines are used
-	      ;; and there is a big difference between the width of
-	      ;; the windows.  (When scrolling one line in a wide
-	      ;; window which will cause a move larger that an entire
-	      ;; small window.)
-	      (unless (follow-pos-visible dest win win-start-end)
-		(follow-select-if-visible dest win-start-end)
-		(goto-char dest)))
+(defun follow-adjust-window (win dest)
+  ;; Adjust the window WIN and its followers.
+  (with-current-buffer (window-buffer win)
+    (when (and follow-mode
+	       (not (window-minibuffer-p win)))
+      (let* ((windows (follow-all-followers win))
+	     (win-start-end (progn
+			      (follow-update-window-start (car windows))
+			      (follow-windows-start-end windows)))
+	     (aligned (follow-windows-aligned-p win-start-end))
+	     (visible (follow-pos-visible dest win win-start-end))
+	     selected-window-up-to-date)
+	(unless (and aligned visible)
+	  (setq follow-windows-start-end-cache nil))
 
-	    ;; If the region is visible, make it look good when spanning
-	    ;; multiple windows.
-	    (when (region-active-p)
-	      (follow-maximize-region
-	       (selected-window) windows win-start-end))))
-	;; Whether or not the buffer was in follow mode, we must
-	;; update the windows displaying the tail so that Emacs won't
-	;; recenter them.
-	(follow-avoid-tail-recenter)))))
+	;; Select a window to display point.
+	(unless follow-internal-force-redisplay
+	  (if (eq dest (point-max))
+	      ;; Be careful at point-max: the display can be aligned
+	      ;; while DEST can be visible in several windows.
+	      (cond
+	       ;; Select the current window, but only when the display
+	       ;; is correct. (When inserting characters in a tail
+	       ;; window, the display is not correct, as they are
+	       ;; shown twice.)
+	       ;;
+	       ;; Never stick to the current window after a deletion.
+	       ;; Otherwise, when typing `DEL' in a window showing
+	       ;; only the end of the file, a character would be
+	       ;; removed from the window above, which is very
+	       ;; unintuitive.
+	       ((and visible
+		     aligned
+		     (not (memq this-command
+				'(backward-delete-char
+				  delete-backward-char
+				  backward-delete-char-untabify
+				  kill-region))))
+		(follow-debug-message "Max: same"))
+	       ;; If the end is visible, and the window doesn't
+	       ;; seems like it just has been moved, select it.
+	       ((follow-select-if-end-visible win-start-end)
+		(follow-debug-message "Max: end visible")
+		(setq visible t aligned nil)
+		(goto-char dest))
+	       ;; Just show the end...
+	       (t
+		(follow-debug-message "Max: default")
+		(select-window (car (last windows)))
+		(goto-char dest)
+		(setq visible nil aligned nil)))
 
-;;}}}
-;;{{{ The region
+	    ;; We're not at the end, here life is much simpler.
+	    (cond
+	     ;; This is the normal case!
+	     ;; It should be optimized for speed.
+	     ((and visible aligned)
+	      (follow-debug-message "same"))
+	     ;; Pick a position in any window.  If the display is ok,
+	     ;; this picks the `correct' window.
+	     ((follow-select-if-visible dest win-start-end)
+	      (follow-debug-message "visible")
+	      (goto-char dest)
+	      ;; Perform redisplay, in case line is partially visible.
+	      (setq visible nil))
+	     ;; Not visible anywhere else, lets pick this one.
+	     (visible
+	      (follow-debug-message "visible in selected."))
+	     ;; If DEST is before the first window start, select the
+	     ;; first window.
+	     ((< dest (nth 1 (car win-start-end)))
+	      (follow-debug-message "before first")
+	      (select-window (car windows))
+	      (goto-char dest)
+	      (setq visible nil aligned nil))
+	     ;; If we can position the cursor without moving the first
+	     ;; window, do it. This is the case that catches `RET' at
+	     ;; the bottom of a window.
+	     ((follow-select-if-visible-from-first dest windows)
+	      (follow-debug-message "Below first")
+	      (setq visible t aligned t))
+	     ;; None of the above.  Stick to the selected window.
+	     (t
+	      (follow-debug-message "None")
+	      (setq visible nil aligned nil))))
+
+	  ;; If a new window was selected, make sure that the old is
+	  ;; not scrolled when the point is outside the window.
+	  (unless (eq win (selected-window))
+	    (let ((p (window-point win)))
+	      (set-window-start win (window-start win) nil)
+	      (set-window-point win p))))
+
+	(unless visible
+	  ;; If point may not be visible in the selected window,
+	  ;; perform a redisplay; this ensures scrolling.
+	  (let ((opoint (point)))
+	    (redisplay)
+	    ;; If this `redisplay' moved point, we got clobbered by a
+	    ;; previous call to `set-window-start'.  Try again.
+	    (when (/= (point) opoint)
+	      (goto-char opoint)
+	      (redisplay)))
+
+	  (setq selected-window-up-to-date t)
+	  (follow-avoid-tail-recenter)
+	  (setq win-start-end (follow-windows-start-end windows)
+		follow-windows-start-end-cache nil
+		aligned nil))
+
+	;; Now redraw the windows around the selected window.
+	(unless (and (not follow-internal-force-redisplay)
+		     (or aligned
+			 (follow-windows-aligned-p win-start-end))
+		     (follow-point-visible-all-windows-p win-start-end))
+	  (setq follow-internal-force-redisplay nil)
+	  (follow-redisplay windows (selected-window)
+			    selected-window-up-to-date)
+	  (setq win-start-end (follow-windows-start-end windows)
+		follow-windows-start-end-cache nil)
+	  ;; The point can ends up in another window when DEST is at
+	  ;; the beginning of the buffer and the selected window is
+	  ;; not the first.  It can also happen when long lines are
+	  ;; used and there is a big difference between the width of
+	  ;; the windows.  (When scrolling one line in a wide window
+	  ;; which will cause a move larger that an entire small
+	  ;; window.)
+	  (unless (follow-pos-visible dest win win-start-end)
+	    (follow-select-if-visible dest win-start-end)
+	    (goto-char dest)))
+
+	;; If the region is visible, make it look good when spanning
+	;; multiple windows.
+	(when (region-active-p)
+	  (follow-maximize-region
+	   (selected-window) windows win-start-end)))
+
+      ;; Whether or not the buffer was in follow mode, update windows
+      ;; displaying the tail so that Emacs won't recenter them.
+      (follow-avoid-tail-recenter))))
+
+;;; The region
 
 ;; Tries to make the highlighted area representing the region look
 ;; good when spanning several windows.
@@ -1484,440 +1290,70 @@ non-first windows in Follow mode."
       (set-window-point (car succ) (nth 1 (assq (car succ) win-start-end)))
       (setq succ (cdr succ)))))
 
-;;}}}
-;;{{{ Scroll bar
+;;; Scroll bar
 
 ;;;; Scroll-bar support code.
 
-;; Why is it needed? Well, if the selected window is in follow mode,
-;; all its followers stick to it blindly. If one of them is scrolled,
-;; it immediately returns to the original position when the mouse is
-;; released. If the selected window is not a follower of the dragged
-;; window the windows will be unaligned.
+;; This handles the case where the user drags the scroll bar of a
+;; non-selected window whose buffer is in Follow mode.
 
-;; The advices don't get compiled. Aesthetically, this might be a
-;; problem but in practical life it isn't.
+(defun follow-scroll-bar-toolkit-scroll (event)
+  (interactive "e")
+  (scroll-bar-toolkit-scroll event)
+  (follow-redraw-after-event event))
 
-;; Discussion: Now when the other windows in the chain follow the
-;; dragged, should we really select it?
+(defun follow-scroll-bar-drag (event)
+  (interactive "e")
+  (scroll-bar-drag event)
+  (follow-redraw-after-event event))
 
-(cond ((fboundp 'scroll-bar-drag)
-       ;;;
-       ;;; Emacs style scrollbars.
-       ;;;
+(defun follow-scroll-bar-scroll-up (event)
+  (interactive "e")
+  (scroll-bar-scroll-up event)
+  (follow-redraw-after-event event))
 
-       ;; Select the dragged window if it is a follower of the
-       ;; selected window.
-       ;;
-       ;; Generate advices of the form:
-       ;; (defadvice scroll-bar-drag (after follow-scroll-bar-drag activate)
-       ;;   "Adviced by `follow-mode'."
-       ;;   (follow-redraw-after-event (ad-get-arg 0)))
-       (let ((cmds '(scroll-bar-drag
-		     scroll-bar-drag-1	; Executed at every move.
-		     scroll-bar-scroll-down
-		     scroll-bar-scroll-up
-		     scroll-bar-set-window-start)))
-	 (while cmds
-	   (eval
-	    `(defadvice ,(intern (symbol-name (car cmds)))
-		 (after
-		  ,(intern (concat "follow-" (symbol-name (car cmds))))
-		  activate)
-		 "Adviced by Follow mode."
-		 (follow-redraw-after-event (ad-get-arg 0))))
-	   (setq cmds (cdr cmds))))
+(defun follow-scroll-bar-scroll-down (event)
+  (interactive "e")
+  (scroll-bar-scroll-down event)
+  (follow-redraw-after-event event))
 
+(defun follow-mwheel-scroll (event)
+  (interactive "e")
+  (mwheel-scroll event)
+  (follow-redraw-after-event event))
 
-       (defun follow-redraw-after-event (event)
-	 "Adviced by Follow mode."
-	 (condition-case nil
-	     (let* ((orig-win (selected-window))
-		    (win (nth 0 (funcall
-				 (symbol-function 'event-start) event)))
-		    (fmode (assq 'follow-mode
-				 (buffer-local-variables
-				  (window-buffer win)))))
-	       (if (and fmode (cdr fmode))
-		   ;; The selected window is in follow-mode
-		   (progn
-		     ;; Recenter around the dragged window.
-		     (select-window win)
-		     (follow-redisplay)
-		     (select-window orig-win))))
-	   (error nil))))
+(defun follow-redraw-after-event (event)
+  "Re-align the Follow mode windows affected by EVENT."
+  (let* ((window (nth 0 (event-end event)))
+	 (buffer (window-buffer window))
+	 (orig-win (selected-window)))
+    (when (and (buffer-local-value 'follow-mode buffer)
+	       ;; Ignore the case where we scroll the selected window;
+	       ;; that is handled by the post-command hook function.
+	       (not (eq window (selected-window))))
+      (select-window window)
+      (follow-redisplay)
+      (unless (eq (window-buffer orig-win) buffer)
+	(select-window orig-win)))))
 
+;;; Window size change
 
-      ((fboundp 'scrollbar-vertical-drag)
-       ;;;
-       ;;; XEmacs style scrollbars.
-       ;;;
-
-       ;; Advice all scrollbar functions on the form:
-       ;;
-       ;; (defadvice scrollbar-line-down
-       ;;	(after follow-scrollbar-line-down activate)
-       ;;   (follow-xemacs-scrollbar-support (ad-get-arg 0)))
-
-      (let ((cmds '(scrollbar-line-down	; Window
-		    scrollbar-line-up
-		    scrollbar-page-down	; Object
-		    scrollbar-page-up
-		    scrollbar-to-bottom	; Window
-		    scrollbar-to-top
-		    scrollbar-vertical-drag ; Object
-		    )))
-
-	(while cmds
-	  (eval
-	   `(defadvice ,(intern (symbol-name (car cmds)))
-		(after
-		 ,(intern (concat "follow-" (symbol-name (car cmds))))
-		 activate)
-		"Adviced by `follow-mode'."
-		(follow-xemacs-scrollbar-support (ad-get-arg 0))))
-	  (setq cmds (cdr cmds))))
-
-
-      (defun follow-xemacs-scrollbar-support (window)
-	"Redraw windows showing the same buffer as shown in WINDOW.
-WINDOW is either the dragged window, or a cons containing the
-window as its first element.  This is called while the user drags
-the scrollbar.
-
-WINDOW can be an object or a window."
-	(condition-case nil
-	    (progn
-	      (if (consp window)
-		  (setq window (car window)))
-	      (let ((fmode (assq 'follow-mode
-				 (buffer-local-variables
-				  (window-buffer window))))
-		    (orig-win (selected-window)))
-		(if (and fmode (cdr fmode))
-		    (progn
-		      ;; Recenter around the dragged window.
-		      (select-window window)
-		      (follow-redisplay)
-		      (select-window orig-win)))))
-	  (error nil)))))
-
-;;}}}
-;;{{{ Process output
-
-;; The following sections installs a spy that listens to process
-;; output and tries to reposition the windows whose buffers are in
-;; Follow mode.  We play safe as much as possible...
+;; The functions in `window-size-change-functions' are called every
+;; time a window in a frame changes size, most notably after the frame
+;; has been resized.  We call `follow-post-command-hook' for every
+;; Follow mode buffer visible in any window in the resized frame.
 ;;
-;; When follow-mode is activated all active processes are
-;; intercepted.  All new processes that change their filter function
-;; using `set-process-filter' are also intercepted.  The reason is
-;; that a process can cause a redisplay recentering "tail" windows.
-;; Note that it doesn't hurt to spy on more processes than needed.
-;;
-;; Technically, we set the process filter to `follow-generic-filter'.
-;; The original filter is stored in `follow-process-filter-alist'.
-;; Our generic filter calls the original filter, or inserts the
-;; output into the buffer, if the buffer originally didn't have an
-;; output filter.  It also makes sure that the windows connected to
-;; the buffer are aligned.
-;;
-;; Discussion: How do we find processes that don't call
-;; `set-process-filter'?  (How often are processes created in a
-;; buffer after Follow mode are activated?)
-;;
-;; Discussion: Should we also advice `process-filter' to make our
-;; filter invisible to others?
-
-;;{{{ Advice for `set-process-filter'
-
-;; Do not call this with 'follow-generic-filter as the name of the
-;; filter...
-
-(defadvice set-process-filter (before follow-set-process-filter activate)
-  "Ensure process output will be displayed correctly in Follow mode buffers.
-
-Follow mode inserts its own process filter to do its
-magic stuff before the real process filter is called."
-  (if follow-intercept-processes
-      (progn
-	(setq follow-process-filter-alist
-	      (delq (assq (ad-get-arg 0) follow-process-filter-alist)
-		    follow-process-filter-alist))
-	(follow-tidy-process-filter-alist)
-	(cond ((eq (ad-get-arg 1) t))
-	      ((eq (ad-get-arg 1) nil)
-	       (ad-set-arg 1 'follow-generic-filter))
-	      (t
-	       (setq follow-process-filter-alist
-		     (cons (cons (ad-get-arg 0) (ad-get-arg 1))
-			   follow-process-filter-alist))
-	       (ad-set-arg 1 'follow-generic-filter))))))
-
-
-(defun follow-call-set-process-filter (proc filter)
-  "Call original `set-process-filter' without the Follow mode advice."
-  (ad-disable-advice 'set-process-filter 'before
-		     'follow-set-process-filter)
-  (ad-activate 'set-process-filter)
-  (prog1
-      (set-process-filter proc filter)
-    (ad-enable-advice 'set-process-filter 'before
-		      'follow-set-process-filter)
-    (ad-activate 'set-process-filter)))
-
-
-(defadvice process-filter (after follow-process-filter activate)
-  "Return the original process filter, not `follow-generic-filter'."
-  (cond ((eq ad-return-value 'follow-generic-filter)
-	 (setq ad-return-value
-	       (cdr-safe (assq (ad-get-arg 0)
-			       follow-process-filter-alist))))))
-
-
-(defun follow-call-process-filter (proc)
-  "Call original `process-filter' without the Follow mode advice."
-  (ad-disable-advice 'process-filter 'after
-		     'follow-process-filter)
-  (ad-activate 'process-filter)
-  (prog1
-      (process-filter proc)
-    (ad-enable-advice 'process-filter 'after
-		      'follow-process-filter)
-    (ad-activate 'process-filter)))
-
-
-(defun follow-tidy-process-filter-alist ()
-  "Remove old processes from `follow-process-filter-alist'."
-  (let ((alist follow-process-filter-alist)
-	(ps (process-list))
-	(new ()))
-    (while alist
-      (if (and (not (memq (process-status (car (car alist)))
-			  '(exit signal closed nil)))
-	       (memq (car (car alist)) ps))
-	  (setq new (cons (car alist) new)))
-      (setq alist (cdr alist)))
-    (setq follow-process-filter-alist new)))
-
-;;}}}
-;;{{{ Start/stop interception of processes.
-
-;; Normally, all new processes are intercepted by our `set-process-filter'.
-;; This is needed to intercept old processes that were started before we were
-;; loaded, and processes we have forgotten by calling
-;; `follow-stop-intercept-process-output'.
-
-(defun follow-intercept-process-output ()
-  "Intercept all active processes.
-
-This is needed so that Follow mode can track all display events in the
-system.  (See `follow-mode'.)"
-  (interactive)
-  (let ((list (process-list)))
-    (while list
-      (if (eq (process-filter (car list)) 'follow-generic-filter)
-	  nil
-	;; The custom `set-process-filter' defined above.
-	(set-process-filter (car list) (process-filter (car list))))
-      (setq list (cdr list))))
-  (setq follow-intercept-processes t))
-
-
-(defun follow-stop-intercept-process-output ()
-  "Stop Follow mode from spying on processes.
-
-All current spypoints are removed and no new will be added.
-
-The effect is that Follow mode won't be able to handle buffers
-connected to processes.
-
-The only reason to call this function is if the Follow mode spy filter
-would interfere with some other package.  If this happens, please
-report this using the `report-emacs-bug' function."
-  (interactive)
-  (follow-tidy-process-filter-alist)
-  (dolist (process (process-list))
-    (when (eq (follow-call-process-filter process) 'follow-generic-filter)
-      (follow-call-set-process-filter
-       process
-       (cdr-safe (assq process follow-process-filter-alist)))
-      (setq follow-process-filter-alist
-	    (delq (assq process follow-process-filter-alist)
-		  follow-process-filter-alist))))
-  (setq follow-intercept-processes nil))
-
-;;}}}
-;;{{{ The filter
-
-;; The following section is a naive method to make buffers with
-;; process output to work with Follow mode. Whenever the start of the
-;; window displaying the buffer is moved, we move it back to its
-;; original position and try to select a new window.  (If we fail,
-;; the normal redisplay functions of Emacs will scroll it right
-;; back!)
-
-(defun follow-generic-filter (proc output)
-  "Process output filter for process connected to buffers in Follow mode."
-  (let* ((old-buffer (current-buffer))
-	 (orig-win (selected-window))
-	 (buf (process-buffer proc))
-	 (win (and buf (if (eq buf (window-buffer orig-win))
-			   orig-win
-			 (get-buffer-window buf t))))
-	 (return-to-orig-win (and win (not (eq win orig-win))))
-	 (orig-window-start (and win (window-start win))))
-
-    ;; If input is pending, the `sit-for' below won't redraw the
-    ;; display. In that case, calling `follow-avoid-tail-recenter' may
-    ;; provoke the process handling code to schedule a redisplay.
-    ;(or (input-pending-p)
-    ; (follow-avoid-tail-recenter))
-
-    ;; Output the `output'.
-    (let ((filter (cdr-safe (assq proc follow-process-filter-alist))))
-      (cond
-       ;; Call the original filter function
-       (filter
-	(funcall filter proc output))
-
-       ;; No filter, but we've got a buffer. Just output into it.
-       (buf
-	(set-buffer buf)
-	(if (not (marker-buffer (process-mark proc)))
-	    (set-marker (process-mark proc) (point-max)))
-	(let ((moving (= (point) (process-mark proc)))
-	      deactivate-mark
-	      (inhibit-read-only t))
-	  (save-excursion
-	    (goto-char (process-mark proc))
-	    ;; `insert-before-markers' just in case the user's next
-	    ;; command is M-y.
-	    (insert-before-markers output)
-	    (set-marker (process-mark proc) (point)))
-	  (if moving (goto-char (process-mark proc)))))))
-
-    ;; If we're in follow mode, do our stuff.  Select a new window and
-    ;; redisplay.  (Actually, it is redundant to check `buf', but I
-    ;; feel it's more correct.)
-    (if (and buf (window-live-p win))
-	(progn
-	  (set-buffer buf)
-	  (if (and (boundp 'follow-mode) follow-mode)
-	      (progn
-		(select-window win)
-		(let* ((windows (follow-all-followers win))
-		       (win-start-end (follow-windows-start-end windows))
-		       (new-window-start (window-start win))
-		       (new-window-point (window-point win)))
-		  (cond
-		   ;; The start of the selected window was repositioned.
-		   ;; Try to use the original start position and continue
-		   ;; working with a window to the "right" in the window
-		   ;; chain.  This will create the effect that the output
-		   ;; starts in one window and continues into the next.
-
-		   ;; If the display has changed so much that it is not
-		   ;; possible to keep the original window fixed and still
-		   ;; display the point then we give up and use the new
-		   ;; window start.
-
-		   ;; This case is typically used when the process filter
-		   ;; tries to reposition the start of the window in order
-		   ;; to view the tail of the output.
-		   ((not (eq orig-window-start new-window-start))
-		    (follow-debug-message "filter: Moved")
-		    (set-window-start win orig-window-start)
-		    (follow-redisplay windows win)
-		    (setq win-start-end (follow-windows-start-end windows))
-		    (follow-select-if-visible new-window-point
-					      win-start-end)
-		    (goto-char new-window-point)
-		    (if (eq win (selected-window))
-			(set-window-start win new-window-start))
-		    (setq win-start-end (follow-windows-start-end windows)))
-		   ;; Stick to this window, if point is visible in it.
-		   ((pos-visible-in-window-p new-window-point)
-		    (follow-debug-message "filter: Visible in window"))
-		   ;; Avoid redisplaying the first window. If the
-		   ;; point is visible at a window below,
-		   ;; redisplay and select it.
-		   ((follow-select-if-visible-from-first
-		     new-window-point windows)
-		    (follow-debug-message "filter: Seen from first")
-		    (setq win-start-end
-			  (follow-windows-start-end windows)))
-		   ;; None of the above. We stick to the current window.
-		   (t
-		    (follow-debug-message "filter: nothing")))
-
-		  ;; Here we have selected a window. Make sure the
-		  ;; windows are aligned and the point is visible
-		  ;; in the selected window.
-		  (if (and (not (follow-pos-visible
-				 (point) (selected-window) win-start-end))
-			   (not return-to-orig-win))
-		      (progn
-			(sit-for 0)
-			(setq win-start-end
-			      (follow-windows-start-end windows))))
-
-		  (if (or follow-internal-force-redisplay
-			  (not (follow-windows-aligned-p win-start-end)))
-		      (follow-redisplay windows)))))))
-
-    ;; return to the original window.
-    (if return-to-orig-win
-	(select-window orig-win))
-    ;; Restore the original buffer, unless the filter explicitly
-    ;; changed buffer or killed the old buffer.
-    (if (and (eq buf (current-buffer))
-	     (buffer-name old-buffer))
-	(set-buffer old-buffer)))
-
-  (follow-invalidate-cache)
-
-  ;; Normally, if the display has been changed, it is redrawn.  All
-  ;; windows showing only the end of a buffer are unconditionally
-  ;; recentered; we can't prevent that by calling
-  ;; `follow-avoid-tail-recenter'.
-  ;;
-  ;; We force a redisplay here on our own, so Emacs does need to.
-  ;; (However, redisplaying when there's input available just seems
-  ;; to make things worse, so we exclude that case.)
-  (if (and follow-avoid-tail-recenter-p
-	   (not (input-pending-p)))
-      (sit-for 0)))
-
-;;}}}
-
-;;}}}
-;;{{{ Window size change
-
-;; In Emacs 19.29, the functions in `window-size-change-functions' are
-;; called every time a window in a frame changes size. Most notably, it
-;; is called after the frame has been resized.
-;;
-;; We basically call our post-command-hook for every buffer that is
-;; visible in any window in the resized frame, which is in follow-mode.
-;;
-;; Since this function can be called indirectly from
-;; `follow-post-command-hook' we have a potential infinite loop.  We
-;; handle this problem by simply not doing anything at all in this
-;; situation.  The variable `follow-inside-post-command-hook' contains
-;; information about whether the execution actually is inside the
+;; Since `follow-window-size-change' can be called indirectly from
+;; `follow-post-command-hook' we have a potential infinite loop.  To
+;; avoid this, we simply do not do anything in this situation.  The
+;; variable `follow-inside-post-command-hook' contains information
+;; about whether the execution actually is inside the
 ;; post-command-hook or not.
-
-(if (boundp 'window-size-change-functions)
-    (add-hook 'window-size-change-functions 'follow-window-size-change))
-
 
 (defun follow-window-size-change (frame)
   "Redraw all windows in FRAME, when in Follow mode."
-  ;; Below, we call `post-command-hook'.  This makes sure that we
-  ;; don't start a mutually recursive endless loop.
-  (if follow-inside-post-command-hook
-      nil
+  ;; Below, we call `post-command-hook'.  Avoid an infloop.
+  (unless follow-inside-post-command-hook
     (let ((buffers '())
 	  (orig-window (selected-window))
 	  (orig-buffer (current-buffer))
@@ -1927,192 +1363,58 @@ report this using the `report-emacs-bug' function."
       (select-frame frame)
       (unwind-protect
 	  (walk-windows
-	   (function
-	    (lambda (win)
-	      (setq buf (window-buffer win))
-	      (if (memq buf buffers)
-		  nil
-		(set-buffer buf)
-		(if (and (boundp 'follow-mode)
-			 follow-mode)
-		    (progn
-		      (setq windows (follow-all-followers win))
-		      (if (memq orig-window windows)
-			  (progn
-                            ;; Make sure we're redrawing around the
-                            ;; selected window.
-                            ;;
-                            ;; We must be really careful not to do this
-                            ;; when we are (indirectly) called by
-                            ;; `post-command-hook'.
-			    (select-window orig-window)
-			    (follow-post-command-hook)
-			    (setq orig-window (selected-window)))
-			(follow-redisplay windows win))
-		      (setq buffers (cons buf buffers))))))))
+	   (lambda (win)
+	     (setq buf (window-buffer win))
+	     (unless (memq buf buffers)
+	       (set-buffer buf)
+	       (when follow-mode
+		 (setq windows (follow-all-followers win))
+		 (if (not (memq orig-window windows))
+		     (follow-redisplay windows win)
+		   ;; Make sure we're redrawing around the selected
+		   ;; window.
+		   (select-window orig-window)
+		   (follow-post-command-hook)
+		   (setq orig-window (selected-window)))
+		 (setq buffers (cons buf buffers)))))
+	   'no-minibuf)
 	(select-frame orig-frame)
 	(set-buffer orig-buffer)
 	(select-window orig-window)))))
 
-;;}}}
+(add-hook 'window-scroll-functions 'follow-avoid-tail-recenter t)
 
-;;{{{ XEmacs isearch
-
-;; In XEmacs, isearch often finds matches in other windows than the
-;; currently selected.  However, when exiting the old window
-;; configuration is restored, with the exception of the beginning of
-;; the start of the window for the selected window.  This is not much
-;; help for us.
-;;
-;; We overwrite the stored window configuration with the current,
-;; unless we are in `slow-search-mode', i.e. only a few lines
-;; of text is visible.
-
-(if (featurep 'xemacs)
-    (defadvice isearch-done (before follow-isearch-done activate)
-      (if (and (boundp 'follow-mode)
-	       follow-mode
-	       (boundp 'isearch-window-configuration)
-	       isearch-window-configuration
-	       (boundp 'isearch-slow-terminal-mode)
-	       (not isearch-slow-terminal-mode))
-	  (let ((buf (current-buffer)))
-	    (setq isearch-window-configuration
-		  (current-window-configuration))
-	    (set-buffer buf)))))
-
-;;}}}
-;;{{{ Tail window handling
-
-;; In Emacs (not XEmacs) windows showing nothing are sometimes
-;; recentered.  When in Follow mode, this is not desirable for
-;; non-first windows in the window chain.  This section tries to
-;; make the windows stay where they should be.
-;;
-;; If the display is updated, all windows starting at (point-max) are
-;; going to be recentered at the next redisplay, unless we do a
-;; read-and-write cycle to update the `force' flag inside the windows.
-;;
-;; In 19.30, a new variable `window-scroll-functions' is called every
-;; time a window is recentered.  It is not perfect for our situation,
-;; since when it is called for a tail window, it is to late.  However,
-;; if it is called for another window, we can try to update our
-;; windows.
-;;
-;; By patching `sit-for' we can make sure that to catch all explicit
-;; updates initiated by lisp programs.  Internal calls, on the other
-;; hand, are not handled.
-;;
-;; Please note that the function `follow-avoid-tail-recenter' is also
-;; called from other places, e.g. `post-command-hook' and
-;; `post-command-idle-hook'.
-
-;; If this function is called it is too late for this window, but
-;; we might save other windows from being recentered.
-
-(if (and follow-avoid-tail-recenter-p (boundp 'window-scroll-functions))
-    (add-hook 'window-scroll-functions 'follow-avoid-tail-recenter t))
-
-
-;;  This prevents all packages that calls `sit-for' directly
-;;  to recenter tail windows.
-
-(if follow-avoid-tail-recenter-p
-    (defadvice sit-for (before follow-sit-for activate)
-      "Adviced by Follow mode.
-
-Avoid to recenter windows displaying only the end of a file as when
-displaying a short file in two windows, using Follow mode."
-      (follow-avoid-tail-recenter)))
-
-
-;;  Without this advice, `mouse-drag-region' would start to recenter
-;;  tail windows.
-
-(if (and follow-avoid-tail-recenter-p
-	 (fboundp 'move-overlay))
-    (defadvice move-overlay (before follow-move-overlay activate)
-      "Adviced by Follow mode.
-Don't recenter windows showing only the end of a buffer.
-This prevents `mouse-drag-region' from messing things up."
-      (follow-avoid-tail-recenter)))
-
-;;}}}
-;;{{{ profile support
+;;; Profile support
 
 ;; The following (non-evaluated) section can be used to
 ;; profile this package using `elp'.
 ;;
 ;; Invalid indentation on purpose!
 
-(cond (nil
-(setq elp-function-list
-      '(window-end
-	vertical-motion
-	; sit-for  ;; elp can't handle advices...
-	follow-mode
-	follow-all-followers
-	follow-split-followers
-	follow-redisplay
-	follow-estimate-first-window-start
-	follow-calculate-first-window-start-from-above
-	follow-calculate-first-window-start-from-below
-	follow-calc-win-end
-	follow-calc-win-start
-	follow-pos-visible
-	follow-windows-start-end
-	follow-cache-valid-p
-	follow-select-if-visible
-	follow-select-if-visible-from-first
-	follow-windows-aligned-p
-	follow-point-visible-all-windows-p
-	follow-avoid-tail-recenter
-	follow-update-window-start
-	follow-post-command-hook
-	))))
-
-;;}}}
-
-;;{{{ The end
-
-(defun follow-unload-function ()
-  "Unload Follow mode library."
-  (easy-menu-remove-item nil '("Tools") "Follow")
-  (follow-stop-intercept-process-output)
-  (dolist (group '((before
-		    ;; XEmacs
-		    isearch-done
-		    ;; both
-		    set-process-filter sit-for move-overlay)
-		   (after
-		    ;; Emacs
-		    scroll-bar-drag scroll-bar-drag-1 scroll-bar-scroll-down
-		    scroll-bar-scroll-up scroll-bar-set-window-start
-		    ;; XEmacs
-		    scrollbar-line-down scrollbar-line-up scrollbar-page-down
-		    scrollbar-page-up scrollbar-to-bottom scrollbar-to-top
-		    scrollbar-vertical-drag
-		    ;; both
-		    process-filter)))
-    (let ((class (car group)))
-      (dolist (fun (cdr group))
-	(when (functionp fun)
-	  (condition-case nil
-	      (progn
-		(ad-remove-advice fun class
-				  (intern (concat "follow-" (symbol-name fun))))
-		(ad-update fun))
-	    (error nil))))))
-  ;; continue standard processing
-  nil)
-
-;;
-;; We're done!
-;;
+;; (setq elp-function-list
+;;       '(window-end
+;; 	vertical-motion
+;; 	follow-mode
+;; 	follow-all-followers
+;; 	follow-split-followers
+;; 	follow-redisplay
+;; 	follow-estimate-first-window-start
+;; 	follow-calculate-first-window-start-from-above
+;; 	follow-calculate-first-window-start-from-below
+;; 	follow-calc-win-end
+;; 	follow-calc-win-start
+;; 	follow-pos-visible
+;; 	follow-windows-start-end
+;; 	follow-cache-valid-p
+;; 	follow-select-if-visible
+;; 	follow-select-if-visible-from-first
+;; 	follow-windows-aligned-p
+;; 	follow-point-visible-all-windows-p
+;; 	follow-avoid-tail-recenter
+;; 	follow-update-window-start
+;; 	follow-post-command-hook))
 
 (provide 'follow)
-
-;;}}}
 
 ;; /------------------------------------------------------------------------\
 ;; | "I [..] am rarely happier then when spending an entire day programming |

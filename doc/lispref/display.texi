@@ -155,7 +155,7 @@ boundary.  @xref{Filling}.
 indicate truncated and continued lines (@pxref{Fringes}).  On a text
 terminal, a @samp{$} in the rightmost column of the window indicates
 truncation; a @samp{\} on the rightmost column indicates a line that
-``wraps.''  (The display table can specify alternate characters to use
+``wraps''.  (The display table can specify alternate characters to use
 for this; @pxref{Display Tables}).
 
 @defopt truncate-lines
@@ -451,7 +451,7 @@ prints the message of @var{reporter} followed by word ``done'' in the
 echo area.
 
 You should always call this function and not hope for
-@code{progress-reporter-update} to print ``100%.''  Firstly, it may
+@code{progress-reporter-update} to print ``100%''.  Firstly, it may
 never print it, there are many good reasons for this not to happen.
 Secondly, ``done'' is more explicit.
 @end defun
@@ -1308,7 +1308,7 @@ The return value is @var{overlay}.
 This is the only valid way to change the endpoints of an overlay.  Do
 not try modifying the markers in the overlay by hand, as that fails to
 update other vital data structures and can cause some overlays to be
-``lost.''
+``lost''.
 @end defun
 
 @defun remove-overlays &optional start end name value
@@ -1385,7 +1385,7 @@ foo
 @end example
 
   Emacs stores the overlays of each buffer in two lists, divided
-around an arbitrary ``center position.''  One list extends backwards
+around an arbitrary ``center position''.  One list extends backwards
 through the buffer from that center position, and the other extends
 forwards from that center position.  The center position can be anywhere
 in the buffer.
@@ -2923,13 +2923,13 @@ The last three elements give additional information about the font.
 encoding of the font.
 @end defun
 
-@defvar font-list-limit
+@defopt font-list-limit
 This variable specifies maximum number of fonts to consider in font
-matching.  The function @code{x-family-fonts} will not return more than
-that many fonts, and font selection will consider only that many fonts
-when searching a matching font for face attributes.  The default is
-currently 100.
-@end defvar
+matching.  The function @code{x-family-fonts} will not return more
+than that many fonts, and font selection will consider only that many
+fonts when searching a matching font for face attributes.  The default
+is 100.
+@end defopt
 
 @node Fontsets
 @subsection Fontsets
@@ -4359,7 +4359,7 @@ $$\pmatrix{ 2 & -1 &  0 \cr
 @end ifnottex
 
 @item disabled
-Specifies transforming the image so that it looks ``disabled.''
+Specifies transforming the image so that it looks ``disabled''.
 @end table
 
 @item :mask @var{mask}
@@ -5531,7 +5531,7 @@ Any @var{args} are passed to @var{map-function}.
 @subsection Abstract Display Example
 
   Here is a simple example using functions of the ewoc package to
-implement a ``color components display,'' an area in a buffer that
+implement a ``color components display'', an area in a buffer that
 represents a vector of three integers (itself representing a 24-bit RGB
 value) in various ways.
 
@@ -5842,7 +5842,7 @@ display the character @var{c} as those glyphs; @pxref{Glyphs}).
 
   @strong{Warning:} if you use the display table to change the display
 of newline characters, the whole buffer will be displayed as one long
-``line.''
+``line''.
 
   The display table also has six ``extra slots'' which serve special
 purposes.  Here is a table of their meanings; @code{nil} in any slot
@@ -6153,7 +6153,7 @@ capability (@samp{vb}).
 
 @defvar ring-bell-function
 If this is non-@code{nil}, it specifies how Emacs should ``ring the
-bell.''  Its value should be a function of no arguments.  If this is
+bell''.  Its value should be a function of no arguments.  If this is
 non-@code{nil}, it takes precedence over the @code{visible-bell}
 variable.
 @end defvar
@@ -6162,7 +6162,7 @@ variable.
 @section Window Systems
 
   Emacs works with several window systems, most notably the X Window
-System.  Both Emacs and X use the term ``window,'' but use it
+System.  Both Emacs and X use the term ``window'', but use it
 differently.  An Emacs frame is a single window as far as X is
 concerned; the individual Emacs windows are not known to X at all.
 

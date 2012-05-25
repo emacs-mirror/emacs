@@ -1,4 +1,4 @@
-;;; vc-bzr.el --- VC backend for the bzr revision control system
+;;; vc-bzr.el --- VC backend for the bzr revision control system  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
@@ -41,7 +41,7 @@
 ;;; Properties of the backend
 
 (defun vc-bzr-revision-granularity () 'repository)
-(defun vc-bzr-checkout-model (files) 'implicit)
+(defun vc-bzr-checkout-model (_files) 'implicit)
 
 ;;; Code:
 
@@ -208,85 +208,88 @@ in the repository root directory of FILE."
   ;;           + working ( = packed_stat )
   ;; parent = common ( as above ) + history ( = rev_id )
   ;; kinds = (r)elocated, (a)bsent, (d)irectory, (f)ile, (l)ink
-  (lexical-let ((root (vc-bzr-root file)))
-    (when root    ; Short cut.
-      (lexical-let ((dirstate (expand-file-name vc-bzr-admin-dirstate root)))
-        (condition-case nil
-            (with-temp-buffer
-              (insert-file-contents dirstate)
-              (goto-char (point-min))
-              (if (not (looking-at "#bazaar dirstate flat format 3"))
-                  (vc-bzr-state file)   ; Some other unknown format?
-                (let* ((relfile (file-relative-name file root))
-                       (reldir (file-name-directory relfile)))
-                  (if (re-search-forward
-                       (concat "^\0"
-                               (if reldir (regexp-quote
-                                           (directory-file-name reldir)))
-                               "\0"
-                               (regexp-quote (file-name-nondirectory relfile))
-                               "\0"
-                               "[^\0]*\0"     ;id?
-                               "\\([^\0]*\\)\0" ;"a/f/d", a=removed?
-                               "\\([^\0]*\\)\0" ;sha1 (empty if conflicted)?
-                               "\\([^\0]*\\)\0" ;size?p
-                               ;; y/n.  Whether or not the current copy
-                               ;; was executable the last time bzr checked?
-                               "[^\0]*\0"
-                               "[^\0]*\0"       ;?
-                               ;; Parent information.  Absent in a new repo.
-                               "\\(?:\\([^\0]*\\)\0" ;"a/f/d" a=added?
-                               "\\([^\0]*\\)\0" ;sha1 again?
-                               "\\([^\0]*\\)\0" ;size again?
-                               ;; y/n.  Whether or not the repo thinks
-                               ;; the file should be executable?
-                               "\\([^\0]*\\)\0"
-                               "[^\0]*\0\\)?" ;last revid?
-                               ;; There are more fields when merges are pending.
-                               )
-                       nil t)
-                      ;; Apparently the second sha1 is the one we want: when
-                      ;; there's a conflict, the first sha1 is absent (and the
-                      ;; first size seems to correspond to the file with
-                      ;; conflict markers).
-                      (cond
-                       ((eq (char-after (match-beginning 1)) ?a) 'removed)
-                       ;; If there is no parent, this must be a new repo.
-                       ;; If file is in dirstate, can only be added (b#8025).
-                       ((or (not (match-beginning 4))
-                            (eq (char-after (match-beginning 4)) ?a)) 'added)
-                       ((or (and (eq (string-to-number (match-string 3))
-                                 (nth 7 (file-attributes file)))
-                                 (equal (match-string 5)
-                                        (vc-bzr-sha1 file))
-                                 ;; For a file, does the executable state match?
-                                 ;; (Bug#7544)
-                                 (or (not
-                                      (eq (char-after (match-beginning 1)) ?f))
-                                     (let ((exe
-                                            (memq
-                                             ?x
-                                             (mapcar
-                                              'identity
-                                              (nth 8 (file-attributes file))))))
-                                       (if (eq (char-after (match-beginning 7))
-                                               ?y)
-                                           exe
-                                         (not exe)))))
-			    (and
-			     ;; It looks like for lightweight
-			     ;; checkouts \2 is empty and we need to
-			     ;; look for size in \6.
-			     (eq (match-beginning 2) (match-end 2))
-			     (eq (string-to-number (match-string 6))
-				 (nth 7 (file-attributes file)))
-			     (equal (match-string 5)
-				    (vc-bzr-sha1 file))))
-                        'up-to-date)
-                       (t 'edited))
-                    'unregistered))))
-          ;; The dirstate file can't be read, or some other problem.
-          (error (vc-bzr-state file)))))))
+  (let* ((root (vc-bzr-root file))
+         (dirstate (expand-file-name vc-bzr-admin-dirstate root)))
+    (when root                          ; Short cut.
+      (condition-case err
+          (with-temp-buffer
+            (insert-file-contents dirstate)
+            (goto-char (point-min))
+            (if (not (looking-at "#bazaar dirstate flat format 3"))
+                (vc-bzr-state file)     ; Some other unknown format?
+              (let* ((relfile (file-relative-name file root))
+                     (reldir (file-name-directory relfile)))
+                (cond
+                 ((not
+                   (re-search-forward
+                    (concat "^\0"
+                            (if reldir (regexp-quote
+                                        (directory-file-name reldir)))
+                            "\0"
+                            (regexp-quote (file-name-nondirectory relfile))
+                            "\0"
+                            "[^\0]*\0"             ;id?
+                            "\\([^\0]*\\)\0"       ;"a/f/d", a=removed?
+                            "\\([^\0]*\\)\0"       ;sha1 (empty if conflicted)?
+                            "\\([^\0]*\\)\0"       ;size?p
+                            ;; y/n.  Whether or not the current copy
+                            ;; was executable the last time bzr checked?
+                            "[^\0]*\0"
+                            "[^\0]*\0"  ;?
+                            ;; Parent information.  Absent in a new repo.
+                            "\\(?:\\([^\0]*\\)\0"  ;"a/f/d" a=added?
+                            "\\([^\0]*\\)\0"       ;sha1 again?
+                            "\\([^\0]*\\)\0"       ;size again?
+                            ;; y/n.  Whether or not the repo thinks
+                            ;; the file should be executable?
+                            "\\([^\0]*\\)\0"
+                            "[^\0]*\0\\)?" ;last revid?
+                            ;; There are more fields when merges are pending.
+                            )
+                    nil t))
+                  'unregistered)
+                 ;; Apparently the second sha1 is the one we want: when
+                 ;; there's a conflict, the first sha1 is absent (and the
+                 ;; first size seems to correspond to the file with
+                 ;; conflict markers).
+                 ((eq (char-after (match-beginning 1)) ?a) 'removed)
+                 ;; If there is no parent, this must be a new repo.
+                 ;; If file is in dirstate, can only be added (b#8025).
+                 ((or (not (match-beginning 4))
+                      (eq (char-after (match-beginning 4)) ?a)) 'added)
+                 ((or (and (eq (string-to-number (match-string 3))
+                               (nth 7 (file-attributes file)))
+                           (equal (match-string 5)
+                                  (save-match-data (vc-bzr-sha1 file)))
+                           ;; For a file, does the executable state match?
+                           ;; (Bug#7544)
+                           (or (not
+                                (eq (char-after (match-beginning 1)) ?f))
+                               (let ((exe
+                                      (memq
+                                       ?x
+                                       (mapcar
+                                        'identity
+                                        (nth 8 (file-attributes file))))))
+                                 (if (eq (char-after (match-beginning 7))
+                                         ?y)
+                                     exe
+                                   (not exe)))))
+                      (and
+                       ;; It looks like for lightweight
+                       ;; checkouts \2 is empty and we need to
+                       ;; look for size in \6.
+                       (eq (match-beginning 2) (match-end 2))
+                       (eq (string-to-number (match-string 6))
+                           (nth 7 (file-attributes file)))
+                       (equal (match-string 5)
+                              (vc-bzr-sha1 file))))
+                  'up-to-date)
+                 (t 'edited)))))
+        ;; The dirstate file can't be read, or some other problem.
+        (error
+         (message "Falling back on \"slow\" status detection (%S)" err)
+         (vc-bzr-state file))))))
 
 
 (defun vc-bzr-registered (file)
@@ -303,9 +306,8 @@ in the repository root directory of FILE."
 
 (defun vc-bzr-file-name-relative (filename)
   "Return file name FILENAME stripped of the initial Bzr repository path."
-  (lexical-let*
-      ((filename* (expand-file-name filename))
-       (rootdir (vc-bzr-root filename*)))
+  (let* ((filename* (expand-file-name filename))
+         (rootdir (vc-bzr-root filename*)))
     (when rootdir
          (file-relative-name filename* rootdir))))
 
@@ -412,9 +414,8 @@ in the branch repository (or whose status not be determined)."
   (with-temp-buffer
     ;; This is with-demoted-errors without the condition-case-unless-debug
     ;; annoyance, which makes it fail during ert testing.
-    (let (err)
-      (condition-case err (vc-bzr-command "status" t 0 file)
-        (error (message "Error: %S" err) nil)))
+    (condition-case err (vc-bzr-command "status" t 0 file)
+      (error (message "Error: %S" err) nil))
     (let ((status 'unchanged))
       ;; the only secure status indication in `bzr status' output
       ;; is a couple of lines following the pattern::
@@ -433,7 +434,7 @@ in the branch repository (or whose status not be determined)."
                      (if (file-directory-p file) "/?" "\\*?")
                      "[ \t\n]*$")
              nil t)
-        (lexical-let ((statusword (match-string 1)))
+        (let ((statusword (match-string 1)))
           ;; Erase the status text that matched.
           (delete-region (match-beginning 0) (match-end 0))
           (setq status
@@ -452,7 +453,7 @@ in the branch repository (or whose status not be determined)."
               (unless (eobp) (buffer-substring (point) (point-max))))))))
 
 (defun vc-bzr-state (file)
-  (lexical-let ((result (vc-bzr-status file)))
+  (let ((result (vc-bzr-status file)))
     (when (consp result)
       (let ((warnings (cdr result)))
         (when warnings
@@ -504,16 +505,15 @@ in the branch repository (or whose status not be determined)."
 (defun vc-bzr-working-revision (file)
   ;; Together with the code in vc-state-heuristic, this makes it possible
   ;; to get the initial VC state of a Bzr file even if Bzr is not installed.
-  (lexical-let*
-      ((rootdir (vc-bzr-root file))
-       (branch-format-file (expand-file-name vc-bzr-admin-branch-format-file
-                                             rootdir))
-       (revhistory-file (expand-file-name vc-bzr-admin-revhistory rootdir))
-       (lastrev-file (expand-file-name vc-bzr-admin-lastrev rootdir)))
+  (let* ((rootdir (vc-bzr-root file))
+         (branch-format-file (expand-file-name vc-bzr-admin-branch-format-file
+                                               rootdir))
+         (revhistory-file (expand-file-name vc-bzr-admin-revhistory rootdir))
+         (lastrev-file (expand-file-name vc-bzr-admin-lastrev rootdir)))
     ;; This looks at internal files to avoid forking a bzr process.
     ;; May break if they change their format.
     (if (and (file-exists-p branch-format-file)
-	     ;; For lightweight checkouts (obtained with bzr checkout --lightweight)
+	     ;; For lightweight checkouts (obtained with bzr co --lightweight)
 	     ;; the branch-format-file does not contain the revision
 	     ;; information, we need to look up the branch-format-file
 	     ;; in the place where the lightweight checkout comes
@@ -532,17 +532,21 @@ in the branch repository (or whose status not be determined)."
 		     (when (re-search-forward "file://\\(.+\\)" nil t)
 		       (let ((l-c-parent-dir (match-string 1)))
 			 (when (and (memq system-type '(ms-dos windows-nt))
-				    (string-match-p "^/[[:alpha:]]:" l-c-parent-dir))
-			   ;;; The non-Windows code takes a shortcut by using the host/path
-			   ;;; separator slash as the start of the absolute path.  That
-			   ;;; does not work on Windows, so we must remove it (bug#5345)
+				    (string-match-p "^/[[:alpha:]]:"
+                                                    l-c-parent-dir))
+			   ;;; The non-Windows code takes a shortcut by using
+			   ;;; the host/path separator slash as the start of
+			   ;;; the absolute path.  That does not work on
+			   ;;; Windows, so we must remove it (bug#5345)
 			   (setq l-c-parent-dir (substring l-c-parent-dir 1)))
 			 (setq branch-format-file
 			       (expand-file-name vc-bzr-admin-branch-format-file
 						 l-c-parent-dir))
 			 (setq lastrev-file
-			       (expand-file-name vc-bzr-admin-lastrev l-c-parent-dir))
-			 ;; FIXME: maybe it's overkill to check if both these files exist.
+			       (expand-file-name vc-bzr-admin-lastrev
+                                                 l-c-parent-dir))
+			 ;; FIXME: maybe it's overkill to check if both these
+			 ;; files exist.
 			 (and (file-exists-p branch-format-file)
 			      (file-exists-p lastrev-file)))))
 		 t)))
@@ -564,11 +568,10 @@ in the branch repository (or whose status not be determined)."
             (when (re-search-forward "[0-9]+" nil t)
 	      (buffer-substring (match-beginning 0) (match-end 0))))))
       ;; fallback to calling "bzr revno"
-      (lexical-let*
-          ((result (vc-bzr-command-discarding-stderr
-                    vc-bzr-program "revno" (file-relative-name file)))
-           (exitcode (car result))
-           (output (cdr result)))
+      (let* ((result (vc-bzr-command-discarding-stderr
+                      vc-bzr-program "revno" (file-relative-name file)))
+             (exitcode (car result))
+             (output (cdr result)))
         (cond
          ((eq exitcode 0) (substring output 0 -1))
          (t nil))))))
@@ -577,21 +580,21 @@ in the branch repository (or whose status not be determined)."
   "Create a new Bzr repository."
   (vc-bzr-command "init" nil 0 nil))
 
-(defun vc-bzr-init-revision (&optional file)
+(defun vc-bzr-init-revision (&optional _file)
   "Always return nil, as Bzr cannot register explicit versions."
   nil)
 
-(defun vc-bzr-previous-revision (file rev)
+(defun vc-bzr-previous-revision (_file rev)
   (if (string-match "\\`[0-9]+\\'" rev)
       (number-to-string (1- (string-to-number rev)))
     (concat "before:" rev)))
 
-(defun vc-bzr-next-revision (file rev)
+(defun vc-bzr-next-revision (_file rev)
   (if (string-match "\\`[0-9]+\\'" rev)
       (number-to-string (1+ (string-to-number rev)))
     (error "Don't know how to compute the next revision of %s" rev)))
 
-(defun vc-bzr-register (files &optional rev comment)
+(defun vc-bzr-register (files &optional rev _comment)
   "Register FILES under bzr.
 Signal an error unless REV is nil.
 COMMENT is ignored."
@@ -640,7 +643,7 @@ REV non-nil gets an error."
           (vc-bzr-command "cat" t 0 file "-r" rev)
         (vc-bzr-command "cat" t 0 file))))
 
-(defun vc-bzr-checkout (file &optional editable rev)
+(defun vc-bzr-checkout (_file &optional _editable rev)
   (if rev (error "Operation not supported")
     ;; Else, there's nothing to do.
     nil))
@@ -791,7 +794,7 @@ Each line is tagged with the revision number, which has a `help-echo'
 property containing author and date information."
   (apply #'vc-bzr-command "annotate" buffer 'async file "--long" "--all"
          (if revision (list "-r" revision)))
-  (lexical-let ((table (make-hash-table :test 'equal)))
+  (let ((table (make-hash-table :test 'equal)))
     (set-process-filter
      (get-buffer-process buffer)
      (lambda (proc string)
@@ -956,7 +959,7 @@ stream.  Standard error output is discarded."
 			     ;; frob the results accordingly.
 			     (file-relative-name ,dir (vc-bzr-root ,dir)))))
 
-(defun vc-bzr-dir-status-files (dir files default-state update-function)
+(defun vc-bzr-dir-status-files (dir files _default-state update-function)
   "Return a list of conses (file . state) for DIR."
   (apply 'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
   (vc-exec-after
@@ -1193,74 +1196,73 @@ stream.  Standard error output is discarded."
       "revno" "submit" "tag")))
 
 (defun vc-bzr-revision-completion-table (files)
-  (lexical-let ((files files))
-    ;; What about using `files'?!?  --Stef
-    (lambda (string pred action)
-      (cond
-       ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
-                      string)
-        (completion-table-with-context (substring string 0 (match-end 0))
-                                       (apply-partially
-                                        'completion-table-with-predicate
-                                        'completion-file-name-table
-                                        'file-directory-p t)
-                                       (substring string (match-end 0))
-                                       pred
-                                       action))
-       ((string-match "\\`\\(before\\):" string)
-        (completion-table-with-context (substring string 0 (match-end 0))
-                                       (vc-bzr-revision-completion-table files)
-                                       (substring string (match-end 0))
-                                       pred
-                                       action))
-       ((string-match "\\`\\(tag\\):" string)
-        (let ((prefix (substring string 0 (match-end 0)))
-              (tag (substring string (match-end 0)))
-              (table nil)
-	      process-file-side-effects)
-          (with-temp-buffer
-            ;; "bzr-1.2 tags" is much faster with --show-ids.
-            (process-file vc-bzr-program nil '(t) nil "tags" "--show-ids")
-            ;; The output is ambiguous, unless we assume that revids do not
-            ;; contain spaces.
-            (goto-char (point-min))
-            (while (re-search-forward "^\\(.*[^ \n]\\) +[^ \n]*$" nil t)
-              (push (match-string-no-properties 1) table)))
-          (completion-table-with-context prefix table tag pred action)))
+  ;; What about using `files'?!?  --Stef
+  (lambda (string pred action)
+    (cond
+     ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
+                    string)
+      (completion-table-with-context (substring string 0 (match-end 0))
+                                     (apply-partially
+                                      'completion-table-with-predicate
+                                      'completion-file-name-table
+                                      'file-directory-p t)
+                                     (substring string (match-end 0))
+                                     pred
+                                     action))
+     ((string-match "\\`\\(before\\):" string)
+      (completion-table-with-context (substring string 0 (match-end 0))
+                                     (vc-bzr-revision-completion-table files)
+                                     (substring string (match-end 0))
+                                     pred
+                                     action))
+     ((string-match "\\`\\(tag\\):" string)
+      (let ((prefix (substring string 0 (match-end 0)))
+            (tag (substring string (match-end 0)))
+            (table nil)
+            process-file-side-effects)
+        (with-temp-buffer
+          ;; "bzr-1.2 tags" is much faster with --show-ids.
+          (process-file vc-bzr-program nil '(t) nil "tags" "--show-ids")
+          ;; The output is ambiguous, unless we assume that revids do not
+          ;; contain spaces.
+          (goto-char (point-min))
+          (while (re-search-forward "^\\(.*[^ \n]\\) +[^ \n]*$" nil t)
+            (push (match-string-no-properties 1) table)))
+        (completion-table-with-context prefix table tag pred action)))
 
-       ((string-match "\\`annotate:" string)
-        (completion-table-with-context
-         (substring string 0 (match-end 0))
-         (apply-partially #'completion-table-with-terminator '(":" . "\\`a\\`")
-                          #'completion-file-name-table)
-         (substring string (match-end 0)) pred action))
+     ((string-match "\\`annotate:" string)
+      (completion-table-with-context
+       (substring string 0 (match-end 0))
+       (apply-partially #'completion-table-with-terminator '(":" . "\\`a\\`")
+                        #'completion-file-name-table)
+       (substring string (match-end 0)) pred action))
 
-       ((string-match "\\`date:" string)
-        (completion-table-with-context
-         (substring string 0 (match-end 0))
-         '("yesterday" "today" "tomorrow")
-         (substring string (match-end 0)) pred action))
+     ((string-match "\\`date:" string)
+      (completion-table-with-context
+       (substring string 0 (match-end 0))
+       '("yesterday" "today" "tomorrow")
+       (substring string (match-end 0)) pred action))
 
-       ((string-match "\\`\\([a-z]+\\):" string)
-        ;; no actual completion for the remaining keywords.
-        (completion-table-with-context (substring string 0 (match-end 0))
-                                       (if (member (match-string 1 string)
-                                                   vc-bzr-revision-keywords)
-                                           ;; If it's a valid keyword,
-                                           ;; use a non-empty table to
-                                           ;; indicate it.
-                                           '("") nil)
-                                       (substring string (match-end 0))
-                                       pred
-                                       action))
-       (t
-        ;; Could use completion-table-with-terminator, except that it
-        ;; currently doesn't work right w.r.t pcm and doesn't give
-        ;; the *Completions* output we want.
-        (complete-with-action action (eval-when-compile
-                                       (mapcar (lambda (s) (concat s ":"))
-                                               vc-bzr-revision-keywords))
-                              string pred))))))
+     ((string-match "\\`\\([a-z]+\\):" string)
+      ;; no actual completion for the remaining keywords.
+      (completion-table-with-context (substring string 0 (match-end 0))
+                                     (if (member (match-string 1 string)
+                                                 vc-bzr-revision-keywords)
+                                         ;; If it's a valid keyword,
+                                         ;; use a non-empty table to
+                                         ;; indicate it.
+                                         '("") nil)
+                                     (substring string (match-end 0))
+                                     pred
+                                     action))
+     (t
+      ;; Could use completion-table-with-terminator, except that it
+      ;; currently doesn't work right w.r.t pcm and doesn't give
+      ;; the *Completions* output we want.
+      (complete-with-action action (eval-when-compile
+                                     (mapcar (lambda (s) (concat s ":"))
+                                             vc-bzr-revision-keywords))
+                            string pred)))))
 
 (provide 'vc-bzr)
 

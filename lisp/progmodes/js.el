@@ -1,4 +1,4 @@
-;;; js.el --- Major mode for editing JavaScript
+;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
@@ -1036,17 +1036,12 @@ LIMIT defaults to point."
 
     (c-save-buffer-state
         (open-items
-         orig-match-start
-         orig-match-end
-         orig-depth
          parse
          prev-parse-point
          name
          case-fold-search
          filtered-class-styles
-         new-item
-         goal-point
-         end-prop)
+         goal-point)
 
       ;; Figure out which class styles we need to look for
       (setq filtered-class-styles
@@ -1651,6 +1646,11 @@ This performs fontification according to `js--class-styles'."
   (funcall
    (syntax-propertize-rules
     ;; Distinguish /-division from /-regexp chars (and from /-comment-starter).
+    ;; FIXME: Allow regexps after infix ops like + ...
+    ;; https://developer.mozilla.org/en/JavaScript/Reference/Operators
+    ;; We can probably just add +, -, !, <, >, %, ^, ~, |, &, ?, : at which
+    ;; point I think only * and / would be missing which could also be added,
+    ;; but need care to avoid affecting the // and */ comment markers.
     ("\\(?:^\\|[=([{,:;]\\)\\(?:[ \t]\\)*\\(/\\)[^/*]"
      (1 (ignore
 	 (forward-char -1)
@@ -2956,8 +2956,8 @@ browser, respectively."
     (ido-mode -1))
 
   (with-js
-   (lexical-let ((tabs (js--get-tabs)) selected-tab-cname
-                 selected-tab prev-hitab)
+   (let ((tabs (js--get-tabs)) selected-tab-cname
+         selected-tab prev-hitab)
 
      ;; Disambiguate names
      (setq tabs (loop with tab-names = (make-hash-table :test 'equal)
@@ -3053,7 +3053,6 @@ browser, respectively."
                                                   "gBrowser"
                                                   "selectedTab")
 
-                         with index = 0
                          for match in ido-matches
                          for candidate-tab = (find-tab-by-cname match)
                          if (eq (fourth candidate-tab) tab-to-match)
@@ -3330,7 +3329,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
 
   (set (make-local-variable 'electric-indent-chars)
-       (append "{}():;," electric-indent-chars))
+       (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
   (set (make-local-variable 'electric-layout-rules)
        '((?\; . after) (?\{ . after) (?\} . before)))
 

@@ -79,7 +79,7 @@ top-level @code{Emacs} group.  It looks like this, in part:
 
 @c we want the buffer example to all be on one page, but unfortunately
 @c that's quite a bit of text, so force all space to the bottom.
-@page
+@c @page
 @smallexample
 @group
 To apply changes, use the Save or Set buttons.
@@ -628,7 +628,7 @@ theme, its @samp{State} display shows @samp{THEMED} instead of
 @findex disable-theme
   You can enable a specific Custom theme in the current Emacs session
 by typing @kbd{M-x load-theme}.  This prompts for a theme name, loads
-the theme from the theme file, and enables the theme.  If a theme file
+the theme from the theme file, and enables it.  If a theme file
 has been loaded before, you can enable the theme without loading its
 file by typing @kbd{M-x enable-theme}.  To disable a Custom theme,
 type @kbd{M-x disable-theme}.
@@ -636,7 +636,7 @@ type @kbd{M-x disable-theme}.
 @findex describe-theme
   To see a description of a Custom theme, type @kbd{?} on its line in
 the @file{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
-anywhere in Emacs and enter the theme name in the minibuffer.
+anywhere in Emacs and enter the theme name.
 
 @node Creating Custom Themes
 @subsection Creating Custom Themes
@@ -762,7 +762,7 @@ C-h v fill-column @key{RET}
 @noindent
 displays something like this:
 
-@smallexample
+@example
 fill-column is a variable defined in `C source code'.
 fill-column's value is 70
 Local in buffer custom.texi; global value is 70
@@ -777,7 +777,7 @@ Documentation:
 Interactively, you can set the buffer local value using C-x f.
 
 You can customize this variable.
-@end smallexample
+@end example
 
 @noindent
 The line that says ``You can customize the variable'' indicates that
@@ -1054,8 +1054,8 @@ pair with a colon and semicolon.  The special variable/value pair
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
 @findex copy-dir-locals-to-file-locals-prop-line
-  Instead of adding variable/value pairs by hand, you can use the
-command @kbd{M-x add-file-local-variable-prop-line}.  This prompts for
+  You can use the command @kbd{M-x add-file-local-variable-prop-line}
+instead of adding entries by hand.  It prompts for
 a variable and value, and adds them to the first line in the
 appropriate way.  @kbd{M-x delete-file-local-variable-prop-line}
 prompts for a variable, and deletes its entry from the line.  @kbd{M-x
@@ -1522,7 +1522,7 @@ circumstances.
 @vindex minibuffer-local-completion-map
 @vindex minibuffer-local-must-match-map
 @vindex minibuffer-local-filename-completion-map
-@vindex minibuffer-local-must-match-filename-map
+@vindex minibuffer-local-filename-must-match-map
   The minibuffer has its own set of local keymaps; they contain various
 completion and exit commands.
 
@@ -1539,7 +1539,7 @@ just like @key{RET}.
 for cautious completion.
 @item
 @code{minibuffer-local-filename-completion-map} and
-@code{minibuffer-local-must-match-filename-map} are like the two
+@code{minibuffer-local-filename-must-match-map} are like the two
 previous ones, but they are specifically for file name completion.
 They do not bind @key{SPC}.
 @end itemize
@@ -1922,7 +1922,7 @@ single click definition has run when the first click was received.
   This constrains what you can do with double clicks, but user interface
 designers say that this constraint ought to be followed in any case.  A
 double click should do something similar to the single click, only
-``more so.''  The command for the double-click event should perform the
+``more so''.  The command for the double-click event should perform the
 extra work for the double click.
 
   If a double-click event has no binding, it changes to the
@@ -1970,7 +1970,7 @@ or @samp{triple-}, which always precede @samp{drag-} or @samp{down-}.
   A frame includes areas that don't show text from the buffer, such as
 the mode line and the scroll bar.  You can tell whether a mouse button
 comes from a special area of the screen by means of dummy ``prefix
-keys.''  For example, if you click the mouse in the mode line, you get
+keys''.  For example, if you click the mouse in the mode line, you get
 the prefix key @code{mode-line} before the ordinary mouse-button symbol.
 Thus, here is how to define the command for clicking the first button in
 a mode line to run @code{scroll-up-command}:

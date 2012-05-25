@@ -315,6 +315,7 @@ Otherwise, use `spell-region'."
 ;;;  Global Keymaps
 ;;;
 
+(define-obsolete-variable-alias 'GOLD-map 'tpu-gold-map "23.1")
 (defvar tpu-gold-map
   (let ((map (make-keymap)))
     ;; Previously we used escape sequences here.  We now instead presume
@@ -494,7 +495,6 @@ Otherwise, use `spell-region'."
     map)
   "Maps the function keys on the VT100 keyboard preceded by PF1.
 GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
-(define-obsolete-variable-alias 'GOLD-map 'tpu-gold-map "23.1")
 
 (defvar tpu-global-map
   (let ((map (make-sparse-keymap)))

@@ -96,7 +96,7 @@
 (defvar gnus-adaptive-word-syntax-table)
 
 (defvar gnus-registry-dirty t
- "Boolean set to t when the registry is modified")
+ "Boolean set to t when the registry is modified.")
 
 (defgroup gnus-registry nil
   "The Gnus registry."
@@ -284,7 +284,7 @@ the Bit Bucket."
     :tracked nil)))
 
 (defvar gnus-registry-db (gnus-registry-make-db)
-  "*The article registry by Message ID.  See `registry-db'")
+  "The article registry by Message ID.  See `registry-db'.")
 
 ;; top-level registry data management
 (defun gnus-registry-remake-db (&optional forsure)
@@ -418,9 +418,9 @@ This is not required after changing `gnus-registry-cache-file'."
 ;; Function for nn{mail|imap}-split-fancy: look up all references in
 ;; the cache and if a match is found, return that group.
 (defun gnus-registry-split-fancy-with-parent ()
-  "Split this message into the same group as its parent.  The parent
-is obtained from the registry.  This function can be used as an entry
-in `nnmail-split-fancy' or `nnimap-split-fancy', for example like
+  "Split this message into the same group as its parent.
+The parent is obtained from the registry.  This function can be used as an
+entry in `nnmail-split-fancy' or `nnimap-split-fancy', for example like
 this: (: gnus-registry-split-fancy-with-parent)
 
 This function tracks ALL backends, unlike
@@ -746,7 +746,7 @@ Overrides existing keywords with FORCE set non-nil."
   (registry-lookup-secondary-value gnus-registry-db 'keyword keyword))
 
 (defun gnus-registry-register-message-ids ()
-  "Register the Message-ID of every article in the group"
+  "Register the Message-ID of every article in the group."
   (unless (gnus-parameter-registry-ignore gnus-newsgroup-name)
     (dolist (article gnus-newsgroup-articles)
       (let* ((id (gnus-registry-fetch-message-id-fast article))
@@ -761,7 +761,7 @@ Overrides existing keywords with FORCE set non-nil."
 
 ;; message field fetchers
 (defun gnus-registry-fetch-message-id-fast (article)
-  "Fetch the Message-ID quickly, using the internal gnus-data-list function"
+  "Fetch the Message-ID quickly, using the internal gnus-data-list function."
   (if (and (numberp article)
            (assoc article (gnus-data-list nil)))
       (mail-header-id (gnus-data-header (assoc article (gnus-data-list nil))))
@@ -793,7 +793,7 @@ Addresses without a name will say \"noname\"."
     nil))
 
 (defun gnus-registry-fetch-simplified-message-subject-fast (article)
-  "Fetch the Subject quickly, using the internal gnus-data-list function"
+  "Fetch the Subject quickly, using the internal gnus-data-list function."
   (if (and (numberp article)
            (assoc article (gnus-data-list nil)))
       (gnus-string-remove-all-properties
@@ -811,7 +811,7 @@ Addresses without a name will say \"noname\"."
    (or (ignore-errors (gnus-registry-fetch-header-fast "To" article)) "")))
 
 (defun gnus-registry-fetch-header-fast (article header)
-  "Fetch the HEADER quickly, using the internal gnus-data-list function"
+  "Fetch the HEADER quickly, using the internal gnus-data-list function."
   (if (and (numberp article)
            (assoc article (gnus-data-list nil)))
       (gnus-string-remove-all-properties
@@ -831,7 +831,34 @@ FUNCTION should take two parameters, a mark symbol and the cell value."
       (when cell-data
         (funcall function mark cell-data)))))
 
-;;; this is ugly code, but I don't know how to do it better
+;; FIXME: Why not merge gnus-registry--set/remove-mark and
+;; gnus-registry-set-article-mark-internal?
+(defun gnus-registry--set/remove-mark (remove mark articles)
+  "Set/remove the MARK over process-marked ARTICLES."
+  ;; If this is called and the user doesn't want the
+  ;; registry enabled, we'll ask anyhow.
+  (unless gnus-registry-install
+    (let ((gnus-registry-install 'ask))
+      (gnus-registry-install-p)))
+
+  ;; Now the user is asked if gnus-registry-install is `ask'.
+  (when (gnus-registry-install-p)
+    (gnus-registry-set-article-mark-internal
+     ;; All this just to get the mark, I must be doing it wrong.
+     mark articles remove t)
+    ;; FIXME: Why do we do the above only here and not directly inside
+    ;; gnus-registry-set-article-mark-internal?  I.e. we wouldn't we want to do
+    ;; the things below when gnus-registry-set-article-mark-internal is called
+    ;; from gnus-registry-set-article-mark or
+    ;; gnus-registry-remove-article-mark?
+    (gnus-message 9 "Applying mark %s to %d articles"
+                  mark (length articles))
+    (dolist (article articles)
+      (gnus-summary-update-article
+       article
+       (assoc article (gnus-data-list nil))))))
+
+;; This is ugly code, but I don't know how to do it better.
 (defun gnus-registry-install-shortcuts ()
   "Install the keyboard shortcuts and menus for the registry.
 Uses `gnus-registry-marks' to find what shortcuts to install."
@@ -843,69 +870,41 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
        (let ((function-format
               (format "gnus-registry-%%s-article-%s-mark" mark)))
 
-;;; The following generates these functions:
-;;; (defun gnus-registry-set-article-Important-mark (&rest articles)
-;;;   "Apply the Important mark to process-marked ARTICLES."
-;;;   (interactive (gnus-summary-work-articles current-prefix-arg))
-;;;   (gnus-registry-set-article-mark-internal 'Important articles nil t))
-;;; (defun gnus-registry-remove-article-Important-mark (&rest articles)
-;;;   "Apply the Important mark to process-marked ARTICLES."
-;;;   (interactive (gnus-summary-work-articles current-prefix-arg))
-;;;   (gnus-registry-set-article-mark-internal 'Important articles t t))
+;;;  The following generates these functions:
+;;;  (defun gnus-registry-set-article-Important-mark (&rest articles)
+;;;    "Apply the Important mark to process-marked ARTICLES."
+;;;    (interactive (gnus-summary-work-articles current-prefix-arg))
+;;;    (gnus-registry-set-article-mark-internal 'Important articles nil t))
+;;;  (defun gnus-registry-remove-article-Important-mark (&rest articles)
+;;;    "Apply the Important mark to process-marked ARTICLES."
+;;;    (interactive (gnus-summary-work-articles current-prefix-arg))
+;;;    (gnus-registry-set-article-mark-internal 'Important articles t t))
 
          (dolist (remove '(t nil))
            (let* ((variant-name (if remove "remove" "set"))
-                  (function-name (format function-format variant-name))
-                  (shortcut (format "%c" data))
-                  (shortcut (if remove (upcase shortcut) shortcut)))
-             (unintern function-name obarray)
-             (eval
-              `(defun
-                 ;; function name
-                 ,(intern function-name)
-                 ;; parameter definition
-                 (&rest articles)
-                 ;; documentation
-                 ,(format
-                   "%s the %s mark over process-marked ARTICLES."
-                   (upcase-initials variant-name)
-                   mark)
-                 ;; interactive definition
-                 (interactive
-                  (gnus-summary-work-articles current-prefix-arg))
-                 ;; actual code
-
-                 ;; if this is called and the user doesn't want the
-                 ;; registry enabled, we'll ask anyhow
-                 (unless gnus-registry-install
-                   (let ((gnus-registry-install 'ask))
-                     (gnus-registry-install-p)))
-
-                 ;; now the user is asked if gnus-registry-install is 'ask
-                 (when (gnus-registry-install-p)
-                   (gnus-registry-set-article-mark-internal
-                    ;; all this just to get the mark, I must be doing it wrong
-                    (intern ,(symbol-name mark))
-                    articles ,remove t)
-                   (gnus-message
-                    9
-                    "Applying mark %s to %d articles"
-                    ,(symbol-name mark) (length articles))
-                   (dolist (article articles)
-                     (gnus-summary-update-article
-                      article
-                      (assoc article (gnus-data-list nil)))))))
-             (push (intern function-name) keys-plist)
+                  (function-name
+                   (intern (format function-format variant-name)))
+                  (shortcut (format "%c" (if remove (upcase data) data))))
+             (defalias function-name
+               ;; If it weren't for the function's docstring, we could
+               ;; use a closure, with lexical-let :-(
+               `(lambda (&rest articles)
+                  ,(format
+                    "%s the %s mark over process-marked ARTICLES."
+                    (upcase-initials variant-name)
+                    mark)
+                  (interactive
+                   (gnus-summary-work-articles current-prefix-arg))
+                  (gnus-registry--set/remove-mark ',mark ',remove articles)))
+             (push function-name keys-plist)
              (push shortcut keys-plist)
              (push (vector (format "%s %s"
                                    (upcase-initials variant-name)
                                    (symbol-name mark))
-                           (intern function-name) t)
+                           function-name t)
                    gnus-registry-misc-menus)
-             (gnus-message
-              9
-              "Defined mark handling function %s"
-              function-name))))))
+             (gnus-message 9 "Defined mark handling function %s"
+                           function-name))))))
     (gnus-define-keys-1
      '(gnus-registry-mark-map "M" gnus-summary-mark-map)
      keys-plist)
@@ -925,7 +924,7 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 ;; use like this:
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
 (defun gnus-registry-article-marks-to-chars (headers)
-  "Show the marks for an article by the :char property"
+  "Show the marks for an article by the :char property."
   (let* ((id (mail-header-message-id headers))
          (marks (when id (gnus-registry-get-id-key id 'mark))))
     (mapconcat (lambda (mark)
@@ -938,7 +937,7 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 ;; use like this:
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
 (defun gnus-registry-article-marks-to-names (headers)
-  "Show the marks for an article by name"
+  "Show the marks for an article by name."
   (let* ((id (mail-header-message-id headers))
          (marks (when id (gnus-registry-get-id-key id 'mark))))
     (mapconcat (lambda (mark) (symbol-name mark)) marks ",")))
@@ -1153,13 +1152,14 @@ only the last one's marks are returned."
 
 ;;;###autoload
 (defun gnus-registry-initialize ()
-"Initialize the Gnus registry."
+  "Initialize the Gnus registry."
   (interactive)
   (gnus-message 5 "Initializing the registry")
   (gnus-registry-install-hooks)
   (gnus-registry-install-shortcuts)
   (gnus-registry-read))
 
+;; FIXME: Why autoload this function?
 ;;;###autoload
 (defun gnus-registry-install-hooks ()
   "Install the registry hooks."

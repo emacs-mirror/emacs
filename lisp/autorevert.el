@@ -104,9 +104,8 @@
 
 (defgroup auto-revert nil
   "Revert individual buffers when files on disk change.
-
-Auto-Revert Mode can be activated for individual buffer.
-Global Auto-Revert Mode applies to all buffers."
+Auto-Revert mode enables auto-revert in individual buffers.
+Global Auto-Revert mode does so in all buffers."
   :group 'files
   :group 'convenience)
 

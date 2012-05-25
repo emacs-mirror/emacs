@@ -28,6 +28,9 @@ emacsdir = $(srcdir)/../emacs
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
+INFO_EXT=.info
+INFO_OPTS=--no-split
+
 # Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
 # TEX=platex
 TEX=tex
@@ -48,7 +51,6 @@ srcs = \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
-  $(srcdir)/back.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \
   $(srcdir)/commands.texi \
@@ -103,13 +105,13 @@ srcs = \
 
 # The info file is named `elisp'.
 
-info: $(infodir)/elisp
+info: $(infodir)/elisp$(INFO_EXT)
 
 $(infodir)/dir:
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
-$(infodir)/elisp: $(srcs)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $(infodir)/elisp $(srcdir)/elisp.texi
+$(infodir)/elisp$(INFO_EXT): $(srcs)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
 	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
@@ -124,4 +126,4 @@ distclean: clean
 	- $(DEL) makefile
 
 maintainer-clean: distclean
-	- $(DEL) elisp elisp-? elisp-?? elisp.dvi elisp.oaux
+	- $(DEL) elisp$(INFO_EXT) elisp$(INFO_EXT)-? elisp$(INFO_EXT)-?? elisp.dvi elisp.oaux

@@ -222,7 +222,7 @@
 
 
 (defgroup calc nil
-  "GNU Calc."
+  "Advanced desk calculator and mathematical tool."
   :prefix "calc-"
   :tag    "Calc"
   :group  'applications)
@@ -415,6 +415,13 @@ This is not required to be present for user-written mode annotations."
   t
   "If non-nil, multiplication has precedence over division
 in normal mode."
+  :group 'calc
+  :type 'boolean)
+
+(defcustom calc-ensure-consistent-units
+  nil
+  "If non-nil, make sure new units are consistent with current units
+when converting units."
   :group 'calc
   :type 'boolean)
 

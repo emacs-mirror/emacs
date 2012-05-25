@@ -37,12 +37,12 @@ Automatic Typing}.
 @node Abbrev Concepts
 @section Abbrev Concepts
 
-  An @dfn{abbrev} is a word which has been defined to @dfn{expand} into
+  An @dfn{abbrev} is a word that has been defined to @dfn{expand} into
 a specified @dfn{expansion}.  When you insert a word-separator character
 following the abbrev, that expands the abbrev---replacing the abbrev
 with its expansion.  For example, if @samp{foo} is defined as an abbrev
-expanding to @samp{find outer otter}, then you can insert @samp{find
-outer otter.} into the buffer by typing @kbd{f o o .}.
+expanding to @samp{find outer otter}, then typing @kbd{f o o .} will
+insert @samp{find outer otter.}.
 
 @findex abbrev-mode
 @cindex Abbrev mode
@@ -61,10 +61,9 @@ mode-specific definitions for different major modes.  A mode-specific
 definition for the current major mode overrides a global definition.
 
   You can define abbrevs interactively during the editing session,
-irrespective of whether Abbrev mode is enabled.  You
-can also save lists of abbrev definitions in files for use in later
-sessions.  Some users keep extensive lists of abbrevs that they load
-in every session.
+irrespective of whether Abbrev mode is enabled.  You can also save
+lists of abbrev definitions in files, which you can the reload for use
+in later sessions.
 
 @node Defining Abbrevs
 @section Defining Abbrevs

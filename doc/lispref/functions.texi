@@ -266,13 +266,12 @@ function is the value returned by the last element of the body.
 @end example
 
 @noindent
-We can call this function by writing it as the @sc{car} of an
-expression, like this:
+We can call this function by passing it to @code{funcall}, like this:
 
 @example
 @group
-((lambda (a b c) (+ a b c))
- 1 2 3)
+(funcall (lambda (a b c) (+ a b c))
+         1 2 3)
 @end group
 @end example
 
@@ -287,8 +286,8 @@ this example:
 
 @example
 @group
-((lambda (a b c) (+ a b c))
- 1 (* 2 3) (- 5 4))
+(funcall (lambda (a b c) (+ a b c))
+         1 (* 2 3) (- 5 4))
 @end group
 @end example
 
@@ -398,19 +397,19 @@ after a @code{&rest} argument.
 
   Here are some examples of argument lists and proper calls:
 
-@smallexample
-((lambda (n) (1+ n))                ; @r{One required:}
- 1)                                 ; @r{requires exactly one argument.}
+@example
+(funcall (lambda (n) (1+ n))        ; @r{One required:}
+         1)                         ; @r{requires exactly one argument.}
      @result{} 2
-((lambda (n &optional n1)           ; @r{One required and one optional:}
-         (if n1 (+ n n1) (1+ n)))   ; @r{1 or 2 arguments.}
- 1 2)
+(funcall (lambda (n &optional n1)   ; @r{One required and one optional:}
+           (if n1 (+ n n1) (1+ n))) ; @r{1 or 2 arguments.}
+         1 2)
      @result{} 3
-((lambda (n &rest ns)               ; @r{One required and one rest:}
-         (+ n (apply '+ ns)))       ; @r{1 or more arguments.}
- 1 2 3 4 5)
+(funcall (lambda (n &rest ns)       ; @r{One required and one rest:}
+           (+ n (apply '+ ns)))     ; @r{1 or more arguments.}
+         1 2 3 4 5)
      @result{} 15
-@end smallexample
+@end example
 
 @node Function Documentation
 @subsection Documentation Strings of Functions
@@ -821,7 +820,7 @@ char-table; that is, a list, a vector, a bool-vector, or a string.  The
 result is always a list.  The length of the result is the same as the
 length of @var{sequence}.  For example:
 
-@smallexample
+@example
 @group
 (mapcar 'car '((a b) (c d) (e f)))
      @result{} (a c e)
@@ -853,7 +852,7 @@ Return the list of results."
 (mapcar* 'cons '(a b c) '(1 2 3 4))
      @result{} ((a . 1) (b . 2) (c . 3))
 @end group
-@end smallexample
+@end example
 @end defun
 
 @defun mapc function sequence
@@ -874,7 +873,7 @@ argument and return a string.  The argument @var{sequence} can be any
 kind of sequence except a char-table; that is, a list, a vector, a
 bool-vector, or a string.
 
-@smallexample
+@example
 @group
 (mapconcat 'symbol-name
            '(The cat in the hat)
@@ -888,7 +887,7 @@ bool-vector, or a string.
            "")
      @result{} "IBM.9111"
 @end group
-@end smallexample
+@end example
 @end defun
 
 @node Anonymous Functions
@@ -1189,18 +1188,18 @@ still allow the code to be byte compiled).
 For instance, in old versions of Emacs the @code{sit-for} function
 accepted three arguments, like this
 
-@smallexample
+@example
   (sit-for seconds milliseconds nodisp)
-@end smallexample
+@end example
 
 However, calling @code{sit-for} this way is considered obsolete
 (@pxref{Waiting}).  The old calling convention is deprecated like
 this:
 
-@smallexample
+@example
 (set-advertised-calling-convention
   'sit-for '(seconds &optional nodisp))
-@end smallexample
+@end example
 @end defun
 
 @node Inline Functions
@@ -1260,11 +1259,11 @@ indicates a real problem, but usually the functions in question are
 defined in other files which would be loaded if that code is run.  For
 example, byte-compiling @file{fortran.el} used to warn:
 
-@smallexample
+@example
 In end of data:
 fortran.el:2152:1:Warning: the function `gud-find-c-expr' is not known
     to be defined.
-@end smallexample
+@end example
 
 In fact, @code{gud-find-c-expr} is only used in the function that
 Fortran mode uses for the local value of
@@ -1277,9 +1276,9 @@ visible.  You do that with @code{declare-function}.
 All you need to do is add a @code{declare-function} statement before the
 first use of the function in question:
 
-@smallexample
+@example
 (declare-function gud-find-c-expr "gud.el" nil)
-@end smallexample
+@end example
 
 This says that @code{gud-find-c-expr} is defined in @file{gud.el} (the
 @samp{.el} can be omitted).  The compiler takes for granted that that file

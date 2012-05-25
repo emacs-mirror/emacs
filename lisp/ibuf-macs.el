@@ -143,7 +143,7 @@ buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
 \(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)"
-  (declare (indent 1))
+  (declare (indent 1) (doc-string 2))
   `(progn
      (defun ,(intern (concat "ibuffer-do-sort-by-" (symbol-name name))) ()
        ,(or documentation "No :documentation specified for this sorting method.")
@@ -202,7 +202,7 @@ COMPLEX means this function is special; see the source code of this
 macro for exactly what it does.
 
 \(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING COMPLEX) &rest BODY)"
-  (declare (indent 2))
+  (declare (indent 2) (doc-string 3))
   `(progn
      (defun ,(intern (concat (if (string-match "^ibuffer-do" (symbol-name op))
 				 "" "ibuffer-do-") (symbol-name op)))
@@ -280,7 +280,7 @@ will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
 \(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)"
-  (declare (indent 2))
+  (declare (indent 2) (doc-string 2))
   (let ((fn-name (intern (concat "ibuffer-filter-by-" (symbol-name name)))))
     `(progn
        (defun ,fn-name (qualifier)

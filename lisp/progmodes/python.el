@@ -1601,7 +1601,7 @@ behavior, change `python-remove-cwd-from-path' to nil."
   ;; Fixme: Write a `coding' header to the temp file if the region is
   ;; non-ASCII.
   (interactive "r")
-  (let* ((f (make-temp-file "py"))
+  (let* ((f (make-temp-file "py" nil ".py"))
 	 (command
           ;; IPython puts the FakeModule module into __main__ so
           ;; emacs.eexecfile becomes useless.
@@ -2468,15 +2468,6 @@ with skeleton expansions for compound statement templates.
 	    nil t)
   (add-hook 'completion-at-point-functions
             'python-completion-at-point nil 'local)
-  ;; Fixme: should be in hideshow.  This seems to be of limited use
-  ;; since it isn't (can't be) indentation-based.  Also hide-level
-  ;; doesn't seem to work properly.
-  (add-to-list 'hs-special-modes-alist
-	       `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
-		 ,(lambda (_arg)
-		    (python-end-of-defun)
-		    (skip-chars-backward " \t\n"))
-		 nil))
   (set (make-local-variable 'skeleton-further-elements)
        '((< '(backward-delete-char-untabify (min python-indent
 						 (current-column))))
@@ -2615,9 +2606,17 @@ problem."
     (let* ((filename (match-string 1 block))
            (lineno (string-to-number (match-string 2 block)))
            (funcname (match-string 3 block))
+           (msg (get-text-property 0 'compilation-message filename))
+           (loc (and msg (compilation--message->loc msg)))
            funcbuffer)
 
-      (cond ((file-exists-p filename)
+      (cond ((and loc (markerp (compilation--loc->marker loc)))
+             (setq funcbuffer (marker-buffer (compilation--loc->marker loc)))
+             (list (with-current-buffer funcbuffer
+                     (line-number-at-pos (compilation--loc->marker loc)))
+                   funcbuffer))
+
+            ((file-exists-p filename)
              (list lineno (find-file-noselect filename)))
 
             ((setq funcbuffer (python-pdbtrack-grub-for-buffer funcname lineno))
@@ -2635,15 +2634,12 @@ problem."
                                                   (buffer-substring
                                                    (point-min) (point-max)))
                                     )))))))
-               (list lineno funcbuffer))
+             (list lineno funcbuffer))
 
             ((= (elt filename 0) ?\<)
              (format "(Non-file source: '%s')" filename))
 
-            (t (format "Not found: %s(), %s" funcname filename)))
-      )
-    )
-  )
+            (t (format "Not found: %s(), %s" funcname filename))))))
 
 (defun python-pdbtrack-grub-for-buffer (funcname _lineno)
   "Find recent Python mode buffer named, or having function named FUNCNAME."
@@ -2716,6 +2712,17 @@ comint believe the user typed this string so that
     (setq debug-ignored-errors (delete error debug-ignored-errors)))
   ;; continue standard unloading
   nil)
+
+;;;; Finish up
+;; Fixme: should be in hideshow.  This seems to be of limited use
+;; since it isn't (can't be) indentation-based.  Also hide-level
+;; doesn't seem to work properly.
+(add-to-list 'hs-special-modes-alist
+             `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
+                           ,(lambda (_arg)
+                              (python-end-of-defun)
+                              (skip-chars-backward " \t\n"))
+                           nil))
 
 (provide 'python)
 (provide 'python-21)

@@ -308,7 +308,7 @@ in your initialization file (@pxref{Entering Emacs}).
 @opindex -Q
 @itemx --quick
 @opindex --quick
-Start emacs with minimum customizations, similar to using @samp{-q},
+Start emacs with minimum customizations.  This is similar to using @samp{-q},
 @samp{--no-site-file}, @samp{--no-site-lisp}, and @samp{--no-splash}
 together.  This also stops Emacs from processing X resources by
 setting @code{inhibit-x-resources} to @code{t} (@pxref{Resources}).
@@ -442,7 +442,7 @@ Directory for the documentation string file, which is used to
 initialize the Lisp variable @code{doc-directory}.
 @item EMACSLOADPATH
 A colon-separated list of directories@footnote{ Here and below,
-whenever we say ``colon-separated list of directories,'' it pertains
+whenever we say ``colon-separated list of directories'', it pertains
 to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows, the
 directories are separated by semi-colons instead, since DOS/Windows
 file names might include a colon after a drive letter.}  to search for

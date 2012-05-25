@@ -267,8 +267,6 @@ its argument.  See also @code{integer-or-marker-p} and
 @defun floatp object
 This predicate tests whether its argument is a floating point
 number and returns @code{t} if so, @code{nil} otherwise.
-
-@code{floatp} does not exist in Emacs versions 18 and earlier.
 @end defun
 
 @defun integerp object
@@ -777,7 +775,7 @@ and returns that value as a floating point number.
 sequence of @dfn{bits} (digits which are either zero or one).  A bitwise
 operation acts on the individual bits of such a sequence.  For example,
 @dfn{shifting} moves the whole sequence left or right one or more places,
-reproducing the same pattern ``moved over.''
+reproducing the same pattern ``moved over''.
 
   The bitwise operations in Emacs Lisp apply only to integers.
 

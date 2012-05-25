@@ -6,6 +6,7 @@
 ;; Maintainer: FSF
 ;; Keywords: games
 ;; Created: Jan 1997
+;; Obsolete-since: 24.2
 
 ;; This file is part of GNU Emacs.
 

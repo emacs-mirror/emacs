@@ -1,6 +1,6 @@
 ;;; esh-cmd.el --- command invocation
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -236,10 +236,14 @@ return non-nil if the command is complex."
   :group 'eshell-cmd)
 
 (defcustom eshell-debug-command nil
-  "If non-nil, enable debugging code.  SSLLOOWW.
-This option is only useful for reporting bugs.  If you enable it, you
-will have to visit the file 'eshell-cmd.el' and run the command
-\\[eval-buffer]."
+  "If non-nil, enable Eshell debugging code.
+This is slow, and only useful for debugging problems with Eshell.
+If you change this without using customize after Eshell has loaded,
+you must re-load 'esh-cmd.el'."
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (load-library "esh-cmd"))
   :type 'boolean
   :group 'eshell-cmd)
 

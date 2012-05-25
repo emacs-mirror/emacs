@@ -579,13 +579,13 @@ outline hot-spot navigation \(see `allout-mode')."
         (if (current-local-map)
             (set-keymap-parent allout-item-body-keymap (current-local-map)))
 
-        (add-hook 'allout-exposure-change-hook
+        (add-hook 'allout-exposure-change-functions
                   'allout-widgets-exposure-change-recorder nil 'local)
-        (add-hook 'allout-structure-added-hook
+        (add-hook 'allout-structure-added-functions
                   'allout-widgets-additions-recorder nil 'local)
-        (add-hook 'allout-structure-deleted-hook
+        (add-hook 'allout-structure-deleted-functions
                   'allout-widgets-deletions-recorder nil 'local)
-        (add-hook 'allout-structure-shifted-hook
+        (add-hook 'allout-structure-shifted-functions
                   'allout-widgets-shifts-recorder nil 'local)
         (add-hook 'allout-after-copy-or-kill-hook
                   'allout-widgets-after-copy-or-kill-function nil 'local)
@@ -626,13 +626,13 @@ outline hot-spot navigation \(see `allout-mode')."
 
       (remove-hook 'after-change-functions
                    'allout-widgets-after-change-handler 'local)
-      (remove-hook 'allout-exposure-change-hook
+      (remove-hook 'allout-exposure-change-functions
                    'allout-widgets-exposure-change-recorder 'local)
-      (remove-hook 'allout-structure-added-hook
+      (remove-hook 'allout-structure-added-functions
                    'allout-widgets-additions-recorder 'local)
-      (remove-hook 'allout-structure-deleted-hook
+      (remove-hook 'allout-structure-deleted-functions
                    'allout-widgets-deletions-recorder 'local)
-      (remove-hook 'allout-structure-shifted-hook
+      (remove-hook 'allout-structure-shifted-functions
                    'allout-widgets-shifts-recorder 'local)
       (remove-hook 'allout-after-copy-or-kill-hook
                    'allout-widgets-after-copy-or-kill-function 'local)
@@ -992,7 +992,7 @@ Records changes in `allout-widgets-changes-record'."
 (defun allout-widgets-exposure-change-processor (changes)
   "Widgetize and adjust item widgets tracking allout outline exposure changes.
 
-Generally invoked via `allout-exposure-change-hook'."
+Generally invoked via `allout-exposure-change-functions'."
 
   (let ((changes (sort changes (function (lambda (this next)
                                            (< (cadr this) (cadr next))))))
@@ -1059,7 +1059,7 @@ Generally invoked via `allout-exposure-change-hook'."
 (defun allout-widgets-additions-recorder (from to)
   "Record allout item additions for tracking during post-command processing.
 
-Intended for use on `allout-structure-added-hook'.
+Intended for use on `allout-structure-added-functions'.
 
 FROM point at the start of the first new item and TO is point at the start
 of the last one.
@@ -1106,8 +1106,7 @@ Dispatched by `allout-widgets-post-command-business' in response to
 ;;;_   > allout-widgets-deletions-recorder (depth from)
 (defun allout-widgets-deletions-recorder (depth from)
   "Record allout item deletions for tracking during post-command processing.
-
-Intended for use on `allout-structure-deleted-hook'.
+Intended for use on `allout-structure-deleted-functions'.
 
 DEPTH is the depth of the deleted subtree, and FROM is the point from which
 the subtree was deleted.
@@ -1134,8 +1133,7 @@ Dispatched by `allout-widgets-post-command-business' in response to
 ;;;_   > allout-widgets-shifts-recorder (shifted-amount at)
 (defun allout-widgets-shifts-recorder (shifted-amount at)
   "Record outline subtree shifts for tracking during post-command processing.
-
-Intended for use on `allout-structure-shifted-hook'.
+Intended for use on `allout-structure-shifted-functions'.
 
 SHIFTED-AMOUNT is the depth change and AT is the point at the start of the
 subtree that's been shifted.

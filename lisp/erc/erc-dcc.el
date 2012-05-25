@@ -674,7 +674,7 @@ It extracts the information about the dcc request and adds it to
        ?r "SEND" ?n nick ?u login ?h host))
      ((string-match erc-dcc-ctcp-query-send-regexp query)
       (let ((filename
-             (or (match-string 3 query)
+             (or (match-string 5 query)
                  (erc-dcc-unquote-filename (match-string 2 query))))
             (ip       (erc-decimal-to-ip (match-string 6 query)))
             (port     (match-string 7 query))

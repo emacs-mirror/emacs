@@ -1090,7 +1090,9 @@ xg_create_frame_widgets (FRAME_PTR f)
   GtkWidget *wtop;
   GtkWidget *wvbox, *whbox;
   GtkWidget *wfixed;
+#ifndef HAVE_GTK3
   GtkRcStyle *style;
+#endif
   char *title = 0;
 
   BLOCK_INPUT;

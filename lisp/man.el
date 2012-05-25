@@ -89,7 +89,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'assoc)
 (require 'button)
 
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -360,10 +359,10 @@ Otherwise, the value is whatever the function
 (make-variable-buffer-local 'Man-arguments)
 (put 'Man-arguments 'permanent-local t)
 
-(defvar Man-sections-alist nil)
-(make-variable-buffer-local 'Man-sections-alist)
-(defvar Man-refpages-alist nil)
-(make-variable-buffer-local 'Man-refpages-alist)
+(defvar Man--sections nil)
+(make-variable-buffer-local 'Man--sections)
+(defvar Man--refpages nil)
+(make-variable-buffer-local 'Man--refpages)
 (defvar Man-page-list nil)
 (make-variable-buffer-local 'Man-page-list)
 (defvar Man-current-page 0)
@@ -1274,8 +1273,8 @@ manpage command."
 	  (if (not Man-page-list)
  	      (let ((args Man-arguments))
 		(kill-buffer (current-buffer))
-		(error "Can't find the %s manpage"
-		       (Man-page-from-arguments args)))
+		(user-error "Can't find the %s manpage"
+                            (Man-page-from-arguments args)))
 	    (set-buffer-modified-p nil))))
 	;; Restore case-fold-search before calling
 	;; Man-notify-when-ready because it may switch buffers.
@@ -1370,17 +1369,19 @@ The following key bindings are currently in effect in the buffer:
   (run-mode-hooks 'Man-mode-hook))
 
 (defsubst Man-build-section-alist ()
-  "Build the association list of manpage sections."
-  (setq Man-sections-alist nil)
+  "Build the list of manpage sections."
+  (setq Man--sections nil)
   (goto-char (point-min))
   (let ((case-fold-search nil))
     (while (re-search-forward Man-heading-regexp (point-max) t)
-      (aput 'Man-sections-alist (match-string 1))
+      (let ((section (match-string 1)))
+        (unless (member section Man--sections)
+          (push section Man--sections)))
       (forward-line 1))))
 
 (defsubst Man-build-references-alist ()
-  "Build the association list of references (in the SEE ALSO section)."
-  (setq Man-refpages-alist nil)
+  "Build the list of references (in the SEE ALSO section)."
+  (setq Man--refpages nil)
   (save-excursion
     (if (Man-find-section Man-see-also-regexp)
 	(let ((start (progn (forward-line 1) (point)))
@@ -1406,10 +1407,11 @@ The following key bindings are currently in effect in the buffer:
 			      len (1- (length word))))
 		    (if (memq (aref word len) '(?- ?­))
 			(setq hyphenated (substring word 0 len)))
-		    (if (string-match Man-reference-regexp word)
-			(aput 'Man-refpages-alist word))))
+		    (and (string-match Man-reference-regexp word)
+                         (not (member word Man--refpages))
+                         (push word Man--refpages))))
 	      (skip-chars-forward " \t\n,"))))))
-  (setq Man-refpages-alist (nreverse Man-refpages-alist)))
+  (setq Man--refpages (nreverse Man--refpages)))
 
 (defun Man-build-page-list ()
   "Build the list of separate manpages in the buffer."
@@ -1473,7 +1475,12 @@ The following key bindings are currently in effect in the buffer:
 	    (nindent 0))
 	(narrow-to-region (car page) (car (cdr page)))
 	(if Man-uses-untabify-flag
-	    (untabify (point-min) (point-max)))
+	    ;; The space characters inserted by `untabify' inherit
+	    ;; sticky text properties, which is unnecessary and looks
+	    ;; ugly with underlining (Bug#11408).
+	    (let ((text-property-default-nonsticky
+		   (cons '(face . t) text-property-default-nonsticky)))
+	      (untabify (point-min) (point-max))))
 	(if (catch 'unindent
 	      (goto-char (point-min))
 	      (if (not (re-search-forward Man-first-heading-regexp nil t))
@@ -1541,21 +1548,22 @@ Returns t if section is found, nil otherwise."
       nil)
     ))
 
-(defun Man-goto-section ()
-  "Query for section to move point to."
-  (interactive)
-  (aput 'Man-sections-alist
-	(let* ((default (aheadsym Man-sections-alist))
-	       (completion-ignore-case t)
-	       chosen
-	       (prompt (concat "Go to section (default " default "): ")))
-	  (setq chosen (completing-read prompt Man-sections-alist))
-	  (if (or (not chosen)
-		  (string= chosen ""))
-	      default
-	    chosen)))
-  (unless (Man-find-section (aheadsym Man-sections-alist))
-    (error "Section not found")))
+(defvar Man--last-section nil)
+
+(defun Man-goto-section (section)
+  "Move point to SECTION."
+  (interactive
+   (let* ((default (if (member Man--last-section Man--sections)
+                       Man--last-section
+                     (car Man--sections)))
+          (completion-ignore-case t)
+          (prompt (concat "Go to section (default " default "): "))
+          (chosen (completing-read prompt Man--sections
+                                   nil nil nil nil default)))
+     (list chosen)))
+  (setq Man--last-section section)
+  (unless (Man-find-section section)
+    (error "Section %s not found" section)))
 
 
 (defun Man-goto-see-also-section ()
@@ -1586,11 +1594,13 @@ as \"tcgetp-grp(3V)\", and point is at \"grp(3V)\", we return
 	    (setq word (current-word))))
       word)))
 
+(defvar Man--last-refpage nil)
+
 (defun Man-follow-manual-reference (reference)
   "Get one of the manpages referred to in the \"SEE ALSO\" section.
 Specify which REFERENCE to use; default is based on word at point."
   (interactive
-   (if (not Man-refpages-alist)
+   (if (not Man--refpages)
        (error "There are no references in the current man page")
      (list
       (let* ((default (or
@@ -1603,26 +1613,22 @@ Specify which REFERENCE to use; default is based on word at point."
 				   (substring word 0
 					      (match-beginning 0))
 				 word))
-			     Man-refpages-alist))
-		       (aheadsym Man-refpages-alist)))
+			     Man--refpages))
+                       (if (member Man--last-refpage Man--refpages)
+                           Man--last-refpage
+                         (car Man--refpages))))
 	     (defaults
 	       (mapcar 'substring-no-properties
-		       (delete-dups
-			(delq nil (cons default
-					(mapcar 'car Man-refpages-alist))))))
-	     chosen
-	     (prompt (concat "Refer to (default " default "): ")))
-	(setq chosen (completing-read prompt Man-refpages-alist
-				      nil nil nil nil defaults))
-	(if (or (not chosen)
-		(string= chosen ""))
-	    default
-	  chosen)))))
-  (if (not Man-refpages-alist)
+                       (cons default Man--refpages)))
+	     (prompt (concat "Refer to (default " default "): "))
+	     (chosen (completing-read prompt Man--refpages
+				      nil nil nil nil defaults)))
+        chosen))))
+  (if (not Man--refpages)
       (error "Can't find any references in the current manpage")
-    (aput 'Man-refpages-alist reference)
+    (setq Man--last-refpage reference)
     (Man-getpage-in-background
-     (Man-translate-references (aheadsym Man-refpages-alist)))))
+     (Man-translate-references reference))))
 
 (defun Man-kill ()
   "Kill the buffer containing the manpage."
@@ -1648,7 +1654,7 @@ Specify which REFERENCE to use; default is based on word at point."
   (when Man-page-list
     (if (or (< page 1)
 	    (> page (length Man-page-list)))
-	(error "No manpage %d found" page))
+	(user-error "No manpage %d found" page))
     (let* ((page-range (nth (1- page) Man-page-list))
 	   (page-start (car page-range))
 	   (page-end (car (cdr page-range))))
@@ -1740,9 +1746,6 @@ Uses `Man-name-local-regexp'."
 
 ;; Init the man package variables, if not already done.
 (Man-init-defvars)
-
-(add-to-list 'debug-ignored-errors "^No manpage [0-9]* found$")
-(add-to-list 'debug-ignored-errors "^Can't find the .* manpage$")
 
 (provide 'man)
 

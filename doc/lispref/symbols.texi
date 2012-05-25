@@ -90,7 +90,7 @@ the contents of a symbol's function cell, use the function
 @code{symbol-function} (@pxref{Function Cells}).
 
   The property list cell normally should hold a correctly formatted
-property list.  To get a symbol's function cell, use the function
+property list.  To get a symbol's property list, use the function
 @code{symbol-plist}.  @xref{Property Lists}.
 
   The function cell or the value cell may be @dfn{void}, which means
@@ -140,7 +140,7 @@ act correctly if it is evaluated with lexical scoping enabled
   @code{defun} defines a symbol as a function, creating a lambda
 expression and storing it in the function cell of the symbol.  This
 lambda expression thus becomes the function definition of the symbol.
-(The term ``function definition,'' meaning the contents of the function
+(The term ``function definition'', meaning the contents of the function
 cell, is derived from the idea that @code{defun} gives the symbol its
 definition as a function.)  @code{defsubst} and @code{defalias} are two
 other ways of defining a function.  @xref{Functions}.
@@ -310,7 +310,7 @@ The argument @var{name} may also be a symbol; in that case,
 the function returns @var{name} if @var{name} is interned
 in the specified obarray, and otherwise @code{nil}.
 
-@smallexample
+@example
 (intern-soft "frazzle")        ; @r{No such symbol exists.}
      @result{} nil
 (make-symbol "frazzle")        ; @r{Create an uninterned one.}
@@ -331,7 +331,7 @@ in the specified obarray, and otherwise @code{nil}.
 (eq sym 'frazzle)              ; @r{And it is the same one.}
      @result{} t
 @end group
-@end smallexample
+@end example
 @end defun
 
 @defvar obarray
@@ -346,7 +346,7 @@ This function calls @var{function} once with each symbol in the obarray
 omitted, it defaults to the value of @code{obarray}, the standard
 obarray for ordinary symbols.
 
-@smallexample
+@example
 (setq count 0)
      @result{} 0
 (defun count-syms (s)
@@ -356,7 +356,7 @@ obarray for ordinary symbols.
      @result{} nil
 count
      @result{} 1871
-@end smallexample
+@end example
 
 See @code{documentation} in @ref{Accessing Documentation}, for another
 example using @code{mapatoms}.
@@ -462,12 +462,12 @@ This function sets @var{symbol}'s property list to @var{plist}.
 Normally, @var{plist} should be a well-formed property list, but this is
 not enforced.  The return value is @var{plist}.
 
-@smallexample
+@example
 (setplist 'foo '(a 1 b (2 3) c nil))
      @result{} (a 1 b (2 3) c nil)
 (symbol-plist 'foo)
      @result{} (a 1 b (2 3) c nil)
-@end smallexample
+@end example
 
 For symbols in special obarrays, which are not used for ordinary
 purposes, it may make sense to use the property list cell in a
@@ -492,7 +492,7 @@ This function puts @var{value} onto @var{symbol}'s property list under
 the property name @var{property}, replacing any previous property value.
 The @code{put} function returns @var{value}.
 
-@smallexample
+@example
 (put 'fly 'verb 'transitive)
      @result{}'transitive
 (put 'fly 'noun '(a buzzing little bug))
@@ -501,14 +501,14 @@ The @code{put} function returns @var{value}.
      @result{} transitive
 (symbol-plist 'fly)
      @result{} (verb transitive noun (a buzzing little bug))
-@end smallexample
+@end example
 @end defun
 
 @node Other Plists
 @subsection Property Lists Outside Symbols
 
   These functions are useful for manipulating property lists
-that are stored in places other than symbols:
+not stored in symbols:
 
 @defun plist-get plist property
 This returns the value of the @var{property} property stored in the

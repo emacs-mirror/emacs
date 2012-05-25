@@ -1,3 +1,186 @@
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	(mkinfodir): Use $MKDIR_P.
+
+2012-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Loading Non-ASCII): Replace the obsolete "unibyte: t"
+	with "coding: raw-text".
+	Concept of multibyte sessions no longer exists.
+
+	* files.texi (File Locks): Mention create-lockfiles option.
+
+2012-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* vol1.texi, vol2.texi: Remove files.
+	* elisp.texi: Add VOL1,2 conditionals equivalent to vol1,2.texi
+	* two-volume.make: Use elisp.texi as input rather than vol1,2.texi.
+
+	* Makefile.in (clean, mostlyclean): Add some more vol1/2 items.
+
+	* two-volume.make (emacsdir): New.
+	(tex): Add directory with emacsver.texi to TEXINPUTS.
+
+	* minibuf.texi (Minibuffer History, Basic Completion):
+	Tweak page breaks.
+
+	* internals.texi (Garbage Collection, Memory Usage)
+	(Writing Emacs Primitives): Tweak page breaks.
+
+	* streams.texi (Output Variables): Improve page break.
+
+	* edebug.texi (Edebug Display Update): Improve page break.
+
+	* compile.texi (Disassembly): Condense the examples.
+
+	* eval.texi, functions.texi, loading.texi, macros.texi:
+	Where possible, use example rather than smallexample.
+
+	* symbols.texi: Where possible, use example rather than smallexample.
+	(Symbol Components): Fix typo.
+	(Other Plists): Tweak page break.
+
+	* sequences.texi (Arrays): Tweak page breaks.
+
+	* customize.texi: Where possible, use example rather than smallexample.
+	(Common Keywords, Variable Definitions, Applying Customizations)
+	(Custom Themes): Tweak page breaks.
+
+	* control.texi: Where possible, use example rather than smallexample.
+	(Sequencing, Conditionals, Signaling Errors, Handling Errors):
+	Tweak page breaks.
+
+2012-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* two.el: Remove; unused since creation of two-volume.make.
+
+	* vol1.texi, vol2.texi: No need to keep menus in these files.
+
+2012-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Process Type, Overlay Type): Tweak page-breaks.
+
+	* intro.texi (Caveats): Copyedit.
+	(Lisp History): Convert inforef to xref.
+	(Lisp History, Printing Notation, Version Info): Improve page-breaks.
+
+	* text.texi (Auto Filling): Don't mention Emacs 19.
+
+	* commands.texi (Event Input Misc): Don't mention unread-command-char.
+	* numbers.texi (Predicates on Numbers): Don't mention Emacs 18.
+
+	* elisp.texi (DATE): Forgot to change the month in 2012-04-21 change.
+
+	* lists.texi (List-related Predicates, List Variables):
+	Tweak page-breaks.
+	(Sets And Lists): Convert inforef to xref.
+
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_EXT, INFO_OPTS): New, set by configure.
+	(info, infoclean): Use $INFO_EXT.
+	($(infodir)/elisp$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+	* makefile.w32-in (INFO_EXT, INFO_OPTS): New.
+	(info, maintainer-clean): Use $INFO_EXT.
+	($(infodir)/elisp$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+
+2012-05-04  Chong Yidong  <cyd@gnu.org>
+
+	* os.texi (Timers): Use defopt for timer-max-repeats.
+
+2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* os.texi (Time of Day): Do not limit current-time-string
+	to years 1000..9999.
+
+2012-05-02  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Font Lookup):
+	* frames.texi (Pointer Shape):
+	* processes.texi (Subprocess Creation): Use defopt for options.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (@copying):
+	* intro.texi (Introduction): Only print VERSION in the TeX version.
+
+2012-05-02  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Change Hooks): Minor fix for after-change-functions.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Packaging Basics):
+	* loading.texi (Autoload):
+	* files.texi (Magic File Names):
+	Reword to remove/reduce some overly long/short lines.
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi, vol1.texi, vol2.texi: Some fixes for detailed menu.
+	* modes.texi (Major Modes, Auto-Indentation):
+	* buffers.texi (Buffers): Some fixes for menu descriptions.
+
+2012-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+	* functions.texi (Simple Lambda, Argument List):
+	* eval.texi (Function Indirection): Avoid deprecated form.
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* book-spine.texi, elisp.texi, vol1.texi, vol2.texi:
+	Add "et al." to authors.
+
+	* buffers.texi, commands.texi, compile.texi, control.texi:
+	* customize.texi, display.texi, eval.texi, files.texi, frames.texi:
+	* hash.texi, help.texi, intro.texi, keymaps.texi, lists.texi:
+	* modes.texi, numbers.texi, objects.texi, streams.texi:
+	* symbols.texi, syntax.texi, text.texi, tips.texi, variables.texi:
+	Use Texinfo recommended convention for quotes+punctuation.
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Scanning Keymaps): Fix description of NO-REMAP arg
+	to where-is-internal (Bug#10872).
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* macros.texi (Indenting Macros): Fix typo.
+
+	* windows.texi (Basic Windows, Windows and Frames, Window Sizes)
+	(Resizing Windows, Deleting Windows, Selecting Windows)
+	(Choosing Window Options, Horizontal Scrolling)
+	(Cyclic Window Ordering, Window History, Dedicated Windows)
+	(Quitting Windows, Window Configurations, Textual Scrolling):
+	(Coordinates and Windows, Window Configurations)
+	(Window Parameters, Window Hooks): Copyedits.
+	(Splitting Windows, Deleting Windows):
+	Fix ignore-window-parameters logic.
+	(Selecting Windows, Choosing Window Options): Markup fixes.
+	(Window Start and End): Remove pointless example.
+	Remove cross-reference to deleted count-lines content.
+	(Textual Scrolling): Mention recenter-redisplay, recenter-top-bottom,
+	and recenter-positions.  Remove recenter example.
+
+	* elisp.texi, vol1.texi, vol2.texi: Bump VERSION and DATE.
+
+	* minibuf.texi (Intro to Minibuffers):
+	Tweak discussion of resizing minibuffer window.
+
+2012-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* elisp-covers.texi, front-cover-1.texi: Remove files.
+
+	* tindex.pl: Remove file.
+
+	* makefile.w32-in (srcs):
+	* Makefile.in (srcs): Remove back.texi (which is unused).
+
+2012-04-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* os.texi (Notifications): Extend possible notification hints.
+	Add notifications-get-capabilities.
+
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
 	* processes.texi (Asynchronous Processes): Mention nil argument to
@@ -10870,7 +11053,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1998-2012  Free Software Foundation, Inc.
+  Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

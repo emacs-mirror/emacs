@@ -30,6 +30,12 @@ texinfodir = $(srcdir)/../misc
 # Directory with emacsver.texi.
 emacsdir =  $(srcdir)/../emacs
 
+MKDIR_P = @MKDIR_P@
+
+INFO_EXT=@INFO_EXT@
+# Options used only when making info output.
+INFO_OPTS=@INFO_OPTS@
+
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force --enable-encoding -I $(emacsdir) -I $(srcdir)
 TEXI2DVI = texi2dvi
@@ -47,7 +53,6 @@ srcs = \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
-  $(srcdir)/back.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \
   $(srcdir)/commands.texi \
@@ -96,20 +101,20 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
-mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @${MKDIR_P} ${infodir}
 
 .PHONY: info dvi pdf ps
 
-info: $(infodir)/elisp
+info: $(infodir)/elisp$(INFO_EXT)
 dvi: elisp.dvi
 html: elisp.html
 pdf: elisp.pdf
 ps: elisp.ps
 
 ## Note: "<" is not portable in ordinary make rules.
-$(infodir)/elisp: $(srcs)
+$(infodir)/elisp$(INFO_EXT): $(srcs)
 	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $(srcdir)/elisp.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/elisp.texi
@@ -129,17 +134,18 @@ elisp.pdf: $(srcs)
 mostlyclean:
 	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
 	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
-	rm -f elisp[12]*
+	rm -f elisp[12]* vol[12].tmp
 
 clean: mostlyclean
-	rm -f elisp.dvi elisp.pdf elisp.ps vol[12].pdf
+	rm -f elisp.dvi elisp.pdf elisp.ps
+	rm -f vol[12].dvi vol[12].pdf vol[12].ps
 	rm -rf elisp.html
 	rm -f emacs-lispref-${version}.tar*
 
 distclean: clean
 
 infoclean:
-	-cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+	-cd $(infodir) && rm -f elisp$(INFO_EXT) elisp$(INFO_EXT)-[1-9] elisp$(INFO_EXT)-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 

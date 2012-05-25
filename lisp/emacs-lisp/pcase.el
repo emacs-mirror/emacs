@@ -113,7 +113,8 @@ like `(,a . ,(pred (< a))) or, with more checks:
   "Like `let*' but where you can use `pcase' patterns for bindings.
 BODY should be an expression, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
-  (declare (indent 1) (debug let))
+  (declare (indent 1)
+           (debug ((&rest &or (sexp &optional form) symbolp) body)))
   (cond
    ((null bindings) (if (> (length body) 1) `(progn ,@body) (car body)))
    ((pcase--trivial-upat-p (caar bindings))
@@ -132,7 +133,7 @@ of the form (UPAT EXP)."
   "Like `let' but where you can use `pcase' patterns for bindings.
 BODY should be a list of expressions, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
-  (declare (indent 1) (debug let))
+  (declare (indent 1) (debug pcase-let*))
   (if (null (cdr bindings))
       `(pcase-let* ,bindings ,@body)
     (let ((matches '()))
@@ -148,6 +149,7 @@ of the form (UPAT EXP)."
       `(let ,(nreverse bindings) (pcase-let* ,matches ,@body)))))
 
 (defmacro pcase-dolist (spec &rest body)
+  (declare (indent 1))
   (if (pcase--trivial-upat-p (car spec))
       `(dolist ,spec ,@body)
     (let ((tmpvar (make-symbol "x")))
@@ -217,10 +219,10 @@ of the form (UPAT EXP)."
                          (cdr case))))
                    cases))))
     (if (null defs) main
-      `(let ,defs ,main))))
+      (pcase--let* defs main))))
 
 (defun pcase-codegen (code vars)
-  `(let ,(mapcar (lambda (b) (list (car b) (cdr b))) vars)
+  `(let* ,(mapcar (lambda (b) (list (car b) (cdr b))) vars)
      ,@code))
 
 (defun pcase--small-branch-p (code)
@@ -254,6 +256,13 @@ of the form (UPAT EXP)."
    ;; Invert the test if that lets us reduce the depth of the tree.
    ((memq (car-safe then) '(if cond)) (pcase--if `(not ,test) else then))
    (t `(if ,test ,then ,else))))
+
+;; Again, try and reduce nesting.
+(defun pcase--let* (binders body)
+  (if (eq (car-safe body) 'let*)
+      `(let* ,(append binders (nth 1 body))
+         ,@(nthcdr 2 body))
+    `(let* ,binders ,body)))
 
 (defun pcase--upat (qpattern)
   (cond
@@ -433,26 +442,26 @@ MATCH is the pattern that needs to be matched, of the form:
 (defun pcase--split-pred (upat pat)
   ;; FIXME: For predicates like (pred (> a)), two such predicates may
   ;; actually refer to different variables `a'.
-  (cond
-   ((equal upat pat) (cons :pcase--succeed :pcase--fail))
-   ((and (eq 'pred (car upat))
-         (eq 'pred (car-safe pat))
-         (or (member (cons (cadr upat) (cadr pat))
-                     pcase-mutually-exclusive-predicates)
-             (member (cons (cadr pat) (cadr upat))
-                     pcase-mutually-exclusive-predicates)))
-    (cons :pcase--fail nil))
-   ;; ((and (eq 'pred (car upat))
-   ;;       (eq '\` (car-safe pat))
-   ;;       (symbolp (cadr upat))
-   ;;       (or (symbolp (cadr pat)) (stringp (cadr pat)) (numberp (cadr pat)))
-   ;;       (get (cadr upat) 'side-effect-free)
-   ;;       (progn (message "Trying predicate %S" (cadr upat))
-   ;;              (ignore-errors
-   ;;                (funcall (cadr upat) (cadr pat)))))
-   ;;  (message "Simplify pred %S against %S" upat pat)
-   ;;  (cons nil :pcase--fail))
-   ))
+  (let (test)
+    (cond
+     ((equal upat pat) (cons :pcase--succeed :pcase--fail))
+     ((and (eq 'pred (car upat))
+           (eq 'pred (car-safe pat))
+           (or (member (cons (cadr upat) (cadr pat))
+                       pcase-mutually-exclusive-predicates)
+               (member (cons (cadr pat) (cadr upat))
+                       pcase-mutually-exclusive-predicates)))
+      (cons :pcase--fail nil))
+     ((and (eq 'pred (car upat))
+           (eq '\` (car-safe pat))
+           (symbolp (cadr upat))
+           (or (symbolp (cadr pat)) (stringp (cadr pat)) (numberp (cadr pat)))
+           (get (cadr upat) 'side-effect-free)
+           (ignore-errors
+             (setq test (list (funcall (cadr upat) (cadr pat))))))
+      (if (car test)
+          (cons nil :pcase--fail)
+        (cons :pcase--fail nil))))))
 
 (defun pcase--fgrep (vars sexp)
   "Check which of the symbols VARS appear in SEXP."
@@ -548,7 +557,8 @@ Otherwise, it defers to REST which is a list of branches of the form
                                         (let ((newsym (make-symbol "x")))
                                           (push (list newsym sym) env)
                                           (setq sym newsym)))
-                                      (if (functionp exp) `(,exp ,sym)
+                                      (if (functionp exp)
+                                          `(funcall #',exp ,sym)
                                         `(,@exp ,sym)))))
                          (if (null vs)
                              call
@@ -673,16 +683,22 @@ Otherwise, it defers to REST which is a list of branches of the form
        ;; The byte-compiler could do that for us, but it would have to pay
        ;; attention to the `consp' test in order to figure out that car/cdr
        ;; can't signal errors and our byte-compiler is not that clever.
-       `(let (,@(if (get syma 'pcase-used) `((,syma (car ,sym))))
+       ;; FIXME: Some of those let bindings occur too early (they are used in
+       ;; `then-body', but only within some sub-branch).
+       (pcase--let*
+        `(,@(if (get syma 'pcase-used) `((,syma (car ,sym))))
               ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
-          ,then-body)
+        then-body)
        (pcase--u else-rest))))
    ((or (integerp qpat) (symbolp qpat) (stringp qpat))
       (let* ((splitrest (pcase--split-rest
                          sym (apply-partially 'pcase--split-equal qpat) rest))
              (then-rest (car splitrest))
              (else-rest (cdr splitrest)))
-      (pcase--if `(,(if (stringp qpat) #'equal #'eq) ,sym ',qpat)
+      (pcase--if (cond
+                  ((stringp qpat) `(equal ,sym ,qpat))
+                  ((null qpat) `(null ,sym))
+                  (t `(eq ,sym ',qpat)))
                  (pcase--u1 matches code vars then-rest)
                  (pcase--u else-rest))))
    (t (error "Unknown QPattern %s" qpat))))

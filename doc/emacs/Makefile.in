@@ -35,6 +35,15 @@ infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
+MKDIR_P = @MKDIR_P@
+
+INFO_EXT=@INFO_EXT@
+# Options used only when making info output.
+# --no-split is only needed because of MS-DOS.
+# For a possible alternative, see
+# http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg01182.html
+INFO_OPTS=@INFO_OPTS@
+
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
 MAKEINFO = @MAKEINFO@
@@ -111,14 +120,12 @@ EMACSSOURCES= \
 	$(EMACS_XTRA)
 
 ## This seems pointless.  The info/ directory exists in both the
-## repository and the release tarfiles.  We do not use any
-## equivalent of mkdir -p/install-sh -d, so this is not a general
-## solution anyway.  The second test -d is for parallel builds.
-mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+## repository and the release tarfiles.
+mkinfodir = @${MKDIR_P} ${infodir}
 
 .PHONY: info dvi html pdf ps
 
-info: $(infodir)/emacs
+info: $(infodir)/emacs$(INFO_EXT)
 dvi: emacs.dvi
 html: emacs.html
 pdf: emacs.pdf
@@ -128,9 +135,9 @@ ps: emacs.ps
 # There is no provision for Info files to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
 # Note: "<" is not portable in ordinary make rules.
-$(infodir)/emacs: ${EMACSSOURCES}
+$(infodir)/emacs$(INFO_EXT): ${EMACSSOURCES}
 	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ ${srcdir}/emacs.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs.texi
 
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
@@ -171,7 +178,7 @@ distclean: clean
 
 ## In the standalone tarfile, the clean rule runs this.
 infoclean:
-	-cd $(infodir) && rm -f emacs emacs-[1-9] emacs-[1-9][0-9]
+	-cd $(infodir) && rm -f emacs$(INFO_EXT) emacs$(INFO_EXT)-[1-9] emacs$(INFO_EXT)-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 

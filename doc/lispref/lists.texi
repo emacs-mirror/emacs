@@ -34,12 +34,12 @@ object that represents an ordered pair.  That is, it has two slots,
 and each slot @dfn{holds}, or @dfn{refers to}, some Lisp object.  One
 slot is known as the @sc{car}, and the other is known as the @sc{cdr}.
 (These names are traditional; see @ref{Cons Cell Type}.)  @sc{cdr} is
-pronounced ``could-er.''
+pronounced ``could-er''.
 
   We say that ``the @sc{car} of this cons cell is'' whatever object
 its @sc{car} slot currently holds, and likewise for the @sc{cdr}.
 
-  A list is a series of cons cells ``chained together,'' so that each
+  A list is a series of cons cells ``chained together'', so that each
 cell refers to the next one.  There is one cons cell for each element
 of the list.  By convention, the @sc{car}s of the cons cells hold the
 elements of the list, and the @sc{cdr}s are used to chain the list
@@ -87,7 +87,7 @@ structure made out of cons cells as a @dfn{list structure}.
 whether it is a cons cell or is a list, or whether it is the
 distinguished object @code{nil}.  (Many of these predicates can be
 defined in terms of the others, but they are used so often that it is
-worth having all of them.)
+worth having them.)
 
 @defun consp object
 This function returns @code{t} if @var{object} is a cons cell, @code{nil}
@@ -763,8 +763,7 @@ if it already has one; otherwise, it is equivalent to @code{nil}.
 
 The argument @var{symbol} is not implicitly quoted;
 @code{add-to-ordered-list} is an ordinary function, like @code{set}
-and unlike @code{setq}.  Quote the argument yourself if that is what
-you want.
+and unlike @code{setq}.  Quote the argument yourself if necessary.
 
 The ordering information is stored in a hash table on @var{symbol}'s
 @code{list-order} property.
@@ -1269,7 +1268,7 @@ functions for sets include @code{memq} and @code{delq}, and their
 @b{Common Lisp note:} Common Lisp has functions @code{union} (which
 avoids duplicate elements) and @code{intersection} for set operations.
 Although standard GNU Emacs Lisp does not have them, the @file{cl}
-library provides versions.  @inforef{Top, Overview, cl}.
+library provides versions.  @xref{Top,, Overview, cl, Common Lisp Extensions}.
 @end quotation
 
 @defun memq object list
@@ -1632,7 +1631,7 @@ a @sc{cdr} @code{equal} to @var{value}.
 
 @code{rassoc} is like @code{assoc} except that it compares the @sc{cdr} of
 each @var{alist} association instead of the @sc{car}.  You can think of
-this as ``reverse @code{assoc},'' finding the key for a given value.
+this as ``reverse @code{assoc}'', finding the key for a given value.
 @end defun
 
 @defun assq key alist
@@ -1673,7 +1672,7 @@ a @sc{cdr} @code{eq} to @var{value}.
 
 @code{rassq} is like @code{assq} except that it compares the @sc{cdr} of
 each @var{alist} association instead of the @sc{car}.  You can think of
-this as ``reverse @code{assq},'' finding the key for a given value.
+this as ``reverse @code{assq}'', finding the key for a given value.
 
 For example:
 

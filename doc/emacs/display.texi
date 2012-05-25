@@ -260,14 +260,11 @@ placed from the top margin of the window; thus, as with
   These two variables are ignored if either @code{scroll-step} or
 @code{scroll-conservatively} are set to a non-zero value.
 
-  Note that @code{scroll-margin}, described below, limits the amount
-of scrolling so as to put point outside of the top or bottom margin,
-even if aggressive scrolling specifies a fraction @var{f} that is
-larger than the window portion between the top and the bottom margins.
-
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
-to the top or bottom of a window.  Its value is a number of screen
+to the top or bottom of a window (even if aggressive scrolling
+specifies a fraction @var{f} that is larger than the window portion
+between the top and the bottom margins).  Its value is a number of screen
 lines; if point comes within that many lines of the top or bottom of
 the window, Emacs performs automatic scrolling.  By default,
 @code{scroll-margin} is 0.
@@ -448,7 +445,7 @@ and visits it with View mode enabled.
 @cindex synchronizing windows
 
   @dfn{Follow mode} is a minor mode that makes two windows, both
-showing the same buffer, scroll as a single tall ``virtual window.''
+showing the same buffer, scroll as a single tall ``virtual window''.
 To use Follow mode, go to a frame with just one window, split it into
 two side-by-side windows using @kbd{C-x 3}, and then type @kbd{M-x
 follow-mode}.  From then on, you can edit the buffer in either of the
@@ -982,15 +979,15 @@ fringes on the selected frame only, use @kbd{M-x set-fringe-style}.
 line (@pxref{Continuation Lines}).  When one line of text is split
 into multiple screen lines, the left fringe shows a curving arrow for
 each screen line except the first, indicating that ``this is not the
-real beginning.''  The right fringe shows a curving arrow for each
+real beginning''.  The right fringe shows a curving arrow for each
 screen line except the last, indicating that ``this is not the real
-end.''  If the line's direction is right-to-left (@pxref{Bidirectional
+end''.  If the line's direction is right-to-left (@pxref{Bidirectional
 Editing}), the meanings of the curving arrows in the fringes are
 swapped.
 
   The fringes indicate line truncation with short horizontal arrows
 meaning ``there's more text on this line which is scrolled
-horizontally out of view.''  Clicking the mouse on one of the arrows
+horizontally out of view''.  Clicking the mouse on one of the arrows
 scrolls the display horizontally in the direction of the arrow.
 
   The fringes can also indicate other things, such as buffer

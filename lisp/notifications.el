@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This package provides an implementation of the Desktop Notifications
-;; <http://www.galago-project.org/specs/notification/>.
+;; <http://developer.gnome.org/notification-spec/>.
 
 ;; In order to activate this package, you must add the following code
 ;; into your .emacs:
@@ -37,15 +37,9 @@
 (eval-when-compile
   (require 'cl))
 
-;; Pacify byte-compiler.  D-Bus support in the Emacs core can be
-;; disabled with configuration option "--without-dbus".  Declare used
-;; subroutines and variables of `dbus' therefore.
-(declare-function dbus-call-method "dbusbind.c")
-(declare-function dbus-register-signal "dbusbind.c")
-
 (require 'dbus)
 
-(defconst notifications-specification-version "1.1"
+(defconst notifications-specification-version "1.2"
   "The version of the Desktop Notifications Specification implemented.")
 
 (defconst notifications-application-name "Emacs"
@@ -64,13 +58,16 @@
   "D-Bus notifications service path.")
 
 (defconst notifications-interface "org.freedesktop.Notifications"
-  "D-Bus notifications service path.")
+  "D-Bus notifications service interface.")
 
 (defconst notifications-notify-method "Notify"
-  "D-Bus notifications service path.")
+  "D-Bus notifications notify method.")
 
 (defconst notifications-close-notification-method "CloseNotification"
-  "D-Bus notifications service path.")
+  "D-Bus notifications close notification method.")
+
+(defconst notifications-get-capabilities-method "GetCapabilities"
+  "D-Bus notifications get capabilities method.")
 
 (defconst notifications-action-signal "ActionInvoked"
   "D-Bus notifications action signal.")
@@ -154,6 +151,8 @@ Various PARAMS can be set:
                  Default value is -1.
  :urgency        The urgency level.
                  Either `low', `normal' or `critical'.
+ :action-items   Whether the TITLE of the actions is interpreted as
+                 a named icon.
  :category       The type of notification this is.
  :desktop-entry  This specifies the name of the desktop filename representing
                  the calling program.
@@ -170,6 +169,11 @@ Various PARAMS can be set:
                  be \"message-new-instant\".
  :suppress-sound Causes the server to suppress playing any sounds, if it has
                  that ability.
+ :resident       When set the server will not automatically remove the
+                 notification when an action has been invoked.
+ :transient      When set the server will treat the notification as transient
+                 and by-pass the server's persistence capability, if it
+                 should exist.
  :x              Specifies the X location on the screen that the notification
                  should point to.  The \"y\" hint must also be specified.
  :y              Specifies the Y location on the screen that the notification
@@ -187,6 +191,9 @@ Various PARAMS can be set:
                      by a call to CloseNotification
                    - `undefined' if the notification server hasn't provided
                      a reason
+
+Which parameters are accepted by the notification server can be
+checked via `notifications-get-capabilities'.
 
 This function returns a notification id, an integer, which can be
 used to manipulate the notification item with
@@ -206,9 +213,12 @@ of another `notifications-notify' call."
         (desktop-entry (plist-get params :desktop-entry))
         (image-data (plist-get params :image-data))
         (image-path (plist-get params :image-path))
+	(action-items (plist-get params :action-items))
         (sound-file (plist-get params :sound-file))
         (sound-name (plist-get params :sound-name))
         (suppress-sound (plist-get params :suppress-sound))
+	(resident (plist-get params :resident))
+	(transient (plist-get params :transient))
         (x (plist-get params :x))
         (y (plist-get params :y))
         id)
@@ -230,12 +240,16 @@ of another `notifications-notify' call."
                             (:variant :string ,desktop-entry)) t))
     (when image-data
       (add-to-list 'hints `(:dict-entry
-                            "image_data"
+                            "image-data"
                             (:variant :struct ,image-data)) t))
     (when image-path
       (add-to-list 'hints `(:dict-entry
-                            "image_path"
+                            "image-path"
                             (:variant :string ,image-path)) t))
+    (when action-items
+      (add-to-list 'hints `(:dict-entry
+                            "action-items"
+                            (:variant :boolean ,action-items)) t))
     (when sound-file
       (add-to-list 'hints `(:dict-entry
                             "sound-file"
@@ -248,6 +262,14 @@ of another `notifications-notify' call."
       (add-to-list 'hints `(:dict-entry
                             "suppress-sound"
                             (:variant :boolean ,suppress-sound)) t))
+    (when resident
+      (add-to-list 'hints `(:dict-entry
+                            "resident"
+                            (:variant :boolean ,resident)) t))
+    (when transient
+      (add-to-list 'hints `(:dict-entry
+                            "transient"
+                            (:variant :boolean ,transient)) t))
     (when x
       (add-to-list 'hints `(:dict-entry "x" (:variant :int32 ,x)) t))
     (when y
@@ -321,5 +343,37 @@ of another `notifications-notify' call."
                     notifications-interface
                     notifications-close-notification-method
                     :int32 id))
+
+(defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
+
+(defun notifications-get-capabilities ()
+  "Return the capabilities of the notification server, a list of strings.
+The following capabilities can be expected:
+
+  :actions         The server will provide the specified actions
+                   to the user.
+  :action-icons    Supports using icons instead of text for
+                   displaying actions.
+  :body            Supports body text.
+  :body-hyperlinks The server supports hyperlinks in the notifications.
+  :body-images     The server supports images in the notifications.
+  :body-markup     Supports markup in the body text.
+  :icon-multi      The server will render an animation of all the
+                   frames in a given image array.
+  :icon-static     Supports display of exactly 1 frame of any
+                   given image array.  This value is mutually exclusive
+                   with `:icon-multi'.
+  :persistence     The server supports persistence of notifications.
+  :sound           The server supports sounds on notifications.
+
+Further vendor-specific caps start with `:x-vendor', like `:x-gnome-foo-cap'."
+  (dbus-ignore-errors
+   (mapcar
+    (lambda (x) (intern (concat ":" x)))
+    (dbus-call-method :session
+		      notifications-service
+		      notifications-path
+		      notifications-interface
+		      notifications-get-capabilities-method))))
 
 (provide 'notifications)

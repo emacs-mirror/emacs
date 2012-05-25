@@ -711,7 +711,7 @@ commit can include both file additions and edits to existing files.
 
   On a locking-based version control system (@pxref{VCS Merging}),
 registering a file leaves it unlocked and read-only.  Type @kbd{C-x v
-v} if you wish to start editing it.
+v} to start editing it.
 
 @node Old Revisions
 @subsection Examining And Comparing Old Revisions
@@ -893,7 +893,7 @@ Display the change history for the current repository
 (@code{vc-print-root-log}).
 
 @item C-x v I
-Display the changes that will be received with a pull operation
+Display the changes that a pull operation will retrieve
 (@code{vc-log-incoming}).
 
 @item C-x v O
@@ -1729,7 +1729,7 @@ find-tag @key{RET} bidule @key{RET}} will just search for any tag
 @code{bidule}.
 
 @item
-In assembler code, labels appearing at the beginning of a line,
+In assembler code, labels appearing at the start of a line,
 followed by a colon, are tags.
 
 @item

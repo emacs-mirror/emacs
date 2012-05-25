@@ -675,7 +675,7 @@ not distinguish between a cons cell slot ``holding'' a value versus
 
 @cindex atoms
   Because cons cells are so central to Lisp, we also have a word for
-``an object which is not a cons cell.''  These objects are called
+``an object which is not a cons cell''.  These objects are called
 @dfn{atoms}.
 
 @cindex parenthesis
@@ -1289,7 +1289,7 @@ without qualification, we mean a Lisp macro, not a keyboard macro.
   A @dfn{primitive function} is a function callable from Lisp but
 written in the C programming language.  Primitive functions are also
 called @dfn{subrs} or @dfn{built-in functions}.  (The word ``subr'' is
-derived from ``subroutine.'')  Most primitive functions evaluate all
+derived from ``subroutine''.)  Most primitive functions evaluate all
 their arguments when they are called.  A primitive function that does
 not evaluate all its arguments is called a @dfn{special form}
 (@pxref{Special Forms}).@refill
@@ -1567,7 +1567,6 @@ runs in a process of this sort.  However, in Emacs Lisp, a process is a
 Lisp object that designates a subprocess created by the Emacs process.
 Programs such as shells, GDB, ftp, and compilers, running in
 subprocesses of Emacs, extend the capabilities of Emacs.
-
   An Emacs subprocess takes textual input from Emacs and returns textual
 output to Emacs for further manipulation.  Emacs can also send signals
 to the subprocess.
@@ -1631,7 +1630,7 @@ buffer temporarily in a different display style.  Overlays have no read
 syntax, and print in hash notation, giving the buffer name and range of
 positions.
 
-  @xref{Overlays}, for how to create and use overlays.
+  @xref{Overlays}, for information on how you can create and use overlays.
 
 @node Font Type
 @subsection Font Type

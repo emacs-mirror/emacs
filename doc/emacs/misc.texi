@@ -1191,7 +1191,7 @@ that buffer.
 line mode, Term basically acts like Shell mode (@pxref{Shell Mode}).
 
   In char mode, each character is sent directly to the subshell, as
-``terminal input.''  Any ``echoing'' of your input is the
+``terminal input''.  Any ``echoing'' of your input is the
 responsibility of the subshell.  The sole exception is the terminal
 escape character, which by default is @kbd{C-c} (@pxref{Term Mode}).
 Any ``terminal output'' from the subshell goes into the buffer,
@@ -2076,10 +2076,10 @@ Insert a byte with a code typed in octal.
 Insert a byte with a code typed in hex.
 
 @item C-x [
-Move to the beginning of a 1k-byte ``page.''
+Move to the beginning of a 1k-byte ``page''.
 
 @item C-x ]
-Move to the end of a 1k-byte ``page.''
+Move to the end of a 1k-byte ``page''.
 
 @item M-g
 Move to an address specified in hex.
@@ -2149,7 +2149,7 @@ usually turned on.
 However, this may be slow if there are a lot of buffers in the
 desktop.  You can specify the maximum number of buffers to restore
 immediately with the variable @code{desktop-restore-eager}; the
-remaining buffers are restored ``lazily,'' when Emacs is idle.
+remaining buffers are restored ``lazily'', when Emacs is idle.
 
 @findex desktop-clear
 @vindex desktop-globals-to-clear
@@ -2481,8 +2481,8 @@ find the one you select (@code{ffap-menu}).
 
 @findex animate-birthday-present
 @cindex animate
-  The @code{animate} package makes text dance.  For an example, try
-@kbd{M-x animate-birthday-present}.
+  The @code{animate} package makes text dance (e.g. try
+@kbd{M-x animate-birthday-present}).
 
 @findex blackbox
 @findex mpuz

@@ -274,7 +274,7 @@ reloading each file after recompiling it.
 use a special Lisp reader construct, @samp{#@@@var{count}}.  This
 construct skips the next @var{count} characters.  It also uses the
 @samp{#$} construct, which stands for ``the name of this file, as a
-string.''  It is usually best not to use these constructs in Lisp source
+string''.  It is usually best not to use these constructs in Lisp source
 files, since they are not designed to be clear to humans reading the
 file.
 
@@ -637,41 +637,34 @@ Lisp source; these do not appear in the output of @code{disassemble}.
 @end group
 
 @group
-0   varref   integer        ; @r{Get the value of @code{integer}}
-                            ;   @r{and push it onto the stack.}
-1   constant 1              ; @r{Push 1 onto stack.}
+0   varref   integer      ; @r{Get the value of @code{integer} and}
+                          ;   @r{push it onto the stack.}
+1   constant 1            ; @r{Push 1 onto stack.}
 @end group
-
 @group
-2   eqlsign                 ; @r{Pop top two values off stack, compare}
-                            ;   @r{them, and push result onto stack.}
+2   eqlsign               ; @r{Pop top two values off stack, compare}
+                          ;   @r{them, and push result onto stack.}
 @end group
-
 @group
-3   goto-if-nil 1           ; @r{Pop and test top of stack;}
-                            ;   @r{if @code{nil}, go to 1,}
-                            ;   @r{else continue.}
-6   constant 1              ; @r{Push 1 onto top of stack.}
-7   return                  ; @r{Return the top element}
-                            ;   @r{of the stack.}
+3   goto-if-nil 1         ; @r{Pop and test top of stack;}
+                          ;   @r{if @code{nil}, go to 1, else continue.}
+6   constant 1            ; @r{Push 1 onto top of stack.}
+7   return                ; @r{Return the top element of the stack.}
 @end group
-
 @group
-8:1 varref   integer        ; @r{Push value of @code{integer} onto stack.}
-9   constant factorial      ; @r{Push @code{factorial} onto stack.}
-10  varref   integer        ; @r{Push value of @code{integer} onto stack.}
-11  sub1                    ; @r{Pop @code{integer}, decrement value,}
-                            ;   @r{push new value onto stack.}
-12  call     1              ; @r{Call function @code{factorial} using}
-                            ;   @r{the first (i.e., the top) element}
-                            ;   @r{of the stack as the argument;}
-                            ;   @r{push returned value onto stack.}
+8:1 varref   integer      ; @r{Push value of @code{integer} onto stack.}
+9   constant factorial    ; @r{Push @code{factorial} onto stack.}
+10  varref   integer      ; @r{Push value of @code{integer} onto stack.}
+11  sub1                  ; @r{Pop @code{integer}, decrement value,}
+                          ;   @r{push new value onto stack.}
+12  call     1            ; @r{Call function @code{factorial} using first}
+                          ;   @r{(i.e. top) stack element as argument;}
+                          ;   @r{push returned value onto stack.}
 @end group
-
 @group
-13 mult                     ; @r{Pop top two values off stack, multiply}
-                            ;   @r{them, and push result onto stack.}
-14 return                   ; @r{Return the top element of stack.}
+13 mult                   ; @r{Pop top two values off stack, multiply}
+                          ;   @r{them, and push result onto stack.}
+14 return                 ; @r{Return the top element of the stack.}
 @end group
 @end example
 
@@ -693,70 +686,56 @@ The @code{silly-loop} function is somewhat more complex:
      @print{} byte-code for silly-loop:
  doc: Return time before and after N iterations of a loop.
  args: (n)
+@end group
 
-0   constant current-time-string  ; @r{Push}
-                                  ;   @r{@code{current-time-string}}
+@group
+0   constant current-time-string  ; @r{Push @code{current-time-string}}
                                   ;   @r{onto top of stack.}
 @end group
-
 @group
-1   call     0              ; @r{Call @code{current-time-string}}
-                            ;   @r{with no argument,}
-                            ;   @r{pushing result onto stack.}
+1   call     0            ; @r{Call @code{current-time-string} with no}
+                          ;   @r{argument, push result onto stack.}
+@end group
+@group
+2   varbind  t1           ; @r{Pop stack and bind @code{t1} to popped value.}
+@end group
+@group
+3:1 varref   n            ; @r{Get value of @code{n} from the environment}
+                          ;   @r{and push the value on the stack.}
+4   sub1                  ; @r{Subtract 1 from top of stack.}
+@end group
+@group
+5   dup                   ; @r{Duplicate top of stack; i.e. copy the top}
+                          ;   @r{of the stack and push copy onto stack.}
+6   varset   n            ; @r{Pop the top of the stack,}
+                          ;   @r{and bind @code{n} to the value.}
+
+;; @r{(In effect, the sequence @code{dup varset} copies the top of the stack}
+;; @r{into the value of @code{n} without popping it.)}
 @end group
 
 @group
-2   varbind  t1             ; @r{Pop stack and bind @code{t1}}
-                            ;   @r{to popped value.}
+7   constant 0            ; @r{Push 0 onto stack.}
+8   gtr                   ; @r{Pop top two values off stack,}
+                          ;   @r{test if @var{n} is greater than 0}
+                          ;   @r{and push result onto stack.}
 @end group
-
 @group
-3:1 varref   n              ; @r{Get value of @code{n} from}
-                            ;   @r{the environment and push}
-                            ;   @r{the value onto the stack.}
-4   sub1                    ; @r{Subtract 1 from top of stack.}
+9   goto-if-not-nil 1     ; @r{Goto 1 if @code{n} > 0}
+                          ;   @r{(this continues the while loop)}
+                          ;   @r{else continue.}
 @end group
-
 @group
-5   dup                     ; @r{Duplicate the top of the stack;}
-                            ;   @r{i.e., copy the top of}
-                            ;   @r{the stack and push the}
-                            ;   @r{copy onto the stack.}
-6   varset   n              ; @r{Pop the top of the stack,}
-                            ;   @r{and bind @code{n} to the value.}
-
-                            ; @r{In effect, the sequence @code{dup varset}}
-                            ;   @r{copies the top of the stack}
-                            ;   @r{into the value of @code{n}}
-                            ;   @r{without popping it.}
-@end group
-
-@group
-7   constant 0              ; @r{Push 0 onto stack.}
-8   gtr                     ; @r{Pop top two values off stack,}
-                            ;   @r{test if @var{n} is greater than 0}
-                            ;   @r{and push result onto stack.}
-@end group
-
-@group
-9   goto-if-not-nil 1       ; @r{Goto 1 if @code{n} > 0}
-                            ;   @r{(this continues the while loop)}
-                            ;   @r{else continue.}
-@end group
-
-@group
-12  varref   t1             ; @r{Push value of @code{t1} onto stack.}
+12  varref   t1           ; @r{Push value of @code{t1} onto stack.}
 13  constant current-time-string  ; @r{Push @code{current-time-string}}
-                                  ;   @r{onto top of stack.}
-14  call     0              ; @r{Call @code{current-time-string} again.}
+                                  ;   @r{onto the top of the stack.}
+14  call     0            ; @r{Call @code{current-time-string} again.}
 @end group
-
 @group
-15  unbind   1              ; @r{Unbind @code{t1} in local environment.}
-16  list2                   ; @r{Pop top two elements off stack,}
-                            ;   @r{create a list of them,}
-                            ;   @r{and push list onto stack.}
-17  return                  ; @r{Return value of the top of stack.}
+15  unbind   1            ; @r{Unbind @code{t1} in local environment.}
+16  list2                 ; @r{Pop top two elements off stack, create a}
+                          ;   @r{list of them, and push it onto stack.}
+17  return                ; @r{Return value of the top of stack.}
 @end group
 @end example
 

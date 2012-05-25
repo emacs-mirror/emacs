@@ -67,7 +67,6 @@ $(BLD)/dtoastr.$(O) : \
 	$(SRC)/intprops.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/getopt.$(O) : \
@@ -78,7 +77,6 @@ $(BLD)/getopt.$(O) : \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/getopt1.$(O) : \
@@ -87,7 +85,6 @@ $(BLD)/getopt1.$(O) : \
 	$(SRC)/getopt_int.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/strftime.$(O) : \
@@ -96,14 +93,12 @@ $(BLD)/strftime.$(O) : \
 	$(EMACS_ROOT)/nt/inc/stdbool.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/time_r.$(O) : \
 	$(SRC)/time_r.c \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/md5.$(O) : \
@@ -112,7 +107,6 @@ $(BLD)/md5.$(O) : \
 	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/sha1.$(O) : \
@@ -121,7 +115,6 @@ $(BLD)/sha1.$(O) : \
 	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/sha256.$(O) : \
@@ -130,7 +123,6 @@ $(BLD)/sha256.$(O) : \
 	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/sha512.$(O) : \
@@ -139,7 +131,6 @@ $(BLD)/sha512.$(O) : \
 	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/filemode.$(O) : \
@@ -147,7 +138,6 @@ $(BLD)/filemode.$(O) : \
 	$(SRC)/filemode.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 # The following dependencies are for supporting parallel builds, where

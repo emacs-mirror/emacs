@@ -1,5 +1,6 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985-1988, 1993-1995, 1997-2012 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1988, 1993-1995, 1997-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -87,7 +88,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* not __GNU_LIBRARY__ */
 
-#if defined (HAVE_TERM_H) && defined (GNU_LINUX) && defined (HAVE_LIBNCURSES)
+#if defined (HAVE_TERM_H) && defined (GNU_LINUX)
 #include <term.h>		/* for tgetent */
 #endif
 
@@ -1085,12 +1086,16 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
   for (i = 0; i < LAST_AREA + 1; ++i)
     {
       struct glyph *temp = a->glyphs[i];
-      short used_tem = a->used[i];
 
       a->glyphs[i] = b->glyphs[i];
       b->glyphs[i] = temp;
-      a->used[i] = b->used[i];
-      b->used[i] = used_tem;
+      if (i < LAST_AREA)
+	{
+	  short used_tem = a->used[i];
+
+	  a->used[i] = b->used[i];
+	  b->used[i] = used_tem;
+	}
     }
   a->hash = b->hash;
   b->hash = hash_tem;
@@ -1105,7 +1110,7 @@ static inline void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
   struct glyph *pointers[1 + LAST_AREA];
-  short used[1 + LAST_AREA];
+  short used[LAST_AREA];
   unsigned hashval;
 
   /* Save glyph pointers of TO.  */
@@ -6308,7 +6313,7 @@ init_display (void)
 #ifdef HAVE_X11
       Vwindow_system_version = make_number (11);
 #endif
-#if defined (GNU_LINUX) && defined (HAVE_LIBNCURSES)
+#ifdef GNU_LINUX
       /* In some versions of ncurses,
 	 tputs crashes if we have not called tgetent.
 	 So call tgetent.  */

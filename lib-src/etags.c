@@ -93,22 +93,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
-  /* This is probably not necessary any more.  On some systems, config.h
-     used to define static as nothing for the sake of unexec.  We don't
-     want that here since we don't use unexec.  None of these systems
-     are supported any more, but the idea is still mentioned in
-     etc/PROBLEMS.  */
-# undef static
-# ifndef PTR			/* for XEmacs */
-#   define PTR void *
-# endif
-#else  /* no config.h */
-# if defined (__STDC__) && (__STDC__ || defined (__SUNPRO_C))
-#   define PTR void *		/* for generic pointers */
-# else /* not standard C */
-#   define const		/* remove const for old compilers' sake */
-#   define PTR long *		/* don't use void* */
-# endif
 #endif /* !HAVE_CONFIG_H */
 
 #ifndef _GNU_SOURCE
@@ -158,6 +142,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # endif
 #endif /* HAVE_UNISTD_H */
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -380,7 +365,7 @@ static void get_tag (char *, char **);
 static void analyse_regex (char *);
 static void free_regexps (void);
 static void regex_tag_multiline (void);
-static void error (const char *, const char *);
+static void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 static void suggest_asking_for_help (void) NO_RETURN;
 void fatal (const char *, const char *) NO_RETURN;
 static void pfatal (const char *) NO_RETURN;
@@ -414,8 +399,8 @@ static bool filename_is_absolute (char *f);
 static void canonicalize_filename (char *);
 static void linebuffer_init (linebuffer *);
 static void linebuffer_setlen (linebuffer *, int);
-static PTR xmalloc (size_t);
-static PTR xrealloc (char *, size_t);
+static void *xmalloc (size_t);
+static void *xrealloc (char *, size_t);
 
 
 static char searchar = '/';	/* use /.../ searches */
@@ -1140,7 +1125,7 @@ main (int argc, char **argv)
       case 'o':
 	if (tagfile)
 	  {
-	    error ("-o option may only be given once.", (char *)NULL);
+	    error ("-o option may only be given once.");
 	    suggest_asking_for_help ();
 	    /* NOTREACHED */
 	  }
@@ -1224,7 +1209,7 @@ main (int argc, char **argv)
 
   if (nincluded_files == 0 && file_count == 0)
     {
-      error ("no input files specified.", (char *)NULL);
+      error ("no input files specified.");
       suggest_asking_for_help ();
       /* NOTREACHED */
     }
@@ -1447,7 +1432,7 @@ get_language_from_langname (const char *name)
   language *lang;
 
   if (name == NULL)
-    error ("empty language name", (char *)NULL);
+    error ("empty language name");
   else
     {
       for (lang = lang_names; lang->name != NULL; lang++)
@@ -2233,7 +2218,7 @@ put_entries (register node *np)
 	{
 	  /* Ctags mode */
 	  if (np->name == NULL)
-	    error ("internal error: NULL name in ctags mode.", (char *)NULL);
+	    error ("internal error: NULL name in ctags mode.");
 
 	  if (cxref_style)
 	    {
@@ -2773,7 +2758,7 @@ consider_token (register char *str, register int len, register int c, int *c_ext
      case dignorerest:
        return FALSE;
      default:
-       error ("internal error: definedef value.", (char *)NULL);
+       error ("internal error: definedef value.");
      }
 
    /*
@@ -3061,7 +3046,7 @@ make_C_tag (int isfun)
       make_tag (concat ("INVALID TOKEN:-->", token_name.buffer, ""),
 		token_name.len + 17, isfun, token.line,
 		token.offset+token.length+1, token.lineno, token.linepos);
-      error ("INVALID TOKEN", NULL);
+      error ("INVALID TOKEN");
     }
 
   token.valid = FALSE;
@@ -5706,7 +5691,7 @@ add_regex (char *regexp_pattern, language *lang)
 {
   static struct re_pattern_buffer zeropattern;
   char sep, *pat, *name, *modifiers;
-  char empty[] = "";
+  char empty = '\0';
   const char *err;
   struct re_pattern_buffer *patbuf;
   regexp *rp;
@@ -5719,7 +5704,7 @@ add_regex (char *regexp_pattern, language *lang)
 
   if (strlen (regexp_pattern) < 3)
     {
-      error ("null regexp", (char *)NULL);
+      error ("null regexp");
       return;
     }
   sep = regexp_pattern[0];
@@ -5738,7 +5723,7 @@ add_regex (char *regexp_pattern, language *lang)
   if (modifiers == NULL)	/* no terminating separator --> no name */
     {
       modifiers = name;
-      name = empty;
+      name = &empty;
     }
   else
     modifiers += 1;		/* skip separator */
@@ -5749,7 +5734,7 @@ add_regex (char *regexp_pattern, language *lang)
       {
       case 'N':
 	if (modifiers == name)
-	  error ("forcing explicit tag name but no name, ignoring", NULL);
+	  error ("forcing explicit tag name but no name, ignoring");
 	force_explicit_name = TRUE;
 	break;
       case 'i':
@@ -5763,12 +5748,7 @@ add_regex (char *regexp_pattern, language *lang)
 	need_filebuf = TRUE;
 	break;
       default:
-	{
-	  char wrongmod [2];
-	  wrongmod[0] = modifiers[0];
-	  wrongmod[1] = '\0';
-	  error ("invalid regexp modifier `%s', ignoring", wrongmod);
-	}
+	error ("invalid regexp modifier `%c', ignoring", modifiers[0]);
 	break;
       }
 
@@ -6423,13 +6403,16 @@ suggest_asking_for_help (void)
   exit (EXIT_FAILURE);
 }
 
-/* Print error message.  `s1' is printf control string, `s2' is arg for it. */
+/* Output a diagnostic with printf-style FORMAT and args.  */
 static void
-error (const char *s1, const char *s2)
+error (const char *format, ...)
 {
+  va_list ap;
+  va_start (ap, format);
   fprintf (stderr, "%s: ", progname);
-  fprintf (stderr, s1, s2);
+  vfprintf (stderr, format, ap);
   fprintf (stderr, "\n");
+  va_end (ap);
 }
 
 /* Return a newly-allocated string whose contents
@@ -6687,19 +6670,19 @@ linebuffer_setlen (linebuffer *lbp, int toksize)
 }
 
 /* Like malloc but get fatal error if memory is exhausted. */
-static PTR
+static void *
 xmalloc (size_t size)
 {
-  PTR result = (PTR) malloc (size);
+  void *result = malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;
 }
 
-static PTR
+static void *
 xrealloc (char *ptr, size_t size)
 {
-  PTR result = (PTR) realloc (ptr, size);
+  void *result = realloc (ptr, size);
   if (result == NULL)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;

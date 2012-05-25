@@ -68,7 +68,7 @@
   "String to display in the mode line when current function is unknown.")
 
 (defgroup which-func nil
-  "Mode to display the current function name in the modeline."
+  "Display the current function name in the modeline."
   :group 'tools
   :version "20.3")
 
@@ -179,7 +179,9 @@ and you want to simplify them for the mode line
 (defvar which-func-table (make-hash-table :test 'eq :weakness 'key))
 
 (defconst which-func-current
-  '(:eval (gethash (selected-window) which-func-table which-func-unknown)))
+  '(:eval (replace-regexp-in-string
+	   "%" "%%"
+	   (gethash (selected-window) which-func-table which-func-unknown))))
 ;;;###autoload (put 'which-func-current 'risky-local-variable t)
 
 (defvar which-func-mode nil
@@ -207,7 +209,8 @@ It creates the Imenu index for the buffer, if necessary."
 	  (setq imenu--index-alist
 		(save-excursion (funcall imenu-create-index-function))))
     (error
-     (unless (equal err '(error "This buffer cannot use `imenu-default-create-index-function'"))
+     (unless (equal err
+                    '(user-error "This buffer cannot use `imenu-default-create-index-function'"))
        (message "which-func-ff-hook error: %S" err))
      (setq which-func-mode nil))))
 

@@ -718,7 +718,7 @@ We use @code{"p"} because the numeric prefix argument is never
 message when called from a keyboard macro.
 
   The above method with the additional argument is usually best,
-because it allows callers to say ``treat this call as interactive.''
+because it allows callers to say ``treat this call as interactive''.
 But you can also do the job by testing @code{called-interactively-p}.
 
 @defun called-interactively-p kind
@@ -2325,7 +2325,7 @@ same symbol that would normally represent that combination of mouse
 button and modifier keys.  The information about the window part is kept
 elsewhere in the event---in the coordinates.  But
 @code{read-key-sequence} translates this information into imaginary
-``prefix keys,'' all of which are symbols: @code{header-line},
+``prefix keys'', all of which are symbols: @code{header-line},
 @code{horizontal-scroll-bar}, @code{menu-bar}, @code{mode-line},
 @code{vertical-line}, and @code{vertical-scroll-bar}.  You can define
 meanings for mouse clicks in special window parts by defining key
@@ -2703,14 +2703,16 @@ This function converts the string or vector @var{key} to a list of
 individual events, which you can put in @code{unread-command-events}.
 @end defun
 
+@ignore
 @defvar unread-command-char
 This variable holds a character to be read as command input.
-A value of -1 means ``empty.''
+A value of -1 means ``empty''.
 
 This variable is mostly obsolete now that you can use
 @code{unread-command-events} instead; it exists only to support programs
 written for Emacs versions 18 and earlier.
 @end defvar
+@end ignore
 
 @defun input-pending-p
 @cindex waiting for command key input
@@ -3195,7 +3197,7 @@ using the minibuffer.  Usually it is more convenient for the user if you
 change the major mode of the current buffer temporarily to a special
 major mode, which should have a command to go back to the previous mode.
 (The @kbd{e} command in Rmail uses this technique.)  Or, if you wish to
-give the user different text to edit ``recursively,'' create and select
+give the user different text to edit ``recursively'', create and select
 a new buffer in a special mode.  In this mode, define a command to
 complete the processing and go back to the previous buffer.  (The
 @kbd{m} command in Rmail does this.)

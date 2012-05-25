@@ -183,12 +183,6 @@ so that the name will be unique among multiple Emacs processes."
   :group 'idlwave-shell-general-setup
   :type 'string)
 
-(defvar idlwave-shell-fix-inserted-breaks nil
-  "OBSOLETE VARIABLE, is no longer used.
-
-The documentation of this variable used to be:
-If non-nil then run `idlwave-shell-remove-breaks' to clean up IDL messages.")
-
 (defcustom idlwave-shell-prefix-key "\C-c\C-d"
   "The prefix key for the debugging map `idlwave-shell-mode-prefix-map'.
 This variable must already be set when idlwave-shell.el is loaded.
@@ -222,9 +216,6 @@ window, but is useful for stepping, etc."
   :type 'boolean)
 
 ;; (defcustom idlwave-shell-debug-modifiers... See idlwave.el
-
-(defvar idlwave-shell-activate-alt-keybindings nil
-  "Obsolete variable.  See `idlwave-shell-debug-modifiers'.")
 
 (defcustom idlwave-shell-use-truename nil
   "Non-nil means, use `file-truename' when looking for buffers.
@@ -334,9 +325,6 @@ expression being examined."
 	  (cons
 	   (string :tag "Label  ")
 	   (string :tag "Command"))))
-
-(defvar idlwave-shell-print-expression-function nil
-  "OBSOLETE VARIABLE, is no longer used.")
 
 (defcustom idlwave-shell-separate-examine-output t
   "Non-nil means, put output of examine commands in their own buffer."
@@ -519,9 +507,6 @@ t          Glyph when possible, otherwise face (same effect as 'glyph)."
 	  (const :tag "Highlight with face" face)
 	  (const :tag "Display glyph (red dot)" glyph)
 	  (const :tag "Glyph or face." t)))
-
-(defvar idlwave-shell-use-breakpoint-glyph t
-  "Obsolete variable.  See `idlwave-shell-mark-breakpoints'.")
 
 (defcustom idlwave-shell-breakpoint-face 'idlwave-shell-bp
   "The face for breakpoint lines in the source code.
@@ -4198,12 +4183,8 @@ Otherwise, just expand the file name."
 	  ([(        ?[)]   ?[   idlwave-shell-goto-previous-bp t t)
 	  ([(        ?])]   ?]   idlwave-shell-goto-next-bp t t)
 	  ([(control ?f)]   ?f   idlwave-shell-window)))
-       (mod (cond ((and idlwave-shell-debug-modifiers
-			(listp idlwave-shell-debug-modifiers)
-			(not (equal '() idlwave-shell-debug-modifiers)))
-		   idlwave-shell-debug-modifiers)
-		  (idlwave-shell-activate-alt-keybindings
-		   '(alt))))
+       (mod (and (listp idlwave-shell-debug-modifiers)
+		 idlwave-shell-debug-modifiers))
        (shift (memq 'shift mod))
        (mod-noshift (delete 'shift (copy-sequence mod)))
        s k1 c2 k2 cmd electric only-buffer cannotshift)

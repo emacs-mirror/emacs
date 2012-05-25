@@ -125,7 +125,6 @@ this version is not backward compatible to 0.14 or earlier.")
 ;;; TODO:
 ;; - Timeout directories we haven't visited in a while.
 
-(require 'assoc)
 (require 'easymenu)
 (require 'dframe)
 (require 'sb-image)
@@ -775,6 +774,8 @@ If you want to change this while speedbar is active, either use
 (defvar speedbar-update-flag-disable nil
   "Permanently disable changing of the update flag.")
 
+(define-obsolete-variable-alias
+  'speedbar-syntax-table 'speedbar-mode-syntax-table "24.1")
 (defvar speedbar-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; Turn off paren matching around here.
@@ -788,10 +789,9 @@ If you want to change this while speedbar is active, either use
     (modify-syntax-entry ?\]  " " st)
     st)
   "Syntax-table used on the speedbar.")
-(define-obsolete-variable-alias
-  'speedbar-syntax-table 'speedbar-mode-syntax-table "24.1")
 
 
+(define-obsolete-variable-alias 'speedbar-key-map 'speedbar-mode-map "24.1")
 (defvar speedbar-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
@@ -826,7 +826,6 @@ If you want to change this while speedbar is active, either use
     (dframe-update-keymap map)
     map)
   "Keymap used in speedbar buffer.")
-(define-obsolete-variable-alias 'speedbar-key-map 'speedbar-mode-map "24.1")
 
 (defun speedbar-make-specialized-keymap ()
   "Create a keymap for use with a speedbar major or minor display mode.
@@ -1413,9 +1412,10 @@ Argument ARG represents to force a refresh past any caches that may exist."
 	(dframe-power-click arg)
 	deactivate-mark)
     ;; We need to hack something so this works in detached frames.
-    (while dl
-      (adelete 'speedbar-directory-contents-alist (car dl))
-      (setq dl (cdr dl)))
+    (dolist (d dl)
+      (setq speedbar-directory-contents-alist
+            (delq (assoc d speedbar-directory-contents-alist)
+                  speedbar-directory-contents-alist)))
     (if (<= 1 speedbar-verbosity-level)
 	(speedbar-message "Refreshing speedbar..."))
     (speedbar-update-contents)
@@ -1898,12 +1898,9 @@ matching ignored headers.  Cache any directory files found in
 `speedbar-directory-contents-alist' and use that cache before scanning
 the file-system."
   (setq directory (expand-file-name directory))
-  ;; If in powerclick mode, then the directory we are getting
-  ;; should be rescanned.
-  (if dframe-power-click
-      (adelete 'speedbar-directory-contents-alist directory))
   ;; find the directory, either in the cache, or build it.
-  (or (cdr-safe (assoc directory speedbar-directory-contents-alist))
+  (or (and (not dframe-power-click) ;; In powerclick mode, always rescan.
+           (cdr-safe (assoc directory speedbar-directory-contents-alist)))
       (let ((default-directory directory)
 	    (dir (directory-files directory nil))
 	    (dirs nil)
@@ -1917,8 +1914,11 @@ the file-system."
 		  (setq dirs (cons (car dir) dirs))
 		(setq files (cons (car dir) files))))
 	  (setq dir (cdr dir)))
-	(let ((nl (cons (nreverse dirs) (list (nreverse files)))))
-	  (aput 'speedbar-directory-contents-alist directory nl)
+	(let ((nl (cons (nreverse dirs) (list (nreverse files))))
+              (ae (assoc directory speedbar-directory-contents-alist)))
+          (if ae (setcdr ae nl)
+            (push (cons directory nl)
+                  speedbar-directory-contents-alist))
 	  nl))
       ))
 

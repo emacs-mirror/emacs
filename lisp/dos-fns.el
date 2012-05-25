@@ -233,14 +233,14 @@ returned unaltered."
 
 (add-hook 'before-init-hook 'dos-reevaluate-defcustoms)
 
+(define-obsolete-variable-alias
+  'register-name-alist 'dos-register-name-alist "24.1")
+
 (defvar dos-register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)
     (cflag . 6) (flags . 7)
     (al . (0 . 0)) (bl . (1 . 0)) (cl . (2 . 0)) (dl . (3 . 0))
     (ah . (0 . 1)) (bh . (1 . 1)) (ch . (2 . 1)) (dh . (3 . 1))))
-
-(define-obsolete-variable-alias
-  'register-name-alist 'dos-register-name-alist "24.1")
 
 (defun dos-make-register ()
   (make-vector 8 0))

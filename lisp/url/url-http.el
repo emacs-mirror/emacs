@@ -110,8 +110,8 @@ request.")
     (503 service-unavailable             "Service unavailable")
     (504 gateway-timeout                 "Gateway time-out")
     (505 http-version-not-supported      "HTTP version not supported")
-    (507 insufficient-storage            "Insufficient storage")
-"The HTTP return codes and their text."))
+    (507 insufficient-storage            "Insufficient storage"))
+  "The HTTP return codes and their text.")
 
 ;(eval-when-compile
 ;; These are all macros so that they are hidden from external sight
@@ -223,8 +223,7 @@ request.")
 		       (let ((url-basic-auth-storage
 			      'url-http-proxy-basic-auth-storage))
 			 (url-get-authentication url-http-target-url nil 'any nil))))
-	 (real-fname (concat (url-filename url-http-target-url)
-			     (url-recreate-url-attributes url-http-target-url)))
+	 (real-fname (url-filename url-http-target-url))
 	 (host (url-host url-http-target-url))
 	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
 		   nil

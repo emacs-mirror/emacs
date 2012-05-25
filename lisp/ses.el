@@ -65,6 +65,7 @@
 
 (defgroup ses nil
   "Simple Emacs Spreadsheet."
+  :tag "SES"
   :group  'applications
   :prefix "ses-"
   :version "21.1")

@@ -114,7 +114,7 @@ When it is called with one argument (always a character), @var{function}
 should save the argument and arrange to return it on the next call.
 This is called @dfn{unreading} the character; it happens when the Lisp
 reader reads one character too many and wants to ``put it back where it
-came from.''  In this case, it makes no difference what value
+came from''.  In this case, it makes no difference what value
 @var{function} returns.
 @end itemize
 
@@ -618,7 +618,7 @@ spacing between calls.
 @defun terpri &optional stream
 @cindex newline in print
 This function outputs a newline to @var{stream}.  The name stands
-for ``terminate print.''
+for ``terminate print''.
 @end defun
 
 @defun write-char character &optional stream
@@ -812,7 +812,6 @@ reader to produce an uninterned symbol.
 If non-@code{nil}, that means number continuously across print calls.
 This affects the numbers printed for @samp{#@var{n}=} labels and
 @samp{#@var{m}#} references.
-
 Don't set this variable with @code{setq}; you should only bind it
 temporarily to @code{t} with @code{let}.  When you do that, you should
 also bind @code{print-number-table} to @code{nil}.
@@ -825,8 +824,8 @@ to bind it to @code{nil} when you bind @code{print-continuous-numbering}.
 @end defvar
 
 @defvar float-output-format
-This variable specifies how to print floating point numbers.  Its
-default value is @code{nil}, meaning use the shortest output
+This variable specifies how to print floating point numbers.  The
+default is @code{nil}, meaning use the shortest output
 that represents the number without losing information.
 
 To control output format more precisely, you can put a string in this

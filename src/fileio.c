@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -87,17 +87,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FILE_SYSTEM_CASE(filename)  (filename)
 #endif
 
-/* Nonzero during writing of auto-save files */
+/* Nonzero during writing of auto-save files.  */
 static int auto_saving;
 
-/* Nonzero umask during creation of auto-save directories */
+/* Nonzero umask during creation of auto-save directories.  */
 static int auto_saving_dir_umask;
 
 /* Set by auto_save_1 to mode of original file so Fwrite_region will create
-   a new file with the same mode as the original */
+   a new file with the same mode as the original.  */
 static int auto_save_mode_bits;
 
-/* Set by auto_save_1 if an error occurred during the last auto-save. */
+/* Set by auto_save_1 if an error occurred during the last auto-save.  */
 static int auto_save_error_occurred;
 
 /* The symbol bound to coding-system-for-read when
@@ -111,7 +111,7 @@ static Lisp_Object Qauto_save_coding;
    which gives a list of operations it handles..  */
 static Lisp_Object Qoperations;
 
-/* Lisp functions for translating file formats */
+/* Lisp functions for translating file formats.  */
 static Lisp_Object Qformat_decode, Qformat_annotate_function;
 
 /* Lisp function for setting buffer-file-coding-system and the
@@ -877,7 +877,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	}
     }
 
-  /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below. */
+  /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below.  */
   nm = (char *) alloca (SBYTES (name) + 1);
   memcpy (nm, SSDATA (name), SBYTES (name) + 1);
 
@@ -905,7 +905,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   if (drive && IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
     nm++;
 
-  /* Discard any previous drive specifier if nm is now in UNC format. */
+  /* Discard any previous drive specifier if nm is now in UNC format.  */
   if (IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
     {
       drive = 0;
@@ -970,7 +970,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    }
 	  else
 #endif
-	  /* drive must be set, so this is okay */
+	  /* Drive must be set, so this is okay.  */
 	  if (strcmp (nm - 2, SSDATA (name)) != 0)
 	    {
 	      char temp[] = " :";
@@ -1016,7 +1016,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  if (!(newdir = egetenv ("HOME")))
 	    newdir = "";
 	  nm++;
-	  /* egetenv may return a unibyte string, which will bite us since
+	  /* `egetenv' may return a unibyte string, which will bite us since
 	     we expect the directory to be multibyte.  */
 	  tem = build_string (newdir);
 	  if (!STRING_MULTIBYTE (tem))
@@ -1058,7 +1058,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
      use the drive's current directory as the prefix if needed.  */
   if (!newdir && drive)
     {
-      /* Get default directory if needed to make nm absolute. */
+      /* Get default directory if needed to make nm absolute.  */
       char *adir = NULL;
       if (!IS_DIRECTORY_SEP (nm[0]))
 	{
@@ -1068,7 +1068,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	}
       if (!adir)
 	{
-	  /* Either nm starts with /, or drive isn't mounted. */
+	  /* Either nm starts with /, or drive isn't mounted.  */
 	  adir = alloca (4);
 	  adir[0] = DRIVE_LETTER (drive);
 	  adir[1] = ':';
@@ -1080,11 +1080,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif /* DOS_NT */
 
   /* Finally, if no prefix has been specified and nm is not absolute,
-     then it must be expanded relative to default_directory. */
+     then it must be expanded relative to default_directory.  */
 
   if (1
 #ifndef DOS_NT
-      /* /... alone is not absolute on DOS and Windows. */
+      /* /... alone is not absolute on DOS and Windows.  */
       && !IS_DIRECTORY_SEP (nm[0])
 #endif
 #ifdef WINDOWSNT
@@ -1106,7 +1106,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef DOS_NT
   if (newdir)
     {
-      /* First ensure newdir is an absolute name. */
+      /* First ensure newdir is an absolute name.  */
       if (
 	  /* Detect MSDOS file names with drive specifiers.  */
 	  ! (IS_DRIVE (newdir[0])
@@ -1121,7 +1121,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	     Because of the admonition against calling expand-file-name
 	     when we have pointers into lisp strings, we accomplish this
 	     indirectly by prepending newdir to nm if necessary, and using
-	     cwd (or the wd of newdir's drive) as the new newdir. */
+	     cwd (or the wd of newdir's drive) as the new newdir.  */
 	  char *adir;
 	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
@@ -1146,7 +1146,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  newdir = adir;
 	}
 
-      /* Strip off drive name from prefix, if present. */
+      /* Strip off drive name from prefix, if present.  */
       if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	{
 	  drive = newdir[0];
@@ -1196,7 +1196,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   else
     tlen = 0;
 
-  /* Now concatenate the directory and name to new space in the stack frame */
+  /* Now concatenate the directory and name to new space in the stack frame.  */
   tlen += strlen (nm) + 1;
 #ifdef DOS_NT
   /* Reserve space for drive specifier and escape prefix, since either
@@ -1292,7 +1292,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       }
 
 #ifdef DOS_NT
-    /* At last, set drive name. */
+    /* At last, set drive name.  */
 #ifdef WINDOWSNT
     /* Except for network file name.  */
     if (!(IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1])))
@@ -1320,7 +1320,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
      and perhaps call the corresponding file handler.  This is needed
      for filenames such as "/foo/../user@host:/bar/../baz".  Expanding
      the ".." component gives us "/user@host:/bar/../baz" which needs
-     to be expanded again. */
+     to be expanded again.  */
   handler = Ffind_file_name_handler (result, Qexpand_file_name);
   if (!NILP (handler))
     {
@@ -1396,7 +1396,7 @@ See also the function `substitute-in-file-name'.")
 	}
     }
 
-  /* Now determine directory to start with and put it in NEWDIR */
+  /* Now determine directory to start with and put it in NEWDIR.  */
 
   newdir = 0;
 
@@ -1409,17 +1409,17 @@ See also the function `substitute-in-file-name'.")
       }
     else  /* ~user/filename */
       {
-	/* Get past ~ to user */
+	/* Get past ~ to user.  */
 	unsigned char *user = nm + 1;
-	/* Find end of name. */
+	/* Find end of name.  */
 	unsigned char *ptr = (unsigned char *) strchr (user, '/');
 	ptrdiff_t len = ptr ? ptr - user : strlen (user);
-	/* Copy the user name into temp storage. */
+	/* Copy the user name into temp storage.  */
 	o = (unsigned char *) alloca (len + 1);
 	memcpy (o, user, len);
 	o[len] = 0;
 
-	/* Look up the user name. */
+	/* Look up the user name.  */
 	BLOCK_INPUT;
 	pw = (struct passwd *) getpwnam (o + 1);
 	UNBLOCK_INPUT;
@@ -1440,7 +1440,7 @@ See also the function `substitute-in-file-name'.")
       newdir = SDATA (defalt);
     }
 
-  /* Now concatenate the directory and name to new space in the stack frame */
+  /* Now concatenate the directory and name to new space in the stack frame.  */
 
   tlen = (newdir ? strlen (newdir) + 1 : 0) + strlen (nm) + 1;
   target = (unsigned char *) alloca (tlen);
@@ -1456,7 +1456,7 @@ See also the function `substitute-in-file-name'.")
 
   strcat (target, nm);
 
-  /* Now canonicalize by removing /. and /foo/.. if they appear */
+  /* Now canonicalize by removing /. and /foo/.. if they appear.  */
 
   p = target;
   o = target;
@@ -1528,7 +1528,7 @@ search_embedded_absfilename (char *nm, char *endp)
 	      )
 	{
 	  for (s = p; *s && (!IS_DIRECTORY_SEP (*s)); s++);
-	  if (p[0] == '~' && s > p + 1)	/* we've got "/~something/" */
+	  if (p[0] == '~' && s > p + 1)	/* We've got "/~something/".  */
 	    {
 	      char *o = alloca (s - p + 1);
 	      struct passwd *pw;
@@ -1612,7 +1612,7 @@ those `/' is discarded.  */)
       (make_specified_string (p, -1, endp - p, multibyte));
 
   /* See if any variables are substituted into the string
-     and find the total length of their values in `total' */
+     and find the total length of their values in `total'.  */
 
   for (p = nm; p != endp;)
     if (*p != '$')
@@ -1624,7 +1624,7 @@ those `/' is discarded.  */)
 	  goto badsubst;
 	else if (*p == '$')
 	  {
-	    /* "$$" means a single "$" */
+	    /* "$$" means a single "$".  */
 	    p++;
 	    total -= 1;
 	    substituted = 1;
@@ -1644,7 +1644,7 @@ those `/' is discarded.  */)
 	    s = p;
 	  }
 
-	/* Copy out the variable name */
+	/* Copy out the variable name.  */
 	target = (char *) alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
@@ -1652,7 +1652,7 @@ those `/' is discarded.  */)
 	strupr (target); /* $home == $HOME etc.  */
 #endif /* DOS_NT */
 
-	/* Get variable value */
+	/* Get variable value.  */
 	o = egetenv (target);
 	if (o)
 	  {
@@ -1674,12 +1674,12 @@ those `/' is discarded.  */)
   if (!substituted)
     return filename;
 
-  /* If substitution required, recopy the string and do it */
-  /* Make space in stack frame for the new copy */
+  /* If substitution required, recopy the string and do it.  */
+  /* Make space in stack frame for the new copy.  */
   xnm = (char *) alloca (SBYTES (filename) + total + 1);
   x = xnm;
 
-  /* Copy the rest of the name through, replacing $ constructs with values */
+  /* Copy the rest of the name through, replacing $ constructs with values.  */
   for (p = nm; *p;)
     if (*p != '$')
       *x++ = *p++;
@@ -1707,7 +1707,7 @@ those `/' is discarded.  */)
 	    s = p;
 	  }
 
-	/* Copy out the variable name */
+	/* Copy out the variable name.  */
 	target = (char *) alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
@@ -1715,7 +1715,7 @@ those `/' is discarded.  */)
 	strupr (target); /* $home == $HOME etc.  */
 #endif /* DOS_NT */
 
-	/* Get variable value */
+	/* Get variable value.  */
 	o = egetenv (target);
 	if (!o)
 	  {
@@ -1777,7 +1777,7 @@ expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
      stat behaves differently depending!  */
   if (SCHARS (absname) > 1
       && IS_DIRECTORY_SEP (SREF (absname, SBYTES (absname) - 1))
-      && !IS_DEVICE_SEP (SREF (absname, SBYTES (absname)-2)))
+      && !IS_DEVICE_SEP (SREF (absname, SBYTES (absname) - 2)))
     /* We cannot take shortcuts; they might be wrong for magic file names.  */
     absname = Fdirectory_file_name (absname);
   return absname;
@@ -1805,7 +1805,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, const char *querystring,
 
   encoded_filename = ENCODE_FILE (absname);
 
-  /* stat is a good way to tell whether the file exists,
+  /* `stat' is a good way to tell whether the file exists,
      regardless of what access permissions it has.  */
   if (lstat (SSDATA (encoded_filename), &statbuf) >= 0)
     {
@@ -2044,9 +2044,10 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 #if HAVE_LIBSELINUX
   if (conlength > 0)
     {
-      /* Set the modified context back to the file. */
+      /* Set the modified context back to the file.  */
       fail = fsetfilecon (ofd, con);
-      if (fail)
+      /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
+      if (fail && errno != ENOTSUP)
 	report_file_error ("Doing fsetfilecon", Fcons (newname, Qnil));
 
       freecon (con);
@@ -2917,10 +2918,11 @@ compiled with SELinux support.  */)
 		error ("Doing context_range_set");
 	    }
 
-	  /* Set the modified context back to the file. */
+	  /* Set the modified context back to the file.  */
 	  fail = lsetfilecon (SSDATA (encoded_absname),
 			      context_str (parsed_con));
-	  if (fail)
+          /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
+	  if (fail && errno != ENOTSUP)
 	    report_file_error ("Doing lsetfilecon", Fcons (absname, Qnil));
 
 	  context_free (parsed_con);

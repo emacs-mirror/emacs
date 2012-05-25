@@ -354,7 +354,7 @@ itself; the latter is only allocated when the string is created.)
 
 If there was overflow in pure space (@pxref{Pure Storage}),
 @code{garbage-collect} returns @code{nil}, because a real garbage
-collection can not be done in this situation.
+collection cannot be done.
 @end deffn
 
 @defopt garbage-collection-messages
@@ -471,12 +471,12 @@ in this Emacs session.
 
 @defvar string-chars-consed
 The total number of string characters that have been allocated so far
-in this Emacs session.
+in this session.
 @end defvar
 
 @defvar misc-objects-consed
 The total number of miscellaneous objects that have been allocated so
-far in this Emacs session.  These include markers and overlays, plus
+far in this session.  These include markers and overlays, plus
 certain objects not visible to users.
 @end defvar
 
@@ -580,8 +580,8 @@ there is a fixed maximum.  Alternatively, it can be @code{UNEVALLED},
 indicating a special form that receives unevaluated arguments, or
 @code{MANY}, indicating an unlimited number of evaluated arguments (the
 equivalent of @code{&rest}).  Both @code{UNEVALLED} and @code{MANY} are
-macros.  If @var{max} is a number, it may not be less than @var{min} and
-it may not be greater than eight.
+macros.  If @var{max} is a number, it must be more than @var{min} but
+less than 8.
 
 @item interactive
 This is an interactive specification, a string such as might be used as

@@ -1196,11 +1196,14 @@ sections.
 
 @defun current-time-string &optional time-value
 This function returns the current time and date as a human-readable
-string.  The format of the string is unvarying; the number of
-characters used for each part is always the same, so you can reliably
-use @code{substring} to extract pieces of it.  You should count
+string.  The format does not vary for the initial part of the string,
+which contains the day of week, month, day of month, and time of day
+in that order: the number of characters used for these fields is
+always the same, so you can reliably
+use @code{substring} to extract them.  You should count
 characters from the beginning of the string rather than from the end,
-as additional information may some day be added at the end.
+as the year might not have exactly four digits, and additional
+information may some day be added at the end.
 
 The argument @var{time-value}, if given, specifies a time to format
 (represented as a list of integers), instead of the current time.
@@ -1732,11 +1735,11 @@ between them).  If you want a timer to run again no less than @var{n}
 seconds after the last invocation, don't use the @var{repeat} argument.
 Instead, the timer function should explicitly reschedule the timer.
 
-@defvar timer-max-repeats
+@defopt timer-max-repeats
 This variable's value specifies the maximum number of times to repeat
 calling a timer function in a row, when many previously scheduled
 calls were unavoidably delayed.
-@end defvar
+@end defopt
 
 @defmac with-timeout (seconds timeout-forms@dots{}) body@dots{}
 Execute @var{body}, but give up after @var{seconds} seconds.  If
@@ -2271,7 +2274,7 @@ The notification title.
 @item :body @var{text}
 The notification body text.  Depending on the implementation of the
 notification server, the text could contain HTML markups, like
-@samp{"<b>bold text</b>"}, or hyperlinks.
+@samp{"<b>bold text</b>"}, hyperlinks, or images.
 
 @item :app-name @var{name}
 The name of the application sending the notification.  The default is
@@ -2300,6 +2303,10 @@ the notification never expires.  Default value is -1.
 
 @item :urgency @var{urgency}
 The urgency level.  It can be @code{low}, @code{normal}, or @code{critical}.
+
+@item :action-items
+When this keyword is given, the @var{title} string of the actions is
+interpreted as icon name.
 
 @item :category @var{category}
 The type of notification this is, a string.
@@ -2331,6 +2338,17 @@ example would be @samp{"message-new-instant"}.
 Causes the server to suppress playing any sounds, if it has that
 ability.
 
+@item :resident
+When set the server will not automatically remove the notification
+when an action has been invoked. The notification will remain resident
+in the server until it is explicitly removed by the user or by the
+sender. This hint is likely only useful when the server has the
+@code{:persistence} capability.
+
+@item :transient
+When set the server will treat the notification as transient and
+by-pass the server's persistence capability, if it should exist.
+
 @item :x @var{position}
 @itemx :y @var{position}
 Specifies the X, Y location on the screen that the
@@ -2354,6 +2372,9 @@ by the user.  The function receive the notification @var{id} and the closing
 @item @code{undefined} if the notification server hasn't provided a reason
 @end itemize
 @end table
+
+Which parameters are accepted by the notification server can be
+checked via @code{notifications-get-capabilities}.
 
 This function returns a notification id, an integer, which can be used
 to manipulate the notification item with
@@ -2394,6 +2415,46 @@ A message window opens on the desktop.  Press "I agree"
 @defun notifications-close-notification id
 This function closes a notification with identifier @var{id}.
 @end defun
+
+@defun notifications-get-capabilities
+Returns the capabilities of the notification server, a list of strings.
+The following capabilities can be expected:
+
+@table @code
+@item :actions
+The server will provide the specified actions to the user.
+
+@item :body
+Supports body text.
+
+@item :body-hyperlinks
+The server supports hyperlinks in the notifications.
+
+@item :body-images
+The server supports images in the notifications.
+
+@item :body-markup
+Supports markup in the body text.
+
+@item :icon-multi
+The server will render an animation of all the frames in a given image
+array.
+
+@item :icon-static
+Supports display of exactly 1 frame of any given image array.  This
+value is mutually exclusive with @code{:icon-multi}.
+
+@item :persistence
+The server supports persistence of notifications.
+
+@item :sound
+The server supports sounds on notifications.
+@end table
+
+Further vendor-specific caps start with @code{:x-vendor}, like
+@code{:x-gnome-foo-cap}.
+@end defun
+
 
 @node Dynamic Libraries
 @section Dynamically Loaded Libraries

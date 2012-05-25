@@ -95,7 +95,7 @@
 (eval-when-compile (require 'cl))
 
 (defgroup mpc ()
-  "A Client for the Music Player Daemon."
+  "Client for the Music Player Daemon (mpd)."
   :prefix "mpc-"
   :group 'multimedia
   :group 'applications)
@@ -406,7 +406,7 @@ which will be concatenated with proper quoting before passing them to MPD."
                             (funcall callback (prog1 (mpc-proc-buf-to-alist
                                                       (current-buffer))
                                                 (set-buffer buf))))))
-    ;; (lexical-let ((res nil))
+    ;; (let ((res nil))
     ;;   (mpc-proc-cmd-to-alist cmd (lambda (alist) (setq res alist)))
     ;;   (mpc-proc-sync)
     ;;   res)

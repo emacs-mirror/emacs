@@ -1301,8 +1301,8 @@ String must be longer than `completion-prefix-min-length'."
 
 (defun check-completion-length (string)
   (if (< (length string) completion-min-length)
-      (error "The string `%s' is too short to be saved as a completion"
-	     string)
+      (user-error "The string `%s' is too short to be saved as a completion"
+                  string)
       (list string)))
 
 (defun add-completion (string &optional num-uses last-use-time)
@@ -2466,10 +2466,6 @@ if ARG is omitted or nil."
 ;; Old names, non-namespace-clean.
 (defvaralias 'cmpl-syntax-table 'completion-syntax-table)
 (defalias 'initialize-completions 'completion-initialize)
-
-(dolist (x '("^To complete, the point must be after a symbol at least [0-9]* character long\\.$"
-	"^The string \".*\" is too short to be saved as a completion\\.$"))
-  (add-to-list 'debug-ignored-errors x))
 
 (provide 'completion)
 

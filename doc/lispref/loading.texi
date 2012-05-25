@@ -250,31 +250,31 @@ for @code{PATH}; directory names are separated by @samp{:} (or
 current default directory.  Here is an example of how to set
 @env{EMACSLOADPATH} variable from @command{sh}:
 
-@smallexample
+@example
 export EMACSLOADPATH
 EMACSLOADPATH=/home/foo/.emacs.d/lisp:/opt/emacs/lisp
-@end smallexample
+@end example
 
 @noindent
 Here is how to set it from @code{csh}:
 
-@smallexample
+@example
 setenv EMACSLOADPATH /home/foo/.emacs.d/lisp:/opt/emacs/lisp
-@end smallexample
+@end example
 
   If @env{EMACSLOADPATH} is not set (which is usually the case), Emacs
 initializes @code{load-path} with the following two directories:
 
-@smallexample
+@example
 "/usr/local/share/emacs/@var{version}/site-lisp"
-@end smallexample
+@end example
 
 @noindent
 and
 
-@smallexample
+@example
 "/usr/local/share/emacs/site-lisp"
-@end smallexample
+@end example
 
 @noindent
 The first one is for locally installed packages for a particular Emacs
@@ -303,9 +303,9 @@ packages are installed, if any (@pxref{Packaging Basics}).
   It is common to add code to one's init file (@pxref{Init File}) to
 add one or more directories to @code{load-path}.  For example:
 
-@smallexample
+@example
 (push "~/.emacs.d/lisp" load-path)
-@end smallexample
+@end example
 
   Dumping Emacs uses a special value of @code{load-path}.  If the
 value of @code{load-path} at the end of dumping is unchanged (that is,
@@ -339,9 +339,9 @@ similarly-named file in a directory earlier on @code{load-path}.
 
 For instance, suppose @code{load-path} is set to
 
-@smallexample
+@example
   ("/opt/emacs/site-lisp" "/usr/share/emacs/23.3/lisp")
-@end smallexample
+@end example
 
 @noindent
 and that both these directories contain a file named @file{foo.el}.
@@ -374,11 +374,10 @@ strings are multibyte strings should not be noticeable, since
 inserting them in unibyte buffers converts them to unibyte
 automatically.  However, if this does make a difference, you can force
 a particular Lisp file to be interpreted as unibyte by writing
-@samp{unibyte: t} in a local variables section.  With
+@samp{coding: raw-text} in a local variables section.  With
 that designator, the file will unconditionally be interpreted as
-unibyte, even in an ordinary multibyte Emacs session.  This can matter
-when making keybindings to non-@acronym{ASCII} characters written as
-@code{?v@var{literal}}.
+unibyte.  This can matter when making keybindings to
+non-@acronym{ASCII} characters written as @code{?v@var{literal}}.
 
 @node Autoload
 @section Autoload
@@ -513,11 +512,10 @@ the following:
 @file{mode-local.el}).
 
 @item Definitions for major or minor modes:
-@code{define-derived-mode}, @code{define-minor-mode},
-@code{define-compilation-mode}, @code{define-generic-mode},
-@code{easy-mmode-define-global-mode}, @code{define-global-minor-mode},
-@code{define-globalized-minor-mode}, and
-@code{easy-mmode-define-minor-mode}.
+@code{define-minor-mode}, @code{define-globalized-minor-mode},
+@code{define-generic-mode}, @code{easy-mmode-define-minor-mode},
+@code{easy-mmode-define-global-mode}, @code{define-compilation-mode},
+@code{define-derived-mode}, and @code{define-global-minor-mode}.
 
 @item Other definition types:
 @code{defcustom}, @code{defgroup}, @code{defclass}
@@ -535,24 +533,24 @@ it is executed while building Emacs.
   The following example shows how @code{doctor} is prepared for
 autoloading with a magic comment:
 
-@smallexample
+@example
 ;;;###autoload
 (defun doctor ()
   "Switch to *doctor* buffer and start giving psychotherapy."
   (interactive)
   (switch-to-buffer "*doctor*")
   (doctor-mode))
-@end smallexample
+@end example
 
 @noindent
 Here's what that produces in @file{loaddefs.el}:
 
-@smallexample
+@example
 (autoload (quote doctor) "doctor" "\
 Switch to *doctor* buffer and start giving psychotherapy.
 
 \(fn)" t nil)
-@end smallexample
+@end example
 
 @noindent
 @cindex @code{fn} in function's documentation string
@@ -571,11 +569,11 @@ ordinary magic autoload comment would copy the whole definition into
 @code{loaddefs.el}.  That is not desirable.  You can put the desired
 @code{autoload} call into @code{loaddefs.el} instead by writing this:
 
-@smallexample
+@example
 ;;;###autoload (autoload 'foo "myfile")
 (mydefunmacro foo
   ...)
-@end smallexample
+@end example
 
   You can use a non-default string as the autoload cookie and have the
 corresponding autoload calls written into a file whose name is
@@ -680,7 +678,7 @@ file should call @code{provide} at the top level to add the feature to
   For example, in @file{idlwave.el}, the definition for
 @code{idlwave-complete-filename} includes the following code:
 
-@smallexample
+@example
 (defun idlwave-complete-filename ()
   "Use the comint stuff to complete a file name."
    (require 'comint)
@@ -688,7 +686,7 @@ file should call @code{provide} at the top level to add the feature to
           (comint-completion-addsuffix nil)
           ...)
        (comint-dynamic-complete-filename)))
-@end smallexample
+@end example
 
 @noindent
 The expression @code{(require 'comint)} loads the file @file{comint.el}
@@ -703,9 +701,9 @@ after the let exits.)
 
 The @file{comint.el} file contains the following top-level expression:
 
-@smallexample
+@example
 (provide 'comint)
-@end smallexample
+@end example
 
 @noindent
 This adds @code{comint} to the global @code{features} list, so that
@@ -726,13 +724,13 @@ ensure that a file of definitions is loaded before it is byte-compiled
 by including a @code{provide} followed by a @code{require} for the same
 feature, as in the following example.
 
-@smallexample
+@example
 @group
 (provide 'my-feature)  ; @r{Ignored by byte compiler,}
                        ;   @r{evaluated by @code{load}.}
 (require 'my-feature)  ; @r{Evaluated by byte compiler.}
 @end group
-@end smallexample
+@end example
 
 @noindent
 The compiler ignores the @code{provide}, then processes the
@@ -762,7 +760,7 @@ package, which might or might not be loaded, or might or might not be
 present in a given version.  @xref{Network Feature Testing}, for
 an example.
 
-@smallexample
+@example
 features
      @result{} (bar bish)
 
@@ -770,7 +768,7 @@ features
      @result{} foo
 features
      @result{} (foo bar bish)
-@end smallexample
+@end example
 
 When a file is loaded to satisfy an autoload, and it stops due to an
 error in the evaluation of its contents, any function definitions or

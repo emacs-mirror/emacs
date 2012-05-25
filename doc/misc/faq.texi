@@ -91,7 +91,6 @@ Emacs, the Emacs manual is often the best starting point.
 * Bugs and problems::
 * Compiling and installing Emacs::
 * Finding Emacs and related packages::
-* Major packages and programs::
 * Key bindings::
 * Alternate character sets::
 * Mail and news::
@@ -196,8 +195,7 @@ pressed.}.
 Also, on very few keyboards does @kbd{C-?} generate @acronym{ASCII} code 127.
 @c FIXME I cannot understand the previous sentence.
 
-@inforef{Keys, Keys, emacs}, for more information.  (@xref{Emacs
-manual}, for more information about Info.)
+@xref{Keys,,, emacs, The GNU Emacs Manual}.
 
 @node Extended commands
 @section What does @file{M-x @var{command}} mean?
@@ -253,7 +251,7 @@ reference to follow it.
 Emacs manual.
 
 @node File-name conventions
-@section What are @file{etc/GNU}, @file{src/config.h}, @file{site-lisp/default.el}, etc.?
+@section What are @file{src/config.h}, @file{site-lisp/default.el}, etc.?
 @cindex File-name conventions
 @cindex Conventions for file names
 @cindex Directories and files that come with Emacs
@@ -1050,7 +1048,7 @@ A new command @kbd{customize-themes} allows you to easily change the
 appearance of your Emacs.
 
 @item
-Emacs can be compiled with the Gtk+ 3 toolkit.
+Emacs can be compiled with the GTK+ 3 toolkit.
 
 @item
 Support for several new external libraries can be included at compile
@@ -1339,7 +1337,7 @@ of files from Macintosh, Microsoft, and Unix platforms.
 @cindex Init file, setting up
 @cindex Customization file, setting up
 
-@inforef{Init File, Init File, emacs}.
+@xref{Init File,,, emacs, The GNU Emacs Manual}.
 
 In general, new Emacs users should not be provided with @file{.emacs}
 files, because this can cause confusing non-standard behavior.  Then
@@ -1354,8 +1352,8 @@ rather than Lisp code.
 While Customize might indeed make it easier to configure Emacs,
 consider taking a bit of time to learn Emacs Lisp and modifying your
 @file{.emacs} directly.  Simple configuration options are described
-rather completely in @inforef{Init File, Init File, emacs}, for users
-interested in performing frequently requested, basic tasks.
+rather completely in @ref{Init File,,, emacs, The GNU Emacs Manual},
+for users interested in performing frequently requested, basic tasks.
 
 Sometimes users are unsure as to where their @file{.emacs} file should
 be found.  Visiting the file as @file{~/.emacs} from Emacs will find
@@ -1371,7 +1369,7 @@ The main Customize entry point is @kbd{M-x customize @key{RET}}.  This
 command takes you to a buffer listing all the available Customize
 groups.  From there, you can access all customizable options and faces,
 change their values, and save your changes to your init file.
-@inforef{Easy Customization, Easy Customization, emacs}.
+@xref{Easy Customization,,, emacs, The GNU Emacs Manual}.
 
 If you know the name of the group in advance (e.g. ``shell''), use
 @kbd{M-x customize-group @key{RET}}.
@@ -1676,16 +1674,16 @@ M-x replace-regexp @key{RET} [^ @key{TAB} C-q @key{LFD} C-q @key{RET} C-q C-l @k
 @cindex Searching for newlines
 @cindex Replacing newlines
 
-Use @kbd{C-q C-j}.  For more information, see @inforef{Special Isearch,
-Special Input for Incremental Search, emacs}.
-
+Use @kbd{C-q C-j}.  For more information,
+@pxref{Special Isearch,, Special Input for Incremental Search, emacs,
+The GNU Emacs Manual}.
 
 @node Yanking text in isearch
 @section How do I copy text from the kill ring into the search string?
 @cindex Yanking text into the search string
 @cindex isearch yanking
 
-Use @kbd{M-y}.  @inforef{Isearch Yank, Isearch Yanking, emacs}.
+Use @kbd{M-y}.  @xref{Isearch Yank,,, emacs, The GNU Emacs Manual}.
 
 @node Wrapping words automatically
 @section How do I make Emacs wrap words for me?
@@ -2134,7 +2132,7 @@ commands you've typed.
 
 To repeat a set of commands, use keyboard macros.  Use @kbd{C-x (} and
 @kbd{C-x )} to make a keyboard macro that invokes the command and then
-type @kbd{C-x e}.  (@inforef{Keyboard Macros, Keyboard Macros, emacs}.)
+type @kbd{C-x e}.  @xref{Keyboard Macros,,, emacs, The GNU Emacs Manual}.
 
 If you're really desperate for the @code{.} command in @code{vi} that
 redoes the last insertion/deletion, use VIPER, a @code{vi} emulation
@@ -2146,7 +2144,7 @@ mode which comes with Emacs, and which appears to support it.
 @cindex X resources
 @cindex Setting X resources
 
-@inforef{X Resources, X Resources, emacs}.
+@xref{X Resources,,, emacs, The GNU Emacs Manual}.
 
 You can also use a resource editor, such as editres (for X11R5 and
 onwards), to look at the resource names for the menu bar, assuming Emacs
@@ -2257,7 +2255,7 @@ See also the variable @code{track-eol} and the command
 @cindex Suspending Emacs
 
 @kbd{C-z} iconifies Emacs when running under X and suspends Emacs
-otherwise.  @inforef{Frame Commands, Frame Commands, emacs}.
+otherwise.  @xref{Frame Commands,,, emacs, The GNU Emacs Manual}.
 
 @node Using regular expressions
 @section How do I use regexps (regular expressions) in Emacs?
@@ -2267,7 +2265,7 @@ otherwise.  @inforef{Frame Commands, Frame Commands, emacs}.
 @cindex Unix regexps, differences from Emacs
 @cindex Text strings, putting regexps in
 
-@inforef{Regexp Backslash, Regexp Backslash, emacs}.
+@xref{Regexp Backslash,,, emacs, The GNU Emacs Manual}.
 
 The @code{or} operator is @samp{\|}, not @samp{|}, and the grouping operators
 are @samp{\(} and @samp{\)}.  Also, the string syntax for a backslash is
@@ -2324,7 +2322,7 @@ To accept all replacements in each file, hit @kbd{!}.
 Another way to do the same thing is to use the ``tags'' feature of
 Emacs: it includes the command @code{tags-query-replace} which performs
 a query-replace across all the files mentioned in the @file{TAGS} file.
-@inforef{Tags Search, Tags Search, emacs}.
+@xref{Tags Search,,, emacs, The GNU Emacs Manual}.
 
 @node Documentation for etags
 @section Where is the documentation for @code{etags}?
@@ -2367,8 +2365,8 @@ the Unix shell, try GNU @code{ls} with the @samp{-B} option.  GNU
 @code{ls} is part of the GNU Fileutils package, available from
 @samp{ftp.gnu.org} and its mirrors (@pxref{Current GNU distributions}).
 
-To disable or change the way backups are made, @inforef{Backup Names, ,
-emacs}.
+To disable or change the way backups are made,
+@pxref{Backup Names,,, emacs, The GNU Emacs Manual}.
 
 @cindex Backup files in a single directory
 Beginning with Emacs 21.1, you can control where Emacs puts backup files
@@ -2398,8 +2396,8 @@ package (@pxref{Packages that do not come with Emacs}).  This
 package also allows you to place all auto-save files in one directory,
 such as @file{/tmp}.
 
-To disable or change how @code{auto-save-mode} works, @inforef{Auto
-Save, , emacs}.
+To disable or change how @code{auto-save-mode} works,
+@pxref{Auto Save,,, emacs, The GNU Emacs Manual}.
 
 @node Going to a line by number
 @section How can I go to a certain line given its number?
@@ -2622,7 +2620,7 @@ consult the documentation of the variables @code{ps-printer-name},
 Customize the @code{scroll-conservatively} variable with @kbd{M-x
 customize-variable @key{RET} scroll-conservatively @key{RET}} and set it
 to a large value like, say, 10000.  For an explanation of what this
-means, @inforef{Auto Scrolling, Auto Scrolling, emacs}.
+means, @pxref{Auto Scrolling,,, emacs, The GNU Emacs Manual}.
 
 Alternatively, use the following Lisp form in your @file{.emacs}:
 
@@ -2693,8 +2691,8 @@ put the following in your @file{.emacs} file:
 
 To avoid the slightly distracting visual effect of Emacs starting with
 its default frame size and then growing to fullscreen, you can add an
-@samp{Emacs.Geometry} entry to the Windows registry settings (see
-@pxref{(emacs)X Resources}).
+@samp{Emacs.Geometry} entry to the Windows registry settings.
+@xref{X Resources,,, emacs, The GNU Emacs Manual}.
 
 To compute the correct values for width and height, first maximize the
 Emacs frame and then evaluate @code{(frame-height)} and
@@ -3059,7 +3057,7 @@ You can also tell Emacs whether to allow the evaluation of Emacs Lisp
 code found at the bottom of files by setting the variable
 @code{enable-local-eval}.
 
-For more information, @inforef{File Variables, File Variables, emacs}.
+@xref{File Variables,,, emacs, The GNU Emacs Manual}.
 
 @item
 Synthetic X events.  (Yes, a risk; use @samp{MIT-MAGIC-COOKIE-1} or
@@ -3242,6 +3240,7 @@ problem (@pxref{Reporting bugs}).
 * Finding Emacs on the Internet::
 * Finding a package with particular functionality::
 * Packages that do not come with Emacs::
+* Spell-checkers::
 * Current GNU distributions::
 * Difference between Emacs and XEmacs::
 * Emacs for minimalists::
@@ -3322,6 +3321,29 @@ Several packages are stored in
 
 Read the file @file{etc/MORE.STUFF} for more information about
 external packages.
+
+@node Spell-checkers
+@section Spell-checkers
+@cindex Spell-checker
+@cindex Checking spelling
+@cindex Ispell
+@cindex Aspell
+@cindex Hunspell
+
+Various spell-checkers are compatible with Emacs, including:
+
+@table @b
+
+@item GNU Aspell
+@uref{http://aspell.net/}
+
+@item Ispell
+@uref{http://fmg-www.cs.ucla.edu/geoff/ispell.html}
+
+@item Hunspell
+@uref{http://hunspell.sourceforge.net/}
+
+@end table
 
 @node Current GNU distributions
 @section Where can I get other up-to-date GNU stuff?
@@ -3443,124 +3465,6 @@ Beginning with version 22.1, Emacs supports Mac OS X natively.
 See the file @file{nextstep/INSTALL} in the distribution.
 
 @c ------------------------------------------------------------
-@node Major packages and programs
-@chapter Major packages and programs
-@cindex Major packages and programs
-
-@menu
-* VM::
-* AUCTeX::
-* BBDB::
-* Spell-checkers::
-* Emacs/W3::
-* EDB::
-* JDEE::
-@end menu
-
-@node VM
-@section VM (View Mail) --- another mail reader within Emacs, with MIME support
-@cindex VM
-@cindex Alternative mail software
-@cindex View Mail
-@cindex E-mail reader, VM
-
-@table @b
-
-@item Web site
-@uref{http://launchpad.net/vm}
-(was @uref{http://www.nongnu.org/viewmail/})
-
-@item Informational newsgroup
-@uref{news:gnu.emacs.vm.info}@*
-
-@item Bug reports newsgroup
-@uref{news:gnu.emacs.vm.bug}@*
-@end table
-
-VM was originally written by @uref{http://www.wonderworks.com/vm/,Kyle Jones}.
-@uref{ftp://ftp.wonderworks.com/pub/vm/,Older versions} of VM remain
-available.
-
-
-@node AUCTeX
-@section AUC@TeX{} --- enhanced @TeX{} modes with debugging facilities
-@cindex Mode for @TeX{}
-@cindex @TeX{} mode
-@cindex AUC@TeX{} mode for editing @TeX{}
-@cindex Writing and debugging @TeX{}
-
-AUC@TeX{} is a set of sophisticated major modes for @TeX{}, LaTeX,
-ConTeXt, and Texinfo offering context-sensitive syntax highlighting,
-indentation, formatting and folding, macro completion, @TeX{} shell
-functionality, and debugging.  Be also sure to check out
-@ref{Introduction, RefTeX, Introduction, reftex, Ref@TeX{} User Manual}.
-Current versions of AUC@TeX{} include the
-@uref{http://www.gnu.org/software/auctex/preview-latex.html,preview-latex}
-package for WYSIWYG previews of various LaTeX constructs in the Emacs
-source buffer.
-
-@uref{http://www.gnu.org/software/auctex/, AUCTeX}
-
-@node BBDB
-@section BBDB --- personal Info Rolodex integrated with mail/news readers
-@cindex BBDB
-@cindex Rolodex-like functionality
-@cindex Integrated contact database
-@cindex Contact database
-@cindex Big Brother Database
-@cindex Address book
-
-@uref{http://bbdb.sourceforge.net/, The Insidious Big Brother Database}
-
-@node Spell-checkers
-@section Spell-checkers
-@cindex Spell-checker
-@cindex Checking spelling
-@cindex Ispell
-@cindex Aspell
-@cindex Hunspell
-
-Various spell-checkers are compatible with Emacs, including:
-
-@table @b
-
-@item GNU Aspell
-@uref{http://aspell.net/}
-
-@item Ispell
-@uref{http://fmg-www.cs.ucla.edu/geoff/ispell.html}
-
-@item Hunspell
-@uref{http://hunspell.sourceforge.net/}
-
-@end table
-
-@node Emacs/W3
-@section Emacs/W3 --- A World Wide Web browser inside of Emacs
-@cindex WWW browser
-@cindex Web browser
-@cindex HTML browser in Emacs
-@cindex @code{w3-mode}
-
-@uref{http://www.gnu.org/software/w3/, Emacs/W3}
-
-@node EDB
-@section EDB --- Database program for Emacs; replaces forms editing modes
-@cindex EDB
-@cindex Database
-@cindex Forms mode
-
-@uref{http://gnuvola.org/software/edb/, The Emacs Database}
-
-@node JDEE
-@section JDEE --- Integrated development environment for Java
-@cindex Java development environment
-@cindex Integrated Java development environment
-@cindex JDEE
-
-@uref{http://jdee.sourceforge.net/, A Java Development Environment for Emacs}
-
-@c ------------------------------------------------------------
 @node Key bindings
 @chapter Key bindings
 @cindex Key bindings
@@ -3596,7 +3500,7 @@ Keys can be bound to commands either interactively or in your
 To bind a key just in the current major mode, type @kbd{M-x
 local-set-key @key{RET} @var{key} @var{cmd} @key{RET}}.
 
-@inforef{Key Bindings, Key Bindings, emacs}, for further details.
+@xref{Key Bindings,,, emacs, The GNU Emacs Manual}.
 
 To make the process of binding keys interactively easier, use the
 following ``trick'': First bind the key interactively, then immediately
@@ -3861,8 +3765,8 @@ keymaps.
 
 However, in the specific case of @kbd{C-h} and @key{DEL}, you should
 toggle @code{normal-erase-is-backspace-mode} instead of calling
-@code{keyboard-translate}.  @inforef{DEL Does Not Delete, DEL Does Not Delete,
-emacs}.
+@code{keyboard-translate}.
+@xref{DEL Does Not Delete,,, emacs, The GNU Emacs Manual}.
 
 Keyboard translations are not the same as key bindings in keymaps.
 Emacs contains numerous keymaps that apply in different situations, but
@@ -3990,7 +3894,7 @@ terminals.  Non-@acronym{ASCII} keys and mouse events (e.g. @kbd{C-=} and
 @cindex @key{Meta} key and @code{xterm}
 @cindex Xterm and @key{Meta} key
 
-@inforef{Unibyte Mode, Single-Byte Character Set Support, emacs}.
+@xref{Unibyte Mode,, Single-Byte Character Set Support, emacs, The GNU Emacs Manual}.
 
 If the advice in the Emacs manual fails, try all of these methods before
 asking for further help:
@@ -4114,8 +4018,8 @@ You can get the old behavior by binding @kbd{SPC} to
 @cindex Displaying eight-bit characters
 @cindex Eight-bit characters, displaying
 
-@inforef{Unibyte Mode, Single-byte Character Set
-Support, emacs}.  On a Unix, when Emacs runs on a text-only terminal
+@xref{Unibyte Mode,, Single-byte Character Set Support, emacs, The GNU
+Emacs Manual}.  On a Unix, when Emacs runs on a text-only terminal
 display or is invoked with @samp{emacs -nw}, you typically need to use
 @code{set-terminal-coding-system} to tell Emacs what the terminal can
 display, even after setting the language environment; otherwise
@@ -4130,10 +4034,10 @@ terminal coding system automatically.
 @cindex Eight-bit characters, entering
 @cindex Input, 8-bit characters
 
-Various methods are available for input of eight-bit characters.  See
-@inforef{Unibyte Mode, Single-byte Character Set
-Support, emacs}.  For more sophisticated methods, @inforef{Input
-Methods, Input Methods, emacs}.
+Various methods are available for input of eight-bit characters.
+@xref{Unibyte Mode,, Single-byte Character Set Support, emacs, The GNU
+Emacs Manual}.  For more sophisticated methods,
+@pxref{Input Methods,,, emacs, The GNU Emacs Manual}.
 
 @node Right-to-left alphabets
 @section Where is an Emacs that can handle Semitic (right-to-left) alphabets?
@@ -4228,7 +4132,7 @@ set up @code{w32-bdf-filename-alist}:
 
 Now, create fontsets for the BDF fonts:
 
-@lisp
+@smallexample
   (create-fontset-from-fontset-spec
    "-*-fixed-medium-r-normal-*-16-*-*-*-c-*-fontset-bdf,
    japanese-jisx0208:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0208.1983-*,
@@ -4240,7 +4144,7 @@ Now, create fontsets for the BDF fonts:
    tibetan-1-column:-TibMdXA-fixed-medium-r-normal--16-160-72-72-m-80-MuleTibetan-1,
    ethiopic:-Admas-Ethiomx16f-Medium-R-Normal--16-150-100-100-M-160-Ethiopic-Unicode,
    tibetan:-TibMdXA-fixed-medium-r-normal--16-160-72-72-m-160-MuleTibetan-0")
-@end lisp
+@end smallexample
 
 Many of the international bdf fonts from Intlfonts are type 0, and
 therefore need to be added to font-encoding-alist:
@@ -4472,7 +4376,7 @@ you to start Emacs quickly when you needed to.
 
 Use @kbd{M-x gnus}.  For more information on Gnus, @pxref{Top,, the Gnus
 Manual, gnus, The Gnus Manual}, which includes @ref{Frequently Asked
-Questions,, the Gnus FAQ, gnus}.
+Questions,, the Gnus FAQ, gnus, The Gnus Manual}.
 
 
 @node Gnus does not work with NNTP

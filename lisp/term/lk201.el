@@ -1,4 +1,3 @@
-;; -*- no-byte-compile: t -*-
 ;; Define function key sequences for DEC terminals.
 
 (defvar lk201-function-map

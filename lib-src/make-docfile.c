@@ -1361,7 +1361,7 @@ scan_lisp_file (const char *filename, const char *mode)
 #ifdef DEBUG
       else if (! strcmp (buffer, "if")
 	       || ! strcmp (buffer, "byte-code"))
-	;
+	continue;
 #endif
 
       else

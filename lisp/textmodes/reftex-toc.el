@@ -31,6 +31,7 @@
 (require 'reftex)
 ;;;
 
+(define-obsolete-variable-alias 'reftex-toc-map 'reftex-toc-mode-map "24.1")
 (defvar reftex-toc-mode-map
   (let ((map (make-sparse-keymap)))
 
@@ -122,7 +123,6 @@
 
     map)
   "Keymap used for *toc* buffer.")
-(define-obsolete-variable-alias 'reftex-toc-map 'reftex-toc-mode-map "24.1")
 
 (defvar reftex-toc-menu)
 (defvar reftex-last-window-height nil)

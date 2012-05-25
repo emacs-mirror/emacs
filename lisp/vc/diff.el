@@ -1,4 +1,4 @@
-;;; diff.el --- run `diff'
+;;; diff.el --- run `diff'  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 1994, 1996, 2001-2012 Free Software Foundation, Inc.
 
@@ -29,6 +29,8 @@
 ;; You can specify options with `diff-switches'.
 
 ;;; Code:
+
+(declare-function diff-setup-whitespace "diff-mode" ())
 
 (eval-when-compile (require 'cl))
 
@@ -64,6 +66,8 @@ If optional args OLD-TEMP-FILE and/or NEW-TEMP-FILE are non-nil,
 delete the temporary files so named."
   (if old-temp-file (delete-file old-temp-file))
   (if new-temp-file (delete-file new-temp-file))
+  (diff-setup-whitespace)
+  (goto-char (point-min))
   (save-excursion
     (goto-char (point-max))
     (let ((inhibit-read-only t))
@@ -144,11 +148,8 @@ specified in `diff-switches' are passed to the diff command."
       (buffer-enable-undo (current-buffer))
       (diff-mode)
       (set (make-local-variable 'revert-buffer-function)
-           (lexical-let ((old old) (new new)
-                         (switches switches)
-                         (no-async no-async))
-             (lambda (ignore-auto noconfirm)
-               (diff-no-select old new switches no-async (current-buffer)))))
+           (lambda (_ignore-auto _noconfirm)
+             (diff-no-select old new switches no-async (current-buffer))))
       (setq default-directory thisdir)
       (let ((inhibit-read-only t))
 	(insert command "\n"))
@@ -156,12 +157,11 @@ specified in `diff-switches' are passed to the diff command."
 	  (let ((proc (start-process "Diff" buf shell-file-name
                                      shell-command-switch command)))
 	    (set-process-filter proc 'diff-process-filter)
-            (lexical-let ((old-alt old-alt) (new-alt new-alt))
-              (set-process-sentinel
-               proc (lambda (proc msg)
-                      (with-current-buffer (process-buffer proc)
-                        (diff-sentinel (process-exit-status proc)
-                                       old-alt new-alt))))))
+            (set-process-sentinel
+             proc (lambda (proc _msg)
+                    (with-current-buffer (process-buffer proc)
+                      (diff-sentinel (process-exit-status proc)
+                                     old-alt new-alt)))))
 	;; Async processes aren't available.
 	(let ((inhibit-read-only t))
 	  (diff-sentinel

@@ -4003,7 +4003,7 @@ unwind_create_frame (Lisp_Object frame)
 #if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }
@@ -5016,16 +5016,6 @@ no value of TYPE (always string in the MS Windows case).  */)
    cursor.  Duplicated from xdisp.c, but cannot use the version there
    due to lack of atimers on w32.  */
 #define DEFAULT_HOURGLASS_DELAY 1
-/* Return non-zero if hourglass timer has been started or hourglass is
-   shown.  */
-/* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
-   	    xdisp.c could be used. */
-
-int
-hourglass_started (void)
-{
-  return hourglass_shown_p || hourglass_timer;
-}
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 
@@ -5246,7 +5236,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 
 #if GLYPH_DEBUG
   image_cache_refcount =
-    FRAME_IMAGE_CACHE ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
   FRAME_KBOARD (f) = kb;

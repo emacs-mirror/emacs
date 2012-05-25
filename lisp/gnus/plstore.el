@@ -64,8 +64,18 @@
 ;;
 ;; Editing:
 ;;
-;; Currently not supported but in the future plstore will provide a
-;; major mode to edit PLSTORE files.
+;; This file also provides `plstore-mode', a major mode for editing
+;; the PLSTORE format file.  Visit a non-existing file and put the
+;; following line:
+;;
+;; (("foo" :host "foo.example.org" :secret-user "user"))
+;;
+;; where the prefixing `:secret-' means the property (without
+;; `:secret-' prefix) is marked as secret.  Thus, when you save the
+;; buffer, the `:secret-user' property is encrypted as `:user'.
+;;
+;; You can toggle the view between encrypted form and the decrypted
+;; form with C-c C-c.
 
 ;;; Code:
 
@@ -106,6 +116,10 @@ symmetric encryption will be used.")
 		  t)))))
 
 (put 'plstore-encrypt-to 'permanent-local t)
+
+(defvar plstore-encoded nil)
+
+(put 'plstore-encoded 'permanent-local t)
 
 (defvar plstore-cache-passphrase-for-symmetric-encryption nil)
 (defvar plstore-passphrase-alist nil)
@@ -194,10 +208,6 @@ symmetric encryption will be used.")
 		     (generate-new-buffer (format " plstore %s" filename))))
 	 (store (plstore--make buffer)))
     (with-current-buffer buffer
-      ;; In the future plstore will provide a major mode called
-      ;; `plstore-mode' to edit PLSTORE files.
-      (if (eq major-mode 'plstore-mode)
-	  (error "%s is opened for editing; kill the buffer first" file))
       (erase-buffer)
       (condition-case nil
 	  (insert-file-contents-literally file)
@@ -434,6 +444,131 @@ If no one is selected, symmetric encryption will be performed.  "
     (erase-buffer)
     (plstore--insert-buffer plstore)
     (save-buffer)))
+
+(defun plstore--encode (plstore)
+  (plstore--decrypt plstore)
+  (let ((merged-alist (plstore--get-merged-alist plstore)))
+    (concat "("
+	    (mapconcat
+	     (lambda (entry)
+	       (setq entry (copy-sequence entry))
+	       (let ((merged-plist (cdr (assoc (car entry) merged-alist)))
+		     (plist (cdr entry)))
+		 (while plist
+		   (if (string-match "\\`:secret-" (symbol-name (car plist)))
+		       (setcar (cdr plist)
+			       (plist-get
+				merged-plist
+				(intern (concat ":"
+						(substring (symbol-name
+							    (car plist))
+							   (match-end 0)))))))
+		   (setq plist (nthcdr 2 plist)))
+		 (prin1-to-string entry)))
+	     (plstore--get-alist plstore)
+	     "\n")
+	    ")")))
+
+(defun plstore--decode (string)
+  (let* ((alist (car (read-from-string string)))
+	 (pointer alist)
+	 secret-alist
+	 plist
+	 entry)
+    (while pointer
+      (unless (stringp (car (car pointer)))
+	(error "Invalid PLSTORE format %s" string))
+      (setq plist (cdr (car pointer)))
+      (while plist
+	(when (string-match "\\`:secret-" (symbol-name (car plist)))
+	  (setq entry (assoc (car (car pointer)) secret-alist))
+	  (unless entry
+	    (setq entry (list (car (car pointer)))
+		  secret-alist (cons entry secret-alist)))
+	  (setcdr entry (plist-put (cdr entry)
+				   (intern (concat ":"
+						(substring (symbol-name
+							    (car plist))
+							   (match-end 0))))
+				   (car (cdr plist))))
+	  (setcar (cdr plist) t))
+	(setq plist (nthcdr 2 plist)))
+      (setq pointer (cdr pointer)))
+    (plstore--make nil alist nil secret-alist)))
+
+(defun plstore--write-contents-functions ()
+  (when plstore-encoded
+    (let ((store (plstore--decode (buffer-string)))
+	  (file (buffer-file-name)))
+      (unwind-protect
+	  (progn
+	    (set-visited-file-name nil)
+	    (with-temp-buffer
+	      (plstore--insert-buffer store)
+	      (write-region (buffer-string) nil file)))
+	(set-visited-file-name file)
+	(set-buffer-modified-p nil))
+      t)))
+
+(defun plstore-mode-original ()
+  "Show the original form of the this buffer."
+  (interactive)
+  (when plstore-encoded
+    (if (and (buffer-modified-p)
+	     (y-or-n-p "Save buffer before reading the original form? "))
+	(save-buffer))
+    (erase-buffer)
+    (insert-file-contents-literally (buffer-file-name))
+    (set-buffer-modified-p nil)
+    (setq plstore-encoded nil)))
+
+(defun plstore-mode-decoded ()
+  "Show the decoded form of the this buffer."
+  (interactive)
+  (unless plstore-encoded
+    (if (and (buffer-modified-p)
+	     (y-or-n-p "Save buffer before decoding? "))
+	(save-buffer))
+    (let ((store (plstore--make (current-buffer))))
+      (plstore--init-from-buffer store)
+      (erase-buffer)
+      (insert
+       (substitute-command-keys "\
+;;; You are looking at the decoded form of the PLSTORE file.\n\
+;;; To see the original form content, do \\[plstore-mode-toggle-display]\n\n"))
+      (insert (plstore--encode store))
+      (set-buffer-modified-p nil)
+      (setq plstore-encoded t))))
+
+(defun plstore-mode-toggle-display ()
+  "Toggle the display mode of PLSTORE between the original and decoded forms."
+  (interactive)
+  (if plstore-encoded
+      (plstore-mode-original)
+    (plstore-mode-decoded)))
+
+(eval-when-compile
+  (defmacro plstore-called-interactively-p (kind)
+    (condition-case nil
+        (progn
+          (eval '(called-interactively-p 'any))
+          ;; Emacs >=23.2
+          `(called-interactively-p ,kind))
+      ;; Emacs <23.2
+      (wrong-number-of-arguments '(called-interactively-p))
+      ;; XEmacs
+      (void-function '(interactive-p)))))
+
+;;;###autoload
+(define-derived-mode plstore-mode emacs-lisp-mode "PLSTORE"
+  "Major mode for editing PLSTORE files."
+  (make-local-variable 'plstore-encoded)
+  (add-hook 'write-contents-functions #'plstore--write-contents-functions)
+  (define-key plstore-mode-map "\C-c\C-c" #'plstore-mode-toggle-display)
+  ;; to create a new file with plstore-mode, mark it as already decoded
+  (if (plstore-called-interactively-p 'any)
+      (setq plstore-encoded t)
+    (plstore-mode-decoded)))
 
 (provide 'plstore)
 

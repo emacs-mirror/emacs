@@ -1,8 +1,69 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* makefile.w32-in: Remove dependencies on
+	$(EMACS_ROOT)/src/m/intel386.h.
+
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Remove unneeded chmods.
+
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later.
+	* etags.c (static, const): Remove macros.
+	(PTR): Remove; all uses replaced with void *.  Omit needless casts.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (insrcdir, $(DESTDIR)${archlibdir}):
+	Scrap superfluous subshells.
+
+2012-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Ensure $bindir exists.
+
+2012-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ns_appbindir): New, set by configure.
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	($(DESTDIR)${archlibdir}): Use $MKDIR_P.
+
+2012-05-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	etags: pacify gcc -Wstack-protector on Ubuntu 12.04 x86
+	* etags.c: Include <stdarg.h>.
+	(error): Declare as printf-style, as that's what it really is.
+	All uses changed.
+	(add_regex): Use single char rather than array-of-one char.
+
+2012-05-05  Jim Meyering  <meyering@redhat.com>
+
+	* lib-src/pop.c (pop_stat, pop_list, pop_multi_first, pop_last):
+	NUL-terminate the error buffer (Bug#11372).
+
+2012-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (min): Undef before redefining it.
+
+2012-05-02  Jim Meyering  <jim@meyering.net>
+
+	* emacsclient.c (send_to_emacs): Avoid invalid strcpy upon partial
+	send (Bug#11374).
+
+2012-04-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (scan_lisp_file) [DEBUG]: Also skip if and
+	byte-code forms.  (Bug#11380)
+
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
 	* emacsclient.c (decode_options): Move -t -n corner case handling
 	into server.el (Bug#11102).
-	(main): Send -tty to Emacs under more circumstanced (Bug#8314).
+	(main): Send -tty to Emacs under more circumstances (Bug#8314).
 
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 

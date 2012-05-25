@@ -1938,7 +1938,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 
 ;;;; Edebug Form Specs
 ;;; ==========================================================
-;;; See cl-specs.el for common lisp specs.
 
 ;;;;* Spec for def-edebug-spec
 ;;; Out of date.
@@ -4436,13 +4435,6 @@ With prefix argument, make it a temporary breakpoint."
 
 
 ;;; Autoloading of Edebug accessories
-
-(if (featurep 'cl)
-    (add-hook 'edebug-setup-hook
-	      (function (lambda () (require 'cl-specs))))
-  ;; The following causes cl-specs to be loaded if you load cl.el.
-  (add-hook 'cl-load-hook
-	    (function (lambda () (require 'cl-specs)))))
 
 ;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
 (if (featurep 'cl-read)

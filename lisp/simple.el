@@ -817,7 +817,7 @@ instead of deleted."
   :type '(choice (const :tag "Delete active region" t)
                  (const :tag "Kill active region" kill)
                  (const :tag "Do ordinary deletion" nil))
-  :group 'editing
+  :group 'killing
   :version "24.1")
 
 (defun delete-backward-char (n &optional killflag)
@@ -1354,6 +1354,56 @@ to get different commands to edit and resubmit."
 	     "M-x ")
      obarray 'commandp t nil 'extended-command-history)))
 
+(defcustom suggest-key-bindings t
+  "Non-nil means show the equivalent key-binding when M-x command has one.
+The value can be a length of time to show the message for.
+If the value is non-nil and not a number, we wait 2 seconds."
+  :group 'keyboard
+  :type '(choice (const :tag "off" nil)
+                 (integer :tag "time" 2)
+                 (other :tag "on")))
+
+(defun execute-extended-command (prefixarg &optional command-name)
+  ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
+  ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
+  "Read function name, then read its arguments and call it.
+
+To pass a numeric argument to the command you are invoking with, specify
+the numeric argument to this command.
+
+Noninteractively, the argument PREFIXARG is the prefix argument to
+give to the command you invoke, if it asks for an argument."
+  (interactive (list current-prefix-arg (read-extended-command)))
+  ;; Emacs<24 calling-convention was with a single `prefixarg' argument.
+  (if (null command-name) (setq command-name (read-extended-command)))
+  (let* ((function (and (stringp command-name) (intern-soft command-name)))
+         (binding (and suggest-key-bindings
+                        (not executing-kbd-macro)
+                        (where-is-internal function overriding-local-map t))))
+    (unless (commandp function)
+      (error "`%s' is not a valid command name" command-name))
+    ;; Set this_command_keys to the concatenation of saved-keys and
+    ;; function, followed by a RET.
+    (setq this-command function)
+    (let ((prefix-arg prefixarg))
+      (command-execute function 'record))
+    ;; If enabled, show which key runs this command.
+    (when binding
+      ;; But first wait, and skip the message if there is input.
+      (let* ((waited
+              ;; If this command displayed something in the echo area;
+              ;; wait a few seconds, then display our suggestion message.
+              (sit-for (cond
+                        ((zerop (length (current-message))) 0)
+                        ((numberp suggest-key-bindings) suggest-key-bindings)
+                        (t 2)))))
+        (when (and waited (not (consp unread-command-events)))
+          (with-temp-message
+              (format "You can run the command `%s' with %s"
+                      function (key-description binding))
+            (sit-for (if (numberp suggest-key-bindings)
+                         suggest-key-bindings
+                       2))))))))
 
 (defvar minibuffer-history nil
   "Default minibuffer history list.
@@ -1415,7 +1465,7 @@ See also `minibuffer-history-case-insensitive-variables'."
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
 		   (car minibuffer-history-search-history)
-		 (error "No previous history search regexp"))
+		 (user-error "No previous history search regexp"))
 	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
   (unless (zerop n)
@@ -1441,9 +1491,9 @@ See also `minibuffer-history-case-insensitive-variables'."
 	(setq prevpos pos)
 	(setq pos (min (max 1 (+ pos (if (< n 0) -1 1))) (length history)))
 	(when (= pos prevpos)
-	  (error (if (= pos 1)
-		     "No later matching history item"
-		   "No earlier matching history item")))
+	  (user-error (if (= pos 1)
+                          "No later matching history item"
+                        "No earlier matching history item")))
 	(setq match-string
 	      (if (eq minibuffer-history-sexp-flag (minibuffer-depth))
 		  (let ((print-level nil))
@@ -1486,7 +1536,7 @@ makes the search case-sensitive."
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
 		   (car minibuffer-history-search-history)
-		 (error "No previous history search regexp"))
+		 (user-error "No previous history search regexp"))
 	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
   (previous-matching-history-element regexp (- n)))
@@ -1545,11 +1595,11 @@ The argument NABS specifies the absolute history position."
 	(setq minibuffer-text-before-history
 	      (minibuffer-contents-no-properties)))
     (if (< nabs minimum)
-	(if minibuffer-default
-	    (error "End of defaults; no next item")
-	  (error "End of history; no default available")))
+	(user-error (if minibuffer-default
+                        "End of defaults; no next item"
+                      "End of history; no default available")))
     (if (> nabs (length (symbol-value minibuffer-history-variable)))
-	(error "Beginning of history; no preceding item"))
+	(user-error "Beginning of history; no preceding item"))
     (unless (memq last-command '(next-history-element
 				 previous-history-element))
       (let ((prompt-end (minibuffer-prompt-end)))
@@ -1895,8 +1945,8 @@ Some change-hooks test this variable to do something different.")
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or (listp pending-undo-list)
-      (error (concat "No further undo information"
-		     (and undo-in-region " for region"))))
+      (user-error (concat "No further undo information"
+                          (and undo-in-region " for region"))))
   (let ((undo-in-progress t))
     ;; Note: The following, while pulling elements off
     ;; `pending-undo-list' will call primitive change functions which
@@ -1922,7 +1972,7 @@ If BEG and END are specified, then only undo elements
 that apply to text between BEG and END are used; other undo elements
 are ignored.  If BEG and END are nil, all undo elements are used."
   (if (eq buffer-undo-list t)
-      (error "No undo information in this buffer"))
+      (user-error "No undo information in this buffer"))
   (setq pending-undo-list
 	(if (and beg end (not (= beg end)))
 	    (undo-make-selective-list (min beg end) (max beg end))
@@ -3193,10 +3243,6 @@ move the yanking point; just return the Nth kill forward."
   "Non-nil means don't signal an error for killing read-only text."
   :type 'boolean
   :group 'killing)
-
-(put 'text-read-only 'error-conditions
-     '(text-read-only buffer-read-only error))
-(put 'text-read-only 'error-message (purecopy "Text is read-only"))
 
 (defun kill-region (beg end &optional yank-handler)
   "Kill (\"cut\") text between point and mark.

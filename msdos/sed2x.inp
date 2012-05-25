@@ -20,6 +20,5 @@
 /^#undef HAVE_X11 *$/s/undef/define/
 /^#undef HAVE_X_MENU *$/s/undef/define/
 /^#undef HAVE_XSCREENNUMBEROFSCREEN *$/s/undef/define/
-/^#undef HAVE_XSETWMPROTOCOLS *$/s/undef/define/
 /^#undef HAVE_SELECT *$/s/undef/define/
 

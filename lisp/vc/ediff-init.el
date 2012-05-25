@@ -786,19 +786,12 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
   "")
 
 
-(if (ediff-window-display-p)
-    (if (featurep 'xemacs)
-	(progn
-	  (defalias 'ediff-display-pixel-width 'device-pixel-width)
-	  (defalias 'ediff-display-pixel-height 'device-pixel-height))
-      (defalias 'ediff-display-pixel-width
-	(if (fboundp 'display-pixel-width)
-	    'display-pixel-width
-	  'x-display-pixel-width))
-      (defalias 'ediff-display-pixel-height
-	(if (fboundp 'display-pixel-height)
-	    'display-pixel-height
-	  'x-display-pixel-height))))
+(if (featurep 'xemacs)
+    (progn
+      (defalias 'ediff-display-pixel-width 'device-pixel-width)
+      (defalias 'ediff-display-pixel-height 'device-pixel-height))
+  (defalias 'ediff-display-pixel-width 'display-pixel-width)
+  (defalias 'ediff-display-pixel-height 'display-pixel-height))
 
 ;; A-list of current-diff-overlay symbols associated with buf types
 (defconst ediff-current-diff-overlay-alist
@@ -860,7 +853,11 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 
 (defface ediff-current-diff-A
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ffdddd")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#553333")
+	(((class color) (min-colors 16))
 	 (:foreground "firebrick" :background "pale green"))
 	(((class color))
 	 (:foreground "blue3" :background "yellow3"))
@@ -889,7 +886,11 @@ this variable represents.")
 
 (defface ediff-current-diff-B
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ddffdd")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#335533")
+	(((class color) (min-colors 16))
 	 (:foreground "DarkOrchid" :background "Yellow"))
 	(((class color))
 	 (:foreground "magenta3" :background "yellow3"
@@ -919,7 +920,11 @@ this variable represents.")
 
 (defface ediff-current-diff-C
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ffffaa")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#888833")
+	(((class color) (min-colors 16))
 	 (:foreground "Navy" :background "Pink"))
 	(((class color))
 	 (:foreground "cyan3" :background "yellow3" :weight bold))
@@ -975,7 +980,11 @@ this variable represents.")
 
 (defface ediff-fine-diff-A
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ffaaaa")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#aa2222")
+	(((class color) (min-colors 16))
 	 (:foreground "Navy" :background "sky blue"))
 	(((class color))
 	 (:foreground "white" :background "sky blue" :weight bold))
@@ -996,7 +1005,11 @@ this variable represents.")
 
 (defface ediff-fine-diff-B
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#aaffaa")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#22aa22")
+	(((class color) (min-colors 16))
 	 (:foreground "Black" :background "cyan"))
 	(((class color))
 	 (:foreground "magenta3" :background "cyan3"))
@@ -1017,7 +1030,11 @@ this variable represents.")
 
 (defface ediff-fine-diff-C
   (if (featurep 'emacs)
-      '((((type pc))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ffff55")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#aaaa22")
+	(((type pc))
 	 (:foreground "white" :background "Turquoise"))
 	(((class color) (min-colors 16))
 	 (:foreground "Black" :background "Turquoise"))

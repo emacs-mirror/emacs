@@ -331,7 +331,7 @@ you can do anything else in Emacs).  @xref{MS-DOS}.
   Just as you can run a compiler from Emacs and then visit the lines
 with compilation errors, you can also run @command{grep} and then
 visit the lines on which matches were found.  This works by treating
-the matches reported by @command{grep} as if they were ``errors.''
+the matches reported by @command{grep} as if they were ``errors''.
 The output buffer uses Grep mode, which is a variant of Compilation
 mode (@pxref{Compilation Mode}).
 
@@ -426,11 +426,11 @@ syntax checking tool used depends on the language; for example, for
 C/C++ files this is usually the C compiler.  Flymake can also use
 build tools such as @code{make} for checking complicated projects.
 
-  To enable Flymake mode, type @kbd{M-x flymake-mode}.  You can go to
-the errors found by Flymake mode with @kbd{M-x
-flymake-goto-next-error} and @kbd{M-x flymake-goto-prev-error}.  To
-display any error messages associated with the current line, use
-@kbd{M-x flymake-display-err-menu-for-current-line}.
+  To enable Flymake mode, type @kbd{M-x flymake-mode}.  You can jump to
+the errors that it finds by using @kbd{M-x
+flymake-goto-next-error} and @kbd{M-x flymake-goto-prev-error}.
+Use the command @kbd{M-x flymake-display-err-menu-for-current-line}
+to display any error messages associated with the current line.
 
   For more details about using Flymake,
 @ifnottex

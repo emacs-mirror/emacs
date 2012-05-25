@@ -1,4 +1,4 @@
-;;; vc-hg.el --- VC backend for the mercurial version control system
+;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
@@ -168,7 +168,7 @@ highlighting the Log View buffer."
 (defvar vc-hg-history nil)
 
 (defun vc-hg-revision-granularity () 'repository)
-(defun vc-hg-checkout-model (files) 'implicit)
+(defun vc-hg-checkout-model (_files) 'implicit)
 
 ;;; State querying functions
 
@@ -338,10 +338,8 @@ highlighting the Log View buffer."
 
 ;; Modeled after the similar function in vc-cvs.el
 (defun vc-hg-revision-completion-table (files)
-  (lexical-let ((files files)
-                table)
-    (setq table (lazy-completion-table
-                 table (lambda () (vc-hg-revision-table files))))
+  (letrec ((table (lazy-completion-table
+                   table (lambda () (vc-hg-revision-table files)))))
     table))
 
 (defun vc-hg-annotate-command (file buffer &optional revision)
@@ -377,12 +375,12 @@ Optional arg REVISION is a revision to annotate from."
 	      (expand-file-name (match-string-no-properties 4)
 				(vc-hg-root default-directory)))))))
 
-(defun vc-hg-previous-revision (file rev)
+(defun vc-hg-previous-revision (_file rev)
   (let ((newrev (1- (string-to-number rev))))
     (when (>= newrev 0)
       (number-to-string newrev))))
 
-(defun vc-hg-next-revision (file rev)
+(defun vc-hg-next-revision (_file rev)
   (let ((newrev (1+ (string-to-number rev)))
         (tip-revision
          (with-temp-buffer
@@ -408,7 +406,7 @@ Optional arg REVISION is a revision to annotate from."
   "Rename file from OLD to NEW using `hg mv'."
   (vc-hg-command nil 0 new "mv" old))
 
-(defun vc-hg-register (files &optional rev comment)
+(defun vc-hg-register (files &optional _rev _comment)
   "Register FILES under hg.
 REV is ignored.
 COMMENT is ignored."
@@ -438,7 +436,7 @@ COMMENT is ignored."
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
-(defun vc-hg-checkin (files rev comment)
+(defun vc-hg-checkin (files _rev comment)
   "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
   (apply 'vc-hg-command nil 0 files
@@ -455,7 +453,7 @@ REV is ignored."
       (vc-hg-command buffer 0 file "cat"))))
 
 ;; Modeled after the similar function in vc-bzr.el
-(defun vc-hg-checkout (file &optional editable rev)
+(defun vc-hg-checkout (file &optional _editable rev)
   "Retrieve a revision of FILE.
 EDITABLE is ignored.
 REV is the revision to check out into WORKFILE."
@@ -511,8 +509,7 @@ REV is the revision to check out into WORKFILE."
                'face 'font-lock-comment-face)))))
 
 (defun vc-hg-after-dir-status (update-function)
-  (let ((status-char nil)
-        (file nil)
+  (let ((file nil)
         (translation '((?= . up-to-date)
                        (?C . up-to-date)
                        (?A . added)
@@ -567,7 +564,7 @@ REV is the revision to check out into WORKFILE."
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))
 
-(defun vc-hg-dir-status-files (dir files default-state update-function)
+(defun vc-hg-dir-status-files (dir files _default-state update-function)
   (apply 'vc-hg-command (current-buffer) 'async dir "status" "-C" files)
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))

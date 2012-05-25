@@ -349,9 +349,9 @@ Must be greater than 1."
   :group 'ispell)
 
 (defcustom ispell-program-name
-  (or (locate-file "aspell"   exec-path exec-suffixes 'file-executable-p)
-      (locate-file "ispell"   exec-path exec-suffixes 'file-executable-p)
-      (locate-file "hunspell" exec-path exec-suffixes 'file-executable-p)
+  (or (executable-find "aspell")
+      (executable-find "ispell")
+      (executable-find "hunspell")
       "ispell")
   "Program invoked by \\[ispell-word] and \\[ispell-region] commands."
   :type 'string
@@ -909,7 +909,7 @@ Otherwise returns the library directory name, if that is defined."
 
 ;;;###autoload
 (defvar ispell-menu-map nil "Key map for ispell menu.")
-;;; redo menu when loading ispell to get dictionary modifications
+;; Redo menu when loading ispell to get dictionary modifications
 (setq ispell-menu-map nil)
 
 ;;;###autoload
@@ -1175,7 +1175,7 @@ The variable `ispell-library-directory' defines their location."
 	  (push name dict-list)))
     dict-list))
 
-;;; define commands in menu in opposite order you want them to appear.
+;; Define commands in menu in opposite order you want them to appear.
 ;;;###autoload
 (if ispell-menu-map-needed
     (progn
@@ -1184,7 +1184,8 @@ The variable `ispell-library-directory' defines their location."
 	`(menu-item ,(purecopy "Change Dictionary...") ispell-change-dictionary
 		    :help ,(purecopy "Supply explicit dictionary file name")))
       (define-key ispell-menu-map [ispell-kill-ispell]
-	`(menu-item ,(purecopy "Kill Process") ispell-kill-ispell
+	`(menu-item ,(purecopy "Kill Process")
+		    (lambda () (interactive) (ispell-kill-ispell nil 'clear))
 		    :enable (and (boundp 'ispell-process) ispell-process
 				 (eq (ispell-process-status) 'run))
 		    :help ,(purecopy "Terminate Ispell subprocess")))
@@ -1268,7 +1269,7 @@ The variable `ispell-library-directory' defines their location."
 	     ["Continue Check"	ispell-continue			t]
 	     ["Complete Word Frag"ispell-complete-word-interior-frag t]
 	     ["Complete Word"	ispell-complete-word		t]
-	     ["Kill Process"	ispell-kill-ispell		t]
+	     ["Kill Process"	(ispell-kill-ispell nil 'clear) t]
 	     ["Customize..."	(customize-group 'ispell)	t]
 	     ;; flyspell-mode may not be bound...
 	     ;;["flyspell"	flyspell-mode
@@ -1371,9 +1372,9 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 (defvar ispell-pdict-modified-p nil
   "Non-nil means personal dictionary has modifications to be saved.")
 
-;;; If you want to save the dictionary when quitting, must do so explicitly.
-;;; When non-nil, the spell session is terminated.
-;;; When numeric, contains cursor location in buffer, and cursor remains there.
+;; If you want to save the dictionary when quitting, must do so explicitly.
+;; When non-nil, the spell session is terminated.
+;; When numeric, contains cursor location in buffer, and cursor remains there.
 (defvar ispell-quit nil)
 
 (defvar ispell-process-directory nil
@@ -1537,6 +1538,11 @@ local variable syntax.")
   "Contains the buffer name if local word definitions were used.
 Ispell is then restarted because the local words could conflict.")
 
+(defvar ispell-buffer-session-localwords nil
+  "List of words accepted for session in this buffer.")
+
+(make-variable-buffer-local 'ispell-buffer-session-localwords)
+
 (defvar ispell-parser 'use-mode-name
   "Indicates whether ispell should parse the current buffer as TeX Code.
 Special value `use-mode-name' tries to guess using the name of `major-mode'.
@@ -1665,16 +1671,6 @@ This allows it to improve the suggestion list based on actual misspellings."
 			  (setq more-lines (= 0 (forward-line))))))))))))))
 
 
-;; Insert WORD while possibly translating characters by
-;; translation-table-for-input.
-(defun ispell-insert-word (word)
-  (let ((pos (point)))
-    (insert word)
-    ;; Avoid "obsolete" warnings for translation-table-for-input.
-    (with-no-warnings
-      (if (char-table-p translation-table-for-input)
-	  (translate-region pos (point) translation-table-for-input)))))
-
 ;;;###autoload
 (defun ispell-word (&optional following quietly continue region)
   "Check spelling of word under or before the cursor.
@@ -1787,7 +1783,7 @@ quit          spell session exited."
 			  ;; Insert first and then delete,
 			  ;; to avoid collapsing markers before and after
 			  ;; into a single place.
-			  (ispell-insert-word new-word)
+			  (insert new-word)
 			  (delete-region (point) end)
 			  ;; It is meaningless to preserve the cursor position
 			  ;; inside a word that has changed.
@@ -1878,10 +1874,10 @@ which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'."
       (list word start end))))
 
 
-;;; Global ispell-pdict-modified-p is set by ispell-command-loop and
-;;; tracks changes in the dictionary.  The global may either be
-;;; a value or a list, whose value is the state of whether the
-;;; dictionary needs to be saved.
+;; Global ispell-pdict-modified-p is set by ispell-command-loop and
+;; tracks changes in the dictionary.  The global may either be
+;; a value or a list, whose value is the state of whether the
+;; dictionary needs to be saved.
 
 ;;;###autoload
 (defun ispell-pdict-save (&optional no-query force-save)
@@ -2035,6 +2031,9 @@ Global `ispell-quit' set to start location to continue spell session."
 		    nil)
 		   ((or (= char ?a) (= char ?A)) ; accept word without insert
 		    (ispell-send-string (concat "@" word "\n"))
+		    (add-to-list 'ispell-buffer-session-localwords word)
+		    (or ispell-buffer-local-name ; session localwords might conflict
+			(setq ispell-buffer-local-name (buffer-name)))
 		    (if (null ispell-pdict-modified-p)
 			(setq ispell-pdict-modified-p
 			      (list ispell-pdict-modified-p)))
@@ -2417,8 +2416,8 @@ if defined."
 	  (setq start end))))))		; else move start to next line of input
 
 
-;;; This function destroys the mark location if it is in the word being
-;;; highlighted.
+;; This function destroys the mark location if it is in the word being
+;; highlighted.
 (defun ispell-highlight-spelling-error-generic (start end &optional highlight
 						      refresh)
   "Highlight the word from START to END with a kludge using `inverse-video'.
@@ -2550,7 +2549,7 @@ scrolling the current window.  Leave the new window selected."
       (set-window-start (next-window) top))))
 
 
-;;; Should we add a compound word match return value?
+;; Should we add a compound word match return value?
 (defun ispell-parse-output (output &optional accept-list shift)
   "Parse the OUTPUT string from Ispell process and return:
 1: t for an exact match.
@@ -2616,8 +2615,8 @@ When asynchronous processes are not supported, `run' is always returned."
 
 
 (defun ispell-start-process ()
-  "Start the ispell process, with support for no asynchronous processes.
-Keeps argument list for future ispell invocations for no async support."
+  "Start the Ispell process, with support for no asynchronous processes.
+Keeps argument list for future Ispell invocations for no async support."
   ;; Local dictionary becomes the global dictionary in use.
   (setq ispell-current-dictionary
         (or ispell-local-dictionary ispell-dictionary))
@@ -2780,21 +2779,24 @@ Keeps argument list for future ispell invocations for no async support."
 	      (process-kill-without-query ispell-process)))))))
 
 ;;;###autoload
-(defun ispell-kill-ispell (&optional no-error)
+(defun ispell-kill-ispell (&optional no-error clear)
   "Kill current Ispell process (so that you may start a fresh one).
-With NO-ERROR, just return non-nil if there was no Ispell running."
+With NO-ERROR, just return non-nil if there was no Ispell running.
+With CLEAR, buffer session localwords are cleaned."
   (interactive)
   ;; This hook is typically used by flyspell to flush some variables used
   ;; to optimize the common cases.
   (run-hooks 'ispell-kill-ispell-hook)
+  (if (or clear (interactive-p))
+      (setq ispell-buffer-session-localwords nil))
   (if (not (and ispell-process
 		(eq (ispell-process-status) 'run)))
       (or no-error
-	  (error "There is no ispell process running!"))
+	  (error "There is no Ispell process running!"))
     (if ispell-async-processp
 	(delete-process ispell-process)
-      ;; synchronous processes
-      (ispell-send-string "\n")		; make sure side effects occurred.
+      ;; Synchronous processes.
+      (ispell-send-string "\n")		; Make sure side effects occurred.
       (kill-buffer ispell-output-buffer)
       (kill-buffer ispell-session-buffer)
       (setq ispell-output-buffer nil
@@ -2803,8 +2805,8 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
     (message "Ispell process killed")
     nil))
 
-;;; ispell-change-dictionary is set in some people's hooks.  Maybe this should
-;;;  call ispell-init-process rather than wait for a spell checking command?
+;; ispell-change-dictionary is set in some people's hooks.  Maybe this should
+;;  call ispell-init-process rather than wait for a spell checking command?
 
 ;;;###autoload
 (defun ispell-change-dictionary (dict &optional arg)
@@ -2847,6 +2849,7 @@ By just answering RET you can find out what the current dictionary is."
 	       (setq ispell-local-dictionary-overridden t))
 	   (error "Undefined dictionary: %s" dict))
 	 (ispell-internal-change-dictionary)
+	 (setq ispell-buffer-session-localwords nil)
 	 (message "%s Ispell dictionary set to %s"
 		  (if arg "Global" "Local")
 		  dict))))
@@ -3277,7 +3280,7 @@ Returns the sum SHIFT due to changes in word replacements."
 	      (delete-region (point) (+ word-len (point)))
 	      (if (not (listp replace))
 		  (progn
-		    (ispell-insert-word replace) ; insert dictionary word
+		    (insert replace) ; insert dictionary word
 		    (ispell-send-replacement (car poss) replace)
 		    (setq accept-list (cons replace accept-list)))
 		(let ((replace-word (car replace)))
@@ -3408,6 +3411,7 @@ If optional INTERIOR-FRAG is non-nil then the word may be a character
 sequence inside of a word.
 
 Standard ispell choices are then available."
+  ;; FIXME: completion-at-point-function.
   (interactive "P")
   (let ((cursor-location (point))
 	(case-fold-search-val case-fold-search)
@@ -3451,7 +3455,7 @@ Standard ispell choices are then available."
 	     (setq word (if (atom replacement) replacement (car replacement))
 		   cursor-location (+ (- (length word) (- end start))
 				      cursor-location))
-	     (ispell-insert-word word)
+	     (insert word)
 	     (if (not (atom replacement)) ; recheck spelling of replacement.
 		 (progn
 		   (goto-char cursor-location)
@@ -3916,6 +3920,11 @@ Both should not be used to define a buffer-local dictionary."
   ;; Actually start a new ispell process, because we need
   ;; to send commands now to specify the local words to it.
   (ispell-init-process)
+  (dolist (session-localword ispell-buffer-session-localwords)
+    (ispell-send-string (concat "@" session-localword "\n")))
+  (or ispell-buffer-local-name
+      (if ispell-buffer-session-localwords
+	  (setq ispell-buffer-local-name (buffer-name))))
   (save-excursion
     (goto-char (point-min))
     (while (search-forward ispell-words-keyword nil t)
@@ -3935,7 +3944,7 @@ Both should not be used to define a buffer-local dictionary."
 	      (ispell-send-string (concat "@" string "\n"))))))))
 
 
-;;; returns optionally adjusted region-end-point.
+;; Returns optionally adjusted region-end-point.
 
 ;; If comment-padright is defined, newcomment must be loaded.
 (declare-function comment-add "newcomment" (arg))

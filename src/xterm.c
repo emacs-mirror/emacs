@@ -256,11 +256,7 @@ static Time last_user_time;
 /* Incremented by XTread_socket whenever it really tries to read
    events.  */
 
-#ifdef __STDC__
 static int volatile input_signal_count;
-#else
-static int input_signal_count;
-#endif
 
 /* Used locally within XTread_socket.  */
 
@@ -10146,7 +10142,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   /* Set the name of the terminal. */
   terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
-  strncpy (terminal->name, SSDATA (display_name), SBYTES (display_name));
+  memcpy (terminal->name, SSDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 
 #if 0

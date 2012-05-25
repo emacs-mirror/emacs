@@ -282,7 +282,9 @@ be determined."
 		  types nil)
 	  (setq types (cdr types)))))
     (goto-char opoint)
-    type))
+    (and type
+	 (memq type image-types)
+	 type)))
 
 
 ;;;###autoload

@@ -40,6 +40,7 @@ version = @version@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
+MKDIR_P = @MKDIR_P@
 # Don't use LIBS.  configure puts stuff in it that either shouldn't be
 # linked with Emacs or is duplicated by the other stuff below.
 # LIBS = @LIBS@
@@ -55,9 +56,8 @@ lwlibdir = ../lwlib
 lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
-M_FILE = @M_FILE@
 S_FILE = @S_FILE@
-config_h = config.h $(M_FILE) $(S_FILE)
+config_h = config.h $(S_FILE)
 
 bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
 
@@ -94,11 +94,9 @@ C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 ## substituted in this or any other Makefile. Cf C_SWITCH_X_SITE.
 LD_SWITCH_X_SITE=
 
-## Next two must come before LD_SWITCH_SYSTEM.
-## If needed, a -R option that says where to find X windows at run time.
-LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
-## As above, but using -rpath instead.
-LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
+## This must come before LD_SWITCH_SYSTEM.
+## If needed, a -rpath option that says where to find X windows at run time.
+LD_SWITCH_X_SITE_RPATH=@LD_SWITCH_X_SITE_RPATH@
 
 ## System-specific LDFLAGS.
 LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
@@ -286,7 +284,7 @@ CANNOT_DUMP=@CANNOT_DUMP@
 DEPDIR=deps
 ## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS=@DEPFLAGS@
-## test -d $(DEPDIR) || mkdir $(DEPDIR) (if AUTO_DEPEND); else ':'.
+## ${MKDIR_P} ${DEPDIR} (if AUTO_DEPEND); else ':'.
 MKDEPDIR=@MKDEPDIR@
 
 ## DO NOT use -R.  There is a special hack described in lastfile.c
@@ -535,10 +533,10 @@ extraclean: distclean
 ctagsfiles1 = [xyzXYZ]*.[hcm]
 ctagsfiles2 = [a-wA-W]*.[hcm]
 
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
+TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags

@@ -1,4 +1,4 @@
-;;; url.el --- Uniform Resource Locator retrieval tool
+;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1999, 2001, 2004-2012  Free Software Foundation, Inc.
 
@@ -125,7 +125,9 @@ variable in the original buffer as a forwarding pointer.")
 ;;;###autoload
 (defun url-retrieve (url callback &optional cbargs silent inhibit-cookies)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
-URL is either a string or a parsed URL.
+URL is either a string or a parsed URL.  If it is a string
+containing characters that are not valid in a URI, those
+characters are percent-encoded; see `url-encode-url'.
 
 CALLBACK is called when the object has been completely retrieved, with
 the current buffer containing the object, and any MIME headers associated
@@ -179,10 +181,8 @@ URL-encoded before it's used."
   (url-do-setup)
   (url-gc-dead-buffers)
   (if (stringp url)
-       (set-text-properties 0 (length url) nil url))
-  (when (multibyte-string-p url)
-    (let ((url-unreserved-chars (append '(?: ?/) url-unreserved-chars)))
-      (setq url (url-hexify-string url))))
+      (set-text-properties 0 (length url) nil url))
+  (setq url (url-encode-url url))
   (if (not (vectorp url))
       (setq url (url-generic-parse-url url)))
   (if (not (functionp callback))
@@ -225,8 +225,8 @@ associated with it (the case for dired, info, or mailto URLs that need
 no further processing).  URL is either a string or a parsed URL."
   (url-do-setup)
 
-  (lexical-let ((retrieval-done nil)
-		(asynch-buffer nil))
+  (let ((retrieval-done nil)
+        (asynch-buffer nil))
     (setq asynch-buffer
 	  (url-retrieve url (lambda (&rest ignored)
 			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))

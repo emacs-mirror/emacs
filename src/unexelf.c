@@ -506,11 +506,7 @@ typedef struct {
 #endif
 
 #ifndef ElfW
-# ifdef __STDC__
-#  define ElfBitsW(bits, type) Elf##bits##_##type
-# else
-#  define ElfBitsW(bits, type) Elf/**/bits/**/_/**/type
-# endif
+# define ElfBitsW(bits, type) Elf##bits##_##type
 # ifdef _LP64
 #  define ELFSIZE 64
 # else

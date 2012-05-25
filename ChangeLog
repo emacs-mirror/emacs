@@ -1,3 +1,296 @@
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* configure.in: Remove all mention of src/m/*.
+	(machine, machfile, M_FILE, config_machfile, and_machfile): Remove.
+	All uses removed.
+	(BITS_PER_CHAR, BITS_PER_SHORT, BITS_PER_INT, BITS_PER_LONG)
+	(BITS_PER_LONG_LONG): Move to src/lisp.h.
+	* lib/makefile.w32-in: Remove dependencies on
+	$(EMACS_ROOT)/src/m/intel386.h.
+	* make-dist: Don't make links to src/m.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ACLOCAL_INPUTS): Fix up gnulib-comp.m4 name.  (Bug#11529)
+	Without this further fix, aclocal was being invoked unnecessarily.
+
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (blessmail, install-arch-dep, uninstall):
+	Check cd lib-src works.
+	(install-arch-dep, uninstall): Remove unneeded subshells.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* update-subdirs: Move to build-aux/.
+	* make-dist, Makefile.in (install-arch-indep): Update for this change.
+
+	* Makefile.in (leimdir): New, set by configure.
+	(COPYDIR, COPYDESTS): Add leim directories.
+	(install-leim): Remove.
+	(install-arch-indep): Handle leim installation directly.
+
+	* vpath.sed: Remove unused file.
+	* make-dist: No more vpath.sed.
+
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use full name for m4/gnulib-comp.m4.  (Bug#11529)
+	Previously the file was named m4/gl-comp.m4 due to DOS 8+3 restrictions,
+	even though the file's name in gnulib is m4/gnulib-comp.m4.
+	This had a problem when merging from gnulib, as the code temporarily
+	renamed it to the full name, causing problems when interrupted.
+	Now the file has its full name, with the idea that we will find
+	a solution for MS-DOS that does not affect the rest of Emacs.
+	* m4/gnulib-comp.m4: Rename from m4/gl-comp.m4.
+
+	Assume C89 or later.
+	* configure.in (AC_C_PROTOTYPES, AC_C_VOLATILE, AC_C_CONST)
+	(POINTER_TYPE, PROTOTYPES): Remove.
+
+	Make merging from gnulib a script, not a makefile action.
+	Putting it in a makefile has some problems with reflection, as
+	merging from gnulib updates 'configure', which can update the makefile.
+	Putting it in a standalone script breaks this loop.
+	* Makefile.in (gnulib_srcdir, $(gnulib_srcdir), DOS_gnulib_comp.m4)
+	(GNULIB_MODULES, GNULIB_TOOL_FLAGS, sync-from-gnulib):
+	Remove, moving the actions to the script admin/merge-gnulib.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LEIM_INSTALLDIR):
+	Rename to leimdir, treat like lispdir.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep, install-doc, install-info)
+	(uninstall): Scrap superfluous subshells.
+
+2012-05-19  Ulrich Mueller  <ulm@gentoo.org>
+
+	* Makefile.in (install-etc): Respect DESTDIR.  (Bug#11518)
+
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (AC_CHECK_FUNCS): Remove XSetWMProtocols,
+	getdomainname, mblen (twice), mbrlen (twice), mbsinit, ualarm,
+	getsockopt, setsockopt, mremap, mempcpy.
+
+	* configure.in (machine): Do not set to 'vax', since src/m/vax.h
+	is being removed.
+	(AC_CHECK_FUNCS): Remove ftime.
+
+2012-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Remove unneeded subshell.
+
+	* Makefile.in (install-arch-indep): Remove unneeded chmod.
+	Set permissions of lisp/subdirs.el.
+
+	* Makefile.in (SUBDIR): Add leim.  Update users.
+
+	* Makefile.in (lib, lib-src, lisp): Check cd return value.
+
+	* Makefile.in (leim): No need to set PARALLEL.
+
+2012-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep, install-info, install-man):
+	Simplify some one-sided ifs.
+
+	* Makefile.in: Install only the relevant DOC file.
+	(install-arch-indep): Delete etc/DOC*.
+	(install-doc): No more need to delete etc/DOC.
+
+	* Makefile.in (install-arch-indep): Split into several rules.
+	(install-doc, innstall-info, install-man): New rules.
+
+	* configure.in (mandir): May as well include it in the NS app bundle.
+
+	* configure.in (INSTALL_ARCH_INDEP_EXTRA): New output variable.
+	* Makefile.in (INSTALL_ARCH_INDEP_EXTRA): New, set by configure.
+	(install-arch-indep): Don't install-etc for self-contained ns builds.
+
+	* configure.in (GCC_TEST_OPTIONS, NON_GCC_TEST_OPTIONS) <darwin>:
+	No longer unconditonally add /sw directories.  (Bug#2280)
+
+	* Makefile.in (install-arch-dep): Depend on install-arch-indep.
+	(install-arch-indep): Depend on install-leim.
+	(install): Remove explicit install-leim dependence.
+
+	* Makefile.in (install-arch-indep):
+	Move last element of mkdir rule here.
+	(mkdir): Remove rule.
+
+	* Makefile.in (install-arch-indep): Remove unneeded chmods.
+	INSTALL_DATA does this for us.
+
+	* Makefile.in (install-arch-dep): Ensure bindir exists.
+	Drop mkdir dependency.
+	(install-arch-indep): Ensure docdir, infodir, mandir exist.
+	(install-leim): Drop mkdir dependency.
+	(mkdir): Remove most directories, now made in relevant rules.
+
+	* Makefile.in (install-arch-indep): Combine adjacent loops.
+
+2012-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-etc, mkdir):
+	Make relevant directories in install-etc rather than mkdir.
+
+	* Makefile.in (write_subdir): Create the directory if needed.
+	(install-arch-dep, mkdir): No need to make site-lisp directories.
+
+	* Makefile.in (write_subdir): New.
+	(install-arch-indep, install-arch-dep): Use $write_subdir.
+
+	* configure.in (docdir, etcdir, infodir, lispdir):
+	For a self-contained ns build, set these to the appropriate values.
+	* Makefile.in (install-arch-dep): No need to move info/ any more.
+
+	* configure.in (ns_self_contained): New output variable.
+	* Makefile.in (ns_self_contained): New, set by configure.
+	(install-arch-dep): For a self-contained ns build,
+	don't bother installing binaries then immediately deleting them.
+
+	* Makefile.in (ns_appbindir, ns_appresdir):
+	Move them before things that may refer to them.
+	(install-arch-dep): No need to relocate self-contained ns libexec.
+
+	* configure.in (archlibdir): Set it for self-contained ns builds.
+	(libexecdir): Don't expand it now (this is mainly cosmetic).
+
+2012-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Simplify by removing CPP etc.
+	(CPP_TEST_OPTIONS, NON_GNU_CPP, cc_specified, SPECIFIED_CFLAGS)
+	(SPECIFED_CPP, CPP, NON_GNU_CC, AC_PROG_CPP): Remove; not needed.
+	In particular we no longer need to fiddle with CPP, since we don't
+	use CPP specially any more.
+	(gl_EARLY): Invoke this after adjusting CC, so that it uses the
+	adjusted compiler.
+	(AC_PROG_INSTALL, AC_PROG_MKDIR_P, AC_PROG_RANLIB): Comment out,
+	since gl_EARLY and/or Autoconf already does these.
+
+2012-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Try to fix building with gcc >= 4.6 on Darwin.
+	(CPP): Do not unconditionally set it on Darwin.
+	Instead, try to test if -no-cpp-precomp is accepted.
+	(CPP_TEST_OPTIONS, SPECIFIED_CPP): New.  (Bug#9755)
+
+2012-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-dep): Replace use of MV_DIRS.
+
+	* Makefile.in (install-arch-dep): Do not hard-code version number.
+
+	* Makefile.in (install-arch-dep): NS install no longer needs to
+	symlink libexec/* into bin/, since 2012-05-14 ns_init_paths change.
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (ns_appbindir): Remove trailing "/".
+
+	* configure.in (AC_PROG_MKDIR_P): Call it, to set MKDIR_P.
+	(MKDEPDIR): Use $MKDIR_P.
+	* Makefile.in (MKDIR_P): New, set by configure.
+	(mkdir): Use $MKDIR_P.
+
+2012-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): There are no more Makefile.c files.
+	Use INSTALL_DATA for the DOC file.
+	Remove dead code for ./lisp that never executes.
+
+2012-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LEIM_INSTALLDIR): New output variable.
+
+2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .dir-locals.el (log-edit-mode): Enable gnu-style checks.
+
+2012-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No more doc/lispref/*.el.
+
+2012-05-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Fix quoting bugs.
+
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (INFO_EXT, INFO_OPTS): New output variables.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LD_SWITCH_SYSTEM): Don't try to defeat
+	the choices made by FreeBSD and NetBSD.  (Bug#10313)
+
+	* Makefile.in (INFO_FILES): Remove variable.
+	(INFO_NONMISC): New variable.
+	(install-arch-indep, uninstall): Don't use $INFO_FILES.
+
+	* Makefile.in (uninstall): Remove useless-use-of-for; that for
+	some reason caused problems on an old Solaris.
+
+	* Makefile.in (install-arch-indep, uninstall):
+	Ensure that INSTALL-type commands are run from top-level.
+
+	* info/dir: Make some entries consistent with the source texi files.
+
+	* configure.in (LIBS_TERMCAP): Fix netbsd logic, broken 2012-03-04.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep):
+	Combine adjacent install-data and install-info loops.
+
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAN_PAGES): Remove.
+	(install-arch-indep, uninstall): Don't use $MAN_PAGES.
+
+	* configure.in: Try libtinfo for tputs.
+	(LIBS_TERMCAP) [gnu*]: Use libtinfo if it was found.  (Bug#9741)
+
+	* configure.in: Combine adjacent $opsys case blocks.
+
+	* configure.in (LIBS_TERMCAP): Remove unreachable branch for sol2.
+
+	* configure.in: Invert the TERMINFO logic,
+	since "yes" is far more common than "no".
+
+	* configure.in (HAVE_LIBNCURSES): Remove; it is required to be true.
+
+	* configure.in (LD_SWITCH_X_SITE_RPATH):
+	Rename from LD_SWITCH_X_SITE_AUX_RPATH.
+
+	* configure.in (LD_SWITCH_X_SITE_AUX): Remove; no longer used.
+
+2012-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No more doc/lispref/tindex.pl.
+
+2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in (dbus_validate_bus_name, dbus_validate_path)
+	(dbus_validate_interface, dbus_validate_member): Check also for
+	these library functions
+
+2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (doug_lea_malloc): Check for __malloc_initialize_hook.
+	With glibc 2.14 or later, when compiled with GCC 4.7.0's
+	-Werror=deprecated-declarations flag, use of hooks like
+	__malloc_initialize_hook causes compilation to fail because these
+	hooks are deprecated.  Modify 'configure' to check for these hooks too.
+	Simplify the 'configure' code to test for all the hooks at once.
+	(emacs_cv_var___after_morecore_hook): Remove, replacing with ...
+	(emacs_cv_var_doug_lea_malloc): ... this new var.
+
 2012-04-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Sync from gnulib version 4f11d6bebc3098c64ffde27079ab0d0cecfd0cdc

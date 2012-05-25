@@ -93,8 +93,8 @@ order, returning the result of the final form.
 @end example
 @end defspec
 
-  Two other control constructs likewise evaluate a series of forms but return
-a different value:
+  Two other constructs likewise evaluate a series of forms but return
+different values:
 
 @defspec prog1 form1 forms@dots{}
 This special form evaluates @var{form1} and all of the @var{forms}, in
@@ -159,8 +159,8 @@ If @var{condition} has the value @code{nil}, and no @var{else-forms} are
 given, @code{if} returns @code{nil}.
 
 @code{if} is a special form because the branch that is not selected is
-never evaluated---it is ignored.  Thus, in the example below,
-@code{true} is not printed because @code{print} is never called.
+never evaluated---it is ignored.  Thus, in this example,
+@code{true} is not printed because @code{print} is never called:
 
 @example
 @group
@@ -220,7 +220,7 @@ non-@code{nil}, the clause ``succeeds''; then @code{cond} evaluates its
 @var{body-forms}, and the value of the last of @var{body-forms} becomes
 the value of the @code{cond}.  The remaining clauses are ignored.
 
-If the value of @var{condition} is @code{nil}, the clause ``fails,'' so
+If the value of @var{condition} is @code{nil}, the clause ``fails'', so
 the @code{cond} moves on to the following clause, trying its
 @var{condition}.
 
@@ -257,9 +257,7 @@ clauses was successful.  To do this, we use @code{t} as the
 @var{condition} of the last clause, like this: @code{(t
 @var{body-forms})}.  The form @code{t} evaluates to @code{t}, which is
 never @code{nil}, so this clause never fails, provided the @code{cond}
-gets to it at all.
-
-For example,
+gets to it at all.  For example:
 
 @example
 @group
@@ -622,7 +620,7 @@ error is signaled with data @code{(@var{tag} @var{value})}.
 @subsection Examples of @code{catch} and @code{throw}
 
   One way to use @code{catch} and @code{throw} is to exit from a doubly
-nested loop.  (In most languages, this would be done with a ``goto.'')
+nested loop.  (In most languages, this would be done with a ``goto''.)
 Here we compute @code{(foo @var{i} @var{j})} for @var{i} and @var{j}
 varying from 0 to 9:
 
@@ -811,10 +809,10 @@ handlers that handle the error: @code{condition-case} binds a local
 variable to a list of the form @code{(@var{error-symbol} .@:
 @var{data})} (@pxref{Handling Errors}).
 
-The function @code{signal} never returns (though in older Emacs versions
-it could sometimes return).
+The function @code{signal} never returns.
+@c (though in older Emacs versions it sometimes could).
 
-@smallexample
+@example
 @group
 (signal 'wrong-number-of-arguments '(x y))
      @error{} Wrong number of arguments: x, y
@@ -824,7 +822,7 @@ it could sometimes return).
 (signal 'no-such-error '("My unknown error condition"))
      @error{} peculiar error: "My unknown error condition"
 @end group
-@end smallexample
+@end example
 @end defun
 
 @cindex CL note---no continuable errors
@@ -990,7 +988,7 @@ to allow the debugger to run before the handler); @var{body} is one or more
 Lisp expressions to be executed when this handler handles an error.
 Here are examples of handlers:
 
-@smallexample
+@example
 @group
 (error nil)
 
@@ -1000,7 +998,7 @@ Here are examples of handlers:
  (message
   "Either division by zero or failure to open a file"))
 @end group
-@end smallexample
+@end example
 
 Each error that occurs has an @dfn{error symbol} that describes what
 kind of error it is.  The @code{error-conditions} property of this
@@ -1033,9 +1031,9 @@ Sometimes it is necessary to re-throw a signal caught by
 @code{condition-case}, for some outer-level handler to catch.  Here's
 how to do that:
 
-@smallexample
+@example
   (signal (car err) (cdr err))
-@end smallexample
+@end example
 
 @noindent
 where @code{err} is the error description variable, the first argument
@@ -1054,7 +1052,7 @@ Here is an example of using @code{condition-case} to handle the error
 that results from dividing by zero.  The handler displays the error
 message (but without a beep), then returns a very large number.
 
-@smallexample
+@example
 @group
 (defun safe-divide (dividend divisor)
   (condition-case err
@@ -1075,22 +1073,24 @@ message (but without a beep), then returns a very large number.
      @print{} Arithmetic error: (arith-error)
 @result{} 1000000
 @end group
-@end smallexample
+@end example
 
 @noindent
-The handler specifies condition name @code{arith-error} so that it will handle only division-by-zero errors.  Other kinds of errors will not be handled, at least not by this @code{condition-case}.  Thus,
+The handler specifies condition name @code{arith-error} so that it
+will handle only division-by-zero errors.  Other kinds of errors will
+not be handled (by this @code{condition-case}).  Thus:
 
-@smallexample
+@example
 @group
 (safe-divide nil 3)
      @error{} Wrong type argument: number-or-marker-p, nil
 @end group
-@end smallexample
+@end example
 
   Here is a @code{condition-case} that catches all kinds of errors,
-including those signaled with @code{error}:
+including those from @code{error}:
 
-@smallexample
+@example
 @group
 (setq baz 34)
      @result{} 34
@@ -1108,7 +1108,7 @@ including those signaled with @code{error}:
 @print{} The error was: (error "Rats!  The variable baz was 34, not 35")
 @result{} 2
 @end group
-@end smallexample
+@end example
 
 @defmac ignore-errors body@dots{}
 This construct executes @var{body}, ignoring any errors that occur
@@ -1119,12 +1119,12 @@ otherwise, it returns @code{nil}.
 Here's the example at the beginning of this subsection rewritten using
 @code{ignore-errors}:
 
-@smallexample
+@example
 @group
   (ignore-errors
    (delete-file filename))
 @end group
-@end smallexample
+@end example
 @end defmac
 
 @defmac with-demoted-errors body@dots{}
@@ -1279,7 +1279,7 @@ Variables}).
   For example, here we make an invisible buffer for temporary use, and
 make sure to kill it before finishing:
 
-@smallexample
+@example
 @group
 (let ((buffer (get-buffer-create " *temp*")))
   (with-current-buffer buffer
@@ -1287,7 +1287,7 @@ make sure to kill it before finishing:
         @var{body-form}
       (kill-buffer buffer))))
 @end group
-@end smallexample
+@end example
 
 @noindent
 You might think that we could just as well write @code{(kill-buffer
@@ -1312,7 +1312,7 @@ is protected with a form that guarantees deletion of the process in the
 event of failure.  Otherwise, Emacs might fill up with useless
 subprocesses.
 
-@smallexample
+@example
 @group
 (let ((win nil))
   (unwind-protect
@@ -1323,7 +1323,7 @@ subprocesses.
           (error "Ftp login failed")))
     (or win (and process (delete-process process)))))
 @end group
-@end smallexample
+@end example
 
   This example has a small bug: if the user types @kbd{C-g} to
 quit, and the quit happens immediately after the function

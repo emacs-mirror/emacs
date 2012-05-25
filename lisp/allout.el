@@ -1403,19 +1403,21 @@ their settings before allout-mode was started."
      ,expr))
 ;;;_   = allout-mode-hook
 (defvar allout-mode-hook nil
-  "Hook that's run when allout mode starts.")
+  "Hook run when allout mode starts.")
 ;;;_   = allout-mode-deactivate-hook
-(defvar allout-mode-deactivate-hook nil
-  "Hook that's run when allout mode ends.")
 (define-obsolete-variable-alias 'allout-mode-deactivate-hook
   'allout-mode-off-hook "24.1")
+(defvar allout-mode-deactivate-hook nil
+  "Hook run when allout mode ends.")
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
-;;;_   = allout-exposure-change-hook
-(defvar allout-exposure-change-hook nil
-  "Hook that's run after allout outline subtree exposure changes.
 
+;;;_   = allout-exposure-change-functions
+(define-obsolete-variable-alias 'allout-exposure-change-hook
+  'allout-exposure-change-functions "24.2")
+(defcustom allout-exposure-change-functions nil
+  "Abnormal hook run after allout outline subtree exposure changes.
 It is run at the conclusion of `allout-flag-region'.
 
 Functions on the hook must take three arguments:
@@ -1424,21 +1426,31 @@ Functions on the hook must take three arguments:
  - TO -- integer indicating the point of the end of the change.
  - FLAG -- change mode: nil for exposure, otherwise concealment.
 
-This hook might be invoked multiple times by a single command.")
-;;;_   = allout-structure-added-hook
-(defvar allout-structure-added-hook nil
-  "Hook that's run after addition of items to the outline.
+This hook might be invoked multiple times by a single command."
+  :type 'hook
+  :group 'allout
+  :version "24.2")
 
+;;;_   = allout-structure-added-functions
+(define-obsolete-variable-alias 'allout-structure-added-hook
+  'allout-structure-added-functions "24.2")
+(defcustom allout-structure-added-functions nil
+  "Abnormal hook run after adding items to an Allout outline.
 Functions on the hook should take two arguments:
 
  - NEW-START -- integer indicating position of start of the first new item.
  - NEW-END -- integer indicating position of end of the last new item.
 
-This hook might be invoked multiple times by a single command.")
-;;;_   = allout-structure-deleted-hook
-(defvar allout-structure-deleted-hook nil
-  "Hook that's run after disciplined deletion of subtrees from the outline.
+This hook might be invoked multiple times by a single command."
+  :type 'hook
+  :group 'allout
+  :version "24.2")
 
+;;;_   = allout-structure-deleted-functions
+(define-obsolete-variable-alias 'allout-structure-deleted-hook
+  'allout-structure-deleted-functions "24.2")
+(defcustom allout-structure-deleted-functions nil
+  "Abnormal hook run after deleting subtrees from an Allout outline.
 Functions on the hook must take two arguments:
 
  - DEPTH -- integer indicating the depth of the subtree that was deleted.
@@ -1447,11 +1459,16 @@ Functions on the hook must take two arguments:
 Some edits that remove or invalidate items may be missed by this hook:
 specifically edits that native allout routines do not control.
 
-This hook might be invoked multiple times by a single command.")
-;;;_   = allout-structure-shifted-hook
-(defvar allout-structure-shifted-hook nil
-  "Hook that's run after shifting of items in the outline.
+This hook might be invoked multiple times by a single command."
+  :type 'hook
+  :group 'allout
+  :version "24.2")
 
+;;;_   = allout-structure-shifted-functions
+(define-obsolete-variable-alias 'allout-structure-shifted-hook
+  'allout-structure-shifted-functions "24.2")
+(defcustom allout-structure-shifted-functions nil
+  "Abnormal hook run after shifting items in an Allout outline.
 Functions on the hook should take two arguments:
 
  - DEPTH-CHANGE -- integer indicating depth increase, negative for decrease
@@ -1460,20 +1477,27 @@ Functions on the hook should take two arguments:
 Some edits that shift items can be missed by this hook: specifically edits
 that native allout routines do not control.
 
-This hook might be invoked multiple times by a single command.")
+This hook might be invoked multiple times by a single command."
+  :type 'hook
+  :group 'allout
+  :version "24.2")
+
 ;;;_   = allout-after-copy-or-kill-hook
-(defvar allout-after-copy-or-kill-hook nil
-  "Hook that's run after copying outline text.
+(defcustom allout-after-copy-or-kill-hook nil
+  "Normal hook run after copying outline text.."
+  :type 'hook
+  :group 'allout
+  :version "24.2")
 
-Functions on the hook should not require any arguments.")
 ;;;_   = allout-post-undo-hook
-(defvar allout-post-undo-hook nil
-  "Hook that's run after undo activity.
-
+(defcustom allout-post-undo-hook nil
+  "Normal hook run after undo activity.
 The item that's current when the hook is run *may* be the one
-that was affected by the undo.
+that was affected by the undo.."
+  :type 'hook
+  :group 'allout
+  :version "24.2")
 
-Functions on the hook should not require any arguments.")
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
   "Value of `normal-auto-fill-function' outside of allout mode.
@@ -1883,10 +1907,10 @@ without changes to the allout core.  Here are key ones:
 `allout-mode-hook'
 `allout-mode-deactivate-hook' (deprecated)
 `allout-mode-off-hook'
-`allout-exposure-change-hook'
-`allout-structure-added-hook'
-`allout-structure-deleted-hook'
-`allout-structure-shifted-hook'
+`allout-exposure-change-functions'
+`allout-structure-added-functions'
+`allout-structure-deleted-functions'
+`allout-structure-shifted-functions'
 `allout-after-copy-or-kill-hook'
 `allout-post-undo-hook'
 
@@ -3845,7 +3869,7 @@ Nuances:
                           (allout-show-children)))
       (end-of-line)
 
-      (run-hook-with-args 'allout-structure-added-hook start end)
+      (run-hook-with-args 'allout-structure-added-functions start end)
       )
     )
   )
@@ -3970,7 +3994,7 @@ Note that refill of indented paragraphs is not done."
 						nil	;;; number-control
 						nil	;;; index
 						t)	;;; do-successors
-                      (run-hook-with-args 'allout-exposure-change-hook
+                      (run-hook-with-args 'allout-exposure-change-functions
                                           from to t))
       (setq arg (1- arg))
       (if (<= arg 0)
@@ -4071,7 +4095,7 @@ this function."
                (not (allout-encrypted-topic-p)))
 	  (allout-reindent-body current-depth new-depth))
 
-      (run-hook-with-args 'allout-exposure-change-hook mb me nil)
+      (run-hook-with-args 'allout-exposure-change-functions mb me nil)
 
       ;; Recursively rectify successive siblings of orig topic if
       ;; caller elected for it:
@@ -4333,7 +4357,7 @@ the file can be adjusted to any positive depth, however."
                   (allout-show-children))))))
     (let ((where (point)))
       (allout-rebullet-topic 1 (and (> arg 1) 'sans-offspring))
-      (run-hook-with-args 'allout-structure-shifted-hook arg where))))
+      (run-hook-with-args 'allout-structure-shifted-functions arg where))))
 ;;;_    > allout-shift-out (arg)
 (defun allout-shift-out (arg)
   "Decrease depth of current heading and any topics collapsed within it.
@@ -4373,7 +4397,7 @@ subtopics into siblings of the item."
                   (goto-char child-point)
                   (allout-shift-out 1))))
           (allout-rebullet-topic (* arg -1))))
-      (run-hook-with-args 'allout-structure-shifted-hook (* arg -1) where))))
+      (run-hook-with-args 'allout-structure-shifted-functions (* arg -1) where))))
 ;;;_   : Surgery (kill-ring) functions with special provisions for outlines:
 ;;;_    > allout-kill-line (&optional arg)
 (defun allout-kill-line (&optional arg)
@@ -4408,7 +4432,7 @@ subtopics into siblings of the item."
               (if (not (save-match-data (looking-at allout-regexp)))
                   (allout-next-heading))
               (allout-renumber-to-depth depth)))
-        (run-hook-with-args 'allout-structure-deleted-hook depth (point))))))
+        (run-hook-with-args 'allout-structure-deleted-functions depth (point))))))
 ;;;_    > allout-copy-line-as-kill ()
 (defun allout-copy-line-as-kill ()
   "Like `allout-kill-topic', but save to kill ring instead of deleting."
@@ -4456,7 +4480,7 @@ Topic exposure is marked with text-properties, to be used by
 
       (save-excursion
         (allout-renumber-to-depth depth))
-      (run-hook-with-args 'allout-structure-deleted-hook depth (point)))))
+      (run-hook-with-args 'allout-structure-deleted-functions depth (point)))))
 ;;;_    > allout-copy-topic-as-kill ()
 (defun allout-copy-topic-as-kill ()
   "Like `allout-kill-topic', but save to kill ring instead of deleting."
@@ -4668,7 +4692,7 @@ however, are left exactly like normal, non-allout-specific yanks."
         (allout-deannotate-hidden (allout-mark-marker t) (point)))
       (if (not resituate)
           (exchange-point-and-mark))
-      (run-hook-with-args 'allout-structure-added-hook subj-beg subj-end))))
+      (run-hook-with-args 'allout-structure-added-functions subj-beg subj-end))))
 ;;;_    > allout-yank (&optional arg)
 (defun allout-yank (&optional arg)
   "`allout-mode' yank, with depth and numbering adjustment of yanked topics.
@@ -4765,9 +4789,9 @@ by pops to non-distinctive yanks.  Bug..."
 ;;;_   > allout-flag-region (from to flag)
 (defun allout-flag-region (from to flag)
   "Conceal text between FROM and TO if FLAG is non-nil, else reveal it.
-
-Exposure-change hook `allout-exposure-change-hook' is run with the same
-arguments as this function, after the exposure changes are made."
+After the exposure changes are made, run the abnormal hook
+`allout-exposure-change-functions' with the same arguments as
+this function."
 
   ;; We use outline invisibility spec.
   (remove-overlays from to 'category 'allout-exposure-category)
@@ -4783,7 +4807,7 @@ arguments as this function, after the exposure changes are made."
                 (overlay-put o (pop props) (pop props))
               (error nil))))))
     (setq allout-this-command-hid-text t))
-  (run-hook-with-args 'allout-exposure-change-hook from to flag))
+  (run-hook-with-args 'allout-exposure-change-functions from to flag))
 ;;;_   > allout-flag-current-subtree (flag)
 (defun allout-flag-current-subtree (flag)
   "Conceal currently-visible topic's subtree if FLAG non-nil, else reveal it."
@@ -6022,7 +6046,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
           (allout-inhibit-auto-save-info-for-decryption was-buffer-saved-size)
         (allout-maybe-resume-auto-save-info-after-encryption))
 
-      (run-hook-with-args 'allout-structure-added-hook
+      (run-hook-with-args 'allout-structure-added-functions
                           bullet-pos subtree-end))))
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer keymode-cue
 ;;;                                 &optional rejected)

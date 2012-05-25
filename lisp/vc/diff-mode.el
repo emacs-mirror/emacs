@@ -107,8 +107,7 @@ when editing big diffs)."
 ;;;;
 
 (easy-mmode-defmap diff-mode-shared-map
-  '(;; From Pavel Machek's patch-mode.
-    ("n" . diff-hunk-next)
+  '(("n" . diff-hunk-next)
     ("N" . diff-file-next)
     ("p" . diff-hunk-prev)
     ("P" . diff-file-prev)
@@ -116,27 +115,17 @@ when editing big diffs)."
     ([backtab] . diff-hunk-prev)
     ("k" . diff-hunk-kill)
     ("K" . diff-file-kill)
-    ;; From compilation-minor-mode.
-    ("}" . diff-file-next)
+    ("}" . diff-file-next)	; From compilation-minor-mode.
     ("{" . diff-file-prev)
     ("\C-m" . diff-goto-source)
     ([mouse-2] . diff-goto-source)
-    ;; From XEmacs's diff-mode.
     ("W" . widen)
-    ;;("." . diff-goto-source)		;display-buffer
-    ;;("f" . diff-goto-source)		;find-file
-    ("o" . diff-goto-source)		;other-window
-    ;;("w" . diff-goto-source)		;other-frame
-    ;;("N" . diff-narrow)
-    ;;("h" . diff-show-header)
-    ;;("j" . diff-show-difference)	;jump to Nth diff
-    ;;("q" . diff-quit)
-    ;; Not useful if you have to metafy them.
-    ;;(" " . scroll-up)
-    ;;("\177" . scroll-down)
+    ("o" . diff-goto-source)	; other-window
     ("A" . diff-ediff-patch)
     ("r" . diff-restrict-view)
-    ("R" . diff-reverse-direction))
+    ("R" . diff-reverse-direction)
+    ("/" . diff-undo)
+    ([remap undo] . diff-undo))
   "Basic keymap for `diff-mode', bound to various prefix keys."
   :inherit special-mode-map)
 
@@ -248,10 +237,8 @@ well."
      :background "grey80")
     (((class color) (min-colors 88) (background dark))
      :background "grey45")
-    (((class color) (background light))
+    (((class color))
      :foreground "blue1" :weight bold)
-    (((class color) (background dark))
-     :foreground "green" :weight bold)
     (t :weight bold))
   "`diff-mode' face inherited by hunk and index header faces."
   :group 'diff-mode)
@@ -263,9 +250,7 @@ well."
      :background "grey70" :weight bold)
     (((class color) (min-colors 88) (background dark))
      :background "grey60" :weight bold)
-    (((class color) (background light))
-     :foreground "green" :weight bold)
-    (((class color) (background dark))
+    (((class color))
      :foreground "cyan" :weight bold)
     (t :weight bold))			; :height 1.3
   "`diff-mode' face used to highlight file header lines."
@@ -288,14 +273,28 @@ well."
 (defvar diff-hunk-header-face 'diff-hunk-header)
 
 (defface diff-removed
-  '((t :inherit diff-changed))
+  '((default
+     :inherit diff-changed)
+    (((class color) (min-colors 88) (background light))
+     :background "#ffdddd")
+    (((class color) (min-colors 88) (background dark))
+     :background "#553333")
+    (((class color))
+     :foreground "red"))
   "`diff-mode' face used to highlight removed lines."
   :group 'diff-mode)
 (define-obsolete-face-alias 'diff-removed-face 'diff-removed "22.1")
 (defvar diff-removed-face 'diff-removed)
 
 (defface diff-added
-  '((t :inherit diff-changed))
+  '((default
+     :inherit diff-changed)
+    (((class color) (min-colors 88) (background light))
+     :background "#ddffdd")
+    (((class color) (min-colors 88) (background dark))
+     :background "#335533")
+    (((class color))
+     :foreground "green"))
   "`diff-mode' face used to highlight added lines."
   :group 'diff-mode)
 (define-obsolete-face-alias 'diff-added-face 'diff-added "22.1")
@@ -307,10 +306,8 @@ well."
   '((((class color grayscale) (min-colors 88)))
     ;; If the terminal lacks sufficient colors for shadowing,
     ;; highlight changed lines explicitly.
-    (((class color) (background light))
-     :foreground "magenta" :weight bold :slant italic)
-    (((class color) (background dark))
-     :foreground "yellow" :weight bold :slant italic))
+    (((class color))
+     :foreground "yellow"))
   "`diff-mode' face used to highlight changed lines."
   :group 'diff-mode)
 (define-obsolete-face-alias 'diff-changed-face 'diff-changed "22.1")
@@ -385,6 +382,13 @@ well."
 (defconst diff-context-mid-hunk-header-re
   "--- \\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)? ----$")
 
+(defvar diff-use-changed-face (and (face-differs-from-default-p diff-changed-face)
+				   (not (face-equal diff-changed-face diff-added-face))
+				   (not (face-equal diff-changed-face diff-removed-face)))
+  "If non-nil, use the face `diff-changed' for changed lines in context diffs.
+Otherwise, use the face `diff-removed' for removed lines,
+and the face `diff-added' for added lines.")
+
 (defvar diff-font-lock-keywords
   `((,(concat "\\(" diff-hunk-header-re-unified "\\)\\(.*\\)$")
      (1 diff-hunk-header-face) (6 diff-function-face))
@@ -404,8 +408,25 @@ well."
     ("^\\([+>]\\)\\(.*\n\\)"
      (1 diff-indicator-added-face) (2 diff-added-face))
     ("^\\(!\\)\\(.*\n\\)"
-     (1 diff-indicator-changed-face) (2 diff-changed-face))
-    ("^Index: \\(.+\\).*\n"
+     (1 (if diff-use-changed-face
+	    diff-indicator-changed-face
+	  ;; Otherwise, search for `diff-context-mid-hunk-header-re' and
+	  ;; if the line of context diff is above, use `diff-removed-face';
+	  ;; if below, use `diff-added-face'.
+	  (save-match-data
+	    (let ((limit (save-excursion (diff-beginning-of-hunk))))
+	      (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
+		  diff-indicator-added-face
+		diff-indicator-removed-face)))))
+     (2 (if diff-use-changed-face
+	    diff-changed-face
+	  ;; Otherwise, use the same method as above.
+	  (save-match-data
+	    (let ((limit (save-excursion (diff-beginning-of-hunk))))
+	      (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
+		  diff-added-face
+		diff-removed-face))))))
+    ("^\\(?:Index\\|revno\\): \\(.+\\).*\n"
      (0 diff-header-face) (1 diff-index-face prepend))
     ("^Only in .*\n" . diff-nonexistent-face)
     ("^\\(#\\)\\(.*\\)"
@@ -445,6 +466,7 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
   style)
 
 (defun diff-end-of-hunk (&optional style donttrustheader)
+  "Advance to the end of the current hunk, and return its position."
   (let (end)
     (when (looking-at diff-hunk-header-re)
       ;; Especially important for unified (because headers are ambiguous).
@@ -492,19 +514,21 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
     (goto-char (or end (point-max)))))
 
 (defun diff-beginning-of-hunk (&optional try-harder)
-  "Move back to beginning of hunk.
-If TRY-HARDER is non-nil, try to cater to the case where we're not in a hunk
-but in the file header instead, in which case move forward to the first hunk."
+  "Move back to the previous hunk beginning, and return its position.
+If point is in a file header rather than a hunk, advance to the
+next hunk if TRY-HARDER is non-nil; otherwise signal an error."
   (beginning-of-line)
-  (unless (looking-at diff-hunk-header-re)
+  (if (looking-at diff-hunk-header-re)
+      (point)
     (forward-line 1)
     (condition-case ()
 	(re-search-backward diff-hunk-header-re)
       (error
-       (if (not try-harder)
-           (error "Can't find the beginning of the hunk")
-         (diff-beginning-of-file-and-junk)
-         (diff-hunk-next))))))
+       (unless try-harder
+	 (error "Can't find the beginning of the hunk"))
+       (diff-beginning-of-file-and-junk)
+       (diff-hunk-next)
+       (point)))))
 
 (defun diff-unified-hunk-p ()
   (save-excursion
@@ -547,44 +571,72 @@ but in the file header instead, in which case move forward to the first hunk."
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-file)
 
+(defun diff-bounds-of-hunk ()
+  "Return the bounds of the diff hunk at point.
+The return value is a list (BEG END), which are the hunk's start
+and end positions.  Signal an error if no hunk is found.  If
+point is in a file header, return the bounds of the next hunk."
+  (save-excursion
+    (let ((pos (point))
+	  (beg (diff-beginning-of-hunk t))
+	  (end (diff-end-of-hunk)))
+      (cond ((>= end pos)
+	     (list beg end))
+	    ;; If this hunk ends above POS, consider the next hunk.
+	    ((re-search-forward diff-hunk-header-re nil t)
+	     (list (match-beginning 0) (diff-end-of-hunk)))
+	    (t (error "No hunk found"))))))
+
+(defun diff-bounds-of-file ()
+  "Return the bounds of the file segment at point.
+The return value is a list (BEG END), which are the segment's
+start and end positions."
+  (save-excursion
+    (let ((pos (point))
+	  (beg (progn (diff-beginning-of-file-and-junk)
+		      (point))))
+      (diff-end-of-file)
+      ;; bzr puts a newline after the last hunk.
+      (while (looking-at "^\n")
+	(forward-char 1))
+      (if (> pos (point))
+	  (error "Not inside a file diff"))
+      (list beg (point)))))
+
 (defun diff-restrict-view (&optional arg)
   "Restrict the view to the current hunk.
 If the prefix ARG is given, restrict the view to the current file instead."
   (interactive "P")
-  (save-excursion
-    (if arg (diff-beginning-of-file) (diff-beginning-of-hunk 'try-harder))
-    (narrow-to-region (point)
-		      (progn (if arg (diff-end-of-file) (diff-end-of-hunk))
-			     (point)))
-    (set (make-local-variable 'diff-narrowed-to) (if arg 'file 'hunk))))
-
+  (apply 'narrow-to-region
+	 (if arg (diff-bounds-of-file) (diff-bounds-of-hunk)))
+  (set (make-local-variable 'diff-narrowed-to) (if arg 'file 'hunk)))
 
 (defun diff-hunk-kill ()
-  "Kill current hunk."
+  "Kill the hunk at point."
   (interactive)
-  (diff-beginning-of-hunk)
-  (let* ((start (point))
-         ;; Search the second match, since we're looking at the first.
-	 (nexthunk (when (re-search-forward diff-hunk-header-re nil t 2)
-		     (match-beginning 0)))
-	 (firsthunk (ignore-errors
-		      (goto-char start)
-		      (diff-beginning-of-file) (diff-hunk-next) (point)))
-	 (nextfile (ignore-errors (diff-file-next) (point)))
+  (let* ((hunk-bounds (diff-bounds-of-hunk))
+	 (file-bounds (ignore-errors (diff-bounds-of-file)))
+	 ;; If the current hunk is the only one for its file, kill the
+	 ;; file header too.
+	 (bounds (if (and file-bounds
+			  (progn (goto-char (car file-bounds))
+				 (= (progn (diff-hunk-next) (point))
+				    (car hunk-bounds)))
+			  (progn (goto-char (cadr hunk-bounds))
+				 ;; bzr puts a newline after the last hunk.
+				 (while (looking-at "^\n")
+				   (forward-char 1))
+				 (= (point) (cadr file-bounds))))
+		     file-bounds
+		   hunk-bounds))
 	 (inhibit-read-only t))
-    (goto-char start)
-    (if (and firsthunk (= firsthunk start)
-	     (or (null nexthunk)
-		 (and nextfile (> nexthunk nextfile))))
-	;; It's the only hunk for this file, so kill the file.
-	(diff-file-kill)
-      (diff-end-of-hunk)
-      (kill-region start (point)))))
+    (apply 'kill-region bounds)
+    (goto-char (car bounds))))
 
 ;; "index ", "old mode", "new mode", "new file mode" and
 ;; "deleted file mode" are output by git-diff.
 (defconst diff-file-junk-re
-  "diff \\|index \\|\\(?:deleted file\\|new\\(?: file\\)?\\|old\\) mode")
+  "diff \\|index \\|\\(?:deleted file\\|new\\(?: file\\)?\\|old\\) mode\\|=== modified file")
 
 (defun diff-beginning-of-file-and-junk ()
   "Go to the beginning of file-related diff-info.
@@ -636,13 +688,8 @@ data such as \"Index: ...\" and such."
 (defun diff-file-kill ()
   "Kill current file's hunks."
   (interactive)
-  (let ((orig (point))
-        (start (progn (diff-beginning-of-file-and-junk) (point)))
-	 (inhibit-read-only t))
-    (diff-end-of-file)
-    (if (looking-at "^\n") (forward-char 1)) ;`tla' generates such diffs.
-    (if (> orig (point)) (error "Not inside a file diff"))
-    (kill-region start (point))))
+  (let ((inhibit-read-only t))
+    (apply 'kill-region (diff-bounds-of-file))))
 
 (defun diff-kill-junk ()
   "Kill spurious empty diffs."
@@ -678,7 +725,7 @@ data such as \"Index: ...\" and such."
   (interactive)
   (beginning-of-line)
   (let ((pos (point))
-	(start (progn (diff-beginning-of-hunk) (point))))
+	(start (diff-beginning-of-hunk)))
     (unless (looking-at diff-hunk-header-re-unified)
       (error "diff-split-hunk only works on unified context diffs"))
     (forward-line 1)
@@ -1283,11 +1330,7 @@ a diff with \\[diff-reverse-direction].
   (set (make-local-variable 'end-of-defun-function)
        'diff-end-of-file)
 
-  ;; Set up `whitespace-mode' so that turning it on will show trailing
-  ;; whitespace problems on the modified lines of the diff.
-  (set (make-local-variable 'whitespace-style) '(face trailing))
-  (set (make-local-variable 'whitespace-trailing-regexp)
-       "^[-\+!<>].*?\\([\t ]+\\)$")
+  (diff-setup-whitespace)
 
   (setq buffer-read-only diff-default-read-only)
   ;; setup change hooks
@@ -1331,6 +1374,22 @@ the mode if ARG is omitted or nil.
     (add-hook 'post-command-hook 'diff-post-command-hook nil t)))
 
 ;;; Handy hook functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun diff-setup-whitespace ()
+  "Set up Whitespace mode variables for the current Diff mode buffer.
+This sets `whitespace-style' and `whitespace-trailing-regexp' so
+that Whitespace mode shows trailing whitespace problems on the
+modified lines of the diff."
+  (set (make-local-variable 'whitespace-style) '(face trailing))
+  (let ((style (save-excursion
+		 (goto-char (point-min))
+		 (when (re-search-forward diff-hunk-header-re nil t)
+		   (goto-char (match-beginning 0))
+		   (diff-hunk-style)))))
+    (set (make-local-variable 'whitespace-trailing-regexp)
+	 (if (eq style 'context)
+	     "^[-\+!] .*?\\([\t ]+\\)$"
+	   "^[-\+!<>].*?\\([\t ]+\\)$"))))
 
 (defun diff-delete-if-empty ()
   ;; An empty diff file means there's no more diffs to integrate, so we
@@ -1588,8 +1647,7 @@ SWITCHED is non-nil if the patch is already applied.
 NOPROMPT, if non-nil, means not to prompt the user."
   (save-excursion
     (let* ((other (diff-xor other-file diff-jump-to-old-file))
-	   (char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
-                                          (point))))
+	   (char-offset (- (point) (diff-beginning-of-hunk t)))
            ;; Check that the hunk is well-formed.  Otherwise diff-mode and
            ;; the user may disagree on what constitutes the hunk
            ;; (e.g. because an empty line truncates the hunk mid-course),
@@ -1776,8 +1834,7 @@ For use in `add-log-current-defun-function'."
 (defun diff-ignore-whitespace-hunk ()
   "Re-diff the current hunk, ignoring whitespace differences."
   (interactive)
-  (let* ((char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
-                                        (point))))
+  (let* ((char-offset (- (point) (diff-beginning-of-hunk t)))
 	 (opts (case (char-after) (?@ "-bu") (?* "-bc") (t "-b")))
 	 (line-nb (and (or (looking-at "[^0-9]+\\([0-9]+\\)")
 			   (error "Can't find line number"))
@@ -1822,16 +1879,34 @@ For use in `add-log-current-defun-function'."
 
 (defface diff-refine-change
   '((((class color) (min-colors 88) (background light))
-     :background "grey85")
+     :background "#ffff55")
     (((class color) (min-colors 88) (background dark))
-     :background "grey60")
-    (((class color) (background light))
-     :background "yellow")
-    (((class color) (background dark))
-     :background "green")
-    (t :weight bold))
+     :background "#aaaa22")
+    (t :inverse-video t))
   "Face used for char-based changes shown by `diff-refine-hunk'."
   :group 'diff-mode)
+
+(defface diff-refine-removed
+  '((default
+     :inherit diff-refine-change)
+    (((class color) (min-colors 88) (background light))
+     :background "#ffaaaa")
+    (((class color) (min-colors 88) (background dark))
+     :background "#aa2222"))
+  "Face used for removed characters shown by `diff-refine-hunk'."
+  :group 'diff-mode
+  :version "24.2")
+
+(defface diff-refine-added
+  '((default
+     :inherit diff-refine-change)
+    (((class color) (min-colors 88) (background light))
+     :background "#aaffaa")
+    (((class color) (min-colors 88) (background dark))
+     :background "#22aa22"))
+  "Face used for added characters shown by `diff-refine-hunk'."
+  :group 'diff-mode
+  :version "24.2")
 
 (defun diff-refine-preproc ()
   (while (re-search-forward "^[+>]" nil t)
@@ -1846,18 +1921,20 @@ For use in `add-log-current-defun-function'."
   )
 
 (declare-function smerge-refine-subst "smerge-mode"
-                  (beg1 end1 beg2 end2 props &optional preproc))
+                  (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a))
 
 (defun diff-refine-hunk ()
   "Highlight changes of hunk at point at a finer granularity."
   (interactive)
   (require 'smerge-mode)
   (save-excursion
-    (diff-beginning-of-hunk 'try-harder)
+    (diff-beginning-of-hunk t)
     (let* ((start (point))
            (style (diff-hunk-style))    ;Skips the hunk header as well.
            (beg (point))
-           (props '((diff-mode . fine) (face diff-refine-change)))
+           (props-c '((diff-mode . fine) (face diff-refine-change)))
+           (props-r '((diff-mode . fine) (face diff-refine-removed)))
+           (props-a '((diff-mode . fine) (face diff-refine-added)))
            ;; Be careful to go back to `start' so diff-end-of-hunk gets
            ;; to read the hunk header's line info.
            (end (progn (goto-char start) (diff-end-of-hunk) (point))))
@@ -1871,7 +1948,7 @@ For use in `add-log-current-defun-function'."
                                    end t)
            (smerge-refine-subst (match-beginning 0) (match-end 1)
                                 (match-end 1) (match-end 0)
-                                props 'diff-refine-preproc)))
+                                nil 'diff-refine-preproc props-r props-a)))
         (context
          (let* ((middle (save-excursion (re-search-forward "^---")))
                 (other middle))
@@ -1883,15 +1960,23 @@ For use in `add-log-current-defun-function'."
                                     (setq other (match-end 0))
                                     (match-beginning 0))
                                   other
-                                  props 'diff-refine-preproc))))
+                                  (if diff-use-changed-face props-c)
+                                  'diff-refine-preproc
+                                  (unless diff-use-changed-face props-r)
+                                  (unless diff-use-changed-face props-a)))))
         (t ;; Normal diffs.
          (let ((beg1 (1+ (point))))
            (when (re-search-forward "^---.*\n" end t)
              ;; It's a combined add&remove, so there's something to do.
              (smerge-refine-subst beg1 (match-beginning 0)
                                   (match-end 0) end
-                                  props 'diff-refine-preproc))))))))
+                                  nil 'diff-refine-preproc props-r props-a))))))))
 
+(defun diff-undo (&optional arg)
+  "Perform `undo', ignoring the buffer's read-only status."
+  (interactive "P")
+  (let ((inhibit-read-only t))
+    (undo arg)))
 
 (defun diff-add-change-log-entries-other-window ()
   "Iterate through the current diff and create ChangeLog entries.

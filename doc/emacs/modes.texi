@@ -65,8 +65,7 @@ process (@pxref{Interactive Shell}).
 first visit a file or create a buffer (@pxref{Choosing Modes}).  You
 can explicitly select a new major mode by using an @kbd{M-x} command.
 Take the name of the mode and add @code{-mode} to get the name of the
-command to select that mode.  Thus, you can enter Lisp mode with
-@kbd{M-x lisp-mode}.
+command to select that mode (e.g., @kbd{M-x lisp-mode} enters Lisp mode).
 
 @vindex major-mode
   The value of the buffer-local variable @code{major-mode} is a symbol
@@ -81,9 +80,9 @@ change this default value via the Customization interface (@pxref{Easy
 Customization}), or by adding a line like this to your init file
 (@pxref{Init File}):
 
-@smallexample
+@example
 (setq-default major-mode 'text-mode)
-@end smallexample
+@end example
 
 @noindent
 If the default value of @code{major-mode} is @code{nil}, the major
@@ -216,8 +215,7 @@ in individual buffers.  @xref{Faces}.
 @findex linum-mode
 @cindex Linum mode
 @item
-Linum mode displays each line's line number in the window's left
-margin.  Its mode command is @code{linum-mode}.
+Linum mode displays each line's line number in the window's left margin.
 
 @item
 Outline minor mode provides similar facilities to the major mode

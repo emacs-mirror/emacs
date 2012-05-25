@@ -1,3 +1,63 @@
+2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-win.el (gnus-configure-frame): Don't signal an error when
+	jumping to *Server* from a dedicated *Group* window.
+	(gnus-configure-frame): CSE.
+
+	* gnus-registry.el: Minor style cleanup.
+	(gnus-registry--set/remove-mark): New function, extracted from
+	gnus-registry-install-shortcuts.
+	(gnus-registry-install-shortcuts): Use it.
+
+2012-05-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnspool.el (news-path): Use eval-and-compile.
+
+2012-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* nnspool.el (news-directory, news-path, news-inews-program):
+	Move here from paths.el.  Don't see a need for these to be autoloaded.
+
+	* gnus.el (gnus-default-nntp-server): Make it a defcustom.
+	Merge in doc from paths.el version.  Don't see any need for this to be
+	autoloaded, or for the warning about users not setting it.
+
+2012-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor Y10k bug.
+	* nnweb.el (nnweb-google-parse-1): Don't assume years have 4 digits.
+
+2012-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-open-connection-1): Don't leave an "opening..."
+	message once it's actually open.
+
+2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* auth-source.el (auth-source--aput-1, auth-source--aput)
+	(auth-source--aget): New functions and macros.
+	Use them instead of aput/aget.
+
+2012-04-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnus.el (debbugs-gnu): Don't override existing autoload definition.
+
+2012-04-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el (plstore-called-interactively-p): New compat macro copied
+	from message.el.
+	(plstore-mode): Use it.
+
+2012-04-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el: Revive the editing feature.
+	(plstore-mode): New mode to edit plstore file.
+	(plstore-mode-toggle-display, plstore-mode-original)
+	(plstore-mode-decoded): New command.
+	(plstore--encode, plstore--decode, plstore--write-contents-functions)
+	(plstore--insert-buffer, plstore--make): New function.
+	(plstore-open, plstore-save): Simplify by using them.
+
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* nndraft.el (nndraft-request-list): Fix declaration.
@@ -22619,7 +22679,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004-2012  Free Software Foundation, Inc.
+  Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

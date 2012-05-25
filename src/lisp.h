@@ -41,25 +41,36 @@ extern void check_cons_list (void);
    Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
 /* #undef WIDE_EMACS_INT */
 
-/* These are default choices for the types to use.  */
+/* EMACS_INT - signed integer wide enough to hold an Emacs value
+   EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if
+   pI - printf length modifier for EMACS_INT
+   EMACS_UINT - unsigned variant of EMACS_INT */
 #ifndef EMACS_INT
-# if BITS_PER_LONG < BITS_PER_LONG_LONG && defined WIDE_EMACS_INT
+# if LONG_MAX < LLONG_MAX && defined WIDE_EMACS_INT
 #  define EMACS_INT long long
-#  define BITS_PER_EMACS_INT BITS_PER_LONG_LONG
+#  define EMACS_INT_MAX LLONG_MAX
 #  define pI "ll"
-# elif BITS_PER_INT < BITS_PER_LONG
+# elif INT_MAX < LONG_MAX
 #  define EMACS_INT long
-#  define BITS_PER_EMACS_INT BITS_PER_LONG
+#  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
 # else
 #  define EMACS_INT int
-#  define BITS_PER_EMACS_INT BITS_PER_INT
+#  define EMACS_INT_MAX INT_MAX
 #  define pI ""
 # endif
 #endif
-#ifndef EMACS_UINT
-# define EMACS_UINT unsigned EMACS_INT
-#endif
+#define EMACS_UINT unsigned EMACS_INT
+
+/* Number of bits in some machine integer types.  */
+enum
+  {
+    BITS_PER_CHAR      = CHAR_BIT,
+    BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
+    BITS_PER_INT       = CHAR_BIT * sizeof (int),
+    BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
+    BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
+  };
 
 /* printmax_t and uprintmax_t are types for printing large integers.
    These are the widest integers that are supported for printing.
@@ -164,13 +175,13 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
 
-#ifndef GCTYPEBITS
 #define GCTYPEBITS 3
-#endif
-
-#ifndef VALBITS
 #define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
-#endif
+
+/* The maximum value that can be stored in a EMACS_INT, assuming all
+   bits other than the type bits contribute to a nonnegative signed value.
+   This can be used in #if, e.g., '#if VAL_MAX < UINTPTR_MAX' below.  */
+#define VAL_MAX (EMACS_INT_MAX >> (GCTYPEBITS - 1))
 
 #ifndef NO_DECL_ALIGN
 # ifndef DECL_ALIGN
@@ -195,12 +206,12 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
      || defined DARWIN_OS || defined __sun)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
-/* On hosts where VALBITS is greater than the pointer width in bits,
+/* On hosts where pointers-as-ints do not exceed VAL_MAX,
    USE_LSB_TAG is:
     a. unnecessary, because the top bits of an EMACS_INT are unused, and
     b. slower, because it typically requires extra masking.
    So, define USE_LSB_TAG only on hosts where it might be useful.  */
-#  if UINTPTR_MAX >> VALBITS != 0
+#  if VAL_MAX < UINTPTR_MAX
 #   define USE_LSB_TAG
 #  endif
 # endif
@@ -474,10 +485,11 @@ enum pvec_type
      (var) = (type) | (intptr_t) (ptr))
 
 #define XPNTR(a) ((intptr_t) ((a) & ~TYPEMASK))
+#define XUNTAG(a, type) ((intptr_t) ((a) - (type)))
 
 #else  /* not USE_LSB_TAG */
 
-#define VALMASK ((((EMACS_INT) 1) << VALBITS) - 1)
+#define VALMASK VAL_MAX
 
 /* One need to override this if there must be high bits set in data space
    (doing the result of the below & ((1 << (GCTYPE + 1)) - 1) would work
@@ -580,6 +592,13 @@ extern Lisp_Object make_number (EMACS_INT);
 # define XSETFASTINT(a, b) (XSETINT (a, b))
 #endif
 
+/* Extract the pointer value of the Lisp object A, under the
+   assumption that A's type is TYPE.  This is a fallback
+   implementation if nothing faster is available.  */
+#ifndef XUNTAG
+# define XUNTAG(a, type) XPNTR (a)
+#endif
+
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 
 /* Number of bits in a fixnum, including the sign bit.  */
@@ -612,15 +631,20 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 /* Extract a value or address from a Lisp_Object.  */
 
-#define XCONS(a) (eassert (CONSP (a)), (struct Lisp_Cons *) XPNTR (a))
-#define XVECTOR(a) (eassert (VECTORLIKEP (a)), (struct Lisp_Vector *) XPNTR (a))
-#define XSTRING(a) (eassert (STRINGP (a)), (struct Lisp_String *) XPNTR (a))
-#define XSYMBOL(a) (eassert (SYMBOLP (a)), (struct Lisp_Symbol *) XPNTR (a))
-#define XFLOAT(a) (eassert (FLOATP (a)), (struct Lisp_Float *) XPNTR (a))
+#define XCONS(a)   (eassert (CONSP (a)), \
+		    (struct Lisp_Cons *) XUNTAG (a, Lisp_Cons))
+#define XVECTOR(a) (eassert (VECTORLIKEP (a)), \
+		    (struct Lisp_Vector *) XUNTAG (a, Lisp_Vectorlike))
+#define XSTRING(a) (eassert (STRINGP (a)), \
+		    (struct Lisp_String *) XUNTAG (a, Lisp_String))
+#define XSYMBOL(a) (eassert (SYMBOLP (a)), \
+		    (struct Lisp_Symbol *) XUNTAG (a, Lisp_Symbol))
+#define XFLOAT(a)  (eassert (FLOATP (a)), \
+		    (struct Lisp_Float *) XUNTAG (a, Lisp_Float))
 
 /* Misc types.  */
 
-#define XMISC(a)   ((union Lisp_Misc *) XPNTR (a))
+#define XMISC(a)	((union Lisp_Misc *) XUNTAG (a, Lisp_Misc))
 #define XMISCANY(a)	(eassert (MISCP (a)), &(XMISC (a)->u_any))
 #define XMISCTYPE(a)   (XMISCANY (a)->type)
 #define XMARKER(a)	(eassert (MARKERP (a)), &(XMISC (a)->u_marker))
@@ -640,14 +664,24 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 /* Pseudovector types.  */
 
-#define XPROCESS(a) (eassert (PROCESSP (a)), (struct Lisp_Process *) XPNTR (a))
-#define XWINDOW(a) (eassert (WINDOWP (a)), (struct window *) XPNTR (a))
-#define XTERMINAL(a) (eassert (TERMINALP (a)), (struct terminal *) XPNTR (a))
-#define XSUBR(a) (eassert (SUBRP (a)), (struct Lisp_Subr *) XPNTR (a))
-#define XBUFFER(a) (eassert (BUFFERP (a)), (struct buffer *) XPNTR (a))
-#define XCHAR_TABLE(a) (eassert (CHAR_TABLE_P (a)), (struct Lisp_Char_Table *) XPNTR (a))
-#define XSUB_CHAR_TABLE(a) (eassert (SUB_CHAR_TABLE_P (a)), (struct Lisp_Sub_Char_Table *) XPNTR (a))
-#define XBOOL_VECTOR(a) (eassert (BOOL_VECTOR_P (a)), (struct Lisp_Bool_Vector *) XPNTR (a))
+#define XPROCESS(a) (eassert (PROCESSP (a)), \
+		     (struct Lisp_Process *) XUNTAG (a, Lisp_Vectorlike))
+#define XWINDOW(a) (eassert (WINDOWP (a)), \
+		    (struct window *) XUNTAG (a, Lisp_Vectorlike))
+#define XTERMINAL(a) (eassert (TERMINALP (a)), \
+		      (struct terminal *) XUNTAG (a, Lisp_Vectorlike))
+#define XSUBR(a) (eassert (SUBRP (a)), \
+		  (struct Lisp_Subr *) XUNTAG (a, Lisp_Vectorlike))
+#define XBUFFER(a) (eassert (BUFFERP (a)), \
+		    (struct buffer *) XUNTAG (a, Lisp_Vectorlike))
+#define XCHAR_TABLE(a) (eassert (CHAR_TABLE_P (a)), \
+			(struct Lisp_Char_Table *) XUNTAG (a, Lisp_Vectorlike))
+#define XSUB_CHAR_TABLE(a) (eassert (SUB_CHAR_TABLE_P (a)), \
+			    ((struct Lisp_Sub_Char_Table *) \
+			     XUNTAG (a, Lisp_Vectorlike)))
+#define XBOOL_VECTOR(a) (eassert (BOOL_VECTOR_P (a)), \
+			 ((struct Lisp_Bool_Vector *) \
+			  XUNTAG (a, Lisp_Vectorlike)))
 
 /* Construct a Lisp_Object from a value or address.  */
 
@@ -674,7 +708,9 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 /* The cast to struct vectorlike_header * avoids aliasing issues.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
   XSETTYPED_PSEUDOVECTOR(a, b,       \
-			 ((struct vectorlike_header *) XPNTR (a))->size, \
+			 (((struct vectorlike_header *)	\
+			   XUNTAG (a, Lisp_Vectorlike)) \
+			  ->size),			\
 			 code)
 #define XSETTYPED_PSEUDOVECTOR(a, b, size, code)			\
   (XSETVECTOR (a, b),							\
@@ -1282,7 +1318,7 @@ struct Lisp_Hash_Table
 
 
 #define XHASH_TABLE(OBJ) \
-     ((struct Lisp_Hash_Table *) XPNTR (OBJ))
+     ((struct Lisp_Hash_Table *) XUNTAG (OBJ, Lisp_Vectorlike))
 
 #define XSET_HASH_TABLE(VAR, PTR) \
      (XSETPSEUDOVECTOR (VAR, PTR, PVEC_HASH_TABLE))
@@ -1748,7 +1784,7 @@ typedef struct {
    code is CODE.  */
 #define TYPED_PSEUDOVECTORP(x, t, code)				\
   (VECTORLIKEP (x)						\
-   && (((((struct t *) XPNTR (x))->size				\
+   && (((((struct t *) XUNTAG (x, Lisp_Vectorlike))->size	\
 	 & (PSEUDOVECTOR_FLAG | (code))))			\
        == (PSEUDOVECTOR_FLAG | (code))))
 
@@ -2409,7 +2445,7 @@ extern Lisp_Object Qerror, Qquit, Qargs_out_of_range;
 extern Lisp_Object Qvoid_variable, Qvoid_function;
 extern Lisp_Object Qinvalid_read_syntax;
 extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
-extern Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
+extern Lisp_Object Quser_error, Qend_of_file, Qarith_error, Qmark_inactive;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 extern Lisp_Object Qtext_read_only;
 extern Lisp_Object Qinteractive_form;
@@ -2788,7 +2824,7 @@ extern int pos_visible_p (struct window *, ptrdiff_t, int *,
 extern void syms_of_xsettings (void);
 
 /* Defined in vm-limit.c.  */
-extern void memory_warnings (POINTER_TYPE *, void (*warnfun) (const char *));
+extern void memory_warnings (void *, void (*warnfun) (const char *));
 
 /* Defined in alloc.c */
 extern void check_pure_size (void);
@@ -3604,9 +3640,9 @@ extern int initialized;
 
 extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
-extern POINTER_TYPE *xmalloc (size_t);
-extern POINTER_TYPE *xrealloc (POINTER_TYPE *, size_t);
-extern void xfree (POINTER_TYPE *);
+extern void *xmalloc (size_t);
+extern void *xrealloc (void *, size_t);
+extern void xfree (void *);
 extern void *xnmalloc (ptrdiff_t, ptrdiff_t);
 extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t);
 extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);

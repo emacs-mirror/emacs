@@ -200,8 +200,12 @@ init_gnutls_functions (Lisp_Object libraries)
 
   max_log_level = global_gnutls_log_level;
 
-  GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
-	       SDATA (Fget (Qgnutls_dll, QCloaded_from)));
+  {
+    Lisp_Object name = CAR_SAFE (Fget (Qgnutls_dll, QCloaded_from));
+    GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
+                 STRINGP (name) ? (const char *) SDATA (name) : "unknown");
+  }
+
   return 1;
 }
 
@@ -419,7 +423,7 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, ptrdiff_t nbyte)
         {
           proc->gnutls_handshakes_tried++;
           emacs_gnutls_handshake (proc);
-          GNUTLS_LOG2i (5, log_level, "Retried handshake", 
+          GNUTLS_LOG2i (5, log_level, "Retried handshake",
                         proc->gnutls_handshakes_tried);
           return -1;
         }

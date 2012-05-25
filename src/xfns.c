@@ -136,7 +136,7 @@ char *gray_bitmap_bits = gray_bits;
 
 /* Nonzero if using X.  */
 
-static int x_in_use;
+int x_in_use;
 
 static Lisp_Object Qnone;
 static Lisp_Object Qsuppress_icon;
@@ -2439,7 +2439,6 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   /* Do some needed geometry management.  */
   {
-    ptrdiff_t len;
     char *tem, shell_position[sizeof "=x++" + 4 * INT_STRLEN_BOUND (int)];
     Arg gal[10];
     int gac = 0;
@@ -2508,13 +2507,11 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
         }
     }
 
-    len = strlen (shell_position) + 1;
     /* We don't free this because we don't know whether
        it is safe to free it while the frame exists.
        It isn't worth the trouble of arranging to free it
        when the frame is deleted.  */
-    tem = (char *) xmalloc (len);
-    strncpy (tem, shell_position, len);
+    tem = (char *) xstrdup (shell_position);
     XtSetArg (gal[gac], XtNgeometry, tem); gac++;
     XtSetValues (shell_widget, gal, gac);
   }

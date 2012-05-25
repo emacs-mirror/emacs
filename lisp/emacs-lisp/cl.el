@@ -120,6 +120,7 @@ a future Emacs interpreter will be able to use it.")
   "Increment PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the incremented value of PLACE."
+  (declare (debug (place &optional form)))
   (if (symbolp place)
       (list 'setq place (if x (list '+ place x) (list '1+ place)))
     (list 'callf '+ place (or x 1))))
@@ -128,6 +129,7 @@ The return value is the incremented value of PLACE."
   "Decrement PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the decremented value of PLACE."
+  (declare (debug incf))
   (if (symbolp place)
       (list 'setq place (if x (list '- place x) (list '1- place)))
     (list 'callf '- place (or x 1))))
@@ -140,6 +142,7 @@ The return value is the decremented value of PLACE."
 Analogous to (prog1 (car PLACE) (setf PLACE (cdr PLACE))), though more
 careful about evaluating each argument only once and in the right order.
 PLACE may be a symbol, or any generalized variable allowed by `setf'."
+  (declare (debug (place)))
   (if (symbolp place)
       (list 'car (list 'prog1 place (list 'setq place (list 'cdr place))))
     (cl-do-pop place)))
@@ -149,6 +152,7 @@ PLACE may be a symbol, or any generalized variable allowed by `setf'."
 Analogous to (setf PLACE (cons X PLACE)), though more careful about
 evaluating each argument only once and in the right order.  PLACE may
 be a symbol, or any generalized variable allowed by `setf'."
+  (declare (debug (form place)))
   (if (symbolp place) (list 'setq place (list 'cons x place))
     (list 'callf2 'cons x place)))
 
@@ -158,6 +162,10 @@ Like (push X PLACE), except that the list is unmodified if X is `eql' to
 an element already on the list.
 \nKeywords supported:  :test :test-not :key
 \n(fn X PLACE [KEYWORD VALUE]...)"
+  (declare (debug
+            (form place &rest
+                  &or [[&or ":test" ":test-not" ":key"] function-form]
+                  [keywordp form])))
   (if (symbolp place)
       (if (null keys)
  	  `(let ((x ,x))
@@ -304,7 +312,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.
     (while (>= (decf i) 0) (setq v (+ (* v 3) (aref time i))))
     v))
 
-(defvar *gensym-counter* (* (logand (cl-random-time) 1023) 100))
+(defvar cl--gensym-counter (* (logand (cl-random-time) 1023) 100))
 
 
 ;;; Numbers.
@@ -331,7 +339,7 @@ always returns nil."
   "Return t if INTEGER is even."
   (eq (logand integer 1) 0))
 
-(defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
+(defvar cl--random-state (vector 'cl-random-state-tag -1 30 (cl-random-time)))
 
 (defconst most-positive-float nil
   "The largest value that a Lisp float can hold.
@@ -608,7 +616,7 @@ Otherwise, return LIST unmodified.
 	 (if (memq cl-item cl-list) cl-list (cons cl-item cl-list)))
 	((or (equal cl-keys '(:test equal)) (null cl-keys))
 	 (if (member cl-item cl-list) cl-list (cons cl-item cl-list)))
-	(t (apply 'cl-adjoin cl-item cl-list cl-keys))))
+	(t (apply 'cl--adjoin cl-item cl-list cl-keys))))
 
 (defun subst (cl-new cl-old cl-tree &rest cl-keys)
   "Substitute NEW for OLD everywhere in TREE (non-destructively).
@@ -643,47 +651,20 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 ;;; Miscellaneous.
 
-;; Define data for indentation and edebug.
-(dolist (entry
-         '(((defun* defmacro*) 2)
-           ((function*) nil
-            (&or symbolp ([&optional 'macro] 'lambda (&rest sexp) &rest form)))
-           ((eval-when) 1 (sexp &rest form))
-           ((declare) nil (&rest sexp))
-           ((the) 1 (sexp &rest form))
-           ((case ecase typecase etypecase) 1 (form &rest (sexp &rest form)))
-           ((block return-from) 1 (sexp &rest form))
-           ((return) nil (&optional form))
-           ((do do*) 2 ((&rest &or symbolp (symbolp &optional form form))
-                        (form &rest form)
-                        &rest form))
-           ((do-symbols) 1 ((symbolp form &optional form form) &rest form))
-           ((do-all-symbols) 1 ((symbolp form &optional form) &rest form))
-           ((psetq setf psetf) nil edebug-setq-form)
-           ((progv) 2 (&rest form))
-           ((flet labels macrolet) 1
-            ((&rest (sexp sexp &rest form)) &rest form))
-           ((symbol-macrolet lexical-let lexical-let*) 1
-            ((&rest &or symbolp (symbolp form)) &rest form))
-           ((multiple-value-bind) 2 ((&rest symbolp) &rest form))
-           ((multiple-value-setq) 1 ((&rest symbolp) &rest form))
-           ((incf decf remf pushnew shiftf rotatef) nil (&rest form))
-           ((letf letf*) 1 ((&rest (&rest form)) &rest form))
-           ((callf destructuring-bind) 2 (sexp form &rest form))
-           ((callf2) 3 (sexp form form &rest form))
-           ((loop) nil (&rest &or symbolp form))
-           ((ignore-errors) 0 (&rest form))))
-  (dolist (func (car entry))
-    (put func 'lisp-indent-function (nth 1 entry))
-    (put func 'lisp-indent-hook (nth 1 entry))
-    (or (get func 'edebug-form-spec)
-        (put func 'edebug-form-spec (nth 2 entry)))))
-
 ;; Autoload the other portions of the package.
 ;; We want to replace the basic versions of dolist, dotimes, declare below.
 (fmakunbound 'dolist)
 (fmakunbound 'dotimes)
 (fmakunbound 'declare)
+;;;###autoload
+(progn
+  ;; Autoload, so autoload.el and font-lock can use it even when CL
+  ;; is not loaded.
+  (put 'defun*    'doc-string-elt 3)
+  (put 'defmacro* 'doc-string-elt 3)
+  (put 'defsubst 'doc-string-elt 3)
+  (put 'defstruct 'doc-string-elt 2))
+
 (load "cl-loaddefs" nil 'quiet)
 
 ;; This goes here so that cl-macs can find it if it loads right now.

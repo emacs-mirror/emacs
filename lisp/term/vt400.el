@@ -1,4 +1,3 @@
-;; -*- no-byte-compile: t -*-
 (defun terminal-init-vt400 ()
   "Terminal initialization function for vt400."
   (tty-run-terminal-initialization (selected-frame) "vt100")

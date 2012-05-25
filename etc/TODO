@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 2001-2012 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -24,7 +24,6 @@ to the FSF.
 ** Improve the "code snippets" support: consolidate skeleton.el, tempo.el,
   and expand.el (any other?) and then advertise/use/improve it.
 ** Improve VC: yes, there's a lot of work to be done there :-(
-  And most of it could/should make it into Emacs-23.3.
 
 ** Random things that cross my mind right now that I'd like to see (some of
 them from my local hacks), but it's not obvious at all whether they'll
@@ -433,18 +432,13 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
 
-** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
-  not now feasible, given Gnus maintenance decisions.  fx looked at
-  this and can say where some of the problems are.]
-
 ** Eliminate the storm of warnings concerning char/unsigned char
   mismatches that we get with GCC 4.x and proprietary compilers on
   various systems.  They make it difficult to spot the important warnings.
 
 ** Fix anything necessary to use `long long' EMACS_INTs with GCC.
 
-** Split out parts of lisp.h [and generate Makefile dependencies automatically.]
-[the last bit is done, see DEPFLAGS etc in src/Makefile.in ]
+** Split out parts of lisp.h.
 
 ** Update the FAQ.
 

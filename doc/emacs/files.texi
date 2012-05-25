@@ -97,7 +97,7 @@ minibuffer, with a directory omitted, specifies the file
 
   When typing a file name into the minibuffer, you can make use of a
 couple of shortcuts: a double slash is interpreted as ``ignore
-everything before the second slash in the pair,'' and @samp{~/} is
+everything before the second slash in the pair'', and @samp{~/} is
 interpreted as your home directory.  @xref{Minibuffer File}.
 
 @cindex environment variables in file names
@@ -739,6 +739,11 @@ directory.)  Emacs removes the lock when you save the changes.  The
 idea is that the file is locked whenever an Emacs buffer visiting it
 has unsaved changes.
 
+@vindex create-lockfiles
+  You can prevent the creation of lock files by setting the variable
+@code{create-lockfiles} to @code{nil}.  @strong{Caution:} by
+doing so you will lose the benefits that this feature provides.
+
 @cindex collision
   If you begin to modify the buffer while the visited file is locked by
 someone else, this constitutes a @dfn{collision}.  When Emacs detects a
@@ -1340,7 +1345,7 @@ correct the line numbers in the hunk headers, to ensure that the diff
 remains ``correct''.  To disable automatic line number correction,
 change the variable @code{diff-update-on-the-fly} to @code{nil}.
 
-  Diff mode treats each hunk as an ``error message,'' similar to
+  Diff mode treats each hunk as an ``error message'', similar to
 Compilation mode.  Thus, you can use commands such as @kbd{C-x '} to
 visit the corresponding source locations.  @xref{Compilation Mode}.
 

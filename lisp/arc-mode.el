@@ -622,11 +622,12 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 
 (defun archive-unixdate (low high)
   "Stringify Unix (LOW HIGH) date."
-  (let ((str (current-time-string (cons high low))))
+  (let* ((time (cons high low))
+	 (str (current-time-string time)))
     (format "%s-%s-%s"
 	    (substring str 8 10)
 	    (substring str 4 7)
-	    (substring str 20 24))))
+	    (format-time-string "%Y" time))))
 
 (defun archive-unixtime (low high)
   "Stringify Unix (LOW HIGH) time."

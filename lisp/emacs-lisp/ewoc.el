@@ -1,4 +1,4 @@
-;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer
+;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991-2012 Free Software Foundation, Inc.
 
@@ -216,10 +216,9 @@ NODE and leaving the new node's start there.  Return the new node."
     (ewoc--adjust m (point) R dll)))
 
 (defun ewoc--wrap (func)
-  (lexical-let ((ewoc--user-pp func))
-    (lambda (data)
-      (funcall ewoc--user-pp data)
-      (insert "\n"))))
+  (lambda (data)
+    (funcall func data)
+    (insert "\n")))
 
 
 ;;; ===========================================================================

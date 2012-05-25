@@ -3243,7 +3243,6 @@ extern Window tip_window;
 EXFUN (Fx_hide_tip, 0);
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
-extern int hourglass_started (void);
 extern int hourglass_shown_p;
 struct atimer;			/* Defined in atimer.h.  */
 /* If non-null, an asynchronous timer that, when it expires, displays

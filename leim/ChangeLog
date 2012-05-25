@@ -1,3 +1,40 @@
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SUBDIRS): Remove variable and rule.
+	(MKDIR_P): Add it back.
+	(all, changed.tit, changed.misc, leim-list.el):
+	Don't depend on SUBDIRS.
+	(changed.tit, changed.misc): Ensure output directory exists.
+	(distclean): Don't use SUBDIRS.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Remove, let top-level do it.
+	(version, prefix, datarootdir, datadir, ns_appresdir, leimdir):
+	(MKDIR_P, GZIP_PROG): Remove, no longer used.
+
+	* Makefile.in (install_prefix): Remove.
+	(LEIM_INSTALLDIR): Rename to leimdir.
+	(install): Update for this change.
+
+	* Makefile.in (leim-list.el, install): Scrap superfluous subshells.
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	(install): Use $MKDIR_P.
+
+2012-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Install self-contained ns files directly to
+	their final destination.
+	(install_prefix): New.
+	(LEIM_INSTALLDIR): New, set by configure.
+	(install): Use LEIM_INSTALLDIR.
+
+	* Makefile.in (MV_DIRS): Remove.
+	(install): Simplify the --with-ns case.
+
 2012-04-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACS): Rename from BUILT_EMACS.
@@ -2289,7 +2326,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1997-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1997-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

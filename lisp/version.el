@@ -1,4 +1,4 @@
-;;; version.el --- record version number of Emacs
+;;; version.el --- record version number of Emacs -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1985, 1992, 1994-1995, 1999-2012
 ;;   Free Software Foundation, Inc.
@@ -120,10 +120,5 @@ Optional argument DIR is a directory to use instead of `source-directory'."
 ;; We put version info into the executable in the form that `ident' uses.
 (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
 		  " $\n"))
-
-;; Local Variables:
-;; version-control: never
-;; no-byte-compile: t
-;; End:
 
 ;;; version.el ends here

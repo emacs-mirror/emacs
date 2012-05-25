@@ -295,7 +295,7 @@
 
 
 (defgroup prolog nil
-  "Major modes for editing and running Prolog and Mercury files."
+  "Editing and running Prolog and Mercury files."
   :group 'languages)
 
 (defgroup prolog-faces nil
@@ -833,18 +833,116 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
       )
     table))
 (defvar prolog-mode-abbrev-table nil)
-(defvar prolog-upper-case-string ""
-  "A string containing all upper case characters.
-Set by prolog-build-case-strings.")
-(defvar prolog-lower-case-string ""
-  "A string containing all lower case characters.
-Set by prolog-build-case-strings.")
 
-(defvar prolog-atom-char-regexp ""
-  "Set by prolog-set-atom-regexps.")
-;; "Regexp specifying characters which constitute atoms without quoting.")
-(defvar prolog-atom-regexp ""
-  "Set by prolog-set-atom-regexps.")
+(if (eval-when-compile
+      (and (string-match "[[:upper:]]" "A")
+           (with-temp-buffer
+             (insert "A") (skip-chars-backward "[:upper:]") (bolp))))
+    (progn
+      (defconst prolog-upper-case-string "[:upper:]"
+        "A string containing a char-range matching all upper case characters.")
+      (defconst prolog-lower-case-string "[:lower:]"
+        "A string containing a char-range matching all lower case characters."))
+
+  ;; GNU Emacs compatibility: GNU Emacs does not differentiate between
+  ;; ints and chars, or at least these two are interchangeable.
+  (defalias 'prolog-int-to-char
+    (if (fboundp 'int-to-char) #'int-to-char #'identity))
+
+  (defalias 'prolog-char-to-int
+    (if (fboundp 'char-to-int) #'char-to-int #'identity))
+
+  (defun prolog-ints-intervals (ints)
+    "Return a list of intervals (from . to) covering INTS."
+    (when ints
+      (setq ints (sort ints '<))
+      (let ((prev (car ints))
+            (interval-start (car ints))
+            intervals)
+        (while ints
+          (let ((next (car ints)))
+            (when (> next (1+ prev))	; start of new interval
+	      (setq intervals (cons (cons interval-start prev) intervals))
+	      (setq interval-start next))
+            (setq prev next)
+            (setq ints (cdr ints))))
+        (setq intervals (cons (cons interval-start prev) intervals))
+        (reverse intervals))))
+
+  (defun prolog-dash-letters (string)
+    "Return a condensed regexp covering all letters in STRING."
+    (let ((intervals (prolog-ints-intervals (mapcar #'prolog-char-to-int
+                                                    (string-to-list string))))
+          codes)
+      (while intervals
+        (let* ((i (car intervals))
+               (from (car i))
+               (to (cdr i))
+               (c (cond ((= from to) `(,from))
+                        ((= (1+ from) to) `(,from ,to))
+                        (t `(,from ?- ,to)))))
+          (setq codes (cons c codes)))
+        (setq intervals (cdr intervals)))
+      (apply 'concat (reverse codes))))
+
+  (let ((up_string "")
+        (low_string ""))
+    ;; Use `map-char-table' if it is defined. Otherwise enumerate all
+    ;; numbers between 0 and 255. `map-char-table' is probably safer.
+    ;;
+    ;; `map-char-table' causes problems under Emacs 23.0.0.1, the
+    ;; while loop seems to do its job well (Ryszard Szopa)
+    ;;
+    ;;(if (and (not (featurep 'xemacs))
+    ;;          (fboundp 'map-char-table))
+    ;;    (map-char-table
+    ;;     (lambda (key value)
+    ;;       (cond
+    ;;        ((and
+    ;;          (eq (prolog-int-to-char key) (downcase key))
+    ;;          (eq (prolog-int-to-char key) (upcase key)))
+    ;;         ;; Do nothing if upper and lower case are the same
+    ;;         )
+    ;;        ((eq (prolog-int-to-char key) (downcase key))
+    ;;         ;; The char is lower case
+    ;;         (setq low_string (format "%s%c" low_string key)))
+    ;;        ((eq (prolog-int-to-char key) (upcase key))
+    ;;         ;; The char is upper case
+    ;;         (setq up_string (format "%s%c" up_string key)))
+    ;;        ))
+    ;;     (current-case-table))
+    ;; `map-char-table' was undefined.
+    (let ((key 0))
+      (while (< key 256)
+        (cond
+         ((and
+           (eq (prolog-int-to-char key) (downcase key))
+           (eq (prolog-int-to-char key) (upcase key)))
+          ;; Do nothing if upper and lower case are the same
+          )
+         ((eq (prolog-int-to-char key) (downcase key))
+          ;; The char is lower case
+          (setq low_string (format "%s%c" low_string key)))
+         ((eq (prolog-int-to-char key) (upcase key))
+          ;; The char is upper case
+          (setq up_string (format "%s%c" up_string key)))
+         )
+        (setq key (1+ key))))
+    ;; )
+    ;; The strings are single-byte strings.
+    (defconst prolog-upper-case-string (prolog-dash-letters up_string)
+      "A string containing a char-range matching all upper case characters.")
+    (defconst prolog-lower-case-string (prolog-dash-letters low_string)
+      "A string containing a char-range matching all lower case characters.")
+    ))
+
+(defconst prolog-atom-char-regexp
+  (if (string-match "[[:alnum:]]" "0")
+      "[[:alnum:]_$]"
+    (format "[%s%s0-9_$]" prolog-lower-case-string prolog-upper-case-string))
+  "Regexp specifying characters which constitute atoms without quoting.")
+(defconst prolog-atom-regexp
+  (format "[%s$]%s*" prolog-lower-case-string prolog-atom-char-regexp))
 
 (defconst prolog-left-paren "[[({]"     ;FIXME: Why not \\s(?
   "The characters used as left parentheses for the indentation code.")
@@ -887,6 +985,96 @@ Set by prolog-build-case-strings.")
      '(("dcg" . "-->") ("rule" . ":-") ("simplification" . "<=>")
        ("propagation" . "==>")))))
 
+;; SMIE support
+
+(require 'smie)
+
+(defvar prolog-use-smie t)
+
+(defun prolog-smie-forward-token ()
+  ;; FIXME: Add support for 0'<char>, if needed after adding it to
+  ;; syntax-propertize-functions.
+  (forward-comment (point-max))
+  (buffer-substring-no-properties
+   (point)
+   (progn (cond
+           ((looking-at "[!;]") (forward-char 1))
+           ((not (zerop (skip-chars-forward "#&*+-./:<=>?@\\^`~"))))
+           ((not (zerop (skip-syntax-forward "w_'"))))
+           ;; In case of non-ASCII punctuation.
+           ((not (zerop (skip-syntax-forward ".")))))
+          (point))))
+
+(defun prolog-smie-backward-token ()
+  ;; FIXME: Add support for 0'<char>, if needed after adding it to
+  ;; syntax-propertize-functions.
+  (forward-comment (- (point-max)))
+  (buffer-substring-no-properties
+   (point)
+   (progn (cond
+           ((memq (char-before) '(?! ?\;)) (forward-char -1))
+           ((not (zerop (skip-chars-backward "#&*+-./:<=>?@\\^`~"))))
+           ((not (zerop (skip-syntax-backward "w_'"))))
+           ;; In case of non-ASCII punctuation.
+           ((not (zerop (skip-syntax-backward ".")))))
+          (point))))
+
+(defconst prolog-smie-grammar
+  ;; Rather than construct the operator levels table from the BNF,
+  ;; we directly provide the operator precedences from GNU Prolog's
+  ;; manual (7.14.10 op/3).  The only problem is that GNU Prolog's
+  ;; manual uses precedence levels in the opposite sense (higher
+  ;; numbers bind less tightly) than SMIE, so we use negative numbers.
+  '(("." -10000 -10000)
+    (":-" -1200 -1200)
+    ("-->" -1200 -1200)
+    (";" -1100 -1100)
+    ("->" -1050 -1050)
+    ("," -1000 -1000)
+    ("\\+" -900 -900)
+    ("=" -700 -700)
+    ("\\=" -700 -700)
+    ("=.." -700 -700)
+    ("==" -700 -700)
+    ("\\==" -700 -700)
+    ("@<" -700 -700)
+    ("@=<" -700 -700)
+    ("@>" -700 -700)
+    ("@>=" -700 -700)
+    ("is" -700 -700)
+    ("=:=" -700 -700)
+    ("=\\=" -700 -700)
+    ("<" -700 -700)
+    ("=<" -700 -700)
+    (">" -700 -700)
+    (">=" -700 -700)
+    (":" -600 -600)
+    ("+" -500 -500)
+    ("-" -500 -500)
+    ("/\\" -500 -500)
+    ("\\/" -500 -500)
+    ("*" -400 -400)
+    ("/" -400 -400)
+    ("//" -400 -400)
+    ("rem" -400 -400)
+    ("mod" -400 -400)
+    ("<<" -400 -400)
+    (">>" -400 -400)
+    ("**" -200 -200)
+    ("^" -200 -200)
+    ;; Prefix
+    ;; ("+" 200 200)
+    ;; ("-" 200 200)
+    ;; ("\\" 200 200)
+    (:smie-closer-alist (t . "."))
+    )
+  "Precedence levels of infix operators.")
+
+(defun prolog-smie-rules (kind token)
+  (pcase (cons kind token)
+    (`(:elem . basic) prolog-indent-width)
+    (`(:after . ".") '(column . 0)) ;; To work around smie-closer-alist.
+    (`(:after . ,(or `":-" `"->" `"-->")) prolog-indent-width)))
 
 
 ;;-------------------------------------------------------------------
@@ -959,7 +1147,6 @@ VERSION is of the format (Major . Minor)"
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
   (set (make-local-variable 'normal-auto-fill-function) 'prolog-do-auto-fill)
-  (set (make-local-variable 'indent-line-function) 'prolog-indent-line)
   (set (make-local-variable 'comment-start) "%")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-add) 1)
@@ -968,7 +1155,6 @@ VERSION is of the format (Major . Minor)"
        ;; inside quoted atoms or strings
        (format "^\\(\\(%s\\|%s\\|[^\n\'\"%%]\\)*\\)\\(/\\*+ *\\|%%+ *\\)"
                prolog-quoted-atom-regexp prolog-string-regexp))
-  (set (make-local-variable 'comment-indent-function) 'prolog-comment-indent)
   (set (make-local-variable 'parens-require-spaces) nil)
   ;; Initialize Prolog system specific variables
   (dolist (var '(prolog-keywords prolog-types prolog-mode-specificators
@@ -984,6 +1170,13 @@ VERSION is of the format (Major . Minor)"
        '(prolog-font-lock-keywords nil nil ((?_ . "w"))))
   (set (make-local-variable 'syntax-propertize-function)
       prolog-syntax-propertize-function)
+
+  (if prolog-use-smie
+      ;; Setup SMIE.
+      (smie-setup prolog-smie-grammar #'prolog-smie-rules
+                  :forward-token #'prolog-smie-forward-token
+                  :backward-token #'prolog-smie-backward-token)
+    (set (make-local-variable 'indent-line-function) 'prolog-indent-line))
   )
 
 (defun prolog-mode-keybindings-common (map)
@@ -1096,11 +1289,9 @@ if that value is non-nil."
                            ((eq prolog-system 'gnu) "[GNU]")
                            (t ""))))
   (prolog-mode-variables)
-  (prolog-build-case-strings)
-  (prolog-set-atom-regexps)
   (dolist (ar prolog-align-rules) (add-to-list 'align-rules-list ar))
 
-  ;; imenu entry moved to the appropriate hook for consistency
+  ;; `imenu' entry moved to the appropriate hook for consistency.
 
   ;; Load SICStus debugger if suitable
   (if (and (eq prolog-system 'sicstus)
@@ -1614,7 +1805,8 @@ For use with the `compilation-parse-errors-function' variable."
          limit t)
         (setq filepath (match-string 2)))
 
-      ;; ###### Does this work with SICStus under Windows (i.e. backslashes and stuff?)
+      ;; ###### Does this work with SICStus under Windows
+      ;; (i.e. backslashes and stuff?)
       (if (string-match "\\(.*/\\)\\([^/]*\\)$" filepath)
           (progn
             (setq dir (match-string 1 filepath))
@@ -1838,7 +2030,8 @@ Argument BOUND is a buffer position limiting searching."
     (defface prolog-builtin-face
       '((((class color) (background light)) (:foreground "Purple"))
         (((class color) (background dark)) (:foreground "Cyan"))
-        (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
+        (((class grayscale) (background light))
+         :foreground "LightGray" :bold t)
         (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
         (t (:bold t)))
       "Face name to use for compiler warnings."
@@ -2092,20 +2285,6 @@ rigidly along with this one (not yet)."
     (if (or prolog-electric-tab-flag prolog-electric-if-then-else-flag)
         (prolog-insert-spaces-after-paren))
     ))
-
-(defun prolog-comment-indent ()
-  "Compute prolog comment indentation."
-  ;; FIXME: Only difference with default behavior is that %%% is not
-  ;; flushed to column 0 but just left where the user put it.
-  (cond ((looking-at "%%%") (prolog-indentation-level-of-line))
-        ((looking-at "%%") (prolog-indent-level))
-        (t
-         (save-excursion
-           (skip-chars-backward " \t")
-           ;; Insert one space at least, except at left margin.
-           (max (+ (current-column) (if (bolp) 0 1))
-                comment-column)))
-        ))
 
 (defun prolog-indent-level ()
   "Compute prolog indentation level."
@@ -3200,7 +3379,8 @@ When called with prefix argument ARG, disable zipping instead."
   (save-excursion
     (let ((state (prolog-clause-info))
           (object (prolog-in-object)))
-      (if (or (equal (nth 0 state) "") (equal (prolog-in-string-or-comment) 'cmt))
+      (if (or (equal (nth 0 state) "")
+              (equal (prolog-in-string-or-comment) 'cmt))
           nil
         (if (and (eq prolog-system 'sicstus)
                  object)
@@ -3229,6 +3409,7 @@ STRING should be given if the last search was by `string-match' on STRING."
 
 (defun prolog-pred-start ()
   "Return the starting point of the first clause of the current predicate."
+  ;; FIXME: Use SMIE.
   (save-excursion
     (goto-char (prolog-clause-start))
     ;; Find first clause, unless it was a directive
@@ -3261,8 +3442,9 @@ STRING should be given if the last search was by `string-match' on STRING."
 
 (defun prolog-pred-end ()
   "Return the position at the end of the last clause of the current predicate."
+  ;; FIXME: Use SMIE.
   (save-excursion
-    (goto-char (prolog-clause-end))        ; if we are before the first predicate
+    (goto-char (prolog-clause-end))     ; If we are before the first predicate.
     (goto-char (prolog-clause-start))
     (let* ((pinfo (prolog-clause-info))
           (predname (nth 0 pinfo))
@@ -3517,6 +3699,7 @@ If already at the end of clause, move to next clause."
 (defun prolog-beginning-of-predicate ()
   "Go to the nearest beginning of predicate before current point.
 Return the final point or nil if no such a beginning was found."
+  ;; FIXME: Hook into beginning-of-defun.
   (interactive)
   (let ((op (point))
         (pos (prolog-pred-start)))
@@ -3536,6 +3719,7 @@ Return the final point or nil if no such a beginning was found."
 
 (defun prolog-end-of-predicate ()
   "Go to the end of the current predicate."
+  ;; FIXME: Hook into end-of-defun.
   (interactive)
   (let ((op (point)))
     (goto-char (prolog-pred-end))
@@ -3657,7 +3841,7 @@ a new comment is created."
   "Delete preceding character or whitespace.
 If `prolog-hungry-delete-key-flag' is non-nil, then all preceding whitespace is
 consumed.  If however an ARG is supplied, or `prolog-hungry-delete-key-flag' is
-nil, or point is inside a literal then the function in the variable
+nil, or point is inside a literal then the function
 `backward-delete-char' is called."
   (interactive "P")
   (if (or (not prolog-hungry-delete-key-flag)
@@ -3677,6 +3861,7 @@ nil, or point is inside a literal then the function in the variable
 (defun prolog-electric-if-then-else (arg)
   "If `prolog-electric-if-then-else-flag' is non-nil, indent if-then-else constructs.
 Bound to the >, ; and ( keys."
+  ;; FIXME: Use post-self-insert-hook or electric-indent-mode.
   (interactive "P")
   (self-insert-command (prefix-numeric-value arg))
   (if prolog-electric-if-then-else-flag (prolog-insert-spaces-after-paren)))
@@ -3686,6 +3871,7 @@ Bound to the >, ; and ( keys."
 That is, insert space (if appropriate), `:-' and newline if colon is pressed
 at the end of a line that starts in the first column (i.e., clause
 heads)."
+  ;; FIXME: Use post-self-insert-hook.
   (interactive "P")
   (if (and prolog-electric-colon-flag
 	   (null arg)
@@ -3696,7 +3882,7 @@ heads)."
         (unless (save-excursion (backward-char 1) (looking-at "\\s "))
           (insert " "))
 	(insert ":-\n")
-	(prolog-indent-line))
+        (indent-according-to-mode))
     (self-insert-command (prefix-numeric-value arg))))
 
 (defun prolog-electric-dash (arg)
@@ -3704,6 +3890,7 @@ heads)."
 that is, insert space (if appropriate), `-->' and newline if dash is pressed
 at the end of a line that starts in the first column (i.e., DCG
 heads)."
+  ;; FIXME: Use post-self-insert-hook.
   (interactive "P")
   (if (and prolog-electric-dash-flag
 	   (null arg)
@@ -3714,7 +3901,7 @@ heads)."
         (unless (save-excursion (backward-char 1) (looking-at "\\s "))
           (insert " "))
 	(insert "-->\n")
-	(prolog-indent-line))
+	(indent-according-to-mode))
     (self-insert-command (prefix-numeric-value arg))))
 
 (defun prolog-electric-dot (arg)
@@ -3729,6 +3916,7 @@ When invoked at the beginning of line, insert a head of a new clause
 of the current predicate.
 
 When called with prefix argument ARG, insert just dot."
+  ;; FIXME: Use post-self-insert-hook.
   (interactive "P")
   ;; Check for situations when the electricity should not be active
   (if (or (not prolog-electric-dot-flag)
@@ -3788,6 +3976,7 @@ If `prolog-electric-underscore-flag' is non-nil and the point is
 on a variable then replace the variable with underscore and skip
 the following comma and whitespace, if any.
 If the point is not on a variable then insert underscore."
+  ;; FIXME: Use post-self-insert-hook.
   (interactive)
   (if prolog-electric-underscore-flag
       (let (;start
@@ -3862,144 +4051,36 @@ PREFIX is the prefix of the search regexp."
           (backward-char)))
       )))
 
+;;(defun prolog-regexp-dash-continuous-chars (chars)
+;;  (let ((ints (mapcar #'prolog-char-to-int (string-to-list chars)))
+;;        (beg 0)
+;;        (end 0))
+;;    (if (null ints)
+;;        chars
+;;      (while (and (< (+ beg 1) (length chars))
+;;                  (not (or (= (+ (nth beg ints) 1) (nth (+ beg 1) ints))
+;;                           (= (nth beg ints) (nth (+ beg 1) ints)))))
+;;        (setq beg (+ beg 1)))
+;;      (setq beg (+ beg 1)
+;;            end beg)
+;;      (while (and (< (+ end 1) (length chars))
+;;                  (or (= (+ (nth end ints) 1) (nth (+ end 1) ints))
+;;                      (= (nth end ints) (nth (+ end 1) ints))))
+;;        (setq end (+ end 1)))
+;;      (if (equal (substring chars end) "")
+;;          (substring chars 0 beg)
+;;        (concat (substring chars 0 beg) "-"
+;;                (prolog-regexp-dash-continuous-chars (substring chars end))))
+;;    )))
 
-(defun prolog-set-atom-regexps ()
-  "Set the `prolog-atom-char-regexp' and `prolog-atom-regexp' variables.
-Must be called after `prolog-build-case-strings'."
-  (setq prolog-atom-char-regexp
-        (format "[%s%s0-9_$]"
-                ;; FIXME: why not a-zA-Z?
-                prolog-lower-case-string
-                prolog-upper-case-string))
-  (setq prolog-atom-regexp
-        (format "[%s$]%s*"
-                prolog-lower-case-string
-                prolog-atom-char-regexp))
-  )
+;;(defun prolog-condense-character-sets (regexp)
+;;  "Condense adjacent characters in character sets of REGEXP."
+;;  (let ((next -1))
+;;    (while (setq next (string-match "\\[\\(.*?\\)\\]" regexp (1+ next)))
+;;      (setq regexp (replace-match (prolog-dash-letters (match-string 1 regexp))
+;;				  t t regexp 1))))
+;;  regexp)
 
-(defun prolog-build-case-strings ()
-  "Set `prolog-upper-case-string' and `prolog-lower-case-string'.
-Uses the current case-table for extracting the relevant information."
-  (let ((up_string "")
-        (low_string ""))
-    ;; Use `map-char-table' if it is defined. Otherwise enumerate all
-    ;; numbers between 0 and 255. `map-char-table' is probably safer.
-    ;;
-    ;; `map-char-table' causes problems under Emacs 23.0.0.1, the
-    ;; while loop seems to do its job well (Ryszard Szopa)
-    ;;
-    ;;(if (and (not (featurep 'xemacs))
-    ;;          (fboundp 'map-char-table))
-    ;;    (map-char-table
-    ;;     (lambda (key value)
-    ;;       (cond
-    ;;        ((and
-    ;;          (eq (prolog-int-to-char key) (downcase key))
-    ;;          (eq (prolog-int-to-char key) (upcase key)))
-    ;;         ;; Do nothing if upper and lower case are the same
-    ;;         )
-    ;;        ((eq (prolog-int-to-char key) (downcase key))
-    ;;         ;; The char is lower case
-    ;;         (setq low_string (format "%s%c" low_string key)))
-    ;;        ((eq (prolog-int-to-char key) (upcase key))
-    ;;         ;; The char is upper case
-    ;;         (setq up_string (format "%s%c" up_string key)))
-    ;;        ))
-    ;;     (current-case-table))
-      ;; `map-char-table' was undefined.
-      (let ((key 0))
-        (while (< key 256)
-          (cond
-           ((and
-             (eq (prolog-int-to-char key) (downcase key))
-             (eq (prolog-int-to-char key) (upcase key)))
-            ;; Do nothing if upper and lower case are the same
-            )
-           ((eq (prolog-int-to-char key) (downcase key))
-            ;; The char is lower case
-            (setq low_string (format "%s%c" low_string key)))
-           ((eq (prolog-int-to-char key) (upcase key))
-            ;; The char is upper case
-            (setq up_string (format "%s%c" up_string key)))
-           )
-          (setq key (1+ key))))
-      ;; )
-      ;; The strings are single-byte strings
-      (setq prolog-upper-case-string (prolog-dash-letters up_string))
-      (setq prolog-lower-case-string (prolog-dash-letters low_string))
-      ))
-
-;(defun prolog-regexp-dash-continuous-chars (chars)
-;  (let ((ints (mapcar #'prolog-char-to-int (string-to-list chars)))
-;        (beg 0)
-;        (end 0))
-;    (if (null ints)
-;        chars
-;      (while (and (< (+ beg 1) (length chars))
-;                  (not (or (= (+ (nth beg ints) 1) (nth (+ beg 1) ints))
-;                           (= (nth beg ints) (nth (+ beg 1) ints)))))
-;        (setq beg (+ beg 1)))
-;      (setq beg (+ beg 1)
-;            end beg)
-;      (while (and (< (+ end 1) (length chars))
-;                  (or (= (+ (nth end ints) 1) (nth (+ end 1) ints))
-;                      (= (nth end ints) (nth (+ end 1) ints))))
-;        (setq end (+ end 1)))
-;      (if (equal (substring chars end) "")
-;          (substring chars 0 beg)
-;        (concat (substring chars 0 beg) "-"
-;                (prolog-regexp-dash-continuous-chars (substring chars end))))
-;    )))
-
-(defun prolog-ints-intervals (ints)
-  "Return a list of intervals (from . to) covering INTS."
-  (when ints
-    (setq ints (sort ints '<))
-    (let ((prev (car ints))
-	  (interval-start (car ints))
-	  intervals)
-      (while ints
-	(let ((next (car ints)))
-	  (when (> next (1+ prev))	; start of new interval
-	      (setq intervals (cons (cons interval-start prev) intervals))
-	      (setq interval-start next))
-	  (setq prev next)
-	  (setq ints (cdr ints))))
-      (setq intervals (cons (cons interval-start prev) intervals))
-      (reverse intervals))))
-
-(defun prolog-dash-letters (string)
-  "Return a condensed regexp covering all letters in STRING."
-  (let ((intervals (prolog-ints-intervals (mapcar #'prolog-char-to-int
-						 (string-to-list string))))
-	codes)
-    (while intervals
-      (let* ((i (car intervals))
-	     (from (car i))
-	     (to (cdr i))
-	     (c (cond ((= from to) `(,from))
-		      ((= (1+ from) to) `(,from ,to))
-		      (t `(,from ?- ,to)))))
-	(setq codes (cons c codes)))
-      (setq intervals (cdr intervals)))
-    (apply 'concat (reverse codes))))
-
-;(defun prolog-condense-character-sets (regexp)
-;  "Condense adjacent characters in character sets of REGEXP."
-;  (let ((next -1))
-;    (while (setq next (string-match "\\[\\(.*?\\)\\]" regexp (1+ next)))
-;      (setq regexp (replace-match (prolog-dash-letters (match-string 1 regexp))
-;				  t t regexp 1))))
-;  regexp)
-
-;; GNU Emacs compatibility: GNU Emacs does not differentiate between
-;; ints and chars, or at least these two are interchangeable.
-(defalias 'prolog-int-to-char
-  (if (fboundp 'int-to-char) #'int-to-char #'identity))
-
-(defalias 'prolog-char-to-int
-  (if (fboundp 'char-to-int) #'char-to-int #'identity))
-
 ;;-------------------------------------------------------------------
 ;; Menu stuff (both for the editing buffer and for the inferior
 ;; prolog buffer)
@@ -4110,7 +4191,7 @@ Uses the current case-table for extracting the relevant information."
     ["Beginning of predicate" prolog-beginning-of-predicate t]
     ["End of predicate" prolog-end-of-predicate t]
     "---"
-    ["Indent line" prolog-indent-line t]
+    ["Indent line" indent-according-to-mode t]
     ["Indent region" indent-region (region-exists-p)]
     ["Indent predicate" prolog-indent-predicate t]
     ["Indent buffer" prolog-indent-buffer t]

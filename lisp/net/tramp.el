@@ -62,7 +62,7 @@
 ;;; User Customizable Internal Variables:
 
 (defgroup tramp nil
-  "Edit remote files with a combination of rsh and rcp or similar programs."
+  "Edit remote files with a combination of ssh, scp, etc."
   :group 'files
   :group 'comm
   :version "22.1")

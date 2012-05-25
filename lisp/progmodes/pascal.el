@@ -467,6 +467,8 @@ no args, if that value is non-nil."
 ;;;
 ;;; Interactive functions
 ;;;
+(defvar pascal--extra-indent 0)
+
 (defun pascal-insert-block ()
   "Insert Pascal begin ... end; block in the code with right indentation."
   (interactive)
@@ -757,14 +759,14 @@ on the line which ends a function or procedure named NAME."
 ;;; Indentation
 ;;;
 (defconst pascal-indent-alist
-  '((block . (+ ind pascal-indent-level))
-    (case . (+ ind pascal-case-indent))
-    (caseblock . ind) (cpp . 0)
-    (declaration . (+ ind pascal-indent-level))
+  '((block . (+ pascal--extra-indent pascal-indent-level))
+    (case . (+ pascal--extra-indent pascal-case-indent))
+    (caseblock . pascal--extra-indent) (cpp . 0)
+    (declaration . (+ pascal--extra-indent pascal-indent-level))
     (paramlist . (pascal-indent-paramlist t))
     (comment . (pascal-indent-comment))
-    (defun . ind) (contexp . ind)
-    (unknown . ind) (string . 0) (progbeg . 0)))
+    (defun . pascal--extra-indent) (contexp . pascal--extra-indent)
+    (unknown . pascal--extra-indent) (string . 0) (progbeg . 0)))
 
 (defun pascal-indent-command ()
   "Indent for special part of code."
@@ -786,12 +788,11 @@ on the line which ends a function or procedure named NAME."
     (if (looking-at "[ \t]+$")
 	(skip-chars-forward " \t"))))
 
-(defvar ind)			       ;Used via `eval' in pascal-indent-alist.
 (defun pascal-indent-line ()
   "Indent current line as a Pascal statement."
   (let* ((indent-str (pascal-calculate-indent))
 	 (type (car indent-str))
-	 (ind (car (cdr indent-str))))
+	 (pascal--extra-indent (car (cdr indent-str))))
     ;; Labels should not be indented.
     (if (and (looking-at "^[0-9a-zA-Z]+[ \t]*:[^=]")
 	     (not (eq type 'declaration)))
@@ -803,13 +804,13 @@ on the line which ends a function or procedure named NAME."
 	   ())
 	  (; Other things should have no extra indent
 	   (looking-at pascal-noindent-re)
-	   (indent-to ind))
+	   (indent-to pascal--extra-indent))
 	  (; Nested functions should be indented
 	   (looking-at pascal-defun-re)
 	   (if (and pascal-indent-nested-functions
 		    (eq type 'defun))
-	       (indent-to (+ ind pascal-indent-level))
-	     (indent-to ind)))
+	       (indent-to (+ pascal--extra-indent pascal-indent-level))
+	     (indent-to pascal--extra-indent)))
 	  (; But most lines are treated this way
 	   (indent-to (eval (cdr (assoc type pascal-indent-alist))))
 	   ))))
@@ -949,7 +950,7 @@ Do not count labels, case-statements or records."
 		 (point-marker)
 	       (re-search-backward "\\<case\\>" nil t)))
 	(beg (point))
-	(ind 0))
+	(pascal--extra-indent 0))
     ;; Get right indent
     (while (< (point) end)
       (if (re-search-forward
@@ -959,8 +960,8 @@ Do not count labels, case-statements or records."
       (if (< (point) end)
 	  (progn
 	    (delete-horizontal-space)
-	    (if (> (current-column) ind)
-		(setq ind (current-column)))
+	    (if (> (current-column) pascal--extra-indent)
+		(setq pascal--extra-indent (current-column)))
 	    (pascal-end-of-statement))))
     (goto-char beg)
     ;; Indent all case statements
@@ -969,7 +970,7 @@ Do not count labels, case-statements or records."
 	   "^[ \t]*[^][ \t,\\.:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
 	   (marker-position end) 'move)
 	  (forward-char -1))
-      (indent-to (1+ ind))
+      (indent-to (1+ pascal--extra-indent))
       (if (/= (following-char) ?:)
 	  ()
 	(forward-char 1)
@@ -1017,7 +1018,7 @@ indent of the current line in parameterlist."
 				 (max (progn (pascal-declaration-end)
 					     (point))
 				      pos))))
-	    ind)
+	    pascal--extra-indent)
 
 	(goto-char stpos)
 	;; Indent lines in record block
@@ -1031,13 +1032,13 @@ indent of the current line in parameterlist."
 	      (forward-line 1)))
 
 	;; Do lineup
-	(setq ind (pascal-get-lineup-indent stpos edpos lineup))
+	(setq pascal--extra-indent (pascal-get-lineup-indent stpos edpos lineup))
 	(goto-char stpos)
 	(while (and (<= (point) edpos) (not (eobp)))
 	  (if (search-forward lineup (point-at-eol) 'move)
 	      (forward-char -1))
 	  (delete-horizontal-space)
-	  (indent-to ind)
+	  (indent-to pascal--extra-indent)
 	  (if (not (looking-at lineup))
 	      (forward-line 1) ; No more indent if there is no : or =
 	    (forward-char 1)
@@ -1056,7 +1057,7 @@ indent of the current line in parameterlist."
 ;from b to e nicely. The lineup string is str."
 (defun pascal-get-lineup-indent (b e str)
   (save-excursion
-    (let ((ind 0)
+    (let ((pascal--extra-indent 0)
 	  (reg (concat str "\\|\\(\\<record\\>\\)\\|" pascal-defun-re)))
       (goto-char b)
       ;; Get rightmost position
@@ -1071,14 +1072,14 @@ indent of the current line in parameterlist."
 		   (t
 		    (goto-char (match-beginning 0))
 		    (skip-chars-backward " \t")
-		    (if (> (current-column) ind)
-			(setq ind (current-column)))
+		    (if (> (current-column) pascal--extra-indent)
+			(setq pascal--extra-indent (current-column)))
 		    (goto-char (match-end 0))
 		    (end-of-line)
 		    ))))
       ;; In case no lineup was found
-      (if (> ind 0)
-	  (1+ ind)
+      (if (> pascal--extra-indent 0)
+	  (1+ pascal--extra-indent)
 	;; No lineup-string found
 	(goto-char b)
 	(end-of-line)
@@ -1353,21 +1354,21 @@ The default is a name found in the buffer around point."
 	 (default (if (pascal-comp-defun default nil 'lambda)
 		      default ""))
 	 (label
-          ;; Do completion with default
+          ;; Do completion with default.
           (completing-read (if (not (string= default ""))
                                (concat "Label (default " default "): ")
                              "Label: ")
                            ;; Complete with the defuns found in the
                            ;; current-buffer.
-                           (lexical-let ((buf (current-buffer)))
+                           (let ((buf (current-buffer)))
                              (lambda (s p a)
                                (with-current-buffer buf
                                  (pascal-comp-defun s p a))))
                            nil t "")))
-    ;; If there was no response on prompt, use default value
+    ;; If there was no response on prompt, use default value.
     (if (string= label "")
 	(setq label default))
-    ;; Goto right place in buffer if label is not an empty string
+    ;; Goto right place in buffer if label is not an empty string.
     (or (string= label "")
 	(progn
 	  (goto-char (point-min))

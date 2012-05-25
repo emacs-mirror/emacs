@@ -116,6 +116,20 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
+(defmacro setq-local (var val)
+  "Set variable VAR to value VAL in current buffer."
+  ;; Can't use backquote here, it's too early in the bootstrap.
+  (list 'set (list 'make-local-variable (list 'quote var)) val))
+
+(defmacro defvar-local (var val &optional docstring)
+  "Define VAR as a buffer-local variable with default value VAL.
+Like `defvar' but additionally marks the variable as being automatically
+buffer-local wherever it is set."
+  (declare (debug defvar) (doc-string 3))
+  ;; Can't use backquote here, it's too early in the bootstrap.
+  (list 'progn (list 'defvar var val docstring)
+        (list 'make-variable-buffer-local (list 'quote var))))
+
 (defun apply-partially (fun &rest args)
   "Return a function that is a partial application of FUN to ARGS.
 ARGS is a list of the first N arguments to pass to FUN.
@@ -273,6 +287,17 @@ for the sake of consistency."
   (while t
     (signal 'error (list (apply 'format args)))))
 (set-advertised-calling-convention 'error '(string &rest args) "23.1")
+
+(defun user-error (format &rest args)
+  "Signal a pilot error, making error message by passing all args to `format'.
+In Emacs, the convention is that error messages start with a capital
+letter but *do not* end with a period.  Please follow this convention
+for the sake of consistency.
+This is just like `error' except that `user-error's are expected to be the
+result of an incorrect manipulation on the part of the user, rather than the
+result of an actual problem."
+  (while t
+    (signal 'user-error (list (apply #'format format args)))))
 
 ;; We put this here instead of in frame.el so that it's defined even on
 ;; systems where frame.el isn't loaded.
@@ -495,11 +520,8 @@ side-effects, and the argument LIST is not modified."
 
 ;;;; Keymap support.
 
-(defmacro kbd (keys)
-  "Convert KEYS to the internal Emacs key representation.
-KEYS should be a string constant in the format used for
-saving keyboard macros (see `edmacro-mode')."
-  (read-kbd-macro keys))
+(defalias 'kbd 'read-kbd-macro)
+(put 'kbd 'pure t)
 
 (defun undefined ()
   "Beep to tell the user this binding is undefined."
@@ -2023,7 +2045,10 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
            (let ((map (make-sparse-keymap)))
              ;; Don't hide the menu-bar and tool-bar entries.
              (define-key map [menu-bar] (lookup-key global-map [menu-bar]))
-             (define-key map [tool-bar] (lookup-key global-map [tool-bar]))
+             (define-key map [tool-bar]
+	       ;; This hack avoids evaluating the :filter (Bug#9922).
+	       (or (cdr (assq 'tool-bar global-map))
+		   (lookup-key global-map [tool-bar])))
              map))
 	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
       (cancel-timer timer)
@@ -2112,21 +2137,21 @@ by doing (clear-string STRING)."
               (message "Password not repeated accurately; please start over")
               (sit-for 1))))
         success)
-    (let (minibuf)
+    (let ((hide-chars-fun
+           (lambda (beg end _len)
+             (clear-this-command-keys)
+             (setq beg (min end (max (minibuffer-prompt-end)
+                                     beg)))
+             (dotimes (i (- end beg))
+               (put-text-property (+ i beg) (+ 1 i beg)
+                                  'display (string ?.)))))
+          minibuf)
       (minibuffer-with-setup-hook
           (lambda ()
             (setq minibuf (current-buffer))
             ;; Turn off electricity.
             (set (make-local-variable 'post-self-insert-hook) nil)
-            (add-hook 'after-change-functions
-                      (lambda (beg end _len)
-                        (clear-this-command-keys)
-                        (setq beg (min end (max (minibuffer-prompt-end)
-                                                beg)))
-                        (dotimes (i (- end beg))
-                          (put-text-property (+ i beg) (+ 1 i beg)
-                                             'display (string ?.))))
-                      nil t))
+            (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (read-string prompt nil
                          (let ((sym (make-symbol "forget-history")))
@@ -2134,7 +2159,14 @@ by doing (clear-string STRING)."
                            sym)
                          default)
           (when (buffer-live-p minibuf)
-            (with-current-buffer minibuf (erase-buffer))))))))
+            (with-current-buffer minibuf
+              ;; Not sure why but it seems that there might be cases where the
+              ;; minibuffer is not always properly reset later on, so undo
+              ;; whatever we've done here (bug#11392).
+              (remove-hook 'after-change-functions hide-chars-fun 'local)
+              (kill-local-variable 'post-self-insert-hook)
+              ;; And of course, don't keep the sensitive data around.
+              (erase-buffer))))))))
 
 ;; This should be used by `call-interactively' for `n' specs.
 (defun read-number (prompt &optional default)
@@ -2391,7 +2423,7 @@ to `accept-change-group' or `cancel-change-group'."
 This finishes the change group by accepting its changes as final."
   (dolist (elt handle)
     (with-current-buffer (car elt)
-      (if (eq elt t)
+      (if (eq (cdr elt) t)
 	  (setq buffer-undo-list t)))))
 
 (defun cancel-change-group (handle)
@@ -2965,21 +2997,26 @@ potentially make a different buffer current.  It does not alter
 the buffer list ordering."
   (declare (indent 1) (debug t))
   ;; Most of this code is a copy of save-selected-window.
-  `(let ((save-selected-window-window (selected-window))
-	 ;; It is necessary to save all of these, because calling
-	 ;; select-window changes frame-selected-window for whatever
-	 ;; frame that window is in.
-	 (save-selected-window-alist
-	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
-		  (frame-list))))
+  `(let* ((save-selected-window-destination ,window)
+          (save-selected-window-window (selected-window))
+          ;; Selecting a window on another frame changes not only the
+          ;; selected-window but also the frame-selected-window of the
+          ;; destination frame.  So we need to save&restore it.
+          (save-selected-window-other-frame
+           (unless (eq (selected-frame)
+                       (window-frame save-selected-window-destination))
+             (frame-selected-window
+              (window-frame save-selected-window-destination)))))
      (save-current-buffer
        (unwind-protect
-	   (progn (select-window ,window 'norecord)
+           (progn (select-window save-selected-window-destination 'norecord)
 		  ,@body)
-	 (dolist (elt save-selected-window-alist)
-	   (and (frame-live-p (car elt))
-		(window-live-p (cadr elt))
-		(set-frame-selected-window (car elt) (cadr elt) 'norecord)))
+         ;; First reset frame-selected-window.
+         (if (window-live-p save-selected-window-other-frame)
+             ;; We don't use set-frame-selected-window because it does not
+             ;; pass the `norecord' argument to Fselect_window.
+             (select-window save-selected-window-other-frame 'norecord))
+         ;; Then reset the actual selected-window.
 	 (when (window-live-p save-selected-window-window)
 	   (select-window save-selected-window-window 'norecord))))))
 
@@ -3787,6 +3824,29 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
+(defun set-temporary-overlay-map (map &optional keep-pred)
+  (let* ((clearfunsym (make-symbol "clear-temporary-overlay-map"))
+         (overlaysym (make-symbol "t"))
+         (alist (list (cons overlaysym map)))
+         (clearfun
+          ;; FIXME: Use lexical-binding.
+          `(lambda ()
+             (unless ,(cond ((null keep-pred) nil)
+                            ((eq t keep-pred)
+                             `(eq this-command
+                                  (lookup-key ',map
+                                              (this-command-keys-vector))))
+                            (t `(funcall ',keep-pred)))
+               (remove-hook 'pre-command-hook ',clearfunsym)
+               (setq emulation-mode-map-alists
+                     (delq ',alist emulation-mode-map-alists))))))
+    (set overlaysym overlaysym)
+    (fset clearfunsym clearfun)
+    (add-hook 'pre-command-hook clearfunsym)
+    ;; FIXME: That's the keymaps with highest precedence, except for
+    ;; the `keymap' text-property ;-(
+    (push alist emulation-mode-map-alists)))
+
 ;;;; Progress reporters.
 
 ;; Progress reporter has the following structure:

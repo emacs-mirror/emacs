@@ -143,10 +143,9 @@ whose length is specified by `flyspell-delay'."
   :type '(repeat (symbol)))
 
 (defcustom flyspell-default-deplacement-commands
-  '(next-line
-    previous-line
-    scroll-up
-    scroll-down)
+  '(next-line previous-line
+    handle-switch-frame handle-select-window
+    scroll-up scroll-down)
   "The standard list of deplacement commands for Flyspell.
 See `flyspell-deplacement-commands'."
   :group 'flyspell
@@ -631,7 +630,7 @@ in your .emacs file.
 (defun flyspell-delay-commands ()
   "Install the standard set of Flyspell delayed commands."
   (mapc 'flyspell-delay-command flyspell-default-delayed-commands)
-  (mapcar 'flyspell-delay-command flyspell-delayed-commands))
+  (mapc 'flyspell-delay-command flyspell-delayed-commands))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-delay-command ...                                       */
@@ -639,7 +638,7 @@ in your .emacs file.
 (defun flyspell-delay-command (command)
   "Set COMMAND to be delayed, for Flyspell.
 When flyspell `post-command-hook' is invoked because a delayed command
-as been used the current word is not immediately checked.
+has been used, the current word is not immediately checked.
 It will be checked only after `flyspell-delay' seconds."
   (interactive "SDelay Flyspell after Command: ")
   (put command 'flyspell-delayed t))
@@ -650,16 +649,15 @@ It will be checked only after `flyspell-delay' seconds."
 (defun flyspell-deplacement-commands ()
   "Install the standard set of Flyspell deplacement commands."
   (mapc 'flyspell-deplacement-command flyspell-default-deplacement-commands)
-  (mapcar 'flyspell-deplacement-command flyspell-deplacement-commands))
+  (mapc 'flyspell-deplacement-command flyspell-deplacement-commands))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-deplacement-command ...                                 */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-deplacement-command (command)
   "Set COMMAND that implement cursor movements, for Flyspell.
-When flyspell `post-command-hook' is invoked because of a deplacement command
-as been used the current word is checked only if the previous command was
-not the very same deplacement command."
+When flyspell `post-command-hook' is invoked because a deplacement command
+has been used, the current word is not checked."
   (interactive "SDeplacement Flyspell after Command: ")
   (put command 'flyspell-deplacement t))
 
@@ -680,12 +678,12 @@ not the very same deplacement command."
 ;;*    post command hook, we will check, if the word at this position   */
 ;;*    has to be spell checked.                                         */
 ;;*---------------------------------------------------------------------*/
-(defvar flyspell-pre-buffer     nil)
-(defvar flyspell-pre-point      nil)
-(defvar flyspell-pre-column     nil)
+(defvar flyspell-pre-buffer     nil "Buffer current before `this-command'.")
+(defvar flyspell-pre-point      nil "Point before running `this-command'")
+(defvar flyspell-pre-column     nil "Column before running `this-command'")
 (defvar flyspell-pre-pre-buffer nil)
 (defvar flyspell-pre-pre-point  nil)
-(make-variable-buffer-local 'flyspell-pre-point)
+(make-variable-buffer-local 'flyspell-pre-point) ;Why??  --Stef
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-previous-command ...                                    */
@@ -709,18 +707,18 @@ not the very same deplacement command."
 ;;;###autoload
 (defun flyspell-mode-off ()
   "Turn Flyspell mode off."
-  ;; we remove the hooks
+  ;; We remove the hooks.
   (remove-hook 'post-command-hook (function flyspell-post-command-hook) t)
   (remove-hook 'pre-command-hook (function flyspell-pre-command-hook) t)
   (remove-hook 'after-change-functions 'flyspell-after-change-function t)
   (remove-hook 'hack-local-variables-hook
 	       (function flyspell-hack-local-variables-hook) t)
-  ;; we remove all the flyspell highlightings
+  ;; We remove all the flyspell highlightings.
   (flyspell-delete-all-overlays)
-  ;; we have to erase pre cache variables
+  ;; We have to erase pre cache variables.
   (setq flyspell-pre-buffer nil)
   (setq flyspell-pre-point  nil)
-  ;; we mark the mode as killed
+  ;; We mark the mode as killed.
   (setq flyspell-mode nil))
 
 ;;*---------------------------------------------------------------------*/
@@ -730,39 +728,49 @@ not the very same deplacement command."
   "Return non-nil if we should check the word before point.
 More precisely, it applies to the word that was before point
 before the current command."
-  (cond
-   ((or (not (numberp flyspell-pre-point))
-	(not (bufferp flyspell-pre-buffer))
-	(not (buffer-live-p flyspell-pre-buffer)))
-    nil)
-   ((and (eq flyspell-pre-pre-point flyspell-pre-point)
-	 (eq flyspell-pre-pre-buffer flyspell-pre-buffer))
-    nil)
-   ((or (and (= flyspell-pre-point (- (point) 1))
-	     (eq (char-syntax (char-after flyspell-pre-point)) ?w))
-	(= flyspell-pre-point (point))
-	(= flyspell-pre-point (+ (point) 1)))
-    nil)
-   ((and (symbolp this-command)
-	 (not executing-kbd-macro)
-	 (or (get this-command 'flyspell-delayed)
-	     (and (get this-command 'flyspell-deplacement)
-		  (eq flyspell-previous-command this-command)))
-	 (or (= (current-column) 0)
-	     (= (current-column) flyspell-pre-column)
-	     ;; If other post-command-hooks change the buffer,
-	     ;; flyspell-pre-point can lie past eob (bug#468).
-	     (null (char-after flyspell-pre-point))
-	     (eq (char-syntax (char-after flyspell-pre-point)) ?w)))
-    nil)
-   ((not (eq (current-buffer) flyspell-pre-buffer))
-    t)
-   ((not (and (numberp flyspell-word-cache-start)
-	      (numberp flyspell-word-cache-end)))
-    t)
-   (t
-    (or (< flyspell-pre-point flyspell-word-cache-start)
-	(> flyspell-pre-point flyspell-word-cache-end)))))
+  (let ((ispell-otherchars (ispell-get-otherchars)))
+    (cond
+   ((not (and (numberp flyspell-pre-point)
+              (buffer-live-p flyspell-pre-buffer)))
+      nil)
+     ((and (eq flyspell-pre-pre-point flyspell-pre-point)
+	   (eq flyspell-pre-pre-buffer flyspell-pre-buffer))
+      nil)
+     ((or (and (= flyspell-pre-point (- (point) 1))
+	       (or (eq (char-syntax (char-after flyspell-pre-point)) ?w)
+		   (and (not (string= "" ispell-otherchars))
+			(string-match-p
+			 ispell-otherchars
+			 (buffer-substring-no-properties
+			  flyspell-pre-point (1+ flyspell-pre-point))))))
+	  (= flyspell-pre-point (point))
+	  (= flyspell-pre-point (+ (point) 1)))
+      nil)
+     ((and (symbolp this-command)
+	   (not executing-kbd-macro)
+	   (or (get this-command 'flyspell-delayed)
+	       (and (get this-command 'flyspell-deplacement)
+		    (eq flyspell-previous-command this-command)))
+	   (or (= (current-column) 0)
+	       (= (current-column) flyspell-pre-column)
+	       ;; If other post-command-hooks change the buffer,
+	       ;; flyspell-pre-point can lie past eob (bug#468).
+	       (null (char-after flyspell-pre-point))
+	       (or (eq (char-syntax (char-after flyspell-pre-point)) ?w)
+		   (and (not (string= "" ispell-otherchars))
+			(string-match-p
+			 ispell-otherchars
+			 (buffer-substring-no-properties
+			  flyspell-pre-point (1+ flyspell-pre-point)))))))
+      nil)
+     ((not (eq (current-buffer) flyspell-pre-buffer))
+      t)
+     ((not (and (numberp flyspell-word-cache-start)
+		(numberp flyspell-word-cache-end)))
+      t)
+     (t
+      (or (< flyspell-pre-point flyspell-word-cache-start)
+	  (> flyspell-pre-point flyspell-word-cache-end))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    The flyspell after-change-hook, store the change position. In    */
@@ -783,21 +791,15 @@ before the current command."
 ;;*    flyspell-check-changed-word-p ...                                */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-check-changed-word-p (start stop)
-  "Return t when the changed word has to be checked.
+  "Return non-nil when the changed word has to be checked.
 The answer depends of several criteria.
 Mostly we check word delimiters."
-  (cond
-   ((and (memq (char-after start) '(?\n ? )) (> stop start))
-    t)
-   ((not (numberp flyspell-pre-point))
-    t)
-   ((and (>= flyspell-pre-point start) (<= flyspell-pre-point stop))
-    nil)
-   ((let ((pos (point)))
-      (or (>= pos start) (<= pos stop) (= pos (1+ stop))))
-    nil)
-   (t
-    t)))
+  (not (and (not (and (memq (char-after start) '(?\n ? )) (> stop start)))
+            (numberp flyspell-pre-point)
+            (or
+             (and (>= flyspell-pre-point start) (<= flyspell-pre-point stop))
+             (let ((pos (point)))
+               (or (>= pos start) (<= pos stop) (= pos (1+ stop))))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-check-word-p ...                                        */
@@ -806,30 +808,33 @@ Mostly we check word delimiters."
   "Return t when the word at `point' has to be checked.
 The answer depends of several criteria.
 Mostly we check word delimiters."
-  (cond
-   ((<= (- (point-max) 1) (point-min))
-    ;; the buffer is not filled enough
-    nil)
-   ((and (and (> (current-column) 0)
-	      (not (eq (current-column) flyspell-pre-column)))
-	 (save-excursion
-	   (backward-char 1)
-	   (and (looking-at (flyspell-get-not-casechars))
-		(or flyspell-consider-dash-as-word-delimiter-flag
-		    (not (looking-at "-"))))))
-    ;; yes because we have reached or typed a word delimiter.
-    t)
-   ((symbolp this-command)
+  (let ((ispell-otherchars (ispell-get-otherchars)))
     (cond
-     ((get this-command 'flyspell-deplacement)
-      (not (eq flyspell-previous-command this-command)))
-     ((get this-command 'flyspell-delayed)
-      ;; the current command is not delayed, that
-      ;; is that we must check the word now
-      (and (not unread-command-events)
-	   (sit-for flyspell-delay)))
-     (t t)))
-   (t t)))
+     ((<= (- (point-max) 1) (point-min))
+      ;; The buffer is not filled enough.
+      nil)
+     ((and (and (> (current-column) 0)
+		(not (eq (current-column) flyspell-pre-column)))
+	   (save-excursion
+	     (backward-char 1)
+	     (and (looking-at (flyspell-get-not-casechars))
+		  (or (string= "" ispell-otherchars)
+		      (not (looking-at ispell-otherchars)))
+		  (or flyspell-consider-dash-as-word-delimiter-flag
+		      (not (looking-at "-"))))))
+      ;; Yes because we have reached or typed a word delimiter.
+      t)
+     ((symbolp this-command)
+      (cond
+       ((get this-command 'flyspell-deplacement)
+	(not (eq flyspell-previous-command this-command)))
+       ((get this-command 'flyspell-delayed)
+	;; The current command is not delayed, that
+	;; is that we must check the word now.
+	(and (not unread-command-events)
+	     (sit-for flyspell-delay)))
+       (t t)))
+     (t t))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-debug-signal-no-check ...                               */
@@ -859,52 +864,55 @@ Mostly we check word delimiters."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-debug-signal-word-checked ()
   (setq debug-on-error t)
-  (let ((oldbuf (current-buffer))
+  (let ((ispell-otherchars (ispell-get-otherchars))
+	(oldbuf (current-buffer))
         (point  (point)))
     (with-current-buffer (get-buffer-create "*flyspell-debug*")
-      (insert "WORD:\n")
-      (insert (format "  this-cmd   : %S\n" this-command))
-      (insert (format "  delayed    : %S\n" (and (symbolp this-command)
-						 (get this-command 'flyspell-delayed))))
-      (insert (format "  point      : %S\n" point))
-      (insert (format "  prev-char  : [%c] %S\n"
-		      (with-current-buffer oldbuf
-			(let ((c (if (> (point) (point-min))
-				     (save-excursion
-				       (backward-char 1)
-				       (char-after (point)))
-				   ? )))
-			  c))
-		      (with-current-buffer oldbuf
-			(let ((c (if (> (point) (point-min))
-				     (save-excursion
-				       (backward-char 1)
-				       (and (and (looking-at (flyspell-get-not-casechars)) 1)
-					    (and (or flyspell-consider-dash-as-word-delimiter-flag
-						     (not (looking-at "\\-"))) 2))))))
-			  c))))
-      (insert (format "  because    : %S\n"
-		      (cond
-		       ((not (and (symbolp this-command)
-				  (get this-command 'flyspell-delayed)))
-			;; the current command is not delayed, that
-			;; is that we must check the word now
-			'not-delayed)
-		       ((with-current-buffer oldbuf
-			  (let ((c (if (> (point) (point-min))
-				       (save-excursion
-					 (backward-char 1)
-					 (and (looking-at (flyspell-get-not-casechars))
-					      (or flyspell-consider-dash-as-word-delimiter-flag
-						  (not (looking-at "\\-"))))))))
-			    c))
-			;; yes because we have reached or typed a word delimiter.
-			'separator)
-		       ((not (integerp flyspell-delay))
-			;; yes because the user had set up a no-delay configuration.
-			'no-delay)
-		       (t
-			'sit-for))))
+      (insert
+       "WORD:\n"
+       (format "  this-cmd   : %S\n" this-command)
+       (format "  delayed    : %S\n" (and (symbolp this-command)
+                                          (get this-command
+                                               'flyspell-delayed)))
+       (format "  point      : %S\n" point)
+       (format "  prev-char  : [%c] %S\n"
+               (with-current-buffer oldbuf
+                 (if (bobp) ?\  (char-before)))
+               (with-current-buffer oldbuf
+                 (if (bobp)
+                     nil
+                   (save-excursion
+                     (backward-char 1)
+                     (and (looking-at (flyspell-get-not-casechars))
+                          (or (string= "" ispell-otherchars)
+                              (not (looking-at ispell-otherchars)))
+                          (or flyspell-consider-dash-as-word-delimiter-flag
+                              (not (looking-at "\\-")))
+                          2)))))
+       (format "  because    : %S\n"
+               (cond
+                ((not (and (symbolp this-command)
+                           (get this-command 'flyspell-delayed)))
+                 ;; The current command is not delayed, that
+                 ;; is that we must check the word now.
+                 'not-delayed)
+                ((with-current-buffer oldbuf
+                   (if (bobp)
+                       nil
+                     (save-excursion
+                       (backward-char 1)
+                       (and (looking-at (flyspell-get-not-casechars))
+                            (or (string= "" ispell-otherchars)
+                                (not (looking-at ispell-otherchars)))
+                            (or flyspell-consider-dash-as-word-delimiter-flag
+                                (not (looking-at "\\-")))))))
+                 ;; Yes because we have reached or typed a word delimiter.
+                 'separator)
+                ((not (integerp flyspell-delay))
+                 ;; Yes because the user set up a no-delay configuration.
+                 'no-delay)
+                (t
+                 'sit-for))))
       (goto-char (point-max)))))
 
 ;;*---------------------------------------------------------------------*/
@@ -927,7 +935,7 @@ Mostly we check word delimiters."
 ;;*    2- the word that used to be the current word before the          */
 ;;*       THIS-COMMAND is checked if:                                   */
 ;;*        a- the previous word is different from the current word      */
-;;*        b- the previous word as not just been checked by the         */
+;;*        b- the previous word has not just been checked by the        */
 ;;*           previous FLYSPELL-POST-COMMAND-HOOK                       */
 ;;*    3- the words changed by the THIS-COMMAND that are neither the    */
 ;;*       previous word nor the current word                            */
@@ -954,7 +962,7 @@ Mostly we check word delimiters."
               ;; we remember which word we have just checked.
               ;; this will be used next time we will check a word
               ;; to compare the next current word with the word
-              ;; that as been registered in the pre-command-hook
+              ;; that has been registered in the pre-command-hook
               ;; that is these variables are used within the predicate
               ;; FLYSPELL-CHECK-PRE-WORD-P
               (setq flyspell-pre-pre-buffer (current-buffer))
@@ -1221,63 +1229,8 @@ misspelling and skips redundant spell-checking step."
 			(>= (match-end 0) b))))))
       (flyspell-math-tex-command-p)))
 
-;;*---------------------------------------------------------------------*/
-;;*    flyspell-casechars-cache ...                                     */
-;;*---------------------------------------------------------------------*/
-(defvar flyspell-casechars-cache nil)
-(defvar flyspell-ispell-casechars-cache nil)
-(make-variable-buffer-local 'flyspell-casechars-cache)
-(make-variable-buffer-local 'flyspell-ispell-casechars-cache)
-
-;;*---------------------------------------------------------------------*/
-;;*    flyspell-get-casechars ...                                       */
-;;*---------------------------------------------------------------------*/
-(defun flyspell-get-casechars ()
-  "This function builds a string that is the regexp of word chars.
-In order to avoid one useless string construction,
-this function changes the last char of the `ispell-casechars' string."
-  (let ((ispell-casechars (ispell-get-casechars)))
-    (cond
-     ((eq ispell-parser 'tex)
-      (setq flyspell-ispell-casechars-cache ispell-casechars)
-      (setq flyspell-casechars-cache
-	    (concat (substring ispell-casechars
-			       0
-			       (- (length ispell-casechars) 1))
-		    "]"))
-      flyspell-casechars-cache)
-     (t
-      (setq flyspell-ispell-casechars-cache ispell-casechars)
-      (setq flyspell-casechars-cache ispell-casechars)
-      flyspell-casechars-cache))))
-
-;;*---------------------------------------------------------------------*/
-;;*    flyspell-get-not-casechars-cache ...                             */
-;;*---------------------------------------------------------------------*/
-(defvar flyspell-not-casechars-cache nil)
-(defvar flyspell-ispell-not-casechars-cache nil)
-(make-variable-buffer-local 'flyspell-not-casechars-cache)
-(make-variable-buffer-local 'flyspell-ispell-not-casechars-cache)
-
-;;*---------------------------------------------------------------------*/
-;;*    flyspell-get-not-casechars ...                                   */
-;;*---------------------------------------------------------------------*/
-(defun flyspell-get-not-casechars ()
-  "This function builds a string that is the regexp of non-word chars."
-  (let ((ispell-not-casechars (ispell-get-not-casechars)))
-    (cond
-     ((eq ispell-parser 'tex)
-      (setq flyspell-ispell-not-casechars-cache ispell-not-casechars)
-      (setq flyspell-not-casechars-cache
-	    (concat (substring ispell-not-casechars
-			       0
-			       (- (length ispell-not-casechars) 1))
-		    "]"))
-      flyspell-not-casechars-cache)
-     (t
-      (setq flyspell-ispell-not-casechars-cache ispell-not-casechars)
-      (setq flyspell-not-casechars-cache ispell-not-casechars)
-      flyspell-not-casechars-cache))))
+(defalias 'flyspell-get-casechars 'ispell-get-casechars)
+(defalias 'flyspell-get-not-casechars 'ispell-get-not-casechars)
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-get-word ...                                            */
@@ -1414,7 +1367,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	    (goto-char buffer-scan-pos)
 	    (let ((keep t))
 	      ;; Iterate on string search until string is found as word,
-	      ;; not as substring
+	      ;; not as substring.
 	      (while keep
 		(if (search-forward word
 				    flyspell-large-region-end t)
@@ -1430,13 +1383,14 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 		      (when (or
 			     ;; Size matches, we really found it.
 			     (= found-length misspell-length)
-			     ;; Matches as part of a boundary-char separated word
+			     ;; Matches as part of a boundary-char separated
+			     ;; word.
 			     (member word
 				     (split-string found ispell-otherchars))
 			     ;; Misspelling has higher length than
-			     ;; what flyspell considers the
-			     ;; word.  Caused by boundary-chars
-			     ;; mismatch.  Validating seems safe.
+			     ;; what flyspell considers the word.
+                             ;; Caused by boundary-chars mismatch.
+                             ;; Validating seems safe.
 			     (< found-length misspell-length)
 			     ;; ispell treats beginning of some TeX
 			     ;; commands as nroff control sequences
@@ -1479,7 +1433,8 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 ;;*    declared correct.                                                */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-process-localwords (misspellings-buffer)
-  (let (localwords case-fold-search
+  (let ((localwords ispell-buffer-session-localwords)
+	case-fold-search
 	(ispell-casechars (ispell-get-casechars)))
     ;; Get localwords from the original buffer
     (save-excursion
@@ -1900,11 +1855,11 @@ This command proposes various successive corrections for the current word."
   (interactive)
   (let ((pos     (point))
 	(old-max (point-max)))
-    ;; use the correct dictionary
+    ;; Use the correct dictionary.
     (flyspell-accept-buffer-local-defs)
     (if (and (eq flyspell-auto-correct-pos pos)
 	     (consp flyspell-auto-correct-region))
-	;; we have already been using the function at the same location
+	;; We have already been using the function at the same location.
 	(let* ((start (car flyspell-auto-correct-region))
 	       (len   (cdr flyspell-auto-correct-region)))
 	  (flyspell-unhighlight-at start)
@@ -1926,7 +1881,7 @@ This command proposes various successive corrections for the current word."
 	    (flyspell-display-next-corrections flyspell-auto-correct-ring))
 	  (flyspell-ajust-cursor-point pos (point) old-max)
 	  (setq flyspell-auto-correct-pos (point)))
-      ;; fetch the word to be checked
+      ;; Fetch the word to be checked.
       (let ((word (flyspell-get-word)))
 	(if (consp word)
 	    (let ((start (car (cdr word)))
@@ -1934,30 +1889,30 @@ This command proposes various successive corrections for the current word."
 		  (word (car word))
 		  poss ispell-filter)
 	      (setq flyspell-auto-correct-word word)
-	      ;; now check spelling of word.
-	      (ispell-send-string "%\n") ;put in verbose mode
+	      ;; Now check spelling of word..
+	      (ispell-send-string "%\n") ;Put in verbose mode.
 	      (ispell-send-string (concat "^" word "\n"))
-              ;; wait until ispell has processed word.
+              ;; Wait until ispell has processed word.
               (while (progn
                        (accept-process-output ispell-process)
                        (not (string= "" (car ispell-filter)))))
-	      ;; Remove leading empty element
+	      ;; Remove leading empty element.
 	      (setq ispell-filter (cdr ispell-filter))
-	      ;; ispell process should return something after word is sent.
-	      ;; Tag word as valid (i.e., skip) otherwise
+	      ;; Ispell process should return something after word is sent.
+	      ;; Tag word as valid (i.e., skip) otherwise.
 	      (or ispell-filter
 		  (setq ispell-filter '(*)))
 	      (if (consp ispell-filter)
 		  (setq poss (ispell-parse-output (car ispell-filter))))
 	      (cond
 	       ((or (eq poss t) (stringp poss))
-		;; don't correct word
+		;; Don't correct word.
 		t)
 	       ((null poss)
-		;; ispell error
+		;; Ispell error.
 		(error "Ispell: error in Ispell process"))
 	       (t
-		;; the word is incorrect, we have to propose a replacement
+		;; The word is incorrect, we have to propose a replacement.
 		(let ((replacements (if flyspell-sort-corrections
 					(sort (car (cdr (cdr poss))) 'string<)
 				      (car (cdr (cdr poss))))))
@@ -2147,6 +2102,9 @@ If OPOINT is non-nil, restore point there after adjusting it for replacement."
 	 (setq ispell-pdict-modified-p '(t)))
 	((or (eq replace 'buffer) (eq replace 'session))
 	 (ispell-send-string (concat "@" word "\n"))
+	 (add-to-list 'ispell-buffer-session-localwords word)
+	 (or ispell-buffer-local-name ; session localwords might conflict
+	     (setq ispell-buffer-local-name (buffer-name)))
 	 (flyspell-unhighlight-at cursor-location)
 	 (if (null ispell-pdict-modified-p)
 	     (setq ispell-pdict-modified-p

@@ -1232,9 +1232,9 @@ rmail-epa-decrypt} to decrypt it, using the EasyPG library
 Address mode:
 
 @c FIXME goto-addr.el commentary says to use goto-address instead.
-@smallexample
+@example
 (add-hook 'rmail-show-message-hook 'goto-address-mode)
-@end smallexample
+@end example
 
 @noindent
 Then you can browse these URLs by clicking on them with @kbd{Mouse-2}
@@ -1355,7 +1355,7 @@ your Rmail file (@pxref{Rmail Inbox}).  When loaded for the first time,
 Rmail attempts to locate the @code{movemail} program and determine its
 version.  There are two versions of the @code{movemail} program: the
 native one, shipped with GNU Emacs (the ``emacs version'') and the one
-included in GNU mailutils (the ``mailutils version,''
+included in GNU mailutils (the ``mailutils version'',
 @pxref{movemail,,,mailutils,GNU mailutils}).  They support the same
 command line syntax and the same basic subset of options.  However, the
 Mailutils version offers additional features.

@@ -1,3 +1,22 @@
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Scrap superfluous subshell.
+
+2012-05-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* automated/url-util-tests.el: New file to test
+	lisp/url/url-util.el.  Only `url-build-query-string' and
+	`url-parse-query-string' are tested right now (Bug#8706).
+
+2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/shell.sh:
+	* indent/shell.rc: Ad some test cases.
+
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: New file, to test new syntax-propertize code.
+
 2012-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* automated/vc-bzr.el (vc-bzr-test-faulty-bzr-autoloads): New test.

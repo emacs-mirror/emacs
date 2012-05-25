@@ -639,7 +639,9 @@ and updates the data stored in ENV."
        (cconv-analyse-form (cadr forms) env)
        (setq forms (cddr forms))))
 
-    (`((lambda . ,_) . ,_)             ; first element is lambda expression
+    (`((lambda . ,_) . ,_)             ; First element is lambda expression.
+     (byte-compile-log-warning
+      "Use of deprecated ((lambda ...) ...) form" t :warning)
      (dolist (exp `((function ,(car form)) . ,(cdr form)))
        (cconv-analyse-form exp env)))
 

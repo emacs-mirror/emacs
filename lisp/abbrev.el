@@ -135,7 +135,7 @@ Otherwise display all abbrevs."
 	      (insert-abbrev-table-description table t)))
 	  (dolist (table (nreverse empty-tables))
 	    (insert-abbrev-table-description table t)))
-        ;; Note: `list-abbrevs' can dispaly only local abbrevs, in
+        ;; Note: `list-abbrevs' can display only local abbrevs, in
         ;; which case editing could lose abbrevs of other tables. Thus
         ;; enter `edit-abbrevs-mode' only if LOCAL is nil.
         (edit-abbrevs-mode))

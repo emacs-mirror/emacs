@@ -415,13 +415,13 @@ location of point in the current buffer."
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-not-found-hooks 'permanent-local t)
+(define-obsolete-variable-alias 'find-file-not-found-hooks
+    'find-file-not-found-functions "22.1")
 (defvar find-file-not-found-functions nil
   "List of functions to be called for `find-file' on nonexistent file.
 These functions are called as soon as the error is detected.
 Variable `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
-(define-obsolete-variable-alias 'find-file-not-found-hooks
-    'find-file-not-found-functions "22.1")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
@@ -435,6 +435,7 @@ functions are called."
   :options '(auto-insert)
   :version "22.1")
 
+(define-obsolete-variable-alias 'write-file-hooks 'write-file-functions "22.1")
 (defvar write-file-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
@@ -451,13 +452,14 @@ coding system and setting mode bits.  (See Info
 node `(elisp)Saving Buffers'.)  To perform various checks or
 updates before the buffer is saved, use `before-save-hook'.")
 (put 'write-file-functions 'permanent-local t)
-(define-obsolete-variable-alias 'write-file-hooks 'write-file-functions "22.1")
 
 (defvar local-write-file-hooks nil)
 (make-variable-buffer-local 'local-write-file-hooks)
 (put 'local-write-file-hooks 'permanent-local t)
 (make-obsolete-variable 'local-write-file-hooks 'write-file-functions "22.1")
 
+(define-obsolete-variable-alias 'write-contents-hooks
+    'write-contents-functions "22.1")
 (defvar write-contents-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
@@ -475,8 +477,6 @@ For hooks that _do_ pertain to the particular visited file, use
 To perform various checks or updates before the buffer is saved,
 use `before-save-hook'.")
 (make-variable-buffer-local 'write-contents-functions)
-(define-obsolete-variable-alias 'write-contents-hooks
-    'write-contents-functions "22.1")
 
 (defcustom enable-local-variables t
   "Control use of local variables in files you visit.
@@ -985,6 +985,29 @@ Tip: You can use this expansion of remote identifier components
     (if handler
 	(funcall handler 'file-remote-p file identification connected)
       nil)))
+
+;; Probably this entire variable should be obsolete now, in favor of
+;; something Tramp-related (?).  It is not used in many places.
+;; It's not clear what the best file for this to be in is, but given
+;; it uses custom-initialize-delay, it is easier if it is preloaded
+;; rather than autoloaded.
+(defcustom remote-shell-program
+  ;; This used to try various hard-coded places for remsh, rsh, and
+  ;; rcmd, trying to guess based on location whether "rsh" was
+  ;; "restricted shell" or "remote shell", but I don't see the point
+  ;; in this day and age.  Almost everyone will use ssh, and have
+  ;; whatever command they want to use in PATH.
+  (purecopy
+   (let ((list '("ssh" "remsh" "rcmd" "rsh")))
+     (while (and list
+		 (not (executable-find (car list)))
+		 (setq list (cdr list))))
+     (or (car list) "ssh")))
+  "Program to use to execute commands on a remote host (e.g. ssh or rsh)."
+  :version "24.2"			; ssh rather than rsh, etc
+  :initialize 'custom-initialize-delay
+  :group 'environment
+  :type 'file)
 
 (defcustom remote-file-name-inhibit-cache 10
   "Whether to use the remote file-name cache for read access.
@@ -1627,6 +1650,7 @@ Choose the buffer's name using `generate-new-buffer-name'."
   "Regexp to match the automounter prefix in a directory name."
   :group 'files
   :type 'regexp)
+(make-obsolete-variable 'automount-dir-prefix 'directory-abbrev-alist "24.2")
 
 (defvar abbreviated-home-dir nil
   "The user's homedir abbreviated according to `directory-abbrev-alist'.")
@@ -2261,9 +2285,11 @@ since only a single case-insensitive search through the alist is made."
      ("\\.makepp\\'" . makefile-makepp-mode)
      ,@(if (memq system-type '(berkeley-unix darwin))
 	   '(("\\.mk\\'" . makefile-bsdmake-mode)
+	     ("\\.make\\'" . makefile-bsdmake-mode)
 	     ("GNUmakefile\\'" . makefile-gmake-mode)
 	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
 	 '(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
+	   ("\\.make\\'" . makefile-gmake-mode)
 	   ("[Mm]akefile\\'" . makefile-gmake-mode)))
      ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here
@@ -2340,8 +2366,8 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.dbk\\'" . xml-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
-     ("\\.js\\'" . js-mode)		; javascript-mode would be better
-     ("\\.json\\'" . js-mode)
+     ("\\.js\\'" . javascript-mode)
+     ("\\.json\\'" . javascript-mode)
      ("\\.[ds]?vh?\\'" . verilog-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
@@ -2781,6 +2807,11 @@ same, do nothing and return nil."
       (funcall mode)
       mode)))
 
+(defvar file-auto-mode-skip "^\\(#!\\|'\\\\\"\\)"
+  "Regexp of lines to skip when looking for file-local settings.
+If the first line matches this regular expression, then the -*-...-*- file-
+local settings will be consulted on the second line instead of the first.")
+
 (defun set-auto-mode-1 ()
   "Find the -*- spec in the buffer.
 Call with point at the place to start searching from.
@@ -2803,7 +2834,7 @@ have no effect."
                             ;; interpreter invocation.  The same holds
                             ;; for '\" in man pages (preprocessor
                             ;; magic for the `man' program).
-                            (and (looking-at "^\\(#!\\|'\\\\\"\\)") 2)) t)
+                            (and (looking-at file-auto-mode-skip) 2)) t)
      (progn
        (skip-chars-forward " \t")
        (setq beg (point))
@@ -3621,19 +3652,21 @@ FILE is the name of the file holding the variables to apply.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    ;; Errors reading the file are not very informative.
-    ;; Eg just "Error: (end-of-file)" does not give any clue that the
-    ;; problem is related to dir-locals.
-    (with-demoted-errors
-      (insert-file-contents file)
-      (let* ((dir-name (file-name-directory file))
-	     (class-name (intern dir-name))
-	     (variables (let ((read-circle nil))
-			  (read (current-buffer)))))
-	(dir-locals-set-class-variables class-name variables)
-	(dir-locals-set-directory-class dir-name class-name
-					(nth 5 (file-attributes file)))
-	class-name))))
+    ;; This is with-demoted-errors, but we want to mention dir-locals
+    ;; in any error message.
+    (let (err)
+      (condition-case err
+	  (progn
+	    (insert-file-contents file)
+	    (let* ((dir-name (file-name-directory file))
+		   (class-name (intern dir-name))
+		   (variables (let ((read-circle nil))
+				(read (current-buffer)))))
+	      (dir-locals-set-class-variables class-name variables)
+	      (dir-locals-set-directory-class dir-name class-name
+					      (nth 5 (file-attributes file)))
+	      class-name))
+	(error (message "Error reading dir-locals: %S" err) nil)))))
 
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
@@ -3642,7 +3675,8 @@ and `file-local-variables-alist', without applying them."
   (when (and enable-local-variables
 	     (not (file-remote-p (or (buffer-file-name) default-directory))))
     ;; Find the variables file.
-    (let ((variables-file (dir-locals-find-file (or (buffer-file-name) default-directory)))
+    (let ((variables-file (dir-locals-find-file
+                           (or (buffer-file-name) default-directory)))
 	  (class nil)
 	  (dir-name nil))
       (cond
@@ -4495,7 +4529,7 @@ Before and after saving the buffer, this function runs
 	       (format
 		"%s has changed since visited or saved.  Save anyway? "
 		(file-name-nondirectory buffer-file-name)))
-	      (error "Save not confirmed"))
+	      (user-error "Save not confirmed"))
 	  (save-restriction
 	    (widen)
 	    (save-excursion
@@ -5114,6 +5148,24 @@ directly into NEWNAME instead."
 	    (times (and keep-time (nth 5 (file-attributes directory)))))
 	(if modes (set-file-modes newname modes))
 	(if times (set-file-times newname times))))))
+
+
+;; At time of writing, only info uses this.
+(defun prune-directory-list (dirs &optional keep reject)
+  "Return a copy of DIRS with all non-existent directories removed.
+The optional argument KEEP is a list of directories to retain even if
+they don't exist, and REJECT is a list of directories to remove from
+DIRS, even if they exist; REJECT takes precedence over KEEP.
+
+Note that membership in REJECT and KEEP is checked using simple string
+comparison."
+  (apply #'nconc
+	 (mapcar (lambda (dir)
+		   (and (not (member dir reject))
+			(or (member dir keep) (file-directory-p dir))
+			(list dir)))
+		 dirs)))
+
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil
@@ -5362,7 +5414,7 @@ non-nil, it is called instead of rereading visited file contents."
 	     (insert-file-contents file-name nil)
 	     (set-buffer-file-coding-system coding-system))
 	   (after-find-file nil nil t))
-	  (t (error "Recover-file cancelled")))))
+	  (t (user-error "Recover-file cancelled")))))
 
 (defun recover-session ()
   "Recover auto save files from a previous Emacs session.

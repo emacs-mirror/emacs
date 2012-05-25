@@ -973,20 +973,17 @@ Interactively, prompt for NAME, and use the current filters."
        (concat " [" (cadr type) ": " (format "%s]" (cdr qualifier)))))))
 
 
-(defun ibuffer-list-buffer-modes ()
-  "Create an alist of buffer modes currently in use.
-The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
-  (let ((bufs (buffer-list))
-	(modes)
-	(this-mode))
-    (while bufs
-      (setq this-mode (buffer-local-value 'major-mode (car bufs))
-	    bufs (cdr bufs))
-      (add-to-list
-       'modes
-       `(,(symbol-name this-mode) .
-	 ,this-mode)))
-    modes))
+(defun ibuffer-list-buffer-modes (&optional include-parents)
+  "Create a completion table of buffer modes currently in use.
+If INCLUDE-PARENTS is non-nil then include parent modes."
+  (let ((modes))
+    (dolist (buf (buffer-list))
+      (let ((this-mode (buffer-local-value 'major-mode buf)))
+        (while (and this-mode (not (memq this-mode modes)))
+          (push this-mode modes)
+          (setq this-mode (and include-parents
+                               (get this-mode 'derived-mode-parent))))))
+    (mapcar #'symbol-name modes)))
 
 
 ;;; Extra operation definitions
@@ -996,16 +993,19 @@ The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
   "Toggle current view to buffers with major mode QUALIFIER."
   (:description "major mode"
    :reader
-   (intern
-    (completing-read "Filter by major mode: " obarray
-		     #'(lambda (e)
-			 (string-match "-mode$"
-				       (symbol-name e)))
-		     t
-		     (let ((buf (ibuffer-current-buffer)))
-		       (if (and buf (buffer-live-p buf))
-			   (symbol-name (buffer-local-value 'major-mode buf))
-			 "")))))
+   (let* ((buf (ibuffer-current-buffer))
+          (default (if (and buf (buffer-live-p buf))
+                       (symbol-name (buffer-local-value
+                                     'major-mode buf)))))
+     (intern
+      (completing-read
+       (if default
+           (format "Filter by major mode (default %s): " default)
+         "Filter by major mode: ")
+       obarray
+       #'(lambda (e)
+           (string-match "-mode\\'" (symbol-name e)))
+       t nil nil default))))
   (eq qualifier (buffer-local-value 'major-mode buf)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-used-mode "ibuf-ext")
@@ -1014,18 +1014,29 @@ The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
 Called interactively, this function allows selection of modes
 currently used by buffers."
   (:description "major mode in use"
+   :reader
+   (let* ((buf (ibuffer-current-buffer))
+          (default (if (and buf (buffer-live-p buf))
+                       (symbol-name (buffer-local-value
+                                     'major-mode buf)))))
+     (intern
+      (completing-read
+       (if default
+           (format "Filter by major mode (default %s): " default)
+         "Filter by major mode: ")
+       (ibuffer-list-buffer-modes) nil t nil nil default))))
+  (eq qualifier (buffer-local-value 'major-mode buf)))
+
+;;;###autoload (autoload 'ibuffer-filter-by-derived-mode "ibuf-ext")
+(define-ibuffer-filter derived-mode
+    "Toggle current view to buffers whose major mode inherits from QUALIFIER."
+  (:description "derived mode"
 		:reader
 		(intern
-		 (completing-read "Filter by major mode: "
-				  (ibuffer-list-buffer-modes)
-				  nil
-				  t
-				  (let ((buf (ibuffer-current-buffer)))
-				    (if (and buf (buffer-live-p buf))
-					(symbol-name (buffer-local-value
-						      'major-mode buf))
-				      "")))))
-  (eq qualifier (buffer-local-value 'major-mode buf)))
+		 (completing-read "Filter by derived mode: "
+				  (ibuffer-list-buffer-modes t)
+                                  nil t)))
+  (with-current-buffer buf (derived-mode-p qualifier)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-name "ibuf-ext")
 (define-ibuffer-filter name
@@ -1345,8 +1356,8 @@ a prefix argument reverses the meaning of that variable."
 		(diff-sentinel
 		 (call-process shell-file-name nil
 			       (current-buffer) nil
-			       shell-command-switch command)))
-	      (insert "\n"))))
+			       shell-command-switch command))
+		(insert "\n")))))
       (sit-for 0)
       (when (file-exists-p tempfile)
 	(delete-file tempfile)))))
@@ -1466,19 +1477,16 @@ You can then feed the file name(s) to other commands with \\[yank]."
 (defun ibuffer-mark-by-mode (mode)
   "Mark all buffers whose major mode equals MODE."
   (interactive
-   (list (intern (completing-read "Mark by major mode: " obarray
-				  #'(lambda (e)
-				      ;; kind of a hack...
-                                      (and (fboundp e)
-                                           (string-match "-mode$"
-                                                         (symbol-name e))))
-				  t
-				  (let ((buf (ibuffer-current-buffer)))
-				    (if (and buf (buffer-live-p buf))
-					(with-current-buffer buf
-					  (cons (symbol-name major-mode)
-						0))
-				      ""))))))
+   (let* ((buf (ibuffer-current-buffer))
+          (default (if (and buf (buffer-live-p buf))
+                       (symbol-name (buffer-local-value
+                                     'major-mode buf)))))
+     (list (intern
+            (completing-read
+             (if default
+                 (format "Mark by major mode (default %s): " default)
+               "Mark by major mode: ")
+             (ibuffer-list-buffer-modes) nil t nil nil default)))))
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
        (eq (buffer-local-value 'major-mode buf) mode))))

@@ -893,9 +893,14 @@ Otherwise, only the current list of matches is shown."
   :type 'boolean
   :group 'ido)
 
-(defvar ido-all-frames 'visible
-  "Argument to pass to `walk-windows' when finding visible files.
-See documentation of `walk-windows' for useful values.")
+(defcustom ido-all-frames 'visible
+  "Argument to pass to `walk-windows' when Ido is finding buffers.
+See documentation of `walk-windows' for useful values."
+  :type '(choice (const :tag "Selected frame only" nil)
+		 (const :tag "All existing frames" t)
+		 (const :tag "All visible frames" visible)
+		 (const :tag "All frames on this terminal" 0))
+  :group 'ido)
 
 (defcustom ido-minibuffer-setup-hook nil
   "Ido-specific customization of minibuffer setup.

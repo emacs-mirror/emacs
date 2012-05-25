@@ -1,3 +1,30 @@
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	(mkinfodir): Use $MKDIR_P.
+
+2012-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Making Errors): Don't mention Emacs 20.
+	(Void Function, Wrong Type of Argument, Recursion with list)
+	(Simple Extension): Assume a non-ancient Emacs.
+	(Void Variable, Switching Buffers): Improve page breaks.
+
+	* emacs-lisp-intro.texi: Update GNU Press contact details.
+
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_EXT, INFO_OPTS): New, set by configure.
+	(info, infoclean): Use $INFO_EXT.
+	(${infodir}/eintr$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+	* makefile.w32-in (INFO_EXT, INFO_OPTS): New.
+	(INFO_TARGETS, clean): Use $INFO_EXT.
+	($(infodir)/eintr$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Syntax): Reword to avoid underfull hbox.
+
 2012-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Replace non-portable use of $< in ordinary rules.
@@ -498,7 +525,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -60,11 +60,10 @@
 (declare-function ibuffer-format-filter-group-data "ibuf-ext" (filter))
 
 (defgroup ibuffer nil
-  "An advanced replacement for `buffer-menu'.
-
-Ibuffer allows you to operate on buffers in a manner much like Dired.
-Operations include sorting, marking by regular expression, and
-the ability to filter the displayed buffers by various criteria."
+  "Advanced replacement for `buffer-menu'.
+Ibuffer lets you operate on buffers in a Dired-like way,
+with the ability to sort, mark by regular expression,
+and filter displayed buffers by various criteria."
   :version "22.1"
   :group 'convenience)
 
@@ -502,8 +501,8 @@ directory, like `default-directory'."
     (define-key map (kbd "s f") 'ibuffer-do-sort-by-filename/process)
     (define-key map (kbd "s m") 'ibuffer-do-sort-by-major-mode)
 
-    (define-key map (kbd "/ m") 'ibuffer-filter-by-mode)
-    (define-key map (kbd "/ M") 'ibuffer-filter-by-used-mode)
+    (define-key map (kbd "/ m") 'ibuffer-filter-by-used-mode)
+    (define-key map (kbd "/ M") 'ibuffer-filter-by-derived-mode)
     (define-key map (kbd "/ n") 'ibuffer-filter-by-name)
     (define-key map (kbd "/ c") 'ibuffer-filter-by-content)
     (define-key map (kbd "/ e") 'ibuffer-filter-by-predicate)
@@ -2646,7 +2645,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "1400db1bc3d4a3010cbc4807a6725072")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "296999191b08d76d9763a8ebf510d5d8")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
@@ -2836,6 +2835,7 @@ Set this buffer's filters to filters with NAME from `ibuffer-saved-filters'.
 \(fn NAME)" t nil)
  (autoload 'ibuffer-filter-by-mode "ibuf-ext")
  (autoload 'ibuffer-filter-by-used-mode "ibuf-ext")
+ (autoload 'ibuffer-filter-by-derived-mode "ibuf-ext")
  (autoload 'ibuffer-filter-by-name "ibuf-ext")
  (autoload 'ibuffer-filter-by-filename "ibuf-ext")
  (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")

@@ -534,16 +534,16 @@ large, and Emacs displays @samp{I feel pretty today}.  The bug report
 would need to provide all that information.  You should not assume
 that the problem is due to the size of the file and say, ``I visited a
 large file, and Emacs displayed @samp{I feel pretty today}.''  This is
-what we mean by ``guessing explanations.''  The problem might be due
+what we mean by ``guessing explanations''.  The problem might be due
 to the fact that there is a @samp{z} in the file name.  If this is so,
 then when we got your report, we would try out the problem with some
-``large file,'' probably with no @samp{z} in its name, and not see any
+``large file'', probably with no @samp{z} in its name, and not see any
 problem.  There is no way we could guess that we should try visiting a
 file with a @samp{z} in its name.
 
   You should not even say ``visit a file'' instead of @kbd{C-x C-f}.
 Similarly, rather than saying ``if I have three characters on the
-line,'' say ``after I type @kbd{@key{RET} A B C @key{RET} C-p},'' if
+line'', say ``after I type @kbd{@key{RET} A B C @key{RET} C-p}'', if
 that is the way you entered the text.
 
   If possible, try quickly to reproduce the bug by invoking Emacs with
@@ -731,7 +731,7 @@ you can copy its output from the @file{*Messages*} buffer.
 
 @item
 A description of what behavior you observe that you believe is
-incorrect.  For example, ``The Emacs process gets a fatal signal,'' or,
+incorrect.  For example, ``The Emacs process gets a fatal signal'', or,
 ``The resulting text is as follows, which I think is wrong.''
 
 Of course, if the bug is that Emacs gets a fatal signal, then one can't
@@ -872,7 +872,7 @@ More detailed advice and other useful techniques for debugging Emacs
 are available in the file @file{etc/DEBUG} in the Emacs distribution.
 That file also includes instructions for investigating problems
 whereby Emacs stops responding (many people assume that Emacs is
-``hung,'' whereas in fact it might be in an infinite loop).
+``hung'', whereas in fact it might be in an infinite loop).
 
 To find the file @file{etc/DEBUG} in your Emacs installation, use the
 directory name stored in the variable @code{data-directory}.

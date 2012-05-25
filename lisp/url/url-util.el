@@ -263,23 +263,64 @@ Will not do anything if `url-show-status' is nil."
 ;;;###autoload
 (defun url-parse-query-string (query &optional downcase allow-newlines)
   (let (retval pairs cur key val)
-    (setq pairs (split-string query "&"))
+    (setq pairs (split-string query "[;&]"))
     (while pairs
       (setq cur (car pairs)
 	    pairs (cdr pairs))
-      (if (not (string-match "=" cur))
-	  nil				; Grace
-	(setq key (url-unhex-string (substring cur 0 (match-beginning 0))
-				    allow-newlines))
-	(setq val (url-unhex-string (substring cur (match-end 0) nil)
-				    allow-newlines))
-	(if downcase
-	    (setq key (downcase key)))
-	(setq cur (assoc key retval))
-	(if cur
-	    (setcdr cur (cons val (cdr cur)))
-	  (setq retval (cons (list key val) retval)))))
+      (unless (string-match "=" cur)
+        (setq cur (concat cur "=")))
+
+      (when (string-match "=" cur)
+        (setq key (url-unhex-string (substring cur 0 (match-beginning 0))
+                                    allow-newlines))
+        (setq val (url-unhex-string (substring cur (match-end 0) nil)
+                                    allow-newlines))
+        (if downcase
+            (setq key (downcase key)))
+        (setq cur (assoc key retval))
+        (if cur
+            (setcdr cur (cons val (cdr cur)))
+          (setq retval (cons (list key val) retval)))))
     retval))
+
+;;;###autoload
+(defun url-build-query-string (query &optional semicolons keep-empty)
+  "Build a query-string.
+
+Given a QUERY in the form:
+'((key1 val1)
+  (key2 val2)
+  (key3 val1 val2)
+  (key4)
+  (key5 ""))
+
+\(This is the same format as produced by `url-parse-query-string')
+
+This will return a string
+\"key1=val1&key2=val2&key3=val1&key3=val2&key4&key5\". Keys may
+be strings or symbols; if they are symbols, the symbol name will
+be used.
+
+When SEMICOLONS is given, the separator will be \";\".
+
+When KEEP-EMPTY is given, empty values will show as \"key=\"
+instead of just \"key\" as in the example above."
+  (mapconcat
+   (lambda (key-vals)
+     (let ((escaped
+            (mapcar (lambda (sym)
+                      (url-hexify-string (format "%s" sym))) key-vals)))
+       (mapconcat (lambda (val)
+                    (let ((vprint (format "%s" val))
+                          (eprint (format "%s" (car escaped))))
+                      (concat eprint
+                              (if (or keep-empty
+                                      (and val (not (zerop (length vprint)))))
+                                  "="
+                                "")
+                              vprint)))
+                  (or (cdr escaped) '("")) (if semicolons ";" "&"))))
+   query (if semicolons ";" "&")))
 
 (defun url-unhex (x)
   (if (> x ?9)
@@ -333,40 +374,115 @@ forbidden in URL encoding."
     (concat tmp str)))
 
 (defconst url-unreserved-chars
-  '(
-    ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
+  '(?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
     ?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z
     ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
-    ?- ?_ ?. ?! ?~ ?* ?' ?\( ?\))
-  "A list of characters that are _NOT_ reserved in the URL spec.
-This is taken from RFC 2396.")
+    ?- ?_ ?. ?~)
+  "List of characters that are unreserved in the URL spec.
+This is taken from RFC 3986 (section 2.3).")
+
+(defconst url-encoding-table
+  (let ((vec (make-vector 256 nil)))
+    (dotimes (byte 256)
+      ;; RFC 3986 (Section 2.1): For consistency, URI producers and
+      ;; normalizers should use uppercase hexadecimal digits for all
+      ;; percent-encodings.
+      (aset vec byte (format "%%%02X" byte)))
+    vec)
+  "Vector translating bytes to URI-encoded %-sequences.")
+
+(defun url--allowed-chars (char-list)
+  "Return an \"allowed character\" mask (a 256-slot vector).
+The Nth element is non-nil if character N is in CHAR-LIST.  The
+result can be passed as the second arg to `url-hexify-string'."
+  (let ((vec (make-vector 256 nil)))
+    (dolist (byte char-list)
+      (ignore-errors (aset vec byte t)))
+    vec))
 
 ;;;###autoload
-(defun url-hexify-string (string)
-  "Return a new string that is STRING URI-encoded.
-First, STRING is converted to utf-8, if necessary.  Then, for each
-character in the utf-8 string, those found in `url-unreserved-chars'
-are left as-is, all others are represented as a three-character
-string: \"%\" followed by two lowercase hex digits."
-  ;; To go faster and avoid a lot of consing, we could do:
-  ;;
-  ;; (defconst url-hexify-table
-  ;;   (let ((map (make-vector 256 nil)))
-  ;;     (dotimes (byte 256) (aset map byte
-  ;;                               (if (memq byte url-unreserved-chars)
-  ;;                                   (char-to-string byte)
-  ;;                                 (format "%%%02x" byte))))
-  ;;     map))
-  ;;
-  ;; (mapconcat (curry 'aref url-hexify-table) ...)
+(defun url-hexify-string (string &optional allowed-chars)
+  "URI-encode STRING and return the result.
+If STRING is multibyte, it is first converted to a utf-8 byte
+string.  Each byte corresponding to an allowed character is left
+as-is, while all other bytes are converted to a three-character
+string: \"%\" followed by two upper-case hex digits.
+
+The allowed characters are specified by ALLOWED-CHARS.  If this
+argument is nil, the list `url-unreserved-chars' determines the
+allowed characters.  Otherwise, ALLOWED-CHARS should be a vector
+whose Nth element is non-nil if character N is allowed."
+  (unless allowed-chars
+    (setq allowed-chars (url--allowed-chars url-unreserved-chars)))
   (mapconcat (lambda (byte)
-               (if (memq byte url-unreserved-chars)
-                   (char-to-string byte)
-                 (format "%%%02x" byte)))
-             (if (multibyte-string-p string)
-                 (encode-coding-string string 'utf-8)
-               string)
-             ""))
+	       (if (aref allowed-chars byte)
+		   (char-to-string byte)
+		 (aref url-encoding-table byte)))
+	     (if (multibyte-string-p string)
+		 (encode-coding-string string 'utf-8)
+	       string)
+	     ""))
+
+(defconst url-host-allowed-chars
+  ;; Allow % to avoid re-encoding %-encoded sequences.
+  (url--allowed-chars (append '(?% ?! ?$ ?& ?' ?\( ?\) ?* ?+ ?, ?\; ?=)
+			      url-unreserved-chars))
+  "Allowed-character byte mask for the host segment of a URI.
+These characters are specified in RFC 3986, Appendix A.")
+
+(defconst url-path-allowed-chars
+  (let ((vec (copy-sequence url-host-allowed-chars)))
+    (aset vec ?/ t)
+    (aset vec ?: t)
+    (aset vec ?@ t)
+    vec)
+  "Allowed-character byte mask for the path segment of a URI.
+These characters are specified in RFC 3986, Appendix A.")
+
+(defconst url-query-allowed-chars
+  (let ((vec (copy-sequence url-path-allowed-chars)))
+    (aset vec ?? t)
+    vec)
+  "Allowed-character byte mask for the query segment of a URI.
+These characters are specified in RFC 3986, Appendix A.")
+
+;;;###autoload
+(defun url-encode-url (url)
+  "Return a properly URI-encoded version of URL.
+This function also performs URI normalization, e.g. converting
+the scheme to lowercase if it is uppercase.  Apart from
+normalization, if URL is already URI-encoded, this function
+should return it unchanged."
+  (if (multibyte-string-p url)
+      (setq url (encode-coding-string url 'utf-8)))
+  (let* ((obj  (url-generic-parse-url url))
+	 (user (url-user obj))
+	 (pass (url-password obj))
+	 (host (url-host obj))
+	 (path-and-query (url-path-and-query obj))
+	 (path  (car path-and-query))
+	 (query (cdr path-and-query))
+	 (frag (url-target obj)))
+    (if user
+	(setf (url-user obj) (url-hexify-string user)))
+    (if pass
+	(setf (url-password obj) (url-hexify-string pass)))
+    ;; No special encoding for IPv6 literals.
+    (and host
+	 (not (string-match "\\`\\[.*\\]\\'" host))
+	 (setf (url-host obj)
+	       (url-hexify-string host url-host-allowed-chars)))
+
+    (if path
+	(setq path (url-hexify-string path url-path-allowed-chars)))
+    (if query
+	(setq query (url-hexify-string query url-query-allowed-chars)))
+    (setf (url-filename obj) (if query (concat path "?" query) path))
+
+    (if frag
+	(setf (url-target obj)
+	      (url-hexify-string frag url-query-allowed-chars)))
+    (url-recreate-url obj)))
 
 ;;;###autoload
 (defun url-file-extension (fname &optional x)

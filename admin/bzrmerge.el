@@ -28,7 +28,8 @@
   (require 'cl))                        ; assert
 
 (defvar bzrmerge-skip-regexp
-  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version\\|from trunk"
+  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version\\|from trunk\\|\
+Auto-commit"
   "Regexp matching logs of revisions that might be skipped.
 `bzrmerge-missing' will ask you if it should skip any matches.")
 

@@ -1381,6 +1381,94 @@ Use `isearch-exit' to quit without signaling."
   (sit-for 1)
   (isearch-update))
 
+
+;; Word search
+
+(defun word-search-regexp (string &optional lax)
+  "Return a regexp which matches words, ignoring punctuation.
+Given STRING, a string of words separated by word delimiters,
+compute a regexp that matches those exact words separated by
+arbitrary punctuation.  If LAX is non-nil, the end of the string
+need not match a word boundary unless it ends in whitespace.
+
+Used in `word-search-forward', `word-search-backward',
+`word-search-forward-lax', `word-search-backward-lax'."
+  (if (string-match-p "^\\W*$" string)
+      ""
+    (concat
+     "\\b"
+     (mapconcat 'identity (split-string string "\\W+" t) "\\W+")
+     (if (or (not lax) (string-match-p "\\W$" string)) "\\b"))))
+
+(defun word-search-backward (string &optional bound noerror count)
+  "Search backward from point for STRING, ignoring differences in punctuation.
+Set point to the beginning of the occurrence found, and return point.
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend before that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Relies on the function `word-search-regexp' to convert a sequence
+of words in STRING to a regexp used to search words without regard
+to punctuation."
+  (interactive "sWord search backward: ")
+  (re-search-backward (word-search-regexp string nil) bound noerror count))
+
+(defun word-search-forward (string &optional bound noerror count)
+  "Search forward from point for STRING, ignoring differences in punctuation.
+Set point to the end of the occurrence found, and return point.
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend after that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Relies on the function `word-search-regexp' to convert a sequence
+of words in STRING to a regexp used to search words without regard
+to punctuation."
+  (interactive "sWord search: ")
+  (re-search-forward (word-search-regexp string nil) bound noerror count))
+
+(defun word-search-backward-lax (string &optional bound noerror count)
+  "Search backward from point for STRING, ignoring differences in punctuation.
+Set point to the beginning of the occurrence found, and return point.
+
+Unlike `word-search-backward', the end of STRING need not match a word
+boundary, unless STRING ends in whitespace.
+
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend before that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Relies on the function `word-search-regexp' to convert a sequence
+of words in STRING to a regexp used to search words without regard
+to punctuation."
+  (interactive "sWord search backward: ")
+  (re-search-backward (word-search-regexp string t) bound noerror count))
+
+(defun word-search-forward-lax (string &optional bound noerror count)
+  "Search forward from point for STRING, ignoring differences in punctuation.
+Set point to the end of the occurrence found, and return point.
+
+Unlike `word-search-forward', the end of STRING need not match a word
+boundary, unless STRING ends in whitespace.
+
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend after that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Relies on the function `word-search-regexp' to convert a sequence
+of words in STRING to a regexp used to search words without regard
+to punctuation."
+  (interactive "sWord search: ")
+  (re-search-forward (word-search-regexp string t) bound noerror count))
+
+
 (defun isearch-query-replace (&optional delimited regexp-flag)
   "Start `query-replace' with string to replace from last search string.
 The arg DELIMITED (prefix arg if interactive), if non-nil, means replace

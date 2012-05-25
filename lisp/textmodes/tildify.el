@@ -51,7 +51,7 @@
 
 
 (defgroup tildify nil
-  "Adding missing hard spaces or other text fragments into texts."
+  "Add hard spaces or other text fragments to text buffers."
   :version "21.1"
   :group 'wp)
 

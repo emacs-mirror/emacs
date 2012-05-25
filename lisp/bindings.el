@@ -40,7 +40,7 @@ corresponding to the mode line clicked."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
-    (toggle-read-only)
+    (with-no-warnings (toggle-read-only))
     (force-mode-line-update)))
 
 
@@ -623,24 +623,13 @@ is okay.  See `mode-line-format'.")
 ;; Packages should add to this list appropriately when they are
 ;; loaded, rather than listing everything here.
 (setq debug-ignored-errors
+      ;; FIXME: Maybe beginning-of-line, beginning-of-buffer, end-of-line,
+      ;; end-of-buffer, end-of-file, buffer-read-only, and
+      ;; file-supersession should all be user-errors!
       `(beginning-of-line beginning-of-buffer end-of-line
 	end-of-buffer end-of-file buffer-read-only
 	file-supersession
-      	,(purecopy "^Previous command was not a yank$")
-	,(purecopy "^Minibuffer window is not active$")
-	,(purecopy "^No previous history search regexp$")
-	,(purecopy "^No later matching history item$")
-	,(purecopy "^No earlier matching history item$")
-	,(purecopy "^End of history; no default available$")
-	,(purecopy "^End of defaults; no next item$")
-	,(purecopy "^Beginning of history; no preceding item$")
-	,(purecopy "^No recursive edit is in progress$")
-	,(purecopy "^Changes to be undone are outside visible portion of buffer$")
-	,(purecopy "^No undo information in this buffer$")
-	,(purecopy "^No further undo information")
-	,(purecopy "^Save not confirmed$")
-	,(purecopy "^Recover-file cancelled\\.$")
-	,(purecopy "^Cannot switch buffers in a dedicated window$")
+        user-error ;; That's the main one!
         ))
 
 
@@ -1201,6 +1190,7 @@ if `inhibit-field-text-motion' is non-nil."
 ;; (define-key ctl-x-map "\-" 'inverse-add-global-abbrev)
 (define-key esc-map "'" 'abbrev-prefix-mark)
 (define-key ctl-x-map "'" 'expand-abbrev)
+(define-key ctl-x-map "\C-b" 'list-buffers)
 
 (define-key ctl-x-map "z" 'repeat)
 

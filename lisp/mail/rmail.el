@@ -100,8 +100,6 @@ its character representation and its display representation.")
   "The current header display style choice, one of
 'normal (selected headers) or 'full (all headers).")
 
-;; rmail-spool-directory and rmail-file-name are defined in paths.el.
-
 (defgroup rmail nil
   "Mail reader for Emacs."
   :group 'mail)
@@ -142,6 +140,40 @@ its character representation and its display representation.")
   "Rmail editing."
   :prefix "rmail-edit-"
   :group 'rmail)
+
+;;;###autoload
+(defcustom rmail-file-name (purecopy "~/RMAIL")
+  "Name of user's primary mail file."
+  :type 'string
+  :group 'rmail
+  :version "21.1")
+
+;;;###autoload
+(put 'rmail-spool-directory 'standard-value
+     '((cond ((file-exists-p "/var/mail") "/var/mail/")
+	     ((file-exists-p "/var/spool/mail") "/var/spool/mail/")
+	     ((memq system-type '(hpux usg-unix-v irix)) "/usr/mail/")
+	     (t "/usr/spool/mail/"))))
+
+;;;###autoload
+(defcustom rmail-spool-directory
+  (purecopy
+  (cond ((file-exists-p "/var/mail")
+	 ;; SVR4 and recent BSD are said to use this.
+	 ;; Rather than trying to know precisely which systems use it,
+	 ;; let's assume this dir is never used for anything else.
+	 "/var/mail/")
+	;; Many GNU/Linux systems use this name.
+	((file-exists-p "/var/spool/mail") "/var/spool/mail/")
+	((memq system-type '(hpux usg-unix-v irix)) "/usr/mail/")
+	(t "/usr/spool/mail/")))
+  "Name of directory used by system mailer for delivering new mail.
+Its name should end with a slash."
+  :initialize 'custom-initialize-delay
+  :type 'directory
+  :group 'rmail)
+
+;;;###autoload(custom-initialize-delay 'rmail-spool-directory nil)
 
 (defcustom rmail-movemail-program nil
   "If non-nil, the file name of the `movemail' program."
@@ -712,19 +744,6 @@ to an appropriate value, and optionally also set
 `rmail-search-mime-header-function',
 `rmail-insert-mime-forwarded-message-function', and
 `rmail-insert-mime-resent-message-function'.")
-
-;; FIXME this is unused since 23.1.
-(defvar rmail-decode-mime-charset t
-  "Non-nil means a message is decoded by MIME's charset specification.
-If this variable is nil, or the message has not MIME specification,
-the message is decoded as normal way.
-
-If the variable `rmail-enable-mime' is non-nil, this variable is
-ignored, and all the decoding work is done by a feature specified by
-the variable `rmail-mime-feature'.")
-
-(make-obsolete-variable 'rmail-decode-mime-charset
-			"it does nothing." "23.1")
 
 (defvar rmail-mime-charset-pattern
   (concat "^content-type:[ \t]*text/plain;"
@@ -3570,8 +3589,17 @@ If BUFFER is not swapped, yank out of its message viewer buffer."
   (with-current-buffer buffer
     (unless (rmail-buffers-swapped-p)
       (setq buffer rmail-view-buffer)))
-  (insert-buffer buffer))
-
+  (insert-buffer buffer)
+  ;; If they yank the text of BUFFER, the encoding of BUFFER is a
+  ;; better default for the reply message than the default value of
+  ;; buffer-file-coding-system.
+  (and (coding-system-equal (default-value 'buffer-file-coding-system)
+			    buffer-file-coding-system)
+       (setq buffer-file-coding-system
+	     (coding-system-change-text-conversion
+	      buffer-file-coding-system (coding-system-base
+					 (with-current-buffer buffer
+					   buffer-file-coding-system))))))
 
 (defun rmail-start-mail (&optional noerase to subject in-reply-to cc
 				   replybuffer sendactions same-window
@@ -4222,10 +4250,13 @@ This has an effect only if a summary buffer exists."
 ;;; Speedbar support for RMAIL files.
 (eval-when-compile (require 'speedbar))
 
-(defvar rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
-  "This regex is used to match folder names to be displayed in speedbar.
-Enabling this will permit speedbar to display your folders for easy
-browsing, and moving of messages.")
+(defcustom rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
+  "Regexp matching Rmail folder names to be displayed in Speedbar.
+Enabling this permits Speedbar to display your folders for easy
+browsing, and moving of messages."
+  :type 'regexp
+  :group 'rmail
+  :group 'speedbar)
 
 (defvar rmail-speedbar-last-user nil
   "The last user to be displayed in the speedbar.")
@@ -4566,7 +4597,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "be7f4b94a269f840b8707defd515c4f9")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "cd7656f82944d0b92b0d093a5f3a4c36")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\

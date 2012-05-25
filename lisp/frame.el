@@ -1612,6 +1612,8 @@ itself as a pre-command hook."
     (cancel-timer blink-cursor-timer)
     (setq blink-cursor-timer nil)))
 
+(define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
+
 (define-minor-mode blink-cursor-mode
   "Toggle cursor blinking (Blink Cursor mode).
 With a prefix argument ARG, enable Blink Cursor mode if ARG is
@@ -1638,8 +1640,6 @@ terminals, cursor blinking is controlled by the terminal."
                                blink-cursor-delay
                                'blink-cursor-start))))
 
-(define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
-
 
 ;;;; Key bindings
 
@@ -1652,7 +1652,8 @@ terminals, cursor blinking is controlled by the terminal."
 ;; Misc.
 
 ;; Only marked as obsolete in 24.2.
-(define-obsolete-variable-alias 'automatic-hscrolling 'auto-hscroll-mode "22.1")
+(define-obsolete-variable-alias 'automatic-hscrolling
+  'auto-hscroll-mode "22.1")
 
 (make-variable-buffer-local 'show-trailing-whitespace)
 

@@ -240,7 +240,7 @@ for compiled Emacs Lisp code.
 
 @item
 Mathias Dahl wrote @file{image-dired.el}, a package for viewing image
-files as ``thumbnails.''
+files as ``thumbnails''.
 
 @item
 Julien Danjou wrote an implementation of ``Desktop Notifications''
@@ -1027,7 +1027,7 @@ Together with Dmitry Dzhus, he wrote @file{gdb-mi.el}, the successor to
 
 @item
 Danny Roozendaal implemented @file{handwrite.el}, which converts text
-into ``handwriting.''
+into ``handwriting''.
 
 @item
 Markus Rost wrote @file{cus-test.el}, a testing framework for customize.
@@ -1224,7 +1224,7 @@ the keyboard.
 
 @item
 Jean-Philippe Theberge wrote @file{thumbs.el}, a package for viewing
-image files as ``thumbnails.''
+image files as ``thumbnails''.
 
 @item
 Spencer Thomas wrote the original @file{dabbrev.el}, providing a command

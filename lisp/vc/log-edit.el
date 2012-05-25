@@ -195,7 +195,10 @@ when this variable is set to nil.")
 
 (defconst log-edit-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
+(define-obsolete-variable-alias 'vc-comment-ring 'log-edit-comment-ring "22.1")
 (defvar log-edit-comment-ring (make-ring log-edit-maximum-comment-ring-size))
+(define-obsolete-variable-alias 'vc-comment-ring-index
+  'log-edit-comment-ring-index "22.1")
 (defvar log-edit-comment-ring-index nil)
 (defvar log-edit-last-comment-match "")
 
@@ -301,8 +304,6 @@ automatically."
 	(insert "\n"))))
 
 ;; Compatibility with old names.
-(define-obsolete-variable-alias 'vc-comment-ring 'log-edit-comment-ring "22.1")
-(define-obsolete-variable-alias 'vc-comment-ring-index 'log-edit-comment-ring-index "22.1")
 (define-obsolete-function-alias 'vc-previous-comment 'log-edit-previous-comment "22.1")
 (define-obsolete-function-alias 'vc-next-comment 'log-edit-next-comment "22.1")
 (define-obsolete-function-alias 'vc-comment-search-reverse 'log-edit-comment-search-backward "22.1")
@@ -349,7 +350,7 @@ automatically."
 (defvar log-edit-font-lock-keywords
   ;; Copied/inspired by message-font-lock-keywords.
   `((log-edit-match-to-eoh
-     (,(concat "^\\(\\([a-z]+\\):\\)" log-edit-header-contents-regexp)
+     (,(concat "^\\(\\([[:alpha:]]+\\):\\)" log-edit-header-contents-regexp)
       (progn (goto-char (match-beginning 0)) (match-end 0)) nil
       (1 (if (assoc (match-string 2) log-edit-headers-alist)
              'log-edit-header
@@ -359,6 +360,48 @@ automatically."
       (3 (or (cdr (assoc (match-string 2) log-edit-headers-alist))
              'log-edit-header)
          nil lax)))))
+
+(defvar log-edit-font-lock-gnu-style nil
+  "If non-nil, highlight common failures to follow the GNU coding standards.")
+(put 'log-edit-font-lock-gnu-style 'safe-local-variable 'booleanp)
+
+(defconst log-edit-font-lock-gnu-keywords
+    ;; Use
+    ;;   * foo.el (bla, bli)
+    ;;   (blo, blu): Toto.
+    ;; Rather than
+    ;;   * foo.el (bla, bli,
+    ;;   blo, blu): Toto.
+  '(("^[ \t]*\\(?:\\* .*\\)?\\(([^\n)]*,\\s-*\\)$"
+     (1 '(face font-lock-warning-face
+          help-echo "Continue function lists with \")\\n(\".") t))
+    ;; Don't leave a lone word on a single line.
+    ;;("^\\s-*\\(\\S-*[^\n:)]\\)\\s-*$" (1 font-lock-warning-face t))
+    ;; Don't cut a sentence right after the first word (better to move
+    ;; the sentence on the next line, then).
+    ;;("[.:]\\s-+\\(\\sw+\\)\\s-*$" (1 font-lock-warning-face t))
+    ;; Change Log entries should use present tense.
+    ("):[ \t\n]*[[:alpha:]]+\\(ed\\)\\>"
+     (1 '(face font-lock-warning-face help-echo "Use present tense.") t))
+    ;; Change log entries start with a capital letter.
+    ("): [a-z]" (0 '(face font-lock-warning-face help-echo "Capitalize.") t))
+    ("[^[:upper:]]\\(\\. [[:upper:]]\\)"
+     (1 '(face font-lock-warning-face
+          help-echo "Use two spaces to end a sentence") t))
+    ("^("
+     (0 (let ((beg (max (point-min) (- (match-beginning 0) 2))))
+          (put-text-property beg (match-end 0) 'font-lock-multiline t)
+          (if (eq (char-syntax (char-after beg)) ?w)
+              '(face font-lock-warning-face
+                help-echo "Punctuate previous line.")))
+        t))
+    ))
+
+(defun log-edit-font-lock-keywords ()
+  (if log-edit-font-lock-gnu-style
+      (append log-edit-font-lock-keywords
+              log-edit-font-lock-gnu-keywords)
+    log-edit-font-lock-keywords))
 
 ;;;###autoload
 (defun log-edit (callback &optional setup params buffer mode &rest _ignore)
@@ -416,7 +459,7 @@ commands (under C-x v for VC, for example).
 
 \\{log-edit-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
-       '(log-edit-font-lock-keywords t t))
+       '(log-edit-font-lock-keywords t))
   (make-local-variable 'log-edit-comment-ring-index)
   (hack-dir-local-variables-non-file-buffer))
 

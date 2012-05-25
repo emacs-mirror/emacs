@@ -287,20 +287,17 @@ auto mode selection.
 This includes the Emacs initialization
 file, @file{.emacs}, and the initialization files of packages
 such as Gnus.  However, you can specify unibyte loading for a
-particular Lisp file, by adding an entry @samp{unibyte: t} in a file
-local variables section (@pxref{File Variables}).  Then that file is
-always loaded as unibyte text.  Note that this does not represent a
-real @code{unibyte} variable, rather it just acts as an indicator
-to Emacs in the same way as @code{coding} does (@pxref{Specify Coding}).
+particular Lisp file, by adding an entry @samp{coding: raw-text} in a file
+local variables section.  @xref{Specify Coding}.
+Then that file is always loaded as unibyte text.
 @ignore
 @c I don't see the point of this statement:
 The motivation for these conventions is that it is more reliable to
 always load any particular Lisp file in the same way.
 @end ignore
-Note also that this feature only applies to @emph{loading} Lisp files
-for evaluation, not to visiting them for editing.  You can also load a
-Lisp file as unibyte, on any one occasion, by typing @kbd{C-x
-@key{RET} c raw-text @key{RET}} immediately before loading it.
+You can also load a Lisp file as unibyte, on any one occasion, by
+typing @kbd{C-x @key{RET} c raw-text @key{RET}} immediately before
+loading it.
 
 @c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
 @vindex enable-multibyte-characters
@@ -350,7 +347,7 @@ to the Emacs session.  The supported language environments
 @cindex Euro sign
 @cindex UTF-8
 @quotation
-ASCII, Belarusian, Bengali, Brazilian Portuguese, Bulgarian,
+ASCII, Belarusian, Bengali, Brazilian Portuguese, Bulgarian, Cham,
 Chinese-BIG5, Chinese-CNS, Chinese-EUC-TW, Chinese-GB, Chinese-GBK,
 Chinese-GB18030, Croatian, Cyrillic-ALT, Cyrillic-ISO, Cyrillic-KOI8,
 Czech, Devanagari, Dutch, English, Esperanto, Ethiopic, French,
@@ -991,12 +988,11 @@ and asks you to choose one of those coding systems.
 behaves a bit differently.  It additionally checks whether the
 @c What determines this?
 most-preferred coding system is recommended for use in MIME messages;
-if not, Emacs tells you that the most-preferred coding system is not
-recommended and prompts you for another coding system.  This is so you
-won't inadvertently send a message encoded in a way that your
-recipient's mail software will have difficulty decoding.  (You can
-still use an unsuitable coding system if you type its name in response
-to the question.)
+if not, it informs you of this fact and prompts you for another coding
+system.  This is so you won't inadvertently send a message encoded in
+a way that your recipient's mail software will have difficulty
+decoding.  (You can still use an unsuitable coding system if you enter
+its name at the prompt.)
 
 @c It seems that select-message-coding-system does this.
 @c Both sendmail.el and smptmail.el call it; i.e. smtpmail.el still
@@ -1337,6 +1333,7 @@ fontset}, the @dfn{startup fontset} and the @dfn{default fontset}.
 @c FIXME?  The doc of *standard*-fontset-spec says:
 @c "You have the biggest chance to display international characters
 @c with correct glyphs by using the *standard* fontset." (my emphasis)
+@c See http://lists.gnu.org/archive/html/emacs-devel/2012-04/msg00430.html
 The default fontset is most likely to have fonts for a wide variety of
 non-@acronym{ASCII} characters, and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
@@ -1762,15 +1759,17 @@ non-@code{nil}, Emacs reorders characters that have right-to-left
 directionality when they are displayed.  The default value is
 @code{t}.
 
+@cindex base direction of paragraphs
+@cindex paragraph, base direction
   Each paragraph of bidirectional text can have its own @dfn{base
 direction}, either right-to-left or left-to-right.  (Paragraph
 @c paragraph-separate etc have no influence on this?
 boundaries are empty lines, i.e.@: lines consisting entirely of
-whitespace characters.)  Text in left-to-right paragraphs begins at
-the left margin of the window and is truncated or continued when it
-reaches the right margin.  By contrast, text in right-to-left
-paragraphs begins at the right margin and is continued or truncated at
-the left margin.
+whitespace characters.)  Text in left-to-right paragraphs begins on
+the screen at the left margin of the window and is truncated or
+continued when it reaches the right margin.  By contrast, text in
+right-to-left paragraphs is displayed starting at the right margin and
+is continued or truncated at the left margin.
 
 @vindex bidi-paragraph-direction
   Emacs determines the base direction of each paragraph dynamically,

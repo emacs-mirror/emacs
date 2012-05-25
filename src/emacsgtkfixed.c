@@ -28,6 +28,27 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "xterm.h"
 
+#define EMACS_TYPE_FIXED emacs_fixed_get_type ()
+#define EMACS_FIXED(obj) \
+  G_TYPE_CHECK_INSTANCE_CAST (obj, EMACS_TYPE_FIXED, EmacsFixed)
+
+typedef struct _EmacsFixed EmacsFixed;
+typedef struct _EmacsFixedPrivate EmacsFixedPrivate;
+typedef struct _EmacsFixedClass EmacsFixedClass;
+
+struct _EmacsFixed
+{
+  GtkFixed container;
+
+  /*< private >*/
+  EmacsFixedPrivate *priv;
+};
+
+struct _EmacsFixedClass
+{
+  GtkFixedClass parent_class;
+};
+
 struct _EmacsFixedPrivate
 {
   struct frame *f;
@@ -40,26 +61,19 @@ static void emacs_fixed_get_preferred_width  (GtkWidget *widget,
 static void emacs_fixed_get_preferred_height (GtkWidget *widget,
                                               gint      *minimum,
                                               gint      *natural);
+static GType emacs_fixed_get_type (void);
 G_DEFINE_TYPE (EmacsFixed, emacs_fixed, GTK_TYPE_FIXED)
 
 static void
 emacs_fixed_class_init (EmacsFixedClass *klass)
 {
   GtkWidgetClass *widget_class;
-  GtkFixedClass *fixed_class;
 
   widget_class = (GtkWidgetClass*) klass;
-  fixed_class = (GtkFixedClass*) klass;
 
   widget_class->get_preferred_width = emacs_fixed_get_preferred_width;
   widget_class->get_preferred_height = emacs_fixed_get_preferred_height;
   g_type_class_add_private (klass, sizeof (EmacsFixedPrivate));
-}
-
-static GType
-emacs_fixed_child_type (GtkFixed *container)
-{
-  return GTK_TYPE_WIDGET;
 }
 
 static void

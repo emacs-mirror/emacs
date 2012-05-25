@@ -33,8 +33,12 @@ Lisp that have counterparts in many programming languages, and later
 chapters describe features that are peculiar to Emacs Lisp or relate
 specifically to editing.
 
-  This is edition @value{VERSION} of the GNU Emacs Lisp Reference
-Manual, corresponding to Emacs version @value{EMACSVER}.
+  This is
+@iftex
+edition @value{VERSION} of
+@end iftex
+the @cite{GNU Emacs Lisp Reference Manual},
+corresponding to Emacs version @value{EMACSVER}.
 
 @menu
 * Caveats::             Flaws and a request for help.
@@ -69,7 +73,7 @@ real-life example for a function or group of functions, please make an
 effort to write it up and send it in.  Please reference any comments to
 the chapter name, section name, and function name, as appropriate, since
 page numbers and chapter and section numbers will change and we may have
-trouble finding the text you are talking about.  Also state the number
+trouble finding the text you are talking about.  Also state the version
 of the edition you are criticizing.
 @end iftex
 @ifnottex
@@ -116,10 +120,10 @@ worry about it; this manual is self-contained.
 
 @pindex cl
   A certain amount of Common Lisp emulation is available via the
-@file{cl} library.  @inforef{Top, Overview, cl}.
+@file{cl} library.  @xref{Top,, Overview, cl, Common Lisp Extensions}.
 
   Emacs Lisp is not at all influenced by Scheme; but the GNU project has
-an implementation of Scheme, called Guile.  We use Guile in all new GNU
+an implementation of Scheme, called Guile.  We use it in all new GNU
 software that calls for extensibility.
 
 @node Conventions
@@ -146,7 +150,7 @@ printer'' refer to those routines in Lisp that convert textual
 representations of Lisp objects into actual Lisp objects, and vice
 versa.  @xref{Printed Representation}, for more details.  You, the
 person reading this manual, are thought of as ``the programmer'' and are
-addressed as ``you.''  ``The user'' is the person who uses Lisp
+addressed as ``you''.  ``The user'' is the person who uses Lisp
 programs, including those you write.
 
 @cindex typographic conventions
@@ -219,7 +223,7 @@ the examples in this manual, this is indicated with @samp{@result{}}:
 @end example
 
 @noindent
-You can read this as ``@code{(car '(1 2))} evaluates to 1.''
+You can read this as ``@code{(car '(1 2))} evaluates to 1''.
 
   When a form is a macro call, it expands into a new form for Lisp to
 evaluate.  We show the result of the expansion with
@@ -253,7 +257,7 @@ displayed in the echo area.
 
   Examples in this manual indicate printed text with @samp{@print{}},
 irrespective of where that text goes.  The value returned by
-evaluating the form (here @code{bar}) follows on a separate line with
+evaluating the form follows on a separate line with
 @samp{@result{}}.
 
 @example
@@ -505,8 +509,6 @@ each time you build Emacs in any given directory.  A value with four
 numeric components, such as @code{"22.0.91.1"}, indicates an
 unreleased test version.
 @end defvar
-
-  The following two variables have existed since Emacs version 19.23:
 
 @defvar emacs-major-version
 The major version number of Emacs, as an integer.  For Emacs version

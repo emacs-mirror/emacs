@@ -53,7 +53,7 @@ another.  An overview of D-Bus can be found at
 * Asynchronous Methods::        Calling methods non-blocking.
 * Receiving Method Calls::      Offering own methods.
 * Signals::                     Sending and receiving signals.
-* Alternative Buses::           Alternative buses.
+* Alternative Buses::           Alternative buses and environments.
 * Errors and Events::           Errors and events.
 * Index::                       Index including concepts, functions, variables.
 
@@ -116,6 +116,7 @@ name could be @samp{org.gnu.Emacs.TextEditor} or
 @cindex inspection
 
 @menu
+* Version::                     Determining the D-Bus version.
 * Bus names::                   Discovering D-Bus names.
 * Introspection::               Knowing the details of D-Bus services.
 * Nodes and Interfaces::        Detecting object paths and interfaces.
@@ -123,6 +124,25 @@ name could be @samp{org.gnu.Emacs.TextEditor} or
 * Properties and Annotations::  What else to know about interfaces.
 * Arguments and Signatures::    The final details.
 @end menu
+
+
+@node Version
+@section D-Bus version.
+
+D-Bus has evolved over the years.  New features have been added with
+new D-Bus versions.  There are two variables, which allow to determine
+the used D-Bus version.
+
+@defvar dbus-compiled-version
+This variable, a string, determines the version of D-Bus Emacs is
+compiled against.  If it cannot be determined the value is @code{nil}.
+@end defvar
+
+@defvar dbus-runtime-version
+The other D-Bus version to be checked is the version of D-Bus Emacs
+runs with.  This string can be different from @code{dbus-compiled-version}.
+It is also @code{nil}, if it cannot be determined at runtime.
+@end defvar
 
 
 @node Bus names
@@ -149,7 +169,6 @@ activatable service names at all.  Example:
 (member "org.gnome.evince.Daemon"
         (dbus-list-activatable-names :session))
 @end lisp
-
 @end defun
 
 @defun dbus-list-names bus
@@ -637,6 +656,12 @@ Interfaces can have properties.  These can be exposed via the
 That is, properties can be retrieved and changed during lifetime of an
 element.
 
+A generalized interface is
+@samp{org.freedesktop.DBus.Objectmanager}@footnote{See
+@uref{http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-objectmanager}},
+which returns objects, their interfaces and properties for a given
+service in just one call.
+
 Annotations, on the other hand, are static values for an element.
 Often, they are used to instruct generators, how to generate code from
 the interface for a given language binding.
@@ -729,6 +754,61 @@ If there are no properties, @code{nil} is returned.  Example:
     ("globalStrut" 0 0) ("startDragTime" . 500)
     ("startDragDistance" . 4) ("quitOnLastWindowClosed" . t)
     ("styleSheet" . ""))
+@end lisp
+@end defun
+
+@defun dbus-get-all-managed-objects bus service path
+This functions returns all objects at @var{bus}, @var{service},
+@var{path}, and the children of @var{path}.  The result is a list of
+objects.  Every object is a cons of an existing path name, and the
+list of available interface objects.  An interface object is another
+cons, which car is the interface name, and the cdr is the list of
+properties as returned by @code{dbus-get-all-properties} for that path
+and interface. Example:
+
+@lisp
+(dbus-get-all-managed-objects
+  :session "org.gnome.SettingsDaemon" "/")
+
+@result{} (("/org/gnome/SettingsDaemon/MediaKeys"
+     ("org.gnome.SettingsDaemon.MediaKeys")
+     ("org.freedesktop.DBus.Peer")
+     ("org.freedesktop.DBus.Introspectable")
+     ("org.freedesktop.DBus.Properties")
+     ("org.freedesktop.DBus.ObjectManager"))
+    ("/org/gnome/SettingsDaemon/Power"
+     ("org.gnome.SettingsDaemon.Power.Keyboard")
+     ("org.gnome.SettingsDaemon.Power.Screen")
+     ("org.gnome.SettingsDaemon.Power"
+      ("Icon" . ". GThemedIcon battery-full-charged-symbolic ")
+      ("Tooltip" . "Laptop battery is charged"))
+     ("org.freedesktop.DBus.Peer")
+     ("org.freedesktop.DBus.Introspectable")
+     ("org.freedesktop.DBus.Properties")
+     ("org.freedesktop.DBus.ObjectManager"))
+    @dots{})
+@end lisp
+
+If possible, @samp{org.freedesktop.DBus.ObjectManager.GetManagedObjects}
+is used for retrieving the information.  Otherwise, the information
+is collected via @samp{org.freedesktop.DBus.Introspectable.Introspect}
+and @samp{org.freedesktop.DBus.Properties.GetAll}, which is slow.
+
+An overview of all existing object paths, their interfaces and
+properties could be retrieved by the following code:
+
+@lisp
+(with-current-buffer (switch-to-buffer "*objectmanager*")
+  (erase-buffer)
+  (let (result)
+    (dolist (service (dbus-list-known-names :session) result)
+      (message "%s" service)
+      (add-to-list
+       'result
+       (cons service
+             (dbus-get-all-managed-objects :session service "/"))))
+    (insert (message "%s" (pp result)))
+    (redisplay t)))
 @end lisp
 @end defun
 
@@ -927,6 +1007,10 @@ through 255.  If a character is used as argument, modifiers
 represented outside this range are stripped of.  For example,
 @code{:byte ?x} is equal to @code{:byte ?\M-x}, but it is not equal to
 @code{:byte ?\C-x} or @code{:byte ?\M-\C-x}.
+
+Signed and unsigned integer D-Bus types expect a corresponding integer
+value.  If the value does not fit Emacs's integer range, it is also
+possible to use an equivalent floating point number.
 
 A D-Bus compound type is always represented as a list.  The @sc{car}
 of this list can be the type symbol @code{:array}, @code{:variant},
@@ -1182,24 +1266,6 @@ emulate the @code{lshal} command on GNU/Linux systems:
 @end lisp
 @end defun
 
-@defun dbus-call-method-non-blocking bus service path interface method &optional :timeout timeout &rest args
-Call @var{method} on the D-Bus @var{bus}, but don't block the event queue.
-This is necessary for communicating to registered D-Bus methods,
-which are running in the same Emacs process.
-
-The arguments are the same as in @code{dbus-call-method}.  Example:
-
-@lisp
-(dbus-call-method-non-blocking
-  :system "org.freedesktop.Hal"
-  "/org/freedesktop/Hal/devices/computer"
-  "org.freedesktop.Hal.Device" "GetPropertyString"
-  "system.kernel.machine")
-
-@result{} "i686"
-@end lisp
-@end defun
-
 
 @node Asynchronous Methods
 @chapter Calling methods non-blocking.
@@ -1229,7 +1295,7 @@ All other arguments args are passed to @var{method} as arguments.
 They are converted into D-Bus types as described in @ref{Type
 Conversion}.
 
-Unless @var{handler} is @code{nil}, the function returns a key into
+If @var{handler} is a Lisp function, the function returns a key into
 the hash table @code{dbus-registered-objects-table}.  The
 corresponding entry in the hash table is removed, when the return
 message has been arrived, and @var{handler} is called.  Example:
@@ -1241,7 +1307,7 @@ message has been arrived, and @var{handler} is called.  Example:
   "org.freedesktop.Hal.Device" "GetPropertyString" 'message
   "system.kernel.machine")
 
-@result{} (:system 2)
+@result{} (:serial :system 2)
 
 @print{} i686
 @end lisp
@@ -1323,19 +1389,21 @@ implementation of an interface of a well known service, like
 
 It could be also an implementation of an own interface.  In this case,
 the service name must be @samp{org.gnu.Emacs}.  The object path shall
-begin with @samp{/org/gnu/Emacs/@strong{Application}/}, and the
+begin with @samp{/org/gnu/Emacs/@strong{Application}}, and the
 interface name shall be @code{org.gnu.Emacs.@strong{Application}}.
 @samp{@strong{Application}} is the name of the application which
 provides the interface.
 
 @deffn Constant dbus-service-emacs
-The well known service name of Emacs.
+The well known service name @samp{org.gnu.Emacs} of Emacs.
 @end deffn
 
 @deffn Constant dbus-path-emacs
-The object path head "/org/gnu/Emacs" used by Emacs.  All object
-paths, used by offered methods or signals, shall start with this
-string.
+The object path namespace @samp{/org/gnu/Emacs} used by Emacs.
+@end deffn
+
+@deffn Constant dbus-interface-emacs
+The interface namespace @code{org.gnu.Emacs} used by Emacs.
 @end deffn
 
 @defun dbus-register-method bus service path interface method handler dont-register-service
@@ -1400,7 +1468,7 @@ registration for @var{method}.  Example:
   "org.freedesktop.TextEditor" "OpenFile"
   'my-dbus-method-handler)
 
-@result{} ((:session "org.freedesktop.TextEditor" "OpenFile")
+@result{} ((:method :session "org.freedesktop.TextEditor" "OpenFile")
     ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
      my-dbus-method-handler))
 @end lisp
@@ -1497,14 +1565,14 @@ clients from discovering the still incomplete interface.
   :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
   "org.freedesktop.TextEditor" "name" :read "GNU Emacs")
 
-@result{} ((:session "org.freedesktop.TextEditor" "name")
+@result{} ((:property :session "org.freedesktop.TextEditor" "name")
     ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"))
 
 (dbus-register-property
   :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
   "org.freedesktop.TextEditor" "version" :readwrite emacs-version t)
 
-@result{} ((:session "org.freedesktop.TextEditor" "version")
+@result{} ((:property :session "org.freedesktop.TextEditor" "version")
     ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"))
 @end lisp
 
@@ -1569,8 +1637,8 @@ to the service from D-Bus.
 @chapter Sending and receiving signals.
 @cindex signals
 
-Signals are broadcast messages.  They carry input parameters, which
-are received by all objects which have registered for such a signal.
+Signals are one way messages.  They carry input parameters, which are
+received by all objects which have registered for such a signal.
 
 @defun dbus-send-signal bus service path interface signal &rest args
 This function is similar to @code{dbus-call-method}.  The difference
@@ -1580,10 +1648,14 @@ The function emits @var{signal} on the D-Bus @var{bus}.  @var{bus} is
 either the symbol @code{:system} or the symbol @code{:session}.  It
 doesn't matter whether another object has registered for @var{signal}.
 
-@var{service} is the D-Bus service name of the object the signal is
-emitted from.  @var{path} is the corresponding D-Bus object path,
-@var{service} is registered at.  @var{interface} is an interface
-offered by @var{service}.  It must provide @var{signal}.
+Signals can be unicast or broadcast messages.  For broadcast messages,
+@var{service} must be @code{nil}.  Otherwise, @var{service} is the
+D-Bus service name the signal is sent to as unicast
+message.@footnote{For backward compatibility, a broadcast message is
+also emitted if @var{service} is the known or unique name Emacs is
+registered at D-Bus @var{bus}.}  @var{path} is the D-Bus object path
+@var{signal} is sent from.  @var{interface} is an interface available
+at @var{path}.  It must provide @var{signal}.
 
 All other arguments args are passed to @var{signal} as arguments.
 They are converted into D-Bus types as described in @ref{Type
@@ -1591,15 +1663,15 @@ Conversion}.  Example:
 
 @lisp
 (dbus-send-signal
-  :session dbus-service-emacs dbus-path-emacs
-  (concat dbus-service-emacs ".FileManager") "FileModified"
+  :session nil dbus-path-emacs
+  (concat dbus-interface-emacs ".FileManager") "FileModified"
   "/home/albinus/.emacs")
 @end lisp
 @end defun
 
 @defun dbus-register-signal bus service path interface signal handler &rest args
-With this function, an application registers for @var{signal} on the
-D-Bus @var{bus}.
+With this function, an application registers for a signal on the D-Bus
+@var{bus}.
 
 @var{bus} is either the symbol @code{:system} or the symbol
 @code{:session}.
@@ -1611,24 +1683,46 @@ unique name of the object, owning @var{service} at registration time.
 When the corresponding D-Bus object disappears, signals won't be
 received any longer.
 
-When @var{service} is @code{nil}, related signals from all D-Bus
-objects shall be accepted.
-
 @var{path} is the corresponding D-Bus object path, @var{service} is
-registered at.  It can also be @code{nil} if the path name of incoming
-signals shall not be checked.
+registered at.  @var{interface} is an interface offered by
+@var{service}.  It must provide @var{signal}.
 
-@var{interface} is an interface offered by @var{service}.  It must
-provide @var{signal}.
+@var{service}, @var{path}, @var{interface} and @var{signal} can be
+@code{nil}.  This is interpreted as a wildcard for the respective
+argument.
 
 @var{handler} is a Lisp function to be called when the @var{signal} is
 received.  It must accept as arguments the output parameters
 @var{signal} is sending.
 
-All other arguments @var{args}, if specified, must be strings.  They
-stand for the respective arguments of @var{signal} in their order, and
-are used for filtering as well.  A @code{nil} argument might be used
-to preserve the order.
+The remaining arguments @var{args} can be keywords or keyword string
+pairs.@footnote{For backward compatibility, the arguments @var{args}
+can also be just strings.  They stand for the respective arguments of
+@var{signal} in their order, and are used for filtering as well.  A
+@code{nil} argument might be used to preserve the order.}  The meaning
+is as follows:
+
+@itemize
+@item @code{:argN} @var{string}:@*
+@code{:pathN} @var{string}:@*
+This stands for the Nth argument of the signal.  @code{:pathN}
+arguments can be used for object path wildcard matches as specified by
+D-Bus, while an @code{:argN} argument requires an exact match.
+
+@item @code{:arg-namespace} @var{string}:@*
+Register for the signals, which first argument defines the service or
+interface namespace @var{string}.
+
+@item @code{:path-namespace} @var{string}:@*
+Register for the object path namespace @var{string}.  All signals sent
+from an object path, which has @var{string} as the preceding string,
+are matched.  This requires @var{path} to be @code{nil}.
+
+@item @code{:eavesdrop}:@*
+Register for unicast signals which are not directed to the D-Bus
+object Emacs is registered at D-Bus BUS, if the security policy of BUS
+allows this.  Otherwise, this argument is ignored.
+@end itemize
 
 @code{dbus-register-signal} returns a Lisp object, which can be used
 as argument in @code{dbus-unregister-object} for removing the
@@ -1645,7 +1739,7 @@ registration for @var{signal}.  Example:
   "org.freedesktop.Hal.Manager" "DeviceAdded"
   'my-dbus-signal-handler)
 
-@result{} ((:system "org.freedesktop.Hal.Manager" "DeviceAdded")
+@result{} ((:signal :system "org.freedesktop.Hal.Manager" "DeviceAdded")
     ("org.freedesktop.Hal" "/org/freedesktop/Hal/Manager"
      my-signal-handler))
 @end lisp
@@ -1657,23 +1751,36 @@ The callback function @code{my-dbus-signal-handler} must define one
 single string argument therefore.  Plugging an USB device to your
 machine, when registered for signal @samp{DeviceAdded}, will show you
 which objects the GNU/Linux @code{hal} daemon adds.
+
+Some of the match rules have been added to a later version of D-Bus.
+In order to test the availability of such features, you could register
+for a dummy signal, and check the result:
+
+@lisp
+(dbus-ignore-errors
+  (dbus-register-signal
+    :system nil nil nil nil 'ignore :path-namespace "/invalid/path"))
+
+@result{} nil
+@end lisp
 @end defun
 
 
 @node Alternative Buses
-@chapter Alternative buses.
+@chapter Alternative buses and environments.
 @cindex bus names
 @cindex UNIX domain socket
+@cindex TCP/IP socket
 
 Until now, we have spoken about the system and the session buses,
 which are the default buses to be connected to.  However, it is
 possible to connect to any bus, from which the address is known.  This
-is a UNIX domain socket.  Everywhere, where a @var{bus} is mentioned
-as argument of a function (the symbol @code{:system} or the symbol
-@code{:session}), this address can be used instead.  The connection to
-this bus must be initialized first.
+is a UNIX domain or TCP/IP socket.  Everywhere, where a @var{bus} is
+mentioned as argument of a function (the symbol @code{:system} or the
+symbol @code{:session}), this address can be used instead.  The
+connection to this bus must be initialized first.
 
-@defun dbus-init-bus bus
+@defun dbus-init-bus bus &optional private
 Establish the connection to D-Bus @var{bus}.
 
 @var{bus} can be either the symbol @code{:system} or the symbol
@@ -1682,30 +1789,90 @@ corresponding bus.  For the system and session buses, this function
 is called when loading @file{dbus.el}, there is no need to call it
 again.
 
-Example: You open another session bus in a terminal window on your host:
+The function returns a number, which counts the connections this Emacs
+session has established to the @var{bus} under the same unique name
+(see @code{dbus-get-unique-name}).  It depends on the libraries Emacs
+is linked with, and on the environment Emacs is running.  For example,
+if Emacs is linked with the gtk toolkit, and it runs in a GTK-aware
+environment like Gnome, another connection might already be
+established.
 
-@example
-# eval `dbus-launch --auto-syntax`
-# echo $DBUS_SESSION_BUS_ADDRESS
+When @var{private} is non-@code{nil}, a new connection is established
+instead of reusing an existing one.  It results in a new unique name
+at the bus.  This can be used, if it is necessary to distinguish from
+another connection used in the same Emacs process, like the one
+established by GTK+.  It should be used with care for at least the
+@code{:system} and @code{:session} buses, because other Emacs Lisp
+packages might already use this connection to those buses.
 
-@print{} unix:abstract=/tmp/dbus-JoFtAVG92w,guid=2f320a1ebe50b7ef58e
-@end example
-
-In Emacs, you can access to this bus via its address:
+Example: You initialize a connection to the AT-SPI bus on your host:
 
 @lisp
 (setq my-bus
-      "unix:abstract=/tmp/dbus-JoFtAVG92w,guid=2f320a1ebe50b7ef58e")
+  (dbus-call-method
+   :session "org.a11y.Bus" "/org/a11y/bus"
+   "org.a11y.Bus" "GetAddress"))
 
-@result{} "unix:abstract=/tmp/dbus-JoFtAVG92w,guid=2f320a1ebe50b7ef58e"
+@result{} "unix:abstract=/tmp/dbus-2yzWHOCdSD,guid=a490dd26625870ca1298b6e10000fd7f"
 
+;; If Emacs is built with gtk support, and you run in a GTK enabled
+;; environment (like a GNOME session), the initialization reuses the
+;; connection established by GTK's atk bindings.
 (dbus-init-bus my-bus)
 
-@result{} nil
+@result{} 2
 
 (dbus-get-unique-name my-bus)
 
-@result{} ":1.0"
+@result{} ":1.19"
+
+;; Open a new connection to the same bus.  This obsoletes the
+;; previous one.
+(dbus-init-bus my-bus 'private)
+
+@result{} 1
+
+(dbus-get-unique-name my-bus)
+
+@result{} ":1.20"
+@end lisp
+
+D-Bus addresses can specify different transport.  A possible address
+could be based on TCP/IP sockets, see next example.  However, it
+depends on the bus daemon configuration, which transport is supported.
+@end defun
+
+@defun dbus-setenv bus variable value
+Set the value of the @var{bus} environment variable @var{variable} to
+@var{value}.
+
+@var{bus} is either a Lisp symbol, @code{:system} or @code{:session},
+or a string denoting the bus address.  Both @var{variable} and
+@var{value} should be strings.
+
+Normally, services inherit the environment of the bus daemon.  This
+function adds to or modifies that environment when activating services.
+
+Some bus instances, such as @code{:system}, may disable setting the
+environment.  In such cases, or if this feature is not available in
+older D-Bus versions, a @code{dbus-error} error is raised.
+
+As an example, it might be desirable to start X11 enabled services on
+a remote host's bus on the same X11 server the local Emacs is
+running.  This could be achieved by
+
+@lisp
+(setq my-bus "unix:host=example.gnu.org,port=4711")
+
+@result{} "unix:host=example.gnu.org,port=4711"
+
+(dbus-init-bus my-bus)
+
+@result{} 1
+
+(dbus-setenv my-bus "DISPLAY" (getenv "DISPLAY"))
+
+@result{} nil
 @end lisp
 @end defun
 
@@ -1723,8 +1890,8 @@ If this variable is non-@code{nil}, D-Bus specific debug messages are raised.
 @end defvar
 
 Input parameters of @code{dbus-call-method},
-@code{dbus-call-method-non-blocking},
-@code{dbus-call-method-asynchronously}, and
+@code{dbus-call-method-asynchronously}, @code{dbus-send-signal},
+@code{dbus-register-method}, @code{dbus-register-property} and
 @code{dbus-register-signal} are checked for correct D-Bus types. If
 there is a type mismatch, the Lisp error @code{wrong-type-argument}
 @code{D-Bus ARG} is raised.
@@ -1825,7 +1992,7 @@ Example:
 
 @lisp
 (defun my-dbus-event-error-handler (event error)
-  (when (string-equal (concat dbus-service-emacs ".FileManager")
+  (when (string-equal (concat dbus-interface-emacs ".FileManager")
                       (dbus-event-interface-name event))
     (message "my-dbus-event-error-handler: %S %S" event error)
     (signal 'file-error (cdr error))))

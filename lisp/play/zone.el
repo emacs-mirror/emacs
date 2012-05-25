@@ -1,6 +1,6 @@
 ;;; zone.el --- idle display hacks
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
@@ -595,8 +595,7 @@ If the element is a function or a list of a function and a number,
        (when (< 50 (random 100))
          (goto-char (point-max))
          (forward-line -1)
-         (let ((kill-whole-line t))
-           (kill-line))
+         (delete-region (point) (line-beginning-position 2))
          (goto-char (point-min))
          (insert (nth (random (length lines)) lines)))
        (message (concat (make-string (random (- (frame-width) 5)) ? ) "grrr"))

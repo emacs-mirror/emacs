@@ -234,27 +234,27 @@ Copyright @copyright{} 1990-1995, 1997, 2001-2012 Free Software Foundation, Inc.
 @iftex
 Published by the:@*
 
-GNU Press,                      @hfill  @uref{http://www.gnupress.org}@*
-a division of the               @hfill General: @email{press@@gnu.org}@*
-Free Software Foundation, Inc.  @hfill Orders:@w{ }  @email{sales@@gnu.org}@*
-51 Franklin Street, Fifth Floor @hfill Tel: +1 (617) 542-5942@*
-Boston, MA 02110-1301 USA       @hfill Fax: +1 (617) 542-2652@*
+GNU Press,               @hfill @uref{http://www.fsf.org/campaigns/gnu-press/}@*
+a division of the               @hfill email: @email{sales@@fsf.org}@*
+Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
+51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
+Boston, MA 02110-1301 USA       
 @end iftex
 
 @ifnottex
 Published by the:
 
 @example
-GNU Press,                          Website: http://www.gnupress.org
-a division of the                   General: press@@gnu.org
-Free Software Foundation, Inc.      Orders:  sales@@gnu.org
-51 Franklin Street, Fifth Floor     Tel: +1 (617) 542-5942
-Boston, MA 02110-1301 USA           Fax: +1 (617) 542-2652
+GNU Press,                        http://www.fsf.org/campaigns/gnu-press/
+a division of the                 email: sales@@fsf.org
+Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
+51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
+Boston, MA 02110-1301 USA          
 @end example
 @end ifnottex
 
 @sp 1
-@c Printed copies are available for $30 each.@*
+@c Printed copies are available from @uref{http://shop.fsf.org/} for $35 each.@*
 ISBN 1-882114-43-4
 
 Permission is granted to copy, distribute and/or modify this document
@@ -1084,6 +1084,14 @@ Robert J. Chassell
 \fi
 @end tex
 
+@c Note: this resetting of the page number back to 1 causes TeX to gripe
+@c about already having seen page numbers 1-4 before (in the preface):
+@c   pdfTeX warning (ext4): destination with the same identifier (name{1})
+@c   has been already used, duplicate ignored
+@c I guess that is harmless (what happens if a later part of the text
+@c makes a link to something in the first 4 pages though?).
+@c Note that eg the Emacs manual has a preface, but does not bother
+@c resetting the page numbers back to 1 after that.
 @iftex
 @headings off
 @evenheading @thispage @| @| @thischapter
@@ -1418,6 +1426,7 @@ C-e}:
 (this is an unquoted list)
 @end smallexample
 
+@ignore
 @noindent
 What you see depends on which version of Emacs you are running.  GNU
 Emacs version 22 provides more information than version 20 and before.
@@ -1428,6 +1437,10 @@ earlier, version 20 result.
 @noindent
 In GNU Emacs version 22, a @file{*Backtrace*} window will open up and
 you will see the following in it:
+@end ignore
+
+A @file{*Backtrace*} window will open up and you should see the
+following in it:
 
 @smallexample
 @group
@@ -1506,19 +1519,24 @@ evaluating @code{(+ 2 2)}, we can infer that the symbol @code{+} must
 have a set of instructions for the computer to obey and those
 instructions must be to add the numbers that follow the @code{+}.
 
-@need 1250
-In GNU Emacs version 20, and in earlier versions, you will see only
-one line of error message; it will appear in the echo area and look
-like this:
+It is possible to prevent Emacs entering the debugger in cases like
+this.  We do not explain how to do that here, but we will mention what
+the result looks like, because you may encounter a similar situation
+if there is a bug in some Emacs code that you are using.  In such
+cases, you will see only one line of error message; it will appear in
+the echo area and look like this:
 
 @smallexample
 Symbol's function definition is void:@: this
 @end smallexample
 
 @noindent
+@ignore
 (Also, your terminal may beep at you---some do, some don't; and others
-blink.  This is just a device to get your attention.)  The message goes
-away as soon as you type another key, even just to move the cursor.
+blink.  This is just a device to get your attention.)
+@end ignore
+The message goes away as soon as you type a key, even just to
+move the cursor.
 
 We know the meaning of the word @samp{Symbol}.  It refers to the first
 atom of the list, the word @samp{this}.  The word @samp{function}
@@ -1854,8 +1872,7 @@ Try evaluating this:
 
 @need 1250
 @noindent
-In GNU Emacs version 22, you will create a @file{*Backtrace*} buffer
-that says:
+You will create a @file{*Backtrace*} buffer that says:
 
 @smallexample
 @group
@@ -1921,7 +1938,7 @@ Debugger entered--Lisp error: (void-variable +)
 @end smallexample
 
 @noindent
-(As with the other times we entered the debugger, you can quit by
+(Again, you can quit the debugger by
 typing @kbd{q} in the @file{*Backtrace*} buffer.)
 
 This backtrace is different from the very first error message we saw,
@@ -1935,7 +1952,7 @@ interpreter to evaluate the @code{+} and look for the value of the
 variable instead of the function definition.  We did this by placing the
 cursor right after the symbol rather than after the parenthesis of the
 enclosing list as we did before.  As a consequence, the Lisp interpreter
-evaluated the preceding s-expression, which in this case was the
+evaluated the preceding s-expression, which in this case was
 @code{+} by itself.
 
 Since @code{+} does not have a value bound to it, just the function
@@ -2175,8 +2192,7 @@ is that @code{+} has tried to add the 2 to the value returned by
 could not carry out its addition.
 
 @need 1250
-In GNU Emacs version 22, you will create and enter a
-@file{*Backtrace*} buffer that says:
+You will create and enter a @file{*Backtrace*} buffer that says:
 
 @noindent
 @smallexample
@@ -2904,7 +2920,7 @@ rather, to save typing, you probably only typed @kbd{RET} if the
 default buffer was @file{*scratch*}, or if it was different, then you
 typed just part of the name, such as @code{*sc}, pressed your
 @kbd{TAB} key to cause it to expand to the full name, and then typed
-your @kbd{RET} key.} when prompted in the minibuffer for the name of
+@kbd{RET}.} when prompted in the minibuffer for the name of
 the buffer to which you wanted to switch.  The keystrokes, @kbd{C-x
 b}, cause the Lisp interpreter to evaluate the interactive function
 @code{switch-to-buffer}.  As we said before, this is how Emacs works:
@@ -2914,10 +2930,7 @@ different keystrokes call or run different functions.  For example,
 
 By writing @code{switch-to-buffer} in an expression, and giving it a
 buffer to switch to, we can switch buffers just the way @kbd{C-x b}
-does.
-
-@need 1000
-Here is the Lisp expression:
+does:
 
 @smallexample
 (switch-to-buffer (other-buffer))
@@ -7714,6 +7727,7 @@ retrieved.  @xref{Yanking, , Yanking Text Back}.
 @section @code{zap-to-char}
 @findex zap-to-char
 
+@c FIXME remove obsolete stuff
 The @code{zap-to-char} function changed little between GNU Emacs
 version 19 and GNU Emacs version 22.  However, @code{zap-to-char}
 calls another function, @code{kill-region}, which enjoyed a major
@@ -11500,9 +11514,10 @@ The example of a @code{while} loop that printed the elements of a list
 of numbers can be written recursively.  Here is the code, including
 an expression to set the value of the variable @code{animals} to a list.
 
-If you are using GNU Emacs 20 or before, this example must be copied
-to the @file{*scratch*} buffer and each expression must be evaluated
-there.  Use @kbd{C-u C-x C-e} to evaluate the
+If you are reading this in Info in Emacs, you can evaluate this
+expression directly in Info.  Otherwise, you must copy the example
+to the @file{*scratch*} buffer and evaluate each expression there.
+Use @kbd{C-u C-x C-e} to evaluate the
 @code{(print-elements-recursively animals)} expression so that the
 results are printed in the buffer; otherwise the Lisp interpreter will
 try to squeeze the results into the one line of the echo area.
@@ -11510,9 +11525,6 @@ try to squeeze the results into the one line of the echo area.
 Also, place your cursor immediately after the last closing parenthesis
 of the @code{print-elements-recursively} function, before the comment.
 Otherwise, the Lisp interpreter will try to evaluate the comment.
-
-If you are using a more recent version of Emacs, you can evaluate this
-expression directly in Info.
 
 @findex print-elements-recursively
 @smallexample
@@ -14855,7 +14867,7 @@ action would serve our purpose, except that a hyphen is merely the
 most common character within symbols that is not typically a word
 constituent character; there are others, too.
 
-Alternatively, we can redefine the regular expression used in the
+Alternatively, we can redefine the regexp used in the
 @code{@value{COUNT-WORDS}} definition so as to include symbols.  This
 procedure has the merit of clarity, but the task is a little tricky.
 
@@ -17941,7 +17953,7 @@ the following conditional:
 @end group
 @end smallexample
 
-For example, in contrast to version 20, more recent versions blink
+For example, recent versions blink
 their cursors by default.  I hate such blinking, as well as other
 features, so I placed the following in my @file{.emacs}
 file@footnote{When I start instances of Emacs that do not load my

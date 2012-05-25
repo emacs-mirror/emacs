@@ -1,4 +1,4 @@
-;;; etags.el --- etags facility for Emacs
+;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2012
 ;;   Free Software Foundation, Inc.
@@ -554,11 +554,10 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
   (cond ((eq cont 'same)
 	 ;; Use the ambient value of tags-file-name.
 	 (or tags-file-name
-	     (error "%s"
-		    (substitute-command-keys
-		     (concat "No tags table in use; "
-			     "use \\[visit-tags-table] to select one")))))
-
+	     (user-error "%s"
+                         (substitute-command-keys
+                          (concat "No tags table in use; "
+                                  "use \\[visit-tags-table] to select one")))))
 	((eq t cont)
 	 ;; Find the next table.
 	 (if (tags-next-table)
@@ -566,7 +565,6 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	     (while (and (not (or (get-file-buffer tags-file-name)
 				  (file-exists-p tags-file-name)))
 			 (tags-next-table)))))
-
 	(t
 	 ;; Pick a table out of our hat.
 	 (tags-table-check-computed-list) ;Get it up to date, we might use it.
@@ -706,7 +704,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	(kill-local-variable 'tags-file-name)
 	(if (eq local-tags-file-name tags-file-name)
 	    (setq tags-file-name nil))
-	(error "File %s is not a valid tags table" local-tags-file-name)))))
+	(user-error "File %s is not a valid tags table"
+                    local-tags-file-name)))))
 
 (defun tags-reset-tags-tables ()
   "Reset tags state to cancel effect of any previous \\[visit-tags-table] or \\[find-tag]."
@@ -781,7 +780,7 @@ tags table and its (recursively) included tags tables."
 	      (setq tags-completion-table nil)))))
 
 (defun tags-lazy-completion-table ()
-  (lexical-let ((buf (current-buffer)))
+  (let ((buf (current-buffer)))
     (lambda (string pred action)
       (with-current-buffer buf
         (save-excursion
@@ -831,7 +830,7 @@ If no tags table is loaded, do nothing and return nil."
 				(tags-lazy-completion-table)
 				nil nil nil nil default)))
     (if (equal spec "")
-	(or default (error "There is no default tag"))
+	(or default (user-error "There is no default tag"))
       spec)))
 
 (defvar last-tag nil
@@ -886,7 +885,7 @@ See documentation of variable `tags-file-name'."
     (if (eq '- next-p)
 	;; Pop back to a previous location.
 	(if (ring-empty-p tags-location-ring)
-	    (error "No previous tag locations")
+	    (user-error "No previous tag locations")
 	  (let ((marker (ring-remove tags-location-ring 0)))
 	    (prog1
 		;; Move to the saved location.
@@ -1150,8 +1149,8 @@ error message."
 	  (set-marker (car tag-lines-already-matched) nil nil)
 	  (setq tag-lines-already-matched (cdr tag-lines-already-matched)))
 	(set-marker match-marker nil nil)
-	(error "No %stags %s %s" (if first-search "" "more ")
-	       matching pattern))
+	(user-error "No %stags %s %s" (if first-search "" "more ")
+                    matching pattern))
 
       ;; Found a tag; extract location info.
       (beginning-of-line)
@@ -1391,8 +1390,8 @@ hits the start of file."
 	      offset (* 3 offset)))	; expand search window
       (or found
 	  (re-search-forward pat nil t)
-	  (error "Rerun etags: `%s' not found in %s"
-		 pat buffer-file-name)))
+	  (user-error "Rerun etags: `%s' not found in %s"
+                      pat buffer-file-name)))
     ;; Position point at the right place
     ;; if the search string matched an extra Ctrl-m at the beginning.
     (and (eq selective-display t)
@@ -1742,7 +1741,7 @@ if the file was newly read in, the value is the filename."
     (and novisit
 	 (get-buffer " *next-file*")
 	 (kill-buffer " *next-file*"))
-    (error "All files processed"))
+    (user-error "All files processed"))
   (let* ((next (car next-file-list))
 	 (buffer (get-file-buffer next))
 	 (new (not buffer)))
@@ -1775,9 +1774,9 @@ if the file was newly read in, the value is the filename."
   "Form for `tags-loop-continue' to eval to change one file.")
 
 (defvar tags-loop-scan
-  '(error "%s"
-	  (substitute-command-keys
-	   "No \\[tags-search] or \\[tags-query-replace] in progress"))
+  '(user-error "%s"
+	       (substitute-command-keys
+	        "No \\[tags-search] or \\[tags-query-replace] in progress"))
   "Form for `tags-loop-continue' to eval to scan one file.
 If it returns non-nil, this file needs processing by evalling
 \`tags-loop-operate'.  Otherwise, move on to the next file.")
@@ -1937,7 +1936,7 @@ directory specification."
 	  (if (funcall list-tags-function file)
 	      (setq gotany t)))
 	(or gotany
-	    (error "File %s not in current tags tables" file)))))
+	    (user-error "File %s not in current tags tables" file)))))
   (with-current-buffer "*Tags List*"
     (require 'apropos)
     (with-no-warnings
@@ -2067,28 +2066,15 @@ for \\[find-tag] (which see)."
   (interactive)
   (or tags-table-list
       tags-file-name
-      (error "%s"
-	     (substitute-command-keys
-	      "No tags table loaded; try \\[visit-tags-table]")))
+      (user-error "%s"
+                  (substitute-command-keys
+                   "No tags table loaded; try \\[visit-tags-table]")))
   (let ((comp-data (tags-completion-at-point-function)))
     (if (null comp-data)
-	(error "Nothing to complete")
+	(user-error "Nothing to complete")
       (completion-in-region (car comp-data) (cadr comp-data)
 			    (nth 2 comp-data)
 			    (plist-get (nthcdr 3 comp-data) :predicate)))))
-
-(dolist (x '("^No tags table in use; use .* to select one$"
-	     "^There is no default tag$"
-	     "^No previous tag locations$"
-	     "^File .* is not a valid tags table$"
-	     "^No \\(more \\|\\)tags \\(matching\\|containing\\) "
-	     "^Rerun etags: `.*' not found in "
-	     "^All files processed$"
-	     "^No .* or .* in progress$"
-	     "^File .* not in current tags tables$"
-	     "^No tags table loaded"
-	     "^Nothing to complete$"))
-	(add-to-list 'debug-ignored-errors x))
 
 (provide 'etags)
 
