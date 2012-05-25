@@ -1,3 +1,8 @@
+2012-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed6.inp (INFO_EXT): Edit to .info.
+	(INFO_OPTS): Edit to --no-split.
+
 2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove src/m/*.
