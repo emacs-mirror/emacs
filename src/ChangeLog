@@ -1,3 +1,7 @@
+2012-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.mk (lisp): Update for more files being compiled now.
+
 2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c: Remove `read_pure' which makes no difference.
