@@ -1,3 +1,14 @@
+2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-win.el (gnus-configure-frame): Don't signal an error when
+	jumping to *Server* from a dedicated *Group* window.
+	(gnus-configure-frame): CSE.
+
+	* gnus-registry.el: Minor style cleanup.
+	(gnus-registry--set/remove-mark): New function, extracted from
+	gnus-registry-install-shortcuts.
+	(gnus-registry-install-shortcuts): Use it.
+
 2012-05-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnspool.el (news-path): Use eval-and-compile.
