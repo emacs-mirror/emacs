@@ -1,3 +1,7 @@
+2012-05-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnspool.el (news-path): Use eval-and-compile.
+
 2012-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* nnspool.el (news-directory, news-path, news-inews-program):
