@@ -21,6 +21,9 @@
 	(org-odt-write-manifest-file): Disable
 	`nxml-auto-insert-xml-declaration-flag'.
 
+	* org-lparse.el (org-do-lparse): Don't trigger auto-mode
+	processing.
+
 2012-05-25  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-scan-tags): Fix bug when building the scanner
