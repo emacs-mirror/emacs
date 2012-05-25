@@ -1695,7 +1695,7 @@ format_time_string (char const *format, ptrdiff_t formatlen,
 {
   char buffer[4000];
   char *buf = buffer;
-  size_t size = sizeof buffer;
+  ptrdiff_t size = sizeof buffer;
   size_t len;
   Lisp_Object bufstring;
   int usec;

@@ -212,6 +212,14 @@
 	* dbusbind.c (xd_append_arg): Check for integers out of range.
 	(Fdbus_call_method): Don't overflow the timeout int.
 	(extract_signed, extract_unsigned): New functions.
+	(XD_CHECK_DBUS_SERIAL): Remove; superseded by extract_unsigned.
+	(xd_get_connection_references): Return ptrdiff_t, not int.
+	All uses changed.
+	(xd_signature, xd_append_arg, xd_retrieve_arg, Fdbus_message_internal)
+	(xd_read_message_1):
+	Use int, not unsigned, where the dbus API uses int.
+	(Fdbus_message_internal): Don't overflow mtype.
+	(syms_of_dbusbind): Allocate right-sized buffer for integers.
 	* dired.c (directory_files_internal, file_name_completion, scmp)
 	(file_name_completion_stat):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
@@ -269,6 +277,7 @@
 	undefined behavior.
 	(Fformat_time_string): Remove now-unnecessary check.
 	lisp_time_argument checks for out-of-range usec now.
+	Use ptrdiff_t, not size_t, where ptrdiff_t will do.
 	* emacs.c (gdb_valbits, gdb_gctypebits): Now int, not EMACS_INT.
 	(gdb_data_seg_bits): Now uintptr_t, not EMACS_INT.
 	(PVEC_FLAG, gdb_array_mark_flag): Now ptrdiff_t, not EMACS_INT.

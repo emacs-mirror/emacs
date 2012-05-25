@@ -254,22 +254,6 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 #define XD_OBJECT_TO_STRING(object)					\
   SDATA (format2 ("%s", object, Qnil))
 
-/* Check whether X is a valid dbus serial number.  If valid, set
-   SERIAL to its value.  Otherwise, signal an error. */
-#define XD_CHECK_DBUS_SERIAL(x, serial)					\
-  do {									\
-    dbus_uint32_t DBUS_SERIAL_MAX = -1;					\
-    if (NATNUMP (x) && XINT (x) <= DBUS_SERIAL_MAX)			\
-      serial = XINT (x);						\
-    else if (MOST_POSITIVE_FIXNUM < DBUS_SERIAL_MAX			\
-	     && FLOATP (x)						\
-	     && 0 <= XFLOAT_DATA (x)					\
-	     && XFLOAT_DATA (x) <= DBUS_SERIAL_MAX)			\
-      serial = XFLOAT_DATA (x);						\
-    else								\
-      XD_SIGNAL2 (build_string ("Invalid dbus serial"), x);		\
-  } while (0)
-
 #define XD_DBUS_VALIDATE_BUS_ADDRESS(bus)				\
   do {									\
     if (STRINGP (bus))							\
@@ -366,9 +350,9 @@ xd_signature_cat (char *signature, char const *x)
    signature is embedded, or DBUS_TYPE_INVALID.  It is needed for the
    check that DBUS_TYPE_DICT_ENTRY occurs only as array element.  */
 static void
-xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lisp_Object object)
+xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 {
-  unsigned int subtype;
+  int subtype;
   Lisp_Object elt;
   char const *subsig;
   int subsiglen;
@@ -558,9 +542,12 @@ extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 	    return n;
 	}
     }
-  args_out_of_range_3 (x,
-		       make_fixnum_or_float (lo),
-		       make_fixnum_or_float (hi));
+  if (xd_in_read_queued_messages)
+    Fthrow (Qdbus_error, Qnil);
+  else
+    args_out_of_range_3 (x,
+			 make_fixnum_or_float (lo),
+			 make_fixnum_or_float (hi));
 }
 
 /* Convert X to an unsigned integer with bounds 0 and HI.  */
@@ -583,7 +570,10 @@ extract_unsigned (Lisp_Object x, uintmax_t hi)
 	    return n;
 	}
     }
-  args_out_of_range_2 (x, make_fixnum_or_float (hi));
+  if (xd_in_read_queued_messages)
+    Fthrow (Qdbus_error, Qnil);
+  else
+    args_out_of_range_3 (x, make_number (0), make_fixnum_or_float (hi));
 }
 
 /* Append C value, extracted from Lisp OBJECT, to iteration ITER.
@@ -592,7 +582,7 @@ extract_unsigned (Lisp_Object x, uintmax_t hi)
    `dbus-send-signal', into corresponding C values appended as
    arguments to a D-Bus message.  */
 static void
-xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
+xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 {
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
   DBusMessageIter subiter;
@@ -620,9 +610,10 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_INT16:
-	CHECK_TYPE_RANGED_INTEGER (dbus_int16_t, object);
 	{
-	  dbus_int16_t val = XINT (object);
+	  dbus_int16_t val = extract_signed (object,
+					     TYPE_MINIMUM (dbus_int16_t),
+					     TYPE_MAXIMUM (dbus_int16_t));
 	  int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -631,9 +622,9 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_UINT16:
-	CHECK_TYPE_RANGED_INTEGER (dbus_uint16_t, object);
 	{
-	  dbus_uint16_t val = XFASTINT (object);
+	  dbus_uint16_t val = extract_unsigned (object,
+						TYPE_MAXIMUM (dbus_uint16_t));
 	  unsigned int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -668,7 +659,6 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_INT64:
-	CHECK_TYPE_RANGED_INTEGER_OR_FLOAT (dbus_int64_t, object);
 	{
 	  dbus_int64_t val = extract_signed (object,
 					     TYPE_MINIMUM (dbus_int64_t),
@@ -810,7 +800,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
    D-Bus message must be a valid DBusType.  Compound D-Bus types
    result always in a Lisp list.  */
 static Lisp_Object
-xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
+xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 {
 
   switch (dtype)
@@ -942,7 +932,7 @@ xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
 }
 
 /* Return the number of references of the shared CONNECTION.  */
-static int
+static ptrdiff_t
 xd_get_connection_references (DBusConnection *connection)
 {
   ptrdiff_t *refcount;
@@ -1115,7 +1105,7 @@ this connection to those buses.  */)
   DBusConnection *connection;
   DBusError derror;
   Lisp_Object val;
-  int refcount;
+  ptrdiff_t refcount;
 
   /* Check parameter.  */
   XD_DBUS_VALIDATE_BUS_ADDRESS (bus);
@@ -1185,7 +1175,7 @@ this connection to those buses.  */)
 
   /* Return reference counter.  */
   refcount = xd_get_connection_references (connection);
-  XD_DEBUG_MESSAGE ("Bus %s, Reference counter %d",
+  XD_DEBUG_MESSAGE ("Bus %s, Reference counter %"pD"d",
 		    XD_OBJECT_TO_STRING (bus), refcount);
   return make_number (refcount);
 }
@@ -1249,8 +1239,8 @@ usage: (dbus-message-internal &rest REST)  */)
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
-  unsigned int dtype;
-  unsigned int mtype;
+  int dtype;
+  int mtype;
   dbus_uint32_t serial = 0;
   unsigned int ui_serial;
   int timeout = -1;
@@ -1264,9 +1254,10 @@ usage: (dbus-message-internal &rest REST)  */)
   handler = Qnil;
 
   CHECK_NATNUM (message_type);
-  mtype = XFASTINT (message_type);
-  if ((mtype <= DBUS_MESSAGE_TYPE_INVALID) || (mtype >= DBUS_NUM_MESSAGE_TYPES))
+  if (! (DBUS_MESSAGE_TYPE_INVALID < XFASTINT (message_type)
+	 && XFASTINT (message_type) < DBUS_NUM_MESSAGE_TYPES))
     XD_SIGNAL2 (build_string ("Invalid message type"), message_type);
+  mtype = XFASTINT (message_type);
 
   if ((mtype == DBUS_MESSAGE_TYPE_METHOD_CALL)
       || (mtype == DBUS_MESSAGE_TYPE_SIGNAL))
@@ -1280,7 +1271,7 @@ usage: (dbus-message-internal &rest REST)  */)
     }
   else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
     {
-      XD_CHECK_DBUS_SERIAL (args[3], serial);
+      serial = extract_unsigned (args[3], TYPE_MAXIMUM (dbus_uint32_t));
       count = 4;
     }
 
@@ -1504,8 +1495,8 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   struct input_event event;
   DBusMessage *dmessage;
   DBusMessageIter iter;
-  unsigned int dtype;
-  unsigned int mtype;
+  int dtype;
+  int mtype;
   dbus_uint32_t serial;
   unsigned int ui_serial;
   const char *uname, *path, *interface, *member;
@@ -1753,10 +1744,10 @@ syms_of_dbusbind (void)
   {
 #ifdef DBUS_VERSION
     int major, minor, micro;
-    char s[1024];
+    char s[sizeof ".." + 3 * INT_STRLEN_BOUND (int)];
     dbus_get_version (&major, &minor, &micro);
-    snprintf (s, sizeof s, "%d.%d.%d", major, minor, micro);
-    Vdbus_runtime_version = make_string (s, strlen (s));
+    sprintf (s, "%d.%d.%d", major, minor, micro);
+    Vdbus_runtime_version = build_string (s);
 #else
     Vdbus_runtime_version = Qnil;
 #endif
