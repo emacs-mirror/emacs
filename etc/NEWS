@@ -94,6 +94,17 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** Diff mode
+
+Faces for changes now use the same diff color scheme as in modern VCSes
+where deletions are displayed in red (new faces `diff-refine-removed'
+and `smerge-refined-removed' and new definition of `diff-removed'),
+insertions in green (new faces `diff-refine-added' and
+`smerge-refined-added' and new definition of `diff-added').
+The variable `diff-use-changed-face' defines whether to use
+the face `diff-changed', or `diff-removed' and `diff-added'
+to highlight changes in context diffs.
+
 ** `sh-script'
 *** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
 *** `sh-electric-here-document-mode' now controls auto-insertion of here-docs.

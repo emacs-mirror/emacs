@@ -1,3 +1,42 @@
+2012-05-25  Juri Linkov  <juri@jurta.org>
+
+	Use the same diff color scheme as in modern VCSes (bug#10181).
+
+	* vc/diff-mode.el (diff-header, diff-file-header): Remove "green"
+	to avoid confusion with `diff-added' that now uses green colors.
+	(diff-removed): Use shades of red.
+	(diff-added): Use shades of green.
+	(diff-changed): Leave just the yellow color.
+	(diff-use-changed-face): New variable.
+	(diff-font-lock-keywords): Use `diff-use-changed-face' to decide
+	how to highlight context diff changes.
+	(diff-refine-change): Use shades of yellow.
+	(diff-refine-removed): New face that uses shades of red.
+	(diff-refine-added): New face that uses shades of green.
+	(diff-refine-hunk): Use `diff-refine-change', `diff-refine-added',
+	`diff-refine-removed' in the call to `smerge-refine-subst'
+	depending on the value of `diff-use-changed-face'.
+
+	* vc/smerge-mode.el (smerge-mine): Use shades of red.
+	(smerge-other): Use shades of green.
+	(smerge-base): Use shades of yellow.
+	(smerge-refined-change): Empty face.
+	(smerge-refined-removed): New face that uses shades of red.
+	(smerge-refined-added): New face that uses shades of green.
+	(smerge-refine-subst): Rename arg `props' to `props-c'.  Add new
+	args `props-r' and `props-a', and use them.  Doc fix.
+	(smerge-refine): Evaluate `smerge-use-changed-face' and depending
+	on its value use different faces `smerge-refined-change',
+	`smerge-refined-removed', `smerge-refined-added' in the call to
+	`smerge-refine-subst'.
+
+	* vc/ediff-init.el (ediff-current-diff-A, ediff-fine-diff-A):
+	Add face condition `min-colors 88' with shades of red.
+	(ediff-current-diff-B, ediff-fine-diff-B): Add face condition
+	`min-colors 88' with shades of green.
+	(ediff-current-diff-C, ediff-fine-diff-C): Add face condition
+	`min-colors 88' with shades of yellow.
+
 2012-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* paths.el (prune-directory-list, remote-shell-program): Move to...
