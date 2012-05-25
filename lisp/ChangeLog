@@ -1,3 +1,13 @@
+2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gdb-mi.el: Minor style changes.
+	(gdb-enable-debug, gdb-speedbar-auto-raise, gdb-many-windows):
+	Turn into minor modes.
+	(gdb--if-arrow): Rename from gdb-if-arrow, make it hygienic.
+	(gdb-mouse-until, gdb-mouse-jump): Adjust uses accordingly.
+	(gdb-shell): Remove unneeded let-binding.
+	(gdb-get-many-fields): Eliminate O(n²) behavior.
+
 2012-05-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el <vertical-centering-font-regexp>: Avoid warning on
