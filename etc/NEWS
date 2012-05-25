@@ -60,10 +60,11 @@ name, group names known to the system (where possible).
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
 explicitly to install ImageMagick image types; that function is called
-automatically when setting `imagemagick-types-inhibit'.
+automatically at startup or when customizing `imagemagick-types-inhibit'.
 
 *** Setting `imagemagick-types-inhibit' to t now disables the use of
-ImageMagick to view images, set
+ImageMagick to view images.  You must call imagemagick-register-types
+afterwards if you do not use customize to change this.
 
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without
