@@ -4,7 +4,7 @@
 	and \there4 were not "prettified" when org-pretty-entities was
 	enabled.
 
-2012-05-235  Nicolas Goaziou  <n.goaziou@gmail.com>
+2012-05-25  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org.el (org-font-lock-add-priority-faces): Restrict priorities
 	fontification to headlines and inlinetasks.
