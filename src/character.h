@@ -434,7 +434,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	  unsigned char *chp = BYTE_POS_ADDR (BYTEIDX);		\
 	  int chlen;						\
 								\
-	  OUTPUT= STRING_CHAR_AND_LENGTH (chp, chlen);		\
+	  OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);		\
 	  BYTEIDX += chlen;					\
 	}							\
       else							\

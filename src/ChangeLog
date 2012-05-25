@@ -1,3 +1,7 @@
+2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c, character.h: Minor style tweaks.
+
 2012-05-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (clip_changed): Remove useless declaration.
