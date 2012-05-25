@@ -1,5 +1,12 @@
 2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lread.c: Remove `read_pure' which makes no difference.
+	(read_pure): Remove var.
+	(unreadpure): Remove function.
+	(readevalloop): Don't call read_list with -1 flag.
+	(read1, read_vector): Don't test read_pure any more.
+	(read_list): Simplify.
+
 	* fileio.c, character.h: Minor style tweaks.
 
 2012-05-24  Dmitry Antipov  <dmantipov@yandex.ru>
