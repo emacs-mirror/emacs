@@ -1958,11 +1958,16 @@ file's directory then expand relative links."
 		 (stringp (car result)) (stringp (cadr result)))
 	(format "[[file:%s][%s]]" (car result) (cadr result))))))
 
+(defvar org-babel-capitalize-examplize-region-markers nil
+  "Make true to capitalize begin/end example markers inserted by code blocks.")
+
 (defun org-babel-examplize-region (beg end &optional results-switches)
   "Comment out region using the inline '==' or ': ' org example quote."
   (interactive "*r")
   (flet ((chars-between (b e)
-			(not (string-match "^[\\s]*$" (buffer-substring b e)))))
+			(not (string-match "^[\\s]*$" (buffer-substring b e))))
+	 (maybe-cap (str) (if org-babel-capitalize-examplize-region-markers
+			      (upcase str) str)))
     (if (or (chars-between (save-excursion (goto-char beg) (point-at-bol)) beg)
 	    (chars-between end (save-excursion (goto-char end) (point-at-eol))))
 	(save-excursion
@@ -1979,10 +1984,12 @@ file's directory then expand relative links."
 		(t
 		 (goto-char beg)
 		 (insert (if results-switches
-			     (format "#+begin_example%s\n" results-switches)
-			   "#+begin_example\n"))
+			     (format "%s%s\n"
+				     (maybe-cap "#+begin_example")
+				     results-switches)
+			   (maybe-cap "#+begin_example\n")))
 		 (if (markerp end) (goto-char end) (forward-char (- end beg)))
-		 (insert "#+end_example\n"))))))))
+		 (insert (maybe-cap "#+end_example\n")))))))))
 
 (defun org-babel-update-block-body (new-body)
   "Update the body of the current code block to NEW-BODY."

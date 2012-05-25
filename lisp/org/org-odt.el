@@ -2211,7 +2211,9 @@ captions on export.")
 	 (content-file (expand-file-name "content.xml" outdir)))
 
     ;; init conten.xml
-    (with-current-buffer (find-file-noselect content-file t))
+    (with-current-buffer
+	(let ((nxml-auto-insert-xml-declaration-flag nil))
+	  (find-file-noselect content-file t)))
 
     ;; reset variables
     (setq org-odt-manifest-file-entries nil
@@ -2320,7 +2322,8 @@ visually."
   (make-directory "META-INF")
   (let ((manifest-file (expand-file-name "META-INF/manifest.xml")))
     (with-current-buffer
-	(find-file-noselect manifest-file t)
+	(let ((nxml-auto-insert-xml-declaration-flag nil))
+	  (find-file-noselect manifest-file t))
       (insert
        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
      <manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\">\n")

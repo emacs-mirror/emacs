@@ -1,3 +1,33 @@
+2012-05-25  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-odt.el (org-odt-init-outfile)
+	(org-odt-write-manifest-file): Disable
+	`nxml-auto-insert-xml-declaration-flag'.
+
+2012-05-25  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-scan-tags): Fix bug when building the scanner
+	regexp.
+
+2012-05-25  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob.el (org-babel-capitalize-examplize-region-markers): Controls
+	the capitalization of begin and end example blocks.
+	(org-babel-examplize-region): Optionally capitalize example block
+	delimiters.
+
+2012-05-25  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob-plantuml.el (org-babel-execute:plantuml): Adding a :java
+	header argument to plantuml.
+
+2012-05-25  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org-exp-blocks.el (org-export-blocks-preprocess): Even when the
+	body of a block is not indented the boundary markers should be
+	indented to their original positions so things like list
+	indentation still work.
+
 2012-05-16  Eric Schulte  <eric.schulte@gmx.com>
 
 	* ob.el (org-babel-parse-src-block-match): Save match data during
