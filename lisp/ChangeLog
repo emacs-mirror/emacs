@@ -1,3 +1,9 @@
+2012-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* version.el: Remove no-byte-compile and associated formatting.
+	* loadup.el: No need to load version.el uncompiled.  AFAICS, this
+	is ancient code from when there was an "inc-vers.el".
+
 2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/gdb-mi.el: Minor style changes.
