@@ -30,8 +30,9 @@
 ##   sed -e 's/"[ )].*//' -n -e '/(load "/ s/.*load "//p' loadup.el | \
 ##   grep -vE 'site-|ldefs-boot'
 ## minus any duplicates.
-## Note that you cannot just add a ".elc" extension to every file,
-## since some of them are no-byte-compile (eg some language/ ones).
+## Note that you can generally just add a ".elc" extension to every file
+## that does not have an explicit .el extension, but beware of any
+## no-byte-compile ones.
 
 ## Confusingly, term/internal is not in loadup, but is unconditionally
 ## loaded by pc-win, which is.
@@ -120,7 +121,7 @@ lisp = \
 	$(lispsource)/isearch.elc \
 	$(lispsource)/rfn-eshadow.elc \
 	$(lispsource)/menu-bar.elc \
-	$(lispsource)/paths.el \
+	$(lispsource)/paths.elc \
 	$(lispsource)/emacs-lisp/lisp.elc \
 	$(lispsource)/textmodes/page.elc \
 	$(lispsource)/register.elc \

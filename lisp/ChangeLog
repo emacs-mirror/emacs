@@ -1,5 +1,8 @@
 2012-05-25  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el: Remove no-byte-compile.
+	* loadup.el: No need to load paths.el uncompiled.
+
 	* image.el (imagemagick-types-inhibit): Doc fix.
 
 	* version.el: Remove no-byte-compile and associated formatting.

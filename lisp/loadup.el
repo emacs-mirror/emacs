@@ -177,7 +177,7 @@
 (load "rfn-eshadow")
 
 (load "menu-bar")
-(load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
+(load "paths")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")
