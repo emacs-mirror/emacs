@@ -1,5 +1,42 @@
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Further comment revision.
+	(todos-set-item-top-priority): New command.
+	(todos-reset-global-current-todos-file):
+	Use todos-files-function instead of todos-files.
+	(todos-read-category): Add optional argument to test whether
+	caller adds new category; if so, don't prompt for new category and
+	don't restore original todos-categories list.
+	(todos-categories-mode-map): Update to renamed commands.
+	(todos-filter-items-mode-map): Add binding for new command.
+	(todos-mode): Fix typo.
+	(todos-show): If called from archive file, show corresponding
+	category in Todos file, if it exists.
+	(todos-jump-to-category): Remove code to add new category, since
+	todos-read-category can do that.
+	(todos-add-file): Remove obsolete code; visit new file in selected
+	window.
+	(todos-add-category): Simplify.
+	(todos-rename-category): Use force-mode-line-update instead of
+	setting mode-line-buffer-identification.
+	(todos-delete-category): Improve logic of prompts; use
+	todos-categories-full and check todos-ignore-archived-categories.
+	(todos-raise-category-priority, todos-lower-category-priority):
+	Rename from todos-{raise,lower}-category and adjust callers.
+	(todos-move-category, todos-merge-category):
+	Set todos-categories-full; on setting todos-categories check
+	todos-ignore-archived-categories.
+	(todos-insert-item): Let-bind use-empty-active-region and use
+	use-region-p instead of transient-mark-mode.
+	(todos-raise-item-priority): Improve implementation.
+	(todos-archive-done-item): Rename from
+	todos-archive-done-item-or-items and adjust callers; confine to
+	Todos mode.
+	(todos-unarchive-items): On setting todos-categories check
+	todos-ignore-archived-categories.
+
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-key-bindings): Remove binding of
 	deleted command.
 	(todos-menu): Remove entry of deleted command.
@@ -10,7 +47,7 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
-	* calendar/todos.el: (todos-set-show-current-file): Rename from
+	* calendar/todos.el (todos-set-show-current-file): Rename from
 	todos-toggle-show-current-file and adjust callers.
 	(todos-number-priorities): Rename from todos-number-prefix and
 	adjust users.
