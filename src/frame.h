@@ -322,7 +322,7 @@ struct frame
     struct x_output *x;         /* xterm.h */
     struct w32_output *w32;     /* w32term.h */
     struct ns_output *ns;       /* nsterm.h */
-    EMACS_INT nothing;
+    intptr_t nothing;
   }
   output_data;
 

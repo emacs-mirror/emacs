@@ -37,7 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Structure to hold information about running CCL code.  Read
    comments in the file ccl.c for the detail of each field.  */
 struct ccl_program {
-  int idx;			/* Index number of the CCL program.
+  ptrdiff_t idx;		/* Index number of the CCL program.
 				   -1 means that the program was given
 				   by a vector, not by a program
 				   name.  */

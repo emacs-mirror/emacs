@@ -46,7 +46,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */
 #ifndef PURESIZE_RATIO
 #if EMACS_INT_MAX >> 31 != 0
+#if PTRDIFF_MAX >> 31 != 0
 #define PURESIZE_RATIO 10/6	/* Don't surround with `()'. */
+#else
+#define PURESIZE_RATIO 8/6	/* Don't surround with `()'. */
+#endif
 #else
 #define PURESIZE_RATIO 1
 #endif

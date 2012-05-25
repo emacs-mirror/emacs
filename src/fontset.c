@@ -416,9 +416,11 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
 
 	      for (tail = Vcharset_ordered_list;
 		   ! EQ (tail, Vcharset_non_preferred_head) && CONSP (tail);
-		   score += 0x100, tail = XCDR (tail))
+		   tail = XCDR (tail))
 		if (EQ (encoding, XCAR (tail)))
 		  break;
+		else if (score <= min (INT_MAX, MOST_POSITIVE_FIXNUM) - 0x100)
+		  score += 0x100;
 	    }
 	  else
 	    {
@@ -787,7 +789,7 @@ make_fontset (Lisp_Object frame, Lisp_Object name, Lisp_Object base)
   while (!NILP (AREF (Vfontset_table, id))) id++;
 
   if (id + 1 == size)
-    Vfontset_table = larger_vector (Vfontset_table, size + 32, Qnil);
+    Vfontset_table = larger_vector (Vfontset_table, 1, -1);
 
   fontset = Fmake_char_table (Qfontset, Qnil);
 
@@ -1700,7 +1702,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
 static Lisp_Object auto_fontset_alist;
 
 /* Number of automatically created fontsets.  */
-static printmax_t num_auto_fontsets;
+static ptrdiff_t num_auto_fontsets;
 
 /* Return a fontset synthesized from FONT-OBJECT.  This is called from
    x_new_font when FONT-OBJECT is used for the default ASCII font of a
@@ -1727,9 +1729,9 @@ fontset_from_font (Lisp_Object font_object)
     alias = intern ("fontset-startup");
   else
     {
-      char temp[sizeof "fontset-auto" + INT_STRLEN_BOUND (printmax_t)];
+      char temp[sizeof "fontset-auto" + INT_STRLEN_BOUND (ptrdiff_t)];
 
-      sprintf (temp, "fontset-auto%"pMd, num_auto_fontsets - 1);
+      sprintf (temp, "fontset-auto%"pD"d", num_auto_fontsets - 1);
       alias = intern (temp);
     }
   fontset_spec = copy_font_spec (font_spec);
@@ -1816,7 +1818,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
        doc: /* For internal use only.  */)
   (Lisp_Object position, Lisp_Object ch)
 {
-  EMACS_INT pos, pos_byte, dummy;
+  ptrdiff_t pos, pos_byte, dummy;
   int face_id;
   int c;
   struct frame *f;
@@ -1836,9 +1838,9 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       struct window *w;
 
       CHECK_NUMBER_COERCE_MARKER (position);
-      pos = XINT (position);
-      if (pos < BEGV || pos >= ZV)
+      if (! (BEGV <= XINT (position) && XINT (position) < ZV))
 	args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
+      pos = XINT (position);
       pos_byte = CHAR_TO_BYTE (pos);
       if (NILP (ch))
 	c = FETCH_CHAR (pos_byte);

@@ -118,24 +118,25 @@ int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 #define CODE_POINT_TO_INDEX(charset, code)				\
   ((charset)->code_linear_p						\
-   ? (code) - (charset)->min_code					\
+   ? (int) ((code) - (charset)->min_code)				\
    : (((charset)->code_space_mask[(code) >> 24] & 0x8)			\
       && ((charset)->code_space_mask[((code) >> 16) & 0xFF] & 0x4)	\
       && ((charset)->code_space_mask[((code) >> 8) & 0xFF] & 0x2)	\
       && ((charset)->code_space_mask[(code) & 0xFF] & 0x1))		\
-   ? (((((code) >> 24) - (charset)->code_space[12])			\
-       * (charset)->code_space[11])					\
-      + (((((code) >> 16) & 0xFF) - (charset)->code_space[8])		\
-	 * (charset)->code_space[7])					\
-      + (((((code) >> 8) & 0xFF) - (charset)->code_space[4])		\
-	 * (charset)->code_space[3])					\
-      + (((code) & 0xFF) - (charset)->code_space[0])			\
-      - ((charset)->char_index_offset))					\
+   ? (int) (((((code) >> 24) - (charset)->code_space[12])		\
+	     * (charset)->code_space[11])				\
+	    + (((((code) >> 16) & 0xFF) - (charset)->code_space[8])	\
+	       * (charset)->code_space[7])				\
+	    + (((((code) >> 8) & 0xFF) - (charset)->code_space[4])	\
+	       * (charset)->code_space[3])				\
+	    + (((code) & 0xFF) - (charset)->code_space[0])		\
+	    - ((charset)->char_index_offset))				\
    : -1)
 
 
-/* Convert the character index IDX to code-point CODE for CHARSET.
-   It is assumed that IDX is in a valid range.  */
+/* Return the code-point for the character index IDX in CHARSET.
+   IDX should be an unsigned int variable in a valid range (which is
+   always in nonnegative int range too).  IDX contains garbage afterwards.  */
 
 #define INDEX_TO_CODE_POINT(charset, idx)				     \
   ((charset)->code_linear_p						     \
@@ -363,7 +364,8 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	      && CHARSET_COMPACT_CODES_P (charset))
 	    for (; from_index < lim_index; from_index++, from_c++)
 	      {
-		unsigned code = INDEX_TO_CODE_POINT (charset, from_index);
+		unsigned code = from_index;
+		code = INDEX_TO_CODE_POINT (charset, code);
 
 		if (NILP (CHAR_TABLE_REF (table, from_c)))
 		  CHAR_TABLE_SET (table, from_c, make_number (code));
@@ -482,7 +484,8 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
   FILE *fp;
   Lisp_Object suffixes;
   struct charset_map_entries *head, *entries;
-  int n_entries, count;
+  int n_entries;
+  ptrdiff_t count;
   USE_SAFE_ALLOCA;
 
   suffixes = Fcons (build_string (".map"),
@@ -534,8 +537,9 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
 		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
 	  memset (entries, 0, sizeof (struct charset_map_entries));
+	  n_entries = 0;
 	}
-      idx = n_entries % 0x10000;
+      idx = n_entries;
       entries->entry[idx].from = from;
       entries->entry[idx].to = to;
       entries->entry[idx].c = c;
@@ -576,7 +580,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
     {
       Lisp_Object val, val2;
       unsigned from, to;
-      int c;
+      EMACS_INT c;
       int idx;
 
       val = AREF (vec, i);
@@ -584,16 +588,11 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
 	{
 	  val2 = XCDR (val);
 	  val = XCAR (val);
-	  CHECK_NATNUM (val);
-	  CHECK_NATNUM (val2);
 	  from = XFASTINT (val);
 	  to = XFASTINT (val2);
 	}
       else
-	{
-	  CHECK_NATNUM (val);
-	  from = to = XFASTINT (val);
-	}
+	from = to = XFASTINT (val);
       val = AREF (vec, i + 1);
       CHECK_NATNUM (val);
       c = XFASTINT (val);
@@ -821,7 +820,6 @@ range of code points (in CHARSET) of target characters.  */)
     from = CHARSET_MIN_CODE (cs);
   else
     {
-      CHECK_NATNUM (from_code);
       from = XINT (from_code);
       if (from < CHARSET_MIN_CODE (cs))
 	from = CHARSET_MIN_CODE (cs);
@@ -830,7 +828,6 @@ range of code points (in CHARSET) of target characters.  */)
     to = CHARSET_MAX_CODE (cs);
   else
     {
-      CHECK_NATNUM (to_code);
       to = XINT (to_code);
       if (to > CHARSET_MAX_CODE (cs))
 	to = CHARSET_MAX_CODE (cs);
@@ -876,12 +873,15 @@ usage: (define-charset-internal ...)  */)
   val = args[charset_arg_code_space];
   for (i = 0, dimension = 0, nchars = 1; ; i++)
     {
+      Lisp_Object min_byte_obj, max_byte_obj;
       int min_byte, max_byte;
 
-      min_byte = XINT (Faref (val, make_number (i * 2)));
-      max_byte = XINT (Faref (val, make_number (i * 2 + 1)));
-      if (min_byte < 0 || min_byte > max_byte || max_byte >= 256)
-	error ("Invalid :code-space value");
+      min_byte_obj = Faref (val, make_number (i * 2));
+      max_byte_obj = Faref (val, make_number (i * 2 + 1));
+      CHECK_RANGED_INTEGER (0, min_byte_obj, 255);
+      min_byte = XINT (min_byte_obj);
+      CHECK_RANGED_INTEGER (min_byte, max_byte_obj, 255);
+      max_byte = XINT (max_byte_obj);
       charset.code_space[i * 4] = min_byte;
       charset.code_space[i * 4 + 1] = max_byte;
       charset.code_space[i * 4 + 2] = max_byte - min_byte + 1;
@@ -898,10 +898,8 @@ usage: (define-charset-internal ...)  */)
     charset.dimension = dimension;
   else
     {
-      CHECK_NATNUM (val);
+      CHECK_RANGED_INTEGER (1, val, 4);
       charset.dimension = XINT (val);
-      if (charset.dimension < 1 || charset.dimension > 4)
-	args_out_of_range_3 (val, make_number (1), make_number (4));
     }
 
   charset.code_linear_p
@@ -927,11 +925,11 @@ usage: (define-charset-internal ...)  */)
   charset.min_code = (charset.code_space[0]
 		      | (charset.code_space[4] << 8)
 		      | (charset.code_space[8] << 16)
-		      | (charset.code_space[12] << 24));
+		      | ((unsigned) charset.code_space[12] << 24));
   charset.max_code = (charset.code_space[1]
 		      | (charset.code_space[5] << 8)
 		      | (charset.code_space[9] << 16)
-		      | (charset.code_space[13] << 24));
+		      | ((unsigned) charset.code_space[13] << 24));
   charset.char_index_offset = 0;
 
   val = args[charset_arg_min_code];
@@ -941,8 +939,8 @@ usage: (define-charset-internal ...)  */)
 
       if (code < charset.min_code
 	  || code > charset.max_code)
-	args_out_of_range_3 (make_number (charset.min_code),
-			     make_number (charset.max_code), val);
+	args_out_of_range_3 (make_fixnum_or_float (charset.min_code),
+			     make_fixnum_or_float (charset.max_code), val);
       charset.char_index_offset = CODE_POINT_TO_INDEX (&charset, code);
       charset.min_code = code;
     }
@@ -954,8 +952,8 @@ usage: (define-charset-internal ...)  */)
 
       if (code < charset.min_code
 	  || code > charset.max_code)
-	args_out_of_range_3 (make_number (charset.min_code),
-			     make_number (charset.max_code), val);
+	args_out_of_range_3 (make_fixnum_or_float (charset.min_code),
+			     make_fixnum_or_float (charset.max_code), val);
       charset.max_code = code;
     }
 
@@ -968,18 +966,14 @@ usage: (define-charset-internal ...)  */)
 	charset.invalid_code = 0;
       else
 	{
-	  XSETINT (val, charset.max_code + 1);
-	  if (XINT (val) == charset.max_code + 1)
+	  if (charset.max_code < UINT_MAX)
 	    charset.invalid_code = charset.max_code + 1;
 	  else
 	    error ("Attribute :invalid-code must be specified");
 	}
     }
   else
-    {
-      CHECK_NATNUM (val);
-      charset.invalid_code = XFASTINT (val);
-    }
+    charset.invalid_code = cons_to_unsigned (val, UINT_MAX);
 
   val = args[charset_arg_iso_final];
   if (NILP (val))
@@ -997,9 +991,7 @@ usage: (define-charset-internal ...)  */)
     charset.iso_revision = -1;
   else
     {
-      CHECK_NUMBER (val);
-      if (XINT (val) > 63)
-	args_out_of_range (make_number (63), val);
+      CHECK_RANGED_INTEGER (-1, val, 63);
       charset.iso_revision = XINT (val);
     }
 
@@ -1025,17 +1017,17 @@ usage: (define-charset-internal ...)  */)
   if (! NILP (args[charset_arg_code_offset]))
     {
       val = args[charset_arg_code_offset];
-      CHECK_NUMBER (val);
+      CHECK_CHARACTER (val);
 
       charset.method = CHARSET_METHOD_OFFSET;
       charset.code_offset = XINT (val);
 
+      i = CODE_POINT_TO_INDEX (&charset, charset.max_code);
+      if (MAX_CHAR - charset.code_offset < i)
+	error ("Unsupported max char: %d", charset.max_char);
+      charset.max_char = i + charset.code_offset;
       i = CODE_POINT_TO_INDEX (&charset, charset.min_code);
       charset.min_char = i + charset.code_offset;
-      i = CODE_POINT_TO_INDEX (&charset, charset.max_code);
-      charset.max_char = i + charset.code_offset;
-      if (charset.max_char > MAX_CHAR)
-	error ("Unsupported max char: %d", charset.max_char);
 
       i = (charset.min_char >> 7) << 7;
       for (; i < 0x10000 && i <= charset.max_char; i += 128)
@@ -1106,7 +1098,7 @@ usage: (define-charset-internal ...)  */)
 	      car_part = XCAR (elt);
 	      cdr_part = XCDR (elt);
 	      CHECK_CHARSET_GET_ID (car_part, this_id);
-	      CHECK_NUMBER (cdr_part);
+	      CHECK_TYPE_RANGED_INTEGER (int, cdr_part);
 	      offset = XINT (cdr_part);
 	    }
 	  else
@@ -1395,8 +1387,8 @@ Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
     }
   else if (CHAR_TABLE_P (Vchar_unify_table))
     {
-      int min_code = CHARSET_MIN_CODE (cs);
-      int max_code = CHARSET_MAX_CODE (cs);
+      unsigned min_code = CHARSET_MIN_CODE (cs);
+      unsigned max_code = CHARSET_MAX_CODE (cs);
       int min_char = DECODE_CHAR (cs, min_code);
       int max_char = DECODE_CHAR (cs, max_code);
 
@@ -1511,7 +1503,7 @@ string_xstring_p (Lisp_Object string)
    It may lookup a translation table TABLE if supplied.  */
 
 static void
-find_charsets_in_text (const unsigned char *ptr, EMACS_INT nchars, EMACS_INT nbytes, Lisp_Object charsets, Lisp_Object table, int multibyte)
+find_charsets_in_text (const unsigned char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes, Lisp_Object charsets, Lisp_Object table, int multibyte)
 {
   const unsigned char *pend = ptr + nbytes;
 
@@ -1558,7 +1550,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   (Lisp_Object beg, Lisp_Object end, Lisp_Object table)
 {
   Lisp_Object charsets;
-  EMACS_INT from, from_byte, to, stop, stop_byte;
+  ptrdiff_t from, from_byte, to, stop, stop_byte;
   int i;
   Lisp_Object val;
   int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -1840,7 +1832,7 @@ encode_char (struct charset *charset, int c)
     }
   else				/* method == CHARSET_METHOD_OFFSET */
     {
-      int code_index = c - CHARSET_CODE_OFFSET (charset);
+      unsigned code_index = c - CHARSET_CODE_OFFSET (charset);
 
       code = INDEX_TO_CODE_POINT (charset, code_index);
     }

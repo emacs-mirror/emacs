@@ -107,9 +107,9 @@ the char-table has no extra slot.  */)
   else
     {
       CHECK_NATNUM (n);
-      n_extras = XINT (n);
-      if (n_extras > 10)
+      if (XINT (n) > 10)
 	args_out_of_range (n, Qnil);
+      n_extras = XINT (n);
     }
 
   size = VECSIZE (struct Lisp_Char_Table) - 1 + n_extras;
@@ -646,7 +646,7 @@ or a character code.  Return VALUE.  */)
     }
   else if (EQ (range, Qnil))
     XCHAR_TABLE (char_table)->defalt = value;
-  else if (INTEGERP (range))
+  else if (CHARACTERP (range))
     char_table_set (char_table, XINT (range), value);
   else if (CONSP (range))
     {
@@ -1223,7 +1223,7 @@ static int uniprop_decoder_count
 static uniprop_decoder_t
 uniprop_get_decoder (Lisp_Object table)
 {
-  int i;
+  EMACS_INT i;
 
   if (! INTEGERP (XCHAR_TABLE (table)->extras[1]))
     return NULL;
@@ -1303,7 +1303,7 @@ static int uniprop_encoder_count
 static uniprop_decoder_t
 uniprop_get_encoder (Lisp_Object table)
 {
-  int i;
+  EMACS_INT i;
 
   if (! INTEGERP (XCHAR_TABLE (table)->extras[2]))
     return NULL;

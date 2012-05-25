@@ -30,7 +30,7 @@ static struct buffer *last_undo_buffer;
 
 /* Position of point last time we inserted a boundary.  */
 static struct buffer *last_boundary_buffer;
-static EMACS_INT last_boundary_position;
+static ptrdiff_t last_boundary_position;
 
 Lisp_Object Qinhibit_read_only;
 
@@ -51,7 +51,7 @@ static Lisp_Object pending_boundary;
    undo record that will be added just after this command terminates.  */
 
 static void
-record_point (EMACS_INT pt)
+record_point (ptrdiff_t pt)
 {
   int at_boundary;
 
@@ -113,7 +113,7 @@ record_point (EMACS_INT pt)
    because we don't need to record the contents.)  */
 
 void
-record_insert (EMACS_INT beg, EMACS_INT length)
+record_insert (ptrdiff_t beg, ptrdiff_t length)
 {
   Lisp_Object lbeg, lend;
 
@@ -148,7 +148,7 @@ record_insert (EMACS_INT beg, EMACS_INT length)
    of the characters in STRING, at location BEG.  */
 
 void
-record_delete (EMACS_INT beg, Lisp_Object string)
+record_delete (ptrdiff_t beg, Lisp_Object string)
 {
   Lisp_Object sbeg;
 
@@ -176,7 +176,7 @@ record_delete (EMACS_INT beg, Lisp_Object string)
    won't be inverted automatically by undoing the buffer modification.  */
 
 void
-record_marker_adjustment (Lisp_Object marker, EMACS_INT adjustment)
+record_marker_adjustment (Lisp_Object marker, ptrdiff_t adjustment)
 {
   if (EQ (BVAR (current_buffer, undo_list), Qt))
     return;
@@ -199,7 +199,7 @@ record_marker_adjustment (Lisp_Object marker, EMACS_INT adjustment)
    The replacement must not change the number of characters.  */
 
 void
-record_change (EMACS_INT beg, EMACS_INT length)
+record_change (ptrdiff_t beg, ptrdiff_t length)
 {
   record_delete (beg, make_buffer_string (beg, beg + length, 1));
   record_insert (beg, length);
@@ -233,7 +233,7 @@ record_first_change (void)
    for LENGTH characters starting at position BEG in BUFFER.  */
 
 void
-record_property_change (EMACS_INT beg, EMACS_INT length,
+record_property_change (ptrdiff_t beg, ptrdiff_t length,
 			Lisp_Object prop, Lisp_Object value,
 			Lisp_Object buffer)
 {
@@ -308,11 +308,11 @@ truncate_undo_list (struct buffer *b)
 {
   Lisp_Object list;
   Lisp_Object prev, next, last_boundary;
-  int size_so_far = 0;
+  EMACS_INT size_so_far = 0;
 
   /* Make sure that calling undo-outer-limit-function
      won't cause another GC.  */
-  int count = inhibit_garbage_collection ();
+  ptrdiff_t count = inhibit_garbage_collection ();
 
   /* Make the buffer current to get its local values of variables such
      as undo_limit.  Also so that Vundo_outer_limit_function can
@@ -451,8 +451,8 @@ Return what remains of the list.  */)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object next;
-  int count = SPECPDL_INDEX ();
-  register int arg;
+  ptrdiff_t count = SPECPDL_INDEX ();
+  register EMACS_INT arg;
   Lisp_Object oldlist;
   int did_apply = 0;
 

@@ -1603,8 +1603,8 @@ before calling this function on it, like this.
   (Lisp_Object frame, Lisp_Object x, Lisp_Object y)
 {
   CHECK_LIVE_FRAME (frame);
-  CHECK_NUMBER (x);
-  CHECK_NUMBER (y);
+  CHECK_TYPE_RANGED_INTEGER (int, x);
+  CHECK_TYPE_RANGED_INTEGER (int, y);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1644,8 +1644,8 @@ before calling this function on it, like this.
   (Lisp_Object frame, Lisp_Object x, Lisp_Object y)
 {
   CHECK_LIVE_FRAME (frame);
-  CHECK_NUMBER (x);
-  CHECK_NUMBER (y);
+  CHECK_TYPE_RANGED_INTEGER (int, x);
+  CHECK_TYPE_RANGED_INTEGER (int, y);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2037,7 +2037,7 @@ store_in_alist (Lisp_Object *alistptr, Lisp_Object prop, Lisp_Object val)
 }
 
 static int
-frame_name_fnn_p (char *str, EMACS_INT len)
+frame_name_fnn_p (char *str, ptrdiff_t len)
 {
   if (len > 1 && str[0] == 'F' && '0' <= str[1] && str[1] <= '9')
     {
@@ -2321,7 +2321,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 	      if (STRINGP (value) && !FRAME_WINDOW_P (f))
 		{
 		  const char *color_name;
-		  EMACS_INT csz;
+		  ptrdiff_t csz;
 
 		  if (EQ (parameter, Qbackground_color))
 		    {
@@ -2397,12 +2397,13 @@ use is not recommended.  Explicitly check for a frame-parameter instead.  */)
 #endif
 
     {
-      int length = XINT (Flength (alist));
-      int i;
-      Lisp_Object *parms
-	= (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
-      Lisp_Object *values
-	= (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
+      EMACS_INT length = XFASTINT (Flength (alist));
+      ptrdiff_t i;
+      Lisp_Object *parms;
+      Lisp_Object *values;
+      USE_SAFE_ALLOCA;
+      SAFE_ALLOCA_LISP (parms, 2 * length);
+      values = parms + length;
 
       /* Extract parm names and values into those vectors.  */
 
@@ -2428,6 +2429,8 @@ use is not recommended.  Explicitly check for a frame-parameter instead.  */)
 	      || EQ (prop, Qbackground_color))
 	    update_face_from_frame_parameter (f, prop, val);
 	}
+
+      SAFE_FREE ();
     }
   return Qnil;
 }
@@ -2566,7 +2569,7 @@ but that the idea of the actual height of the frame should not be changed.  */)
 {
   register struct frame *f;
 
-  CHECK_NUMBER (lines);
+  CHECK_TYPE_RANGED_INTEGER (int, lines);
   if (NILP (frame))
     frame = selected_frame;
   CHECK_LIVE_FRAME (frame);
@@ -2593,7 +2596,7 @@ but that the idea of the actual width of the frame should not be changed.  */)
   (Lisp_Object frame, Lisp_Object cols, Lisp_Object pretend)
 {
   register struct frame *f;
-  CHECK_NUMBER (cols);
+  CHECK_TYPE_RANGED_INTEGER (int, cols);
   if (NILP (frame))
     frame = selected_frame;
   CHECK_LIVE_FRAME (frame);
@@ -2620,8 +2623,8 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
   register struct frame *f;
 
   CHECK_LIVE_FRAME (frame);
-  CHECK_NUMBER (cols);
-  CHECK_NUMBER (rows);
+  CHECK_TYPE_RANGED_INTEGER (int, cols);
+  CHECK_TYPE_RANGED_INTEGER (int, rows);
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
@@ -2652,8 +2655,8 @@ the rightmost or bottommost possible position (that stays within the screen).  *
   register struct frame *f;
 
   CHECK_LIVE_FRAME (frame);
-  CHECK_NUMBER (xoffset);
-  CHECK_NUMBER (yoffset);
+  CHECK_TYPE_RANGED_INTEGER (int, xoffset);
+  CHECK_TYPE_RANGED_INTEGER (int, yoffset);
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
@@ -2872,12 +2875,12 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
       prop = parms[i];
       val = values[i];
 
-      if (EQ (prop, Qwidth) && NATNUMP (val))
+      if (EQ (prop, Qwidth) && RANGED_INTEGERP (0, val, INT_MAX))
         {
           size_changed = 1;
           width = XFASTINT (val);
         }
-      else if (EQ (prop, Qheight) && NATNUMP (val))
+      else if (EQ (prop, Qheight) && RANGED_INTEGERP (0, val, INT_MAX))
         {
           size_changed = 1;
           height = XFASTINT (val);
@@ -2913,7 +2916,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
     }
 
   /* Don't die if just one of these was set.  */
-  if (EQ (left, Qunbound))
+  if (! TYPE_RANGED_INTEGERP (int, left))
     {
       left_no_change = 1;
       if (f->left_pos < 0)
@@ -2921,7 +2924,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
       else
 	XSETINT (left, f->left_pos);
     }
-  if (EQ (top, Qunbound))
+  if (! TYPE_RANGED_INTEGERP (int, top))
     {
       top_no_change = 1;
       if (f->top_pos < 0)
@@ -2931,14 +2934,14 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
     }
 
   /* If one of the icon positions was not set, preserve or default it.  */
-  if (EQ (icon_left, Qunbound) || ! INTEGERP (icon_left))
+  if (! TYPE_RANGED_INTEGERP (int, icon_left))
     {
       icon_left_no_change = 1;
       icon_left = Fcdr (Fassq (Qicon_left, f->param_alist));
       if (NILP (icon_left))
 	XSETINT (icon_left, 0);
     }
-  if (EQ (icon_top, Qunbound) || ! INTEGERP (icon_top))
+  if (! TYPE_RANGED_INTEGERP (int, icon_top))
     {
       icon_top_no_change = 1;
       icon_top = Fcdr (Fassq (Qicon_top, f->param_alist));
@@ -3153,7 +3156,7 @@ x_set_line_spacing (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 {
   if (NILP (new_value))
     f->extra_line_spacing = 0;
-  else if (NATNUMP (new_value))
+  else if (RANGED_INTEGERP (0, new_value, INT_MAX))
     f->extra_line_spacing = XFASTINT (new_value);
   else
     signal_error ("Invalid line-spacing", new_value);
@@ -3362,7 +3365,7 @@ x_set_fringe_width (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 void
 x_set_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  CHECK_NUMBER (arg);
+  CHECK_TYPE_RANGED_INTEGER (int, arg);
 
   if (XINT (arg) == f->border_width)
     return;
@@ -3378,7 +3381,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
 {
   int old = FRAME_INTERNAL_BORDER_WIDTH (f);
 
-  CHECK_NUMBER (arg);
+  CHECK_TYPE_RANGED_INTEGER (int, arg);
   FRAME_INTERNAL_BORDER_WIDTH (f) = XINT (arg);
   if (FRAME_INTERNAL_BORDER_WIDTH (f) < 0)
     FRAME_INTERNAL_BORDER_WIDTH (f) = 0;
@@ -4115,7 +4118,7 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, int toolbar_p)
 	f->top_pos = 0;
       else
 	{
-	  CHECK_NUMBER (tem0);
+	  CHECK_TYPE_RANGED_INTEGER (int, tem0);
 	  f->top_pos = XINT (tem0);
 	  if (f->top_pos < 0)
 	    window_prompting |= YNegative;
@@ -4143,7 +4146,7 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, int toolbar_p)
 	f->left_pos = 0;
       else
 	{
-	  CHECK_NUMBER (tem1);
+	  CHECK_TYPE_RANGED_INTEGER (int, tem1);
 	  f->left_pos = XINT (tem1);
 	  if (f->left_pos < 0)
 	    window_prompting |= XNegative;

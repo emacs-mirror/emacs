@@ -120,7 +120,7 @@ INTERVAL
 validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *end, int force)
 {
   register INTERVAL i;
-  EMACS_INT searchpos;
+  ptrdiff_t searchpos;
 
   CHECK_STRING_OR_BUFFER (object);
   CHECK_NUMBER_COERCE_MARKER (*begin);
@@ -156,7 +156,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *en
     }
   else
     {
-      EMACS_INT len = SCHARS (object);
+      ptrdiff_t len = SCHARS (object);
 
       if (! (0 <= XINT (*begin) && XINT (*begin) <= XINT (*end)
 	     && XINT (*end) <= len))
@@ -510,10 +510,10 @@ erase_properties (INTERVAL i)
    POSITION is BEG-based.  */
 
 INTERVAL
-interval_of (EMACS_INT position, Lisp_Object object)
+interval_of (ptrdiff_t position, Lisp_Object object)
 {
   register INTERVAL i;
-  EMACS_INT beg, end;
+  ptrdiff_t beg, end;
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
@@ -771,7 +771,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   else
     {
       Lisp_Object initial_value, value;
-      int count = SPECPDL_INDEX ();
+      ptrdiff_t count = SPECPDL_INDEX ();
 
       if (! NILP (object))
 	CHECK_BUFFER (object);
@@ -854,7 +854,7 @@ position LIMIT; return LIMIT if nothing is found before reaching LIMIT.  */)
     }
   else
     {
-      int count = SPECPDL_INDEX ();
+      ptrdiff_t count = SPECPDL_INDEX ();
 
       if (! NILP (object))
 	CHECK_BUFFER (object);
@@ -1136,7 +1136,7 @@ Return t if any property value actually changed, nil otherwise.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object)
 {
   register INTERVAL i, unchanged;
-  register EMACS_INT s, len;
+  register ptrdiff_t s, len;
   register int modified = 0;
   struct gcpro gcpro1;
 
@@ -1166,7 +1166,7 @@ Return t if any property value actually changed, nil otherwise.  */)
          skip it.  */
       if (interval_has_all_properties (properties, i))
 	{
-	  EMACS_INT got = (LENGTH (i) - (s - i->position));
+	  ptrdiff_t got = (LENGTH (i) - (s - i->position));
 	  if (got >= len)
 	    RETURN_UNGCPRO (Qnil);
 	  len -= got;
@@ -1341,7 +1341,7 @@ void
 set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object buffer, INTERVAL i)
 {
   register INTERVAL prev_changed = NULL_INTERVAL;
-  register EMACS_INT s, len;
+  register ptrdiff_t s, len;
   INTERVAL unchanged;
 
   if (XINT (start) < XINT (end))
@@ -1434,7 +1434,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object)
 {
   register INTERVAL i, unchanged;
-  register EMACS_INT s, len;
+  register ptrdiff_t s, len;
   register int modified = 0;
 
   if (NILP (object))
@@ -1453,7 +1453,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
          it covers the entire region.  */
       if (! interval_has_some_properties (properties, i))
 	{
-	  EMACS_INT got = (LENGTH (i) - (s - i->position));
+	  ptrdiff_t got = (LENGTH (i) - (s - i->position));
 	  if (got >= len)
 	    return Qnil;
 	  len -= got;
@@ -1520,7 +1520,7 @@ Return t if any property was actually removed, nil otherwise.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object list_of_properties, Lisp_Object object)
 {
   register INTERVAL i, unchanged;
-  register EMACS_INT s, len;
+  register ptrdiff_t s, len;
   register int modified = 0;
   Lisp_Object properties;
   properties = list_of_properties;
@@ -1541,7 +1541,7 @@ Return t if any property was actually removed, nil otherwise.  */)
          it covers the entire region.  */
       if (! interval_has_some_properties_list (properties, i))
 	{
-	  EMACS_INT got = (LENGTH (i) - (s - i->position));
+	  ptrdiff_t got = (LENGTH (i) - (s - i->position));
 	  if (got >= len)
 	    return Qnil;
 	  len -= got;
@@ -1630,7 +1630,7 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
   (Lisp_Object start, Lisp_Object end, Lisp_Object property, Lisp_Object value, Lisp_Object object)
 {
   register INTERVAL i;
-  register EMACS_INT e, pos;
+  register ptrdiff_t e, pos;
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
@@ -1666,7 +1666,7 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
   (Lisp_Object start, Lisp_Object end, Lisp_Object property, Lisp_Object value, Lisp_Object object)
 {
   register INTERVAL i;
-  register EMACS_INT s, e;
+  register ptrdiff_t s, e;
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
@@ -1776,7 +1776,7 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_
   Lisp_Object res;
   Lisp_Object stuff;
   Lisp_Object plist;
-  EMACS_INT s, e, e2, p, len;
+  ptrdiff_t s, e, e2, p, len;
   int modified = 0;
   struct gcpro gcpro1, gcpro2;
 
@@ -1788,8 +1788,11 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_
   {
     Lisp_Object dest_start, dest_end;
 
+    e = XINT (pos) + (XINT (end) - XINT (start));
+    if (MOST_POSITIVE_FIXNUM < e)
+      args_out_of_range (pos, end);
     dest_start = pos;
-    XSETFASTINT (dest_end, XINT (dest_start) + (XINT (end) - XINT (start)));
+    XSETFASTINT (dest_end, e);
     /* Apply this to a copy of pos; it will try to increment its arguments,
        which we don't want.  */
     validate_interval_range (dest, &dest_start, &dest_end, soft);
@@ -1873,12 +1876,12 @@ text_property_list (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp
   i = validate_interval_range (object, &start, &end, soft);
   if (!NULL_INTERVAL_P (i))
     {
-      EMACS_INT s = XINT (start);
-      EMACS_INT e = XINT (end);
+      ptrdiff_t s = XINT (start);
+      ptrdiff_t e = XINT (end);
 
       while (s < e)
 	{
-	  EMACS_INT interval_end, len;
+	  ptrdiff_t interval_end, len;
 	  Lisp_Object plist;
 
 	  interval_end = i->position + LENGTH (i);
@@ -1956,7 +1959,7 @@ Lisp_Object
 extend_property_ranges (Lisp_Object list, Lisp_Object new_end)
 {
   Lisp_Object prev = Qnil, head = list;
-  EMACS_INT max = XINT (new_end);
+  ptrdiff_t max = XINT (new_end);
 
   for (; CONSP (list); prev = list, list = XCDR (list))
     {
@@ -2010,7 +2013,7 @@ call_mod_hooks (Lisp_Object list, Lisp_Object start, Lisp_Object end)
 
 void
 verify_interval_modification (struct buffer *buf,
-			      EMACS_INT start, EMACS_INT end)
+			      ptrdiff_t start, ptrdiff_t end)
 {
   register INTERVAL intervals = BUF_INTERVALS (buf);
   register INTERVAL i;
@@ -2031,7 +2034,7 @@ verify_interval_modification (struct buffer *buf,
 
   if (start > end)
     {
-      EMACS_INT temp = start;
+      ptrdiff_t temp = start;
       start = end;
       end = temp;
     }

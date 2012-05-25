@@ -175,15 +175,17 @@ save_menu_items (void)
 }
 
 
-/* Make the menu_items vector twice as large.  */
+/* Ensure that there is room for ITEMS items in the menu_items vector.  */
 
 static void
-grow_menu_items (void)
+ensure_menu_items (int items)
 {
-  if ((INT_MAX - MENU_ITEMS_PANE_LENGTH) / 2 < menu_items_allocated)
-    memory_full (SIZE_MAX);
-  menu_items_allocated *= 2;
-  menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
+  int incr = items - (menu_items_allocated - menu_items_used);
+  if (0 < incr)
+    {
+      menu_items = larger_vector (menu_items, incr, INT_MAX);
+      menu_items_allocated = ASIZE (menu_items);
+    }
 }
 
 #if (defined USE_X_TOOLKIT || defined USE_GTK || defined HAVE_NS \
@@ -194,9 +196,7 @@ grow_menu_items (void)
 static void
 push_submenu_start (void)
 {
-  if (menu_items_used + 1 > menu_items_allocated)
-    grow_menu_items ();
-
+  ensure_menu_items (1);
   XVECTOR (menu_items)->contents[menu_items_used++] = Qnil;
   menu_items_submenu_depth++;
 }
@@ -206,9 +206,7 @@ push_submenu_start (void)
 static void
 push_submenu_end (void)
 {
-  if (menu_items_used + 1 > menu_items_allocated)
-    grow_menu_items ();
-
+  ensure_menu_items (1);
   XVECTOR (menu_items)->contents[menu_items_used++] = Qlambda;
   menu_items_submenu_depth--;
 }
@@ -220,9 +218,7 @@ push_submenu_end (void)
 static void
 push_left_right_boundary (void)
 {
-  if (menu_items_used + 1 > menu_items_allocated)
-    grow_menu_items ();
-
+  ensure_menu_items (1);
   XVECTOR (menu_items)->contents[menu_items_used++] = Qquote;
 }
 
@@ -232,9 +228,7 @@ push_left_right_boundary (void)
 static void
 push_menu_pane (Lisp_Object name, Lisp_Object prefix_vec)
 {
-  if (menu_items_used + MENU_ITEMS_PANE_LENGTH > menu_items_allocated)
-    grow_menu_items ();
-
+  ensure_menu_items (MENU_ITEMS_PANE_LENGTH);
   if (menu_items_submenu_depth == 0)
     menu_items_n_panes++;
   XVECTOR (menu_items)->contents[menu_items_used++] = Qt;
@@ -253,8 +247,7 @@ push_menu_pane (Lisp_Object name, Lisp_Object prefix_vec)
 static void
 push_menu_item (Lisp_Object name, Lisp_Object enable, Lisp_Object key, Lisp_Object def, Lisp_Object equiv, Lisp_Object type, Lisp_Object selected, Lisp_Object help)
 {
-  if (menu_items_used + MENU_ITEMS_ITEM_LENGTH > menu_items_allocated)
-    grow_menu_items ();
+  ensure_menu_items (MENU_ITEMS_ITEM_LENGTH);
 
   ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_NAME,	name);
   ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_ENABLE,	enable);
@@ -458,9 +451,9 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
    and generate menu panes for them in menu_items.  */
 
 static void
-keymap_panes (Lisp_Object *keymaps, int nmaps)
+keymap_panes (Lisp_Object *keymaps, ptrdiff_t nmaps)
 {
-  int mapno;
+  ptrdiff_t mapno;
 
   init_menu_items ();
 
@@ -532,16 +525,17 @@ int
 parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name, Lisp_Object maps)
 {
   Lisp_Object length;
-  int len;
+  EMACS_INT len;
   Lisp_Object *mapvec;
-  int i;
+  ptrdiff_t i;
   int top_level_items = 0;
+  USE_SAFE_ALLOCA;
 
   length = Flength (maps);
   len = XINT (length);
 
   /* Convert the list MAPS into a vector MAPVEC.  */
-  mapvec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+  SAFE_ALLOCA_LISP (mapvec, len);
   for (i = 0; i < len; i++)
     {
       mapvec[i] = Fcar (maps);
@@ -571,6 +565,7 @@ parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name, Lisp_Object m
 	}
     }
 
+  SAFE_FREE ();
   return top_level_items;
 }
 
@@ -1006,7 +1001,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
         {
           entry
             = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
-          if ((EMACS_INT)client_data ==  (EMACS_INT)(&XVECTOR (menu_items)->contents[i]))
+          if (&XVECTOR (menu_items)->contents[i] == client_data)
             {
               if (keymaps != 0)
                 {
@@ -1082,7 +1077,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   Lisp_Object x, y, window;
   int keymaps = 0;
   int for_click = 0;
-  int specpdl_count = SPECPDL_INDEX ();
+  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
   if (NILP (position))
@@ -1175,9 +1170,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	  }
       }
 
-    CHECK_NUMBER (x);
-    CHECK_NUMBER (y);
-
     /* Decode where to put the menu.  */
 
     if (FRAMEP (window))
@@ -1200,6 +1192,14 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	 but I don't want to make one now.  */
       CHECK_WINDOW (window);
 
+    CHECK_RANGED_INTEGER ((xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
+			   ? (EMACS_INT) INT_MIN - xpos
+			   : MOST_NEGATIVE_FIXNUM),
+			  x, INT_MAX - xpos);
+    CHECK_RANGED_INTEGER ((ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
+			   ? (EMACS_INT) INT_MIN - ypos
+			   : MOST_NEGATIVE_FIXNUM),
+			  y, INT_MAX - ypos);
     xpos += XINT (x);
     ypos += XINT (y);
 
@@ -1248,11 +1248,12 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   else if (CONSP (menu) && KEYMAPP (XCAR (menu)))
     {
       /* We were given a list of keymaps.  */
-      int nmaps = XFASTINT (Flength (menu));
-      Lisp_Object *maps
-	= (Lisp_Object *) alloca (nmaps * sizeof (Lisp_Object));
-      int i;
+      EMACS_INT nmaps = XFASTINT (Flength (menu));
+      Lisp_Object *maps;
+      ptrdiff_t i;
+      USE_SAFE_ALLOCA;
 
+      SAFE_ALLOCA_LISP (maps, nmaps);
       title = Qnil;
 
       /* The first keymap that has a prompt string
@@ -1276,6 +1277,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	ASET (menu_items, MENU_ITEMS_PANE_NAME, title);
 
       keymaps = 1;
+
+      SAFE_FREE ();
     }
   else
     {

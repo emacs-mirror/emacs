@@ -81,13 +81,13 @@ static Lisp_Object clean_local_selection_data (Lisp_Object);
 
 #ifdef TRACE_SELECTION
 #define TRACE0(fmt) \
-  fprintf (stderr, "%d: " fmt "\n", getpid ())
+  fprintf (stderr, "%"pMd": " fmt "\n", (printmax_t) getpid ())
 #define TRACE1(fmt, a0) \
-  fprintf (stderr, "%d: " fmt "\n", getpid (), a0)
+  fprintf (stderr, "%"pMd": " fmt "\n", (printmax_t) getpid (), a0)
 #define TRACE2(fmt, a0, a1) \
-  fprintf (stderr, "%d: " fmt "\n", getpid (), a0, a1)
+  fprintf (stderr, "%"pMd": " fmt "\n", (printmax_t) getpid (), a0, a1)
 #define TRACE3(fmt, a0, a1, a2) \
-  fprintf (stderr, "%d: " fmt "\n", getpid (), a0, a1, a2)
+  fprintf (stderr, "%"pMd": " fmt "\n", (printmax_t) getpid (), a0, a1, a2)
 #else
 #define TRACE0(fmt)		(void) 0
 #define TRACE1(fmt, a0)		(void) 0
@@ -392,7 +392,6 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 {
   Lisp_Object local_value;
   Lisp_Object handler_fn, value, check;
-  int count;
 
   local_value = LOCAL_SELECTION (selection_symbol, dpyinfo);
 
@@ -409,7 +408,7 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
       /* Don't allow a quit within the converter.
 	 When the user types C-g, he would be surprised
 	 if by luck it came during a converter.  */
-      count = SPECPDL_INDEX ();
+      ptrdiff_t count = SPECPDL_INDEX ();
       specbind (Qinhibit_quit, Qt);
 
       CHECK_SYMBOL (target_type);
@@ -603,7 +602,7 @@ x_reply_selection_request (struct input_event *event,
   Window window = SELECTION_EVENT_REQUESTOR (event);
   ptrdiff_t bytes_remaining;
   int max_bytes = selection_quantum (display);
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct selection_data *cs;
 
   reply->type = SelectionNotify;
@@ -792,7 +791,7 @@ x_handle_selection_request (struct input_event *event)
   Atom property = SELECTION_EVENT_PROPERTY (event);
   Lisp_Object local_selection_data;
   int success = 0;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   GCPRO2 (local_selection_data, target_symbol);
 
   if (!dpyinfo) goto DONE;
@@ -1141,7 +1140,7 @@ static void
 wait_for_property_change (struct prop_location *location)
 {
   int secs, usecs;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   if (property_change_reply_object)
     abort ();
@@ -1702,7 +1701,7 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
       v = Fmake_vector (make_number (size / 2), make_number (0));
       for (i = 0; i < size / 2; i++)
 	{
-	  EMACS_INT j = ((short *) data) [i];
+	  short j = ((short *) data) [i];
 	  Faset (v, make_number (i), make_number (j));
 	}
       return v;
@@ -2623,12 +2622,11 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
   if (x_check_property_data (values) == -1)
     error ("Bad data in VALUES, must be number, cons or string");
 
-  event.xclient.type = ClientMessage;
-  event.xclient.format = XFASTINT (format);
-
-  if (event.xclient.format != 8 && event.xclient.format != 16
-      && event.xclient.format != 32)
+  if (XINT (format) != 8 && XINT (format) != 16 && XINT (format) != 32)
     error ("FORMAT must be one of 8, 16 or 32");
+
+  event.xclient.type = ClientMessage;
+  event.xclient.format = XINT (format);
 
   if (FRAMEP (dest) || NILP (dest))
     {

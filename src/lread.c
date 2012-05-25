@@ -106,9 +106,9 @@ static Lisp_Object load_descriptor_list;
 static FILE *instream;
 
 /* For use within read-from-string (this reader is non-reentrant!!)  */
-static EMACS_INT read_from_string_index;
-static EMACS_INT read_from_string_index_byte;
-static EMACS_INT read_from_string_limit;
+static ptrdiff_t read_from_string_index;
+static ptrdiff_t read_from_string_index_byte;
+static ptrdiff_t read_from_string_limit;
 
 /* Number of characters read in the current call to Fread or
    Fread_from_string.  */
@@ -206,7 +206,7 @@ readchar (Lisp_Object readcharfun, int *multibyte)
     {
       register struct buffer *inbuffer = XBUFFER (readcharfun);
 
-      EMACS_INT pt_byte = BUF_PT_BYTE (inbuffer);
+      ptrdiff_t pt_byte = BUF_PT_BYTE (inbuffer);
 
       if (pt_byte >= BUF_ZV_BYTE (inbuffer))
 	return -1;
@@ -235,7 +235,7 @@ readchar (Lisp_Object readcharfun, int *multibyte)
     {
       register struct buffer *inbuffer = XMARKER (readcharfun)->buffer;
 
-      EMACS_INT bytepos = marker_byte_position (readcharfun);
+      ptrdiff_t bytepos = marker_byte_position (readcharfun);
 
       if (bytepos >= BUF_ZV_BYTE (inbuffer))
 	return -1;
@@ -369,8 +369,8 @@ unreadchar (Lisp_Object readcharfun, int c)
   else if (BUFFERP (readcharfun))
     {
       struct buffer *b = XBUFFER (readcharfun);
-      EMACS_INT charpos = BUF_PT (b);
-      EMACS_INT bytepos = BUF_PT_BYTE (b);
+      ptrdiff_t charpos = BUF_PT (b);
+      ptrdiff_t bytepos = BUF_PT_BYTE (b);
 
       if (! NILP (BVAR (b, enable_multibyte_characters)))
 	BUF_DEC_POS (b, bytepos);
@@ -382,7 +382,7 @@ unreadchar (Lisp_Object readcharfun, int c)
   else if (MARKERP (readcharfun))
     {
       struct buffer *b = XMARKER (readcharfun)->buffer;
-      EMACS_INT bytepos = XMARKER (readcharfun)->bytepos;
+      ptrdiff_t bytepos = XMARKER (readcharfun)->bytepos;
 
       XMARKER (readcharfun)->charpos--;
       if (! NILP (BVAR (b, enable_multibyte_characters)))
@@ -605,8 +605,11 @@ read_filtered_event (int no_switch_frame, int ascii_required,
       int sec, usec;
       double duration = extract_float (seconds);
 
-      sec  = (int) duration;
-      usec = (duration - sec) * 1000000;
+      if (0 < duration)
+	duration_to_sec_usec (duration, &sec, &usec);
+      else
+	sec = usec = 0;
+
       EMACS_GET_TIME (end_time);
       EMACS_SET_SECS_USECS (wait_time, sec, usec);
       EMACS_ADD_TIME (end_time, end_time, wait_time);
@@ -1019,7 +1022,7 @@ Return t if the file exists and loads successfully.  */)
 {
   register FILE *stream;
   register int fd = -1;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object found, efound, hist_file_name;
   /* 1 means we printed the ".el is newer" message.  */
@@ -1439,16 +1442,16 @@ int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *storeptr, Lisp_Object predicate)
 {
   register int fd;
-  EMACS_INT fn_size = 100;
+  ptrdiff_t fn_size = 100;
   char buf[100];
   register char *fn = buf;
   int absolute = 0;
-  EMACS_INT want_length;
+  ptrdiff_t want_length;
   Lisp_Object filename;
   struct stat st;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   Lisp_Object string, tail, encoded_fn;
-  EMACS_INT max_suffix_len = 0;
+  ptrdiff_t max_suffix_len = 0;
 
   CHECK_STRING (str);
 
@@ -1558,7 +1561,9 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 		{
 		  /* Check that we can access or open it.  */
 		  if (NATNUMP (predicate))
-		    fd = (access (pfn, XFASTINT (predicate)) == 0) ? 1 : -1;
+		    fd = (((XFASTINT (predicate) & ~INT_MAX) == 0
+			   && access (pfn, XFASTINT (predicate)) == 0)
+			  ? 1 : -1);
 		  else
 		    fd = emacs_open (pfn, O_RDONLY, 0);
 
@@ -1685,7 +1690,7 @@ readevalloop (Lisp_Object readcharfun,
 {
   register int c;
   register Lisp_Object val;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   struct buffer *b = 0;
   int continue_reading_p;
@@ -1736,7 +1741,7 @@ readevalloop (Lisp_Object readcharfun,
   continue_reading_p = 1;
   while (continue_reading_p)
     {
-      int count1 = SPECPDL_INDEX ();
+      ptrdiff_t count1 = SPECPDL_INDEX ();
 
       if (b != 0 && NILP (BVAR (b, name)))
 	error ("Reading from killed buffer");
@@ -1861,7 +1866,7 @@ DO-ALLOW-PRINT, if non-nil, specifies that `print' and related
 This function preserves the position of point.  */)
   (Lisp_Object buffer, Lisp_Object printflag, Lisp_Object filename, Lisp_Object unibyte, Lisp_Object do_allow_print)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object tem, buf;
 
   if (NILP (buffer))
@@ -1906,7 +1911,7 @@ This function does not move point.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object printflag, Lisp_Object read_function)
 {
   /* FIXME: Do the eval-sexp-add-defvars dance!  */
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object tem, cbuf;
 
   cbuf = Fcurrent_buffer ();
@@ -1984,7 +1989,7 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
   if (STRINGP (stream)
       || ((CONSP (stream) && STRINGP (XCAR (stream)))))
     {
-      EMACS_INT startval, endval;
+      ptrdiff_t startval, endval;
       Lisp_Object string;
 
       if (STRINGP (stream))
@@ -1997,9 +2002,9 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
       else
 	{
 	  CHECK_NUMBER (end);
-	  endval = XINT (end);
-	  if (endval < 0 || endval > SCHARS (string))
+	  if (! (0 <= XINT (end) && XINT (end) <= SCHARS (string)))
 	    args_out_of_range (string, end);
+	  endval = XINT (end);
 	}
 
       if (NILP (start))
@@ -2007,9 +2012,9 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
       else
 	{
 	  CHECK_NUMBER (start);
-	  startval = XINT (start);
-	  if (startval < 0 || startval > endval)
+	  if (! (0 <= XINT (start) && XINT (start) <= endval))
 	    args_out_of_range (string, start);
+	  startval = XINT (start);
 	}
       read_from_string_index = startval;
       read_from_string_index_byte = string_char_to_byte (string, startval);
@@ -2487,16 +2492,17 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      if (c == '[')
 		{
 		  Lisp_Object tmp;
-		  EMACS_INT depth, size;
+		  int depth;
+		  ptrdiff_t size;
 
 		  tmp = read_vector (readcharfun, 0);
-		  if (!INTEGERP (AREF (tmp, 0)))
+		  size = ASIZE (tmp);
+		  if (size == 0)
+		    error ("Invalid size char-table");
+		  if (! RANGED_INTEGERP (1, AREF (tmp, 0), 3))
 		    error ("Invalid depth in char-table");
 		  depth = XINT (AREF (tmp, 0));
-		  if (depth < 1 || depth > 3)
-		    error ("Invalid depth in char-table");
-		  size = ASIZE (tmp) - 2;
-		  if (chartab_size [depth] != size)
+		  if (chartab_size[depth] != size - 2)
 		    error ("Invalid size char-table");
 		  XSETPVECTYPE (XVECTOR (tmp), PVEC_SUB_CHAR_TABLE);
 		  return tmp;
@@ -3087,8 +3093,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  }
 	{
 	  Lisp_Object name, result;
-	  EMACS_INT nbytes = p - read_buffer;
-	  EMACS_INT nchars
+	  ptrdiff_t nbytes = p - read_buffer;
+	  ptrdiff_t nchars
 	    = (multibyte
 	       ? multibyte_chars_in_text ((unsigned char *) read_buffer,
 					  nbytes)
@@ -3861,7 +3867,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
    Also store the bucket number in oblookup_last_bucket_number.  */
 
 Lisp_Object
-oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_INT size_byte)
+oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff_t size_byte)
 {
   size_t hash;
   size_t obsize;

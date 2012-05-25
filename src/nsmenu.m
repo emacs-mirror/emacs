@@ -186,7 +186,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       int *submenu_top_level_items, *submenu_n_panes;
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      int specpdl_count = SPECPDL_INDEX ();
+      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
@@ -455,7 +455,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
 	  wv->help = Qnil;
-	  wv->call_data = (void *) (EMACS_INT) (-1);
+	  wv->call_data = (void *) (intptr_t) (-1);
 
 #ifdef NS_IMPL_COCOA
           /* we'll update the real copy under app menu when time comes */
@@ -792,7 +792,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   EmacsMenu *pmenu;
   NSPoint p;
   Lisp_Object window, tem, keymap;
-  int specpdl_count = SPECPDL_INDEX ();
+  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
   widget_value *wv, *first_wv = 0;
 
   p.x = x; p.y = y;
@@ -1429,7 +1429,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
   {
-    int specpdl_count = SPECPDL_INDEX ();
+    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
     record_unwind_protect (pop_down_menu, make_save_value (dialog, 0));
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];

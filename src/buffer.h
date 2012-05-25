@@ -245,12 +245,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BUF_TEMP_SET_PT(buffer, position) \
   (temp_set_point ((buffer), (position)))
 
-extern void set_point (EMACS_INT);
-extern void temp_set_point (struct buffer *, EMACS_INT);
-extern void set_point_both (EMACS_INT, EMACS_INT);
+extern void set_point (ptrdiff_t);
+extern void temp_set_point (struct buffer *, ptrdiff_t);
+extern void set_point_both (ptrdiff_t, ptrdiff_t);
 extern void temp_set_point_both (struct buffer *,
-				 EMACS_INT, EMACS_INT);
-extern void enlarge_buffer_text (struct buffer *, EMACS_INT);
+				 ptrdiff_t, ptrdiff_t);
+extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
 
 
 /* Macros for setting the BEGV, ZV or PT of a given buffer.
@@ -449,38 +449,38 @@ struct buffer_text
        into a buffer's text to functions that malloc.  */
     unsigned char *beg;
 
-    EMACS_INT gpt;		/* Char pos of gap in buffer.  */
-    EMACS_INT z;		/* Char pos of end of buffer.  */
-    EMACS_INT gpt_byte;		/* Byte pos of gap in buffer.  */
-    EMACS_INT z_byte;		/* Byte pos of end of buffer.  */
-    EMACS_INT gap_size;		/* Size of buffer's gap.  */
-    int modiff;			/* This counts buffer-modification events
+    ptrdiff_t gpt;		/* Char pos of gap in buffer.  */
+    ptrdiff_t z;		/* Char pos of end of buffer.  */
+    ptrdiff_t gpt_byte;		/* Byte pos of gap in buffer.  */
+    ptrdiff_t z_byte;		/* Byte pos of end of buffer.  */
+    ptrdiff_t gap_size;		/* Size of buffer's gap.  */
+    EMACS_INT modiff;		/* This counts buffer-modification events
 				   for this buffer.  It is incremented for
 				   each such event, and never otherwise
 				   changed.  */
-    int chars_modiff;           /* This is modified with character change
+    EMACS_INT chars_modiff;	/* This is modified with character change
 				   events for this buffer.  It is set to
 				   modiff for each such event, and never
 				   otherwise changed.  */
-    int save_modiff;		/* Previous value of modiff, as of last
+    EMACS_INT save_modiff;	/* Previous value of modiff, as of last
 				   time buffer visited or saved a file.  */
 
-    int overlay_modiff;		/* Counts modifications to overlays.  */
+    EMACS_INT overlay_modiff;	/* Counts modifications to overlays.  */
 
     /* Minimum value of GPT - BEG since last redisplay that finished.  */
-    EMACS_INT beg_unchanged;
+    ptrdiff_t beg_unchanged;
 
     /* Minimum value of Z - GPT since last redisplay that finished.  */
-    EMACS_INT end_unchanged;
+    ptrdiff_t end_unchanged;
 
     /* MODIFF as of last redisplay that finished; if it matches MODIFF,
        beg_unchanged and end_unchanged contain no useful information.  */
-    int unchanged_modified;
+    EMACS_INT unchanged_modified;
 
     /* BUF_OVERLAY_MODIFF of current buffer, as of last redisplay that
        finished; if it matches BUF_OVERLAY_MODIFF, beg_unchanged and
        end_unchanged contain no useful information.  */
-    int overlay_unchanged_modified;
+    EMACS_INT overlay_unchanged_modified;
 
     /* Properties of this buffer's text.  */
     INTERVAL intervals;
@@ -536,17 +536,17 @@ struct buffer
   struct buffer_text *text;
 
   /* Char position of point in buffer.  */
-  EMACS_INT pt;
+  ptrdiff_t pt;
   /* Byte position of point in buffer.  */
-  EMACS_INT pt_byte;
+  ptrdiff_t pt_byte;
   /* Char position of beginning of accessible range.  */
-  EMACS_INT begv;
+  ptrdiff_t begv;
   /* Byte position of beginning of accessible range.  */
-  EMACS_INT begv_byte;
+  ptrdiff_t begv_byte;
   /* Char position of end of accessible range.  */
-  EMACS_INT zv;
+  ptrdiff_t zv;
   /* Byte position of end of accessible range.  */
-  EMACS_INT zv_byte;
+  ptrdiff_t zv_byte;
 
   /* In an indirect buffer, this points to the base buffer.
      In an ordinary buffer, it is 0.  */
@@ -572,16 +572,16 @@ struct buffer
      modtime is actually set.  */
   off_t modtime_size;
   /* The value of text->modiff at the last auto-save.  */
-  int auto_save_modified;
+  EMACS_INT auto_save_modified;
   /* The value of text->modiff at the last display error.
      Redisplay of this buffer is inhibited until it changes again.  */
-  int display_error_modiff;
+  EMACS_INT display_error_modiff;
   /* The time at which we detected a failure to auto-save,
      Or 0 if we didn't have a failure.  */
   time_t auto_save_failure_time;
   /* Position in buffer at which display started
      the last time this buffer was displayed.  */
-  EMACS_INT last_window_start;
+  ptrdiff_t last_window_start;
 
   /* Set nonzero whenever the narrowing is changed in this buffer.  */
   int clip_changed;
@@ -618,7 +618,7 @@ struct buffer
   struct Lisp_Overlay *overlays_after;
 
   /* Position where the overlay lists are centered.  */
-  EMACS_INT overlay_center;
+  ptrdiff_t overlay_center;
 
   /* Everything from here down must be a Lisp_Object.  */
   /* buffer-local Lisp variables start at `undo_list',
@@ -901,20 +901,20 @@ extern struct buffer buffer_local_symbols;
 
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
-extern void evaporate_overlays (EMACS_INT);
+extern void evaporate_overlays (ptrdiff_t);
 extern ptrdiff_t overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
-			      ptrdiff_t *len_ptr, EMACS_INT *next_ptr,
-			      EMACS_INT *prev_ptr, int change_req);
+			      ptrdiff_t *len_ptr, ptrdiff_t *next_ptr,
+			      ptrdiff_t *prev_ptr, int change_req);
 extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
-extern void recenter_overlay_lists (struct buffer *, EMACS_INT);
-extern EMACS_INT overlay_strings (EMACS_INT, struct window *, unsigned char **);
+extern void recenter_overlay_lists (struct buffer *, ptrdiff_t);
+extern ptrdiff_t overlay_strings (ptrdiff_t, struct window *, unsigned char **);
 extern void validate_region (Lisp_Object *, Lisp_Object *);
 extern void set_buffer_internal (struct buffer *);
 extern void set_buffer_internal_1 (struct buffer *);
 extern void set_buffer_temp (struct buffer *);
 extern void record_buffer (Lisp_Object);
 extern void buffer_slot_type_mismatch (Lisp_Object, int) NO_RETURN;
-extern void fix_overlays_before (struct buffer *, EMACS_INT, EMACS_INT);
+extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void mmap_set_vars (int);
 
 /* Get overlays at POSN into array OVERLAYS with NOVERLAYS elements.

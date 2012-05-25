@@ -779,8 +779,7 @@ enum
 struct scroll_bar
 {
   /* These fields are shared by all vectors.  */
-  EMACS_INT size_from_Lisp_Vector_struct;
-  struct Lisp_Vector *next_from_Lisp_Vector_struct;
+  struct vectorlike_header header;
 
   /* The window we're a scroll bar for.  */
   Lisp_Object window;
@@ -820,12 +819,6 @@ struct scroll_bar
      bar is extended to the gap between the fringe and the bar.  */
   unsigned int fringe_extended_p : 1;
 };
-
-/* The number of elements a vector holding a struct scroll_bar needs.  */
-#define SCROLL_BAR_VEC_SIZE					\
-  ((sizeof (struct scroll_bar)					\
-    - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *))	\
-   / sizeof (Lisp_Object))
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
@@ -996,7 +989,7 @@ extern void x_mouse_leave (struct x_display_info *);
 #ifdef USE_X_TOOLKIT
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
-extern EMACS_INT x_x_to_emacs_modifiers (struct x_display_info *, int);
+extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
 extern int x_display_pixel_height (struct x_display_info *);
 extern int x_display_pixel_width (struct x_display_info *);
 

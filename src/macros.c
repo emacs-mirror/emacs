@@ -95,13 +95,14 @@ macro before appending to it. */)
 	 has put another macro there.  */
       if (current_kboard->kbd_macro_bufsize < len + 30)
 	{
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) - 30
-	      < current_kboard->kbd_macro_bufsize)
+	  if (PTRDIFF_MAX < MOST_POSITIVE_FIXNUM + 30
+	      && PTRDIFF_MAX < len + 30)
 	    memory_full (SIZE_MAX);
-	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       (len + 30) * sizeof (Lisp_Object));
-	  current_kboard->kbd_macro_bufsize = len + 30;
+	  current_kboard->kbd_macro_buffer =
+	    xpalloc (current_kboard->kbd_macro_buffer,
+		     &current_kboard->kbd_macro_bufsize,
+		     len + 30 - current_kboard->kbd_macro_bufsize, -1,
+		     sizeof *current_kboard->kbd_macro_buffer);
 	}
 
       /* Must convert meta modifier when copying string to vector.  */
@@ -301,7 +302,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 {
   Lisp_Object final;
   Lisp_Object tem;
-  int pdlcount = SPECPDL_INDEX ();
+  ptrdiff_t pdlcount = SPECPDL_INDEX ();
   EMACS_INT repeat = 1;
   struct gcpro gcpro1, gcpro2;
   EMACS_INT success_count = 0;

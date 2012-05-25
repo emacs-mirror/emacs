@@ -169,7 +169,7 @@ check_ns_display_info (Lisp_Object frame)
       struct terminal *t = get_terminal (frame, 1);
 
       if (t->type != output_ns)
-        error ("Terminal %ld is not a Nextstep display", (long) XINT (frame));
+        error ("Terminal %"pI"d is not a Nextstep display", XINT (frame));
 
       return t->display_info.ns;
     }
@@ -709,7 +709,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (INTEGERP (value))
+  if (TYPE_RANGED_INTEGERP (int, value))
     nlines = XINT (value);
   else
     nlines = 0;
@@ -741,7 +741,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (INTEGERP (value) && XINT (value) >= 0)
+  if (RANGED_INTEGERP (0, value, INT_MAX))
     nlines = XFASTINT (value);
   else
     nlines = 0;
@@ -1136,7 +1136,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   int minibuffer_only = 0;
   int window_prompting = 0;
   int width, height;
-  int count = specpdl_ptr - specpdl;
+  ptrdiff_t count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct ns_display_info *dpyinfo = NULL;
@@ -1219,9 +1219,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   record_unwind_protect (unwind_create_frame, frame);
 
   f->output_data.ns->window_desc = desc_ctr++;
-  if (!NILP (parent))
+  if (TYPE_RANGED_INTEGERP (Window, parent))
     {
-      f->output_data.ns->parent_desc = (Window) XFASTINT (parent);
+      f->output_data.ns->parent_desc = XFASTINT (parent);
       f->output_data.ns->explicit_parent = 1;
     }
   else
@@ -2548,7 +2548,7 @@ Text larger than the specified size is clipped.  */)
 {
   int root_x, root_y;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct frame *f;
   char *str;
   NSSize size;
