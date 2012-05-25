@@ -83,8 +83,7 @@
 ;; implemented in subr.el.
 (add-hook 'after-load-functions (lambda (f) (garbage-collect)))
 
-;; We specify .el in case someone compiled version.el by mistake.
-(load "version.el")
+(load "version")
 
 (load "widget")
 (load "custom")

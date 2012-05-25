@@ -1,4 +1,4 @@
-;;; version.el --- record version number of Emacs -*- no-byte-compile: t -*-
+;;; version.el --- record version number of Emacs
 
 ;; Copyright (C) 1985, 1992, 1994-1995, 1999-2012
 ;;   Free Software Foundation, Inc.
@@ -24,27 +24,28 @@
 
 ;;; Commentary:
 
-;; This file is loaded uncompiled when dumping Emacs.
-;; Doc-strings should adhere to the conventions of make-docfile.
-
 ;;; Code:
 
-(defconst emacs-major-version (progn (string-match "^[0-9]+" emacs-version) (string-to-number (match-string 0 emacs-version))) "\
-Major version number of this version of Emacs.
+(defconst emacs-major-version
+  (progn (string-match "^[0-9]+" emacs-version)
+         (string-to-number (match-string 0 emacs-version)))
+  "Major version number of this version of Emacs.
 This variable first existed in version 19.23.")
 
-(defconst emacs-minor-version (progn (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version) (string-to-number (match-string 1 emacs-version))) "\
-Minor version number of this version of Emacs.
+(defconst emacs-minor-version
+  (progn (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version)
+         (string-to-number (match-string 1 emacs-version)))
+  "Minor version number of this version of Emacs.
 This variable first existed in version 19.23.")
 
-(defconst emacs-build-time (current-time) "\
-Time at which Emacs was dumped out.")
+(defconst emacs-build-time (current-time)
+  "Time at which Emacs was dumped out.")
 
-(defconst emacs-build-system (system-name) "\
-Name of the system on which Emacs was built.")
+(defconst emacs-build-system (system-name)
+  "Name of the system on which Emacs was built.")
 
-(defun emacs-version (&optional here) "\
-Return string describing the version of Emacs that is running.
+(defun emacs-version (&optional here)
+  "Return string describing the version of Emacs that is running.
 If optional argument HERE is non-nil, insert string at point.
 Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
@@ -80,14 +81,14 @@ to the system configuration; look at `system-configuration' instead."
 (defalias 'version 'emacs-version)
 
 ;; Set during dumping, this is a defvar so that it can be setq'd.
-(defvar emacs-bzr-version nil "\
-String giving the bzr revision from which this Emacs was built.
+(defvar emacs-bzr-version nil
+  "String giving the bzr revision from which this Emacs was built.
 Value is the bzr revision number and a revision ID separated by a blank.
 Value is nil if Emacs was not built from a bzr checkout, or if we could
 not determine the revision.")
 
-(defun emacs-bzr-get-version (&optional dir) "\
-Try to return as a string the bzr revision number of the Emacs sources.
+(defun emacs-bzr-get-version (&optional dir)
+  "Try to return as a string the bzr revision number of the Emacs sources.
 Value is the bzr revision number and a revision ID separated by a blank.
 Value is nil if the sources do not seem to be under bzr, or if we could
 not determine the revision.  Note that this reports on the current state
