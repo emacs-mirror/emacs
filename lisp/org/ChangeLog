@@ -1,3 +1,20 @@
+2012-05-25 Mark Shoulson <mark@kli.org>  (tiny change)
+
+	* org.el (org-fontify-entities): Fix bug: The entities \sup[123]
+	and \there4 were not "prettified" when org-pretty-entities was
+	enabled.
+
+2012-05-235  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-font-lock-add-priority-faces): Restrict priorities
+	fontification to headlines and inlinetasks.
+
+2012-05-25  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-odt.el (org-odt-init-outfile): Fix previous commit.  Make
+	sure that nxml-mode is loaded before let-binding
+	`nxml-auto-insert-xml-declaration-flag'.
+
 2012-05-25  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org-odt.el (org-odt-init-outfile)

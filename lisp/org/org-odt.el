@@ -2211,9 +2211,9 @@ captions on export.")
 	 (content-file (expand-file-name "content.xml" outdir)))
 
     ;; init conten.xml
-    (with-current-buffer
-	(let ((nxml-auto-insert-xml-declaration-flag nil))
-	  (find-file-noselect content-file t)))
+    (require 'nxml-mode)
+    (let ((nxml-auto-insert-xml-declaration-flag nil))
+      (find-file-noselect content-file t))
 
     ;; reset variables
     (setq org-odt-manifest-file-entries nil
