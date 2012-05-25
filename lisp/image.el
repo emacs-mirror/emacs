@@ -735,6 +735,9 @@ image types are not registered by `imagemagick-register-types'.
 
 If the value is t, inhibit the use of ImageMagick for images.
 
+If you change this without using customize, you must call
+`imagemagick-register-types' afterwards.
+
 If Emacs is compiled without ImageMagick support, this variable
 has no effect."
   :type '(choice (const :tag "Support all ImageMagick types" nil)

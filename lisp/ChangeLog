@@ -1,5 +1,7 @@
 2012-05-25  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (imagemagick-types-inhibit): Doc fix.
+
 	* version.el: Remove no-byte-compile and associated formatting.
 	* loadup.el: No need to load version.el uncompiled.  AFAICS, this
 	is ancient code from when there was an "inc-vers.el".
