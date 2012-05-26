@@ -847,8 +847,10 @@ static int encode_coding_ccl (struct coding_system *);
 static void decode_coding_raw_text (struct coding_system *);
 static int encode_coding_raw_text (struct coding_system *);
 
-static ptrdiff_t coding_set_source (struct coding_system *);
-static ptrdiff_t coding_set_destination (struct coding_system *);
+static void coding_set_source (struct coding_system *);
+static ptrdiff_t coding_change_source (struct coding_system *);
+static void coding_set_destination (struct coding_system *);
+static ptrdiff_t coding_change_destination (struct coding_system *);
 static void coding_alloc_by_realloc (struct coding_system *, ptrdiff_t);
 static void coding_alloc_by_making_gap (struct coding_system *,
                                         ptrdiff_t, ptrdiff_t);
@@ -927,7 +929,7 @@ record_conversion_result (struct coding_system *coding,
     charset_map_loaded = 0;						     \
     c = DECODE_CHAR (charset, code);					     \
     if (charset_map_loaded						     \
-	&& (offset = coding_set_source (coding)))			     \
+	&& (offset = coding_change_source (coding)))			     \
       {									     \
 	src += offset;							     \
 	src_base += offset;						     \
@@ -942,7 +944,7 @@ record_conversion_result (struct coding_system *coding,
     charset_map_loaded = 0;						\
     code = ENCODE_CHAR (charset, c);					\
     if (charset_map_loaded						\
-	&& (offset = coding_set_destination (coding)))			\
+	&& (offset = coding_change_destination (coding)))		\
       {									\
 	dst += offset;							\
 	dst_end += offset;						\
@@ -956,7 +958,7 @@ record_conversion_result (struct coding_system *coding,
     charset_map_loaded = 0;						\
     charset = char_charset (c, charset_list, code_return);		\
     if (charset_map_loaded						\
-	&& (offset = coding_set_destination (coding)))			\
+	&& (offset = coding_change_destination (coding)))		\
       {									\
 	dst += offset;							\
 	dst_end += offset;						\
@@ -970,7 +972,7 @@ record_conversion_result (struct coding_system *coding,
     charset_map_loaded = 0;						\
     result = CHAR_CHARSET_P (c, charset);				\
     if (charset_map_loaded						\
-	&& (offset = coding_set_destination (coding)))			\
+	&& (offset = coding_change_destination (coding)))		\
       {									\
 	dst += offset;							\
 	dst_end += offset;						\
@@ -1056,14 +1058,11 @@ record_conversion_result (struct coding_system *coding,
        | ((p)[-1] & 0x3F))))
 
 
-/* Update coding->source from coding->src_object, and return how many
-   bytes coding->source was changed.  */
+/* Set coding->source from coding->src_object.  */
 
-static ptrdiff_t
+static void
 coding_set_source (struct coding_system *coding)
 {
-  const unsigned char *orig = coding->source;
-
   if (BUFFERP (coding->src_object))
     {
       struct buffer *buf = XBUFFER (coding->src_object);
@@ -1082,18 +1081,26 @@ coding_set_source (struct coding_system *coding)
       /* Otherwise, the source is C string and is never relocated
 	 automatically.  Thus we don't have to update anything.  */
     }
+}
+
+
+/* Set coding->source from coding->src_object, and return how many
+   bytes coding->source was changed.  */
+
+static ptrdiff_t
+coding_change_source (struct coding_system *coding)
+{
+  const unsigned char *orig = coding->source;
+  coding_set_source (coding);
   return coding->source - orig;
 }
 
 
-/* Update coding->destination from coding->dst_object, and return how
-   many bytes coding->destination was changed.  */
+/* Set coding->destination from coding->dst_object.  */
 
-static ptrdiff_t
+static void
 coding_set_destination (struct coding_system *coding)
 {
-  const unsigned char *orig = coding->destination;
-
   if (BUFFERP (coding->dst_object))
     {
       if (BUFFERP (coding->src_object) && coding->src_pos < 0)
@@ -1118,6 +1125,17 @@ coding_set_destination (struct coding_system *coding)
       /* Otherwise, the destination is C string and is never relocated
 	 automatically.  Thus we don't have to update anything.  */
     }
+}
+
+
+/* Set coding->destination from coding->dst_object, and return how
+   many bytes coding->destination was changed.  */
+
+static ptrdiff_t
+coding_change_destination (struct coding_system *coding)
+{
+  const unsigned char *orig = coding->destination;
+  coding_set_destination (coding);
   return coding->destination - orig;
 }
 
@@ -4452,7 +4470,7 @@ encode_coding_iso_2022 (struct coding_system *coding)
 	  nbytes = encode_designation_at_bol (coding, charbuf, charbuf_end,
 					      desig_buf);
 	  if (charset_map_loaded
-	      && (offset = coding_set_destination (coding)))
+	      && (offset = coding_change_destination (coding)))
 	    {
 	      dst += offset;
 	      dst_end += offset;

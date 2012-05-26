@@ -1,3 +1,16 @@
+2012-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix coding-related core dumps with gcc -ftrapv.
+	The code was computing A - B, where A and B are pointers, and B is
+	random garbage.  This can lead to core dumps on platforms that
+	have special pointer registers, and it also leads to core dumps on
+	x86-64 when compiled with gcc -ftrapv.  The fix is to compute
+	A - B only when B is initialized properly.
+	* coding.c (coding_set_source, coding_set_destination): Return void.
+	(coding_change_source, coding_change_destinations): New functions,
+	with the old behaviors of coding_set_source and coding_set_destination.
+	All callers that need an offset changed to use these new functions.
+
 2012-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* nsterm.m (ns_init_paths): Don't mess with INFOPATH.  (Bug#2791)
