@@ -1,3 +1,7 @@
+2012-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-mode.el (auto-mode-alist): Fix typo.
+
 2012-05-25  Glenn Morris  <rgm@gnu.org>
 
 	* paths.el: Remove no-byte-compile.
