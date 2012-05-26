@@ -457,6 +457,7 @@ backwards ARG times if negative."
 With prefix argument ARG, do it ARG times if positive, or move
 backwards ARG times if negative."
   (interactive "p")
+  (or arg (setq arg 1))
   (while (< arg 0)
     (skip-syntax-backward
      (char-to-string (char-syntax (char-before))))

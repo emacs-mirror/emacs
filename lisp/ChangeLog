@@ -1,3 +1,7 @@
+2012-05-26  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* thingatpt.el (forward-same-syntax): Handle no ARG case.  (Bug#11560)
+
 2012-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-mode.el (auto-mode-alist): Fix typo.
