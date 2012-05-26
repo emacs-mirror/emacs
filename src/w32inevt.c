@@ -37,6 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "blockinput.h"
 #include "termhooks.h"
+#include "termchar.h"
 #include "w32heap.h"
 #include "w32term.h"
 
@@ -562,17 +563,14 @@ w32_console_mouse_position (FRAME_PTR *f,
   UNBLOCK_INPUT;
 }
 
-/* Remember mouse motion, notify emacs, and trigger mouse highlight.  */
+/* Remember mouse motion and notify emacs.  */
 static void
 mouse_moved_to (int x, int y)
 {
   /* If we're in the same place, ignore it.  */
   if (x != movement_pos.X || y != movement_pos.Y)
     {
-      FRAME_PTR f = SELECTED_FRAME ();
-
-      f->mouse_moved = 1;
-      note_mouse_highlight (f, x, y);
+      SELECTED_FRAME ()->mouse_moved = 1;
       movement_pos.X = x;
       movement_pos.Y = y;
       movement_time = GetTickCount ();
@@ -607,10 +605,22 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 
   if (event->dwEventFlags == MOUSE_MOVED)
     {
-      /* For movement events we just note that the mouse has moved so
-	 that emacs will generate drag events and perhaps trigger
-	 mouse highlighting.  */
+      FRAME_PTR f = SELECTED_FRAME ();
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+
       mouse_moved_to (event->dwMousePosition.X, event->dwMousePosition.Y);
+
+      if (f->mouse_moved)
+	{
+	  if (hlinfo->mouse_face_hidden)
+	    {
+	      hlinfo->mouse_face_hidden = 0;
+	      clear_mouse_face (hlinfo);
+	    }
+
+	  note_mouse_highlight (f, event->dwMousePosition.X,
+				event->dwMousePosition.Y);
+	}
       return 0;
     }
 

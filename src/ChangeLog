@@ -1,5 +1,14 @@
 2012-05-26  Eli Zaretskii  <eliz@gnu.org>
 
+	Refactor mouse highlight invocation for w32 console.
+	* w32inevt.c: Include termchar.h.
+	(mouse_moved_to): Move the call to note_mouse_highlight from here...
+	(do_mouse_event): ...to here.
+	Call clear_mouse_face if mouse_face_hidden is set in the mouse
+	highlight info.
+
+2012-05-26  Eli Zaretskii  <eliz@gnu.org>
+
 	Support mouse highlight on w32 text-mode frames.
 	* xdisp.c (draw_row_with_mouse_face): Call
 	tty_draw_row_with_mouse_face for WINDOWSNT as well.
