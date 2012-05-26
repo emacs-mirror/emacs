@@ -1,6 +1,9 @@
 2012-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (buffer-has-markers-at): Mark obsolete.
+
 	* subr.el (lambda): Use declare.
+
 	* emacs-lisp/lisp-mode.el (lambda):
 	* emacs-lisp/edebug.el (lambda): Move properties to its definition.
 

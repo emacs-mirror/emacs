@@ -1154,6 +1154,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
 
 (make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
+(make-obsolete 'buffer-has-markers-at nil "24.2")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
