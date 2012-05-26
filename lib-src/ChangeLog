@@ -1,3 +1,7 @@
+2012-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INSTALL_DATA): Remove; unused.
+
 2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove src/m/*.
