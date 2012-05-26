@@ -31,22 +31,22 @@
 
 ;;; Code:
 
-(defvar Info-default-directory-list
+;; This is a defcustom largely so that we can get the benefit
+;; of custom-initialize-delay.  Perhaps it would work to make it a
+;; defvar and explicitly give it a standard-value property, and
+;; call custom-initialize-delay on it.
+(defcustom Info-default-directory-list
   (let* ((config-dir
 	  (file-name-as-directory configure-info-directory))
-	 (config
-	  (list config-dir))
-	 (unpruned-prefixes
-	  ;; Directory trees that may not exist at installation time, and
-	  ;; so shouldn't be pruned based on existence.
-	  '("/usr/local/"))
 	 (prefixes
 	  ;; Directory trees in which to look for info subdirectories
-	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/" "/")
-				unpruned-prefixes))
+	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/" "/")))
 	 (suffixes
 	  ;; Subdirectories in each directory tree that may contain info
-	  ;; directories.
+	  ;; directories.  Most of these are rather outdated.
+	  ;; It ought to be fine to stop checking the "emacs" ones now,
+	  ;; since this is Emacs and we have not installed info files
+	  ;; into such directories for a looong time...
 	  '("share/" "" "gnu/" "gnu/lib/" "gnu/lib/emacs/"
 	    "emacs/" "lib/" "lib/emacs/"))
 	 (standard-info-dirs
@@ -56,16 +56,16 @@
 				  (mapcar (lambda (sfx)
 					    (concat pfx sfx "info/"))
 					  suffixes)))
-			     (if (member pfx unpruned-prefixes)
-				 dirs
-			       (prune-directory-list dirs config))))
+			     (prune-directory-list dirs)))
 			 prefixes))))
     ;; If $(prefix)/share/info is not one of the standard info
     ;; directories, they are probably installing an experimental
     ;; version of Emacs, so make sure that experimental version's Info
     ;; files override the ones in standard directories.
     (if (member config-dir standard-info-dirs)
-	(nconc standard-info-dirs config)
+	;; FIXME?  What is the point of adding it again at the end
+	;; when it is already present earlier in the list?
+	(nconc standard-info-dirs (list config-dir))
       (cons config-dir standard-info-dirs)))
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
@@ -79,7 +79,14 @@ Once Info is started, the list of directories to search
 comes from the variable `Info-directory-list'.
 This variable `Info-default-directory-list' is used as the default
 for initializing `Info-directory-list' when Info is started, unless
-the environment variable INFOPATH is set.")
+the environment variable INFOPATH is set.
+
+Although this is a customizable variable, that is mainly for technical
+reasons.  Normally, you should either set INFOPATH or customize
+`Info-additional-directory-list', rather than changing this variable."
+  :initialize 'custom-initialize-delay
+  :type '(repeat directory)
+  :group 'info)
 
 
 ;;; paths.el ends here
