@@ -1,5 +1,9 @@
 2012-05-26  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32inevt.c (do_mouse_event): Support mouse-autoselect-window.
+
+2012-05-26  Eli Zaretskii  <eliz@gnu.org>
+
 	Refactor mouse highlight invocation for w32 console.
 	* w32inevt.c: Include termchar.h.
 	(mouse_moved_to): Move the call to note_mouse_highlight from here...
