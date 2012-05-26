@@ -2986,18 +2986,13 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
 	  return make_number (0);
 
-	if (force_multibyte)
-	  /* READ_BUFFER already contains valid multibyte forms.  */
-	  ;
-	else if (force_singlebyte)
+	if (! force_multibyte && force_singlebyte)
 	  {
+	    /* READ_BUFFER contains raw 8-bit bytes and no multibyte
+	       forms.  Convert it to unibyte.  */
 	    nchars = str_as_unibyte ((unsigned char *) read_buffer,
 				     p - read_buffer);
 	    p = read_buffer + nchars;
-	  }
-	else
-	  {
-	    /* Otherwise, READ_BUFFER contains only ASCII.  */
 	  }
 
 	return make_specified_string (read_buffer, nchars, p - read_buffer,
