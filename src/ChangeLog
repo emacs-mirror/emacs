@@ -1,6 +1,8 @@
 2012-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32inevt.c (do_mouse_event): Support mouse-autoselect-window.
+	If help_echo changed, call gen_help_event to produce help-echo
+	message in the echo area.
 
 2012-05-26  Eli Zaretskii  <eliz@gnu.org>
 

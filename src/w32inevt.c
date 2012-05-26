@@ -621,8 +621,6 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 	      clear_mouse_face (hlinfo);
 	    }
 
-	  note_mouse_highlight (f, mx, my);
-
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (!NILP (Vmouse_autoselect_window))
 	    {
@@ -649,6 +647,16 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 	    }
 	  else
 	    last_mouse_window = Qnil;
+
+	  previous_help_echo_string = help_echo_string;
+	  help_echo_string = help_echo_object = help_echo_window = Qnil;
+	  help_echo_pos = -1;
+	  note_mouse_highlight (f, mx, my);
+	  /* If the contents of the global variable help_echo has
+	     changed (inside note_mouse_highlight), generate a HELP_EVENT.  */
+	  if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
+	    gen_help_event (help_echo_string, selected_frame, help_echo_window,
+			    help_echo_object, help_echo_pos);
 	}
       return 0;
     }
