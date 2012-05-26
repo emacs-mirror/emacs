@@ -562,14 +562,17 @@ w32_console_mouse_position (FRAME_PTR *f,
   UNBLOCK_INPUT;
 }
 
-/* Remember mouse motion and notify emacs.  */
+/* Remember mouse motion, notify emacs, and trigger mouse highlight.  */
 static void
 mouse_moved_to (int x, int y)
 {
-  /* If we're in the same place, ignore it */
+  /* If we're in the same place, ignore it.  */
   if (x != movement_pos.X || y != movement_pos.Y)
     {
-      SELECTED_FRAME ()->mouse_moved = 1;
+      FRAME_PTR f = SELECTED_FRAME ();
+
+      f->mouse_moved = 1;
+      note_mouse_highlight (f, x, y);
       movement_pos.X = x;
       movement_pos.Y = y;
       movement_time = GetTickCount ();
@@ -604,8 +607,9 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 
   if (event->dwEventFlags == MOUSE_MOVED)
     {
-      /* For movement events we just note that the mouse has moved
-	 so that emacs will generate drag events.  */
+      /* For movement events we just note that the mouse has moved so
+	 that emacs will generate drag events and perhaps trigger
+	 mouse highlighting.  */
       mouse_moved_to (event->dwMousePosition.X, event->dwMousePosition.Y);
       return 0;
     }

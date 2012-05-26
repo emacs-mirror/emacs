@@ -1,5 +1,19 @@
 2012-05-26  Eli Zaretskii  <eliz@gnu.org>
 
+	Support mouse highlight on w32 text-mode frames.
+	* xdisp.c (draw_row_with_mouse_face): Call
+	tty_draw_row_with_mouse_face for WINDOWSNT as well.
+
+	* w32inevt.c (mouse_moved_to): When the mouse moves, call
+	note_mouse_highlight.
+
+	* w32console.c: Include window.h.
+	(w32con_write_glyphs_with_face, tty_draw_row_with_mouse_face): New
+	functions.
+	(initialize_w32_display): Initialize mouse-highlight data.
+
+2012-05-26  Eli Zaretskii  <eliz@gnu.org>
+
 	* bidi.c (bidi_mirror_char): Revert last change: an int is
 	definitely wide enough here.
 
