@@ -31,10 +31,6 @@
 
 ;;; Code:
 
-;; Docstrings in this file should, where reasonable, follow the
-;; conventions described in make-docfile, so that they get put in the
-;; DOC file rather than in memory.
-
 (defvar Info-default-directory-list
   (let* ((config-dir
 	  (file-name-as-directory configure-info-directory))
