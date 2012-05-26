@@ -1,3 +1,21 @@
+2012-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Extend mouse support on W32 text-mode console.
+	* xdisp.c (draw_row_with_mouse_face): Call
+	tty_draw_row_with_mouse_face for WINDOWSNT as well.
+
+	* w32console.c: Include window.h.
+	(w32con_write_glyphs_with_face, tty_draw_row_with_mouse_face): New
+	functions.
+	(initialize_w32_display): Initialize mouse-highlight data.
+
+	* w32inevt.c: Include termchar.h and window.h.
+	(do_mouse_event): Support mouse-autoselect-window.  When the mouse
+	moves, call note_mouse_highlight.  If help_echo changed, call
+	gen_help_event to produce help-echo message in the echo area.
+	Call clear_mouse_face if mouse_face_hidden is set in the mouse
+	highlight info.
+
 2012-05-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lread.c (read1): Simplify slightly to avoid an overflow warning

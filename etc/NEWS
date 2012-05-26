@@ -313,6 +313,10 @@ by the underlying C implementation.
 *** --without-libxml2 omits support for libxml2, even if its presence
 is detected.
 
+** When invoked with the -nw switch to run on the Windows text-mode terminal,
+Emacs now supports mouse highlight, help-echo (in the echo area), and
+mouse-autoselect-window.
+
 
 * Installation Changes in Emacs 24.1
 
