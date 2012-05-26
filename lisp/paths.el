@@ -62,16 +62,27 @@
 					    (concat pfx sfx "info/"))
 					  suffixes)))
 			     (prune-directory-list dirs)))
-			 prefixes))))
-    ;; If $(prefix)/share/info is not one of the standard info
-    ;; directories, they are probably installing an experimental
-    ;; version of Emacs, so make sure that experimental version's Info
-    ;; files override the ones in standard directories.
-    (if (member config-dir standard-info-dirs)
-	;; FIXME?  What is the point of adding it again at the end
-	;; when it is already present earlier in the list?
-	(nconc standard-info-dirs (list config-dir))
-      (cons config-dir standard-info-dirs)))
+			 prefixes)))
+	 ;; If $(prefix)/share/info is not one of the standard info
+	 ;; directories, they are probably installing an experimental
+	 ;; version of Emacs, so make sure that experimental version's Info
+	 ;; files override the ones in standard directories.
+	 (dirs
+	  (if (member config-dir standard-info-dirs)
+	      ;; FIXME?  What is the point of adding it again at the end
+	      ;; when it is already present earlier in the list?
+	      (nconc standard-info-dirs (list config-dir))
+	    (cons config-dir standard-info-dirs))))
+    (if (not (eq system-type 'windows-nt))
+	dirs
+      ;; Include the info directory near where Emacs executable was installed.
+      (let* ((instdir (file-name-directory invocation-directory))
+	     (dir1 (expand-file-name "../info/" instdir))
+	     (dir2 (expand-file-name "../../../info/" instdir)))
+	(cond ((file-exists-p dir1) (append dirs (list dir1)))
+	      ((file-exists-p dir2) (append dirs (list dir2)))
+	      (t dirs)))))
+
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
 Therefore, the directory of Info files that come with Emacs

@@ -1,6 +1,8 @@
 2012-05-26  Glenn Morris  <rgm@gnu.org>
 
-	* paths.el (Info-default-directory-list):
+	* w32-fns.el (w32-init-info): Remove.
+	* paths.el (Info-default-directory-list): Add w32-init-info equivalent.
+
 	* info.el (info-initialize): For self-contained NS builds, put the
 	included info/ directory at the front.  (Bug#2791)
 
