@@ -1,5 +1,5 @@
-# stdlib_h.m4 serial 37
-dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
+# stdlib_h.m4 serial 41
+dnl Copyright (C) 2007-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -19,10 +19,11 @@ AC_DEFUN([gl_STDLIB_H],
 #if HAVE_RANDOM_H
 # include <random.h>
 #endif
-    ]], [_Exit atoll canonicalize_file_name getloadavg getsubopt grantpt mkdtemp
-    mkostemp mkostemps mkstemp mkstemps ptsname random_r initstat_r srandom_r
-    setstate_r realpath rpmatch setenv strtod strtoll strtoull unlockpt
-    unsetenv])
+    ]], [_Exit atoll canonicalize_file_name getloadavg getsubopt grantpt
+    initstate initstate_r mkdtemp mkostemp mkostemps mkstemp mkstemps
+    posix_openpt ptsname ptsname_r random random_r realpath rpmatch
+    setenv setstate setstate_r srandom srandom_r
+    strtod strtoll strtoull unlockpt unsetenv])
 ])
 
 AC_DEFUN([gl_STDLIB_MODULE_INDICATOR],
@@ -50,8 +51,11 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   GNULIB_MKOSTEMPS=0;     AC_SUBST([GNULIB_MKOSTEMPS])
   GNULIB_MKSTEMP=0;       AC_SUBST([GNULIB_MKSTEMP])
   GNULIB_MKSTEMPS=0;      AC_SUBST([GNULIB_MKSTEMPS])
+  GNULIB_POSIX_OPENPT=0;  AC_SUBST([GNULIB_POSIX_OPENPT])
   GNULIB_PTSNAME=0;       AC_SUBST([GNULIB_PTSNAME])
+  GNULIB_PTSNAME_R=0;     AC_SUBST([GNULIB_PTSNAME_R])
   GNULIB_PUTENV=0;        AC_SUBST([GNULIB_PUTENV])
+  GNULIB_RANDOM=0;        AC_SUBST([GNULIB_RANDOM])
   GNULIB_RANDOM_R=0;      AC_SUBST([GNULIB_RANDOM_R])
   GNULIB_REALLOC_POSIX=0; AC_SUBST([GNULIB_REALLOC_POSIX])
   GNULIB_REALPATH=0;      AC_SUBST([GNULIB_REALPATH])
@@ -76,7 +80,10 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   HAVE_MKOSTEMPS=1;          AC_SUBST([HAVE_MKOSTEMPS])
   HAVE_MKSTEMP=1;            AC_SUBST([HAVE_MKSTEMP])
   HAVE_MKSTEMPS=1;           AC_SUBST([HAVE_MKSTEMPS])
+  HAVE_POSIX_OPENPT=1;       AC_SUBST([HAVE_POSIX_OPENPT])
   HAVE_PTSNAME=1;            AC_SUBST([HAVE_PTSNAME])
+  HAVE_PTSNAME_R=1;          AC_SUBST([HAVE_PTSNAME_R])
+  HAVE_RANDOM=1;             AC_SUBST([HAVE_RANDOM])
   HAVE_RANDOM_H=1;           AC_SUBST([HAVE_RANDOM_H])
   HAVE_RANDOM_R=1;           AC_SUBST([HAVE_RANDOM_R])
   HAVE_REALPATH=1;           AC_SUBST([HAVE_REALPATH])
@@ -95,7 +102,9 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   REPLACE_MALLOC=0;          AC_SUBST([REPLACE_MALLOC])
   REPLACE_MBTOWC=0;          AC_SUBST([REPLACE_MBTOWC])
   REPLACE_MKSTEMP=0;         AC_SUBST([REPLACE_MKSTEMP])
+  REPLACE_PTSNAME_R=0;       AC_SUBST([REPLACE_PTSNAME_R])
   REPLACE_PUTENV=0;          AC_SUBST([REPLACE_PUTENV])
+  REPLACE_RANDOM_R=0;        AC_SUBST([REPLACE_RANDOM_R])
   REPLACE_REALLOC=0;         AC_SUBST([REPLACE_REALLOC])
   REPLACE_REALPATH=0;        AC_SUBST([REPLACE_REALPATH])
   REPLACE_SETENV=0;          AC_SUBST([REPLACE_SETENV])

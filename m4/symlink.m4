@@ -1,7 +1,7 @@
-# serial 5
+# serial 6
 # See if we need to provide symlink replacement.
 
-dnl Copyright (C) 2009-2011 Free Software Foundation, Inc.
+dnl Copyright (C) 2009-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -11,6 +11,7 @@ dnl with or without modifications, as long as this notice is preserved.
 AC_DEFUN([gl_FUNC_SYMLINK],
 [
   AC_REQUIRE([gl_UNISTD_H_DEFAULTS])
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_CHECK_FUNCS_ONCE([symlink])
   dnl The best we can do on mingw is provide a dummy that always fails, so
   dnl that compilation can proceed with fewer ifdefs.  On FreeBSD 7.2, AIX 7.1,
@@ -34,10 +35,19 @@ AC_DEFUN([gl_FUNC_SYMLINK],
              return result;
            ]])],
          [gl_cv_func_symlink_works=yes], [gl_cv_func_symlink_works=no],
-         [gl_cv_func_symlink_works="guessing no"])
+         [case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_symlink_works="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_symlink_works="guessing no" ;;
+          esac
+         ])
       rm -f conftest.f conftest.link conftest.lnk2])
-    if test "$gl_cv_func_symlink_works" != yes; then
-      REPLACE_SYMLINK=1
-    fi
+    case "$gl_cv_func_symlink_works" in
+      *yes) ;;
+      *)
+        REPLACE_SYMLINK=1
+        ;;
+    esac
   fi
 ])

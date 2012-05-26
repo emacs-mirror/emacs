@@ -1,6 +1,6 @@
 # Check for getloadavg.
 
-# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2011 Free Software
+# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2012 Free Software
 # Foundation, Inc.
 
 # This file is free software; the Free Software Foundation
@@ -100,7 +100,7 @@ AC_CHECK_DECL([getloadavg], [], [HAVE_DECL_GETLOADAVG=0],
 
 # gl_PREREQ_GETLOADAVG
 # --------------------
-# Set up the AC_LIBOBJ replacement of `getloadavg'.
+# Set up the AC_LIBOBJ replacement of 'getloadavg'.
 AC_DEFUN([gl_PREREQ_GETLOADAVG],
 [
 # Figure out what our getloadavg.c needs.
