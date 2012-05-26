@@ -39,12 +39,15 @@
 ;; - along these lines, provide patterns to match CL structs.
 ;; - provide something like (setq VAR) so a var can be set rather than
 ;;   let-bound.
-;; - provide a way to fallthrough to subsequent cases.
+;; - provide a way to fallthrough to subsequent cases (not sure what I meant by
+;;   this :-()
 ;; - try and be more clever to reduce the size of the decision tree, and
 ;;   to reduce the number of leaves that need to be turned into function:
 ;;   - first, do the tests shared by all remaining branches (it will have
-;;     to be performed anyway, so better so it first so it's shared).
+;;     to be performed anyway, so better do it first so it's shared).
 ;;   - then choose the test that discriminates more (?).
+;; - provide Agda's `with' (along with its `...' companion).
+;; - implement (not UPAT).  This might require a significant redesign.
 ;; - ideally we'd want (pcase s ((re RE1) E1) ((re RE2) E2)) to be able to
 ;;   generate a lex-style DFA to decide whether to run E1 or E2.
 

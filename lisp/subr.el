@@ -112,6 +112,11 @@ It may also be omitted.
 BODY should be a list of Lisp expressions.
 
 \(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
+  (declare (doc-string 2) (indent defun)
+           (debug (&define lambda-list
+                           [&optional stringp]
+                           [&optional ("interactive" interactive)]
+                           def-body)))
   ;; Note that this definition should not use backquotes; subr.el should not
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))

@@ -2010,12 +2010,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 ;; A macro is allowed by Emacs.
 (def-edebug-spec function (&or symbolp lambda-expr))
 
-;; lambda is a macro in emacs 19.
-(def-edebug-spec lambda (&define lambda-list
-				 [&optional stringp]
-				 [&optional ("interactive" interactive)]
-				 def-body))
-
 ;; A macro expression is a lambda expression with "macro" prepended.
 (def-edebug-spec macro (&define "lambda" lambda-list def-body))
 

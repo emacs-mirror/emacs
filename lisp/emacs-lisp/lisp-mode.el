@@ -140,7 +140,6 @@ It has `lisp-mode-abbrev-table' as its parent."
 (put 'defvar   'doc-string-elt 3)
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
-(put 'lambda 'doc-string-elt 2)
 (put 'defalias 'doc-string-elt 3)
 (put 'defvaralias 'doc-string-elt 3)
 (put 'define-category 'doc-string-elt 2)
@@ -1213,7 +1212,6 @@ Lisp function does not specify a special indentation."
 ;; like defun if the first form is placed on the next line, otherwise
 ;; it is indented like any other form (i.e. forms line up under first).
 
-(put 'lambda 'lisp-indent-function 'defun)
 (put 'autoload 'lisp-indent-function 'defun)
 (put 'progn 'lisp-indent-function 0)
 (put 'prog1 'lisp-indent-function 1)

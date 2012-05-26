@@ -1,3 +1,9 @@
+2012-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (lambda): Use declare.
+	* emacs-lisp/lisp-mode.el (lambda):
+	* emacs-lisp/edebug.el (lambda): Move properties to its definition.
+
 2012-05-26  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
 	* thingatpt.el (forward-same-syntax): Handle no ARG case.  (Bug#11560)

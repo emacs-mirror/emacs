@@ -1,3 +1,8 @@
+2012-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* legacy-gnus-agent.el (gnus-agent-unhook-expire-days):
+	* gnus-demon.el (gnus-demon-init): Don't bother with type-of.
+
 2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-win.el (gnus-configure-frame): Don't signal an error when
