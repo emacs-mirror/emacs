@@ -1,3 +1,8 @@
+2012-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_mirror_char): Revert last change: an int is
+	definitely wide enough here.
+
 2012-05-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).

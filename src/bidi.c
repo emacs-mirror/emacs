@@ -204,7 +204,7 @@ bidi_mirror_char (int c)
   val = CHAR_TABLE_REF (bidi_mirror_table, c);
   if (INTEGERP (val))
     {
-      EMACS_INT v = XINT (val);
+      int v = XINT (val);
 
       if (v < 0 || v > MAX_CHAR)
 	abort ();
