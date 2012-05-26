@@ -618,7 +618,19 @@ in `Info-file-supports-index-cookies-list'."
 		     (append (split-string (substring path 0 -1) sep)
 			     (Info-default-dirs))
 		   (split-string path sep))
-	       (Info-default-dirs)))))))
+	       (Info-default-dirs))))
+      ;; For a self-contained (ie relocatable) NS build, AFAICS we
+      ;; always want the included info directory to be at the head of
+      ;; the search path, unless it's already in INFOPATH somewhere.
+      ;; It's at the head of Info-default-directory-list,
+      ;; but there's no way to get it at the head of Info-directory-list
+      ;; except by doing it here.
+      (and path
+	   (featurep 'ns)
+	   (let ((dir (expand-file-name "../info" data-directory)))
+	     (and (file-directory-p dir)
+		  (not (member dir (split-string path ":" t)))
+		  (push dir Info-directory-list)))))))
 
 ;;;###autoload
 (defun info-other-window (&optional file-or-node)

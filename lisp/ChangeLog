@@ -1,5 +1,9 @@
 2012-05-26  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (Info-default-directory-list):
+	* info.el (info-initialize): For self-contained NS builds, put the
+	included info/ directory at the front.  (Bug#2791)
+
 	* paths.el (Info-default-directory-list): Make it a defcustom,
 	mainly so that we can use custom-initialize-delay.
 

@@ -1,3 +1,7 @@
+2012-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* nsterm.m (ns_init_paths): Don't mess with INFOPATH.  (Bug#2791)
+
 2012-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	Extend mouse support on W32 text-mode console.

@@ -37,7 +37,12 @@
 ;; call custom-initialize-delay on it.
 (defcustom Info-default-directory-list
   (let* ((config-dir
-	  (file-name-as-directory configure-info-directory))
+	  (file-name-as-directory
+	   ;; Self-contained NS build with info/ in the app-bundle.
+	   (or (and (featurep 'ns)
+		    (let ((dir (expand-file-name "../info" data-directory)))
+		      (if (file-directory-p dir) dir)))
+	       configure-info-directory)))
 	 (prefixes
 	  ;; Directory trees in which to look for info subdirectories
 	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/" "/")))
