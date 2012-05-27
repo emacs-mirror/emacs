@@ -1,5 +1,9 @@
 2012-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h [REL_ALLOC]: Omit duplicate prototypes.
+	Only r_alloc_inhibit_buffer_relocation needed to be added;
+	the others were already declared.
+
 	* bidi.c (bidi_mirror_char): Don't possibly truncate the integer
 	before checking whether it's out of range.  Put the check inside
 	eassert.  See
