@@ -1,3 +1,13 @@
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/md5.$(O)): 
+	($(BLD)/sha1.$(O)): 
+	($(BLD)/sha256.$(O)): 
+	($(BLD)/sha512.$(O)): Depend on $(EMACS_ROOT)/nt/inc/stdalign.h.
+	Suggested by Christoph Scholtes <cschol2112@googlemail.com>.
+
+	* lib/getopt_.h: Regenerate.
+
 2012-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume gnulib does largefile.

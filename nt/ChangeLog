@@ -1,5 +1,7 @@
 2012-05-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* inc/stdalign.h: New file.
+
 	* configure.bat: Ensure a space between %var% expansion and
 	redirection symbol '>', which breaks when %var% ends in a digit,
 	such as 1.
