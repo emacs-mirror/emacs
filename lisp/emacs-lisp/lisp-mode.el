@@ -829,10 +829,10 @@ Return the result of evaluation."
 	   (end-of-defun)
 	   (beginning-of-defun)
 	   (setq beg (point))
-	   (setq form (eval-sexp-add-defvars (read (current-buffer))))
+	   (setq form (read (current-buffer)))
 	   (setq end (point)))
 	 ;; Alter the form if necessary.
-	 (setq form (eval-defun-1 (macroexpand form)))
+	 (setq form (eval-sexp-add-defvars (eval-defun-1 (macroexpand form))))
 	 (list beg end standard-output
 	       `(lambda (ignore)
 		 ;; Skipping to the end of the specified region

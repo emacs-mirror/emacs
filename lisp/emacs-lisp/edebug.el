@@ -527,6 +527,7 @@ the minibuffer."
            (setq face-new-frame-defaults
                  (assq-delete-all (nth 1 form) face-new-frame-defaults))
            (put (nth 1 form) 'face-defface-spec nil)
+           (put (nth 1 form) 'face-documentation (nth 3 form))
 	   ;; See comments in `eval-defun-1' for purpose of code below
 	   (setq form (prog1 `(prog1 ,form
 				(put ',(nth 1 form) 'saved-face

@@ -1,3 +1,12 @@
+2012-05-27  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-2): Use `eval-sexp-add-defvars'
+	after the `eval-defun-1' specialcaseing
+	like in `edebug-eval-defun' (bug#10181).
+
+	* emacs-lisp/edebug.el (edebug-eval-defun): Set `face-documentation'
+	like in `eval-defun-1'.
+
 2012-05-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/sendmail.el (mail-yank-region): Recognize
