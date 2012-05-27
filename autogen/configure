@@ -628,7 +628,6 @@ gl_GNULIB_ENABLED_dosname_FALSE
 gl_GNULIB_ENABLED_dosname_TRUE
 LTLIBINTL
 LIBINTL
-WARN_CFLAGS
 HAVE_UNISTD_H
 NEXT_AS_FIRST_DIRECTIVE_UNISTD_H
 NEXT_UNISTD_H
@@ -637,6 +636,10 @@ SYS_TIME_H_DEFINES_STRUCT_TIMESPEC
 TIME_H_DEFINES_STRUCT_TIMESPEC
 NEXT_AS_FIRST_DIRECTIVE_TIME_H
 NEXT_TIME_H
+WINDOWS_64_BIT_OFF_T
+NEXT_AS_FIRST_DIRECTIVE_SYS_TYPES_H
+NEXT_SYS_TYPES_H
+WINDOWS_64_BIT_ST_SIZE
 NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H
 NEXT_SYS_STAT_H
 NEXT_AS_FIRST_DIRECTIVE_STDLIB_H
@@ -720,7 +723,6 @@ GNULIB_PERROR
 GNULIB_PCLOSE
 GNULIB_OBSTACK_PRINTF_POSIX
 GNULIB_OBSTACK_PRINTF
-GNULIB_GETS
 GNULIB_GETLINE
 GNULIB_GETDELIM
 GNULIB_GETCHAR
@@ -761,8 +763,12 @@ GL_GENERATE_STDARG_H_TRUE
 STDARG_H
 NEXT_AS_FIRST_DIRECTIVE_STDARG_H
 NEXT_STDARG_H
+GL_GENERATE_STDALIGN_H_FALSE
+GL_GENERATE_STDALIGN_H_TRUE
+STDALIGN_H
 NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H
 NEXT_SIGNAL_H
+LIB_PTHREAD_SIGMASK
 REPLACE_RAISE
 REPLACE_PTHREAD_SIGMASK
 HAVE_SIGHANDLER_T
@@ -779,7 +785,6 @@ GNULIB_SIGPROCMASK
 GNULIB_SIGNAL_H_SIGPIPE
 GNULIB_RAISE
 GNULIB_PTHREAD_SIGMASK
-LIB_PTHREAD_SIGMASK
 REPLACE_TIMEGM
 REPLACE_NANOSLEEP
 REPLACE_MKTIME
@@ -834,6 +839,7 @@ PRIPTR_PREFIX
 PRI_MACROS_BROKEN
 INT64_MAX_EQ_LONG_MAX
 INT32_MAX_LT_INTMAX_MAX
+REPLACE_STRTOIMAX
 HAVE_DECL_STRTOUMAX
 HAVE_DECL_STRTOIMAX
 HAVE_DECL_IMAXDIV
@@ -869,6 +875,7 @@ HAVE_INTTYPES_H
 HAVE_WCHAR_H
 HAVE_UNSIGNED_LONG_LONG_INT
 HAVE_LONG_LONG_INT
+GNULIB_GL_UNISTD_H_GETOPT
 GETOPT_H
 HAVE_GETOPT_H
 NEXT_AS_FIRST_DIRECTIVE_GETOPT_H
@@ -884,7 +891,9 @@ REPLACE_STRTOD
 REPLACE_SETENV
 REPLACE_REALPATH
 REPLACE_REALLOC
+REPLACE_RANDOM_R
 REPLACE_PUTENV
+REPLACE_PTSNAME_R
 REPLACE_MKSTEMP
 REPLACE_MBTOWC
 REPLACE_MALLOC
@@ -903,7 +912,10 @@ HAVE_RPMATCH
 HAVE_REALPATH
 HAVE_RANDOM_R
 HAVE_RANDOM_H
+HAVE_RANDOM
+HAVE_PTSNAME_R
 HAVE_PTSNAME
+HAVE_POSIX_OPENPT
 HAVE_MKSTEMPS
 HAVE_MKSTEMP
 HAVE_MKOSTEMPS
@@ -927,8 +939,11 @@ GNULIB_RPMATCH
 GNULIB_REALPATH
 GNULIB_REALLOC_POSIX
 GNULIB_RANDOM_R
+GNULIB_RANDOM
 GNULIB_PUTENV
+GNULIB_PTSNAME_R
 GNULIB_PTSNAME
+GNULIB_POSIX_OPENPT
 GNULIB_MKSTEMPS
 GNULIB_MKSTEMP
 GNULIB_MKOSTEMPS
@@ -961,11 +976,13 @@ REPLACE_LSEEK
 REPLACE_LINKAT
 REPLACE_LINK
 REPLACE_LCHOWN
+REPLACE_ISATTY
 REPLACE_GETPAGESIZE
 REPLACE_GETGROUPS
 REPLACE_GETLOGIN_R
 REPLACE_GETDOMAINNAME
 REPLACE_GETCWD
+REPLACE_FTRUNCATE
 REPLACE_FCHOWNAT
 REPLACE_DUP2
 REPLACE_DUP
@@ -974,6 +991,7 @@ REPLACE_CHOWN
 HAVE_SYS_PARAM_H
 HAVE_OS_H
 HAVE_DECL_TTYNAME_R
+HAVE_DECL_SETHOSTNAME
 HAVE_DECL_GETUSERSHELL
 HAVE_DECL_GETPAGESIZE
 HAVE_DECL_GETLOGIN_R
@@ -986,6 +1004,7 @@ HAVE_UNLINKAT
 HAVE_SYMLINKAT
 HAVE_SYMLINK
 HAVE_SLEEP
+HAVE_SETHOSTNAME
 HAVE_READLINKAT
 HAVE_READLINK
 HAVE_PWRITE
@@ -1017,11 +1036,11 @@ GNULIB_UNLINKAT
 GNULIB_UNLINK
 GNULIB_UNISTD_H_SIGPIPE
 GNULIB_UNISTD_H_NONBLOCKING
-GNULIB_UNISTD_H_GETOPT
 GNULIB_TTYNAME_R
 GNULIB_SYMLINKAT
 GNULIB_SYMLINK
 GNULIB_SLEEP
+GNULIB_SETHOSTNAME
 GNULIB_RMDIR
 GNULIB_READLINKAT
 GNULIB_READLINK
@@ -1034,6 +1053,7 @@ GNULIB_LSEEK
 GNULIB_LINKAT
 GNULIB_LINK
 GNULIB_LCHOWN
+GNULIB_ISATTY
 GNULIB_GROUP_MEMBER
 GNULIB_GETUSERSHELL
 GNULIB_GETPAGESIZE
@@ -1190,6 +1210,7 @@ HAVE_MAKEINFO
 GZIP_PROG
 INSTALL_INFO
 GNULIB_WARN_CFLAGS
+WARN_CFLAGS
 WERROR_CFLAGS
 RANLIB
 ARFLAGS
@@ -6924,6 +6945,7 @@ esac
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
+  # Code from module stdalign:
   # Code from module stdarg:
 
 
@@ -6940,6 +6962,7 @@ esac
   # Code from module strtoumax:
   # Code from module symlink:
   # Code from module sys_stat:
+  # Code from module sys_types:
   # Code from module time:
   # Code from module time_r:
   # Code from module u64:
@@ -6990,7 +7013,7 @@ if test "${gl_cv_warn_c__Werror+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -Werror"
+  as_fn_append CFLAGS " -Werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7016,6 +7039,7 @@ $as_echo "$gl_cv_warn_c__Werror" >&6; }
 if test "x$gl_cv_warn_c__Werror" = x""yes; then :
   as_fn_append WERROR_CFLAGS " -Werror"
 fi
+
 
        ;;
   esac
@@ -7255,7 +7279,7 @@ if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS $w"
+  as_fn_append CFLAGS " $w"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7284,6 +7308,7 @@ eval as_val=\$$as_gl_Warn
   as_fn_append WARN_CFLAGS " $w"
 fi
 
+
   done
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-missing-field-initializers" >&5
 $as_echo_n "checking whether C compiler handles -Wno-missing-field-initializers... " >&6; }
@@ -7292,7 +7317,7 @@ if test "${gl_cv_warn_c__Wno_missing_field_initializers+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -Wno-missing-field-initializers"
+  as_fn_append CFLAGS " -Wno-missing-field-initializers"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7318,6 +7343,7 @@ $as_echo "$gl_cv_warn_c__Wno_missing_field_initializers" >&6; }
 if test "x$gl_cv_warn_c__Wno_missing_field_initializers" = x""yes; then :
   as_fn_append WARN_CFLAGS " -Wno-missing-field-initializers"
 fi
+
  # We need this one
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-sign-compare" >&5
 $as_echo_n "checking whether C compiler handles -Wno-sign-compare... " >&6; }
@@ -7326,7 +7352,7 @@ if test "${gl_cv_warn_c__Wno_sign_compare+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -Wno-sign-compare"
+  as_fn_append CFLAGS " -Wno-sign-compare"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7352,6 +7378,7 @@ $as_echo "$gl_cv_warn_c__Wno_sign_compare" >&6; }
 if test "x$gl_cv_warn_c__Wno_sign_compare" = x""yes; then :
   as_fn_append WARN_CFLAGS " -Wno-sign-compare"
 fi
+
      # Too many warnings for now
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-type-limits" >&5
 $as_echo_n "checking whether C compiler handles -Wno-type-limits... " >&6; }
@@ -7360,7 +7387,7 @@ if test "${gl_cv_warn_c__Wno_type_limits+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -Wno-type-limits"
+  as_fn_append CFLAGS " -Wno-type-limits"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7386,6 +7413,7 @@ $as_echo "$gl_cv_warn_c__Wno_type_limits" >&6; }
 if test "x$gl_cv_warn_c__Wno_type_limits" = x""yes; then :
   as_fn_append WARN_CFLAGS " -Wno-type-limits"
 fi
+
       # Too many warnings for now
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-switch" >&5
 $as_echo_n "checking whether C compiler handles -Wno-switch... " >&6; }
@@ -7394,7 +7422,7 @@ if test "${gl_cv_warn_c__Wno_switch+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -Wno-switch"
+  as_fn_append CFLAGS " -Wno-switch"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7420,6 +7448,7 @@ $as_echo "$gl_cv_warn_c__Wno_switch" >&6; }
 if test "x$gl_cv_warn_c__Wno_switch" = x""yes; then :
   as_fn_append WARN_CFLAGS " -Wno-switch"
 fi
+
            # Too many warnings for now
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-parameter" >&5
 $as_echo_n "checking whether C compiler handles -Wno-unused-parameter... " >&6; }
@@ -7428,7 +7457,7 @@ if test "${gl_cv_warn_c__Wno_unused_parameter+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -Wno-unused-parameter"
+  as_fn_append CFLAGS " -Wno-unused-parameter"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7454,6 +7483,7 @@ $as_echo "$gl_cv_warn_c__Wno_unused_parameter" >&6; }
 if test "x$gl_cv_warn_c__Wno_unused_parameter" = x""yes; then :
   as_fn_append WARN_CFLAGS " -Wno-unused-parameter"
 fi
+
  # Too many warnings for now
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-format-nonliteral" >&5
 $as_echo_n "checking whether C compiler handles -Wno-format-nonliteral... " >&6; }
@@ -7462,7 +7492,7 @@ if test "${gl_cv_warn_c__Wno_format_nonliteral+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -Wno-format-nonliteral"
+  as_fn_append CFLAGS " -Wno-format-nonliteral"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7490,6 +7520,7 @@ if test "x$gl_cv_warn_c__Wno_format_nonliteral" = x""yes; then :
 fi
 
 
+
   # In spite of excluding -Wlogical-op above, it is enabled, as of
   # gcc 4.5.0 20090517.
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-logical-op" >&5
@@ -7499,7 +7530,7 @@ if test "${gl_cv_warn_c__Wno_logical_op+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -Wno-logical-op"
+  as_fn_append CFLAGS " -Wno-logical-op"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7527,6 +7558,7 @@ if test "x$gl_cv_warn_c__Wno_logical_op" = x""yes; then :
 fi
 
 
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -fdiagnostics-show-option" >&5
 $as_echo_n "checking whether C compiler handles -fdiagnostics-show-option... " >&6; }
 if test "${gl_cv_warn_c__fdiagnostics_show_option+set}" = set; then :
@@ -7534,7 +7566,7 @@ if test "${gl_cv_warn_c__fdiagnostics_show_option+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -fdiagnostics-show-option"
+  as_fn_append CFLAGS " -fdiagnostics-show-option"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7561,6 +7593,7 @@ if test "x$gl_cv_warn_c__fdiagnostics_show_option" = x""yes; then :
   as_fn_append WARN_CFLAGS " -fdiagnostics-show-option"
 fi
 
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -funit-at-a-time" >&5
 $as_echo_n "checking whether C compiler handles -funit-at-a-time... " >&6; }
 if test "${gl_cv_warn_c__funit_at_a_time+set}" = set; then :
@@ -7568,7 +7601,7 @@ if test "${gl_cv_warn_c__funit_at_a_time+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -funit-at-a-time"
+  as_fn_append CFLAGS " -funit-at-a-time"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7594,6 +7627,7 @@ $as_echo "$gl_cv_warn_c__funit_at_a_time" >&6; }
 if test "x$gl_cv_warn_c__funit_at_a_time" = x""yes; then :
   as_fn_append WARN_CFLAGS " -funit-at-a-time"
 fi
+
 
 
 
@@ -8073,207 +8107,6 @@ fi
 # Suppress obsolescent Autoconf test for size_t; Emacs assumes C89 or better.
 
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
-
-
-# Check whether --enable-largefile was given.
-if test "${enable_largefile+set}" = set; then :
-  enableval=$enable_largefile;
-fi
-
-if test "$enable_largefile" != no; then
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for special C compiler options needed for large files" >&5
-$as_echo_n "checking for special C compiler options needed for large files... " >&6; }
-if test "${ac_cv_sys_largefile_CC+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_cv_sys_largefile_CC=no
-     if test "$GCC" != yes; then
-       ac_save_CC=$CC
-       while :; do
-         # IRIX 6.2 and later do not support large files by default,
-         # so use the C compiler's -n32 option if that helps.
-         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sys/types.h>
- /* Check that off_t can represent 2**63 - 1 correctly.
-    We can't simply define LARGE_OFF_T to be 9223372036854775807,
-    since some C++ compilers masquerading as C compilers
-    incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
-  int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
-                       && LARGE_OFF_T % 2147483647 == 1)
-                      ? 1 : -1];
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-         if ac_fn_c_try_compile "$LINENO"; then :
-  break
-fi
-rm -f core conftest.err conftest.$ac_objext
-         CC="$CC -n32"
-         if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_sys_largefile_CC=' -n32'; break
-fi
-rm -f core conftest.err conftest.$ac_objext
-         break
-       done
-       CC=$ac_save_CC
-       rm -f conftest.$ac_ext
-    fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sys_largefile_CC" >&5
-$as_echo "$ac_cv_sys_largefile_CC" >&6; }
-  if test "$ac_cv_sys_largefile_CC" != no; then
-    CC=$CC$ac_cv_sys_largefile_CC
-  fi
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _FILE_OFFSET_BITS value needed for large files" >&5
-$as_echo_n "checking for _FILE_OFFSET_BITS value needed for large files... " >&6; }
-if test "${ac_cv_sys_file_offset_bits+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  while :; do
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sys/types.h>
- /* Check that off_t can represent 2**63 - 1 correctly.
-    We can't simply define LARGE_OFF_T to be 9223372036854775807,
-    since some C++ compilers masquerading as C compilers
-    incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
-  int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
-                       && LARGE_OFF_T % 2147483647 == 1)
-                      ? 1 : -1];
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_sys_file_offset_bits=no; break
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#define _FILE_OFFSET_BITS 64
-#include <sys/types.h>
- /* Check that off_t can represent 2**63 - 1 correctly.
-    We can't simply define LARGE_OFF_T to be 9223372036854775807,
-    since some C++ compilers masquerading as C compilers
-    incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
-  int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
-                       && LARGE_OFF_T % 2147483647 == 1)
-                      ? 1 : -1];
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_sys_file_offset_bits=64; break
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  ac_cv_sys_file_offset_bits=unknown
-  break
-done
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sys_file_offset_bits" >&5
-$as_echo "$ac_cv_sys_file_offset_bits" >&6; }
-case $ac_cv_sys_file_offset_bits in #(
-  no | unknown) ;;
-  *)
-cat >>confdefs.h <<_ACEOF
-#define _FILE_OFFSET_BITS $ac_cv_sys_file_offset_bits
-_ACEOF
-;;
-esac
-rm -rf conftest*
-  if test $ac_cv_sys_file_offset_bits = unknown; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _LARGE_FILES value needed for large files" >&5
-$as_echo_n "checking for _LARGE_FILES value needed for large files... " >&6; }
-if test "${ac_cv_sys_large_files+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  while :; do
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sys/types.h>
- /* Check that off_t can represent 2**63 - 1 correctly.
-    We can't simply define LARGE_OFF_T to be 9223372036854775807,
-    since some C++ compilers masquerading as C compilers
-    incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
-  int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
-                       && LARGE_OFF_T % 2147483647 == 1)
-                      ? 1 : -1];
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_sys_large_files=no; break
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#define _LARGE_FILES 1
-#include <sys/types.h>
- /* Check that off_t can represent 2**63 - 1 correctly.
-    We can't simply define LARGE_OFF_T to be 9223372036854775807,
-    since some C++ compilers masquerading as C compilers
-    incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
-  int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
-                       && LARGE_OFF_T % 2147483647 == 1)
-                      ? 1 : -1];
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_sys_large_files=1; break
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  ac_cv_sys_large_files=unknown
-  break
-done
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sys_large_files" >&5
-$as_echo "$ac_cv_sys_large_files" >&6; }
-case $ac_cv_sys_large_files in #(
-  no | unknown) ;;
-  *)
-cat >>confdefs.h <<_ACEOF
-#define _LARGE_FILES $ac_cv_sys_large_files
-_ACEOF
-;;
-esac
-rm -rf conftest*
-  fi
-
-
-fi
 
 
 
@@ -16068,8 +15901,8 @@ ALLOCA=\${LIBOBJDIR}alloca.$ac_objext
 $as_echo "#define C_ALLOCA 1" >>confdefs.h
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether \`alloca.c' needs Cray hooks" >&5
-$as_echo_n "checking whether \`alloca.c' needs Cray hooks... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether 'alloca.c' needs Cray hooks" >&5
+$as_echo_n "checking whether 'alloca.c' needs Cray hooks... " >&6; }
 if test "${ac_cv_os_cray+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
@@ -16512,6 +16345,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   GNULIB_GETPAGESIZE=0;
   GNULIB_GETUSERSHELL=0;
   GNULIB_GROUP_MEMBER=0;
+  GNULIB_ISATTY=0;
   GNULIB_LCHOWN=0;
   GNULIB_LINK=0;
   GNULIB_LINKAT=0;
@@ -16524,11 +16358,11 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   GNULIB_READLINK=0;
   GNULIB_READLINKAT=0;
   GNULIB_RMDIR=0;
+  GNULIB_SETHOSTNAME=0;
   GNULIB_SLEEP=0;
   GNULIB_SYMLINK=0;
   GNULIB_SYMLINKAT=0;
   GNULIB_TTYNAME_R=0;
-  GNULIB_UNISTD_H_GETOPT=0;
   GNULIB_UNISTD_H_NONBLOCKING=0;
   GNULIB_UNISTD_H_SIGPIPE=0;
   GNULIB_UNLINK=0;
@@ -16560,6 +16394,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   HAVE_PWRITE=1;
   HAVE_READLINK=1;
   HAVE_READLINKAT=1;
+  HAVE_SETHOSTNAME=1;
   HAVE_SLEEP=1;
   HAVE_SYMLINK=1;
   HAVE_SYMLINKAT=1;
@@ -16572,6 +16407,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   HAVE_DECL_GETLOGIN_R=1;
   HAVE_DECL_GETPAGESIZE=1;
   HAVE_DECL_GETUSERSHELL=1;
+  HAVE_DECL_SETHOSTNAME=1;
   HAVE_DECL_TTYNAME_R=1;
   HAVE_OS_H=0;
   HAVE_SYS_PARAM_H=0;
@@ -16580,11 +16416,13 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   REPLACE_DUP=0;
   REPLACE_DUP2=0;
   REPLACE_FCHOWNAT=0;
+  REPLACE_FTRUNCATE=0;
   REPLACE_GETCWD=0;
   REPLACE_GETDOMAINNAME=0;
   REPLACE_GETLOGIN_R=0;
   REPLACE_GETGROUPS=0;
   REPLACE_GETPAGESIZE=0;
+  REPLACE_ISATTY=0;
   REPLACE_LCHOWN=0;
   REPLACE_LINK=0;
   REPLACE_LINKAT=0;
@@ -16666,8 +16504,11 @@ _ACEOF
   GNULIB_MKOSTEMPS=0;
   GNULIB_MKSTEMP=0;
   GNULIB_MKSTEMPS=0;
+  GNULIB_POSIX_OPENPT=0;
   GNULIB_PTSNAME=0;
+  GNULIB_PTSNAME_R=0;
   GNULIB_PUTENV=0;
+  GNULIB_RANDOM=0;
   GNULIB_RANDOM_R=0;
   GNULIB_REALLOC_POSIX=0;
   GNULIB_REALPATH=0;
@@ -16691,7 +16532,10 @@ _ACEOF
   HAVE_MKOSTEMPS=1;
   HAVE_MKSTEMP=1;
   HAVE_MKSTEMPS=1;
+  HAVE_POSIX_OPENPT=1;
   HAVE_PTSNAME=1;
+  HAVE_PTSNAME_R=1;
+  HAVE_RANDOM=1;
   HAVE_RANDOM_H=1;
   HAVE_RANDOM_R=1;
   HAVE_REALPATH=1;
@@ -16710,7 +16554,9 @@ _ACEOF
   REPLACE_MALLOC=0;
   REPLACE_MBTOWC=0;
   REPLACE_MKSTEMP=0;
+  REPLACE_PTSNAME_R=0;
   REPLACE_PUTENV=0;
+  REPLACE_RANDOM_R=0;
   REPLACE_REALLOC=0;
   REPLACE_REALPATH=0;
   REPLACE_SETENV=0;
@@ -16874,12 +16720,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'getopt.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'getopt.h\)".*|\1|
+               gl_header_literal_regex=`echo 'getopt.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -17379,7 +17228,6 @@ $as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
 
 
 
-        GNULIB_UNISTD_H_GETOPT=1
   fi
 
 ac_fn_c_check_decl "$LINENO" "getenv" "ac_cv_have_decl_getenv" "$ac_includes_default"
@@ -17631,12 +17479,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdint.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'stdint.h\)".*|\1|
+               gl_header_literal_regex=`echo 'stdint.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -17684,8 +17535,6 @@ else
 /* end confdefs.h.  */
 
 
-#define __STDC_LIMIT_MACROS 1 /* to make it work also in C++ mode */
-#define __STDC_CONSTANT_MACROS 1 /* to make it work also in C++ mode */
 #define _GL_JUST_INCLUDE_SYSTEM_STDINT_H 1 /* work if build isn't clean */
 #include <stdint.h>
 /* Dragonfly defines WCHAR_MIN, WCHAR_MAX only in <wchar.h>.  */
@@ -17854,8 +17703,6 @@ else
 /* end confdefs.h.  */
 
 
-#define __STDC_LIMIT_MACROS 1 /* to make it work also in C++ mode */
-#define __STDC_CONSTANT_MACROS 1 /* to make it work also in C++ mode */
 #define _GL_JUST_INCLUDE_SYSTEM_STDINT_H 1 /* work if build isn't clean */
 #include <stdint.h>
 
@@ -18294,6 +18141,7 @@ fi
   HAVE_DECL_IMAXDIV=1;
   HAVE_DECL_STRTOIMAX=1;
   HAVE_DECL_STRTOUMAX=1;
+  REPLACE_STRTOIMAX=0;
   INT32_MAX_LT_INTMAX_MAX=1;
   INT64_MAX_EQ_LONG_MAX='defined _LP64';
   PRI_MACROS_BROKEN=0;
@@ -18342,12 +18190,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'inttypes.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'inttypes.h\)".*|\1|
+               gl_header_literal_regex=`echo 'inttypes.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -18381,11 +18232,51 @@ $as_echo "$gl_cv_next_inttypes_h" >&6; }
 
 
 
-$as_echo "#define GL_TRIGGER_STDC_LIMIT_MACROS 1" >>confdefs.h
 
 
 
+  case "$host_os" in
+    mingw*)
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for 64-bit off_t" >&5
+$as_echo_n "checking for 64-bit off_t... " >&6; }
+if test "${gl_cv_type_off_t_64+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+                int verify_off_t_size[sizeof (off_t) >= 8 ? 1 : -1];
 
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_type_off_t_64=yes
+else
+  gl_cv_type_off_t_64=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_type_off_t_64" >&5
+$as_echo "$gl_cv_type_off_t_64" >&6; }
+      if test $gl_cv_type_off_t_64 = no; then
+        WINDOWS_64_BIT_OFF_T=1
+      else
+        WINDOWS_64_BIT_OFF_T=0
+      fi
+                  WINDOWS_64_BIT_ST_SIZE=1
+      ;;
+    *)
+                                                      WINDOWS_64_BIT_OFF_T=0
+      WINDOWS_64_BIT_ST_SIZE=0
+      ;;
+  esac
 
 
      GNULIB_FCHMODAT=0;
@@ -18434,10 +18325,12 @@ else
      echo >conftest.file
      if test "$as_ln_s" = "ln -s" && ln -s conftest.file conftest.sym; then
        if test "$cross_compiling" = yes; then :
-  # When cross-compiling, be pessimistic so we will end up using the
-          # replacement version of lstat that checks for trailing slashes and
-          # calls lstat a second time when necessary.
-          gl_cv_func_lstat_dereferences_slashed_symlink=no
+  case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_lstat_dereferences_slashed_symlink="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_lstat_dereferences_slashed_symlink="guessing no" ;;
+          esac
 
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -18468,19 +18361,22 @@ fi
      else
        # If the 'ln -s' command failed, then we probably don't even
        # have an lstat function.
-       gl_cv_func_lstat_dereferences_slashed_symlink=no
+       gl_cv_func_lstat_dereferences_slashed_symlink="guessing no"
      fi
      rm -f conftest.sym conftest.file
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_lstat_dereferences_slashed_symlink" >&5
 $as_echo "$gl_cv_func_lstat_dereferences_slashed_symlink" >&6; }
-  test $gl_cv_func_lstat_dereferences_slashed_symlink = yes &&
+  case "$gl_cv_func_lstat_dereferences_slashed_symlink" in
+    *yes)
 
 cat >>confdefs.h <<_ACEOF
 #define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
 _ACEOF
 
+      ;;
+  esac
 
 
   GNULIB_MKTIME=0;
@@ -18496,8 +18392,6 @@ _ACEOF
   REPLACE_MKTIME=GNULIB_PORTCHECK;
   REPLACE_NANOSLEEP=GNULIB_PORTCHECK;
   REPLACE_TIMEGM=GNULIB_PORTCHECK;
-
-
 
 
 
@@ -18520,6 +18414,8 @@ _ACEOF
   HAVE_SIGHANDLER_T=1;
   REPLACE_PTHREAD_SIGMASK=0;
   REPLACE_RAISE=0;
+
+
 
 
 
@@ -18713,7 +18609,6 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
   GNULIB_GETCHAR=0;
   GNULIB_GETDELIM=0;
   GNULIB_GETLINE=0;
-  GNULIB_GETS=0;
   GNULIB_OBSTACK_PRINTF=0;
   GNULIB_OBSTACK_PRINTF_POSIX=0;
   GNULIB_PCLOSE=0;
@@ -18989,6 +18884,14 @@ _ACEOF
 
 fi
 
+
+
+
+
+
+
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for C/C++ restrict keyword" >&5
 $as_echo_n "checking for C/C++ restrict keyword... " >&6; }
 if test "${ac_cv_c_restrict+set}" = set; then :
@@ -19171,12 +19074,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'time.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'time.h\)".*|\1|
+               gl_header_literal_regex=`echo 'time.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -19333,17 +19239,17 @@ else
   if test "$cross_compiling" = yes; then :
   case "$host_os" in
            mingw*) # on this platform, dup2 always returns 0 for success
-             gl_cv_func_dup2_works=no;;
+             gl_cv_func_dup2_works="guessing no" ;;
            cygwin*) # on cygwin 1.5.x, dup2(1,1) returns 0
-             gl_cv_func_dup2_works=no;;
+             gl_cv_func_dup2_works="guessing no" ;;
            linux*) # On linux between 2008-07-27 and 2009-05-11, dup2 of a
                    # closed fd may yield -EBADF instead of -1 / errno=EBADF.
-             gl_cv_func_dup2_works=no;;
+             gl_cv_func_dup2_works="guessing no" ;;
            freebsd*) # on FreeBSD 6.1, dup2(1,1000000) gives EMFILE, not EBADF.
-             gl_cv_func_dup2_works=no;;
+             gl_cv_func_dup2_works="guessing no" ;;
            haiku*) # on Haiku alpha 2, dup2(1, 1) resets FD_CLOEXEC.
-             gl_cv_func_dup2_works=no;;
-           *) gl_cv_func_dup2_works=yes;;
+             gl_cv_func_dup2_works="guessing no" ;;
+           *) gl_cv_func_dup2_works="guessing yes" ;;
          esac
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -19392,9 +19298,12 @@ fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_dup2_works" >&5
 $as_echo "$gl_cv_func_dup2_works" >&6; }
-    if test "$gl_cv_func_dup2_works" = no; then
-      REPLACE_DUP2=1
-    fi
+    case "$gl_cv_func_dup2_works" in
+      *yes) ;;
+      *)
+        REPLACE_DUP2=1
+        ;;
+    esac
   fi
 
 
@@ -19988,7 +19897,9 @@ if test $REPLACE_GETOPT = 1; then
 
 
 
+    GNULIB_GL_UNISTD_H_GETOPT=1
 fi
+
 
 
 
@@ -20012,7 +19923,6 @@ $as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
 
 
 
-        GNULIB_UNISTD_H_GETOPT=1
   fi
 
 if test $REPLACE_GETOPT = 1; then
@@ -20039,7 +19949,10 @@ if test $REPLACE_GETOPT = 1; then
 
 
 
+    GNULIB_GL_UNISTD_H_GETOPT=1
 fi
+
+
 
 
 
@@ -20047,9 +19960,11 @@ fi
 
   if test $ac_cv_func_lstat = yes; then
 
-    if test $gl_cv_func_lstat_dereferences_slashed_symlink = no; then
-      REPLACE_LSTAT=1
-    fi
+    case "$gl_cv_func_lstat_dereferences_slashed_symlink" in
+      *no)
+        REPLACE_LSTAT=1
+        ;;
+    esac
   else
     HAVE_LSTAT=0
   fi
@@ -20344,6 +20259,8 @@ fi
 
 
 
+
+
   LIB_PTHREAD_SIGMASK=
 
 
@@ -20618,7 +20535,13 @@ else
        ln -s conftest.no-such conftest.link
        ln -s conftest.link conftest.lnk2
        if test "$cross_compiling" = yes; then :
-  gl_cv_func_readlink_works="guessing no"
+  case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_readlink_works="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_readlink_works="guessing no" ;;
+          esac
+
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -20646,14 +20569,19 @@ fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_readlink_works" >&5
 $as_echo "$gl_cv_func_readlink_works" >&6; }
-    if test "$gl_cv_func_readlink_works" != yes; then
+    case "$gl_cv_func_readlink_works" in
+      *yes)
+        if test "$gl_cv_decl_readlink_works" != yes; then
+          REPLACE_READLINK=1
+        fi
+        ;;
+      *)
 
 $as_echo "#define READLINK_TRAILING_SLASH_BUG 1" >>confdefs.h
 
-      REPLACE_READLINK=1
-    elif test "$gl_cv_decl_readlink_works" != yes; then
-      REPLACE_READLINK=1
-    fi
+        REPLACE_READLINK=1
+        ;;
+    esac
   fi
 
 if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
@@ -20717,12 +20645,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'signal.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'signal.h\)".*|\1|
+               gl_header_literal_regex=`echo 'signal.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -20878,6 +20809,72 @@ $as_echo "#define ssize_t int" >>confdefs.h
   fi
 
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working stdalign.h" >&5
+$as_echo_n "checking for working stdalign.h... " >&6; }
+if test "${gl_cv_header_working_stdalign_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdalign.h>
+            #include <stddef.h>
+
+            /* Test that alignof yields a result consistent with offsetof.
+               This catches GCC bug 52023
+               <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.  */
+            #ifdef __cplusplus
+               template <class t> struct alignof_helper { char a; t b; };
+            # define ao(type) offsetof (alignof_helper<type>, b)
+            #else
+            # define ao(type) offsetof (struct { char a; type b; }, b)
+            #endif
+            char test_double[ao (double) % _Alignof (double) == 0 ? 1 : -1];
+            char test_long[ao (long int) % _Alignof (long int) == 0 ? 1 : -1];
+            char test_alignof[alignof (double) == _Alignof (double) ? 1 : -1];
+
+            /* Test _Alignas only on platforms where gnulib can help.  */
+            #if \
+                (__GNUC__ || __IBMC__ || __IBMCPP__ \
+                 || 0x5110 <= __SUNPRO_C || 1300 <= _MSC_VER)
+              int alignas (8) alignas_int = 1;
+              char test_alignas[_Alignof (alignas_int) == 8 ? 1 : -1];
+            #endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_header_working_stdalign_h=yes
+else
+  gl_cv_header_working_stdalign_h=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_working_stdalign_h" >&5
+$as_echo "$gl_cv_header_working_stdalign_h" >&6; }
+
+  if test $gl_cv_header_working_stdalign_h = yes; then
+    STDALIGN_H=''
+  else
+    STDALIGN_H='stdalign.h'
+  fi
+
+
+   if test -n "$STDALIGN_H"; then
+  GL_GENERATE_STDALIGN_H_TRUE=
+  GL_GENERATE_STDALIGN_H_FALSE='#'
+else
+  GL_GENERATE_STDALIGN_H_TRUE='#'
+  GL_GENERATE_STDALIGN_H_FALSE=
+fi
+
+
+
   STDARG_H=''
   NEXT_STDARG_H='<stdarg.h>'
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for va_copy" >&5
@@ -20961,12 +20958,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdarg.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'stdarg.h\)".*|\1|
+               gl_header_literal_regex=`echo 'stdarg.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -21161,12 +21161,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stddef.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'stddef.h\)".*|\1|
+               gl_header_literal_regex=`echo 'stddef.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -21231,12 +21234,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdio.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'stdio.h\)".*|\1|
+               gl_header_literal_regex=`echo 'stdio.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -21270,7 +21276,6 @@ $as_echo "$gl_cv_next_stdio_h" >&6; }
   GNULIB_GETC=1
   GNULIB_GETCHAR=1
   GNULIB_FGETS=1
-  GNULIB_GETS=1
   GNULIB_FREAD=1
 
 
@@ -21323,12 +21328,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdlib.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'stdlib.h\)".*|\1|
+               gl_header_literal_regex=`echo 'stdlib.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -21381,7 +21389,83 @@ $as_echo "#define my_strftime nstrftime" >>confdefs.h
     HAVE_DECL_STRTOIMAX=0
   fi
 
-if test $ac_cv_func_strtoimax = no; then
+  if test $ac_cv_func_strtoimax = yes; then
+    HAVE_STRTOIMAX=1
+             { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether strtoimax works" >&5
+$as_echo_n "checking whether strtoimax works... " >&6; }
+if test "${gl_cv_func_strtoimax+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  case "$host_os" in
+                   # Guess no on AIX 5.
+            aix5*) gl_cv_func_strtoimax="guessing no" ;;
+                   # Guess yes otherwise.
+            *)     gl_cv_func_strtoimax="guessing yes" ;;
+          esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#include <string.h>
+#include <inttypes.h>
+int main ()
+{
+  if (sizeof (intmax_t) > sizeof (int))
+    {
+      const char *s = "4294967295";
+      char *p;
+      intmax_t res;
+      errno = 0;
+      res = strtoimax (s, &p, 10);
+      if (p != s + strlen (s))
+        return 1;
+      if (errno != 0)
+        return 2;
+      if (res != (intmax_t) 65535 * (intmax_t) 65537)
+        return 3;
+    }
+  else
+    {
+      const char *s = "2147483647";
+      char *p;
+      intmax_t res;
+      errno = 0;
+      res = strtoimax (s, &p, 10);
+      if (p != s + strlen (s))
+        return 1;
+      if (errno != 0)
+        return 2;
+      if (res != 2147483647)
+        return 3;
+    }
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_strtoimax=yes
+else
+  gl_cv_func_strtoimax=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_strtoimax" >&5
+$as_echo "$gl_cv_func_strtoimax" >&6; }
+    case "$gl_cv_func_strtoimax" in
+      *no) REPLACE_STRTOIMAX=1 ;;
+    esac
+  else
+    HAVE_STRTOIMAX=0
+  fi
+
+if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
 
 
 
@@ -21474,7 +21558,13 @@ if test "${gl_cv_func_symlink_works+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   if test "$cross_compiling" = yes; then :
-  gl_cv_func_symlink_works="guessing no"
+  case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_symlink_works="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_symlink_works="guessing no" ;;
+          esac
+
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -21509,9 +21599,12 @@ fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_symlink_works" >&5
 $as_echo "$gl_cv_func_symlink_works" >&6; }
-    if test "$gl_cv_func_symlink_works" != yes; then
-      REPLACE_SYMLINK=1
-    fi
+    case "$gl_cv_func_symlink_works" in
+      *yes) ;;
+      *)
+        REPLACE_SYMLINK=1
+        ;;
+    esac
   fi
 
 if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
@@ -21580,12 +21673,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'sys/stat.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'sys/stat.h\)".*|\1|
+               gl_header_literal_regex=`echo 'sys/stat.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -21618,6 +21714,16 @@ $as_echo "$gl_cv_next_sys_stat_h" >&6; }
 
 
 
+
+
+
+
+  if test $WINDOWS_64_BIT_ST_SIZE = 1; then
+
+$as_echo "#define _GL_WINDOWS_64_BIT_ST_SIZE 1" >>confdefs.h
+
+  fi
+
       ac_fn_c_check_type "$LINENO" "nlink_t" "ac_cv_type_nlink_t" "#include <sys/types.h>
      #include <sys/stat.h>
 "
@@ -21628,6 +21734,83 @@ else
 $as_echo "#define nlink_t int" >>confdefs.h
 
 fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_sys_types_h='<'sys/types.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <sys/types.h>" >&5
+$as_echo_n "checking absolute name of <sys/types.h>... " >&6; }
+if test "${gl_cv_next_sys_types_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='\/'
+                   ;;
+               esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
+
+               gl_header_literal_regex=`echo 'sys/types.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
+                   s|^/[^/]|//&|
+                   p
+                   q
+                 }'
+                                                            gl_cv_next_sys_types_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                      sed -n "$gl_absolute_header_sed"`'"'
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_sys_types_h" >&5
+$as_echo "$gl_cv_next_sys_types_h" >&6; }
+     fi
+     NEXT_SYS_TYPES_H=$gl_cv_next_sys_types_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'sys/types.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_sys_types_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_SYS_TYPES_H=$gl_next_as_first_directive
+
+
+
+
+
+
+
 
 
 
@@ -21760,12 +21943,15 @@ _ACEOF
                                                                                                                                      gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'unistd.h|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"'unistd.h\)".*|\1|
+               gl_header_literal_regex=`echo 'unistd.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
                    s|^/[^/]|//&|
                    p
                    q
@@ -21800,6 +21986,7 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
   else
     HAVE_UNISTD_H=0
   fi
+
 
 
 
@@ -21925,7 +22112,7 @@ fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_stat_dir_slash" >&5
 $as_echo "$gl_cv_func_stat_dir_slash" >&6; }
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether stat handles trailing slashes on files" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether stat handles trailing slashes on files" >&5
 $as_echo_n "checking whether stat handles trailing slashes on files... " >&6; }
 if test "${gl_cv_func_stat_file_slash+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -21936,7 +22123,13 @@ else
          ln -s conftest.tmp conftest.lnk
        fi
        if test "$cross_compiling" = yes; then :
-  gl_cv_func_stat_file_slash="guessing no"
+  case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_stat_file_slash="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_stat_file_slash="guessing no" ;;
+          esac
+
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -22149,17 +22342,17 @@ fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
   fi
-  if test $ac_cv_func_strtoimax = no; then
-    func_gl_gnulib_m4code_verify
-  fi
-  if test $ac_cv_func_strtoimax = no && test $ac_cv_type_long_long_int = yes; then
+  if { test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
   fi
-  if test $ac_cv_func_strtoumax = no; then
+  if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
     func_gl_gnulib_m4code_verify
   fi
   if test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoull
+  fi
+  if test $ac_cv_func_strtoumax = no; then
+    func_gl_gnulib_m4code_verify
   fi
 
    if $gl_gnulib_enabled_dosname; then
@@ -22675,6 +22868,10 @@ fi
 
 if test -z "${GL_GENERATE_STDINT_H_TRUE}" && test -z "${GL_GENERATE_STDINT_H_FALSE}"; then
   as_fn_error "conditional \"GL_GENERATE_STDINT_H\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${GL_GENERATE_STDALIGN_H_TRUE}" && test -z "${GL_GENERATE_STDALIGN_H_FALSE}"; then
+  as_fn_error "conditional \"GL_GENERATE_STDALIGN_H\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${GL_GENERATE_STDARG_H_TRUE}" && test -z "${GL_GENERATE_STDARG_H_FALSE}"; then

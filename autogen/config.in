@@ -49,12 +49,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
 
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
+/* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for 'alloca.c' support on those systems.
    */
 #undef CRAY_STACKSEG_END
 
-/* Define to 1 if using `alloca.c'. */
+/* Define to 1 if using 'alloca.c'. */
 #undef C_ALLOCA
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
@@ -91,9 +91,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if gettimeofday accepts only one argument. */
 #undef GETTIMEOFDAY_ONE_ARGUMENT
-
-/* Define to make the limit macros in <stdint.h> visible. */
-#undef GL_TRIGGER_STDC_LIMIT_MACROS
 
 /* enable some gnulib portability checks */
 #undef GNULIB_PORTCHECK
@@ -507,7 +504,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you support file names longer than 14 characters. */
 #undef HAVE_LONG_FILE_NAMES
 
-/* Define to 1 if the system has the type `long long int'. */
+/* Define to 1 if the system has the type 'long long int'. */
 #undef HAVE_LONG_LONG_INT
 
 /* Define to 1 if you have the `lrand48' function. */
@@ -833,7 +830,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if the system has the type `unsigned long long int'. */
+/* Define to 1 if the system has the type 'unsigned long long int'. */
 #undef HAVE_UNSIGNED_LONG_LONG_INT
 
 /* Define to 1 if you have the <util.h> header file. */
@@ -942,7 +939,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
-/* Define to 1 if `lstat' dereferences a symlink specified with a trailing
+/* Define to 1 if 'lstat' dereferences a symlink specified with a trailing
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
 
@@ -1150,6 +1147,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* enable compile-time and run-time bounds-checking, and some warnings */
 #undef _FORTIFY_SOURCE
 
+/* Define to 1 if Gnulib overrides 'struct stat' on Windows so that struct
+   stat.st_size becomes 64-bit. */
+#undef _GL_WINDOWS_64_BIT_ST_SIZE
+
 /* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
 #undef _LARGEFILE_SOURCE
 
@@ -1162,12 +1163,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if GNUstep uses ObjC exceptions. */
 #undef _NATIVE_OBJC_EXCEPTIONS
 
-/* The _Noreturn keyword of draft C1X.  */
-#ifndef _Noreturn
+/* The _Noreturn keyword of C11.  */
+#if ! (defined _Noreturn \
+       || (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__))
 # if (3 <= __GNUC__ || (__GNUC__ == 2 && 8 <= __GNUC_MINOR__) \
       || 0x5110 <= __SUNPRO_C)
 #  define _Noreturn __attribute__ ((__noreturn__))
-# elif 1200 <= _MSC_VER
+# elif defined _MSC_VER && 1200 <= _MSC_VER
 #  define _Noreturn __declspec (noreturn)
 # else
 #  define _Noreturn
@@ -1179,7 +1181,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    this defined. */
 #undef _POSIX_1_SOURCE
 
-/* Define to 1 if you need to in order for `stat' and other things to work. */
+/* Define to 1 if you need to in order for 'stat' and other things to work. */
 #undef _POSIX_SOURCE
 
 /* Define to 500 only on HP-UX. */
@@ -1214,13 +1216,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to rpl_ if the getopt replacement functions and variables should be
    used. */
 #undef __GETOPT_PREFIX
-
-/* Ensure that <stdint.h> defines the limit macros, since gnulib's
-   <inttypes.h> relies on them.  */
-#if defined __cplusplus && !defined __STDC_LIMIT_MACROS && GL_TRIGGER_STDC_LIMIT_MACROS
-# define __STDC_LIMIT_MACROS 1
-#endif
-
 
 /* Define to compiler's equivalent of C99 restrict keyword in array
    declarations. Define as empty for no equivalent. */
