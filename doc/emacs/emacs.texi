@@ -1555,37 +1555,20 @@ Lisp programming.
 @c The Option Index is produced only in the on-line version,
 @c because the index entries related to command-line options
 @c tend to point to the same pages and all begin with a dash.
-@c This, and the need to keep the node links consistent, are
-@c the reasons for the funky @iftex/@ifnottex dance below.
-@c The Option Index is _not_ before Key Index, because that
-@c would require changes in the glossary.texi's @node line.
-@c It is not after Concept Index for similar reasons.
 
-@iftex
 @node Key Index
 @unnumbered Key (Character) Index
 @printindex ky
-@end iftex
 
 @ifnottex
-@node Key Index
-@unnumbered Key (Character) Index
-@printindex ky
-
 @node Option Index
 @unnumbered Command-Line Options Index
 @printindex op
-
-@node Command Index
-@unnumbered Command and Function Index
-@printindex fn
 @end ifnottex
 
-@iftex
 @node Command Index
 @unnumbered Command and Function Index
 @printindex fn
-@end iftex
 
 @node Variable Index
 @unnumbered Variable Index

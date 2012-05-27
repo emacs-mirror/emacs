@@ -1,5 +1,7 @@
 2012-05-27  Glenn Morris  <rgm@gnu.org>
 
+	* emacs.texi: Simplify following removal of node pointers.
+
 	* ack.texi, anti.texi, basic.texi, buffers.texi, building.texi:
 	* cmdargs.texi, commands.texi, display.texi, emacs.texi:
 	* entering.texi, files.texi, fixit.texi, frames.texi, glossary.texi:
