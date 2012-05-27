@@ -1,3 +1,8 @@
+2012-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi, dired-x.texi: Nuke hand-written node pointers.
+	Some associated fixes, including not messing with chapno in cl.texi.
+
 2012-05-27  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Durations and time values): Fix typo.

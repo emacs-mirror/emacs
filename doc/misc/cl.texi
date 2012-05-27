@@ -45,16 +45,10 @@ developing GNU and promoting software freedom.''
 
 @contents
 
-@node Top, Overview, (dir), (dir)
-@chapter Introduction
-
-@noindent
-This document describes a set of Emacs Lisp facilities borrowed from
-Common Lisp.  All the facilities are described here in detail.  While
-this document does not assume any prior knowledge of Common Lisp, it
-does assume a basic familiarity with Emacs Lisp.
-
 @ifnottex
+@node Top
+@top GNU Emacs Common Lisp Emulation
+
 @insertcopying
 @end ifnottex
 
@@ -82,12 +76,15 @@ does assume a basic familiarity with Emacs Lisp.
 * Variable Index::
 @end menu
 
-@node Overview, Program Structure, Top, Top
-@ifnottex
+@node Overview
 @chapter Overview
-@end ifnottex
 
 @noindent
+This document describes a set of Emacs Lisp facilities borrowed from
+Common Lisp.  All the facilities are described here in detail.  While
+this document does not assume any prior knowledge of Common Lisp, it
+does assume a basic familiarity with Emacs Lisp.
+
 Common Lisp is a huge language, and Common Lisp systems tend to be
 massive and extremely complex.  Emacs Lisp, by contrast, is rather
 minimalist in the choice of Lisp features it offers the programmer.
@@ -150,7 +147,7 @@ environment.
 * Naming Conventions::   Notes on CL function names
 @end menu
 
-@node Usage, Organization, Overview, Overview
+@node Usage
 @section Usage
 
 @noindent
@@ -166,7 +163,7 @@ It is safe to arrange to load @dfn{CL} at all times, e.g.,
 in your @file{.emacs} file.  But it's a good idea, for portability,
 to @code{(require 'cl)} in your code even if you do this.
 
-@node Organization, Installation, Usage, Overview
+@node Organization
 @section Organization
 
 @noindent
@@ -212,7 +209,7 @@ like @code{defkeyword}, and an emulation of the old-style
 multiple-values feature.  This file is obsolete and should not be used
 in new code.  @xref{Old CL Compatibility}.
 
-@node Installation, Naming Conventions, Organization, Overview
+@node Installation
 @section Installation
 
 @noindent
@@ -226,7 +223,7 @@ directory on your @code{load-path}.  Also, format the @file{cl.texi}
 file and put the resulting Info files into a directory in your
 @code{Info-directory-list}.
 
-@node Naming Conventions,  , Installation, Overview
+@node Naming Conventions
 @section Naming Conventions
 
 @noindent
@@ -280,11 +277,7 @@ and @code{:key} is not used.
 @noindent
 [4] Only when @var{place} is a plain variable name.
 
-@iftex
-@chapno=4
-@end iftex
-
-@node Program Structure, Predicates, Overview, Top
+@node Program Structure
 @chapter Program Structure
 
 @noindent
@@ -301,7 +294,7 @@ and the @code{eval-when} construct.
 @secno=1
 @end iftex
 
-@node Argument Lists, Time of Evaluation, Program Structure, Program Structure
+@node Argument Lists
 @section Argument Lists
 
 @noindent
@@ -525,7 +518,7 @@ If the optimization quality @code{safety} is set to 0
 arguments and invalid keyword arguments is disabled.  By default,
 argument lists are rigorously checked.
 
-@node Time of Evaluation,  , Argument Lists, Program Structure
+@node Time of Evaluation
 @section Time of Evaluation
 
 @noindent
@@ -675,7 +668,7 @@ Byte-compiled, the above defun will result in the following code
 @end example
 @end defspec
 
-@node Predicates, Control Structure, Program Structure, Top
+@node Predicates
 @chapter Predicates
 
 @noindent
@@ -687,7 +680,7 @@ facts are true or false.
 * Equality Predicates::  @code{equalp}
 @end menu
 
-@node Type Predicates, Equality Predicates, Predicates, Predicates
+@node Type Predicates
 @section Type Predicates
 
 @noindent
@@ -820,7 +813,7 @@ names.  @xref{Conditionals}.  @xref{Assertions}.  The @code{map},
 @code{concatenate}, and @code{merge} functions take type-name
 arguments to specify the type of sequence to return.  @xref{Sequences}.
 
-@node Equality Predicates,  , Type Predicates, Predicates
+@node Equality Predicates
 @section Equality Predicates
 
 @noindent
@@ -848,7 +841,7 @@ MacLisp tradition and uses @code{equal} for these two functions.
 In Emacs, use @code{member*} and @code{assoc*} to get functions
 which use @code{eql} for comparisons.
 
-@node Control Structure, Macros, Predicates, Top
+@node Control Structure
 @chapter Control Structure
 
 @noindent
@@ -868,7 +861,7 @@ constructs.
 * Multiple Values::        @code{values}, @code{multiple-value-bind}, etc.
 @end menu
 
-@node Assignment, Generalized Variables, Control Structure, Control Structure
+@node Assignment
 @section Assignment
 
 @noindent
@@ -905,7 +898,7 @@ provides an even more convenient way to swap two variables;
 @code{psetq} always returns @code{nil}.
 @end defspec
 
-@node Generalized Variables, Variable Bindings, Assignment, Control Structure
+@node Generalized Variables
 @section Generalized Variables
 
 @noindent
@@ -934,7 +927,7 @@ is a set of forms that can be generalized variables in Lisp.
 * Customizing Setf::   @code{define-modify-macro}, @code{defsetf}, @code{define-setf-method}
 @end menu
 
-@node Basic Setf, Modify Macros, Generalized Variables, Generalized Variables
+@node Basic Setf
 @subsection Basic Setf
 
 @noindent
@@ -1105,7 +1098,7 @@ evaluate @var{b} first, then @var{a}, just as in an actual call
 to @code{wrong-order}.
 @end defspec
 
-@node Modify Macros, Customizing Setf, Basic Setf, Generalized Variables
+@node Modify Macros
 @subsection Modify Macros
 
 @noindent
@@ -1316,7 +1309,7 @@ blocks for other macros like @code{incf}, @code{pushnew}, and
 macros are used in the processing of symbol macros;
 @pxref{Macro Bindings}.
 
-@node Customizing Setf,  , Modify Macros, Generalized Variables
+@node Customizing Setf
 @subsection Customizing Setf
 
 @noindent
@@ -1529,7 +1522,7 @@ defined later.
 @secno=4
 @end iftex
 
-@node Variable Bindings, Conditionals, Generalized Variables, Control Structure
+@node Variable Bindings
 @section Variable Bindings
 
 @noindent
@@ -1546,7 +1539,7 @@ are also related to variable bindings.
 * Macro Bindings::       @code{macrolet} and @code{symbol-macrolet}
 @end menu
 
-@node Dynamic Bindings, Lexical Bindings, Variable Bindings, Variable Bindings
+@node Dynamic Bindings
 @subsection Dynamic Bindings
 
 @noindent
@@ -1566,7 +1559,7 @@ If @var{symbols} is shorter than @var{values}, the excess values
 are ignored.
 @end defspec
 
-@node Lexical Bindings, Function Bindings, Dynamic Bindings, Variable Bindings
+@node Lexical Bindings
 @subsection Lexical Bindings
 
 @noindent
@@ -1680,7 +1673,7 @@ This form is just like @code{lexical-let}, except that the bindings
 are made sequentially in the manner of @code{let*}.
 @end defspec
 
-@node Function Bindings, Macro Bindings, Lexical Bindings, Variable Bindings
+@node Function Bindings
 @subsection Function Bindings
 
 @noindent
@@ -1756,7 +1749,7 @@ function, or a use of its name quoted by @code{quote} or
 @code{function} to be passed on to, say, @code{mapcar}.
 @end defspec
 
-@node Macro Bindings,  , Function Bindings, Variable Bindings
+@node Macro Bindings
 @subsection Macro Bindings
 
 @noindent
@@ -1843,7 +1836,7 @@ This package defines a nonstandard @code{in-ref} loop clause that
 works much like @code{my-dolist}.
 @end defspec
 
-@node Conditionals, Blocks and Exits, Variable Bindings, Control Structure
+@node Conditionals
 @section Conditionals
 
 @noindent
@@ -1917,7 +1910,7 @@ not match any of the clauses, an error is signaled rather than
 simply returning @code{nil}.
 @end defspec
 
-@node Blocks and Exits, Iteration, Conditionals, Control Structure
+@node Blocks and Exits
 @section Blocks and Exits
 
 @noindent
@@ -1982,7 +1975,7 @@ Common Lisp loops like @code{do} and @code{dolist} implicitly enclose
 themselves in @code{nil} blocks.
 @end defspec
 
-@node Iteration, Loop Facility, Blocks and Exits, Control Structure
+@node Iteration
 @section Iteration
 
 @noindent
@@ -2126,7 +2119,7 @@ argument is omitted; it always iterates over the default obarray.
 @xref{Mapping over Sequences}, for some more functions for
 iterating over vectors or lists.
 
-@node Loop Facility, Multiple Values, Iteration, Control Structure
+@node Loop Facility
 @section Loop Facility
 
 @noindent
@@ -2148,7 +2141,7 @@ with an easy-to-use but very powerful and expressive syntax.
 * Other Clauses::         @code{with}, @code{if}, @code{initially}, @code{finally}
 @end menu
 
-@node Loop Basics, Loop Examples, Loop Facility, Loop Facility
+@node Loop Basics
 @subsection Loop Basics
 
 @noindent
@@ -2207,7 +2200,7 @@ action, and describe the particular loop clauses in great detail.
 Consult the second edition of Steele's @dfn{Common Lisp, the Language},
 for additional discussion and examples of the @code{loop} macro.
 
-@node Loop Examples, For Clauses, Loop Basics, Loop Facility
+@node Loop Examples
 @subsection Loop Examples
 
 @noindent
@@ -2280,7 +2273,7 @@ define loops all by themselves, it still creates a single loop
 rather than some sort of triple-nested loop.  You must explicitly
 nest your @code{loop} constructs if you want nested loops.
 
-@node For Clauses, Iteration Clauses, Loop Examples, Loop Facility
+@node For Clauses
 @subsection For Clauses
 
 @noindent
@@ -2595,7 +2588,7 @@ to process an alist
      @result{} (1 2)
 @end example
 
-@node Iteration Clauses, Accumulation Clauses, For Clauses, Loop Facility
+@node Iteration Clauses
 @subsection Iteration Clauses
 
 @noindent
@@ -2654,7 +2647,7 @@ in this case, it returns that non-@code{nil} value.  If all the
 values were @code{nil}, the loop returns @code{nil}.
 @end table
 
-@node Accumulation Clauses, Other Clauses, Iteration Clauses, Loop Facility
+@node Accumulation Clauses
 @subsection Accumulation Clauses
 
 @noindent
@@ -2723,7 +2716,7 @@ accumulate into the same place.  From Steele:
      @result{} (fred bob ken sue alice joe kris sunshine june)
 @end example
 
-@node Other Clauses,  , Accumulation Clauses, Loop Facility
+@node Other Clauses
 @subsection Other Clauses
 
 @noindent
@@ -2874,7 +2867,7 @@ and data-type specifiers.  Naturally, the @code{for} clauses which
 iterate over keymaps, overlays, intervals, frames, windows, and
 buffers are Emacs-specific extensions.
 
-@node Multiple Values,  , Loop Facility, Control Structure
+@node Multiple Values
 @section Multiple Values
 
 @noindent
@@ -2916,7 +2909,7 @@ form would see them.
 Since a perfect emulation is not feasible in Emacs Lisp, this
 package opts to keep it as simple and predictable as possible.
 
-@node Macros, Declarations, Control Structure, Top
+@node Macros
 @chapter Macros
 
 @noindent
@@ -2994,7 +2987,7 @@ for which no further expansion is possible.
 and @code{symbol-macrolet} forms for making ``local'' macro
 definitions.
 
-@node Declarations, Symbols, Macros, Top
+@node Declarations
 @chapter Declarations
 
 @noindent
@@ -3176,7 +3169,7 @@ disable these warnings and any higher value will enable them.
 See the documentation for the optimizing byte compiler for details.
 @end table
 
-@node Symbols, Numbers, Declarations, Top
+@node Symbols
 @chapter Symbols
 
 @noindent
@@ -3188,7 +3181,7 @@ missing from Emacs Lisp.
 * Creating Symbols::     @code{gensym}, @code{gentemp}
 @end menu
 
-@node Property Lists, Creating Symbols, Symbols, Symbols
+@node Property Lists
 @section Property Lists
 
 @noindent
@@ -3273,7 +3266,7 @@ out the property and value cells.
 @secno=2
 @end iftex
 
-@node Creating Symbols,  , Property Lists, Symbols
+@node Creating Symbols
 @section Creating Symbols
 
 @noindent
@@ -3318,11 +3311,7 @@ automatically creates all keywords that are called for by
 keywords as data unrelated to keyword arguments, so the
 @code{defkeyword} form has been discontinued.
 
-@iftex
-@chapno=11
-@end iftex
-
-@node Numbers, Sequences, Symbols, Top
+@node Numbers
 @chapter Numbers
 
 @noindent
@@ -3340,7 +3329,7 @@ which were left out of Emacs Lisp.
 @secno=1
 @end iftex
 
-@node Predicates on Numbers, Numerical Functions, Numbers, Numbers
+@node Predicates on Numbers
 @section Predicates on Numbers
 
 @noindent
@@ -3377,7 +3366,7 @@ to @code{floatp}.  On other systems, this always returns @code{nil}.
 @secno=3
 @end iftex
 
-@node Numerical Functions, Random Numbers, Predicates on Numbers, Numbers
+@node Numerical Functions
 @section Numerical Functions
 
 @noindent
@@ -3473,7 +3462,7 @@ multiple values is different.
 @secno=8
 @end iftex
 
-@node Random Numbers, Implementation Parameters, Numerical Functions, Numbers
+@node Random Numbers
 @section Random Numbers
 
 @noindent
@@ -3534,7 +3523,7 @@ This predicate returns @code{t} if @var{object} is a
 @code{random-state} object, or @code{nil} otherwise.
 @end defun
 
-@node Implementation Parameters,  , Random Numbers, Numbers
+@node Implementation Parameters
 @section Implementation Parameters
 
 @noindent
@@ -3615,11 +3604,7 @@ This is the smallest positive value that can be subtracted from
 @code{1.11e-16}.
 @end defvar
 
-@iftex
-@chapno=13
-@end iftex
-
-@node Sequences, Lists, Numbers, Top
+@node Sequences
 @chapter Sequences
 
 @noindent
@@ -3636,7 +3621,7 @@ Emacs Lisp includes a few of these, notably @code{elt} and
 * Sorting Sequences::        @code{sort*}, @code{stable-sort}, @code{merge}
 @end menu
 
-@node Sequence Basics, Mapping over Sequences, Sequences, Sequences
+@node Sequence Basics
 @section Sequence Basics
 
 @noindent
@@ -3713,7 +3698,7 @@ example, @code{(remove* ?A @var{str})} may or may not preserve
 the properties of the characters copied from @var{str} into the
 result.
 
-@node Mapping over Sequences, Sequence Functions, Sequence Basics, Sequences
+@node Mapping over Sequences
 @section Mapping over Sequences
 
 @noindent
@@ -3851,7 +3836,7 @@ terms of the @code{loop} macro.  In compiled code, @code{loop} will
 be faster since it generates the loop as in-line code with no
 function calls.
 
-@node Sequence Functions, Searching Sequences, Mapping over Sequences, Sequences
+@node Sequence Functions
 @section Sequence Functions
 
 @noindent
@@ -3978,7 +3963,7 @@ The @code{substitute-if}, @code{substitute-if-not}, @code{nsubstitute-if},
 and @code{nsubstitute-if-not} functions are defined similarly.  For
 these, a @var{predicate} is given in place of the @var{old} argument.
 
-@node Searching Sequences, Sorting Sequences, Sequence Functions, Sequences
+@node Searching Sequences
 @section Searching Sequences
 
 @noindent
@@ -4047,7 +4032,7 @@ if no matches were found.  If @code{:from-end} is true, the
 function finds the @emph{rightmost} matching subsequence.
 @end defun
 
-@node Sorting Sequences,  , Searching Sequences, Sequences
+@node Sorting Sequences
 @section Sorting Sequences
 
 @defun sort* seq predicate @t{&key :key}
@@ -4106,7 +4091,7 @@ a merged sequence which is (stably) sorted according to
 @var{predicate}.
 @end defun
 
-@node Lists, Structures, Sequences, Top
+@node Lists
 @chapter Lists
 
 @noindent
@@ -4119,7 +4104,7 @@ The functions described here operate on lists.
 * Association Lists::             @code{assoc*}, @code{rassoc*}, @code{acons}, @code{pairlis}
 @end menu
 
-@node List Functions, Substitution of Expressions, Lists, Lists
+@node List Functions
 @section List Functions
 
 @noindent
@@ -4212,7 +4197,7 @@ applied to the elements of both trees.  @xref{Sequences}.
 @secno=3
 @end iftex
 
-@node Substitution of Expressions, Lists as Sets, List Functions, Lists
+@node Substitution of Expressions
 @section Substitution of Expressions
 
 @noindent
@@ -4261,7 +4246,7 @@ function, if any), is compared with the @code{car}s of
 This is a destructive version of @code{sublis}.
 @end defun
 
-@node Lists as Sets, Association Lists, Substitution of Expressions, Lists
+@node Lists as Sets
 @section Lists as Sets
 
 @noindent
@@ -4360,7 +4345,7 @@ of @var{list2}, i.e., whether every element of @var{list1}
 also appears in @var{list2}.
 @end defun
 
-@node Association Lists,  , Lists as Sets, Lists
+@node Association Lists
 @section Association Lists
 
 @noindent
@@ -4404,11 +4389,7 @@ This is equivalent to @code{(nconc (mapcar* 'cons @var{keys} @var{values})
 @var{alist})}.
 @end defun
 
-@iftex
-@chapno=18
-@end iftex
-
-@node Structures, Assertions, Lists, Top
+@node Structures
 @chapter Structures
 
 @noindent
@@ -4738,11 +4719,7 @@ of the included type and the first new slot.
 Except as noted, the @code{defstruct} facility of this package is
 entirely compatible with that of Common Lisp.
 
-@iftex
-@chapno=23
-@end iftex
-
-@node Assertions, Efficiency Concerns, Structures, Top
+@node Assertions
 @chapter Assertions and Errors
 
 @noindent
@@ -4814,7 +4791,7 @@ If the @var{forms} complete successfully, @code{ignore-errors}
 returns the result of the last @var{form}.
 @end defspec
 
-@node Efficiency Concerns, Common Lisp Compatibility, Assertions, Top
+@node Efficiency Concerns
 @appendix Efficiency Concerns
 
 @appendixsec Macros
@@ -4957,7 +4934,7 @@ code which can be improved by optimization.  In particular,
 optimizing compiler removes @code{block}s which are not actually
 referenced by @code{return} or @code{return-from} inside the block.
 
-@node Common Lisp Compatibility, Old CL Compatibility, Efficiency Concerns, Top
+@node Common Lisp Compatibility
 @appendix Common Lisp Compatibility
 
 @noindent
@@ -5019,7 +4996,7 @@ special, distinct type.  Also, the @code{:type} slot option is ignored.
 
 The second argument of @code{check-type} is treated differently.
 
-@node Old CL Compatibility, Porting Common Lisp, Common Lisp Compatibility, Top
+@node Old CL Compatibility
 @appendix Old CL Compatibility
 
 @noindent
@@ -5120,7 +5097,7 @@ older versions of the old package used the unadorned names
 @code{floor}, @code{ceiling}, etc.; @code{cl-compat} cannot use
 these names because they conflict with Emacs built-ins.
 
-@node Porting Common Lisp, GNU Free Documentation License, Old CL Compatibility, Top
+@node Porting Common Lisp
 @appendix Porting Common Lisp
 
 @noindent
@@ -5326,16 +5303,16 @@ note that the current Emacs Lisp compiler does not optimize tail
 recursion.
 @end itemize
 
-@node GNU Free Documentation License, Function Index, Porting Common Lisp, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Function Index, Variable Index, GNU Free Documentation License, Top
+@node Function Index
 @unnumbered Function Index
 
 @printindex fn
 
-@node Variable Index,  , Function Index, Top
+@node Variable Index
 @unnumbered Variable Index
 
 @printindex vr
