@@ -1,5 +1,8 @@
 2012-05-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* config.bat (lib): Create/update lib/stdalign.in-h and
+	lib/sys_types.in-h.
+
 	* lib/makefile.w32-in ($(BLD)/md5.$(O)): 
 	($(BLD)/sha1.$(O)): 
 	($(BLD)/sha256.$(O)): 
