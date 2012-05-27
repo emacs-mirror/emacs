@@ -942,9 +942,6 @@ AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])
 
-dnl Do this early because it can frob feature test macros for Unix-98 &c.
-AC_SYS_LARGEFILE
-
 
 LIB_MATH=-lm
 LIB_STANDARD=

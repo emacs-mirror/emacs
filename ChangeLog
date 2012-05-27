@@ -1,3 +1,11 @@
+2012-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume gnulib does largefile.
+	Gnulib does the largefile configuration anyway, so when configure.in
+	invokes AC_SYS_LARGEFILE, that bloats 'configure' unnecessarily.
+	* configure.in (AC_SYS_LARGEFILE): Remove.
+	* lib/gnulib.mk: Autoupdate.
+
 2012-05-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.  (Bug#11527)

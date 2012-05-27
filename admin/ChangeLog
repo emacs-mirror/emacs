@@ -1,3 +1,8 @@
+2012-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume gnulib does largefile.
+	* merge-gnulib (GNULIB_MODULES): Add largefile.
+
 2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove src/m/*.
