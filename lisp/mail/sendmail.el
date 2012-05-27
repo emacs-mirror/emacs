@@ -1678,7 +1678,8 @@ Just \\[universal-argument] as argument means don't indent, insert no prefix,
 and don't delete any header fields."
   (interactive "P")
   (and (consp mail-reply-action)
-       (eq (car mail-reply-action) 'insert-buffer)
+       (memq (car mail-reply-action)
+	     '(rmail-yank-current-message insert-buffer))
        (with-current-buffer (nth 1 mail-reply-action)
 	 (or (mark t)
 	     (error "No mark set: %S" (current-buffer))))

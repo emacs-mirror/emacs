@@ -4,8 +4,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 7.8.09
-@set DATE April 2012
+@set VERSION 7.8.11
+@set DATE May 2012
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -2625,7 +2625,7 @@ formulas or Elisp formulas:
 
 Input duration values must be of the form @code{[HH:MM[:SS]}, where seconds
 are optional.  With the @code{T} flag, computed durations will be displayed
-as @code{[HH:MM:SS} (see the first formula above).  With the @code{t} flag,
+as @code{HH:MM:SS} (see the first formula above).  With the @code{t} flag,
 computed durations will be displayed according to the value of the variable
 @code{org-table-duration-custom-format}, which defaults to @code{'hours} and
 will display the result as a fraction of hours (see the second formula in the
@@ -7900,9 +7900,9 @@ Interactively select another agenda view and append it to the current view.
 Delete other windows.
 @c
 @orgcmdkskc{v d,d,org-agenda-day-view}
-@xorgcmdkskc{v w,w,org-agenda-day-view}
+@xorgcmdkskc{v w,w,org-agenda-week-view}
 @xorgcmd{v m,org-agenda-month-view}
-@xorgcmd{v y,org-agenda-month-year}
+@xorgcmd{v y,org-agenda-year-view}
 @xorgcmd{v SPC,org-agenda-reset-view}
 @vindex org-agenda-span
 Switch to day/week/month/year view.  When switching to day or week view, this

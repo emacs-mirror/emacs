@@ -1,3 +1,18 @@
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (mail-yank-region): Recognize
+	rmail-yank-current-message in addition to insert-buffer.  Fixes
+	mail-mode's "C-c C-r" that otherwise does nothing when invoked in
+	a *mail* buffer created through rmail-start-mail with sendmail as
+	mail-user-agent.
+
+2012-05-27  Chong Yidong  <cyd@gnu.org>
+
+	* net/gnutls.el (gnutls-min-prime-bits): Improve docstring.
+	Default to 256 (Bug#11267).
+
+	* help.el (describe-mode): Doc fix.
+
 2012-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* w32-fns.el (w32-init-info): Remove.

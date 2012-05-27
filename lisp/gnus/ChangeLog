@@ -1,3 +1,8 @@
+2012-05-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-msg-mail): Ensure that gnus-newsgroup-name is
+	a string so that Gcc works (bug#11514).
+
 2012-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* legacy-gnus-agent.el (gnus-agent-unhook-expire-days):

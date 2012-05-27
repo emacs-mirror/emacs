@@ -757,25 +757,25 @@ rem   NB. Be very careful to not have a space before redirection symbols
 rem   except when there is a preceding digit, when a space is required.
 rem
 echo # Start of settings from configure.bat >config.settings
-echo COMPILER=%COMPILER%>>config.settings
-if not "(%mf%)" == "()" echo MCPU_FLAG=%mf%>>config.settings
-if not "(%dbginfo%)" == "()" echo DEBUG_INFO=%dbginfo%>>config.settings
+echo COMPILER=%COMPILER% >>config.settings
+if not "(%mf%)" == "()" echo MCPU_FLAG=%mf% >>config.settings
+if not "(%dbginfo%)" == "()" echo DEBUG_INFO=%dbginfo% >>config.settings
 if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
 if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
 if (%enablechecking%) == (Y) echo ENABLECHECKS=1 >>config.settings
 if (%profile%) == (Y) echo PROFILE=1 >>config.settings
 if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
-if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix%>>config.settings
-if not "(%distfiles%)" == "()" echo DIST_FILES=%distfiles%>>config.settings
+if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix% >>config.settings
+if not "(%distfiles%)" == "()" echo DIST_FILES=%distfiles% >>config.settings
 rem We go thru docflags because usercflags could be "-DFOO=bar" -something
 rem and the if command cannot cope with this
 for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
-if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags%>>config.settings
-if (%docflags%)==(Y) echo ESC_USER_CFLAGS=%escusercflags%>>config.settings
+if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags% >>config.settings
+if (%docflags%)==(Y) echo ESC_USER_CFLAGS=%escusercflags% >>config.settings
 for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
-if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags%>>config.settings
+if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags% >>config.settings
 for %%v in (%extrauserlibs%) do if not (%%v)==() set doextralibs=Y
-if (%doextralibs%)==(Y) echo USER_LIBS=%extrauserlibs%>>config.settings
+if (%doextralibs%)==(Y) echo USER_LIBS=%extrauserlibs% >>config.settings
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
@@ -784,8 +784,8 @@ echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
 rem   We write USER_CFLAGS and USER_LDFLAGS starting with a space to simplify
 rem   processing of compiler options in w32.c:get_emacs_configuration_options
-if (%docflags%) == (Y) echo #define USER_CFLAGS " %escusercflags%">>config.tmp
-if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %escuserldflags%">>config.tmp
+if (%docflags%) == (Y) echo #define USER_CFLAGS " %escusercflags%" >>config.tmp
+if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %escuserldflags%" >>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp

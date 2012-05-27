@@ -652,7 +652,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 	/* GConf causes us to ignore SIGPIPE, make sure it is restored
 	   in the child.  */
-	//signal (SIGPIPE, SIG_DFL);
+	signal (SIGPIPE, SIG_DFL);
 #ifdef HAVE_WORKING_VFORK
 	pthread_sigmask (SIG_SETMASK, &procmask, 0);
 #endif
