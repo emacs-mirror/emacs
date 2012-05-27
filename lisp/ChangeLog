@@ -1,3 +1,8 @@
+2012-05-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* version.el (motif-version-string, gtk-version-string)
+	(ns-version-string): Declare.
+
 2012-05-27  Juri Linkov  <juri@jurta.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun-2): Use `eval-sexp-add-defvars'

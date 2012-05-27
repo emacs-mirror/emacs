@@ -44,6 +44,10 @@ This variable first existed in version 19.23.")
 (defconst emacs-build-system (system-name)
   "Name of the system on which Emacs was built.")
 
+(defvar motif-version-string)
+(defvar gtk-version-string)
+(defvar ns-version-string)
+
 (defun emacs-version (&optional here)
   "Return string describing the version of Emacs that is running.
 If optional argument HERE is non-nil, insert string at point.
