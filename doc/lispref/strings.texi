@@ -3,8 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Strings and Characters, Lists, Numbers, Top
-@comment  node-name,  next,  previous,  up
+@node Strings and Characters
 @chapter Strings and Characters
 @cindex strings
 @cindex character arrays
@@ -554,7 +553,6 @@ against a string, can be used for a kind of string comparison; see
 @ref{Regexp Search}.
 
 @node String Conversion
-@comment  node-name,  next,  previous,  up
 @section Conversion of Characters and Strings
 @cindex conversion of strings
 
@@ -670,7 +668,6 @@ This function converts a byte of character data into a unibyte string.
 @end table
 
 @node Formatting Strings
-@comment  node-name,  next,  previous,  up
 @section Formatting Strings
 @cindex formatting strings
 @cindex strings, formatting them
@@ -903,7 +900,6 @@ shows only the first three characters of the representation for
 characters.
 
 @node Case Conversion
-@comment node-name, next, previous, up
 @section Case Conversion in Lisp
 @cindex upper case
 @cindex lower case

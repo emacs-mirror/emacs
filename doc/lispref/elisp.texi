@@ -156,7 +156,7 @@ Cover art by Etienne Suvasa.
 
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
+@node Top
 @top Emacs Lisp
 
 @insertcopying
@@ -1597,7 +1597,7 @@ Object Internals
 @end ifclear
 
 @ignore
-@node New Symbols, , Index, Top
+@node New Symbols
 @unnumbered New Symbols Since the Previous Edition
 
 @printindex tp

@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Abbrevs, Processes, Syntax Tables, Top
+@node Abbrevs
 @chapter Abbrevs and Abbrev Expansion
 @cindex abbrev
 @c  @cindex abbrev table  Redundant with "abbrev".
@@ -56,7 +56,7 @@ expanded in the buffer.  For the user-level commands for abbrevs, see
                                 Which properties have which effect.
 @end menu
 
-@node Abbrev Tables, Defining Abbrevs, Abbrevs, Abbrevs
+@node Abbrev Tables
 @section Abbrev Tables
 
   This section describes how to create and manipulate abbrev tables.
@@ -123,8 +123,7 @@ the system abbrevs.  (The mode or package using @var{name} is supposed
 to add these to @var{name} separately.)
 @end defun
 
-@node Defining Abbrevs, Abbrev Files, Abbrev Tables, Abbrevs
-@comment  node-name,  next,  previous,  up
+@node Defining Abbrevs
 @section Defining Abbrevs
 
   @code{define-abbrev} is the low-level basic function for defining an
@@ -179,7 +178,7 @@ behavior of the functions in this section; it is examined by their
 callers.
 @end defopt
 
-@node Abbrev Files, Abbrev Expansion, Defining Abbrevs, Abbrevs
+@node Abbrev Files
 @section Saving Abbrevs in Files
 
   A file of saved abbrev definitions is actually a file of Lisp code.
@@ -230,8 +229,7 @@ define the same abbrevs.  If @var{filename} is @code{nil} or omitted,
 @code{abbrev-file-name} is used.  This function returns @code{nil}.
 @end deffn
 
-@node Abbrev Expansion, Standard Abbrev Tables, Abbrev Files, Abbrevs
-@comment  node-name,  next,  previous,  up
+@node Abbrev Expansion
 @section Looking Up and Expanding Abbreviations
 
   Abbrevs are usually expanded by certain interactive commands,
@@ -367,8 +365,7 @@ definitions of @code{local-abbrev-table} and @code{text-mode-abbrev-table}.
                         nil t)))
 @end smallexample
 
-@node Standard Abbrev Tables, Abbrev Properties, Abbrev Expansion, Abbrevs
-@comment  node-name,  next,  previous,  up
+@node Standard Abbrev Tables
 @section Standard Abbrev Tables
 
   Here we list the variables that hold the abbrev tables for the
@@ -410,7 +407,7 @@ of the local abbrev table used in Emacs Lisp mode.  @xref{Abbrev Table
 Properties}.
 @end defvar
 
-@node Abbrev Properties, Abbrev Table Properties, Standard Abbrev Tables, Abbrevs
+@node Abbrev Properties
 @section Abbrev Properties
 
 Abbrevs have properties, some of which influence the way they work.
@@ -450,7 +447,7 @@ same pattern of capitalization.  It also disables the code that
 modifies the capitalization of the expansion.
 @end table
 
-@node Abbrev Table Properties,  , Abbrev Properties, Abbrevs
+@node Abbrev Table Properties
 @section Abbrev Table Properties
 
 Like abbrevs, abbrev tables have properties, some of which influence

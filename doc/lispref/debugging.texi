@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Debugging, Read and Print, Advising Functions, Top
+@node Debugging
 @chapter Debugging Lisp Programs
 
   There are several ways to find and investigate problems in an Emacs

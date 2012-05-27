@@ -5,7 +5,7 @@
 
 @c This node must have no pointers.
 
-@node Antinews, GNU Free Documentation License, Packaging, Top
+@node Antinews
 @appendix Emacs 23 Antinews
 @c Update the elisp.texi Antinews menu entry with the above version number.
 

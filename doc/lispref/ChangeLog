@@ -1,3 +1,18 @@
+2012-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi, advice.texi, anti.texi, backups.texi:
+	* buffers.texi, commands.texi, compile.texi, control.texi:
+	* customize.texi, debugging.texi, display.texi, doclicense.texi:
+	* edebug.texi, elisp.texi, errors.texi, eval.texi, files.texi:
+	* frames.texi, functions.texi, gpl.texi, hash.texi, help.texi:
+	* hooks.texi, index.texi, internals.texi, intro.texi, keymaps.texi:
+	* lists.texi, loading.texi, macros.texi, maps.texi, markers.texi:
+	* minibuf.texi, modes.texi, nonascii.texi, numbers.texi:
+	* objects.texi, os.texi, package.texi, positions.texi:
+	* processes.texi, searching.texi, sequences.texi, streams.texi:
+	* strings.texi, symbols.texi, syntax.texi, text.texi, tips.texi:
+	* variables.texi, windows.texi: Nuke hand-written node pointers.
+
 2012-05-27  Chong Yidong  <cyd@gnu.org>
 
 	* functions.texi (Obsolete Functions):

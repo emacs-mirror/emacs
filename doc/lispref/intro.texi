@@ -3,8 +3,7 @@
 @c Copyright (C) 1990-1994, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
-@node Introduction, Lisp Data Types, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Introduction
 @chapter Introduction
 
   Most of the GNU Emacs text editor is written in the programming

@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Lisp Data Types, Numbers, Introduction, Top
+@node Lisp Data Types
 @chapter Lisp Data Types
 @cindex object
 @cindex Lisp object
@@ -60,7 +60,6 @@ to use these types can be found in later chapters.
 @end menu
 
 @node Printed Representation
-@comment  node-name,  next,  previous,  up
 @section Printed Representation and Read Syntax
 @cindex printed representation
 @cindex read syntax
@@ -107,7 +106,6 @@ not be evaluated later.  @xref{Input Functions}, for a description of
 @code{read}, the basic function for reading objects.
 
 @node Comments
-@comment  node-name,  next,  previous,  up
 @section Comments
 @cindex comments
 @cindex @samp{;} in comment
@@ -913,7 +911,6 @@ It looks like this:
 @end ifnottex
 
 @node Association List Type
-@comment  node-name,  next,  previous,  up
 @subsubsection Association List Type
 
   An @dfn{association list} or @dfn{alist} is a specially-constructed

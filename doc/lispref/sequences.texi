@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Sequences Arrays Vectors, Hash Tables, Lists, Top
+@node Sequences Arrays Vectors
 @chapter Sequences, Arrays, and Vectors
 @cindex sequence
 

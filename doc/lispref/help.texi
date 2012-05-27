@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Documentation, Files, Modes, Top
+@node Documentation
 @chapter Documentation
 @cindex documentation strings
 
@@ -34,7 +34,6 @@ Help, emacs, The GNU Emacs Manual}.
 @end menu
 
 @node Documentation Basics
-@comment  node-name,  next,  previous,  up
 @section Documentation Basics
 @cindex documentation conventions
 @cindex writing a documentation string
