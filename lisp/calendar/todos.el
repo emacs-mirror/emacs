@@ -341,7 +341,8 @@ Done items from corresponding archive files are also included."
   :type 'boolean
   :group 'todos)
 
-(defcustom todos-ignore-archived-categories nil
+;; FIXME: make this effect only navigation?
+(defcustom todos-ignore-archived-categories t
   "Non-nil to ignore categories with only archived items.
 When non-nil such categories are omitted from `todos-categories'
 and hence from commands that use this variable.  An exception is
@@ -354,6 +355,8 @@ archived categories."
   :set 'todos-reset-categories
   :group 'todos)
 
+;; FIXME: if this is saved and todos.el is loaded before custom-file,
+;; categories mode does not show archived categories
 (defun todos-reset-categories (symbol value)
   "The :set function for `todos-ignore-archived-categories'."
   (custom-set-default symbol value)

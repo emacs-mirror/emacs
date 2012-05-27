@@ -1,5 +1,10 @@
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Doubts about todos-ignore-archived-categories.
+	(todos-ignore-archived-categories): Change default value.
+
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Further comment revision.
 	(todos-reset-global-current-todos-file):
 	Try to make this not slow down kill-buffer.
