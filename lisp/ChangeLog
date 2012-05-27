@@ -1,6 +1,21 @@
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Further comment revision.
+	(todos-reset-global-current-todos-file):
+	Try to make this not slow down kill-buffer.
+	(todos-update-categories-sexp): Handle the case where there is no
+	categories sexp yet, i.e. after inserting the first item in the
+	file, so todos-display-categories works.
+	(todos-read-file-name): Improve implementation.
+	(todos-validate-name): Use variable todos-files.
+	(todos-category-number): New variable.
+	(todos-insert-category-line, todos-update-categories-display)
+	(todos-raise-category-priority): Use it.
+	(todos-add-file): Remove unused remnant code.
+
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Further comment revision.
 	(todos-set-item-top-priority): New command.
 	(todos-reset-global-current-todos-file):
 	Use todos-files-function instead of todos-files.
