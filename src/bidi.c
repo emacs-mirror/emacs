@@ -204,8 +204,18 @@ bidi_mirror_char (int c)
   val = CHAR_TABLE_REF (bidi_mirror_table, c);
   if (INTEGERP (val))
     {
+      int v = XINT (val);
+
+      /* In a build with extra checks, make sure the value does not
+	 overflow a 32-bit int.  */
       eassert (CHAR_VALID_P (XINT (val)));
-      return XINT (val);
+
+      /* Minimal test we must do in optimized builds, to prevent weird
+	 crashes further down the road.  */
+      if (v < 0 || v > MAX_CHAR)
+	abort ();
+
+      return v;
     }
 
   return c;

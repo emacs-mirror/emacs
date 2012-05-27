@@ -1,3 +1,7 @@
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_mirror_char): Fix last change.
+
 2012-05-27  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* unexmacosx.c (copy_data_segment): Truncate after 16 characters
