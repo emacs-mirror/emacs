@@ -3,7 +3,7 @@
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
-@node Killing, Registers, Mark, Top
+@node Killing
 @chapter Killing and Moving Text
 
   In Emacs, @dfn{killing} means erasing text and copying it into the

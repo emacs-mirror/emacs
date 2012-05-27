@@ -1324,7 +1324,7 @@ bit, and 1 stopbit.
 with your device and will probably only see garbage output in the
 window.
 
-@node Emacs Server, Printing, Shell, Top
+@node Emacs Server
 @section Using Emacs as a Server
 @pindex emacsclient
 @cindex Emacs as a server
@@ -1642,7 +1642,7 @@ text terminal.  If you supply both options, Emacs visits the specified
 files(s) in an existing frame rather than a new client frame, negating
 the effect of @samp{-t}.
 
-@node Printing, Sorting, Emacs Server, Top
+@node Printing
 @section Printing Hard Copies
 @cindex hardcopy
 @cindex printing
@@ -1710,7 +1710,7 @@ printer program is not compatible with @command{lpr}).
 * Printing Package::     An optional advanced printing interface.
 @end menu
 
-@node PostScript, PostScript Variables,, Printing
+@node PostScript
 @subsection PostScript Hardcopy
 
   These commands convert buffer contents to PostScript,
@@ -1779,7 +1779,7 @@ rendition of the current buffer as a cursive handwritten document.  It
 can be customized in group @code{handwrite}.  This function only
 supports ISO 8859-1 characters.
 
-@node PostScript Variables, Printing Package, PostScript, Printing
+@node PostScript Variables
 @subsection Variables for PostScript Hardcopy
 
 @vindex ps-lpr-command
@@ -1874,7 +1874,7 @@ includes a single directory @file{/usr/local/share/emacs/fonts/bdf}.
   Many other customization variables for these commands are defined and
 described in the Lisp files @file{ps-print.el} and @file{ps-mule.el}.
 
-@node Printing Package,, PostScript Variables, Printing
+@node Printing Package
 @subsection Printing Package
 @cindex Printing package
 
@@ -2098,7 +2098,7 @@ bytes, move by @code{short}s or @code{int}s, etc.; type @kbd{C-h a
 hexl-@key{RET}} for details.
 
 
-@node Saving Emacs Sessions, Recursive Edit, Editing Binary Files, Top
+@node Saving Emacs Sessions
 @section Saving Emacs Sessions
 @cindex saving sessions
 @cindex restore session
@@ -2164,7 +2164,7 @@ expression matching the names of buffers not to kill.
   If you want to save minibuffer history from one session to
 another, use the @code{savehist} library.
 
-@node Recursive Edit, Emulation, Saving Emacs Sessions, Top
+@node Recursive Edit
 @section Recursive Editing Levels
 @cindex recursive editing level
 @cindex editing level, recursive
@@ -2232,7 +2232,7 @@ new major mode which provides a command to switch back.  These
 approaches give you more flexibility to go back to unfinished tasks in
 the order you choose.
 
-@node Emulation, Hyperlinking, Recursive Edit, Top
+@node Emulation
 @section Emulation
 @cindex emulating other editors
 @cindex other editors
@@ -2324,7 +2324,7 @@ not use it.
 key bindings.
 @end table
 
-@node Hyperlinking, Amusements, Emulation, Top
+@node Hyperlinking
 @section Hyperlinking and Navigation Features
 
   The following subsections describe convenience features for handling
@@ -2475,7 +2475,7 @@ Display a menu of files and URLs mentioned in current buffer, then
 find the one you select (@code{ffap-menu}).
 @end table
 
-@node Amusements, Packages, Hyperlinking, Top
+@node Amusements
 @section Other Amusements
 @cindex boredom
 
