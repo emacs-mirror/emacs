@@ -1,5 +1,31 @@
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-ignore-archived-categories):
+	Revert last change; remove :initialize and :set functions; change
+	use and change users accordingly.
+	(todos-reset-categories, todos-categories-full)
+	(todos-truncate-categories-list): Remove.
+	(todos-set-categories, todos-update-categories-sexp):
+	Use todos-categories instead of todos-categories-full; remove use
+	of todos-ignore-archived-categories and
+	todos-truncate-categories-list.
+	(todos-check-format, todos-repair-categories-sexp):
+	Use todos-categories instead of todos-categories-full.
+	(todos-read-category): Improve last change.
+	(todos-validate-name): Use completing-read.
+	(todos-categories-category-number): Rename from
+	todos-category-number and adjust users.
+	(todos-update-categories-display, todos-mode-external-set)
+	(todos-delete-category, todos-move-category, todos-merge-category)
+	(todos-unarchive-items): Remove use of todos-categories-full and
+	todos-ignore-archived-categories.
+	(todos-modes-set-3, todos-add-category): Remove use of
+	todos-categories-full.
+	(todos-edit-mode): Fix typo.
+	(todos-forward-category): Use todos-ignore-archived-categories.
+
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Doubts about todos-ignore-archived-categories.
 	(todos-ignore-archived-categories): Change default value.
 

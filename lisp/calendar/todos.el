@@ -341,33 +341,15 @@ Done items from corresponding archive files are also included."
   :type 'boolean
   :group 'todos)
 
-;; FIXME: make this effect only navigation?
-(defcustom todos-ignore-archived-categories t
-  "Non-nil to ignore categories with only archived items.
-When non-nil such categories are omitted from `todos-categories'
-and hence from commands that use this variable.  An exception is
+(defcustom todos-ignore-archived-categories nil
+  "Non-nil to skip categories with only archived items when browsing.
+
 \\[todos-display-categories], which displays all categories; but
 those with only archived items are shown in `todos-archived-only'
 face and clicking them in Todos Categories mode visits the
-archived categories."
+archived categories." ;FIXME
   :type 'boolean
-  :initialize 'custom-initialize-default
-  :set 'todos-reset-categories
   :group 'todos)
-
-;; FIXME: if this is saved and todos.el is loaded before custom-file,
-;; categories mode does not show archived categories
-(defun todos-reset-categories (symbol value)
-  "The :set function for `todos-ignore-archived-categories'."
-  (custom-set-default symbol value)
-  (dolist (f (funcall todos-files-function))
-    (with-current-buffer (find-file-noselect f)
-      (if value
-	  (setq todos-categories-full todos-categories
-		todos-categories (todos-truncate-categories-list))
-	(setq todos-categories todos-categories-full
-	      todos-categories-full nil))
-      (todos-category-select))))
 
 (defcustom todos-use-only-highlighted-region t
   "Non-nil to enable inserting only highlighted region as new item."
@@ -910,26 +892,12 @@ This function is added to `pre-command-hook' when user option
        (member major-mode '(todos-mode todos-archive-mode))
        (todos-category-select)))
 
-;; FIXME: This slows down C-x C-k, can it be optimized?  E.g. make
-;; todos-buffer-list as cache
+;; FIXME: this slows down killing Todos buffer noticeably
 (defun todos-reset-global-current-todos-file ()
   "Update the value of `todos-global-current-todos-file'.
 This becomes the latest existing Todos file or, if there is none,
 the value of `todos-default-todos-file'.
 This function is added to `kill-buffer-hook' in Todos mode."
-  ;; (let ((buflist (copy-sequence (buffer-list)))
-  ;; 	(cur todos-global-current-todos-file))
-  ;;   (catch 'done
-  ;;     (while buflist
-  ;; 	(let* ((buf (pop buflist))
-  ;; 	       (bufname (buffer-file-name buf)))
-  ;; 	  (when bufname (setq bufname (file-truename bufname)))
-  ;; 	  (when (and (member bufname (funcall todos-files-function))
-  ;; 		     (not (eq buf (current-buffer))))
-  ;; 	    (setq todos-global-current-todos-file bufname)
-  ;; 	    (throw 'done nil)))))
-  ;;   (if (equal cur todos-global-current-todos-file)
-  ;; 	(setq todos-global-current-todos-file todos-default-todos-file))))    
   (let ((todos-buffer-list (nreverse
 			    (remove-if-not
 			     (lambda (f)
@@ -938,11 +906,6 @@ This function is added to `kill-buffer-hook' in Todos mode."
 					  (funcall todos-files-function))))
 			     (mapcar 'buffer-name (buffer-list)))))
 	latest)
-    ;; (while todos-buffer-list
-    ;;   (let ((todos-bufname (pop todos-buffer-list)))
-    ;; 	(unless (string= todos-bufname (buffer-name))
-    ;; 	  (setq latest todos-bufname
-    ;; 		todos-buffer-list nil))))
     (setq latest (find-if-not (lambda (f) (string= f (buffer-name)))
 			      todos-buffer-list))
     (setq todos-global-current-todos-file (or latest todos-default-todos-file))))
@@ -953,12 +916,6 @@ The elements are cons cells whose car is a category name and
 whose cdr is a vector of the category's item counts.  These are,
 in order, the numbers of todo items, of todo items included in
 the Diary, of done items and of archived items.")
-
-(defvar todos-categories-full nil
-  "Variable holding non-truncated copy of `todos-categories'.
-Set when `todos-ignore-archived-categories' is set to non-nil, to
-restore full `todos-categories' list when
-`todos-ignore-archived-categories' is reset to nil.")
 
 (defvar todos-categories-with-marks nil
   "Alist of categories and number of marked items they contain.")
@@ -1109,7 +1066,6 @@ number as its value."
   "Return count of TYPE items in CATEGORY.
 If CATEGORY is nil, default to the current category."
   (let* ((cat (or category (todos-current-category)))
-	 ;; FIXME: todos-categories-full?
 	 (counts (cdr (assoc cat todos-categories)))
 	 (idx (cond ((eq type 'todo) 0)
 		    ((eq type 'diary) 1)
@@ -1121,7 +1077,6 @@ If CATEGORY is nil, default to the current category."
   "Change count of TYPE items in CATEGORY by integer INCREMENT.
 With nil or omitted CATEGORY, default to the current category."
   (let* ((cat (or category (todos-current-category)))
-	 ;; FIXME: todos-categories-full?
 	 (counts (cdr (assoc cat todos-categories)))
 	 (idx (cond ((eq type 'todo) 0)
 		    ((eq type 'diary) 1)
@@ -1129,7 +1084,7 @@ With nil or omitted CATEGORY, default to the current category."
 		    ((eq type 'archived) 3))))
     (aset counts idx (+ increment (aref counts idx)))))
 
-(defun todos-set-categories ()		;FIXME
+(defun todos-set-categories ()		;FIXME: need this?
   "Set `todos-categories' from the sexp at the top of the file."
   ;; New archive files created by `todos-move-category' are empty, which would
   ;; make the sexp test fail and raise an error, so in this case we skip it.
@@ -1138,18 +1093,12 @@ With nil or omitted CATEGORY, default to the current category."
       (save-restriction
 	(widen)
 	(goto-char (point-min))
-	;; todos-truncate-categories-list needs non-nil todos-categories.
-	(setq todos-categories-full
+	(setq todos-categories
 	      (if (looking-at "\(\(\"")
 		  (read (buffer-substring-no-properties
 			 (line-beginning-position)
 			 (line-end-position)))
-		(error "Invalid or missing todos-categories sexp"))
-	      todos-categories todos-categories-full)))
-    (if (and todos-ignore-archived-categories
-	     (eq major-mode 'todos-mode))
-	(todos-truncate-categories-list)
-      todos-categories-full)))
+		(error "Invalid or missing todos-categories sexp")))))))
 
 (defun todos-update-categories-sexp ()
   "Update the `todos-categories' sexp at the top of the file."
@@ -1165,15 +1114,11 @@ With nil or omitted CATEGORY, default to the current category."
 		   ;; categories variables in order e.g. to enable categories
 		   ;; display.
 		   (setq todos-default-todos-file (buffer-file-name))
-		   (setq todos-categories (todos-make-categories-list t))
-		   (when todos-ignore-archived-categories
-		     (setq todos-categories-full todos-categories)))
+		   (setq todos-categories (todos-make-categories-list t)))
 	  ;; With empty buffer (e.g. with new archive in
 	  ;; `todos-move-category') `kill-line' signals end of buffer.
 	  (kill-region (line-beginning-position) (line-end-position)))
-	;; todos-categories-full is nil on adding first category.
-	(prin1 (or todos-categories-full todos-categories)
-	       (current-buffer))))))
+	(prin1 todos-categories (current-buffer))))))
 
 (defun todos-make-categories-list (&optional force)
   "Return an alist of Todos categories and their item counts.
@@ -1237,23 +1182,7 @@ the file."
 						 (line-end-position))))
 		   (goto-char (1- (point-max))))))
 	  (forward-line)))))
-  ;; FIXME: todos-categories-full?
   todos-categories)
-
-(defun todos-truncate-categories-list ()
-  "Return a truncated alist of Todos categories plus item counts.
-Categories containing only archived items are omitted.  This list
-is used in Todos mode when `todos-ignore-archived-categories' is
-non-nil."
-  (let (cats)
-    (dolist (catcons todos-categories-full cats)
-      (let ((cat (car catcons)))
-	(setq cats
-	      (append cats
-		      (unless (and (zerop (todos-get-count 'todo cat))
-				   (zerop (todos-get-count 'done cat))
-				   (not (zerop (todos-get-count 'archived cat))))
-			(list catcons))))))))
 
 (defun todos-check-format ()
   "Signal an error if the current Todos file is ill-formatted.
@@ -1264,7 +1193,7 @@ where the invalid formatting was found."
       (widen)
       (goto-char (point-min))
       ;; Check for `todos-categories' sexp as the first line
-      (let ((cats (prin1-to-string (or todos-categories-full todos-categories))))
+      (let ((cats (prin1-to-string todos-categories)))
 	(unless (looking-at (regexp-quote cats))
 	  (error "Invalid or missing todos-categories sexp")))
       (forward-line)
@@ -1287,7 +1216,7 @@ where the invalid formatting was found."
 This should only be needed as a consequence of careless manual
 editing or a bug in todos.el."
   (interactive)
-  (let ((todos-categories-full (todos-make-categories-list t)))
+  (let ((todos-categories (todos-make-categories-list t)))
     (todos-update-categories-sexp)))
 
 (defvar todos-item-start (concat "\\(" todos-date-string-start "\\|"
@@ -1313,6 +1242,7 @@ editing or a bug in todos.el."
   ;; Items cannot end with a blank line.
   (unless (looking-at "^$")
     (let ((done (todos-done-item-p)))
+      ;; FIXME: don't use a command to define this function!
       (todos-forward-item)
       ;; Adjust if item is last unfinished one before displayed done items.
       (when (and (not done) (todos-done-item-p))
@@ -1452,7 +1382,7 @@ ask whether to add the category."
     (define-key map " " nil)
     ;; Make a copy of todos-categories in case history-delete-duplicates is
     ;; non-nil, which makes completing-read alter todos-categories.
-    (let* ((categories (copy-sequence todos-categories)) ;FIXME: todos-categories-full?
+    (let* ((categories (copy-sequence todos-categories))
 	   (history (cons 'todos-categories (1+ todos-category-number)))
 	   (completion-ignore-case todos-completion-ignore-case)
 	   (cat (completing-read prompt todos-categories nil
@@ -1462,31 +1392,29 @@ ask whether to add the category."
 				 (if todos-categories
 				     (todos-current-category)
 				   ;; Trigger prompt for initial category.
-				   "")))
-	   new)
-      (unless mustmatch
+				   ""))))
+      (unless (or mustmatch (assoc cat todos-categories))
 	(todos-validate-name cat 'category)
 	(unless added
 	  (if (y-or-n-p (format (concat "There is no category \"%s\" in "
 					"this file; add it? ") cat))
-	      (progn (todos-add-category cat) (setq new t))
-	    (keyboard-quit))));)
+	      (todos-add-category cat)
+	    (keyboard-quit))))
       ;; Restore the original value of todos-categories unless a new category
       ;; was added (since todos-add-category changes todos-categories).
-      (unless (or new added) (setq todos-categories categories))
+      (unless added (setq todos-categories categories))
       cat)))
 
-;; FIXME: use completing-read
 (defun todos-validate-name (name type)
   "Prompt for new NAME for TYPE until it is valid, then return it.
 TYPE can be either a file or a category"
-  (let (;(categories todos-categories))
-	prompt file cat shortname)
+  (let ((categories todos-categories)
+	(files (mapcar 'todos-short-file-name todos-files))
+	prompt)
     (while
 	(and (cond ((string= "" name)
 		    (setq prompt
 			  (cond ((eq type 'file)
-				 ;; FIXME: just todos-files ?
 				 (if todos-files
 				     "Enter a non-empty file name: "
 				   ;; Empty string passed by todos-show to
@@ -1510,14 +1438,18 @@ TYPE can be either a file or a category"
 		    (setq prompt "Enter a non-existing category name: ")))
 	     (setq name (if (or (and (eq type 'file) todos-files)
 				(and (eq type 'category) todos-categories))
-			    (read-from-minibuffer prompt)
+			    (completing-read prompt (cond ((eq type 'file)
+							   todos-files)
+							  ((eq type 'category)
+							   todos-categories)))
 			  ;; Offer default initial name.
-			  (read-string prompt nil nil
-				       (cond ((eq type 'file)
-					      todos-initial-file)
-					     ((eq type 'category)
-					      todos-initial-category))))))))
-  name)
+			  (completing-read prompt (if (eq type 'file)
+						      todos-files
+						    todos-categories)
+					   nil nil (if (eq type 'file)
+						       todos-initial-file
+						     todos-initial-category))))))
+    name))
 
 ;; Adapted from calendar-read-date and calendar-date-string.
 (defun todos-read-date ()
@@ -1966,7 +1898,8 @@ LABEL determines which type of count is sorted."
 					(mapcar 'cdr todos-categories))))
 	  (list 0 1 2 3)))
 
-(defvar todos-category-number nil)
+(defvar todos-categories-category-number 0
+  "Variable for numbering categories in Todos Categories mode.")
 
 (defun todos-insert-category-line (cat &optional nonum)
   "Insert button with category CAT's name and item counts.
@@ -1976,10 +1909,10 @@ The number and the category name are separated by the string
 which is the value of the user option
 `todos-categories-number-separator'."
   (let ((archive (member todos-current-todos-file todos-archives))
-	(num todos-category-number)
+	(num todos-categories-category-number)
 	(str (todos-padded-string cat))
 	(opoint (point)))
-    (setq num (1+ num) todos-category-number num)
+    (setq num (1+ num) todos-categories-category-number num)
     (insert-button
      (concat (if nonum
 		 (make-string (+ 4 (length todos-categories-number-separator))
@@ -2068,14 +2001,10 @@ which is the value of the user option
 
 (defun todos-update-categories-display (sortkey)
   ""
-  (let* ((cats0 (if (and todos-ignore-archived-categories
-			 ;; FIXME: is this every true?
-			 (not (eq major-mode 'todos-categories-mode)))
-		    todos-categories-full
-		  todos-categories))
+  (let* ((cats0 todos-categories)
 	 (cats (todos-sort cats0 sortkey))
 	 (archive (member todos-current-todos-file todos-archives))
-	 (todos-category-number 0)
+	 (todos-categories-category-number 0)
 	 ;; Find start of Category button if we just entered Todos Categories
 	 ;; mode.
 	 (pt (if (eq (point) (point-max))
@@ -2117,6 +2046,7 @@ which is the value of the user option
 ;;; Todos insertion commands, key bindings and keymap
 
 ;; Can either of these be included in Emacs?  The originals are GFDL'd.
+
 ;; Slightly reformulated from
 ;; http://rosettacode.org/wiki/Power_set#Common_Lisp.
 (defun powerset-recursive (l)
@@ -2127,6 +2057,7 @@ which is the value of the user option
 	   (append (mapcar (lambda (elt) (cons (car l) elt))
 			   prev)
 		   prev)))))
+
 ;; Elisp implementation of http://rosettacode.org/wiki/Power_set#C
 (defun powerset-bitwise (l)
   (let ((binnum (lsh 1 (length l)))
@@ -2329,7 +2260,7 @@ which is the value of the user option
     ;;(""	     . todos-edit-category-diary-nonmarking)
     ("ec"	     . todos-done-item-add-or-edit-comment) ;FIXME: or just "c"?
     ("i"	     . ,todos-insertion-map)
-    ("k"	     . todos-delete-item)
+    ("k"	     . todos-delete-item) ;FIXME: not single letter?
     ("m"	     . todos-move-item)
     ("M"	     . todos-move-item-to-file)
     ;; FIXME: This binding prevents `-' from being used in a numerical prefix
@@ -2492,10 +2423,6 @@ which is the value of the user option
     map)
   "Todos Top Priorities mode keymap.")
 
-;; FIXME: remove when part of Emacs
-(add-to-list 'auto-mode-alist '("\\.todo\\'" . todos-mode))
-(add-to-list 'auto-mode-alist '("\\.toda\\'" . todos-archive-mode))
-
 (defun todos-modes-set-1 ()
   ""
   (set (make-local-variable 'font-lock-defaults) '(todos-font-lock-keywords t))
@@ -2511,8 +2438,7 @@ which is the value of the user option
 		   (cons (todos-item-start) (todos-item-end))))))
 
 (defun todos-modes-set-3 ()
-  (set (make-local-variable 'todos-categories-full) nil)
-  ;; todos-set-categories also sets todos-categories-full.
+  ;; FIXME: is this right?
   (set (make-local-variable 'todos-categories) (todos-set-categories))
   (set (make-local-variable 'todos-category-number) 1)
   (set (make-local-variable 'todos-first-visit) t)
@@ -2577,16 +2503,14 @@ which is the value of the user option
   (set (make-local-variable 'todos-current-todos-file)
        todos-global-current-todos-file)
   (let ((cats (with-current-buffer (get-file-buffer todos-current-todos-file)
-		(if todos-ignore-archived-categories
-		    ;; FIXME: how will this be set?
-		    todos-categories-full
-		  (todos-set-categories)))))
+		;; FIXME: or just todos-categories?
+		(todos-set-categories))))
     (set (make-local-variable 'todos-categories) cats)))
 
 (define-derived-mode todos-edit-mode text-mode "Todos-Ed" ()
   "Major mode for editing multiline Todo items.
 
-\\{todos-edit-mode-map}"{
+\\{todos-edit-mode-map}"
   (todos-modes-set-1)
   (todos-mode-external-set))
 
@@ -2676,7 +2600,7 @@ corresponding Todos file, displaying the corresponding category."
 			      ".todo"))
 		     (t
 		      ;; FIXME: If an archive is value of
-		      ;; todos-current-todos-file, todos-show will revisit
+		      ;; todos-current-todos-file, todos-show will revisit it
 		      ;; rather than the corresponding todo file -- ok or make
 		      ;; it customizable?
 		      (or todos-current-todos-file
@@ -3213,6 +3137,12 @@ category is the first)."
   (setq todos-category-number
         (1+ (mod (- todos-category-number (if back 2 0))
 		 (length todos-categories))))
+  (when todos-ignore-archived-categories
+    (while (and (zerop (todos-get-count 'todo))
+		(zerop (todos-get-count 'done))
+		(not (zerop (todos-get-count 'archive))))
+      (setq todos-category-number
+	    (apply (if back '1- '1+) (list todos-category-number)))))
   (todos-category-select)
   (goto-char (point-min)))
 
@@ -3328,6 +3258,9 @@ With numerical prefix COUNT, move point COUNT items downward,"
     (if (re-search-forward todos-item-start nil t (or count 1))
 	(goto-char (match-beginning 0))
       (goto-char (point-max)))
+    ;; FIXME: this is insufficient, since there could be no done items in this
+    ;; category, so the search puts us on a todo item.  Have to stop before
+    ;; todos-done-separator when buffer is not narrowed.
     ;; If points advances by one from a todo to a done item, go back to the
     ;; space above todos-done-separator, since that is a legitimate place to
     ;; insert an item.  But skip this space if count > 1, since that should
@@ -3462,9 +3395,6 @@ the category name and the return value is the category number."
 	(setq cat (todos-validate-name cat 'category)) ;FIXME: need this?
       (setq cat (todos-read-category "Enter new category name: " nil t)))
     (setq todos-categories (append todos-categories (list (cons cat counts))))
-    (if todos-categories-full
-	(setq todos-categories-full (append todos-categories-full
-					    (list (cons cat counts)))))
     (widen)
     (goto-char (point-max))
     (save-excursion			; Save point for todos-category-select.
@@ -3560,12 +3490,8 @@ i.e. including all existing todo and done items."
 		(delete-file file)
 		(kill-buffer)
 		(message "Deleted Todos file %s." file))
-	    (setq todos-categories-full (delete (assoc cat todos-categories-full)
-						todos-categories-full))
-	    (setq todos-categories (if todos-ignore-archived-categories
-				       (delete (assoc cat todos-categories)
-					       todos-categories)
-				     todos-categories-full))
+	    (setq todos-categories (delete (assoc cat todos-categories)
+					       todos-categories))
 	    (todos-update-categories-sexp)
 	    (setq todos-category-number
 		  (1+ (mod todos-category-number (length todos-categories))))
@@ -3577,7 +3503,7 @@ i.e. including all existing todo and done items."
   "Raise priority of category point is on in Todos Categories buffer.
 With non-nil argument LOWER, lower the category's priority."
   (interactive)
-  (let ((num todos-category-number))
+  (let ((num todos-categories-category-number))
     (save-excursion
       (forward-line 0)
       (skip-chars-forward " ")
@@ -3717,13 +3643,8 @@ archive of the file moved to, creating it if it does not exist."
 		  (kill-buffer)
 		  (when (member todos-current-todos-file todos-files)
 		    (todos-reevaluate-defcustoms)))
-	      (setq todos-categories-full (delete (assoc cat
-							 todos-categories-full)
-						  todos-categories-full))
-	      (setq todos-categories (if todos-ignore-archived-categories
-					 (delete (assoc cat todos-categories)
-						 todos-categories)
-				       todos-categories-full))
+	      (setq todos-categories (delete (assoc cat todos-categories)
+						 todos-categories))
 	      (todos-update-categories-sexp)
 	      (todos-category-select)))))
       (set-window-buffer (selected-window)
@@ -3778,12 +3699,8 @@ deleted."
       (delete-region cbeg cend)
       (todos-update-count 'todo (todos-get-count 'todo cat) goal)
       (todos-update-count 'done (todos-get-count 'done cat) goal)
-      (setq todos-categories-full (delete (assoc cat todos-categories-full)
-					  todos-categories-full))
-      (setq todos-categories (if todos-ignore-archived-categories
-				 (delete (assoc cat todos-categories)
-					 todos-categories)
-			       todos-categories-full))
+      (setq todos-categories (delete (assoc cat todos-categories)
+					 todos-categories))
       (todos-update-categories-sexp)
       (todos-category-number goal)
       (todos-category-select)
@@ -4933,10 +4850,8 @@ archive, the archive file is deleted."
 	      (delete-region beg end)
 	      (setq todos-categories (delete (assoc cat todos-categories)
 					     todos-categories))
-	      (setq todos-categories (if todos-ignore-archived-categories
-					 (delete (assoc cat todos-categories)
-						 todos-categories)
-				       todos-categories-full))
+	      (setq todos-categories (delete (assoc cat todos-categories)
+						 todos-categories))
 	      (todos-update-categories-sexp))))
 	;; Visit category in Todos file and show restored done items.
 	(let ((tfile (buffer-file-name tbuf))
@@ -4956,10 +4871,13 @@ archive, the archive file is deleted."
 
 ;;; todos.el ends here
 
-
 ;; ---------------------------------------------------------------------------
-;;; Addition to calendar.el
 
+;; FIXME: remove when part of Emacs
+(add-to-list 'auto-mode-alist '("\\.todo\\'" . todos-mode))
+(add-to-list 'auto-mode-alist '("\\.toda\\'" . todos-archive-mode))
+
+;;; Addition to calendar.el
 ;; FIXME: autoload when key-binding is defined in calendar.el
 (defun todos-insert-item-from-calendar ()
   ""
