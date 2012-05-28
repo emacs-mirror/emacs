@@ -429,7 +429,7 @@ in the @code{dired-load-hook} (@pxref{Installation}).  This assumes
 @cindex Tib files, how to omit them in Dired
 @cindex Omitting tib files in Dired
 If you use @code{tib}, the bibliography program for use with @TeX{} and
-La@TeX{}, and you
+@LaTeX{}, and you
 want to omit the @file{INDEX} and the @file{*-t.tex} files, then put
 
 @example
@@ -741,7 +741,7 @@ variable @code{dired-patch-unclean-extensions}.
 
 @item dired-clean-tex
 @findex dired-clean-tex
-Flag dispensable files created by @TeX{}, La@TeX{}, and @samp{texinfo} for
+Flag dispensable files created by @TeX{}, @LaTeX{}, and @samp{texinfo} for
 deletion.  See the following variables (@pxref{Advanced Cleaning Variables}):
 
 @itemize @bullet
@@ -757,7 +757,7 @@ deletion.  See the following variables (@pxref{Advanced Cleaning Variables}):
 
 @item dired-very-clean-tex
 @findex dired-very-clean-tex
-Flag dispensable files created by @TeX{}, La@TeX{}, @samp{texinfo},
+Flag dispensable files created by @TeX{}, @LaTeX{}, @samp{texinfo},
 and @file{*.dvi} files for deletion.
 @end table
 
@@ -791,7 +791,7 @@ List of extensions of dispensable files created by @samp{texinfo}.
 @vindex dired-latex-unclean-extensions
 Default: @code{(".idx" ".lof" ".lot" ".glo")}
 
-List of extensions of dispensable files created by La@TeX{}.
+List of extensions of dispensable files created by @LaTeX{}.
 
 @item dired-bibtex-unclean-extensions
 @vindex dired-bibtex-unclean-extensions

@@ -1,3 +1,8 @@
+2012-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi, building.texi, calendar.texi, custom.texi:
+	* maintaining.texi, text.texi: Use @LaTeX rather than La@TeX.
+
 2012-05-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi: Simplify following removal of node pointers.

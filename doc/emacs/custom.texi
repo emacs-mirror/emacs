@@ -866,7 +866,7 @@ other modes based on Text mode:
 @noindent
 This works by calling @code{auto-fill-mode}, which enables the minor
 mode when no argument is supplied (@pxref{Minor Modes}).  Next,
-suppose you don't want Auto Fill mode turned on in La@TeX{} mode,
+suppose you don't want Auto Fill mode turned on in @LaTeX{} mode,
 which is one of the modes based on Text mode.  You can do this with
 the following additional line:
 
@@ -878,7 +878,7 @@ the following additional line:
 Here we have used the special macro @code{lambda} to construct an
 anonymous function (@pxref{Lambda Expressions,,, elisp, The Emacs Lisp
 Reference Manual}), which calls @code{auto-fill-mode} with an argument
-of @code{-1} to disable the minor mode.  Because La@TeX{} mode runs
+of @code{-1} to disable the minor mode.  Because @LaTeX{} mode runs
 @code{latex-mode-hook} after running @code{text-mode-hook}, the result
 leaves Auto Fill mode disabled.
 

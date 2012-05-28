@@ -1,5 +1,7 @@
 2012-05-28  Glenn Morris  <rgm@gnu.org>
 
+	* calc.texi, dired-x.texi: Use @LaTeX rather than La@TeX.  (Bug#10910)
+
 	* sc.texi: Nuke hand-written node pointers.
 	Fix top-level menu to match actual node order.
 
