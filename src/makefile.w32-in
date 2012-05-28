@@ -1149,6 +1149,7 @@ $(BLD)/w32heap.$(O) : \
 
 $(BLD)/w32inevt.$(O) : \
 	$(SRC)/w32inevt.c \
+	$(SRC)/termchar.h \
 	$(SRC)/w32heap.h \
 	$(BLOCKINPUT_H) \
 	$(CONFIG_H) \
@@ -1157,7 +1158,8 @@ $(BLD)/w32inevt.$(O) : \
 	$(KEYBOARD_H) \
 	$(LISP_H) \
 	$(TERMHOOKS_H) \
-	$(W32TERM_H)
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/w32proc.$(O) : \
 	$(SRC)/w32proc.c \
@@ -1187,7 +1189,8 @@ $(BLD)/w32console.$(O) : \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
 	$(LISP_H) \
-	$(TERMHOOKS_H)
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/print.$(O) : \
 	$(SRC)/print.c \
