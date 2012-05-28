@@ -1,3 +1,7 @@
+2012-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_SYSINFO): Remove; unused.
+
 2012-05-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/stdalign.h: New file.

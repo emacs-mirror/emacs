@@ -207,7 +207,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef HAVE_MKDIR
 #undef HAVE_RMDIR
-#undef HAVE_SYSINFO
 #undef HAVE_RANDOM
 #undef HAVE_LRAND48
 #undef HAVE_MEMCPY
