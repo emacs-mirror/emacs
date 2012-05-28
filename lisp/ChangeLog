@@ -1,3 +1,8 @@
+2012-05-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* desktop.el (desktop-read): Clear previous and next buffers for
+	all windows and bury *Messages* buffer (bug#11556).
+
 2012-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/sendmail.el (mail-yank-region): Recognize
