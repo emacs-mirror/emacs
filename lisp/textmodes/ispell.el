@@ -203,6 +203,7 @@
 (declare-function ispell-check-minver "ispell" (v1 v2))
 (declare-function ispell-looking-back "ispell"
 		  (regexp &optional limit &rest ignored))
+(declare-function ispell-with-no-warnings (&rest body))
 
 (if (fboundp 'version<=)
     (defalias 'ispell-check-minver 'version<=)
@@ -253,6 +254,16 @@ This is a stripped down compatibility function for use when
 full featured `looking-back' function is missing."
     (save-excursion
       (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t))))
+
+;;; XEmacs21 does not have `with-no-warnings'
+
+(if (fboundp 'with-no-warnings)
+    (defalias 'ispell-with-no-warnings 'with-no-warnings)
+  (defun ispell-with-no-warnings (&rest body)
+    "Like `progn', but prevents compiler warnings in the body."
+    ;; Taken from Emacs' byte-run.el
+    ;; The implementation for the interpreter is basically trivial.
+    (car (last body))))
 
 ;;; Code:
 
@@ -1703,7 +1714,12 @@ nil           word is correct or spelling is accepted.
 quit          spell session exited."
   (interactive (list ispell-following-word ispell-quietly current-prefix-arg t))
   (cond
-   ((and region (use-region-p))
+   ((and region
+	 (if (featurep 'emacs)
+	     (use-region-p)
+	   (and (boundp 'transient-mark-mode) transient-mark-mode
+		(boundp 'mark-active) mark-active
+		(not (eq (region-beginning) (region-end))))))
     (ispell-region (region-beginning) (region-end)))
    (continue (ispell-continue))
    (t
@@ -1929,7 +1945,7 @@ Global `ispell-quit' set to start location to continue spell session."
              "  --  dict: " (or ispell-current-dictionary "default")
              "  --  prog: " (file-name-nondirectory ispell-program-name)))
       ;; XEmacs: no need for horizontal scrollbar in choices window
-      (with-no-warnings
+      (ispell-with-no-warnings
        (and (fboundp 'set-specifier)
 	    (boundp 'horizontal-scrollbar-visible-p)
 	    (set-specifier horizontal-scrollbar-visible-p nil
@@ -3708,23 +3724,23 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	   (cite-regexp			;Prefix of quoted text
 	    (cond
 	     ((functionp 'sc-cite-regexp)	; sc 3.0
-	      (with-no-warnings
+	      (ispell-with-no-warnings
 		(concat "\\(" (sc-cite-regexp) "\\)" "\\|"
 			(ispell-non-empty-string sc-reference-tag-string))))
 	     ((boundp 'sc-cite-regexp)		; sc 2.3
 	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
-		      (with-no-warnings
+		      (ispell-with-no-warnings
 		       (ispell-non-empty-string sc-reference-tag-string))))
 	     ((or (equal major-mode 'news-reply-mode) ;GNUS 4 & below
 		  (equal major-mode 'message-mode))   ;GNUS 5
 	      (concat "In article <" "\\|"
 		      "[^,;&+=\n]+ <[^,;&+=]+> writes:" "\\|"
-		      (with-no-warnings message-cite-prefix-regexp)
+		      (ispell-with-no-warnings message-cite-prefix-regexp)
 		      "\\|"
 		      default-prefix))
 	     ((equal major-mode 'mh-letter-mode) ; mh mail message
 	      (concat "[^,;&+=\n]+ writes:" "\\|"
-		      (with-no-warnings
+		      (ispell-with-no-warnings
 		       (ispell-non-empty-string mh-ins-buf-prefix))))
 	     ((not internal-messagep)	; Assume nn sent us this message.
 	      (concat "In [a-zA-Z.]+ you write:" "\\|"

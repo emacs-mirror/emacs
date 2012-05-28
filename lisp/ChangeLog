@@ -1,5 +1,23 @@
 2012-05-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
+	Decrease XEmacs incompatibilities.
+	* textmodes/flyspell.el (flyspell-check-pre-word-p):
+	Use `string-match'.
+	(flyspell-delete-region-overlays): Use alternative definition for
+	XEmacs.
+	(flyspell-delete-all-overlays): Use `flyspell-delete-region-overlays'.
+	(flyspell-word): Use `process-kill-without-query' if XEmacs.
+	(flyspell-mode-on): Use `interactive-p' if XEmacs.
+	(flyspell-incorrect-face, flyspell-duplicate-face): Do not use
+	`define-obsolete-face-alias' under XEmacs, but old method.
+
+	* textmodes/ispell.el (ispell-with-no-warnings): XEmacs alternative
+	`with-no-warnings' definition or Emacs alias.
+	(ispell-command-loop, ispell-message): Use `ispell-with-no-warnings'.
+	(ispell-word): Do not use `region-p' if XEmacs.
+
+2012-05-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
 	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
 	Check for `ispell-dictionary-base-alist' instead of full
 	`ispell-dictionary-alist'.

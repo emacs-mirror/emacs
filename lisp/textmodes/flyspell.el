@@ -450,7 +450,9 @@ like <img alt=\"Some thing.\">."
     (t (:bold t)))
   "Face used for marking a misspelled word in Flyspell."
   :group 'flyspell)
-(define-obsolete-face-alias 'flyspell-incorrect-face 'flyspell-incorrect "22.1")
+(if (featurep 'emacs)
+    (define-obsolete-face-alias 'flyspell-incorrect-face 'flyspell-incorrect "22.1")
+  (put 'flyspell-incorrect-face 'face-alias 'flyspell-incorrect))
 
 (defface flyspell-duplicate
   '((((class color)) (:foreground "Gold3" :bold t :underline t))
@@ -458,7 +460,9 @@ like <img alt=\"Some thing.\">."
   "Face used for marking a misspelled word that appears twice in the buffer.
 See also `flyspell-duplicate-distance'."
   :group 'flyspell)
-(define-obsolete-face-alias 'flyspell-duplicate-face 'flyspell-duplicate "22.1")
+(if (featurep 'emacs)
+    (define-obsolete-face-alias 'flyspell-duplicate-face 'flyspell-duplicate "22.1")
+  (put 'flyspell-duplicate-face 'face-alias 'flyspell-duplicate))
 
 (defvar flyspell-overlay nil)
 
@@ -615,7 +619,9 @@ in your .emacs file.
   ;; the welcome message
   (if (and flyspell-issue-message-flag
 	   flyspell-issue-welcome-flag
-	   (called-interactively-p 'interactive))
+	   (if (featurep 'xemacs)
+	       (interactive-p) ;; XEmacs does not have (called-interactively-p)
+	     (called-interactively-p 'interactive)))
       (let ((binding (where-is-internal 'flyspell-auto-correct-word
 					nil 'non-ascii)))
 	(message "%s"
@@ -739,7 +745,7 @@ before the current command."
      ((or (and (= flyspell-pre-point (- (point) 1))
 	       (or (eq (char-syntax (char-after flyspell-pre-point)) ?w)
 		   (and (not (string= "" ispell-otherchars))
-			(string-match-p
+			(string-match
 			 ispell-otherchars
 			 (buffer-substring-no-properties
 			  flyspell-pre-point (1+ flyspell-pre-point))))))
@@ -758,7 +764,7 @@ before the current command."
 	       (null (char-after flyspell-pre-point))
 	       (or (eq (char-syntax (char-after flyspell-pre-point)) ?w)
 		   (and (not (string= "" ispell-otherchars))
-			(string-match-p
+			(string-match
 			 ispell-otherchars
 			 (buffer-substring-no-properties
 			  flyspell-pre-point (1+ flyspell-pre-point)))))))
@@ -1112,7 +1118,9 @@ misspelling and skips redundant spell-checking step."
                   (ispell-send-string (concat "^" word "\n"))
                   ;; we mark the ispell process so it can be killed
                   ;; when emacs is exited without query
-                  (set-process-query-on-exit-flag ispell-process nil)
+		  (if (featurep 'xemacs)
+		      (process-kill-without-query ispell-process)
+		    (set-process-query-on-exit-flag ispell-process nil))
                   ;; Wait until ispell has processed word.
                   (while (progn
                            (accept-process-output ispell-process)
@@ -1646,12 +1654,19 @@ FLYSPELL-BUFFER."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-delete-region-overlays (beg end)
   "Delete overlays used by flyspell in a given region."
-  (remove-overlays beg end 'flyspell-overlay t))
-
+  (if (featurep 'emacs)
+      (remove-overlays beg end 'flyspell-overlay t)
+    ;; XEmacs does not have `remove-overlays'
+    (let ((l (overlays-in beg end)))
+      (while (consp l)
+	(progn
+	  (if (flyspell-overlay-p (car l))
+	      (delete-overlay (car l)))
+	  (setq l (cdr l)))))))
 
 (defun flyspell-delete-all-overlays ()
   "Delete all the overlays used by flyspell."
-  (remove-overlays (point-min) (point-max) 'flyspell-overlay t))
+  (flyspell-delete-region-overlays (point-min) (point-max)))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-unhighlight-at ...                                      */
