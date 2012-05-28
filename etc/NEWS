@@ -95,6 +95,12 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** VHDL-mode
+- Support for ghdl (free vhdl compiler).  Now default.
+- Add/update support for VHDL-AMS packages.
+- Update to VHDL'02 standard.
+- Accept \r and \f as whitespace.
+
 ** Diff mode
 
 Faces for changes now use the same diff color scheme as in modern VCSes
