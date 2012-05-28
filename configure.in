@@ -708,9 +708,8 @@ dnl if test "x$RANLIB" = x; then
 dnl   AC_PROG_RANLIB
 dnl fi
 
-AC_PATH_PROG(INSTALL_INFO, install-info)
-AC_PATH_PROG(INSTALL_INFO, install-info,, /usr/sbin)
-AC_PATH_PROG(INSTALL_INFO, install-info,:, /sbin)
+AC_PATH_PROG(INSTALL_INFO, install-info, :,
+  $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
 
@@ -1067,14 +1066,14 @@ case $opsys in
 esac
 
 
+AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+
 dnl This function definition taken from Gnome 2.0
 dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
 dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
 dnl also defines GSTUFF_PKG_ERRORS on error
 AC_DEFUN([PKG_CHECK_MODULES], [
   succeeded=no
-
-  AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
   if test "$PKG_CONFIG" = "no" ; then
      ifelse([$4], , [AC_MSG_ERROR([
@@ -1176,10 +1175,11 @@ if test "${with_sound}" != "no"; then
 fi
 
 dnl checks for header files
-AC_CHECK_HEADERS(sys/select.h sys/time.h unistd.h utime.h \
-  linux/version.h sys/systeminfo.h \
-  stdio_ext.h fcntl.h coff.h pty.h sys/mman.h \
-  sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
+AC_CHECK_HEADERS_ONCE(
+  sys/select.h sys/time.h utime.h
+  linux/version.h sys/systeminfo.h
+  stdio_ext.h fcntl.h coff.h pty.h
+  sys/vlimit.h sys/resource.h
   sys/utsname.h pwd.h utmp.h dirent.h util.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
@@ -1263,7 +1263,7 @@ if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
-AC_CHECK_HEADERS(sys/socket.h)
+AC_CHECK_HEADERS_ONCE(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -1292,7 +1292,7 @@ AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 #endif])
 
 dnl Check for endianness.
-AC_C_BIGENDIAN
+dnl AC_C_BIGENDIAN is done by gnulib.
 
 AC_CACHE_CHECK([for  __attribute__ ((__aligned__ (expr)))],
   [emacs_cv_attribute_aligned],
@@ -1308,7 +1308,7 @@ if test $emacs_cv_attribute_aligned = yes; then
 fi
 
 dnl check for Make feature
-AC_PROG_MAKE_SET
+dnl AC_PROG_MAKE_SET is done by Automake.
 
 DEPFLAGS=
 MKDEPDIR=":"
@@ -1664,7 +1664,7 @@ AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 dnl Check if pthreads is available.
 LIB_PTHREAD=
-AC_CHECK_HEADERS(pthread.h)
+AC_CHECK_HEADERS_ONCE(pthread.h)
 if test "$ac_cv_header_pthread_h"; then
   dnl gmalloc.c uses pthread_atfork, which is not available on older-style
   dnl hosts such as MirBSD 10, so test for pthread_atfork instead of merely
@@ -2537,7 +2537,7 @@ fi
 AC_SUBST(LIBGPM)
 
 dnl Check for malloc/malloc.h on darwin
-AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
+AC_CHECK_HEADERS_ONCE(malloc/malloc.h)
 
 GNUSTEP_CFLAGS=
 ### Use NeXTstep API to implement GUI.
@@ -2642,7 +2642,7 @@ There may be a `development' package to install containing liblockfile.])
   fi
 fi
 AC_CHECK_FUNCS(touchlock)
-AC_CHECK_HEADERS(maillock.h)
+AC_CHECK_HEADERS_ONCE(maillock.h)
 AC_SUBST(LIBS_MAIL)
 
 ## Define MAIL_USE_FLOCK (or LOCKF) if the mailer uses flock (or lockf) to
@@ -2688,9 +2688,9 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 
 AC_CHECK_FUNCS(gethostname \
-rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
+rename closedir mkdir rmdir getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt setsid \
-strerror fpathconf select euidaccess getpagesize tzset setlocale \
+strerror fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
 sendto recvfrom getsockname getpeername \
@@ -2710,7 +2710,7 @@ if test $emacs_cv_func___builtin_unwind_init = yes; then
 	    [Define to 1 if you have the `__builtin_unwind_init' function.])
 fi
 
-AC_CHECK_HEADERS(sys/un.h)
+AC_CHECK_HEADERS_ONCE(sys/un.h)
 
 AC_FUNC_FSEEKO
 
@@ -2977,6 +2977,7 @@ AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
+AC_CHECK_FUNCS_ONCE(tzset)
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then

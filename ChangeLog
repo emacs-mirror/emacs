@@ -1,11 +1,25 @@
+2012-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make 'configure' a bit smaller and faster.
+	* configure.in (INSTALL_INFO): Set it with one call to
+	AC_PATH_PROG, not three.
+	(PKG_CONFIG): Hoist this out of PKG_CHECK_MODULES, since it's
+	so likely that it'll be needed.
+	(AC_CHECK_HEADERS_ONCE): Prefer to AC_CHECK_HEADERS where either works.
+	(AC_PROG_MAKE_SET): Remove; Automake does this.
+	(sysinfo): Do not check for this function, as it's never used.
+	(tzset): Check for this function just once.
+	* m4/manywarnings.m4: Sync from gnulib, incorporating the following:
+	2012-05-27 manywarnings: remove duplicate -Wmultichar entry
+
 2012-05-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat (lib): Create/update lib/stdalign.in-h and
 	lib/sys_types.in-h.
 
-	* lib/makefile.w32-in ($(BLD)/md5.$(O)): 
-	($(BLD)/sha1.$(O)): 
-	($(BLD)/sha256.$(O)): 
+	* lib/makefile.w32-in ($(BLD)/md5.$(O)):
+	($(BLD)/sha1.$(O)):
+	($(BLD)/sha256.$(O)):
 	($(BLD)/sha512.$(O)): Depend on $(EMACS_ROOT)/nt/inc/stdalign.h.
 	Suggested by Christoph Scholtes <cschol2112@googlemail.com>.
 

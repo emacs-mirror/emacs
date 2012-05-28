@@ -1,3 +1,7 @@
+2012-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* CPP-DEFINES: Remove HAVE_SYSINFO.
+
 2012-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume gnulib does largefile.
