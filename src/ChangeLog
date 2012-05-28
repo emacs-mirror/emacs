@@ -1,3 +1,17 @@
+2012-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (my_bring_window_to_top): New function.
+	(x_raise_frame): Use handle returned by DeferWindowPos, which
+	could be different from the original one.  Call
+	my_bring_window_to_top instead of my_set_foreground_window.
+	(Bug#11513)
+
+	* w32fns.c (w32_wnd_proc): Accept and process WM_EMACS_BRINGTOTOP
+	by calling BringWindowToTop.
+
+	* w32term.h (WM_EMACS_BRINGTOTOP): New message.
+	(WM_EMACS_END): Increase by one.
+
 2012-05-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* bidi.c (bidi_mirror_char): Put eassert before conversion to int.

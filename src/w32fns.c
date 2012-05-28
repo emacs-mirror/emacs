@@ -3663,6 +3663,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_EMACS_SHOWWINDOW:
       return ShowWindow ((HWND) wParam, (WPARAM) lParam);
 
+    case WM_EMACS_BRINGTOTOP:
     case WM_EMACS_SETFOREGROUND:
       {
         HWND foreground_window;
@@ -3680,6 +3681,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           foreground_thread = 0;
 
         retval = SetForegroundWindow ((HWND) wParam);
+        if (msg == WM_EMACS_BRINGTOTOP)
+          retval = BringWindowToTop ((HWND) wParam);
 
         /* Detach from the previous foreground thread.  */
         if (foreground_thread)
