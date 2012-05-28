@@ -1,3 +1,14 @@
+2012-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* charset.c (maybe_unify_char): Inhibit relocation of buffer text
+	for the duration of call to load_charset, to avoid problems with
+	callers of maybe_unify_char that access buffer text through C
+	pointers.
+
+	* ralloc.c (r_alloc_inhibit_buffer_relocation): Increment and
+	decrement the inhibition flag, instead of just setting or
+	resetting it.
+
 2012-05-24  Ken Brown  <kbrown@cornell.edu>
 
 	* callproc.c (Fcall_process): Restore a line that was accidentally
