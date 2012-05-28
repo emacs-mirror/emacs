@@ -1,3 +1,12 @@
+2012-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (genmakefiles): Move the redirection away from the
+	end of the command, to avoid excess whitespace at the end of Make
+	variables created at configure time, and also avoid things like
+	"FOO1>>config.settings", where "1" gets interpreted as the file
+	descriptor and eaten up.  This fixes breakage introduced by the
+	last change, without reintroducing the bug fixed by that change.
+
 2012-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat: Ensure a space between %var% expansion and
