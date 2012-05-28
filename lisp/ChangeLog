@@ -1,3 +1,11 @@
+2012-05-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
+	Check for `ispell-dictionary-base-alist' instead of full
+	`ispell-dictionary-alist'.
+	(ispell-init-process): Show spellchecker when starting new Ispell
+	process.
+
 2012-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/vhdl-mode.el: Sync with upstream 3.33.28.

@@ -968,9 +968,9 @@ Internal use.")
     ;; Ensure aspell's alias dictionary will override standard
     ;; definitions.
     (setq found (ispell-aspell-add-aliases found))
-    ;; Merge into FOUND any elements from the standard ispell-dictionary-alist
+    ;; Merge into FOUND any elements from the standard ispell-dictionary-base-alist
     ;; which have no element in FOUND at all.
-    (dolist (dict ispell-dictionary-alist)
+    (dolist (dict ispell-dictionary-base-alist)
       (unless (assoc (car dict) found)
 	(setq found (nconc found (list dict)))))
     (setq ispell-aspell-dictionary-alist found)
@@ -2707,7 +2707,8 @@ Keeps argument list for future Ispell invocations for no async support."
 	(setq ispell-filter nil ispell-filter-continue nil)
       ;; may need to restart to select new personal dictionary.
       (ispell-kill-ispell t)
-      (message "Starting new Ispell process [%s] ..."
+      (message "Starting new Ispell process [%s::%s] ..."
+	       ispell-program-name
 	       (or ispell-local-dictionary ispell-dictionary "default"))
       (sit-for 0)
       (setq ispell-library-directory (ispell-check-version)
