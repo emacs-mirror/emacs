@@ -52,9 +52,8 @@ developing GNU and promoting software freedom.''
 @contents
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
+@node Top
 @top Supercite
-@comment  node-name,  next,  previous,  up
 
 @insertcopying
 
@@ -64,13 +63,13 @@ into the following chapters.
 @menu
 * Introduction::
 * Citations::
+* Information Keys and the Info Alist::
+* Reference Headers::
 * Getting Connected::
 * Replying and Yanking::
 * Selecting an Attribution::
 * Configuring the Citation Engine::
 * Post-yank Formatting Commands::
-* Information Keys and the Info Alist::
-* Reference Headers::
 * Hints to MUA Authors::
 * Thanks and History::
 
@@ -83,7 +82,7 @@ into the following chapters.
 @end ifnottex
 
 
-@node  Introduction, Usage Overview, Top, Top
+@node  Introduction
 @chapter Introduction
 
 Supercite is a GNU Emacs package written entirely in Emacs Lisp. It
@@ -113,14 +112,14 @@ formatting styles are available in that reply buffer until the reply is
 sent.  Supercite is re-initialized in each new reply buffer.
 
 
-@node Usage Overview, What Supercite Does Not Do, Introduction, Introduction
+@node Usage Overview
+@section Usage Overview
 @kindex r
 @kindex f
 @kindex C-c C-y
 @cindex yank
 @cindex cite, citing
 @cindex attribute, attributing
-@section Usage Overview
 
 Typical usage is as follows. You want to reply or followup to a message
 in your MUA. You will probably hit @kbd{r} (i.e., ``reply'') or @kbd{f}
@@ -138,7 +137,7 @@ special text tag.  Most MUAs provide some default style of citing; by
 using Supercite you gain a wider flexibility in the look and style of
 citations.  Supercite's only job is to cite the original message.
 
-@node  What Supercite Does Not Do, What Supercite Does, Usage Overview, Introduction
+@node  What Supercite Does Not Do
 @section What Supercite Doesn't Do
 
 Because of this clear division of labor, there are useful features which
@@ -159,9 +158,9 @@ know anything about the meaning of these headers, and never ventures
 outside the designated region. @xref{Hints to MUA Authors}, for more
 details.@refill
 
-@node  What Supercite Does, Citations, What Supercite Does Not Do, Introduction
-@findex sc-cite-original
+@node  What Supercite Does
 @section What Supercite Does
+@findex sc-cite-original
 
 Supercite is invoked for the first time on a reply buffer via your MUA's
 reply or forward command.  This command will actually perform citations
@@ -219,10 +218,10 @@ but it is also immediately useful with the default configuration, once
 it has been properly connected to your MUA.  @xref{Getting Connected},
 for more details.@refill
 
-@node  Citations, Citation Elements, What Supercite Does, Top
+@node  Citations
+@chapter Citations
 @cindex nested citations
 @cindex citation
-@chapter Citations
 
 A @dfn{citation} is the acknowledgement of the original author of a mail
 message in the body of the reply.  There are two basic citation styles
@@ -284,9 +283,9 @@ non-nested citations are used.  When non-@code{nil}, nested citations
 are used.
 
 
-@node  Citation Elements, Recognizing Citations, Citations, Citations
-@cindex citation string
+@node  Citation Elements
 @section Citation Elements
+@cindex citation string
 
 @dfn{Citation strings} are composed of one or more elements. Non-nested
 citations are composed of four elements, three of which are directly
@@ -339,7 +338,7 @@ of the same elements, sans the attribution string.  Supercite is smart
 enough to not put additional spaces between citation delimiters for
 multi-level nested citations.
 
-@node  Recognizing Citations, Getting Connected, Citation Elements, Citations
+@node  Recognizing Citations
 @section Recognizing Citations
 
 Supercite also recognizes citations in the original article, and can
@@ -383,13 +382,13 @@ non-nested citation roots.  It is important to remember that if you
 change @code{sc-citation-root-regexp} you should always also change
 @code{sc-citation-nonnested-root-regexp}.@refill
 
-@node  Information Keys and the Info Alist, Reference Headers, Miscellaneous Commands, Top
+@node  Information Keys and the Info Alist
+@chapter Information Keys and the Info Alist
 @cindex information keys
 @cindex Info Alist
 @cindex information extracted from mail fields
 @findex sc-mail-field
 @findex mail-field (sc-)
-@chapter Information Keys and the Info Alist
 
 @dfn{Mail header information keys} are nuggets of information that
 Supercite extracts from the various mail headers of the original
@@ -493,9 +492,9 @@ If the author's name has more than one middle name, they will appear as
 info keys with the appropriate index (e.g., @code{"sc-middlename-2"},
 @dots{}).  @xref{Selecting an Attribution}.@refill
 
-@node  Reference Headers, The Built-in Header Rewrite Functions, Information Keys and the Info Alist, Top
-@cindex reference headers
+@node  Reference Headers
 @chapter Reference Headers
+@cindex reference headers
 
 Supercite will insert an informative @dfn{reference header} at the
 beginning of the cited body of text, which display more detail about the
@@ -534,9 +533,9 @@ functions. The one it uses is defined in the variable
 integer which is an index into the @code{sc-rewrite-header-list},
 beginning at zero.
 
-@node  The Built-in Header Rewrite Functions, Electric References, Reference Headers, Reference Headers
-@cindex header rewrite functions, built-in
+@node  The Built-in Header Rewrite Functions
 @section The Built-in Header Rewrite Functions
+@cindex header rewrite functions, built-in
 
 Below are examples of the various built-in header rewrite functions.
 Please note the following:@: first, the text which appears in the
@@ -613,9 +612,9 @@ line after the @code{mail-header-separator} line will be removed.
 @code{>>>>> see @var{references} for more details}
 @end table
 
-@node  Electric References, Hints to MUA Authors, The Built-in Header Rewrite Functions, Reference Headers
-@cindex electric references
+@node  Electric References
 @section Electric References
+@cindex electric references
 
 By default, when Supercite cites the original message for the first
 time, it just goes ahead and inserts the reference header indexed by
@@ -709,10 +708,9 @@ Exit from electric reference mode without inserting the current header.
 Supercite will execute the hook @code{sc-electric-mode-hook} before
 entering electric reference mode.
 
-@node  Getting Connected, Replying and Yanking, Recognizing Citations, Top
-@cindex citation interface specification
+@node  Getting Connected
 @chapter Getting Connected
-
+@cindex citation interface specification
 
 @vindex mail-citation-hook
 @cindex .emacs file
@@ -791,7 +789,7 @@ In that case, you can use the @code{sc-pre-hook} variable, but this will
 get executed every time @code{sc-cite-original} is called.  @xref{Reply
 Buffer Initialization}.@refill
 
-@node  Replying and Yanking, Reply Buffer Initialization, Getting Connected, Top
+@node  Replying and Yanking
 @chapter Replying and Yanking
 @ifinfo
 
@@ -803,10 +801,10 @@ message from an MUA.
 * Filling Cited Text::
 @end menu
 @end ifinfo
-@node  Reply Buffer Initialization, Filling Cited Text, Replying and Yanking, Replying and Yanking
+@node  Reply Buffer Initialization
+@section Reply Buffer Initialization
 @findex sc-cite-original
 @findex cite-original (sc-)
-@section Reply Buffer Initialization
 
 Executing @code{sc-cite-original} performs the following steps as it
 initializes the reply buffer:
@@ -960,7 +958,8 @@ for completeness and backward compatibility. Perhaps it could be used to
 reset certain variables set in @code{sc-pre-hook}.@refill
 @end enumerate
 
-@node  Filling Cited Text, Selecting an Attribution, Reply Buffer Initialization, Replying and Yanking
+@node  Filling Cited Text
+@section Filling Cited Text
 @cindex filling paragraphs
 @vindex sc-auto-fill-region-p
 @vindex auto-fill-region-p (sc-)
@@ -970,7 +969,6 @@ reset certain variables set in @code{sc-pre-hook}.@refill
 @findex setup-filladapt (sc-)
 @vindex sc-load-hook
 @vindex load-hook (sc-)
-@section Filling Cited Text
 
 Supercite will automatically fill newly cited text from the original
 message unless the variable @code{sc-auto-fill-region-p} has a
@@ -1039,11 +1037,11 @@ have been widespread complaints on the net about mail and news messages
 containing lines greater than about 72 characters.  So the default is to
 fill cited text.
 
-@node  Selecting an Attribution, Attribution Preferences, Filling Cited Text, Top
+@node  Selecting an Attribution
+@chapter Selecting an Attribution
 @cindex attribution list
 @vindex sc-preferred-attribution-list
 @vindex preferred-attribution-list (sc-)
-@chapter Selecting an Attribution
 
 As you know, the attribution string is the part of the author's name
 that will be used to composed a non-nested citation string. Supercite
@@ -1063,7 +1061,7 @@ author's initials, and the author's email terminus.
 @end menu
 @end ifinfo
 
-@node  Attribution Preferences, Anonymous Attributions, Selecting an Attribution, Selecting an Attribution
+@node  Attribution Preferences
 @section Attribution Preferences
 
 When you cite an original message, you can tell Supercite which part of
@@ -1165,12 +1163,12 @@ what nickname they would prefer to use, and you can set up this list to
 match against a specific mail field, e.g., @samp{From:@:}, allowing you
 to cite your friend's message with the appropriate attribution.
 
-@node  Anonymous Attributions, Author Names, Attribution Preferences, Selecting an Attribution
+@node  Anonymous Attributions
+@section Anonymous Attributions
 @vindex sc-default-author-name
 @vindex default-author-name (sc-)
 @vindex sc-default-attribution
 @vindex default-attribution (sc-)
-@section Anonymous Attributions
 
 When the author's name cannot be found in the @samp{From:@:} mail
 header, a fallback author name and attribution string must be supplied.
@@ -1254,9 +1252,9 @@ to override any automatically derived attribution string when it is only
 one character long; e.g. you prefer to use @code{"initials"} but the
 author only has one name.@refill
 
-@node  Author Names, Configuring the Citation Engine, Anonymous Attributions, Selecting an Attribution
-@cindex author names
+@node  Author Names
 @section Author Names
+@cindex author names
 
 Supercite employs a number of heuristics to decipher the author's name
 based on value of the @samp{From:@:} mail field of the original message.
@@ -1316,11 +1314,11 @@ The position indicator is an integer, or one of the two special symbols
 word in the name field, while @code{any} matches against every word in
 the name field.
 
-@node  Configuring the Citation Engine, Using Regi, Author Names, Top
+@node  Configuring the Citation Engine
+@chapter Configuring the Citation Engine
 @cindex Regi
 @cindex frames (Regi)
 @cindex entries (Regi)
-@chapter Configuring the Citation Engine
 
 At the heart of Supercite is a regular expression interpreting engine
 called @dfn{Regi}.  Regi operates by interpreting a data structure
@@ -1354,11 +1352,11 @@ Supercite to recognize such things as uuencoded messages or C code and
 cite or fill those differently than normal text.  None of this is
 currently part of Supercite, but contributions are welcome!
 
-@node  Using Regi, Frames You Can Customize, Configuring the Citation Engine, Configuring the Citation Engine
+@node  Using Regi
+@section Using Regi
 @findex regi-interpret
 @findex eval
 @findex looking-at
-@section Using Regi
 
 Regi works by interpreting frames with the function
 @code{regi-interpret}.  A frame is a list of arbitrary size where each
@@ -1452,9 +1450,9 @@ The current frame being interpreted.
 The current frame entry being interpreted.
 @end table
 
-@node  Frames You Can Customize, Post-yank Formatting Commands, Using Regi, Configuring the Citation Engine
-@vindex sc-nuke-mail-header
+@node  Frames You Can Customize
 @section Frames You Can Customize
+@vindex sc-nuke-mail-header
 
 As mentioned earlier, Supercite uses various frames to perform
 certain jobs such as mail header information extraction and mail header
@@ -1516,11 +1514,11 @@ When Supercite is about to cite, uncite, or recite a region, it consults
 the appropriate alist and attempts to find a frame to use.  If one
 is not found from the alist, then the appropriate default frame is used.
 
-@node  Post-yank Formatting Commands, Citing Commands, Frames You Can Customize, Top
+@node  Post-yank Formatting Commands
+@chapter Post-yank Formatting Commands
 @vindex sc-mode-map-prefix
 @vindex mode-map-prefix (sc-)
 @kindex C-c C-p
-@chapter Post-yank Formatting Commands
 
 Once the original message has been yanked into the reply buffer, and
 @code{sc-cite-original} has had a chance to do its thing, a number of
@@ -1546,9 +1544,9 @@ prefix.@refill
 @end menu
 @end ifinfo
 
-@node   Citing Commands, Insertion Commands, Post-yank Formatting Commands, Post-yank Formatting Commands
-@vindex sc-cite-region-limit
+@node   Citing Commands
 @section Commands to Manually Cite, Recite, and Uncite
+@vindex sc-cite-region-limit
 
 Probably the three most common post-yank formatting operations that you
 will perform will be the manual citing, reciting, and unciting of
@@ -1608,7 +1606,7 @@ Supercite will always ask you to confirm the attribution when reciting a
 region, regardless of the value of @code{sc-confirm-always-p}.
 @end table
 
-@node  Insertion Commands, Variable Toggling Shortcuts, Citing Commands, Post-yank Formatting Commands
+@node  Insertion Commands
 @section Insertion Commands
 
 These two functions insert various strings into the reply buffer.
@@ -1638,9 +1636,9 @@ Inserts the current citation string at the beginning of the line that
 an error and will not cite the line.
 @end table
 
-@node  Variable Toggling Shortcuts, Mail Field Commands, Insertion Commands, Post-yank Formatting Commands
-@cindex toggling variables
+@node  Variable Toggling Shortcuts
 @section Variable Toggling Shortcuts
+@cindex toggling variables
 
 Supercite defines a number of commands that make it easier for you to
 toggle and set various Supercite variables as you are editing the reply
@@ -1718,7 +1716,7 @@ Finally, the command @kbd{C-c C-p C-t h} (also @kbd{C-c C-p C-t ?})
 brings up a Help message on the toggling keymap.
 
 
-@node  Mail Field Commands, Miscellaneous Commands, Variable Toggling Shortcuts, Post-yank Formatting Commands
+@node  Mail Field Commands
 @section Mail Field Commands
 
 These commands allow you to view, modify, add, and delete various bits
@@ -1768,7 +1766,7 @@ message author.  Note that unless an error during processing occurs, any
 old information is lost.@refill
 @end table
 
-@node  Miscellaneous Commands, Information Keys and the Info Alist, Mail Field Commands, Post-yank Formatting Commands
+@node  Miscellaneous Commands
 @section Miscellaneous Commands
 
 @table @asis
@@ -1782,7 +1780,7 @@ citation string in front of the new line.  As with @code{open-line},
 an optional numeric argument inserts that many new lines.@refill
 @end table
 
-@node  Hints to MUA Authors, Thanks and History, Electric References, Top
+@node  Hints to MUA Authors
 @chapter Hints to MUA Authors
 
 In June of 1989, some discussion was held between the various MUA
@@ -1864,7 +1862,7 @@ need only add @code{sc-cite-original} to this list of hooks using
 If you do all this your MUA will join the ranks of those that conform to
 this interface ``out of the box.''
 
-@node Thanks and History, GNU Free Documentation License, Hints to MUA Authors, Top
+@node Thanks and History
 @chapter Thanks and History
 
 The Supercite package was derived from its predecessor Superyank 1.11
@@ -1901,15 +1899,15 @@ All who have helped and contributed have been greatly appreciated.
 
 Supercite was written by Barry Warsaw.
 
-@node GNU Free Documentation License, Concept Index, Thanks and History, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node  Concept Index, Command Index, GNU Free Documentation License, Top
+@node  Concept Index
 @unnumbered Concept Index
 @printindex cp
 
-@node  Command Index, Key Index, Concept Index, Top
+@node  Command Index
 @unnumbered Command Index
 @ifinfo
 
@@ -1922,11 +1920,11 @@ its @var{command} name.
 @end iftex
 @printindex fn
 
-@node  Key Index, Variable Index, Command Index, Top
+@node  Key Index
 @unnumbered Key Index
 @printindex ky
 
-@node Variable Index,  , Key Index, Top
+@node Variable Index
 @unnumbered Variable Index
 @ifinfo
 

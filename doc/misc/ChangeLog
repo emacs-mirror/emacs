@@ -1,3 +1,8 @@
+2012-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* sc.texi: Nuke hand-written node pointers.
+	Fix top-level menu to match actual node order.
+
 2012-05-27  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi, dired-x.texi: Nuke hand-written node pointers.
