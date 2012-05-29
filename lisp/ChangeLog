@@ -1,5 +1,17 @@
 2012-05-29  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-word): Add docstring.  (Bug#11381)
+	(isearch-occur, isearch-search-and-update): If `isearch-word' is
+	a function, call it to get the regexp.
+	(isearch-message-prefix): If `isearch-word' holds a symbol, use its
+	property `isearch-message-prefix' instead of the string "word ".
+	(isearch-search-fun-default): For the case of `isearch-word',
+	return a lambda that calls re-search-forward/re-search-backward
+	with a regexp returned by `word-search-regexp' or by the function
+	in `isearch-word'.
+
+2012-05-29  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-search-fun-default): New function.
 	(isearch-search-fun): Move default part to the new function
 	`isearch-search-fun-default'.
