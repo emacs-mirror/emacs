@@ -1,3 +1,13 @@
+2012-05-29  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Silence `checkdoc-ispell' errors where
+	possible.  Fix authors.  Improve comments.  Improve loading of
+	`cl'.
+
+	(rst-mode-abbrev-table): Merge definition.
+	(rst-mode): Make sure `font-lock-defaults' is buffer local.
+	(rst-define-key, rst-deprecated-keys, rst-call-deprecated): Refactor.
+
 2012-05-29  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el
@@ -790,6 +800,109 @@
 
 	* man.el (Man-unindent): Use text-property-default-nonsticky to
 	prevent untabify from inheriting face properties (Bug#11408).
+
+2012-05-05  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Major merge with upstream development up to
+	Docutils SVN r7399 / rst.el V1.2.1.
+
+	Clarify maintainership and authors.
+
+	(rst-extract-version, rst-cvs-header, rst-cvs-rev)
+	(rst-cvs-timestamp, rst-svn-rev, rst-svn-timestamp)
+	(rst-official-version, rst-official-cvs-rev, rst-version)
+	(rst-package-emacs-version-alist): New functions and variables
+	for version information.
+
+	(rst-bullets, rst-uri-schemes, rst-adornment-chars)
+	(rst-max-inline-length, rst-re-alist-def, rst-re-alist)
+	(rst-mode-syntax-table, rst-mode): New and corrected functions
+	and variables representing reStructuredText features.
+
+	(rst-re): New function for reStructuredText regexes.  Use in
+	many places.
+
+	(rst-deprecated-keys, rst-call-deprecated, rst-define-key)
+	(rst-mode-map): Rebind keys.
+
+	(rst-mode-lazy, rst-font-lock-keywords)
+	(rst-font-lock-extend-region)
+	(rst-font-lock-extend-region-internal)
+	(rst-font-lock-extend-region-extend)
+	(rst-font-lock-find-unindented-line-limit)
+	(rst-font-lock-find-unindented-line-match)
+	(rst-adornment-level, rst-font-lock-adornment-level)
+	(rst-font-lock-adornment-match)
+	(rst-font-lock-handle-adornment-pre-match-form)
+	(rst-font-lock-handle-adornment-matcher): Major revision of
+	font-locking.  Integrate with other code.  Use `jit-lock-mode'.
+
+	(rst-preferred-adornments, rst-adjust-hook)
+	(rst-new-adornment-down, rst-preferred-bullets)
+	(rst-preferred-bullets, rst-indent, rst-indent-width)
+	(rst-indent-field, rst-indent-literal-normal)
+	(rst-indent-literal-minimized, rst-indent-comment): Change,
+	extend and improve customization.
+
+	(rst-line-homogeneous-p, rst-line-homogeneous-nodent-p)
+	(rst-normalize-cursor-position, rst-get-decoration)
+	(rst-straighten-deco-spacing, rst-re-bullets, rst-re-items)
+	(rst-rstrip, rst-toc-insert-find-delete-contents)
+	(rst-shift-fill-region, rst-compute-bullet-tabs)
+	(rst-debug-print-tabs, rst-debug-mark-found)
+	(rst-shift-region-guts, rst-shift-region-right)
+	(rst-shift-region-left, rst-use-char-classes)
+	(rst-font-lock-keywords-function)
+	(rst-font-lock-indentation-point)
+	(rst-font-lock-find-unindented-line-begin)
+	(rst-font-lock-find-unindented-line-end)
+	(rst-font-lock-find-unindented-line)
+	(rst-font-lock-adornment-point, rst-font-lock-level)
+	(rst-adornment-level-alist): Remove functions and variables.
+
+	(rst-compare-adornments, rst-get-adornment-match)
+	(rst-suggest-new-adornment, rst-get-adornments-around)
+	(rst-adornment-complete-p, rst-get-next-adornment)
+	(rst-adjust-adornment, rst-display-adornments-hierarchy)
+	(rst-straighten-adornments): Standardize function names to
+	use "adornment" instead of "decoration".  Correct callers.
+	Similar standardizing in many places.
+
+	(rst-update-section, rst-adjust, rst-promote-region)
+	(rst-enumerate-region, rst-bullet-list-region)
+	(rst-repeat-last-character): Correct use of `interactive'.
+
+	(rst-classify-adornment, rst-find-all-adornments)
+	(rst-get-hierarchy, rst-adjust-adornment, rst-toc-update)
+	(rst-find-leftmost-column, rst-repeat-last-character):
+	Refactor functions.
+
+	(rst-find-title-line, rst-reset-section-caches)
+	(rst-get-adornments-around, rst-adjust-adornment-work)
+	(rst-arabic-to-roman, rst-roman-to-arabic)
+	(rst-insert-list-pos, rst-insert-list-new-item)
+	(rst-insert-list-continue, rst-insert-list, rst-forward-line):
+	New functions.
+
+	(rst-all-sections, rst-section-hierarchy)
+	(rst-arabic-to-roman, rst-initial-enums, rst-initial-items):
+	New variables.
+
+	(rst-toc-return-wincfg, rst-toc-quit-window): Use window
+	configuration instead of only buffer.  Change where necessary.
+
+	(rst-line-tabs, rst-compute-tabs, rst-indent-line)
+	(rst-shift-region, rst-adaptive-fill): New functions for
+	indentation and filling.
+
+	(rst-comment-line-break, rst-comment-indent)
+	(rst-comment-insert-comment, rst-comment-region)
+	(rst-uncomment-region): New functions for handling comments.
+
+	(rst-compile): Quote shell arguments.
+
+	(rst-compile-pdf-preview, rst-compile-slides-preview):
+	Delete temporary files after use.
 
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 

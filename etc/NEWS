@@ -125,31 +125,31 @@ to highlight changes in context diffs.
 
 ** reStructuredText mode
 
-*** Nearly all keys are rebound making room for more keys and comply
-better to usage in other modes.  Bindings are described with C-c C-h.
+*** Rebind nearly all keys making room for more keys and complying
+better to usage in other modes.  Describe bindings with C-c C-h.
 
-*** Major revision of indentation.  Now works very similarly to other modes.
-TAB is your friend.
+*** Major revision of indentation working very similar to other
+modes.  TAB is your friend.
 
-*** Major revision of filling.  Works fine with most of
-reStructuredText syntax.  Auto-filling is also supported.
+*** Major revision of filling working fine with most of
+reStructuredText syntax.  Support auto-filling.
 
 *** Major revision of comment handling.
 
-*** Major revision of fontification.  Now works with `jit-lock-mode'.
+*** Major revision of fontification working with `jit-lock-mode'.
 
-*** reStructuredText syntax is covered more closely in many cases.
-Among other things this improves the experience for Sphinx users.
+*** Cover reStructuredText syntax more closely.  Improve
+the experience for Sphinx users.
 
-*** `rst-insert-list' inserts a new list or continues existing lists.
+*** `rst-insert-list' inserts new list or continues existing lists.
 
-*** Customization is extended, corrected and improved.
+*** Extend correct and improve customization.
 
 *** Negative prefix argument always works for `rst-adjust'.
 
-*** Window configuration is reset after displaying TOC.
+*** Reset window configuration after displaying TOC.
 
-*** There is a package version in `rst-version'.
+*** Package version in `rst-version'.
 
 ** New `derived-mode' filter for Ibuffer, bound to `/ M'.
 `/ m' is now bound to filter by used-mode, which used to be bound to `/ M'.
