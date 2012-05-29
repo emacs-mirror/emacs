@@ -3676,10 +3676,10 @@ If BUFFER is omitted, and OVERLAY is in no buffer, put it in the current
 buffer.  */)
   (Lisp_Object overlay, Lisp_Object beg, Lisp_Object end, Lisp_Object buffer)
 {
-  struct buffer *b, *ob;
+  struct buffer *b, *ob = 0;
   Lisp_Object obuffer;
   ptrdiff_t count = SPECPDL_INDEX ();
-  ptrdiff_t n_beg, n_end;
+  ptrdiff_t n_beg, n_end, o_beg IF_LINT (= 0), o_end IF_LINT (= 0);
 
   CHECK_OVERLAY (overlay);
   if (NILP (buffer))
@@ -3687,6 +3687,9 @@ buffer.  */)
   if (NILP (buffer))
     XSETBUFFER (buffer, current_buffer);
   CHECK_BUFFER (buffer);
+
+  if (NILP (Fbuffer_live_p (buffer)))
+    error ("Attempt to move overlay to a dead buffer");
 
   if (MARKERP (beg)
       && ! EQ (Fmarker_buffer (beg), buffer))
@@ -3697,38 +3700,45 @@ buffer.  */)
 
   CHECK_NUMBER_COERCE_MARKER (beg);
   CHECK_NUMBER_COERCE_MARKER (end);
-  n_beg = clip_to_bounds (PTRDIFF_MIN, XINT (beg), PTRDIFF_MAX);
-  n_end = clip_to_bounds (PTRDIFF_MIN, XINT (end), PTRDIFF_MAX);
 
-  if (n_beg == n_end && ! NILP (Foverlay_get (overlay, Qevaporate)))
-    return Fdelete_overlay (overlay);
-
-  if (n_beg > n_end)
+  if (XINT (beg) > XINT (end))
     {
-      ptrdiff_t temp;
-      temp = n_beg; n_beg = n_end; n_end = temp;
+      Lisp_Object temp;
+      temp = beg; beg = end; end = temp;
     }
 
   specbind (Qinhibit_quit, Qt);
 
   obuffer = Fmarker_buffer (OVERLAY_START (overlay));
   b = XBUFFER (buffer);
-  ob = BUFFERP (obuffer) ? XBUFFER (obuffer) : (struct buffer *) 0;
+
+  if (!NILP (obuffer))
+    {
+      ob = XBUFFER (obuffer);
+
+      o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
+      o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
+
+      ob->overlays_before =
+        unchain_overlay (ob->overlays_before, XOVERLAY (overlay));
+      ob->overlays_after =
+        unchain_overlay (ob->overlays_after, XOVERLAY (overlay));
+      eassert (XOVERLAY (overlay)->next == NULL);
+    }
+
+  /* Set the overlay boundaries, which may clip them.  */
+  Fset_marker (OVERLAY_START (overlay), beg, buffer);
+  Fset_marker (OVERLAY_END (overlay), end, buffer);
+
+  n_beg = marker_position (OVERLAY_START (overlay));
+  n_end = marker_position (OVERLAY_END (overlay));
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
   if (!EQ (buffer, obuffer))
     {
       /* Redisplay where the overlay was.  */
-      if (!NILP (obuffer))
-	{
-	  ptrdiff_t o_beg;
-	  ptrdiff_t o_end;
-
-	  o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
-	  o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
-
-	  modify_overlay (ob, o_beg, o_end);
-	}
+      if (ob)
+        modify_overlay (ob, o_beg, o_end);
 
       /* Redisplay where the overlay is going to be.  */
       modify_overlay (b, n_beg, n_end);
@@ -3736,11 +3746,6 @@ buffer.  */)
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
     {
-      ptrdiff_t o_beg, o_end;
-
-      o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
-      o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
-
       if (o_beg == n_beg)
 	modify_overlay (b, o_end, n_end);
       else if (o_end == n_end)
@@ -3749,21 +3754,14 @@ buffer.  */)
 	modify_overlay (b, min (o_beg, n_beg), max (o_end, n_end));
     }
 
-  if (!NILP (obuffer))
-    {
-      ob->overlays_before
-	= unchain_overlay (ob->overlays_before, XOVERLAY (overlay));
-      ob->overlays_after
-	= unchain_overlay (ob->overlays_after, XOVERLAY (overlay));
-      eassert (XOVERLAY (overlay)->next == NULL);
-    }
+  /* Delete the overlay if it is empty after clipping and has the
+     evaporate property.  */
+  if (n_beg == n_end && !NILP (Foverlay_get (overlay, Qevaporate)))
+    return unbind_to (count, Fdelete_overlay (overlay));
 
-  Fset_marker (OVERLAY_START (overlay), beg, buffer);
-  Fset_marker (OVERLAY_END   (overlay), end, buffer);
-
-  /* Put the overlay on the wrong list.  */
-  end = OVERLAY_END (overlay);
-  if (OVERLAY_POSITION (end) < b->overlay_center)
+  /* Put the overlay into the new buffer's overlay lists, first on the
+     wrong list.  */
+  if (n_end < b->overlay_center)
     {
       XOVERLAY (overlay)->next = b->overlays_after;
       b->overlays_after = XOVERLAY (overlay);
@@ -3797,9 +3795,12 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   b = XBUFFER (buffer);
   specbind (Qinhibit_quit, Qt);
 
-  b->overlays_before = unchain_overlay (b->overlays_before,XOVERLAY (overlay));
-  b->overlays_after  = unchain_overlay (b->overlays_after, XOVERLAY (overlay));
+  b->overlays_before
+    = unchain_overlay (b->overlays_before, XOVERLAY (overlay));
+  b->overlays_after
+    = unchain_overlay (b->overlays_after, XOVERLAY (overlay));
   eassert (XOVERLAY (overlay)->next == NULL);
+
   modify_overlay (b,
 		  marker_position (OVERLAY_START (overlay)),
 		  marker_position (OVERLAY_END   (overlay)));

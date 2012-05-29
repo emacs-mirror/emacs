@@ -1,3 +1,12 @@
+2012-05-29  Troels Nielsen  <bn.troels@gmail.com>
+
+	Do not avoid creating empty evaporating overlays (Bug#9642).
+	* buffer.c (Fmove_overlay): Reinstate the earlier fix for
+	Bug#9642, but explicitly check that the buffer the overlay would
+	be moved to is live and rearrange lines to make sure that errors
+	will not put the overlay in an inconsistent state.
+	(Fdelete_overlay): Cosmetics.
+
 2012-05-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (my_bring_window_to_top): New function.
