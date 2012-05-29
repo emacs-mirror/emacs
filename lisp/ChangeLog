@@ -1,5 +1,13 @@
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Further comment revision.
+	(todos-item-end): Replace use of command todos-forward-item by
+	regexp searches using internal variables.
+	(todos-raise-category-priority): Improve and comment.
+	(todos-insert-item): Fix insertion of empty time string.
+
+2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-ignore-archived-categories):
 	Revert last change; remove :initialize and :set functions; change
 	use and change users accordingly.

@@ -167,7 +167,7 @@ These reflect the priorities of the items in each category."
 ;; value being window-width instead of a constant length.
 (defcustom todos-done-separator (make-string (window-width) ?_)
   "String used to visually separate done from not done items.
-Displayed as an overlay instead of `todos-done-separator' when
+Displayed as an overlay instead of `todos-category-done' when
 done items are shown."
   :type 'string
   :initialize 'custom-initialize-default
@@ -1241,14 +1241,27 @@ editing or a bug in todos.el."
   "Move to end of current Todos item and return its position."
   ;; Items cannot end with a blank line.
   (unless (looking-at "^$")
-    (let ((done (todos-done-item-p)))
-      ;; FIXME: don't use a command to define this function!
-      (todos-forward-item)
-      ;; Adjust if item is last unfinished one before displayed done items.
-      (when (and (not done) (todos-done-item-p))
-	(forward-line -1))
-      (backward-char))
-    (point)))
+    (let* ((done (todos-done-item-p))
+	   (to-lim nil)
+	   ;; For todo items, end is before the done items section, for done
+	   ;; items, end is before the next category.  If these limits are
+	   ;; missing or inaccessible, end it before the end of the buffer.
+	   (lim (if (save-excursion
+		      (re-search-forward
+		       (concat "^" (regexp-quote (if done
+						     todos-category-beg
+						   todos-category-done)))
+		       nil t))
+		    (progn (setq to-lim t) (match-beginning 0))
+		  (point-max))))
+      (when (bolp) (forward-char))	; Find start of next item.
+      (goto-char (if (re-search-forward todos-item-start lim t)
+		     (match-beginning 0)
+		   (if to-lim lim (point-max))))
+      ;; For last todo item, skip back over the empty line before the done
+      ;; items section, else just back to the end of the previous line.
+      (backward-char (when (and to-lim (not done) (eq (point) lim)) 2))
+      (point))))
 
 (defun todos-item-string ()
   "Return bare text of current item as a string."
@@ -3258,16 +3271,25 @@ With numerical prefix COUNT, move point COUNT items downward,"
     (if (re-search-forward todos-item-start nil t (or count 1))
 	(goto-char (match-beginning 0))
       (goto-char (point-max)))
-    ;; FIXME: this is insufficient, since there could be no done items in this
-    ;; category, so the search puts us on a todo item.  Have to stop before
-    ;; todos-done-separator when buffer is not narrowed.
     ;; If points advances by one from a todo to a done item, go back to the
     ;; space above todos-done-separator, since that is a legitimate place to
     ;; insert an item.  But skip this space if count > 1, since that should
     ;; only stop on an item (FIXME: or not?)
     (when (and not-done (todos-done-item-p))
       (if (or (not count) (= count 1))
-	  (re-search-backward "^$" start t)))))
+    	  (re-search-backward "^$" start t)))))
+    ;; FIXME: The preceding sexp is insufficient when buffer is not narrowed,
+    ;; since there could be no done items in this category, so the search puts
+    ;; us on first todo item of next category.  Does this ever happen?  If so:
+    ;; (let ((opoint) (point))
+    ;;   (forward-line -1)
+    ;;   (when (or (not count) (= count 1))
+    ;; 	(cond ((looking-at (concat "^" (regexp-quote todos-category-beg)))
+    ;; 	       (forward-line -2))
+    ;; 	      ((looking-at (concat "^" (regexp-quote todos-category-done)))
+    ;; 	       (forward-line -1))
+    ;; 	      (t
+    ;; 	       (goto-char opoint)))))))
 
 (defun todos-backward-item (&optional count)
   "Move point up to start of item with next higher priority.
@@ -3503,41 +3525,47 @@ i.e. including all existing todo and done items."
   "Raise priority of category point is on in Todos Categories buffer.
 With non-nil argument LOWER, lower the category's priority."
   (interactive)
-  (let ((num todos-categories-category-number))
-    (save-excursion
-      (forward-line 0)
-      (skip-chars-forward " ")
-      (setq num (number-at-point)))
-    (when (and num (if lower
-		       (< num (length todos-categories))
-		     (> num 1)))
-      (let* ((col (current-column))
-	     (beg (progn (forward-line (if lower 0 -1)) (point)))
-	     (num1 (progn (skip-chars-forward " ") (1- (number-at-point))))
-	     (num2 (1+ num1))
-	     (end (progn (forward-line 2) (point)))
-	     (catvec (vconcat todos-categories))
-	     (cat1-list (aref catvec num1))
-	     (cat2-list (aref catvec num2))
-	     (cat1 (car cat1-list))
-	     (cat2 (car cat2-list))
-	     buffer-read-only newcats)
-	(delete-region beg end)
-	(setq num1 (1+ num1))
-	(setq num2 (1- num2))
-	(setq num num2)
-	(todos-insert-category-line cat2)
-	(setq num num1)
-	(todos-insert-category-line cat1)
-	(aset catvec num2 (cons cat2 (cdr cat2-list)))
-	(aset catvec num1 (cons cat1 (cdr cat1-list)))
-	(setq todos-categories (append catvec nil))
-	(setq newcats todos-categories)
-	(with-current-buffer (get-file-buffer todos-current-todos-file)
-	  (setq todos-categories newcats)
-	  (todos-update-categories-sexp))
-	(forward-line (if lower -1 -2))
-	(forward-char col)))))
+  (save-excursion
+    (forward-line 0)
+    (skip-chars-forward " ")
+    (setq todos-categories-category-number (number-at-point)))
+  (when (if lower
+	    (< todos-categories-category-number (length todos-categories))
+	  (> todos-categories-category-number 1))
+    (let* ((col (current-column))
+	   ;; The line we're raising to, or lowering from...
+	   (beg (progn (forward-line (if lower 0 -1)) (point)))
+	   ;; ...and its number.
+	   (num1 (progn (skip-chars-forward " ") (1- (number-at-point))))
+	   ;; The number of the line we're exchanging with.
+	   (num2 (1+ num1))
+	   ;; The start of the line below the one we're exchanging with.
+	   (end (progn (forward-line 2) (point)))
+	   (catvec (vconcat todos-categories))
+	   ;; Category names and item counts of the two lines being exchanged.
+	   (cat1-list (aref catvec num1))
+	   (cat2-list (aref catvec num2))
+	   (cat1 (car cat1-list))
+	   (cat2 (car cat2-list))
+	   buffer-read-only newcats)
+      (delete-region beg end)
+      (setq num1 (1+ num1))
+      (setq num2 (1- num2))
+      ;; Exchange the lines and rebuttonize them.
+      (setq todos-categories-category-number num2)
+      (todos-insert-category-line cat2)
+      (setq todos-categories-category-number num1)
+      (todos-insert-category-line cat1)
+      ;; Update todos-categories alist.
+      (aset catvec num2 (cons cat2 (cdr cat2-list)))
+      (aset catvec num1 (cons cat1 (cdr cat1-list)))
+      (setq todos-categories (append catvec nil))
+      (setq newcats todos-categories)
+      (with-current-buffer (get-file-buffer todos-current-todos-file)
+	(setq todos-categories newcats)
+	(todos-update-categories-sexp))
+      (forward-line (if lower -1 -2))
+      (forward-char col))))
 
 (defun todos-lower-category-priority ()
   "Lower priority of category point is on in Todos Categories buffer."
@@ -3860,8 +3888,8 @@ the priority is not given by HERE but by prompting."
 			  todos-nondiary-start
 			(when (and nonmarking (not todos-diary-nonmarking))
 			  diary-nonmarking-symbol))
-		      date-string (unless (and time-string
-					       (string= time-string ""))
+		      date-string (when (and time-string ; Can be empty string.
+					     (not (zerop (length time-string))))
 				    (concat " " time-string))
 		      (when (not (and diary (not todos-include-in-diary)))
 			todos-nondiary-end)
