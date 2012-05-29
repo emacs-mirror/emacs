@@ -6203,16 +6203,7 @@ With prefix argument N, move N items (negative N means move backward)."
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))
-      (select-window (posn-window (event-start event)))
-      (if (and (one-window-p t 'selected-frame)
-	       (window-dedicated-p (selected-window)))
-	  ;; This is a special buffer's frame
-	  (iconify-frame (selected-frame))
-	(or (window-dedicated-p (selected-window))
-	    (bury-buffer)))
-      (select-window
-       (or (get-buffer-window buffer 0)
-           owindow))
+      (quit-window nil (posn-window (event-start event)))
 
       (with-current-buffer buffer
         (choose-completion-string
