@@ -1,3 +1,15 @@
+2012-05-29  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar-tests--test-import):
+	Include UID in import tests (Bug#11525).
+	(icalendar-import-non-recurring, icalendar-import-rrule)
+	(icalendar-import-duration, icalendar-import-bug-6766): Adjust to
+	UID-import change.
+	(icalendar-import-with-uid): New.
+	(icalendar-tests--test-cycle, icalendar-tests--do-test-cycle):
+	Include UID in cycle tests.
+	(icalendar-cycle, icalendar-real-world): UID-import change.
+
 2012-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (setwins): Scrap superfluous subshell.

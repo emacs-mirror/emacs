@@ -1,3 +1,15 @@
+2012-05-29  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el
+	(icalendar-export-region): Export UID properly.
+
+2012-05-29 Leo <sdl.web@gmail.com>
+	* calendar/icalendar.el (icalendar-import-format): Add
+	`icalendar-import-format-uid' (Bug#11525).
+	(icalendar-import-format-uid): New.
+	(icalendar--parse-summary-and-rest, icalendar--format-ical-event):
+	Export UID.
+
 2012-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--expand): Accept different sets of vars in
