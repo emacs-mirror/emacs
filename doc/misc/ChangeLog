@@ -1,3 +1,8 @@
+2012-05-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* Makefile.in (echo-info): Don't try to install info files named
+	just ".info".
+
 2012-05-28  Glenn Morris  <rgm@gnu.org>
 
 	* calc.texi, dired-x.texi: Use @LaTeX rather than La@TeX.  (Bug#10910)
