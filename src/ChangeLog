@@ -1,6 +1,6 @@
 2012-05-29  Troels Nielsen  <bn.troels@gmail.com>
 
-	Do not avoid creating empty evaporating overlays (Bug#9642).
+	Do not create empty overlays with the evaporate property (Bug#9642).
 	* buffer.c (Fmove_overlay): Reinstate the earlier fix for
 	Bug#9642, but explicitly check that the buffer the overlay would
 	be moved to is live and rearrange lines to make sure that errors
