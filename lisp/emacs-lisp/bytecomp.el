@@ -1478,40 +1478,46 @@ symbol itself."
 
 (defmacro byte-compile-constp (form)
   "Return non-nil if FORM is a constant."
-  `(cond ((consp ,form) (eq (car ,form) 'quote))
+  `(cond ((consp ,form) (or (eq (car ,form) 'quote)
+                            (and (eq (car ,form) 'function)
+                                 (symbolp (cadr ,form)))))
 	 ((not (symbolp ,form)))
 	 ((byte-compile-const-symbol-p ,form))))
 
+;; Dynamically bound in byte-compile-from-buffer.
+;; NB also used in cl.el and cl-macs.el.
+(defvar byte-compile--outbuffer)
+
 (defmacro byte-compile-close-variables (&rest body)
   (declare (debug t))
-  (cons 'let
-	(cons '(;;
-		;; Close over these variables to encapsulate the
-		;; compilation state
-		;;
-		(byte-compile-macro-environment
-		 ;; Copy it because the compiler may patch into the
-		 ;; macroenvironment.
-		 (copy-alist byte-compile-initial-macro-environment))
-		(byte-compile-function-environment nil)
-		(byte-compile-bound-variables nil)
-		(byte-compile-const-variables nil)
-		(byte-compile-free-references nil)
-		(byte-compile-free-assignments nil)
-		;;
-		;; Close over these variables so that `byte-compiler-options'
-		;; can change them on a per-file basis.
-		;;
-		(byte-compile-verbose byte-compile-verbose)
-		(byte-optimize byte-optimize)
-		(byte-compile-dynamic byte-compile-dynamic)
-		(byte-compile-dynamic-docstrings
-		 byte-compile-dynamic-docstrings)
-;; 		(byte-compile-generate-emacs19-bytecodes
-;; 		 byte-compile-generate-emacs19-bytecodes)
-		(byte-compile-warnings byte-compile-warnings)
-		)
-	      body)))
+  `(let (;;
+         ;; Close over these variables to encapsulate the
+         ;; compilation state
+         ;;
+         (byte-compile-macro-environment
+          ;; Copy it because the compiler may patch into the
+          ;; macroenvironment.
+          (copy-alist byte-compile-initial-macro-environment))
+         (byte-compile--outbuffer nil)
+         (byte-compile-function-environment nil)
+         (byte-compile-bound-variables nil)
+         (byte-compile-const-variables nil)
+         (byte-compile-free-references nil)
+         (byte-compile-free-assignments nil)
+         ;;
+         ;; Close over these variables so that `byte-compiler-options'
+         ;; can change them on a per-file basis.
+         ;;
+         (byte-compile-verbose byte-compile-verbose)
+         (byte-optimize byte-optimize)
+         (byte-compile-dynamic byte-compile-dynamic)
+         (byte-compile-dynamic-docstrings
+          byte-compile-dynamic-docstrings)
+         ;; 		(byte-compile-generate-emacs19-bytecodes
+         ;; 		 byte-compile-generate-emacs19-bytecodes)
+         (byte-compile-warnings byte-compile-warnings)
+         )
+     ,@body))
 
 (defmacro displaying-byte-compile-warnings (&rest body)
   (declare (debug t))
@@ -1852,13 +1858,8 @@ With argument ARG, insert value in current buffer after the form."
 	     (insert "\n"))
 	    ((message "%s" (prin1-to-string value)))))))
 
-;; Dynamically bound in byte-compile-from-buffer.
-;; NB also used in cl.el and cl-macs.el.
-(defvar byte-compile--outbuffer)
-
 (defun byte-compile-from-buffer (inbuffer)
-  (let (byte-compile--outbuffer
-	(byte-compile-current-buffer inbuffer)
+  (let ((byte-compile-current-buffer inbuffer)
 	(byte-compile-read-position nil)
 	(byte-compile-last-position nil)
 	;; Prevent truncation of flonums and lists as we read and print them
@@ -1930,8 +1931,8 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
       ;; if the buffer contains multibyte characters.
       (and byte-compile-current-file
 	   (with-current-buffer byte-compile--outbuffer
-	     (byte-compile-fix-header byte-compile-current-file)))))
-    byte-compile--outbuffer))
+	     (byte-compile-fix-header byte-compile-current-file))))
+     byte-compile--outbuffer)))
 
 (defun byte-compile-fix-header (filename)
   "If the current buffer has any multibyte characters, insert a version test."

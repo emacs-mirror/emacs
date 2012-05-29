@@ -206,9 +206,12 @@ of the form (UPAT EXP)."
                                           (setq vars (delq v vars))
                                           (cdr v)))
                                       prevvars)))
-                    (when vars          ;New additional vars.
-                      (error "The vars %s are only bound in some paths"
-                             (mapcar #'car vars)))
+                    ;; If some of `vars' were not found in `prevvars', that's
+                    ;; OK it just means those vars aren't present in all
+                    ;; branches, so they can be used within the pattern
+                    ;; (e.g. by a `guard/let/pred') but not in the branch.
+                    ;; FIXME: But if some of `prevvars' are not in `vars' we
+                    ;; should remove them from `prevvars'!
                     `(funcall ,res ,@args)))))))
          (main
           (pcase--u
@@ -225,7 +228,10 @@ of the form (UPAT EXP)."
       (pcase--let* defs main))))
 
 (defun pcase-codegen (code vars)
-  `(let* ,(mapcar (lambda (b) (list (car b) (cdr b))) vars)
+  ;; Don't use let*, otherwise pcase--let* may merge it with some surrounding
+  ;; let* which might prevent the setcar/setcdr in pcase--expand's fancy
+  ;; codegen from later metamorphosing this let into a funcall.
+  `(let ,(mapcar (lambda (b) (list (car b) (cdr b))) vars)
      ,@code))
 
 (defun pcase--small-branch-p (code)
@@ -619,6 +625,7 @@ Otherwise, it defers to REST which is a list of branches of the form
                        sym (apply-partially #'pcase--split-member elems) rest))
                      (then-rest (car splitrest))
                      (else-rest (cdr splitrest)))
+                (put sym 'pcase-used t)
                 (pcase--if `(,(if memq-fine #'memq #'member) ,sym ',elems)
                            (pcase--u1 matches code vars then-rest)
                            (pcase--u else-rest)))

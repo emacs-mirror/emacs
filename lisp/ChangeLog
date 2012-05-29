@@ -1,3 +1,17 @@
+2012-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--expand): Accept different sets of vars in
+	different alternative patterns.
+	(pcase-codegen): Be more careful to preserve identity.
+	(pcase--u1): Don't forget to mark vars as used.
+
+	* emacs-lisp/bytecomp.el (byte-compile-constp): Treat #'v as a constant.
+	(byte-compile-close-variables): Bind byte-compile--outbuffer here...
+	(byte-compile-from-buffer): ...rather than here.
+
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Don't re-preprocess
+	functions from byte-compile-function-environment.
+
 2012-05-29  Troels Nielsen  <bn.troels@gmail.com>
 
 	* window.el (window-deletable-p): Avoid deleting the root window

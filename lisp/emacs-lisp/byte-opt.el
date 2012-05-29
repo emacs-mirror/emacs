@@ -288,10 +288,14 @@
                  (push `(,(car binding) ',(cdr binding)) renv)))
               ((eq binding t))
               (t (push `(defvar ,binding) body))))
-           (let ((newfn (byte-compile-preprocess
-                         (if (null renv)
-                             `(lambda ,args ,@body)
-                           `(lambda ,args (let ,(nreverse renv) ,@body))))))
+           (let ((newfn (if (eq fn localfn)
+                            ;; If `fn' is from the same file, it has already
+                            ;; been preprocessed!
+                            `(function ,fn)
+                          (byte-compile-preprocess
+                           (if (null renv)
+                               `(lambda ,args ,@body)
+                             `(lambda ,args (let ,(nreverse renv) ,@body)))))))
              (if (eq (car-safe newfn) 'function)
                  (byte-compile-unfold-lambda `(,(cadr newfn) ,@(cdr form)))
                (byte-compile-log-warning
