@@ -315,7 +315,7 @@ supports it in developing GNU and promoting software freedom.''
 @contents
 
 @ifnottex
-@node Top, Preface, (dir), (dir)
+@node Top
 @top An Introduction to Programming in Emacs Lisp
 
 @insertcopying
@@ -829,8 +829,7 @@ Printing the Whole Graph
 @end detailmenu
 @end menu
 
-@node Preface, List Processing, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Preface
 @unnumbered Preface
 
 Most of the GNU Emacs integrated environment is written in the programming
@@ -858,8 +857,8 @@ editing in the most general sense of the word.)
 * Thank You::
 @end menu
 
-@node Why, On Reading this Text, Preface, Preface
 @ifnottex
+@node Why
 @unnumberedsec Why Study Emacs Lisp?
 @end ifnottex
 
@@ -873,8 +872,7 @@ Emacs Lisp is designed to get you started: to guide you in learning the
 fundamentals of programming, and more importantly, to show you how you
 can teach yourself to go further.
 
-@node On Reading this Text, Who You Are, Why, Preface
-@comment  node-name,  next,  previous,  up
+@node On Reading this Text
 @unnumberedsec On Reading this Text
 
 All through this document, you will see little sample programs you can
@@ -924,8 +922,7 @@ Emacs to help you understand what puzzles you or to find out how to do
 something new.  This self-reliance is not only a pleasure, but an
 advantage.
 
-@node Who You Are, Lisp History, On Reading this Text, Preface
-@comment  node-name,  next,  previous,  up
+@node Who You Are
 @unnumberedsec For Whom This is Written
 
 This text is written as an elementary introduction for people who are
@@ -987,7 +984,7 @@ quoted above.  And, of course, after you have read this
 @cite{Introduction}, you will find the @cite{Reference Manual} useful
 when you are writing your own programs.
 
-@node Lisp History, Note for Novices, Who You Are, Preface
+@node Lisp History
 @unnumberedsec Lisp History
 @cindex Lisp history
 
@@ -1004,8 +1001,7 @@ standard in the 1980s.  However, Emacs Lisp is much simpler than Common
 Lisp.  (The standard Emacs distribution contains an optional extensions
 file, @file{cl.el}, that adds many Common Lisp features to Emacs Lisp.)
 
-@node Note for Novices, Thank You, Lisp History, Preface
-@comment  node-name,  next,  previous,  up
+@node Note for Novices
 @unnumberedsec A Note for Novices
 
 If you don't know GNU Emacs, you can still read this document
@@ -1052,8 +1048,7 @@ A note on terminology:  when I use the word Lisp alone, I often am
 referring to the various dialects of Lisp in general, but when I speak
 of Emacs Lisp, I am referring to GNU Emacs Lisp in particular.
 
-@node Thank You,  , Note for Novices, Preface
-@comment  node-name,  next,  previous,  up
+@node Thank You
 @unnumberedsec Thank You
 
 My thanks to all who helped me with this book.  My especial thanks to
@@ -1099,8 +1094,7 @@ Robert J. Chassell
 @global@pageno = 1
 @end iftex
 
-@node List Processing, Practicing Evaluation, Preface, Top
-@comment  node-name,  next,  previous,  up
+@node List Processing
 @chapter List Processing
 
 To the untutored eye, Lisp is a strange programming language.  In Lisp
@@ -1129,8 +1123,7 @@ Errors, , Generate an Error Message}.}  Lists are the basis of Lisp.
 * Error Message Exercises::
 @end menu
 
-@node Lisp Lists, Run a Program, List Processing, List Processing
-@comment  node-name,  next,  previous,  up
+@node Lisp Lists
 @section Lisp Lists
 @cindex Lisp Lists
 
@@ -1161,8 +1154,8 @@ like flowers in a field with a stone wall around them.
 * Typing Lists::                How GNU Emacs helps you type lists.
 @end menu
 
-@node Numbers Lists, Lisp Atoms, Lisp Lists, Lisp Lists
 @ifnottex
+@node Numbers Lists
 @unnumberedsubsec Numbers, Lists inside of Lists
 @end ifnottex
 
@@ -1190,8 +1183,7 @@ The components of this list are the words @samp{this}, @samp{list},
 list is made up of the words @samp{a}, @samp{list}, @samp{inside},
 @samp{of}, @samp{it}.
 
-@node Lisp Atoms, Whitespace in Lists, Numbers Lists, Lisp Lists
-@comment  node-name,  next,  previous,  up
+@node Lisp Atoms
 @subsection Lisp Atoms
 @cindex Lisp Atoms
 
@@ -1271,8 +1263,7 @@ is used for messages that a computer can print for a human to read.
 Strings are a different kind of atom than numbers or symbols and are
 used differently.
 
-@node Whitespace in Lists, Typing Lists, Lisp Atoms, Lisp Lists
-@comment  node-name,  next,  previous,  up
+@node Whitespace in Lists
 @subsection Whitespace in Lists
 @cindex Whitespace in lists
 
@@ -1312,8 +1303,7 @@ marks, a symbol looks like a word, and a number looks like a number.
 (For certain situations, square brackets, dots and a few other special
 characters may be used; however, we will go quite far without them.)
 
-@node Typing Lists,  , Whitespace in Lists, Lisp Lists
-@comment  node-name,  next,  previous,  up
+@node Typing Lists
 @subsection GNU Emacs Helps You Type Lists
 @cindex Help typing lists
 @cindex Formatting help
@@ -1335,8 +1325,7 @@ in Lisp must have its closing parenthesis match its opening
 parenthesis.  (@xref{Major Modes, , Major Modes, emacs, The GNU Emacs
 Manual}, for more information about Emacs's modes.)
 
-@node Run a Program, Making Errors, Lisp Lists, List Processing
-@comment  node-name,  next,  previous,  up
+@node Run a Program
 @section Run a Program
 @cindex Run a program
 @cindex Program, running one
@@ -1398,8 +1387,7 @@ from the humanly readable expression to the language of the computer.
 But before discussing this (@pxref{Variables}), we will discuss what the
 Lisp interpreter does when you make an error.
 
-@node Making Errors, Names & Definitions, Run a Program, List Processing
-@comment  node-name,  next,  previous,  up
+@node Making Errors
 @section Generate an Error Message
 @cindex Generate an error message
 @cindex Error message generation
@@ -1549,8 +1537,7 @@ The error message can be understood: @samp{Symbol's function
 definition is void:@: this}.  The symbol (that is, the word
 @samp{this}) lacks instructions for the computer to carry out.
 
-@node Names & Definitions, Lisp Interpreter, Making Errors, List Processing
-@comment  node-name,  next,  previous,  up
+@node Names & Definitions
 @section Symbol Names and Function Definitions
 @cindex Symbol names
 
@@ -1584,8 +1571,7 @@ Thus, all the names for functions that deal with Texinfo start with
 @samp{texinfo-} and those for functions that deal with reading mail
 start with @samp{rmail-}.
 
-@node Lisp Interpreter, Evaluation, Names & Definitions, List Processing
-@comment  node-name,  next,  previous,  up
+@node Lisp Interpreter
 @section The Lisp Interpreter
 @cindex Lisp interpreter, what it does
 @cindex Interpreter, what it does
@@ -1610,8 +1596,8 @@ yourself or the computer.
 * Byte Compiling::              Specially processing code for speed.
 @end menu
 
-@node Complications, Byte Compiling, Lisp Interpreter, Lisp Interpreter
 @ifnottex
+@node Complications
 @unnumberedsubsec Complications
 @end ifnottex
 
@@ -1642,7 +1628,7 @@ used by the enclosing expression.
 Otherwise, the interpreter works left to right, from one expression to
 the next.
 
-@node Byte Compiling,  , Complications, Lisp Interpreter
+@node Byte Compiling
 @subsection Byte Compiling
 @cindex Byte compiling
 
@@ -1665,8 +1651,7 @@ the topic here.  @xref{Byte Compilation, , Byte Compilation, elisp,
 The GNU Emacs Lisp Reference Manual}, for a full description of byte
 compilation.
 
-@node Evaluation, Variables, Lisp Interpreter, List Processing
-@comment  node-name,  next,  previous,  up
+@node Evaluation
 @section Evaluation
 @cindex Evaluation
 
@@ -1682,8 +1667,8 @@ Collegiate Dictionary}.
 * Evaluating Inner Lists::      Lists within lists...
 @end menu
 
-@node How the Interpreter Acts, Evaluating Inner Lists, Evaluation, Evaluation
 @ifnottex
+@node How the Interpreter Acts
 @unnumberedsubsec How the Lisp Interpreter Acts
 @end ifnottex
 
@@ -1709,8 +1694,7 @@ In summary, evaluating a symbolic expression most commonly causes the
 Lisp interpreter to return a value and perhaps carry out a side effect;
 or else produce an error.
 
-@node Evaluating Inner Lists,  , How the Interpreter Acts, Evaluation
-@comment  node-name,  next,  previous,  up
+@node Evaluating Inner Lists
 @subsection Evaluating Inner Lists
 @cindex Inner list evaluation
 @cindex Evaluating inner lists
@@ -1773,8 +1757,7 @@ instructions in the function definition attached to that name.  If a
 symbol by itself is evaluated, something different happens, as we will
 see in the next section.
 
-@node Variables, Arguments, Evaluation, List Processing
-@comment  node-name,  next,  previous,  up
+@node Variables
 @section Variables
 @cindex Variables
 
@@ -1813,8 +1796,8 @@ function definition, and vice-verse.
 * Void Variable::               The error message for a symbol without a value.
 @end menu
 
-@node fill-column Example, Void Function, Variables, Variables
 @ifnottex
+@node fill-column Example
 @unnumberedsubsec @code{fill-column}, an Example Variable
 @end ifnottex
 
@@ -1851,8 +1834,7 @@ A symbol can be bound to a value in several ways.  @xref{set & setq, ,
 Setting the Value of a Variable}, for information about one way to do
 this.
 
-@node Void Function, Void Variable, fill-column Example, Variables
-@comment  node-name,  next,  previous,  up
+@node Void Function
 @subsection Error Message for a Symbol Without a Function
 @cindex Symbol without function error
 @cindex Error for symbol without function
@@ -1904,8 +1886,7 @@ Symbol's function definition is void:@: fill-column
 another key.)
 @end ignore
 
-@node Void Variable,  , Void Function, Variables
-@comment  node-name,  next,  previous,  up
+@node Void Variable
 @subsection Error Message for a Symbol Without a Value
 @cindex Symbol without value error
 @cindex Error for symbol without value
@@ -1971,8 +1952,7 @@ Symbol's value as variable is void:@: +
 The meaning is the same as in GNU Emacs 22.
 @end ignore
 
-@node Arguments, set & setq, Variables, List Processing
-@comment  node-name,  next,  previous,  up
+@node Arguments
 @section Arguments
 @cindex Arguments
 @cindex Passing information to functions
@@ -2025,8 +2005,7 @@ have two different function definitions at the same time.)}
 * message::                     A useful function for sending messages.
 @end menu
 
-@node Data types, Args as Variable or List, Arguments, Arguments
-@comment  node-name,  next,  previous,  up
+@node Data types
 @subsection Arguments' Data Types
 @cindex Data types
 @cindex Types of data
@@ -2080,8 +2059,7 @@ and extracts a part.  However, @code{substring} is only able to extract
 a substring from an argument that is a string, not from another type of
 atom such as a number or symbol.
 
-@node Args as Variable or List, Variable Number of Arguments, Data types, Arguments
-@comment  node-name,  next,  previous,  up
+@node Args as Variable or List
 @subsection An Argument as the Value of a Variable or List
 
 An argument can be a symbol that returns a value when it is evaluated.
@@ -2122,8 +2100,7 @@ the final string.  The function @code{number-to-string} converts the
 integer that the addition function returns to a string.
 @code{number-to-string} is also known as @code{int-to-string}.)
 
-@node Variable Number of Arguments, Wrong Type of Argument, Args as Variable or List, Arguments
-@comment  node-name,  next,  previous,  up
+@node Variable Number of Arguments
 @subsection Variable Number of Arguments
 @cindex Variable number of arguments
 @cindex Arguments, variable number of
@@ -2167,8 +2144,7 @@ In this set, the functions have three arguments each:
 @end group
 @end smallexample
 
-@node Wrong Type of Argument, message, Variable Number of Arguments, Arguments
-@comment  node-name,  next,  previous,  up
+@node Wrong Type of Argument
 @subsection Using the Wrong Type Object as an Argument
 @cindex Wrong type of argument
 @cindex Argument, wrong type of
@@ -2262,8 +2238,7 @@ This says, in different words, the same as the top line of the
 @file{*Backtrace*} buffer.
 @end ignore
 
-@node message,  , Wrong Type of Argument, Arguments
-@comment  node-name,  next,  previous,  up
+@node message
 @subsection The @code{message} Function
 @findex message
 
@@ -2375,8 +2350,7 @@ When your fill column is 70 and you evaluate the expression, the
 message @code{"He saw 38 red foxes leaping."} appears in your echo
 area.
 
-@node set & setq, Summary, Arguments, List Processing
-@comment  node-name,  next,  previous,  up
+@node set & setq
 @section Setting the Value of a Variable
 @cindex Variable, setting value
 @cindex Setting value of variable
@@ -2396,8 +2370,7 @@ work but also illustrate how arguments are passed.
 * Counting::                   Using @code{setq} to count.
 @end menu
 
-@node Using set, Using setq, set & setq, set & setq
-@comment  node-name,  next,  previous,  up
+@node Using set
 @subsection Using @code{set}
 @findex set
 
@@ -2453,8 +2426,7 @@ a value after it was evaluated, the @code{set} would attempt to set
 the value that was returned.  There are situations where this is the
 right thing for the function to do; but such situations are rare.)
 
-@node Using setq, Counting, Using set, set & setq
-@comment  node-name,  next,  previous,  up
+@node Using setq
 @subsection Using @code{setq}
 @findex setq
 
@@ -2514,8 +2486,7 @@ part of its name.  The name is chosen because the symbol has a value,
 specifically a list, attached to it; or, expressed another way,
 the symbol is set to ``point'' to the list.
 
-@node Counting,  , Using setq, set & setq
-@comment  node-name,  next,  previous,  up
+@node Counting
 @subsection Counting
 @cindex Counting
 
@@ -2561,8 +2532,7 @@ is then returned as the value of the inner list and passed to the
 @code{setq} which sets the variable @code{counter} to this new value.
 Thus, the value of the variable, @code{counter}, is changed.
 
-@node Summary, Error Message Exercises, set & setq, List Processing
-@comment  node-name,  next,  previous,  up
+@node Summary
 @section Summary
 
 Learning Lisp is like climbing a hill in which the first part is the
@@ -2624,8 +2594,7 @@ an error); in addition, it may also carry out some action called a
 create a side effect.
 @end itemize
 
-@node Error Message Exercises,  , Summary, List Processing
-@comment  node-name,  next,  previous,  up
+@node Error Message Exercises
 @section Exercises
 
 A few simple exercises:
@@ -2647,8 +2616,7 @@ Write an expression that prints a message in the echo area when
 evaluated.
 @end itemize
 
-@node Practicing Evaluation, Writing Defuns, List Processing, Top
-@comment  node-name,  next,  previous,  up
+@node Practicing Evaluation
 @chapter Practicing Evaluation
 @cindex Practicing evaluation
 @cindex Evaluation practice
@@ -2673,8 +2641,8 @@ buffer-related functions, to see how they were written.
 * Evaluation Exercise::
 @end menu
 
-@node How to Evaluate, Buffer Names, Practicing Evaluation, Practicing Evaluation
 @ifnottex
+@node How to Evaluate
 @unnumberedsec How to Evaluate
 @end ifnottex
 
@@ -2705,8 +2673,7 @@ next few sections are important in their own right.  A study of these
 functions makes clear the distinction between buffers and files, how to
 switch to a buffer, and how to determine a location within it.
 
-@node Buffer Names, Getting Buffers, How to Evaluate, Practicing Evaluation
-@comment  node-name,  next,  previous,  up
+@node Buffer Names
 @section Buffer Names
 @findex buffer-name
 @findex buffer-file-name
@@ -2831,8 +2798,7 @@ you to change the contents of the buffer.  But you can do this in any
 buffer you can edit; and when you write code or documentation (such as
 this book), this feature is very useful.
 
-@node Getting Buffers, Switching Buffers, Buffer Names, Practicing Evaluation
-@comment  node-name,  next,  previous,  up
+@node Getting Buffers
 @section Getting Buffers
 @findex current-buffer
 @findex other-buffer
@@ -2900,8 +2866,7 @@ just switched is visible to you in another window, @code{other-buffer}
 will choose the most recent buffer that you cannot see; this is a
 subtlety that I often forget.}.
 
-@node Switching Buffers, Buffer Size & Locations, Getting Buffers, Practicing Evaluation
-@comment  node-name,  next,  previous,  up
+@node Switching Buffers
 @section Switching Buffers
 @findex switch-to-buffer
 @findex set-buffer
@@ -2990,8 +2955,7 @@ the function as an entity that can do something for you if you `call'
 it---just as a plumber is an entity who can fix a leak if you call him
 or her.
 
-@node Buffer Size & Locations, Evaluation Exercise, Switching Buffers, Practicing Evaluation
-@comment  node-name,  next,  previous,  up
+@node Buffer Size & Locations
 @section Buffer Size and the Location of Point
 @cindex Size of buffer
 @cindex Buffer size
@@ -3058,14 +3022,13 @@ or a program, to operations on just a part of a buffer.
 function @code{point-max} returns the value of the maximum permissible
 value of point in the current buffer.
 
-@node Evaluation Exercise,  , Buffer Size & Locations, Practicing Evaluation
+@node Evaluation Exercise
 @section Exercise
 
 Find a file with which you are working and move towards its middle.
 Find its buffer name, file name, length, and your position in the file.
 
-@node Writing Defuns, Buffer Walk Through, Practicing Evaluation, Top
-@comment  node-name,  next,  previous,  up
+@node Writing Defuns
 @chapter How To Write Function Definitions
 @cindex Definition writing
 @cindex Function definition writing
@@ -3095,8 +3058,8 @@ symbol refers to it.)
 * defun Exercises::
 @end menu
 
-@node Primitive Functions, defun, Writing Defuns, Writing Defuns
 @ifnottex
+@node Primitive Functions
 @unnumberedsec An Aside about Primitive Functions
 @end ifnottex
 @cindex Primitive functions
@@ -3121,8 +3084,7 @@ mention the distinction only because it is interesting to know.  Indeed,
 unless you investigate, you won't know whether an already-written
 function is written in Emacs Lisp or C.
 
-@node defun, Install, Primitive Functions, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node defun
 @section The @code{defun} Special Form
 @findex defun
 @cindex Special form of @code{defun}
@@ -3294,8 +3256,7 @@ Installing a function is the process that tells the Lisp interpreter the
 definition of the function.  Installation is described in the next
 section.
 
-@node Install, Interactive, defun, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node Install
 @section Install a Function Definition
 @cindex Install a Function Definition
 @cindex Definition installation
@@ -3332,8 +3293,8 @@ Emacs.  To reload code automatically whenever you start Emacs, see
 * Change a defun::              How to change a function definition.
 @end menu
 
-@node Effect of installation, Change a defun, Install, Install
 @ifnottex
+@node Effect of installation
 @unnumberedsubsec The effect of installation
 @end ifnottex
 
@@ -3363,8 +3324,7 @@ Multiply NUMBER by seven.
 @noindent
 (To return to a single window on your screen, type @kbd{C-x 1}.)
 
-@node Change a defun,  , Effect of installation, Install
-@comment  node-name,  next,  previous,  up
+@node Change a defun
 @subsection Change a Function Definition
 @cindex Changing a function definition
 @cindex Function definition, how to change
@@ -3409,8 +3369,7 @@ In summary, this is how you write code in Emacs Lisp: you write a
 function; install it; test it; and then make fixes or enhancements and
 install it again.
 
-@node Interactive, Interactive Options, Install, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node Interactive
 @section Make a Function Interactive
 @cindex Interactive functions
 @findex interactive
@@ -3434,8 +3393,8 @@ each time you typed a key, it would be very distracting.
 * multiply-by-seven in detail::    The interactive version.
 @end menu
 
-@node Interactive multiply-by-seven, multiply-by-seven in detail, Interactive, Interactive
 @ifnottex
+@node Interactive multiply-by-seven
 @unnumberedsubsec An Interactive @code{multiply-by-seven}, An Overview
 @end ifnottex
 
@@ -3490,8 +3449,7 @@ A prefix argument is passed to an interactive function by typing the
 typing @kbd{C-u} and then a number, for example, @kbd{C-u 3 M-e} (if you
 type @kbd{C-u} without a number, it defaults to 4).
 
-@node multiply-by-seven in detail,  , Interactive multiply-by-seven, Interactive
-@comment  node-name,  next,  previous,  up
+@node multiply-by-seven in detail
 @subsection An Interactive @code{multiply-by-seven}
 
 Let's look at the use of the special form @code{interactive} and then at
@@ -3560,8 +3518,7 @@ expression whose first element is @code{message}; but when embedded in a
 function, @code{message} prints the text as a side effect without
 quotes.)
 
-@node Interactive Options, Permanent Installation, Interactive, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node Interactive Options
 @section Different Options for @code{interactive}
 @cindex Options for @code{interactive}
 @cindex Interactive options
@@ -3639,8 +3596,7 @@ for an example.  @xref{Using Interactive, , Using @code{Interactive},
 elisp, The GNU Emacs Lisp Reference Manual}, for a more complete
 explanation about this technique.
 
-@node Permanent Installation, let, Interactive Options, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node Permanent Installation
 @section Install Code Permanently
 @cindex Install code permanently
 @cindex Permanent code installation
@@ -3688,8 +3644,7 @@ the Free Software Foundation, and properly protect yourself and
 others, it may be included in the next release of Emacs.  In large
 part, this is how Emacs has grown over the past years, by donations.
 
-@node let, if, Permanent Installation, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node let
 @section @code{let}
 @findex let
 
@@ -3721,8 +3676,8 @@ and the two are not intended to refer to the same value.  The
 * Uninitialized let Variables::
 @end menu
 
-@node Prevent confusion, Parts of let Expression, let, let
 @ifnottex
+@node Prevent confusion
 @unnumberedsubsec @code{let} Prevents Confusion
 @end ifnottex
 
@@ -3760,8 +3715,7 @@ meaning `to give practical effect to' (@cite{Oxford English
 Dictionary}).  Since you evaluate an expression to perform an action,
 `execute' has evolved as a synonym to `evaluate'.)
 
-@node Parts of let Expression, Sample let Expression, Prevent confusion, let
-@comment  node-name,  next,  previous,  up
+@node Parts of let Expression
 @subsection The Parts of a @code{let} Expression
 @cindex @code{let} expression, parts of
 @cindex Parts of @code{let} expression
@@ -3809,8 +3763,7 @@ the template for the @code{let} expression looks like this:
 @end group
 @end smallexample
 
-@node Sample let Expression, Uninitialized let Variables, Parts of let Expression, let
-@comment  node-name,  next,  previous,  up
+@node Sample let Expression
 @subsection Sample @code{let} Expression
 @cindex Sample @code{let} expression
 @cindex @code{let} expression sample
@@ -3860,8 +3813,7 @@ argument, except for @samp{%s}.  In this example, the value of the variable
 value of the variable @code{tiger} is printed at the location of the
 second @samp{%s}.
 
-@node Uninitialized let Variables,  , Sample let Expression, let
-@comment  node-name,  next,  previous,  up
+@node Uninitialized let Variables
 @subsection Uninitialized Variables in a @code{let} Statement
 @cindex Uninitialized @code{let} variables
 @cindex @code{let} variables uninitialized
@@ -3909,8 +3861,7 @@ number is printed in the message using a @samp{%d} rather than a
 @samp{%s}.)  The four variables as a group are put into a list to
 delimit them from the body of the @code{let}.
 
-@node if, else, let, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node if
 @section The @code{if} Special Form
 @findex if
 @cindex Conditional with @code{if}
@@ -3932,8 +3883,8 @@ such as, ``if it is warm and sunny, then go to the beach!''
 * type-of-animal in detail::    An example of an @code{if} expression.
 @end menu
 
-@node if in more detail, type-of-animal in detail, if, if
 @ifnottex
+@node if in more detail
 @unnumberedsubsec @code{if} in more detail
 @end ifnottex
 
@@ -4023,8 +3974,7 @@ following message printed in the echo area: @code{"It's a tiger!"}; and
 when you evaluate @code{(type-of-animal 'zebra)} you will see @code{nil}
 printed in the echo area.
 
-@node type-of-animal in detail,  , if in more detail, if
-@comment  node-name,  next,  previous,  up
+@node type-of-animal in detail
 @subsection The @code{type-of-animal} Function in Detail
 
 Let's look at the @code{type-of-animal} function in detail.
@@ -4111,8 +4061,7 @@ argument @code{zebra} is passed to @code{type-of-animal}.  @code{zebra}
 is not equal to @code{fierce}, so the then-part is not evaluated and
 @code{nil} is returned by the @code{if} expression.
 
-@node else, Truth & Falsehood, if, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node else
 @section If--then--else Expressions
 @cindex Else
 
@@ -4200,8 +4149,7 @@ misleading!  When you write code, you need to take into account the
 possibility that some such argument will be tested by the @code{if}
 and write your program accordingly.)
 
-@node Truth & Falsehood, save-excursion, else, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node Truth & Falsehood
 @section Truth and Falsehood in Emacs Lisp
 @cindex Truth and falsehood in Emacs Lisp
 @cindex Falsehood and truth in Emacs Lisp
@@ -4224,8 +4172,8 @@ long as it is not empty), or even a buffer!
 * nil explained::               @code{nil} has two meanings.
 @end menu
 
-@node nil explained,  , Truth & Falsehood, Truth & Falsehood
 @ifnottex
+@node nil explained
 @unnumberedsubsec An explanation of @code{nil}
 @end ifnottex
 
@@ -4288,8 +4236,7 @@ On the other hand, this function returns @code{nil} if the test is false.
 (> 4 5)
 @end smallexample
 
-@node save-excursion, Review, Truth & Falsehood, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node save-excursion
 @section @code{save-excursion}
 @findex save-excursion
 @cindex Region, what it is
@@ -4313,8 +4260,8 @@ unexpected movement of point or mark.
 * Template for save-excursion::
 @end menu
 
-@node Point and mark, Template for save-excursion, save-excursion, save-excursion
 @ifnottex
+@node Point and mark
 @unnumberedsubsec Point and Mark
 @end ifnottex
 
@@ -4371,8 +4318,7 @@ have @code{save-excursion} switch you back to the original buffer.
 This is how @code{save-excursion} is used in @code{append-to-buffer}.
 (@xref{append-to-buffer, , The Definition of @code{append-to-buffer}}.)
 
-@node Template for save-excursion,  , Point and mark, save-excursion
-@comment  node-name,  next,  previous,  up
+@node Template for save-excursion
 @subsection Template for a @code{save-excursion} Expression
 
 @need 800
@@ -4423,8 +4369,7 @@ within the body of a @code{let} expression.  It looks like this:
 @end group
 @end smallexample
 
-@node Review, defun Exercises, save-excursion, Writing Defuns
-@comment  node-name,  next,  previous,  up
+@node Review
 @section Review
 
 In the last few chapters we have introduced a fair number of functions
@@ -4677,7 +4622,7 @@ effect.
 @end table
 
 @need 1500
-@node defun Exercises,  , Review, Writing Defuns
+@node defun Exercises
 @section Exercises
 
 @itemize @bullet
@@ -4691,8 +4636,7 @@ Write a function that tests whether the current value of
 and if so, prints an appropriate message.
 @end itemize
 
-@node Buffer Walk Through, More Complex, Writing Defuns, Top
-@comment  node-name,  next,  previous,  up
+@node Buffer Walk Through
 @chapter A Few Buffer--Related Functions
 
 In this chapter we study in detail several of the functions used in GNU
@@ -4714,7 +4658,7 @@ buffers.  Later, we will study other functions.
 * Buffer Exercises::
 @end menu
 
-@node Finding More, simplified-beginning-of-buffer, Buffer Walk Through, Buffer Walk Through
+@node Finding More
 @section Finding More Information
 
 @findex describe-function, @r{introduced}
@@ -4810,8 +4754,7 @@ In @cite{The GNU Emacs Manual}, you will see sentences such as ``The
 @kbd{C-h p} command lets you search the standard Emacs Lisp libraries
 by topic keywords.''
 
-@node simplified-beginning-of-buffer, mark-whole-buffer, Finding More, Buffer Walk Through
-@comment  node-name,  next,  previous,  up
+@node simplified-beginning-of-buffer
 @section A Simplified @code{beginning-of-buffer} Definition
 @findex simplified-beginning-of-buffer
 
@@ -4939,8 +4882,7 @@ the @code{beginning-of-buffer} definition except that the body of the
 function contains the expression @code{(goto-char (point-max))} in place
 of @code{(goto-char (point-min))}.
 
-@node mark-whole-buffer, append-to-buffer, simplified-beginning-of-buffer, Buffer Walk Through
-@comment  node-name,  next,  previous,  up
+@node mark-whole-buffer
 @section The Definition of @code{mark-whole-buffer}
 @findex mark-whole-buffer
 
@@ -4959,8 +4901,8 @@ h}.
 * Body of mark-whole-buffer::   Only three lines of code.
 @end menu
 
-@node mark-whole-buffer overview, Body of mark-whole-buffer, mark-whole-buffer, mark-whole-buffer
 @ifnottex
+@node mark-whole-buffer overview
 @unnumberedsubsec An overview of @code{mark-whole-buffer}
 @end ifnottex
 
@@ -5006,8 +4948,7 @@ to the @code{simplified-beginning-of-buffer} function described in the
 previous section.
 
 @need 1250
-@node Body of mark-whole-buffer,  , mark-whole-buffer overview, mark-whole-buffer
-@comment  node-name,  next,  previous,  up
+@node Body of mark-whole-buffer
 @subsection Body of @code{mark-whole-buffer}
 
 The body of the @code{mark-whole-buffer} function consists of three
@@ -5080,8 +5021,7 @@ result of this, point is placed at the beginning of the buffer and mark
 is set at the end of the buffer.  The whole buffer is, therefore, the
 region.
 
-@node append-to-buffer, Buffer Related Review, mark-whole-buffer, Buffer Walk Through
-@comment  node-name,  next,  previous,  up
+@node append-to-buffer
 @section The Definition of @code{append-to-buffer}
 @findex append-to-buffer
 
@@ -5097,8 +5037,8 @@ current buffer to a specified buffer.
 * append save-excursion::       How the @code{save-excursion} works.
 @end menu
 
-@node append-to-buffer overview, append interactive, append-to-buffer, append-to-buffer
 @ifnottex
+@node append-to-buffer overview
 @unnumberedsubsec An Overview of @code{append-to-buffer}
 @end ifnottex
 
@@ -5178,8 +5118,7 @@ described in the same order as in the argument list.
 Note that the documentation distinguishes between a buffer and its
 name.  (The function can handle either.)
 
-@node append interactive, append-to-buffer body, append-to-buffer overview, append-to-buffer
-@comment  node-name,  next,  previous,  up
+@node append interactive
 @subsection The @code{append-to-buffer} Interactive Expression
 
 Since the @code{append-to-buffer} function will be used interactively,
@@ -5247,8 +5186,7 @@ two arguments that follow the symbol @code{buffer} in the function's
 argument list (that is, @code{start} and @code{end}) to the values of
 point and mark.  That argument worked fine.)
 
-@node append-to-buffer body, append save-excursion, append interactive, append-to-buffer
-@comment  node-name,  next,  previous,  up
+@node append-to-buffer body
 @subsection The Body of @code{append-to-buffer}
 
 @ignore
@@ -5347,8 +5285,7 @@ not realize that the first parenthesis before @code{oldbuf} marks the
 boundary of the varlist and the second parenthesis marks the beginning
 of the two-element list, @code{(oldbuf (current-buffer))}.
 
-@node append save-excursion,  , append-to-buffer body, append-to-buffer
-@comment  node-name,  next,  previous,  up
+@node append save-excursion
 @subsection @code{save-excursion} in @code{append-to-buffer}
 
 The body of the @code{let} expression in @code{append-to-buffer}
@@ -5525,8 +5462,7 @@ complex function.  It shows how to use @code{let} and
 buffer.  Many function definitions use @code{let},
 @code{save-excursion}, and @code{set-buffer} this way.
 
-@node Buffer Related Review, Buffer Exercises, append-to-buffer, Buffer Walk Through
-@comment  node-name,  next,  previous,  up
+@node Buffer Related Review
 @section Review
 
 Here is a brief summary of the various functions discussed in this chapter.
@@ -5578,7 +5514,7 @@ buffer does not exist.
 @end table
 
 @need 1500
-@node Buffer Exercises,  , Buffer Related Review, Buffer Walk Through
+@node Buffer Exercises
 @section Exercises
 
 @itemize @bullet
@@ -5595,8 +5531,7 @@ Using @code{find-tag}, find the source for the @code{copy-to-buffer}
 function.
 @end itemize
 
-@node More Complex, Narrowing & Widening, Buffer Walk Through, Top
-@comment  node-name,  next,  previous,  up
+@node More Complex
 @chapter A Few More Complex Functions
 
 In this chapter, we build on what we have learned in previous chapters
@@ -5616,8 +5551,7 @@ to which the name refers.
 * optional Exercise::
 @end menu
 
-@node copy-to-buffer, insert-buffer, More Complex, More Complex
-@comment  node-name,  next,  previous,  up
+@node copy-to-buffer
 @section The Definition of @code{copy-to-buffer}
 @findex copy-to-buffer
 
@@ -5695,8 +5629,7 @@ In outline, the body of @code{copy-to-buffer} looks like this:
 @end group
 @end smallexample
 
-@node insert-buffer, beginning-of-buffer, copy-to-buffer, More Complex
-@comment  node-name,  next,  previous,  up
+@node insert-buffer
 @section The Definition of @code{insert-buffer}
 @findex insert-buffer
 
@@ -5725,8 +5658,8 @@ between the name of an object and the object actually referred to.
 * New insert-buffer::
 @end menu
 
-@node insert-buffer code, insert-buffer interactive, insert-buffer, insert-buffer
 @ifnottex
+@node insert-buffer code
 @unnumberedsubsec The Code for @code{insert-buffer}
 @end ifnottex
 
@@ -5770,8 +5703,7 @@ outline of the function:
 @end group
 @end smallexample
 
-@node insert-buffer interactive, insert-buffer body, insert-buffer code, insert-buffer
-@comment  node-name,  next,  previous,  up
+@node insert-buffer interactive
 @subsection The Interactive Expression in @code{insert-buffer}
 @findex interactive, @r{example use of}
 
@@ -5784,8 +5716,7 @@ buffer:@: }.
 * b for interactive::           An existing buffer or else its name.
 @end menu
 
-@node Read-only buffer, b for interactive, insert-buffer interactive, insert-buffer interactive
-@comment  node-name,  next,  previous,  up
+@node Read-only buffer
 @unnumberedsubsubsec A Read-only Buffer
 @cindex Read-only buffer
 @cindex Asterisk for read-only buffer
@@ -5799,8 +5730,7 @@ may beep or blink at you; you will not be permitted to insert anything
 into current buffer.  The asterisk does not need to be followed by a
 newline to separate it from the next argument.
 
-@node b for interactive,  , Read-only buffer, insert-buffer interactive
-@comment  node-name,  next,  previous,  up
+@node b for interactive
 @unnumberedsubsubsec @samp{b} in an Interactive Expression
 
 The next argument in the interactive expression starts with a lower
@@ -5820,8 +5750,7 @@ It uses the @code{barf-if-buffer-read-only} and @code{read-buffer}
 functions with which we are already familiar and the @code{progn}
 special form with which we are not.  (It will be described later.)
 
-@node insert-buffer body, if & or, insert-buffer interactive, insert-buffer
-@comment  node-name,  next,  previous,  up
+@node insert-buffer body
 @subsection The Body of the @code{insert-buffer} Function
 
 The body of the @code{insert-buffer} function has two major parts: an
@@ -5856,8 +5785,7 @@ is first necessary to understand the @code{or} function.
 Before doing this, let me rewrite this part of the function using
 @code{if} so that you can see what is done in a manner that will be familiar.
 
-@node if & or, Insert or, insert-buffer body, insert-buffer
-@comment  node-name,  next,  previous,  up
+@node if & or
 @subsection @code{insert-buffer} With an @code{if} Instead of an @code{or}
 
 The job to be done is to make sure the value of @code{buffer} is a
@@ -5937,8 +5865,7 @@ buffer itself, given its name.  The @code{setq} then sets the variable
 @code{buffer} to the value of the buffer itself, replacing its previous
 value (which was the name of the buffer).
 
-@node Insert or, Insert let, if & or, insert-buffer
-@comment  node-name,  next,  previous,  up
+@node Insert or
 @subsection The @code{or} in the Body
 
 The purpose of the @code{or} expression in the @code{insert-buffer}
@@ -5996,8 +5923,7 @@ written like this:
 (or (holding-on-to-guest) (find-and-take-arm-of-guest))
 @end smallexample
 
-@node Insert let, New insert-buffer, Insert or, insert-buffer
-@comment  node-name,  next,  previous,  up
+@node Insert let
 @subsection The @code{let} Expression in @code{insert-buffer}
 
 After ensuring that the variable @code{buffer} refers to a buffer itself
@@ -6095,8 +6021,7 @@ function uses @code{let}, @code{save-excursion}, and
 use @code{or}.  All these functions are building blocks that we will
 find and use again and again.
 
-@node New insert-buffer,  , Insert let, insert-buffer
-@comment  node-name,  next,  previous,  up
+@node New insert-buffer
 @subsection New Body for @code{insert-buffer}
 @findex insert-buffer, new version body
 @findex new version body for insert-buffer
@@ -6134,8 +6059,7 @@ its last command.  Put another way, the @code{insert-buffer} function
 exists only to produce a side effect, inserting another buffer, not to
 return any value.
 
-@node beginning-of-buffer, Second Buffer Related Review, insert-buffer, More Complex
-@comment  node-name,  next,  previous,  up
+@node beginning-of-buffer
 @section Complete Definition of @code{beginning-of-buffer}
 @findex beginning-of-buffer
 
@@ -6167,7 +6091,7 @@ argument.  The use of the argument is optional.
 * beginning-of-buffer complete::
 @end menu
 
-@node Optional Arguments, beginning-of-buffer opt arg, beginning-of-buffer, beginning-of-buffer
+@node Optional Arguments
 @subsection Optional Arguments
 
 Unless told otherwise, Lisp expects that a function with an argument in
@@ -6250,7 +6174,7 @@ simply @code{point-min}, and when this is the outcome, the whole
 is how we saw the @code{beginning-of-buffer} function in its
 simplified form.
 
-@node beginning-of-buffer opt arg, beginning-of-buffer complete, Optional Arguments, beginning-of-buffer
+@node beginning-of-buffer opt arg
 @subsection @code{beginning-of-buffer} with an Argument
 
 When @code{beginning-of-buffer} is called with an argument, an
@@ -6278,8 +6202,8 @@ like this:
 * Small buffer case::
 @end menu
 
-@node Disentangle beginning-of-buffer, Large buffer case, beginning-of-buffer opt arg, beginning-of-buffer opt arg
 @ifnottex
+@node Disentangle beginning-of-buffer
 @unnumberedsubsubsec Disentangle @code{beginning-of-buffer}
 @end ifnottex
 
@@ -6308,8 +6232,7 @@ that are far, far larger than ever before.
 
 There are two cases:  if the buffer is large and if it is not.
 
-@node Large buffer case, Small buffer case, Disentangle beginning-of-buffer, beginning-of-buffer opt arg
-@comment  node-name,  next,  previous,  up
+@node Large buffer case
 @unnumberedsubsubsec What happens in a large buffer
 
 In @code{beginning-of-buffer}, the inner @code{if} expression tests
@@ -6392,8 +6315,7 @@ is large, the @code{goto-char} expression reads like this:
 
 This puts the cursor where we want it.
 
-@node Small buffer case,  , Large buffer case, beginning-of-buffer opt arg
-@comment  node-name,  next,  previous,  up
+@node Small buffer case
 @unnumberedsubsubsec What happens in a small buffer
 
 If the buffer contains fewer than 10,000 characters, a slightly
@@ -6450,8 +6372,7 @@ The number that results from all this is passed to @code{goto-char} and
 the cursor is moved to that point.
 
 @need 1500
-@node beginning-of-buffer complete,  , beginning-of-buffer opt arg, beginning-of-buffer
-@comment  node-name,  next,  previous,  up
+@node beginning-of-buffer complete
 @subsection The Complete @code{beginning-of-buffer}
 
 @need 1000
@@ -6579,8 +6500,7 @@ beginning of the second line @dots{}  I don't know whether this is
 intended or whether no one has dealt with the code to avoid this
 happening.
 
-@node Second Buffer Related Review, optional Exercise, beginning-of-buffer, More Complex
-@comment  node-name,  next,  previous,  up
+@node Second Buffer Related Review
 @section Review
 
 Here is a brief summary of some of the topics covered in this chapter.
@@ -6623,7 +6543,7 @@ Delete the entire contents of the current buffer.
 Return @code{t} if its argument is a buffer; otherwise return @code{nil}.
 @end table
 
-@node optional Exercise,  , Second Buffer Related Review, More Complex
+@node optional Exercise
 @section @code{optional} Argument Exercise
 
 Write an interactive function with an optional argument that tests
@@ -6632,8 +6552,7 @@ less than the value of @code{fill-column}, and tells you which, in a
 message.  However, if you do not pass an argument to the function, use
 56 as a default value.
 
-@node Narrowing & Widening, car cdr & cons, More Complex, Top
-@comment  node-name,  next,  previous,  up
+@node Narrowing & Widening
 @chapter Narrowing and Widening
 @cindex Focusing attention (narrowing)
 @cindex Narrowing
@@ -6651,8 +6570,8 @@ novices.
 * narrow Exercise::
 @end menu
 
-@node Narrowing advantages, save-restriction, Narrowing & Widening, Narrowing & Widening
 @ifnottex
+@node Narrowing advantages
 @unnumberedsec The Advantages of Narrowing
 @end ifnottex
 
@@ -6686,8 +6605,7 @@ On the other hand, the @code{count-lines} function, which is called by
 of the buffer in which it is interested and then restores the previous
 situation.
 
-@node save-restriction, what-line, Narrowing advantages, Narrowing & Widening
-@comment  node-name,  next,  previous,  up
+@node save-restriction
 @section The @code{save-restriction} Special Form
 @findex save-restriction
 
@@ -6804,8 +6722,7 @@ and the greater of them is not at the start of a line."
         (- (buffer-size) (forward-line (buffer-size)))))))
 @end ignore
 
-@node what-line, narrow Exercise, save-restriction, Narrowing & Widening
-@comment  node-name,  next,  previous,  up
+@node what-line
 @section @code{what-line}
 @findex what-line
 @cindex Widening, example of
@@ -6938,7 +6855,7 @@ printed in the echo area, the @code{save-excursion} restores point and
 mark to their original positions; and @code{save-restriction} restores
 the original narrowing, if any.
 
-@node narrow Exercise,  , what-line, Narrowing & Widening
+@node narrow Exercise
 @section Exercise with Narrowing
 
 Write a function that will display the first 60 characters of the
@@ -6961,8 +6878,7 @@ Manual}.)
 Additionally, do you really need @code{goto-char} or @code{point-min}?
 Or can you write the function without them?
 
-@node car cdr & cons, Cutting & Storing Text, Narrowing & Widening, Top
-@comment  node-name,  next,  previous,  up
+@node car cdr & cons
 @chapter @code{car}, @code{cdr}, @code{cons}: Fundamental Functions
 @findex car, @r{introduced}
 @findex cdr, @r{introduced}
@@ -6986,8 +6902,8 @@ namely, @code{setcdr} and @code{nthcdr}.  (@xref{copy-region-as-kill}.)
 * cons Exercise::
 @end menu
 
-@node Strange Names, car & cdr, car cdr & cons, car cdr & cons
 @ifnottex
+@node Strange Names
 @unnumberedsec Strange Names
 @end ifnottex
 
@@ -7006,8 +6922,7 @@ functions, the old terms are still in use.  In particular, since the
 terms are used in the Emacs Lisp source code, we will use them in this
 introduction.
 
-@node car & cdr, cons, Strange Names, car cdr & cons
-@comment  node-name,  next,  previous,  up
+@node car & cdr
 @section @code{car} and @code{cdr}
 
 The @sc{car} of a list is, quite simply, the first item in the list.
@@ -7129,8 +7044,7 @@ together or construct a list, but not an array.  (Arrays are handled
 by array-specific functions.  @xref{Arrays, , Arrays, elisp, The GNU
 Emacs Lisp Reference Manual}.)
 
-@node cons, nthcdr, car & cdr, car cdr & cons
-@comment  node-name,  next,  previous,  up
+@node cons
 @section @code{cons}
 @findex cons, @r{introduced}
 
@@ -7167,8 +7081,8 @@ Like @code{car} and @code{cdr}, @code{cons} is non-destructive.
 * length::                      How to find the length of a list.
 @end menu
 
-@node Build a list, length, cons, cons
 @ifnottex
+@node Build a list
 @unnumberedsubsec Build a list
 @end ifnottex
 
@@ -7218,8 +7132,7 @@ two element list by putting @code{daisy} in front of @code{buttercup};
 and the third example constructs a three element list by putting
 @code{violet} in front of @code{daisy} and @code{buttercup}.
 
-@node length,  , Build a list, cons
-@comment  node-name,  next,  previous,  up
+@node length
 @subsection Find the Length of a List: @code{length}
 @findex length
 
@@ -7300,8 +7213,7 @@ In an earlier version:
     about subroutines.
 @end ignore
 
-@node nthcdr, nth, cons, car cdr & cons
-@comment  node-name,  next,  previous,  up
+@node nthcdr
 @section @code{nthcdr}
 @findex nthcdr
 
@@ -7425,8 +7337,7 @@ and 5:
 @end group
 @end smallexample
 
-@node nth, setcar, nthcdr, car cdr & cons
-@comment  node-name,  next,  previous,  up
+@node nth
 @section @code{nth}
 @findex nth
 
@@ -7478,8 +7389,7 @@ It is worth mentioning that @code{nth}, like @code{nthcdr} and
 non-destructive.  This is in sharp contrast to the @code{setcar} and
 @code{setcdr} functions.
 
-@node setcar, setcdr, nth, car cdr & cons
-@comment  node-name,  next,  previous,  up
+@node setcar
 @section @code{setcar}
 @findex setcar
 
@@ -7554,8 +7464,7 @@ So we can see that @code{setcar} did not add a new element to the list
 as @code{cons} would have; it replaced @code{antelope} with
 @code{hippopotamus}; it @emph{changed} the list.
 
-@node setcdr, cons Exercise, setcar, car cdr & cons
-@comment  node-name,  next,  previous,  up
+@node setcdr
 @section @code{setcdr}
 @findex setcdr
 
@@ -7614,7 +7523,7 @@ Indeed, the list is changed from @code{(horse cow sheep goat)} to
 @code{(horse cat dog)}.  The @sc{cdr} of the list is changed from
 @code{(cow sheep goat)} to @code{(cat dog)}.
 
-@node cons Exercise,  , setcdr, car cdr & cons
+@node cons Exercise
 @section Exercise
 
 Construct a list of four birds by evaluating several expressions with
@@ -7622,8 +7531,7 @@ Construct a list of four birds by evaluating several expressions with
 itself.  Replace the first element of the list of four birds with a
 fish.  Replace the rest of that list with a list of other fish.
 
-@node Cutting & Storing Text, List Implementation, car cdr & cons, Top
-@comment  node-name,  next,  previous,  up
+@node Cutting & Storing Text
 @chapter Cutting and Storing Text
 @cindex Cutting and storing text
 @cindex Storing and cutting text
@@ -7655,8 +7563,8 @@ sources with `clip' and all occurrences of `killed' with `clipped'.)
 * search Exercises::
 @end menu
 
-@node Storing Text, zap-to-char, Cutting & Storing Text, Cutting & Storing Text
 @ifnottex
+@node Storing Text
 @unnumberedsec Storing Text in a List
 @end ifnottex
 
@@ -7722,8 +7630,7 @@ climb the foothills.
 A subsequent chapter describes how text that is cut from the buffer is
 retrieved.  @xref{Yanking, , Yanking Text Back}.
 
-@node zap-to-char, kill-region, Storing Text, Cutting & Storing Text
-@comment  node-name,  next,  previous,  up
+@node zap-to-char
 @section @code{zap-to-char}
 @findex zap-to-char
 
@@ -7751,8 +7658,8 @@ But first, let us look at the interactive @code{zap-to-char} function.
 * Summing up zap-to-char::      Using @code{point} and @code{search-forward}.
 @end menu
 
-@node Complete zap-to-char, zap-to-char interactive, zap-to-char, zap-to-char
 @ifnottex
+@node Complete zap-to-char
 @unnumberedsubsec The Complete @code{zap-to-char} Implementation
 @end ifnottex
 
@@ -7812,8 +7719,7 @@ Goes backward if ARG is negative; error if CHAR not found."
 The documentation is thorough.  You do need to know the jargon meaning
 of the word `kill'.
 
-@node zap-to-char interactive, zap-to-char body, Complete zap-to-char, zap-to-char
-@comment  node-name,  next,  previous,  up
+@node zap-to-char interactive
 @subsection The @code{interactive} Expression
 
 @need 800
@@ -7848,8 +7754,7 @@ to the kill ring, but does not remove it.  The echo area displays a
 message saying that the buffer is read-only.  Also, the terminal may
 beep or blink at you.
 
-@node zap-to-char body, search-forward, zap-to-char interactive, zap-to-char
-@comment  node-name,  next,  previous,  up
+@node zap-to-char body
 @subsection The Body of @code{zap-to-char}
 
 The body of the @code{zap-to-char} function contains the code that
@@ -7887,8 +7792,7 @@ It is easier to understand how @code{progn} works after learning about
 @code{search-forward}, so we will look at @code{search-forward} and
 then at @code{progn}.
 
-@node search-forward, progn, zap-to-char body, zap-to-char
-@comment  node-name,  next,  previous,  up
+@node search-forward
 @subsection The @code{search-forward} Function
 @findex search-forward
 
@@ -7963,8 +7867,7 @@ In template form, a @code{search-forward} expression looks like this:
 
 We will look at @code{progn} next.
 
-@node progn, Summing up zap-to-char, search-forward, zap-to-char
-@comment  node-name,  next,  previous,  up
+@node progn
 @subsection The @code{progn} Special Form
 @findex progn
 
@@ -8004,8 +7907,7 @@ ever a part of the distributed source.)  The value of @code{point} is
 returned by the @code{progn} expression and is passed to
 @code{kill-region} as @code{kill-region}'s second argument.
 
-@node Summing up zap-to-char,  , progn, zap-to-char
-@comment  node-name,  next,  previous,  up
+@node Summing up zap-to-char
 @subsection Summing up @code{zap-to-char}
 
 Now that we have seen how @code{search-forward} and @code{progn} work,
@@ -8026,8 +7928,7 @@ sequence as two additional arguments.  The @code{progn} expression is
 a single argument to @code{kill-region} and returns the one value that
 @code{kill-region} needs for its second argument.
 
-@node kill-region, copy-region-as-kill, zap-to-char, Cutting & Storing Text
-@comment  node-name,  next,  previous,  up
+@node kill-region
 @section @code{kill-region}
 @findex kill-region
 
@@ -8111,8 +8012,8 @@ contains the code that is called in the event of an error.
 * Lisp macro::
 @end menu
 
-@node Complete kill-region, condition-case, kill-region, kill-region
 @ifnottex
+@node Complete kill-region
 @unnumberedsubsec The Complete @code{kill-region} Definition
 @end ifnottex
 
@@ -8299,8 +8200,7 @@ The text is deleted but saved in the kill ring."
 @end smallexample
 @end ignore
 
-@node condition-case, Lisp macro, Complete kill-region, kill-region
-@comment  node-name,  next,  previous,  up
+@node condition-case
 @subsection @code{condition-case}
 @findex condition-case
 
@@ -8386,8 +8286,7 @@ this is line 8054
 Initializing a Variable with @code{defvar} includes line 8350
 @end ignore
 
-@node Lisp macro,  , condition-case, kill-region
-@comment  node-name,  next,  previous,  up
+@node Lisp macro
 @subsection Lisp macro
 @cindex Macro, lisp
 @cindex Lisp macro
@@ -8458,8 +8357,7 @@ whether the previous command was @code{kill-region}.  If it was,
 concatenates a copy of the newly clipped text to the just previously
 clipped text in the kill ring.
 
-@node copy-region-as-kill, Digression into C, kill-region, Cutting & Storing Text
-@comment  node-name,  next,  previous,  up
+@node copy-region-as-kill
 @section @code{copy-region-as-kill}
 @findex copy-region-as-kill
 @findex nthcdr
@@ -8480,8 +8378,8 @@ the function copies the text into a separate entry in the kill ring.
 * copy-region-as-kill body::      The body of @code{copy-region-as-kill}.
 @end menu
 
-@node Complete copy-region-as-kill, copy-region-as-kill body, copy-region-as-kill, copy-region-as-kill
 @ifnottex
+@node Complete copy-region-as-kill
 @unnumberedsubsec The complete @code{copy-region-as-kill} function definition
 @end ifnottex
 
@@ -8559,8 +8457,7 @@ if Transient Mark mode is turned on.
 
 The body of @code{copy-region-as-kill} merits discussion in detail.
 
-@node copy-region-as-kill body,  , Complete copy-region-as-kill, copy-region-as-kill
-@comment  node-name,  next,  previous,  up
+@node copy-region-as-kill body
 @subsection The Body of @code{copy-region-as-kill}
 
 The @code{copy-region-as-kill} function works in much the same way as
@@ -8583,8 +8480,8 @@ previous Emacs command.
 * kill-new function::
 @end menu
 
-@node last-command & this-command, kill-append function, copy-region-as-kill body, copy-region-as-kill body
 @ifnottex
+@node last-command & this-command
 @unnumberedsubsubsec @code{last-command} and @code{this-command}
 @end ifnottex
 
@@ -8639,7 +8536,7 @@ expressions are the same.
 If the previous command was @code{kill-region}, then the Emacs Lisp
 interpreter calls the @code{kill-append} function
 
-@node kill-append function, kill-new function, last-command & this-command, copy-region-as-kill body
+@node kill-append function
 @unnumberedsubsubsec The @code{kill-append} function
 @findex kill-append
 
@@ -8771,7 +8668,7 @@ of the kill ring.  The kill ring is a list, each element of which is
 saved text.  The @code{kill-append} function uses the @code{kill-new}
 function which in turn uses the @code{setcar} function.
 
-@node kill-new function,  , kill-append function, copy-region-as-kill body
+@node kill-new function
 @unnumberedsubsubsec The @code{kill-new} function
 @findex kill-new
 
@@ -9200,8 +9097,7 @@ delete-and-extract-region is written in C.
 see Initializing a Variable with @code{defvar}
 @end ignore
 
-@node Digression into C, defvar, copy-region-as-kill, Cutting & Storing Text
-@comment  node-name,  next,  previous,  up
+@node Digression into C
 @section Digression into C
 @findex delete-and-extract-region
 @cindex C, a digression into
@@ -9366,8 +9262,7 @@ From the point of view of the person writing Lisp, Emacs is all very
 simple; but hidden underneath is a great deal of complexity to make it
 all work.
 
-@node defvar, cons & search-fwd Review, Digression into C, Cutting & Storing Text
-@comment  node-name,  next,  previous,  up
+@node defvar
 @section Initializing a Variable with @code{defvar}
 @findex defvar
 @cindex Initializing a variable
@@ -9416,8 +9311,8 @@ that people customize.  It has more features than @code{defvar}.
 * defvar and asterisk::
 @end menu
 
-@node See variable current value, defvar and asterisk, defvar, defvar
 @ifnottex
+@node See variable current value
 @unnumberedsubsec Seeing the Current Value of a Variable
 @end ifnottex
 
@@ -9468,7 +9363,7 @@ like @code{apropos}, print only the first line of documentation.
 Succeeding lines should not be indented; otherwise they look odd when
 you use @kbd{C-h v} (@code{describe-variable}).
 
-@node defvar and asterisk,  , See variable current value, defvar
+@node defvar and asterisk
 @subsection @code{defvar} and an asterisk
 @findex defvar @r{for a user customizable variable}
 @findex defvar @r{with an asterisk}
@@ -9514,8 +9409,7 @@ readily.  Fortunately, you can press @key{TAB} after calling the
 The GNU Emacs Manual}.)
 
 @need 1250
-@node cons & search-fwd Review, search Exercises, defvar, Cutting & Storing Text
-@comment  node-name,  next,  previous,  up
+@node cons & search-fwd Review
 @section Review
 
 Here is a brief summary of some recently introduced functions.
@@ -9664,7 +9558,7 @@ mark from the buffer and throws it away.  You cannot get it back.
 (This is not an interactive command.)
 
 @need 1500
-@node search Exercises,  , cons & search-fwd Review, Cutting & Storing Text
+@node search Exercises
 @section Searching Exercises
 
 @itemize @bullet
@@ -9682,8 +9576,7 @@ echo area, if any; if the kill ring does not contain a third element,
 print an appropriate message.
 @end itemize
 
-@node List Implementation, Yanking, Cutting & Storing Text, Top
-@comment  node-name,  next,  previous,  up
+@node List Implementation
 @chapter How Lists are Implemented
 @cindex Lists in a computer
 
@@ -9707,8 +9600,8 @@ pointed to.  Hence, a list is kept as a series of electronic addresses.
 * List Exercise::
 @end menu
 
-@node Lists diagrammed, Symbols as Chest, List Implementation, List Implementation
 @ifnottex
+@node Lists diagrammed
 @unnumberedsec Lists diagrammed
 @end ifnottex
 
@@ -10047,7 +9940,7 @@ is the address of the empty list, of @code{nil}.
 In summary, when a Lisp variable is set to a value, it is provided with
 the address of the list to which the variable refers.
 
-@node Symbols as Chest, List Exercise, Lists diagrammed, List Implementation
+@node Symbols as Chest
 @section Symbols as a Chest of Drawers
 @cindex Symbols as a Chest of Drawers
 @cindex Chest of Drawers, metaphor for a symbol
@@ -10148,7 +10041,7 @@ Here is a fanciful representation:
 @end iftex
 @end ifclear
 
-@node List Exercise,  , Symbols as Chest, List Implementation
+@node List Exercise
 @section Exercise
 
 Set @code{flowers} to @code{violet} and @code{buttercup}.  Cons two
@@ -10156,8 +10049,7 @@ more flowers on to this list and set this new list to
 @code{more-flowers}.  Set the @sc{car} of @code{flowers} to a fish.
 What does the @code{more-flowers} list now contain?
 
-@node Yanking, Loops & Recursion, List Implementation, Top
-@comment  node-name,  next,  previous,  up
+@node Yanking
 @chapter Yanking Text Back
 @findex yank
 @cindex Text retrieval
@@ -10188,8 +10080,7 @@ list is handled as a ring.)
 * yank nthcdr Exercises::       The @code{kill-ring-yank-pointer} variable.
 @end menu
 
-@node Kill Ring Overview, kill-ring-yank-pointer, Yanking, Yanking
-@comment  node-name,  next,  previous,  up
+@node Kill Ring Overview
 @section Kill Ring Overview
 @cindex Kill ring overview
 
@@ -10232,8 +10123,7 @@ is easier to understand.)
 To begin to understand how @code{yank} and @code{yank-pop} work, it is
 first necessary to look at the @code{kill-ring-yank-pointer} variable.
 
-@node kill-ring-yank-pointer, yank nthcdr Exercises, Kill Ring Overview, Yanking
-@comment  node-name,  next,  previous,  up
+@node kill-ring-yank-pointer
 @section The @code{kill-ring-yank-pointer} Variable
 
 @code{kill-ring-yank-pointer} is a variable, just as @code{kill-ring} is
@@ -10372,7 +10262,7 @@ yanking point; just return the Nth kill forward."
 @end ignore
 
 @need 1500
-@node yank nthcdr Exercises,  , kill-ring-yank-pointer, Yanking
+@node yank nthcdr Exercises
 @section Exercises with @code{yank} and @code{nthcdr}
 
 @itemize @bullet
@@ -10389,8 +10279,7 @@ Using @code{nthcdr} and @code{car}, construct a series of expressions
 to return the first, second, third, and fourth elements of a list.
 @end itemize
 
-@node Loops & Recursion, Regexp Search, Yanking, Top
-@comment  node-name,  next,  previous,  up
+@node Loops & Recursion
 @chapter Loops and Recursion
 @cindex Loops and recursion
 @cindex Recursion and loops
@@ -10426,8 +10315,7 @@ increase the values of @code{max-specpdl-size} and
 * Looping exercise::
 @end menu
 
-@node while, dolist dotimes, Loops & Recursion, Loops & Recursion
-@comment  node-name,  next,  previous,  up
+@node while
 @section @code{while}
 @cindex Loops
 @findex while
@@ -10465,8 +10353,8 @@ The template for a @code{while} expression looks like this:
 * Decrementing Loop::           A loop with a decrementing counter.
 @end menu
 
-@node Looping with while, Loop Example, while, while
 @ifnottex
+@node Looping with while
 @unnumberedsubsec Looping with @code{while}
 @end ifnottex
 
@@ -10499,8 +10387,7 @@ This makes sense.  It is not the mere act of looping that is desired,
 but the consequences of what happens when the expressions in the loop
 are repeatedly evaluated.
 
-@node Loop Example, print-elements-of-list, Looping with while, while
-@comment  node-name,  next,  previous,  up
+@node Loop Example
 @subsection A @code{while} Loop and a List
 
 A common way to control a @code{while} loop is to test whether a list
@@ -10604,7 +10491,7 @@ This test and use of @code{cdr} can be put together in a function that
 goes through a list and prints each element of the list on a line of its
 own.
 
-@node print-elements-of-list, Incrementing Loop, Loop Example, while
+@node print-elements-of-list
 @subsection An Example: @code{print-elements-of-list}
 @findex print-elements-of-list
 
@@ -10683,8 +10570,7 @@ function is printed.  Since the last expression in the function is the
 @code{while} loop, and since @code{while} loops always return
 @code{nil}, a @code{nil} is printed after the last element of the list.
 
-@node Incrementing Loop, Incrementing Loop Details, print-elements-of-list, while
-@comment  node-name,  next,  previous,  up
+@node Incrementing Loop
 @subsection A Loop with an Incrementing Counter
 
 A loop is not useful unless it stops when it ought.  Besides
@@ -10694,8 +10580,8 @@ number of repetitions are complete.  This means that the loop must
 have a counter---an expression that counts how many times the loop
 repeats itself.
 
-@node Incrementing Loop Details, Decrementing Loop, Incrementing Loop, while
 @ifnottex
+@node Incrementing Loop Details
 @unnumberedsubsec Details of an Incrementing Loop
 @end ifnottex
 
@@ -10733,7 +10619,7 @@ is set to 1.
 * Inc Example altogether::      Putting the function definition together.
 @end menu
 
-@node Incrementing Example, Inc Example parts, Incrementing Loop Details, Incrementing Loop Details
+@node Incrementing Example
 @unnumberedsubsubsec  Example with incrementing counter
 
 Suppose you are playing on the beach and decide to make a triangle of
@@ -10800,7 +10686,7 @@ row has been added to the total of all the preceding rows.  In a more
 complex loop the repetitive action might not be so simple, but it will
 be simpler than doing everything all at once.
 
-@node Inc Example parts, Inc Example altogether, Incrementing Example, Incrementing Loop Details
+@node Inc Example parts
 @unnumberedsubsubsec The parts of the function definition
 
 The preceding analysis gives us the bones of our function definition:
@@ -10894,7 +10780,7 @@ The built-in Emacs Lisp function @code{1+} adds 1 to a number, so the
 (setq row-number (1+ row-number))
 @end smallexample
 
-@node Inc Example altogether,  , Inc Example parts, Incrementing Loop Details
+@node Inc Example altogether
 @unnumberedsubsubsec Putting the function definition together
 
 We have created the parts for the function definition; now we need to
@@ -11004,8 +10890,7 @@ can try it out.  Here are two examples:
 The sum of the first four numbers is 10 and the sum of the first seven
 numbers is 28.
 
-@node Decrementing Loop,  , Incrementing Loop Details, while
-@comment  node-name,  next,  previous,  up
+@node Decrementing Loop
 @subsection Loop with a Decrementing Counter
 
 Another common way to write a @code{while} loop is to write the test
@@ -11041,7 +10926,7 @@ The template for a decrementing @code{while} loop looks like this:
 * Dec Example altogether::      Putting the function definition together.
 @end menu
 
-@node Decrementing Example, Dec Example parts, Decrementing Loop, Decrementing Loop
+@node Decrementing Example
 @unnumberedsubsubsec Example with decrementing counter
 
 To illustrate a loop with a decrementing counter, we will rewrite the
@@ -11068,7 +10953,7 @@ rows, the number of pebbles in the last row is 7.  Likewise, we know how
 many pebbles are in the preceding row: it is one less than the number in
 the row.
 
-@node Dec Example parts, Dec Example altogether, Decrementing Example, Decrementing Loop
+@node Dec Example parts
 @unnumberedsubsubsec The parts of the function definition
 
 We start with three variables: the total number of rows in the
@@ -11130,7 +11015,7 @@ the @code{while} loop is simply:
 (while (> number-of-pebbles-in-row 0)
 @end smallexample
 
-@node Dec Example altogether,  , Dec Example parts, Decrementing Loop
+@node Dec Example altogether
 @unnumberedsubsubsec Putting the function definition together
 
 We can put these expressions together to create a function definition
@@ -11201,8 +11086,7 @@ that the test returns false after the loop has repeated itself the right
 number of times.
 @end enumerate
 
-@node dolist dotimes, Recursion, while, Loops & Recursion
-@comment  node-name,  next,  previous,  up
+@node dolist dotimes
 @section Save your time: @code{dolist} and @code{dotimes}
 
 In addition to @code{while}, both @code{dolist} and @code{dotimes}
@@ -11222,8 +11106,8 @@ each shorter version of the list to the first of its arguments.
 * dotimes::
 @end menu
 
-@node dolist, dotimes, dolist dotimes, dolist dotimes
-@unnumberedsubsubsec The @code{dolist} Macro
+@node dolist
+@unnumberedsubsec The @code{dolist} Macro
 @findex dolist
 
 Suppose, for example, you want to reverse a list, so that
@@ -11326,8 +11210,8 @@ version of the list to @code{element} and then evaluates the body of
 the expression; and repeats the loop.  The result is returned in
 @code{value}.
 
-@node dotimes,  , dolist, dolist dotimes
-@unnumberedsubsubsec The @code{dotimes} Macro
+@node dotimes
+@unnumberedsubsec The @code{dotimes} Macro
 @findex dotimes
 
 The @code{dotimes} macro is similar to @code{dolist}, except that it
@@ -11376,8 +11260,7 @@ up the number of pebbles in a triangle.
 @end group
 @end smallexample
 
-@node Recursion, Looping exercise, dolist dotimes, Loops & Recursion
-@comment  node-name,  next,  previous,  up
+@node Recursion
 @section Recursion
 @cindex Recursion
 
@@ -11403,8 +11286,7 @@ arguments that the final instance will stop.
 * No deferment solution::
 @end menu
 
-@node Building Robots, Recursive Definition Parts, Recursion, Recursion
-@comment  node-name,  next,  previous,  up
+@node Building Robots
 @subsection Building Robots: Extending the Metaphor
 @cindex Building robots
 @cindex Robots, building
@@ -11441,8 +11323,7 @@ does the same job as the first, but with different arguments.
 It is important that the arguments differ from one instance to the
 next; otherwise, the process will never stop.
 
-@node Recursive Definition Parts, Recursion with list, Building Robots, Recursion
-@comment  node-name,  next,  previous,  up
+@node Recursive Definition Parts
 @subsection The Parts of a Recursive Definition
 @cindex Parts of a Recursive Definition
 @cindex Recursive Definition Parts
@@ -11506,8 +11387,7 @@ false when the function should no longer be repeated.
 The do-again-test is sometimes called the @dfn{stop condition},
 since it stops the repetitions when it tests false.
 
-@node Recursion with list, Recursive triangle function, Recursive Definition Parts, Recursion
-@comment  node-name,  next,  previous,  up
+@node Recursion with list
 @subsection Recursion with a List
 
 The example of a @code{while} loop that printed the elements of a list
@@ -11599,8 +11479,7 @@ nil
 @end smallexample
 
 @need 2000
-@node Recursive triangle function, Recursion with cond, Recursion with list, Recursion
-@comment  node-name,  next,  previous,  up
+@node Recursive triangle function
 @subsection Recursion in Place of a Counter
 @findex triangle-recursively
 
@@ -11638,8 +11517,8 @@ its argument.
 * Recursive Example arg of 3 or 4::
 @end menu
 
-@node Recursive Example arg of 1 or 2, Recursive Example arg of 3 or 4, Recursive triangle function, Recursive triangle function
 @ifnottex
+@node Recursive Example arg of 1 or 2
 @unnumberedsubsubsec An argument of 1 or 2
 @end ifnottex
 
@@ -11701,7 +11580,7 @@ returned, which is correct.  A triangle with two rows has three
 pebbles in it.
 @end table
 
-@node Recursive Example arg of 3 or 4,  , Recursive Example arg of 1 or 2, Recursive triangle function
+@node Recursive Example arg of 3 or 4
 @unnumberedsubsubsec An argument of 3 or 4
 
 Suppose that @code{triangle-recursively} is called with an argument of
@@ -11791,8 +11670,7 @@ on.
 There is a way around this kind of waiting, which we will discuss in
 @ref{No Deferment, , Recursion without Deferments}.
 
-@node Recursion with cond, Recursive Patterns, Recursive triangle function, Recursion
-@comment  node-name,  next,  previous,  up
+@node Recursion with cond
 @subsection Recursion Example Using @code{cond}
 @findex cond
 
@@ -11868,8 +11746,7 @@ equal to 0, it returns 1 if the number is 1 and it evaluates @code{(+
 number (triangle-using-cond (1- number)))} if the number is greater than
 1.
 
-@node Recursive Patterns, No Deferment, Recursion with cond, Recursion
-@comment  node-name,  next,  previous,  up
+@node Recursive Patterns
 @subsection Recursive Patterns
 @cindex Recursive Patterns
 
@@ -11883,8 +11760,7 @@ and this provides a sense of its primal capabilities.
 * Keep::
 @end menu
 
-@node Every, Accumulate, Recursive Patterns, Recursive Patterns
-@comment  node-name,  next,  previous,  up
+@node Every
 @unnumberedsubsubsec Recursive Pattern: @emph{every}
 @cindex Every, type of recursive pattern
 @cindex Recursive pattern: every
@@ -11983,8 +11859,7 @@ But when the list has at least one element,
     @end itemize
 @end itemize
 
-@node Accumulate, Keep, Every, Recursive Patterns
-@comment  node-name,  next,  previous,  up
+@node Accumulate
 @unnumberedsubsubsec Recursive Pattern: @emph{accumulate}
 @cindex Accumulate, type of recursive pattern
 @cindex Recursive pattern: accumulate
@@ -12035,8 +11910,7 @@ Here is an example:
 @xref{Files List, , Making a List of Files}, for an example of the
 accumulate pattern.
 
-@node Keep,  , Accumulate, Recursive Patterns
-@comment  node-name,  next,  previous,  up
+@node Keep
 @unnumberedsubsubsec Recursive Pattern: @emph{keep}
 @cindex Keep, type of recursive pattern
 @cindex Recursive pattern: keep
@@ -12105,7 +11979,7 @@ Here is an example that uses @code{cond}:
 It goes without saying that you need not use @code{nil} as the test for
 when to stop; and you can, of course, combine these patterns.
 
-@node No Deferment, No deferment solution, Recursive Patterns, Recursion
+@node No Deferment
 @subsection Recursion without Deferments
 @cindex Deferment in recursion
 @cindex Recursion without Deferments
@@ -12188,7 +12062,7 @@ is being waited on.  This is not a problem when there are only a few
 steps, as in this example.  But it can be a problem when there are
 more steps.
 
-@node No deferment solution,  , No Deferment, Recursion
+@node No deferment solution
 @subsection No Deferment Solution
 @cindex No deferment solution
 @cindex Defermentless solution
@@ -12352,7 +12226,7 @@ This kind of pattern helps when you are writing functions that can use
 many resources in a computer.
 
 @need 1500
-@node Looping exercise,  , Recursion, Loops & Recursion
+@node Looping exercise
 @section Looping Exercise
 
 @itemize @bullet
@@ -12399,8 +12273,7 @@ Documentation Format}.
 @end iftex
 @end itemize
 
-@node Regexp Search, Counting Words, Loops & Recursion, Top
-@comment  node-name,  next,  previous,  up
+@node Regexp Search
 @chapter Regular Expression Searches
 @cindex Searches, illustrating
 @cindex Regular expression searches
@@ -12446,8 +12319,7 @@ introduces several new features.
 * re-search Exercises::
 @end menu
 
-@node sentence-end, re-search-forward, Regexp Search, Regexp Search
-@comment  node-name,  next,  previous,  up
+@node sentence-end
 @section The Regular Expression for @code{sentence-end}
 @findex sentence-end
 
@@ -12598,8 +12470,7 @@ return between square brackets but here it is shown as @key{RET}.
 @end table
 @end ignore
 
-@node re-search-forward, forward-sentence, sentence-end, Regexp Search
-@comment  node-name,  next,  previous,  up
+@node re-search-forward
 @section The @code{re-search-forward} Function
 @findex re-search-forward
 
@@ -12673,8 +12544,7 @@ sentence cannot go beyond a paragraph).  If the search fails, the
 function will return @code{nil}; and the repeat count will be provided
 by the argument to the @code{forward-sentence} function.
 
-@node forward-sentence, forward-paragraph, re-search-forward, Regexp Search
-@comment  node-name,  next,  previous,  up
+@node forward-sentence
 @section @code{forward-sentence}
 @findex forward-sentence
 
@@ -12691,8 +12561,8 @@ bound to the key command @kbd{M-e}.
 * fwd-sentence re-search::      A regular expression search.
 @end menu
 
-@node Complete forward-sentence, fwd-sentence while loops, forward-sentence, forward-sentence
 @ifnottex
+@node Complete forward-sentence
 @unnumberedsubsec Complete @code{forward-sentence} function definition
 @end ifnottex
 
@@ -12818,7 +12688,7 @@ point, from before the search, is used in the
 equivalents.  The @code{sentence-end} variable is set by the
 @code{sentence-end} function.
 
-@node fwd-sentence while loops, fwd-sentence re-search, Complete forward-sentence, forward-sentence
+@node fwd-sentence while loops
 @unnumberedsubsec The @code{while} loops
 
 Two @code{while} loops follow.  The first @code{while} has a
@@ -12919,7 +12789,7 @@ It may seem odd to have what looks like the `real work' of
 the @code{forward-sentence} function buried here, but this is a common
 way this kind of operation is carried out in Lisp.
 
-@node fwd-sentence re-search,  , fwd-sentence while loops, forward-sentence
+@node fwd-sentence re-search
 @unnumberedsubsec The regular expression search
 
 The @code{re-search-forward} function searches for the end of the
@@ -12967,8 +12837,7 @@ illustrated by @code{re-search-forward}, in which the search is the
 test of an @code{if} expression, is handy.  You will see or write code
 incorporating this pattern often.
 
-@node forward-paragraph, etags, forward-sentence, Regexp Search
-@comment  node-name,  next,  previous,  up
+@node forward-paragraph
 @section @code{forward-paragraph}: a Goldmine of Functions
 @findex forward-paragraph
 
@@ -13151,8 +13020,8 @@ This is an added complication.
 * fwd-para while::              The forward motion @code{while} loop.
 @end menu
 
-@node forward-paragraph in brief, fwd-para let, forward-paragraph, forward-paragraph
 @ifnottex
+@node forward-paragraph in brief
 @unnumberedsubsec Shortened @code{forward-paragraph} function definition
 @end ifnottex
 
@@ -13191,7 +13060,7 @@ This case was described earlier.  (@xref{forward-sentence, The
 @code{forward-sentence} function}.)  Now we reach the end of the
 familiar part of this function.
 
-@node fwd-para let, fwd-para while, forward-paragraph in brief, forward-paragraph
+@node fwd-para let
 @unnumberedsubsec The @code{let*} expression
 
 The next line of the @code{forward-paragraph} function begins a
@@ -13323,7 +13192,7 @@ of the @code{let*} deals with the case when the function is given a
 negative argument and is therefore moving backwards.  We will skip this
 section.
 
-@node fwd-para while,  , fwd-para let, forward-paragraph
+@node fwd-para while
 @unnumberedsubsec The forward motion @code{while} loop
 
 The second part of the body of the @code{let*} deals with forward
@@ -13596,7 +13465,7 @@ key; you will be taken directly to the source.  (Be sure to install
 your sources!  Without them, you are like a person who tries to drive
 a car with his eyes shut!)
 
-@node etags, Regexp Review, forward-paragraph, Regexp Search
+@node etags
 @section Create Your Own @file{TAGS} File
 @findex etags
 @cindex @file{TAGS} file, create own
@@ -13720,8 +13589,7 @@ as well as with some other source packages.)
 For more information, see @ref{Tags, , Tag Tables, emacs, The GNU Emacs
 Manual}.
 
-@node Regexp Review, re-search Exercises, etags, Regexp Search
-@comment  node-name,  next,  previous,  up
+@node Regexp Review
 @section Review
 
 Here is a brief summary of some recently introduced functions.
@@ -13812,7 +13680,7 @@ the buffer is narrowed.
 @end table
 
 @need 1500
-@node re-search Exercises,  , Regexp Review, Regexp Search
+@node re-search Exercises
 @section Exercises with @code{re-search-forward}
 
 @itemize @bullet
@@ -13830,7 +13698,7 @@ The function I use is described in an appendix, along with several
 regexps.  @xref{the-the, , @code{the-the} Duplicated Words Function}.
 @end itemize
 
-@node Counting Words, Words in a defun, Regexp Search, Top
+@node Counting Words
 @chapter Counting: Repetition and Regexps
 @cindex Repetition for word counting
 @cindex Regular expressions for word counting
@@ -13847,8 +13715,8 @@ word count commands using @code{while} loops and recursion.
 * Counting Exercise::
 @end menu
 
-@node Why Count Words, @value{COUNT-WORDS}, Counting Words, Counting Words
 @ifnottex
+@node Why Count Words
 @unnumberedsec Counting words
 @end ifnottex
 
@@ -13869,8 +13737,7 @@ There are many ways to implement a command to count words.  Here are
 some examples, which you may wish to compare with the standard Emacs
 command, @code{count-words-region}.
 
-@node @value{COUNT-WORDS}, recursive-count-words, Why Count Words, Counting Words
-@comment  node-name,  next,  previous,  up
+@node @value{COUNT-WORDS}
 @section The @code{@value{COUNT-WORDS}} Function
 @findex @value{COUNT-WORDS}
 
@@ -13895,8 +13762,8 @@ or to a @code{while} loop.
 * Whitespace Bug::              The Whitespace Bug in @code{@value{COUNT-WORDS}}.
 @end menu
 
-@node Design @value{COUNT-WORDS}, Whitespace Bug, @value{COUNT-WORDS}, @value{COUNT-WORDS}
 @ifnottex
+@node Design @value{COUNT-WORDS}
 @unnumberedsubsec Designing @code{@value{COUNT-WORDS}}
 @end ifnottex
 
@@ -14072,8 +13939,7 @@ table determines which characters these are."
 @noindent
 As written, the function works, but not in all circumstances.
 
-@node Whitespace Bug,  , Design @value{COUNT-WORDS}, @value{COUNT-WORDS}
-@comment  node-name,  next,  previous,  up
+@node Whitespace Bug
 @subsection The Whitespace Bug in @code{@value{COUNT-WORDS}}
 
 The @code{@value{COUNT-WORDS}} command described in the preceding
@@ -14325,8 +14191,7 @@ Here is what it looks like:
 @end group
 @end smallexample
 
-@node recursive-count-words, Counting Exercise, @value{COUNT-WORDS}, Counting Words
-@comment  node-name,  next,  previous,  up
+@node recursive-count-words
 @section Count Words Recursively
 @cindex Count words recursively
 @cindex Recursively counting words
@@ -14704,14 +14569,14 @@ determines which characters these are."
 @end group
 @end smallexample
 
-@node Counting Exercise,  , recursive-count-words, Counting Words
+@node Counting Exercise
 @section Exercise: Counting Punctuation
 
 Using a @code{while} loop, write a function to count the number of
 punctuation marks in a region---period, comma, semicolon, colon,
 exclamation mark, and question mark.  Do the same using recursion.
 
-@node Words in a defun, Readying a Graph, Counting Words, Top
+@node Words in a defun
 @chapter Counting Words in a @code{defun}
 @cindex Counting words in a @code{defun}
 @cindex Word counting in a @code{defun}
@@ -14744,8 +14609,8 @@ and this will tell.
 * Prepare the data::            Prepare the data for display in a graph.
 @end menu
 
-@node Divide and Conquer, Words and Symbols, Words in a defun, Words in a defun
 @ifnottex
+@node Divide and Conquer
 @unnumberedsec Divide and Conquer
 @end ifnottex
 
@@ -14782,7 +14647,7 @@ Fifth, write a function to print the results as a graph.
 This is quite a project!  But if we take each step slowly, it will not
 be difficult.
 
-@node Words and Symbols, Syntax, Divide and Conquer, Words in a defun
+@node Words and Symbols
 @section What to Count?
 @cindex Words and symbols in defun
 
@@ -14836,7 +14701,7 @@ that are not word constituents.  What is meant by `word constituent
 characters' brings us to the issue of syntax, which is worth a section
 of its own.
 
-@node Syntax, count-words-in-defun, Words and Symbols, Words in a defun
+@node Syntax
 @section What Constitutes a Word or Symbol?
 @cindex Syntax categories and tables
 
@@ -14920,7 +14785,7 @@ Here is the full regular expression:
 "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*"
 @end smallexample
 
-@node count-words-in-defun, Several defuns, Syntax, Words in a defun
+@node count-words-in-defun
 @section The @code{count-words-in-defun} Function
 @cindex Counting words in a @code{defun}
 
@@ -15114,7 +14979,7 @@ Success!  The definition has 10 words and symbols.
 The next problem is to count the numbers of words and symbols in
 several definitions within a single file.
 
-@node Several defuns, Find a File, count-words-in-defun, Words in a defun
+@node Several defuns
 @section Count Several @code{defuns} Within a File
 
 A file such as @file{simple.el} may have a hundred or more function
@@ -15169,8 +15034,7 @@ switched back and forth to some other buffer, such as the
 
 Finding a file is a new process that we have not yet discussed.
 
-@node Find a File, lengths-list-file, Several defuns, Words in a defun
-@comment  node-name,  next,  previous,  up
+@node Find a File
 @section Find a File
 @cindex Find a File
 
@@ -15253,7 +15117,7 @@ our own expression.
 
 The task is easy: use @code{find-file-noselect} and @code{set-buffer}.
 
-@node lengths-list-file, Several files, Find a File, Words in a defun
+@node lengths-list-file
 @section @code{lengths-list-file} in Detail
 
 The core of the @code{lengths-list-file} function is a @code{while}
@@ -15394,7 +15258,7 @@ earlier one; and my new machine is much faster than the old one.)
 Note that the length of the last definition in the file is first in
 the list.
 
-@node Several files, Several files recursively, lengths-list-file, Words in a defun
+@node Several files
 @section Count Words in @code{defuns} in Different Files
 
 In the previous section, we created a function that returns a list of
@@ -15410,8 +15274,8 @@ either a @code{while} loop or recursion.
 * append::                      Attach one list to another.
 @end menu
 
-@node lengths-list-many-files, append, Several files, Several files
 @ifnottex
+@node lengths-list-many-files
 @unnumberedsubsec Determine the lengths of @code{defuns}
 @end ifnottex
 
@@ -15507,7 +15371,7 @@ The only other new element of this function definition is the as yet
 unstudied function @code{append}, which merits a short section for
 itself.
 
-@node append,  , lengths-list-many-files, Several files
+@node append
 @subsection The @code{append} Function
 
 @need 800
@@ -15542,7 +15406,7 @@ becomes the first element of the new list:
 ((1 2 3 4) 5 6 7 8)
 @end smallexample
 
-@node Several files recursively, Prepare the data, Several files, Words in a defun
+@node Several files recursively
 @section Recursively Count Words in Different Files
 
 Besides a @code{while} loop, you can work on each of a list of files
@@ -15625,7 +15489,7 @@ output we want.
 
 The next step is to prepare the data in the list for display in a graph.
 
-@node Prepare the data,  , Several files recursively, Words in a defun
+@node Prepare the data
 @section Prepare the Data for Display in a Graph
 
 The @code{recursive-lengths-list-many-files} function returns a list
@@ -15648,8 +15512,8 @@ numbers.
 * Counting function definitions::
 @end menu
 
-@node Data for Display in Detail, Sorting, Prepare the data, Prepare the data
 @ifnottex
+@node Data for Display in Detail
 @unnumberedsubsec The Data for Display in Detail
 @end ifnottex
 
@@ -15667,7 +15531,7 @@ inspecting a sorted list, we can discover the highest and lowest
 number, and thereby determine the largest and smallest length range
 that we will need.
 
-@node Sorting, Files List, Data for Display in Detail, Prepare the data
+@node Sorting
 @subsection Sorting Lists
 @findex sort
 
@@ -15746,7 +15610,7 @@ which produces:
 quoted, since the expression must be evaluated so as to produce the
 list that is passed to @code{sort}.)
 
-@node Files List, Counting function definitions, Sorting, Prepare the data
+@node Files List
 @subsection Making a List of Files
 
 The @code{recursive-lengths-list-many-files} function requires a list
@@ -16007,7 +15871,7 @@ like this:
   (insert (format "%s" (current-time-string))))
 @end ignore
 
-@node Counting function definitions,  , Files List, Prepare the data
+@node Counting function definitions
 @subsection Counting function definitions
 
 Our immediate goal is to generate a list that tells us how many
@@ -16311,7 +16175,7 @@ between 120 and 129, and so on.  There are four elements with a value
 of 200 or larger.
 
 @c The next step is to turn this numbers' list into a graph.
-@node Readying a Graph, Emacs Initialization, Words in a defun, Top
+@node Readying a Graph
 @chapter Readying a Graph
 @cindex Readying a graph
 @cindex Graph prototype
@@ -16343,8 +16207,8 @@ the function to label the axes automatically.
 * Line Graph Exercise::
 @end menu
 
-@node Columns of a graph, graph-body-print, Readying a Graph, Readying a Graph
 @ifnottex
+@node Columns of a graph
 @unnumberedsec Printing the Columns of a Graph
 @end ifnottex
 
@@ -16716,7 +16580,7 @@ Now, finally, we come to our first actual graph printing function.
 This prints the body of a graph, not the labels for the vertical and
 horizontal axes, so we can call this @code{graph-body-print}.
 
-@node graph-body-print, recursive-graph-body-print, Columns of a graph, Readying a Graph
+@node graph-body-print
 @section The @code{graph-body-print} Function
 @findex graph-body-print
 
@@ -16875,7 +16739,7 @@ Emacs will print a graph like this:
 @end group
 @end smallexample
 
-@node recursive-graph-body-print, Printed Axes, graph-body-print, Readying a Graph
+@node recursive-graph-body-print
 @section The @code{recursive-graph-body-print} Function
 @findex recursive-graph-body-print
 
@@ -16962,7 +16826,7 @@ Here is what @code{recursive-graph-body-print} produces:
 Either of these two functions, @code{graph-body-print} or
 @code{recursive-graph-body-print}, create the body of a graph.
 
-@node Printed Axes, Line Graph Exercise, recursive-graph-body-print, Readying a Graph
+@node Printed Axes
 @section Need for Printed Axes
 
 A graph needs printed axes, so you can orient yourself.  For a do-once
@@ -16975,12 +16839,12 @@ the horizontal and vertical axes.  Since the label printing functions
 do not contain much new material, I have placed their description in
 an appendix.  @xref{Full Graph, , A Graph with Labeled Axes}.
 
-@node Line Graph Exercise,  , Printed Axes, Readying a Graph
+@node Line Graph Exercise
 @section Exercise
 
 Write a line graph version of the graph printing functions.
 
-@node Emacs Initialization, Debugging, Readying a Graph, Top
+@node Emacs Initialization
 @chapter Your @file{.emacs} File
 @cindex @file{.emacs} file
 @cindex Customizing your @file{.emacs} file
@@ -17012,8 +16876,8 @@ expressions in Emacs Lisp you can change or extend Emacs.
 * Mode Line::                   How to customize your mode line.
 @end menu
 
-@node Default Configuration, Site-wide Init, Emacs Initialization, Emacs Initialization
 @ifnottex
+@node Default Configuration
 @unnumberedsec Emacs's Default Configuration
 @end ifnottex
 
@@ -17059,7 +16923,7 @@ describes a simple @file{.emacs} file; for more information, see
 @ref{Init File, , The Init File, elisp, The GNU Emacs Lisp Reference
 Manual}.
 
-@node Site-wide Init, defcustom, Default Configuration, Emacs Initialization
+@node Site-wide Init
 @section Site-wide Initialization Files
 
 @cindex @file{default.el} init file
@@ -17105,7 +16969,7 @@ The @file{loaddefs.el} file contains a good many suggestions as to
 what to put into your own @file{.emacs} file, or into a site-wide
 initialization file.
 
-@node defcustom, Beginning a .emacs File, Site-wide Init, Emacs Initialization
+@node defcustom
 @section Specifying Variables using @code{defcustom}
 @findex defcustom
 
@@ -17270,7 +17134,7 @@ intent is that neither programs nor users should ever change a value
 set by @code{defconst}.  (You can change it; the value set is a
 variable; but please do not.)
 
-@node Beginning a .emacs File, Text and Auto-fill, defcustom, Emacs Initialization
+@node Beginning a .emacs File
 @section Beginning a @file{.emacs} File
 @cindex @file{.emacs} file, beginning of
 
@@ -17353,7 +17217,7 @@ Of course, you don't need to include comments like these in your
 about Mode help or the conventions for comments---but I was able to
 remember to look here to remind myself.
 
-@node Text and Auto-fill, Mail Aliases, Beginning a .emacs File, Emacs Initialization
+@node Text and Auto-fill
 @section Text and Auto Fill Mode
 
 Now we come to the part that `turns on' Text mode and
@@ -17475,7 +17339,7 @@ fill commands to insert two spaces after a colon:
 (setq colon-double-space t)
 @end smallexample
 
-@node Mail Aliases, Indent Tabs Mode, Text and Auto-fill, Emacs Initialization
+@node Mail Aliases
 @section Mail Aliases
 
 Here is a @code{setq} that `turns on' mail aliases, along with more
@@ -17509,7 +17373,7 @@ alias geo george@@foobar.wiz.edu
 When you write a message to George, address it to @samp{geo}; the
 mailer will automatically expand @samp{geo} to the full address.
 
-@node Indent Tabs Mode, Keybindings, Mail Aliases, Emacs Initialization
+@node Indent Tabs Mode
 @section Indent Tabs Mode
 @cindex Tabs, preventing
 @findex indent-tabs-mode
@@ -17547,7 +17411,7 @@ Files'' in @cite{The GNU Emacs Manual}.
 @end iftex
 
 @need 1700
-@node Keybindings, Keymaps, Indent Tabs Mode, Emacs Initialization
+@node Keybindings
 @section Some Keybindings
 
 Now for some personal keybindings:
@@ -17660,7 +17524,7 @@ window, I prefer the  @code{buffer-menu}
 command, which not only lists the buffers,
 but moves point into that window.
 
-@node Keymaps, Loading Files, Keybindings, Emacs Initialization
+@node Keymaps
 @section Keymaps
 @cindex Keymaps
 @cindex Rebinding keys
@@ -17728,7 +17592,7 @@ You will see numerous @code{define-key} expressions in
 Manual}, and @ref{Keymaps, , Keymaps, elisp, The GNU Emacs Lisp
 Reference Manual}, for more information about keymaps.
 
-@node Loading Files, Autoload, Keymaps, Emacs Initialization
+@node Loading Files
 @section Loading Files
 @cindex Loading files
 @c findex load
@@ -17820,7 +17684,7 @@ Another interactive command that does a slightly different job is
 Emacs, emacs, The GNU Emacs Manual}, for information on the
 distinction between @code{load-library} and this command.
 
-@node Autoload, Simple Extension, Loading Files, Emacs Initialization
+@node Autoload
 @section Autoloading
 @findex autoload
 
@@ -17889,7 +17753,7 @@ documentation is not available.)
 @xref{Autoload, , Autoload, elisp, The GNU Emacs Lisp Reference
 Manual}, for more information.
 
-@node Simple Extension, X11 Colors, Autoload, Emacs Initialization
+@node Simple Extension
 @section A Simple Extension: @code{line-to-top-of-window}
 @findex line-to-top-of-window
 @cindex Simple extension in @file{.emacs} file
@@ -18001,7 +17865,7 @@ emacs -Q - D
 @end group
 @end smallexample
 
-@node X11 Colors, Miscellaneous, Simple Extension, Emacs Initialization
+@node X11 Colors
 @section X11 Colors
 
 You can specify colors when you use Emacs with the MIT X Windowing
@@ -18079,7 +17943,7 @@ xsetroot -solid Navy -fg white &
 @end smallexample
 
 @need 1700
-@node Miscellaneous, Mode Line, X11 Colors, Emacs Initialization
+@node Miscellaneous
 @section Miscellaneous Settings for a @file{.emacs} File
 
 @need 1250
@@ -18271,7 +18135,7 @@ xmodmap -e "keysym Alt_L = Meta_L Alt_L"
 @end smallexample
 
 @need 1700
-@node Mode Line,  , Miscellaneous, Emacs Initialization
+@node Mode Line
 @section A Modified Mode Line
 @vindex mode-line-format
 @cindex Mode line format
@@ -18434,7 +18298,7 @@ This will start an Emacs that does @emph{not} load your
 @file{~/.emacs} initialization file.  A plain, default Emacs.  Nothing
 more.
 
-@node Debugging, Conclusion, Emacs Initialization, Top
+@node Debugging
 @chapter Debugging
 @cindex debugging
 
@@ -18454,7 +18318,7 @@ In this chapter, I will walk through a short example of each.
 * Debugging Exercises::
 @end menu
 
-@node debug, debug-on-entry, Debugging, Debugging
+@node debug
 @section @code{debug}
 @findex debug
 
@@ -18581,7 +18445,7 @@ Debugger entered--Lisp error: (void-function 1=)
 You can correct the mistake, re-evaluate the function definition, and
 then run your test again.
 
-@node debug-on-entry, debug-on-quit, debug, Debugging
+@node debug-on-entry
 @section @code{debug-on-entry}
 @findex debug-on-entry
 
@@ -18720,7 +18584,7 @@ M-x cancel-debug-on-entry RET triangle-bugged RET
 @noindent
 (If you are reading this in Info, cancel @code{debug-on-entry} now.)
 
-@node debug-on-quit, edebug, debug-on-entry, Debugging
+@node debug-on-quit
 @section @code{debug-on-quit} and @code{(debug)}
 
 In addition to setting @code{debug-on-error} or calling @code{debug-on-entry},
@@ -18752,7 +18616,7 @@ where you want the debugger to start, like this:
 The @code{debug} function is described in detail in @ref{Debugger, ,
 The Lisp Debugger, elisp, The GNU Emacs Lisp Reference Manual}.
 
-@node edebug, Debugging Exercises, debug-on-quit, Debugging
+@node edebug
 @section The @code{edebug} Source Level Debugger
 @cindex Source level debugger
 @findex edebug
@@ -18895,7 +18759,7 @@ Edebug is described in @ref{edebug, , Edebug, elisp, The GNU Emacs
 Lisp Reference Manual}.
 
 @need 1500
-@node Debugging Exercises,  , edebug, Debugging
+@node Debugging Exercises
 @section Debugging Exercises
 
 @itemize @bullet
@@ -18940,7 +18804,7 @@ Set a breakpoint, then run Edebug in Trace mode until it reaches the
 stopping point.
 @end itemize
 
-@node Conclusion, the-the, Debugging, Top
+@node Conclusion
 @chapter Conclusion
 
 We have now reached the end of this Introduction.  You have now
@@ -19060,7 +18924,7 @@ beginning.
 
 @c ================ Appendix ================
 
-@node the-the, Kill Ring, Conclusion, Top
+@node the-the
 @appendix The @code{the-the} Function
 @findex the-the
 @cindex Duplicated words function
@@ -19157,7 +19021,7 @@ five six seven
 You can substitute the other regular expressions shown above in the
 function definition and try each of them on this list.
 
-@node Kill Ring, Full Graph, the-the, Top
+@node Kill Ring
 @appendix Handling the Kill Ring
 @cindex Kill ring handling
 @cindex Handling the kill ring
@@ -19179,8 +19043,8 @@ consider the workings of the kill ring.
 * ring file::
 @end menu
 
-@node What the Kill Ring Does, current-kill, Kill Ring, Kill Ring
 @ifnottex
+@node What the Kill Ring Does
 @unnumberedsec What the Kill Ring Does
 @end ifnottex
 
@@ -19254,8 +19118,7 @@ To return to the old value for the length of the kill ring, evaluate:
 (setq kill-ring-max old-kill-ring-max)
 @end smallexample
 
-@node current-kill, yank, What the Kill Ring Does, Kill Ring
-@comment  node-name,  next,  previous,  up
+@node current-kill
 @appendixsec The @code{current-kill} Function
 @findex current-kill
 
@@ -19272,8 +19135,8 @@ and @code{kill-region}.)
 * Understanding current-kill::
 @end menu
 
-@node Code for current-kill, Understanding current-kill, current-kill, current-kill
 @ifnottex
+@node Code for current-kill
 @unnumberedsubsec The code for @code{current-kill}
 @end ifnottex
 
@@ -19333,8 +19196,8 @@ Here is the line in @code{kill-new}, which is explained in
 (setq kill-ring-yank-pointer kill-ring)
 @end smallexample
 
-@node Understanding current-kill,  , Code for current-kill, current-kill
 @ifnottex
+@node Understanding current-kill
 @unnumberedsubsec @code{current-kill} in Outline
 @end ifnottex
 
@@ -19360,8 +19223,8 @@ documentation string.  It is @emph{not} interactive.
 * Determining the Element::
 @end menu
 
-@node Body of current-kill, Digression concerning error, Understanding current-kill, Understanding current-kill
 @ifnottex
+@node Body of current-kill
 @unnumberedsubsubsec The Body of @code{current-kill}
 @end ifnottex
 
@@ -19443,8 +19306,8 @@ current value of @code{kill-ring-yank-pointer} is set to point to the
 list.  Finally, another expression returns the first element of the
 list even if the @code{do-not-move} argument is true.
 
-@node Digression concerning error, Determining the Element, Body of current-kill, Understanding current-kill
 @ifnottex
+@node Digression concerning error
 @unnumberedsubsubsec Digression about the word `error'
 @end ifnottex
 
@@ -19465,8 +19328,8 @@ environment, is making an error.  This is bad.  Even though the computer
 takes the same steps as it does when there is an `error', a term such as
 `cancel' would have a clearer connotation.
 
-@node Determining the Element,  , Digression concerning error, Understanding current-kill
 @ifnottex
+@node Determining the Element
 @unnumberedsubsubsec Determining the Element
 @end ifnottex
 
@@ -19603,8 +19466,7 @@ them in an argument list (and within expressions called by them).
 @ref{defun, , The @code{defun} Special Form}.)
 @end ignore
 
-@node yank, yank-pop, current-kill, Kill Ring
-@comment  node-name,  next,  previous,  up
+@node yank
 @appendixsec @code{yank}
 @findex yank
 
@@ -19689,8 +19551,7 @@ function.)
 
 The last part of the function tells what to do when it succeeds.
 
-@node yank-pop, ring file, yank, Kill Ring
-@comment  node-name,  next,  previous,  up
+@node yank-pop
 @appendixsec @code{yank-pop}
 @findex yank-pop
 
@@ -19760,8 +19621,7 @@ positions of point and mark set by the preceding @code{yank} command.
 
 There is more, but that is the hardest part.
 
-@node ring file,  , yank-pop, Kill Ring
-@comment  node-name,  next,  previous,  up
+@node ring file
 @appendixsec The @file{ring.el} File
 @cindex @file{ring.el} file
 
@@ -19770,7 +19630,7 @@ provides many of the features we just discussed.  But functions such
 as @code{kill-ring-yank-pointer} do not use this library, possibly
 because they were written earlier.
 
-@node Full Graph, Free Software and Free Manuals, Kill Ring, Top
+@node Full Graph
 @appendix A Graph with Labeled Axes
 
 Printed axes help you understand a graph.  They convey scale.  In an
@@ -19787,8 +19647,8 @@ body itself.
 * Print Whole Graph::           The function to print a complete graph.
 @end menu
 
-@node Labeled Example, print-graph Varlist, Full Graph, Full Graph
 @ifnottex
+@node Labeled Example
 @unnumberedsec Labeled Example Graph
 @end ifnottex
 
@@ -19875,8 +19735,7 @@ These considerations suggest the following outline for the
 We can work on each part of the @code{print-graph} function definition
 in turn.
 
-@node print-graph Varlist, print-Y-axis, Labeled Example, Full Graph
-@comment  node-name,  next,  previous,  up
+@node print-graph Varlist
 @appendixsec The @code{print-graph} Varlist
 @cindex @code{print-graph} varlist
 
@@ -19917,8 +19776,7 @@ in the @code{let} for @code{print-graph}:
 As we shall see, this expression is not quite right.
 
 @need 2000
-@node print-Y-axis, print-X-axis, print-graph Varlist, Full Graph
-@comment  node-name,  next,  previous,  up
+@node print-Y-axis
 @appendixsec The @code{print-Y-axis} Function
 @cindex Axis, print vertical
 @cindex Y axis printing
@@ -19956,8 +19814,8 @@ construct and insert the appropriate numbers and marks.
 * print-Y-axis Penultimate::    A not quite final version.
 @end menu
 
-@node print-Y-axis in Detail, Height of label, print-Y-axis, print-Y-axis
 @ifnottex
+@node print-Y-axis in Detail
 @unnumberedsubsec The @code{print-Y-axis} Function in Detail
 @end ifnottex
 
@@ -19972,8 +19830,8 @@ the base line (number 1) and then that we want a number and a tic on
 the fifth line from the bottom and on every line that is a multiple of
 five.
 
-@node Height of label, Compute a Remainder, print-Y-axis in Detail, print-Y-axis
 @ifnottex
+@node Height of label
 @unnumberedsubsec What height should the label be?
 @end ifnottex
 
@@ -20010,7 +19868,7 @@ language, more reminiscent of the classroom, five goes into seven
 once, with a remainder of two.  However, five goes into ten twice,
 with no remainder: ten is an integral multiple of five.
 
-@node Compute a Remainder, Y Axis Element, Height of label, print-Y-axis
+@node Compute a Remainder
 @appendixsubsec Side Trip: Compute a Remainder
 
 @findex % @r{(remainder function)}
@@ -20144,7 +20002,7 @@ then the resulting value of  @code{height} is used to compute its
 final value.  @xref{fwd-para let, , The @code{let*} expression}, for
 more about @code{let*}.)
 
-@node Y Axis Element, Y-axis-column, Compute a Remainder, print-Y-axis
+@node Y Axis Element
 @appendixsubsec Construct a Y Axis Element
 
 When we print the vertical axis, we want to insert strings such as
@@ -20250,7 +20108,7 @@ The @code{number-to-string} function is used in the concatenation
 expression, to convert the number to a string that is concatenated
 with the leading spaces and the tic mark.
 
-@node Y-axis-column, print-Y-axis Penultimate, Y Axis Element, print-Y-axis
+@node Y-axis-column
 @appendixsubsec Create a Y Axis Column
 
 The preceding functions provide all the tools needed to construct a
@@ -20297,7 +20155,7 @@ blank label using the @code{make-string} function.  The base line
 consists of the number one followed by a tic mark.
 
 @need 2000
-@node print-Y-axis Penultimate,  , Y-axis-column, print-Y-axis
+@node print-Y-axis Penultimate
 @appendixsubsec The Not Quite Final Version of @code{print-Y-axis}
 
 The list constructed by the @code{Y-axis-column} function is passed to
@@ -20373,7 +20231,7 @@ Emacs will print labels vertically, the top one being @w{@samp{10 -@w{
 thereby getting rid of what might appear as a bug.)
 
 @need 2000
-@node print-X-axis, Print Whole Graph, print-Y-axis, Full Graph
+@node print-X-axis
 @appendixsec The @code{print-X-axis} Function
 @cindex Axis, print horizontal
 @cindex X axis printing
@@ -20409,8 +20267,8 @@ graph without changing the ways the graph is labeled.
 * X Axis Tic Marks::            Create tic marks for the horizontal axis.
 @end menu
 
-@node Similarities differences, X Axis Tic Marks, print-X-axis, print-X-axis
 @ifnottex
+@node Similarities differences
 @unnumberedsubsec Similarities and differences
 @end ifnottex
 
@@ -20435,7 +20293,7 @@ using @code{print-X-axis-tic-line} and
 @code{print-X-axis-numbered-line}.
 @end enumerate
 
-@node X Axis Tic Marks,  , Similarities differences, print-X-axis
+@node X Axis Tic Marks
 @appendixsubsec X Axis Tic Marks
 
 The first function should print the X axis tic marks.  We must specify
@@ -20724,7 +20582,7 @@ Emacs will print the horizontal axis like this:
 @end group
 @end smallexample
 
-@node Print Whole Graph,  , print-X-axis, Full Graph
+@node Print Whole Graph
 @appendixsec Printing the Whole Graph
 @cindex Printing the whole graph
 @cindex Whole graph printing
@@ -20763,8 +20621,8 @@ Here is the outline:
 * Final printed graph::         The graph itself!
 @end menu
 
-@node The final version, Test print-graph, Print Whole Graph, Print Whole Graph
 @ifnottex
+@node The final version
 @unnumberedsubsec Changes for the Final Version
 @end ifnottex
 
@@ -20915,7 +20773,7 @@ each row is five units."
 @end group
 @end smallexample
 
-@node Test print-graph, Graphing words in defuns, The final version, Print Whole Graph
+@node Test print-graph
 @appendixsubsec Testing @code{print-graph}
 
 @need 1250
@@ -21005,7 +20863,7 @@ The graph looks like this:
 feature?  If you think it is a bug, and should be a `1' instead, (or
 even a `0'), you can modify the sources.)
 
-@node Graphing words in defuns, lambda, Test print-graph, Print Whole Graph
+@node Graphing words in defuns
 @appendixsubsec Graphing Numbers of Words and Symbols
 
 Now for the graph for which all this code was written: a graph that
@@ -21093,7 +20951,7 @@ not yet seen, @code{mapcar} and @code{lambda}.
 @end group
 @end smallexample
 
-@node lambda, mapcar, Graphing words in defuns, Print Whole Graph
+@node lambda
 @appendixsubsec A @code{lambda} Expression: Useful Anonymity
 @cindex Anonymous function
 @findex lambda
@@ -21259,7 +21117,7 @@ divides that number by 50.
 Lisp Reference Manual}, for more about @code{lambda}.  Lisp and lambda
 expressions derive from the Lambda Calculus.
 
-@node mapcar, Another Bug, lambda, Print Whole Graph
+@node mapcar
 @appendixsubsec The @code{mapcar} Function
 @findex mapcar
 
@@ -21343,7 +21201,7 @@ information: many of the higher ranges are 0, meaning that fewer than
 50 defuns had that many words or symbols---but not necessarily meaning
 that none had that many words or symbols.)
 
-@node Another Bug, Final printed graph, mapcar, Print Whole Graph
+@node Another Bug
 @appendixsubsec Another Bug @dots{} Most Insidious
 @cindex Bug, most insidious type
 @cindex Insidious type of bug
@@ -22040,7 +21898,7 @@ each column."
 @end ignore
 
 @page
-@node Final printed graph,  , Another Bug, Print Whole Graph
+@node Final printed graph
 @appendixsubsec The Printed Graph
 
 When made and installed, you can call the @code{print-graph} command
@@ -22090,7 +21948,7 @@ Here is the graph:
 @noindent
 The largest group of functions contain 10 -- 19 words and symbols each.
 
-@node Free Software and Free Manuals, GNU Free Documentation License, Full Graph, Top
+@node Free Software and Free Manuals
 @appendix Free Software and Free Manuals
 
 @strong{by Richard M. Stallman}
@@ -22210,14 +22068,13 @@ Note: The Free Software Foundation maintains a page on its Web site
 that lists free books available from other publishers:@*
 @uref{http://www.gnu.org/doc/other-free-books.html}
 
-@node GNU Free Documentation License, Index, Free Software and Free Manuals, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 
 @cindex FDL, GNU Free Documentation License
 @include doclicense.texi
 
-@node Index, About the Author, GNU Free Documentation License, Top
-@comment  node-name,  next,  previous,  up
+@node Index
 @unnumbered Index
 
 @ignore
@@ -22256,7 +22113,7 @@ MENU ENTRY: NODE NAME.
 @end iftex
 
 @ifnottex
-@node About the Author,  , Index, Top
+@node About the Author
 @unnumbered About the Author
 @end ifnottex
 

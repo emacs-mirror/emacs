@@ -1,3 +1,8 @@
+2012-05-29  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Nuke hand-written node pointers.
+	(dolist, dotimes): Fix sectioning.
+
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MKDIR_P): New, set by configure.
