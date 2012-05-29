@@ -1,3 +1,9 @@
+2012-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/emacsclientw.exe): Use $(MWINDOWS)
+	instead of a literal -mwindows, which is not supported by MSVC.
+	(Bug#11405)
+
 2012-05-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (min): Undef before redefining it.

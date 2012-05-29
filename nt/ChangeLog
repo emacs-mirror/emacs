@@ -1,3 +1,11 @@
+2012-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs (MWINDOWS): Define as
+	"-subsystem:windows -entry:mainCRTStartup".  Suggested by Fabrice
+	Popineau <fabrice.popineau@supelec.fr>.  (Bug#11405)
+
+	* gmake.defs (MWINDOWS): Define as "-mwindows".
+
 2012-05-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (genmakefiles): Move the redirection away from the

@@ -151,6 +151,8 @@ CHECKING_CFLAGS	= -DENABLE_CHECKING -DXASSERTS
 CHECKING_CFLAGS	=
 !endif
 
+MWINDOWS        = -subsystem:windows -entry:mainCRTStartup
+
 CFLAGS          = -I. $(ARCH_CFLAGS) \
 		  $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
 ESC_CFLAGS      = -I. $(ARCH_CFLAGS) \
