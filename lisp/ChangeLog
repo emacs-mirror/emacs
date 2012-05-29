@@ -1,3 +1,8 @@
+2012-05-29  Chong Yidong  <cyd@gnu.org>
+
+	* whitespace.el (whitespace-cleanup): Fix usage of
+	whitespace-empty-at-bob-regexp (Bug#11492).
+
 2012-05-29  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
 	* vc/vc.el (vc-revert, vc-rollback): Dont kill vc-diff buffer on
