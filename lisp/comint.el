@@ -2969,7 +2969,7 @@ This is a good thing to set in mode hooks.")
 Word constituents are considered to be those in WORD-CHARS, which is like the
 inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters."
   ;; FIXME: Need to handle "..." and '...' quoting in shell.el!
-  ;; This should be combined with pomplete-parsing somehow.
+  ;; This should be combined with completion parsing somehow.
   (save-excursion
     (let ((here (point))
 	  giveup)

@@ -799,7 +799,7 @@ because you will take care of it on the day when scheduled."
   :group 'org-agenda-daily/weekly
   :version "24.1"
   :type '(choice
-	  (const :tag "Alwas show prewarning" nil)
+	  (const :tag "Always show prewarning" nil)
 	  (const :tag "Remove prewarning if entry is scheduled" t)
 	  (integer :tag "Restart prewarning N days before deadline")))
 

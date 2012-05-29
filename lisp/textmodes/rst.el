@@ -446,7 +446,7 @@ For the keyword `:alt' the results form an alternative (\"\\|\")
 which is shy-grouped (\"\\(?:...\\)\").
 
 For the keyword `:grp' the results are concatenated and form a
-referencable grouped (\"\\(...\\)\").
+referenceable grouped (\"\\(...\\)\").
 
 After interpretation of ARGS the results are concatenated as for
 `:seq'.
@@ -1066,11 +1066,11 @@ Return nil if no syntactically valid adornment is found."
 	       (beg-pnt (progn
 			  (forward-line 0)
 			  (point)))
-	       (nxt-emp ; Next line inexistant or empty
+	       (nxt-emp ; Next line nonexistent or empty
 		(save-excursion
 		  (or (not (zerop (forward-line 1)))
 		      (looking-at (rst-re 'lin-end)))))
-	       (prv-emp ; Previous line inexistant or empty
+	       (prv-emp ; Previous line nonexistent or empty
 		(save-excursion
 		  (or (not (zerop (forward-line -1)))
 		      (looking-at (rst-re 'lin-end)))))
@@ -1917,7 +1917,7 @@ Other situations are just ignored and left to users themselves."
   "Insert a new list item.
 
 User is asked to select the item style first, for example (a), i), +.  Use TAB
-for completition and choices.
+for completion and choices.
 
 If user selects bullets or #, it's just added with position arranged by
 `rst-insert-list-pos'.
@@ -2020,7 +2020,7 @@ line, it will insert a list with the same list style.
 1. When inserting a new list:
 
 User is asked to select the item style first, for example (a), i), +. Use TAB
-for completition and choices.
+for completion and choices.
 
  (a) If user selects bullets or #, it's just added.
  (b) If user selects enumerations, a further prompt is given.  User needs to
@@ -2754,11 +2754,11 @@ first of a paragraph."
 ;; supported; comment lines with leading comment markup should be also
 ;; supported; may be a customizable option could control which style to prefer
 
-(defgroup rst-indent nil "Settings for indendation in reStructuredText.
+(defgroup rst-indent nil "Settings for indentation in reStructuredText.
 
-In reStructuredText indendation points are usually determined by
+In reStructuredText indentation points are usually determined by
 preceding lines. Sometimes the syntax allows arbitrary
-indendation points such as where to start the first line
+indentation points such as where to start the first line
 following a directive. These indentation widths can be customized
 here."
   :group 'rst
@@ -2772,25 +2772,25 @@ here."
   :type '(integer))
 
 (defcustom rst-indent-field 3
-  "Default indendation for first line after a field or 0 to always indent for
+  "Default indentation for first line after a field or 0 to always indent for
 content."
   :group 'rst-indent
   :type '(integer))
 
 (defcustom rst-indent-literal-normal 3
-  "Default indendation for literal block after a markup on an own
+  "Default indentation for literal block after a markup on an own
 line."
   :group 'rst-indent
   :type '(integer))
 
 (defcustom rst-indent-literal-minimized 2
-  "Default indendation for literal block after a minimized
+  "Default indentation for literal block after a minimized
 markup."
   :group 'rst-indent
   :type '(integer))
 
 (defcustom rst-indent-comment 3
-  "Default indendation for first line of a comment."
+  "Default indentation for first line of a comment."
   :group 'rst-indent
   :type '(integer))
 
@@ -2810,7 +2810,7 @@ and not from inner alignment points."
     (save-match-data
       (unless (looking-at (rst-re 'lin-end))
 	(back-to-indentation)
-	;; Current indendation is always the least likely tab
+	;; Current indentation is always the least likely tab
 	(let ((tabs (list (list (point) 0 nil)))) ; (POINT OFFSET INNER)
 	  ;; Push inner tabs more likely to continue writing
 	  (cond
@@ -2863,7 +2863,7 @@ and not from inner alignment points."
 Search backwards from point PT to build the list of possible
 tabs. Return a list of tabs sorted by likeliness to continue
 writing like `rst-line-tabs'. Nearer lines have generally a
-higher likeliness than farer lines. Return nil if no tab is found
+higher likeliness than farther lines. Return nil if no tab is found
 in the text above."
   (save-excursion
     (goto-char pt)
@@ -3452,7 +3452,7 @@ details check the Rst Faces Defaults group."
      1 rst-definition-face)
     ;; `Hyperlink References`_
     ;; FIXME: `Embedded URIs`_ not considered
-    ;; FIXME: Directly adjacing marked up words are not fontified correctly
+    ;; FIXME: Directly adjacent marked up words are not fontified correctly
     ;;        unless they are not separated by two spaces: foo_ bar_
     (,(rst-re 'ilm-pfx '(:grp (:alt (:seq "`" ilcbkq-tag "`")
 				    (:seq "\\sw" (:alt "\\sw" "-") "+\\sw"))
@@ -3610,7 +3610,7 @@ Return extended point or nil if not moved."
   ;;
   ;; * literal blocks following "::"
   ;;
-  ;; which are both indented. Thus indendation is the first thing recognized
+  ;; which are both indented. Thus indentation is the first thing recognized
   ;; here. The second criteria is an explicit markup tag which may be a comment
   ;; or a double colon at the end of a line.
   ;;
@@ -3697,7 +3697,7 @@ Also used as a trigger for
 `rst-font-lock-find-unindented-line-match'.")
 
 (defun rst-font-lock-find-unindented-line-limit (ind-pnt)
-  "Find the next unindented line relative to indenation at IND-PNT.
+  "Find the next unindented line relative to indentation at IND-PNT.
 Return this point, the end of the buffer or nil if nothing found.
 If IND-PNT is `next' take the indentation from the next line if
 this is not empty and indented more than the current one. If

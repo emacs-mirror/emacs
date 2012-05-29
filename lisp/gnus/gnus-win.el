@@ -275,7 +275,7 @@ See the Gnus manual for an explanation of the syntax used.")
                 (set-buffer buf))
                ((eq t (window-dedicated-p))
                 ;; If the window is hard-dedicated, we have a problem because
-                ;; we just can't do what we're asked.  But signalling an error,
+                ;; we just can't do what we're asked.  But signaling an error,
                 ;; like `switch-to-buffer' would do, is not an option because
                 ;; it would prevent things like "^" (to jump to the *Servers*)
                 ;; in a dedicated *Group*.

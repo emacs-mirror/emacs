@@ -67,7 +67,7 @@ use `soap-sample-value' instead."
     (t (format "%s" (soap-basic-type-kind type)))))
 
 (defun soap-sample-value-for-simple-type (type)
-  "Provive a sample value for TYPE which is a simple type.
+  "Provide a sample value for TYPE which is a simple type.
 This is a specific function which should not be called directly,
 use `soap-sample-value' instead."
   (let ((enumeration (soap-simple-type-enumeration type)))

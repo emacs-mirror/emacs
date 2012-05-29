@@ -3031,7 +3031,7 @@ is better to limit inheritance to certain tags using the variables
 	  (const :tag "List them, indented with leading dots" indented)))
 
 (defcustom org-tags-sort-function nil
-  "When set, tags are sorted using this function as a comparator."
+  "When set, tags are sorted using this comparison function."
   :group 'org-tags
   :type '(choice
 	  (const :tag "No sorting" nil)
