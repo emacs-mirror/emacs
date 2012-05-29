@@ -1,3 +1,10 @@
+2012-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (search_buffer): Remove calls to
+	r_alloc_inhibit_buffer_relocation, as it is now called by
+	maybe_unify_char, which was the cause of relocation of buffer text
+	in bug#11519.
+
 2012-05-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* charset.c (maybe_unify_char): Inhibit relocation of buffer text
