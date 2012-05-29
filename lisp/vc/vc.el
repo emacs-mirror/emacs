@@ -2285,7 +2285,7 @@ to the working revision (except for keyword expansion)."
 				       (if (= nfiles 1) "" "s"))))))
 	    (error "Revert canceled")))
       (when diff-buffer
-	(quit-windows-on diff-buffer t)))
+	(quit-windows-on diff-buffer)))
     (dolist (file files)
       (message "Reverting %s..." (vc-delistify files))
       (vc-revert-file file)
@@ -2331,7 +2331,7 @@ depending on the underlying version-control system."
     ;; Display changes
     (unless (yes-or-no-p "Discard these revisions? ")
       (error "Rollback canceled"))
-    (quit-windows-on "*vc-diff*" t)
+    (quit-windows-on "*vc-diff*")
     ;; Do the actual reversions
     (message "Rolling back %s..." (vc-delistify files))
     (with-vc-properties

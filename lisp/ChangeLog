@@ -1,3 +1,8 @@
+2012-05-29  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* vc/vc.el (vc-revert, vc-rollback): Dont kill vc-diff buffer on
+	revert (Bug#11488).
+
 2012-05-29  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode-map): Bind `M-s _' to
