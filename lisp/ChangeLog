@@ -1,3 +1,8 @@
+2012-05-29  Troels Nielsen  <bn.troels@gmail.com>
+
+	* window.el (window-deletable-p): Avoid deleting the root window
+	of a frame with an active minibuffer.
+
 2012-05-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* simple.el (choose-completion): Use quit-window (Bug#11567).

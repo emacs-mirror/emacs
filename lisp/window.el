@@ -2370,8 +2370,11 @@ frame."
     (cond
      ((frame-root-window-p window)
       ;; WINDOW's frame can be deleted only if there are other frames
-      ;; on the same terminal.
-      (unless (eq frame (next-frame frame 0))
+      ;; on the same terminal, and it does not contain the active
+      ;; minibuffer.
+      (unless (or (eq frame (next-frame frame 0))
+		  (let ((minibuf (active-minibuffer-window)))
+		    (and minibuf (eq frame (window-frame minibuf)))))
 	'frame))
      ((or ignore-window-parameters
 	  (not (eq (window-parameter window 'window-side) 'none))
