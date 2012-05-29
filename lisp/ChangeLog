@@ -1,5 +1,15 @@
 2012-05-29  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-mode-map): Bind `M-s _' to
+	`isearch-toggle-symbol'.  Bind `M-s c' to
+	`isearch-toggle-case-fold'.
+	(search-map): Bind `M-s _' to `isearch-forward-symbol'.
+	(isearch-forward): Add `M-s _' to the docstring.
+	(isearch-forward-symbol, isearch-toggle-case-fold)
+	(isearch-symbol-regexp): New functions.  (Bug#11381)
+
+2012-05-29  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-word): Add docstring.  (Bug#11381)
 	(isearch-occur, isearch-search-and-update): If `isearch-word' is
 	a function, call it to get the regexp.

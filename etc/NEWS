@@ -81,6 +81,12 @@ Use "coding: raw-text" instead.
 
 * Editing Changes in Emacs 24.2
 
+** Search changes
+
+*** Global `M-s _' starts a symbol (identifier) incremental search,
+and `M-s _' in Isearch toggles symbol search mode.
+`M-s c' in Isearch toggles search case-sensitivity.
+
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.
 

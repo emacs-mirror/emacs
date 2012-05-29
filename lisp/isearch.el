@@ -501,8 +501,10 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-r" 'isearch-toggle-regexp)
     (define-key map "\M-e" 'isearch-edit-string)
 
+    (define-key map "\M-sc" 'isearch-toggle-case-fold)
     (define-key map "\M-sr" 'isearch-toggle-regexp)
     (define-key map "\M-sw" 'isearch-toggle-word)
+    (define-key map "\M-s_" 'isearch-toggle-symbol)
 
     (define-key map [?\M-%] 'isearch-query-replace)
     (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
@@ -531,11 +533,11 @@ This is like `describe-bindings', but displays only Isearch keys."
 (defvar isearch-forward nil)	; Searching in the forward direction.
 (defvar isearch-regexp nil)	; Searching for a regexp.
 (defvar isearch-word nil
-  "Regexp-based search mode for words.
+  "Regexp-based search mode for words/symbols.
 If t, do incremental search for a sequence of words, ignoring punctuation.
-If the value is a function, it is called to convert the search string
-to a regexp used by regexp search functions.  The property
-`isearch-message-prefix' put on this function specifies the
+If the value is a function (e.g. `isearch-symbol-regexp'), it is called to
+convert the search string to a regexp used by regexp search functions.
+The property `isearch-message-prefix' put on this function specifies the
 prefix string displyed in the search message.")
 
 (defvar isearch-cmds nil
@@ -622,6 +624,7 @@ Each set is a vector of the form:
 (define-key global-map "\C-r" 'isearch-backward)
 (define-key esc-map "\C-r" 'isearch-backward-regexp)
 (define-key search-map "w" 'isearch-forward-word)
+(define-key search-map "_" 'isearch-forward-symbol)
 
 ;; Entry points to isearch-mode.
 
@@ -661,6 +664,7 @@ If you try to exit with the search string still empty, it invokes
 Type \\[isearch-toggle-case-fold] to toggle search case-sensitivity.
 Type \\[isearch-toggle-regexp] to toggle regular-expression mode.
 Type \\[isearch-toggle-word] to toggle word mode.
+Type \\[isearch-toggle-symbol] to toggle symbol mode.
 Type \\[isearch-edit-string] to edit the search string in the minibuffer.
 
 Also supported is a search ring of the previous 16 search strings.
@@ -727,6 +731,16 @@ as a sequence of words without regard to how the words are separated.
 See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode t nil nil (not no-recursive-edit) (null not-word)))
+
+(defun isearch-forward-symbol (&optional not-symbol no-recursive-edit)
+  "\
+Do incremental search forward for a symbol.
+The prefix argument is currently unused.
+Like ordinary incremental search except that your input is treated
+as a symbol surrounded by symbol boundary constructs \\_< and \\_>.
+See the command `isearch-forward' for more information."
+  (interactive "P\np")
+  (isearch-mode t nil nil (not no-recursive-edit) 'isearch-symbol-regexp))
 
 (defun isearch-backward (&optional regexp-p no-recursive-edit)
   "\
@@ -1375,6 +1389,14 @@ Use `isearch-exit' to quit without signaling."
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
 
+(defun isearch-toggle-symbol ()
+  "Toggle symbol searching on or off."
+  (interactive)
+  (setq isearch-word (unless (eq isearch-word 'isearch-symbol-regexp)
+		       'isearch-symbol-regexp))
+  (setq isearch-success t isearch-adjusted t)
+  (isearch-update))
+
 (defun isearch-toggle-case-fold ()
   "Toggle case folding in searching on or off."
   (interactive)
@@ -1475,6 +1497,16 @@ of words in STRING to a regexp used to search words without regard
 to punctuation."
   (interactive "sWord search: ")
   (re-search-forward (word-search-regexp string t) bound noerror count))
+
+;; Symbol search
+
+(defun isearch-symbol-regexp (string &optional lax)
+  "Return a regexp which matches STRING as a symbol.
+Creates a regexp where STRING is surrounded by symbol delimiters \\_< and \\_>.
+If LAX is non-nil, the end of the string need not match a symbol boundary."
+  (concat "\\_<" (regexp-quote string) (unless lax "\\_>")))
+
+(put 'isearch-symbol-regexp 'isearch-message-prefix "symbol ")
 
 
 (defun isearch-query-replace (&optional delimited regexp-flag)
