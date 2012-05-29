@@ -1,3 +1,37 @@
+2012-05-29  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-search-fun-default): New function.
+	(isearch-search-fun): Move default part to the new function
+	`isearch-search-fun-default'.
+	(isearch-search-fun-function): Set the default value to
+	`isearch-search-fun-default'.  (Bug#11381)
+
+	* comint.el (comint-history-isearch-end):
+	Use `isearch-search-fun-default'.
+	(comint-history-isearch-search): Use `isearch-search-fun-default'
+	and remove spacial case for `isearch-word'.
+	(comint-history-isearch-wrap): Remove spacial case for
+	`isearch-word'.
+
+	* hexl.el (hexl-isearch-search-function):
+	Use `isearch-search-fun-default'.
+
+	* info.el (Info-isearch-search): Use `isearch-search-fun-default'.
+	Use `word-search-regexp' for `isearch-word'.
+
+	* misearch.el (multi-isearch-search-fun):
+	Use `isearch-search-fun-default'.
+
+	* simple.el (minibuffer-history-isearch-search):
+	Use `isearch-search-fun-default' and remove spacial case for
+	`isearch-word'.
+	(minibuffer-history-isearch-wrap): Remove spacial case for
+	`isearch-word'.
+
+	* textmodes/reftex-global.el (reftex-isearch-wrap-function):
+	Remove spacial case for `isearch-word'.
+	(reftex-isearch-isearch-search): Use `isearch-search-fun-default'.
+
 2012-05-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	Decrease XEmacs incompatibilities.

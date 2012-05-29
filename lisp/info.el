@@ -1925,26 +1925,23 @@ If DIRECTION is `backward', search in the reverse direction."
 (defun Info-isearch-search ()
   (if Info-isearch-search
       (lambda (string &optional bound noerror count)
-	(if isearch-word
-	    (Info-search (concat "\\b" (replace-regexp-in-string
-					"\\W+" "\\W+"
-					(replace-regexp-in-string
-					 "^\\W+\\|\\W+$" "" string)
-					nil t)
-				 ;; Lax version of word search
-				 (if (or isearch-nonincremental
-					 (eq (length string)
-					     (length (isearch-string-state
-						      (car isearch-cmds)))))
-				     "\\b"))
-			 bound noerror count
-			 (unless isearch-forward 'backward))
-	  (Info-search (if isearch-regexp string (regexp-quote string))
-		       bound noerror count
-		       (unless isearch-forward 'backward)))
+	(Info-search
+	 (cond
+	  (isearch-word
+	   ;; Lax version of word search
+	   (let ((lax (not (or isearch-nonincremental
+			       (eq (length string)
+				   (length (isearch-string-state
+					    (car isearch-cmds))))))))
+	     (if (functionp isearch-word)
+		 (funcall isearch-word string lax)
+	       (word-search-regexp string lax))))
+	  (isearch-regexp string)
+	  (t (regexp-quote string)))
+	 bound noerror count
+	 (unless isearch-forward 'backward))
 	(point))
-    (let ((isearch-search-fun-function nil))
-      (isearch-search-fun))))
+    (isearch-search-fun-default)))
 
 (defun Info-isearch-wrap ()
   (if Info-isearch-search

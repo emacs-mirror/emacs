@@ -2356,8 +2356,8 @@ If there is no completion possible, say so and continue searching."
 
 ;; Searching
 
-(defvar isearch-search-fun-function nil
-  "Overrides the default `isearch-search-fun' behavior.
+(defvar isearch-search-fun-function 'isearch-search-fun-default
+  "Non-default value overrides the behavior of `isearch-search-fun-default'.
 This variable's value should be a function, which will be called
 with no arguments, and should return a function that takes three
 arguments: STRING, BOUND, and NOERROR.
@@ -2368,22 +2368,24 @@ search for the first occurrence of STRING or its translation.")
 (defun isearch-search-fun ()
   "Return the function to use for the search.
 Can be changed via `isearch-search-fun-function' for special needs."
-  (if isearch-search-fun-function
-      (funcall isearch-search-fun-function)
-    (cond
-     (isearch-word
-      ;; Use lax versions to not fail at the end of the word while
-      ;; the user adds and removes characters in the search string
-      ;; (or when using nonincremental word isearch)
-      (if (or isearch-nonincremental
-	      (eq (length isearch-string)
-		  (length (isearch-string-state (car isearch-cmds)))))
-	  (if isearch-forward 'word-search-forward 'word-search-backward)
-	(if isearch-forward 'word-search-forward-lax 'word-search-backward-lax)))
-     (isearch-regexp
-      (if isearch-forward 're-search-forward 're-search-backward))
-     (t
-      (if isearch-forward 'search-forward 'search-backward)))))
+  (funcall (or isearch-search-fun-function 'isearch-search-fun-default)))
+
+(defun isearch-search-fun-default ()
+  "Return default functions to use for the search."
+  (cond
+   (isearch-word
+    ;; Use lax versions to not fail at the end of the word while
+    ;; the user adds and removes characters in the search string
+    ;; (or when using nonincremental word isearch)
+    (if (or isearch-nonincremental
+	    (eq (length isearch-string)
+		(length (isearch-string-state (car isearch-cmds)))))
+	(if isearch-forward 'word-search-forward 'word-search-backward)
+      (if isearch-forward 'word-search-forward-lax 'word-search-backward-lax)))
+   (isearch-regexp
+    (if isearch-forward 're-search-forward 're-search-backward))
+   (t
+    (if isearch-forward 'search-forward 'search-backward))))
 
 (defun isearch-search-string (string bound noerror)
   "Search for the first occurrence of STRING or its translation.
