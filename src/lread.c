@@ -2982,7 +2982,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	/* If purifying, and string starts with \ newline,
 	   return zero instead.  This is for doc strings
-	   that we are really going to find in etc/DOC.nn.nn  */
+	   that we are really going to find in etc/DOC.nn.nn.  */
 	if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
 	  return make_number (0);
 
@@ -3095,18 +3095,17 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 					  nbytes)
 	       : nbytes);
 
-	  if (uninterned_symbol && ! NILP (Vpurify_flag))
-	    name = make_pure_string (read_buffer, nchars, nbytes, multibyte);
-	  else
-	    name = make_specified_string (read_buffer, nchars, nbytes, multibyte);
+	  name = ((uninterned_symbol && ! NILP (Vpurify_flag)
+		   ? make_pure_string : make_specified_string)
+		  (read_buffer, nchars, nbytes, multibyte));
 	  result = (uninterned_symbol ? Fmake_symbol (name)
 		    : Fintern (name, Qnil));
 
 	  if (EQ (Vread_with_symbol_positions, Qt)
 	      || EQ (Vread_with_symbol_positions, readcharfun))
-	    Vread_symbol_positions_list =
-	      Fcons (Fcons (result, make_number (start_position)),
-		     Vread_symbol_positions_list);
+	    Vread_symbol_positions_list
+	      = Fcons (Fcons (result, make_number (start_position)),
+		       Vread_symbol_positions_list);
 	  return result;
 	}
       }
@@ -3520,7 +3519,7 @@ read_list (int flag, register Lisp_Object readcharfun)
 	       We don't use Fexpand_file_name because that would make
 	       the directory absolute now.  */
 	    elt = concat2 (build_string ("../lisp/"),
-			   Ffile_name_nondirectory (elt));
+			 Ffile_name_nondirectory (elt));
 	}
       else if (EQ (elt, Vload_file_name)
 	       && ! NILP (elt)

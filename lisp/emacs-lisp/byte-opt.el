@@ -500,7 +500,7 @@
 			      (prin1-to-string form))
 	   nil)
 
-	  ((memq fn '(defun defmacro function condition-case))
+	  ((memq fn '(function condition-case))
 	   ;; These forms are compiled as constants or by breaking out
 	   ;; all the subexpressions and compiling them separately.
 	   form)

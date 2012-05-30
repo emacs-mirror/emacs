@@ -3001,7 +3001,7 @@ extern void init_lread (void);
 extern void syms_of_lread (void);
 
 /* Defined in eval.c.  */
-extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
+extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qmacro;
 extern Lisp_Object Qinhibit_quit, Qclosure;
 extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;

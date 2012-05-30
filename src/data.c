@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 #include "termhooks.h"  /* For FRAME_KBOARD reference in y-or-n-p.  */
 #include "font.h"
+#include "keymap.h"
 
 #include <float.h>
 /* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*.  */
@@ -92,6 +93,7 @@ Lisp_Object Qbuffer;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
+static Lisp_Object Qdefun;
 
 Lisp_Object Qinteractive_form;
 
@@ -130,7 +132,7 @@ args_out_of_range_3 (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
 }
 
 
-/* Data type predicates */
+/* Data type predicates.  */
 
 DEFUN ("eq", Feq, Seq, 2, 2, 0,
        doc: /* Return t if the two args are the same Lisp object.  */)
@@ -656,6 +658,10 @@ determined by DEFINITION.  */)
   if (CONSP (XSYMBOL (symbol)->function)
       && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
     LOADHIST_ATTACH (Fcons (Qt, symbol));
+  if (!NILP (Vpurify_flag)
+      /* If `definition' is a keymap, immutable (and copying) is wrong.  */
+      && !KEYMAPP (definition))
+    definition = Fpurecopy (definition);
   definition = Ffset (symbol, definition);
   LOADHIST_ATTACH (Fcons (Qdefun, symbol));
   if (!NILP (docstring))
@@ -3084,6 +3090,8 @@ syms_of_data (void)
   DEFSYM (Qchar_table, "char-table");
   DEFSYM (Qbool_vector, "bool-vector");
   DEFSYM (Qhash_table, "hash-table");
+
+  DEFSYM (Qdefun, "defun");
 
   DEFSYM (Qfont_spec, "font-spec");
   DEFSYM (Qfont_entity, "font-entity");

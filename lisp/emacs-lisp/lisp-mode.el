@@ -135,11 +135,9 @@ It has `lisp-mode-abbrev-table' as its parent."
 
 ;; This was originally in autoload.el and is still used there.
 (put 'autoload 'doc-string-elt 3)
-(put 'defun    'doc-string-elt 3)
 (put 'defmethod 'doc-string-elt 3)
 (put 'defvar   'doc-string-elt 3)
 (put 'defconst 'doc-string-elt 3)
-(put 'defmacro 'doc-string-elt 3)
 (put 'defalias 'doc-string-elt 3)
 (put 'defvaralias 'doc-string-elt 3)
 (put 'define-category 'doc-string-elt 2)

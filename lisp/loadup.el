@@ -318,6 +318,21 @@
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
+(when (hash-table-p purify-flag)
+  (let ((strings 0)
+        (vectors 0)
+        (conses 0)
+        (others 0))
+    (maphash (lambda (k v)
+               (cond
+                ((stringp k) (setq strings (1+ strings)))
+                ((vectorp k) (setq vectors (1+ vectors)))
+                ((consp k)   (setq conses  (1+ conses)))
+                (t           (setq others  (1+ others)))))
+             purify-flag)
+    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d others"
+             strings vectors conses others)))
+
 ;; Avoid error if user loads some more libraries now and make sure the
 ;; hash-consing hash table is GC'd.
 (setq purify-flag nil)

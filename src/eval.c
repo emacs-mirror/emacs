@@ -65,7 +65,7 @@ struct handler *handlerlist;
 int gcpro_level;
 #endif
 
-Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
+Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp;
 Lisp_Object Qinhibit_quit;
 Lisp_Object Qand_rest;
 static Lisp_Object Qand_optional;
@@ -590,109 +590,6 @@ interactive_p (int exclude_subrs_p)
   if (btp && btp->next && EQ (*btp->next->function, Qcall_interactively))
     return 1;
   return 0;
-}
-
-
-DEFUN ("defun", Fdefun, Sdefun, 2, UNEVALLED, 0,
-       doc: /* Define NAME as a function.
-The definition is (lambda ARGLIST [DOCSTRING] BODY...).
-See also the function `interactive'.
-usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
-  (Lisp_Object args)
-{
-  register Lisp_Object fn_name;
-  register Lisp_Object defn;
-
-  fn_name = Fcar (args);
-  CHECK_SYMBOL (fn_name);
-  defn = Fcons (Qlambda, Fcdr (args));
-  if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
-    defn = Ffunction (Fcons (defn, Qnil));
-  if (!NILP (Vpurify_flag))
-    defn = Fpurecopy (defn);
-  if (CONSP (XSYMBOL (fn_name)->function)
-      && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
-    LOADHIST_ATTACH (Fcons (Qt, fn_name));
-  Ffset (fn_name, defn);
-  LOADHIST_ATTACH (Fcons (Qdefun, fn_name));
-  return fn_name;
-}
-
-DEFUN ("defmacro", Fdefmacro, Sdefmacro, 2, UNEVALLED, 0,
-       doc: /* Define NAME as a macro.
-The actual definition looks like
- (macro lambda ARGLIST [DOCSTRING] [DECL] BODY...).
-When the macro is called, as in (NAME ARGS...),
-the function (lambda ARGLIST BODY...) is applied to
-the list ARGS... as it appears in the expression,
-and the result should be a form to be evaluated instead of the original.
-
-DECL is a declaration, optional, which can specify how to indent
-calls to this macro, how Edebug should handle it, and which argument
-should be treated as documentation.  It looks like this:
-  (declare SPECS...)
-The elements can look like this:
-  (indent INDENT)
-	Set NAME's `lisp-indent-function' property to INDENT.
-
-  (debug DEBUG)
-	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
-	equivalent to writing a `def-edebug-spec' for the macro.)
-
-  (doc-string ELT)
-	Set NAME's `doc-string-elt' property to ELT.
-
-usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
-  (Lisp_Object args)
-{
-  register Lisp_Object fn_name;
-  register Lisp_Object defn;
-  Lisp_Object lambda_list, doc, tail;
-
-  fn_name = Fcar (args);
-  CHECK_SYMBOL (fn_name);
-  lambda_list = Fcar (Fcdr (args));
-  tail = Fcdr (Fcdr (args));
-
-  doc = Qnil;
-  if (STRINGP (Fcar (tail)))
-    {
-      doc = XCAR (tail);
-      tail = XCDR (tail);
-    }
-
-  if (CONSP (Fcar (tail))
-      && EQ (Fcar (Fcar (tail)), Qdeclare))
-    {
-      if (!NILP (Vmacro_declaration_function))
-	{
-	  struct gcpro gcpro1;
-	  GCPRO1 (args);
-	  call2 (Vmacro_declaration_function, fn_name, Fcar (tail));
-	  UNGCPRO;
-	}
-
-      tail = Fcdr (tail);
-    }
-
-  if (NILP (doc))
-    tail = Fcons (lambda_list, tail);
-  else
-    tail = Fcons (lambda_list, Fcons (doc, tail));
-
-  defn = Fcons (Qlambda, tail);
-  if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
-    defn = Ffunction (Fcons (defn, Qnil));
-  defn = Fcons (Qmacro, defn);
-
-  if (!NILP (Vpurify_flag))
-    defn = Fpurecopy (defn);
-  if (CONSP (XSYMBOL (fn_name)->function)
-      && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
-    LOADHIST_ATTACH (Fcons (Qt, fn_name));
-  Ffset (fn_name, defn);
-  LOADHIST_ATTACH (Fcons (Qdefun, fn_name));
-  return fn_name;
 }
 
 
@@ -2014,12 +1911,11 @@ this does nothing and returns nil.  */)
     /* Only add entries after dumping, because the ones before are
        not useful and else we get loads of them from the loaddefs.el.  */
     LOADHIST_ATTACH (Fcons (Qautoload, function));
-  else
-    /* We don't want the docstring in purespace (instead,
-       Snarf-documentation should (hopefully) overwrite it).
-       We used to use 0 here, but that leads to accidental sharing in
-       purecopy's hash-consing, so we use a (hopefully) unique integer
-       instead.  */
+  else if (EQ (docstring, make_number (0)))
+    /* `read1' in lread.c has found the docstring starting with "\
+       and assumed the docstring will be provided by Snarf-documentation, so it
+       passed us 0 instead.  But that leads to accidental sharing in purecopy's
+       hash-consing, so we use a (hopefully) unique integer instead.  */
     docstring = make_number (XUNTAG (function, Lisp_Symbol));
   return Ffset (function,
 		Fpurecopy (list5 (Qautoload, file, docstring,
@@ -3576,7 +3472,6 @@ before making `inhibit-quit' nil.  */);
 
   DEFSYM (Qinteractive, "interactive");
   DEFSYM (Qcommandp, "commandp");
-  DEFSYM (Qdefun, "defun");
   DEFSYM (Qand_rest, "&rest");
   DEFSYM (Qand_optional, "&optional");
   DEFSYM (Qclosure, "closure");
@@ -3638,23 +3533,16 @@ Note that `debug-on-error', `debug-on-quit' and friends
 still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;
 
-  DEFVAR_LISP ("macro-declaration-function", Vmacro_declaration_function,
-	       doc: /* Function to process declarations in a macro definition.
-The function will be called with two args MACRO and DECL.
-MACRO is the name of the macro being defined.
-DECL is a list `(declare ...)' containing the declarations.
-The value the function returns is not used.  */);
-  Vmacro_declaration_function = Qnil;
-
   /* When lexical binding is being used,
-   vinternal_interpreter_environment is non-nil, and contains an alist
+   Vinternal_interpreter_environment is non-nil, and contains an alist
    of lexically-bound variable, or (t), indicating an empty
    environment.  The lisp name of this variable would be
    `internal-interpreter-environment' if it weren't hidden.
    Every element of this list can be either a cons (VAR . VAL)
    specifying a lexical binding, or a single symbol VAR indicating
    that this variable should use dynamic scoping.  */
-  DEFSYM (Qinternal_interpreter_environment, "internal-interpreter-environment");
+  DEFSYM (Qinternal_interpreter_environment,
+	  "internal-interpreter-environment");
   DEFVAR_LISP ("internal-interpreter-environment",
 		Vinternal_interpreter_environment,
 	       doc: /* If non-nil, the current lexical environment of the lisp interpreter.
@@ -3685,8 +3573,6 @@ alist of active lexical bindings.  */);
   defsubr (&Ssetq);
   defsubr (&Squote);
   defsubr (&Sfunction);
-  defsubr (&Sdefun);
-  defsubr (&Sdefmacro);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);

@@ -34,33 +34,98 @@
 ;; handle declarations in macro definitions and this is the first file
 ;; loaded by loadup.el that uses declarations in macros.
 
-(defun macro-declaration-function (macro decl)
-  "Process a declaration found in a macro definition.
+(defvar macro-declaration-function #'macro-declaration-function
+  "Function to process declarations in a macro definition.
+The function will be called with two args MACRO and DECL.
+MACRO is the name of the macro being defined.
+DECL is a list `(declare ...)' containing the declarations.
+The value the function returns is not used.")
+
+(defalias 'macro-declaration-function
+  #'(lambda (macro decl)
+      "Process a declaration found in a macro definition.
 This is set as the value of the variable `macro-declaration-function'.
 MACRO is the name of the macro being defined.
 DECL is a list `(declare ...)' containing the declarations.
 The return value of this function is not used."
-  ;; We can't use `dolist' or `cadr' yet for bootstrapping reasons.
-  (let (d)
-    ;; Ignore the first element of `decl' (it's always `declare').
-    (while (setq decl (cdr decl))
-      (setq d (car decl))
-      (if (and (consp d)
-	       (listp (cdr d))
-	       (null (cdr (cdr d))))
-	  (cond ((eq (car d) 'indent)
-		 (put macro 'lisp-indent-function (car (cdr d))))
-		((eq (car d) 'debug)
-		 (put macro 'edebug-form-spec (car (cdr d))))
-		((eq (car d) 'doc-string)
-		 (put macro 'doc-string-elt (car (cdr d))))
-		(t
-		 (message "Unknown declaration %s" d)))
-	(message "Invalid declaration %s" d)))))
+      ;; We can't use `dolist' or `cadr' yet for bootstrapping reasons.
+      (let (d)
+        ;; Ignore the first element of `decl' (it's always `declare').
+        (while (setq decl (cdr decl))
+          (setq d (car decl))
+          (if (and (consp d)
+                   (listp (cdr d))
+                   (null (cdr (cdr d))))
+              (cond ((eq (car d) 'indent)
+                     (put macro 'lisp-indent-function (car (cdr d))))
+                    ((eq (car d) 'debug)
+                     (put macro 'edebug-form-spec (car (cdr d))))
+                    ((eq (car d) 'doc-string)
+                     (put macro 'doc-string-elt (car (cdr d))))
+                    (t
+                     (message "Unknown declaration %s" d)))
+            (message "Invalid declaration %s" d))))))
 
+(put 'defmacro 'doc-string-elt 3)
+(defalias 'defmacro
+  (cons
+   'macro
+   #'(lambda (name arglist &optional docstring decl &rest body)
+       "Define NAME as a macro.
+When the macro is called, as in (NAME ARGS...),
+the function (lambda ARGLIST BODY...) is applied to
+the list ARGS... as it appears in the expression,
+and the result should be a form to be evaluated instead of the original.
 
-(setq macro-declaration-function 'macro-declaration-function)
+DECL is a declaration, optional, which can specify how to indent
+calls to this macro, how Edebug should handle it, and which argument
+should be treated as documentation.  It looks like this:
+  (declare SPECS...)
+The elements can look like this:
+  (indent INDENT)
+	Set NAME's `lisp-indent-function' property to INDENT.
 
+  (debug DEBUG)
+	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
+	equivalent to writing a `def-edebug-spec' for the macro.)
+
+  (doc-string ELT)
+	Set NAME's `doc-string-elt' property to ELT."
+       (if (stringp docstring) nil
+         (if decl (setq body (cons decl body)))
+         (setq decl docstring)
+         (setq docstring nil))
+       (if (or (null decl) (eq 'declare (car-safe decl))) nil
+         (setq body (cons decl body))
+         (setq decl nil))
+       (if (null body) (setq body '(nil)))
+       (if docstring (setq body (cons docstring body)))
+       ;; Can't use backquote because it's not defined yet!
+       (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
+              (def (list 'defalias
+                         (list 'quote name)
+                         (list 'cons ''macro fun))))
+         (if decl
+             (list 'progn
+                   (list 'funcall 'macro-declaration-function
+                         (list 'quote name)
+                         (list 'quote decl))
+                   def)
+           def)))))
+
+;; Now that we defined defmacro we can use it!
+(defmacro defun (name arglist &optional docstring &rest body)
+  "Define NAME as a function.
+The definition is (lambda ARGLIST [DOCSTRING] BODY...).
+See also the function `interactive'."
+  (declare (doc-string 3))
+  (if docstring (setq body (cons docstring body))
+    (if (null body) (setq body '(nil))))
+  (list 'defalias
+        (list 'quote name)
+        (list 'function
+              (cons 'lambda
+                    (cons arglist body)))))
 
 ;; Redefined in byte-optimize.el.
 ;; This is not documented--it's not clear that we should promote it.

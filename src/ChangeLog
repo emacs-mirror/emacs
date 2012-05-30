@@ -1,3 +1,13 @@
+2012-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefun, Fdefmacro, Vmacro_declaration_function):
+	Move to byte-run.el.
+	(Fautoload): Do the hash-doc more carefully.
+	* data.c (Fdefalias): Purify definition, except for keymaps.
+	(Qdefun): Move from eval.c.
+	* lisp.h (Qdefun): Remove.
+	* lread.c (read1): Tiny simplification.
+
 2012-05-29  Troels Nielsen  <bn.troels@gmail.com>
 
 	Do not create empty overlays with the evaporate property (Bug#9642).
@@ -11,8 +21,8 @@
 
 	* w32term.c (my_bring_window_to_top): New function.
 	(x_raise_frame): Use handle returned by DeferWindowPos, which
-	could be different from the original one.  Call
-	my_bring_window_to_top instead of my_set_foreground_window.
+	could be different from the original one.
+	Call my_bring_window_to_top instead of my_set_foreground_window.
 	(Bug#11513)
 
 	* w32fns.c (w32_wnd_proc): Accept and process WM_EMACS_BRINGTOTOP
@@ -103,12 +113,12 @@
 2012-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	Extend mouse support on W32 text-mode console.
-	* xdisp.c (draw_row_with_mouse_face): Call
-	tty_draw_row_with_mouse_face for WINDOWSNT as well.
+	* xdisp.c (draw_row_with_mouse_face):
+	Call tty_draw_row_with_mouse_face for WINDOWSNT as well.
 
 	* w32console.c: Include window.h.
-	(w32con_write_glyphs_with_face, tty_draw_row_with_mouse_face): New
-	functions.
+	(w32con_write_glyphs_with_face, tty_draw_row_with_mouse_face):
+	New functions.
 	(initialize_w32_display): Initialize mouse-highlight data.
 
 	* w32inevt.c: Include termchar.h and window.h.
@@ -646,7 +656,7 @@
 	(marker_byte_position, Fbuffer_has_markers_at):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	(Fset_marker, set_marker_restricted): Don't assume fixnum fits in int.
-	* menu.c (ensure_menu_items): Renamed from grow_menu_items.
+	* menu.c (ensure_menu_items): Rename from grow_menu_items.
 	It now merely ensures that the menu is large enough, without
 	necessarily growing it, as this avoids some integer overflow issues.
 	All callers changed.
@@ -1091,8 +1101,8 @@
 
 	* xdisp.c (handle_single_display_spec): Return 1 for left-margin
 	and right-margin display specs even if the spec is invalid or we
-	are on a TTY, and thus unable to display on the fringes.  That's
-	because the text with the property will not be displayed anyway,
+	are on a TTY, and thus unable to display on the fringes.
+	That's because the text with the property will not be displayed anyway,
 	so we need to signal to the caller that this is a "replacing"
 	display spec.  This fixes display when the spec is invalid or we
 	are on a TTY.

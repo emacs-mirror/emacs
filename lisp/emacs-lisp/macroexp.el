@@ -65,7 +65,7 @@ result will be eq to LIST).
 	    (,unshared nil)
 	    (,tail ,shared)
 	    ,var ,new-el)
-       (while ,tail
+       (while (consp ,tail)
 	 (setq ,var (car ,tail)
 	       ,new-el (progn ,@body))
 	 (unless (eq ,var ,new-el)
@@ -128,20 +128,6 @@ Assumes the caller has bound `macroexpand-all-environment'."
                                 (cddr form))
                     (cdr form))
         form))
-      (`(defmacro ,name . ,args-and-body)
-       (push (cons name (cons 'lambda args-and-body))
-             macroexpand-all-environment)
-       (let ((n 3))
-         ;; Don't macroexpand `declare' since it should really be "expanded"
-         ;; away when `defmacro' is expanded, but currently defmacro is not
-         ;; itself a macro.  So both `defmacro' and `declare' need to be
-         ;; handled directly in bytecomp.el.
-         ;; FIXME: Maybe a simpler solution is to (defalias 'declare 'quote).
-         (while (or (stringp (nth n form))
-                    (eq (car-safe (nth n form)) 'declare))
-           (setq n (1+ n)))
-         (macroexpand-all-forms form n)))
-      (`(defun . ,_) (macroexpand-all-forms form 3))
       (`(,(or `defvar `defconst) . ,_) (macroexpand-all-forms form 2))
       (`(function ,(and f `(lambda . ,_)))
        (maybe-cons 'function

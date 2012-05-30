@@ -1,8 +1,32 @@
+2012-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (defmacro, defun): Move from C.
+	(macro-declaration-function): Move var from C code.
+	(macro-declaration-function): Define function with defalias.
+	* emacs-lisp/macroexp.el (macroexpand-all-1):
+	* emacs-lisp/cconv.el (cconv-convert, cconv-analyse-form):
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Don't handle
+	defun/defmacro any more.
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-signature):
+	Provide fallback for unknown arglist.
+	(byte-compile-arglist-warn): Change calling convention.
+	(byte-compile-output-file-form): Move print-vars binding.
+	(byte-compile-output-docform): Simplify accordingly.
+	(byte-compile-file-form-defun, byte-compile-file-form-defmacro)
+	(byte-compile-defmacro-declaration): Remove.
+	(byte-compile-file-form-defmumble): Generalize to defalias.
+	(byte-compile-output-as-comment): Return byte-positions.
+	Simplify callers accordingly.
+	(byte-compile-lambda): Use `assert'.
+	(byte-compile-defun, byte-compile-defmacro): Remove.
+	(byte-compile-file-form-defalias):
+	Use byte-compile-file-form-defmumble.
+	(byte-compile-defalias-warn): Remove.
+
 2012-05-29  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el: Silence `checkdoc-ispell' errors where
-	possible.  Fix authors.  Improve comments.  Improve loading of
-	`cl'.
+	possible.  Fix authors.  Improve comments.  Improve loading of `cl'.
 
 	(rst-mode-abbrev-table): Merge definition.
 	(rst-mode): Make sure `font-lock-defaults' is buffer local.
@@ -14,8 +38,8 @@
 	(icalendar-export-region): Export UID properly.
 
 2012-05-29 Leo <sdl.web@gmail.com>
-	* calendar/icalendar.el (icalendar-import-format): Add
-	`icalendar-import-format-uid' (Bug#11525).
+	* calendar/icalendar.el (icalendar-import-format):
+	Add `icalendar-import-format-uid' (Bug#11525).
 	(icalendar-import-format-uid): New.
 	(icalendar--parse-summary-and-rest, icalendar--format-ical-event):
 	Export UID.
