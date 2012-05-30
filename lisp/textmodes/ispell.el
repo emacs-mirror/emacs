@@ -203,7 +203,6 @@
 (declare-function ispell-check-minver "ispell" (v1 v2))
 (declare-function ispell-looking-back "ispell"
 		  (regexp &optional limit &rest ignored))
-(declare-function ispell-with-no-warnings (&rest body))
 
 (if (fboundp 'version<=)
     (defalias 'ispell-check-minver 'version<=)
@@ -255,15 +254,9 @@ full featured `looking-back' function is missing."
     (save-excursion
       (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t))))
 
-;;; XEmacs21 does not have `with-no-warnings'
-
-(if (fboundp 'with-no-warnings)
-    (defalias 'ispell-with-no-warnings 'with-no-warnings)
-  (defun ispell-with-no-warnings (&rest body)
-    "Like `progn', but prevents compiler warnings in the body."
-    ;; Taken from Emacs' byte-run.el
-    ;; The implementation for the interpreter is basically trivial.
-    (car (last body))))
+;;; XEmacs21 does not have `with-no-warnings'. Taken from org mode.
+(defmacro ispell-with-no-warnings (&rest body)
+  (cons (if (fboundp 'with-no-warnings) 'with-no-warnings 'progn) body))
 
 ;;; Code:
 
@@ -2804,7 +2797,10 @@ With CLEAR, buffer session localwords are cleaned."
   ;; This hook is typically used by flyspell to flush some variables used
   ;; to optimize the common cases.
   (run-hooks 'ispell-kill-ispell-hook)
-  (if (or clear (interactive-p))
+  (if (or clear
+	  (if (featurep 'xemacs)
+	      (interactive-p)
+	    (called-interactively-p 'interactive)))
       (setq ispell-buffer-session-localwords nil))
   (if (not (and ispell-process
 		(eq (ispell-process-status) 'run)))
@@ -2853,7 +2849,9 @@ By just answering RET you can find out what the current dictionary is."
 	 ;; Specified dictionary is the default already. Could reload
 	 ;; the dictionaries if needed.
 	 (ispell-internal-change-dictionary)
-	 (and (interactive-p)
+	 (and (if (featurep 'xemacs)
+		  (interactive-p)
+		(called-interactively-p 'interactive))
 	      (message "No change, using %s dictionary" dict)))
 	(t				; reset dictionary!
 	 (if (or (assoc dict ispell-local-dictionary-alist)
@@ -3725,8 +3723,8 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	    (cond
 	     ((functionp 'sc-cite-regexp)	; sc 3.0
 	      (ispell-with-no-warnings
-		(concat "\\(" (sc-cite-regexp) "\\)" "\\|"
-			(ispell-non-empty-string sc-reference-tag-string))))
+	       (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
+		       (ispell-non-empty-string sc-reference-tag-string))))
 	     ((boundp 'sc-cite-regexp)		; sc 2.3
 	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
 		      (ispell-with-no-warnings

@@ -1,3 +1,11 @@
+2012-05-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-with-no-warnings):
+	Define as a macro.
+	(ispell-kill-ispell, ispell-change-dictionary): Use
+	`called-interactively-p' for Emacs instead of obsolete
+	`interactive-p'.
+
 2012-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-run.el (defmacro, defun): Move from C.
