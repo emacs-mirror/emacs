@@ -65,6 +65,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
+#if (defined PROFILING \
+     && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
+# include <sys/gmon.h>
+extern void moncontrol (int mode);
+#endif
+
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
@@ -320,9 +326,9 @@ pthread_t main_thread;
 #ifdef HAVE_NS
 /* NS autrelease pool, for memory management.  */
 static void *ns_pool;
-#endif  
+#endif
 
- 
+
 
 /* Handle bus errors, invalid instruction, etc.  */
 #ifndef FLOAT_CATCH_SIGILL
@@ -1664,32 +1670,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef PROFILING
   if (initialized)
     {
-      extern void _mcleanup ();
 #ifdef __MINGW32__
       extern unsigned char etext asm ("etext");
 #else
       extern char etext;
 #endif
-#ifdef HAVE___EXECUTABLE_START
-      /* This symbol is defined by GNU ld to the start of the text
-	 segment.  */
-      extern char __executable_start[];
-#else
-      extern void safe_bcopy ();
-#endif
 
       atexit (_mcleanup);
-#ifdef HAVE___EXECUTABLE_START
-      monstartup (__executable_start, &etext);
-#else
-      /* This uses safe_bcopy because that function comes first in the
-	 Emacs executable.  It might be better to use something that
-	 gives the start of the text segment, but start_of_text is not
-	 defined on all systems now.  */
-      /* FIXME: Does not work on architectures with function
-	 descriptors.  */
-      monstartup (safe_bcopy, &etext);
-#endif
+      monstartup ((uintptr_t) __executable_start, (uintptr_t) &etext);
     }
   else
     moncontrol (0);

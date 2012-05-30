@@ -2758,6 +2758,10 @@ extern void replace_range_2 (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 extern void syms_of_insdel (void);
 
 /* Defined in dispnew.c */
+#if (defined PROFILING \
+     && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
+void __executable_start (void) NO_RETURN;
+#endif
 extern Lisp_Object selected_frame;
 extern Lisp_Object Vwindow_system;
 EXFUN (Fding, 1);

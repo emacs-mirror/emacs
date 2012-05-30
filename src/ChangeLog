@@ -1,3 +1,18 @@
+2012-05-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean up __executable_start, monstartup when --enable-profiling.
+	The following changes affect the code only when profiling.
+	* dispnew.c (__executable_start): Rename from safe_bcopy.
+	Define only on platforms that need it.
+	* emacs.c: Include <sys/gmon.h> when profiling.
+	(_mcleanup): Remove decl, since <sys/gmon.h> does it now.
+	(__executable_start): Remove decl, since lisp.h does it now.
+	(safe_bcopy): Remove decl; no longer has that name.
+	(main): Coalesce #if into single bit of code, for simplicity.
+	Cast pointers to uintptr_t, since standard libraries want integers
+	and not pointers.
+	* lisp.h (__executable_start): New decl.
+
 2012-05-30  Jim Meyering  <meyering@redhat.com>
 
 	* callproc.c (Fcall_process_region): Include directory component

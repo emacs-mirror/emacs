@@ -332,11 +332,13 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 #endif /* GLYPH_DEBUG == 0 */
 
 
-#if defined PROFILING && !HAVE___EXECUTABLE_START
-/* FIXME: only used to find text start for profiling.  */
-
+#if (defined PROFILING \
+     && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__) \
+     && !HAVE___EXECUTABLE_START)
+/* This function comes first in the Emacs executable and is used only
+   to estimate the text start for profiling.  */
 void
-safe_bcopy (const char *from, char *to, int size)
+__executable_start (void)
 {
   abort ();
 }
