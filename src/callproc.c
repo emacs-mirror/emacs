@@ -1015,7 +1015,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
       UNBLOCK_INPUT;
       if (fd == -1)
 	report_file_error ("Failed to open temporary file",
-			   Fcons (Vtemp_file_name_pattern, Qnil));
+			   Fcons (build_string (tempfile), Qnil));
       else
 	close (fd);
     }
