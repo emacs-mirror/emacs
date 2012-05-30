@@ -2871,7 +2871,6 @@ EXFUN (Fpurecopy, 1);
 extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, int);
 extern Lisp_Object make_pure_c_string (const char *data);
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
-extern Lisp_Object make_pure_vector (ptrdiff_t);
 EXFUN (Fgarbage_collect, 0);
 EXFUN (Fmake_byte_code, MANY);
 EXFUN (Fmake_bool_vector, 2);

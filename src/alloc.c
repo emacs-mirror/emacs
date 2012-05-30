@@ -273,6 +273,7 @@ static Lisp_Object Qpost_gc_hook;
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
 static void gc_sweep (void);
+static Lisp_Object make_pure_vector (ptrdiff_t);
 static void mark_glyph_matrix (struct glyph_matrix *);
 static void mark_face_cache (struct face_cache *);
 
@@ -4937,7 +4938,7 @@ make_pure_float (double num)
 /* Return a vector with room for LEN Lisp_Objects allocated from
    pure space.  */
 
-Lisp_Object
+static Lisp_Object
 make_pure_vector (ptrdiff_t len)
 {
   Lisp_Object new;
