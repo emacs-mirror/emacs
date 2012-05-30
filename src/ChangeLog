@@ -1,3 +1,10 @@
+2012-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_stop): Detect whether we have overlay strings
+	loaded by testing it->current.overlay_string_index to be
+	non-negative, instead of checking whether n_overlay_strings is
+	positive.  (Bug#11587)
+
 2012-05-30  Chong Yidong  <cyd@gnu.org>
 
 	* keymap.c (describe_map_tree): Revert 2011-07-07 change (Bug#1169).
