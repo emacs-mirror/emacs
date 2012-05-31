@@ -1,5 +1,6 @@
 /* Functions for image support on window system.
-   Copyright (C) 1989, 1992-2012 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1992-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7987,7 +7988,8 @@ their descriptions (http://www.imagemagick.org/script/formats.php).
 You can also try the shell command: `identify -list format'.
 
 Note that ImageMagick recognizes many file-types that Emacs does not
-recognize as images, such as C.  See `imagemagick-types-inhibit'.  */)
+recognize as images, such as C.  See `imagemagick-types-enable'
+and `imagemagick-types-inhibit'.  */)
   (void)
 {
   Lisp_Object typelist = Qnil;

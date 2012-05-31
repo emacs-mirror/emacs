@@ -1,3 +1,13 @@
+2012-05-31  Glenn Morris  <rgm@gnu.org>
+
+	* image.el: For clarity, call imagemagick-register-types at
+	top-level, rather than relying on a custom :initialize.
+	(imagemagick-types-enable): New option.  (Bug#11557)
+	(imagemagick-register-types): Respect imagemagick-types-inhibit.
+	If disabling support, remove elements altogether rather
+	than using an impossible regexp.
+	(imagemagick-types-inhibit): Give it the default init function.
+
 2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Handle

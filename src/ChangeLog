@@ -63,6 +63,10 @@
 	and not pointers.
 	* lisp.h (__executable_start): New decl.
 
+2012-05-31  Glenn Morris  <rgm@gnu.org>
+
+	* image.c (Fimagemagick_types): Doc fix.
+
 2012-05-30  Jim Meyering  <meyering@redhat.com>
 
 	* callproc.c (Fcall_process_region): Include directory component
