@@ -68,7 +68,9 @@ ImageMagick to view images.  You must call imagemagick-register-types
 afterwards if you do not use customize to change this.
 
 *** The new variable `imagemagick-types-enable' also affects which
-ImageMagick types are treated as images.
+ImageMagick types are treated as images.  The function
+`imagemagick-filter-types' returns the list of types that will be
+treated as images.
 
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without

@@ -687,21 +687,41 @@ The minimum delay between successive frames is 0.01s."
 		      image n count time-elapsed limit))))
 
 
+(defvar imagemagick-types-inhibit)
+(defvar imagemagick-types-enable)
+
+(defun imagemagick-filter-types ()
+  "Return a list of the ImageMagick types to be treated as images, or nil.
+This is the result of `imagemagick-types', including only elements
+that match `imagemagick-types-enable' and do not match
+`imagemagick-types-inhibit'."
+  (when (fboundp 'imagemagick-types)
+    (cond ((null imagemagick-types-enable) nil)
+	  ((eq imagemagick-types-inhibit t) nil)
+	  ((eq imagemagick-types-enable t) (imagemagick-types))
+	  (t
+	   (delq nil
+		 (mapcar
+		  (lambda (type)
+		    (unless (memq type imagemagick-types-inhibit)
+		      (catch 'found
+			(dolist (enable imagemagick-types-enable nil)
+			  (if (cond ((symbolp enable) (eq enable type))
+				    ((stringp enable)
+				     (string-match enable (symbol-name type))))
+			      (throw 'found type))))))
+		  (imagemagick-types)))))))
+
 (defvar imagemagick--file-regexp nil
   "File extension regexp for ImageMagick files, if any.
 This is the extension installed into `auto-mode-alist' and
 `image-type-file-name-regexps' by `imagemagick-register-types'.")
 
-(defvar imagemagick-types-inhibit)
-(defvar imagemagick-types-enable)
-
 ;;;###autoload
 (defun imagemagick-register-types ()
   "Register file types that can be handled by ImageMagick.
 This function is called at startup, after loading the init file.
-It registers the ImageMagick types returned by `imagemagick-types',
-including only those from `imagemagick-types-enable', and excluding
-those from `imagemagick-types-inhibit'.
+It registers the ImageMagick types returned by `imagemagick-filter-types'.
 
 Registered image types are added to `auto-mode-alist', so that
 Emacs visits them in Image mode.  They are also added to
@@ -710,27 +730,9 @@ recognizes these files as having image type `imagemagick'.
 
 If Emacs is compiled without ImageMagick support, this does nothing."
   (when (fboundp 'imagemagick-types)
-    (let* ((include
-	    (cond ((null imagemagick-types-enable) nil)
-		  ((eq imagemagick-types-inhibit t) nil)
-		  ((eq imagemagick-types-enable t) (imagemagick-types))
-		  (t
-		   (delq nil
-			 (mapcar
-			  (lambda (type)
-			    (catch 'found
-			      (dolist (enable imagemagick-types-enable nil)
-				(if (cond ((symbolp enable) (eq enable type))
-					  ((stringp enable)
-					   (string-match enable
-							 (symbol-name type))))
-				    (throw 'found type)))))
-			  (imagemagick-types))))))
-	   (re (let (types)
-		 (dolist (type include)
-		   (unless (memq type imagemagick-types-inhibit)
-		     (push (downcase (symbol-name type)) types)))
-		 (if types (concat "\\." (regexp-opt types) "\\'"))))
+    (let* ((types (mapcar (lambda (type) (downcase (symbol-name type)))
+			  (imagemagick-filter-types)))
+	   (re (if types (concat "\\." (regexp-opt types) "\\'")))
 	   (ama-elt (car (member (cons imagemagick--file-regexp 'image-mode)
 				 auto-mode-alist)))
 	   (itfnr-elt (car (member (cons imagemagick--file-regexp 'imagemagick)

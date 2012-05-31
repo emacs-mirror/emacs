@@ -3,7 +3,8 @@
 	* image.el: For clarity, call imagemagick-register-types at
 	top-level, rather than relying on a custom :initialize.
 	(imagemagick-types-enable): New option.  (Bug#11557)
-	(imagemagick-register-types): Respect imagemagick-types-inhibit.
+	(imagemagick-filter-types): New function.  (Bug#7406)
+	(imagemagick-register-types): Use imagemagick-filter-types.
 	If disabling support, remove elements altogether rather
 	than using an impossible regexp.
 	(imagemagick-types-inhibit): Give it the default init function.
