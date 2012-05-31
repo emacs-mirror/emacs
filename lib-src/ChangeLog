@@ -1,3 +1,9 @@
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/emacsclientw.exe): Use $(MWINDOWS)
+	instead of a literal -mwindows, which is not supported by MSVC.
+	(Bug#11405)
+
 2012-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* make-docfile.c: Improve comment style.

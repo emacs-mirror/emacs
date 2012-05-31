@@ -753,29 +753,36 @@ if %COMPILER% == gcc set MAKECMD=gmake
 if %COMPILER% == cl set MAKECMD=nmake
 
 rem   Pass on chosen settings to makefiles.
-rem   NB. Be very careful to not have a space before redirection symbols
-rem   except when there is a preceding digit, when a space is required.
 rem
+rem   The weird place we put the redirection is to make sure no extra
+rem   whitespace winds up at the end of the Make variables, since some
+rem   variables, e.g. INSTALL_DIR, cannot stand that.  Yes, echo will
+rem   write the blanks between the end of command arguments and the
+rem   redirection symbol to the file.  OTOH, we cannot put the
+rem   redirection immediately after the last character of the command,
+rem   because environment variable expansion can yield a digit there,
+rem   which will then be misinterpreted as the file descriptor to
+rem   redirect...
 echo # Start of settings from configure.bat >config.settings
-echo COMPILER=%COMPILER% >>config.settings
-if not "(%mf%)" == "()" echo MCPU_FLAG=%mf% >>config.settings
-if not "(%dbginfo%)" == "()" echo DEBUG_INFO=%dbginfo% >>config.settings
-if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
-if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
-if (%enablechecking%) == (Y) echo ENABLECHECKS=1 >>config.settings
-if (%profile%) == (Y) echo PROFILE=1 >>config.settings
-if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
-if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix% >>config.settings
-if not "(%distfiles%)" == "()" echo DIST_FILES=%distfiles% >>config.settings
+>>config.settings echo COMPILER=%COMPILER%
+if not "(%mf%)" == "()" >>config.settings echo MCPU_FLAG=%mf%
+if not "(%dbginfo%)" == "()" >>config.settings echo DEBUG_INFO=%dbginfo%
+if (%nodebug%) == (Y) >>config.settings echo NODEBUG=1
+if (%noopt%) == (Y) >>config.settings echo NOOPT=1
+if (%enablechecking%) == (Y) >>config.settings echo ENABLECHECKS=1
+if (%profile%) == (Y) >>config.settings echo PROFILE=1
+if (%nocygwin%) == (Y) >>config.settings echo NOCYGWIN=1
+if not "(%prefix%)" == "()" >>config.settings echo INSTALL_DIR=%prefix%
+if not "(%distfiles%)" == "()" >>config.settings echo DIST_FILES=%distfiles%
 rem We go thru docflags because usercflags could be "-DFOO=bar" -something
 rem and the if command cannot cope with this
 for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
-if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags% >>config.settings
-if (%docflags%)==(Y) echo ESC_USER_CFLAGS=%escusercflags% >>config.settings
+if (%docflags%)==(Y) >>config.settings echo USER_CFLAGS=%usercflags%
+if (%docflags%)==(Y) >>config.settings echo ESC_USER_CFLAGS=%escusercflags%
 for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
-if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags% >>config.settings
+if (%doldflags%)==(Y) >>config.settings echo USER_LDFLAGS=%userldflags%
 for %%v in (%extrauserlibs%) do if not (%%v)==() set doextralibs=Y
-if (%doextralibs%)==(Y) echo USER_LIBS=%extrauserlibs% >>config.settings
+if (%doextralibs%)==(Y) >>config.settings echo USER_LIBS=%extrauserlibs%
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 

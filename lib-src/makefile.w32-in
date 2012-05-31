@@ -65,7 +65,7 @@ $(BLD)/emacsclient.exe:		$(ECLIENTOBJS)
 
 $(BLD)/emacsclientw.exe:	$(ECLIENTOBJS) $(CLIENTRES)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
-		$(LINK) $(LINK_OUT)$@ $(CLIENTRES) -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(COMCTL32) $(LIBS)
+		$(LINK) $(LINK_OUT)$@ $(CLIENTRES) $(MWINDOWS) $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(COMCTL32) $(LIBS)
 
 $(BLD)/emacsclient.$(O):	emacsclient.c
 		$(CC) $(CFLAGS) $(ECLIENT_CFLAGS) $(CC_OUT)$@ emacsclient.c

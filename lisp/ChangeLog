@@ -1,5 +1,21 @@
 2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Handle
+	arbitrary file name lengths (Bug#11585).
+
+2012-05-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* desktop.el (desktop-read): Clear previous and next buffers for
+	all windows and bury *Messages* buffer (bug#11556).
+
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (mail-yank-region): Recognize
+	rmail-yank-current-message in addition to insert-buffer.  Fixes
+	mail-mode's "C-c C-r" that otherwise does nothing when invoked in
+
+2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Add `declare' for `defun'.  Align `defmacro's with it.
 	* emacs-lisp/easy-mmode.el (define-minor-mode)
 	(define-globalized-minor-mode): Don't autoload the var definitions.
