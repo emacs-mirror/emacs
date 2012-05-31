@@ -1,3 +1,38 @@
+2012-09-22  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Further code rearrangement and comment
+	revision.
+	(todos-add-to-buffer-list, todos-update-buffer-list): New functions.
+	(todos-file-buffers): New variable.
+	(todos-reset-global-current-todos-file): Use it to simplify
+	implementation of this function.
+	(todos-filtered): New defgroup.
+	(todos-filter-buffer, todos-top-priorities-buffer)
+	(todos-diary-items-buffer, todos-regexp-items-buffer)
+	(todos-priorities-rules, todos-show-priorities)
+	(todos-filter-files, todos-filter-done-items): Use it.
+	(todos-skip-archived-categories): Rename from
+	todos-ignore-archived-categories and adjust users.
+	(todos-display-as-todos-file): Rename from todos-after-find-file
+	and adjust callers.
+	(todos-reset-highlight-item, todos-mode-external-set)
+	(todos-jump-to-category, todos-jump-to-item)
+	(todos-raise-category-priority, todos-insert-item)
+	(todos-move-item): Use find-file-visiting.
+	(todos-make-categories-list): Use file-truename.
+	(todos-display-categories-1): Adjust title text for archive files;
+	use done label for item counts in archive files.
+	(todos-modes-set-3): Add todos-display-as-todos-file to
+	find-file-hook.
+	(todos-mode): Add todos-add-to-buffer-list to find-file-hook and
+	todos-update-buffer-list post-command-hook.
+	(todos-unload-hook): And remove them.
+	(todos-show): Only when interactively invoked from an archive,
+	switch to corresponding Todos file.
+	(todos-archive-done-item): Remove obsolete code; fix handling of
+	marked items; fix search for existing category; check whether
+	archive exists and write to file if not; improve display handling.
+
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Further comment revision.
