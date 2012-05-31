@@ -1020,6 +1020,18 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 			 (format ", %d to restore lazily"
 				 (length desktop-buffer-args-list))
 		       ""))
+	    ;; Bury the *Messages* buffer to not reshow it when burying
+	    ;; the buffer we switched to above.
+	    (when (buffer-live-p (get-buffer "*Messages*"))
+	      (bury-buffer "*Messages*"))
+	    ;; Clear all windows' previous and next buffers, these have
+	    ;; been corrupted by the `switch-to-buffer' calls in
+	    ;; `desktop-restore-file-buffer' (bug#11556).  This is a
+	    ;; brute force fix and should be replaced by a more subtle
+	    ;; strategy eventually.
+	    (walk-window-tree (lambda (window)
+				(set-window-prev-buffers window nil)
+				(set-window-next-buffers window nil)))
 	    t))
       ;; No desktop file found.
       (desktop-clear)

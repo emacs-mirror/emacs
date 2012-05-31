@@ -1160,24 +1160,12 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	{
 	  ptrdiff_t val;
 
-#ifdef REL_ALLOC
-	  /* re_search_2 below is passed C pointers to buffer text.
-	     If some code called by it causes memory (re)allocation,
-	     buffer text could be relocated on platforms that use
-	     REL_ALLOC, which invalidates those C pointers.  So we
-	     inhibit relocation of buffer text for as long as
-	     re_search_2 runs.  */
-	  r_alloc_inhibit_buffer_relocation (1);
-#endif
 	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 			     pos_byte - BEGV_BYTE, lim_byte - pos_byte,
 			     (NILP (Vinhibit_changing_match_data)
 			      ? &search_regs : &search_regs_1),
 			     /* Don't allow match past current point */
 			     pos_byte - BEGV_BYTE);
-#ifdef REL_ALLOC
-	  r_alloc_inhibit_buffer_relocation (0);
-#endif
 	  if (val == -2)
 	    {
 	      matcher_overflow ();
@@ -1217,19 +1205,11 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	{
 	  ptrdiff_t val;
 
-#ifdef REL_ALLOC
-	  /* See commentary above for the reasons for inhibiting
-	     buffer text relocation here.  */
-	  r_alloc_inhibit_buffer_relocation (1);
-#endif
 	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 			     pos_byte - BEGV_BYTE, lim_byte - pos_byte,
 			     (NILP (Vinhibit_changing_match_data)
 			      ? &search_regs : &search_regs_1),
 			     lim_byte - BEGV_BYTE);
-#ifdef REL_ALLOC
-	  r_alloc_inhibit_buffer_relocation (0);
-#endif
 	  if (val == -2)
 	    {
 	      matcher_overflow ();

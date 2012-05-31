@@ -2996,9 +2996,9 @@ You type        Translation\n\
    If MENTION_SHADOW is nonzero, then when something is shadowed by SHADOW,
    don't omit it; instead, mention it but say it is shadowed.
 
-   Return whether something was inserted or not.  */
+   Any inserted text ends in two newlines (used by `help-make-xrefs').  */
 
-int
+void
 describe_map_tree (Lisp_Object startmap, int partial, Lisp_Object shadow,
 		   Lisp_Object prefix, const char *title, int nomenu, int transl,
 		   int always_title, int mention_shadow)
@@ -3108,8 +3108,10 @@ key             binding\n\
     skip: ;
     }
 
+  if (something)
+    insert_string ("\n");
+
   UNGCPRO;
-  return something;
 }
 
 static int previous_description_column;

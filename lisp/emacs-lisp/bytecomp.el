@@ -1937,7 +1937,7 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 	     (byte-compile-fix-header byte-compile-current-file))))
      byte-compile--outbuffer)))
 
-(defun byte-compile-fix-header (filename)
+(defun byte-compile-fix-header (_filename)
   "If the current buffer has any multibyte characters, insert a version test."
   (when (< (point-max) (position-bytes (point-max)))
     (goto-char (point-min))
@@ -1962,12 +1962,10 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
        ;; don't try to check the version number.
        "     (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
        (format "     (string-lessp emacs-version \"%s\")\n" minimum-version)
-       "     (error \"`"
-       ;; prin1-to-string is used to quote backslashes.
-       (substring (prin1-to-string (file-name-nondirectory filename))
-		  1 -1)
-       (format "' was compiled for Emacs %s or later\"))\n\n"
-	       minimum-version))
+       ;; Because the header must fit in a fixed width, we cannot
+       ;; insert arbitrary-length file names (Bug#11585).
+       "     (error \"`%s' was compiled for "
+       (format "Emacs %s or later\" load-file-name))\n\n" minimum-version))
       ;; Now compensate for any change in size, to make sure all
       ;; positions in the file remain valid.
       (setq delta (- (point-max) old-header-end))

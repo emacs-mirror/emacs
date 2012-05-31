@@ -3170,7 +3170,7 @@ handle_stop (struct it *it)
 		     onto the stack one more time, which is not
 		     expected by the rest of the code that processes
 		     overlay strings.  */
-		  || (it->n_overlay_strings <= 0
+		  || (it->current.overlay_string_index < 0
 		      ? !get_overlay_strings_1 (it, 0, 0)
 		      : 0))
 		{

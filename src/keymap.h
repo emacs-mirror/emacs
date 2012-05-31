@@ -47,7 +47,7 @@ EXFUN (Fcurrent_active_maps, 2);
 extern Lisp_Object access_keymap (Lisp_Object, Lisp_Object, int, int, int);
 extern Lisp_Object get_keymap (Lisp_Object, int, int);
 EXFUN (Fset_keymap_parent, 2);
-extern int describe_map_tree (Lisp_Object, int, Lisp_Object, Lisp_Object,
+extern void describe_map_tree (Lisp_Object, int, Lisp_Object, Lisp_Object,
 			      const char *, int, int, int, int);
 extern ptrdiff_t current_minor_maps (Lisp_Object **, Lisp_Object **);
 extern void initial_define_key (Lisp_Object, int, const char *);

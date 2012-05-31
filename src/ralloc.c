@@ -1142,7 +1142,12 @@ r_alloc_reset_variable (POINTER *old, POINTER *new)
 void
 r_alloc_inhibit_buffer_relocation (int inhibit)
 {
-  use_relocatable_buffers = !inhibit;
+  if (use_relocatable_buffers < 0)
+    use_relocatable_buffers = 0;
+  if (inhibit)
+    use_relocatable_buffers++;
+  else if (use_relocatable_buffers > 0)
+    use_relocatable_buffers--;
 }
 
 
