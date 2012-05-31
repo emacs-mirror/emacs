@@ -1,3 +1,8 @@
+2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Handle
+	arbitrary file name lengths (Bug#11585).
+
 2012-05-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* desktop.el (desktop-read): Clear previous and next buffers for
