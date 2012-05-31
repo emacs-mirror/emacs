@@ -1,3 +1,11 @@
+2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Pacify gcc -Wdouble-precision when using Xaw.
+	* xterm.c (xaw_jump_callback, x_set_toolkit_scroll_bar_thumb)
+	[HAVE_X_WINDOWS && USE_TOOLKIT_SCROLL_BARS && !USE_MOTIF && !USE_GTK]:
+	Use 'float' consistently, rather than 'float' in most places
+	and 'double' in a couple of places.
+
 2012-05-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_stop): Detect whether we have overlay strings
