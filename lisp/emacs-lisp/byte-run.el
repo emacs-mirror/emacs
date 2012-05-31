@@ -1,4 +1,4 @@
-;;; byte-run.el --- byte-compiler support for inlining
+;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 2001-2012  Free Software Foundation, Inc.
 
@@ -30,9 +30,8 @@
 
 ;;; Code:
 
-;; We define macro-declaration-function here because it is needed to
-;; handle declarations in macro definitions and this is the first file
-;; loaded by loadup.el that uses declarations in macros.
+;; `macro-declaration-function' are both obsolete (as marked at the end of this
+;; file) but used in many .elc files.
 
 (defvar macro-declaration-function #'macro-declaration-function
   "Function to process declarations in a macro definition.
@@ -66,6 +65,45 @@ The return value of this function is not used."
                      (message "Unknown declaration %s" d)))
             (message "Invalid declaration %s" d))))))
 
+;; We define macro-declaration-alist here because it is needed to
+;; handle declarations in macro definitions and this is the first file
+;; loaded by loadup.el that uses declarations in macros.
+
+(defvar defun-declarations-alist
+  ;; FIXME: Should we also add an `obsolete' property?
+  (list
+   ;; Too bad we can't use backquote yet at this stage of the bootstrap.
+   (list 'advertised-calling-convention
+         #'(lambda (f arglist when)
+             (list 'set-advertised-calling-convention
+                   (list 'quote f) (list 'quote arglist) (list 'quote when))))
+   (list 'doc-string
+         #'(lambda (f pos)
+             (list 'put (list 'quote f) ''doc-string-elt (list 'quote pos))))
+   (list 'indent
+         #'(lambda (f val)
+             (list 'put (list 'quote f)
+                   ''lisp-indent-function (list 'quote val)))))
+  "List associating function properties to their macro expansion.
+Each element of the list takes the form (PROP FUN) where FUN is
+a function.  For each (PROP . VALUES) in a function's declaration,
+the FUN corresponding to PROP is called with the function name
+and the VALUES and should return the code to use to set this property.")
+
+(defvar macro-declarations-alist
+  (cons
+   (list 'debug
+         #'(lambda (name spec)
+             (list 'progn :autoload-end
+                   (list 'put (list 'quote name)
+                         ''edebug-form-spec (list 'quote spec)))))
+   defun-declarations-alist)
+  "List associating properties of macros to their macro expansion.
+Each element of the list takes the form (PROP FUN) where FUN is
+a function.  For each (PROP . VALUES) in a macro's declaration,
+the FUN corresponding to PROP is called with the function name
+and the VALUES and should return the code to use to set this property.")
+
 (put 'defmacro 'doc-string-elt 3)
 (defalias 'defmacro
   (cons
@@ -76,21 +114,9 @@ When the macro is called, as in (NAME ARGS...),
 the function (lambda ARGLIST BODY...) is applied to
 the list ARGS... as it appears in the expression,
 and the result should be a form to be evaluated instead of the original.
-
-DECL is a declaration, optional, which can specify how to indent
-calls to this macro, how Edebug should handle it, and which argument
-should be treated as documentation.  It looks like this:
-  (declare SPECS...)
-The elements can look like this:
-  (indent INDENT)
-	Set NAME's `lisp-indent-function' property to INDENT.
-
-  (debug DEBUG)
-	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
-	equivalent to writing a `def-edebug-spec' for the macro.)
-
-  (doc-string ELT)
-	Set NAME's `doc-string-elt' property to ELT."
+DECL is a declaration, optional, of the form (declare DECLS...) where
+DECLS is a list of elements of the form (PROP . VALUES).  These are
+interpreted according to `macro-declarations-alist'."
        (if (stringp docstring) nil
          (if decl (setq body (cons decl body)))
          (setq decl docstring)
@@ -104,28 +130,67 @@ The elements can look like this:
        (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
               (def (list 'defalias
                          (list 'quote name)
-                         (list 'cons ''macro fun))))
-         (if decl
-             (list 'progn
-                   (list 'funcall 'macro-declaration-function
-                         (list 'quote name)
-                         (list 'quote decl))
-                   def)
+                         (list 'cons ''macro fun)))
+              (declarations
+               (mapcar
+                #'(lambda (x)
+                    (let ((f (cdr (assq (car x) macro-declarations-alist))))
+                      (if f (apply (car f) name (cdr x))
+                        (message "Warning: Unknown macro property %S in %S"
+                                 (car x) name))))
+                (cdr decl))))
+         (if declarations
+             (cons 'prog1 (cons def declarations))
            def)))))
 
 ;; Now that we defined defmacro we can use it!
 (defmacro defun (name arglist &optional docstring &rest body)
   "Define NAME as a function.
 The definition is (lambda ARGLIST [DOCSTRING] BODY...).
-See also the function `interactive'."
+See also the function `interactive'.
+DECL is a declaration, optional, of the form (declare DECLS...) where
+DECLS is a list of elements of the form (PROP . VALUES).  These are
+interpreted according to `defun-declarations-alist'.
+
+\(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
+  ;; We can't just have `decl' as an &optional argument, because we need
+  ;; to distinguish
+  ;;    (defun foo (arg) (toto) nil)
+  ;; from
+  ;;    (defun foo (arg) (toto)).
   (declare (doc-string 3))
-  (if docstring (setq body (cons docstring body))
-    (if (null body) (setq body '(nil))))
-  (list 'defalias
-        (list 'quote name)
-        (list 'function
-              (cons 'lambda
-                    (cons arglist body)))))
+  (let ((decls (cond
+                ((eq (car-safe docstring) 'declare)
+                 (prog1 (cdr docstring) (setq docstring nil)))
+                ((eq (car-safe (car body)) 'declare)
+                 (prog1 (cdr (car body)) (setq body (cdr body)))))))
+    (if docstring (setq body (cons docstring body))
+      (if (null body) (setq body '(nil))))
+    (let ((declarations
+           (mapcar
+            #'(lambda (x)
+                (let ((f (cdr (assq (car x) defun-declarations-alist))))
+                  (cond
+                   (f (apply (car f) name (cdr x)))
+                   ;; Yuck!!
+                   ((and (featurep 'cl)
+                         (memq (car x)  ;C.f. cl-do-proclaim.
+                               '(special inline notinline optimize warn)))
+                    (if (null (stringp docstring))
+                        (push (list 'declare x) body)
+                      (setcdr body (cons (list 'declare x) (cdr body))))
+                    nil)
+                   (t (message "Warning: Unknown defun property %S in %S"
+                               (car x) name)))))
+                   decls))
+          (def (list 'defalias
+                     (list 'quote name)
+                     (list 'function
+                           (cons 'lambda
+                                 (cons arglist body))))))
+      (if declarations
+          (cons 'prog1 (cons def declarations))
+        def))))
 
 ;; Redefined in byte-optimize.el.
 ;; This is not documented--it's not clear that we should promote it.
@@ -158,7 +223,6 @@ See also the function `interactive'."
 ;; 			 (list 'put x ''byte-optimizer nil)))
 ;; 		fns)))
 
-;; This has a special byte-hunk-handler in bytecomp.el.
 (defmacro defsubst (name arglist &rest body)
   "Define an inline function.  The syntax is just like that of `defun'."
   (declare (debug defun) (doc-string 3))
@@ -172,7 +236,7 @@ See also the function `interactive'."
 
 (defvar advertised-signature-table (make-hash-table :test 'eq :weakness 'key))
 
-(defun set-advertised-calling-convention (function signature when)
+(defun set-advertised-calling-convention (function signature _when)
   "Set the advertised SIGNATURE of FUNCTION.
 This will allow the byte-compiler to warn the programmer when she uses
 an obsolete calling convention.  WHEN specifies since when the calling
@@ -187,15 +251,15 @@ If CURRENT-NAME is a string, that is the `use instead' message
 \(it should end with a period, and not start with a capital).
 WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
+  (declare (advertised-calling-convention
+            ;; New code should always provide the `when' argument.
+            (obsolete-name current-name when) "23.1"))
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")
   (put obsolete-name 'byte-obsolete-info
        ;; The second entry used to hold the `byte-compile' handler, but
        ;; is not used any more nowadays.
        (purecopy (list current-name nil when)))
   obsolete-name)
-(set-advertised-calling-convention
- ;; New code should always provide the `when' argument.
- 'make-obsolete '(obsolete-name current-name when) "23.1")
 
 (defmacro define-obsolete-function-alias (obsolete-name current-name
 						   &optional when docstring)
@@ -209,14 +273,13 @@ is equivalent to the following two lines of code:
 \(make-obsolete 'old-fun 'new-fun \"22.1\")
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
-  (declare (doc-string 4))
+  (declare (doc-string 4)
+           (advertised-calling-convention
+            ;; New code should always provide the `when' argument.
+            (obsolete-name current-name when &optional docstring) "23.1"))
   `(progn
      (defalias ,obsolete-name ,current-name ,docstring)
      (make-obsolete ,obsolete-name ,current-name ,when)))
-(set-advertised-calling-convention
- ;; New code should always provide the `when' argument.
- 'define-obsolete-function-alias
- '(obsolete-name current-name when &optional docstring) "23.1")
 
 (defun make-obsolete-variable (obsolete-name current-name &optional when access-type)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
@@ -226,13 +289,13 @@ WHEN should be a string indicating when the variable
 was first made obsolete, for example a date or a release number.
 ACCESS-TYPE if non-nil should specify the kind of access that will trigger
   obsolescence warnings; it can be either `get' or `set'."
+  (declare (advertised-calling-convention
+            ;; New code should always provide the `when' argument.
+            (obsolete-name current-name when &optional access-type) "23.1"))
   (put obsolete-name 'byte-obsolete-variable
        (purecopy (list current-name access-type when)))
   obsolete-name)
-(set-advertised-calling-convention
- ;; New code should always provide the `when' argument.
- 'make-obsolete-variable
- '(obsolete-name current-name when &optional access-type) "23.1")
+
 
 (defmacro define-obsolete-variable-alias (obsolete-name current-name
 						 &optional when docstring)
@@ -255,7 +318,10 @@ For the benefit of `custom-set-variables', if OBSOLETE-NAME has
 any of the following properties, they are copied to
 CURRENT-NAME, if it does not already have them:
 'saved-value, 'saved-variable-comment."
-  (declare (doc-string 4))
+  (declare (doc-string 4)
+           (advertised-calling-convention
+            ;; New code should always provide the `when' argument.
+            (obsolete-name current-name when &optional docstring) "23.1"))
   `(progn
      (defvaralias ,obsolete-name ,current-name ,docstring)
      ;; See Bug#4706.
@@ -264,10 +330,6 @@ CURRENT-NAME, if it does not already have them:
             (null (get ,current-name prop))
             (put ,current-name prop (get ,obsolete-name prop))))
      (make-obsolete-variable ,obsolete-name ,current-name ,when)))
-(set-advertised-calling-convention
- ;; New code should always provide the `when' argument.
- 'define-obsolete-variable-alias
- '(obsolete-name current-name when &optional docstring) "23.1")
 
 ;; FIXME This is only defined in this file because the variable- and
 ;; function- versions are too.  Unlike those two, this one is not used
@@ -347,5 +409,10 @@ In interpreted code, this is entirely equivalent to `progn'."
 ;;       (warnings (- free-vars))		; Don't warn about free variables
 ;;       (file-format emacs19))"
 ;;   nil)
+
+(make-obsolete-variable 'macro-declaration-function
+                        'macro-declarations-alist "24.2")
+(make-obsolete 'macro-declaration-function
+               'macro-declarations-alist "24.2")
 
 ;;; byte-run.el ends here

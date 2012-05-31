@@ -229,6 +229,7 @@ For example, you could write
          (variable nil)
          ((not globalp)
           `(progn
+             :autoload-end
              (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
 Use the command `%s' to change this variable." pretty-name mode))
              (make-variable-buffer-local ',mode)))
@@ -366,8 +367,10 @@ call another major mode in their body."
 				"-mode\\'" "" (symbol-name mode))))))
 
     `(progn
-       (defvar ,MODE-major-mode nil)
-       (make-variable-buffer-local ',MODE-major-mode)
+       (progn
+         :autoload-end
+         (defvar ,MODE-major-mode nil)
+         (make-variable-buffer-local ',MODE-major-mode))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
 	 ;; Very short lines to avoid too long lines in the generated

@@ -299,6 +299,11 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
+** `defun' also accepts a (declare DECLS) form, like `defmacro'.
+The interpretation of the DECLS is determined by `defun-declarations-alist'.
+
+** `macro-declaration-function' is obsolete, use `macro-declarations-alist'.
+
 ** New function `set-temporary-overlay-map'.
 
 ** New macros `setq-local' and `defvar-local'.
