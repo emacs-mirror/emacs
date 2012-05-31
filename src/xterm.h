@@ -939,8 +939,6 @@ void x_handle_property_notify (XPropertyEvent *);
 struct frame *check_x_frame (Lisp_Object);
 EXFUN (Fx_display_grayscale_p, 1);
 extern void x_free_gcs (struct frame *);
-extern int gray_bitmap_width, gray_bitmap_height;
-extern char *gray_bitmap_bits;
 
 /* From xrdb.c.  */
 

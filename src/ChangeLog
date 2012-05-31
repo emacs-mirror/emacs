@@ -1,3 +1,14 @@
+2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove obsolete '#define static' cruft.
+	* s/hpux10-20.h (_FILE_OFFSET_BITS): Don't #undef.
+	This #undef was "temporary" in 2000; it is no longer needed
+	now that '#define static' has gone away.
+	* xfns.c, xterm.h (gray_bitmap_width, gray_bitmap_height)
+	(gray_bitmap_bits): Remove; no longer needed.
+	All uses replaced with definiens.
+	* xterm.c: Include "bitmaps/gray.xbm".
+
 2012-05-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean up __executable_start, monstartup when --enable-profiling.

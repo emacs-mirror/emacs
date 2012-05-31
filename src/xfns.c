@@ -126,14 +126,6 @@ extern LWLIB_ID widget_id_tick;
 
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 
-/* The gray bitmap `bitmaps/gray'.  This is done because xterm.c uses
-   it, and including `bitmaps/gray' more than once is a problem when
-   config.h defines `static' as an empty replacement string.  */
-
-int gray_bitmap_width = gray_width;
-int gray_bitmap_height = gray_height;
-char *gray_bitmap_bits = gray_bits;
-
 /* Nonzero if using X.  */
 
 int x_in_use;

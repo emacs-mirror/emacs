@@ -2778,18 +2778,10 @@ build Emacs in a directory on a local disk.
 
 *** The dumped Emacs crashes when run, trying to write pure data.
 
-Two causes have been seen for such problems.
-
-1) On a system where getpagesize is not a system call, it is defined
+On a system where getpagesize is not a system call, it is defined
 as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out (5).
-
-2) Some systems allocate variables declared static among the
-initialized variables.  Emacs makes all initialized variables in most
-of its files pure after dumping, but the variables declared static and
-not initialized are not supposed to be pure.  On these systems you
-may need to add "#define static" to config.h.
 
 * Runtime problems on legacy systems
 

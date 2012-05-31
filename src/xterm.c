@@ -139,6 +139,8 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif
 #endif
 
+#include "bitmaps/gray.xbm"
+
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
 int use_xim = 1;
@@ -10383,8 +10385,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   {
     dpyinfo->gray
       = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
-				     gray_bitmap_bits,
-				     gray_bitmap_width, gray_bitmap_height,
+				     gray_bits, gray_width, gray_height,
 				     1, 0, 1);
   }
 

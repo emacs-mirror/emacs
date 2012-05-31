@@ -1,3 +1,10 @@
+2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove obsolete '#define static' cruft.
+	* xlwmenu.c [emacs]: Include "bitmaps/gray.xbm".
+	(gray_bitmap_width, gray_bitmap_height, gray_bitmap_bits) [!emacs]:
+	Remove; all uses replaced with definiens.
+
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)

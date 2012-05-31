@@ -49,22 +49,12 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef emacs
 
-/* Defined in xfns.c.  When config.h defines `static' as empty, we get
-   redefinition errors when gray_bitmap is included more than once, so
-   we're referring to the one include in xfns.c here.  */
-
-extern int gray_bitmap_width;
-extern int gray_bitmap_height;
-extern char *gray_bitmap_bits;
-
 #include <xterm.h>
+#include "bitmaps/gray.xbm"
 
 #else /* not emacs */
 
 #include <X11/bitmaps/gray>
-#define gray_bitmap_width	gray_width
-#define gray_bitmap_height	gray_height
-#define gray_bitmap_bits	gray_bits
 
 #endif /* not emacs */
 
@@ -1918,8 +1908,8 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
   mw->menu.cursor = mw->menu.cursor_shape;
 
   mw->menu.gray_pixmap
-    = XCreatePixmapFromBitmapData (display, window, gray_bitmap_bits,
-				   gray_bitmap_width, gray_bitmap_height,
+    = XCreatePixmapFromBitmapData (display, window, gray_bits,
+				   gray_width, gray_height,
 				   (unsigned long)1, (unsigned long)0, 1);
 
 #ifdef HAVE_XFT

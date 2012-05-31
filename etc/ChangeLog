@@ -1,3 +1,7 @@
+2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* PROBLEMS: Remove obsolete '#define static' cruft.
+
 2012-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* forms/forms-d2.el, forms/forms-pass.el: Move here from ../lisp.
