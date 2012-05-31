@@ -698,18 +698,19 @@ that match `imagemagick-types-enable' and do not match
   (when (fboundp 'imagemagick-types)
     (cond ((null imagemagick-types-enable) nil)
 	  ((eq imagemagick-types-inhibit t) nil)
-	  ((eq imagemagick-types-enable t) (imagemagick-types))
 	  (t
 	   (delq nil
 		 (mapcar
 		  (lambda (type)
 		    (unless (memq type imagemagick-types-inhibit)
-		      (catch 'found
-			(dolist (enable imagemagick-types-enable nil)
-			  (if (cond ((symbolp enable) (eq enable type))
-				    ((stringp enable)
-				     (string-match enable (symbol-name type))))
-			      (throw 'found type))))))
+		      (if (eq imagemagick-types-enable t) type
+			(catch 'found
+			  (dolist (enable imagemagick-types-enable nil)
+			    (if (cond ((symbolp enable) (eq enable type))
+				      ((stringp enable)
+				       (string-match enable
+						     (symbol-name type))))
+				(throw 'found type)))))))
 		  (imagemagick-types)))))))
 
 (defvar imagemagick--file-regexp nil
