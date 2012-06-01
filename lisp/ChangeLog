@@ -1,3 +1,8 @@
+2012-06-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-check-for-regexp): Search from buffer end,
+	in order to avoid "Stack overflow in regexp matcher".
+
 2012-05-31  Glenn Morris  <rgm@gnu.org>
 
 	* image.el: For clarity, call imagemagick-register-types at
