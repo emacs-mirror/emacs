@@ -344,26 +344,26 @@ backend doesn't catch this error.")
     (insert (format-time-string "%Y%m%dT%H%M%S.%3N")
 	    " " nntp-address " " string "\n")))
 
+(defvar nntp--report-1 nil)
+
 (defun nntp-report (&rest args)
   "Report an error from the nntp backend.  The first string in ARGS
 can be a format string.  For some commands, the failed command may be
 retried once before actually displaying the error report."
+  (if nntp--report-1
+      (progn
+        ;; Throw out to nntp-with-open-group-error so that the connection may
+        ;; be restored and the command retried."
+        (when nntp-record-commands
+          (nntp-record-command "*** CONNECTION LOST ***"))
+        (throw 'nntp-with-open-group-error t))
 
-  (when nntp-record-commands
-    (nntp-record-command "*** CALLED nntp-report ***"))
+    (when nntp-record-commands
+      (nntp-record-command "*** CALLED nntp-report ***"))
 
-  (nnheader-report 'nntp args)
+    (nnheader-report 'nntp args)
 
-  (apply 'error args))
-
-(defun nntp-report-1 (&rest args)
-  "Throws out to nntp-with-open-group-error so that the connection may
-be restored and the command retried."
-
-  (when nntp-record-commands
-    (nntp-record-command "*** CONNECTION LOST ***"))
-
-  (throw 'nntp-with-open-group-error t))
+    (apply 'error args)))
 
 (defmacro nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."
@@ -633,10 +633,6 @@ be restored and the command retried."
    (t
     nil)))
 
-(eval-when-compile
-  (defvar nntp-with-open-group-internal nil)
-  (defvar nntp-report-n nil))
-
 (defun nntp-with-open-group-function (-group -server -connectionless -bodyfun)
   "Protect against servers that don't like clients that keep idle connections opens.
 The problem being that these servers may either close a connection or
@@ -647,9 +643,9 @@ connection timeouts (which may be several minutes) or
 `nntp-connection-timeout' has expired.  When these occur
 `nntp-with-open-group', opens a new connection then re-issues the NNTP
 command whose response triggered the error."
-  (letf ((nntp-report-n (symbol-function 'nntp-report))
-         ((symbol-function 'nntp-report) (symbol-function 'nntp-report-1))
-         (nntp-with-open-group-internal nil))
+  (let ((nntp-report-n nntp--report-1)
+        (nntp--report-1 t)
+        (nntp-with-open-group-internal nil))
     (while (catch 'nntp-with-open-group-error
              ;; Open the connection to the server
              ;; NOTE: Existing connections are NOT tested.
@@ -685,7 +681,7 @@ command whose response triggered the error."
                  (when -timer
                    (nnheader-cancel-timer -timer)))
                nil))
-      (setf (symbol-function 'nntp-report) nntp-report-n))
+      (setq nntp--report-1 nntp-report-n))
     nntp-with-open-group-internal))
 
 (defmacro nntp-with-open-group (group server &optional connectionless &rest forms)

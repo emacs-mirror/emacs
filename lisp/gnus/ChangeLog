@@ -1,5 +1,11 @@
 2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nntp.el: Stop the `letf' madness.
+	(nntp--report-1): New var.
+	(nntp-report): Merge nntp-report-1 into it.
+	(nntp-with-open-group-function): Set nntp--report-1 instead of modifying
+	the nntp-report function.
+
 	* auth-source.el: Fix comment-style to follow the convention.
 
 2012-05-27  Katsumi Yamaoka  <yamaoka@jpl.org>
