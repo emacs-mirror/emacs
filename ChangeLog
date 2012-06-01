@@ -1,3 +1,13 @@
+2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)
+	It is confusingly named and rarely useful.  See, for example,
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00089.html>.
+	* INSTALL.BZR: Don't mention --disable-maintainer-mode.
+	* Makefile.in (MAINTAINER_MODE_FLAG): Remove; all uses removed.
+	* configure.in: Remove --disable-maintainer-mode.
+	(USE_MAINTAINER_MODE, MAINT): Remove.
+
 2012-05-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make 'configure' a bit smaller and faster.

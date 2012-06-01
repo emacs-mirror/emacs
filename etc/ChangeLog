@@ -1,3 +1,8 @@
+2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)
+	* NEWS: Mention this.
+
 2012-06-01  Andrew Beals  <andrew.beals@gmail.com>  (tiny change)
 
 	* spook.lines: Additions.  (Bug#11598)

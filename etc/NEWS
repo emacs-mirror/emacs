@@ -29,6 +29,9 @@ possibly-questionable C code.  On a recent GNU system there should be
 no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
+** The configure option '--disable-maintainer-mode' has been removed,
+as it was confusingly-named and rarely useful.
+
 ---
 ** Emacs uses libtinfo in preference to libncurses, if available.
 

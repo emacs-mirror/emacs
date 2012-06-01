@@ -28,13 +28,7 @@ For each step, check for possible errors.
     refer to a newer release of Emacs.  (This is probably needed only
     when preparing a major Emacs release, or branching for it.)
 
-5.  Edit configure.in so that maintainer-mode is off by default.
-    (FIXME - need to find a better way of dealing with this.
-     Or maybe it's fine and indeed correct to leave it on?
-     See http://lists.gnu.org/archive/html/emacs-devel/2011-03/msg00859.html
-     and subsequent.)
-
-     autoreconf -i -I m4 --force
+5.   autoreconf -i -I m4 --force
      make bootstrap
 
 6.  Commit etc/AUTHORS, all the files changed by M-x set-version, and

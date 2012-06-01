@@ -66,10 +66,8 @@ CDPATH=
 
 # ==================== Things `configure' Might Edit ====================
 
-MAINTAINER_MODE_FLAG = --disable-maintainer-mode
-@MAINT@MAINTAINER_MODE_FLAG = --enable-maintainer-mode
 cache_file = @cache_file@
-CONFIGURE_FLAGS = --cache-file=$(cache_file) $(MAINTAINER_MODE_FLAG)
+CONFIGURE_FLAGS = --cache-file=$(cache_file)
 
 CC=@CC@
 CFLAGS=@CFLAGS@
@@ -360,16 +358,17 @@ config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	    ./configure $(CONFIGURE_FLAGS); \
 	fi
 
-AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
+AUTOCONF_INPUTS = $(srcdir)/configure.in $(srcdir)/aclocal.m4
 
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
-ACLOCAL_INPUTS = @MAINT@ $(srcdir)/m4/gnulib-comp.m4
+ACLOCAL_INPUTS = $(srcdir)/m4/gnulib-comp.m4
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 	cd $(srcdir) && aclocal -I m4
 
-AUTOMAKE_INPUTS = @MAINT@ $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am $(srcdir)/lib/gnulib.mk
+AUTOMAKE_INPUTS = $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am \
+  $(srcdir)/lib/gnulib.mk
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
 	cd $(srcdir) && automake --gnu -a -c lib/Makefile
 am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in

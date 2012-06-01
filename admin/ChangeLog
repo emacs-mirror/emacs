@@ -1,3 +1,8 @@
+2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)
+	* make-tarball.txt: Don't worry about maintainer mode.
+
 2012-05-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* CPP-DEFINES: Remove HAVE_SYSINFO.
