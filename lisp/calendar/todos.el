@@ -1140,8 +1140,8 @@ the file."
 	;; archived items.
 	(when buffer-file-name	 ; During conversion there is no file yet.
 	  ;; If the file is an archive, it doesn't have an archive.
-	  ;; FIXME: can todos-archives be too old here?
 	  (unless (member (file-truename buffer-file-name)
+			  ;; FIXME: can todos-archives be too old here?
 			  (funcall todos-files-function t))
 	    (setq archive (concat (file-name-sans-extension
 				   todos-current-todos-file) ".toda"))))
@@ -1229,6 +1229,19 @@ editing or a bug in todos.el."
   (let ((todos-categories (todos-make-categories-list t)))
     (todos-update-categories-sexp)))
 
+(defun todos-convert-legacy-date-time ()
+  "Return converted date-time string.
+Helper function for `todos-convert-legacy-files'."
+  (let* ((year (match-string 1))
+	 (month (match-string 2))
+	 (monthname (calendar-month-name (string-to-number month) t))
+	 (day (match-string 3))
+	 (time (match-string 4))
+	 dayname)
+    (replace-match "")
+    (insert (mapconcat 'eval calendar-date-display-form "")
+	    (when time (concat " " time)))))
+
 (defvar todos-item-start (concat "\\(" todos-date-string-start "\\|"
 				 todos-done-string-start "\\)"
 				 todos-date-pattern)
@@ -1236,12 +1249,13 @@ editing or a bug in todos.el."
 
 (defun todos-item-start ()
   "Move to start of current Todos item and return its position."
-  (unless (or ;FIXME: bad comment
-	   ;; Point is either on last item in this category or on the empty
-	   ;; line between done and not done items.
-	   (looking-at "^$")
-	   ;; FIXME: bad comment, why this sexp?
-	   ;; There are no done items in this category yet.
+  (unless (or
+	   ;; Point is on the empty line between todo and done items.
+	   (and (looking-at "^$")
+		(save-excursion
+		  (forward-line)
+		  (looking-at (concat "^" (regexp-quote todos-category-done)))))
+	   ;; Buffer is widened.
 	   (looking-at (regexp-quote todos-category-beg)))
     (goto-char (line-beginning-position))
     (while (not (looking-at todos-item-start))
@@ -1371,6 +1385,9 @@ of each other."
 		(and marked (overlay-put (make-overlay (point) (point))
 					 'before-string todos-item-mark)))))
 	  (forward-line))))))
+
+;; ---------------------------------------------------------------------------
+;;; Functions for user input with prompting and completion
 
 (defun todos-read-file-name (prompt &optional archive mustmatch)
   "Choose and return the name of a Todos file, prompting with PROMPT.
@@ -1542,19 +1559,6 @@ the empty string (i.e., no time string)."
 		(string-match diary-time-regexp answer))
 	(setq valid t)))
     answer))
-
-(defun todos-convert-legacy-date-time ()
-  "Return converted date-time string.
-Helper function for `todos-convert-legacy-files'."
-  (let* ((year (match-string 1))
-	 (month (match-string 2))
-	 (monthname (calendar-month-name (string-to-number month) t))
-	 (day (match-string 3))
-	 (time (match-string 4))
-	 dayname)
-    (replace-match "")
-    (insert (mapconcat 'eval calendar-date-display-form "")
-	    (when time (concat " " time)))))
 
 ;; ---------------------------------------------------------------------------
 ;;; Item filtering
@@ -2237,6 +2241,7 @@ which is the value of the user option
     map)
   "Keymap for Todos mode insertion commands.")
 
+;; ---------------------------------------------------------------------------
 ;;; Key maps and menus
 
 ;; ??FIXME: use easy-mmode-define-keymap and easy-mmode-defmap
@@ -2316,8 +2321,8 @@ which is the value of the user option
     ("u"	     . todos-item-undo)
     ("Ad"	     . todos-archive-done-item)  ;FIXME
     ("AD"	     . todos-archive-category-done-items) ;FIXME
-    ("Au"	     . todos-unarchive-items)
-    ("AU"	     . todos-unarchive-category)
+    ;; ("Au"	     . todos-unarchive-items)		  ;FIXME: not in todos-mode!
+    ;; ("AU"	     . todos-unarchive-category)	  ;FIXME: not in todos-mode!
     ("s"	     . todos-save)
     ("q"	     . todos-quit)
     ([remap newline] . newline-and-indent)
@@ -2412,7 +2417,7 @@ which is the value of the user option
     (define-key map "s" 'todos-save)
     (define-key map "S" 'todos-search)
     (define-key map "t" 'todos-show)
-    (define-key map "u" 'todos-unarchive-item)
+    (define-key map "u" 'todos-unarchive-items)
     (define-key map "U" 'todos-unarchive-category)
     map)
   "Todos Archive mode keymap.")
@@ -2466,7 +2471,8 @@ which is the value of the user option
     map)
   "Todos Top Priorities mode keymap.")
 
-;;;  Mode definitions
+;; ---------------------------------------------------------------------------
+;;; Mode definitions
 
 (defun todos-modes-set-1 ()
   ""
@@ -2536,7 +2542,9 @@ which is the value of the user option
 
 (put 'todos-archive-mode 'mode-class 'special)
 
-(define-derived-mode todos-archive-mode todos-mode "Todos-Arch" ()
+;; If todos-mode is parent, all todos-mode key bindings appear to be
+;; available in todos-archive-mode (e.g. shown by C-h m).
+(define-derived-mode todos-archive-mode special-mode "Todos-Arch" ()
   "Major mode for archived Todos categories.
 
 \\{todos-archive-mode-map}"
@@ -2740,11 +2748,10 @@ If the category has no archived items, prompt to visit the
 archive anyway.  If there is no archive for this file or with
 non-nil argument ASK, prompt to visit another archive.
 
-With non-nil argument ASK prompt to choose an archive to visit;
-see `todos-choose-archive'.  The buffer showing the archive is in
-Todos Archive mode.  The first visit in a session displays the
-first category in the archive, subsequent visits return to the
-last category displayed."		;FIXME
+The buffer showing the archive is in Todos Archive mode.  The
+first visit in a session displays the first category in the
+archive, subsequent visits return to the last category
+displayed."
   (interactive)
   (let* ((cat (todos-current-category))
 	 (count (todos-get-count 'archived cat))
@@ -4079,9 +4086,6 @@ the format of Diary entries."
 	(narrow-to-region (todos-item-start) (todos-item-end))
       (widen))
     (todos-edit-mode)
-    ;; (message (concat "Type %s to check file format validity and "
-    ;; 		     "return to Todos mode.\n")
-    ;; 	     (key-description (car (where-is-internal 'todos-edit-quit))))
     (message "%s" (substitute-command-keys
 		   (concat "Type \\[todos-edit-quit] to check file format "
 			   "validity and return to Todos mode.\n")))))
@@ -4744,8 +4748,7 @@ this category does not exist in the archive, it is created."
 	  (when (or marked all item)
 	    (with-current-buffer archive
 	      (unless buffer-file-name (erase-buffer))
-	      (let ((current todos-global-current-todos-file)
-		    (buffer-read-only))
+	      (let (buffer-read-only)
 		(widen)
 		(goto-char (point-min))
 		(if (and (re-search-forward (concat "^"
@@ -4761,15 +4764,14 @@ this category does not exist in the archive, it is created."
 		(insert (cond (marked marked-items)
 			      (all all-done)
 			      (item)))
-		(todos-update-count 'done (if (or marked all) count 1))
+		(todos-update-count 'done (if (or marked all) count 1) cat)
 		(todos-update-categories-sexp)
-		;; Save to file now (using write-region in order not to get
-		;; prompted for file to save to), to let auto-mode-alist take
-		;; effect below.
+		;; If archive is new, save to file now (using write-region in
+		;; order not to get prompted for file to save to), to let
+		;; auto-mode-alist take effect below.
 		(unless buffer-file-name
 		  (write-region nil nil afile)
-		  (kill-buffer))
-		(setq todos-current-todos-file current)))
+		  (kill-buffer))))
 	    (with-current-buffer tbuf
 	      (cond ((or marked item)
 		     (and marked (goto-char (point-min)))
@@ -4795,18 +4797,12 @@ this category does not exist in the archive, it is created."
 		(remove-overlays (point-min) (point-max)
 				 'before-string todos-item-mark)
 		(setq todos-categories-with-marks
-		      (assq-delete-all cat todos-categories-with-marks))
-		(goto-char opoint))
+		      (assq-delete-all cat todos-categories-with-marks)))
 	      (todos-update-categories-sexp)
-	      (todos-prefix-overlays)
-	      ;; FIXME: Heisenbug: item displays mark -- but not when edebugging
-	      ;; (remove-overlays (point-min) (point-max)
-	      ;; 		       'before-string todos-item-mark)
-	      ))
+	      (todos-prefix-overlays)))
 	  (find-file afile)
 	  (todos-category-number cat)
 	  (todos-category-select)
-	  ;; FIXME: what if window is already split?
 	  (split-window-below)
 	  (set-window-buffer (selected-window) tbuf))))))
 
@@ -4828,25 +4824,26 @@ If all items in the archive category were restored, the category
 is deleted from the archive.  If this was the only category in the
 archive, the archive file is deleted."
   (interactive)
-  (when (member (buffer-file-name) (funcall todos-files-function t))
+  (when (eq major-mode 'todos-archive-mode)
     (catch 'end
-      (let* ((buffer-read-only nil)
+      (let* ((cat (todos-current-category))
 	     (tbuf (find-file-noselect
 		    (concat (file-name-sans-extension todos-current-todos-file)
 			    ".todo") t))
-	     (cat (todos-current-category))
 	     (marked (assoc cat todos-categories-with-marks))
 	     (item (concat (todos-item-string) "\n"))
-	     (all-items (buffer-substring (point-min) (point-max)))
-	     (all-count (todos-get-count 'done))
-	     marked-items marked-count)
-	(save-excursion
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (when (todos-marked-item-p)
-	      (concat marked-items (todos-item-string) "\n")
-	      (setq marked-count (1+ marked-count)))
-	    (todos-forward-item)))
+	     (all-items (when all (buffer-substring (point-min) (point-max))))
+	     (all-count (when all (todos-get-count 'done)))
+	     marked-items marked-count
+	     buffer-read-only)
+	(when marked
+	  (save-excursion
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (when (todos-marked-item-p)
+		(concat marked-items (todos-item-string) "\n")
+		(setq marked-count (1+ marked-count)))
+	      (todos-forward-item))))
 	;; Restore items to end of category's done section and update counts.
 	(with-current-buffer tbuf
 	  (let (buffer-read-only)
@@ -4855,26 +4852,23 @@ archive, the archive file is deleted."
 	    (re-search-forward (concat "^" (regexp-quote
 					    (concat todos-category-beg cat)))
 			       nil t)
+	    ;; Go to end of category's done section.
 	    (if (re-search-forward (concat "^" (regexp-quote todos-category-beg))
 				   nil t)
 		(goto-char (match-beginning 0))
 	      (goto-char (point-max)))
 	    (cond (marked
 		   (insert marked-items)
-		   (todos-update-count 'done marked-count)
-		   (todos-update-count 'archived (- marked-count)))
+		   (todos-update-count 'done marked-count cat)
+		   (todos-update-count 'archived (- marked-count) cat))
 		  (all
-		   (if (y-or-n-p (concat "Restore this category's items "
-					 "to Todos file as done items "
-					 "and delete this category? "))
-		       (progn (insert all-items)
-			      (todos-update-count 'done all-count)
-			      (todos-update-count 'archived (- all-count)))
-		     (throw 'end nil)))
+		   (insert all-items)
+		   (todos-update-count 'done all-count cat)
+		   (todos-update-count 'archived (- all-count) cat))
 		  (t
 		   (insert item)
-		   (todos-update-count 'done 1)
-		   (todos-update-count 'archived -1)))
+		   (todos-update-count 'done 1 cat)
+		   (todos-update-count 'archived -1 cat)))
 	    (todos-update-categories-sexp)))
 	;; Delete restored items from archive.
 	(cond ((or marked item)
@@ -4884,17 +4878,16 @@ archive, the archive file is deleted."
 		   (if (or (and marked (todos-marked-item-p)) item)
 		       (progn
 			 (todos-remove-item)
-			 (todos-update-count 'done -1)
 			 ;; Don't leave point below last item.
 			 (and item (bolp) (eolp) (< (point-min) (point-max))
 			      (todos-backward-item))
 			 (when item 
 			   (throw 'done (setq item nil))))
-		     (todos-forward-item)))))
+		     (todos-forward-item))))
+	       (todos-update-count 'done (if marked (- marked-count) -1) cat))
 	      (all
 	       (remove-overlays (point-min) (point-max))
-	       (delete-region (point-min) (point-max))
-	       (todos-update-count 'done (- all-count))))
+	       (delete-region (point-min) (point-max))))
 	;; If that was the last category in the archive, delete the whole file.
 	(if (= (length todos-categories) 1)
 	    (progn
@@ -4917,8 +4910,6 @@ archive, the archive file is deleted."
 	      (delete-region beg end)
 	      (setq todos-categories (delete (assoc cat todos-categories)
 					     todos-categories))
-	      (setq todos-categories (delete (assoc cat todos-categories)
-						 todos-categories))
 	      (todos-update-categories-sexp))))
 	;; Visit category in Todos file and show restored done items.
 	(let ((tfile (buffer-file-name tbuf))

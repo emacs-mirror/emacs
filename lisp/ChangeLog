@@ -2,6 +2,22 @@
 
 	* calendar/todos.el: Further code rearrangement and comment
 	revision.
+	(todos-item-start): Handle empty line between todo and done items
+	when done items are displayed.
+	(todos-key-bindings): Comment out bindings meant only for
+	todos-archive-mode.
+	(todos-archive-mode-map): Fix typo.
+	(todos-archive-mode): Derive from special-mode instead of
+	todos-mode to prevent its key bindings from being available here.
+	(todos-archive-done-item): Remove obsolete code; fix item count
+	updating.
+	(todos-unarchive-items): Simplify; fix unarchiving of all items in
+	category; fix item count updating; fix typo.
+
+2012-09-22  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Further code rearrangement and comment
+	revision.
 	(todos-add-to-buffer-list, todos-update-buffer-list): New functions.
 	(todos-file-buffers): New variable.
 	(todos-reset-global-current-todos-file): Use it to simplify
