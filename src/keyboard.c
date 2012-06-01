@@ -1484,10 +1484,10 @@ command_loop_1 (void)
 	 from that position.  But also throw away beg_unchanged and
 	 end_unchanged information in that case, so that redisplay will
 	 update the whole window properly.  */
-      if (!NILP (XWINDOW (selected_window)->force_start))
+      if (XWINDOW (selected_window)->force_start)
 	{
 	  struct buffer *b;
-	  XWINDOW (selected_window)->force_start = Qnil;
+	  XWINDOW (selected_window)->force_start = 0;
 	  b = XBUFFER (XWINDOW (selected_window)->buffer);
 	  BUF_BEG_UNCHANGED (b) = BUF_END_UNCHANGED (b) = 0;
 	}

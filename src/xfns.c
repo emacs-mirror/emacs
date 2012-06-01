@@ -1207,7 +1207,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       FRAME_EXTERNAL_MENU_BAR (f) = 1;
       if (FRAME_X_P (f) && f->output_data.x->menubar_widget == 0)
 	/* Make sure next redisplay shows the menu bar.  */
-	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = 1;
     }
   else
     {

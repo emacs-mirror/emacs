@@ -331,7 +331,7 @@ make_frame (int mini_p)
       mini_window = make_window ();
       XWINDOW (root_window)->next = mini_window;
       XWINDOW (mini_window)->prev = root_window;
-      XWINDOW (mini_window)->mini_p = Qt;
+      XWINDOW (mini_window)->mini = 1;
       XWINDOW (mini_window)->frame = frame;
       f->minibuffer_window = mini_window;
     }
@@ -480,7 +480,7 @@ make_minibuffer_frame (void)
      as nil. */
 
   mini_window = f->minibuffer_window = f->root_window;
-  XWINDOW (mini_window)->mini_p = Qt;
+  XWINDOW (mini_window)->mini = 1;
   XWINDOW (mini_window)->next = Qnil;
   XWINDOW (mini_window)->prev = Qnil;
   XWINDOW (mini_window)->frame = frame;

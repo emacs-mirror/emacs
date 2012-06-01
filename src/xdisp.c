@@ -11169,7 +11169,7 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 	  || update_mode_lines
 	  || ((BUF_SAVE_MODIFF (XBUFFER (w->buffer))
 	       < BUF_MODIFF (XBUFFER (w->buffer)))
-	      != !NILP (w->last_had_star))
+	      != w->last_had_star)
 	  || ((!NILP (Vtransient_mark_mode)
 	       && !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
 	      != !NILP (w->region_showing)))
@@ -11221,11 +11221,11 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 	  else
 	    /* On a terminal screen, the menu bar is an ordinary screen
 	       line, and this makes it get updated.  */
-	    w->update_mode_line = Qt;
+	    w->update_mode_line = 1;
 #else /* ! (USE_X_TOOLKIT || HAVE_NTGUI || HAVE_NS || USE_GTK) */
 	  /* In the non-toolkit version, the menu bar is an ordinary screen
 	     line, and this makes it get updated.  */
-	  w->update_mode_line = Qt;
+	  w->update_mode_line = 1;
 #endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI || HAVE_NS || USE_GTK) */
 
 	  unbind_to (count, Qnil);
@@ -11363,11 +11363,11 @@ update_tool_bar (struct frame *f, int save_match_data)
 	 the rest of the redisplay algorithm is about the same as
 	 windows_or_buffers_changed anyway.  */
       if (windows_or_buffers_changed
-	  || !NILP (w->update_mode_line)
+	  || w->update_mode_line
 	  || update_mode_lines
 	  || ((BUF_SAVE_MODIFF (XBUFFER (w->buffer))
 	       < BUF_MODIFF (XBUFFER (w->buffer)))
-	      != !NILP (w->last_had_star))
+	      != w->last_had_star)
 	  || ((!NILP (Vtransient_mark_mode)
 	       && !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
 	      != !NILP (w->region_showing)))
@@ -11418,7 +11418,7 @@ update_tool_bar (struct frame *f, int save_match_data)
               BLOCK_INPUT;
               f->tool_bar_items = new_tool_bar;
               f->n_tool_bar_items = new_n_tool_bar;
-              w->update_mode_line = Qt;
+              w->update_mode_line = 1;
               UNBLOCK_INPUT;
             }
 
@@ -12967,9 +12967,9 @@ redisplay_internal (void)
     update_mode_lines++;
 
   /* Detect case that we need to write or remove a star in the mode line.  */
-  if ((SAVE_MODIFF < MODIFF) != !NILP (w->last_had_star))
+  if ((SAVE_MODIFF < MODIFF) != w->last_had_star)
     {
-      w->update_mode_line = Qt;
+      w->update_mode_line = 1;
       if (buffer_shared > 1)
 	update_mode_lines++;
     }
@@ -12986,7 +12986,7 @@ redisplay_internal (void)
 	   && XFASTINT (w->last_modified) >= MODIFF
 	   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)
       && (XFASTINT (w->column_number_displayed) != current_column ()))
-    w->update_mode_line = Qt;
+    w->update_mode_line = 1;
 
   unbind_to (count1, Qnil);
 
@@ -13089,7 +13089,7 @@ redisplay_internal (void)
   tlendpos = this_line_end_pos;
   if (!consider_all_windows_p
       && CHARPOS (tlbufpos) > 0
-      && NILP (w->update_mode_line)
+      && !w->update_mode_line
       && !current_buffer->clip_changed
       && !current_buffer->prevent_redisplay_optimizations_p
       && FRAME_VISIBLE_P (XFRAME (w->frame))
@@ -13097,8 +13097,8 @@ redisplay_internal (void)
       /* Make sure recorded data applies to current buffer, etc.  */
       && this_line_buffer == current_buffer
       && current_buffer == XBUFFER (w->buffer)
-      && NILP (w->force_start)
-      && NILP (w->optional_new_start)
+      && !w->force_start
+      && !w->optional_new_start
       /* Point must be on the line that we have info recorded about.  */
       && PT >= CHARPOS (tlbufpos)
       && PT <= Z - CHARPOS (tlendpos)
@@ -13633,7 +13633,7 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
       w->last_overlay_modified
 	= make_number (accurate_p ? BUF_OVERLAY_MODIFF (b) : 0);
       w->last_had_star
-	= BUF_MODIFF (b) > BUF_SAVE_MODIFF (b) ? Qt : Qnil;
+	= BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
 
       if (accurate_p)
 	{
@@ -13662,7 +13662,7 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
   if (accurate_p)
     {
       w->window_end_valid = w->buffer;
-      w->update_mode_line = Qnil;
+      w->update_mode_line = 0;
     }
 }
 
@@ -15291,7 +15291,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   reconsider_clip_changes (w, buffer);
 
   /* Has the mode line to be updated?  */
-  update_mode_line = (!NILP (w->update_mode_line)
+  update_mode_line = (w->update_mode_line
 		      || update_mode_lines
 		      || buffer->clip_changed
 		      || buffer->prevent_redisplay_optimizations_p);
@@ -15463,32 +15463,31 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
   /* If someone specified a new starting point but did not insist,
      check whether it can be used.  */
-  if (!NILP (w->optional_new_start)
+  if (w->optional_new_start
       && CHARPOS (startp) >= BEGV
       && CHARPOS (startp) <= ZV)
     {
-      w->optional_new_start = Qnil;
+      w->optional_new_start = 0;
       start_display (&it, w, startp);
       move_it_to (&it, PT, 0, it.last_visible_y, -1,
 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
       if (IT_CHARPOS (it) == PT)
-	w->force_start = Qt;
+	w->force_start = 1;
       /* IT may overshoot PT if text at PT is invisible.  */
       else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
-	w->force_start = Qt;
+	w->force_start = 1;
     }
 
  force_start:
 
   /* Handle case where place to start displaying has been specified,
      unless the specified location is outside the accessible range.  */
-  if (!NILP (w->force_start)
-      || w->frozen_window_start_p)
+  if (w->force_start || w->frozen_window_start_p)
     {
       /* We set this later on if we have to adjust point.  */
       int new_vpos = -1;
 
-      w->force_start = Qnil;
+      w->force_start = 0;
       w->vscroll = 0;
       w->window_end_valid = Qnil;
 
@@ -15507,7 +15506,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  || ! NILP (Vwindow_scroll_functions))
 	{
 	  update_mode_line = 1;
-	  w->update_mode_line = Qt;
+	  w->update_mode_line = 1;
 	  startp = run_window_scroll_functions (window, startp);
 	}
 
@@ -15525,7 +15524,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	 the scroll margin (bug#148) -- cyd  */
       if (!try_window (window, startp, 0))
 	{
-	  w->force_start = Qt;
+	  w->force_start = 1;
 	  clear_glyph_matrix (w->desired_matrix);
 	  goto need_larger_matrices;
 	}
@@ -15604,7 +15603,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
     }
   /* If current starting point was originally the beginning of a line
      but no longer is, find a new starting point.  */
-  else if (!NILP (w->start_at_line_beg)
+  else if (w->start_at_line_beg
 	   && !(CHARPOS (startp) <= BEGV
 		|| FETCH_BYTE (BYTEPOS (startp) - 1) == '\n'))
     {
@@ -15651,7 +15650,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	 new window start, since that would change the position under
 	 the mouse, resulting in an unwanted mouse-movement rather
 	 than a simple mouse-click.  */
-      if (NILP (w->start_at_line_beg)
+      if (!w->start_at_line_beg
 	  && NILP (do_mouse_tracking)
       	  && CHARPOS (startp) > BEGV
 	  && CHARPOS (startp) > BEG + beg_unchanged
@@ -15671,7 +15670,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	     See bug#9324.  */
 	  && pos_visible_p (w, PT, &d1, &d2, &d3, &d4, &d5, &d6))
 	{
-	  w->force_start = Qt;
+	  w->force_start = 1;
 	  SET_TEXT_POS_FROM_MARKER (startp, w->start);
 	  goto force_start;
       	}
@@ -15732,7 +15731,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   if (!update_mode_line)
     {
       update_mode_line = 1;
-      w->update_mode_line = Qt;
+      w->update_mode_line = 1;
     }
 
   /* Try to scroll by specified few lines.  */
@@ -15987,9 +15986,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
  done:
 
   SET_TEXT_POS_FROM_MARKER (startp, w->start);
-  w->start_at_line_beg = ((CHARPOS (startp) == BEGV
-			   || FETCH_BYTE (BYTEPOS (startp) - 1) == '\n')
-			  ? Qt : Qnil);
+  w->start_at_line_beg = (CHARPOS (startp) == BEGV
+			    || FETCH_BYTE (BYTEPOS (startp) - 1) == '\n');
 
   /* Display the mode line, if we must.  */
   if ((update_mode_line
@@ -16206,7 +16204,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
   /* If bottom moved off end of frame, change mode line percentage.  */
   if (XFASTINT (w->window_end_pos) <= 0
       && Z != IT_CHARPOS (it))
-    w->update_mode_line = Qt;
+    w->update_mode_line = 1;
 
   /* Set window_end_pos to the offset of the last character displayed
      on the window from the end of current_buffer.  Set

@@ -1,3 +1,14 @@
+2012-06-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	For a 'struct window', replace some Lisp_Object fields to
+	bitfields where appropriate, remove unused fields.
+	* window.h (struct window): Remove unused 'last_mark_x' and
+	'last_mark_y' fields.  Rename 'mini_p' field to 'mini',
+	change it's type from Lisp_Object to bitfield.
+	Change type of 'force_start', 'optional_new_start',
+	'last_had_star', 'update_mode_line' and 'start_at_line_beg'
+	fields from Lisp_Object to bitfield. Adjust users accordingly.
+
 2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Pacify gcc -Wdouble-precision when using Xaw.

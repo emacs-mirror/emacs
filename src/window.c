@@ -1393,10 +1393,10 @@ overriding motion of point in order to display at this exact start.  */)
   CHECK_NUMBER_COERCE_MARKER (pos);
   set_marker_restricted (w->start, pos, w->buffer);
   /* this is not right, but much easier than doing what is right. */
-  w->start_at_line_beg = Qnil;
+  w->start_at_line_beg = 0;
   if (NILP (noforce))
-    w->force_start = Qt;
-  w->update_mode_line = Qt;
+    w->force_start = 1;
+  w->update_mode_line = 1;
   XSETFASTINT (w->last_modified, 0);
   XSETFASTINT (w->last_overlay_modified, 0);
   if (!EQ (window, selected_window))
@@ -2472,7 +2472,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	    if (EQ (w->buffer, obj))
 	      {
 		mark_window_display_accurate (window, 0);
-		w->update_mode_line = Qt;
+		w->update_mode_line = 1;
 		XBUFFER (obj)->prevent_redisplay_optimizations_p = 1;
 		++update_mode_lines;
 		best_window = window;
@@ -2771,12 +2771,11 @@ window-start value is reasonable when this function is called.  */)
 
 	  set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
 	  w->window_end_valid = Qnil;
-	  w->start_at_line_beg = ((pos.bytepos == BEGV_BYTE
-				   || FETCH_BYTE (pos.bytepos - 1) == '\n') ? Qt
-				  : Qnil);
+	  w->start_at_line_beg = (pos.bytepos == BEGV_BYTE
+				    || FETCH_BYTE (pos.bytepos - 1) == '\n');
 	  /* We need to do this, so that the window-scroll-functions
 	     get called.  */
-	  w->optional_new_start = Qt;
+	  w->optional_new_start = 1;
 
 	  set_buffer_internal (obuf);
 	}
@@ -3006,8 +3005,8 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
       set_marker_restricted (w->start,
 			     make_number (b->last_window_start),
 			     buffer);
-      w->start_at_line_beg = Qnil;
-      w->force_start = Qnil;
+      w->start_at_line_beg = 0;
+      w->force_start = 0;
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
     }
@@ -3143,7 +3142,7 @@ displaying that buffer.  */)
     {
       struct window *w = XWINDOW (object);
       mark_window_display_accurate (object, 0);
-      w->update_mode_line = Qt;
+      w->update_mode_line = 1;
       if (BUFFERP (w->buffer))
 	XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
       ++update_mode_lines;
@@ -3275,7 +3274,8 @@ make_window (void)
 
   w = allocate_window ();
   /* Initialize all Lisp data.  */
-  w->frame = w->mini_p = Qnil;
+  w->frame = Qnil;
+  w->mini = 0;
   w->next = w->prev = w->hchild = w->vchild = w->parent = Qnil;
   XSETFASTINT (w->left_col, 0);
   XSETFASTINT (w->top_line, 0);
@@ -3288,7 +3288,7 @@ make_window (void)
   w->buffer = Qnil;
   w->start = Fmake_marker ();
   w->pointm = Fmake_marker ();
-  w->force_start = w->optional_new_start = Qnil;
+  w->force_start = w->optional_new_start = 0;
   XSETFASTINT (w->hscroll, 0);
   XSETFASTINT (w->min_hscroll, 0);
   XSETFASTINT (w->use_time, 0);
@@ -3296,17 +3296,18 @@ make_window (void)
   XSETFASTINT (w->sequence_number, sequence_number);
   w->temslot = w->last_modified = w->last_overlay_modified = Qnil;
   XSETFASTINT (w->last_point, 0);
-  w->last_had_star = w->vertical_scroll_bar = Qnil;
+  w->last_had_star = 0;
+  w->vertical_scroll_bar = Qnil;
   w->left_margin_cols = w->right_margin_cols = Qnil;
   w->left_fringe_width = w->right_fringe_width = Qnil;
   w->fringes_outside_margins = Qnil;
   w->scroll_bar_width = Qnil;
   w->vertical_scroll_bar_type = Qt;
-  w->last_mark_x = w->last_mark_y = Qnil;
   XSETFASTINT (w->window_end_pos, 0);
   XSETFASTINT (w->window_end_vpos, 0);
-  w->window_end_valid = w->update_mode_line = Qnil;
-  w->start_at_line_beg = w->display_table = w->dedicated = Qnil;
+  w->window_end_valid = w->display_table = Qnil;
+  w->update_mode_line = w->start_at_line_beg = 0;
+  w->dedicated = Qnil;
   w->base_line_number = w->base_line_pos = w->region_showing = Qnil;
   w->column_number_displayed = w->redisplay_end_trigger = Qnil;
   w->combination_limit = w->window_parameters = Qnil;
@@ -4305,13 +4306,13 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 		    spos = min (XINT (Fline_end_position (Qnil)) + 1, ZV);
 		  set_marker_restricted (w->start, make_number (spos),
 					 w->buffer);
-		  w->start_at_line_beg = Qt;
-		  w->update_mode_line = Qt;
+		  w->start_at_line_beg = 1;
+		  w->update_mode_line = 1;
 		  XSETFASTINT (w->last_modified, 0);
 		  XSETFASTINT (w->last_overlay_modified, 0);
 		  /* Set force_start so that redisplay_window will run the
 		     window-scroll-functions.  */
-		  w->force_start = Qt;
+		  w->force_start = 1;
 		  return;
 		}
 	    }
@@ -4451,14 +4452,13 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
       set_marker_restricted (w->start, make_number (pos),
 			     w->buffer);
       bytepos = XMARKER (w->start)->bytepos;
-      w->start_at_line_beg = ((pos == BEGV || FETCH_BYTE (bytepos - 1) == '\n')
-			      ? Qt : Qnil);
-      w->update_mode_line = Qt;
+      w->start_at_line_beg = (pos == BEGV || FETCH_BYTE (bytepos - 1) == '\n');
+      w->update_mode_line = 1;
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
       /* Set force_start so that redisplay_window will run the
 	 window-scroll-functions.  */
-      w->force_start = Qt;
+      w->force_start = 1;
     }
 
   /* The rest of this function uses current_y in a nonstandard way,
@@ -4651,13 +4651,13 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 	max (0, min (scroll_margin, XINT (w->total_lines) / 4));
 
       set_marker_restricted_both (w->start, w->buffer, pos, pos_byte);
-      w->start_at_line_beg = bolp;
-      w->update_mode_line = Qt;
+      w->start_at_line_beg = !NILP (bolp);
+      w->update_mode_line = 1;
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
       /* Set force_start so that redisplay_window will run
 	 the window-scroll-functions.  */
-      w->force_start = Qt;
+      w->force_start = 1;
 
       if (!NILP (Vscroll_preserve_screen_position)
 	  && (whole || !EQ (Vscroll_preserve_screen_position, Qt)))
@@ -5201,12 +5201,10 @@ and redisplay normally--don't erase and redraw the frame.  */)
   set_marker_both (w->start, w->buffer, charpos, bytepos);
   w->window_end_valid = Qnil;
 
-  w->optional_new_start = Qt;
+  w->optional_new_start = 1;
 
-  if (bytepos == BEGV_BYTE || FETCH_BYTE (bytepos - 1) == '\n')
-    w->start_at_line_beg = Qt;
-  else
-    w->start_at_line_beg = Qnil;
+  w->start_at_line_beg = (bytepos == BEGV_BYTE ||
+			  FETCH_BYTE (bytepos - 1) == '\n');
 
   set_buffer_internal (obuf);
   return Qnil;
@@ -5257,8 +5255,8 @@ zero means top of window, negative means relative to bottom of window.  */)
       int height = window_internal_height (w);
       Fvertical_motion (make_number (- (height / 2)), window);
       set_marker_both (w->start, w->buffer, PT, PT_BYTE);
-      w->start_at_line_beg = Fbolp ();
-      w->force_start = Qt;
+      w->start_at_line_beg = !NILP (Fbolp ());
+      w->force_start = 1;
     }
   else
     Fgoto_char (w->start);
@@ -5607,7 +5605,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	    /* If saved buffer is alive, install it.  */
 	    {
 	      w->buffer = p->buffer;
-	      w->start_at_line_beg = p->start_at_line_beg;
+	      w->start_at_line_beg = !NILP (p->start_at_line_beg);
 	      set_marker_restricted (w->start, p->start, w->buffer);
 	      set_marker_restricted (w->pointm, p->pointm, w->buffer);
 	      Fset_marker (BVAR (XBUFFER (w->buffer), mark),
@@ -5632,7 +5630,7 @@ the return value is nil.  Otherwise the value is t.  */)
 		set_marker_restricted_both (w->pointm, w->buffer,
 					    BUF_PT (XBUFFER (w->buffer)),
 					    BUF_PT_BYTE (XBUFFER (w->buffer)));
-	      w->start_at_line_beg = Qt;
+	      w->start_at_line_beg = 1;
 	    }
 	  else if (STRINGP (auto_buffer_name =
 			    Fwindow_parameter (window, Qauto_buffer_name))
@@ -5641,7 +5639,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	    {
 	      set_marker_restricted (w->start, make_number (0), w->buffer);
 	      set_marker_restricted (w->pointm, make_number (0), w->buffer);
-	      w->start_at_line_beg = Qt;
+	      w->start_at_line_beg = 1;
 	    }
 	  else
 	    /* Window has no live buffer, get one.  */
@@ -5655,7 +5653,7 @@ the return value is nil.  Otherwise the value is t.  */)
 		 range.  */
 	      set_marker_restricted (w->start, make_number (0), w->buffer);
 	      set_marker_restricted (w->pointm, make_number (0), w->buffer);
-	      w->start_at_line_beg = Qt;
+	      w->start_at_line_beg = 1;
 	      if (!NILP (w->dedicated))
 		/* Record this window as dead.  */
 		dead_windows = Fcons (window, dead_windows);
@@ -5956,7 +5954,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	    = !NILP (Vwindow_point_insertion_type);
 
 	  p->start = Fcopy_marker (w->start, Qnil);
-	  p->start_at_line_beg = w->start_at_line_beg;
+	  p->start_at_line_beg = w->start_at_line_beg ? Qt : Qnil;
 
 	  tem = BVAR (XBUFFER (w->buffer), mark);
 	  p->mark = Fcopy_marker (tem, Qnil);

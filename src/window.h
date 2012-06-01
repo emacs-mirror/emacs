@@ -94,9 +94,6 @@ struct window
     /* The frame this window is on.  */
     Lisp_Object frame;
 
-    /* t if this window is a minibuffer window.  */
-    Lisp_Object mini_p;
-
     /* Following (to right or down) and preceding (to left or up) child
        at same level of tree.  */
     Lisp_Object next, prev;
@@ -144,15 +141,6 @@ struct window
        each one can have its own value of point.  */
     Lisp_Object pointm;
 
-    /* Non-nil means next redisplay must use the value of start
-       set up for it in advance.  Set by scrolling commands.  */
-    Lisp_Object force_start;
-    /* Non-nil means we have explicitly changed the value of start,
-       but that the next redisplay is not obliged to use the new value.
-       This is used in Fdelete_other_windows to force a call to
-       Vwindow_scroll_functions; also by Frecenter with argument.  */
-    Lisp_Object optional_new_start;
-
     /* Number of columns display within the window is scrolled to the left.  */
     Lisp_Object hscroll;
     /* Minimum hscroll for automatic hscrolling.  This is the value
@@ -176,9 +164,6 @@ struct window
     Lisp_Object last_overlay_modified;
     /* Value of point at that time.  */
     Lisp_Object last_point;
-    /* Non-nil if the buffer was "modified" when the window
-       was last updated.  */
-    Lisp_Object last_had_star;
 
     /* This window's vertical scroll bar.  This field is only for use
        by the window-system-dependent code which implements the
@@ -206,11 +191,6 @@ struct window
        no scroll bar.  A value of t means use frame value.  */
     Lisp_Object vertical_scroll_bar_type;
 
-    /* Frame coords of mark as of last time display completed */
-    /* May be nil if mark does not exist or was not on frame */
-    Lisp_Object last_mark_x;
-    Lisp_Object last_mark_y;
-
     /* Z - the buffer position of the last glyph in the current matrix
        of W.  Only valid if WINDOW_END_VALID is not nil.  */
     Lisp_Object window_end_pos;
@@ -223,18 +203,13 @@ struct window
        did not get onto the frame.  */
     Lisp_Object window_end_valid;
 
-    /* Non-nil means must regenerate mode line of this window */
-    Lisp_Object update_mode_line;
-
-    /* Non-nil means current value of `start'
-       was the beginning of a line when it was chosen.  */
-    Lisp_Object start_at_line_beg;
-
     /* Display-table to use for displaying chars in this window.
        Nil means use the buffer's own display-table.  */
     Lisp_Object display_table;
 
-    /* Non-nil means window is marked as dedicated.  */
+    /* Non-nil usually means window is marked as dedicated.
+       Note Lisp code may set this to something beyond Qnil
+       and Qt, so bitfield can't be used here.  */
     Lisp_Object dedicated;
 
     /* Line number and position of a line somewhere above the top of the
@@ -302,6 +277,30 @@ struct window
     /* This is handy for undrawing the cursor.  */
     int phys_cursor_ascent, phys_cursor_height;
 
+    /* Non-zero if this window is a minibuffer window.  */
+    unsigned mini : 1;
+
+    /* Non-zero means must regenerate mode line of this window */
+    unsigned update_mode_line : 1;
+
+    /* Non-nil if the buffer was "modified" when the window
+       was last updated.  */
+    unsigned last_had_star : 1;
+
+    /* Non-zero means current value of `start'
+       was the beginning of a line when it was chosen.  */
+    unsigned start_at_line_beg : 1;
+
+    /* Non-zero means next redisplay must use the value of start
+       set up for it in advance.  Set by scrolling commands.  */
+    unsigned force_start : 1;
+
+    /* Non-zero means we have explicitly changed the value of start,
+       but that the next redisplay is not obliged to use the new value.
+       This is used in Fdelete_other_windows to force a call to
+       Vwindow_scroll_functions; also by Frecenter with argument.  */
+    unsigned optional_new_start : 1;
+
     /* Non-zero means the cursor is currently displayed.  This can be
        set to zero by functions overpainting the cursor image.  */
     unsigned phys_cursor_on_p : 1;
@@ -337,7 +336,7 @@ struct window
 
 /* 1 if W is a minibuffer window.  */
 
-#define MINI_WINDOW_P(W)	(!NILP ((W)->mini_p))
+#define MINI_WINDOW_P(W)	((W)->mini)
 
 /* General window layout:
 
