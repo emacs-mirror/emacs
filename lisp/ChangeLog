@@ -1,5 +1,10 @@
 2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-macs.el: Use backquotes.
+	(cl-transform-function-property): Use eval-and-compile rather than
+	abusing `require'.
+	(defstruct): Use declare-function instead of with-no-warnings.
+
 	* emacs-lisp/bytecomp.el: Fix last change (bug#11594).
 	(byte-compile-output-docform): Re-add the print-circle bindings.
 	(byte-compile-fix-header): Use #$ just because it's shorter.
