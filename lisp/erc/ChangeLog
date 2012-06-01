@@ -1,3 +1,7 @@
+2012-06-01  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.1 released.
+
 2012-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* erc-backend.el (erc-coding-system-precedence):

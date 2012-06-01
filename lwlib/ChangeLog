@@ -1,3 +1,7 @@
+2012-06-01  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.1 released.
+
 2011-10-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lwlib-Xaw.c (openFont, xaw_destroy_instance): Replace free with

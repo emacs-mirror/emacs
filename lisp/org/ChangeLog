@@ -1,3 +1,7 @@
+2012-06-01  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.1 released.
+
 2012-05-25 Mark Shoulson <mark@kli.org>  (tiny change)
 
 	* org.el (org-fontify-entities): Fix bug: The entities \sup[123]

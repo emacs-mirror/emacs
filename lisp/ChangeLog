@@ -1,3 +1,12 @@
+2012-06-01  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.1 released.
+
+2012-06-01  Chong Yidong  <cyd@gnu.org>
+
+	* cus-edit.el (customize-changed-options-previous-release): Bump
+	to 23.4.
+
 2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Handle
