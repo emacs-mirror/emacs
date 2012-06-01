@@ -1,3 +1,10 @@
+2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el: Fix last change (bug#11594).
+	(byte-compile-output-docform): Re-add the print-circle bindings.
+	(byte-compile-fix-header): Use #$ just because it's shorter.
+	(byte-compile-output-file-form): Remove defun/defmacro.
+
 2012-06-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* simple.el (choose-completion): Remove now obsolete binding for
@@ -21,8 +28,8 @@
 
 2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Handle
-	arbitrary file name lengths (Bug#11585).
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header):
+	Handle arbitrary file name lengths (Bug#11585).
 
 2012-05-31  Martin Rudalics  <rudalics@gmx.at>
 
