@@ -91,9 +91,9 @@ let-binding."
                  (const :tag "30 Minutes" 1800)
                  (integer :tag "Seconds")))
 
-;;; The slots below correspond with the `auth-source-search' spec,
-;;; so a backend with :host set, for instance, would match only
-;;; searches for that host.  Normally they are nil.
+;; The slots below correspond with the `auth-source-search' spec,
+;; so a backend with :host set, for instance, would match only
+;; searches for that host.  Normally they are nil.
 (defclass auth-source-backend ()
   ((type :initarg :type
          :initform 'netrc
@@ -148,8 +148,8 @@ let-binding."
                        (repeat :tag "Names"
                                (string :tag "Name")))))
 
-;;; generate all the protocols in a format Customize can use
-;;; TODO: generate on the fly from auth-source-protocols
+;; Generate all the protocols in a format Customize can use.
+;; TODO: generate on the fly from auth-source-protocols
 (defconst auth-source-protocols-customize
   (mapcar (lambda (a)
             (let ((p (car-safe a)))
@@ -338,7 +338,7 @@ If the value is not a list, symmetric encryption will be used."
    msg))
 
 
-;;; (auth-source-read-char-choice "enter choice? " '(?a ?b ?q))
+;; (auth-source-read-char-choice "enter choice? " '(?a ?b ?q))
 (defun auth-source-read-char-choice (prompt choices)
   "Read one of CHOICES by `read-char-choice', or `read-char'.
 `dropdown-list' support is disabled because it doesn't work reliably.
@@ -710,10 +710,10 @@ must call it to obtain the actual value."
             (setq matches (append matches bmatches))))))
     matches))
 
-;;; (auth-source-search :max 1)
-;;; (funcall (plist-get (nth 0 (auth-source-search :max 1)) :secret))
-;;; (auth-source-search :host "nonesuch" :type 'netrc :K 1)
-;;; (auth-source-search :host "nonesuch" :type 'secrets)
+;; (auth-source-search :max 1)
+;; (funcall (plist-get (nth 0 (auth-source-search :max 1)) :secret))
+;; (auth-source-search :host "nonesuch" :type 'netrc :K 1)
+;; (auth-source-search :host "nonesuch" :type 'secrets)
 
 (defun* auth-source-delete (&rest spec
                                   &key delete
@@ -775,16 +775,16 @@ This is the same SPEC you passed to `auth-source-search'.
 Returns t or nil for forgotten or not found."
   (password-cache-remove (auth-source-format-cache-entry spec)))
 
-;;; (loop for sym being the symbols of password-data when (string-match (concat "^" auth-source-magic) (symbol-name sym)) collect (symbol-name sym))
+;; (loop for sym being the symbols of password-data when (string-match (concat "^" auth-source-magic) (symbol-name sym)) collect (symbol-name sym))
 
-;;; (auth-source-remember '(:host "wedd") '(4 5 6))
-;;; (auth-source-remembered-p '(:host "wedd"))
-;;; (auth-source-remember '(:host "xedd") '(1 2 3))
-;;; (auth-source-remembered-p '(:host "xedd"))
-;;; (auth-source-remembered-p '(:host "zedd"))
-;;; (auth-source-recall '(:host "xedd"))
-;;; (auth-source-recall '(:host t))
-;;; (auth-source-forget+ :host t)
+;; (auth-source-remember '(:host "wedd") '(4 5 6))
+;; (auth-source-remembered-p '(:host "wedd"))
+;; (auth-source-remember '(:host "xedd") '(1 2 3))
+;; (auth-source-remembered-p '(:host "xedd"))
+;; (auth-source-remembered-p '(:host "zedd"))
+;; (auth-source-recall '(:host "xedd"))
+;; (auth-source-recall '(:host t))
+;; (auth-source-forget+ :host t)
 
 (defun* auth-source-forget+ (&rest spec &allow-other-keys)
   "Forget any cached data matching SPEC.  Returns forgotten count.
@@ -818,8 +818,8 @@ while \(:host t) would find all host entries."
               (return 'no)))
           'no))))
 
-;;; (auth-source-pick-first-password :host "z.lifelogs.com")
-;;; (auth-source-pick-first-password :port "imap")
+;; (auth-source-pick-first-password :host "z.lifelogs.com")
+;; (auth-source-pick-first-password :port "imap")
 (defun auth-source-pick-first-password (&rest spec)
   "Pick the first secret found from applying SPEC to `auth-source-search'."
   (let* ((result (nth 0 (apply 'auth-source-search (plist-put spec :max 1))))
@@ -867,7 +867,7 @@ while \(:host t) would find all host entries."
 (defun auth-source--aget (alist key)
   (cdr (assoc key alist)))
 
-;;; (auth-source-netrc-parse "~/.authinfo.gpg")
+;; (auth-source-netrc-parse "~/.authinfo.gpg")
 (defun* auth-source-netrc-parse (&rest
                                  spec
                                  &key file max host user port delete require
@@ -1101,8 +1101,8 @@ FILE is the file from which we obtained this token."
               ret))
           alist))
 
-;;; (setq secret (plist-get (nth 0 (auth-source-search :host t :type 'netrc :K 1 :max 1)) :secret))
-;;; (funcall secret)
+;; (setq secret (plist-get (nth 0 (auth-source-search :host t :type 'netrc :K 1 :max 1)) :secret))
+;; (funcall secret)
 
 (defun* auth-source-netrc-search (&rest
                                   spec
@@ -1148,8 +1148,8 @@ See `auth-source-search' for details on SPEC."
       (nth 0 v)
     v))
 
-;;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t)
-;;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t :create-extra-keys '((A "default A") (B)))
+;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t)
+;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t :create-extra-keys '((A "default A") (B)))
 
 (defun* auth-source-netrc-create (&rest spec
                                         &key backend
@@ -1404,12 +1404,12 @@ Respects `auth-source-save-behavior'.  Uses
 
 ;;; Backend specific parsing: Secrets API backend
 
-;;; (let ((auth-sources '(default))) (auth-source-search :max 1 :create t))
-;;; (let ((auth-sources '(default))) (auth-source-search :max 1 :delete t))
-;;; (let ((auth-sources '(default))) (auth-source-search :max 1))
-;;; (let ((auth-sources '(default))) (auth-source-search))
-;;; (let ((auth-sources '("secrets:Login"))) (auth-source-search :max 1))
-;;; (let ((auth-sources '("secrets:Login"))) (auth-source-search :max 1 :signon_realm "https://git.gnus.org/Git"))
+;; (let ((auth-sources '(default))) (auth-source-search :max 1 :create t))
+;; (let ((auth-sources '(default))) (auth-source-search :max 1 :delete t))
+;; (let ((auth-sources '(default))) (auth-source-search :max 1))
+;; (let ((auth-sources '(default))) (auth-source-search))
+;; (let ((auth-sources '("secrets:Login"))) (auth-source-search :max 1))
+;; (let ((auth-sources '("secrets:Login"))) (auth-source-search :max 1 :signon_realm "https://git.gnus.org/Git"))
 
 (defun* auth-source-secrets-search (&rest
                                     spec
@@ -1719,7 +1719,7 @@ authentication tokens:
 
 ;;; older API
 
-;;; (auth-source-user-or-password '("login" "password") "imap.myhost.com" t "tzz")
+;; (auth-source-user-or-password '("login" "password") "imap.myhost.com" t "tzz")
 
 ;; deprecate the old interface
 (make-obsolete 'auth-source-user-or-password
