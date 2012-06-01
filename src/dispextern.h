@@ -2208,7 +2208,11 @@ struct it
   struct display_pos current;
 
   /* Total number of overlay strings to process.  This can be >
-     OVERLAY_STRING_CHUNK_SIZE.  */
+     OVERLAY_STRING_CHUNK_SIZE.  Value is dependable only when
+     current.overlay_string_index >= 0.  Use the latter to determine
+     whether an overlay string is being iterated over, because
+     n_overlay_strings can be positive even when we are not rendering
+     an overlay string.  */
   int n_overlay_strings;
 
   /* The charpos where n_overlay_strings was calculated.  This should
@@ -2227,7 +2231,8 @@ struct it
 
   /* If non-nil, a Lisp string being processed.  If
      current.overlay_string_index >= 0, this is an overlay string from
-     pos.  */
+     pos.  Use STRINGP(it.string) as a test for whether we are
+     rendering a string or something else; do NOT use BUFFERP(it.object).  */
   Lisp_Object string;
 
   /* If non-nil, we are processing a string that came
@@ -2415,6 +2420,9 @@ struct it
      producing special glyphs for display purposes, like truncation
      and continuation glyphs, or blanks that extend each line to the
      edge of the window on a TTY.
+
+     Do NOT use !BUFFERP (it.object) as a test whether we are
+     iterating over a string; use STRINGP (it.string) instead.
 
      Position is the current iterator position in object.  */
   Lisp_Object object;
