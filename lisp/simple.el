@@ -6198,8 +6198,7 @@ With prefix argument N, move N items (negative N means move backward)."
                (setq beg (previous-single-property-change beg 'mouse-face))
                (setq end (or (next-single-property-change end 'mouse-face)
                              (point-max)))
-               (buffer-substring-no-properties beg end))))
-          (owindow (selected-window)))
+               (buffer-substring-no-properties beg end)))))
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))

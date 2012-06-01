@@ -1,3 +1,8 @@
+2012-06-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* simple.el (choose-completion): Remove now obsolete binding for
+	owindow.
+
 2012-06-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-check-for-regexp): Search from buffer end,
