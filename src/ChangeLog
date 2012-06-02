@@ -1,3 +1,8 @@
+2012-06-02  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (CONS_BLOCK_SIZE): Account for padding at the end of
+	cons_block.
+
 2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xfns.c (x_set_tool_bar_lines) [USE_GTK]: Adjust to bitfield change.

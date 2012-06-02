@@ -2701,8 +2701,10 @@ make_float (double float_value)
    GC are put on a free list to be reallocated before allocating
    any new cons cells from the latest cons_block.  */
 
-#define CONS_BLOCK_SIZE \
-  (((BLOCK_BYTES - sizeof (struct cons_block *)) * CHAR_BIT) \
+#define CONS_BLOCK_SIZE						\
+  (((BLOCK_BYTES - sizeof (struct cons_block *)			\
+     /* The compiler might add padding at the end.  */		\
+     - (sizeof (struct Lisp_Cons) - sizeof (int))) * CHAR_BIT)	\
    / (sizeof (struct Lisp_Cons) * CHAR_BIT + 1))
 
 #define CONS_BLOCK(fptr) \
