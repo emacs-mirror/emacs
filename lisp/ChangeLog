@@ -1,3 +1,10 @@
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-enabled-types): Rename from
+	imagemagick-types-enable.  Add many more types.
+	(imagemagick-types-inhibit): Change default to nil.
+	(imagemagick-filter-types): Caller changed.
+
 2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el: Use backquotes.

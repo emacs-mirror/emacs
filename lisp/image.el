@@ -688,24 +688,24 @@ The minimum delay between successive frames is 0.01s."
 
 
 (defvar imagemagick-types-inhibit)
-(defvar imagemagick-types-enable)
+(defvar imagemagick-enabled-types)
 
 (defun imagemagick-filter-types ()
   "Return a list of the ImageMagick types to be treated as images, or nil.
 This is the result of `imagemagick-types', including only elements
-that match `imagemagick-types-enable' and do not match
+that match `imagemagick-enabled-types' and do not match
 `imagemagick-types-inhibit'."
   (when (fboundp 'imagemagick-types)
-    (cond ((null imagemagick-types-enable) nil)
+    (cond ((null imagemagick-enabled-types) nil)
 	  ((eq imagemagick-types-inhibit t) nil)
 	  (t
 	   (delq nil
 		 (mapcar
 		  (lambda (type)
 		    (unless (memq type imagemagick-types-inhibit)
-		      (if (eq imagemagick-types-enable t) type
+		      (if (eq imagemagick-enabled-types t) type
 			(catch 'found
-			  (dolist (enable imagemagick-types-enable nil)
+			  (dolist (enable imagemagick-enabled-types nil)
 			    (if (cond ((symbolp enable) (eq enable type))
 				      ((stringp enable)
 				       (string-match enable
@@ -750,11 +750,10 @@ If Emacs is compiled without ImageMagick support, this does nothing."
 	  (push (cons re 'imagemagick) image-type-file-name-regexps)))
       (setq imagemagick--file-regexp re))))
 
-(defcustom imagemagick-types-inhibit
-  '(C HTML HTM TXT PDF)
-  "List of ImageMagick types that should not be treated as images.
+(defcustom imagemagick-types-inhibit nil
+  "List of ImageMagick types that should never be treated as images.
 This should be a list of symbols, each of which should be one of
-the ImageMagick types listed in `imagemagick-types'.  The listed
+the ImageMagick types listed by `imagemagick-types'.  The listed
 image types are not registered by `imagemagick-register-types'.
 
 If the value is t, inhibit the use of ImageMagick for images.
@@ -774,20 +773,28 @@ has no effect."
   :version "24.1"
   :group 'image)
 
-(defcustom imagemagick-types-enable
-  '("\\`BMP" DJVU "\\`GIF" "\\`ICO" "P?JPE?G" "P[BNP]M"
-    "\\`[MP]NG" "\\`TIFF")
+(defcustom imagemagick-enabled-types
+  '(3FR ART ARW AVS BMP BMP2 BMP3 CAL CALS CIN CMYK CMYKA CR2 CRW
+    CUR CUT DCM DCR DCX DDS DJVU DNG DPX EPDF EPS EPS2 EPS3 EPSF
+    EPSI EXR FAX FITS GBR GIF GIF87 GRB HRZ ICB ICO ICON J2C JNG
+    JP2 JPC JPEG JPG JPX K25 KDC MIFF MNG MRW MSL MSVG MTV NEF
+    ORF OTB PBM PCD PCDS PCL PCT PCX PDB PEF PGM PICT PIX PJPEG
+    PNG PNG24 PNG32 PNG8 PNM PPM PSD PTIF PWP RAF RAS RBG RGB
+    RGBA RGBO RLA RLE SCR SCT SFW SGI SR2 SRF SUN SVG SVGZ TGA
+    TIFF TIFF64 TILE TIM TTF UYVY VDA VICAR VID VIFF VST WBMP WPG
+    X3F XBM XC XCF XPM XV XWD YCbCr YCbCrA YUV)
   "List of ImageMagick types to treat as images.
-The list elements are either strings or symbols, and represent
-types returned by `imagemagick-types'.  A string is a regexp that
-selects all types matching the regexp.
+Each list element should be a string or symbol, representing one
+of the image types returned by `imagemagick-types'.  If the
+element is a string, it is handled as a regexp that enables all
+matching types.
 
-The value may also be t, meaning all the types that ImageMagick
-supports; or nil, meaning no types.
+The value of `imagemagick-enabled-types' may also be t, meaning
+to enable all types that ImageMagick supports.
 
 The variable `imagemagick-types-inhibit' overrides this variable.
 
-If you change this without using customize, you must call
+If you change this without outside of Customize, you must call
 `imagemagick-register-types' afterwards.
 
 If Emacs is compiled without ImageMagick support, this variable
