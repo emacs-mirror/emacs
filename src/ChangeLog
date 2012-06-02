@@ -1,3 +1,7 @@
+2012-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (system_process_attributes): Improve comment.
+
 2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c: Export real-this-command to Elisp.
