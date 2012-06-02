@@ -3115,6 +3115,7 @@ extern int clear_mouse_face (Mouse_HLInfo *);
 extern int cursor_in_mouse_face_p (struct window *w);
 extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 					  int, int, enum draw_glyphs_face);
+extern void display_tty_menu_item (const char *, int, int, int, int);
 
 /* Flags passed to try_window.  */
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)
@@ -3278,6 +3279,8 @@ extern void hide_hourglass (void);
 
 int popup_activated (void);
 
+/* Defined in dispnew.c */
+
 extern Lisp_Object buffer_posn_from_coords (struct window *,
                                             int *, int *,
                                             struct display_pos *,
@@ -3292,35 +3295,35 @@ extern Lisp_Object marginal_area_string (struct window *, enum window_part,
                                          Lisp_Object *,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
-extern void cancel_line (int, struct frame *);
-extern void init_desired_glyphs (struct frame *);
 extern int update_frame (struct frame *, int, int);
+extern void update_frame_with_menu (struct frame *);
 extern void bitch_at_user (void);
-void adjust_glyphs (struct frame *);
-void free_glyphs (struct frame *);
-void free_window_matrices (struct window *);
-void check_glyph_memory (void);
-void mirrored_line_dance (struct glyph_matrix *, int, int, int *, char *);
-void clear_glyph_matrix (struct glyph_matrix *);
-void clear_current_matrices (struct frame *f);
-void clear_desired_matrices (struct frame *);
-void shift_glyph_matrix (struct window *, struct glyph_matrix *,
-                         int, int, int);
-void rotate_matrix (struct glyph_matrix *, int, int, int);
-void increment_matrix_positions (struct glyph_matrix *,
-                                 int, int, ptrdiff_t, ptrdiff_t);
-void blank_row (struct window *, struct glyph_row *, int);
-void enable_glyph_matrix_rows (struct glyph_matrix *, int, int, int);
-void clear_glyph_row (struct glyph_row *);
-void prepare_desired_row (struct glyph_row *);
-void set_window_update_flags (struct window *, int);
-void update_single_window (struct window *, int);
-void do_pending_window_change (int);
-void change_frame_size (struct frame *, int, int, int, int, int);
-void init_display (void);
-void syms_of_display (void);
+extern void adjust_glyphs (struct frame *);
+extern void free_glyphs (struct frame *);
+extern void free_window_matrices (struct window *);
+extern void check_glyph_memory (void);
+extern void mirrored_line_dance (struct glyph_matrix *, int, int, int *,
+				 char *);
+extern void clear_glyph_matrix (struct glyph_matrix *);
+extern void clear_current_matrices (struct frame *f);
+extern void clear_desired_matrices (struct frame *);
+extern void shift_glyph_matrix (struct window *, struct glyph_matrix *,
+				int, int, int);
+extern void rotate_matrix (struct glyph_matrix *, int, int, int);
+extern void increment_matrix_positions (struct glyph_matrix *,
+					int, int, ptrdiff_t, ptrdiff_t);
+extern void blank_row (struct window *, struct glyph_row *, int);
+extern void enable_glyph_matrix_rows (struct glyph_matrix *, int, int, int);
+extern void clear_glyph_row (struct glyph_row *);
+extern void prepare_desired_row (struct glyph_row *);
+extern void set_window_update_flags (struct window *, int);
+extern void update_single_window (struct window *, int);
+extern void do_pending_window_change (int);
+extern void change_frame_size (struct frame *, int, int, int, int, int);
+extern void init_display (void);
+extern void syms_of_display (void);
 extern Lisp_Object Qredisplay_dont_pause;
-void spec_glyph_lookup_face (struct window *, GLYPH *);
+extern void spec_glyph_lookup_face (struct window *, GLYPH *);
 
 /* Defined in terminal.c */
 

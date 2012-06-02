@@ -3337,6 +3337,39 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
   return paused_p;
 }
 
+/* Update a TTY frame F that has a menu dropped down over some of its
+   glyphs.  This is like the second part of update_frame, but it
+   doesn't call build_frame_matrix, because we already have the
+   desired matrix prepared, and don't want it to be overwritten by the
+   text of the normal display.  */
+void
+update_frame_with_menu (struct frame *f)
+{
+  struct window *root_window = XWINDOW (f->root_window);
+
+  xassert (FRAME_TERMCAP_P (f));
+
+  /* We are working on frame matrix basis.  Set the frame on whose
+     frame matrix we operate.  */
+  set_frame_matrix_frame (f);
+
+  /* Update the display  */
+  update_begin (f);
+  paused_p = update_frame_1 (f, 1, 1);
+  update_end (f);
+
+  if (FRAME_TTY (f)->termscript)
+    fflush (FRAME_TTY (f)->termscript);
+  fflush (FRAME_TTY (f)->output);
+  /* Check window matrices for lost pointers.  */
+#if GLYPH_DEBUG
+  check_window_matrix_pointers (root_window);
+  add_frame_display_history (f, paused_p);
+#endif
+
+  /* Reset flags indicating that a window should be updated.  */
+  set_window_update_flags (root_window, 0);
+}
 
 
 /************************************************************************

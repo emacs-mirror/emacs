@@ -603,6 +603,21 @@ Wcm_clear (struct tty_display_info *tty)
 }
 
 
+/* Report the current cursor position.  The following two functions
+   mirror cm.h macros and are used in term.c's tty menu code, so they
+   are not really "stubs".  */
+int
+curX (struct tty_display_info *tty)
+{
+  return cursor_coords.X;
+}
+
+int
+curY (struct tty_display_info *tty)
+{
+  return cursor_coords.Y;
+}
+
 /***********************************************************************
 				Faces
  ***********************************************************************/

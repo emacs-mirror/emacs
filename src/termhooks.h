@@ -665,3 +665,9 @@ extern unsigned char *encode_terminal_code (struct glyph *, int,
 #ifdef HAVE_GPM
 extern void close_gpm (int gpm_fd);
 #endif
+
+#ifdef WINDOWSNT
+extern int curX (struct tty_display_info *);
+extern int curY (struct tty_display_info *);
+#endif
+

@@ -5464,17 +5464,23 @@ the return value is nil.  Otherwise the value is t.  */)
 	  || data->frame_cols != previous_frame_cols)
 	change_frame_size (f, data->frame_lines,
 			   data->frame_cols, 0, 0, 0);
-#if defined (HAVE_WINDOW_SYSTEM) || defined (MSDOS)
+#ifdef HAVE_MENUS
       if (data->frame_menu_bar_lines
 	  != previous_frame_menu_bar_lines)
-	x_set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
-			      make_number (0));
+	{
+	  if (FRAME_WINDOW_P (f))
+	    x_set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
+				  make_number (0));
+	  else	/* TTY or MSDOS */
+	    set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
+				make_number (0));
+	}
+#endif
 #ifdef HAVE_WINDOW_SYSTEM
       if (data->frame_tool_bar_lines
 	  != previous_frame_tool_bar_lines)
 	x_set_tool_bar_lines (f, make_number (data->frame_tool_bar_lines),
 			      make_number (0));
-#endif
 #endif
 
       /* "Swap out" point from the selected window's buffer
@@ -5688,15 +5694,22 @@ the return value is nil.  Otherwise the value is t.  */)
 	  || previous_frame_cols != FRAME_COLS (f))
 	change_frame_size (f, previous_frame_lines, previous_frame_cols,
 			   0, 0, 0);
-#if defined (HAVE_WINDOW_SYSTEM) || defined (MSDOS)
+#ifdef HAVE_MENUS
       if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
-	x_set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
-			      make_number (0));
+	{
+	  if (FRAME_WINDOW_P (f))
+	    x_set_menu_bar_lines (f,
+				  make_number (previous_frame_menu_bar_lines),
+				  make_number (0));
+	  else	/* TTY or MSDOS */
+	    set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
+				make_number (0));
+	}
+#endif
 #ifdef HAVE_WINDOW_SYSTEM
       if (previous_frame_tool_bar_lines != FRAME_TOOL_BAR_LINES (f))
 	x_set_tool_bar_lines (f, make_number (previous_frame_tool_bar_lines),
 			      make_number (0));
-#endif
 #endif
 
       /* Now, free glyph matrices in windows that were not reused.  */

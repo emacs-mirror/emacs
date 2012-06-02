@@ -1389,13 +1389,6 @@ IT_delete_glyphs (struct frame *f, int n)
   abort ();
 }
 
-/* set-window-configuration on window.c needs this.  */
-void
-x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
-{
-  set_menu_bar_lines (f, value, oldval);
-}
-
 /* This was copied from xfaces.c  */
 
 extern Lisp_Object Qbackground_color;

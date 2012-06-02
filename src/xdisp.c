@@ -19961,7 +19961,78 @@ display_menu_bar (struct window *w)
   compute_line_metrics (&it);
 }
 
+#ifdef HAVE_MENUS
+/* Display one menu item on a TTY, by overwriting the glyphs in the
+   desired glyph matrix with glyphs produced from the menu item text.
+   Called from term.c to display TTY drop-down menus one item at a
+   time.
 
+   ITEM_TEXT is the menu item text as a C string.
+
+   FACE_ID is the face ID to be used for this menu item.  FACE_ID
+   could specify one of 3 faces: a face for an enabled item, a face
+   for a disabled item, or a face for a selected item.
+
+   X and Y are coordinates of the first glyph in the desired matrix to
+   be overwritten by the menu item.  Since this is a TTY, Y is the
+   glyph row and X is the glyph number in the row, where to start
+   displaying the item.
+
+   SUBMENU non-zero means this menu item drops down a submenu, which
+   should be indicated by displaying a proper visual cue after the
+   item text.  */
+
+void
+display_tty_menu_item (const char *item_text, int face_id, int x, int y,
+		       int submenu)
+{
+  struct it it;
+  struct frame *f = SELECTED_FRAME ();
+  int saved_used, saved_truncated;
+  struct glyph_row *row;
+
+  xassert (FRAME_TERMCAP_P (f));
+
+  init_iterator (&it, w, -1, -1, f->desired_matrix->rows + y, MENU_FACE_ID);
+  it.first_visible_x = 0;
+  it.last_visible_x = FRAME_COLS (f);
+  row = it.glyph_row;
+  row->full_width_p = 1;
+
+  /* Arrange for the menu item glyphs to start at X and have the
+     desired face.  */
+  it.current_x = it.hpos = x;
+  saved_used = row->used[TEXT_AREA];
+  saved_truncated = row->truncated_on_right_p;
+  row->used[TEXT_AREA] = x - row->used[LEFT_MARGIN_AREA];
+  it.face_id = face_id;
+
+  /* FIXME: This should be controlled by a user option.  See the
+     comments in redisplay_tool_bar and display_mode_line about this.
+     Also, if paragraph_embedding could ever be R2L, changes will be
+     needed to avoid shifting to the right the row characters in
+     term.c:append_glyph.  */
+  it.paragraph_embedding = L2R;
+
+  if (submenu)
+    {
+      /* Indicate with ">" that there's a submenu.  */
+      display_string (item_text, Qnil, Qnil, 0, 0, &it,
+		      strlen (item_text), 0, FRAME_COLS (f) - 2, -1);
+      display_string (">", Qnil, Qnil, 0, 0, &it, 1, 0, 0, -1);
+    }
+  else
+    {
+      /* Display the menu item, pad with one space.  */
+      display_string (item_text, Qnil, Qnil, 0, 0, &it,
+		      strlen (item_text) + 1, 0, 0, -1);
+    }
+
+  row->used[TEXT_AREA] = saved_used;
+  row->truncated_on_right_p = saved_truncated;
+  row->hash - row_hash (row);
+}
+#endif	/* HAVE_MENUS */
 
 /***********************************************************************
 			      Mode Line

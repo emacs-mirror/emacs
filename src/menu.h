@@ -51,4 +51,6 @@ extern Lisp_Object ns_menu_show (FRAME_PTR, int, int, int, int,
 				 Lisp_Object, const char **);
 extern Lisp_Object xmenu_show (FRAME_PTR, int, int, int, int,
 			       Lisp_Object, const char **, Time);
+extern Lisp_Object tty_menu_show (FRAME_PTR, int, int, int, int,
+				  Lisp_Object, const char **);
 #endif /* MENU_H */

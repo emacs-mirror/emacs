@@ -1323,20 +1323,31 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
   /* FIXME: Use a terminal hook!  */
 #if defined HAVE_NTGUI
-  selection = w32_menu_show (f, xpos, ypos, for_click,
-			     keymaps, title, &error_name);
-#elif defined HAVE_NS
-  selection = ns_menu_show (f, xpos, ypos, for_click,
-			    keymaps, title, &error_name);
-#else /* MSDOS and X11 */
+  if (FRAME_W32_P (f))
+    selection = w32_menu_show (f, xpos, ypos, for_click,
+			       keymaps, title, &error_name);
+  else
+#endif
+#if defined HAVE_NS
+  if (FRAME_NS_P (f))
+    selection = ns_menu_show (f, xpos, ypos, for_click,
+			      keymaps, title, &error_name);
+  else
+#endif
+#if (defined (HAVE_X_WINDOWS) || defined (MSDOS))
   /* Assume last_event_timestamp is the timestamp of the button event.
      Is this assumption ever violated?  We can't use the timestamp
      stored within POSITION because there the top bits from the actual
      timestamp may be truncated away (Bug#4930).  */
-  selection = xmenu_show (f, xpos, ypos, for_click,
-			  keymaps, title, &error_name,
-			  last_event_timestamp);
+  if (FRAME_X_P (f) || FRAME_MSDOS_P (f))
+    selection = xmenu_show (f, xpos, ypos, for_click,
+			    keymaps, title, &error_name,
+			    last_event_timestamp);
+  else
 #endif
+  if (FRAME_TERMCAP_P (f))
+    selection = tty_menu_show (f, xpos, ypos, for_click,
+			       keymaps, title, &error_name);
 
   UNBLOCK_INPUT;
 
