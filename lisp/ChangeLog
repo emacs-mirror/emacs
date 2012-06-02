@@ -1,3 +1,7 @@
+2012-06-02  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Always require `cl'.
+
 2012-06-02  Chong Yidong  <cyd@gnu.org>
 
 	* image.el (imagemagick-enabled-types): Rename from

@@ -103,8 +103,9 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+;; FIXME: Use `eval-when-compile' when calls to `some', `position', `signum'
+;;        and `position-if' are replaced.
+(require 'cl)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Versions
@@ -122,7 +123,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.257.2.9 2012-05-29 19:53:00 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.257.2.10 2012-06-02 09:38:40 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
