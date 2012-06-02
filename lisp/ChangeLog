@@ -74,6 +74,7 @@
 2012-06-02  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el: Always require `cl'.
+	(rst-mode-map): Fix meaning of C-M-a / C-M-e.
 
 2012-06-02  Chong Yidong  <cyd@gnu.org>
 

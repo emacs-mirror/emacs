@@ -123,7 +123,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.257.2.10 2012-06-02 09:38:40 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.257.2.11 2012-06-02 12:20:41 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -546,11 +546,11 @@ well but give an additional message."
     (rst-define-key map [?\C-\M-h] 'rst-mark-section
 		    ;; Same as mark-defun sgml-mark-current-element.
 		    [?\C-c ?\C-m])
-    ;; Move forward/backward between section titles.
-    (rst-define-key map [?\C-\M-a] 'rst-forward-section
+    ;; Move backward/forward between section titles.
+    (rst-define-key map [?\C-\M-a] 'rst-backward-section
 		    ;; Same as beginning-of-defun.
 		    [?\C-c ?\C-n])
-    (rst-define-key map [?\C-\M-e] 'rst-backward-section
+    (rst-define-key map [?\C-\M-e] 'rst-forward-section
 		    ;; Same as end-of-defun.
 		    [?\C-c ?\C-p])
 
