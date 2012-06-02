@@ -1378,13 +1378,17 @@ give to the command you invoke, if it asks for an argument."
   (if (null command-name) (setq command-name (read-extended-command)))
   (let* ((function (and (stringp command-name) (intern-soft command-name)))
          (binding (and suggest-key-bindings
-                        (not executing-kbd-macro)
-                        (where-is-internal function overriding-local-map t))))
+		       (not executing-kbd-macro)
+		       (where-is-internal function overriding-local-map t))))
     (unless (commandp function)
       (error "`%s' is not a valid command name" command-name))
-    ;; Set this_command_keys to the concatenation of saved-keys and
-    ;; function, followed by a RET.
     (setq this-command function)
+    ;; Normally `real-this-command' should never be changed, but here we really
+    ;; want to pretend that M-x <cmd> RET is nothing more than a "key
+    ;; binding" for <cmd>, so the command the user really wanted to run is
+    ;; `function' and not `execute-extended-command'.  The difference is
+    ;; visible in cases such as M-x <cmd> RET and then C-x z (bug#11506).
+    (setq real-this-command function)
     (let ((prefix-arg prefixarg))
       (command-execute function 'record))
     ;; If enabled, show which key runs this command.

@@ -284,7 +284,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   save_this_command = Vthis_command;
   save_this_original_command = Vthis_original_command;
-  save_real_this_command = real_this_command;
+  save_real_this_command = Vreal_this_command;
   save_last_command = KVAR (current_kboard, Vlast_command);
 
   if (NILP (keys))
@@ -295,7 +295,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       key_count = ASIZE (keys);
     }
 
-  /* Save this now, since use of minibuffer will clobber it. */
+  /* Save this now, since use of minibuffer will clobber it.  */
   prefix_arg = Vcurrent_prefix_arg;
 
   if (SYMBOLP (function))
@@ -310,7 +310,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
      The feature is not fully implemented.  */
   filter_specs = Qnil;
 
-  /* If k or K discard an up-event, save it here so it can be retrieved with U */
+  /* If k or K discard an up-event, save it here so it can be retrieved with
+     U.  */
   up_event = Qnil;
 
   /* Set SPECS to the interactive form, or barf if not interactive.  */
@@ -370,14 +371,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
       Vthis_command = save_this_command;
       Vthis_original_command = save_this_original_command;
-      real_this_command= save_real_this_command;
+      Vreal_this_command = save_real_this_command;
       KVAR (current_kboard, Vlast_command) = save_last_command;
 
       temporarily_switch_to_single_kboard (NULL);
       return unbind_to (speccount, apply1 (function, specs));
     }
 
-  /* Here if function specifies a string to control parsing the defaults */
+  /* Here if function specifies a string to control parsing the defaults.  */
 
   /* Set next_event to point to the first event with parameters.  */
   for (next_event = 0; next_event < key_count; next_event++)
@@ -841,7 +842,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   Vthis_command = save_this_command;
   Vthis_original_command = save_this_original_command;
-  real_this_command= save_real_this_command;
+  Vreal_this_command = save_real_this_command;
   KVAR (current_kboard, Vlast_command) = save_last_command;
 
   {

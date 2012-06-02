@@ -1,3 +1,9 @@
+2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c: Export real-this-command to Elisp.
+	(syms_of_keyboard): Rename real_this_command to Vreal_this_command
+	and DEFVAR it.  Update all users.
+
 2012-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* minibuf.c (Fassoc_string): Remove duplicate declaration.

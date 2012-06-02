@@ -1,3 +1,8 @@
+2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (execute-extended-command): Set real-this-command
+	(bug#11506).
+
 2012-06-02  Chong Yidong  <cyd@gnu.org>
 
 	Remove incorrect uses of "modeline" in comments, docstrings, and

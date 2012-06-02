@@ -217,9 +217,6 @@ uintmax_t num_input_events;
 
 static EMACS_INT last_auto_save;
 
-/* This is like Vthis_command, except that commands never set it.  */
-Lisp_Object real_this_command;
-
 /* The value of point when the last command was started.  */
 static ptrdiff_t last_point_position;
 
@@ -1376,9 +1373,9 @@ command_loop_1 (void)
 
   /* Do this after running Vpost_command_hook, for consistency.  */
   KVAR (current_kboard, Vlast_command) = Vthis_command;
-  KVAR (current_kboard, Vreal_last_command) = real_this_command;
+  KVAR (current_kboard, Vreal_last_command) = Vreal_this_command;
   if (!CONSP (last_command_event))
-    KVAR (current_kboard, Vlast_repeatable_command) = real_this_command;
+    KVAR (current_kboard, Vlast_repeatable_command) = Vreal_this_command;
 
   while (1)
     {
@@ -1445,7 +1442,7 @@ command_loop_1 (void)
       before_command_echo_length = echo_length ();
 
       Vthis_command = Qnil;
-      real_this_command = Qnil;
+      Vreal_this_command = Qnil;
       Vthis_original_command = Qnil;
       Vthis_command_keys_shift_translated = Qnil;
 
@@ -1529,7 +1526,7 @@ command_loop_1 (void)
       /* Execute the command.  */
 
       Vthis_command = cmd;
-      real_this_command = cmd;
+      Vreal_this_command = cmd;
       safe_run_hooks (Qpre_command_hook);
 
       already_adjusted = 0;
@@ -1613,12 +1610,14 @@ command_loop_1 (void)
 	 If the command didn't actually create a prefix arg,
 	 but is merely a frame event that is transparent to prefix args,
 	 then the above doesn't apply.  */
-      if (NILP (KVAR (current_kboard, Vprefix_arg)) || CONSP (last_command_event))
+      if (NILP (KVAR (current_kboard, Vprefix_arg))
+	  || CONSP (last_command_event))
 	{
 	  KVAR (current_kboard, Vlast_command) = Vthis_command;
-	  KVAR (current_kboard, Vreal_last_command) = real_this_command;
+	  KVAR (current_kboard, Vreal_last_command) = Vreal_this_command;
 	  if (!CONSP (last_command_event))
-	    KVAR (current_kboard, Vlast_repeatable_command) = real_this_command;
+	    KVAR (current_kboard, Vlast_repeatable_command)
+	      = Vreal_this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	  this_command_key_count_reset = 0;
@@ -11472,9 +11471,6 @@ syms_of_keyboard (void)
   staticpro (&tool_bar_items_vector);
   tool_bar_items_vector = Qnil;
 
-  staticpro (&real_this_command);
-  real_this_command = Qnil;
-
   DEFSYM (Qtimer_event_handler, "timer-event-handler");
   DEFSYM (Qdisabled_command_function, "disabled-command-function");
   DEFSYM (Qself_insert_command, "self-insert-command");
@@ -11728,18 +11724,24 @@ was a kill command.
 See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
-		 doc: /* Same as `last-command', but never altered by Lisp code.  */);
+		 doc: /* Same as `last-command', but never altered by Lisp code.
+Taken from the previous value of `real-this-command'.  */);
 
   DEFVAR_KBOARD ("last-repeatable-command", Vlast_repeatable_command,
 		 doc: /* Last command that may be repeated.
 The last command executed that was not bound to an input event.
-This is the command `repeat' will try to repeat.  */);
+This is the command `repeat' will try to repeat.
+Taken from a previous value of `real-this-command'.  */);
 
   DEFVAR_LISP ("this-command", Vthis_command,
 	       doc: /* The command now being executed.
 The command can set this variable; whatever is put here
 will be in `last-command' during the following command.  */);
   Vthis_command = Qnil;
+
+  DEFVAR_LISP ("real-this-command", Vreal_this_command,
+	       doc: /* This is like `this-command', except that commands should never modify it.  */);
+  Vreal_this_command = Qnil;
 
   DEFVAR_LISP ("this-command-keys-shift-translated",
 	       Vthis_command_keys_shift_translated,
