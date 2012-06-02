@@ -1,3 +1,26 @@
+2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Significant code rearrangement; further
+	comment revision.
+	(todos-filtered-items-buffer): Rename from todos-filter-buffer and
+	adjust users.
+	(todos-filtered-buffer-name): Rename from
+	todos-special-buffer-name and adjust users.
+	(todos-filtered-items-mode-map): Rename from
+	todos-filter-items-mode-map and adjust users.
+	(todos-mode-external-set): Use todos-categories instead of
+	todos-set-categories (and add comment to check if this DTRT).
+	(todos-filtered-items-mode): Rename from todos-filter-items-mode
+	and adjust users.
+	(todos-add-category): Don't call todos-validate-name, since
+	todos-read-category does.
+	(todos-edit-quit): Use todos-repair-categories-sexp.
+	(todos-done-item-add-edit-or-delete-comment): Rename from
+	todos-done-item-add-or-edit-comment and adjust users; add optional
+	argument to prompt to delete comment.
+	(todos-item-undo): Delete done item comment on undoing if user
+	confirms.
+
 2012-09-22  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Further code rearrangement and comment
