@@ -4226,7 +4226,7 @@ Usage:
     brackets and removed if the queried string is left empty.  Prompts for
     mandatory arguments remain in the code if the queried string is left
     empty.  They can be queried again by `C-c C-t C-q'.  Enabled
-    electrification is indicated by `/e' in the modeline.
+    electrification is indicated by `/e' in the mode line.
 
       Typing `M-SPC' after a keyword inserts a space without calling the
     template generator.  Automatic template generation (i.e.
@@ -4253,7 +4253,7 @@ Usage:
     Double striking of some keys inserts cumbersome VHDL syntax elements.
     Stuttering can be disabled (enabled) by typing `C-c C-m C-s' or by
     option `vhdl-stutter-mode'.  Enabled stuttering is indicated by `/s' in
-    the modeline.  The stuttering keys and their effects are:
+    the mode line.  The stuttering keys and their effects are:
 
       ;;   -->  \" : \"       [   -->  (        --    -->  comment
       ;;;  -->  \" := \"      [[  -->  [        --CR  -->  comment-out code

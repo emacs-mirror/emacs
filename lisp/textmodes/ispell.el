@@ -297,9 +297,7 @@ error is highlighted lazily using isearch lazy highlighting (see
   :version "22.1")
 
 (defcustom ispell-highlight-face (if ispell-lazy-highlight 'isearch 'highlight)
-  "The face used for Ispell highlighting.  For Emacsen with overlays.
-Possible values are `highlight', `modeline', `secondary-selection',
-`region', and `underline'.
+  "Face used for Ispell highlighting.
 This variable can be set by the user to whatever face they desire.
 It's most convenient if the cursor color and highlight color are
 slightly different."
@@ -4037,7 +4035,7 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  alists minibuffer bufferp autoload loaddefs aff Dansk KOI SPC op
 ; LocalWords:  Francais Nederlands charset autoloaded popup nonmenu regexp num
 ; LocalWords:  AMStex hspace includeonly nocite epsfig displaymath eqnarray reg
-; LocalWords:  minipage modeline pers dict unhighlight buf grep sync prev inc
+; LocalWords:  minipage pers dict unhighlight buf grep sync prev inc
 ; LocalWords:  fn oldot NB AIX msg init read's bufs pt cmd Quinlan eg
 ; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict
 ; LocalWords:  lns XEmacs HTML casechars Multibyte

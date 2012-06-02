@@ -460,7 +460,7 @@ With no argument, this command toggles
 		(kill-local-variable 'isearch-next-buffer-function))
 	      (setq reftex-isearch-minor-mode nil))))
 	(remove-hook 'reftex-mode-hook 'reftex-isearch-minor-mode)))
-    ;; Force modeline redisplay.
+    ;; Force mode line redisplay.
     (set-buffer-modified-p (buffer-modified-p))))
 
 (add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil

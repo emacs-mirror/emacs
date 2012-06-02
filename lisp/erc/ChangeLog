@@ -1,3 +1,9 @@
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	* erc-track.el (erc-track, erc-track-faces-priority-list)
+	(erc-track-faces-normal-list, erc-track-find-face)
+	(erc-track-modified-channels): Fix modeline -> mode line in docs.
+
 2012-05-14  Mike Kazantsev  <mk.fraggod@gmail.com>  (tiny change)
 
 	* erc-dcc.el (erc-dcc-handle-ctcp-send): Fix a regression

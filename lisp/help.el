@@ -942,7 +942,7 @@ is currently activated with completion."
       (error "Cannot find minor mode for `%s'" indicator))))
 
 (defun lookup-minor-mode-from-indicator (indicator)
-  "Return a minor mode symbol from its indicator on the modeline."
+  "Return a minor mode symbol from its indicator on the mode line."
   ;; remove first space if existed
   (if (and (< 0 (length indicator))
 	   (eq (aref indicator 0) ?\s))

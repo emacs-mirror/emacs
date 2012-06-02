@@ -143,7 +143,7 @@ The function is called with point at the beginning of the headline."
   :type 'function)
 
 (defcustom org-clock-string-limit 0
-  "Maximum length of clock strings in the modeline.  0 means no limit."
+  "Maximum length of clock strings in the mode line.  0 means no limit."
   :group 'org-clock
   :type 'integer)
 
@@ -202,7 +202,7 @@ file name  play this sound file.  If not possible, fall back to beep"
 	  (file :tag "Play sound file")))
 
 (defcustom org-clock-modeline-total 'auto
-  "Default setting for the time included for the modeline clock.
+  "Default setting for the time included for the mode line clock.
 This can be overruled locally using the CLOCK_MODELINE_TOTAL property.
 Allowed values are:
 
@@ -221,7 +221,7 @@ auto     Automatically, either `all', or `repeat' for repeating tasks"
 
 (defvaralias 'org-task-overrun-text 'org-clock-task-overrun-text)
 (defcustom org-clock-task-overrun-text nil
-  "The extra modeline text that should indicate that the clock is overrun.
+  "Extra mode line text to indicate that the clock is overrun.
 The can be nil to indicate that instead of adding text, the clock time
 should get a different face (`org-mode-line-clock-overrun').
 When this is a string, it is prepended to the clock string as an indication,
@@ -669,7 +669,7 @@ Use alsa's aplay tool if available."
       (= 0 (call-process "which" nil nil nil program-name))))
 
 (defvar org-clock-mode-line-entry nil
-  "Information for the modeline about the running clock.")
+  "Information for the mode line about the running clock.")
 
 (defun org-find-open-clocks (file)
   "Search through the given file and find all open clocks."

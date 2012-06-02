@@ -1,3 +1,76 @@
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	Remove incorrect uses of "modeline" in comments, docstrings, and
+	function/variable names (Bug#10329).
+
+	* cus-edit.el (mode-line):
+	* dframe.el (dframe-mouse-hscroll):
+	* emacs-lisp/re-builder.el:
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	* frame.el (set-frame-name):
+	* help.el (lookup-minor-mode-from-indicator):
+	* net/rcirc.el (rcirc-activity-string, rcirc-short-buffer-name):
+	* progmodes/cc-cmds.el (c-toggle-auto-newline)
+	(c-toggle-hungry-state):
+	* progmodes/antlr-mode.el (antlr-language-alist):
+	* progmodes/idlw-shell.el (idlwave-shell-electric-stop-line-face):
+	* progmodes/vhdl-mode.el (vhdl-mode):
+	* progmodes/which-func.el (which-func, which-func-cleanup-function):
+	* term/ns-win.el (ns-face-at-pos):
+	* term/sup-mouse.el (sup-mouse-report):
+	* textmodes/flyspell.el (flyspell-mode-line-string):
+	* textmodes/ispell.el (ispell-highlight-face):
+	* textmodes/reftex-global.el:
+	* vc/vc-arch.el (vc-arch-mode-line-string):
+	* vc/vc-cvs.el (vc-cvs-mode-line-string):
+	* vc/vc-git.el (vc-git-mode-line-string):
+	* vc/vc-hooks.el (vc-display-status)
+	(vc-default-mode-line-string):
+	* vc/vc-mtn.el (vc-mtn-mode-line-string): Doc fixes.
+
+	* ansi-color.el (ansi-color-faces-vector): Change default faces.
+
+	* dired.el (dired-sort-set-mode-line): Rename from
+	dired-sort-set-modeline.  All callers changed.
+
+	* eshell/esh-mode.el (eshell-status-in-mode-line): Rename from
+	eshell-status-in-modeline.
+
+	* foldout.el (foldout-mode-line-string): Rename from
+	foldout-modeline-string.  All callers changed.
+	(foldout-update-mode-line): Rename from foldout-update-modeline.
+
+	* subr.el (redraw-modeline): Make into obsolete alias.
+
+	* calendar/timeclock.el (timeclock-mode-line-display): Rename from
+	timeclock-modeline-display.  Make old name an alias.
+	(timeclock-update-mode-line): Likewise.  All callers changed.
+	(timeclock-mode-line-display): No need to check before using
+	add-hook.
+	(timeclock-relative, timeclock-day-over-hook)
+	(timeclock-use-elapsed, timeclock-mode-string)
+	(timeclock-mode-line-display): Doc fix, "modeline" -> "mode line".
+
+	* emulation/crisp.el (crisp-mode-mode-line-string): Rename from
+	crisp-mode-modeline-string.
+
+	* play/solitaire.el (solitaire-build-mode-line): Rename from
+	solitaire-build-modeline.  All callers changed.
+
+	* play/zone.el (zone-hiding-mode-line): Rename from
+	zone-hiding-modeline.  All callers changed.
+	(zone): Remove unusued `modeline-hidden-level' property.
+
+	* progmodes/xscheme.el (xscheme-mode-line-initialize): Rename from
+	xscheme-modeline-initialize.  All callers changed.
+
+	* strokes.el (strokes-lighter): Rename from
+	strokes-modeline-string.
+
+	* textmodes/sgml-mode.el (html-face-tag-alist)
+	(html-tag-face-alist): Use mode-line face instead of obsolete
+	alias modeline.
+
 2012-06-02  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el: Always require `cl'.

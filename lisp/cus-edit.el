@@ -371,7 +371,7 @@
   :group 'editing)
 
 (defgroup mode-line nil
-  "Content of the modeline."
+  "Contents of the mode line."
   :group 'environment)
 
 (defgroup editing-basics nil
@@ -2101,7 +2101,7 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button
-  '((((type x w32 ns) (class color))	; Like default modeline
+  '((((type x w32 ns) (class color))	; Like default mode line
      (:box (:line-width 2 :style released-button)
 	   :background "lightgrey" :foreground "black"))
     (t

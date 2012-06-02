@@ -1,3 +1,9 @@
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	* org-clock.el (org-clock-string-limit)
+	(org-clock-modeline-total, org-clock-task-overrun-text)
+	(org-clock-mode-line-entry): Doc fix, "modeline" -> "mode line".
+
 2012-05-27 Mark Shoulson <mark@kli.org>  (tiny change)
 
 	* org.el (org-fontify-entities): Fix bug: The entities \sup[123] and

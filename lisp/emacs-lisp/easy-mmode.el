@@ -99,7 +99,7 @@ the mode if the argument is `toggle'.  If DOC is nil this
 function adds a basic doc-string stating these facts.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
-Optional LIGHTER is displayed in the modeline when the mode is on.
+Optional LIGHTER is displayed in the mode line when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
   or an expression that returns either a keymap or a list of

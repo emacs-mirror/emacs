@@ -385,7 +385,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
   :group 'vc-arch)
 
 (defun vc-arch-mode-line-string (file)
-  "Return string for placement in modeline by `vc-mode-line' for FILE."
+  "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let ((rev (vc-working-revision file)))
     (dolist (rule vc-arch-mode-line-rewrite)
       (if (string-match (car rule) rev)

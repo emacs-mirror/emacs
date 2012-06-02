@@ -1646,7 +1646,7 @@ Returns the compilation buffer created."
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available.
 	  (message "Executing `%s'..." command)
-	  ;; Fake modeline display as if `start-process' were run.
+	  ;; Fake mode line display as if `start-process' were run.
 	  (setq mode-line-process
 		(list (propertize ":run" 'face 'compilation-warning)))
 	  (force-mode-line-update)

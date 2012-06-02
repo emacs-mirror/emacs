@@ -232,8 +232,8 @@ URL `http://www.gnu.org/software/auctex/'"
   :type 'boolean)
 
 (defcustom flyspell-mode-line-string " Fly"
-  "String displayed on the modeline when flyspell is active.
-Set this to nil if you don't want a modeline indicator."
+  "String displayed on the mode line when flyspell is active.
+Set this to nil if you don't want a mode line indicator."
   :group 'flyspell
   :type '(choice string (const :tag "None" nil)))
 

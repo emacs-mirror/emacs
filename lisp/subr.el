@@ -2466,7 +2466,8 @@ This finishes the change group by reverting all of its changes."
 ;;;; Display-related functions.
 
 ;; For compatibility.
-(defalias 'redraw-modeline 'force-mode-line-update)
+(define-obsolete-function-alias 'redraw-modeline
+  'force-mode-line-update "24.2")
 
 (defun force-mode-line-update (&optional all)
   "Force redisplay of the current buffer's mode line and header line.

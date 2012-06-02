@@ -105,7 +105,7 @@
 ;; should be loaded before the ada-mode, which will then setup some variables
 ;; to improve the support for Ada code.
 ;; Here is the list of these modes:
-;;   `which-function-mode': Display in the modeline the name of the subprogram
+;;   `which-function-mode': Display in the mode line the name of the subprogram
 ;;      the cursor is in.
 ;;   `outline-mode': Provides the capability to collapse or expand the code
 ;;      for specific language constructs, for instance if you want to hide the
@@ -5055,7 +5055,7 @@ Since the search can be long, the results are cached."
 		    (re-search-backward ada-imenu-subprogram-menu-re nil t))
 
 	  ;; Get the function name, but not the properties, or this changes
-	  ;; the face in the modeline on Emacs 21
+	  ;; the face in the mode line on Emacs 21
 	  (setq func-name (match-string-no-properties 3))
 	  (if (and (not (ada-in-comment-p))
 		   (not (save-excursion

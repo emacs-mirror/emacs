@@ -68,7 +68,7 @@
   "String to display in the mode line when current function is unknown.")
 
 (defgroup which-func nil
-  "Display the current function name in the modeline."
+  "Display the current function name in the mode line."
   :group 'tools
   :version "20.3")
 
@@ -163,7 +163,7 @@ single string, the new name of the item.")
 (defvar which-func-cleanup-function nil
   "Function to transform a string before displaying it in the mode line.
 The function is called with one argument, the string to display.
-Its return value is displayed in the modeline.
+Its return value is displayed in the mode line.
 If nil, no function is called.  The default value is nil.
 
 This feature can be useful if Imenu is set up to make more

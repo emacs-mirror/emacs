@@ -256,7 +256,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
   (vc-file-getprop file 'vc-working-revision))
 
 (defun vc-cvs-mode-line-string (file)
-  "Return string for placement into the modeline for FILE.
+  "Return a string for `vc-mode-line' to put in the mode line for FILE.
 Compared to the default implementation, this function does two things:
 Handle the special case of a CVS file that is added but not yet
 committed and support display of sticky tags."

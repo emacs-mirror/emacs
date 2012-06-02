@@ -1933,7 +1933,7 @@ narrows the buffer now."
 	  ;; do the narrowing.
 	  (narrow-to-region (point-min) ses--data-marker)
 	  (setq ses--deferred-narrow nil))
-	;; Update the modeline.
+	;; Update the mode line.
 	(let ((oldcell ses--curcell))
 	  (ses-set-curcell)
 	  (unless (eq ses--curcell oldcell)

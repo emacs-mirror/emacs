@@ -516,7 +516,7 @@ LOCATION can be one of 'random, 'left-right, or 'top-bottom."
 (defun dframe-needed-height (&optional frame)
   "The needed height for the tool bar FRAME (in characters)."
   (or frame (setq frame (selected-frame)))
-  ;; The 1 is the missing modeline/minibuffer
+  ;; The 1 is the missing mode line or minibuffer
   (+ 1 (/ (frame-pixel-height frame)
 	  ;; This obscure code avoids a byte compiler warning in Emacs.
 	  (let ((f 'face-height))
@@ -969,7 +969,7 @@ broken because of the dedicated frame."
       (switch-to-buffer buffer)
     (call-interactively 'switch-to-buffer nil nil)))
 
-;; XEmacs: this can be implemented using modeline keymaps, but there
+;; XEmacs: this can be implemented using mode line keymaps, but there
 ;; is no use, as we have horizontal scrollbar (as the docstring
 ;; hints.)
 (defun dframe-mouse-hscroll (e)
@@ -987,8 +987,7 @@ mode-line.  This is only useful for non-XEmacs."
 	  ((> click-col (- (window-width) 5))
 	   (scroll-right 2))
 	  (t (dframe-message
-	      "Click on the edge of the modeline to scroll left/right")))
-    ))
+	      "Click on the edge of the mode line to scroll left/right")))))
 
 (provide 'dframe)
 

@@ -165,10 +165,10 @@
 ;; There are also the following useful commands:
 ;;
 ;; `whitespace-newline-mode'
-;;    Toggle NEWLINE minor mode visualization ("nl" on modeline).
+;;    Toggle NEWLINE minor mode visualization ("nl" on mode line).
 ;;
 ;; `global-whitespace-newline-mode'
-;;    Toggle NEWLINE global minor mode visualization ("NL" on modeline).
+;;    Toggle NEWLINE global minor mode visualization ("NL" on mode line).
 ;;
 ;; `whitespace-report'
 ;;    Report some blank problems in buffer.

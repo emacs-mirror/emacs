@@ -41,7 +41,7 @@
 ;;; Code:
 
 (defgroup erc-track nil
-  "Track active buffers and show activity in the modeline."
+  "Track active buffers and show activity in the mode line."
   :group 'erc)
 
 (defcustom erc-track-enable-keybindings 'ask
@@ -196,7 +196,7 @@ The faces used are the same as used for text in the buffers.
     erc-notice-face
     erc-input-face
     erc-prompt-face)
-  "A list of faces used to highlight active buffer names in the modeline.
+  "A list of faces used to highlight active buffer names in the mode line.
 If a message contains one of the faces in this list, the buffer name will
 be highlighted using that face.  The first matching face is used."
   :group 'erc-track
@@ -228,10 +228,10 @@ setting this variable might not be very useful."
     erc-default-face
     erc-action-face)
   "A list of faces considered to be part of normal conversations.
-This list is used to highlight active buffer names in the modeline.
+This list is used to highlight active buffer names in the mode line.
 
 If a message contains one of the faces in this list, and the
-previous modeline face for this buffer is also in this list, then
+previous mode line face for this buffer is also in this list, then
 the buffer name will be highlighted using the face from the
 message.  This gives a rough indication that active conversations
 are occurring in these channels.
@@ -872,7 +872,7 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
     (erc-modified-channels-display)))
 
 (defun erc-track-find-face (faces)
-  "Return the face to use in the modeline from the faces in FACES.
+  "Return the face to use in the mode line from the faces in FACES.
 If `erc-track-faces-priority-list' is set, the one from FACES who
 is first in that list will be used.  If nothing matches or if
 `erc-track-faces-priority-list' is not set, the default mode-line
@@ -906,7 +906,7 @@ element."
 
 (defun erc-track-modified-channels ()
   "Hook function for `erc-insert-post-hook' to check if the current
-buffer should be added to the modeline as a hidden, modified
+buffer should be added to the mode line as a hidden, modified
 channel.  Assumes it will only be called when current-buffer
 is in `erc-mode'."
   (let ((this-channel (or (erc-default-target)

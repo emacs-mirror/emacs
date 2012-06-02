@@ -3460,9 +3460,9 @@ format, use `\\[universal-argument] \\[dired]'.")
   "Non-nil means the Dired sort command is disabled.
 The idea is to set this buffer-locally in special dired buffers.")
 
-(defun dired-sort-set-modeline ()
-  ;; Set modeline display according to dired-actual-switches.
-  ;; Modeline display of "by name" or "by date" guarantees the user a
+(defun dired-sort-set-mode-line ()
+  ;; Set mode line display according to dired-actual-switches.
+  ;; Mode line display of "by name" or "by date" guarantees the user a
   ;; match with the corresponding regexps.  Non-matching switches are
   ;; shown literally.
   (when (eq major-mode 'dired-mode)
@@ -3477,6 +3477,9 @@ The idea is to set this buffer-locally in special dired buffers.")
 		  (t
 		   (concat "Dired " dired-actual-switches)))))
     (force-mode-line-update)))
+
+(define-obsolete-function-alias 'dired-sort-set-modeline
+  'dired-sort-set-mode-line "24.2")
 
 (defun dired-sort-toggle-or-edit (&optional arg)
   "Toggle sorting by date, and refresh the Dired buffer.
@@ -3509,7 +3512,7 @@ With a prefix argument, edit the current listing switches instead."
     ;; Now, if we weren't sorting by date before, add the -t switch.
     (unless sorting-by-date
       (setq dired-actual-switches (concat dired-actual-switches " -t"))))
-  (dired-sort-set-modeline)
+  (dired-sort-set-mode-line)
   (revert-buffer))
 
 ;; Some user code loads dired especially for this.
@@ -3532,7 +3535,7 @@ set the minor mode accordingly, others appear literally in the mode line.
 With optional second arg NO-REVERT, don't refresh the listing afterwards."
   (dired-sort-R-check switches)
   (setq dired-actual-switches switches)
-  (dired-sort-set-modeline)
+  (dired-sort-set-mode-line)
   (or no-revert (revert-buffer)))
 
 (defvar dired-subdir-alist-pre-R nil
@@ -4200,7 +4203,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "d09d49d54080e60ad6ecee5573b4e517")
+;;;;;;  "dired-x" "dired-x.el" "d2461aa6efb8c1d7de8f245728ab448e")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

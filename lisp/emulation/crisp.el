@@ -44,9 +44,9 @@
 ;; by default run `save-buffers-kill-emacs' instead of the command
 ;; `execute-extended-command'.
 
-;; Finally, if you want to change the string displayed in the modeline
-;; when this mode is in effect, override the definition of
-;; `crisp-mode-modeline-string' in your .emacs.  The default value is
+;; Finally, if you want to change the string displayed in the mode
+;; line when this mode is in effect, override the definition of
+;; `crisp-mode-mode-line-string' in your .emacs.  The default value is
 ;; " *Crisp*" which may be a bit lengthy if you have a lot of things
 ;; being displayed there.
 
@@ -173,10 +173,13 @@
 All the bindings are done here instead of globally to try and be
 nice to the world.")
 
-(defcustom crisp-mode-modeline-string " *CRiSP*"
-  "String to display in the modeline when CRiSP emulation mode is enabled."
+(defcustom crisp-mode-mode-line-string " *CRiSP*"
+  "String to display in the mode line when CRiSP emulation mode is enabled."
   :type 'string
   :group 'crisp)
+
+(define-obsolete-variable-alias 'crisp-mode-modeline-string
+  'crisp-mode-mode-line-string "24.2")
 
 ;;;###autoload
 (defcustom crisp-mode nil
@@ -354,7 +357,7 @@ With a prefix argument ARG, enable CRiSP mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil."
   :keymap crisp-mode-map
-  :lighter crisp-mode-modeline-string
+  :lighter crisp-mode-mode-line-string
   (when crisp-mode
     ;; Make menu entries show M-u or f14 in preference to C-x u.
     (put 'undo :advertised-binding

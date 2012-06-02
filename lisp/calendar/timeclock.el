@@ -43,19 +43,19 @@
 ;;   (define-key ctl-x-map "to" 'timeclock-out)
 ;;   (define-key ctl-x-map "tc" 'timeclock-change)
 ;;   (define-key ctl-x-map "tr" 'timeclock-reread-log)
-;;   (define-key ctl-x-map "tu" 'timeclock-update-modeline)
+;;   (define-key ctl-x-map "tu" 'timeclock-update-mode-line)
 ;;   (define-key ctl-x-map "tw" 'timeclock-when-to-leave-string)
 
 ;; If you want Emacs to display the amount of time "left" to your
-;; workday in the modeline, you can either set the value of
-;; `timeclock-modeline-display' to t using M-x customize, or you
-;; can add this code to your .emacs file:
+;; workday in the mode-line, you can either set the value of
+;; `timeclock-mode-line-display' to t using M-x customize, or you can
+;; add this code to your .emacs file:
 ;;
 ;;   (require 'timeclock)
-;;   (timeclock-modeline-display)
+;;   (timeclock-mode-line-display)
 ;;
-;; To cancel this modeline display at any time, just call
-;; `timeclock-modeline-display' again.
+;; To cancel this mode line display at any time, just call
+;; `timeclock-mode-line-display' again.
 
 ;; You may also want Emacs to ask you before exiting, if you are
 ;; currently working on a project.  This can be done either by setting
@@ -98,7 +98,7 @@ work four hours on Monday, then the amount of time \"remaining\" on
 Tuesday is twelve hours -- relative to an averaged work period of
 eight hours -- or eight hours, non-relative.  So relative time takes
 into account any discrepancy of time under-worked or over-worked on
-previous days.  This only affects the timeclock modeline display."
+previous days.  This only affects the timeclock mode line display."
   :type 'boolean
   :group 'timeclock)
 
@@ -145,39 +145,39 @@ This variable only has effect if set with \\[customize]."
 
 ;; For byte-compiler.
 (defvar display-time-hook)
-(defvar timeclock-modeline-display)
+(defvar timeclock-mode-line-display)
 
 (defcustom timeclock-use-display-time t
-  "If non-nil, use `display-time-hook' for doing modeline updates.
+  "If non-nil, use `display-time-hook' for doing mode line updates.
 The advantage of this is that one less timer has to be set running
 amok in Emacs's process space.  The disadvantage is that it requires
 you to have `display-time' running.  If you don't want to use
-`display-time', but still want the modeline to show how much time is
+`display-time', but still want the mode line to show how much time is
 left, set this variable to nil.  Changing the value of this variable
-while timeclock information is being displayed in the modeline has no
-effect.  You should call the function `timeclock-modeline-display' with
+while timeclock information is being displayed in the mode line has no
+effect.  You should call the function `timeclock-mode-line-display' with
 a positive argument to force an update."
   :set (lambda (symbol value)
 	 (let ((currently-displaying
-		(and (boundp 'timeclock-modeline-display)
-		     timeclock-modeline-display)))
+		(and (boundp 'timeclock-mode-line-display)
+		     timeclock-mode-line-display)))
 	   ;; if we're changing to the state that
-	   ;; `timeclock-modeline-display' is already using, don't
+	   ;; `timeclock-mode-line-display' is already using, don't
 	   ;; bother toggling it.  This happens on the initial loading
 	   ;; of timeclock.el.
 	   (if (and currently-displaying
 		    (or (and value
 			     (boundp 'display-time-hook)
-			     (memq 'timeclock-update-modeline
+			     (memq 'timeclock-update-mode-line
 				   display-time-hook))
 			(and (not value)
 			     timeclock-update-timer)))
 	       (setq currently-displaying nil))
 	   (and currently-displaying
-		(set-variable 'timeclock-modeline-display nil))
+		(set-variable 'timeclock-mode-line-display nil))
 	   (setq timeclock-use-display-time value)
 	   (and currently-displaying
-		(set-variable 'timeclock-modeline-display t))
+		(set-variable 'timeclock-mode-line-display t))
 	   timeclock-use-display-time))
   :type 'boolean
   :group 'timeclock
@@ -205,7 +205,7 @@ to today."
 (defcustom timeclock-day-over-hook nil
   "A hook that is run when the workday has been completed.
 This hook is only run if the current time remaining is being displayed
-in the modeline.  See the variable `timeclock-modeline-display'."
+in the mode line.  See the variable `timeclock-mode-line-display'."
   :type 'hook
   :group 'timeclock)
 
@@ -251,7 +251,7 @@ worked so far today.  Also, if `timeclock-relative' is nil, this value
 will be the same as `timeclock-discrepancy'.")
 
 (defvar timeclock-use-elapsed nil
-  "Non-nil if the modeline should display time elapsed, not remaining.")
+  "Non-nil if the mode line should display time elapsed, not remaining.")
 
 (defvar timeclock-last-period nil
   "Integer representing the number of seconds in the last period.
@@ -259,7 +259,7 @@ Note that you shouldn't access this value, but instead should use the
 function `timeclock-last-period'.")
 
 (defvar timeclock-mode-string nil
-  "The timeclock string (optionally) displayed in the modeline.
+  "The timeclock string (optionally) displayed in the mode line.
 The time is bracketed by <> if you are clocked in, otherwise by [].")
 
 (defvar timeclock-day-over nil
@@ -267,15 +267,18 @@ The time is bracketed by <> if you are clocked in, otherwise by [].")
 
 ;;; User Functions:
 
+(define-obsolete-function-alias 'timeclock-modeline-display
+  'timeclock-mode-line-display "24.2")
+
 ;;;###autoload
-(defun timeclock-modeline-display (&optional arg)
-  "Toggle display of the amount of time left today in the modeline.
+(defun timeclock-mode-line-display (&optional arg)
+  "Toggle display of the amount of time left today in the mode line.
 If `timeclock-use-display-time' is non-nil (the default), then
-the function `display-time-mode' must be active, and the modeline
+the function `display-time-mode' must be active, and the mode line
 will be updated whenever the time display is updated.  Otherwise,
 the timeclock will use its own sixty second timer to do its
-updating.  With prefix ARG, turn modeline display on if and only
-if ARG is positive.  Returns the new status of timeclock modeline
+updating.  With prefix ARG, turn mode line display on if and only
+if ARG is positive.  Returns the new status of timeclock mode line
 display (non-nil means on)."
   (interactive "P")
   ;; cf display-time-mode.
@@ -283,49 +286,49 @@ display (non-nil means on)."
   (or global-mode-string (setq global-mode-string '("")))
   (let ((on-p (if arg
 		  (> (prefix-numeric-value arg) 0)
-		(not timeclock-modeline-display))))
+		(not timeclock-mode-line-display))))
     (if on-p
         (progn
           (or (memq 'timeclock-mode-string global-mode-string)
               (setq global-mode-string
                     (append global-mode-string '(timeclock-mode-string))))
-	  (unless (memq 'timeclock-update-modeline timeclock-event-hook)
-	    (add-hook 'timeclock-event-hook 'timeclock-update-modeline))
+	  (add-hook 'timeclock-event-hook 'timeclock-update-mode-line)
 	  (when timeclock-update-timer
 	    (cancel-timer timeclock-update-timer)
 	    (setq timeclock-update-timer nil))
 	  (if (boundp 'display-time-hook)
-	      (remove-hook 'display-time-hook 'timeclock-update-modeline))
+	      (remove-hook 'display-time-hook 'timeclock-update-mode-line))
 	  (if timeclock-use-display-time
               (progn
                 ;; Update immediately so there is a visible change
                 ;; on calling this function.
-                (if display-time-mode (timeclock-update-modeline)
+                (if display-time-mode
+		    (timeclock-update-mode-line)
                   (message "Activate `display-time-mode' or turn off \
 `timeclock-use-display-time' to see timeclock information"))
-                (add-hook 'display-time-hook 'timeclock-update-modeline))
+                (add-hook 'display-time-hook 'timeclock-update-mode-line))
 	    (setq timeclock-update-timer
-		  (run-at-time nil 60 'timeclock-update-modeline))))
+		  (run-at-time nil 60 'timeclock-update-mode-line))))
       (setq global-mode-string
 	    (delq 'timeclock-mode-string global-mode-string))
-      (remove-hook 'timeclock-event-hook 'timeclock-update-modeline)
+      (remove-hook 'timeclock-event-hook 'timeclock-update-mode-line)
       (if (boundp 'display-time-hook)
 	  (remove-hook 'display-time-hook
-		       'timeclock-update-modeline))
+		       'timeclock-update-mode-line))
       (when timeclock-update-timer
 	(cancel-timer timeclock-update-timer)
 	(setq timeclock-update-timer nil)))
     (force-mode-line-update)
-    (setq timeclock-modeline-display on-p)))
+    (setq timeclock-mode-line-display on-p)))
 
 ;; This has to be here so that the function definition of
-;; `timeclock-modeline-display' is known to the "set" function.
-(defcustom timeclock-modeline-display nil
-  "Toggle modeline display of time remaining.
+;; `timeclock-mode-line-display' is known to the "set" function.
+(defcustom timeclock-mode-line-display nil
+  "Toggle mode line display of time remaining.
 You must modify via \\[customize] for this variable to have an effect."
   :set (lambda (symbol value)
-	 (setq timeclock-modeline-display
-	       (timeclock-modeline-display (or value 0))))
+	 (setq timeclock-mode-line-display
+	       (timeclock-mode-line-display (or value 0))))
   :type 'boolean
   :group 'timeclock
   :require 'timeclock)
@@ -477,8 +480,8 @@ Returns the new value of `timeclock-discrepancy'."
   (interactive)
   (setq timeclock-discrepancy nil)
   (timeclock-find-discrep)
-  (if (and timeclock-discrepancy timeclock-modeline-display)
-      (timeclock-update-modeline))
+  (if (and timeclock-discrepancy timeclock-mode-line-display)
+      (timeclock-update-mode-line))
   timeclock-discrepancy)
 
 (defun timeclock-seconds-to-string (seconds &optional show-seconds
@@ -645,8 +648,11 @@ arguments of `completing-read'."
   (timeclock-completing-read "Reason for clocking out: "
 			     (mapcar 'list timeclock-reason-list)))
 
-(defun timeclock-update-modeline ()
-  "Update the `timeclock-mode-string' displayed in the modeline.
+(define-obsolete-function-alias 'timeclock-update-modeline
+  'timeclock-update-mode-line "24.2")
+
+(defun timeclock-update-mode-line ()
+  "Update the `timeclock-mode-string' displayed in the mode line.
 The value of `timeclock-relative' affects the display as described in
 that variable's documentation."
   (interactive)

@@ -201,7 +201,7 @@ Editing commands are similar to those of `lisp-mode'.
 In addition, if an inferior Scheme process is running, some additional
 commands will be defined, for evaluating expressions and controlling
 the interpreter, and the state of the process will be displayed in the
-modeline of all Scheme buffers.  The names of commands that interact
+mode line of all Scheme buffers.  The names of commands that interact
 with the Scheme process start with \"xscheme-\" if you use the MIT
 Scheme-specific `xscheme' package; for more information see the
 documentation for `xscheme-interaction-mode'.  Use \\[run-scheme] to

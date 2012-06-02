@@ -30,9 +30,6 @@
 ;; Bored by the zone pyrotechnics?  Write your own!  Add it to
 ;; `zone-programs'.  See `zone-call' for higher-ordered zoning.
 
-;; WARNING: Not appropriate for Emacs sessions over modems or
-;;          computers as slow as mine.
-
 ;; THANKS: Christopher Mayer, Scott Flinchbaugh,
 ;;         Rachel Kalmar, Max Froumentin, Juri Linkov,
 ;;         Luigi Panzeri, John Paul Wallington.
@@ -78,7 +75,7 @@ If nil, don't interrupt for about 1^26 seconds.")
   `(with-current-buffer (get 'zone 'orig-buffer)
      ,@body))
 
-(defmacro zone-hiding-modeline (&rest body)
+(defmacro zone-hiding-mode-line (&rest body)
   ;; This formerly worked by temporarily altering face `mode-line',
   ;; which did not even work right, it seems.
   `(let (mode-line-format)
@@ -116,7 +113,6 @@ If the element is a function or a list of a function and a number,
           (wp (1+ (- (window-point (selected-window))
                      (window-start)))))
       (put 'zone 'orig-buffer (current-buffer))
-      (put 'zone 'modeline-hidden-level 0)
       (switch-to-buffer outbuf)
       (setq mode-name "Zone")
       (erase-buffer)
@@ -586,7 +582,7 @@ If the element is a function or a list of a function and a number,
         (setq ok (zerop (forward-line 1))
               lines (cons (buffer-substring p (point)) lines))))
     (sit-for 5)
-    (zone-hiding-modeline
+    (zone-hiding-mode-line
      (let ((msg "Zoning... (zone-pgm-stress)"))
        (while (not (string= msg ""))
          (message (setq msg (substring msg 1)))
@@ -603,7 +599,7 @@ If the element is a function or a list of a function and a number,
 
 (defun zone-pgm-stress-destress ()
   (zone-call 'zone-pgm-stress 25)
-  (zone-hiding-modeline
+  (zone-hiding-mode-line
    (sit-for 3)
    (erase-buffer)
    (sit-for 3)
