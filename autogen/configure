@@ -1243,7 +1243,6 @@ build_vendor
 build_cpu
 build
 PROFILING_CFLAGS
-MAINT
 GZIP_INFO
 cache_file
 am__untar
@@ -1352,7 +1351,6 @@ with_gameuser
 with_gnustep_conf
 enable_ns_self_contained
 enable_asserts
-enable_maintainer_mode
 enable_locallisppath
 enable_checking
 enable_use_lisp_union_type
@@ -1999,9 +1997,6 @@ Optional Features:
   --disable-ns-self-contained
                           disable self contained build under NeXTstep
   --enable-asserts        compile code with asserts enabled
-  --disable-maintainer-mode
-                          disable make rules and dependencies not useful (and
-                          sometimes confusing) to the casual installer
   --enable-locallisppath=PATH
                           directories Emacs should search for lisp files
                           specific to this site
@@ -4196,20 +4191,6 @@ if test "${enable_asserts+set}" = set; then :
   enableval=$enable_asserts; USE_XASSERTS=$enableval
 else
   USE_XASSERTS=no
-fi
-
-
-# Check whether --enable-maintainer-mode was given.
-if test "${enable_maintainer_mode+set}" = set; then :
-  enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
-else
-  USE_MAINTAINER_MODE=yes
-fi
-
-if test $USE_MAINTAINER_MODE = yes; then
-  MAINT=
-else
-  MAINT=#
 fi
 
 
