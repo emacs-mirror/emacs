@@ -1,5 +1,7 @@
 2012-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* minibuf.c (Fassoc_string): Remove duplicate declaration.
+
 	* sysdep.c (system_process_attributes) [SOLARIS2 && HAVE_PROCFS]:
 	Convert pctcpu and pctmem to Lisp float properly.
 	Let the compiler fold better, as 100.0/0x8000 is exact.

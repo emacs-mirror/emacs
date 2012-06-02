@@ -1726,8 +1726,6 @@ See also `completing-read-function'.  */)
   return Ffuncall (9, args);
 }
 
-Lisp_Object Fassoc_string (register Lisp_Object key, Lisp_Object list, Lisp_Object case_fold);
-
 /* Test whether TXT is an exact completion.  */
 DEFUN ("test-completion", Ftest_completion, Stest_completion, 2, 3, 0,
        doc: /* Return non-nil if STRING is a valid completion.
