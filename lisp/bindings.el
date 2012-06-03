@@ -111,7 +111,7 @@ corresponding to the mode line clicked."
       (setq desc
 	    (propertize
 	     mnemonic
-	     'help-echo (format "End-of-line style: %s\nmouse-1 to cycle"
+	     'help-echo (format "End-of-line style: %s\nmouse-1: Cycle"
 				(if (eq eol 0) "Unix-style LF"
 				  (if (eq eol 1) "DOS-style CRLF"
 				    (if (eq eol 2) "Mac-style CR"
@@ -148,6 +148,16 @@ the mode line, except that if there is a memory-full message, it
 is displayed first.")
 (put 'mode-line-front-space 'risky-local-variable t)
 
+(defun mode-line-mule-info-help-echo (window _object _point)
+  "Return help text specifying WINDOW's buffer coding system."
+  (with-current-buffer (window-buffer window)
+    (if buffer-file-coding-system
+	(format "Buffer coding system (%s): %s
+mouse-1: Describe coding system"
+		(if enable-multibyte-characters "multi-byte" "unibyte")
+		(symbol-name buffer-file-coding-system))
+      "Buffer coding system: none specified")))
+
 (defvar mode-line-mule-info
   `(""
     (current-input-method
@@ -162,31 +172,16 @@ mouse-3: Describe current input method"))
 		  mouse-face mode-line-highlight))
     ,(propertize
       "%z"
-      'help-echo
-      (lambda (window _object _point)
-	(with-current-buffer (window-buffer window)
-	  ;; Don't show this tip if the coding system is nil,
-	  ;; it reads like a bug, and is not useful anyway.
-	  (when buffer-file-coding-system
-	    (format "Buffer coding system %s\nmouse-1: describe coding system"
-		    (if enable-multibyte-characters
-			(concat "(multi-byte): "
-				(symbol-name buffer-file-coding-system))
-		      (concat "(unibyte): "
-			      (symbol-name buffer-file-coding-system)))))))
+      'help-echo 'mode-line-mule-info-help-echo
       'mouse-face 'mode-line-highlight
       'local-map mode-line-coding-system-map)
     (:eval (mode-line-eol-desc)))
-  "Mode line construct for displaying information of multilingual environment.
+  "Mode line construct to report the multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
   coding system for saving or writing the current buffer
-  coding system for keyboard input (if Emacs is running on terminal)
-  coding system for terminal output (if Emacs is running on terminal)"
-  ;; Currently not:
-  ;;  coding system for decoding output of buffer process (if any)
-  ;;  coding system for encoding text to send to buffer process (if any)."
-)
+  coding system for keyboard input (on a text terminal)
+  coding system for terminal output (on a text terminal)")
 ;;;###autoload
 (put 'mode-line-mule-info 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-mule-info)
@@ -199,29 +194,29 @@ mnemonics of the following coding systems:
 ;;;###autoload
 (put 'mode-line-client 'risky-local-variable t)
 
+(defun mode-line-read-only-help-echo (window _object _point)
+  "Return help text specifying WINDOW's buffer read-only status."
+  (format "Buffer is %s\nmouse-1: Toggle"
+	  (if (buffer-local-value 'buffer-read-only (window-buffer window))
+	      "read-only"
+	    "writable")))
+
+(defun mode-line-modified-help-echo (window _object _point)
+  "Return help text specifying WINDOW's buffer modification status."
+  (format "Buffer is %smodified\nmouse-1: Toggle modification state"
+	  (if (buffer-modified-p (window-buffer window)) "" "not ")))
+
 (defvar mode-line-modified
   (list (propertize
 	 "%1*"
-	 'help-echo (purecopy (lambda (window _object _point)
- 				(format "Buffer is %s\nmouse-1 toggles"
-					(save-selected-window
-					  (select-window window)
-					  (if buffer-read-only
-					      "read-only"
-					    "writable")))))
+	 'help-echo 'mode-line-read-only-help-echo
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-1
 			       #'mode-line-toggle-read-only))
 	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
-	 'help-echo  (purecopy (lambda (window _object _point)
-				 (format "Buffer is %sodified\nmouse-1 toggles modified state"
-					 (save-selected-window
-					   (select-window window)
-					   (if (buffer-modified-p)
-					     "m"
-					   "not m")))))
+	 'help-echo 'mode-line-modified-help-echo
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-1 #'mode-line-toggle-modified))
 	 'mouse-face 'mode-line-highlight))
@@ -312,7 +307,7 @@ mouse-1: Display minor mode menu\n\
 mouse-2: Show help for minor mode\n\
 mouse-3: Toggle minor modes"
 			local-map ,mode-line-minor-mode-keymap)
-	  (propertize "%n" 'help-echo "mouse-2: Remove narrowing from the current buffer"
+	  (propertize "%n" 'help-echo "mouse-2: Remove narrowing from buffer"
 		      'mouse-face 'mode-line-highlight
 		      'local-map (make-mode-line-mouse-map
 				  'mouse-2 #'mode-line-widen))
@@ -401,9 +396,8 @@ text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
 		    'face 'mode-line-buffer-id
 		    'help-echo
-		    (purecopy "Buffer name\n\
-mouse-1: previous buffer\n\
-mouse-3: next buffer")
+		    (purecopy "Buffer name
+mouse-1: Previous buffer\nmouse-3: Next buffer")
 		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 

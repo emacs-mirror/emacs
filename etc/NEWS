@@ -87,6 +87,12 @@ to nil.  Use with caution, and only if you really need to.
 ** Using "unibyte: t" in Lisp source files is obsolete.
 Use "coding: raw-text" instead.
 
+** Mode line changes
+
+*** New option `mode-line-default-help-echo' specifies the help text
+(shown in a tooltip or in the echo area) for any part of the mode line
+that does not have its own specialized help text.
+
 
 * Editing Changes in Emacs 24.2
 

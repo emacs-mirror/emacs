@@ -7,6 +7,11 @@
 	(mode-line-modes, mode-line-position): Move the default value to
 	the variable definition.
 	(mode-line-default-help-echo): New defcustom.
+	(mode-line-mule-info-help-echo, mode-line-read-only-help-echo)
+	(mode-line-modified-help-echo): New functions.
+	(mode-line-mule-info, mode-line-modified): Use them.
+	(mode-line-eol-desc, propertized-buffer-identification):
+	Consistency fixes for help text.
 
 2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 

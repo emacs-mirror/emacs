@@ -21012,8 +21012,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 
   if (!VECTORP (val))		/* Not yet decided.  */
     {
-      if (multibyte)
-	*buf++ = '-';
+      *buf++ = multibyte ? '-' : ' ';
       if (eol_flag)
 	eoltype = eol_mnemonic_undecided;
       /* Don't mention EOL conversion if it isn't decided.  */
@@ -21026,8 +21025,9 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
       attrs = AREF (val, 0);
       eolvalue = AREF (val, 2);
 
-      if (multibyte)
-	*buf++ = XFASTINT (CODING_ATTR_MNEMONIC (attrs));
+      *buf++ = multibyte
+	? XFASTINT (CODING_ATTR_MNEMONIC (attrs))
+	: ' ';
 
       if (eol_flag)
 	{

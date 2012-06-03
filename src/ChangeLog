@@ -1,5 +1,10 @@
 2012-06-03  Chong Yidong  <cyd@gnu.org>
 
+	* xdisp.c (decode_mode_spec_coding): Display a space for a unibyte
+	buffer (Bug#11226).
+
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
 	* xdisp.c (calc_pixel_width_or_height): Use Fbuffer_local_value.
 	(note_mode_line_or_margin_highlight): If there is no help echo,
 	use mode-line-default-help-echo.  Handle the case where the mouse
