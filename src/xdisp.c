@@ -27066,7 +27066,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	  if (STRINGP (string))
 	    help = Fget_text_property (pos, Qhelp_echo, string);
 
-	  if (STRINGP (help))
+	  if (!NILP (help))
 	    {
 	      help_echo_string = help;
 	      XSETWINDOW (help_echo_window, w);
