@@ -607,15 +607,14 @@ categories display according to priority."
   :group 'todos-faces)
 
 (defface todos-sorted-column
-  ;; '((t :inherit fringe))
   '((((class color)
       (background light))
-     (:foreground "grey95"))
+     (:background "grey85"))
     (((class color)
       (background dark))
-     (:foreground "grey10"))
+     (:background "grey10"))
     (t
-     (:foreground "gray")))
+     (:background "gray")))
   "Face for buttons in todos-display-categories."
   :group 'todos-faces)
 
@@ -1141,7 +1140,6 @@ the file."
 	(when buffer-file-name	 ; During conversion there is no file yet.
 	  ;; If the file is an archive, it doesn't have an archive.
 	  (unless (member (file-truename buffer-file-name)
-			  ;; FIXME: can todos-archives be too old here?
 			  (funcall todos-files-function t))
 	    (setq archive (concat (file-name-sans-extension
 				   todos-current-todos-file) ".toda"))))
@@ -1250,6 +1248,10 @@ Helper function for `todos-convert-legacy-files'."
 (defun todos-item-start ()
   "Move to start of current Todos item and return its position."
   (unless (or
+	   ;; Buffer is empty (invocation possible e.g. via todos-forward-item
+	   ;; from todos-filter-items when processing category with no todo
+	   ;; items).
+	   (eq (point-min) (point-max))
 	   ;; Point is on the empty line between todo and done items.
 	   (and (looking-at "^$")
 		(save-excursion
@@ -1496,12 +1498,14 @@ TYPE can be either a file or a category"
 (defun todos-read-date ()
   "Prompt for Gregorian date and return it in the current format.
 Also accepts `*' as an unspecified month, day, or year."
-  (let* ((year (calendar-read
-		;; FIXME: maybe better like monthname with RET for current month
-                "Year (>0 or * for any year): "
-                (lambda (x) (or (eq x '*) (> x 0)))
-                (number-to-string (calendar-extract-year
-				   (calendar-current-date)))))
+  (let* ((year (let (x)
+		 (while (if (numberp x) (< x 0) (not (eq x '*)))
+		   (setq x (read-from-minibuffer
+			    "Year (>0 or RET for this year or * for any year): "
+			    nil nil t nil (number-to-string
+					   (calendar-extract-year
+					    (calendar-current-date))))))
+		 x))
          (month-array (vconcat calendar-month-name-array (vector "*")))
 	 (abbrevs (vconcat calendar-month-abbrev-array (vector "*")))
          (completion-ignore-case todos-completion-ignore-case)
@@ -1520,13 +1524,16 @@ Also accepts `*' as an unspecified month, day, or year."
 			       1999	; FIXME: no Feb. 29
 			     year)))
 		   (calendar-last-day-of-month month yr))))
-	 day dayname)
-    (while (if (numberp day) (or (< day 0) (< last day)) (not (eq day '*)))
-      (setq day (read-from-minibuffer
-		 (format "Day (1-%d or RET for today or * for any day): " last)
-		 nil nil t nil
-		 (number-to-string
-		  (calendar-extract-day (calendar-current-date))))))
+	 (day (let (x)
+		(while (if (numberp x) (or (< x 0) (< last x)) (not (eq x '*)))
+		  (setq x (read-from-minibuffer
+			   (format
+			    "Day (1-%d or RET for today or * for any day): "
+			    last) nil nil t nil (number-to-string
+						 (calendar-extract-day
+						  (calendar-current-date))))))
+		 x))
+	 dayname)			; Needed by calendar-date-display-form.
     (setq year (if (eq year '*) (symbol-name '*) (number-to-string year)))
     (setq day (if (eq day '*) (symbol-name '*) (number-to-string day)))
     ;; FIXME: make abbreviation customizable
@@ -1563,13 +1570,13 @@ the empty string (i.e., no time string)."
 ;; ---------------------------------------------------------------------------
 ;;; Item filtering
 
-(defvar todos-multiple-files nil
-  "List of files selected from `todos-multiple-files' widget.")
+(defvar todos-multiple-filter-files nil
+  "List of files selected from `todos-multiple-filter-files' widget.")
 
-(defvar todos-multiple-files-widget nil
-  "Variable holding widget created by `todos-multiple-files'.")
+(defvar todos-multiple-filter-files-widget nil
+  "Variable holding widget created by `todos-multiple-filter-files'.")
 
-(defun todos-multiple-files ()
+(defun todos-multiple-filter-files ()
   "Pop to a buffer with a widget for choosing multiple filter files."
   (require 'widget)
   (eval-when-compile
@@ -1579,7 +1586,7 @@ the empty string (i.e., no time string)."
     (erase-buffer)
     (kill-all-local-variables)
     (widget-insert "Select files for generating the top priorities list.\n\n")
-    (setq todos-multiple-files-widget
+    (setq todos-multiple-filter-files-widget
 	  (widget-create
 	   `(set ,@(mapcar (lambda (x) (list 'const x))
 			   (mapcar 'todos-short-file-name
@@ -1587,19 +1594,19 @@ the empty string (i.e., no time string)."
     (widget-insert "\n")
     (widget-create 'push-button
 		   :notify (lambda (widget &rest ignore)
-			     (setq todos-multiple-files 'quit)
+			     (setq todos-multiple-filter-files 'quit)
 			     (quit-window t)
 			     (exit-recursive-edit))
 		   "Cancel")
     (widget-insert "   ")
     (widget-create 'push-button
 		   :notify (lambda (&rest ignore)
-			     (setq todos-multiple-files
+			     (setq todos-multiple-filter-files
 				   (mapcar (lambda (f)
 					     (concat todos-files-directory
 						     f ".todo"))
 					   (widget-value
-					    todos-multiple-files-widget)))
+					    todos-multiple-filter-files-widget)))
 			     (quit-window t)
 			     (exit-recursive-edit))
 		   "Apply")
@@ -1624,12 +1631,13 @@ Todos files, by default those in `todos-filter-files'."
 	(files (list todos-current-todos-file))
 	regexp fname bufstr cat beg end done)
     (when multifile
-      (setq files (or todos-multiple-files ; Passed from todos-*-multifile.
+      (setq files (or todos-multiple-filter-files ; Passed from todos-*-multifile.
 		      (if (or (consp filter)
 			      (null todos-filter-files))
-			  (progn (todos-multiple-files) todos-multiple-files)
+			  (progn (todos-multiple-filter-files)
+				 todos-multiple-filter-files)
 			todos-filter-files))
-	    todos-multiple-files nil))
+	    todos-multiple-filter-files nil))
     (if (eq files 'quit) (keyboard-quit))
     (if (null files)
 	(error "No files have been chosen for filtering")
@@ -1678,8 +1686,9 @@ Todos files, by default those in `todos-filter-files'."
 	    (delete-region (line-beginning-position) (1+ (line-end-position)))
 	    (let (fnum)
 	      ;; Unless the number of items to show was supplied by prefix
-	      ;; argument of caller, override `todos-show-priorities' with the
-	      ;; file-wide value from `todos-priorities-rules'.
+	      ;; argument of caller, the file-wide value from
+	      ;; `todos-priorities-rules', if non-nil, overrides
+	      ;; `todos-show-priorities'.
 	      (unless (consp filter)
 		(setq fnum (nth 1 (assoc f todos-priorities-rules))))
 	      (while (re-search-forward
@@ -1688,16 +1697,13 @@ Todos files, by default those in `todos-filter-files'."
 		(setq cat (match-string 1))
 		(let (cnum)
 		  ;; Unless the number of items to show was supplied by prefix
-		  ;; argument of caller, override the file-wide value from
-		  ;; `todos-priorities-rules' if set, else
-		  ;; `todos-show-priorities' with non-nil category-wide value
-		  ;; from `todos-priorities-rules'.
+		  ;; argument of caller, the category-wide value from
+		  ;; `todos-priorities-rules', if non-nil, overrides a non-nil
+		  ;; file-wide value from `todos-priorities-rules' as well as
+		  ;; `todos-show-priorities'.
 		  (unless (consp filter)
 		    (let ((cats (nth 2 (assoc f todos-priorities-rules))))
-		      (setq cnum (or (cdr (assoc cat cats))
-				     fnum
-				     ;; FIXME: need this?
-				     todos-show-priorities))))
+		      (setq cnum (or (cdr (assoc cat cats)) fnum))))
 		  (delete-region (match-beginning 0) (match-end 0))
 		  (setq beg (point))	; First item in the current category.
 		  (setq end (if (re-search-forward
@@ -1873,6 +1879,8 @@ option `todos-categories-align'."
 	 (fn (if (eq key 'alpha)
 		   (lambda (x) (upcase x)) ; Alphabetize case insensitively.
 		 (lambda (x) (todos-get-count key x))))
+	 ;; Keep track of whether the last sort by key was descending or
+	 ;; ascending.
 	 (descending (member key todos-descending-counts))
 	 (cmp (if (eq key 'alpha)
 		  'string<
@@ -1882,6 +1890,7 @@ option `todos-categories-align'."
 				 (funcall cmp t1 t2)))))
     (when key
       (setq l (sort l pred))
+      ;; Switch between descending and ascending sort order.
       (if descending
 	  (setq todos-descending-counts
 		(delete key todos-descending-counts))
@@ -1925,7 +1934,7 @@ LABEL determines which type of count is sorted."
 			       (eq key 'alpha))
 			  (progn
 			    ;; If display is alphabetical, switch back to
-			    ;; category order.
+			    ;; category priority order.
 			    (todos-display-sorted nil)
 			    (setq todos-descending-counts
 				  (delete key todos-descending-counts)))
@@ -1974,7 +1983,8 @@ which is the value of the user option
 				(cons todos-categories-done-label 'done)
 				(cons todos-categories-archived-label
 				      'archived)))
-			  ""))
+			  "")
+	     " ") ; So highlighting of last column is consistent with the others.
      'face (if (and todos-skip-archived-categories
 		    (zerop (todos-get-count 'todo cat))
 		    (zerop (todos-get-count 'done cat))
@@ -1985,7 +1995,7 @@ which is the value of the user option
 				 (todos-jump-to-category ,cat)
 				 (kill-buffer buf))))
     ;; Highlight the sorted count column.
-    (let* ((beg (+ opoint 6 (length str)))
+    (let* ((beg (+ opoint 7 (length str)))
 	   end ovl)
       (cond ((eq nonum 'todo)
 	     (setq beg (+ beg 1 (/ (length todos-categories-todo-label) 2))))
@@ -2001,7 +2011,7 @@ which is the value of the user option
 			   2 (length todos-categories-diary-label)
 			   2 (length todos-categories-done-label)
 			   2 (/ (length todos-categories-archived-label) 2)))))
-      (unless (= beg (+ opoint 6 (length str)))
+      (unless (= beg (+ opoint 7 (length str))) ; Don't highlight categories.
 	(setq end (+ beg 4))
 	(setq ovl (make-overlay beg end))
 	(overlay-put ovl 'face 'todos-sorted-column)))
@@ -2244,7 +2254,6 @@ which is the value of the user option
 ;; ---------------------------------------------------------------------------
 ;;; Key maps and menus
 
-;; ??FIXME: use easy-mmode-define-keymap and easy-mmode-defmap
 (defvar todos-key-bindings
   `(
     ;;               display
@@ -2263,7 +2272,6 @@ which is the value of the user option
     ("As"	     . todos-show-archive)
     ("Ac"	     . todos-choose-archive)
     ("Y"	     . todos-diary-items)
-    ;;(""	     . todos-update-filter-files)
     ("Fe"	     . todos-edit-multiline)
     ("Fh"	     . todos-highlight-item)
     ("Fn"	     . todos-hide-show-item-numbering)
@@ -2276,7 +2284,6 @@ which is the value of the user option
     ("Fym"	     . todos-diary-items-multifile)
     ("Fxx"	     . todos-regexp-items)
     ("Fxm"	     . todos-regexp-items-multifile)
-    ;;(""	     . todos-save-top-priorities)
     ;;               navigation		        
     ("f"	     . todos-forward-category)
     ("b"	     . todos-backward-category)
@@ -2311,18 +2318,12 @@ which is the value of the user option
     ("k"	     . todos-delete-item) ;FIXME: not single letter?
     ("m"	     . todos-move-item)
     ("M"	     . todos-move-item-to-file)
-    ;; FIXME: This binding prevents `-' from being used in a numerical prefix
-    ;; argument without typing C-u
-    ;; ("-"	     . todos-raise-item-priority)
     ("r"	     . todos-raise-item-priority)
-    ;; ("+"	     . todos-lower-item-priority)
     ("l"	     . todos-lower-item-priority)
     ("#"	     . todos-set-item-priority)
     ("u"	     . todos-item-undo)
     ("Ad"	     . todos-archive-done-item)  ;FIXME: ad
     ("AD"	     . todos-archive-category-done-items) ;FIXME: aD or C-u ad ?
-    ;; ("Au"	     . todos-unarchive-items)		  ;FIXME: not in todos-mode!
-    ;; ("AU"	     . todos-unarchive-category)	  ;FIXME: not in todos-mode!
     ("s"	     . todos-save)
     ("q"	     . todos-quit)
     ([remap newline] . newline-and-indent)
@@ -2393,7 +2394,7 @@ which is the value of the user option
      ["Rename Current Category" todos-rename-category t]
      "---"
      ["Save Todos File"      todos-save t]
-     ["Save Top Priorities"  todos-save-top-priorities t])
+     )
     "---"
     ["Quit"                 todos-quit t]
     ))
@@ -2432,8 +2433,11 @@ which is the value of the user option
 (defvar todos-categories-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    ;; (define-key map "a" 'todos-display-categories-alphabetically)
-    (define-key map "c" 'todos-display-categories)
+    (define-key map "c" 'todos-display-categories-alphabetically-or-by-priority)
+    (define-key map "t" 'todos-display-categories-sorted-by-todo)
+    (define-key map "y" 'todos-display-categories-sorted-by-diary)
+    (define-key map "d" 'todos-display-categories-sorted-by-done)
+    (define-key map "a" 'todos-display-categories-sorted-by-archived)
     (define-key map "l" 'todos-lower-category-priority)
     (define-key map "+" 'todos-lower-category-priority)
     (define-key map "r" 'todos-raise-category-priority)
@@ -2463,7 +2467,6 @@ which is the value of the user option
     (define-key map "P" 'todos-print)
     (define-key map "q" 'todos-quit)
     (define-key map "s" 'todos-save)
-    ;; (define-key map "S" 'todos-save-top-priorities)
     ;; editing commands
     (define-key map "l" 'todos-lower-item-priority)
     (define-key map "r" 'todos-raise-item-priority)
@@ -2496,7 +2499,7 @@ which is the value of the user option
 
 (put 'todos-mode 'mode-class 'special)
 
-;; Autoloading isn't needed if files are identified by auto-mode-alist
+;; FIXME: Autoloading isn't needed if files are identified by auto-mode-alist
 ;; ;; As calendar reads included Todos file before todos-mode is loaded.
 ;; ;;;###autoload
 (define-derived-mode todos-mode special-mode "Todos" ()
@@ -2558,8 +2561,8 @@ which is the value of the user option
   ""
   (set (make-local-variable 'todos-current-todos-file)
        todos-global-current-todos-file)
-  (let ((cats (with-current-buffer (find-buffer-visiting todos-current-todos-file)
-		;; FIXME: or (todos-set-categories)?
+  (let ((cats (with-current-buffer
+		  (find-buffer-visiting todos-current-todos-file)
 		todos-categories)))
     (set (make-local-variable 'todos-categories) cats)))
 
@@ -2596,13 +2599,15 @@ which is the value of the user option
 ;;;###autoload
 (defun todos-show (&optional solicit-file)
   "Visit the current Todos file and display one of its categories.
+With non-nil prefix argument SOLICIT-FILE prompt for which todo
+file to visit.
 
-With non-nil prefix argument SOLICIT-FILE ask for file to visit.
-Otherwise, the first invocation of this command in a session
-visits `todos-default-todos-file' (creating it if it does not yet
-exist); subsequent invocations from outside of Todos mode revisit
-this file or, if user option `todos-show-current-file' is
-non-nil, whichever Todos file was visited last.
+Without a prefix argument, the first invocation of this command
+in a session visits `todos-default-todos-file' (creating it if it
+does not yet exist); subsequent invocations from outside of Todos
+mode revisit this file or, if the user option
+`todos-show-current-file' is non-nil, whichever Todos file
+\(either a todo or an archive file) was visited last.
 
 The category displayed on initial invocation is the first member
 of `todos-categories' for the current Todos file, on subsequent
@@ -2634,10 +2639,6 @@ corresponding Todos file, displaying the corresponding category."
 		      (concat (file-name-sans-extension todos-current-todos-file)
 			      ".todo"))
 		     (t
-		      ;; FIXME: If todos-current-todos-file is an archive,
-		      ;; todos-show will revisit it rather than the
-		      ;; corresponding todo file -- ok or make it
-		      ;; customizable?
 		      (or todos-current-todos-file
 			  (and todos-show-current-file
 			       todos-global-current-todos-file)
@@ -2688,33 +2689,50 @@ are shown in `todos-archived-only' face."
   (let (sortkey)
     (todos-update-categories-display sortkey)))
 
-;; FIXME: provide key bindings for these or delete them
+(defun todos-display-categories-alphabetically-or-by-priority ()
+  ""
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line 2)
+    (if (member 'alpha todos-descending-counts)
+	(progn
+	  (todos-update-categories-display nil)
+	  (setq todos-descending-counts
+		(delete 'alpha todos-descending-counts)))
+      (todos-update-categories-display 'alpha))))
 
-;; ;; FIXME: make this toggle with todos-display-categories
-;; (defun todos-display-categories-alphabetically ()
-;;   ""
-;;   (interactive)
-;;   (todos-display-sorted 'alpha))
+(defun todos-display-categories-sorted-by-todo ()
+  ""
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line 2)
+    (todos-update-categories-display 'todo)))
 
-;; (defun todos-display-categories-sorted-by-todo ()
-;;   ""
-;;   (interactive)
-;;   (todos-display-sorted 'todo))
+(defun todos-display-categories-sorted-by-diary ()
+  ""
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line 2)
+    (todos-update-categories-display 'diary)))
 
-;; (defun todos-display-categories-sorted-by-diary ()
-;;   ""
-;;   (interactive)
-;;   (todos-display-sorted 'diary))
+(defun todos-display-categories-sorted-by-done ()
+  ""
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line 2)
+    (todos-update-categories-display 'done)))
 
-;; (defun todos-display-categories-sorted-by-done ()
-;;   ""
-;;   (interactive)
-;;   (todos-display-sorted 'done))
-
-;; (defun todos-display-categories-sorted-by-archived ()
-;;   ""
-;;   (interactive)
-;;   (todos-display-sorted 'archived))
+(defun todos-display-categories-sorted-by-archived ()
+  ""
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line 2)
+    (todos-update-categories-display 'archived)))
 
 (defun todos-show-archive (&optional ask)
   "Visit the archive of the current Todos category, if it exists.
@@ -2761,9 +2779,7 @@ displayed."
 (defun todos-save ()
   "Save the current Todos file."
   (interactive)
-  (save-buffer)
-  ;; (if todos-save-top-priorities-too (todos-save-top-priorities))
-  )
+  (save-buffer))
 
 (defun todos-quit ()
   "Exit the current Todos-related buffer.
@@ -3382,8 +3398,8 @@ list in each category."
 		   (cons 'top arg)
 		 (setq files (if (or (consp arg)
 				     (null todos-filter-files))
-				 (progn (todos-multiple-files)
-					todos-multiple-files)
+				 (progn (todos-multiple-filter-files)
+					todos-multiple-filter-files)
 			       todos-filter-files))
 		 (if (equal arg '(16))
 		     (cons 'top (read-number
@@ -3407,8 +3423,8 @@ The files are those listed in `todos-filter-files'."
   (interactive "P")
   (let ((buf todos-diary-items-buffer)
 	(files (if (or arg (null todos-filter-files))
-		   (progn (todos-multiple-files)
-			  todos-multiple-files)
+		   (progn (todos-multiple-filter-files)
+			  todos-multiple-filter-files)
 		 todos-filter-files)))
     (todos-filter-items 'diary t)
     (todos-filtered-buffer-name buf files)))
@@ -3428,8 +3444,8 @@ The items are those in the files listed in `todos-filter-files'."
   (interactive "P")
   (let ((buf todos-regexp-items-buffer)
 	(files (if (or arg (null todos-filter-files))
-		   (progn (todos-multiple-files)
-			  todos-multiple-files)
+		   (progn (todos-multiple-filter-files)
+			  todos-multiple-filter-files)
 		 todos-filter-files)))
     (todos-filter-items 'regexp t)
     (todos-filtered-buffer-name buf files)))
@@ -4665,6 +4681,7 @@ With prefix ARG delete an existing comment."
 	  (todos-item-end)
 	  (insert " [" todos-comment-string ": " comment "]"))))))
 
+;; FIXME: also with marked items
 ;; FIXME: delete comment from restored item or just leave it up to user?
 (defun todos-item-undo ()
   "Restore this done item to the todo section of this category.
@@ -4676,7 +4693,7 @@ the restored item."
 	   (done-item (todos-item-string))
 	   (opoint (point))
 	   (orig-mrk (progn (todos-item-start) (point-marker)))
-	   ;; Find the end of the date string added upon marking item as done.
+	   ;; Find the end of the date string added upon tagging item as done.
 	   (start (search-forward "] "))
 	   item undone)
       (todos-item-start)

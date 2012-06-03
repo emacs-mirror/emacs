@@ -1,5 +1,31 @@
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Further comment revision.
+	(todos-sorted-column): Change default value.
+	(todos-item-start): Handle empty category (needed in
+	todos-filter-items).
+	(todos-read-date): Don't use calendar-read; make code cleaner.
+	(todos-multiple-filter-files): Rename this variable from
+	todos-multiple-files and adjust users.
+	(todos-multiple-filter-files-widget): Rename from
+	todos-multiple-files-widget and adjust users.
+	(todos-multiple-filter-files): Rename this function from
+	todos-multiple-files and adjust callers.
+	(todos-filter-items): Remove unused code.
+	(todos-insert-category-line): Add space so highlighting of last
+	column is consistent with the others; adjust display of column
+	highlighting.
+	(todos-menu): Remove obsolete entry.
+	(todos-categories-mode-map): Add new bindings.
+	(todos-display-categories-alphabetically-or-by-priority): New command.
+	(todos-display-categories-sorted-by-todo)
+	(todos-display-categories-sorted-by-diary)
+	(todos-display-categories-sorted-by-done)
+	(todos-display-categories-sorted-by-archived): Restore and fix
+	implementation.
+
+2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Significant code rearrangement; further
 	comment revision.
 	(todos-filtered-items-buffer): Rename from todos-filter-buffer and
