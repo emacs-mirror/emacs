@@ -1,5 +1,7 @@
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/authors.el (authors-aliases): Addition.
+
 	* cus-start.el (tool-bar-style, tool-bar-max-label-size):
 	Fix :version.
 
