@@ -12,6 +12,9 @@
 	(mode-line-mule-info, mode-line-modified): Use them.
 	(mode-line-eol-desc, propertized-buffer-identification):
 	Consistency fixes for help text.
+	(mode-line-coding-system-map): Allow using mouse-3 to invoke
+	set-buffer-file-coding-system (Bug#289).
+	(mode-line-mule-info-help-echo): Update help text.
 
 2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 

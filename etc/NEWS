@@ -93,6 +93,9 @@ Use "coding: raw-text" instead.
 (shown in a tooltip or in the echo area) for any part of the mode line
 that does not have its own specialized help text.
 
+*** You can now click mouse-3 in the coding system indicator to
+invokes `set-buffer-file-coding-system'.
+
 
 * Editing Changes in Emacs 24.2
 

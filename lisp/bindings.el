@@ -88,6 +88,12 @@ corresponding to the mode line clicked."
 	  (when (and enable-multibyte-characters
 		     buffer-file-coding-system)
 	    (describe-coding-system buffer-file-coding-system)))))
+    (define-key map [mode-line mouse-3]
+      (lambda (e)
+	(interactive "e")
+	(save-selected-window
+	  (select-window (posn-window (event-start e)))
+	  (call-interactively 'set-buffer-file-coding-system))))
     (purecopy map))
   "Local keymap for the coding-system part of the mode line.")
 
@@ -153,7 +159,8 @@ is displayed first.")
   (with-current-buffer (window-buffer window)
     (if buffer-file-coding-system
 	(format "Buffer coding system (%s): %s
-mouse-1: Describe coding system"
+mouse-1: Describe coding system
+mouse-3: Set coding system"
 		(if enable-multibyte-characters "multi-byte" "unibyte")
 		(symbol-name buffer-file-coding-system))
       "Buffer coding system: none specified")))
