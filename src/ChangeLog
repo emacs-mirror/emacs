@@ -1,3 +1,7 @@
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* xdisp.c (tool-bar-style): Doc fix.
+
 2012-06-03  Ulrich Müller  <ulm@gentoo.org>
 
 	* Makefile.in (PAXCTL): Define.
