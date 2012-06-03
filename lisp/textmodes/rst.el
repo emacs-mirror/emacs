@@ -104,8 +104,12 @@
 ;;; Code:
 
 ;; FIXME: Use `eval-when-compile' when calls to `some', `position', `signum'
-;;        and `position-if' are replaced.
+;;        and `position-if' are replaced. `catch' and `throw' may help with the
+;;        list operations.
 (require 'cl)
+
+;; FIXME: Check whether complicated `defconst's can be embedded in
+;;        `eval-when-compile'.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Versions
@@ -123,7 +127,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.257.2.11 2012-06-02 12:20:41 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.273 2012-06-03 17:01:33 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -155,6 +159,7 @@ SVN revision is the upstream (docutils) revision.")
 		       "%Revision: 1.256 %")
   "CVS revision of this file in the official version.")
 
+;; FIXME: Version differences due to SVN checkin must not change this.
 (defconst rst-version
   (if (equal rst-official-cvs-rev rst-cvs-rev)
       rst-official-version
@@ -644,7 +649,8 @@ This inherits from Text mode.")
 ;; Syntax table.
 (defvar rst-mode-syntax-table
   (let ((st (copy-syntax-table text-mode-syntax-table)))
-
+    ;; FIXME: This must be rethought; at the very least ?. should not be a
+    ;;        symbol for `dabbrev' to work properly.
     (modify-syntax-entry ?$ "." st)
     (modify-syntax-entry ?% "." st)
     (modify-syntax-entry ?& "." st)
@@ -850,6 +856,7 @@ for modes derived from Text mode, like Mail mode."
   :group 'rst
   :version "21.1")
 
+;; FIXME: The version must be represented in `rst-package-emacs-version-alist'.
 (define-obsolete-variable-alias
   'rst-preferred-decorations 'rst-preferred-adornments "r6506")
 (defcustom rst-preferred-adornments '((?= over-and-under 1)
@@ -1882,6 +1889,7 @@ Other situations are just ignored and left to users themselves."
     (end-of-line)
     (insert "\n\n" newitem " ")))
 
+;; FIXME: Isn't this a `defconst'?
 (defvar rst-initial-enums
   (let (vals)
     (dolist (fmt '("%s." "(%s)" "%s)"))
@@ -1890,6 +1898,7 @@ Other situations are just ignored and left to users themselves."
     (cons "#." (nreverse vals)))
   "List of initial enumerations.")
 
+;; FIXME: Isn't this a `defconst'?
 (defvar rst-initial-items
   (append (mapcar 'char-to-string rst-bullets) rst-initial-enums)
   "List of initial items.  It's collection of bullets and enumerations.")
@@ -2754,6 +2763,7 @@ here."
   :group 'rst
   :package-version '(rst . "1.1.0"))
 
+;; FIXME: The version must be represented in `rst-package-emacs-version-alist'.
 (define-obsolete-variable-alias
   'rst-shift-basic-offset 'rst-indent-width "r6713")
 (defcustom rst-indent-width 2
@@ -3126,6 +3136,9 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
 
 ;; FIXME: The obsolete variables need to disappear.
 
+;; FIXME LEVEL-FACE: All `:version "24.1"' attributes need to be changed to
+;;                   proper `:package-version "24.1"' attributes.
+
 (defgroup rst-faces nil "Faces used in Rst Mode."
   :group 'rst
   :group 'faces
@@ -3258,7 +3271,26 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
                         "customize the face `rst-reference' instead."
                         "24.1")
 
+(defface rst-transition '((t :inherit font-lock-keyword-face))
+  "Face used for a transition."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defface rst-adornment '((t :inherit font-lock-keyword-face))
+  "Face used for the adornment of a section header."
+  :version "24.1"
+  :group 'rst-faces)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; FIXME LEVEL-FACE: May be this complicated mechanism should be replaced
+;;                   simply by a number of customizable faces `rst-header-%d'
+;;                   which by default are set properly for dark and light
+;;                   background.  Initialization should come from the old
+;;                   variables if they exist.  A maximum level of 6 should
+;;                   suffice - after that the last level should be repeated.
+;;                   Only `rst-adornment-faces-alist' is needed outside this
+;;                   block.  Would also fix docutils-Bugs-3479594.
 
 (defgroup rst-faces-defaults nil
   "Values used to generate default faces for section titles on all levels.
@@ -3281,18 +3313,26 @@ Recompute the faces.  VAL is the value to set."
        (rst-define-level-faces)))
 
 ;; Faces for displaying items on several levels.  These definitions define
-;; different shades of gray where the lightest one (i.e. least contrasting) is
-;; used for level 1.
+;; different shades of gray where the lightest one (i.e. least contrasting on a
+;; light background) is used for level 1.
 (defcustom rst-level-face-max 6
   "Maximum depth of levels for which section title faces are defined."
   :group 'rst-faces-defaults
   :type '(integer)
   :set 'rst-set-level-default)
+;; FIXME: It should be possible to give "#RRGGBB" type of color values.
+;;        Together with a `rst-level-face-end-light' this could be used for
+;;        computing steps.
+;; FIXME: This variable should be combined with `rst-level-face-format-light'
+;;        to a single string.
 (defcustom rst-level-face-base-color "grey"
   "Base name of the color for creating background colors in section title faces."
   :group 'rst-faces-defaults
   :type '(string)
   :set 'rst-set-level-default)
+;; FIXME LEVEL-FACE: This needs to be done differently: The faces must specify
+;;                   how they behave for dark and light background using the
+;;                   relevant options explained in `defface'.
 (defcustom rst-level-face-base-light
   (if (eq frame-background-mode 'dark)
       15
@@ -3309,6 +3349,12 @@ This value is expanded by `format' with an integer."
   :group 'rst-faces-defaults
   :type '(string)
   :set 'rst-set-level-default)
+;; FIXME LEVEL-FACE: This needs to be done differently: The faces must specify
+;;                   how they behave for dark and light background using the
+;;                   relevant options explained in `defface'.
+;; FIXME: Alternatively there could be a customizable variable
+;;        `rst-level-face-end-light' which defines the end value and steps are
+;;        computed
 (defcustom rst-level-face-step-light
   (if (eq frame-background-mode 'dark)
       7
@@ -3328,49 +3374,53 @@ This color is used as background for section title text on level
   :set 'rst-set-level-default)
 
 (defcustom rst-adornment-faces-alist
-  (let ((alist '((t . font-lock-keyword-face)
-		 (nil . font-lock-keyword-face)))
+  ;; FIXME LEVEL-FACE: Must be redone if `rst-level-face-max' is changed
+  (let ((alist (copy-list '((t . rst-transition)
+			    (nil . rst-adornment))))
 	(i 1))
     (while (<= i rst-level-face-max)
       (nconc alist (list (cons i (intern (format "rst-level-%d-face" i)))))
       (setq i (1+ i)))
     alist)
   "Faces for the various adornment types.
-Key is a number (for the section title text of that level),
-t (for transitions) or nil (for section title adornment).
-If you generally do not like how section title text faces are
-set up tweak here.  If the general idea is ok for you but you do not like the
-details check the Rst Faces Defaults group."
+Key is a number (for the section title text of that level
+starting with 1), t (for transitions) or nil (for section title
+adornment).  If you generally do not like how section title text
+faces are set up tweak here.  If the general idea is ok for you
+but you do not like the details check the Rst Faces Defaults
+group."
   :group 'rst-faces
   :type '(alist
 	  :key-type
 	  (choice
-	   (integer
-	    :tag
-	    "Section level (may not be bigger than `rst-level-face-max')")
-	   (boolean :tag "transitions (on) / section title adornment (off)"))
+	   (integer :tag "Section level")
+	   (const :tag "transitions" t)
+	   (const :tag "section title adornment" nil))
 	  :value-type (face))
   :set-after '(rst-level-face-max))
 
-;; FIXME: It should be possible to give "#RRGGBB" type of color values.
 (defun rst-define-level-faces ()
   "Define the faces for the section title text faces from the values."
   ;; All variables used here must be checked in `rst-set-level-default'.
   (let ((i 1))
     (while (<= i rst-level-face-max)
       (let ((sym (intern (format "rst-level-%d-face" i)))
-	    (doc (format "Face for showing section title text at level %d" i))
+	    (doc (format "Default face for showing section title text at level %d.
+This symbol is *not* meant for customization but modified if a
+variable of the `rst-faces-defaults' group is customized. Use
+`rst-adornment-faces-alist' for customization instead." i))
 	    (col (format (concat "%s" rst-level-face-format-light)
 			 rst-level-face-base-color
 			 (+ (* (1- i) rst-level-face-step-light)
 			    rst-level-face-base-light))))
-        (unless (facep sym)
-          (make-empty-face sym)
-          (set-face-doc-string sym doc)
-          (set-face-background sym col)
-          (set sym sym))
+	(make-empty-face sym)
+	(set-face-doc-string sym doc)
+	(set-face-background sym col)
+	(set sym sym)
 	(setq i (1+ i))))))
 
+;; FIXME LEVEL-FACE: This is probably superfluous since it is done by the
+;;                   customization / `rst-set-level-default'.
 (rst-define-level-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3598,6 +3648,8 @@ Move N lines forward just as `forward-line'."
       (forward-line 0)
       (- moved (signum n)))))
 
+;; FIXME: If a single line is made a section header by `rst-adjust' the header
+;;        is not always fontified immediately.
 (defun rst-font-lock-extend-region-extend (pt dir)
   "Extend the region starting at point PT and extending in direction DIR.
 Return extended point or nil if not moved."
@@ -4083,14 +4135,15 @@ This is a portable function."
    (t mark-active)))
 
 
-(provide 'rst)
 
 ;; LocalWords:  docutils http sourceforge rst html wp svn svnroot txt reST regex
 ;; LocalWords:  regexes alist seq alt grp keymap abbrev overline overlines toc
-;; LocalWords:  XML PNT propertized referencable
+;; LocalWords:  XML PNT propertized
 
 ;; Local Variables:
 ;;   sentence-end-double-space: t
 ;; End:
 
-;;; rst.el ends here.
+(provide 'rst)
+
+;;; rst.el ends here
