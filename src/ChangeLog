@@ -1,3 +1,11 @@
+2012-06-03  Ulrich Müller  <ulm@gentoo.org>
+
+	* Makefile.in (PAXCTL): Define.
+	(temacs$(EXEEXT)): Disable memory randomization for the temacs
+	binary via PaX flags if the paxctl utility is available.
+	(emacs$(EXEEXT), bootstrap-emacs$(EXEEXT)):
+	Restore PaX flags to their default.  (Bug#11398)
+
 2012-06-03  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (decode_mode_spec_coding): Display a space for a unibyte

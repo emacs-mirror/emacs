@@ -699,6 +699,8 @@ AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
+AC_PATH_PROG(PAXCTL, paxctl,,
+  [$PATH$PATH_SEPARATOR/sbin$PATH_SEPARATOR/usr/sbin])
 
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
