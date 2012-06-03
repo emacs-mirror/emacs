@@ -1,3 +1,13 @@
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el: Remove explicit help text from format-mode-line.
+	It is now supplied by mode-line-default-help-echo.
+	(mode-line-front-space, mode-line-end-spaces)
+	(mode-line-misc-info): New variables.
+	(mode-line-modes, mode-line-position): Move the default value to
+	the variable definition.
+	(mode-line-default-help-echo): New defcustom.
+
 2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (execute-extended-command): Set real-this-command

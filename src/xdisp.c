@@ -751,6 +751,7 @@ static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 int redisplaying_p;
 
 static Lisp_Object Qinhibit_free_realized_faces;
+static Lisp_Object Qmode_line_default_help_echo;
 
 /* If a string, XTread_socket generates an event to display that string.
    (The display is done in read_char.)  */
@@ -22091,7 +22092,9 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	    return OK_PIXELS (WINDOW_SCROLL_BAR_AREA_WIDTH (it->w));
 	}
 
-      prop = Fbuffer_local_value (prop, it->w->buffer);
+      prop = buffer_local_value_1 (prop, it->w->buffer);
+      if (EQ (prop, Qunbound))
+	prop = Qnil;
     }
 
   if (INTEGERP (prop) || FLOATP (prop))
@@ -22141,7 +22144,9 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	      return OK_PIXELS (pixels);
 	    }
 
-	  car = Fbuffer_local_value (car, it->w->buffer);
+	  car = buffer_local_value_1 (car, it->w->buffer);
+	  if (EQ (car, Qunbound))
+	    car = Qnil;
 	}
 
       if (INTEGERP (car) || FLOATP (car))
@@ -27035,7 +27040,6 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	      if (!NILP (help))
 		{
 		  help_echo_string = help;
-		  /* Is this correct?  ++kfs */
 		  XSETWINDOW (help_echo_window, w);
 		  help_echo_object = w->buffer;
 		  help_echo_pos = charpos;
@@ -27048,46 +27052,77 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 #endif	/* HAVE_WINDOW_SYSTEM */
 
   if (STRINGP (string))
+    pos = make_number (charpos);
+
+  /* Set the help text and mouse pointer.  If the mouse is on a part
+     of the mode line without any text (e.g. past the right edge of
+     the mode line text), use the default help text and pointer.  */
+  if (STRINGP (string) || area == ON_MODE_LINE)
     {
-      pos = make_number (charpos);
-      /* If we're on a string with `help-echo' text property, arrange
-	 for the help to be displayed.  This is done by setting the
-	 global variable help_echo_string to the help string.  */
+      /* Arrange to display the help by setting the global variables
+	 help_echo_string, help_echo_object, and help_echo_pos.  */
       if (NILP (help))
 	{
-	  help = Fget_text_property (pos, Qhelp_echo, string);
-	  if (!NILP (help))
+	  if (STRINGP (string))
+	    help = Fget_text_property (pos, Qhelp_echo, string);
+
+	  if (STRINGP (help))
 	    {
 	      help_echo_string = help;
 	      XSETWINDOW (help_echo_window, w);
 	      help_echo_object = string;
 	      help_echo_pos = charpos;
 	    }
+	  else if (area == ON_MODE_LINE)
+	    {
+	      Lisp_Object default_help
+		= buffer_local_value_1 (Qmode_line_default_help_echo,
+					w->buffer);
+
+	      if (STRINGP (default_help))
+		{
+		  help_echo_string = default_help;
+		  XSETWINDOW (help_echo_window, w);
+		  help_echo_object = Qnil;
+		  help_echo_pos = -1;
+		}
+	    }
 	}
 
 #ifdef HAVE_WINDOW_SYSTEM
+      /* Change the mouse pointer according to what is under it.  */
       if (FRAME_WINDOW_P (f))
 	{
 	  dpyinfo = FRAME_X_DISPLAY_INFO (f);
-	  cursor  = FRAME_X_OUTPUT (f)->nontext_cursor;
-	  if (NILP (pointer))
-	    pointer = Fget_text_property (pos, Qpointer, string);
-
-	  /* Change the mouse pointer according to what is under X/Y.  */
-	  if (NILP (pointer)
-	      && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE)))
+	  if (STRINGP (string))
 	    {
-	      Lisp_Object map;
-	      map = Fget_text_property (pos, Qlocal_map, string);
-	      if (!KEYMAPP (map))
-		map = Fget_text_property (pos, Qkeymap, string);
-	      if (!KEYMAPP (map))
-		cursor = dpyinfo->vertical_scroll_bar_cursor;
+	      cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
+
+	      if (NILP (pointer))
+		pointer = Fget_text_property (pos, Qpointer, string);
+
+	      /* Change the mouse pointer according to what is under X/Y.  */
+	      if (NILP (pointer)
+		  && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE)))
+		{
+		  Lisp_Object map;
+		  map = Fget_text_property (pos, Qlocal_map, string);
+		  if (!KEYMAPP (map))
+		    map = Fget_text_property (pos, Qkeymap, string);
+		  if (!KEYMAPP (map))
+		    cursor = dpyinfo->vertical_scroll_bar_cursor;
+		}
 	    }
+	  else
+	    /* Default mode-line pointer.  */
+	    cursor = FRAME_X_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 	}
 #endif
+    }
 
-     /* Change the mouse face according to what is under X/Y.  */
+  /* Change the mouse face according to what is under X/Y.  */
+  if (STRINGP (string))
+    {
       mouse_face = Fget_text_property (pos, Qmouse_face, string);
       if (!NILP (mouse_face)
 	  && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE))
@@ -28427,6 +28462,8 @@ syms_of_xdisp (void)
   staticpro (&mode_line_string_face_prop);
   Vmode_line_unwind_vector = Qnil;
   staticpro (&Vmode_line_unwind_vector);
+
+  DEFSYM (Qmode_line_default_help_echo, "mode-line-default-help-echo");
 
   help_echo_string = Qnil;
   staticpro (&help_echo_string);

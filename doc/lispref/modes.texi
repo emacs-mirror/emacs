@@ -1843,9 +1843,9 @@ properties specified by @var{props} to the result.  The argument
 A list whose first element is a symbol that is not a keyword specifies
 a conditional.  Its meaning depends on the value of @var{symbol}.  If
 @var{symbol} has a non-@code{nil} value, the second element,
-@var{then}, is processed recursively as a mode line element.
+@var{then}, is processed recursively as a mode line construct.
 Otherwise, the third element, @var{else}, is processed recursively.
-You may omit @var{else}; then the mode line element displays nothing
+You may omit @var{else}; then the mode line construct displays nothing
 if the value of @var{symbol} is @code{nil} or void.
 
 @item (@var{width} @var{rest}@dots{})

@@ -43,7 +43,6 @@ corresponding to the mode line clicked."
     (with-no-warnings (toggle-read-only))
     (force-mode-line-update)))
 
-
 (defun mode-line-toggle-modified (event)
   "Toggle the buffer-modified flag from the mode-line."
   (interactive "e")
@@ -52,7 +51,6 @@ corresponding to the mode line clicked."
     (set-buffer-modified-p (not (buffer-modified-p)))
     (force-mode-line-update)))
 
-
 (defun mode-line-widen (event)
   "Widen a buffer from the mode-line."
   (interactive "e")
@@ -60,7 +58,6 @@ corresponding to the mode line clicked."
     (select-window (posn-window (event-start event)))
     (widen)
     (force-mode-line-update)))
-
 
 (defvar mode-line-input-method-map
   (let ((map (make-sparse-keymap)))
@@ -81,7 +78,6 @@ corresponding to the mode line clicked."
 	  (describe-current-input-method))))
     (purecopy map)))
 
-
 (defvar mode-line-coding-system-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-1]
@@ -94,7 +90,6 @@ corresponding to the mode line clicked."
 	    (describe-coding-system buffer-file-coding-system)))))
     (purecopy map))
   "Local keymap for the coding-system part of the mode line.")
-
 
 (defun mode-line-change-eol (event)
   "Cycle through the various possible kinds of end-of-line styles."
@@ -130,13 +125,28 @@ corresponding to the mode line clicked."
       (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
       desc)))
 
-(defvar mode-line-client
-  `(""
-    (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
-		 help-echo ,(purecopy "emacsclient frame")))
-  "Mode-line control for identifying emacsclient frames.")
-;;;###autoload
-(put 'mode-line-client 'risky-local-variable t)
+
+;;; Mode line contents
+
+(defcustom mode-line-default-help-echo
+  "mouse-1: Select (drag to resize)\n\
+mouse-2: Make current window occupy the whole frame\n\
+mouse-3: Remove current window from display"
+  "Default help text for the mode line.
+If the value is a string, it specifies the tooltip or echo area
+message to display when the mouse is moved over the mode line.
+If the text at the mouse position has a `help-echo' text
+property, that overrides this variable."
+  :type '(choice (const :tag "No help" :value nil) string)
+  :version "24.2"
+  :group 'mode-line)
+
+(defvar mode-line-front-space '(:eval (if (display-graphic-p) " " "-"))
+  "Mode line construct to put at the front of the mode line.
+By default, this construct is displayed right at the beginning of
+the mode line, except that if there is a memory-full message, it
+is displayed first.")
+(put 'mode-line-front-space 'risky-local-variable t)
 
 (defvar mode-line-mule-info
   `(""
@@ -167,7 +177,7 @@ mouse-3: Describe current input method"))
       'mouse-face 'mode-line-highlight
       'local-map mode-line-coding-system-map)
     (:eval (mode-line-eol-desc)))
-  "Mode-line control for displaying information of multilingual environment.
+  "Mode line construct for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
   coding system for saving or writing the current buffer
@@ -177,34 +187,17 @@ mnemonics of the following coding systems:
   ;;  coding system for decoding output of buffer process (if any)
   ;;  coding system for encoding text to send to buffer process (if any)."
 )
-
 ;;;###autoload
 (put 'mode-line-mule-info 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-mule-info)
 
-;; MSDOS frames have window-system, but want the Fn identification.
-(defun mode-line-frame-control ()
-  "Compute mode-line control for frame identification.
-Value is used for `mode-line-frame-identification', which see."
-  (if (or (null window-system)
-	  (eq window-system 'pc))
-      "-%F  "
-    "  "))
-
-;; We need to defer the call to mode-line-frame-control to the time
-;; the mode line is actually displayed.
-(defvar mode-line-frame-identification '(:eval (mode-line-frame-control))
-  "Mode-line control to describe the current frame.")
+(defvar mode-line-client
+  `(""
+    (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
+		 help-echo ,(purecopy "emacsclient frame")))
+  "Mode line construct for identifying emacsclient frames.")
 ;;;###autoload
-(put 'mode-line-frame-identification 'risky-local-variable t)
-
-(defvar mode-line-process nil "\
-Mode-line control for displaying info on process status.
-Normally nil in most modes, since there is no process to display.")
-
-;;;###autoload
-(put 'mode-line-process 'risky-local-variable t)
-(make-variable-buffer-local 'mode-line-process)
+(put 'mode-line-client 'risky-local-variable t)
 
 (defvar mode-line-modified
   (list (propertize
@@ -232,8 +225,7 @@ Normally nil in most modes, since there is no process to display.")
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-1 #'mode-line-toggle-modified))
 	 'mouse-face 'mode-line-highlight))
-  "Mode-line control for displaying whether current buffer is modified.")
-
+  "Mode line construct for displaying whether current buffer is modified.")
 ;;;###autoload
 (put 'mode-line-modified 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-modified)
@@ -251,24 +243,33 @@ Normally nil in most modes, since there is no process to display.")
 					       "Current directory is remote: "
 					     "Current directory is local: ")
 					   default-directory)))))))
-  "Mode-line flag to show if default-directory for current buffer is remote.")
+  "Mode line construct to indicate a remote buffer.")
 ;;;###autoload
 (put 'mode-line-remote 'risky-local-variable t)
-
 (make-variable-buffer-local 'mode-line-remote)
 
-;; Actual initialization is below.
-(defvar mode-line-position nil
-  "Mode-line control for displaying the position in the buffer.
-Normally displays the buffer percentage and, optionally, the
-buffer size, the line number and the column number.")
-;;;###autoload
-(put 'mode-line-position 'risky-local-variable t)
+;; MSDOS frames have window-system, but want the Fn identification.
+(defun mode-line-frame-control ()
+  "Compute mode line construct for frame identification.
+Value is used for `mode-line-frame-identification', which see."
+  (if (or (null window-system)
+	  (eq window-system 'pc))
+      "-%F  "
+    "  "))
 
-(defvar mode-line-modes nil
-  "Mode-line control for displaying major and minor modes.")
+;; We need to defer the call to mode-line-frame-control to the time
+;; the mode line is actually displayed.
+(defvar mode-line-frame-identification '(:eval (mode-line-frame-control))
+  "Mode line construct to describe the current frame.")
 ;;;###autoload
-(put 'mode-line-modes 'risky-local-variable t)
+(put 'mode-line-frame-identification 'risky-local-variable t)
+
+(defvar mode-line-process nil
+  "Mode line construct for displaying info on process status.
+Normally nil in most modes, since there is no process to display.")
+;;;###autoload
+(put 'mode-line-process 'risky-local-variable t)
+(make-variable-buffer-local 'mode-line-process)
 
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
@@ -292,6 +293,35 @@ Keymap to display on major mode.")
     map) "\
 Keymap to display on minor modes.")
 
+(defvar mode-line-modes
+  (let ((recursive-edit-help-echo "Recursive edit, type C-M-c to get out"))
+    (list (propertize "%[" 'help-echo recursive-edit-help-echo)
+	  "("
+	  `(:propertize ("" mode-name)
+			help-echo "Major mode\n\
+mouse-1: Display major mode menu\n\
+mouse-2: Show help for major mode\n\
+mouse-3: Toggle minor modes"
+			mouse-face mode-line-highlight
+			local-map ,mode-line-major-mode-keymap)
+	  '("" mode-line-process)
+	  `(:propertize ("" minor-mode-alist)
+			mouse-face mode-line-highlight
+			help-echo "Minor mode\n\
+mouse-1: Display minor mode menu\n\
+mouse-2: Show help for minor mode\n\
+mouse-3: Toggle minor modes"
+			local-map ,mode-line-minor-mode-keymap)
+	  (propertize "%n" 'help-echo "mouse-2: Remove narrowing from the current buffer"
+		      'mouse-face 'mode-line-highlight
+		      'local-map (make-mode-line-mouse-map
+				  'mouse-2 #'mode-line-widen))
+	  ")"
+	  (propertize "%]" 'help-echo recursive-edit-help-echo)
+	  " "))
+  "Mode line construct for displaying major and minor modes.")
+(put 'mode-line-modes 'risky-local-variable t)
+
 (defvar mode-line-column-line-number-mode-map
   (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
@@ -307,114 +337,47 @@ Keymap to display on minor modes.")
     map) "\
 Keymap to display on column and line numbers.")
 
-(let* ((help-echo
-	;; The multi-line message doesn't work terribly well on the
-	;; bottom mode line...  Better ideas?
-	;; 	  "\
-	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
-	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
-	"mouse-1: Select (drag to resize)\n\
-mouse-2: Make current window occupy the whole frame\n\
-mouse-3: Remove current window from display")
-       (recursive-edit-help-echo "Recursive edit, type C-M-c to get out")
-       (spaces (propertize " " 'help-echo help-echo))
-       (standard-mode-line-format
-	(list
-	 "%e"
-	 `(:eval (if (display-graphic-p)
-		     ,(propertize " " 'help-echo help-echo)
-		   ,(propertize "-" 'help-echo help-echo)))
-	 'mode-line-mule-info
-	 'mode-line-client
-	 'mode-line-modified
-	 'mode-line-remote
-	 'mode-line-frame-identification
-	 'mode-line-buffer-identification
-	 (propertize "   " 'help-echo help-echo)
-	 'mode-line-position
-	 '(vc-mode vc-mode)
-	 (propertize "  " 'help-echo help-echo)
-	 'mode-line-modes
-	 `(which-func-mode ("" which-func-format ,spaces))
-	 `(global-mode-string ("" global-mode-string ,spaces))
-	 `(:eval (unless (display-graphic-p)
-		   ,(propertize "-%-" 'help-echo help-echo)))))
-       (standard-mode-line-modes
-	(list
-	 (propertize "%[" 'help-echo recursive-edit-help-echo)
-	 (propertize "(" 'help-echo help-echo)
-	 `(:propertize ("" mode-name)
-		       help-echo "Major mode\n\
-mouse-1: Display major mode menu\n\
-mouse-2: Show help for major mode\n\
-mouse-3: Toggle minor modes"
-		       mouse-face mode-line-highlight
-		       local-map ,mode-line-major-mode-keymap)
-	 '("" mode-line-process)
-	 `(:propertize ("" minor-mode-alist)
-		       mouse-face mode-line-highlight
-		       help-echo "Minor mode\n\
-mouse-1: Display minor mode menu\n\
-mouse-2: Show help for minor mode\n\
-mouse-3: Toggle minor modes"
-		       local-map ,mode-line-minor-mode-keymap)
-	 (propertize "%n" 'help-echo "mouse-2: Remove narrowing from the current buffer"
-		     'mouse-face 'mode-line-highlight
-		     'local-map (make-mode-line-mouse-map
-				 'mouse-2 #'mode-line-widen))
-	 (propertize ")" 'help-echo help-echo)
-	 (propertize "%]" 'help-echo recursive-edit-help-echo)
-	 spaces))
-
-       (standard-mode-line-position
-	`((-3 ,(propertize
-		"%p"
-		'local-map mode-line-column-line-number-mode-map
-		'mouse-face 'mode-line-highlight
-		;; XXX needs better description
-		'help-echo "Size indication mode\n\
+(defvar mode-line-position
+  `((-3 ,(propertize
+	  "%p"
+	  'local-map mode-line-column-line-number-mode-map
+	  'mouse-face 'mode-line-highlight
+	  ;; XXX needs better description
+	  'help-echo "Size indication mode\n\
 mouse-1: Display Line and Column Mode Menu"))
-	  (size-indication-mode
-	   (8 ,(propertize
-		" of %I"
-		'local-map mode-line-column-line-number-mode-map
-		'mouse-face 'mode-line-highlight
-		;; XXX needs better description
-		'help-echo "Size indication mode\n\
+    (size-indication-mode
+     (8 ,(propertize
+	  " of %I"
+	  'local-map mode-line-column-line-number-mode-map
+	  'mouse-face 'mode-line-highlight
+	  ;; XXX needs better description
+	  'help-echo "Size indication mode\n\
 mouse-1: Display Line and Column Mode Menu")))
-	  (line-number-mode
-	   ((column-number-mode
-	     (10 ,(propertize
-		   " (%l,%c)"
-		   'local-map mode-line-column-line-number-mode-map
-		   'mouse-face 'mode-line-highlight
-		   'help-echo "Line number and Column number\n\
+    (line-number-mode
+     ((column-number-mode
+       (10 ,(propertize
+	     " (%l,%c)"
+	     'local-map mode-line-column-line-number-mode-map
+	     'mouse-face 'mode-line-highlight
+	     'help-echo "Line number and Column number\n\
 mouse-1: Display Line and Column Mode Menu"))
-	     (6 ,(propertize
-		  " L%l"
-		  'local-map mode-line-column-line-number-mode-map
-		  'mouse-face 'mode-line-highlight
-		  'help-echo "Line Number\n\
+       (6 ,(propertize
+	    " L%l"
+	    'local-map mode-line-column-line-number-mode-map
+	    'mouse-face 'mode-line-highlight
+	    'help-echo "Line Number\n\
 mouse-1: Display Line and Column Mode Menu"))))
-	   ((column-number-mode
-	     (5 ,(propertize
-		  " C%c"
-		  'local-map mode-line-column-line-number-mode-map
-		  'mouse-face 'mode-line-highlight
-		  'help-echo "Column number\n\
-mouse-1: Display Line and Column Mode Menu"))))))))
-
-  (setq-default mode-line-format standard-mode-line-format)
-  (put 'mode-line-format 'standard-value
-       (list `(quote ,standard-mode-line-format)))
-
-  (setq-default mode-line-modes standard-mode-line-modes)
-  (put 'mode-line-modes 'standard-value
-       (list `(quote ,standard-mode-line-modes)))
-
-  (setq-default mode-line-position standard-mode-line-position)
-  (put 'mode-line-position 'standard-value
-       (list `(quote ,standard-mode-line-position))))
+     ((column-number-mode
+       (5 ,(propertize
+	    " C%c"
+	    'local-map mode-line-column-line-number-mode-map
+	    'mouse-face 'mode-line-highlight
+	    'help-echo "Column number\n\
+mouse-1: Display Line and Column Mode Menu"))))))
+  "Mode line construct for displaying the position in the buffer.
+Normally displays the buffer percentage and, optionally, the
+buffer size, the line number and the column number.")
+(put 'mode-line-position 'risky-local-variable t)
 
 (defvar mode-line-buffer-identification-keymap
   ;; Add menu of buffer operations to the buffer identification part
@@ -444,16 +407,50 @@ mouse-3: next buffer")
 		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
-(defvar mode-line-buffer-identification (propertized-buffer-identification "%12b") "\
-Mode-line control for identifying the buffer being displayed.
+(defvar mode-line-buffer-identification
+  (propertized-buffer-identification "%12b")
+  "Mode line construct for identifying the buffer being displayed.
 Its default value is (\"%12b\") with some text properties added.
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
-
 ;;;###autoload
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
+(defvar mode-line-misc-info
+  '((which-func-mode ("" which-func-format " "))
+    (global-mode-string ("" global-mode-string " ")))
+  "Mode line construct for miscellaneous information.
+By default, this shows the information specified by
+`which-func-mode' and `global-mode-string'.")
+(put 'mode-line-misc-info 'risky-local-variable t)
+
+(defvar mode-line-end-spaces '(:eval (unless (display-graphic-p) "-%-"))
+  "Mode line construct to put at the end of the mode line.")
+(put 'mode-line-end-spaces 'risky-local-variable t)
+
+;; Default value of the top-level `mode-line-format' variable:
+(let ((standard-mode-line-format
+       (list "%e"
+	     'mode-line-front-space
+	     'mode-line-mule-info
+	     'mode-line-client
+	     'mode-line-modified
+	     'mode-line-remote
+	     'mode-line-frame-identification
+	     'mode-line-buffer-identification
+	     "   "
+	     'mode-line-position
+	     '(vc-mode vc-mode)
+	     "  "
+	     'mode-line-modes
+	     'mode-line-misc-info
+	     'mode-line-end-spaces)))
+  (setq-default mode-line-format standard-mode-line-format)
+  (put 'mode-line-format 'standard-value
+       (list `(quote ,standard-mode-line-format))))
+
+
 (defun mode-line-unbury-buffer (event) "\
 Call `unbury-buffer' in this window."
   (interactive "e")
@@ -551,8 +548,8 @@ Alist saying how to show minor modes in the mode line.
 Each element looks like (VARIABLE STRING);
 STRING is included in the mode line if VARIABLE's value is non-nil.
 
-Actually, STRING need not be a string; any possible mode-line element
-is okay.  See `mode-line-format'.")
+Actually, STRING need not be a string; any mode-line construct is
+okay.  See `mode-line-format'.")
 ;;;###autoload
 (put 'minor-mode-alist 'risky-local-variable t)
 ;; Don't use purecopy here--some people want to change these strings.

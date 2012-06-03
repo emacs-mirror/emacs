@@ -912,6 +912,7 @@ extern void validate_region (Lisp_Object *, Lisp_Object *);
 extern void set_buffer_internal (struct buffer *);
 extern void set_buffer_internal_1 (struct buffer *);
 extern void set_buffer_temp (struct buffer *);
+extern Lisp_Object buffer_local_value_1 (Lisp_Object, Lisp_Object);
 extern void record_buffer (Lisp_Object);
 extern void buffer_slot_type_mismatch (Lisp_Object, int) NO_RETURN;
 extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);

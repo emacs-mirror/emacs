@@ -933,6 +933,21 @@ If VARIABLE does not have a buffer-local binding in BUFFER, the value
 is the default binding of the variable. */)
   (register Lisp_Object variable, register Lisp_Object buffer)
 {
+  register Lisp_Object result = buffer_local_value_1 (variable, buffer);
+
+  if (EQ (result, Qunbound))
+    xsignal1 (Qvoid_variable, variable);
+
+  return result;
+}
+
+
+/* Like Fbuffer_local_value, but return Qunbound if the variable is
+   locally unbound.  */
+
+Lisp_Object
+buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
+{
   register struct buffer *buf;
   register Lisp_Object result;
   struct Lisp_Symbol *sym;
@@ -985,10 +1000,7 @@ is the default binding of the variable. */)
     default: abort ();
     }
 
-  if (!EQ (result, Qunbound))
-    return result;
-
-  xsignal1 (Qvoid_variable, variable);
+  return result;
 }
 
 /* Return an alist of the Lisp-level buffer-local bindings of
@@ -5329,31 +5341,40 @@ the mode line appears at the bottom.  */);
   DEFVAR_PER_BUFFER ("mode-line-format", &BVAR (current_buffer, mode_line_format),
 		     Qnil,
 		     doc: /* Template for displaying mode line for current buffer.
-Each buffer has its own value of this variable.
-Value may be nil, a string, a symbol or a list or cons cell.
+
+The value may be nil, a string, a symbol or a list.
+
 A value of nil means don't display a mode line.
-For a symbol, its value is used (but it is ignored if t or nil).
- A string appearing directly as the value of a symbol is processed verbatim
- in that the %-constructs below are not recognized.
- Note that unless the symbol is marked as a `risky-local-variable', all
- properties in any strings, as well as all :eval and :propertize forms
- in the value of that symbol will be ignored.
-For a list of the form `(:eval FORM)', FORM is evaluated and the result
- is used as a mode line element.  Be careful--FORM should not load any files,
- because that can cause an infinite recursion.
-For a list of the form `(:propertize ELT PROPS...)', ELT is displayed
- with the specified properties PROPS applied.
-For a list whose car is a symbol, the symbol's value is taken,
- and if that is non-nil, the cadr of the list is processed recursively.
- Otherwise, the caddr of the list (if there is one) is processed.
-For a list whose car is a string or list, each element is processed
- recursively and the results are effectively concatenated.
-For a list whose car is an integer, the cdr of the list is processed
-  and padded (if the number is positive) or truncated (if negative)
-  to the width specified by that number.
+
+For any symbol other than t or nil, the symbol's value is processed as
+ a mode line construct.  As a special exception, if that value is a
+ string, the string is processed verbatim, without handling any
+ %-constructs (see below).  Also, unless the symbol has a non-nil
+ `risky-local-variable' property, all properties in any strings, as
+ well as all :eval and :propertize forms in the value, are ignored.
+
+A list whose car is a string or list is processed by processing each
+ of the list elements recursively, as separate mode line constructs,
+ and concatenating the results.
+
+A list of the form `(:eval FORM)' is processed by evaluating FORM and
+ using the result as a mode line construct.  Be careful--FORM should
+ not load any files, because that can cause an infinite recursion.
+
+A list of the form `(:propertize ELT PROPS...)' is processed by
+ processing ELT as the mode line construct, and adding the text
+ properties PROPS to the result.
+
+A list whose car is a symbol is processed by examining the symbol's
+ value, and, if that value is non-nil, processing the cadr of the list
+ recursively; and if that value is nil, processing the caddr of the
+ list recursively.
+
+A list whose car is an integer is processed by processing the cadr of
+ the list, and padding (if the number is positive) or truncating (if
+ negative) to the width specified by that number.
+
 A string is printed verbatim in the mode line except for %-constructs:
-  (%-constructs are allowed when the string is the entire mode-line-format
-   or when it is found in a cons-cell or a list)
   %b -- print buffer name.      %f -- print visited file name.
   %F -- print frame name.
   %* -- print %, * or hyphen.   %+ -- print *, % or hyphen.

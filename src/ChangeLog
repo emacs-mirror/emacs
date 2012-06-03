@@ -1,3 +1,15 @@
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (calc_pixel_width_or_height): Use Fbuffer_local_value.
+	(note_mode_line_or_margin_highlight): If there is no help echo,
+	use mode-line-default-help-echo.  Handle the case where the mouse
+	position is past the end of the mode line string.
+
+	* buffer.c (buffer_local_value_1): New function, split from
+	Fbuffer_local_value; can return Qunbound.
+	(Fbuffer_local_value): Use it.
+	(Vmode_line_format): Docstring tweaks.
+
 2012-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (system_process_attributes): Improve comment.
