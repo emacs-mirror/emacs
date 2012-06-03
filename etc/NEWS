@@ -63,14 +63,14 @@ name, group names known to the system (where possible).
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
 explicitly to install ImageMagick image types; that function is called
-automatically at startup, or when customizing imagemagick-types-enable
-or imagemagick-types-inhibit.
+automatically at startup, or when customizing a relevant imagemagick-
+option.
 
 *** Setting `imagemagick-types-inhibit' to t now disables the use of
 ImageMagick to view images.  You must call imagemagick-register-types
 afterwards if you do not use customize to change this.
 
-*** The new variable `imagemagick-types-enable' also affects which
+*** The new variable `imagemagick-enabled-types' also affects which
 ImageMagick types are treated as images.  The function
 `imagemagick-filter-types' returns the list of types that will be
 treated as images.
