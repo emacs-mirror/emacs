@@ -72,6 +72,9 @@ Semantic, and Ansi-Color faces are included.")
    `(mode-line-inactive ((,class
 			  (:box (:line-width -1 :style released-button)
 			   :background ,alum-5 :foreground ,alum-1))))
+   `(compilation-mode-line-fail ((,class (:foreground ,red-3))))
+   `(compilation-mode-line-run  ((,class (:foreground ,orange-3))))
+   `(compilation-mode-line-exit ((,class (:foreground ,cham-3))))
    ;; Escape and prompt faces
    `(minibuffer-prompt ((,class (:foreground ,cham-0))))
    `(escape-glyph ((,class (:foreground ,butter-3))))

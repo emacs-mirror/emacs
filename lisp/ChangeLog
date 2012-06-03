@@ -1,3 +1,10 @@
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/compile.el (compilation-mode-line-fail)
+	(compilation-mode-line-run, compilation-mode-line-exit): New
+	faces.
+	(compilation-start, compilation-handle-exit): Use them (Bug#11032).
+
 2012-06-03  Jack Duthen  <duthen.mac.01@gmail.com>  (tiny change)
 
 	* progmodes/which-func.el (which-func-update-ediff-windows): New

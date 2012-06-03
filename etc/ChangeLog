@@ -1,3 +1,13 @@
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* themes/wheatgrass-theme.el:
+	* themes/deeper-blue-theme.el:
+	* themes/tango-dark-theme.el:
+	* themes/tsdh-dark-theme.el: Add compilation-mode-line-fail,
+	compilation-mode-line-run, and compilation-mode-line-exit faces.
+
+	* themes/manoj-dark-theme.el: Remove :family attributes.
+
 2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)

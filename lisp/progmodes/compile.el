@@ -674,6 +674,34 @@ starting the compilation process."
   :group 'compilation
   :version "22.1")
 
+;; The next three faces must be able to stand out against the
+;; `mode-line' and `mode-line-inactive' faces.
+
+(defface compilation-mode-line-fail
+  '((default :inherit compilation-error)
+    (((class color) (min-colors 16)) (:foreground "Red1" :weight bold))
+    (((class color) (min-colors 8)) (:foreground "red"))
+    (t (:inverse-video t :weight bold)))
+  "Face for Compilation mode's \"error\" mode line indicator."
+  :group 'compilation
+  :version "24.2")
+
+(defface compilation-mode-line-run
+  '((t :inherit compilation-warning))
+  "Face for Compilation mode's \"running\" mode line indicator."
+  :group 'compilation
+  :version "24.2")
+
+(defface compilation-mode-line-exit
+  '((default :inherit compilation-info)
+    (((class color) (min-colors 16))
+     (:foreground "ForestGreen" :weight bold))
+    (((class color)) (:foreground "green" :weight bold))
+    (t (:weight bold)))
+  "Face for Compilation mode's \"exit\" mode line indicator."
+  :group 'compilation
+  :version "24.2")
+
 (defface compilation-line-number
   '((t :inherit font-lock-keyword-face))
   "Face for displaying line numbers in compiler messages."
@@ -1626,7 +1654,7 @@ Returns the compilation buffer created."
 						       outbuf command))))
 	      ;; Make the buffer's mode line show process state.
 	      (setq mode-line-process
-		    (list (propertize ":%s" 'face 'compilation-warning)))
+		    '(:propertize ":%s" face compilation-mode-line-run))
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (unless (eq mode t)
 		;; Keep the comint filter, since it's needed for proper handling
@@ -1648,7 +1676,7 @@ Returns the compilation buffer created."
 	  (message "Executing `%s'..." command)
 	  ;; Fake mode line display as if `start-process' were run.
 	  (setq mode-line-process
-		(list (propertize ":run" 'face 'compilation-warning)))
+		'(:propertize ":run" face compilation-mode-line-run))
 	  (force-mode-line-update)
 	  (sit-for 0)			; Force redisplay
 	  (save-excursion
@@ -2046,9 +2074,10 @@ commands of Compilation major mode are available.  See
                                                        (car status)))))
 	    (message "%s" msg)
 	    (propertize out-string
-			'help-echo msg 'face (if (> exit-status 0)
-						 'compilation-error
-					       'compilation-info))))
+			'help-echo msg
+			'face (if (> exit-status 0)
+				  'compilation-mode-line-fail
+				'compilation-mode-line-exit))))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
