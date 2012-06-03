@@ -117,8 +117,8 @@ MKDIR_P = @MKDIR_P@
 INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
                ebrowse${EXEEXT}
 
-INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
-STAMP_INST_SCRIPTS = stamp-rcs-checkin stamp-grep-changelog
+INSTALLABLE_SCRIPTS = grep-changelog
+STAMP_INST_SCRIPTS = stamp-grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
@@ -193,10 +193,6 @@ insrcdir=[ "`/bin/pwd`" = "`cd $(srcdir) && /bin/pwd`" ]
 
 stamp-rcs2log: $(srcdir)/rcs2log
 	$(insrcdir) || cp -p $(srcdir)/rcs2log rcs2log
-	touch $@
-
-stamp-rcs-checkin: $(srcdir)/rcs-checkin
-	$(insrcdir) || cp -p $(srcdir)/rcs-checkin rcs-checkin
 	touch $@
 
 stamp-grep-changelog: $(srcdir)/grep-changelog

@@ -1,3 +1,7 @@
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* quick-install-emacs (PUBLIC_LIBSRC_SCRIPTS): Remove rcs-checkin.
+
 2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)

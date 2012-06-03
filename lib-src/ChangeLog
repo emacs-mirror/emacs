@@ -1,3 +1,10 @@
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* rcs-checkin: Remove file.
+	* Makefile.in (INSTALLABLE_SCRIPTS, STAMP_INST_SCRIPTS):
+	Remove rcs-checkin.
+	(stamp-rcs-checkin): Remove.
+
 2012-05-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/emacsclientw.exe): Use $(MWINDOWS)

@@ -1,3 +1,7 @@
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL, make-dist: Remove rcs-checkin.
+
 2012-06-03  Ulrich Müller  <ulm@gentoo.org>
 
 	* configure.in (PAXCTL): Check for paxctl. (Bug#11398)
