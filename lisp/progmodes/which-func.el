@@ -337,6 +337,22 @@ If no function name is found, return nil."
 	  (funcall which-func-cleanup-function name)
 	name))))
 
+
+;;; Integration with other packages
+
+(defun which-func-update-ediff-windows ()
+  "Update Which-Function mode display for Ediff windows.
+This function is meant to be called from `ediff-select-hook'."
+  (when (eq major-mode 'ediff-mode)
+    (when ediff-window-A
+      (which-func-update-1 ediff-window-A))
+    (when ediff-window-B
+      (which-func-update-1 ediff-window-B))
+    (when ediff-window-C
+      (which-func-update-1 ediff-window-C))))
+
+(add-hook 'ediff-select-hook 'which-func-update-ediff-windows)
+
 (provide 'which-func)
 
 ;;; which-func.el ends here

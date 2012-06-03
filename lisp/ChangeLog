@@ -1,3 +1,8 @@
+2012-06-03  Jack Duthen  <duthen.mac.01@gmail.com>  (tiny change)
+
+	* progmodes/which-func.el (which-func-update-ediff-windows): New
+	function.  Use it in ediff-select-hook (Bug#11478).
+
 2012-06-03  Chong Yidong  <cyd@gnu.org>
 
 	* bindings.el: Remove explicit help text from format-mode-line.
