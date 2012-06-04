@@ -750,7 +750,8 @@ If Emacs is compiled without ImageMagick support, this does nothing."
 	  (push (cons re 'imagemagick) image-type-file-name-regexps)))
       (setq imagemagick--file-regexp re))))
 
-(defcustom imagemagick-types-inhibit nil
+(defcustom imagemagick-types-inhibit
+  '(C HTML HTM INFO M TXT PDF)
   "List of ImageMagick types that should never be treated as images.
 This should be a list of symbols, each of which should be one of
 the ImageMagick types listed by `imagemagick-types'.  The listed
@@ -775,14 +776,14 @@ has no effect."
 
 (defcustom imagemagick-enabled-types
   '(3FR ART ARW AVS BMP BMP2 BMP3 CAL CALS CIN CMYK CMYKA CR2 CRW
-    CUR CUT DCM DCR DCX DDS DJVU DNG DPX EPDF EPS EPS2 EPS3 EPSF
-    EPSI EXR FAX FITS GBR GIF GIF87 GRB HRZ ICB ICO ICON J2C JNG
-    JP2 JPC JPEG JPG JPX K25 KDC MIFF MNG MRW MSL MSVG MTV NEF
-    ORF OTB PBM PCD PCDS PCL PCT PCX PDB PEF PGM PICT PIX PJPEG
-    PNG PNG24 PNG32 PNG8 PNM PPM PSD PTIF PWP RAF RAS RBG RGB
-    RGBA RGBO RLA RLE SCR SCT SFW SGI SR2 SRF SUN SVG SVGZ TGA
-    TIFF TIFF64 TILE TIM TTF UYVY VDA VICAR VID VIFF VST WBMP WPG
-    X3F XBM XC XCF XPM XV XWD YCbCr YCbCrA YUV)
+    CUR CUT DCM DCR DCX DDS DJVU DNG DPX EXR FAX FITS GBR GIF
+    GIF87 GRB HRZ ICB ICO ICON J2C JNG JP2 JPC JPEG JPG JPX K25
+    KDC MIFF MNG MRW MSL MSVG MTV NEF ORF OTB PBM PCD PCDS PCL
+    PCT PCX PDB PEF PGM PICT PIX PJPEG PNG PNG24 PNG32 PNG8 PNM
+    PPM PSD PTIF PWP RAF RAS RBG RGB RGBA RGBO RLA RLE SCR SCT
+    SFW SGI SR2 SRF SUN SVG SVGZ TGA TIFF TIFF64 TILE TIM TTF
+    UYVY VDA VICAR VID VIFF VST WBMP WPG X3F XBM XC XCF XPM XV
+    XWD YCbCr YCbCrA YUV)
   "List of ImageMagick types to treat as images.
 Each list element should be a string or symbol, representing one
 of the image types returned by `imagemagick-types'.  If the
