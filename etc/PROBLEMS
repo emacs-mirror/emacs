@@ -3205,50 +3205,6 @@ causes the problem to go away.
 The `contents' field of a Lisp vector is an array of Lisp_Objects,
 so you may see the problem happening with indexed references to that.
 
-** 68000 C compiler problems
-
-Various 68000 compilers have different problems.
-These are some that have been observed.
-
-*** Using value of assignment expression on union type loses.
-This means that  x = y = z;  or  foo (x = z);  does not work
-if x is of type Lisp_Object.
-
-*** "cannot reclaim" error.
-
-This means that an expression is too complicated.  You get the correct
-line number in the error message.  The code must be rewritten with
-simpler expressions.
-
-*** XCONS, XSTRING, etc macros produce incorrect code.
-
-If temacs fails to run at all, this may be the cause.
-Compile this test program and look at the assembler code:
-
-struct foo { char x; unsigned int y : 24; };
-
-lose (arg)
-     struct foo arg;
-{
-  test ((int *) arg.y);
-}
-
-If the code is incorrect, your compiler has this problem.
-In the XCONS, etc., macros in lisp.h you must replace (a).u.val with
-((a).u.val + coercedummy) where coercedummy is declared as int.
-
-This problem will only happen if USE_LISP_UNION_TYPE is manually
-defined in lisp.h.
-
-** C compilers lose on returning unions.
-
-I hear that some C compilers cannot handle returning a union type.
-Most of the functions in GNU Emacs return type Lisp_Object, which is
-defined as a union on some rare architectures.
-
-This problem will only happen if USE_LISP_UNION_TYPE is manually
-defined in lisp.h.
-
 
 This file is part of GNU Emacs.
 
