@@ -119,6 +119,18 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** CL's main entry is now (require 'cl-lib).
+`cl-lib' is like the old `cl' except that it uses the namespace cleanly,
+i.e. all its definitions have the "cl-" prefix.
+
+If `cl' provided a feature under the name `foo', then `cl-lib' provides it
+under the name `cl-foo' instead, with the exceptions of the few definitions
+that had to use `foo*' to avoid conflicts with pre-existing Elisp entities,
+which have not been renamed to `cl-foo*' but just `cl-foo'.
+
+The old `cl' is now deprecated and is nothing more than a bunch of aliases that
+provide the old non-prefixed names.
+
 ** VHDL-mode
 - Support for ghdl (free vhdl compiler).  Now default.
 - Add/update support for VHDL-AMS packages.

@@ -1,3 +1,12 @@
+2012-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el: Rename from cl.el.
+	* emacs-lisp/cl.el: New compatibility file.
+	* emacs-lisp/cl-lib.el, emacs-lisp/cl-seq.el, emacs-lisp/cl-macs.el:
+	* emacs-lisp/cl-extra.el: Rename all top-level functions and variables
+	to obey the "cl-" prefix.
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Adjust to new name.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Addition.
@@ -18,14 +27,14 @@
 2012-06-03  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/compile.el (compilation-mode-line-fail)
-	(compilation-mode-line-run, compilation-mode-line-exit): New
-	faces.
+	(compilation-mode-line-run, compilation-mode-line-exit):
+	New faces.
 	(compilation-start, compilation-handle-exit): Use them (Bug#11032).
 
 2012-06-03  Jack Duthen  <duthen.mac.01@gmail.com>  (tiny change)
 
-	* progmodes/which-func.el (which-func-update-ediff-windows): New
-	function.  Use it in ediff-select-hook (Bug#11478).
+	* progmodes/which-func.el (which-func-update-ediff-windows):
+	New function.  Use it in ediff-select-hook (Bug#11478).
 
 2012-06-03  Chong Yidong  <cyd@gnu.org>
 
