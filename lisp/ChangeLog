@@ -2,7 +2,7 @@
 
 	* image.el (imagemagick-types-inhibit): Revert last change.  Add
 	INFO and M.
-	(imagemagick-enabled-types): Remove EPS and related formats.
+	(imagemagick-enabled-types): Remove CIN and EPS*.
 
 2012-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
