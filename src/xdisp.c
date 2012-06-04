@@ -26967,12 +26967,12 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   int dx, dy, width, height;
   ptrdiff_t charpos;
   Lisp_Object string, object = Qnil;
-  Lisp_Object pos, help;
+  Lisp_Object pos IF_LINT (= Qnil), help;
 
   Lisp_Object mouse_face;
   int original_x_pixel = x;
   struct glyph * glyph = NULL, * row_start_glyph = NULL;
-  struct glyph_row *row;
+  struct glyph_row *row IF_LINT (= 0);
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
     {

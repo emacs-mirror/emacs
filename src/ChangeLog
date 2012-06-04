@@ -1,3 +1,7 @@
+2012-06-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Pacify gcc -Wall.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* xdisp.c (tool-bar-style): Doc fix.
