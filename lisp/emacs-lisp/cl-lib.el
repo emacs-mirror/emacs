@@ -227,6 +227,7 @@ The arguments of `cl-values' are the values
 that the containing function should return.
 
 \(fn &rest VALUES)")
+(put 'cl-values 'byte-optimizer 'byte-compile-inline-expand)
 
 (defalias 'cl-values-list #'identity
   "Return multiple values, Common Lisp style, taken from a list.
@@ -234,6 +235,7 @@ LIST specifies the list of values
 that the containing function should return.
 
 \(fn LIST)")
+(put 'cl-values-list 'byte-optimizer 'byte-compile-inline-expand)
 
 (defsubst cl-multiple-value-list (expression)
   "Return a list of the multiple values produced by EXPRESSION.

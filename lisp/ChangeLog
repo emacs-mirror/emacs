@@ -1,7 +1,11 @@
+2012-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el (cl-values, cl-values-list): Fix up last change.
+
 2012-06-04  Chong Yidong  <cyd@gnu.org>
 
-	* image.el (imagemagick-types-inhibit): Revert last change.  Add
-	INFO and M.
+	* image.el (imagemagick-types-inhibit): Revert last change.
+	Add INFO and M.
 	(imagemagick-enabled-types): Remove CIN and EPS*.
 
 2012-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
