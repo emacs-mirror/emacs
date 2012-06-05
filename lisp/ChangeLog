@@ -1,3 +1,17 @@
+2012-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add native compiler-macro support.
+	* emacs-lisp/macroexp.el (macroexpand-all-1):
+	Support compiler-macros directly.  Properly follow aliases and apply
+	the compiler macros more thoroughly.
+	* emacs-lisp/cl.el: Don't copy compiler-macro properties any more since
+	macroexpand now properly follows aliases.
+	* emacs-lisp/cl-macs.el (toplevel, cl-define-compiler-macro)
+	(cl-compiler-macroexpand): Use new prop.
+	* emacs-lisp/byte-opt.el (featurep): Optimize earlier.
+
+	* emacs-lisp/cl-lib.el (custom-print-functions): Add alias.
+
 2012-06-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (get-lru-window, get-mru-window, get-largest-window):
@@ -5,8 +19,8 @@
 	(window--display-buffer-1, window--display-buffer-2): Replace by
 	new function window--display-buffer
 	(display-buffer-same-window, display-buffer-reuse-window)
-	(display-buffer-pop-up-frame, display-buffer-pop-up-window): Use
-	window--display-buffer.
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Use window--display-buffer.
 	(display-buffer-use-some-window): Remove temporary dedication
 	hack by calling get-lru-window and get-largest-window with
 	NOT-SELECTED argument non-nil.  Call window--display-buffer.

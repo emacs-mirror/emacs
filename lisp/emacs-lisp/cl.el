@@ -321,13 +321,11 @@
                (intern (format "cl-%s" fun)))))
     (defalias fun new)
     ;; If `cl-foo' is declare inline, then make `foo' inline as well, and
-    ;; similarly, if `cl-foo' has a compiler-macro, make it available for `foo'
-    ;; as well.  Same for edebug specifications, indent rules and
+    ;; similarly.  Same for edebug specifications, indent rules and
     ;; doc-string position.
     ;; FIXME: For most of them, we should instead follow aliases
     ;; where applicable.
-    (dolist (prop '(byte-optimizer byte-compile cl-compiler-macro
-                    doc-string-elt edebug-form-spec
+    (dolist (prop '(byte-optimizer doc-string-elt edebug-form-spec
                     lisp-indent-function))
       (if (get new prop)
         (put fun prop (get new prop))))))

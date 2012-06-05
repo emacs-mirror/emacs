@@ -2874,14 +2874,12 @@ That command is designed for interactive use only" fn))
             (byte-compile-log-warning
              (format "Forgot to expand macro %s" (car form)) nil :error))
         (if (and handler
-                 ;; Make sure that function exists.  This is important
-                 ;; for CL compiler macros since the symbol may be
-                 ;; `cl-byte-compile-compiler-macro' but if CL isn't
-                 ;; loaded, this function doesn't exist.
-                 (and (not (eq handler
-                               ;; Already handled by macroexpand-all.
-                               'cl-byte-compile-compiler-macro))
-                      (functionp handler)))
+                 ;; Make sure that function exists.
+                 (and (functionp handler)
+                      ;; Ignore obsolete byte-compile function used by former
+                      ;; CL code to handle compiler macros (we do it
+                      ;; differently now).
+                      (not (eq handler 'cl-byte-compile-compiler-macro))))
             (funcall handler form)
           (byte-compile-normal-call form))
         (if (byte-compile-warning-enabled-p 'cl-functions)

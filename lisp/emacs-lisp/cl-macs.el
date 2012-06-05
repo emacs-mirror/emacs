@@ -2922,28 +2922,24 @@ and then returning foo."
     (setq args (nconc (nreverse res) (and p (list '&rest p)))))
   `(cl-eval-when (compile load eval)
      ,(cl-transform-function-property
-       func 'cl-compiler-macro
+       func 'compiler-macro
        (cons (if (memq '&whole args) (delq '&whole args)
                (cons '_cl-whole-arg args)) body))
-     (or (get ',func 'byte-compile)
-         (progn
-           (put ',func 'byte-compile
-                'cl-byte-compile-compiler-macro)
-           ;; This is so that describe-function can locate
-           ;; the macro definition.
-           (let ((file ,(or buffer-file-name
-                            (and (boundp 'byte-compile-current-file)
-                                 (stringp byte-compile-current-file)
-                                 byte-compile-current-file))))
-             (if file (put ',func 'compiler-macro-file
-                           (purecopy (file-name-nondirectory file)))))))))
+     ;; This is so that describe-function can locate
+     ;; the macro definition.
+     (let ((file ,(or buffer-file-name
+                      (and (boundp 'byte-compile-current-file)
+                           (stringp byte-compile-current-file)
+                           byte-compile-current-file))))
+       (if file (put ',func 'compiler-macro-file
+                     (purecopy (file-name-nondirectory file)))))))
 
 ;;;###autoload
 (defun cl-compiler-macroexpand (form)
   (while
       (let ((func (car-safe form)) (handler nil))
 	(while (and (symbolp func)
-		    (not (setq handler (get func 'cl-compiler-macro)))
+		    (not (setq handler (get func 'compiler-macro)))
 		    (fboundp func)
 		    (or (not (eq (car-safe (symbol-function func)) 'autoload))
 			(load (nth 1 (symbol-function func)))))
@@ -3106,9 +3102,8 @@ surrounded by (cl-block NAME ...).
 
 (mapc (lambda (y)
 	(put (car y) 'side-effect-free t)
-	(put (car y) 'byte-compile 'cl-byte-compile-compiler-macro)
-	(put (car y) 'cl-compiler-macro
-	     `(lambda (w x)
+	(put (car y) 'compiler-macro
+	     `(lambda (_w x)
 		,(if (symbolp (cadr y))
 		     `(list ',(cadr y)
 			    (list ',(cl-caddr y) x))

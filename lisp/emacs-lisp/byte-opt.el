@@ -1159,15 +1159,15 @@
 ;; optimize string-as-unibyte, string-as-multibyte, string-make-unibyte,
 ;; string-make-multibyte for constant args.
 
-(put 'featurep 'byte-optimizer 'byte-optimize-featurep)
-(defun byte-optimize-featurep (form)
-  ;; Emacs-21's byte-code doesn't run under XEmacs or SXEmacs anyway, so we
-  ;; can safely optimize away this test.
-  (if (member (cdr-safe form) '(((quote xemacs)) ((quote sxemacs))))
-      nil
-    (if (member (cdr-safe form) '(((quote emacs))))
-	t
-      form)))
+(put 'featurep 'compiler-macro
+     (lambda (form &rest _ignore)
+       ;; Emacs-21's byte-code doesn't run under XEmacs or SXEmacs anyway, so
+       ;; we can safely optimize away this test.
+       (if (member (cdr-safe form) '(((quote xemacs)) ((quote sxemacs))))
+           nil
+         (if (member (cdr-safe form) '(((quote emacs))))
+             t
+           form))))
 
 (put 'set 'byte-optimizer 'byte-optimize-set)
 (defun byte-optimize-set (form)

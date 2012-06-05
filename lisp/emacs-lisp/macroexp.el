@@ -177,25 +177,37 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    (cons (macroexpand-all-1
                           (list 'function f))
                          (macroexpand-all-forms args)))))
-      ;; Macro expand compiler macros.  This cannot be delayed to
-      ;; byte-optimize-form because the output of the compiler-macro can
-      ;; use macros.
-      ;; FIXME: Don't depend on CL.
-      (`(,(pred (lambda (fun)
-                  (and (symbolp fun)
-                       (eq (get fun 'byte-compile)
-                           'cl-byte-compile-compiler-macro)
-                       (functionp 'cl-compiler-macroexpand))))
-         . ,_)
-       (let ((newform (with-no-warnings (cl-compiler-macroexpand form))))
-         (if (eq form newform)
+      (`(,func . ,_)
+       ;; Macro expand compiler macros.  This cannot be delayed to
+       ;; byte-optimize-form because the output of the compiler-macro can
+       ;; use macros.
+       (let ((handler nil))
+         (while (and (symbolp func)
+                     (not (setq handler (get func 'compiler-macro)))
+                     (fboundp func)
+                     (or (not (eq (car-safe (symbol-function func))
+                                  'autoload))
+                         (load (nth 1 (symbol-function func)))))
+           ;; Follow the sequence of aliases.
+           (setq func (symbol-function func)))
+         (if (null handler)
+             ;; No compiler macro.  We just expand each argument (for
+             ;; setq/setq-default this works alright because the variable names
+             ;; are symbols).
              (macroexpand-all-forms form 1)
-           (macroexpand-all-1 newform))))
-      (`(,_ . ,_)
-       ;; For every other list, we just expand each argument (for
-       ;; setq/setq-default this works alright because the variable names
-       ;; are symbols).
-       (macroexpand-all-forms form 1))
+           (let ((newform (apply handler form (cdr form))))
+             (if (eq form newform)
+                 ;; The compiler macro did not find anything to do.
+                 (if (equal form (setq newform (macroexpand-all-forms form 1)))
+                     form
+                   ;; Maybe after processing the args, some new opportunities
+                   ;; appeared, so let's try the compiler macro again.
+                   (if (eq newform
+                           (setq form (apply handler newform (cdr newform))))
+                       newform
+                     (macroexpand-all-1 newform)))
+               (macroexpand-all-1 newform))))))
+
       (t form))))
 
 ;;;###autoload
