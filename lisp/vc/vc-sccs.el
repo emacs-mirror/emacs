@@ -1,6 +1,6 @@
 ;;; vc-sccs.el --- support for SCCS version-control
 
-;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -188,9 +188,17 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-sccs-workfile-unchanged-p (file)
   "SCCS-specific implementation of `vc-workfile-unchanged-p'."
-  (zerop (apply 'vc-do-command "*vc*" 1 "vcdiff" (vc-name file)
-                (list "--brief" "-q"
-                      (concat "-r" (vc-working-revision file))))))
+  (let ((tempfile (make-temp-file "vc-sccs")))
+    (unwind-protect
+	(progn
+	  (with-temp-buffer
+	    ;; Cf vc-sccs-find-revision.
+	    (vc-sccs-do-command t 0 "get" (vc-name file)
+				"-s" "-p" "-k" ; no keyword expansion
+				(concat "-r" (vc-working-revision file)))
+	    (write-region nil nil tempfile nil 'silent))
+	  (zerop (vc-do-command "*vc*" 1 "cmp" file tempfile)))
+      (delete-file tempfile))))
 
 
 ;;;
