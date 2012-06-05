@@ -1,10 +1,11 @@
 ;;; cust-print.el --- handles print-level and print-circle
 
-;; Copyright (C) 1992, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Adapted-By: ESR
 ;; Keywords: extensions
+;; Obsolete-since: 24.2
 
 ;; LCD Archive Entry:
 ;; cust-print|Daniel LaLiberte|liberte@holonexus.org
