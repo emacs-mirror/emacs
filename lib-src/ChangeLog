@@ -1,3 +1,9 @@
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in ($(BLD)/getdate.$(O), $(BLD)/leditcfns.$(O)):
+	($(BLD)/make-path.$(O), $(BLD)/qsort.$(O)):
+	($(BLD)/timer.$(O)): Remove cruft.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* rcs-checkin: Remove file.

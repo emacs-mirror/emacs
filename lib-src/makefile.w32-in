@@ -387,24 +387,12 @@ $(BLD)/etags.$(O) : \
 	$(SRC)/ntlib.h \
 	$(EMACS_ROOT)/lib/getopt.h
 
-$(BLD)/getdate.$(O) : \
-	$(SRC)/getdate.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(MSTOOLS_SYS)/types.h
-
 $(BLD)/hexl.$(O) : \
 	$(SRC)/hexl.c
-
-$(BLD)/leditcfns.$(O) : \
-	$(SRC)/leditcfns.c
 
 $(BLD)/make-docfile.$(O) : \
 	$(SRC)/make-docfile.c \
 	$(EMACS_ROOT)/src/config.h
-
-$(BLD)/make-path.$(O) : \
-	$(SRC)/make-path.c
 
 $(BLD)/movemail.$(O) : \
 	$(SRC)/movemail.c \
@@ -435,19 +423,11 @@ $(BLD)/profile.$(O) : \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(EMACS_ROOT)/lib-src/../src/systime.h
 
-$(BLD)/qsort.$(O) : \
-	$(SRC)/qsort.c
-
 $(BLD)/tcp.$(O) : \
 	$(SRC)/tcp.c
 
 $(BLD)/test-distrib.$(O) : \
 	$(SRC)/test-distrib.c
-
-$(BLD)/timer.$(O) : \
-	$(SRC)/timer.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h
 
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.
