@@ -289,7 +289,7 @@ This also does some trivial optimizations to make the form prettier.
 ;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
 ;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
 ;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "35e128b3ab7780c4f9c25da5a0adea7a")
+;;;;;;  "f3973150add70d26cadb8530147dfc99")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\

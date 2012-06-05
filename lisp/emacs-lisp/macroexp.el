@@ -187,7 +187,8 @@ Assumes the caller has bound `macroexpand-all-environment'."
                      (fboundp func)
                      (or (not (eq (car-safe (symbol-function func))
                                   'autoload))
-                         (load (nth 1 (symbol-function func)))))
+                         (ignore-errors
+                           (load (nth 1 (symbol-function func))))))
            ;; Follow the sequence of aliases.
            (setq func (symbol-function func)))
          (if (null handler)
@@ -195,15 +196,21 @@ Assumes the caller has bound `macroexpand-all-environment'."
              ;; setq/setq-default this works alright because the variable names
              ;; are symbols).
              (macroexpand-all-forms form 1)
-           (let ((newform (apply handler form (cdr form))))
+           (let ((newform (condition-case err
+                              (apply handler form (cdr form))
+                            (error (message "Compiler-macro error: %S" err)
+                                   form))))
              (if (eq form newform)
                  ;; The compiler macro did not find anything to do.
                  (if (equal form (setq newform (macroexpand-all-forms form 1)))
                      form
                    ;; Maybe after processing the args, some new opportunities
                    ;; appeared, so let's try the compiler macro again.
-                   (if (eq newform
-                           (setq form (apply handler newform (cdr newform))))
+                   (setq form (condition-case err
+                                  (apply handler newform (cdr newform))
+                                (error (message "Compiler-macro error: %S" err)
+                                       newform)))
+                   (if (eq newform form)
                        newform
                      (macroexpand-all-1 newform)))
                (macroexpand-all-1 newform))))))

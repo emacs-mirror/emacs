@@ -1,5 +1,8 @@
 2012-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Tolerate errors during
+	compiler-macro expansion.
+
 	Add native compiler-macro support.
 	* emacs-lisp/macroexp.el (macroexpand-all-1):
 	Support compiler-macros directly.  Properly follow aliases and apply
