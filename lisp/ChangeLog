@@ -1,3 +1,16 @@
+2012-06-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-lru-window, get-mru-window, get-largest-window):
+	New argument NOT-SELECTED to avoid picking the selected window.
+	(window--display-buffer-1, window--display-buffer-2): Replace by
+	new function window--display-buffer
+	(display-buffer-same-window, display-buffer-reuse-window)
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window): Use
+	window--display-buffer.
+	(display-buffer-use-some-window): Remove temporary dedication
+	hack by calling get-lru-window and get-largest-window with
+	NOT-SELECTED argument non-nil.  Call window--display-buffer.
+
 2012-06-05  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-sccs.el (vc-sccs-workfile-unchanged-p):
