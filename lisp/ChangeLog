@@ -1,5 +1,7 @@
 2012-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-list/cust-print.el: Move to obsolete.
+
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Tolerate errors during
 	compiler-macro expansion.
 

@@ -302,6 +302,8 @@ inefficiency, and not namespace-clean.
 
 *** patcomp.el
 
+*** cust-print.el
+
 
 * New Modes and Packages in Emacs 24.2
 
