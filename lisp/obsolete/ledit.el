@@ -4,6 +4,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: languages
+;; Obsolete-since: 24.2
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This is a major mode for editing Liszt.  See etc/LEDIT for details.
+;; This is a major mode for editing Liszt.
 
 ;;; Code:
 

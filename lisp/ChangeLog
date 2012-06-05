@@ -1,3 +1,7 @@
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* ledit.el: Move to obsolete/.
+
 2012-06-05  Sam Steingold  <sds@gnu.org>
 
 	* calendar/calendar.el (calendar-exit): reinstate the 2012-03-28
