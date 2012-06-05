@@ -522,15 +522,15 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
   artist, ansi-color, array, battery, calculator, cdl, cmuscheme,
   completion, cua, delim-col, dirtrack, double, echistory, elide-head,
   easymenu, expand, flow-ctrl, format [format-alist],
-  generic/generic-x [various modes], kermit, log-edit, ledit
-  [obsolete?], makesum, midnight [other than in Kill Buffer node],
+  generic/generic-x [various modes], kermit, log-edit,
+  makesum, midnight [other than in Kill Buffer node],
   mouse-copy [?], mouse-drag, mouse-sel, net-utils, rcompile,
   snmp-mode [?], soundex [should be interactive?], strokes [start from
   the web page], talk, thingatpt [interactive functions?], type-break,
-  vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt, iso-swed,
-  swedish, feedmail [?], uce, bruce, gametree, meese, page-ext,
+  vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt,
+  feedmail [?], uce, gametree, meese, page-ext,
   refbib, refer, scribe, sgml-mode, spell, texinfo, underline,
-  cmacexp, hideif, mantemp [obsolete?], pcomplete, assoc, xml,
+  cmacexp, hideif, mantemp [obsolete?], pcomplete, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
 
