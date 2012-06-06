@@ -1,5 +1,8 @@
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-rcs.el (vc-rcs-rcs2log-program): New.
+	(vc-rcs-update-changelog): Use it.
+
 	* emacs-lisp/authors.el (authors-fixed-entries): Remove vcdiff
 
 	* vc/vc-sccs.el (vc-sccs-write-revision): New function.
