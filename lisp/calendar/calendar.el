@@ -1112,6 +1112,7 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
   (declare (indent 1) (debug t))
   `(progn
      (set-buffer (get-buffer-create ,buffer))
+     (special-mode)
      (setq buffer-read-only nil
            buffer-undo-list t)
      (erase-buffer)
@@ -1119,7 +1120,6 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
      (goto-char (point-min))
      (set-buffer-modified-p nil)
      (setq buffer-read-only t)
-     (special-mode)
      (display-buffer ,buffer)))
 
 ;; The following are in-line for speed; they can be called thousands of times
