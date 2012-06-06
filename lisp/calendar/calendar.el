@@ -1105,9 +1105,8 @@ inclusive.  The standard macro `dotimes' is preferable in most cases."
             ,index (1+ ,index)))
     sum))
 
-;; FIXME bind q to bury-buffer?
 (defmacro calendar-in-read-only-buffer (buffer &rest body)
-  "Switch to BUFFER and executes the forms in BODY.
+  "Switch to BUFFER and execute the forms in BODY.
 First creates or erases BUFFER as needed.  Leaves BUFFER read-only,
 with disabled undo.  Leaves point at point-min, displays BUFFER."
   (declare (indent 1) (debug t))
@@ -1120,6 +1119,7 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
      (goto-char (point-min))
      (set-buffer-modified-p nil)
      (setq buffer-read-only t)
+     (special-mode)
      (display-buffer ,buffer)))
 
 ;; The following are in-line for speed; they can be called thousands of times

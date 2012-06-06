@@ -1,3 +1,8 @@
+2012-06-06  Sam Steingold  <sds@gnu.org>
+
+	* calendar/calendar.el (calendar-in-read-only-buffer):
+	Call `special-mode' to enable the standard read-only keybindings.
+
 2012-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Don't spam the output
