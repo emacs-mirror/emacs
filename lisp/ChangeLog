@@ -1,3 +1,8 @@
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Add relevant EMACS env-vars.
+	Only print environment variables if set.
+
 2012-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el: Don't require CL since we don't use it.
