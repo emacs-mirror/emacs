@@ -5522,7 +5522,13 @@ This variable has no effect if long lines are truncated (see
 `truncate-lines' and `truncate-partial-width-windows').  If you use
 word-wrapping, you might want to reduce the value of
 `truncate-partial-width-windows', since wrapping can make text readable
-in narrower windows.  */);
+in narrower windows.
+
+Instead of setting this variable directly, most users should use
+Visual Line mode .  Visual Line mode, when enabled, sets `word-wrap'
+to t, and additionally redefines simple editing commands to act on
+visual lines rather than logical lines.  See the documentation of
+`visual-line-mode'.  */);
 
   DEFVAR_PER_BUFFER ("default-directory", &BVAR (current_buffer, directory),
 		     make_number (Lisp_String),
