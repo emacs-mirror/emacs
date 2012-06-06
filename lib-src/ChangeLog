@@ -1,5 +1,9 @@
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (STAMP_INST_SCRIPTS, STAMP_SCRIPTS, insrcdir)
+	(stamp-rcs2log, stamp-grep-changelog): Remove.
+	(all, clean): Remove references to stamps.
+
 	* vcdiff: Remove file.
 	* Makefile.in (SCRIPTS, STAMP_SCRIPTS): Remove vcdiff.
 	(stamp-vcdiff): Remove.

@@ -118,7 +118,6 @@ INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
                ebrowse${EXEEXT}
 
 INSTALLABLE_SCRIPTS = grep-changelog
-STAMP_INST_SCRIPTS = stamp-grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
@@ -130,7 +129,6 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
 SCRIPTS= rcs2log
-STAMP_SCRIPTS= stamp-rcs2log
 
 # All files that are created by the linker, i.e., whose names end in ${EXEEXT}.
 EXE_FILES = ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -181,23 +179,10 @@ ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
-all: ${EXE_FILES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS} ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
+all: ${EXE_FILES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
 LOADLIBES = ../lib/libgnu.a $(LIBS_SYSTEM)
 $(EXE_FILES): ../lib/libgnu.a
-
-## These targets copy the scripts into the build directory so that
-## they can be run from there in an uninstalled Emacs.
-## Nothing to do if pwd = srcdir.
-insrcdir=[ "`/bin/pwd`" = "`cd $(srcdir) && /bin/pwd`" ]
-
-stamp-rcs2log: $(srcdir)/rcs2log
-	$(insrcdir) || cp -p $(srcdir)/rcs2log rcs2log
-	touch $@
-
-stamp-grep-changelog: $(srcdir)/grep-changelog
-	$(insrcdir) || cp -p $(srcdir)/grep-changelog grep-changelog
-	touch $@
 
 ## Only used if we need blessmail, but no harm in always defining.
 ## This makes the actual blessmail executable.
@@ -273,7 +258,6 @@ mostlyclean:
 
 clean: mostlyclean
 	-rm -f ${EXE_FILES}
-	-rm -f ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 distclean: clean
 	-rm -f TAGS
