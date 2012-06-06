@@ -8,6 +8,9 @@
 	* files.el (enable-remote-dir-locals): New option.
 	(hack-dir-local-variables): Use it.  (Bug#1933, Bug#6731)
 
+	* progmodes/python.el (python-send-region): Ensure, that the
+	temporary file is created also in the remote case.
+
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-rcs.el (vc-rcs-rcs2log-program): New.
