@@ -188,7 +188,8 @@ Assumes the caller has bound `macroexpand-all-environment'."
                      (or (not (eq (car-safe (symbol-function func))
                                   'autoload))
                          (ignore-errors
-                           (load (nth 1 (symbol-function func))))))
+                           (load (nth 1 (symbol-function func))
+                                 'noerror 'nomsg))))
            ;; Follow the sequence of aliases.
            (setq func (symbol-function func)))
          (if (null handler)

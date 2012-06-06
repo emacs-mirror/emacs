@@ -1,3 +1,8 @@
+2012-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Don't spam the output
+	with "loading" messages (bug#11635).
+
 2012-06-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (enable-remote-dir-locals): New option.
