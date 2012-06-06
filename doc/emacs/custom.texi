@@ -1283,7 +1283,9 @@ specified in @file{.dir-locals.el}, as though they had been defined as
 file-local variables for that file (@pxref{File Variables}).  Emacs
 searches for @file{.dir-locals.el} starting in the directory of the
 visited file, and moving up the directory tree.  To avoid slowdown,
-this search is skipped for remote files.
+this search is skipped for remote files.  If needed, the search can be
+extended for remote files by setting the variable
+@code{enable-remote-dir-locals} to @code{t}.
 
   The @file{.dir-locals.el} file should hold a specially-constructed
 list, which maps major mode names (symbols) to alists

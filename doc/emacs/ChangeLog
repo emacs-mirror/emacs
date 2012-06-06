@@ -1,3 +1,7 @@
+2012-06-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* custom.texi (Directory Variables): Mention enable-remote-dir-locals.
+
 2012-05-28  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi, building.texi, calendar.texi, custom.texi:
