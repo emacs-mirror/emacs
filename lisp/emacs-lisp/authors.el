@@ -399,7 +399,7 @@ Changes to files in this list are not listed.")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
-    ("Paul Eggert" :wrote "rcs2log" "vcdiff")
+    ("Paul Eggert" :wrote "rcs2log") ; "vcdiff"
     ("Fred Fish" :changed "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Tim Fleehart" :wrote "makefile.nt")

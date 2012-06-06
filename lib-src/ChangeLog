@@ -1,3 +1,9 @@
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* vcdiff: Remove file.
+	* Makefile.in (SCRIPTS, STAMP_SCRIPTS): Remove vcdiff.
+	(stamp-vcdiff): Remove.
+
 2012-06-05  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in ($(BLD)/getdate.$(O), $(BLD)/leditcfns.$(O)):

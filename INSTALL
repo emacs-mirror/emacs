@@ -719,7 +719,7 @@ directory of the Emacs distribution.
 in `./lib-src' to their final destinations, as selected in `./src/epaths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
-- The programs `hexl', `movemail', `profile', `rcs2log', and `vcdiff'
+- The programs `hexl', `movemail', `profile', and `rcs2log'
     are used by Emacs; they do need to be copied.
 - The programs `etags', `ctags', and `emacsclient' are intended to be
     run by users; they are handled below.

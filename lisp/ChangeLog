@@ -1,5 +1,7 @@
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove vcdiff
+
 	* vc/vc-sccs.el (vc-sccs-write-revision): New function.
 	(vc-sccs-workfile-unchanged-p): Use vc-sccs-write-revision.
 	(vc-sccs-diff): Replace use of the external vcdiff script.

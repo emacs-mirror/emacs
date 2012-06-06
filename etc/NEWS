@@ -44,6 +44,11 @@ you want them.
 ** On Mac OS X, configure no longer automatically adds the Fink /sw
 directories to the search path.  You must add them yourself if you want them.
 
+---
+** The standalone scripts rcs-checkin and vcdiff have been removed
+(from the bin and libexec directories, respectively).  The former is
+no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
+
 
 * Startup Changes in Emacs 24.2
 

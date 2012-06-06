@@ -1,3 +1,7 @@
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL, make-dist: Remove vcdiff.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL, make-dist: Remove rcs-checkin.

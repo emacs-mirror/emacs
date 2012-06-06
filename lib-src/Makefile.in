@@ -129,8 +129,8 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
-SCRIPTS= rcs2log vcdiff
-STAMP_SCRIPTS= stamp-rcs2log stamp-vcdiff
+SCRIPTS= rcs2log
+STAMP_SCRIPTS= stamp-rcs2log
 
 # All files that are created by the linker, i.e., whose names end in ${EXEEXT}.
 EXE_FILES = ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -197,10 +197,6 @@ stamp-rcs2log: $(srcdir)/rcs2log
 
 stamp-grep-changelog: $(srcdir)/grep-changelog
 	$(insrcdir) || cp -p $(srcdir)/grep-changelog grep-changelog
-	touch $@
-
-stamp-vcdiff: $(srcdir)/vcdiff
-	$(insrcdir) || cp -p $(srcdir)/vcdiff vcdiff
 	touch $@
 
 ## Only used if we need blessmail, but no harm in always defining.
