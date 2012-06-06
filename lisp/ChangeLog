@@ -1,3 +1,9 @@
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-sccs.el (vc-sccs-write-revision): New function.
+	(vc-sccs-workfile-unchanged-p): Use vc-sccs-write-revision.
+	(vc-sccs-diff): Replace use of the external vcdiff script.
+
 2012-06-05  Glenn Morris  <rgm@gnu.org>
 
 	* ledit.el: Move to obsolete/.
