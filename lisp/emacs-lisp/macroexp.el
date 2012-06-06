@@ -29,13 +29,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;; Bound by the top-level `macroexpand-all', and modified to include any
 ;; macros defined by `defmacro'.
 (defvar macroexpand-all-environment nil)
 
-(defun maybe-cons (car cdr original-cons)
+(defun macroexp--cons (car cdr original-cons)
   "Return (CAR . CDR), using ORIGINAL-CONS if possible."
   (if (and (eq car (car original-cons)) (eq cdr (cdr original-cons)))
       original-cons
@@ -43,9 +41,9 @@
 
 ;; We use this special macro to iteratively process forms and share list
 ;; structure of the result with the input.  Doing so recursively using
-;; `maybe-cons' results in excessively deep recursion for very long
+;; `macroexp--cons' results in excessively deep recursion for very long
 ;; input forms.
-(defmacro macroexp-accumulate (var+list &rest body)
+(defmacro macroexp--accumulate (var+list &rest body)
   "Return a list of the results of evaluating BODY for each element of LIST.
 Evaluate BODY with VAR bound to each `car' from LIST, in turn.
 Return a list of the values of the final form in BODY.
@@ -76,27 +74,27 @@ result will be eq to LIST).
 	 (setq ,tail (cdr ,tail)))
        (nconc (nreverse ,unshared) ,shared))))
 
-(defun macroexpand-all-forms (forms &optional skip)
+(defun macroexp--all-forms (forms &optional skip)
   "Return FORMS with macros expanded.  FORMS is a list of forms.
 If SKIP is non-nil, then don't expand that many elements at the start of
 FORMS."
-  (macroexp-accumulate (form forms)
+  (macroexp--accumulate (form forms)
     (if (or (null skip) (zerop skip))
-	(macroexpand-all-1 form)
+	(macroexp--expand-all form)
       (setq skip (1- skip))
       form)))
 
-(defun macroexpand-all-clauses (clauses &optional skip)
+(defun macroexp--all-clauses (clauses &optional skip)
   "Return CLAUSES with macros expanded.
 CLAUSES is a list of lists of forms; any clause that's not a list is ignored.
 If SKIP is non-nil, then don't expand that many elements at the start of
 each clause."
-  (macroexp-accumulate (clause clauses)
+  (macroexp--accumulate (clause clauses)
     (if (listp clause)
-	(macroexpand-all-forms clause skip)
+	(macroexp--all-forms clause skip)
       clause)))
 
-(defun macroexpand-all-1 (form)
+(defun macroexp--expand-all (form)
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
 Assumes the caller has bound `macroexpand-all-environment'."
@@ -105,7 +103,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
       ;; generates exceedingly deep expansions from relatively shallow input
       ;; forms.  We just process it `in reverse' -- first we expand all the
       ;; arguments, _then_ we expand the top-level definition.
-      (macroexpand (macroexpand-all-forms form 1)
+      (macroexpand (macroexp--all-forms form 1)
 		   macroexpand-all-environment)
     ;; Normal form; get its expansion, and then expand arguments.
     (let ((new-form (macroexpand form macroexpand-all-environment)))
@@ -118,34 +116,34 @@ Assumes the caller has bound `macroexpand-all-environment'."
       (setq form new-form))
     (pcase form
       (`(cond . ,clauses)
-       (maybe-cons 'cond (macroexpand-all-clauses clauses) form))
+       (macroexp--cons 'cond (macroexp--all-clauses clauses) form))
       (`(condition-case . ,(or `(,err ,body . ,handlers) dontcare))
-       (maybe-cons
+       (macroexp--cons
         'condition-case
-        (maybe-cons err
-                    (maybe-cons (macroexpand-all-1 body)
-                                (macroexpand-all-clauses handlers 1)
+        (macroexp--cons err
+                    (macroexp--cons (macroexp--expand-all body)
+                                (macroexp--all-clauses handlers 1)
                                 (cddr form))
                     (cdr form))
         form))
-      (`(,(or `defvar `defconst) . ,_) (macroexpand-all-forms form 2))
+      (`(,(or `defvar `defconst) . ,_) (macroexp--all-forms form 2))
       (`(function ,(and f `(lambda . ,_)))
-       (maybe-cons 'function
-                   (maybe-cons (macroexpand-all-forms f 2)
+       (macroexp--cons 'function
+                   (macroexp--cons (macroexp--all-forms f 2)
                                nil
                                (cdr form))
                    form))
       (`(,(or `function `quote) . ,_) form)
       (`(,(and fun (or `let `let*)) . ,(or `(,bindings . ,body) dontcare))
-       (maybe-cons fun
-                   (maybe-cons (macroexpand-all-clauses bindings 1)
-                               (macroexpand-all-forms body)
+       (macroexp--cons fun
+                   (macroexp--cons (macroexp--all-clauses bindings 1)
+                               (macroexp--all-forms body)
                                (cdr form))
                    form))
       (`(,(and fun `(lambda . ,_)) . ,args)
        ;; Embedded lambda in function position.
-       (maybe-cons (macroexpand-all-forms fun 2)
-                   (macroexpand-all-forms args)
+       (macroexp--cons (macroexp--all-forms fun 2)
+                   (macroexp--all-forms args)
                    form))
       ;; The following few cases are for normal function calls that
       ;; are known to funcall one of their arguments.  The byte
@@ -161,22 +159,22 @@ Assumes the caller has bound `macroexpand-all-environment'."
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         t)
-       ;; We don't use `maybe-cons' since there's clearly a change.
+       ;; We don't use `macroexp--cons' since there's clearly a change.
        (cons fun
-             (cons (macroexpand-all-1 (list 'function f))
-                   (macroexpand-all-forms args))))
+             (cons (macroexp--expand-all (list 'function f))
+                   (macroexp--all-forms args))))
       ;; Second arg is a function:
       (`(,(and fun (or `sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
        (byte-compile-log-warning
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         t)
-       ;; We don't use `maybe-cons' since there's clearly a change.
+       ;; We don't use `macroexp--cons' since there's clearly a change.
        (cons fun
-             (cons (macroexpand-all-1 arg1)
-                   (cons (macroexpand-all-1
+             (cons (macroexp--expand-all arg1)
+                   (cons (macroexp--expand-all
                           (list 'function f))
-                         (macroexpand-all-forms args)))))
+                         (macroexp--all-forms args)))))
       (`(,func . ,_)
        ;; Macro expand compiler macros.  This cannot be delayed to
        ;; byte-optimize-form because the output of the compiler-macro can
@@ -196,14 +194,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
              ;; No compiler macro.  We just expand each argument (for
              ;; setq/setq-default this works alright because the variable names
              ;; are symbols).
-             (macroexpand-all-forms form 1)
+             (macroexp--all-forms form 1)
            (let ((newform (condition-case err
                               (apply handler form (cdr form))
                             (error (message "Compiler-macro error: %S" err)
                                    form))))
              (if (eq form newform)
                  ;; The compiler macro did not find anything to do.
-                 (if (equal form (setq newform (macroexpand-all-forms form 1)))
+                 (if (equal form (setq newform (macroexp--all-forms form 1)))
                      form
                    ;; Maybe after processing the args, some new opportunities
                    ;; appeared, so let's try the compiler macro again.
@@ -213,8 +211,8 @@ Assumes the caller has bound `macroexpand-all-environment'."
                                        newform)))
                    (if (eq newform form)
                        newform
-                     (macroexpand-all-1 newform)))
-               (macroexpand-all-1 newform))))))
+                     (macroexp--expand-all newform)))
+               (macroexp--expand-all newform))))))
 
       (t form))))
 
@@ -225,7 +223,7 @@ If no macros are expanded, FORM is returned unchanged.
 The second optional arg ENVIRONMENT specifies an environment of macro
 definitions to shadow the loaded ones for use in file byte-compilation."
   (let ((macroexpand-all-environment environment))
-    (macroexpand-all-1 form)))
+    (macroexp--expand-all form)))
 
 (provide 'macroexp)
 

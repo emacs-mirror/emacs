@@ -1,3 +1,12 @@
+2012-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el: Don't require CL since we don't use it.
+	(macroexp--cons): Rename from maybe-cons.
+	(macroexp--accumulate): Rename from macroexp-accumulate.
+	(macroexp--all-forms): Rename from macroexpand-all-forms.
+	(macroexp--all-clauses): Rename from macroexpand-all-clauses.
+	(macroexp--expand-all): Rename from macroexpand-all-1.
+
 2012-06-06  Sam Steingold  <sds@gnu.org>
 
 	* calendar/calendar.el (calendar-in-read-only-buffer):
