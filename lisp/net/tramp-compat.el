@@ -205,7 +205,9 @@
 For Emacs, this is the variable `temporary-file-directory', for XEmacs
 this is the function `temp-directory'."
   (cond
-   ((boundp 'temporary-file-directory) (symbol-value 'temporary-file-directory))
+   ((and (boundp 'temporary-file-directory)
+	 (not (file-remote-p (symbol-value 'temporary-file-directory))))
+    (symbol-value 'temporary-file-directory))
    ((fboundp 'temp-directory) (tramp-compat-funcall 'temp-directory))
    ((let ((d (getenv "TEMP"))) (and d (file-directory-p d)))
     (file-name-as-directory (getenv "TEMP")))

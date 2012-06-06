@@ -3093,22 +3093,25 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	   'write-region
 	   (list start end localname append 'no-message lockname confirm))
 
-	(let ((modes (save-excursion (tramp-default-file-modes filename)))
-	      ;; We use this to save the value of
-	      ;; `last-coding-system-used' after writing the tmp
-	      ;; file.  At the end of the function, we set
-	      ;; `last-coding-system-used' to this saved value.  This
-	      ;; way, any intermediary coding systems used while
-	      ;; talking to the remote shell or suchlike won't hose
-	      ;; this variable.  This approach was snarfed from
-	      ;; ange-ftp.el.
-	      coding-system-used
-	      ;; Write region into a tmp file.  This isn't really
-	      ;; needed if we use an encoding function, but currently
-	      ;; we use it always because this makes the logic
-	      ;; simpler.
-	      (tmpfile (or tramp-temp-buffer-file-name
-			   (tramp-compat-make-temp-file filename))))
+	(let* ((modes (save-excursion (tramp-default-file-modes filename)))
+	       ;; We use this to save the value of
+	       ;; `last-coding-system-used' after writing the tmp
+	       ;; file.  At the end of the function, we set
+	       ;; `last-coding-system-used' to this saved value.  This
+	       ;; way, any intermediary coding systems used while
+	       ;; talking to the remote shell or suchlike won't hose
+	       ;; this variable.  This approach was snarfed from
+	       ;; ange-ftp.el.
+	       coding-system-used
+	       ;; Write region into a tmp file.  This isn't really
+	       ;; needed if we use an encoding function, but currently
+	       ;; we use it always because this makes the logic
+	       ;; simpler.  We must also set `temporary-file-directory',
+	       ;; because it could point to a remote directory.
+	       (temporary-file-directory
+		(tramp-compat-temporary-file-directory))
+	       (tmpfile (or tramp-temp-buffer-file-name
+			    (tramp-compat-make-temp-file filename))))
 
 	  ;; If `append' is non-nil, we copy the file locally, and let
 	  ;; the native `write-region' implementation do the job.

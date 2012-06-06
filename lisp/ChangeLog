@@ -8,6 +8,12 @@
 	* files.el (enable-remote-dir-locals): New option.
 	(hack-dir-local-variables): Use it.  (Bug#1933, Bug#6731)
 
+	* net/tramp-compat.el (tramp-compat-temporary-file-directory):
+	Ensure, that the temp directory is local.
+
+	* net/tramp-sh.el (tramp-sh-handle-write-region): Let-bind
+	`temporary-file-directory'.
+
 	* progmodes/python.el (python-send-region): Ensure, that the
 	temporary file is created also in the remote case.
 
