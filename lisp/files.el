@@ -3668,12 +3668,20 @@ is found.  Returns the new class name."
 	      class-name))
 	(error (message "Error reading dir-locals: %S" err) nil)))))
 
+(defcustom enable-remote-dir-locals nil
+  "Non-nil means dir-local variables will be applied to remote files."
+  :version "24.2"
+  :type 'boolean
+  :group 'find-file)
+
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
 Store the directory-local variables in `dir-local-variables-alist'
 and `file-local-variables-alist', without applying them."
   (when (and enable-local-variables
-	     (not (file-remote-p (or (buffer-file-name) default-directory))))
+	     (or enable-remote-dir-locals
+		 (not (file-remote-p (or (buffer-file-name)
+					 default-directory)))))
     ;; Find the variables file.
     (let ((variables-file (dir-locals-find-file
                            (or (buffer-file-name) default-directory)))

@@ -1,3 +1,8 @@
+2012-06-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (enable-remote-dir-locals): New option.
+	(hack-dir-local-variables): Use it.  (Bug#1933, Bug#6731)
+
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-rcs.el (vc-rcs-rcs2log-program): New.
