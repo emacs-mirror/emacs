@@ -229,8 +229,7 @@ Its value should be an event that has a binding in MENU."
                               (- (* 2 history-len) index-of-default))))))))
       (setq choice (cdr (assoc out tmm-km-list)))
       (and (null choice)
-	   (> (length out) (length tmm-c-prompt))
-	   (string= (substring out 0 (length tmm-c-prompt)) tmm-c-prompt)
+           (string-prefix-p tmm-c-prompt out)
 	   (setq out (substring out (length tmm-c-prompt))
 		 choice (cdr (assoc out tmm-km-list))))
       (and (null choice) out
@@ -330,9 +329,9 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
       (use-local-map (append map (current-local-map))))))
 
 (defun tmm-completion-delete-prompt ()
-  (set-buffer standard-output)
+  (with-current-buffer standard-output
   (goto-char (point-min))
-  (delete-region (point) (search-forward "Possible completions are:\n")))
+    (delete-region (point) (search-forward "Possible completions are:\n"))))
 
 (defun tmm-remove-inactive-mouse-face ()
   "Remove the mouse-face property from inactive menu items."
@@ -351,37 +350,23 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
     (set-buffer-modified-p nil)))
 
 (defun tmm-add-prompt ()
-  (add-hook 'minibuffer-exit-hook 'tmm-delete-map nil t)
   (unless tmm-c-prompt
     (error "No active menu entries"))
   (setq tmm-old-mb-map (tmm-define-keys t))
   ;; Get window and hide it for electric mode to get correct size
-  (save-window-excursion
-    (let ((completions
-           (mapcar 'car minibuffer-completion-table)))
-      (or tmm-completion-prompt
-          (add-hook 'completion-setup-hook
-                    'tmm-completion-delete-prompt 'append))
-      (unwind-protect
-          (with-output-to-temp-buffer "*Completions*"
-            (display-completion-list completions))
-        (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt)))
-    (set-buffer "*Completions*")
+  (or tmm-completion-prompt
+      (add-hook 'completion-setup-hook
+                'tmm-completion-delete-prompt 'append))
+  (unwind-protect
+      (minibuffer-completion-help)
+    (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt))
+  (with-current-buffer "*Completions*"
     (tmm-remove-inactive-mouse-face)
     (when tmm-completion-prompt
-      (let ((buffer-read-only nil))
-        (goto-char (point-min))
-        (insert tmm-completion-prompt))))
-  (save-selected-window
-    (other-window 1)			; Electric-pop-up-window does
-					; not work in minibuffer
-    (Electric-pop-up-window "*Completions*"))
+      (let ((inhibit-read-only t))
+	(goto-char (point-min))
+	(insert tmm-completion-prompt))))
   (insert tmm-c-prompt))
-
-(defun tmm-delete-map ()
-  (remove-hook 'minibuffer-exit-hook 'tmm-delete-map t)
-  (if tmm-old-mb-map
-      (use-local-map tmm-old-mb-map)))
 
 (defun tmm-shortcut ()
   "Choose the shortcut that the user typed."
@@ -520,6 +505,10 @@ of `menu-bar-final-items'."
 	(progn
 	  ;; Otherwise, it is a prefix, so make a list of the subcommands.
 	  ;; Make a list of all the bindings in all the keymaps.
+          ;; FIXME: we'd really like to just use `key-binding' now that it
+          ;; returns a keymap that contains really all the bindings under that
+          ;; prefix, but `keyseq' is always [menu-bar], so the desired order of
+          ;; the bindings is difficult to recover.
 	  (setq minorbind (mapcar 'cdr (minor-mode-key-binding keyseq)))
 	  (setq localbind (local-key-binding keyseq))
 	  (setq globalbind (copy-sequence (cdr (global-key-binding keyseq))))

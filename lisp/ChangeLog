@@ -1,5 +1,10 @@
 2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tmm.el (tmm-prompt): Use string-prefix-p.
+	(tmm-completion-delete-prompt): Don't affect current-buffer outside.
+	(tmm-add-prompt): Use minibuffer-completion-help.
+	(tmm-delete-map): Remove.
+
 	* subr.el (kbd): Make it its own function.
 
 2012-06-07  Stefan Merten  <smerten@oekonux.de>
