@@ -205,6 +205,12 @@ see the `apropos' Custom group for details.
 **** The old options whose values specified faces to use were removed
 (i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
 
+** Buffer Menu
+This package has been rewritten to use Tabulated List mode.
+
+*** Option `Buffer-menu-buffer+size-width' is now obsolete.
+Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
+
 ** Calendar
 
 *** The calendars produced by cal-html include holidays.
