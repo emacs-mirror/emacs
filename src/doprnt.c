@@ -392,15 +392,19 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		{
 		  /* Truncate the string at character boundary.  */
 		  tem = bufsize;
-		  while (!CHAR_HEAD_P (string[tem - 1])) tem--;
-		  /* If the multibyte sequence of this character is
-		     too long for the space we have left in the
-		     buffer, truncate before it.  */
-		  if (tem > 0
-		      && BYTES_BY_CHAR_HEAD (string[tem - 1]) > bufsize)
-		    tem--;
-		  if (tem > 0)
-		    memcpy (bufptr, string, tem);
+		  do
+		    {
+		      tem--;
+		      if (CHAR_HEAD_P (string[tem]))
+			{
+			  if (BYTES_BY_CHAR_HEAD (string[tem]) <= bufsize - tem)
+			    tem = bufsize;
+			  break;
+			}
+		    }
+		  while (tem != 0);
+
+		  memcpy (bufptr, string, tem);
 		  bufptr[tem] = 0;
 		  /* Trigger exit from the loop, but make sure we
 		     return to the caller a value which will indicate

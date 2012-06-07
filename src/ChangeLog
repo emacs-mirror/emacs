@@ -1,3 +1,11 @@
+2012-06-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doprnt.c (doprnt): Truncate multibyte char correctly.
+	Without this change, doprnt (buf, 2, "%s", FORMAT_END, AP)
+	would mishandle a string argument "Xc" if X was a multibyte
+	character of length 2: it would truncate after X's first byte
+	rather than including all of X.
+
 2012-06-06  Chong Yidong  <cyd@gnu.org>
 
 	* buffer.c (word_wrap): Doc fix.
