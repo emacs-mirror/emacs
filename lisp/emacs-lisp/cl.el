@@ -330,5 +330,37 @@
       (if (get new prop)
         (put fun prop (get new prop))))))
 
+;;; Additional compatibility code
+;; For names that were clean but really aren't needed any more.
+
+(defalias 'cl-macroexpand 'macroexpand)
+(defvaralias 'cl-macro-environment 'macroexpand-all-environment)
+(defalias 'cl-macroexpand-all 'macroexpand-all)
+
+;;; Hash tables.
+;; This is just kept for compatibility with code byte-compiled by Emacs-20.
+
+;; No idea if this might still be needed.
+(defun cl-not-hash-table (x &optional y &rest z)
+  (signal 'wrong-type-argument (list 'cl-hash-table-p (or y x))))
+
+(defvar cl-builtin-gethash (symbol-function 'gethash))
+(defvar cl-builtin-remhash (symbol-function 'remhash))
+(defvar cl-builtin-clrhash (symbol-function 'clrhash))
+(defvar cl-builtin-maphash (symbol-function 'maphash))
+
+(defalias 'cl-map-keymap 'map-keymap)
+(defalias 'cl-copy-tree 'copy-tree)
+(defalias 'cl-gethash 'gethash)
+(defalias 'cl-puthash 'puthash)
+(defalias 'cl-remhash 'remhash)
+(defalias 'cl-clrhash 'clrhash)
+(defalias 'cl-maphash 'maphash)
+(defalias 'cl-make-hash-table 'make-hash-table)
+(defalias 'cl-hash-table-p 'hash-table-p)
+(defalias 'cl-hash-table-count 'hash-table-count)
+
+;; FIXME: More candidates: define-modify-macro, define-setf-expander, lexical-let.
+
 (provide 'cl)
 ;;; cl.el ends here

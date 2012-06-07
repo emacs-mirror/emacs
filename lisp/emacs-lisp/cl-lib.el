@@ -267,29 +267,6 @@ right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
 one value."
   (nth n expression))
 
-;;; Macros.
-
-(defvar cl-macro-environment)
-(defvar cl-old-macroexpand (prog1 (symbol-function 'macroexpand)
-			     (defalias 'macroexpand 'cl-macroexpand)))
-
-(defun cl-macroexpand (cl-macro &optional cl-env)
-  "Return result of expanding macros at top level of FORM.
-If FORM is not a macro call, it is returned unchanged.
-Otherwise, the macro is expanded and the expansion is considered
-in place of FORM.  When a non-macro-call results, it is returned.
-
-The second optional arg ENVIRONMENT specifies an environment of macro
-definitions to shadow the loaded ones for use in file byte-compilation.
-\n(fn FORM &optional ENVIRONMENT)"
-  (let ((cl-macro-environment cl-env))
-    (while (progn (setq cl-macro (funcall cl-old-macroexpand cl-macro cl-env))
-		  (and (symbolp cl-macro)
-		       (cdr (assq (symbol-name cl-macro) cl-env))))
-      (setq cl-macro (cadr (assq (symbol-name cl-macro) cl-env))))
-    cl-macro))
-
-
 ;;; Declarations.
 
 (defvar cl-compiling-file nil)
@@ -599,8 +576,6 @@ The elements of LIST are not copied, just the list structure itself."
 (defun cl-maclisp-member (item list)
   (while (and list (not (equal item (car list)))) (setq list (cdr list)))
   list)
-
-(defalias 'cl-member 'memq)   ; for compatibility with old CL package
 
 ;; Autoloaded, but we have not loaded cl-loaddefs yet.
 (declare-function cl-floor "cl-extra" (x &optional y))

@@ -1,5 +1,37 @@
 2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl.el (cl-macroexpand, cl-macro-environment)
+	(cl-macroexpand-all, cl-not-hash-table, cl-builtin-gethash)
+	(cl-builtin-remhash, cl-builtin-clrhash, cl-builtin-maphash)
+	(cl-map-keymap, cl-copy-tree, cl-gethash, cl-puthash, cl-remhash)
+	(cl-clrhash, cl-maphash, cl-make-hash-table, cl-hash-table-p)
+	(cl-hash-table-count): Add old compatibility aliases.
+
+	* emacs-lisp/cl-macs.el (cl-macro-environment): Remove var.
+	Use macroexpand-all-environment instead.
+	(cl--old-macroexpand): New var.
+	(cl--sm-macroexpand): New function.
+	(cl-symbol-macrolet): Use it during macro expansion.
+	(cl--function-convert-cache): New var.
+	(cl--function-convert): New function, extracted from
+	cl-macroexpand-all.
+	(cl-lexical-let): Use it.
+
+	* emacs-lisp/cl-lib.el (cl-macro-environment): Remove decl.
+	(cl-macroexpand): Move to cl-macs.el and rename to cl--sm-macroexpand.
+	(cl-member): Remove old alias.
+
+	* emacs-lisp/cl-extra.el (cl-map-keymap, cl-copy-tree)
+	(cl-not-hash-table, cl-builtin-gethash, cl-builtin-remhash)
+	(cl-builtin-clrhash, cl-builtin-maphash, cl-gethash, cl-puthash)
+	(cl-remhash, cl-clrhash, cl-maphash, cl-make-hash-table)
+	(cl-hash-table-p, cl-hash-table-count): Move to cl.el.
+	(cl-macroexpand-cmacs): Remove var.
+	(cl-macroexpand-all, cl-macroexpand-body): Remove funs.
+	Use macroexpand-all instead.
+
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/macroexp.el (macroexp-progn, macroexp-let*, macroexp-if)
 	(macroexp-let², macroexp--const-symbol-p, macroexp-const-p)
 	(macroexp-copyable-p): New functions and macros.

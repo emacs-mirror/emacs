@@ -3,16 +3,15 @@
 ;;; Code:
 
 
-;;;### (autoloads (cl-prettyexpand cl-macroexpand-all cl-remprop
-;;;;;;  cl-do-remf cl-set-getf cl-getf cl-get cl-tailp cl-list-length
-;;;;;;  cl-nreconc cl-revappend cl-concatenate cl-subseq cl-float-limits
-;;;;;;  cl-random-state-p cl-make-random-state cl-random cl-signum
-;;;;;;  cl-rem cl-mod cl-round cl-truncate cl-ceiling cl-floor cl-isqrt
-;;;;;;  cl-lcm cl-gcd cl-progv-before cl-set-frame-visible-p cl-map-overlays
-;;;;;;  cl-map-intervals cl-map-keymap-recursively cl-notevery cl-notany
-;;;;;;  cl-every cl-some cl-mapcon cl-mapcan cl-mapl cl-maplist cl-map
-;;;;;;  cl-mapcar-many cl-equalp cl-coerce) "cl-extra" "cl-extra.el"
-;;;;;;  "acc0000b09b27fb51f5ba23a4b9254e2")
+;;;### (autoloads (cl-prettyexpand cl-remprop cl-do-remf cl-set-getf
+;;;;;;  cl-getf cl-get cl-tailp cl-list-length cl-nreconc cl-revappend
+;;;;;;  cl-concatenate cl-subseq cl-float-limits cl-random-state-p
+;;;;;;  cl-make-random-state cl-random cl-signum cl-rem cl-mod cl-round
+;;;;;;  cl-truncate cl-ceiling cl-floor cl-isqrt cl-lcm cl-gcd cl-progv-before
+;;;;;;  cl-set-frame-visible-p cl-map-overlays cl-map-intervals cl-map-keymap-recursively
+;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
+;;;;;;  cl-mapl cl-maplist cl-map cl-mapcar-many cl-equalp cl-coerce)
+;;;;;;  "cl-extra" "cl-extra.el" "fecce2e361fd06364d2ffd8c0d482cd0")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -82,8 +81,6 @@ Return true if PREDICATE is false of every element of SEQ or SEQs.
 Return true if PREDICATE is false of some element of SEQ or SEQs.
 
 \(fn PREDICATE SEQ...)" nil nil)
-
-(defalias 'cl-map-keymap 'map-keymap)
 
 (autoload 'cl-map-keymap-recursively "cl-extra" "\
 
@@ -248,28 +245,6 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 
 \(fn SYMBOL PROPNAME)" nil nil)
 
-(defalias 'cl-gethash 'gethash)
-
-(defalias 'cl-puthash 'puthash)
-
-(defalias 'cl-remhash 'remhash)
-
-(defalias 'cl-clrhash 'clrhash)
-
-(defalias 'cl-maphash 'maphash)
-
-(defalias 'cl-make-hash-table 'make-hash-table)
-
-(defalias 'cl-hash-table-p 'hash-table-p)
-
-(defalias 'cl-hash-table-count 'hash-table-count)
-
-(autoload 'cl-macroexpand-all "cl-extra" "\
-Expand all macro calls through a Lisp FORM.
-This also does some trivial optimizations to make the form prettier.
-
-\(fn FORM &optional ENV)" nil nil)
-
 (autoload 'cl-prettyexpand "cl-extra" "\
 
 
@@ -289,7 +264,7 @@ This also does some trivial optimizations to make the form prettier.
 ;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
 ;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
 ;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "25086e27342ec0990f35f1748a5b7b4e")
+;;;;;;  "c1e8e5391e374630452ab3d78e527086")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\

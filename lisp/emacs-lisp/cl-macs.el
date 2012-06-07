@@ -310,11 +310,6 @@ its argument list allows full Common Lisp conventions."
 (defconst cl-lambda-list-keywords
   '(&optional &rest &key &allow-other-keys &aux &whole &body &environment))
 
-(defvar cl-macro-environment nil
-  "Keep the list of currently active macros.
-It is a list of elements of the form either:
-- (SYMBOL . FUNCTION) where FUNCTION is the macro expansion function.
-- (SYMBOL-NAME . EXPANSION) where SYMBOL-NAME is the name of a symbol macro.")
 (defvar cl-bind-block) (defvar cl-bind-defs) (defvar cl-bind-enquote)
 (defvar cl-bind-inits) (defvar cl-bind-lets) (defvar cl-bind-forms)
 
@@ -367,9 +362,10 @@ It is a list of elements of the form either:
     (if (setq cl-bind-enquote (memq '&cl-quote args))
 	(setq args (delq '&cl-quote args)))
     (if (memq '&whole args) (error "&whole not currently implemented"))
-    (let* ((p (memq '&environment args)) (v (cadr p)))
+    (let* ((p (memq '&environment args)) (v (cadr p))
+           (env-exp 'macroexpand-all-environment))
       (if p (setq args (nconc (delq (car p) (delq v args))
-			      (list '&aux (list v 'cl-macro-environment))))))
+                              (list '&aux (list v env-exp))))))
     (while (and args (symbolp (car args))
 		(not (memq (car args) '(nil &rest &body &key &aux)))
 		(not (and (eq (car args) '&optional)
@@ -1630,7 +1626,7 @@ go back to their previous definitions, or lack thereof).
             (lambda (x)
               (if (or (and (fboundp (car x))
                            (eq (car-safe (symbol-function (car x))) 'macro))
-                      (cdr (assq (car x) cl-macro-environment)))
+                      (cdr (assq (car x) macroexpand-all-environment)))
                   (error "Use `cl-labels', not `cl-flet', to rebind macro names"))
               (let ((func `(cl-function
                             (lambda ,(cadr x)
@@ -1657,7 +1653,7 @@ Unlike `cl-flet', this macro is fully compliant with the Common Lisp standard.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
-  (let ((vars nil) (sets nil) (cl-macro-environment cl-macro-environment))
+  (let ((vars nil) (sets nil) (newenv macroexpand-all-environment))
     (while bindings
       ;; Use `cl-gensym' rather than `make-symbol'.  It's important that
       ;; (not (eq (symbol-name var1) (symbol-name var2))) because these
@@ -1670,9 +1666,8 @@ Unlike `cl-flet', this macro is fully compliant with the Common Lisp standard.
                     `(lambda (&rest cl-labels-args)
                        (cl-list* 'funcall ',var
                                  cl-labels-args)))
-              cl-macro-environment)))
-    (cl-macroexpand-all `(cl-lexical-let ,vars (setq ,@sets) ,@body)
-			cl-macro-environment)))
+              newenv)))
+    (macroexpand-all `(cl-lexical-let ,vars (setq ,@sets) ,@body) newenv)))
 
 ;; The following ought to have a better definition for use with newer
 ;; byte compilers.
@@ -1693,9 +1688,42 @@ This is like `cl-flet', but for macros instead of functions.
       (let* ((name (caar bindings))
 	     (res (cl--transform-lambda (cdar bindings) name)))
 	(eval (car res))
-	(cl-macroexpand-all (cons 'progn body)
-			    (cons (cons name `(lambda ,@(cdr res)))
-				  cl-macro-environment))))))
+	(macroexpand-all (cons 'progn body)
+                         (cons (cons name `(lambda ,@(cdr res)))
+                               macroexpand-all-environment))))))
+
+(defconst cl--old-macroexpand
+  (if (and (boundp 'cl--old-macroexpand)
+           (eq (symbol-function 'macroexpand)
+               #'cl--sm-macroexpand))
+      cl--old-macroexpand
+    (symbol-function 'macroexpand)))
+
+(defun cl--sm-macroexpand (cl-macro &optional cl-env)
+  "Special macro expander used inside `cl-symbol-macrolet'.
+This function replaces `macroexpand' during macro expansion
+of `cl-symbol-macrolet', and does the same thing as `macroexpand'
+except that it additionally expands symbol macros."
+  (let ((macroexpand-all-environment cl-env))
+    (while
+        (progn
+          (setq cl-macro (funcall cl--old-macroexpand cl-macro cl-env))
+          (cond
+           ((symbolp cl-macro)
+            ;; Perform symbol-macro expansion.
+            (when (cdr (assq (symbol-name cl-macro) cl-env))
+              (setq cl-macro (cadr (assq (symbol-name cl-macro) cl-env)))))
+           ((eq 'setq (car-safe cl-macro))
+            ;; Convert setq to cl-setf if required by symbol-macro expansion.
+            (let* ((args (mapcar (lambda (f) (cl--sm-macroexpand f cl-env))
+                                 (cdr cl-macro)))
+                   (p args))
+              (while (and p (symbolp (car p))) (setq p (cddr p)))
+              (if p (setq cl-macro (cons 'cl-setf args))
+                (setq cl-macro (cons 'setq args))
+                ;; Don't loop further.
+                nil))))))
+    cl-macro))
 
 ;;;###autoload
 (defmacro cl-symbol-macrolet (bindings &rest body)
@@ -1705,16 +1733,71 @@ by EXPANSION, and (setq NAME ...) will act like (cl-setf EXPANSION ...).
 
 \(fn ((NAME EXPANSION) ...) FORM...)"
   (declare (indent 1) (debug ((&rest (symbol sexp)) cl-declarations body)))
-  (if (cdr bindings)
+  (cond
+   ((cdr bindings)
       `(cl-symbol-macrolet (,(car bindings))
-         (cl-symbol-macrolet ,(cdr bindings) ,@body))
-    (if (null bindings) (cons 'progn body)
-      (cl-macroexpand-all (cons 'progn body)
+       (cl-symbol-macrolet ,(cdr bindings) ,@body)))
+   ((null bindings) (macroexp-progn body))
+   (t
+    (let ((previous-macroexpand (symbol-function 'macroexpand)))
+      (unwind-protect
+          (progn
+            (fset 'macroexpand #'cl--sm-macroexpand)
+            ;; FIXME: For N bindings, this will traverse `body' N times!
+            (macroexpand-all (cons 'progn body)
 			  (cons (list (symbol-name (caar bindings))
 				      (cl-cadar bindings))
-				cl-macro-environment)))))
+                                   macroexpand-all-environment)))
+        (fset 'macroexpand previous-macroexpand))))))
 
 (defvar cl-closure-vars nil)
+(defvar cl--function-convert-cache nil)
+
+(defun cl--function-convert (f)
+  "Special macro-expander for special cases of (function F).
+The two cases that are handled are:
+- closure-conversion of lambda expressions for `cl-lexical-let'.
+- renaming of F when it's a function defined via `cl-labels'."
+  (cond
+   ;; ¡¡Big Ugly Hack!! We can't use a compiler-macro because those are checked
+   ;; *after* handling `function', but we want to stop macroexpansion from
+   ;; being applied infinitely, so we use a cache to return the exact `form'
+   ;; being expanded even though we don't receive it.
+   ((eq f (car cl--function-convert-cache)) (cdr cl--function-convert-cache))
+   ((eq (car-safe f) 'lambda)
+    (let ((body (mapcar (lambda (f)
+                          (macroexpand-all f macroexpand-all-environment))
+                        (cddr f))))
+      (if (and cl-closure-vars
+               (cl--expr-contains-any body cl-closure-vars))
+          (let* ((new (mapcar 'cl-gensym cl-closure-vars))
+                 (sub (cl-pairlis cl-closure-vars new)) (decls nil))
+            (while (or (stringp (car body))
+                       (eq (car-safe (car body)) 'interactive))
+              (push (list 'quote (pop body)) decls))
+            (put (car (last cl-closure-vars)) 'used t)
+            `(list 'lambda '(&rest --cl-rest--)
+                   ,@(cl-sublis sub (nreverse decls))
+                   (list 'apply
+                         (list 'quote
+                               #'(lambda ,(append new (cadr f))
+                                   ,@(cl-sublis sub body)))
+                         ,@(nconc (mapcar (lambda (x) `(list 'quote ,x))
+                                          cl-closure-vars)
+                                  '((quote --cl-rest--))))))
+        (let* ((newf `(lambda ,(cadr f) ,@body))
+               (res `(function ,newf)))
+          (setq cl--function-convert-cache (cons newf res))
+          res))))
+   (t
+    (let ((found (assq f macroexpand-all-environment)))
+      (if (and found (ignore-errors
+                       (eq (cadr (cl-caddr found)) 'cl-labels-args)))
+          (cadr (cl-caddr (cl-cadddr found)))
+        (let ((res `(function ,f)))
+          (setq cl--function-convert-cache (cons f res))
+          res))))))
+
 ;;;###autoload
 (defmacro cl-lexical-let (bindings &rest body)
   "Like `let', but lexically scoped.
@@ -1732,13 +1815,14 @@ lexical closures as in Common Lisp.
 			  (list (car x) (cadr x) (car cl-closure-vars))))
 		       bindings))
 	 (ebody
-	  (cl-macroexpand-all
+	  (macroexpand-all
            `(cl-symbol-macrolet
                 ,(mapcar (lambda (x)
                            `(,(car x) (symbol-value ,(cl-caddr x))))
                          vars)
               ,@body)
-           cl-macro-environment)))
+	   (cons (cons 'function #'cl--function-convert)
+                 macroexpand-all-environment))))
     (if (not (get (car (last cl-closure-vars)) 'used))
         ;; Turn (let ((foo (cl-gensym)))
         ;;        (set foo <val>) ...(symbol-value foo)...)
@@ -2132,7 +2216,7 @@ Example:
 ;; This is useful when you have control over the PLACE but not over
 ;; the VALUE, as is the case in define-minor-mode's :variable.
 (cl-define-setf-expander eq (place val)
-  (let ((method (cl-get-setf-method place cl-macro-environment))
+  (let ((method (cl-get-setf-method place macroexpand-all-environment))
         (val-temp (make-symbol "--eq-val--"))
         (store-temp (make-symbol "--eq-store--")))
     (list (append (nth 0 method) (list val-temp))
@@ -2146,14 +2230,14 @@ Example:
 ;;; More complex setf-methods.
 ;; These should take &environment arguments, but since full arglists aren't
 ;; available while compiling cl-macs, we fake it by referring to the global
-;; variable cl-macro-environment directly.
+;; variable macroexpand-all-environment directly.
 
 (cl-define-setf-expander apply (func arg1 &rest rest)
   (or (and (memq (car-safe func) '(quote function cl-function))
 	   (symbolp (car-safe (cdr-safe func))))
       (error "First arg to apply in cl-setf is not (function SYM): %s" func))
   (let* ((form (cons (nth 1 func) (cons arg1 rest)))
-	 (method (cl-get-setf-method form cl-macro-environment)))
+	 (method (cl-get-setf-method form macroexpand-all-environment)))
     (list (car method) (nth 1 method) (nth 2 method)
 	  (cl-setf-make-apply (nth 3 method) (cadr func) (car method))
 	  (cl-setf-make-apply (nth 4 method) (cadr func) (car method)))))
@@ -2166,7 +2250,7 @@ Example:
     `(apply ',(car form) ,@(cdr form))))
 
 (cl-define-setf-expander nthcdr (n place)
-  (let ((method (cl-get-setf-method place cl-macro-environment))
+  (let ((method (cl-get-setf-method place macroexpand-all-environment))
 	(n-temp (make-symbol "--cl-nthcdr-n--"))
 	(store-temp (make-symbol "--cl-nthcdr-store--")))
     (list (cons n-temp (car method))
@@ -2179,7 +2263,7 @@ Example:
 	  `(nthcdr ,n-temp ,(nth 4 method)))))
 
 (cl-define-setf-expander cl-getf (place tag &optional def)
-  (let ((method (cl-get-setf-method place cl-macro-environment))
+  (let ((method (cl-get-setf-method place macroexpand-all-environment))
 	(tag-temp (make-symbol "--cl-getf-tag--"))
 	(def-temp (make-symbol "--cl-getf-def--"))
 	(store-temp (make-symbol "--cl-getf-store--")))
@@ -2192,7 +2276,7 @@ Example:
 	  `(cl-getf ,(nth 4 method) ,tag-temp ,def-temp))))
 
 (cl-define-setf-expander substring (place from &optional to)
-  (let ((method (cl-get-setf-method place cl-macro-environment))
+  (let ((method (cl-get-setf-method place macroexpand-all-environment))
 	(from-temp (make-symbol "--cl-substring-from--"))
 	(to-temp (make-symbol "--cl-substring-to--"))
 	(store-temp (make-symbol "--cl-substring-store--")))
@@ -2220,7 +2304,7 @@ a macro like `cl-setf' or `cl-incf'."
 		    (method (get func 'setf-method))
 		    (case-fold-search nil))
 	       (or (and method
-			(let ((cl-macro-environment env))
+			(let ((macroexpand-all-environment env))
 			  (setq method (apply method (cdr place))))
 			(if (and (consp method) (= (length method) 5))
 			    method
@@ -2240,7 +2324,7 @@ a macro like `cl-setf' or `cl-incf'."
 	  (cl-get-setf-method place env)))))
 
 (defun cl-setf-do-modify (place opt-expr)
-  (let* ((method (cl-get-setf-method place cl-macro-environment))
+  (let* ((method (cl-get-setf-method place macroexpand-all-environment))
 	 (temps (car method)) (values (nth 1 method))
 	 (lets nil) (subs nil)
 	 (optimize (and (not (eq opt-expr 'no-opt))
