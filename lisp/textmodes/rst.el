@@ -103,13 +103,57 @@
 
 ;;; Code:
 
-;; FIXME: Use `eval-when-compile' when calls to `some', `position', `signum'
-;;        and `position-if' are replaced. `catch' and `throw' may help with the
-;;        list operations.
-(require 'cl)
+;; Only use of macros is allowed - may be replaced by `cl-lib' some time.
+(eval-when-compile
+  (require 'cl))
+
+;; Redefine some functions from `cl.el' in a proper namespace until they may be
+;; used from there.
+
+(defun rst-signum (x)
+  "Return 1 if X is positive, -1 if negative, 0 if zero."
+  (cond
+   ((> x 0) 1)
+   ((< x 0) -1)
+   (t 0)))
+
+(defun rst-some (seq &optional pred)
+  "Return non-nil if any element of SEQ yields non-nil when PRED is applied.
+Apply PRED to each element of list SEQ until the first non-nil
+result is yielded and return this result. PRED defaults to
+`identity'."
+  (unless pred
+    (setq pred 'identity))
+  (catch 'rst-some
+    (dolist (elem seq)
+      (let ((r (funcall pred elem)))
+	(when r
+	  (throw 'rst-some r))))))
+
+(defun rst-position-if (pred seq)
+  "Return position of first element satisfying PRED in list SEQ or nil."
+  (catch 'rst-position-if
+    (let ((i 0))
+      (dolist (elem seq)
+	(when (funcall pred elem)
+	  (throw 'rst-position-if i))
+	(incf i)))))
+
+(defun rst-position (elem seq)
+  "Return position of ELEM in list SEQ or nil.
+Comparison done with `equal'."
+  ;; Create a closure containing `elem' so the `lambda' always sees our
+  ;; parameter instead of an `elem' which may be in dynamic scope at the time
+  ;; of execution of the `lambda'.
+  (lexical-let ((elem elem))
+    (rst-position-if (function (lambda (e)
+				 (equal elem e)))
+		     seq)))
 
 ;; FIXME: Check whether complicated `defconst's can be embedded in
 ;;        `eval-when-compile'.
+
+;; FIXME: Check whether `lambda's can be embedded in `function'.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Versions
@@ -127,7 +171,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.273 2012-06-03 17:01:33 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.282 2012-06-06 19:16:55 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -170,10 +214,11 @@ Starts with the current official version.  For developer versions
 in parentheses follows the development revision and the time stamp.")
 
 (defconst rst-package-emacs-version-alist
-  '(("1.0.0" . "24.0")
-    ("1.1.0" . "24.0")
-    ("1.2.0" . "24.0")
-    ("1.2.1" . "24.0")))
+  '(("1.0.0" . "24.2")
+    ("1.1.0" . "24.2")
+    ("1.2.0" . "24.2")
+    ("1.2.1" . "24.2")
+    ("1.3.0" . "24.2")))
 
 (unless (assoc rst-official-version rst-package-emacs-version-alist)
   (error "Version %s not listed in `rst-package-emacs-version-alist'"
@@ -431,6 +476,8 @@ in parentheses follows the development revision and the time stamp.")
 Each entry consists of the symbol naming the regex and an
 argument list for `rst-re'.")
 
+(defvar rst-re-alist) ; Forward declare to use it in `rst-re'.
+
 ;; FIXME: Use `sregex` or `rx` instead of re-inventing the wheel.
 (defun rst-re (&rest args)
   "Interpret ARGS as regular expressions and return a regex string.
@@ -490,16 +537,16 @@ After interpretation of ARGS the results are concatenated as for
 	  args)))
 
 ;; FIXME: Remove circular dependency between `rst-re' and `rst-re-alist'.
-(defconst rst-re-alist
-  ;; Shadow global value we are just defining so we can construct it step by
-  ;; step.
-  (let (rst-re-alist)
-    (dolist (re rst-re-alist-def)
-      (setq rst-re-alist
-	    (nconc rst-re-alist
-		   (list (list (car re) (apply 'rst-re (cdr re)))))))
-    rst-re-alist)
-  "Alist mapping symbols from `rst-re-alist-def' to regex strings.")
+(with-no-warnings ; Silence byte-compiler about this construction.
+  (defconst rst-re-alist
+    ;; Shadow global value we are just defining so we can construct it step by
+    ;; step.
+    (let (rst-re-alist)
+      (dolist (re rst-re-alist-def rst-re-alist)
+	(setq rst-re-alist
+	      (nconc rst-re-alist
+		     (list (list (car re) (apply 'rst-re (cdr re))))))))
+    "Alist mapping symbols from `rst-re-alist-def' to regex strings."))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -683,6 +730,8 @@ The hook for `text-mode' is run before this one."
   :group 'rst
   :type '(hook))
 
+;; Pull in variable definitions silencing byte-compiler.
+(require 'newcomment)
 
 ;; Use rst-mode for *.rst and *.rest files.  Many ReStructured-Text files
 ;; use *.txt, but this is too generic to be set as a default.
@@ -856,9 +905,8 @@ for modes derived from Text mode, like Mail mode."
   :group 'rst
   :version "21.1")
 
-;; FIXME: The version must be represented in `rst-package-emacs-version-alist'.
 (define-obsolete-variable-alias
-  'rst-preferred-decorations 'rst-preferred-adornments "r6506")
+  'rst-preferred-decorations 'rst-preferred-adornments "1.0.0")
 (defcustom rst-preferred-adornments '((?= over-and-under 1)
 				      (?= simple 0)
 				      (?- simple 0)
@@ -1742,11 +1790,6 @@ in ADORNMENTS."
           (incf level)
           ))
     )))
-
-(defun rst-position (elem list)
-  "Return position of ELEM in LIST or nil."
-  (let ((tail (member elem list)))
-    (if tail (- (length list) (length tail)))))
 
 (defun rst-straighten-adornments ()
   "Redo all the adornments in the current buffer.
@@ -2763,9 +2806,8 @@ here."
   :group 'rst
   :package-version '(rst . "1.1.0"))
 
-;; FIXME: The version must be represented in `rst-package-emacs-version-alist'.
 (define-obsolete-variable-alias
-  'rst-shift-basic-offset 'rst-indent-width "r6713")
+  'rst-shift-basic-offset 'rst-indent-width "1.0.0")
 (defcustom rst-indent-width 2
   "Indentation when there is no more indentation point given."
   :group 'rst-indent
@@ -2890,8 +2932,7 @@ in the text above."
 				   (< newcol innermost))))
 			 (not (memq newcol tablist)))
 		    (push newcol tablist))))
-	      (setq innermost (if (some 'identity
-					(mapcar 'cdr tabs)) ; Has inner.
+	      (setq innermost (if (rst-some (mapcar 'cdr tabs)) ; Has inner.
 				  leftcol
 				innermost))
 	      (setq leftmost leftcol)))))
@@ -2912,7 +2953,7 @@ relative to the content."
 	 (cur (current-indentation))
 	 (clm (current-column))
 	 (tabs (rst-compute-tabs (point)))
-	 (fnd (position cur tabs))
+	 (fnd (rst-position cur tabs))
 	 ind)
     (if (and (not tabs) (not dflt))
 	'noindent
@@ -2948,12 +2989,14 @@ above.  If no suitable tab is found `rst-indent-width' is used."
 	 (let* ((cmp (if (> cnt 0) '> '<))
 		(tabs (if (> cnt 0) tabs (reverse tabs)))
 		(len (length tabs))
-		(dir (signum cnt)) ; Direction to take.
+		(dir (rst-signum cnt)) ; Direction to take.
 		(abs (abs cnt)) ; Absolute number of steps to take.
 		;; Get the position of the first tab beyond leftmostcol.
-		(fnd (position-if (lambda (elt)
-				    (funcall cmp elt leftmostcol))
-				  tabs))
+		(fnd (lexical-let ((cmp cmp)
+				   (leftmostcol leftmostcol)) ; Create closure.
+		       (rst-position-if (lambda (elt)
+					  (funcall cmp elt leftmostcol))
+					tabs)))
 		;; Virtual position of tab.
 		(pos (+ (or fnd len) (1- abs)))
 		(tab (if (< pos len)
@@ -3136,8 +3179,8 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
 
 ;; FIXME: The obsolete variables need to disappear.
 
-;; FIXME LEVEL-FACE: All `:version "24.1"' attributes need to be changed to
-;;                   proper `:package-version "24.1"' attributes.
+;; The following versions have been done inside Emacs and should not be
+;; replaced by `:package-version' attributes until a change.
 
 (defgroup rst-faces nil "Faces used in Rst Mode."
   :group 'rst
@@ -3273,12 +3316,12 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
 
 (defface rst-transition '((t :inherit font-lock-keyword-face))
   "Face used for a transition."
-  :version "24.1"
+  :package-version '(rst . "1.3.0")
   :group 'rst-faces)
 
 (defface rst-adornment '((t :inherit font-lock-keyword-face))
   "Face used for the adornment of a section header."
-  :version "24.1"
+  :package-version '(rst . "1.3.0")
   :group 'rst-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3646,7 +3689,7 @@ Move N lines forward just as `forward-line'."
     (if (bolp)
 	moved
       (forward-line 0)
-      (- moved (signum n)))))
+      (- moved (rst-signum n)))))
 
 ;; FIXME: If a single line is made a section header by `rst-adjust' the header
 ;;        is not always fontified immediately.
@@ -3829,9 +3872,12 @@ beyond the existing hierarchy."
     (let* ((hier (rst-get-hierarchy))
 	   (char (car key))
 	   (style (cdr key)))
-      (1+ (or (position-if (lambda (elt)
-			     (and (equal (car elt) char)
-				  (equal (cadr elt) style))) hier)
+      (1+ (or (lexical-let ((char char)
+			    (style style)
+			    (hier hier)) ; Create closure.
+		(rst-position-if (lambda (elt)
+				   (and (equal (car elt) char)
+					(equal (cadr elt) style))) hier))
 	      (length hier))))))
 
 (defvar rst-font-lock-adornment-match nil
@@ -3919,7 +3965,7 @@ string)) to be used for converting the document."
                                      (const :tag "No options" nil)
                                      (string :tag "Options"))))
   :group 'rst
-  :version "24.1")
+  :package-version "1.2.0")
 
 ;; FIXME: Must be `defcustom`.
 (defvar rst-compile-primary-toolset 'html
@@ -4067,7 +4113,7 @@ cand replace with char: ")
 (defun rst-join-paragraph ()
   "Join lines in current paragraph into one line, removing end-of-lines."
   (interactive)
-  (let ((fill-column 65000)) ; some big number.
+  (let ((fill-column 65000)) ; Some big number.
     (call-interactively 'fill-paragraph)))
 
 ;; FIXME: Unbound command - should be bound or removed.

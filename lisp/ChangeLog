@@ -1,3 +1,19 @@
+2012-06-07  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Use `eval-when-compile' for requiring `cl.el'.
+	Silence compiler warnings.  Fix versions.
+
+	(rst-position-if, rst-position, rst-some, rst-signum): New
+	functions.
+	(rst-shift-region, rst-adornment-level, rst-compute-tabs)
+	(rst-indent-line, rst-shift-region, rst-forward-line): Use new
+	functions.
+
+	(rst-package-emacs-version-alist): Correct Emacs version to
+	represent major merge with upstream.
+	(rst-transition, rst-adornment, rst-compile-toolsets): Fix
+	versions.
+
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Add relevant EMACS env-vars.
