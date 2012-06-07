@@ -1,18 +1,17 @@
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (kbd): Make it its own function.
+
 2012-06-07  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el: Use `eval-when-compile' for requiring `cl.el'.
 	Silence compiler warnings.  Fix versions.
-
-	(rst-position-if, rst-position, rst-some, rst-signum): New
-	functions.
+	(rst-position-if, rst-position, rst-some, rst-signum): New functions.
 	(rst-shift-region, rst-adornment-level, rst-compute-tabs)
-	(rst-indent-line, rst-shift-region, rst-forward-line): Use new
-	functions.
-
+	(rst-indent-line, rst-shift-region, rst-forward-line): Use them.
 	(rst-package-emacs-version-alist): Correct Emacs version to
 	represent major merge with upstream.
-	(rst-transition, rst-adornment, rst-compile-toolsets): Fix
-	versions.
+	(rst-transition, rst-adornment, rst-compile-toolsets): Fix versions.
 
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 

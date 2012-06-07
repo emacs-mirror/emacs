@@ -525,7 +525,13 @@ side-effects, and the argument LIST is not modified."
 
 ;;;; Keymap support.
 
-(defalias 'kbd 'read-kbd-macro)
+(defun kbd (keys)
+  "Convert KEYS to the internal Emacs key representation.
+KEYS should be a string constant in the format used for
+saving keyboard macros (see `edmacro-mode')."
+  ;; Don't use a defalias, since the `pure' property is only true for
+  ;; the calling convention of `kbd'.
+  (read-kbd-macro keys))
 (put 'kbd 'pure t)
 
 (defun undefined ()
