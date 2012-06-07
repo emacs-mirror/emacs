@@ -64,7 +64,7 @@
 ;; systematically couple overlays, graphics, and other features with
 ;; allout-governed text.
 
-;;;_: Code (structured with comments that delineate an allout outline)
+;;; Code:
 
 ;;;_ : General Environment
 (require 'allout)

@@ -4,6 +4,10 @@
 
 2012-06-01  Chong Yidong  <cyd@gnu.org>
 
+	* allout-widgets.el: Fix code header
+
+2012-06-01  Chong Yidong  <cyd@gnu.org>
+
 	* cus-edit.el (customize-changed-options-previous-release): Bump
 	to 23.4.
 
