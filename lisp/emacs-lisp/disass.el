@@ -35,6 +35,8 @@
 
 ;;; Code:
 
+(require 'macroexp)
+
 ;;; The variable byte-code-vector is defined by the new bytecomp.el.
 ;;; The function byte-decompile-lapcode is defined in byte-opt.el.
 ;;; Since we don't use byte-decompile-lapcode, let's try not loading byte-opt.
@@ -155,7 +157,7 @@ redefine OBJECT if it is a symbol."
 	  (t
 	   (insert "Uncompiled body:  ")
 	   (let ((print-escape-newlines t))
-	     (prin1 (if (cdr obj) (cons 'progn obj) (car obj))
+	     (prin1 (macroexp-progn obj)
 		    (current-buffer))))))
   (if interactive-p
       (message "")))

@@ -51,6 +51,8 @@
 
 ;;; Code:
 
+(require 'macroexp)
+
 ;;; Bug reporting
 
 (defalias 'edebug-submit-bug-report 'report-emacs-bug)
@@ -1251,10 +1253,7 @@ expressions; a `progn' form will be returned enclosing these forms."
        ((eq 'edebug-after (car sexp))
 	(nth 3 sexp))
        ((eq 'edebug-enter (car sexp))
-	(let ((forms (nthcdr 2 (nth 1 (nth 3 sexp)))))
-	  (if (> (length forms) 1)
-	      (cons 'progn forms)  ;; could return (values forms) instead.
-	    (car forms))))
+        (macroexp-progn (nthcdr 2 (nth 1 (nth 3 sexp)))))
        (t sexp);; otherwise it is not wrapped, so just return it.
        )
     sexp))

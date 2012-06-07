@@ -1,5 +1,32 @@
 2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/macroexp.el (macroexp-progn, macroexp-let*, macroexp-if)
+	(macroexp-let², macroexp--const-symbol-p, macroexp-const-p)
+	(macroexp-copyable-p): New functions and macros.
+	* emacs-lisp/edebug.el (edebug-unwrap):
+	* emacs-lisp/disass.el (disassemble-internal): Use macroexp-progn.
+	* emacs-lisp/pcase.el: Use macroexp-let*, macroexp-if, ...
+	(pcase--let*): Remove.
+	* emacs-lisp/bytecomp.el (byte-compile-const-symbol-p)
+	(byte-compile-constp): Remove.  Use macroexp--const-symbol-p and
+	macroexp-const-p instead.
+	* emacs-lisp/byte-opt.el: Use macroexp-const-p and macroexp-progn.
+
+	* emacs-lisp/cl-macs.el: Clean up the name space by using "cl--"
+	instead of "cl-" for internal definitions.  Use macroexp-const-p.
+	(cl-old-bc-file-form): Remove var.
+	(cl-const-exprs-p): Remove fun.
+	(cl-labels, cl-macrolet): Use backquote.
+	(cl-lexical-let): Use cl-symbol-macrolet.  Don't use cl-defun-expander.
+	(cl-defun-expander, cl-byte-compile-compiler-macro): Remove fun.
+	(cl-define-setf-expander): Rename from cl-define-setf-method.
+	* emacs-lisp/cl.el: Adjust alias for define-setf-method.
+
+	* international/mule-cmds.el: Don't require CL.
+	(view-hello-file): Don't use `letf'.
+
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* tmm.el (tmm-prompt): Use string-prefix-p.
 	(tmm-completion-delete-prompt): Don't affect current-buffer outside.
 	(tmm-add-prompt): Use minibuffer-completion-help.

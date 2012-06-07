@@ -281,7 +281,7 @@ This also does some trivial optimizations to make the form prettier.
 ;;;;;;  cl-assert cl-check-type cl-typep cl-deftype cl-struct-setf-expander
 ;;;;;;  cl-defstruct cl-define-modify-macro cl-callf2 cl-callf cl-letf*
 ;;;;;;  cl-letf cl-rotatef cl-shiftf cl-remf cl-do-pop cl-psetf cl-setf
-;;;;;;  cl-get-setf-method cl-defsetf cl-define-setf-method cl-declare
+;;;;;;  cl-get-setf-method cl-defsetf cl-define-setf-expander cl-declare
 ;;;;;;  cl-the cl-locally cl-multiple-value-setq cl-multiple-value-bind
 ;;;;;;  cl-lexical-let* cl-lexical-let cl-symbol-macrolet cl-macrolet
 ;;;;;;  cl-labels cl-flet cl-progv cl-psetq cl-do-all-symbols cl-do-symbols
@@ -289,7 +289,7 @@ This also does some trivial optimizations to make the form prettier.
 ;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
 ;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
 ;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "f3973150add70d26cadb8530147dfc99")
+;;;;;;  "25086e27342ec0990f35f1748a5b7b4e")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\
@@ -611,7 +611,7 @@ See Info node `(cl)Declarations' for details.
 
 \(fn &rest SPECS)" nil t)
 
-(autoload 'cl-define-setf-method "cl-macs" "\
+(autoload 'cl-define-setf-expander "cl-macs" "\
 Define a `cl-setf' method.
 This method shows how to handle `cl-setf's to places of the form (NAME ARGS...).
 The argument forms ARGS are bound according to ARGLIST, as if NAME were
@@ -624,7 +624,7 @@ form.  See `cl-defsetf' for a simpler way to define most setf-methods.
 
 (autoload 'cl-defsetf "cl-macs" "\
 Define a `cl-setf' method.
-This macro is an easy-to-use substitute for `cl-define-setf-method' that works
+This macro is an easy-to-use substitute for `cl-define-setf-expander' that works
 well for simple place forms.  In the simple `cl-defsetf' form, `cl-setf's of
 the form (cl-setf (NAME ARGS...) VAL) are transformed to function or macro
 calls of the form (FUNC ARGS... VAL).  Example:

@@ -53,6 +53,8 @@
 
 ;;; Code:
 
+(require 'macroexp)
+
 ;; Macro-expansion of pcase is reasonably fast, so it's not a problem
 ;; when byte-compiling a file, but when interpreting the code, if the pcase
 ;; is in a loop, the repeated macro-expansion becomes terribly costly, so we
@@ -94,7 +96,7 @@ PRED patterns can refer to variables bound earlier in the pattern.
 E.g. you can match pairs where the cdr is larger than the car with a pattern
 like `(,a . ,(pred (< a))) or, with more checks:
 `(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))"
-  (declare (indent 1) (debug case))     ;FIXME: edebug `guard' and vars.
+  (declare (indent 1) (debug cl-case))  ;FIXME: edebug `guard' and vars.
   ;; We want to use a weak hash table as a cache, but the key will unavoidably
   ;; be based on `exp' and `cases', yet `cases' is a fresh new list each time
   ;; we're called so it'll be immediately GC'd.  So we use (car cases) as key
@@ -225,10 +227,10 @@ of the form (UPAT EXP)."
                          (cdr case))))
                    cases))))
     (if (null defs) main
-      (pcase--let* defs main))))
+      (macroexp-let* defs main))))
 
 (defun pcase-codegen (code vars)
-  ;; Don't use let*, otherwise pcase--let* may merge it with some surrounding
+  ;; Don't use let*, otherwise macroexp-let* may merge it with some surrounding
   ;; let* which might prevent the setcar/setcdr in pcase--expand's fancy
   ;; codegen from later metamorphosing this let into a funcall.
   `(let ,(mapcar (lambda (b) (list (car b) (cdr b))) vars)
@@ -248,30 +250,7 @@ of the form (UPAT EXP)."
   (cond
    ((eq else :pcase--dontcare) then)
    ((eq then :pcase--dontcare) (debug) else) ;Can/should this ever happen?
-   ((eq (car-safe else) 'if)
-    (if (equal test (nth 1 else))
-        ;; Doing a test a second time: get rid of the redundancy.
-        ;; FIXME: ideally, this should never happen because the pcase--split-*
-        ;; funs should have eliminated such things, but pcase--split-member
-        ;; is imprecise, so in practice it can happen occasionally.
-        `(if ,test ,then ,@(nthcdr 3 else))
-      `(cond (,test ,then)
-             (,(nth 1 else) ,(nth 2 else))
-             (t ,@(nthcdr 3 else)))))
-   ((eq (car-safe else) 'cond)
-    `(cond (,test ,then)
-           ;; Doing a test a second time: get rid of the redundancy, as above.
-           ,@(remove (assoc test else) (cdr else))))
-   ;; Invert the test if that lets us reduce the depth of the tree.
-   ((memq (car-safe then) '(if cond)) (pcase--if `(not ,test) else then))
-   (t `(if ,test ,then ,else))))
-
-;; Again, try and reduce nesting.
-(defun pcase--let* (binders body)
-  (if (eq (car-safe body) 'let*)
-      `(let* ,(append binders (nth 1 body))
-         ,@(nthcdr 2 body))
-    `(let* ,binders ,body)))
+   (t (macroexp-if test then else))))
 
 (defun pcase--upat (qpattern)
   (cond
@@ -589,21 +568,17 @@ Otherwise, it defers to REST which is a list of branches of the form
         ;; A upat of the form (let VAR EXP).
         ;; (pcase--u1 matches code
         ;;            (cons (cons (nth 1 upat) (nth 2 upat)) vars) rest)
-        (let* ((exp
-                (let* ((exp (nth 2 upat))
-                       (found (assq exp vars)))
-                  (if found (cdr found)
-                    (let* ((vs (pcase--fgrep (mapcar #'car vars) exp))
-                           (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
-                                        vs)))
-                      (if env `(let* ,env ,exp) exp)))))
-               (sym (if (symbolp exp) exp (make-symbol "x")))
-               (body
-                (pcase--u1 (cons `(match ,sym . ,(nth 1 upat)) matches)
-                           code vars rest)))
-          (if (eq sym exp)
-              body
-            `(let* ((,sym ,exp)) ,body))))
+        (macroexp-let²
+            macroexp-copyable-p sym
+            (let* ((exp (nth 2 upat))
+                   (found (assq exp vars)))
+              (if found (cdr found)
+                (let* ((vs (pcase--fgrep (mapcar #'car vars) exp))
+                       (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
+                                    vs)))
+                  (if env (macroexp-let* env exp) exp))))
+          (pcase--u1 (cons `(match ,sym . ,(nth 1 upat)) matches)
+                     code vars rest)))
        ((eq (car-safe upat) '\`)
         (put sym 'pcase-used t)
         (pcase--q1 sym (cadr upat) matches code vars rest))
@@ -695,7 +670,7 @@ Otherwise, it defers to REST which is a list of branches of the form
        ;; can't signal errors and our byte-compiler is not that clever.
        ;; FIXME: Some of those let bindings occur too early (they are used in
        ;; `then-body', but only within some sub-branch).
-       (pcase--let*
+       (macroexp-let*
         `(,@(if (get syma 'pcase-used) `((,syma (car ,sym))))
               ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
         then-body)

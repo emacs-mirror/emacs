@@ -225,6 +225,84 @@ definitions to shadow the loaded ones for use in file byte-compilation."
   (let ((macroexpand-all-environment environment))
     (macroexp--expand-all form)))
 
+;;; Handy functions to use in macros.
+
+(defun macroexp-progn (exps)
+  "Return an expression equivalent to `(progn ,@EXPS)."
+  (if (cdr exps) `(progn ,@exps) (car exps)))
+
+(defun macroexp-let* (bindings exp)
+  "Return an expression equivalent to `(let* ,bindings ,exp)."
+  (cond
+   ((null bindings) exp)
+   ((eq 'let* (car-safe exp)) `(let* (,@bindings ,@(cadr exp)) ,@(cddr exp)))
+   (t `(let* ,bindings ,exp))))
+
+(defun macroexp-if (test then else)
+  "Return an expression equivalent to `(if ,test ,then ,else)."
+  (cond
+   ((eq (car-safe else) 'if)
+    (if (equal test (nth 1 else))
+        ;; Doing a test a second time: get rid of the redundancy.
+        `(if ,test ,then ,@(nthcdr 3 else))
+      `(cond (,test ,then)
+             (,(nth 1 else) ,(nth 2 else))
+             (t ,@(nthcdr 3 else)))))
+   ((eq (car-safe else) 'cond)
+    `(cond (,test ,then)
+           ;; Doing a test a second time: get rid of the redundancy, as above.
+           ,@(remove (assoc test else) (cdr else))))
+   ;; Invert the test if that lets us reduce the depth of the tree.
+   ((memq (car-safe then) '(if cond)) (macroexp-if `(not ,test) else then))
+   (t `(if ,test ,then ,else))))
+
+(defmacro macroexp-let² (test var exp &rest exps)
+  "Bind VAR to a copyable expression that returns the value of EXP.
+This is like `(let ((v ,EXP)) ,EXPS) except that `v' is a new generated
+symbol which EXPS can find in VAR.
+TEST should be the name of a predicate on EXP checking whether the `let' can
+be skipped; if nil, as is usual, `macroexp-const-p' is used."
+  (declare (indent 3) (debug (sexp form sexp body)))
+  (let ((bodysym (make-symbol "body"))
+        (expsym (make-symbol "exp")))
+    `(let* ((,expsym ,exp)
+            (,var (if (,(or test #'macroexp-const-p) ,expsym)
+                      ,expsym (make-symbol "x")))
+            (,bodysym ,(macroexp-progn exps)))
+       (if (eq ,var ,expsym) ,bodysym
+         (macroexp-let* (list (list ,var ,expsym))
+                        ,bodysym)))))
+
+(defsubst macroexp--const-symbol-p (symbol &optional any-value)
+  "Non-nil if SYMBOL is constant.
+If ANY-VALUE is nil, only return non-nil if the value of the symbol is the
+symbol itself."
+  (or (memq symbol '(nil t))
+      (keywordp symbol)
+      (if any-value
+	  (or (memq symbol byte-compile-const-variables)
+	      ;; FIXME: We should provide a less intrusive way to find out
+	      ;; if a variable is "constant".
+	      (and (boundp symbol)
+		   (condition-case nil
+		       (progn (set symbol (symbol-value symbol)) nil)
+		     (setting-constant t)))))))
+
+(defun macroexp-const-p (exp)
+  "Return non-nil if EXP will always evaluate to the same value."
+  (cond ((consp exp) (or (eq (car exp) 'quote)
+                         (and (eq (car exp) 'function)
+                              (symbolp (cadr exp)))))
+        ;; It would sometimes make sense to pass `any-value', but it's not
+        ;; always safe since a "constant" variable may not actually always have
+        ;; the same value.
+        ((symbolp exp) (macroexp--const-symbol-p exp))
+        (t t)))
+
+(defun macroexp-copyable-p (exp)
+  "Return non-nil if EXP can be copied without extra cost."
+  (or (symbolp exp) (macroexp-const-p exp)))
+
 (provide 'macroexp)
 
 ;;; macroexp.el ends here

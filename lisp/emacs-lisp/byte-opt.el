@@ -184,6 +184,7 @@
 
 (require 'bytecomp)
 (eval-when-compile (require 'cl))
+(require 'macroexp)
 
 (defun byte-compile-log-lap-1 (format &rest args)
   ;; Newer byte codes for stack-ref make the slot 0 non-nil again.
@@ -434,11 +435,9 @@
 			      clause))
 			 (cdr form))))
 	  ((eq fn 'progn)
-	   ;; as an extra added bonus, this simplifies (progn <x>) --> <x>
+	   ;; As an extra added bonus, this simplifies (progn <x>) --> <x>.
 	   (if (cdr (cdr form))
-	       (progn
-		 (setq tmp (byte-optimize-body (cdr form) for-effect))
-		 (if (cdr tmp) (cons 'progn tmp) (car tmp)))
+               (macroexp-progn (byte-optimize-body (cdr form) for-effect))
 	     (byte-optimize-form (nth 1 form) for-effect)))
 	  ((eq fn 'prog1)
 	   (if (cdr (cdr form))
@@ -577,10 +576,10 @@
 	       (cons fn args)))))))
 
 (defun byte-optimize-all-constp (list)
-  "Non-nil if all elements of LIST satisfy `byte-compile-constp'."
+  "Non-nil if all elements of LIST satisfy `macroexp-const-p"
   (let ((constant t))
     (while (and list constant)
-      (unless (byte-compile-constp (car list))
+      (unless (macroexp-const-p (car list))
 	(setq constant nil))
       (setq list (cdr list)))
     constant))
@@ -870,8 +869,8 @@
 
 
 (defun byte-optimize-binary-predicate (form)
-  (if (byte-compile-constp (nth 1 form))
-      (if (byte-compile-constp (nth 2 form))
+  (if (macroexp-const-p (nth 1 form))
+      (if (macroexp-const-p (nth 2 form))
 	  (condition-case ()
 	      (list 'quote (eval form))
 	    (error form))
@@ -883,7 +882,7 @@
   (let ((ok t)
 	(rest (cdr form)))
     (while (and rest ok)
-      (setq ok (byte-compile-constp (car rest))
+      (setq ok (macroexp-const-p (car rest))
 	    rest (cdr rest)))
     (if ok
 	(condition-case ()
@@ -949,7 +948,7 @@
 (defun byte-optimize-quote (form)
   (if (or (consp (nth 1 form))
 	  (and (symbolp (nth 1 form))
-	       (not (byte-compile-const-symbol-p form))))
+	       (not (macroexp--const-symbol-p form))))
       form
     (nth 1 form)))
 
@@ -1586,13 +1585,13 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 			(not (eq (car lap0) 'byte-constant)))
 		   nil
 		 (setq keep-going t)
-		 (if (memq (car lap0) '(byte-constant byte-dup))
-		     (progn
-		       (setq tmp (if (or (not tmp)
-					 (byte-compile-const-symbol-p
-					  (car (cdr lap0))))
-				     (cdr lap0)
-				   (byte-compile-get-constant t)))
+                 (if (memq (car lap0) '(byte-constant byte-dup))
+                     (progn
+                       (setq tmp (if (or (not tmp)
+                                         (macroexp--const-symbol-p
+                                          (car (cdr lap0))))
+                                     (cdr lap0)
+                                   (byte-compile-get-constant t)))
 		       (byte-compile-log-lap "  %s %s %s\t-->\t%s %s %s"
 					     lap0 lap1 lap2 lap0 lap1
 					     (cons (car lap0) tmp))

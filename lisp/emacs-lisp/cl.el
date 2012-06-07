@@ -219,8 +219,8 @@
                setf
                get-setf-method
                defsetf
+               (define-setf-method . cl-define-setf-expander)
                define-setf-expander
-               define-setf-method
                declare
                the
                locally
