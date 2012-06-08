@@ -204,21 +204,23 @@
   "Return name of directory for temporary files (compat function).
 For Emacs, this is the variable `temporary-file-directory', for XEmacs
 this is the function `temp-directory'."
-  (cond
-   ((and (boundp 'temporary-file-directory)
-	 (not (file-remote-p (symbol-value 'temporary-file-directory))))
-    (symbol-value 'temporary-file-directory))
-   ((fboundp 'temp-directory) (tramp-compat-funcall 'temp-directory))
-   ((let ((d (getenv "TEMP"))) (and d (file-directory-p d)))
-    (file-name-as-directory (getenv "TEMP")))
-   ((let ((d (getenv "TMP"))) (and d (file-directory-p d)))
-    (file-name-as-directory (getenv "TMP")))
-   ((let ((d (getenv "TMPDIR"))) (and d (file-directory-p d)))
-    (file-name-as-directory (getenv "TMPDIR")))
-   ((file-exists-p "c:/temp") (file-name-as-directory "c:/temp"))
-   (t (message (concat "Neither `temporary-file-directory' nor "
-		       "`temp-directory' is defined -- using /tmp."))
-      (file-name-as-directory "/tmp"))))
+  (let (file-name-handler-alist)
+    (cond
+     ;; We must return a local directory.  If it is remote, we could
+     ;; run into an infloop.
+     ((boundp 'temporary-file-directory)
+      (eval (car (get 'temporary-file-directory 'standard-value))))
+     ((fboundp 'temp-directory) (tramp-compat-funcall 'temp-directory))
+     ((let ((d (getenv "TEMP"))) (and d (file-directory-p d)))
+      (file-name-as-directory (getenv "TEMP")))
+     ((let ((d (getenv "TMP"))) (and d (file-directory-p d)))
+      (file-name-as-directory (getenv "TMP")))
+     ((let ((d (getenv "TMPDIR"))) (and d (file-directory-p d)))
+      (file-name-as-directory (getenv "TMPDIR")))
+     ((file-exists-p "c:/temp") (file-name-as-directory "c:/temp"))
+     (t (message (concat "Neither `temporary-file-directory' nor "
+			 "`temp-directory' is defined -- using /tmp."))
+	(file-name-as-directory "/tmp")))))
 
 ;; `make-temp-file' exists in Emacs only.  On XEmacs, we use our own
 ;; implementation with `make-temp-name', creating the temporary file
