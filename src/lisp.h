@@ -916,11 +916,15 @@ struct vectorlike_header
   {
     ptrdiff_t size;
 
-    /* Pointer to the next vector-like object.  It is generally a buffer or a
+    /* When the vector is allocated from a vector block, NBYTES is used
+       if the vector is not on a free list, and VECTOR is used otherwise.
+       For large vector-like objects, BUFFER or VECTOR is used as a pointer
+       to the next vector-like object.  It is generally a buffer or a 
        Lisp_Vector alias, so for convenience it is a union instead of a
        pointer: this way, one can write P->next.vector instead of ((struct
        Lisp_Vector *) P->next).  */
     union {
+      ptrdiff_t nbytes;
       struct buffer *buffer;
       struct Lisp_Vector *vector;
     } next;

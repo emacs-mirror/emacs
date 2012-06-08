@@ -1,3 +1,28 @@
+2012-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Block-based vector allocation of small vectors.
+	* lisp.h (struct vectorlike_header): New field `nbytes',
+	adjust comment accordingly.
+	* alloc.c (enum mem_type): New type `MEM_TYPE_VECTOR_BLOCK'
+	to denote vector blocks. Adjust users (live_vector_p,
+	mark_maybe_pointer, valid_lisp_object_p) accordingly.
+	(COMMON_MULTIPLE): Move outside #if USE_LSB_TAG.
+	(VECTOR_BLOCK_SIZE, vroundup, VECTOR_BLOCK_BYTES),
+	(VBLOCK_BYTES_MIN, VBLOCK_BYTES_MAX, VECTOR_MAX_FREE_LIST_INDEX),
+	(VECTOR_FREE_LIST_FLAG, ADVANCE, VINDEX, SETUP_ON_FREE_LIST),
+	(VECTOR_SIZE, VECTOR_IN_BLOCK): New macros.
+	(roundup_size): New constant.
+	(struct vector_block): New data type.
+	(vector_blocks, vector_free_lists, zero_vector): New variables.
+	(all_vectors): Renamed to `large_vectors'.
+	(allocate_vector_from_block, init_vectors, allocate_vector_from_block)
+	(sweep_vectors): New functions.
+	(allocate_vectorlike): Return `zero_vector' as the only vector of
+	0 items. Allocate new vector from block if vector size is less than
+	or equal to VBLOCK_BYTES_MAX.
+	(Fgarbage_collect): Move all vector sweeping code to sweep_vectors.
+	(init_alloc_once): Add call to init_vectors.
+
 2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fmacroexpand): Stop if the macro returns the same form.
