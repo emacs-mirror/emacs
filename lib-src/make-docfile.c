@@ -1025,7 +1025,7 @@ search_lisp_doc_at_eol (FILE *infile)
   char c = 0, c1 = 0, c2 = 0;
 
   /* Skip until the end of line; remember two previous chars.  */
-  while (c != '\n' && c != '\r' && c >= 0)
+  while (c != '\n' && c != '\r' && c != EOF)
     {
       c2 = c1;
       c1 = c;
@@ -1040,6 +1040,8 @@ search_lisp_doc_at_eol (FILE *infile)
       fprintf (stderr, "## non-docstring in %s (%s)\n",
 	       buffer, filename);
 #endif
+      if (c != EOF)
+	ungetc (c, infile);
       return 0;
     }
   return 1;
