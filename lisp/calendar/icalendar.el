@@ -500,7 +500,8 @@ The strings are suitable for assembling into a TZ variable."
 (defun icalendar--parse-vtimezone (alist)
   "Turn a VTIMEZONE ALIST into a cons (ID . TZ-STRING).
 Return nil if timezone cannot be parsed."
-  (let* ((tz-id (icalendar--get-event-property alist 'TZID))
+  (let* ((tz-id (icalendar--convert-string-for-import
+                 (icalendar--get-event-property alist 'TZID)))
 	 (daylight (cadr (cdar (icalendar--get-children alist 'DAYLIGHT))))
 	 (day (and daylight (icalendar--convert-tz-offset daylight t)))
 	 (standard (cadr (cdar (icalendar--get-children alist 'STANDARD))))

@@ -1,3 +1,8 @@
+2012-06-08 Nick Dokos <nicholas.dokos@hp.com>
+
+	* calendar/icalendar.el (icalendar--parse-vtimezone): Import TZID
+	string properly, fixes Bug#11473.
+
 2012-06-08  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (set-face-attribute): Doc fix.

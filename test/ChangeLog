@@ -1,3 +1,11 @@
+2012-06-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar--parse-vtimezone): Test
+	escaped commas in TZID (Bug#11473).
+	(icalendar-import-with-timezone): New.
+	(icalendar-real-world): Add new testcase as given in the bugreport
+	of Bug#11473.
+
 2012-05-29  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/icalendar-tests.el (icalendar-tests--test-import):
