@@ -1,3 +1,15 @@
+2012-06-08  Sam Steingold  <sds@gnu.org>
+
+	* bindings.el (global-map): Bind XF86Forward to next-buffer and
+	XF86Back to previous-buffer.
+	(minibuffer-local-map): Bind them to next-history-element and
+	previous-history-element respectively.
+	* help-mode.el (help-mode-map): Bind them to help-go-forward and
+	help-go-back respectively.
+	* info.el (Info-mode-map): Bind them to Info-history-forward and
+	Info-history-back respectively.
+	These are the keys next to Up on the ThinkPad keyboard.
+
 2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Get rid of cl-lexical-let, keeping only lexical-let for compatibility.

@@ -40,6 +40,8 @@
     (define-key map [mouse-2] 'help-follow-mouse)
     (define-key map "\C-c\C-b" 'help-go-back)
     (define-key map "\C-c\C-f" 'help-go-forward)
+    (define-key map [XF86Back] 'help-go-back)
+    (define-key map [XF86Forward] 'help-go-forward)
     (define-key map "\C-c\C-c" 'help-follow-symbol)
     (define-key map "\r" 'help-follow)
     map)

@@ -784,16 +784,20 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map [right] 'next-buffer)
 (define-key ctl-x-map [C-right] 'next-buffer)
+(define-key global-map [XF86Forward] 'next-buffer)
 (define-key ctl-x-map [left] 'previous-buffer)
 (define-key ctl-x-map [C-left] 'previous-buffer)
+(define-key global-map [XF86Back] 'previous-buffer)
 
 (let ((map minibuffer-local-map))
   (define-key map "\en"   'next-history-element)
   (define-key map [next]  'next-history-element)
   (define-key map [down]  'next-history-element)
+  (define-key map [XF86Forward] 'next-history-element)
   (define-key map "\ep"   'previous-history-element)
   (define-key map [prior] 'previous-history-element)
   (define-key map [up]    'previous-history-element)
+  (define-key map [XF86Back] 'previous-history-element)
   (define-key map "\es"   'next-matching-history-element)
   (define-key map "\er"   'previous-matching-history-element)
   ;; Override the global binding (which calls indent-relative via
