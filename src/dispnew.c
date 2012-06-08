@@ -1962,6 +1962,7 @@ adjust_frame_glyphs (struct frame *f)
 
 /* Return 1 if any window in the tree has nonzero window margins.  See
    the hack at the end of adjust_frame_glyphs_for_frame_redisplay.  */
+#if 0
 static int
 showing_window_margins_p (struct window *w)
 {
@@ -1985,6 +1986,7 @@ showing_window_margins_p (struct window *w)
     }
   return 0;
 }
+#endif
 
 
 /* In the window tree with root W, build current matrices of leaf

@@ -1,3 +1,8 @@
+2012-06-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispnew.c (showing_window_margins_p): Wrap in #if 0 to prevent unused
+	function warning (the only call is inside #if 0 since revno:108521).
+
 2012-06-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* alloc.c (allocate_vectorlike): Fix last change.
