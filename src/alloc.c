@@ -3254,7 +3254,10 @@ allocate_vectorlike (ptrdiff_t len)
   /* eassert (!handling_signal); */
 
   if (len == 0)
-    return zero_vector;
+    {
+      MALLOC_UNBLOCK_INPUT;
+      return zero_vector;
+    }
 
   nbytes = header_size + len * word_size;
 

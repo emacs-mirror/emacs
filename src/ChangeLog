@@ -1,3 +1,7 @@
+2012-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c (allocate_vectorlike): Fix last change.
+
 2012-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Block-based vector allocation of small vectors.
