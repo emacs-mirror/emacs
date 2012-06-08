@@ -56,26 +56,26 @@ The value t means never ding, and `error' means only ding on wrong input."
   :group 'mpuz)
 
 (defface mpuz-unsolved
-  '((((class color)) (:foreground "red1" :bold t))
-    (t (:bold t)))
-  "Face to use for letters to be solved."
+  '((default :weight bold)
+    (((class color)) :foreground "red1"))
+  "Face for letters to be solved."
   :group 'mpuz)
 
 (defface mpuz-solved
-  '((((class color)) (:foreground "green1" :bold t))
-    (t (:bold t)))
-  "Face to use for solved digits."
+  '((default :weight bold)
+    (((class color)) :foreground "green1"))
+  "Face for solved digits."
   :group 'mpuz)
 
 (defface mpuz-trivial
-  '((((class color)) (:foreground "blue" :bold t))
-    (t (:bold t)))
-  "Face to use for trivial digits solved for you."
+  '((default :weight bold)
+    (((class color)) :foreground "blue"))
+  "Face for trivial digits solved for you."
   :group 'mpuz)
 
 (defface mpuz-text
-  '((t (:inherit variable-pitch)))
-  "Face to use for text on right."
+  '((t :inherit variable-pitch))
+  "Face for text on right."
   :group 'mpuz)
 
 

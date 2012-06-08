@@ -66,7 +66,7 @@
 
 ;;; Variables
 
-(defface erc-button '((t (:bold t)))
+(defface erc-button '((t :weight bold))
   "ERC button face."
   :group 'erc-faces)
 

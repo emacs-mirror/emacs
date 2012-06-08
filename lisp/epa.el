@@ -50,97 +50,51 @@ the separate window."
   :group 'epa)
 
 (defface epa-validity-high
-  `((((class color) (background dark))
-     (:foreground "PaleTurquoise"
-		  ,@(if (assq ':weight custom-face-attributes)
-			'(:weight bold)
-		      '(:bold t))))
-    (t
-     (,@(if (assq ':weight custom-face-attributes)
-	    '(:weight bold)
-	  '(:bold t)))))
-  "Face used for displaying the high validity."
+  '((default :weight bold)
+    (((class color) (background dark)) :foreground "PaleTurquoise"))
+  "Face for high validity EPA information."
   :group 'epa-faces)
 
 (defface epa-validity-medium
-  `((((class color) (background dark))
-     (:foreground "PaleTurquoise"
-		  ,@(if (assq ':slant custom-face-attributes)
-			'(:slant italic)
-		      '(:italic t))))
-    (t
-     (,@(if (assq ':slant custom-face-attributes)
-	    '(:slant italic)
-	  '(:italic t)))))
-  "Face used for displaying the medium validity."
+  '((default :slant italic)
+    (((class color) (background dark)) :foreground "PaleTurquoise"))
+  "Face for medium validity EPA information."
   :group 'epa-faces)
 
 (defface epa-validity-low
-  `((t
-     (,@(if (assq ':slant custom-face-attributes)
-	    '(:slant italic)
-	  '(:italic t)))))
+  '((t :slant italic))
   "Face used for displaying the low validity."
   :group 'epa-faces)
 
 (defface epa-validity-disabled
-  `((t
-     (,@(if (assq ':slant custom-face-attributes)
-	    '(:slant italic)
-	  '(:italic t))
-	:inverse-video t)))
+  '((t :slant italic :inverse-video t))
   "Face used for displaying the disabled validity."
   :group 'epa-faces)
 
 (defface epa-string
   '((((class color) (background dark))
-     (:foreground "lightyellow"))
+     :foreground "lightyellow")
     (((class color) (background light))
-     (:foreground "blue4")))
+     :foreground "blue4"))
   "Face used for displaying the string."
   :group 'epa-faces)
 
 (defface epa-mark
-  `((((class color) (background dark))
-     (:foreground "orange"
-		  ,@(if (assq ':weight custom-face-attributes)
-			'(:weight bold)
-		      '(:bold t))))
-    (((class color) (background light))
-     (:foreground "red"
-		  ,@(if (assq ':weight custom-face-attributes)
-			'(:weight bold)
-		      '(:bold t))))
-    (t
-     (,@(if (assq ':weight custom-face-attributes)
-	    '(:weight bold)
-	  '(:bold t)))))
+  '((default :weight bold)
+    (((class color) (background dark))  :foreground "orange")
+    (((class color) (background light)) :foreground "red"))
   "Face used for displaying the high validity."
   :group 'epa-faces)
 
 (defface epa-field-name
-  `((((class color) (background dark))
-     (:foreground "PaleTurquoise"
-		  ,@(if (assq ':weight custom-face-attributes)
-			'(:weight bold)
-		      '(:bold t))))
-    (t
-     (,@(if (assq ':weight custom-face-attributes)
-	    '(:weight bold)
-	  '(:bold t)))))
+  '((default :weight bold)
+    (((class color) (background dark)) :foreground "PaleTurquoise"))
   "Face for the name of the attribute field."
   :group 'epa)
 
 (defface epa-field-body
-  `((((class color) (background dark))
-     (:foreground "turquoise"
-		  ,@(if (assq ':slant custom-face-attributes)
-			'(:slant italic)
-		      '(:italic t))))
-    (t
-     (,@(if (assq ':slant custom-face-attributes)
-	    '(:slant italic)
-	  '(:italic t)))))
+  '((default :slant italic)
+    (((class color) (background dark)) :foreground "turquoise"))
   "Face for the body of the attribute field."
   :group 'epa)
 

@@ -1927,11 +1927,16 @@ exactly what the @code{defface} says.
 @cindex face specification
 The @var{spec} argument is a @dfn{face specification}, which states
 how the face should appear on different kinds of terminals.  It should
-be an alist whose elements each have the form @code{(@var{display}
-@var{atts})}.  @var{display} specifies a class of terminals (see
-below), while @var{atts} is a property list of face attributes and
-their values, specifying the appearance of the face on matching
-terminals
+be an alist whose elements each have the form
+
+@example
+(@var{display} . @var{plist})
+@end example
+
+@noindent
+@var{display} specifies a class of terminals (see below), while
+@var{plist} is a property list of face attributes and their values,
+specifying how the face appears on such terminals
 @iftex
 (see the next section for details about face attributes).
 @end iftex
@@ -1947,8 +1952,8 @@ for that frame.  There are three possibilities for @var{display}:
 @table @asis
 @item @code{default}
 This element of @var{spec} doesn't match any frames; instead, it
-specifies defaults that apply to all frames.  This kind of element, if
-used, must be the first element of @var{spec}.  Each of the following
+specifies defaults that apply to all frames.  This element, if used,
+must be the first element of @var{spec}.  Each of the following
 elements can override any or all of these defaults.
 
 @item @code{t}
@@ -2066,16 +2071,14 @@ attribute is ignored.
 @table @code
 @item :family
 Font family or fontset (a string).  @xref{Fonts,,, emacs, The GNU
-Emacs Manual}.  If you specify a font family name, the wild-card
-characters @samp{*} and @samp{?} are allowed.  The function
-@code{font-family-list}, described below, returns a list of available
-family names.  @xref{Fontsets}, for information about fontsets.
+Emacs Manual}, for more information about font families; the function
+@code{font-family-list} (see below) returns a list of available family
+names.  @xref{Fontsets}, for information about fontsets.
 
 @item :foundry
 The name of the @dfn{font foundry} for the font family specified by
-the @code{:family} attribute (a string).  The wild-card characters
-@samp{*} and @samp{?} are allowed.  @xref{Fonts,,, emacs, The GNU
-Emacs Manual}.
+the @code{:family} attribute (a string).  @xref{Fonts,,, emacs, The
+GNU Emacs Manual}.
 
 @item :width
 Relative proportionate character width, also known as the character
@@ -2220,16 +2223,6 @@ faces (@pxref{Displaying Faces}).  If a list of faces is used,
 attributes from faces earlier in the list override those from later
 faces.
 @end table
-
-For compatibility with Emacs 20, you can also specify values for two
-``fake'' face attributes: @code{:bold} and @code{:italic}.  Their
-values must be either @code{t} or @code{nil}; a value of
-@code{unspecified} is not allowed.  Setting @code{:bold} to @code{t}
-is equivalent to setting the @code{:weight} attribute to @code{bold},
-and setting it to @code{nil} is equivalent to setting @code{:weight}
-to @code{normal}.  Setting @code{:italic} to @code{t} is equivalent to
-setting the @code{:slant} attribute to @code{italic}, and setting it
-to @code{nil} is equivalent to setting @code{:slant} to @code{normal}.
 
 @defun font-family-list &optional frame
 This function returns a list of available font family names.  The

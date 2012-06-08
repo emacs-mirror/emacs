@@ -563,23 +563,23 @@ If FACE is a face-alias, get the documentation for the target face."
 
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
+This function overrides the face attributes specified by FACE's
+face spec.  It is mostly intended for internal use only.
 
-If FRAME is nil this function sets the attributes for all
-existing frames, and the default for new frames.  If FRAME is t,
-change the default for new frames (this is done automatically
-each time an attribute is changed on all frames).
+If FRAME is nil, set the attributes for all existing frames, as
+well as the default for new frames.  If FRAME is t, change the
+default for new frames only.
 
-ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid
-face attribute name.  All attributes can be set to `unspecified';
-this fact is not further mentioned below.
+ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a
+valid face attribute name.  All attributes can be set to
+`unspecified'; this fact is not further mentioned below.
 
 The following attributes are recognized:
 
 `:family'
 
-VALUE must be a string specifying the font family, e.g. ``monospace'',
-or a fontset alias name.  If a font family is specified, wild-cards `*'
-and `?' are allowed.
+VALUE must be a string specifying the font family
+\(e.g. \"Monospace\") or a fontset.
 
 `:foundry'
 
@@ -596,13 +596,13 @@ It must be one of the symbols `ultra-condensed', `extra-condensed',
 
 `:height'
 
-VALUE specifies the height of the font, in either absolute or relative
-terms.  An absolute height is an integer, and specifies font height in
-units of 1/10 pt.  A relative height is either a floating point number,
+VALUE specifies the relative or absolute height of the font.  An
+absolute height is an integer, and specifies font height in units
+of 1/10 pt.  A relative height is either a floating point number,
 which specifies a scaling factor for the underlying face height;
-or a function that takes a single argument (the underlying face height)
-and returns the new height.  Note that for the `default' face,
-you can only specify an absolute height (since there is nothing
+or a function that takes a single argument (the underlying face
+height) and returns the new height.  Note that for the `default'
+face, you must specify an absolute height (since there is nothing
 for it to be relative to).
 
 `:weight'
@@ -684,19 +684,26 @@ from an X font name:
 
 `:font'
 
-Set font-related face attributes from VALUE.  VALUE must be a valid
-XLFD font name.  If it is a font name pattern, the first matching font
-will be used.
-
-For compatibility with Emacs 20, keywords `:bold' and `:italic' can
-be used to specify that a bold or italic font should be used.  VALUE
-must be t or nil in that case.  A value of `unspecified' is not allowed.
+Set font-related face attributes from VALUE.  VALUE must be a
+valid font name or font object.  Setting this attribute will also
+set the `:family', `:foundry', `:width', `:height', `:weight',
+and `:slant' attributes.
 
 `:inherit'
 
-VALUE is the name of a face from which to inherit attributes, or a list
-of face names.  Attributes from inherited faces are merged into the face
-like an underlying face would be, with higher priority than underlying faces."
+VALUE is the name of a face from which to inherit attributes, or
+a list of face names.  Attributes from inherited faces are merged
+into the face like an underlying face would be, with higher
+priority than underlying faces.
+
+For backward compatibility, the keywords `:bold' and `:italic'
+can be used to specify weight and slant respectively.  This usage
+is considered obsolete.  For these two keywords, the VALUE must
+be either t or nil.  A value of t for `:bold' is equivalent to
+setting `:weight' to `bold', and a value of t for `:italic' is
+equivalent to setting `:slant' to `italic'.  But if `:weight' is
+specified in the face spec, `:bold' is ignored, and if `:slant'
+is specified, `:italic' is ignored."
   (setq args (purecopy args))
   (let ((where (if (null frame) 0 frame))
 	(spec args)
@@ -1188,8 +1195,8 @@ and the face and its settings are obtained by querying the user."
 			  :foreground (or foreground 'unspecified)
 			  :background (or background 'unspecified)
 			  :stipple stipple
-			  :bold bold-p
-			  :italic italic-p
+			  :weight (if bold-p 'bold 'normal)
+			  :slant (if italic-p 'italic 'normal)
 			  :underline underline
 			  :inverse-video inverse-p)
     (setq face (read-face-name "Modify face"))
@@ -2439,33 +2446,31 @@ It is used for characters of no fonts too."
   :group 'basic-faces)
 
 (defface error
-  '((((class color) (min-colors 88) (background light)) (:foreground "Red1" :weight bold))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 16) (background light)) (:foreground "Red1" :weight bold))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 8)) (:foreground "red"))
-    (t (:inverse-video t :weight bold)))
+  '((default :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "Red1")
+    (((class color) (min-colors 88) (background dark))  :foreground "Pink")
+    (((class color) (min-colors 16) (background light)) :foreground "Red1")
+    (((class color) (min-colors 16) (background dark))  :foreground "Pink")
+    (((class color) (min-colors 8)) :foreground "red")
+    (t :inverse-video t))
   "Basic face used to highlight errors and to denote failure."
   :version "24.1"
   :group 'basic-faces)
 
 (defface warning
-  '((((class color) (min-colors 16)) (:foreground "DarkOrange" :weight bold))
-    (((class color)) (:foreground "yellow" :weight bold))
-    (t (:weight bold)))
+  '((default :weight bold)
+    (((class color) (min-colors 16)) :foreground "DarkOrange")
+    (((class color)) :foreground "yellow"))
   "Basic face used to highlight warnings."
   :version "24.1"
   :group 'basic-faces)
 
 (defface success
-  '((((class color) (min-colors 16) (background light))
-     (:foreground "ForestGreen" :weight bold))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "Green1" :weight bold))
-    (((class color) (min-colors 16) (background dark))
-     (:foreground "Green" :weight bold))
-    (((class color)) (:foreground "green" :weight bold))
-    (t (:weight bold)))
+  '((default :weight bold)
+    (((class color) (min-colors 16) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 88) (background dark))  :foreground "Green1")
+    (((class color) (min-colors 16) (background dark))  :foreground "Green")
+    (((class color)) :foreground "green"))
   "Basic face used to indicate successful operation."
   :version "24.1"
   :group 'basic-faces)

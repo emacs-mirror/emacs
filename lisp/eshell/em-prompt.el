@@ -69,9 +69,9 @@ re-entered for it to take effect."
   :group 'eshell-prompt)
 
 (defface eshell-prompt
-  '((((class color) (background light)) (:foreground "Red" :bold t))
-    (((class color) (background dark)) (:foreground "Pink" :bold t))
-    (t (:bold t)))
+  '((default :weight bold)
+    (((class color) (background light)) :foreground "Red")
+    (((class color) (background dark))  :foreground "Pink"))
   "The face used to highlight prompt strings.
 For highlighting other kinds of strings -- similar to shell mode's
 behavior -- simply use an output filer which changes text properties."

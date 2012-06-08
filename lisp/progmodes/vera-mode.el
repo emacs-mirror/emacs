@@ -670,23 +670,23 @@ Adapted from `font-lock-match-c-style-declaration-item-and-skip-to-next'."
   "Face name to use for interface names.")
 
 (defface vera-font-lock-number
-  '((((class color) (background light)) (:foreground "Gold4"))
-    (((class color) (background dark)) (:foreground "BurlyWood1"))
-    (t (:italic t :bold t)))
+  '((((class color) (background light)) :foreground "Gold4")
+    (((class color) (background dark))  :foreground "BurlyWood1")
+    (t :slant italic :weight bold))
   "Font lock mode face used to highlight @ definitions."
   :group 'font-lock-highlighting-faces)
 
 (defface vera-font-lock-function
-  '((((class color) (background light)) (:foreground "DarkCyan"))
-    (((class color) (background dark)) (:foreground "Orchid1"))
-    (t (:italic t :bold t)))
+  '((((class color) (background light)) :foreground "DarkCyan")
+    (((class color) (background dark))  :foreground "Orchid1")
+    (t :slant italic :weight bold))
   "Font lock mode face used to highlight predefined functions and tasks."
   :group 'font-lock-highlighting-faces)
 
 (defface vera-font-lock-interface
-  '((((class color) (background light)) (:foreground "Grey40"))
-    (((class color) (background dark)) (:foreground "Grey80"))
-    (t (:italic t :bold t)))
+  '((((class color) (background light)) :foreground "Grey40")
+    (((class color) (background dark))  :foreground "Grey80")
+    (t :slant italic :weight bold))
   "Font lock mode face used to highlight interface names."
   :group 'font-lock-highlighting-faces)
 

@@ -463,7 +463,7 @@ Must be set prior to enabling CUA."
 (defface cua-global-mark
   '((((min-colors 88)(class color)) :foreground "black" :background "yellow1")
     (((class color)) :foreground "black" :background "yellow")
-    (t :bold t))
+    (t :weight bold))
   "Font used by CUA for highlighting the global mark."
   :group 'cua)
 

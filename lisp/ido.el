@@ -791,44 +791,39 @@ subdirs in the alternatives."
   :type 'boolean
   :group 'ido)
 
-(defface ido-first-match  '((t (:bold t)))
+(defface ido-first-match  '((t :weight bold))
   "Face used by ido for highlighting first match."
   :group 'ido)
 
 (defface ido-only-match  '((((class color))
-                                 (:foreground "ForestGreen"))
-                                (t (:italic t)))
+			    :foreground "ForestGreen")
+			   (t :slant italic))
   "Face used by ido for highlighting only match."
   :group 'ido)
 
 (defface ido-subdir  '((((min-colors 88) (class color))
-                             (:foreground "red1"))
-			    (((class color))
-                             (:foreground "red"))
-                            (t (:underline t)))
+			:foreground "red1")
+		       (((class color))
+			:foreground "red")
+		       (t :underline t))
   "Face used by ido for highlighting subdirs in the alternatives."
   :group 'ido)
 
-(defface ido-virtual '((t (:inherit font-lock-builtin-face)))
+(defface ido-virtual '((t :inherit font-lock-builtin-face))
   "Face used by ido for matching virtual buffer names."
   :version "24.1"
   :group 'ido)
 
-(defface ido-indicator  '((((min-colors 88) (class color))
-				(:foreground "yellow1"
-				 :background "red1"
-				 :width condensed))
-			       (((class color))
-				(:foreground "yellow"
-				 :background "red"
-				 :width condensed))
-			       (t (:inverse-video t)))
+(defface ido-indicator '((((min-colors 88) (class color))
+			  :foreground "yellow1" :background "red1" :width condensed)
+			 (((class color))
+			  :foreground "yellow" :background "red" :width condensed)
+			 (t :inverse-video t))
   "Face used by ido for highlighting its indicators."
   :group 'ido)
 
 (defface ido-incomplete-regexp
-  '((t
-     (:inherit font-lock-warning-face)))
+  '((t :inherit font-lock-warning-face))
   "Ido face for indicating incomplete regexps."
   :group 'ido)
 

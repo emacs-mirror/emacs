@@ -445,24 +445,14 @@ like <img alt=\"Some thing.\">."
 ;;*---------------------------------------------------------------------*/
 ;;*    Highlighting                                                     */
 ;;*---------------------------------------------------------------------*/
-(defface flyspell-incorrect
-  '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
-    (t (:bold t)))
-  "Face used for marking a misspelled word in Flyspell."
+(defface flyspell-incorrect '((t :underline t :inherit error))
+  "Flyspell face for misspelled words."
   :group 'flyspell)
-(if (featurep 'emacs)
-    (define-obsolete-face-alias 'flyspell-incorrect-face 'flyspell-incorrect "22.1")
-  (put 'flyspell-incorrect-face 'face-alias 'flyspell-incorrect))
 
-(defface flyspell-duplicate
-  '((((class color)) (:foreground "Gold3" :bold t :underline t))
-    (t (:bold t)))
-  "Face used for marking a misspelled word that appears twice in the buffer.
+(defface flyspell-duplicate '((t :underline t :inherit warning))
+  "Flyspell face for words that appear twice in a row.
 See also `flyspell-duplicate-distance'."
   :group 'flyspell)
-(if (featurep 'emacs)
-    (define-obsolete-face-alias 'flyspell-duplicate-face 'flyspell-duplicate "22.1")
-  (put 'flyspell-duplicate-face 'face-alias 'flyspell-duplicate))
 
 (defvar flyspell-overlay nil)
 

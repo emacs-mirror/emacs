@@ -1,3 +1,84 @@
+2012-06-08  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (set-face-attribute): Doc fix.
+	(modify-face): Don't use :bold and :italic.
+	(error, warning, success): Tweak definitions.
+
+	* cus-edit.el (custom-modified, custom-invalid, custom-rogue)
+	(custom-modified, custom-set, custom-changed, custom-themed)
+	(custom-saved, custom-button, custom-button-mouse)
+	(custom-button-pressed, custom-state, custom-comment-tag)
+	(custom-variable-tag, custom-group-tag-1, custom-group-tag)
+	(custom-group-subtitle): Use new-style face specs.
+	(custom-invalid-face, custom-rogue-face, custom-modified-face)
+	(custom-set-face, custom-changed-face, custom-saved-face)
+	(custom-button-face, custom-button-pressed-face)
+	(custom-documentation-face, custom-state-face)
+	(custom-comment-face, custom-comment-tag-face)
+	(custom-variable-tag-face, custom-variable-button-face)
+	(custom-face-tag-face, custom-group-tag-face-1)
+	(custom-group-tag-face): Remove obsolete face alias.
+
+	* epa.el (epa-validity-high, epa-validity-medium)
+	(epa-validity-low, epa-mark, epa-field-name, epa-string)
+	(epa-field-name, epa-field-body):
+	* font-lock.el (font-lock-comment-face, font-lock-string-face)
+	(font-lock-keyword-face, font-lock-builtin-face)
+	(font-lock-function-name-face, font-lock-variable-name-face)
+	(font-lock-type-face, font-lock-constant-face):
+	* ido.el (ido-first-match, ido-only-match, ido-subdir)
+	(ido-virtual, ido-indicator, ido-incomplete-regexp):
+	* speedbar.el (speedbar-button-face, speedbar-file-face)
+	(speedbar-directory-face, speedbar-tag-face)
+	(speedbar-selected-face, speedbar-highlight-face)
+	(speedbar-separator-face):
+	* whitespace.el (whitespace-newline, whitespace-space)
+	(whitespace-hspace, whitespace-tab, whitespace-trailing)
+	(whitespace-line, whitespace-space-before-tab)
+	(whitespace-space-after-tab, whitespace-indentation)
+	(whitespace-empty):
+	* emulation/cua-base.el (cua-global-mark):
+	* eshell/em-prompt.el (eshell-prompt):
+	* net/newst-plainview.el (newsticker-new-item-face)
+	(newsticker-old-item-face, newsticker-immortal-item-face)
+	(newsticker-obsolete-item-face, newsticker-date-face)
+	(newsticker-statistics-face, newsticker-default-face):
+	* net/newst-reader.el (newsticker-feed-face)
+	(newsticker-extra-face, newsticker-enclosure-face):
+	* net/newst-treeview.el (newsticker-treeview-face)
+	(newsticker-treeview-new-face, newsticker-treeview-old-face)
+	(newsticker-treeview-immortal-face)
+	(newsticker-treeview-obsolete-face)
+	(newsticker-treeview-selection-face):
+	* net/rcirc.el (rcirc-my-nick, rcirc-other-nick)
+	(rcirc-bright-nick, rcirc-server, rcirc-timestamp)
+	(rcirc-nick-in-message, rcirc-nick-in-message-full-line)
+	(rcirc-prompt, rcirc-track-keyword, rcirc-url, rcirc-keyword):
+	* nxml/nxml-outln.el (nxml-heading, nxml-outline-indicator)
+	(nxml-outline-active-indicator, nxml-outline-ellipsis):
+	* play/mpuz.el (mpuz-unsolved, mpuz-solved, mpuz-trivial)
+	(mpuz-text):
+	* progmodes/vera-mode.el (vera-font-lock-number)
+	(vera-font-lock-function, vera-font-lock-interface):
+	* textmodes/table.el (table-cell): Use new-style face specs, and
+	don't use the old :bold and :italic attributes.
+
+	* progmodes/ebrowse.el (ebrowse-tree-mark, ebrowse-root-class)
+	(ebrowse-member-attribute, ebrowse-default, ebrowse-file-name)
+	(ebrowse-member-class, ebrowse-progress): Likewise.
+	(ebrowse-tree-mark-face, ebrowse-root-class-face)
+	(ebrowse-file-name-face, ebrowse-default-face)
+	(ebrowse-member-attribute-face, ebrowse-member-class-face)
+	(ebrowse-progress-face): Remove obsolete faces.
+
+	* progmodes/flymake.el (flymake-errline, flymake-warnline):
+	Inherit from error and warning faces respectively.
+
+	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
+	Likewise.
+	(flyspell-incorrect-face, flyspell-duplicate-face): Remove
+	obsolete aliases.
+
 2012-06-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-compat.el (tramp-compat-temporary-file-directory):

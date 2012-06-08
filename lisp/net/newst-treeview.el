@@ -50,50 +50,36 @@
   :group 'newsticker-reader)
 
 (defface newsticker-treeview-face
-  '((((class color) (background dark))
-     (:family "sans" :foreground "white" :bold nil))
-    (((class color) (background light))
-     (:family "sans" :foreground "black" :bold nil)))
+  '((((class color) (background dark))  :foreground "white")
+    (((class color) (background light)) :foreground "black"))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-new-face
-  '((((class color) (background dark))
-     (:inherit newsticker-treeview-face :bold t))
-    (((class color) (background light))
-     (:inherit newsticker-treeview-face :bold t)))
+  '((t :inherit newsticker-treeview-face :weight bold))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-old-face
-  '((((class color) (background dark))
-     (:inherit newsticker-treeview-face))
-    (((class color) (background light))
-     (:inherit newsticker-treeview-face)))
+  '((t :inherit newsticker-treeview-face))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-immortal-face
-  '((((class color) (background dark))
-     (:inherit newsticker-treeview-face :foreground "orange" :italic t))
-    (((class color) (background light))
-     (:inherit newsticker-treeview-face :foreground "blue" :italic t)))
+  '((default :inherit newsticker-treeview-face :slant italic)
+    (((class color) (background dark))  :foreground "orange")
+    (((class color) (background light)) :foreground "blue"))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-obsolete-face
-  '((((class color) (background dark))
-     (:inherit newsticker-treeview-face :strike-through t))
-    (((class color) (background light))
-     (:inherit newsticker-treeview-face :strike-through t)))
+  '((t :inherit newsticker-treeview-face :strike-through t))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-selection-face
-  '((((class color) (background dark))
-     (:background "#bbbbff"))
-    (((class color) (background light))
-     (:background "#bbbbff")))
+  '((((class color) (background dark))  :background "#bbbbff")
+    (((class color) (background light)) :background "#bbbbff"))
   "Face for newsticker selection."
   :group 'newsticker-treeview)
 

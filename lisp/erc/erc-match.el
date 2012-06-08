@@ -258,26 +258,26 @@ constituents.")
 
 ;; Faces:
 
-(defface erc-current-nick-face '((t (:bold t :foreground "DarkTurquoise")))
+(defface erc-current-nick-face '((t :weight bold :foreground "DarkTurquoise"))
   "ERC face for occurrences of your current nickname."
   :group 'erc-faces)
 
-(defface erc-dangerous-host-face '((t (:foreground "red")))
+(defface erc-dangerous-host-face '((t :foreground "red"))
   "ERC face for people on dangerous hosts.
 See `erc-dangerous-hosts'."
   :group 'erc-faces)
 
-(defface erc-pal-face '((t (:bold t :foreground "Magenta")))
+(defface erc-pal-face '((t :weight bold :foreground "Magenta"))
   "ERC face for your pals.
 See `erc-pals'."
   :group 'erc-faces)
 
-(defface erc-fool-face '((t (:foreground "dim gray")))
+(defface erc-fool-face '((t :foreground "dim gray"))
   "ERC face for fools on the channel.
 See `erc-fools'."
   :group 'erc-faces)
 
-(defface erc-keyword-face '((t (:bold t :foreground "pale green")))
+(defface erc-keyword-face '((t :weight bold :foreground "pale green"))
   "ERC face for your keywords.
 Note that this is the default face to use if
 `erc-keywords' does not specify another."

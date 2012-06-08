@@ -1,3 +1,9 @@
+2012-06-08  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Face Attributes): Font family does not accept
+	wildcards.  De-document obsolete :bold and :italic attributes.
+	(Defining Faces): Use new-style face spec format.
+
 2012-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* internals.text (Garbage Collection): Document new
