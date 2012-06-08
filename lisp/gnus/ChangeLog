@@ -1,3 +1,8 @@
+2012-06-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-msg-mail): Warn the user about Gnus not running
+	(bug#11514).
+
 2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nntp.el: Stop the `letf' madness.
@@ -97,6 +102,12 @@
 
 	* gnus-start.el (gnus-read-newsrc-el-file): Protect against broken
 	.newsrc.el files.
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-summary-cancel-article): See what From header we
+	would have gotten if we posted to the group, and use that to compare
+	against the message we want to cancel (bug#10808).
 
 2012-03-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
