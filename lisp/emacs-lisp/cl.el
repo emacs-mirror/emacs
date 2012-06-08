@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'macroexp)
 
 ;; (defun cl--rename ()
 ;;   (let ((vdefs ())
@@ -226,11 +227,8 @@
                locally
                multiple-value-setq
                multiple-value-bind
-               lexical-let*
-               lexical-let
                symbol-macrolet
                macrolet
-               labels
                flet
                progv
                psetq
@@ -330,12 +328,181 @@
       (if (get new prop)
         (put fun prop (get new prop))))))
 
+(defvar cl-closure-vars nil)
+(defvar cl--function-convert-cache nil)
+
+(defun cl--function-convert (f)
+  "Special macro-expander for special cases of (function F).
+The two cases that are handled are:
+- closure-conversion of lambda expressions for `lexical-let'.
+- renaming of F when it's a function defined via `cl-labels' or `labels'."
+  (require 'cl-macs)
+  (cond
+   ;; ¡¡Big Ugly Hack!! We can't use a compiler-macro because those are checked
+   ;; *after* handling `function', but we want to stop macroexpansion from
+   ;; being applied infinitely, so we use a cache to return the exact `form'
+   ;; being expanded even though we don't receive it.
+   ((eq f (car cl--function-convert-cache)) (cdr cl--function-convert-cache))
+   ((eq (car-safe f) 'lambda)
+    (let ((body (mapcar (lambda (f)
+                          (macroexpand-all f macroexpand-all-environment))
+                        (cddr f))))
+      (if (and cl-closure-vars
+               (cl--expr-contains-any body cl-closure-vars))
+          (let* ((new (mapcar 'cl-gensym cl-closure-vars))
+                 (sub (cl-pairlis cl-closure-vars new)) (decls nil))
+            (while (or (stringp (car body))
+                       (eq (car-safe (car body)) 'interactive))
+              (push (list 'quote (pop body)) decls))
+            (put (car (last cl-closure-vars)) 'used t)
+            `(list 'lambda '(&rest --cl-rest--)
+                   ,@(cl-sublis sub (nreverse decls))
+                   (list 'apply
+                         (list 'quote
+                               #'(lambda ,(append new (cadr f))
+                                   ,@(cl-sublis sub body)))
+                         ,@(nconc (mapcar (lambda (x) `(list 'quote ,x))
+                                          cl-closure-vars)
+                                  '((quote --cl-rest--))))))
+        (let* ((newf `(lambda ,(cadr f) ,@body))
+               (res `(function ,newf)))
+          (setq cl--function-convert-cache (cons newf res))
+          res))))
+   (t
+    (let ((found (assq f macroexpand-all-environment)))
+      (if (and found (ignore-errors
+                       (eq (cadr (cl-caddr found)) 'cl-labels-args)))
+          (cadr (cl-caddr (cl-cadddr found)))
+        (let ((res `(function ,f)))
+          (setq cl--function-convert-cache (cons f res))
+          res))))))
+
+(defmacro lexical-let (bindings &rest body)
+  "Like `let', but lexically scoped.
+The main visible difference is that lambdas inside BODY will create
+lexical closures as in Common Lisp.
+\n(fn BINDINGS BODY)"
+  (declare (indent 1) (debug let))
+  (let* ((cl-closure-vars cl-closure-vars)
+	 (vars (mapcar (function
+			(lambda (x)
+			  (or (consp x) (setq x (list x)))
+			  (push (make-symbol (format "--cl-%s--" (car x)))
+				cl-closure-vars)
+			  (set (car cl-closure-vars) [bad-lexical-ref])
+			  (list (car x) (cadr x) (car cl-closure-vars))))
+		       bindings))
+	 (ebody
+	  (macroexpand-all
+           `(cl-symbol-macrolet
+                ,(mapcar (lambda (x)
+                           `(,(car x) (symbol-value ,(cl-caddr x))))
+                         vars)
+              ,@body)
+	   (cons (cons 'function #'cl--function-convert)
+                 macroexpand-all-environment))))
+    (if (not (get (car (last cl-closure-vars)) 'used))
+        ;; Turn (let ((foo (cl-gensym)))
+        ;;        (set foo <val>) ...(symbol-value foo)...)
+        ;; into (let ((foo <val>)) ...(symbol-value 'foo)...).
+        ;; This is good because it's more efficient but it only works with
+        ;; dynamic scoping, since with lexical scoping we'd need
+        ;; (let ((foo <val>)) ...foo...).
+	`(progn
+           ,@(mapcar (lambda (x) `(defvar ,(cl-caddr x))) vars)
+           (let ,(mapcar (lambda (x) (list (cl-caddr x) (cadr x))) vars)
+           ,(cl-sublis (mapcar (lambda (x)
+                              (cons (cl-caddr x)
+                                    `',(cl-caddr x)))
+                            vars)
+                    ebody)))
+      `(let ,(mapcar (lambda (x)
+                       (list (cl-caddr x)
+                             `(make-symbol ,(format "--%s--" (car x)))))
+                     vars)
+         (cl-setf ,@(apply #'append
+                        (mapcar (lambda (x)
+                                  (list `(symbol-value ,(cl-caddr x)) (cadr x)))
+                                vars)))
+         ,ebody))))
+
+(defmacro lexical-let* (bindings &rest body)
+  "Like `let*', but lexically scoped.
+The main visible difference is that lambdas inside BODY, and in
+successive bindings within BINDINGS, will create lexical closures
+as in Common Lisp.  This is similar to the behavior of `let*' in
+Common Lisp.
+\n(fn BINDINGS BODY)"
+  (declare (indent 1) (debug let))
+  (if (null bindings) (cons 'progn body)
+    (setq bindings (reverse bindings))
+    (while bindings
+      (setq body (list `(lexical-let (,(pop bindings)) ,@body))))
+    (car body)))
+
+;; This should really have some way to shadow 'byte-compile properties, etc.
+;;;###autoload
+(defmacro flet (bindings &rest body)
+  "Make temporary function definitions.
+This is an analogue of `let' that operates on the function cell of FUNC
+rather than its value cell.  The FORMs are evaluated with the specified
+function definitions in place, then the definitions are undone (the FUNCs
+go back to their previous definitions, or lack thereof).
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (declare (indent 1) (debug cl-flet))
+  `(cl-letf* ,(mapcar
+            (lambda (x)
+              (if (or (and (fboundp (car x))
+                           (eq (car-safe (symbol-function (car x))) 'macro))
+                      (cdr (assq (car x) macroexpand-all-environment)))
+                  (error "Use `labels', not `flet', to rebind macro names"))
+              (let ((func `(cl-function
+                            (lambda ,(cadr x)
+                              (cl-block ,(car x) ,@(cddr x))))))
+                (when (cl-compiling-file)
+                  ;; Bug#411.  It would be nice to fix this.
+                  (and (get (car x) 'byte-compile)
+                       (error "Byte-compiling a redefinition of `%s' \
+will not work - use `labels' instead" (symbol-name (car x))))
+                  ;; FIXME This affects the rest of the file, when it
+                  ;; should be restricted to the flet body.
+                  (and (boundp 'byte-compile-function-environment)
+                       (push (cons (car x) (eval func))
+                             byte-compile-function-environment)))
+                (list `(symbol-function ',(car x)) func)))
+            bindings)
+     ,@body))
+
+(defmacro labels (bindings &rest body)
+  "Make temporary function bindings.
+This is like `flet', except the bindings are lexical instead of dynamic.
+Unlike `flet', this macro is fully compliant with the Common Lisp standard.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (declare (indent 1) (debug cl-flet))
+  (let ((vars nil) (sets nil) (newenv macroexpand-all-environment))
+    (dolist (binding bindings)
+      ;; It's important that (not (eq (symbol-name var1) (symbol-name var2)))
+      ;; because these var's *names* get added to the macro-environment.
+      (let ((var (make-symbol (format "--cl-%s--" (car binding)))))
+	(push var vars)
+	(push `(cl-function (lambda . ,(cdr binding))) sets)
+	(push var sets)
+	(push (cons (car binding)
+                    `(lambda (&rest cl-labels-args)
+                       (cl-list* 'funcall ',var
+                                 cl-labels-args)))
+              newenv)))
+    (macroexpand-all `(lexical-let ,vars (setq ,@sets) ,@body) newenv)))
+
 ;;; Additional compatibility code
 ;; For names that were clean but really aren't needed any more.
 
-(defalias 'cl-macroexpand 'macroexpand)
-(defvaralias 'cl-macro-environment 'macroexpand-all-environment)
-(defalias 'cl-macroexpand-all 'macroexpand-all)
+(define-obsolete-function-alias 'cl-macroexpand 'macroexpand "24.2")
+(define-obsolete-variable-alias 'cl-macro-environment
+  'macroexpand-all-environment "24.2")
+(define-obsolete-function-alias 'cl-macroexpand-all 'macroexpand-all "24.2")
 
 ;;; Hash tables.
 ;; This is just kept for compatibility with code byte-compiled by Emacs-20.
@@ -343,24 +510,29 @@
 ;; No idea if this might still be needed.
 (defun cl-not-hash-table (x &optional y &rest z)
   (signal 'wrong-type-argument (list 'cl-hash-table-p (or y x))))
+(make-obsolete 'cl-not-hash-table nil "24.2")
 
 (defvar cl-builtin-gethash (symbol-function 'gethash))
+(make-obsolete-variable 'cl-builtin-gethash nil "24.2")
 (defvar cl-builtin-remhash (symbol-function 'remhash))
+(make-obsolete-variable 'cl-builtin-remhash nil "24.2")
 (defvar cl-builtin-clrhash (symbol-function 'clrhash))
+(make-obsolete-variable 'cl-builtin-clrhash nil "24.2")
 (defvar cl-builtin-maphash (symbol-function 'maphash))
 
-(defalias 'cl-map-keymap 'map-keymap)
-(defalias 'cl-copy-tree 'copy-tree)
-(defalias 'cl-gethash 'gethash)
-(defalias 'cl-puthash 'puthash)
-(defalias 'cl-remhash 'remhash)
-(defalias 'cl-clrhash 'clrhash)
-(defalias 'cl-maphash 'maphash)
-(defalias 'cl-make-hash-table 'make-hash-table)
-(defalias 'cl-hash-table-p 'hash-table-p)
-(defalias 'cl-hash-table-count 'hash-table-count)
+(make-obsolete-variable 'cl-builtin-maphash nil "24.2")
+(define-obsolete-function-alias 'cl-map-keymap 'map-keymap "24.2")
+(define-obsolete-function-alias 'cl-copy-tree 'copy-tree "24.2")
+(define-obsolete-function-alias 'cl-gethash 'gethash "24.2")
+(define-obsolete-function-alias 'cl-puthash 'puthash "24.2")
+(define-obsolete-function-alias 'cl-remhash 'remhash "24.2")
+(define-obsolete-function-alias 'cl-clrhash 'clrhash "24.2")
+(define-obsolete-function-alias 'cl-maphash 'maphash "24.2")
+(define-obsolete-function-alias 'cl-make-hash-table 'make-hash-table "24.2")
+(define-obsolete-function-alias 'cl-hash-table-p 'hash-table-p "24.2")
+(define-obsolete-function-alias 'cl-hash-table-count 'hash-table-count "24.2")
 
-;; FIXME: More candidates: define-modify-macro, define-setf-expander, lexical-let.
+;; FIXME: More candidates: define-modify-macro, define-setf-expander.
 
 (provide 'cl)
 ;;; cl.el ends here

@@ -1611,63 +1611,70 @@ a `let' form, except that the list of symbols can be computed at run-time."
          (progn (cl-progv-before ,symbols ,values) ,@body)
        (cl-progv-after))))
 
+(defvar cl--labels-convert-cache nil)
+
+(defun cl--labels-convert (f)
+  "Special macro-expander to rename (function F) references in `cl-labels'."
+  (cond
+   ;; ¡¡Big Ugly Hack!! We can't use a compiler-macro because those are checked
+   ;; *after* handling `function', but we want to stop macroexpansion from
+   ;; being applied infinitely, so we use a cache to return the exact `form'
+   ;; being expanded even though we don't receive it.
+   ((eq f (car cl--labels-convert-cache)) (cdr cl--labels-convert-cache))
+   (t
+    (let ((found (assq f macroexpand-all-environment)))
+      (if (and found (ignore-errors
+                       (eq (cadr (cl-caddr found)) 'cl-labels-args)))
+          (cadr (cl-caddr (cl-cadddr found)))
+        (let ((res `(function ,f)))
+          (setq cl--labels-convert-cache (cons f res))
+          res))))))
+
 ;;; This should really have some way to shadow 'byte-compile properties, etc.
 ;;;###autoload
 (defmacro cl-flet (bindings &rest body)
   "Make temporary function definitions.
-This is an analogue of `let' that operates on the function cell of FUNC
-rather than its value cell.  The FORMs are evaluated with the specified
-function definitions in place, then the definitions are undone (the FUNCs
-go back to their previous definitions, or lack thereof).
+Like `cl-labels' but the definitions are not recursive.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug ((&rest (cl-defun)) cl-declarations body)))
-  `(cl-letf* ,(mapcar
-            (lambda (x)
-              (if (or (and (fboundp (car x))
-                           (eq (car-safe (symbol-function (car x))) 'macro))
-                      (cdr (assq (car x) macroexpand-all-environment)))
-                  (error "Use `cl-labels', not `cl-flet', to rebind macro names"))
-              (let ((func `(cl-function
-                            (lambda ,(cadr x)
-                              (cl-block ,(car x) ,@(cddr x))))))
-                (when (cl-compiling-file)
-                  ;; Bug#411.  It would be nice to fix this.
-                  (and (get (car x) 'byte-compile)
-                       (error "Byte-compiling a redefinition of `%s' \
-will not work - use `cl-labels' instead" (symbol-name (car x))))
-                  ;; FIXME This affects the rest of the file, when it
-                  ;; should be restricted to the cl-flet body.
-                  (and (boundp 'byte-compile-function-environment)
-                       (push (cons (car x) (eval func))
-                             byte-compile-function-environment)))
-                (list `(symbol-function ',(car x)) func)))
-            bindings)
-     ,@body))
-
-;;;###autoload
-(defmacro cl-labels (bindings &rest body)
-  "Make temporary function bindings.
-This is like `cl-flet', except the bindings are lexical instead of dynamic.
-Unlike `cl-flet', this macro is fully compliant with the Common Lisp standard.
-
-\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
-  (declare (indent 1) (debug cl-flet))
-  (let ((vars nil) (sets nil) (newenv macroexpand-all-environment))
-    (while bindings
-      ;; Use `cl-gensym' rather than `make-symbol'.  It's important that
-      ;; (not (eq (symbol-name var1) (symbol-name var2))) because these
-      ;; vars get added to the cl-macro-environment.
-      (let ((var (cl-gensym "--cl-var--")))
-	(push var vars)
-	(push `(cl-function (lambda . ,(cdar bindings))) sets)
-	(push var sets)
-	(push (cons (car (pop bindings))
+  (let ((binds ()) (newenv macroexpand-all-environment))
+    (dolist (binding bindings)
+      (let ((var (make-symbol (format "--cl-%s--" (car binding)))))
+	(push (list var `(cl-function (lambda . ,(cdr binding)))) binds)
+	(push (cons (car binding)
                     `(lambda (&rest cl-labels-args)
                        (cl-list* 'funcall ',var
                                  cl-labels-args)))
               newenv)))
-    (macroexpand-all `(cl-lexical-let ,vars (setq ,@sets) ,@body) newenv)))
+    `(let ,(nreverse binds)
+       ,@(macroexp-unprogn
+          (macroexpand-all
+           `(progn ,@body)
+           ;; Don't override lexical-let's macro-expander.
+           (if (assq 'function newenv) newenv
+             (cons (cons 'function #'cl--labels-convert) newenv)))))))
+
+;;;###autoload
+(defmacro cl-labels (bindings &rest body)
+  "Make temporary function bindings.
+The bindings can be recursive.  Assumes the use of `lexical-binding'.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (declare (indent 1) (debug cl-flet))
+  (let ((binds ()) (newenv macroexpand-all-environment))
+    (dolist (binding bindings)
+      (let ((var (make-symbol (format "--cl-%s--" (car binding)))))
+	(push (list var `(cl-function (lambda . ,(cdr binding)))) binds)
+	(push (cons (car binding)
+                    `(lambda (&rest cl-labels-args)
+                       (cl-list* 'funcall ',var
+                                 cl-labels-args)))
+              newenv)))
+    (macroexpand-all `(letrec ,(nreverse binds) ,@body)
+                     ;; Don't override lexical-let's macro-expander.
+                     (if (assq 'function newenv) newenv
+                       (cons (cons 'function #'cl--labels-convert) newenv)))))
 
 ;; The following ought to have a better definition for use with newer
 ;; byte compilers.
@@ -1749,119 +1756,6 @@ by EXPANSION, and (setq NAME ...) will act like (cl-setf EXPANSION ...).
 				      (cl-cadar bindings))
                                    macroexpand-all-environment)))
         (fset 'macroexpand previous-macroexpand))))))
-
-(defvar cl-closure-vars nil)
-(defvar cl--function-convert-cache nil)
-
-(defun cl--function-convert (f)
-  "Special macro-expander for special cases of (function F).
-The two cases that are handled are:
-- closure-conversion of lambda expressions for `cl-lexical-let'.
-- renaming of F when it's a function defined via `cl-labels'."
-  (cond
-   ;; ¡¡Big Ugly Hack!! We can't use a compiler-macro because those are checked
-   ;; *after* handling `function', but we want to stop macroexpansion from
-   ;; being applied infinitely, so we use a cache to return the exact `form'
-   ;; being expanded even though we don't receive it.
-   ((eq f (car cl--function-convert-cache)) (cdr cl--function-convert-cache))
-   ((eq (car-safe f) 'lambda)
-    (let ((body (mapcar (lambda (f)
-                          (macroexpand-all f macroexpand-all-environment))
-                        (cddr f))))
-      (if (and cl-closure-vars
-               (cl--expr-contains-any body cl-closure-vars))
-          (let* ((new (mapcar 'cl-gensym cl-closure-vars))
-                 (sub (cl-pairlis cl-closure-vars new)) (decls nil))
-            (while (or (stringp (car body))
-                       (eq (car-safe (car body)) 'interactive))
-              (push (list 'quote (pop body)) decls))
-            (put (car (last cl-closure-vars)) 'used t)
-            `(list 'lambda '(&rest --cl-rest--)
-                   ,@(cl-sublis sub (nreverse decls))
-                   (list 'apply
-                         (list 'quote
-                               #'(lambda ,(append new (cadr f))
-                                   ,@(cl-sublis sub body)))
-                         ,@(nconc (mapcar (lambda (x) `(list 'quote ,x))
-                                          cl-closure-vars)
-                                  '((quote --cl-rest--))))))
-        (let* ((newf `(lambda ,(cadr f) ,@body))
-               (res `(function ,newf)))
-          (setq cl--function-convert-cache (cons newf res))
-          res))))
-   (t
-    (let ((found (assq f macroexpand-all-environment)))
-      (if (and found (ignore-errors
-                       (eq (cadr (cl-caddr found)) 'cl-labels-args)))
-          (cadr (cl-caddr (cl-cadddr found)))
-        (let ((res `(function ,f)))
-          (setq cl--function-convert-cache (cons f res))
-          res))))))
-
-;;;###autoload
-(defmacro cl-lexical-let (bindings &rest body)
-  "Like `let', but lexically scoped.
-The main visible difference is that lambdas inside BODY will create
-lexical closures as in Common Lisp.
-\n(fn BINDINGS BODY)"
-  (declare (indent 1) (debug let))
-  (let* ((cl-closure-vars cl-closure-vars)
-	 (vars (mapcar (function
-			(lambda (x)
-			  (or (consp x) (setq x (list x)))
-			  (push (make-symbol (format "--cl-%s--" (car x)))
-				cl-closure-vars)
-			  (set (car cl-closure-vars) [bad-lexical-ref])
-			  (list (car x) (cadr x) (car cl-closure-vars))))
-		       bindings))
-	 (ebody
-	  (macroexpand-all
-           `(cl-symbol-macrolet
-                ,(mapcar (lambda (x)
-                           `(,(car x) (symbol-value ,(cl-caddr x))))
-                         vars)
-              ,@body)
-	   (cons (cons 'function #'cl--function-convert)
-                 macroexpand-all-environment))))
-    (if (not (get (car (last cl-closure-vars)) 'used))
-        ;; Turn (let ((foo (cl-gensym)))
-        ;;        (set foo <val>) ...(symbol-value foo)...)
-        ;; into (let ((foo <val>)) ...(symbol-value 'foo)...).
-        ;; This is good because it's more efficient but it only works with
-        ;; dynamic scoping, since with lexical scoping we'd need
-        ;; (let ((foo <val>)) ...foo...).
-	`(progn
-           ,@(mapcar (lambda (x) `(defvar ,(cl-caddr x))) vars)
-           (let ,(mapcar (lambda (x) (list (cl-caddr x) (cadr x))) vars)
-           ,(cl-sublis (mapcar (lambda (x)
-                              (cons (cl-caddr x)
-                                    `',(cl-caddr x)))
-                            vars)
-                    ebody)))
-      `(let ,(mapcar (lambda (x)
-                       (list (cl-caddr x)
-                             `(make-symbol ,(format "--%s--" (car x)))))
-                     vars)
-         (cl-setf ,@(apply #'append
-                        (mapcar (lambda (x)
-                                  (list `(symbol-value ,(cl-caddr x)) (cadr x)))
-                                vars)))
-         ,ebody))))
-
-;;;###autoload
-(defmacro cl-lexical-let* (bindings &rest body)
-  "Like `let*', but lexically scoped.
-The main visible difference is that lambdas inside BODY, and in
-successive bindings within BINDINGS, will create lexical closures
-as in Common Lisp.  This is similar to the behavior of `let*' in
-Common Lisp.
-\n(fn BINDINGS BODY)"
-  (declare (indent 1) (debug let))
-  (if (null bindings) (cons 'progn body)
-    (setq bindings (reverse bindings))
-    (while bindings
-      (setq body (list `(cl-lexical-let (,(pop bindings)) ,@body))))
-    (car body)))
 
 ;;; Multiple values.
 
@@ -3210,5 +3104,7 @@ surrounded by (cl-block NAME ...).
 ;; byte-compile-warnings: (not cl-functions)
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
+
+(provide 'cl-macs)
 
 ;;; cl-macs.el ends here

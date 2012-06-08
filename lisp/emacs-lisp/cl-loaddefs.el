@@ -258,13 +258,12 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-letf cl-rotatef cl-shiftf cl-remf cl-do-pop cl-psetf cl-setf
 ;;;;;;  cl-get-setf-method cl-defsetf cl-define-setf-expander cl-declare
 ;;;;;;  cl-the cl-locally cl-multiple-value-setq cl-multiple-value-bind
-;;;;;;  cl-lexical-let* cl-lexical-let cl-symbol-macrolet cl-macrolet
-;;;;;;  cl-labels cl-flet cl-progv cl-psetq cl-do-all-symbols cl-do-symbols
-;;;;;;  cl-dotimes cl-dolist cl-do* cl-do cl-loop cl-return-from
-;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
-;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
-;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "c1e8e5391e374630452ab3d78e527086")
+;;;;;;  cl-symbol-macrolet cl-macrolet cl-labels cl-flet cl-progv
+;;;;;;  cl-psetq cl-do-all-symbols cl-do-symbols cl-dotimes cl-dolist
+;;;;;;  cl-do* cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
+;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
+;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
+;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "4c0f605e3c7454488cc9d498b611f422")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\
@@ -485,10 +484,7 @@ a `let' form, except that the list of symbols can be computed at run-time.
 
 (autoload 'cl-flet "cl-macs" "\
 Make temporary function definitions.
-This is an analogue of `let' that operates on the function cell of FUNC
-rather than its value cell.  The FORMs are evaluated with the specified
-function definitions in place, then the definitions are undone (the FUNCs
-go back to their previous definitions, or lack thereof).
+Like `cl-labels' but the definitions are not recursive.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
 
@@ -496,8 +492,7 @@ go back to their previous definitions, or lack thereof).
 
 (autoload 'cl-labels "cl-macs" "\
 Make temporary function bindings.
-This is like `cl-flet', except the bindings are lexical instead of dynamic.
-Unlike `cl-flet', this macro is fully compliant with the Common Lisp standard.
+The bindings can be recursive.  Assumes the use of `lexical-binding'.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
 
@@ -519,26 +514,6 @@ by EXPANSION, and (setq NAME ...) will act like (cl-setf EXPANSION ...).
 \(fn ((NAME EXPANSION) ...) FORM...)" nil t)
 
 (put 'cl-symbol-macrolet 'lisp-indent-function '1)
-
-(autoload 'cl-lexical-let "cl-macs" "\
-Like `let', but lexically scoped.
-The main visible difference is that lambdas inside BODY will create
-lexical closures as in Common Lisp.
-
-\(fn BINDINGS BODY)" nil t)
-
-(put 'cl-lexical-let 'lisp-indent-function '1)
-
-(autoload 'cl-lexical-let* "cl-macs" "\
-Like `let*', but lexically scoped.
-The main visible difference is that lambdas inside BODY, and in
-successive bindings within BINDINGS, will create lexical closures
-as in Common Lisp.  This is similar to the behavior of `let*' in
-Common Lisp.
-
-\(fn BINDINGS BODY)" nil t)
-
-(put 'cl-lexical-let* 'lisp-indent-function '1)
 
 (autoload 'cl-multiple-value-bind "cl-macs" "\
 Collect multiple return values.

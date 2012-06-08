@@ -1,3 +1,18 @@
+2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of cl-lexical-let, keeping only lexical-let for compatibility.
+	* emacs-lisp/cl-macs.el: Provide itself.
+	(cl--labels-convert-cache): New var.
+	(cl--labels-convert): New function.
+	(cl-flet, cl-labels): New implementation with new semantics, relying on
+	lexical-binding.
+	* emacs-lisp/cl.el: Mark compatibility aliases as obsolete.
+	(cl-closure-vars, cl--function-convert-cache)
+	(cl--function-convert): Move from cl-macs.el.
+	(lexical-let, lexical-let*, flet, labels): Move from cl-macs.el and
+	rename by removing the "cl-" prefix.
+	* emacs-lisp/macroexp.el (macroexp-unprogn): New function.
+
 2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el (cl-macroexpand, cl-macro-environment)

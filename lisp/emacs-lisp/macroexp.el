@@ -231,6 +231,10 @@ definitions to shadow the loaded ones for use in file byte-compilation."
   "Return an expression equivalent to `(progn ,@EXPS)."
   (if (cdr exps) `(progn ,@exps) (car exps)))
 
+(defun macroexp-unprogn (exp)
+  "Turn EXP into a list of expressions to execute in sequence."
+  (if (eq (car-safe exp) 'progn) (cdr exp) (list exp)))
+
 (defun macroexp-let* (bindings exp)
   "Return an expression equivalent to `(let* ,bindings ,exp)."
   (cond
