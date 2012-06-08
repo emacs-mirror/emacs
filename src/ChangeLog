@@ -1,3 +1,10 @@
+2012-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (showing_window_margins_p): Undo last change, which
+	was done due to an inadvertent commit.
+	(adjust_frame_glyphs_for_frame_redisplay): Do call
+	showing_window_margins_p.
+
 2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fmake_var_non_special): New primitive.
