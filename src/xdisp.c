@@ -9765,7 +9765,7 @@ vmessage (const char *m, va_list ap)
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
 			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, ap);
 
-	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
+	      message2 (FRAME_MESSAGE_BUF (f), len, 1);
 	    }
 	  else
 	    message1 (0);

@@ -1,3 +1,10 @@
+2012-06-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (vmessage): Treat frame message as multibyte.
+	Without this change, (let ((§ 1)) (make-variable-buffer-local '§))
+	would generate the diagnostic "Making \302\247 buffer-local while
+	let-bound!".
+
 2012-06-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (showing_window_margins_p): Undo last change, which
