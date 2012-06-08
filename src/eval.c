@@ -1020,7 +1020,13 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  if (NILP (expander))
 	    break;
 	}
-      form = apply1 (expander, XCDR (form));
+      {
+	Lisp_Object newform = apply1 (expander, XCDR (form));
+	if (EQ (form, newform))
+	  break;
+	else
+	  form = newform;
+      }
     }
   return form;
 }

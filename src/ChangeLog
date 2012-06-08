@@ -1,3 +1,7 @@
+2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fmacroexpand): Stop if the macro returns the same form.
+
 2012-06-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doprnt.c (doprnt): Truncate multibyte char correctly.
