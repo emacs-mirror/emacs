@@ -1,4 +1,4 @@
-2012-06-08 Nick Dokos <nicholas.dokos@hp.com>
+2012-06-08  Nick Dokos  <nicholas.dokos@hp.com>  (tiny change)
 
 	* calendar/icalendar.el (icalendar--parse-vtimezone): Import TZID
 	string properly, fixes Bug#11473.
