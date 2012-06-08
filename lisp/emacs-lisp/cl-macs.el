@@ -1,4 +1,4 @@
-;;; cl-macs.el --- Common Lisp macros
+;;; cl-macs.el --- Common Lisp macros  --*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
 
@@ -310,8 +310,8 @@ its argument list allows full Common Lisp conventions."
 (defconst cl-lambda-list-keywords
   '(&optional &rest &key &allow-other-keys &aux &whole &body &environment))
 
-(defvar cl-bind-block) (defvar cl-bind-defs) (defvar cl-bind-enquote)
-(defvar cl-bind-inits) (defvar cl-bind-lets) (defvar cl-bind-forms)
+(defvar cl--bind-block) (defvar cl--bind-defs) (defvar cl--bind-enquote)
+(defvar cl--bind-inits) (defvar cl--bind-lets) (defvar cl--bind-forms)
 
 (declare-function help-add-fundoc-usage "help-fns" (docstring arglist))
 
@@ -346,20 +346,20 @@ its argument list allows full Common Lisp conventions."
                  ))))
             arglist)))
 
-(defun cl--transform-lambda (form cl-bind-block)
+(defun cl--transform-lambda (form bind-block)
   (let* ((args (car form)) (body (cdr form)) (orig-args args)
-	 (cl-bind-defs nil) (cl-bind-enquote nil)
-	 (cl-bind-inits nil) (cl-bind-lets nil) (cl-bind-forms nil)
+	 (cl--bind-block bind-block) (cl--bind-defs nil) (cl--bind-enquote nil)
+	 (cl--bind-inits nil) (cl--bind-lets nil) (cl--bind-forms nil)
 	 (header nil) (simple-args nil))
     (while (or (stringp (car body))
 	       (memq (car-safe (car body)) '(interactive cl-declare)))
       (push (pop body) header))
     (setq args (if (listp args) (cl-copy-list args) (list '&rest args)))
     (let ((p (last args))) (if (cdr p) (setcdr p (list '&rest (cdr p)))))
-    (if (setq cl-bind-defs (cadr (memq '&cl-defs args)))
-	(setq args (delq '&cl-defs (delq cl-bind-defs args))
-	      cl-bind-defs (cadr cl-bind-defs)))
-    (if (setq cl-bind-enquote (memq '&cl-quote args))
+    (if (setq cl--bind-defs (cadr (memq '&cl-defs args)))
+	(setq args (delq '&cl-defs (delq cl--bind-defs args))
+	      cl--bind-defs (cadr cl--bind-defs)))
+    (if (setq cl--bind-enquote (memq '&cl-quote args))
 	(setq args (delq '&cl-quote args)))
     (if (memq '&whole args) (error "&whole not currently implemented"))
     (let* ((p (memq '&environment args)) (v (cadr p))
@@ -369,20 +369,20 @@ its argument list allows full Common Lisp conventions."
     (while (and args (symbolp (car args))
 		(not (memq (car args) '(nil &rest &body &key &aux)))
 		(not (and (eq (car args) '&optional)
-			  (or cl-bind-defs (consp (cadr args))))))
+			  (or cl--bind-defs (consp (cadr args))))))
       (push (pop args) simple-args))
-    (or (eq cl-bind-block 'cl-none)
-	(setq body (list `(cl-block ,cl-bind-block ,@body))))
+    (or (eq cl--bind-block 'cl-none)
+	(setq body (list `(cl-block ,cl--bind-block ,@body))))
     (if (null args)
 	(cl-list* nil (nreverse simple-args) (nconc (nreverse header) body))
       (if (memq '&optional simple-args) (push '&optional args))
       (cl--do-arglist args nil (- (length simple-args)
                                   (if (memq '&optional simple-args) 1 0)))
-      (setq cl-bind-lets (nreverse cl-bind-lets))
-      (cl-list* (and cl-bind-inits `(cl-eval-when (compile load eval)
-                                ,@(nreverse cl-bind-inits)))
+      (setq cl--bind-lets (nreverse cl--bind-lets))
+      (cl-list* (and cl--bind-inits `(cl-eval-when (compile load eval)
+                                ,@(nreverse cl--bind-inits)))
 	     (nconc (nreverse simple-args)
-		    (list '&rest (car (pop cl-bind-lets))))
+		    (list '&rest (car (pop cl--bind-lets))))
 	     (nconc (let ((hdr (nreverse header)))
                       ;; Macro expansion can take place in the middle of
                       ;; apparently harmless computation, so it should not
@@ -395,15 +395,15 @@ its argument list allows full Common Lisp conventions."
                                        (cons 'fn
                                              (cl--make-usage-args orig-args))))
                               hdr)))
-		    (list `(let* ,cl-bind-lets
-                             ,@(nreverse cl-bind-forms)
+		    (list `(let* ,cl--bind-lets
+                             ,@(nreverse cl--bind-forms)
                              ,@body)))))))
 
 (defun cl--do-arglist (args expr &optional num)   ; uses bind-*
   (if (nlistp args)
       (if (or (memq args cl-lambda-list-keywords) (not (symbolp args)))
 	  (error "Invalid argument name: %s" args)
-	(push (list args expr) cl-bind-lets))
+	(push (list args expr) cl--bind-lets))
     (setq args (cl-copy-list args))
     (let ((p (last args))) (if (cdr p) (setcdr p (list '&rest (cdr p)))))
     (let ((p (memq '&body args))) (if p (setcar p '&rest)))
@@ -417,9 +417,9 @@ its argument list allows full Common Lisp conventions."
       (if (listp (cadr restarg))
 	  (setq restarg (make-symbol "--cl-rest--"))
 	(setq restarg (cadr restarg)))
-      (push (list restarg expr) cl-bind-lets)
+      (push (list restarg expr) cl--bind-lets)
       (if (eq (car args) '&whole)
-	  (push (list (cl-pop2 args) restarg) cl-bind-lets))
+	  (push (list (cl-pop2 args) restarg) cl--bind-lets))
       (let ((p args))
 	(setq minarg restarg)
 	(while (and p (not (memq (car p) cl-lambda-list-keywords)))
@@ -437,8 +437,8 @@ its argument list allows full Common Lisp conventions."
 	   (if (or laterarg (= safety 0)) poparg
 	     `(if ,minarg ,poparg
                 (signal 'wrong-number-of-arguments
-                        (list ,(and (not (eq cl-bind-block 'cl-none))
-                                    `',cl-bind-block)
+                        (list ,(and (not (eq cl--bind-block 'cl-none))
+                                    `',cl--bind-block)
                               (length ,restarg)))))))
 	(setq num (1+ num) laterarg t))
       (while (and (eq (car args) '&optional) (pop args))
@@ -447,10 +447,10 @@ its argument list allows full Common Lisp conventions."
 	    (or (consp arg) (setq arg (list arg)))
 	    (if (cddr arg) (cl--do-arglist (nth 2 arg) `(and ,restarg t)))
 	    (let ((def (if (cdr arg) (nth 1 arg)
-			 (or (car cl-bind-defs)
-			     (nth 1 (assq (car arg) cl-bind-defs)))))
+			 (or (car cl--bind-defs)
+			     (nth 1 (assq (car arg) cl--bind-defs)))))
 		  (poparg `(pop ,restarg)))
-	      (and def cl-bind-enquote (setq def `',def))
+	      (and def cl--bind-enquote (setq def `',def))
 	      (cl--do-arglist (car arg)
 			     (if def `(if ,restarg ,poparg ,def) poparg))
 	      (setq num (1+ num))))))
@@ -461,10 +461,10 @@ its argument list allows full Common Lisp conventions."
 	    (push `(if ,restarg
                        (signal 'wrong-number-of-arguments
                                (list
-                                ,(and (not (eq cl-bind-block 'cl-none))
-                                      `',cl-bind-block)
+                                ,(and (not (eq cl--bind-block 'cl-none))
+                                      `',cl--bind-block)
                                 (+ ,num (length ,restarg)))))
-                  cl-bind-forms)))
+                  cl--bind-forms)))
       (while (and (eq (car args) '&key) (pop args))
 	(while (and args (not (memq (car args) cl-lambda-list-keywords)))
 	  (let ((arg (pop args)))
@@ -473,9 +473,9 @@ its argument list allows full Common Lisp conventions."
 			   (intern (format ":%s" (car arg)))))
 		   (varg (if (consp (car arg)) (cl-cadar arg) (car arg)))
 		   (def (if (cdr arg) (cadr arg)
-			  (or (car cl-bind-defs) (cadr (assq varg cl-bind-defs)))))
+			  (or (car cl--bind-defs) (cadr (assq varg cl--bind-defs)))))
 		   (look `(memq ',karg ,restarg)))
-	      (and def cl-bind-enquote (setq def `',def))
+	      (and def cl--bind-enquote (setq def `',def))
 	      (if (cddr arg)
 		  (let* ((temp (or (nth 2 arg) (make-symbol "--cl-var--")))
 			 (val `(car (cdr ,temp))))
@@ -509,11 +509,11 @@ its argument list allows full Common Lisp conventions."
                               ,(format "Keyword argument %%s not one of %s"
                                        keys)
                               (car ,var)))))))
-	    (push `(let ((,var ,restarg)) ,check) cl-bind-forms)))
+	    (push `(let ((,var ,restarg)) ,check) cl--bind-forms)))
       (while (and (eq (car args) '&aux) (pop args))
 	(while (and args (not (memq (car args) cl-lambda-list-keywords)))
 	  (if (consp (car args))
-	      (if (and cl-bind-enquote (cl-cadar args))
+	      (if (and cl--bind-enquote (cl-cadar args))
 		  (cl--do-arglist (caar args)
 				 `',(cadr (pop args)))
 		(cl--do-arglist (caar args) (cadr (pop args))))
@@ -536,12 +536,12 @@ its argument list allows full Common Lisp conventions."
 (defmacro cl-destructuring-bind (args expr &rest body)
   (declare (indent 2)
            (debug (&define cl-macro-list def-form cl-declarations def-body)))
-  (let* ((cl-bind-lets nil) (cl-bind-forms nil) (cl-bind-inits nil)
-	 (cl-bind-defs nil) (cl-bind-block 'cl-none) (cl-bind-enquote nil))
+  (let* ((cl--bind-lets nil) (cl--bind-forms nil) (cl--bind-inits nil)
+	 (cl--bind-defs nil) (cl--bind-block 'cl-none) (cl--bind-enquote nil))
     (cl--do-arglist (or args '(&aux)) expr)
-    (append '(progn) cl-bind-inits
-	    (list `(let* ,(nreverse cl-bind-lets)
-                     ,@(nreverse cl-bind-forms) ,@body)))))
+    (append '(progn) cl--bind-inits
+	    (list `(let* ,(nreverse cl--bind-lets)
+                     ,@(nreverse cl--bind-forms) ,@body)))))
 
 
 ;;; The `cl-eval-when' form.
@@ -582,7 +582,7 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 	(t (eval form) form)))
 
 ;;;###autoload
-(defmacro cl-load-time-value (form &optional read-only)
+(defmacro cl-load-time-value (form &optional _read-only)
   "Like `progn', but evaluates the body at load time.
 The result of the body appears to the compiler as a quoted constant."
   (declare (debug (form &optional sexp)))
@@ -734,7 +734,7 @@ This is compatible with Common Lisp, but note that `defun' and
 (defvar cl--loop-result-var) (defvar cl--loop-steps) (defvar cl--loop-symbol-macs)
 
 ;;;###autoload
-(defmacro cl-loop (&rest cl--loop-args)
+(defmacro cl-loop (&rest loop-args)
   "The Common Lisp `cl-loop' macro.
 Valid clauses are:
   for VAR from/upfrom/downfrom NUM to/upto/downto/above/below NUM by NUM,
@@ -750,9 +750,9 @@ Valid clauses are:
 
 \(fn CLAUSE...)"
   (declare (debug (&rest &or symbolp form)))
-  (if (not (memq t (mapcar 'symbolp (delq nil (delq t (cl-copy-list cl--loop-args))))))
-      `(cl-block nil (while t ,@cl--loop-args))
-    (let ((cl--loop-name nil)	(cl--loop-bindings nil)
+  (if (not (memq t (mapcar 'symbolp (delq nil (delq t (cl-copy-list loop-args))))))
+      `(cl-block nil (while t ,@loop-args))
+    (let ((cl--loop-args loop-args) (cl--loop-name nil) (cl--loop-bindings nil)
 	  (cl--loop-body nil)	(cl--loop-steps nil)
 	  (cl--loop-result nil)	(cl--loop-result-explicit nil)
 	  (cl--loop-result-var nil) (cl--loop-finish-flag nil)
@@ -1807,7 +1807,7 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
   (declare (debug t))
   (cons 'progn body))
 ;;;###autoload
-(defmacro cl-the (type form)
+(defmacro cl-the (_type form)
   (declare (indent 1) (debug (cl-type-spec form)))
   form)
 
@@ -2386,8 +2386,8 @@ the PLACE is not modified before executing BODY.
   (declare (indent 1) (debug ((&rest (gate place &optional form)) body)))
   (if (and (not (cdr bindings)) (cdar bindings) (symbolp (caar bindings)))
       `(let ,bindings ,@body)
-    (let ((lets nil) (sets nil)
-	  (unsets nil) (rev (reverse bindings)))
+    (let ((lets nil)
+          (rev (reverse bindings)))
       (while rev
 	(let* ((place (if (symbolp (caar rev))
 			  `(symbol-value ',(caar rev))
@@ -2822,11 +2822,13 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
 	  ((eq (car type) 'satisfies) (list (cadr type) val))
 	  (t (error "Bad type spec: %s" type)))))
 
+(defvar cl--object)
 ;;;###autoload
 (defun cl-typep (object type)   ; See compiler macro below.
   "Check that OBJECT is of type TYPE.
 TYPE is a Common Lisp-style type specifier."
-  (eval (cl--make-type-test 'object type)))
+  (let ((cl--object object)) ;; Yuck!!
+    (eval (cl--make-type-test 'cl--object type))))
 
 ;;;###autoload
 (defmacro cl-check-type (form type &optional string)

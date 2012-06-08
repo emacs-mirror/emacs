@@ -790,6 +790,17 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   return sym;
 }
 
+/* Make SYMBOL lexically scoped.  */
+DEFUN ("internal-make-var-non-special", Fmake_var_non_special,
+       Smake_var_non_special, 1, 1, 0,
+       doc: /* Internal function.  */)
+     (Lisp_Object symbol)
+{
+  CHECK_SYMBOL (symbol);
+  XSYMBOL (symbol)->declared_special = 0;
+  return Qnil;
+}
+
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
        doc: /* Bind variables according to VARLIST then eval BODY.
@@ -3582,6 +3593,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);
+  defsubr (&Smake_var_non_special);
   defsubr (&Slet);
   defsubr (&SletX);
   defsubr (&Swhile);

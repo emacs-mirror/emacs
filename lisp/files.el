@@ -28,8 +28,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defvar font-lock-keywords)
 
 (defgroup backup nil

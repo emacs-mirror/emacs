@@ -1,3 +1,9 @@
+2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fmake_var_non_special): New primitive.
+	(syms_of_eval): Defsubr it.
+	* lread.c (syms_of_lread): Mark `values' as lexically scoped.
+
 2012-06-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dispnew.c (showing_window_margins_p): Wrap in #if 0 to prevent unused
@@ -23,7 +29,7 @@
 	(roundup_size): New constant.
 	(struct vector_block): New data type.
 	(vector_blocks, vector_free_lists, zero_vector): New variables.
-	(all_vectors): Renamed to `large_vectors'.
+	(all_vectors): Rename to `large_vectors'.
 	(allocate_vector_from_block, init_vectors, allocate_vector_from_block)
 	(sweep_vectors): New functions.
 	(allocate_vectorlike): Return `zero_vector' as the only vector of

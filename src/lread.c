@@ -4375,7 +4375,8 @@ to find all the symbols in an obarray, use `mapatoms'.  */);
 
   DEFVAR_LISP ("values", Vvalues,
 	       doc: /* List of values of all expressions which were read, evaluated and printed.
-Order is reverse chronological.  */);
+		       Order is reverse chronological.  */);
+  XSYMBOL (intern ("values"))->declared_special = 0;
 
   DEFVAR_LISP ("standard-input", Vstandard_input,
 	       doc: /* Stream for read to get input from.
@@ -4393,7 +4394,7 @@ defined, although they may be in the future.
 
 The positions are relative to the last call to `read' or
 `read-from-string'.  It is probably a bad idea to set this variable at
-the toplevel; bind it instead. */);
+the toplevel; bind it instead.  */);
   Vread_with_symbol_positions = Qnil;
 
   DEFVAR_LISP ("read-symbol-positions-list", Vread_symbol_positions_list,
@@ -4408,7 +4409,7 @@ symbol from the position where `read' or `read-from-string' started.
 
 Note that a symbol will appear multiple times in this list, if it was
 read multiple times.  The list is in the same order as the symbols
-were read in. */);
+were read in.  */);
   Vread_symbol_positions_list = Qnil;
 
   DEFVAR_LISP ("read-circle", Vread_circle,
