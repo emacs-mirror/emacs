@@ -1,3 +1,10 @@
+2012-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char): Mention how to insert the
+	character, if the current input method doesn't support it.
+	See the discussion in this thread for the details:
+	http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00533.html.
+
 2012-06-08  Sam Steingold  <sds@gnu.org>
 
 	* bindings.el (global-map): Bind XF86Forward to next-buffer and

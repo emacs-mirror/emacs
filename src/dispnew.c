@@ -2173,7 +2173,10 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
 	     any of the windows contain margins.  I haven't been able
 	     to hunt down the reason, but for the moment this prevents
 	     the problem from manifesting. -- cyd  */
-	  && !showing_window_margins_p (XWINDOW (FRAME_ROOT_WINDOW (f))))
+#if 0
+	  && !showing_window_margins_p (XWINDOW (FRAME_ROOT_WINDOW (f)))
+#endif
+	  )
 	{
 	  struct glyph_matrix *copy = save_current_matrix (f);
 	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);

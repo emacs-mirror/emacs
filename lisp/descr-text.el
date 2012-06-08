@@ -597,7 +597,10 @@ relevant to POS."
                                  `(insert-text-button
                                    ,current-input-method
                                    'type 'help-input-method
-                                   'help-args '(,current-input-method)))))))
+                                   'help-args '(,current-input-method))
+				 "input method")
+			 (list
+			  "type \"C-x 8 RET HEX-CODEPOINT\" or \"C-x 8 RET NAME\"")))))
               ("buffer code"
                ,(if multibyte-p
                     (encoded-string-description
