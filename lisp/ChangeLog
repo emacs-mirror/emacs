@@ -1,3 +1,10 @@
+2012-06-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/texinfmt.el: Fix bug#11640 (reverts part of revno:89810).
+	(texinfo-format-printindex): Use `texinfo-sort-region' in all platforms,
+	instead of calling external sort utility.
+	(texinfo-sort-region, texinfo-sort-startkeyfun): Restore functions.
+
 2012-06-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* descr-text.el (describe-char): Mention how to insert the
