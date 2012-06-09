@@ -316,16 +316,16 @@ TAGS-LISP-CMD: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsf
 # compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile: $(lisp)/subdirs.el mh-autoloads compile-$(SHELLTYPE) doit
+compile: $(lisp)/subdirs.el compile-$(SHELLTYPE) doit
 
-compile-CMD:
+compile-CMD: autoloads
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
 	for %%f in ($(COMPILE_FIRST)) do \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f
 	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
 
-compile-SH:
+compile-SH: autoloads
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
@@ -501,7 +501,7 @@ bootstrap-clean-SH:
 # When done, remove bootstrap-emacs from ../bin, so that
 # it will not be mistaken for an installed binary.
 
-bootstrap: update-subdirs autoloads mh-autoloads compile finder-data custom-deps
+bootstrap: update-subdirs compile finder-data custom-deps
 	- $(DEL) "$(EMACS)"
 
 #
