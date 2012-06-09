@@ -1671,23 +1671,27 @@ If FACE is nil, reset face to default fringe face.  */)
   (Lisp_Object bitmap, Lisp_Object face)
 {
   int n;
-  int face_id;
 
   CHECK_SYMBOL (bitmap);
   n = lookup_fringe_bitmap (bitmap);
   if (!n)
     error ("Undefined fringe bitmap");
 
+  /* The purpose of the following code is to signal an error if FACE
+     is not a face.  This is for the caller's convenience only; the
+     redisplay code should be able to fail gracefully.  Skip the check
+     if FRINGE_FACE_ID is unrealized (as in batch mode and during
+     daemon startup).  */
   if (!NILP (face))
     {
-      face_id = lookup_derived_face (SELECTED_FRAME (), face,
-				     FRINGE_FACE_ID, 1);
-      if (face_id < 0)
+      struct frame *f = SELECTED_FRAME ();
+
+      if (FACE_FROM_ID (f, FRINGE_FACE_ID)
+	  && lookup_derived_face (f, face, FRINGE_FACE_ID, 1) < 0)
 	error ("No such face");
     }
 
   fringe_faces[n] = face;
-
   return Qnil;
 }
 

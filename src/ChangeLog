@@ -1,3 +1,8 @@
+2012-06-09  Chong Yidong  <cyd@gnu.org>
+
+	* fringe.c (Fset_fringe_bitmap_face): Handle the noninteractive
+	case (Bug#9752).
+
 2012-06-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (vmessage): Treat frame message as multibyte.
