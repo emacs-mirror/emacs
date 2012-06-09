@@ -584,15 +584,17 @@ If START or END is negative, it counts from the end."
 ;;; Property lists.
 
 ;;;###autoload
-(defun cl-get (sym tag &optional def)    ; See compiler macro in cl-macs.el
+(defun cl-get (sym tag &optional def)
   "Return the value of SYMBOL's PROPNAME property, or DEFAULT if none.
 \n(fn SYMBOL PROPNAME &optional DEFAULT)"
+  (declare (compiler-macro cl--compiler-macro-get))
   (or (get sym tag)
       (and def
 	   (let ((plist (symbol-plist sym)))
 	     (while (and plist (not (eq (car plist) tag)))
 	       (setq plist (cdr (cdr plist))))
 	     (if plist (car (cdr plist)) def)))))
+(autoload 'cl--compiler-macro-get "cl-macs")
 
 ;;;###autoload
 (defun cl-getf (plist tag &optional def)

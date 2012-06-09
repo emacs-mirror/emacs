@@ -11,7 +11,7 @@
 ;;;;;;  cl-set-frame-visible-p cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
 ;;;;;;  cl-mapl cl-maplist cl-map cl-mapcar-many cl-equalp cl-coerce)
-;;;;;;  "cl-extra" "cl-extra.el" "fecce2e361fd06364d2ffd8c0d482cd0")
+;;;;;;  "cl-extra" "cl-extra.el" "6661c504c379dfde0c37a0f8e2ba6568")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -224,6 +224,8 @@ Return the value of SYMBOL's PROPNAME property, or DEFAULT if none.
 
 \(fn SYMBOL PROPNAME &optional DEFAULT)" nil nil)
 
+(put 'cl-get 'compiler-macro #'cl--compiler-macro-get)
+
 (autoload 'cl-getf "cl-extra" "\
 Search PROPLIST for property PROPNAME; return its value or DEFAULT.
 PROPLIST is a list of the sort returned by `symbol-plist'.
@@ -263,7 +265,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-do* cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
-;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "07b3d08f956d6740ea1979825c84bc01")
+;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "9eb287dd2a8d20f1c6459a9d095fa335")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\
@@ -789,7 +791,7 @@ surrounded by (cl-block NAME ...).
 ;;;;;;  cl-nsubstitute-if cl-nsubstitute cl-substitute-if-not cl-substitute-if
 ;;;;;;  cl-substitute cl-delete-duplicates cl-remove-duplicates cl-delete-if-not
 ;;;;;;  cl-delete-if cl-delete cl-remove-if-not cl-remove-if cl-remove
-;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "d3eaca7a24bdb10b381bb94729c5d7e9")
+;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "8877479cb008b43a94098f3e6ec85d91")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'cl-reduce "cl-seq" "\
@@ -1050,6 +1052,8 @@ Keywords supported:  :test :test-not :key
 
 \(fn ITEM LIST [KEYWORD VALUE]...)" nil nil)
 
+(put 'cl-member 'compiler-macro #'cl--compiler-macro-member)
+
 (autoload 'cl-member-if "cl-seq" "\
 Find the first item satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches.
@@ -1077,6 +1081,8 @@ Find the first item whose car matches ITEM in LIST.
 Keywords supported:  :test :test-not :key
 
 \(fn ITEM LIST [KEYWORD VALUE]...)" nil nil)
+
+(put 'cl-assoc 'compiler-macro #'cl--compiler-macro-assoc)
 
 (autoload 'cl-assoc-if "cl-seq" "\
 Find the first item whose car satisfies PREDICATE in LIST.

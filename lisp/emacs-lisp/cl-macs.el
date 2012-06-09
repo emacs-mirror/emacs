@@ -1,4 +1,4 @@
-;;; cl-macs.el --- Common Lisp macros  --*- lexical-binding: t -*-
+;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t; coding: utf-8 -*-
 
 ;; Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
 
@@ -2993,30 +2993,7 @@ surrounded by (cl-block NAME ...).
 ;; Note that cl.el arranges to force cl-macs to be loaded at compile-time,
 ;; mainly to make sure these macros will be present.
 
-(put 'eql 'byte-compile nil)
-(cl-define-compiler-macro eql (&whole form a b)
-  (cond ((macroexp-const-p a)
-	 (let ((val (cl--const-expr-val a)))
-	   (if (and (numberp val) (not (integerp val)))
-	       `(equal ,a ,b)
-	     `(eq ,a ,b))))
-	((macroexp-const-p b)
-	 (let ((val (cl--const-expr-val b)))
-	   (if (and (numberp val) (not (integerp val)))
-	       `(equal ,a ,b)
-	     `(eq ,a ,b))))
-	((cl--simple-expr-p a 5)
-	 `(if (numberp ,a)
-              (equal ,a ,b)
-            (eq ,a ,b)))
-	((and (cl--safe-expr-p a)
-	      (cl--simple-expr-p b 5))
-	 `(if (numberp ,b)
-              (equal ,a ,b)
-            (eq ,a ,b)))
-	(t form)))
-
-(cl-define-compiler-macro cl-member (&whole form a list &rest keys)
+(defun cl--compiler-macro-member (form a list &rest keys)
   (let ((test (and (= (length keys) 2) (eq (car keys) :test)
 		   (cl--const-expr-val (nth 1 keys)))))
     (cond ((eq test 'eq) `(memq ,a ,list))
@@ -3024,7 +3001,7 @@ surrounded by (cl-block NAME ...).
 	  ((or (null keys) (eq test 'eql)) `(memql ,a ,list))
 	  (t form))))
 
-(cl-define-compiler-macro cl-assoc (&whole form a list &rest keys)
+(defun cl--compiler-macro-assoc (form a list &rest keys)
   (let ((test (and (= (length keys) 2) (eq (car keys) :test)
 		   (cl--const-expr-val (nth 1 keys)))))
     (cond ((eq test 'eq) `(assq ,a ,list))
@@ -3034,31 +3011,28 @@ surrounded by (cl-block NAME ...).
 	       `(assoc ,a ,list) `(assq ,a ,list)))
 	  (t form))))
 
-(cl-define-compiler-macro cl-adjoin (&whole form a list &rest keys)
+(defun cl--compiler-macro-adjoin (form a list &rest keys)
   (if (and (cl--simple-expr-p a) (cl--simple-expr-p list)
 	   (not (memq :key keys)))
       `(if (cl-member ,a ,list ,@keys) ,list (cons ,a ,list))
     form))
 
-(cl-define-compiler-macro cl-list* (arg &rest others)
+(defun cl--compiler-macro-list* (_form arg &rest others)
   (let* ((args (reverse (cons arg others)))
 	 (form (car args)))
     (while (setq args (cdr args))
       (setq form `(cons ,(car args) ,form)))
     form))
 
-(cl-define-compiler-macro cl-get (sym prop &optional def)
+(defun cl--compiler-macro-get (_form sym prop &optional def)
   (if def
       `(cl-getf (symbol-plist ,sym) ,prop ,def)
     `(get ,sym ,prop)))
 
 (cl-define-compiler-macro cl-typep (&whole form val type)
   (if (macroexp-const-p type)
-      (let ((res (cl--make-type-test val (cl--const-expr-val type))))
-	(if (or (memq (cl--expr-contains res val) '(nil 1))
-		(cl--simple-expr-p val)) res
-	  (let ((temp (make-symbol "--cl-var--")))
-	    `(let ((,temp ,val)) ,(cl-subst temp val res)))))
+      (macroexp-let² macroexp-copyable-p temp val
+        (cl--make-type-test temp (cl--const-expr-val type)))
     form))
 
 

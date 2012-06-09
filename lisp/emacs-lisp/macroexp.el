@@ -182,12 +182,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
        (let ((handler nil))
          (while (and (symbolp func)
                      (not (setq handler (get func 'compiler-macro)))
-                     (fboundp func)
-                     (or (not (eq (car-safe (symbol-function func))
-                                  'autoload))
-                         (ignore-errors
-                           (load (nth 1 (symbol-function func))
-                                 'noerror 'nomsg))))
+                     (fboundp func))
            ;; Follow the sequence of aliases.
            (setq func (symbol-function func)))
          (if (null handler)
@@ -195,6 +190,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
              ;; setq/setq-default this works alright because the variable names
              ;; are symbols).
              (macroexp--all-forms form 1)
+           ;; If the handler is not loaded yet, try (auto)loading the
+           ;; function itself, which may in turn load the handler.
+           (when (and (not (functionp handler))
+                      (fboundp func) (eq (car-safe (symbol-function func))
+                                         'autoload))
+             (ignore-errors
+               (load (nth 1 (symbol-function func))
+                     'noerror 'nomsg)))
            (let ((newform (condition-case err
                               (apply handler form (cdr form))
                             (error (message "Compiler-macro error: %S" err)

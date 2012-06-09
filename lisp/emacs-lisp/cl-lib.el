@@ -544,11 +544,12 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 ;;    (while (consp (cdr x)) (pop x))
 ;;    x))
 
-(defun cl-list* (arg &rest rest)   ; See compiler macro in cl-macs.el
+(defun cl-list* (arg &rest rest)
   "Return a new list with specified ARGs as elements, consed to last ARG.
 Thus, `(cl-list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
 `(cons A (cons B (cons C D)))'.
 \n(fn ARG...)"
+  (declare (compiler-macro cl--compiler-macro-list*))
   (cond ((not rest) arg)
 	((not (cdr rest)) (cons arg (car rest)))
 	(t (let* ((n (length rest))
@@ -556,6 +557,7 @@ Thus, `(cl-list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
 		  (last (nthcdr (- n 2) copy)))
 	     (setcdr last (car (cdr last)))
 	     (cons arg copy)))))
+(autoload 'cl--compiler-macro-list* "cl-macs")
 
 (defun cl-ldiff (list sublist)
   "Return a copy of LIST with the tail SUBLIST removed."
@@ -584,17 +586,19 @@ The elements of LIST are not copied, just the list structure itself."
 (declare-function cl-round "cl-extra" (x &optional y))
 (declare-function cl-mod "cl-extra" (x y))
 
-(defun cl-adjoin (cl-item cl-list &rest cl-keys)  ; See compiler macro in cl-macs
+(defun cl-adjoin (cl-item cl-list &rest cl-keys)
   "Return ITEM consed onto the front of LIST only if it's not already there.
 Otherwise, return LIST unmodified.
 \nKeywords supported:  :test :test-not :key
 \n(fn ITEM LIST [KEYWORD VALUE]...)"
+  (declare (compiler-macro cl--compiler-macro-adjoin))
   (cond ((or (equal cl-keys '(:test eq))
 	     (and (null cl-keys) (not (numberp cl-item))))
 	 (if (memq cl-item cl-list) cl-list (cons cl-item cl-list)))
 	((or (equal cl-keys '(:test equal)) (null cl-keys))
 	 (if (member cl-item cl-list) cl-list (cons cl-item cl-list)))
 	(t (apply 'cl--adjoin cl-item cl-list cl-keys))))
+(autoload 'cl--compiler-macro-adjoin "cl-macs")
 
 (defun cl-subst (cl-new cl-old cl-tree &rest cl-keys)
   "Substitute NEW for OLD everywhere in TREE (non-destructively).

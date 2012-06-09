@@ -1,3 +1,21 @@
+2012-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Only autoload
+	a function if there's a clear indication that it has a compiler-macro.
+	* emacs-lisp/byte-run.el (defun-declarations-alist, defmacro, defun)
+	(macro-declarations-alist): Add arglist to declaration functions.
+	(defun-declarations-alist): Add `obsolete' and `compiler-macro'.
+	* emacs-lisp/cl-seq.el (cl-member, cl-assoc):
+	* emacs-lisp/cl-lib.el (cl-list*, cl-adjoin):
+	* emacs-lisp/cl-extra.el (cl-get): Use the new `declare' statement.
+	Also add autoload to find the compiler macro.
+	* emacs-lisp/cl-macs.el (eql) [compiler-macro]: Remove.
+	(cl--compiler-macro-member, cl--compiler-macro-assoc)
+	(cl--compiler-macro-adjoin, cl--compiler-macro-list*)
+	(cl--compiler-macro-get): New functions, replacing calls to
+	cl-define-compiler-macro.
+	(cl-typep) [compiler-macro]: Use macroexp-let².
+
 2012-06-08  Nick Dokos  <nicholas.dokos@hp.com>  (tiny change)
 
 	* calendar/icalendar.el (icalendar--parse-vtimezone): Import TZID

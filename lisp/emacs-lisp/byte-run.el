@@ -70,30 +70,37 @@ The return value of this function is not used."
 ;; loaded by loadup.el that uses declarations in macros.
 
 (defvar defun-declarations-alist
-  ;; FIXME: Should we also add an `obsolete' property?
   (list
-   ;; Too bad we can't use backquote yet at this stage of the bootstrap.
+   ;; We can only use backquotes inside the lambdas and not for those
+   ;; properties that are used by functions loaded before backquote.el.
    (list 'advertised-calling-convention
-         #'(lambda (f arglist when)
+         #'(lambda (f _args arglist when)
              (list 'set-advertised-calling-convention
                    (list 'quote f) (list 'quote arglist) (list 'quote when))))
+   (list 'obsolete
+         #'(lambda (f _args new-name when)
+             `(make-obsolete ',f ',new-name ,when)))
+   (list 'compiler-macro
+         #'(lambda (f _args compiler-function)
+             `(put ',f 'compiler-macro #',compiler-function)))
    (list 'doc-string
-         #'(lambda (f pos)
+         #'(lambda (f _args pos)
              (list 'put (list 'quote f) ''doc-string-elt (list 'quote pos))))
    (list 'indent
-         #'(lambda (f val)
+         #'(lambda (f _args val)
              (list 'put (list 'quote f)
                    ''lisp-indent-function (list 'quote val)))))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,
-the FUN corresponding to PROP is called with the function name
-and the VALUES and should return the code to use to set this property.")
+the FUN corresponding to PROP is called with the function name,
+the function's arglist, and the VALUES and should return the code to use
+to set this property.")
 
 (defvar macro-declarations-alist
   (cons
    (list 'debug
-         #'(lambda (name spec)
+         #'(lambda (name _args spec)
              (list 'progn :autoload-end
                    (list 'put (list 'quote name)
                          ''edebug-form-spec (list 'quote spec)))))
@@ -135,7 +142,7 @@ interpreted according to `macro-declarations-alist'."
                (mapcar
                 #'(lambda (x)
                     (let ((f (cdr (assq (car x) macro-declarations-alist))))
-                      (if f (apply (car f) name (cdr x))
+                      (if f (apply (car f) name arglist (cdr x))
                         (message "Warning: Unknown macro property %S in %S"
                                  (car x) name))))
                 (cdr decl))))
@@ -171,7 +178,7 @@ interpreted according to `defun-declarations-alist'.
             #'(lambda (x)
                 (let ((f (cdr (assq (car x) defun-declarations-alist))))
                   (cond
-                   (f (apply (car f) name (cdr x)))
+                   (f (apply (car f) name arglist (cdr x)))
                    ;; Yuck!!
                    ((and (featurep 'cl)
                          (memq (car x)  ;C.f. cl-do-proclaim.

@@ -676,6 +676,7 @@ sequences, and PREDICATE is a `less-than' predicate on the elements.
 Return the sublist of LIST whose car is ITEM.
 \nKeywords supported:  :test :test-not :key
 \n(fn ITEM LIST [KEYWORD VALUE]...)"
+  (declare (compiler-macro cl--compiler-macro-member))
   (if cl-keys
       (cl-parsing-keywords (:test :test-not :key :if :if-not) ()
 	(while (and cl-list (not (cl-check-test cl-item (car cl-list))))
@@ -684,6 +685,7 @@ Return the sublist of LIST whose car is ITEM.
     (if (and (numberp cl-item) (not (integerp cl-item)))
 	(member cl-item cl-list)
       (memq cl-item cl-list))))
+(autoload 'cl--compiler-macro-member "cl-macs")
 
 ;;;###autoload
 (defun cl-member-if (cl-pred cl-list &rest cl-keys)
@@ -714,6 +716,7 @@ Return the sublist of LIST whose car matches.
   "Find the first item whose car matches ITEM in LIST.
 \nKeywords supported:  :test :test-not :key
 \n(fn ITEM LIST [KEYWORD VALUE]...)"
+  (declare (compiler-macro cl--compiler-macro-assoc))
   (if cl-keys
       (cl-parsing-keywords (:test :test-not :key :if :if-not) ()
 	(while (and cl-alist
@@ -724,6 +727,7 @@ Return the sublist of LIST whose car matches.
     (if (and (numberp cl-item) (not (integerp cl-item)))
 	(assoc cl-item cl-alist)
       (assq cl-item cl-alist))))
+(autoload 'cl--compiler-macro-assoc "cl-macs")
 
 ;;;###autoload
 (defun cl-assoc-if (cl-pred cl-list &rest cl-keys)
