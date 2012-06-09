@@ -1,3 +1,7 @@
+2012-06-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* internals.texi (Garbage Collection): Typo fix.
+
 2012-06-09  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Special Properties): Clarify the meaning of a list of

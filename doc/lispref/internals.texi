@@ -230,7 +230,7 @@ structures include the @code{struct vectorlike_header} field whose
 @code{header.next.buffer} points to the next buffer (which could be
 a killed buffer), and @code{header.next.vector} points to the next
 vector in a free list.  If a vector is small (smaller than or equal to
-@code{VBLOCK_BYTES_MIN} bytes, see @file{alloc.c}), then
+@code{VBLOCK_BYTES_MAX} bytes, see @file{alloc.c}), then
 @code{header.next.nbytes} contains the vector size in bytes.
 
 @cindex garbage collection
