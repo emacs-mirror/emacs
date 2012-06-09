@@ -1,3 +1,23 @@
+2012-06-09  Chong Yidong  <cyd@gnu.org>
+
+	* term.c: Support italics in capable terminals (Bug#9652).
+	(no_color_bit): Replace unused NC_BLINK with NC_ITALIC.
+	(turn_on_face): Output using TS_enter_italic_mode if available.
+	Don't handle unused blinking and alt-charset cases.
+	(turn_off_face): Handle italic case; discard unused tty_blinking_p
+	and tty_alt_charset_p cases.
+	(tty_capable_p, init_tty): Support italics.
+
+	* termchar.h (struct tty_display_info): Add field for italics.
+	Remove unused blink field.
+
+	* xfaces.c (tty_supports_face_attributes_p, realize_tty_face):
+	Handle slant.
+
+	* dispextern.h: Replace unused TTY_CAP_BLINK with TTY_CAP_ITALIC.
+	(struct face): Remove unused fields tty_dim_p, tty_blinking_p, and
+	tty_alt_charset_p.  Add tty_italic_p.
+
 2012-06-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (XD_BASIC_DBUS_TYPE): Use dbus_type_is_valid and

@@ -1609,15 +1609,12 @@ struct face
   unsigned strike_through_color_defaulted_p : 1;
   unsigned box_color_defaulted_p : 1;
 
-  /* TTY appearances.  Blinking is not yet implemented.  Colors are
-     found in `lface' with empty color string meaning the default
-     color of the TTY.  */
+  /* TTY appearances.  Colors are found in `lface' with empty color
+     string meaning the default color of the TTY.  */
   unsigned tty_bold_p : 1;
-  unsigned tty_dim_p : 1;
+  unsigned tty_italic_p : 1;
   unsigned tty_underline_p : 1;
-  unsigned tty_alt_charset_p : 1;
   unsigned tty_reverse_p : 1;
-  unsigned tty_blinking_p : 1;
 
   /* 1 means that colors of this face may not be freed because they
      have been copied bitwise from a base face (see
@@ -2979,8 +2976,7 @@ enum tool_bar_item_image
 #define TTY_CAP_UNDERLINE	0x02
 #define TTY_CAP_BOLD		0x04
 #define TTY_CAP_DIM		0x08
-#define TTY_CAP_BLINK		0x10
-#define TTY_CAP_ALT_CHARSET	0x20
+#define TTY_CAP_ITALIC  	0x10
 
 
 /***********************************************************************

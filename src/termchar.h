@@ -124,8 +124,8 @@ struct tty_display_info
                                    each as vpos and hpos) */
 
   const char *TS_enter_bold_mode; /* "md" -- turn on bold (extra bright mode).  */
+  const char *TS_enter_italic_mode; /* "ZH" -- turn on italics mode.  */
   const char *TS_enter_dim_mode; /* "mh" -- turn on half-bright mode.  */
-  const char *TS_enter_blink_mode; /* "mb" -- enter blinking mode.  */
   const char *TS_enter_reverse_mode; /* "mr" -- enter reverse video mode.  */
   const char *TS_exit_underline_mode; /* "us" -- start underlining.  */
   const char *TS_enter_underline_mode; /* "ue" -- end underlining.  */

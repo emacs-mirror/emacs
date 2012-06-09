@@ -4884,13 +4884,12 @@ static int
 tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
 				struct face *def_face)
 {
-  int weight;
+  int weight, slant;
   Lisp_Object val, fg, bg;
   XColor fg_tty_color, fg_std_color;
   XColor bg_tty_color, bg_std_color;
   unsigned test_caps = 0;
   Lisp_Object *def_attrs = def_face->lface;
-
 
   /* First check some easy-to-check stuff; ttys support none of the
      following attributes, so we can just return false if any are requested
@@ -4907,10 +4906,8 @@ tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
       || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX]))
+      || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX]))
     return 0;
-
 
   /* Test for terminal `capabilities' (non-color character attributes).  */
 
@@ -4935,6 +4932,18 @@ tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
 	}
       else if (def_weight == 100)
 	return 0;		/* same as default */
+    }
+
+  /* font slant */
+  val = attrs[LFACE_SLANT_INDEX];
+  if (!UNSPECIFIEDP (val)
+      && (slant = FONT_SLANT_NAME_NUMERIC (val), slant >= 0))
+    {
+      int def_slant = FONT_SLANT_NAME_NUMERIC (def_attrs[LFACE_SLANT_INDEX]);
+      if (slant == 100 || slant == def_slant)
+	return 0; /* same as default */
+      else
+	test_caps |= TTY_CAP_ITALIC;
     }
 
   /* underlining */
@@ -5857,15 +5866,13 @@ realize_tty_face (struct face_cache *cache, Lisp_Object *attrs)
   face->font_name = FRAME_MSDOS_P (cache->f) ? "ms-dos" : "tty";
 #endif
 
-  /* Map face attributes to TTY appearances.  We map slant to
-     dimmed text because we want italic text to appear differently
-     and because dimmed text is probably used infrequently.  */
+  /* Map face attributes to TTY appearances.  */
   weight = FONT_WEIGHT_NAME_NUMERIC (attrs[LFACE_WEIGHT_INDEX]);
   slant = FONT_SLANT_NAME_NUMERIC (attrs[LFACE_SLANT_INDEX]);
   if (weight > 100)
     face->tty_bold_p = 1;
-  if (weight < 100 || slant != 100)
-    face->tty_dim_p = 1;
+  if (slant != 100)
+    face->tty_italic_p = 1;
   if (!NILP (attrs[LFACE_UNDERLINE_INDEX]))
     face->tty_underline_p = 1;
   if (!NILP (attrs[LFACE_INVERSE_INDEX]))
