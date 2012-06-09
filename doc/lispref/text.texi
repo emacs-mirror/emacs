@@ -3004,7 +3004,11 @@ time you want to specify a particular attribute for certain text.
 @xref{Face Attributes}.
 
 @item
-A list, where each element uses one of the two forms listed above.
+A list of faces.  This specifies a face which is an aggregate of the
+attributes of each of the listed faces.  Faces occurring earlier in
+the list have higher priority.  Each list element must have one of the
+two above forms (i.e.@: either a face name or a property list of face
+attributes).
 @end itemize
 
 Font Lock mode (@pxref{Font Lock Mode}) works in most buffers by

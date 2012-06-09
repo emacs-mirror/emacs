@@ -109,14 +109,19 @@ The list structure of ENTRY may be destructively modified."
 Return a cookie which can be used to delete this remapping with
 `face-remap-remove-relative'.
 
-The remaining arguments, SPECS, should be either a list of face
-names, or a property list of face attribute/value pairs.  The
-remapping specified by SPECS takes effect alongside the
-remappings from other calls to `face-remap-add-relative', as well
-as the normal definition of FACE (at lowest priority).  This
-function tries to sort multiple remappings for the same face, so
-that remappings specifying relative face attributes are applied
-after remappings specifying absolute face attributes.
+The remaining arguments, SPECS, should form a list of faces.
+Each list element should be either a face name or a property list
+of face attribute/value pairs.  If more than one face is listed,
+that specifies an aggregate face, in the same way as in a `face'
+text property, except for possible priority changes noted below.
+
+The face remapping specified by SPECS takes effect alongside the
+remappings from other calls to `face-remap-add-relative' for the
+same FACE, as well as the normal definition of FACE (at lowest
+priority).  This function tries to sort multiple remappings for
+the same face, so that remappings specifying relative face
+attributes are applied after remappings specifying absolute face
+attributes.
 
 The base (lowest priority) remapping may be set to something
 other than the normal definition of FACE via `face-remap-set-base'."
@@ -165,9 +170,11 @@ to apply on top of the normal definition of FACE."
 (defun face-remap-set-base (face &rest specs)
   "Set the base remapping of FACE in the current buffer to SPECS.
 This causes the remappings specified by `face-remap-add-relative'
-to apply on top of the face specification given by SPECS.  SPECS
-should be either a list of face names, or a property list of face
-attribute/value pairs.
+to apply on top of the face specification given by SPECS.
+
+The remaining arguments, SPECS, should form a list of faces.
+Each list element should be either a face name or a property list
+of face attribute/value pairs, like in a `face' text property.
 
 If SPECS is empty, call `face-remap-reset-base' to use the normal
 definition of FACE as the base remapping; note that this is
@@ -361,12 +368,14 @@ variable `buffer-face-mode-face' is used to display the buffer text."
 ;;;###autoload
 (defun buffer-face-set (&rest specs)
   "Enable `buffer-face-mode', using face specs SPECS.
-SPECS can be any value suitable for the `face' text property,
-including a face name, a list of face names, or a face-attribute
-If SPECS is nil, then `buffer-face-mode' is disabled.
+Each argument in SPECS should be a face, i.e. either a face name
+or a property list of face attributes and values.  If more than
+one face is listed, that specifies an aggregate face, like in a
+`face' text property.  If SPECS is nil or omitted, disable
+`buffer-face-mode'.
 
-This function will make the variable `buffer-face-mode-face'
-buffer local, and set it to FACE."
+This function makes the variable `buffer-face-mode-face' buffer
+local, and sets it to FACE."
   (interactive (list (read-face-name "Set buffer face")))
   (while (and (consp specs) (null (cdr specs)))
     (setq specs (car specs)))
@@ -378,8 +387,10 @@ buffer local, and set it to FACE."
 ;;;###autoload
 (defun buffer-face-toggle (&rest specs)
   "Toggle `buffer-face-mode', using face specs SPECS.
-SPECS can be any value suitable for the `face' text property,
-including a face name, a list of face names, or a face-attribute
+Each argument in SPECS should be a face, i.e. either a face name
+or a property list of face attributes and values.  If more than
+one face is listed, that specifies an aggregate face, like in a
+`face' text property.
 
 If `buffer-face-mode' is already enabled, and is currently using
 the face specs SPECS, then it is disabled; if buffer-face-mode is
@@ -402,10 +413,12 @@ buffer local, and set it to SPECS."
 ARG controls whether the mode is enabled or disabled, and is
 interpreted in the usual manner for minor-mode commands.
 
-SPECS can be any value suitable for the `face' text property,
-including a face name, a list of face names, or a face-attribute
+SPECS can be any value suitable for a `face' text property,
+including a face name, a plist of face attributes and values, or
+a list of faces.
 
-If INTERACTIVE is non-nil, a message will be displayed describing the result.
+If INTERACTIVE is non-nil, display a message describing the
+result.
 
 This is a wrapper function which calls `buffer-face-set' or
 `buffer-face-toggle' (depending on ARG), and prints a status

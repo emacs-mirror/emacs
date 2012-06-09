@@ -1,3 +1,10 @@
+2012-06-09  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Special Properties): Clarify the meaning of a list of
+	faces in the `face' property.
+
+	* display.texi (Face Remapping): Minor clarification.
+
 2012-06-08  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Face Attributes): Font family does not accept

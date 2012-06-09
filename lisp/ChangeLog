@@ -1,3 +1,9 @@
+2012-06-09  Chong Yidong  <cyd@gnu.org>
+
+	* face-remap.el (face-remap-add-relative, face-remap-set-base)
+	(buffer-face-set, buffer-face-toggle, buffer-face-mode-invoke):
+	Doc fixes (Bug#11225).
+
 2012-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexp--expand-all): Only autoload
