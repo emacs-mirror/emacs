@@ -4263,11 +4263,13 @@ and (cdr ARGS) as second."
 		special-display-buffer-names special-display-regexps)
 	   (display-buffer buffer)))
        ;; If no window yet, make one in a new frame.
-       (let ((frame
-	      (with-current-buffer buffer
-		(make-frame (append args special-display-frame-alist)))))
-	 (window--display-buffer
-	  buffer (frame-selected-window frame) 'frame t))))))
+       (let* ((frame
+	       (with-current-buffer buffer
+		 (make-frame (append args special-display-frame-alist))))
+	      (window (frame-selected-window frame)))
+	 (display-buffer-record-window 'frame window buffer)
+	 (set-window-dedicated-p window t)
+	 window)))))
 
 (defcustom special-display-function 'special-display-popup-frame
   "Function to call for displaying special buffers.

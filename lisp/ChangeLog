@@ -1,3 +1,8 @@
+2012-06-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (special-display-popup-frame): Don't use
+	window--display-buffer (Bug#11651).
+
 2012-06-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (BIG_STACK_DEPTH): Enlarge to 2200.  (Bug#11649)
