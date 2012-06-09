@@ -4579,7 +4579,7 @@ lookup_named_face (struct frame *f, Lisp_Object symbol, int signal_p)
 }
 
 
-/* Return the display face-id of the basic face who's canonical face-id
+/* Return the display face-id of the basic face whose canonical face-id
    is FACE_ID.  The return value will usually simply be FACE_ID, unless that
    basic face has bee remapped via Vface_remapping_alist.  This function is
    conservative: if something goes wrong, it will simply return FACE_ID
@@ -5336,11 +5336,11 @@ realize_default_face (struct frame *f)
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
   if (NILP (lface))
-  {
+    {
        Lisp_Object frame;
        XSETFRAME (frame, f);
        lface = Finternal_make_lisp_face (Qdefault, frame);
-  }
+    }
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -6111,14 +6111,14 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   *endptr = endpos;
 
-  default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-
-  /* Optimize common cases where we can use the default face.  */
+  /* Optimize common case where we can use the default face.  */
   if (NILP (prop)
-      && !(pos >= region_beg && pos < region_end))
+      && !(pos >= region_beg && pos < region_end)
+      && NILP (Vface_remapping_alist))
     return DEFAULT_FACE_ID;
 
   /* Begin with attributes from the default face.  */
+  default_face = FACE_FROM_ID (f, lookup_basic_face (f, DEFAULT_FACE_ID));
   memcpy (attrs, default_face->lface, sizeof attrs);
 
   /* Merge in attributes specified via text properties.  */

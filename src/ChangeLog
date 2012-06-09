@@ -1,5 +1,7 @@
 2012-06-09  Chong Yidong  <cyd@gnu.org>
 
+	* xfaces.c (face_for_overlay_string): Handle face remapping (Bug#2066).
+
 	* fringe.c (Fset_fringe_bitmap_face): Handle the noninteractive
 	case (Bug#9752).
 
