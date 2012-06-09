@@ -145,6 +145,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
 
+/* Define to 1 if you have the `dbus_type_is_valid' function. */
+#undef HAVE_DBUS_TYPE_IS_VALID
+
 /* Define to 1 if you have the `dbus_validate_bus_name' function. */
 #undef HAVE_DBUS_VALIDATE_BUS_NAME
 
@@ -1407,4 +1410,3 @@ Local Variables:
 mode: c
 End:
 */
-

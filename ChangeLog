@@ -1,3 +1,7 @@
+2012-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in (dbus_type_is_valid): Check for library function.
+
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL, make-dist: Remove vcdiff.
@@ -409,7 +413,7 @@
 
 	* configure.in (dbus_validate_bus_name, dbus_validate_path)
 	(dbus_validate_interface, dbus_validate_member): Check also for
-	these library functions
+	these library functions.
 
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
