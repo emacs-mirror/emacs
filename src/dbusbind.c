@@ -147,6 +147,10 @@ static int xd_in_read_queued_messages = 0;
 #endif
 
 /* Check whether TYPE is a basic DBusType.  */
+#ifdef HAVE_DBUS_TYPE_IS_VALID
+#define XD_BASIC_DBUS_TYPE(type)					\
+  (dbus_type_is_valid (type) && dbus_type_is_basic (type))
+#else
 #ifdef DBUS_TYPE_UNIX_FD
 #define XD_BASIC_DBUS_TYPE(type)					\
   ((type ==  DBUS_TYPE_BYTE)						\
@@ -176,6 +180,7 @@ static int xd_in_read_queued_messages = 0;
    || (type ==  DBUS_TYPE_STRING)					\
    || (type ==  DBUS_TYPE_OBJECT_PATH)					\
    || (type ==  DBUS_TYPE_SIGNATURE))
+#endif
 #endif
 
 /* This was a macro.  On Solaris 2.11 it was said to compile for
@@ -524,7 +529,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 
 /* Convert X to a signed integer with bounds LO and HI.  */
 static intmax_t
-extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
+xd_extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 {
   CHECK_NUMBER_OR_FLOAT (x);
   if (INTEGERP (x))
@@ -552,7 +557,7 @@ extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 
 /* Convert X to an unsigned integer with bounds 0 and HI.  */
 static uintmax_t
-extract_unsigned (Lisp_Object x, uintmax_t hi)
+xd_extract_unsigned (Lisp_Object x, uintmax_t hi)
 {
   CHECK_NUMBER_OR_FLOAT (x);
   if (INTEGERP (x))
@@ -611,9 +616,10 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_INT16:
 	{
-	  dbus_int16_t val = extract_signed (object,
-					     TYPE_MINIMUM (dbus_int16_t),
-					     TYPE_MAXIMUM (dbus_int16_t));
+	  dbus_int16_t val =
+	    xd_extract_signed (object,
+			       TYPE_MINIMUM (dbus_int16_t),
+			       TYPE_MAXIMUM (dbus_int16_t));
 	  int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -623,8 +629,9 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_UINT16:
 	{
-	  dbus_uint16_t val = extract_unsigned (object,
-						TYPE_MAXIMUM (dbus_uint16_t));
+	  dbus_uint16_t val =
+	    xd_extract_unsigned (object,
+				 TYPE_MAXIMUM (dbus_uint16_t));
 	  unsigned int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -634,9 +641,10 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_INT32:
 	{
-	  dbus_int32_t val = extract_signed (object,
-					     TYPE_MINIMUM (dbus_int32_t),
-					     TYPE_MAXIMUM (dbus_int32_t));
+	  dbus_int32_t val =
+	    xd_extract_signed (object,
+			       TYPE_MINIMUM (dbus_int32_t),
+			       TYPE_MAXIMUM (dbus_int32_t));
 	  int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -649,8 +657,9 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_UNIX_FD:
 #endif
 	{
-	  dbus_uint32_t val = extract_unsigned (object,
-						TYPE_MAXIMUM (dbus_uint32_t));
+	  dbus_uint32_t val =
+	    xd_extract_unsigned (object,
+				 TYPE_MAXIMUM (dbus_uint32_t));
 	  unsigned int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -660,9 +669,10 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_INT64:
 	{
-	  dbus_int64_t val = extract_signed (object,
-					     TYPE_MINIMUM (dbus_int64_t),
-					     TYPE_MAXIMUM (dbus_int64_t));
+	  dbus_int64_t val =
+	    xd_extract_signed (object,
+			       TYPE_MINIMUM (dbus_int64_t),
+			       TYPE_MAXIMUM (dbus_int64_t));
 	  printmax_t pval = val;
 	  XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -672,8 +682,9 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_UINT64:
 	{
-	  dbus_uint64_t val = extract_unsigned (object,
-						TYPE_MAXIMUM (dbus_uint64_t));
+	  dbus_uint64_t val =
+	    xd_extract_unsigned (object,
+				 TYPE_MAXIMUM (dbus_uint64_t));
 	  uprintmax_t pval = val;
 	  XD_DEBUG_MESSAGE ("%c %"pMu, dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -1271,7 +1282,7 @@ usage: (dbus-message-internal &rest REST)  */)
     }
   else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
     {
-      serial = extract_unsigned (args[3], TYPE_MAXIMUM (dbus_uint32_t));
+      serial = xd_extract_unsigned (args[3], TYPE_MAXIMUM (dbus_uint32_t));
       count = 4;
     }
 

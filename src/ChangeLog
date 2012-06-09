@@ -1,3 +1,10 @@
+2012-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_BASIC_DBUS_TYPE): Use dbus_type_is_valid and
+	dbus_type_is_basic if available.
+	(xd_extract_signed, xd_extract_unsigned): Rename from
+	extract_signed and extract_unsigned, respectively.  Adapt callers.
+
 2012-06-09  Chong Yidong  <cyd@gnu.org>
 
 	* xfaces.c (face_for_overlay_string): Handle face remapping (Bug#2066).
