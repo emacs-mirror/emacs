@@ -86,7 +86,7 @@ AUTOGEN_VCS = \
 # During bootstrapping the byte-compiler is run interpreted when compiling
 # itself, and uses more stack than usual.
 #
-BIG_STACK_DEPTH = 1200
+BIG_STACK_DEPTH = 2200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
 BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)

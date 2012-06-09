@@ -1,3 +1,7 @@
+2012-06-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (BIG_STACK_DEPTH): Enlarge to 2200.
+
 2012-06-09  Chong Yidong  <cyd@gnu.org>
 
 	* ebuff-menu.el (electric-buffer-list): Preserve header line.
