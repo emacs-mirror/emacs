@@ -10714,7 +10714,8 @@ $as_echo "no" >&6; }
 
 $as_echo "#define HAVE_DBUS 1" >>confdefs.h
 
-               for ac_func in dbus_watch_get_unix_fd \
+                    for ac_func in dbus_watch_get_unix_fd \
+		    dbus_type_is_valid \
 		    dbus_validate_bus_name \
                     dbus_validate_path \
 		    dbus_validate_interface \
