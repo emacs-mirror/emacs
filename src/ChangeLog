@@ -1,3 +1,8 @@
+2012-06-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (at_begline_loc_p): Also recognize `(?N:' and correctly
+	account for preceding backslashes.  (Bug#11663)
+
 2012-06-09  Chong Yidong  <cyd@gnu.org>
 
 	* term.c: Support italics in capable terminals (Bug#9652).

@@ -3824,18 +3824,37 @@ static boolean
 at_begline_loc_p (const re_char *pattern, const re_char *p, reg_syntax_t syntax)
 {
   re_char *prev = p - 2;
-  boolean prev_prev_backslash = prev > pattern && prev[-1] == '\\';
+  boolean odd_backslashes;
 
-  return
-       /* After a subexpression?  */
-       (*prev == '(' && (syntax & RE_NO_BK_PARENS || prev_prev_backslash))
-       /* After an alternative?	 */
-    || (*prev == '|' && (syntax & RE_NO_BK_VBAR || prev_prev_backslash))
-       /* After a shy subexpression?  */
-    || ((syntax & RE_SHY_GROUPS) && prev - 2 >= pattern
-	&& prev[-1] == '?' && prev[-2] == '('
-	&& (syntax & RE_NO_BK_PARENS
-	    || (prev - 3 >= pattern && prev[-3] == '\\')));
+  /* After a subexpression?  */
+  if (*prev == '(')
+    odd_backslashes = (syntax & RE_NO_BK_PARENS) == 0;
+
+  /* After an alternative?  */
+  else if (*prev == '|')
+    odd_backslashes = (syntax & RE_NO_BK_VBAR) == 0;
+
+  /* After a shy subexpression?  */
+  else if (*prev == ':' && (syntax & RE_SHY_GROUPS))
+    {
+      /* Skip over optional regnum.  */
+      while (prev - 1 >= pattern && prev[-1] >= '0' && prev[-1] <= '9')
+	--prev;
+
+      if (!(prev - 2 >= pattern
+	    && prev[-1] == '?' && prev[-2] == '('))
+	return false;
+      prev -= 2;
+      odd_backslashes = (syntax & RE_NO_BK_PARENS) == 0;
+    }
+  else
+    return false;
+
+  /* Count the number of preceding backslashes.  */
+  p = prev;
+  while (prev - 1 >= pattern && prev[-1] == '\\')
+    --prev;
+  return (p - prev) & odd_backslashes;
 }
 
 
