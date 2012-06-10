@@ -51,8 +51,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defun easy-mmode-pretty-mode-name (mode &optional lighter)
   "Turn the symbol MODE into a string intended for the user.
 If provided, LIGHTER will be used to help choose capitalization by,
@@ -153,10 +151,10 @@ For example, you could write
   ;; Allow skipping the first three args.
   (cond
    ((keywordp init-value)
-    (setq body (list* init-value lighter keymap body)
+    (setq body `(,init-value ,lighter ,keymap ,@body)
 	  init-value nil lighter nil keymap nil))
    ((keywordp lighter)
-    (setq body (list* lighter keymap body) lighter nil keymap nil))
+    (setq body `(,lighter ,keymap ,@body) lighter nil keymap nil))
    ((keywordp keymap) (push keymap body) (setq keymap nil)))
 
   (let* ((last-message (make-symbol "last-message"))
@@ -182,18 +180,18 @@ For example, you could write
     ;; Check keys.
     (while (keywordp (setq keyw (car body)))
       (setq body (cdr body))
-      (case keyw
-	(:init-value (setq init-value (pop body)))
-	(:lighter (setq lighter (purecopy (pop body))))
-	(:global (setq globalp (pop body)))
-	(:extra-args (setq extra-args (pop body)))
-	(:set (setq set (list :set (pop body))))
-	(:initialize (setq initialize (list :initialize (pop body))))
-	(:group (setq group (nconc group (list :group (pop body)))))
-	(:type (setq type (list :type (pop body))))
-	(:require (setq require (pop body)))
-	(:keymap (setq keymap (pop body)))
-        (:variable (setq variable (pop body))
+      (pcase keyw
+	(`:init-value (setq init-value (pop body)))
+	(`:lighter (setq lighter (purecopy (pop body))))
+	(`:global (setq globalp (pop body)))
+	(`:extra-args (setq extra-args (pop body)))
+	(`:set (setq set (list :set (pop body))))
+	(`:initialize (setq initialize (list :initialize (pop body))))
+	(`:group (setq group (nconc group (list :group (pop body)))))
+	(`:type (setq type (list :type (pop body))))
+	(`:require (setq require (pop body)))
+	(`:keymap (setq keymap (pop body)))
+        (`:variable (setq variable (pop body))
          (if (not (and (setq tmp (cdr-safe variable))
                        (or (symbolp tmp)
                            (functionp tmp))))
@@ -201,8 +199,8 @@ For example, you could write
              (setq mode variable)
            (setq mode (car variable))
            (setq setter (cdr variable))))
-	(:after-hook (setq after-hook (pop body)))
-	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
+	(`:after-hook (setq after-hook (pop body)))
+	(_ (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
@@ -355,10 +353,10 @@ call another major mode in their body."
     ;; Check keys.
     (while (keywordp (setq keyw (car keys)))
       (setq keys (cdr keys))
-      (case keyw
-	(:group (setq group (nconc group (list :group (pop keys)))))
-	(:global (setq keys (cdr keys)))
-	(t (push keyw extra-keywords) (push (pop keys) extra-keywords))))
+      (pcase keyw
+	(`:group (setq group (nconc group (list :group (pop keys)))))
+	(`:global (setq keys (cdr keys)))
+	(_ (push keyw extra-keywords) (push (pop keys) extra-keywords))))
 
     (unless group
       ;; We might as well provide a best-guess default group.
@@ -479,13 +477,13 @@ Valid keywords and arguments are:
     (while args
       (let ((key (pop args))
 	    (val (pop args)))
-	(case key
-	 (:name (setq name val))
-	 (:dense (setq dense val))
-	 (:inherit (setq inherit val))
-	 (:suppress (setq suppress val))
-	 (:group)
-	 (t (message "Unknown argument %s in defmap" key)))))
+	(pcase key
+	 (`:name (setq name val))
+	 (`:dense (setq dense val))
+	 (`:inherit (setq inherit val))
+	 (`:suppress (setq suppress val))
+	 (`:group)
+	 (_ (message "Unknown argument %s in defmap" key)))))
     (unless (keymapp m)
       (setq bs (append m bs))
       (setq m (if dense (make-keymap name) (make-sparse-keymap name))))

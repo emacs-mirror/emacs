@@ -1,3 +1,12 @@
+2012-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el, emacs-lisp/syntax.el, emacs-lisp/smie.el:
+	* emacs-lisp/ewoc.el, emacs-lisp/cconv.el, emacs-lisp/bytecomp.el:
+	* emacs-lisp/byte-opt.el, emacs-lisp/autoload.el: Convert to cl-lib.
+	* emacs-lisp/easymenu.el, emacs-lisp/easy-mmode.el:
+	* emacs-lisp/derived.el: Use pcase instead of `cl'.
+	* emacs-lisp/cl-lib.el: Get rid of special cl-macs auto load.
+
 2012-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-yank-current-message): Leave point at
@@ -9,8 +18,8 @@
 
 2012-06-10  Chong Yidong  <cyd@gnu.org>
 
-	* cus-edit.el (customize-changed-options-previous-release): Bump
-	to 24.1.
+	* cus-edit.el (customize-changed-options-previous-release):
+	Bump to 24.1.
 
 2012-06-09  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -142,8 +151,8 @@
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
 	Likewise.
-	(flyspell-incorrect-face, flyspell-duplicate-face): Remove
-	obsolete aliases.
+	(flyspell-incorrect-face, flyspell-duplicate-face):
+	Remove obsolete aliases.
 
 2012-06-08  Michael Albinus  <michael.albinus@gmx.de>
 

@@ -644,29 +644,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 (load "cl-loaddefs" nil 'quiet)
 
-;; This goes here so that cl-macs can find it if it loads right now.
-(provide 'cl-lib)
-
-;; Things to do after byte-compiler is loaded.
-
-(defvar cl-hacked-flag nil)
-(defun cl-hack-byte-compiler ()
-  (and (not cl-hacked-flag) (fboundp 'byte-compile-file-form)
-       (progn
-         (setq cl-hacked-flag t)  ; Do it first, to prevent recursion.
-         (load "cl-macs" nil t)
-         (run-hooks 'cl-hack-bytecomp-hook))))
-
-;; Try it now in case the compiler has already been loaded.
-(cl-hack-byte-compiler)
-
-;; Also make a hook in case compiler is loaded after this file.
-(add-hook 'bytecomp-load-hook 'cl-hack-byte-compiler)
-
-
-;; The following ensures that packages which expect the old-style cl.el
-;; will be happy with this one.
-
 (provide 'cl-lib)
 
 (run-hooks 'cl-load-hook)

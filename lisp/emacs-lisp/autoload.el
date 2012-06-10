@@ -32,7 +32,7 @@
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'help-fns)			;for help-add-fundoc-usage.
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar generated-autoload-file nil
   "File into which to write autoload definitions.
@@ -154,7 +154,7 @@ expression, in which case we want to handle forms differently."
 		   defun* defmacro* define-overloadable-function))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
-	     (args (case car
+	     (args (cl-case car
                      ((defun defmacro defun* defmacro*
                         define-overloadable-function) (nth 2 form))
                      ((define-skeleton) '(&optional str arg))
@@ -546,7 +546,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                 (save-excursion
                   ;; Insert the section-header line which lists the file name
                   ;; and which functions are in it, etc.
-                  (assert (= ostart output-start))
+                  (cl-assert (= ostart output-start))
                   (goto-char output-start)
                   (let ((relfile (file-relative-name absfile)))
                     (autoload-insert-section-header

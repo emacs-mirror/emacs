@@ -33,9 +33,9 @@
 ;; triggered-p is nil if the timer is active (waiting to be triggered),
 ;;  t if it is inactive ("already triggered", in theory)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
-(defstruct (timer
+(cl-defstruct (timer
             (:constructor nil)
             (:copier nil)
             (:constructor timer-create ())
@@ -54,15 +54,15 @@
         (timer--low-seconds timer)
         (timer--usecs timer)))
 
-(defsetf timer--time
+(cl-defsetf timer--time
   (lambda (timer time)
     (or (timerp timer) (error "Invalid timer"))
-    (setf (timer--high-seconds timer) (pop time))
-    (setf (timer--low-seconds timer)
-	  (if (consp time) (car time) time))
-    (setf (timer--usecs timer) (or (and (consp time) (consp (cdr time))
-					(cadr time))
-				   0))))
+    (cl-setf (timer--high-seconds timer) (pop time))
+    (cl-setf (timer--low-seconds timer)
+             (if (consp time) (car time) time))
+    (cl-setf (timer--usecs timer) (or (and (consp time) (consp (cdr time))
+                                           (cadr time))
+                                      0))))
 
 
 (defun timer-set-time (timer time &optional delta)
@@ -70,8 +70,8 @@
 TIME must be in the internal format returned by, e.g., `current-time'.
 If optional third argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
-  (setf (timer--time timer) time)
-  (setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
+  (cl-setf (timer--time timer) time)
+  (cl-setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
   timer)
 
 (defun timer-set-idle-time (timer secs &optional repeat)
@@ -81,10 +81,10 @@ time format (HIGH LOW USECS) returned by, e.g., `current-idle-time'.
 If optional third argument REPEAT is non-nil, make the timer
 fire each time Emacs is idle for that many seconds."
   (if (consp secs)
-      (setf (timer--time timer) secs)
-    (setf (timer--time timer) '(0 0 0))
+      (cl-setf (timer--time timer) secs)
+    (cl-setf (timer--time timer) '(0 0 0))
     (timer-inc-time timer secs))
-  (setf (timer--repeat-delay timer) repeat)
+  (cl-setf (timer--repeat-delay timer) repeat)
   timer)
 
 (defun timer-next-integral-multiple-of-time (time secs)
@@ -124,8 +124,8 @@ SECS may be either an integer or a floating point number."
 (defun timer-inc-time (timer secs &optional usecs)
   "Increment the time set in TIMER by SECS seconds and USECS microseconds.
 SECS may be a fraction.  If USECS is omitted, that means it is zero."
-  (setf (timer--time timer)
-        (timer-relative-time (timer--time timer) secs usecs)))
+  (cl-setf (timer--time timer)
+           (timer-relative-time (timer--time timer) secs usecs)))
 
 (defun timer-set-time-with-usecs (timer time usecs &optional delta)
   "Set the trigger time of TIMER to TIME plus USECS.
@@ -133,9 +133,9 @@ TIME must be in the internal format returned by, e.g., `current-time'.
 The microsecond count from TIME is ignored, and USECS is used instead.
 If optional fourth argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
-  (setf (timer--time timer) time)
-  (setf (timer--usecs timer) usecs)
-  (setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
+  (cl-setf (timer--time timer) time)
+  (cl-setf (timer--usecs timer) usecs)
+  (cl-setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
   timer)
 (make-obsolete 'timer-set-time-with-usecs
                "use `timer-set-time' and `timer-inc-time' instead."
@@ -145,8 +145,8 @@ fire repeatedly that many seconds apart."
   "Make TIMER call FUNCTION with optional ARGS when triggering."
   (or (timerp timer)
       (error "Invalid timer"))
-  (setf (timer--function timer) function)
-  (setf (timer--args timer) args)
+  (cl-setf (timer--function timer) function)
+  (cl-setf (timer--args timer) args)
   timer)
 
 (defun timer--activate (timer &optional triggered-p reuse-cell idle)
@@ -170,8 +170,8 @@ fire repeatedly that many seconds apart."
 	(cond (last (setcdr last reuse-cell))
 	      (idle (setq timer-idle-list reuse-cell))
 	      (t    (setq timer-list reuse-cell)))
-	(setf (timer--triggered timer) triggered-p)
-	(setf (timer--idle-delay timer) idle)
+	(cl-setf (timer--triggered timer) triggered-p)
+	(cl-setf (timer--idle-delay timer) idle)
 	nil)
     (error "Invalid or uninitialized timer")))
 
@@ -294,7 +294,7 @@ This function is called, by name, directly by the C code."
                 (apply (timer--function timer) (timer--args timer)))
 	    (error nil))
 	  (if retrigger
-	      (setf (timer--triggered timer) nil)))
+	      (cl-setf (timer--triggered timer) nil)))
       (error "Bogus timer event"))))
 
 ;; This function is incompatible with the one in levents.el.

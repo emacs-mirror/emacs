@@ -183,7 +183,7 @@
 ;;; Code:
 
 (require 'bytecomp)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'macroexp)
 
 (defun byte-compile-log-lap-1 (format &rest args)
@@ -642,7 +642,7 @@
   (while (eq (car-safe form) 'progn)
     (setq form (car (last (cdr form)))))
   (cond ((consp form)
-         (case (car form)
+         (cl-case (car form)
            (quote (cadr form))
            ;; Can't use recursion in a defsubst.
            ;; (progn (byte-compile-trueconstp (car (last (cdr form)))))
@@ -656,7 +656,7 @@
   (while (eq (car-safe form) 'progn)
     (setq form (car (last (cdr form)))))
   (cond ((consp form)
-         (case (car form)
+         (cl-case (car form)
            (quote (null (cadr form)))
            ;; Can't use recursion in a defsubst.
            ;; (progn (byte-compile-nilconstp (car (last (cdr form)))))
@@ -1376,7 +1376,7 @@
             ;; This uses dynamic-scope magic.
             offset (disassemble-offset bytes))
       (let ((opcode (aref byte-code-vector bytedecomp-op)))
-	(assert opcode)
+	(cl-assert opcode)
 	(setq bytedecomp-op opcode))
       (cond ((memq bytedecomp-op byte-goto-ops)
 	     ;; It's a pc.
@@ -1619,7 +1619,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (byte-compile-log-lap "  dup %s discard\t-->\t%s" lap1 lap1)
 	       (setq keep-going t
 		     rest (cdr rest))
-               (if (eq 'byte-stack-set (car lap1)) (decf (cdr lap1)))
+               (if (eq 'byte-stack-set (car lap1)) (cl-decf (cdr lap1)))
 	       (setq lap (delq lap0 (delq lap2 lap))))
 	      ;;
 	      ;; not goto-X-if-nil              -->  goto-X-if-non-nil
