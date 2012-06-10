@@ -2454,7 +2454,7 @@ point (@code{dired-at-point}).
 @code{ffap-read-only-other-window}, analogous to
 @code{find-file-read-only-other-window}.
 @item C-x 4 d
-@code{ffap-dired-other-window}, analogous to @code{dired-other-window}.
+@code{ffap-dired-other-window}, like @code{dired-other-window}.
 @item C-x 5 f
 @kindex C-x 5 f @r{(FFAP)}
 @code{ffap-other-frame}, analogous to @code{find-file-other-frame}.
@@ -2481,8 +2481,8 @@ find the one you select (@code{ffap-menu}).
 
 @findex animate-birthday-present
 @cindex animate
-  The @code{animate} package makes text dance (e.g. try
-@kbd{M-x animate-birthday-present}).
+  The @code{animate} package makes text dance; for example, try
+@kbd{M-x animate-birthday-present}.
 
 @findex blackbox
 @findex mpuz
