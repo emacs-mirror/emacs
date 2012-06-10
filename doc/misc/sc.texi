@@ -96,13 +96,11 @@ of composing replies to both USENET network news and electronic mail.
 The preferred way to spell Supercite is with a capital @samp{S},
 lowercase @samp{upercite}.
 
-@ifinfo
 @menu
 * Usage Overview::
 * What Supercite Does Not Do::
 * What Supercite Does::
 @end menu
-@end ifinfo
 
 @cindex MUA
 @cindex NUA
@@ -243,12 +241,10 @@ citations after multiple replies:
 And that's what I think too.
 @end example
 
-@ifinfo
 @menu
 * Citation Elements::
 * Recognizing Citations::
 @end menu
-@end ifinfo
 
 Note that multiple inclusions of the original messages result in a
 nesting of the @samp{@code{>}} characters.  This can sometimes be quite
@@ -507,12 +503,10 @@ name, email address, the original article's subject, etc.  In fact any
 information contained in the info alist can be inserted into a reference
 header.
 
-@ifinfo
 @menu
 * The Built-in Header Rewrite Functions::
 * Electric References::
 @end menu
-@end ifinfo
 
 @cindex header rewrite functions
 @vindex sc-rewrite-header-list
@@ -793,7 +787,6 @@ Buffer Initialization}.@refill
 
 @node  Replying and Yanking, Reply Buffer Initialization, Getting Connected, Top
 @chapter Replying and Yanking
-@ifinfo
 
 This chapter explains what happens when you reply and yank an original
 message from an MUA.
@@ -802,7 +795,7 @@ message from an MUA.
 * Reply Buffer Initialization::
 * Filling Cited Text::
 @end menu
-@end ifinfo
+
 @node  Reply Buffer Initialization, Filling Cited Text, Replying and Yanking, Replying and Yanking
 @findex sc-cite-original
 @findex cite-original (sc-)
@@ -1055,13 +1048,11 @@ element in the attribution alist is a key-value pair containing such
 information as the author's first name, middle names, and last name, the
 author's initials, and the author's email terminus.
 
-@ifinfo
 @menu
 * Attribution Preferences::
 * Anonymous Attributions::
 * Author Names::
 @end menu
-@end ifinfo
 
 @node  Attribution Preferences, Anonymous Attributions, Selecting an Attribution, Selecting an Attribution
 @section Attribution Preferences
@@ -1333,12 +1324,10 @@ can be transformed in an @emph{awk}-like manner.  Regi is used
 throughout Supercite, from mail header information extraction, to header
 nuking, to citing text.
 
-@ifinfo
 @menu
 * Using Regi::
 * Frames You Can Customize::
 @end menu
-@end ifinfo
 
 While the details of Regi are discussed below (@pxref{Using Regi}), only
 those who wish to customize certain aspects of Supercite need concern
@@ -1536,7 +1525,6 @@ but unfortunately the best general solution so far.  In the rest of this
 chapter, we'll assume you've installed Supercite's keymap on the default
 prefix.@refill
 
-@ifinfo
 @menu
 * Citing Commands::
 * Insertion Commands::
@@ -1544,7 +1532,6 @@ prefix.@refill
 * Mail Field Commands::
 * Miscellaneous Commands::
 @end menu
-@end ifinfo
 
 @node   Citing Commands, Insertion Commands, Post-yank Formatting Commands, Post-yank Formatting Commands
 @vindex sc-cite-region-limit
@@ -1911,9 +1898,7 @@ Supercite was written by Barry Warsaw.
 
 @node  Command Index, Key Index, Concept Index, Top
 @unnumbered Command Index
-@ifinfo
 
-@end ifinfo
 Since all supercite commands are prepended with the string
 ``@code{sc-}'', each appears under its @code{sc-}@var{command} name and
 its @var{command} name.
@@ -1928,9 +1913,7 @@ its @var{command} name.
 
 @node Variable Index,  , Key Index, Top
 @unnumbered Variable Index
-@ifinfo
 
-@end ifinfo
 Since all supercite variables are prepended with the string
 ``@code{sc-}'', each appears under its @code{sc-}@var{variable} name and
 its @var{variable} name.
