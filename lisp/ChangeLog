@@ -2,6 +2,11 @@
 
 	* Version 24.1 released.
 
+2012-06-01  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-yank-current-message):
+	Leave point at correct position.  (Bug#11660)
+
 2012-06-01  Chong Yidong  <cyd@gnu.org>
 
 	* allout-widgets.el: Fix code header
