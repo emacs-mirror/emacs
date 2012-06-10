@@ -4032,7 +4032,7 @@ re-scanning.  If ARG is non-nil and not a number, this will force
     (unless gnus-slave
       (gnus-master-read-slave-newsrc))
 
-    (gnus-get-unread-articles arg)
+    (gnus-get-unread-articles (gnus-group-default-level arg t))
 
     ;; If the user wants it, we scan for new groups.
     (when (eq gnus-check-new-newsgroups 'always)

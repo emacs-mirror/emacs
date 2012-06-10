@@ -1,3 +1,13 @@
+2012-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-get-new-news): Respect
+	`gnus-group-use-permanent-levels', as documented (bug#11638).
+
+2012-06-10  Dave Abrahams  <dave@boostpro.com>
+
+	* gnus-int.el (gnus-warp-to-article): Limit registry warping to real
+	groups (bug#11641).
+
 2012-06-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-msg-mail): Warn the user about Gnus not running
