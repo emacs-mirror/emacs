@@ -1,3 +1,17 @@
+2012-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-yank-current-message): Leave point at
+	correct position.  (Bug#11660)
+
+2012-06-10  Chong Yidong  <cyd@gnu.org>
+
+	* allout-widgets.el: Fix code header.
+
+2012-06-10  Chong Yidong  <cyd@gnu.org>
+
+	* cus-edit.el (customize-changed-options-previous-release): Bump
+	to 24.1.
+
 2012-06-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (BIG_STACK_DEPTH): Enlarge to 2200.
