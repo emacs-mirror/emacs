@@ -1,3 +1,13 @@
+2012-06-10  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
+
+	* nnmaildir.el (nnmaildir-request-expire-articles): Ensure that `time'
+	is an integer to avoid later problems.
+
+2012-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el: Add a iso-8859-1 cookie to make stuff work under other
+	locales.
+
 2012-05-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-msg.el (gnus-msg-mail): Ensure that gnus-newsgroup-name is

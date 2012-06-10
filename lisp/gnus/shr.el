@@ -1393,4 +1393,8 @@ ones, in case fg and bg are nil."
 
 (provide 'shr)
 
+;; Local Variables:
+;; coding: iso-8859-1
+;; End:
+
 ;;; shr.el ends here
