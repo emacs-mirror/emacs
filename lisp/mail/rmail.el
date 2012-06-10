@@ -3589,7 +3589,7 @@ If BUFFER is not swapped, yank out of its message viewer buffer."
   (with-current-buffer buffer
     (unless (rmail-buffers-swapped-p)
       (setq buffer rmail-view-buffer)))
-  (insert-buffer buffer)
+  (insert-buffer-substring buffer)
   ;; If they yank the text of BUFFER, the encoding of BUFFER is a
   ;; better default for the reply message than the default value of
   ;; buffer-file-coding-system.
