@@ -36,10 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    convention must be whatever standard the libraries expect.  */
 #define _CALLBACK_ __cdecl
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "windows-nt"
-
 #define NO_MATHERR 1
 
 /* Letter to use in finding device name of first pty,

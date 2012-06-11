@@ -26,10 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _AIX
 #endif
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "aix"
-
 /* In AIX, you allocate a pty by opening /dev/ptc to get the master side.
    To get the name of the slave side, you just ttyname() the master side.  */
 #define PTY_ITERATION int c; for (c = 0; !c ; c++)

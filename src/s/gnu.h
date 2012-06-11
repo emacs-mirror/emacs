@@ -21,9 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
-#undef SYSTEM_TYPE
-#define SYSTEM_TYPE "gnu"
-
 #define SIGNALS_VIA_CHARACTERS
 
 /* libc defines data_start.  */

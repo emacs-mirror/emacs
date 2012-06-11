@@ -46,10 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for X functions taking float or double parameters.  */
 #define NARROWPROTO 1
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "berkeley-unix"
-
 /* Do not use interrupt_input = 1 by default, because in 4.3
    we can make noninterrupt input work properly.  */
 #undef INTERRUPT_INPUT

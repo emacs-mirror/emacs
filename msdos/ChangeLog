@@ -1,3 +1,7 @@
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (SYSTEM_TYPE): Set it.
+
 2012-05-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (GNULIB_GL_UNISTD_H_GETOPT, GNULIB_POSIX_OPENPT)

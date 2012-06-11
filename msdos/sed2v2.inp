@@ -59,6 +59,7 @@
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
 /^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
 /^#undef VERSION/s/^.*$/#define VERSION "24.1.50"/
+/^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
 /^#undef HAVE_DIRENT_H/s/^.*$/#define HAVE_DIRENT_H 1/

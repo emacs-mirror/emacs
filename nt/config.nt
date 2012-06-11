@@ -326,6 +326,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Version number of package */
 #define VERSION "24.1.50"
 
+/* The type of system you are compiling for; sets `system-type'.  */
+#define SYSTEM_TYPE "windows-nt"
+
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifdef __GNUC__

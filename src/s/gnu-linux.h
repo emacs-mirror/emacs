@@ -25,10 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG
 #define GNU_LINUX
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "gnu/linux"		/* All the best software is free. */
-
 #ifdef emacs
 #ifdef HAVE_LINUX_VERSION_H
 #include <linux/version.h>

@@ -26,10 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG5
 #define USG5_4
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "usg-unix-v"
-
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */
 #define _setjmp setjmp

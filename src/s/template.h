@@ -30,11 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #define BSD4_3 */
 /* #define BSD_SYSTEM */
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-
-#define SYSTEM_TYPE "berkeley-unix"
-
 /* Emacs can read input using SIGIO and buffering characters itself,
    or using CBREAK mode and making C-g cause SIGINT.
    The choice is controlled by the variable interrupt_input.

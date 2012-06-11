@@ -1,3 +1,7 @@
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (SYSTEM_TYPE): Define it.
+
 2012-05-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (genmakefiles): Move the redirection away from the

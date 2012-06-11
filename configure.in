@@ -934,6 +934,11 @@ AC_DEFUN([AC_TYPE_UID_T])
 LIB_MATH=-lm
 LIB_STANDARD=
 START_FILES=
+dnl Current possibilities handled by sed (aix4-2 -> aix,
+dnl gnu-linux -> gnu/linux, etc.):
+dnl gnu, gnu/linux, gnu/kfreebsd, aix, cygwin, darwin, hpux, irix.
+dnl And special cases: berkeley-unix, usg-unix-v, ms-dos, windows-nt.
+SYSTEM_TYPE=`echo $opsys | sed -e 's/[0-9].*//' -e 's|-|/|'`
 
 dnl NB do not use CRT_DIR unquoted here, since it might not be set yet.
 case $opsys in
@@ -949,6 +954,7 @@ case $opsys in
   freebsd )
     LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
     START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    SYSTEM_TYPE=berkeley-unix
     ;;
   gnu-linux | gnu-kfreebsd )
     LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
@@ -962,11 +968,19 @@ case $opsys in
   netbsd | openbsd )
     LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
+    SYSTEM_TYPE=berkeley-unix
     ;;
+
+  sol2* | unixware )
+    SYSTEM_TYPE=usg-unix-v
+    ;;
+
 esac
 
 AC_SUBST(LIB_MATH)
 AC_SUBST(START_FILES)
+AC_DEFINE_UNQUOTED(SYSTEM_TYPE, "$SYSTEM_TYPE",
+  [The type of system you are compiling for; sets `system-type'.])
 
 dnl Not all platforms use crtn.o files.  Check if the current one does.
 crt_files=

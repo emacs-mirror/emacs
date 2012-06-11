@@ -26,10 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG5
 #define HPUX
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "hpux"
-
 /* Letter to use in finding device name of first pty,
    if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
 #define FIRST_PTY_LETTER 'p'

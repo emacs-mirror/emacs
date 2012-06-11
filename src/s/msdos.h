@@ -33,10 +33,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define DOS_NT	/* MSDOS or WINDOWSNT */
 #undef BSD_SYSTEM
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "ms-dos"
-
 /* subprocesses should be defined if you want to have code for
    asynchronous subprocesses (as used in M-x compile and M-x shell).
    This is the only system that needs this.  */
