@@ -1,3 +1,8 @@
+2012-04-14  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* gnus-agent.el (gnus-agent-retrieve-headers): Recalculate the range of
+	articles when fetch-old is non-nil (bug#11370).
+
 2012-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-group-get-new-news): Respect

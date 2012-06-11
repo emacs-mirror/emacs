@@ -1,3 +1,8 @@
+2012-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Group Timestamp): Mention where to find documentation for
+	the `gnus-tmp-' variables (bug#11601).
+
 2012-06-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.6-pre.
