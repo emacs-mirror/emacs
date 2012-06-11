@@ -1491,7 +1491,8 @@ a face or button specification."
 				   (if (image-type-available-p 'xpm)
 				       "splash.xpm"
 				     "splash.pbm"))
-				  ((image-type-available-p 'svg)
+				  ((or (image-type-available-p 'svg)
+				       (image-type-available-p 'imagemagick))
 				   "splash.svg")
 				  ((image-type-available-p 'png)
 				   "splash.png")
