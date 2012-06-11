@@ -1,5 +1,8 @@
 2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause): Fix error in recent
+	conversion to backquotes (bug#11652).
+
 	Fix compiler-expansion of CL's cXXr functions (bug#11673).
 	* emacs-lisp/cl-lib.el (cl--defalias): New function.
 	(cl-values, cl-values-list, cl-copy-seq, cl-svref, cl-first)
@@ -15,6 +18,7 @@
 	* emacs-lisp/cl-macs.el (cl--compiler-macro-adjoin)
 	(cl--compiler-macro-list*): Add autoload cookie.
 	(cl--compiler-macro-cXXr): New function.
+
 	* help-fns.el (help-fns--compiler-macro): New function extracted from
 	describe-function-1; follow aliases and use `compiler-macro' property.
 	(describe-function-1): Use it.

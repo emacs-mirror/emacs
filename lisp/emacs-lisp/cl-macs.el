@@ -1108,7 +1108,7 @@ Valid clauses are:
 		      (let ((temp-len (make-symbol "--cl-len--")))
 			(push (list temp-len `(length ,temp-seq))
 			      loop-for-bindings)
-			(push (list var `(elt ,temp-seq temp-idx))
+			(push (list var `(elt ,temp-seq ,temp-idx))
 			      cl--loop-symbol-macs)
 			(push `(< ,temp-idx ,temp-len) cl--loop-body))
 		    (push (list var nil) loop-for-bindings)
