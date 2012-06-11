@@ -1399,18 +1399,18 @@ extra args."
 	     ;; These aren't all aliases of subrs, so not trivial to
 	     ;; avoid hardwiring the list.
 	     (not (memq func
-			'(cl-block-wrapper cl-block-throw
+			'(cl--block-wrapper cl--block-throw
 			  multiple-value-call nth-value
 			  copy-seq first second rest endp cl-member
 			  ;; These are included in generated code
 			  ;; that can't be called except at compile time
 			  ;; or unless cl is loaded anyway.
-			  cl-defsubst-expand cl-struct-setf-expander
+			  cl--defsubst-expand cl-struct-setf-expander
 			  ;; These would sometimes be warned about
 			  ;; but such warnings are never useful,
 			  ;; so don't warn about them.
 			  macroexpand cl-macroexpand-all
-			  cl-compiling-file))))
+			  cl--compiling-file))))
 	(byte-compile-warn "function `%s' from cl package called at runtime"
 			   func)))
   form)

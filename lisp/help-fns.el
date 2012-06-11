@@ -510,7 +510,7 @@ suitable file is found, return nil."
 	    (unless (looking-back "\n\n")
 	      (terpri)))))
       ;; Note that list* etc do not get this property until
-      ;; cl-hack-byte-compiler runs, after bytecomp is loaded.
+      ;; cl--hack-byte-compiler runs, after bytecomp is loaded.
       (when (and (symbolp function)
                  (eq (get function 'byte-compile)
                      'cl-byte-compile-compiler-macro))

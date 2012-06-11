@@ -3,15 +3,15 @@
 ;;; Code:
 
 
-;;;### (autoloads (cl-prettyexpand cl-remprop cl-do-remf cl-set-getf
+;;;### (autoloads (cl-prettyexpand cl-remprop cl--do-remf cl--set-getf
 ;;;;;;  cl-getf cl-get cl-tailp cl-list-length cl-nreconc cl-revappend
 ;;;;;;  cl-concatenate cl-subseq cl-float-limits cl-random-state-p
 ;;;;;;  cl-make-random-state cl-random cl-signum cl-rem cl-mod cl-round
-;;;;;;  cl-truncate cl-ceiling cl-floor cl-isqrt cl-lcm cl-gcd cl-progv-before
-;;;;;;  cl-set-frame-visible-p cl-map-overlays cl-map-intervals cl-map-keymap-recursively
-;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
-;;;;;;  cl-mapl cl-maplist cl-map cl-mapcar-many cl-equalp cl-coerce)
-;;;;;;  "cl-extra" "cl-extra.el" "6661c504c379dfde0c37a0f8e2ba6568")
+;;;;;;  cl-truncate cl-ceiling cl-floor cl-isqrt cl-lcm cl-gcd cl--progv-before
+;;;;;;  cl--set-frame-visible-p cl--map-overlays cl--map-intervals
+;;;;;;  cl--map-keymap-recursively cl-notevery cl-notany cl-every
+;;;;;;  cl-some cl-mapcon cl-mapcan cl-mapl cl-maplist cl-map cl--mapcar-many
+;;;;;;  cl-equalp cl-coerce) "cl-extra" "cl-extra.el" "1f486111e93d119ceb6e95c434e3fd4b")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -28,7 +28,7 @@ strings case-insensitively.
 
 \(fn X Y)" nil nil)
 
-(autoload 'cl-mapcar-many "cl-extra" "\
+(autoload 'cl--mapcar-many "cl-extra" "\
 
 
 \(fn CL-FUNC CL-SEQS)" nil nil)
@@ -82,27 +82,27 @@ Return true if PREDICATE is false of some element of SEQ or SEQs.
 
 \(fn PREDICATE SEQ...)" nil nil)
 
-(autoload 'cl-map-keymap-recursively "cl-extra" "\
+(autoload 'cl--map-keymap-recursively "cl-extra" "\
 
 
 \(fn CL-FUNC-REC CL-MAP &optional CL-BASE)" nil nil)
 
-(autoload 'cl-map-intervals "cl-extra" "\
+(autoload 'cl--map-intervals "cl-extra" "\
 
 
 \(fn CL-FUNC &optional CL-WHAT CL-PROP CL-START CL-END)" nil nil)
 
-(autoload 'cl-map-overlays "cl-extra" "\
+(autoload 'cl--map-overlays "cl-extra" "\
 
 
 \(fn CL-FUNC &optional CL-BUFFER CL-START CL-END CL-ARG)" nil nil)
 
-(autoload 'cl-set-frame-visible-p "cl-extra" "\
+(autoload 'cl--set-frame-visible-p "cl-extra" "\
 
 
 \(fn FRAME VAL)" nil nil)
 
-(autoload 'cl-progv-before "cl-extra" "\
+(autoload 'cl--progv-before "cl-extra" "\
 
 
 \(fn SYMS VALUES)" nil nil)
@@ -232,12 +232,12 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 
 \(fn PROPLIST PROPNAME &optional DEFAULT)" nil nil)
 
-(autoload 'cl-set-getf "cl-extra" "\
+(autoload 'cl--set-getf "cl-extra" "\
 
 
 \(fn PLIST TAG VAL)" nil nil)
 
-(autoload 'cl-do-remf "cl-extra" "\
+(autoload 'cl--do-remf "cl-extra" "\
 
 
 \(fn PLIST TAG)" nil nil)
@@ -265,7 +265,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-do* cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
-;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "9eb287dd2a8d20f1c6459a9d095fa335")
+;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "a8ede90b4a2ce9015d4b63254b4678a2")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\
@@ -791,7 +791,7 @@ surrounded by (cl-block NAME ...).
 ;;;;;;  cl-nsubstitute-if cl-nsubstitute cl-substitute-if-not cl-substitute-if
 ;;;;;;  cl-substitute cl-delete-duplicates cl-remove-duplicates cl-delete-if-not
 ;;;;;;  cl-delete-if cl-delete cl-remove-if-not cl-remove-if cl-remove
-;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "8877479cb008b43a94098f3e6ec85d91")
+;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "b444601641dcbd14a23ca5182bc80ffa")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'cl-reduce "cl-seq" "\

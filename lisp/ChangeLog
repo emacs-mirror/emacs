@@ -1,3 +1,23 @@
+2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el: Use lexical-binding.
+	(cl-map-extents, cl-maclisp-member): Remove.
+	(cl--set-elt, cl--set-nthcdr, cl--set-buffer-substring)
+	(cl--set-substring, cl--block-wrapper, cl--block-throw)
+	(cl--compiling-file, cl--mapcar-many, cl--do-subst): Use "cl--" prefix.
+	* emacs-lisp/cl-extra.el: Use lexical-binding.
+	(cl--mapcar-many, cl--map-keymap-recursively, cl--map-intervals)
+	(cl--map-overlays, cl--set-frame-visible-p, cl--progv-save)
+	(cl--progv-before, cl--progv-after, cl--finite-do, cl--set-getf)
+	(cl--do-remf, cl--do-prettyprint): Use "cl--" prefix.
+	* emacs-lisp/cl-seq.el: Use lexical-binding.
+	(cl--parsing-keywords, cl--check-key, cl--check-test-nokey)
+	(cl--check-test, cl--check-match): Use "cl--" prefix and backquotes.
+	(cl--alist, cl--sublis-rec, cl--nsublis-rec, cl--tree-equal-rec):
+	* emacs-lisp/cl-macs.el (cl--lambda-list-keywords): Use "cl--" prefix.
+	* edmacro.el (edmacro-mismatch): Simplify to remove dependence on
+	CL's internals.
+
 2012-06-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.6-pre.

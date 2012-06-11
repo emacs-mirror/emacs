@@ -337,6 +337,7 @@ The two cases that are handled are:
 - closure-conversion of lambda expressions for `lexical-let'.
 - renaming of F when it's a function defined via `cl-labels' or `labels'."
   (require 'cl-macs)
+  (declare-function cl--expr-contains-any "cl-macs" (x y))
   (cond
    ;; ¡¡Big Ugly Hack!! We can't use a compiler-macro because those are checked
    ;; *after* handling `function', but we want to stop macroexpansion from
@@ -460,7 +461,7 @@ go back to their previous definitions, or lack thereof).
               (let ((func `(cl-function
                             (lambda ,(cadr x)
                               (cl-block ,(car x) ,@(cddr x))))))
-                (when (cl-compiling-file)
+                (when (cl--compiling-file)
                   ;; Bug#411.  It would be nice to fix this.
                   (and (get (car x) 'byte-compile)
                        (error "Byte-compiling a redefinition of `%s' \
@@ -531,6 +532,11 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 (define-obsolete-function-alias 'cl-make-hash-table 'make-hash-table "24.2")
 (define-obsolete-function-alias 'cl-hash-table-p 'hash-table-p "24.2")
 (define-obsolete-function-alias 'cl-hash-table-count 'hash-table-count "24.2")
+
+(defun cl-maclisp-member (item list)
+  (declare (obsolete member "24.2"))
+  (while (and list (not (equal item (car list)))) (setq list (cdr list)))
+  list)
 
 ;; FIXME: More candidates: define-modify-macro, define-setf-expander.
 

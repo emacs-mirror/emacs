@@ -1,4 +1,4 @@
-;;; cl-lib.el --- Common Lisp extensions for Emacs
+;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
 
@@ -114,7 +114,7 @@ a future Emacs interpreter will be able to use it.")
 (defun cl-unload-function ()
   "Stop unloading of the Common Lisp extensions."
   (message "Cannot unload the feature `cl'")
-  ;; stop standard unloading!
+  ;; Stop standard unloading!
   t)
 
 ;;; Generalized variables.
@@ -185,19 +185,19 @@ an element already on the list.
 	(list 'setq place (cl-list* 'cl-adjoin x place keys)))
     (cl-list* 'cl-callf2 'cl-adjoin x place keys)))
 
-(defun cl-set-elt (seq n val)
+(defun cl--set-elt (seq n val)
   (if (listp seq) (setcar (nthcdr n seq) val) (aset seq n val)))
 
-(defsubst cl-set-nthcdr (n list x)
+(defsubst cl--set-nthcdr (n list x)
   (if (<= n 0) x (setcdr (nthcdr (1- n) list) x) list))
 
-(defun cl-set-buffer-substring (start end val)
+(defun cl--set-buffer-substring (start end val)
   (save-excursion (delete-region start end)
 		  (goto-char start)
 		  (insert val)
 		  val))
 
-(defun cl-set-substring (str start end val)
+(defun cl--set-substring (str start end val)
   (if end (if (< end 0) (cl-incf end (length str)))
     (setq end (length str)))
   (if (< start 0) (cl-incf start (length str)))
@@ -206,19 +206,10 @@ an element already on the list.
 	  (and (< end (length str)) (substring str end))))
 
 
-;;; Control structures.
-
-;; These macros are so simple and so often-used that it's better to have
-;; them all the time than to load them from cl-macs.el.
-
-(defun cl-map-extents (&rest cl-args)
-  (apply 'cl-map-overlays cl-args))
-
-
 ;;; Blocks and exits.
 
-(defalias 'cl-block-wrapper 'identity)
-(defalias 'cl-block-throw 'throw)
+(defalias 'cl--block-wrapper 'identity)
+(defalias 'cl--block-throw 'throw)
 
 
 ;;; Multiple values.
@@ -269,9 +260,9 @@ one value."
 
 ;;; Declarations.
 
-(defvar cl-compiling-file nil)
-(defun cl-compiling-file ()
-  (or cl-compiling-file
+(defvar cl--compiling-file nil)
+(defun cl--compiling-file ()
+  (or cl--compiling-file
       (and (boundp 'byte-compile--outbuffer)
            (bufferp (symbol-value 'byte-compile--outbuffer))
 	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
@@ -287,7 +278,7 @@ one value."
 (defmacro cl-declaim (&rest specs)
   (let ((body (mapcar (function (lambda (x) (list 'cl-proclaim (list 'quote x))))
 		      specs)))
-    (if (cl-compiling-file) (cl-list* 'cl-eval-when '(compile load eval) body)
+    (if (cl--compiling-file) (cl-list* 'cl-eval-when '(compile load eval) body)
       (cons 'progn body))))   ; avoid loading cl-macs.el for cl-eval-when
 
 
@@ -378,7 +369,7 @@ Call `cl-float-limits' to set this.")
 
 (defalias 'cl-copy-seq 'copy-sequence)
 
-(declare-function cl-mapcar-many "cl-extra" (cl-func cl-seqs))
+(declare-function cl--mapcar-many "cl-extra" (cl-func cl-seqs))
 
 (defun cl-mapcar (cl-func cl-x &rest cl-rest)
   "Apply FUNCTION to each element of SEQ, and make a list of the results.
@@ -389,7 +380,7 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 \n(fn FUNCTION SEQ...)"
   (if cl-rest
       (if (or (cdr cl-rest) (nlistp cl-x) (nlistp (car cl-rest)))
-	  (cl-mapcar-many cl-func (cons cl-x cl-rest))
+	  (cl--mapcar-many cl-func (cons cl-x cl-rest))
 	(let ((cl-res nil) (cl-y (car cl-rest)))
 	  (while (and cl-x cl-y)
 	    (push (funcall cl-func (pop cl-x) (pop cl-y)) cl-res))
@@ -575,10 +566,6 @@ The elements of LIST are not copied, just the list structure itself."
 	(prog1 (nreverse res) (setcdr res list)))
     (car list)))
 
-(defun cl-maclisp-member (item list)
-  (while (and list (not (equal item (car list)))) (setq list (cdr list)))
-  list)
-
 ;; Autoloaded, but we have not loaded cl-loaddefs yet.
 (declare-function cl-floor "cl-extra" (x &optional y))
 (declare-function cl-ceiling "cl-extra" (x &optional y))
@@ -607,13 +594,13 @@ Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 \n(fn NEW OLD TREE [KEYWORD VALUE]...)"
   (if (or cl-keys (and (numberp cl-old) (not (integerp cl-old))))
       (apply 'cl-sublis (list (cons cl-old cl-new)) cl-tree cl-keys)
-    (cl-do-subst cl-new cl-old cl-tree)))
+    (cl--do-subst cl-new cl-old cl-tree)))
 
-(defun cl-do-subst (cl-new cl-old cl-tree)
+(defun cl--do-subst (cl-new cl-old cl-tree)
   (cond ((eq cl-tree cl-old) cl-new)
 	((consp cl-tree)
-	 (let ((a (cl-do-subst cl-new cl-old (car cl-tree)))
-	       (d (cl-do-subst cl-new cl-old (cdr cl-tree))))
+	 (let ((a (cl--do-subst cl-new cl-old (car cl-tree)))
+	       (d (cl--do-subst cl-new cl-old (cdr cl-tree))))
 	   (if (and (eq a (car cl-tree)) (eq d (cdr cl-tree)))
 	       cl-tree (cons a d))))
 	(t cl-tree)))

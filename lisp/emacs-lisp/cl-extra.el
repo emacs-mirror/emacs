@@ -1,4 +1,4 @@
-;;; cl-extra.el --- Common Lisp features, part 2
+;;; cl-extra.el --- Common Lisp features, part 2  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993, 2000-2012 Free Software Foundation, Inc.
 
@@ -88,7 +88,7 @@ strings case-insensitively."
 ;;; Control structures.
 
 ;;;###autoload
-(defun cl-mapcar-many (cl-func cl-seqs)
+(defun cl--mapcar-many (cl-func cl-seqs)
   (if (cdr (cdr cl-seqs))
       (let* ((cl-res nil)
 	     (cl-n (apply 'min (mapcar 'length cl-seqs)))
@@ -222,7 +222,7 @@ If so, return the true (non-nil) value returned by PREDICATE.
   (not (apply 'cl-every cl-pred cl-seq cl-rest)))
 
 ;;;###autoload
-(defun cl-map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
+(defun cl--map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
   (or cl-base
       (setq cl-base (copy-sequence [0])))
   (map-keymap
@@ -230,14 +230,14 @@ If so, return the true (non-nil) value returned by PREDICATE.
     (lambda (cl-key cl-bind)
       (aset cl-base (1- (length cl-base)) cl-key)
       (if (keymapp cl-bind)
-	  (cl-map-keymap-recursively
+	  (cl--map-keymap-recursively
 	   cl-func-rec cl-bind
 	   (vconcat cl-base (list 0)))
 	(funcall cl-func-rec cl-base cl-bind))))
    cl-map))
 
 ;;;###autoload
-(defun cl-map-intervals (cl-func &optional cl-what cl-prop cl-start cl-end)
+(defun cl--map-intervals (cl-func &optional cl-what cl-prop cl-start cl-end)
   (or cl-what (setq cl-what (current-buffer)))
   (if (bufferp cl-what)
       (let (cl-mark cl-mark2 (cl-next t) cl-next2)
@@ -265,7 +265,7 @@ If so, return the true (non-nil) value returned by PREDICATE.
 	(setq cl-start cl-next)))))
 
 ;;;###autoload
-(defun cl-map-overlays (cl-func &optional cl-buffer cl-start cl-end cl-arg)
+(defun cl--map-overlays (cl-func &optional cl-buffer cl-start cl-end cl-arg)
   (or cl-buffer (setq cl-buffer (current-buffer)))
   (if (fboundp 'overlay-lists)
 
@@ -307,30 +307,30 @@ If so, return the true (non-nil) value returned by PREDICATE.
 
 ;;; Support for `cl-setf'.
 ;;;###autoload
-(defun cl-set-frame-visible-p (frame val)
+(defun cl--set-frame-visible-p (frame val)
   (cond ((null val) (make-frame-invisible frame))
 	((eq val 'icon) (iconify-frame frame))
 	(t (make-frame-visible frame)))
   val)
 
 ;;; Support for `cl-progv'.
-(defvar cl-progv-save)
+(defvar cl--progv-save)
 ;;;###autoload
-(defun cl-progv-before (syms values)
+(defun cl--progv-before (syms values)
   (while syms
     (push (if (boundp (car syms))
 		 (cons (car syms) (symbol-value (car syms)))
-	       (car syms)) cl-progv-save)
+	       (car syms)) cl--progv-save)
     (if values
 	(set (pop syms) (pop values))
       (makunbound (pop syms)))))
 
-(defun cl-progv-after ()
-  (while cl-progv-save
-    (if (consp (car cl-progv-save))
-	(set (car (car cl-progv-save)) (cdr (car cl-progv-save)))
-      (makunbound (car cl-progv-save)))
-    (pop cl-progv-save)))
+(defun cl--progv-after ()
+  (while cl--progv-save
+    (if (consp (car cl--progv-save))
+	(set (car (car cl--progv-save)) (cdr (car cl--progv-save)))
+      (makunbound (car cl--progv-save)))
+    (pop cl--progv-save)))
 
 
 ;;; Numbers.
@@ -469,8 +469,8 @@ If STATE is t, return a new state object seeded from the time of day."
 
 ;; Implementation limits.
 
-(defun cl-finite-do (func a b)
-  (condition-case err
+(defun cl--finite-do (func a b)
+  (condition-case _
       (let ((res (funcall func a b)))   ; check for IEEE infinity
 	(and (numberp res) (/= res (/ res 2)) res))
     (arith-error nil)))
@@ -485,25 +485,25 @@ This sets the values of: `cl-most-positive-float', `cl-most-negative-float',
   (or cl-most-positive-float (not (numberp '2e1))
       (let ((x '2e0) y z)
 	;; Find maximum exponent (first two loops are optimizations)
-	(while (cl-finite-do '* x x) (setq x (* x x)))
-	(while (cl-finite-do '* x (/ x 2)) (setq x (* x (/ x 2))))
-	(while (cl-finite-do '+ x x) (setq x (+ x x)))
+	(while (cl--finite-do '* x x) (setq x (* x x)))
+	(while (cl--finite-do '* x (/ x 2)) (setq x (* x (/ x 2))))
+	(while (cl--finite-do '+ x x) (setq x (+ x x)))
 	(setq z x y (/ x 2))
 	;; Now cl-fill in 1's in the mantissa.
-	(while (and (cl-finite-do '+ x y) (/= (+ x y) x))
+	(while (and (cl--finite-do '+ x y) (/= (+ x y) x))
 	  (setq x (+ x y) y (/ y 2)))
 	(setq cl-most-positive-float x
 	      cl-most-negative-float (- x))
 	;; Divide down until mantissa starts rounding.
 	(setq x (/ x z) y (/ 16 z) x (* x y))
-	(while (condition-case err (and (= x (* (/ x 2) 2)) (> (/ y 2) 0))
+	(while (condition-case _ (and (= x (* (/ x 2) 2)) (> (/ y 2) 0))
 		 (arith-error nil))
 	  (setq x (/ x 2) y (/ y 2)))
 	(setq cl-least-positive-normalized-float y
 	      cl-least-negative-normalized-float (- y))
 	;; Divide down until value underflows to zero.
 	(setq x (/ 1 z) y x)
-	(while (condition-case err (> (/ x 2) 0) (arith-error nil))
+	(while (condition-case _ (> (/ x 2) 0) (arith-error nil))
 	  (setq x (/ x 2)))
 	(setq cl-least-positive-float x
 	      cl-least-negative-float (- x))
@@ -612,13 +612,13 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 	(if plist (car (cdr plist)) def))))
 
 ;;;###autoload
-(defun cl-set-getf (plist tag val)
+(defun cl--set-getf (plist tag val)
   (let ((p plist))
     (while (and p (not (eq (car p) tag))) (setq p (cdr (cdr p))))
     (if p (progn (setcar (cdr p) val) plist) (cl-list* tag val plist))))
 
 ;;;###autoload
-(defun cl-do-remf (plist tag)
+(defun cl--do-remf (plist tag)
   (let ((p (cdr plist)))
     (while (and (cdr p) (not (eq (car (cdr p)) tag))) (setq p (cdr (cdr p))))
     (and (cdr p) (progn (setcdr p (cdr (cdr (cdr p)))) t))))
@@ -630,7 +630,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
   (let ((plist (symbol-plist sym)))
     (if (and plist (eq tag (car plist)))
 	(progn (setplist sym (cdr (cdr plist))) t)
-      (cl-do-remf plist tag))))
+      (cl--do-remf plist tag))))
 
 ;;; Some debugging aids.
 
@@ -646,15 +646,15 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
       (forward-sexp)
       (delete-char 1))
     (goto-char (1+ pt))
-    (cl-do-prettyprint)))
+    (cl--do-prettyprint)))
 
-(defun cl-do-prettyprint ()
+(defun cl--do-prettyprint ()
   (skip-chars-forward " ")
   (if (looking-at "(")
       (let ((skip (or (looking-at "((") (looking-at "(prog")
 		      (looking-at "(unwind-protect ")
 		      (looking-at "(function (")
-		      (looking-at "(cl-block-wrapper ")))
+		      (looking-at "(cl--block-wrapper ")))
 	    (two (or (looking-at "(defun ") (looking-at "(defmacro ")))
 	    (let (or (looking-at "(let\\*? ") (looking-at "(while ")))
 	    (set (looking-at "(p?set[qf] ")))
@@ -664,21 +664,21 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 		  (and (>= (current-column) 78) (progn (backward-sexp) t))))
 	    (let ((nl t))
 	      (forward-char 1)
-	      (cl-do-prettyprint)
-	      (or skip (looking-at ")") (cl-do-prettyprint))
-	      (or (not two) (looking-at ")") (cl-do-prettyprint))
+	      (cl--do-prettyprint)
+	      (or skip (looking-at ")") (cl--do-prettyprint))
+	      (or (not two) (looking-at ")") (cl--do-prettyprint))
 	      (while (not (looking-at ")"))
 		(if set (setq nl (not nl)))
 		(if nl (insert "\n"))
 		(lisp-indent-line)
-		(cl-do-prettyprint))
+		(cl--do-prettyprint))
 	      (forward-char 1))))
     (forward-sexp)))
 
 ;;;###autoload
 (defun cl-prettyexpand (form &optional full)
   (message "Expanding...")
-  (let ((cl-macroexpand-cmacs full) (cl-compiling-file full)
+  (let ((cl--compiling-file full)
 	(byte-compile-macro-environment nil))
     (setq form (macroexpand-all form
                                 (and (not full) '((cl-block) (cl-eval-when)))))
