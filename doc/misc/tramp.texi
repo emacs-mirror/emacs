@@ -197,6 +197,7 @@ Using @value{tramp}
 * Filename Syntax::             @value{tramp} filename conventions.
 * Alternative Syntax::          URL-like filename syntax.
 * Filename completion::         Filename completion.
+* Ad-hoc multi-hops::           Declaring multiple hops in the file name.
 * Remote processes::            Integration with other @value{emacsname} packages.
 * Cleanup remote connections::  Cleanup remote connections.
 
@@ -442,6 +443,11 @@ Support of gateways exists since April 2007.
 @ifset emacsgvfs
 GVFS integration started in February 2009.
 @end ifset
+@ifset emacs
+Remote commands on Windows hosts are available since September 2011.
+@end ifset
+Ad-hoc multi-hop methods (with a changed syntax) have been reenabled
+in November 2011.
 
 In December 2001, @value{tramp} has been added to the XEmacs package
 repository.  Being part of the Emacs repository happened in June 2002,
@@ -510,7 +516,7 @@ Method}.
 
 
 @node Connection types
-@section Types of connections made to remote machines.
+@section Types of connections made to remote machines
 @cindex connection types, overview
 
 There are two basic types of transfer methods, each with its own
@@ -880,7 +886,9 @@ if it fails like
 command-line: line 0: Bad configuration option: ControlMaster
 @end example
 
-then you cannot use it.
+then you cannot use it.  Note, that the option
+@option{ControlPersist}, if it is supported by your @option{ssh}
+version, must be set to @option{no}.
 
 This method supports the @samp{-p} argument.
 
@@ -976,8 +984,8 @@ This is another not natural @value{tramp} method.  It uses the
 @command{smbclient} command on different Unices in order to connect to
 an SMB server.  An SMB server might be a Samba (or CIFS) server on
 another UNIX host or, more interesting, a host running MS Windows.  So
-far, it is tested against MS Windows NT, MS Windows 2000, and MS
-Windows XP.
+far, it is tested against MS Windows NT, MS Windows 2000, MS Windows
+XP, MS Windows Vista, and MS Windows 7.
 
 The first directory in the localname must be a share name on the remote
 host.  Remember that the @code{$} character, in which default shares
@@ -1259,8 +1267,8 @@ See the documentation for the variable
 
 One trap to fall in must be known.  If @value{tramp} finds a default
 user, this user will be passed always to the connection command as
-parameter (for example @samp{ssh here.somewhere.else -l john}.  If you
-have specified another user for your command in its configuration
+parameter (for example @command{ssh here.somewhere.else -l john}.  If
+you have specified another user for your command in its configuration
 files, @value{tramp} cannot know it, and the remote access will fail.
 If you have specified in the given example in @file{~/.ssh/config} the
 lines
@@ -1398,8 +1406,8 @@ host, wouldn't be useful here.
 @var{host}, @var{user} and @var{proxy} can also be Lisp forms.  These
 forms are evaluated, and must return a string, or @code{nil}.  The
 previous example could be generalized then: For all hosts except my
-local one connect via @code{ssh} first, and apply @code{sudo -u root}
-afterwards:
+local one connect via @command{ssh} first, and apply @command{sudo -u
+root} afterwards:
 
 @lisp
 (add-to-list 'tramp-default-proxies-alist
@@ -1571,7 +1579,7 @@ Example:
 
 
 @node Password handling
-@section Reusing passwords for several connections.
+@section Reusing passwords for several connections
 @cindex passwords
 
 Sometimes it is necessary to connect to the same remote host several
@@ -1645,7 +1653,7 @@ parameters}.
 
 
 @node Connection caching
-@section Reusing connection related information.
+@section Reusing connection related information
 @cindex caching
 
 @vindex tramp-persistency-file-name
@@ -1690,7 +1698,7 @@ connection again.
 
 
 @node Remote Programs
-@section How @value{tramp} finds and uses programs on the remote machine.
+@section How @value{tramp} finds and uses programs on the remote machine
 
 @value{tramp} depends on a number of programs on the remote host in order to
 function, including @command{ls}, @command{test}, @command{find} and
@@ -1867,7 +1875,7 @@ Maybe some shells ask other questions when they are started.
 @value{tramp} does not know how to answer these questions.  There are
 two approaches for dealing with this problem.  One approach is to take
 care that the shell does not ask any questions when invoked from
-@value{tramp}.  You can do this by checking the @code{TERM}
+@value{tramp}.  You can do this by checking the @env{TERM}
 environment variable, it will be set to @code{dumb} when connecting.
 
 @vindex tramp-terminal-type
@@ -1898,9 +1906,9 @@ the variable @code{tramp-actions-before-shell}.  Example:
 
 @item Environment variables named like users in @file{.profile}
 
-If you have a user named frumple and set the variable @code{FRUMPLE} in
+If you have a user named frumple and set the variable @env{FRUMPLE} in
 your shell environment, then this might cause trouble.  Maybe rename
-the variable to @code{FRUMPLE_DIR} or the like.
+the variable to @env{FRUMPLE_DIR} or the like.
 
 This weird effect was actually reported by a @value{tramp} user!
 
@@ -1925,7 +1933,7 @@ understand this syntax and will emit a syntax error when it reaches
 this line.
 
 Another example is the tilde (@code{~}) character, say when adding
-@file{~/bin} to @code{PATH}.  Many Bourne shells will not expand this
+@file{~/bin} to @env{PATH}.  Many Bourne shells will not expand this
 character, and since there is usually no directory whose name consists
 of the single character tilde, strange things will happen.
 
@@ -1960,10 +1968,10 @@ output robustly.  When calling an interactive shell by @kbd{M-x
 shell}, this doesn't look nice.
 
 You can redefine the shell prompt by checking the environment variable
-@code{INSIDE_EMACS}, which is set by @value{tramp}, in your startup
-script @file{~/.emacs_SHELLNAME}. @code{SHELLNAME} might be the string
+@env{INSIDE_EMACS}, which is set by @value{tramp}, in your startup
+script @file{~/.emacs_SHELLNAME}. @env{SHELLNAME} might be the string
 @code{bash} or similar, in case of doubt you could set it the
-environment variable @code{ESHELL} in your @file{.emacs}:
+environment variable @env{ESHELL} in your @file{.emacs}:
 
 @lisp
 (setenv "ESHELL" "bash")
@@ -2177,7 +2185,7 @@ If you want to use either @option{ssh} based method on Windows, then
 you might encounter problems with @command{ssh-agent}.  Using this
 program, you can avoid typing the pass-phrase every time you log in.
 However, if you start @value{emacsname} from a desktop shortcut, then
-the environment variable @code{SSH_AUTH_SOCK} is not set and so
+the environment variable @env{SSH_AUTH_SOCK} is not set and so
 @value{emacsname} and thus @value{tramp} and thus @command{ssh} and
 @command{scp} started from @value{tramp} cannot communicate with
 @command{ssh-agent}.  It works better to start @value{emacsname} from
@@ -2215,6 +2223,7 @@ minute you have already forgotten that you hit that key!
 * Filename Syntax::             @value{tramp} filename conventions.
 * Alternative Syntax::          URL-like filename syntax.
 * Filename completion::         Filename completion.
+* Ad-hoc multi-hops::           Declaring multiple hops in the file name.
 * Remote processes::            Integration with other @value{emacsname} packages.
 * Cleanup remote connections::  Cleanup remote connections.
 @end menu
@@ -2455,16 +2464,56 @@ always cached values for the directory contents.
 @end defopt
 
 
+@node Ad-hoc multi-hops
+@section Declaring multiple hops in the file name
+@cindex multi-hop, ad-hoc
+@cindex proxy hosts, ad-hoc
+
+Multiple hops are configured with the variable
+@code{tramp-default-proxies-alist} (@pxref{Multi-hops}).  However,
+sometimes it is desirable to reach a remote host immediately, without
+configuration changes.  This can be reached by an ad-hoc specification
+of the proxies.
+
+A proxy looks like a remote file name specification without the local
+file name part.  It is prepended to the target remote file name,
+separated by @samp{|}.  As an example, a remote file on
+@samp{you@@remotehost}, passing the proxy @samp{bird@@bastion}, could
+be opened by
+
+@example
+@c @kbd{C-x C-f @trampfn{ssh@value{postfixhop}bird@@bastion|ssh, you,
+@c remotehost, /path}}
+@kbd{C-x C-f @value{prefix}ssh@value{postfixhop}bird@@bastion|ssh@value{postfixhop}you@@remotehost@value{postfix}/path}
+@end example
+
+Multiple hops can be cascaded, separating all proxies by @samp{|}.
+The proxies can also contain the patterns @code{%h} or @code{%u}.
+
+The ad-hoc definition is added on the fly to
+@code{tramp-default-proxies-alist}.  Therefore, during the lifetime of
+the @value{emacsname} session it is not necessary to enter this ad-hoc
+specification, again.  The remote file name @samp{@trampfn{ssh, you,
+remotehost, /path}} would be sufficient from now on.
+
+@vindex tramp-save-ad-hoc-proxies
+@defopt tramp-save-ad-hoc-proxies
+This customer option controls whether ad-hoc definitions are kept
+persistently in @code{tramp-default-proxies-alist}.  That means, those
+definitions are available also for future @value{emacsname} sessions.
+@end defopt
+
+
 @node Remote processes
-@section Integration with other @value{emacsname} packages.
+@section Integration with other @value{emacsname} packages
 @cindex compile
 @cindex recompile
 
 @value{tramp} supports running processes on a remote host.  This
 allows to exploit @value{emacsname} packages without modification for
-remote file names.  It does not work for the @option{ftp} and
-@option{smb} methods.  Association of a pty, as specified in
-@code{start-file-process}, is not supported.
+remote file names.  It does not work for the @option{ftp} method.
+Association of a pty, as specified in @code{start-file-process}, is
+not supported.
 
 @code{process-file} and @code{start-file-process} work on the remote
 host when the variable @code{default-directory} is remote:
@@ -2503,9 +2552,9 @@ Programs}):
 The environment for your program can be adapted by customizing
 @code{tramp-remote-process-environment}.  This variable is a list of
 strings.  It is structured like @code{process-environment}.  Each
-element is a string of the form ENVVARNAME=VALUE.  An entry
-ENVVARNAME= disables the corresponding environment variable, which
-might have been set in your init file like @file{~/.profile}.
+element is a string of the form @code{"ENVVARNAME=VALUE"}.  An entry
+@code{"ENVVARNAME="} disables the corresponding environment variable,
+which might have been set in your init file like @file{~/.profile}.
 
 @noindent
 Adding an entry can be performed via @code{add-to-list}:
@@ -2517,7 +2566,7 @@ Adding an entry can be performed via @code{add-to-list}:
 Changing or removing an existing entry is not encouraged.  The default
 values are chosen for proper @value{tramp} work.  Nevertheless, if for
 example a paranoid system administrator disallows changing the
-@code{HISTORY} environment variable, you can customize
+@env{HISTORY} environment variable, you can customize
 @code{tramp-remote-process-environment}, or you can apply the
 following code in your @file{.emacs}:
 
@@ -2536,7 +2585,7 @@ integrate them as well.  @xref{Bug Reports}.
 
 If you want to run a remote program, which shall connect the X11
 server you are using with your local host, you can set the
-@code{DISPLAY} environment variable on the remote host:
+@env{DISPLAY} environment variable on the remote host:
 
 @lisp
 (add-to-list 'tramp-remote-process-environment
@@ -2557,7 +2606,7 @@ that host.
 @subsection Running @code{shell} on a remote host
 @cindex shell
 
-Calling @code{M-x shell} in a buffer related to a remote host runs the
+Calling @kbd{M-x shell} in a buffer related to a remote host runs the
 local shell as defined in @option{shell-file-name}.  This might be
 also a valid path name for a shell to be applied on the remote host,
 but it will fail at least when your local and remote hosts belong to
@@ -2590,13 +2639,18 @@ hosts.  Example:
 You will see the buffer @file{*Async Shell Command*}, containing the
 continuous output of the @command{tail} command.
 
+@ifset emacs
+A similar behaviour can be reached by @kbd{M-x auto-revert-tail-mode},
+if available.
+@end ifset
+
 
 @subsection Running @code{eshell} on a remote host
 @cindex eshell
 
 @value{tramp} is integrated into @file{eshell.el}.  That is, you can
 open an interactive shell on your remote host, and run commands there.
-After you have started @code{M-x eshell}, you could perform commands
+After you have started @kbd{M-x eshell}, you could perform commands
 like this:
 
 @example
@@ -2672,8 +2726,40 @@ means, file names as arguments must be given as ordinary relative or
 absolute file names, without any remote specification.
 
 
+@subsection Running remote processes on Windows hosts
+@cindex winexe
+@cindex powershell
+
+With the help of the @command{winexe} it is possible tu run processes
+on a remote Windows host.  @value{tramp} has implemented this for
+@code{process-file} and @code{start-file-process}.
+
+The variable @code{tramp-smb-winexe-program} must contain the file
+name of your local @command{winexe} command.  On the remote host,
+Powershell V2.0 must be installed; it is used to run the remote
+process.
+
+In order to open a remote shell on the Windows host via @kbd{M-x
+shell}, you must set the variables @option{explicit-shell-file-name}
+and @option{explicit-*-args}.  If you want, for example, run
+@command{cmd}, you must set:
+
+@lisp
+(setq explicit-shell-file-name "cmd"
+      explicit-cmd-args '("/q"))
+@end lisp
+
+@noindent
+In case of running @command{powershell} as remote shell, the settings are
+
+@lisp
+(setq explicit-shell-file-name "powershell"
+      explicit-powershell-args '("-file" "-"))
+@end lisp
+
+
 @node Cleanup remote connections
-@section Cleanup remote connections.
+@section Cleanup remote connections
 @cindex cleanup
 
 Sometimes it is useful to cleanup remote connections.  The following
@@ -2869,7 +2955,7 @@ Echoed characters after login
 
 When the remote machine opens an echoing shell, there might be control
 characters in the welcome message.  @value{tramp} tries to suppress
-such echoes via the @code{stty -echo} command, but sometimes this
+such echoes via the @command{stty -echo} command, but sometimes this
 command is not reached, because the echoed output has confused
 @value{tramp} already.  In such situations it might be helpful to use
 the @option{sshx} or @option{scpx} methods, which allocate a pseudo tty.
@@ -2920,6 +3006,20 @@ the job:
 @example
 Host *
      ServerAliveInterval 5
+@end example
+
+
+@item
+How can I use @samp{ControlPersist}?
+
+When @samp{ControlPersist} is set to @samp{yes}, the @option{scpc}
+method does not work.  You can use @option{scpx} instead with the
+following settings in @file{~/.ssh/config}:
+
+@example
+Host *
+     ControlMaster  auto
+     ControlPersist yes
 @end example
 
 
@@ -3385,7 +3485,7 @@ could write a script @file{emacsclient.sh}:
 emacsclient @trampfn{ssh, $(whoami), $(hostname --fqdn), $1}
 @end example
 
-Then you must set the environment variable @code{EDITOR} pointing to
+Then you must set the environment variable @env{EDITOR} pointing to
 that script:
 
 @example
@@ -3477,7 +3577,7 @@ This resets also the @value{ftppackagename} plugins.
 
 
 @node Localname deconstruction
-@section Breaking a localname into its components.
+@section Breaking a localname into its components
 
 @value{tramp} file names are somewhat different, obviously, to ordinary file
 names.  As such, the lisp functions @code{file-name-directory} and
@@ -3494,7 +3594,7 @@ effect while preserving the @value{tramp} file name information.
 
 @ifset emacs
 @node External packages
-@section Integration with external Lisp packages.
+@section Integration with external Lisp packages
 @subsection Filename completion.
 
 While reading filenames in the minibuffer, @value{tramp} must decide

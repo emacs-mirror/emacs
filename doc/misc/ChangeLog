@@ -1,3 +1,22 @@
+2012-06-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.6-pre.
+
+	* tramp.texi (all): Use consequently @command{}, @env{} and @kbd{}
+	where appropriate.
+	(Ad-hoc multi-hops): New section.
+	(Remote processes): New subsection "Running remote processes on
+	Windows hosts".
+	(History): Add remote commands on Windows, and ad-hoc multi-hop
+	methods.
+	(External methods): "ControlPersist" must be set to "no" for the
+	`scpc' method.
+	(Remote processes): Add a note about `auto-revert-tail-mode'.
+	(Frequently Asked Questions): Use "scpx" in combination with
+	"ControlPersist".  Reported by Adam Spiers <emacs@adamspiers.org>.
+
+	* trampver.texi: Update release number.
+
 2012-06-10  Chong Yidong  <cyd@gnu.org>
 
 	* sc.texi: Remove bogus @ifinfo commands which prevent makeinfo
