@@ -1,3 +1,9 @@
+2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--let*): New function.
+	(pcase-let*): Use it.  Use pcase--memoize to avoid repeated expansions.
+	(pcase--expand): Use macroexp-let².
+
 2012-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/timer.el, emacs-lisp/syntax.el, emacs-lisp/smie.el:
