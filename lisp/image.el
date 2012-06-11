@@ -747,7 +747,10 @@ If Emacs is compiled without ImageMagick support, this does nothing."
 	  (push (cons re 'image-mode) auto-mode-alist))
 	(if itfnr-elt
 	    (setcar itfnr-elt re)
-	  (push (cons re 'imagemagick) image-type-file-name-regexps)))
+	  ;; Append to `image-type-file-name-regexps', so that we
+	  ;; preferentially use specialized image libraries.
+	  (add-to-list 'image-type-file-name-regexps
+	  	       (cons re 'imagemagick) t)))
       (setq imagemagick--file-regexp re))))
 
 (defcustom imagemagick-types-inhibit
