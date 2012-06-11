@@ -3011,12 +3011,14 @@ surrounded by (cl-block NAME ...).
 	       `(assoc ,a ,list) `(assq ,a ,list)))
 	  (t form))))
 
+;;;###autoload
 (defun cl--compiler-macro-adjoin (form a list &rest keys)
   (if (and (cl--simple-expr-p a) (cl--simple-expr-p list)
 	   (not (memq :key keys)))
       `(if (cl-member ,a ,list ,@keys) ,list (cons ,a ,list))
     form))
 
+;;;###autoload
 (defun cl--compiler-macro-list* (_form arg &rest others)
   (let* ((args (reverse (cons arg others)))
 	 (form (car args)))
@@ -3035,27 +3037,34 @@ surrounded by (cl-block NAME ...).
         (cl--make-type-test temp (cl--const-expr-val type)))
     form))
 
+;;;###autoload
+(defun cl--compiler-macro-cXXr (form x)
+  (let* ((head (car form))
+         (n (symbol-name (car form)))
+         (i (- (length n) 2)))
+    (if (not (string-match "c[ad]+r\\'" n))
+        (if (and (fboundp head) (symbolp (symbol-function head)))
+            (cl--compiler-macro-cXXr (cons (symbol-function head) (cdr form))
+                                     x)
+          (error "Compiler macro for cXXr applied to non-cXXr form"))
+      (while (> i (match-beginning 0))
+        (setq x (list (if (eq (aref n i) ?a) 'car 'cdr) x))
+        (setq i (1- i)))
+      x)))
 
-(mapc (lambda (y)
-	(put (car y) 'side-effect-free t)
-	(put (car y) 'compiler-macro
-	     `(lambda (_w x)
-		,(if (symbolp (cadr y))
-		     `(list ',(cadr y)
-			    (list ',(cl-caddr y) x))
-		   (cons 'list (cdr y))))))
-      '((cl-first 'car x) (cl-second 'cadr x) (cl-third 'cl-caddr x) (cl-fourth 'cl-cadddr x)
-	(cl-fifth 'nth 4 x) (cl-sixth 'nth 5 x) (cl-seventh 'nth 6 x)
-	(cl-eighth 'nth 7 x) (cl-ninth 'nth 8 x) (cl-tenth 'nth 9 x)
-	(cl-rest 'cdr x) (cl-endp 'null x) (cl-plusp '> x 0) (cl-minusp '< x 0)
-	(cl-caaar car caar) (cl-caadr car cadr) (cl-cadar car cdar)
-	(cl-caddr car cddr) (cl-cdaar cdr caar) (cl-cdadr cdr cadr)
-	(cl-cddar cdr cdar) (cl-cdddr cdr cddr) (cl-caaaar car cl-caaar)
-	(cl-caaadr car cl-caadr) (cl-caadar car cl-cadar) (cl-caaddr car cl-caddr)
-	(cl-cadaar car cl-cdaar) (cl-cadadr car cl-cdadr) (cl-caddar car cl-cddar)
-	(cl-cadddr car cl-cdddr) (cl-cdaaar cdr cl-caaar) (cl-cdaadr cdr cl-caadr)
-	(cl-cdadar cdr cl-cadar) (cl-cdaddr cdr cl-caddr) (cl-cddaar cdr cl-cdaar)
-	(cl-cddadr cdr cl-cdadr) (cl-cdddar cdr cl-cddar) (cl-cddddr cdr cl-cdddr) ))
+(dolist (y '(cl-first cl-second cl-third cl-fourth
+             cl-fifth cl-sixth cl-seventh
+             cl-eighth cl-ninth cl-tenth
+             cl-rest cl-endp cl-plusp cl-minusp
+             cl-caaar cl-caadr cl-cadar
+             cl-caddr cl-cdaar cl-cdadr
+             cl-cddar cl-cdddr cl-caaaar
+             cl-caaadr cl-caadar cl-caaddr
+             cl-cadaar cl-cadadr cl-caddar
+             cl-cadddr cl-cdaaar cl-cdaadr
+             cl-cdadar cl-cdaddr cl-cddaar
+             cl-cddadr cl-cdddar cl-cddddr))
+  (put y 'side-effect-free t))
 
 ;;; Things that are inline.
 (cl-proclaim '(inline cl-floatp-safe cl-acons cl-map cl-concatenate cl-notany cl-notevery

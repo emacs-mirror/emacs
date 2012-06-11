@@ -254,18 +254,20 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 
 ;;;***
 
-;;;### (autoloads (cl-defsubst cl-compiler-macroexpand cl-define-compiler-macro
-;;;;;;  cl-assert cl-check-type cl-typep cl-deftype cl-struct-setf-expander
-;;;;;;  cl-defstruct cl-define-modify-macro cl-callf2 cl-callf cl-letf*
-;;;;;;  cl-letf cl-rotatef cl-shiftf cl-remf cl-do-pop cl-psetf cl-setf
-;;;;;;  cl-get-setf-method cl-defsetf cl-define-setf-expander cl-declare
-;;;;;;  cl-the cl-locally cl-multiple-value-setq cl-multiple-value-bind
-;;;;;;  cl-symbol-macrolet cl-macrolet cl-labels cl-flet cl-progv
-;;;;;;  cl-psetq cl-do-all-symbols cl-do-symbols cl-dotimes cl-dolist
-;;;;;;  cl-do* cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
-;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
-;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
-;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "a8ede90b4a2ce9015d4b63254b4678a2")
+;;;### (autoloads (cl--compiler-macro-cXXr cl--compiler-macro-list*
+;;;;;;  cl--compiler-macro-adjoin cl-defsubst cl-compiler-macroexpand
+;;;;;;  cl-define-compiler-macro cl-assert cl-check-type cl-typep
+;;;;;;  cl-deftype cl-struct-setf-expander cl-defstruct cl-define-modify-macro
+;;;;;;  cl-callf2 cl-callf cl-letf* cl-letf cl-rotatef cl-shiftf
+;;;;;;  cl-remf cl-do-pop cl-psetf cl-setf cl-get-setf-method cl-defsetf
+;;;;;;  cl-define-setf-expander cl-declare cl-the cl-locally cl-multiple-value-setq
+;;;;;;  cl-multiple-value-bind cl-symbol-macrolet cl-macrolet cl-labels
+;;;;;;  cl-flet cl-progv cl-psetq cl-do-all-symbols cl-do-symbols
+;;;;;;  cl-dotimes cl-dolist cl-do* cl-do cl-loop cl-return-from
+;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
+;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
+;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
+;;;;;;  "5eba72da8ff76ec1346aa355feb936cb")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\
@@ -776,6 +778,21 @@ ARGLIST allows full Common Lisp conventions, and BODY is implicitly
 surrounded by (cl-block NAME ...).
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)" nil t)
+
+(autoload 'cl--compiler-macro-adjoin "cl-macs" "\
+
+
+\(fn FORM A LIST &rest KEYS)" nil nil)
+
+(autoload 'cl--compiler-macro-list* "cl-macs" "\
+
+
+\(fn FORM ARG &rest OTHERS)" nil nil)
+
+(autoload 'cl--compiler-macro-cXXr "cl-macs" "\
+
+
+\(fn FORM X)" nil nil)
 
 ;;;***
 

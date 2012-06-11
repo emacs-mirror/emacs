@@ -1,3 +1,24 @@
+2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix compiler-expansion of CL's cXXr functions (bug#11673).
+	* emacs-lisp/cl-lib.el (cl--defalias): New function.
+	(cl-values, cl-values-list, cl-copy-seq, cl-svref, cl-first)
+	(cl-second, cl-rest, cl-endp, cl-third, cl-fourth): Use it.
+	(cl-plusp, cl-minusp, cl-fifth, cl-sixth, cl-seventh, cl-eighth)
+	(cl-ninth, cl-tenth): Mark them as inlinable.
+	(cl-caaar, cl-caadr, cl-cadar, cl-caddr, cl-cdaar, cl-cdadr)
+	(cl-cddar, cl-cdddr, cl-caaaar, cl-caaadr, cl-caadar, cl-caaddr)
+	(cl-cadaar, cl-cadadr, cl-caddar, cl-cadddr, cl-cdaaar, cl-cdaadr)
+	(cl-cdadar, cl-cdaddr, cl-cddaar, cl-cddadr, cl-cdddar, cl-cddddr):
+	Add a compiler-macro declaration to use cl--compiler-macro-cXXr.
+	(cl-list*, cl-adjoin): Don't put an autoload manually.
+	* emacs-lisp/cl-macs.el (cl--compiler-macro-adjoin)
+	(cl--compiler-macro-list*): Add autoload cookie.
+	(cl--compiler-macro-cXXr): New function.
+	* help-fns.el (help-fns--compiler-macro): New function extracted from
+	describe-function-1; follow aliases and use `compiler-macro' property.
+	(describe-function-1): Use it.
+
 2012-06-11  Chong Yidong  <cyd@gnu.org>
 
 	* startup.el (fancy-splash-head): Use splash.svg even if librsvg
