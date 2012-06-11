@@ -250,6 +250,15 @@ closing brackets to be aligned with the line of the opening bracket.
 
 ** which-function-mode now applies to all applicable major modes by default.
 
+** Tramp
+
++++
+*** The syntax has been extended in order to allow ad-hoc proxy
+definitions.  See the manual for details.
+
++++
+*** Remote processes are now supported also on remote Windows host.
+
 ** D-Bus
 
 +++
