@@ -625,7 +625,7 @@ is no information where to trace the message.")
       ;; If there is a default location, expand tilde.
       (when (string-match "\\`\\(~\\)\\(/\\|\\'\\)" localname)
 	(save-match-data
-	  (tramp-gvfs-maybe-open-connection (vector method user host "/")))
+	  (tramp-gvfs-maybe-open-connection (vector method user host "/" hop)))
 	(setq localname
 	      (replace-match
 	       (tramp-get-file-property  v "/" "default-location" "~")

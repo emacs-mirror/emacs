@@ -49,9 +49,8 @@
 (defun tramp-disable-ange-ftp ()
   "Turn Ange-FTP off.
 This is useful for unified remoting.  See
-`tramp-file-name-structure-unified' and
-`tramp-file-name-structure-separate' for details.  Requests suitable
-for Ange-FTP will be forwarded to Ange-FTP.  Also see the variables
+`tramp-file-name-structure' for details.  Requests suitable for
+Ange-FTP will be forwarded to Ange-FTP.  Also see the variables
 `tramp-ftp-method', `tramp-default-method', and
 `tramp-default-method-alist'.
 
@@ -204,8 +203,8 @@ pass to the OPERATION."
 ;;;###tramp-autoload
 (defsubst tramp-ftp-file-name-p (filename)
   "Check if it's a filename that should be forwarded to Ange-FTP."
-  (let ((v (tramp-dissect-file-name filename)))
-    (string= (tramp-file-name-method v) tramp-ftp-method)))
+  (string= (tramp-file-name-method (tramp-dissect-file-name filename))
+	   tramp-ftp-method))
 
 ;;;###tramp-autoload
 (unless (featurep 'xemacs)

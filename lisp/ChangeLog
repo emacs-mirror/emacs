@@ -1,3 +1,142 @@
+2012-06-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.6-pre.
+
+	* net/tramp-cache.el (tramp-dump-connection-properties): Let-bind
+	`print-length' and `print-level' to nil, in order to avoid
+	truncation.  Reported by Christopher Schmidt
+	<christopher@ristopher.com>.
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Delete also process.
+
+	* net/tramp-compat.el (tramp-compat-condition-case-unless-debug):
+	New defmacro.
+	(tramp-compat-copy-directory): Add optional argument
+	COPY-CONTENTS.  It is not handled yet.
+
+	* net/tramp-ftp.el (tramp-disable-ange-ftp): Fix docstring.
+	(tramp-ftp-file-name-p): Simplify.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-expand-file-name):
+	* net/tramp-gw.el (tramp-gw-open-connection): Add hop to
+	connection vector.
+
+	* net/tramp-sh.el (tramp-copy-size-limit): Fix docstring.
+	(tramp-methods): Do not use `tramp-password-end-of-line'.
+	(tramp-completion-function-alist-putty): Handle UNIX case.
+	(tramp-remote-path): Add "/opt/bin", "/opt/sbin" and "/opt/local/bin".
+	(tramp-do-file-attributes-with-stat)
+	(tramp-do-directory-files-and-attributes-with-stat) Return uid and
+	gid as real numbers.  They could run out of integer range on cygwin.
+	(tramp-do-copy-or-rename-file-out-of-band): Better trace format.
+	(tramp-sh-handle-expand-file-name): Handle hops.
+	(tramp-open-connection-setup-interactive-shell): Use
+	`tramp-cleanup'.  Move check for busyboxes ...
+	(tramp-find-shell): ... here.  Simplify implementation.  Set
+	"remote-shell" property also for alternative shells.
+	(tramp-remote-coding-commands): Check "test -c /dev/stdout".  If
+	failing, a regular file would be written otherwise.  Reported by
+	Dmitry Kurochkin <dmitry.kurochkin@gmail.com>.
+	(tramp-find-inline-encoding): Cache the coding commands in the
+	process cache.  Apply test command on the remote side, if defined.
+	(tramp-find-inline-compress): Cache the compress commands in the
+	process cache.
+	(tramp-compute-multi-hops): Save `tramp-default-proxies-alist'
+	when requested.  Handle hops.
+	(tramp-current-connection): New defvar.
+	(tramp-maybe-open-connection): Use `tramp-cleanup'.  Throw
+	`suppress', if there was a failed connection shortly before.
+	Handle user interrupt.  (Bug#10187)
+	(tramp-get-inline-compress, tramp-get-inline-coding): Read
+	connection properties from the process cache.
+
+	* net/tramp-smb.el (tramp-smb-server-version)
+	(tramp-smb-wrong-passwd-regexp, tramp-smb-actions-with-tar): New
+	defconsts.
+	(tramp-smb-prompt): Extend for powershell prompt.
+	(tramp-smb-file-name-handler-alist): Add handlers for
+	`process-file', `shell-command' and `start-file-process'.
+	(tramp-smb-winexe-program, tramp-smb-winexe-shell-command)
+	(tramp-smb-winexe-shell-command-switch): New defcustoms.
+	(tramp-smb-file-name-p): Simplify.
+	(tramp-smb-action-with-tar, tramp-smb-handle-process-file)
+	(tramp-smb-kill-winexe-function, tramp-smb-call-winexe)
+	(tramp-smb-shell-quote-argument): New defuns.
+	(tramp-smb-handle-copy-directory): Add COPY-CONTENTS argument.
+	Implement using "tar".  By this, time-stamps are preserved.
+	(tramp-smb-handle-copy-file): Handle also the case of directories.
+	(tramp-smb-do-file-attributes-with-stat)
+	(tramp-smb-get-file-entries, tramp-smb-get-cifs-capabilities): Use
+	`tramp-get-connection-buffer').
+	(tramp-smb-handle-rename-file): Use "rename", when source and
+	target are on the same share.
+	(tramp-smb-maybe-open-connection): Handle wrong passwords.  Use
+	`tramp-smb-server-version'.
+	(tramp-smb-wait-for-output): Remove prompt.
+
+	* net/tramp.el (top): Require 'cl.
+	(tramp-methods, tramp-rsh-end-of-line): Remove
+	`tramp-password-end-of-line' from docstring.
+	(tramp-save-ad-hoc-proxies): New defcustom.
+	(tramp-completion-function-alist): Adapt docstring.
+	(tramp-default-password-end-of-line): Remove defcustom.
+	(tramp-shell-prompt-pattern): Allow "[]" style prompts.  (Bug#11065)
+	(tramp-user-regexp, tramp-file-name-regexp-unified)
+	(tramp-file-name-regexp-url): Extend regexp by hop separator.
+	(tramp-postfix-hop-format, tramp-postfix-hop-regexp)
+	(tramp-remote-file-name-spec-regexp): New defconst.
+	(tramp-file-name-structure): Extend structure for hops.
+	(tramp-get-method-parameter): Move up.
+	(tramp-file-name-p, tramp-dissect-file-name)
+	(with-parsed-tramp-file-name): Handle hops.
+	(tramp-file-name-hop): New defun.
+	(tramp-make-tramp-file-name): New optional arg HOP.
+	(tramp-message-show-progress-reporter-message): New defvar.
+	(tramp-with-progress-reporter): Use it.  We cannot use
+	`tramp-message-show-message' here, because this suppresses also
+	error buffers.
+	(tramp-error-with-buffer): Suppress buffer view, if
+	`tramp-message-show-message' is nil.  Use
+	`tramp-get-connection-buffer'.
+	(tramp-cleanup): New defun.
+	(tramp-rfn-eshadow-update-overlay): Let-bind `non-essential' to `t'.
+	(tramp-file-name-handler): If `debug-on-error' is set, propagate
+	an error unchanged.
+	(tramp-completion-handle-file-name-all-completions): Handle hops.
+	Fix an error when called from ido.
+	(tramp-completion-dissect-file-name): Use better local variable
+	name.  Add hop to the vector.
+	(tramp-handle-insert-file-contents): Use progress-reporter for the
+	whole scenario.
+	(tramp-action-password): Let-bind `enable-recursive-minibuffers'
+	to `t'.
+	(tramp-check-for-regexp): Simplify search.
+	(tramp-enter-password): Remove it.  Move implementation ...
+	(tramp-action-password): ... here.
+	(tramp-mode-string-to-int, tramp-local-host-p)
+	(tramp-make-tramp-temp-file, tramp-read-passwd)
+	(tramp-clear-passwd, tramp-time-less-p, tramp-time-diff): Set
+	tramp-autoload cookie.
+
+	* net/trampver.el: Update release number.
+
+2012-06-11  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+	    Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-set-completion-function): Fix docstring.
+	(tramp-parse-group, tramp-parse-file)
+	(tramp-parse-shostkeys-sknownhosts): New defuns.
+	(tramp-parse-rhosts, tramp-parse-rhosts-group, tramp-parse-shosts)
+	(tramp-parse-shosts-group, tramp-parse-sconfig)
+	(tramp-parse-sconfig-group, tramp-parse-shostkeys)
+	(tramp-parse-sknownhosts, tramp-parse-hosts)
+	(tramp-parse-hosts-group, tramp-parse-passwd, tramp-parse-netrc):
+	Use them.
+	(tramp-parse-passwd-group, tramp-parse-netrc-group)
+	(tramp-parse-putty-group): Don't narrow.
+	(tramp-parse-putty): Make a loop.
+	(tramp-file-name-handler): Catch the `suppress' signal.
+
 2012-06-11  Chong Yidong  <cyd@gnu.org>
 
 	* image.el (imagemagick-register-types): Put the ImageMagick entry
@@ -4884,9 +5023,6 @@
 
 	* net/tramp.el (tramp-action-login): Set connection property "login-as".
 
-	* net/tramp-cache.el (tramp-dump-connection-properties): Do not dump
-	properties, when "login-as" is set.
-
 	* net/tramp-sh.el (tramp-methods): Add user spec to "pscp" and "psftp".
 	(tramp-default-user-alist): Don't add "pscp".
 	(tramp-do-copy-or-rename-file-out-of-band): Use connection
@@ -6210,9 +6346,6 @@
 	Make bash entry derive from sh entry, not shell entry.
 
 2011-11-16  Michael Albinus  <michael.albinus@gmx.de>
-
-	* net/tramp-cache.el (tramp-flush-file-property): Flush also
-	properties of linked files.  (Bug#9879)
 
 	* net/tramp-sh.el (tramp-sh-handle-file-truename): Cache only the
 	local file name.
