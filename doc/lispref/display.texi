@@ -4603,6 +4603,12 @@ JPEG files, add @code{JPG} to this list.
 image descriptor properties:
 
 @table @code
+@item :background @var{background}
+@var{background}, if non-@code{nil}, should be a string specifying a
+color, which is used as the image's background color if the image
+supports transparency.  If the value is @code{nil}, it defaults to the
+frame's background color.
+
 @item :width, :height
 The @code{:width} and @code{:height} keywords are used for scaling the
 image.  If only one of them is specified, the other one will be
