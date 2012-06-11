@@ -2551,8 +2551,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	     build them using function calls.  */
 	  Lisp_Object tmp;
 	  tmp = read_vector (readcharfun, 1);
-	  return Fmake_byte_code (ASIZE (tmp),
-				  XVECTOR (tmp)->contents);
+	  make_byte_code (XVECTOR (tmp));
+	  return tmp;
 	}
       if (c == '(')
 	{

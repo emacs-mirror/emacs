@@ -1,3 +1,9 @@
+2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (make_byte_code): New function.
+	(Fmake_byte_code): Use it.  Don't purify here.
+	* lread.c (read1): Use it as well to avoid extra allocation.
+
 2012-06-11  Chong Yidong  <cyd@gnu.org>
 
 	* image.c (imagemagick_load_image): Implement transparency.

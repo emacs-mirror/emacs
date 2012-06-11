@@ -2880,6 +2880,7 @@ extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, int);
 extern Lisp_Object make_pure_c_string (const char *data);
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 EXFUN (Fgarbage_collect, 0);
+extern void make_byte_code (struct Lisp_Vector *);
 EXFUN (Fmake_byte_code, MANY);
 EXFUN (Fmake_bool_vector, 2);
 extern Lisp_Object Qchar_table_extra_slots;
