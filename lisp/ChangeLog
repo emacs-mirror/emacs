@@ -1,3 +1,8 @@
+2012-06-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* emacs-lisp/pcase.el (pcase-UPAT, pcase-QPAT): New edebug specs.
+	(pcase, pcase-let*, pcase-dolist): Use them.
+
 2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--let*): New function.

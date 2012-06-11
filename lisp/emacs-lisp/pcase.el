@@ -66,6 +66,27 @@
 
 (defconst pcase--dontcare-upats '(t _ dontcare))
 
+(def-edebug-spec
+  pcase-UPAT
+  (&or symbolp
+       ("or" &rest pcase-UPAT)
+       ("and" &rest pcase-UPAT)
+       ("`" pcase-QPAT)
+       ("guard" form)
+       ("let" pcase-UPAT form)
+       ("pred"
+        &or lambda-expr
+        ;; Punt on macros/special forms.
+        (functionp &rest form)
+        sexp)
+       sexp))
+
+(def-edebug-spec
+  pcase-QPAT
+  (&or ("," pcase-UPAT)
+       (pcase-QPAT . pcase-QPAT)
+       sexp))
+
 ;;;###autoload
 (defmacro pcase (exp &rest cases)
   "Perform ML-style pattern matching on EXP.
@@ -98,7 +119,7 @@ PRED patterns can refer to variables bound earlier in the pattern.
 E.g. you can match pairs where the cdr is larger than the car with a pattern
 like `(,a . ,(pred (< a))) or, with more checks:
 `(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))"
-  (declare (indent 1) (debug cl-case))  ;FIXME: edebug `guard' and vars.
+  (declare (indent 1) (debug (form &rest (pcase-UPAT body))))
   ;; We want to use a weak hash table as a cache, but the key will unavoidably
   ;; be based on `exp' and `cases', yet `cases' is a fresh new list each time
   ;; we're called so it'll be immediately GC'd.  So we use (car cases) as key
@@ -144,7 +165,7 @@ like `(,a . ,(pred (< a))) or, with more checks:
 BODY should be an expression, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
   (declare (indent 1)
-           (debug ((&rest (sexp &optional form)) body)))
+           (debug ((&rest (pcase-UPAT &optional form)) body)))
   (let ((cached (gethash bindings pcase--memoize)))
     ;; cached = (BODY . EXPANSION)
     (if (equal (car cached) body)
@@ -174,7 +195,7 @@ of the form (UPAT EXP)."
       `(let ,(nreverse bindings) (pcase-let* ,matches ,@body)))))
 
 (defmacro pcase-dolist (spec &rest body)
-  (declare (indent 1))
+  (declare (indent 1) (debug ((pcase-UPAT form) body)))
   (if (pcase--trivial-upat-p (car spec))
       `(dolist ,spec ,@body)
     (let ((tmpvar (make-symbol "x")))
