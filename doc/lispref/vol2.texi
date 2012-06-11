@@ -48,8 +48,6 @@
 @tex
 @ifset smallbook
 @fonttextsize 10
-\global\let\urlcolor=\Black % don't print links in grayscale
-\global\let\linkcolor=\Black
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
@@ -1536,12 +1534,9 @@ Object Internals
 
 @include display.texi
 @include os.texi
-
-@c MOVE to Emacs Manual:  include misc-modes.texi
+@include package.texi
 
 @c appendices
-
-@c  REMOVE this:  include non-hacker.texi
 
 @include anti.texi
 @include doclicense.texi

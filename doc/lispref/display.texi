@@ -791,8 +791,8 @@ Its default value is a list of two functions:
 @findex collapse-delayed-warnings
 @findex display-delayed-warnings
 @noindent
-The function @code{collapse-delayed-warnings} iterates through
-@code{delayed-warnings-list}, removing repeated entries.  The function
+The function @code{collapse-delayed-warnings} removes repeated entries
+from @code{delayed-warnings-list}.  The function
 @code{display-delayed-warnings} calls @code{display-warning} on each
 of the entries in @code{delayed-warnings-list}, in turn, and then sets
 @code{delayed-warnings-list} to @code{nil}.
@@ -2079,11 +2079,10 @@ the @code{:family} attribute (a string).  The wild-card characters
 Emacs Manual}.
 
 @item :width
-Relative proportionate character width, also known as the character
-set width.  This should be one of the symbols @code{ultra-condensed},
-@code{extra-condensed}, @code{condensed}, @code{semi-condensed},
-@code{normal}, @code{semi-expanded}, @code{expanded},
-@code{extra-expanded}, or @code{ultra-expanded}.
+Relative character width.  This should be one of the symbols
+@code{ultra-condensed}, @code{extra-condensed}, @code{condensed},
+@code{semi-condensed}, @code{normal}, @code{semi-expanded},
+@code{expanded}, @code{extra-expanded}, or @code{ultra-expanded}.
 
 @item :height
 The height of the font.  In the simplest case, this is an integer in

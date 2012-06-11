@@ -245,10 +245,10 @@ Scroll calendar one month forward (@code{calendar-scroll-left}).
 Scroll calendar one month backward (@code{calendar-scroll-right}).
 @item C-v
 @itemx @key{next}
-Scroll three months forward (@code{calendar-scroll-left-three-months}).
+Scroll forward by three months (@code{calendar-scroll-left-three-months}).
 @item M-v
 @itemx @key{prior}
-Scroll three months backward (@code{calendar-scroll-right-three-months}).
+Scroll backward by three months (@code{calendar-scroll-right-three-months}).
 @end table
 
 @kindex > @r{(Calendar mode)}

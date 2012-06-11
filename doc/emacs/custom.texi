@@ -1052,13 +1052,13 @@ pair with a colon and semicolon.  The special variable/value pair
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
 @findex copy-dir-locals-to-file-locals-prop-line
-  You can use the command @kbd{M-x add-file-local-variable-prop-line}
-instead of adding entries by hand.  This command prompts for a
-variable and value, and adds them to the first line in the appropriate
-way.  The command @kbd{M-x delete-file-local-variable-prop-line}
-prompts for a variable, and deletes its entry from the line.  The
-command @kbd{M-x copy-dir-locals-to-file-locals-prop-line} copies the
-current directory-local variables to the first line (@pxref{Directory
+  You can use @kbd{M-x add-file-local-variable-prop-line} instead of
+adding entries by hand.  This command prompts for a variable and
+value, and adds them to the first line in the appropriate way.
+@kbd{M-x delete-file-local-variable-prop-line} prompts for a variable,
+and deletes its entry from the line.  The command @kbd{M-x
+copy-dir-locals-to-file-locals-prop-line} copies the current
+directory-local variables to the first line (@pxref{Directory
 Variables}).
 
   Here is an example first line that specifies Lisp mode and sets two

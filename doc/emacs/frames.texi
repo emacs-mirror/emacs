@@ -668,7 +668,7 @@ The font slant---normally @samp{r} (roman), @samp{i} (italic),
 @samp{o} (oblique), @samp{ri} (reverse italic), or @samp{ot} (other).
 Some font names support other values.
 @item widthtype
-The font width---normally one of @samp{normal}, @samp{condensed},
+The font width---normally @samp{normal}, @samp{condensed},
 @samp{semicondensed}, or @samp{extended}.  Some font names support
 other values.
 @item style

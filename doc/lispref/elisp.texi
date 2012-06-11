@@ -14,7 +14,7 @@
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
-@c @smallbook
+@c @set smallbook
 
 @ifset smallbook
 @smallbook
@@ -26,8 +26,6 @@
 @tex
 @ifset smallbook
 @fonttextsize 10
-\global\let\urlcolor=\Black % don't print links in grayscale
-\global\let\linkcolor=\Black
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
@@ -1522,11 +1520,7 @@ Object Internals
 
 @include package.texi
 
-@c MOVE to Emacs Manual:  include misc-modes.texi
-
 @c appendices
-
-@c  REMOVE this:  include non-hacker.texi
 
 @include anti.texi
 @include doclicense.texi

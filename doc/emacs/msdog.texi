@@ -415,16 +415,15 @@ names, which might cause misalignment of columns in Dired display.
 @section HOME and Startup Directories on MS-Windows
 @cindex @code{HOME} directory on MS-Windows
 
-  The Windows equivalent of the @code{HOME} directory is the
-@dfn{user-specific application data directory}.  The actual location
-depends on the Windows version; typical values are @file{C:\Documents
-and Settings\@var{username}\Application Data} on Windows 2K/XP/2K3,
-@file{C:\Users\@var{username}\AppData\Roaming} on Windows Vista/7/2K8,
-and either @file{C:\WINDOWS\Application Data} or
-@file{C:\WINDOWS\Profiles\@var{username}\Application Data} on the
-older Windows 9X/ME systems.  If this directory does not exist or
-cannot be accessed, Emacs falls back to @file{C:\} as the default
-value of @code{HOME}.
+  The Windows equivalent of @code{HOME} is the @dfn{user-specific
+application data directory}.  The actual location depends on the
+Windows version; typical values are @file{C:\Documents and
+Settings\@var{username}\Application Data} on Windows 2000/XP/2K3,
+@file{C:\Users\@var{username}\AppData\Roaming} on Windows
+Vista/7/2008, and either @file{C:\WINDOWS\Application Data} or
+@file{C:\WINDOWS\Profiles\@var{username}\Application Data} on Windows
+9X/ME.  If this directory does not exist or cannot be accessed, Emacs
+falls back to @file{C:\} as the default value of @code{HOME}.
 
   You can override this default value of @code{HOME} by explicitly
 setting the environment variable @env{HOME} to point to any directory

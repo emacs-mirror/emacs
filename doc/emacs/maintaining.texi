@@ -903,11 +903,11 @@ Display the changes that will be sent by the next push operation
 
 @kindex C-x v l
 @findex vc-print-log
-  The command @kbd{C-x v l} (@code{vc-print-log}) displays a buffer
-named @file{*vc-change-log*}, showing the history of changes made to
-the current file, including who made the changes, the dates, and the
-log entry for each change (these are the same log entries you would
-enter via the @file{*vc-log*} buffer; @pxref{Log Buffer}).  Point is
+  @kbd{C-x v l} (@code{vc-print-log}) displays a buffer named
+@file{*vc-change-log*}, showing the history of changes made to the
+current file, including who made the changes, the dates, and the log
+entry for each change (these are the same log entries you would enter
+via the @file{*vc-log*} buffer; @pxref{Log Buffer}).  Point is
 centered at the revision of the file currently being visited.  With a
 prefix argument, the command prompts for the revision to center on,
 and the maximum number of revisions to display.
