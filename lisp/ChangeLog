@@ -1,3 +1,9 @@
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-font-lock-keywords-3):
+	Use preprocessor face for directives.
+	(fortran-directive-re): Doc fix.
+
 2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-parse-loop-clause): Fix error in recent
