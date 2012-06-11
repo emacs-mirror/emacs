@@ -1158,13 +1158,13 @@ x_free_frame_resources (struct frame *f)
       hlinfo->mouse_face_mouse_frame = 0;
     }
 
-  xfree (f->output_data.ns);
-
   if (f->output_data.ns->miniimage != nil)
     [f->output_data.ns->miniimage release];
 
   [[view window] close];
   [view release];
+
+  xfree (f->output_data.ns);
 
   UNBLOCK_INPUT;
 }
