@@ -6,6 +6,8 @@
 
 2012-06-12  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (opsysfile): Set specially for gnu-kfreebsd, openbsd.
+
 	* configure.in (NO_TERMIO, BROKEN_SIGIO): Move here from src/s.
 
 	* configure.in: Anticipate platforms with no src/s file.
