@@ -1,6 +1,6 @@
 2012-06-12  Glenn Morris  <rgm@gnu.org>
 
-	* s/gnu-kfreebsd.h, s/openbsd.h: Remove files.
+	* s/gnu-kfreebsd.h, s/hpux11.h, s/openbsd.h: Remove files.
 
 	* s/hpux10-20.h, s/openbsd.h, s/usg5-4-common.h:
 	Move BROKEN_SIGIO to configure.

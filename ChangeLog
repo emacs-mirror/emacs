@@ -1,3 +1,9 @@
+2012-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (BROKEN_SA_RESTART, USG_SUBTTY_WORKS):
+	New AC_DEFINEs, for hpux11.
+	(opsysfile): Set specially for hpux11.
+
 2012-06-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in: Coalesce some function checking.

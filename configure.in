@@ -3125,8 +3125,19 @@ case $opsys in
   ;;
 esac
 
+if test "$opsys" = hpux11; then
+  dnl SA_RESTART resets the timeout of `select', so don't use it.
+  AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should not be used.])
+  dnl It works to open the pty's tty in the parent (Emacs), then close
+  dnl and reopen it in the child.
+  AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
+  works to open a pty's tty in the parent process, then close and
+  reopen it in the child.])
+fi
+
 case $opsys in
   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
+  hpux11) opsysfile="s/hpux10-20.h" ;;
   openbsd) opsysfile="s/netbsd.h" ;;
 esac
 
