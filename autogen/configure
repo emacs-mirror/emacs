@@ -8073,6 +8073,7 @@ fi
 LIB_MATH=-lm
 LIB_STANDARD=
 START_FILES=
+SYSTEM_TYPE=`echo $opsys | sed -e 's/0-9.*//' -e 's|-|/|'`
 
 case $opsys in
   cygwin )
@@ -8087,6 +8088,7 @@ case $opsys in
   freebsd )
     LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
     START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    SYSTEM_TYPE=berkeley-unix
     ;;
   gnu-linux | gnu-kfreebsd )
     LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
@@ -8099,10 +8101,21 @@ case $opsys in
     netbsd | openbsd )
     LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
+    SYSTEM_TYPE=berkeley-unix
     ;;
+
+  sol2* | unixware )
+    SYSTEM_TYPE=usg-unix-v
+    ;;
+
 esac
 
 
+
+
+cat >>confdefs.h <<_ACEOF
+#define SYSTEM_TYPE "$SYSTEM_TYPE"
+_ACEOF
 
 
 crt_files=
@@ -10418,6 +10431,17 @@ do :
 if test "x$ac_cv_func_MagickExportImagePixels" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_MAGICKEXPORTIMAGEPIXELS 1
+_ACEOF
+
+fi
+done
+
+      for ac_func in MagickMergeImageLayers
+do :
+  ac_fn_c_check_func "$LINENO" "MagickMergeImageLayers" "ac_cv_func_MagickMergeImageLayers"
+if test "x$ac_cv_func_MagickMergeImageLayers" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MAGICKMERGEIMAGELAYERS 1
 _ACEOF
 
 fi

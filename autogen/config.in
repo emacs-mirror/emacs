@@ -525,6 +525,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `MagickExportImagePixels' function. */
 #undef HAVE_MAGICKEXPORTIMAGEPIXELS
 
+/* Define to 1 if you have the `MagickMergeImageLayers' function. */
+#undef HAVE_MAGICKMERGEIMAGELAYERS
+
 /* Define to 1 if you have the <maillock.h> header file. */
 #undef HAVE_MAILLOCK_H
 
@@ -1053,6 +1056,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to use system malloc. */
 #undef SYSTEM_MALLOC
+
+/* The type of system you are compiling for; sets `system-type'. */
+#undef SYSTEM_TYPE
 
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
