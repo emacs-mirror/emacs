@@ -267,7 +267,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
 ;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
 ;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "5eba72da8ff76ec1346aa355feb936cb")
+;;;;;;  "a0ba9f3a4a4c091875d8315052259e91")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\

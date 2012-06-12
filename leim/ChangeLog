@@ -1,3 +1,7 @@
+2012-06-12  Nguyen Thai Ngoc Duy  <pclouds@gmail.com>
+
+	* quail/vnvi.el: New file (Bug#4747).
+
 2012-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SUBDIRS): Remove variable and rule.
