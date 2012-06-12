@@ -3162,7 +3162,11 @@ AC_SUBST(GNUSTEP_CFLAGS)
 AC_SUBST(CFLAGS)
 ## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
-S_FILE="\$(srcdir)/${opsysfile}"
+if test -n "${opsysfile}"; then
+  S_FILE="\$(srcdir)/${opsysfile}"
+else
+  S_FILE=
+fi
 AC_SUBST(S_FILE)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
@@ -3175,8 +3179,10 @@ AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
 		   [Define to the options passed to configure.])
-AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
-		   [Define to the used os dependent file.])
+if test -n "$opsysfile"; then
+  AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
+		     [Define to the used os dependent file.])
+fi
 
 XMENU_OBJ=
 XOBJ=
@@ -3519,7 +3525,9 @@ AH_BOTTOM([
 #define subprocesses
 
 /* Include the os dependent file.  */
-#include config_opsysfile
+#ifdef config_opsysfile
+# include config_opsysfile
+#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
@@ -3614,8 +3622,7 @@ echo "
 Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
-  What operating system file should Emacs use?
-        \`${opsysfile}'
+  What operating system file should Emacs use?           \`${opsysfile-none}'
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}

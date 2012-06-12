@@ -1,3 +1,7 @@
+2012-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Anticipate platforms with no src/s file.
+
 2012-06-12  Chong Yidong  <cyd@gnu.org>
 
 	* configure.in: Check for MagickMergeImageLayers (Bug#11678).
