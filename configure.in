@@ -3133,29 +3133,28 @@ case $opsys in
 esac
 
 case $opsys in
-     hpux11)
-       dnl SA_RESTART resets the timeout of `select', so don't use it.
-       AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should not
-         be used.])
-       dnl It works to open the pty's tty in the parent (Emacs), then
-       dnl close and reopen it in the child.
-       AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
-         works to open a pty's tty in the parent process, then close and
-         reopen it in the child.])
+   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 
-       opsysfile="s/hpux10-20.h"
-     ;;
+   hpux11)
+     dnl SA_RESTART resets the timeout of `select', so don't use it.
+     AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should not
+       be used.])
+     dnl It works to open the pty's tty in the parent (Emacs), then
+     dnl close and reopen it in the child.
+     AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
+       works to open a pty's tty in the parent process, then close and
+       reopen it in the child.])
 
-     sol2-10)
-       AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
-         on Solaris.])
-       opsysfile="s/sol2-6.h"
-     ;;
-esac
+     opsysfile="s/hpux10-20.h"
+   ;;
 
-case $opsys in
-  gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
-  openbsd) opsysfile="s/netbsd.h" ;;
+   openbsd) opsysfile="s/netbsd.h" ;;
+
+   sol2-10)
+     AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
+       on Solaris.])
+     opsysfile="s/sol2-6.h"
+   ;;
 esac
 
 # Set up the CFLAGS for real compilation, so we can substitute it.
