@@ -938,7 +938,7 @@ dnl Current possibilities handled by sed (aix4-2 -> aix,
 dnl gnu-linux -> gnu/linux, etc.):
 dnl gnu, gnu/linux, gnu/kfreebsd, aix, cygwin, darwin, hpux, irix.
 dnl And special cases: berkeley-unix, usg-unix-v, ms-dos, windows-nt.
-SYSTEM_TYPE=`echo $opsys | sed -e 's/[0-9].*//' -e 's|-|/|'`
+SYSTEM_TYPE=`echo $opsys | sed -e 's/[[0-9]].*//' -e 's|-|/|'`
 
 dnl NB do not use CRT_DIR unquoted here, since it might not be set yet.
 case $opsys in
