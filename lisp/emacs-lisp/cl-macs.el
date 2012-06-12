@@ -2325,7 +2325,7 @@ The form returns true if TAG was found and removed, nil otherwise."
        (if (eq ,ttag (car ,tval))
            (progn ,(cl-setf-do-store (nth 1 method) `(cddr ,tval))
                   t)
-         `(cl--do-remf ,tval ,ttag)))))
+         (cl--do-remf ,tval ,ttag)))))
 
 ;;;###autoload
 (defmacro cl-shiftf (place &rest args)

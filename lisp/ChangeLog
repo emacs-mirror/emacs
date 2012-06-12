@@ -1,3 +1,8 @@
+2012-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-remf): Fix error in recent
+	conversion to backquotes.
+
 2012-06-12  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-inhibit-emacs-lisp-mode-bindings):
