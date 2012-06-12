@@ -3125,19 +3125,36 @@ case $opsys in
   ;;
 esac
 
-if test "$opsys" = hpux11; then
-  dnl SA_RESTART resets the timeout of `select', so don't use it.
-  AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should not be used.])
-  dnl It works to open the pty's tty in the parent (Emacs), then close
-  dnl and reopen it in the child.
-  AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
-  works to open a pty's tty in the parent process, then close and
-  reopen it in the child.])
-fi
+case $opsys in
+  gnu-* | sol2-10 )
+    dnl FIXME Can't we test if this exists (eg /proc/$$)?
+    AC_DEFINE(HAVE_PROCFS, 1, [Define if you have the /proc filesystem.])
+  ;;
+esac
+
+case $opsys in
+     hpux11)
+       dnl SA_RESTART resets the timeout of `select', so don't use it.
+       AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should not
+         be used.])
+       dnl It works to open the pty's tty in the parent (Emacs), then
+       dnl close and reopen it in the child.
+       AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
+         works to open a pty's tty in the parent process, then close and
+         reopen it in the child.])
+
+       opsysfile="s/hpux10-20.h"
+     ;;
+
+     sol2-10)
+       AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
+         on Solaris.])
+       opsysfile="s/sol2-6.h"
+     ;;
+esac
 
 case $opsys in
   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
-  hpux11) opsysfile="s/hpux10-20.h" ;;
   openbsd) opsysfile="s/netbsd.h" ;;
 esac
 
