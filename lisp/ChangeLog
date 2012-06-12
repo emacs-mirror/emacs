@@ -1,3 +1,9 @@
+2012-06-12  Drew Adams  <drew.adams@oracle.com>
+
+	* help-mode.el (help-bookmark-make-record, help-bookmark-jump):
+	New functions.
+	(help-mode): Use them.
+
 2012-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/fortran.el (fortran-font-lock-keywords-3):
