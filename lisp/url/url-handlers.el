@@ -91,6 +91,20 @@
 ;; write-region
 
 ;;;###autoload
+(define-minor-mode url-handler-mode
+  "Toggle using `url' library for URL filenames (URL Handler mode).
+With a prefix argument ARG, enable URL Handler mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
+  :global t :group 'url
+  ;; Remove old entry, if any.
+  (setq file-name-handler-alist
+	(delq (rassq 'url-file-handler file-name-handler-alist)
+	      file-name-handler-alist))
+  (if url-handler-mode
+      (push (cons url-handler-regexp 'url-file-handler)
+	    file-name-handler-alist)))
+
 (defcustom url-handler-regexp "\\`\\(https?\\|ftp\\|file\\|nfs\\)://"
   "Regular expression for URLs handled by `url-handler-mode'.
 When URL Handler mode is enabled, this regular expression is
@@ -108,21 +122,6 @@ like URLs \(Gnus is particularly bad at this\)."
 	   (set-default symbol value)
 	   (if enable
 	       (url-handler-mode)))))
-
-;;;###autoload
-(define-minor-mode url-handler-mode
-  "Toggle using `url' library for URL filenames (URL Handler mode).
-With a prefix argument ARG, enable URL Handler mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
-  :global t :group 'url
-  ;; Remove old entry, if any.
-  (setq file-name-handler-alist
-	(delq (rassq 'url-file-handler file-name-handler-alist)
-	      file-name-handler-alist))
-  (if url-handler-mode
-      (push (cons url-handler-regexp 'url-file-handler)
-	    file-name-handler-alist)))
 
 (defun url-run-real-handler (operation args)
   (let ((inhibit-file-name-handlers (cons 'url-file-handler
