@@ -54,9 +54,9 @@
 
 (defcustom nxml-char-ref-display-glyph-flag t
   "Non-nil means display glyph following character reference.
-The glyph is displayed in face `nxml-glyph'.  The hook
-`nxml-glyph-set-hook' can be used to customize for which characters
-glyphs are displayed."
+The glyph is displayed in face `nxml-glyph'.  The abnormal hook
+`nxml-glyph-set-functions' can be used to change the characters
+for which glyphs are displayed."
   :group 'nxml
   :type 'boolean)
 

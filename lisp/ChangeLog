@@ -1,3 +1,21 @@
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-inhibit-emacs-lisp-mode-bindings):
+	Rename from gud-inhibit-global-bindings.
+
+	* emacs-lisp/eieio.el (eieio-pre-method-execution-hooks): Doc fix.
+
+	* nxml/nxml-glyph.el (nxml-glyph-set-functions): Rename abnormal
+	hook from nxml-glyph-set-hook.
+
+	* progmodes/cwarn.el (cwarn-mode): Remove redundant variable
+	declaration.
+
+	* progmodes/pascal.el (pascal-toggle-completions): Doc fix.
+
+	* textmodes/bibtex.el (bibtex-string-file-path, bibtex-file-path):
+	Convert to defcustom.
+
 2012-06-12  Drew Adams  <drew.adams@oracle.com>
 
 	* help-mode.el (help-bookmark-make-record, help-bookmark-jump):

@@ -1,3 +1,9 @@
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* url-handlers.el (url-handler-regexp):
+	* url-nfs.el (url-nfs-automounter-directory-spec):
+	* url-vars.el (url-load-hook): Convert to defcustom.
+
 2012-05-25  Leo Liu  <sdl.web@gmail.com>
 
 	* url-http.el (url-http-codes): Fix mal-formed defconst.
