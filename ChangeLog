@@ -1,3 +1,9 @@
+2012-06-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Coalesce some function checking.
+	This makes 'configure' a bit smaller.
+	Prefer AC_CHECK_FUNCS_ONCE for functions that we always check for.
+
 2012-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Anticipate platforms with no src/s file.

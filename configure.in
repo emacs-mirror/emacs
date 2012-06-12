@@ -1279,7 +1279,6 @@ AC_CHECK_HEADERS(net/if_dl.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif])
-AC_CHECK_FUNCS(getifaddrs freeifaddrs)
 
 dnl checks for structure members
 AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
@@ -1854,8 +1853,7 @@ if test "${HAVE_X11}" = "yes"; then
       AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
       CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
       LIBS="$IMAGEMAGICK_LIBS $LIBS"
-      AC_CHECK_FUNCS(MagickExportImagePixels)
-      AC_CHECK_FUNCS(MagickMergeImageLayers)
+      AC_CHECK_FUNCS(MagickExportImagePixels MagickMergeImageLayers)
     fi
   fi
 fi
@@ -2647,7 +2645,6 @@ This probably means that movemail could lose mail.
 There may be a `development' package to install containing liblockfile.])
   fi
 fi
-AC_CHECK_FUNCS(touchlock)
 AC_CHECK_HEADERS_ONCE(maillock.h)
 AC_SUBST(LIBS_MAIL)
 
@@ -2693,16 +2690,17 @@ esac
 AC_SUBST(BLESSMAIL_TARGET)
 
 
-AC_CHECK_FUNCS(gethostname \
+AC_CHECK_FUNCS_ONCE(gethostname \
 rename closedir mkdir rmdir getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt setsid \
 strerror fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
-sendto recvfrom getsockname getpeername \
+sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
+touchlock \
 cfmakeraw cfsetspeed copysign __executable_start)
 
 dnl Cannot use AC_CHECK_FUNCS
@@ -2723,10 +2721,10 @@ AC_FUNC_FSEEKO
 AC_FUNC_GETPGRP
 
 # UNIX98 PTYs.
-AC_CHECK_FUNCS(grantpt)
+AC_CHECK_FUNCS_ONCE(grantpt)
 
 # PTY-related GNU extensions.
-AC_CHECK_FUNCS(getpt)
+AC_CHECK_FUNCS_ONCE(getpt)
 
 # Check this now, so that we will NOT find the above functions in ncurses.
 # That is because we have not set up to link ncurses in lib-src.
@@ -3077,7 +3075,7 @@ fi
 
 AC_FUNC_FORK
 
-AC_CHECK_FUNCS(snprintf)
+AC_CHECK_FUNCS_ONCE(snprintf)
 
 dnl Adapted from Haible's version.
 AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
