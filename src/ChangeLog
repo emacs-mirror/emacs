@@ -1,3 +1,9 @@
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* image.c (imagemagick_load_image): Use MagickFlattenImage if
+	MagickMergeImageLayers is undefined.  Use pixel pusher loop if
+	MagickExportImagePixels is undefined.
+
 2012-06-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (imagemagick_load_image): Remove unused label.

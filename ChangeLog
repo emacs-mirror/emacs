@@ -1,3 +1,7 @@
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* configure.in: Check for MagickMergeImageLayers (Bug#11678).
+
 2012-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (SYSTEM_TYPE): New AC_DEFINE.

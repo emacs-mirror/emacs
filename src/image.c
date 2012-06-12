@@ -7783,7 +7783,11 @@ imagemagick_load_image (struct frame *f, struct image *img,
   {
     MagickWand *new_wand;
     MagickSetImageBackgroundColor (image_wand, bg_wand);
+#ifdef HAVE_MAGICKMERGEIMAGELAYERS
     new_wand = MagickMergeImageLayers (image_wand, MergeLayer);
+#else
+    new_wand = MagickFlattenImages (image_wand);
+#endif
     DestroyMagickWand (image_wand);
     image_wand = new_wand;
   }
@@ -7800,7 +7804,50 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   init_color_table ();
 
-  if (imagemagick_render_type == 0)
+#ifdef HAVE_MAGICKEXPORTIMAGEPIXELS
+  if (imagemagick_render_type != 0)
+    {
+      /* Magicexportimage is normally faster than pixelpushing.  This
+         method is also well tested.  Some aspects of this method are
+         ad-hoc and needs to be more researched. */
+      int imagedepth = 24; /*MagickGetImageDepth(image_wand);*/
+      const char *exportdepth = imagedepth <= 8 ? "I" : "BGRP"; /*"RGBP";*/
+      /* Try to create a x pixmap to hold the imagemagick pixmap.  */
+      if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
+                                        &ximg, &img->pixmap))
+	{
+#ifdef COLOR_TABLE_SUPPORT
+	  free_color_table ();
+#endif
+	  image_error ("Imagemagick X bitmap allocation failure", Qnil, Qnil);
+	  goto imagemagick_error;
+	}
+
+      /* Oddly, the below code doesn't seem to work:*/
+      /* switch(ximg->bitmap_unit){ */
+      /* case 8: */
+      /*   pixelwidth=CharPixel; */
+      /*   break; */
+      /* case   16: */
+      /*   pixelwidth=ShortPixel; */
+      /*   break; */
+      /* case   32: */
+      /*   pixelwidth=LongPixel; */
+      /*   break; */
+      /* } */
+      /*
+        Here im just guessing the format of the bitmap.
+        happens to work fine for:
+        - bw djvu images
+        on rgb display.
+        seems about 3 times as fast as pixel pushing(not carefully measured)
+      */
+      pixelwidth = CharPixel; /*??? TODO figure out*/
+      MagickExportImagePixels (image_wand, 0, 0, width, height,
+			       exportdepth, pixelwidth, ximg->data);
+    }
+  else
+#endif /* HAVE_MAGICKEXPORTIMAGEPIXELS */
     {
       size_t image_height;
 
@@ -7850,58 +7897,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
         }
       DestroyPixelIterator (iterator);
     }
-  else                          /* imagemagick_render_type != 0 */
-    {
-      /* Magicexportimage is normally faster than pixelpushing.  This
-         method is also well tested. Some aspects of this method are
-         ad-hoc and needs to be more researched. */
-      int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/
-      const char *exportdepth = imagedepth <= 8 ? "I" : "BGRP";/*"RGBP";*/
-      /* Try to create a x pixmap to hold the imagemagick pixmap.  */
-      if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
-                                        &ximg, &img->pixmap))
-	{
-#ifdef COLOR_TABLE_SUPPORT
-	  free_color_table ();
-#endif
-	  image_error ("Imagemagick X bitmap allocation failure", Qnil, Qnil);
-	  goto imagemagick_error;
-	}
-
-
-      /* Oddly, the below code doesn't seem to work:*/
-      /* switch(ximg->bitmap_unit){ */
-      /* case 8: */
-      /*   pixelwidth=CharPixel; */
-      /*   break; */
-      /* case   16: */
-      /*   pixelwidth=ShortPixel; */
-      /*   break; */
-      /* case   32: */
-      /*   pixelwidth=LongPixel; */
-      /*   break; */
-      /* } */
-      /*
-        Here im just guessing the format of the bitmap.
-        happens to work fine for:
-        - bw djvu images
-        on rgb display.
-        seems about 3 times as fast as pixel pushing(not carefully measured)
-      */
-      pixelwidth = CharPixel;/*??? TODO figure out*/
-#ifdef HAVE_MAGICKEXPORTIMAGEPIXELS
-      MagickExportImagePixels (image_wand,
-			       0, 0,
-			       width, height,
-			       exportdepth,
-			       pixelwidth,
-			       ximg->data);
-#else
-      image_error ("You don't have MagickExportImagePixels, upgrade ImageMagick!",
-		   Qnil, Qnil);
-#endif
-    }
-
 
 #ifdef COLOR_TABLE_SUPPORT
   /* Remember colors allocated for this image.  */
