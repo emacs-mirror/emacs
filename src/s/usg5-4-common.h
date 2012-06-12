@@ -35,8 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_SYSV_SIGPAUSE
 
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
-   But get <termio.h> first to make sure ttold.h doesn't interfere.
-   And don't try to use SIGIO yet.  */
+   But get <termio.h> first to make sure ttold.h doesn't interfere.  */
 #include <sys/wait.h>
 
 #ifdef emacs
@@ -47,7 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stream.h>
 #include <sys/stropts.h>
 #include <sys/termios.h>
-#define BROKEN_SIGIO
 #endif
 
 /* Some SVr4s don't define NSIG in sys/signal.h for ANSI environments;

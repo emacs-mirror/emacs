@@ -3111,6 +3111,20 @@ dnl                                and macros for terminal control.])
 dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetattr.])
 dnl fi
 
+case $opsys in
+  darwin | gnu | hpux* | *bsd )
+    AC_DEFINE(NO_TERMIO, 1, [Define if termio.h should not be included.])
+  ;;
+esac
+
+dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
+dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>. 
+case $opsys in
+  hpux* | irix6-5 | openbsd | sol2* | unixware )
+    AC_DEFINE(BROKEN_SIGIO, 1, [Define if SIGIO should not be used.])
+  ;;
+esac
+
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"

@@ -1,3 +1,11 @@
+2012-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* s/hpux10-20.h, s/openbsd.h, s/usg5-4-common.h:
+	Move BROKEN_SIGIO to configure.
+
+	* s/bsd-common.h, s/darwin.h, s/gnu-kfreebsd.h, s/hpux10-20.h:
+	Move NO_TERMIO to configure.
+
 2012-06-12  Chong Yidong  <cyd@gnu.org>
 
 	* image.c (imagemagick_load_image): Use MagickFlattenImage if

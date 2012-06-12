@@ -58,8 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   if system supports pty's.  'a' means it is /dev/ptya0  */
 #define FIRST_PTY_LETTER 'p'
 
-#define NO_TERMIO
-
 /* Define HAVE_PTYS if the system supports pty devices.
    Note: PTYs are broken on darwin <6.  Use at your own risk.  */
 #define HAVE_PTYS

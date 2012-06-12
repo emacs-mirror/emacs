@@ -30,8 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
 #define FIRST_PTY_LETTER 'p'
 
-#define NO_TERMIO
-
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 
@@ -44,10 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CLASH_DETECTION
 
 /* Special hacks needed to make Emacs run on this system.  */
-
-/* In hpux, the symbol SIGIO is defined, but the feature
-   doesn't work in the way Emacs needs it to.  */
-#define BROKEN_SIGIO
 
 /* Some additional system facilities exist.  */
 #define HAVE_PERROR  /* Delete this line for version 6.  */
