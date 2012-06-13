@@ -799,6 +799,8 @@ help buffer by other means."
 ;; Bookmark support
 
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-make-record-default "bookmark"
+                  (&optional no-file no-context posn))
 
 (defun help-bookmark-make-record ()
   "Create and return a help-mode bookmark record.

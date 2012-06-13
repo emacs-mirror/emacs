@@ -1,3 +1,7 @@
+2012-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-mode.el (bookmark-make-record-default): Declare.
+
 2012-06-13  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/package.el (list-packages): Compute a list of
