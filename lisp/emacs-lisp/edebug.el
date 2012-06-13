@@ -919,8 +919,7 @@ already is one.)"
   (cond ((eq ?\' (following-char))
 	 (forward-char 1)
 	 (list
-	  (edebug-storing-offsets (- (point) 2)
-	    (if (featurep 'cl) 'function* 'function))
+	  (edebug-storing-offsets (- (point) 2) 'function)
 	  (edebug-read-storing-offsets stream)))
 	((memq (following-char) '(?: ?B ?O ?X ?b ?o ?x ?1 ?2 ?3 ?4 ?5 ?6
 				  ?7 ?8 ?9 ?0))

@@ -1,3 +1,8 @@
+2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-read-function): Remove old incorrect
+	mapping from #' to function*.
+
 2012-06-13  Chong Yidong  <cyd@gnu.org>
 
 	* mouse.el (mouse-drag-track): Do not set the mark if the user
