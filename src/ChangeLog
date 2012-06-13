@@ -1,5 +1,8 @@
 2012-06-13  Glenn Morris  <rgm@gnu.org>
 
+	* s/usg5-4-common.h, src/s/unixware.h:
+	Remove define/undef of HAVE_SYSV_SIGPAUSE (not used since 2010-05-04).
+
 	* s/gnu.h (POSIX_SIGNALS): Remove (not used since 2010-05-04).
 
 2012-06-13  Paul Eggert  <eggert@cs.ucla.edu>
