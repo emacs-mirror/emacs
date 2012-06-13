@@ -131,10 +131,10 @@
       `(menu-item ,(purecopy "Set Coding Systems") ,set-coding-system-map
 		  :enable (default-value 'enable-multibyte-characters)))
     (define-key-after map [view-hello-file]
-      `(menu-item ,(purecopy "Show Multilingual Text") view-hello-file
+      `(menu-item ,(purecopy "Show Multilingual Sample Text") view-hello-file
         :enable (file-readable-p
                  (expand-file-name "HELLO" data-directory))
-        :help ,(purecopy "Display file which says HELLO in many languages")))
+        :help ,(purecopy "Demonstrate various character sets")))
     (define-key-after map [separator-coding-system] menu-bar-separator)
 
     (define-key-after map [describe-language-environment]
