@@ -1,3 +1,26 @@
+2012-06-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h (Lisp_Object) [CHECK_LISP_OBJECT_TYPE]: Define as struct
+	instead of union.
+	(XLI, XIL): Define.
+	(XHASH, XTYPE, XINT, XUINT, make_number, XSET, XPNTR, XUNTAG): Use
+	them.
+	* emacs.c (gdb_use_struct): Renamed from gdb_use_union.
+	* .gdbinit: Check gdb_use_struct instead of gdb_use_union.
+	* alloc.c (widen_to_Lisp_Object): Removed.
+	(mark_memory): Use XIL instead of widen_to_Lisp_Object.
+	* frame.c (delete_frame): Remove outdated comment.
+	* w32fns.c (Fw32_register_hot_key): Use XLI instead of checking
+	USE_LISP_UNION_TYPE.
+	(Fw32_unregister_hot_key): Likewise.
+	(Fw32_toggle_lock_key): Likewise.
+	* w32menu.c (add_menu_item): Likewise.
+	(w32_menu_display_help): Use XIL instead of checking
+	USE_LISP_UNION_TYPE.
+	* w32heap.c (allocate_heap): Don't check USE_LISP_UNION_TYPE.
+	(init_heap): Likewise.
+	* w32term.c (w32_read_socket): Update comment.
+
 2012-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* s/usg5-4-common.h, src/s/unixware.h:

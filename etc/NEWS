@@ -49,6 +49,11 @@ directories to the search path.  You must add them yourself if you want them.
 (from the bin and libexec directories, respectively).  The former is
 no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
 
+** The configuration option '--enable-use-lisp-union-type' has been
+renamed to '--enable-check-lisp-object-type', as the resulting
+Lisp_Object type no longer uses a union to implement the compile time
+check that this option enables.
+
 
 * Startup Changes in Emacs 24.2
 

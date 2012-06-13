@@ -149,14 +149,12 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 #endif
 #endif /* ENABLE_CHECKING */
 
-/* Use the configure flag --enable-use-lisp-union-type to make
-   Lisp_Object use a union type instead of the default int.  The flag
-   causes USE_LISP_UNION_TYPE to be defined.  */
+/* Use the configure flag --enable-check-lisp-object-type to make
+   Lisp_Object use a struct type instead of the default int.  The flag
+   causes CHECK_LISP_OBJECT_TYPE to be defined.  */
 
 /***** Select the tagging scheme.  *****/
-/* There are basically two options that control the tagging scheme:
-   - USE_LISP_UNION_TYPE says that Lisp_Object should be a union instead
-     of an integer.
+/* The following option controls the tagging scheme:
    - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
      always 0, and we can thus use them to hold tag bits, without
      restricting our addressing space.
@@ -236,11 +234,6 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    2 tags, to give them one extra bit, thus extending their range from
    e.g -2^28..2^28-1 to -2^29..2^29-1.  */
 #define USE_2_TAGS_FOR_INTS
-
-/* Making it work for the union case is too much trouble.  */
-#ifdef USE_LISP_UNION_TYPE
-# undef USE_2_TAGS_FOR_INTS
-#endif
 
 /* This is the set of Lisp data types.  */
 
@@ -335,29 +328,17 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
 
-#ifdef USE_LISP_UNION_TYPE
+#ifdef CHECK_LISP_OBJECT_TYPE
 
-typedef
-union Lisp_Object
-  {
-    /* Used for comparing two Lisp_Objects;
-       also, positive integers can be accessed fast this way.  */
-    EMACS_INT i;
+typedef struct { EMACS_INT i; } Lisp_Object;
 
-    struct
-      {
-	/* Use explicit signed, the signedness of a bit-field of type
-	   int is implementation defined.  */
-	signed EMACS_INT val  : VALBITS;
-	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
-      } s;
-    struct
-      {
-	EMACS_UINT val : VALBITS;
-	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
-      } u;
-  }
-Lisp_Object;
+#define XLI(o) (o).i
+static inline Lisp_Object
+XIL (EMACS_INT i)
+{
+  Lisp_Object o = { i };
+  return o;
+}
 
 static inline Lisp_Object
 LISP_MAKE_RVALUE (Lisp_Object o)
@@ -367,14 +348,16 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 
 #define LISP_INITIALLY_ZERO {0}
 
-#else /* USE_LISP_UNION_TYPE */
+#else /* CHECK_LISP_OBJECT_TYPE */
 
-/* If union type is not wanted, define Lisp_Object as just a number.  */
+/* If a struct type is not wanted, define Lisp_Object as just a number.  */
 
 typedef EMACS_INT Lisp_Object;
+#define XLI(o) (o)
+#define XIL(i) (i)
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #define LISP_INITIALLY_ZERO 0
-#endif /* USE_LISP_UNION_TYPE */
+#endif /* CHECK_LISP_OBJECT_TYPE */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
@@ -432,30 +415,28 @@ enum pvec_type
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
-#ifndef USE_LISP_UNION_TYPE
-
 /* Return a perfect hash of the Lisp_Object representation.  */
-#define XHASH(a) (a)
+#define XHASH(a) XLI(a)
 
 #if USE_LSB_TAG
 
 #define TYPEMASK ((((EMACS_INT) 1) << GCTYPEBITS) - 1)
-#define XTYPE(a) ((enum Lisp_Type) ((a) & TYPEMASK))
+#define XTYPE(a) ((enum Lisp_Type) (XLI(a) & TYPEMASK))
 #ifdef USE_2_TAGS_FOR_INTS
-# define XINT(a) (((EMACS_INT) (a)) >> (GCTYPEBITS - 1))
-# define XUINT(a) (((EMACS_UINT) (a)) >> (GCTYPEBITS - 1))
-# define make_number(N) (((EMACS_INT) (N)) << (GCTYPEBITS - 1))
+# define XINT(a) (((EMACS_INT) XLI(a)) >> (GCTYPEBITS - 1))
+# define XUINT(a) (((EMACS_UINT) XLI(a)) >> (GCTYPEBITS - 1))
+# define make_number(N) XIL(((EMACS_INT) (N)) << (GCTYPEBITS - 1))
 #else
-# define XINT(a) (((EMACS_INT) (a)) >> GCTYPEBITS)
-# define XUINT(a) (((EMACS_UINT) (a)) >> GCTYPEBITS)
-# define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
+# define XINT(a) (((EMACS_INT) XLI(a)) >> GCTYPEBITS)
+# define XUINT(a) (((EMACS_UINT) XLI(a)) >> GCTYPEBITS)
+# define make_number(N) XIL(((EMACS_INT) (N)) << GCTYPEBITS)
 #endif
-#define XSET(var, type, ptr)						\
-    (eassert (XTYPE ((intptr_t) (ptr)) == 0), /* Check alignment.  */ \
-     (var) = (type) | (intptr_t) (ptr))
+#define XSET(var, type, ptr)						   \
+  (eassert (XTYPE (XIL((intptr_t) (ptr))) == 0), /* Check alignment.  */   \
+   (var) = XIL((type) | (intptr_t) (ptr)))
 
-#define XPNTR(a) ((intptr_t) ((a) & ~TYPEMASK))
-#define XUNTAG(a, type) ((intptr_t) ((a) - (type)))
+#define XPNTR(a) ((intptr_t) (XLI(a) & ~TYPEMASK))
+#define XUNTAG(a, type) ((intptr_t) (XLI(a) - (type)))
 
 #else  /* not USE_LSB_TAG */
 
@@ -465,90 +446,41 @@ enum pvec_type
    (doing the result of the below & ((1 << (GCTYPE + 1)) - 1) would work
     on all machines, but would penalize machines which don't need it)
  */
-#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) >> VALBITS))
+#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) XLI(a)) >> VALBITS))
 
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
    fact that Lisp_Int is 0.  */
-#define XFASTINT(a) ((a) + 0)
-#define XSETFASTINT(a, b) ((a) = (b))
+#define XFASTINT(a) (XLI(a) + 0)
+#define XSETFASTINT(a, b) ((a) = XIL(b))
 
 /* Extract the value of a Lisp_Object as a (un)signed integer.  */
 
 #ifdef USE_2_TAGS_FOR_INTS
-# define XINT(a) ((((EMACS_INT) (a)) << (GCTYPEBITS - 1)) >> (GCTYPEBITS - 1))
-# define XUINT(a) ((EMACS_UINT) ((a) & (1 + (VALMASK << 1))))
-# define make_number(N) ((((EMACS_INT) (N)) & (1 + (VALMASK << 1))))
+# define XINT(a) ((((EMACS_INT) XLI(a)) << (GCTYPEBITS - 1)) >> (GCTYPEBITS - 1))
+# define XUINT(a) ((EMACS_UINT) (XLI(a) & (1 + (VALMASK << 1))))
+# define make_number(N) XIL((((EMACS_INT) (N)) & (1 + (VALMASK << 1))))
 #else
-# define XINT(a) ((((EMACS_INT) (a)) << (BITS_PER_EMACS_INT - VALBITS))	\
-		 >> (BITS_PER_EMACS_INT - VALBITS))
-# define XUINT(a) ((EMACS_UINT) ((a) & VALMASK))
+# define XINT(a) ((((EMACS_INT) XLI(a)) << (BITS_PER_EMACS_INT - VALBITS))    \
+		  >> (BITS_PER_EMACS_INT - VALBITS))
+# define XUINT(a) ((EMACS_UINT) (XLI(a) & VALMASK))
 # define make_number(N)		\
-  ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
+  XIL((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
 #endif
 
 #define XSET(var, type, ptr)				  \
-   ((var) = ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS) \
-	     + ((intptr_t) (ptr) & VALMASK)))
+   ((var) = XIL((EMACS_INT) ((EMACS_UINT) (type) << VALBITS) \
+		+ ((intptr_t) (ptr) & VALMASK)))
 
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
-#define XPNTR(a) ((uintptr_t) (((a) & VALMASK)) | DATA_SEG_BITS))
+#define XPNTR(a) ((uintptr_t) ((XLI(a) & VALMASK)) | DATA_SEG_BITS))
 #else
-#define XPNTR(a) ((uintptr_t) ((a) & VALMASK))
+#define XPNTR(a) ((uintptr_t) (XLI(a) & VALMASK))
 #endif
 
 #endif /* not USE_LSB_TAG */
-
-#else /* USE_LISP_UNION_TYPE */
-
-#ifdef USE_2_TAGS_FOR_INTS
-# error "USE_2_TAGS_FOR_INTS is not supported with USE_LISP_UNION_TYPE"
-#endif
-
-#define XHASH(a) ((a).i)
-#define XTYPE(a) ((enum Lisp_Type) (a).u.type)
-#define XINT(a) ((EMACS_INT) (a).s.val)
-#define XUINT(a) ((EMACS_UINT) (a).u.val)
-
-#if USE_LSB_TAG
-
-# define XSET(var, vartype, ptr) \
-  (eassert (((uintptr_t) (ptr) & ((1 << GCTYPEBITS) - 1)) == 0),	\
-   (var).u.val = (uintptr_t) (ptr) >> GCTYPEBITS,			\
-   (var).u.type = (vartype))
-
-/* Some versions of gcc seem to consider the bitfield width when issuing
-   the "cast to pointer from integer of different size" warning, so the
-   cast is here to widen the value back to its natural size.  */
-# define XPNTR(v) ((intptr_t) (v).s.val << GCTYPEBITS)
-
-#else  /* !USE_LSB_TAG */
-
-# define XSET(var, vartype, ptr) \
-   ((var).s.val = (intptr_t) (ptr), (var).s.type = (vartype))
-
-#ifdef DATA_SEG_BITS
-/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
-   which were stored in a Lisp_Object */
-#define XPNTR(a) ((intptr_t) (XUINT (a) | DATA_SEG_BITS))
-#else
-#define XPNTR(a) ((intptr_t) XUINT (a))
-#endif
-
-#endif	/* !USE_LSB_TAG */
-
-static inline Lisp_Object
-make_number (EMACS_INT n)
-{
-  Lisp_Object o;
-  o.s.val = n;
-  o.s.type = Lisp_Int;
-  return o;
-}
-
-#endif /* USE_LISP_UNION_TYPE */
 
 /* For integers known to be positive, XFASTINT sometimes provides
    faster retrieval and XSETFASTINT provides faster storage.

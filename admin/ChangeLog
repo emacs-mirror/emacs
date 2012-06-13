@@ -1,3 +1,10 @@
+2012-06-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-emacs: Rename --union-type to --check-lisp-type.  Define
+	CHECK_LISP_OBJECT_TYPE insted of USE_LISP_UNION_TYPE.
+	* CPP-DEFINES (DEBUG_LISP_OBJECT_TYPE): Renamed from
+	USE_LISP_UNION_TYPE.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* quick-install-emacs (PUBLIC_LIBSRC_SCRIPTS): Remove rcs-checkin.

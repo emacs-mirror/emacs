@@ -42,7 +42,7 @@ $rc = GetOptions ("help" => \$help,
 		  "check-marked" => \$check_marked,
 		  "all" => \$all,
 		  "no-optim" => \$no_optim,
-		  "union-type" => \$union_type,
+		  "check-lisp-type" => \$check_lisp_type,
 		  "gprof" => \$profile,
 		  "malloc-check" => \$malloc_check,
 		  "no-mcheck" => \$no_mcheck,
@@ -70,7 +70,7 @@ Build Emacs.
  --check-marked		GC_CHECK_MARKED_OBJECTS=1
  --optim		no debug defines
  --gprof		make Emacs for profiling
- --union-type		define USE_LISP_UNION_TYPE (bad for GDB)
+ --check-lisp-type	define CHECK_LISP_OBJECT_TYPE
  --malloc-check		define GC_MALLOC_CHECK
  --no-mcheck		don't define GC_MCHECK
  --wall			compile with -Wall
@@ -140,7 +140,7 @@ else
       }
   }
 
-$defs = "$defs -DUSE_LISP_UNION_TYPE" if $union_type;
+$defs = "$defs -DCHECK_LISP_OBJECT_TYPE" if $check_lisp_type;
 $defs = "$defs -DGC_MALLOC_CHECK=1 -DGC_PROTECT_MALLOC_STATE=1" if $malloc_check;
 $defs = "$defs -DGC_MCHECK=1" unless $no_mcheck;
 

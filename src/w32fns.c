@@ -6326,13 +6326,8 @@ The return value is the hotkey-id if registered, otherwise nil.  */)
 
       /* Notify input thread about new hot-key definition, so that it
 	 takes effect without needing to switch focus.  */
-#ifdef USE_LISP_UNION_TYPE
       PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
-			 (WPARAM) key.i, 0);
-#else
-      PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
-			 (WPARAM) key, 0);
-#endif
+			 (WPARAM) XLI (key), 0);
     }
 
   return key;
@@ -6354,13 +6349,8 @@ DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
     {
       /* Notify input thread about hot-key definition being removed, so
 	 that it takes effect without needing focus switch.  */
-#ifdef USE_LISP_UNION_TYPE
       if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
-			     (WPARAM) XINT (XCAR (item)), (LPARAM) item.i))
-#else
-      if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
-			     (WPARAM) XINT (XCAR (item)), (LPARAM) item))
-#endif
+			     (WPARAM) XINT (XCAR (item)), (LPARAM) XLI (item)))
 	{
 	  MSG msg;
 	  GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
@@ -6432,13 +6422,8 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
   if (!dwWindowsThreadId)
     return make_number (w32_console_toggle_lock_key (vk_code, new_state));
 
-#ifdef USE_LISP_UNION_TYPE
   if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
-			 (WPARAM) vk_code, (LPARAM) new_state.i))
-#else
-  if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
-			 (WPARAM) vk_code, (LPARAM) new_state))
-#endif
+			 (WPARAM) vk_code, (LPARAM) XLI (new_state)))
     {
       MSG msg;
       GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);

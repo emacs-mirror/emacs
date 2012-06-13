@@ -1585,21 +1585,6 @@ mark_interval_tree (register INTERVAL tree)
      (i) = balance_intervals (i);			\
   } while (0)
 
-/* Convert the pointer-sized word P to EMACS_INT while preserving its
-   type and ptr fields.  */
-static Lisp_Object
-widen_to_Lisp_Object (void *p)
-{
-  intptr_t i = (intptr_t) p;
-#ifdef USE_LISP_UNION_TYPE
-  Lisp_Object obj;
-  obj.i = i;
-  return obj;
-#else
-  return i;
-#endif
-}
-
 /***********************************************************************
 			  String Allocation
  ***********************************************************************/
@@ -4678,7 +4663,7 @@ mark_memory (void *start, void *end)
 	void *p = *(void **) ((char *) pp + i);
 	mark_maybe_pointer (p);
 	if (POINTERS_MIGHT_HIDE_IN_OBJECTS)
-	  mark_maybe_object (widen_to_Lisp_Object (p));
+	  mark_maybe_object (XIL ((intptr_t) p));
       }
 }
 

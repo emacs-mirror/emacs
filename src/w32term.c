@@ -4342,7 +4342,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 
           /* If the contents of the global variable help_echo_string
              has changed, generate a HELP_EVENT.  */
-#if 0 /* The below is an invalid comparison when USE_LISP_UNION_TYPE.
+#if 0 /* The below is an invalid comparison when CHECK_LISP_OBJECT_TYPE.
 	 But it was originally changed to this to fix a bug, so I have
 	 not removed it completely in case the bug is still there.  */
           if (help_echo_string != previous_help_echo_string ||

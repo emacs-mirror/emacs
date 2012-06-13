@@ -109,10 +109,10 @@ int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
 #else
 int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
 #endif
-#ifndef USE_LISP_UNION_TYPE
-int gdb_use_union EXTERNALLY_VISIBLE  = 0;
+#ifndef CHECK_LISP_OBJECT_TYPE
+int gdb_use_struct EXTERNALLY_VISIBLE = 0;
 #else
-int gdb_use_union EXTERNALLY_VISIBLE = 1;
+int gdb_use_struct EXTERNALLY_VISIBLE = 1;
 #endif
 int gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
 int gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;

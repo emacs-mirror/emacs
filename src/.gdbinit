@@ -49,17 +49,26 @@ handle SIGALRM ignore
 # Using a constant runs into GDB bugs sometimes.
 define xgetptr
   set $bugfix = $arg0
-  set $ptr = (gdb_use_union ? (gdb_use_lsb ? $bugfix.u.val << gdb_gctypebits : $bugfix.u.val) : $bugfix & $valmask) | gdb_data_seg_bits
+  if gdb_use_struct
+    set $bugfix = $bugfix.i
+  end
+  set $ptr = $bugfix & $valmask | gdb_data_seg_bits
 end
 
 define xgetint
   set $bugfix = $arg0
-  set $int = gdb_use_union ? $bugfix.s.val : (gdb_use_lsb ? $bugfix >> (gdb_gctypebits - 1) : $bugfix << gdb_gctypebits) >> gdb_gctypebits
+  if gdb_use_struct
+    set $bugfix = $bugfix.i
+  end
+  set $int = gdb_use_lsb ? $bugfix >> (gdb_gctypebits - 1) : $bugfix << gdb_gctypebits) >> gdb_gctypebits
 end
 
 define xgettype
   set $bugfix = $arg0
-  set $type = gdb_use_union ? $bugfix.s.type : (enum Lisp_Type) (gdb_use_lsb ? $bugfix & $tagmask : $bugfix >> gdb_valbits)
+  if gdb_use_struct
+    set $bugfix = $bugfix.i
+  end
+  set $type = (enum Lisp_Type) (gdb_use_lsb ? $bugfix & $tagmask : $bugfix >> gdb_valbits)
 end
 
 # Set up something to print out s-expressions.
@@ -949,15 +958,8 @@ end
 
 define xpr
   xtype
-  if gdb_use_union
-    if $type == Lisp_Int
-      xint
-    end
-  end
-  if !gdb_use_union
-    if $type == Lisp_Int0 || $type == Lisp_Int1
-      xint
-    end
+  if $type == Lisp_Int0 || $type == Lisp_Int1
+    xint
   end
   if $type == Lisp_Symbol
     xsymbol
