@@ -1,3 +1,8 @@
+2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (make-autoload): Accept nil doc-string-elt
+	(bug#11649).  Add cl-defun and cl-defmacro.
+
 2012-06-13  Drew Adams  <drew.adams@oracle.com>
 
 	* help-mode.el (help-bookmark-make-record, help-bookmark-jump):

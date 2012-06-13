@@ -151,7 +151,8 @@ expression, in which case we want to handle forms differently."
 		   easy-mmode-define-global-mode define-global-minor-mode
 		   define-globalized-minor-mode
 		   easy-mmode-define-minor-mode define-minor-mode
-		   defun* defmacro* define-overloadable-function))
+		   cl-defun defun* cl-defmacro defmacro*
+                   define-overloadable-function))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (cl-case car
@@ -161,7 +162,7 @@ expression, in which case we want to handle forms differently."
                      ((define-generic-mode define-derived-mode
                         define-compilation-mode) nil)
                      (t)))
-	     (body (nthcdr (get car 'doc-string-elt) form))
+	     (body (nthcdr (or (get car 'doc-string-elt) 3) form))
 	     (doc (if (stringp (car body)) (pop body))))
         ;; Add the usage form at the end where describe-function-1
         ;; can recover it.
