@@ -90,6 +90,8 @@
 ;; verify-visited-file-modtime
 ;; write-region
 
+(defvar url-handler-regexp) ; defined below to avoid recursive load (revno:108572)
+
 ;;;###autoload
 (define-minor-mode url-handler-mode
   "Toggle using `url' library for URL filenames (URL Handler mode).

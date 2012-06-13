@@ -1,3 +1,7 @@
+2012-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-handlers.el (url-handler-regexp): Declare.
+
 2012-06-12  Chong Yidong  <cyd@gnu.org>
 
 	* url-handlers.el: Re-order file to avoid recursive load.
