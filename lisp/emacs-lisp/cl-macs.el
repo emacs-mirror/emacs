@@ -2731,14 +2731,17 @@ value, that slot cannot be set via `cl-setf'.
 	(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
 	    (push (cons name t) side-eff))))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
-    (if print-func
-	(push `(push
-                ;; The auto-generated function does not pay attention to
-                ;; the depth argument cl-n.
-                (lambda (cl-x cl-s ,(if print-auto '_cl-n 'cl-n))
-                  (and ,pred-form ,print-func))
-                cl-custom-print-functions)
-              forms))
+    ;; Don't bother adding to cl-custom-print-functions since it's not used
+    ;; by anything anyway!
+    ;;(if print-func
+    ;;    (push `(if (boundp 'cl-custom-print-functions)
+    ;;               (push
+    ;;                ;; The auto-generated function does not pay attention to
+    ;;                ;; the depth argument cl-n.
+    ;;                (lambda (cl-x cl-s ,(if print-auto '_cl-n 'cl-n))
+    ;;                  (and ,pred-form ,print-func))
+    ;;                cl-custom-print-functions))
+    ;;          forms))
     (push `(setq ,tag-symbol (list ',tag)) forms)
     (push `(cl-eval-when (compile load eval)
              (put ',name 'cl-struct-slots ',descs)

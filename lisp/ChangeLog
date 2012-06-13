@@ -1,5 +1,10 @@
 2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el: Require cl-lib.
+	(file-name-non-special): Replace case -> cl-case.
+
+	* emacs-lisp/cl-macs.el (cl-defstruct): Don't add print-func.
+
 	* emacs-lisp/edebug.el (edebug-read-function): Remove old incorrect
 	mapping from #' to function*.
 

@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defvar font-lock-keywords)
 
 (defgroup backup nil
@@ -6459,20 +6461,20 @@ only these files will be asked to be saved."
 			   "/"
 			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (case method
+    (cl-case method
       (identity (car arguments))
       (add (concat "/:" (apply operation arguments)))
       (insert-file-contents
        (let ((visit (nth 1 arguments)))
          (prog1
-	       (apply operation arguments)
+             (apply operation arguments)
            (when (and visit buffer-file-name)
              (setq buffer-file-name (concat "/:" buffer-file-name))))))
       (unquote-then-quote
        (let ((buffer-file-name (substring buffer-file-name 2)))
          (apply operation arguments)))
-	  (t
-	   (apply operation arguments)))))
+      (t
+       (apply operation arguments)))))
 
 ;; Symbolic modes and read-file-modes.
 
