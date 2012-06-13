@@ -1,3 +1,13 @@
+2012-06-13  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/package.el (list-packages): Compute a list of
+	packages that are newly-available since the last list-packages
+	invocation.
+	(package-menu--new-package-list): New var.
+	(package-menu--generate, package-menu--print-info)
+	(package-menu--status-predicate, package-menu-mark-install):
+	Handle new status label "new".
+
 2012-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-remf): Fix error in recent

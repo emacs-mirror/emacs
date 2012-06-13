@@ -299,6 +299,11 @@ details.
 The function `notifications-get-capabilities' returns the supported
 server properties.
 
+** Package Menu
+
+*** Newly-available packages are listed in the Package Menu as "new",
+and sorted above the other "available" packages by default.
+
 ** Tabulated List and packages derived from it
 
 *** New command `tabulated-list-sort', bound to `S', sorts the column
