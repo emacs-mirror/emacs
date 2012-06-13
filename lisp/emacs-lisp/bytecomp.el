@@ -4539,6 +4539,16 @@ and corresponding effects."
     (setq command-line-args-left (cdr command-line-args-left)))
   (kill-emacs 0))
 
+;;; Core compiler macros.
+
+(put 'featurep 'compiler-macro
+     (lambda (form feature &rest _ignore)
+       ;; Emacs-21's byte-code doesn't run under XEmacs or SXEmacs anyway, so
+       ;; we can safely optimize away this test.
+       (if (member feature '('xemacs 'sxemacs 'emacs))
+           (eval form)
+         form)))
+
 (provide 'byte-compile)
 (provide 'bytecomp)
 

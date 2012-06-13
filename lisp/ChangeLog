@@ -1,5 +1,8 @@
 2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-opt.el (featurep): Move compiler-macro...
+	* emacs-lisp/bytecomp.el (featurep): ...here (bug#11692).
+
 	* emacs-lisp/autoload.el (make-autoload): Accept nil doc-string-elt
 	(bug#11649).  Add cl-defun and cl-defmacro.
 
