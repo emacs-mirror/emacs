@@ -1,3 +1,8 @@
+2012-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (mule-menu-keymap)
+	(set-language-environment, set-locale-environment): Doc tweaks.
+
 2012-06-01  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.1 released.
