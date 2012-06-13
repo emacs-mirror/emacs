@@ -46,6 +46,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
+/* Define if SA_RESTART should not be used. */
+#undef BROKEN_SA_RESTART
+
+/* Define if SIGIO should not be used. */
+#undef BROKEN_SIGIO
+
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
 
@@ -585,6 +591,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `posix_memalign' function. */
 #undef HAVE_POSIX_MEMALIGN
 
+/* Define if you have the /proc filesystem. */
+#undef HAVE_PROCFS
+
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
 
@@ -961,6 +970,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
 
+/* Define if termio.h should not be included. */
+#undef NO_TERMIO
+
 /* Define to 1 if `NSInteger' is defined. */
 #undef NS_HAVE_NSINTEGER
 
@@ -1100,6 +1112,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
 
+/* Define for USG systems where it works to open a pty's tty in the parent
+   process, then close and reopen it in the child. */
+#undef USG_SUBTTY_WORKS
+
 /* Version number of package */
 #undef VERSION
 
@@ -1180,6 +1196,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you need to in order for 'stat' and other things to work. */
 #undef _POSIX_SOURCE
+
+/* Needed for system_process_attributes on Solaris. */
+#undef _STRUCTURED_PROC
 
 /* Define to 500 only on HP-UX. */
 #undef _XOPEN_SOURCE
@@ -1335,7 +1354,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define subprocesses
 
 /* Include the os dependent file.  */
-#include config_opsysfile
+#ifdef config_opsysfile
+# include config_opsysfile
+#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
