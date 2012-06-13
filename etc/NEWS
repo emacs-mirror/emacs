@@ -160,7 +160,8 @@ terminal coding system.  The new option `glyphless-char-display-control'
 specifies how to display them: as a hexadecimal code in a box, a thin
 1-pixel space, an empty box, etc.
 
-*** New input methods: farsi, farsi-translit, bulgarian-alt-phonetic.
+*** New input methods for Farsi and Bulgarian
+(farsi-isiri-9147, farsi-transliterate-banan, bulgarian-alt-phonetic).
 
 *** `nobreak-char-display' now also highlights Unicode hyphen chars
 (U+2010 and U+2011).
