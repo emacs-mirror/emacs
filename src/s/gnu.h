@@ -38,5 +38,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
 #endif /* !_IO_STDIO_H */
 #endif /* emacs */
-
-#define POSIX_SIGNALS 1

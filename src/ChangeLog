@@ -1,3 +1,7 @@
+2012-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* s/gnu.h (POSIX_SIGNALS): Remove (not used since 2010-05-04).
+
 2012-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	USE_LISP_UNION_TYPE + USE_LSB_TAG cleanup (Bug#11604)
