@@ -525,7 +525,7 @@ static int ftfont_variation_glyphs (struct font *, int c,
 
 struct font_driver ftfont_driver =
   {
-    0,				/* Qfreetype */
+    LISP_INITIALLY_ZERO,	/* Qfreetype */
     0,				/* case insensitive */
     ftfont_get_cache,
     ftfont_list,

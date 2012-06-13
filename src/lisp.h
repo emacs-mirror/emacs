@@ -161,10 +161,8 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
      always 0, and we can thus use them to hold tag bits, without
      restricting our addressing space.
 
-   If USE_LSB_TAG is not set, then we use the top 3 bits for tagging, thus
-   restricting our possible address range.  Currently USE_LSB_TAG is not
-   allowed together with a union.  This is not due to any fundamental
-   technical (or political ;-) problem: nobody wrote the code to do it yet.
+   If ! USE_LSB_TAG, then use the top 3 bits for tagging, thus
+   restricting our possible address range.
 
    USE_LSB_TAG not only requires the least 3 bits of pointers returned by
    malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
@@ -201,25 +199,31 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 # endif
 #endif
 
-/* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
-     || defined DARWIN_OS || defined __sun)
-/* We also need to be able to specify mult-of-8 alignment on static vars.  */
-# if defined DECL_ALIGN
-/* On hosts where pointers-as-ints do not exceed VAL_MAX,
-   USE_LSB_TAG is:
+/* Unless otherwise specified, use USE_LSB_TAG on systems where:  */
+#ifndef USE_LSB_TAG
+/* 1.  We know malloc returns a multiple of 8.  */
+# if (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
+      || defined DARWIN_OS || defined __sun)
+/* 2.  We can specify multiple-of-8 alignment on static variables.  */
+#  ifdef DECL_ALIGN
+/* 3.  Pointers-as-ints exceed VAL_MAX.
+   On hosts where pointers-as-ints do not exceed VAL_MAX, USE_LSB_TAG is:
     a. unnecessary, because the top bits of an EMACS_INT are unused, and
     b. slower, because it typically requires extra masking.
-   So, define USE_LSB_TAG only on hosts where it might be useful.  */
-#  if VAL_MAX < UINTPTR_MAX
-#   define USE_LSB_TAG
+   So, default USE_LSB_TAG to 1 only on hosts where it might be useful.  */
+#   if VAL_MAX < UINTPTR_MAX
+#    define USE_LSB_TAG 1
+#   endif
 #  endif
 # endif
+#endif
+#ifndef USE_LSB_TAG
+# define USE_LSB_TAG 0
 #endif
 
 /* If we cannot use 8-byte alignment, make DECL_ALIGN a no-op.  */
 #ifndef DECL_ALIGN
-# ifdef USE_LSB_TAG
+# if USE_LSB_TAG
 #  error "USE_LSB_TAG used without defining DECL_ALIGN"
 # endif
 # define DECL_ALIGN(type, var) type var
@@ -248,7 +252,7 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 #else
 # define LISP_INT_TAG Lisp_Int0
 # define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
-# ifdef USE_LSB_TAG
+# if USE_LSB_TAG
 #  define LISP_INT1_TAG 4
 #  define LISP_STRING_TAG 1
 #  define LISP_INT_TAG_P(x) (((x) & 3) == 0)
@@ -333,10 +337,6 @@ enum Lisp_Fwd_Type
 
 #ifdef USE_LISP_UNION_TYPE
 
-#ifndef WORDS_BIGENDIAN
-
-/* Definition of Lisp_Object for little-endian machines.  */
-
 typedef
 union Lisp_Object
   {
@@ -359,44 +359,13 @@ union Lisp_Object
   }
 Lisp_Object;
 
-#else /* If WORDS_BIGENDIAN */
-
-typedef
-union Lisp_Object
-  {
-    /* Used for comparing two Lisp_Objects;
-       also, positive integers can be accessed fast this way.  */
-    EMACS_INT i;
-
-    struct
-      {
-	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
-	/* Use explicit signed, the signedness of a bit-field of type
-	   int is implementation defined.  */
-	signed EMACS_INT val  : VALBITS;
-      } s;
-    struct
-      {
-	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
-	EMACS_UINT val : VALBITS;
-      } u;
-  }
-Lisp_Object;
-
-#endif /* WORDS_BIGENDIAN */
-
-#ifdef __GNUC__
 static inline Lisp_Object
 LISP_MAKE_RVALUE (Lisp_Object o)
 {
     return o;
 }
-#else
-/* This is more portable to pre-C99 non-GCC compilers, but for
-   backwards compatibility GCC still accepts an old GNU extension
-   which caused this to only generate a warning.  */
-#define LISP_MAKE_RVALUE(o) (0 ? (o) : (o))
-#endif
+
+#define LISP_INITIALLY_ZERO {0}
 
 #else /* USE_LISP_UNION_TYPE */
 
@@ -404,6 +373,7 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 
 typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
+#define LISP_INITIALLY_ZERO 0
 #endif /* USE_LISP_UNION_TYPE */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
@@ -467,7 +437,7 @@ enum pvec_type
 /* Return a perfect hash of the Lisp_Object representation.  */
 #define XHASH(a) (a)
 
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
 
 #define TYPEMASK ((((EMACS_INT) 1) << GCTYPEBITS) - 1)
 #define XTYPE(a) ((enum Lisp_Type) ((a) & TYPEMASK))
@@ -542,12 +512,12 @@ enum pvec_type
 #define XINT(a) ((EMACS_INT) (a).s.val)
 #define XUINT(a) ((EMACS_UINT) (a).u.val)
 
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
 
 # define XSET(var, vartype, ptr) \
-  (eassert ((((uintptr_t) (ptr)) & ((1 << GCTYPEBITS) - 1)) == 0),	\
-   (var).u.val = ((uintptr_t) (ptr)) >> GCTYPEBITS,			\
-   (var).u.type = ((char) (vartype)))
+  (eassert (((uintptr_t) (ptr) & ((1 << GCTYPEBITS) - 1)) == 0),	\
+   (var).u.val = (uintptr_t) (ptr) >> GCTYPEBITS,			\
+   (var).u.type = (vartype))
 
 /* Some versions of gcc seem to consider the bitfield width when issuing
    the "cast to pointer from integer of different size" warning, so the
@@ -556,14 +526,8 @@ enum pvec_type
 
 #else  /* !USE_LSB_TAG */
 
-/* For integers known to be positive, XFASTINT provides fast retrieval
-   and XSETFASTINT provides fast storage.  This takes advantage of the
-   fact that Lisp_Int is 0.  */
-# define XFASTINT(a) ((a).i + 0)
-# define XSETFASTINT(a, b) ((a).i = (b))
-
 # define XSET(var, vartype, ptr) \
-   (((var).s.val = ((intptr_t) (ptr))), ((var).s.type = ((char) (vartype))))
+   ((var).s.val = (intptr_t) (ptr), (var).s.type = (vartype))
 
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
@@ -575,12 +539,14 @@ enum pvec_type
 
 #endif	/* !USE_LSB_TAG */
 
-#if __GNUC__ >= 2 && defined (__OPTIMIZE__)
-#define make_number(N) \
-  (__extension__ ({ Lisp_Object _l; _l.s.val = (N); _l.s.type = Lisp_Int; _l; }))
-#else
-extern Lisp_Object make_number (EMACS_INT);
-#endif
+static inline Lisp_Object
+make_number (EMACS_INT n)
+{
+  Lisp_Object o;
+  o.s.val = n;
+  o.s.type = Lisp_Int;
+  return o;
+}
 
 #endif /* USE_LISP_UNION_TYPE */
 

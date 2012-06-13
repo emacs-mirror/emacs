@@ -132,7 +132,7 @@ static int xfont_check (FRAME_PTR, struct font *);
 
 struct font_driver xfont_driver =
   {
-    0,				/* Qx */
+    LISP_INITIALLY_ZERO,	/* Qx */
     0,				/* case insensitive */
     xfont_get_cache,
     xfont_list,

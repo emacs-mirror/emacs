@@ -1500,7 +1500,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
 {
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
-  union Lisp_Val_Fwd valcontents IF_LINT (= {0});
+  union Lisp_Val_Fwd valcontents IF_LINT (= {LISP_INITIALLY_ZERO});
   int forwarded IF_LINT (= 0);
 
   CHECK_SYMBOL (variable);
@@ -1577,7 +1577,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 {
   register Lisp_Object tem;
   int forwarded IF_LINT (= 0);
-  union Lisp_Val_Fwd valcontents IF_LINT (= {0});
+  union Lisp_Val_Fwd valcontents IF_LINT (= {LISP_INITIALLY_ZERO});
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
 

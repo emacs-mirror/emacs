@@ -1,3 +1,27 @@
+2012-06-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	USE_LISP_UNION_TYPE + USE_LSB_TAG cleanup (Bug#11604)
+	* alloc.c (make_number) [!defined make_number]:
+	Remove, as lisp.h always defines this now.
+	(mark_maybe_pointer): Simplify since USE_LSB_TAG is always defined now.
+	(roundup_size): Verify that it is a power of 2.
+	* data.c (Fmake_variable_buffer_local, Fmake_local_variable):
+	* ftfont.c (ftfont_driver): Use LISP_INITIALLY_ZERO.
+	* lisp.h (USE_LSB_TAG): Allow the builder to compile with
+	-DUSE_LSB_TAG=0, to override the automatically-selected default.
+	USE_LSB_TAG now is always defined to be either 0 or 1.
+	All uses changed.
+	(union Lisp_Object): Don't worry about WORDS_BIGENDIAN; the
+	code works fine either way, and efficiency is not a concern here,
+	as the union type is for debugging, not for production.
+	(LISP_MAKE_RVALUE, make_number) [USE_LISP_UNION_TYPE]:
+	Use an inline function on all platforms when using the union type,
+	since this is simpler and 'static inline' can be used portably
+	within Emacs now.
+	(LISP_INITIALLY_ZERO): New macro.
+	(XFASTINT, XSETFASTINT) [USE_LISP_UNION_TYPE]: Remove.
+	(XSET) [USE_LISP_UNION_TYPE]: Don't overparenthesize.
+
 2012-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* s/gnu-kfreebsd.h, s/hpux11.h, s/openbsd.h, s/sol2-10.h: Remove files.

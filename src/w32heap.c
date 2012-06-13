@@ -114,7 +114,7 @@ get_data_end (void)
   return data_region_end;
 }
 
-#if !defined (USE_LISP_UNION_TYPE) && !defined (USE_LSB_TAG)
+#if !defined USE_LISP_UNION_TYPE && !USE_LSB_TAG
 static char *
 allocate_heap (void)
 {
@@ -259,7 +259,7 @@ init_heap (void)
 	  exit (1);
 	}
 
-#if !defined (USE_LISP_UNION_TYPE) && !defined (USE_LSB_TAG)
+#if !defined USE_LISP_UNION_TYPE && !USE_LSB_TAG
       /* Ensure that the addresses don't use the upper tag bits since
 	 the Lisp type goes there.  */
       if (((unsigned long) data_region_base & ~VALMASK) != 0)

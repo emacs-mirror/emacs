@@ -104,7 +104,7 @@ static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundati
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
 int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
 #else
 int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
@@ -116,7 +116,7 @@ int gdb_use_union EXTERNALLY_VISIBLE = 1;
 #endif
 int gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
 int gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
-#if defined (DATA_SEG_BITS) && ! defined (USE_LSB_TAG)
+#if defined DATA_SEG_BITS && !USE_LSB_TAG
 uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
 #else
 uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;

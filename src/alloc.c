@@ -533,7 +533,7 @@ buffer_memory_full (ptrdiff_t nbytes)
     },							\
     c)
 
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
 # define XMALLOC_HEADER_ALIGNMENT \
     COMMON_MULTIPLE (1 << GCTYPEBITS, XMALLOC_BASE_ALIGNMENT)
 #else
@@ -893,8 +893,8 @@ safe_alloca_unwind (Lisp_Object arg)
    number of bytes to allocate, TYPE describes the intended use of the
    allocated memory block (for strings, for conses, ...).  */
 
-#ifndef USE_LSB_TAG
-static void *lisp_malloc_loser;
+#if ! USE_LSB_TAG
+void *lisp_malloc_loser EXTERNALLY_VISIBLE;
 #endif
 
 static void *
@@ -910,7 +910,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
 
   val = (void *) malloc (nbytes);
 
-#ifndef USE_LSB_TAG
+#if ! USE_LSB_TAG
   /* If the memory just allocated cannot be addressed thru a Lisp
      object's pointer, and it needs to be,
      that's equivalent to running out of memory.  */
@@ -1091,7 +1091,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
-#ifndef USE_LSB_TAG
+#if ! USE_LSB_TAG
       /* If the memory just allocated cannot be addressed thru a Lisp
 	 object's pointer, and it needs to be, that's equivalent to
 	 running out of memory.  */
@@ -1584,20 +1584,6 @@ mark_interval_tree (register INTERVAL tree)
    if (! NULL_INTERVAL_P (i))				\
      (i) = balance_intervals (i);			\
   } while (0)
-
-
-/* Number support.  If USE_LISP_UNION_TYPE is in effect, we
-   can't create number objects in macros.  */
-#ifndef make_number
-Lisp_Object
-make_number (EMACS_INT n)
-{
-  Lisp_Object obj;
-  obj.s.val = n;
-  obj.s.type = Lisp_Int;
-  return obj;
-}
-#endif
 
 /* Convert the pointer-sized word P to EMACS_INT while preserving its
    type and ptr fields.  */
@@ -2943,18 +2929,13 @@ enum
     header_size = offsetof (struct Lisp_Vector, contents),
     word_size = sizeof (Lisp_Object),
     roundup_size = COMMON_MULTIPLE (sizeof (Lisp_Object),
-#ifdef USE_LSB_TAG
-    8 /* Helps to maintain alignment constraints imposed by
-	 assumption that least 3 bits of pointers are always 0.  */
-#else
-    1 /* If alignment doesn't matter, should round up
-	 to sizeof (Lisp_Object) at least.  */
-#endif
-    )
+				    USE_LSB_TAG ? 1 << GCTYPEBITS : 1)
   };
 
-/* Round up X to nearest mult-of-ROUNDUP_SIZE,
-   assuming ROUNDUP_SIZE is a power of 2.  */
+/* ROUNDUP_SIZE must be a power of 2.  */
+verify ((roundup_size & (roundup_size - 1)) == 0);
+
+/* Round up X to nearest mult-of-ROUNDUP_SIZE.  */
 
 #define vroundup(x) (((x) + (roundup_size - 1)) & ~(roundup_size - 1))
 
@@ -3171,7 +3152,7 @@ sweep_vectors (void)
 		  == VECTOR_FREE_LIST_FLAG)
 		vector->header.next.nbytes =
 		  vector->header.size & (VECTOR_BLOCK_SIZE - 1);
-	      
+
 	      next = ADVANCE (vector, vector->header.next.nbytes);
 
 	      /* While NEXT is not marked, try to coalesce with VECTOR,
@@ -3189,7 +3170,7 @@ sweep_vectors (void)
 		  vector->header.next.nbytes += nbytes;
 		  next = ADVANCE (next, nbytes);
 		}
-	      
+
 	      eassert (vector->header.next.nbytes % roundup_size == 0);
 
 	      if (vector == (struct Lisp_Vector *) block->data
@@ -3468,7 +3449,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
 union aligned_Lisp_Symbol
 {
   struct Lisp_Symbol s;
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
   unsigned char c[(sizeof (struct Lisp_Symbol) + (1 << GCTYPEBITS) - 1)
 		  & -(1 << GCTYPEBITS)];
 #endif
@@ -3574,7 +3555,7 @@ Its value and function definition are void, and its property list is nil.  */)
 union aligned_Lisp_Misc
 {
   union Lisp_Misc m;
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
   unsigned char c[(sizeof (union Lisp_Misc) + (1 << GCTYPEBITS) - 1)
 		  & -(1 << GCTYPEBITS)];
 #endif
@@ -4556,14 +4537,10 @@ mark_maybe_pointer (void *p)
 {
   struct mem_node *m;
 
-  /* Quickly rule out some values which can't point to Lisp data.  */
-  if ((intptr_t) p %
-#ifdef USE_LSB_TAG
-      8 /* USE_LSB_TAG needs Lisp data to be aligned on multiples of 8.  */
-#else
-      2 /* We assume that Lisp data is aligned on even addresses.  */
-#endif
-      )
+  /* Quickly rule out some values which can't point to Lisp data.
+     USE_LSB_TAG needs Lisp data to be aligned on multiples of 1 << GCTYPEBITS.
+     Otherwise, assume that Lisp data is aligned on even addresses.  */
+  if ((intptr_t) p % (USE_LSB_TAG ? 1 << GCTYPEBITS : 2))
     return;
 
   m = mem_find (p);
@@ -4639,8 +4616,8 @@ mark_maybe_pointer (void *p)
    wider than a pointer might allocate a Lisp_Object in non-adjacent halves.
    If USE_LSB_TAG, the bottom half is not a valid pointer, but it should
    suffice to widen it to to a Lisp_Object and check it that way.  */
-#if defined USE_LSB_TAG || VAL_MAX < UINTPTR_MAX
-# if !defined USE_LSB_TAG && VAL_MAX < UINTPTR_MAX >> GCTYPEBITS
+#if USE_LSB_TAG || VAL_MAX < UINTPTR_MAX
+# if !USE_LSB_TAG && VAL_MAX < UINTPTR_MAX >> GCTYPEBITS
   /* If tag bits straddle pointer-word boundaries, neither mark_maybe_pointer
      nor mark_maybe_object can follow the pointers.  This should not occur on
      any practical porting target.  */
@@ -5069,7 +5046,7 @@ static void *
 pure_alloc (size_t size, int type)
 {
   void *result;
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
   size_t alignment = (1 << GCTYPEBITS);
 #else
   size_t alignment = sizeof (EMACS_INT);
