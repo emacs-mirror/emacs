@@ -808,9 +808,8 @@ Implements `bookmark-make-record-function' for help-mode buffers."
   (unless (car help-xref-stack-item)
     (error "Cannot create bookmark - help command not known"))
   `(,@(bookmark-make-record-default 'NO-FILE 'NO-CONTEXT)
-      (buffer-name . "*Help*")
       (help-fn     . ,(car help-xref-stack-item))
-      (help-arg    . ,(cadr help-xref-stack-item))
+      (help-args   . ,(cdr help-xref-stack-item))
       (position    . ,(point))
       (handler     . help-bookmark-jump)))
 
@@ -819,10 +818,10 @@ Implements `bookmark-make-record-function' for help-mode buffers."
   "Jump to help-mode bookmark BOOKMARK.
 Handler function for record returned by `help-bookmark-make-record'.
 BOOKMARK is a bookmark name or a bookmark record."
-  (let ((help-fn   (bookmark-prop-get bookmark 'help-fn))
-        (help-arg  (bookmark-prop-get bookmark 'help-arg))
-        (position  (bookmark-prop-get bookmark 'position)))
-    (funcall help-fn help-arg)
+  (let ((help-fn    (bookmark-prop-get bookmark 'help-fn))
+        (help-args  (bookmark-prop-get bookmark 'help-args))
+        (position   (bookmark-prop-get bookmark 'position)))
+    (apply help-fn help-args)
     (pop-to-buffer "*Help*")
     (goto-char position)))
 
