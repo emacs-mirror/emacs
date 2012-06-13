@@ -1,5 +1,7 @@
 2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* loadup.el: Count byte-code functions as well.
+
 	* emacs-lisp/byte-opt.el (featurep): Move compiler-macro...
 	* emacs-lisp/bytecomp.el (featurep): ...here (bug#11692).
 

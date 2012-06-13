@@ -321,6 +321,7 @@
 (when (hash-table-p purify-flag)
   (let ((strings 0)
         (vectors 0)
+        (bytecodes 0)
         (conses 0)
         (others 0))
     (maphash (lambda (k v)
@@ -328,10 +329,11 @@
                 ((stringp k) (setq strings (1+ strings)))
                 ((vectorp k) (setq vectors (1+ vectors)))
                 ((consp k)   (setq conses  (1+ conses)))
+                ((byte-code-function-p v) (setq bytecodes (1+ bytecodes)))
                 (t           (setq others  (1+ others)))))
              purify-flag)
-    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d others"
-             strings vectors conses others)))
+    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d bytecodes, %d others"
+             strings vectors conses bytecodes others)))
 
 ;; Avoid error if user loads some more libraries now and make sure the
 ;; hash-consing hash table is GC'd.
