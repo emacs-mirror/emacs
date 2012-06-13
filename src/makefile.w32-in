@@ -676,6 +676,7 @@ $(BLD)/composite.$(O) : \
 $(BLD)/data.$(O) : \
 	$(SRC)/data.c \
 	$(SRC)/buffer.h \
+	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
 	$(GNU_LIB)/intprops.h \
