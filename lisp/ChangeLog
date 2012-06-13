@@ -1,5 +1,8 @@
 2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/tex-mode.el (latex-indent): Recognize tex-verbatim at EOB
+	as well (bug#11646).
+
 	* loadup.el: Count byte-code functions as well.
 
 	* emacs-lisp/byte-opt.el (featurep): Move compiler-macro...
