@@ -24,7 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG				/* System III, System V, etc */
 
 #define USG5
-#define USG5_4
+/* Nothing in Emacs use this any more.  */
+/* #define USG5_4 */
 
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */

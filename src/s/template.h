@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #define USG */
 /* #define HPUX */
 /* #define BSD4_2 */
-/* #define BSD4_3 */
 /* #define BSD_SYSTEM */
 
 /* Emacs can read input using SIGIO and buffering characters itself,

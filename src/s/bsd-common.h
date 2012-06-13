@@ -23,9 +23,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* We give these symbols the numeric values found in <sys/param.h> to
    avoid warnings about redefined macros.  */
-#ifndef BSD4_3
-#define BSD4_3 1
-#endif /* BSD4_3 */
+
+/* Nothing in Emacs uses this any more.
+   ifndef BSD4_3
+   define BSD4_3 1
+   endif
+*/
 
 #ifndef BSD_SYSTEM
 #define BSD_SYSTEM 43

@@ -1,3 +1,8 @@
+2012-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* s/bsd-common.h (BSD4_3):
+	* s/usg5-4-common.h (USG5_4): No longer define; unused.
+
 2012-06-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lisp.h (Lisp_Object) [CHECK_LISP_OBJECT_TYPE]: Define as struct
