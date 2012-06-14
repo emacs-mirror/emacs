@@ -1,5 +1,18 @@
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-done-separator-string): New defcustom.
+	(todos-done-separator): New variable replacing defcustom of the
+	same name.
+	(todos-reset-done-separator-string, todos-done-separator):
+	New functions.
+	(todos-mode): Make function added to
+	window-configuration-change-hook do a better job of updating the
+	done items separator string overlay.
+	(todos-unload-hook): Remove it here.
+	(todos-item-undo): Fix search for item's end.
+
+2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Further comment revision.
 	(todos-sorted-column): Change default value.
 	(todos-item-start): Handle empty category (needed in

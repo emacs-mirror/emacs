@@ -161,27 +161,49 @@ These reflect the priorities of the items in each category."
 	    ;; Activate the new setting (save-restriction does not help).
 	    (save-excursion (todos-category-select))))))))
 
-;; FIXME: Update when window-width changes.  Add todos-reset-separator to
-;; window-configuration-change-hook in todos-mode?  But this depends on the
-;; value being window-width instead of a constant length.
-(defcustom todos-done-separator (make-string (window-width) ?_)
-  "String used to visually separate done from not done items.
-Displayed as an overlay instead of `todos-category-done' when
-done items are shown."
+(defcustom todos-done-separator-string "_"
+  "String for generating `todos-done-separator'.
+
+If the string consists of a single character,
+`todos-done-separator' will be the string made by repeating this
+character for the width of the window, and the length is
+automatically recalculated when the window width changes.  If the
+string consists of more (or less) than one character, it will be
+the value of `todos-done-separator'."
   :type 'string
   :initialize 'custom-initialize-default
-  :set 'todos-reset-separator
+  :set 'todos-reset-done-separator-string
   :group 'todos)
 
-;; (defun todos-reset-done-separator (symbol value)
-;;   "The :set function for `todos-done-separator'
-;; Also added to `window-configuration-change-hook' in Todos mode."
-;;   (let ((oldvalue (symbol-value symbol)))
-;;     (custom-set-default symbol value)
-;;     (when (not (equal value oldvalue))
-;;       (make-string (window-width) ?_)
-;;       ;; (save-excursion (todos-category-select))
-;;       )))
+(defun todos-reset-done-separator-string (symbol value)
+  "The :set function for `todos-done-separator-string'."
+  (let ((oldvalue (symbol-value symbol))
+	(files todos-file-buffers)
+	(sep todos-done-separator))
+    (custom-set-default symbol value)
+    (setq todos-done-separator (todos-done-separator))
+    ;; Replace any existing separator string overlays.
+    (when (not (equal value oldvalue))
+      (dolist (f files)
+	(with-current-buffer (find-buffer-visiting f)
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (goto-char (point-min))
+	      (while (re-search-forward (concat "\n\\("
+						(regexp-quote todos-category-done)
+						"\\)") nil t)
+		(setq beg (match-beginning 1))
+		(setq end (match-end 0))
+		(let* ((ovs (overlays-at beg))
+		       old-sep new-sep)
+		  (and ovs
+		       (setq old-sep (overlay-get (car ovs) 'display))
+		       (string= old-sep sep)
+		       (delete-overlay (car ovs))
+		       (setq new-sep (make-overlay beg end))
+		       (overlay-put new-sep 'display
+				    todos-done-separator)))))))))))
 
 (defcustom todos-done-string "DONE "
   "Identifying string appended to the front of done todos items."
@@ -612,6 +634,7 @@ categories display according to priority."
      (:background "grey85"))
     (((class color)
       (background dark))
+     ;; FIXME: make foreground dark, else illegible
      (:background "grey10"))
     (t
      (:background "gray")))
@@ -1017,6 +1040,19 @@ number as its value."
 (defconst todos-category-done "==--== DONE "
   "String marking beginning of category's done items.")
 
+(defun todos-done-separator ()
+  "Return string used as value of variable `todos-done-separator'."
+  (let ((sep todos-done-separator-string))
+    (if (= 1 (length sep))
+	(make-string (window-width) (string-to-char sep))
+      todos-done-separator-string)))
+
+(defvar todos-done-separator (todos-done-separator)
+  "String used to visually separate done from not done items.
+Displayed as an overlay instead of `todos-category-done' when
+done items are shown.  Its value is determined by user option
+`todos-done-separator-string'.")
+
 (defun todos-category-select ()
   "Display the current category correctly."
   (let ((name (todos-current-category))
@@ -1054,6 +1090,7 @@ number as its value."
 	(let* ((done-sep todos-done-separator)
 	       (ovs (overlays-at done-sep-start))
 	       ov-sep)
+	  ;; There should never be more than one overlay here, so car suffices.
 	  (unless (and ovs (string= (overlay-get (car ovs) 'display) done-sep))
 	    (setq ov-sep (make-overlay done-sep-start done-end))
 	    (overlay-put ov-sep 'display done-sep))))
@@ -2522,11 +2559,29 @@ which is the value of the user option
   (add-hook 'post-command-hook 'todos-update-buffer-list nil t)
   (when todos-show-current-file
     (add-hook 'pre-command-hook 'todos-show-current-file nil t))
-  ;; FIXME: works more or less, but should be tied to the defcustom
   (add-hook 'window-configuration-change-hook
+	    ;; FIXME
 	    (lambda ()
-	      (setq todos-done-separator (make-string (window-width) ?_)))
-	    nil t)
+	      (let ((sep todos-done-separator))
+		(setq todos-done-separator (todos-done-separator))
+		(save-excursion
+		  (save-restriction
+		    (widen)
+		    (goto-char (point-min))
+		    (while (re-search-forward
+			    (concat "\n\\(" (regexp-quote todos-category-done)
+				    "\\)") nil t)
+		      (setq beg (match-beginning 1))
+		      (setq end (match-end 0))
+		      (let* ((ovs (overlays-at beg))
+			     old-sep new-sep)
+			(and ovs
+			     (setq old-sep (overlay-get (car ovs) 'display))
+			     (string= old-sep sep)
+			     (delete-overlay (car ovs))
+			     (setq new-sep (make-overlay beg end))
+			     (overlay-put new-sep 'display
+					  todos-done-separator)))))))) nil t)
   (add-hook 'kill-buffer-hook 'todos-reset-global-current-todos-file nil t))
 
 ;; FIXME: need this?
@@ -2537,9 +2592,8 @@ which is the value of the user option
   (remove-hook 'find-file-hook 'todos-display-as-todos-file t)
   (remove-hook 'find-file-hook 'todos-add-to-buffer-list t)
   (remove-hook 'window-configuration-change-hook
-	       (lambda ()
-		 (setq todos-done-separator
-		       (make-string (window-width) ?_))) t)
+	       ;; FIXME
+	       (lambda () (setq todos-done-separator (todos-done-separator))) t)
   (remove-hook 'kill-buffer-hook 'todos-reset-global-current-todos-file t))
 
 (put 'todos-archive-mode 'mode-class 'special)
@@ -4695,6 +4749,7 @@ the restored item."
 	   (orig-mrk (progn (todos-item-start) (point-marker)))
 	   ;; Find the end of the date string added upon tagging item as done.
 	   (start (search-forward "] "))
+	   (end (save-excursion (todos-item-end)))
 	   item undone)
       (todos-item-start)
       (when (and (re-search-forward (concat " \\["
@@ -4702,7 +4757,7 @@ the restored item."
 					    ": \\([^]]+\\)\\]") end t)
 		 (y-or-n-p "Omit comment from restored item? "))
 	(delete-region (match-beginning 0) (match-end 0)))
-      (setq item (buffer-substring start (todos-item-end)))
+      (setq item (buffer-substring start end))
       (todos-remove-item)
       ;; If user cancels before setting new priority, then leave the done item
       ;; unchanged.
