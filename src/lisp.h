@@ -230,31 +230,18 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 
 /* Define the fundamental Lisp data structures.  */
 
-/* If USE_2_TAGBITS_FOR_INTS is defined, then Lisp integers use
-   2 tags, to give them one extra bit, thus extending their range from
-   e.g -2^28..2^28-1 to -2^29..2^29-1.  */
-#define USE_2_TAGS_FOR_INTS
-
 /* This is the set of Lisp data types.  */
 
-#if !defined USE_2_TAGS_FOR_INTS
-# define LISP_INT_TAG Lisp_Int
-# define case_Lisp_Int case Lisp_Int
-# define LISP_STRING_TAG 4
-# define LISP_INT_TAG_P(x) ((x) == Lisp_Int)
-#else
-# define LISP_INT_TAG Lisp_Int0
-# define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
-# if USE_LSB_TAG
-#  define LISP_INT1_TAG 4
-#  define LISP_STRING_TAG 1
-#  define LISP_INT_TAG_P(x) (((x) & 3) == 0)
-# else
-#  define LISP_INT1_TAG 1
-#  define LISP_STRING_TAG 4
-#  define LISP_INT_TAG_P(x) (((x) & 6) == 0)
-# endif
-#endif
+/* Lisp integers use 2 tags, to give them one extra bit, thus
+   extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
+#define INTTYPEBITS (GCTYPEBITS - 1)
+#define FIXNUM_BITS (VALBITS + 1)
+#define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
+#define LISP_INT_TAG Lisp_Int0
+#define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
+#define LISP_INT1_TAG (USE_LSB_TAG ? 1 << INTTYPEBITS : 1)
+#define LISP_STRING_TAG (5 - LISP_INT1_TAG)
+#define LISP_INT_TAG_P(x) (((x) & ~LISP_INT1_TAG) == 0)
 
 /* Stolen from GDB.  The only known compiler that doesn't support
    enums in bitfields is MSVC.  */
@@ -268,12 +255,8 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 enum Lisp_Type
   {
     /* Integer.  XINT (obj) is the integer value.  */
-#ifdef USE_2_TAGS_FOR_INTS
     Lisp_Int0 = 0,
     Lisp_Int1 = LISP_INT1_TAG,
-#else
-    Lisp_Int = 0,
-#endif
 
     /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol.  */
     Lisp_Symbol = 2,
@@ -416,68 +399,50 @@ enum pvec_type
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
 /* Return a perfect hash of the Lisp_Object representation.  */
-#define XHASH(a) XLI(a)
+#define XHASH(a) XLI (a)
 
 #if USE_LSB_TAG
 
-#define TYPEMASK ((((EMACS_INT) 1) << GCTYPEBITS) - 1)
-#define XTYPE(a) ((enum Lisp_Type) (XLI(a) & TYPEMASK))
-#ifdef USE_2_TAGS_FOR_INTS
-# define XINT(a) (((EMACS_INT) XLI(a)) >> (GCTYPEBITS - 1))
-# define XUINT(a) (((EMACS_UINT) XLI(a)) >> (GCTYPEBITS - 1))
-# define make_number(N) XIL(((EMACS_INT) (N)) << (GCTYPEBITS - 1))
-#else
-# define XINT(a) (((EMACS_INT) XLI(a)) >> GCTYPEBITS)
-# define XUINT(a) (((EMACS_UINT) XLI(a)) >> GCTYPEBITS)
-# define make_number(N) XIL(((EMACS_INT) (N)) << GCTYPEBITS)
-#endif
+#define TYPEMASK ((1 << GCTYPEBITS) - 1)
+#define XTYPE(a) ((enum Lisp_Type) (XLI (a) & TYPEMASK))
+#define XINT(a) (XLI (a) >> INTTYPEBITS)
+#define XUINT(a) ((EMACS_UINT) XLI (a) >> INTTYPEBITS)
+#define make_number(N) XIL ((EMACS_INT) (N) << INTTYPEBITS)
 #define XSET(var, type, ptr)						   \
-  (eassert (XTYPE (XIL((intptr_t) (ptr))) == 0), /* Check alignment.  */   \
-   (var) = XIL((type) | (intptr_t) (ptr)))
+  (eassert (XTYPE (XIL ((intptr_t) (ptr))) == 0), /* Check alignment.  */  \
+   (var) = XIL ((type) | (intptr_t) (ptr)))
 
-#define XPNTR(a) ((intptr_t) (XLI(a) & ~TYPEMASK))
-#define XUNTAG(a, type) ((intptr_t) (XLI(a) - (type)))
+#define XPNTR(a) ((intptr_t) (XLI (a) & ~TYPEMASK))
+#define XUNTAG(a, type) ((intptr_t) (XLI (a) - (type)))
 
 #else  /* not USE_LSB_TAG */
 
 #define VALMASK VAL_MAX
 
-/* One need to override this if there must be high bits set in data space
-   (doing the result of the below & ((1 << (GCTYPE + 1)) - 1) would work
-    on all machines, but would penalize machines which don't need it)
- */
-#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) XLI(a)) >> VALBITS))
+#define XTYPE(a) ((enum Lisp_Type) ((EMACS_UINT) XLI (a) >> VALBITS))
 
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
-   fact that Lisp_Int is 0.  */
-#define XFASTINT(a) (XLI(a) + 0)
-#define XSETFASTINT(a, b) ((a) = XIL(b))
+   fact that Lisp integers have zero-bits in their tags.  */
+#define XFASTINT(a) (XLI (a) + 0)
+#define XSETFASTINT(a, b) ((a) = XIL (b))
 
 /* Extract the value of a Lisp_Object as a (un)signed integer.  */
 
-#ifdef USE_2_TAGS_FOR_INTS
-# define XINT(a) ((((EMACS_INT) XLI(a)) << (GCTYPEBITS - 1)) >> (GCTYPEBITS - 1))
-# define XUINT(a) ((EMACS_UINT) (XLI(a) & (1 + (VALMASK << 1))))
-# define make_number(N) XIL((((EMACS_INT) (N)) & (1 + (VALMASK << 1))))
-#else
-# define XINT(a) ((((EMACS_INT) XLI(a)) << (BITS_PER_EMACS_INT - VALBITS))    \
-		  >> (BITS_PER_EMACS_INT - VALBITS))
-# define XUINT(a) ((EMACS_UINT) (XLI(a) & VALMASK))
-# define make_number(N)		\
-  XIL((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
-#endif
+#define XINT(a) (XLI (a) << INTTYPEBITS >> INTTYPEBITS)
+#define XUINT(a) ((EMACS_UINT) (XLI (a) & INTMASK))
+#define make_number(N) XIL ((EMACS_INT) (N) & INTMASK)
 
-#define XSET(var, type, ptr)				  \
-   ((var) = XIL((EMACS_INT) ((EMACS_UINT) (type) << VALBITS) \
+#define XSET(var, type, ptr)				      \
+  ((var) = XIL ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS)  \
 		+ ((intptr_t) (ptr) & VALMASK)))
 
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
-#define XPNTR(a) ((uintptr_t) ((XLI(a) & VALMASK)) | DATA_SEG_BITS))
+#define XPNTR(a) ((uintptr_t) ((XLI (a) & VALMASK)) | DATA_SEG_BITS))
 #else
-#define XPNTR(a) ((uintptr_t) (XLI(a) & VALMASK))
+#define XPNTR(a) ((uintptr_t) (XLI (a) & VALMASK))
 #endif
 
 #endif /* not USE_LSB_TAG */
@@ -499,19 +464,9 @@ enum pvec_type
 
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 
-/* Number of bits in a fixnum, including the sign bit.  */
-#ifdef USE_2_TAGS_FOR_INTS
-# define FIXNUM_BITS (VALBITS + 1)
-#else
-# define FIXNUM_BITS VALBITS
-#endif
-
-/* Mask indicating the significant bits of a fixnum.  */
-#define INTMASK (((EMACS_INT) 1 << FIXNUM_BITS) - 1)
-
 /* Largest and smallest representable fixnum values.  These are the C
    values.  */
-#define MOST_POSITIVE_FIXNUM (INTMASK / 2)
+#define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
 #define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
@@ -817,7 +772,7 @@ struct vectorlike_header
     /* When the vector is allocated from a vector block, NBYTES is used
        if the vector is not on a free list, and VECTOR is used otherwise.
        For large vector-like objects, BUFFER or VECTOR is used as a pointer
-       to the next vector-like object.  It is generally a buffer or a 
+       to the next vector-like object.  It is generally a buffer or a
        Lisp_Vector alias, so for convenience it is a union instead of a
        pointer: this way, one can write P->next.vector instead of ((struct
        Lisp_Vector *) P->next).  */

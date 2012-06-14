@@ -1,3 +1,17 @@
+2012-06-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify lisp.h in minor ways that should not affect code.
+	* lisp.h (USE_2_TAGS_FOR_INTS): Remove, as it was always defined.
+	(LISP_INT_TAG, case_Lisp_Int, LISP_STRING_TAG, LISP_INT_TAG_P)
+	(LISP_INT1_TAG, enum Lisp_Type, XINT, XUINT, make_number):
+	Simplify under the assumption that USE_2_TAGS_FOR_INTS is defined.
+	(INTTYPEBITS): New macro, for clarity.
+	(INTMASK, MOST_POSITIVE_FIXNUM): Use it.
+	(LISP_INT1_TAG, LISP_STRING_TAG, LISP_INT_TAG_P): Simplify
+	now that USE_LSB_TAG is always defined.
+	(TYPEMASK, XINT) [USE_LSB_TAG]: Remove unnecessary cast.
+	(make_number) [!USE_LSB_TAG]: Use INTMASK; that's simpler.
+
 2012-06-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/data.$(O)): Update dependencies.
