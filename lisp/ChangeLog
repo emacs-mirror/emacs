@@ -1,3 +1,7 @@
+2012-06-14  Sam Steingold  <sds@gnu.org>
+
+	* files.el (abort-if-file-too-large): Use `file-size-human-readable'.
+
 2012-06-14  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* play/doctor.el (doctor-doc): Remove parameter and use
