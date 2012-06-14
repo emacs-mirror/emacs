@@ -182,28 +182,8 @@ the value of `todos-done-separator'."
 	(sep todos-done-separator))
     (custom-set-default symbol value)
     (setq todos-done-separator (todos-done-separator))
-    ;; Replace any existing separator string overlays.
-    (when (not (equal value oldvalue))
-      (dolist (f files)
-	(with-current-buffer (find-buffer-visiting f)
-	  (save-excursion
-	    (save-restriction
-	      (widen)
-	      (goto-char (point-min))
-	      (while (re-search-forward (concat "\n\\("
-						(regexp-quote todos-category-done)
-						"\\)") nil t)
-		(setq beg (match-beginning 1))
-		(setq end (match-end 0))
-		(let* ((ovs (overlays-at beg))
-		       old-sep new-sep)
-		  (and ovs
-		       (setq old-sep (overlay-get (car ovs) 'display))
-		       (string= old-sep sep)
-		       (delete-overlay (car ovs))
-		       (setq new-sep (make-overlay beg end))
-		       (overlay-put new-sep 'display
-				    todos-done-separator)))))))))))
+    (when (= 1 (length value))
+      (todos-reset-done-separator sep))))
 
 (defcustom todos-done-string "DONE "
   "Identifying string appended to the front of done todos items."
@@ -1052,6 +1032,43 @@ number as its value."
 Displayed as an overlay instead of `todos-category-done' when
 done items are shown.  Its value is determined by user option
 `todos-done-separator-string'.")
+
+(defun todos-reset-done-separator (sep)
+  "Replace any existing overlays of separator string SEP."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      (while (re-search-forward
+	      (concat "\n\\(" (regexp-quote todos-category-done) "\\)") nil t)
+	(setq beg (match-beginning 1))
+	(setq end (match-end 0))
+	(let* ((ovs (overlays-at beg))
+	       old-sep new-sep)
+	  (and ovs
+	       (setq old-sep (overlay-get (car ovs) 'display))
+	       (string= old-sep sep)
+	       (delete-overlay (car ovs))
+	       (setq new-sep (make-overlay beg end))
+	       (overlay-put new-sep 'display
+			    todos-done-separator)))))))
+
+(defun todos-reset-and-enable-done-separator ()
+  "Hook function for activating new separator overlay.
+Added to `window-configuration-change-hook' in `todos-mode'."
+  (when (= 1 (length todos-done-separator-string))
+    (let ((sep todos-done-separator))
+      (setq todos-done-separator (todos-done-separator))
+      (todos-reset-done-separator sep))
+    ;; If the separator overlay is now shown, we have to hide and then show it
+    ;; again in order to let the change in length take effect.
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward todos-done-string-start nil t)
+	(let ((todos-show-with-done nil))
+	  (todos-category-select))
+	(let ((todos-show-with-done t))
+	  (todos-category-select))))))
 
 (defun todos-category-select ()
   "Display the current category correctly."
@@ -2560,28 +2577,7 @@ which is the value of the user option
   (when todos-show-current-file
     (add-hook 'pre-command-hook 'todos-show-current-file nil t))
   (add-hook 'window-configuration-change-hook
-	    ;; FIXME
-	    (lambda ()
-	      (let ((sep todos-done-separator))
-		(setq todos-done-separator (todos-done-separator))
-		(save-excursion
-		  (save-restriction
-		    (widen)
-		    (goto-char (point-min))
-		    (while (re-search-forward
-			    (concat "\n\\(" (regexp-quote todos-category-done)
-				    "\\)") nil t)
-		      (setq beg (match-beginning 1))
-		      (setq end (match-end 0))
-		      (let* ((ovs (overlays-at beg))
-			     old-sep new-sep)
-			(and ovs
-			     (setq old-sep (overlay-get (car ovs) 'display))
-			     (string= old-sep sep)
-			     (delete-overlay (car ovs))
-			     (setq new-sep (make-overlay beg end))
-			     (overlay-put new-sep 'display
-					  todos-done-separator)))))))) nil t)
+	    'todos-reset-and-enable-done-separator nil t)
   (add-hook 'kill-buffer-hook 'todos-reset-global-current-todos-file nil t))
 
 ;; FIXME: need this?
@@ -2592,8 +2588,7 @@ which is the value of the user option
   (remove-hook 'find-file-hook 'todos-display-as-todos-file t)
   (remove-hook 'find-file-hook 'todos-add-to-buffer-list t)
   (remove-hook 'window-configuration-change-hook
-	       ;; FIXME
-	       (lambda () (setq todos-done-separator (todos-done-separator))) t)
+	       'todos-reset-and-enable-done-separator t)
   (remove-hook 'kill-buffer-hook 'todos-reset-global-current-todos-file t))
 
 (put 'todos-archive-mode 'mode-class 'special)

@@ -1,5 +1,16 @@
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-reset-done-separator)
+	(todos-reset-and-enable-done-separator): New functions.
+	(todos-reset-done-separator-string): Rewrite using
+	todos-reset-done-separator for string longer than 1 character.
+	(todos-mode): Add todos-reset-and-enable-done-separator to
+	window-configuration-change-hook, replacing previous anonymous
+	function.
+	(todos-unload-hook): And remove it.
+
+2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-done-separator-string): New defcustom.
 	(todos-done-separator): New variable replacing defcustom of the
 	same name.
