@@ -55,6 +55,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
 
+/* Define this to enable compile time checks for the Lisp_Object data type. */
+#undef CHECK_LISP_OBJECT_TYPE
+
 /* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
    systems. This function is required for 'alloca.c' support on those systems.
    */
@@ -1090,9 +1093,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using GTK. */
 #undef USE_GTK
-
-/* Define this to use a lisp union for the Lisp_Object data type. */
-#undef USE_LISP_UNION_TYPE
 
 /* Define to 1 if using the Lucid X toolkit. */
 #undef USE_LUCID
