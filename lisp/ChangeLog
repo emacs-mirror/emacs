@@ -1,3 +1,9 @@
+2012-06-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* play/doctor.el (doctor-doc): Remove parameter and use
+	doctor-sent instead of sent.
+	(doctor-read-print): Use doctor-sent instead of sent.  (Bug#11708)
+
 2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el: Require cl-lib.
