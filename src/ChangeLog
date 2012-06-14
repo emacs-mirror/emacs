@@ -1,5 +1,9 @@
 2012-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* .gdbinit (xgetint): Fix recently-introduced paren typo.
+	Assume USE_2_TAGS_FOR_INTS.
+	(xreload): Adjust $tagmask width to match recent lisp.h change.
+
 	Simplify lisp.h in minor ways that should not affect code.
 	* lisp.h (USE_2_TAGS_FOR_INTS): Remove, as it was always defined.
 	(LISP_INT_TAG, case_Lisp_Int, LISP_STRING_TAG, LISP_INT_TAG_P)
