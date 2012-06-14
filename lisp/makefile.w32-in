@@ -86,7 +86,6 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.el \
 	$(lisp)/emacs-lisp/macroexp.el \
 	$(lisp)/emacs-lisp/cconv.el \
-	$(lisp)/subr.el \
 	$(lisp)/progmodes/cc-mode.el \
 	$(lisp)/progmodes/cc-vars.el
 

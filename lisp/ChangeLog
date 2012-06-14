@@ -1,3 +1,8 @@
+2012-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (COMPILE_FIRST): Remove subr.el.
+	Suggested by Stefan Monnier while discussing bug#11657.
+
 2012-06-14  Sam Steingold  <sds@gnu.org>
 
 	* files.el (abort-if-file-too-large): Use `file-size-human-readable'.
