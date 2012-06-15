@@ -547,6 +547,12 @@ It makes underscores and dots word constituent chars.")
   :group 'python
   :safe 'booleanp)
 
+(define-obsolete-variable-alias
+  'python-indent 'python-indent-offset "24.2")
+
+(define-obsolete-variable-alias
+  'python-guess-indent 'python-indent-guess-indent-offset "24.2")
+
 (defvar python-indent-current-level 0
   "Current indentation level `python-indent-line-function' is using.")
 
@@ -560,6 +566,7 @@ These make `python-indent-calculate-indentation' subtract the value of
 
 (defun python-indent-guess-indent-offset ()
   "Guess and set `python-indent-offset' for the current buffer."
+  (interactive)
   (save-excursion
     (save-restriction
       (widen)
@@ -2116,6 +2123,9 @@ the if condition."
   :type 'boolean
   :group 'python
   :safe 'booleanp)
+
+(define-obsolete-variable-alias
+  'python-use-skeletons 'python-skeleton-autoinsert "24.2")
 
 (defvar python-skeleton-available '()
   "Internal list of available skeletons.")
