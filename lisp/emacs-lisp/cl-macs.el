@@ -54,15 +54,6 @@
 (defvar cl-optimize-safety)
 (defvar cl-optimize-speed)
 
-
-;; This kludge allows macros which use cl--transform-function-property
-;; to be called at compile-time.
-
-(eval-and-compile
-  (or (fboundp 'cl--transform-function-property)
-      (defun cl--transform-function-property (n p f)
-        `(put ',n ',p #'(lambda . ,f)))))
-
 ;;; Initialization.
 
 ;;; Some predicates for analyzing Lisp forms.
@@ -360,11 +351,6 @@ its argument list allows full Common Lisp conventions."
 	     (form `(function (lambda . ,(cdr res)))))
 	(if (car res) `(progn ,(car res) ,form) form))
     `(function ,func)))
-
-(defun cl--transform-function-property (func prop form)
-  (let ((res (cl--transform-lambda form func)))
-    `(progn ,@(cdr (cdr (car res)))
-	    (put ',func ',prop #'(lambda . ,(cdr res))))))
 
 (declare-function help-add-fundoc-usage "help-fns" (docstring arglist))
 
@@ -1894,8 +1880,7 @@ form.  See `cl-defsetf' for a simpler way to define most setf-methods.
   `(cl-eval-when (compile load eval)
      ,@(if (stringp (car body))
            (list `(put ',func 'setf-documentation ,(pop body))))
-     ,(cl--transform-function-property
-       func 'setf-method (cons args body))))
+     (put ',func 'setf-method (cl-function (lambda ,args ,@body)))))
 
 ;;;###autoload
 (defmacro cl-defsetf (func arg1 &rest args)
@@ -2785,8 +2770,8 @@ value, that slot cannot be set via `cl-setf'.
 The type name can then be used in `cl-typecase', `cl-check-type', etc."
   (declare (debug cl-defmacro) (doc-string 3))
   `(cl-eval-when (compile load eval)
-     ,(cl--transform-function-property
-       name 'cl-deftype-handler (cons `(&cl-defs '('*) ,@arglist) body))))
+     (put ',name 'cl-deftype-handler
+          (cl-function (lambda (&cl-defs '('*) ,@arglist) ,@body)))))
 
 (defun cl--make-type-test (val type)
   (if (symbolp type)
@@ -2891,10 +2876,10 @@ and then returning foo."
     (while (consp p) (push (pop p) res))
     (setq args (nconc (nreverse res) (and p (list '&rest p)))))
   `(cl-eval-when (compile load eval)
-     ,(cl--transform-function-property
-       func 'compiler-macro
-       (cons (if (memq '&whole args) (delq '&whole args)
-               (cons '_cl-whole-arg args)) body))
+     (put ',func 'compiler-macro
+          (cl-function (lambda ,(if (memq '&whole args) (delq '&whole args)
+                             (cons '_cl-whole-arg args))
+                         ,@body)))
      ;; This is so that describe-function can locate
      ;; the macro definition.
      (let ((file ,(or buffer-file-name

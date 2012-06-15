@@ -1,3 +1,9 @@
+2012-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-function-property): Remove.
+	(cl-define-setf-expander, cl-deftype, cl-define-compiler-macro):
+	Use `cl-function' instead.
+
 2012-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (COMPILE_FIRST): Remove subr.el.
