@@ -98,7 +98,7 @@ each clause."
   (condition-case err
       (apply handler form (cdr form))
     (error (message "Compiler-macro error for %S: %S" (car form) err)
-           form))))
+           form)))
 
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
