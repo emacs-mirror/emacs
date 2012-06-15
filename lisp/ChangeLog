@@ -1,3 +1,8 @@
+2012-06-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (COMPILE_FIRST): Synch with makefile.in changes
+	in revno:88864.
+
 2012-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-lib.el (cl--defsubst-expand): Autoload inliner
