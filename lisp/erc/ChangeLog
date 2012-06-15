@@ -1,3 +1,8 @@
+2012-06-15  Julien Danjou  <julien@danjou.info>
+
+	* erc.el (erc-open): Use `auth-source' for password retrieval when
+	possible.
+
 2012-06-12  Chong Yidong  <cyd@gnu.org>
 
 	* erc-dcc.el (erc-dcc-chat-filter-functions): Rename from

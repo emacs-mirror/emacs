@@ -71,6 +71,7 @@
 (require 'font-lock)
 (require 'pp)
 (require 'thingatpt)
+(require 'auth-source)
 (require 'erc-compat)
 
 (defvar erc-official-location
@@ -2006,7 +2007,19 @@ Returns the buffer for the given server or channel."
     ;; The local copy of `erc-nick' - the list of nicks to choose
     (setq erc-default-nicks (if (consp erc-nick) erc-nick (list erc-nick)))
     ;; password stuff
-    (setq erc-session-password passwd)
+    (setq erc-session-password (or passwd
+				   (let ((secret
+					  (plist-get
+					   (nth 0
+						(auth-source-search :host server
+								    :max 1
+								    :user nick
+								    :port port
+								    :require '(:secret)))
+					   :secret)))
+				     (if (functionp secret)
+					 (funcall secret)
+				       secret))))
     ;; debug output buffer
     (setq erc-dbuf
 	  (when erc-log-p
