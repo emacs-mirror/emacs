@@ -94,6 +94,12 @@ each clause."
 	(macroexp--all-forms clause skip)
       clause)))
 
+(defun macroexp--compiler-macro (handler form)
+  (condition-case err
+      (apply handler form (cdr form))
+    (error (message "Compiler-macro error for %S: %S" (car form) err)
+           form))))
+
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
@@ -198,20 +204,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
              (ignore-errors
                (load (nth 1 (symbol-function func))
                      'noerror 'nomsg)))
-           (let ((newform (condition-case err
-                              (apply handler form (cdr form))
-                            (error (message "Compiler-macro error: %S" err)
-                                   form))))
+           (let ((newform (macroexp--compiler-macro handler form)))
              (if (eq form newform)
                  ;; The compiler macro did not find anything to do.
                  (if (equal form (setq newform (macroexp--all-forms form 1)))
                      form
                    ;; Maybe after processing the args, some new opportunities
                    ;; appeared, so let's try the compiler macro again.
-                   (setq form (condition-case err
-                                  (apply handler newform (cdr newform))
-                                (error (message "Compiler-macro error: %S" err)
-                                       newform)))
+                   (setq form (macroexp--compiler-macro handler newform))
                    (if (eq newform form)
                        newform
                      (macroexp--expand-all newform)))
