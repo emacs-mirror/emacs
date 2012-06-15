@@ -1076,6 +1076,72 @@ See ORG-NEWS for details.
 functionality such as more intelligent indentation, electricity,
 support for more variants, including Mercury, and a lot more.
 
+** Python mode has been replaced with fgallina's python.el.
+Per-buffer shells, solid automatic indentation, Python 2 and 3 support
+out of the box, a revamped shell interaction compatible with iPython
+(and virtually any other text based shell) plus other goodies are
+provided.
+
+*** Defcustom replacements.
+
+| Old defcustom                 | New defcustom                     |
+|-------------------------------+-----------------------------------|
+| python-indent                 | python-indent-offset              |
+| python-guess-indent           | python-indent-guess-indent-offset |
+| python-pdbtrack-do-tracking-p | python-pdbtrack-activate          |
+| python-use-skeletons          | python-skeleton-autoinsert        |
+
+*** Removed defcustoms.
+
+`python-indent-string-contents': Strings are never indented.
+
+`python-honour-comment-indentation': Comments are never considered as
+indentation markers themselves.
+
+`python-continuation-offset': Removed, indentation is automatically
+calculated in a pep8 compliant way depending on the context.
+
+`python-shell-prompt-alist', `python-shell-continuation-prompt-alist':
+Have no direct mapping as the shell interaction is completely
+different.
+
+`python-python-command', `python-jython-command': Are somehow replaced
+by `python-shell-interpreter'.
+
+`inferior-python-filter-regexp', `python-remove-cwd-from-path': Have
+no mapping whatsoever, they are removed.
+
+`python-pdbtrack-minor-mode-string': Removed, pdbtracking has no minor
+mode for it.
+
+`python-source-modes': Removed, This mode makes no distinction between
+jython and python files.
+
+*** Command replacements.
+
+| Old command               | New command                  |
+|---------------------------+------------------------------|
+| python-insert-class       | python-skeleton-class        |
+| python-insert-def         | python-skeleton-def          |
+| python-insert-for         | python-skeleton-for          |
+| python-insert-if          | python-skeleton-if           |
+| python-insert-try/except  | python-skeleton-try          |
+| python-insert-try/finally | python-skeleton-try          |
+| python-insert-while       | python-skeleton-while        |
+| python-find-function      | python-nav-jump-to-defun     |
+| python-next-statement     | python-nav-forward-sentence  |
+| python-previous-statement | python-nav-backward-sentence |
+| python-send-buffer        | python-shell-send-buffer     |
+| python-send-defun         | python-shell-send-defun      |
+| python-send-region        | python-shell-send-region     |
+| python-send-region-and-go | [0]                          |
+| python-send-string        | python-shell-send-string     |
+| python-switch-to-python   | python-shell-switch-to-shell |
+| python-describe-symbol    | python-eldoc-at-point        |
+
+[0] Can be emulated by python-shell-send-region +
+python-shell-switch-to-shell
+
 ** Rmail
 
 *** The command `rmail-epa-decrypt' decrypts OpenPGP data
