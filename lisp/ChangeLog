@@ -1,44 +1,43 @@
 2012-05-16  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el: New python.el merge.
-	(python-guess-indent): Obsolete Var. Replaced by
-	python-indent-guess-indent-offset.
-	(python-indent): Obsolete Var. Replaced by python-indent-offset.
-	(python-python-command,python-jython-command): Delete
-	Var. Replaced by python-shell-interpreter.
-	(python-pdbtrack-do-tracking-p): Delete Var. Replaced by
-	python-pdbtrack-activate.
-	(python-use-skeletons): Delete Var. Replaced by
-	python-skeleton-autoinsert.
+	(python-guess-indent): Obsolete Var.
+	(python-indent-guess-indent-offset): New Defcustom.
+	(python-indent): Obsolete Var.
+	(python-indent-offset): New Defcustom.
+	(python-python-command, python-jython-command): Delete Var.
+	(python-shell-interpreter): New Defcustom.
+	(python-pdbtrack-do-tracking-p): Delete Var.
+	(python-pdbtrack-activate): New Defcustom.
+	(python-use-skeletons): Obsolete Var.
+	(python-skeleton-autoinsert): New Defcustom.
 	(inferior-python-filter-regexp, python-continuation-offset)
 	(python-honour-comment-indentation, python-indent-string-contents)
 	(python-jython-packages, python-mode-hook)
 	(python-pdbtrack-minor-mode-string, python-remove-cwd-from-path)
-	(python-shell-prompt-alist, python-source-modes): Delete
-	defcustoms.
+	(python-shell-prompt-alist)
+	(python-source-modes): Delete Defcustoms.
 	(python-check-buffer-name, python-eldoc-setup-code)
 	(python-eldoc-string-code, python-ffap-setup-code)
 	(python-ffap-string-code, python-fill-comment-function)
 	(python-fill-decorator-function, python-fill-paren-function)
 	(python-fill-string-function, python-imenu-include-defun-type)
 	(python-imenu-make-tree, python-imenu-subtree-root-label)
-	(python-indent-guess-indent-offset, python-indent-offset)
-	(python-pdbtrack-activate, python-pdbtrack-stacktrace-info-regexp)
-	(python-shell-buffer-name, python-shell-compilation-regexp-alist)
+	(python-pdbtrack-stacktrace-info-regexp, python-shell-buffer-name)
+	(python-shell-compilation-regexp-alist)
 	(python-shell-completion-module-string-code)
 	(python-shell-completion-pdb-string-code)
 	(python-shell-completion-setup-code)
 	(python-shell-completion-string-code)
 	(python-shell-enable-font-lock, python-shell-exec-path)
 	(python-shell-extra-pythonpaths)
-	(python-shell-internal-buffer-name, python-shell-interpreter)
-	(python-shell-interpreter-args, python-shell-process-environment)
+	(python-shell-internal-buffer-name, python-shell-interpreter-args)
+	(python-shell-process-environment)
 	(python-shell-prompt-block-regexp)
 	(python-shell-prompt-output-regexp)
 	(python-shell-prompt-pdb-regexp, python-shell-prompt-regexp)
 	(python-shell-send-setup-max-wait, python-shell-setup-codes)
-	(python-shell-virtualenv-path, python-skeleton-autoinsert): New
-	defcustoms.
+	(python-shell-virtualenv-path): New Defcustoms.
 	(brm-menu, eldoc-documentation-function, inferior-python-mode-map)
 	(inferior-python-mode-syntax-table, python--prompt-regexp)
 	(python-buffer, python-command python-python-command)
@@ -49,77 +48,62 @@
 	(python-preoutput-result, python-preoutput-skip-next-prompt)
 	(python-prev-dir/file, python-recursing)
 	(python-saved-check-command, python-version-checked)
-	(python-which-func-length-limit, view-return-to-alist): Delete
-	Vars.
+	(python-which-func-length-limit)
+	(view-return-to-alist): Delete Vars.
 	(python-check-custom-command, python-dotty-syntax-table)
 	(python-imenu-index-alist, python-indent-current-level)
 	(python-indent-dedenters, python-indent-levels)
 	(python-nav-beginning-of-defun-regexp)
 	(python-nav-list-defun-positions-cache)
 	(python-pdbtrack-buffers-to-kill, python-pdbtrack-tracked-buffer)
-	(python-shell-internal-buffer, python-skeleton-available): New
-	Vars.
-	(def-python-skeleton): Delete Macro. Obsoleted by
-	python-skeleton-define.
-	(python-define-auxiliary-skeleton, python-rx)
-	(python-skeleton-define): New Macros.
-	(python-insert-*): Delete Commands.
-	(python-insert-class): Delete Command. Replaced by python-skeleton-class.
-	(python-insert-def): Delete Command. Replaced by python-skeleton-def.
-	(python-insert-for'): Delete Command. Replaced by python-skeleton-for.
-	(python-insert-if): Delete Command. Replaced by python-skeleton-if.
-	(python-insert-try/except): Delete Command. Replaced by
-	python-skeleton-try.
-	(python-insert-try/finally): Delete Command. Replaced by
-	python-skeleton-try.
-	(python-insert-while): Delete Command. Replaced by
-	python-skeleton-while.
-	(python-skeleton-class, python-skeleton-def, python-skeleton-for)
-	(python-skeleton-if, python-skeleton-try, python-skeleton-while):
-	New commands.
-	(python-backspace): Delete Command. Replaced by
-	python-indent-dedent-line-backspace.
-	(python-electric-colon): Delete Command. Replaced by
-	python-indent-electric-colon.
-	(python-guess-indent): Delete Command. Replaced by
-	python-indent-guess-indent-offset.
-	(python-shift-left): Delete Command. Replaced by
-	python-indent-shift-left.
-	(python-shift-right): Delete Command. Replaced by
-	python-indent-shift-right.
-	(python-indent-dedent-line-backspace)
-	(python-indent-electric-colon, python-indent-guess-indent-offset)
-	(python-indent-shift-left, python-indent-shift-right): New
-	Commands.
-	(python-find-function): Delete Command. Replaced by
-	python-nav-jump-to-defun.
-	(python-next-statement): Delete Command. Replaced by
-	python-nav-forward-sentence.
-	(python-previous-statement): Delete Command. Replaced by
-	python-nav-backward-sentence.
-	(python-fill-paragraph): Delete Command. Replaced by
-	python-fill-paragraph-function.
-	(python-nav-jump-to-defun, python-nav-forward-sentence)
-	(python-nav-backward-sentence, python-fill-paragraph-function):
-	New Commands.
-	(python-send-buffer): Delete Command. Replaced by
-	python-shell-send-buffer.
-	(python-send-defun): Delete Command. Replaced by
-	python-shell-send-defun.
-	(python-send-region): Delete Command. Replaced by
-	python-shell-send-region.
-	(python-send-region-and-go): Delete Command. Replaced by
-	python-shell-send-region + python-shell-switch-to-shell.
-	(python-send-string): Delete Command. Replaced by
-	python-shell-send-string.
-	(python-switch-to-python): Delete Command. Replaced by
-	python-shell-switch-to-shell.
-	(python-shell-send-buffer, python-shell-send-defun)
-	(python-shell-send-region, python-shell-send-region)
-	(python-shell-send-string, python-shell-switch-to-shell): New
-	Commands.
-	(python-describe-symbol): Delete Command. Replaced by
-	python-eldoc-at-point.
+	(python-shell-internal-buffer)
+	(python-skeleton-available): New Vars.
+	(def-python-skeleton): Delete Macro.
+	(python-skeleton-define): New Macro.
+	(python-define-auxiliary-skeleton, python-rx): New Macros.
+	(python-insert-class): Delete Command.
+	(python-skeleton-class): New Command.
+	(python-insert-def): Delete Command.
+	(python-skeleton-def): New Command.
+	(python-insert-for): Delete Command.
+	(python-skeleton-for): New Command.
+	(python-insert-if): Delete Command.
+	(python-skeleton-if): New Command.
+	(python-insert-try/except)
+	(python-insert-try/finally): Delete Commands.
+	(python-skeleton-try): New Command.
+	(python-insert-while): Delete Command.
+	(python-skeleton-while): New Command.
+	(python-backspace): Delete Command.
+	(python-indent-dedent-line-backspace): New Command.
+	(python-electric-colon): Delete Command.
+	(python-indent-electric-colon): New Command.
+	(python-guess-indent): Delete Command.
+	(python-indent-guess-indent-offset): New Command.
+	(python-shift-left): Delete Command.
+	(python-indent-shift-left): New Command.
+	(python-shift-right): Delete Command.
+	(python-indent-shift-right): New Command.
+	(python-find-function): Delete Command.
+	(python-nav-jump-to-defun): New Command.
+	(python-next-statement): Delete Command.
+	(python-nav-forward-sentence): New Command.
+	(python-previous-statement): Delete Command.
+	(python-nav-backward-sentence): New Command.
+	(python-fill-paragraph): Delete Command.
+	(python-fill-paragraph-function): New Command.
+	(python-send-buffer): Delete Command.
+	(python-shell-send-buffer): New Command.
+	(python-send-defun): Delete Command.
+	(python-shell-send-defun): New Command.
+	(python-send-region, python-send-region-and-go): Delete Commands.
+	(python-shell-send-region)
+	(python-shell-switch-to-shell): New Commands.
+	(python-send-string): Delete Command.
+	(python-shell-send-string): New Command.
+	(python-switch-to-python): Delete Command.
+	(python-shell-switch-to-shell): New Command.
+	(python-describe-symbol): Delete Command.
 	(python-eldoc-at-point): New Command.
 	(python--set-prompt-regexp, python-args-to-list)
 	(python-after-info-look, python-check-version)
@@ -138,37 +122,35 @@
 	(python-end-of-block, python-end-of-statement, python-mark-block)
 	(python-beginning-of-block, python-beginning-of-statement)
 	(python-blank-line-p, python-beginning-of-string)
-	(python-open-block-statement-p): Delete functions.
-	(python-indent-line, python-indent-line-1): Delete
-	functions. Replaced by python-indent-line.
-	(python-indentation-levels): Delete function. Replaced by
-	python-indent-calculate-levels.
-	(python-proc): Delete Function. Replaced by
-	python-shell-get-process.
-	(python-send-receive): Delete Function. Replaced by
-	python-shell-send-string-no-output.
-	(python-module-path): Delete Function. Replaced by
-	python-ffap-module-path.
-	(python-completion-at-point): Delete Function. Replaced by
-	python-completion-complete-at-point.
-	(python-load-file): Delete Function. Replaced by
-	python-shell-send-file.
-	(python-calculate-indentation): Delete Function. Replaced by
-	python-indent-calculate-indentation.
-	(python-skip-comments/blanks): Delete Function. Replaced by
-	python-util-forward-comment.
-	(python-continuation-line-p): Delete Function. Replaced by
-	python-info-continuation-line-p.
-	(python-which-func, python-current-defun): Delete
-	Function. Replaced by python-info-current-defun.
-	(python-indentation-levels): Delete Function. Replaced by
-	python-indent-calculate-levels.
-	(python-beginning-of-defun): Delete Function. Replaced by
-	python-nav-beginning-of-defun.
-	(python-close-block-statement-p, python-block-end-p): Delete
-	Function. Replaced by python-info-closing-block.
-	(python-symbol-completions): Delete Function. Replaced by
-	python-completion-complete-at-point.
+	(python-open-block-statement-p): Delete Functions.
+	(python-indent-line, python-indent-line-1): Delete Functions.
+	(python-indent-line): New Function.
+	(python-indentation-levels): Delete Function.
+	(python-indent-calculate-levels): New Function.
+	(python-proc): Delete Function.
+	(python-shell-get-process): New Function.
+	(python-send-receive): Delete Function.
+	(python-shell-send-string-no-output): New Function.
+	(python-module-path): Delete Function.
+	(python-ffap-module-path): New Function.
+	(python-completion-at-point)
+	(python-symbol-completions): Delete Functions.
+	(python-completion-complete-at-point): New Function.
+	(python-load-file): Delete Function.
+	(python-shell-send-file): New Function.
+	(python-calculate-indentation): Delete Function.
+	(python-indent-calculate-indentation): New Function.
+	(python-skip-comments/blanks): Delete Function.
+	(python-util-forward-comment): New Function.
+	(python-continuation-line-p): Delete Function.
+	(python-info-continuation-line-p): New Function.
+	(python-which-func, python-current-defun): Delete Function.
+	(python-info-current-defun): New Function.
+	(python-beginning-of-defun): Delete Function.
+	(python-nav-beginning-of-defun): New Function.
+	(python-close-block-statement-p)
+	(python-block-end-p): Delete Function.
+	(python-info-closing-block): New Function.
 	(python-comint-output-filter-function)
 	(python-eldoc--get-doc-at-point, python-end-of-defun-function)
 	(python-fill-comment, python-fill-decorator, python-fill-paren)
@@ -181,7 +163,7 @@
 	(python-info-assignment-continuation-line-p)
 	(python-info-beginning-of-backlash)
 	(python-info-block-continuation-line-p)
-	(python-info-closing-block-message, python-info-current-defun)
+	(python-info-closing-block-message)
 	(python-info-line-ends-backslash-p)
 	(python-info-looking-at-beginning-of-defun)
 	(python-info-ppss-context, python-info-ppss-context-type)
@@ -203,16 +185,10 @@
 	(python-shell-parse-command, python-shell-send-setup-code)
 	(python-skeleton-add-menu-items)
 	(python-util-clone-local-variables, python-util-position)
-	(run-python-internal, python-indent-line)
-	(python-indentation-levels, python-shell-get-process)
-	(python-shell-send-string-no-output, python-ffap-module-path)
-	(python-completion-complete-at-point, python-shell-send-file)
-	(python-indent-calculate-indentation, python-util-forward-comment)
-	(python-info-continuation-line-p, python-info-current-defun)
-	(python-indent-calculate-levels, python-nav-beginning-of-defun)
-	(python-beginning-of-defun-function, python-info-closing-block)
-	(python-completion-complete-at-point): New functions.
-	(run-python): Change arguments. New API Requirements.
+	(run-python-internal, python-indentation-levels)
+	(python-nav-beginning-of-defun)
+	(python-completion-complete-at-point): New Functions.
+	(run-python): Change arguments.  New API Requirements.
 
 2012-05-17  Juri Linkov  <juri@jurta.org>
 
