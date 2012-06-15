@@ -240,7 +240,7 @@ Root must be the root of an Emacs source tree."
       (manual-txt texi (expand-file-name "emacs.txt" txt-dir))
       (manual-pdf texi (expand-file-name "emacs.pdf" dest))
       (manual-dvi texi (expand-file-name "emacs.dvi" dvi-dir)
-      		  (expand-file-name "emacs.ps" ps-dir)))
+		  (expand-file-name "emacs.ps" ps-dir)))
     ;; Lisp manual
     (let ((texi (expand-file-name "doc/lispref/elisp.texi" root)))
       (manual-html-node texi (expand-file-name "elisp" html-node-dir))
@@ -248,7 +248,20 @@ Root must be the root of an Emacs source tree."
       (manual-txt texi (expand-file-name "elisp.txt" txt-dir))
       (manual-pdf texi (expand-file-name "elisp.pdf" dest))
       (manual-dvi texi (expand-file-name "elisp.dvi" dvi-dir)
-      		  (expand-file-name "elisp.ps" ps-dir)))
+		  (expand-file-name "elisp.ps" ps-dir)))
+    ;; Misc manuals
+    (let ((manuals '("ada-mode" "auth" "autotype" "calc" "cc-mode"
+		     "cl" "dbus" "dired-x" "ebrowse" "ede" "ediff"
+		     "edt" "eieio" "emacs-mime" "epa" "erc" "ert"
+		     "eshell" "eudc" "faq" "flymake" "forms"
+		     "gnus" "emacs-gnutls" "idlwave" "info"
+		     "mairix-el" "message" "mh-e" "newsticker"
+		     "nxml-mode" "org" "pcl-cvs" "pgg" "rcirc"
+		     "remember" "reftex" "sasl" "sc" "semantic"
+		     "ses" "sieve" "smtpmail" "speedbar" "tramp"
+		     "url" "vip" "viper" "widget" "woman")))
+      (dolist (manual manuals)
+	(manual-misc-html manual root html-node-dir html-mono-dir)))
     (message "Manuals created in %s" dest)))
 
 (defconst manual-doctype-string
@@ -264,6 +277,12 @@ Root must be the root of an Emacs source tree."
 
 (defconst manual-style-string "<style type=\"text/css\">
 @import url('/style.css');\n</style>\n")
+
+(defun manual-misc-html (name root html-node-dir html-mono-dir)
+  (let ((texi (expand-file-name (format "doc/misc/%s.texi" name) root)))
+    (manual-html-node texi (expand-file-name name html-node-dir))
+    (manual-html-mono texi (expand-file-name (concat name ".html")
+					     html-mono-dir))))
 
 (defun manual-html-mono (texi-file dest)
   "Run Makeinfo on TEXI-FILE, emitting mono HTML output to DEST.
@@ -307,13 +326,15 @@ the @import directive."
 	      (let (copyright-text)
 		(manual-html-fix-index-1)
 		;; Move copyright notice to the end.
-		(re-search-forward "[ \t]*<p>Copyright &copy;")
-		(setq opoint (match-beginning 0))
-		(re-search-forward "</blockquote>")
-		(setq copyright-text (buffer-substring opoint (point)))
-		(delete-region opoint (point))
+		(when (re-search-forward "[ \t]*<p>Copyright &copy;" nil t)
+		  (setq opoint (match-beginning 0))
+		  (re-search-forward "</blockquote>")
+		  (setq copyright-text (buffer-substring opoint (point)))
+		  (delete-region opoint (point)))
 		(manual-html-fix-index-2)
-		(insert copyright-text "\n</div>\n"))
+		(if copyright-text
+		    (insert copyright-text))
+		(insert "\n</div>\n"))
 	    ;; For normal nodes, give the header div a blue bg.
 	    (manual-html-fix-node-div))
 	  (save-buffer))))))
@@ -369,9 +390,9 @@ Also generate PostScript output in PS-DEST."
 
 (defun manual-html-fix-index-1 ()
   (let (opoint)
-    (re-search-forward "<body>\n\\(<h1 class=\"settitle\\)")
-    (setq opoint (match-beginning 1))
-    (search-forward "<h2 class=\"unnumbered")
+    (re-search-forward "<body>\n")
+    (setq opoint (match-end 0))
+    (search-forward "<h2 class=\"")
     (goto-char (match-beginning 0))
     (delete-region opoint (point))
     (insert "<div id=\"content\" class=\"inner\">\n\n")))
@@ -380,7 +401,8 @@ Also generate PostScript output in PS-DEST."
   "Replace the index list in the current buffer with a HTML table."
   (let (done open-td tag desc)
     ;; Convert the list that Makeinfo made into a table.
-    (search-forward "<ul class=\"menu\">")
+    (or (search-forward "<ul class=\"menu\">" nil t)
+	(search-forward "<ul>"))
     (replace-match "<table style=\"float:left\" width=\"100%\">")
     (forward-line 1)
     (while (not done)
@@ -413,7 +435,7 @@ Also generate PostScript output in PS-DEST."
 	(replace-match "  </td></tr></table>\n
 <h3>Detailed Node Listing</h3>\n\n" t t)
 	(search-forward "<p>")
-	(search-forward "<p>")
+	(search-forward "<p>" nil t)
 	(goto-char (match-beginning 0))
 	(skip-chars-backward "\n ")
 	(setq open-td nil)
@@ -427,8 +449,8 @@ Also generate PostScript output in PS-DEST."
 	  (setq open-td nil))
 	(insert "  <tr>
     <th colspan=\"2\" align=\"left\" style=\"text-align:left\">")
-	(re-search-forward "</p>[ \t\n]*<ul class=\"menu\">")
-	(replace-match "  </th></tr>"))
+	(if (re-search-forward "</p>[ \t\n]*<ul class=\"menu\">" nil t)
+	    (replace-match "  </th></tr>")))
        ((looking-at "[ \t]*</ul>[ \t]*$")
 	(replace-match
 	 (if open-td

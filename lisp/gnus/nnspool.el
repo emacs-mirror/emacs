@@ -31,6 +31,26 @@
 (require 'nnoo)
 (eval-when-compile (require 'cl))
 
+;; Probably this entire thing should be obsolete.
+;; It's only used to init nnspool-spool-directory, so why not just
+;; set that variable's default directly?
+(eval-and-compile
+  (defvar news-directory (if (file-exists-p "/usr/spool/news/")
+			     "/usr/spool/news/"
+			   "/var/spool/news/")
+    "The root directory below which all news files are stored.")
+  (defvaralias 'news-path 'news-directory))
+
+;; Ditto re obsolescence.
+(defvar news-inews-program
+  (cond ((file-exists-p "/usr/bin/inews") "/usr/bin/inews")
+	((file-exists-p "/usr/local/inews") "/usr/local/inews")
+	((file-exists-p "/usr/local/bin/inews") "/usr/local/bin/inews")
+	((file-exists-p "/usr/contrib/lib/news/inews") "/usr/contrib/lib/news/inews")
+	((file-exists-p "/usr/lib/news/inews") "/usr/lib/news/inews")
+	(t "inews"))
+  "Program to post news.")
+
 (nnoo-declare nnspool)
 
 (defvoo nnspool-inews-program news-inews-program

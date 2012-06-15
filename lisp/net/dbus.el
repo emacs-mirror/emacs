@@ -269,7 +269,7 @@ object is returned instead of a list containing this single Lisp object.
     ;; default 25".  Events which are not from D-Bus must be restored.
     (with-timeout ((if timeout (/ timeout 1000.0) 25))
       (while (eq (gethash key dbus-return-values-table :ignore) :ignore)
-	(let ((event (let (unread-command-events) (read-event))))
+	(let ((event (let (unread-command-events) (read-event nil nil 0.1))))
 	  (when (and event (not (ignore-errors (dbus-check-event event))))
 	    (setq unread-command-events
 		  (append unread-command-events (list event)))))))

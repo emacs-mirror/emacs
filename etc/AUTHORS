@@ -1134,8 +1134,8 @@ Eric Schulte: wrote ob-C.el ob-asymptote.el ob-awk.el ob-calc.el
 and co-wrote ob-R.el ob-clojure.el ob-exp.el ob-fortran.el ob-lisp.el
   ob-lob.el ob-maxima.el ob-perl.el ob-picolisp.el ob-python.el ob-ref.el
   ob.el org-bibtex.el
-and changed org.texi org.el org-exp.el org-latex.el org-src.el
-  ob-plantuml.el org-table.el org-agenda.el org-macs.el orgcard.tex
+and changed org.texi org.el org-exp.el org-latex.el ob-plantuml.el
+  org-src.el org-table.el org-agenda.el org-macs.el orgcard.tex
   ob-lilypond.el ob-mscgen.el ob-octave.el ob-screen.el org-ascii.el
   org-footnote.el org-html.el org-mouse.el gnus-art.el ob-ledger.el
   ob-matlab.el and 5 other files
@@ -2035,8 +2035,8 @@ Keith Gabryelski: wrote hexl.c hexl.el
 Keith Packard: changed font.c
 
 Ken Brown: changed configure.in cygwin.h sheap.c browse-url.el gmalloc.c
-  vm-limit.c dired.c emacs.c fileio.c gdb-mi.el loadup.el mem-limits.h
-  unexcw.c
+  vm-limit.c callproc.c dired.c emacs.c fileio.c gdb-mi.el loadup.el
+  mem-limits.h unexcw.c
 
 Ken Brush: changed emacsclient.c
 
@@ -2372,6 +2372,8 @@ Mark Neale: changed fortran.el
 Mark Osbourne: changed hexl-mode.el
 
 Mark Plaksin: changed nnrss.el term.el
+
+Mark Shoulson: changed org.el
 
 Mark Thomas: changed flow-fill.el gnus-sum.el gnus-util.el nnmail.el
 

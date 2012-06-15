@@ -1,6 +1,6 @@
 ;; info.el --- info package for Emacs
 
-;; Copyright (C) 1985-1986, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -618,7 +618,19 @@ in `Info-file-supports-index-cookies-list'."
 		     (append (split-string (substring path 0 -1) sep)
 			     (Info-default-dirs))
 		   (split-string path sep))
-	       (Info-default-dirs)))))))
+	       (Info-default-dirs))))
+      ;; For a self-contained (ie relocatable) NS build, AFAICS we
+      ;; always want the included info directory to be at the head of
+      ;; the search path, unless it's already in INFOPATH somewhere.
+      ;; It's at the head of Info-default-directory-list,
+      ;; but there's no way to get it at the head of Info-directory-list
+      ;; except by doing it here.
+      (and path
+	   (featurep 'ns)
+	   (let ((dir (expand-file-name "../info" data-directory)))
+	     (and (file-directory-p dir)
+		  (not (member dir (split-string path ":" t)))
+		  (push dir Info-directory-list)))))))
 
 ;;;###autoload
 (defun info-other-window (&optional file-or-node)
@@ -681,6 +693,12 @@ See a list of available Info commands in `Info-mode'."
   "Display the Emacs manual in Info mode."
   (interactive)
   (info "emacs"))
+
+;;;###autoload
+(defun info-emacs-bug ()
+  "Display the \"Reporting Bugs\" section of the Emacs manual in Info mode."
+  (interactive)
+  (info "(emacs)Bugs"))
 
 ;;;###autoload
 (defun info-standalone ()
@@ -1907,26 +1925,23 @@ If DIRECTION is `backward', search in the reverse direction."
 (defun Info-isearch-search ()
   (if Info-isearch-search
       (lambda (string &optional bound noerror count)
-	(if isearch-word
-	    (Info-search (concat "\\b" (replace-regexp-in-string
-					"\\W+" "\\W+"
-					(replace-regexp-in-string
-					 "^\\W+\\|\\W+$" "" string)
-					nil t)
-				 ;; Lax version of word search
-				 (if (or isearch-nonincremental
-					 (eq (length string)
-					     (length (isearch-string-state
-						      (car isearch-cmds)))))
-				     "\\b"))
-			 bound noerror count
-			 (unless isearch-forward 'backward))
-	  (Info-search (if isearch-regexp string (regexp-quote string))
-		       bound noerror count
-		       (unless isearch-forward 'backward)))
+	(Info-search
+	 (cond
+	  (isearch-word
+	   ;; Lax version of word search
+	   (let ((lax (not (or isearch-nonincremental
+			       (eq (length string)
+				   (length (isearch-string-state
+					    (car isearch-cmds))))))))
+	     (if (functionp isearch-word)
+		 (funcall isearch-word string lax)
+	       (word-search-regexp string lax))))
+	  (isearch-regexp string)
+	  (t (regexp-quote string)))
+	 bound noerror count
+	 (unless isearch-forward 'backward))
 	(point))
-    (let ((isearch-search-fun-function nil))
-      (isearch-search-fun))))
+    (isearch-search-fun-default)))
 
 (defun Info-isearch-wrap ()
   (if Info-isearch-search
@@ -3743,6 +3758,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "\177" 'Info-scroll-down)
     (define-key map [mouse-2] 'Info-mouse-follow-nearest-node)
     (define-key map [follow-link] 'mouse-face)
+    (define-key map [XF86Back] 'Info-history-back)
+    (define-key map [XF86Forward] 'Info-history-forward)
     map)
   "Keymap containing Info commands.")
 

@@ -371,7 +371,7 @@
   :group 'editing)
 
 (defgroup mode-line nil
-  "Content of the modeline."
+  "Contents of the mode line."
   :group 'environment)
 
 (defgroup editing-basics nil
@@ -1159,7 +1159,7 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "23.1"
+(defvar customize-changed-options-previous-release "24.1"
   "Version for `customize-changed-options' to refer back to by default.")
 
 ;; Packages will update this variable, so make it available.
@@ -1853,64 +1853,52 @@ item in another window.\n\n"))
   :group 'custom-buffer)
 
 (defface custom-invalid '((((class color))
-			   (:foreground "yellow1" :background "red1"))
-			  (t
-			   (:weight bold :slant italic :underline t)))
+			   :foreground "yellow1" :background "red1")
+			  (t :weight bold :slant italic :underline t))
   "Face used when the customize item is invalid."
   :group 'custom-magic-faces)
-(define-obsolete-face-alias 'custom-invalid-face 'custom-invalid "22.1")
 
 (defface custom-rogue '((((class color))
-			 (:foreground "pink" :background "black"))
-			(t
-			 (:underline t)))
+			 :foreground "pink" :background "black")
+			(t :underline t))
   "Face used when the customize item is not defined for customization."
   :group 'custom-magic-faces)
-(define-obsolete-face-alias 'custom-rogue-face 'custom-rogue "22.1")
 
 (defface custom-modified '((((min-colors 88) (class color))
-			    (:foreground "white" :background "blue1"))
+			    :foreground "white" :background "blue1")
 			   (((class color))
-			    (:foreground "white" :background "blue"))
-			   (t
-			    (:slant italic :bold)))
+			    :foreground "white" :background "blue")
+			   (t :slant italic))
   "Face used when the customize item has been modified."
   :group 'custom-magic-faces)
-(define-obsolete-face-alias 'custom-modified-face 'custom-modified "22.1")
 
 (defface custom-set '((((min-colors 88) (class color))
-		       (:foreground "blue1" :background "white"))
+		       :foreground "blue1" :background "white")
 		      (((class color))
-		       (:foreground "blue" :background "white"))
-		      (t
-		       (:slant italic)))
+		       :foreground "blue" :background "white")
+		      (t :slant italic))
   "Face used when the customize item has been set."
   :group 'custom-magic-faces)
-(define-obsolete-face-alias 'custom-set-face 'custom-set "22.1")
 
 (defface custom-changed '((((min-colors 88) (class color))
-			   (:foreground "white" :background "blue1"))
+			   :foreground "white" :background "blue1")
 			  (((class color))
-			   (:foreground "white" :background "blue"))
-			  (t
-			   (:slant italic)))
+			   :foreground "white" :background "blue")
+			  (t :slant italic))
   "Face used when the customize item has been changed."
   :group 'custom-magic-faces)
-(define-obsolete-face-alias 'custom-changed-face 'custom-changed "22.1")
 
 (defface custom-themed '((((min-colors 88) (class color))
-			   (:foreground "white" :background "blue1"))
-			  (((class color))
-			   (:foreground "white" :background "blue"))
-			  (t
-			   (:slant italic)))
+			  :foreground "white" :background "blue1")
+			 (((class color))
+			  :foreground "white" :background "blue")
+			 (t :slant italic))
   "Face used when the customize item has been set by a theme."
   :group 'custom-magic-faces)
 
-(defface custom-saved '((t (:underline t)))
+(defface custom-saved '((t :underline t))
   "Face used when the customize item has been saved."
   :group 'custom-magic-faces)
-(define-obsolete-face-alias 'custom-saved-face 'custom-saved "22.1")
 
 (defconst custom-magic-alist
   '((nil "#" underline "\
@@ -2101,25 +2089,22 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button
-  '((((type x w32 ns) (class color))	; Like default modeline
-     (:box (:line-width 2 :style released-button)
-	   :background "lightgrey" :foreground "black"))
-    (t
-     nil))
+  '((((type x w32 ns) (class color))	; Like default mode line
+     :box (:line-width 2 :style released-button)
+     :background "lightgrey" :foreground "black"))
   "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
   :version "21.1"
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-button-face 'custom-button "22.1")
 
 (defface custom-button-mouse
   '((((type x w32 ns) (class color))
-     (:box (:line-width 2 :style released-button)
-	   :background "grey90" :foreground "black"))
+     :box (:line-width 2 :style released-button)
+     :background "grey90" :foreground "black")
     (t
      ;; This is for text terminals that support mouse, like GPM mouse
      ;; or the MS-DOS terminal: inverse-video makes the button stand
      ;; out on mouse-over.
-     (:inverse-video t)))
+     :inverse-video t))
   "Mouse face for custom buffer buttons if `custom-raised-buttons' is non-nil."
   :version "22.1"
   :group 'custom-faces)
@@ -2138,15 +2123,12 @@ and `face'."
 
 (defface custom-button-pressed
   '((((type x w32 ns) (class color))
-     (:box (:line-width 2 :style pressed-button)
-	   :background "lightgrey" :foreground "black"))
-    (t
-     (:inverse-video t)))
+     :box (:line-width 2 :style pressed-button)
+     :background "lightgrey" :foreground "black")
+    (t :inverse-video t))
   "Face for pressed custom buttons if `custom-raised-buttons' is non-nil."
   :version "21.1"
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-button-pressed-face
-  'custom-button-pressed "22.1")
 
 (defface custom-button-pressed-unraised
   '((default :inherit custom-button-unraised)
@@ -2164,22 +2146,15 @@ and `face'."
 (defface custom-documentation '((t nil))
   "Face used for documentation strings in customization buffers."
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-documentation-face
-  'custom-documentation "22.1")
 
-(defface custom-state '((((class color)
-			  (background dark))
-			 (:foreground "lime green"))
-			(((class color)
-			  (background light))
-			 (:foreground "dark green"))
-			(t nil))
+(defface custom-state '((((class color) (background dark))
+			 :foreground "lime green")
+			(((class color) (background light))
+			 :foreground "dark green"))
   "Face used for State descriptions in the customize buffer."
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-state-face 'custom-state "22.1")
 
-(defface custom-link
-  '((t :inherit link))
+(defface custom-link '((t :inherit link))
   "Face for links in customization buffers."
   :version "22.1"
   :group 'custom-faces)
@@ -2376,20 +2351,18 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "Face used for comments on variables or faces."
   :version "21.1"
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-comment-face 'custom-comment "22.1")
 
 ;; like font-lock-comment-face
 (defface custom-comment-tag
-  '((((class color) (background dark)) (:foreground "gray80"))
-    (((class color) (background light)) (:foreground "blue4"))
+  '((((class color) (background dark)) :foreground "gray80")
+    (((class color) (background light)) :foreground "blue4")
     (((class grayscale) (background light))
-     (:foreground "DimGray" :weight bold :slant italic))
+     :foreground "DimGray" :weight bold :slant italic)
     (((class grayscale) (background dark))
-     (:foreground "LightGray" :weight bold :slant italic))
-    (t (:weight bold)))
+     :foreground "LightGray" :weight bold :slant italic)
+    (t :weight bold))
   "Face used for the comment tag on variables or faces."
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-comment-tag-face 'custom-comment-tag "22.1")
 
 (define-widget 'custom-comment 'string
   "User comment."
@@ -2428,26 +2401,19 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 ;;; The `custom-variable' Widget.
 
 (defface custom-variable-tag
-  `((((class color)
-      (background dark))
-     (:foreground "light blue" :weight bold))
-    (((min-colors 88) (class color)
-      (background light))
-     (:foreground "blue1" :weight bold))
-    (((class color)
-      (background light))
-     (:foreground "blue" :weight bold))
-    (t (:weight bold)))
+  `((((class color) (background dark))
+     :foreground "light blue" :weight bold)
+    (((min-colors 88) (class color) (background light))
+     :foreground "blue1" :weight bold)
+    (((class color) (background light))
+     :foreground "blue" :weight bold)
+    (t :weight bold))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-variable-tag-face
-  'custom-variable-tag "22.1")
 
-(defface custom-variable-button '((t (:underline t :weight bold)))
+(defface custom-variable-button '((t :underline t :weight bold))
   "Face used for pushable variable tags."
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-variable-button-face
-  'custom-variable-button "22.1")
 
 (defcustom custom-variable-default-form 'edit
   "Default form of displaying variable values."
@@ -3314,10 +3280,9 @@ Only match frames that support the specified face attributes.")
 ;;; The `custom-face' Widget.
 
 (defface custom-face-tag
-  `((t :inherit custom-variable-tag))
+  '((t :inherit custom-variable-tag))
   "Face used for face tags."
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-face-tag-face 'custom-face-tag "22.1")
 
 (defcustom custom-face-default-form 'selected
   "Default form of displaying face definition."
@@ -3932,37 +3897,24 @@ and so forth.  The remaining group tags are shown with `custom-group-tag'."
   :group 'custom-faces)
 
 (defface custom-group-tag-1
-  `((((class color)
-      (background dark))
-     (:foreground "pink" :weight bold :height 1.2 :inherit variable-pitch))
-    (((min-colors 88) (class color)
-      (background light))
-     (:foreground "red1" :weight bold :height 1.2 :inherit variable-pitch))
-    (((class color)
-      (background light))
-     (:foreground "red" :weight bold :height 1.2 :inherit variable-pitch))
-    (t (:weight bold)))
-  "Face used for group tags."
+  '((default :weight bold :height 1.2 :inherit variable-pitch)
+    (((class color) (background dark)) :foreground "pink")
+    (((min-colors 88) (class color) (background light)) :foreground "red1")
+    (((class color) (background light)) :foreground "red"))
+  "Face for group tags."
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-group-tag-face-1 'custom-group-tag-1 "22.1")
 
 (defface custom-group-tag
-  `((((class color)
-      (background dark))
-     (:foreground "light blue" :weight bold :height 1.2 :inherit variable-pitch))
-    (((min-colors 88) (class color)
-      (background light))
-     (:foreground "blue1" :weight bold :height 1.2 :inherit variable-pitch))
-    (((class color)
-      (background light))
-     (:foreground "blue" :weight bold :height 1.2 :inherit variable-pitch))
-    (t (:weight bold)))
-  "Face used for low level group tags."
+  '((default :weight bold :height 1.2 :inherit variable-pitch)
+    (((class color) (background dark)) :foreground "light blue")
+    (((min-colors 88) (class color) (background light)) :foreground "blue1")
+    (((class color) (background light)) :foreground "blue")
+    (t :weight bold))
+  "Face for low level group tags."
   :group 'custom-faces)
-(define-obsolete-face-alias 'custom-group-tag-face 'custom-group-tag "22.1")
 
 (defface custom-group-subtitle
-  `((t (:weight bold)))
+  '((t :weight bold))
   "Face for the \"Subgroups:\" subtitle in Custom buffers."
   :group 'custom-faces)
 

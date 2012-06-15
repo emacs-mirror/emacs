@@ -1646,6 +1646,11 @@ This performs fontification according to `js--class-styles'."
   (funcall
    (syntax-propertize-rules
     ;; Distinguish /-division from /-regexp chars (and from /-comment-starter).
+    ;; FIXME: Allow regexps after infix ops like + ...
+    ;; https://developer.mozilla.org/en/JavaScript/Reference/Operators
+    ;; We can probably just add +, -, !, <, >, %, ^, ~, |, &, ?, : at which
+    ;; point I think only * and / would be missing which could also be added,
+    ;; but need care to avoid affecting the // and */ comment markers.
     ("\\(?:^\\|[=([{,:;]\\)\\(?:[ \t]\\)*\\(/\\)[^/*]"
      (1 (ignore
 	 (forward-char -1)
@@ -3324,7 +3329,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
 
   (set (make-local-variable 'electric-indent-chars)
-       (append "{}():;," electric-indent-chars))
+       (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
   (set (make-local-variable 'electric-layout-rules)
        '((?\; . after) (?\{ . after) (?\} . before)))
 

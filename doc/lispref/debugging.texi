@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Debugging, Read and Print, Advising Functions, Top
+@node Debugging
 @chapter Debugging Lisp Programs
 
   There are several ways to find and investigate problems in an Emacs
@@ -447,7 +447,7 @@ erroneously show up in this list.
   Here we describe in full detail the function @code{debug} that is used
 to invoke the debugger.
 
-@defun debug &rest debugger-args
+@deffn Command debug &rest debugger-args
 This function enters the debugger.  It switches buffers to a buffer
 named @file{*Backtrace*} (or @file{*Backtrace*<2>} if it is the second
 recursive entry to the debugger, etc.), and fills it with information
@@ -534,7 +534,7 @@ are printed on the top line of the buffer.  You can use this feature to
 display messages---for example, to remind yourself of the conditions
 under which @code{debug} is called.
 @end table
-@end defun
+@end deffn
 
 @node Internals of Debugger
 @subsection Internals of the Debugger

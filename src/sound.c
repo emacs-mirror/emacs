@@ -232,11 +232,11 @@ struct sound_device
 
   /* Return a preferred data size in bytes to be sent to write (below)
      each time.  2048 is used if this is NULL.  */
-  EMACS_INT (* period_size) (struct sound_device *sd);
+  ptrdiff_t (* period_size) (struct sound_device *sd);
 
   /* Write NYBTES bytes from BUFFER to device SD.  */
   void (* write) (struct sound_device *sd, const char *buffer,
-                  EMACS_INT nbytes);
+                  ptrdiff_t nbytes);
 
   /* A place for devices to store additional data.  */
   void *data;
@@ -288,7 +288,7 @@ static void vox_configure (struct sound_device *);
 static void vox_close (struct sound_device *sd);
 static void vox_choose_format (struct sound_device *, struct sound *);
 static int vox_init (struct sound_device *);
-static void vox_write (struct sound_device *, const char *, EMACS_INT);
+static void vox_write (struct sound_device *, const char *, ptrdiff_t);
 static void find_sound_type (struct sound *);
 static u_int32_t le2hl (u_int32_t);
 static u_int16_t le2hs (u_int16_t);
@@ -597,9 +597,9 @@ wav_play (struct sound *s, struct sound_device *sd)
   else
     {
       char *buffer;
-      EMACS_INT nbytes = 0;
-      EMACS_INT blksize = sd->period_size ? sd->period_size (sd) : 2048;
-      EMACS_INT data_left = header->data_length;
+      ptrdiff_t nbytes = 0;
+      ptrdiff_t blksize = sd->period_size ? sd->period_size (sd) : 2048;
+      ptrdiff_t data_left = header->data_length;
 
       buffer = (char *) alloca (blksize);
       lseek (s->fd, sizeof *header, SEEK_SET);
@@ -687,9 +687,9 @@ au_play (struct sound *s, struct sound_device *sd)
 	       SBYTES (s->data) - header->data_offset);
   else
     {
-      EMACS_INT blksize = sd->period_size ? sd->period_size (sd) : 2048;
+      ptrdiff_t blksize = sd->period_size ? sd->period_size (sd) : 2048;
       char *buffer;
-      EMACS_INT nbytes;
+      ptrdiff_t nbytes;
 
       /* Seek */
       lseek (s->fd, header->data_offset, SEEK_SET);
@@ -892,7 +892,7 @@ vox_init (struct sound_device *sd)
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
-vox_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
+vox_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
 {
   if (emacs_write (sd->fd, buffer, nbytes) != nbytes)
     sound_perror ("Error writing to sound device");
@@ -953,7 +953,7 @@ alsa_open (struct sound_device *sd)
     alsa_sound_perror (file, err);
 }
 
-static EMACS_INT
+static ptrdiff_t
 alsa_period_size (struct sound_device *sd)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
@@ -1156,13 +1156,13 @@ alsa_choose_format (struct sound_device *sd, struct sound *s)
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
-alsa_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
+alsa_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
 
   /* The the third parameter to snd_pcm_writei is frames, not bytes. */
   int fact = snd_pcm_format_size (sd->format, 1) * sd->channels;
-  EMACS_INT nwritten = 0;
+  ptrdiff_t nwritten = 0;
   int err;
 
   while (nwritten < nbytes)
@@ -1349,7 +1349,7 @@ Internal use only, use `play-sound' instead.  */)
   (Lisp_Object sound)
 {
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
 #ifndef WINDOWSNT
   Lisp_Object file;

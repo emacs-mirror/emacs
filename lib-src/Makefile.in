@@ -106,7 +106,6 @@ gameuser=@gameuser@
 # ../configure figures out the correct values for these.
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
-INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
@@ -118,8 +117,7 @@ MKDIR_P = @MKDIR_P@
 INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
                ebrowse${EXEEXT}
 
-INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
-STAMP_INST_SCRIPTS = stamp-rcs-checkin stamp-grep-changelog
+INSTALLABLE_SCRIPTS = grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
@@ -130,8 +128,7 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
-SCRIPTS= rcs2log vcdiff
-STAMP_SCRIPTS= stamp-rcs2log stamp-vcdiff
+SCRIPTS= rcs2log
 
 # All files that are created by the linker, i.e., whose names end in ${EXEEXT}.
 EXE_FILES = ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -182,31 +179,10 @@ ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
-all: ${EXE_FILES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS} ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
+all: ${EXE_FILES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
 LOADLIBES = ../lib/libgnu.a $(LIBS_SYSTEM)
 $(EXE_FILES): ../lib/libgnu.a
-
-## These targets copy the scripts into the build directory so that
-## they can be run from there in an uninstalled Emacs.
-## Nothing to do if pwd = srcdir.
-insrcdir=[ "`/bin/pwd`" = "`(cd $(srcdir) && /bin/pwd)`" ]
-
-stamp-rcs2log: $(srcdir)/rcs2log
-	$(insrcdir) || cp -p $(srcdir)/rcs2log rcs2log
-	touch $@
-
-stamp-rcs-checkin: $(srcdir)/rcs-checkin
-	$(insrcdir) || cp -p $(srcdir)/rcs-checkin rcs-checkin
-	touch $@
-
-stamp-grep-changelog: $(srcdir)/grep-changelog
-	$(insrcdir) || cp -p $(srcdir)/grep-changelog grep-changelog
-	touch $@
-
-stamp-vcdiff: $(srcdir)/vcdiff
-	$(insrcdir) || cp -p $(srcdir)/vcdiff vcdiff
-	touch $@
 
 ## Only used if we need blessmail, but no harm in always defining.
 ## This makes the actual blessmail executable.
@@ -237,7 +213,7 @@ $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
 	umask 022; ${MKDIR_P} $(DESTDIR)${archlibdir}
-	if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
+	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
 	  done ; \
@@ -249,8 +225,8 @@ $(DESTDIR)${archlibdir}: all
 	  chown ${gameuser} $(DESTDIR)${gamedir}; \
 	  chmod u=rwx,g=rwx,o=rx $(DESTDIR)${gamedir}; \
 	fi
-	if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` \
-             != `(cd ${srcdir} && /bin/pwd)` ]; then \
+	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` \
+             != `cd ${srcdir} && /bin/pwd` ]; then \
 	  for file in ${SCRIPTS}; do \
 	    $(INSTALL_SCRIPT) ${srcdir}/$$file $(DESTDIR)${archlibdir}/$$file; \
 	  done ; \
@@ -259,13 +235,12 @@ $(DESTDIR)${archlibdir}: all
 install: $(DESTDIR)${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
+	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	for file in ${INSTALLABLES} ; do \
 	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
-	  chmod a+rx $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
 	  $(INSTALL_SCRIPT) ${srcdir}/$${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
-	  chmod a+rx $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
 	done
 
 uninstall:
@@ -283,7 +258,6 @@ mostlyclean:
 
 clean: mostlyclean
 	-rm -f ${EXE_FILES}
-	-rm -f ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 distclean: clean
 	-rm -f TAGS

@@ -192,24 +192,6 @@ You should set this to t when using a non-system shell.\n\n"))))
 		     (w32-get-locale-info locale)
 		     (w32-get-locale-info locale t))))))
 
-;; Setup Info-default-directory-list to include the info directory
-;; near where Emacs executable was installed.  We used to set INFOPATH,
-;; but when this is set Info-default-directory-list is ignored.  We
-;; also cannot rely upon what is set in paths.el because they assume
-;; that configuration during build time is correct for runtime.
-(defun w32-init-info ()
-  (let* ((instdir (file-name-directory invocation-directory))
-	 (dir1 (expand-file-name "../info/" instdir))
-	 (dir2 (expand-file-name "../../../info/" instdir)))
-    (if (file-exists-p dir1)
-	(setq Info-default-directory-list
-	      (append Info-default-directory-list (list dir1)))
-      (if (file-exists-p dir2)
-	  (setq Info-default-directory-list
-		(append Info-default-directory-list (list dir2)))))))
-
-(add-hook 'before-init-hook 'w32-init-info)
-
 ;; The variable source-directory is used to initialize Info-directory-list.
 ;; However, the common case is that Emacs is being used from a binary
 ;; distribution, and the value of source-directory is meaningless in that

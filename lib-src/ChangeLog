@@ -1,3 +1,72 @@
+2012-06-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (search_lisp_doc_at_eol): Unget last read
+	character.
+
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (STAMP_INST_SCRIPTS, STAMP_SCRIPTS, insrcdir)
+	(stamp-rcs2log, stamp-grep-changelog): Remove.
+	(all, clean): Remove references to stamps.
+
+	* vcdiff: Remove file.
+	* Makefile.in (SCRIPTS, STAMP_SCRIPTS): Remove vcdiff.
+	(stamp-vcdiff): Remove.
+
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in ($(BLD)/getdate.$(O), $(BLD)/leditcfns.$(O)):
+	($(BLD)/make-path.$(O), $(BLD)/qsort.$(O)):
+	($(BLD)/timer.$(O)): Remove cruft.
+
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* rcs-checkin: Remove file.
+	* Makefile.in (INSTALLABLE_SCRIPTS, STAMP_INST_SCRIPTS):
+	Remove rcs-checkin.
+	(stamp-rcs-checkin): Remove.
+
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/emacsclientw.exe): Use $(MWINDOWS)
+	instead of a literal -mwindows, which is not supported by MSVC.
+	(Bug#11405)
+
+2012-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* make-docfile.c: Improve comment style.
+	(search_lisp_doc_at_eol): New function.
+	(scan_lisp_file): Use it.
+
+2012-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INSTALL_DATA): Remove; unused.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* makefile.w32-in: Remove dependencies on
+	$(EMACS_ROOT)/src/m/intel386.h.
+
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Remove unneeded chmods.
+
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later.
+	* etags.c (static, const): Remove macros.
+	(PTR): Remove; all uses replaced with void *.  Omit needless casts.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (insrcdir, $(DESTDIR)${archlibdir}):
+	Scrap superfluous subshells.
+
+2012-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Ensure $bindir exists.
+
 2012-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ns_appbindir): New, set by configure.
@@ -412,8 +481,8 @@
 
 	* etags.c (canonicalize_filename, ISUPPER): Fix last change.
 
-	* makefile.w32-in ($(BLD)/ebrowse.$(O), $(BLD)/pop.$(O)): Depend
-	on ../lib/min-max.h.
+	* makefile.w32-in ($(BLD)/ebrowse.$(O), $(BLD)/pop.$(O)):
+	Depend on ../lib/min-max.h.
 
 2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -2790,7 +2859,7 @@
 
 	* make-docfile.c (read_c_string_or_comment): Declare msgno.
 
-	* Makefile.in (YACC): Deleted.
+	* Makefile.in (YACC): Delete.
 
 2002-10-19  Andreas Schwab  <schwab@suse.de>
 
@@ -3008,7 +3077,7 @@
 	(TeX_commands): Names now include the initial backslash.
 	(TeX_commands): Names do not include numeric args #n.
 	(TeX_commands): Correct line char number in tags.
-	(TEX_tabent, TEX_token): Deleted.
+	(TEX_tabent, TEX_token): Delete.
 	(TeX_commands, TEX_decode_env): Streamlined.
 
 2002-06-05  Francesco Potortì  <pot@gnu.org>
@@ -3049,7 +3118,7 @@
 	(main): New argument -d, for specifying directory.
 	(usage): Document.
 	(get_user_id): Compute.
-	(get_home_dir): Deleted.
+	(get_home_dir): Delete.
 	(get_prefix): New function, taken from main.
 	(main): Check whether or not we are running setuid.  Move prefix
 	computation to get_prefix.  Don't call getpwent; we don't need to
@@ -3310,7 +3379,7 @@
 	(LOOKING_AT, get_tag, PHP_functions): Use notinname.
 	(Ada_getit, Ada_funcs, Python_functions, Scheme_functions):
 	Clarified, using strneq or notinname.
-	(L_isdef, L_isquote): Removed.
+	(L_isdef, L_isquote): Remove.
 	(Lisp_functions, L_getit): Clarified.
 
 	* etags.c (P_): Rename to __P for consistency with config.h.
@@ -3747,7 +3816,7 @@
 	comma when --declarations is used.
 	(C_entries): More accurate tagging of members and declarations.
 	(yacc_rules): Was global, made local to C_entries.
-	(next_token_is_func): Removed.
+	(next_token_is_func): Remove.
 	(fvdef): New constants fdefunkey, fdefunname.
 	(consider_token, C_entries): Use them.
 	(C_entries): Build proper lisp names for Emacs DEFUNs.
@@ -4223,7 +4292,7 @@
 	(find_entries, takeprec, getit, Fortran_functions, Perl_functions)
 	(Python_functions, L_getit, Lisp_functions, Scheme_functions)
 	(prolog_pred, erlanf_func, erlang_attribute): Use them.
-	(eat_white): Deleted.
+	(eat_white): Delete.
 
 	* etags.c (CHAR, init): Keep into account non US-ASCII
 	characters and compilers with default signed chars.
@@ -4746,7 +4815,7 @@
 1997-05-13  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
 	* etags.c (TeX_functions): Cleaned up.
-	(tex_getit): Removed.
+	(tex_getit): Remove.
 
 1997-05-13  Paul Eggert  <eggert@twinsun.com>
 
@@ -5267,7 +5336,7 @@
 
 	* etags.c: Prolog language totally rewritten.
 	(Prolog_functions): Rewritten from scratch.
-	(skip_comment, prolog_getit): Removed.
+	(skip_comment, prolog_getit): Remove.
 	(prolog_skip_comment): New function, like old skip_comment.
 	(prolog_pred, prolog_atom, prolog_white): New functions.
 	(erlang_func, erlang_attributes): Forward declarations added.
@@ -5768,7 +5837,7 @@
 
 1995-01-12  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* etags.c (FILEPOS, GET_CHARNO, GET_FILEPOS, max, LINENO): Deleted.
+	* etags.c (FILEPOS, GET_CHARNO, GET_FILEPOS, max, LINENO): Delete.
 	(append_to_tagfile, typedefs, typedefs_and_cplusplus)
 	(constantypedefs, update, vgrind_style, no_warnings)
 	(cxref_style, cplusplus, noindentypedefs): Were int, now logical.
@@ -5787,9 +5856,9 @@
 	(consider_token): Don't take a token as argument.  Use savenstr
 	when saving a tag in structtag.  Callers changed.
 	(TOKEN): Structure changed.  Now used only in C_entries.
-	(TOKEN_SAVED_P, SAVE_TOKEN, RESTORE_TOKEN): Deleted.
+	(TOKEN_SAVED_P, SAVE_TOKEN, RESTORE_TOKEN): Delete.
 	(C_entries): nameb and savenameb deleted.  Use dinamic allocation.
-	(pfcnt): Deleted.  Users updated.
+	(pfcnt): Delete.  Users updated.
 	(getit, Asm_labels, Pascal_functions, L_getit, get_scheme)
 	(TEX_getit, prolog_getit): Use dinamic allocation for storing
 	the tag instead of a fixed size buffer.
@@ -6365,7 +6434,7 @@
 
 1994-03-25  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* etags.c (emacs_tags_format, ETAGS): Removed.  Use CTAGS instead.
+	* etags.c (emacs_tags_format, ETAGS): Remove.  Use CTAGS instead.
 	(main): Don't allow the use of -t and -T in etags mode.
 	(print_help): Don't show options enabled by default.
 	(print_version): Show the emacs version number if VERSION is #defined.
@@ -6482,9 +6551,9 @@
 1994-01-14  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* etags.c (stab_entry, stab_create, stab_find, stab_search,
-	stab_type, add_keyword, C_reate_stab, C_create_stabs): Deleted.
+	stab_type, add_keyword, C_reate_stab, C_create_stabs): Delete.
 	Use gperf generated hash table instead of linked list.
-	(C_stab_entry, hash, in_word_set, get_C_stab, C_symtype): Added.
+	(C_stab_entry, hash, in_word_set, get_C_stab, C_symtype): Add.
 	Mostly code generated by gperf.
 	(consider_token): Remove unused parameter `lp'.
 	(PF_funcs, getit): Allow subroutine and similar declarations
@@ -6803,7 +6872,7 @@
 	* etags.c (consider_token): Was `==', now is `='.
 	(consider_token): DEFUNs now treated like funcs in ctags mode.
 
-	* etags.c (LEVEL_OK_FOR_FUNCDEF): Removed.
+	* etags.c (LEVEL_OK_FOR_FUNCDEF): Remove.
 	(C_entries): Optimized the test that used LEVEL_OK_FOR_FUNCDEF.
 	(C_entries): Remove a piece of useless code.
 	(C_entries): Making typedef tags is delayed until a semicolon
@@ -7102,10 +7171,10 @@
 	* etags.c (GET_COOKIE): And related macros removed.
 	(logical): Is now int, no more a char.
 	(reg): Define deleted.
-	(isgood, _gd, notgd): Deleted.
-	(gotone): Deleted.
+	(isgood, _gd, notgd): Delete.
+	(gotone): Delete.
 	(TOKEN): Member linestart removed.
-	(linepos, prev_linepos, lb1): Deleted.
+	(linepos, prev_linepos, lb1): Delete.
 	(main): Call initbuffer on lbs array instead of lb1.
 	(init): Remove the initialization of the logical _gd array.
 	(find_entries): A .sa suffix means assembler file.
@@ -7113,7 +7182,7 @@
 	All C state machines rewritten.
 	(C_entries): Complete rewrite.
 	(condider_token): Complete rewrite.
-	(getline): Deleted.
+	(getline): Delete.
 
 1993-03-01  Francesco Potortì  (pot@fly.CNUCE.CNR.IT)
 

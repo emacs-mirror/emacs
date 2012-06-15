@@ -173,7 +173,7 @@ Lisp_Object composition_temp;
    If the composition is invalid, return -1.  */
 
 ptrdiff_t
-get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
+get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 		    Lisp_Object prop, Lisp_Object string)
 {
   Lisp_Object id, length, components, key, *key_contents;
@@ -183,7 +183,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   EMACS_UINT hash_code;
   enum composition_method method;
   struct composition *cmp;
-  EMACS_INT i;
+  ptrdiff_t i;
   int ch;
 
   /* Maximum length of a string of glyphs.  XftGlyphExtents limits
@@ -284,7 +284,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
       && VECTORP (AREF (components, 0)))
     {
       /* COMPONENTS is a glyph-string.  */
-      EMACS_INT len = ASIZE (key);
+      ptrdiff_t len = ASIZE (key);
 
       for (i = 1; i < len; i++)
 	if (! VECTORP (AREF (key, i)))
@@ -292,7 +292,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
     }
   else if (VECTORP (components) || CONSP (components))
     {
-      EMACS_INT len = ASIZE (key);
+      ptrdiff_t len = ASIZE (key);
 
       /* The number of elements should be odd.  */
       if ((len % 2) == 0)
@@ -429,8 +429,8 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
    This doesn't check the validity of composition.  */
 
 int
-find_composition (EMACS_INT pos, EMACS_INT limit,
-		  EMACS_INT *start, EMACS_INT *end,
+find_composition (ptrdiff_t pos, ptrdiff_t limit,
+		  ptrdiff_t *start, ptrdiff_t *end,
 		  Lisp_Object *prop, Lisp_Object object)
 {
   Lisp_Object val;
@@ -469,10 +469,10 @@ find_composition (EMACS_INT pos, EMACS_INT limit,
    FROM and TO with property PROP.  */
 
 static void
-run_composition_function (EMACS_INT from, EMACS_INT to, Lisp_Object prop)
+run_composition_function (ptrdiff_t from, ptrdiff_t to, Lisp_Object prop)
 {
   Lisp_Object func;
-  EMACS_INT start, end;
+  ptrdiff_t start, end;
 
   func = COMPOSITION_MODIFICATION_FUNC (prop);
   /* If an invalid composition precedes or follows, try to make them
@@ -501,13 +501,13 @@ run_composition_function (EMACS_INT from, EMACS_INT to, Lisp_Object prop)
    change is deletion, FROM == TO.  Otherwise, FROM < TO.  */
 
 void
-update_compositions (EMACS_INT from, EMACS_INT to, int check_mask)
+update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
 {
   Lisp_Object prop;
-  EMACS_INT start, end;
+  ptrdiff_t start, end;
   /* The beginning and end of the region to set the property
      `auto-composed' to nil.  */
-  EMACS_INT min_pos = from, max_pos = to;
+  ptrdiff_t min_pos = from, max_pos = to;
 
   if (inhibit_modification_hooks)
     return;
@@ -589,7 +589,7 @@ update_compositions (EMACS_INT from, EMACS_INT to, int check_mask)
     }
   if (min_pos < max_pos)
     {
-      int count = SPECPDL_INDEX ();
+      ptrdiff_t count = SPECPDL_INDEX ();
 
       specbind (Qinhibit_read_only, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
@@ -632,7 +632,7 @@ make_composition_value_copy (Lisp_Object list)
    indices START and END in STRING.  */
 
 void
-compose_text (EMACS_INT start, EMACS_INT end, Lisp_Object components,
+compose_text (ptrdiff_t start, ptrdiff_t end, Lisp_Object components,
 	      Lisp_Object modification_func, Lisp_Object string)
 {
   Lisp_Object prop;
@@ -644,8 +644,8 @@ compose_text (EMACS_INT start, EMACS_INT end, Lisp_Object components,
 }
 
 
-static Lisp_Object autocmp_chars (Lisp_Object, EMACS_INT, EMACS_INT,
-                                  EMACS_INT, struct window *,
+static Lisp_Object autocmp_chars (Lisp_Object, ptrdiff_t, ptrdiff_t,
+                                  ptrdiff_t, struct window *,
                                   struct face *, Lisp_Object);
 
 
@@ -669,25 +669,25 @@ gstring_lookup_cache (Lisp_Object header)
 }
 
 Lisp_Object
-composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
+composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   EMACS_UINT hash;
   Lisp_Object header, copy;
-  EMACS_INT i;
+  ptrdiff_t i;
 
   header = LGSTRING_HEADER (gstring);
   hash = h->hashfn (h, header);
   if (len < 0)
     {
-      EMACS_INT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
+      ptrdiff_t j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
       for (j = 0; j < glyph_len; j++)
 	if (NILP (LGSTRING_GLYPH (gstring, j)))
 	  break;
       len = j;
     }
 
-  lint_assume (len <= TYPE_MAXIMUM (EMACS_INT) - 2);
+  lint_assume (len <= TYPE_MAXIMUM (ptrdiff_t) - 2);
   copy = Fmake_vector (make_number (len + 2), Qnil);
   LGSTRING_SET_HEADER (copy, Fcopy_sequence (header));
   for (i = 0; i < len; i++)
@@ -713,7 +713,7 @@ int
 composition_gstring_p (Lisp_Object gstring)
 {
   Lisp_Object header;
-  EMACS_INT i;
+  ptrdiff_t i;
 
   if (! VECTORP (gstring) || ASIZE (gstring) < 2)
     return 0;
@@ -741,7 +741,7 @@ composition_gstring_p (Lisp_Object gstring)
 }
 
 int
-composition_gstring_width (Lisp_Object gstring, EMACS_INT from, EMACS_INT to,
+composition_gstring_width (Lisp_Object gstring, ptrdiff_t from, ptrdiff_t to,
 			   struct font_metrics *metrics)
 {
   Lisp_Object *glyph;
@@ -800,8 +800,8 @@ static Lisp_Object gstring_work_headers;
 static Lisp_Object
 fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lisp_Object font_object, Lisp_Object string)
 {
-  EMACS_INT from, to, from_byte;
-  EMACS_INT len, i;
+  ptrdiff_t from, to, from_byte;
+  ptrdiff_t len, i;
 
   if (NILP (string))
     {
@@ -817,11 +817,11 @@ fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lis
       CHECK_STRING (string);
       if (! STRING_MULTIBYTE (string))
 	error ("Attempt to shape unibyte text");
-      /* FROM and TO are checked by the caller.  */
+      /* The caller checks that START and END are nonnegative integers.  */
+      if (! (XINT (start) <= XINT (end) && XINT (end) <= SCHARS (string)))
+	args_out_of_range_3 (string, start, end);
       from = XINT (start);
       to = XINT (end);
-      if (from < 0 || from > to || to > SCHARS (string))
-	args_out_of_range_3 (string, start, end);
       from_byte = string_char_to_byte (string, from);
     }
 
@@ -860,8 +860,8 @@ fill_gstring_body (Lisp_Object gstring)
 {
   Lisp_Object font_object = LGSTRING_FONT (gstring);
   Lisp_Object header = AREF (gstring, 0);
-  EMACS_INT len = LGSTRING_CHAR_LEN (gstring);
-  EMACS_INT i;
+  ptrdiff_t len = LGSTRING_CHAR_LEN (gstring);
+  ptrdiff_t i;
 
   for (i = 0; i < len; i++)
     {
@@ -906,15 +906,15 @@ fill_gstring_body (Lisp_Object gstring)
    object.  Otherwise return nil.  */
 
 static Lisp_Object
-autocmp_chars (Lisp_Object rule, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT limit, struct window *win, struct face *face, Lisp_Object string)
+autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t limit, struct window *win, struct face *face, Lisp_Object string)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   FRAME_PTR f = XFRAME (win->frame);
   Lisp_Object pos = make_number (charpos);
-  EMACS_INT to;
-  EMACS_INT pt = PT, pt_byte = PT_BYTE;
+  ptrdiff_t to;
+  ptrdiff_t pt = PT, pt_byte = PT_BYTE;
   Lisp_Object re, font_object, lgstring;
-  EMACS_INT len;
+  ptrdiff_t len;
 
   record_unwind_save_match_data ();
   re = AREF (rule, 0);
@@ -997,9 +997,9 @@ static Lisp_Object _work_val;
    composition.  */
 
 void
-composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT endpos, Lisp_Object string)
+composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t endpos, Lisp_Object string)
 {
-  EMACS_INT start, end;
+  ptrdiff_t start, end;
   int c;
   Lisp_Object prop, val;
   /* This is from forward_to_next_line_start in xdisp.c.  */
@@ -1109,7 +1109,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
       int len;
       /* Limit byte position used in fast_looking_at.  This is the
 	 byte position of the character after START. */
-      EMACS_INT limit;
+      ptrdiff_t limit;
 
       if (NILP (string))
 	p = BYTE_POS_ADDR (bytepos);
@@ -1123,16 +1123,17 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 	  if (! NILP (val))
 	    {
 	      Lisp_Object elt;
-	      int ridx, back, blen;
+	      int ridx, blen;
 
 	      for (ridx = 0; CONSP (val); val = XCDR (val), ridx++)
 		{
 		  elt = XCAR (val);
 		  if (VECTORP (elt) && ASIZE (elt) == 3
 		      && NATNUMP (AREF (elt, 1))
-		      && charpos - (back = XFASTINT (AREF (elt, 1))) > endpos)
+		      && charpos - XFASTINT (AREF (elt, 1)) > endpos)
 		    {
-		      EMACS_INT cpos = charpos - back, bpos;
+		      ptrdiff_t back = XFASTINT (AREF (elt, 1));
+		      ptrdiff_t cpos = charpos - back, bpos;
 
 		      if (back == 0)
 			bpos = bytepos;
@@ -1226,7 +1227,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
    CMP_IT->stop_pos, and return 0.  */
 
 int
-composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT endpos, struct window *w, struct face *face, Lisp_Object string)
+composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t endpos, struct window *w, struct face *face, Lisp_Object string)
 {
   if (endpos < 0)
     endpos = NILP (string) ? BEGV : 0;
@@ -1242,7 +1243,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
   if (cmp_it->ch < 0)
     {
       /* We are looking at a static composition.  */
-      EMACS_INT start, end;
+      ptrdiff_t start, end;
       Lisp_Object prop;
 
       find_composition (charpos, -1, &start, &end, &prop, string);
@@ -1257,7 +1258,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
     {
       Lisp_Object lgstring = Qnil;
       Lisp_Object val, elt;
-      EMACS_INT i;
+      ptrdiff_t i;
 
       val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
       for (i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val));
@@ -1284,7 +1285,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 	}
       else
 	{
-	  EMACS_INT cpos = charpos, bpos = bytepos;
+	  ptrdiff_t cpos = charpos, bpos = bytepos;
 
 	  while (1)
 	    {
@@ -1370,7 +1371,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
    the cluster, or -1 if the composition is somehow broken.  */
 
 int
-composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, Lisp_Object string)
+composition_update_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff_t bytepos, Lisp_Object string)
 {
   int i, c IF_LINT (= 0);
 
@@ -1405,7 +1406,7 @@ composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
       /* automatic composition */
       Lisp_Object gstring = composition_gstring_from_id (cmp_it->id);
       Lisp_Object glyph;
-      EMACS_INT from;
+      ptrdiff_t from;
 
       if (cmp_it->nglyphs == 0)
 	{
@@ -1457,7 +1458,7 @@ composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 
 struct position_record
 {
-  EMACS_INT pos, pos_byte;
+  ptrdiff_t pos, pos_byte;
   unsigned char *p;
 };
 
@@ -1496,14 +1497,14 @@ struct position_record
    Qnil, and return 0.  */
 
 static int
-find_automatic_composition (EMACS_INT pos, EMACS_INT limit,
-			    EMACS_INT *start, EMACS_INT *end,
+find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
+			    ptrdiff_t *start, ptrdiff_t *end,
 			    Lisp_Object *gstring, Lisp_Object string)
 {
-  EMACS_INT head, tail, stop;
+  ptrdiff_t head, tail, stop;
   /* Forward limit position of checking a composition taking a
      looking-back count into account.  */
-  EMACS_INT fore_check_limit;
+  ptrdiff_t fore_check_limit;
   struct position_record cur, prev;
   int c;
   Lisp_Object window;
@@ -1688,10 +1689,10 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit,
 /* Return the adjusted point provided that point is moved from LAST_PT
    to NEW_PT.  */
 
-EMACS_INT
-composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
+ptrdiff_t
+composition_adjust_point (ptrdiff_t last_pt, ptrdiff_t new_pt)
 {
-  EMACS_INT i, beg, end;
+  ptrdiff_t i, beg, end;
   Lisp_Object val;
 
   if (new_pt == BEGV || new_pt == ZV)
@@ -1712,7 +1713,7 @@ composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
     return new_pt;
 
   /* Next check the automatic composition.  */
-  if (! find_automatic_composition (new_pt, (EMACS_INT) -1, &beg, &end, &val,
+  if (! find_automatic_composition (new_pt, (ptrdiff_t) -1, &beg, &end, &val,
 				    Qnil)
       || beg == new_pt)
     return new_pt;
@@ -1773,7 +1774,7 @@ should be ignored.  */)
   (Lisp_Object from, Lisp_Object to, Lisp_Object font_object, Lisp_Object string)
 {
   Lisp_Object gstring, header;
-  EMACS_INT frompos, topos;
+  ptrdiff_t frompos, topos;
 
   CHECK_NATNUM (from);
   CHECK_NATNUM (to);
@@ -1857,15 +1858,14 @@ See `find-composition' for more details.  */)
   (Lisp_Object pos, Lisp_Object limit, Lisp_Object string, Lisp_Object detail_p)
 {
   Lisp_Object prop, tail, gstring;
-  EMACS_INT start, end, from, to;
+  ptrdiff_t start, end, from, to;
   int id;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
-  from = XINT (pos);
   if (!NILP (limit))
     {
       CHECK_NUMBER_COERCE_MARKER (limit);
-      to = XINT (limit);
+      to = min (XINT (limit), ZV);
     }
   else
     to = -1;
@@ -1881,6 +1881,7 @@ See `find-composition' for more details.  */)
       if (XINT (pos) < BEGV || XINT (pos) > ZV)
 	args_out_of_range (Fcurrent_buffer (), pos);
     }
+  from = XINT (pos);
 
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
@@ -1893,7 +1894,7 @@ See `find-composition' for more details.  */)
     }
   if ((end <= XINT (pos) || start > XINT (pos)))
     {
-      EMACS_INT s, e;
+      ptrdiff_t s, e;
 
       if (find_automatic_composition (from, to, &s, &e, &gstring, string)
 	  && (e <= XINT (pos) ? e > end : s < start))
@@ -1910,7 +1911,7 @@ See `find-composition' for more details.  */)
     id = COMPOSITION_ID (prop);
   else
     {
-      EMACS_INT start_byte = (NILP (string)
+      ptrdiff_t start_byte = (NILP (string)
 			      ? CHAR_TO_BYTE (start)
 			      : string_char_to_byte (string, start));
       id = get_composition_id (start, start_byte, end - start, prop, string);

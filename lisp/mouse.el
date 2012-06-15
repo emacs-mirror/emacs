@@ -805,7 +805,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	 ;; when setting point near the right fringe (but see below).
 	 (auto-hscroll-mode-saved auto-hscroll-mode)
 	 (auto-hscroll-mode nil)
-	 event end end-point)
+	 moved-off-start event end end-point)
 
     (setq mouse-selection-click-count click-count)
     ;; In case the down click is in the middle of some intangible text,
@@ -840,6 +840,9 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	    (redisplay))
 	  (setq end (event-end event)
 		end-point (posn-point end))
+	  ;; Note whether the mouse has left the starting position.
+	  (unless (eq end-point start-point)
+	    (setq moved-off-start t))
 	  (if (and (eq (posn-window end) start-window)
 		   (integer-or-marker-p end-point))
 	      (mouse--drag-set-mark-and-point start-point
@@ -880,11 +883,11 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 		   (let (deactivate-mark)
 		     (copy-region-as-kill (mark) (point)))))
 
-	  ;; If point hasn't moved, run the binding of the
-	  ;; terminating up-event.
-	  (if do-multi-click
-	      (goto-char start-point)
-	    (deactivate-mark))
+	  ;; Otherwise, run binding of terminating up-event.
+	  (cond
+	   (do-multi-click (goto-char start-point))
+	   (moved-off-start (deactivate-mark))
+	   (t (pop-mark)))
 	  (when (and (functionp fun)
 		     (= start-hscroll (window-hscroll start-window))
 		     ;; Don't run the up-event handler if the window

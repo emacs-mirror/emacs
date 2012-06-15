@@ -65,6 +65,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
+#if (defined PROFILING \
+     && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
+# include <sys/gmon.h>
+extern void moncontrol (int mode);
+#endif
+
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
@@ -98,25 +104,25 @@ static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundati
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
 int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
 #else
 int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
 #endif
-#ifndef USE_LISP_UNION_TYPE
-int gdb_use_union EXTERNALLY_VISIBLE  = 0;
+#ifndef CHECK_LISP_OBJECT_TYPE
+int gdb_use_struct EXTERNALLY_VISIBLE = 0;
 #else
-int gdb_use_union EXTERNALLY_VISIBLE = 1;
+int gdb_use_struct EXTERNALLY_VISIBLE = 1;
 #endif
-EMACS_INT gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
-EMACS_INT gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
-#if defined (DATA_SEG_BITS) && ! defined (USE_LSB_TAG)
-EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
+int gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
+int gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
+#if defined DATA_SEG_BITS && !USE_LSB_TAG
+uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
 #else
-EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
+uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
 #endif
-EMACS_INT PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
-EMACS_INT gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
+ptrdiff_t PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
+ptrdiff_t gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
 /* GDB might say "No enum type named pvec_type" if we don't have at
    least one symbol with that type, and then xbacktrace could fail.  */
 enum pvec_type gdb_pvec_type EXTERNALLY_VISIBLE = PVEC_TYPE_MASK;
@@ -320,9 +326,9 @@ pthread_t main_thread;
 #ifdef HAVE_NS
 /* NS autrelease pool, for memory management.  */
 static void *ns_pool;
-#endif  
+#endif
 
- 
+
 
 /* Handle bus errors, invalid instruction, etc.  */
 #ifndef FLOAT_CATCH_SIGILL
@@ -401,7 +407,7 @@ init_cmdargs (int argc, char **argv, int skip_args)
 {
   register int i;
   Lisp_Object name, dir, handler;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
 
   initial_argv = argv;
@@ -1664,32 +1670,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef PROFILING
   if (initialized)
     {
-      extern void _mcleanup ();
 #ifdef __MINGW32__
       extern unsigned char etext asm ("etext");
 #else
       extern char etext;
 #endif
-#ifdef HAVE___EXECUTABLE_START
-      /* This symbol is defined by GNU ld to the start of the text
-	 segment.  */
-      extern char __executable_start[];
-#else
-      extern void safe_bcopy ();
-#endif
 
       atexit (_mcleanup);
-#ifdef HAVE___EXECUTABLE_START
-      monstartup (__executable_start, &etext);
-#else
-      /* This uses safe_bcopy because that function comes first in the
-	 Emacs executable.  It might be better to use something that
-	 gives the start of the text segment, but start_of_text is not
-	 defined on all systems now.  */
-      /* FIXME: Does not work on architectures with function
-	 descriptors.  */
-      monstartup (safe_bcopy, &etext);
-#endif
+      monstartup ((uintptr_t) __executable_start, (uintptr_t) &etext);
     }
   else
     moncontrol (0);
@@ -2027,10 +2015,15 @@ all of which are called before Emacs is actually killed.  */)
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SSDATA (Vauto_save_list_file_name));
 
-  exit_code = EXIT_SUCCESS;
-  if (noninteractive && (fflush (stdout) || ferror (stdout)))
+  if (INTEGERP (arg))
+    exit_code = (XINT (arg) < 0
+		 ? XINT (arg) | INT_MIN
+		 : XINT (arg) & INT_MAX);
+  else if (noninteractive && (fflush (stdout) || ferror (stdout)))
     exit_code = EXIT_FAILURE;
-  exit (INTEGERP (arg) ? XINT (arg) : exit_code);
+  else
+    exit_code = EXIT_SUCCESS;
+  exit (exit_code);
 }
 
 
@@ -2140,7 +2133,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 {
   Lisp_Object tem;
   Lisp_Object symbol;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   check_pure_size ();
 

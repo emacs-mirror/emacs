@@ -1,3 +1,35 @@
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (SYSTEM_TYPE): Set it.
+
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (GNULIB_GL_UNISTD_H_GETOPT, GNULIB_POSIX_OPENPT)
+	(GNULIB_ISATTY, GNULIB_PTSNAME_R, GNULIB_RANDOM)
+	(GNULIB_SETHOSTNAME, HAVE_POSIX_OPENPT, HAVE_PTSNAME_R)
+	(HAVE_RANDOM, HAVE_SETHOSTNAME, NEXT_SYS_TYPES_H)
+	(NEXT_AS_FIRST_DIRECTIVE_SYS_TYPES_H, REPLACE_FTRUNCATE)
+	(REPLACE_ISATTY, REPLACE_PTSNAME_R, REPLACE_RANDOM_R)
+	(REPLACE_STRTOIMAX, STDALIGN_H, WINDOWS_64_BIT_OFF_T)
+	(WINDOWS_64_BIT_ST_SIZE, GL_GENERATE_STDALIGN_H_TRUE)
+	(GL_GENERATE_STDALIGN_H_FALSE): Edit as appropriate for DJGPP.
+	(cat FOO): Edit into "sed -e '' FOO >>".
+
+2012-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed6.inp (INFO_EXT): Edit to .info.
+	(INFO_OPTS): Edit to --no-split.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* mainmake.v2 (TAGS tags): Don't look at $(CURDIR)/src/m/intel386.h.
+
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sed2v2.inp (HAVE_MBLEN): Remove.
+	* sed2x.inp (HAVE_XSETWMPROTOCOLS): Remove.
+
 2012-04-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedleim.inp (RUN_EMACS): Replace BUILT_EMACS with EMACS.

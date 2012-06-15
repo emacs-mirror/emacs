@@ -3,8 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Files, Backups and Auto-Saving, Documentation, Top
-@comment  node-name,  next,  previous,  up
+@node Files
 @chapter Files
 
   This chapter describes the Emacs Lisp functions and variables to
@@ -250,7 +249,6 @@ is permanent local, so it is unaffected by changes of major modes.
 @end defvar
 
 @node Subroutines of Visiting
-@comment  node-name,  next,  previous,  up
 @subsection Subroutines of Visiting
 
   The @code{find-file-noselect} function uses two important subroutines
@@ -506,7 +504,6 @@ major modes set it to @code{t} in particular buffers.
 Name}).
 
 @node Reading from Files
-@comment  node-name,  next,  previous,  up
 @section Reading from Files
 @cindex reading from files
 
@@ -569,7 +566,6 @@ program can read the file, use the function @code{file-local-copy}; see
 @ref{Magic File Names}.
 
 @node Writing to Files
-@comment  node-name,  next,  previous,  up
 @section Writing to Files
 @cindex writing to files
 
@@ -789,7 +785,6 @@ otherwise noted.
 @end menu
 
 @node Testing Accessibility
-@comment  node-name,  next,  previous,  up
 @subsection Testing Accessibility
 @cindex accessibility of a file
 @cindex file accessibility
@@ -947,7 +942,6 @@ time as a list of two numbers.  @xref{File Attributes}.
 @end defun
 
 @node Kinds of Files
-@comment  node-name,  next,  previous,  up
 @subsection Distinguishing Kinds of Files
 
   This section describes how to distinguish various kinds of files, such
@@ -1100,7 +1094,6 @@ we would have:
   @xref{Buffer File Name}, for related information.
 
 @node File Attributes
-@comment  node-name,  next,  previous,  up
 @subsection Other Information about Files
 
   This section describes the functions for getting detailed
@@ -1918,7 +1911,6 @@ form.
 @end defun
 
 @node Directory Names
-@comment  node-name,  next,  previous,  up
 @subsection Directory Names
 @cindex directory name
 @cindex file name of directory
@@ -3133,10 +3125,10 @@ in the order of appearance in the list.
 This command writes the current buffer contents into the file @var{file}
 in a format based on @var{format}, which is a list of format names.  It
 constructs the actual format starting from @var{format}, then appending
-any elements from the value of @code{buffer-file-format} with a non-nil
-@var{preserve} flag (see above), if they are not already present in
-@var{format}.  It then updates @code{buffer-file-format} with this
-format, making it the default for future saves.  Except for the
+any elements from the value of @code{buffer-file-format} with a
+non-@code{nil} @var{preserve} flag (see above), if they are not already
+present in @var{format}.  It then updates @code{buffer-file-format} with
+this format, making it the default for future saves.  Except for the
 @var{format} argument, this command is similar to @code{write-file}.  In
 particular, @var{confirm} has the same meaning and interactive treatment
 as the corresponding argument to @code{write-file}.  @xref{Definition of

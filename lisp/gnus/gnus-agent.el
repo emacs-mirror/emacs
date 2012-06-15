@@ -3742,6 +3742,13 @@ has been fetched."
       (gnus-make-directory (nnheader-translate-file-chars
 			    (file-name-directory file) t))
 
+      (when fetch-old
+	(setq articles (gnus-uncompress-range
+			(cons (if (numberp fetch-old)
+				  (max 1 (- (car articles) fetch-old))
+				1)
+			      (car (last articles))))))
+
       ;; Populate temp buffer with known headers
       (when (file-exists-p file)
 	(with-current-buffer gnus-agent-overview-buffer
@@ -3778,12 +3785,7 @@ has been fetched."
                    (set-buffer nntp-server-buffer)
                    (let* ((fetched-articles (list nil))
                           (tail-fetched-articles fetched-articles)
-                          (min (cond ((numberp fetch-old)
-                                      (max 1 (- (car articles) fetch-old)))
-                                     (fetch-old
-                                      1)
-                                     (t
-                                      (car articles))))
+                          (min (car articles))
                           (max (car (last articles))))
 
                      ;; Get the list of articles that were fetched
@@ -3858,8 +3860,7 @@ has been fetched."
 	     (not (numberp fetch-old)))
 	t				; Don't remove anything.
       (nnheader-nov-delete-outside-range
-       (if fetch-old (max 1 (- (car articles) fetch-old))
-	 (car articles))
+       (car articles)
        (car (last articles)))
       t)
 

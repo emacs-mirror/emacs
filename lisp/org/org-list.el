@@ -714,15 +714,15 @@ Assume point is at an item."
       ;;    equally indented than BEG-CELL's cdr.  Also, store ending
       ;;    position of items in END-LST-2.
       (catch 'exit
-      	(while t
-      	  (let ((ind (+ (or (get-text-property (point) 'original-indentation) 0)
+	(while t
+	  (let ((ind (+ (or (get-text-property (point) 'original-indentation) 0)
 			(org-get-indentation))))
-      	    (cond
-      	     ((>= (point) lim-down)
+	    (cond
+	     ((>= (point) lim-down)
 	      ;; At downward limit: this is de facto the end of the
 	      ;; list.  Save point as an ending position, and jump to
 	      ;; part 3.
-      	      (throw 'exit
+	      (throw 'exit
 		     (push (cons 0 (funcall end-before-blank)) end-lst-2)))
 	     ;; At a verbatim block, move to its end.  Point is at bol
 	     ;; and 'org-example property is set by whole lines:
@@ -1071,8 +1071,10 @@ It determines the number of whitespaces to append by looking at
 
 (defun org-list-swap-items (beg-A beg-B struct)
   "Swap item starting at BEG-A with item starting at BEG-B in STRUCT.
-Blank lines at the end of items are left in place.  Return the
-new structure after the changes.
+
+Blank lines at the end of items are left in place.  Item
+visibility is preserved.  Return the new structure after the
+changes.
 
 Assume BEG-A is lesser than BEG-B and that BEG-A and BEG-B belong
 to the same sub-list.
@@ -1089,7 +1091,17 @@ This function modifies STRUCT."
 	   (body-B (buffer-substring beg-B end-B-no-blank))
 	   (between-A-no-blank-and-B (buffer-substring end-A-no-blank beg-B))
 	   (sub-A (cons beg-A (org-list-get-subtree beg-A struct)))
-	   (sub-B (cons beg-B (org-list-get-subtree beg-B struct))))
+	   (sub-B (cons beg-B (org-list-get-subtree beg-B struct)))
+	   ;; Store overlays responsible for visibility status.  We
+	   ;; also need to store their boundaries as they will be
+	   ;; removed from buffer.
+	   (overlays (cons
+		      (mapcar (lambda (ov)
+				(list ov (overlay-start ov) (overlay-end ov)))
+			      (overlays-in beg-A end-A))
+		      (mapcar (lambda (ov)
+				(list ov (overlay-start ov) (overlay-end ov)))
+			      (overlays-in beg-B end-B)))))
       ;; 1. Move effectively items in buffer.
       (goto-char beg-A)
       (delete-region beg-A end-B-no-blank)
@@ -1122,7 +1134,22 @@ This function modifies STRUCT."
 		    (setcar e (+ pos (- size-B size-A)))
 		    (setcar (nthcdr 6 e) (+ end-e (- size-B size-A))))))))
 	    struct)
-      (sort struct (lambda (e1 e2) (< (car e1) (car e2)))))))
+      (setq struct (sort struct (lambda (e1 e2) (< (car e1) (car e2)))))
+      ;; Restore visibility status, by moving overlays to their new
+      ;; position.
+      (mapc (lambda (ov)
+	      (move-overlay
+	       (car ov)
+	       (+ (nth 1 ov) (- (+ beg-B (- size-B size-A)) beg-A))
+	       (+ (nth 2 ov) (- (+ beg-B (- size-B size-A)) beg-A))))
+	    (car overlays))
+      (mapc (lambda (ov)
+	      (move-overlay (car ov)
+			    (+ (nth 1 ov) (- beg-A beg-B))
+			    (+ (nth 2 ov) (- beg-A beg-B))))
+	    (cdr overlays))
+      ;; Return structure.
+      struct)))
 
 (defun org-list-separating-blank-lines-number (pos struct prevs)
   "Return number of blank lines that should separate items in list.
@@ -1340,8 +1367,8 @@ If DEST is a buffer position, the function will assume it points
 to another item in the same list as ITEM, and will move the
 latter just before the former.
 
-If DEST is `begin' \(respectively `end'\), ITEM will be moved at
-the beginning \(respectively end\) of the list it belongs to.
+If DEST is `begin' (respectively `end'), ITEM will be moved at
+the beginning (respectively end) of the list it belongs to.
 
 If DEST is a string like \"N\", where N is an integer, ITEM will
 be moved at the Nth position in the list.
@@ -1350,6 +1377,8 @@ If DEST is `kill', ITEM will be deleted and its body will be
 added to the kill-ring.
 
 If DEST is `delete', ITEM will be deleted.
+
+Visibility of item is preserved.
 
 This function returns, destructively, the new list structure."
   (let* ((prevs (org-list-prevs-alist struct))
@@ -1393,7 +1422,9 @@ This function returns, destructively, the new list structure."
 			     (org-list-get-last-item item struct prevs))
 			    (point-at-eol)))))
 		     (t dest)))
-	 (org-M-RET-may-split-line nil))
+	 (org-M-RET-may-split-line nil)
+	 ;; Store visibility.
+	 (visibility (overlays-in item item-end)))
     (cond
      ((eq dest 'delete) (org-list-delete-item item struct))
      ((eq dest 'kill)
@@ -1429,9 +1460,14 @@ This function returns, destructively, the new list structure."
 							 (+ end shift)))))))
 			       moved-items))
 		      (lambda (e1 e2) (< (car e1) (car e2))))))
-      ;; 2. Eventually delete extra copy of the item and clean marker.
-      (prog1
-	  (org-list-delete-item (marker-position item) struct)
+      ;; 2. Restore visibility.
+      (mapc (lambda (ov)
+	      (move-overlay ov
+			    (+ (overlay-start ov) (- (point) item))
+			    (+ (overlay-end ov) (- (point) item))))
+	    visibility)
+      ;; 3. Eventually delete extra copy of the item and clean marker.
+      (prog1 (org-list-delete-item (marker-position item) struct)
 	(move-marker item nil)))
      (t struct))))
 

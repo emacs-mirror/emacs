@@ -678,11 +678,9 @@ height."
   :group 'table)
 
 (defface table-cell
-  '((((min-colors 88) (class color))
-     (:foreground "gray90" :background "blue1"))
-    (((class color))
-     (:foreground "gray90" :background "blue"))
-    (t (:bold t)))
+  '((((min-colors 88) (class color)) :foreground "gray90" :background "blue1")
+    (((class color)) :foreground "gray90" :background "blue")
+    (t :weight bold))
   "Face used for table cell contents."
   :tag "Cell Face"
   :group 'table)

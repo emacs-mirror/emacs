@@ -2958,6 +2958,28 @@ Default is to leave paragraph indentation as is."
     ("ky" . texinfo-format-kindex)))
 
 
+;;; Sort and index
+
+;; Sort an index which is in the current buffer between START and END.
+(defun texinfo-sort-region (start end)
+  (require 'sort)
+  (save-restriction
+    (narrow-to-region start end)
+    (goto-char (point-min))
+    (sort-subr nil 'forward-line 'end-of-line 'texinfo-sort-startkeyfun)))
+
+;; Subroutine for sorting an index.
+;; At start of a line, return a string to sort the line under.
+(defun texinfo-sort-startkeyfun ()
+  (let ((line (buffer-substring-no-properties (point) (line-end-position))))
+    ;; Canonicalize whitespace and eliminate funny chars.
+    (while (string-match "[ \t][ \t]+\\|[^a-z0-9 ]+" line)
+      (setq line (concat (substring line 0 (match-beginning 0))
+                         " "
+                         (substring line (match-end 0)))))
+    line))
+
+
 ;;; @printindex
 
 (put 'printindex 'texinfo-format 'texinfo-format-printindex)
@@ -2974,7 +2996,7 @@ Default is to leave paragraph indentation as is."
     (insert "\n* Menu:\n\n")
     (setq opoint (point))
     (texinfo-print-index nil indexelts)
-    (shell-command-on-region opoint (point) "sort -fd" 1)))
+    (texinfo-sort-region opoint (point))))
 
 (defun texinfo-print-index (file indexelts)
   (while indexelts

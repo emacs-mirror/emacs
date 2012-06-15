@@ -112,6 +112,11 @@ It may also be omitted.
 BODY should be a list of Lisp expressions.
 
 \(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
+  (declare (doc-string 2) (indent defun)
+           (debug (&define lambda-list
+                           [&optional stringp]
+                           [&optional ("interactive" interactive)]
+                           def-body)))
   ;; Note that this definition should not use backquotes; subr.el should not
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
@@ -520,7 +525,13 @@ side-effects, and the argument LIST is not modified."
 
 ;;;; Keymap support.
 
-(defalias 'kbd 'read-kbd-macro)
+(defun kbd (keys)
+  "Convert KEYS to the internal Emacs key representation.
+KEYS should be a string constant in the format used for
+saving keyboard macros (see `edmacro-mode')."
+  ;; Don't use a defalias, since the `pure' property is only true for
+  ;; the calling convention of `kbd'.
+  (read-kbd-macro keys))
 (put 'kbd 'pure t)
 
 (defun undefined ()
@@ -1149,6 +1160,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
 
 (make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
+(make-obsolete 'buffer-has-markers-at nil "24.2")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -2460,7 +2472,8 @@ This finishes the change group by reverting all of its changes."
 ;;;; Display-related functions.
 
 ;; For compatibility.
-(defalias 'redraw-modeline 'force-mode-line-update)
+(define-obsolete-function-alias 'redraw-modeline
+  'force-mode-line-update "24.2")
 
 (defun force-mode-line-update (&optional all)
   "Force redisplay of the current buffer's mode line and header line.

@@ -112,8 +112,8 @@ clean_local_selection_data (Lisp_Object obj)
 
   if (VECTORP (obj))
     {
-      int i;
-      int size = ASIZE (obj);
+      ptrdiff_t i;
+      ptrdiff_t size = ASIZE (obj);
       Lisp_Object copy;
 
       if (size == 1)
@@ -184,7 +184,7 @@ ns_get_local_selection (Lisp_Object selection_name,
 {
   Lisp_Object local_value;
   Lisp_Object handler_fn, value, type, check;
-  int count;
+  ptrdiff_t count;
 
   local_value = assq_no_quit (selection_name, Vselection_alist);
 
@@ -297,7 +297,7 @@ ns_string_from_pasteboard (id pb)
       length = [mstr lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
 
 #if ! defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
-      if (!utfStr) 
+      if (!utfStr)
         {
           utfStr = [mstr cString];
           length = strlen (utfStr);
@@ -603,4 +603,3 @@ The functions are called with one argument, the selection type\n\
   Qforeign_selection = intern_c_string ("foreign-selection");
   staticpro (&Qforeign_selection);
 }
-

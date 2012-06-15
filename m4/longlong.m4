@@ -1,5 +1,5 @@
-# longlong.m4 serial 16
-dnl Copyright (C) 1999-2007, 2009-2011 Free Software Foundation, Inc.
+# longlong.m4 serial 17
+dnl Copyright (C) 1999-2007, 2009-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -51,7 +51,7 @@ AC_DEFUN([AC_TYPE_LONG_LONG_INT],
       fi])
   if test $ac_cv_type_long_long_int = yes; then
     AC_DEFINE([HAVE_LONG_LONG_INT], [1],
-      [Define to 1 if the system has the type `long long int'.])
+      [Define to 1 if the system has the type 'long long int'.])
   fi
 ])
 
@@ -77,7 +77,7 @@ AC_DEFUN([AC_TYPE_UNSIGNED_LONG_LONG_INT],
      fi])
   if test $ac_cv_type_unsigned_long_long_int = yes; then
     AC_DEFINE([HAVE_UNSIGNED_LONG_LONG_INT], [1],
-      [Define to 1 if the system has the type `unsigned long long int'.])
+      [Define to 1 if the system has the type 'unsigned long long int'.])
   fi
 ])
 

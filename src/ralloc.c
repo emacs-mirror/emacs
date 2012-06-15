@@ -31,9 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 
-typedef POINTER_TYPE *POINTER;
-typedef size_t SIZE;
-
 #ifdef DOUG_LEA_MALLOC
 #define M_TOP_PAD           -2
 extern int mallopt (int, int);
@@ -47,9 +44,6 @@ extern size_t __malloc_extra_blocks;
 
 #include <stddef.h>
 
-typedef size_t SIZE;
-typedef void *POINTER;
-
 #include <unistd.h>
 #include <malloc.h>
 
@@ -58,6 +52,8 @@ typedef void *POINTER;
 
 #include "getpagesize.h"
 
+typedef size_t SIZE;
+typedef void *POINTER;
 #define NIL ((POINTER) 0)
 
 /* A flag to indicate whether we have initialized ralloc yet.  For
@@ -1141,6 +1137,17 @@ r_alloc_reset_variable (POINTER *old, POINTER *new)
 
   /* Update variable to point to the new location.  */
   bloc->variable = new;
+}
+
+void
+r_alloc_inhibit_buffer_relocation (int inhibit)
+{
+  if (use_relocatable_buffers < 0)
+    use_relocatable_buffers = 0;
+  if (inhibit)
+    use_relocatable_buffers++;
+  else if (use_relocatable_buffers > 0)
+    use_relocatable_buffers--;
 }
 
 

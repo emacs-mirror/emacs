@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Modes, Documentation, Keymaps, Top
+@node Modes
 @chapter Major and Minor Modes
 @cindex mode
 
@@ -734,13 +734,15 @@ modes.  It is normally bound to @kbd{C-h m}.  It uses the value of the
 variable @code{major-mode} (@pxref{Major Modes}), which is why every
 major mode command needs to set that variable.
 
-@deffn Command describe-mode
-This function displays the documentation of the current major mode.
+@deffn Command describe-mode &optional buffer
+This command displays the documentation of the current buffer's major
+mode and minor modes.  It uses the @code{documentation} function to
+retrieve the documentation strings of the major and minor mode
+commands (@pxref{Accessing Documentation}).
 
-The @code{describe-mode} function calls the @code{documentation}
-function using the value of @code{major-mode} as an argument.  Thus, it
-displays the documentation string of the major mode command.
-(@xref{Accessing Documentation}.)
+If called from Lisp with a non-nil @var{buffer} argument, this
+function displays the documentation for that buffer's major and minor
+modes, rather than those of the current buffer.
 @end deffn
 
 @node Derived Modes
@@ -1841,9 +1843,9 @@ properties specified by @var{props} to the result.  The argument
 A list whose first element is a symbol that is not a keyword specifies
 a conditional.  Its meaning depends on the value of @var{symbol}.  If
 @var{symbol} has a non-@code{nil} value, the second element,
-@var{then}, is processed recursively as a mode line element.
+@var{then}, is processed recursively as a mode line construct.
 Otherwise, the third element, @var{else}, is processed recursively.
-You may omit @var{else}; then the mode line element displays nothing
+You may omit @var{else}; then the mode line construct displays nothing
 if the value of @var{symbol} is @code{nil} or void.
 
 @item (@var{width} @var{rest}@dots{})
@@ -1990,14 +1992,14 @@ default value also displays the recursive editing level, information
 on the process status, and whether narrowing is in effect.
 @end defopt
 
-@defopt mode-line-remote
+@defvar mode-line-remote
 This variable is used to show whether @code{default-directory} for the
 current buffer is remote.
-@end defopt
+@end defvar
 
-@defopt mode-line-client
+@defvar mode-line-client
 This variable is used to identify @code{emacsclient} frames.
-@end defopt
+@end defvar
 
   The following three variables are used in @code{mode-line-modes}:
 
@@ -2315,10 +2317,10 @@ definitions, or other named portions of the buffer; then the user can
 choose one of them and move point to it.  Major modes can add a menu
 bar item to use Imenu using @code{imenu-add-to-menubar}.
 
-@defun imenu-add-to-menubar name
+@deffn Command imenu-add-to-menubar name
 This function defines a local menu bar item named @var{name}
 to run Imenu.
-@end defun
+@end deffn
 
   The user-level commands for using Imenu are described in the Emacs
 Manual (@pxref{Imenu,, Imenu, emacs, the Emacs Manual}).  This section
@@ -3860,9 +3862,9 @@ Return non-@code{nil} if the current token's parent is among @var{parents}.
 @end defun
 
 @defun smie-rule-sibling-p
-Return non-nil if the current token's parent is actually a sibling.
-This is the case for example when the parent of a @code{","} is just the
-previous @code{","}.
+Return non-@code{nil} if the current token's parent is actually a
+sibling.  This is the case for example when the parent of a @code{","}
+is just the previous @code{","}.
 @end defun
 
 @defun smie-rule-parent &optional offset

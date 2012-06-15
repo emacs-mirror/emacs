@@ -101,16 +101,15 @@ the remaining command-line args are in the variable `command-line-args-left'.")
   "List of command-line args not yet processed.")
 
 (defvaralias 'argv 'command-line-args-left
-  ;; FIXME: Bad name for a dynamically bound variable.
   "List of command-line args not yet processed.
 This is a convenience alias, so that one can write \(pop argv\)
 inside of --eval command line arguments in order to access
 following arguments.")
+(internal-make-var-non-special 'argv)
 
-(with-no-warnings
-  ;; FIXME: Bad name for a dynamically bound variable
-  (defvar argi nil
-    "Current command-line argument."))
+(defvar argi nil
+  "Current command-line argument.")
+(internal-make-var-non-special 'argi)
 
 (defvar command-line-functions nil    ;; lrs 7/31/89
   "List of functions to process unrecognized command-line arguments.
@@ -1492,7 +1491,8 @@ a face or button specification."
 				   (if (image-type-available-p 'xpm)
 				       "splash.xpm"
 				     "splash.pbm"))
-				  ((image-type-available-p 'svg)
+				  ((or (image-type-available-p 'svg)
+				       (image-type-available-p 'imagemagick))
 				   "splash.svg")
 				  ((image-type-available-p 'png)
 				   "splash.png")

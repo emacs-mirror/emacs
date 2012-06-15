@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Markers, Text, Positions, Top
+@node Markers
 @chapter Markers
 @cindex markers
 
@@ -205,7 +205,7 @@ chapter.
 @end example
 @end defun
 
-@defun copy-marker marker-or-integer &optional insertion-type
+@defun copy-marker &optional marker-or-integer insertion-type
 If passed a marker as its argument, @code{copy-marker} returns a
 new marker that points to the same place and the same buffer as does
 @var{marker-or-integer}.  If passed an integer as its argument,

@@ -16,51 +16,29 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* We introduce new member `tab_offset'.  We need it because of the
-   existence of wide-column characters.  There is a case that the
-   line-break occurs at a wide-column character and the number of
-   columns of the line gets less than width.
-
-   Example (where W_ stands for a wide-column character):
-	     ----------
-	     abcdefgh\\
-	     W_
-	     ----------
-
-   To handle this case, we should not calculate the tab offset by
-  	tab_offset += width;
-
-   Instead, we must remember tab_offset of the line.
-
- */
-
 struct position
   {
-    EMACS_INT bufpos;
-    EMACS_INT bytepos;
+    ptrdiff_t bufpos;
+    ptrdiff_t bytepos;
     EMACS_INT hpos;
     EMACS_INT vpos;
     EMACS_INT prevhpos;
-    EMACS_INT contin;
-    /* Number of characters we have already handled
-       from the before and after strings at this position.  */
-    EMACS_INT ovstring_chars_done;
-    EMACS_INT tab_offset;
+    int contin;
   };
 
-struct position *compute_motion (EMACS_INT from, EMACS_INT fromvpos,
+struct position *compute_motion (ptrdiff_t from, EMACS_INT fromvpos,
                                  EMACS_INT fromhpos, int did_motion,
-                                 EMACS_INT to, EMACS_INT tovpos,
+                                 ptrdiff_t to, EMACS_INT tovpos,
                                  EMACS_INT tohpos,
-                                 EMACS_INT width, EMACS_INT hscroll,
-                                 EMACS_INT tab_offset, struct window *);
-struct position *vmotion (EMACS_INT from, EMACS_INT vtarget,
+                                 EMACS_INT width, ptrdiff_t hscroll,
+                                 int tab_offset, struct window *);
+struct position *vmotion (ptrdiff_t from, EMACS_INT vtarget,
                           struct window *);
-EMACS_INT skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p,
-                          EMACS_INT to, Lisp_Object window);
+ptrdiff_t skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p,
+                          ptrdiff_t to, Lisp_Object window);
 
 /* Value of point when current_column was called */
-extern EMACS_INT last_known_column_point;
+extern ptrdiff_t last_known_column_point;
 
 /* Functions for dealing with the column cache.  */
 

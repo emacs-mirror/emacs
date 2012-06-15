@@ -1105,14 +1105,14 @@ inclusive.  The standard macro `dotimes' is preferable in most cases."
             ,index (1+ ,index)))
     sum))
 
-;; FIXME bind q to bury-buffer?
 (defmacro calendar-in-read-only-buffer (buffer &rest body)
-  "Switch to BUFFER and executes the forms in BODY.
+  "Switch to BUFFER and execute the forms in BODY.
 First creates or erases BUFFER as needed.  Leaves BUFFER read-only,
 with disabled undo.  Leaves point at point-min, displays BUFFER."
   (declare (indent 1) (debug t))
   `(progn
      (set-buffer (get-buffer-create ,buffer))
+     (special-mode)
      (setq buffer-read-only nil
            buffer-undo-list t)
      (erase-buffer)
@@ -1793,19 +1793,6 @@ the STRINGS are just concatenated and the result truncated."
                          ?\s (- calendar-right-margin (1- start))))))
         (force-mode-line-update))))
 
-(defun calendar-window-list ()
-  "List of all calendar-related windows."
-  (let ((calendar-buffers (calendar-buffer-list))
-        list)
-    ;; Using 0 rather than t for last argument - see bug#2199.
-    ;; This is only used with calendar-hide-window, which ignores
-    ;; iconified frames anyway, so could use 'visible rather than 0.
-    (walk-windows (lambda (w)
-                    (if (memq (window-buffer w) calendar-buffers)
-                        (push w list)))
-                  nil 0)
-    list))
-
 (defun calendar-buffer-list ()
   "List of all calendar-related buffers (as buffers, not strings)."
   (let (buffs)
@@ -1817,40 +1804,28 @@ the STRINGS are just concatenated and the result truncated."
            (push b buffs)))
     buffs))
 
-(defun calendar-exit ()
+(defun calendar-exit (&optional kill)
   "Get out of the calendar window and hide it and related buffers."
-  (interactive)
-  (let ((diary-buffer (get-file-buffer diary-file)))
-    (if (or (not diary-buffer)
-            (not (buffer-modified-p diary-buffer))
-            (yes-or-no-p
-             "Diary modified; do you really want to exit the calendar? "))
-        ;; Need to do this multiple times because one time can replace some
-        ;; calendar-related buffers with other calendar-related buffers.
-        (mapc (lambda (x)
-                (mapc 'calendar-hide-window (calendar-window-list)))
-              (calendar-window-list)))))
+  (interactive "P")
+  (let ((diary-buffer (get-file-buffer diary-file))
+        (calendar-buffers (calendar-buffer-list)))
+    (when (or (not diary-buffer)
+              (not (buffer-modified-p diary-buffer))
+              (yes-or-no-p
+               "Diary modified; do you really want to exit the calendar? "))
+      (if (and calendar-setup (display-multi-frame-p))
+          ;; FIXME: replace this cruft with the `quit-restore' window property
+          (dolist (w (window-list-1 nil nil t))
+            (if (and (memq (window-buffer w) calendar-buffers)
+                     (window-dedicated-p w))
+                (if calendar-remove-frame-by-deleting
+                    (delete-frame (window-frame w))
+                    (iconify-frame (window-frame w)))
+              (quit-window kill w)))
+        (dolist (b calendar-buffers)
+          (quit-windows-on b kill))))))
 
 (define-obsolete-function-alias 'exit-calendar 'calendar-exit "23.1")
-
-(defun calendar-hide-window (window)
-  "Hide WINDOW if it is calendar-related."
-  (let ((buffer (if (window-live-p window) (window-buffer window))))
-    (if (memq buffer (calendar-buffer-list))
-        (cond
-         ((and (display-multi-frame-p)
-               (eq 'icon (cdr (assoc 'visibility
-                                     (frame-parameters
-                                      (window-frame window))))))
-          nil)
-         ((and (display-multi-frame-p) (window-dedicated-p window))
-          (if calendar-remove-frame-by-deleting
-              (delete-frame (window-frame window))
-              (iconify-frame (window-frame window))))
-         ((not (and (select-window window) (one-window-p window)))
-          (delete-window window))
-         (t (set-buffer buffer)
-            (bury-buffer))))))
 
 (defun calendar-current-date (&optional offset)
   "Return the current date in a list (month day year).

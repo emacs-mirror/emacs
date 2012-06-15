@@ -176,6 +176,7 @@ files.")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru Tomabechi,")
     ("Tsugutomo Enami" "enami tsugutomo")
+    ("Ulrich Müller" "Ulrich Mueller")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
     ("William M. Perry" "Bill Perry")
     ("Wlodzimierz Bzyl" "W.*dek Bzyl")
@@ -398,7 +399,7 @@ Changes to files in this list are not listed.")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
-    ("Paul Eggert" :wrote "rcs2log" "vcdiff")
+    ("Paul Eggert" :wrote "rcs2log") ; "vcdiff"
     ("Fred Fish" :changed "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Tim Fleehart" :wrote "makefile.nt")

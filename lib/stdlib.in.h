@@ -1,6 +1,6 @@
 /* A GNU-like <stdlib.h>.
 
-   Copyright (C) 1995, 2001-2004, 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2004, 2006-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,6 +49,11 @@
 # include <sys/loadavg.h>
 #endif
 
+/* Native Windows platforms declare mktemp() in <io.h>.  */
+#if 0 && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+# include <io.h>
+#endif
+
 #if @GNULIB_RANDOM_R@
 
 /* OSF/1 5.1 declares 'struct random_data' in <random.h>, which is included
@@ -58,7 +63,7 @@
 #  include <random.h>
 # endif
 
-# if !@HAVE_STRUCT_RANDOM_DATA@ || !@HAVE_RANDOM_R@
+# if !@HAVE_STRUCT_RANDOM_DATA@ || @REPLACE_RANDOM_R@ || !@HAVE_RANDOM_R@
 #  include <stdint.h>
 # endif
 
@@ -87,6 +92,14 @@ struct random_data
 /* On Cygwin 1.7.1, only <unistd.h> declares getsubopt.  */
 /* But avoid namespace pollution on glibc systems and native Windows.  */
 # include <unistd.h>
+#endif
+
+/* The __attribute__ feature is available in gcc versions 2.5 and later.
+   The attribute __pure__ was added in gcc 2.96.  */
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96)
+# define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
+#else
+# define _GL_ATTRIBUTE_PURE /* empty */
 #endif
 
 /* The definition of _Noreturn is copied here.  */
@@ -133,7 +146,9 @@ _GL_WARN_ON_USE (_Exit, "_Exit is unportable - "
 /* Parse a signed decimal integer.
    Returns the value of the integer.  Errors are not detected.  */
 # if !@HAVE_ATOLL@
-_GL_FUNCDECL_SYS (atoll, long long, (const char *string) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (atoll, long long, (const char *string)
+                                    _GL_ATTRIBUTE_PURE
+                                    _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (atoll, long long, (const char *string));
 _GL_CXXALIASWARN (atoll);
@@ -247,7 +262,7 @@ _GL_CXXALIASWARN (grantpt);
 #elif defined GNULIB_POSIXCHECK
 # undef grantpt
 # if HAVE_RAW_DECL_GRANTPT
-_GL_WARN_ON_USE (ptsname, "grantpt is not portable - "
+_GL_WARN_ON_USE (grantpt, "grantpt is not portable - "
                  "use gnulib module grantpt for portability");
 # endif
 #endif
@@ -423,6 +438,22 @@ _GL_WARN_ON_USE (mkstemps, "mkstemps is unportable - "
 # endif
 #endif
 
+#if @GNULIB_POSIX_OPENPT@
+/* Return an FD open to the master side of a pseudo-terminal.  Flags should
+   include O_RDWR, and may also include O_NOCTTY.  */
+# if !@HAVE_POSIX_OPENPT@
+_GL_FUNCDECL_SYS (posix_openpt, int, (int flags));
+# endif
+_GL_CXXALIAS_SYS (posix_openpt, int, (int flags));
+_GL_CXXALIASWARN (posix_openpt);
+#elif defined GNULIB_POSIXCHECK
+# undef posix_openpt
+# if HAVE_RAW_DECL_POSIX_OPENPT
+_GL_WARN_ON_USE (posix_openpt, "posix_openpt is not portable - "
+                 "use gnulib module posix_openpt for portability");
+# endif
+#endif
+
 #if @GNULIB_PTSNAME@
 /* Return the pathname of the pseudo-terminal slave associated with
    the master FD is open on, or NULL on errors.  */
@@ -436,6 +467,32 @@ _GL_CXXALIASWARN (ptsname);
 # if HAVE_RAW_DECL_PTSNAME
 _GL_WARN_ON_USE (ptsname, "ptsname is not portable - "
                  "use gnulib module ptsname for portability");
+# endif
+#endif
+
+#if @GNULIB_PTSNAME_R@
+/* Set the pathname of the pseudo-terminal slave associated with
+   the master FD is open on and return 0, or set errno and return
+   non-zero on errors.  */
+# if @REPLACE_PTSNAME_R@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef ptsname_r
+#   define ptsname_r rpl_ptsname_r
+#  endif
+_GL_FUNCDECL_RPL (ptsname_r, int, (int fd, char *buf, size_t len));
+_GL_CXXALIAS_RPL (ptsname_r, int, (int fd, char *buf, size_t len));
+# else
+#  if !@HAVE_PTSNAME_R@
+_GL_FUNCDECL_SYS (ptsname_r, int, (int fd, char *buf, size_t len));
+#  endif
+_GL_CXXALIAS_SYS (ptsname_r, int, (int fd, char *buf, size_t len));
+# endif
+_GL_CXXALIASWARN (ptsname_r);
+#elif defined GNULIB_POSIXCHECK
+# undef ptsname_r
+# if HAVE_RAW_DECL_PTSNAME_R
+_GL_WARN_ON_USE (ptsname_r, "ptsname_r is not portable - "
+                 "use gnulib module ptsname_r for portability");
 # endif
 #endif
 
@@ -462,12 +519,83 @@ _GL_CXXALIASWARN (putenv);
 # endif
 #endif
 
+
+#if @GNULIB_RANDOM@
+# if !@HAVE_RANDOM@
+_GL_FUNCDECL_SYS (random, long, (void));
+# endif
+_GL_CXXALIAS_SYS (random, long, (void));
+_GL_CXXALIASWARN (random);
+#elif defined GNULIB_POSIXCHECK
+# undef random
+# if HAVE_RAW_DECL_RANDOM
+_GL_WARN_ON_USE (random, "random is unportable - "
+                 "use gnulib module random for portability");
+# endif
+#endif
+
+#if @GNULIB_RANDOM@
+# if !@HAVE_RANDOM@
+_GL_FUNCDECL_SYS (srandom, void, (unsigned int seed));
+# endif
+_GL_CXXALIAS_SYS (srandom, void, (unsigned int seed));
+_GL_CXXALIASWARN (srandom);
+#elif defined GNULIB_POSIXCHECK
+# undef srandom
+# if HAVE_RAW_DECL_SRANDOM
+_GL_WARN_ON_USE (srandom, "srandom is unportable - "
+                 "use gnulib module random for portability");
+# endif
+#endif
+
+#if @GNULIB_RANDOM@
+# if !@HAVE_RANDOM@
+_GL_FUNCDECL_SYS (initstate, char *,
+                  (unsigned int seed, char *buf, size_t buf_size)
+                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (initstate, char *,
+                  (unsigned int seed, char *buf, size_t buf_size));
+_GL_CXXALIASWARN (initstate);
+#elif defined GNULIB_POSIXCHECK
+# undef initstate
+# if HAVE_RAW_DECL_INITSTATE_R
+_GL_WARN_ON_USE (initstate, "initstate is unportable - "
+                 "use gnulib module random for portability");
+# endif
+#endif
+
+#if @GNULIB_RANDOM@
+# if !@HAVE_RANDOM@
+_GL_FUNCDECL_SYS (setstate, char *, (char *arg_state) _GL_ARG_NONNULL ((1)));
+# endif
+_GL_CXXALIAS_SYS (setstate, char *, (char *arg_state));
+_GL_CXXALIASWARN (setstate);
+#elif defined GNULIB_POSIXCHECK
+# undef setstate
+# if HAVE_RAW_DECL_SETSTATE_R
+_GL_WARN_ON_USE (setstate, "setstate is unportable - "
+                 "use gnulib module random for portability");
+# endif
+#endif
+
+
 #if @GNULIB_RANDOM_R@
-# if !@HAVE_RANDOM_R@
+# if @REPLACE_RANDOM_R@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef random_r
+#   define random_r rpl_random_r
+#  endif
+_GL_FUNCDECL_RPL (random_r, int, (struct random_data *buf, int32_t *result)
+                                 _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (random_r, int, (struct random_data *buf, int32_t *result));
+# else
+#  if !@HAVE_RANDOM_R@
 _GL_FUNCDECL_SYS (random_r, int, (struct random_data *buf, int32_t *result)
                                  _GL_ARG_NONNULL ((1, 2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (random_r, int, (struct random_data *buf, int32_t *result));
+# endif
 _GL_CXXALIASWARN (random_r);
 #elif defined GNULIB_POSIXCHECK
 # undef random_r
@@ -478,13 +606,25 @@ _GL_WARN_ON_USE (random_r, "random_r is unportable - "
 #endif
 
 #if @GNULIB_RANDOM_R@
-# if !@HAVE_RANDOM_R@
+# if @REPLACE_RANDOM_R@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef srandom_r
+#   define srandom_r rpl_srandom_r
+#  endif
+_GL_FUNCDECL_RPL (srandom_r, int,
+                  (unsigned int seed, struct random_data *rand_state)
+                  _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_RPL (srandom_r, int,
+                  (unsigned int seed, struct random_data *rand_state));
+# else
+#  if !@HAVE_RANDOM_R@
 _GL_FUNCDECL_SYS (srandom_r, int,
                   (unsigned int seed, struct random_data *rand_state)
                   _GL_ARG_NONNULL ((2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (srandom_r, int,
                   (unsigned int seed, struct random_data *rand_state));
+# endif
 _GL_CXXALIASWARN (srandom_r);
 #elif defined GNULIB_POSIXCHECK
 # undef srandom_r
@@ -495,15 +635,29 @@ _GL_WARN_ON_USE (srandom_r, "srandom_r is unportable - "
 #endif
 
 #if @GNULIB_RANDOM_R@
-# if !@HAVE_RANDOM_R@
+# if @REPLACE_RANDOM_R@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef initstate_r
+#   define initstate_r rpl_initstate_r
+#  endif
+_GL_FUNCDECL_RPL (initstate_r, int,
+                  (unsigned int seed, char *buf, size_t buf_size,
+                   struct random_data *rand_state)
+                  _GL_ARG_NONNULL ((2, 4)));
+_GL_CXXALIAS_RPL (initstate_r, int,
+                  (unsigned int seed, char *buf, size_t buf_size,
+                   struct random_data *rand_state));
+# else
+#  if !@HAVE_RANDOM_R@
 _GL_FUNCDECL_SYS (initstate_r, int,
                   (unsigned int seed, char *buf, size_t buf_size,
                    struct random_data *rand_state)
                   _GL_ARG_NONNULL ((2, 4)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (initstate_r, int,
                   (unsigned int seed, char *buf, size_t buf_size,
                    struct random_data *rand_state));
+# endif
 _GL_CXXALIASWARN (initstate_r);
 #elif defined GNULIB_POSIXCHECK
 # undef initstate_r
@@ -514,13 +668,25 @@ _GL_WARN_ON_USE (initstate_r, "initstate_r is unportable - "
 #endif
 
 #if @GNULIB_RANDOM_R@
-# if !@HAVE_RANDOM_R@
+# if @REPLACE_RANDOM_R@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef setstate_r
+#   define setstate_r rpl_setstate_r
+#  endif
+_GL_FUNCDECL_RPL (setstate_r, int,
+                  (char *arg_state, struct random_data *rand_state)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (setstate_r, int,
+                  (char *arg_state, struct random_data *rand_state));
+# else
+#  if !@HAVE_RANDOM_R@
 _GL_FUNCDECL_SYS (setstate_r, int,
                   (char *arg_state, struct random_data *rand_state)
                   _GL_ARG_NONNULL ((1, 2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (setstate_r, int,
                   (char *arg_state, struct random_data *rand_state));
+# endif
 _GL_CXXALIASWARN (setstate_r);
 #elif defined GNULIB_POSIXCHECK
 # undef setstate_r

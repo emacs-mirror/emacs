@@ -93,22 +93,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
-  /* This is probably not necessary any more.  On some systems, config.h
-     used to define static as nothing for the sake of unexec.  We don't
-     want that here since we don't use unexec.  None of these systems
-     are supported any more, but the idea is still mentioned in
-     etc/PROBLEMS.  */
-# undef static
-# ifndef PTR			/* for XEmacs */
-#   define PTR void *
-# endif
-#else  /* no config.h */
-# if defined (__STDC__) && (__STDC__ || defined (__SUNPRO_C))
-#   define PTR void *		/* for generic pointers */
-# else /* not standard C */
-#   define const		/* remove const for old compilers' sake */
-#   define PTR long *		/* don't use void* */
-# endif
 #endif /* !HAVE_CONFIG_H */
 
 #ifndef _GNU_SOURCE
@@ -415,8 +399,8 @@ static bool filename_is_absolute (char *f);
 static void canonicalize_filename (char *);
 static void linebuffer_init (linebuffer *);
 static void linebuffer_setlen (linebuffer *, int);
-static PTR xmalloc (size_t);
-static PTR xrealloc (char *, size_t);
+static void *xmalloc (size_t);
+static void *xrealloc (char *, size_t);
 
 
 static char searchar = '/';	/* use /.../ searches */
@@ -6686,19 +6670,19 @@ linebuffer_setlen (linebuffer *lbp, int toksize)
 }
 
 /* Like malloc but get fatal error if memory is exhausted. */
-static PTR
+static void *
 xmalloc (size_t size)
 {
-  PTR result = (PTR) malloc (size);
+  void *result = malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;
 }
 
-static PTR
+static void *
 xrealloc (char *ptr, size_t size)
 {
-  PTR result = (PTR) realloc (ptr, size);
+  void *result = realloc (ptr, size);
   if (result == NULL)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;

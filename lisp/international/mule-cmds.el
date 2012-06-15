@@ -30,8 +30,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; letf
-
 (defvar dos-codepage)
 (autoload 'widget-value "wid-edit")
 
@@ -285,7 +283,7 @@ wrong, use this command again to toggle back to the right mode."
   "Display the HELLO file, which lists many languages and characters."
   (interactive)
   ;; We have to decode the file in any environment.
-  (letf ((coding-system-for-read 'iso-2022-7bit))
+  (let ((coding-system-for-read 'iso-2022-7bit))
     (view-file (expand-file-name "HELLO" data-directory))))
 
 (defun universal-coding-system-argument (coding-system)

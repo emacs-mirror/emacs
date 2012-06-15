@@ -30,7 +30,7 @@
 ;; one-to-one communication.
 
 ;; Rcirc has simple defaults and clear and consistent behavior.
-;; Message arrival timestamps, activity notification on the modeline,
+;; Message arrival timestamps, activity notification on the mode line,
 ;; message filling, nick completion, and keepalive pings are all
 ;; enabled by default, but can easily be adjusted or turned off.  Each
 ;; discussion takes place in its own buffer and there is a single
@@ -394,7 +394,7 @@ will be killed."
   "List of buffers with unviewed activity.")
 
 (defvar rcirc-activity-string ""
-  "String displayed in modeline representing `rcirc-activity'.")
+  "String displayed in mode line representing `rcirc-activity'.")
 (put 'rcirc-activity-string 'risky-local-variable t)
 
 (defvar rcirc-server-buffer nil
@@ -1599,7 +1599,7 @@ record activity."
 	  (buffer-disable-undo)
 	  (buffer-enable-undo))
 
-	;; record modeline activity
+	;; record mode line activity
 	(when (and activity
 		   (not rcirc-ignore-buffer-activity-flag)
 		   (not (and rcirc-dim-nicks sender
@@ -2003,7 +2003,7 @@ activity.  Only run if the buffer is not visible and
 	     buffers ","))
 
 (defun rcirc-short-buffer-name (buffer)
-  "Return a short name for BUFFER to use in the modeline indicator."
+  "Return a short name for BUFFER to use in the mode line indicator."
   (with-current-buffer buffer
     (or rcirc-short-buffer-name (buffer-name))))
 
@@ -2886,67 +2886,65 @@ Passwords are stored in `rcirc-authinfo' (which see)."
   :group 'faces)
 
 (defface rcirc-my-nick			; font-lock-function-name-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
-    (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
-    (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
-    (t (:inverse-video t :weight bold)))
-  "The face used to highlight my messages."
+  '((((class color) (min-colors 88) (background light)) :foreground "Blue1")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightSkyBlue")
+    (((class color) (min-colors 16) (background light)) :foreground "Blue")
+    (((class color) (min-colors 16) (background dark))  :foreground "LightSkyBlue")
+    (((class color) (min-colors 8)) :foreground "blue" :weight bold)
+    (t :inverse-video t :weight bold))
+  "Rcirc face for my messages."
   :group 'rcirc-faces)
 
 (defface rcirc-other-nick	     ; font-lock-variable-name-face
   '((((class grayscale) (background light))
-     (:foreground "Gray90" :weight bold :slant italic))
+     :foreground "Gray90" :weight bold :slant italic)
     (((class grayscale) (background dark))
-     (:foreground "DimGray" :weight bold :slant italic))
-    (((class color) (min-colors 88) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "LightGoldenrod"))
-    (((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "LightGoldenrod"))
-    (((class color) (min-colors 8)) (:foreground "yellow" :weight light))
-    (t (:weight bold :slant italic)))
-  "The face used to highlight other messages."
+     :foreground "DimGray" :weight bold :slant italic)
+    (((class color) (min-colors 88) (background light)) :foreground "DarkGoldenrod")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightGoldenrod")
+    (((class color) (min-colors 16) (background light)) :foreground "DarkGoldenrod")
+    (((class color) (min-colors 16) (background dark))  :foreground "LightGoldenrod")
+    (((class color) (min-colors 8)) :foreground "yellow" :weight light)
+    (t :weight bold :slant italic))
+  "Rcirc face for other users' messages."
   :group 'rcirc-faces)
 
 (defface rcirc-bright-nick
   '((((class grayscale) (background light))
-     (:foreground "LightGray" :weight bold :underline t))
+     :foreground "LightGray" :weight bold :underline t)
     (((class grayscale) (background dark))
-     (:foreground "Gray50" :weight bold :underline t))
-    (((class color) (min-colors 88) (background light)) (:foreground "CadetBlue"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Aquamarine"))
-    (((class color) (min-colors 16) (background light)) (:foreground "CadetBlue"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
-    (((class color) (min-colors 8)) (:foreground "magenta"))
-    (t (:weight bold :underline t)))
-  "Face used for nicks matched by `rcirc-bright-nicks'."
+     :foreground "Gray50" :weight bold :underline t)
+    (((class color) (min-colors 88) (background light)) :foreground "CadetBlue")
+    (((class color) (min-colors 88) (background dark))  :foreground "Aquamarine")
+    (((class color) (min-colors 16) (background light)) :foreground "CadetBlue")
+    (((class color) (min-colors 16) (background dark))  :foreground "Aquamarine")
+    (((class color) (min-colors 8)) :foreground "magenta")
+    (t :weight bold :underline t))
+  "Rcirc face for nicks matched by `rcirc-bright-nicks'."
   :group 'rcirc-faces)
 
 (defface rcirc-dim-nick
   '((t :inherit default))
-  "Face used for nicks in `rcirc-dim-nicks'."
+  "Rcirc face for nicks in `rcirc-dim-nicks'."
   :group 'rcirc-faces)
 
 (defface rcirc-server			; font-lock-comment-face
   '((((class grayscale) (background light))
-     (:foreground "DimGray" :weight bold :slant italic))
+     :foreground "DimGray" :weight bold :slant italic)
     (((class grayscale) (background dark))
-     (:foreground "LightGray" :weight bold :slant italic))
+     :foreground "LightGray" :weight bold :slant italic)
     (((class color) (min-colors 88) (background light))
-     (:foreground "Firebrick"))
+     :foreground "Firebrick")
     (((class color) (min-colors 88) (background dark))
-     (:foreground "chocolate1"))
+     :foreground "chocolate1")
     (((class color) (min-colors 16) (background light))
-     (:foreground "red"))
+     :foreground "red")
     (((class color) (min-colors 16) (background dark))
-     (:foreground "red1"))
-    (((class color) (min-colors 8) (background light))
-     )
-    (((class color) (min-colors 8) (background dark))
-     )
-    (t (:weight bold :slant italic)))
-  "The face used to highlight server messages."
+     :foreground "red1")
+    (((class color) (min-colors 8) (background light)))
+    (((class color) (min-colors 8) (background dark)))
+    (t :weight bold :slant italic))
+  "Rcirc face for server messages."
   :group 'rcirc-faces)
 
 (defface rcirc-server-prefix	 ; font-lock-comment-delimiter-face
@@ -2957,57 +2955,53 @@ Passwords are stored in `rcirc-authinfo' (which see)."
      :foreground "red")
     (((class color) (min-colors 8) (background dark))
      :foreground "red1"))
-  "The face used to highlight server prefixes."
+  "Rcirc face for server prefixes."
   :group 'rcirc-faces)
 
 (defface rcirc-timestamp
-  '((t (:inherit default)))
-  "The face used to highlight timestamps."
+  '((t :inherit default))
+  "Rcirc face for timestamps."
   :group 'rcirc-faces)
 
 (defface rcirc-nick-in-message		; font-lock-keyword-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (min-colors 88) (background light)) (:foreground "Purple"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Cyan1"))
-    (((class color) (min-colors 16) (background light)) (:foreground "Purple"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Cyan"))
-    (((class color) (min-colors 8)) (:foreground "cyan" :weight bold))
-    (t (:weight bold)))
-  "The face used to highlight instances of your nick within messages."
+  '((((class grayscale) (background light)) :foreground "LightGray" :weight bold)
+    (((class grayscale) (background dark)) :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "Purple")
+    (((class color) (min-colors 88) (background dark))  :foreground "Cyan1")
+    (((class color) (min-colors 16) (background light)) :foreground "Purple")
+    (((class color) (min-colors 16) (background dark))  :foreground "Cyan")
+    (((class color) (min-colors 8)) :foreground "cyan" :weight bold)
+    (t :weight bold))
+  "Rcirc face for instances of your nick within messages."
   :group 'rcirc-faces)
 
-(defface rcirc-nick-in-message-full-line
-  '((t (:bold t)))
-  "The face used emphasize the entire message when your nick is mentioned."
+(defface rcirc-nick-in-message-full-line '((t :weight bold))
+  "Rcirc face for emphasizing the entire message when your nick is mentioned."
   :group 'rcirc-faces)
 
 (defface rcirc-prompt			; comint-highlight-prompt
-  '((((min-colors 88) (background dark)) (:foreground "cyan1"))
-    (((background dark)) (:foreground "cyan"))
-    (t (:foreground "dark blue")))
-  "The face used to highlight prompts."
+  '((((min-colors 88) (background dark)) :foreground "cyan1")
+    (((background dark)) :foreground "cyan")
+    (t :foreground "dark blue"))
+  "Rcirc face for prompts."
   :group 'rcirc-faces)
 
 (defface rcirc-track-nick
-  '((((type tty)) (:inherit default))
-    (t (:inverse-video t)))
-  "The face used in the mode-line when your nick is mentioned."
+  '((((type tty)) :inherit default)
+    (t :inverse-video t))
+  "Rcirc face used in the mode-line when your nick is mentioned."
   :group 'rcirc-faces)
 
-(defface rcirc-track-keyword
-  '((t (:bold t )))
-  "The face used in the mode-line when keywords are mentioned."
+(defface rcirc-track-keyword '((t :weight bold))
+  "Rcirc face used in the mode-line when keywords are mentioned."
   :group 'rcirc-faces)
 
-(defface rcirc-url
-  '((t (:bold t)))
-  "The face used to highlight urls."
+(defface rcirc-url '((t :weight bold))
+  "Rcirc face used to highlight urls."
   :group 'rcirc-faces)
 
-(defface rcirc-keyword
-  '((t (:inherit highlight)))
-  "The face used to highlight keywords."
+(defface rcirc-keyword '((t :inherit highlight))
+  "Rcirc face used to highlight keywords."
   :group 'rcirc-faces)
 
 

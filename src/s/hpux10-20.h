@@ -26,15 +26,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG5
 #define HPUX
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "hpux"
-
 /* Letter to use in finding device name of first pty,
    if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
 #define FIRST_PTY_LETTER 'p'
-
-#define NO_TERMIO
 
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
@@ -48,10 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CLASH_DETECTION
 
 /* Special hacks needed to make Emacs run on this system.  */
-
-/* In hpux, the symbol SIGIO is defined, but the feature
-   doesn't work in the way Emacs needs it to.  */
-#define BROKEN_SIGIO
 
 /* Some additional system facilities exist.  */
 #define HAVE_PERROR  /* Delete this line for version 6.  */
@@ -94,12 +84,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef HAVE_XRMSETDATABASE
 #define HAVE_XRMSETDATABASE
 #endif
-
-/* 2000-11-21: Temporarily disable Unix 98 large file support found by
-   configure.  It fails on HPUX 11, at least, because it enables
-   header sections which lose when `static' is defined away, as it is
-   on HP-UX.  (You get duplicate symbol errors on linking). */
-#undef _FILE_OFFSET_BITS
 
 /* Conservative garbage collection has not been tested, so for now
    play it safe and stick with the old-fashioned way of marking.  */

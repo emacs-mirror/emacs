@@ -799,7 +799,7 @@ because you will take care of it on the day when scheduled."
   :group 'org-agenda-daily/weekly
   :version "24.1"
   :type '(choice
-	  (const :tag "Alwas show prewarning" nil)
+	  (const :tag "Always show prewarning" nil)
 	  (const :tag "Remove prewarning if entry is scheduled" t)
 	  (integer :tag "Restart prewarning N days before deadline")))
 
@@ -8315,13 +8315,13 @@ This is a command that has to be installed in `calendar-mode-map'."
 (defun org-agenda-bulk-mark-regexp (regexp)
   "Mark entries match REGEXP."
   (interactive "sMark entries matching regexp: ")
-  (let (entries-marked)
+  (let ((entries-marked 0))
     (save-excursion
       (goto-char (point-min))
       (goto-char (next-single-property-change (point) 'txt))
       (while (re-search-forward regexp nil t)
 	(when (string-match regexp (get-text-property (point) 'txt))
-	  (setq entries-marked (+ entries-marked 1))
+	  (setq entries-marked (1+ entries-marked))
 	  (call-interactively 'org-agenda-bulk-mark))))
     (if (not entries-marked)
 	(message "No entry matching this regexp."))))

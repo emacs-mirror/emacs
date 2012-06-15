@@ -95,13 +95,14 @@ macro before appending to it. */)
 	 has put another macro there.  */
       if (current_kboard->kbd_macro_bufsize < len + 30)
 	{
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) - 30
-	      < current_kboard->kbd_macro_bufsize)
+	  if (PTRDIFF_MAX < MOST_POSITIVE_FIXNUM + 30
+	      && PTRDIFF_MAX < len + 30)
 	    memory_full (SIZE_MAX);
-	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       (len + 30) * sizeof (Lisp_Object));
-	  current_kboard->kbd_macro_bufsize = len + 30;
+	  current_kboard->kbd_macro_buffer =
+	    xpalloc (current_kboard->kbd_macro_buffer,
+		     &current_kboard->kbd_macro_bufsize,
+		     len + 30 - current_kboard->kbd_macro_bufsize, -1,
+		     sizeof *current_kboard->kbd_macro_buffer);
 	}
 
       /* Must convert meta modifier when copying string to vector.  */
@@ -258,7 +259,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
      from before this macro started.  */
   Vthis_command = KVAR (current_kboard, Vlast_command);
   /* C-x z after the macro should repeat the macro.  */
-  real_this_command = KVAR (current_kboard, Vlast_kbd_macro);
+  Vreal_this_command = KVAR (current_kboard, Vlast_kbd_macro);
 
   if (! NILP (KVAR (current_kboard, defining_kbd_macro)))
     error ("Can't execute anonymous macro while defining one");
@@ -285,7 +286,7 @@ pop_kbd_macro (Lisp_Object info)
   Vexecuting_kbd_macro = XCAR (info);
   tem = XCDR (info);
   executing_kbd_macro_index = XINT (XCAR (tem));
-  real_this_command = XCDR (tem);
+  Vreal_this_command = XCDR (tem);
   Frun_hooks (1, &Qkbd_macro_termination_hook);
   return Qnil;
 }
@@ -301,7 +302,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 {
   Lisp_Object final;
   Lisp_Object tem;
-  int pdlcount = SPECPDL_INDEX ();
+  ptrdiff_t pdlcount = SPECPDL_INDEX ();
   EMACS_INT repeat = 1;
   struct gcpro gcpro1, gcpro2;
   EMACS_INT success_count = 0;
@@ -320,7 +321,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
   tem = Fcons (Vexecuting_kbd_macro,
 	       Fcons (make_number (executing_kbd_macro_index),
-		      real_this_command));
+		      Vreal_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 
   GCPRO2 (final, loopfunc);
@@ -351,7 +352,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
   executing_kbd_macro = Qnil;
 
-  real_this_command = Vexecuting_kbd_macro;
+  Vreal_this_command = Vexecuting_kbd_macro;
 
   UNGCPRO;
   return unbind_to (pdlcount, Qnil);

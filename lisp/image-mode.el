@@ -663,7 +663,7 @@ The rotation angle is the value of `image-transform-rotation' in degrees."
 ;; The following comment and code snippet are from
 ;; ImageMagick-6.7.4-4/magick/distort.c
 
-;;    /* Set the output image geometry to calculated 'bestfit'.
+;;    /* Set the output image geometry to calculated 'best fit'.
 ;;       Yes this tends to 'over do' the file image size, ON PURPOSE!
 ;;       Do not do this for DePolar which needs to be exact for virtual tiling.
 ;;    */

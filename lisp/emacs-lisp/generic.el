@@ -151,7 +151,8 @@ mode hook `MODE-hook'.
 See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
 			[&optional stringp] &rest [keywordp form]))
-	   (indent 1))
+	   (indent 1)
+           (doc-string 7))
 
   ;; Backward compatibility.
   (when (eq (car-safe mode) 'quote)

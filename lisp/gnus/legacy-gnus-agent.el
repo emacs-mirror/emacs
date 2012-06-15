@@ -206,29 +206,31 @@ converted to the compressed format."
 (gnus-convert-mark-converter-prompt 'gnus-agent-unlist-expire-days t)
 
 (defun gnus-agent-unhook-expire-days (converting-to)
-  "Remove every lambda from gnus-group-prepare-hook that mention the
-symbol gnus-agent-do-once in their definition.  This should NOT be
+  "Remove every lambda from `gnus-group-prepare-hook' that mention the
+symbol `gnus-agent-do-once' in their definition.  This should NOT be
 necessary as gnus-agent.el no longer adds them.  However, it is
 possible that the hook was persistently saved."
-    (let ((h t)) ; iterate from bgn of hook
+    (let ((h t)) ; Iterate from bgn of hook.
       (while h
         (let ((func (progn (when (eq h t)
-                             ;; init h to list of functions
+                             ;; Init h to list of functions.
                              (setq h (cond ((listp gnus-group-prepare-hook)
                                             gnus-group-prepare-hook)
                                            ((boundp 'gnus-group-prepare-hook)
                                             (list gnus-group-prepare-hook)))))
                            (pop h))))
 
-          (when (cond ((eq (type-of func) 'compiled-function)
-                       ;; Search def. of compiled function for gnus-agent-do-once string
+          (when (cond ((byte-code-function-p func)
+                       ;; Search def. of compiled function for
+                       ;; gnus-agent-do-once string.
                        (let* (definition
                                print-level
                                print-length
                                (standard-output
                                 (lambda (char)
                                   (setq definition (cons char definition)))))
-                         (princ func) ; populates definition with reversed list of characters
+                         (princ func) ; Populates definition with reversed list
+				      ; of characters.
                          (let* ((i (length definition))
                                 (s (make-string i 0)))
                            (while definition
@@ -236,7 +238,7 @@ possible that the hook was persistently saved."
 
                            (string-match "\\bgnus-agent-do-once\\b" s))))
                       ((listp func)
-                       (eq (cadr (nth 2 func)) 'gnus-agent-do-once) ; handles eval'd lambda
+                       (eq (cadr (nth 2 func)) 'gnus-agent-do-once) ; Handles eval'd lambda.
                        ))
 
             (remove-hook 'gnus-group-prepare-hook func)

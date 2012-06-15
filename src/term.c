@@ -122,12 +122,11 @@ enum no_color_bit
   NC_STANDOUT	 = 1 << 0,
   NC_UNDERLINE	 = 1 << 1,
   NC_REVERSE	 = 1 << 2,
-  NC_BLINK	 = 1 << 3,
+  NC_ITALIC	 = 1 << 3,
   NC_DIM	 = 1 << 4,
   NC_BOLD	 = 1 << 5,
   NC_INVIS	 = 1 << 6,
-  NC_PROTECT	 = 1 << 7,
-  NC_ALT_CHARSET = 1 << 8
+  NC_PROTECT	 = 1 << 7
 };
 
 /* internal state */
@@ -1915,8 +1914,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
       else
 	SET_GLYPH_FROM_CHAR (glyph, '\\');
       if (it->dp
-	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc))
-	  && GLYPH_CODE_CHAR_VALID_P (gc))
+	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
 	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
@@ -1928,8 +1926,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
       /* Truncation glyph.  */
       SET_GLYPH_FROM_CHAR (glyph, '$');
       if (it->dp
-	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc))
-	  && GLYPH_CODE_CHAR_VALID_P (gc))
+	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
 	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
@@ -2024,17 +2021,16 @@ turn_on_face (struct frame *f, int face_id)
   if (face->tty_bold_p && MAY_USE_WITH_COLORS_P (tty, NC_BOLD))
     OUTPUT1_IF (tty, tty->TS_enter_bold_mode);
 
-  if (face->tty_dim_p && MAY_USE_WITH_COLORS_P (tty, NC_DIM))
-    OUTPUT1_IF (tty, tty->TS_enter_dim_mode);
-
-  /* Alternate charset and blinking not yet used.  */
-  if (face->tty_alt_charset_p
-      && MAY_USE_WITH_COLORS_P (tty, NC_ALT_CHARSET))
-    OUTPUT1_IF (tty, tty->TS_enter_alt_charset_mode);
-
-  if (face->tty_blinking_p
-      && MAY_USE_WITH_COLORS_P (tty, NC_BLINK))
-    OUTPUT1_IF (tty, tty->TS_enter_blink_mode);
+  if (face->tty_italic_p && MAY_USE_WITH_COLORS_P (tty, NC_ITALIC))
+    {
+      if (tty->TS_enter_italic_mode)
+	OUTPUT1 (tty, tty->TS_enter_italic_mode);
+      else
+	/* Italics mode is unavailable on many terminals.  In that
+	   case, map slant to dimmed text; we want italic text to
+	   appear different and dimming is not otherwise used.  */
+	OUTPUT1 (tty, tty->TS_enter_dim_mode);
+    }
 
   if (face->tty_underline_p && MAY_USE_WITH_COLORS_P (tty, NC_UNDERLINE))
     OUTPUT1_IF (tty, tty->TS_enter_underline_mode);
@@ -2079,27 +2075,19 @@ turn_off_face (struct frame *f, int face_id)
 	 half-bright, reverse-video, standout, underline.  It may or
 	 may not turn off alt-char-mode.  */
       if (face->tty_bold_p
-	  || face->tty_dim_p
+	  || face->tty_italic_p
 	  || face->tty_reverse_p
-	  || face->tty_alt_charset_p
-	  || face->tty_blinking_p
 	  || face->tty_underline_p)
 	{
 	  OUTPUT1_IF (tty, tty->TS_exit_attribute_mode);
 	  if (strcmp (tty->TS_exit_attribute_mode, tty->TS_end_standout_mode) == 0)
 	    tty->standout_mode = 0;
 	}
-
-      if (face->tty_alt_charset_p)
-	OUTPUT_IF (tty, tty->TS_exit_alt_charset_mode);
     }
   else
     {
       /* If we don't have "me" we can only have those appearances
 	 that have exit sequences defined.  */
-      if (face->tty_alt_charset_p)
-	OUTPUT_IF (tty, tty->TS_exit_alt_charset_mode);
-
       if (face->tty_underline_p)
 	OUTPUT_IF (tty, tty->TS_exit_underline_mode);
     }
@@ -2130,8 +2118,7 @@ tty_capable_p (struct tty_display_info *tty, unsigned int caps,
   TTY_CAPABLE_P_TRY (tty, TTY_CAP_UNDERLINE, 	tty->TS_enter_underline_mode, 	NC_UNDERLINE);
   TTY_CAPABLE_P_TRY (tty, TTY_CAP_BOLD, 	tty->TS_enter_bold_mode, 	NC_BOLD);
   TTY_CAPABLE_P_TRY (tty, TTY_CAP_DIM, 		tty->TS_enter_dim_mode, 	NC_DIM);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_BLINK, 	tty->TS_enter_blink_mode, 	NC_BLINK);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_ALT_CHARSET, 	tty->TS_enter_alt_charset_mode, NC_ALT_CHARSET);
+  TTY_CAPABLE_P_TRY (tty, TTY_CAP_ITALIC, 	tty->TS_enter_italic_mode, 	NC_ITALIC);
 
   /* We can do it!  */
   return 1;
@@ -2279,7 +2266,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
   else
     color_mode = Qnil;
 
-  mode = INTEGERP (color_mode) ? XINT (color_mode) : 0;
+  mode = TYPE_RANGED_INTEGERP (int, color_mode) ? XINT (color_mode) : 0;
 
   if (mode != tty->previous_color_mode)
     {
@@ -3224,8 +3211,8 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->TS_enter_underline_mode = tgetstr ("us", address);
   tty->TS_exit_underline_mode = tgetstr ("ue", address);
   tty->TS_enter_bold_mode = tgetstr ("md", address);
+  tty->TS_enter_italic_mode = tgetstr ("ZH", address);
   tty->TS_enter_dim_mode = tgetstr ("mh", address);
-  tty->TS_enter_blink_mode = tgetstr ("mb", address);
   tty->TS_enter_reverse_mode = tgetstr ("mr", address);
   tty->TS_enter_alt_charset_mode = tgetstr ("as", address);
   tty->TS_exit_alt_charset_mode = tgetstr ("ae", address);

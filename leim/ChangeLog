@@ -1,3 +1,28 @@
+2012-06-12  Nguyen Thai Ngoc Duy  <pclouds@gmail.com>
+
+	* quail/vnvi.el: New file (Bug#4747).
+
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SUBDIRS): Remove variable and rule.
+	(MKDIR_P): Add it back.
+	(all, changed.tit, changed.misc, leim-list.el):
+	Don't depend on SUBDIRS.
+	(changed.tit, changed.misc): Ensure output directory exists.
+	(distclean): Don't use SUBDIRS.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Remove, let top-level do it.
+	(version, prefix, datarootdir, datadir, ns_appresdir, leimdir):
+	(MKDIR_P, GZIP_PROG): Remove, no longer used.
+
+	* Makefile.in (install_prefix): Remove.
+	(LEIM_INSTALLDIR): Rename to leimdir.
+	(install): Update for this change.
+
+	* Makefile.in (leim-list.el, install): Scrap superfluous subshells.
+
 2012-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MKDIR_P): New, set by configure.

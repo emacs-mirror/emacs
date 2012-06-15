@@ -35,8 +35,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "dispextern.h"
+#include "window.h"
 #include "blockinput.h"
 #include "termhooks.h"
+#include "termchar.h"
 #include "w32heap.h"
 #include "w32term.h"
 
@@ -566,7 +568,7 @@ w32_console_mouse_position (FRAME_PTR *f,
 static void
 mouse_moved_to (int x, int y)
 {
-  /* If we're in the same place, ignore it */
+  /* If we're in the same place, ignore it.  */
   if (x != movement_pos.X || y != movement_pos.Y)
     {
       SELECTED_FRAME ()->mouse_moved = 1;
@@ -599,14 +601,63 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 		struct input_event *emacs_ev)
 {
   static DWORD button_state = 0;
+  static Lisp_Object last_mouse_window;
   DWORD but_change, mask;
   int i;
 
   if (event->dwEventFlags == MOUSE_MOVED)
     {
-      /* For movement events we just note that the mouse has moved
-	 so that emacs will generate drag events.  */
-      mouse_moved_to (event->dwMousePosition.X, event->dwMousePosition.Y);
+      FRAME_PTR f = SELECTED_FRAME ();
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+      int mx = event->dwMousePosition.X, my = event->dwMousePosition.Y;
+
+      mouse_moved_to (mx, my);
+
+      if (f->mouse_moved)
+	{
+	  if (hlinfo->mouse_face_hidden)
+	    {
+	      hlinfo->mouse_face_hidden = 0;
+	      clear_mouse_face (hlinfo);
+	    }
+
+	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
+	  if (!NILP (Vmouse_autoselect_window))
+	    {
+	      Lisp_Object mouse_window = window_from_coordinates (f, mx, my,
+								  0, 0);
+	      /* A window will be selected only when it is not
+		 selected now, and the last mouse movement event was
+		 not in it.  A minibuffer window will be selected iff
+		 it is active.  */
+	      if (WINDOWP (mouse_window)
+		  && !EQ (mouse_window, last_mouse_window)
+		  && !EQ (mouse_window, selected_window))
+		{
+		  struct input_event event;
+
+		  EVENT_INIT (event);
+		  event.kind = SELECT_WINDOW_EVENT;
+		  event.frame_or_window = mouse_window;
+		  event.arg = Qnil;
+		  event.timestamp = movement_time;
+		  kbd_buffer_store_event (&event);
+		}
+	      last_mouse_window = mouse_window;
+	    }
+	  else
+	    last_mouse_window = Qnil;
+
+	  previous_help_echo_string = help_echo_string;
+	  help_echo_string = help_echo_object = help_echo_window = Qnil;
+	  help_echo_pos = -1;
+	  note_mouse_highlight (f, mx, my);
+	  /* If the contents of the global variable help_echo has
+	     changed (inside note_mouse_highlight), generate a HELP_EVENT.  */
+	  if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
+	    gen_help_event (help_echo_string, selected_frame, help_echo_window,
+			    help_echo_object, help_echo_pos);
+	}
       return 0;
     }
 

@@ -1111,9 +1111,6 @@ version."
       (unless body-only
 	(org-lparse-end 'DOCUMENT-CONTENT))
 
-      (unless (plist-get opt-plist :buffer-will-be-killed)
-	(set-auto-mode t))
-
       (org-lparse-end 'EXPORT)
 
       ;; kill collection buffer

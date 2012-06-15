@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Text, Programs, Indentation, Top
+@node Text
 @chapter Commands for Human Languages
 @cindex text
 @cindex manipulating text
@@ -34,7 +34,7 @@ publish them in many formats.
 @cindex mode, nXML
 @findex nxml-mode
   Emacs has other major modes for text which contains ``embedded''
-commands, such as @TeX{} and La@TeX{} (@pxref{TeX Mode}); HTML and
+commands, such as @TeX{} and @LaTeX{} (@pxref{TeX Mode}); HTML and
 SGML (@pxref{HTML Mode}); XML
 @ifinfo
 (@pxref{Top,The nXML Mode Manual,,nxml-mode, nXML Mode});
@@ -1372,7 +1372,7 @@ etc.
 export and publication.  To export the current buffer, type @kbd{C-c
 C-e} (@code{org-export}) anywhere in an Org buffer.  This command
 prompts for an export format; currently supported formats include
-HTML, La@TeX{}, OpenDocument (@file{.odt}), and PDF.  Some formats,
+HTML, @LaTeX{}, OpenDocument (@file{.odt}), and PDF.  Some formats,
 such as PDF, require certain system tools to be installed.
 
 @vindex org-publish-project-alist
@@ -1405,11 +1405,11 @@ This is an example.
 @node TeX Mode
 @section @TeX{} Mode
 @cindex @TeX{} mode
-@cindex La@TeX{} mode
+@cindex @LaTeX{} mode
 @cindex Sli@TeX{} mode
 @cindex Doc@TeX{} mode
 @cindex mode, @TeX{}
-@cindex mode, La@TeX{}
+@cindex mode, @LaTeX{}
 @cindex mode, Sli@TeX{}
 @cindex mode, Doc@TeX{}
 @findex tex-mode
@@ -1422,15 +1422,15 @@ This is an example.
   Emacs provides special major modes for editing files written in
 @TeX{} and its related formats.  @TeX{} is a powerful text formatter
 written by Donald Knuth; like GNU Emacs, it is free software.
-La@TeX{} is a simplified input format for @TeX{}, implemented using
+@LaTeX{} is a simplified input format for @TeX{}, implemented using
 @TeX{} macros.  Doc@TeX{} is a special file format in which the
-La@TeX{} sources are written, combining sources with documentation.
-Sli@TeX{} is an obsolete special form of La@TeX{}.@footnote{It has
+@LaTeX{} sources are written, combining sources with documentation.
+Sli@TeX{} is an obsolete special form of @LaTeX{}.@footnote{It has
 been replaced by the @samp{slides} document class, which comes with
-La@TeX{}.}
+@LaTeX{}.}
 
 @vindex tex-default-mode
-  @TeX{} mode has four variants: Plain @TeX{} mode, La@TeX{} mode,
+  @TeX{} mode has four variants: Plain @TeX{} mode, @LaTeX{} mode,
 Doc@TeX{} mode, and Sli@TeX{} mode.  These distinct major modes differ
 only slightly, and are designed for editing the four different
 formats.  Emacs selects the appropriate mode by looking at the
@@ -1450,13 +1450,13 @@ which are not documented in this manual:
 @itemize @bullet
 @item
 Bib@TeX{} mode is a major mode for Bib@TeX{} files, which are commonly
-used for keeping bibliographic references for La@TeX{} documents.  For
+used for keeping bibliographic references for @LaTeX{} documents.  For
 more information, see the documentation string for the command
 @code{bibtex-mode}.
 
 @item
 The Ref@TeX{} package provides a minor mode which can be used with
-La@TeX{} mode to manage bibliographic references.
+@LaTeX{} mode to manage bibliographic references.
 @ifinfo
 @xref{Top,The Ref@TeX{} Manual,,reftex}.
 @end ifinfo
@@ -1561,23 +1561,23 @@ is useful for the various motion commands and automatic match display
 to work with them.
 
 @node LaTeX Editing
-@subsection La@TeX{} Editing Commands
+@subsection @LaTeX{} Editing Commands
 
-  La@TeX{} mode provides a few extra features not applicable to plain
+  @LaTeX{} mode provides a few extra features not applicable to plain
 @TeX{}:
 
 @table @kbd
 @item C-c C-o
-Insert @samp{\begin} and @samp{\end} for La@TeX{} block and position
+Insert @samp{\begin} and @samp{\end} for @LaTeX{} block and position
 point on a line between them (@code{tex-latex-block}).
 @item C-c C-e
-Close the innermost La@TeX{} block not yet closed
+Close the innermost @LaTeX{} block not yet closed
 (@code{tex-close-latex-block}).
 @end table
 
 @findex tex-latex-block
-@kindex C-c C-o @r{(La@TeX{} mode)}
-  In La@TeX{} input, @samp{\begin} and @samp{\end} tags are used to
+@kindex C-c C-o @r{(@LaTeX{} mode)}
+  In @LaTeX{} input, @samp{\begin} and @samp{\end} tags are used to
 group blocks of text.  To insert a block, type @kbd{C-c C-o}
 (@code{tex-latex-block}).  This prompts for a block type, and inserts
 the appropriate matching @samp{\begin} and @samp{\end} tags, leaving a
@@ -1586,14 +1586,14 @@ blank line between the two and moving point there.
 @vindex latex-block-names
   When entering the block type argument to @kbd{C-c C-o}, you can use
 the usual completion commands (@pxref{Completion}).  The default
-completion list contains the standard La@TeX{} block types.  If you
+completion list contains the standard @LaTeX{} block types.  If you
 want additional block types for completion, customize the list
 variable @code{latex-block-names}.
 
 @findex tex-close-latex-block
-@kindex C-c C-e @r{(La@TeX{} mode)}
+@kindex C-c C-e @r{(@LaTeX{} mode)}
 @findex latex-electric-env-pair-mode
-  In La@TeX{} input, @samp{\begin} and @samp{\end} tags must balance.
+  In @LaTeX{} input, @samp{\begin} and @samp{\end} tags must balance.
 You can use @kbd{C-c C-e} (@code{tex-close-latex-block}) to insert an
 @samp{\end} tag which matches the last unmatched @samp{\begin}.  It
 also indents the @samp{\end} to match the corresponding @samp{\begin},
@@ -1670,7 +1670,7 @@ such as @code{"/tmp"}.
   The buffer's @TeX{} variant determines what shell command @kbd{C-c
 C-b} actually runs.  In Plain @TeX{} mode, it is specified by the
 variable @code{tex-run-command}, which defaults to @code{"tex"}.  In
-La@TeX{} mode, it is specified by @code{latex-run-command}, which
+@LaTeX{} mode, it is specified by @code{latex-run-command}, which
 defaults to @code{"latex"}.  The shell command that @kbd{C-c C-v} runs
 to view the @file{.dvi} output is determined by the variable
 @code{tex-dvi-view-command}, regardless of the @TeX{} variant.  The
@@ -1725,9 +1725,9 @@ after.  The lines containing the two strings are included in the header.
 If @samp{%**start of header} does not appear within the first 100 lines of
 the buffer, @kbd{C-c C-r} assumes that there is no header.
 
-  In La@TeX{} mode, the header begins with @samp{\documentclass} or
+  In @LaTeX{} mode, the header begins with @samp{\documentclass} or
 @samp{\documentstyle} and ends with @samp{\begin@{document@}}.  These
-are commands that La@TeX{} requires you to use in any case, so nothing
+are commands that @LaTeX{} requires you to use in any case, so nothing
 special needs to be done to identify the header.
 
 @findex tex-file
@@ -1769,7 +1769,7 @@ Variables}.
 @findex tex-bibtex-file
 @kindex C-c TAB @r{(@TeX{} mode)}
 @vindex tex-bibtex-command
-  For La@TeX{} files, you can use Bib@TeX{} to process the auxiliary
+  For @LaTeX{} files, you can use Bib@TeX{} to process the auxiliary
 file for the current buffer's file.  Bib@TeX{} looks up bibliographic
 citations in a data base and prepares the cited references for the
 bibliography section.  The command @kbd{C-c @key{TAB}}

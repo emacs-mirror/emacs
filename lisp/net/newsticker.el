@@ -103,7 +103,7 @@
 ;; -----
 ;; The command newsticker-show-news will display all available headlines in
 ;; a special buffer, called `*newsticker*'.  It will also start the
-;; asynchronous download of headlines.  The modeline in the `*newsticker*'
+;; asynchronous download of headlines.  The mode line in the `*newsticker*'
 ;; buffer informs whenever new headlines have arrived.  Clicking
 ;; mouse-button 2 or pressing RET in this buffer on a headline will call
 ;; browse-url to load the corresponding news story in your favorite web

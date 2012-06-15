@@ -9,7 +9,7 @@
 
 @c , Bugs and Todo List, Top, Top
 
-@node Edebug, Syntax Errors, Debugger, Debugging
+@node Edebug
 @section Edebug
 @cindex Edebug debugging facility
 

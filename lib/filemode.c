@@ -1,6 +1,6 @@
 /* filemode.c -- make a string describing file modes
 
-   Copyright (C) 1985, 1990, 1993, 1998-2000, 2004, 2006, 2009-2011 Free
+   Copyright (C) 1985, 1990, 1993, 1998-2000, 2004, 2006, 2009-2012 Free
    Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -21,8 +21,8 @@
 #include "filemode.h"
 
 /* The following is for Cray DMF (Data Migration Facility), which is a
-   HSM file system.  A migrated file has a `st_dm_mode' that is
-   different from the normal `st_mode', so any tests for migrated
+   HSM file system.  A migrated file has a 'st_dm_mode' that is
+   different from the normal 'st_mode', so any tests for migrated
    files should use the former.  */
 #if HAVE_ST_DM_MODE
 # define IS_MIGRATED_FILE(statp) \

@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 enum warnlevel { not_warned, warned_75, warned_85, warned_95 };
 static enum warnlevel warnlevel;
 
-typedef POINTER_TYPE *POINTER;
+typedef void *POINTER;
 
 /* Function to call to issue a warning;
    0 means don't issue them.  */

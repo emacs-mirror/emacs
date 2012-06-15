@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Searching and Matching, Syntax Tables, Non-ASCII Characters, Top
+@node Searching and Matching
 @chapter Searching and Matching
 @cindex searching
 
@@ -831,7 +831,6 @@ an invalid regular expression is passed to any of the search functions,
 an @code{invalid-regexp} error is signaled.
 
 @node Regexp Example
-@comment  node-name,  next,  previous,  up
 @subsection Complex Regexp Example
 
   Here is a complicated regexp which was formerly used by Emacs to

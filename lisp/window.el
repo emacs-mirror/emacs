@@ -1256,12 +1256,14 @@ and no others."
 
 (defalias 'some-window 'get-window-with-predicate)
 
-(defun get-lru-window (&optional all-frames dedicated)
+(defun get-lru-window (&optional all-frames dedicated not-selected)
    "Return the least recently used window on frames specified by ALL-FRAMES.
 Return a full-width window if possible.  A minibuffer window is
 never a candidate.  A dedicated window is never a candidate
 unless DEDICATED is non-nil, so if all windows are dedicated, the
 value is nil.  Avoid returning the selected window if possible.
+Optional argument NOT-SELECTED non-nil means never return the
+selected window.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -1280,7 +1282,8 @@ Any other value of ALL-FRAMES means consider all windows on the
 selected frame and no others."
    (let (best-window best-time second-best-window second-best-time time)
     (dolist (window (window-list-1 nil 'nomini all-frames))
-      (when (or dedicated (not (window-dedicated-p window)))
+      (when (and (or dedicated (not (window-dedicated-p window)))
+		 (or (not not-selected) (not (eq window (selected-window)))))
 	(setq time (window-use-time window))
 	(if (or (eq window (selected-window))
 		(not (window-full-width-p window)))
@@ -1292,9 +1295,12 @@ selected frame and no others."
 	    (setq best-window window)))))
     (or best-window second-best-window)))
 
-(defun get-mru-window (&optional all-frames)
+(defun get-mru-window (&optional all-frames dedicated not-selected)
    "Return the most recently used window on frames specified by ALL-FRAMES.
-Do not return a minibuffer window.
+A minibuffer window is never a candidate.  A dedicated window is
+never a candidate unless DEDICATED is non-nil, so if all windows
+are dedicated, the value is nil.  Optional argument NOT-SELECTED
+non-nil means never return the selected window.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -1314,16 +1320,19 @@ selected frame and no others."
    (let (best-window best-time time)
     (dolist (window (window-list-1 nil 'nomini all-frames))
       (setq time (window-use-time window))
-      (when (or (not best-time) (> time best-time))
+      (when (and (or dedicated (not (window-dedicated-p window)))
+		 (or (not not-selected) (not (eq window (selected-window))))
+		 (or (not best-time) (> time best-time)))
 	(setq best-time time)
 	(setq best-window window)))
     best-window))
 
-(defun get-largest-window (&optional all-frames dedicated)
+(defun get-largest-window (&optional all-frames dedicated not-selected)
   "Return the largest window on frames specified by ALL-FRAMES.
 A minibuffer window is never a candidate.  A dedicated window is
 never a candidate unless DEDICATED is non-nil, so if all windows
-are dedicated, the value is nil.
+are dedicated, the value is nil.  Optional argument NOT-SELECTED
+non-nil means never return the selected window.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -1343,7 +1352,8 @@ selected frame and no others."
   (let ((best-size 0)
 	best-window size)
     (dolist (window (window-list-1 nil 'nomini all-frames))
-      (when (or dedicated (not (window-dedicated-p window)))
+      (when (and (or dedicated (not (window-dedicated-p window)))
+		 (or (not not-selected) (not (eq window (selected-window)))))
 	(setq size (* (window-total-size window)
 		      (window-total-size window t)))
 	(when (> size best-size)
@@ -2370,8 +2380,11 @@ frame."
     (cond
      ((frame-root-window-p window)
       ;; WINDOW's frame can be deleted only if there are other frames
-      ;; on the same terminal.
-      (unless (eq frame (next-frame frame 0))
+      ;; on the same terminal, and it does not contain the active
+      ;; minibuffer.
+      (unless (or (eq frame (next-frame frame 0))
+		  (let ((minibuf (active-minibuffer-window)))
+		    (and minibuf (eq frame (window-frame minibuf)))))
 	'frame))
      ((or ignore-window-parameters
 	  (not (eq (window-parameter window 'window-side) 'none))
@@ -4255,10 +4268,6 @@ and (cdr ARGS) as second."
 		 (make-frame (append args special-display-frame-alist))))
 	      (window (frame-selected-window frame)))
 	 (display-buffer-record-window 'frame window buffer)
-         ;; FIXME: Use window--display-buffer-2?
-	 (set-window-buffer window buffer)
-	 ;; Reset list of WINDOW's previous buffers to nil.
-	 (set-window-prev-buffers window nil)
 	 (set-window-dedicated-p window t)
 	 window)))))
 
@@ -4450,7 +4459,7 @@ hold:
 	;; A window can be split vertically when its height is not
 	;; fixed, it is at least `split-height-threshold' lines high,
 	;; and it is at least twice as high as `window-min-height' and 2
-	;; if it has a modeline or 1.
+	;; if it has a mode line or 1.
 	(and (memq window-size-fixed '(nil width))
 	     (numberp split-height-threshold)
 	     (>= (window-height window)
@@ -4571,30 +4580,34 @@ is higher than WINDOW."
 	  (enlarge-window (/ (- (window-height window) (window-height)) 2))
 	(error nil)))))
 
-(defun window--display-buffer-1 (window)
-  "Raise the frame containing WINDOW.
-Do not raise the selected frame.  Return WINDOW."
-  (let* ((frame (window-frame window))
-	 (visible (frame-visible-p frame)))
-    (unless (or (not visible)
-		;; Assume the selected frame is already visible enough.
-		(eq frame (selected-frame))
-		;; Assume the frame from which we invoked the minibuffer
-		;; is visible.
-		(and (minibuffer-window-active-p (selected-window))
-		     (eq frame (window-frame (minibuffer-selected-window)))))
-      (raise-frame frame))
-    window))
-
-(defun window--display-buffer-2 (buffer window &optional dedicated)
+(defun window--display-buffer (buffer window type &optional dedicated)
   "Display BUFFER in WINDOW and make its frame visible.
-Set `window-dedicated-p' to DEDICATED if non-nil.
-Return WINDOW."
+TYPE must be one of the symbols `reuse', `window' or `frame' and
+is passed unaltered to `display-buffer-record-window'. Set
+`window-dedicated-p' to DEDICATED if non-nil.  Return WINDOW if
+BUFFER and WINDOW are live."
   (when (and (buffer-live-p buffer) (window-live-p window))
-    (set-window-buffer window buffer)
-    (when dedicated
-      (set-window-dedicated-p window dedicated))
-    (window--display-buffer-1 window)))
+    (let* ((frame (window-frame window))
+	   (visible (frame-visible-p frame)))
+      (unless (eq buffer (window-buffer window))
+	(set-window-dedicated-p window nil)
+	(display-buffer-record-window type window buffer)
+	(set-window-buffer window buffer)
+	(when dedicated
+	  (set-window-dedicated-p window dedicated))
+	(when (memq type '(window frame))
+	  (set-window-prev-buffers window nil)))
+
+      (unless (or (not visible)
+		  ;; Assume the selected frame is already visible enough.
+		  (eq frame (selected-frame))
+		  ;; Assume the frame from which we invoked the minibuffer
+		  ;; is visible.
+		  (and (minibuffer-window-active-p (selected-window))
+		       (eq frame (window-frame (minibuffer-selected-window)))))
+	(raise-frame frame))
+
+      window)))
 
 ;; FIXME: Not implemented.
 ;; FIXME: By the way, there could be more levels of dedication:
@@ -4816,8 +4829,7 @@ selected window."
   (unless (or (cdr (assq 'inhibit-same-window alist))
 	      (window-minibuffer-p)
 	      (window-dedicated-p))
-    (display-buffer-record-window 'reuse (selected-window) buffer)
-    (window--display-buffer-2 buffer (selected-window))))
+    (window--display-buffer buffer (selected-window) 'reuse)))
 
 (defun display-buffer--maybe-same-window (buffer alist)
   "Conditionally display BUFFER in the selected window.
@@ -4861,8 +4873,7 @@ terminal if either of those variables is non-nil."
 			      (get-buffer-window-list buffer 'nomini
 						      frames))))))
     (when window
-      (display-buffer-record-window 'reuse window buffer)
-      (window--display-buffer-1 window))))
+      (window--display-buffer buffer window 'reuse))))
 
 (defun display-buffer--special-action (buffer)
   "Return special display action for BUFFER, if any.
@@ -4888,11 +4899,8 @@ return the window used; otherwise return nil."
     (when (and fun
 	       (setq frame (funcall fun))
 	       (setq window (frame-selected-window frame)))
-      (display-buffer-record-window 'frame window buffer)
-      (window--display-buffer-2 buffer window display-buffer-mark-dedicated)
-      ;; Reset list of WINDOW's previous buffers to nil.
-      (set-window-prev-buffers window nil)
-      window)))
+      (window--display-buffer
+       buffer window 'frame display-buffer-mark-dedicated))))
 
 (defun display-buffer-pop-up-window (buffer _alist)
   "Display BUFFER by popping up a new window.
@@ -4914,11 +4922,8 @@ If successful, return the new window; otherwise return nil."
 				 (get-largest-window frame t))
 				(window--try-to-split-window
 				 (get-lru-window frame t)))))
-      (display-buffer-record-window 'window window buffer)
-      (window--display-buffer-2 buffer window display-buffer-mark-dedicated)
-      ;; Reset list of WINDOW's previous buffers to nil.
-      (set-window-prev-buffers window nil)
-      window)))
+      (window--display-buffer
+       buffer window 'window display-buffer-mark-dedicated))))
 
 (defun display-buffer--maybe-pop-up-frame-or-window (buffer alist)
   "Try displaying BUFFER based on `pop-up-frames' or `pop-up-windows'.
@@ -4940,40 +4945,26 @@ again with `display-buffer-pop-up-window'."
 Search for a usable window, set that window to the buffer, and
 return the window.  If no suitable window is found, return nil."
   (let* ((not-this-window (cdr (assq 'inhibit-same-window alist)))
-	 (window-to-undedicate
-	  ;; When NOT-THIS-WINDOW is non-nil, temporarily dedicate the
-	  ;; selected window to its buffer, to prevent any of the
-	  ;; `get-' routines below from choosing it.  (Bug#1415)
-	  (and not-this-window (not (window-dedicated-p))
-	       (set-window-dedicated-p (selected-window) t)
-	       (selected-window)))
 	 (frame (or (window--frame-usable-p (selected-frame))
 		    (window--frame-usable-p (last-nonminibuffer-frame))))
-	 window)
-    (unwind-protect
-	(setq window
-	      ;; Reuse an existing window.
-	      (or (get-lru-window frame)
-		  (let ((window (get-buffer-window buffer 'visible)))
-		    (unless (and not-this-window
-				 (eq window (selected-window)))
-		      window))
-		  (get-largest-window 'visible)
-		  (let ((window (get-buffer-window buffer 0)))
-		    (unless (and not-this-window
-				 (eq window (selected-window)))
-		      window))
-		  (get-largest-window 0)))
-      (when (window-live-p window-to-undedicate)
-	;; Restore dedicated status of selected window.
-	(set-window-dedicated-p window-to-undedicate nil)))
+	 (window
+	  ;; Reuse an existing window.
+	  (or (get-lru-window frame nil not-this-window)
+	      (let ((window (get-buffer-window buffer 'visible)))
+		(unless (and not-this-window
+			     (eq window (selected-window)))
+		  window))
+	      (get-largest-window 'visible nil not-this-window)
+	      (let ((window (get-buffer-window buffer 0)))
+		(unless (and not-this-window
+			     (eq window (selected-window)))
+		  window))
+	      (get-largest-window 0 not-this-window))))
     (when window
-      (display-buffer-record-window 'reuse window buffer)
       (window--even-window-heights window)
-      (window--display-buffer-2 buffer window))))
+      (window--display-buffer buffer window 'reuse))))
 
 ;;; Display + selection commands:
-
 (defun pop-to-buffer (buffer &optional action norecord)
   "Select buffer BUFFER in some window, preferably a different one.
 BUFFER may be a buffer, a string (a buffer name), or nil.  If it
@@ -5168,9 +5159,9 @@ where some error may be present."
     (unless (zerop delta)
       ;; Setting window-min-height to a value like 1 can lead to very
       ;; bizarre displays because it also allows Emacs to make *other*
-      ;; windows 1-line tall, which means that there's no more space for
-      ;; the modeline.
-      (let ((window-min-height (min 2 height))) ; One text line plus a modeline.
+      ;; windows one line tall, which means that there's no more space
+      ;; for the mode line.
+      (let ((window-min-height (min 2 height)))
 	(window-resize window delta)))))
 
 (defun enlarge-window-horizontally (delta)

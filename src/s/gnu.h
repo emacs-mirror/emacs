@@ -21,11 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
-#undef SYSTEM_TYPE
-#define SYSTEM_TYPE "gnu"
-
-#undef NLIST_STRUCT
-
 #define SIGNALS_VIA_CHARACTERS
 
 /* libc defines data_start.  */
@@ -43,5 +38,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
 #endif /* !_IO_STDIO_H */
 #endif /* emacs */
-
-#define POSIX_SIGNALS 1

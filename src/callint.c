@@ -257,11 +257,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
   Lisp_Object teml;
   Lisp_Object up_event;
   Lisp_Object enable;
-  int speccount = SPECPDL_INDEX ();
+  ptrdiff_t speccount = SPECPDL_INDEX ();
 
   /* The index of the next element of this_command_keys to examine for
      the 'e' interactive code.  */
-  int next_event;
+  ptrdiff_t next_event;
 
   Lisp_Object prefix_arg;
   char *string;
@@ -276,7 +276,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   int foo;
   int arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-  int key_count;
+  ptrdiff_t key_count;
   int record_then_fail = 0;
 
   Lisp_Object save_this_command, save_last_command;
@@ -284,7 +284,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   save_this_command = Vthis_command;
   save_this_original_command = Vthis_original_command;
-  save_real_this_command = real_this_command;
+  save_real_this_command = Vreal_this_command;
   save_last_command = KVAR (current_kboard, Vlast_command);
 
   if (NILP (keys))
@@ -295,7 +295,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       key_count = ASIZE (keys);
     }
 
-  /* Save this now, since use of minibuffer will clobber it. */
+  /* Save this now, since use of minibuffer will clobber it.  */
   prefix_arg = Vcurrent_prefix_arg;
 
   if (SYMBOLP (function))
@@ -310,7 +310,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
      The feature is not fully implemented.  */
   filter_specs = Qnil;
 
-  /* If k or K discard an up-event, save it here so it can be retrieved with U */
+  /* If k or K discard an up-event, save it here so it can be retrieved with
+     U.  */
   up_event = Qnil;
 
   /* Set SPECS to the interactive form, or barf if not interactive.  */
@@ -370,14 +371,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
       Vthis_command = save_this_command;
       Vthis_original_command = save_this_original_command;
-      real_this_command= save_real_this_command;
+      Vreal_this_command = save_real_this_command;
       KVAR (current_kboard, Vlast_command) = save_last_command;
 
       temporarily_switch_to_single_kboard (NULL);
       return unbind_to (speccount, apply1 (function, specs));
     }
 
-  /* Here if function specifies a string to control parsing the defaults */
+  /* Here if function specifies a string to control parsing the defaults.  */
 
   /* Set next_event to point to the first event with parameters.  */
   for (next_event = 0; next_event < key_count; next_event++)
@@ -577,7 +578,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'k':		/* Key sequence. */
 	  {
-	    int speccount1 = SPECPDL_INDEX ();
+	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    /* Prompt in `minibuffer-prompt' face.  */
 	    Fput_text_property (make_number (0),
@@ -609,7 +610,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'K':		/* Key sequence to be defined. */
 	  {
-	    int speccount1 = SPECPDL_INDEX ();
+	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    /* Prompt in `minibuffer-prompt' face.  */
 	    Fput_text_property (make_number (0),
@@ -841,7 +842,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   Vthis_command = save_this_command;
   Vthis_original_command = save_this_original_command;
-  real_this_command= save_real_this_command;
+  Vreal_this_command = save_real_this_command;
   KVAR (current_kboard, Vlast_command) = save_last_command;
 
   {

@@ -796,16 +796,12 @@ Return t if it has at least one flymake overlay, nil if no overlay."
     has-flymake-overlays))
 
 (defface flymake-errline
-  '((((class color) (background dark)) (:background "Firebrick4"))
-    (((class color) (background light)) (:background "LightPink"))
-    (t (:bold t)))
+  '((t :inherit error))
   "Face used for marking error lines."
   :group 'flymake)
 
 (defface flymake-warnline
-  '((((class color) (background dark)) (:background "DarkBlue"))
-    (((class color) (background light)) (:background "LightBlue2"))
-    (t (:bold t)))
+  '((t :inherit warning))
   "Face used for marking warning lines."
   :group 'flymake)
 

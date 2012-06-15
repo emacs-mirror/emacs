@@ -27,8 +27,7 @@
 (require 'url-parse)
 (require 'url-file)
 
-(defvar url-nfs-automounter-directory-spec
-  "file:/net/%h%f"
+(defcustom url-nfs-automounter-directory-spec "file:/net/%h%f"
   "How to invoke the NFS automounter.  Certain % sequences are recognized.
 
 %h -- the hostname of the NFS server
@@ -38,7 +37,9 @@
 %f -- the filename on the remote server
 %% -- a literal %
 
-Each can be used any number of times.")
+Each can be used any number of times."
+  :group 'url
+  :type 'string)
 
 (defun url-nfs-unescape (format host port user pass file)
   (with-current-buffer (get-buffer-create " *nfs-parse*")

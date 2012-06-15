@@ -832,17 +832,17 @@ Otherwise call the Doctor to parse preceding sentence."
       (doctor-read-print)
     (newline arg)))
 
-(defun doctor-read-print nil
+(defun doctor-read-print ()
   "Top level loop."
   (interactive)
-  (let ((sent (doctor-readin)))
-    (insert "\n")
-    (setq doctor--lincount (1+ doctor--lincount))
-    (doctor-doc sent)
-    (insert "\n")
-    (setq doctor--bak sent)))
+  (setq doctor-sent (doctor-readin))
+  (insert "\n")
+  (setq doctor--lincount (1+ doctor--lincount))
+  (doctor-doc)
+  (insert "\n")
+  (setq doctor--bak doctor-sent))
 
-(defun doctor-readin nil
+(defun doctor-readin ()
   "Read a sentence.  Return it as a list of words."
   (let (sentence)
     (backward-sentence 1)
@@ -860,25 +860,25 @@ Otherwise call the Doctor to parse preceding sentence."
 
 ;; Main processing function for sentences that have been read.
 
-(defun doctor-doc (sent)
+(defun doctor-doc ()
   (cond
-   ((equal sent '(foo))
+   ((equal doctor-sent '(foo))
     (doctor-type '(bar! (doc$ doctor--please) (doc$ doctor--continue) \.)))
-   ((member sent doctor--howareyoulst)
+   ((member doctor-sent doctor--howareyoulst)
     (doctor-type '(i\'m ok \.  (doc$ doctor--describe) yourself \.)))
-   ((or (member sent '((good bye) (see you later) (i quit) (so long)
-		       (go away) (get lost)))
-	(memq (car sent)
+   ((or (member doctor-sent '((good bye) (see you later) (i quit) (so long)
+			      (go away) (get lost)))
+	(memq (car doctor-sent)
 	      '(bye halt break quit done exit goodbye
 		    bye\, stop pause goodbye\, stop pause)))
     (doctor-type (doc$ doctor--bye)))
-   ((and (eq (car sent) 'you)
-	 (memq (cadr sent) doctor--abusewords))
-    (setq doctor-found (cadr sent))
+   ((and (eq (car doctor-sent) 'you)
+	 (memq (cadr doctor-sent) doctor--abusewords))
+    (setq doctor-found (cadr doctor-sent))
     (doctor-type (doc$ doctor--abuselst)))
-   ((eq (car sent) 'whatmeans)
-    (doctor-def (cadr sent)))
-   ((equal sent '(parse))
+   ((eq (car doctor-sent) 'whatmeans)
+    (doctor-def (cadr doctor-sent)))
+   ((equal doctor-sent '(parse))
     (doctor-type (list  'subj '= doctor-subj ",  "
 			'verb '= doctor-verb "\n"
 			'object 'phrase '= doctor-obj ","
@@ -890,29 +890,31 @@ Otherwise call the Doctor to parse preceding sentence."
 			'sentence 'used 'was
 			"..."
 			'(doc// doctor--bak))))
-   ((memq (car sent) '(are is do has have how when where who why))
+   ((memq (car doctor-sent) '(are is do has have how when where who why))
     (doctor-type (doc$ doctor--qlist)))
    ;;   ((eq (car sent) 'forget)
    ;;    (set (cadr sent) nil)
    ;;    (doctor-type '((doc$ doctor--isee) (doc$ doctor--please)
    ;;     (doc$ doctor--continue)\.)))
    (t
-    (if (doctor-defq sent) (doctor-define sent doctor-found))
-    (if (> (length sent) 12) (setq sent (doctor-shorten sent)))
-    (setq sent (doctor-correct-spelling (doctor-replace sent doctor--replist)))
-    (cond ((and (not (memq 'me sent)) (not (memq 'i sent))
-		(memq 'am sent))
-	   (setq sent (doctor-replace sent '((am . (are)))))))
-    (cond ((equal (car sent) 'yow) (doctor-zippy))
-	  ((< (length sent) 2)
-	   (cond ((eq (doctor-meaning (car sent)) 'howdy)
+    (if (doctor-defq doctor-sent) (doctor-define doctor-sent doctor-found))
+    (if (> (length doctor-sent) 12)
+	(setq doctor-sent (doctor-shorten doctor-sent)))
+    (setq doctor-sent (doctor-correct-spelling
+		       (doctor-replace doctor-sent doctor--replist)))
+    (cond ((and (not (memq 'me doctor-sent)) (not (memq 'i doctor-sent))
+		(memq 'am doctor-sent))
+	   (setq doctor-sent (doctor-replace doctor-sent '((am . (are)))))))
+    (cond ((equal (car doctor-sent) 'yow) (doctor-zippy))
+	  ((< (length doctor-sent) 2)
+	   (cond ((eq (doctor-meaning (car doctor-sent)) 'howdy)
 		  (doctor-howdy))
 		 (t (doctor-short))))
 	  (t
-	   (if (memq 'am sent)
-	       (setq sent (doctor-replace sent '((me . (i))))))
-	   (setq sent (doctor-fixup sent))
-	   (if (and (eq (car sent) 'do) (eq (cadr sent) 'not))
+	   (if (memq 'am doctor-sent)
+	       (setq doctor-sent (doctor-replace doctor-sent '((me . (i))))))
+	   (setq doctor-sent (doctor-fixup doctor-sent))
+	   (if (and (eq (car doctor-sent) 'do) (eq (cadr doctor-sent) 'not))
 	       (cond ((zerop (random 3))
 		      (doctor-type '(are you (doc$ doctor--afraidof) that \?)))
 		     ((zerop (random 2))
@@ -921,9 +923,9 @@ Otherwise call the Doctor to parse preceding sentence."
 		      (doctor-rthing))
 		     (t
 		      (doctor-type '((doc$ doctor--whysay) that i shouldn\'t
-				     (cddr sent)
+				     (cddr doctor-sent)
 				     \?))))
-	     (doctor-go (doctor-wherego sent))))))))
+	     (doctor-go (doctor-wherego doctor-sent))))))))
 
 ;; Things done to process sentences once read.
 

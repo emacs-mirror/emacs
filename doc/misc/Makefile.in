@@ -175,7 +175,7 @@ info: $(INFO_TARGETS)
 ## Base file names of output info files.
 echo-info:
 	@echo "$(INFO_TARGETS) " | \
-	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/ /$(INFO_EXT) /g"
+	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */$(INFO_EXT) /g"
 
 # please modify this for all the web manual targets
 webhack: clean

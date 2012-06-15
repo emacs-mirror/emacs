@@ -90,13 +90,7 @@
 ;; verify-visited-file-modtime
 ;; write-region
 
-(defvar url-handler-regexp
-  "\\`\\(https?\\|ftp\\|file\\|nfs\\)://"
-  "A regular expression for matching URLs handled by `file-name-handler-alist'.
-Some valid URL protocols just do not make sense to visit interactively
-\(about, data, info, irc, mailto, etc\).  This regular expression
-avoids conflicts with local files that look like URLs \(Gnus is
-particularly bad at this\).")
+(defvar url-handler-regexp) ; defined below to avoid recursive load (revno:108572)
 
 ;;;###autoload
 (define-minor-mode url-handler-mode
@@ -105,16 +99,31 @@ With a prefix argument ARG, enable URL Handler mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil."
   :global t :group 'url
-  (if (not (boundp 'file-name-handler-alist))
-      ;; Can't be turned ON anyway.
-      (setq url-handler-mode nil)
-    ;; Remove old entry, if any.
-    (setq file-name-handler-alist
-	  (delq (rassq 'url-file-handler file-name-handler-alist)
-		file-name-handler-alist))
-    (if url-handler-mode
-	(push (cons url-handler-regexp 'url-file-handler)
-	      file-name-handler-alist))))
+  ;; Remove old entry, if any.
+  (setq file-name-handler-alist
+	(delq (rassq 'url-file-handler file-name-handler-alist)
+	      file-name-handler-alist))
+  (if url-handler-mode
+      (push (cons url-handler-regexp 'url-file-handler)
+	    file-name-handler-alist)))
+
+(defcustom url-handler-regexp "\\`\\(https?\\|ftp\\|file\\|nfs\\)://"
+  "Regular expression for URLs handled by `url-handler-mode'.
+When URL Handler mode is enabled, this regular expression is
+added to `file-name-handler-alist'.
+
+Some valid URL protocols just do not make sense to visit
+interactively \(about, data, info, irc, mailto, etc\).  This
+regular expression avoids conflicts with local files that look
+like URLs \(Gnus is particularly bad at this\)."
+  :group 'url
+  :type 'regexp
+  :set (lambda (symbol value)
+	 (let ((enable url-handler-mode))
+	   (url-handler-mode 0)
+	   (set-default symbol value)
+	   (if enable
+	       (url-handler-mode)))))
 
 (defun url-run-real-handler (operation args)
   (let ((inhibit-file-name-handlers (cons 'url-file-handler

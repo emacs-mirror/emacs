@@ -40,6 +40,8 @@
     (define-key map [mouse-2] 'help-follow-mouse)
     (define-key map "\C-c\C-b" 'help-go-back)
     (define-key map "\C-c\C-f" 'help-go-forward)
+    (define-key map [XF86Back] 'help-go-back)
+    (define-key map [XF86Forward] 'help-go-forward)
     (define-key map "\C-c\C-c" 'help-follow-symbol)
     (define-key map "\r" 'help-follow)
     map)
@@ -265,6 +267,8 @@ The format is (FUNCTION ARGS...).")
   'help-function 'customize-create-theme
   'help-echo (purecopy "mouse-2, RET: edit this theme file"))
 
+(defvar bookmark-make-record-function)
+
 ;;;###autoload
 (define-derived-mode help-mode special-mode "Help"
   "Major mode for viewing help text and navigating references in it.
@@ -272,7 +276,9 @@ Entry to this mode runs the normal hook `help-mode-hook'.
 Commands:
 \\{help-mode-map}"
   (set (make-local-variable 'revert-buffer-function)
-       'help-mode-revert-buffer))
+       'help-mode-revert-buffer)
+  (set (make-local-variable 'bookmark-make-record-function)
+       'help-bookmark-make-record))
 
 ;;;###autoload
 (defun help-mode-setup ()
@@ -788,6 +794,37 @@ help buffer by other means."
   (setq help-xref-stack-item (list #'help-insert-string string))
   (with-output-to-temp-buffer (help-buffer)
     (insert string)))
+
+
+;; Bookmark support
+
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-make-record-default "bookmark"
+                  (&optional no-file no-context posn))
+
+(defun help-bookmark-make-record ()
+  "Create and return a help-mode bookmark record.
+Implements `bookmark-make-record-function' for help-mode buffers."
+  (unless (car help-xref-stack-item)
+    (error "Cannot create bookmark - help command not known"))
+  `(,@(bookmark-make-record-default 'NO-FILE 'NO-CONTEXT)
+      (help-fn     . ,(car help-xref-stack-item))
+      (help-args   . ,(cdr help-xref-stack-item))
+      (position    . ,(point))
+      (handler     . help-bookmark-jump)))
+
+;;;###autoload
+(defun help-bookmark-jump (bookmark)
+  "Jump to help-mode bookmark BOOKMARK.
+Handler function for record returned by `help-bookmark-make-record'.
+BOOKMARK is a bookmark name or a bookmark record."
+  (let ((help-fn    (bookmark-prop-get bookmark 'help-fn))
+        (help-args  (bookmark-prop-get bookmark 'help-args))
+        (position   (bookmark-prop-get bookmark 'position)))
+    (apply help-fn help-args)
+    (pop-to-buffer "*Help*")
+    (goto-char position)))
+
 
 (provide 'help-mode)
 

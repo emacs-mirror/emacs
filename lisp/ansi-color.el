@@ -90,7 +90,7 @@ as a PDF file <URL:http://www.ecma.ch/ecma1/STAND/ECMA-048.HTM>."
   :group 'processes)
 
 (defcustom ansi-color-faces-vector
-  [default bold default italic underline bold bold-italic modeline]
+  [default bold default italic underline success warning error]
   "Faces used for SGR control sequences determining a face.
 This vector holds the faces used for SGR control sequence parameters 0
 to 7.
@@ -101,9 +101,9 @@ Parameter  Description        Face used by default
   2        faint              default
   3        italic             italic
   4        underlined         underline
-  5        slowly blinking    bold
-  6        rapidly blinking   bold-italic
-  7        negative image     modeline
+  5        slowly blinking    success
+  6        rapidly blinking   warning
+  7        negative image     error
 
 Note that the symbol `default' is special: It will not be combined
 with the current face.

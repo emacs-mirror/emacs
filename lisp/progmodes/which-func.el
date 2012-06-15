@@ -68,7 +68,7 @@
   "String to display in the mode line when current function is unknown.")
 
 (defgroup which-func nil
-  "Display the current function name in the modeline."
+  "Display the current function name in the mode line."
   :group 'tools
   :version "20.3")
 
@@ -163,7 +163,7 @@ single string, the new name of the item.")
 (defvar which-func-cleanup-function nil
   "Function to transform a string before displaying it in the mode line.
 The function is called with one argument, the string to display.
-Its return value is displayed in the modeline.
+Its return value is displayed in the mode line.
 If nil, no function is called.  The default value is nil.
 
 This feature can be useful if Imenu is set up to make more
@@ -209,7 +209,8 @@ It creates the Imenu index for the buffer, if necessary."
 	  (setq imenu--index-alist
 		(save-excursion (funcall imenu-create-index-function))))
     (error
-     (unless (equal err '(error "This buffer cannot use `imenu-default-create-index-function'"))
+     (unless (equal err
+                    '(user-error "This buffer cannot use `imenu-default-create-index-function'"))
        (message "which-func-ff-hook error: %S" err))
      (setq which-func-mode nil))))
 
@@ -335,6 +336,22 @@ If no function name is found, return nil."
       (if which-func-cleanup-function
 	  (funcall which-func-cleanup-function name)
 	name))))
+
+
+;;; Integration with other packages
+
+(defun which-func-update-ediff-windows ()
+  "Update Which-Function mode display for Ediff windows.
+This function is meant to be called from `ediff-select-hook'."
+  (when (eq major-mode 'ediff-mode)
+    (when ediff-window-A
+      (which-func-update-1 ediff-window-A))
+    (when ediff-window-B
+      (which-func-update-1 ediff-window-B))
+    (when ediff-window-C
+      (which-func-update-1 ediff-window-C))))
+
+(add-hook 'ediff-select-hook 'which-func-update-ediff-windows)
 
 (provide 'which-func)
 

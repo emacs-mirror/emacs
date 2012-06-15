@@ -1,6 +1,6 @@
 ;;; vc-rcs.el --- support for RCS version-control
 
-;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -868,6 +868,23 @@ and CVS."
 	  (minor-num (string-to-number (vc-rcs-minor-part rev))))
       (concat branch "." (number-to-string (1+ minor-num))))))
 
+;; Note that most GNU/Linux distributions seem to supply rcs2log in a
+;; standard bin directory.  Eg both Red Hat and Debian include it in
+;; their cvs packages.  It's not obvious why Emacs still needs to
+;; provide it as well...
+(defvar vc-rcs-rcs2log-program
+  (let (exe)
+    (cond ((file-executable-p
+            (setq exe (expand-file-name "rcs2log" exec-directory)))
+           exe)
+          ;; In the unlikely event that someone is running an
+          ;; uninstalled Emacs and wants to do something RCS-related.
+          ((file-executable-p
+            (setq exe (expand-file-name "lib-src/rcs2log" source-directory)))
+           exe)
+          (t "rcs2log")))
+  "Path to the `rcs2log' program (normally in `exec-directory').")
+
 (defun vc-rcs-update-changelog (files)
   "Default implementation of update-changelog.
 Uses `rcs2log' which only works for RCS and CVS."
@@ -898,9 +915,7 @@ Uses `rcs2log' which only works for RCS and CVS."
 	     (unwind-protect
 		 (progn
 		   (setq default-directory odefault)
-		   (if (eq 0 (apply 'call-process
-                                    (expand-file-name "rcs2log"
-                                                      exec-directory)
+		   (if (eq 0 (apply 'call-process vc-rcs-rcs2log-program
                                     nil (list t tempfile) nil
                                     "-c" changelog
                                     "-u" (concat login-name

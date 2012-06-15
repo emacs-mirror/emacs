@@ -86,7 +86,7 @@ static Lisp_Object Qfile_name_all_completions;
 static Lisp_Object Qfile_attributes;
 static Lisp_Object Qfile_attributes_lessp;
 
-static int scmp (const char *, const char *, int);
+static ptrdiff_t scmp (const char *, const char *, ptrdiff_t);
 static Lisp_Object Ffile_attributes (Lisp_Object, Lisp_Object);
 
 #ifdef WINDOWSNT
@@ -117,11 +117,11 @@ Lisp_Object
 directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort, int attrs, Lisp_Object id_format)
 {
   DIR *d;
-  int directory_nbytes;
+  ptrdiff_t directory_nbytes;
   Lisp_Object list, dirfilename, encoded_directory;
   struct re_pattern_buffer *bufp = NULL;
   int needsep = 0;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   DIRENTRY *dp;
 #ifdef WINDOWSNT
@@ -226,7 +226,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 
       if (DIRENTRY_NONEMPTY (dp))
 	{
-	  int len;
+	  ptrdiff_t len;
 	  int wanted = 0;
 	  Lisp_Object name, finalname;
 	  struct gcpro gcpro1, gcpro2;
@@ -256,8 +256,8 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 	      if (!NILP (full))
 		{
 		  Lisp_Object fullname;
-		  int nbytes = len + directory_nbytes + needsep;
-		  int nchars;
+		  ptrdiff_t nbytes = len + directory_nbytes + needsep;
+		  ptrdiff_t nchars;
 
 		  fullname = make_uninit_multibyte_string (nbytes, nbytes);
 		  memcpy (SDATA (fullname), SDATA (directory),
@@ -449,7 +449,7 @@ static Lisp_Object
 file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate)
 {
   DIR *d;
-  int bestmatchsize = 0;
+  ptrdiff_t bestmatchsize = 0;
   int matchcount = 0;
   /* If ALL_FLAG is 1, BESTMATCH is the list of all matches, decoded.
      If ALL_FLAG is 0, BESTMATCH is either nil
@@ -463,7 +463,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
      well as "." and "..".  Until shown otherwise, assume we can't exclude
      anything.  */
   int includeall = 1;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   elt = Qnil;
@@ -502,7 +502,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
   while (1)
     {
       DIRENTRY *dp;
-      int len;
+      ptrdiff_t len;
       int canexclude = 0;
 
       errno = 0;
@@ -538,7 +538,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 	 completions when making a list of them.  */
       if (!all_flag)
 	{
-	  int skip;
+	  ptrdiff_t skip;
 
 #if 0 /* FIXME: The `scmp' call compares an encoded and a decoded string. */
 	  /* If this entry matches the current bestmatch, the only
@@ -568,7 +568,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		for (tem = Vcompletion_ignored_extensions;
 		     CONSP (tem); tem = XCDR (tem))
 		  {
-		    int elt_len;
+		    ptrdiff_t elt_len;
 		    char *p1;
 
 		    elt = XCAR (tem);
@@ -685,7 +685,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 
       /* Suitably record this match.  */
 
-      matchcount++;
+      matchcount += matchcount <= 1;
 
       if (all_flag)
 	bestmatch = Fcons (name, bestmatch);
@@ -698,14 +698,14 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 	{
 	  Lisp_Object zero = make_number (0);
 	  /* FIXME: This is a copy of the code in Ftry_completion.  */
-	  int compare = min (bestmatchsize, SCHARS (name));
+	  ptrdiff_t compare = min (bestmatchsize, SCHARS (name));
 	  Lisp_Object cmp
 	    = Fcompare_strings (bestmatch, zero,
 				make_number (compare),
 				name, zero,
 				make_number (compare),
 				completion_ignore_case ? Qt : Qnil);
-	  int matchsize
+	  ptrdiff_t matchsize
 	    = (EQ (cmp, Qt)     ? compare
 	       : XINT (cmp) < 0 ? - XINT (cmp) - 1
 	       :                  XINT (cmp) - 1);
@@ -784,10 +784,10 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
    Return -1 if strings match,
    else number of chars that match at the beginning.  */
 
-static int
-scmp (const char *s1, const char *s2, int len)
+static ptrdiff_t
+scmp (const char *s1, const char *s2, ptrdiff_t len)
 {
-  register int l = len;
+  register ptrdiff_t l = len;
 
   if (completion_ignore_case)
     {
@@ -810,10 +810,12 @@ scmp (const char *s1, const char *s2, int len)
 static int
 file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr)
 {
-  int len = NAMLEN (dp);
-  int pos = SCHARS (dirname);
+  ptrdiff_t len = NAMLEN (dp);
+  ptrdiff_t pos = SCHARS (dirname);
   int value;
-  char *fullname = (char *) alloca (len + pos + 2);
+  char *fullname;
+  USE_SAFE_ALLOCA;
+  SAFE_ALLOCA (fullname, char *, len + pos + 2);
 
 #ifdef MSDOS
   /* Some fields of struct stat are *very* expensive to compute on MS-DOS,
@@ -842,6 +844,7 @@ file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_ad
 #ifdef MSDOS
   _djstat_flags = save_djstat_flags;
 #endif /* MSDOS */
+  SAFE_FREE ();
   return value;
 }
 

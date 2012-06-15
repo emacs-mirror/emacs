@@ -31,10 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DARWIN_OS
 
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "darwin"
-
 /* Emacs can read input using SIGIO and buffering characters itself,
    or using CBREAK mode and making C-g cause SIGINT.
    The choice is controlled by the variable interrupt_input.
@@ -61,8 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
 #define FIRST_PTY_LETTER 'p'
-
-#define NO_TERMIO
 
 /* Define HAVE_PTYS if the system supports pty devices.
    Note: PTYs are broken on darwin <6.  Use at your own risk.  */

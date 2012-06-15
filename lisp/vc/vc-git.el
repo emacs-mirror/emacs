@@ -247,7 +247,7 @@ matching the resulting Git log output, and KEYWORDS is a list of
   (eq 'up-to-date (vc-git-state file)))
 
 (defun vc-git-mode-line-string (file)
-  "Return string for placement into the modeline for FILE."
+  "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let* ((branch (vc-git-working-revision file))
          (def-ml (vc-default-mode-line-string 'Git file))
          (help-echo (get-text-property 0 'help-echo def-ml)))

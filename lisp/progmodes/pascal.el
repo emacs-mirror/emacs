@@ -232,10 +232,10 @@ will do all lineups."
   :group 'pascal)
 
 (defvar pascal-toggle-completions nil
-  "Non-nil meant \\<pascal-mode-map>\\[pascal-complete-word] would try all possible completions one by one.
-Repeated use of \\[pascal-complete-word] would show you all of them.
-Normally, when there is more than one possible completion,
-it displays a list of all possible completions.")
+  "If non-nil, `pascal-complete-word' tries all possible completions.
+Repeated use of \\[pascal-complete-word] then shows all
+completions in turn, instead of displaying a list of all possible
+completions.")
 (make-obsolete-variable 'pascal-toggle-completions
                         'completion-cycle-threshold "24.1")
 

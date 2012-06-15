@@ -594,28 +594,19 @@ doubt, use whitespace."
 Return nil if the sequences match.  If one sequence is a prefix of the
 other, the return value indicates the end of the shorted sequence.
 \n(fn SEQ1 SEQ2 START1 END1 START2 END2)"
-  (let (cl-test cl-test-not cl-key cl-from-end)
-    (or cl-end1 (setq cl-end1 (length cl-seq1)))
-    (or cl-end2 (setq cl-end2 (length cl-seq2)))
-    (if cl-from-end
-	(progn
-	  (while (and (< cl-start1 cl-end1) (< cl-start2 cl-end2)
-		      (cl-check-match (elt cl-seq1 (1- cl-end1))
-				      (elt cl-seq2 (1- cl-end2))))
-	    (setq cl-end1 (1- cl-end1) cl-end2 (1- cl-end2)))
-	  (and (or (< cl-start1 cl-end1) (< cl-start2 cl-end2))
-	       (1- cl-end1)))
-      (let ((cl-p1 (and (listp cl-seq1) (nthcdr cl-start1 cl-seq1)))
-	    (cl-p2 (and (listp cl-seq2) (nthcdr cl-start2 cl-seq2))))
-	(while (and (< cl-start1 cl-end1) (< cl-start2 cl-end2)
-		    (cl-check-match (if cl-p1 (car cl-p1)
-				      (aref cl-seq1 cl-start1))
-				    (if cl-p2 (car cl-p2)
-				      (aref cl-seq2 cl-start2))))
-	  (setq cl-p1 (cdr cl-p1) cl-p2 (cdr cl-p2)
-		cl-start1 (1+ cl-start1) cl-start2 (1+ cl-start2)))
-	(and (or (< cl-start1 cl-end1) (< cl-start2 cl-end2))
-	     cl-start1)))))
+  (or cl-end1 (setq cl-end1 (length cl-seq1)))
+  (or cl-end2 (setq cl-end2 (length cl-seq2)))
+  (let ((cl-p1 (and (listp cl-seq1) (nthcdr cl-start1 cl-seq1)))
+        (cl-p2 (and (listp cl-seq2) (nthcdr cl-start2 cl-seq2))))
+    (while (and (< cl-start1 cl-end1) (< cl-start2 cl-end2)
+                (eql (if cl-p1 (car cl-p1)
+                       (aref cl-seq1 cl-start1))
+                     (if cl-p2 (car cl-p2)
+                       (aref cl-seq2 cl-start2))))
+      (setq cl-p1 (cdr cl-p1) cl-p2 (cdr cl-p2)
+            cl-start1 (1+ cl-start1) cl-start2 (1+ cl-start2)))
+    (and (or (< cl-start1 cl-end1) (< cl-start2 cl-end2))
+         cl-start1)))
 
 (defun edmacro-subseq (seq start &optional end)
   "Return the subsequence of SEQ from START to END.

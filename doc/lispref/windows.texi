@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Windows, Frames, Buffers, Top
+@node Windows
 @chapter Windows
 
 This chapter describes the functions and variables related to Emacs
@@ -1558,7 +1558,7 @@ displaying the buffer.  Hence, all the variables affecting
 @code{display-buffer} will affect it as well.  @xref{Choosing Window},
 for the documentation of @code{display-buffer}.
 
-@defun pop-to-buffer buffer-or-name &optional action norecord
+@deffn Command pop-to-buffer buffer-or-name &optional action norecord
 This function makes @var{buffer-or-name} the current buffer and
 displays it in some window, preferably not the window previously
 selected.  It then selects the displaying window.  If that window is
@@ -1581,7 +1581,7 @@ displayed in the selected window.
 
 Like @code{switch-to-buffer}, this function updates the buffer list
 unless @var{norecord} is non-@code{nil}.
-@end defun
+@end deffn
 
 @node Choosing Window
 @section Choosing a Window for Display

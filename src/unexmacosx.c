@@ -809,9 +809,9 @@ copy_data_segment (struct load_command *lc)
 	{
 	  sectp->flags = S_REGULAR;
 	  if (!unexec_write (sectp->offset, (void *) sectp->addr, sectp->size))
-	    unexec_error ("cannot write section %s", sectp->sectname);
+	    unexec_error ("cannot write section %.16s", sectp->sectname);
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
-	    unexec_error ("cannot write section %s's header", sectp->sectname);
+	    unexec_error ("cannot write section %.16s's header", sectp->sectname);
 	}
       else if (strncmp (sectp->sectname, SECT_BSS, 16) == 0)
 	{
@@ -829,15 +829,15 @@ copy_data_segment (struct load_command *lc)
 	  my_size = (unsigned long)my_endbss_static - sectp->addr;
 	  if (!(sectp->addr <= (unsigned long)my_endbss_static
 		&& my_size <= sectp->size))
-	    unexec_error ("my_endbss_static is not in section %s",
+	    unexec_error ("my_endbss_static is not in section %.16s",
 			  sectp->sectname);
 	  if (!unexec_write (sectp->offset, (void *) sectp->addr, my_size))
-	    unexec_error ("cannot write section %s", sectp->sectname);
+	    unexec_error ("cannot write section %.16s", sectp->sectname);
 	  if (!unexec_write_zero (sectp->offset + my_size,
 				  sectp->size - my_size))
-	    unexec_error ("cannot write section %s", sectp->sectname);
+	    unexec_error ("cannot write section %.16s", sectp->sectname);
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
-	    unexec_error ("cannot write section %s's header", sectp->sectname);
+	    unexec_error ("cannot write section %.16s's header", sectp->sectname);
 	}
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0
@@ -851,12 +851,13 @@ copy_data_segment (struct load_command *lc)
 	       || strncmp (sectp->sectname, "__objc_", 7) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
-	    unexec_error ("cannot copy section %s", sectp->sectname);
+	    unexec_error ("cannot copy section %.16s", sectp->sectname);
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
-	    unexec_error ("cannot write section %s's header", sectp->sectname);
+	    unexec_error ("cannot write section %.16s's header", sectp->sectname);
 	}
       else
-	unexec_error ("unrecognized section name in __DATA segment");
+	unexec_error ("unrecognized section %.16s in __DATA segment",
+		      sectp->sectname);
 
       printf ("        section %-16.16s at %#8lx - %#8lx (sz: %#8lx)\n",
 	      sectp->sectname, (long) (sectp->offset),

@@ -557,8 +557,8 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
       return ns_fallback_entity ();
 
     if (NSFONT_TRACE)
-	fprintf (stderr, "    Returning %ld entities.\n",
-                 (long) XINT (Flength (list)));
+	fprintf (stderr, "    Returning %"pI"d entities.\n",
+                 XINT (Flength (list)));
 
     return list;
 }
@@ -664,8 +664,8 @@ nsfont_list_family (Lisp_Object frame)
   /* FIXME: escape the name? */
 
   if (NSFONT_TRACE)
-    fprintf (stderr, "nsfont: list families returning %ld entries\n",
-            (long) XINT (Flength (list)));
+    fprintf (stderr, "nsfont: list families returning %"pI"d entries\n",
+	     XINT (Flength (list)));
 
   return list;
 }

@@ -800,8 +800,8 @@ See also `dired-enable-local-variables'."
                (hack-local-variables))
            ;; Delete this stuff: `eobp' is used to find last subdir by dired.el.
            (delete-region opoint (point-max)))
-         ;; Make sure that the modeline shows the proper information.
-         (dired-sort-set-modeline))))
+         ;; Make sure that the mode line shows the proper information.
+         (dired-sort-set-mode-line))))
 
 (make-obsolete 'dired-hack-local-variables
                'hack-dir-local-variables-non-file-buffer "24.1")

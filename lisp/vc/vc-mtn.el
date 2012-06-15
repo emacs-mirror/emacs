@@ -161,7 +161,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :group 'vc-mtn)
 
 (defun vc-mtn-mode-line-string (file)
-  "Return string for placement in modeline by `vc-mode-line' for FILE."
+  "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let ((branch (vc-mtn-workfile-branch file)))
     (dolist (rule vc-mtn-mode-line-rewrite)
       (if (string-match (car rule) branch)

@@ -474,8 +474,8 @@ installed locations, with `make install'.  By default, Emacs's files
 are installed in the following directories:
 
 `/usr/local/bin' holds the executable programs users normally run -
-		`emacs', `etags', `ctags', `emacsclient',
-		`grep-changelog', and `rcs-checkin'.
+		`emacs', `etags', `ctags', `emacsclient', and
+		`grep-changelog'.
 
 `/usr/local/share/emacs/VERSION/lisp' holds the Emacs Lisp library;
 		`VERSION' stands for the number of the Emacs version
@@ -719,10 +719,10 @@ directory of the Emacs distribution.
 in `./lib-src' to their final destinations, as selected in `./src/epaths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
-- The programs `hexl', `movemail', `profile', `rcs2log', and `vcdiff'
+- The programs `hexl', `movemail', `profile', and `rcs2log'
     are used by Emacs; they do need to be copied.
-- The programs `etags', `ctags', `emacsclient', and `rcs-checkin'
-    are intended to be run by users; they are handled below.
+- The programs `etags', `ctags', and `emacsclient' are intended to be
+    run by users; they are handled below.
 - The programs `make-docfile' and `test-distrib' were
     used in building Emacs, and are not needed any more.
 
@@ -741,9 +741,8 @@ of installing different versions.
 
 You can delete `./src/temacs'.
 
-4) Copy the programs `emacsclient', `ctags', `etags', and `rcs-checkin'
-from `./lib-src' to `/usr/local/bin'.  These programs are intended for
-users to run.
+4) Copy the programs `emacsclient', `ctags', and `etags' from `./lib-src'
+to `/usr/local/bin'.  These programs are intended for users to run.
 
 5) Copy the man pages in `./doc/man' into the appropriate man directory.
 

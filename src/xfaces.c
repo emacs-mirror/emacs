@@ -922,7 +922,7 @@ the pixmap.  Bits are stored row by row, each row occupies
   else if (CONSP (object))
     {
       /* Otherwise OBJECT must be (WIDTH HEIGHT DATA), WIDTH and
-	 HEIGHT must be integers > 0, and DATA must be string large
+	 HEIGHT must be ints > 0, and DATA must be string large
 	 enough to hold a bitmap of the specified size.  */
       Lisp_Object width, height, data;
 
@@ -942,11 +942,11 @@ the pixmap.  Bits are stored row by row, each row occupies
 	}
 
       if (STRINGP (data)
-	  && INTEGERP (width) && 0 < XINT (width)
-	  && INTEGERP (height) && 0 < XINT (height))
+	  && RANGED_INTEGERP (1, width, INT_MAX)
+	  && RANGED_INTEGERP (1, height, INT_MAX))
 	{
-	  EMACS_INT bytes_per_row = ((XINT (width) + BITS_PER_CHAR - 1)
-				     / BITS_PER_CHAR);
+	  int bytes_per_row = ((XINT (width) + BITS_PER_CHAR - 1)
+			       / BITS_PER_CHAR);
 	  if (XINT (height) <= SBYTES (data) / bytes_per_row)
 	    pixmap_p = 1;
 	}
@@ -1604,7 +1604,9 @@ compare_fonts_by_sort_order (const void *v1, const void *v2)
       else
 	{
 	  if (INTEGERP (val1))
-	    result = INTEGERP (val2) ? XINT (val1) - XINT (val2) : -1;
+	    result = (INTEGERP (val2) && XINT (val1) >= XINT (val2)
+		      ? XINT (val1) > XINT (val2)
+		      : -1);
 	  else
 	    result = INTEGERP (val2) ? 1 : 0;
 	}
@@ -1633,8 +1635,10 @@ the face font sort order.  */)
   (Lisp_Object family, Lisp_Object frame)
 {
   Lisp_Object font_spec, list, *drivers, vec;
-  int i, nfonts, ndrivers;
+  ptrdiff_t i, nfonts;
+  EMACS_INT ndrivers;
   Lisp_Object result;
+  USE_SAFE_ALLOCA;
 
   if (NILP (frame))
     frame = selected_frame;
@@ -1670,7 +1674,7 @@ the face font sort order.  */)
   font_props_for_sorting[i++] = FONT_REGISTRY_INDEX;
 
   ndrivers = XINT (Flength (list));
-  drivers  = alloca (sizeof (Lisp_Object) * ndrivers);
+  SAFE_ALLOCA_LISP (drivers, ndrivers);
   for (i = 0; i < ndrivers; i++, list = XCDR (list))
     drivers[i] = XCAR (list);
   vec = Fvconcat (ndrivers, drivers);
@@ -1702,6 +1706,7 @@ the face font sort order.  */)
       result = Fcons (v, result);
     }
 
+  SAFE_FREE ();
   return result;
 }
 
@@ -2263,7 +2268,7 @@ merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
     {
       if (INTEGERP (to))
 	/* relative X absolute => absolute */
-	result = make_number ((EMACS_INT)(XFLOAT_DATA (from) * XINT (to)));
+	result = make_number (XFLOAT_DATA (from) * XINT (to));
       else if (FLOATP (to))
 	/* relative X relative => relative */
 	result = make_float (XFLOAT_DATA (from) * XFLOAT_DATA (to));
@@ -2683,8 +2688,7 @@ Value is a vector of face attributes.  */)
 	 property `face' of the Lisp face name.  */
       if (next_lface_id == lface_id_to_name_size)
 	lface_id_to_name =
-	  xpalloc (lface_id_to_name, &lface_id_to_name_size, 1,
-		   min (INT_MAX, MOST_POSITIVE_FIXNUM),
+	  xpalloc (lface_id_to_name, &lface_id_to_name_size, 1, MAX_FACE_ID,
 		   sizeof *lface_id_to_name);
 
       lface_id_to_name[next_lface_id] = face;
@@ -4575,7 +4579,7 @@ lookup_named_face (struct frame *f, Lisp_Object symbol, int signal_p)
 }
 
 
-/* Return the display face-id of the basic face who's canonical face-id
+/* Return the display face-id of the basic face whose canonical face-id
    is FACE_ID.  The return value will usually simply be FACE_ID, unless that
    basic face has bee remapped via Vface_remapping_alist.  This function is
    conservative: if something goes wrong, it will simply return FACE_ID
@@ -4880,13 +4884,12 @@ static int
 tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
 				struct face *def_face)
 {
-  int weight;
+  int weight, slant;
   Lisp_Object val, fg, bg;
   XColor fg_tty_color, fg_std_color;
   XColor bg_tty_color, bg_std_color;
   unsigned test_caps = 0;
   Lisp_Object *def_attrs = def_face->lface;
-
 
   /* First check some easy-to-check stuff; ttys support none of the
      following attributes, so we can just return false if any are requested
@@ -4903,10 +4906,8 @@ tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
       || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX]))
+      || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX]))
     return 0;
-
 
   /* Test for terminal `capabilities' (non-color character attributes).  */
 
@@ -4931,6 +4932,18 @@ tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
 	}
       else if (def_weight == 100)
 	return 0;		/* same as default */
+    }
+
+  /* font slant */
+  val = attrs[LFACE_SLANT_INDEX];
+  if (!UNSPECIFIEDP (val)
+      && (slant = FONT_SLANT_NAME_NUMERIC (val), slant >= 0))
+    {
+      int def_slant = FONT_SLANT_NAME_NUMERIC (def_attrs[LFACE_SLANT_INDEX]);
+      if (slant == 100 || slant == def_slant)
+	return 0; /* same as default */
+      else
+	test_caps |= TTY_CAP_ITALIC;
     }
 
   /* underlining */
@@ -5277,7 +5290,7 @@ static int
 realize_basic_faces (struct frame *f)
 {
   int success_p = 0;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   /* Block input here so that we won't be surprised by an X expose
      event, for instance, without having the faces set up.  */
@@ -5332,11 +5345,11 @@ realize_default_face (struct frame *f)
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
   if (NILP (lface))
-  {
+    {
        Lisp_Object frame;
        XSETFRAME (frame, f);
        lface = Finternal_make_lisp_face (Qdefault, frame);
-  }
+    }
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -5853,15 +5866,13 @@ realize_tty_face (struct face_cache *cache, Lisp_Object *attrs)
   face->font_name = FRAME_MSDOS_P (cache->f) ? "ms-dos" : "tty";
 #endif
 
-  /* Map face attributes to TTY appearances.  We map slant to
-     dimmed text because we want italic text to appear differently
-     and because dimmed text is probably used infrequently.  */
+  /* Map face attributes to TTY appearances.  */
   weight = FONT_WEIGHT_NAME_NUMERIC (attrs[LFACE_WEIGHT_INDEX]);
   slant = FONT_SLANT_NAME_NUMERIC (attrs[LFACE_SLANT_INDEX]);
   if (weight > 100)
     face->tty_bold_p = 1;
-  if (weight < 100 || slant != 100)
-    face->tty_dim_p = 1;
+  if (slant != 100)
+    face->tty_italic_p = 1;
   if (!NILP (attrs[LFACE_UNDERLINE_INDEX]))
     face->tty_underline_p = 1;
   if (!NILP (attrs[LFACE_INVERSE_INDEX]))
@@ -5960,9 +5971,9 @@ compute_char_face (struct frame *f, int ch, Lisp_Object prop)
    The face returned is suitable for displaying ASCII characters.  */
 
 int
-face_at_buffer_position (struct window *w, EMACS_INT pos,
-			 EMACS_INT region_beg, EMACS_INT region_end,
-			 EMACS_INT *endptr, EMACS_INT limit,
+face_at_buffer_position (struct window *w, ptrdiff_t pos,
+			 ptrdiff_t region_beg, ptrdiff_t region_end,
+			 ptrdiff_t *endptr, ptrdiff_t limit,
 			 int mouse, int base_face_id)
 {
   struct frame *f = XFRAME (w->frame);
@@ -5971,7 +5982,7 @@ face_at_buffer_position (struct window *w, EMACS_INT pos,
   ptrdiff_t i, noverlays;
   Lisp_Object *overlay_vec;
   Lisp_Object frame;
-  EMACS_INT endpos;
+  ptrdiff_t endpos;
   Lisp_Object propname = mouse ? Qmouse_face : Qface;
   Lisp_Object limit1, end;
   struct face *default_face;
@@ -5997,7 +6008,7 @@ face_at_buffer_position (struct window *w, EMACS_INT pos,
 
   /* Look at properties from overlays.  */
   {
-    EMACS_INT next_overlay;
+    ptrdiff_t next_overlay;
 
     GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay, 0);
     if (next_overlay < endpos)
@@ -6072,9 +6083,9 @@ face_at_buffer_position (struct window *w, EMACS_INT pos,
    simply disregards the `face' properties of all overlays.  */
 
 int
-face_for_overlay_string (struct window *w, EMACS_INT pos,
-			 EMACS_INT region_beg, EMACS_INT region_end,
-			 EMACS_INT *endptr, EMACS_INT limit,
+face_for_overlay_string (struct window *w, ptrdiff_t pos,
+			 ptrdiff_t region_beg, ptrdiff_t region_end,
+			 ptrdiff_t *endptr, ptrdiff_t limit,
 			 int mouse, Lisp_Object overlay)
 {
   struct frame *f = XFRAME (w->frame);
@@ -6107,14 +6118,14 @@ face_for_overlay_string (struct window *w, EMACS_INT pos,
 
   *endptr = endpos;
 
-  default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-
-  /* Optimize common cases where we can use the default face.  */
+  /* Optimize common case where we can use the default face.  */
   if (NILP (prop)
-      && !(pos >= region_beg && pos < region_end))
+      && !(pos >= region_beg && pos < region_end)
+      && NILP (Vface_remapping_alist))
     return DEFAULT_FACE_ID;
 
   /* Begin with attributes from the default face.  */
+  default_face = FACE_FROM_ID (f, lookup_basic_face (f, DEFAULT_FACE_ID));
   memcpy (attrs, default_face->lface, sizeof attrs);
 
   /* Merge in attributes specified via text properties.  */
@@ -6161,9 +6172,9 @@ face_for_overlay_string (struct window *w, EMACS_INT pos,
 
 int
 face_at_string_position (struct window *w, Lisp_Object string,
-			 EMACS_INT pos, EMACS_INT bufpos,
-			 EMACS_INT region_beg, EMACS_INT region_end,
-			 EMACS_INT *endptr, enum face_id base_face_id,
+			 ptrdiff_t pos, ptrdiff_t bufpos,
+			 ptrdiff_t region_beg, ptrdiff_t region_end,
+			 ptrdiff_t *endptr, enum face_id base_face_id,
 			 int mouse_p)
 {
   Lisp_Object prop, position, end, limit;
@@ -6246,7 +6257,7 @@ face_at_string_position (struct window *w, Lisp_Object string,
 */
 
 int
-merge_faces (struct frame *f, Lisp_Object face_name, EMACS_INT face_id,
+merge_faces (struct frame *f, Lisp_Object face_name, int face_id,
 	     int base_face_id)
 {
   Lisp_Object attrs[LFACE_VECTOR_SIZE];

@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Building, Maintaining, Programs, Top
+@node Building
 @chapter Compiling and Testing Programs
 @cindex building programs
 @cindex program building
@@ -416,7 +416,7 @@ by various version control systems.
 
   Flymake mode is a minor mode that performs on-the-fly syntax
 checking for many programming and markup languages, including C, C++,
-Perl, HTML, and @TeX{}/La@TeX{}.  It is somewhat analogous to Flyspell
+Perl, HTML, and @TeX{}/@LaTeX{}.  It is somewhat analogous to Flyspell
 mode, which performs spell checking for ordinary human languages in a
 similar fashion (@pxref{Spelling}).  As you edit a file, Flymake mode
 runs an appropriate syntax checking tool in the background, using a

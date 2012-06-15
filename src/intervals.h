@@ -27,8 +27,8 @@ struct interval
 {
   /* The first group of entries deal with the tree structure.  */
 
-  EMACS_INT total_length;       /* Length of myself and both children.  */
-  EMACS_INT position;	        /* Cache of interval's character position.  */
+  ptrdiff_t total_length;       /* Length of myself and both children.  */
+  ptrdiff_t position;	        /* Cache of interval's character position.  */
 				/* This field is usually updated
 				   simultaneously with an interval
 				   traversal, there is no guarantee
@@ -254,39 +254,39 @@ extern INTERVAL make_interval (void);
 extern INTERVAL create_root_interval (Lisp_Object);
 extern void copy_properties (INTERVAL, INTERVAL);
 extern int intervals_equal (INTERVAL, INTERVAL);
-extern void traverse_intervals (INTERVAL, EMACS_INT,
+extern void traverse_intervals (INTERVAL, ptrdiff_t,
                                 void (*) (INTERVAL, Lisp_Object),
                                 Lisp_Object);
 extern void traverse_intervals_noorder (INTERVAL,
                                         void (*) (INTERVAL, Lisp_Object),
                                         Lisp_Object);
-extern INTERVAL split_interval_right (INTERVAL, EMACS_INT);
-extern INTERVAL split_interval_left (INTERVAL, EMACS_INT);
-extern INTERVAL find_interval (INTERVAL, EMACS_INT);
+extern INTERVAL split_interval_right (INTERVAL, ptrdiff_t);
+extern INTERVAL split_interval_left (INTERVAL, ptrdiff_t);
+extern INTERVAL find_interval (INTERVAL, ptrdiff_t);
 extern INTERVAL next_interval (INTERVAL);
 extern INTERVAL previous_interval (INTERVAL);
 extern INTERVAL merge_interval_left (INTERVAL);
-extern void offset_intervals (struct buffer *, EMACS_INT, EMACS_INT);
-extern void graft_intervals_into_buffer (INTERVAL, EMACS_INT, EMACS_INT,
+extern void offset_intervals (struct buffer *, ptrdiff_t, ptrdiff_t);
+extern void graft_intervals_into_buffer (INTERVAL, ptrdiff_t, ptrdiff_t,
                                          struct buffer *, int);
 extern void verify_interval_modification (struct buffer *,
-					  EMACS_INT, EMACS_INT);
+					  ptrdiff_t, ptrdiff_t);
 extern INTERVAL balance_intervals (INTERVAL);
 extern void copy_intervals_to_string (Lisp_Object, struct buffer *,
-                                             EMACS_INT, EMACS_INT);
-extern INTERVAL copy_intervals (INTERVAL, EMACS_INT, EMACS_INT);
+                                             ptrdiff_t, ptrdiff_t);
+extern INTERVAL copy_intervals (INTERVAL, ptrdiff_t, ptrdiff_t);
 extern int compare_string_intervals (Lisp_Object, Lisp_Object);
 extern Lisp_Object textget (Lisp_Object, Lisp_Object);
 extern Lisp_Object lookup_char_property (Lisp_Object, Lisp_Object, int);
-extern void move_if_not_intangible (EMACS_INT);
-extern int get_property_and_range (EMACS_INT, Lisp_Object, Lisp_Object *,
-                                   EMACS_INT *, EMACS_INT *, Lisp_Object);
-extern Lisp_Object get_local_map (EMACS_INT, struct buffer *, Lisp_Object);
-extern INTERVAL update_interval (INTERVAL, EMACS_INT);
+extern void move_if_not_intangible (ptrdiff_t);
+extern int get_property_and_range (ptrdiff_t, Lisp_Object, Lisp_Object *,
+                                   ptrdiff_t *, ptrdiff_t *, Lisp_Object);
+extern Lisp_Object get_local_map (ptrdiff_t, struct buffer *, Lisp_Object);
+extern INTERVAL update_interval (INTERVAL, ptrdiff_t);
 extern void set_intervals_multibyte (int);
 extern INTERVAL validate_interval_range (Lisp_Object, Lisp_Object *,
                                          Lisp_Object *, int);
-extern INTERVAL interval_of (EMACS_INT, Lisp_Object);
+extern INTERVAL interval_of (ptrdiff_t, Lisp_Object);
 
 /* Defined in xdisp.c.  */
 extern int invisible_p (Lisp_Object, Lisp_Object);

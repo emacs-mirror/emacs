@@ -211,7 +211,13 @@ which defaults to the value of `org-export-blocks-witheld'."
 		  (when replacement
 		    (delete-region match-start match-end)
 		    (goto-char match-start) (insert replacement)
-		    (unless preserve-indent
+		    (if preserve-indent
+			;; indent only the code block markers
+			(save-excursion
+			  (indent-line-to indentation) ; indent end_block
+			  (goto-char match-start)
+			  (indent-line-to indentation))	; indent begin_block
+		      ;; indent everything
 		      (indent-code-rigidly match-start (point) indentation)))))
 	      ;; cleanup markers
 	      (set-marker match-start nil)

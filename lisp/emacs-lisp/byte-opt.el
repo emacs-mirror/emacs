@@ -183,7 +183,8 @@
 ;;; Code:
 
 (require 'bytecomp)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
+(require 'macroexp)
 
 (defun byte-compile-log-lap-1 (format &rest args)
   ;; Newer byte codes for stack-ref make the slot 0 non-nil again.
@@ -288,10 +289,14 @@
                  (push `(,(car binding) ',(cdr binding)) renv)))
               ((eq binding t))
               (t (push `(defvar ,binding) body))))
-           (let ((newfn (byte-compile-preprocess
-                         (if (null renv)
-                             `(lambda ,args ,@body)
-                           `(lambda ,args (let ,(nreverse renv) ,@body))))))
+           (let ((newfn (if (eq fn localfn)
+                            ;; If `fn' is from the same file, it has already
+                            ;; been preprocessed!
+                            `(function ,fn)
+                          (byte-compile-preprocess
+                           (if (null renv)
+                               `(lambda ,args ,@body)
+                             `(lambda ,args (let ,(nreverse renv) ,@body)))))))
              (if (eq (car-safe newfn) 'function)
                  (byte-compile-unfold-lambda `(,(cadr newfn) ,@(cdr form)))
                (byte-compile-log-warning
@@ -430,11 +435,9 @@
 			      clause))
 			 (cdr form))))
 	  ((eq fn 'progn)
-	   ;; as an extra added bonus, this simplifies (progn <x>) --> <x>
+	   ;; As an extra added bonus, this simplifies (progn <x>) --> <x>.
 	   (if (cdr (cdr form))
-	       (progn
-		 (setq tmp (byte-optimize-body (cdr form) for-effect))
-		 (if (cdr tmp) (cons 'progn tmp) (car tmp)))
+               (macroexp-progn (byte-optimize-body (cdr form) for-effect))
 	     (byte-optimize-form (nth 1 form) for-effect)))
 	  ((eq fn 'prog1)
 	   (if (cdr (cdr form))
@@ -496,7 +499,7 @@
 			      (prin1-to-string form))
 	   nil)
 
-	  ((memq fn '(defun defmacro function condition-case))
+	  ((memq fn '(function condition-case))
 	   ;; These forms are compiled as constants or by breaking out
 	   ;; all the subexpressions and compiling them separately.
 	   form)
@@ -573,10 +576,10 @@
 	       (cons fn args)))))))
 
 (defun byte-optimize-all-constp (list)
-  "Non-nil if all elements of LIST satisfy `byte-compile-constp'."
+  "Non-nil if all elements of LIST satisfy `macroexp-const-p"
   (let ((constant t))
     (while (and list constant)
-      (unless (byte-compile-constp (car list))
+      (unless (macroexp-const-p (car list))
 	(setq constant nil))
       (setq list (cdr list)))
     constant))
@@ -639,7 +642,7 @@
   (while (eq (car-safe form) 'progn)
     (setq form (car (last (cdr form)))))
   (cond ((consp form)
-         (case (car form)
+         (cl-case (car form)
            (quote (cadr form))
            ;; Can't use recursion in a defsubst.
            ;; (progn (byte-compile-trueconstp (car (last (cdr form)))))
@@ -653,7 +656,7 @@
   (while (eq (car-safe form) 'progn)
     (setq form (car (last (cdr form)))))
   (cond ((consp form)
-         (case (car form)
+         (cl-case (car form)
            (quote (null (cadr form)))
            ;; Can't use recursion in a defsubst.
            ;; (progn (byte-compile-nilconstp (car (last (cdr form)))))
@@ -866,8 +869,8 @@
 
 
 (defun byte-optimize-binary-predicate (form)
-  (if (byte-compile-constp (nth 1 form))
-      (if (byte-compile-constp (nth 2 form))
+  (if (macroexp-const-p (nth 1 form))
+      (if (macroexp-const-p (nth 2 form))
 	  (condition-case ()
 	      (list 'quote (eval form))
 	    (error form))
@@ -879,7 +882,7 @@
   (let ((ok t)
 	(rest (cdr form)))
     (while (and rest ok)
-      (setq ok (byte-compile-constp (car rest))
+      (setq ok (macroexp-const-p (car rest))
 	    rest (cdr rest)))
     (if ok
 	(condition-case ()
@@ -945,7 +948,7 @@
 (defun byte-optimize-quote (form)
   (if (or (consp (nth 1 form))
 	  (and (symbolp (nth 1 form))
-	       (not (byte-compile-const-symbol-p form))))
+	       (not (macroexp--const-symbol-p form))))
       form
     (nth 1 form)))
 
@@ -1155,16 +1158,6 @@
 ;; optimize string-as-unibyte, string-as-multibyte, string-make-unibyte,
 ;; string-make-multibyte for constant args.
 
-(put 'featurep 'byte-optimizer 'byte-optimize-featurep)
-(defun byte-optimize-featurep (form)
-  ;; Emacs-21's byte-code doesn't run under XEmacs or SXEmacs anyway, so we
-  ;; can safely optimize away this test.
-  (if (member (cdr-safe form) '(((quote xemacs)) ((quote sxemacs))))
-      nil
-    (if (member (cdr-safe form) '(((quote emacs))))
-	t
-      form)))
-
 (put 'set 'byte-optimizer 'byte-optimize-set)
 (defun byte-optimize-set (form)
   (let ((var (car-safe (cdr-safe form))))
@@ -1373,7 +1366,7 @@
             ;; This uses dynamic-scope magic.
             offset (disassemble-offset bytes))
       (let ((opcode (aref byte-code-vector bytedecomp-op)))
-	(assert opcode)
+	(cl-assert opcode)
 	(setq bytedecomp-op opcode))
       (cond ((memq bytedecomp-op byte-goto-ops)
 	     ;; It's a pc.
@@ -1582,13 +1575,13 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 			(not (eq (car lap0) 'byte-constant)))
 		   nil
 		 (setq keep-going t)
-		 (if (memq (car lap0) '(byte-constant byte-dup))
-		     (progn
-		       (setq tmp (if (or (not tmp)
-					 (byte-compile-const-symbol-p
-					  (car (cdr lap0))))
-				     (cdr lap0)
-				   (byte-compile-get-constant t)))
+                 (if (memq (car lap0) '(byte-constant byte-dup))
+                     (progn
+                       (setq tmp (if (or (not tmp)
+                                         (macroexp--const-symbol-p
+                                          (car (cdr lap0))))
+                                     (cdr lap0)
+                                   (byte-compile-get-constant t)))
 		       (byte-compile-log-lap "  %s %s %s\t-->\t%s %s %s"
 					     lap0 lap1 lap2 lap0 lap1
 					     (cons (car lap0) tmp))
@@ -1616,7 +1609,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (byte-compile-log-lap "  dup %s discard\t-->\t%s" lap1 lap1)
 	       (setq keep-going t
 		     rest (cdr rest))
-               (if (eq 'byte-stack-set (car lap1)) (decf (cdr lap1)))
+               (if (eq 'byte-stack-set (car lap1)) (cl-decf (cdr lap1)))
 	       (setq lap (delq lap0 (delq lap2 lap))))
 	      ;;
 	      ;; not goto-X-if-nil              -->  goto-X-if-non-nil

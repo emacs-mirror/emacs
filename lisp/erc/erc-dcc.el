@@ -627,7 +627,7 @@ separated by a space."
 
 ;;;###autoload
 (defvar erc-ctcp-query-DCC-hook '(erc-ctcp-query-DCC)
-  "Hook variable for CTCP DCC queries")
+  "Hook variable for CTCP DCC queries.")
 
 (defvar erc-dcc-query-handler-alist
   '(("SEND" . erc-dcc-handle-ctcp-send)
@@ -1099,8 +1099,13 @@ Possible values are: ask, auto, ignore."
   (pcomplete-here '("auto" "ask" "ignore")))
 (defalias 'pcomplete/erc-mode/SREQ 'pcomplete/erc-mode/CREQ)
 
-(defvar erc-dcc-chat-filter-hook '(erc-dcc-chat-parse-output)
-  "Hook to run after doing parsing (and possible insertion) of DCC messages.")
+(defvar erc-dcc-chat-filter-functions '(erc-dcc-chat-parse-output)
+  "Abnormal hook run after parsing (and maybe inserting) a DCC message.
+Each function is called with two arguments: the ERC process and
+the unprocessed output.")
+
+(define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
+  'erc-dcc-chat-filter-functions "24.2")
 
 (defvar erc-dcc-chat-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1195,8 +1200,8 @@ other client."
           (set-buffer (process-buffer proc))
           (setq erc-dcc-unprocessed-output
                 (concat erc-dcc-unprocessed-output str))
-          (run-hook-with-args 'erc-dcc-chat-filter-hook proc
-                           erc-dcc-unprocessed-output))
+          (run-hook-with-args 'erc-dcc-chat-filter-functions
+                              proc erc-dcc-unprocessed-output))
       (set-buffer orig-buffer))))
 
 (defun erc-dcc-chat-parse-output (proc str)

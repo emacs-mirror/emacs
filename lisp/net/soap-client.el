@@ -1569,7 +1569,7 @@ instead."
 (defun soap-encode-simple-type (xml-tag value type)
   "Encode inside XML-TAG the LISP VALUE according to TYPE."
 
-  ;; Validate VALUE agains the simple type's enumeration, than just encode it
+  ;; Validate VALUE against the simple type's enumeration, than just encode it
   ;; using `soap-encode-basic-type'
 
   (let ((enumeration (soap-simple-type-enumeration type)))

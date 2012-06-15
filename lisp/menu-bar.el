@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -1752,6 +1752,9 @@ key, a click, or a menu-item")))
     (define-key menu [send-emacs-bug-report]
       `(menu-item ,(purecopy "Send Bug Report...") report-emacs-bug
                   :help ,(purecopy "Send e-mail to Emacs maintainers")))
+    (define-key menu [emacs-manual-bug]
+      `(menu-item ,(purecopy "How to Report a Bug") info-emacs-bug
+                  :help ,(purecopy "Read about how to report an Emacs bug")))
     (define-key menu [emacs-known-problems]
       `(menu-item ,(purecopy "Emacs Known Problems") view-emacs-problems
                   :help ,(purecopy "Read about known problems with Emacs")))

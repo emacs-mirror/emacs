@@ -26,11 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SETPGRP_RELEASES_CTTY
 
-#ifdef SYSTEM_TYPE
-#undef SYSTEM_TYPE
-#endif
-#define SYSTEM_TYPE "irix"
-
 #ifdef SETUP_SLAVE_PTY
 #undef SETUP_SLAVE_PTY
 #endif
@@ -84,10 +79,6 @@ char *_getpty();
 #define PREFER_VSUSP
 
 #define NARROWPROTO 1
-
-#if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
-#define _LP64			/* lisp.h takes care of the rest */
-#endif /* _MIPS_SZLONG */
 
 #undef SA_RESTART
 

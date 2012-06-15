@@ -1271,15 +1271,18 @@ Set this variable in `.emacs' instead."
   :type '(choice (const :tag "current" nil)
 		 directory))
 
-;; Site dependent variables.  These variables should be defined in
-;; paths.el.
+;; Site dependent variables.
 
-(defvar gnus-default-nntp-server nil
-  "Specify a default NNTP server.
-This variable should be defined in paths.el, and should never be set
-by the user.
-If you want to change servers, you should use `gnus-select-method'.
-See the documentation to that variable.")
+;; Should this be obsolete?
+(defcustom gnus-default-nntp-server nil
+  "The hostname of the default NNTP server.
+The empty string, or nil, means to use the local host.
+You may wish to set this on a site-wide basis.
+
+If you want to change servers, you should use `gnus-select-method'."
+  :group 'gnus-server
+  :type '(choice (const :tag "local host" nil)
+                 (string :tag "host name")))
 
 (defcustom gnus-nntpserver-file "/etc/nntpserver"
   "A file with only the name of the nntp server in it."
@@ -1326,6 +1329,8 @@ If you use this variable, you must set `gnus-nntp-server' to nil.
 
 There is a lot more to know about select methods and virtual servers -
 see the manual for details."
+  ;; Emacs has set-after since 22.1.
+  ;set-after '(gnus-default-nntp-server)
   :group 'gnus-server
   :group 'gnus-start
   :initialize 'custom-initialize-default

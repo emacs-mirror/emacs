@@ -2686,7 +2686,9 @@ Runs the shell command defined by `tex-show-queue-command'."
   "Syntax table used while computing indentation.")
 
 (defun latex-indent (&optional arg)
-  (if (and (eq (get-text-property (line-beginning-position) 'face)
+  (if (and (eq (get-text-property (if (and (eobp) (bolp))
+                                      (max (point-min) (1- (point)))
+                                    (line-beginning-position)) 'face)
 	       'tex-verbatim))
       'noindent
     (with-syntax-table tex-latex-indent-syntax-table

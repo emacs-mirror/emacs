@@ -916,8 +916,10 @@ to the directories specified in `bibtex-string-file-path'."
   :group 'bibtex
   :type '(repeat file))
 
-(defvar bibtex-string-file-path (getenv "BIBINPUTS")
-  "Colon separated list of paths to search for `bibtex-string-files'.")
+(defcustom bibtex-string-file-path (getenv "BIBINPUTS")
+  "Colon-separated list of paths to search for `bibtex-string-files'."
+  :group 'bibtex
+  :type 'string)
 
 (defcustom bibtex-files nil
   "List of BibTeX files that are searched for entry keys.
@@ -930,8 +932,10 @@ See also `bibtex-search-entry-globally'."
   :type '(repeat (choice (const :tag "bibtex-file-path" bibtex-file-path)
                          directory file)))
 
-(defvar bibtex-file-path (getenv "BIBINPUTS")
-  "Colon separated list of paths to search for `bibtex-files'.")
+(defcustom bibtex-file-path (getenv "BIBINPUTS")
+  "Colon separated list of paths to search for `bibtex-files'."
+  :group 'bibtex
+  :type 'string)
 
 (defcustom bibtex-search-entry-globally nil
   "If non-nil, interactive calls of `bibtex-search-entry' search globally.

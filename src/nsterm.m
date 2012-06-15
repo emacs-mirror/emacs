@@ -379,16 +379,6 @@ ns_init_paths (void)
             setenv ("EMACSDOC", [resourcePath UTF8String], 1);
         }
     }
-
-  if (!getenv ("INFOPATH"))
-    {
-      resourcePath = [resourceDir stringByAppendingPathComponent: @"info"];
-      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-        if (isDir)
-          setenv ("INFOPATH", [[resourcePath stringByAppendingString: @":"]
-                                             UTF8String], 1);
-      /* Note, extra colon needed to cause merge w/later user additions. */
-    }
 }
 
 

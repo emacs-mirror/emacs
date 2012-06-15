@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defvar easy-menu-precalculate-equivalent-keybindings nil
   "Determine when equivalent key bindings are computed for easy-menu menus.
 It can take some time to calculate the equivalent key bindings that are shown
@@ -236,14 +234,14 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 		(keywordp (setq keyword (car menu-items))))
       (setq arg (cadr menu-items))
       (setq menu-items (cddr menu-items))
-      (case keyword
-       (:filter
+      (pcase keyword
+       (`:filter
 	(setq filter `(lambda (menu)
 			(easy-menu-filter-return (,arg menu) ,menu-name))))
-       ((:enable :active) (setq enable (or arg ''nil)))
-       (:label (setq label arg))
-       (:help (setq help arg))
-       ((:included :visible) (setq visible (or arg ''nil)))))
+       ((or `:enable `:active) (setq enable (or arg ''nil)))
+       (`:label (setq label arg))
+       (`:help (setq help arg))
+       ((or `:included `:visible) (setq visible (or arg ''nil)))))
     (if (equal visible ''nil)
 	nil				; Invisible menu entry, return nil.
       (if (and visible (not (easy-menu-always-true-p visible)))
@@ -334,16 +332,16 @@ ITEM defines an item as in `easy-menu-define'."
 		(setq keyword (aref item count))
 		(setq arg (aref item (1+ count)))
 		(setq count (+ 2 count))
-		(case keyword
-                  ((:included :visible) (setq visible (or arg ''nil)))
-                  (:key-sequence (setq cache arg cache-specified t))
-                  (:keys (setq keys arg no-name nil))
-                  (:label (setq label arg))
-                  ((:active :enable) (setq active (or arg ''nil)))
-                  (:help (setq prop (cons :help (cons arg prop))))
-                  (:suffix (setq suffix arg))
-                  (:style (setq style arg))
-                  (:selected (setq selected (or arg ''nil)))))
+		(pcase keyword
+                  ((or `:included `:visible) (setq visible (or arg ''nil)))
+                  (`:key-sequence (setq cache arg cache-specified t))
+                  (`:keys (setq keys arg no-name nil))
+                  (`:label (setq label arg))
+                  ((or `:active `:enable) (setq active (or arg ''nil)))
+                  (`:help (setq prop (cons :help (cons arg prop))))
+                  (`:suffix (setq suffix arg))
+                  (`:style (setq style arg))
+                  (`:selected (setq selected (or arg ''nil)))))
 	      (if suffix
 		  (setq label
 			(if (stringp suffix)

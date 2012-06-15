@@ -48,7 +48,6 @@
   "Settings for the C++ class browser."
   :group 'tools)
 
-
 (defcustom ebrowse-search-path nil
   "List of directories to search for source files in a class tree.
 Elements should be directory names; nil as an element means to try
@@ -154,61 +153,42 @@ This space is used to display markers."
   "Faces used by Ebrowse."
   :group 'ebrowse)
 
-
 (defface ebrowse-tree-mark
-  '((((min-colors 88)) (:foreground "red1"))
-    (t (:foreground "red")))
-  "The face used for the mark character in the tree."
+  '((((min-colors 88)) :foreground "red1")
+    (t :foreground "red"))
+  "Face for the mark character in the Ebrowse tree."
   :group 'ebrowse-faces)
-(define-obsolete-face-alias 'ebrowse-tree-mark-face 'ebrowse-tree-mark "22.1")
-
 
 (defface ebrowse-root-class
-  '((((min-colors 88)) (:weight bold :foreground "blue1"))
-    (t (:weight bold :foreground "blue")))
-  "The face used for root classes in the tree."
+  '((((min-colors 88)) :weight bold :foreground "blue1")
+    (t :weight bold :foreground "blue"))
+  "Face for root classes in the Ebrowse tree."
   :group 'ebrowse-faces)
-(define-obsolete-face-alias 'ebrowse-root-class-face 'ebrowse-root-class "22.1")
 
-
-(defface ebrowse-file-name
-  '((t (:italic t)))
-  "The face for filenames displayed in the tree."
+(defface ebrowse-file-name '((t :slant italic))
+  "Face for filenames in the Ebrowse tree."
   :group 'ebrowse-faces)
-(define-obsolete-face-alias 'ebrowse-file-name-face 'ebrowse-file-name "22.1")
 
-
-(defface ebrowse-default
-  '((t nil))
-  "Face for everything else in the tree not having other faces."
+(defface ebrowse-default '((t))
+  "Face for items in the Ebrowse tree which do not have other faces."
   :group 'ebrowse-faces)
-(define-obsolete-face-alias 'ebrowse-default-face 'ebrowse-default "22.1")
-
 
 (defface ebrowse-member-attribute
-  '((((min-colors 88)) (:foreground "red1"))
-    (t (:foreground "red")))
-  "Face used to display member attributes."
+  '((((min-colors 88)) :foreground "red1")
+    (t :foreground "red"))
+  "Face for member attributes."
   :group 'ebrowse-faces)
-(define-obsolete-face-alias 'ebrowse-member-attribute-face
-  'ebrowse-member-attribute "22.1")
-
 
 (defface ebrowse-member-class
-  '((t (:foreground "purple")))
+  '((t :foreground "purple"))
   "Face used to display the class title in member buffers."
   :group 'ebrowse-faces)
-(define-obsolete-face-alias 'ebrowse-member-class-face
-  'ebrowse-member-class "22.1")
-
 
 (defface ebrowse-progress
-  '((((min-colors 88)) (:background "blue1"))
-    (t (:background "blue")))
+  '((((min-colors 88)) :background "blue1")
+    (t :background "blue"))
   "Face for progress indicator."
   :group 'ebrowse-faces)
-(define-obsolete-face-alias 'ebrowse-progress-face 'ebrowse-progress "22.1")
-
 
 
 ;;; Utilities.

@@ -1378,13 +1378,17 @@ give to the command you invoke, if it asks for an argument."
   (if (null command-name) (setq command-name (read-extended-command)))
   (let* ((function (and (stringp command-name) (intern-soft command-name)))
          (binding (and suggest-key-bindings
-                        (not executing-kbd-macro)
-                        (where-is-internal function overriding-local-map t))))
+		       (not executing-kbd-macro)
+		       (where-is-internal function overriding-local-map t))))
     (unless (commandp function)
       (error "`%s' is not a valid command name" command-name))
-    ;; Set this_command_keys to the concatenation of saved-keys and
-    ;; function, followed by a RET.
     (setq this-command function)
+    ;; Normally `real-this-command' should never be changed, but here we really
+    ;; want to pretend that M-x <cmd> RET is nothing more than a "key
+    ;; binding" for <cmd>, so the command the user really wanted to run is
+    ;; `function' and not `execute-extended-command'.  The difference is
+    ;; visible in cases such as M-x <cmd> RET and then C-x z (bug#11506).
+    (setq real-this-command function)
     (let ((prefix-arg prefixarg))
       (command-execute function 'record))
     ;; If enabled, show which key runs this command.
@@ -1699,58 +1703,50 @@ Intended to be added to `minibuffer-setup-hook'."
 
 (defun minibuffer-history-isearch-search ()
   "Return the proper search function, for isearch in minibuffer history."
-  (cond
-   (isearch-word
-    (if isearch-forward 'word-search-forward 'word-search-backward))
-   (t
-    (lambda (string bound noerror)
-      (let ((search-fun
-	     ;; Use standard functions to search within minibuffer text
-             (cond
-              (isearch-regexp
-               (if isearch-forward 're-search-forward 're-search-backward))
-              (t
-               (if isearch-forward 'search-forward 'search-backward))))
-	    found)
-	;; Avoid lazy-highlighting matches in the minibuffer prompt when
-	;; searching forward.  Lazy-highlight calls this lambda with the
-	;; bound arg, so skip the minibuffer prompt.
-	(if (and bound isearch-forward (< (point) (minibuffer-prompt-end)))
-	    (goto-char (minibuffer-prompt-end)))
-        (or
-	 ;; 1. First try searching in the initial minibuffer text
-	 (funcall search-fun string
-		  (if isearch-forward bound (minibuffer-prompt-end))
-		  noerror)
-	 ;; 2. If the above search fails, start putting next/prev history
-	 ;; elements in the minibuffer successively, and search the string
-	 ;; in them.  Do this only when bound is nil (i.e. not while
-	 ;; lazy-highlighting search strings in the current minibuffer text).
-	 (unless bound
-	   (condition-case nil
-	       (progn
-		 (while (not found)
-		   (cond (isearch-forward
-			  (next-history-element 1)
-			  (goto-char (minibuffer-prompt-end)))
-			 (t
-			  (previous-history-element 1)
-			  (goto-char (point-max))))
-		   (setq isearch-barrier (point) isearch-opoint (point))
-		   ;; After putting the next/prev history element, search
-		   ;; the string in them again, until next-history-element
-		   ;; or previous-history-element raises an error at the
-		   ;; beginning/end of history.
-		   (setq found (funcall search-fun string
-					(unless isearch-forward
-					  ;; For backward search, don't search
-					  ;; in the minibuffer prompt
-					  (minibuffer-prompt-end))
-					noerror)))
-		 ;; Return point of the new search result
-		 (point))
-	     ;; Return nil when next(prev)-history-element fails
-	     (error nil)))))))))
+  (lambda (string bound noerror)
+    (let ((search-fun
+	   ;; Use standard functions to search within minibuffer text
+	   (isearch-search-fun-default))
+	  found)
+      ;; Avoid lazy-highlighting matches in the minibuffer prompt when
+      ;; searching forward.  Lazy-highlight calls this lambda with the
+      ;; bound arg, so skip the minibuffer prompt.
+      (if (and bound isearch-forward (< (point) (minibuffer-prompt-end)))
+	  (goto-char (minibuffer-prompt-end)))
+      (or
+       ;; 1. First try searching in the initial minibuffer text
+       (funcall search-fun string
+		(if isearch-forward bound (minibuffer-prompt-end))
+		noerror)
+       ;; 2. If the above search fails, start putting next/prev history
+       ;; elements in the minibuffer successively, and search the string
+       ;; in them.  Do this only when bound is nil (i.e. not while
+       ;; lazy-highlighting search strings in the current minibuffer text).
+       (unless bound
+	 (condition-case nil
+	     (progn
+	       (while (not found)
+		 (cond (isearch-forward
+			(next-history-element 1)
+			(goto-char (minibuffer-prompt-end)))
+		       (t
+			(previous-history-element 1)
+			(goto-char (point-max))))
+		 (setq isearch-barrier (point) isearch-opoint (point))
+		 ;; After putting the next/prev history element, search
+		 ;; the string in them again, until next-history-element
+		 ;; or previous-history-element raises an error at the
+		 ;; beginning/end of history.
+		 (setq found (funcall search-fun string
+				      (unless isearch-forward
+					;; For backward search, don't search
+					;; in the minibuffer prompt
+					(minibuffer-prompt-end))
+				      noerror)))
+	       ;; Return point of the new search result
+	       (point))
+	   ;; Return nil when next(prev)-history-element fails
+	   (error nil)))))))
 
 (defun minibuffer-history-isearch-message (&optional c-q-hack ellipsis)
   "Display the minibuffer history search prompt.
@@ -1781,14 +1777,13 @@ Otherwise, it displays the standard isearch message returned from
   "Wrap the minibuffer history search when search fails.
 Move point to the first history element for a forward search,
 or to the last history element for a backward search."
-  (unless isearch-word
-    ;; When `minibuffer-history-isearch-search' fails on reaching the
-    ;; beginning/end of the history, wrap the search to the first/last
-    ;; minibuffer history element.
-    (if isearch-forward
-	(goto-history-element (length (symbol-value minibuffer-history-variable)))
-      (goto-history-element 0))
-    (setq isearch-success t))
+  ;; When `minibuffer-history-isearch-search' fails on reaching the
+  ;; beginning/end of the history, wrap the search to the first/last
+  ;; minibuffer history element.
+  (if isearch-forward
+      (goto-history-element (length (symbol-value minibuffer-history-variable)))
+    (goto-history-element 0))
+  (setq isearch-success t)
   (goto-char (if isearch-forward (minibuffer-prompt-end) (point-max))))
 
 (defun minibuffer-history-isearch-push-state ()
@@ -6207,21 +6202,11 @@ With prefix argument N, move N items (negative N means move backward)."
                (setq beg (previous-single-property-change beg 'mouse-face))
                (setq end (or (next-single-property-change end 'mouse-face)
                              (point-max)))
-               (buffer-substring-no-properties beg end))))
-          (owindow (selected-window)))
+               (buffer-substring-no-properties beg end)))))
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))
-      (select-window (posn-window (event-start event)))
-      (if (and (one-window-p t 'selected-frame)
-	       (window-dedicated-p (selected-window)))
-	  ;; This is a special buffer's frame
-	  (iconify-frame (selected-frame))
-	(or (window-dedicated-p (selected-window))
-	    (bury-buffer)))
-      (select-window
-       (or (get-buffer-window buffer 0)
-           owindow))
+      (quit-window nil (posn-window (event-start event)))
 
       (with-current-buffer buffer
         (choose-completion-string

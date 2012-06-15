@@ -2044,7 +2044,7 @@ During executions, the list is first generated, then as each next method
 is called, the next method is popped off the stack.")
 
 (defvar eieio-pre-method-execution-hooks nil
-  "Hooks run just before a method is executed.
+  "Abnormal hook run just before an EIEIO method is executed.
 The hook function must accept one argument, the list of forms
 about to be executed.")
 

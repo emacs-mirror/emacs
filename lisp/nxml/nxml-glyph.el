@@ -25,7 +25,7 @@
 ;; The entry point to this file is `nxml-glyph-display-string'.
 ;; The current implementation is heuristic due to a lack of
 ;; Emacs primitives necessary to implement it properly.  The user
-;; can tweak the heuristics using `nxml-glyph-set-hook'.
+;; can tweak the heuristics using `nxml-glyph-set-functions'.
 
 ;;; Code:
 
@@ -332,21 +332,26 @@ This repertoire is supported for the following fonts:
    (#xFB01 . #xFB02)]
   "Glyph set corresponding to Windows Glyph List 4.")
 
-(defvar nxml-glyph-set-hook nil
-  "Hook for determining the set of glyphs in a face.
-The hook will receive a single argument FACE.  If it can determine
-the set of glyphs representable by FACE, it must set the variable
-`nxml-glyph-set' and return non-nil.  Otherwise, it must return nil.
-The hook will be run until success.  The constants
-`nxml-ascii-glyph-set', `nxml-latin1-glyph-set',
+(defvar nxml-glyph-set-functions nil
+  "Abnormal hook for determining the set of glyphs in a face.
+Each function in this hook is called in turn, unless one of them
+returns non-nil.  Each function is called with a single argument
+FACE.  If it can determine the set of glyphs representable by
+FACE, it must set the variable `nxml-glyph-set' and return
+non-nil.  Otherwise, it must return nil.
+
+The constants `nxml-ascii-glyph-set', `nxml-latin1-glyph-set',
 `nxml-misc-fixed-1-glyph-set', `nxml-misc-fixed-2-glyph-set',
 `nxml-misc-fixed-3-glyph-set' and `nxml-wgl4-glyph-set' are
-predefined for use by `nxml-glyph-set-hook'.")
+predefined for use by `nxml-glyph-set-functions'.")
+
+(define-obsolete-variable-alias 'nxml-glyph-set-hook
+  'nxml-glyph-set-functions "24.2")
 
 (defvar nxml-glyph-set nil
-  "Used by `nxml-glyph-set-hook' to return set of glyphs in a FACE.
+  "Used by `nxml-glyph-set-functions' to return set of glyphs in a FACE.
 This should dynamically bound by any function that runs
-`nxml-glyph-set-hook'.  The value must be either nil representing an
+`nxml-glyph-set-functions'.  The value must be either nil representing an
 empty set or a vector. Each member of the vector is either a single
 integer or a cons (FIRST . LAST) representing the range of integers
 from FIRST to LAST.  An integer represents a glyph with that Unicode
@@ -367,7 +372,7 @@ code-point.  The vector must be ordered.")
 (defun nxml-terminal-set-glyph-set (face)
   (setq nxml-glyph-set nxml-ascii-glyph-set))
 
-(add-hook 'nxml-glyph-set-hook
+(add-hook 'nxml-glyph-set-functions
 	  (or (cdr (assq window-system
 			 '((x . nxml-x-set-glyph-set)
 			   (w32 . nxml-w32-set-glyph-set)
@@ -381,7 +386,7 @@ code-point.  The vector must be ordered.")
 FACE gives the face that will be used for displaying the string.
 Return nil if the face cannot display a glyph for N."
   (let ((nxml-glyph-set nil))
-    (run-hook-with-args-until-success 'nxml-glyph-set-hook face)
+    (run-hook-with-args-until-success 'nxml-glyph-set-functions face)
     (and nxml-glyph-set
 	 (nxml-glyph-set-contains-p n nxml-glyph-set)
 	 (let ((ch (decode-char 'ucs n)))

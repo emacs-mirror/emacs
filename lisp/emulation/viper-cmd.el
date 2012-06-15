@@ -3462,7 +3462,7 @@ controlled by the sign of prefix numeric value."
 (defun viper-adjust-window ()
   (let ((win-height (if (featurep 'xemacs)
 			(window-displayed-height)
-		      (1- (window-height)))) ; adjust for modeline
+		      (1- (window-height)))) ; adjust for mode line
 	(pt (point))
 	at-top-p at-bottom-p
 	min-scroll direction)

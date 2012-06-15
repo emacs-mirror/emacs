@@ -565,7 +565,7 @@ unless the current buffer is a scratch buffer."
                                              parameters))))))))
 
 ;; frame will be focused anyway, so select it
-;; (if this is not done, modeline is dimmed until first interaction)
+;; (if this is not done, mode line is dimmed until first interaction)
 (add-hook 'after-make-frame-functions 'select-frame)
 
 (defvar tool-bar-mode)
@@ -825,7 +825,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
      ((not window-pos)
       nil)
      ((eq window-pos 'mode-line)
-      'modeline)
+      'mode-line)
      ((eq window-pos 'vertical-line)
       'default)
      ((consp window-pos)

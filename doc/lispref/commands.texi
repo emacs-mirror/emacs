@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Command Loop, Keymaps, Minibuffers, Top
+@node Command Loop
 @chapter Command Loop
 @cindex editor command loop
 @cindex command loop
@@ -286,7 +286,6 @@ used.
 @end defun
 
 @node Interactive Codes
-@comment  node-name,  next,  previous,  up
 @subsection Code Characters for @code{interactive}
 @cindex interactive code description
 @cindex description for interactive codes
@@ -508,7 +507,6 @@ argument value.  Completion, Existing, Prompt.
 @end table
 
 @node Interactive Examples
-@comment  node-name,  next,  previous,  up
 @subsection Examples of Using @code{interactive}
 @cindex examples of using @code{interactive}
 @cindex @code{interactive}, examples of using
@@ -783,7 +781,6 @@ Here is another example that contrasts direct and indirect calls to
 @end example
 
 @node Command Loop Info
-@comment  node-name,  next,  previous,  up
 @section Information from the Command Loop
 
 The editor command loop sets several Lisp variables to keep status
@@ -3210,7 +3207,7 @@ a recursive edit but also provides the other features of the debugger.
   Recursive editing levels are also used when you type @kbd{C-r} in
 @code{query-replace} or use @kbd{C-x q} (@code{kbd-macro-query}).
 
-@defun recursive-edit
+@deffn Command recursive-edit
 @cindex suspend evaluation
 This function invokes the editor command loop.  It is called
 automatically by the initialization of Emacs, to let the user begin
@@ -3237,7 +3234,7 @@ then type @kbd{C-M-c} to exit and continue executing @code{simple-rec}.
 (simple-rec)
      @result{} nil
 @end example
-@end defun
+@end deffn
 
 @deffn Command exit-recursive-edit
 This function exits from the innermost recursive edit (including

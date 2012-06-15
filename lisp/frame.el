@@ -1227,8 +1227,8 @@ often have their own features for raising or lowering frames."
 (defun set-frame-name (name)
   "Set the name of the selected frame to NAME.
 When called interactively, prompt for the name of the frame.
-The frame name is displayed on the modeline if the terminal displays only
-one frame, otherwise the name is displayed on the frame's caption bar."
+On text terminals, the frame name is displayed on the mode line.
+On graphical displays, it is displayed on the frame's title bar."
   (interactive "sFrame name: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'name name))))

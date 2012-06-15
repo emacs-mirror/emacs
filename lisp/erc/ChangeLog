@@ -1,3 +1,28 @@
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* erc-dcc.el (erc-dcc-chat-filter-functions): Rename from
+	erc-dcc-chat-filter-hook, since this is an abnormal hook.
+
+2012-06-08  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-direct-msg-face, erc-header-line, erc-input-face)
+	(erc-command-indicator-face, erc-notice-face, erc-action-face)
+	(erc-error-face, erc-my-nick-face, erc-nick-default-face)
+	(erc-nick-msg-face): Use new-style face specs, and avoid :bold.
+
+	* erc-button.el (erc-button):
+	* erc-goodies.el (erc-bold-face, erc-inverse-face)
+	(erc-underline-face, fg:erc-color-*):
+	* erc-match.el (erc-current-nick-face, erc-dangerous-host-face)
+	(erc-pal-face, erc-fool-face, erc-keyword-face):
+	* erc-stamp.el (erc-timestamp-face): Likewise.
+
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	* erc-track.el (erc-track, erc-track-faces-priority-list)
+	(erc-track-faces-normal-list, erc-track-find-face)
+	(erc-track-modified-channels): Fix modeline -> mode line in docs.
+
 2012-05-14  Mike Kazantsev  <mk.fraggod@gmail.com>  (tiny change)
 
 	* erc-dcc.el (erc-dcc-handle-ctcp-send): Fix a regression

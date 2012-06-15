@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Documentation, Files, Modes, Top
+@node Documentation
 @chapter Documentation
 @cindex documentation strings
 
@@ -34,7 +34,6 @@ Help, emacs, The GNU Emacs Manual}.
 @end menu
 
 @node Documentation Basics
-@comment  node-name,  next,  previous,  up
 @section Documentation Basics
 @cindex documentation conventions
 @cindex writing a documentation string
@@ -511,7 +510,7 @@ for Meta.
 @end smallexample
 @end defun
 
-@defun read-kbd-macro string &optional need-vector
+@deffn Command read-kbd-macro string &optional need-vector
 This function is used mainly for operating on keyboard macros, but it
 can also be used as a rough inverse for @code{key-description}.  You
 call it with a string containing key descriptions, separated by spaces;
@@ -519,7 +518,7 @@ it returns a string or vector containing the corresponding events.
 (This may or may not be a single valid key sequence, depending on what
 events you use; @pxref{Key Sequences}.)  If @var{need-vector} is
 non-@code{nil}, the return value is always a vector.
-@end defun
+@end deffn
 
 @node Help Functions
 @section Help Functions
@@ -626,12 +625,12 @@ character, and the help character has no binding after that prefix.  The
 variable's default value is @code{describe-prefix-bindings}.
 @end defvar
 
-@defun describe-prefix-bindings
+@deffn Command describe-prefix-bindings
 This function calls @code{describe-bindings} to display a list of all
 the subcommands of the prefix key of the most recent key sequence.  The
 prefix described consists of all but the last event of that key
 sequence.  (The last event is, presumably, the help character.)
-@end defun
+@end deffn
 
   The following two functions are meant for modes that want to provide
 help without relinquishing control, such as the ``electric'' modes.

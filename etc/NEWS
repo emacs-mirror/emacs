@@ -29,6 +29,9 @@ possibly-questionable C code.  On a recent GNU system there should be
 no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
+** The configure option '--disable-maintainer-mode' has been removed,
+as it was confusingly-named and rarely useful.
+
 ---
 ** Emacs uses libtinfo in preference to libncurses, if available.
 
@@ -36,6 +39,20 @@ may be useful.
 ** On FreeBSD and NetBSD, configure no longer adds /usr/local/lib and
 /usr/pkg/lib to the linker search path.  You must add them yourself if
 you want them.
+
+---
+** On Mac OS X, configure no longer automatically adds the Fink /sw
+directories to the search path.  You must add them yourself if you want them.
+
+---
+** The standalone scripts rcs-checkin and vcdiff have been removed
+(from the bin and libexec directories, respectively).  The former is
+no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
+
+** The configuration option '--enable-use-lisp-union-type' has been
+renamed to '--enable-check-lisp-object-type', as the resulting
+Lisp_Object type no longer uses a union to implement the compile time
+check that this option enables.
 
 
 * Startup Changes in Emacs 24.2
@@ -56,10 +73,20 @@ name, group names known to the system (where possible).
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
 explicitly to install ImageMagick image types; that function is called
-automatically when setting `imagemagick-types-inhibit'.
+automatically at startup, or when customizing a relevant imagemagick-
+option.
 
 *** Setting `imagemagick-types-inhibit' to t now disables the use of
-ImageMagick to view images, set
+ImageMagick to view images.  You must call imagemagick-register-types
+afterwards if you do not use customize to change this.
+
+*** The new variable `imagemagick-enabled-types' also affects which
+ImageMagick types are treated as images.  The function
+`imagemagick-filter-types' returns the list of types that will be
+treated as images.
+
+*** Images displayed via ImageMagick now support transparency and the
+:background image spec property.
 
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without
@@ -73,8 +100,27 @@ to nil.  Use with caution, and only if you really need to.
 ** Using "unibyte: t" in Lisp source files is obsolete.
 Use "coding: raw-text" instead.
 
+** Mode line changes
+
+*** New option `mode-line-default-help-echo' specifies the help text
+(shown in a tooltip or in the echo area) for any part of the mode line
+that does not have its own specialized help text.
+
+*** You can now click mouse-3 in the coding system indicator to
+invokes `set-buffer-file-coding-system'.
+
++++
+** Setting `enable-remote-dir-locals' to non-nil allows directory
+local variables on remote hosts.
+
 
 * Editing Changes in Emacs 24.2
+
+** Search changes
+
+*** Global `M-s _' starts a symbol (identifier) incremental search,
+and `M-s _' in Isearch toggles symbol search mode.
+`M-s c' in Isearch toggles search case-sensitivity.
 
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.
@@ -87,8 +133,42 @@ character when doing minibuffer filename prompts.
 
 ** `goto-char' is now bound to `M-g c'.
 
+** New input method `vietnamese-vni'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
+
+** CL's main entry is now (require 'cl-lib).
+`cl-lib' is like the old `cl' except that it uses the namespace cleanly,
+i.e. all its definitions have the "cl-" prefix.
+
+If `cl' provided a feature under the name `foo', then `cl-lib' provides it
+under the name `cl-foo' instead, with the exceptions of the few definitions
+that had to use `foo*' to avoid conflicts with pre-existing Elisp entities,
+which have not been renamed to `cl-foo*' but just `cl-foo'.
+
+The old `cl' is now deprecated and is nothing more than a bunch of aliases that
+provide the old non-prefixed names.
+
+** VHDL-mode
+- Support for ghdl (free vhdl compiler).  Now default.
+- Add/update support for VHDL-AMS packages.
+- Update to VHDL'02 standard.
+- Accept \r and \f as whitespace.
+
+** Diff mode
+
+Faces for changes now use the same diff color scheme as in modern VCSes
+where deletions are displayed in red (new faces `diff-refine-removed'
+and `smerge-refined-removed' and new definition of `diff-removed'),
+insertions in green (new faces `diff-refine-added' and
+`smerge-refined-added' and new definition of `diff-added').
+The variable `diff-use-changed-face' defines whether to use
+the face `diff-changed', or `diff-removed' and `diff-added'
+to highlight changes in context diffs.
+
+** Ediff now uses the same color scheme as Diff mode
+on high color displays.
 
 ** `sh-script'
 *** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
@@ -97,31 +177,31 @@ character when doing minibuffer filename prompts.
 
 ** reStructuredText mode
 
-*** Nearly all keys are rebound making room for more keys and comply
-better to usage in other modes.  Bindings are described with C-c C-h.
+*** Rebind nearly all keys making room for more keys and complying
+better to usage in other modes.  Describe bindings with C-c C-h.
 
-*** Major revision of indentation.  Now works very similarly to other modes.
-TAB is your friend.
+*** Major revision of indentation working very similar to other
+modes.  TAB is your friend.
 
-*** Major revision of filling.  Works fine with most of
-reStructuredText syntax.  Auto-filling is also supported.
+*** Major revision of filling working fine with most of
+reStructuredText syntax.  Support auto-filling.
 
 *** Major revision of comment handling.
 
-*** Major revision of fontification.  Now works with `jit-lock-mode'.
+*** Major revision of fontification working with `jit-lock-mode'.
 
-*** reStructuredText syntax is covered more closely in many cases.
-Among other things this improves the experience for Sphinx users.
+*** Cover reStructuredText syntax more closely.  Improve
+the experience for Sphinx users.
 
-*** `rst-insert-list' inserts a new list or continues existing lists.
+*** `rst-insert-list' inserts new list or continues existing lists.
 
-*** Customization is extended, corrected and improved.
+*** Extend correct and improve customization.
 
 *** Negative prefix argument always works for `rst-adjust'.
 
-*** Window configuration is reset after displaying TOC.
+*** Reset window configuration after displaying TOC.
 
-*** There is a package version in `rst-version'.
+*** Package version in `rst-version'.
 
 ** New `derived-mode' filter for Ibuffer, bound to `/ M'.
 `/ m' is now bound to filter by used-mode, which used to be bound to `/ M'.
@@ -134,6 +214,12 @@ see the `apropos' Custom group for details.
 
 **** The old options whose values specified faces to use were removed
 (i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
+
+** Buffer Menu
+This package has been rewritten to use Tabulated List mode.
+
+*** Option `Buffer-menu-buffer+size-width' is now obsolete.
+Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
 
 ** Calendar
 
@@ -174,6 +260,15 @@ closing brackets to be aligned with the line of the opening bracket.
 
 ** which-function-mode now applies to all applicable major modes by default.
 
+** Tramp
+
++++
+*** The syntax has been extended in order to allow ad-hoc proxy
+definitions.  See the manual for details.
+
++++
+*** Remote processes are now supported also on remote Windows host.
+
 ** D-Bus
 
 +++
@@ -209,6 +304,11 @@ details.
 The function `notifications-get-capabilities' returns the supported
 server properties.
 
+** Package Menu
+
+*** Newly-available packages are listed in the Package Menu as "new",
+and sorted above the other "available" packages by default.
+
 ** Tabulated List and packages derived from it
 
 *** New command `tabulated-list-sort', bound to `S', sorts the column
@@ -235,11 +335,15 @@ inefficiency, and not namespace-clean.
 
 *** bruce.el
 
+*** ledit.el
+
 *** mailpost.el
 
 *** mouse-sel.el
 
 *** patcomp.el
+
+*** cust-print.el
 
 
 * New Modes and Packages in Emacs 24.2
@@ -268,11 +372,19 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
+** `defun' also accepts a (declare DECLS) form, like `defmacro'.
+The interpretation of the DECLS is determined by `defun-declarations-alist'.
+
+** `macro-declaration-function' is obsolete, use `macro-declarations-alist'.
+
 ** New function `set-temporary-overlay-map'.
 
 ** New macros `setq-local' and `defvar-local'.
 
 ** New error type and new function `user-error'.  Doesn't trigger the debugger.
+
+** The functions get-lru-window, get-mru-window and get-largest-window
+now accept a third argument to avoid chosing the selected window.
 
 ** Completion
 
@@ -289,6 +401,7 @@ must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
 
 ** `automount-dir-prefix' is obsolete.
+** `buffer-has-markers-at' is obsolete.
 
 * Changes in Emacs 24.2 on non-free operating systems
 
@@ -296,6 +409,10 @@ by the underlying C implementation.
 
 *** --without-libxml2 omits support for libxml2, even if its presence
 is detected.
+
+** When invoked with the -nw switch to run on the Windows text-mode terminal,
+Emacs now supports mouse highlight, help-echo (in the echo area), and
+mouse-autoselect-window.
 
 
 * Installation Changes in Emacs 24.1

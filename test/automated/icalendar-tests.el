@@ -188,7 +188,7 @@ END:VTIMEZONE
     (should (string= "STD-02:00DST-03:00,M3.5.0/03:00:00,M10.5.0/04:00:00"
                      (cdr result)))
     (setq vtimezone (icalendar-tests--get-ical-event "BEGIN:VTIMEZONE
-TZID:anothername
+TZID:anothername\, with a comma
 BEGIN:STANDARD
 DTSTART:16010101T040000
 TZOFFSETFROM:+0300
@@ -204,7 +204,7 @@ END:DAYLIGHT
 END:VTIMEZONE
 "))
     (setq result (icalendar--parse-vtimezone vtimezone))
-    (should (string= "anothername" (car result)))
+    (should (string= "anothername, with a comma" (car result)))
     (message (cdr result))
     (should (string= "STD-02:00DST-03:00,M3.2.1/03:00:00,M10.2.1/04:00:00"
                      (cdr result)))))
@@ -682,7 +682,7 @@ Argument EXPECTED-AMERICAN expected american style diary string."
         (unless (eq (char-before) ?\n)
           (insert "\n"))
         (insert "END:VEVENT\nEND:VCALENDAR\n"))
-      (let ((icalendar-import-format "%s%d%l%o%t%u%c")
+      (let ((icalendar-import-format "%s%d%l%o%t%u%c%U")
             (icalendar-import-format-summary "%s")
             (icalendar-import-format-location "\n Location: %s")
             (icalendar-import-format-description "\n Desc: %s")
@@ -690,6 +690,7 @@ Argument EXPECTED-AMERICAN expected american style diary string."
             (icalendar-import-format-status "\n Status: %s")
             (icalendar-import-format-url "\n URL: %s")
             (icalendar-import-format-class "\n Class: %s")
+            (icalendar-import-format-uid "\n UID: %s")
             calendar-date-style)
         (when expected-iso
           (setq calendar-date-style 'iso)
@@ -751,14 +752,17 @@ DTSTAMP:20031103T011641Z
    "&%%(and (diary-block 2004 7 19 2004 8 27)) Sommerferien
  Status: TENTATIVE
  Class: PRIVATE
+ UID: 748f2da0-0d9b-11d8-97af-b4ec8686ea61
 "
    "&%%(and (diary-block 19 7 2004 27 8 2004)) Sommerferien
  Status: TENTATIVE
  Class: PRIVATE
+ UID: 748f2da0-0d9b-11d8-97af-b4ec8686ea61
 "
    "&%%(and (diary-block 7 19 2004 8 27 2004)) Sommerferien
  Status: TENTATIVE
  Class: PRIVATE
+ UID: 748f2da0-0d9b-11d8-97af-b4ec8686ea61
 ")
   (icalendar-tests--test-import
    "UID
@@ -782,13 +786,16 @@ LAST-MODIFIED
 "
    "&2004/11/23 14:00-14:30 folded summary
  Status: TENTATIVE
- Class: PRIVATE\n"
+ Class: PRIVATE
+ UID: 04979712-3902-11d9-93dd-8f9f4afe08da\n"
    "&23/11/2004 14:00-14:30 folded summary
  Status: TENTATIVE
- Class: PRIVATE\n"
+ Class: PRIVATE
+ UID: 04979712-3902-11d9-93dd-8f9f4afe08da\n"
    "&11/23/2004 14:00-14:30 folded summary
  Status: TENTATIVE
- Class: PRIVATE\n")
+ Class: PRIVATE
+ UID: 04979712-3902-11d9-93dd-8f9f4afe08da\n")
 
   (icalendar-tests--test-import
    "UID
@@ -810,13 +817,16 @@ DTSTAMP
 "
    "&2004/11/23 14:45-15:45 another example
  Status: TENTATIVE
- Class: PRIVATE\n"
+ Class: PRIVATE
+ UID: 6161a312-3902-11d9-b512-f764153bb28b\n"
    "&23/11/2004 14:45-15:45 another example
  Status: TENTATIVE
- Class: PRIVATE\n"
+ Class: PRIVATE
+ UID: 6161a312-3902-11d9-b512-f764153bb28b\n"
    "&11/23/2004 14:45-15:45 another example
  Status: TENTATIVE
- Class: PRIVATE\n"))
+ Class: PRIVATE
+ UID: 6161a312-3902-11d9-b512-f764153bb28b\n"))
 
 (ert-deftest icalendar-import-rrule ()
   (icalendar-tests--test-import
@@ -879,7 +889,6 @@ RRULE:FREQ=MONTHLY;UNTIL=20050819;
    "DTSTART;VALUE=DATE:20040815
 DTEND;VALUE=DATE:20040816
 SUMMARY:Maria Himmelfahrt
-UID:CC56BEA6-49D2-11D8-8833-00039386D1C2-RID
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=8
 "
    "&%%(and (diary-anniversary 2004 8 15))  Maria Himmelfahrt\n"
@@ -982,11 +991,14 @@ SEQUENCE:1
 CREATED:20041127T183329
 "
    "&%%(and (diary-cyclic 1 2001 12 21) (diary-block 2001 12 21 2001 12 29))  Urlaub
- Class: PUBLIC\n"
+ Class: PUBLIC
+ UID: 20041127T183329Z-18215-1001-4536-49109@andromeda\n"
    "&%%(and (diary-cyclic 1 21 12 2001) (diary-block 21 12 2001 29 12 2001))  Urlaub
- Class: PUBLIC\n"
+ Class: PUBLIC
+ UID: 20041127T183329Z-18215-1001-4536-49109@andromeda\n"
    "&%%(and (diary-cyclic 1 12 21 2001) (diary-block 12 21 2001 12 29 2001))  Urlaub
- Class: PUBLIC\n"))
+ Class: PUBLIC
+ UID: 20041127T183329Z-18215-1001-4536-49109@andromeda\n"))
 
 (ert-deftest icalendar-import-bug-6766 ()
   ;;bug#6766 -- multiple byday values in a weekly rrule
@@ -1016,20 +1028,26 @@ UID:8814e3f9-7482-408f-996c-3bfe486a1263
 "&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 2010 4 21)) 11:30-12:00 Scrum
  Status: CONFIRMED
  Class: PUBLIC
+ UID: 8814e3f9-7482-408f-996c-3bfe486a1262
 &%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 2010 4 22)) Tues + Thurs thinking
  Class: PUBLIC
+ UID: 8814e3f9-7482-408f-996c-3bfe486a1263
 "
 "&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 21 4 2010)) 11:30-12:00 Scrum
  Status: CONFIRMED
  Class: PUBLIC
+ UID: 8814e3f9-7482-408f-996c-3bfe486a1262
 &%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 22 4 2010)) Tues + Thurs thinking
  Class: PUBLIC
+ UID: 8814e3f9-7482-408f-996c-3bfe486a1263
 "
 "&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 4 21 2010)) 11:30-12:00 Scrum
  Status: CONFIRMED
  Class: PUBLIC
+ UID: 8814e3f9-7482-408f-996c-3bfe486a1262
 &%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 4 22 2010)) Tues + Thurs thinking
  Class: PUBLIC
+ UID: 8814e3f9-7482-408f-996c-3bfe486a1263
 "))
 
 (ert-deftest icalendar-import-multiple-vcalendars ()
@@ -1074,6 +1092,55 @@ END:VCALENDAR
    "&23/7/2011 event-1\n&24/7/2011 event-2\n&25/7/2011 event-3a\n&25/7/2011 event-3b\n"
    "&7/23/2011 event-1\n&7/24/2011 event-2\n&7/25/2011 event-3a\n&7/25/2011 event-3b\n"))
 
+(ert-deftest icalendar-import-with-uid ()
+  "Perform import test with uid."
+  (icalendar-tests--test-import
+   "UID:1234567890uid
+SUMMARY:non-recurring
+DTSTART;VALUE=DATE-TIME:20030919T090000
+DTEND;VALUE=DATE-TIME:20030919T113000"
+   "&2003/9/19 09:00-11:30 non-recurring\n UID: 1234567890uid\n"
+   "&19/9/2003 09:00-11:30 non-recurring\n UID: 1234567890uid\n"
+   "&9/19/2003 09:00-11:30 non-recurring\n UID: 1234567890uid\n"))
+
+(ert-deftest icalendar-import-with-timezone ()
+  ;; bug#11473
+  (icalendar-tests--test-import
+   "BEGIN:VCALENDAR
+BEGIN:VTIMEZONE
+TZID:fictional\, nonexistent\, arbitrary
+BEGIN:STANDARD
+DTSTART:20100101T000000
+TZOFFSETFROM:+0200
+TZOFFSETTO:-0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=1SU;BYMONTH=01
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:20101201T000000
+TZOFFSETFROM:-0200
+TZOFFSETTO:+0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=1SU;BYMONTH=11
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+SUMMARY:standardtime
+DTSTART;TZID=\"fictional, nonexistent, arbitrary\":20120115T120000
+DTEND;TZID=\"fictional, nonexistent, arbitrary\":20120115T123000
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:daylightsavingtime
+DTSTART;TZID=\"fictional, nonexistent, arbitrary\":20121215T120000
+DTEND;TZID=\"fictional, nonexistent, arbitrary\":20121215T123000
+END:VEVENT
+END:VCALENDAR"
+   ;; "standardtime" begins first sunday in january and is 4 hours behind CET
+   ;; "daylightsavingtime" begins first sunday in november and is 1 hour before CET
+   "&2012/1/15 15:00-15:30 standardtime
+&2012/12/15 11:00-11:30 daylightsavingtime
+"
+   nil
+   nil)
+  )
 ;; ======================================================================
 ;; Cycle
 ;; ======================================================================
@@ -1089,14 +1156,15 @@ Argument INPUT icalendar event string."
       (unless (eq (char-before) ?\n)
         (insert "\n"))
       (insert "END:VEVENT\nEND:VCALENDAR\n"))
-    (let ((icalendar-import-format "%s%d%l%o%t%u%c")
+    (let ((icalendar-import-format "%s%d%l%o%t%u%c%U")
           (icalendar-import-format-summary "%s")
           (icalendar-import-format-location "\n Location: %s")
           (icalendar-import-format-description "\n Desc: %s")
           (icalendar-import-format-organizer "\n Organizer: %s")
           (icalendar-import-format-status "\n Status: %s")
           (icalendar-import-format-url "\n URL: %s")
-          (icalendar-import-format-class "\n Class: %s"))
+          (icalendar-import-format-class "\n Class: %s")
+          (icalendar-import-format-class "\n UID: %s"))
       (dolist (calendar-date-style '(iso european american))
         (icalendar-tests--do-test-cycle)))))
 
@@ -1120,8 +1188,8 @@ Argument INPUT icalendar event string."
 	  (save-excursion
 	    (find-file temp-ics)
 	    (goto-char (point-min))
-	    (when (re-search-forward "\nUID:.*\n" nil t)
-	      (replace-match "\n"))
+	    ;;(when (re-search-forward "\nUID:.*\n" nil t)
+	      ;;(replace-match "\n"))
 	    (let ((cycled (buffer-substring-no-properties (point-min) (point-max))))
 	      (should (string= org-input cycled)))))
       ;; clean up
@@ -1134,14 +1202,17 @@ Argument INPUT icalendar event string."
       (delete-file temp-ics))))
 
 (ert-deftest icalendar-cycle ()
-  "Perform cycling tests."
+  "Perform cycling tests.
+Take care to avoid auto-generated UIDs here."
   (icalendar-tests--test-cycle
-   "DTSTART;VALUE=DATE-TIME:20030919T090000
+   "UID:dummyuid
+DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 SUMMARY:Cycletest
 ")
   (icalendar-tests--test-cycle
-   "DTSTART;VALUE=DATE-TIME:20030919T090000
+   "UID:blah
+DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 SUMMARY:Cycletest
 DESCRIPTION:beschreibung!
@@ -1149,7 +1220,8 @@ LOCATION:nowhere
 ORGANIZER:ulf
 ")
     (icalendar-tests--test-cycle
-     "DTSTART;VALUE=DATE:19190909
+     "UID:4711
+DTSTART;VALUE=DATE:19190909
 DTEND;VALUE=DATE:19190910
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=09
 SUMMARY:and diary-anniversary
@@ -1222,12 +1294,14 @@ END:VCALENDAR"
  Location: Cccc
  Organizer: MAILTO:aaaaaaa@aaaaaaa.com
  Status: CONFIRMED
+ UID: 040000008200E00074C5B7101A82E0080000000080B6DE661216C301000000000000000010000000DB823520692542408ED02D7023F9DFF9
 "
    "&5/9/2003 10:30-15:30 On-Site Interview
  Desc: 10:30am - Blah
  Location: Cccc
  Organizer: MAILTO:aaaaaaa@aaaaaaa.com
  Status: CONFIRMED
+ UID: 040000008200E00074C5B7101A82E0080000000080B6DE661216C301000000000000000010000000DB823520692542408ED02D7023F9DFF9
 ")
 
   ;; 2003-06-18 a
@@ -1268,12 +1342,14 @@ END:VALARM"
  Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
  Organizer: MAILTO:xxx@xxxxx.com
  Status: CONFIRMED
+ UID: 040000008200E00074C5B7101A82E00800000000608AA7DA9835C3010000000000000000100000007C3A6D65EE726E40B7F3D69A23BD567E
 "
    "&6/23/2003 11:00-12:00 Dress Rehearsal for XXXX-XXXX
  Desc: 753 Zeichen hier radiert
  Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
  Organizer: MAILTO:xxx@xxxxx.com
  Status: CONFIRMED
+ UID: 040000008200E00074C5B7101A82E00800000000608AA7DA9835C3010000000000000000100000007C3A6D65EE726E40B7F3D69A23BD567E
 ")
   ;; 2003-06-18 b -- uses timezone
   (icalendar-tests--test-import
@@ -1338,12 +1414,14 @@ END:VCALENDAR"
  Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
  Organizer: MAILTO:bbb@bbbbb.com
  Status: CONFIRMED
+ UID: 040000008200E00074C5B7101A82E00800000000608AA7DA9835C3010000000000000000100000007C3A6D65EE726E40B7F3D69A23BD567E
 "
    "&6/23/2003 17:00-18:00 Updated: Dress Rehearsal for ABC01-15
  Desc: Viele Zeichen standen hier früher
  Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
  Organizer: MAILTO:bbb@bbbbb.com
  Status: CONFIRMED
+ UID: 040000008200E00074C5B7101A82E00800000000608AA7DA9835C3010000000000000000100000007C3A6D65EE726E40B7F3D69A23BD567E
 ")
   ;; export 2004-10-28 block entries
   (icalendar-tests--test-export
@@ -1567,8 +1645,6 @@ VERSION
 PRODID
  :-//Mozilla.org/NONSGML Mozilla Calendar V1.0//EN
 BEGIN:VEVENT
-UID
- :04979712-3902-11d9-93dd-8f9f4afe08da
 SUMMARY
  :Jjjjj & Wwwww
 STATUS
@@ -1587,8 +1663,6 @@ LAST-MODIFIED
  :20041118T013640Z
 END:VEVENT
 BEGIN:VEVENT
-UID
- :6161a312-3902-11d9-b512-f764153bb28b
 SUMMARY
  :BB Aaaaaaaa Bbbbb
 STATUS
@@ -1605,8 +1679,6 @@ DTSTAMP
  :20041118T013641Z
 END:VEVENT
 BEGIN:VEVENT
-UID
- :943a4d7e-3902-11d9-9ce7-c9addeadf928
 SUMMARY
  :Hhhhhhhh
 STATUS
@@ -1623,8 +1695,6 @@ DTSTAMP
  :20041118T013831Z
 END:VEVENT
 BEGIN:VEVENT
-UID
- :fe53615e-3902-11d9-9dd8-9d38a155bf41
 SUMMARY
  :MMM Aaaaaaaaa
 STATUS
@@ -1645,8 +1715,6 @@ DTSTAMP
  :20041118T014117Z
 END:VEVENT
 BEGIN:VEVENT
-UID
- :87c928ee-3901-11d9-b21f-b45042155024
 SUMMARY
  :Rrrr/Cccccc ii Aaaaaaaa
 DESCRIPTION
@@ -1669,8 +1737,6 @@ LAST-MODIFIED
  :20041118T014203Z
 END:VEVENT
 BEGIN:VEVENT
-UID
- :e8f331ae-3902-11d9-9948-dfdcb66a2872
 SUMMARY
  :Wwww aa hhhh
 STATUS
@@ -1790,11 +1856,13 @@ DTSTAMP
  Desc: abcdef
  Status: CONFIRMED
  Class: PRIVATE
+ UID: b60d398e-1dd1-11b2-a159-cf8cb05139f4
 "
    "&%%(and (diary-block 2 6 2005 2 6 2005)) Waitangi Day
  Desc: abcdef
  Status: CONFIRMED
  Class: PRIVATE
+ UID: b60d398e-1dd1-11b2-a159-cf8cb05139f4
 ")
 
   ;; 2005-03-01 lt
@@ -1805,8 +1873,10 @@ UID:6AFA7558-6994-11D9-8A3A-000A95A0E830-RID
 DTSTAMP:20050118T210335Z
 DURATION:P7D"
    nil
-   "&%%(and (diary-block 17 2 2005 23 2 2005)) Hhhhhh Aaaaa ii Aaaaaaaa\n"
-   "&%%(and (diary-block 2 17 2005 2 23 2005)) Hhhhhh Aaaaa ii Aaaaaaaa\n")
+   "&%%(and (diary-block 17 2 2005 23 2 2005)) Hhhhhh Aaaaa ii Aaaaaaaa
+ UID: 6AFA7558-6994-11D9-8A3A-000A95A0E830-RID\n"
+   "&%%(and (diary-block 2 17 2005 2 23 2005)) Hhhhhh Aaaaa ii Aaaaaaaa
+ UID: 6AFA7558-6994-11D9-8A3A-000A95A0E830-RID\n")
 
   ;; 2005-03-23 lt
   (icalendar-tests--test-export
@@ -1831,7 +1901,72 @@ DTEND;VALUE=DATE:19001102
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=11;BYMONTHDAY=1
 SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
 ")
-  )
+
+  ;; bug#11473
+  (icalendar-tests--test-import
+   "BEGIN:VCALENDAR
+METHOD:REQUEST
+PRODID:Microsoft Exchange Server 2007
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:(UTC+01:00) Amsterdam\, Berlin\, Bern\, Rome\, Stockholm\, Vienna
+BEGIN:STANDARD
+DTSTART:16010101T030000
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=10
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:16010101T020000
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=3
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+ORGANIZER;CN=\"A. Luser\":MAILTO:a.luser@foo.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=\"Luser, Oth
+ er\":MAILTO:other.luser@foo.com
+DESCRIPTION;LANGUAGE=en-US:\nWhassup?\n\n
+SUMMARY;LANGUAGE=en-US:Query
+DTSTART;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna\"
+ :20120515T150000
+DTEND;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna\":2
+ 0120515T153000
+UID:040000008200E00074C5B7101A82E0080000000020FFAED0CFEFCC01000000000000000
+ 010000000575268034ECDB649A15349B1BF240F15
+RECURRENCE-ID;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, V
+ ienna\":20120515T170000
+CLASS:PUBLIC
+PRIORITY:5
+DTSTAMP:20120514T153645Z
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+SEQUENCE:15
+LOCATION;LANGUAGE=en-US:phone
+X-MICROSOFT-CDO-APPT-SEQUENCE:15
+X-MICROSOFT-CDO-OWNERAPPTID:1907632092
+X-MICROSOFT-CDO-BUSYSTATUS:TENTATIVE
+X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+X-MICROSOFT-CDO-IMPORTANCE:1
+X-MICROSOFT-CDO-INSTTYPE:3
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:REMINDER
+TRIGGER;RELATED=START:-PT15M
+END:VALARM
+END:VEVENT
+END:VCALENDAR"
+   nil
+   "&15/5/2012 15:00-15:30 Query
+ Location: phone
+ Organizer: MAILTO:a.luser@foo.com
+ Status: CONFIRMED
+ Class: PUBLIC
+ UID: 040000008200E00074C5B7101A82E0080000000020FFAED0CFEFCC01000000000000000010000000575268034ECDB649A15349B1BF240F15
+"     nil)
+)
 
 (provide 'icalendar-tests)
 ;;; icalendar-tests.el ends here

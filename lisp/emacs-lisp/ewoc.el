@@ -96,11 +96,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; The doubly linked list is implemented as a circular list with a dummy
 ;; node first and last. The dummy node is used as "the dll".
-(defstruct (ewoc--node
+(cl-defstruct (ewoc--node
 	    (:type vector)		;ewoc--node-nth needs this
             (:constructor nil)
 	    (:constructor ewoc--node-create (start-marker data)))
@@ -140,7 +140,7 @@ and (ewoc--node-nth dll -1) returns the last node."
 
 ;;; The ewoc data type
 
-(defstruct (ewoc
+(cl-defstruct (ewoc
 	    (:constructor nil)
 	    (:constructor ewoc--create (buffer pretty-printer dll))
 	    (:conc-name ewoc--))
@@ -196,10 +196,10 @@ NODE and leaving the new node's start there.  Return the new node."
   (save-excursion
     (let ((elemnode (ewoc--node-create
                      (copy-marker (ewoc--node-start-marker node)) data)))
-      (setf (ewoc--node-left  elemnode) (ewoc--node-left node)
-            (ewoc--node-right elemnode)                  node
-            (ewoc--node-right (ewoc--node-left node)) elemnode
-            (ewoc--node-left                   node)  elemnode)
+      (cl-setf (ewoc--node-left  elemnode) (ewoc--node-left node)
+               (ewoc--node-right elemnode)                  node
+               (ewoc--node-right (ewoc--node-left node)) elemnode
+               (ewoc--node-left                   node)  elemnode)
       (ewoc--refresh-node pretty-printer elemnode dll)
       elemnode)))
 
@@ -244,8 +244,8 @@ Normally, a newline is automatically inserted after the header,
 the footer and every node's printed representation.  Optional
 fourth arg NOSEP non-nil inhibits this."
   (let* ((dummy-node (ewoc--node-create 'DL-LIST 'DL-LIST))
-         (dll (progn (setf (ewoc--node-right dummy-node) dummy-node)
-                     (setf (ewoc--node-left dummy-node) dummy-node)
+         (dll (progn (cl-setf (ewoc--node-right dummy-node) dummy-node)
+                     (cl-setf (ewoc--node-left dummy-node) dummy-node)
                      dummy-node))
          (wrap (if nosep 'identity 'ewoc--wrap))
          (new-ewoc (ewoc--create (current-buffer)
@@ -258,12 +258,12 @@ fourth arg NOSEP non-nil inhibits this."
       ;; Set default values
       (unless header (setq header ""))
       (unless footer (setq footer ""))
-      (setf (ewoc--node-start-marker dll) (copy-marker pos)
-            foot (ewoc--insert-new-node  dll footer hf-pp dll)
-            head (ewoc--insert-new-node foot header hf-pp dll)
-            (ewoc--hf-pp new-ewoc) hf-pp
-            (ewoc--footer new-ewoc) foot
-            (ewoc--header new-ewoc) head))
+      (cl-setf (ewoc--node-start-marker dll) (copy-marker pos)
+               foot (ewoc--insert-new-node  dll footer hf-pp dll)
+               head (ewoc--insert-new-node foot header hf-pp dll)
+               (ewoc--hf-pp new-ewoc) hf-pp
+               (ewoc--footer new-ewoc) foot
+               (ewoc--header new-ewoc) head))
     ;; Return the ewoc
     new-ewoc))
 
@@ -274,7 +274,7 @@ fourth arg NOSEP non-nil inhibits this."
 
 (defun ewoc-set-data (node data)
   "Set NODE to encapsulate DATA."
-  (setf (ewoc--node-data node) data))
+  (cl-setf (ewoc--node-data node) data))
 
 (defun ewoc-enter-first (ewoc data)
   "Enter DATA first in EWOC.
@@ -356,18 +356,18 @@ arguments will be passed to MAP-FUNCTION."
       ;; If we are about to delete the node pointed at by last-node,
       ;; set last-node to nil.
       (when (eq last node)
-        (setf last nil (ewoc--last-node ewoc) nil))
+        (cl-setf last nil (ewoc--last-node ewoc) nil))
       (delete-region (ewoc--node-start-marker node)
                      (ewoc--node-start-marker (ewoc--node-next dll node)))
       (set-marker (ewoc--node-start-marker node) nil)
-      (setf L (ewoc--node-left  node)
-            R (ewoc--node-right node)
-            ;; Link neighbors to each other.
-            (ewoc--node-right L) R
-            (ewoc--node-left  R) L
-            ;; Forget neighbors.
-            (ewoc--node-left  node) nil
-            (ewoc--node-right node) nil))))
+      (cl-setf L (ewoc--node-left  node)
+               R (ewoc--node-right node)
+               ;; Link neighbors to each other.
+               (ewoc--node-right L) R
+               (ewoc--node-left  R) L
+               ;; Forget neighbors.
+               (ewoc--node-left  node) nil
+               (ewoc--node-right node) nil))))
 
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
@@ -503,7 +503,7 @@ Return the node (or nil if we just passed the last node)."
   (ewoc--set-buffer-bind-dll ewoc
     (goto-char (ewoc--node-start-marker node))
     (if goal-column (move-to-column goal-column))
-    (setf (ewoc--last-node ewoc) node)))
+    (cl-setf (ewoc--last-node ewoc) node)))
 
 (defun ewoc-refresh (ewoc)
   "Refresh all data in EWOC.
@@ -564,8 +564,8 @@ Return nil if the buffer has been deleted."
       ((head (ewoc--header ewoc))
        (foot (ewoc--footer ewoc))
        (hf-pp (ewoc--hf-pp ewoc)))
-    (setf (ewoc--node-data head) header
-          (ewoc--node-data foot) footer)
+    (cl-setf (ewoc--node-data head) header
+             (ewoc--node-data foot) footer)
     (save-excursion
       (ewoc--refresh-node hf-pp head dll)
       (ewoc--refresh-node hf-pp foot dll))))

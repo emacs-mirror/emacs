@@ -12105,7 +12105,7 @@ Typing \\[verilog-auto] will make this into:
   "Expand AUTOUNDEF statements, as part of \\[verilog-auto].
 Take any `defines since the last AUTOUNDEF in the current file
 and create `undefs for them.  This is used to insure that
-file-local defines do not polute the global `define name space.
+file-local defines do not pollute the global `define name space.
 
 Limitations:
   AUTOUNDEF presumes any identifier following `define is the
@@ -12145,7 +12145,7 @@ defines the regular expression will be undefed."
 	   (end-pt (point))
 	   defs def)
       (save-excursion
-	;; Scan from beginnng of file, or last AUTOUNDEF
+	;; Scan from start of file, or last AUTOUNDEF
 	(or (verilog-re-search-backward-quick "/\\*AUTOUNDEF\\>" end-pt t)
 	    (goto-char (point-min)))
 	(while (verilog-re-search-forward-quick

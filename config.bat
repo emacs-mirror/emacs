@@ -283,11 +283,13 @@ If Exist alloca.in.h update alloca.in.h alloca.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
 If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
 If Exist signal.in.h update signal.in.h signal.in-h
+If Exist stdalign.in.h update stdalign.in.h  stdalign.in-h
 If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h
 If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
 If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
+If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
 If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp

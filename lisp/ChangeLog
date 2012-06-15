@@ -1,3 +1,1349 @@
+2012-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-function-property): Remove.
+	(cl-define-setf-expander, cl-deftype, cl-define-compiler-macro):
+	Use `cl-function' instead.
+
+2012-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (COMPILE_FIRST): Remove subr.el.
+	Suggested by Stefan Monnier while discussing bug#11657.
+
+2012-06-14  Sam Steingold  <sds@gnu.org>
+
+	* files.el (abort-if-file-too-large): Use `file-size-human-readable'.
+
+2012-06-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* play/doctor.el (doctor-doc): Remove parameter and use
+	doctor-sent instead of sent.
+	(doctor-read-print): Use doctor-sent instead of sent.  (Bug#11708)
+
+2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el: Require cl-lib.
+	(file-name-non-special): Replace case -> cl-case.
+
+	* emacs-lisp/cl-macs.el (cl-defstruct): Don't add print-func.
+
+	* emacs-lisp/edebug.el (edebug-read-function): Remove old incorrect
+	mapping from #' to function*.
+
+2012-06-13  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-drag-track): Do not set the mark if the user
+	releases the mouse without selecting anything (Bug#11588).
+
+2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (latex-indent): Recognize tex-verbatim at EOB
+	as well (bug#11646).
+
+	* loadup.el: Count byte-code functions as well.
+
+	* emacs-lisp/byte-opt.el (featurep): Move compiler-macro...
+	* emacs-lisp/bytecomp.el (featurep): ...here (bug#11692).
+
+	* emacs-lisp/autoload.el (make-autoload): Accept nil doc-string-elt
+	(bug#11649).  Add cl-defun and cl-defmacro.
+
+2012-06-13  Drew Adams  <drew.adams@oracle.com>
+
+	* help-mode.el (help-bookmark-make-record, help-bookmark-jump):
+	Fix last change.
+
+2012-06-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-call-method): Use timeout for `read-event'.
+	Otherwise, it blocks in batch mode.
+
+2012-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-mode.el (bookmark-make-record-default): Declare.
+
+2012-06-13  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/package.el (list-packages): Compute a list of
+	packages that are newly-available since the last list-packages
+	invocation.
+	(package-menu--new-package-list): New var.
+	(package-menu--generate, package-menu--print-info)
+	(package-menu--status-predicate, package-menu-mark-install):
+	Handle new status label "new".
+
+2012-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-remf): Fix error in recent
+	conversion to backquotes.
+
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-inhibit-emacs-lisp-mode-bindings):
+	Rename from gud-inhibit-global-bindings.
+
+	* emacs-lisp/eieio.el (eieio-pre-method-execution-hooks): Doc fix.
+
+	* nxml/nxml-glyph.el (nxml-glyph-set-functions): Rename abnormal
+	hook from nxml-glyph-set-hook.
+
+	* progmodes/cwarn.el (cwarn-mode): Remove redundant variable
+	declaration.
+
+	* progmodes/pascal.el (pascal-toggle-completions): Doc fix.
+
+	* textmodes/bibtex.el (bibtex-string-file-path, bibtex-file-path):
+	Convert to defcustom.
+
+2012-06-12  Drew Adams  <drew.adams@oracle.com>
+
+	* help-mode.el (help-bookmark-make-record, help-bookmark-jump):
+	New functions.
+	(help-mode): Use them.
+
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-font-lock-keywords-3):
+	Use preprocessor face for directives.
+	(fortran-directive-re): Doc fix.
+
+2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause): Fix error in recent
+	conversion to backquotes (bug#11652).
+
+	Fix compiler-expansion of CL's cXXr functions (bug#11673).
+	* emacs-lisp/cl-lib.el (cl--defalias): New function.
+	(cl-values, cl-values-list, cl-copy-seq, cl-svref, cl-first)
+	(cl-second, cl-rest, cl-endp, cl-third, cl-fourth): Use it.
+	(cl-plusp, cl-minusp, cl-fifth, cl-sixth, cl-seventh, cl-eighth)
+	(cl-ninth, cl-tenth): Mark them as inlinable.
+	(cl-caaar, cl-caadr, cl-cadar, cl-caddr, cl-cdaar, cl-cdadr)
+	(cl-cddar, cl-cdddr, cl-caaaar, cl-caaadr, cl-caadar, cl-caaddr)
+	(cl-cadaar, cl-cadadr, cl-caddar, cl-cadddr, cl-cdaaar, cl-cdaadr)
+	(cl-cdadar, cl-cdaddr, cl-cddaar, cl-cddadr, cl-cdddar, cl-cddddr):
+	Add a compiler-macro declaration to use cl--compiler-macro-cXXr.
+	(cl-list*, cl-adjoin): Don't put an autoload manually.
+	* emacs-lisp/cl-macs.el (cl--compiler-macro-adjoin)
+	(cl--compiler-macro-list*): Add autoload cookie.
+	(cl--compiler-macro-cXXr): New function.
+
+	* help-fns.el (help-fns--compiler-macro): New function extracted from
+	describe-function-1; follow aliases and use `compiler-macro' property.
+	(describe-function-1): Use it.
+
+2012-06-11  Chong Yidong  <cyd@gnu.org>
+
+	* startup.el (fancy-splash-head): Use splash.svg even if librsvg
+	is uninstalled, if imagemagick is installed.
+
+2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el: Use lexical-binding.
+	(cl-map-extents, cl-maclisp-member): Remove.
+	(cl--set-elt, cl--set-nthcdr, cl--set-buffer-substring)
+	(cl--set-substring, cl--block-wrapper, cl--block-throw)
+	(cl--compiling-file, cl--mapcar-many, cl--do-subst): Use "cl--" prefix.
+	* emacs-lisp/cl-extra.el: Use lexical-binding.
+	(cl--mapcar-many, cl--map-keymap-recursively, cl--map-intervals)
+	(cl--map-overlays, cl--set-frame-visible-p, cl--progv-save)
+	(cl--progv-before, cl--progv-after, cl--finite-do, cl--set-getf)
+	(cl--do-remf, cl--do-prettyprint): Use "cl--" prefix.
+	* emacs-lisp/cl-seq.el: Use lexical-binding.
+	(cl--parsing-keywords, cl--check-key, cl--check-test-nokey)
+	(cl--check-test, cl--check-match): Use "cl--" prefix and backquotes.
+	(cl--alist, cl--sublis-rec, cl--nsublis-rec, cl--tree-equal-rec):
+	* emacs-lisp/cl-macs.el (cl--lambda-list-keywords): Use "cl--" prefix.
+	* edmacro.el (edmacro-mismatch): Simplify to remove dependence on
+	CL's internals.
+
+2012-06-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.6-pre.
+
+	* net/tramp-cache.el (tramp-dump-connection-properties): Let-bind
+	`print-length' and `print-level' to nil, in order to avoid
+	truncation.  Reported by Christopher Schmidt
+	<christopher@ristopher.com>.
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Delete also process.
+
+	* net/tramp-compat.el (tramp-compat-condition-case-unless-debug):
+	New defmacro.
+	(tramp-compat-copy-directory): Add optional argument
+	COPY-CONTENTS.  It is not handled yet.
+
+	* net/tramp-ftp.el (tramp-disable-ange-ftp): Fix docstring.
+	(tramp-ftp-file-name-p): Simplify.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-expand-file-name):
+	* net/tramp-gw.el (tramp-gw-open-connection): Add hop to
+	connection vector.
+
+	* net/tramp-sh.el (tramp-copy-size-limit): Fix docstring.
+	(tramp-methods): Do not use `tramp-password-end-of-line'.
+	(tramp-completion-function-alist-putty): Handle UNIX case.
+	(tramp-remote-path): Add "/opt/bin", "/opt/sbin" and "/opt/local/bin".
+	(tramp-do-file-attributes-with-stat)
+	(tramp-do-directory-files-and-attributes-with-stat) Return uid and
+	gid as real numbers.  They could run out of integer range on cygwin.
+	(tramp-do-copy-or-rename-file-out-of-band): Better trace format.
+	(tramp-sh-handle-expand-file-name): Handle hops.
+	(tramp-open-connection-setup-interactive-shell):
+	Use `tramp-cleanup'.  Move check for busyboxes ...
+	(tramp-find-shell): ... here.  Simplify implementation.
+	Set "remote-shell" property also for alternative shells.
+	(tramp-remote-coding-commands): Check "test -c /dev/stdout".
+	If failing, a regular file would be written otherwise.
+	Reported by Dmitry Kurochkin <dmitry.kurochkin@gmail.com>.
+	(tramp-find-inline-encoding): Cache the coding commands in the
+	process cache.  Apply test command on the remote side, if defined.
+	(tramp-find-inline-compress): Cache the compress commands in the
+	process cache.
+	(tramp-compute-multi-hops): Save `tramp-default-proxies-alist'
+	when requested.  Handle hops.
+	(tramp-current-connection): New defvar.
+	(tramp-maybe-open-connection): Use `tramp-cleanup'.
+	Throw `suppress', if there was a failed connection shortly before.
+	Handle user interrupt.  (Bug#10187)
+	(tramp-get-inline-compress, tramp-get-inline-coding):
+	Read connection properties from the process cache.
+
+	* net/tramp-smb.el (tramp-smb-server-version)
+	(tramp-smb-wrong-passwd-regexp, tramp-smb-actions-with-tar):
+	New defconsts.
+	(tramp-smb-prompt): Extend for powershell prompt.
+	(tramp-smb-file-name-handler-alist): Add handlers for
+	`process-file', `shell-command' and `start-file-process'.
+	(tramp-smb-winexe-program, tramp-smb-winexe-shell-command)
+	(tramp-smb-winexe-shell-command-switch): New defcustoms.
+	(tramp-smb-file-name-p): Simplify.
+	(tramp-smb-action-with-tar, tramp-smb-handle-process-file)
+	(tramp-smb-kill-winexe-function, tramp-smb-call-winexe)
+	(tramp-smb-shell-quote-argument): New defuns.
+	(tramp-smb-handle-copy-directory): Add COPY-CONTENTS argument.
+	Implement using "tar".  By this, time-stamps are preserved.
+	(tramp-smb-handle-copy-file): Handle also the case of directories.
+	(tramp-smb-do-file-attributes-with-stat)
+	(tramp-smb-get-file-entries, tramp-smb-get-cifs-capabilities):
+	Use `tramp-get-connection-buffer').
+	(tramp-smb-handle-rename-file): Use "rename", when source and
+	target are on the same share.
+	(tramp-smb-maybe-open-connection): Handle wrong passwords.
+	Use `tramp-smb-server-version'.
+	(tramp-smb-wait-for-output): Remove prompt.
+
+	* net/tramp.el (top): Require 'cl.
+	(tramp-methods, tramp-rsh-end-of-line):
+	Remove `tramp-password-end-of-line' from docstring.
+	(tramp-save-ad-hoc-proxies): New defcustom.
+	(tramp-completion-function-alist): Adapt docstring.
+	(tramp-default-password-end-of-line): Remove defcustom.
+	(tramp-shell-prompt-pattern): Allow "[]" style prompts.  (Bug#11065)
+	(tramp-user-regexp, tramp-file-name-regexp-unified)
+	(tramp-file-name-regexp-url): Extend regexp by hop separator.
+	(tramp-postfix-hop-format, tramp-postfix-hop-regexp)
+	(tramp-remote-file-name-spec-regexp): New defconst.
+	(tramp-file-name-structure): Extend structure for hops.
+	(tramp-get-method-parameter): Move up.
+	(tramp-file-name-p, tramp-dissect-file-name)
+	(with-parsed-tramp-file-name): Handle hops.
+	(tramp-file-name-hop): New defun.
+	(tramp-make-tramp-file-name): New optional arg HOP.
+	(tramp-message-show-progress-reporter-message): New defvar.
+	(tramp-with-progress-reporter): Use it.  We cannot use
+	`tramp-message-show-message' here, because this suppresses also
+	error buffers.
+	(tramp-error-with-buffer): Suppress buffer view, if
+	`tramp-message-show-message' is nil.
+	Use `tramp-get-connection-buffer'.
+	(tramp-cleanup): New defun.
+	(tramp-rfn-eshadow-update-overlay): Let-bind `non-essential' to `t'.
+	(tramp-file-name-handler): If `debug-on-error' is set, propagate
+	an error unchanged.
+	(tramp-completion-handle-file-name-all-completions): Handle hops.
+	Fix an error when called from ido.
+	(tramp-completion-dissect-file-name): Use better local variable
+	name.  Add hop to the vector.
+	(tramp-handle-insert-file-contents): Use progress-reporter for the
+	whole scenario.
+	(tramp-action-password): Let-bind `enable-recursive-minibuffers'
+	to `t'.
+	(tramp-check-for-regexp): Simplify search.
+	(tramp-enter-password): Remove it.  Move implementation ...
+	(tramp-action-password): ... here.
+	(tramp-mode-string-to-int, tramp-local-host-p)
+	(tramp-make-tramp-temp-file, tramp-read-passwd)
+	(tramp-clear-passwd, tramp-time-less-p, tramp-time-diff):
+	Set tramp-autoload cookie.
+
+	* net/trampver.el: Update release number.
+
+2012-06-11  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+	    Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-set-completion-function): Fix docstring.
+	(tramp-parse-group, tramp-parse-file)
+	(tramp-parse-shostkeys-sknownhosts): New defuns.
+	(tramp-parse-rhosts, tramp-parse-rhosts-group, tramp-parse-shosts)
+	(tramp-parse-shosts-group, tramp-parse-sconfig)
+	(tramp-parse-sconfig-group, tramp-parse-shostkeys)
+	(tramp-parse-sknownhosts, tramp-parse-hosts)
+	(tramp-parse-hosts-group, tramp-parse-passwd, tramp-parse-netrc):
+	Use them.
+	(tramp-parse-passwd-group, tramp-parse-netrc-group)
+	(tramp-parse-putty-group): Don't narrow.
+	(tramp-parse-putty): Make a loop.
+	(tramp-file-name-handler): Catch the `suppress' signal.
+
+2012-06-11  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-register-types): Put the ImageMagick entry
+	at the end of image-type-file-name-regexps.
+
+2012-06-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* emacs-lisp/pcase.el (pcase-UPAT, pcase-QPAT): New edebug specs.
+	(pcase, pcase-let*, pcase-dolist): Use them.
+
+2012-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--let*): New function.
+	(pcase-let*): Use it.  Use pcase--memoize to avoid repeated expansions.
+	(pcase--expand): Use macroexp-let².
+
+2012-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el, emacs-lisp/syntax.el, emacs-lisp/smie.el:
+	* emacs-lisp/ewoc.el, emacs-lisp/cconv.el, emacs-lisp/bytecomp.el:
+	* emacs-lisp/byte-opt.el, emacs-lisp/autoload.el: Convert to cl-lib.
+	* emacs-lisp/easymenu.el, emacs-lisp/easy-mmode.el:
+	* emacs-lisp/derived.el: Use pcase instead of `cl'.
+	* emacs-lisp/cl-lib.el: Get rid of special cl-macs auto load.
+
+2012-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-yank-current-message): Leave point at
+	correct position.  (Bug#11660)
+
+2012-06-10  Chong Yidong  <cyd@gnu.org>
+
+	* allout-widgets.el: Fix code header.
+
+2012-06-10  Chong Yidong  <cyd@gnu.org>
+
+	* cus-edit.el (customize-changed-options-previous-release):
+	Bump to 24.1.
+
+2012-06-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (BIG_STACK_DEPTH): Enlarge to 2200.
+
+2012-06-09  Chong Yidong  <cyd@gnu.org>
+
+	* ebuff-menu.el (electric-buffer-list): Preserve header line.
+
+2012-06-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (special-display-popup-frame): Don't use
+	window--display-buffer (Bug#11651).
+
+2012-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix parallel builds: make sure loaddefs.el is not being written
+	while Lisp files are compiled.
+	(compile): Don't depend on 'mh-autoloads'.
+	(compile-CMD, compile-SH): Depend on 'autoloads'.
+	(bootstrap): Don't depend on 'autoloads' and 'mh-autoloads'.
+
+	* makefile.w32-in (BIG_STACK_DEPTH): Enlarge to 2200.  (Bug#11649)
+
+2012-06-09  Chong Yidong  <cyd@gnu.org>
+
+	* face-remap.el (face-remap-add-relative, face-remap-set-base)
+	(buffer-face-set, buffer-face-toggle, buffer-face-mode-invoke):
+	Doc fixes (Bug#11225).
+
+2012-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Only autoload
+	a function if there's a clear indication that it has a compiler-macro.
+	* emacs-lisp/byte-run.el (defun-declarations-alist, defmacro, defun)
+	(macro-declarations-alist): Add arglist to declaration functions.
+	(defun-declarations-alist): Add `obsolete' and `compiler-macro'.
+	* emacs-lisp/cl-seq.el (cl-member, cl-assoc):
+	* emacs-lisp/cl-lib.el (cl-list*, cl-adjoin):
+	* emacs-lisp/cl-extra.el (cl-get): Use the new `declare' statement.
+	Also add autoload to find the compiler macro.
+	* emacs-lisp/cl-macs.el (eql) [compiler-macro]: Remove.
+	(cl--compiler-macro-member, cl--compiler-macro-assoc)
+	(cl--compiler-macro-adjoin, cl--compiler-macro-list*)
+	(cl--compiler-macro-get): New functions, replacing calls to
+	cl-define-compiler-macro.
+	(cl-typep) [compiler-macro]: Use macroexp-let².
+
+2012-06-08  Nick Dokos  <nicholas.dokos@hp.com>  (tiny change)
+
+	* calendar/icalendar.el (icalendar--parse-vtimezone): Import TZID
+	string properly, fixes Bug#11473.
+
+2012-06-08  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (set-face-attribute): Doc fix.
+	(modify-face): Don't use :bold and :italic.
+	(error, warning, success): Tweak definitions.
+
+	* cus-edit.el (custom-modified, custom-invalid, custom-rogue)
+	(custom-modified, custom-set, custom-changed, custom-themed)
+	(custom-saved, custom-button, custom-button-mouse)
+	(custom-button-pressed, custom-state, custom-comment-tag)
+	(custom-variable-tag, custom-group-tag-1, custom-group-tag)
+	(custom-group-subtitle): Use new-style face specs.
+	(custom-invalid-face, custom-rogue-face, custom-modified-face)
+	(custom-set-face, custom-changed-face, custom-saved-face)
+	(custom-button-face, custom-button-pressed-face)
+	(custom-documentation-face, custom-state-face)
+	(custom-comment-face, custom-comment-tag-face)
+	(custom-variable-tag-face, custom-variable-button-face)
+	(custom-face-tag-face, custom-group-tag-face-1)
+	(custom-group-tag-face): Remove obsolete face alias.
+
+	* epa.el (epa-validity-high, epa-validity-medium)
+	(epa-validity-low, epa-mark, epa-field-name, epa-string)
+	(epa-field-name, epa-field-body):
+	* font-lock.el (font-lock-comment-face, font-lock-string-face)
+	(font-lock-keyword-face, font-lock-builtin-face)
+	(font-lock-function-name-face, font-lock-variable-name-face)
+	(font-lock-type-face, font-lock-constant-face):
+	* ido.el (ido-first-match, ido-only-match, ido-subdir)
+	(ido-virtual, ido-indicator, ido-incomplete-regexp):
+	* speedbar.el (speedbar-button-face, speedbar-file-face)
+	(speedbar-directory-face, speedbar-tag-face)
+	(speedbar-selected-face, speedbar-highlight-face)
+	(speedbar-separator-face):
+	* whitespace.el (whitespace-newline, whitespace-space)
+	(whitespace-hspace, whitespace-tab, whitespace-trailing)
+	(whitespace-line, whitespace-space-before-tab)
+	(whitespace-space-after-tab, whitespace-indentation)
+	(whitespace-empty):
+	* emulation/cua-base.el (cua-global-mark):
+	* eshell/em-prompt.el (eshell-prompt):
+	* net/newst-plainview.el (newsticker-new-item-face)
+	(newsticker-old-item-face, newsticker-immortal-item-face)
+	(newsticker-obsolete-item-face, newsticker-date-face)
+	(newsticker-statistics-face, newsticker-default-face):
+	* net/newst-reader.el (newsticker-feed-face)
+	(newsticker-extra-face, newsticker-enclosure-face):
+	* net/newst-treeview.el (newsticker-treeview-face)
+	(newsticker-treeview-new-face, newsticker-treeview-old-face)
+	(newsticker-treeview-immortal-face)
+	(newsticker-treeview-obsolete-face)
+	(newsticker-treeview-selection-face):
+	* net/rcirc.el (rcirc-my-nick, rcirc-other-nick)
+	(rcirc-bright-nick, rcirc-server, rcirc-timestamp)
+	(rcirc-nick-in-message, rcirc-nick-in-message-full-line)
+	(rcirc-prompt, rcirc-track-keyword, rcirc-url, rcirc-keyword):
+	* nxml/nxml-outln.el (nxml-heading, nxml-outline-indicator)
+	(nxml-outline-active-indicator, nxml-outline-ellipsis):
+	* play/mpuz.el (mpuz-unsolved, mpuz-solved, mpuz-trivial)
+	(mpuz-text):
+	* progmodes/vera-mode.el (vera-font-lock-number)
+	(vera-font-lock-function, vera-font-lock-interface):
+	* textmodes/table.el (table-cell): Use new-style face specs, and
+	don't use the old :bold and :italic attributes.
+
+	* progmodes/ebrowse.el (ebrowse-tree-mark, ebrowse-root-class)
+	(ebrowse-member-attribute, ebrowse-default, ebrowse-file-name)
+	(ebrowse-member-class, ebrowse-progress): Likewise.
+	(ebrowse-tree-mark-face, ebrowse-root-class-face)
+	(ebrowse-file-name-face, ebrowse-default-face)
+	(ebrowse-member-attribute-face, ebrowse-member-class-face)
+	(ebrowse-progress-face): Remove obsolete faces.
+
+	* progmodes/flymake.el (flymake-errline, flymake-warnline):
+	Inherit from error and warning faces respectively.
+
+	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
+	Likewise.
+	(flyspell-incorrect-face, flyspell-duplicate-face):
+	Remove obsolete aliases.
+
+2012-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-temporary-file-directory):
+	Avoid infloop.
+
+2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (argv, argi): Make lexically scoped.
+	* emacs-lisp/float-sup.el (pi): Use internal-make-var-non-special.
+	* emacs-lisp/cl-macs.el: Use lexical-binding.
+	Rename cl-bind-* to cl--bind-*.
+	* files.el: Don't require `cl' since it doesn't use it.
+	* emacs-lisp/pcase.el, emacs-lisp/macroexp.el: Add coding cookie.
+
+2012-06-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/texinfmt.el: Fix bug#11640 (reverts part of revno:89810).
+	(texinfo-format-printindex): Use `texinfo-sort-region' in all platforms,
+	instead of calling external sort utility.
+	(texinfo-sort-region, texinfo-sort-startkeyfun): Restore functions.
+
+2012-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char): Mention how to insert the
+	character, if the current input method doesn't support it.
+	See the discussion in this thread for the details:
+	http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00533.html.
+
+2012-06-08  Sam Steingold  <sds@gnu.org>
+
+	* bindings.el (global-map): Bind XF86Forward to next-buffer and
+	XF86Back to previous-buffer.
+	(minibuffer-local-map): Bind them to next-history-element and
+	previous-history-element respectively.
+	* help-mode.el (help-mode-map): Bind them to help-go-forward and
+	help-go-back respectively.
+	* info.el (Info-mode-map): Bind them to Info-history-forward and
+	Info-history-back respectively.
+	These are the keys next to Up on the ThinkPad keyboard.
+
+2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of cl-lexical-let, keeping only lexical-let for compatibility.
+	* emacs-lisp/cl-macs.el: Provide itself.
+	(cl--labels-convert-cache): New var.
+	(cl--labels-convert): New function.
+	(cl-flet, cl-labels): New implementation with new semantics, relying on
+	lexical-binding.
+	* emacs-lisp/cl.el: Mark compatibility aliases as obsolete.
+	(cl-closure-vars, cl--function-convert-cache)
+	(cl--function-convert): Move from cl-macs.el.
+	(lexical-let, lexical-let*, flet, labels): Move from cl-macs.el and
+	rename by removing the "cl-" prefix.
+	* emacs-lisp/macroexp.el (macroexp-unprogn): New function.
+
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el (cl-macroexpand, cl-macro-environment)
+	(cl-macroexpand-all, cl-not-hash-table, cl-builtin-gethash)
+	(cl-builtin-remhash, cl-builtin-clrhash, cl-builtin-maphash)
+	(cl-map-keymap, cl-copy-tree, cl-gethash, cl-puthash, cl-remhash)
+	(cl-clrhash, cl-maphash, cl-make-hash-table, cl-hash-table-p)
+	(cl-hash-table-count): Add old compatibility aliases.
+
+	* emacs-lisp/cl-macs.el (cl-macro-environment): Remove var.
+	Use macroexpand-all-environment instead.
+	(cl--old-macroexpand): New var.
+	(cl--sm-macroexpand): New function.
+	(cl-symbol-macrolet): Use it during macro expansion.
+	(cl--function-convert-cache): New var.
+	(cl--function-convert): New function, extracted from
+	cl-macroexpand-all.
+	(cl-lexical-let): Use it.
+
+	* emacs-lisp/cl-lib.el (cl-macro-environment): Remove decl.
+	(cl-macroexpand): Move to cl-macs.el and rename to cl--sm-macroexpand.
+	(cl-member): Remove old alias.
+
+	* emacs-lisp/cl-extra.el (cl-map-keymap, cl-copy-tree)
+	(cl-not-hash-table, cl-builtin-gethash, cl-builtin-remhash)
+	(cl-builtin-clrhash, cl-builtin-maphash, cl-gethash, cl-puthash)
+	(cl-remhash, cl-clrhash, cl-maphash, cl-make-hash-table)
+	(cl-hash-table-p, cl-hash-table-count): Move to cl.el.
+	(cl-macroexpand-cmacs): Remove var.
+	(cl-macroexpand-all, cl-macroexpand-body): Remove funs.
+	Use macroexpand-all instead.
+
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp-progn, macroexp-let*, macroexp-if)
+	(macroexp-let², macroexp--const-symbol-p, macroexp-const-p)
+	(macroexp-copyable-p): New functions and macros.
+	* emacs-lisp/edebug.el (edebug-unwrap):
+	* emacs-lisp/disass.el (disassemble-internal): Use macroexp-progn.
+	* emacs-lisp/pcase.el: Use macroexp-let*, macroexp-if, ...
+	(pcase--let*): Remove.
+	* emacs-lisp/bytecomp.el (byte-compile-const-symbol-p)
+	(byte-compile-constp): Remove.  Use macroexp--const-symbol-p and
+	macroexp-const-p instead.
+	* emacs-lisp/byte-opt.el: Use macroexp-const-p and macroexp-progn.
+
+	* emacs-lisp/cl-macs.el: Clean up the name space by using "cl--"
+	instead of "cl-" for internal definitions.  Use macroexp-const-p.
+	(cl-old-bc-file-form): Remove var.
+	(cl-const-exprs-p): Remove fun.
+	(cl-labels, cl-macrolet): Use backquote.
+	(cl-lexical-let): Use cl-symbol-macrolet.  Don't use cl-defun-expander.
+	(cl-defun-expander, cl-byte-compile-compiler-macro): Remove fun.
+	(cl-define-setf-expander): Rename from cl-define-setf-method.
+	* emacs-lisp/cl.el: Adjust alias for define-setf-method.
+
+	* international/mule-cmds.el: Don't require CL.
+	(view-hello-file): Don't use `letf'.
+
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-prompt): Use string-prefix-p.
+	(tmm-completion-delete-prompt): Don't affect current-buffer outside.
+	(tmm-add-prompt): Use minibuffer-completion-help.
+	(tmm-delete-map): Remove.
+
+	* subr.el (kbd): Make it its own function.
+
+2012-06-07  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Use `eval-when-compile' for requiring `cl.el'.
+	Silence compiler warnings.  Fix versions.
+	(rst-position-if, rst-position, rst-some, rst-signum): New functions.
+	(rst-shift-region, rst-adornment-level, rst-compute-tabs)
+	(rst-indent-line, rst-shift-region, rst-forward-line): Use them.
+	(rst-package-emacs-version-alist): Correct Emacs version to
+	represent major merge with upstream.
+	(rst-transition, rst-adornment, rst-compile-toolsets): Fix versions.
+
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Add relevant EMACS env-vars.
+	Only print environment variables if set.
+
+2012-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el: Don't require CL since we don't use it.
+	(macroexp--cons): Rename from maybe-cons.
+	(macroexp--accumulate): Rename from macroexp-accumulate.
+	(macroexp--all-forms): Rename from macroexpand-all-forms.
+	(macroexp--all-clauses): Rename from macroexpand-all-clauses.
+	(macroexp--expand-all): Rename from macroexpand-all-1.
+
+2012-06-06  Sam Steingold  <sds@gnu.org>
+
+	* calendar/calendar.el (calendar-in-read-only-buffer):
+	Call `special-mode' to enable the standard read-only keybindings.
+
+2012-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Don't spam the output
+	with "loading" messages (bug#11635).
+
+2012-06-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (enable-remote-dir-locals): New option.
+	(hack-dir-local-variables): Use it.  (Bug#1933, Bug#6731)
+
+	* net/tramp-compat.el (tramp-compat-temporary-file-directory):
+	Ensure, that the temp directory is local.
+
+	* net/tramp-sh.el (tramp-sh-handle-write-region): Let-bind
+	`temporary-file-directory'.
+
+	* progmodes/python.el (python-send-region): Ensure, that the
+	temporary file is created also in the remote case.
+
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-rcs.el (vc-rcs-rcs2log-program): New.
+	(vc-rcs-update-changelog): Use it.
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove vcdiff
+
+	* vc/vc-sccs.el (vc-sccs-write-revision): New function.
+	(vc-sccs-workfile-unchanged-p): Use vc-sccs-write-revision.
+	(vc-sccs-diff): Replace use of the external vcdiff script.
+
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* ledit.el: Move to obsolete/.
+
+2012-06-05  Sam Steingold  <sds@gnu.org>
+
+	* calendar/calendar.el (calendar-exit): reinstate the 2012-03-28
+	patch (Bug#11140).
+
+2012-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-list/cust-print.el: Move to obsolete.
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Tolerate errors during
+	compiler-macro expansion.
+
+	Add native compiler-macro support.
+	* emacs-lisp/macroexp.el (macroexpand-all-1):
+	Support compiler-macros directly.  Properly follow aliases and apply
+	the compiler macros more thoroughly.
+	* emacs-lisp/cl.el: Don't copy compiler-macro properties any more since
+	macroexpand now properly follows aliases.
+	* emacs-lisp/cl-macs.el (toplevel, cl-define-compiler-macro)
+	(cl-compiler-macroexpand): Use new prop.
+	* emacs-lisp/byte-opt.el (featurep): Optimize earlier.
+
+	* emacs-lisp/cl-lib.el (custom-print-functions): Add alias.
+
+2012-06-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-lru-window, get-mru-window, get-largest-window):
+	New argument NOT-SELECTED to avoid picking the selected window.
+	(window--display-buffer-1, window--display-buffer-2): Replace by
+	new function window--display-buffer
+	(display-buffer-same-window, display-buffer-reuse-window)
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Use window--display-buffer.
+	(display-buffer-use-some-window): Remove temporary dedication
+	hack by calling get-lru-window and get-largest-window with
+	NOT-SELECTED argument non-nil.  Call window--display-buffer.
+
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-sccs.el (vc-sccs-workfile-unchanged-p):
+	Replace external vcdiff script.
+
+2012-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el (cl-values, cl-values-list): Fix up last change.
+
+2012-06-04  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-types-inhibit): Revert last change.
+	Add INFO and M.
+	(imagemagick-enabled-types): Remove CIN and EPS*.
+
+2012-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el: Rename from cl.el.
+	* emacs-lisp/cl.el: New compatibility file.
+	* emacs-lisp/cl-lib.el, emacs-lisp/cl-seq.el, emacs-lisp/cl-macs.el:
+	* emacs-lisp/cl-extra.el: Rename all top-level functions and variables
+	to obey the "cl-" prefix.
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Adjust to new name.
+
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Addition.
+
+	* cus-start.el (tool-bar-style, tool-bar-max-label-size):
+	Fix :version.
+
+2012-06-03  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Add comments.
+	(rst-transition, rst-adornment): New faces.
+	(rst-adornment-faces-alist): Make default safe to reevaluate.
+	Fixes
+	http://sourceforge.net/tracker/?func=detail&atid=422030&aid=3479603&group_id=38414.
+	Improve customization tags.
+	(rst-define-level-faces): Clarify meaning.
+
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/compile.el (compilation-mode-line-fail)
+	(compilation-mode-line-run, compilation-mode-line-exit):
+	New faces.
+	(compilation-start, compilation-handle-exit): Use them (Bug#11032).
+
+2012-06-03  Jack Duthen  <duthen.mac.01@gmail.com>  (tiny change)
+
+	* progmodes/which-func.el (which-func-update-ediff-windows):
+	New function.  Use it in ediff-select-hook (Bug#11478).
+
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el: Remove explicit help text from format-mode-line.
+	It is now supplied by mode-line-default-help-echo.
+	(mode-line-front-space, mode-line-end-spaces)
+	(mode-line-misc-info): New variables.
+	(mode-line-modes, mode-line-position): Move the default value to
+	the variable definition.
+	(mode-line-default-help-echo): New defcustom.
+	(mode-line-mule-info-help-echo, mode-line-read-only-help-echo)
+	(mode-line-modified-help-echo): New functions.
+	(mode-line-mule-info, mode-line-modified): Use them.
+	(mode-line-eol-desc, propertized-buffer-identification):
+	Consistency fixes for help text.
+	(mode-line-coding-system-map): Allow using mouse-3 to invoke
+	set-buffer-file-coding-system (Bug#289).
+	(mode-line-mule-info-help-echo): Update help text.
+
+2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (execute-extended-command): Set real-this-command
+	(bug#11506).
+
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	Remove incorrect uses of "modeline" in comments, docstrings, and
+	function/variable names (Bug#10329).
+
+	* cus-edit.el (mode-line):
+	* dframe.el (dframe-mouse-hscroll):
+	* emacs-lisp/re-builder.el:
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	* frame.el (set-frame-name):
+	* help.el (lookup-minor-mode-from-indicator):
+	* net/rcirc.el (rcirc-activity-string, rcirc-short-buffer-name):
+	* progmodes/cc-cmds.el (c-toggle-auto-newline)
+	(c-toggle-hungry-state):
+	* progmodes/antlr-mode.el (antlr-language-alist):
+	* progmodes/idlw-shell.el (idlwave-shell-electric-stop-line-face):
+	* progmodes/vhdl-mode.el (vhdl-mode):
+	* progmodes/which-func.el (which-func, which-func-cleanup-function):
+	* term/ns-win.el (ns-face-at-pos):
+	* term/sup-mouse.el (sup-mouse-report):
+	* textmodes/flyspell.el (flyspell-mode-line-string):
+	* textmodes/ispell.el (ispell-highlight-face):
+	* textmodes/reftex-global.el:
+	* vc/vc-arch.el (vc-arch-mode-line-string):
+	* vc/vc-cvs.el (vc-cvs-mode-line-string):
+	* vc/vc-git.el (vc-git-mode-line-string):
+	* vc/vc-hooks.el (vc-display-status)
+	(vc-default-mode-line-string):
+	* vc/vc-mtn.el (vc-mtn-mode-line-string): Doc fixes.
+
+	* ansi-color.el (ansi-color-faces-vector): Change default faces.
+
+	* dired.el (dired-sort-set-mode-line): Rename from
+	dired-sort-set-modeline.  All callers changed.
+
+	* eshell/esh-mode.el (eshell-status-in-mode-line): Rename from
+	eshell-status-in-modeline.
+
+	* foldout.el (foldout-mode-line-string): Rename from
+	foldout-modeline-string.  All callers changed.
+	(foldout-update-mode-line): Rename from foldout-update-modeline.
+
+	* subr.el (redraw-modeline): Make into obsolete alias.
+
+	* calendar/timeclock.el (timeclock-mode-line-display): Rename from
+	timeclock-modeline-display.  Make old name an alias.
+	(timeclock-update-mode-line): Likewise.  All callers changed.
+	(timeclock-mode-line-display): No need to check before using
+	add-hook.
+	(timeclock-relative, timeclock-day-over-hook)
+	(timeclock-use-elapsed, timeclock-mode-string)
+	(timeclock-mode-line-display): Doc fix, "modeline" -> "mode line".
+
+	* emulation/crisp.el (crisp-mode-mode-line-string): Rename from
+	crisp-mode-modeline-string.
+
+	* play/solitaire.el (solitaire-build-mode-line): Rename from
+	solitaire-build-modeline.  All callers changed.
+
+	* play/zone.el (zone-hiding-mode-line): Rename from
+	zone-hiding-modeline.  All callers changed.
+	(zone): Remove unusued `modeline-hidden-level' property.
+
+	* progmodes/xscheme.el (xscheme-mode-line-initialize): Rename from
+	xscheme-modeline-initialize.  All callers changed.
+
+	* strokes.el (strokes-lighter): Rename from
+	strokes-modeline-string.
+
+	* textmodes/sgml-mode.el (html-face-tag-alist)
+	(html-tag-face-alist): Use mode-line face instead of obsolete
+	alias modeline.
+
+2012-06-02  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Always require `cl'.
+	(rst-mode-map): Fix meaning of C-M-a / C-M-e.
+
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-enabled-types): Rename from
+	imagemagick-types-enable.  Add many more types.
+	(imagemagick-types-inhibit): Change default to nil.
+	(imagemagick-filter-types): Caller changed.
+
+2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el: Use backquotes.
+	(cl-transform-function-property): Use eval-and-compile rather than
+	abusing `require'.
+	(defstruct): Use declare-function instead of with-no-warnings.
+
+	* emacs-lisp/bytecomp.el: Fix last change (bug#11594).
+	(byte-compile-output-docform): Re-add the print-circle bindings.
+	(byte-compile-fix-header): Use #$ just because it's shorter.
+	(byte-compile-output-file-form): Remove defun/defmacro.
+
+2012-06-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* simple.el (choose-completion): Remove now obsolete binding for
+	owindow.
+
+2012-06-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-check-for-regexp): Search from buffer end,
+	in order to avoid "Stack overflow in regexp matcher".
+
+2012-05-31  Glenn Morris  <rgm@gnu.org>
+
+	* image.el: For clarity, call imagemagick-register-types at
+	top-level, rather than relying on a custom :initialize.
+	(imagemagick-types-enable): New option.  (Bug#11557)
+	(imagemagick-filter-types): New function.  (Bug#7406)
+	(imagemagick-register-types): Use imagemagick-filter-types.
+	If disabling support, remove elements altogether rather
+	than using an impossible regexp.
+	(imagemagick-types-inhibit): Give it the default init function.
+
+2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header):
+	Handle arbitrary file name lengths (Bug#11585).
+
+2012-05-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* desktop.el (desktop-read): Clear previous and next buffers for
+	all windows and bury *Messages* buffer (bug#11556).
+
+2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add `declare' for `defun'.  Align `defmacro's with it.
+	* emacs-lisp/easy-mmode.el (define-minor-mode)
+	(define-globalized-minor-mode): Don't autoload the var definitions.
+	* emacs-lisp/byte-run.el: Use lexical-binding.
+	(defun-declarations-alist, macro-declarations-alist): New vars.
+	(defmacro, defun): Use them.
+	(make-obsolete, define-obsolete-function-alias)
+	(make-obsolete-variable, define-obsolete-variable-alias):
+	Use `declare'.
+	(macro-declaration-function): Mark obsolete.
+	* emacs-lisp/autoload.el: Use lexical-binding.
+	(make-autoload): Add `expansion' arg.  Rely more on macro expansion.
+
+2012-05-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-with-no-warnings):
+	Define as a macro.
+	(ispell-kill-ispell, ispell-change-dictionary):
+	Use `called-interactively-p' for Emacs instead of obsolete
+	`interactive-p'.
+
+2012-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (defmacro, defun): Move from C.
+	(macro-declaration-function): Move var from C code.
+	(macro-declaration-function): Define function with defalias.
+	* emacs-lisp/macroexp.el (macroexpand-all-1):
+	* emacs-lisp/cconv.el (cconv-convert, cconv-analyse-form):
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Don't handle
+	defun/defmacro any more.
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-signature):
+	Provide fallback for unknown arglist.
+	(byte-compile-arglist-warn): Change calling convention.
+	(byte-compile-output-file-form): Move print-vars binding.
+	(byte-compile-output-docform): Simplify accordingly.
+	(byte-compile-file-form-defun, byte-compile-file-form-defmacro)
+	(byte-compile-defmacro-declaration): Remove.
+	(byte-compile-file-form-defmumble): Generalize to defalias.
+	(byte-compile-output-as-comment): Return byte-positions.
+	Simplify callers accordingly.
+	(byte-compile-lambda): Use `assert'.
+	(byte-compile-defun, byte-compile-defmacro): Remove.
+	(byte-compile-file-form-defalias):
+	Use byte-compile-file-form-defmumble.
+	(byte-compile-defalias-warn): Remove.
+
+2012-05-29  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Silence `checkdoc-ispell' errors where
+	possible.  Fix authors.  Improve comments.  Improve loading of `cl'.
+
+	(rst-mode-abbrev-table): Merge definition.
+	(rst-mode): Make sure `font-lock-defaults' is buffer local.
+	(rst-define-key, rst-deprecated-keys, rst-call-deprecated): Refactor.
+
+2012-05-29  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el
+	(icalendar-export-region): Export UID properly.
+
+2012-05-29 Leo <sdl.web@gmail.com>
+	* calendar/icalendar.el (icalendar-import-format):
+	Add `icalendar-import-format-uid' (Bug#11525).
+	(icalendar-import-format-uid): New.
+	(icalendar--parse-summary-and-rest, icalendar--format-ical-event):
+	Export UID.
+
+2012-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--expand): Accept different sets of vars in
+	different alternative patterns.
+	(pcase-codegen): Be more careful to preserve identity.
+	(pcase--u1): Don't forget to mark vars as used.
+
+	* emacs-lisp/bytecomp.el (byte-compile-constp): Treat #'v as a constant.
+	(byte-compile-close-variables): Bind byte-compile--outbuffer here...
+	(byte-compile-from-buffer): ...rather than here.
+
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Don't re-preprocess
+	functions from byte-compile-function-environment.
+
+2012-05-29  Troels Nielsen  <bn.troels@gmail.com>
+
+	* window.el (window-deletable-p): Avoid deleting the root window
+	of a frame with an active minibuffer.
+
+2012-05-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* simple.el (choose-completion): Use quit-window (Bug#11567).
+
+2012-05-29  Chong Yidong  <cyd@gnu.org>
+
+	* whitespace.el (whitespace-cleanup): Fix usage of
+	whitespace-empty-at-bob-regexp (Bug#11492).
+
+2012-05-29  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* vc/vc.el (vc-revert, vc-rollback): Dont kill vc-diff buffer on
+	revert (Bug#11488).
+
+2012-05-29  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind `M-s _' to
+	`isearch-toggle-symbol'.  Bind `M-s c' to
+	`isearch-toggle-case-fold'.
+	(search-map): Bind `M-s _' to `isearch-forward-symbol'.
+	(isearch-forward): Add `M-s _' to the docstring.
+	(isearch-forward-symbol, isearch-toggle-case-fold)
+	(isearch-symbol-regexp): New functions.  (Bug#11381)
+
+2012-05-29  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-word): Add docstring.  (Bug#11381)
+	(isearch-occur, isearch-search-and-update): If `isearch-word' is
+	a function, call it to get the regexp.
+	(isearch-message-prefix): If `isearch-word' holds a symbol, use its
+	property `isearch-message-prefix' instead of the string "word ".
+	(isearch-search-fun-default): For the case of `isearch-word',
+	return a lambda that calls re-search-forward/re-search-backward
+	with a regexp returned by `word-search-regexp' or by the function
+	in `isearch-word'.
+
+2012-05-29  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-search-fun-default): New function.
+	(isearch-search-fun): Move default part to the new function
+	`isearch-search-fun-default'.
+	(isearch-search-fun-function): Set the default value to
+	`isearch-search-fun-default'.  (Bug#11381)
+
+	* comint.el (comint-history-isearch-end):
+	Use `isearch-search-fun-default'.
+	(comint-history-isearch-search): Use `isearch-search-fun-default'
+	and remove spacial case for `isearch-word'.
+	(comint-history-isearch-wrap): Remove spacial case for
+	`isearch-word'.
+
+	* hexl.el (hexl-isearch-search-function):
+	Use `isearch-search-fun-default'.
+
+	* info.el (Info-isearch-search): Use `isearch-search-fun-default'.
+	Use `word-search-regexp' for `isearch-word'.
+
+	* misearch.el (multi-isearch-search-fun):
+	Use `isearch-search-fun-default'.
+
+	* simple.el (minibuffer-history-isearch-search):
+	Use `isearch-search-fun-default' and remove spacial case for
+	`isearch-word'.
+	(minibuffer-history-isearch-wrap): Remove spacial case for
+	`isearch-word'.
+
+	* textmodes/reftex-global.el (reftex-isearch-wrap-function):
+	Remove spacial case for `isearch-word'.
+	(reftex-isearch-isearch-search): Use `isearch-search-fun-default'.
+
+2012-05-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	Decrease XEmacs incompatibilities.
+	* textmodes/flyspell.el (flyspell-check-pre-word-p):
+	Use `string-match'.
+	(flyspell-delete-region-overlays): Use alternative definition for
+	XEmacs.
+	(flyspell-delete-all-overlays): Use `flyspell-delete-region-overlays'.
+	(flyspell-word): Use `process-kill-without-query' if XEmacs.
+	(flyspell-mode-on): Use `interactive-p' if XEmacs.
+	(flyspell-incorrect-face, flyspell-duplicate-face): Do not use
+	`define-obsolete-face-alias' under XEmacs, but old method.
+
+	* textmodes/ispell.el (ispell-with-no-warnings): XEmacs alternative
+	`with-no-warnings' definition or Emacs alias.
+	(ispell-command-loop, ispell-message): Use `ispell-with-no-warnings'.
+	(ispell-word): Do not use `region-p' if XEmacs.
+
+2012-05-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
+	Check for `ispell-dictionary-base-alist' instead of full
+	`ispell-dictionary-alist'.
+	(ispell-init-process): Show spellchecker when starting new Ispell
+	process.
+
+2012-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vhdl-mode.el: Sync with upstream 3.33.28.
+	http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html#release-notes-3.33
+
+2012-05-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* version.el (motif-version-string, gtk-version-string)
+	(ns-version-string): Declare.
+
+2012-05-27  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-2): Use `eval-sexp-add-defvars'
+	after the `eval-defun-1' specialcaseing
+	like in `edebug-eval-defun' (bug#10181).
+
+	* emacs-lisp/edebug.el (edebug-eval-defun): Set `face-documentation'
+	like in `eval-defun-1'.
+
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (mail-yank-region):
+	Recognize rmail-yank-current-message in addition to insert-buffer.
+	Fixes mail-mode's "C-c C-r" that otherwise does nothing when invoked in
+	a *mail* buffer created through rmail-start-mail with sendmail as
+	mail-user-agent.
+
+2012-05-27  Chong Yidong  <cyd@gnu.org>
+
+	* net/gnutls.el (gnutls-min-prime-bits): Improve docstring.
+	Default to 256 (Bug#11267).
+
+	* help.el (describe-mode): Doc fix.
+
+2012-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* w32-fns.el (w32-init-info): Remove.
+	* paths.el (Info-default-directory-list): Add w32-init-info equivalent.
+
+	* info.el (info-initialize): For self-contained NS builds, put the
+	included info/ directory at the front.  (Bug#2791)
+
+	* paths.el (Info-default-directory-list): Make it a defcustom,
+	mainly so that we can use custom-initialize-delay.
+
+2012-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (buffer-has-markers-at): Mark obsolete.
+
+	* subr.el (lambda): Use declare.
+
+	* emacs-lisp/lisp-mode.el (lambda):
+	* emacs-lisp/edebug.el (lambda): Move properties to its definition.
+
+2012-05-26  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* thingatpt.el (forward-same-syntax): Handle no ARG case.  (Bug#11560)
+
+2012-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-mode.el (auto-mode-alist): Fix typo.
+
+2012-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* paths.el: Remove no-byte-compile.
+	* loadup.el: No need to load paths.el uncompiled.
+
+	* image.el (imagemagick-types-inhibit): Doc fix.
+
+	* version.el: Remove no-byte-compile and associated formatting.
+	* loadup.el: No need to load version.el uncompiled.  AFAICS, this
+	is ancient code from when there was an "inc-vers.el".
+
+2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gdb-mi.el: Minor style changes.
+	(gdb-enable-debug, gdb-speedbar-auto-raise, gdb-many-windows):
+	Turn into minor modes.
+	(gdb--if-arrow): Rename from gdb-if-arrow, make it hygienic.
+	(gdb-mouse-until, gdb-mouse-jump): Adjust uses accordingly.
+	(gdb-shell): Remove unneeded let-binding.
+	(gdb-get-many-fields): Eliminate O(n²) behavior.
+
+2012-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el <vertical-centering-font-regexp>: Avoid warning on
+	platforms that don't link in fontset.c.
+
+2012-05-25  Juri Linkov  <juri@jurta.org>
+
+	Use the same diff color scheme as in modern VCSes (bug#10181).
+
+	* vc/diff-mode.el (diff-header, diff-file-header): Remove "green"
+	to avoid confusion with `diff-added' that now uses green colors.
+	(diff-removed): Use shades of red.
+	(diff-added): Use shades of green.
+	(diff-changed): Leave just the yellow color.
+	(diff-use-changed-face): New variable.
+	(diff-font-lock-keywords): Use `diff-use-changed-face' to decide
+	how to highlight context diff changes.
+	(diff-refine-change): Use shades of yellow.
+	(diff-refine-removed): New face that uses shades of red.
+	(diff-refine-added): New face that uses shades of green.
+	(diff-refine-hunk): Use `diff-refine-change', `diff-refine-added',
+	`diff-refine-removed' in the call to `smerge-refine-subst'
+	depending on the value of `diff-use-changed-face'.
+
+	* vc/smerge-mode.el (smerge-mine): Use shades of red.
+	(smerge-other): Use shades of green.
+	(smerge-base): Use shades of yellow.
+	(smerge-refined-change): Empty face.
+	(smerge-refined-removed): New face that uses shades of red.
+	(smerge-refined-added): New face that uses shades of green.
+	(smerge-refine-subst): Rename arg `props' to `props-c'.  Add new
+	args `props-r' and `props-a', and use them.  Doc fix.
+	(smerge-refine): Evaluate `smerge-use-changed-face' and depending
+	on its value use different faces `smerge-refined-change',
+	`smerge-refined-removed', `smerge-refined-added' in the call to
+	`smerge-refine-subst'.
+
+	* vc/ediff-init.el (ediff-current-diff-A, ediff-fine-diff-A):
+	Add face condition `min-colors 88' with shades of red.
+	(ediff-current-diff-B, ediff-fine-diff-B): Add face condition
+	`min-colors 88' with shades of green.
+	(ediff-current-diff-C, ediff-fine-diff-C): Add face condition
+	`min-colors 88' with shades of yellow.
+
+2012-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* paths.el (prune-directory-list, remote-shell-program): Move to...
+	* files.el (prune-directory-list, remote-shell-program): ...here.
+	For the latter, delay initialization, prefer ssh, just search PATH.
+
+	* paths.el (term-file-prefix): Move to faces.el (the only user).
+	* faces.el (term-file-prefix): Move here, make it a defcustom.
+
+	* paths.el (news-directory, news-path, news-inews-program):
+	Move to gnus/nnspool.el.
+
+	* paths.el (gnus-default-nntp-server): Remove (gnus.el defines it).
+
+	* paths.el (rmail-file-name, rmail-spool-directory): Move from here...
+	* mail/rmail.el (rmail-file-name, rmail-spool-directory): ... to here.
+	Make the latter a defcustom, with a delayed initialization.
+
+	* paths.el (gnus-nntp-service, gnus-local-organization): Remove.
+	These were deleted from Gnus itself late 2010.
+
+2012-05-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/which-func.el (which-func-ff-hook):
+	Check against user-error, not error.
+
+	* emacs-lisp/edebug.el (top): Do not load or set up loading of
+	cl-specs.el, which no longer exists.
+
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (info-emacs-bug): New command.
+	* menu-bar.el (menu-bar-help-menu): Add "How to Report a Bug" to Help.
+	* mail/emacsbug.el (report-emacs-bug): Replace with info-emacs-bug.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (update-subdirs-SH):
+	* Makefile.in (update-subdirs): Update for moved update-subdirs.
+
+2012-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hi-lock.el (hi-lock-face-defaults): Move obsolete before definition.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Simplify Maven regexp, and make sure the file can't start with a space
+	(bug#11517).
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs):
+	Scrap superfluous subshells.
+
+2012-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-root-dir): New var.
+	(byte-compile-warning-prefix, batch-byte-compile-file): Use it.
+
+2012-05-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-ensure-consistent-units): New variable.
+
+	* calc/calc-units.el (math-consistent-units-p)
+	(math-check-unit-consistency): New functions.
+	(calc-quick-units, calc-convert-units):
+	Use `math-check-unit-consistency' when `calc-ensure-consistent-units'
+	is non-nil.
+	(calc-extract-units): Fix typo.
+
+2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-bzr.el (vc-bzr-state-heuristic): Save match-data around sha1.
+
+	* textmodes/flyspell.el: Commenting style, plus code simplifications.
+	(flyspell-default-deplacement-commands): Don't spell check after
+	repeated window/frame switches (e.g. triggered by mouse-movement).
+	(flyspell-delay-commands, flyspell-deplacement-commands): Use mapc.
+	(flyspell-debug-signal-word-checked): Simplify and fit in 80 cols.
+	(flyspell-casechars-cache, flyspell-ispell-casechars-cache)
+	(flyspell-not-casechars-cache, flyspell-ispell-not-casechars-cache):
+	Remove unused vars.
+	(flyspell-get-casechars, flyspell-get-not-casechars):
+	Simplify; Don't bother removing a ] just to add it back.
+	* textmodes/ispell.el (ispell-program-name): Use executable-find.
+
+2012-05-18  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+
+	* calc/calc-lang.el (math-C-parse-bess, math-C-parse-fma):
+	New functions.
+	(math-function-table): Add support for more C functions.
+
+2012-05-18  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* flyspell.el (flyspell-check-pre-word-p, flyspell-check-word-p)
+	(flyspell-debug-signal-word-checked): Protect delay handling for
+	otherchars against empty otherchars.
+
+2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (doc-string-elt): Move those properties to
+	their respective macro declarations.
+	* skeleton.el (define-skeleton):
+	* progmodes/compile.el (define-compilation-mode):
+	* ibuf-macs.el (define-ibuffer-sorter, define-ibuffer-op)
+	(define-ibuffer-filter):
+	* emacs-lisp/generic.el (define-generic-mode):
+	* emacs-lisp/easy-mmode.el (define-minor-mode)
+	(define-globalized-minor-mode):
+	* emacs-lisp/cl-macs.el (defun*, defmacro*, defstruct, deftype):
+	* emacs-lisp/byte-run.el (defsubst):
+	* custom.el (deftheme): Add doc-string metadata.
+
+2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el, emacs-lisp/cl.el: Move indent info.
+
+2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--u1): Avoid ((lambda ...) ...).
+
+	* emacs-lisp/cl.el: Add edebug specs from cl-specs.el.
+	* emacs-lisp/cl-macs.el: Idem.
+	* emacs-lisp/cl-specs.el: Remove.
+
+2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Minor renaming of internal CL functions and variables.
+	* emacs-lisp/cl-seq.el (cl--adjoin): Rename from cl-adjoin.
+	(cl--position): Rename from cl-position.
+	(cl--delete-duplicates): Rename from cl-delete-duplicates.
+	* emacs-lisp/cl.el (cl--gensym-counter): Rename from *gensym-counter*.
+	(cl--random-state): Rename from *random-state*.
+
+2012-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-transform-lambda): Don't add spurious
+	parens around the arg list (bug#11499).
+
 2012-05-16  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el: New python.el merge.
@@ -591,6 +1937,109 @@
 	* man.el (Man-unindent): Use text-property-default-nonsticky to
 	prevent untabify from inheriting face properties (Bug#11408).
 
+2012-05-05  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Major merge with upstream development up to
+	Docutils SVN r7399 / rst.el V1.2.1.
+
+	Clarify maintainership and authors.
+
+	(rst-extract-version, rst-cvs-header, rst-cvs-rev)
+	(rst-cvs-timestamp, rst-svn-rev, rst-svn-timestamp)
+	(rst-official-version, rst-official-cvs-rev, rst-version)
+	(rst-package-emacs-version-alist): New functions and variables
+	for version information.
+
+	(rst-bullets, rst-uri-schemes, rst-adornment-chars)
+	(rst-max-inline-length, rst-re-alist-def, rst-re-alist)
+	(rst-mode-syntax-table, rst-mode): New and corrected functions
+	and variables representing reStructuredText features.
+
+	(rst-re): New function for reStructuredText regexes.  Use in
+	many places.
+
+	(rst-deprecated-keys, rst-call-deprecated, rst-define-key)
+	(rst-mode-map): Rebind keys.
+
+	(rst-mode-lazy, rst-font-lock-keywords)
+	(rst-font-lock-extend-region)
+	(rst-font-lock-extend-region-internal)
+	(rst-font-lock-extend-region-extend)
+	(rst-font-lock-find-unindented-line-limit)
+	(rst-font-lock-find-unindented-line-match)
+	(rst-adornment-level, rst-font-lock-adornment-level)
+	(rst-font-lock-adornment-match)
+	(rst-font-lock-handle-adornment-pre-match-form)
+	(rst-font-lock-handle-adornment-matcher): Major revision of
+	font-locking.  Integrate with other code.  Use `jit-lock-mode'.
+
+	(rst-preferred-adornments, rst-adjust-hook)
+	(rst-new-adornment-down, rst-preferred-bullets)
+	(rst-preferred-bullets, rst-indent, rst-indent-width)
+	(rst-indent-field, rst-indent-literal-normal)
+	(rst-indent-literal-minimized, rst-indent-comment): Change,
+	extend and improve customization.
+
+	(rst-line-homogeneous-p, rst-line-homogeneous-nodent-p)
+	(rst-normalize-cursor-position, rst-get-decoration)
+	(rst-straighten-deco-spacing, rst-re-bullets, rst-re-items)
+	(rst-rstrip, rst-toc-insert-find-delete-contents)
+	(rst-shift-fill-region, rst-compute-bullet-tabs)
+	(rst-debug-print-tabs, rst-debug-mark-found)
+	(rst-shift-region-guts, rst-shift-region-right)
+	(rst-shift-region-left, rst-use-char-classes)
+	(rst-font-lock-keywords-function)
+	(rst-font-lock-indentation-point)
+	(rst-font-lock-find-unindented-line-begin)
+	(rst-font-lock-find-unindented-line-end)
+	(rst-font-lock-find-unindented-line)
+	(rst-font-lock-adornment-point, rst-font-lock-level)
+	(rst-adornment-level-alist): Remove functions and variables.
+
+	(rst-compare-adornments, rst-get-adornment-match)
+	(rst-suggest-new-adornment, rst-get-adornments-around)
+	(rst-adornment-complete-p, rst-get-next-adornment)
+	(rst-adjust-adornment, rst-display-adornments-hierarchy)
+	(rst-straighten-adornments): Standardize function names to
+	use "adornment" instead of "decoration".  Correct callers.
+	Similar standardizing in many places.
+
+	(rst-update-section, rst-adjust, rst-promote-region)
+	(rst-enumerate-region, rst-bullet-list-region)
+	(rst-repeat-last-character): Correct use of `interactive'.
+
+	(rst-classify-adornment, rst-find-all-adornments)
+	(rst-get-hierarchy, rst-adjust-adornment, rst-toc-update)
+	(rst-find-leftmost-column, rst-repeat-last-character):
+	Refactor functions.
+
+	(rst-find-title-line, rst-reset-section-caches)
+	(rst-get-adornments-around, rst-adjust-adornment-work)
+	(rst-arabic-to-roman, rst-roman-to-arabic)
+	(rst-insert-list-pos, rst-insert-list-new-item)
+	(rst-insert-list-continue, rst-insert-list, rst-forward-line):
+	New functions.
+
+	(rst-all-sections, rst-section-hierarchy)
+	(rst-arabic-to-roman, rst-initial-enums, rst-initial-items):
+	New variables.
+
+	(rst-toc-return-wincfg, rst-toc-quit-window): Use window
+	configuration instead of only buffer.  Change where necessary.
+
+	(rst-line-tabs, rst-compute-tabs, rst-indent-line)
+	(rst-shift-region, rst-adaptive-fill): New functions for
+	indentation and filling.
+
+	(rst-comment-line-break, rst-comment-indent)
+	(rst-comment-insert-comment, rst-comment-region)
+	(rst-uncomment-region): New functions for handling comments.
+
+	(rst-compile): Quote shell arguments.
+
+	(rst-compile-pdf-preview, rst-compile-slides-preview):
+	Delete temporary files after use.
+
 2012-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-html.el: Optionally include holidays in the output.
@@ -807,7 +2256,7 @@
 2012-05-03  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-show-mime): Catch an error caused by text
-	decoding, and show a warning message without signalling an error
+	decoding, and show a warning message without signaling an error
 	(Bug#11282).
 
 2012-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -3924,9 +5373,6 @@
 
 	* net/tramp.el (tramp-action-login): Set connection property "login-as".
 
-	* net/tramp-cache.el (tramp-dump-connection-properties): Do not dump
-	properties, when "login-as" is set.
-
 	* net/tramp-sh.el (tramp-methods): Add user spec to "pscp" and "psftp".
 	(tramp-default-user-alist): Don't add "pscp".
 	(tramp-do-copy-or-rename-file-out-of-band): Use connection
@@ -5250,9 +6696,6 @@
 	Make bash entry derive from sh entry, not shell entry.
 
 2011-11-16  Michael Albinus  <michael.albinus@gmx.de>
-
-	* net/tramp-cache.el (tramp-flush-file-property): Flush also
-	properties of linked files.  (Bug#9879)
 
 	* net/tramp-sh.el (tramp-sh-handle-file-truename): Cache only the
 	local file name.

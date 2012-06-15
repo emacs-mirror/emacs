@@ -126,17 +126,9 @@ extern LWLIB_ID widget_id_tick;
 
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 
-/* The gray bitmap `bitmaps/gray'.  This is done because xterm.c uses
-   it, and including `bitmaps/gray' more than once is a problem when
-   config.h defines `static' as an empty replacement string.  */
-
-int gray_bitmap_width = gray_width;
-int gray_bitmap_height = gray_height;
-char *gray_bitmap_bits = gray_bits;
-
 /* Nonzero if using X.  */
 
-static int x_in_use;
+int x_in_use;
 
 static Lisp_Object Qnone;
 static Lisp_Object Qsuppress_icon;
@@ -1200,7 +1192,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (INTEGERP (value))
+  if (TYPE_RANGED_INTEGERP (int, value))
     nlines = XINT (value);
   else
     nlines = 0;
@@ -1215,7 +1207,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       FRAME_EXTERNAL_MENU_BAR (f) = 1;
       if (FRAME_X_P (f) && f->output_data.x->menubar_widget == 0)
 	/* Make sure next redisplay shows the menu bar.  */
-	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = 1;
     }
   else
     {
@@ -1286,8 +1278,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  /* Use VALUE only if an integer >= 0.  */
-  if (INTEGERP (value) && XINT (value) >= 0)
+  /* Use VALUE only if an int >= 0.  */
+  if (RANGED_INTEGERP (0, value, INT_MAX))
     nlines = XFASTINT (value);
   else
     nlines = 0;
@@ -1299,7 +1291,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       FRAME_EXTERNAL_TOOL_BAR (f) = 1;
       if (FRAME_X_P (f) && f->output_data.x->toolbar_widget == 0)
 	/* Make sure next redisplay shows the tool bar.  */
-	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = 1;
       update_frame_tool_bar (f);
     }
   else
@@ -2784,8 +2776,8 @@ x_icon (struct frame *f, Lisp_Object parms)
   icon_y = x_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
-      CHECK_NUMBER (icon_x);
-      CHECK_NUMBER (icon_y);
+      CHECK_TYPE_RANGED_INTEGER (int, icon_x);
+      CHECK_TYPE_RANGED_INTEGER (int, icon_y);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
@@ -3076,7 +3068,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct x_display_info *dpyinfo = NULL;
@@ -3333,7 +3325,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      could get an infloop in next_frame since the frame is not yet in
      Vframe_list.  */
   {
-    int count2 = SPECPDL_INDEX ();
+    ptrdiff_t count2 = SPECPDL_INDEX ();
     record_unwind_protect (unwind_create_frame_1, inhibit_lisp_code);
     inhibit_lisp_code = Qt;
 
@@ -4221,11 +4213,11 @@ FRAME.  Default is to change on the edit X window.  */)
   if (! NILP (format))
     {
       CHECK_NUMBER (format);
-      element_format = XFASTINT (format);
 
-      if (element_format != 8 && element_format != 16
-          && element_format != 32)
+      if (XINT (format) != 8 && XINT (format) != 16
+          && XINT (format) != 32)
         error ("FORMAT must be one of 8, 16 or 32");
+      element_format = XINT (format);
     }
 
   if (CONSP (value))
@@ -4583,7 +4575,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   Lisp_Object frame;
   Lisp_Object name;
   int width, height;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   int face_change_count_before = face_change_count;
   Lisp_Object buffer;
@@ -4980,7 +4972,7 @@ Text larger than the specified size is clipped.  */)
   int i, width, height, seen_reversed_p;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_redisplay, Qt);
 
@@ -5090,10 +5082,8 @@ Text larger than the specified size is clipped.  */)
   w->left_col = w->top_line = make_number (0);
 
   if (CONSP (Vx_max_tooltip_size)
-      && INTEGERP (XCAR (Vx_max_tooltip_size))
-      && XINT (XCAR (Vx_max_tooltip_size)) > 0
-      && INTEGERP (XCDR (Vx_max_tooltip_size))
-      && XINT (XCDR (Vx_max_tooltip_size)) > 0)
+      && RANGED_INTEGERP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
+      && RANGED_INTEGERP (1, XCDR (Vx_max_tooltip_size), INT_MAX))
     {
       w->total_cols = XCAR (Vx_max_tooltip_size);
       w->total_lines = XCDR (Vx_max_tooltip_size);
@@ -5239,7 +5229,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 Value is t if tooltip was open, nil otherwise.  */)
   (void)
 {
-  int count;
+  ptrdiff_t count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
 
@@ -5381,7 +5371,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   Arg al[10];
   int ac = 0;
   XmString dir_xmstring, pattern_xmstring;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
 
   check_x ();
@@ -5550,7 +5540,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   char *fn;
   Lisp_Object file = Qnil;
   Lisp_Object decoded_file;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
 
@@ -5613,7 +5603,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   Lisp_Object font_param;
   char *default_name = NULL;
   struct gcpro gcpro1, gcpro2;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   check_x ();
 

@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Symbols, Evaluation, Hash Tables, Top
+@node Symbols
 @chapter Symbols
 @cindex symbol
 
@@ -30,7 +30,7 @@ otherwise.
                                for recording miscellaneous information.
 @end menu
 
-@node Symbol Components, Definitions, Symbols, Symbols
+@node Symbol Components
 @section Symbol Components
 @cindex symbol components
 
@@ -112,7 +112,7 @@ buffer-file-name
      @result{} #<subr buffer-file-name>
 @end example
 
-@node Definitions, Creating Symbols, Symbol Components, Symbols
+@node Definitions
 @section Defining Symbols
 @cindex definitions of symbols
 
@@ -161,7 +161,7 @@ example, the @kbd{C-h f} and @kbd{C-h v} commands create help buffers
 containing links to the relevant variable, function, or macro
 definitions.  @xref{Name Help,,, emacs, The GNU Emacs Manual}.
 
-@node Creating Symbols, Property Lists, Definitions, Symbols
+@node Creating Symbols
 @section Creating and Interning Symbols
 @cindex reading symbols
 
@@ -376,7 +376,7 @@ If @code{unintern} does delete a symbol, it returns @code{t}.  Otherwise
 it returns @code{nil}.
 @end defun
 
-@node Property Lists,, Creating Symbols, Symbols
+@node Property Lists
 @section Property Lists
 @cindex property list
 @cindex plist

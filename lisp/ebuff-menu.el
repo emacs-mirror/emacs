@@ -121,9 +121,10 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
       (setq buffer (list-buffers-noselect arg))
       (Electric-pop-up-window buffer)
       (unwind-protect
-	  (progn
+	  (let ((header header-line-format))
 	    (set-buffer buffer)
 	    (electric-buffer-menu-mode)
+	    (setq header-line-format header)
 	    (goto-char (point-min))
 	    (if (search-forward "\n." nil t)
 		(forward-char -1))

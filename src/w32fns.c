@@ -3663,6 +3663,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_EMACS_SHOWWINDOW:
       return ShowWindow ((HWND) wParam, (WPARAM) lParam);
 
+    case WM_EMACS_BRINGTOTOP:
     case WM_EMACS_SETFOREGROUND:
       {
         HWND foreground_window;
@@ -3680,6 +3681,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           foreground_thread = 0;
 
         retval = SetForegroundWindow ((HWND) wParam);
+        if (msg == WM_EMACS_BRINGTOTOP)
+          retval = BringWindowToTop ((HWND) wParam);
 
         /* Detach from the previous foreground thread.  */
         if (foreground_thread)
@@ -4003,7 +4006,7 @@ unwind_create_frame (Lisp_Object frame)
 #if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }
@@ -4070,7 +4073,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct w32_display_info *dpyinfo = NULL;
@@ -5173,7 +5176,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
   int face_change_count_before = face_change_count;
@@ -5236,7 +5239,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 
 #if GLYPH_DEBUG
   image_cache_refcount =
-    FRAME_IMAGE_CACHE ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
   FRAME_KBOARD (f) = kb;
@@ -5522,7 +5525,7 @@ Text larger than the specified size is clipped.  */)
   int i, width, height, seen_reversed_p;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_redisplay, Qt);
 
@@ -5801,7 +5804,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 Value is t if tooltip was open, nil otherwise.  */)
   (void)
 {
-  int count;
+  ptrdiff_t count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
 
@@ -5923,7 +5926,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 {
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char filename[MAX_PATH + 1];
   char init_dir[MAX_PATH + 1];
@@ -6323,13 +6326,8 @@ The return value is the hotkey-id if registered, otherwise nil.  */)
 
       /* Notify input thread about new hot-key definition, so that it
 	 takes effect without needing to switch focus.  */
-#ifdef USE_LISP_UNION_TYPE
       PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
-			 (WPARAM) key.i, 0);
-#else
-      PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
-			 (WPARAM) key, 0);
-#endif
+			 (WPARAM) XLI (key), 0);
     }
 
   return key;
@@ -6351,13 +6349,8 @@ DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
     {
       /* Notify input thread about hot-key definition being removed, so
 	 that it takes effect without needing focus switch.  */
-#ifdef USE_LISP_UNION_TYPE
       if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
-			     (WPARAM) XINT (XCAR (item)), (LPARAM) item.i))
-#else
-      if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
-			     (WPARAM) XINT (XCAR (item)), (LPARAM) item))
-#endif
+			     (WPARAM) XINT (XCAR (item)), (LPARAM) XLI (item)))
 	{
 	  MSG msg;
 	  GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
@@ -6429,13 +6422,8 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
   if (!dwWindowsThreadId)
     return make_number (w32_console_toggle_lock_key (vk_code, new_state));
 
-#ifdef USE_LISP_UNION_TYPE
   if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
-			 (WPARAM) vk_code, (LPARAM) new_state.i))
-#else
-  if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
-			 (WPARAM) vk_code, (LPARAM) new_state))
-#endif
+			 (WPARAM) vk_code, (LPARAM) XLI (new_state)))
     {
       MSG msg;
       GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);

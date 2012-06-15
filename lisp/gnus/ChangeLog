@@ -1,3 +1,67 @@
+2012-04-14  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* gnus-agent.el (gnus-agent-retrieve-headers): Recalculate the range of
+	articles when fetch-old is non-nil (bug#11370).
+
+2012-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-get-new-news): Respect
+	`gnus-group-use-permanent-levels', as documented (bug#11638).
+
+2012-06-10  Dave Abrahams  <dave@boostpro.com>
+
+	* gnus-int.el (gnus-warp-to-article): Limit registry warping to real
+	groups (bug#11641).
+
+2012-06-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-msg-mail): Warn the user about Gnus not running
+	(bug#11514).
+
+2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nntp.el: Stop the `letf' madness.
+	(nntp--report-1): New var.
+	(nntp-report): Merge nntp-report-1 into it.
+	(nntp-with-open-group-function): Set nntp--report-1 instead of modifying
+	the nntp-report function.
+
+	* auth-source.el: Fix comment-style to follow the convention.
+
+2012-05-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-msg-mail): Ensure that gnus-newsgroup-name is
+	a string so that Gcc works (bug#11514).
+
+2012-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* legacy-gnus-agent.el (gnus-agent-unhook-expire-days):
+	* gnus-demon.el (gnus-demon-init): Don't bother with type-of.
+
+2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-win.el (gnus-configure-frame): Don't signal an error when
+	jumping to *Server* from a dedicated *Group* window.
+	(gnus-configure-frame): CSE.
+
+	* gnus-registry.el: Minor style cleanup.
+	(gnus-registry--set/remove-mark): New function, extracted from
+	gnus-registry-install-shortcuts.
+	(gnus-registry-install-shortcuts): Use it.
+
+2012-05-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnspool.el (news-path): Use eval-and-compile.
+
+2012-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* nnspool.el (news-directory, news-path, news-inews-program):
+	Move here from paths.el.  Don't see a need for these to be autoloaded.
+
+	* gnus.el (gnus-default-nntp-server): Make it a defcustom.
+	Merge in doc from paths.el version.  Don't see any need for this to be
+	autoloaded, or for the warning about users not setting it.
+
 2012-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor Y10k bug.
@@ -53,6 +117,12 @@
 
 	* gnus-start.el (gnus-read-newsrc-el-file): Protect against broken
 	.newsrc.el files.
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-summary-cancel-article): See what From header we
+	would have gotten if we posted to the group, and use that to compare
+	against the message we want to cancel (bug#10808).
 
 2012-03-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -22655,7 +22725,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004-2012  Free Software Foundation, Inc.
+  Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

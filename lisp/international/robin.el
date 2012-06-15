@@ -127,7 +127,7 @@
 
 ;; Use the symbol `robin-use-package' as the third argument.
 
-;; The fourth argument is the prompt that appears in modeline when this
+;; The fourth argument is the prompt that appears in mode line when this
 ;; input method is active.
 
 ;; The fifth argument is a documentation string; it may or may not be

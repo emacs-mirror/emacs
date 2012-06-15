@@ -304,7 +304,7 @@ DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
 usage: (char-category-set CHAR)  */)
   (Lisp_Object ch)
 {
-  CHECK_NUMBER (ch);
+  CHECK_CHARACTER (ch);
   return CATEGORY_SET (XFASTINT (ch));
 }
 

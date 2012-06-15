@@ -380,6 +380,27 @@ suitable file is found, return nil."
 
 (declare-function ad-get-advice-info "advice" (function))
 
+(defun help-fns--compiler-macro (function)
+  (let ((handler nil))
+    ;; FIXME: Copied from macroexp.el.
+    (while (and (symbolp function)
+                (not (setq handler (get function 'compiler-macro)))
+                (fboundp function))
+      ;; Follow the sequence of aliases.
+      (setq function (symbol-function function)))
+    (when handler
+      (princ "This function has a compiler macro")
+      (let ((lib (get function 'compiler-macro-file)))
+        ;; FIXME: rather than look at the compiler-macro-file property,
+        ;; just look at `handler' itself.
+        (when (stringp lib)
+          (princ (format " in `%s'" lib))
+          (with-current-buffer standard-output
+            (save-excursion
+              (re-search-backward "`\\([^`']+\\)'" nil t)
+              (help-xref-button 1 'help-function-cmacro function lib)))))
+      (princ ".\n\n"))))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((advised (and (symbolp function) (featurep 'advice)
@@ -509,20 +530,7 @@ suitable file is found, return nil."
 	    (fill-region-as-paragraph pt2 (point))
 	    (unless (looking-back "\n\n")
 	      (terpri)))))
-      ;; Note that list* etc do not get this property until
-      ;; cl-hack-byte-compiler runs, after bytecomp is loaded.
-      (when (and (symbolp function)
-                 (eq (get function 'byte-compile)
-                     'cl-byte-compile-compiler-macro))
-	(princ "This function has a compiler macro")
-	(let ((lib (get function 'compiler-macro-file)))
-	  (when (stringp lib)
-	    (princ (format " in `%s'" lib))
-	    (with-current-buffer standard-output
-	      (save-excursion
-		(re-search-backward "`\\([^`']+\\)'" nil t)
-		(help-xref-button 1 'help-function-cmacro function lib)))))
-	(princ ".\n\n"))
+      (help-fns--compiler-macro function)
       (let* ((advertised (gethash def advertised-signature-table t))
 	     (arglist (if (listp advertised)
 			  advertised (help-function-arglist def)))

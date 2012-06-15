@@ -78,36 +78,36 @@ Used in `smerge-diff-base-mine' and related functions."
   :type 'boolean)
 
 (defface smerge-mine
-  '((((min-colors 88) (background light))
-     (:foreground "blue1"))
-    (((background light))
-     (:foreground "blue"))
-    (((min-colors 88) (background dark))
-     (:foreground "cyan1"))
-    (((background dark))
-     (:foreground "cyan")))
+  '((((class color) (min-colors 88) (background light))
+     :background "#ffdddd")
+    (((class color) (min-colors 88) (background dark))
+     :background "#553333")
+    (((class color))
+     :foreground "red"))
   "Face for your code."
   :group 'smerge)
 (define-obsolete-face-alias 'smerge-mine-face 'smerge-mine "22.1")
 (defvar smerge-mine-face 'smerge-mine)
 
 (defface smerge-other
-  '((((background light))
-     (:foreground "darkgreen"))
-    (((background dark))
-     (:foreground "lightgreen")))
+  '((((class color) (min-colors 88) (background light))
+     :background "#ddffdd")
+    (((class color) (min-colors 88) (background dark))
+     :background "#335533")
+    (((class color))
+     :foreground "green"))
   "Face for the other code."
   :group 'smerge)
 (define-obsolete-face-alias 'smerge-other-face 'smerge-other "22.1")
 (defvar smerge-other-face 'smerge-other)
 
 (defface smerge-base
-  '((((min-colors 88) (background light))
-     (:foreground "red1"))
-    (((background light))
-     (:foreground "red"))
-    (((background dark))
-     (:foreground "orange")))
+  '((((class color) (min-colors 88) (background light))
+     :background "#ffffaa")
+    (((class color) (min-colors 88) (background dark))
+     :background "#888833")
+    (((class color))
+     :foreground "yellow"))
   "Face for the base code."
   :group 'smerge)
 (define-obsolete-face-alias 'smerge-base-face 'smerge-base "22.1")
@@ -124,9 +124,33 @@ Used in `smerge-diff-base-mine' and related functions."
 (defvar smerge-markers-face 'smerge-markers)
 
 (defface smerge-refined-change
-  '((t :background "yellow"))
+  '((t nil))
   "Face used for char-based changes shown by `smerge-refine'."
   :group 'smerge)
+
+(defface smerge-refined-removed
+  '((default
+     :inherit smerge-refined-change)
+    (((class color) (min-colors 88) (background light))
+     :background "#ffaaaa")
+    (((class color) (min-colors 88) (background dark))
+     :background "#aa2222")
+    (t :inverse-video t))
+  "Face used for removed characters shown by `smerge-refine'."
+  :group 'smerge
+  :version "24.2")
+
+(defface smerge-refined-added
+  '((default
+     :inherit smerge-refined-change)
+    (((class color) (min-colors 88) (background light))
+     :background "#aaffaa")
+    (((class color) (min-colors 88) (background dark))
+     :background "#22aa22")
+    (t :inverse-video t))
+  "Face used for added characters shown by `smerge-refine'."
+  :group 'smerge
+  :version "24.2")
 
 (easy-mmode-defmap smerge-basic-map
   `(("n" . smerge-next)
@@ -980,9 +1004,17 @@ chars to try and eliminate some spurious differences."
           (dolist (x props) (overlay-put ol (car x) (cdr x)))
           ol)))))
 
-(defun smerge-refine-subst (beg1 end1 beg2 end2 props &optional preproc)
+(defun smerge-refine-subst (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a)
   "Show fine differences in the two regions BEG1..END1 and BEG2..END2.
-PROPS is an alist of properties to put (via overlays) on the changes.
+PROPS-C is an alist of properties to put (via overlays) on the changes.
+PROPS-R is an alist of properties to put on removed characters.
+PROPS-A is an alist of properties to put on added characters.
+If PROPS-R and PROPS-A are nil, put PROPS-C on all changes.
+If PROPS-C is nil, but PROPS-R and PROPS-A are non-nil,
+put PROPS-A on added characters, PROPS-R on removed characters.
+If PROPS-C, PROPS-R and PROPS-A are non-nil, put PROPS-C on changed characters,
+PROPS-A on added characters, and PROPS-R on removed characters.
+
 If non-nil, PREPROC is called with no argument in a buffer that contains
 a copy of a region, just before preparing it to for `diff'.  It can be
 used to replace chars to try and eliminate some spurious differences."
@@ -1026,10 +1058,18 @@ used to replace chars to try and eliminate some spurious differences."
                     (m5 (match-string 5)))
                 (when (memq op '(?d ?c))
                   (setq last1
-                        (smerge-refine-highlight-change buf beg1 m1 m2 props)))
+                        (smerge-refine-highlight-change
+			 buf beg1 m1 m2
+			 ;; Try to use props-c only for changed chars,
+			 ;; fallback to props-r for changed/removed chars,
+			 ;; but if props-r is nil then fallback to props-c.
+			 (or (and (eq op '?c) props-c) props-r props-c))))
                 (when (memq op '(?a ?c))
                   (setq last2
-                        (smerge-refine-highlight-change buf beg2 m4 m5 props))))
+                        (smerge-refine-highlight-change
+			 buf beg2 m4 m5
+			 ;; Same logic as for removed chars above.
+			 (or (and (eq op '?c) props-c) props-a props-c)))))
               (forward-line 1)                            ;Skip hunk header.
               (and (re-search-forward "^[0-9]" nil 'move) ;Skip hunk body.
                    (goto-char (match-beginning 0))))
@@ -1081,7 +1121,11 @@ repeating the command will highlight other two parts."
                    ((eq (match-end 3) (match-beginning 3)) 3)
                    (t 2)))
   (let ((n1 (if (eq part 1) 2 1))
-        (n2 (if (eq part 3) 2 3)))
+        (n2 (if (eq part 3) 2 3))
+	(smerge-use-changed-face
+	 (and (face-differs-from-default-p 'smerge-refined-change)
+	      (not (face-equal 'smerge-refined-change 'smerge-refined-added))
+	      (not (face-equal 'smerge-refined-change 'smerge-refined-removed)))))
     (smerge-ensure-match n1)
     (smerge-ensure-match n2)
     (with-silent-modifications
@@ -1090,8 +1134,13 @@ repeating the command will highlight other two parts."
                          (cons (buffer-chars-modified-tick) part)))
     (smerge-refine-subst (match-beginning n1) (match-end n1)
                          (match-beginning n2)  (match-end n2)
-                         '((smerge . refine)
-                           (face . smerge-refined-change)))))
+                         (if smerge-use-changed-face
+			     '((smerge . refine) (face . smerge-refined-change)))
+			 nil
+			 (unless smerge-use-changed-face
+			   '((smerge . refine) (face . smerge-refined-removed)))
+			 (unless smerge-use-changed-face
+			   '((smerge . refine) (face . smerge-refined-added))))))
 
 (defun smerge-diff (n1 n2)
   (smerge-match-conflict)

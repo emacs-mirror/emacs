@@ -74,7 +74,7 @@ by the scheme process, so additional control-g's are to be ignored.")
 
 (defconst default-xscheme-runlight
   '(": " xscheme-runlight-string)
-  "Default global (shared) xscheme-runlight modeline format.")
+  "Default global (shared) xscheme-runlight mode line format.")
 
 (defvar xscheme-runlight "")
 (defvar xscheme-runlight-string nil)
@@ -326,7 +326,7 @@ buffer is not visible at that time, the value will also be displayed
 in the minibuffer.  If an error occurs, the process buffer will
 automatically pop up to show you the error message.
 
-While the Scheme process is running, the modelines of all buffers in
+While the Scheme process is running, the mode lines of all buffers in
 scheme-mode are modified to show the state of the process.  The
 possible states and their meanings are:
 
@@ -334,7 +334,7 @@ input		waiting for input
 run		evaluating
 gc		garbage collecting
 
-The process buffer's modeline contains additional information where
+The process buffer's mode line contains additional information where
 the buffer's name is normally displayed: the command interpreter level
 and type.
 
@@ -404,7 +404,7 @@ with no args, if that value is non-nil.
                         (cons (process-filter process)
                               (process-sentinel process)))
 		  (xscheme-process-filter-initialize t)
-		  (xscheme-modeline-initialize xscheme-buffer-name)
+		  (xscheme-mode-line-initialize xscheme-buffer-name)
 		  (set-process-sentinel process 'xscheme-process-sentinel)
 		  (set-process-filter process 'xscheme-process-filter))
                 (setq xscheme-previous-process-state (cons nil nil)))))))
@@ -817,7 +817,7 @@ Control returns to the top level rep loop."
 			    xscheme-buffer-name)
 		   (set-marker (process-mark process) (point-max))
 		   (xscheme-process-filter-initialize t)
-		   (xscheme-modeline-initialize xscheme-buffer-name)
+		   (xscheme-mode-line-initialize xscheme-buffer-name)
 		   (set-process-sentinel process 'xscheme-process-sentinel)
 		   (set-process-filter process 'xscheme-process-filter)
 		   (run-hooks 'xscheme-start-hook)))))
@@ -951,7 +951,7 @@ the remaining input.")
   (if running-p
       (let ((name (buffer-name (current-buffer))))
 	(setq scheme-mode-line-process '(": " xscheme-runlight-string))
-	(xscheme-modeline-initialize name)
+	(xscheme-mode-line-initialize name)
 	(if (equal name (default-value 'xscheme-buffer-name))
 	    (setq-default xscheme-runlight default-xscheme-runlight))))
   (if (or (eq xscheme-runlight default-xscheme-runlight)
@@ -1059,7 +1059,7 @@ the remaining input.")
     (set-buffer (process-buffer process))
     (goto-char (process-mark process))))
 
-(defun xscheme-modeline-initialize (name)
+(defun xscheme-mode-line-initialize (name)
   (setq xscheme-runlight-string "")
   (if (equal name (default-value 'xscheme-buffer-name))
       (setq-default xscheme-runlight-string ""))

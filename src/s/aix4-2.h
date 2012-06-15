@@ -26,10 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _AIX
 #endif
 
-/* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "aix"
-
 /* In AIX, you allocate a pty by opening /dev/ptc to get the master side.
    To get the name of the slave side, you just ttyname() the master side.  */
 #define PTY_ITERATION int c; for (c = 0; !c ; c++)
@@ -75,6 +71,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Emacs currently calls xrealloc on the results of get_current_dir name,
    to avoid a crash just use the Emacs implementation for that function.  */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
+
+/*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
+#define BROKEN_FIONREAD
+/* As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.
+   But, on AIX, SIGAIO, SIGPTY, and SIGPOLL are defined as SIGIO,
+   which causes compilation error at init_signals in sysdep.c.  So, we
+   define these macros so that syssignal.h detects them and undefine
+   SIGAIO, SIGPTY and SIGPOLL.  */
+#define BROKEN_SIGAIO
+#define BROKEN_SIGPTY
+#define BROKEN_SIGPOLL
 
 /* Conservative garbage collection has not been tested, so for now
    play it safe and stick with the old-fashioned way of marking.  */

@@ -4588,6 +4588,11 @@ trick:
       "")))
 @end lisp
 
+To see what variables are dynamically bound (like
+@code{gnus-tmp-group}), you have to look at the source code.  The
+variable names aren't guaranteed to be stable over Gnus versions,
+either.
+
 
 @node File Commands
 @subsection File Commands

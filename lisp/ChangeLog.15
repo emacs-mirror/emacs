@@ -9023,7 +9023,7 @@
 	* bookmark.el (bookmark-show-annotation): Use `when' instead of `if'.
 	This is also from Thierry Volpiatto's patch in bug #6444.  However,
 	because it was extraneous to the functional change in that patch,
-	and causes a re-indendation, I am committing it separately.
+	and causes a re-indentation, I am committing it separately.
 
 2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 

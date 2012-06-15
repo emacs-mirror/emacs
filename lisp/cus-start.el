@@ -460,8 +460,8 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "Both" :value both)
 		      (const :tag "Both-horiz" :value both-horiz)
 		      (const :tag "Text-image-horiz" :value text-image-horiz)
-		      (const :tag "System default" :value nil)) "23.3")
-             (tool-bar-max-label-size frames integer "23.3")
+		      (const :tag "System default" :value nil)) "24.1")
+             (tool-bar-max-label-size frames integer "24.1")
 	     (auto-hscroll-mode scrolling boolean "21.1")
 	     (void-text-area-pointer cursor
 				     (choice
@@ -549,6 +549,10 @@ since it could result in memory overflow and make Emacs crash."
 		      ;; the condition for loadup.el to preload tool-bar.el.
 		      ((string-match "tool-bar-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
+		      ((equal "vertical-centering-font-regexp"
+			      (symbol-name symbol))
+		       ;; Any function from fontset.c will do.
+		       (fboundp 'new-fontset))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!

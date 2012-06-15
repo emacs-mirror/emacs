@@ -1,5 +1,6 @@
 /* Functions for image support on window system.
-   Copyright (C) 1989, 1992-2012 Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1992-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -771,10 +772,9 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
       /* Record that we recognized the keyword.  If a keywords
 	 was found more than once, it's an error.  */
       keywords[i].value = value;
-      ++keywords[i].count;
-
       if (keywords[i].count > 1)
 	return 0;
+      ++keywords[i].count;
 
       /* Check type of value against allowed type.  */
       switch (keywords[i].type)
@@ -1754,6 +1754,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF',
 	     `:background COLOR'.  */
 	  Lisp_Object ascent, margin, relief, bg;
+	  int relief_bound;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
 	  if (INTEGERP (ascent))
@@ -1771,7 +1772,8 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	    }
 
 	  relief = image_spec_value (spec, QCrelief, NULL);
-	  if (INTEGERP (relief))
+	  relief_bound = INT_MAX - max (img->hmargin, img->vmargin);
+	  if (RANGED_INTEGERP (- relief_bound, relief, relief_bound))
 	    {
 	      img->relief = XINT (relief);
 	      img->hmargin += eabs (img->relief);
@@ -7597,19 +7599,14 @@ imagemagick_load_image (struct frame *f, struct image *img,
 			unsigned char *contents, unsigned int size,
 			char *filename)
 {
-  size_t width;
-  size_t height;
-
+  size_t width, height;
   MagickBooleanType status;
-
   XImagePtr ximg;
-  int x;
-  int y;
-
-  MagickWand  *image_wand;
-  MagickWand  *ping_wand;
+  int x, y;
+  MagickWand *image_wand;
+  MagickWand *ping_wand;
   PixelIterator *iterator;
-  PixelWand  **pixels;
+  PixelWand **pixels, *bg_wand = NULL;
   MagickPixelPacket  pixel;
   Lisp_Object image;
   Lisp_Object value;
@@ -7618,10 +7615,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
   int desired_width, desired_height;
   double rotation;
   int pixelwidth;
-  ImageInfo  *image_info;
-  ExceptionInfo *exception;
-  Image * im_image;
-
 
   /* Handle image index for image types who can contain more than one image.
      Interface :index is same as for GIF.  First we "ping" the image to see how
@@ -7635,14 +7628,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
   ping_wand = NewMagickWand ();
   /* MagickSetResolution (ping_wand, 2, 2);   (Bug#10112)  */
 
-  if (filename != NULL)
-    {
-      status = MagickPingImage (ping_wand, filename);
-    }
-  else
-    {
-      status = MagickPingImageBlob (ping_wand, contents, size);
-    }
+  status = filename
+    ? MagickPingImage (ping_wand, filename)
+    : MagickPingImageBlob (ping_wand, contents, size);
 
   if (status == MagickFalse)
     {
@@ -7651,7 +7639,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
       return 0;
     }
 
-  if (! (0 <= ino && ino < MagickGetNumberImages (ping_wand)))
+  if (ino < 0 || ino >= MagickGetNumberImages (ping_wand))
     {
       image_error ("Invalid image number `%s' in image `%s'",
 		   image, img->spec);
@@ -7668,39 +7656,46 @@ imagemagick_load_image (struct frame *f, struct image *img,
   DestroyMagickWand (ping_wand);
 
   /* Now we know how many images are inside the file.  If it's not a
-     bundle, the number is one.  */
+     bundle, the number is one.  Load the image data.  */
 
-  if (filename != NULL)
+  image_wand = NewMagickWand ();
+
+  if ((filename
+       ? MagickReadImage (image_wand, filename)
+       : MagickReadImageBlob (image_wand, contents, size))
+      == MagickFalse)
     {
-      image_info = CloneImageInfo ((ImageInfo *) NULL);
-      (void) strcpy (image_info->filename, filename);
-      image_info->number_scenes = 1;
-      image_info->scene = ino;
-      exception = AcquireExceptionInfo ();
-
-      im_image = ReadImage (image_info, exception);
-      DestroyExceptionInfo (exception);
-
-      if (im_image == NULL)
-	goto imagemagick_no_wand;
-      image_wand = NewMagickWandFromImage (im_image);
-      DestroyImage (im_image);
+      imagemagick_error (image_wand);
+      goto imagemagick_error;
     }
-  else
-    {
-      image_wand = NewMagickWand ();
-      if (MagickReadImageBlob (image_wand, contents, size) == MagickFalse)
-	{
-	  imagemagick_error (image_wand);
-	  goto imagemagick_error;
-	}
-    }
+
+  /* Retrieve the frame's background color, for use later.  */
+  {
+    XColor bgcolor;
+    Lisp_Object specified_bg;
+
+    specified_bg = image_spec_value (img->spec, QCbackground, NULL);
+    if (!STRINGP (specified_bg)
+	|| !x_defined_color (f, SSDATA (specified_bg), &bgcolor, 0))
+      {
+#ifndef HAVE_NS
+	bgcolor.pixel = FRAME_BACKGROUND_PIXEL (f);
+	x_query_color (f, &bgcolor);
+#else
+	ns_query_color (FRAME_BACKGROUND_COLOR (f), &bgcolor, 1);
+#endif
+      }
+
+    bg_wand = NewPixelWand ();
+    PixelSetRed   (bg_wand, (double) bgcolor.red   / 65535);
+    PixelSetGreen (bg_wand, (double) bgcolor.green / 65535);
+    PixelSetBlue  (bg_wand, (double) bgcolor.blue  / 65535);
+  }
 
   /* If width and/or height is set in the display spec assume we want
      to scale to those values.  If either h or w is unspecified, the
      unspecified should be calculated from the specified to preserve
      aspect ratio.  */
-
   value = image_spec_value (img->spec, QCwidth, NULL);
   desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
   value = image_spec_value (img->spec, QCheight, NULL);
@@ -7766,13 +7761,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
   value = image_spec_value (img->spec, QCrotation, NULL);
   if (FLOATP (value))
     {
-      PixelWand* background = NewPixelWand ();
-      PixelSetColor (background, "#ffffff");/*TODO remove hardcode*/
-
       rotation = extract_float (value);
-
-      status = MagickRotateImage (image_wand, background, rotation);
-      DestroyPixelWand (background);
+      status = MagickRotateImage (image_wand, bg_wand, rotation);
       if (status == MagickFalse)
         {
           image_error ("Imagemagick image rotate failed", Qnil, Qnil);
@@ -7786,6 +7776,22 @@ imagemagick_load_image (struct frame *f, struct image *img,
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
 
+  /* Set the canvas background color to the frame or specified
+     background, and flatten the image.  Note: as of ImageMagick
+     6.6.0, SVG image transparency is not handled properly
+     (e.g. etc/images/splash.svg shows a white background always).  */
+  {
+    MagickWand *new_wand;
+    MagickSetImageBackgroundColor (image_wand, bg_wand);
+#ifdef HAVE_MAGICKMERGEIMAGELAYERS
+    new_wand = MagickMergeImageLayers (image_wand, MergeLayer);
+#else
+    new_wand = MagickFlattenImages (image_wand);
+#endif
+    DestroyMagickWand (image_wand);
+    image_wand = new_wand;
+  }
+
   if (! (width <= INT_MAX && height <= INT_MAX
 	 && check_image_size (f, width, height)))
     {
@@ -7798,7 +7804,50 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   init_color_table ();
 
-  if (imagemagick_render_type == 0)
+#ifdef HAVE_MAGICKEXPORTIMAGEPIXELS
+  if (imagemagick_render_type != 0)
+    {
+      /* Magicexportimage is normally faster than pixelpushing.  This
+         method is also well tested.  Some aspects of this method are
+         ad-hoc and needs to be more researched. */
+      int imagedepth = 24; /*MagickGetImageDepth(image_wand);*/
+      const char *exportdepth = imagedepth <= 8 ? "I" : "BGRP"; /*"RGBP";*/
+      /* Try to create a x pixmap to hold the imagemagick pixmap.  */
+      if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
+                                        &ximg, &img->pixmap))
+	{
+#ifdef COLOR_TABLE_SUPPORT
+	  free_color_table ();
+#endif
+	  image_error ("Imagemagick X bitmap allocation failure", Qnil, Qnil);
+	  goto imagemagick_error;
+	}
+
+      /* Oddly, the below code doesn't seem to work:*/
+      /* switch(ximg->bitmap_unit){ */
+      /* case 8: */
+      /*   pixelwidth=CharPixel; */
+      /*   break; */
+      /* case   16: */
+      /*   pixelwidth=ShortPixel; */
+      /*   break; */
+      /* case   32: */
+      /*   pixelwidth=LongPixel; */
+      /*   break; */
+      /* } */
+      /*
+        Here im just guessing the format of the bitmap.
+        happens to work fine for:
+        - bw djvu images
+        on rgb display.
+        seems about 3 times as fast as pixel pushing(not carefully measured)
+      */
+      pixelwidth = CharPixel; /*??? TODO figure out*/
+      MagickExportImagePixels (image_wand, 0, 0, width, height,
+			       exportdepth, pixelwidth, ximg->data);
+    }
+  else
+#endif /* HAVE_MAGICKEXPORTIMAGEPIXELS */
     {
       size_t image_height;
 
@@ -7848,66 +7897,12 @@ imagemagick_load_image (struct frame *f, struct image *img,
         }
       DestroyPixelIterator (iterator);
     }
-  else                          /* imagemagick_render_type != 0 */
-    {
-      /* Magicexportimage is normally faster than pixelpushing.  This
-         method is also well tested. Some aspects of this method are
-         ad-hoc and needs to be more researched. */
-      int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/
-      const char *exportdepth = imagedepth <= 8 ? "I" : "BGRP";/*"RGBP";*/
-      /* Try to create a x pixmap to hold the imagemagick pixmap.  */
-      if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
-                                        &ximg, &img->pixmap))
-	{
-#ifdef COLOR_TABLE_SUPPORT
-	  free_color_table ();
-#endif
-	  image_error ("Imagemagick X bitmap allocation failure", Qnil, Qnil);
-	  goto imagemagick_error;
-	}
-
-
-      /* Oddly, the below code doesn't seem to work:*/
-      /* switch(ximg->bitmap_unit){ */
-      /* case 8: */
-      /*   pixelwidth=CharPixel; */
-      /*   break; */
-      /* case   16: */
-      /*   pixelwidth=ShortPixel; */
-      /*   break; */
-      /* case   32: */
-      /*   pixelwidth=LongPixel; */
-      /*   break; */
-      /* } */
-      /*
-        Here im just guessing the format of the bitmap.
-        happens to work fine for:
-        - bw djvu images
-        on rgb display.
-        seems about 3 times as fast as pixel pushing(not carefully measured)
-      */
-      pixelwidth = CharPixel;/*??? TODO figure out*/
-#ifdef HAVE_MAGICKEXPORTIMAGEPIXELS
-      MagickExportImagePixels (image_wand,
-			       0, 0,
-			       width, height,
-			       exportdepth,
-			       pixelwidth,
-			       /*&(img->pixmap));*/
-			       ximg->data);
-#else
-      image_error ("You don't have MagickExportImagePixels, upgrade ImageMagick!",
-		   Qnil, Qnil);
-#endif
-    }
-
 
 #ifdef COLOR_TABLE_SUPPORT
   /* Remember colors allocated for this image.  */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
 #endif /* COLOR_TABLE_SUPPORT */
-
 
   img->width  = width;
   img->height = height;
@@ -7917,9 +7912,10 @@ imagemagick_load_image (struct frame *f, struct image *img,
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
 
-
   /* Final cleanup. image_wand should be the only resource left. */
   DestroyMagickWand (image_wand);
+  if (bg_wand) DestroyPixelWand (bg_wand);
+
   /* `MagickWandTerminus' terminates the imagemagick environment.  */
   MagickWandTerminus ();
 
@@ -7927,7 +7923,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
  imagemagick_error:
   DestroyMagickWand (image_wand);
- imagemagick_no_wand:
+  if (bg_wand) DestroyPixelWand (bg_wand);
+
   MagickWandTerminus ();
   /* TODO more cleanup.  */
   image_error ("Error parsing IMAGEMAGICK image `%s'", img->spec, Qnil);
@@ -7986,7 +7983,8 @@ their descriptions (http://www.imagemagick.org/script/formats.php).
 You can also try the shell command: `identify -list format'.
 
 Note that ImageMagick recognizes many file-types that Emacs does not
-recognize as images, such as C.  See `imagemagick-types-inhibit'.  */)
+recognize as images, such as C.  See `imagemagick-types-enable'
+and `imagemagick-types-inhibit'.  */)
   (void)
 {
   Lisp_Object typelist = Qnil;

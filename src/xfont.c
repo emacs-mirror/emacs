@@ -132,7 +132,7 @@ static int xfont_check (FRAME_PTR, struct font *);
 
 struct font_driver xfont_driver =
   {
-    0,				/* Qx */
+    LISP_INITIALLY_ZERO,	/* Qx */
     0,				/* case insensitive */
     xfont_get_cache,
     xfont_list,
@@ -248,7 +248,7 @@ xfont_chars_supported (Lisp_Object chars, XFontStruct *xfont,
     }
   else if (VECTORP (chars))
     {
-      int i;
+      ptrdiff_t i;
 
       for (i = ASIZE (chars) - 1; i >= 0; i--)
 	{

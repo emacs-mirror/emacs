@@ -114,7 +114,7 @@ get_data_end (void)
   return data_region_end;
 }
 
-#if !defined (USE_LISP_UNION_TYPE) && !defined (USE_LSB_TAG)
+#if !USE_LSB_TAG
 static char *
 allocate_heap (void)
 {
@@ -141,7 +141,7 @@ allocate_heap (void)
 
   return ptr;
 }
-#else  /* USE_LISP_UNION_TYPE || USE_LSB_TAG */
+#else  /* USE_LSB_TAG */
 static char *
 allocate_heap (void)
 {
@@ -160,7 +160,7 @@ allocate_heap (void)
 
   return ptr;
 }
-#endif /* USE_LISP_UNION_TYPE || USE_LSB_TAG */
+#endif /* USE_LSB_TAG */
 
 
 /* Emulate Unix sbrk.  Note that ralloc.c expects the return value to
@@ -259,7 +259,7 @@ init_heap (void)
 	  exit (1);
 	}
 
-#if !defined (USE_LISP_UNION_TYPE) && !defined (USE_LSB_TAG)
+#if !USE_LSB_TAG
       /* Ensure that the addresses don't use the upper tag bits since
 	 the Lisp type goes there.  */
       if (((unsigned long) data_region_base & ~VALMASK) != 0)

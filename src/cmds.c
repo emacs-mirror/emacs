@@ -47,6 +47,41 @@ DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
   return make_number (PT + XINT (n));
 }
 
+/* Add N to point; or subtract N if FORWARD is zero.  N defaults to 1.
+   Validate the new location.  Return nil.  */
+static Lisp_Object
+move_point (Lisp_Object n, int forward)
+{
+  /* This used to just set point to point + XINT (n), and then check
+     to see if it was within boundaries.  But now that SET_PT can
+     potentially do a lot of stuff (calling entering and exiting
+     hooks, etcetera), that's not a good approach.  So we validate the
+     proposed position, then set point.  */
+
+  EMACS_INT new_point;
+
+  if (NILP (n))
+    XSETFASTINT (n, 1);
+  else
+    CHECK_NUMBER (n);
+
+  new_point = PT + (forward ? XINT (n) : - XINT (n));
+
+  if (new_point < BEGV)
+    {
+      SET_PT (BEGV);
+      xsignal0 (Qbeginning_of_buffer);
+    }
+  if (new_point > ZV)
+    {
+      SET_PT (ZV);
+      xsignal0 (Qend_of_buffer);
+    }
+
+  SET_PT (new_point);
+  return Qnil;
+}
+
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "^p",
        doc: /* Move point N characters forward (backward if N is negative).
 On reaching end or beginning of buffer, stop and signal error.
@@ -56,34 +91,7 @@ right or to the left on the screen.  This is in contrast with
 \\[right-char], which see.  */)
   (Lisp_Object n)
 {
-  if (NILP (n))
-    XSETFASTINT (n, 1);
-  else
-    CHECK_NUMBER (n);
-
-  /* This used to just set point to point + XINT (n), and then check
-     to see if it was within boundaries.  But now that SET_PT can
-     potentially do a lot of stuff (calling entering and exiting
-     hooks, etcetera), that's not a good approach.  So we validate the
-     proposed position, then set point.  */
-  {
-    EMACS_INT new_point = PT + XINT (n);
-
-    if (new_point < BEGV)
-      {
-	SET_PT (BEGV);
-	xsignal0 (Qbeginning_of_buffer);
-      }
-    if (new_point > ZV)
-      {
-	SET_PT (ZV);
-	xsignal0 (Qend_of_buffer);
-      }
-
-    SET_PT (new_point);
-  }
-
-  return Qnil;
+  return move_point (n, 1);
 }
 
 DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "^p",
@@ -95,13 +103,7 @@ right or to the left on the screen.  This is in contrast with
 \\[left-char], which see.  */)
   (Lisp_Object n)
 {
-  if (NILP (n))
-    XSETFASTINT (n, 1);
-  else
-    CHECK_NUMBER (n);
-
-  XSETINT (n, - XINT (n));
-  return Fforward_char (n);
+  return move_point (n, 0);
 }
 
 DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
@@ -115,8 +117,8 @@ With positive N, a non-empty line at the end counts as one line
 successfully moved (for the return value).  */)
   (Lisp_Object n)
 {
-  EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
-  EMACS_INT pos, pos_byte;
+  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
+  ptrdiff_t pos, pos_byte;
   EMACS_INT count, shortage;
 
   if (NILP (n))
@@ -187,7 +189,7 @@ not move.  To ignore field boundaries bind `inhibit-field-text-motion'
 to t.  */)
   (Lisp_Object n)
 {
-  EMACS_INT newpos;
+  ptrdiff_t newpos;
 
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -303,7 +305,7 @@ At the end, it runs `post-self-insert-hook'.  */)
     bitch_at_user ();
   {
     int character = translate_char (Vtranslation_table_for_input,
-				    (int) XINT (last_command_event));
+				    XINT (last_command_event));
     int val = internal_self_insert (character, XFASTINT (n));
     if (val == 2)
       nonundocount = 0;
@@ -333,8 +335,8 @@ internal_self_insert (int c, EMACS_INT n)
   int len;
   /* Working buffer and pointer for multi-byte form of C.  */
   unsigned char str[MAX_MULTIBYTE_LENGTH];
-  EMACS_INT chars_to_delete = 0;
-  EMACS_INT spaces_to_insert = 0;
+  ptrdiff_t chars_to_delete = 0;
+  ptrdiff_t spaces_to_insert = 0;
 
   overwrite = BVAR (current_buffer, overwrite_mode);
   if (!NILP (Vbefore_change_functions) || !NILP (Vafter_change_functions))
@@ -371,50 +373,53 @@ internal_self_insert (int c, EMACS_INT n)
       /* This is the character after point.  */
       int c2 = FETCH_CHAR (PT_BYTE);
 
+      int cwidth;
+
       /* Overwriting in binary-mode always replaces C2 by C.
 	 Overwriting in textual-mode doesn't always do that.
 	 It inserts newlines in the usual way,
 	 and inserts any character at end of line
 	 or before a tab if it doesn't use the whole width of the tab.  */
       if (EQ (overwrite, Qoverwrite_mode_binary))
-	chars_to_delete = n;
-      else if (c != '\n' && c2 != '\n')
+	chars_to_delete = min (n, PTRDIFF_MAX);
+      else if (c != '\n' && c2 != '\n'
+	       && (cwidth = XFASTINT (Fchar_width (make_number (c)))) != 0)
 	{
-	  EMACS_INT pos = PT;
-	  EMACS_INT pos_byte = PT_BYTE;
+	  ptrdiff_t pos = PT;
+	  ptrdiff_t pos_byte = PT_BYTE;
+	  ptrdiff_t curcol = current_column ();
 
-	  /* FIXME: Check for integer overflow when calculating
-	     target_clm and actual_clm.  */
-
-	  /* Column the cursor should be placed at after this insertion.
-	     The correct value should be calculated only when necessary.  */
-	  EMACS_INT target_clm = (current_column ()
-				  + n * XINT (Fchar_width (make_number (c))));
-
-	  /* The actual cursor position after the trial of moving
-	     to column TARGET_CLM.  It is greater than TARGET_CLM
-	     if the TARGET_CLM is middle of multi-column
-	     character.  In that case, the new point is set after
-	     that character.  */
-	  EMACS_INT actual_clm
-	    = XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
-
-	  chars_to_delete = PT - pos;
-
-	  if (actual_clm > target_clm)
+	  if (n <= (min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX) - curcol) / cwidth)
 	    {
-	      /* We will delete too many columns.  Let's fill columns
-		 by spaces so that the remaining text won't move.  */
-	      EMACS_INT actual = PT_BYTE;
-	      DEC_POS (actual);
-	      if (FETCH_CHAR (actual) == '\t')
-		/* Rather than add spaces, let's just keep the tab. */
-		chars_to_delete--;
-	      else
-		spaces_to_insert = actual_clm - target_clm;
-	    }
+	      /* Column the cursor should be placed at after this insertion.
+		 The value should be calculated only when necessary.  */
+	      ptrdiff_t target_clm = curcol + n * cwidth;
 
-	  SET_PT_BOTH (pos, pos_byte);
+	      /* The actual cursor position after the trial of moving
+		 to column TARGET_CLM.  It is greater than TARGET_CLM
+		 if the TARGET_CLM is middle of multi-column
+		 character.  In that case, the new point is set after
+		 that character.  */
+	      ptrdiff_t actual_clm
+		= XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
+
+	      chars_to_delete = PT - pos;
+
+	      if (actual_clm > target_clm)
+		{
+		  /* We will delete too many columns.  Let's fill columns
+		     by spaces so that the remaining text won't move.  */
+		  ptrdiff_t actual = PT_BYTE;
+		  DEC_POS (actual);
+		  if (FETCH_CHAR (actual) == '\t')
+		    /* Rather than add spaces, let's just keep the tab. */
+		    chars_to_delete--;
+		  else
+		    spaces_to_insert = actual_clm - target_clm;
+		}
+
+	      SET_PT_BOTH (pos, pos_byte);
+	    }
 	}
       hairy = 2;
     }

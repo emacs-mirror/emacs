@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Processes, Display, Abbrevs, Top
+@node Processes
 @chapter Processes
 @cindex child process
 @cindex parent process
@@ -1073,7 +1073,7 @@ job-control shells won't work when a pipe is used.  See
 @defun interrupt-process &optional process current-group
 This function interrupts the process @var{process} by sending the
 signal @code{SIGINT}.  Outside of Emacs, typing the ``interrupt
-character'' (normally @kbd{C-c} on some systems, and @code{DEL} on
+character'' (normally @kbd{C-c} on some systems, and @key{DEL} on
 others) sends this signal.  When the argument @var{current-group} is
 non-@code{nil}, you can think of this function as ``typing @kbd{C-c}''
 on the terminal by which Emacs talks to the subprocess.
@@ -1112,7 +1112,7 @@ it the signal @code{SIGCONT}.  This presumes that @var{process} was
 stopped previously.
 @end defun
 
-@defun signal-process process signal
+@deffn Command signal-process process signal
 This function sends a signal to process @var{process}.  The argument
 @var{signal} specifies which signal to send; it should be an integer,
 or a symbol whose name is a signal.
@@ -1120,7 +1120,7 @@ or a symbol whose name is a signal.
 The @var{process} argument can be a system process @acronym{ID} (an
 integer); that allows you to send signals to processes that are not
 children of Emacs.  @xref{System Processes}.
-@end defun
+@end deffn
 
 @node Output from Processes
 @section Receiving Output from Processes
