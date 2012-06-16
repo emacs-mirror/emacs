@@ -57,9 +57,6 @@ static Lisp_Object Qauto_fill_chars;
    Unicode character.  Mainly used by the macro MAYBE_UNIFY_CHAR.  */
 Lisp_Object Vchar_unify_table;
 
-/* Variable used locally in the macro FETCH_MULTIBYTE_CHAR.  */
-unsigned char *_fetch_multibyte_char_p;
-
 static Lisp_Object Qchar_script_table;
 
 

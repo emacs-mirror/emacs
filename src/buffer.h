@@ -355,28 +355,6 @@ while (0)
 
 #define FETCH_BYTE(n) *(BYTE_POS_ADDR ((n)))
 
-/* Variables used locally in FETCH_MULTIBYTE_CHAR.  */
-extern unsigned char *_fetch_multibyte_char_p;
-
-/* Return character code of multi-byte form at byte position POS.  If POS
-   doesn't point the head of valid multi-byte form, only the byte at
-   POS is returned.  No range checking.
-
-   WARNING: The character returned by this macro could be "unified"
-   inside STRING_CHAR, if the original character in the buffer belongs
-   to one of the Private Use Areas (PUAs) of codepoints that Emacs
-   uses to support non-unified CJK characters.  If that happens,
-   CHAR_BYTES will return a value that is different from the length of
-   the original multibyte sequence stored in the buffer.  Therefore,
-   do _not_ use FETCH_MULTIBYTE_CHAR if you need to advance through
-   the buffer to the next character after fetching this one.  Instead,
-   use either FETCH_CHAR_ADVANCE or STRING_CHAR_AND_LENGTH.  */
-
-#define FETCH_MULTIBYTE_CHAR(pos)				 	\
-  (_fetch_multibyte_char_p = (((pos) >= GPT_BYTE ? GAP_SIZE : 0) 	\
-			       + (pos) + BEG_ADDR - BEG_BYTE),	 	\
-   STRING_CHAR (_fetch_multibyte_char_p))
-
 /* Return character at byte position POS.  If the current buffer is unibyte
    and the character is not ASCII, make the returning character
    multibyte.  */
@@ -425,16 +403,6 @@ extern unsigned char *_fetch_multibyte_char_p;
 
 #define BUF_FETCH_BYTE(buf, n) \
   *(BUF_BYTE_ADDRESS ((buf), (n)))
-
-/* Return character code of multi-byte form at byte position POS in BUF.
-   If POS doesn't point the head of valid multi-byte form, only the byte at
-   POS is returned.  No range checking.  */
-
-#define BUF_FETCH_MULTIBYTE_CHAR(buf, pos)				\
-  (_fetch_multibyte_char_p						\
-     = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_GAP_SIZE (buf) : 0)		\
-        + (pos) + BUF_BEG_ADDR (buf) - BEG_BYTE),			\
-   STRING_CHAR (_fetch_multibyte_char_p))
 
 /* Define the actual buffer data structures.  */
 
@@ -945,7 +913,41 @@ EXFUN (Fbuffer_local_value, 2);
 extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
+
+/* Return character code of multi-byte form at byte position POS.  If POS
+   doesn't point the head of valid multi-byte form, only the byte at
+   POS is returned.  No range checking.
 
+   WARNING: The character returned by this macro could be "unified"
+   inside STRING_CHAR, if the original character in the buffer belongs
+   to one of the Private Use Areas (PUAs) of codepoints that Emacs
+   uses to support non-unified CJK characters.  If that happens,
+   CHAR_BYTES will return a value that is different from the length of
+   the original multibyte sequence stored in the buffer.  Therefore,
+   do _not_ use FETCH_MULTIBYTE_CHAR if you need to advance through
+   the buffer to the next character after fetching this one.  Instead,
+   use either FETCH_CHAR_ADVANCE or STRING_CHAR_AND_LENGTH.  */
+
+static inline int
+FETCH_MULTIBYTE_CHAR (ptrdiff_t pos)
+{
+  unsigned char *p = ((pos >= GPT_BYTE ? GAP_SIZE : 0)
+		      + pos + BEG_ADDR - BEG_BYTE);
+  return STRING_CHAR (p);
+}
+
+/* Return character code of multi-byte form at byte position POS in BUF.
+   If POS doesn't point the head of valid multi-byte form, only the byte at
+   POS is returned.  No range checking.  */
+
+static inline int
+BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
+{
+  unsigned char *p
+    = ((pos >= BUF_GPT_BYTE (buf) ? BUF_GAP_SIZE (buf) : 0)
+       + pos + BUF_BEG_ADDR (buf) - BEG_BYTE);
+  return STRING_CHAR (p);
+}
 
 /* Overlays */
 

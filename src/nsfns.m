@@ -38,11 +38,11 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "blockinput.h"
 #include "nsterm.h"
 #include "window.h"
+#include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
 #include "termhooks.h"
 #include "fontset.h"
-#include "character.h"
 #include "font.h"
 
 #if 0

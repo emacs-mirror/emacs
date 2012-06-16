@@ -130,13 +130,13 @@
 
 # include <setjmp.h>
 # include "lisp.h"
+# include "character.h"
 # include "buffer.h"
 
 /* Make syntax table lookup grant data in gl_state.  */
 # define SYNTAX_ENTRY_VIA_PROPERTY
 
 # include "syntax.h"
-# include "character.h"
 # include "category.h"
 
 # ifdef malloc

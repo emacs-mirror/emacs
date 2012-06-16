@@ -71,9 +71,9 @@ extern struct direct *readdir (DIR *);
 
 #include "lisp.h"
 #include "systime.h"
+#include "character.h"
 #include "buffer.h"
 #include "commands.h"
-#include "character.h"
 #include "charset.h"
 #include "coding.h"
 #include "regex.h"

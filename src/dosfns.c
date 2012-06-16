@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dos.h>
 #include <setjmp.h>
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "termchar.h"
 #include "frame.h"
@@ -35,7 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dosfns.h"
 #include "msdos.h"
 #include "dispextern.h"
-#include "character.h"
 #include "coding.h"
 #include "process.h"
 #include <dpmi.h>

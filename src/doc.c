@@ -28,9 +28,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
-#include "character.h"
 #include "keymap.h"
 #include "buildobj.h"
 

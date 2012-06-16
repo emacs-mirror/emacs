@@ -27,12 +27,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "frame.h"
 #include "window.h"
 #include "dispextern.h"
 #include "charset.h"
-#include "character.h"
 #include "composite.h"
 #include "fontset.h"
 #include "font.h"

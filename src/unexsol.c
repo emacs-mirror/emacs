@@ -7,6 +7,7 @@
 #include <setjmp.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"

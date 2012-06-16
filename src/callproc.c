@@ -44,8 +44,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* MSDOS */
 
 #include "commands.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "ccl.h"
 #include "coding.h"
 #include "composite.h"

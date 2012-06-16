@@ -28,8 +28,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 #include "intervals.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "charset.h"
 #include "coding.h"
 #include <epaths.h>

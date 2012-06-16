@@ -28,6 +28,7 @@ Carbon version by Yamamoto Mitsuharu. */
 
 #include "lisp.h"
 #include "window.h"
+#include "character.h"
 #include "buffer.h"
 #include "keymap.h"
 #include "coding.h"

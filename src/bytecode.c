@@ -35,8 +35,8 @@ by Hallvard:
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "syntax.h"
 #include "window.h"
 

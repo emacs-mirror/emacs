@@ -288,8 +288,8 @@ encode_coding_XXX (struct coding_system *coding)
 #include <setjmp.h>
 
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "charset.h"
 #include "ccl.h"
 #include "composite.h"

@@ -38,12 +38,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "intervals.h"
 #include "puresize.h"
+#include "character.h"
 #include "buffer.h"
 #include "window.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "blockinput.h"
-#include "character.h"
 #include "syssignal.h"
 #include "termhooks.h"		/* For struct terminal.  */
 #include <setjmp.h>

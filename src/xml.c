@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <libxml/HTMLparser.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 
 

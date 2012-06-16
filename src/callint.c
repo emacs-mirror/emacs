@@ -22,12 +22,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "commands.h"
 #include "keyboard.h"
 #include "window.h"
 #include "keymap.h"
-#include "character.h"
 
 Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;

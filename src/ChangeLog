@@ -1,3 +1,62 @@
+2012-06-16  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* buffer.h (FETCH_MULTIBYTE_CHAR): Define as inline.
+	(BUF_FETCH_MULTIBYTE_CHAR): Likewise.
+	* character.c (_fetch_multibyte_char_p): Remove.
+	* alloc.c: Include "character.h" before "buffer.h".
+	* bidi.c: Likewise.
+	* buffer.c: Likewise.
+	* bytecode.c: Likewise.
+	* callint.c: Likewise.
+	* callproc.c: Likewise.
+	* casefiddle.c: Likewise.
+	* casetab.c: Likewise.
+	* category.c: Likewise.
+	* cmds.c: Likewise.
+	* coding.c: Likewise.
+	* composite.c: Likewise.
+	* dired.c: Likewise.
+	* dispnew.c: Likewise.
+	* doc.c: Likewise.
+	* dosfns.c: Likewise.
+	* editfns.c: Likewise.
+	* emacs.c: Likewise.
+	* fileio.c: Likewise.
+	* filelock.c: Likewise.
+	* font.c: Likewise.
+	* fontset.c: Likewise.
+	* fringe.c: Likewise.
+	* indent.c: Likewise.
+	* insdel.c: Likewise.
+	* intervals.c: Likewise.
+	* keyboard.c: Likewise.
+	* keymap.c: Likewise.
+	* lread.c: Likewise.
+	* macros.c: Likewise.
+	* marker.c: Likewise.
+	* minibuf.c: Likewise.
+	* nsfns.m: Likewise.
+	* nsmenu.m: Likewise.
+	* print.c: Likewise.
+	* process.c: Likewise.
+	* regex.c: Likewise.
+	* region-cache.c: Likewise.
+	* search.c: Likewise.
+	* syntax.c: Likewise.
+	* term.c: Likewise.
+	* textprop.c: Likewise.
+	* undo.c: Likewise.
+	* unexsol.c: Likewise.
+	* w16select.c: Likewise.
+	* w32fns.c: Likewise.
+	* w32menu.c: Likewise.
+	* window.c: Likewise.
+	* xdisp.c: Likewise.
+	* xfns.c: Likewise.
+	* xmenu.c: Likewise.
+	* xml.c: Likewise.
+	* xselect.c: Likewise.
+
 2012-06-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't dereference glyphs_end.  If

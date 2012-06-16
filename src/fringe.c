@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "window.h"
 #include "dispextern.h"
+#include "character.h"
 #include "buffer.h"
 #include "blockinput.h"
 #include "termhooks.h"

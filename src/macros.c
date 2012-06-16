@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "macros.h"
 #include "commands.h"
+#include "character.h"
 #include "buffer.h"
 #include "window.h"
 #include "keyboard.h"
