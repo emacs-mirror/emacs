@@ -13937,16 +13937,13 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		    break;
 		  }
 		/* See if we've found a better approximation to
-		   POS_BEFORE or to POS_AFTER.  Note that we want the
-		   first (leftmost) glyph of all those that are the
-		   closest from below, and the last (rightmost) of all
-		   those from above.  */
+		   POS_BEFORE or to POS_AFTER.  */
 		if (0 > dpos && dpos > pos_before - pt_old)
 		  {
 		    pos_before = glyph->charpos;
 		    glyph_before = glyph;
 		  }
-		else if (0 < dpos && dpos <= pos_after - pt_old)
+		else if (0 < dpos && dpos < pos_after - pt_old)
 		  {
 		    pos_after = glyph->charpos;
 		    glyph_after = glyph;
@@ -14030,7 +14027,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		    pos_before = glyph->charpos;
 		    glyph_before = glyph;
 		  }
-		else if (0 < dpos && dpos <= pos_after - pt_old)
+		else if (0 < dpos && dpos < pos_after - pt_old)
 		  {
 		    pos_after = glyph->charpos;
 		    glyph_after = glyph;
