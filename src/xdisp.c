@@ -3691,7 +3691,8 @@ handle_face_prop (struct it *it)
       int i;
       Lisp_Object from_overlay
 	= (it->current.overlay_string_index >= 0
-	   ? it->string_overlays[it->current.overlay_string_index]
+	   ? it->string_overlays[it->current.overlay_string_index
+				 % OVERLAY_STRING_CHUNK_SIZE]
 	   : Qnil);
 
       /* See if we got to this string directly or indirectly from
@@ -3705,7 +3706,8 @@ handle_face_prop (struct it *it)
 	  {
 	    if (it->stack[i].current.overlay_string_index >= 0)
 	      from_overlay
-		= it->string_overlays[it->stack[i].current.overlay_string_index];
+		= it->string_overlays[it->stack[i].current.overlay_string_index
+				      % OVERLAY_STRING_CHUNK_SIZE];
 	    else if (! NILP (it->stack[i].from_overlay))
 	      from_overlay = it->stack[i].from_overlay;
 

@@ -3,7 +3,9 @@
 	* xdisp.c (set_cursor_from_row): Don't dereference glyphs_end.  If
 	all the glyphs of the glyph row came from strings, and we have no
 	cursor positioning clues, put the cursor on the first glyph of the
-	row.  (Bug#11653)
+	row.
+	(handle_face_prop): Use chunk-relative overlay string index when
+	indexing into it->string_overlays array.  (Bug#11653)
 
 2012-06-16  Andreas Schwab  <schwab@linux-m68k.org>
 
