@@ -1,3 +1,9 @@
+2012-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fdelete_other_windows_internal)
+	(Fdelete_window_internal): Don't access frame's mouse highlight
+	info of the initial frame.  (Bug#11677)
+
 2012-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* .gdbinit (xgetint): Fix recently-introduced paren typo.
