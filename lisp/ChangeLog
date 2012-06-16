@@ -3,6 +3,9 @@
 	* textmodes/rst.el: Added and corrected some comments.
 	(rst-re-alist-def): Improve symbol syntax.
 	(rst-mode-syntax-table): Correct syntax entries.
+	(rst-cvs-header, rst-svn-rev, rst-svn-timestamp)
+	(rst-official-version, rst-official-cvs-rev): Update version
+	information.
 
 2012-06-15  Juanma Barranquero  <lekktu@gmail.com>
 

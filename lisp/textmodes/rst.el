@@ -171,7 +171,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.285 2012-06-11 20:38:23 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.287 2012-06-16 09:41:47 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -185,22 +185,22 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use LastChanged... to really get information from SVN.
 (defconst rst-svn-rev
   (rst-extract-version "\\$" "LastChangedRevision: " "[0-9]+" " "
-		       "$LastChangedRevision: 7399 $")
+		       "$LastChangedRevision: 7444 $")
   "The SVN revision of this file.
 SVN revision is the upstream (docutils) revision.")
 (defconst rst-svn-timestamp
   (rst-extract-version "\\$" "LastChangedDate: " ".+?+" " "
-		       "$LastChangedDate: 2012-04-29 17:01:05 +0200 (Sun, 29 Apr 2012) $")
+		       "$LastChangedDate: 2012-06-16 11:41:40 +0200 (Sat, 16 Jun 2012) $")
   "The SVN time stamp of this file.")
 
 ;; Maintained by the release process.
 (defconst rst-official-version
   (rst-extract-version "%" "OfficialVersion: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "%OfficialVersion: 1.2.1 %")
+		       "%OfficialVersion: 1.3.0 %")
   "Official version of the package.")
 (defconst rst-official-cvs-rev
   (rst-extract-version "[%$]" "Revision: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "%Revision: 1.256 %")
+		       "%Revision: 1.287 %")
   "CVS revision of this file in the official version.")
 
 (defconst rst-version
