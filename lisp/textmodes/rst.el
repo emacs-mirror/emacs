@@ -103,6 +103,9 @@
 
 ;;; Code:
 
+;; FIXME: When 24.1 is common place remove use of `lexical-let' and put "-*-
+;;        lexical-binding: t -*-" in the first line.
+
 ;; Only use of macros is allowed - may be replaced by `cl-lib' some time.
 (eval-when-compile
   (require 'cl))
@@ -150,10 +153,7 @@ Comparison done with `equal'."
 				 (equal elem e)))
 		     seq)))
 
-;; FIXME: Check whether complicated `defconst's can be embedded in
-;;        `eval-when-compile'.
-
-;; FIXME: Check whether `lambda's can be embedded in `function'.
+;; FIXME: Embed complicated `defconst's in `eval-when-compile'.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Versions
@@ -171,7 +171,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.282 2012-06-06 19:16:55 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.285 2012-06-11 20:38:23 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -203,7 +203,6 @@ SVN revision is the upstream (docutils) revision.")
 		       "%Revision: 1.256 %")
   "CVS revision of this file in the official version.")
 
-;; FIXME: Version differences due to SVN checkin must not change this.
 (defconst rst-version
   (if (equal rst-official-cvs-rev rst-cvs-rev)
       rst-official-version
@@ -412,7 +411,8 @@ in parentheses follows the development revision and the time stamp.")
 				       ; tag.
 
     ;; Symbol (`sym')
-    (sym-tag (:shy "\\sw+" (:shy "\\s_\\sw+") "*"))
+    (sym-prt "[-+.:_]") ; Non-word part of a symbol.
+    (sym-tag (:shy "\\sw+" (:shy sym-prt "\\sw+") "*"))
 
     ;; URIs (`uri')
     (uri-tag (:alt ,@rst-uri-schemes))
@@ -599,6 +599,7 @@ well but give an additional message."
 		    ;; Same as mark-defun sgml-mark-current-element.
 		    [?\C-c ?\C-m])
     ;; Move backward/forward between section titles.
+    ;; FIXME: Also bind similar to outline mode.
     (rst-define-key map [?\C-\M-a] 'rst-backward-section
 		    ;; Same as beginning-of-defun.
 		    [?\C-c ?\C-n])
@@ -696,23 +697,20 @@ This inherits from Text mode.")
 ;; Syntax table.
 (defvar rst-mode-syntax-table
   (let ((st (copy-syntax-table text-mode-syntax-table)))
-    ;; FIXME: This must be rethought; at the very least ?. should not be a
-    ;;        symbol for `dabbrev' to work properly.
     (modify-syntax-entry ?$ "." st)
     (modify-syntax-entry ?% "." st)
     (modify-syntax-entry ?& "." st)
     (modify-syntax-entry ?' "." st)
     (modify-syntax-entry ?* "." st)
-    (modify-syntax-entry ?+ "_" st)
-    (modify-syntax-entry ?. "_" st)
+    (modify-syntax-entry ?+ "." st)
+    (modify-syntax-entry ?- "." st)
     (modify-syntax-entry ?/ "." st)
-    (modify-syntax-entry ?: "_" st)
     (modify-syntax-entry ?< "." st)
     (modify-syntax-entry ?= "." st)
     (modify-syntax-entry ?> "." st)
     (modify-syntax-entry ?\\ "\\" st)
+    (modify-syntax-entry ?_ "." st)
     (modify-syntax-entry ?| "." st)
-    (modify-syntax-entry ?_ "_" st)
     (modify-syntax-entry ?\u00ab "." st)
     (modify-syntax-entry ?\u00bb "." st)
     (modify-syntax-entry ?\u2018 "." st)
@@ -1816,7 +1814,7 @@ in order to adapt it to our preferred style."
 	;; Apply the new style.
 	(apply 'rst-update-section (nth (car lm) rst-preferred-adornments))
 
-	;; Reset the market to avoid slowing down editing until it gets GC'ed.
+	;; Reset the marker to avoid slowing down editing until it gets GC'ed.
 	(set-marker (cdr lm) nil)
 	)
     )))

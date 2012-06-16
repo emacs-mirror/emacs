@@ -1,3 +1,9 @@
+2012-06-16  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Added and corrected some comments.
+	(rst-re-alist-def): Improve symbol syntax.
+	(rst-mode-syntax-table): Correct syntax entries.
+
 2012-06-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (COMPILE_FIRST): Synch with makefile.in changes
