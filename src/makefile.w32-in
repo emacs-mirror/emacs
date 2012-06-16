@@ -782,6 +782,7 @@ $(BLD)/emacs.$(O) : \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(FRAME_H) \
 	$(INTERVALS_H) \
@@ -921,6 +922,7 @@ $(BLD)/fringe.$(O) : \
 	$(SRC)/fringe.c \
 	$(SRC)/buffer.h \
 	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
@@ -945,6 +947,7 @@ $(BLD)/xml.$(O) : \
 	$(SRC)/xml.c \
 	$(SRC)/buffer.h \
 	$(SRC)/w32.h \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
 
@@ -1003,6 +1006,7 @@ $(BLD)/intervals.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
 	$(GNU_LIB)/intprops.h \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(INTERVALS_H) \
 	$(KEYBOARD_H) \
@@ -1082,6 +1086,7 @@ $(BLD)/macros.$(O) : \
 	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/macros.h \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(KEYBOARD_H) \
 	$(LISP_H) \
@@ -1114,6 +1119,7 @@ $(BLD)/minibuf.$(O) : \
 	$(SRC)/commands.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
@@ -1259,7 +1265,6 @@ $(BLD)/regex.$(O) : \
 	$(SRC)/category.h \
 	$(SRC)/regex.h \
 	$(SRC)/syntax.h \
-	$(NT_INC)/unistd.h \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
@@ -1268,6 +1273,7 @@ $(BLD)/region-cache.$(O) : \
 	$(SRC)/region-cache.c \
 	$(SRC)/buffer.h \
 	$(SRC)/region-cache.h \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
 
@@ -1390,6 +1396,7 @@ $(BLD)/terminal.$(O) : \
 $(BLD)/textprop.$(O) : \
 	$(SRC)/textprop.c \
 	$(SRC)/buffer.h \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(INTERVALS_H) \
 	$(LISP_H) \
@@ -1405,6 +1412,7 @@ $(BLD)/undo.$(O) : \
 	$(SRC)/undo.c \
 	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H) \
 	$(WINDOW_H)
@@ -1430,6 +1438,7 @@ $(BLD)/window.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/termchar.h \
 	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
@@ -1519,6 +1528,7 @@ $(BLD)/w32menu.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/w32heap.h \
 	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \

@@ -1,3 +1,11 @@
+2012-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/emacs.$(O), $(BLD)/fringe.$(O))
+	($(BLD)/xml.$(O), $(BLD)/intervals.$(O), $(BLD)/macros.$(O))
+	($(BLD)/minibuf.$(O), $(BLD)/regex.$(O), $(BLD)/region-cache.$(O))
+	($(BLD)/textprop.$(O), $(BLD)/undo.$(O), $(BLD)/window.$(O))
+	($(BLD)/w32select.$(O)): Update dependencies.
+
 2012-06-16  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* buffer.h (FETCH_MULTIBYTE_CHAR): Define as inline.
