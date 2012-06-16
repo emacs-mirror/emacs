@@ -1,3 +1,12 @@
+2012-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-addpm): New target.
+	(dist): Depend on it.
+	(install-shortcuts): Depend on install-addpm instead of copying
+	addpm.exe as part of the recipe.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00171.html
+	for the related problem and discussions.
+
 2012-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* config.nt (SYSTEM_TYPE): Define it.
