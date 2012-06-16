@@ -14260,6 +14260,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	     the cursor is not on this line.  */
 	  if (cursor == NULL
 	      && (row->reversed_p ? glyph <= end : glyph >= end)
+	      && (row->reversed_p ? end > glyphs_end : end < glyphs_end)
 	      && STRINGP (end->object)
 	      && row->continued_p)
 	    return 0;
@@ -14289,6 +14290,21 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
  compute_x:
   if (cursor != NULL)
     glyph = cursor;
+  else if (glyph == glyphs_end
+	   && pos_before == pos_after
+	   && STRINGP ((row->reversed_p
+			? row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1
+			: row->glyphs[TEXT_AREA])->object))
+    {
+      /* If all the glyphs of this row came from strings, put the
+	 cursor on the first glyph of the row.  This avoids having the
+	 cursor outside of the text area in this very rare and hard
+	 use case.  */
+      glyph =
+	row->reversed_p
+	? row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1
+	: row->glyphs[TEXT_AREA];
+    }
   if (x < 0)
     {
       struct glyph *g;

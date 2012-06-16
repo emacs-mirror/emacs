@@ -1,3 +1,10 @@
+2012-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't dereference glyphs_end.  If
+	all the glyphs of the glyph row came from strings, and we have no
+	cursor positioning clues, put the cursor on the first glyph of the
+	row.  (Bug#11653)
+
 2012-06-16  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* category.h (CHAR_HAS_CATEGORY): Define as inline.
