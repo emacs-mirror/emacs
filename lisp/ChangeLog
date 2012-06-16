@@ -1,3 +1,8 @@
+2012-06-16  Chong Yidong  <cyd@gnu.org>
+
+	* term/xterm.el (terminal-init-xterm): Discard input before
+	querying background mode (Bug#10959).
+
 2012-06-16  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el: Added and corrected some comments.
