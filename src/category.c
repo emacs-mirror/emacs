@@ -50,9 +50,6 @@ static int category_table_version;
 
 static Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
 
-/* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
-Lisp_Object _temp_category_set;
-
 /* Make CATEGORY_SET includes (if VAL is t) or excludes (if VAL is
    nil) CATEGORY.  */
 #define SET_CATEGORY_SET(category_set, category, val) \
