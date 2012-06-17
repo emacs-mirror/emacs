@@ -1,3 +1,10 @@
+2012-06-17  Troels Nielsen  <bn.troels@gmail.com>
+
+	* process.c (make_process): Initialize write_queue.
+	(write_queue_push, write_queue_pop): New functions.
+	(send_process): Use them to maintain correct ordering of process
+	writes (Bug#10815).
+
 2012-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (eassert): Assume C89 or later.

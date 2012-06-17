@@ -77,6 +77,8 @@ struct Lisp_Process
     Lisp_Object encode_coding_system;
     /* Working buffer for encoding.  */
     Lisp_Object encoding_buf;
+    /* Queue for storing waiting writes */
+    Lisp_Object write_queue;
 
 #ifdef HAVE_GNUTLS
     Lisp_Object gnutls_cred_type;

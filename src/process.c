@@ -638,6 +638,7 @@ make_process (Lisp_Object name)
   p->status = Qrun;
   p->mark = Fmake_marker ();
   p->kill_without_query = 0;
+  p->write_queue = Qnil;
 
 #ifdef ADAPTIVE_READ_BUFFERING
   p->adaptive_read_buffering = 0;
@@ -5371,6 +5372,78 @@ send_process_trap (int ignore)
   longjmp (send_process_frame, 1);
 }
 
+/* In send_process, when a write fails temporarily,
+   wait_reading_process_output is called.  It may execute user code,
+   e.g. timers, that attempts to write new data to the same process.
+   We must ensure that data is sent in the right order, and not
+   interspersed half-completed with other writes (Bug#10815).  This is
+   handled by the write_queue element of struct process.  It is a list
+   with each entry having the form
+
+   (string . (offset . length))
+
+   where STRING is a lisp string, OFFSET is the offset into the
+   string's byte sequence from which we should begin to send, and
+   LENGTH is the number of bytes left to send.  */
+
+/* Create a new entry in write_queue.
+   INPUT_OBJ should be a buffer, string Qt, or Qnil.
+   BUF is a pointer to the string sequence of the input_obj or a C
+   string in case of Qt or Qnil.  */
+
+static void
+write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
+                  const char *buf, int len, int front)
+{
+  EMACS_INT offset;
+  Lisp_Object entry, obj;
+
+  if (STRINGP (input_obj))
+    {
+      offset = buf - SSDATA (input_obj);
+      obj = input_obj;
+    }
+  else
+    {
+      offset = 0;
+      obj = make_unibyte_string (buf, len);
+    }
+
+  entry = Fcons (obj, Fcons (make_number (offset), make_number (len)));
+
+  if (front)
+    p->write_queue = Fcons (entry, p->write_queue);
+  else
+    p->write_queue = nconc2 (p->write_queue, Fcons (entry, Qnil));
+}
+
+/* Remove the first element in the write_queue of process P, put its
+   contents in OBJ, BUF and LEN, and return non-zero.  If the
+   write_queue is empty, return zero.  */
+
+static int
+write_queue_pop (struct Lisp_Process *p, Lisp_Object *obj,
+		 const char **buf, EMACS_INT *len)
+{
+  Lisp_Object entry, offset_length;
+  EMACS_INT offset;
+
+  if (NILP (p->write_queue))
+    return 0;
+
+  entry = XCAR (p->write_queue);
+  p->write_queue = XCDR (p->write_queue);
+
+  *obj = XCAR (entry);
+  offset_length = XCDR (entry);
+
+  *len = XINT (XCDR (offset_length));
+  offset = XINT (XCAR (offset_length));
+  *buf = SDATA (*obj) + offset;
+
+  return 1;
+}
+
 /* Send some data to process PROC.
    BUF is the beginning of the data; LEN is the number of characters.
    OBJECT is the Lisp object that the data comes from.  If OBJECT is
@@ -5389,10 +5462,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
   struct Lisp_Process *p = XPROCESS (proc);
   ssize_t rv;
   struct coding_system *coding;
-  struct gcpro gcpro1;
   void (*volatile old_sigpipe) (int);
-
-  GCPRO1 (object);
 
   if (p->raw_status_new)
     update_status (p);
@@ -5505,22 +5575,37 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
   if (!setjmp (send_process_frame))
     {
       p = XPROCESS (proc);  /* Repair any setjmp clobbering.  */
-
       process_sent_to = proc;
-      while (len > 0)
-	{
-	  ptrdiff_t this = len;
 
-	  /* Send this batch, using one or more write calls.  */
-	  while (this > 0)
+      /* If there is already data in the write_queue, put the new data
+         in the back of queue.  Otherwise, ignore it.  */
+      if (!NILP (p->write_queue))
+        write_queue_push (p, object, buf, len, 0);
+
+      do   /* while !NILP (p->write_queue) */
+	{
+	  EMACS_INT cur_len = -1;
+	  const char *cur_buf;
+	  Lisp_Object cur_object;
+
+	  /* If write_queue is empty, ignore it.  */
+	  if (!write_queue_pop (p, &cur_object, &cur_buf, &cur_len))
 	    {
+	      cur_len = len;
+	      cur_buf = buf;
+	      cur_object = object;
+	    }
+
+	  while (cur_len > 0)
+	    {
+	      /* Send this batch, using one or more write calls.  */
 	      ptrdiff_t written = 0;
 	      int outfd = p->outfd;
 	      old_sigpipe = (void (*) (int)) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
 	      if (DATAGRAM_CHAN_P (outfd))
 		{
-		  rv = sendto (outfd, buf, this,
+		  rv = sendto (outfd, cur_buf, cur_len,
 			       0, datagram_address[outfd].sa,
 			       datagram_address[outfd].len);
 		  if (0 <= rv)
@@ -5537,10 +5622,10 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		{
 #ifdef HAVE_GNUTLS
 		  if (p->gnutls_p)
-		    written = emacs_gnutls_write (p, buf, this);
+		    written = emacs_gnutls_write (p, cur_buf, cur_len);
 		  else
 #endif
-		    written = emacs_write (outfd, buf, this);
+		    written = emacs_write (outfd, cur_buf, cur_len);
 		  rv = (written ? 0 : -1);
 #ifdef ADAPTIVE_READ_BUFFERING
 		  if (p->read_output_delay > 0
@@ -5595,35 +5680,26 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 			}
 #endif /* BROKEN_PTY_READ_AFTER_EAGAIN */
 
-		      /* Running filters might relocate buffers or strings.
-			 Arrange to relocate BUF.  */
-		      if (BUFFERP (object))
-			offset = BUF_PTR_BYTE_POS (XBUFFER (object),
-						   (unsigned char *) buf);
-		      else if (STRINGP (object))
-			offset = buf - SSDATA (object);
-
+		      /* Put what we should have written in
+			 wait_queue */
+		      write_queue_push (p, cur_object, cur_buf, cur_len, 1);
 #ifdef EMACS_HAS_USECS
 		      wait_reading_process_output (0, 20000, 0, 0, Qnil, NULL, 0);
 #else
 		      wait_reading_process_output (1, 0, 0, 0, Qnil, NULL, 0);
 #endif
-
-		      if (BUFFERP (object))
-			buf = (char *) BUF_BYTE_ADDRESS (XBUFFER (object),
-							 offset);
-		      else if (STRINGP (object))
-			buf = offset + SSDATA (object);
+		      /* reread queue, to see what is left */
+		      break;
 		    }
 		  else
 		    /* This is a real error.  */
 		    report_file_error ("writing to process", Fcons (proc, Qnil));
 		}
-	      buf += written;
-	      len -= written;
-	      this -= written;
+	      cur_buf += written;
+	      cur_len -= written;
 	    }
 	}
+      while (!NILP (p->write_queue));
     }
   else
     {
@@ -5636,8 +5712,6 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
       deactivate_process (proc);
       error ("SIGPIPE raised on process %s; closed it", SDATA (p->name));
     }
-
-  UNGCPRO;
 }
 
 DEFUN ("process-send-region", Fprocess_send_region, Sprocess_send_region,
