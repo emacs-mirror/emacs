@@ -212,7 +212,10 @@
 (require 'bind-key)
 (require 'diminish nil t)
 
-(defvar use-package-verbose t)
+(defcustom use-package-verbose t
+  "Whether to report about loading and configuration details."
+  :type 'boolean
+  :group 'use-package)
 
 (defmacro with-elapsed-timer (text &rest forms)
   `(let ((now ,(if use-package-verbose
