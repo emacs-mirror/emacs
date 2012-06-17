@@ -305,15 +305,15 @@
                    t))
             `(if (and ,(or predicate t)
                       ,requires-test)
-                 (if ,(if (stringp name)
-                          `(load ,name t)
-                        `(require ',name nil t))
-                     (with-elapsed-timer
-                         ,(format "Loading package %s" name-string)
-                       ,init-body
-                       ,config-body
-                       t)
-                   (message "Could not load package %s" ,name-string))))))))
+                 (with-elapsed-timer
+                     ,(format "Loading package %s" name-string)
+                   (if (not ,(if (stringp name)
+                                 `(load ,name t)
+                               `(require ',name nil t)))
+                       (message "Could not load package %s" ,name-string)
+                     ,init-body
+                     ,config-body
+                     t))))))))
 
 (put 'use-package 'lisp-indent-function 1)
 
