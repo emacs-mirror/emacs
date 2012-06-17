@@ -1,3 +1,8 @@
+2012-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.c (x_draw_underwave): Check for integer overflow.
+	This pacifies gcc 4.7.0 -Wunsafe-loop-optimizations on x86-64.
+
 2012-06-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (x_free_frame_resources): Move xfree so freed memory isn't

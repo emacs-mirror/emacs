@@ -2710,6 +2710,9 @@ x_draw_underwave (struct glyph_string *s)
   else
     y2 += dy;
 
+  if (INT_MAX - dx < xmax)
+    abort ();
+
   while (x1 <= xmax)
     {
       XDrawLine (s->display, s->window, s->gc, x1, y1, x2, y2);
