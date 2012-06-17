@@ -39,7 +39,7 @@
 ;; If you want the keybinding to override all minor modes that may also bind
 ;; the same key, use the `bind-key*' form:
 ;;
-;;   (bind*-key "<C-return>" 'other-window)
+;;   (bind-key* "<C-return>" 'other-window)
 ;;
 ;; If you want to rebind a key only in a particular key, use:
 ;;
