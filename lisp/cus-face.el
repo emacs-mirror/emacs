@@ -135,8 +135,13 @@
      (choice :tag "Underline"
 	     :help-echo "Control text underlining."
 	     (const :tag "Off" nil)
-	     (const :tag "On" t)
-	     (color :tag "Colored")))
+	     (list :tag "On"
+		   (const :format "" :value :color)
+		   (choice :tag "Color" (const :tag "Foreground Color" foreground-color) color)
+                   (const :format "" :value :style)
+                   (choice :tag "Style"
+                           (const :tag "Line" line)
+                           (const :tag "Wave" wave)))))
 
     (:overline
      (choice :tag "Overline"

@@ -320,6 +320,7 @@ static Lisp_Object QCfontset;
 
 Lisp_Object Qnormal;
 Lisp_Object Qbold;
+static Lisp_Object Qline, Qwave;
 static Lisp_Object Qultra_light, Qextra_light, Qlight;
 static Lisp_Object Qsemi_light, Qsemi_bold, Qextra_bold, Qultra_bold;
 static Lisp_Object Qoblique, Qreverse_oblique, Qreverse_italic;
@@ -1894,7 +1895,8 @@ check_lface_attrs (Lisp_Object *attrs)
   xassert (UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_UNDERLINE_INDEX])
 	   || SYMBOLP (attrs[LFACE_UNDERLINE_INDEX])
-	   || STRINGP (attrs[LFACE_UNDERLINE_INDEX]));
+	   || STRINGP (attrs[LFACE_UNDERLINE_INDEX])
+	   || CONSP (attrs[LFACE_UNDERLINE_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_OVERLINE_INDEX])
 	   || SYMBOLP (attrs[LFACE_OVERLINE_INDEX])
@@ -2525,7 +2527,8 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
 		{
 		  if (EQ (value, Qt)
 		      || NILP (value)
-		      || STRINGP (value))
+		      || STRINGP (value)
+		      || CONSP (value))
 		    to[LFACE_UNDERLINE_INDEX] = value;
 		  else
 		    err = 1;
@@ -2948,15 +2951,54 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCunderline))
     {
-      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
-	if ((SYMBOLP (value)
-	     && !EQ (value, Qt)
-	     && !EQ (value, Qnil))
-	    /* Underline color.  */
-	    || (STRINGP (value)
-		&& SCHARS (value) == 0))
-	  signal_error ("Invalid face underline", value);
+      int valid_p = 0;
+      
+      if (UNSPECIFIEDP (value) || IGNORE_DEFFACE_P (value))
+	valid_p = 1;
+      else if (NILP (value) || EQ (value, Qt))
+        valid_p = 1;
+      else if (STRINGP (value) && SCHARS (value) > 0)
+        valid_p = 1;
+      else if (CONSP (value))
+        {
+          Lisp_Object key, val, list;
 
+          list = value;
+          valid_p = 1;
+
+          while (!NILP (CAR_SAFE(list)))
+            {
+              key = CAR_SAFE (list);
+              list = CDR_SAFE (list);
+              val = CAR_SAFE (list);
+              list = CDR_SAFE (list);
+            
+              if(NILP (key) || NILP (val)) 
+                {
+                  valid_p = 0;
+                  break;
+                }
+
+              else if (EQ (key, QCcolor)
+                       && !(EQ (val, Qforeground_color)
+                            || (STRINGP (val) && SCHARS (val) > 0)))
+                {
+                  valid_p = 0;
+                  break;
+                }
+              
+              else if (EQ (key, QCstyle) 
+                       && !(EQ (val, Qline) || EQ (val, Qwave)))
+                {
+                  valid_p = 0;
+                  break;
+                }
+            }
+        }
+      
+      if (!valid_p)
+        signal_error ("Invalid face underline", value);
+      
       old_value = LFACE_UNDERLINE (lface);
       LFACE_UNDERLINE (lface) = value;
     }
@@ -5576,7 +5618,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
 #ifdef HAVE_WINDOW_SYSTEM
   struct face *default_face;
   struct frame *f;
-  Lisp_Object stipple, overline, strike_through, box;
+  Lisp_Object stipple, underline, overline, strike_through, box;
 
   xassert (FRAME_WINDOW_P (cache->f));
 
@@ -5709,29 +5751,76 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
 
   /* Text underline, overline, strike-through.  */
 
-  if (EQ (attrs[LFACE_UNDERLINE_INDEX], Qt))
+  underline = attrs[LFACE_UNDERLINE_INDEX];
+  if (EQ (underline, Qt))
     {
       /* Use default color (same as foreground color).  */
       face->underline_p = 1;
+      face->underline_type = FACE_UNDER_LINE;
       face->underline_defaulted_p = 1;
       face->underline_color = 0;
     }
-  else if (STRINGP (attrs[LFACE_UNDERLINE_INDEX]))
+  else if (STRINGP (underline))
     {
       /* Use specified color.  */
       face->underline_p = 1;
+      face->underline_type = FACE_UNDER_LINE;
       face->underline_defaulted_p = 0;
       face->underline_color
-	= load_color (f, face, attrs[LFACE_UNDERLINE_INDEX],
+	= load_color (f, face, underline,
 		      LFACE_UNDERLINE_INDEX);
     }
-  else if (NILP (attrs[LFACE_UNDERLINE_INDEX]))
+  else if (NILP (underline))
     {
       face->underline_p = 0;
       face->underline_defaulted_p = 0;
       face->underline_color = 0;
     }
+  else if (CONSP (underline))
+    {
+      /* `(:color COLOR :style STYLE)'.  
+         STYLE being one of `line' or `wave'. */
+      face->underline_p = 1;
+      face->underline_color = 0;
+      face->underline_defaulted_p = 1;
+      face->underline_type = FACE_UNDER_LINE;
 
+      while (CONSP (underline))
+        {
+          Lisp_Object keyword, value;
+
+          keyword = XCAR (underline);
+          underline = XCDR (underline);
+
+          if (!CONSP (underline))
+            break;
+          value = XCAR (underline);
+          underline = XCDR (underline);
+
+          if (EQ (keyword, QCcolor))
+            {
+              if (EQ (value, Qforeground_color))
+                {
+                  face->underline_defaulted_p = 1;
+                  face->underline_color = 0;
+                }
+              else if (STRINGP (value))
+                {
+                  face->underline_defaulted_p = 0;
+                  face->underline_color = load_color (f, face, value,
+                                                      LFACE_UNDERLINE_INDEX);
+                }
+            }
+          else if (EQ (keyword, QCstyle))
+            {
+              if (EQ (value, Qline))
+                face->underline_type = FACE_UNDER_LINE;
+              else if (EQ (value, Qwave))
+                face->underline_type = FACE_UNDER_WAVE;
+            }
+        }
+    }
+  
   overline = attrs[LFACE_OVERLINE_INDEX];
   if (STRINGP (overline))
     {
@@ -6476,6 +6565,8 @@ syms_of_xfaces (void)
   DEFSYM (QCcolor, ":color");
   DEFSYM (QCline_width, ":line-width");
   DEFSYM (QCstyle, ":style");
+  DEFSYM (Qline, "line");
+  DEFSYM (Qwave, "wave");
   DEFSYM (Qreleased_button, "released-button");
   DEFSYM (Qpressed_button, "pressed-button");
   DEFSYM (Qnormal, "normal");

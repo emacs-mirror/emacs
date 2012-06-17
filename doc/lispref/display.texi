@@ -2130,10 +2130,32 @@ Background color, a string.  The value can be a system-defined color
 name, or a hexadecimal color specification.  @xref{Color Names}.
 
 @item :underline
-Whether or not characters should be underlined, and in what color.  If
-the value is @code{t}, underlining uses the foreground color of the
-face.  If the value is a string, underlining uses that color.  The
-value @code{nil} means do not underline.
+Whether or not characters should be underlined, and in what
+color. Here are the possible values of the @code{:underline}
+attribute, and what they mean:
+
+@table @asis
+@item @code{nil}
+Don't underline.
+
+@item @code{t}
+Underline with the foreground color of the face.
+
+@item @var{color}
+Underline in color @var{color}.
+
+@item @code{(:color @var{color} :style @var{style})}
+If @var{color} is a string, underline in it.
+If @var{color} is @code{foreground-color}, underline with the
+foreground color of the face.
+
+If @var{style} is @code{wave} underline with a wave.
+If @var{style} is @code{line} underline with a line. 
+
+If the attribute @code{:color} is omited, underline with the
+foreground color of the face.
+If the attribute @code{:style} is omited, underline with a line.
+@end table
 
 @item :overline
 Whether or not characters should be overlined, and in what color.
