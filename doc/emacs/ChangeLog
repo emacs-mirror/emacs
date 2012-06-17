@@ -1,3 +1,25 @@
+2012-06-11  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Remove urlcolor setting.
+
+2012-06-10  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Update ISBN and edition number.
+
+	* anti.texi:
+	* building.texi:
+	* cmdargs.texi:
+	* custom.texi:
+	* display.texi:
+	* files.texi:
+	* frames.texi:
+	* glossary.texi:
+	* misc.texi:
+	* mule.texi:
+	* programs.texi:
+	* sending.texi:
+	* text.texi: Copyedits to avoid underfull/overfull in 7x9 manual.
+
 2012-06-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* custom.texi (Directory Variables): Mention enable-remote-dir-locals.

@@ -1,3 +1,8 @@
+2012-06-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (x_free_frame_resources): Move xfree so freed memory isn't
+	referenced (Bug#11583).
+
 2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
 
 	Implement wave-style variant of underlining.

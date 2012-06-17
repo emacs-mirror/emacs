@@ -2950,7 +2950,8 @@ between consecutive checks.  For example:
   (let ((remote-file-name-inhibit-cache
          (- display-time-interval 5)))
     (and (file-exists-p file)
-         (< 0 (nth 7 (file-attributes (file-chase-links file)))))))
+         (< 0 (nth 7 (file-attributes
+                       (file-chase-links file)))))))
 @end example
 @end defopt
 

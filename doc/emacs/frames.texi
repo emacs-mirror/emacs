@@ -499,7 +499,8 @@ Add a line to your init file, modifying the variable
 (@pxref{Frame Parameters}), like this:
 
 @example
-(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
+(add-to-list 'default-frame-alist
+             '(font . "DejaVu Sans Mono-10"))
 @end example
 
 @cindex X defaults file

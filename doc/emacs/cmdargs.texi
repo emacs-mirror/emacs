@@ -436,7 +436,7 @@ Used by the @code{cd} command to search for the directory you specify,
 when you specify a relative directory name.
 @item EMACSDATA
 Directory for the architecture-independent files that come with Emacs.
-This is used to initialize the Lisp variable @code{data-directory}.
+This is used to initialize the variable @code{data-directory}.
 @item EMACSDOC
 Directory for the documentation string file, which is used to
 initialize the Lisp variable @code{doc-directory}.
@@ -577,7 +577,8 @@ does not use @env{TZ} at all.
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
 defaults to @samp{root}.
 @item VERSION_CONTROL
-Used to initialize the @code{version-control} variable (@pxref{Backup Names}).
+Used to initialize the @code{version-control} variable (@pxref{Backup
+Names}).
 @end table
 
 @node Misc Variables

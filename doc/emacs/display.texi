@@ -759,11 +759,10 @@ argument disables it.
 
 @findex global-font-lock-mode
 @vindex global-font-lock-mode
-  To toggle Font Lock mode in all buffers, type @kbd{M-x
-global-font-lock-mode}.  To impose this setting for future Emacs
-sessions, customize the variable @code{global-font-lock-mode}
-(@pxref{Easy Customization}), or add the following line to your init
-file:
+  Type @kbd{M-x global-font-lock-mode} to toggle Font Lock mode in all
+buffers.  To impose this setting for future Emacs sessions, customize
+the variable @code{global-font-lock-mode} (@pxref{Easy
+Customization}), or add the following line to your init file:
 
 @example
 (global-font-lock-mode 0)

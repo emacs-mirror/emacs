@@ -1263,8 +1263,8 @@ example, byte-compiling @file{fortran.el} used to warn:
 
 @example
 In end of data:
-fortran.el:2152:1:Warning: the function `gud-find-c-expr' is not known
-    to be defined.
+fortran.el:2152:1:Warning: the function `gud-find-c-expr' is not
+    known to be defined.
 @end example
 
 In fact, @code{gud-find-c-expr} is only used in the function that

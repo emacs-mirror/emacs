@@ -426,11 +426,11 @@ syntax checking tool used depends on the language; for example, for
 C/C++ files this is usually the C compiler.  Flymake can also use
 build tools such as @code{make} for checking complicated projects.
 
-  To enable Flymake mode, type @kbd{M-x flymake-mode}.  You can jump to
-the errors that it finds by using @kbd{M-x
-flymake-goto-next-error} and @kbd{M-x flymake-goto-prev-error}.
-Use the command @kbd{M-x flymake-display-err-menu-for-current-line}
-to display any error messages associated with the current line.
+  To enable Flymake mode, type @kbd{M-x flymake-mode}.  You can jump
+to the errors that it finds by using @kbd{M-x flymake-goto-next-error}
+and @kbd{M-x flymake-goto-prev-error}.  To display any error messages
+associated with the current line, type @kbd{M-x
+flymake-display-err-menu-for-current-line}.
 
   For more details about using Flymake,
 @ifnottex
@@ -1495,7 +1495,7 @@ eval-buffer} is similar but evaluates the entire buffer.
 @vindex eval-expression-print-level
 @vindex eval-expression-print-length
 @vindex eval-expression-debug-on-error
-  The customizable variables @code{eval-expression-print-level} and
+  The options @code{eval-expression-print-level} and
 @code{eval-expression-print-length} control the maximum depth and
 length of lists to print in the result of the evaluation commands
 before abbreviating them.  @code{eval-expression-debug-on-error}

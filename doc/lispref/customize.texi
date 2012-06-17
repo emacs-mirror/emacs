@@ -702,7 +702,8 @@ This is done by using a customization type specification instead of a
 symbol for the key.
 
 @example
-:options '("foo" ((function-item some-function) integer)
+:options '("foo"
+           ((function-item some-function) integer)
            "baz")
 @end example
 
@@ -710,7 +711,8 @@ Many alists use lists with two elements, instead of cons cells.  For
 example,
 
 @example
-(defcustom list-alist '(("foo" 1) ("bar" 2) ("baz" 3))
+(defcustom list-alist
+  '(("foo" 1) ("bar" 2) ("baz" 3))
   "Each element is a list of the form (KEY VALUE).")
 @end example
 
@@ -718,7 +720,8 @@ example,
 instead of
 
 @example
-(defcustom cons-alist '(("foo" . 1) ("bar" . 2) ("baz" . 3))
+(defcustom cons-alist
+  '(("foo" . 1) ("bar" . 2) ("baz" . 3))
   "Each element is a cons-cell (KEY . VALUE).")
 @end example
 

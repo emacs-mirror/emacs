@@ -1651,7 +1651,8 @@ the keymap is loaded before we try to change it.
 
 @example
 (defun my-bind-clb ()
-  (define-key c-mode-base-map "\C-j" 'c-context-line-break))
+  (define-key c-mode-base-map "\C-j"
+              'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-bind-clb)
 @end example
 

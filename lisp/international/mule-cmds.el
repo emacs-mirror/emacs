@@ -129,10 +129,10 @@
       `(menu-item ,(purecopy "Set Coding Systems") ,set-coding-system-map
 		  :enable (default-value 'enable-multibyte-characters)))
     (define-key-after map [view-hello-file]
-      `(menu-item ,(purecopy "Show Multi-lingual Text") view-hello-file
+      `(menu-item ,(purecopy "Show Multilingual Sample Text") view-hello-file
         :enable (file-readable-p
                  (expand-file-name "HELLO" data-directory))
-        :help ,(purecopy "Display file which says HELLO in many languages")))
+        :help ,(purecopy "Demonstrate various character sets")))
     (define-key-after map [separator-coding-system] menu-bar-separator)
 
     (define-key-after map [describe-language-environment]
@@ -148,7 +148,7 @@
       `(menu-item ,(purecopy "List Character Sets") list-character-sets
         :help ,(purecopy "Show table of available character sets")))
     (define-key-after map [mule-diag]
-      `(menu-item ,(purecopy "Show All of Mule Status") mule-diag
+      `(menu-item ,(purecopy "Show All Multilingual Settings") mule-diag
         :help ,(purecopy "Display multilingual environment settings")))
     map)
   "Keymap for Mule (Multilingual environment) menu specific commands.")
@@ -1828,7 +1828,7 @@ The default status is as follows:
     (set-terminal-coding-system (or coding-system coding) display)))
 
 (defun set-language-environment (language-name)
-  "Set up multi-lingual environment for using LANGUAGE-NAME.
+  "Set up multilingual environment for using LANGUAGE-NAME.
 This sets the coding system priority and the default input method
 and sometimes other things.  LANGUAGE-NAME should be a string
 which is the name of a language environment.  For example, \"Latin-1\"
@@ -2500,7 +2500,7 @@ For example, translate \"swedish\" into \"sv_SE.ISO8859-1\"."
     locale))
 
 (defun set-locale-environment (&optional locale-name frame)
-  "Set up multi-lingual environment for using LOCALE-NAME.
+  "Set up multilingual environment for using LOCALE-NAME.
 This sets the language environment, the coding system priority,
 the default input method and sometimes other things.
 

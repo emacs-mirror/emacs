@@ -215,8 +215,7 @@ properties, just the characters themselves.  @xref{Text Properties}.
 
 @defun buffer-string
 This function returns the contents of the entire accessible portion of
-the current buffer as a string.  It is equivalent to
-@w{@code{(buffer-substring (point-min) (point-max))}}.
+the current buffer, as a string.
 @end defun
 
 @defun filter-buffer-substring start end &optional delete
