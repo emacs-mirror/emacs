@@ -323,7 +323,9 @@
          ,@(mapcar
             #'(lambda (path)
                 `(add-to-list 'load-path
-                              ,(expand-file-name path user-emacs-directory)))
+                              ,(if (file-name-absolute-p path)
+                                   path
+                                 (expand-file-name path user-emacs-directory))))
             (if (stringp pkg-load-path)
                 (list pkg-load-path)
               pkg-load-path))
