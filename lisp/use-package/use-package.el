@@ -197,6 +197,44 @@
 ;; startup time, and things that could potentioally wait until after the
 ;; actual load.  In this case, everything could be put inside `:init' and
 ;; there would be no difference.
+;;
+;; * For el-get users
+;;
+;; You can use `use-package' as a way to create source definitions for el-get.
+;; All that's needed is to add a `:type' keyword to your declaration.  When
+;; this is present, certain keywords get translated to what el-get expects in
+;; the `el-get-sources' list:
+;;
+;;   :config   -> :after
+;;   :requires -> :depends
+;;
+;; A `:name' will be added also, if one is not provided explicitly, which will
+;; be the same as the name of the package.
+;;
+;; But why would you want to use `use-package' when you have el-get?  My
+;; answer is that I'd like to use el-get to install and update some packages,
+;; but I don't want it managing configuration.  Just loading el-get -- without
+;; call (el-get 'sync) -- takes a quarter second on my machine.  That's 25% of
+;; my load time!  `use-package' is designed for performance, so I only want to
+;; load el-get when it's time to install or update on of my used packages.
+;;
+;; Here is the `use-package' declaration I use for setting up el-get, but only
+;; when I want to install or update.
+;;
+;;   (defvar el-get-sources nil)
+;;
+;;   (use-package el-get
+;;     :commands (el-get
+;;                el-get-install
+;;                el-get-update
+;;                el-get-list-packages)
+;;     :config
+;;     (progn
+;;       (defun el-get-read-status-file ()
+;;         (mapcar #'(lambda (entry)
+;;                     (cons (plist-get entry :symbol)
+;;                           `(status "installed" recipe ,entry)))
+;;                 el-get-sources))))
 
 (require 'bind-key)
 
@@ -240,6 +278,7 @@
          (defines (plist-get args :defines))
          (keybindings (plist-get args :bind))
          (predicate (plist-get args :if))
+         (pkg-load-path (plist-get args :load-path))
          (defines-eval (if (null defines)
                            nil
                          (if (listp defines)
@@ -282,11 +321,39 @@
 
     (unless (plist-get args :disabled)
       `(progn
+         ,@(mapcar
+            #'(lambda (path)
+                `(add-to-list 'load-path
+                              ,(expand-file-name path user-emacs-directory)))
+            (if (stringp pkg-load-path)
+                (list pkg-load-path)
+              pkg-load-path))
+
          (eval-when-compile
            ,@defines-eval
            ,(if (stringp name)
                 `(load ,name t)
               `(require ',name nil t)))
+
+         ,(when (and (boundp 'el-get-sources)
+                     (plist-get args :type))
+            (setq args
+                  (mapcar #'(lambda (arg)
+                              (cond
+                               ((eq arg :config)
+                                :after)
+                               ((eq arg :requires)
+                                :depends)
+                               (t
+                                arg)))
+                          args))
+            (unless (plist-get args :name)
+              (nconc args (list :name (if (stringp name)
+                                          name (symbol-name name)))))
+            (nconc args (list :symbol (if (stringp name)
+                                          (intern name) name)))
+            `(push (quote ,args) el-get-sources))
+
          ,(if (or commands (plist-get args :defer))
               (let (form)
                 (unless (listp commands)
