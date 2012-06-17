@@ -13,7 +13,7 @@
 	* term.el (term-emulate-terminal): If term-check-size is called,
 	move point to the process mark without resetting point (Bug#4635).
 
-2012-06-13  Glenn Morris  <rgm@gnu.org>
+2012-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* international/mule-cmds.el (mule-menu-keymap)
 	(set-language-environment, set-locale-environment): Doc tweaks.

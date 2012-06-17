@@ -1,9 +1,9 @@
-2012-06-10  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
+2012-06-17  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
 
 	* nnmaildir.el (nnmaildir-request-expire-articles): Ensure that `time'
 	is an integer to avoid later problems.
 
-2012-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+2012-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el: Add a iso-8859-1 cookie to make stuff work under other
 	locales.
