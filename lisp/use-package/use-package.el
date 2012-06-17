@@ -171,6 +171,15 @@
 ;;     (eval-when-compile
 ;;       (autoload 'w3m-search-escape-query-string "w3m-search")))
 ;;
+;; If your package needs a directory added to the `load-path' in order load,
+;; use `:load-path'.  It takes a string or a list of strings.  If the path is
+;; relative, it will be expanded within `user-emacs-directory':
+;;
+;;   (use-package ess-site
+;;     :disabled t
+;;     :load-path "site-lisp/ess/lisp/"
+;;     :commands R)
+;;
 ;; Lastly, `use-package' provides built-in support for the diminish utility,
 ;; if you have that installed.  It's purpose is to remove strings from your
 ;; mode-line that would otherwise always be there and provide no useful
