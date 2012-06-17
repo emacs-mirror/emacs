@@ -2710,10 +2710,8 @@ See `term-prompt-regexp'."
 	   (str-length (length str)))
       (save-selected-window
 
-	;; Let's handle the messages. -mm
-
-        (let* ((newstr (term-handle-ansi-terminal-messages str)))
-          (when (not (eq str newstr))
+        (let ((newstr (term-handle-ansi-terminal-messages str)))
+          (unless (eq str newstr)
 	    (setq handled-ansi-message t
 		  str newstr)))
         (setq str-length (length str))
@@ -2723,18 +2721,19 @@ See `term-prompt-regexp'."
 	  (delete-region term-pending-delete-marker (process-mark proc))
 	  (set-marker term-pending-delete-marker nil))
 
+	(when (/= (point) (process-mark proc))
+	  (setq save-point (point-marker)))
+
+	;; Note if the window size has changed.  We used to reset
+	;; point too, but that gives incorrect results (Bug#4635).
 	(if (eq (window-buffer) (current-buffer))
 	    (progn
 	      (setq term-vertical-motion (symbol-function 'vertical-motion))
 	      (term-check-size proc))
 	  (setq term-vertical-motion
 		(symbol-function 'term-buffer-vertical-motion)))
-
 	(setq save-marker (copy-marker (process-mark proc)))
-
-	(when (/= (point) (process-mark proc))
-	  (setq save-point (point-marker))
-	  (goto-char (process-mark proc)))
+	(goto-char (process-mark proc))
 
 	(save-restriction
 	  ;; If the buffer is in line mode, and there is a partial
