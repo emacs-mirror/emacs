@@ -313,6 +313,94 @@ w32_set_clip_rectangle (HDC hdc, RECT *rect)
     SelectClipRgn (hdc, NULL);
 }
 
+/* Restore clipping rectangle in S */
+static void
+w32_restore_glyph_string_clip (struct glyph_string *s)
+{
+  RECT *r = s->clip;
+  int n = s->num_clips;
+
+  if (n == 1)
+    w32_set_clip_rectangle (s->hdc, r);
+  else if (n > 1)
+    {
+      HRGN clip1 = CreateRectRgnIndirect (r);
+      HRGN clip2 = CreateRectRgnIndirect (r + 1);
+      if (CombineRgn (clip1, clip1, clip2, RGN_OR) != ERROR)
+        SelectClipRgn (s->hdc, clip1);
+      DeleteObject (clip1);
+      DeleteObject (clip2);
+    }
+}
+
+/*
+   Draw a wavy line under S. The wave fills wave_height pixels from y0.
+
+                    x0         wave_length = 2
+                                 --
+                y0   *   *   *   *   *
+                     |* * * * * * * * *
+    wave_height = 3  | *   *   *   *
+
+*/
+
+void
+w32_draw_underwave (struct glyph_string *s, COLORREF color)
+{
+  int wave_height = 2, wave_length = 3;
+  int dx, dy, x0, y0, width, x1, y1, x2, y2, odd, xmax;
+  XRectangle wave_clip, string_clip, final_clip;
+  RECT w32_final_clip, w32_string_clip;
+  HPEN hp, oldhp;
+
+  dx = wave_length;
+  dy = wave_height - 1;
+  x0 = s->x;
+  y0 = s->ybase + 1;
+  width = s->width;
+  xmax = x0 + width;
+
+  /* Find and set clipping rectangle */
+
+  wave_clip = (XRectangle){ x0, y0, width, wave_height };
+  get_glyph_string_clip_rect (s, &w32_string_clip);
+  CONVERT_TO_XRECT (string_clip, w32_string_clip);
+
+  if (!x_intersect_rectangles (&wave_clip, &string_clip, &final_clip))
+    return;
+
+  hp = CreatePen (PS_SOLID, 0, color);
+  oldhp = SelectObject (s->hdc, hp);
+  CONVERT_FROM_XRECT (final_clip, w32_final_clip);
+  w32_set_clip_rectangle (s->hdc, &w32_final_clip);
+
+  /* Draw the waves */
+
+  x1 = x0 - (x0 % dx);
+  x2 = x1 + dx;
+  odd = (x1/dx) % 2;
+  y1 = y2 = y0;
+
+  if (odd)
+    y1 += dy;
+  else
+    y2 += dy;
+
+  MoveToEx (s->hdc, x1, y1, NULL);
+
+  while (x1 <= xmax)
+    {
+      LineTo (s->hdc, x2, y2);
+      x1  = x2, y1 = y2;
+      x2 += dx, y2 = y0 + odd*dy;
+      odd = !odd;
+    }
+
+  /* Restore previous pen and clipping rectangle(s) */
+  w32_restore_glyph_string_clip (s);
+  SelectObject (s->hdc, oldhp);
+  DeleteObject (hp);
+}
 
 /* Draw a hollow rectangle at the specified position.  */
 void
@@ -2347,60 +2435,74 @@ x_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline_p)
         {
-          unsigned long thickness, position;
-          int y;
+          if (s->face->underline_type == FACE_UNDER_WAVE)
+            {
+              COLORREF color;
 
-          if (s->prev && s->prev->face->underline_p)
-            {
-              /* We use the same underline style as the previous one.  */
-              thickness = s->prev->underline_thickness;
-              position = s->prev->underline_position;
-            }
-          else
-            {
-              /* Get the underline thickness.  Default is 1 pixel.  */
-              if (s->font && s->font->underline_thickness > 0)
-                thickness = s->font->underline_thickness;
+              if (s->face->underline_defaulted_p)
+                color = s->gc->foreground;
               else
-                thickness = 1;
-              if (x_underline_at_descent_line)
-                position = (s->height - thickness) - (s->ybase - s->y);
+                color = s->face->underline_color;
+
+              w32_draw_underwave (s, color);
+            }
+          else if (s->face->underline_type == FACE_UNDER_LINE)
+            {
+              unsigned long thickness, position;
+              int y;
+
+              if (s->prev && s->prev->face->underline_p)
+                {
+                  /* We use the same underline style as the previous one.  */
+                  thickness = s->prev->underline_thickness;
+                  position = s->prev->underline_position;
+                }
               else
                 {
-                /* Get the underline position.  This is the recommended
-                   vertical offset in pixels from the baseline to the top of
-                   the underline.  This is a signed value according to the
-                   specs, and its default is
+                  /* Get the underline thickness.  Default is 1 pixel.  */
+                  if (s->font && s->font->underline_thickness > 0)
+                    thickness = s->font->underline_thickness;
+                  else
+                    thickness = 1;
+                  if (x_underline_at_descent_line)
+                    position = (s->height - thickness) - (s->ybase - s->y);
+                  else
+                    {
+                      /* Get the underline position.  This is the recommended
+                         vertical offset in pixels from the baseline to the top of
+                         the underline.  This is a signed value according to the
+                         specs, and its default is
 
-                   ROUND ((maximum_descent) / 2), with
-                   ROUND (x) = floor (x + 0.5)  */
+                         ROUND ((maximum_descent) / 2), with
+                         ROUND (x) = floor (x + 0.5)  */
 
-                if (x_use_underline_position_properties
-                    && s->font && s->font->underline_position >= 0)
-                  position = s->font->underline_position;
-                else if (s->font)
-                  position = (s->font->descent + 1) / 2;
+                      if (x_use_underline_position_properties
+                          && s->font && s->font->underline_position >= 0)
+                        position = s->font->underline_position;
+                      else if (s->font)
+                        position = (s->font->descent + 1) / 2;
+                    }
+                  position = max (position, underline_minimum_offset);
                 }
-	      position = max (position, underline_minimum_offset);
-            }
-	  /* Check the sanity of thickness and position.  We should
-	     avoid drawing underline out of the current line area.  */
-	  if (s->y + s->height <= s->ybase + position)
-	    position = (s->height - 1) - (s->ybase - s->y);
-	  if (s->y + s->height < s->ybase + position + thickness)
-	    thickness = (s->y + s->height) - (s->ybase + position);
-	  s->underline_thickness = thickness;
-	  s->underline_position =position;
-          y = s->ybase + position;
-          if (s->face->underline_defaulted_p)
-            {
-              w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                             y, s->width, 1);
-            }
-          else
-            {
-              w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
-                             y, s->width, 1);
+              /* Check the sanity of thickness and position.  We should
+                 avoid drawing underline out of the current line area.  */
+              if (s->y + s->height <= s->ybase + position)
+                position = (s->height - 1) - (s->ybase - s->y);
+              if (s->y + s->height < s->ybase + position + thickness)
+                thickness = (s->y + s->height) - (s->ybase + position);
+              s->underline_thickness = thickness;
+              s->underline_position =position;
+              y = s->ybase + position;
+              if (s->face->underline_defaulted_p)
+                {
+                  w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
+                                 y, s->width, 1);
+                }
+              else
+                {
+                  w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
+                                 y, s->width, 1);
+                }
             }
         }
       /* Draw overline.  */

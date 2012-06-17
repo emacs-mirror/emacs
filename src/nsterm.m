@@ -2595,6 +2595,60 @@ ns_get_glyph_string_clip_rect (struct glyph_string *s, NativeRectangle *nr)
   return n;
 }
 
+/* --------------------------------------------------------------------
+   Draw a wavy line under glyph string s. The wave fills wave_height
+   pixels from y.
+
+                    x          wave_length = 3
+                                 --
+                y    *   *   *   *   *
+                     |* * * * * * * * *
+    wave_height = 3  | *   *   *   *
+  --------------------------------------------------------------------- */
+
+static void
+ns_draw_underwave (struct glyph_string *s, CGFloat width, CGFloat x)
+{
+  int wave_height = 3, wave_length = 3;
+  int y, dx, dy, odd, xmax;
+  NSPoint a, b;
+  NSRect waveClip;
+
+  dx = wave_length;
+  dy = wave_height - 1;
+  y =  s->ybase + 1;
+  xmax = x + width;
+
+  /* Find and set clipping rectangle */
+  waveClip = NSMakeRect (x, y, width, wave_height);
+  [[NSGraphicsContext currentContext] saveGraphicsState];
+  NSRectClip (waveClip);
+
+  /* Draw the waves */
+  a.x = x - ((int)(x) % dx);
+  b.x = a.x + dx;
+  odd = (int)(a.x/dx) % 2;
+  a.y = b.y = y;
+
+  if (odd)
+    a.y += dy;
+  else
+    b.y += dy;
+
+  while (a.x <= xmax)
+    {
+      [NSBezierPath strokeLineFromPoint:a toPoint:b];
+      a.x = b.x, a.y = b.y;
+      b.x += dx, b.y = y + odd*dy;
+      odd = !odd;
+    }
+
+  /* Restore previous clipping rectangle(s) */
+  [[NSGraphicsContext currentContext] restoreGraphicsState];
+}
+
+
+
 void
 ns_draw_text_decoration (struct glyph_string *s, struct face *face,
                          NSColor *defaultCol, CGFloat width, CGFloat x)
@@ -2608,63 +2662,75 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
   /* Do underline. */
   if (face->underline_p)
     {
-      NSRect r;
-      unsigned long thickness, position;
-
-      /* If the prev was underlined, match its appearance. */
-      if (s->prev && s->prev->face->underline_p
-          && s->prev->underline_thickness > 0)
+      if (s->face->underline_type == FACE_UNDER_WAVE)
         {
-          thickness = s->prev->underline_thickness;
-          position = s->prev->underline_position;
-        }
-      else
-        {
-          struct font *font;
-          unsigned long descent;
-
-          font=s->font;
-          descent = s->y + s->height - s->ybase;
-
-          /* Use underline thickness of font, defaulting to 1. */
-          thickness = (font && font->underline_thickness > 0)
-            ? font->underline_thickness : 1;
-
-          /* Determine the offset of underlining from the baseline. */
-          if (x_underline_at_descent_line)
-            position = descent - thickness;
-          else if (x_use_underline_position_properties
-                   && font && font->underline_position >= 0)
-            position = font->underline_position;
-          else if (font)
-            position = lround (font->descent / 2);
+          if (face->underline_defaulted_p)
+            [defaultCol set];
           else
-            position = underline_minimum_offset;
+            [ns_lookup_indexed_color (face->underline_color, s->f) set];
 
-          position = max (position, underline_minimum_offset);
-
-          /* Ensure underlining is not cropped. */
-          if (descent <= position)
-            {
-              position = descent - 1;
-              thickness = 1;
-            }
-          else if (descent < position + thickness)
-            thickness = 1;
+          ns_draw_underwave (s, width, x);
         }
+      else if (s->face->underline_type == FACE_UNDER_LINE)
+        {
 
-      s->underline_thickness = thickness;
-      s->underline_position = position;
+          NSRect r;
+          unsigned long thickness, position;
 
-      r = NSMakeRect (x, s->ybase + position, width, thickness);
+          /* If the prev was underlined, match its appearance. */
+          if (s->prev && s->prev->face->underline_p
+              && s->prev->underline_thickness > 0)
+            {
+              thickness = s->prev->underline_thickness;
+              position = s->prev->underline_position;
+            }
+          else
+            {
+              struct font *font;
+              unsigned long descent;
 
-      if (face->underline_defaulted_p)
-        [defaultCol set];
-      else
-        [ns_lookup_indexed_color (face->underline_color, s->f) set];
-      NSRectFill (r);
+              font=s->font;
+              descent = s->y + s->height - s->ybase;
+
+              /* Use underline thickness of font, defaulting to 1. */
+              thickness = (font && font->underline_thickness > 0)
+                ? font->underline_thickness : 1;
+
+              /* Determine the offset of underlining from the baseline. */
+              if (x_underline_at_descent_line)
+                position = descent - thickness;
+              else if (x_use_underline_position_properties
+                       && font && font->underline_position >= 0)
+                position = font->underline_position;
+              else if (font)
+                position = lround (font->descent / 2);
+              else
+                position = underline_minimum_offset;
+
+              position = max (position, underline_minimum_offset);
+
+              /* Ensure underlining is not cropped. */
+              if (descent <= position)
+                {
+                  position = descent - 1;
+                  thickness = 1;
+                }
+              else if (descent < position + thickness)
+                thickness = 1;
+            }
+
+          s->underline_thickness = thickness;
+          s->underline_position = position;
+
+          r = NSMakeRect (x, s->ybase + position, width, thickness);
+
+          if (face->underline_defaulted_p)
+            [defaultCol set];
+          else
+            [ns_lookup_indexed_color (face->underline_color, s->f) set];
+          NSRectFill (r);
+        }
     }
-
   /* Do overline. We follow other terms in using a thickness of 1
      and ignoring overline_margin. */
   if (face->overline_p)

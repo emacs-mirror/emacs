@@ -623,10 +623,21 @@ VALUE must be a color name, a string.
 
 `:underline'
 
-VALUE specifies whether characters in FACE should be underlined.  If
-VALUE is t, underline with foreground color of the face.  If VALUE is
-a string, underline with that color.  If VALUE is nil, explicitly
-don't underline.
+VALUE specifies whether characters in FACE should be underlined.
+If VALUE is t, underline with foreground color of the face.
+If VALUE is a string, underline with that color.
+If VALUE is nil, explicitly don't underline.
+
+Otherwise, VALUE must be a property list of the form:
+
+`(:color COLOR :style STYLE)'.
+
+COLOR can be a either a color name string or `foreground-color'.
+STYLE can be either `line' or `wave'.
+If a keyword/value pair is missing from the property list, a
+default value will be used for the value.
+The default value of COLOR is the foreground color of the face.
+The default value of STYLE is `line'.
 
 `:overline'
 

@@ -1510,6 +1510,13 @@ enum face_box_type
   FACE_SUNKEN_BOX
 };
 
+/* Underline type. */
+
+enum face_underline_type
+{
+  FACE_UNDER_LINE,
+  FACE_UNDER_WAVE
+};
 
 /* Structure describing a realized face.
 
@@ -1584,6 +1591,9 @@ struct face
   /* If `box' above specifies a 3D type, 1 means use box_color for
      drawing shadows.  */
   unsigned use_box_color_for_shadows_p : 1;
+
+  /* Style of underlining. */
+  enum face_underline_type underline_type;
 
   /* Non-zero if text in this face should be underlined, overlined,
      strike-through or have a box drawn around it.  */

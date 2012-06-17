@@ -1,3 +1,20 @@
+2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
+
+	Implement wave-style variant of underlining.
+	* dispextern.h (face_underline_type): New enum.
+	(face): Add field for underline type.
+	* nsterm.m (ns_draw_underwave): New function.
+	(ns_draw_text_decoration): Use it.
+	* w32term.c (w32_restore_glyph_string_clip, w32_draw_underwave):
+	New functions.
+	(x_draw_glyph_string): Use them.
+	* xfaces.c (Qline, Qwave): New Lisp objects.
+	(check_lface_attrs, merge_face_ref)
+	(Finternal_set_lisp_face_attribute, realize_x_face): Handle
+	wave-style underline face attributes.
+	* xterm.c (x_draw_underwave): New function.
+	(x_draw_glyph_string): Use it.
+
 2012-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/emacs.$(O), $(BLD)/fringe.$(O))
