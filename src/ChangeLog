@@ -1,3 +1,8 @@
+2012-06-17  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (redisplay_internal): No need to redisplay terminal
+	frames that are not on top.
+
 2012-06-17  Troels Nielsen  <bn.troels@gmail.com>
 
 	* process.c (make_process): Initialize write_queue.

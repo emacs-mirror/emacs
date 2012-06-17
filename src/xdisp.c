@@ -13317,6 +13317,12 @@ redisplay_internal (void)
 	{
 	  struct frame *f = XFRAME (frame);
 
+	  /* We don't have to do anything for unselected terminal
+	     frames.  */
+	  if ((FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+	      && !EQ (FRAME_TTY (f)->top_frame, frame))
+	    continue;
+
 	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
 	      if (! EQ (frame, selected_frame))
