@@ -50,8 +50,8 @@
 ;;       (setq foo-variable t)
 ;;       (foo-mode 1)))
 ;;
-;; A very command thing to do when loading a module is to bind a key to
-;; primary commands within that module:
+;; A very common thing to do when loading a module is to bind a key to primary
+;; commands within that module:
 ;;
 ;;   (use-package ace-jump-mode
 ;;     :bind ("C-." . ace-jump-mode))
