@@ -1015,11 +1015,11 @@ Both accept numeric arguments as repeat counts.
 @kindex C-c C-f @r{(Outline mode)}
 @kindex C-c C-b @r{(Outline mode)}
 @kindex C-c C-u @r{(Outline mode)}
-  The commands @kbd{C-c C-f} (@code{outline-forward-same-level}) and
-@kbd{C-c C-b} (@code{outline-backward-same-level}) move from one
-heading line to another visible heading at the same depth in the
-outline.  @kbd{C-c C-u} (@code{outline-up-heading}) moves backward to
-another heading that is less deeply nested.
+  @kbd{C-c C-f} (@code{outline-forward-same-level}) and @kbd{C-c C-b}
+(@code{outline-backward-same-level}) move from one heading line to
+another visible heading at the same depth in the outline.  @kbd{C-c
+C-u} (@code{outline-up-heading}) moves backward to another heading
+that is less deeply nested.
 
 @node Outline Visibility
 @subsection Outline Visibility Commands
@@ -2311,8 +2311,7 @@ hides text), and @code{intangible} (which disallows moving point
 within the text).  The @samp{Remove Special} menu item removes all of
 these special properties from the text in the region.
 
-  The @code{invisible} and @code{intangible} properties are not saved
-in the @samp{text/enriched} format.
+  The @code{invisible} and @code{intangible} properties are not saved.
 
 @node Text Based Tables
 @section Editing Text-based Tables
@@ -2345,8 +2344,8 @@ large to fit in the cell.  You can use the commands defined in the
 following sections for navigating and editing the table layout.
 
 @findex table-fixed-width-mode
-  To toggle the automatic table resizing feature, type @kbd{M-x
-table-fixed-width-mode}.
+  Type @kbd{M-x table-fixed-width-mode} to toggle the automatic table
+resizing feature.
 
 @menu
 * Table Definition::          What is a text based table.
@@ -2506,15 +2505,16 @@ result in an illegitimate cell layout.
 @cindex text-based tables, splitting cells
 @cindex splitting table cells
   @kbd{M-x table-split-cell} splits the current cell vertically or
-horizontally, prompting for the direction with the minibuffer.  The
-commands @kbd{M-x table-split-cell-vertically} and @kbd{M-x
-table-split-cell-horizontally} split in a specific direction.  When
-splitting vertically, the old cell contents are automatically split
-between the two new cells.  When splitting horizontally, you are
-prompted for how to divide the cell contents, if the cell is
-non-empty; the options are @samp{split} (divide the contents at
-point), @samp{left} (put all the contents in the left cell), and
-@samp{right} (put all the contents in the right cell).
+horizontally, prompting for the direction with the minibuffer.  To
+split in a specific direction, use @kbd{M-x
+table-split-cell-vertically} and @kbd{M-x
+table-split-cell-horizontally}.  When splitting vertically, the old
+cell contents are automatically split between the two new cells.  When
+splitting horizontally, you are prompted for how to divide the cell
+contents, if the cell is non-empty; the options are @samp{split}
+(divide the contents at point), @samp{left} (put all the contents in
+the left cell), and @samp{right} (put all the contents in the right
+cell).
 
   The following commands enlarge or shrink a cell.  By default, they
 resize by one row or column; if a numeric argument is supplied, that

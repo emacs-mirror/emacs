@@ -40,8 +40,8 @@ An @acronym{ASCII} control character is the Control version of an upper-case
 letter, or the Control version of one of the characters @samp{@@[\]^_?}.
 
 @item @acronym{ASCII} printing character
-@acronym{ASCII} printing characters include letters, digits, space, and these
-punctuation characters: @samp{!@@#$%^&*()_-+=|\~`@{@}[]:;"'<>,.?/}.
+@acronym{ASCII} letters, digits, space, and the following punctuation
+characters: @samp{!@@#$%^&*()_-+=|\~`@{@}[]:;"'<>,.?/}.
 
 @item Auto Fill Mode
 Auto Fill mode is a minor mode (q.v.@:) in which text that you insert is

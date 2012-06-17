@@ -2322,7 +2322,7 @@ channels and image data, respectively.
 @item :image-path @var{path}
 This is represented either as a URI (@samp{file://} is the only URI
 schema supported right now) or a name in a freedesktop.org-compliant
-icon theme from @samp{$XDG_DATA_DIRS/icons}, like @samp{"mail-message-new"}.
+icon theme from @samp{$XDG_DATA_DIRS/icons}.
 
 @item :sound-file @var{filename}
 The path to a sound file to play when the notification pops up.
@@ -2473,26 +2473,27 @@ a symbol representing a supported external library, and the rest are
 strings giving alternate filenames for that library.
 
 Emacs tries to load the library from the files in the order they
-appear in the list; if none is found, the running session of Emacs
-won't have access to that library, and the features that depend on the
-library will be unavailable.
+appear in the list; if none is found, the Emacs session won't have
+access to that library, and the features it provides will be
+unavailable.
 
 Image support on some platforms uses this facility.  Here's an example
 of setting this variable for supporting images on MS-Windows:
 
-@lisp
+@example
 (setq dynamic-library-alist
       '((xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
         (png "libpng12d.dll" "libpng12.dll" "libpng.dll"
-	 "libpng13d.dll" "libpng13.dll")
-        (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
+             "libpng13d.dll" "libpng13.dll")
+        (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll"
+              "jpeg.dll")
         (tiff "libtiff3.dll" "libtiff.dll")
         (gif "giflib4.dll" "libungif4.dll" "libungif.dll")
         (svg "librsvg-2-2.dll")
         (gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
         (glib "libglib-2.0-0.dll")
 	(gobject "libgobject-2.0-0.dll")))
-@end lisp
+@end example
 
 Note that image types @code{pbm} and @code{xbm} do not need entries in
 this variable because they do not depend on external libraries and are

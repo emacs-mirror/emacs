@@ -765,16 +765,14 @@ displays something like this:
 @example
 fill-column is a variable defined in `C source code'.
 fill-column's value is 70
-Local in buffer custom.texi; global value is 70
-Automatically becomes buffer-local when set in any fashion.
 
-  Automatically becomes buffer-local when set in any fashion.
-  This variable is safe as a file local variable if its value
-  satisfies the predicate `integerp'.
+Automatically becomes buffer-local when set in any fashion.
+This variable is safe as a file local variable if its value
+satisfies the predicate `integerp'.
 
 Documentation:
-*Column beyond which automatic line-wrapping should happen.
-Interactively, you can set the buffer local value using C-x f.
+Column beyond which automatic line-wrapping should happen.
+Interactively, you can set the local value with C-x f.
 
 You can customize this variable.
 @end example
@@ -1054,13 +1052,14 @@ pair with a colon and semicolon.  The special variable/value pair
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
 @findex copy-dir-locals-to-file-locals-prop-line
-  You can use the command @kbd{M-x add-file-local-variable-prop-line}
-instead of adding entries by hand.  It prompts for
-a variable and value, and adds them to the first line in the
-appropriate way.  @kbd{M-x delete-file-local-variable-prop-line}
-prompts for a variable, and deletes its entry from the line.  @kbd{M-x
-copy-dir-locals-to-file-locals-prop-line} copies directory-local
-variables to the first line (@pxref{Directory Variables}).
+  You can use @kbd{M-x add-file-local-variable-prop-line} instead of
+adding entries by hand.  This command prompts for a variable and
+value, and adds them to the first line in the appropriate way.
+@kbd{M-x delete-file-local-variable-prop-line} prompts for a variable,
+and deletes its entry from the line.  The command @kbd{M-x
+copy-dir-locals-to-file-locals-prop-line} copies the current
+directory-local variables to the first line (@pxref{Directory
+Variables}).
 
   Here is an example first line that specifies Lisp mode and sets two
 variables with numeric values:

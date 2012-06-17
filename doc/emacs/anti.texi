@@ -63,19 +63,18 @@ string (@code{isearch-yank-line}), whereas @kbd{M-y} does
 @kbd{C-y} and @kbd{M-y} is unintended.
 
 @item
-Various completion features have been simplified.  The options
-@code{completion-cycle-threshold} and
-@code{completion-category-overrides} have been removed.  Due to the
-latter removal, Emacs uses a single consistent scheme to generate
-completions, instead of using a separate scheme for (say) buffer name
-completion.  Several major modes, such as Shell mode, now implement
-their own inline completion commands instead of using
-@code{completion-at-point}.
+Various completion features have been simplified.  The option
+@code{completion-category-overrides} has been removed, so Emacs uses a
+single consistent scheme to generate completions, instead of using a
+separate scheme for (say) buffer name completion.  Several major
+modes, such as Shell mode, now implement their own inline completion
+commands instead of using @code{completion-at-point}.
 
 @item
-We have removed various options for controlling how windows are used,
-e.g.@: @code{display-buffer-base-action}, @code{display-buffer-alist},
-@code{window-combination-limit}, and @code{window-combination-resize}.
+We have removed several options for controlling how windows are used,
+such as @code{display-buffer-base-action},
+@code{display-buffer-alist}, @code{window-combination-limit}, and
+@code{window-combination-resize}.
 
 @item
 The command @kbd{M-x customize-themes} has been removed.  Emacs no

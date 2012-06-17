@@ -1802,7 +1802,7 @@ The number of threads in the process.
 @item start
 The time when the process was started, in the same
 @w{@code{(@var{high} @var{low} @var{microsec})}} format used by
-@code{current-time} and @code{file-attributes}.
+@code{current-time} and by @code{file-attributes}.
 
 @item etime
 The time elapsed since the process started, in the @w{@code{(@var{high}

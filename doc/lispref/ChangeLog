@@ -1,3 +1,7 @@
+2012-06-17  Chong Yidong  <cyd@gnu.org>
+
+	* elisp.texi: Remove urlcolor setting.
+
 2012-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Face Attributes): Copyedits.  Add a few cindex entries.

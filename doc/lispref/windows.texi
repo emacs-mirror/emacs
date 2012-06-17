@@ -1399,7 +1399,7 @@ When writing an application, you should normally use the higher-level
 functions described in @ref{Switching Buffers}, instead of calling
 @code{set-window-buffer} directly.
 
-This function runs @code{window-scroll-functions}, followed by
+This runs @code{window-scroll-functions}, followed by
 @code{window-configuration-change-hook}.  @xref{Window Hooks}.
 @end defun
 

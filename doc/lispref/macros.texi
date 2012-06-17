@@ -338,8 +338,9 @@ problem.  This macro allows us to write a ``for'' loop construct.
   "Execute a simple \"for\" loop.
 For example, (for i from 1 to 10 do (print i))."
   (list 'let (list (list var init))
-        (cons 'while (cons (list '<= var final)
-                           (append body (list (list 'inc var)))))))
+        (cons 'while
+              (cons (list '<= var final)
+                    (append body (list (list 'inc var)))))))
 @end group
 @result{} for
 

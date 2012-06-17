@@ -448,8 +448,8 @@ override any non-@code{nil} binding in any other of the @var{maps}.
 @example
 (defvar help-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap button-buffer-map
-                                                 special-mode-map))
+    (set-keymap-parent map
+      (make-composed-keymap button-buffer-map special-mode-map))
     ... map) ... )
 @end example
 
@@ -1600,10 +1600,11 @@ to @code{self-insert-command}.
 @end defvar
 
 @cindex key translation function
-You can use @code{input-decode-map}, @code{local-function-key-map}, or
-@code{key-translation-map} for more than simple aliases, by using a
-function, instead of a key sequence, as the ``translation'' of a key.
-Then this function is called to compute the translation of that key.
+You can use @code{input-decode-map}, @code{local-function-key-map},
+and @code{key-translation-map} for more than simple aliases, by using
+a function, instead of a key sequence, as the ``translation'' of a
+key.  Then this function is called to compute the translation of that
+key.
 
 The key translation function receives one argument, which is the prompt
 that was specified in @code{read-key-sequence}---or @code{nil} if the

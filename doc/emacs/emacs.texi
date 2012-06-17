@@ -14,7 +14,7 @@
 @c be something added by the FSF during the publishing process.
 @c Also, the lispref uses a float (3.0), whereas this uses an ordinal,
 @c so the format is not even consistent.
-@set EDITION   Sixteenth
+@set EDITION   Seventeenth
 @include emacsver.texi
 
 @copying
@@ -54,7 +54,7 @@ developing GNU and promoting software freedom.''
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
-@c @smallbook
+@c @set smallbook
 
 @ifset smallbook
 @smallbook
@@ -66,8 +66,6 @@ developing GNU and promoting software freedom.''
 @tex
 @ifset smallbook
 @fonttextsize 10
-\global\let\urlcolor=\Black % don't print links in grayscale
-\global\let\linkcolor=\Black
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
@@ -96,10 +94,10 @@ developing GNU and promoting software freedom.''
 Published by the Free Software Foundation @*
 51 Franklin Street, Fifth Floor @*
 Boston, MA 02110-1301 USA @*
-ISBN 1-882114-86-8
+ISBN 978-0-9831592-2-3
 
 @sp 2
-Cover art by Etienne Suvasa.
+Cover art by Etienne Suvasa; cover design by Matt Lee.
 
 @end titlepage
 
