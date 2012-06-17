@@ -88,6 +88,9 @@ treated as images.
 *** Images displayed via ImageMagick now support transparency and the
 :background image spec property.
 
+** Face underlining can now use a wave.
+See the "Face Attributes" section of the Elisp manual.
+
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without
 specifying any file to visit or expression to evaluate.
