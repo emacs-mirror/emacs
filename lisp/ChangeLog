@@ -1,3 +1,13 @@
+2012-06-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* minibuffer.el (read-file-name-default): Bind `non-essential' to `t'.
+
+	* net/tramp.el (tramp-file-name-handler): Catch 'non-essential.
+
+	* net/ange-ftp.el (ange-ftp-gwp-start, ange-ftp-start-process):
+	* net/tramp-sh.el (tramp-maybe-open-connection):
+	Throw if `non-essential' is non-nil.
+
 2012-06-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (special-display-p): Signal an error if BUFFER-NAME

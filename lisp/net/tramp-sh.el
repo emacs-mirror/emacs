@@ -4292,6 +4292,11 @@ connection if a previous connection has died for some reason."
 	    ;; We call `tramp-get-buffer' in order to get a debug
 	    ;; buffer for messages from the beginning.
 	    (tramp-get-buffer vec)
+
+	    ;; If `non-essential' is non-nil, don't reopen a new connection.
+	    (when non-essential
+	      (throw 'non-essential 'non-essential))
+
 	    (tramp-with-progress-reporter
 		vec 3
 		(if (zerop (length (tramp-file-name-user vec)))

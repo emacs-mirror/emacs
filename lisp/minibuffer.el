@@ -2335,7 +2335,8 @@ See `read-file-name' for the meaning of the arguments."
 	    (if (consp default-filename)
 		(mapcar 'abbreviate-file-name default-filename)
 	      (abbreviate-file-name default-filename))))
-  (let ((insdef (cond
+  (let ((non-essential t)
+	(insdef (cond
                  ((and insert-default-directory (stringp dir))
                   (if initial
                       (cons (minibuffer--double-dollars (concat dir initial))

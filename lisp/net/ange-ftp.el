@@ -1774,6 +1774,10 @@ good, skip, fatal, or unknown."
 
 (defun ange-ftp-gwp-start (host user name args)
   "Login to the gateway machine and fire up an FTP process."
+  ;; If `non-essential' is non-nil, don't reopen a new connection.  It
+  ;; will be catched in Tramp.
+  (when non-essential
+    (throw 'non-essential 'non-essential))
   (let (;; It would be nice to make process-connection-type nil,
 	;; but that doesn't work: ftp never responds.
 	;; Can anyone find a fix for that?
@@ -1905,6 +1909,10 @@ been queued with no result.  CONT will still be called, however."
   "Spawn a new FTP process ready to connect to machine HOST and give it NAME.
 If HOST is only FTP-able through a gateway machine then spawn a shell
 on the gateway machine to do the FTP instead."
+  ;; If `non-essential' is non-nil, don't reopen a new connection.  It
+  ;; will be catched in Tramp.
+  (when non-essential
+    (throw 'non-essential 'non-essential))
   (let* ((use-gateway (ange-ftp-use-gateway-p host))
 	 (use-smart-ftp (and (not ange-ftp-gateway-host)
 			     (ange-ftp-use-smart-gateway-p host)))
