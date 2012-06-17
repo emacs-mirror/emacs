@@ -6765,7 +6765,8 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 
       while (buf < buf_end)
 	{
-	  int c = *buf, i;
+	  int c = *buf;
+	  ptrdiff_t i;
 
 	  if (c >= 0)
 	    {

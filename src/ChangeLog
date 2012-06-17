@@ -1,5 +1,7 @@
 2012-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* coding.c (produce_chars): Use ptrdiff_t, not int.
+
 	* xterm.c (x_draw_underwave): Check for integer overflow.
 	This pacifies gcc 4.7.0 -Wunsafe-loop-optimizations on x86-64.
 
