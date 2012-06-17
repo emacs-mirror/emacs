@@ -1,5 +1,11 @@
 2012-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (eassert): Assume C89 or later.
+	This removes the need for CHECK.
+	(CHECK): Remove.  Its comments about always evaluating its
+	argument were confusing, as 'eassert' typically does not evaluate
+	its argument.
+
 	* coding.c (produce_chars): Use ptrdiff_t, not int.
 
 	* xterm.c (x_draw_underwave): Check for integer overflow.

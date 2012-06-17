@@ -106,7 +106,12 @@ typedef EMACS_UINT uprintmax_t;
 
 /* Extra internal type checking?  */
 
-#ifdef ENABLE_CHECKING
+/* Define an Emacs version of 'assert (COND)', since some
+   system-defined 'assert's are flaky.  COND should be free of side
+   effects; it may or may not be evaluated.  */
+#ifndef ENABLE_CHECKING
+# define eassert(X) ((void) (0 && (X))) /* Check that X compiles.  */
+#else /* ENABLE_CHECKING */
 
 extern void die (const char *, const char *, int) NO_RETURN;
 
@@ -114,39 +119,16 @@ extern void die (const char *, const char *, int) NO_RETURN;
    it to 1 using a debugger to temporarily disable aborting on
    detected internal inconsistencies or error conditions.
 
-   Testing suppress_checking after the supplied condition ensures that
-   the side effects produced by CHECK will be consistent, independent
-   of whether ENABLE_CHECKING is defined, or whether the checks are
-   suppressed at run time.
-
    In some cases, a good compiler may be able to optimize away the
-   CHECK macro altogether, e.g., if XSTRING (x) uses CHECK to test
+   eassert macro altogether, e.g., if XSTRING (x) uses eassert to test
    STRINGP (x), but a particular use of XSTRING is invoked only after
    testing that STRINGP (x) is true, making the test redundant.  */
-
 extern int suppress_checking EXTERNALLY_VISIBLE;
 
-#define CHECK(check,msg) (((check) || suppress_checking		\
-			   ? (void) 0				\
-			   : die ((msg), __FILE__, __LINE__)),	\
-			  0)
-#else
-
-/* Produce same side effects and result, but don't complain.  */
-#define CHECK(check,msg) ((check),0)
-
-#endif
-
-/* Define an Emacs version of "assert", since some system ones are
-   flaky.  */
-#ifndef ENABLE_CHECKING
-#define eassert(X) ((void) (0 && (X))) /* Check that X compiles.  */
-#else /* ENABLE_CHECKING */
-#if defined (__GNUC__) && __GNUC__ >= 2 && defined (__STDC__)
-#define eassert(cond) CHECK (cond, "assertion failed: " #cond)
-#else
-#define eassert(cond) CHECK (cond, "assertion failed")
-#endif
+# define eassert(cond)						\
+   ((cond) || suppress_checking					\
+    ? (void) 0							\
+    : die ("assertion failed: " # cond, __FILE__, __LINE__))
 #endif /* ENABLE_CHECKING */
 
 /* Use the configure flag --enable-check-lisp-object-type to make
