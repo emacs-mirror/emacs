@@ -11665,7 +11665,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-list-insert-item-generic): Updating checkboxes
-	can modifiy bottom point of a list, so make it a marker before
+	can modify bottom point of a list, so make it a marker before
 	calling `org-update-checkbox-count-maybe'.
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>

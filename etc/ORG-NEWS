@@ -554,7 +554,7 @@ to mean anything.
 
 ** Completion
 
-*** In-buffer completion is now done using John Wiegleys pcomplete.el
+*** In-buffer completion is now done using John Wiegley's pcomplete.el
     :PROPERTIES:
     :OrgVersion:  7.4
     :END:

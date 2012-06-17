@@ -1368,7 +1368,7 @@ The messages are visible anyway, because an error is raised.")
 
 (defvar tramp-message-show-progress-reporter-message t
   "Show Tramp progress reporter message in the minibuffer.
-This variable is used to disable recurive progress reporter messages.")
+This variable is used to disable recursive progress reporter messages.")
 
 (defsubst tramp-message (vec-or-proc level fmt-string &rest args)
   "Emit a message depending on verbosity level.

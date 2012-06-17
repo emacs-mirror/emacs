@@ -320,7 +320,7 @@ a top-level keymap, `text-scale-increase' or
               (`?0 0)
               (t inc))))
       (text-scale-increase step)
-      ;; FIXME: do it after everu "iteration of the loop".
+      ;; FIXME: do it after every "iteration of the loop".
       (message "+,-,0 for further adjustment: ")
       (set-temporary-overlay-map
        (let ((map (make-sparse-keymap)))

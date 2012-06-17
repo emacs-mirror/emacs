@@ -50,7 +50,7 @@
 ;; (`python-nav-forward-sentence', `python-nav-backward-sentence'
 ;; respectively).  Extra functions `python-nav-sentence-start' and
 ;; `python-nav-sentence-end' are included to move to the beginning and
-;; to the end of a setence while taking care of multiline definitions.
+;; to the end of a sentence while taking care of multiline definitions.
 ;; `python-nav-jump-to-defun' is provided and allows jumping to a
 ;; function or class definition quickly in the current buffer.
 
@@ -126,7 +126,7 @@
 ;;        "VIRTUAL_ENV=/path/to/env/"))
 ;; (python-shell-exec-path . ("/path/to/env/bin/"))
 
-;; Since the above is cumbersome and can be programatically
+;; Since the above is cumbersome and can be programmatically
 ;; calculated, the variable `python-shell-virtualenv-path' is
 ;; provided.  When this variable is set with the path of the
 ;; virtualenv to use, `process-environment' and `exec-path' get proper
@@ -426,7 +426,7 @@ This variant of `rx' supports common python named REGEXPS."
            ;; Extra:
            "__all__" "__doc__" "__name__" "__package__")
           symbol-end) . font-lock-builtin-face)
-    ;; asignations
+    ;; assignments
     ;; support for a = b = c = 5
     (,(lambda (limit)
         (let ((re (python-rx (group (+ (any word ?. ?_)))
@@ -703,7 +703,7 @@ START is the buffer position where the sexp starts."
           ('inside-string
            (goto-char context-start)
            (current-indentation))
-          ;; After backslash we have several posibilities
+          ;; After backslash we have several possibilities.
           ('after-backslash
            (cond
             ;; Check if current line is a dot continuation.  For this
@@ -758,12 +758,12 @@ START is the buffer position where the sexp starts."
                  (current-column))))
             (t
              (forward-line -1)
-             (goto-char (python-info-beginning-of-backlash))
+             (goto-char (python-info-beginning-of-backslash))
              (if (save-excursion
                    (and
                     (forward-line -1)
                     (goto-char
-                     (or (python-info-beginning-of-backlash) (point)))
+                     (or (python-info-beginning-of-backslash) (point)))
                     (python-info-line-ends-backslash-p)))
                  ;; The two previous lines ended in a backslash so we must
                  ;; respect previous line indentation.
@@ -776,7 +776,7 @@ START is the buffer position where the sexp starts."
           ;; correctly
           ('inside-paren
            (cond
-            ;; If current line closes the outtermost open paren use the
+            ;; If current line closes the outermost open paren use the
             ;; current indentation of the context-start line.
             ((save-excursion
                (skip-syntax-forward "\s" (line-end-position))
@@ -1261,7 +1261,7 @@ Restart the python shell after changing this variable for it to take effect."
 
 (defcustom python-shell-send-setup-max-wait 5
   "Seconds to wait for process output before code setup.
-If output is received before the especified time then control is
+If output is received before the specified time then control is
 returned in that moment and not after waiting."
   :type 'integer
   :group 'python
@@ -1811,7 +1811,7 @@ completions on the current context."
                (overlay-start comint-last-prompt-overlay)
                (overlay-end comint-last-prompt-overlay))))
            (completion-context
-            ;; Check wether a prompt matches a pdb string, an import statement
+            ;; Check whether a prompt matches a pdb string, an import statement
             ;; or just the standard prompt and use the correct
             ;; python-shell-completion-*-code string
             (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
@@ -2474,7 +2474,7 @@ It can contain a \"%s\" which will be replaced with the root name."
 
 (defun python-imenu-make-element-tree (element-list full-element plain-index)
   "Make a tree from plain alist of module names.
-ELEMENT-LIST is the defun name splitted by \".\" and FULL-ELEMENT
+ELEMENT-LIST is the defun name split by \".\" and FULL-ELEMENT
 is the same thing, the difference is that FULL-ELEMENT remains
 untouched in all recursive calls.
 Argument PLAIN-INDEX is the calculated plain index used to build the tree."
@@ -2497,7 +2497,7 @@ Argument PLAIN-INDEX is the calculated plain index used to build the tree."
               (push (cons subelement-name subelement-point)
                     python-imenu-index-alist)
             (when (not (listp (cdr path-ref)))
-              ;; Modifiy root cdr to be a list
+              ;; Modify root cdr to be a list.
               (setcdr path-ref
                       (list (cons (format python-imenu-subtree-root-label
                                           (car path-ref))
@@ -2644,8 +2644,8 @@ With optional argument LINE-NUMBER, check that line instead."
       (when (equal (char-before) ?\\)
         (point-marker)))))
 
-(defun python-info-beginning-of-backlash (&optional line-number)
-  "Return the point where the backlashed line start.
+(defun python-info-beginning-of-backslash (&optional line-number)
+  "Return the point where the backslashed line start.
 Optional argument LINE-NUMBER forces the line number to check against."
   (save-excursion
     (save-restriction

@@ -1,3 +1,8 @@
+2012-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* progmodes/python.el (python-info-beginning-of-backslash):
+	Rename from python-info-beginning-of-backlash, as a spelling fix.
+
 2012-06-17  Chong Yidong  <cyd@gnu.org>
 
 	* term.el (term-emulate-terminal): If term-check-size is called,

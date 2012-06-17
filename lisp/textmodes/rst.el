@@ -2847,7 +2847,7 @@ and not from inner alignment points."
     (save-match-data
       (unless (looking-at (rst-re 'lin-end))
 	(back-to-indentation)
-	;; Current indendation is always the least likely tab.
+	;; Current indentation is always the least likely tab.
 	(let ((tabs (list (list (point) 0 nil)))) ; (POINT OFFSET INNER)
 	  ;; Push inner tabs more likely to continue writing.
 	  (cond

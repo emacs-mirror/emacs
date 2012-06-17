@@ -441,7 +441,7 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 ** New error type and new function `user-error'.  Doesn't trigger the debugger.
 
 ** The functions get-lru-window, get-mru-window and get-largest-window
-now accept a third argument to avoid chosing the selected window.
+now accept a third argument to avoid choosing the selected window.
 
 ** Completion
 
