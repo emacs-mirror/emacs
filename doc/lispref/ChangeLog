@@ -1,3 +1,8 @@
+2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
+
+	* display.texi (Face Attributes):
+	Document wave-style underline face attribute.
+
 2012-06-11  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (ImageMagick Images): ImageMagick now supports the
