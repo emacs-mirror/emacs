@@ -323,7 +323,7 @@ static void *test(void *arg, size_t s)
     for(i = 0; i < exactRootsCOUNT; ++i)
         exactRoots[i] = objNULL;
     for(i = 0; i < ambigRootsCOUNT; ++i)
-    ambigRoots[i] = rnd_addr();
+        ambigRoots[i] = rnd_addr();
 
     die(mps_root_create_table_masked(&exactRoot, arena,
                                      MPS_RANK_EXACT, (mps_rm_t)0,
