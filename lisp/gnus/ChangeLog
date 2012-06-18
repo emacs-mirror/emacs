@@ -1,3 +1,7 @@
+2012-06-18  Nelson Ferreira  <nelson.ferreira@ieee.org>  (tiny change)
+
+	* gnus-win.el (gnus-configure-frame): Pass an arg to window-dedicated-p.
+
 2012-06-17  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
 
 	* nnmaildir.el (nnmaildir-request-expire-articles): Ensure that `time'
