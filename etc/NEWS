@@ -429,6 +429,8 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
+** The return value of `defalias' has changed and is now undefined.
+
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.
 

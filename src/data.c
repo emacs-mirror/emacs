@@ -637,8 +637,9 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
     Fput (symbol, Qautoload, XCDR (function));
 
   XSYMBOL (symbol)->function = definition;
-  /* Handle automatic advice activation */
-  if (CONSP (XSYMBOL (symbol)->plist) && !NILP (Fget (symbol, Qad_advice_info)))
+  /* Handle automatic advice activation.  */
+  if (CONSP (XSYMBOL (symbol)->plist)
+      && !NILP (Fget (symbol, Qad_advice_info)))
     {
       call2 (Qad_activate_internal, symbol, Qnil);
       definition = XSYMBOL (symbol)->function;
@@ -647,11 +648,12 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 }
 
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 3, 0,
-       doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
+       doc: /* Set SYMBOL's function definition to DEFINITION.
 Associates the function with the current load file, if any.
 The optional third argument DOCSTRING specifies the documentation string
 for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
-determined by DEFINITION.  */)
+determined by DEFINITION.
+The return value is undefined.  */)
   (register Lisp_Object symbol, Lisp_Object definition, Lisp_Object docstring)
 {
   CHECK_SYMBOL (symbol);
@@ -666,7 +668,10 @@ determined by DEFINITION.  */)
   LOADHIST_ATTACH (Fcons (Qdefun, symbol));
   if (!NILP (docstring))
     Fput (symbol, Qfunction_documentation, docstring);
-  return definition;
+  /* We used to return `definition', but now that `defun' and `defmacro' expand
+     to a call to `defalias', we return `symbol' for backward compatibility
+     (bug#11686).  */
+  return symbol;
 }
 
 DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,

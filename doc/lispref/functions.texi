@@ -530,8 +530,7 @@ defines the symbol @var{name} as a function that looks like this:
 @end example
 
 @code{defun} stores this lambda expression in the function cell of
-@var{name}.  It returns the value @var{name}, but usually we ignore this
-value.
+@var{name}.  Its return value is @emph{undefined}.
 
 As described previously, @var{argument-list} is a list of argument
 names and may include the keywords @code{&optional} and @code{&rest}.
@@ -543,9 +542,6 @@ Here are some examples:
 @example
 @group
 (defun foo () 5)
-     @result{} foo
-@end group
-@group
 (foo)
      @result{} 5
 @end group
@@ -553,9 +549,6 @@ Here are some examples:
 @group
 (defun bar (a &optional b &rest c)
     (list a b c))
-     @result{} bar
-@end group
-@group
 (bar 1 2 3 4 5)
      @result{} (1 2 (3 4 5))
 @end group
@@ -576,7 +569,6 @@ Here are some examples:
   (forward-word 1)
   (backward-char 1)
   (capitalize-word 1))
-     @result{} capitalize-backwards
 @end group
 @end example
 
@@ -593,7 +585,7 @@ redefinition from unintentional redefinition.
 @anchor{Definition of defalias}
 This special form defines the symbol @var{name} as a function, with
 definition @var{definition} (which can be any valid Lisp function).
-It returns @var{definition}.
+Its return value is @emph{undefined}.
 
 If @var{docstring} is non-@code{nil}, it becomes the function
 documentation of @var{name}.  Otherwise, any documentation provided by
@@ -1015,9 +1007,6 @@ function.
 @example
 @group
 (defun bar (n) (+ n 2))
-     @result{} bar
-@end group
-@group
 (symbol-function 'bar)
      @result{} (lambda (n) (+ n 2))
 @end group
@@ -1063,9 +1052,6 @@ subsequent attempt to access this cell will cause a
 @example
 @group
 (defun foo (x) x)
-     @result{} foo
-@end group
-@group
 (foo 1)
      @result{}1
 @end group

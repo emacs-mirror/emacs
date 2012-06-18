@@ -123,7 +123,8 @@ the list ARGS... as it appears in the expression,
 and the result should be a form to be evaluated instead of the original.
 DECL is a declaration, optional, of the form (declare DECLS...) where
 DECLS is a list of elements of the form (PROP . VALUES).  These are
-interpreted according to `macro-declarations-alist'."
+interpreted according to `macro-declarations-alist'.
+The return value is undefined."
        (if (stringp docstring) nil
          (if decl (setq body (cons decl body)))
          (setq decl docstring)
@@ -158,6 +159,7 @@ See also the function `interactive'.
 DECL is a declaration, optional, of the form (declare DECLS...) where
 DECLS is a list of elements of the form (PROP . VALUES).  These are
 interpreted according to `defun-declarations-alist'.
+The return value is undefined.
 
 \(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
   ;; We can't just have `decl' as an &optional argument, because we need

@@ -1,8 +1,12 @@
+2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fdefalias): Return `symbol' (bug#11686).
+
 2012-06-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Fkill_buffer): Don't throw an error when the buffer
-	gets killed during executing of this function (Bug#11665).  Try
-	to always return Qt when the buffer has been actually killed.
+	gets killed during executing of this function (Bug#11665).
+	Try to always return Qt when the buffer has been actually killed.
 	(Vkill_buffer_query_functions): In doc-string say that functions
 	run by this hook should not change the current buffer.
 
@@ -56,8 +60,8 @@
 	(x_draw_glyph_string): Use them.
 	* xfaces.c (Qline, Qwave): New Lisp objects.
 	(check_lface_attrs, merge_face_ref)
-	(Finternal_set_lisp_face_attribute, realize_x_face): Handle
-	wave-style underline face attributes.
+	(Finternal_set_lisp_face_attribute, realize_x_face):
+	Handle wave-style underline face attributes.
 	* xterm.c (x_draw_underwave): New function.
 	(x_draw_glyph_string): Use it.
 
@@ -130,8 +134,8 @@
 
 2012-06-16  Eli Zaretskii  <eliz@gnu.org>
 
-	* xdisp.c (set_cursor_from_row): Don't dereference glyphs_end.  If
-	all the glyphs of the glyph row came from strings, and we have no
+	* xdisp.c (set_cursor_from_row): Don't dereference glyphs_end.
+	If all the glyphs of the glyph row came from strings, and we have no
 	cursor positioning clues, put the cursor on the first glyph of the
 	row.
 	(handle_face_prop): Use chunk-relative overlay string index when
@@ -164,8 +168,8 @@
 	Simplify under the assumption that USE_2_TAGS_FOR_INTS is defined.
 	(INTTYPEBITS): New macro, for clarity.
 	(INTMASK, MOST_POSITIVE_FIXNUM): Use it.
-	(LISP_INT1_TAG, LISP_STRING_TAG, LISP_INT_TAG_P): Simplify
-	now that USE_LSB_TAG is always defined.
+	(LISP_INT1_TAG, LISP_STRING_TAG, LISP_INT_TAG_P):
+	Simplify now that USE_LSB_TAG is always defined.
 	(TYPEMASK, XINT) [USE_LSB_TAG]: Remove unnecessary cast.
 	(make_number) [!USE_LSB_TAG]: Use INTMASK; that's simpler.
 
@@ -183,11 +187,11 @@
 	* lisp.h (Lisp_Object) [CHECK_LISP_OBJECT_TYPE]: Define as struct
 	instead of union.
 	(XLI, XIL): Define.
-	(XHASH, XTYPE, XINT, XUINT, make_number, XSET, XPNTR, XUNTAG): Use
-	them.
-	* emacs.c (gdb_use_struct): Renamed from gdb_use_union.
+	(XHASH, XTYPE, XINT, XUINT, make_number, XSET, XPNTR, XUNTAG):
+	Use them.
+	* emacs.c (gdb_use_struct): Rename from gdb_use_union.
 	* .gdbinit: Check gdb_use_struct instead of gdb_use_union.
-	* alloc.c (widen_to_Lisp_Object): Removed.
+	* alloc.c (widen_to_Lisp_Object): Remove.
 	(mark_memory): Use XIL instead of widen_to_Lisp_Object.
 	* frame.c (delete_frame): Remove outdated comment.
 	* w32fns.c (Fw32_register_hot_key): Use XLI instead of checking

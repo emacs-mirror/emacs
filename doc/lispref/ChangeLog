@@ -1,3 +1,9 @@
+2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Defining Functions):
+	* macros.texi (Defining Macros): Un-define the return value of `defun',
+	`defmacro' and `defalias'.
+
 2012-06-17  Chong Yidong  <cyd@gnu.org>
 
 	* elisp.texi: Remove urlcolor setting.

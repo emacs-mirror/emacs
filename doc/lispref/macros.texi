@@ -113,7 +113,6 @@ uses this feature.
 @group
 (defmacro inc (var)
     (list 'setq var (list '1+ var)))
-     @result{} inc
 @end group
 
 @group
@@ -124,7 +123,6 @@ uses this feature.
 @group
 (defmacro inc2 (var1 var2)
     (list 'progn (list 'inc var1) (list 'inc var2)))
-     @result{} inc2
 @end group
 
 @group
@@ -207,9 +205,8 @@ like this:
 @end example
 
 (Note that the @sc{cdr} of this list is a function---a lambda expression.)
-This macro object is stored in the function cell of @var{name}.  The
-value returned by evaluating the @code{defmacro} form is @var{name}, but
-usually we ignore this value.
+This macro object is stored in the function cell of @var{name}.  Its return
+value is @emph{undefined}.
 
 The shape and meaning of @var{argument-list} is the same as in a
 function, and the keywords @code{&rest} and @code{&optional} may be used
@@ -342,7 +339,6 @@ For example, (for i from 1 to 10 do (print i))."
               (cons (list '<= var final)
                     (append body (list (list 'inc var)))))))
 @end group
-@result{} for
 
 @group
 (for i from 1 to 3 do
@@ -512,7 +508,6 @@ it.  Here is an example:
 @group
 (defmacro foo (a)
   (list 'setq (eval a) t))
-     @result{} foo
 @end group
 @group
 (setq x 'b)
