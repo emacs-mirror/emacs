@@ -1,4 +1,4 @@
-;;; python.el --- Python's flying circus support for Emacs
+;;; python.el --- Python's flying circus support for Emacs -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
