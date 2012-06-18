@@ -4192,8 +4192,6 @@ or matches BUFFER-NAME, the return value is the cdr of that
 entry."
   (let (tmp)
     (cond
-     ((not (stringp buffer-name))
-      (error "Invalid buffer name %s" buffer-name))
      ((member buffer-name special-display-buffer-names)
       t)
      ((setq tmp (assoc buffer-name special-display-buffer-names))

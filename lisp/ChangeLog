@@ -1,3 +1,8 @@
+2012-06-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (special-display-p): Completely remove stringp
+	check.  Suggested by Andreas Schwab <schwab@linux-m68k.org>.
+
 2012-06-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* minibuffer.el (read-file-name-default): Bind `non-essential' to `t'.
