@@ -1,3 +1,8 @@
+2012-06-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* minibuffer.el (read-file-name-default): Revert the patch from
+	2012-06-17.
+
 2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--expand): Warn for unused pattern.
