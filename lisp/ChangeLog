@@ -1,3 +1,9 @@
+2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-rx-constituents): Move backquote.
+	(python-skeleton-define, python-define-auxiliary-skeleton):
+	Use `declare'.
+
 2012-06-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* minibuffer.el (read-file-name-default): Revert the patch from
