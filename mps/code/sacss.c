@@ -148,21 +148,41 @@ static size_t randomSize8(int i)
 
 /* testInArena -- test all the pool classes in the given arena */
 
-static mps_pool_debug_option_s debugOptions =
-  { (void *)"postpostpostpost", 16, NULL, 0 };
+static mps_pool_debug_option_s debugOptions8 = {
+  /* .fence_template = */   (void *)"postpost",
+  /* .fence_size = */       8,
+  /* .free_template = */    (void *)"DEAD",
+  /* .free_size = */        4
+};
 
-static mps_sac_classes_s classes[4] = { {16, 1, 1}, {32, 1, 2}, {144, 9, 5},
+static mps_pool_debug_option_s debugOptions16 = {
+  /* .fence_template = */   (void *)"postpostpostpost",
+  /* .fence_size = */       16,
+  /* .free_template = */    (void *)"DEAD",
+  /* .free_size = */        4
+};
+
+static mps_sac_classes_s classes8[4] = { {8, 1, 1}, {16, 1, 2}, {136, 9, 5},
+                                        {topClassSIZE, 9, 4} };
+
+static mps_sac_classes_s classes16[4] = { {16, 1, 1}, {32, 1, 2}, {144, 9, 5},
                                         {topClassSIZE, 9, 4} };
 
 static int testInArena(mps_arena_t arena)
 {
+  mps_pool_debug_option_s *debugOptions;
+  mps_sac_classes_s *classes;
+  
+  debugOptions = MPS_PF_ALIGN == 8 ? &debugOptions8 : &debugOptions16;
+  classes = MPS_PF_ALIGN == 8 ? classes8 : classes16;
+
   printf("MVFF\n\n");
   die(stress(mps_class_mvff(), classCOUNT, classes, randomSize8, arena,
              (size_t)65536, (size_t)32, sizeof(void *), TRUE, TRUE, TRUE),
       "stress MVFF");
   printf("MV debug\n\n");
   die(stress(mps_class_mv_debug(), classCOUNT, classes, randomSize8, arena,
-             &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
+             debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV debug");
   printf("MV\n\n");
   die(stress(mps_class_mv(), classCOUNT, classes, randomSize8, arena,
