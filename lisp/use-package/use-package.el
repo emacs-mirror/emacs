@@ -75,8 +75,17 @@
 ;; on your system.  So remember to keep `:init' activities to only those that
 ;; would succeed either way.
 ;;
-;; If you aren't using `:commands' or `:bind' (which implies `:commands'), you
-;; can still defer loading with the `:defer' keyword:
+;; Similar to `:bind', you can use `:mode' and `:interpreter' to establish a
+;; deferred binding within `auto-mode-alist' and `auto-interpreter-alist'.
+;; The specifier to either keyword can be a single cons or a list:
+;;
+;;   (use-package python-mode
+;;     :mode ("\\.py$" . python-mode)
+;;     :interpreter ("python" . python-mode))
+;;
+;; If you aren't using `:commands', `:bind', `:mode', or `:interpreter' (all
+;; of which imply `:commands'), you can still defer loading with the `:defer'
+;; keyword:
 ;;
 ;;   (use-package ace-jump-mode
 ;;     :defer t
@@ -243,14 +252,14 @@
 ;;                   (cons (plist-get entry :symbol)
 ;;                         `(status "installed" recipe ,entry)))
 ;;               el-get-sources)))
+
+;;; Code:
 
 (require 'bind-key)
 
 (defgroup use-package nil
   "A use-package declaration for simplifying your .emacs"
   :group 'startup)
-
-;;;_ , Create use-package macro, to simplify customizations
 
 (eval-when-compile
   (require 'cl))
@@ -278,13 +287,35 @@
 
 (put 'with-elapsed-timer 'lisp-indent-function 1)
 
+(defun use-package-discover-el-get-type (args)
+  (let* ((pkg-name (plist-get args :name))
+         (git-config  (expand-file-name
+                       (concat pkg-name "/.git/config")
+                       user-site-lisp-directory)))
+
+    (catch 'found
+      ;; Look for a readable .git/config with at least one defined remote.
+      (if (file-readable-p git-config)
+          (with-temp-buffer
+            (insert-file-contents-literally git-config)
+            (while (re-search-forward "\\[remote" nil t)
+              (if (re-search-forward "url = \\(.+\\)"
+                                     (save-excursion
+                                       (re-search-forward "\\[remote" nil t)
+                                       (point)) t)
+                  (nconc args (list :type 'git
+                                    :url (match-string 1))))))))
+    args))
+
 (defmacro use-package (name &rest args)
   (let* ((commands (plist-get args :commands))
          (init-body (plist-get args :init))
          (config-body (plist-get args :config))
          (diminish-var (plist-get args :diminish))
          (defines (plist-get args :defines))
-         (keybindings (plist-get args :bind))
+         (keybindings )
+         (mode-alist )
+         (interpreter-alist )
          (predicate (plist-get args :if))
          (pkg-load-path (plist-get args :load-path))
          (defines-eval (if (null defines)
@@ -302,32 +333,50 @@
          (name-string (if (stringp name) name
                         (symbol-name name))))
 
-    (if diminish-var
-        (setq config-body
-              `(progn
-                 ,config-body
-                 (ignore-errors
-                   ,@(if (listp diminish-var)
-                         (mapcar (lambda (var) `(diminish (quote ,var)))
-                                 diminish-var)
-                       `((diminish (quote ,diminish-var))))))))
+    (unless (plist-get args :disabled)
+      (if diminish-var
+          (setq config-body
+                `(progn
+                   ,config-body
+                   (ignore-errors
+                     ,@(if (listp diminish-var)
+                           (mapcar (lambda (var) `(diminish (quote ,var)))
+                                   diminish-var)
+                         `((diminish (quote ,diminish-var))))))))
 
-    (when keybindings
       (if (and commands (symbolp commands))
           (setq commands (list commands)))
-      (setq init-body
-            `(progn
-               ,init-body
-               ,@(mapcar #'(lambda (binding)
-                             (push (cdr binding) commands)
-                             `(bind-key ,(car binding)
-                                        (quote ,(cdr binding))))
-                         (if (and (consp keybindings)
-                                  (stringp (car keybindings)))
-                             (list keybindings)
-                           keybindings)))))
 
-    (unless (plist-get args :disabled)
+      (flet ((init-for-commands
+              (func sym-or-list)
+              (let ((cons-list (if (and (consp sym-or-list)
+                                        (stringp (car sym-or-list)))
+                                   (list sym-or-list)
+                                 sym-or-list)))
+                (if cons-list
+                    (setq init-body
+                          `(progn
+                             ,init-body
+                             ,@(mapcar #'(lambda (elem)
+                                           (push (cdr elem) commands)
+                                           (funcall func elem))
+                                       cons-list)))))))
+
+        (init-for-commands #'(lambda (binding)
+                               `(bind-key ,(car binding)
+                                          (quote ,(cdr binding))))
+                           (plist-get args :bind))
+
+        (init-for-commands #'(lambda (mode)
+                               `(add-to-list 'auto-mode-alist
+                                             (quote ,mode)))
+                           (plist-get args :mode))
+
+        (init-for-commands #'(lambda (interpreter)
+                               `(add-to-list 'interpreter-mode-alist
+                                             (quote ,interpreter)))
+                           (plist-get args :interpreter)))
+
       `(progn
          ,@(mapcar
             #'(lambda (path)
@@ -345,29 +394,31 @@
                 `(load ,name t)
               `(require ',name nil t)))
 
-         ,(when (and (boundp 'el-get-sources)
-                     (plist-get args :type))
-            (setq args
-                  (mapcar #'(lambda (arg)
-                              (cond
-                               ((eq arg :config)
-                                :after)
-                               ((eq arg :requires)
-                                :depends)
-                               (t
-                                arg)))
-                          args))
+         ,(when (boundp 'el-get-sources)
             (unless (plist-get args :name)
-              (nconc args (list :name (if (stringp name)
-                                          name (symbol-name name)))))
-            (nconc args (list :symbol (if (stringp name)
-                                          (intern name) name)))
-            `(push (quote ,args) el-get-sources))
+              (nconc args (list :name name-string)))
+
+            (unless (plist-get args :type)
+              (setq args (use-package-discover-el-get-type args)))
+
+            (when (plist-get args :type)
+              (setq args
+                    (mapcar #'(lambda (arg)
+                                (cond
+                                 ((eq arg :config)
+                                  :after)
+                                 ((eq arg :requires)
+                                  :depends)
+                                 (t
+                                  arg)))
+                            args))
+
+              (nconc args (list :symbol (intern name-string)))
+
+              `(push (quote ,args) el-get-sources)))
 
          ,(if (or commands (plist-get args :defer))
               (let (form)
-                (unless (listp commands)
-                  (setq commands (list commands)))
                 (mapc #'(lambda (command)
                           (push `(autoload (function ,command)
                                    ,name-string nil t) form))
