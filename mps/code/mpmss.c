@@ -127,9 +127,14 @@ static size_t fixedSize(int i)
 }
 
 
-/* testInArena -- test all the pool classes in the given arena */
+static mps_pool_debug_option_s bothOptions8 = {
+  /* .fence_template = */   (void *)"postpost",
+  /* .fence_size = */       8,
+  /* .free_template = */    (void *)"DEAD",
+  /* .free_size = */        4
+};
 
-static mps_pool_debug_option_s bothOptions = {
+static mps_pool_debug_option_s bothOptions16 = {
   /* .fence_template = */   (void *)"postpostpostpost",
   /* .fence_size = */       16,
   /* .free_template = */    (void *)"DEAD",
@@ -142,6 +147,8 @@ static mps_pool_debug_option_s fenceOptions = {
   /* .free_template = */    NULL,
   /* .free_size = */        0
 };
+
+/* testInArena -- test all the pool classes in the given arena */
 
 static int testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 {
@@ -174,12 +181,15 @@ static int testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 int main(int argc, char **argv)
 {
   mps_arena_t arena;
+  mps_pool_debug_option_s *bothOptions;
+  
+  bothOptions = MPS_PF_ALIGN == 8 ? &bothOptions8 : &bothOptions16;
 
   randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-  testInArena(arena, &bothOptions);
+  testInArena(arena, bothOptions);
   mps_arena_destroy(arena);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), smallArenaSIZE),

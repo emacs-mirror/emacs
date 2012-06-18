@@ -27,7 +27,7 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
 
 static mps_fmt_A_s locv_fmt =
   {
-    (mps_align_t)8,  /* was 4 @@@@ FIXME: W3I6MV Temporary fix */
+    (mps_align_t)0,  /* .fmt.align.delayed: to be filled in */
     scan,
     skip,
     copy,
@@ -48,6 +48,8 @@ int main(void)
   mps_addr_t p;
   mps_root_t root;
 
+  locv_fmt.align = sizeof(void *);  /* .fmt.align.delayed */
+
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
   die(mps_root_create_table(&root, arena, MPS_RANK_EXACT,
@@ -61,24 +63,22 @@ int main(void)
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "APCreate");
 
-  /* was 4 @@@@ FIXME: W3I6MV Temporary fix */
-  die(mps_reserve(&p, ap, (size_t)8), "mps_reserve 4");
-  *(mps_word_t *)p = 8;
-  cdie(mps_commit(ap, p, (size_t)8), "commit 4");
+  die(mps_reserve(&p, ap, sizeof(void *)), "mps_reserve min");
+  *(mps_word_t *)p = sizeof(void *);
+  cdie(mps_commit(ap, p, sizeof(void *)), "commit min");
   
-  die(mps_reserve(&roots[1], ap, (size_t)8), "mps_reserve 8");
+  die(mps_reserve(&roots[1], ap, 2*sizeof(void *)), "mps_reserve 2*min");
   p = roots[1];
-  *(mps_word_t *)p = 8;
-  cdie(mps_commit(ap, p, (size_t)8), "commit 8");
+  *(mps_word_t *)p = 2*sizeof(void *);
+  cdie(mps_commit(ap, p, 2*sizeof(void *)), "commit 2*min");
   
   die(mps_reserve(&p, ap, (size_t)4096), "mps_reserve 4096");
   *(mps_word_t *)p = 4096;
   cdie(mps_commit(ap, p, (size_t)4096), "commit 4096");
   
-  /* was 4 @@@@ FIXME: W3I6MV Temporary fix */
-  die(mps_reserve(&p, ap, (size_t)8), "mps_reserve last");
-  *(mps_word_t *)p = 8;
-  cdie(mps_commit(ap, p, (size_t)8), "commit last");
+  die(mps_reserve(&p, ap, sizeof(void *)), "mps_reserve last");
+  *(mps_word_t *)p = sizeof(void *);
+  cdie(mps_commit(ap, p, sizeof(void *)), "commit last");
 
   {
     size_t count = 0;
