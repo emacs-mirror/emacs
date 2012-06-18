@@ -237,7 +237,8 @@ of the form (UPAT EXP)."
                       ;; the branch to a separate function.
                       (let ((bsym
                              (make-symbol (format "pcase-%d" (length defs)))))
-                        (push `(,bsym (lambda ,(mapcar #'car prevvars) ,@code)) defs)
+                        (push `(,bsym (lambda ,(mapcar #'car prevvars) ,@code))
+                              defs)
                         (setcar res 'funcall)
                         (setcdr res (cons bsym (mapcar #'cdr prevvars)))
                         (setcar (cddr prev) bsym)
@@ -255,17 +256,26 @@ of the form (UPAT EXP)."
                       ;; FIXME: But if some of `prevvars' are not in `vars' we
                       ;; should remove them from `prevvars'!
                       `(funcall ,res ,@args)))))))
+           (used-cases ())
            (main
             (pcase--u
              (mapcar (lambda (case)
                        `((match ,val . ,(car case))
-                         ,(apply-partially
-                           (if (pcase--small-branch-p (cdr case))
-                               ;; Don't bother sharing multiple
-                               ;; occurrences of this leaf since it's small.
-                               #'pcase-codegen codegen)
-                           (cdr case))))
+                         ,(lambda (vars)
+                            (unless (memq case used-cases)
+                              ;; Keep track of the cases that are used.
+                              (push case used-cases))
+                            (funcall
+                             (if (pcase--small-branch-p (cdr case))
+                                 ;; Don't bother sharing multiple
+                                 ;; occurrences of this leaf since it's small.
+                                 #'pcase-codegen codegen)
+                             (cdr case)
+                             vars))))
                      cases))))
+      (dolist (case cases)
+        (unless (or (memq case used-cases) (eq (car case) 'dontcare))
+          (message "Redundant pcase pattern: %S" (car case))))
       (macroexp-let* defs main))))
 
 (defun pcase-codegen (code vars)
@@ -566,7 +576,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         (if (eq (car upat) 'pred) (put sym 'pcase-used t))
         (let* ((splitrest
                 (pcase--split-rest
-                 sym (apply-partially #'pcase--split-pred upat) rest))
+                 sym (lambda (pat) (pcase--split-pred upat pat)) rest))
                (then-rest (car splitrest))
                (else-rest (cdr splitrest)))
           (pcase--if (if (and (eq (car upat) 'pred) (symbolp (cadr upat)))
@@ -636,7 +646,7 @@ Otherwise, it defers to REST which is a list of branches of the form
               (let* ((elems (mapcar 'cadr (cdr upat)))
                      (splitrest
                       (pcase--split-rest
-                       sym (apply-partially #'pcase--split-member elems) rest))
+                       sym (lambda (pat) (pcase--split-member elems pat)) rest))
                      (then-rest (car splitrest))
                      (else-rest (cdr splitrest)))
                 (put sym 'pcase-used t)
@@ -693,7 +703,7 @@ Otherwise, it defers to REST which is a list of branches of the form
            (symd (make-symbol "xcdr"))
            (splitrest (pcase--split-rest
                        sym
-                       (apply-partially #'pcase--split-consp syma symd)
+                       (lambda (pat) (pcase--split-consp syma symd pat))
                        rest))
            (then-rest (car splitrest))
            (else-rest (cdr splitrest))
@@ -716,7 +726,7 @@ Otherwise, it defers to REST which is a list of branches of the form
        (pcase--u else-rest))))
    ((or (integerp qpat) (symbolp qpat) (stringp qpat))
       (let* ((splitrest (pcase--split-rest
-                         sym (apply-partially 'pcase--split-equal qpat) rest))
+                         sym (lambda (pat) (pcase--split-equal qpat pat)) rest))
              (then-rest (car splitrest))
              (else-rest (cdr splitrest)))
       (pcase--if (cond
