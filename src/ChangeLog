@@ -1,3 +1,11 @@
+2012-06-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix recently-introduced process.c problems found by static checking.
+	* process.c (write_queue_push, write_queue_pop, send_process):
+	Use ptrdiff_t, not int or EMACS_INT, for buffer lengths and offsets.
+	(write_queue_pop): Fix pointer signedness problem.
+	(send_process): Remove unused local.
+
 2012-06-17  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (redisplay_internal): No need to redisplay terminal

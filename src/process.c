@@ -5393,9 +5393,9 @@ send_process_trap (int ignore)
 
 static void
 write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
-                  const char *buf, int len, int front)
+                  const char *buf, ptrdiff_t len, int front)
 {
-  EMACS_INT offset;
+  ptrdiff_t offset;
   Lisp_Object entry, obj;
 
   if (STRINGP (input_obj))
@@ -5423,10 +5423,10 @@ write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
 
 static int
 write_queue_pop (struct Lisp_Process *p, Lisp_Object *obj,
-		 const char **buf, EMACS_INT *len)
+		 const char **buf, ptrdiff_t *len)
 {
   Lisp_Object entry, offset_length;
-  EMACS_INT offset;
+  ptrdiff_t offset;
 
   if (NILP (p->write_queue))
     return 0;
@@ -5439,7 +5439,7 @@ write_queue_pop (struct Lisp_Process *p, Lisp_Object *obj,
 
   *len = XINT (XCDR (offset_length));
   offset = XINT (XCAR (offset_length));
-  *buf = SDATA (*obj) + offset;
+  *buf = SSDATA (*obj) + offset;
 
   return 1;
 }
@@ -5584,7 +5584,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 
       do   /* while !NILP (p->write_queue) */
 	{
-	  EMACS_INT cur_len = -1;
+	  ptrdiff_t cur_len = -1;
 	  const char *cur_buf;
 	  Lisp_Object cur_object;
 
@@ -5653,8 +5653,6 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		       that may allow the program
 		       to finish doing output and read more.  */
 		    {
-		      ptrdiff_t offset = 0;
-
 #ifdef BROKEN_PTY_READ_AFTER_EAGAIN
 		      /* A gross hack to work around a bug in FreeBSD.
 			 In the following sequence, read(2) returns
@@ -5680,15 +5678,14 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 			}
 #endif /* BROKEN_PTY_READ_AFTER_EAGAIN */
 
-		      /* Put what we should have written in
-			 wait_queue */
+		      /* Put what we should have written in wait_queue.  */
 		      write_queue_push (p, cur_object, cur_buf, cur_len, 1);
 #ifdef EMACS_HAS_USECS
 		      wait_reading_process_output (0, 20000, 0, 0, Qnil, NULL, 0);
 #else
 		      wait_reading_process_output (1, 0, 0, 0, Qnil, NULL, 0);
 #endif
-		      /* reread queue, to see what is left */
+		      /* Reread queue, to see what is left.  */
 		      break;
 		    }
 		  else
