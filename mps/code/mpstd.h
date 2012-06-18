@@ -155,10 +155,13 @@
 #define MPS_PF_ALIGN    8
 
 
-/* Duplicated from W3I3MV, then... @@@@
- * "Predefined Macros" from "Visual Studio 2010" on MSDN
+/* "Predefined Macros" from "Visual Studio 2010" on MSDN
  * <http://msdn.microsoft.com/en-us/library/b0084kay(v=vs.100).aspx>.
  * Note that Win32 includes 64-bit Windows!
+ * We use the same alignment as MS malloc: 16, which is used for XMM
+ * operations.
+ * See MSDN -> x64 Software Conventions -> Overview of x64 Calling Conventions
+ * <http://msdn.microsoft.com/en-us/library/ms235286> 
  */
 
 #elif defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
@@ -175,7 +178,7 @@
 #define MPS_T_ULONGEST  unsigned __int64
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
-#define MPS_PF_ALIGN    16 /* @@@@ ref? */
+#define MPS_PF_ALIGN    16
 
 
 /* MW C/C++/ASM Lang Ref (CW9), pp. 184-186.  Metrowerks does not document
@@ -299,23 +302,6 @@
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4       /* I'm just guessing. */
-
-/* @@@@ fill in */
-
-#elif defined(__APPLE__) && defined(__x86_64__) && defined(__MACH__) \
-      && defined(__GNUC__)
-#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_XCI6GC)
-#error "specified CONFIG_PF_... inconsistent with detected xci6gc"
-#endif
-#define MPS_PF_XCI6GC
-#define MPS_PF_STRING   "xci6gc"
-#define MPS_OS_XC
-#define MPS_ARCH_I6
-#define MPS_BUILD_GC
-#define MPS_T_WORD      unsigned long
-#define MPS_WORD_WIDTH  64
-#define MPS_WORD_SHIFT  6
-#define MPS_PF_ALIGN    8       /* I'm just guessing. */
 
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
