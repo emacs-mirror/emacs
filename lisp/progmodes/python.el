@@ -1569,10 +1569,10 @@ there for compatibility with CEDET.")
     (get-buffer-process proc-buffer-name)))
 
 (define-obsolete-function-alias
-  'python-proc 'python-shell-internal-get-or-create-process "23.3")
+  'python-proc 'python-shell-internal-get-or-create-process "24.2")
 
 (define-obsolete-variable-alias
-  'python-buffer 'python-shell-internal-buffer "23.3")
+  'python-buffer 'python-shell-internal-buffer "24.2")
 
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
@@ -1627,10 +1627,10 @@ Returns the output.  See `python-shell-send-string-no-output'."
    (python-shell-internal-get-or-create-process) nil))
 
 (define-obsolete-function-alias
-  'python-send-receive 'python-shell-internal-send-string "23.3")
+  'python-send-receive 'python-shell-internal-send-string "24.2")
 
 (define-obsolete-function-alias
-  'python-send-string 'python-shell-internal-send-string "23.3")
+  'python-send-string 'python-shell-internal-send-string "24.2")
 
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."

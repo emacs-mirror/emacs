@@ -1,3 +1,8 @@
+2012-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/python.el (python-proc, python-buffer)
+	(python-send-receive, python-send-string): Fix obsolete versions.
+
 2012-06-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (special-display-p): Completely remove stringp
