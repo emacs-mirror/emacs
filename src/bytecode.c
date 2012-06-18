@@ -58,21 +58,21 @@ by Hallvard:
 #ifdef BYTE_CODE_METER
 
 Lisp_Object Qbyte_code_meter;
-#define METER_2(code1, code2) \
-  XFASTINT (XVECTOR (XVECTOR (Vbyte_code_meter)->contents[(code1)]) \
-	    ->contents[(code2)])
-
-#define METER_1(code) METER_2 (0, (code))
+#define METER_2(code1, code2) AREF (AREF (Vbyte_code_meter, code1), code2)
+#define METER_1(code) METER_2 (0, code)
 
 #define METER_CODE(last_code, this_code)				\
 {									\
   if (byte_metering_on)							\
     {									\
-      if (METER_1 (this_code) < MOST_POSITIVE_FIXNUM)			\
-        METER_1 (this_code)++;						\
+      if (XFASTINT (METER_1 (this_code)) < MOST_POSITIVE_FIXNUM)	\
+        XSETFASTINT (METER_1 (this_code),				\
+		     XFASTINT (METER_1 (this_code)) + 1);		\
       if (last_code							\
-	  && METER_2 (last_code, this_code) < MOST_POSITIVE_FIXNUM)	\
-        METER_2 (last_code, this_code)++;				\
+	  && (XFASTINT (METER_2 (last_code, this_code))			\
+	      < MOST_POSITIVE_FIXNUM))					\
+        XSETFASTINT (METER_2 (last_code, this_code),			\
+		     XFASTINT (METER_2 (last_code, this_code)) + 1);	\
     }									\
 }
 
