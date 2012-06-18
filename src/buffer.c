@@ -1434,24 +1434,26 @@ No argument or nil as argument means do this for the current buffer.  */)
   DEFVAR_LISP ("kill-buffer-hook", ..., "\
 Hook to be run (by `run-hooks', which see) when a buffer is killed.\n\
 The buffer being killed will be current while the hook is running.\n\
-See `kill-buffer'."
- */
+
+Functions run by this hook are supposed to not change the current
+buffer.  See `kill-buffer'."
+*/
 DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 0, 1, "bKill buffer: ",
-       doc: /* Kill buffer BUFFER-OR-NAME.
+       doc: /* Kill the buffer specified by BUFFER-OR-NAME.
 The argument may be a buffer or the name of an existing buffer.
 Argument nil or omitted means kill the current buffer.  Return t if the
 buffer is actually killed, nil otherwise.
 
-This function calls `replace-buffer-in-windows' for cleaning up all
-windows currently displaying the buffer to be killed.  The functions in
-`kill-buffer-query-functions' are called with the buffer to be killed as
-the current buffer.  If any of them returns nil, the buffer is not
-killed.  The hook `kill-buffer-hook' is run before the buffer is
-actually killed.  The buffer being killed will be current while the hook
-is running.
+The functions in `kill-buffer-query-functions' are called with the
+buffer to be killed as the current buffer.  If any of them returns nil,
+the buffer is not killed.  The hook `kill-buffer-hook' is run before the
+buffer is actually killed.  The buffer being killed will be current
+while the hook is running.  Functions called by any of these hooks are
+supposed to not change the current buffer.
 
 Any processes that have this buffer as the `process-buffer' are killed
-with SIGHUP.  */)
+with SIGHUP.  This function calls `replace-buffer-in-windows' for
+cleaning up all windows currently displaying the buffer to be killed. */)
   (Lisp_Object buffer_or_name)
 {
   Lisp_Object buffer;
@@ -1505,15 +1507,16 @@ with SIGHUP.  */)
     unbind_to (count, Qnil);
   }
 
+  /* If the hooks have killed the buffer, exit now.  */
+  if (NILP (BVAR (b, name)))
+    return Qt;
+
   /* We have no more questions to ask.  Verify that it is valid
      to kill the buffer.  This must be done after the questions
      since anything can happen within do_yes_or_no_p.  */
 
   /* Don't kill the minibuffer now current.  */
   if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
-    return Qnil;
-
-  if (NILP (BVAR (b, name)))
     return Qnil;
 
   /* When we kill a base buffer, kill all its indirect buffers.
@@ -1536,6 +1539,10 @@ with SIGHUP.  */)
 	  }
 
       UNGCPRO;
+
+      /* Exit if we now have killed the base buffer (Bug#11665).  */
+      if (NILP (BVAR (b, name)))
+	return Qt;
     }
 
   /* Run replace_buffer_in_windows before making another buffer current
@@ -1544,9 +1551,12 @@ with SIGHUP.  */)
      buffer.  (Bug#10114) */
   replace_buffer_in_windows (buffer);
 
-     /* Make this buffer not be current.
-     In the process, notice if this is the sole visible buffer
-     and give up if so.  */
+  /* Exit if replacing the buffer in windows has killed our buffer.  */
+  if (NILP (BVAR (b, name)))
+    return Qt;
+
+  /* Make this buffer not be current.  Exit if it is the sole visible
+     buffer.  */
   if (b == current_buffer)
     {
       tem = Fother_buffer (buffer, Qnil, Qnil);
@@ -1555,15 +1565,12 @@ with SIGHUP.  */)
 	return Qnil;
     }
 
-  /* Notice if the buffer to kill is the sole visible buffer
-     when we're currently in the mini-buffer, and give up if so.  */
+  /* If the buffer now current is shown in the minibuffer and our buffer
+     is the sole other buffer give up.  */
   XSETBUFFER (tem, current_buffer);
-  if (EQ (tem, XWINDOW (minibuf_window)->buffer))
-    {
-      tem = Fother_buffer (buffer, Qnil, Qnil);
-      if (EQ (buffer, tem))
-	return Qnil;
-    }
+  if (EQ (tem, XWINDOW (minibuf_window)->buffer)
+      && EQ (buffer, Fother_buffer (buffer, Qnil, Qnil)))
+    return Qnil;
 
   /* Now there is no question: we can kill the buffer.  */
 
@@ -1576,11 +1583,10 @@ with SIGHUP.  */)
   kill_buffer_processes (buffer);
   UNGCPRO;
 
-  /* Killing buffer processes may run sentinels which may
-     have called kill-buffer.  */
-
+  /* Killing buffer processes may run sentinels which may have killed
+     our buffer.  */
   if (NILP (BVAR (b, name)))
-    return Qnil;
+    return Qt;
 
   /* These may run Lisp code and into infinite loops (if someone
      insisted on circular lists) so allow quitting here.  */
@@ -1592,8 +1598,7 @@ with SIGHUP.  */)
   Vinhibit_quit = Qt;
   /* Remove the buffer from the list of all buffers.  */
   Vbuffer_alist = Fdelq (Frassq (buffer, Vbuffer_alist), Vbuffer_alist);
-  /* If replace_buffer_in_windows didn't do its job correctly fix that
-     now.  */
+  /* If replace_buffer_in_windows didn't do its job fix that now.  */
   replace_buffer_in_windows_safely (buffer);
   Vinhibit_quit = tem;
 
@@ -1610,6 +1615,10 @@ with SIGHUP.  */)
       if (! NILP (delete))
 	internal_delete_file (BVAR (b, auto_save_file_name));
     }
+
+  /* Deleting an auto-save file could have killed our buffer.  */
+  if (NILP (BVAR (b, name)))
+    return Qt;
 
   if (b->base_buffer)
     {
@@ -5991,7 +6000,9 @@ Use Custom to set this variable and update the display."  */);
   DEFVAR_LISP ("kill-buffer-query-functions", Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.
 The buffer being killed will be current while the functions are running.
-If any of them returns nil, the buffer is not killed.  */);
+
+If any of them returns nil, the buffer is not killed.  Functions run by
+this hook are supposed to not change the current buffer.  */);
   Vkill_buffer_query_functions = Qnil;
 
   DEFVAR_LISP ("change-major-mode-hook", Vchange_major_mode_hook,

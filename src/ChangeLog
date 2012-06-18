@@ -1,3 +1,11 @@
+2012-06-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fkill_buffer): Don't throw an error when the buffer
+	gets killed during executing of this function (Bug#11665).  Try
+	to always return Qt when the buffer has been actually killed.
+	(Vkill_buffer_query_functions): In doc-string say that functions
+	run by this hook should not change the current buffer.
+
 2012-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix recently-introduced process.c problems found by static checking.
