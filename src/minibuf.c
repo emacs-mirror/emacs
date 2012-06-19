@@ -1035,12 +1035,20 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
   (Lisp_Object prompt, Lisp_Object initial_input, Lisp_Object history, Lisp_Object default_value, Lisp_Object inherit_input_method)
 {
   Lisp_Object val;
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  /* Just in case we're in a recursive minibuffer, make it clear that the
+     previous minibuffer's completion table does not apply to the new
+     minibuffer.
+     FIXME: `minibuffer-completion-table' should be buffer-local instead.  */
+  specbind (Qminibuffer_completion_table, Qnil);
+
   val = Fread_from_minibuffer (prompt, initial_input, Qnil,
 			       Qnil, history, default_value,
 			       inherit_input_method);
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (default_value))
     val = CONSP (default_value) ? XCAR (default_value) : default_value;
-  return val;
+  return unbind_to (count, val);
 }
 
 DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 3, 0,

@@ -1,3 +1,7 @@
+2012-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fread_string): Bind minibuffer-completion-table.
+
 2012-06-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c, bytecode.c, ccl.c, coding.c, composite.c, data.c, dosfns.c:
