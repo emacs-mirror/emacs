@@ -61,7 +61,7 @@ static Lisp_Object Vccl_program_table;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
-  (XHASH_TABLE (XCDR (XVECTOR (Vtranslation_hash_table_vector)->contents[(id)])))
+  (XHASH_TABLE (XCDR (AREF (Vtranslation_hash_table_vector, (id)))))
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.

@@ -988,7 +988,7 @@ text property.  */)
       }
 
   if (val < ASIZE (Vsyntax_code_object) && NILP (match))
-    return XVECTOR (Vsyntax_code_object)->contents[val];
+    return AREF (Vsyntax_code_object, val);
   else
     /* Since we can't use a shared object, let's make a new one.  */
     return Fcons (make_number (val), match);
@@ -3386,32 +3386,31 @@ init_syntax_once (void)
   /* Create objects which can be shared among syntax tables.  */
   Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
   for (i = 0; i < ASIZE (Vsyntax_code_object); i++)
-    XVECTOR (Vsyntax_code_object)->contents[i]
-      = Fcons (make_number (i), Qnil);
+    ASET (Vsyntax_code_object, i, Fcons (make_number (i), Qnil));
 
   /* Now we are ready to set up this property, so we can
      create syntax tables.  */
   Fput (Qsyntax_table, Qchar_table_extra_slots, make_number (0));
 
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Swhitespace];
+  temp = AREF (Vsyntax_code_object, (int) Swhitespace);
 
   Vstandard_syntax_table = Fmake_char_table (Qsyntax_table, temp);
 
   /* Control characters should not be whitespace.  */
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Spunct];
+  temp = AREF (Vsyntax_code_object, (int) Spunct);
   for (i = 0; i <= ' ' - 1; i++)
     SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 0177, temp);
 
   /* Except that a few really are whitespace.  */
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Swhitespace];
+  temp = AREF (Vsyntax_code_object, (int) Swhitespace);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, ' ', temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\t', temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\n', temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 015, temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 014, temp);
 
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
+  temp = AREF (Vsyntax_code_object, (int) Sword);
   for (i = 'a'; i <= 'z'; i++)
     SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
   for (i = 'A'; i <= 'Z'; i++)
@@ -3439,14 +3438,14 @@ init_syntax_once (void)
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\\',
 			Fcons (make_number ((int) Sescape), Qnil));
 
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Ssymbol];
+  temp = AREF (Vsyntax_code_object, (int) Ssymbol);
   for (i = 0; i < 10; i++)
     {
       c = "_-+*/&|<>="[i];
       SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, c, temp);
     }
 
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Spunct];
+  temp = AREF (Vsyntax_code_object, (int) Spunct);
   for (i = 0; i < 12; i++)
     {
       c = ".,;:?!#@~^'`"[i];
@@ -3454,7 +3453,7 @@ init_syntax_once (void)
     }
 
   /* All multibyte characters have syntax `word' by default.  */
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
+  temp = AREF (Vsyntax_code_object, (int) Sword);
   char_table_set_range (Vstandard_syntax_table, 0x80, MAX_CHAR, temp);
 }
 

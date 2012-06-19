@@ -65,27 +65,27 @@ REGISTERS should be a vector produced by `make-register' and
   if (no < 0 || no > 0xff || ASIZE (registers) != 8)
     return Qnil;
   for (i = 0; i < 8; i++)
-    CHECK_NUMBER (XVECTOR (registers)->contents[i]);
+    CHECK_NUMBER (AREF (registers, i));
 
-  inregs.x.ax    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[0]);
-  inregs.x.bx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[1]);
-  inregs.x.cx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[2]);
-  inregs.x.dx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[3]);
-  inregs.x.si    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[4]);
-  inregs.x.di    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[5]);
-  inregs.x.cflag = (unsigned long) XFASTINT (XVECTOR (registers)->contents[6]);
-  inregs.x.flags = (unsigned long) XFASTINT (XVECTOR (registers)->contents[7]);
+  inregs.x.ax    = (unsigned long) XFASTINT (AREF (registers, 0));
+  inregs.x.bx    = (unsigned long) XFASTINT (AREF (registers, 1));
+  inregs.x.cx    = (unsigned long) XFASTINT (AREF (registers, 2));
+  inregs.x.dx    = (unsigned long) XFASTINT (AREF (registers, 3));
+  inregs.x.si    = (unsigned long) XFASTINT (AREF (registers, 4));
+  inregs.x.di    = (unsigned long) XFASTINT (AREF (registers, 5));
+  inregs.x.cflag = (unsigned long) XFASTINT (AREF (registers, 6));
+  inregs.x.flags = (unsigned long) XFASTINT (AREF (registers, 7));
 
   int86 (no, &inregs, &outregs);
 
-  XVECTOR (registers)->contents[0] = make_number (outregs.x.ax);
-  XVECTOR (registers)->contents[1] = make_number (outregs.x.bx);
-  XVECTOR (registers)->contents[2] = make_number (outregs.x.cx);
-  XVECTOR (registers)->contents[3] = make_number (outregs.x.dx);
-  XVECTOR (registers)->contents[4] = make_number (outregs.x.si);
-  XVECTOR (registers)->contents[5] = make_number (outregs.x.di);
-  XVECTOR (registers)->contents[6] = make_number (outregs.x.cflag);
-  XVECTOR (registers)->contents[7] = make_number (outregs.x.flags);
+  ASET (registers, 0, make_number (outregs.x.ax));
+  ASET (registers, 1, make_number (outregs.x.bx));
+  ASET (registers, 2, make_number (outregs.x.cx));
+  ASET (registers, 3, make_number (outregs.x.dx));
+  ASET (registers, 4, make_number (outregs.x.si));
+  ASET (registers, 5, make_number (outregs.x.di));
+  ASET (registers, 6, make_number (outregs.x.cflag));
+  ASET (registers, 7, make_number (outregs.x.flags));
 
   return registers;
 }
@@ -109,7 +109,7 @@ Return the updated VECTOR.  */)
   dosmemget (offs, len, buf);
 
   for (i = 0; i < len; i++)
-    XVECTOR (vector)->contents[i] = make_number (buf[i]);
+    ASET (vector, i, make_number (buf[i]));
 
   return vector;
 }
@@ -132,8 +132,8 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
 
   for (i = 0; i < len; i++)
     {
-      CHECK_NUMBER (XVECTOR (vector)->contents[i]);
-      buf[i] = (unsigned char) XFASTINT (XVECTOR (vector)->contents[i]) & 0xFF;
+      CHECK_NUMBER (AREF (vector, i));
+      buf[i] = (unsigned char) XFASTINT (AREF (vector, i)) & 0xFF;
     }
 
   dosmemput (buf, len, offs);

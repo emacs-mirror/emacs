@@ -3748,7 +3748,7 @@ it defaults to the value of `obarray'.  */)
       SET_SYMBOL_VAL (XSYMBOL (sym), sym);
     }
 
-  ptr = &XVECTOR (obarray)->contents[XINT (tem)];
+  ptr = &AREF (obarray, XINT(tem));
   if (SYMBOLP (*ptr))
     XSYMBOL (sym)->next = XSYMBOL (*ptr);
   else
@@ -3827,18 +3827,18 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
 
   hash = oblookup_last_bucket_number;
 
-  if (EQ (XVECTOR (obarray)->contents[hash], tem))
+  if (EQ (AREF (obarray, hash), tem))
     {
       if (XSYMBOL (tem)->next)
-	XSETSYMBOL (XVECTOR (obarray)->contents[hash], XSYMBOL (tem)->next);
+	XSETSYMBOL (AREF (obarray, hash), XSYMBOL (tem)->next);
       else
-	XSETINT (XVECTOR (obarray)->contents[hash], 0);
+	XSETINT (AREF (obarray, hash), 0);
     }
   else
     {
       Lisp_Object tail, following;
 
-      for (tail = XVECTOR (obarray)->contents[hash];
+      for (tail = AREF (obarray, hash);
 	   XSYMBOL (tail)->next;
 	   tail = following)
 	{
@@ -3877,7 +3877,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   /* This is sometimes needed in the middle of GC.  */
   obsize &= ~ARRAY_MARK_FLAG;
   hash = hash_string (ptr, size_byte) % obsize;
-  bucket = XVECTOR (obarray)->contents[hash];
+  bucket = AREF (obarray, hash);
   oblookup_last_bucket_number = hash;
   if (EQ (bucket, make_number (0)))
     ;
@@ -3905,7 +3905,7 @@ map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Ob
   CHECK_VECTOR (obarray);
   for (i = ASIZE (obarray) - 1; i >= 0; i--)
     {
-      tail = XVECTOR (obarray)->contents[i];
+      tail = AREF (obarray, i);
       if (SYMBOLP (tail))
 	while (1)
 	  {

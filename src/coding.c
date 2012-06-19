@@ -3189,7 +3189,7 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	    break;
 	check_extra_latin:
 	  if (! VECTORP (Vlatin_extra_code_table)
-	      || NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
+	      || NILP (AREF (Vlatin_extra_code_table, c)))
 	    {
 	      rejected = CATEGORY_MASK_ISO;
 	      break;
@@ -5464,7 +5464,7 @@ detect_coding_charset (struct coding_system *coding,
 	  if (c < 0xA0
 	      && check_latin_extra
 	      && (!VECTORP (Vlatin_extra_code_table)
-		  || NILP (XVECTOR (Vlatin_extra_code_table)->contents[c])))
+		  || NILP (AREF (Vlatin_extra_code_table, c))))
 	    break;
 	  found = CATEGORY_MASK_CHARSET;
 	}
@@ -10560,7 +10560,7 @@ Don't modify this variable directly, but use `set-coding-system-priority'.  */);
     Vcoding_category_list = Qnil;
     for (i = coding_category_max - 1; i >= 0; i--)
       Vcoding_category_list
-	= Fcons (XVECTOR (Vcoding_category_table)->contents[i],
+	= Fcons (AREF (Vcoding_category_table, i),
 		 Vcoding_category_list);
   }
 

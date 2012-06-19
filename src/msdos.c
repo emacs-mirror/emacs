@@ -2466,12 +2466,10 @@ dos_rawgetc (void)
       sc = regs.h.ah;
 
       total_doskeys += 2;
-      XVECTOR (recent_doskeys)->contents[recent_doskeys_index++]
-	= make_number (c);
+      ASET (recent_doskeys, recent_doskeys_index, make_number (c)), recent_doskeys_index++;
       if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
 	recent_doskeys_index = 0;
-      XVECTOR (recent_doskeys)->contents[recent_doskeys_index++]
-	= make_number (sc);
+      ASET (recent_doskeys, recent_doskeys_index, make_number (sc)), recent_doskeys_index++;
       if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
 	recent_doskeys_index = 0;
 

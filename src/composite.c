@@ -240,13 +240,13 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 	for (i = 0; i < nchars; i++)
 	  {
 	    FETCH_STRING_CHAR_ADVANCE (ch, string, charpos, bytepos);
-	    XVECTOR (key)->contents[i] = make_number (ch);
+	    ASET (key, i, make_number (ch));
 	  }
       else
 	for (i = 0; i < nchars; i++)
 	  {
 	    FETCH_CHAR_ADVANCE (ch, charpos, bytepos);
-	    XVECTOR (key)->contents[i] = make_number (ch);
+	    ASET (key, i, make_number (ch));
 	  }
     }
   else

@@ -2134,7 +2134,7 @@ bool-vector.  IDX starts at 0.  */)
     {
       if (idxval < 0 || idxval >= ASIZE (array))
 	args_out_of_range (array, idx);
-      XVECTOR (array)->contents[idxval] = newelt;
+      ASET (array, idxval, newelt);
     }
   else if (BOOL_VECTOR_P (array))
     {

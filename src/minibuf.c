@@ -1266,7 +1266,7 @@ is used to further constrain the set of candidates.  */)
     {
       collection = check_obarray (collection);
       obsize = ASIZE (collection);
-      bucket = XVECTOR (collection)->contents[idx];
+      bucket = AREF (collection, idx);
     }
 
   while (1)
@@ -1301,7 +1301,7 @@ is used to further constrain the set of candidates.  */)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[idx];
+	      bucket = AREF (collection, idx);
 	      continue;
 	    }
 	}
@@ -1529,7 +1529,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     {
       collection = check_obarray (collection);
       obsize = ASIZE (collection);
-      bucket = XVECTOR (collection)->contents[idx];
+      bucket = AREF (collection, idx);
     }
 
   while (1)
@@ -1564,7 +1564,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[idx];
+	      bucket = AREF (collection, idx);
 	      continue;
 	    }
 	}
@@ -1772,7 +1772,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 	{
 	  for (i = ASIZE (collection) - 1; i >= 0; i--)
 	    {
-	      tail = XVECTOR (collection)->contents[i];
+	      tail = AREF (collection, i);
 	      if (SYMBOLP (tail))
 		while (1)
 		  {

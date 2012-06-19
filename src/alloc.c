@@ -5294,7 +5294,7 @@ Does not copy symbols.  Copies strings without text properties.  */)
 	size &= PSEUDOVECTOR_SIZE_MASK;
       vec = XVECTOR (make_pure_vector (size));
       for (i = 0; i < size; i++)
-	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
+	vec->contents[i] = Fpurecopy (AREF (obj, i));
       if (COMPILEDP (obj))
 	{
 	  XSETPVECTYPE (vec, PVEC_COMPILED);

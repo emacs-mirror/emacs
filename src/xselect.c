@@ -1816,12 +1816,12 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
       ptrdiff_t i;
       ptrdiff_t size = ASIZE (obj);
 
-      if (SYMBOLP (XVECTOR (obj)->contents [0]))
+      if (SYMBOLP (AREF (obj, 0)))
 	/* This vector is an ATOM set */
 	{
 	  if (NILP (type)) type = QATOM;
 	  for (i = 0; i < size; i++)
-	    if (!SYMBOLP (XVECTOR (obj)->contents [i]))
+	    if (!SYMBOLP (AREF (obj, i)))
 	      signal_error ("All elements of selection vector must have same type", obj);
 
 	  *data_ret = xnmalloc (size, sizeof (Atom));
@@ -1829,7 +1829,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	  *size_ret = size;
 	  for (i = 0; i < size; i++)
 	    (*(Atom **) data_ret) [i]
-	      = symbol_to_x_atom (dpyinfo, XVECTOR (obj)->contents [i]);
+	      = symbol_to_x_atom (dpyinfo, AREF (obj, i));
 	}
       else
 	/* This vector is an INTEGER set, or something like it */
@@ -1839,7 +1839,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	  if (NILP (type)) type = QINTEGER;
 	  for (i = 0; i < size; i++)
 	    {
-	      if (! RANGED_INTEGERP (X_SHRT_MIN, XVECTOR (obj)->contents[i],
+	      if (! RANGED_INTEGERP (X_SHRT_MIN, AREF (obj, i),
 				     X_SHRT_MAX))
 		{
 		  /* Use sizeof (long) even if it is more than 32 bits.
@@ -1857,10 +1857,10 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	    {
 	      if (format == 32)
 		(*((unsigned long **) data_ret)) [i] =
-		  cons_to_x_long (XVECTOR (obj)->contents[i]);
+		  cons_to_x_long (AREF (obj, i));
 	      else
 		(*((short **) data_ret)) [i] =
-		  XINT (XVECTOR (obj)->contents[i]);
+		  XINT (AREF (obj, i));
 	    }
 	}
     }
@@ -1895,11 +1895,10 @@ clean_local_selection_data (Lisp_Object obj)
       ptrdiff_t size = ASIZE (obj);
       Lisp_Object copy;
       if (size == 1)
-	return clean_local_selection_data (XVECTOR (obj)->contents [0]);
+	return clean_local_selection_data (AREF (obj, 0));
       copy = Fmake_vector (make_number (size), Qnil);
       for (i = 0; i < size; i++)
-	XVECTOR (copy)->contents [i]
-	  = clean_local_selection_data (XVECTOR (obj)->contents [i]);
+	ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;
     }
   return obj;

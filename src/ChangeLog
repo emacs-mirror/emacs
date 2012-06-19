@@ -1,3 +1,11 @@
+2012-06-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c, bytecode.c, ccl.c, coding.c, composite.c, data.c, dosfns.c:
+	* font.c, image.c, keyboard.c, lread.c, menu.c, minibuf.c, msdos.c:
+	* print.c, syntax.c, window.c, xmenu.c, xselect.c: Replace direct
+	access to `contents' member of Lisp_Vector objects with AREF and ASET
+	where appropriate.
+
 2012-06-19  Chong Yidong  <cyd@gnu.org>
 
 	* frame.c (delete_frame): When selecting a frame on a different

@@ -1867,8 +1867,8 @@ integer, it is incremented each time that symbol's function is called.  */);
   {
     int i = 256;
     while (i--)
-      XVECTOR (Vbyte_code_meter)->contents[i] =
-	Fmake_vector (make_number (256), make_number (0));
+      ASET (Vbyte_code_meter, i,
+           Fmake_vector (make_number (256), make_number (0)));
   }
 #endif
 }

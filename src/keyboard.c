@@ -625,7 +625,7 @@ echo_now (void)
 	  if (i == this_single_command_key_start)
 	    before_command_echo_length = echo_length ();
 
-	  c = XVECTOR (this_command_keys)->contents[i];
+	  c = AREF (this_command_keys, i);
 	  if (! (EVENT_HAS_PARAMETERS (c)
 		 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
 	    echo_char (c);
@@ -4269,7 +4269,7 @@ timer_start_idle (void)
 
       if (!VECTORP (timer) || ASIZE (timer) != 8)
 	continue;
-      XVECTOR (timer)->contents[0] = Qnil;
+      ASET (timer, 0, Qnil);
     }
 }
 
@@ -6272,7 +6272,7 @@ lispy_modifier_list (int modifiers)
   modifier_list = Qnil;
   for (i = 0; (1<<i) <= modifiers && i < NUM_MOD_NAMES; i++)
     if (modifiers & (1<<i))
-      modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
+      modifier_list = Fcons (AREF (modifier_symbols, i),
 			     modifier_list);
 
   return modifier_list;
@@ -6503,7 +6503,7 @@ modify_event_symbol (ptrdiff_t symbol_num, int modifiers, Lisp_Object symbol_kin
 	  *symbol_table = Fmake_vector (size, Qnil);
 	}
 
-      value = XVECTOR (*symbol_table)->contents[symbol_num];
+      value = AREF (*symbol_table, symbol_num);
     }
 
   /* Have we already used this symbol before?  */
@@ -6546,7 +6546,7 @@ modify_event_symbol (ptrdiff_t symbol_num, int modifiers, Lisp_Object symbol_kin
       if (CONSP (*symbol_table))
         *symbol_table = Fcons (Fcons (symbol_int, value), *symbol_table);
       else
-	XVECTOR (*symbol_table)->contents[symbol_num] = value;
+	ASET (*symbol_table, symbol_num, value);
 
       /* Fill in the cache entries for this symbol; this also
 	 builds the Qevent_symbol_elements property, which the user
@@ -7553,23 +7553,23 @@ menu_bar_items (Lisp_Object old)
       int end = menu_bar_items_index;
 
       for (i = 0; i < end; i += 4)
-	if (EQ (XCAR (tail), XVECTOR (menu_bar_items_vector)->contents[i]))
+	if (EQ (XCAR (tail), AREF (menu_bar_items_vector, i)))
 	  {
 	    Lisp_Object tem0, tem1, tem2, tem3;
 	    /* Move the item at index I to the end,
 	       shifting all the others forward.  */
-	    tem0 = XVECTOR (menu_bar_items_vector)->contents[i + 0];
-	    tem1 = XVECTOR (menu_bar_items_vector)->contents[i + 1];
-	    tem2 = XVECTOR (menu_bar_items_vector)->contents[i + 2];
-	    tem3 = XVECTOR (menu_bar_items_vector)->contents[i + 3];
+	    tem0 = AREF (menu_bar_items_vector, i + 0);
+	    tem1 = AREF (menu_bar_items_vector, i + 1);
+	    tem2 = AREF (menu_bar_items_vector, i + 2);
+	    tem3 = AREF (menu_bar_items_vector, i + 3);
 	    if (end > i + 4)
-	      memmove (&XVECTOR (menu_bar_items_vector)->contents[i],
-		       &XVECTOR (menu_bar_items_vector)->contents[i + 4],
+	      memmove (&AREF (menu_bar_items_vector, i),
+		       &AREF (menu_bar_items_vector, i + 4),
 		       (end - i - 4) * sizeof (Lisp_Object));
-	    XVECTOR (menu_bar_items_vector)->contents[end - 4] = tem0;
-	    XVECTOR (menu_bar_items_vector)->contents[end - 3] = tem1;
-	    XVECTOR (menu_bar_items_vector)->contents[end - 2] = tem2;
-	    XVECTOR (menu_bar_items_vector)->contents[end - 1] = tem3;
+	    ASET (menu_bar_items_vector, end - 4, tem0);
+	    ASET (menu_bar_items_vector, end - 3, tem1);
+	    ASET (menu_bar_items_vector, end - 2, tem2);
+	    ASET (menu_bar_items_vector, end - 1, tem3);
 	    break;
 	  }
     }
@@ -7581,10 +7581,10 @@ menu_bar_items (Lisp_Object old)
       menu_bar_items_vector =
 	larger_vector (menu_bar_items_vector, 4, -1);
     /* Add this item.  */
-    XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
-    XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
-    XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
-    XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
+    ASET (menu_bar_items_vector, i, Qnil), i++;
+    ASET (menu_bar_items_vector, i, Qnil), i++;
+    ASET (menu_bar_items_vector, i, Qnil), i++;
+    ASET (menu_bar_items_vector, i, Qnil), i++;
     menu_bar_items_index = i;
   }
 
@@ -7610,11 +7610,11 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
 	 discard any previously made menu bar item.  */
 
       for (i = 0; i < menu_bar_items_index; i += 4)
-	if (EQ (key, XVECTOR (menu_bar_items_vector)->contents[i]))
+	if (EQ (key, AREF (menu_bar_items_vector, i)))
 	  {
 	    if (menu_bar_items_index > i + 4)
-	      memmove (&XVECTOR (menu_bar_items_vector)->contents[i],
-		       &XVECTOR (menu_bar_items_vector)->contents[i + 4],
+	      memmove (&AREF (menu_bar_items_vector, i),
+		       &AREF (menu_bar_items_vector, i + 4),
 		       (menu_bar_items_index - i - 4) * sizeof (Lisp_Object));
 	    menu_bar_items_index -= 4;
 	  }
@@ -7638,11 +7638,11 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
   if (!i)
     return;
 
-  item = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
+  item = AREF (item_properties, ITEM_PROPERTY_DEF);
 
   /* Find any existing item for this KEY.  */
   for (i = 0; i < menu_bar_items_index; i += 4)
-    if (EQ (key, XVECTOR (menu_bar_items_vector)->contents[i]))
+    if (EQ (key, AREF (menu_bar_items_vector, i)))
       break;
 
   /* If we did not find this KEY, add it at the end.  */
@@ -7652,22 +7652,22 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
       if (i + 4 > ASIZE (menu_bar_items_vector))
 	menu_bar_items_vector = larger_vector (menu_bar_items_vector, 4, -1);
       /* Add this item.  */
-      XVECTOR (menu_bar_items_vector)->contents[i++] = key;
-      XVECTOR (menu_bar_items_vector)->contents[i++]
-	= XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
-      XVECTOR (menu_bar_items_vector)->contents[i++] = Fcons (item, Qnil);
-      XVECTOR (menu_bar_items_vector)->contents[i++] = make_number (0);
+      ASET (menu_bar_items_vector, i, key), i++;
+      ASET (menu_bar_items_vector, i,
+	    AREF (item_properties, ITEM_PROPERTY_NAME)), i++;
+      ASET (menu_bar_items_vector, i, Fcons (item, Qnil)), i++;
+      ASET (menu_bar_items_vector, i, make_number (0)), i++;
       menu_bar_items_index = i;
     }
   /* We did find an item for this KEY.  Add ITEM to its list of maps.  */
   else
     {
       Lisp_Object old;
-      old = XVECTOR (menu_bar_items_vector)->contents[i + 2];
+      old = AREF (menu_bar_items_vector, i + 2);
       /* If the new and the old items are not both keymaps,
 	 the lookup will only find `item'.  */
       item = Fcons (item, KEYMAPP (item) && KEYMAPP (XCAR (old)) ? old : Qnil);
-      XVECTOR (menu_bar_items_vector)->contents[i + 2] = item;
+      ASET (menu_bar_items_vector, i + 2, item);
     }
 }
 
@@ -8184,7 +8184,7 @@ static int
 parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 {
   /* Access slot with index IDX of vector tool_bar_item_properties.  */
-#define PROP(IDX) XVECTOR (tool_bar_item_properties)->contents[IDX]
+#define PROP(IDX) AREF (tool_bar_item_properties, (IDX))
 
   Lisp_Object filter = Qnil;
   Lisp_Object caption;
@@ -8629,7 +8629,7 @@ read_char_minibuf_menu_prompt (int commandflag,
 
 	  /* Look at the next element of the map.  */
 	  if (idx >= 0)
-	    elt = XVECTOR (vector)->contents[idx];
+	    elt = AREF (vector, idx);
 	  else
 	    elt = Fcar_safe (rest);
 
@@ -8664,7 +8664,7 @@ read_char_minibuf_menu_prompt (int commandflag,
 		  Lisp_Object upcased_event, downcased_event;
 		  Lisp_Object desc = Qnil;
 		  Lisp_Object s
-		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
+		    = AREF (item_properties, ITEM_PROPERTY_NAME);
 
 		  upcased_event = Fupcase (event);
 		  downcased_event = Fdowncase (event);
@@ -8682,12 +8682,12 @@ read_char_minibuf_menu_prompt (int commandflag,
 		    s = concat2 (s, tem);
 #endif
 		  tem
-		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE];
+		    = AREF (item_properties, ITEM_PROPERTY_TYPE);
 		  if (EQ (tem, QCradio) || EQ (tem, QCtoggle))
 		    {
 		      /* Insert button prefix.  */
 		      Lisp_Object selected
-			= XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
+			= AREF (item_properties, ITEM_PROPERTY_SELECTED);
 		      if (EQ (tem, QCradio))
 			tem = build_string (NILP (selected) ? "(*) " : "( ) ");
 		      else
@@ -9457,7 +9457,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	      && current_buffer != starting_buffer)
 	    {
 	      GROW_RAW_KEYBUF;
-	      XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
+	      ASET (raw_keybuf, raw_keybuf_count, key), raw_keybuf_count++;
 	      keybuf[t++] = key;
 	      mock_input = t;
 	      Vquit_flag = Qnil;
@@ -9535,7 +9535,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		      && BUFFERP (XWINDOW (window)->buffer)
 		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
 		    {
-		      XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
+		      ASET (raw_keybuf, raw_keybuf_count, key), raw_keybuf_count++;
 		      keybuf[t] = key;
 		      mock_input = t + 1;
 
@@ -10566,7 +10566,7 @@ KEEP-RECORD is non-nil.  */)
   if (NILP (keep_record))
     {
       for (i = 0; i < ASIZE (recent_keys); ++i)
-	XVECTOR (recent_keys)->contents[i] = Qnil;
+	ASET (recent_keys, i, Qnil);
       total_keys = 0;
       recent_keys_index = 0;
     }
@@ -11585,7 +11585,7 @@ syms_of_keyboard (void)
     modifier_symbols = Fmake_vector (make_number (len), Qnil);
     for (i = 0; i < len; i++)
       if (modifier_names[i])
-	XVECTOR (modifier_symbols)->contents[i] = intern_c_string (modifier_names[i]);
+	ASET (modifier_symbols, i, intern_c_string (modifier_names[i]));
     staticpro (&modifier_symbols);
   }
 

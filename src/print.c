@@ -1208,7 +1208,7 @@ print_preprocess (Lisp_Object obj)
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
-	    print_preprocess (XVECTOR (obj)->contents[i]);
+	    print_preprocess (AREF (obj, i));
 	  if (HASH_TABLE_P (obj))
 	    { /* For hash tables, the key_and_value slot is past
 		 `size' because it needs to be marked specially in case
@@ -1960,7 +1960,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    for (i = 0; i < size; i++)
 	      {
 		if (i) PRINTCHAR (' ');
-		tem = XVECTOR (obj)->contents[i];
+		tem = AREF (obj, i);
 		print_object (tem, printcharfun, escapeflag);
 	      }
 	    if (size < real_size)

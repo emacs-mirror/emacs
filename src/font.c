@@ -4877,13 +4877,13 @@ If the named font is not yet loaded, return nil.  */)
   font = XFONT_OBJECT (font_object);
 
   info = Fmake_vector (make_number (7), Qnil);
-  XVECTOR (info)->contents[0] = AREF (font_object, FONT_NAME_INDEX);
-  XVECTOR (info)->contents[1] = AREF (font_object, FONT_FULLNAME_INDEX);
-  XVECTOR (info)->contents[2] = make_number (font->pixel_size);
-  XVECTOR (info)->contents[3] = make_number (font->height);
-  XVECTOR (info)->contents[4] = make_number (font->baseline_offset);
-  XVECTOR (info)->contents[5] = make_number (font->relative_compose);
-  XVECTOR (info)->contents[6] = make_number (font->default_ascent);
+  ASET (info, 0, AREF (font_object, FONT_NAME_INDEX));
+  ASET (info, 1, AREF (font_object, FONT_FULLNAME_INDEX));
+  ASET (info, 2, make_number (font->pixel_size));
+  ASET (info, 3, make_number (font->height));
+  ASET (info, 4, make_number (font->baseline_offset));
+  ASET (info, 5, make_number (font->relative_compose));
+  ASET (info, 6, make_number (font->default_ascent));
 
 #if 0
   /* As font_object is still in FONT_OBJLIST of the entity, we can't

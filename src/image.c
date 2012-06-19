@@ -2366,7 +2366,7 @@ xbm_image_p (Lisp_Object object)
 	     for one line of the image.  */
 	  for (i = 0; i < height; ++i)
 	    {
-	      Lisp_Object elt = XVECTOR (data)->contents[i];
+	      Lisp_Object elt = AREF (data, i);
 
 	      if (STRINGP (elt))
 		{
@@ -2939,7 +2939,7 @@ xbm_load (struct frame *f, struct image *img)
 	      p = bits = (char *) alloca (nbytes * img->height);
 	      for (i = 0; i < img->height; ++i, p += nbytes)
 		{
-		  Lisp_Object line = XVECTOR (data)->contents[i];
+		  Lisp_Object line = AREF (data, i);
 		  if (STRINGP (line))
 		    memcpy (p, SDATA (line), nbytes);
 		  else
@@ -3749,7 +3749,7 @@ xpm_put_color_table_v (Lisp_Object color_table,
                        int chars_len,
                        Lisp_Object color)
 {
-  XVECTOR (color_table)->contents[*chars_start] = color;
+  ASET (color_table, *chars_start, color);
 }
 
 static Lisp_Object
@@ -3757,7 +3757,7 @@ xpm_get_color_table_v (Lisp_Object color_table,
                        const unsigned char *chars_start,
                        int chars_len)
 {
-  return XVECTOR (color_table)->contents[*chars_start];
+  return AREF (color_table, *chars_start);
 }
 
 static Lisp_Object
@@ -8503,7 +8503,7 @@ gs_image_p (Lisp_Object object)
       if (ASIZE (tem) != 4)
 	return 0;
       for (i = 0; i < 4; ++i)
-	if (!INTEGERP (XVECTOR (tem)->contents[i]))
+	if (!INTEGERP (AREF (tem, i)))
 	  return 0;
     }
   else
