@@ -47,12 +47,24 @@ order of recently selected windows and the buffer list ordering
 are not altered by this macro (unless they are altered in BODY)."
   (declare (indent 0) (debug t))
   `(let ((save-selected-window-window (selected-window))
-	 ;; It is necessary to save all of these, because calling
-	 ;; select-window changes frame-selected-window for whatever
-	 ;; frame that window is in.
+	 ;; We save and restore all frames' selected windows, because
+	 ;; `select-window' can change the frame-selected-window of
+	 ;; whatever frame that window is in.  Each text terminal's
+	 ;; top-frame is preserved by putting it last in the list.
 	 (save-selected-window-alist
-	  (mapcar (lambda (frame) (cons frame (frame-selected-window frame)))
-		  (frame-list))))
+	  (apply 'append
+		 (mapcar (lambda (terminal)
+			   (let ((frames (frames-on-display-list terminal))
+				 (top-frame (tty-top-frame terminal))
+				 alist)
+			     (if top-frame
+				 (setq frames
+				       (cons top-frame
+					     (delq top-frame frames))))
+			     (dolist (f frames)
+			       (push (cons f (frame-selected-window f))
+				     alist))))
+			 (terminal-list)))))
      (save-current-buffer
        (unwind-protect
 	   (progn ,@body)

@@ -473,6 +473,8 @@ is detected.
 Emacs now supports mouse highlight, help-echo (in the echo area), and
 mouse-autoselect-window.
 
+** New function `tty-top-frame' returns the topmost frame of a text terminal.
+
 
 * Installation Changes in Emacs 24.1
 

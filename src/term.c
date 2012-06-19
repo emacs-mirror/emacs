@@ -2132,7 +2132,7 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
 
 TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  This function always returns nil if
-TERMINAL does not refer to a text-only terminal.  */)
+TERMINAL does not refer to a text terminal.  */)
   (Lisp_Object terminal)
 {
   struct terminal *t = get_tty_terminal (terminal, 0);
@@ -2149,7 +2149,7 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
 
 TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  This function always returns 0 if
-TERMINAL does not refer to a text-only terminal.  */)
+TERMINAL does not refer to a text terminal.  */)
   (Lisp_Object terminal)
 {
   struct terminal *t = get_tty_terminal (terminal, 0);
@@ -2371,13 +2371,28 @@ no effect if used on a non-tty terminal.
 
 TERMINAL can be a terminal object, a frame or nil (meaning the
 selected frame's terminal).  This function always returns nil if
-TERMINAL does not refer to a text-only terminal.  */)
+TERMINAL does not refer to a text terminal.  */)
   (Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
 
   if (t->type == output_termcap)
     t->display_info.tty->TS_enter_underline_mode = 0;
+  return Qnil;
+}
+
+DEFUN ("tty-top-frame", Ftty_top_frame, Stty_top_frame, 0, 1, 0,
+       doc: /* Return the topmost terminal frame on TERMINAL.
+TERMINAL can be a terminal object, a frame or nil (meaning the
+selected frame's terminal).  This function returns nil if TERMINAL
+does not refer to a text terminal.  Otherwise, it returns the
+top-most frame on the text terminal.  */)
+  (Lisp_Object terminal)
+{
+  struct terminal *t = get_terminal (terminal, 1);
+
+  if (t->type == output_termcap)
+    return t->display_info.tty->top_frame;
   return Qnil;
 }
 
@@ -3638,6 +3653,7 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   defsubr (&Stty_no_underline);
   defsubr (&Stty_type);
   defsubr (&Scontrolling_tty_p);
+  defsubr (&Stty_top_frame);
   defsubr (&Ssuspend_tty);
   defsubr (&Sresume_tty);
 #ifdef HAVE_GPM

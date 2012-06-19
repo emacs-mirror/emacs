@@ -1,3 +1,19 @@
+2012-06-19  Chong Yidong  <cyd@gnu.org>
+
+	* frame.c (delete_frame): When selecting a frame on a different
+	text terminal, do not alter the terminal's top-frame.
+
+	* xdisp.c (format_mode_line_unwind_data): Record the target
+	frame's selected window and its terminal's top-frame.
+	(unwind_format_mode_line): Restore them.
+	(x_consider_frame_title, display_mode_line, Fformat_mode_line):
+	Callers changed.
+	(x_consider_frame_title): Do not condition on HAVE_WINDOW_SYSTEM,
+	since tty frames can be explicitly named.
+	(prepare_menu_bars): Likewise.
+
+	* term.c (Ftty_top_frame): New function.
+
 2012-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port byte-code-meter to modern targets.

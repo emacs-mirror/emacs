@@ -3011,24 +3011,29 @@ the buffer list ordering."
   (declare (indent 1) (debug t))
   ;; Most of this code is a copy of save-selected-window.
   `(let* ((save-selected-window-destination ,window)
+	  (save-selected-window-frame
+	   (window-frame save-selected-window-destination))
           (save-selected-window-window (selected-window))
-          ;; Selecting a window on another frame changes not only the
-          ;; selected-window but also the frame-selected-window of the
-          ;; destination frame.  So we need to save&restore it.
+          ;; Selecting a window on another frame also changes that
+          ;; frame's frame-selected-window.  We must save&restore it.
           (save-selected-window-other-frame
-           (unless (eq (selected-frame)
-                       (window-frame save-selected-window-destination))
-             (frame-selected-window
-              (window-frame save-selected-window-destination)))))
+           (unless (eq (selected-frame) save-selected-window-frame)
+             (frame-selected-window save-selected-window-frame)))
+	  (save-selected-window-top-frame
+           (unless (eq (selected-frame) save-selected-window-frame)
+	     (tty-top-frame save-selected-window-frame))))
      (save-current-buffer
        (unwind-protect
            (progn (select-window save-selected-window-destination 'norecord)
 		  ,@body)
          ;; First reset frame-selected-window.
-         (if (window-live-p save-selected-window-other-frame)
-             ;; We don't use set-frame-selected-window because it does not
-             ;; pass the `norecord' argument to Fselect_window.
-             (select-window save-selected-window-other-frame 'norecord))
+         (when (window-live-p save-selected-window-other-frame)
+	   ;; We don't use set-frame-selected-window because it does not
+	   ;; pass the `norecord' argument to Fselect_window.
+	   (select-window save-selected-window-other-frame 'norecord)
+	   (and (frame-live-p save-selected-window-top-frame)
+		(not (eq (tty-top-frame) save-selected-window-top-frame))
+		(select-frame save-selected-window-top-frame 'norecord)))
          ;; Then reset the actual selected-window.
 	 (when (window-live-p save-selected-window-window)
 	   (select-window save-selected-window-window 'norecord))))))

@@ -1,3 +1,10 @@
+2012-06-19  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (with-selected-window): Preserve the selected window's
+	terminal's top-frame (Bug#4702).
+
+	* window.el (save-selected-window): Likewise.
+
 2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-rx-constituents): Move backquote.

@@ -630,8 +630,8 @@ DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
        doc: /* Create an additional terminal frame, possibly on another terminal.
 This function takes one argument, an alist specifying frame parameters.
 
-You can create multiple frames on a single text-only terminal, but
-only one of them (the selected terminal frame) is actually displayed.
+You can create multiple frames on a single text terminal, but only one
+of them (the selected terminal frame) is actually displayed.
 
 In practice, generally you don't need to specify any parameters,
 except when you want to create a new frame on another terminal.
@@ -865,8 +865,8 @@ something to select a different frame, or until the next time
 this function is called.  If you are using a window system, the
 previously selected frame may be restored as the selected frame
 when returning to the command loop, because it still may have
-the window system's input focus.  On a text-only terminal, the
-next redisplay will display FRAME.
+the window system's input focus.  On a text terminal, the next
+redisplay will display FRAME.
 
 This function returns FRAME, or nil if FRAME has been deleted.  */)
   (Lisp_Object frame, Lisp_Object norecord)
@@ -1254,7 +1254,17 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	  FOR_EACH_FRAME (tail, frame1)
 	    {
 	      if (! EQ (frame, frame1) && FRAME_LIVE_P (XFRAME (frame1)))
-		break;
+		{
+		  /* Do not change a text terminal's top-frame.  */
+		  struct frame *f1 = XFRAME (frame1);
+		  if (FRAME_TERMCAP_P (f1) || FRAME_MSDOS_P (f1))
+		    {
+		      Lisp_Object top_frame = FRAME_TTY (f1)->top_frame;
+		      if (!EQ (top_frame, frame))
+			frame1 = top_frame;
+		    }
+		  break;
+		}
 	    }
 	}
 #ifdef NS_IMPL_COCOA
@@ -1730,8 +1740,8 @@ usually not displayed at all, even in a window system's \"taskbar\".
 Normally you may not make FRAME invisible if all other frames are invisible,
 but if the second optional argument FORCE is non-nil, you may do so.
 
-This function has no effect on text-only terminal frames.  Such frames
-are always considered visible, whether or not they are currently being
+This function has no effect on text terminal frames.  Such frames are
+always considered visible, whether or not they are currently being
 displayed in the terminal.  */)
   (Lisp_Object frame, Lisp_Object force)
 {
@@ -1742,12 +1752,6 @@ displayed in the terminal.  */)
 
   if (NILP (force) && !other_visible_frames (XFRAME (frame)))
     error ("Attempt to make invisible the sole visible or iconified frame");
-
-#if 0 /* This isn't logically necessary, and it can do GC.  */
-  /* Don't let the frame remain selected.  */
-  if (EQ (frame, selected_frame))
-    do_switch_frame (next_frame (frame, Qt), 0, 0, Qnil)
-#endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
@@ -1816,7 +1820,7 @@ Return nil if FRAME was made invisible, via `make-frame-invisible'.
 On graphical displays, invisible frames are not updated and are
 usually not displayed at all, even in a window system's \"taskbar\".
 
-If FRAME is a text-only terminal frame, this always returns t.
+If FRAME is a text terminal frame, this always returns t.
 Such frames are always considered visible, whether or not they are
 currently being displayed on the terminal.  */)
   (Lisp_Object frame)
@@ -1872,7 +1876,7 @@ doesn't support multiple overlapping frames, this function selects FRAME.  */)
   f = XFRAME (frame);
 
   if (FRAME_TERMCAP_P (f))
-    /* On a text-only terminal select FRAME.  */
+    /* On a text terminal select FRAME.  */
     Fselect_frame (frame, Qnil);
   else
     /* Do like the documentation says. */
@@ -2493,7 +2497,7 @@ not the menu bar).
 In a graphical version with no toolkit, it includes both the tool bar
 and menu bar.
 
-For a text-only terminal, it includes the menu bar.  In this case, the
+For a text terminal, it includes the menu bar.  In this case, the
 result is really in characters rather than pixels (i.e., is identical
 to `frame-height'). */)
   (Lisp_Object frame)
