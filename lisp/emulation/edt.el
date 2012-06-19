@@ -2071,6 +2071,20 @@ created."
     (setq transient-mark-mode edt-orig-transient-mark-mode))
   (message "Original key bindings restored; EDT Emulation disabled"))
 
+(defun edt-default-menu-bar-update-buffers ()
+  ;; Update edt-default-global-map with latest copy of
+  ;; `global-buffers-menu-map' each time `menu-bar-update-buffers'
+  ;; updates global-map.
+  (define-key edt-default-global-map [menu-bar buffer]
+    (cons "Buffers" global-buffers-menu-map)))
+
+(defun edt-user-menu-bar-update-buffers ()
+  ;; We need to update edt-user-global-map with latest copy of
+  ;; `global-buffers-menu-map' each time `menu-bar-update-buffers'
+  ;; updates global-map.
+  (define-key edt-user-global-map [menu-bar buffer]
+    (cons "Buffers" global-buffers-menu-map)))
+
 (defun edt-default-emulation-setup (&optional user-setup)
   "Setup emulation of DEC's EDT editor.
 Optional argument USER-SETUP non-nil means  called from function
@@ -2110,10 +2124,8 @@ Optional argument USER-SETUP non-nil means  called from function
     (progn
       (fset 'edt-emulation-on (symbol-function 'edt-select-default-global-map))
       (edt-select-default-global-map)))
-  ;; We need to share `global-buffers-menu-map' with the saved global
-  ;; keymap, because `menu-bar-update-buffers' directly changes it.
-  (define-key (current-global-map) [menu-bar buffer]
-    (cons "Buffers" global-buffers-menu-map)))
+  ;; Keep the menu bar Buffers menu up-to-date in edt-default-global-map.
+  (add-hook 'menu-bar-update-hook 'edt-default-menu-bar-update-buffers))
 
 (defun edt-user-emulation-setup ()
   "Setup user custom emulation of DEC's EDT editor."
@@ -2134,7 +2146,9 @@ Optional argument USER-SETUP non-nil means  called from function
   ;; See Info node `edt' for more details, and sample edt-user.el file.
   (if (fboundp 'edt-setup-user-bindings)
       (edt-setup-user-bindings))
-  (edt-select-user-global-map))
+  (edt-select-user-global-map)
+  ;; Keep the menu bar Buffers menu up-to-date in edt-user-global-map.
+  (add-hook 'menu-bar-update-hook 'edt-user-menu-bar-update-buffers))
 
 (defun edt-select-default-global-map()
   "Select default EDT emulation key bindings."

@@ -1,3 +1,9 @@
+2012-06-19  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
+
+	* emulation/edt.el (edt-default-menu-bar-update-buffers)
+	(edt-user-menu-bar-update-buffers): New functions.
+	(edt-default-emulation-setup, edt-user-emulation-setup): Use them.
+
 2012-06-19  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (with-selected-window): Preserve the selected window's
