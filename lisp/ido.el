@@ -4142,6 +4142,7 @@ If no buffer or file is found, prompt for a new one.
 matches all files.  If there is only one match, select that file.
 If there is no common suffix, show a list of all matching files
 in a separate window.
+\\[ido-magic-delete-char] Open the specified directory in Dired mode.
 \\[ido-edit-input] Edit input string (including directory).
 \\[ido-prev-work-directory] or \\[ido-next-work-directory] go to previous/next directory in work directory history.
 \\[ido-merge-work-directories] search for file in the work directory history.

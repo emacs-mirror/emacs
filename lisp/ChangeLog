@@ -1,3 +1,7 @@
+2012-06-19  David Röthlisberger  <david@rothlis.net>  (tiny change)
+
+	* ido.el (ido-find-file): Mention C-d binding in docstring (bug#11244).
+
 2012-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/python.el (python-mode): Derive from prog-mode.
