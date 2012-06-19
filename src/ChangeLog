@@ -31,7 +31,7 @@
 	Port byte-code-meter to modern targets.
 	* bytecode.c (METER_CODE) [BYTE_CODE_METER]: Don't assume
 	!CHECK_LISP_OBJECT_TYPE && !USE_LSB_TAG.  Problem with
-	CHECK_LISP_OBJECT_TYPE reported by Dmitry Andropov in
+	CHECK_LISP_OBJECT_TYPE reported by Dmitry Antipov in
 	<http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00282.html>.
 	(METER_1, METER_2): Simplify.
 
