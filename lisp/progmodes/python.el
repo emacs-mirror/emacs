@@ -2802,7 +2802,7 @@ Optional argument DIRECTION defines the direction to move to."
 
 
 ;;;###autoload
-(define-derived-mode python-mode fundamental-mode "Python"
+(define-derived-mode python-mode prog-mode "Python"
   "Major mode for editing Python files.
 
 \\{python-mode-map}

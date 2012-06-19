@@ -1,3 +1,7 @@
+2012-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/python.el (python-mode): Derive from prog-mode.
+
 2012-06-19  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
 
 	* emulation/edt.el (edt-default-menu-bar-update-buffers)
