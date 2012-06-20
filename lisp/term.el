@@ -1174,21 +1174,21 @@ without any interpretation."
 (defun term-send-raw-meta ()
   (interactive)
   (let ((char last-input-event))
-    (when (symbolp last-input-event)
+    (when (symbolp char)
       ;; Convert `return' to C-m, etc.
       (let ((tmp (get char 'event-symbol-elements)))
-	(when tmp
-	  (setq char (car tmp)))
-	(when (symbolp char)
-	  (setq tmp (get char 'ascii-character))
-	  (when tmp
-	    (setq char tmp)))))
-    (setq char (event-basic-type char))
-    (term-send-raw-string (if (and (numberp char)
-				   (> char 127)
-				   (< char 256))
-			      (make-string 1 char)
-			    (format "\e%c" char)))))
+	(if tmp (setq char (car tmp)))
+	(and (symbolp char)
+	     (setq tmp (get char 'ascii-character))
+	     (setq char tmp))))
+    (when (numberp char)
+      (let ((base (event-basic-type char))
+	    (mods (delq 'meta (event-modifiers char))))
+	(if (memq 'control mods)
+	    (setq mods (delq 'shift mods)))
+	(term-send-raw-string
+	 (format "\e%c"
+		 (event-convert-list (append mods (list base)))))))))
 
 (defun term-mouse-paste (click)
   "Insert the primary selection at the position clicked on."
