@@ -3014,8 +3014,10 @@ The value is an integer.  */)
   int realmask;
   Lisp_Object value;
 
+  BLOCK_INPUT;
   realmask = umask (0);
   umask (realmask);
+  UNBLOCK_INPUT;
 
   XSETINT (value, (~ realmask) & 0777);
   return value;

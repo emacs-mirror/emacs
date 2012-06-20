@@ -1,3 +1,8 @@
+2012-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fdefault_file_modes): Block input while fiddling with umask.
+	Otherwise, the umask might be mistakenly 0 while handling input signals.
+
 2012-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fread_string): Bind minibuffer-completion-table.
