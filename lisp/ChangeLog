@@ -1,3 +1,10 @@
+2012-06-20  Chong Yidong  <cyd@gnu.org>
+
+	* term.el (term-window-width): Handle the case of a missing right
+	fringe (Bug#8837).
+	(term-check-size): Use window-text-height (Bug#5445).
+	(term-mode): Use define-derived-mode.  Minor cleanups.
+
 2012-06-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-get-passwd): Bind

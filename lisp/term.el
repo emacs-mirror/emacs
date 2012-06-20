@@ -919,11 +919,12 @@ is buffer-local."
 (defvar overflow-newline-into-fringe)
 
 (defun term-window-width ()
-  (if (featurep 'xemacs)
-      (1- (window-width))
-    (if (and window-system overflow-newline-into-fringe)
-	(window-width)
-      (1- (window-width)))))
+  (if (and (not (featurep 'xemacs))
+	   (display-graphic-p)
+	   overflow-newline-into-fringe
+	   (/= (frame-parameter nil 'right-fringe) 0))
+      (window-width)
+    (1- (window-width))))
 
 
 (put 'term-mode 'mode-class 'special)
@@ -963,7 +964,7 @@ is buffer-local."
   (setq term-ansi-face-already-done t)
   (setq term-ansi-current-bg-color 0))
 
-(defun term-mode ()
+(define-derived-mode term-mode fundamental-mode "Term"
   "Major mode for interacting with an inferior interpreter.
 The interpreter name is same as buffer name, sans the asterisks.
 
@@ -1007,56 +1008,38 @@ Commands in line mode:
 \\{term-mode-map}
 
 Entry to this mode runs the hooks on `term-mode-hook'."
-  (interactive)
-  ;; Do not remove this.  All major modes must do this.
-  (kill-all-local-variables)
-  (setq major-mode 'term-mode)
-  (setq mode-name "Term")
-  (use-local-map term-mode-map)
   ;; we do not want indent to sneak in any tabs
   (setq indent-tabs-mode nil)
   (setq buffer-display-table term-display-table)
-  (make-local-variable 'term-home-marker)
-  (setq term-home-marker (copy-marker 0))
+  (set (make-local-variable 'term-home-marker) (copy-marker 0))
+  (set (make-local-variable 'term-height) (1- (window-height)))
+  (set (make-local-variable 'term-width) (term-window-width))
+  (set (make-local-variable 'term-last-input-start) (make-marker))
+  (set (make-local-variable 'term-last-input-end) (make-marker))
+  (set (make-local-variable 'term-last-input-match) "")
+  (set (make-local-variable 'term-command-hook)
+       (symbol-function 'term-command-hook))
+
+  ;; These local variables are set to their local values:
   (make-local-variable 'term-saved-home-marker)
-  (make-local-variable 'term-height)
-  (make-local-variable 'term-width)
-  (setq term-width (term-window-width))
-  (setq term-height (1- (window-height)))
   (make-local-variable 'term-terminal-parameter)
   (make-local-variable 'term-saved-cursor)
-  (make-local-variable 'term-last-input-start)
-  (setq term-last-input-start (make-marker))
-  (make-local-variable 'term-last-input-end)
-  (setq term-last-input-end (make-marker))
-  (make-local-variable 'term-last-input-match)
-  (setq term-last-input-match "")
-  (make-local-variable 'term-prompt-regexp) ; Don't set; default
-  (make-local-variable 'term-input-ring-size) ; ...to global val.
+  (make-local-variable 'term-prompt-regexp)
+  (make-local-variable 'term-input-ring-size)
   (make-local-variable 'term-input-ring)
   (make-local-variable 'term-input-ring-file-name)
-  (or (and (boundp 'term-input-ring) term-input-ring)
-      (setq term-input-ring (make-ring term-input-ring-size)))
   (make-local-variable 'term-input-ring-index)
-  (or (and (boundp 'term-input-ring-index) term-input-ring-index)
-      (setq term-input-ring-index nil))
-
-  (make-local-variable 'term-command-hook)
-  (setq term-command-hook (symbol-function 'term-command-hook))
+  (unless term-input-ring
+    (setq term-input-ring (make-ring term-input-ring-size)))
 
   ;; I'm not sure these saves are necessary but, since I
   ;; haven't tested the whole thing on a net connected machine with
   ;; a properly configured ange-ftp, I've decided to be conservative
   ;; and put them in. -mm
 
-  (make-local-variable 'term-ansi-at-host)
-  (setq term-ansi-at-host (system-name))
-
-  (make-local-variable 'term-ansi-at-dir)
-  (setq term-ansi-at-dir default-directory)
-
-  (make-local-variable 'term-ansi-at-message)
-  (setq term-ansi-at-message nil)
+  (set (make-local-variable 'term-ansi-at-host) (system-name))
+  (set (make-local-variable 'term-ansi-at-dir) default-directory)
+  (set (make-local-variable 'term-ansi-at-message) nil)
 
   ;; For user tracking purposes -mm
   (make-local-variable 'ange-ftp-default-user)
@@ -1089,8 +1072,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-current-row)
   (make-local-variable 'term-log-buffer)
   (make-local-variable 'term-scroll-start)
-  (make-local-variable 'term-scroll-end)
-  (setq term-scroll-end term-height)
+  (set (make-local-variable 'term-scroll-end) term-height)
   (make-local-variable 'term-scroll-with-delete)
   (make-local-variable 'term-pager-count)
   (make-local-variable 'term-pager-old-local-map)
@@ -1112,12 +1094,10 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-ptyp)
   (make-local-variable 'term-exec-hook)
   (make-local-variable 'term-vertical-motion)
-  (make-local-variable 'term-pending-delete-marker)
-  (setq term-pending-delete-marker (make-marker))
+  (set (make-local-variable 'term-pending-delete-marker) (make-marker))
   (make-local-variable 'term-current-face)
   (term-ansi-reset)
-  (make-local-variable 'term-pending-frame)
-  (setq term-pending-frame nil)
+  (set (make-local-variable 'term-pending-frame) nil)
   ;; Cua-mode's keybindings interfere with the term keybindings, disable it.
   (set (make-local-variable 'cua-mode) nil)
   (run-mode-hooks 'term-mode-hook)
@@ -1165,9 +1145,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
     found))
 
 (defun term-check-size (process)
-  (when (or (/= term-height (1- (window-height)))
+  (when (or (/= term-height (window-text-height))
 	    (/= term-width (term-window-width)))
-    (term-reset-size (1- (window-height)) (term-window-width))
+    (term-reset-size (window-text-height) (term-window-width))
     (set-process-window-size process term-height term-width)))
 
 (defun term-send-raw-string (chars)
