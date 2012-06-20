@@ -3,7 +3,10 @@
 	* term.el (term-window-width): Handle the case of a missing right
 	fringe (Bug#8837).
 	(term-check-size): Use window-text-height (Bug#5445).
-	(term-mode): Use define-derived-mode.  Minor cleanups.
+	(term-mode): Use define-derived-mode.  Minor cleanups.  Set
+	font-lock-defaults (Bug#7692).
+	(term-move-columns, term-insert-char, term-emulate-terminal)
+	(term-erase-in-line, term-insert-spaces): Use font-lock-face.
 
 2012-06-20  Michael Albinus  <michael.albinus@gmx.de>
 

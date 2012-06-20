@@ -1100,7 +1100,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (set (make-local-variable 'term-pending-frame) nil)
   ;; Cua-mode's keybindings interfere with the term keybindings, disable it.
   (set (make-local-variable 'cua-mode) nil)
-  (run-mode-hooks 'term-mode-hook)
+
+  (set (make-local-variable 'font-lock-defaults) '(nil t))
+
   (when (featurep 'xemacs)
     (set-buffer-menubar
      (append current-menubar (list term-terminal-menu))))
@@ -2583,13 +2585,13 @@ See `term-prompt-regexp'."
     ;; from the last character on the line, set the face for the chars
     ;; to default.
     (when (> (point) point-at-eol)
-      (put-text-property point-at-eol (point) 'face 'default))))
+      (put-text-property point-at-eol (point) 'font-lock-face 'default))))
 
 ;; Insert COUNT copies of CHAR in the default face.
 (defun term-insert-char (char count)
   (let ((old-point (point)))
     (insert-char char count)
-    (put-text-property old-point (point) 'face 'default)))
+    (put-text-property old-point (point) 'font-lock-face 'default)))
 
 (defun term-current-row ()
   (cond (term-current-row)
@@ -2813,7 +2815,7 @@ See `term-prompt-regexp'."
 			  (setq term-current-column nil)
 
 			  (put-text-property old-point (point)
-					     'face term-current-face)
+					     'font-lock-face term-current-face)
 			  ;; If the last char was written in last column,
 			  ;; back up one column, but remember we did so.
 			  ;; Thus we emulate xterm/vt100-style line-wrapping.
@@ -3713,7 +3715,7 @@ all pending output has been dealt with."))
       (when wrapped
 	(insert ? ))
       (insert ?\n)
-      (put-text-property saved-point (point) 'face 'default)
+      (put-text-property saved-point (point) 'font-lock-face 'default)
       (goto-char saved-point))))
 
 (defun term-erase-in-display (kind)
@@ -3761,7 +3763,7 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
     ;; from the last character on the line, set the face for the chars
     ;; to default.
     (when (>= (point) pnt-at-eol)
-      (put-text-property pnt-at-eol (point) 'face 'default))
+      (put-text-property pnt-at-eol (point) 'font-lock-face 'default))
     (when (> save-eol (point))
       (delete-region (point) save-eol))
     (goto-char save-point)
