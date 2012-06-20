@@ -1,17 +1,22 @@
+2012-06-20  David Röthlisberger  <david@rothlis.net>  (tiny change)
+
+	* ido.el (ido-switch-buffer, ido-find-file): Fix up doc of C-j
+	(bug#11201).
+
 2012-06-20  Chong Yidong  <cyd@gnu.org>
 
 	* term.el (term-window-width): Handle the case of a missing right
 	fringe (Bug#8837).
 	(term-check-size): Use window-text-height (Bug#5445).
-	(term-mode): Use define-derived-mode.  Minor cleanups.  Set
-	font-lock-defaults (Bug#7692).
+	(term-mode): Use define-derived-mode.  Minor cleanups.
+	Set font-lock-defaults (Bug#7692).
 	(term-move-columns, term-insert-char, term-emulate-terminal)
 	(term-erase-in-line, term-insert-spaces): Use font-lock-face.
 
 2012-06-20  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/ange-ftp.el (ange-ftp-get-passwd): Bind
-	`enable-recursive-minibuffers'.
+	* net/ange-ftp.el (ange-ftp-get-passwd):
+	Bind `enable-recursive-minibuffers'.
 	(ange-ftp-get-process): Throw if `non-essential' is non-nil.
 
 2012-06-19  David Röthlisberger  <david@rothlis.net>  (tiny change)

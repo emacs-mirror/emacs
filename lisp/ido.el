@@ -4046,8 +4046,7 @@ their normal keybindings, except for the following: \\<ido-buffer-completion-map
 RET Select the buffer at the front of the list of matches.  If the
 list is empty, possibly prompt to create new buffer.
 
-\\[ido-select-text] Select the current prompt as the buffer.
-If no buffer is found, prompt for a new one.
+\\[ido-select-text] Use the current input string verbatim.
 
 \\[ido-next-match] Put the first element at the end of the list.
 \\[ido-prev-match] Put the last element at the start of the list.
@@ -4133,8 +4132,7 @@ except for the following: \\<ido-file-completion-map>
 RET Select the file at the front of the list of matches.  If the
 list is empty, possibly prompt to create new file.
 
-\\[ido-select-text] Select the current prompt as the buffer or file.
-If no buffer or file is found, prompt for a new one.
+\\[ido-select-text] Use the current input string verbatim.
 
 \\[ido-next-match] Put the first element at the end of the list.
 \\[ido-prev-match] Put the last element at the start of the list.
