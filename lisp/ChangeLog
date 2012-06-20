@@ -1,3 +1,9 @@
+2012-06-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-get-passwd): Bind
+	`enable-recursive-minibuffers'.
+	(ange-ftp-get-process): Throw if `non-essential' is non-nil.
+
 2012-06-19  David Röthlisberger  <david@rothlis.net>  (tiny change)
 
 	* ido.el (ido-find-file): Mention C-d binding in docstring (bug#11244).

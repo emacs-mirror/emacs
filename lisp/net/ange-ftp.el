@@ -1230,7 +1230,8 @@ only return the directory part of FILE."
 	;; see if same user has logged in to other hosts; if so then prompt
 	;; with the password that was used there.
 	(t
-	 (let* ((other (ange-ftp-get-host-with-passwd user))
+	 (let* ((enable-recursive-minibuffers t)
+		(other (ange-ftp-get-host-with-passwd user))
 		(passwd (if other
 
 			    ;; found another machine with the same user.
@@ -2131,6 +2132,11 @@ Create a new process if needed."
 	 (proc (get-process name)))
     (if (and proc (memq (process-status proc) '(run open)))
 	proc
+      ;; If `non-essential' is non-nil, don't reopen a new connection.  It
+      ;; will be catched in Tramp.
+      (when non-essential
+	(throw 'non-essential 'non-essential))
+
       ;; Must delete dead process so that new process can reuse the name.
       (if proc (delete-process proc))
       (let ((pass (ange-ftp-quote-string
