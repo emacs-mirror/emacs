@@ -1,3 +1,7 @@
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
+
 2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Defining Functions):
