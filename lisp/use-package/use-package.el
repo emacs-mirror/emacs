@@ -309,6 +309,7 @@
 
 (defmacro use-package (name &rest args)
   (let* ((commands (plist-get args :commands))
+         (pre-init-body (plist-get args :pre-init))
          (init-body (plist-get args :init))
          (config-body (plist-get args :config))
          (diminish-var (plist-get args :diminish))
@@ -425,8 +426,9 @@
                       commands)
 
                 `(when ,(or predicate t)
-                   ,init-body
+                   ,pre-init-body
                    ,@form
+                   ,init-body
                    ,(unless (null config-body)
                       `(eval-after-load ,name-string
                          '(if ,requires-test
@@ -442,6 +444,7 @@
                                  `(load ,name t)
                                `(require ',name nil t)))
                        (message "Could not load package %s" ,name-string)
+                     ,pre-init-body
                      ,init-body
                      ,config-body
                      t))))))))
