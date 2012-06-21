@@ -1,3 +1,7 @@
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* charset.c (init_charset): Make lack of etc/charsets fatal.
+
 2012-06-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (x_free_frame_resources): Move xfree so freed memory isn't
