@@ -966,8 +966,8 @@ It returns t if a desktop file was loaded, nil otherwise."
                (and dirs (car dirs)))
              ;; If not found and `desktop-path' is non-nil, use its first element.
              (and desktop-path (car desktop-path))
-             ;; Default: Home directory.
-             "~"))))
+             ;; Default: .emacs.d.
+             user-emacs-directory))))
     (if (file-exists-p (desktop-full-file-name))
 	;; Desktop file found, but is it already in use?
 	(let ((desktop-first-buffer nil)

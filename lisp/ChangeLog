@@ -2,6 +2,7 @@
 
 	* desktop.el (desktop-read): Don't prompt if daemon (Bug#11674).
 	(desktop-path): Remove . from the default value (Bug#10977).
+	(desktop-read): Use user-emacs-directory if desktop-path is nil.
 
 2012-06-20  Chong Yidong  <cyd@gnu.org>
 
