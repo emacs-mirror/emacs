@@ -1,3 +1,8 @@
+2012-06-21  Chong Yidong  <cyd@gnu.org>
+
+	* desktop.el (desktop-read): Don't prompt if daemon (Bug#11674).
+	(desktop-path): Remove . from the default value (Bug#10977).
+
 2012-06-20  Chong Yidong  <cyd@gnu.org>
 
 	* term.el (term-send-raw-meta): Make C-M-<char> keys work (Bug#8172).

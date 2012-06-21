@@ -153,6 +153,11 @@ which have not been renamed to `cl-foo*' but just `cl-foo'.
 The old `cl' is now deprecated and is nothing more than a bunch of aliases that
 provide the old non-prefixed names.
 
+** Desktop
+
+*** `desktop-path' no longer includes the "." directory.  Desktop
+files are now located in ~/.emacs.d by default.
+
 ** A new mode for Python.
 This provides several new features, including:
 per-buffer shells, better indentation, Python 3 support, and improved
