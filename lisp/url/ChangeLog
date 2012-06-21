@@ -1,3 +1,7 @@
+2012-06-21  Chong Yidong  <cyd@gnu.org>
+
+	* url.el (url-retrieve-internal): Fix last change (Bug#11627).
+
 2012-06-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-handlers.el (url-handler-regexp): Declare.
