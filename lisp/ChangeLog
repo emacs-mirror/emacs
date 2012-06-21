@@ -1,3 +1,8 @@
+2012-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-update-syntaxification):
+	Use syntax-propertize (bug#11739).
+
 2012-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* international/mule-cmds.el (mule-menu-keymap)
@@ -18,13 +23,13 @@
 
 2012-06-01  Chong Yidong  <cyd@gnu.org>
 
-	* cus-edit.el (customize-changed-options-previous-release): Bump
-	to 23.4.
+	* cus-edit.el (customize-changed-options-previous-release):
+	Bump to 23.4.
 
 2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Handle
-	arbitrary file name lengths (Bug#11585).
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header):
+	Handle arbitrary file name lengths (Bug#11585).
 
 2012-05-28  Martin Rudalics  <rudalics@gmx.at>
 
@@ -34,8 +39,8 @@
 2012-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/sendmail.el (mail-yank-region): Recognize
-	rmail-yank-current-message in addition to insert-buffer.  Fixes
-	mail-mode's "C-c C-r" that otherwise does nothing when invoked in
+	rmail-yank-current-message in addition to insert-buffer.
+	Fixes mail-mode's "C-c C-r" that otherwise does nothing when invoked in
 	a *mail* buffer created through rmail-start-mail with sendmail as
 	mail-user-agent.
 
