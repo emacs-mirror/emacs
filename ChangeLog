@@ -1,3 +1,7 @@
+2012-06-21  Ulrich Mueller  <ulm@gentoo.org>
+
+	* configure.in: Use m/intel386.h for amd64 with x32 ABI.  (Bug#11669)
+
 2012-06-01  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.1 released.

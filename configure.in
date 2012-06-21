@@ -749,6 +749,7 @@ if test "$machine" = "amdx86-64"; then
     machine=intel386
     machfile="m/${machine}.h"
   fi
+  AC_CHECK_DECL([__ILP32__], [machfile="m/intel386.h"])
 fi
 
 AC_PATH_PROG(INSTALL_INFO, install-info)
