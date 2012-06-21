@@ -2306,7 +2306,7 @@ init_charset (void)
     {
       /* This used to be non-fatal (dir_warning), but it should not
          happen, and if it does sooner or later it will cause some
-         obscure problem (eg bug#909), so better abort.  */
+         obscure problem (eg bug#6401), so better abort.  */
       fprintf (stderr, "Error: charsets directory not found:\n\
 %s\n\
 Emacs will not function correctly without the character map files.\n\
