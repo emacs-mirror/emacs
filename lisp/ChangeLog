@@ -1,3 +1,8 @@
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-font-lock-keywords-2):
+	Add some preprocessor elements.  (Bug#10499)
+
 2012-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el (cperl-update-syntaxification):

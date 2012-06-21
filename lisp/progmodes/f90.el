@@ -233,6 +233,7 @@
   :safe  'stringp
   :group 'f90-indent)
 
+;; Should we add ^# to this?  That's not really a comment.
 (defcustom f90-directive-comment-re "!hpf\\$"
   "Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented."
   :type  'regexp
@@ -627,7 +628,14 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
     '("\\<\\(do\\|go[ \t]*to\\)\\>[ \t]*\\([0-9]+\\)"
       (1 font-lock-keyword-face) (2 font-lock-constant-face))
     ;; Line numbers (lines whose first character after number is letter).
-    '("^[ \t]*\\([0-9]+\\)[ \t]*[a-z]+" (1 font-lock-constant-face t))))
+    '("^[ \t]*\\([0-9]+\\)[ \t]*[a-z]+" (1 font-lock-constant-face t))
+    ;; Override eg for "#include".
+    '("^#[ \t]*\\w+" (0 font-lock-preprocessor-face t)
+      ("\\<defined\\>" nil nil (0 font-lock-preprocessor-face)))
+    '("^#" ("\\(&&\\|||\\)" nil nil (0 font-lock-constant-face t)))
+    '("^#[ \t]*define[ \t]+\\(\\w+\\)(" (1 font-lock-function-name-face))
+    '("^#[ \t]*define[ \t]+\\(\\w+\\)" (1 font-lock-variable-name-face))
+    '("^#[ \t]*include[ \t]+\\(<.+>\\)" (1 font-lock-string-face))))
   "Highlights declarations, do-loops and other constructs.")
 
 (defvar f90-font-lock-keywords-3
