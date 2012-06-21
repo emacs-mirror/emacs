@@ -425,8 +425,8 @@
                       commands)
 
                 `(when ,(or predicate t)
-                   ,@form
                    ,init-body
+                   ,@form
                    ,(unless (null config-body)
                       `(eval-after-load ,name-string
                          '(if ,requires-test
