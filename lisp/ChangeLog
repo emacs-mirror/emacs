@@ -14,6 +14,11 @@
 
 2012-06-22  Glenn Morris  <rgm@gnu.org>
 
+	* pcmpl-rpm.el (pcmpl-rpm-cache): New option.
+	(pcmpl-rpm-cache-stamp-file): New constant.
+	(pcmpl-rpm-cache-time, pcmpl-rpm-packages): New variables.
+	(pcmpl-rpm-packages): Optionally cache list of packages.
+
 	* pcmpl-rpm.el (pcmpl-rpm): New group.
 	(pcmpl-rpm-query-options): New option.
 	(pcmpl-rpm-packages): No need to inline it.

@@ -48,16 +48,37 @@
   :type '(repeat string)
   :group 'pcmpl-rpm)
 
+(defcustom pcmpl-rpm-cache t
+  "Whether to cache the list of installed packages."
+  :version "24.2"
+  :type 'boolean
+  :group 'pcmpl-rpm)
+
+(defconst pcmpl-rpm-cache-stamp-file "/var/lib/rpm/Packages"
+  "File used to check that the list of installed packages is up-to-date.")
+
+(defvar pcmpl-rpm-cache-time nil
+  "Time at which the list of installed packages was updated.")
+
+(defvar pcmpl-rpm-packages nil
+  "List of installed packages.")
+
 ;; Functions:
 
-;; TODO
 ;; This can be slow, so:
-;; Consider caching the result (cf woman).
 ;; Consider printing an explanatory message before running -qa.
 (defun pcmpl-rpm-packages ()
   "Return a list of all installed rpm packages."
-  (split-string (apply 'pcomplete-process-result "rpm"
-                       (append '("-q" "-a") pcmpl-rpm-query-options))))
+  (if (and pcmpl-rpm-cache
+           pcmpl-rpm-cache-time
+           (let ((mtime (nth 5 (file-attributes pcmpl-rpm-cache-stamp-file))))
+             (and mtime (not (time-less-p pcmpl-rpm-cache-time mtime)))))
+      pcmpl-rpm-packages
+    (setq pcmpl-rpm-cache-time (current-time)
+          pcmpl-rpm-packages
+          (split-string (apply 'pcomplete-process-result "rpm"
+                               (append '("-q" "-a")
+                                       pcmpl-rpm-query-options))))))
 
 ;; Should this use pcmpl-rpm-query-options?
 ;; I don't think it would speed it up at all (?).
