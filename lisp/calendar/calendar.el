@@ -1112,7 +1112,7 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
   (declare (indent 1) (debug t))
   `(progn
      (set-buffer (get-buffer-create ,buffer))
-     (special-mode)
+     (or (derived-mode-p 'special-mode) (special-mode))
      (setq buffer-read-only nil
            buffer-undo-list t)
      (erase-buffer)

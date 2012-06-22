@@ -1,3 +1,8 @@
+2012-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-in-read-only-buffer):
+	Avoid some needless mode changes.
+
 2012-06-21  Chong Yidong  <cyd@gnu.org>
 
 	* desktop.el (desktop-read): Don't prompt if daemon (Bug#11674).
