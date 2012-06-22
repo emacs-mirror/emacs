@@ -11,7 +11,7 @@
 ;;;;;;  cl--set-frame-visible-p cl--map-overlays cl--map-intervals
 ;;;;;;  cl--map-keymap-recursively cl-notevery cl-notany cl-every
 ;;;;;;  cl-some cl-mapcon cl-mapcan cl-mapl cl-maplist cl-map cl--mapcar-many
-;;;;;;  cl-equalp cl-coerce) "cl-extra" "cl-extra.el" "edc8a08741d81c74be36b27664d3555a")
+;;;;;;  cl-equalp cl-coerce) "cl-extra" "cl-extra.el" "25963dec757a527e3be3ba7f7abc49ee")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -265,7 +265,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
 ;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
 ;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "e37cb1001378ce1d677b67760fb6994b")
+;;;;;;  "66d8d151a97f91a79ebe3d1a9d699483")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\

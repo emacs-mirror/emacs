@@ -53,12 +53,6 @@
 ;; `gv-letplace' macro) is actually much easier and more elegant than the old
 ;; approach which is clunky and often leads to unreadable code.
 
-;; FIXME: `let!' is unsatisfactory because it does not really "restore" the
-;; previous state.  If the getter/setter loses information, that info is
-;; not recovered.
-
-;; FIXME: Add to defun-declarations-alist.
-
 ;; Food for thought: the syntax of places does not actually conflict with the
 ;; pcase patterns.  The `cons' gv works just like a `(,a . ,b) pcase
 ;; pattern, and actually the `logand' gv is even closer since it should
@@ -91,6 +85,13 @@ DO must return an Elisp expression."
       (funcall do place (lambda (v) `(setq ,place ,v)))
     (let* ((head (car place))
            (gf (get head 'gv-expander)))
+      ;; Autoload the head, if applicable, since that might define
+      ;; `gv-expander'.
+      (when (and (null gf) (fboundp head)
+                 (eq 'autoload (car-safe (symbol-function head))))
+        (with-demoted-errors
+          (load (nth 1 (symbol-function head)) 'noerror 'nomsg)
+          (setq gf (get head 'gv-expander))))
       (if gf (apply gf do (cdr place))
         (let ((me (macroexpand place    ;FIXME: expand one step at a time!
                                ;; (append macroexpand-all-environment
@@ -139,23 +140,30 @@ arguments as NAME.  DO is a function as defined in `gv-get'."
   ;; cleanly without affecting the running Emacs.
   `(eval-and-compile (put ',name 'gv-expander ,handler)))
 
-;; (eval-and-compile
-;; (defun gv--defun-declaration (name args handler)
-;;   (pcase handler
-;;     (`(lambda (,do) . ,body)
-;;      `(gv-define-expander ,name (lambda (,do ,@args) ,@body)))
-;;     ;; (`(expand ,expander) `(gv-define-expand ,name ,expander))
-;;     ;; FIXME: If `setter' is a lambda, give it a name rather
-;;     ;; than duplicate it at each setf use.
-;;     (`(setter ,setter) `(gv-define-simple-setter ,name ,setter))
-;;     (`(setter (,arg) . ,body)
-;;      `(gv-define-setter ,name (,arg ,@args) ,@body))
-;;     ;; FIXME: Should we prefer gv-define-simple-setter in this case?
-;;     ;;((pred symbolp) `(gv-define-expander ,name #',handler))
-;;     (_ (message "Unknown gv-expander declaration %S" handler) nil)))
+;;;###autoload
+(defun gv--defun-declaration (symbol name args handler &optional fix)
+  `(progn
+     ;; No need to autoload this part, since gv-get will auto-load the
+     ;; function's definition before checking the `gv-expander' property.
+     :autoload-end
+     ,(pcase (cons symbol handler)
+        (`(gv-expander . (lambda (,do) . ,body))
+         `(gv-define-expander ,name (lambda (,do ,@args) ,@body)))
+        (`(gv-expander . ,(pred symbolp))
+         `(gv-define-expander ,name #',handler))
+        (`(gv-setter . (lambda (,store) . ,body))
+         `(gv-define-setter ,name (,store ,@args) ,@body))
+        (`(gv-setter . ,(pred symbolp))
+         `(gv-define-simple-setter ,name ,handler ,fix))
+        ;; (`(expand ,expander) `(gv-define-expand ,name ,expander))
+        (_ (message "Unknown %s declaration %S" symbol handler) nil))))
 
-;; (push `(gv-expander ,#'gv--defun-declaration) defun-declarations-alist)
-;; )
+;;;###autoload
+(push `(gv-expander ,(apply-partially #'gv--defun-declaration 'gv-expander))
+      defun-declarations-alist)
+;;;###autoload
+(push `(gv-setter ,(apply-partially #'gv--defun-declaration 'gv-setter))
+      defun-declarations-alist)
 
 ;; (defmacro gv-define-expand (name expander)
 ;;   "Use EXPANDER to handle NAME as a generalized var.
@@ -212,24 +220,6 @@ so as to preserve the semantics of `setf'."
   `(gv-define-setter ,name (val &rest args)
      ,(if fix-return `(list 'prog1 val ,set-call) set-call))))
 
-;;; CL compatibility.
-
-(defmacro gv-define-modify-macro (name arglist func &optional doc)
-  (let* ((args (copy-sequence arglist))
-         (rest (memq '&rest args)))
-    (setq args (delq '&optional (delq '&rest args)))
-    `(defmacro ,name (place ,@arglist)
-       ,doc
-       (gv-letplace (getter setter) place
-         (macroexp-let2 nil v
-             ,(list '\`
-                    (append (list func ',getter)
-                            (mapcar (lambda (arg) (list '\, arg)) args)
-                            (if rest (list (list '\,@ (cadr rest))))))
-           (funcall setter v))))))
-
-(gv-define-simple-setter gv--tree-get gv--tree-set)
-
 ;;; Typical operations on generalized variables.
 
 ;;;###autoload
@@ -251,32 +241,35 @@ The return value is the last VAL in the list.
       (while args (push `(setf ,(pop args) ,(pop args)) sets))
       (cons 'progn (nreverse sets)))))
 
-(defmacro gv-pushnew! (val place)
-  "Like `gv-push!' but only adds VAL if it's not yet in PLACE.
-Presence is checked with `member'.
-The return value is unspecified."
-  (declare (debug (form gv-place)))
-  (macroexp-let2 macroexp-copyable-p v val
-    (gv-letplace (getter setter) place
-      `(if (member ,v ,getter) nil
-         ,(funcall setter `(cons ,v ,getter))))))
-  
-(defmacro gv-inc! (place &optional val)
-  "Increment PLACE by VAL (default to 1)."
-  (declare (debug (gv-place &optional form)))
-  (gv-letplace (getter setter) place
-    (funcall setter `(+ ,getter ,(or val 1)))))
+;; (defmacro gv-pushnew! (val place)
+;;   "Like `gv-push!' but only adds VAL if it's not yet in PLACE.
+;; Presence is checked with `member'.
+;; The return value is unspecified."
+;;   (declare (debug (form gv-place)))
+;;   (macroexp-let2 macroexp-copyable-p v val
+;;     (gv-letplace (getter setter) place
+;;       `(if (member ,v ,getter) nil
+;;          ,(funcall setter `(cons ,v ,getter))))))
 
-(defmacro gv-dec! (place &optional val)
-  "Decrement PLACE by VAL (default to 1)."
-  (declare (debug (gv-place &optional form)))
-  (gv-letplace (getter setter) place
-    (funcall setter `(- ,getter ,(or val 1)))))
+;; (defmacro gv-inc! (place &optional val)
+;;   "Increment PLACE by VAL (default to 1)."
+;;   (declare (debug (gv-place &optional form)))
+;;   (gv-letplace (getter setter) place
+;;     (funcall setter `(+ ,getter ,(or val 1)))))
+
+;; (defmacro gv-dec! (place &optional val)
+;;   "Decrement PLACE by VAL (default to 1)."
+;;   (declare (debug (gv-place &optional form)))
+;;   (gv-letplace (getter setter) place
+;;     (funcall setter `(- ,getter ,(or val 1)))))
 
 ;; For Edebug, the idea is to let Edebug instrument gv-places just like it does
 ;; for normal expressions, and then give it a gv-expander to DTRT.
 ;; Maybe this should really be in edebug.el rather than here.
 
+;; Autoload this `put' since a user might use C-u C-M-x on an expression
+;; containing a non-trivial `push' even before gv.el was loaded.
+;;;###autoload
 (put 'gv-place 'edebug-form-spec 'edebug-match-form)
 ;; CL did the equivalent of:
 ;;(gv-define-expand edebug-after (lambda (before index place) place))

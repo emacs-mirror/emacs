@@ -92,13 +92,17 @@ BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
-# speed up the bootstrap process.
+# speed up the bootstrap process.  They're ordered by size, so we use
+# the slowest-compiler on the smallest file and move to larger files as the
+# compiler gets faster.  `autoload.elc' comes last because it is not used by
+# the compiler (so its compilation does not speed up subsequent compilations),
+# it's only placed here so as to speed up generation of the loaddefs.el file.
 
 COMPILE_FIRST = \
-	$(lisp)/emacs-lisp/bytecomp.elc \
-	$(lisp)/emacs-lisp/byte-opt.elc \
 	$(lisp)/emacs-lisp/macroexp.elc \
-	$(lisp)/emacs-lisp/cconv.elc \
+	$(lisp)/emacs-lisp/cconv.elc    \
+	$(lisp)/emacs-lisp/byte-opt.elc \
+	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.

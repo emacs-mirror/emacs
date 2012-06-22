@@ -123,8 +123,8 @@ altering `command-line-args-left' to remove them.")
   "Default directory to use for command line arguments.
 This is normally copied from `default-directory' when Emacs starts.")
 
-;;; This is here, rather than in x-win.el, so that we can ignore these
-;;; options when we are not using X.
+;; This is here, rather than in x-win.el, so that we can ignore these
+;; options when we are not using X.
 (defconst command-line-x-option-alist
   '(("-bw" 1 x-handle-numeric-switch border-width)
     ("-d" 1 x-handle-display)

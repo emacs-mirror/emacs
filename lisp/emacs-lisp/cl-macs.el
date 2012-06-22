@@ -110,20 +110,6 @@
 (defun cl--const-expr-val (x)
   (and (macroexp-const-p x) (if (consp x) (nth 1 x) x)))
 
-(defun cl-expr-access-order (x v)
-  ;; This apparently tries to return nil iff the expression X evaluates
-  ;; the variables V in the same order as they appear in V (so as to
-  ;; be able to replace those vars with the expressions they're bound
-  ;; to).
-  ;; FIXME: This is very naive, it doesn't even check to see if those
-  ;; variables appear more than once.
-  (if (macroexp-const-p x) v
-    (if (consp x)
-	(progn
-	  (while (setq x (cdr x)) (setq v (cl-expr-access-order (car x) v)))
-	  v)
-      (if (eq x (car v)) (cdr v) '(t)))))
-
 (defun cl--expr-contains (x y)
   "Count number of times X refers to Y.  Return nil for 0 times."
   ;; FIXME: This is naive, and it will cl-count Y as referred twice in
@@ -1489,30 +1475,9 @@ An implicit nil block is established around the loop.
 
 \(fn (VAR LIST [RESULT]) BODY...)"
   (declare (debug ((symbolp form &optional form) cl-declarations body)))
-  (let ((temp (make-symbol "--cl-dolist-temp--")))
-    ;; FIXME: Copy&pasted from subr.el.
-    `(cl-block nil
-       ;; This is not a reliable test, but it does not matter because both
-       ;; semantics are acceptable, tho one is slightly faster with dynamic
-       ;; scoping and the other is slightly faster (and has cleaner semantics)
-       ;; with lexical scoping.
-       ,(if lexical-binding
-            `(let ((,temp ,(nth 1 spec)))
-               (while ,temp
-                 (let ((,(car spec) (car ,temp)))
-                   ,@body
-                   (setq ,temp (cdr ,temp))))
-               ,@(if (cdr (cdr spec))
-                     ;; FIXME: This let often leads to "unused var" warnings.
-                     `((let ((,(car spec) nil)) ,@(cdr (cdr spec))))))
-          `(let ((,temp ,(nth 1 spec))
-                 ,(car spec))
-             (while ,temp
-               (setq ,(car spec) (car ,temp))
-               ,@body
-               (setq ,temp (cdr ,temp)))
-             ,@(if (cdr (cdr spec))
-                   `((setq ,(car spec) nil) ,@(cddr spec))))))))
+  `(cl-block nil
+     (,(if (eq 'cl-dolist (symbol-function 'dolist)) 'cl--dolist 'dolist)
+      ,spec ,@body)))
 
 ;;;###autoload
 (defmacro cl-dotimes (spec &rest body)
@@ -1523,30 +1488,9 @@ nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (debug cl-dolist))
-  (let ((temp (make-symbol "--cl-dotimes-temp--"))
-	(end (nth 1 spec)))
-    ;; FIXME: Copy&pasted from subr.el.
-    `(cl-block nil
-       ;; This is not a reliable test, but it does not matter because both
-       ;; semantics are acceptable, tho one is slightly faster with dynamic
-       ;; scoping and the other has cleaner semantics.
-       ,(if lexical-binding
-            (let ((counter '--dotimes-counter--))
-              `(let ((,temp ,end)
-                     (,counter 0))
-                 (while (< ,counter ,temp)
-                   (let ((,(car spec) ,counter))
-                     ,@body)
-                   (setq ,counter (1+ ,counter)))
-                 ,@(if (cddr spec)
-                       ;; FIXME: This let often leads to "unused var" warnings.
-                       `((let ((,(car spec) ,counter)) ,@(cddr spec))))))
-          `(let ((,temp ,end)
-                 (,(car spec) 0))
-             (while (< ,(car spec) ,temp)
-               ,@body
-               (cl-incf ,(car spec)))
-             ,@(cdr (cdr spec)))))))
+  `(cl-block nil
+     (,(if (eq 'cl-dotimes (symbol-function 'dotimes)) 'cl--dotimes 'dotimes)
+      ,spec ,@body)))
 
 ;;;###autoload
 (defmacro cl-do-symbols (spec &rest body)
@@ -1730,7 +1674,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
   (declare (indent 1) (debug ((&rest (symbol sexp)) cl-declarations body)))
   (cond
    ((cdr bindings)
-      `(cl-symbol-macrolet (,(car bindings))
+    `(cl-symbol-macrolet (,(car bindings))
        (cl-symbol-macrolet ,(cdr bindings) ,@body)))
    ((null bindings) (macroexp-progn body))
    (t
@@ -1740,8 +1684,8 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
             (fset 'macroexpand #'cl--sm-macroexpand)
             ;; FIXME: For N bindings, this will traverse `body' N times!
             (macroexpand-all (cons 'progn body)
-			  (cons (list (symbol-name (caar bindings))
-				      (cl-cadar bindings))
+                             (cons (list (symbol-name (caar bindings))
+                                         (cl-cadar bindings))
                                    macroexpand-all-environment)))
         (fset 'macroexpand previous-macroexpand))))))
 
@@ -1863,130 +1807,6 @@ See Info node `(cl)Declarations' for details."
   nil)
 
 
-
-;;; Generalized variables.
-
-;;; Some standard place types from Common Lisp.
-(gv-define-setter cl-get (store x y &optional d) `(put ,x ,y ,store))
-(gv-define-setter cl-subseq (new seq start &optional end)
-  `(progn (cl-replace ,seq ,new :start1 ,start :end1 ,end) ,new))
-
-;;; Various car/cdr aliases.  Note that `cadr' is handled specially.
-(gv-define-setter cl-fourth (store x) `(setcar (cl-cdddr ,x) ,store))
-(gv-define-setter cl-fifth (store x) `(setcar (nthcdr 4 ,x) ,store))
-(gv-define-setter cl-sixth (store x) `(setcar (nthcdr 5 ,x) ,store))
-(gv-define-setter cl-seventh (store x) `(setcar (nthcdr 6 ,x) ,store))
-(gv-define-setter cl-eighth (store x) `(setcar (nthcdr 7 ,x) ,store))
-(gv-define-setter cl-ninth (store x) `(setcar (nthcdr 8 ,x) ,store))
-(gv-define-setter cl-tenth (store x) `(setcar (nthcdr 9 ,x) ,store))
-
-;;; Some more Emacs-related place types.
-(gv-define-simple-setter buffer-file-name set-visited-file-name t)
-(gv-define-setter buffer-modified-p (flag &optional buf)
-  `(with-current-buffer ,buf
-     (set-buffer-modified-p ,flag)))
-(gv-define-simple-setter buffer-name rename-buffer t)
-(gv-define-setter buffer-string (store)
-  `(progn (erase-buffer) (insert ,store)))
-(gv-define-simple-setter buffer-substring cl--set-buffer-substring)
-(gv-define-simple-setter current-buffer set-buffer)
-(gv-define-simple-setter current-case-table set-case-table)
-(gv-define-simple-setter current-column move-to-column t)
-(gv-define-simple-setter current-global-map use-global-map t)
-(gv-define-setter current-input-mode (store)
-  `(progn (apply #'set-input-mode ,store) ,store))
-(gv-define-simple-setter current-local-map use-local-map t)
-(gv-define-simple-setter current-window-configuration set-window-configuration t)
-(gv-define-simple-setter default-file-modes set-default-file-modes t)
-(gv-define-simple-setter documentation-property put)
-(gv-define-setter face-background (x f &optional s) `(set-face-background ,f ,x ,s))
-(gv-define-setter face-background-pixmap (x f &optional s)
-  `(set-face-background-pixmap ,f ,x ,s))
-(gv-define-setter face-font (x f &optional s) `(set-face-font ,f ,x ,s))
-(gv-define-setter face-foreground (x f &optional s) `(set-face-foreground ,f ,x ,s))
-(gv-define-setter face-underline-p (x f &optional s)
-  `(set-face-underline-p ,f ,x ,s))
-(gv-define-simple-setter file-modes set-file-modes t)
-(gv-define-simple-setter frame-height set-screen-height t)
-(gv-define-simple-setter frame-parameters modify-frame-parameters t)
-(gv-define-simple-setter frame-visible-p cl--set-frame-visible-p)
-(gv-define-simple-setter frame-width set-screen-width t)
-(gv-define-simple-setter getenv setenv t)
-(gv-define-simple-setter get-register set-register)
-(gv-define-simple-setter global-key-binding global-set-key)
-(gv-define-simple-setter local-key-binding local-set-key)
-(gv-define-simple-setter mark set-mark t)
-(gv-define-simple-setter mark-marker set-mark t)
-(gv-define-simple-setter marker-position set-marker t)
-(gv-define-setter mouse-position (store scr)
-  `(set-mouse-position ,scr (car ,store) (cadr ,store)
-                      (cddr ,store)))
-(gv-define-simple-setter point goto-char)
-(gv-define-simple-setter point-marker goto-char t)
-(gv-define-setter point-max (store)
-  `(progn (narrow-to-region (point-min) ,store) ,store))
-(gv-define-setter point-min (store)
-  `(progn (narrow-to-region ,store (point-max)) ,store))
-(gv-define-setter read-mouse-position (store scr)
-  `(set-mouse-position ,scr (car ,store) (cdr ,store)))
-(gv-define-simple-setter screen-height set-screen-height t)
-(gv-define-simple-setter screen-width set-screen-width t)
-(gv-define-simple-setter selected-window select-window)
-(gv-define-simple-setter selected-screen select-screen)
-(gv-define-simple-setter selected-frame select-frame)
-(gv-define-simple-setter standard-case-table set-standard-case-table)
-(gv-define-simple-setter syntax-table set-syntax-table)
-(gv-define-simple-setter visited-file-modtime set-visited-file-modtime t)
-(gv-define-setter window-height (store)
-  `(progn (enlarge-window (- ,store (window-height))) ,store))
-(gv-define-setter window-width (store)
-  `(progn (enlarge-window (- ,store (window-width)) t) ,store))
-(gv-define-simple-setter x-get-secondary-selection x-own-secondary-selection t)
-(gv-define-simple-setter x-get-selection x-own-selection t)
-
-;;; More complex setf-methods.
-
-;; This is a hack that allows (setf (eq a 7) B) to mean either
-;; (setq a 7) or (setq a nil) depending on whether B is nil or not.
-;; This is useful when you have control over the PLACE but not over
-;; the VALUE, as is the case in define-minor-mode's :variable.
-;; It turned out that :variable needed more flexibility anyway, so
-;; this doesn't seem too useful now.
-(gv-define-expander eq
-  (lambda (do place val)
-    (gv-letplace (getter setter) place
-      (macroexp-let2 nil val val
-        (funcall do `(eq ,getter ,val)
-                 (lambda (v)
-                   `(cond
-                     (,v ,(funcall setter val))
-                     ((eq ,getter ,val) ,(funcall setter `(not ,val))))))))))
-
-(gv-define-expander nthcdr
-  (lambda (do n place)
-    (macroexp-let2 nil idx n
-      (gv-letplace (getter setter) place
-        (funcall do `(nthcdr ,idx ,getter)
-                 (lambda (v) `(if (<= ,idx 0) ,(funcall setter v)
-                           (setcdr (nthcdr (1- ,idx) ,getter) ,v))))))))
-
-(gv-define-expander cl-getf
-  (lambda (do place tag &optional def)
-    (gv-letplace (getter setter) place
-      (macroexp-let2 nil k tag
-        (macroexp-let2 nil d def
-          (funcall do `(cl-getf ,getter ,k ,d)
-                   (lambda (v) (funcall setter `(cl--set-getf ,getter ,k ,v)))))))))
-
-(gv-define-expander substring
-  (lambda (do place from &optional to)
-    (gv-letplace (getter setter) place
-      (macroexp-let2 nil start from
-        (macroexp-let2 nil end to
-          (funcall do `(substring ,getter ,start ,end)
-                   (lambda (v)
-                     (funcall setter `(cl--set-substring
-                                       ,getter ,start ,end ,v)))))))))
 
 ;;; The standard modify macros.
 
@@ -2571,8 +2391,6 @@ surrounded by (cl-block NAME ...).
 
 
 ;; Compile-time optimizations for some functions defined in this package.
-;; Note that cl.el arranges to force cl-macs to be loaded at compile-time,
-;; mainly to make sure these macros will be present.
 
 (defun cl--compiler-macro-member (form a list &rest keys)
   (let ((test (and (= (length keys) 2) (eq (car keys) :test)

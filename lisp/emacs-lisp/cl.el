@@ -107,6 +107,14 @@
                ))
   (defvaralias var (intern (format "cl-%s" var))))
 
+;; Before overwriting subr.el's `dotimes' and `dolist', let's remember
+;; them under a different name, so we can use them in our implementation
+;; of `dotimes' and `dolist'.
+(unless (fboundp 'cl--dotimes)
+  (defalias 'cl--dotimes (symbol-function 'dotimes) "The non-CL `dotimes'."))
+(unless (fboundp 'cl--dolist)
+  (defalias 'cl--dolist (symbol-function 'dolist) "The non-CL `dolist'."))
+
 (dolist (fun '(
                (get* . cl-get)
                (random* . cl-random)
@@ -501,6 +509,10 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 ;; not 100% compatible: not worth the trouble to add them to cl-lib.el, but we
 ;; still to support old users of cl.el.
 
+;; FIXME: `letf' is unsatisfactory because it does not really "restore" the
+;; previous state.  If the getter/setter loses information, that info is
+;; not recovered.
+
 (defun cl--letf (bindings simplebinds binds body)
   ;; It's not quite clear what the semantics of let! should be.
   ;; E.g. in (let! ((PLACE1 VAL1) (PLACE2 VAL2)) BODY), while it's clear
@@ -581,7 +593,9 @@ the PLACE is not modified before executing BODY.
   (declare (indent 1) (debug letf))
   (cl--letf* bindings body))
 
-(defun cl--gv-adapt (cl-gv do)         ;FIXME: needed during setf expansion!
+(defun cl--gv-adapt (cl-gv do)
+  ;; This function is used by all .elc files that use define-setf-expander and
+  ;; were compiled with Emacs>=24.2.
   (let ((vars (nth 0 cl-gv))
         (vals (nth 1 cl-gv))
         (binds ())
@@ -773,8 +787,6 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
                      `(nthcdr ,pos ,temp))
                   ,store)))
 	  (list accessor temp))))
-
-;; FIXME: More candidates: define-modify-macro, define-setf-expander.
 
 (provide 'cl)
 ;;; cl.el ends here

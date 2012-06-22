@@ -272,6 +272,7 @@ the return value (nil if RESULT is omitted).
   "Do not evaluate any arguments and return nil.
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
+  ;; FIXME: edebug spec should pay attention to defun-declarations-alist.
   nil)
 ))
 

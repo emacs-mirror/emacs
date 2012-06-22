@@ -25,9 +25,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
 (defcustom term-file-prefix (purecopy "term/")
   "If non-nil, Emacs startup performs terminal-specific initialization.
 It does this by: (load (concat term-file-prefix (getenv \"TERM\")))
@@ -996,28 +993,28 @@ Value is an alist of (NAME . VALUE) if ATTRIBUTE expects a value out
 of a set of discrete values.  Value is `integerp' if ATTRIBUTE expects
 an integer value."
   (let ((valid
-         (case attribute
-           (:family
+         (pcase attribute
+           (`:family
             (if (window-system frame)
                 (mapcar (lambda (x) (cons x x))
                         (font-family-list))
 	      ;; Only one font on TTYs.
 	      (list (cons "default" "default"))))
-           (:foundry
+           (`:foundry
 	    (list nil))
-	   (:width
+	   (`:width
 	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-width-table))
-           (:weight
+           (`:weight
 	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-weight-table))
-	   (:slant
+	   (`:slant
 	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-slant-table))
-	   (:inverse-video
+	   (`:inverse-video
 	    (mapcar #'(lambda (x) (cons (symbol-name x) x))
 		    (internal-lisp-face-attribute-values attribute)))
-           ((:underline :overline :strike-through :box)
+           ((or `:underline `:overline `:strike-through `:box)
             (if (window-system frame)
                 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
                                (internal-lisp-face-attribute-values attribute))
@@ -1025,12 +1022,12 @@ an integer value."
                                (defined-colors frame)))
 	      (mapcar #'(lambda (x) (cons (symbol-name x) x))
 		      (internal-lisp-face-attribute-values attribute))))
-           ((:foreground :background)
+           ((or `:foreground `:background)
             (mapcar #'(lambda (c) (cons c c))
                     (defined-colors frame)))
-           ((:height)
+           (`:height
             'integerp)
-           (:stipple
+           (`:stipple
             (and (memq (window-system frame) '(x ns)) ; No stipple on w32
                  (mapcar #'list
                          (apply #'nconc
@@ -1039,11 +1036,11 @@ an integer value."
                                                (file-directory-p dir)
                                                (directory-files dir)))
                                         x-bitmap-file-path)))))
-           (:inherit
+           (`:inherit
             (cons '("none" . nil)
                   (mapcar #'(lambda (c) (cons (symbol-name c) c))
                           (face-list))))
-           (t
+           (_
             (error "Internal error")))))
     (if (and (listp valid) (not (memq attribute '(:inherit))))
 	(nconc (list (cons "unspecified" 'unspecified)) valid)

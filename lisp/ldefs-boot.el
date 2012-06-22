@@ -2712,7 +2712,7 @@ Like `bug-reference-mode', but only buttonize in comments and strings.
 ;;;;;;  batch-byte-compile-if-not-done display-call-tree byte-compile
 ;;;;;;  compile-defun byte-compile-file byte-recompile-directory
 ;;;;;;  byte-force-recompile byte-compile-enable-warning byte-compile-disable-warning)
-;;;;;;  "bytecomp" "emacs-lisp/bytecomp.el" (20451 21087))
+;;;;;;  "bytecomp" "emacs-lisp/bytecomp.el" (20452 43334))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
@@ -2978,8 +2978,8 @@ See the documentation for `calculator-mode' for more information.
 
 ;;;***
 
-;;;### (autoloads (calendar) "calendar" "calendar/calendar.el" (20432
-;;;;;;  42254))
+;;;### (autoloads (calendar) "calendar" "calendar/calendar.el" (20452
+;;;;;;  43334))
 ;;; Generated autoloads from calendar/calendar.el
 
 (autoload 'calendar "calendar" "\
@@ -3699,7 +3699,7 @@ See the documentation of `define-ccl-program' for the detail of CCL program.
 ;;;***
 
 ;;;### (autoloads (cconv-closure-convert) "cconv" "emacs-lisp/cconv.el"
-;;;;;;  (20451 21087))
+;;;;;;  (20452 43334))
 ;;; Generated autoloads from emacs-lisp/cconv.el
 
 (autoload 'cconv-closure-convert "cconv" "\
@@ -4121,7 +4121,7 @@ For example, the function `case' has an indent property
 
 ;;;***
 
-;;;### (autoloads nil "cl-lib" "emacs-lisp/cl-lib.el" (20451 21087))
+;;;### (autoloads nil "cl-lib" "emacs-lisp/cl-lib.el" (20452 55920))
 ;;; Generated autoloads from emacs-lisp/cl-lib.el
 
 (define-obsolete-variable-alias 'custom-print-functions 'cl-custom-print-functions "24.2")
@@ -6409,7 +6409,7 @@ Optional arguments are passed to `dig-invoke'.
 ;;;***
 
 ;;;### (autoloads (dired-mode dired-noselect dired-other-frame dired-other-window
-;;;;;;  dired dired-listing-switches) "dired" "dired.el" (20428 57510))
+;;;;;;  dired dired-listing-switches) "dired" "dired.el" (20452 43334))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches (purecopy "-al") "\
@@ -7402,13 +7402,14 @@ See `ebnf-style-database' documentation.
 ;;;;;;  ebrowse-electric-position-menu ebrowse-forward-in-position-stack
 ;;;;;;  ebrowse-back-in-position-stack ebrowse-tags-search-member-use
 ;;;;;;  ebrowse-tags-query-replace ebrowse-tags-search ebrowse-tags-loop-continue
-;;;;;;  ebrowse-tags-find-definition-other-frame ebrowse-tags-view-definition-other-frame
-;;;;;;  ebrowse-tags-find-declaration-other-frame ebrowse-tags-find-definition-other-window
-;;;;;;  ebrowse-tags-view-definition-other-window ebrowse-tags-find-declaration-other-window
-;;;;;;  ebrowse-tags-find-definition ebrowse-tags-view-definition
-;;;;;;  ebrowse-tags-find-declaration ebrowse-tags-view-declaration
-;;;;;;  ebrowse-member-mode ebrowse-electric-choose-tree ebrowse-tree-mode)
-;;;;;;  "ebrowse" "progmodes/ebrowse.el" (20434 28080))
+;;;;;;  ebrowse-tags-complete-symbol ebrowse-tags-find-definition-other-frame
+;;;;;;  ebrowse-tags-view-definition-other-frame ebrowse-tags-find-declaration-other-frame
+;;;;;;  ebrowse-tags-find-definition-other-window ebrowse-tags-view-definition-other-window
+;;;;;;  ebrowse-tags-find-declaration-other-window ebrowse-tags-find-definition
+;;;;;;  ebrowse-tags-view-definition ebrowse-tags-find-declaration
+;;;;;;  ebrowse-tags-view-declaration ebrowse-member-mode ebrowse-electric-choose-tree
+;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (20434
+;;;;;;  28080))
 ;;; Generated autoloads from progmodes/ebrowse.el
 
 (autoload 'ebrowse-tree-mode "ebrowse" "\
@@ -7482,6 +7483,14 @@ View definition of member at point in other frame.
 Find definition of member at point in other frame.
 
 \(fn)" t nil)
+
+(autoload 'ebrowse-tags-complete-symbol "ebrowse" "\
+Perform completion on the C++ symbol preceding point.
+A second call of this function without changing point inserts the next match.
+A call with prefix PREFIX reads the symbol to insert from the minibuffer with
+completion.
+
+\(fn PREFIX)" t nil)
 
 (autoload 'ebrowse-tags-loop-continue "ebrowse" "\
 Repeat last operation on files in tree.
@@ -8770,7 +8779,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;;***
 
-;;;### (autoloads (erc-handle-irc-url erc-tls erc-select-read-args)
+;;;### (autoloads (erc-handle-irc-url erc-tls erc erc-select-read-args)
 ;;;;;;  "erc" "erc/erc.el" (20446 34252))
 ;;; Generated autoloads from erc/erc.el
 
@@ -8778,6 +8787,29 @@ Look at CONFIG and try to expand GROUP.
 Prompt the user for values of nick, server, port, and password.
 
 \(fn)" nil nil)
+
+(autoload 'erc "erc" "\
+ERC is a powerful, modular, and extensible IRC client.
+This function is the main entry point for ERC.
+
+It permits you to select connection parameters, and then starts ERC.
+
+Non-interactively, it takes the keyword arguments
+   (server (erc-compute-server))
+   (port   (erc-compute-port))
+   (nick   (erc-compute-nick))
+   password
+   (full-name (erc-compute-full-name)))
+
+That is, if called with
+
+   (erc :server \"irc.freenode.net\" :full-name \"Harry S Truman\")
+
+then the server and full-name will be set to those values, whereas
+`erc-compute-port', `erc-compute-nick' and `erc-compute-full-name' will
+be invoked for the values of the other parameters.
+
+\(fn &key (server (erc-compute-server)) (port (erc-compute-port)) (nick (erc-compute-nick)) PASSWORD (full-name (erc-compute-full-name)))" t nil)
 
 (defalias 'erc-select 'erc)
 
@@ -9242,9 +9274,26 @@ Add a file to `erc-xdcc-files'.
 ;;;***
 
 ;;;### (autoloads (ert-describe-test ert-run-tests-interactively
-;;;;;;  ert-run-tests-batch-and-exit ert-run-tests-batch) "ert" "emacs-lisp/ert.el"
-;;;;;;  (20356 35090))
+;;;;;;  ert-run-tests-batch-and-exit ert-run-tests-batch ert-deftest)
+;;;;;;  "ert" "emacs-lisp/ert.el" (20356 35090))
 ;;; Generated autoloads from emacs-lisp/ert.el
+
+(autoload 'ert-deftest "ert" "\
+Define NAME (a symbol) as a test.
+
+BODY is evaluated as a `progn' when the test is run.  It should
+signal a condition on failure or just return if the test passes.
+
+`should', `should-not' and `should-error' are useful for
+assertions in BODY.
+
+Use `ert' to run tests interactively.
+
+Tests that are expected to fail can be marked as such
+using :expected-result.  See `ert-test-result-type-p' for a
+description of valid values for RESULT-TYPE.
+
+\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags '(TAG...)] BODY...)" nil (quote macro))
 
 (put 'ert-deftest 'lisp-indent-function 2)
 
@@ -9966,8 +10015,8 @@ Edit the hotlist of directory servers in a specialized buffer.
 
 ;;;***
 
-;;;### (autoloads (ewoc-create) "ewoc" "emacs-lisp/ewoc.el" (20451
-;;;;;;  21087))
+;;;### (autoloads (ewoc-create) "ewoc" "emacs-lisp/ewoc.el" (20452
+;;;;;;  43334))
 ;;; Generated autoloads from emacs-lisp/ewoc.el
 
 (autoload 'ewoc-create "ewoc" "\
@@ -12691,8 +12740,8 @@ it if ARG is omitted or nil.
 ;;;***
 
 ;;;### (autoloads (setf gv-define-simple-setter gv-define-setter
-;;;;;;  gv-define-expander gv-letplace gv-get) "gv" "emacs-lisp/gv.el"
-;;;;;;  (20451 34840))
+;;;;;;  gv--defun-declaration gv-define-expander gv-letplace gv-get)
+;;;;;;  "gv" "emacs-lisp/gv.el" (20452 56419))
 ;;; Generated autoloads from emacs-lisp/gv.el
 
 (autoload 'gv-get "gv" "\
@@ -12732,6 +12781,15 @@ arguments as NAME.  DO is a function as defined in `gv-get'.
 
 (put 'gv-define-expander 'lisp-indent-function '1)
 
+(autoload 'gv--defun-declaration "gv" "\
+
+
+\(fn SYMBOL NAME ARGS HANDLER &optional FIX)" nil nil)
+
+(push `(gv-expander ,(apply-partially #'gv--defun-declaration 'gv-expander)) defun-declarations-alist)
+
+(push `(gv-setter ,(apply-partially #'gv--defun-declaration 'gv-setter)) defun-declarations-alist)
+
 (autoload 'gv-define-setter "gv" "\
 Define a setter method for generalized variable NAME.
 This macro is an easy-to-use substitute for `gv-define-expander' that works
@@ -12766,6 +12824,8 @@ For example, (setf (cadr x) y) is equivalent to (setcar (cdr x) y).
 The return value is the last VAL in the list.
 
 \(fn PLACE VAL PLACE VAL ...)" nil t)
+
+(put 'gv-place 'edebug-form-spec 'edebug-match-form)
 
 ;;;***
 
@@ -14004,11 +14064,96 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'.
 \(fn SRCDIR DSTDIR &optional F-EXT L-EXT)" t nil)
 
 ;;;***
+
+;;;### (autoloads (define-ibuffer-filter define-ibuffer-op define-ibuffer-sorter
+;;;;;;  define-ibuffer-column) "ibuf-macs" "ibuf-macs.el" (20412
+;;;;;;  11425))
+;;; Generated autoloads from ibuf-macs.el
+
+(autoload 'define-ibuffer-column "ibuf-macs" "\
+Define a column SYMBOL for use with `ibuffer-formats'.
+
+BODY will be called with `buffer' bound to the buffer object, and
+`mark' bound to the current mark on the buffer.  The original ibuffer
+buffer will be bound to `ibuffer-buf'.
+
+If NAME is given, it will be used as a title for the column.
+Otherwise, the title will default to a capitalized version of the
+SYMBOL's name.  PROPS is a plist of additional properties to add to
+the text, such as `mouse-face'.  And SUMMARIZER, if given, is a
+function which will be passed a list of all the strings in its column;
+it should return a string to display at the bottom.
+
+If HEADER-MOUSE-MAP is given, it will be used as a keymap for the
+title of the column.
+
+Note that this macro expands into a `defun' for a function named
+ibuffer-make-column-NAME.  If INLINE is non-nil, then the form will be
+inlined into the compiled format versions.  This means that if you
+change its definition, you should explicitly call
+`ibuffer-recompile-formats'.
+
+\(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil (quote macro))
+
+(autoload 'define-ibuffer-sorter "ibuf-macs" "\
+Define a method of sorting named NAME.
+DOCUMENTATION is the documentation of the function, which will be called
+`ibuffer-do-sort-by-NAME'.
+DESCRIPTION is a short string describing the sorting method.
+
+For sorting, the forms in BODY will be evaluated with `a' bound to one
+buffer object, and `b' bound to another.  BODY should return a non-nil
+value if and only if `a' is \"less than\" `b'.
+
+\(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil (quote macro))
+
+(autoload 'define-ibuffer-op "ibuf-macs" "\
+Generate a function which operates on a buffer.
+OP becomes the name of the function; if it doesn't begin with
+`ibuffer-do-', then that is prepended to it.
+When an operation is performed, this function will be called once for
+each marked buffer, with that buffer current.
+
+ARGS becomes the formal parameters of the function.
+DOCUMENTATION becomes the docstring of the function.
+INTERACTIVE becomes the interactive specification of the function.
+MARK describes which type of mark (:deletion, or nil) this operation
+uses.  :deletion means the function operates on buffers marked for
+deletion, otherwise it acts on normally marked buffers.
+MODIFIER-P describes how the function modifies buffers.  This is used
+to set the modification flag of the Ibuffer buffer itself.  Valid
+values are:
+ nil - the function never modifiers buffers
+ t - the function it always modifies buffers
+ :maybe - attempt to discover this information by comparing the
+  buffer's modification flag.
+DANGEROUS is a boolean which should be set if the user should be
+prompted before performing this operation.
+OPSTRING is a string which will be displayed to the user after the
+operation is complete, in the form:
+ \"Operation complete; OPSTRING x buffers\"
+ACTIVE-OPSTRING is a string which will be displayed to the user in a
+confirmation message, in the form:
+ \"Really ACTIVE-OPSTRING x buffers?\"
+COMPLEX means this function is special; see the source code of this
+macro for exactly what it does.
+
+\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING COMPLEX) &rest BODY)" nil (quote macro))
+
+(autoload 'define-ibuffer-filter "ibuf-macs" "\
+Define a filter named NAME.
+DOCUMENTATION is the documentation of the function.
+READER is a form which should read a qualifier from the user.
+DESCRIPTION is a short string describing the filter.
+
+BODY should contain forms which will be evaluated to test whether or
+not a particular buffer should be displayed or not.  The forms in BODY
+will be evaluated with BUF bound to the buffer object, and QUALIFIER
+bound to the current value of the filter.
+
+\(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil (quote macro))
 
 ;;;***
-
-;;;### (autoloads nil "ibuf-macs" "ibuf-macs.el" (20412 11425))
-;;; Generated autoloads from ibuf-macs.el
 
 ;;;### (autoloads (ibuffer ibuffer-other-window ibuffer-list-buffers)
 ;;;;;;  "ibuffer" "ibuffer.el" (20412 11425))
@@ -14104,8 +14249,8 @@ buffer `*icalendar-errors*'.
 
 ;;;***
 
-;;;### (autoloads (icomplete-mode) "icomplete" "icomplete.el" (20318
-;;;;;;  5885))
+;;;### (autoloads (icomplete-mode) "icomplete" "icomplete.el" (20452
+;;;;;;  44311))
 ;;; Generated autoloads from icomplete.el
 
 (defvar icomplete-mode nil "\
@@ -16891,7 +17036,7 @@ A major mode to edit m4 macro files.
 ;;;***
 
 ;;;### (autoloads (macroexpand-all) "macroexp" "emacs-lisp/macroexp.el"
-;;;;;;  (20451 34676))
+;;;;;;  (20452 43334))
 ;;; Generated autoloads from emacs-lisp/macroexp.el
 
 (autoload 'macroexpand-all "macroexp" "\
@@ -21489,7 +21634,7 @@ Check if KEY is in the cache.
 ;;;***
 
 ;;;### (autoloads (pcase-let pcase-let* pcase) "pcase" "emacs-lisp/pcase.el"
-;;;;;;  (20451 34853))
+;;;;;;  (20452 43334))
 ;;; Generated autoloads from emacs-lisp/pcase.el
 
 (autoload 'pcase "pcase" "\
@@ -21608,8 +21753,8 @@ Completion for GNU/Linux `mount'.
 
 ;;;***
 
-;;;### (autoloads (pcomplete/rpm) "pcmpl-rpm" "pcmpl-rpm.el" (20373
-;;;;;;  41604))
+;;;### (autoloads (pcomplete/rpm) "pcmpl-rpm" "pcmpl-rpm.el" (20452
+;;;;;;  43334))
 ;;; Generated autoloads from pcmpl-rpm.el
 
 (autoload 'pcomplete/rpm "pcmpl-rpm" "\
@@ -23262,7 +23407,8 @@ of each directory.
 
 ;;;### (autoloads (quickurl-list quickurl-list-mode quickurl-edit-urls
 ;;;;;;  quickurl-browse-url-ask quickurl-browse-url quickurl-add-url
-;;;;;;  quickurl-ask) "quickurl" "net/quickurl.el" (20356 35090))
+;;;;;;  quickurl-ask quickurl) "quickurl" "net/quickurl.el" (20356
+;;;;;;  35090))
 ;;; Generated autoloads from net/quickurl.el
 
 (defconst quickurl-reread-hook-postfix "\n;; Local Variables:\n;; eval: (progn (require 'quickurl) (add-hook 'local-write-file-hooks (lambda () (quickurl-read) nil)))\n;; End:\n" "\
@@ -23275,6 +23421,15 @@ To make use of this do something like:
   (setq quickurl-postfix quickurl-reread-hook-postfix)
 
 in your ~/.emacs (after loading/requiring quickurl).")
+
+(autoload 'quickurl "quickurl" "\
+Insert a URL based on LOOKUP.
+
+If not supplied LOOKUP is taken to be the word at point in the current
+buffer, this default action can be modified via
+`quickurl-grab-lookup-function'.
+
+\(fn &optional LOOKUP)" t nil)
 
 (autoload 'quickurl-ask "quickurl" "\
 Insert a URL, with `completing-read' prompt, based on LOOKUP.
@@ -24785,8 +24940,8 @@ enclosed in `(and ...)'.
 
 ;;;***
 
-;;;### (autoloads (savehist-mode) "savehist" "savehist.el" (20318
-;;;;;;  5885))
+;;;### (autoloads (savehist-mode) "savehist" "savehist.el" (20452
+;;;;;;  43636))
 ;;; Generated autoloads from savehist.el
 
 (defvar savehist-mode nil "\
@@ -32255,7 +32410,7 @@ this is equivalent to `display-warning', using
 ;;;***
 
 ;;;### (autoloads (wdired-change-to-wdired-mode) "wdired" "wdired.el"
-;;;;;;  (20244 35516))
+;;;;;;  (20452 43334))
 ;;; Generated autoloads from wdired.el
 
 (autoload 'wdired-change-to-wdired-mode "wdired" "\
@@ -32850,7 +33005,7 @@ Default MODIFIER is 'shift.
 ;;;***
 
 ;;;### (autoloads (winner-mode winner-mode) "winner" "winner.el"
-;;;;;;  (20244 35516))
+;;;;;;  (20452 43334))
 ;;; Generated autoloads from winner.el
 
 (defvar winner-mode nil "\
@@ -33379,7 +33534,7 @@ Zone out, completely.
 ;;;;;;  "vc/ediff-ptch.el" "vc/ediff-vers.el" "vc/ediff-wind.el"
 ;;;;;;  "vc/pcvs-info.el" "vc/pcvs-parse.el" "vc/pcvs-util.el" "vc/vc-dav.el"
 ;;;;;;  "vcursor.el" "vt-control.el" "vt100-led.el" "w32-fns.el"
-;;;;;;  "w32-vars.el" "x-dnd.el") (20451 34928 615251))
+;;;;;;  "w32-vars.el" "x-dnd.el") (20452 56581 711508))
 
 ;;;***
 

@@ -28,8 +28,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the previously selected window.
 The value returned is the value of the last form in BODY.
@@ -2557,7 +2555,7 @@ This may be a useful alternative binding for \\[delete-other-windows]
     (while (not (eq (setq w (next-window w 1)) window))
       (let ((e (window-edges w)))
         (when (and (= (car e) (car edges))
-                   (= (caddr e) (caddr edges)))
+                   (= (nth 2 e) (nth 2 edges)))
           (push w delenda))))
     (mapc 'delete-window delenda)))
 

@@ -1,3 +1,27 @@
+2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Further GV/CL cleanups.
+	* emacs-lisp/gv.el (gv-get): Autoload functions to find their
+	gv-expander.
+	(gv--defun-declaration): New function.
+	(defun-declarations-alist): Use it.
+	(gv-define-modify-macro, gv-pushnew!, gv-inc!, gv-dec!): Remove.
+	(gv-place): Autoload.
+	* emacs-lisp/cl.el (cl--dotimes, cl--dolist): Remember subr.el's
+	original definition of dotimes and dolist.
+	* emacs-lisp/cl-macs.el (cl-expr-access-order): Remove unused.
+	(cl-dolist, cl-dotimes): Use `dolist' and `dotimes'.
+	* emacs-lisp/cl-lib.el: Move gv handlers from cl-macs to here.
+	(cl-fifth, cl-sixth, cl-seventh, cl-eighth)
+	(cl-ninth, cl-tenth): Move gv handler to the function's definition.
+	* emacs-lisp/cl-extra.el (cl-subseq, cl-get, cl-getf): Move gv handler
+	to the function's definition.
+	* Makefile.in (COMPILE_FIRST): Re-order to speed it up by about 50%.
+	* window.el:
+	* files.el:
+	* faces.el:
+	* env.el: Don't use CL.
+
 2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Support higher-resolution time stamps (Bug#9000).
