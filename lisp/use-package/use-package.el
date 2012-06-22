@@ -271,6 +271,11 @@
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-debug nil
+  "Whether to report more information, mostly regarding el-get"
+  :type 'boolean
+  :group 'use-package)
+
 (defmacro with-elapsed-timer (text &rest forms)
   `(let ((now ,(if use-package-verbose
                    '(current-time))))
@@ -330,8 +335,8 @@
                               `(not (member nil (mapcar #'featurep
                                                         (quote ,requires))))
                             `(featurep (quote ,requires)))))
-         (name-string (if (stringp name) name
-                        (symbol-name name))))
+         (name-string (if (stringp name) name (symbol-name name)))
+         (name-symbol (if (stringp name) (intern name) name)))
 
     (unless (plist-get args :disabled)
       (if diminish-var
@@ -395,27 +400,41 @@
               `(require ',name nil t)))
 
          ,(when (boundp 'el-get-sources)
-            (unless (plist-get args :name)
-              (nconc args (list :name name-string)))
+            (require 'el-get)
 
-            (unless (plist-get args :type)
-              (setq args (use-package-discover-el-get-type args)))
+            (let ((recipe (ignore-errors
+                            (el-get-read-recipe name-symbol))))
+              (if (null recipe)
+                  (if use-package-debug
+                      (message "No el-get recipe found for package `%s'"
+                               name-symbol))
+                (setq args
+                      (mapcar #'(lambda (arg)
+                                  (cond
+                                   ((eq arg :config)
+                                    :after)
+                                   ((eq arg :requires)
+                                    :depends)
+                                   (t
+                                    arg)))
+                              args))
 
-            (when (plist-get args :type)
-              (setq args
-                    (mapcar #'(lambda (arg)
-                                (cond
-                                 ((eq arg :config)
-                                  :after)
-                                 ((eq arg :requires)
-                                  :depends)
-                                 (t
-                                  arg)))
-                            args))
+                (nconc args (list :symbol (intern name-string)))
 
-              (nconc args (list :symbol (intern name-string)))
+                (let ((elem args))
+                  (while elem
+                    (unless (plist-get recipe (car elem))
+                      (plist-put recipe (car elem) (cadr elem)))
+                    (setq elem (cddr elem))))
 
-              `(push (quote ,args) el-get-sources)))
+                (unless (plist-get recipe :name)
+                  (nconc recipe (list :name name-string)))
+
+                (unless (plist-get recipe :type)
+                  (setq recipe (use-package-discover-el-get-type recipe)))
+
+                (ignore
+                 (setq el-get-sources (cons recipe el-get-sources))))))
 
          ,(if (or commands (plist-get args :defer))
               (let (form)
