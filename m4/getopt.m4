@@ -1,4 +1,4 @@
-# getopt.m4 serial 39
+# getopt.m4 serial 41
 dnl Copyright (C) 2002-2006, 2008-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -173,7 +173,7 @@ main ()
     if (!(optind == 1))
       return 12;
   }
-  /* Detect MacOS 10.5, AIX 7.1 bug.  */
+  /* Detect Mac OS X 10.5, AIX 7.1 bug.  */
   {
     static char program[] = "program";
     static char ab[] = "-ab";
@@ -236,7 +236,7 @@ dnl is ambiguous with environment values that contain newlines.
              nocrash_init();
 
              /* This code succeeds on glibc 2.8, OpenBSD 4.0, Cygwin, mingw,
-                and fails on MacOS X 10.5, AIX 5.2, HP-UX 11, IRIX 6.5,
+                and fails on Mac OS X 10.5, AIX 5.2, HP-UX 11, IRIX 6.5,
                 OSF/1 5.1, Solaris 10.  */
              {
                static char conftest[] = "conftest";
@@ -247,7 +247,7 @@ dnl is ambiguous with environment values that contain newlines.
                  result |= 1;
              }
              /* This code succeeds on glibc 2.8, mingw,
-                and fails on MacOS X 10.5, OpenBSD 4.0, AIX 5.2, HP-UX 11,
+                and fails on Mac OS X 10.5, OpenBSD 4.0, AIX 5.2, HP-UX 11,
                 IRIX 6.5, OSF/1 5.1, Solaris 10, Cygwin 1.5.x.  */
              {
                static char program[] = "program";
@@ -276,7 +276,7 @@ dnl is ambiguous with environment values that contain newlines.
                if (getopt (3, argv, "-p") != 1)
                  result |= 16;
                else if (getopt (3, argv, "-p") != 'p')
-                 result |= 32;
+                 result |= 16;
              }
              /* This code fails on glibc 2.11.  */
              {
@@ -286,9 +286,9 @@ dnl is ambiguous with environment values that contain newlines.
                char *argv[] = { program, b, a, NULL };
                optind = opterr = 0;
                if (getopt (3, argv, "+:a:b") != 'b')
-                 result |= 64;
+                 result |= 32;
                else if (getopt (3, argv, "+:a:b") != ':')
-                 result |= 64;
+                 result |= 32;
              }
              /* This code dumps core on glibc 2.14.  */
              {
@@ -298,7 +298,7 @@ dnl is ambiguous with environment values that contain newlines.
                char *argv[] = { program, w, dummy, NULL };
                optind = opterr = 1;
                if (getopt (3, argv, "W;") != 'W')
-                 result |= 128;
+                 result |= 64;
              }
              return result;
            ]])],

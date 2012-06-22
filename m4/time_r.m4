@@ -17,7 +17,7 @@ AC_DEFUN([gl_TIME_R],
 
   dnl Some systems don't declare localtime_r() and gmtime_r() if _REENTRANT is
   dnl not defined.
-  AC_CHECK_DECLS_ONCE([localtime_r])
+  AC_CHECK_DECLS([localtime_r], [], [], [[#include <time.h>]])
   if test $ac_cv_have_decl_localtime_r = no; then
     HAVE_DECL_LOCALTIME_R=0
   fi

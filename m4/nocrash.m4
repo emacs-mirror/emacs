@@ -1,4 +1,4 @@
-# nocrash.m4 serial 3
+# nocrash.m4 serial 4
 dnl Copyright (C) 2005, 2009-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -18,7 +18,7 @@ dnl          int main() { nocrash_init(); ... }
 AC_DEFUN([GL_NOCRASH],[[
 #include <stdlib.h>
 #if defined __MACH__ && defined __APPLE__
-/* Avoid a crash on MacOS X.  */
+/* Avoid a crash on Mac OS X.  */
 #include <mach/mach.h>
 #include <mach/mach_error.h>
 #include <mach/thread_status.h>

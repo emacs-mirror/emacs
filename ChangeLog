@@ -1,3 +1,18 @@
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* lib/filemode.h, lib/signal.in.h, lib/stat.c, lib/stdint.in.h:
+	* lib/stdlib.in.h, lib/unistd.in.h, m4/extensions.m4, m4/getloadavg.m4:
+	* m4/getopt.m4, m4/gnulib-common.m4, m4/largefile.m4, m4/mktime.m4:
+	* m4/multiarch.m4, m4/nocrash.m4, m4/stdio_h.m4, m4/time_r.m4:
+	Copy new versions from gnulib, incorporating the following changes:
+	2012-06-22 time_r: fix typo that always overrode localtime_r decl
+	2012-06-22 Write "Mac OS X" instead of "MacOS X".
+	2012-06-21 mktime: fix integer overflow in 'configure'-time test
+	2012-06-21 nonblocking: Avoid compilation error on mingw64.
+	2012-06-19 stat, fstat: Avoid warnings on mingw64.
+	2012-06-19 getopt-gnu: Fix exit code overflow in autoconf test.
+
 2012-06-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Rename --enable-use-lisp-union-type to

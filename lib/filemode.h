@@ -23,7 +23,7 @@
 
 /* Get the declaration of strmode.  */
 # if HAVE_DECL_STRMODE
-#  include <string.h> /* MacOS X, FreeBSD, OpenBSD */
+#  include <string.h> /* Mac OS X, FreeBSD, OpenBSD */
 #  include <unistd.h> /* NetBSD */
 # endif
 

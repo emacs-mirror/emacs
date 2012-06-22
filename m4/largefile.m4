@@ -136,7 +136,7 @@ AC_DEFUN([gl_LARGEFILE],
     *)
       dnl Nothing to do on gnulib's side.
       dnl A 64-bit off_t is
-      dnl   - already the default on MacOS X, FreeBSD, NetBSD, OpenBSD, IRIX,
+      dnl   - already the default on Mac OS X, FreeBSD, NetBSD, OpenBSD, IRIX,
       dnl     OSF/1, Cygwin,
       dnl   - enabled by _FILE_OFFSET_BITS=64 (ensured by AC_SYS_LARGEFILE) on
       dnl     glibc, HP-UX, Solaris,

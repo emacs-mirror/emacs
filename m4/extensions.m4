@@ -1,4 +1,4 @@
-# serial 11  -*- Autoconf -*-
+# serial 12  -*- Autoconf -*-
 # Enable extensions on systems that normally disable them.
 
 # Copyright (C) 2003, 2006-2012 Free Software Foundation, Inc.
@@ -67,7 +67,7 @@ AC_BEFORE([$0], [AC_RUN_IFELSE])dnl
 #ifndef _ALL_SOURCE
 # undef _ALL_SOURCE
 #endif
-/* Enable general extensions on MacOS X.  */
+/* Enable general extensions on Mac OS X.  */
 #ifndef _DARWIN_C_SOURCE
 # undef _DARWIN_C_SOURCE
 #endif
