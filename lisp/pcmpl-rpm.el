@@ -43,9 +43,11 @@
         (if (search-forward "--nosignature " nil t)
             (push "--nosignature" opts))))
     opts)
-  "List of extra options to add to an rpm query command."
+  "String, or list of strings, with extra options for an rpm query command."
   :version "24.2"
-  :type '(repeat string)
+  :type '(choice (const :tag "No options" nil)
+                 (string :tag "Single option")
+                 (repeat :tag "List of options" string))
   :group 'pcmpl-rpm)
 
 (defcustom pcmpl-rpm-cache t
@@ -78,7 +80,9 @@
           pcmpl-rpm-packages
           (split-string (apply 'pcomplete-process-result "rpm"
                                (append '("-q" "-a")
-                                       pcmpl-rpm-query-options))))))
+                                       (if (stringp pcmpl-rpm-query-options)
+                                           (list pcmpl-rpm-query-options)
+                                         pcmpl-rpm-query-options)))))))
 
 ;; Should this use pcmpl-rpm-query-options?
 ;; I don't think it would speed it up at all (?).
