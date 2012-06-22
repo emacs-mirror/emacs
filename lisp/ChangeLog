@@ -1,5 +1,10 @@
 2012-06-22  Glenn Morris  <rgm@gnu.org>
 
+	* pcmpl-rpm.el (pcmpl-rpm): New group.
+	(pcmpl-rpm-query-options): New option.
+	(pcmpl-rpm-packages): No need to inline it.
+	Use pcmpl-rpm-query-options.
+
 	* calendar/calendar.el (calendar-in-read-only-buffer):
 	Avoid some needless mode changes.
 

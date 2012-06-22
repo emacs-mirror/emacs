@@ -27,18 +27,40 @@
 
 (require 'pcomplete)
 
+(defgroup pcmpl-rpm nil
+  "Options for rpm completion."
+  :group 'pcomplete
+  :prefix "pcmpl-rpm-")
+
+;; rpm -qa can be slow.  Adding --nodigest --nosignature is MUCH faster.
+(defcustom pcmpl-rpm-query-options
+  (let (opts)
+    (with-temp-buffer
+      (when (ignore-errors (call-process "rpm" nil t nil "--help"))
+        (if (search-backward "--nodigest " nil 'move)
+            (setq opts '("--nodigest")))
+        (goto-char (point-min))
+        (if (search-forward "--nosignature " nil t)
+            (push "--nosignature" opts))))
+    opts)
+  "List of extra options to add to an rpm query command."
+  :version "24.2"
+  :type '(repeat string)
+  :group 'pcmpl-rpm)
+
 ;; Functions:
 
-;; FIXME rpm -qa can be slow, so:
-;; Adding --nodigest --nosignature is MUCH faster.
-;; (Probably need to test --help for those options though.)
+;; TODO
+;; This can be slow, so:
 ;; Consider caching the result (cf woman).
 ;; Consider printing an explanatory message before running -qa.
-;;
-;; Seems pointless for this to be a defsubst.
-(defsubst pcmpl-rpm-packages ()
-  (split-string (pcomplete-process-result "rpm" "-q" "-a")))
+(defun pcmpl-rpm-packages ()
+  "Return a list of all installed rpm packages."
+  (split-string (apply 'pcomplete-process-result "rpm"
+                       (append '("-q" "-a") pcmpl-rpm-query-options))))
 
+;; Should this use pcmpl-rpm-query-options?
+;; I don't think it would speed it up at all (?).
 (defun pcmpl-rpm-all-query (flag)
   (message "Querying all packages with `%s'..." flag)
   (let ((pkgs (pcmpl-rpm-packages))
