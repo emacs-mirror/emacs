@@ -10967,6 +10967,8 @@ store_mode_line_noprop (const char *string, int field_width, int precision)
 			     Frame Titles
  ***********************************************************************/
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* Set the title of FRAME, if it has changed.  The title format is
    Vicon_title_format if FRAME is iconified, otherwise it is
    frame_title_format.  */
@@ -11037,6 +11039,8 @@ x_consider_frame_title (Lisp_Object frame)
     }
 }
 
+#endif /* not HAVE_WINDOW_SYSTEM */
+
 
 /***********************************************************************
 			      Menu Bars
@@ -11063,6 +11067,7 @@ prepare_menu_bars (void)
   /* Update all frame titles based on their buffer names, etc.  We do
      this before the menu bars so that the buffer-menu will show the
      up-to-date frame titles.  */
+#ifdef HAVE_WINDOW_SYSTEM
   if (windows_or_buffers_changed || update_mode_lines)
     {
       Lisp_Object tail, frame;
@@ -11075,6 +11080,7 @@ prepare_menu_bars (void)
 	    x_consider_frame_title (frame);
 	}
     }
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* Update the menu bar item lists, if appropriate.  This has to be
      done before any actual redisplay or generation of display lines.  */

@@ -1,3 +1,7 @@
+2012-06-22  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (x_consider_frame_title): Revert last change.
+
 2012-06-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* alloc.c (NSTATICS): Enlarge to 0x650.  Otherwise, Emacs compiled
