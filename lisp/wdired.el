@@ -184,8 +184,8 @@ program `dired-chmod-program', which must exist."
 
 
 (defun wdired-mode ()
-  "\\<wdired-mode-map>File Names Editing mode.
-
+  "Writable Dired mode.
+\\<wdired-mode-map>
 Press \\[wdired-finish-edit] to make the changes to take effect
 and exit.  To abort the edit, use \\[wdired-abort-changes].
 

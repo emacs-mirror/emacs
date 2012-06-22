@@ -1,3 +1,17 @@
+2012-06-22  Chong Yidong  <cyd@gnu.org>
+
+	* dired-aux.el (dired-do-create-files): Doc fix (Bug#11327).
+	(dired-create-files): Doc fix (Bug#11329).
+	(dired-do-copy): Doc fix (Bug#11334).
+	(dired-mark-read-string): Doc fix (Bug#11553).
+
+	* dired.el (dired-recursive-copies, dired-recursive-deletes): Doc
+	fix (Bug#11326).
+	(dired-make-relative): Doc fix (Bug#11332).  Remove unused arg.
+	(dired-dwim-target): Doc fix.
+
+	* wdired.el (wdired-mode): Doc fix.
+
 2012-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* pcmpl-rpm.el (pcmpl-rpm): New group.
