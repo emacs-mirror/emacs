@@ -7411,6 +7411,11 @@ fi
     machine=intel386
     machfile="m/${machine}.h"
   fi
+  ac_fn_c_check_decl "$LINENO" "__ILP32__" "ac_cv_have_decl___ILP32__" "$ac_includes_default"
+if test "x$ac_cv_have_decl___ILP32__" = x""yes; then :
+  machfile="m/intel386.h"
+fi
+
 fi
 
 # Extract the first word of "install-info", so it can be a program name with args.
