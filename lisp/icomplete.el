@@ -209,10 +209,12 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
     (set (make-local-variable 'completion-show-inline-help) nil)
     (add-hook 'pre-command-hook
-	      (lambda () (run-hooks 'icomplete-pre-command-hook))
+	      (lambda () (let ((non-essential t))
+                      (run-hooks 'icomplete-pre-command-hook)))
 	      nil t)
     (add-hook 'post-command-hook
-	      (lambda () (run-hooks 'icomplete-post-command-hook))
+	      (lambda () (let ((non-essential t)) ;E.g. don't prompt for password!
+                      (run-hooks 'icomplete-post-command-hook)))
 	      nil t)
     (run-hooks 'icomplete-minibuffer-setup-hook)))
 ;
@@ -285,8 +287,7 @@ The displays for unambiguous matches have ` [Matched]' appended
 matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
-  (let* ((non-essential t)
-         (md (completion--field-metadata (field-beginning)))
+  (let* ((md (completion--field-metadata (field-beginning)))
 	 (comps (completion-all-sorted-completions))
          (last (if (consp comps) (last comps)))
          (base-size (cdr last))

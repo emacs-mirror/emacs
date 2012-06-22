@@ -1,5 +1,9 @@
 2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* icomplete.el (icomplete-minibuffer-setup, icomplete-completions):
+	Move the non-essential binding to the post/pre-command-hook where it is
+	more obviously correct.
+
 	* subr.el (read-passwd): Don't use a history at all.
 	* savehist.el (savehist-save): Remove password saved accidentally
 	because of the above bug.
