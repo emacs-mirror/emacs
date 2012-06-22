@@ -4857,18 +4857,21 @@ properties or buffer state) and make changes, temporarily bind
              (not buffer-read-only)))  ; If buffer-read-only is set correctly,
       nil			       ; do nothing.
     ;; Toggle.
-    (cond
-     ((and buffer-read-only view-mode)
-      (View-exit-and-edit)
-      (make-local-variable 'view-read-only)
-      (setq view-read-only t))		; Must leave view mode.
-     ((and (not buffer-read-only) view-read-only
-	   ;; If view-mode is already active, `view-mode-enter' is a nop.
-	   (not view-mode)
-           (not (eq (get major-mode 'mode-class) 'special)))
-      (view-mode-enter))
-     (t (setq buffer-read-only (not buffer-read-only))
-        (force-mode-line-update)))))
+    (progn
+      (cond
+       ((and buffer-read-only view-mode)
+	(View-exit-and-edit)
+	(make-local-variable 'view-read-only)
+	(setq view-read-only t))		; Must leave view mode.
+       ((and (not buffer-read-only) view-read-only
+	     ;; If view-mode is already active, `view-mode-enter' is a nop.
+	     (not view-mode)
+	     (not (eq (get major-mode 'mode-class) 'special)))
+	(view-mode-enter))
+       (t (setq buffer-read-only (not buffer-read-only))
+	  (force-mode-line-update))))
+    (message "Read-only %s for this buffer"
+	     (if buffer-read-only "enabled" "disabled"))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
