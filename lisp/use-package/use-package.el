@@ -256,16 +256,15 @@
 ;;; Code:
 
 (require 'bind-key)
-
-(defgroup use-package nil
-  "A use-package declaration for simplifying your .emacs"
-  :group 'startup)
+(require 'bytecomp)
+(require 'diminish nil t)
 
 (eval-when-compile
   (require 'cl))
 
-(require 'bind-key)
-(require 'diminish nil t)
+(defgroup use-package nil
+  "A use-package declaration for simplifying your .emacs"
+  :group 'startup)
 
 (defcustom use-package-verbose t
   "Whether to report about loading and configuration details."
@@ -389,7 +388,7 @@
                 (list pkg-load-path)
               pkg-load-path))
 
-         (eval-when-compile
+         (when byte-compile-current-file
            ,@defines-eval
            ,(if (stringp name)
                 `(load ,name t)
