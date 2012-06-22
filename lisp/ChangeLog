@@ -1,3 +1,9 @@
+2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-passwd): Don't use a history at all.
+	* savehist.el (savehist-save): Remove password saved accidentally
+	because of the above bug.
+
 2012-06-22  Bastien Guerry  <bzg@gnu.org>
 
 	* files.el (toggle-read-only): Display a message telling whether
