@@ -183,7 +183,6 @@ static NSTimer *timed_entry = 0;
 static NSTimer *fd_entry = nil;
 static NSTimer *scroll_repeat_entry = nil;
 static fd_set select_readfds, t_readfds;
-static struct timeval select_timeout;
 static int select_nfds;
 static NSAutoreleasePool *outerpool;
 static struct input_event *emacs_event = NULL;
@@ -381,67 +380,30 @@ ns_init_paths (void)
     }
 }
 
-
-static int
-timeval_subtract (struct timeval *result, struct timeval x, struct timeval y)
-/* --------------------------------------------------------------------------
-   Subtract the `struct timeval' values X and Y, storing the result in RESULT.
-   Return 1 if the difference is negative, otherwise 0.
-   -------------------------------------------------------------------------- */
-{
-  /* Perform the carry for the later subtraction by updating y.
-     This is safer because on some systems
-     the tv_sec member is unsigned.  */
-  if (x.tv_usec < y.tv_usec)
-    {
-      int nsec = (y.tv_usec - x.tv_usec) / 1000000 + 1;
-      y.tv_usec -= 1000000 * nsec;
-      y.tv_sec += nsec;
-    }
-  if (x.tv_usec - y.tv_usec > 1000000)
-    {
-      int nsec = (y.tv_usec - x.tv_usec) / 1000000;
-      y.tv_usec += 1000000 * nsec;
-      y.tv_sec -= nsec;
-    }
-
-  /* Compute the time remaining to wait.  tv_usec is certainly positive.  */
-  result->tv_sec = x.tv_sec - y.tv_sec;
-  result->tv_usec = x.tv_usec - y.tv_usec;
-
-  /* Return indication of whether the result should be considered negative.  */
-  return x.tv_sec < y.tv_sec;
-}
-
 static void
 ns_timeout (int usecs)
 /* --------------------------------------------------------------------------
      Blocking timer utility used by ns_ring_bell
    -------------------------------------------------------------------------- */
 {
-  struct timeval wakeup;
+  EMACS_TIME wakeup, delay;
 
   EMACS_GET_TIME (wakeup);
-
-  /* Compute time to wait until, propagating carry from usecs.  */
-  wakeup.tv_usec += usecs;
-  wakeup.tv_sec += (wakeup.tv_usec / 1000000);
-  wakeup.tv_usec %= 1000000;
+  EMACS_SET_SECS_USECS (delay, 0, usecs);
+  EMACS_ADD_TIME (wakeup, wakeup, delay);
 
   /* Keep waiting until past the time wakeup.  */
   while (1)
     {
-      struct timeval timeout;
+      EMACS_TIME timeout;
 
       EMACS_GET_TIME (timeout);
-
-      /* In effect, timeout = wakeup - timeout.
-	 Break if result would be negative.  */
-      if (timeval_subtract (&timeout, wakeup, timeout))
+      if (EMACS_TIME_LE (wakeup, timeout))
 	break;
+      EMACS_SUB_TIME (timeout, wakeup, timeout);
 
       /* Try to wait that long--but we might wake up sooner.  */
-      select (0, NULL, NULL, NULL, &timeout);
+      pselect (0, NULL, NULL, NULL, &timeout, NULL);
     }
 }
 
@@ -3537,7 +3499,7 @@ ns_read_socket (struct terminal *terminal, int expected,
 
 int
 ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-           fd_set *exceptfds, struct timeval *timeout)
+           fd_set *exceptfds, EMACS_TIME *timeout, sigset_t *sigmask)
 /* --------------------------------------------------------------------------
      Replacement for select, checking for events
    -------------------------------------------------------------------------- */
@@ -3545,12 +3507,14 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   int result;
   double time;
   NSEvent *ev;
+  struct timespec select_timeout;
+
 /*  NSTRACE (ns_select); */
 
   if (NSApp == nil || inNsSelect == 1 /* || ([NSApp isActive] == NO &&
                       [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:nil
  inMode:NSDefaultRunLoopMode dequeue:NO] == nil) */)
-    return select (nfds, readfds, writefds, exceptfds, timeout);
+    return pselect (nfds, readfds, writefds, exceptfds, timeout, sigmask);
 
   /* Save file descriptor set, which gets overwritten in calls to select ()
      Note, this is called from process.c, and only readfds is ever set */
@@ -3563,8 +3527,9 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     select_nfds = 0;
 
     /* Try an initial select for pending data on input files */
-  select_timeout.tv_sec = select_timeout.tv_usec = 0;
-  result = select (nfds, readfds, writefds, exceptfds, &select_timeout);
+  select_timeout.tv_sec = select_timeout.tv_nsec = 0;
+  result = pselect (nfds, readfds, writefds, exceptfds,
+		    &select_timeout, sigmask);
   if (result)
     return result;
 
@@ -3573,7 +3538,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
     /* set a timeout and run the main AppKit event loop while continuing
        to monitor the files */
-  time = ((double) timeout->tv_sec) + ((double) timeout->tv_usec)/1000000.0;
+  time = EMACS_TIME_TO_DOUBLE (*timeout);
   timed_entry = [[NSTimer scheduledTimerWithTimeInterval: time
                                            target: NSApp
                                          selector: @selector (timeout_handler:)
@@ -3581,7 +3546,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
                                           repeats: YES] /* for safe removal */
                                                          retain];
 
-  /* set a periodic task to try the select () again */
+  /* set a periodic task to try the pselect () again */
   fd_entry = [[NSTimer scheduledTimerWithTimeInterval: 0.1
                                                target: NSApp
                                              selector: @selector (fd_handler:)
@@ -3623,7 +3588,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
         }
       else
         {
-          /* Received back from select () in fd_handler; copy the results */
+          /* Received back from pselect () in fd_handler; copy the results */
           if (readfds)
             memcpy (readfds, &select_readfds, sizeof (fd_set));
           return t;
@@ -4603,6 +4568,7 @@ ns_term_shutdown (int sig)
    -------------------------------------------------------------------------- */
 {
   int result;
+  struct timespec select_timeout;
   /* NSTRACE (fd_handler); */
 
   if (select_nfds == 0)
@@ -4610,9 +4576,8 @@ ns_term_shutdown (int sig)
 
   memcpy (&t_readfds, &select_readfds, sizeof (fd_set));
 
-  select_timeout.tv_sec = select_timeout.tv_usec = 0;
-  result = select (select_nfds, &t_readfds, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-                  &select_timeout);
+  select_timeout.tv_sec = select_timeout.tv_nsec = 0;
+  result = pselect (select_nfds, &t_readfds, NULL, NULL, &select_timeout, NULL);
   if (result)
     {
       memcpy (&select_readfds, &t_readfds, sizeof (fd_set));

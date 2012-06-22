@@ -1170,14 +1170,16 @@ Return nil otherwise."
 (defun proced-time-lessp (t1 t2)
   "Return t if time value T1 is less than time value T2.
 Return `equal' if T1 equals T2.  Return nil otherwise."
-  (with-decoded-time-value ((high1 low1 micro1 t1)
-			    (high2 low2 micro2 t2))
+  (with-decoded-time-value ((high1 low1 micro1 pico1 type1 t1)
+			    (high2 low2 micro2 pico2 type2 t2))
     (cond ((< high1 high2))
           ((< high2 high1) nil)
           ((< low1 low2))
           ((< low2 low1) nil)
           ((< micro1 micro2))
           ((< micro2 micro1) nil)
+	  ((< pico1 pico2))
+	  ((< pico2 pico1) nil)
           (t 'equal))))
 
 ;;; Sorting

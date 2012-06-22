@@ -5669,12 +5669,14 @@ See Info node `(elisp)Garbage Collection'.  */)
     }
 
   /* Accumulate statistics.  */
-  EMACS_GET_TIME (t2);
-  EMACS_SUB_TIME (t3, t2, t1);
   if (FLOATP (Vgc_elapsed))
-    Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed) +
-			      EMACS_SECS (t3) +
-			      EMACS_USECS (t3) * 1.0e-6);
+    {
+      EMACS_GET_TIME (t2);
+      EMACS_SUB_TIME (t3, t2, t1);
+      Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed)
+				+ EMACS_TIME_TO_DOUBLE (t3));
+    }
+
   gcs_done++;
 
   return Flist (sizeof total / sizeof *total, total);

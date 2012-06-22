@@ -1,5 +1,26 @@
 2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Support higher-resolution time stamps (Bug#9000).
+	* configure.in (gl_ASSERT_NO_GNULIB_POSIXCHECK)
+	(gl_ASSERT_NO_GNULIB_TESTS, gl_INIT): Move these up earlier, so
+	that the new clock stuff doesn't clash with RSVG_LIBS.
+	(AC_CHECK_HEADERS): Don't check for sys/select.h, sys/time.h, utime.h,
+	as gnulib does that for us now.
+	(emacs_cv_struct_utimbuf, HAVE_STRUCT_UTIMBUF, HAVE_TIMEVAL)
+	(GETTIMEOFDAY_ONE_ARGUMENT): Remove; gnulib does these now.
+	(AC_CHECK_FUNCS): Remove utimes; no longer needed.
+	* lib/dtotimespec.c, lib/gettime.c, lib/gettimeofday.c, lib/pselect.c:
+	* lib/stat-time.h, lib/sys_select.in.h, lib/sys_time.in.h:
+	* lib/timespec-add.c, lib/timespec-sub.c, lib/timespec.h:
+	* lib/utimens.c, lib/utimens.h, m4/clock_time.m4, m4/gettime.m4:
+	* m4/gettimeofday.m4, m4/pselect.m4, m4/stat-time.m4:
+	* m4/sys_select_h.m4, m4/sys_socket_h.m4, m4/sys_time_h.m4:
+	* m4/timespec.m4, m4/utimbuf.m4, m4/utimens.m4, m4/utimes.m4:
+	New files, copied automatically from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Merge from gnulib.
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Merge from gnulib.
 	* lib/filemode.h, lib/signal.in.h, lib/stat.c, lib/stdint.in.h:
 	* lib/stdlib.in.h, lib/unistd.in.h, m4/extensions.m4, m4/getloadavg.m4:

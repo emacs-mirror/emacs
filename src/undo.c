@@ -226,7 +226,7 @@ record_first_change (void)
     base_buffer = base_buffer->base_buffer;
 
   BVAR (current_buffer, undo_list) =
-    Fcons (Fcons (Qt, INTEGER_TO_CONS (base_buffer->modtime)),
+    Fcons (Fcons (Qt, make_lisp_time (base_buffer->modtime)),
 	   BVAR (current_buffer, undo_list));
 }
 
@@ -505,10 +505,23 @@ Return what remains of the list.  */)
 	      cdr = XCDR (next);
 	      if (EQ (car, Qt))
 		{
-		  /* Element (t high . low) records previous modtime.  */
+		  /* Element (t . TIME) records previous modtime.
+		     Preserve any flag of NONEXISTENT_MODTIME_NSECS or
+		     UNKNOWN_MODTIME_NSECS.  */
 		  struct buffer *base_buffer = current_buffer;
-		  time_t mod_time;
-		  CONS_TO_INTEGER (cdr, time_t, mod_time);
+		  EMACS_TIME mod_time;
+
+		  if (CONSP (cdr)
+		      && CONSP (XCDR (cdr))
+		      && CONSP (XCDR (XCDR (cdr)))
+		      && CONSP (XCDR (XCDR (XCDR (cdr))))
+		      && INTEGERP (XCAR (XCDR (XCDR (XCDR (cdr)))))
+		      && XINT (XCAR (XCDR (XCDR (XCDR (cdr))))) < 0)
+		    EMACS_SET_SECS_NSECS
+		      (mod_time, 0,
+		       XINT (XCAR (XCDR (XCDR (XCDR (cdr))))) / 1000);
+		  else
+		    mod_time = lisp_time_argument (cdr, 0);
 
 		  if (current_buffer->base_buffer)
 		    base_buffer = current_buffer->base_buffer;
@@ -516,7 +529,7 @@ Return what remains of the list.  */)
 		  /* If this records an obsolete save
 		     (not matching the actual disk file)
 		     then don't mark unmodified.  */
-		  if (mod_time != base_buffer->modtime)
+		  if (EMACS_TIME_NE (mod_time, base_buffer->modtime))
 		    continue;
 #ifdef CLASH_DETECTION
 		  Funlock_buffer ();

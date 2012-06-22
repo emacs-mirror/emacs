@@ -2954,6 +2954,7 @@ EXFUN (Fnarrow_to_region, 2);
 EXFUN (Fwiden, 0);
 EXFUN (Fuser_login_name, 1);
 EXFUN (Fsystem_name, 0);
+extern void time_overflow (void) NO_RETURN;
 EXFUN (Fcurrent_time, 0);
 EXFUN (Fget_internal_run_time, 0);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, int);
@@ -3244,7 +3245,7 @@ EXFUN (Fkill_process, 2);
 EXFUN (Fwaiting_for_user_input_p, 0);
 extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
-extern int wait_reading_process_output (int, int, int, int,
+extern int wait_reading_process_output (intmax_t, int, int, int,
                                         Lisp_Object,
                                         struct Lisp_Process *,
                                         int);

@@ -1069,6 +1069,13 @@ case $opsys in
 esac
 
 
+# Configure gnulib before invoking PKG_CHECK_MODULES, as the latter might
+# for example add -lrt to RSVG_LIBS, which would then cause gnulib to
+# incorrectly conclude that -lrt is not needed to link clock_gettime.
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_INIT
+
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
 dnl This function definition taken from Gnome 2.0
@@ -1211,26 +1218,6 @@ if test $ac_cv_have_decl_sys_siglist != yes; then
 fi
 AC_HEADER_SYS_WAIT
 
-dnl Some systems have utime.h but don't declare the struct anyplace.
-AC_CACHE_CHECK(for struct utimbuf, emacs_cv_struct_utimbuf,
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif
-#ifdef HAVE_UTIME_H
-#include <utime.h>
-#endif]], [[static struct utimbuf x; x.actime = x.modtime;]])],
-  emacs_cv_struct_utimbuf=yes, emacs_cv_struct_utimbuf=no))
-if test $emacs_cv_struct_utimbuf = yes; then
-  AC_DEFINE(HAVE_STRUCT_UTIMBUF, 1, [Define to 1 if `struct utimbuf' is declared by <utime.h>.])
-fi
-
 dnl Check for speed_t typedef.
 AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <termios.h>]], [[speed_t x = 1;]])],
@@ -1238,23 +1225,6 @@ AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
 if test $emacs_cv_speed_t = yes; then
   AC_DEFINE(HAVE_SPEED_T, 1,
   	   [Define to 1 if `speed_t' is declared by <termios.h>.])
-fi
-
-AC_CACHE_CHECK(for struct timeval, emacs_cv_struct_timeval,
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif]], [[static struct timeval x; x.tv_sec = x.tv_usec;]])],
-  emacs_cv_struct_timeval=yes, emacs_cv_struct_timeval=no))
-HAVE_TIMEVAL=$emacs_cv_struct_timeval
-if test $emacs_cv_struct_timeval = yes; then
-  AC_DEFINE(HAVE_TIMEVAL, 1, [Define to 1 if `struct timeval' is declared by <sys/time.h>.])
 fi
 
 AC_CACHE_CHECK(for struct exception, emacs_cv_struct_exception,
@@ -3019,33 +2989,6 @@ if test $emacs_cv_localtime_cache = yes; then
 	    [Define to 1 if localtime caches TZ.])
 fi
 
-if test "x$HAVE_TIMEVAL" = xyes; then
-  AC_CHECK_FUNCS(gettimeofday)
-  if test $ac_cv_func_gettimeofday = yes; then
-    AC_CACHE_CHECK(whether gettimeofday can accept two arguments,
-		   emacs_cv_gettimeofday_two_arguments,
-    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif]],
-      [[struct timeval time;
-       gettimeofday (&time, 0);]])],
-      emacs_cv_gettimeofday_two_arguments=yes,
-      emacs_cv_gettimeofday_two_arguments=no)])
-    if test $emacs_cv_gettimeofday_two_arguments = no; then
-      AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT, 1,
-		[Define to 1 if gettimeofday accepts only one argument.])
-    fi
-  fi
-fi
-
 ok_so_far=yes
 AC_CHECK_FUNC(socket, , ok_so_far=no)
 if test $ok_so_far = yes; then
@@ -3118,7 +3061,7 @@ case $opsys in
 esac
 
 dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
-dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>. 
+dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
 case $opsys in
   hpux* | irix6-5 | openbsd | sol2* | unixware )
     AC_DEFINE(BROKEN_SIGIO, 1, [Define if SIGIO should not be used.])
@@ -3375,11 +3318,6 @@ fi
 AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
-
-# Configure gnulib here, now that we know LIBS.
-gl_ASSERT_NO_GNULIB_POSIXCHECK
-gl_ASSERT_NO_GNULIB_TESTS
-gl_INIT
 
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;

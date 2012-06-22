@@ -1,3 +1,8 @@
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* NEWS: Mention addition of picoseconds to time stamp format.
+
 2012-06-13  Deniz Dogan  <deniz@dogan.se>
 
 	* tutorials/TUTORIAL.sv: Fix grammar and a couple of typos.

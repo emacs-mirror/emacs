@@ -137,23 +137,10 @@ static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 
 
-/* Define PERIODIC_PREEMPTION_CHECKING to 1, if micro-second timers
-   are supported, so we can check for input during redisplay at
-   regular intervals.  */
-#ifdef EMACS_HAS_USECS
-#define PERIODIC_PREEMPTION_CHECKING 1
-#else
-#define PERIODIC_PREEMPTION_CHECKING 0
-#endif
-
-#if PERIODIC_PREEMPTION_CHECKING
-
 /* Redisplay preemption timers.  */
 
 static EMACS_TIME preemption_period;
 static EMACS_TIME preemption_next_check;
-
-#endif
 
 /* Nonzero upon entry to redisplay means do not assume anything about
    current contents of actual terminal frame; clear and redraw it.  */
@@ -3221,14 +3208,12 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 
   if (redisplay_dont_pause)
     force_p = 1;
-#if PERIODIC_PREEMPTION_CHECKING
   else if (NILP (Vredisplay_preemption_period))
     force_p = 1;
   else if (!force_p && NUMBERP (Vredisplay_preemption_period))
     {
       EMACS_TIME tm;
       double p = XFLOATINT (Vredisplay_preemption_period);
-      int sec, usec;
 
       if (detect_input_pending_ignore_squeezables ())
 	{
@@ -3236,14 +3221,10 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 	  goto do_pause;
 	}
 
-      sec = (int) p;
-      usec = (p - sec) * 1000000;
-
       EMACS_GET_TIME (tm);
-      EMACS_SET_SECS_USECS (preemption_period, sec, usec);
+      preemption_period = EMACS_TIME_FROM_DOUBLE (p);
       EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
     }
-#endif
 
   if (FRAME_WINDOW_P (f))
     {
@@ -3327,9 +3308,7 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 #endif
     }
 
-#if PERIODIC_PREEMPTION_CHECKING
  do_pause:
-#endif
   /* Reset flags indicating that a window should be updated.  */
   set_window_update_flags (root_window, 0);
 
@@ -3382,23 +3361,17 @@ update_single_window (struct window *w, int force_p)
 
       if (redisplay_dont_pause)
 	force_p = 1;
-#if PERIODIC_PREEMPTION_CHECKING
       else if (NILP (Vredisplay_preemption_period))
 	force_p = 1;
       else if (!force_p && NUMBERP (Vredisplay_preemption_period))
 	{
 	  EMACS_TIME tm;
 	  double p = XFLOATINT (Vredisplay_preemption_period);
-	  int sec, usec;
-
-	  sec = (int) p;
-	  usec = (p - sec) * 1000000;
 
 	  EMACS_GET_TIME (tm);
-	  EMACS_SET_SECS_USECS (preemption_period, sec, usec);
+	  preemption_period = EMACS_TIME_FROM_DOUBLE (p);
 	  EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
 	}
-#endif
 
       /* Update W.  */
       update_begin (f);
@@ -3644,10 +3617,9 @@ update_window (struct window *w, int force_p)
 #if PERIODIC_PREEMPTION_CHECKING
 	    if (!force_p)
 	      {
-		EMACS_TIME tm, dif;
+		EMACS_TIME tm;
 		EMACS_GET_TIME (tm);
-		EMACS_SUB_TIME (dif, preemption_next_check, tm);
-		if (EMACS_TIME_NEG_P (dif))
+		if (EMACS_TIME_LT (preemption_next_check, tm))
 		  {
 		    EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
 		    if (detect_input_pending_ignore_squeezables ())
@@ -4750,10 +4722,9 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 #if PERIODIC_PREEMPTION_CHECKING
 	  if (!force_p)
 	    {
-	      EMACS_TIME tm, dif;
+	      EMACS_TIME tm;
 	      EMACS_GET_TIME (tm);
-	      EMACS_SUB_TIME (dif, preemption_next_check, tm);
-	      if (EMACS_TIME_NEG_P (dif))
+	      if (EMACS_TIME_LT (preemption_next_check, tm))
 		{
 		  EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
 		  if (detect_input_pending_ignore_squeezables ())
@@ -5967,48 +5938,14 @@ bitch_at_user (void)
 			  Sleeping, Waiting
  ***********************************************************************/
 
-/* Convert a positive value DURATION to a seconds count *PSEC plus a
-   microseconds count *PUSEC, rounding up.  On overflow return the
-   maximal value.  */
-void
-duration_to_sec_usec (double duration, int *psec, int *pusec)
-{
-  int MILLION = 1000000;
-  int sec = INT_MAX, usec = MILLION - 1;
-
-  if (duration < INT_MAX + 1.0)
-    {
-      int s = duration;
-      double usdouble = (duration - s) * MILLION;
-      int usfloor = usdouble;
-      int usceil = usfloor + (usfloor < usdouble);
-
-      if (usceil < MILLION)
-	{
-	  sec = s;
-	  usec = usceil;
-	}
-      else if (sec < INT_MAX)
-	{
-	  sec = s + 1;
-	  usec = 0;
-	}
-    }
-
-  *psec = sec;
-  *pusec = usec;
-}
-
 DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
        doc: /* Pause, without updating display, for SECONDS seconds.
 SECONDS may be a floating-point value, meaning that you can wait for a
 fraction of a second.  Optional second arg MILLISECONDS specifies an
-additional wait period, in milliseconds; this may be useful if your
-Emacs was built without floating point support.
+additional wait period, in milliseconds; this is for backwards compatibility.
 \(Not all operating systems support waiting for a fraction of a second.)  */)
   (Lisp_Object seconds, Lisp_Object milliseconds)
 {
-  int sec, usec;
   double duration = extract_float (seconds);
 
   if (!NILP (milliseconds))
@@ -6017,17 +5954,12 @@ Emacs was built without floating point support.
       duration += XINT (milliseconds) / 1000.0;
     }
 
-  if (! (0 < duration))
-    return Qnil;
-
-  duration_to_sec_usec (duration, &sec, &usec);
-
-#ifndef EMACS_HAS_USECS
-  if (sec == 0 && usec != 0)
-    error ("Millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
-#endif
-
-  wait_reading_process_output (sec, usec, 0, 0, Qnil, NULL, 0);
+  if (0 < duration)
+    {
+      EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (duration);
+      wait_reading_process_output (min (EMACS_SECS (t), INTMAX_MAX),
+				   EMACS_NSECS (t), 0, 0, Qnil, NULL, 0);
+    }
 
   return Qnil;
 }
@@ -6046,7 +5978,8 @@ Emacs was built without floating point support.
 Lisp_Object
 sit_for (Lisp_Object timeout, int reading, int do_display)
 {
-  int sec, usec;
+  intmax_t sec;
+  int nsec;
 
   swallow_events (do_display);
 
@@ -6057,26 +5990,39 @@ sit_for (Lisp_Object timeout, int reading, int do_display)
   if (do_display >= 2)
     redisplay_preserve_echo_area (2);
 
-  if (EQ (timeout, Qt))
+  if (INTEGERP (timeout))
+    {
+      sec = XINT (timeout);
+      if (! (0 < sec))
+	return Qt;
+      nsec = 0;
+    }
+  else if (FLOATP (timeout))
+    {
+      double seconds = XFLOAT_DATA (timeout);
+      if (! (0 < seconds))
+	return Qt;
+      else
+	{
+	  EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (seconds);
+	  sec = min (EMACS_SECS (t), INTMAX_MAX);
+	  nsec = EMACS_NSECS (t);
+	}
+    }
+  else if (EQ (timeout, Qt))
     {
       sec = 0;
-      usec = 0;
+      nsec = 0;
     }
   else
-    {
-      double duration = extract_float (timeout);
+    wrong_type_argument (Qnumberp, timeout);
 
-      if (! (0 < duration))
-	return Qt;
-
-      duration_to_sec_usec (duration, &sec, &usec);
-    }
 
 #ifdef SIGIO
   gobble_input (0);
 #endif
 
-  wait_reading_process_output (sec, usec, reading ? -1 : 1, do_display,
+  wait_reading_process_output (sec, nsec, reading ? -1 : 1, do_display,
 			       Qnil, NULL, 0);
 
   return detect_input_pending () ? Qnil : Qt;

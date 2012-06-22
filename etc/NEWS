@@ -64,6 +64,13 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.2
 
+** The function `current-time' now returns extended-format time stamps
+(HIGH LOW USEC PSEC) that use picosecond resolution; the PSEC
+component is new.  PSEC is typically a multiple of 1000 on current
+machines.  Other functions that use this format, such as
+file-attributes and format-time-string, have been changed accordingly.
+Old-format time stamps are still accepted.
+
 ** New functions `system-users', `system-groups' return lists of the user
 name, group names known to the system (where possible).
 

@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h> /* for off_t, time_t */
+#include "systime.h" /* for EMACS_TIME */
 
 /* Accessing the parameters of the current buffer.  */
 
@@ -529,10 +530,13 @@ struct buffer
   char local_flags[MAX_PER_BUFFER_VARS];
 
   /* Set to the modtime of the visited file when read or written.
-     -1 means visited file was nonexistent.
-     0 means visited file modtime unknown; in no case complain
-     about any mismatch on next save attempt.  */
-  time_t modtime;
+     EMACS_NSECS (modtime) == NONEXISTENT_MODTIME_NSECS means
+     visited file was nonexistent.  EMACS_NSECS (modtime) ==
+     UNKNOWN_MODTIME_NSECS means visited file modtime unknown;
+     in no case complain about any mismatch on next save attempt.  */
+#define NONEXISTENT_MODTIME_NSECS (-1)
+#define UNKNOWN_MODTIME_NSECS (-2)
+  EMACS_TIME modtime;
   /* Size of the file when modtime was set.  This is used to detect the
      case where the file grew while we were reading it, so the modtime
      is still the same (since it's rounded up to seconds) but we're actually

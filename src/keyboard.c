@@ -2020,12 +2020,13 @@ start_polling (void)
       if (poll_timer == NULL
 	  || EMACS_SECS (poll_timer->interval) != polling_period)
 	{
+	  time_t period = max (1, min (polling_period, TYPE_MAXIMUM (time_t)));
 	  EMACS_TIME interval;
 
 	  if (poll_timer)
 	    cancel_atimer (poll_timer);
 
-	  EMACS_SET_SECS_USECS (interval, polling_period, 0);
+	  EMACS_SET_SECS_USECS (interval, period, 0);
 	  poll_timer = start_atimer (ATIMER_CONTINUOUS, interval,
 				     poll_for_input, NULL);
 	}
@@ -2093,7 +2094,7 @@ void
 bind_polling_period (int n)
 {
 #ifdef POLL_FOR_INPUT
-  int new = polling_period;
+  EMACS_INT new = polling_period;
 
   if (n > new)
     new = n;
@@ -2223,7 +2224,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 /* Input of single characters from keyboard */
 
 static Lisp_Object kbd_buffer_get_event (KBOARD **kbp, int *used_mouse_menu,
-					 struct timeval *end_time);
+					 EMACS_TIME *end_time);
 static void record_char (Lisp_Object c);
 
 static Lisp_Object help_form_saved_window_configs;
@@ -2275,7 +2276,7 @@ do { if (polling_stopped_here) start_polling ();	\
 Lisp_Object
 read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	   Lisp_Object prev_event,
-	   int *used_mouse_menu, struct timeval *end_time)
+	   int *used_mouse_menu, EMACS_TIME *end_time)
 {
   volatile Lisp_Object c;
   ptrdiff_t jmpcount;
@@ -3783,7 +3784,7 @@ clear_event (struct input_event *event)
 static Lisp_Object
 kbd_buffer_get_event (KBOARD **kbp,
                       int *used_mouse_menu,
-                      struct timeval *end_time)
+                      EMACS_TIME *end_time)
 {
   Lisp_Object obj;
 
@@ -3857,8 +3858,9 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  else
 	    {
 	      EMACS_SUB_TIME (duration, *end_time, duration);
-	      wait_reading_process_output (EMACS_SECS (duration),
-					   EMACS_USECS (duration),
+	      wait_reading_process_output (min (EMACS_SECS (duration),
+						INTMAX_MAX),
+					   EMACS_NSECS (duration),
 					   -1, 1, Qnil, NULL, 0);
 	    }
 	}
@@ -4253,7 +4255,7 @@ timer_start_idle (void)
   Lisp_Object timers;
 
   /* If we are already in the idle state, do nothing.  */
-  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
     return;
 
   EMACS_GET_TIME (timer_idleness_start_time);
@@ -4267,7 +4269,7 @@ timer_start_idle (void)
 
       timer = XCAR (timers);
 
-      if (!VECTORP (timer) || ASIZE (timer) != 8)
+      if (!VECTORP (timer) || ASIZE (timer) != 9)
 	continue;
       ASET (timer, 0, Qnil);
     }
@@ -4278,7 +4280,7 @@ timer_start_idle (void)
 static void
 timer_stop_idle (void)
 {
-  EMACS_SET_SECS_USECS (timer_idleness_start_time, -1, -1);
+  EMACS_SET_INVALID_TIME (timer_idleness_start_time);
 }
 
 /* Resume idle timer from last idle start time.  */
@@ -4286,7 +4288,7 @@ timer_stop_idle (void)
 static void
 timer_resume_idle (void)
 {
-  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
     return;
 
   timer_idleness_start_time = timer_last_idleness_start_time;
@@ -4299,6 +4301,24 @@ struct input_event last_timer_event EXTERNALLY_VISIBLE;
    a context where Elisp could not be safely run (e.g. redisplay, signal,
    ...).  Each element has the form (FUN . ARGS).  */
 Lisp_Object pending_funcalls;
+
+/* If TIMER is a valid timer, return nonzero and place its value into
+   *RESULT.  Otherwise return zero.  */
+static int
+decode_timer (Lisp_Object timer, EMACS_TIME *result)
+{
+  Lisp_Object *vector;
+
+  if (! (VECTORP (timer) && ASIZE (timer) == 9))
+    return 0;
+  vector = XVECTOR (timer)->contents;
+  if (! NILP (vector[0]))
+    return 0;
+
+  return decode_time_components (vector[1], vector[2], vector[3], vector[4],
+				 result, 0);
+}
+
 
 /* Check whether a timer has fired.  To prevent larger problems we simply
    disregard elements that are not proper timers.  Do not make a circular
@@ -4317,17 +4337,16 @@ timer_check_2 (void)
 {
   EMACS_TIME nexttime;
   EMACS_TIME now;
-  EMACS_TIME idleness_now IF_LINT (= {0});
+  EMACS_TIME idleness_now;
   Lisp_Object timers, idle_timers, chosen_timer;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  EMACS_SET_SECS (nexttime, -1);
-  EMACS_SET_USECS (nexttime, -1);
+  EMACS_SET_INVALID_TIME (nexttime);
 
   /* Always consider the ordinary timers.  */
   timers = Vtimer_list;
   /* Consider the idle timers only if Emacs is idle.  */
-  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
     idle_timers = Vtimer_idle_list;
   else
     idle_timers = Qnil;
@@ -4345,8 +4364,10 @@ timer_check_2 (void)
   if (CONSP (timers) || CONSP (idle_timers))
     {
       EMACS_GET_TIME (now);
-      if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+      if (EMACS_TIME_VALID_P (timer_idleness_start_time))
 	EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
+      else
+	EMACS_SET_SECS_NSECS (idleness_now, 0, 0);
     }
 
   while (CONSP (timers) || CONSP (idle_timers))
@@ -4355,113 +4376,84 @@ timer_check_2 (void)
       Lisp_Object timer = Qnil, idle_timer = Qnil;
       EMACS_TIME timer_time, idle_timer_time;
       EMACS_TIME difference;
-      EMACS_TIME timer_difference IF_LINT (= {0});
-      EMACS_TIME idle_timer_difference IF_LINT (= {0});
+      EMACS_TIME timer_difference, idle_timer_difference;
+      int ripe, timer_ripe = 0, idle_timer_ripe = 0;
 
-      /* Skip past invalid timers and timers already handled.  */
-      if (CONSP (timers))
-	{
-	  timer = XCAR (timers);
-	  if (!VECTORP (timer) || ASIZE (timer) != 8)
-	    {
-	      timers = XCDR (timers);
-	      continue;
-	    }
-	  vector = XVECTOR (timer)->contents;
+      EMACS_SET_INVALID_TIME (timer_difference);
+      EMACS_SET_INVALID_TIME (idle_timer_difference);
 
-	  if (!INTEGERP (vector[1]) || !INTEGERP (vector[2])
-	      || !INTEGERP (vector[3])
-	      || ! NILP (vector[0]))
-	    {
-	      timers = XCDR (timers);
-	      continue;
-	    }
-	}
-      if (CONSP (idle_timers))
-	{
-	  timer = XCAR (idle_timers);
-	  if (!VECTORP (timer) || ASIZE (timer) != 8)
-	    {
-	      idle_timers = XCDR (idle_timers);
-	      continue;
-	    }
-	  vector = XVECTOR (timer)->contents;
-
-	  if (!INTEGERP (vector[1]) || !INTEGERP (vector[2])
-	      || !INTEGERP (vector[3])
-	      || ! NILP (vector[0]))
-	    {
-	      idle_timers = XCDR (idle_timers);
-	      continue;
-	    }
-	}
-
-      /* Set TIMER, TIMER_TIME and TIMER_DIFFERENCE
+      /* Set TIMER and TIMER_DIFFERENCE
 	 based on the next ordinary timer.
 	 TIMER_DIFFERENCE is the distance in time from NOW to when
-	 this timer becomes ripe (negative if it's already ripe).  */
+	 this timer becomes ripe (negative if it's already ripe).
+         Skip past invalid timers and timers already handled.  */
       if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
-	  vector = XVECTOR (timer)->contents;
-	  EMACS_SET_SECS (timer_time,
-			  (XINT (vector[1]) << 16) | (XINT (vector[2])));
-	  EMACS_SET_USECS (timer_time, XINT (vector[3]));
-	  EMACS_SUB_TIME (timer_difference, timer_time, now);
+	  if (! decode_timer (timer, &timer_time))
+	    {
+	      timers = XCDR (timers);
+	      continue;
+	    }
+
+	  timer_ripe = EMACS_TIME_LE (timer_time, now);
+	  if (timer_ripe)
+	    EMACS_SUB_TIME (timer_difference, now, timer_time);
+	  else
+	    EMACS_SUB_TIME (timer_difference, timer_time, now);
 	}
 
-      /* Set IDLE_TIMER, IDLE_TIMER_TIME and IDLE_TIMER_DIFFERENCE
+      /* Likewise for IDLE_TIMER and IDLE_TIMER_DIFFERENCE
 	 based on the next idle timer.  */
       if (CONSP (idle_timers))
 	{
 	  idle_timer = XCAR (idle_timers);
-	  vector = XVECTOR (idle_timer)->contents;
-	  EMACS_SET_SECS (idle_timer_time,
-			  (XINT (vector[1]) << 16) | (XINT (vector[2])));
-	  EMACS_SET_USECS (idle_timer_time, XINT (vector[3]));
-	  EMACS_SUB_TIME (idle_timer_difference, idle_timer_time, idleness_now);
+	  if (! decode_timer (idle_timer, &idle_timer_time))
+	    {
+	      idle_timers = XCDR (idle_timers);
+	      continue;
+	    }
+
+	  idle_timer_ripe = EMACS_TIME_LE (idle_timer_time, idleness_now);
+	  if (idle_timer_ripe)
+	    EMACS_SUB_TIME (idle_timer_difference,
+			    idleness_now, idle_timer_time);
+	  else
+	    EMACS_SUB_TIME (idle_timer_difference,
+			    idle_timer_time, idleness_now);
 	}
 
       /* Decide which timer is the next timer,
-	 and set CHOSEN_TIMER, VECTOR and DIFFERENCE accordingly.
+	 and set CHOSEN_TIMER, DIFFERENCE, and RIPE accordingly.
 	 Also step down the list where we found that timer.  */
 
-      if (CONSP (timers) && CONSP (idle_timers))
-	{
-	  EMACS_TIME temp;
-	  EMACS_SUB_TIME (temp, timer_difference, idle_timer_difference);
-	  if (EMACS_TIME_NEG_P (temp))
-	    {
-	      chosen_timer = timer;
-	      timers = XCDR (timers);
-	      difference = timer_difference;
-	    }
-	  else
-	    {
-	      chosen_timer = idle_timer;
-	      idle_timers = XCDR (idle_timers);
-	      difference = idle_timer_difference;
-	    }
-	}
-      else if (CONSP (timers))
+      if (EMACS_TIME_VALID_P (timer_difference)
+	  && (! EMACS_TIME_VALID_P (idle_timer_difference)
+	      || idle_timer_ripe < timer_ripe
+	      || (idle_timer_ripe == timer_ripe
+		  && (timer_ripe
+		      ? EMACS_TIME_LT (idle_timer_difference,
+				       timer_difference)
+		      : EMACS_TIME_LT (timer_difference,
+				       idle_timer_difference)))))
 	{
 	  chosen_timer = timer;
 	  timers = XCDR (timers);
 	  difference = timer_difference;
+	  ripe = timer_ripe;
 	}
       else
 	{
 	  chosen_timer = idle_timer;
 	  idle_timers = XCDR (idle_timers);
 	  difference = idle_timer_difference;
+	  ripe = idle_timer_ripe;
 	}
-      vector = XVECTOR (chosen_timer)->contents;
 
       /* If timer is ripe, run it if it hasn't been run.  */
-      if (EMACS_TIME_NEG_P (difference)
-	  || (EMACS_SECS (difference) == 0
-	      && EMACS_USECS (difference) == 0))
+      if (ripe)
 	{
+	  vector = XVECTOR (chosen_timer)->contents;
 	  if (NILP (vector[0]))
 	    {
 	      ptrdiff_t count = SPECPDL_INDEX ();
@@ -4508,7 +4500,7 @@ timer_check_2 (void)
    timer list for the time being.
 
    Returns the time to wait until the next timer fires.
-   If no timer is active, return -1.
+   If no timer is active, return an invalid value.
 
    As long as any timer is ripe, we run it.  */
 
@@ -4521,33 +4513,29 @@ timer_check (void)
     {
       nexttime = timer_check_2 ();
     }
-  while (EMACS_SECS (nexttime) == 0 && EMACS_USECS (nexttime) == 0);
+  while (EMACS_SECS (nexttime) == 0 && EMACS_NSECS (nexttime) == 0);
 
   return nexttime;
 }
 
 DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
        doc: /* Return the current length of Emacs idleness, or nil.
-The value when Emacs is idle is a list of three integers.  The first has
-the most significant 16 bits of the seconds, while the second has the least
-significant 16 bits.  The third integer gives the microsecond count.
+The value when Emacs is idle is a list of four integers (HIGH LOW USEC PSEC)
+in the same style as (current-time).
 
 The value when Emacs is not idle is nil.
 
-The microsecond count is zero on systems that do not provide
-resolution finer than a second.  */)
+NSEC is a multiple of the system clock resolution.  */)
   (void)
 {
-  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
     {
       EMACS_TIME now, idleness_now;
 
       EMACS_GET_TIME (now);
       EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
 
-      return list3 (make_number ((EMACS_SECS (idleness_now) >> 16) & 0xffff),
-		    make_number ((EMACS_SECS (idleness_now) >> 0)  & 0xffff),
-		    make_number (EMACS_USECS (idleness_now)));
+      return make_lisp_time (idleness_now);
     }
 
   return Qnil;
@@ -10735,7 +10723,7 @@ stuff_buffered_input (Lisp_Object stuffstring)
 }
 
 void
-set_waiting_for_input (struct timeval *time_to_clear)
+set_waiting_for_input (EMACS_TIME *time_to_clear)
 {
   input_available_clear_time = time_to_clear;
 
@@ -11358,7 +11346,7 @@ init_keyboard (void)
   quit_char = Ctl ('g');
   Vunread_command_events = Qnil;
   unread_command_char = -1;
-  EMACS_SET_SECS_USECS (timer_idleness_start_time, -1, -1);
+  EMACS_SET_INVALID_TIME (timer_idleness_start_time);
   total_keys = 0;
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;

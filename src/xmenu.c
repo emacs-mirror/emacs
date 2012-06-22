@@ -392,8 +392,6 @@ x_menu_wait_for_event (void *data)
          )
     {
       EMACS_TIME next_time = timer_check (), *ntp;
-      long secs = EMACS_SECS (next_time);
-      long usecs = EMACS_USECS (next_time);
       SELECT_TYPE read_fds;
       struct x_display_info *dpyinfo;
       int n = 0;
@@ -407,7 +405,7 @@ x_menu_wait_for_event (void *data)
           XFlush (dpyinfo->display);
         }
 
-      if (secs < 0 && usecs < 0)
+      if (! EMACS_TIME_VALID_P (next_time))
         ntp = 0;
       else
         ntp = &next_time;
@@ -417,9 +415,9 @@ x_menu_wait_for_event (void *data)
          over an arrow, a timeout scrolls it a bit.  Use xg_select so that
          timeout gets triggered.  */
 
-      xg_select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, ntp);
+      xg_select (n + 1, &read_fds, NULL, NULL, ntp);
 #else
-      select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, ntp);
+      pselect (n + 1, &read_fds, NULL, NULL, ntp, NULL);
 #endif
     }
 }

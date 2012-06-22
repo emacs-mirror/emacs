@@ -106,8 +106,8 @@ struct Lisp_Process
        On some systems, e.g. GNU/Linux, Emacs is seen as
        an interactive app also when reading process output, meaning
        that process output can be read in as little as 1 byte at a
-       time.  Value is micro-seconds to delay reading output from
-       this process.  Range is 0 .. 50000.  */
+       time.  Value is nanoseconds to delay reading output from
+       this process.  Range is 0 .. 50 * 1000 * 1000.  */
     int read_output_delay;
     /* Should we delay reading output from this process.
        Initialized from `Vprocess_adaptive_read_buffering'.

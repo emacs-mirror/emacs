@@ -1,3 +1,172 @@
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	The time stamps are only nanosecond-resolution at the C level,
+	since that's the best that any real-world system supports now.
+	But they are picosecond-resolution at the Lisp level, as that's
+	easy, and leaves room for future OS improvements.
+
+	* Makefile.in (LIB_CLOCK_GETTIME): New macro.
+	(LIBES): Use it.
+
+	* alloc.c (Fgarbage_collect): Port to higher-res time stamps.
+	Don't get current time unless it's needed.
+
+	* atimer.c: Include <sys/time.h> unconditionally, since gnulib
+	now provides it if it's absent.
+	(start_atimer): Port to higher-res time stamps.
+	Check for time stamp overflow.  Don't get current time more
+	often than is needed.
+
+	* buffer.h (struct buffer): Buffer modtime now has high resolution.
+	Include systime.h, not time.h.
+	(NONEXISTENT_MODTIME_NSECS, UNKNOWN_MODTIME_NSECS): New macros.
+
+	* dired.c: Include stat-time.h.
+	(Ffile-attributes): File times now have higher resolution.
+
+	* dispextern.h [HAVE_WINDOW_SYSTEM]: Include systime.h.
+	(struct image): Timestamp now has higher resolution.
+
+	* dispnew.c (PERIODIC_PREEMPTION_CHECKING): Remove, as Emacs always
+	has at least microseconds now.  All uses removed.
+	(update_frame, update_single_window, update_window, update_frame_1)
+	(Fsleep_for, sit_for): Port to higher-resolution time stamps.
+
+	* editfns.c (time_overflow): Now extern.
+	(Fcurrent_time, Fget_internal_run_time, make_time, lisp_time_argument)
+	(float-time, Fformat_time_string, Fcurrent_time_string)
+	(Fcurrent_time_zone): Accept and generate higher-resolution
+	time stamps.
+	(make_time_tail, make_lisp_time, dissassemble_lisp_time)
+	(decode_time_components, lisp_seconds_argument): New functions.
+	(make_time): Now static.
+	(lisp_time_argument): Now returns EMACS_TIME.  New arg ppsec.
+	Report an error if the time is invalid, rather than having the caller
+	do that.
+
+	* fileio.c: Include <stat-time.h>
+	(Fcopy_file): Copy higher-resolution time stamps.
+	Prefer to set the time stamp via a file descriptor if that works.
+	(Fset_file_times, Finsert_file_contents, Fwrite_region)
+	(Fverify_visited_file_modtime, Fclear_visited_file_modtime)
+	(Fvisited_file_modtime, Fset_visited_file_modtime):
+	Support higher-resolution time stamps.
+
+	* fns.c (Frandom): Use nanoseconds, not microseconds, for seed.
+
+	* gtkutil.c (xg_maybe_add_timer): Port to higher-res time stamps.
+
+	* image.c (prepare_image_for_display, clear_image_cache)
+	(lookup_image): Port to higer-resolution time stamps.
+
+	* keyboard.c (start_polling, bind_polling_period):
+	Check for time stamp overflow.
+	(read_char, kbd_buffer_get_event, timer_start_idle)
+	(timer_stop_idle, timer_resume_idle, timer_check_2, timer_check)
+	(Fcurrent_idle_time, init_keyboard, set_waiting_for_input):
+	Port to higher-resolution time stamps.  Do not assume time_t is signed.
+	(decode_timer): New function.  Timers are now vectors of length 9,
+	not 8, to accommodate the picosecond component.
+	(timer_check_2): Use it.
+
+	* nsterm.m (select_timeout, timeval_subtract): Remove.
+	(ns_timeout): Use Emacs's facilities for time stamp arithmetic,
+	as they're a bit more accurate and handle overflow better.
+	(ns_select): Change prototype to be compatible with pselect.
+	(ns_select, ns_term_shutdown): Port to ns-resolution time stamps.
+	* nsterm.h (ns_select): Adjust prototype.
+
+	* msdos.c (EMACS_TIME_ZERO_OR_NEG_P): Remove, as it assumes
+	us-resolution time stamps.
+	(sys_select): Use the new EMACS_TIME_SIGN macro instead.
+
+	* lread.c (read_filtered_event): Port to ns-resolution time stamps.
+
+	* lisp.h (time_overflow): New decl.
+	(wait_reading_process_output): First arg is now intmax_t, not int,
+	to accommodate larger waits.
+
+	* process.h (struct Lisp_Process.read_output_delay):
+	Now counts nanoseconds, not microseconds.
+	* process.c (ADAPTIVE_READ_BUFFERING): Don't worry about
+	EMACS_HAS_USECS.
+	(READ_OUTPUT_DELAY_INCREMENT, Faccept_process_output)
+	(wait_reading_process_output):
+	Port to ns-resolution time stamps.
+	(Faccept_process_output, wait_reading_process_output):
+	Check for time stamp overflow.  Do not assume time_t is signed.
+	(select_wrapper): Remove; we now use pselect.
+	(Fprocess_attributes): Now generates ns-resolution time stamps.
+
+	* sysdep.c: Include utimens.h.  Don't include utime.h
+	or worry about struct utimbuf; gnulib does that for us now.
+	(gettimeofday): Remove; gnulib provides a substitute.
+	(make_timeval): New function.
+	(set_file_times): Now sets ns-resolution time stamps.
+	New arg FD; all uses changed.
+	(time_from_jiffies, ltime_from_jiffies, get_up_time)
+	(system_process_attributes):
+	Now returns ns-resolution time stamp.  All uses changed.
+	Check for time stamp overflow.
+
+	* sysselect.h: Don't depend on HAVE_SYS_SELECT_H; gnulib
+	provides a substitute now.
+
+	* systime.h: Include timespec.h rather than sys/time.h and time.h,
+	since it guarantees struct timespec.
+	(EMACS_TIME): Now struct timespec, so that we can support
+	ns-resolution time stamps.
+	(EMACS_TIME_RESOLUTION, LOG10_EMACS_TIME_RESOLUTION): New macros.
+	(EMACS_HAS_USECS): Remove; Emacs always has sub-second time stamps now.
+	(EMACS_USECS): Remove.
+	(EMACS_SET_USECS): The underlying time stamp now has ns resolution,
+	so multiply the arg by 1000 before storing it.
+	(EMACS_NSECS, EMACS_SECS_ADDR, EMACS_SET_NSECS, EMACS_SET_SECS_NSECS):
+	New macros.
+	(EMACS_GET_TIME, EMACS_ADD_TIME, EMACS_SUB_TIME):
+	Port to ns-resolution time stamps.
+	(EMACS_TIME_NEG_P): Remove; replaced by....
+	(EMACS_TIME_SIGN): New macro.
+	(EMACS_SET_INVALID_TIME, EMACS_TIME_VALID_P)
+	(EMACS_TIME_FROM_DOUBLE, EMACS_TIME_TO_DOUBLE): New macros.
+	(set_file_times, make_time, lisp_time_argument): Adjust signature.
+	(make_timeval, make_lisp_time, decode_time_components): New decls.
+	(EMACS_TIME_CMP): Remove; no longer used.  Plus, it was buggy, in
+	that it mishandled time_t overflow.  You can't compare by subtracting!
+	(EMACS_TIME_EQ, EMACS_TIME_NE, EMACS_TIME_GT, EMACS_TIME_GE)
+	(EMACS_TIME_LT, EMACS_TIME_LE): Rewrite in terms of timespec_cmp.
+
+	* term.c: Include <sys/time.h>.
+	(timeval_to_Time): New function, for proper overflow wraparound.
+	(term_mouse_position, term_mouse_click): Use it.
+
+	* undo.c (record_first_change): Support higher-resolution time stamps
+	in the undo buffer.
+	(Fprimitive_undo): Use them when restoring time stamps.
+
+	* w32.c (ltime, U64_TO_LISP_TIME, process_times, emacs_gnutls_pull)
+	(w32_get_internal_run_time):
+	Port to higher-resolution Emacs time stamps.
+	(ltime): Now accepts single 64-bit integer, as that's more convenient
+	for callers.
+
+	* xdisp.c (start_hourglass): Port to ns-resolution time stamps.
+
+	* xgselect.c, xgselect.h (xg_select): Add sigmask argument,
+	for compatibility with pselect.  Support ns-resolution time stamps.
+
+	* xmenu.c (x_menu_wait_for_event): Support ns-resolution time stamps.
+
+	* xselect.c (wait_for_property_change, x_get_foreign_selection):
+	Check for time stamp overflow, and support ns-resolution time stamps.
+
+	* xterm.c: Don't include sys/time.h; gnulib does that for us now.
+	Don't worry about whether HAVE_TIMEVAL and HAVE_SELECT are set.
+	(timeval_subtract): Remove; no longer needed.
+	(XTflash, XTring_bell, x_wait_for_event):
+	Port to ns-resolution time stamps.  Don't assume time_t is signed.
+
 2012-06-22  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (x_consider_frame_title): Revert last change.

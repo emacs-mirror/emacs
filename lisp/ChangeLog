@@ -1,3 +1,26 @@
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+
+	* calendar/time-date.el (with-decoded-time-value): New arg
+	PICO-SYMBOL in VARLIST.  It's optional, for backward compatibility.
+	(encode-time-value): New optional arg PICO.  New type 3.
+	(time-to-seconds) [!float-time]: Support the new picoseconds
+	component if it's used.
+	(seconds-to-time, time-subtract, time-add):
+	Support ps-resolution time stamps as well.
+
+	* emacs-lisp/timer.el (timer): New component psecs.  All uses changed.
+	(timerp): Timer vectors now have length 9, not 8.
+	(timer--time): Support new-style (4-part) time stamps.
+	(timer-next-integral-multiple-of-time): Time stamps now have
+	picosecond resolution, so take a bit more care about rounding.
+	(timer-relative-time, timer-inc-time): New optional arg psecs.
+	(timer-set-time-with-usecs): Set psecs to 0.
+	(timer--activate): Check psecs component, too.
+
+	* proced.el (proced-time-lessp): Support ps-resolution stamps.
+
 2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* icomplete.el (icomplete-minibuffer-setup, icomplete-completions):

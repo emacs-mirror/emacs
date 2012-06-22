@@ -159,6 +159,8 @@ LIBHESIOD=@LIBHESIOD@
 LIBRESOLV=@LIBRESOLV@
 ## -llockfile if HAVE_LIBLOCKFILE or -lmail if HAVE_LIBMAIL
 LIBS_MAIL=@LIBS_MAIL@
+## empty or -lrt or -lposix4 if HAVE_CLOCK_GETTIME
+LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
 
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
@@ -309,7 +311,8 @@ ctags${EXEEXT}: etags${EXEEXT}
 	  regex.o $(LOADLIBES) -o ctags
 
 profile${EXEEXT}: ${srcdir}/profile.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c $(LOADLIBES) -o profile
+	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c \
+	  $(LOADLIBES) $(LIB_CLOCK_GETTIME) -o profile
 
 make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \

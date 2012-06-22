@@ -601,17 +601,9 @@ read_filtered_event (int no_switch_frame, int ascii_required,
   /* Compute timeout.  */
   if (NUMBERP (seconds))
     {
-      EMACS_TIME wait_time;
-      int sec, usec;
       double duration = extract_float (seconds);
-
-      if (0 < duration)
-	duration_to_sec_usec (duration, &sec, &usec);
-      else
-	sec = usec = 0;
-
+      EMACS_TIME wait_time = EMACS_TIME_FROM_DOUBLE (duration);
       EMACS_GET_TIME (end_time);
-      EMACS_SET_SECS_USECS (wait_time, sec, usec);
       EMACS_ADD_TIME (end_time, end_time, wait_time);
     }
 

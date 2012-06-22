@@ -80,7 +80,7 @@ Other values of LIMIT are ignored.  */)
     {
       EMACS_TIME t;
       EMACS_GET_TIME (t);
-      seed_random (getpid () ^ EMACS_SECS (t) ^ EMACS_USECS (t));
+      seed_random (getpid () ^ EMACS_SECS (t) ^ EMACS_NSECS (t));
     }
 
   if (NATNUMP (limit) && XFASTINT (limit) != 0)

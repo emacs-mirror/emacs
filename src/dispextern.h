@@ -68,6 +68,10 @@ typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+# include "systime.h"
+#endif
+
 #ifndef HAVE_WINDOW_SYSTEM
 typedef int Cursor;
 #define No_Cursor (0)
@@ -2780,7 +2784,7 @@ struct image
 {
   /* The time in seconds at which the image was last displayed.  Set
      in prepare_image_for_display.  */
-  time_t timestamp;
+  EMACS_TIME timestamp;
 
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;

@@ -62,6 +62,7 @@ extern struct direct *readdir (DIR *);
 #endif /* HAVE_DIRENT_H */
 
 #include <filemode.h>
+#include <stat-time.h>
 
 #ifdef MSDOS
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
@@ -893,8 +894,8 @@ Elements of the attribute list are:
  2. File uid as a string or a number.  If a string value cannot be
   looked up, a numeric value, either an integer or a float, is returned.
  3. File gid, likewise.
- 4. Last access time, as a list of two integers.
-  First integer has high-order 16 bits of time, second has low 16 bits.
+ 4. Last access time, as a list of integers (HIGH LOW USEC PSEC) in the
+  same style as (current-time).
   (See a note below about access time on FAT-based filesystems.)
  5. Last modification time, likewise.  This is the time of the last
   change to the file's contents.
@@ -979,9 +980,9 @@ so last access time will always be midnight of that day.  */)
   else
     values[3] = make_fixnum_or_float (s.st_gid);
 
-  values[4] = make_time (s.st_atime);
-  values[5] = make_time (s.st_mtime);
-  values[6] = make_time (s.st_ctime);
+  values[4] = make_lisp_time (get_stat_atime (&s));
+  values[5] = make_lisp_time (get_stat_mtime (&s));
+  values[6] = make_lisp_time (get_stat_ctime (&s));
 
   /* If the file size is a 4-byte type, assume that files of sizes in
      the 2-4 GiB range wrap around to negative values, as this is a

@@ -709,7 +709,7 @@ reset_buffer (register struct buffer *b)
   BVAR (b, filename) = Qnil;
   BVAR (b, file_truename) = Qnil;
   BVAR (b, directory) = (current_buffer) ? BVAR (current_buffer, directory) : Qnil;
-  b->modtime = 0;
+  EMACS_SET_SECS_NSECS (b->modtime, 0, UNKNOWN_MODTIME_NSECS);
   b->modtime_size = -1;
   XSETFASTINT (BVAR (b, save_length), 0);
   b->last_window_start = 1;
@@ -5834,9 +5834,9 @@ An entry (TEXT . POSITION) represents the deletion of the string TEXT
 from (abs POSITION).  If POSITION is positive, point was at the front
 of the text being deleted; if negative, point was at the end.
 
-An entry (t HIGH . LOW) indicates that the buffer previously had
-\"unmodified\" status.  HIGH and LOW are the high and low 16-bit portions
-of the visited file's modification time, as of that time.  If the
+An entry (t HIGH LOW USEC PSEC) indicates that the buffer was previously
+unmodified; (HIGH LOW USEC PSEC) is in the same style as (current-time)
+and is the visited file's modification time, as of that time.  If the
 modification time of the most recent save is different, this entry is
 obsolete.
 

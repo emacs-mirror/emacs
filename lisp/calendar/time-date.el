@@ -23,15 +23,15 @@
 
 ;;; Commentary:
 
-;; Time values come in three formats.  The oldest format is a cons
+;; Time values come in several formats.  The oldest format is a cons
 ;; cell of the form (HIGH . LOW).  This format is obsolete, but still
-;; supported.  The two other formats are the lists (HIGH LOW) and
-;; (HIGH LOW MICRO).  The first two formats specify HIGH * 2^16 + LOW
-;; seconds; the third format specifies HIGH * 2^16 + LOW + MICRO /
-;; 1000000 seconds.  We should have 0 <= MICRO < 1000000 and 0 <= LOW
-;; < 2^16.  If the time value represents a point in time, then HIGH is
-;; nonnegative.  If the time value is a time difference, then HIGH can
-;; be negative as well.  The macro `with-decoded-time-value' and the
+;; supported.  The other formats are the lists (HIGH LOW), (HIGH LOW
+;; USEC), and (HIGH LOW USEC PSEC).  These formats specify the time
+;; value equal to HIGH * 2^16 + LOW + USEC * 10^-6 + PSEC * 10^-12
+;; seconds, where missing components are treated as zero.  HIGH can be
+;; negative, either because the value is a time difference, or because
+;; the machine supports negative time stamps that fall before the
+;; epoch.  The macro `with-decoded-time-value' and the
 ;; function `encode-time-value' make it easier to deal with these
 ;; three formats.  See `time-subtract' for an example of how to use
 ;; them.
@@ -44,13 +44,15 @@
 The value of the last form in BODY is returned.
 
 Each element of the list VARLIST is a list of the form
-\(HIGH-SYMBOL LOW-SYMBOL MICRO-SYMBOL [TYPE-SYMBOL] TIME-VALUE).
+\(HIGH-SYMBOL LOW-SYMBOL MICRO-SYMBOL [PICO-SYMBOL [TYPE-SYMBOL]] TIME-VALUE).
 The time value TIME-VALUE is decoded and the result it bound to
 the symbols HIGH-SYMBOL, LOW-SYMBOL and MICRO-SYMBOL.
+The optional PICO-SYMBOL is bound to the picoseconds part.
 
 The optional TYPE-SYMBOL is bound to the type of the time value.
 Type 0 is the cons cell (HIGH . LOW), type 1 is the list (HIGH
-LOW), and type 2 is the list (HIGH LOW MICRO)."
+LOW), type 2 is the list (HIGH LOW MICRO), and type 3 is the
+list (HIGH LOW MICRO PICO)."
   (declare (indent 1)
 	   (debug ((&rest (symbolp symbolp symbolp &or [symbolp form] form))
 		   body)))
@@ -59,6 +61,8 @@ LOW), and type 2 is the list (HIGH LOW MICRO)."
 	     (high (pop elt))
 	     (low (pop elt))
 	     (micro (pop elt))
+	     (pico (unless (<= (length elt) 2)
+		     (pop elt)))
 	     (type (unless (eq (length elt) 1)
 		     (pop elt)))
 	     (time-value (car elt))
@@ -66,28 +70,44 @@ LOW), and type 2 is the list (HIGH LOW MICRO)."
 	`(let* ,(append `((,gensym ,time-value)
 			  (,high (pop ,gensym))
 			  ,low ,micro)
+			(when pico `(,pico))
 			(when type `(,type)))
 	   (if (consp ,gensym)
 	       (progn
 		 (setq ,low (pop ,gensym))
 		 (if ,gensym
-		     ,(append `(setq ,micro (car ,gensym))
-			      (when type `(,type 2)))
+		     (progn
+		       (setq ,micro (car ,gensym))
+		       ,(cond (pico
+			       `(if (cdr ,gensym)
+				    ,(append `(setq ,pico (cadr ,gensym))
+					     (when type `(,type 3)))
+				  ,(append `(setq ,pico 0)
+					   (when type `(,type 2)))))
+			      (type
+			       `(setq type 2))))
 		   ,(append `(setq ,micro 0)
+			    (when pico `(,pico 0))
 			    (when type `(,type 1)))))
 	     ,(append `(setq ,low ,gensym ,micro 0)
+		      (when pico `(,pico 0))
 		      (when type `(,type 0))))
 	   (with-decoded-time-value ,varlist ,@body)))
     `(progn ,@body)))
 
-(defun encode-time-value (high low micro type)
-  "Encode HIGH, LOW, and MICRO into a time value of type TYPE.
+(defun encode-time-value (high low micro pico &optional type)
+  "Encode HIGH, LOW, MICRO, and PICO into a time value of type TYPE.
 Type 0 is the cons cell (HIGH . LOW), type 1 is the list (HIGH LOW),
-and type 2 is the list (HIGH LOW MICRO)."
+type 2 is (HIGH LOW MICRO), and type 3 is (HIGH LOW MICRO PICO).
+
+For backward compatibility, if only four arguments are given,
+it is assumed that PICO was omitted and should be treated as zero."
   (cond
    ((eq type 0) (cons high low))
    ((eq type 1) (list high low))
-   ((eq type 2) (list high low micro))))
+   ((eq type 2) (list high low micro))
+   ((eq type 3) (list high low micro pico))
+   ((null type) (encode-time-value high low micro 0 pico))))
 
 (autoload 'parse-time-string "parse-time")
 (autoload 'timezone-make-date-arpa-standard "timezone")
@@ -125,28 +145,45 @@ If DATE lacks timezone information, GMT is assumed."
            (subrp (symbol-function 'float-time)))
       (defun time-to-seconds (time)
         "Convert time value TIME to a floating point number."
-        (with-decoded-time-value ((high low micro time))
+        (with-decoded-time-value ((high low micro pico type time))
           (+ (* 1.0 high 65536)
              low
-             (/ micro 1000000.0))))))
+	     (/ (+ (* micro 1e6) pico) 1e12))))))
 
 ;;;###autoload
 (defun seconds-to-time (seconds)
   "Convert SECONDS (a floating point number) to a time value."
-  (list (floor seconds 65536)
-	(floor (mod seconds 65536))
-	(floor (* (- seconds (ffloor seconds)) 1000000))))
+  (let* ((usec (* 1000000 (mod seconds 1)))
+	 (ps (round (* 1000000 (mod usec 1))))
+	 (us (floor usec))
+	 (lo (floor (mod seconds 65536)))
+	 (hi (floor seconds 65536)))
+    (if (eq ps 1000000)
+	(progn
+	  (setq ps 0)
+	  (setq us (1+ us))
+	  (if (eq us 1000000)
+	      (progn
+		(setq us 0)
+		(setq lo (1+ lo))
+		(if (eq lo 65536)
+		    (progn
+		      (setq lo 0)
+		      (setq hi (1+ hi))))))))
+    (list hi lo us ps)))
 
 ;;;###autoload
 (defun time-less-p (t1 t2)
   "Return non-nil if time value T1 is earlier than time value T2."
-  (with-decoded-time-value ((high1 low1 micro1 t1)
-			    (high2 low2 micro2 t2))
+  (with-decoded-time-value ((high1 low1 micro1 pico1 type1 t1)
+			    (high2 low2 micro2 pico2 type2 t2))
     (or (< high1 high2)
 	(and (= high1 high2)
 	     (or (< low1 low2)
 		 (and (= low1 low2)
-		      (< micro1 micro2)))))))
+		      (or (< micro1 micro2)
+			  (and (= micro1 micro2)
+			       (< pico1 pico2)))))))))
 
 ;;;###autoload
 (defun days-to-time (days)
@@ -173,36 +210,44 @@ TIME should be either a time value or a date-time string."
 (defun time-subtract (t1 t2)
   "Subtract two time values, T1 minus T2.
 Return the difference in the format of a time value."
-  (with-decoded-time-value ((high low micro type t1)
-			    (high2 low2 micro2 type2 t2))
+  (with-decoded-time-value ((high low micro pico type t1)
+			    (high2 low2 micro2 pico2 type2 t2))
     (setq high (- high high2)
 	  low (- low low2)
 	  micro (- micro micro2)
+	  pico (- pico pico2)
 	  type (max type type2))
+    (when (< pico 0)
+      (setq micro (1- micro)
+	    pico (+ pico 1000000)))
     (when (< micro 0)
       (setq low (1- low)
 	    micro (+ micro 1000000)))
     (when (< low 0)
       (setq high (1- high)
 	    low (+ low 65536)))
-    (encode-time-value high low micro type)))
+    (encode-time-value high low micro pico type)))
 
 ;;;###autoload
 (defun time-add (t1 t2)
   "Add two time values T1 and T2.  One should represent a time difference."
-  (with-decoded-time-value ((high low micro type t1)
-			    (high2 low2 micro2 type2 t2))
+  (with-decoded-time-value ((high low micro pico type t1)
+			    (high2 low2 micro2 pico2 type2 t2))
     (setq high (+ high high2)
 	  low (+ low low2)
 	  micro (+ micro micro2)
+	  pico (+ pico pico2)
 	  type (max type type2))
+    (when (>= pico 1000000)
+      (setq micro (1+ micro)
+	    pico (- pico 1000000)))
     (when (>= micro 1000000)
       (setq low (1+ low)
 	    micro (- micro 1000000)))
     (when (>= low 65536)
       (setq high (1+ high)
 	    low (- low 65536)))
-    (encode-time-value high low micro type)))
+    (encode-time-value high low micro pico type)))
 
 ;;;###autoload
 (defun date-to-day (date)

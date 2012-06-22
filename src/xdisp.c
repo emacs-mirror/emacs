@@ -29077,18 +29077,20 @@ start_hourglass (void)
 {
 #if defined (HAVE_WINDOW_SYSTEM)
   EMACS_TIME delay;
-  int secs = DEFAULT_HOURGLASS_DELAY, usecs = 0;
 
   cancel_hourglass ();
 
-  if (NUMBERP (Vhourglass_delay))
-    {
-      double duration = extract_float (Vhourglass_delay);
-      if (0 < duration)
-	duration_to_sec_usec (duration, &secs, &usecs);
-    }
+  if (INTEGERP (Vhourglass_delay)
+      && XINT (Vhourglass_delay) > 0)
+    EMACS_SET_SECS_NSECS (delay,
+			  min (XINT (Vhourglass_delay), TYPE_MAXIMUM (time_t)),
+			  0);
+  else if (FLOATP (Vhourglass_delay)
+	   && XFLOAT_DATA (Vhourglass_delay) > 0)
+    delay = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (Vhourglass_delay));
+  else
+    EMACS_SET_SECS_NSECS (delay, DEFAULT_HOURGLASS_DELAY, 0);
 
-  EMACS_SET_SECS_USECS (delay, secs, usecs);
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				   show_hourglass, NULL);
 #endif

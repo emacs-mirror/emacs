@@ -228,13 +228,11 @@ static EMACS_INT update_tick;
 #endif
 
 #if !defined (ADAPTIVE_READ_BUFFERING) && !defined (NO_ADAPTIVE_READ_BUFFERING)
-#ifdef EMACS_HAS_USECS
 #define ADAPTIVE_READ_BUFFERING
-#endif
 #endif
 
 #ifdef ADAPTIVE_READ_BUFFERING
-#define READ_OUTPUT_DELAY_INCREMENT 10000
+#define READ_OUTPUT_DELAY_INCREMENT (EMACS_TIME_RESOLUTION / 100)
 #define READ_OUTPUT_DELAY_MAX       (READ_OUTPUT_DELAY_INCREMENT * 5)
 #define READ_OUTPUT_DELAY_MAX_MAX   (READ_OUTPUT_DELAY_INCREMENT * 7)
 
@@ -3291,7 +3289,7 @@ usage: (make-network-process &rest ARGS)  */)
 	{
 	  /* Unlike most other syscalls connect() cannot be called
 	     again.  (That would return EALREADY.)  The proper way to
-	     wait for completion is select(). */
+	     wait for completion is pselect(). */
 	  int sc;
 	  socklen_t len;
 	  SELECT_TYPE fdset;
@@ -3299,8 +3297,7 @@ usage: (make-network-process &rest ARGS)  */)
 	  FD_ZERO (&fdset);
 	  FD_SET (s, &fdset);
 	  QUIT;
-	  sc = select (s + 1, (SELECT_TYPE *)0, &fdset, (SELECT_TYPE *)0,
-		       (EMACS_TIME *)0);
+	  sc = pselect (s + 1, NULL, &fdset, NULL, NULL, NULL);
 	  if (sc == -1)
 	    {
 	      if (errno == EINTR)
@@ -3961,7 +3958,8 @@ If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil if we received any output before the timeout expired.  */)
   (register Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec, Lisp_Object just_this_one)
 {
-  int secs = -1, usecs = 0;
+  intmax_t secs;
+  int nsecs;
 
   if (! NILP (process))
     CHECK_PROCESS (process);
@@ -3980,17 +3978,36 @@ Return non-nil if we received any output before the timeout expired.  */)
 	}
     }
 
+  secs = 0;
+  nsecs = -1;
+
   if (!NILP (seconds))
     {
-      double duration = extract_float (seconds);
-      if (0 < duration)
-	duration_to_sec_usec (duration, &secs, &usecs);
+      if (INTEGERP (seconds))
+	{
+	  if (0 < XINT (seconds))
+	    {
+	      secs = XINT (seconds);
+	      nsecs = 0;
+	    }
+	}
+      else if (FLOATP (seconds))
+	{
+	  if (0 < XFLOAT_DATA (seconds))
+	    {
+	      EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (seconds));
+	      secs = min (EMACS_SECS (t), INTMAX_MAX);
+	      nsecs = EMACS_NSECS (t);
+	    }
+	}
+      else
+	wrong_type_argument (Qnumberp, seconds);
     }
-  else if (!NILP (process))
-    secs = 0;
+  else if (! NILP (process))
+    nsecs = 0;
 
   return
-    (wait_reading_process_output (secs, usecs, 0, 0,
+    (wait_reading_process_output (secs, nsecs, 0, 0,
 				  Qnil,
 				  !NILP (process) ? XPROCESS (process) : NULL,
 				  NILP (just_this_one) ? 0 :
@@ -4231,34 +4248,19 @@ wait_reading_process_output_1 (void)
 {
 }
 
-/* Use a wrapper around select to work around a bug in gdb 5.3.
-   Normally, the wrapper is optimized away by inlining.
-
-   If emacs is stopped inside select, the gdb backtrace doesn't
-   show the function which called select, so it is practically
-   impossible to step through wait_reading_process_output.  */
-
-#ifndef select
-static inline int
-select_wrapper (int n, fd_set *rfd, fd_set *wfd, fd_set *xfd, struct timeval *tmo)
-{
-  return select (n, rfd, wfd, xfd, tmo);
-}
-#define select select_wrapper
-#endif
-
 /* Read and dispose of subprocess output while waiting for timeout to
    elapse and/or keyboard input to be available.
 
    TIME_LIMIT is:
-     timeout in seconds, or
-     zero for no limit, or
-     -1 means gobble data immediately available but don't wait for any.
+     timeout in seconds
+     If negative, gobble data immediately available but don't wait for any.
 
-   MICROSECS is:
-     an additional duration to wait, measured in microseconds.
-     If this is nonzero and time_limit is 0, then the timeout
-     consists of MICROSECS only.
+   NSECS is:
+     an additional duration to wait, measured in nanoseconds
+     If TIME_LIMIT is zero, then:
+       If NSECS == 0, there is no limit.
+       If NSECS > 0, the timeout consists of NSEC only.
+       If NSECS < 0, gobble data immediately, as if TIME_LIMIT were negative.
 
    READ_KBD is a lisp value:
      0 to ignore keyboard input, or
@@ -4285,7 +4287,7 @@ select_wrapper (int n, fd_set *rfd, fd_set *wfd, fd_set *xfd, struct timeval *tm
    Otherwise, return true if we received input from any process.  */
 
 int
-wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
+wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     int do_display,
 			     Lisp_Object wait_for_cell,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
@@ -4305,7 +4307,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
   FD_ZERO (&Available);
   FD_ZERO (&Writeok);
 
-  if (time_limit == 0 && microsecs == 0 && wait_proc && !NILP (Vinhibit_quit)
+  if (time_limit == 0 && nsecs == 0 && wait_proc && !NILP (Vinhibit_quit)
       && !(CONSP (wait_proc->status) && EQ (XCAR (wait_proc->status), Qexit)))
     message ("Blocking call to accept-process-output with quit inhibited!!");
 
@@ -4317,12 +4319,20 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 			 make_number (waiting_for_user_input_p));
   waiting_for_user_input_p = read_kbd;
 
+  if (time_limit < 0)
+    {
+      time_limit = 0;
+      nsecs = -1;
+    }
+  else if (TYPE_MAXIMUM (time_t) < time_limit)
+    time_limit = TYPE_MAXIMUM (time_t);
+
   /* Since we may need to wait several times,
      compute the absolute time to return at.  */
-  if (time_limit || microsecs)
+  if (time_limit || nsecs) /* FIXME neither should be negative, no? */
     {
       EMACS_GET_TIME (end_time);
-      EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
+      EMACS_SET_SECS_NSECS (timeout, time_limit, nsecs);
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
 
@@ -4346,7 +4356,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 
       /* Compute time from now till when time limit is up */
       /* Exit if already run out */
-      if (time_limit == -1)
+      if (nsecs < 0)
 	{
 	  /* -1 specified for timeout means
 	     gobble output available now
@@ -4354,12 +4364,12 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
 	}
-      else if (time_limit || microsecs)
+      else if (time_limit || nsecs)
 	{
 	  EMACS_GET_TIME (timeout);
-	  EMACS_SUB_TIME (timeout, end_time, timeout);
-	  if (EMACS_TIME_NEG_P (timeout))
+	  if (EMACS_TIME_LE (end_time, timeout))
 	    break;
+	  EMACS_SUB_TIME (timeout, end_time, timeout);
 	}
       else
 	{
@@ -4405,21 +4415,22 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      && requeued_events_pending_p ())
 	    break;
 
-	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
+	  /* If time_limit is negative, we are not going to wait at all.  */
+	  if (0 <= nsecs)
 	    {
-	      EMACS_TIME difference;
-	      EMACS_SUB_TIME (difference, timer_delay, timeout);
-	      if (EMACS_TIME_NEG_P (difference))
+	      if (EMACS_TIME_VALID_P (timer_delay))
 		{
-		  timeout = timer_delay;
-		  timeout_reduced_for_timers = 1;
+		  if (EMACS_TIME_LT (timer_delay, timeout))
+		    {
+		      timeout = timer_delay;
+		      timeout_reduced_for_timers = 1;
+		    }
 		}
-	    }
-	  /* If time_limit is -1, we are not going to wait at all.  */
-	  else if (time_limit != -1)
-	    {
-	      /* This is so a breakpoint can be put here.  */
-	      wait_reading_process_output_1 ();
+	      else
+		{
+		  /* This is so a breakpoint can be put here.  */
+		  wait_reading_process_output_1 ();
+		}
 	    }
 	}
 
@@ -4448,14 +4459,14 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	  Ctemp = write_mask;
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
-	  if ((select (max (max_process_desc, max_input_desc) + 1,
-		       &Atemp,
+	  if ((pselect (max (max_process_desc, max_input_desc) + 1,
+			&Atemp,
 #ifdef NON_BLOCKING_CONNECT
-		       (num_pending_connects > 0 ? &Ctemp : (SELECT_TYPE *)0),
+			(num_pending_connects > 0 ? &Ctemp : NULL),
 #else
-		       (SELECT_TYPE *)0,
+			NULL,
 #endif
-		       (SELECT_TYPE *)0, &timeout)
+			NULL, &timeout, NULL)
 	       <= 0))
 	    {
 	      /* It's okay for us to do this and then continue with
@@ -4578,9 +4589,9 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	     Vprocess_adaptive_read_buffering is nil.  */
 	  if (process_output_skip && check_delay > 0)
 	    {
-	      int usecs = EMACS_USECS (timeout);
-	      if (EMACS_SECS (timeout) > 0 || usecs > READ_OUTPUT_DELAY_MAX)
-		usecs = READ_OUTPUT_DELAY_MAX;
+	      int nsecs = EMACS_NSECS (timeout);
+	      if (EMACS_SECS (timeout) > 0 || nsecs > READ_OUTPUT_DELAY_MAX)
+		nsecs = READ_OUTPUT_DELAY_MAX;
 	      for (channel = 0; check_delay > 0 && channel <= max_process_desc; channel++)
 		{
 		  proc = chan_process[channel];
@@ -4595,11 +4606,11 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 			continue;
 		      FD_CLR (channel, &Available);
 		      XPROCESS (proc)->read_output_skip = 0;
-		      if (XPROCESS (proc)->read_output_delay < usecs)
-			usecs = XPROCESS (proc)->read_output_delay;
+		      if (XPROCESS (proc)->read_output_delay < nsecs)
+			nsecs = XPROCESS (proc)->read_output_delay;
 		    }
 		}
-	      EMACS_SET_SECS_USECS (timeout, 0, usecs);
+	      EMACS_SET_SECS_NSECS (timeout, 0, nsecs);
 	      process_output_skip = 0;
 	    }
 #endif
@@ -4608,12 +4619,12 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 #elif defined (HAVE_NS)
 	  nfds = ns_select
 #else
-	  nfds = select
+	  nfds = pselect
 #endif
             (max (max_process_desc, max_input_desc) + 1,
              &Available,
              (check_write ? &Writeok : (SELECT_TYPE *)0),
-             (SELECT_TYPE *)0, &timeout);
+             NULL, &timeout, NULL);
 
 #ifdef HAVE_GNUTLS
           /* GnuTLS buffers data internally.  In lowat mode it leaves
@@ -4671,7 +4682,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
       /*  If we woke up due to SIGWINCH, actually change size now.  */
       do_pending_window_change (0);
 
-      if (time_limit && nfds == 0 && ! timeout_reduced_for_timers)
+      if ((time_limit || nsecs) && nfds == 0 && ! timeout_reduced_for_timers)
 	/* We wanted the full specified time, so return now.  */
 	break;
       if (nfds < 0)
@@ -4823,7 +4834,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      if (wait_channel == channel)
 		{
 		  wait_channel = -1;
-		  time_limit = -1;
+		  nsecs = -1;
 		  got_some_input = 1;
 		}
 	      proc = chan_process[channel];
@@ -5680,11 +5691,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 
 		      /* Put what we should have written in wait_queue.  */
 		      write_queue_push (p, cur_object, cur_buf, cur_len, 1);
-#ifdef EMACS_HAS_USECS
-		      wait_reading_process_output (0, 20000, 0, 0, Qnil, NULL, 0);
-#else
-		      wait_reading_process_output (1, 0, 0, 0, Qnil, NULL, 0);
-#endif
+		      wait_reading_process_output (0, 20 * 1000 * 1000,
+						   0, 0, Qnil, NULL, 0);
 		      /* Reread queue, to see what is left.  */
 		      break;
 		    }
@@ -6825,9 +6833,15 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
    Wait for timeout to elapse and/or keyboard input to be available.
 
    time_limit is:
-     timeout in seconds, or
-     zero for no limit, or
-     -1 means gobble data immediately available but don't wait for any.
+     timeout in seconds
+     If negative, gobble data immediately available but don't wait for any.
+
+   nsec is:
+     an additional duration to wait, measured in nanoseconds
+     If TIME_LIMIT is zero, then:
+       If NSEC == 0, there is no limit.
+       If NSEC > 0, the timeout consists of NSEC only.
+       If NSECS < 0, gobble data immediately, as if TIME_LIMIT were negative.
 
    read_kbd is a Lisp_Object:
      0 to ignore keyboard input, or
@@ -6844,7 +6858,7 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
    Return true if we received input from any process.  */
 
 int
-wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
+wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     int do_display,
 			     Lisp_Object wait_for_cell,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
@@ -6854,11 +6868,19 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
   SELECT_TYPE waitchannels;
   int xerrno;
 
+  if (time_limit < 0)
+    {
+      time_limit = 0;
+      nsecs = -1;
+    }
+  else if (TYPE_MAXIMUM (time_t) < time_limit)
+    time_limit = TYPE_MAXIMUM (time_t);
+
   /* What does time_limit really mean?  */
-  if (time_limit || microsecs)
+  if (time_limit || nsecs) /* FIXME: what if negative? */
     {
       EMACS_GET_TIME (end_time);
-      EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
+      EMACS_SET_SECS_NSECS (timeout, time_limit, nsecs);
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
 
@@ -6884,7 +6906,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 
       /* Compute time from now till when time limit is up */
       /* Exit if already run out */
-      if (time_limit == -1)
+      if (nsecs < 0)
 	{
 	  /* -1 specified for timeout means
 	     gobble output available now
@@ -6892,12 +6914,12 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
 	}
-      else if (time_limit || microsecs)
+      else if (time_limit || nsecs)
 	{
 	  EMACS_GET_TIME (timeout);
-	  EMACS_SUB_TIME (timeout, end_time, timeout);
-	  if (EMACS_TIME_NEG_P (timeout))
+	  if (EMACS_TIME_LE (end_time, timeout))
 	    break;
+	  EMACS_SUB_TIME (timeout, end_time, timeout);
 	}
       else
 	{
@@ -6930,11 +6952,9 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      && requeued_events_pending_p ())
 	    break;
 
-	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
+	  if (EMACS_TIME_VALID_P (timer_delay) && 0 <= nsecs)
 	    {
-	      EMACS_TIME difference;
-	      EMACS_SUB_TIME (difference, timer_delay, timeout);
-	      if (EMACS_TIME_NEG_P (difference))
+	      if (EMACS_TIME_LT (timer_delay, timeout))
 		{
 		  timeout = timer_delay;
 		  timeout_reduced_for_timers = 1;
@@ -6970,8 +6990,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	  FD_ZERO (&waitchannels);
 	}
       else
-	nfds = select (1, &waitchannels, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-		       &timeout);
+	nfds = pselect (1, &waitchannels, NULL, NULL, &timeout, NULL);
 
       xerrno = errno;
 
@@ -6981,7 +7000,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
       /*  If we woke up due to SIGWINCH, actually change size now.  */
       do_pending_window_change (0);
 
-      if (time_limit && nfds == 0 && ! timeout_reduced_for_timers)
+      if ((time_limit || nsecs) && nfds == 0 && ! timeout_reduced_for_timers)
 	/* We waited the full specified time, so return now.  */
 	break;
 
@@ -7284,19 +7303,20 @@ integer or floating point values.
  majflt  -- number of major page faults (number)
  cminflt -- cumulative number of minor page faults (number)
  cmajflt -- cumulative number of major page faults (number)
- utime   -- user time used by the process, in the (HIGH LOW USEC) format
- stime   -- system time used by the process, in the (HIGH LOW USEC) format
- time    -- sum of utime and stime, in the (HIGH LOW USEC) format
- cutime  -- user time used by the process and its children, (HIGH LOW USEC)
- cstime  -- system time used by the process and its children, (HIGH LOW USEC)
- ctime   -- sum of cutime and cstime, in the (HIGH LOW USEC) format
+ utime   -- user time used by the process, in (current-time) format,
+              which is a list of integers (HIGH LOW USEC PSEC)
+ stime   -- system time used by the process (current-time)
+ time    -- sum of utime and stime (current-time)
+ cutime  -- user time used by the process and its children (current-time)
+ cstime  -- system time used by the process and its children (current-time)
+ ctime   -- sum of cutime and cstime (current-time)
  pri     -- priority of the process (number)
  nice    -- nice value of the process (number)
  thcount -- process thread count (number)
- start   -- time the process started, in the (HIGH LOW USEC) format
+ start   -- time the process started (current-time)
  vsize   -- virtual memory size of the process in KB's (number)
  rss     -- resident set size of the process in KB's (number)
- etime   -- elapsed time the process is running, in (HIGH LOW USEC) format
+ etime   -- elapsed time the process is running, in (HIGH LOW USEC PSEC) format
  pcpu    -- percents of CPU time used by the process (floating-point number)
  pmem    -- percents of total physical memory used by process's resident set
               (floating-point number)

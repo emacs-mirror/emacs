@@ -19,16 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_SYSTIME_H
 #define EMACS_SYSTIME_H
 
-#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif
+#include <timespec.h>
 
 #ifdef emacs
 # ifdef HAVE_X_WINDOWS
@@ -48,91 +39,64 @@ typedef unsigned long Time;
 #endif
 #endif
 
-/* EMACS_TIME is the type to use to represent temporal intervals -
-   struct timeval on some systems, int on others.  It can be passed as
-   the timeout argument to the select  system call.
+/* The type to use to represent temporal intervals.  It can be passed
+   as the timeout argument to the pselect system call.  */
+#define EMACS_TIME struct timespec
 
-   EMACS_SECS (TIME) is an rvalue for the seconds component of TIME.
+/* Resolution of EMACS_TIME time stamps (in units per second), and log
+   base 10 of the resolution.  The log must be a positive integer.  */
+#define EMACS_TIME_RESOLUTION		1000000000
+#define LOG10_EMACS_TIME_RESOLUTION	9
+
+/* EMACS_SECS (TIME) is an rvalue for the seconds component of TIME.
+   EMACS_SECS_ADDR (time) is the address of the seconds component.
    EMACS_SET_SECS (TIME, SECONDS) sets that to SECONDS.
 
-   EMACS_HAS_USECS is defined if EMACS_TIME has a usecs component.
-   EMACS_USECS (TIME) is an rvalue for the microseconds component of TIME.
-   	This returns zero if EMACS_TIME doesn't have a microseconds component.
-   EMACS_SET_USECS (TIME, MICROSECONDS) sets that to MICROSECONDS.
-	This does nothing if EMACS_TIME doesn't have a microseconds component.
+   EMACS_NSECS (TIME) is an rvalue for the nanoseconds component of TIME.
+   EMACS_SET_NSECS (TIME, NANOSECONDS) sets that to NANOSECONDS.
 
-   EMACS_SET_SECS_USECS (TIME, SECS, USECS) sets both components of TIME.
-
-   EMACS_GET_TIME (TIME) stores the current system time in TIME, which
-	should be an lvalue.
-
-   EMACS_ADD_TIME (DEST, SRC1, SRC2) adds SRC1 to SRC2 and stores the
-	result in DEST.  SRC should not be negative.
-
-   EMACS_SUB_TIME (DEST, SRC1, SRC2) subtracts SRC2 from SRC1 and
-	stores the result in DEST.  SRC should not be negative.
-   EMACS_TIME_NEG_P (TIME) is true if TIME is negative.
-
-*/
-
-#ifdef HAVE_TIMEVAL
-
-#define EMACS_HAS_USECS
-
-#define EMACS_TIME struct timeval
+   EMACS_SET_SECS_NSECS (TIME, SECS, NSECS) sets both components of TIME.  */
 #define EMACS_SECS(time)		    ((time).tv_sec  + 0)
-#define EMACS_USECS(time)		    ((time).tv_usec + 0)
+#define EMACS_NSECS(time)		    ((time).tv_nsec + 0)
+#define EMACS_SECS_ADDR(time)		    (&(time).tv_sec)
 #define EMACS_SET_SECS(time, seconds)	    ((time).tv_sec  = (seconds))
-#define EMACS_SET_USECS(time, microseconds) ((time).tv_usec = (microseconds))
+#define EMACS_SET_NSECS(time, ns)	    ((time).tv_nsec = (ns))
+#define EMACS_SET_SECS_NSECS(time, s, ns)				\
+  ((void) (EMACS_SET_SECS (time, s), EMACS_SET_NSECS (time, ns)))
 
-/* On SVR4, the compiler may complain if given this extra BSD arg.  */
-#ifdef GETTIMEOFDAY_ONE_ARGUMENT
-#define EMACS_GET_TIME(time) gettimeofday (&(time))
-#else /* not GETTIMEOFDAY_ONE_ARGUMENT */
-/* Presumably the second arg is ignored.  */
-#define EMACS_GET_TIME(time) gettimeofday (&(time), NULL)
-#endif /* not GETTIMEOFDAY_ONE_ARGUMENT */
-
-#define EMACS_ADD_TIME(dest, src1, src2)		\
-  do {							\
-    (dest).tv_sec  = (src1).tv_sec  + (src2).tv_sec;	\
-    (dest).tv_usec = (src1).tv_usec + (src2).tv_usec;	\
-    if ((dest).tv_usec > 1000000)			\
-      (dest).tv_usec -= 1000000, (dest).tv_sec++;	\
-  } while (0)
-
-#define EMACS_SUB_TIME(dest, src1, src2)		\
-  do {							\
-    (dest).tv_sec  = (src1).tv_sec  - (src2).tv_sec;	\
-    (dest).tv_usec = (src1).tv_usec - (src2).tv_usec;	\
-    if ((dest).tv_usec < 0)				\
-      (dest).tv_usec += 1000000, (dest).tv_sec--;	\
-  } while (0)
-
-#define EMACS_TIME_NEG_P(time)					\
-  ((long)(time).tv_sec < 0					\
-   || ((time).tv_sec == 0					\
-       && (long)(time).tv_usec < 0))
-
-#else /* ! defined (HAVE_TIMEVAL) */
-
-#define EMACS_TIME int
-#define EMACS_SECS(time)		    (time)
-#define EMACS_USECS(time)		    0
-#define EMACS_SET_SECS(time, seconds)	    ((time) = (seconds))
-#define EMACS_SET_USECS(time, usecs)	    0
-
-#define EMACS_GET_TIME(t) ((t) = time ((long *) 0))
-#define EMACS_ADD_TIME(dest, src1, src2) ((dest) = (src1) + (src2))
-#define EMACS_SUB_TIME(dest, src1, src2) ((dest) = (src1) - (src2))
-#define EMACS_TIME_NEG_P(t) ((t) < 0)
-
-#endif /* ! defined (HAVE_TIMEVAL) */
-
+/* Convenience macros for older code that counts microseconds.  */
+#define EMACS_SET_USECS(time, us)  ((void) EMACS_SET_NSECS (time, (us) * 1000))
 #define EMACS_SET_SECS_USECS(time, secs, usecs) 		\
   (EMACS_SET_SECS (time, secs), EMACS_SET_USECS (time, usecs))
 
-extern int set_file_times (const char *, EMACS_TIME, EMACS_TIME);
+/* Set TIME to an invalid time stamp.  */
+#define EMACS_SET_INVALID_TIME(time)	    EMACS_SET_SECS_NSECS(time, 0, -1)
+
+/* Set TIME to the current system time.  */
+#define EMACS_GET_TIME(time)		    gettime (&(time))
+
+/* Put into DEST the result of adding SRC1 to SRC2, or of subtracting
+   SRC2 from SRC1.  On overflow, store an extremal value.  */
+#define EMACS_ADD_TIME(dest, src1, src2) ((dest) = timespec_add (src1, src2))
+#define EMACS_SUB_TIME(dest, src1, src2) ((dest) = timespec_sub (src1, src2))
+
+/* Return the sign of the valid time stamp TIME, either -1, 0, or 1.  */
+#define EMACS_TIME_SIGN(time)		timespec_sign (time)
+
+/* Return 1 if TIME is a valid time stamp.  */
+#define EMACS_TIME_VALID_P(time)	(0 <= (time).tv_nsec)
+
+/* Convert the double D to the greatest EMACS_TIME not greater than D.
+   On overflow, return an extremal value.  Return the minimum
+   EMACS_TIME if D is not a number.  */
+#define EMACS_TIME_FROM_DOUBLE(d)	dtotimespec (d)
+
+/* Convert the Emacs time T to an approximate double value D.  */
+#define EMACS_TIME_TO_DOUBLE(t)		timespectod (t)
+
+/* defined in sysdep.c */
+extern int set_file_times (int, const char *, EMACS_TIME, EMACS_TIME);
+extern struct timeval make_timeval (EMACS_TIME);
 
 /* defined in keyboard.c */
 extern void set_waiting_for_input (EMACS_TIME *);
@@ -141,29 +105,20 @@ extern void set_waiting_for_input (EMACS_TIME *);
    happen when this files is used outside the src directory).
    Use GCPRO1 to determine if lisp.h was included.  */
 #ifdef GCPRO1
-/* defined in editfns.c*/
-extern Lisp_Object make_time (time_t);
-extern int lisp_time_argument (Lisp_Object, time_t *, int *);
+/* defined in editfns.c */
+extern Lisp_Object make_lisp_time (EMACS_TIME);
+extern int decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
+				   Lisp_Object, EMACS_TIME *, int *);
+extern EMACS_TIME lisp_time_argument (Lisp_Object, int *);
 #endif
-
-/* Compare times T1 and T2.  Value is 0 if T1 and T2 are the same.
-   Value is < 0 if T1 is less than T2.  Value is > 0 otherwise.  (Cast
-   to long is for those platforms where time_t is an unsigned
-   type, and where otherwise T1 will always be grater than T2.)  */
-
-#define EMACS_TIME_CMP(T1, T2)				\
-  ((long)EMACS_SECS (T1) - (long)EMACS_SECS (T2)	\
-   + (EMACS_SECS (T1) == EMACS_SECS (T2)		\
-      ? EMACS_USECS (T1) - EMACS_USECS (T2)		\
-      : 0))
 
 /* Compare times T1 and T2 for equality, inequality etc.  */
 
-#define EMACS_TIME_EQ(T1, T2) (EMACS_TIME_CMP (T1, T2) == 0)
-#define EMACS_TIME_NE(T1, T2) (EMACS_TIME_CMP (T1, T2) != 0)
-#define EMACS_TIME_GT(T1, T2) (EMACS_TIME_CMP (T1, T2) > 0)
-#define EMACS_TIME_GE(T1, T2) (EMACS_TIME_CMP (T1, T2) >= 0)
-#define EMACS_TIME_LT(T1, T2) (EMACS_TIME_CMP (T1, T2) < 0)
-#define EMACS_TIME_LE(T1, T2) (EMACS_TIME_CMP (T1, T2) <= 0)
+#define EMACS_TIME_EQ(T1, T2) (timespec_cmp (T1, T2) == 0)
+#define EMACS_TIME_NE(T1, T2) (timespec_cmp (T1, T2) != 0)
+#define EMACS_TIME_GT(T1, T2) (timespec_cmp (T1, T2) > 0)
+#define EMACS_TIME_GE(T1, T2) (timespec_cmp (T1, T2) >= 0)
+#define EMACS_TIME_LT(T1, T2) (timespec_cmp (T1, T2) < 0)
+#define EMACS_TIME_LE(T1, T2) (timespec_cmp (T1, T2) <= 0)
 
 #endif /* EMACS_SYSTIME_H */

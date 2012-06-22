@@ -16,14 +16,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef HAVE_SYS_SELECT_H
 #if defined (DARWIN_OS)
 #undef init_process
 #endif
 #include <sys/select.h>
 #if defined (DARWIN_OS)
 #define init_process emacs_init_process
-#endif
 #endif
 
 /* The w32 build defines select stuff in w32.h, which is included
@@ -52,4 +50,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if !defined (HAVE_SELECT)
 #define select sys_select
 #endif
-

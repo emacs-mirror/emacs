@@ -1770,7 +1770,7 @@ faults for all the child processes of the given process.
 @item utime
 Time spent by the process in the user context, for running the
 application's code.  The corresponding @var{value} is in the
-@w{@code{(@var{high} @var{low} @var{microsec})}} format, the same
+@w{@code{(@var{high} @var{low} @var{microsec} @var{picosec})}} format, the same
 format used by functions @code{current-time} (@pxref{Time of Day,
 current-time}) and @code{file-attributes} (@pxref{File Attributes}).
 
@@ -1801,12 +1801,12 @@ The number of threads in the process.
 
 @item start
 The time when the process was started, in the same
-@w{@code{(@var{high} @var{low} @var{microsec})}} format used by
+@w{@code{(@var{high} @var{low} @var{microsec} @var{picosec})}} format used by
 @code{current-time} and by @code{file-attributes}.
 
 @item etime
 The time elapsed since the process started, in the @w{@code{(@var{high}
-@var{low} @var{microsec})}} format.
+@var{low} @var{microsec} @var{picosec})}} format.
 
 @item vsize
 The virtual memory size of the process, measured in kilobytes.

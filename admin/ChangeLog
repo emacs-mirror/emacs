@@ -1,3 +1,18 @@
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* merge-gnulib (GNULIB_MODULES): Add dtotimespec, gettime,
+	gettimeofday, pselect, stat-time, sys_time, time, timespec-add,
+	timespec-sub, utimens.
+	(GNULIB_TOOL_FLAGS): Add --avoid=select --avoid=sigprocmask.
+	This trims down the gnulib import, from the very latest gnulib.
+	Emacs does its own implementation of 'select' and 'sigprocmask'
+	on Windows, and it assumes 'select' and 'sigprocmask' on non-Windows
+	hosts, so it doesn't need these modules.
+	Similarly, avoid errno, fcntl, fcntl-h, fstat, and sys_types, as
+	these gnulib modules are only for Windows porting and Emacs ports
+	to Windows in a different way.
+
 2012-06-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* make-emacs: Rename --union-type to --check-lisp-type.  Define

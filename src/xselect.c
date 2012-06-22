@@ -1139,7 +1139,6 @@ wait_for_property_change_unwind (Lisp_Object loc)
 static void
 wait_for_property_change (struct prop_location *location)
 {
-  int secs, usecs;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   if (property_change_reply_object)
@@ -1156,10 +1155,11 @@ wait_for_property_change (struct prop_location *location)
      property_change_reply, because property_change_reply_object says so.  */
   if (! location->arrived)
     {
-      secs = x_selection_timeout / 1000;
-      usecs = (x_selection_timeout % 1000) * 1000;
-      TRACE2 ("  Waiting %d secs, %d usecs", secs, usecs);
-      wait_reading_process_output (secs, usecs, 0, 0,
+      EMACS_INT timeout = max (0, x_selection_timeout);
+      EMACS_INT secs = timeout / 1000;
+      int nsecs = (timeout % 1000) * 1000000;
+      TRACE2 ("  Waiting %"pI"d secs, %d nsecs", secs, nsecs);
+      wait_reading_process_output (secs, nsecs, 0, 0,
 				   property_change_reply, NULL, 0);
 
       if (NILP (XCAR (property_change_reply)))
@@ -1228,7 +1228,8 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   Atom type_atom = (CONSP (target_type)
 		    ? symbol_to_x_atom (dpyinfo, XCAR (target_type))
 		    : symbol_to_x_atom (dpyinfo, target_type));
-  int secs, usecs;
+  EMACS_INT timeout, secs;
+  int nsecs;
 
   if (!FRAME_LIVE_P (f))
     return Qnil;
@@ -1264,10 +1265,11 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   UNBLOCK_INPUT;
 
   /* This allows quits.  Also, don't wait forever.  */
-  secs = x_selection_timeout / 1000;
-  usecs = (x_selection_timeout % 1000) * 1000;
-  TRACE1 ("  Start waiting %d secs for SelectionNotify", secs);
-  wait_reading_process_output (secs, usecs, 0, 0,
+  timeout = max (0, x_selection_timeout);
+  secs = timeout / 1000;
+  nsecs = (timeout % 1000) * 1000000;
+  TRACE1 ("  Start waiting %"pI"d secs for SelectionNotify", secs);
+  wait_reading_process_output (secs, nsecs, 0, 0,
 			       reading_selection_reply, NULL, 0);
   TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
 

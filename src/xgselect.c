@@ -34,18 +34,18 @@ static ptrdiff_t gfds_size;
 
 int
 xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	   EMACS_TIME *timeout)
+	   EMACS_TIME *timeout, sigset_t *sigmask)
 {
   SELECT_TYPE all_rfds, all_wfds;
   EMACS_TIME tmo, *tmop = timeout;
 
   GMainContext *context;
   int have_wfds = wfds != NULL;
-  int n_gfds = 0, our_tmo = 0, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
+  int n_gfds = 0, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
   int i, nfds, tmo_in_millisec;
 
   if (!x_in_use)
-    return select (fds_lim, rfds, wfds, efds, timeout);
+    return pselect (fds_lim, rfds, wfds, efds, tmop, sigmask);
 
   if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));
   else FD_ZERO (&all_rfds);
@@ -90,20 +90,13 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
     {
       EMACS_SET_SECS_USECS (tmo, tmo_in_millisec/1000,
                             1000 * (tmo_in_millisec % 1000));
-      if (!timeout) our_tmo = 1;
-      else
-        {
-          EMACS_TIME difference;
-
-          EMACS_SUB_TIME (difference, tmo, *timeout);
-          if (EMACS_TIME_NEG_P (difference)) our_tmo = 1;
-        }
-
-      if (our_tmo) tmop = &tmo;
+      if (!timeout || EMACS_TIME_LT (tmo, *timeout))
+	tmop = &tmo;
     }
 
   fds_lim = max_fds + 1;
-  nfds = select (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL, efds, tmop);
+  nfds = pselect (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL,
+		  efds, tmop, sigmask);
 
   if (nfds < 0)
     retval = nfds;
@@ -132,7 +125,7 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
         }
     }
 
-  if (our_fds > 0 || (nfds == 0 && our_tmo))
+  if (our_fds > 0 || (nfds == 0 && tmop == &tmo))
     {
 
       /* If Gtk+ is in use eventually gtk_main_iteration will be called,

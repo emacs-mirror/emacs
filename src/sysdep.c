@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <allocator.h>
 #include <careadlinkat.h>
 #include <ignore-value.h>
+#include <utimens.h>
 
 #include "lisp.h"
 #include "sysselect.h"
@@ -109,20 +110,6 @@ extern char *getwd (char *);
 
 #include "syssignal.h"
 #include "systime.h"
-#ifdef HAVE_UTIME_H
-#include <utime.h>
-#endif
-
-#ifndef HAVE_UTIMES
-#ifndef HAVE_STRUCT_UTIMBUF
-/* We want to use utime rather than utimes, but we couldn't find the
-   structure declaration.  We'll use the traditional one.  */
-struct utimbuf {
-  long actime;
-  long modtime;
-};
-#endif
-#endif
 
 static int emacs_get_tty (int, struct emacs_tty *);
 static int emacs_set_tty (int, struct emacs_tty *, int);
@@ -2067,30 +2054,6 @@ perror (void)
 #endif /* HPUX and not HAVE_PERROR */
 
 /*
- *	Gettimeofday.  Simulate as much as possible.  Only accurate
- *	to nearest second.  Emacs doesn't use tzp so ignore it for now.
- *	Only needed when subprocesses are defined.
- */
-
-#ifndef HAVE_GETTIMEOFDAY
-#ifdef HAVE_TIMEVAL
-
-int
-gettimeofday (struct timeval *tp, struct timezone *tzp)
-{
-  extern long time (long);
-
-  tp->tv_sec = time ((long *)0);
-  tp->tv_usec = 0;
-  if (tzp != 0)
-    tzp->tz_minuteswest = -1;
-  return 0;
-}
-
-#endif
-#endif /* !HAVE_GETTIMEOFDAY && HAVE_TIMEVAL */
-
-/*
  *	This function will go away as soon as all the stubs fixed. (fnf)
  */
 
@@ -2126,20 +2089,43 @@ closedir (DIR *dirp /* stream from opendir */)
 #endif /* HAVE_DIRENT_H */
 
 
-int
-set_file_times (const char *filename, EMACS_TIME atime, EMACS_TIME mtime)
+/* Return a struct timeval that is roughly equivalent to T.
+   Use the least timeval not less than T.
+   Return an extremal value if the result would overflow.  */
+struct timeval
+make_timeval (EMACS_TIME t)
 {
-#ifdef HAVE_UTIMES
-  struct timeval tv[2];
-  tv[0] = atime;
-  tv[1] = mtime;
-  return utimes (filename, tv);
-#else /* not HAVE_UTIMES */
-  struct utimbuf utb;
-  utb.actime = EMACS_SECS (atime);
-  utb.modtime = EMACS_SECS (mtime);
-  return utime (filename, &utb);
-#endif /* not HAVE_UTIMES */
+  struct timeval tv;
+  tv.tv_sec = t.tv_sec;
+  tv.tv_usec = t.tv_nsec / 1000;
+
+  if (t.tv_nsec % 1000 != 0)
+    {
+      if (tv.tv_usec < 999999)
+	tv.tv_usec++;
+      else if (tv.tv_sec < TYPE_MAXIMUM (time_t))
+	{
+	  tv.tv_sec++;
+	  tv.tv_usec = 0;
+	}
+    }
+
+  return tv;
+}
+
+/* Set the access and modification time stamps of FD (a.k.a. FILE) to be
+   ATIME and MTIME, respectively.
+   FD must be either negative -- in which case it is ignored --
+   or a file descriptor that is open on FILE.
+   If FD is nonnegative, then FILE can be NULL.  */
+int
+set_file_times (int fd, const char *filename,
+		EMACS_TIME atime, EMACS_TIME mtime)
+{
+  struct timespec timespec[2];
+  timespec[0] = atime;
+  timespec[1] = mtime;
+  return fdutimens (fd, filename, timespec);
 }
 
 /* mkdir and rmdir functions, for systems which don't have them.  */
@@ -2595,60 +2581,82 @@ list_system_processes (void)
 #endif /* !defined (WINDOWSNT) */
 
 #ifdef GNU_LINUX
-static void
-time_from_jiffies (unsigned long long tval, long hz,
-		   time_t *sec, unsigned *usec)
+static EMACS_TIME
+time_from_jiffies (unsigned long long tval, long hz)
 {
-  unsigned long long ullsec;
+  unsigned long long s = tval / hz;
+  unsigned long long frac = tval % hz;
+  int ns;
+  EMACS_TIME t;
 
-  *sec = tval / hz;
-  ullsec = *sec;
-  tval -= ullsec * hz;
-  /* Careful: if HZ > 1 million, then integer division by it yields zero.  */
-  if (hz <= 1000000)
-    *usec = tval * 1000000 / hz;
+  if (TYPE_MAXIMUM (time_t) < s)
+    time_overflow ();
+  if (LONG_MAX - 1 <= ULLONG_MAX / EMACS_TIME_RESOLUTION
+      || frac <= ULLONG_MAX / EMACS_TIME_RESOLUTION)
+    ns = frac * EMACS_TIME_RESOLUTION / hz;
   else
-    *usec = tval / (hz / 1000000);
+    {
+      /* This is reachable only in the unlikely case that HZ * HZ
+	 exceeds ULLONG_MAX.  It calculates an approximation that is
+	 guaranteed to be in range.  */
+      long hz_per_ns = (hz / EMACS_TIME_RESOLUTION
+			+ (hz % EMACS_TIME_RESOLUTION != 0));
+      ns = frac / hz_per_ns;
+    }
+
+  EMACS_SET_SECS_NSECS (t, s, ns);
+  return t;
 }
 
 static Lisp_Object
 ltime_from_jiffies (unsigned long long tval, long hz)
 {
-  time_t sec;
-  unsigned usec;
-
-  time_from_jiffies (tval, hz, &sec, &usec);
-
-  return list3 (make_number ((sec >> 16) & 0xffff),
-		make_number (sec & 0xffff),
-		make_number (usec));
+  EMACS_TIME t = time_from_jiffies (tval, hz);
+  return make_lisp_time (t);
 }
 
-static void
-get_up_time (time_t *sec, unsigned *usec)
+static EMACS_TIME
+get_up_time (void)
 {
   FILE *fup;
+  EMACS_TIME up;
 
-  *sec = *usec = 0;
+  EMACS_SET_SECS_NSECS (up, 0, 0);
 
   BLOCK_INPUT;
   fup = fopen ("/proc/uptime", "r");
 
   if (fup)
     {
-      double uptime, idletime;
+      unsigned long long upsec, upfrac, idlesec, idlefrac;
+      int upfrac_start, upfrac_end, idlefrac_start, idlefrac_end;
 
-      /* The numbers in /proc/uptime use C-locale decimal point, but
-	 we already set ourselves to the C locale (see `fixup_locale'
-	 in emacs.c).  */
-      if (2 <= fscanf (fup, "%lf %lf", &uptime, &idletime))
+      if (fscanf (fup, "%llu.%n%llu%n %llu.%n%llu%n",
+		  &upsec, &upfrac_start, &upfrac, &upfrac_end,
+		  &idlesec, &idlefrac_start, &idlefrac, &idlefrac_end)
+	  == 4)
 	{
-	  *sec = uptime;
-	  *usec = (uptime - *sec) * 1000000;
+	  if (TYPE_MAXIMUM (time_t) < upsec)
+	    {
+	      upsec = TYPE_MAXIMUM (time_t);
+	      upfrac = EMACS_TIME_RESOLUTION - 1;
+	    }
+	  else
+	    {
+	      int upfraclen = upfrac_end - upfrac_start;
+	      for (; upfraclen < LOG10_EMACS_TIME_RESOLUTION; upfraclen++)
+		upfrac *= 10;
+	      for (; LOG10_EMACS_TIME_RESOLUTION < upfraclen; upfraclen--)
+		upfrac /= 10;
+	      upfrac = min (upfrac, EMACS_TIME_RESOLUTION - 1);
+	    }
+	  EMACS_SET_SECS_NSECS (up, upsec, upfrac);
 	}
       fclose (fup);
     }
   UNBLOCK_INPUT;
+
+  return up;
 }
 
 #define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
@@ -2748,9 +2756,7 @@ system_process_attributes (Lisp_Object pid)
   unsigned long long u_time, s_time, cutime, cstime, start;
   long priority, niceness, rss;
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
-  time_t sec;
-  unsigned usec;
-  EMACS_TIME tnow, tstart, tboot, telapsed;
+  EMACS_TIME tnow, tstart, tboot, telapsed, us_time;
   double pcpu, pmem;
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd, tem;
@@ -2873,35 +2879,18 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
 	  EMACS_GET_TIME (tnow);
-	  get_up_time (&sec, &usec);
-	  EMACS_SET_SECS (telapsed, sec);
-	  EMACS_SET_USECS (telapsed, usec);
+	  telapsed = get_up_time ();
 	  EMACS_SUB_TIME (tboot, tnow, telapsed);
-	  time_from_jiffies (start, clocks_per_sec, &sec, &usec);
-	  EMACS_SET_SECS (tstart, sec);
-	  EMACS_SET_USECS (tstart, usec);
+	  tstart = time_from_jiffies (start, clocks_per_sec);
 	  EMACS_ADD_TIME (tstart, tboot, tstart);
-	  attrs = Fcons (Fcons (Qstart,
-				list3 (make_number
-				       ((EMACS_SECS (tstart) >> 16) & 0xffff),
-				       make_number
-				       (EMACS_SECS (tstart) & 0xffff),
-				       make_number
-				       (EMACS_USECS (tstart)))),
-			 attrs);
+	  attrs = Fcons (Fcons (Qstart, make_lisp_time (tstart)), attrs);
 	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize/1024)), attrs);
 	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4*rss)), attrs);
 	  EMACS_SUB_TIME (telapsed, tnow, tstart);
-	  attrs = Fcons (Fcons (Qetime,
-				list3 (make_number
-				       ((EMACS_SECS (telapsed) >> 16) & 0xffff),
-				       make_number
-				       (EMACS_SECS (telapsed) & 0xffff),
-				       make_number
-				       (EMACS_USECS (telapsed)))),
-			 attrs);
-	  time_from_jiffies (u_time + s_time, clocks_per_sec, &sec, &usec);
-	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
+	  attrs = Fcons (Fcons (Qetime, make_lisp_time (telapsed)), attrs);
+	  us_time = time_from_jiffies (u_time + s_time, clocks_per_sec);
+	  pcpu = (EMACS_TIME_TO_DOUBLE (us_time)
+		  / EMACS_TIME_TO_DOUBLE (telapsed));
 	  if (pcpu > 1.0)
 	    pcpu = 1.0;
 	  attrs = Fcons (Fcons (Qpcpu, make_float (100 * pcpu)), attrs);
@@ -3082,27 +3071,13 @@ system_process_attributes (Lisp_Object pid)
 		Qcstime
 		Are they available? */
 
-	  attrs = Fcons (Fcons (Qtime,
-	  			list3 (make_number (pinfo.pr_time.tv_sec >> 16),
-	  			       make_number (pinfo.pr_time.tv_sec & 0xffff),
-	  			       make_number (pinfo.pr_time.tv_nsec))),
-	  		 attrs);
-
-	  attrs = Fcons (Fcons (Qctime,
-	  			list3 (make_number (pinfo.pr_ctime.tv_sec >> 16),
-	  			       make_number (pinfo.pr_ctime.tv_sec & 0xffff),
-	  			       make_number (pinfo.pr_ctime.tv_nsec))),
-	  		 attrs);
-
+	  attrs = Fcons (Fcons (Qtime, make_lisp_time (pinfo.pr_time)), attrs);
+	  attrs = Fcons (Fcons (Qctime, make_lisp_time (pinfo.pr_ctime)), attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (pinfo.pr_lwp.pr_pri)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_number (pinfo.pr_lwp.pr_nice)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (pinfo.pr_nlwp)), attrs);
 
-	  attrs = Fcons (Fcons (Qstart,
-	  			list3 (make_number (pinfo.pr_start.tv_sec >> 16),
-	  			       make_number (pinfo.pr_start.tv_sec & 0xffff),
-	  			       make_number (pinfo.pr_start.tv_nsec))),
-	  		 attrs);
+	  attrs = Fcons (Fcons (Qstart, make_lisp_time (pinfo.pr_start)), attrs);
 	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (pinfo.pr_size)), attrs);
 	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (pinfo.pr_rssize)), attrs);
 

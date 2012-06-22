@@ -76,6 +76,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "systime.h"
+#include <stat-time.h>
 
 #ifdef HPUX
 #include <netio.h>
@@ -1931,7 +1932,7 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
       /* Ensure file is writable while its modified time is set.  */
       attributes = GetFileAttributes (filename);
       SetFileAttributes (filename, attributes & ~FILE_ATTRIBUTE_READONLY);
-      if (set_file_times (filename, now, now))
+      if (set_file_times (-1, filename, now, now))
 	{
 	  /* Restore original attributes.  */
 	  SetFileAttributes (filename, attributes);
@@ -2054,23 +2055,20 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
     }
 #endif
 
-  /* Closing the output clobbers the file times on some systems.  */
-  if (emacs_close (ofd) < 0)
-    report_file_error ("I/O error", Fcons (newname, Qnil));
-
   if (input_file_statable_p)
     {
       if (!NILP (keep_time))
 	{
-	  EMACS_TIME atime, mtime;
-	  EMACS_SET_SECS_USECS (atime, st.st_atime, 0);
-	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
-	  if (set_file_times (SSDATA (encoded_newname),
-			      atime, mtime))
+	  EMACS_TIME atime = get_stat_atime (&st);
+	  EMACS_TIME mtime = get_stat_mtime (&st);
+	  if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime))
 	    xsignal2 (Qfile_date_error,
 		      build_string ("Cannot set file date"), newname);
 	}
     }
+
+  if (emacs_close (ofd) < 0)
+    report_file_error ("I/O error", Fcons (newname, Qnil));
 
   emacs_close (ifd);
 
@@ -3034,11 +3032,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
-  time_t sec;
-  int usec;
-
-  if (! lisp_time_argument (timestamp, &sec, &usec))
-    error ("Invalid time specification");
+  EMACS_TIME t = lisp_time_argument (timestamp, 0);
 
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 
@@ -3051,12 +3045,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
   encoded_absname = ENCODE_FILE (absname);
 
   {
-    EMACS_TIME t;
-
-    EMACS_SET_SECS (t, sec);
-    EMACS_SET_USECS (t, usec);
-
-    if (set_file_times (SSDATA (encoded_absname), t, t))
+    if (set_file_times (-1, SSDATA (encoded_absname), t, t))
       {
 #ifdef DOS_NT
         struct stat st;
@@ -4205,7 +4194,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (NILP (handler))
 	{
-	  current_buffer->modtime = st.st_mtime;
+	  current_buffer->modtime = get_stat_mtime (&st);
 	  current_buffer->modtime_size = st.st_size;
 	  BVAR (current_buffer, filename) = orig_filename;
 	}
@@ -4365,7 +4354,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     }
 
   if (!NILP (visit)
-      && current_buffer->modtime == -1)
+      && EMACS_NSECS (current_buffer->modtime) == NONEXISTENT_MODTIME_NSECS)
     {
       /* If visiting nonexistent file, return nil.  */
       errno = save_errno;
@@ -4803,7 +4792,7 @@ This calls `write-region-annotate-functions' at the start, and
      next attempt to save.  */
   if (visiting)
     {
-      current_buffer->modtime = st.st_mtime;
+      current_buffer->modtime = get_stat_mtime (&st);
       current_buffer->modtime_size = st.st_size;
     }
 
@@ -5080,6 +5069,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   struct stat st;
   Lisp_Object handler;
   Lisp_Object filename;
+  EMACS_TIME mtime, diff, one_second;
 
   if (NILP (buf))
     b = current_buffer;
@@ -5090,7 +5080,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
     }
 
   if (!STRINGP (BVAR (b, filename))) return Qt;
-  if (b->modtime == 0) return Qt;
+  if (EMACS_NSECS (b->modtime) == UNKNOWN_MODTIME_NSECS) return Qt;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -5101,20 +5091,25 @@ See Info node `(elisp)Modification Time' for more details.  */)
 
   filename = ENCODE_FILE (BVAR (b, filename));
 
-  if (stat (SSDATA (filename), &st) < 0)
+  if (stat (SSDATA (filename), &st) == 0)
+    mtime = get_stat_mtime (&st);
+  else
     {
       /* If the file doesn't exist now and didn't exist before,
 	 we say that it isn't modified, provided the error is a tame one.  */
-      if (errno == ENOENT || errno == EACCES || errno == ENOTDIR)
-	st.st_mtime = -1;
-      else
-	st.st_mtime = 0;
+      int ns = (errno == ENOENT || errno == EACCES || errno == ENOTDIR
+		? NONEXISTENT_MODTIME_NSECS
+		: UNKNOWN_MODTIME_NSECS);
+      EMACS_SET_SECS_NSECS (mtime, 0, ns);
     }
-  if ((st.st_mtime == b->modtime
-       /* If both are positive, accept them if they are off by one second.  */
-       || (st.st_mtime > 0 && b->modtime > 0
-	   && (st.st_mtime - 1 == b->modtime
-	       || st.st_mtime == b->modtime - 1)))
+  if ((EMACS_TIME_EQ (mtime, b->modtime)
+       /* If both exist, accept them if they are off by one second.  */
+       || (EMACS_TIME_VALID_P (mtime) && EMACS_TIME_VALID_P (b->modtime)
+	   && ((EMACS_TIME_LT (mtime, b->modtime)
+		? EMACS_SUB_TIME (diff, b->modtime, mtime)
+		: EMACS_SUB_TIME (diff, mtime, b->modtime)),
+	       EMACS_SET_SECS_NSECS (one_second, 1, 0),
+	       EMACS_TIME_LE (diff, one_second))))
       && (st.st_size == b->modtime_size
           || b->modtime_size < 0))
     return Qt;
@@ -5127,7 +5122,7 @@ DEFUN ("clear-visited-file-modtime", Fclear_visited_file_modtime,
 Next attempt to save will certainly not complain of a discrepancy.  */)
   (void)
 {
-  current_buffer->modtime = 0;
+  EMACS_SET_SECS_NSECS (current_buffer->modtime, 0, UNKNOWN_MODTIME_NSECS);
   current_buffer->modtime_size = -1;
   return Qnil;
 }
@@ -5135,16 +5130,16 @@ Next attempt to save will certainly not complain of a discrepancy.  */)
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
-The value is a list of the form (HIGH LOW), like the time values that
+The value is a list of the form (HIGH LOW USEC PSEC), like the time values that
 `file-attributes' returns.  If the current buffer has no recorded file
 modification time, this function returns 0.  If the visited file
 doesn't exist, HIGH will be -1.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
-  if (! current_buffer->modtime)
+  if (EMACS_NSECS (current_buffer->modtime) < 0)
     return make_number (0);
-  return make_time (current_buffer->modtime);
+  return make_lisp_time (current_buffer->modtime);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
@@ -5154,12 +5149,12 @@ Useful if the buffer was not read from the file normally
 or if the file itself has been changed for some known benign reason.
 An argument specifies the modification time value to use
 \(instead of that of the visited file), in the form of a list
-\(HIGH . LOW) or (HIGH LOW).  */)
+\(HIGH LOW USEC PSEC) as returned by `current-time'.  */)
   (Lisp_Object time_list)
 {
   if (!NILP (time_list))
     {
-      CONS_TO_INTEGER (time_list, time_t, current_buffer->modtime);
+      current_buffer->modtime = lisp_time_argument (time_list, 0);
       current_buffer->modtime_size = -1;
     }
   else
@@ -5181,7 +5176,7 @@ An argument specifies the modification time value to use
 
       if (stat (SSDATA (filename), &st) >= 0)
         {
-	  current_buffer->modtime = st.st_mtime;
+	  current_buffer->modtime = get_stat_mtime (&st);
           current_buffer->modtime_size = st.st_size;
         }
     }

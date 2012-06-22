@@ -26,10 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "atimer.h"
 #include <unistd.h>
-
-#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
-#endif
 
 /* Free-list of atimer structures.  */
 
@@ -94,7 +91,8 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
   /* Round TIME up to the next full second if we don't have
      itimers.  */
 #ifndef HAVE_SETITIMER
-  if (EMACS_USECS (timestamp) != 0)
+  if (EMACS_NSECS (timestamp) != 0
+      && EMACS_SECS (timestamp) < TYPE_MAXIMUM (time_t))
     {
       EMACS_SET_USECS (timestamp, 0);
       EMACS_SET_SECS (timestamp, EMACS_SECS (timestamp) + 1);
@@ -294,18 +292,21 @@ set_alarm (void)
 
       /* Determine s/us till the next timer is ripe.  */
       EMACS_GET_TIME (now);
-      EMACS_SUB_TIME (timestamp, atimers->expiration, now);
 
-#ifdef HAVE_SETITIMER
       /* Don't set the interval to 0; this disables the timer.  */
       if (EMACS_TIME_LE (atimers->expiration, now))
 	{
 	  EMACS_SET_SECS (timestamp, 0);
 	  EMACS_SET_USECS (timestamp, 1000);
 	}
+      else
+	EMACS_SUB_TIME (timestamp, atimers->expiration, now);
+
+
+#ifdef HAVE_SETITIMER
 
       memset (&it, 0, sizeof it);
-      it.it_value = timestamp;
+      it.it_value = make_timeval (timestamp);
       setitimer (ITIMER_REAL, &it, 0);
 #else /* not HAVE_SETITIMER */
       alarm (max (EMACS_SECS (timestamp), 1));
@@ -341,11 +342,10 @@ run_timers (void)
 {
   EMACS_TIME now;
 
-  EMACS_GET_TIME (now);
-
   while (atimers
 	 && (pending_atimers = interrupt_input_blocked) == 0
-	 && EMACS_TIME_LE (atimers->expiration, now))
+	 && (EMACS_GET_TIME (now),
+	     EMACS_TIME_LE (atimers->expiration, now)))
     {
       struct atimer *t;
 
@@ -363,8 +363,6 @@ run_timers (void)
 	  t->next = free_atimers;
 	  free_atimers = t;
 	}
-
-      EMACS_GET_TIME (now);
     }
 
   if (! atimers)

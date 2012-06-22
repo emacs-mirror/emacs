@@ -1062,11 +1062,8 @@ check_image_size (struct frame *f, int width, int height)
 void
 prepare_image_for_display (struct frame *f, struct image *img)
 {
-  EMACS_TIME t;
-
   /* We're about to display IMG, so set its timestamp to `now'.  */
-  EMACS_GET_TIME (t);
-  img->timestamp = EMACS_SECS (t);
+  EMACS_GET_TIME (img->timestamp);
 
   /* If IMG doesn't have a pixmap yet, load it now, using the image
      type dependent loader function.  */
@@ -1514,8 +1511,8 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
       else if (INTEGERP (Vimage_cache_eviction_delay))
 	{
 	  /* Free cache based on timestamp.  */
-	  EMACS_TIME t;
-	  double old, delay;
+	  EMACS_TIME old, t;
+	  double delay;
 	  ptrdiff_t nimages = 0;
 
 	  for (i = 0; i < c->used; ++i)
@@ -1530,12 +1527,12 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 	  delay = max (delay, 1);
 
 	  EMACS_GET_TIME (t);
-	  old = EMACS_SECS (t) - delay;
+	  EMACS_SUB_TIME (old, t, EMACS_TIME_FROM_DOUBLE (delay));
 
 	  for (i = 0; i < c->used; ++i)
 	    {
 	      struct image *img = c->images[i];
-	      if (img && img->timestamp < old)
+	      if (img && EMACS_TIME_LT (img->timestamp, old))
 		{
 		  free_image (f, img);
 		  ++nfreed;
@@ -1708,7 +1705,6 @@ lookup_image (struct frame *f, Lisp_Object spec)
 {
   struct image *img;
   EMACS_UINT hash;
-  EMACS_TIME now;
 
   /* F must be a window-system frame, and SPEC must be a valid image
      specification.  */
@@ -1802,8 +1798,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
     }
 
   /* We're using IMG, so set its timestamp to `now'.  */
-  EMACS_GET_TIME (now);
-  img->timestamp = EMACS_SECS (now);
+  EMACS_GET_TIME (img->timestamp);
 
   /* Value is the image id.  */
   return img->id;

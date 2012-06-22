@@ -318,8 +318,10 @@ is_windows_9x (void)
   return s_b_ret;
 }
 
+static Lisp_Object ltime (ULONGLONG);
+
 /* Get total user and system times for get-internal-run-time.
-   Returns a list of three integers if the times are provided by the OS
+   Returns a list of integers if the times are provided by the OS
    (NT derivatives), otherwise it returns the result of current-time. */
 Lisp_Object
 w32_get_internal_run_time (void)
@@ -331,27 +333,13 @@ w32_get_internal_run_time (void)
       if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
         {
           LARGE_INTEGER user_int, kernel_int, total;
-          int microseconds;
+	  int time_100ns;
           user_int.LowPart = user.dwLowDateTime;
           user_int.HighPart = user.dwHighDateTime;
           kernel_int.LowPart = kernel.dwLowDateTime;
           kernel_int.HighPart = kernel.dwHighDateTime;
           total.QuadPart = user_int.QuadPart + kernel_int.QuadPart;
-          /* FILETIME is 100 nanosecond increments, Emacs only wants
-             microsecond resolution.  */
-          total.QuadPart /= 10;
-          microseconds = total.QuadPart % 1000000;
-          total.QuadPart /= 1000000;
-
-          /* Sanity check to make sure we can represent the result.  */
-          if (total.HighPart == 0)
-            {
-              int secs = total.LowPart;
-
-              return list3 (make_number ((secs >> 16) & 0xffff),
-                            make_number (secs & 0xffff),
-                            make_number (microseconds));
-            }
+	  return ltime (total.QuadPart);
         }
     }
 
@@ -4070,15 +4058,17 @@ restore_privilege (TOKEN_PRIVILEGES *priv)
   return ret_val;
 }
 
-static Lisp_Object
-ltime (long time_sec, long time_usec)
+ltime (ULONGLONG time_100ns)
 {
-  return list3 (make_number ((time_sec >> 16) & 0xffff),
+  ULONGLONG time_sec = time_100ns / 10000000;
+  int subsec = time_100ns % 10000000;
+  return list4 (make_number (time_sec >> 16),
 		make_number (time_sec & 0xffff),
-		make_number (time_usec));
+		make_number (subsec / 10),
+		make_number (subsec % 10 * 100000));
 }
 
-#define U64_TO_LISP_TIME(time) ltime ((time) / 1000000L, (time) % 1000000L)
+#define U64_TO_LISP_TIME(time) ltime (time)
 
 static int
 process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
@@ -4097,11 +4087,9 @@ process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
   GetSystemTimeAsFileTime (&ft_current);
 
   FILETIME_TO_U64 (tem1, ft_kernel);
-  tem1 /= 10L;
   *stime = U64_TO_LISP_TIME (tem1);
 
   FILETIME_TO_U64 (tem2, ft_user);
-  tem2 /= 10L;
   *utime = U64_TO_LISP_TIME (tem2);
 
   tem3 = tem1 + tem2;
@@ -4110,13 +4098,13 @@ process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
   FILETIME_TO_U64 (tem, ft_creation);
   /* Process no 4 (System) returns zero creation time.  */
   if (tem)
-    tem = (tem - utc_base) / 10L;
+    tem -= utc_base;
   *ctime = U64_TO_LISP_TIME (tem);
 
   if (tem)
     {
       FILETIME_TO_U64 (tem3, ft_current);
-      tem = (tem3 - utc_base) / 10L - tem;
+      tem = (tem3 - utc_base) - tem;
     }
   *etime = U64_TO_LISP_TIME (tem);
 
@@ -6275,7 +6263,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
   int n, sc, err;
   SELECT_TYPE fdset;
-  EMACS_TIME timeout;
+  struct timeval timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 
@@ -6291,7 +6279,8 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
       if (err == EWOULDBLOCK)
         {
           /* Set a small timeout.  */
-          EMACS_SET_SECS_USECS (timeout, 1, 0);
+	  timeout.tv_sec = 1;
+	  timeout.tv_usec = 0;
           FD_ZERO (&fdset);
           FD_SET ((int)fd, &fdset);
 
