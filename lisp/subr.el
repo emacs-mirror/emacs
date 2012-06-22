@@ -26,6 +26,9 @@
 
 ;;; Code:
 
+;; Beware: while this file has tag `utf-8', before it's compiled, it gets
+;; loaded as "raw-text", so non-ASCII chars won't work right during bootstrap.
+
 (defvar custom-declare-variable-list nil
   "Record `defcustom' calls made before `custom.el' is loaded to handle them.
 Each element of this list holds the arguments to one call to `defcustom'.")
@@ -144,29 +147,33 @@ was called."
   `(closure (t) (&rest args)
             (apply ',fun ,@(mapcar (lambda (arg) `',arg) args) args)))
 
-(if (null (featurep 'cl))
-    (progn
-  ;; If we reload subr.el after having loaded CL, be careful not to
-  ;; overwrite CL's extended definition of `dolist', `dotimes',
-  ;; `declare', `push' and `pop'.
-(defmacro push (newelt listname)
-  "Add NEWELT to the list stored in the symbol LISTNAME.
-This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
-LISTNAME must be a symbol."
-  (declare (debug (form sexp)))
-  (list 'setq listname
-        (list 'cons newelt listname)))
+(defmacro push (newelt place)
+  "Add NEWELT to the list stored in the generalized variable PLACE.
+This is morally equivalent to (setf PLACE (cons NEWELT PLACE)),
+except that PLACE is only evaluated once (after NEWELT)."
+  (declare (debug (form gv-place)))
+  (if (symbolp place)
+      ;; Important special case, to avoid triggering GV too early in
+      ;; the bootstrap.
+      (list 'setq place
+            (list 'cons newelt place))
+    (require 'macroexp)
+    (macroexp-let2 macroexp-copyable-p v newelt
+      (gv-letplace (getter setter) place
+        (funcall setter `(cons ,v ,getter))))))
 
-(defmacro pop (listname)
-  "Return the first element of LISTNAME's value, and remove it from the list.
-LISTNAME must be a symbol whose value is a list.
+(defmacro pop (place)
+  "Return the first element of PLACE's value, and remove it from the list.
+PLACE must be a generalized variable whose value is a list.
 If the value is nil, `pop' returns nil but does not actually
 change the list."
-  (declare (debug (sexp)))
+  (declare (debug (gv-place)))
   (list 'car
-        (list 'prog1 listname
-              (list 'setq listname (list 'cdr listname)))))
-))
+        (if (symbolp place)
+            ;; So we can use `pop' in the bootstrap before `gv' can be used.
+            (list 'prog1 place (list 'setq place (list 'cdr place)))
+          (gv-letplace (getter setter) place
+            `(prog1 ,getter ,(funcall setter `(cdr ,getter)))))))
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil.
@@ -189,8 +196,7 @@ value of last one, or nil if there are none.
 (if (null (featurep 'cl))
     (progn
   ;; If we reload subr.el after having loaded CL, be careful not to
-  ;; overwrite CL's extended definition of `dolist', `dotimes',
-  ;; `declare', `push' and `pop'.
+  ;; overwrite CL's extended definition of `dolist', `dotimes', `declare'.
 
 (defmacro dolist (spec &rest body)
   "Loop over a list.

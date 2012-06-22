@@ -346,13 +346,13 @@ places where they originally did not directly appear."
                                (if (not (eq (cadr mapping) 'apply-partially))
                                    mapping
                                  (cl-assert (eq (car mapping) (nth 2 mapping)))
-                                 (cl-list* (car mapping)
-                                           'apply-partially
-                                           (car mapping)
-                                           (mapcar (lambda (arg)
-                                                     (if (eq var arg)
-                                                         closedsym arg))
-                                                   (nthcdr 3 mapping)))))
+                                 `(,(car mapping)
+                                   apply-partially
+                                   ,(car mapping)
+                                   ,@(mapcar (lambda (arg)
+                                               (if (eq var arg)
+                                                   closedsym arg))
+                                             (nthcdr 3 mapping)))))
                              new-env))
                (setq new-extend (remq var new-extend))
                (push closedsym new-extend)
@@ -559,8 +559,8 @@ FORM is the parent form that binds this var."
           (when (car y) (setcar x t) (setq free t))
           (setq x (cdr x) y (cdr y)))
         (when free
-          (cl-push (caar env) (cdr freevars))
-          (cl-setf (nth 3 (car env)) t))
+          (push (caar env) (cdr freevars))
+          (setf (nth 3 (car env)) t))
         (setq env (cdr env) envcopy (cdr envcopy))))))
 
 (defun cconv-analyse-form (form env)
@@ -610,7 +610,7 @@ and updates the data stored in ENV."
      ;; it is a mutated variable.
      (while forms
        (let ((v (assq (car forms) env))) ; v = non nil if visible
-         (when v (cl-setf (nth 2 v) t)))
+         (when v (setf (nth 2 v) t)))
        (cconv-analyse-form (cadr forms) env)
        (setq forms (cddr forms))))
 
@@ -656,7 +656,7 @@ and updates the data stored in ENV."
      ;; lambda candidate list.
      (let ((fdata (and (symbolp fun) (assq fun env))))
        (if fdata
-           (cl-setf (nth 4 fdata) t)
+           (setf (nth 4 fdata) t)
          (cconv-analyse-form fun env)))
      (dolist (form args) (cconv-analyse-form form env)))
 
@@ -676,7 +676,7 @@ and updates the data stored in ENV."
     ((pred symbolp)
      (let ((dv (assq form env)))        ; dv = declared and visible
        (when dv
-         (cl-setf (nth 1 dv) t))))))
+         (setf (nth 1 dv) t))))))
 
 (provide 'cconv)
 ;;; cconv.el ends here

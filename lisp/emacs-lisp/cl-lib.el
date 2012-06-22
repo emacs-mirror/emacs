@@ -123,7 +123,7 @@ a future Emacs interpreter will be able to use it.")
 
 (defmacro cl-incf (place &optional x)
   "Increment PLACE by X (1 by default).
-PLACE may be a symbol, or any generalized variable allowed by `cl-setf'.
+PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the incremented value of PLACE."
   (declare (debug (place &optional form)))
   (if (symbolp place)
@@ -132,38 +132,16 @@ The return value is the incremented value of PLACE."
 
 (defmacro cl-decf (place &optional x)
   "Decrement PLACE by X (1 by default).
-PLACE may be a symbol, or any generalized variable allowed by `cl-setf'.
+PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the decremented value of PLACE."
   (declare (debug cl-incf))
   (if (symbolp place)
       (list 'setq place (if x (list '- place x) (list '1- place)))
     (list 'cl-callf '- place (or x 1))))
 
-;; Autoloaded, but we haven't loaded cl-loaddefs yet.
-(declare-function cl-do-pop "cl-macs" (place))
-
-(defmacro cl-pop (place)
-  "Remove and return the head of the list stored in PLACE.
-Analogous to (prog1 (car PLACE) (cl-setf PLACE (cdr PLACE))), though more
-careful about evaluating each argument only once and in the right order.
-PLACE may be a symbol, or any generalized variable allowed by `cl-setf'."
-  (declare (debug (place)))
-  (if (symbolp place)
-      (list 'car (list 'prog1 place (list 'setq place (list 'cdr place))))
-    (cl-do-pop place)))
-
-(defmacro cl-push (x place)
-  "Insert X at the head of the list stored in PLACE.
-Analogous to (cl-setf PLACE (cons X PLACE)), though more careful about
-evaluating each argument only once and in the right order.  PLACE may
-be a symbol, or any generalized variable allowed by `cl-setf'."
-  (declare (debug (form place)))
-  (if (symbolp place) (list 'setq place (list 'cons x place))
-    (list 'cl-callf2 'cons x place)))
-
 (defmacro cl-pushnew (x place &rest keys)
   "(cl-pushnew X PLACE): insert X at the head of the list if not already there.
-Like (cl-push X PLACE), except that the list is unmodified if X is `eql' to
+Like (push X PLACE), except that the list is unmodified if X is `eql' to
 an element already on the list.
 \nKeywords supported:  :test :test-not :key
 \n(fn X PLACE [KEYWORD VALUE]...)"
@@ -187,9 +165,6 @@ an element already on the list.
 
 (defun cl--set-elt (seq n val)
   (if (listp seq) (setcar (nthcdr n seq) val) (aset seq n val)))
-
-(defsubst cl--set-nthcdr (n list x)
-  (if (<= n 0) x (setcdr (nthcdr (1- n) list) x) list))
 
 (defun cl--set-buffer-substring (start end val)
   (save-excursion (delete-region start end)

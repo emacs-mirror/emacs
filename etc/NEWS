@@ -434,6 +434,9 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
+** CL-style generalized variables are now in core Elisp.
+`setf' is autoloaded and `push' and `pop' accept generalized variables.
+
 ** The return value of `defalias' has changed and is now undefined.
 
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.

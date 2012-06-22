@@ -210,7 +210,7 @@ of the form (UPAT EXP)."
 (defun pcase--expand (exp cases)
   ;; (message "pid=%S (pcase--expand %S ...hash=%S)"
   ;;          (emacs-pid) exp (sxhash cases))
-  (macroexp-let² macroexp-copyable-p val exp
+  (macroexp-let2 macroexp-copyable-p val exp
     (let* ((defs ())
            (seen '())
            (codegen
@@ -617,7 +617,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         ;; A upat of the form (let VAR EXP).
         ;; (pcase--u1 matches code
         ;;            (cons (cons (nth 1 upat) (nth 2 upat)) vars) rest)
-        (macroexp-let²
+        (macroexp-let2
             macroexp-copyable-p sym
             (let* ((exp (nth 2 upat))
                    (found (assq exp vars)))

@@ -1725,14 +1725,18 @@ The value is non-nil if there were no errors, nil if errors."
 	(set-buffer-multibyte nil))
       ;; Run hooks including the uncompression hook.
       ;; If they change the file name, then change it for the output also.
-      (cl-letf ((buffer-file-name filename)
-                ((default-value 'major-mode) 'emacs-lisp-mode)
-                ;; Ignore unsafe local variables.
-                ;; We only care about a few of them for our purposes.
-                (enable-local-variables :safe)
-                (enable-local-eval nil))
-	;; Arg of t means don't alter enable-local-variables.
-        (normal-mode t)
+      (let ((buffer-file-name filename)
+            (dmm (default-value 'major-mode))
+            ;; Ignore unsafe local variables.
+            ;; We only care about a few of them for our purposes.
+            (enable-local-variables :safe)
+            (enable-local-eval nil))
+        (unwind-protect
+            (progn
+              (setq-default major-mode 'emacs-lisp-mode)
+              ;; Arg of t means don't alter enable-local-variables.
+              (normal-mode t))
+          (setq-default major-mode dmm))
         ;; There may be a file local variable setting (bug#10419).
         (setq buffer-read-only nil
               filename buffer-file-name))

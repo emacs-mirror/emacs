@@ -45,6 +45,8 @@
 
 (require 'cl-lib)
 (require 'macroexp)
+;; `gv' is required here because cl-macs can be loaded before loaddefs.el.
+(require 'gv)
 
 (defmacro cl-pop2 (place)
   (declare (debug edebug-sexps))
@@ -262,7 +264,7 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
             ;; Same as defun but use cl-lambda-list.
-            (&define [&or name ("cl-setf" :name cl-setf name)]
+            (&define [&or name ("setf" :name setf name)]
                      cl-lambda-list
                      cl-declarations-or-string
                      [&optional ("interactive" interactive)]
@@ -1707,12 +1709,12 @@ except that it additionally expands symbol macros."
             (when (cdr (assq (symbol-name cl-macro) cl-env))
               (setq cl-macro (cadr (assq (symbol-name cl-macro) cl-env)))))
            ((eq 'setq (car-safe cl-macro))
-            ;; Convert setq to cl-setf if required by symbol-macro expansion.
+            ;; Convert setq to setf if required by symbol-macro expansion.
             (let* ((args (mapcar (lambda (f) (cl--sm-macroexpand f cl-env))
                                  (cdr cl-macro)))
                    (p args))
               (while (and p (symbolp (car p))) (setq p (cddr p)))
-              (if p (setq cl-macro (cons 'cl-setf args))
+              (if p (setq cl-macro (cons 'setf args))
                 (setq cl-macro (cons 'setq args))
                 ;; Don't loop further.
                 nil))))))
@@ -1722,7 +1724,7 @@ except that it additionally expands symbol macros."
 (defmacro cl-symbol-macrolet (bindings &rest body)
   "Make symbol macro definitions.
 Within the body FORMs, references to the variable NAME will be replaced
-by EXPANSION, and (setq NAME ...) will act like (cl-setf EXPANSION ...).
+by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 
 \(fn ((NAME EXPANSION) ...) FORM...)"
   (declare (indent 1) (debug ((&rest (symbol sexp)) cl-declarations body)))
@@ -1864,406 +1866,140 @@ See Info node `(cl)Declarations' for details."
 
 ;;; Generalized variables.
 
-;;;###autoload
-(defmacro cl-define-setf-expander (func args &rest body)
-  "Define a `cl-setf' method.
-This method shows how to handle `cl-setf's to places of the form (NAME ARGS...).
-The argument forms ARGS are bound according to ARGLIST, as if NAME were
-going to be expanded as a macro, then the BODY forms are executed and must
-return a list of five elements: a temporary-variables list, a value-forms
-list, a store-variables list (of length one), a store-form, and an access-
-form.  See `cl-defsetf' for a simpler way to define most setf-methods.
-
-\(fn NAME ARGLIST BODY...)"
-  (declare (debug
-            (&define name cl-lambda-list cl-declarations-or-string def-body)))
-  `(cl-eval-when (compile load eval)
-     ,@(if (stringp (car body))
-           (list `(put ',func 'setf-documentation ,(pop body))))
-     (put ',func 'setf-method (cl-function (lambda ,args ,@body)))))
-
-;;;###autoload
-(defmacro cl-defsetf (func arg1 &rest args)
-  "Define a `cl-setf' method.
-This macro is an easy-to-use substitute for `cl-define-setf-expander' that works
-well for simple place forms.  In the simple `cl-defsetf' form, `cl-setf's of
-the form (cl-setf (NAME ARGS...) VAL) are transformed to function or macro
-calls of the form (FUNC ARGS... VAL).  Example:
-
-  (cl-defsetf aref aset)
-
-Alternate form: (cl-defsetf NAME ARGLIST (STORE) BODY...).
-Here, the above `cl-setf' call is expanded by binding the argument forms ARGS
-according to ARGLIST, binding the value form VAL to STORE, then executing
-BODY, which must return a Lisp form that does the necessary `cl-setf' operation.
-Actually, ARGLIST and STORE may be bound to temporary variables which are
-introduced automatically to preserve proper execution order of the arguments.
-Example:
-
-  (cl-defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
-
-\(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
-  (declare (debug
-            (&define name
-                     [&or [symbolp &optional stringp]
-                          [cl-lambda-list (symbolp)]]
-                     cl-declarations-or-string def-body)))
-  (if (and (listp arg1) (consp args))
-      (let* ((largs nil) (largsr nil)
-	     (temps nil) (tempsr nil)
-	     (restarg nil) (rest-temps nil)
-	     (store-var (car (prog1 (car args) (setq args (cdr args)))))
-	     (store-temp (intern (format "--%s--temp--" store-var)))
-	     (lets1 nil) (lets2 nil)
-	     (docstr nil) (p arg1))
-	(if (stringp (car args))
-	    (setq docstr (prog1 (car args) (setq args (cdr args)))))
-	(while (and p (not (eq (car p) '&aux)))
-	  (if (eq (car p) '&rest)
-	      (setq p (cdr p) restarg (car p))
-	    (or (memq (car p) '(&optional &key &allow-other-keys))
-		(setq largs (cons (if (consp (car p)) (car (car p)) (car p))
-				  largs)
-		      temps (cons (intern (format "--%s--temp--" (car largs)))
-				  temps))))
-	  (setq p (cdr p)))
-	(setq largs (nreverse largs) temps (nreverse temps))
-	(if restarg
-	    (setq largsr (append largs (list restarg))
-		  rest-temps (intern (format "--%s--temp--" restarg))
-		  tempsr (append temps (list rest-temps)))
-	  (setq largsr largs tempsr temps))
-	(let ((p1 largs) (p2 temps))
-	  (while p1
-	    (setq lets1 (cons `(,(car p2)
-				(make-symbol ,(format "--cl-%s--" (car p1))))
-			      lets1)
-		  lets2 (cons (list (car p1) (car p2)) lets2)
-		  p1 (cdr p1) p2 (cdr p2))))
-	(if restarg (setq lets2 (cons (list restarg rest-temps) lets2)))
-	`(cl-define-setf-expander ,func ,arg1
-	   ,@(and docstr (list docstr))
-	   (let*
-	       ,(nreverse
-		 (cons `(,store-temp
-			 (make-symbol ,(format "--cl-%s--" store-var)))
-		       (if restarg
-			   `((,rest-temps
-			      (mapcar (lambda (_) (make-symbol "--cl-var--"))
-				      ,restarg))
-			     ,@lets1)
-			 lets1)))
-	     (list			; 'values
-	      (,(if restarg 'cl-list* 'list) ,@tempsr)
-	      (,(if restarg 'cl-list* 'list) ,@largsr)
-	      (list ,store-temp)
-	      (let*
-		  ,(nreverse
-		    (cons (list store-var store-temp)
-			  lets2))
-		,@args)
-	      (,(if restarg 'cl-list* 'list)
-	       ,@(cons `',func tempsr))))))
-    `(cl-defsetf ,func (&rest args) (store)
-       ,(let ((call `(cons ',arg1
-			   (append args (list store)))))
-	  (if (car args)
-	      `(list 'progn ,call store)
-	    call)))))
-
 ;;; Some standard place types from Common Lisp.
-(cl-defsetf aref aset)
-(cl-defsetf car setcar)
-(cl-defsetf cdr setcdr)
-(cl-defsetf caar (x) (val) `(setcar (car ,x) ,val))
-(cl-defsetf cadr (x) (val) `(setcar (cdr ,x) ,val))
-(cl-defsetf cdar (x) (val) `(setcdr (car ,x) ,val))
-(cl-defsetf cddr (x) (val) `(setcdr (cdr ,x) ,val))
-(cl-defsetf elt (seq n) (store)
-  `(if (listp ,seq) (setcar (nthcdr ,n ,seq) ,store)
-     (aset ,seq ,n ,store)))
-(cl-defsetf get put)
-(cl-defsetf cl-get (x y &optional d) (store) `(put ,x ,y ,store))
-(cl-defsetf gethash (x h &optional d) (store) `(puthash ,x ,store ,h))
-(cl-defsetf nth (n x) (store) `(setcar (nthcdr ,n ,x) ,store))
-(cl-defsetf cl-subseq (seq start &optional end) (new)
+(gv-define-setter cl-get (store x y &optional d) `(put ,x ,y ,store))
+(gv-define-setter cl-subseq (new seq start &optional end)
   `(progn (cl-replace ,seq ,new :start1 ,start :end1 ,end) ,new))
-(cl-defsetf symbol-function fset)
-(cl-defsetf symbol-plist setplist)
-(cl-defsetf symbol-value set)
 
 ;;; Various car/cdr aliases.  Note that `cadr' is handled specially.
-(cl-defsetf cl-first setcar)
-(cl-defsetf cl-second (x) (store) `(setcar (cdr ,x) ,store))
-(cl-defsetf cl-third (x) (store) `(setcar (cddr ,x) ,store))
-(cl-defsetf cl-fourth (x) (store) `(setcar (cl-cdddr ,x) ,store))
-(cl-defsetf cl-fifth (x) (store) `(setcar (nthcdr 4 ,x) ,store))
-(cl-defsetf cl-sixth (x) (store) `(setcar (nthcdr 5 ,x) ,store))
-(cl-defsetf cl-seventh (x) (store) `(setcar (nthcdr 6 ,x) ,store))
-(cl-defsetf cl-eighth (x) (store) `(setcar (nthcdr 7 ,x) ,store))
-(cl-defsetf cl-ninth (x) (store) `(setcar (nthcdr 8 ,x) ,store))
-(cl-defsetf cl-tenth (x) (store) `(setcar (nthcdr 9 ,x) ,store))
-(cl-defsetf cl-rest setcdr)
+(gv-define-setter cl-fourth (store x) `(setcar (cl-cdddr ,x) ,store))
+(gv-define-setter cl-fifth (store x) `(setcar (nthcdr 4 ,x) ,store))
+(gv-define-setter cl-sixth (store x) `(setcar (nthcdr 5 ,x) ,store))
+(gv-define-setter cl-seventh (store x) `(setcar (nthcdr 6 ,x) ,store))
+(gv-define-setter cl-eighth (store x) `(setcar (nthcdr 7 ,x) ,store))
+(gv-define-setter cl-ninth (store x) `(setcar (nthcdr 8 ,x) ,store))
+(gv-define-setter cl-tenth (store x) `(setcar (nthcdr 9 ,x) ,store))
 
 ;;; Some more Emacs-related place types.
-(cl-defsetf buffer-file-name set-visited-file-name t)
-(cl-defsetf buffer-modified-p (&optional buf) (flag)
+(gv-define-simple-setter buffer-file-name set-visited-file-name t)
+(gv-define-setter buffer-modified-p (flag &optional buf)
   `(with-current-buffer ,buf
      (set-buffer-modified-p ,flag)))
-(cl-defsetf buffer-name rename-buffer t)
-(cl-defsetf buffer-string () (store)
+(gv-define-simple-setter buffer-name rename-buffer t)
+(gv-define-setter buffer-string (store)
   `(progn (erase-buffer) (insert ,store)))
-(cl-defsetf buffer-substring cl--set-buffer-substring)
-(cl-defsetf current-buffer set-buffer)
-(cl-defsetf current-case-table set-case-table)
-(cl-defsetf current-column move-to-column t)
-(cl-defsetf current-global-map use-global-map t)
-(cl-defsetf current-input-mode () (store)
+(gv-define-simple-setter buffer-substring cl--set-buffer-substring)
+(gv-define-simple-setter current-buffer set-buffer)
+(gv-define-simple-setter current-case-table set-case-table)
+(gv-define-simple-setter current-column move-to-column t)
+(gv-define-simple-setter current-global-map use-global-map t)
+(gv-define-setter current-input-mode (store)
   `(progn (apply #'set-input-mode ,store) ,store))
-(cl-defsetf current-local-map use-local-map t)
-(cl-defsetf current-window-configuration set-window-configuration t)
-(cl-defsetf default-file-modes set-default-file-modes t)
-(cl-defsetf default-value set-default)
-(cl-defsetf documentation-property put)
-(cl-defsetf face-background (f &optional s) (x) `(set-face-background ,f ,x ,s))
-(cl-defsetf face-background-pixmap (f &optional s) (x)
+(gv-define-simple-setter current-local-map use-local-map t)
+(gv-define-simple-setter current-window-configuration set-window-configuration t)
+(gv-define-simple-setter default-file-modes set-default-file-modes t)
+(gv-define-simple-setter documentation-property put)
+(gv-define-setter face-background (x f &optional s) `(set-face-background ,f ,x ,s))
+(gv-define-setter face-background-pixmap (x f &optional s)
   `(set-face-background-pixmap ,f ,x ,s))
-(cl-defsetf face-font (f &optional s) (x) `(set-face-font ,f ,x ,s))
-(cl-defsetf face-foreground (f &optional s) (x) `(set-face-foreground ,f ,x ,s))
-(cl-defsetf face-underline-p (f &optional s) (x)
+(gv-define-setter face-font (x f &optional s) `(set-face-font ,f ,x ,s))
+(gv-define-setter face-foreground (x f &optional s) `(set-face-foreground ,f ,x ,s))
+(gv-define-setter face-underline-p (x f &optional s)
   `(set-face-underline-p ,f ,x ,s))
-(cl-defsetf file-modes set-file-modes t)
-(cl-defsetf frame-height set-screen-height t)
-(cl-defsetf frame-parameters modify-frame-parameters t)
-(cl-defsetf frame-visible-p cl--set-frame-visible-p)
-(cl-defsetf frame-width set-screen-width t)
-(cl-defsetf frame-parameter set-frame-parameter t)
-(cl-defsetf terminal-parameter set-terminal-parameter)
-(cl-defsetf getenv setenv t)
-(cl-defsetf get-register set-register)
-(cl-defsetf global-key-binding global-set-key)
-(cl-defsetf keymap-parent set-keymap-parent)
-(cl-defsetf local-key-binding local-set-key)
-(cl-defsetf mark set-mark t)
-(cl-defsetf mark-marker set-mark t)
-(cl-defsetf marker-position set-marker t)
-(cl-defsetf match-data set-match-data t)
-(cl-defsetf mouse-position (scr) (store)
+(gv-define-simple-setter file-modes set-file-modes t)
+(gv-define-simple-setter frame-height set-screen-height t)
+(gv-define-simple-setter frame-parameters modify-frame-parameters t)
+(gv-define-simple-setter frame-visible-p cl--set-frame-visible-p)
+(gv-define-simple-setter frame-width set-screen-width t)
+(gv-define-simple-setter getenv setenv t)
+(gv-define-simple-setter get-register set-register)
+(gv-define-simple-setter global-key-binding global-set-key)
+(gv-define-simple-setter local-key-binding local-set-key)
+(gv-define-simple-setter mark set-mark t)
+(gv-define-simple-setter mark-marker set-mark t)
+(gv-define-simple-setter marker-position set-marker t)
+(gv-define-setter mouse-position (store scr)
   `(set-mouse-position ,scr (car ,store) (cadr ,store)
                       (cddr ,store)))
-(cl-defsetf overlay-get overlay-put)
-(cl-defsetf overlay-start (ov) (store)
-  `(progn (move-overlay ,ov ,store (overlay-end ,ov)) ,store))
-(cl-defsetf overlay-end (ov) (store)
-  `(progn (move-overlay ,ov (overlay-start ,ov) ,store) ,store))
-(cl-defsetf point goto-char)
-(cl-defsetf point-marker goto-char t)
-(cl-defsetf point-max () (store)
+(gv-define-simple-setter point goto-char)
+(gv-define-simple-setter point-marker goto-char t)
+(gv-define-setter point-max (store)
   `(progn (narrow-to-region (point-min) ,store) ,store))
-(cl-defsetf point-min () (store)
+(gv-define-setter point-min (store)
   `(progn (narrow-to-region ,store (point-max)) ,store))
-(cl-defsetf process-buffer set-process-buffer)
-(cl-defsetf process-filter set-process-filter)
-(cl-defsetf process-sentinel set-process-sentinel)
-(cl-defsetf process-get process-put)
-(cl-defsetf read-mouse-position (scr) (store)
+(gv-define-setter read-mouse-position (store scr)
   `(set-mouse-position ,scr (car ,store) (cdr ,store)))
-(cl-defsetf screen-height set-screen-height t)
-(cl-defsetf screen-width set-screen-width t)
-(cl-defsetf selected-window select-window)
-(cl-defsetf selected-screen select-screen)
-(cl-defsetf selected-frame select-frame)
-(cl-defsetf standard-case-table set-standard-case-table)
-(cl-defsetf syntax-table set-syntax-table)
-(cl-defsetf visited-file-modtime set-visited-file-modtime t)
-(cl-defsetf window-buffer set-window-buffer t)
-(cl-defsetf window-display-table set-window-display-table t)
-(cl-defsetf window-dedicated-p set-window-dedicated-p t)
-(cl-defsetf window-height () (store)
+(gv-define-simple-setter screen-height set-screen-height t)
+(gv-define-simple-setter screen-width set-screen-width t)
+(gv-define-simple-setter selected-window select-window)
+(gv-define-simple-setter selected-screen select-screen)
+(gv-define-simple-setter selected-frame select-frame)
+(gv-define-simple-setter standard-case-table set-standard-case-table)
+(gv-define-simple-setter syntax-table set-syntax-table)
+(gv-define-simple-setter visited-file-modtime set-visited-file-modtime t)
+(gv-define-setter window-height (store)
   `(progn (enlarge-window (- ,store (window-height))) ,store))
-(cl-defsetf window-hscroll set-window-hscroll)
-(cl-defsetf window-parameter set-window-parameter)
-(cl-defsetf window-point set-window-point)
-(cl-defsetf window-start set-window-start)
-(cl-defsetf window-width () (store)
+(gv-define-setter window-width (store)
   `(progn (enlarge-window (- ,store (window-width)) t) ,store))
-(cl-defsetf x-get-secondary-selection x-own-secondary-selection t)
-(cl-defsetf x-get-selection x-own-selection t)
+(gv-define-simple-setter x-get-secondary-selection x-own-secondary-selection t)
+(gv-define-simple-setter x-get-selection x-own-selection t)
 
-;; This is a hack that allows (cl-setf (eq a 7) B) to mean either
+;;; More complex setf-methods.
+
+;; This is a hack that allows (setf (eq a 7) B) to mean either
 ;; (setq a 7) or (setq a nil) depending on whether B is nil or not.
 ;; This is useful when you have control over the PLACE but not over
 ;; the VALUE, as is the case in define-minor-mode's :variable.
-(cl-define-setf-expander eq (place val)
-  (let ((method (cl-get-setf-method place macroexpand-all-environment))
-        (val-temp (make-symbol "--eq-val--"))
-        (store-temp (make-symbol "--eq-store--")))
-    (list (append (nth 0 method) (list val-temp))
-          (append (nth 1 method) (list val))
-          (list store-temp)
-          `(let ((,(car (nth 2 method))
-                  (if ,store-temp ,val-temp (not ,val-temp))))
-             ,(nth 3 method) ,store-temp)
-          `(eq ,(nth 4 method) ,val-temp))))
+;; It turned out that :variable needed more flexibility anyway, so
+;; this doesn't seem too useful now.
+(gv-define-expander eq
+  (lambda (do place val)
+    (gv-letplace (getter setter) place
+      (macroexp-let2 nil val val
+        (funcall do `(eq ,getter ,val)
+                 (lambda (v)
+                   `(cond
+                     (,v ,(funcall setter val))
+                     ((eq ,getter ,val) ,(funcall setter `(not ,val))))))))))
 
-;;; More complex setf-methods.
-;; These should take &environment arguments, but since full arglists aren't
-;; available while compiling cl-macs, we fake it by referring to the global
-;; variable macroexpand-all-environment directly.
+(gv-define-expander nthcdr
+  (lambda (do n place)
+    (macroexp-let2 nil idx n
+      (gv-letplace (getter setter) place
+        (funcall do `(nthcdr ,idx ,getter)
+                 (lambda (v) `(if (<= ,idx 0) ,(funcall setter v)
+                           (setcdr (nthcdr (1- ,idx) ,getter) ,v))))))))
 
-(cl-define-setf-expander apply (func arg1 &rest rest)
-  (or (and (memq (car-safe func) '(quote function cl-function))
-	   (symbolp (car-safe (cdr-safe func))))
-      (error "First arg to apply in cl-setf is not (function SYM): %s" func))
-  (let* ((form (cons (nth 1 func) (cons arg1 rest)))
-	 (method (cl-get-setf-method form macroexpand-all-environment)))
-    (list (car method) (nth 1 method) (nth 2 method)
-	  (cl-setf-make-apply (nth 3 method) (cadr func) (car method))
-	  (cl-setf-make-apply (nth 4 method) (cadr func) (car method)))))
+(gv-define-expander cl-getf
+  (lambda (do place tag &optional def)
+    (gv-letplace (getter setter) place
+      (macroexp-let2 nil k tag
+        (macroexp-let2 nil d def
+          (funcall do `(cl-getf ,getter ,k ,d)
+                   (lambda (v) (funcall setter `(cl--set-getf ,getter ,k ,v)))))))))
 
-(defun cl-setf-make-apply (form func temps)
-  (if (eq (car form) 'progn)
-      `(progn ,(cl-setf-make-apply (cadr form) func temps) ,@(cddr form))
-    (or (equal (last form) (last temps))
-	(error "%s is not suitable for use with setf-of-apply" func))
-    `(apply ',(car form) ,@(cdr form))))
-
-(cl-define-setf-expander nthcdr (n place)
-  (let ((method (cl-get-setf-method place macroexpand-all-environment))
-	(n-temp (make-symbol "--cl-nthcdr-n--"))
-	(store-temp (make-symbol "--cl-nthcdr-store--")))
-    (list (cons n-temp (car method))
-	  (cons n (nth 1 method))
-	  (list store-temp)
-	  `(let ((,(car (nth 2 method))
-                  (cl--set-nthcdr ,n-temp ,(nth 4 method)
-                                  ,store-temp)))
-             ,(nth 3 method) ,store-temp)
-	  `(nthcdr ,n-temp ,(nth 4 method)))))
-
-(cl-define-setf-expander cl-getf (place tag &optional def)
-  (let ((method (cl-get-setf-method place macroexpand-all-environment))
-	(tag-temp (make-symbol "--cl-getf-tag--"))
-	(def-temp (make-symbol "--cl-getf-def--"))
-	(store-temp (make-symbol "--cl-getf-store--")))
-    (list (append (car method) (list tag-temp def-temp))
-	  (append (nth 1 method) (list tag def))
-	  (list store-temp)
-	  `(let ((,(car (nth 2 method))
-                  (cl--set-getf ,(nth 4 method) ,tag-temp ,store-temp)))
-             ,(nth 3 method) ,store-temp)
-	  `(cl-getf ,(nth 4 method) ,tag-temp ,def-temp))))
-
-(cl-define-setf-expander substring (place from &optional to)
-  (let ((method (cl-get-setf-method place macroexpand-all-environment))
-	(from-temp (make-symbol "--cl-substring-from--"))
-	(to-temp (make-symbol "--cl-substring-to--"))
-	(store-temp (make-symbol "--cl-substring-store--")))
-    (list (append (car method) (list from-temp to-temp))
-	  (append (nth 1 method) (list from to))
-	  (list store-temp)
-	  `(let ((,(car (nth 2 method))
-                  (cl--set-substring ,(nth 4 method)
-                                     ,from-temp ,to-temp ,store-temp)))
-             ,(nth 3 method) ,store-temp)
-	  `(substring ,(nth 4 method) ,from-temp ,to-temp))))
-
-;;; Getting and optimizing setf-methods.
-;;;###autoload
-(defun cl-get-setf-method (place &optional env)
-  "Return a list of five values describing the setf-method for PLACE.
-PLACE may be any Lisp form which can appear as the PLACE argument to
-a macro like `cl-setf' or `cl-incf'."
-  (if (symbolp place)
-      (let ((temp (make-symbol "--cl-setf--")))
-	(list nil nil (list temp) `(setq ,place ,temp) place))
-    (or (and (symbolp (car place))
-	     (let* ((func (car place))
-		    (name (symbol-name func))
-		    (method (get func 'setf-method))
-		    (case-fold-search nil))
-	       (or (and method
-			(let ((macroexpand-all-environment env))
-			  (setq method (apply method (cdr place))))
-			(if (and (consp method) (= (length method) 5))
-			    method
-			  (error "Setf-method for %s returns malformed method"
-				 func)))
-		   (and (string-match-p "\\`c[ad][ad][ad]?[ad]?r\\'" name)
-			(cl-get-setf-method (cl-compiler-macroexpand place)))
-		   (and (eq func 'edebug-after)
-			(cl-get-setf-method (nth (1- (length place)) place)
-					 env)))))
-	(if (eq place (setq place (macroexpand place env)))
-	    (if (and (symbolp (car place)) (fboundp (car place))
-		     (symbolp (symbol-function (car place))))
-		(cl-get-setf-method (cons (symbol-function (car place))
-				       (cdr place)) env)
-	      (error "No setf-method known for %s" (car place)))
-	  (cl-get-setf-method place env)))))
-
-(defun cl-setf-do-modify (place opt-expr)
-  (let* ((method (cl-get-setf-method place macroexpand-all-environment))
-	 (temps (car method)) (values (nth 1 method))
-	 (lets nil) (subs nil)
-	 (optimize (and (not (eq opt-expr 'no-opt))
-			(or (and (not (eq opt-expr 'unsafe))
-				 (cl--safe-expr-p opt-expr))
-			    (cl-setf-simple-store-p (car (nth 2 method))
-						    (nth 3 method)))))
-	 (simple (and optimize (consp place) (cl--simple-exprs-p (cdr place)))))
-    (while values
-      (if (or simple (macroexp-const-p (car values)))
-	  (push (cons (pop temps) (pop values)) subs)
-	(push (list (pop temps) (pop values)) lets)))
-    (list (nreverse lets)
-	  (cons (car (nth 2 method)) (cl-sublis subs (nth 3 method)))
-	  (cl-sublis subs (nth 4 method)))))
-
-(defun cl-setf-do-store (spec val)
-  (let ((sym (car spec))
-	(form (cdr spec)))
-    (if (or (macroexp-const-p val)
-	    (and (cl--simple-expr-p val) (eq (cl--expr-contains form sym) 1))
-	    (cl-setf-simple-store-p sym form))
-	(cl-subst val sym form)
-      `(let ((,sym ,val)) ,form))))
-
-(defun cl-setf-simple-store-p (sym form)
-  (and (consp form) (eq (cl--expr-contains form sym) 1)
-       (eq (nth (1- (length form)) form) sym)
-       (symbolp (car form)) (fboundp (car form))
-       (not (eq (car-safe (symbol-function (car form))) 'macro))))
+(gv-define-expander substring
+  (lambda (do place from &optional to)
+    (gv-letplace (getter setter) place
+      (macroexp-let2 nil start from
+        (macroexp-let2 nil end to
+          (funcall do `(substring ,getter ,start ,end)
+                   (lambda (v)
+                     (funcall setter `(cl--set-substring
+                                       ,getter ,start ,end ,v)))))))))
 
 ;;; The standard modify macros.
-;;;###autoload
-(defmacro cl-setf (&rest args)
-  "Set each PLACE to the value of its VAL.
-This is a generalized version of `setq'; the PLACEs may be symbolic
-references such as (car x) or (aref x i), as well as plain symbols.
-For example, (cl-setf (cl-cadar x) y) is equivalent to (setcar (cdar x) y).
-The return value is the last VAL in the list.
 
-\(fn PLACE VAL PLACE VAL ...)"
-  (declare (debug (&rest [place form])))
-  (if (cdr (cdr args))
-      (let ((sets nil))
-	(while args (push `(cl-setf ,(pop args) ,(pop args)) sets))
-	(cons 'progn (nreverse sets)))
-    (if (symbolp (car args))
-	(and args (cons 'setq args))
-      (let* ((method (cl-setf-do-modify (car args) (nth 1 args)))
-	     (store (cl-setf-do-store (nth 1 method) (nth 1 args))))
-	(if (car method) `(let* ,(car method) ,store) store)))))
+;; `setf' is now part of core Elisp, defined in gv.el.
 
 ;;;###autoload
 (defmacro cl-psetf (&rest args)
   "Set PLACEs to the values VALs in parallel.
-This is like `cl-setf', except that all VAL forms are evaluated (in order)
+This is like `setf', except that all VAL forms are evaluated (in order)
 before assigning any PLACEs to the corresponding values.
 
 \(fn PLACE VAL PLACE VAL ...)"
-  (declare (debug cl-setf))
+  (declare (debug setf))
   (let ((p args) (simple t) (vars nil))
     (while p
       (if (or (not (symbolp (car p))) (cl--expr-depends-p (nth 1 p) vars))
@@ -2274,41 +2010,23 @@ before assigning any PLACEs to the corresponding values.
       (or p (error "Odd number of arguments to cl-psetf"))
       (pop p))
     (if simple
-	`(progn (cl-setf ,@args) nil)
+	`(progn (setf ,@args) nil)
       (setq args (reverse args))
-      (let ((expr `(cl-setf ,(cadr args) ,(car args))))
+      (let ((expr `(setf ,(cadr args) ,(car args))))
 	(while (setq args (cddr args))
-	  (setq expr `(cl-setf ,(cadr args) (prog1 ,(car args) ,expr))))
+	  (setq expr `(setf ,(cadr args) (prog1 ,(car args) ,expr))))
 	`(progn ,expr nil)))))
-
-;;;###autoload
-(defun cl-do-pop (place)
-  (if (cl--simple-expr-p place)
-      `(prog1 (car ,place) (cl-setf ,place (cdr ,place)))
-    (let* ((method (cl-setf-do-modify place t))
-	   (temp (make-symbol "--cl-pop--")))
-      `(let* (,@(car method)
-              (,temp ,(nth 2 method)))
-         (prog1 (car ,temp)
-           ,(cl-setf-do-store (nth 1 method) `(cdr ,temp)))))))
 
 ;;;###autoload
 (defmacro cl-remf (place tag)
   "Remove TAG from property list PLACE.
-PLACE may be a symbol, or any generalized variable allowed by `cl-setf'.
+PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The form returns true if TAG was found and removed, nil otherwise."
   (declare (debug (place form)))
-  (let* ((method (cl-setf-do-modify place t))
-	 (tag-temp (and (not (macroexp-const-p tag)) (make-symbol "--cl-remf-tag--")))
-	 (val-temp (and (not (cl--simple-expr-p place))
-			(make-symbol "--cl-remf-place--")))
-	 (ttag (or tag-temp tag))
-	 (tval (or val-temp (nth 2 method))))
-    `(let* (,@(car method)
-            ,@(and val-temp `((,val-temp ,(nth 2 method))))
-            ,@(and tag-temp `((,tag-temp ,tag))))
-       (if (eq ,ttag (car ,tval))
-           (progn ,(cl-setf-do-store (nth 1 method) `(cddr ,tval))
+  (gv-letplace (tval setter) place
+    (macroexp-let2 macroexp-copyable-p ttag tag
+      `(if (eq ,ttag (car ,tval))
+           (progn ,(funcall setter `(cddr ,tval))
                   t)
          (cl--do-remf ,tval ,ttag)))))
 
@@ -2316,7 +2034,7 @@ The form returns true if TAG was found and removed, nil otherwise."
 (defmacro cl-shiftf (place &rest args)
   "Shift left among PLACEs.
 Example: (cl-shiftf A B C) sets A to B, B to C, and returns the old A.
-Each PLACE may be a symbol, or any generalized variable allowed by `cl-setf'.
+Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 
 \(fn PLACE... VAL)"
   (declare (debug (&rest place)))
@@ -2324,16 +2042,15 @@ Each PLACE may be a symbol, or any generalized variable allowed by `cl-setf'.
    ((null args) place)
    ((symbolp place) `(prog1 ,place (setq ,place (cl-shiftf ,@args))))
    (t
-    (let ((method (cl-setf-do-modify place 'unsafe)))
-      `(let* ,(car method)
-	 (prog1 ,(nth 2 method)
-	   ,(cl-setf-do-store (nth 1 method) `(cl-shiftf ,@args))))))))
+    (gv-letplace (getter setter) place
+      `(prog1 ,getter
+         ,(funcall setter `(cl-shiftf ,@args)))))))
 
 ;;;###autoload
 (defmacro cl-rotatef (&rest args)
   "Rotate left among PLACEs.
 Example: (cl-rotatef A B C) sets A to B, B to C, and C to A.  It returns nil.
-Each PLACE may be a symbol, or any generalized variable allowed by `cl-setf'.
+Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 
 \(fn PLACE...)"
   (declare (debug (&rest place)))
@@ -2348,107 +2065,24 @@ Each PLACE may be a symbol, or any generalized variable allowed by `cl-setf'.
 	   (temp (make-symbol "--cl-rotatef--"))
 	   (form temp))
       (while (cdr places)
-	(let ((method (cl-setf-do-modify (pop places) 'unsafe)))
-	  (setq form `(let* ,(car method)
-                        (prog1 ,(nth 2 method)
-                          ,(cl-setf-do-store (nth 1 method) form))))))
-      (let ((method (cl-setf-do-modify (car places) 'unsafe)))
-	`(let* (,@(car method) (,temp ,(nth 2 method)))
-           ,(cl-setf-do-store (nth 1 method) form) nil)))))
-
-;;;###autoload
-(defmacro cl-letf (bindings &rest body)
-  "Temporarily bind to PLACEs.
-This is the analogue of `let', but with generalized variables (in the
-sense of `cl-setf') for the PLACEs.  Each PLACE is set to the corresponding
-VALUE, then the BODY forms are executed.  On exit, either normally or
-because of a `throw' or error, the PLACEs are set back to their original
-values.  Note that this macro is *not* available in Common Lisp.
-As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
-the PLACE is not modified before executing BODY.
-
-\(fn ((PLACE VALUE) ...) BODY...)"
-  (declare (indent 1) (debug ((&rest (gate place &optional form)) body)))
-  (if (and (not (cdr bindings)) (cdar bindings) (symbolp (caar bindings)))
-      `(let ,bindings ,@body)
-    (let ((lets nil)
-          (rev (reverse bindings)))
-      (while rev
-	(let* ((place (if (symbolp (caar rev))
-			  `(symbol-value ',(caar rev))
-			(caar rev)))
-	       (value (cl-cadar rev))
-	       (method (cl-setf-do-modify place 'no-opt))
-	       (save (make-symbol "--cl-letf-save--"))
-	       (bound (and (memq (car place) '(symbol-value symbol-function))
-			   (make-symbol "--cl-letf-bound--")))
-	       (temp (and (not (macroexp-const-p value)) (cdr bindings)
-			  (make-symbol "--cl-letf-val--"))))
-	  (setq lets (nconc (car method)
-			    (if bound
-				(list (list bound
-					    (list (if (eq (car place)
-							  'symbol-value)
-						      'boundp 'fboundp)
-						  (nth 1 (nth 2 method))))
-				      (list save `(and ,bound
-						       ,(nth 2 method))))
-			      (list (list save (nth 2 method))))
-			    (and temp (list (list temp value)))
-			    lets)
-		body (list
-		      `(unwind-protect
-                           (progn
-                             ,@(if (cdr (car rev))
-                                   (cons (cl-setf-do-store (nth 1 method)
-                                                           (or temp value))
-                                         body)
-                                 body))
-                         ,(if bound
-                              `(if ,bound
-                                   ,(cl-setf-do-store (nth 1 method) save)
-                                 (,(if (eq (car place) 'symbol-value)
-                                       #'makunbound #'fmakunbound)
-                                  ,(nth 1 (nth 2 method))))
-                            (cl-setf-do-store (nth 1 method) save))))
-		rev (cdr rev))))
-      `(let* ,lets ,@body))))
-
-
-;;;###autoload
-(defmacro cl-letf* (bindings &rest body)
-  "Temporarily bind to PLACEs.
-This is the analogue of `let*', but with generalized variables (in the
-sense of `cl-setf') for the PLACEs.  Each PLACE is set to the corresponding
-VALUE, then the BODY forms are executed.  On exit, either normally or
-because of a `throw' or error, the PLACEs are set back to their original
-values.  Note that this macro is *not* available in Common Lisp.
-As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
-the PLACE is not modified before executing BODY.
-
-\(fn ((PLACE VALUE) ...) BODY...)"
-  (declare (indent 1) (debug cl-letf))
-  (if (null bindings)
-      (cons 'progn body)
-    (setq bindings (reverse bindings))
-    (while bindings
-      (setq body (list `(cl-letf (,(pop bindings)) ,@body))))
-    (car body)))
+        (setq form
+              (gv-letplace (getter setter) (pop places)
+                `(prog1 ,getter ,(funcall setter form)))))
+      (gv-letplace (getter setter) (car places)
+	(macroexp-let* `((,temp ,getter))
+                       `(progn ,(funcall setter form) nil))))))
 
 ;;;###autoload
 (defmacro cl-callf (func place &rest args)
   "Set PLACE to (FUNC PLACE ARGS...).
 FUNC should be an unquoted function name.  PLACE may be a symbol,
-or any generalized variable allowed by `cl-setf'.
-
-\(fn FUNC PLACE ARGS...)"
+or any generalized variable allowed by `setf'."
   (declare (indent 2) (debug (cl-function place &rest form)))
-  (let* ((method (cl-setf-do-modify place (cons 'list args)))
-	 (rargs (cons (nth 2 method) args)))
-    `(let* ,(car method)
-       ,(cl-setf-do-store (nth 1 method)
-                          (if (symbolp func) (cons func rargs)
-                            `(funcall #',func ,@rargs))))))
+  (gv-letplace (getter setter) place
+    (let* ((rargs (cons getter args)))
+      (funcall setter
+               (if (symbolp func) (cons func rargs)
+                 `(funcall #',func ,@rargs))))))
 
 ;;;###autoload
 (defmacro cl-callf2 (func arg1 place &rest args)
@@ -2458,31 +2092,13 @@ Like `cl-callf', but PLACE is the second argument of FUNC, not the first.
 \(fn FUNC ARG1 PLACE ARGS...)"
   (declare (indent 3) (debug (cl-function form place &rest form)))
   (if (and (cl--safe-expr-p arg1) (cl--simple-expr-p place) (symbolp func))
-      `(cl-setf ,place (,func ,arg1 ,place ,@args))
-    (let* ((method (cl-setf-do-modify place (cons 'list args)))
-	   (temp (and (not (macroexp-const-p arg1)) (make-symbol "--cl-arg1--")))
-	   (rargs (cl-list* (or temp arg1) (nth 2 method) args)))
-      `(let* (,@(and temp (list (list temp arg1))) ,@(car method))
-         ,(cl-setf-do-store (nth 1 method)
-                            (if (symbolp func) (cons func rargs)
-                              `(funcall #',func ,@rargs)))))))
-
-;;;###autoload
-(defmacro cl-define-modify-macro (name arglist func &optional doc)
-  "Define a `cl-setf'-like modify macro.
-If NAME is called, it combines its PLACE argument with the other arguments
-from ARGLIST using FUNC: (cl-define-modify-macro cl-incf (&optional (n 1)) +)"
-  (declare (debug
-            (&define name cl-lambda-list ;; should exclude &key
-                     symbolp &optional stringp)))
-  (if (memq '&key arglist) (error "&key not allowed in cl-define-modify-macro"))
-  (let ((place (make-symbol "--cl-place--")))
-    `(cl-defmacro ,name (,place ,@arglist)
-       ,doc
-       (,(if (memq '&rest arglist) #'cl-list* #'list)
-        #'cl-callf ',func ,place
-        ,@(cl--arglist-args arglist)))))
-
+      `(setf ,place (,func ,arg1 ,place ,@args))
+    (macroexp-let2 nil a1 arg1
+      (gv-letplace (getter setter) place
+        (let* ((rargs (cl-list* a1 getter args)))
+          (funcall setter
+                   (if (symbolp func) (cons func rargs)
+                     `(funcall #',func ,@rargs))))))))
 
 ;;; Structures.
 
@@ -2492,7 +2108,7 @@ from ARGLIST using FUNC: (cl-define-modify-macro cl-incf (&optional (n 1)) +)"
 This macro defines a new data type called NAME that stores data
 in SLOTs.  It defines a `make-NAME' constructor, a `copy-NAME'
 copier, a `NAME-p' predicate, and slot accessors named `NAME-SLOT'.
-You can use the accessors to set the corresponding slots, via `cl-setf'.
+You can use the accessors to set the corresponding slots, via `setf'.
 
 NAME may instead take the form (NAME OPTIONS...), where each
 OPTION is either a single keyword or (KEYWORD VALUE).
@@ -2501,7 +2117,7 @@ See Info node `(cl)Structures' for a list of valid keywords.
 Each SLOT may instead take the form (SLOT SLOT-OPTS...), where
 SLOT-OPTS are keyword-value pairs for that slot.  Currently, only
 one keyword is supported, `:read-only'.  If this has a non-nil
-value, that slot cannot be set via `cl-setf'.
+value, that slot cannot be set via `setf'.
 
 \(fn NAME SLOTS...)"
   (declare (doc-string 2)
@@ -2655,35 +2271,35 @@ value, that slot cannot be set via `cl-setf'.
 	    (let ((accessor (intern (format "%s%s" conc-name slot))))
 	      (push slot slots)
 	      (push (nth 1 desc) defaults)
-	      (push (cl-list*
-			'cl-defsubst accessor '(cl-x)
-			(append
-			 (and pred-check
+	      (push `(cl-defsubst ,accessor (cl-x)
+                       ,@(and pred-check
 			      (list `(or ,pred-check
                                          (error "%s accessing a non-%s"
                                                 ',accessor ',name))))
-			 (list (if (eq type 'vector) `(aref cl-x ,pos)
-				 (if (= pos 0) '(car cl-x)
-				   `(nth ,pos cl-x)))))) forms)
+                       ,(if (eq type 'vector) `(aref cl-x ,pos)
+                          (if (= pos 0) '(car cl-x)
+                            `(nth ,pos cl-x)))) forms)
 	      (push (cons accessor t) side-eff)
-	      (push `(cl-define-setf-expander ,accessor (cl-x)
-                       ,(if (cadr (memq :read-only (cddr desc)))
-                            `(progn (ignore cl-x)
-                                    (error "%s is a read-only slot"
-                                           ',accessor))
-                          ;; If cl is loaded only for compilation,
-                          ;; the call to cl-struct-setf-expander would
-                          ;; cause a warning because it may not be
-                          ;; defined at run time.  Suppress that warning.
-                          `(progn
-                             (declare-function
-                              cl-struct-setf-expander "cl-macs"
-                              (x name accessor pred-form pos))
-                             (cl-struct-setf-expander
-                              cl-x ',name ',accessor
-                              ,(and pred-check `',pred-check)
-                              ,pos))))
-                    forms)
+              ;; Don't bother defining a setf-expander, since gv-get can use
+              ;; the compiler macro to get the same result.
+              ;;(push `(gv-define-setter ,accessor (cl-val cl-x)
+              ;;         ,(if (cadr (memq :read-only (cddr desc)))
+              ;;              `(progn (ignore cl-x cl-val)
+              ;;                      (error "%s is a read-only slot"
+              ;;                             ',accessor))
+              ;;            ;; If cl is loaded only for compilation,
+              ;;            ;; the call to cl--struct-setf-expander would
+              ;;            ;; cause a warning because it may not be
+              ;;            ;; defined at run time.  Suppress that warning.
+              ;;            `(progn
+              ;;               (declare-function
+              ;;                cl--struct-setf-expander "cl-macs"
+              ;;                (x name accessor pred-form pos))
+              ;;               (cl--struct-setf-expander
+              ;;                cl-val cl-x ',name ',accessor
+              ;;                ,(and pred-check `',pred-check)
+              ;;                ,pos))))
+              ;;      forms)
 	      (if print-auto
 		  (nconc print-func
 			 (list `(princ ,(format " %s" slot) cl-s)
@@ -2738,29 +2354,6 @@ value, that slot cannot be set via `cl-setf'.
                        side-eff))
           forms)
     `(progn ,@(nreverse (cons `',name forms)))))
-
-;;;###autoload
-(defun cl-struct-setf-expander (x name accessor pred-form pos)
-  (let* ((temp (make-symbol "--cl-x--")) (store (make-symbol "--cl-store--")))
-    (list (list temp) (list x) (list store)
-	  `(progn
-             ,@(and pred-form
-                    (list `(or ,(cl-subst temp 'cl-x pred-form)
-                               (error ,(format
-                                        "%s storing a non-%s"
-                                        accessor name)))))
-             ,(if (eq (car (get name 'cl-struct-type)) 'vector)
-                  `(aset ,temp ,pos ,store)
-                `(setcar
-                  ,(if (<= pos 5)
-                       (let ((xx temp))
-                         (while (>= (setq pos (1- pos)) 0)
-                           (setq xx `(cdr ,xx)))
-                         xx)
-                     `(nthcdr ,pos ,temp))
-                  ,store)))
-	  (list accessor temp))))
-
 
 ;;; Types and assertions.
 
@@ -2932,7 +2525,7 @@ ARGLIST allows full Common Lisp conventions, and BODY is implicitly
 surrounded by (cl-block NAME ...).
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
-  (declare (debug cl-defun))
+  (declare (debug cl-defun) (indent 2))
   (let* ((argns (cl--arglist-args args)) (p argns)
 	 (pbody (cons 'progn body))
 	 (unsafe (not (cl--safe-expr-p pbody))))
@@ -3021,7 +2614,7 @@ surrounded by (cl-block NAME ...).
 
 (cl-define-compiler-macro cl-typep (&whole form val type)
   (if (macroexp-const-p type)
-      (macroexp-let² macroexp-copyable-p temp val
+      (macroexp-let2 macroexp-copyable-p temp val
         (cl--make-type-test temp (cl--const-expr-val type)))
     form))
 
@@ -3055,8 +2648,8 @@ surrounded by (cl-block NAME ...).
   (put y 'side-effect-free t))
 
 ;;; Things that are inline.
-(cl-proclaim '(inline cl-floatp-safe cl-acons cl-map cl-concatenate cl-notany cl-notevery
-		   cl--set-elt cl-revappend cl-nreconc gethash))
+(cl-proclaim '(inline cl-floatp-safe cl-acons cl-map cl-concatenate cl-notany
+               cl-notevery cl--set-elt cl-revappend cl-nreconc gethash))
 
 ;;; Things that are side-effect-free.
 (mapc (lambda (x) (put x 'side-effect-free t))

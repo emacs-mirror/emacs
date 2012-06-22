@@ -123,9 +123,10 @@ the mode if ARG is omitted or nil.
 
 This command applies to all frames that exist and frames to be
 created in the future."
-  :variable (eq (get-scroll-bar-mode)
-                (or previous-scroll-bar-mode
-                    default-frame-scroll-bars)))
+  :variable ((get-scroll-bar-mode)
+             . (lambda (v) (set-scroll-bar-mode
+                       (if v (or previous-scroll-bar-mode
+                                 default-frame-scroll-bars))))))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.

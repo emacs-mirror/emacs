@@ -1,3 +1,39 @@
+2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el: New file.
+	* subr.el (push, pop): Extend to generalized variables.
+	* loadup.el (macroexp): Unload if preloaded and uncompiled (bug#11657).
+	* emacs-lisp/cl-lib.el (cl-pop, cl-push, cl--set-nthcdr): Remove.
+	* emacs-lisp/cl-macs.el: Require gv.  Use gv-define-setter,
+	gv-define-simple-setter, and gv-define-expander.
+	Remove setf-methods defined in gv.  Rename cl-setf -> setf.
+	(cl-setf, cl-do-pop, cl-get-setf-method): Remove.
+	(cl-letf, cl-letf*, cl-define-modify-macro, cl-defsetf)
+	(cl-define-setf-expander, cl-struct-setf-expander): Move to cl.el.
+	(cl-remf, cl-shiftf, cl-rotatef, cl-callf, cl-callf2): Rewrite with
+	gv-letplace.
+	(cl-defstruct): Don't define setf-method any more.
+	* emacs-lisp/cl.el (flet): Don't autoload.
+	(cl--letf, letf, cl--letf*, letf*, cl--gv-adapt)
+	(define-setf-expander, defsetf, define-modify-macro)
+	(cl-struct-setf-expander): Move from cl-lib.el.
+	* emacs-lisp/syntax.el:
+	* emacs-lisp/ewoc.el:
+	* emacs-lisp/smie.el:
+	* emacs-lisp/cconv.el:
+	* emacs-lisp/timer.el: Rename cl-setf -> setf, cl-push -> push.
+	(timer--time): Use gv-define-simple-setter.
+	* emacs-lisp/macroexp.el (macroexp-let2): Rename from macroexp-let²
+	to avoid coding-system problems in subr.el.  Adjust all users.
+	(macroexp--maxsize, macroexp-small-p): New functions.
+	* emacs-lisp/bytecomp.el (byte-compile-file): Don't use cl-letf.
+	* scroll-bar.el (scroll-bar-mode):
+	* simple.el (auto-fill-mode, overwrite-mode, binary-overwrite-mode)
+	(normal-erase-is-backspace-mode): Don't use the `eq' place.
+	* winner.el (winner-configuration, winner-make-point-alist)
+	(winner-set-conf, winner-get-point, winner-set): Don't abuse letf.
+	* files.el (locate-file-completion-table): Avoid list*.
+
 2012-06-22  Chong Yidong  <cyd@gnu.org>
 
 	* dired-aux.el (dired-do-create-files): Doc fix (Bug#11327).
@@ -5,8 +41,8 @@
 	(dired-do-copy): Doc fix (Bug#11334).
 	(dired-mark-read-string): Doc fix (Bug#11553).
 
-	* dired.el (dired-recursive-copies, dired-recursive-deletes): Doc
-	fix (Bug#11326).
+	* dired.el (dired-recursive-copies, dired-recursive-deletes):
+	Doc fix (Bug#11326).
 	(dired-make-relative): Doc fix (Bug#11332).  Remove unused arg.
 	(dired-dwim-target): Doc fix.
 

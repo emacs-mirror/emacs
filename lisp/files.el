@@ -782,10 +782,10 @@ one or more of those symbols."
     (read-file-name-internal string pred action))
    ((eq (car-safe action) 'boundaries)
     (let ((suffix (cdr action)))
-      (list* 'boundaries
-             (length (file-name-directory string))
-             (let ((x (file-name-directory suffix)))
-               (if x (1- (length x)) (length suffix))))))
+      `(boundaries
+        ,(length (file-name-directory string))
+        ,@(let ((x (file-name-directory suffix)))
+            (if x (1- (length x)) (length suffix))))))
    (t
     (let ((names '())
           ;; If we have files like "foo.el" and "foo.elc", we could load one of

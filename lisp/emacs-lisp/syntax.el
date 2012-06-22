@@ -513,7 +513,7 @@ Point is at POS when this function returns."
 			      nil nil ppss))
 		  (let ((pair (cons pt-min ppss)))
 		    (if cache-pred
-			(cl-push pair (cdr cache-pred))
+			(push pair (cdr cache-pred))
 		      (push pair syntax-ppss-cache))))
 
 		;; Compute the actual return value.
@@ -533,7 +533,7 @@ Point is at POS when this function returns."
 		(let ((pair (cons pos ppss)))
 		  (if cache-pred
 		      (if (> (- (caar cache-pred) pos) syntax-ppss-max-span)
-			  (cl-push pair (cdr cache-pred))
+			  (push pair (cdr cache-pred))
 			(setcar cache-pred pair))
 		    (if (or (null syntax-ppss-cache)
 			    (> (- (caar syntax-ppss-cache) pos)

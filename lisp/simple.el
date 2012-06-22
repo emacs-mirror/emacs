@@ -5425,7 +5425,9 @@ non-`nil'.
 
 The value of `normal-auto-fill-function' specifies the function to use
 for `auto-fill-function' when turning Auto Fill mode on."
-  :variable (eq auto-fill-function normal-auto-fill-function))
+  :variable (auto-fill-function
+             . (lambda (v) (setq auto-fill-function
+                            (if v normal-auto-fill-function)))))
 
 ;; This holds a document string used to document auto-fill-mode.
 (defun auto-fill-function ()
@@ -5538,7 +5540,8 @@ the line.  Before a tab, such characters insert until the tab is
 filled in.  \\[quoted-insert] still inserts characters in
 overwrite mode; this is supposed to make it easier to insert
 characters when necessary."
-  :variable (eq overwrite-mode 'overwrite-mode-textual))
+  :variable (overwrite-mode
+             . (lambda (v) (setq overwrite-mode (if v 'overwrite-mode-textual)))))
 
 (define-minor-mode binary-overwrite-mode
   "Toggle Binary Overwrite mode.
@@ -5557,7 +5560,8 @@ ordinary typing characters do.
 Note that Binary Overwrite mode is not its own minor mode; it is
 a specialization of overwrite mode, entered by setting the
 `overwrite-mode' variable to `overwrite-mode-binary'."
-  :variable (eq overwrite-mode 'overwrite-mode-binary))
+  :variable (overwrite-mode
+             . (lambda (v) (setq overwrite-mode (if v 'overwrite-mode-binary)))))
 
 (define-minor-mode line-number-mode
   "Toggle line number display in the mode line (Line Number mode).
@@ -6780,8 +6784,10 @@ probably not turn on this mode on a text-only terminal if you don't
 have both Backspace, Delete and F1 keys.
 
 See also `normal-erase-is-backspace'."
-  :variable (eq (terminal-parameter
-                 nil 'normal-erase-is-backspace) 1)
+  :variable ((eq (terminal-parameter nil 'normal-erase-is-backspace) 1)
+             . (lambda (v)
+                 (setf (terminal-parameter nil 'normal-erase-is-backspace)
+                       (if v 1 0))))
   (let ((enabled (eq 1 (terminal-parameter
                         nil 'normal-erase-is-backspace))))
 

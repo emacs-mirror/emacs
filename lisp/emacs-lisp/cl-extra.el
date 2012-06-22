@@ -305,7 +305,7 @@ If so, return the true (non-nil) value returned by PREDICATE.
 	  (setq cl-ovl (cdr cl-ovl))))
       (set-marker cl-mark nil) (if cl-mark2 (set-marker cl-mark2 nil)))))
 
-;;; Support for `cl-setf'.
+;;; Support for `setf'.
 ;;;###autoload
 (defun cl--set-frame-visible-p (frame val)
   (cond ((null val) (make-frame-invisible frame))
@@ -590,6 +590,7 @@ If START or END is negative, it counts from the end."
   (declare (compiler-macro cl--compiler-macro-get))
   (or (get sym tag)
       (and def
+           ;; Make sure `def' is really absent as opposed to set to nil.
 	   (let ((plist (symbol-plist sym)))
 	     (while (and plist (not (eq (car plist) tag)))
 	       (setq plist (cdr (cdr plist))))
@@ -607,6 +608,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
       ;; but that fails, because cl-get has a compiler macro
       ;; definition that uses getf!
       (when def
+        ;; Make sure `def' is really absent as opposed to set to nil.
 	(while (and plist (not (eq (car plist) tag)))
 	  (setq plist (cdr (cdr plist))))
 	(if plist (car (cdr plist)) def))))

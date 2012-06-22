@@ -138,7 +138,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;; Consult `winner-currents'.
 (defun winner-configuration (&optional frame)
   (or (cdr (assq (or frame (selected-frame)) winner-currents))
-      (letf (((selected-frame) frame))
+      (with-selected-frame frame
 	(winner-conf))))
 
 
@@ -248,7 +248,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
      ((window-minibuffer-p (selected-window))
       (other-window 1)))
     (when (/= minisize (window-height miniwin))
-      (letf (((selected-window) miniwin) )
+      (with-selected-window miniwin
         (setf (window-height) minisize)))))
 
 
@@ -261,7 +261,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;; Format of entries: (buffer (mark . mark-active) (window . point) ..)
 
 (defun winner-make-point-alist ()
-  (letf (((current-buffer)))
+  (save-current-buffer
     (loop with alist
 	  for win in (winner-window-list)
 	  for entry =
@@ -282,10 +282,10 @@ You may want to include buffer names such as *Help*, *Apropos*,
        (entry
 	(or (cdr (assq win (cddr entry)))
 	    (cdr (assq nil (cddr entry)))
-	    (letf (((current-buffer) buf))
+	    (with-current-buffer buf
 	      (push (cons nil (point)) (cddr entry))
 	      (point))))
-       (t (letf (((current-buffer) buf))
+       (t (with-current-buffer buf
 	    (push (list buf
 			(cons (mark t) (winner-active-region))
 			(cons nil (point)))
@@ -320,7 +320,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
           (push win xwins)))            ; delete this window
 
       ;; Restore marks
-      (letf (((current-buffer)))
+      (save-current-buffer
 	(loop for buf in buffers
 	      for entry = (cadr (assq buf winner-point-alist))
 	      do (progn (set-buffer buf)
