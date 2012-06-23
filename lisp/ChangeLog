@@ -1,7 +1,7 @@
 2012-06-23  Chong Yidong  <cyd@gnu.org>
 
-	* info.el (Info-mouse-follow-link): Accept symbol values of the
-	link-args property.  Select the window (Bug#11672).
+	* info.el (Info-mouse-follow-link): Accept symbol values of
+	link-args.  Select window; suggested by Gerhard Kahl (Bug#11672).
 	(Info-fontify-node): Use Info-link-keymap for all navigation
 	buttons, with link-args property to perform the desired action.
 	(Info-link-keymap): Doc fix.

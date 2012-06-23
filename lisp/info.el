@@ -3692,7 +3692,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 
 (defun Info-mouse-follow-link (click)
   "Follow a link where you click."
-  (interactive "e")
+  (interactive "@e")
   (let* ((position (event-start click))
 	 (posn-string (and position (posn-string position)))
 	 (link-args (if posn-string
@@ -3701,7 +3701,6 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 					   (car posn-string))
 		      (get-char-property (posn-point position)
 					 'link-args))))
-    (select-window (posn-window position))
     (cond ((stringp link-args)
 	   (Info-goto-node link-args))
 	  ;; These special values of the `link-args' property are used
