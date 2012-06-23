@@ -1,5 +1,7 @@
 2012-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
+	* makefile.w32-in: Update dependencies.
+
 	* w32.c (ltime): Add return type and declare static.
 	(w32_get_internal_run_time): Remove usused variable `time_100ns'.
 
