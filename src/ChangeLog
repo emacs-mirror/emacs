@@ -1,3 +1,9 @@
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* ralloc.c (r_alloc_inhibit_buffer_relocation): Fix stupid thinko
+	in the logic of incrementing and decrementing the value of
+	use_relocatable_buffers.
+
 2012-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* charset.c (init_charset): Make lack of etc/charsets fatal.
