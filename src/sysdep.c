@@ -3116,7 +3116,7 @@ timeval_to_EMACS_TIME (struct timeval t)
 }
 
 static Lisp_Object
-TIMELIST (struct timeval t)
+make_lisp_timeval (struct timeval t)
 {
   return make_lisp_time (timeval_to_EMACS_TIME (t));
 }
@@ -3216,32 +3216,38 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qcminflt, make_number (proc.ki_rusage_ch.ru_minflt)), attrs);
   attrs = Fcons (Fcons (Qcmajflt, make_number (proc.ki_rusage_ch.ru_majflt)), attrs);
 
-  attrs = Fcons (Fcons (Qutime, TIMELIST (proc.ki_rusage.ru_utime)), attrs);
-  attrs = Fcons (Fcons (Qstime, TIMELIST (proc.ki_rusage.ru_stime)), attrs);
+  attrs = Fcons (Fcons (Qutime, make_lisp_timeval (proc.ki_rusage.ru_utime)),
+		 attrs);
+  attrs = Fcons (Fcons (Qstime, make_lisp_timeval (proc.ki_rusage.ru_stime)),
+		 attrs);
   EMACS_ADD_TIME (t,
 		  timeval_to_EMACS_TIME (proc.ki_rusage.ru_utime),
 		  timeval_to_EMACS_TIME (proc.ki_rusage.ru_stime));
-  attrs = Fcons (Fcons (Qtime,  TIMELIST (t)), attrs);
+  attrs = Fcons (Fcons (Qtime, make_lisp_time (t)), attrs);
 
-  attrs = Fcons (Fcons (Qcutime, TIMELIST (proc.ki_rusage_ch.ru_utime)), attrs);
-  attrs = Fcons (Fcons (Qcstime, TIMELIST (proc.ki_rusage_ch.ru_utime)), attrs);
+  attrs = Fcons (Fcons (Qcutime,
+			make_lisp_timeval (proc.ki_rusage_ch.ru_utime)),
+		 attrs);
+  attrs = Fcons (Fcons (Qcstime,
+			make_lisp_timeval (proc.ki_rusage_ch.ru_utime)),
+		 attrs);
   EMACS_ADD_TIME (t,
 		  timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_utime),
 		  timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_stime));
-  attrs = Fcons (Fcons (Qctime, TIMELIST (t)), attrs);
+  attrs = Fcons (Fcons (Qctime, make_lisp_time (t)), attrs);
 
   attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (proc.ki_numthreads)),
 		 attrs);
   attrs = Fcons (Fcons (Qpri,   make_number (proc.ki_pri.pri_native)), attrs);
   attrs = Fcons (Fcons (Qnice,  make_number (proc.ki_nice)), attrs);
-  attrs = Fcons (Fcons (Qstart, TIMELIST (proc.ki_start)), attrs);
+  attrs = Fcons (Fcons (Qstart, make_lisp_timeval (proc.ki_start)), attrs);
   attrs = Fcons (Fcons (Qvsize, make_number (proc.ki_size >> 10)), attrs);
   attrs = Fcons (Fcons (Qrss,   make_number (proc.ki_rssize * pagesize >> 10)),
 		 attrs);
 
   EMACS_GET_TIME (now);
   EMACS_SUB_TIME (t, now, timeval_to_EMACS_TIME (proc.ki_start));
-  attrs = Fcons (Fcons (Qetime, TIMELIST (t)), attrs);
+  attrs = Fcons (Fcons (Qetime, make_lisp_time (t)), attrs);
 
   len = sizeof fscale;
   if (sysctlbyname ("kern.fscale", &fscale, &len, NULL, 0) == 0)

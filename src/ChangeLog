@@ -1,3 +1,12 @@
+2012-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c [__FreeBSD__]: Fix more recently-introduced typos.
+	Privately reported by Herbert J. Skuhra.
+	(make_lisp_timeval) [__FreeBSD__]: Rename from TIMELIST.
+	All uses changed.
+	(system_process_attributes) [__FreeBSD__]: Invoke make_lisp_time,
+	not make_lisp_timeval, when the argument is of type EMACS_TIME.
+
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (Fw32_get_locale_info): Fix an off-by-one error in
