@@ -2660,7 +2660,7 @@ esac
 AC_SUBST(BLESSMAIL_TARGET)
 
 
-AC_CHECK_FUNCS_ONCE(gethostname \
+AC_CHECK_FUNCS(gethostname \
 rename closedir mkdir rmdir getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt setsid \
 strerror fpathconf select euidaccess getpagesize setlocale \
@@ -2691,10 +2691,10 @@ AC_FUNC_FSEEKO
 AC_FUNC_GETPGRP
 
 # UNIX98 PTYs.
-AC_CHECK_FUNCS_ONCE(grantpt)
+AC_CHECK_FUNCS(grantpt)
 
 # PTY-related GNU extensions.
-AC_CHECK_FUNCS_ONCE(getpt)
+AC_CHECK_FUNCS(getpt)
 
 # Check this now, so that we will NOT find the above functions in ncurses.
 # That is because we have not set up to link ncurses in lib-src.
@@ -2951,7 +2951,7 @@ AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
-AC_CHECK_FUNCS_ONCE(tzset)
+AC_CHECK_FUNCS(tzset)
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
@@ -3018,7 +3018,7 @@ fi
 
 AC_FUNC_FORK
 
-AC_CHECK_FUNCS_ONCE(snprintf)
+AC_CHECK_FUNCS(snprintf)
 
 dnl Adapted from Haible's version.
 AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,

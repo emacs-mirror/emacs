@@ -1,3 +1,8 @@
+2012-06-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't use AC_CHECK_FUNCS_ONCE, which doesn't use
+	the correct CFLAGS and LIBS.
+
 2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Support higher-resolution time stamps (Bug#9000).
