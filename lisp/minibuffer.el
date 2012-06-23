@@ -892,7 +892,8 @@ Repeated uses step through the possible completions."
         (completion--cache-all-sorted-completions (cdr all)))))))
 
 (defvar minibuffer-confirm-exit-commands
-  '(minibuffer-complete minibuffer-complete-word PC-complete PC-complete-word)
+  '(completion-at-point minibuffer-complete
+    minibuffer-complete-word PC-complete PC-complete-word)
   "A list of commands which cause an immediately following
 `minibuffer-complete-and-exit' to ask for extra confirmation.")
 

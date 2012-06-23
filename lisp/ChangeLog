@@ -1,3 +1,8 @@
+2012-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-confirm-exit-commands):
+	Add completion-at-point (bug#11725).
+
 2012-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-font-lock-keywords-2):
@@ -43,8 +48,8 @@
 
 2012-05-18  Eli Zaretskii  <eliz@gnu.org>
 
-	* mail/sendmail.el (mail-yank-region): Recognize
-	rmail-yank-current-message in addition to insert-buffer.
+	* mail/sendmail.el (mail-yank-region):
+	Recognize rmail-yank-current-message in addition to insert-buffer.
 	Fixes mail-mode's "C-c C-r" that otherwise does nothing when invoked in
 	a *mail* buffer created through rmail-start-mail with sendmail as
 	mail-user-agent.
