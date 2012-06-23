@@ -358,11 +358,12 @@ it will override BEGIN, the start of the region.  Set
   "Translates SGR control sequences into overlays or extents.
 Delete all other control sequences without processing them.
 
-SGR control sequences are applied by setting foreground and
-background colors to the text between BEGIN and END using
-overlays.  The colors used are given in `ansi-color-faces-vector'
-and `ansi-color-names-vector'.  See `ansi-color-apply-sequence'
-for details.
+SGR control sequences are applied by calling the function
+specified by `ansi-color-apply-face-function'.  The default
+function sets foreground and background colors to the text
+between BEGIN and END, using overlays.  The colors used are given
+in `ansi-color-faces-vector' and `ansi-color-names-vector'.  See
+`ansi-color-apply-sequence' for details.
 
 Every call to this function will set and use the buffer-local variable
 `ansi-color-context-region' to save position and current face.  This

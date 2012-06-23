@@ -2152,7 +2152,8 @@ be added to `python-mode-abbrev-table'."
   (let* ((name (symbol-name name))
          (function-name (intern (concat "python-skeleton-" name))))
     `(progn
-       (define-abbrev python-mode-abbrev-table ,name "" ',function-name)
+       (define-abbrev python-mode-abbrev-table ,name "" ',function-name
+	 :system t)
        (setq python-skeleton-available
              (cons ',function-name python-skeleton-available))
        (define-skeleton ,function-name
