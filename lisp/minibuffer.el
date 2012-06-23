@@ -488,7 +488,7 @@ for use at QPOS."
 
 (defun completion--twq-try (string ustring completion point
                                    unquote requote)
-  ;; Basically two case: either the new result is
+  ;; Basically two cases: either the new result is
   ;; - commonprefix1 <point> morecommonprefix <qpos> suffix
   ;; - commonprefix <qpos> newprefix <point> suffix
   (pcase-let*
@@ -505,8 +505,13 @@ for use at QPOS."
          ((> point (length prefix)) (+ qpos (length qstr1)))
          (t (car (funcall requote point string))))))
     ;; Make sure `requote' worked.
-    (assert (equal (funcall unquote qstring) completion))
-    (cons qstring qpoint)))
+    (if (equal (funcall unquote qstring) completion)
+	(cons qstring qpoint)
+      ;; If requote failed (e.g. because sifn-requote did not handle
+      ;; Tramp's "/foo:/bar//baz -> /foo:/baz" truncation), then at least
+      ;; try requote properly.
+      (let ((qstr (funcall qfun completion)))
+	(cons qstr (length qstr))))))
 
 (defun completion--string-equal-p (s1 s2)
   (eq t (compare-strings s1 nil nil s2 nil nil 'ignore-case)))
@@ -2130,6 +2135,12 @@ same as `substitute-in-file-name'."
   ;; find the position corresponding to UPOS in QSTR, but
   ;; substitute-in-file-name can do anything, depending on file-name-handlers.
   ;; Kind of like in rfn-eshadow-update-overlay, only worse.
+  ;; FIXME: example of thing we do not handle: Tramp's makes
+  ;; (substitute-in-file-name "/foo:~/bar//baz") -> "/scpc:foo:/baz".
+  ;; FIXME: One way to try and handle "all" cases is to require
+  ;; substitute-in-file-name to preserve text-properties, so we could
+  ;; apply text-properties to the input string and then look for them in
+  ;; the output to understand what comes from where.
   (let ((qpos 0))
     ;; Handle substitute-in-file-name's truncation behavior.
     (let (tpos)
@@ -2824,14 +2835,14 @@ filter out additional entries (because TABLE might not obey PRED)."
 
 (defun completion--sreverse (str)
   "Like `reverse' but for a string STR rather than a list."
-  (apply 'string (nreverse (mapcar 'identity str))))
+  (apply #'string (nreverse (mapcar 'identity str))))
 
 (defun completion--common-suffix (strs)
   "Return the common suffix of the strings STRS."
   (completion--sreverse
    (try-completion
     ""
-    (mapcar 'completion--sreverse strs))))
+    (mapcar #'completion--sreverse strs))))
 
 (defun completion-pcm--merge-completions (strs pattern)
   "Extract the commonality in STRS, with the help of PATTERN.
