@@ -5957,7 +5957,9 @@ additional wait period, in milliseconds; this is for backwards compatibility.
   if (0 < duration)
     {
       EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (duration);
-      wait_reading_process_output (min (EMACS_SECS (t), INTMAX_MAX),
+      intmax_t secs = EMACS_SECS (t);
+
+      wait_reading_process_output (min (secs, INTMAX_MAX),
 				   EMACS_NSECS (t), 0, 0, Qnil, NULL, 0);
     }
 
@@ -6005,7 +6007,8 @@ sit_for (Lisp_Object timeout, int reading, int do_display)
       else
 	{
 	  EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (seconds);
-	  sec = min (EMACS_SECS (t), INTMAX_MAX);
+	  sec = EMACS_SECS (t);
+	  sec = min (sec, INTMAX_MAX);
 	  nsec = EMACS_NSECS (t);
 	}
     }

@@ -3996,7 +3996,9 @@ Return non-nil if we received any output before the timeout expired.  */)
 	  if (0 < XFLOAT_DATA (seconds))
 	    {
 	      EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (seconds));
-	      secs = min (EMACS_SECS (t), INTMAX_MAX);
+
+	      secs = EMACS_SECS (t);
+	      secs = min (secs, INTMAX_MAX);
 	      nsecs = EMACS_NSECS (t);
 	    }
 	}
