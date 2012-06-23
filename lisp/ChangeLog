@@ -1,3 +1,8 @@
+2012-06-23  Leo Liu  <sdl.web@gmail.com>
+
+	* textmodes/enriched.el (enriched-next-annotation):
+	Use eq (Bug#11528).
+
 2012-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-confirm-exit-commands):
