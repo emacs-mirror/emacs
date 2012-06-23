@@ -708,13 +708,12 @@ Possible return values:
               (when (zerop (length token))
                 (condition-case err
                     (progn (goto-char pos) (funcall next-sexp 1) nil)
-                  (scan-error (throw 'return
-                                     (list t (cl-caddr err)
-                                           (buffer-substring-no-properties
-                                            (cl-caddr err)
-                                            (+ (cl-caddr err)
-                                               (if (< (point) (cl-caddr err))
-                                                   -1 1)))))))
+                  (scan-error
+                   (let ((pos (nth 2 err)))
+                     (throw 'return
+                            (list t pos
+                                  (buffer-substring-no-properties
+                                   pos (+ pos (if (< (point) pos) -1 1))))))))
                 (if (eq pos (point))
                     ;; We did not move, so let's abort the loop.
                     (throw 'return (list t (point))))))

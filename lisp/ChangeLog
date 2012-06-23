@@ -1,3 +1,14 @@
+2012-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-variable): Don't croak when doc is not found.
+	* vc/pcvs.el (cvs-retrieve-revision): Avoid toggle-read-only.
+	* menu-bar.el (menu-bar-line-wrapping-menu): Purecopy a tiny bit more.
+	* emacs-lisp/syntax.el (syntax-ppss): Simplify with new `if' place.
+	* emacs-lisp/smie.el (smie-next-sexp): CSE.
+	* emacs-lisp/macroexp.el (macroexp-let2): Fix edebug spec and avoid
+	((lambda ..) ..).
+	* emacs-lisp/eieio.el (eieio-oref, slot-value): Use simpler defsetf.
+
 2012-06-23  Chong Yidong  <cyd@gnu.org>
 
 	* info.el (Info-mouse-follow-link): Accept symbol values of

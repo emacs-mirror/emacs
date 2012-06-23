@@ -806,8 +806,12 @@ it is displayed along with the global value."
                    (obsolete (get variable 'byte-obsolete-variable))
 		   (use (car obsolete))
 		   (safe-var (get variable 'safe-local-variable))
-                   (doc (or (documentation-property variable 'variable-documentation)
-                            (documentation-property alias 'variable-documentation)))
+                   (doc (condition-case err
+                            (or (documentation-property
+                                 variable 'variable-documentation)
+                                (documentation-property
+                                 alias 'variable-documentation))
+                          (error (format "Doc not found: %S" err))))
                    (extra-line nil))
               ;; Add a note for variables that have been make-var-buffer-local.
               (when (and (local-variable-if-set-p variable)

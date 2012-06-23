@@ -2543,10 +2543,12 @@ This is usually a symbol that starts with `:'."
 ;;; Here are some CLOS items that need the CL package
 ;;
 
-(defsetf slot-value (obj slot) (store) (list 'eieio-oset obj slot store))
-(defsetf eieio-oref (obj slot) (store) (list 'eieio-oset obj slot store))
+(defsetf eieio-oref eieio-oset)
+;; FIXME: Not needed for Emacs>=24.2 since setf follows function aliases.
+(defsetf slot-value eieio-oset)
 
 ;; The below setf method was written by Arnd Kohrs <kohrs@acm.org>
+;; FIXME: Not needed for Emacs>=24.2 since setf expands macros.
 (define-setf-method oref (obj slot)
   (with-no-warnings
     (require 'cl)

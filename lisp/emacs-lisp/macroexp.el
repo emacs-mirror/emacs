@@ -269,11 +269,11 @@ This is like `(let ((v ,EXP)) ,EXPS) except that `v' is a new generated
 symbol which EXPS can find in VAR.
 TEST should be the name of a predicate on EXP checking whether the `let' can
 be skipped; if nil, as is usual, `macroexp-const-p' is used."
-  (declare (indent 3) (debug (sexp form sexp body)))
+  (declare (indent 3) (debug (sexp sexp form body)))
   (let ((bodysym (make-symbol "body"))
         (expsym (make-symbol "exp")))
     `(let* ((,expsym ,exp)
-            (,var (if (,(or test #'macroexp-const-p) ,expsym)
+            (,var (if (funcall #',(or test #'macroexp-const-p) ,expsym)
                       ,expsym (make-symbol "x")))
             (,bodysym ,(macroexp-progn exps)))
        (if (eq ,var ,expsym) ,bodysym

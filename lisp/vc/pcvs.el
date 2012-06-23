@@ -1758,7 +1758,7 @@ Signal an error if there is no backup file."
 	    (set-buffer-modified-p nil)
 	    (let ((buffer-file-name (expand-file-name file)))
 	      (after-find-file))
-	    (toggle-read-only 1)
+	    (setq buffer-read-only t)
 	    (message "Retrieving revision %s... Done" rev)
 	    (current-buffer))))))
 

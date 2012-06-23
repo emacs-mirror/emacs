@@ -1126,11 +1126,12 @@ mail status in mode line"))
     (define-key menu [word-wrap]
       `(menu-item
 	,(purecopy "Word Wrap (Visual Line mode)")
-	(lambda ()
-	  (interactive)
-	  (unless visual-line-mode
-	    (visual-line-mode 1))
-	  (message ,(purecopy "Visual-Line mode enabled")))
+	,(purecopy
+          (lambda ()
+            (interactive)
+            (unless visual-line-mode
+              (visual-line-mode 1))
+            (message "Visual-Line mode enabled")))
 	:help ,(purecopy "Wrap long lines at word boundaries")
 	:button (:radio . (and (null truncate-lines)
 			       (not (truncated-partial-width-window-p))
