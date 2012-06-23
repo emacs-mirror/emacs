@@ -1,3 +1,7 @@
+2012-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-rpm.el (pcmpl-rpm-packages): Give status messages.
+
 2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Further GV/CL cleanups.
