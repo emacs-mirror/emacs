@@ -1,3 +1,13 @@
+2012-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c [__FreeBSD__]: Fix recently-introduced typos.
+	Privately reported by Herbert J. Skuhra.
+	[__FreeBSD__]: Remove "*/" typo after "#include".
+	(timeval_to_EMACS_TIME) [__FreeBSD__]: New static function.
+	(TIMEVAL) [__FreeBSD__]: Now a static function rather than a macro.
+	(TIMEVAL, system_process_attributes) [__FreeBSD__]:
+	Don't assume EMACS_TIME and struct timeval are the same type.
+
 2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Support higher-resolution time stamps (Bug#9000).

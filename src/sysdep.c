@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef __FreeBSD__
 #include <sys/sysctl.h>
 #include <sys/user.h>
-#include <sys/resource.h> */
+#include <sys/resource.h>
 #include <math.h>
 #endif
 
@@ -3107,6 +3107,20 @@ system_process_attributes (Lisp_Object pid)
 
 #elif defined __FreeBSD__
 
+static EMACS_TIME
+timeval_to_EMACS_TIME (struct timeval t)
+{
+  EMACS_TIME e;
+  EMACS_SET_SECS_NSECS (e, t.tv_sec, t.tv_usec * 1000);
+  return e;
+}
+
+static Lisp_Object
+TIMELIST (struct timeval t)
+{
+  return make_lisp_time (timeval_to_EMACS_TIME (t));
+}
+
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
@@ -3202,19 +3216,18 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qcminflt, make_number (proc.ki_rusage_ch.ru_minflt)), attrs);
   attrs = Fcons (Fcons (Qcmajflt, make_number (proc.ki_rusage_ch.ru_majflt)), attrs);
 
-#define TIMELIST(ts)					\
-  list3 (make_number (EMACS_SECS (ts) >> 16 & 0xffff),	\
-	 make_number (EMACS_SECS (ts) & 0xffff),	\
-	 make_number (EMACS_USECS (ts)))
-
   attrs = Fcons (Fcons (Qutime, TIMELIST (proc.ki_rusage.ru_utime)), attrs);
   attrs = Fcons (Fcons (Qstime, TIMELIST (proc.ki_rusage.ru_stime)), attrs);
-  EMACS_ADD_TIME (t, proc.ki_rusage.ru_utime, proc.ki_rusage.ru_stime);
+  EMACS_ADD_TIME (t,
+		  timeval_to_EMACS_TIME (proc.ki_rusage.ru_utime),
+		  timeval_to_EMACS_TIME (proc.ki_rusage.ru_stime));
   attrs = Fcons (Fcons (Qtime,  TIMELIST (t)), attrs);
 
   attrs = Fcons (Fcons (Qcutime, TIMELIST (proc.ki_rusage_ch.ru_utime)), attrs);
   attrs = Fcons (Fcons (Qcstime, TIMELIST (proc.ki_rusage_ch.ru_utime)), attrs);
-  EMACS_ADD_TIME (t, proc.ki_rusage_ch.ru_utime, proc.ki_rusage_ch.ru_stime);
+  EMACS_ADD_TIME (t,
+		  timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_utime),
+		  timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_stime));
   attrs = Fcons (Fcons (Qctime, TIMELIST (t)), attrs);
 
   attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (proc.ki_numthreads)),
@@ -3227,10 +3240,8 @@ system_process_attributes (Lisp_Object pid)
 		 attrs);
 
   EMACS_GET_TIME (now);
-  EMACS_SUB_TIME (t, now, proc.ki_start);
+  EMACS_SUB_TIME (t, now, timeval_to_EMACS_TIME (proc.ki_start));
   attrs = Fcons (Fcons (Qetime, TIMELIST (t)), attrs);
-
-#undef TIMELIST
 
   len = sizeof fscale;
   if (sysctlbyname ("kern.fscale", &fscale, &len, NULL, 0) == 0)
