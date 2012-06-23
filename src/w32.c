@@ -333,7 +333,6 @@ w32_get_internal_run_time (void)
       if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
         {
           LARGE_INTEGER user_int, kernel_int, total;
-	  int time_100ns;
           user_int.LowPart = user.dwLowDateTime;
           user_int.HighPart = user.dwHighDateTime;
           kernel_int.LowPart = kernel.dwLowDateTime;
@@ -4093,6 +4092,7 @@ restore_privilege (TOKEN_PRIVILEGES *priv)
   return ret_val;
 }
 
+static Lisp_Object
 ltime (ULONGLONG time_100ns)
 {
   ULONGLONG time_sec = time_100ns / 10000000;

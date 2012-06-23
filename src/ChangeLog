@@ -1,3 +1,8 @@
+2012-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (ltime): Add return type and declare static.
+	(w32_get_internal_run_time): Remove usused variable `time_100ns'.
+
 2012-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c [__FreeBSD__]: Fix more recently-introduced typos.
