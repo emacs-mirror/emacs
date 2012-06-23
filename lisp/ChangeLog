@@ -1,5 +1,8 @@
 2012-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-macs.el (cl--make-usage-args): Handle improper lists
+	(bug#11719).
+
 	* minibuffer.el (completion--twq-try): Try to fail more gracefully when
 	the requote function doesn't work properly (bug#11714).
 

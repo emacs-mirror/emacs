@@ -350,28 +350,36 @@ its argument list allows full Common Lisp conventions."
    (t x)))
 
 (defun cl--make-usage-args (arglist)
-  ;; `orig-args' can contain &cl-defs (an internal
-  ;; CL thingy I don't understand), so remove it.
-  (let ((x (memq '&cl-defs arglist)))
-    (when x (setq arglist (delq (car x) (remq (cadr x) arglist)))))
-  (let ((state nil))
-    (mapcar (lambda (x)
-              (cond
-               ((symbolp x)
-                (if (eq ?\& (aref (symbol-name x) 0))
-                    (setq state x)
-                  (make-symbol (upcase (symbol-name x)))))
-               ((not (consp x)) x)
-               ((memq state '(nil &rest)) (cl--make-usage-args x))
-               (t        ;(VAR INITFORM SVAR) or ((KEYWORD VAR) INITFORM SVAR).
-                (cl-list*
-                 (if (and (consp (car x)) (eq state '&key))
-                     (list (caar x) (cl--make-usage-var (nth 1 (car x))))
-                   (cl--make-usage-var (car x)))
-                 (nth 1 x)                          ;INITFORM.
-                 (cl--make-usage-args (nthcdr 2 x)) ;SVAR.
-                 ))))
-            arglist)))
+  (if (cdr-safe (last arglist))         ;Not a proper list.
+      (let* ((last (last arglist))
+             (tail (cdr last)))
+        (unwind-protect
+            (progn
+              (setcdr last nil)
+              (nconc (cl--make-usage-args arglist) (cl--make-usage-var tail)))
+          (setcdr last tail)))
+    ;; `orig-args' can contain &cl-defs (an internal
+    ;; CL thingy I don't understand), so remove it.
+    (let ((x (memq '&cl-defs arglist)))
+      (when x (setq arglist (delq (car x) (remq (cadr x) arglist)))))
+    (let ((state nil))
+      (mapcar (lambda (x)
+                (cond
+                 ((symbolp x)
+                  (if (eq ?\& (aref (symbol-name x) 0))
+                      (setq state x)
+                    (make-symbol (upcase (symbol-name x)))))
+                 ((not (consp x)) x)
+                 ((memq state '(nil &rest)) (cl--make-usage-args x))
+                 (t      ;(VAR INITFORM SVAR) or ((KEYWORD VAR) INITFORM SVAR).
+                  (cl-list*
+                   (if (and (consp (car x)) (eq state '&key))
+                       (list (caar x) (cl--make-usage-var (nth 1 (car x))))
+                     (cl--make-usage-var (car x)))
+                   (nth 1 x)                        ;INITFORM.
+                   (cl--make-usage-args (nthcdr 2 x)) ;SVAR.
+                   ))))
+              arglist))))
 
 (defun cl--do-arglist (args expr &optional num)   ; uses bind-*
   (if (nlistp args)
