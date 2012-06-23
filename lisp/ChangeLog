@@ -1,5 +1,7 @@
 2012-06-23  Chong Yidong  <cyd@gnu.org>
 
+	* mouse.el (mouse-drag-track): Deactivate the mark before popping.
+
 	* progmodes/python.el (python-skeleton-define): Mark abbrevs as
 	system abbrevs.
 
