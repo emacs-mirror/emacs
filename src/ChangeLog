@@ -1,3 +1,7 @@
+2012-06-23  Chong Yidong  <cyd@gnu.org>
+
+	* xmenu.c (x_menu_wait_for_event): Adapt GTK3 to new xg_select.
+
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix the MS-Windows build broken by revno 108687.

@@ -411,11 +411,10 @@ x_menu_wait_for_event (void *data)
         ntp = &next_time;
 
 #ifdef HAVE_GTK3
-      /* Gtk3 have arrows on menus when they don't fit.  When the pointer is
-         over an arrow, a timeout scrolls it a bit.  Use xg_select so that
-         timeout gets triggered.  */
-
-      xg_select (n + 1, &read_fds, NULL, NULL, ntp);
+      /* Gtk3 have arrows on menus when they don't fit.  When the
+	 pointer is over an arrow, a timeout scrolls it a bit.  Use
+	 xg_select so that timeout gets triggered.  */
+      xg_select (n + 1, &read_fds, NULL, NULL, ntp, NULL);
 #else
       pselect (n + 1, &read_fds, NULL, NULL, ntp, NULL);
 #endif
