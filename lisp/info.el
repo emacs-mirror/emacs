@@ -3695,12 +3695,20 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
   (interactive "e")
   (let* ((position (event-start click))
 	 (posn-string (and position (posn-string position)))
-	 (string (car-safe posn-string))
-	 (string-pos (cdr-safe posn-string))
-	 (link-args (and string string-pos
-			 (get-text-property string-pos 'link-args string))))
-    (when link-args
-      (Info-goto-node link-args))))
+	 (link-args (if posn-string
+			(get-text-property (cdr posn-string)
+					   'link-args
+					   (car posn-string))
+		      (get-char-property (posn-point position)
+					 'link-args))))
+    (select-window (posn-window position))
+    (cond ((stringp link-args)
+	   (Info-goto-node link-args))
+	  ;; These special values of the `link-args' property are used
+	  ;; for navigation; see `Info-fontify-node'.
+	  ((eq link-args 'prev) (Info-prev))
+	  ((eq link-args 'next) (Info-next))
+	  ((eq link-args 'up)   (Info-up)))))
 
 
 (defvar Info-mode-map
@@ -4275,36 +4283,6 @@ the variable `Info-file-list-for-emacs'."
 	  (t
 	   (Info-goto-emacs-command-node command)))))
 
-(defvar Info-next-link-keymap
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line mouse-1] 'Info-next)
-    (define-key keymap [header-line mouse-2] 'Info-next)
-    (define-key keymap [header-line down-mouse-1] 'ignore)
-    (define-key keymap [mouse-2] 'Info-next)
-    (define-key keymap [follow-link] 'mouse-face)
-    keymap)
-  "Keymap to put on the Next link in the text or the header line.")
-
-(defvar Info-prev-link-keymap
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line mouse-1] 'Info-prev)
-    (define-key keymap [header-line mouse-2] 'Info-prev)
-    (define-key keymap [header-line down-mouse-1] 'ignore)
-    (define-key keymap [mouse-2] 'Info-prev)
-    (define-key keymap [follow-link] 'mouse-face)
-    keymap)
-  "Keymap to put on the Prev link in the text or the header line.")
-
-(defvar Info-up-link-keymap
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line mouse-1] 'Info-up)
-    (define-key keymap [header-line mouse-2] 'Info-up)
-    (define-key keymap [header-line down-mouse-1] 'ignore)
-    (define-key keymap [mouse-2] 'Info-up)
-    (define-key keymap [follow-link] 'mouse-face)
-    keymap)
-  "Keymap to put on the Up link in the text or the header line.")
-
 (defvar Info-link-keymap
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap [header-line mouse-1] 'Info-mouse-follow-link)
@@ -4313,7 +4291,9 @@ the variable `Info-file-list-for-emacs'."
     (define-key keymap [mouse-2] 'Info-mouse-follow-link)
     (define-key keymap [follow-link] 'mouse-face)
     keymap)
-  "Keymap to put on the link in the text or the header line.")
+  "Keymap to put on Info links.
+This is used for the \"Next\", \"Prev\", and \"Up\" links in the
+first line or header line, and for breadcrumb links.")
 
 (defun Info-breadcrumbs ()
   (let ((nodes (Info-toc-nodes Info-current-file))
@@ -4402,15 +4382,14 @@ the variable `Info-file-list-for-emacs'."
                                  'help-echo
                                  (concat "mouse-2: Go to node "
                                          (buffer-substring nbeg nend)))
-              ;; Always set up the text property keymap.
-              ;; It will either be used in the buffer
-              ;; or copied in the header line.
-              (put-text-property
-	       tbeg nend 'keymap
-	       (cond
-		((string-equal (downcase tag) "prev") Info-prev-link-keymap)
-		((string-equal (downcase tag) "next") Info-next-link-keymap)
-		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
+              ;; Set up the text property keymap.  Depending on
+              ;; `Info-use-header-line', it is either used in the
+              ;; buffer, or copied to the header line.  A symbol value
+              ;; of the `link-args' property is handled specially by
+              ;; `Info-mouse-follow-link'.
+              (put-text-property tbeg nend 'keymap Info-link-keymap)
+              (put-text-property tbeg nend 'link-args
+				 (intern (downcase tag))))))
 
         ;; (when (> Info-breadcrumbs-depth 0)
         ;;   (insert (Info-breadcrumbs)))

@@ -1,5 +1,15 @@
 2012-06-23  Chong Yidong  <cyd@gnu.org>
 
+	* info.el (Info-mouse-follow-link): Accept symbol values of the
+	link-args property.  Select the window (Bug#11672).
+	(Info-fontify-node): Use Info-link-keymap for all navigation
+	buttons, with link-args property to perform the desired action.
+	(Info-link-keymap): Doc fix.
+	(Info-next-link-keymap, Info-prev-link-keymap)
+	(Info-up-link-keymap): Delete now-unused keymaps.
+
+2012-06-23  Chong Yidong  <cyd@gnu.org>
+
 	* mouse.el (mouse-drag-track): Deactivate the mark before popping.
 
 	* progmodes/python.el (python-skeleton-define): Mark abbrevs as
