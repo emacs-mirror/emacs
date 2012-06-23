@@ -110,8 +110,8 @@ request.")
     (503 service-unavailable             "Service unavailable")
     (504 gateway-timeout                 "Gateway time-out")
     (505 http-version-not-supported      "HTTP version not supported")
-    (507 insufficient-storage            "Insufficient storage")
-"The HTTP return codes and their text."))
+    (507 insufficient-storage            "Insufficient storage"))
+  "The HTTP return codes and their text.")
 
 ;(eval-when-compile
 ;; These are all macros so that they are hidden from external sight
