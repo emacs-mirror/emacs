@@ -1,4 +1,4 @@
-# getopt.m4 serial 41
+# getopt.m4 serial 42
 dnl Copyright (C) 2002-2006, 2008-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -319,6 +319,48 @@ dnl is ambiguous with environment values that contain newlines.
       ])
     if test "$gl_cv_func_getopt_gnu" = "no"; then
       gl_replace_getopt=yes
+    else
+      AC_CACHE_CHECK([for working GNU getopt_long function],
+        [gl_cv_func_getopt_long_gnu],
+        [AC_RUN_IFELSE(
+           [AC_LANG_PROGRAM(
+              [[#include <getopt.h>
+                #include <stddef.h>
+                #include <string.h>
+              ]],
+              [[static const struct option long_options[] =
+                  {
+                    { "xtremely-",no_argument,       NULL, 1003 },
+                    { "xtra",     no_argument,       NULL, 1001 },
+                    { "xtreme",   no_argument,       NULL, 1002 },
+                    { "xtremely", no_argument,       NULL, 1003 },
+                    { NULL,       0,                 NULL, 0 }
+                  };
+                /* This code fails on OpenBSD 5.0.  */
+                {
+                  static char program[] = "program";
+                  static char xtremel[] = "--xtremel";
+                  char *argv[] = { program, xtremel, NULL };
+                  int option_index;
+                  optind = 1; opterr = 0;
+                  if (getopt_long (2, argv, "", long_options, &option_index) != 1003)
+                    return 1;
+                }
+                return 0;
+              ]])],
+           [gl_cv_func_getopt_long_gnu=yes],
+           [gl_cv_func_getopt_long_gnu=no],
+           [dnl Cross compiling. Guess no on OpenBSD, yes otherwise.
+            case "$host_os" in
+              openbsd*) gl_cv_func_getopt_long_gnu="guessing no";;
+              *)        gl_cv_func_getopt_long_gnu="guessing yes";;
+            esac
+           ])
+        ])
+      case "$gl_cv_func_getopt_long_gnu" in
+        *yes) ;;
+        *) gl_replace_getopt=yes ;;
+      esac
     fi
   fi
 ])

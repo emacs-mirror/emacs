@@ -1,3 +1,9 @@
+2012-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* m4/getopt.m4: Copy new version from gnulib, incorporating:
+	getopt-gnu: Handle suboptimal getopt_long's abbreviation handling.
+
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix the MS-Windows build broken by revno 108687.
