@@ -3982,9 +3982,11 @@ kbd_buffer_get_event (KBOARD **kbp,
 #if defined (WINDOWSNT)
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
-	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
-	  obj = Fcons (event->frame_or_window, Qnil);
-	  obj = Fcons (Qlanguage_change, Fcons (obj, Qnil));
+	  /* Make an event (language-change (FRAME CODEPAGE LANGUAGE-ID)).  */
+	  obj = Fcons (Qlanguage_change,
+		       list3 (event->frame_or_window,
+			      make_number (event->code),
+			      make_number (event->modifiers)));
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif

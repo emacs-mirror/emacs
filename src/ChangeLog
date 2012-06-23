@@ -1,3 +1,11 @@
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (kbd_buffer_get_event): Include the codepage and the
+	language ID in the event parameters.
+
+	* w32term.c (w32_read_socket): Put the new keyboard codepage into
+	event.code, not the obscure "character set ID".
+
 2012-06-23  Chong Yidong  <cyd@gnu.org>
 
 	* xmenu.c (x_menu_wait_for_event): Adapt GTK3 to new xg_select.

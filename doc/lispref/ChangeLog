@@ -1,3 +1,7 @@
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Document the language-change event.
+
 2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Support higher-resolution time stamps (Bug#9000).

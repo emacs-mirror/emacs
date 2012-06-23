@@ -4234,8 +4234,8 @@ w32_read_socket (struct terminal *terminal, int expected,
 	  /* Generate a language change event.  */
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  /* lParam contains the input lang ID.  Use it to update our
-	     record of the keyboard codepage.  */
+	  /* lParam contains the input language ID in its low 16 bits.
+	     Use it to update our record of the keyboard codepage.  */
 	  keyboard_codepage = codepage_for_locale ((LCID)(msg.msg.lParam
 							  & 0xffff));
 
@@ -4243,7 +4243,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 	    {
 	      inev.kind = LANGUAGE_CHANGE_EVENT;
 	      XSETFRAME (inev.frame_or_window, f);
-	      inev.code = msg.msg.wParam;
+	      inev.code = keyboard_codepage;
 	      inev.modifiers = msg.msg.lParam & 0xffff;
 	    }
 	  break;
