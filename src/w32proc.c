@@ -1949,8 +1949,12 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
       got_full = GetLocaleInfo (XINT (lcid),
 				XINT (longform),
 				full_name, sizeof (full_name));
+      /* GetLocaleInfo's return value includes the terminating null
+	 character, when the returned information is a string, whereas
+	 make_unibyte_string needs the string length without the
+	 terminating null.  */
       if (got_full)
-	return make_unibyte_string (full_name, got_full);
+	return make_unibyte_string (full_name, got_full - 1);
     }
 
   return Qnil;

@@ -1,5 +1,8 @@
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32proc.c (Fw32_get_locale_info): Fix an off-by-one error in
+	last argument of make_unibyte_string.
+
 	* keyboard.c (kbd_buffer_get_event): Include the codepage and the
 	language ID in the event parameters.
 
