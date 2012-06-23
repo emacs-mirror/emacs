@@ -1996,6 +1996,41 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
     }
 }
 
+/* Emulate fdutimens.  */
+
+/* Set the access and modification time stamps of FD (a.k.a. FILE) to be
+   TIMESPEC[0] and TIMESPEC[1], respectively.
+   FD must be either negative -- in which case it is ignored --
+   or a file descriptor that is open on FILE.
+   If FD is nonnegative, then FILE can be NULL, which means
+   use just futimes instead of utimes.
+   If TIMESPEC is null, FAIL.
+   Return 0 on success, -1 (setting errno) on failure.  */
+
+int
+fdutimens (int fd, char const *file, struct timespec const timespec[2])
+{
+  struct _utimbuf ut;
+
+  if (!timespec)
+    {
+      errno = ENOSYS;
+      return -1;
+    }
+  if (fd < 0 && !file)
+    {
+      errno = EBADF;
+      return -1;
+    }
+  ut.actime = timespec[0].tv_sec;
+  ut.modtime = timespec[1].tv_sec;
+  if (fd >= 0)
+    return _futime (fd, &ut);
+  else
+    return _utime (file, &ut);
+}
+
+
 /* ------------------------------------------------------------------------- */
 /* IO support and wrapper functions for W32 API. */
 /* ------------------------------------------------------------------------- */

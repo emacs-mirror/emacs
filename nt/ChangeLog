@@ -1,3 +1,8 @@
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MS-Windows build broken by revno 108687.
+	* inc/sys/time.h (struct timespec): Define.
+
 2012-06-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (install-addpm): New target.

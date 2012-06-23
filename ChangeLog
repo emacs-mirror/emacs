@@ -1,3 +1,18 @@
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MS-Windows build broken by revno 108687.
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/dtotimespec.$(O),
+	$(BLD)/gettime.$(O), $(BLD)/timespec-add.$(O), and
+	$(BLD)/timespec-sub.$(O).
+	($(BLD)/dtotimespec.$(O)):
+	($(BLD)/gettime.$(O)):
+	($(BLD)/timespec-add.$(O)):
+	($(BLD)/timespec-sub.$(O)): New dependencies.
+
+	* lib/stat-time.h:
+	* lib/timespec.h:
+	* lib/utimens.h: Include sys/time.h
+
 2012-06-23  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Don't use AC_CHECK_FUNCS_ONCE, which doesn't use

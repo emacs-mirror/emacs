@@ -1,5 +1,14 @@
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix the MS-Windows build broken by revno 108687.
+	* w32.c (fdutimens): New function.
+
+	* w32proc.c (sys_select): Adapt to change in the EMACS_TIME type.
+
+	* s/ms-w32.h (pselect): Redirect to sys_select.
+
+	* sysselect.h [WINDOWSNT]: Don't include sys/select.h.
+
 	* ralloc.c (r_alloc_inhibit_buffer_relocation): Fix stupid thinko
 	in the logic of incrementing and decrementing the value of
 	use_relocatable_buffers.

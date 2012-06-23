@@ -1090,7 +1090,8 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   HANDLE wait_hnd[MAXDESC + MAX_CHILDREN];
   int fdindex[MAXDESC];   /* mapping from wait handles back to descriptors */
 
-  timeout_ms = timeout ? (timeout->tv_sec * 1000 + timeout->tv_usec / 1000) : INFINITE;
+  timeout_ms =
+    timeout ? (timeout->tv_sec * 1000 + timeout->tv_nsec / 1000000) : INFINITE;
 
   /* If the descriptor sets are NULL but timeout isn't, then just Sleep.  */
   if (rfds == NULL && wfds == NULL && efds == NULL && timeout != NULL)

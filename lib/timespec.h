@@ -20,6 +20,7 @@
 # define TIMESPEC_H
 
 # include <time.h>
+# include <sys/time.h>
 
 /* Return negative, zero, positive if A < B, A == B, A > B, respectively.
 

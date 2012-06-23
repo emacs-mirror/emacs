@@ -22,6 +22,7 @@
 
 #include <sys/stat.h>
 #include <time.h>
+#include <sys/time.h>
 
 /* STAT_TIMESPEC (ST, ST_XTIM) is the ST_XTIM member for *ST of type
    struct timespec, if available.  If not, then STAT_TIMESPEC_NS (ST,

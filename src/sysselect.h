@@ -19,7 +19,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (DARWIN_OS)
 #undef init_process
 #endif
+#ifndef WINDOWSNT
 #include <sys/select.h>
+#endif
 #if defined (DARWIN_OS)
 #define init_process emacs_init_process
 #endif
