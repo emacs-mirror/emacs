@@ -3,7 +3,7 @@
 	Support higher-resolution time stamps (Bug#9000).
 	* Makefile.in (LIB_CLOCK_GETTIME): New macro.
 	(profile${EXEEXT}): Use it.
-	* profile.c: Include inttyeps.h, intprops.h.
+	* profile.c: Include inttypes.h, intprops.h.
 	(time_string): Size conservatively; do not guess size.
 	(get_time): Now prints nanoseconds.
 	(gettimeofday): Remove replacement function; gnulib now does this.
