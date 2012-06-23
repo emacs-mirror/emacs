@@ -81,6 +81,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Enable expensive run-time checking of data types? */
 #undef ENABLE_CHECKING
 
+/* Define to 1 if futimesat mishandles a NULL file name. */
+#undef FUTIMESAT_NULL_BUG
+
 /* Define this to check for errors in cons list. */
 #undef GC_CHECK_CONS_LIST
 
@@ -98,11 +101,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the `getpgrp' function requires zero arguments. */
 #undef GETPGRP_VOID
 
-/* Define to 1 if gettimeofday accepts only one argument. */
-#undef GETTIMEOFDAY_ONE_ARGUMENT
+/* Define if gettimeofday clobbers the localtime buffer. */
+#undef GETTIMEOFDAY_CLOBBERS_LOCALTIME
+
+/* Define this to 'void' or 'struct timezone' to match the system's
+   declaration of the second argument to gettimeofday. */
+#undef GETTIMEOFDAY_TIMEZONE
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module fscanf shall be considered present. */
+#undef GNULIB_FSCANF
 
 /* enable some gnulib portability checks */
 #undef GNULIB_PORTCHECK
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module scanf shall be considered present. */
+#undef GNULIB_SCANF
 
 /* Define to 1 if you want to use the GNU memory allocator. */
 #undef GNU_MALLOC
@@ -138,6 +153,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `cfsetspeed' function. */
 #undef HAVE_CFSETSPEED
+
+/* Define to 1 if you have the `clock_gettime' function. */
+#undef HAVE_CLOCK_GETTIME
+
+/* Define to 1 if you have the `clock_settime' function. */
+#undef HAVE_CLOCK_SETTIME
 
 /* Define to 1 if you have the `closedir' function. */
 #undef HAVE_CLOSEDIR
@@ -262,6 +283,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `fsync' function. */
 #undef HAVE_FSYNC
+
+/* Define to 1 if you have the `futimens' function. */
+#undef HAVE_FUTIMENS
+
+/* Define to 1 if you have the `futimes' function. */
+#undef HAVE_FUTIMES
+
+/* Define to 1 if you have the `futimesat' function. */
+#undef HAVE_FUTIMESAT
 
 /* Define to 1 if you have the `gai_strerror' function. */
 #undef HAVE_GAI_STRERROR
@@ -522,6 +552,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `lstat' function. */
 #undef HAVE_LSTAT
 
+/* Define to 1 if you have the `lutimes' function. */
+#undef HAVE_LUTIMES
+
 /* Define to 1 if using libm17n-flt. */
 #undef HAVE_M17N_FLT
 
@@ -566,6 +599,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have mouse support. */
 #undef HAVE_MOUSE
 
+/* Define to 1 if you have the `nanotime' function. */
+#undef HAVE_NANOTIME
+
 /* Define to 1 if you have the <net/if_dl.h> header file. */
 #undef HAVE_NET_IF_DL_H
 
@@ -596,6 +632,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have the /proc filesystem. */
 #undef HAVE_PROCFS
+
+/* Define to 1 if you have the `pselect' function. */
+#undef HAVE_PSELECT
 
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
@@ -744,10 +783,32 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `n_un.n_name' is a member of `struct nlist'. */
 #undef HAVE_STRUCT_NLIST_N_UN_N_NAME
 
+/* Define to 1 if `st_atimensec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_ATIMENSEC
+
+/* Define to 1 if `st_atimespec.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_ATIMESPEC_TV_NSEC
+
+/* Define to 1 if `st_atim.st__tim.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_ATIM_ST__TIM_TV_NSEC
+
+/* Define to 1 if `st_atim.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+
+/* Define to 1 if `st_birthtimensec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIMENSEC
+
+/* Define to 1 if `st_birthtimespec.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC_TV_NSEC
+
+/* Define to 1 if `st_birthtim.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIM_TV_NSEC
+
 /* Define to 1 if `tm_zone' is a member of `struct tm'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
 
-/* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
+/* Define if struct utimbuf is declared -- usually in <utime.h>. Some systems
+   have utime.h but don't declare the struct anywhere. */
 #undef HAVE_STRUCT_UTIMBUF
 
 /* Define if struct stat has an st_dm_mode member. */
@@ -789,6 +850,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <sys/systeminfo.h> header file. */
 #undef HAVE_SYS_SYSTEMINFO_H
 
+/* Define to 1 if you have the <sys/timeb.h> header file. */
+#undef HAVE_SYS_TIMEB_H
+
 /* Define to 1 if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
 
@@ -812,9 +876,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the tiff library (-ltiff). */
 #undef HAVE_TIFF
-
-/* Define to 1 if `struct timeval' is declared by <sys/time.h>. */
-#undef HAVE_TIMEVAL
 
 /* Define if struct tm has the tm_gmtoff member. */
 #undef HAVE_TM_GMTOFF
@@ -842,6 +903,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <util.h> header file. */
 #undef HAVE_UTIL_H
 
+/* Define to 1 if you have the `utimensat' function. */
+#undef HAVE_UTIMENSAT
+
 /* Define to 1 if you have the `utimes' function. */
 #undef HAVE_UTIMES
 
@@ -866,8 +930,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have a window system. */
 #undef HAVE_WINDOW_SYSTEM
 
+/* Define to 1 if you have the <winsock2.h> header file. */
+#undef HAVE_WINSOCK2_H
+
 /* Define to 1 if `fork' works. */
 #undef HAVE_WORKING_FORK
+
+/* Define if utimes works properly. */
+#undef HAVE_WORKING_UTIMES
 
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
@@ -923,6 +993,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
+
+/* Define to 1 if you have the `_ftime' function. */
+#undef HAVE__FTIME
 
 /* Define to 1 if you have the `__builtin_unwind_init' function. */
 #undef HAVE___BUILTIN_UNWIND_INIT
@@ -1084,6 +1157,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
 
+/* Define to 1 if the type of the st_atim member of a struct stat is struct
+   timespec. */
+#undef TYPEOF_STRUCT_STAT_ST_ATIM_IS_STRUCT_TIMESPEC
+
 /* Define to 1 for Encore UMAX. */
 #undef UMAX
 
@@ -1207,7 +1284,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef _ALL_SOURCE
 # undef _ALL_SOURCE
 #endif
-/* Enable general extensions on MacOS X.  */
+/* Enable general extensions on Mac OS X.  */
 #ifndef _DARWIN_C_SOURCE
 # undef _DARWIN_C_SOURCE
 #endif
@@ -1243,6 +1320,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* A replacement for va_copy, if needed.  */
 #define gl_va_copy(a,b) ((a) = (b))
 
+/* Define to rpl_gmtime if the replacement function should be used. */
+#undef gmtime
+
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
@@ -1252,7 +1332,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Work around a bug in Apple GCC 4.0.1 build 5465: In C99 mode, it supports
    the ISO C 99 semantics of 'extern inline' (unlike the GNU C semantics of
    earlier versions), but does not display it by setting __GNUC_STDC_INLINE__.
-   __APPLE__ && __MACH__ test for MacOS X.
+   __APPLE__ && __MACH__ test for Mac OS X.
    __APPLE_CC__ tests for the Apple compiler and its version.
    __STDC_VERSION__ tests for the C99 mode.  */
 #if defined __APPLE__ && defined __MACH__ && __APPLE_CC__ >= 5465 && !defined __cplusplus && __STDC_VERSION__ >= 199901L && !defined __GNUC_STDC_INLINE__
@@ -1261,6 +1341,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if the compiler is checking for lint. */
 #undef lint
+
+/* Define to rpl_localtime if the replacement function should be used. */
+#undef localtime
 
 /* Define to a type if <wchar.h> does not define. */
 #undef mbstate_t
