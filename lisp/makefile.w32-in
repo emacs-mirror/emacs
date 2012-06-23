@@ -79,10 +79,10 @@ BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
 # speed up the bootstrap process.
 
 COMPILE_FIRST = \
-	$(lisp)/emacs-lisp/bytecomp.el \
-	$(lisp)/emacs-lisp/byte-opt.el \
 	$(lisp)/emacs-lisp/macroexp.el \
 	$(lisp)/emacs-lisp/cconv.el \
+	$(lisp)/emacs-lisp/byte-opt.el \
+	$(lisp)/emacs-lisp/bytecomp.el \
 	$(lisp)/emacs-lisp/autoload.el
 
 # The actual Emacs command run in the targets below.
