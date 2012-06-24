@@ -1,5 +1,12 @@
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-item-undo): Fix restoration on
+	cancelling; use buffer-substring-no-properties; comment out code
+	removing mark overlay; fix insertion of undone items; display any
+	remaining done items.
+
+2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Further significant code rearrangement;
 	further comment revision.
 	(todos-mode-display): New defgroup.

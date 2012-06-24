@@ -4833,7 +4833,6 @@ With prefix ARG delete an existing comment."
 	  (todos-item-end)
 	  (insert " [" todos-comment-string ": " comment "]"))))))
 
-;; FIXME: also with marked items
 (defun todos-item-undo ()
   "Restore this done item to the todo section of this category.
 If done item has a comment, ask whether to omit the comment from
@@ -4843,9 +4842,10 @@ the restored item."
 	 (marked (assoc cat todos-categories-with-marks)))
     (when (or marked (todos-done-item-p))
       (let ((buffer-read-only)
-	    (done-item (todos-item-string))
+	    (bufmod (buffer-modified-p))
 	    (opoint (point))
 	    (orig-mrk (progn (todos-item-start) (point-marker)))
+	    (orig-item (todos-item-string))
 	    (first 'first)
 	    (item-count 0)
 	    (diary-count 0)
@@ -4878,19 +4878,20 @@ the restored item."
 		    (when (eq first 'omit)
 		      (delete-region (match-beginning 0) (match-end 0))
 		      (setq end (point))))
-		  (setq item (concat item (buffer-substring start end)
+		  (setq item (concat item
+				     (buffer-substring-no-properties start end)
 				     (when marked "\n")))
 		  (todos-remove-item)
 		  (unless marked (throw 'done nil)))
 	      (todos-forward-item))))
 	(if marked
 	    (progn
-	      (remove-overlays (point-min) (point-max)
-			       'before-string todos-item-mark)
+	      ;; (remove-overlays (point-min) (point-max)
+	      ;; 		       'before-string todos-item-mark)
 	      (setq todos-categories-with-marks
 		    (assq-delete-all cat todos-categories-with-marks))
 	      ;; Insert undone items that were marked at end of todo item list.
-	      (widen)
+	      (goto-char (point-min))
 	      (re-search-forward (concat "^" (regexp-quote todos-category-done))
 				 nil t)
 	      (forward-line -1)
@@ -4898,7 +4899,9 @@ the restored item."
 	      (todos-update-count 'todo item-count)
 	      (todos-update-count 'done (- item-count))
 	      (when diary-count (todos-update-count 'diary diary-count))
-	      (todos-update-categories-sexp))
+	      (todos-update-categories-sexp)
+	      (let ((todos-show-with-done (> (todos-get-count 'done) 0)))
+		(todos-category-select)))
 	  ;; With an unmarked undone item, prompt for its priority.  If user
 	  ;; cancels before setting new priority, then leave the done item
 	  ;; unchanged.
@@ -4909,15 +4912,18 @@ the restored item."
 		(todos-update-count 'todo 1)
 		(todos-update-count 'done -1)
 		(and (todos-diary-item-p) (todos-update-count 'diary 1))
-		(todos-update-categories-sexp))
+		(todos-update-categories-sexp)
+		(let ((todos-show-with-done (> (todos-get-count 'done) 0)))
+		  (todos-category-select)))
 	    (unless undone
-	      (widen)
-	      (goto-char orig-mrk)
-	      (todos-insert-with-overlays done-item)
 	      (let ((todos-show-with-done t))
-		(todos-category-select)
-		(goto-char opoint)))
-	    (set-marker orig-mrk nil)))))))
+		(widen)
+		(goto-char orig-mrk)
+		(todos-insert-with-overlays orig-item)
+		(set-buffer-modified-p bufmod)
+		(todos-category-select))
+		(goto-char opoint))))
+	(set-marker orig-mrk nil)))))
 
 (defun todos-archive-done-item (&optional all)
   "Archive at least one done item in this category.
