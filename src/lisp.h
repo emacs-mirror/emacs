@@ -3249,6 +3249,14 @@ extern int wait_reading_process_output (intmax_t, int, int, int,
                                         Lisp_Object,
                                         struct Lisp_Process *,
                                         int);
+/* Max value for the first argument of wait_reading_process_output.  */
+#if __GNUC__ == 3 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 5)
+/* Work around a bug in GCC 3.4.2, known to be fixed in GCC 4.6.3.
+   The bug merely causes a bogus warning, but the warning is annoying.  */
+# define WAIT_READING_MAX min (TYPE_MAXIMUM (time_t), INTMAX_MAX)
+#else
+# define WAIT_READING_MAX INTMAX_MAX
+#endif
 extern void add_keyboard_wait_descriptor (int);
 extern void delete_keyboard_wait_descriptor (int);
 #ifdef HAVE_GPM

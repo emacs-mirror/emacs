@@ -1,3 +1,15 @@
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug when time_t is unsigned and as wide as intmax_t (Bug#9000).
+	* lisp.h (WAIT_READING_MAX): New macro.
+	* dispnew.c (Fsleep_for, sit_for):
+	* keyboard.c (kbd_buffer_get_event):
+	* process.c (Faccept_process_output):
+	Use it to avoid bogus compiler warnings with obsolescent GCC versions.
+	This improves on the previous patch, which introduced a bug
+	when time_t is unsigned and as wide as intmax_t.
+	See <http://bugs.gnu.org/9000#51>.
+
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (sit_for, Fsleep_for):

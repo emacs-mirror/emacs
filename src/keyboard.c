@@ -3857,11 +3857,9 @@ kbd_buffer_get_event (KBOARD **kbp,
 	    return Qnil;	/* finished waiting */
 	  else
 	    {
-	      intmax_t secs;
-
 	      EMACS_SUB_TIME (duration, *end_time, duration);
-	      secs = EMACS_SECS (duration);
-	      wait_reading_process_output (min (secs, INTMAX_MAX),
+	      wait_reading_process_output (min (EMACS_SECS (duration),
+						WAIT_READING_MAX),
 					   EMACS_NSECS (duration),
 					   -1, 1, Qnil, NULL, 0);
 	    }
