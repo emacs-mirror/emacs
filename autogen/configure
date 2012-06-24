@@ -9695,6 +9695,69 @@ fi
 $as_echo "$gl_cv_func_getopt_gnu" >&6; }
     if test "$gl_cv_func_getopt_gnu" = "no"; then
       gl_replace_getopt=yes
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working GNU getopt_long function" >&5
+$as_echo_n "checking for working GNU getopt_long function... " >&6; }
+if test "${gl_cv_func_getopt_long_gnu+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+              case "$host_os" in
+              openbsd*) gl_cv_func_getopt_long_gnu="guessing no";;
+              *)        gl_cv_func_getopt_long_gnu="guessing yes";;
+            esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <getopt.h>
+                #include <stddef.h>
+                #include <string.h>
+
+int
+main ()
+{
+static const struct option long_options[] =
+                  {
+                    { "xtremely-",no_argument,       NULL, 1003 },
+                    { "xtra",     no_argument,       NULL, 1001 },
+                    { "xtreme",   no_argument,       NULL, 1002 },
+                    { "xtremely", no_argument,       NULL, 1003 },
+                    { NULL,       0,                 NULL, 0 }
+                  };
+                /* This code fails on OpenBSD 5.0.  */
+                {
+                  static char program[] = "program";
+                  static char xtremel[] = "--xtremel";
+                  char *argv[] = { program, xtremel, NULL };
+                  int option_index;
+                  optind = 1; opterr = 0;
+                  if (getopt_long (2, argv, "", long_options, &option_index) != 1003)
+                    return 1;
+                }
+                return 0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_getopt_long_gnu=yes
+else
+  gl_cv_func_getopt_long_gnu=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_getopt_long_gnu" >&5
+$as_echo "$gl_cv_func_getopt_long_gnu" >&6; }
+      case "$gl_cv_func_getopt_long_gnu" in
+        *yes) ;;
+        *) gl_replace_getopt=yes ;;
+      esac
     fi
   fi
 
