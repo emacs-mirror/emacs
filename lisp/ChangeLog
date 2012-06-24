@@ -1,5 +1,33 @@
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Further significant code rearrangement;
+	further comment revision.
+	(todos-mode-display): New defgroup.
+	(todos-prefix, todos-number-priorities)
+	(todos-done-separator-string, todos-done-string)
+	(todos-comment-string, todos-show-with-done)
+	(todos-mode-line-function, todos-skip-archived-categories)
+	(todos-highlight-item, todos-wrap-lines)
+	(todos-line-wrapping-function): Use it.
+	(todos-item-insertion): New defgroup.
+	(todos-include-in-diary, todos-diary-nonmarking)
+	(todos-nondiary-marker, todos-always-add-time-string)
+	(todos-use-only-highlighted-region): Use it.
+	(todos-forward-button, todos-backward-button): New commands.
+	(todos-categories-mode-map): Use them, replacing forward-button
+	and backward-button.
+	(todos-merge-category): Fix and improve implementation; handle
+	archived items.
+	(todos-insert-item, todos-set-date-from-calendar): Handle setting
+	date by calling todos-insert-item-from-calendar.
+	(todos-delete-item): Fix overlay handling.
+	(todos-move-item): Highlight item to be moved.
+	(todos-item-undo): Handle marked items.
+	(todos-insert-item-from-calendar): Rewrite using
+	todos-date-from-calendar.
+
+2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Further comment revision.
 	(todos-sorted-column): Change default value, also taking tty into
 	account.

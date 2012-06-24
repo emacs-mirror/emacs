@@ -127,12 +127,42 @@ displayed correctly."
   :type 'boolean
   :group 'todos)
 
+(defcustom todos-completion-ignore-case nil
+  "Non-nil means case is ignored by `todos-read-*' functions."
+  :type 'boolean
+  :group 'todos)
+
+(defcustom todos-print-function 'ps-print-buffer-with-faces
+  "Function called to print buffer content; see `todos-print'."
+  :type 'symbol
+  :group 'todos)
+
+(defcustom todos-todo-mode-date-time-regexp
+  (concat "\\(?1:[0-9]\\{4\\}\\)-\\(?2:[0-9]\\{2\\}\\)-"
+	  "\\(?3:[0-9]\\{2\\}\\) \\(?4:[0-9]\\{2\\}:[0-9]\\{2\\}\\)")
+  "Regexp matching legacy todo-mode.el item date-time strings.
+In order for `todos-convert-legacy-files' to correctly convert this
+string to the current Todos format, the regexp must contain four
+explicitly numbered groups (see `(elisp) Regexp Backslash'),
+where group 1 matches a string for the year, group 2 a string for
+the month, group 3 a string for the day and group 4 a string for
+the time.  The default value converts date-time strings built
+using the default value of `todo-time-string-format' from
+todo-mode.el."
+  :type 'regexp
+  :group 'todos)
+
+(defgroup todos-mode-display nil
+  "User display options for Todos mode."
+  :version "24.2"
+  :group 'todos)
+
 (defcustom todos-prefix ""
   "String prefixed to todo items for visual distinction."
   :type 'string
   :initialize 'custom-initialize-default
   :set 'todos-reset-prefix
-  :group 'todos)
+  :group 'todos-mode-display)
 
 (defcustom todos-number-priorities t
   "Non-nil to prefix items with consecutively increasing integers.
@@ -140,7 +170,7 @@ These reflect the priorities of the items in each category."
   :type 'boolean
   :initialize 'custom-initialize-default
   :set 'todos-reset-prefix
-  :group 'todos)
+  :group 'todos-mode-display)
 
 (defun todos-reset-prefix (symbol value)
   "The :set function for `todos-prefix' and `todos-number-priorities'."
@@ -173,7 +203,7 @@ the value of `todos-done-separator'."
   :type 'string
   :initialize 'custom-initialize-default
   :set 'todos-reset-done-separator-string
-  :group 'todos)
+  :group 'todos-mode-display)
 
 (defun todos-reset-done-separator-string (symbol value)
   "The :set function for `todos-done-separator-string'."
@@ -190,7 +220,7 @@ the value of `todos-done-separator'."
   :type 'string
   :initialize 'custom-initialize-default
   :set 'todos-reset-done-string
-  :group 'todos)
+  :group 'todos-mode-display)
 
 (defun todos-reset-done-string (symbol value)
   "The :set function for user option `todos-done-string'."
@@ -220,7 +250,7 @@ the value of `todos-done-separator'."
   :type 'string
   :initialize 'custom-initialize-default
   :set 'todos-reset-comment-string
-  :group 'todos)
+  :group 'todos-mode-display)
 
 (defun todos-reset-comment-string (symbol value)
   "The :set function for user option `todos-comment-string'."
@@ -246,7 +276,7 @@ the value of `todos-done-separator'."
 (defcustom todos-show-with-done nil
   "Non-nil to display done items in all categories."
   :type 'boolean
-  :group 'todos)
+  :group 'todos-mode-display)
 
 (defun todos-mode-line-control (cat)
   "Return a mode line control for Todos buffers.
@@ -262,7 +292,7 @@ The function expects one argument holding the name of the current
 Todos category.  The resulting control becomes the local value of
 `mode-line-buffer-identification' in each Todos buffer."
   :type 'function
-  :group 'todos)
+  :group 'todos-mode-display)
 
 (defcustom todos-skip-archived-categories nil
   "Non-nil to skip categories with only archived items when browsing.
@@ -275,24 +305,81 @@ mode (reached with \\[todos-display-categories]) these categories
 shown in `todos-archived-only' face and clicking them in Todos
 Categories mode visits the archived categories."
   :type 'boolean
+  :group 'todos-mode-display)
+
+(defcustom todos-highlight-item nil
+  "Non-nil means highlight items at point."
+  :type 'boolean
+  :initialize 'custom-initialize-default
+  :set 'todos-reset-highlight-item
+  :group 'todos-mode-display)
+
+(defun todos-reset-highlight-item (symbol value)
+  "The :set function for `todos-highlight-item'."
+  (let ((oldvalue (symbol-value symbol))
+	(files (append todos-files todos-archives)))
+    (custom-set-default symbol value)
+    (when (not (equal value oldvalue))
+      (dolist (f files)
+	(let ((buf (find-buffer-visiting f)))
+	  (when buf
+	    (with-current-buffer buf
+	      (require 'hl-line)
+	      (if value
+		  (hl-line-mode 1)
+		(hl-line-mode -1)))))))))
+
+(defcustom todos-wrap-lines t
+  "Non-nil to wrap long lines via `todos-line-wrapping-function'."
+  :group 'todos-mode-display
+  :type 'boolean)
+
+(defcustom todos-line-wrapping-function 'todos-wrap-and-indent
+  "Line wrapping function used with non-nil `todos-wrap-lines'."
+  :group 'todos-mode-display
+  :type 'function)
+
+(defun todos-wrap-and-indent ()
+  "Use word wrapping on long lines and indent with a wrap prefix.
+The amount of indentation is given by user option
+`todos-indent-to-here'."
+  (set (make-local-variable 'word-wrap) t)
+  (set (make-local-variable 'wrap-prefix) (make-string todos-indent-to-here 32))
+  (unless (member '(continuation) fringe-indicator-alist)
+    (push '(continuation) fringe-indicator-alist)))
+
+;; FIXME: :set function to refill items with hard newlines and to immediately
+;; update wrapped prefix display
+(defcustom todos-indent-to-here 6
+  "Number of spaces `todos-line-wrapping-function' indents to."
+  :type '(integer :validate
+		  (lambda (widget)
+		    (unless (> (widget-value widget) 0)
+		      (widget-put widget :error
+				  "Invalid value: must be a positive integer")
+		      widget)))
   :group 'todos)
 
-(defcustom todos-use-only-highlighted-region t
-  "Non-nil to enable inserting only highlighted region as new item."
-  :type 'boolean
+(defun todos-indent ()
+  "Indent from point to `todos-indent-to-here'."
+  (indent-to todos-indent-to-here todos-indent-to-here))
+
+(defgroup todos-item-insertion nil
+  "User options for adding new todo items."
+  :version "24.2"
   :group 'todos)
 
 (defcustom todos-include-in-diary nil
   "Non-nil to allow new Todo items to be included in the diary."
   :type 'boolean
-  :group 'todos)
+  :group 'todos-item-insertion)
 
 (defcustom todos-diary-nonmarking nil
   "Non-nil to insert new Todo diary items as nonmarking by default.
 This appends `diary-nonmarking-symbol' to the front of an item on
 insertion provided it doesn't begin with `todos-nondiary-marker'."
   :type 'boolean
-  :group 'todos)
+  :group 'todos-item-insertion)
 
 (defcustom todos-nondiary-marker '("[" "]")
   "List of strings surrounding item date to block diary inclusion.
@@ -301,7 +388,7 @@ non-empty string that does not match a diary date in order to
 have its intended effect.  The second string is inserted after
 the diary date."
   :type '(list string string)
-  :group 'todos
+  :group 'todos-item-insertion
   :initialize 'custom-initialize-default
   :set 'todos-reset-nondiary-marker)
 
@@ -344,89 +431,12 @@ argument, this reverses the effect of
 `todos-always-add-time-string': if t, these commands omit the
 current time, if nil, they include it."
   :type 'boolean
-  :group 'todos)
+  :group 'todos-item-insertion)
 
-(defcustom todos-completion-ignore-case nil
-  "Non-nil means case of user input in `todos-read-*' is ignored."
+(defcustom todos-use-only-highlighted-region t
+  "Non-nil to enable inserting only highlighted region as new item."
   :type 'boolean
-  :group 'todos)
-
-(defcustom todos-highlight-item nil
-  "Non-nil means highlight items at point."
-  :type 'boolean
-  :initialize 'custom-initialize-default
-  :set 'todos-reset-highlight-item
-  :group 'todos)
-
-(defun todos-reset-highlight-item (symbol value)
-  "The :set function for `todos-highlight-item'."
-  (let ((oldvalue (symbol-value symbol))
-	(files (append todos-files todos-archives)))
-    (custom-set-default symbol value)
-    (when (not (equal value oldvalue))
-      (dolist (f files)
-	(let ((buf (find-buffer-visiting f)))
-	  (when buf
-	    (with-current-buffer buf
-	      (require 'hl-line)
-	      (if value
-		  (hl-line-mode 1)
-		(hl-line-mode -1)))))))))
-
-(defcustom todos-wrap-lines t
-  "Non-nil to wrap long lines via `todos-line-wrapping-function'."
-  :group 'todos
-  :type 'boolean)
-
-(defcustom todos-line-wrapping-function 'todos-wrap-and-indent
-  "Line wrapping function used with non-nil `todos-wrap-lines'."
-  :group 'todos
-  :type 'function)
-
-(defun todos-wrap-and-indent ()
-  "Use word wrapping on long lines and indent with a wrap prefix.
-The amount of indentation is given by user option
-`todos-indent-to-here'."
-  (set (make-local-variable 'word-wrap) t)
-  (set (make-local-variable 'wrap-prefix) (make-string todos-indent-to-here 32))
-  (unless (member '(continuation) fringe-indicator-alist)
-    (push '(continuation) fringe-indicator-alist)))
-
-;; FIXME: :set function to refill items with hard newlines and to immediately
-;; update wrapped prefix display
-(defcustom todos-indent-to-here 6
-  "Number of spaces `todos-line-wrapping-function' indents to."
-  :type '(integer :validate
-		  (lambda (widget)
-		    (unless (> (widget-value widget) 0)
-		      (widget-put widget :error
-				  "Invalid value: must be a positive integer")
-		      widget)))
-  :group 'todos)
-
-(defun todos-indent ()
-  "Indent from point to `todos-indent-to-here'."
-  (indent-to todos-indent-to-here todos-indent-to-here))
-
-(defcustom todos-todo-mode-date-time-regexp
-  (concat "\\(?1:[0-9]\\{4\\}\\)-\\(?2:[0-9]\\{2\\}\\)-"
-	  "\\(?3:[0-9]\\{2\\}\\) \\(?4:[0-9]\\{2\\}:[0-9]\\{2\\}\\)")
-  "Regexp matching legacy todo-mode.el item date-time strings.
-In order for `todos-convert-legacy-files' to correctly convert this
-string to the current Todos format, the regexp must contain four
-explicitly numbered groups (see `(elisp) Regexp Backslash'),
-where group 1 matches a string for the year, group 2 a string for
-the month, group 3 a string for the day and group 4 a string for
-the time.  The default value converts date-time strings built
-using the default value of `todo-time-string-format' from
-todo-mode.el."
-  :type 'regexp
-  :group 'todos)
-
-(defcustom todos-print-function 'ps-print-buffer-with-faces
-  "Function called to print buffer content; see `todos-print'."
-  :type 'symbol
-  :group 'todos)
+  :group 'todos-item-insertion)
 
 (defgroup todos-filtered nil
   "User options for Todos Filter Items mode."
@@ -930,6 +940,26 @@ See `todos-display-categories-first'.")
 Set by the command `todos-show-done-only' and used by
 `todos-category-select'.")
 
+(defun todos-reset-and-enable-done-separator ()
+  "Show resized catagory separator overlay after window size change.
+Added to `window-configuration-change-hook' in `todos-mode'."
+  (when (= 1 (length todos-done-separator-string))
+    (let ((sep todos-done-separator))
+      (setq todos-done-separator (todos-done-separator))
+      (save-match-data (todos-reset-done-separator sep)))
+    ;; FIXME: If this is called while the separator overlay is shown, the
+    ;; separator with deleted overlay becomes visible when waiting for user
+    ;; input and remains so.  The following workaround prevents this, but it
+    ;; also prevents widening when edebugging todos.el.
+    ;; (save-excursion
+    ;;   (goto-char (point-min))
+    ;;   (when (re-search-forward todos-done-string-start nil t)
+    ;; 	(let ((todos-show-with-done nil))
+    ;; 	  (todos-category-select))
+    ;; 	(let ((todos-show-with-done t))
+    ;; 	  (todos-category-select))))
+    ))
+
 ;; ---------------------------------------------------------------------------
 ;;; Global variables and helper functions
 
@@ -1053,26 +1083,6 @@ done items are shown.  Its value is determined by user option
 	       (setq new-sep (make-overlay beg end))
 	       (overlay-put new-sep 'display
 			    todos-done-separator)))))))
-
-(defun todos-reset-and-enable-done-separator ()
-  "Hook function for activating new separator overlay.
-Added to `window-configuration-change-hook' in `todos-mode'."
-  (when (= 1 (length todos-done-separator-string))
-    (let ((sep todos-done-separator))
-      (setq todos-done-separator (todos-done-separator))
-      (save-match-data (todos-reset-done-separator sep)))
-    ;; If the separator overlay is now shown, we have to hide and then show it
-    ;; again in order to let the change in length take effect.
-    ;; FIXME: But this breaks e.g. (widen) when edebugging.  But how to
-    ;; restrict it?
-    ;; (save-excursion
-    ;;   (goto-char (point-min))
-    ;;   (when (re-search-forward todos-done-string-start nil t)
-    ;; 	(let ((todos-show-with-done nil))
-    ;; 	  (todos-category-select))
-    ;; 	(let ((todos-show-with-done t))
-    ;; 	  (todos-category-select))))
-    ))
 
 (defun todos-category-select ()
   "Display the current category correctly."
@@ -2506,10 +2516,10 @@ which is the value of the user option
     (define-key map "+" 'todos-lower-category-priority)
     (define-key map "r" 'todos-raise-category-priority)
     (define-key map "-" 'todos-raise-category-priority)
-    (define-key map "n" 'forward-button)
-    (define-key map "p" 'backward-button)
-    (define-key map [tab] 'forward-button)
-    (define-key map [backtab] 'backward-button)
+    (define-key map "n" 'todos-forward-button)
+    (define-key map "p" 'todos-backward-button)
+    (define-key map [tab] 'todos-forward-button)
+    (define-key map [backtab] 'todos-backward-button)
     (define-key map "q" 'todos-quit)
     ;; (define-key map "A" 'todos-add-category)
     ;; (define-key map "D" 'todos-delete-category)
@@ -2585,7 +2595,7 @@ which is the value of the user option
   (when todos-show-current-file
     (add-hook 'pre-command-hook 'todos-show-current-file nil t))
   (add-hook 'window-configuration-change-hook
-  	    'todos-reset-and-enable-done-separator nil t)
+	    'todos-reset-and-enable-done-separator nil t)
   (add-hook 'kill-buffer-hook 'todos-reset-global-current-todos-file nil t))
 
 (defun todos-unload-hook ()
@@ -3239,6 +3249,22 @@ upward."
 			     nil t)
 	  (forward-line -1))))))
 
+(defun todos-forward-button (n &optional wrap display-message)
+  ""
+  (interactive "p\nd\nd")
+  (forward-button n wrap display-message)
+  (and (bolp) (button-at (point))
+       ;; Align with beginning of category label.
+       (forward-char (+ 4 (length todos-categories-number-separator)))))
+
+(defun todos-backward-button (n &optional wrap display-message)
+  ""
+  (interactive "p\nd\nd")
+  (backward-button n wrap display-message)
+  (and (bolp) (button-at (point))
+       ;; Align with beginning of category label.
+       (forward-char (+ 4 (length todos-categories-number-separator)))))
+
 ;; FIXME: (i) Extend search to other Todos files. (ii) Allow navigating among
 ;; hits. (But these features are effectively available with
 ;; todos-regexp-items-multifile, so maybe it's not worth the trouble here.)
@@ -3766,59 +3792,133 @@ archive of the file moved to, creating it if it does not exist."
 
 (defun todos-merge-category ()
   "Merge current category into another category in this file.
+
 The current category's todo and done items are appended to the
-chosen category's todo and done items, respectively, which
-becomes the current category, and the category moved from is
-deleted."
+chosen goal category's todo and done items, respectively.  The
+goal category becomes the current category, and the previous
+current category is deleted.
+
+If both the first and goal categories also have archived items,
+the former are merged to the latter.  If only the first category
+has archived items, the archived category is renamed to the goal
+category."
   (interactive)
-  (let ((buffer-read-only nil)
-	(cat (todos-current-category))
-	(goal (todos-read-category "Category to merge to: " t)))
-    (widen)
-    ;; FIXME: check if cat has archived items and merge those too
-    (let* ((cbeg (progn
-		   (re-search-backward
-		    (concat "^" (regexp-quote todos-category-beg)) nil t)
-		   (point)))
-	   (tbeg (progn (forward-line) (point)))
-	   (dbeg (progn
-		   (re-search-forward
-		    (concat "^" (regexp-quote todos-category-done)) nil t)
-		   (forward-line) (point)))
-	   (tend (progn (forward-line -2) (point)))
-	   (cend (progn
-		   (if (re-search-forward
-			(concat "^" (regexp-quote todos-category-beg)) nil t)
-		       (match-beginning 0)
-		     (point-max))))
-	   (todo (buffer-substring-no-properties tbeg tend))
-	   (done (buffer-substring-no-properties dbeg cend))
-	   here)
-      (goto-char (point-min))
-      (re-search-forward
-       (concat "^" (regexp-quote (concat todos-category-beg goal))) nil t)
-      (re-search-forward
-       (concat "^" (regexp-quote todos-category-done)) nil t)
-      (forward-line -1)
-      (setq here (point))
-      (insert todo)
-      (goto-char (if (re-search-forward
+  (let* ((tfile todos-current-todos-file)
+	 (archive (concat (file-name-sans-extension tfile) ".toda"))
+	 (cat (todos-current-category))
+	 (goal (todos-read-category "Category to merge to: " t))
+	 archived-count here)
+    ;; Merge in todo file.
+    (with-current-buffer (get-buffer (find-file-noselect tfile))
+      (widen)
+      (let* ((buffer-read-only nil)
+	     (cbeg (progn
+		     (re-search-backward
 		      (concat "^" (regexp-quote todos-category-beg)) nil t)
-		     (match-beginning 0)
-		   (point-max)))
-      (insert done)
-      (remove-overlays cbeg cend)
-      (delete-region cbeg cend)
-      (todos-update-count 'todo (todos-get-count 'todo cat) goal)
-      (todos-update-count 'done (todos-get-count 'done cat) goal)
-      (setq todos-categories (delete (assoc cat todos-categories)
-					 todos-categories))
-      (todos-update-categories-sexp)
+		     (point-marker)))
+	     (tbeg (progn (forward-line) (point-marker)))
+	     (dbeg (progn
+		     (re-search-forward
+		      (concat "^" (regexp-quote todos-category-done)) nil t)
+		     (forward-line) (point-marker)))
+	     ;; Omit empty line between todo and done items.
+	     (tend (progn (forward-line -2) (point-marker)))
+	     (cend (progn
+		     (if (re-search-forward
+			  (concat "^" (regexp-quote todos-category-beg)) nil t)
+			 (progn
+			   (goto-char (match-beginning 0))
+			   (point-marker))
+		       (point-max-marker))))
+	     (todo (buffer-substring-no-properties tbeg tend))
+	     (done (buffer-substring-no-properties dbeg cend)))
+	(goto-char (point-min))
+	;; Merge any todo items.
+	(unless (zerop (length todo))
+	  (re-search-forward
+	   (concat "^" (regexp-quote (concat todos-category-beg goal))) nil t)
+	  (re-search-forward
+	   (concat "^" (regexp-quote todos-category-done)) nil t)
+	  (forward-line -1)
+	  (setq here (point-marker))
+	  (insert todo)
+	  (todos-update-count 'todo (todos-get-count 'todo cat) goal))
+	;; Merge any done items.
+	(unless (zerop (length done))
+	  (goto-char (if (re-search-forward
+			  (concat "^" (regexp-quote todos-category-beg)) nil t)
+			 (match-beginning 0)
+		       (point-max)))
+	  (when (zerop (length todo)) (setq here (point-marker)))
+	  (insert done)
+	  (todos-update-count 'done (todos-get-count 'done cat) goal))
+	(remove-overlays cbeg cend)
+	(delete-region cbeg cend)
+	(setq todos-categories (delete (assoc cat todos-categories)
+				       todos-categories))
+	(todos-update-categories-sexp)
+	(mapc (lambda (m) (set-marker m nil)) (list cbeg tbeg dbeg tend cend))))
+    (when (file-exists-p archive)
+      ;; Merge in archive file.  
+      (with-current-buffer (get-buffer (find-file-noselect archive))
+	(widen)
+	(goto-char (point-min))
+	(let ((buffer-read-only nil)
+	      (cbeg (save-excursion
+		      (when (re-search-forward
+			     (concat "^" (regexp-quote
+					  (concat todos-category-beg cat)))
+			     nil t)
+			(goto-char (match-beginning 0))
+			(point-marker))))
+	      (gbeg (save-excursion
+		      (when (re-search-forward
+			     (concat "^" (regexp-quote
+					  (concat todos-category-beg goal)))
+			     nil t)
+			(goto-char (match-beginning 0))
+			(point-marker))))
+	      cend carch)
+	  (when cbeg
+	    (setq archived-count (todos-get-count 'done cat))
+	    (setq cend (save-excursion
+			 (if (re-search-forward
+			      (concat "^" (regexp-quote todos-category-beg))
+			      nil t)
+			     (match-beginning 0)
+			   (point-max))))
+	    (setq carch (save-excursion (goto-char cbeg) (forward-line)
+			  (buffer-substring-no-properties (point) cend)))
+	    ;; If both categories of the merge have archived items, merge the
+	    ;; source items to the goal items, else "merge" by renaming the
+	    ;; source category to goal.
+	    (if gbeg
+		(progn
+		  (goto-char (if (re-search-forward
+				  (concat "^" (regexp-quote todos-category-beg))
+				  nil t)
+				 (match-beginning 0)
+			       (point-max)))
+		  (insert carch)
+		  (remove-overlays cbeg cend)
+		  (delete-region cbeg cend))
+	      (goto-char cbeg)
+	      (search-forward cat)
+	      (replace-match goal))
+	    (setq todos-categories (todos-make-categories-list t))
+	    (todos-update-categories-sexp)))))
+    (with-current-buffer (get-file-buffer tfile)
+      (when archived-count
+	(unless (zerop archived-count)
+	  (todos-update-count 'archived archived-count goal)
+	  (todos-update-categories-sexp)))
       (todos-category-number goal)
-      (todos-category-select)
-      ;; Put point at the start of the merged todo items.
-      ;; FIXME: what if there are no merged todo items but only done items?
-      (goto-char here))))
+      ;; If there are only merged done items, show them.
+      (let ((todos-show-with-done (zerop (todos-get-count 'todo goal))))
+	(todos-category-select)
+	;; Put point on the first merged item.
+	(goto-char here)))
+    (set-marker here nil)))
 
 (defun todos-set-category-priority (&optional arg)
   "Change priority of category at point in Todos Categories buffer.
@@ -3922,6 +4022,11 @@ mandatory date header string and how it is added:
   when the user puts the cursor on a date and hits RET, that
   date, in the format set by `calendar-date-display-form',
   becomes the date in the header.
+- If DATE-TYPE is a string matching the regexp
+  `todos-date-pattern', that string becomes the date in the
+  header.  This case is for the command
+  `todos-insert-item-from-calendar' which is called from the
+  Calendar.
 - If DATE-TYPE is the symbol `date', the header contains the date
   in the format set by `calendar-date-display-form', with year,
   month and day individually prompted for (month with tab
@@ -3999,6 +4104,9 @@ the priority is not given by HERE but by prompting."
 			 ((eq date-type 'calendar)
 			  (setq todos-date-from-calendar t)
 			  (todos-set-date-from-calendar))
+			 ((string-match todos-date-pattern date-type)
+			  (setq todos-date-from-calendar date-type)
+			  (todos-set-date-from-calendar))
 			 (t (calendar-date-string (calendar-current-date) t t))))
 	   (time-string (or (and time (todos-read-time))
 			    (and todos-always-add-time-string
@@ -4055,19 +4163,21 @@ the priority is not given by HERE but by prompting."
 
 (defun todos-set-date-from-calendar ()
   "Return string of date chosen from Calendar."
-  (when todos-date-from-calendar
-    (let (calendar-view-diary-initially-flag)
-      (calendar))
-    ;; *Calendar* is now current buffer.
-    (local-set-key (kbd "RET") 'exit-recursive-edit)
-    (message "Put cursor on a date and type <return> to set it.")
-    ;; FIXME: is there a better way than recursive-edit?  Use unwind-protect?
-    ;; Check recursive-depth?
-    (recursive-edit)
-    (setq todos-date-from-calendar
-	  (calendar-date-string (calendar-cursor-to-date t) t t))
-    (calendar-exit)
-    todos-date-from-calendar))
+  (cond ((string-match todos-date-pattern todos-date-from-calendar)
+	 todos-date-from-calendar)
+	((todos-date-from-calendar t)
+	 (let (calendar-view-diary-initially-flag)
+	   (calendar))
+	 ;; *Calendar* is now current buffer.
+	 (local-set-key (kbd "RET") 'exit-recursive-edit)
+	 (message "Put cursor on a date and type <return> to set it.")
+	 ;; FIXME: is there a better way than recursive-edit?  Use unwind-protect?
+	 ;; Check recursive-depth?
+	 (recursive-edit)
+	 (setq todos-date-from-calendar
+	       (calendar-date-string (calendar-cursor-to-date t) t t))
+	 (calendar-exit)
+	 todos-date-from-calendar)))
 
 (defun todos-delete-item ()
   "Delete at least one item in this category.
@@ -4075,45 +4185,49 @@ the priority is not given by HERE but by prompting."
 If there are marked items, delete all of these; otherwise, delete
 the item at point."
   (interactive)
-  (let* ((cat (todos-current-category))
-	 (marked (assoc cat todos-categories-with-marks))
-	 (item (unless marked (todos-item-string)))
-	 (ov (make-overlay (save-excursion (todos-item-start))
-			   (save-excursion (todos-item-end))))
-	 ;; FIXME: make confirmation an option?
-	 (answer (if marked
-		     (y-or-n-p "Permanently delete all marked items? ")
-		   (when item
-		     (overlay-put ov 'face 'todos-search)
-		     (y-or-n-p (concat "Permanently delete this item? ")))))
-	 (opoint (point))
-	 buffer-read-only)
-    (when answer
-      (and marked (goto-char (point-min)))
-      (catch 'done
-	(while (not (eobp))
-	  (if (or (and marked (todos-marked-item-p)) item)
-	      (progn
-		(if (todos-done-item-p)
-		    (todos-update-count 'done -1)
-		  (todos-update-count 'todo -1 cat)
-		  (and (todos-diary-item-p) (todos-update-count 'diary -1)))
-		(delete-overlay ov)
-		(todos-remove-item)
-		;; Don't leave point below last item.
-		(and item (bolp) (eolp) (< (point-min) (point-max))
-		     (todos-backward-item))
-		(when item 
-		  (throw 'done (setq item nil))))
-	    (todos-forward-item))))
-      (when marked
-	(remove-overlays (point-min) (point-max) 'before-string todos-item-mark)
-	(setq todos-categories-with-marks
-	      (assq-delete-all cat todos-categories-with-marks))
-	(goto-char opoint))
-      (todos-update-categories-sexp)
-      (todos-prefix-overlays))
-    (if ov (delete-overlay ov))))
+  (let (ov)
+    (unwind-protect
+	(let* ((cat (todos-current-category))
+	       (marked (assoc cat todos-categories-with-marks))
+	       (item (unless marked (todos-item-string)))
+	       ;; FIXME: make confirmation an option?
+	       (answer (if marked
+			   (y-or-n-p "Permanently delete all marked items? ")
+			 (when item
+			   (setq ov (make-overlay
+				     (save-excursion (todos-item-start))
+				     (save-excursion (todos-item-end))))
+			   (overlay-put ov 'face 'todos-search)
+			   (y-or-n-p (concat "Permanently delete this item? ")))))
+	       (opoint (point))
+	       buffer-read-only)
+	  (when answer
+	    (and marked (goto-char (point-min)))
+	    (catch 'done
+	      (while (not (eobp))
+		(if (or (and marked (todos-marked-item-p)) item)
+		    (progn
+		      (if (todos-done-item-p)
+			  (todos-update-count 'done -1)
+			(todos-update-count 'todo -1 cat)
+			(and (todos-diary-item-p) (todos-update-count 'diary -1)))
+		      (if ov (delete-overlay ov))
+		      (todos-remove-item)
+		      ;; Don't leave point below last item.
+		      (and item (bolp) (eolp) (< (point-min) (point-max))
+			   (todos-backward-item))
+		      (when item 
+			(throw 'done (setq item nil))))
+		  (todos-forward-item))))
+	    (when marked
+	      (remove-overlays (point-min) (point-max)
+			       'before-string todos-item-mark)
+	      (setq todos-categories-with-marks
+		    (assq-delete-all cat todos-categories-with-marks))
+	      (goto-char opoint))
+	    (todos-update-categories-sexp)
+	    (todos-prefix-overlays)))
+      (if ov (delete-overlay ov)))))
 
 (defun todos-edit-item ()
   "Edit the Todo item at point.
@@ -4539,35 +4653,42 @@ entry/entries in that category."
 		    file1))
 	   (count 0)
 	   (count-diary 0)
-	   cat2 nmark)
+	   ov cat2 nmark)
       (set-buffer (find-file-noselect file2))
-      (setq cat2 (let* ((pl (if (and marked (> (cdr marked) 1)) "s" ""))
-			(name (todos-read-category
-			       (concat "Move item" pl " to category: ")))
-			(prompt (concat "Choose a different category than "
-					"the current one\n(type `"
-					(key-description
-					 (car (where-is-internal
-					       'todos-set-item-priority)))
-					"' to reprioritize item "
-					"within the same category): ")))
-		   (while (equal name cat1)
-		     (setq name (todos-read-category prompt)))
-		   name))
+      (unwind-protect
+	  (progn
+	    (unless marked
+	      (setq ov (make-overlay (save-excursion (todos-item-start))
+				     (save-excursion (todos-item-end))))
+	      (overlay-put ov 'face 'todos-search))
+	    (setq cat2 (let* ((pl (if (and marked (> (cdr marked) 1)) "s" ""))
+			      (name (todos-read-category
+				     (concat "Move item" pl " to category: ")))
+			      (prompt (concat "Choose a different category than "
+					      "the current one\n(type `"
+					      (key-description
+					       (car (where-is-internal
+						     'todos-set-item-priority)))
+					      "' to reprioritize item "
+					      "within the same category): ")))
+			 (while (equal name cat1)
+			   (setq name (todos-read-category prompt)))
+			 name)))
+	(if ov (delete-overlay ov)))
       (set-buffer (find-buffer-visiting file1))
       (if marked
 	  (progn
-	   (setq item nil)
-	   (goto-char (point-min))
-	   (while (not (eobp))
-	     (when (todos-marked-item-p)
-	       (setq item (concat item (todos-item-string) "\n"))
-	       (setq count (1+ count))
-	       (when (todos-diary-item-p)
-		 (setq count-diary (1+ count-diary))))
-	     (todos-forward-item))
-	   ;; Chop off last newline.
-	   (setq item (substring item 0 -1)))
+	    (setq item nil)
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (when (todos-marked-item-p)
+		(setq item (concat item (todos-item-string) "\n"))
+		(setq count (1+ count))
+		(when (todos-diary-item-p)
+		  (setq count-diary (1+ count-diary))))
+	      (todos-forward-item))
+	    ;; Chop off last newline.
+	    (setq item (substring item 0 -1)))
 	(setq count 1)
 	(when (todos-diary-item-p) (setq count-diary 1)))
       (set-window-buffer (selected-window)
@@ -4598,6 +4719,7 @@ entry/entries in that category."
 		    (if (todos-marked-item-p)
 			(todos-remove-item)
 		      (todos-forward-item))))
+	      (if ov (delete-overlay ov))
 	      (todos-remove-item))))
 	(todos-update-count 'todo (- count) cat1)
 	(todos-update-count 'diary (- count-diary) cat1)
@@ -4712,47 +4834,90 @@ With prefix ARG delete an existing comment."
 	  (insert " [" todos-comment-string ": " comment "]"))))))
 
 ;; FIXME: also with marked items
-;; FIXME: delete comment from restored item or just leave it up to user?
 (defun todos-item-undo ()
   "Restore this done item to the todo section of this category.
 If done item has a comment, ask whether to omit the comment from
 the restored item."
   (interactive)
-  (when (todos-done-item-p)
-    (let* ((buffer-read-only)
-	   (done-item (todos-item-string))
-	   (opoint (point))
-	   (orig-mrk (progn (todos-item-start) (point-marker)))
-	   ;; Find the end of the date string added upon tagging item as done.
-	   (start (search-forward "] "))
-	   (end (save-excursion (todos-item-end)))
-	   item undone)
-      (todos-item-start)
-      (when (and (re-search-forward (concat " \\["
-					    (regexp-quote todos-comment-string)
-					    ": \\([^]]+\\)\\]") end t)
-		 (y-or-n-p "Omit comment from restored item? "))
-	(delete-region (match-beginning 0) (match-end 0)))
-      (setq item (buffer-substring start end))
-      (todos-remove-item)
-      ;; If user cancels before setting new priority, then leave the done item
-      ;; unchanged.
-      (unwind-protect
-	  (progn
-	    (todos-set-item-priority item (todos-current-category) t)
-	    (setq undone t)
-	    (todos-update-count 'todo 1)
-	    (todos-update-count 'done -1)
-	    (and (todos-diary-item-p) (todos-update-count 'diary 1))
-	    (todos-update-categories-sexp))
-	(unless undone
-	  (widen)
-	  (goto-char orig-mrk)
-	  (todos-insert-with-overlays done-item)
-	  (let ((todos-show-with-done t))
-	    (todos-category-select)
-	    (goto-char opoint)))
-	(set-marker orig-mrk nil)))))
+  (let* ((cat (todos-current-category))
+	 (marked (assoc cat todos-categories-with-marks)))
+    (when (or marked (todos-done-item-p))
+      (let ((buffer-read-only)
+	    (done-item (todos-item-string))
+	    (opoint (point))
+	    (orig-mrk (progn (todos-item-start) (point-marker)))
+	    (first 'first)
+	    (item-count 0)
+	    (diary-count 0)
+	    start end item undone)
+	(and marked (goto-char (point-min)))
+	(catch 'done
+	  (while (not (eobp))
+	    (if (or (not marked) (and marked (todos-marked-item-p)))
+		(if (not (todos-done-item-p))
+		    (error "Only done items can be undone")
+		  (todos-item-start)
+		  ;; Find the end of the date string added upon tagging item as
+		  ;; done.
+		  (setq start (search-forward "] "))
+		  (setq item-count (1+ item-count))
+		  (unless (looking-at (regexp-quote todos-nondiary-start))
+		    (setq diary-count (1+ diary-count)))
+		  (setq end (save-excursion (todos-item-end)))
+		  ;; Ask (once) whether to omit done item's comment.  If
+		  ;; affirmed, omit subsequent comments without asking.
+		  (when (re-search-forward
+			 (concat " \\[" (regexp-quote todos-comment-string)
+				 ": [^]]+\\]") end t)
+		    (if (eq first 'first)
+			(setq first
+			      ;; FIXME: make this a user option?
+			      (when (y-or-n-p "Omit comment from restored item? ")
+				'omit))
+		      t)
+		    (when (eq first 'omit)
+		      (delete-region (match-beginning 0) (match-end 0))
+		      (setq end (point))))
+		  (setq item (concat item (buffer-substring start end)
+				     (when marked "\n")))
+		  (todos-remove-item)
+		  (unless marked (throw 'done nil)))
+	      (todos-forward-item))))
+	(if marked
+	    (progn
+	      (remove-overlays (point-min) (point-max)
+			       'before-string todos-item-mark)
+	      (setq todos-categories-with-marks
+		    (assq-delete-all cat todos-categories-with-marks))
+	      ;; Insert undone items that were marked at end of todo item list.
+	      (widen)
+	      (re-search-forward (concat "^" (regexp-quote todos-category-done))
+				 nil t)
+	      (forward-line -1)
+	      (insert item)
+	      (todos-update-count 'todo item-count)
+	      (todos-update-count 'done (- item-count))
+	      (when diary-count (todos-update-count 'diary diary-count))
+	      (todos-update-categories-sexp))
+	  ;; With an unmarked undone item, prompt for its priority.  If user
+	  ;; cancels before setting new priority, then leave the done item
+	  ;; unchanged.
+	  (unwind-protect
+	      (progn
+		(todos-set-item-priority item (todos-current-category) t)
+		(setq undone t)
+		(todos-update-count 'todo 1)
+		(todos-update-count 'done -1)
+		(and (todos-diary-item-p) (todos-update-count 'diary 1))
+		(todos-update-categories-sexp))
+	    (unless undone
+	      (widen)
+	      (goto-char orig-mrk)
+	      (todos-insert-with-overlays done-item)
+	      (let ((todos-show-with-done t))
+		(todos-category-select)
+		(goto-char opoint)))
+	    (set-marker orig-mrk nil)))))))
 
 (defun todos-archive-done-item (&optional all)
   "Archive at least one done item in this category.
@@ -4996,31 +5161,24 @@ archive, the archive file is deleted."
 
 ;;; todos.el ends here
 
-;; ---------------------------------------------------------------------------
-
 ;; FIXME: remove when part of Emacs
+;; ---------------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.todo\\'" . todos-mode))
 (add-to-list 'auto-mode-alist '("\\.toda\\'" . todos-archive-mode))
 
 ;;; Addition to calendar.el
 ;; FIXME: autoload when key-binding is defined in calendar.el
-(defun todos-insert-item-from-calendar ()
+(defun todos-insert-item-from-calendar (&optional arg)
   ""
-  (interactive)
-  ;; FIXME: todos-current-todos-file is nil here, better to solicit Todos
-  ;; file? todos-global-current-todos-file is nil if no Todos file has been
-  ;; visited
-  (pop-to-buffer (file-name-nondirectory todos-global-current-todos-file))
+  (interactive "P")
+  (setq todos-date-from-calendar
+	(calendar-date-string (calendar-cursor-to-date t) t t))
+  (calendar-exit)
   (todos-show)
-  ;; FIXME: this now calls todos-set-date-from-calendar
-  (todos-insert-item t 'calendar))
+  (todos-insert-item arg nil nil todos-date-from-calendar))
 
-;; FIXME: calendar is loaded before todos
-;; (add-hook 'calendar-load-hook
-	  ;; (lambda ()
-(define-key calendar-mode-map "it" 'todos-insert-item-from-calendar);))
+(define-key calendar-mode-map "it" 'todos-insert-item-from-calendar)
 
-;; ---------------------------------------------------------------------------
 ;;; necessitated adaptations to diary-lib.el
 
 ;; (defun diary-goto-entry (button)
