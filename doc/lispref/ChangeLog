@@ -1,3 +1,8 @@
+2012-06-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* processes.texi (Asynchronous Processes): Make the pty vs pipe
+	discussion more prominent.
+
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* commands.texi (Misc Events): Document the language-change event.
