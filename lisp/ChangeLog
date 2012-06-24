@@ -1,5 +1,8 @@
 2012-06-24  Leo Liu  <sdl.web@gmail.com>
 
+	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): Avoid buffer
+	read-only error.
+
 	* net/rcirc.el (rcirc): Avoid error when process-contact returns t.
 
 	* vc/diff-mode.el (diff-file-prev/next): Fix typo.

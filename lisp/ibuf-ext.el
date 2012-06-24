@@ -1345,8 +1345,8 @@ a prefix argument reverses the meaning of that variable."
 		(diff-sentinel
 		 (call-process shell-file-name nil
 			       (current-buffer) nil
-			       shell-command-switch command)))
-	      (insert "\n"))))
+			       shell-command-switch command))
+		(insert "\n")))))
       (sit-for 0)
       (when (file-exists-p tempfile)
 	(delete-file tempfile)))))
