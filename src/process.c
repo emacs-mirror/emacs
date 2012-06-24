@@ -4259,7 +4259,7 @@ wait_reading_process_output_1 (void)
      an additional duration to wait, measured in nanoseconds
      If TIME_LIMIT is zero, then:
        If NSECS == 0, there is no limit.
-       If NSECS > 0, the timeout consists of NSEC only.
+       If NSECS > 0, the timeout consists of NSECS only.
        If NSECS < 0, gobble data immediately, as if TIME_LIMIT were negative.
 
    READ_KBD is a lisp value:
@@ -6832,18 +6832,18 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 
    Wait for timeout to elapse and/or keyboard input to be available.
 
-   time_limit is:
+   TIME_LIMIT is:
      timeout in seconds
      If negative, gobble data immediately available but don't wait for any.
 
-   nsec is:
+   NSECS is:
      an additional duration to wait, measured in nanoseconds
      If TIME_LIMIT is zero, then:
-       If NSEC == 0, there is no limit.
-       If NSEC > 0, the timeout consists of NSEC only.
+       If NSECS == 0, there is no limit.
+       If NSECS > 0, the timeout consists of NSECS only.
        If NSECS < 0, gobble data immediately, as if TIME_LIMIT were negative.
 
-   read_kbd is a Lisp_Object:
+   READ_KBD is a Lisp_Object:
      0 to ignore keyboard input, or
      1 to return when input is available, or
      -1 means caller will actually read the input, so don't throw to
@@ -6852,7 +6852,7 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
    see full version for other parameters. We know that wait_proc will
      always be NULL, since `subprocesses' isn't defined.
 
-   do_display != 0 means redisplay should be done to show subprocess
+   DO_DISPLAY != 0 means redisplay should be done to show subprocess
    output that arrives.
 
    Return true if we received input from any process.  */

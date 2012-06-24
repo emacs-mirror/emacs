@@ -1,3 +1,7 @@
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c: Fix spelling and caps in comments.
+
 2012-06-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.c (setpgrp): Remove definition, unused.
