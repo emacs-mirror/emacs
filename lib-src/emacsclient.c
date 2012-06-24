@@ -1278,7 +1278,7 @@ set_local_socket (const char *local_socket_name)
             if (n > 0)
               {
 		tmpdir = tmpdir_storage = xmalloc (n);
-                confstr (_CS_DARWIN_USER_TEMP_DIR, tmpdir, n);
+		confstr (_CS_DARWIN_USER_TEMP_DIR, tmpdir_storage, n);
               }
             else
 #endif

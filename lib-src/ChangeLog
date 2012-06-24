@@ -1,3 +1,7 @@
+2012-06-24  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+
+	* emacsclient.c (set_local_socket): Fix compiler warning (Bug#7838).
+
 2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Support higher-resolution time stamps (Bug#9000).
