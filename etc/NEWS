@@ -425,6 +425,12 @@ Only variables defined using `defcustom' are considered user options.
 The function `user-variable-p' is now an obsolete alias for
 `custom-variable-p'.
 
++++
+** The return values of `defalias', `defun' and `defmacro' have changed,
+and are now undefined.  For backwards compatibility, defun and
+defmacro currently return the name of the newly defined function/macro
+but this should not be relied upon.
+
 ** `face-spec-set' no longer sets frame-specific attributes when the
 third argument is a frame (that usage was obsolete since Emacs 22.2).
 
@@ -443,8 +449,6 @@ still be supported for Emacs 24.x.
 
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded and `push' and `pop' accept generalized variables.
-
-** The return value of `defalias' has changed and is now undefined.
 
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.

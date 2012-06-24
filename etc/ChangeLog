@@ -1,3 +1,7 @@
+2012-06-24  Lawrence Mitchell  <wence@gmx.li>
+
+	* NEWS: Move and improve the defun/defalias changes (bug#11686).
+
 2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Support higher-resolution time stamps (Bug#9000).
@@ -48,8 +52,8 @@
 
 2012-04-27  Jambunathan K  <kjambunathan@gmail.com>
 
-	* org/OrgOdtStyles.xml (OrgDescriptionList): Modify style.  With
-	this change, in a description list, if the description paragraph
+	* org/OrgOdtStyles.xml (OrgDescriptionList): Modify style.
+	With this change, in a description list, if the description paragraph
 	spawns multiple lines then it will correctly indented.
 
 2012-04-20  Glenn Morris  <rgm@gnu.org>
@@ -71,8 +75,8 @@
 	* org/OrgOdtContentTemplate.xml (OrgIndentedSection-Level-*):
 	New section styles. These sections are indented to the same
 	level as the corresponding list entries.  These sections hold
-	tables that occur within a list.  (OrgTable): Increased
-	relative width from 90% to 96% for aesthetic reasons.
+	tables that occur within a list.  (OrgTable):
+	Increased relative width from 90% to 96% for aesthetic reasons.
 
 2012-03-16  Glenn Morris  <rgm@gnu.org>
 
@@ -130,8 +134,8 @@
 2012-01-10  Chong Yidong  <cyd@gnu.org>
 
 	* tutorials/TUTORIAL: Don't give instructions for old-style X
-	scrollbars.  Use DEL terminology instead of DelBack.  Improve
-	description of graphical continuation lines and mode-line.
+	scrollbars.  Use DEL terminology instead of DelBack.
+	Improve description of graphical continuation lines and mode-line.
 	Promote use of C-/ and C-SPC.  Remove discussion of flow control.
 
 2012-01-05  Glenn Morris  <rgm@gnu.org>
@@ -504,11 +508,11 @@
 	POSIX does not allow "-" in Makefile variable names.
 	Reported by Bruno Haible in
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00990.html>.
-	* refcards/Makefile (DIRED_REFCARDS_PDF): Renamed from
+	* refcards/Makefile (DIRED_REFCARDS_PDF): Rename from
 	DIRED-REFCARDS_PDF.
-	(MISC_REFCARDS_PDF): Renamed from MISC-REFCARDS_PDF.
-	(SURVIVAL_CARDS_PDF): Renamed from SURVIVAL-CARDS_PDF.
-	(VIPER_CARDS_PDF): Renamed from VIPER-CARDS_PDF.
+	(MISC_REFCARDS_PDF): Rename from MISC-REFCARDS_PDF.
+	(SURVIVAL_CARDS_PDF): Rename from SURVIVAL-CARDS_PDF.
+	(VIPER_CARDS_PDF): Rename from VIPER-CARDS_PDF.
 
 2011-01-18  Glenn Morris  <rgm@gnu.org>
 
@@ -1972,7 +1976,7 @@
 
 	* refcards/refcard.tex: Updates for printing.
 	(\versionyear): Update to 2007.
-	(\copyrightnotice): Modified or unmodified ok.
+	(\copyrightnotice): Modify or unmodified ok.
 	(Simple Customization): Don't use goto-line, since now it's bound.
 	Also, use now-preferred (kbd ...) syntax.
 
@@ -2646,7 +2650,7 @@
 
 2006-09-03  Diane Murray  <disumu@x3y2z1.net>
 
-	* erc.texi (Getting Started, Connecting): Changed erc-select to erc.
+	* erc.texi (Getting Started, Connecting): Change erc-select to erc.
 
 2006-09-02  Juri Linkov  <juri@jurta.org>
 
@@ -2763,8 +2767,8 @@
 
 2006-07-05  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Add a paragraph for non-ASCII examples at the head.  Add
-	Bulgarian and Hungarian.  Add more "hello"s to Danish and Swedish.
+	* HELLO: Add a paragraph for non-ASCII examples at the head.
+	Add Bulgarian and Hungarian.  Add more "hello"s to Danish and Swedish.
 
 2006-07-03  Bill Wohler  <wohler@newt.com>
 
@@ -2910,7 +2914,7 @@
 
 2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex (section{Motion}): Added the item navigation commands.
+	* orgcard.tex (section{Motion}): Add the item navigation commands.
 	(section{Publishing}): New section.
 	(section{Links}): Documented elisp and shell links.
 
@@ -3046,8 +3050,8 @@
 	New bitmaps for new images.
 
 	* images/refresh.xpm, images/sort-ascending.xpm,
-	* images/sort-descending.xpm: Update with GTK 2.x images.  Note
-	that the default GTK icons are not overridden by the GNOME theme
+	* images/sort-descending.xpm: Update with GTK 2.x images.
+	Note that the default GTK icons are not overridden by the GNOME theme
 	due to a bug which was fixed in GNOME 2.15.  Once GNOME 2.16 is in
 	wide circulation, then the GTK icons should be replaced with the
 	equivalent GNOME icons.  Until then, we should be consistent with
@@ -4317,8 +4321,8 @@
 
 2001-11-22  Colin Walters  <walters@debian.org>
 
-	* PROBLEMS: Remove already applied calc info patches.  Clarify
-	that there is no such thing as Debian GNU/Linux 2.4.3.  ftpd is
+	* PROBLEMS: Remove already applied calc info patches.
+	Clarify that there is no such thing as Debian GNU/Linux 2.4.3.  ftpd is
 	not handled by alternatives in Debian, the reporter surely meant
 	just "--config ftp".
 
@@ -4435,8 +4439,8 @@
 
 	* ps-prin1.ps: Footer implementation.  Doc fix.
 	(doLineNumber): Code fix for line number color.
-	(BeginPage, BeginSheet, HeaderFramePath, HeaderFrame, HeaderText): Code
-	fix for footer implementation.
+	(BeginPage, BeginSheet, HeaderFramePath, HeaderFrame, HeaderText):
+	Code fix for footer implementation.
 	(TextStart, SetFooterLines, FooterFrameStart, doFramePath)
 	(FooterFramePath, doFrame, FooterFrame, FooterStart)
 	(HeaderOrFooterTextLines, HeaderOrFooterText, FooterText): New funs.
@@ -4624,8 +4628,8 @@
 	* ps-prin0.ps: Insert a version number comment (5.2.2).
 	Indentation fix.
 
-	* ps-prin1.ps: Insert a version number comment (5.2.2).  Can
-	select page size with/without giving an error if PostScript
+	* ps-prin1.ps: Insert a version number comment (5.2.2).
+	Can select page size with/without giving an error if PostScript
 	printer doesn't have this kind of page size.  Zebra Stripe
 	continues or restarts on next page.  Indentation fix.
 	(BeginSheet): If necessary, rescale n-up to fit on the sheet of
@@ -4836,8 +4840,8 @@
 	* termcap.dat, termcap.ucb: Deleted and replaced.
 
 	* termcap: New termcap file from the ncurses project; bigger,
-	better, brighter, does away with waxy yellow buildup.  Email
-	me at terminfo@ccil.org if you have any trouble with this.
+	better, brighter, does away with waxy yellow buildup.
+	Email me at terminfo@ccil.org if you have any trouble with this.
 
 	* README: Changed to track above change.
 
@@ -4847,7 +4851,7 @@
 
 1995-04-26  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
-	* Makefile (maintainer-clean): Renamed from realclean.
+	* Makefile (maintainer-clean): Rename from realclean.
 
 1995-04-09  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -5044,8 +5048,8 @@
 	* DISTRIB: The actual domestic order form is now ORDERS.USA.
 	The DISTRIB text now mentions 19.
 
-	* ORDERS.USA: Created.  This is just the order form.  DISTRIB
-	has a pointer to it at the beginning.
+	* ORDERS.USA: Created.  This is just the order form.
+	DISTRIB has a pointer to it at the beginning.
 
 	* EUROPE: Renamed to ORDERS.EUROPE.  DISTRIB now has a pointer
 	to it at the beginning.
@@ -5126,7 +5130,7 @@
 
 1992-04-06  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* etags.c (C_entries): Removed comment saying that \" in a string
+	* etags.c (C_entries): Remove comment saying that \" in a string
 	isn't recognized as magic, because it is correctly handled.
 
 	* getopt.c, getopt.h: New files, from GNU C library.
@@ -5136,8 +5140,8 @@
 	optind.
 	(main): Argument processing loop rewritten to call getopt to get
 	next option.  Options which take parameters (-o and -i) rewritten
-	to get parameter from optarg instead of argv[1].  Filename
-	preprocessing loop and update command changed similarly.
+	to get parameter from optarg instead of argv[1].
+	Filename preprocessing loop and update command changed similarly.
 	* Makefile (etags, ctags): Depend on and link with getopt.h,
 	getopt.o, and getopt1.o.
 	(getopt.o, getopt1.o): New targets for the GNU getopt routines.
@@ -5278,8 +5282,8 @@
 1991-01-25  Jim Blandy  (jimb@churchy.ai.mit.edu)
 
 	* make-docfile: Find the arguments to a C function correctly,
-	by not ignoring the character that read_c_string returns.  Don't
-	even try to find argument names for functions that take MANY
+	by not ignoring the character that read_c_string returns.
+	Don't even try to find argument names for functions that take MANY
 	or UNEVALLED arguments, since they're a figment of the docstring's
 	imagination.
 
