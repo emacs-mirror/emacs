@@ -93,13 +93,6 @@ extern void moncontrol (int mode);
 #define O_RDWR 2
 #endif
 
-#ifdef HAVE_SETPGID
-#if !defined (USG)
-#undef setpgrp
-#define setpgrp setpgid
-#endif
-#endif
-
 static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 

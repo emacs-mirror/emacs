@@ -1,5 +1,6 @@
 2012-06-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs.c (setpgrp): Remove definition, unused.
 	* sysdep.c (setpgrp): Remove definition, not used in this file.
 
 2012-06-24  Juanma Barranquero  <lekktu@gmail.com>
