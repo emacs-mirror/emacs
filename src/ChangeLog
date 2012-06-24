@@ -1,5 +1,8 @@
 2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_term_init): Build proper-sized _XSETTINGS_Snnn string
+	instead of truncating it to 63 (admittedly a generous limit).
+
 	* process.c: Fix spelling and caps in comments.
 
 2012-06-24  Dan Nicolaescu  <dann@ics.uci.edu>

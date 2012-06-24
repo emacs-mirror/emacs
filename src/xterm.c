@@ -10375,14 +10375,16 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     const int total_atom_count = 1 + atom_count;
     Atom *atoms_return = xmalloc (sizeof (Atom) * total_atom_count);
     char **atom_names = xmalloc (sizeof (char *) * total_atom_count);
-    char xsettings_atom_name[64];
+    static char const xsettings_fmt[] = "_XSETTINGS_S%d";
+    char xsettings_atom_name[sizeof xsettings_fmt - 2
+			     + INT_STRLEN_BOUND (int)];
 
     for (i = 0; i < atom_count; i++)
       atom_names[i] = (char *) atom_refs[i].name;
 
     /* Build _XSETTINGS_SN atom name */
-    snprintf (xsettings_atom_name, sizeof (xsettings_atom_name),
-              "_XSETTINGS_S%d", XScreenNumberOfScreen (dpyinfo->screen));
+    sprintf (xsettings_atom_name, xsettings_fmt,
+	     XScreenNumberOfScreen (dpyinfo->screen));
     atom_names[i] = xsettings_atom_name;
 
     XInternAtoms (dpyinfo->display, atom_names, total_atom_count,
