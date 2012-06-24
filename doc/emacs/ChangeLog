@@ -1,3 +1,7 @@
+2012-06-24  Michael Witten  <mfwitten@gmail.com>  (tiny change)
+
+	* fixit.texi (Undo): Fix typo.  (Bug#11775)
+
 2012-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
