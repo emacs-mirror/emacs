@@ -38,6 +38,10 @@ typedef unsigned long Time;
 #endif
 #endif
 #endif
+
+#ifdef WINDOWSNT
+#include <sys/time.h>	/* for 'struct timeval' */
+#endif
 
 /* The type to use to represent temporal intervals.  It can be passed
    as the timeout argument to the pselect system call.  */

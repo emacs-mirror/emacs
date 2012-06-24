@@ -1,5 +1,4 @@
 #include <time.h>
-#include <sys/time.h>
 int fdutimens (int, char const *, struct timespec const [2]);
 int utimens (char const *, struct timespec const [2]);
 int lutimens (char const *, struct timespec const [2]);

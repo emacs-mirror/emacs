@@ -390,10 +390,10 @@ EMACS_ROOT = ..
 GNU_LIB = $(EMACS_ROOT)/lib
 NT_INC = $(EMACS_ROOT)/nt/inc
 
-TIMESPEC_H     = $(GNU_LIB)/timespec.h \
-		 $(NT_INC)/sys/time.h
+TIMESPEC_H     = $(GNU_LIB)/timespec.h
 SYSTIME_H      = $(SRC)/systime.h \
-		 $(TIMESPEC_H)
+		 $(TIMESPEC_H) \
+		 $(NT_INC)/sys/time.h
 ATIMER_H       = $(SRC)/atimer.h \
 		 $(SYSTIME_H)
 BLOCKINPUT_H   = $(SRC)/blockinput.h \

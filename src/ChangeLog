@@ -1,3 +1,13 @@
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (TIMESPEC_H): Remove nt/inc/sys/time.h.
+	(SYSTIME_H): Add nt/inc/sys/time.h.
+
+	* systime.h [WINDOWSNT]: Include sys/time.h.
+
+	* s/ms-w32.h (struct timespec): Definition moved from
+	nt/inc/sys/time.h.  Suggested by Paul Eggert <eggert@cs.ucla.edu>.
+
 2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix bug when time_t is unsigned and as wide as intmax_t (Bug#9000).

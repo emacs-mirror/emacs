@@ -1,3 +1,14 @@
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/dtotimespec.$(O)):
+	($(BLD)/timespec-add.$(O)):
+	($(BLD)/timespec-sub.$(O)): Don't depend on
+	$(EMACS_ROOT)/nt/inc/sys/time.h.
+
+	* lib/stat-time.h:
+	* lib/timespec.h:
+	* lib/utimens.h: Revert last change.
+
 2012-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.

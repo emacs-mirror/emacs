@@ -17,12 +17,6 @@ struct timezone
   int		tz_dsttime;	/* type of dst correction */
 };
 
-struct timespec
-{
-  time_t	tv_sec;		/* seconds */
-  long int	tv_nsec;	/* nanoseconds */
-};
-
 void gettimeofday (struct timeval *, struct timezone *);
 
 #endif /* SYS_TIME_H_INCLUDED */

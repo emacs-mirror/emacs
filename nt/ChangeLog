@@ -1,3 +1,8 @@
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (struct timespec): Don't define it here, it is
+	now defined in src/s/ms-w32.h.
+
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix the MS-Windows build broken by revno 108687.

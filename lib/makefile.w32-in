@@ -77,7 +77,6 @@ $(BLD)/dtotimespec.$(O) : \
 	$(SRC)/dtotimespec.c \
 	$(SRC)/intprops.h \
 	$(SRC)/timespec.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/config.h
@@ -126,7 +125,6 @@ $(BLD)/timespec-add.$(O) : \
 	$(SRC)/timespec-add.c \
 	$(SRC)/intprops.h \
 	$(SRC)/timespec.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/config.h
@@ -135,7 +133,6 @@ $(BLD)/timespec-sub.$(O) : \
 	$(SRC)/timespec-sub.c \
 	$(SRC)/intprops.h \
 	$(SRC)/timespec.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/config.h
