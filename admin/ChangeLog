@@ -1,3 +1,12 @@
+2012-06-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	First Coccinelle semantic patch.
+	* coccinelle: New subdirectory
+	* coccinelle/README: Documentation stub.
+	* coccinelle/vector_contents.cocci: Semantic patch to replace direct
+        access to `contents' member of Lisp_Vector objects with AREF and ASET
+        where appropriate.
+
 2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Support higher-resolution time stamps (Bug#9000).
