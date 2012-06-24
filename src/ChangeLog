@@ -10,6 +10,38 @@
 
 2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* buffer.h (buffer_slot_type_mismatch):
+	* data.c (arith_error) [!FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	* eval.c (unwind_to_catch):
+	* image.c (my_png_error, my_error_exit):
+	* keyboard.c (quit_throw_to_read_char, user_error)
+	(Fexit_recursive_edit, Fabort_recursive_edit):
+	* lisp.h (die, args_out_of_range, args_out_of_range_3)
+	(wrong_type_argument, buffer_overflow, __executable_start)
+	(memory_full, buffer_memory_full, string_overflow, Fthrow)
+	(xsignal, xsignal0, xsignal1, xsignal2, xsignal3, signal_error)
+	(error, verror, nsberror, report_file_error, Ftop_level, Fkill_emacs)
+	(fatal):
+	(child_setup) [!DOS_NT]:
+	* lread.c (end_of_file_error, invalid_syntax):
+	* process.c (send_process_trap) [!FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	* puresize.h (pure_write_error):
+	* search.c (matcher_overflow):
+	* sound.c (sound_perror, alsa_sound_perror):
+	* sysdep.c, syssignal.h (croak):
+	* term.c (maybe_fatal, vfatal):
+	* textprop.c (text_read_only):
+	* undo.c (user_error):
+	* unexmacosx.c (unexec_error):
+	* xterm.c (x_ins_del_lines, x_delete_glyphs):
+	Use _Noreturn rather than NO_RETURN.
+	No need for separate decl merely because of _Noreturn.
+	* sound.c (sound_warning, parse_sound):
+	Remove unnecessary forward decls.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Fix bug when time_t is unsigned and as wide as intmax_t (Bug#9000).
 	* lisp.h (WAIT_READING_MAX): New macro.
 	* dispnew.c (Fsleep_for, sit_for):

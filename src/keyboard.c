@@ -462,7 +462,7 @@ static void input_available_signal (int signo);
 static Lisp_Object (Fcommand_execute) (Lisp_Object, Lisp_Object, Lisp_Object,
 				       Lisp_Object);
 static void handle_interrupt (void);
-static void quit_throw_to_read_char (int) NO_RETURN;
+static _Noreturn void quit_throw_to_read_char (int);
 static void process_special_events (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
@@ -1195,13 +1195,13 @@ This also exits all active minibuffers.  */)
   Fthrow (Qtop_level, Qnil);
 }
 
-static void user_error (const char*) NO_RETURN;
-static void user_error (const char *msg)
+static _Noreturn void
+user_error (const char *msg)
 {
   xsignal1 (Quser_error, build_string (msg));
 }
 
-static Lisp_Object Fexit_recursive_edit (void) NO_RETURN;
+_Noreturn
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
        doc: /* Exit from the innermost recursive edit or minibuffer.  */)
   (void)
@@ -1212,7 +1212,7 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
   user_error ("No recursive edit is in progress");
 }
 
-static Lisp_Object Fabort_recursive_edit (void) NO_RETURN;
+_Noreturn
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 0, "",
        doc: /* Abort the command that requested this recursive edit or minibuffer input.  */)
   (void)

@@ -101,9 +101,8 @@ static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, ptrdiff_t,
 static EMACS_INT search_buffer (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                 ptrdiff_t, ptrdiff_t, EMACS_INT, int,
                                 Lisp_Object, Lisp_Object, int);
-static void matcher_overflow (void) NO_RETURN;
 
-static void
+static _Noreturn void
 matcher_overflow (void)
 {
   error ("Stack overflow in regexp matcher");

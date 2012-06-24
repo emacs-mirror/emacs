@@ -72,7 +72,6 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 static Lisp_Object interval_insert_behind_hooks;
 static Lisp_Object interval_insert_in_front_hooks;
 
-static void text_read_only (Lisp_Object) NO_RETURN;
 static Lisp_Object Fprevious_property_change (Lisp_Object, Lisp_Object,
 					      Lisp_Object);
 
@@ -80,7 +79,7 @@ static Lisp_Object Fprevious_property_change (Lisp_Object, Lisp_Object,
 /* Signal a `text-read-only' error.  This function makes it easier
    to capture that error in GDB by putting a breakpoint on it.  */
 
-static void
+static _Noreturn void
 text_read_only (Lisp_Object propval)
 {
   if (STRINGP (propval))

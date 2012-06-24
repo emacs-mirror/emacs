@@ -75,7 +75,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   { if (PURE_P (obj))	  \
       pure_write_error (); }
 
-extern void pure_write_error (void) NO_RETURN;
+extern _Noreturn void pure_write_error (void);
 
 /* Define PURE_P.  */
 

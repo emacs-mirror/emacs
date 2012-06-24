@@ -114,7 +114,7 @@ extern char *getwd (char *);
 static int emacs_get_tty (int, struct emacs_tty *);
 static int emacs_set_tty (int, struct emacs_tty *, int);
 #if defined TIOCNOTTY || defined USG5 || defined CYGWIN
-static void croak (char *) NO_RETURN;
+static _Noreturn void croak (char *);
 #endif
 
 /* Declare here, including term.h is problematic on some systems.  */

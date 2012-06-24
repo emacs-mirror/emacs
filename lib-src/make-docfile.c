@@ -76,7 +76,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int scan_file (char *filename);
 static int scan_lisp_file (const char *filename, const char *mode);
 static int scan_c_file (char *filename, const char *mode);
-static void fatal (const char *s1, const char *s2) NO_RETURN;
 static void start_globals (void);
 static void write_globals (void);
 
@@ -111,7 +110,7 @@ error (const char *s1, const char *s2)
 /* Print error message and exit.  */
 
 /* VARARGS1 */
-static void
+static _Noreturn void
 fatal (const char *s1, const char *s2)
 {
   error (s1, s2);

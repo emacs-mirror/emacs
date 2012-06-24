@@ -495,18 +495,23 @@ extern char *getenv ();
 #endif
 #include <stdlib.h>
 
-#ifndef NO_RETURN
-#if defined __GNUC__ && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR >= 5))
-#define NO_RETURN	__attribute__ ((__noreturn__))
-#else
-#define NO_RETURN	/* nothing */
-#endif
+/* The _Noreturn keyword of C11.  */
+#if ! (defined _Noreturn \
+       || (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__))
+# if (3 <= __GNUC__ || (__GNUC__ == 2 && 8 <= __GNUC_MINOR__) \
+      || 0x5110 <= __SUNPRO_C)
+#  define _Noreturn __attribute__ ((__noreturn__))
+# elif defined _MSC_VER && 1200 <= _MSC_VER
+#  define _Noreturn __declspec (noreturn)
+# else
+#  define _Noreturn
+# endif
 #endif
 
 /* Redefine abort.  */
 #ifdef HAVE_NTGUI
 #define abort	w32_abort
-void w32_abort (void) NO_RETURN;
+_Noreturn void w32_abort (void);
 #endif
 
 /* Prevent accidental use of features unavailable in

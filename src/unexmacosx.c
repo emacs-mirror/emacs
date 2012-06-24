@@ -197,8 +197,6 @@ static off_t data_segment_old_fileoff = 0;
 
 static struct segment_command *data_segment_scp;
 
-static void unexec_error (const char *format, ...) NO_RETURN;
-
 /* Read N bytes from infd into memory starting at address DEST.
    Return true if successful, false otherwise.  */
 static int
@@ -275,7 +273,7 @@ unexec_copy (off_t dest, off_t src, ssize_t count)
 
 /* Debugging and informational messages routines.  */
 
-static void
+static _Noreturn void
 unexec_error (const char *format, ...)
 {
   va_list ap;

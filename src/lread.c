@@ -154,10 +154,6 @@ static void readevalloop (Lisp_Object, FILE*, Lisp_Object, int,
                           Lisp_Object, Lisp_Object);
 static Lisp_Object load_unwind (Lisp_Object);
 static Lisp_Object load_descriptor_unwind (Lisp_Object);
-
-static void invalid_syntax (const char *) NO_RETURN;
-static void end_of_file_error (void) NO_RETURN;
-
 
 /* Functions that read one byte from the current source READCHARFUN
    or unreads one byte.  If the integer argument C is -1, it returns
@@ -1656,7 +1652,7 @@ readevalloop_1 (Lisp_Object old)
 /* Signal an `end-of-file' error, if possible with file name
    information.  */
 
-static void
+static _Noreturn void
 end_of_file_error (void)
 {
   if (STRINGP (Vload_file_name))
@@ -2024,7 +2020,7 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
 /* Signal Qinvalid_read_syntax error.
    S is error string of length N (if > 0)  */
 
-static void
+static _Noreturn void
 invalid_syntax (const char *s)
 {
   xsignal1 (Qinvalid_read_syntax, build_string (s));

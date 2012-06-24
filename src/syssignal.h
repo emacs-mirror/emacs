@@ -76,7 +76,7 @@ sigset_t sys_sigblock   (sigset_t new_mask);
 sigset_t sys_sigunblock (sigset_t new_mask);
 sigset_t sys_sigsetmask (sigset_t new_mask);
 #if ! (defined TIOCNOTTY || defined USG5 || defined CYGWIN)
-void croak (char *) NO_RETURN;
+_Noreturn void croak (char *);
 #endif
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)

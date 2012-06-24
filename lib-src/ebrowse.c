@@ -463,10 +463,6 @@ static struct member *add_member (struct sym *, char *, int, int, unsigned);
 static void class_definition (struct sym *, int, int, int);
 static char *operator_name (int *);
 static void parse_qualified_param_ident_or_type (char **);
-static void usage (int) NO_RETURN;
-static void version (void) NO_RETURN;
-
-
 
 /***********************************************************************
 			      Utilities
@@ -3507,7 +3503,7 @@ Usage: ebrowse [options] {files}\n\
       --version			display version info\n\
 "
 
-static void
+static _Noreturn void
 usage (int error)
 {
   puts (USAGE);
@@ -3522,7 +3518,7 @@ usage (int error)
 # define VERSION "21"
 #endif
 
-static void
+static _Noreturn void
 version (void)
 {
   /* Makes it easier to update automatically. */

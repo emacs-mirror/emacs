@@ -190,7 +190,6 @@ static void Key(Widget w, XEvent *ev, String *params, Cardinal *num_params);
 static void Nothing(Widget w, XEvent *ev, String *params, Cardinal *num_params);
 static int separator_height (enum menu_separator);
 static void pop_up_menu (XlwMenuWidget, XButtonPressedEvent *);
-static void abort_gracefully (Widget w) NO_RETURN;
 
 static XtActionsRec
 xlwMenuActionsList [] =
@@ -273,7 +272,7 @@ ungrab_all (Widget w, Time ungrabtime)
 
 /* Like abort, but remove grabs from widget W before.  */
 
-static void
+static _Noreturn void
 abort_gracefully (Widget w)
 {
   if (XtIsShell (XtParent (w)))

@@ -113,7 +113,7 @@ typedef EMACS_UINT uprintmax_t;
 # define eassert(X) ((void) (0 && (X))) /* Check that X compiles.  */
 #else /* ENABLE_CHECKING */
 
-extern void die (const char *, const char *, int) NO_RETURN;
+extern _Noreturn void die (const char *, const char *, int);
 
 /* The suppress_checking variable is initialized to 0 in alloc.c.  Set
    it to 1 using a debugger to temporarily disable aborting on
@@ -2388,10 +2388,10 @@ extern intmax_t cons_to_signed (Lisp_Object, intmax_t, intmax_t);
 extern uintmax_t cons_to_unsigned (Lisp_Object, uintmax_t);
 
 extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
-extern void args_out_of_range (Lisp_Object, Lisp_Object) NO_RETURN;
-extern void args_out_of_range_3 (Lisp_Object, Lisp_Object,
-                                 Lisp_Object) NO_RETURN;
-extern Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object) NO_RETURN;
+extern _Noreturn void args_out_of_range (Lisp_Object, Lisp_Object);
+extern _Noreturn void args_out_of_range_3 (Lisp_Object, Lisp_Object,
+					   Lisp_Object);
+extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
 extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, int);
 extern void syms_of_data (void);
@@ -2554,7 +2554,7 @@ extern void init_image (void);
 extern Lisp_Object Qinhibit_modification_hooks;
 extern void move_gap (ptrdiff_t);
 extern void move_gap_both (ptrdiff_t, ptrdiff_t);
-extern void buffer_overflow (void) NO_RETURN;
+extern _Noreturn void buffer_overflow (void);
 extern void make_gap (ptrdiff_t);
 extern ptrdiff_t copy_text (const unsigned char *, unsigned char *,
 			    ptrdiff_t, int, int);
@@ -2599,7 +2599,7 @@ extern void syms_of_insdel (void);
 /* Defined in dispnew.c */
 #if (defined PROFILING \
      && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
-void __executable_start (void) NO_RETURN;
+_Noreturn void __executable_start (void);
 #endif
 extern Lisp_Object selected_frame;
 extern Lisp_Object Vwindow_system;
@@ -2675,8 +2675,8 @@ extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
 extern void reset_malloc_hooks (void);
 extern void uninterrupt_malloc (void);
 extern void malloc_warning (const char *);
-extern void memory_full (size_t) NO_RETURN;
-extern void buffer_memory_full (ptrdiff_t) NO_RETURN;
+extern _Noreturn void memory_full (size_t);
+extern _Noreturn void buffer_memory_full (ptrdiff_t);
 extern int survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC
@@ -2698,7 +2698,7 @@ EXFUN (Fmake_vector, 2);
 EXFUN (Fvector, MANY);
 EXFUN (Fmake_symbol, 1);
 EXFUN (Fmake_marker, 0);
-extern void string_overflow (void) NO_RETURN;
+extern _Noreturn void string_overflow (void);
 EXFUN (Fmake_string, 2);
 extern Lisp_Object build_string (const char *);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
@@ -2872,14 +2872,15 @@ extern Lisp_Object run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
 				       (ptrdiff_t nargs, Lisp_Object *args));
 EXFUN (Fprogn, UNEVALLED);
 EXFUN (Finteractive_p, 0);
-EXFUN (Fthrow, 2) NO_RETURN;
+_Noreturn EXFUN (Fthrow, 2);
 EXFUN (Fsignal, 2);
-extern void xsignal (Lisp_Object, Lisp_Object) NO_RETURN;
-extern void xsignal0 (Lisp_Object) NO_RETURN;
-extern void xsignal1 (Lisp_Object, Lisp_Object) NO_RETURN;
-extern void xsignal2 (Lisp_Object, Lisp_Object, Lisp_Object) NO_RETURN;
-extern void xsignal3 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object) NO_RETURN;
-extern void signal_error (const char *, Lisp_Object) NO_RETURN;
+extern _Noreturn void xsignal (Lisp_Object, Lisp_Object);
+extern _Noreturn void xsignal0 (Lisp_Object);
+extern _Noreturn void xsignal1 (Lisp_Object, Lisp_Object);
+extern _Noreturn void xsignal2 (Lisp_Object, Lisp_Object, Lisp_Object);
+extern _Noreturn void xsignal3 (Lisp_Object, Lisp_Object, Lisp_Object,
+				Lisp_Object);
+extern _Noreturn void signal_error (const char *, Lisp_Object);
 EXFUN (Fcommandp, 2);
 EXFUN (Ffunctionp, 1);
 EXFUN (Feval, 2);
@@ -2905,9 +2906,9 @@ extern Lisp_Object internal_condition_case_n (Lisp_Object (*) (ptrdiff_t, Lisp_O
 extern void specbind (Lisp_Object, Lisp_Object);
 extern void record_unwind_protect (Lisp_Object (*) (Lisp_Object), Lisp_Object);
 extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
-extern void error (const char *, ...) NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 2);
-extern void verror (const char *, va_list)
-  NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 0);
+extern _Noreturn void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
+extern _Noreturn void verror (const char *, va_list)
+  ATTRIBUTE_FORMAT_PRINTF (1, 0);
 extern void do_autoload (Lisp_Object, Lisp_Object);
 extern Lisp_Object un_autoload (Lisp_Object);
 extern void init_eval_once (void);
@@ -2954,7 +2955,7 @@ EXFUN (Fnarrow_to_region, 2);
 EXFUN (Fwiden, 0);
 EXFUN (Fuser_login_name, 1);
 EXFUN (Fsystem_name, 0);
-extern void time_overflow (void) NO_RETURN;
+extern _Noreturn void time_overflow (void);
 EXFUN (Fcurrent_time, 0);
 EXFUN (Fget_internal_run_time, 0);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, int);
@@ -2969,7 +2970,7 @@ extern void set_time_zone_rule (const char *);
 
 /* Defined in buffer.c */
 extern int mouse_face_overlay_overlaps (Lisp_Object);
-extern void nsberror (Lisp_Object) NO_RETURN;
+extern _Noreturn void nsberror (Lisp_Object);
 EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
@@ -3052,7 +3053,7 @@ EXFUN (Ffile_readable_p, 1);
 EXFUN (Fread_file_name, 6);
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
-extern void report_file_error (const char *, Lisp_Object) NO_RETURN;
+extern _Noreturn void report_file_error (const char *, Lisp_Object);
 extern int internal_delete_file (Lisp_Object);
 extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, int);
@@ -3140,7 +3141,7 @@ extern Lisp_Object Qtop;
 extern int input_pending;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);
-EXFUN (Ftop_level, 0) NO_RETURN;
+_Noreturn EXFUN (Ftop_level, 0);
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern void discard_mouse_events (void);
@@ -3209,7 +3210,7 @@ extern Lisp_Object Qfile_name_handler_alist;
 extern void fatal_error_signal (int);
 #endif
 extern Lisp_Object Qkill_emacs;
-EXFUN (Fkill_emacs, 1) NO_RETURN;
+_Noreturn EXFUN (Fkill_emacs, 1);
 #if HAVE_SETLOCALE
 void fixup_locale (void);
 void synchronize_system_messages_locale (void);
@@ -3269,11 +3270,10 @@ extern void syms_of_process (void);
 extern void setup_process_coding_systems (Lisp_Object);
 
 EXFUN (Fcall_process, MANY);
-extern int child_setup (int, int, int, char **, int, Lisp_Object)
 #ifndef DOS_NT
- NO_RETURN
+ _Noreturn
 #endif
- ;
+extern int child_setup (int, int, int, char **, int, Lisp_Object);
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
 extern void set_initial_environment (void);
@@ -3406,8 +3406,8 @@ extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
 extern int *char_ins_del_vector;
 extern void mark_ttys (void);
 extern void syms_of_term (void);
-extern void fatal (const char *msgid, ...)
-  NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 2);
+extern _Noreturn void fatal (const char *msgid, ...)
+  ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
 /* Defined in terminal.c */
 EXFUN (Fframe_terminal, 1);

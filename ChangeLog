@@ -1,3 +1,10 @@
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	We might as well use the spelling standardized by C11,
+	as in the long run that should simplify maintenance.
+	* configure.in (NO_RETURN): Remove.  All uses replaced by _Noreturn.
+
 2012-06-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in ($(BLD)/dtotimespec.$(O)):

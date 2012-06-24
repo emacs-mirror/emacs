@@ -316,7 +316,7 @@ static void XTframe_up_to_date (struct frame *);
 static void XTset_terminal_modes (struct terminal *);
 static void XTreset_terminal_modes (struct terminal *);
 static void x_clear_frame (struct frame *);
-static void x_ins_del_lines (struct frame *, int, int) NO_RETURN;
+static _Noreturn void x_ins_del_lines (struct frame *, int, int);
 static void frame_highlight (struct frame *);
 static void frame_unhighlight (struct frame *);
 static void x_new_focus_frame (struct x_display_info *, struct frame *);
@@ -349,7 +349,7 @@ static int handle_one_xevent (struct x_display_info *, XEvent *,
 #ifdef USE_GTK
 static int x_dispatch_event (XEvent *, Display *);
 #endif
-/* Don't declare this NO_RETURN because we want no
+/* Don't declare this _Noreturn because we want no
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);
 static void x_wm_set_window_state (struct frame *, int);
@@ -908,7 +908,7 @@ static void x_draw_glyph_string_foreground (struct glyph_string *);
 static void x_draw_composite_glyph_string_foreground (struct glyph_string *);
 static void x_draw_glyph_string_box (struct glyph_string *);
 static void x_draw_glyph_string  (struct glyph_string *);
-static void x_delete_glyphs (struct frame *, int) NO_RETURN;
+static _Noreturn void x_delete_glyphs (struct frame *, int);
 static void x_compute_glyph_string_overhangs (struct glyph_string *);
 static void x_set_cursor_gc (struct glyph_string *);
 static void x_set_mode_line_face_gc (struct glyph_string *);

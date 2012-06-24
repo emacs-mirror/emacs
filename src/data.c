@@ -3213,9 +3213,8 @@ syms_of_data (void)
 }
 
 #ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
-static void arith_error (int) NO_RETURN;
+_Noreturn
 #endif
-
 static void
 arith_error (int signo)
 {

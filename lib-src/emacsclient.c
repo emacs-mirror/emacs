@@ -169,8 +169,7 @@ int emacs_pid = 0;
    be used for the new frame */
 const char *frame_parameters = NULL;
 
-static void print_help_and_exit (void) NO_RETURN;
-static void fail (void) NO_RETURN;
+static _Noreturn void print_help_and_exit (void);
 
 
 struct option longopts[] =
@@ -670,7 +669,7 @@ an empty string");
 }
 
 
-static void
+static _Noreturn void
 print_help_and_exit (void)
 {
   /* Spaces and tabs are significant in this message; they're chosen so the
@@ -718,7 +717,7 @@ Report bugs with M-x report-emacs-bug.\n", progname);
   defined-- exit with an errorcode.
   Uses argv, but gets it from the global variable main_argv.
 */
-static void
+static _Noreturn void
 fail (void)
 {
   if (alternate_editor)

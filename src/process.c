@@ -5372,7 +5372,7 @@ static jmp_buf send_process_frame;
 static Lisp_Object process_sent_to;
 
 #ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
-static void send_process_trap (int) NO_RETURN;
+static _Noreturn void send_process_trap (int);
 #endif
 
 static void

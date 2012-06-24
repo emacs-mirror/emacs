@@ -366,9 +366,9 @@ static void analyse_regex (char *);
 static void free_regexps (void);
 static void regex_tag_multiline (void);
 static void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
-static void suggest_asking_for_help (void) NO_RETURN;
-void fatal (const char *, const char *) NO_RETURN;
-static void pfatal (const char *) NO_RETURN;
+static _Noreturn void suggest_asking_for_help (void);
+_Noreturn void fatal (const char *, const char *);
+static _Noreturn void pfatal (const char *);
 static void add_node (node *, node **);
 
 static void init (void);
