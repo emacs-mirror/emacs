@@ -1,3 +1,8 @@
+2012-06-24  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-parse-tag): Correctly handle comment embedded in
+	non-tag text.
+
 2012-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (COMPILE_FIRST): Synch with changes in revno:108688.

@@ -424,7 +424,8 @@ Returns one of:
       (search-forward "-->")
       (skip-syntax-forward " ")
       (unless (eobp)
-	(xml-parse-tag parse-dtd xml-ns)))
+	(let ((xml-sub-parser t))
+	  (xml-parse-tag parse-dtd xml-ns))))
      ;;  end tag
      ((looking-at "</")
       '())
