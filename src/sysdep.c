@@ -59,13 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #include <errno.h>
 
-#ifdef HAVE_SETPGID
-#if !defined (USG)
-#undef setpgrp
-#define setpgrp setpgid
-#endif
-#endif
-
 /* Get SI_SRPC_DOMAIN, if it is available.  */
 #ifdef HAVE_SYS_SYSTEMINFO_H
 #include <sys/systeminfo.h>
