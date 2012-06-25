@@ -1164,7 +1164,8 @@ The following commands are accepted by the client:
                  (setq dir (pop args-left))
                  (if coding-system
                      (setq dir (decode-coding-string dir coding-system)))
-                 (setq dir (command-line-normalize-file-name dir)))
+                 (setq dir (command-line-normalize-file-name dir))
+                 (process-put proc 'server-client-directory dir))
 
                 ;; Unknown command.
                 (arg (error "Unknown command: %s" arg))))

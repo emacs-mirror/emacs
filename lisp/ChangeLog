@@ -1,3 +1,8 @@
+2012-06-25  Jim Diamond  <Jim.Diamond@AcadiaU.ca>  (tiny change)
+
+	* server.el (server-process-filter): Remember dir in the
+	process's `server-client-directory' properties.
+
 2012-06-24  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el (xml-parse-tag): Correctly handle comment embedded in
