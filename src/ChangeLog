@@ -1,5 +1,8 @@
 2012-06-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* gtkutil.c (get_utf8_string): Remove redundant assignment.
+	sprintf already null-terminates its output.
+
 	* xfns.c (x_window): Remove redundant cast.
 
 2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>

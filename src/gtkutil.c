@@ -525,7 +525,6 @@ get_utf8_string (const char *str)
         {
           strncpy (up, (char *)p, bytes_written);
           sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
-          up[bytes_written+4] = '\0';
           up += bytes_written+4;
           p += bytes_written+1;
           g_error_free (err);
