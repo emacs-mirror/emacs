@@ -2503,7 +2503,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
        it is safe to free it while the frame exists.
        It isn't worth the trouble of arranging to free it
        when the frame is deleted.  */
-    tem = (char *) xstrdup (shell_position);
+    tem = xstrdup (shell_position);
     XtSetArg (gal[gac], XtNgeometry, tem); gac++;
     XtSetValues (shell_widget, gal, gac);
   }

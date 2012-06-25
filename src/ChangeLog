@@ -1,3 +1,7 @@
+2012-06-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xfns.c (x_window): Remove redundant cast.
+
 2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xmenu.c (xmenu_show, xdialog_show): Explicit cast from
