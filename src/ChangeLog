@@ -1,6 +1,6 @@
 2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* dispextern.c (xstrcasecmp): Define to library function
+	* dispextern.h (xstrcasecmp): Define to library function
 	strcasecmp if available.
 	* xfaces.c: Do not use xstrcasecmp if strcasecmp is available.
 
