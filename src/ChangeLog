@@ -1,3 +1,8 @@
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xmenu.c (xmenu_show, xdialog_show): Explicit cast from
+	`const char *' to `char *' to avoid compiler warning.
+
 2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c (x_term_init): Build proper-sized _XSETTINGS_Snnn string

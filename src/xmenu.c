@@ -1729,7 +1729,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      wv->name = pane_string;
+	      wv->name = (char *) pane_string;
 	      if (keymaps && !NILP (prefix))
 		wv->name++;
 	      wv->value = 0;
@@ -2060,7 +2060,7 @@ xdialog_show (FRAME_PTR f,
     pane_string = (NILP (pane_name)
 		   ? "" : SSDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
-    prev_wv->value = pane_string;
+    prev_wv->value = (char *) pane_string;
     if (keymaps && !NILP (prefix))
       prev_wv->name++;
     prev_wv->enabled = 1;
