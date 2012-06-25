@@ -1,3 +1,11 @@
+2012-06-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c (menu_bar_items, menu_bar_item, read_key_sequence):
+	Avoid comma operator.
+	* menu.c (push_submenu_start, push_submenu_end)
+	(push_left_right_boundary, push_menu_pane): Likewise.
+	* msdos.c (dos_rawgetc): Likewise.
+
 2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfns.c (xic_create_fontsetname): Remove redundant calls

@@ -197,7 +197,8 @@ static void
 push_submenu_start (void)
 {
   ensure_menu_items (1);
-  ASET (menu_items, menu_items_used, Qnil), menu_items_used++;
+  ASET (menu_items, menu_items_used, Qnil);
+  menu_items_used++;
   menu_items_submenu_depth++;
 }
 
@@ -207,7 +208,8 @@ static void
 push_submenu_end (void)
 {
   ensure_menu_items (1);
-  ASET (menu_items, menu_items_used, Qlambda), menu_items_used++;
+  ASET (menu_items, menu_items_used, Qlambda);
+  menu_items_used++;
   menu_items_submenu_depth--;
 }
 
@@ -219,7 +221,8 @@ static void
 push_left_right_boundary (void)
 {
   ensure_menu_items (1);
-  ASET (menu_items, menu_items_used, Qquote), menu_items_used++;
+  ASET (menu_items, menu_items_used, Qquote);
+  menu_items_used++;
 }
 
 /* Start a new menu pane in menu_items.
@@ -231,9 +234,12 @@ push_menu_pane (Lisp_Object name, Lisp_Object prefix_vec)
   ensure_menu_items (MENU_ITEMS_PANE_LENGTH);
   if (menu_items_submenu_depth == 0)
     menu_items_n_panes++;
-  ASET (menu_items, menu_items_used, Qt), menu_items_used++;
-  ASET (menu_items, menu_items_used, name), menu_items_used++;
-  ASET (menu_items, menu_items_used, prefix_vec), menu_items_used++;
+  ASET (menu_items, menu_items_used, Qt);
+  menu_items_used++;
+  ASET (menu_items, menu_items_used, name);
+  menu_items_used++;
+  ASET (menu_items, menu_items_used, prefix_vec);
+  menu_items_used++;
 }
 
 /* Push one menu item into the current pane.  NAME is the string to

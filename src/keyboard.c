@@ -7571,10 +7571,10 @@ menu_bar_items (Lisp_Object old)
       menu_bar_items_vector =
 	larger_vector (menu_bar_items_vector, 4, -1);
     /* Add this item.  */
-    ASET (menu_bar_items_vector, i, Qnil), i++;
-    ASET (menu_bar_items_vector, i, Qnil), i++;
-    ASET (menu_bar_items_vector, i, Qnil), i++;
-    ASET (menu_bar_items_vector, i, Qnil), i++;
+    ASET (menu_bar_items_vector, i, Qnil); i++;
+    ASET (menu_bar_items_vector, i, Qnil); i++;
+    ASET (menu_bar_items_vector, i, Qnil); i++;
+    ASET (menu_bar_items_vector, i, Qnil); i++;
     menu_bar_items_index = i;
   }
 
@@ -7642,11 +7642,11 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
       if (i + 4 > ASIZE (menu_bar_items_vector))
 	menu_bar_items_vector = larger_vector (menu_bar_items_vector, 4, -1);
       /* Add this item.  */
-      ASET (menu_bar_items_vector, i, key), i++;
+      ASET (menu_bar_items_vector, i, key); i++;
       ASET (menu_bar_items_vector, i,
-	    AREF (item_properties, ITEM_PROPERTY_NAME)), i++;
-      ASET (menu_bar_items_vector, i, Fcons (item, Qnil)), i++;
-      ASET (menu_bar_items_vector, i, make_number (0)), i++;
+	    AREF (item_properties, ITEM_PROPERTY_NAME)); i++;
+      ASET (menu_bar_items_vector, i, Fcons (item, Qnil)); i++;
+      ASET (menu_bar_items_vector, i, make_number (0)); i++;
       menu_bar_items_index = i;
     }
   /* We did find an item for this KEY.  Add ITEM to its list of maps.  */
@@ -9447,7 +9447,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	      && current_buffer != starting_buffer)
 	    {
 	      GROW_RAW_KEYBUF;
-	      ASET (raw_keybuf, raw_keybuf_count, key), raw_keybuf_count++;
+	      ASET (raw_keybuf, raw_keybuf_count, key);
+	      raw_keybuf_count++;
 	      keybuf[t++] = key;
 	      mock_input = t;
 	      Vquit_flag = Qnil;
@@ -9525,7 +9526,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		      && BUFFERP (XWINDOW (window)->buffer)
 		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
 		    {
-		      ASET (raw_keybuf, raw_keybuf_count, key), raw_keybuf_count++;
+		      ASET (raw_keybuf, raw_keybuf_count, key);
+		      raw_keybuf_count++;
 		      keybuf[t] = key;
 		      mock_input = t + 1;
 
