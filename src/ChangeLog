@@ -1,3 +1,8 @@
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfns.c (xic_create_fontsetname): Remove redundant calls
+	to memset.
+
 2012-06-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gtkutil.c (get_utf8_string): Remove redundant assignment.
