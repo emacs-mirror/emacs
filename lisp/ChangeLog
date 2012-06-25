@@ -1,3 +1,8 @@
+2012-06-25  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/which-func.el (which-func-format):
+	Add mouse-face.  (Bug#11698)
+
 2012-06-24  Leo Liu  <sdl.web@gmail.com>
 
 	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): Avoid buffer
