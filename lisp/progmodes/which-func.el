@@ -149,6 +149,7 @@ mouse-2: toggle rest visibility\n\
 mouse-3: go to end")
     "]")
   "Format for displaying the function in the mode line."
+  :version "24.2"                       ; added mouse-face
   :group 'which-func
   :type 'sexp)
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
