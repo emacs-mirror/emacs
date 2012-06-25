@@ -2,7 +2,7 @@
 
 # Copyright (C) 2000-2001, 2003-2007, 2009-2012 Free Software Foundation, Inc.
 
-# serial 6
+# serial 7
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -25,7 +25,7 @@ AC_DEFUN([gl_HEADER_TIME_H_BODY],
   AC_REQUIRE([gl_CHECK_TYPE_STRUCT_TIMESPEC])
 ])
 
-dnl Define HAVE_STRUCT_TIMESPEC if 'struct timespec' is declared
+dnl Check whether 'struct timespec' is declared
 dnl in time.h, sys/time.h, or pthread.h.
 
 AC_DEFUN([gl_CHECK_TYPE_STRUCT_TIMESPEC],
