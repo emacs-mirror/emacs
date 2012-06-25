@@ -1466,13 +1466,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <stdlib.h>
 
-#if defined __GNUC__ && (__GNUC__ > 2 \
-                         || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))
-#define NO_RETURN	__attribute__ ((__noreturn__))
-#else
-#define NO_RETURN	/* nothing */
-#endif
-
 #if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
 #define NO_INLINE __attribute__((noinline))
 #else
