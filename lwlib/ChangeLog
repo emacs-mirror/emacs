@@ -1,3 +1,8 @@
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lwlib.c (my_strcasecmp): Rename to lwlib_strcasecmp, which
+	may be defined to library function strcasecmp if available.
+
 2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).

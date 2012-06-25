@@ -1,3 +1,9 @@
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispextern.c (xstrcasecmp): Define to library function
+	strcasecmp if available.
+	* xfaces.c: Do not use xstrcasecmp if strcasecmp is available.
+
 2012-06-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* keyboard.c (menu_bar_items, menu_bar_item, read_key_sequence):

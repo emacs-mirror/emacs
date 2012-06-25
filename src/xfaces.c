@@ -716,6 +716,7 @@ x_free_gc (struct frame *f, GC gc)
 }
 #endif  /* HAVE_NS */
 
+#ifndef HAVE_STRCASECMP
 /* Like strcasecmp/stricmp.  Used to compare parts of font names which
    are in ISO8859-1.  */
 
@@ -737,7 +738,7 @@ xstrcasecmp (const char *s1, const char *s2)
     return *s2 == 0 ? 0 : -1;
   return 1;
 }
-
+#endif /* HAVE_STRCASECMP */
 
 /* If FRAME is nil, return a pointer to the selected frame.
    Otherwise, check that FRAME is a live frame, and return a pointer

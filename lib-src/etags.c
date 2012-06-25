@@ -389,8 +389,16 @@ static char *savenstr (const char *, int);
 static char *savestr (const char *);
 static char *etags_strchr (const char *, int);
 static char *etags_strrchr (const char *, int);
+#ifdef HAVE_STRCASECMP
+#define etags_strcasecmp(x,y) strcasecmp ((x), (y))
+#else
 static int etags_strcasecmp (const char *, const char *);
+#endif
+#ifdef HAVE_STRNCASECMP
+#define etags_strncasecmp(x,y,z) strncasecmp ((x), (y), (z))
+#else
 static int etags_strncasecmp (const char *, const char *, int);
+#endif
 static char *etags_getcwd (void);
 static char *relative_filename (char *, char *);
 static char *absolute_filename (char *, char *);
@@ -6320,6 +6328,7 @@ etags_strchr (register const char *sp, register int c)
   return NULL;
 }
 
+#ifndef HAVE_STRCASECMP
 /*
  * Compare two strings, ignoring case for alphabetic characters.
  *
@@ -6338,7 +6347,9 @@ etags_strcasecmp (register const char *s1, register const char *s2)
 	  ? lowcase (*s1) - lowcase (*s2)
 	  : *s1 - *s2);
 }
+#endif /* HAVE_STRCASECMP */
 
+#ifndef HAVE_STRNCASECMP
 /*
  * Compare two strings, ignoring case for alphabetic characters.
  * Stop after a given number of characters
@@ -6361,6 +6372,7 @@ etags_strncasecmp (register const char *s1, register const char *s2, register in
 	    ? lowcase (*s1) - lowcase (*s2)
 	    : *s1 - *s2);
 }
+#endif /* HAVE_STRCASECMP */
 
 /* Skip spaces (end of string is not space), return new pointer. */
 static char *
