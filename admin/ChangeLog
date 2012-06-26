@@ -1,3 +1,8 @@
+2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/build_string.cocci: Semantic patch
+	to convert from make_string to build_string.
+
 2012-06-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	First Coccinelle semantic patch.

@@ -1,3 +1,13 @@
+2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c: Remove build_string.
+	* lisp.h: Define build_string as static inline.  This provides
+	a better opportunity to optimize away calls to strlen when the
+	function is called with compile-time constant argument.
+	* image.c (imagemagick_error): Convert to build_string.
+	* w32proc.c (sys_spawnve): Likewise.
+	* xterm.c (x_term_init): Likewise.
+
 2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use sprintf return value instead of invoking strlen on result.

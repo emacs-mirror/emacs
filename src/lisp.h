@@ -2700,7 +2700,6 @@ EXFUN (Fmake_symbol, 1);
 EXFUN (Fmake_marker, 0);
 extern _Noreturn void string_overflow (void);
 EXFUN (Fmake_string, 2);
-extern Lisp_Object build_string (const char *);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
 extern Lisp_Object make_multibyte_string (const char *, ptrdiff_t, ptrdiff_t);
@@ -2713,6 +2712,16 @@ extern Lisp_Object make_specified_string (const char *,
 EXFUN (Fpurecopy, 1);
 extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, int);
 extern Lisp_Object make_pure_c_string (const char *data);
+
+/* Make a string from the data at STR, treating it as multibyte if the
+   data warrants.  */
+
+static inline Lisp_Object
+build_string (const char *str)
+{
+  return make_string (str, strlen (str));
+}
+
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 EXFUN (Fgarbage_collect, 0);
 extern void make_byte_code (struct Lisp_Vector *);

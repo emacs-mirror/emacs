@@ -10036,7 +10036,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
           const char *file = "~/.emacs.d/gtkrc";
           Lisp_Object s, abs_file;
 
-          s = make_string (file, strlen (file));
+          s = build_string (file);
           abs_file = Fexpand_file_name (s, Qnil);
 
           if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))

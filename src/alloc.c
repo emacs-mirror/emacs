@@ -2496,16 +2496,6 @@ make_specified_string (const char *contents,
 }
 
 
-/* Make a string from the data at STR, treating it as multibyte if the
-   data warrants.  */
-
-Lisp_Object
-build_string (const char *str)
-{
-  return make_string (str, strlen (str));
-}
-
-
 /* Return an unibyte Lisp_String set up to hold LENGTH characters
    occupying LENGTH bytes.  */
 

@@ -777,7 +777,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     }
 
   /* Handle executable names without an executable suffix.  */
-  program = make_string (cmdname, strlen (cmdname));
+  program = build_string (cmdname);
   if (NILP (Ffile_executable_p (program)))
     {
       struct gcpro gcpro1;

@@ -7570,7 +7570,7 @@ imagemagick_error (MagickWand *wand)
 
   description = MagickGetException (wand, &severity);
   image_error ("ImageMagick error: %s",
-	       make_string (description, strlen (description)),
+	       build_string (description),
 	       Qnil);
   description = (char *) MagickRelinquishMemory (description);
 }
