@@ -4083,6 +4083,12 @@ the value is \"\"."
         (if period
             "")))))
 
+(defun file-name-base (&optional filename)
+  "Return the base name of the FILENAME: no directory, no extension.
+FILENAME defaults to `buffer-file-name'."
+  (file-name-sans-extension
+   (file-name-nondirectory (or filename (buffer-file-name)))))
+
 (defcustom make-backup-file-name-function nil
   "A function to use instead of the default `make-backup-file-name'.
 A value of nil gives the default `make-backup-file-name' behavior.

@@ -313,8 +313,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
               (save-match-data
                 (cond
                  ((equal letter "f")
-                  (file-name-sans-extension
-                   (file-name-nondirectory (buffer-file-name))))
+                  (file-name-base))
                  ((equal letter "F")
                   (let ((masterdir (file-name-directory (reftex-TeX-master-file)))
                         (file (file-name-sans-extension (buffer-file-name))))
@@ -323,8 +322,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
                         (substring file (length masterdir))
                       file)))
                  ((equal letter "m")
-                  (file-name-sans-extension
-                   (file-name-nondirectory (reftex-TeX-master-file))))
+                  (file-name-base (reftex-TeX-master-file)))
                  ((equal letter "M")
                   (file-name-nondirectory
                    (substring (file-name-directory (reftex-TeX-master-file))

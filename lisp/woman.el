@@ -2679,8 +2679,7 @@ If DELETE is non-nil then delete from point."
 	;; then use the WoMan search mechanism to find the filename ...
 	(setq filename
 	      (woman-file-name
-	       (file-name-sans-extension
-		(file-name-nondirectory name))))
+	       (file-name-base name)))
 	;; Cannot find the file, so ...
 	(kill-buffer (current-buffer))
 	(error "File `%s' not found" name))

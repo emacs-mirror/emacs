@@ -1984,8 +1984,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
       (let* ((dir (file-name-directory tex-last-temp-file))
 	     (list (and (file-directory-p dir)
 			(file-name-all-completions
-			 (file-name-sans-extension
-			  (file-name-nondirectory tex-last-temp-file))
+			 (file-name-base tex-last-temp-file)
 			 dir))))
 	(while list
 	  (if not-all

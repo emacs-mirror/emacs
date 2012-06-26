@@ -1818,9 +1818,7 @@ system."
 	       (t
 		;; Being evaluated interactively.
 		(buffer-file-name)))))
-    (and file
-	 (file-name-sans-extension
-	  (file-name-nondirectory file)))))
+    (and file (file-name-base file))))
 
 (defmacro c-lang-defconst-eval-immediately (form)
   "Can be used inside a VAL in `c-lang-defconst' to evaluate FORM

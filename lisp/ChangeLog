@@ -1,3 +1,14 @@
+2012-06-26  Sam Steingold  <sds@gnu.org>
+
+	* files.el (file-name-base): New convenience function.
+	* autoinsert.el, cus-dep.el, doc-view.el, image-dired.el,
+	* woman.el, eshell/esh-cmd.el, progmodes/ada-xref.el,
+	* progmodes/cc-defs.el, progmodes/cperl-mode.el,
+	* progmodes/flymake.el, progmodes/gud.el, progmodes/idlwave.el,
+	* textmodes/ispell.el, textmodes/reftex-ref.el,
+	* textmodes/tex-mode.el: Use it.
+	Did not touch cedet and org because they are maintained elsewhere.
+
 2012-06-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* calendar/calendar.el (calendar-exit): Don't try to delete or

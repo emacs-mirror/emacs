@@ -1544,9 +1544,7 @@ the project file."
   ;;      also a separate.
 
   (with-current-buffer (get-file-buffer file)
-    (let ((short-ali-file-name
-	   (concat (file-name-sans-extension (file-name-nondirectory file))
-		   ".ali"))
+    (let ((short-ali-file-name (concat (file-name-base file) ".ali"))
 	  ali-file-name
 	  is-spec)
 
@@ -1566,10 +1564,7 @@ the project file."
       (if is-spec
 	  (set 'ali-file-name
 	       (ada-find-ali-file-in-dir
-		(concat (file-name-sans-extension
-			 (file-name-nondirectory
-			  (ada-other-file-name)))
-			".ali"))))
+		(concat (file-name-base (ada-other-file-name)) ".ali"))))
 
 
       (setq ali-file-name
@@ -1584,15 +1579,12 @@ the project file."
 		;;  file_s.ada and file_b.ada), try to go to the other file
 		;;  and look for its ali file
 		(ada-find-ali-file-in-dir
-		 (concat (file-name-sans-extension
-			  (file-name-nondirectory (ada-other-file-name)))
-			 ".ali"))
+		 (concat (file-name-base (ada-other-file-name)) ".ali"))
 
 
 		;;  If we still don't have an ali file, try to get the one
 		;;  from the parent unit, in case we have a separate entity.
-		(let ((parent-name (file-name-sans-extension
-				    (file-name-nondirectory file))))
+		(let ((parent-name (file-name-base file)))
 
 		  (while (and (not ali-file-name)
 			      (string-match "^\\(.*\\)[.-][^.-]*" parent-name))

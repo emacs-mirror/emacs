@@ -1220,9 +1220,7 @@ COMMAND may result in an alias being executed, or a plain command."
     (if (and file
 	     (string-match "\\(em\\|esh\\)-\\(.*\\)\\(\\.el\\)?\\'" file))
 	(let ((module-sym
-	       (intern (file-name-sans-extension
-			(file-name-nondirectory
-			 (concat "eshell-" (match-string 2 file)))))))
+	       (intern (file-name-base (concat "eshell-" (match-string 2 file))))))
 	  (if (and (functionp sym)
 		   (or (null module-sym)
 		       (eshell-using-module module-sym)

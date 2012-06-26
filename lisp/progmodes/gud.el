@@ -2763,10 +2763,9 @@ Obeying it means displaying in another window the specified file and line."
 						  (buffer-file-name)
 						(car frame)))))
 	 ((eq key ?F)
-	  (setq subst (file-name-sans-extension
-		       (file-name-nondirectory (if insource
-						   (buffer-file-name)
-						 (car frame))))))
+	  (setq subst (file-name-base (if insource
+                                          (buffer-file-name)
+                                        (car frame)))))
 	 ((eq key ?d)
 	  (setq subst (file-name-directory (if insource
 					       (buffer-file-name)

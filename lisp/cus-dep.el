@@ -53,9 +53,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
               (default-directory (expand-file-name subdir))
               (preloaded (concat "\\`"
                                  (regexp-opt (mapcar
-                                              (lambda (f)
-                                                (file-name-sans-extension
-                                                 (file-name-nondirectory f)))
+                                              'file-name-base
                                               preloaded-file-list) t)
                                  "\\.el\\'")))
           (dolist (file files)

@@ -2322,8 +2322,7 @@ to nil."
 						 nil t)))) ; Only one
 		     (progn
 		       (forward-word 1)
-		       (setq name (file-name-sans-extension
-				   (file-name-nondirectory (buffer-file-name)))
+		       (setq name (file-name-base)
 			     p (point))
 		       (insert " NAME\n\n" name
 			       " - \n\n=head1 SYNOPSIS\n\n\n\n"

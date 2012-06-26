@@ -1846,6 +1846,17 @@ Note that the @samp{.~3~} in the two last examples is the backup part,
 not an extension.
 @end defun
 
+@defun file-name-base &optional filename
+This function is the composition of @code{file-name-sans-extension}
+and @code{file-name-nondirectory}.  For example,
+
+@example
+(file-name-base "/my/home/foo.c")
+    @result{} "foo"
+@end example
+
+The @var{filename} argument defaults to @code{buffer-file-name}.
+@end defun
 
 @node Relative File Names
 @subsection Absolute and Relative File Names

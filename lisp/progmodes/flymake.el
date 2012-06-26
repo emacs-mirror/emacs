@@ -408,7 +408,7 @@ File contents are not checked."
 This function is used in sort to move most possible file names
 to the beginning of the list (File.h -> File.cpp moved to top)."
   (and (equal (file-name-sans-extension flymake-included-file-name)
-	      (file-name-sans-extension (file-name-nondirectory file-one)))
+	      (file-name-base file-one))
        (not (equal file-one file-two))))
 
 (defcustom flymake-check-file-limit 8192

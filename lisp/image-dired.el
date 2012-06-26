@@ -602,14 +602,14 @@ according to the Thumbnail Managing Standard."
                  (md5 (file-name-as-directory (file-name-directory f)))))
            (format "%s%s%s.thumb.%s"
                    (file-name-as-directory (expand-file-name (image-dired-dir)))
-                   (file-name-sans-extension (file-name-nondirectory f))
+                   (file-name-base f)
                    (if md5-hash (concat "_" md5-hash) "")
                    (file-name-extension f))))
         ((eq 'per-directory image-dired-thumbnail-storage)
          (let ((f (expand-file-name file)))
            (format "%s.image-dired/%s.thumb.%s"
                    (file-name-directory f)
-                   (file-name-sans-extension (file-name-nondirectory f))
+                   (file-name-base f)
                    (file-name-extension f))))))
 
 (defun image-dired-create-thumb (original-file thumbnail-file)

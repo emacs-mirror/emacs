@@ -961,8 +961,7 @@ Those files are saved in the directory given by the function
        ;; ODF files have to be converted to PDF before Ghostscript can
        ;; process it.
        (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
-             (opdf (expand-file-name (concat (file-name-sans-extension
-                                              (file-name-nondirectory doc-view-buffer-file-name))
+             (opdf (expand-file-name (concat (file-name-base doc-view-buffer-file-name)
                                              ".pdf")
                                      doc-view-current-cache-dir))
              (png-file png-file))
