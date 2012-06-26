@@ -91,12 +91,12 @@
 	* gnus-sum.el (gnus-auto-center-summary):
 	`scroll-margin' isn't defined on XEmacs.
 
-2012-06-26  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny  change)
+2012-06-26  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
 
 	* gnus-sum.el (gnus-auto-center-summary):
 	Set default to respect `scroll-margin'.
 
-2012-06-26  Elias Oltmanns  <eo@nebensachen.de>  (tiny  change)
+2012-06-26  Elias Oltmanns  <eo@nebensachen.de>  (tiny change)
 
 	* gnus-cite.el (gnus-dissect-cited-text): A single line without
 	citation prefix within a block of cited text should be considered
@@ -353,7 +353,7 @@
 	(spam-check-BBDB): Use it.
 	(spam-enter-ham-BBDB): Use it.
 
-2012-06-26  Peter Munster  <pmrb@free.fr>  (tiny  change)
+2012-06-26  Peter Munster  <pmrb@free.fr>  (tiny change)
 
 	* gnus-group.el (gnus-group-get-new-news):
 	New parameter `one-level' for scanning exactly one level.
