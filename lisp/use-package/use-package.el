@@ -281,13 +281,14 @@
                    '(current-time))))
      ,(if use-package-verbose
           `(message "%s..." ,text))
-     ,@forms
-     ,(when use-package-verbose
-        `(let ((elapsed
-                (float-time (time-subtract (current-time) now))))
-           (if (> elapsed 0.01)
-               (message "%s...done (%.3fs)" ,text elapsed)
-             (message "%s...done" ,text))))))
+     (prog1
+         ,@forms
+       ,(when use-package-verbose
+          `(let ((elapsed
+                  (float-time (time-subtract (current-time) now))))
+             (if (> elapsed 0.01)
+                 (message "%s...done (%.3fs)" ,text elapsed)
+               (message "%s...done" ,text)))))))
 
 (put 'with-elapsed-timer 'lisp-indent-function 1)
 
