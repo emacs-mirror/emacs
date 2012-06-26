@@ -275,32 +275,32 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		case no_modifier:
 		  {
 		    int v = va_arg (ap, int);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case long_modifier:
 		  {
 		    long v = va_arg (ap, long);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pD_modifier:
 		signed_pD_modifier:
 		  {
 		    ptrdiff_t v = va_arg (ap, ptrdiff_t);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pI_modifier:
 		  {
 		    EMACS_INT v = va_arg (ap, EMACS_INT);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pM_modifier:
 		  {
 		    intmax_t v = va_arg (ap, intmax_t);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		}
@@ -315,13 +315,13 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		case no_modifier:
 		  {
 		    unsigned v = va_arg (ap, unsigned);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case long_modifier:
 		  {
 		    unsigned long v = va_arg (ap, unsigned long);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pD_modifier:
@@ -329,13 +329,13 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		case pI_modifier:
 		  {
 		    EMACS_UINT v = va_arg (ap, EMACS_UINT);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pM_modifier:
 		  {
 		    uintmax_t v = va_arg (ap, uintmax_t);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		}
@@ -348,7 +348,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    case 'g':
 	      {
 		double d = va_arg (ap, double);
-		sprintf (sprintf_buffer, fmtcpy, d);
+		tem = sprintf (sprintf_buffer, fmtcpy, d);
 		/* Now copy into final output, truncating as necessary.  */
 		string = sprintf_buffer;
 		goto doit;
@@ -369,7 +369,6 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	      /* Copy string into final output, truncating if no room.  */
 	    doit:
 	      /* Coming here means STRING contains ASCII only.  */
-	      tem = strlen (string);
 	      if (STRING_BYTES_BOUND < tem)
 		error ("Format width or precision too large");
 	      width = tem;
@@ -413,8 +412,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		  bufsize = 0;
 		  continue;
 		}
-	      else
-		memcpy (bufptr, string, tem);
+	      memcpy (bufptr, string, tem);
 	      bufptr += tem;
 	      bufsize -= tem;
 	      if (minlen < 0)

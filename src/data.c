@@ -2449,20 +2449,17 @@ Uses a minus sign if negative.
 NUMBER may be an integer or a floating point number.  */)
   (Lisp_Object number)
 {
-  char buffer[VALBITS];
+  char buffer[max (FLOAT_TO_STRING_BUFSIZE, INT_BUFSIZE_BOUND (EMACS_INT))];
+  int len;
 
   CHECK_NUMBER_OR_FLOAT (number);
 
   if (FLOATP (number))
-    {
-      char pigbuf[FLOAT_TO_STRING_BUFSIZE];
+    len = float_to_string (buffer, XFLOAT_DATA (number));
+  else
+    len = sprintf (buffer, "%"pI"d", XINT (number));
 
-      float_to_string (pigbuf, XFLOAT_DATA (number));
-      return build_string (pigbuf);
-    }
-
-  sprintf (buffer, "%"pI"d", XINT (number));
-  return build_string (buffer);
+  return make_unibyte_string (buffer, len);
 }
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,

@@ -1851,8 +1851,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	len = 1;
       else if (len > 4)
 	len = 4;
-      sprintf (buf, "[%.*s]", len, str);
-      len += 2;
+      len = sprintf (buf, "[%.*s]", len, str);
       str = buf;
     }
   else

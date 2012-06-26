@@ -9365,12 +9365,10 @@ message_dolog (const char *m, ptrdiff_t nbytes, int nlflag, int multibyte)
 		    {
 		      char dupstr[sizeof " [ times]"
 				  + INT_STRLEN_BOUND (printmax_t)];
-		      int duplen;
 
 		      /* If you change this format, don't forget to also
 			 change message_log_check_duplicate.  */
-		      sprintf (dupstr, " [%"pMd" times]", dups);
-		      duplen = strlen (dupstr);
+		      int duplen = sprintf (dupstr, " [%"pMd" times]", dups);
 		      TEMP_SET_PT_BOTH (Z - 1, Z_BYTE - 1);
 		      insert_1 (dupstr, duplen, 1, 0, 1);
 		    }

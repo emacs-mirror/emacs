@@ -912,7 +912,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
     for (; CONSP (tail); tail = XCDR (tail), sep = ", ")
       {
 	Lisp_Object obj;
-	
+
 	if (sep)
 	  write_string_1 (sep, 2, stream);
 	obj = XCAR (tail);
@@ -944,43 +944,49 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
  * Given the above, the buffer must be least FLOAT_TO_STRING_BUFSIZE bytes.
  */
 
-void
+int
 float_to_string (char *buf, double data)
 {
   char *cp;
   int width;
+  int len;
 
   /* Check for plus infinity in a way that won't lose
      if there is no plus infinity.  */
   if (data == data / 2 && data > 1.0)
     {
-      strcpy (buf, "1.0e+INF");
-      return;
+      static char const infinity_string[] = "1.0e+INF";
+      strcpy (buf, infinity_string);
+      return sizeof infinity_string - 1;
     }
   /* Likewise for minus infinity.  */
   if (data == data / 2 && data < -1.0)
     {
-      strcpy (buf, "-1.0e+INF");
-      return;
+      static char const minus_infinity_string[] = "-1.0e+INF";
+      strcpy (buf, minus_infinity_string);
+      return sizeof minus_infinity_string - 1;
     }
   /* Check for NaN in a way that won't fail if there are no NaNs.  */
   if (! (data * 0.0 >= 0.0))
     {
       /* Prepend "-" if the NaN's sign bit is negative.
 	 The sign bit of a double is the bit that is 1 in -0.0.  */
+      static char const NaN_string[] = "0.0e+NaN";
       int i;
       union { double d; char c[sizeof (double)]; } u_data, u_minus_zero;
+      int negative = 0;
       u_data.d = data;
       u_minus_zero.d = - 0.0;
       for (i = 0; i < sizeof (double); i++)
 	if (u_data.c[i] & u_minus_zero.c[i])
 	  {
-	    *buf++ = '-';
+	    *buf = '-';
+	    negative = 1;
 	    break;
 	  }
 
-      strcpy (buf, "0.0e+NaN");
-      return;
+      strcpy (buf + negative, NaN_string);
+      return negative + sizeof NaN_string - 1;
     }
 
   if (NILP (Vfloat_output_format)
@@ -989,7 +995,7 @@ float_to_string (char *buf, double data)
     {
       /* Generate the fewest number of digits that represent the
 	 floating point value without losing information.  */
-      dtoastr (buf, FLOAT_TO_STRING_BUFSIZE - 2, 0, 0, data);
+      len = dtoastr (buf, FLOAT_TO_STRING_BUFSIZE - 2, 0, 0, data);
       /* The decimal point must be printed, or the byte compiler can
 	 get confused (Bug#8033). */
       width = 1;
@@ -1032,7 +1038,7 @@ float_to_string (char *buf, double data)
       if (cp[1] != 0)
 	goto lose;
 
-      sprintf (buf, SSDATA (Vfloat_output_format), data);
+      len = sprintf (buf, SSDATA (Vfloat_output_format), data);
     }
 
   /* Make sure there is a decimal point with digit after, or an
@@ -1049,14 +1055,18 @@ float_to_string (char *buf, double data)
 	{
 	  cp[1] = '0';
 	  cp[2] = 0;
+	  len++;
 	}
       else if (*cp == 0)
 	{
 	  *cp++ = '.';
 	  *cp++ = '0';
 	  *cp++ = 0;
+	  len += 2;
 	}
     }
+
+  return len;
 }
 
 
@@ -1332,8 +1342,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       for (i = 0; i < print_depth; i++)
 	if (EQ (obj, being_printed[i]))
 	  {
-	    sprintf (buf, "#%d", i);
-	    strout (buf, -1, -1, printcharfun);
+	    int len = sprintf (buf, "#%d", i);
+	    strout (buf, len, len, printcharfun);
 	    return;
 	  }
       being_printed[print_depth] = obj;
@@ -1348,16 +1358,16 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (n < 0)
 	    { /* Add a prefix #n= if OBJ has not yet been printed;
 		 that is, its status field is nil.  */
-	      sprintf (buf, "#%"pI"d=", -n);
-	      strout (buf, -1, -1, printcharfun);
+	      int len = sprintf (buf, "#%"pI"d=", -n);
+	      strout (buf, len, len, printcharfun);
 	      /* OBJ is going to be printed.  Remember that fact.  */
 	      Fputhash (obj, make_number (- n), Vprint_number_table);
 	    }
 	  else
 	    {
 	      /* Just print #n# if OBJ has already been printed.  */
-	      sprintf (buf, "#%"pI"d#", n);
-	      strout (buf, -1, -1, printcharfun);
+	      int len = sprintf (buf, "#%"pI"d#", n);
+	      strout (buf, len, len, printcharfun);
 	      return;
 	    }
 	}
@@ -1368,16 +1378,17 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
   switch (XTYPE (obj))
     {
     case_Lisp_Int:
-      sprintf (buf, "%"pI"d", XINT (obj));
-      strout (buf, -1, -1, printcharfun);
+      {
+	int len = sprintf (buf, "%"pI"d", XINT (obj));
+	strout (buf, len, len, printcharfun);
+      }
       break;
 
     case Lisp_Float:
       {
 	char pigbuf[FLOAT_TO_STRING_BUFSIZE];
-
-	float_to_string (pigbuf, XFLOAT_DATA (obj));
-	strout (pigbuf, -1, -1, printcharfun);
+	int len = float_to_string (pigbuf, XFLOAT_DATA (obj));
+	strout (pigbuf, len, len, printcharfun);
       }
       break;
 
@@ -1447,15 +1458,16 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		     when found in a multibyte string, always use a hex escape
 		     so it reads back as multibyte.  */
 		  char outbuf[50];
+		  int len;
 
 		  if (CHAR_BYTE8_P (c))
-		    sprintf (outbuf, "\\%03o", CHAR_TO_BYTE8 (c));
+		    len = sprintf (outbuf, "\\%03o", CHAR_TO_BYTE8 (c));
 		  else
 		    {
-		      sprintf (outbuf, "\\x%04x", c);
+		      len = sprintf (outbuf, "\\x%04x", c);
 		      need_nonhex = 1;
 		    }
-		  strout (outbuf, -1, -1, printcharfun);
+		  strout (outbuf, len, len, printcharfun);
 		}
 	      else if (! multibyte
 		       && SINGLE_BYTE_CHAR_P (c) && ! ASCII_BYTE_P (c)
@@ -1466,8 +1478,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		     print single-byte non-ASCII string chars
 		     using octal escapes.  */
 		  char outbuf[5];
-		  sprintf (outbuf, "\\%03o", c);
-		  strout (outbuf, -1, -1, printcharfun);
+		  int len = sprintf (outbuf, "\\%03o", c);
+		  strout (outbuf, len, len, printcharfun);
 		}
 	      else
 		{
@@ -1632,8 +1644,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		    /* Simple but incomplete way.  */
 		    if (i != 0 && EQ (obj, halftail))
 		      {
-			sprintf (buf, " . #%"pMd, i / 2);
-			strout (buf, -1, -1, printcharfun);
+			int len = sprintf (buf, " . #%"pMd, i / 2);
+			strout (buf, len, len, printcharfun);
 			goto end_of_list;
 		      }
 		  }
@@ -1697,7 +1709,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else if (BOOL_VECTOR_P (obj))
 	{
 	  ptrdiff_t i;
-	  register unsigned char c;
+	  int len;
+	  unsigned char c;
 	  struct gcpro gcpro1;
 	  ptrdiff_t size_in_chars
 	    = ((XBOOL_VECTOR (obj)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
@@ -1707,8 +1720,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
 	  PRINTCHAR ('#');
 	  PRINTCHAR ('&');
-	  sprintf (buf, "%"pI"d", XBOOL_VECTOR (obj)->size);
-	  strout (buf, -1, -1, printcharfun);
+	  len = sprintf (buf, "%"pI"d", XBOOL_VECTOR (obj)->size);
+	  strout (buf, len, len, printcharfun);
 	  PRINTCHAR ('\"');
 
 	  /* Don't print more characters than the specified maximum.
@@ -1759,9 +1772,11 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (WINDOWP (obj))
 	{
+	  int len;
 	  strout ("#<window ", -1, -1, printcharfun);
-	  sprintf (buf, "%"pI"d", XFASTINT (XWINDOW (obj)->sequence_number));
-	  strout (buf, -1, -1, printcharfun);
+	  len = sprintf (buf, "%"pI"d",
+			 XFASTINT (XWINDOW (obj)->sequence_number));
+	  strout (buf, len, len, printcharfun);
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {
 	      strout (" on ", -1, -1, printcharfun);
@@ -1771,10 +1786,11 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (TERMINALP (obj))
 	{
+	  int len;
 	  struct terminal *t = XTERMINAL (obj);
 	  strout ("#<terminal ", -1, -1, printcharfun);
-	  sprintf (buf, "%d", t->id);
-	  strout (buf, -1, -1, printcharfun);
+	  len = sprintf (buf, "%d", t->id);
+	  strout (buf, len, len, printcharfun);
 	  if (t->name)
 	    {
 	      strout (" on ", -1, -1, printcharfun);
@@ -1787,6 +1803,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
 	  ptrdiff_t i;
 	  ptrdiff_t real_size, size;
+	  int len;
 #if 0
 	  strout ("#<hash-table", -1, -1, printcharfun);
 	  if (SYMBOLP (h->test))
@@ -1797,18 +1814,18 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      PRINTCHAR (' ');
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun);
 	      PRINTCHAR (' ');
-	      sprintf (buf, "%"pD"d/%"pD"d", h->count, ASIZE (h->next));
-	      strout (buf, -1, -1, printcharfun);
+	      len = sprintf (buf, "%"pD"d/%"pD"d", h->count, ASIZE (h->next));
+	      strout (buf, len, len, printcharfun);
 	    }
-	  sprintf (buf, " %p", h);
-	  strout (buf, -1, -1, printcharfun);
+	  len = sprintf (buf, " %p", h);
+	  strout (buf, len, len, printcharfun);
 	  PRINTCHAR ('>');
 #endif
 	  /* Implement a readable output, e.g.:
 	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
 	  /* Always print the size. */
-	  sprintf (buf, "#s(hash-table size %"pD"d", ASIZE (h->next));
-	  strout (buf, -1, -1, printcharfun);
+	  len = sprintf (buf, "#s(hash-table size %"pD"d", ASIZE (h->next));
+	  strout (buf, len, len, printcharfun);
 
 	  if (!NILP (h->test))
 	    {
@@ -1881,12 +1898,13 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (FRAMEP (obj))
 	{
+	  int len;
 	  strout ((FRAME_LIVE_P (XFRAME (obj))
 		   ? "#<frame " : "#<dead frame "),
 		  -1, -1, printcharfun);
 	  print_string (XFRAME (obj)->name, printcharfun);
-	  sprintf (buf, " %p", XFRAME (obj));
-	  strout (buf, -1, -1, printcharfun);
+	  len = sprintf (buf, " %p", XFRAME (obj));
+	  strout (buf, len, len, printcharfun);
 	  PRINTCHAR ('>');
 	}
       else if (FONTP (obj))
@@ -1982,8 +2000,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    strout ("in no buffer", -1, -1, printcharfun);
 	  else
 	    {
-	      sprintf (buf, "at %"pD"d", marker_position (obj));
-	      strout (buf, -1, -1, printcharfun);
+	      int len = sprintf (buf, "at %"pD"d", marker_position (obj));
+	      strout (buf, len, len, printcharfun);
 	      strout (" in ", -1, -1, printcharfun);
 	      print_string (BVAR (XMARKER (obj)->buffer, name), printcharfun);
 	    }
@@ -1996,10 +2014,10 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    strout ("in no buffer", -1, -1, printcharfun);
 	  else
 	    {
-	      sprintf (buf, "from %"pD"d to %"pD"d in ",
-		       marker_position (OVERLAY_START (obj)),
-		       marker_position (OVERLAY_END   (obj)));
-	      strout (buf, -1, -1, printcharfun);
+	      int len = sprintf (buf, "from %"pD"d to %"pD"d in ",
+				 marker_position (OVERLAY_START (obj)),
+				 marker_position (OVERLAY_END   (obj)));
+	      strout (buf, len, len, printcharfun);
 	      print_string (BVAR (XMARKER (OVERLAY_START (obj))->buffer, name),
 			    printcharfun);
 	    }
@@ -2014,10 +2032,12 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
 	case Lisp_Misc_Save_Value:
 	  strout ("#<save_value ", -1, -1, printcharfun);
-	  sprintf (buf, "ptr=%p int=%"pD"d",
-                   XSAVE_VALUE (obj)->pointer,
-                   XSAVE_VALUE (obj)->integer);
-	  strout (buf, -1, -1, printcharfun);
+	  {
+	    int len = sprintf (buf, "ptr=%p int=%"pD"d",
+			       XSAVE_VALUE (obj)->pointer,
+			       XSAVE_VALUE (obj)->integer);
+	    strout (buf, len, len, printcharfun);
+	  }
 	  PRINTCHAR ('>');
 	  break;
 
@@ -2029,16 +2049,17 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
     default:
     badtype:
       {
+	int len;
 	/* We're in trouble if this happens!
 	   Probably should just abort () */
 	strout ("#<EMACS BUG: INVALID DATATYPE ", -1, -1, printcharfun);
 	if (MISCP (obj))
-	  sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
+	  len = sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
-	  sprintf (buf, "(PVEC 0x%08"pD"x)", ASIZE (obj));
+	  len = sprintf (buf, "(PVEC 0x%08"pD"x)", ASIZE (obj));
 	else
-	  sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
-	strout (buf, -1, -1, printcharfun);
+	  len = sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
+	strout (buf, len, len, printcharfun);
 	strout (" Save your buffers immediately and please report this bug>",
 		-1, -1, printcharfun);
       }

@@ -2797,7 +2797,7 @@ extern void print_error_message (Lisp_Object, Lisp_Object, const char *,
 extern Lisp_Object internal_with_output_to_temp_buffer
         (const char *, Lisp_Object (*) (Lisp_Object), Lisp_Object);
 #define FLOAT_TO_STRING_BUFSIZE 350
-extern void float_to_string (char *, double);
+extern int float_to_string (char *, double);
 extern void syms_of_print (void);
 
 /* Defined in doprnt.c */

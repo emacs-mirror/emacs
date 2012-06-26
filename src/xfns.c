@@ -5956,10 +5956,10 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   DEFVAR_LISP ("gtk-version-string", Vgtk_version_string,
                doc: /* Version info for GTK+.  */);
   {
-    char gtk_version[40];
-    g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
-                GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-    Vgtk_version_string = make_pure_string (gtk_version, strlen (gtk_version), strlen (gtk_version), 0);
+    char gtk_version[sizeof ".." + 3 * INT_STRLEN_BOUND (int)];
+    int len = sprintf (gtk_version, "%d.%d.%d",
+		       GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
+    Vgtk_version_string = make_pure_string (gtk_version, len, len, 0);
   }
 #endif /* USE_GTK */
 

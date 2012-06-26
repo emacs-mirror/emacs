@@ -1,5 +1,25 @@
 2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use sprintf return value instead of invoking strlen on result.
+	In the old days this wasn't portable, since some sprintf
+	implementations returned char *.  But they died out years ago and
+	Emacs already assumes sprintf returns int.
+	Similarly for float_to_string.
+	This patch speeds up (number-to-string 1000) by 3% on Fedora 15 x86-64.
+	* ccl.c (ccl_driver):
+	* character.c (string_escape_byte8):
+	* data.c (Fnumber_to_string):
+	* doprnt.c (doprnt):
+	* print.c (print_object):
+	* xdisp.c (message_dolog):
+	* xfns.c (syms_of_xfns):
+	Use sprintf or float_to_string result to avoid need to call strlen.
+	* data.c (Fnumber_to_string):
+	Use make_unibyte_string, since the string must be ASCII.
+	* lisp.h, print.c (float_to_string): Now returns int length.
+	* term.c (produce_glyphless_glyph):
+	Use sprintf result rather than recomputing it.
+
 	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
 	* Makefile.in (ALL_CFLAGS):
 	* makefile.w32-in (LOCAL_FLAGS): Remove -DHAVE_CONFIG_H.

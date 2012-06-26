@@ -1729,14 +1729,14 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
       switch (ccl->status)
 	{
 	case CCL_STAT_INVALID_CMD:
-	  sprintf (msg, "\nCCL: Invalid command %x (ccl_code = %x) at %d.",
-                   code & 0x1F, code, this_ic);
+	  msglen = sprintf (msg,
+			    "\nCCL: Invalid command %x (ccl_code = %x) at %d.",
+			    code & 0x1F, code, this_ic);
 #ifdef CCL_DEBUG
 	  {
 	    int i = ccl_backtrace_idx - 1;
 	    int j;
 
-	    msglen = strlen (msg);
 	    if (dst + msglen <= (dst_bytes ? dst_end : src))
 	      {
 		memcpy (dst, msg, msglen);
@@ -1748,8 +1748,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		if (i < 0) i = CCL_DEBUG_BACKTRACE_LEN - 1;
 		if (ccl_backtrace_table[i] == 0)
 		  break;
-		sprintf (msg, " %d", ccl_backtrace_table[i]);
-		msglen = strlen (msg);
+		msglen = sprintf (msg, " %d", ccl_backtrace_table[i]);
 		if (dst + msglen > (dst_bytes ? dst_end : src))
 		  break;
 		memcpy (dst, msg, msglen);
@@ -1761,15 +1760,13 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  break;
 
 	case CCL_STAT_QUIT:
-	  if (! ccl->quit_silently)
-	    sprintf (msg, "\nCCL: Quitted.");
+	  msglen = ccl->quit_silently ? 0 : sprintf (msg, "\nCCL: Quitted.");
 	  break;
 
 	default:
-	  sprintf (msg, "\nCCL: Unknown error type (%d)", ccl->status);
+	  msglen = sprintf (msg, "\nCCL: Unknown error type (%d)", ccl->status);
 	}
 
-      msglen = strlen (msg);
       if (msglen <= dst_end - dst)
 	{
 	  for (i = 0; i < msglen; i++)
