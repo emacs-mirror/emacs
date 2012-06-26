@@ -91,9 +91,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #  define NDEBUG		/* disable assert */
 #endif
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif /* !HAVE_CONFIG_H */
+#include <config.h>
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
@@ -113,10 +111,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # include <fcntl.h>
 # include <sys/param.h>
 # include <io.h>
-# ifndef HAVE_CONFIG_H
-#   define DOS_NT
-#   include <sys/config.h>
-# endif
 #else
 # define MSDOS FALSE
 #endif /* MSDOS */
@@ -167,14 +161,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # include <getopt.h>
 #endif /* NO_LONG_OPTIONS */
 
-#ifndef HAVE_CONFIG_H		/* this is a standalone compilation */
-# ifdef __CYGWIN__         	/* compiling on Cygwin */
-			     !!! NOTICE !!!
- the regex.h distributed with Cygwin is not compatible with etags, alas!
-If you want regular expression support, you should delete this notice and
-	      arrange to use the GNU regex.h and regex.c.
-# endif
-#endif
 #include <regex.h>
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.

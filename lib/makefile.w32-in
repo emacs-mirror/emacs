@@ -20,7 +20,7 @@ ALL = gnulib
 
 .PHONY: $(ALL)
 
-LOCAL_FLAGS	= -DHAVE_CONFIG_H=1 -I. -I../nt/inc -I../src
+LOCAL_FLAGS	= -I. -I../nt/inc -I../src
 LIBS 		=
 
 GNULIBOBJS = $(BLD)/dtoastr.$(O) \

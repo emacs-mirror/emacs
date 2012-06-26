@@ -1,3 +1,8 @@
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* lib/makefile.w32-in (LOCAL_FLAGS): Remove -DHAVE_CONFIG_H.
+
 2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.in (AC_CHECK_FUNCS): Detect library functions

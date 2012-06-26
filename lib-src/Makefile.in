@@ -169,12 +169,9 @@ LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM = @LIBS_SYSTEM@
 
-# Those files shared with other GNU utilities need HAVE_CONFIG_H
-# defined before they know they can take advantage of the information
-# in ../src/config.h.
 BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 	      $(WARN_CFLAGS) $(WERROR_CFLAGS) \
-	      -DHAVE_CONFIG_H -I. -I../src -I../lib \
+	      -I. -I../src -I../lib \
 	      -I${srcdir} -I${srcdir}/../src -I${srcdir}/../lib
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}

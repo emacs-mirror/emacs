@@ -303,11 +303,8 @@ MKDEPDIR=@MKDEPDIR@
 ## -Demacs is needed to make some files produce the correct version
 ## for use in Emacs.
 ##
-## -DHAVE_CONFIG_H is needed for some other files to take advantage of
-## the information in `config.h'.
-##
 ## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I$(srcdir) \
+ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   -I$(lib) -I$(srcdir)/../lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \

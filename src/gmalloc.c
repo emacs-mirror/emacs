@@ -21,9 +21,7 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifdef	HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #ifdef HAVE_PTHREAD
 #define USE_PTHREAD

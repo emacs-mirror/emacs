@@ -1,3 +1,13 @@
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* Makefile.in (BASE_CFLAGS):
+	* makefile.w32-in (LOCAL_FLAGS): Remove -DHAVE_CONFIG_H.
+	* etags.c, hexl.c, pop.c: Include <config.h> unconditionally.
+	* etags.c (DOS_NT):
+	* pop.c (MAIL_USE_POP, h_errno):
+	Remove code that was conditioned on !HAVE_CONFIG_H.
+
 2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* etags.c (etags_strcasecmp, etags_strncasecmp): Define to

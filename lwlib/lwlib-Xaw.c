@@ -20,9 +20,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdio.h>
 #include <setjmp.h>
@@ -148,7 +146,7 @@ get_text_width_and_height (Widget widget, char *text,
 {
   int w = 0, h = 0;
   char *bp = text;
-  
+
   while (bp && *bp != '\0')
     {
       XGlyphInfo gi;
@@ -227,16 +225,16 @@ find_xft_data (Widget widget)
   Widget parent = XtParent (widget);
   struct widget_xft_data *data = NULL;
   int nr;
-  while (parent && !inst) 
+  while (parent && !inst)
     {
       inst = lw_get_widget_instance (parent);
       parent = XtParent (parent);
     }
   if (!inst || !inst->xft_data || !inst->xft_data[0].xft_font) return 0;
 
-  for (nr = 0; data == NULL && nr < inst->nr_xft_data; ++nr) 
+  for (nr = 0; data == NULL && nr < inst->nr_xft_data; ++nr)
     {
-      if (inst->xft_data[nr].widget == widget) 
+      if (inst->xft_data[nr].widget == widget)
         data = &inst->xft_data[nr];
     }
 
@@ -250,7 +248,7 @@ command_press (Widget widget,
                Cardinal *num_params)
 {
   struct widget_xft_data *data = find_xft_data (widget);
-  if (data) 
+  if (data)
     {
       char *lbl;
       /* Since this isn't used for rectangle buttons, use it to for armed.  */
@@ -268,11 +266,11 @@ command_reset (Widget widget,
                Cardinal *num_params)
 {
   struct widget_xft_data *data = find_xft_data (widget);
-  if (data) 
+  if (data)
     {
       Dimension cr;
       XtVaGetValues (widget, XtNcornerRoundPercent, &cr, NULL);
-      if (cr == 1) 
+      if (cr == 1)
         {
           char *lbl;
           XtVaSetValues (widget, XtNcornerRoundPercent, 0, NULL);
@@ -366,14 +364,14 @@ void
 xaw_destroy_instance (widget_instance *instance)
 {
 #ifdef HAVE_XFT
-  if (instance->xft_data) 
+  if (instance->xft_data)
     {
       int i;
-      for (i = 0; i < instance->nr_xft_data; ++i) 
+      for (i = 0; i < instance->nr_xft_data; ++i)
         {
           if (instance->xft_data[i].xft_draw)
             XftDrawDestroy (instance->xft_data[i].xft_draw);
-          if (instance->xft_data[i].p != None) 
+          if (instance->xft_data[i].p != None)
             {
               XtVaSetValues (instance->xft_data[i].widget, XtNbitmap, None,
                              NULL);
@@ -483,7 +481,7 @@ static XtActionsRec xaw_actions [] = {
 static Boolean actions_initted = False;
 
 #ifdef HAVE_XFT
-static XtActionsRec button_actions[] = 
+static XtActionsRec button_actions[] =
   {
     { "my_reset", command_reset },
     { "my_press", command_press },
@@ -563,7 +561,7 @@ make_dialog (char* name,
     XtVaGetValues (dialog,
                    XtNnumChildren, &num,
                    XtNchildren, &ch, NULL);
-    for (i = 0; i < num; ++i) 
+    for (i = 0; i < num; ++i)
       {
         if (!XtIsSubclass (ch[i], commandWidgetClass)
             && XtIsSubclass (ch[i], labelWidgetClass))
@@ -574,9 +572,9 @@ make_dialog (char* name,
       }
     instance->xft_data = 0;
     instance->nr_xft_data = 0;
-    if (w) 
+    if (w)
       {
-        XtResource rec[] = 
+        XtResource rec[] =
           { { "font", "Font", XtRString, sizeof(String), 0, XtRString,
               (XtPointer)"Sans-10" }};
         char *fontName = NULL;
@@ -590,8 +588,8 @@ make_dialog (char* name,
             else
               XFreeFont (XtDisplay (dialog), xfn);
           }
-        
-        if (xft_font) 
+
+        if (xft_font)
           {
             instance->nr_xft_data = left_buttons + right_buttons + 1;
             instance->xft_data = calloc (instance->nr_xft_data,
@@ -639,7 +637,7 @@ make_dialog (char* name,
     {
       ac = 0;
       XtSetArg (av [ac], XtNfromHoriz, button); ac++;
-      if (i == 0) 
+      if (i == 0)
         {
           /* Separator to the other buttons. */
           XtSetArg (av [ac], XtNhorizDistance, 30); ac++;

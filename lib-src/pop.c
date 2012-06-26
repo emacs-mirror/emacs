@@ -21,11 +21,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#else
-#define MAIL_USE_POP
-#endif
 
 #ifdef MAIL_USE_POP
 
@@ -101,7 +97,7 @@ extern char *krb_realmofhost (/* char * */);
 #endif /* KERBEROS */
 
 #ifndef WINDOWSNT
-#if !defined (HAVE_H_ERRNO) || !defined (HAVE_CONFIG_H)
+#ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
 #endif

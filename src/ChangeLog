@@ -1,3 +1,10 @@
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* Makefile.in (ALL_CFLAGS):
+	* makefile.w32-in (LOCAL_FLAGS): Remove -DHAVE_CONFIG_H.
+	* gmalloc.c, regex.c: Include <config.h> unconditionally.
+
 2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispextern.h (xstrcasecmp): Define to library function

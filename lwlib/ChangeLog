@@ -1,3 +1,10 @@
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* Makefile.in (ALL_CFLAGS): Remove -DHAVE_CONFIG_H.
+	* lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib-utils.c, lwlib.c:
+	* xlwmenu.c: Include <config.h> unconditionally.
+
 2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lwlib.c (my_strcasecmp): Rename to lwlib_strcasecmp, which
