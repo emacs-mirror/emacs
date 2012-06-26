@@ -3242,13 +3242,12 @@ make_parent_window (Lisp_Object window, int horflag)
 {
   Lisp_Object parent;
   register struct window *o, *p;
-  int i;
 
   o = XWINDOW (window);
   p = allocate_window ();
-  for (i = 0; i < VECSIZE (struct window); ++i)
-    ((struct Lisp_Vector *) p)->contents[i]
-      = ((struct Lisp_Vector *) o)->contents[i];
+  memcpy ((char *) p + sizeof (struct vectorlike_header), 
+	  (char *) o + sizeof (struct vectorlike_header),
+	  sizeof (Lisp_Object) * VECSIZE (struct window));
   XSETWINDOW (parent, p);
 
   ++sequence_number;
@@ -3277,10 +3276,8 @@ make_window (void)
   register struct window *w;
 
   w = allocate_window ();
-  /* Initialize all Lisp data.  */
-  w->frame = Qnil;
-  w->mini = 0;
-  w->next = w->prev = w->hchild = w->vchild = w->parent = Qnil;
+  /* Initialize Lisp data.  Note that allocate_window initializes all
+     Lisp data to nil, so do it only for slots which should not be nil.  */
   XSETFASTINT (w->left_col, 0);
   XSETFASTINT (w->top_line, 0);
   XSETFASTINT (w->total_lines, 0);
@@ -3289,47 +3286,24 @@ make_window (void)
   w->normal_cols = make_float (1.0);
   XSETFASTINT (w->new_total, 0);
   XSETFASTINT (w->new_normal, 0);
-  w->buffer = Qnil;
   w->start = Fmake_marker ();
   w->pointm = Fmake_marker ();
-  w->force_start = w->optional_new_start = 0;
   XSETFASTINT (w->hscroll, 0);
   XSETFASTINT (w->min_hscroll, 0);
   XSETFASTINT (w->use_time, 0);
   ++sequence_number;
   XSETFASTINT (w->sequence_number, sequence_number);
-  w->temslot = w->last_modified = w->last_overlay_modified = Qnil;
   XSETFASTINT (w->last_point, 0);
-  w->last_had_star = 0;
-  w->vertical_scroll_bar = Qnil;
-  w->left_margin_cols = w->right_margin_cols = Qnil;
-  w->left_fringe_width = w->right_fringe_width = Qnil;
-  w->fringes_outside_margins = Qnil;
-  w->scroll_bar_width = Qnil;
   w->vertical_scroll_bar_type = Qt;
   XSETFASTINT (w->window_end_pos, 0);
   XSETFASTINT (w->window_end_vpos, 0);
-  w->window_end_valid = w->display_table = Qnil;
-  w->update_mode_line = w->start_at_line_beg = 0;
-  w->dedicated = Qnil;
-  w->base_line_number = w->base_line_pos = w->region_showing = Qnil;
-  w->column_number_displayed = w->redisplay_end_trigger = Qnil;
-  w->combination_limit = w->window_parameters = Qnil;
-  w->prev_buffers = w->next_buffers = Qnil;
-  /* Initialize non-Lisp data.  */
-  w->desired_matrix = w->current_matrix = 0;
+
+  /* Initialize non-Lisp data.  Note that allocate_window zeroes out all
+     non-Lisp data, so do it only for slots which should not be zero.  */
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
-  memset (&w->cursor, 0, sizeof (w->cursor));
-  memset (&w->last_cursor, 0, sizeof (w->last_cursor));
-  memset (&w->phys_cursor, 0, sizeof (w->phys_cursor));
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
-  w->phys_cursor_on_p = 0;
-  w->last_cursor_off_p = w->cursor_off_p = 0;
-  w->must_be_updated_p = 0;
-  w->pseudo_window_p = 0;
-  w->frozen_window_start_p = 0;
-  w->vscroll = 0;
+
   /* Reset window_list.  */
   Vwindow_list = Qnil;
   /* Return window.  */

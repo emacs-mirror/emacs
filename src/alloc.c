@@ -3278,44 +3278,53 @@ allocate_hash_table (void)
   return ALLOCATE_PSEUDOVECTOR (struct Lisp_Hash_Table, count, PVEC_HASH_TABLE);
 }
 
-
 struct window *
 allocate_window (void)
 {
-  return ALLOCATE_PSEUDOVECTOR (struct window, current_matrix, PVEC_WINDOW);
-}
+  struct window *w;
 
+  w = ALLOCATE_PSEUDOVECTOR (struct window, current_matrix, PVEC_WINDOW);
+  /* Users assumes that non-Lisp data is zeroed.  */
+  memset (&w->current_matrix, 0,
+	  sizeof (*w) - offsetof (struct window, current_matrix));
+  return w;
+}
 
 struct terminal *
 allocate_terminal (void)
 {
-  struct terminal *t = ALLOCATE_PSEUDOVECTOR (struct terminal,
-					      next_terminal, PVEC_TERMINAL);
-  /* Zero out the non-GC'd fields.  FIXME: This should be made unnecessary.  */
-  memset (&t->next_terminal, 0,
-	  (char*) (t + 1) - (char*) &t->next_terminal);
+  struct terminal *t;
 
+  t = ALLOCATE_PSEUDOVECTOR (struct terminal, next_terminal, PVEC_TERMINAL);
+  /* Users assumes that non-Lisp data is zeroed.  */
+  memset (&t->next_terminal, 0,
+	  sizeof (*t) - offsetof (struct terminal, next_terminal));
   return t;
 }
 
 struct frame *
 allocate_frame (void)
 {
-  struct frame *f = ALLOCATE_PSEUDOVECTOR (struct frame,
-					   face_cache, PVEC_FRAME);
-  /* Zero out the non-GC'd fields.  FIXME: This should be made unnecessary.  */
+  struct frame *f;
+
+  f = ALLOCATE_PSEUDOVECTOR (struct frame, face_cache, PVEC_FRAME);
+  /* Users assumes that non-Lisp data is zeroed.  */
   memset (&f->face_cache, 0,
-	  (char *) (f + 1) - (char *) &f->face_cache);
+	  sizeof (*f) - offsetof (struct frame, face_cache));
   return f;
 }
-
 
 struct Lisp_Process *
 allocate_process (void)
 {
-  return ALLOCATE_PSEUDOVECTOR (struct Lisp_Process, pid, PVEC_PROCESS);
-}
+  struct Lisp_Process *p;
 
+  p = ALLOCATE_PSEUDOVECTOR (struct Lisp_Process, pid, PVEC_PROCESS);
+  /* Users assumes that non-Lisp data is zeroed.  */
+  memset (&p->pid, 0,
+	  sizeof (*p) - offsetof (struct Lisp_Process, pid));
+  return p;
+}
 
 DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
        doc: /* Return a newly created vector of length LENGTH, with each element being INIT.

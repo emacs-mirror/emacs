@@ -1,5 +1,18 @@
 2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c (allocate_window): Zero out non-Lisp part of newly
+	allocated window.
+	(allocate_process): Likewise for new process.
+	(allocate_terminal): Changed to use offsetof.
+	(allocate_frame): Likewise.
+	* frame.c (make_frame): Omit redundant initialization.
+	* window.c (make_parent_window): Use memset.
+	(make_window): Omit redundant initialization.
+	* process.c (make_process): Omit redundant initialization.
+	* terminal.c (create_terminal): Likewise.
+
+2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* term.c (delete_tty): Remove redundant call to memset.
 
 2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>

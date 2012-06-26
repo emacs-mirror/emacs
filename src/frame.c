@@ -267,63 +267,23 @@ make_frame (int mini_p)
   f = allocate_frame ();
   XSETFRAME (frame, f);
 
-  f->desired_matrix = 0;
-  f->current_matrix = 0;
-  f->desired_pool = 0;
-  f->current_pool = 0;
-  f->glyphs_initialized_p = 0;
-  f->decode_mode_spec_buffer = 0;
-  f->visible = 0;
-  f->async_visible = 0;
-  f->output_data.nothing = 0;
-  f->iconified = 0;
-  f->async_iconified = 0;
+  /* Initialize Lisp data.  Note that allocate_frame initializes all
+     Lisp data to nil, so do it only for slots which should not be nil.  */
+  f->tool_bar_position = Qtop;
+
+  /* Initialize non-Lisp data.  Note that allocate_frame zeroes out all
+     non-Lisp data, so do it only for slots which should not be zero.
+     To avoid subtle bugs and for the sake of readability, it's better to
+     initialize enum members explicitly even if their values are zero.  */
   f->wants_modeline = 1;
-  f->auto_raise = 0;
-  f->auto_lower = 0;
-  f->no_split = 0;
   f->garbaged = 1;
   f->has_minibuffer = mini_p;
-  f->focus_frame = Qnil;
-  f->explicit_name = 0;
-  f->can_have_scroll_bars = 0;
   f->vertical_scroll_bar_type = vertical_scroll_bar_none;
-  f->param_alist = Qnil;
-  f->scroll_bars = Qnil;
-  f->condemned_scroll_bars = Qnil;
-  f->face_alist = Qnil;
-  f->face_cache = NULL;
-  f->menu_bar_items = Qnil;
-  f->menu_bar_vector = Qnil;
-  f->menu_bar_items_used = 0;
-  f->buffer_predicate = Qnil;
-  f->buffer_list = Qnil;
-  f->buried_buffer_list = Qnil;
-  f->namebuf = 0;
-  f->title = Qnil;
-  f->menu_bar_window = Qnil;
-  f->tool_bar_window = Qnil;
-  f->tool_bar_items = Qnil;
-  f->tool_bar_position = Qtop;
-  f->desired_tool_bar_string = f->current_tool_bar_string = Qnil;
-  f->n_tool_bar_items = 0;
-  f->left_fringe_width = f->right_fringe_width = 0;
-  f->fringe_cols = 0;
-  f->menu_bar_lines = 0;
-  f->tool_bar_lines = 0;
-  f->scroll_bar_actual_width = 0;
-  f->border_width = 0;
-  f->internal_border_width = 0;
   f->column_width = 1;  /* !FRAME_WINDOW_P value */
   f->line_height = 1;  /* !FRAME_WINDOW_P value */
-  f->x_pixels_diff = f->y_pixels_diff = 0;
 #ifdef HAVE_WINDOW_SYSTEM
   f->want_fullscreen = FULLSCREEN_NONE;
 #endif
-  f->size_hint_flags = 0;
-  f->win_gravity = 0;
-  f->font_driver_list = NULL;
-  f->font_data_list = NULL;
 
   root_window = make_window ();
   if (mini_p)
@@ -398,8 +358,6 @@ make_frame (int mini_p)
      a newly-created, never-selected window.  */
   ++window_select_count;
   XSETFASTINT (XWINDOW (f->selected_window)->use_time, window_select_count);
-
-  f->default_face_done_p = 0;
 
   return f;
 }

@@ -225,7 +225,6 @@ create_terminal (void)
   struct terminal *terminal = allocate_terminal ();
   Lisp_Object terminal_coding, keyboard_coding;
 
-  terminal->name = NULL;
   terminal->next_terminal = terminal_list;
   terminal_list = terminal;
 
@@ -255,9 +254,6 @@ create_terminal (void)
   setup_coding_system (keyboard_coding, terminal->keyboard_coding);
   setup_coding_system (terminal_coding, terminal->terminal_coding);
 
-  terminal->param_alist = Qnil;
-  terminal->charset_list = Qnil;
-  terminal->Vselection_alist = Qnil;
   return terminal;
 }
 
