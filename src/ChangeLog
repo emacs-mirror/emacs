@@ -1,5 +1,9 @@
 2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* term.c (delete_tty): Remove redundant call to memset.
+
+2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* alloc.c: Remove build_string.
 	* lisp.h: Define build_string as static inline.  This provides
 	a better opportunity to optimize away calls to strlen when the

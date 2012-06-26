@@ -3605,7 +3605,6 @@ delete_tty (struct terminal *terminal)
   xfree (tty->termcap_strings_buffer);
   xfree (tty->termcap_term_buffer);
 
-  memset (tty, 0, sizeof (struct tty_display_info));
   xfree (tty);
 }
 
