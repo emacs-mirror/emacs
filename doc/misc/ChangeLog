@@ -1,3 +1,52 @@
+2012-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (POP before SMTP): POP-before-SMTP works with all sending
+	methods, so don't mention smtpmail here.
+
+2012-06-26  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* gnus.texi (Picons): Document gnus-picon-properties.
+
+2012-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Remove mention of compilation, as that's no longer
+	supported.
+
+2012-06-26  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* gnus.texi (Archived Messages): Mention
+	gnus-gcc-pre-body-encode-hook and gnus-gcc-post-body-encode-hook.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Various Summary Stuff):
+	Remove mention of `gnus-propagate-marks'.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Remove mentions of nnml/nnfolder/nntp backend marks,
+	which no longer exist.
+
+2012-06-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Archived Messages):
+	Document gnus-gcc-self-resent-messages.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.texi (Mail Variables):
+	Mention the optional user parameter for X-Message-SMTP-Method.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Posting Styles): Mention X-Message-SMTP-Method.
+
+	* message.texi (Mail Variables): Document X-Message-SMTP-Method.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Key Index): Change encoding to utf-8.
+
 2012-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)

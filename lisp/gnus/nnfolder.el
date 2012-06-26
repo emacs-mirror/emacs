@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
-;; Author: Simon Josefsson <simon@josefsson.org> (adding MARKS)
+;; Author: Simon Josefsson <simon@josefsson.org>
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
 ;;      Scott Byer <byer@mv.us.adobe.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -51,10 +51,6 @@
 
 (defvoo nnfolder-nov-directory nil
   "The name of the nnfolder NOV directory.
-If nil, `nnfolder-directory' is used.")
-
-(defvoo nnfolder-marks-directory nil
-  "The name of the nnfolder MARKS directory.
 If nil, `nnfolder-directory' is used.")
 
 (defvoo nnfolder-active-file
@@ -133,21 +129,6 @@ all.  This may very well take some time.")
 (defvoo nnfolder-nov-buffer-alist nil)
 
 (defvar nnfolder-nov-buffer-file-name nil)
-
-(defvoo nnfolder-marks-is-evil nil
-  "If non-nil, Gnus will never generate and use marks file for mail groups.
-Using marks files makes it possible to backup and restore mail groups
-separately from `.newsrc.eld'.  If you have, for some reason, set
-this to t, and want to set it to nil again, you should always remove
-the corresponding marks file (usually base nnfolder file name
-concatenated with `.mrk', but see `nnfolder-marks-file-suffix') for
-the group.  Then the marks file will be regenerated properly by Gnus.")
-
-(defvoo nnfolder-marks nil)
-
-(defvoo nnfolder-marks-file-suffix ".mrk")
-
-(defvar nnfolder-marks-modtime (gnus-make-hashtable))
 
 
 
@@ -231,9 +212,6 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
   (unless (or gnus-nov-is-evil nnfolder-nov-is-evil)
     (and nnfolder-nov-directory
 	 (gnus-make-directory nnfolder-nov-directory)))
-  (unless nnfolder-marks-is-evil
-    (and nnfolder-marks-directory
-	 (gnus-make-directory nnfolder-marks-directory)))
   (cond
    ((not (file-exists-p nnfolder-directory))
     (nnfolder-close-server)
@@ -607,11 +585,9 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       ()				; Don't delete the articles.
     ;; Delete the file that holds the group.
     (let ((data (nnfolder-group-pathname group))
-	  (nov (nnfolder-group-nov-pathname group))
-	  (mrk (nnfolder-group-marks-pathname group)))
+	  (nov (nnfolder-group-nov-pathname group)))
       (ignore-errors (delete-file data))
-      (ignore-errors (delete-file nov))
-      (ignore-errors (delete-file mrk))))
+      (ignore-errors (delete-file nov))))
   ;; Remove the group from all structures.
   (setq nnfolder-group-alist
 	(delq (assoc group nnfolder-group-alist) nnfolder-group-alist)
@@ -632,11 +608,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 	     (when (file-exists-p (nnfolder-group-nov-pathname group))
 	       (setq new-file (nnfolder-group-nov-pathname new-name))
 	       (gnus-make-directory (file-name-directory new-file))
-	       (rename-file (nnfolder-group-nov-pathname group) new-file))
-	     (when (file-exists-p (nnfolder-group-marks-pathname group))
-	       (setq new-file (nnfolder-group-marks-pathname new-name))
-	       (gnus-make-directory (file-name-directory new-file))
-	       (rename-file (nnfolder-group-marks-pathname group) new-file)))
+	       (rename-file (nnfolder-group-nov-pathname group) new-file)))
 	   t)
 	 ;; That went ok, so we change the internal structures.
 	 (let ((entry (assoc group nnfolder-group-alist)))
@@ -1087,16 +1059,17 @@ This command does not work if you use short group names."
 
 (defun nnfolder-save-buffer ()
   "Save the buffer."
-  (when (buffer-modified-p)
-    (run-hooks 'nnfolder-save-buffer-hook)
-    (gnus-make-directory (file-name-directory (buffer-file-name)))
-    (let ((coding-system-for-write
-	   (or nnfolder-file-coding-system-for-write
-	       nnfolder-file-coding-system)))
-      (set (make-local-variable 'copyright-update) nil)
-      (save-buffer)))
-  (unless (or gnus-nov-is-evil nnfolder-nov-is-evil)
-    (nnfolder-save-nov)))
+  (let ((delete-old-versions t))
+    (when (buffer-modified-p)
+      (run-hooks 'nnfolder-save-buffer-hook)
+      (gnus-make-directory (file-name-directory (buffer-file-name)))
+      (let ((coding-system-for-write
+	     (or nnfolder-file-coding-system-for-write
+		 nnfolder-file-coding-system)))
+	(set (make-local-variable 'copyright-update) nil)
+	(save-buffer)))
+    (unless (or gnus-nov-is-evil nnfolder-nov-is-evil)
+      (nnfolder-save-nov))))
 
 (defun nnfolder-save-active (group-alist active-file)
   (let ((nnmail-active-file-coding-system
@@ -1181,100 +1154,6 @@ This command does not work if you use short group names."
     (goto-char (point-max))
     (mail-header-set-number headers article)
     (nnheader-insert-nov headers)))
-
-(deffoo nnfolder-request-set-mark (group actions &optional server)
-  (when (and server
-	     (not (nnfolder-server-opened server)))
-    (nnfolder-open-server server))
-  (unless nnfolder-marks-is-evil
-    (nnfolder-open-marks group server)
-    (setq nnfolder-marks (nnheader-update-marks-actions nnfolder-marks actions))
-    (nnfolder-save-marks group server))
-  nil)
-
-(deffoo nnfolder-request-marks (group info &optional server)
-  ;; Change servers.
-  (when (and server
-	     (not (nnfolder-server-opened server)))
-    (nnfolder-open-server server))
-  (when (and (not nnfolder-marks-is-evil) (nnfolder-marks-changed-p group))
-    (nnheader-message 8 "Updating marks for %s..." group)
-    (nnfolder-open-marks group server)
-    ;; Update info using `nnfolder-marks'.
-    (mapc (lambda (pred)
-	    (unless (memq (cdr pred) gnus-article-unpropagated-mark-lists)
-	      (gnus-info-set-marks
-	       info
-	       (gnus-update-alist-soft
-		(cdr pred)
-		(cdr (assq (cdr pred) nnfolder-marks))
-		(gnus-info-marks info))
-	       t)))
-	  gnus-article-mark-lists)
-    (let ((seen (cdr (assq 'read nnfolder-marks))))
-      (gnus-info-set-read info
-			  (if (and (integerp (car seen))
-				   (null (cdr seen)))
-			      (list (cons (car seen) (car seen)))
-			    seen)))
-    (nnheader-message 8 "Updating marks for %s...done" group))
-  info)
-
-(defun nnfolder-group-marks-pathname (group)
-  "Make pathname for GROUP NOV."
-  (let ((nnfolder-directory (or nnfolder-marks-directory nnfolder-directory)))
-    (concat (nnfolder-group-pathname group) nnfolder-marks-file-suffix)))
-
-(defun nnfolder-marks-changed-p (group)
-  (let ((file (nnfolder-group-marks-pathname group)))
-    (if (null (gnus-gethash file nnfolder-marks-modtime))
-	t ;; never looked at marks file, assume it has changed
-      (not (equal (gnus-gethash file nnfolder-marks-modtime)
-		  (nth 5 (file-attributes file)))))))
-
-(defun nnfolder-save-marks (group server)
-  (let ((file-name-coding-system nnmail-pathname-coding-system)
-	(file (nnfolder-group-marks-pathname group)))
-    (condition-case err
-	(progn
-	  (with-temp-file file
-	    (erase-buffer)
-	    (gnus-prin1 nnfolder-marks)
-	    (insert "\n"))
-	  (gnus-sethash file
-			(nth 5 (file-attributes file))
-			nnfolder-marks-modtime))
-      (error (or (gnus-yes-or-no-p
-		  (format "Could not write to %s (%s).  Continue? " file err))
-		 (error "Cannot write to %s (%s)" file err))))))
-
-(defun nnfolder-open-marks (group server)
-  (let ((file (nnfolder-group-marks-pathname group)))
-    (if (file-exists-p file)
-	(condition-case err
-	    (with-temp-buffer
-	      (gnus-sethash file (nth 5 (file-attributes file))
-			    nnfolder-marks-modtime)
-	      (nnheader-insert-file-contents file)
-	      (setq nnfolder-marks (read (current-buffer)))
-	      (dolist (el gnus-article-unpropagated-mark-lists)
-		(setq nnfolder-marks (gnus-remassoc el nnfolder-marks))))
-	  (error (or (gnus-yes-or-no-p
-		      (format "Error reading nnfolder marks file %s (%s).  Continuing will use marks from .newsrc.eld.  Continue? " file err))
-		     (error "Cannot read nnfolder marks file %s (%s)" file err))))
-      ;; User didn't have a .marks file.  Probably first time
-      ;; user of the .marks stuff.  Bootstrap it from .newsrc.eld.
-      (let ((info (gnus-get-info
-		   (gnus-group-prefixed-name
-		    group
-		    (gnus-server-to-method (format "nnfolder:%s" server))))))
-	(nnheader-message 7 "Bootstrapping marks for %s..." group)
-	(setq nnfolder-marks (gnus-info-marks info))
-	(push (cons 'read (gnus-info-read info)) nnfolder-marks)
-	(dolist (el gnus-article-unpropagated-mark-lists)
-	  (setq nnfolder-marks (gnus-remassoc el nnfolder-marks)))
-	(nnfolder-save-marks group server)
-	(nnheader-message 7 "Bootstrapping marks for %s...done" group)))))
 
 (provide 'nnfolder)
 

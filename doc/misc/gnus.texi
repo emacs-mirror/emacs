@@ -8,7 +8,7 @@
 @syncodeindex vr cp
 @syncodeindex pg cp
 
-@documentencoding ISO-8859-1
+@documentencoding UTF-8
 
 @copying
 Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
@@ -663,7 +663,6 @@ Getting News
 * Direct Functions::            Connecting directly to the server.
 * Indirect Functions::          Connecting indirectly to the server.
 * Common Variables::            Understood by several connection functions.
-* NNTP marks::                  Storing marks for @acronym{NNTP} servers.
 
 Getting Mail
 
@@ -816,7 +815,6 @@ Various
 * Formatting Variables::        You can specify what buffers should look like.
 * Window Layout::               Configuring the Gnus buffer windows.
 * Faces and Fonts::             How to change how faces look.
-* Compilation::                 How to speed Gnus up.
 * Mode Lines::                  Displaying information in the mode lines.
 * Highlighting and Menus::      Making buffers look all nice and cozy.
 * Daemons::                     Gnus can do things behind your back.
@@ -907,7 +905,8 @@ New Features
 * Quassia Gnus::                Two times two is four, or Gnus 5.6/5.7.
 * Pterodactyl Gnus::            Pentad also starts with P, AKA Gnus 5.8/5.9.
 * Oort Gnus::                   It's big.  It's far out.  Gnus 5.10/5.11.
-* No Gnus::                     Very punny.
+* No Gnus::                     Very punny.  Gnus 5.12/5.13
+* Ma Gnus::                     Celebrating 25 years of Gnus.
 
 Customization
 
@@ -1066,10 +1065,6 @@ you would typically set this variable to
 (setq gnus-secondary-select-methods '((nnmbox "")))
 @end lisp
 
-Note: the @acronym{NNTP} back end stores marks in marks files
-(@pxref{NNTP marks}).  This feature makes it easy to share marks between
-several Gnus installations, but may slow down things a bit when fetching
-new articles.  @xref{NNTP marks}, for more information.
 
 
 @node The Server is Down
@@ -2884,7 +2879,7 @@ composed messages will be @code{Gcc}'d to the current group.  If
 generated, if @code{(gcc-self . "string")} is present, this string will
 be inserted literally as a @code{gcc} header.  This parameter takes
 precedence over any default @code{Gcc} rules as described later
-(@pxref{Archived Messages}).
+(@pxref{Archived Messages}), with the exception for messages to resend.
 
 @strong{Caveat}: Adding @code{(gcc-self . t)} to the parameter list of
 @code{nntp} groups (or the like) isn't valid.  An @code{nntp} server
@@ -3027,6 +3022,7 @@ like this in the group parameters:
 @example
 (posting-style
   (name "Funky Name")
+  ("X-Message-SMTP-Method" "smtp smtp.example.org 587")
   ("X-My-Header" "Funky Value")
   (signature "Funky Signature"))
 @end example
@@ -4293,12 +4289,11 @@ default is @code{nil} in Emacs, or is the aliasee of the coding system
 named @code{file-name} (a certain coding system of which an alias is
 @code{file-name}) in XEmacs.
 
-The @code{nnml} back end, the @code{nnrss} back end, the @acronym{NNTP}
-marks feature (@pxref{NNTP marks}), the agent, and the cache use
-non-@acronym{ASCII} group names in those files and directories.  This
-variable overrides the value of @code{file-name-coding-system} which
-specifies the coding system used when encoding and decoding those file
-names and directory names.
+The @code{nnml} back end, the @code{nnrss} back end, the agent, and
+the cache use non-@acronym{ASCII} group names in those files and
+directories.  This variable overrides the value of
+@code{file-name-coding-system} which specifies the coding system used
+when encoding and decoding those file names and directory names.
 
 In XEmacs (with the @code{mule} feature), @code{file-name-coding-system}
 is the only means to specify the coding system used to encode and decode
@@ -8986,7 +8981,7 @@ Translate many non-@acronym{ASCII} characters into their
 @acronym{ASCII} equivalents (@code{gnus-article-treat-non-ascii}).
 This is mostly useful if you're on a terminal that has a limited font
 and doesn't show accented characters, ``advanced'' punctuation, and the
-like.  For instance, @samp{»} is translated into @samp{>>}, and so on.
+like.  For instance, @samp{Â»} is translated into @samp{>>}, and so on.
 
 @item W Y f
 @kindex W Y f (Summary)
@@ -10819,12 +10814,6 @@ buffers.  For example:
 
 Also @pxref{Group Parameters}.
 
-@vindex gnus-propagate-marks
-@item gnus-propagate-marks
-If non-@code{nil}, propagate marks to the backends for possible
-storing.  @xref{NNTP marks}, and friends, for a more fine-grained
-sieve.
-
 @end table
 
 
@@ -12404,32 +12393,25 @@ value suitable for your system.
 @xref{Mail Variables, ,Mail Variables,message,Message manual}, for more
 information.
 
+
 @node POP before SMTP
 @section POP before SMTP
 @cindex pop before smtp
-@findex message-smtpmail-send-it
 @findex mail-source-touch-pop
 
-Does your @acronym{ISP} require the @acronym{POP}-before-@acronym{SMTP}
-authentication?  It is whether you need to connect to the @acronym{POP}
-mail server within a certain time before sending mails.  If so, there is
-a convenient way.  To do that, put the following lines in your
-@file{~/.gnus.el} file:
+Does your @acronym{ISP} use @acronym{POP}-before-@acronym{SMTP}
+authentication?  This authentication method simply requires you to
+contact the @acronym{POP} server before sending email.  To do that,
+put the following lines in your @file{~/.gnus.el} file:
 
 @lisp
-(setq message-send-mail-function 'message-smtpmail-send-it)
 (add-hook 'message-send-mail-hook 'mail-source-touch-pop)
 @end lisp
 
 @noindent
-It means to let Gnus connect to the @acronym{POP} mail server in advance
-whenever you send a mail.  The @code{mail-source-touch-pop} function
-does only a @acronym{POP} authentication according to the value of
-@code{mail-sources} without fetching mails, just before sending a mail.
-Note that you have to use @code{message-smtpmail-send-it} which runs
-@code{message-send-mail-hook} rather than @code{smtpmail-send-it} and
-set the value of @code{mail-sources} for a @acronym{POP} connection
-correctly.  @xref{Mail Sources}.
+The @code{mail-source-touch-pop} function does @acronym{POP}
+authentication according to the value of @code{mail-sources} without
+fetching mails, just before sending a mail.  @xref{Mail Sources}.
 
 If you have two or more @acronym{POP} mail servers set in
 @code{mail-sources}, you may want to specify one of them to
@@ -12456,6 +12438,7 @@ Otherwise, bind it dynamically only when performing the
                          :password "secret")))
               (mail-source-touch-pop))))
 @end lisp
+
 
 @node Mail and Post
 @section Mail and Post
@@ -12674,6 +12657,35 @@ and matches the Gcc group name, attach files as external parts; if it is
 non-@code{nil}, the behavior is the same as @code{all}, but it may be
 changed in the future.
 
+@item gnus-gcc-self-resent-messages
+@vindex gnus-gcc-self-resent-messages
+Like the @code{gcc-self} group parameter, applied only for unmodified
+messages that @code{gnus-summary-resend-message} (@pxref{Summary Mail
+Commands}) resends.  Non-@code{nil} value of this variable takes
+precedence over any existing @code{Gcc} header.
+
+If this is @code{none}, no @code{Gcc} copy will be made.  If this is
+@code{t}, messages resent will be @code{Gcc} copied to the current
+group.  If this is a string, it specifies a group to which resent
+messages will be @code{Gcc} copied.  If this is @code{nil}, @code{Gcc}
+will be done according to existing @code{Gcc} header(s), if any.  If
+this is @code{no-gcc-self}, that is the default, resent messages will be
+@code{Gcc} copied to groups that existing @code{Gcc} header specifies,
+except for the current group.
+
+@item gnus-gcc-pre-body-encode-hook
+@vindex gnus-gcc-pre-body-encode-hook
+@itemx gnus-gcc-post-body-encode-hook
+@vindex gnus-gcc-post-body-encode-hook
+
+These hooks are run before/after encoding the message body of the Gcc
+copy of a sent message.  The current buffer (when the hook is run)
+contains the message including the message header.  Changes made to
+the message will only affect the Gcc copy, but not the original
+message.  You can use these hooks to edit the copy (and influence
+subsequent transformations), e.g. remove MML secure tags
+(@pxref{Signing and encrypting}).
+
 @end table
 
 
@@ -12805,6 +12817,7 @@ So here's a new example:
          (signature-file "~/.work-signature")
          (address "user@@bar.foo")
          (body "You are fired.\n\nSincerely, your boss.")
+         ("X-Message-SMTP-Method" "smtp smtp.example.org 587")
          (organization "Important Work, Inc"))
         ("nnml:.*"
          (From (with-current-buffer gnus-article-buffer
@@ -12818,6 +12831,13 @@ The @samp{nnml:.*} rule means that you use the @code{To} address as the
 if you fill many roles.
 You may also use @code{message-alternative-emails} instead.
 @xref{Message Headers, ,Message Headers, message, Message Manual}.
+
+Of particular interest in the ``work-mail'' style is the
+@samp{X-Message-SMTP-Method} header.  It specifies how to send the
+outgoing email.  You may want to sent certain emails through certain
+@acronym{SMTP} servers due to company policies, for instance.
+@xref{Mail Variables, ,Message Variables, message, Message Manual}.
+
 
 @node Drafts
 @section Drafts
@@ -13744,7 +13764,6 @@ don't update their active files often, this can help.
 * Direct Functions::            Connecting directly to the server.
 * Indirect Functions::          Connecting indirectly to the server.
 * Common Variables::            Understood by several connection functions.
-* NNTP marks::                  Storing marks for @acronym{NNTP} servers.
 @end menu
 
 
@@ -14014,53 +14033,6 @@ A list of switches to pass to @code{nntp-netcat-command}.  The default
 is @samp{()}.
 
 @end table
-
-@node NNTP marks
-@subsubsection NNTP marks
-@cindex storing NNTP marks
-
-Gnus stores marks (@pxref{Marking Articles}) for @acronym{NNTP}
-servers in marks files.  A marks file records what marks you have set
-in a group and each file is specific to the corresponding server.
-Marks files are stored in @file{~/News/marks}
-(@code{nntp-marks-directory}) under a classic hierarchy resembling
-that of a news server, for example marks for the group
-@samp{gmane.discuss} on the news.gmane.org server will be stored in
-the file @file{~/News/marks/news.gmane.org/gmane/discuss/.marks}.
-
-Marks files are useful because you can copy the @file{~/News/marks}
-directory (using rsync, scp or whatever) to another Gnus installation,
-and it will realize what articles you have read and marked.  The data
-in @file{~/News/marks} has priority over the same data in
-@file{~/.newsrc.eld}.
-
-Note that marks files are very much server-specific: Gnus remembers
-the article numbers so if you don't use the same servers on both
-installations things are most likely to break (most @acronym{NNTP}
-servers do not use the same article numbers as any other server).
-However, if you use servers A, B, C on one installation and servers A,
-D, E on the other, you can sync the marks files for A and then you'll
-get synchronization for that server between the two installations.
-
-Using @acronym{NNTP} marks can possibly incur a performance penalty so
-if Gnus feels sluggish, try setting the @code{nntp-marks-is-evil}
-variable to @code{t}.  Marks will then be stored in @file{~/.newsrc.eld}.
-
-Related variables:
-
-@table @code
-
-@item nntp-marks-is-evil
-@vindex nntp-marks-is-evil
-If non-@code{nil}, this back end will ignore any marks files.  The
-default is @code{nil}.
-
-@item nntp-marks-directory
-@vindex nntp-marks-directory
-The directory where marks for nntp groups will be stored.
-
-@end table
-
 
 @node News Spool
 @subsection News Spool
@@ -16152,22 +16124,6 @@ splitting.  It has to create lots of files, and it also generates
 @acronym{NOV} databases for the incoming mails.  This makes it possibly the
 fastest back end when it comes to reading mail.
 
-@cindex self contained nnml servers
-@cindex marks
-When the marks file is used (which it is by default), @code{nnml}
-servers have the property that you may backup them using @code{tar} or
-similar, and later be able to restore them into Gnus (by adding the
-proper @code{nnml} server) and have all your marks be preserved.  Marks
-for a group are usually stored in the @code{.marks} file (but see
-@code{nnml-marks-file-name}) within each @code{nnml} group's directory.
-Individual @code{nnml} groups are also possible to backup, use @kbd{G m}
-to restore the group (after restoring the backup into the nnml
-directory).
-
-If for some reason you believe your @file{.marks} files are screwed
-up, you can just delete them all.  Gnus will then correctly regenerate
-them next time it starts.
-
 Virtual server settings:
 
 @table @code
@@ -16204,15 +16160,6 @@ The name of the @acronym{NOV} files.  The default is @file{.overview}.
 @item nnml-prepare-save-mail-hook
 @vindex nnml-prepare-save-mail-hook
 Hook run narrowed to an article before saving.
-
-@item nnml-marks-is-evil
-@vindex nnml-marks-is-evil
-If non-@code{nil}, this back end will ignore any @sc{marks} files.  The
-default is @code{nil}.
-
-@item nnml-marks-file-name
-@vindex nnml-marks-file-name
-The name of the @dfn{marks} files.  The default is @file{.marks}.
 
 @item nnml-use-compressed-files
 @vindex nnml-use-compressed-files
@@ -16554,19 +16501,6 @@ separate file.  Each file is in the standard Un*x mbox format.
 @code{nnfolder} will add extra headers to keep track of article
 numbers and arrival dates.
 
-@cindex self contained nnfolder servers
-@cindex marks
-When the marks file is used (which it is by default), @code{nnfolder}
-servers have the property that you may backup them using @code{tar} or
-similar, and later be able to restore them into Gnus (by adding the
-proper @code{nnfolder} server) and have all your marks be preserved.
-Marks for a group are usually stored in a file named as the mbox file
-with @code{.mrk} concatenated to it (but see
-@code{nnfolder-marks-file-suffix}) within the @code{nnfolder}
-directory.  Individual @code{nnfolder} groups are also possible to
-backup, use @kbd{G m} to restore the group (after restoring the backup
-into the @code{nnfolder} directory).
-
 Virtual server settings:
 
 @table @code
@@ -16623,20 +16557,6 @@ The extension for @acronym{NOV} files.  The default is @file{.nov}.
 @item nnfolder-nov-directory
 @vindex nnfolder-nov-directory
 The directory where the @acronym{NOV} files should be stored.  If
-@code{nil}, @code{nnfolder-directory} is used.
-
-@item nnfolder-marks-is-evil
-@vindex nnfolder-marks-is-evil
-If non-@code{nil}, this back end will ignore any @sc{marks} files.  The
-default is @code{nil}.
-
-@item nnfolder-marks-file-suffix
-@vindex nnfolder-marks-file-suffix
-The extension for @sc{marks} files.  The default is @file{.mrk}.
-
-@item nnfolder-marks-directory
-@vindex nnfolder-marks-directory
-The directory where the @sc{marks} files should be stored.  If
 @code{nil}, @code{nnfolder-directory} is used.
 
 @end table
@@ -16799,9 +16719,7 @@ undergo treatment such as duplicate checking.
 @code{nnmaildir} stores article marks for a given group in the
 corresponding maildir, in a way designed so that it's easy to manipulate
 them from outside Gnus.  You can tar up a maildir, unpack it somewhere
-else, and still have your marks.  @code{nnml} also stores marks, but
-it's not as easy to work with them from outside Gnus as with
-@code{nnmaildir}.
+else, and still have your marks.
 
 @code{nnmaildir} uses a significant amount of memory to speed things up.
 (It keeps in memory some of the things that @code{nnml} stores in files
@@ -16892,16 +16810,6 @@ adding a server definition pointing to that directory in Gnus.  The
 @ref{Article Backlog}, @ref{Asynchronous Fetching} and other things
 might interfere with overwriting data, so you may want to shut down Gnus
 before you restore the data.
-
-It is also possible to archive individual @code{nnml},
-@code{nnfolder}, or @code{nnmaildir} groups, while preserving marks.
-For @code{nnml} or @code{nnmaildir}, you copy all files in the group's
-directory.  For @code{nnfolder} you need to copy both the base folder
-file itself (@file{FOO}, say), and the marks file (@file{FOO.mrk} in
-this example).  Restoring the group is done with @kbd{G m} from the Group
-buffer.  The last step makes Gnus notice the new directory.
-@code{nnmaildir} notices the new directory automatically, so @kbd{G m}
-is unnecessary in that case.
 
 @node Web Searches
 @subsection Web Searches
@@ -20875,7 +20783,7 @@ then this operator will return @code{false}.
 
 @item !
 @itemx not
-@itemx ¬
+@itemx Â¬
 This logical operator only takes a single argument.  It returns the
 logical negation of the value of its argument.
 
@@ -22168,7 +22076,6 @@ to you, using @kbd{G b u} and updating the group will usually fix this.
 * Formatting Variables::        You can specify what buffers should look like.
 * Window Layout::               Configuring the Gnus buffer windows.
 * Faces and Fonts::             How to change how faces look.
-* Compilation::                 How to speed Gnus up.
 * Mode Lines::                  Displaying information in the mode lines.
 * Highlighting and Menus::      Making buffers look all nice and cozy.
 * Daemons::                     Gnus can do things behind your back.
@@ -22465,11 +22372,6 @@ than 6 characters to make it look nice in columns.)
 Ignoring is done first; then cutting; then maxing; and then as the very
 last operation, padding.
 
-If you use lots of these advanced thingies, you'll find that Gnus gets
-quite slow.  This can be helped enormously by running @kbd{M-x
-gnus-compile} when you are satisfied with the look of your lines.
-@xref{Compilation}.
-
 
 @node User-Defined Specs
 @subsection User-Defined Specs
@@ -22515,7 +22417,7 @@ and so on.  Create as many faces as you wish.  The same goes for the
 @samp{hello} mouse-highlighted with @code{gnus-mouse-face-3}.
 
 @cindex %<<, %>>, guillemets
-@c @cindex %<<, %>>, %«, %», guillemets
+@c @cindex %<<, %>>, %Â«, %Â», guillemets
 @vindex gnus-balloon-face-0
 Text inside the @samp{%<<} and @samp{%>>} specifiers will get the
 special @code{balloon-help} property set to
@@ -22976,30 +22878,6 @@ Fiddling with fonts and faces used to be very difficult, but these days
 it is very simple.  You simply say @kbd{M-x customize-face}, pick out
 the face you want to alter, and alter it via the standard Customize
 interface.
-
-
-@node Compilation
-@section Compilation
-@cindex compilation
-@cindex byte-compilation
-
-@findex gnus-compile
-
-Remember all those line format specification variables?
-@code{gnus-summary-line-format}, @code{gnus-group-line-format}, and so
-on.  Now, Gnus will of course heed whatever these variables are, but,
-unfortunately, changing them will mean a quite significant slow-down.
-(The default values of these variables have byte-compiled functions
-associated with them, while the user-generated versions do not, of
-course.)
-
-To help with this, you can run @kbd{M-x gnus-compile} after you've
-fiddled around with the variables and feel that you're (kind of)
-satisfied.  This will result in the new specs being byte-compiled, and
-you'll get top speed again.  Gnus will save these compiled specs in the
-@file{.newsrc.eld} file.  (User-defined functions aren't compiled by
-this function, though---you should compile them yourself by sticking
-them into the @file{~/.gnus.el} file and byte-compiling that file.)
 
 
 @node Mode Lines
@@ -23655,6 +23533,10 @@ Picons databases.
 The variable @code{gnus-picon-style} controls how picons are displayed.
 If @code{inline}, the textual representation is replaced.  If
 @code{right}, picons are added right to the textual representation.
+
+@vindex gnus-picon-properties
+The value of the variable @code{gnus-picon-properties} is a list of
+properties applied to picons.
 
 The following variables offer control over where things are located.
 
@@ -26409,6 +26291,7 @@ renamed it back again to ``Gnus''.  But in mixed case.  ``Gnus'' vs.
 @cindex Pterodactyl Gnus
 @cindex Oort Gnus
 @cindex No Gnus
+@cindex Ma Gnus
 @cindex Gnus versions
 
 The first ``proper'' release of Gnus 5 was done in November 1995 when it
@@ -26437,12 +26320,15 @@ On April 19, 2010 Gnus development was moved to Git.  See
 http://git.gnus.org for details (http://www.gnus.org will be updated
 with the information when possible).
 
+On the January 31th 2012, Ma Gnus was begun.
+
 If you happen upon a version of Gnus that has a prefixed name --
 ``(ding) Gnus'', ``September Gnus'', ``Red Gnus'', ``Quassia Gnus'',
-``Pterodactyl Gnus'', ``Oort Gnus'', ``No Gnus'' -- don't panic.
-Don't let it know that you're frightened.  Back away.  Slowly.  Whatever
-you do, don't run.  Walk away, calmly, until you're out of its reach.
-Find a proper released version of Gnus and snuggle up to that instead.
+``Pterodactyl Gnus'', ``Oort Gnus'', ``No Gnus'', ``Ma Gnus'' -- don't
+panic.  Don't let it know that you're frightened.  Back away.  Slowly.
+Whatever you do, don't run.  Walk away, calmly, until you're out of
+its reach.  Find a proper released version of Gnus and snuggle up to
+that instead.
 
 
 @node Why?
@@ -27045,7 +26931,8 @@ actually are people who are using Gnus.  Who'd'a thunk it!
 * Quassia Gnus::                Two times two is four, or Gnus 5.6/5.7.
 * Pterodactyl Gnus::            Pentad also starts with P, AKA Gnus 5.8/5.9.
 * Oort Gnus::                   It's big.  It's far out.  Gnus 5.10/5.11.
-* No Gnus::                     Very punny.
+* No Gnus::                     Very punny.  Gnus 5.12/5.13.
+* Ma Gnus::                     Celebrating 25 years of Gnus.
 @end menu
 
 These lists are, of course, just @emph{short} overviews of the
@@ -28419,6 +28306,32 @@ New features in No Gnus:
 @c FIXME: Gnus 5.12?
 
 @include gnus-news.texi
+
+@node Ma Gnus
+@subsubsection Ma Gnus
+@cindex Ma Gnus
+
+I'm sure there will be lots of text here.  It's really spelled çœŸ
+Gnus.
+
+New features in Ma Gnus:
+
+@itemize @bullet
+
+@item Changes in Message mode and related Gnus features
+@c ****************************************************
+
+@itemize @bullet
+
+@item
+The new hooks @code{gnus-gcc-pre-body-encode-hook} and
+@code{gnus-gcc-post-body-encode-hook} are run before/after encoding
+the message body of the Gcc copy of a sent message.  See
+@xref{Archived Messages}.
+
+@end itemize
+
+@end itemize
 
 @iftex
 
@@ -30642,5 +30555,5 @@ former).  The manual is unambiguous, but it can be confusing.
 
 @c Local Variables:
 @c mode: texinfo
-@c coding: iso-8859-1
+@c coding: utf-8
 @c End:

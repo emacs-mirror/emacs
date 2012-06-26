@@ -75,6 +75,12 @@ Some people may want to add \"unknown\" to this list."
   :type '(repeat string)
   :group 'gnus-picon)
 
+(defcustom gnus-picon-properties '(:color-symbols (("None" . "white")))
+  "List of image properties applied to picons."
+  :type 'list
+  :version "24.2"
+  :group 'gnus-picon)
+
 (defcustom gnus-picon-style 'inline
   "How should picons be displayed.
 If `inline', the textual representation is replaced.  If `right', picons are
@@ -157,9 +163,9 @@ replacement is added."
 
 (defun gnus-picon-create-glyph (file)
   (or (cdr (assoc file gnus-picon-glyph-alist))
-      (cdar (push (cons file (gnus-create-image
-			      file nil nil
-			      :color-symbols '(("None" . "white"))))
+      (cdar (push (cons file (apply 'gnus-create-image
+				    file nil nil
+				    gnus-picon-properties))
 		  gnus-picon-glyph-alist))))
 
 ;;; Functions that does picon transformations:

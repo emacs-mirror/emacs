@@ -40,6 +40,8 @@
 
 (autoload 'gnus-add-buffer "gnus")
 (autoload 'gnus-kill-buffer "gnus")
+(eval-when-compile
+  (autoload 'mail-send-and-exit "sendmail" nil t))
 
 (defgroup nnmail nil
   "Reading mail with Gnus."
@@ -553,11 +555,11 @@ parameter.  It should return nil, `warn' or `delete'."
 		 (const warn)
 		 (const delete)))
 
-(defcustom nnmail-extra-headers '(To Newsgroups)
+(defcustom nnmail-extra-headers '(To Newsgroups Cc)
   "Extra headers to parse.
 In addition to the standard headers, these extra headers will be
 included in NOV headers (and the like) when backends parse headers."
-  :version "21.1"
+  :version "24.2"
   :group 'nnmail
   :type '(repeat symbol))
 
