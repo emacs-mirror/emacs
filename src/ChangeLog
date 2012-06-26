@@ -1,3 +1,7 @@
+2012-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fapply): Allow calling it with a single argument.
+
 2012-06-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h (strcasecmp, strncasecmp) [_MSC_VER]: Redirect to
@@ -9,7 +13,7 @@
 	* alloc.c (allocate_window): Zero out non-Lisp part of newly
 	allocated window.
 	(allocate_process): Likewise for new process.
-	(allocate_terminal): Changed to use offsetof.
+	(allocate_terminal): Change to use offsetof.
 	(allocate_frame): Likewise.
 	* frame.c (make_frame): Omit redundant initialization.
 	* window.c (make_parent_window): Use memset.
