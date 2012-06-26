@@ -1,3 +1,8 @@
+2012-06-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Only retry if
+	GNUTLS_E_INTERRUPTED.
+
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* ralloc.c (r_alloc_inhibit_buffer_relocation): Fix stupid thinko
