@@ -1,3 +1,9 @@
+2012-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (strcasecmp, strncasecmp) [_MSC_VER]: Redirect to
+	_stricmp and _strnicmp.
+	(HAVE_STRCASECMP, HAVE_STRNCASECMP): Define to 1.
+
 2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (allocate_window): Zero out non-Lisp part of newly

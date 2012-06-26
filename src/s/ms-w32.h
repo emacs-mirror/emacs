@@ -165,6 +165,14 @@ struct sigaction {
 #undef  HAVE_AIX_SMT_EXP
 #define USE_TOOLKIT_SCROLL_BARS 1
 
+/* MinGW has these in its library; MSVC doesn't.  */
+#ifdef _MSC_VER
+#define strcasecmp(s1,s2)  _stricmp(s1,s2)
+#define strncasecmp(s1,s2) _strnicmp(s1,s2)
+#endif
+#define HAVE_STRCASECMP 1
+#define HAVE_STRNCASECMP 1
+
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */
 #define HAVE_STRERROR 1
