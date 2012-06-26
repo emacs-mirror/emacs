@@ -1,3 +1,10 @@
+2012-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (compile, compile-always): Depend on
+	update-subdirs, not on subdirs.el.  Otherwise, several different
+	sub-targets of 'bootstrap' running in parallel could
+	simultaneously write to subdirs.el, producing a garbled file.
+
 2012-06-26  Sam Steingold  <sds@gnu.org>
 
 	* files.el (file-name-base): New convenience function.

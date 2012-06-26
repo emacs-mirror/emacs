@@ -183,10 +183,7 @@ $(BLD)/filemode.$(O) : \
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.
 #
-$(BLD)/dtoastr.$(O) $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O): stamp_BLD
-$(BLD)/strftime.$(O) $(BLD)/time_r.$(O) $(BLD)/md5.$(O): stamp_BLD
-$(BLD)/sha1.$(O) $(BLD)/sha256.$(O) $(BLD)/sha512.$(O): stamp_BLD
-$(BLD)/filemode.$(O): stamp_BLD
+$(GNULIBOBJS): stamp_BLD
 
 #
 # Headers we would preprocess if we could.

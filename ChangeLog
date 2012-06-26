@@ -1,3 +1,10 @@
+2012-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(GNULIBOBJS)): Depend on stamp_BLD.  This
+	replaces separate dependency for each object file, which required
+	the same object file to be mentioned twice, causing failures in
+	parallel builds.
+
 2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean out last vestiges of the old HAVE_CONFIG_H stuff.

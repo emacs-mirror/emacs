@@ -311,7 +311,7 @@ TAGS-LISP-CMD: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsf
 # compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile: $(lisp)/subdirs.el compile-$(SHELLTYPE) doit
+compile: update-subdirs compile-$(SHELLTYPE) doit
 
 compile-CMD: autoloads
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
@@ -340,7 +340,7 @@ compile-SH: autoloads
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 
-compile-always: $(lisp)/subdirs.el compile-always-$(SHELLTYPE) doit
+compile-always: update-subdirs compile-always-$(SHELLTYPE) doit
 
 compile-always-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
