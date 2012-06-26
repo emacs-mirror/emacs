@@ -1818,10 +1818,11 @@ the STRINGS are just concatenated and the result truncated."
           (dolist (w (window-list-1 nil nil t))
             (if (and (memq (window-buffer w) calendar-buffers)
                      (window-dedicated-p w))
-                (if calendar-remove-frame-by-deleting
-                    (delete-frame (window-frame w))
-                    (iconify-frame (window-frame w)))
-              (quit-window kill w)))
+                (if (eq (window-deletable-p w) 'frame)
+		    (if calendar-remove-frame-by-deleting
+			(delete-frame (window-frame w))
+		      (iconify-frame (window-frame w)))
+		  (quit-window kill w))))
         (dolist (b calendar-buffers)
           (quit-windows-on b kill))))))
 
