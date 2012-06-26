@@ -1,3 +1,7 @@
+2012-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* fixit.texi (Undo): Grammar fixes.  (Bug#11779)
+
 2012-06-24  Michael Witten  <mfwitten@gmail.com>  (tiny change)
 
 	* fixit.texi (Undo): Fix typo.  (Bug#11775)
