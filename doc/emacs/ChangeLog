@@ -1,3 +1,7 @@
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Tiny update.
+
 2012-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
