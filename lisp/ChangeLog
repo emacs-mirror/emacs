@@ -1,5 +1,9 @@
 2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl.el: Use lexical-binding.  Fix flet (bug#11780).
+	(cl--symbol-function): New macro.
+	(cl--letf, cl--letf*): Use it.
+
 	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name):
 	Strip "toggle-" if any.
 
