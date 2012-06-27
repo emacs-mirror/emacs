@@ -1,5 +1,9 @@
 2012-06-27  Glenn Morris  <rgm@gnu.org>
 
+	* info.el (Info-default-directory-list): Move here from paths.el.
+	* paths.el: Remove file, which is now empty.
+	* loadup.el: No longer load "paths".
+
 	* custom.el (custom-initialize-delay): Doc fix.
 
 	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:

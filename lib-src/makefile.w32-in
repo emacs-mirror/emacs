@@ -236,7 +236,6 @@ lisp2 = \
 	$(lispsource)language/georgian.el \
 	$(lispsource)language/khmer.el \
 	$(lispsource)language/burmese.el \
-	$(lispsource)paths.el \
 	$(lispsource)register.elc \
 	$(lispsource)replace.elc \
 	$(lispsource)simple.elc \

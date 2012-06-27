@@ -1,3 +1,7 @@
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Remove references to paths.el.
+
 2012-06-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in ($(GNULIBOBJS)): Depend on stamp_BLD.  This

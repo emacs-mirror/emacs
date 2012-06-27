@@ -1,3 +1,7 @@
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (lisp2): Remove paths.el.
+
 2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean out last vestiges of the old HAVE_CONFIG_H stuff.

@@ -1,3 +1,7 @@
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.mk (lisp): Remove paths.elc.
+
 2012-06-27  Chong Yidong  <cyd@gnu.org>
 
 	* doc.c (Fsubstitute_command_keys): Fix punctuation.

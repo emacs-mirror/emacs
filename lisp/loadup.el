@@ -177,7 +177,6 @@
 (load "rfn-eshadow")
 
 (load "menu-bar")
-(load "paths")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")

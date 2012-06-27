@@ -121,7 +121,6 @@ lisp = \
 	$(lispsource)/isearch.elc \
 	$(lispsource)/rfn-eshadow.elc \
 	$(lispsource)/menu-bar.elc \
-	$(lispsource)/paths.elc \
 	$(lispsource)/emacs-lisp/lisp.elc \
 	$(lispsource)/textmodes/page.elc \
 	$(lispsource)/register.elc \
