@@ -1,3 +1,7 @@
+2012-06-27  Chong Yidong  <cyd@gnu.org>
+
+	* doc.c (Fsubstitute_command_keys): Fix punctuation.
+
 2012-06-26  John Wiegley  <johnw@newartisans.com>
 
 	* unexmacosx.c (copy_data_segment): Added two section names used

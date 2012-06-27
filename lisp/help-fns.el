@@ -401,6 +401,21 @@ suitable file is found, return nil."
               (help-xref-button 1 'help-function-cmacro function lib)))))
       (princ ".\n\n"))))
 
+;; We could use `symbol-file' but this is a wee bit more efficient.
+(defun help-fns--autoloaded-p (function file)
+  "Return non-nil if FUNCTION has previously been autoloaded.
+FILE is the file where FUNCTION was probably defined."
+  (let* ((file (file-name-sans-extension (file-truename file)))
+	 (load-hist load-history)
+	 (target (cons t function))
+	 found)
+    (while (and load-hist (not found))
+      (and (caar load-hist)
+	   (equal (file-name-sans-extension (caar load-hist)) file)
+	   (setq found (member target (cdar load-hist))))
+      (setq load-hist (cdr load-hist)))
+    found))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((advised (and (symbolp function) (featurep 'advice)
@@ -416,59 +431,66 @@ suitable file is found, return nil."
 	 (def (if (symbolp real-function)
 		  (symbol-function real-function)
 		function))
-	 file-name string
-	 (beg (if (commandp def) "an interactive " "a "))
+	 (aliased (symbolp def))
+	 (real-def (if aliased
+		       (let ((f def))
+			 (while (and (fboundp f)
+				     (symbolp (symbol-function f)))
+			   (setq f (symbol-function f)))
+			 f)
+		     def))
+	 (file-name (find-lisp-object-file-name function def))
          (pt1 (with-current-buffer (help-buffer) (point)))
-	 errtype)
-    (setq string
-	  (cond ((or (stringp def) (vectorp def))
-		 "a keyboard macro")
-		((subrp def)
-		 (if (eq 'unevalled (cdr (subr-arity def)))
-		     (concat beg "special form")
-		   (concat beg "built-in function")))
-		((byte-code-function-p def)
-		 (concat beg "compiled Lisp function"))
-		((symbolp def)
-		 (while (and (fboundp def)
-			     (symbolp (symbol-function def)))
-		   (setq def (symbol-function def)))
-		 ;; Handle (defalias 'foo 'bar), where bar is undefined.
-		 (or (fboundp def) (setq errtype 'alias))
-		 (format "an alias for `%s'" def))
-		((eq (car-safe def) 'lambda)
-		 (concat beg "Lisp function"))
-		((eq (car-safe def) 'macro)
-		 "a Lisp macro")
-		((eq (car-safe def) 'closure)
-		 (concat beg "Lisp closure"))
-		((eq (car-safe def) 'autoload)
-		 (format "%s autoloaded %s"
-			 (if (commandp def) "an interactive" "an")
-			 (if (eq (nth 4 def) 'keymap) "keymap"
-			   (if (nth 4 def) "Lisp macro" "Lisp function"))))
-                ((keymapp def)
-                 (let ((is-full nil)
-                       (elts (cdr-safe def)))
-                   (while elts
-                     (if (char-table-p (car-safe elts))
-                         (setq is-full t
-                               elts nil))
-                     (setq elts (cdr-safe elts)))
-                   (if is-full
-                       "a full keymap"
-                     "a sparse keymap")))
-		(t "")))
-    (princ string)
-    (if (eq errtype 'alias)
+	 (beg (if (and (or (byte-code-function-p def)
+			   (keymapp def)
+			   (memq (car-safe def) '(macro lambda closure)))
+		       (help-fns--autoloaded-p function file-name))
+		  (if (commandp def)
+		      "an interactive autoloaded "
+		    "an autoloaded ")
+		(if (commandp def) "an interactive " "a "))))
+
+    ;; Print what kind of function-like object FUNCTION is.
+    (princ (cond ((or (stringp def) (vectorp def))
+		  "a keyboard macro")
+		 ((subrp def)
+		  (if (eq 'unevalled (cdr (subr-arity def)))
+		      (concat beg "special form")
+		    (concat beg "built-in function")))
+		 ((byte-code-function-p def)
+		  (concat beg "compiled Lisp function"))
+		 (aliased
+		  (format "an alias for `%s'" real-def))
+		 ((eq (car-safe def) 'lambda)
+		  (concat beg "Lisp function"))
+		 ((eq (car-safe def) 'macro)
+		  (concat beg "Lisp macro"))
+		 ((eq (car-safe def) 'closure)
+		  (concat beg "Lisp closure"))
+		 ((eq (car-safe def) 'autoload)
+		  (format "%s autoloaded %s"
+			  (if (commandp def) "an interactive" "an")
+			  (if (eq (nth 4 def) 'keymap) "keymap"
+			    (if (nth 4 def) "Lisp macro" "Lisp function"))))
+		 ((keymapp def)
+		  (let ((is-full nil)
+			(elts (cdr-safe def)))
+		    (while elts
+		      (if (char-table-p (car-safe elts))
+			  (setq is-full t
+				elts nil))
+		      (setq elts (cdr-safe elts)))
+		    (concat beg (if is-full "keymap" "sparse keymap"))))
+		 (t "")))
+
+    (if (and aliased (not (fboundp real-def)))
 	(princ ",\nwhich is not defined.  Please make a bug report.")
       (with-current-buffer standard-output
 	(save-excursion
 	  (save-match-data
 	    (when (re-search-backward "alias for `\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 'help-function def)))))
+	      (help-xref-button 1 'help-function real-def)))))
 
-      (setq file-name (find-lisp-object-file-name function def))
       (when file-name
 	(princ " in `")
 	;; We used to add .el to the file name,
@@ -531,11 +553,21 @@ suitable file is found, return nil."
 	    (unless (looking-back "\n\n")
 	      (terpri)))))
       (help-fns--compiler-macro function)
-      (let* ((advertised (gethash def advertised-signature-table t))
+      (let* ((advertised (gethash real-def advertised-signature-table t))
 	     (arglist (if (listp advertised)
-			  advertised (help-function-arglist def)))
-	     (doc (condition-case err (documentation function)
-                    (error (format "No Doc! %S" err))))
+			  advertised (help-function-arglist real-def)))
+	     (doc-raw (condition-case err
+			  (documentation function t)
+			(error (format "No Doc! %S" err))))
+	     ;; If the function is autoloaded, and its docstring has
+	     ;; key substitution constructs, load the library.
+	     (doc (progn
+		    (and (eq (car-safe real-def) 'autoload)
+			 help-enable-auto-load
+			 (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]"
+				       doc-raw)
+			 (load (cadr real-def) t))
+		    (substitute-command-keys doc-raw)))
 	     (usage (help-split-fundoc doc function)))
 	(with-current-buffer standard-output
 	  ;; If definition is a keymap, skip arglist note.
@@ -556,9 +588,9 @@ suitable file is found, return nil."
 							  function)))))
 			    usage)
 			  (car usage))
-			 ((or (stringp def)
-			      (vectorp def))
-			  (format "\nMacro: %s" (format-kbd-macro def)))
+			 ((or (stringp real-def)
+			      (vectorp real-def))
+			  (format "\nMacro: %s" (format-kbd-macro real-def)))
 			 (t "[Missing arglist.  Please make a bug report.]")))
 		   (high (help-highlight-arguments use doc)))
 	      (let ((fill-begin (point)))

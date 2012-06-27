@@ -1030,6 +1030,16 @@ by `with-help-window'"
   :group 'help
   :version "23.1")
 
+(defcustom help-enable-auto-load t
+  "Whether Help commands can perform autoloading.
+If non-nil, whenever \\[describe-function] is called for an
+autoloaded function whose docstring contains any key substitution
+construct (see `substitute-command-keys'), the library is loaded,
+so that the documentation can show the right key bindings."
+  :type 'boolean
+  :group 'help
+  :version "24.2")
+
 (defun help-window-display-message (quit-part window &optional scroll)
   "Display message telling how to quit and scroll help window.
 QUIT-PART is a string telling how to quit the help window WINDOW.

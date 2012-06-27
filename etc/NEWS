@@ -64,6 +64,18 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.2
 
+** Help changes
+
+*** `C-h f' (describe-function) can now perform autoloading.
+When this command is called for an autoloaded function whose docstring
+contains a key substitution construct, that function's library is
+automatically loaded, so that the documentation can be shown
+correctly.  To disable this, set `help-enable-auto-load' to nil.
+
+*** `C-h f' now reports previously-autoloaded functions as "autoloaded",
+even after their associated libraries have been loaded (and the
+autoloads have been redefined as functions).
+
 ** The function `current-time' now returns extended-format time stamps
 (HIGH LOW USEC PSEC) that use picosecond resolution; the PSEC
 component is new.  PSEC is typically a multiple of 1000 on current

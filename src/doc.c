@@ -897,11 +897,11 @@ Otherwise, return a new string, without any text properties.  */)
 	  if (NILP (tem))
 	    {
 	      name = Fsymbol_name (name);
-	      insert_string ("\nUses keymap \"");
+	      insert_string ("\nUses keymap `");
 	      insert_from_string (name, 0, 0,
 				  SCHARS (name),
 				  SBYTES (name), 1);
-	      insert_string ("\", which is not currently defined.\n");
+	      insert_string ("', which is not currently defined.\n");
 	      if (start[-1] == '<') keymap = Qnil;
 	    }
 	  else if (start[-1] == '<')

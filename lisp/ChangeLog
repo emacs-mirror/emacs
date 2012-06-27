@@ -1,3 +1,12 @@
+2012-06-27  Chong Yidong  <cyd@gnu.org>
+
+	* help.el (help-enable-auto-load): New variable.
+
+	* help-fns.el (help-fns--autoloaded-p): New function.
+	(describe-function-1): Refer to a function as "autoloaded" if it
+	was autoloaded at any time in the past.  Perform autoloading if
+	help-enable-auto-load is non-nil.
+
 2012-06-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (compile, compile-always): Depend on
