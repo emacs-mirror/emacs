@@ -35,14 +35,15 @@
 (require 'term)
 
 ;;;###autoload
-(eshell-defgroup eshell-term nil
+(progn
+(defgroup eshell-term nil
   "This module causes visual commands (e.g., 'vi') to be executed by
 the `term' package, which comes with Emacs.  This package handles most
 of the ANSI control codes, allowing curses-based applications to run
 within an Emacs window.  The variable `eshell-visual-commands' defines
 which commands are considered visual in nature."
   :tag "Running visual commands"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

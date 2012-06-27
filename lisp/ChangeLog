@@ -1,3 +1,13 @@
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el:
+	* eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el:
+	* eshell/em-xtra.el: Replace eshell-defgroup with "(progn (defgroup".
+	* eshell/eshell.el (eshell-defgroup): Remove alias.
+
 2012-06-27  Chong Yidong  <cyd@gnu.org>
 
 	* help.el (help-enable-auto-load): New variable.

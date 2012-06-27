@@ -63,10 +63,11 @@
 (require 'eshell)
 
 ;;;###autoload
-(eshell-defgroup eshell-hist nil
+(progn
+(defgroup eshell-hist nil
   "This module provides command history management."
   :tag "History list management"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

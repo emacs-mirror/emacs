@@ -236,10 +236,6 @@ shells such as bash, zsh, rc, 4dos."
   :version "21.1"
   :group 'applications)
 
-;; This is hack to force make-autoload to put the whole definition
-;; into the autoload file (see esh-module.el).
-(defalias 'eshell-defgroup 'defgroup)
-
 ;;;_* User Options
 ;;
 ;; The following user options modify the behavior of Eshell overall.

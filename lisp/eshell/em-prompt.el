@@ -29,11 +29,12 @@
 (eval-when-compile (require 'eshell))
 
 ;;;###autoload
-(eshell-defgroup eshell-prompt nil
+(progn
+(defgroup eshell-prompt nil
   "This module provides command prompts, and navigation between them,
 as is common with most shells."
   :tag "Command prompts"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

@@ -75,12 +75,13 @@
 (require 'esh-util)
 
 ;;;###autoload
-(eshell-defgroup eshell-cmpl nil
+(progn
+(defgroup eshell-cmpl nil
   "This module provides a programmable completion function bound to
 the TAB key, which allows for completing command names, file names,
 variable names, arguments, etc."
   :tag "Argument completion"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

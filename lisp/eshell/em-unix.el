@@ -40,7 +40,8 @@
 (require 'pcomplete)
 
 ;;;###autoload
-(eshell-defgroup eshell-unix nil
+(progn
+(defgroup eshell-unix nil
   "This module defines many of the more common UNIX utilities as
 aliases implemented in Lisp.  These include mv, ln, cp, rm, etc.  If
 the user passes arguments which are too complex, or are unrecognized
@@ -51,7 +52,7 @@ with Eshell makes them more versatile than their traditional cousins
 \(such as being able to use `kill' to kill Eshell background processes
 by name)."
   :tag "UNIX commands in Lisp"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 (defcustom eshell-unix-load-hook nil
   "A list of functions to run when `eshell-unix' is loaded."

@@ -33,14 +33,15 @@
 (require 'esh-opt)
 
 ;;;###autoload
-(eshell-defgroup eshell-ls nil
+(progn
+(defgroup eshell-ls nil
   "This module implements the \"ls\" utility fully in Lisp.  If it is
 passed any unrecognized command switches, it will revert to the
 operating system's version.  This version of \"ls\" uses text
 properties to colorize its output based on the setting of
 `eshell-ls-use-colors'."
   :tag "Implementation of `ls' in Lisp"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

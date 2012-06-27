@@ -46,13 +46,14 @@
 (require 'esh-util)
 
 ;;;###autoload
-(eshell-defgroup eshell-banner nil
+(progn
+(defgroup eshell-banner nil
   "This sample module displays a welcome banner at login.
 It exists so that others wishing to create their own Eshell extension
 modules may have a simple template to begin with."
   :tag "Login banner"
   ;; :link '(info-link "(eshell)Login banner")
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
