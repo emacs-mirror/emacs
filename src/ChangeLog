@@ -175,11 +175,6 @@
 	when time_t is unsigned and as wide as intmax_t.
 	See <http://bugs.gnu.org/9000#51>.
 
-2012-06-26  Andreas Schwab  <schwab@linux-m68k.org>
-
-	* gnutls.c (emacs_gnutls_handshake): Only retry if
-	GNUTLS_E_INTERRUPTED.
-
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (sit_for, Fsleep_for):
