@@ -1,5 +1,7 @@
 2012-06-27  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in: Only check for paxctl on gnu-linux.  (Bug#11398#26)
+
 	* INSTALL: Remove references to paths.el.
 
 2012-06-26  Eli Zaretskii  <eliz@gnu.org>
