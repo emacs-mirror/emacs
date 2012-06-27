@@ -214,3 +214,8 @@
   (message "Done with Gnus registry usage testing."))
 
 (provide 'gnustest-registry)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; End:

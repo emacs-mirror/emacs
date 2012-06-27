@@ -1,3 +1,8 @@
+2012-06-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* tests/gnustest-nntp.el, tests/gnustest-registry.el:
+	Set no-byte-compile and no-update-autoloads.
+
 2012-06-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el: Add coding cookie for a soft hyphen that mm-shr uses.

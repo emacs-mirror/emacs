@@ -92,3 +92,8 @@
     (gnus-group-save-newsrc)
     (gnus-group-exit))
 )
+
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; End:
