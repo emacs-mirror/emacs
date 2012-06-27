@@ -4621,6 +4621,12 @@ mark_maybe_pointer (void *p)
 
 static void
 mark_memory (void *start, void *end)
+#ifdef __clang__
+  /* Do not allow -faddress-sanitizer to check this function, since it
+     crosses the function stack boundary, and thus would yield many
+     false positives. */
+  __attribute__((no_address_safety_analysis))
+#endif
 {
   void **pp;
   int i;

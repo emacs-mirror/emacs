@@ -1,3 +1,8 @@
+2012-06-26  John Wiegley  <johnw@newartisans.com>
+
+	* alloc.c (mark_memory): Do not check with -faddress-sanitizer
+	when building with Clang.
+
 2012-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fapply): Allow calling it with a single argument.
