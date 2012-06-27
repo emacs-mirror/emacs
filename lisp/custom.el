@@ -120,7 +120,9 @@ the :set function.
 For variables in preloaded files, you can simply use this
 function for the :initialize property.  For autoloaded variables,
 you will also need to add an autoload stanza calling this
-function, and another one setting the standard-value property."
+function, and another one setting the standard-value property.
+Or you can wrap the defcustom in a progn, to force the autoloader
+to include all of it."		   ; see eg vc-sccs-search-project-dir
   ;; No longer true:
   ;; "See `send-mail-function' in sendmail.el for an example."
 

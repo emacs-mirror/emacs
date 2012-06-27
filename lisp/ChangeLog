@@ -1,5 +1,7 @@
 2012-06-27  Glenn Morris  <rgm@gnu.org>
 
+	* custom.el (custom-initialize-delay): Doc fix.
+
 	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
 	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el:
 	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el:
