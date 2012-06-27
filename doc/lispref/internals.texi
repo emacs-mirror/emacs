@@ -1380,7 +1380,7 @@ needs to be reported, either by running the sentinel or by inserting a
 message in the process buffer.
 
 @item pty_flag
-Non-@code{nil} if communication with the subprocess uses a @acronym{PTY};
+Non-@code{nil} if communication with the subprocess uses a pty;
 @code{nil} if it uses a pipe.
 
 @item infd

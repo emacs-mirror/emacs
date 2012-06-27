@@ -666,7 +666,7 @@ can also be executed on remote hosts, depending on @code{default-directory}.
 
 @defvar process-connection-type
 This variable controls the type of device used to communicate with
-asynchronous subprocesses.  If it is non-@code{nil}, then @acronym{PTY}s are
+asynchronous subprocesses.  If it is non-@code{nil}, then ptys are
 used, when available.  Otherwise, pipes are used.
 
 The value of @code{process-connection-type} takes effect when
@@ -681,8 +681,8 @@ with one subprocess by binding the variable around the call to
 @end group
 @end smallexample
 
-To determine whether a given subprocess actually got a pipe or a
-@acronym{PTY}, use the function @code{process-tty-name} (@pxref{Process
+To determine whether a given subprocess actually got a pipe or a pty,
+use the function @code{process-tty-name} (@pxref{Process
 Information}).
 @end defvar
 
@@ -960,9 +960,9 @@ data appears on the ``standard input'' of the subprocess.
 
 @c FIXME which?
   Some operating systems have limited space for buffered input in a
-@acronym{PTY}.  On these systems, Emacs sends an @acronym{EOF}
-periodically amidst the other characters, to force them through.  For
-most programs, these @acronym{EOF}s do no harm.
+pty.  On these systems, Emacs sends an @acronym{EOF} periodically
+amidst the other characters, to force them through.  For most
+programs, these @acronym{EOF}s do no harm.
 
   Subprocess input is normally encoded using a coding system before the
 subprocess receives it, much like text written into a file.  You can use

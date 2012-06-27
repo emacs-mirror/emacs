@@ -1,3 +1,8 @@
+2012-06-27  Chong Yidong  <cyd@gnu.org>
+
+	* processes.texi (Asynchronous Processes, Input to Processes):
+	* internals.texi (Process Internals): Don't capitalize "pty".
+
 2012-06-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* processes.texi (Asynchronous Processes): Make the pty vs pipe
