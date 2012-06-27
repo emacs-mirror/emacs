@@ -1,3 +1,8 @@
+2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shr.el (shr-render-buffer): New command.
+	(shr-visit-file): Use it.
+
 2012-06-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* tests/gnustest-nntp.el, tests/gnustest-registry.el:

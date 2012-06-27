@@ -129,16 +129,22 @@ cid: URL as the argument.")
 
 ;; Public functions and commands.
 
-(defun shr-visit-file (file)
-  "Parse FILE as an HTML document, and render it in a new buffer."
-  (interactive "fHTML file name: ")
+(defun shr-render-buffer (buffer)
+  "Display the HTML rendering of the current buffer."
+  (interactive (list (current-buffer)))
   (pop-to-buffer "*html*")
   (erase-buffer)
   (shr-insert-document
-   (with-temp-buffer
-     (insert-file-contents file)
+   (with-current-buffer buffer
      (libxml-parse-html-region (point-min) (point-max))))
   (goto-char (point-min)))
+
+(defun shr-visit-file (file)
+  "Parse FILE as an HTML document, and render it in a new buffer."
+  (interactive "fHTML file name: ")
+  (with-temp-buffer
+    (insert-file-contents file)
+    (shr-render-buffer (current-buffer))))
 
 ;;;###autoload
 (defun shr-insert-document (dom)
