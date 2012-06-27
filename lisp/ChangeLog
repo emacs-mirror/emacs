@@ -1,5 +1,7 @@
 2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/rst.el (rst-adornment-faces-alist): Avoid copy-list.
+
 	* emacs-lisp/cl.el (flet): Mark obsolete.
 	* emacs-lisp/cl-macs.el (cl-flet*): New macro.
 	* vc/vc-rcs.el (vc-rcs-annotate-command, vc-rcs-parse):

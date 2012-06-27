@@ -3416,10 +3416,11 @@ This color is used as background for section title text on level
 
 (defcustom rst-adornment-faces-alist
   ;; FIXME LEVEL-FACE: Must be redone if `rst-level-face-max' is changed
-  (let ((alist (copy-list '((t . rst-transition)
-			    (nil . rst-adornment))))
+  (let ((alist (copy-sequence '((t . rst-transition)
+                                (nil . rst-adornment))))
 	(i 1))
     (while (<= i rst-level-face-max)
+      ;; FIXME: why not `push'?
       (nconc alist (list (cons i (intern (format "rst-level-%d-face" i)))))
       (setq i (1+ i)))
     alist)
