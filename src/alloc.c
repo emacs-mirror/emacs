@@ -1962,7 +1962,6 @@ allocate_string (void)
   /* SIZE and SIZE_BYTE fields will be initialized
      by calling allocate_string_data.  */
   s->intervals = NULL_INTERVAL;
-  s->data = NULL;
 
   --total_free_strings;
   ++total_strings;

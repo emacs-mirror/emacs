@@ -1,5 +1,9 @@
 2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c (allocate_string):  Fix last change.
+
+2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* alloc.c (allocate_string):  Remove two redundant calls
 	to memset, add explicit initialization where appropriate.
 
