@@ -1,5 +1,12 @@
 2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* loadup.el (purify-flag): Pre-grow the hash-table to reduce the
+	memory use.
+	* bindings.el (bindings--define-key): New function.
+	* vc/vc-hooks.el, replace.el, menu-bar.el, international/mule-cmds.el:
+	* emacs-lisp/lisp-mode.el, buff-menu.el, bookmark.el:
+	* bindings.el: Use it to purecopy define-key bindings.
+
 	* textmodes/rst.el (rst-adornment-faces-alist): Avoid copy-list.
 
 	* emacs-lisp/cl.el (flet): Mark obsolete.

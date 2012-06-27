@@ -1,3 +1,8 @@
+2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (maybe_resize_hash_table): Output message when growing the
+	purify-hashtable.
+
 2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (allocate_string_data): Remove dead code.
@@ -29,7 +34,7 @@
 
 2012-06-26  John Wiegley  <johnw@newartisans.com>
 
-	* unexmacosx.c (copy_data_segment): Added two section names used
+	* unexmacosx.c (copy_data_segment): Add two section names used
 	on Mac OS X Lion: __mod_init_func and __mod_term_func.
 
 	* alloc.c (mark_memory): Do not check with -faddress-sanitizer

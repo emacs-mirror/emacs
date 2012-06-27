@@ -3749,6 +3749,17 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       if (INDEX_SIZE_BOUND < nsize)
 	error ("Hash table too large to resize");
 
+#ifdef ENABLE_CHECKING
+      if (HASH_TABLE_P (Vpurify_flag)
+	  && XHASH_TABLE (Vpurify_flag) == h)
+	{
+	  Lisp_Object args[2];
+	  args[0] = build_string ("Growing hash table to: %d");
+	  args[1] = make_number (new_size);
+	  Fmessage (2, args);
+	}
+#endif
+
       h->key_and_value = larger_vector (h->key_and_value,
 					2 * (new_size - old_size), -1);
       h->next = larger_vector (h->next, new_size - old_size, -1);
