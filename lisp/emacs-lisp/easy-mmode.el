@@ -65,7 +65,8 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 			;; "foo-bar-minor" -> "Foo-Bar-Minor"
 			(capitalize (replace-regexp-in-string
 				     ;; "foo-bar-minor-mode" -> "foo-bar-minor"
-				     "-mode\\'" "" (symbol-name mode))))
+				     "toggle-\\|-mode\\'" ""
+                                     (symbol-name mode))))
 		       " mode")))
     (if (not (stringp lighter)) name
       ;; Strip leading and trailing whitespace from LIGHTER.
