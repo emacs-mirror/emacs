@@ -1,3 +1,8 @@
+2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (allocate_string):  Remove two redundant calls
+	to memset, add explicit initialization where appropriate.
+
 2012-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* lisp.mk (lisp): Remove paths.elc.

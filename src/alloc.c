@@ -1936,13 +1936,14 @@ allocate_string (void)
       int i;
 
       b = (struct string_block *) lisp_malloc (sizeof *b, MEM_TYPE_STRING);
-      memset (b, 0, sizeof *b);
       b->next = string_blocks;
       string_blocks = b;
 
       for (i = STRING_BLOCK_SIZE - 1; i >= 0; --i)
 	{
 	  s = b->strings + i;
+	  /* Every string on a free list should have NULL data pointer.  */
+	  s->data = NULL;
 	  NEXT_FREE_LISP_STRING (s) = string_free_list;
 	  string_free_list = s;
 	}
@@ -1958,8 +1959,10 @@ allocate_string (void)
 
   MALLOC_UNBLOCK_INPUT;
 
-  /* Probably not strictly necessary, but play it safe.  */
-  memset (s, 0, sizeof *s);
+  /* SIZE and SIZE_BYTE fields will be initialized
+     by calling allocate_string_data.  */
+  s->intervals = NULL_INTERVAL;
+  s->data = NULL;
 
   --total_free_strings;
   ++total_strings;
