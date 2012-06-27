@@ -260,12 +260,12 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-deftype cl-defstruct cl-callf2 cl-callf cl-rotatef cl-shiftf
 ;;;;;;  cl-remf cl-psetf cl-declare cl-the cl-locally cl-multiple-value-setq
 ;;;;;;  cl-multiple-value-bind cl-symbol-macrolet cl-macrolet cl-labels
-;;;;;;  cl-flet cl-progv cl-psetq cl-do-all-symbols cl-do-symbols
+;;;;;;  cl-flet* cl-flet cl-progv cl-psetq cl-do-all-symbols cl-do-symbols
 ;;;;;;  cl-dotimes cl-dolist cl-do* cl-do cl-loop cl-return-from
 ;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
 ;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
 ;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "41a15289eda7e6ae03ac9edd86bbb1a6")
+;;;;;;  "e7bb76130254614df1603a1c1e89cb49")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\
@@ -491,6 +491,14 @@ Like `cl-labels' but the definitions are not recursive.
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
 
 (put 'cl-flet 'lisp-indent-function '1)
+
+(autoload 'cl-flet* "cl-macs" "\
+Make temporary function definitions.
+Like `cl-flet' but the definitions can refer to previous ones.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
+
+(put 'cl-flet* 'lisp-indent-function '1)
 
 (autoload 'cl-labels "cl-macs" "\
 Make temporary function bindings.

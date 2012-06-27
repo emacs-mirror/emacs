@@ -1,7 +1,12 @@
+2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ert-x-tests.el (ert-test-run-tests-interactively-2):
+	Use cl-flet.
+
 2012-06-08  Ulf Jasper  <ulf.jasper@web.de>
 
-	* automated/icalendar-tests.el (icalendar--parse-vtimezone): Test
-	escaped commas in TZID (Bug#11473).
+	* automated/icalendar-tests.el (icalendar--parse-vtimezone):
+	Test escaped commas in TZID (Bug#11473).
 	(icalendar-import-with-timezone): New.
 	(icalendar-real-world): Add new testcase as given in the bugreport
 	of Bug#11473.
@@ -332,8 +337,8 @@
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
-	(icalendar-testsuite--run-function-tests): Add
-	icalendar-testsuite--test-parse-vtimezone.
+	(icalendar-testsuite--run-function-tests):
+	Add icalendar-testsuite--test-parse-vtimezone.
 	(icalendar-testsuite--test-parse-vtimezone): New.
 	(icalendar-testsuite--do-test-cycle): Doc changes.
 	(icalendar-testsuite--run-real-world-tests): Remove trailing
@@ -375,7 +380,7 @@
 2008-10-31  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el (icalendar-testsuite--run-function-tests):
-	Added `icalendar-testsuite--test-create-uid'.
+	Add `icalendar-testsuite--test-create-uid'.
 	(icalendar-testsuite--test-create-uid): New.
 
 2008-06-14  Ulf Jasper  <ulf.jasper@web.de>

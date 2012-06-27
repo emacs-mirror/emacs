@@ -2957,10 +2957,10 @@ Prefix arg INC specifies which one."
   (let ((containing-list ebrowse--tree)
 	index cls
 	(supers (ebrowse-direct-base-classes ebrowse--displayed-class)))
-    (flet ((trees-alist (trees)
-			(loop for tr in trees
-			      collect (cons (ebrowse-cs-name
-					     (ebrowse-ts-class tr)) tr))))
+    (cl-flet ((trees-alist (trees)
+                           (loop for tr in trees
+                                 collect (cons (ebrowse-cs-name
+                                                (ebrowse-ts-class tr)) tr))))
       (when supers
 	(let ((tree (if (second supers)
 			(ebrowse-completing-read-value
@@ -2985,11 +2985,11 @@ Prefix arg INC specifies which one."
 Prefix arg ARG says which class should be displayed.  Default is
 the first derived class."
   (interactive "P")
-  (flet ((ebrowse-tree-obarray-as-alist ()
-					(loop for s in (ebrowse-ts-subclasses
-							ebrowse--displayed-class)
-					      collect (cons (ebrowse-cs-name
-							     (ebrowse-ts-class s)) s))))
+  (cl-flet ((ebrowse-tree-obarray-as-alist ()
+               (loop for s in (ebrowse-ts-subclasses
+                               ebrowse--displayed-class)
+                     collect (cons (ebrowse-cs-name
+                                    (ebrowse-ts-class s)) s))))
     (let ((subs (or (ebrowse-ts-subclasses ebrowse--displayed-class)
 		    (error "No derived classes"))))
       (if (and arg (second subs))

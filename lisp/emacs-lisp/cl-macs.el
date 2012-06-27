@@ -1570,7 +1570,6 @@ a `let' form, except that the list of symbols can be computed at run-time."
           (setq cl--labels-convert-cache (cons f res))
           res))))))
 
-;;; This should really have some way to shadow 'byte-compile properties, etc.
 ;;;###autoload
 (defmacro cl-flet (bindings &rest body)
   "Make temporary function definitions.
@@ -1594,6 +1593,18 @@ Like `cl-labels' but the definitions are not recursive.
            ;; Don't override lexical-let's macro-expander.
            (if (assq 'function newenv) newenv
              (cons (cons 'function #'cl--labels-convert) newenv)))))))
+
+;;;###autoload
+(defmacro cl-flet* (bindings &rest body)
+  "Make temporary function definitions.
+Like `cl-flet' but the definitions can refer to previous ones.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (declare (indent 1) (debug ((&rest (cl-defun)) cl-declarations body)))
+  (cond
+   ((null bindings) (macroexp-progn body))
+   ((null (cdr bindings)) `(cl-flet ,bindings ,@body))
+   (t `(cl-flet (,(pop bindings)) (cl-flet* ,bindings ,@body)))))
 
 ;;;###autoload
 (defmacro cl-labels (bindings &rest body)
@@ -2257,6 +2268,7 @@ STRING is an optional description of the desired type."
 
 ;;;###autoload
 (defmacro cl-assert (form &optional show-args string &rest args)
+  ;; FIXME: This is actually not compatible with Common-Lisp's `assert'.
   "Verify that FORM returns non-nil; signal an error if not.
 Second arg SHOW-ARGS means to include arguments of FORM in message.
 Other args STRING and ARGS... are arguments to be passed to `error'.

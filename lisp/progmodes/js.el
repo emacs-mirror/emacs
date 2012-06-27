@@ -1821,15 +1821,15 @@ nil."
 (defun js-c-fill-paragraph (&optional justify)
   "Fill the paragraph with `c-fill-paragraph'."
   (interactive "*P")
-  (flet ((c-forward-sws
-          (&optional limit)
-          (js--forward-syntactic-ws limit))
-         (c-backward-sws
-          (&optional limit)
-          (js--backward-syntactic-ws limit))
-         (c-beginning-of-macro
-          (&optional limit)
-          (js--beginning-of-macro limit)))
+  (letf (((symbol-function 'c-forward-sws)
+          (lambda (&optional limit)
+            (js--forward-syntactic-ws limit)))
+         ((symbol-function 'c-backward-sws)
+          (lambda (&optional limit)
+            (js--backward-syntactic-ws limit)))
+         ((symbol-function 'c-beginning-of-macro)
+          (lambda (&optional limit)
+            (js--beginning-of-macro limit))))
     (let ((fill-paragraph-function 'c-fill-paragraph))
       (c-fill-paragraph justify))))
 

@@ -1,5 +1,13 @@
 2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl.el (flet): Mark obsolete.
+	* emacs-lisp/cl-macs.el (cl-flet*): New macro.
+	* vc/vc-rcs.el (vc-rcs-annotate-command, vc-rcs-parse):
+	* progmodes/js.el (js-c-fill-paragraph):
+	* progmodes/ebrowse.el (ebrowse-switch-member-buffer-to-sibling-class)
+	(ebrowse-switch-member-buffer-to-derived-class):
+	* play/5x5.el (5x5-solver): Use cl-flet.
+
 	* emacs-lisp/cl.el: Use lexical-binding.  Fix flet (bug#11780).
 	(cl--symbol-function): New macro.
 	(cl--letf, cl--letf*): Use it.

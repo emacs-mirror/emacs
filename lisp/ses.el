@@ -3380,21 +3380,23 @@ Use `math-format-value' as a printer for Calc objects."
 	    (setq iter (cdr iter))))
 	(setq result ret)))
 
-    (flet ((vectorize-*1
-	    (clean result)
-	    (cons clean (cons (quote 'vec) (apply 'append result))))
-	   (vectorize-*2
-	    (clean result)
-	    (cons clean (cons (quote 'vec) (mapcar (lambda (x)
-						     (cons  clean (cons (quote 'vec) x)))
-						   result)))))
+    (cl-flet ((vectorize-*1
+               (clean result)
+               (cons clean (cons (quote 'vec) (apply 'append result))))
+              (vectorize-*2
+               (clean result)
+               (cons clean (cons (quote 'vec)
+                                 (mapcar (lambda (x)
+                                           (cons  clean (cons (quote 'vec) x)))
+                                         result)))))
       (case vectorize
 	((nil) (cons clean (apply 'append result)))
 	((*1) (vectorize-*1 clean result))
 	((*2) (vectorize-*2 clean result))
-	((*) (if (cdr result)
-	       (vectorize-*2 clean result)
-	     (vectorize-*1 clean result)))))))
+	((*) (funcall (if (cdr result)
+                          #'vectorize-*2
+                        #'vectorize-*1)
+                      clean result))))))
 
 (defun ses-delete-blanks (&rest args)
   "Return ARGS reversed, with the blank elements (nil and *skip*) removed."

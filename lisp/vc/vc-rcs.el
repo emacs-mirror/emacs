@@ -679,9 +679,9 @@ Optional arg REVISION is a revision to annotate from."
     ;; Apply reverse-chronological edits on the trunk, computing and
     ;; accumulating forward-chronological edits after some point, for
     ;; later.
-    (flet ((r/d/a () (vector pre
-                             (cdr (assq 'date meta))
-                             (cdr (assq 'author meta)))))
+    (cl-flet ((r/d/a () (vector pre
+                                (cdr (assq 'date meta))
+                                (cdr (assq 'author meta)))))
       (while (when (setq pre cur cur (cdr (assq 'next meta)))
                (not (string= "" cur)))
         (setq
@@ -769,16 +769,16 @@ Optional arg REVISION is a revision to annotate from."
                  ht)
         (setq maxw (max w maxw))))
     (let ((padding (make-string maxw 32)))
-      (flet ((pad (w) (substring-no-properties padding w))
-             (render (rda &rest ls)
-                     (propertize
-                      (apply 'concat
-                             (format-time-string "%Y-%m-%d" (aref rda 1))
-                             "  "
-                             (aref rda 0)
-                             ls)
-                      :vc-annotate-prefix t
-                      :vc-rcs-r/d/a rda)))
+      (cl-flet ((pad (w) (substring-no-properties padding w))
+                (render (rda &rest ls)
+                        (propertize
+                         (apply 'concat
+                                (format-time-string "%Y-%m-%d" (aref rda 1))
+                                "  "
+                                (aref rda 0)
+                                ls)
+                         :vc-annotate-prefix t
+                         :vc-rcs-r/d/a rda)))
         (maphash
          (if all-me
              (lambda (rda w)
@@ -1306,50 +1306,51 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
         ;; to "de-@@-format" the printed representation as the first step
         ;; to translating it into some value.  See internal func `gather'.
         @-holes)
-    (flet ((sw () (skip-chars-forward " \t\n")) ; i.e., `[:space:]'
-           (at (tag) (save-excursion (eq tag (read buffer))))
-           (to-eol () (buffer-substring-no-properties
-                       (point) (progn (forward-line 1)
-                                      (1- (point)))))
-           (to-semi () (setq b (point)
-                             e (progn (search-forward ";")
-                                      (1- (point)))))
-           (to-one@ () (setq @-holes nil
-                             b (progn (search-forward "@") (point))
-                             e (progn (while (and (search-forward "@")
-                                                  (= ?@ (char-after))
-                                                  (progn
-                                                    (push (point) @-holes)
-                                                    (forward-char 1)
-                                                    (push (point) @-holes))))
-                                      (1- (point)))))
-           (tok+val (set-b+e name &optional proc)
-                    (unless (eq name (setq tok (read buffer)))
-                      (error "Missing `%s' while parsing %s" name context))
-                    (sw)
-                    (funcall set-b+e)
-                    (cons tok (if proc
-                                  (funcall proc)
-                                (buffer-substring-no-properties b e))))
-           (k-semi (name &optional proc) (tok+val 'to-semi name proc))
-           (gather () (let ((pairs `(,e ,@@-holes ,b))
-                            acc)
-                        (while pairs
-                          (push (buffer-substring-no-properties
-                                 (cadr pairs) (car pairs))
-                                acc)
-                          (setq pairs (cddr pairs)))
-                        (apply 'concat acc)))
-           (k-one@ (name &optional later) (tok+val 'to-one@ name
-                                                   (if later
-                                                       (lambda () t)
-                                                     'gather))))
+    (cl-flet*
+        ((sw () (skip-chars-forward " \t\n")) ; i.e., `[:space:]'
+         (at (tag) (save-excursion (eq tag (read buffer))))
+         (to-eol () (buffer-substring-no-properties
+                     (point) (progn (forward-line 1)
+                                    (1- (point)))))
+         (to-semi () (setq b (point)
+                           e (progn (search-forward ";")
+                                    (1- (point)))))
+         (to-one@ () (setq @-holes nil
+                           b (progn (search-forward "@") (point))
+                           e (progn (while (and (search-forward "@")
+                                                (= ?@ (char-after))
+                                                (progn
+                                                  (push (point) @-holes)
+                                                  (forward-char 1)
+                                                  (push (point) @-holes))))
+                                    (1- (point)))))
+         (tok+val (set-b+e name &optional proc)
+                  (unless (eq name (setq tok (read buffer)))
+                    (error "Missing `%s' while parsing %s" name context))
+                  (sw)
+                  (funcall set-b+e)
+                  (cons tok (if proc
+                                (funcall proc)
+                              (buffer-substring-no-properties b e))))
+         (k-semi (name &optional proc) (tok+val #'to-semi name proc))
+         (gather () (let ((pairs `(,e ,@@-holes ,b))
+                          acc)
+                      (while pairs
+                        (push (buffer-substring-no-properties
+                               (cadr pairs) (car pairs))
+                              acc)
+                        (setq pairs (cddr pairs)))
+                      (apply 'concat acc)))
+         (k-one@ (name &optional later) (tok+val #'to-one@ name
+                                                 (if later
+                                                     (lambda () t)
+                                                   #'gather))))
       (save-excursion
         (goto-char (point-min))
         ;; headers
         (setq context 'headers)
-        (flet ((hpush (name &optional proc)
-                      (push (k-semi name proc) headers)))
+        (cl-flet ((hpush (name &optional proc)
+                         (push (k-semi name proc) headers)))
           (hpush 'head)
           (when (at 'branch)
             (hpush 'branch))
@@ -1391,7 +1392,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                                (when (< (car ls) 100)
                                  (setcar ls (+ 1900 (car ls))))
                                (apply 'encode-time (nreverse ls)))))
-                  ,@(mapcar 'k-semi '(author state))
+                  ,@(mapcar #'k-semi '(author state))
                   ,(k-semi 'branches
                            (lambda ()
                              (split-string
@@ -1421,16 +1422,17 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
               ;; only the former since it behaves identically to the
               ;; latter in the absence of "@@".)
               sub)
-          (flet ((incg (beg end) (let ((b beg) (e end) @-holes)
-                                   (while (and asc (< (car asc) e))
-                                     (push (pop asc) @-holes))
-                                   ;; Self-deprecate when work is done.
-                                   ;; Folding many dimensions into one.
-                                   ;; Thanks B.Mandelbrot, for complex sum.
-                                   ;; O beauteous math! --the Unvexed Bum
-                                   (unless asc
-                                     (setq sub 'buffer-substring-no-properties))
-                                   (gather))))
+          (cl-flet ((incg (beg end)
+                          (let ((b beg) (e end) @-holes)
+                            (while (and asc (< (car asc) e))
+                              (push (pop asc) @-holes))
+                            ;; Self-deprecate when work is done.
+                            ;; Folding many dimensions into one.
+                            ;; Thanks B.Mandelbrot, for complex sum.
+                            ;; O beauteous math! --the Unvexed Bum
+                            (unless asc
+                              (setq sub #'buffer-substring-no-properties))
+                            (gather))))
             (while (and (sw)
                         (not (eobp))
                         (setq context (to-eol)
@@ -1449,8 +1451,8 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                   (setcdr (cadr rev) (gather))
                 (if @-holes
                     (setq asc (nreverse @-holes)
-                          sub 'incg)
-                  (setq sub 'buffer-substring-no-properties))
+                          sub #'incg)
+                  (setq sub #'buffer-substring-no-properties))
                 (goto-char b)
                 (setq acc nil)
                 (while (< (point) e)

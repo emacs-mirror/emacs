@@ -568,14 +568,14 @@ to complete the 5x5.
 
 Solutions are sorted from least to greatest Hamming weight."
   (require 'calc-ext)
-  (flet ((5x5-mat-mode-2
-	  (a)
-	  (math-map-vec
-	   (lambda (y)
-	     (math-map-vec
-	      (lambda (x) `(mod ,x 2))
-	      y))
-	   a)))
+  (cl-flet ((5x5-mat-mode-2
+             (a)
+             (math-map-vec
+              (lambda (y)
+                (math-map-vec
+                 (lambda (x) `(mod ,x 2))
+                 y))
+              a)))
     (let* (calc-command-flags
 	   (grid-size-squared (* 5x5-grid-size 5x5-grid-size))
 
@@ -658,8 +658,8 @@ Solutions are sorted from least to greatest Hamming weight."
 		       (cdr (5x5-mat-mode-2
 			     '(vec (vec 0 1 1 1 0 1 0 1 0 1 1 1 0 1
 					1 1 0 1 0 1 0 1 1 1 0)
-				   (vec 1 1 0 1 1 0 0 0 0 0 1 1 0 1
-					1 0 0 0 0 0 1 1 0 1 1)))))
+                               (vec 1 1 0 1 1 0 0 0 0 0 1 1 0 1
+                                    1 0 0 0 0 0 1 1 0 1 1)))))
 	       (calcFunc-trn id))))
 
 	   (inv-base-change

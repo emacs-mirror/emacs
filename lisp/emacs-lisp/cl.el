@@ -461,11 +461,13 @@ Common Lisp.
 
 ;; This should really have some way to shadow 'byte-compile properties, etc.
 (defmacro flet (bindings &rest body)
-  "Make temporary function definitions.
-This is an analogue of `let' that operates on the function cell of FUNC
-rather than its value cell.  The FORMs are evaluated with the specified
-function definitions in place, then the definitions are undone (the FUNCs
-go back to their previous definitions, or lack thereof).
+  "Make temporary overriding function definitions.
+This is an analogue of a dynamically scoped `let' that operates on the function
+cell of FUNCs rather than their value cell.
+If you want the Common-Lisp style of `flet', you should use `cl-flet'.
+The FORMs are evaluated with the specified function definitions in place,
+then the definitions are undone (the FUNCs go back to their previous
+definitions, or lack thereof).
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
@@ -491,6 +493,7 @@ will not work - use `labels' instead" (symbol-name (car x))))
                 (list `(symbol-function ',(car x)) func)))
             bindings)
      ,@body))
+(make-obsolete 'flet "Use either `cl-flet' or `letf'."  "24.2")
 
 (defmacro labels (bindings &rest body)
   "Make temporary function bindings.
