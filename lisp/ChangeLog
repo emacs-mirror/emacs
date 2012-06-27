@@ -1,3 +1,19 @@
+2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Further code rearrangement; further new and
+	revised comments.
+	(todos-reevaluate-filelist-defcustoms): Rename from
+	todos-reevaluate-defcustoms and adjust callers.
+	(todos-date-pattern, todos-nondiary-start, todos-nondiary-end)
+	(todos-date-string-start, todos-done-string-start)
+	(todos-item-start): Change from defvar to defconst.
+	(todos-set-top-priorities): Use read-number and simplify.
+	(todos-insert-item): Check whether date-type argument is a string.
+	(todos-set-date-from-calendar): Check whether
+	todos-date-from-calendar is a string; simplify cond clause.
+	(todos-archive-done-item, todos-unarchive-items):
+	Use buffer-substring-no-properties.
+
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-item-undo): Fix restoration on

@@ -152,6 +152,9 @@ todo-mode.el."
   :type 'regexp
   :group 'todos)
 
+;; ---------------------------------------------------------------------------
+;;; Todos mode display options
+
 (defgroup todos-mode-display nil
   "User display options for Todos mode."
   :version "24.2"
@@ -364,6 +367,9 @@ The amount of indentation is given by user option
   "Indent from point to `todos-indent-to-here'."
   (indent-to todos-indent-to-here todos-indent-to-here))
 
+;; ---------------------------------------------------------------------------
+;;; Item insertion options
+
 (defgroup todos-item-insertion nil
   "User options for adding new todo items."
   :version "24.2"
@@ -438,6 +444,9 @@ current time, if nil, they include it."
   :type 'boolean
   :group 'todos-item-insertion)
 
+;; ---------------------------------------------------------------------------
+;;; Todos Filter Items mode options
+
 (defgroup todos-filtered nil
   "User options for Todos Filter Items mode."
   :version "24.2"
@@ -507,6 +516,9 @@ Done items from corresponding archive files are also included."
   :type 'boolean
   :group 'todos-filtered)
 
+;; ---------------------------------------------------------------------------
+;;; Todos Categories mode options
+
 (defgroup todos-categories nil
   "User options for Todos Categories mode."
   :version "24.2"
@@ -555,7 +567,7 @@ categories display according to priority."
   :group 'todos-categories)
 
 ;; ---------------------------------------------------------------------------
-;;; Faces and font-locking
+;;; Faces and font-lock matcher functions
 
 (defgroup todos-faces nil
   "Faces for the Todos modes."
@@ -950,7 +962,7 @@ Added to `window-configuration-change-hook' in `todos-mode'."
     ;; FIXME: If this is called while the separator overlay is shown, the
     ;; separator with deleted overlay becomes visible when waiting for user
     ;; input and remains so.  The following workaround prevents this, but it
-    ;; also prevents widening when edebugging todos.el.
+    ;; also prevents widening category when edebugging todos.el.
     ;; (save-excursion
     ;;   (goto-char (point-min))
     ;;   (when (re-search-forward todos-done-string-start nil t)
@@ -961,7 +973,7 @@ Added to `window-configuration-change-hook' in `todos-mode'."
     ))
 
 ;; ---------------------------------------------------------------------------
-;;; Global variables and helper functions
+;;; Global variables and helper functions for files and buffers
 
 (defvar todos-files (funcall todos-files-function)
   "List of truenames of user's Todos files.")
@@ -978,7 +990,7 @@ Used by functions called from outside of Todos mode to visit the
 current Todos file rather than the default Todos file (i.e. when
 users option `todos-show-current-file' is non-nil).")
 
-(defun todos-reevaluate-defcustoms ()
+(defun todos-reevaluate-filelist-defcustoms ()
   "Reevaluate defcustoms that provide choice list of Todos files."
   (custom-set-default 'todos-default-todos-file
 		      (symbol-value 'todos-default-todos-file))
@@ -995,40 +1007,49 @@ users option `todos-show-current-file' is non-nil).")
 (defvar todos-print-buffer "*Todos Print*"
   "Name of buffer containing printable Todos text.")
 
-(defvar todos-date-pattern
-  (let ((dayname (diary-name-pattern calendar-day-name-array nil t)))
-    (concat "\\(?:" dayname "\\|"
-	    (let ((dayname)
-		  ;; FIXME: how to choose between abbreviated and unabbreviated
-		  ;; month name?
-		  (monthname (format "\\(?:%s\\|\\*\\)"
-				     (diary-name-pattern
-				      calendar-month-name-array
-				      calendar-month-abbrev-array t)))
-		  (month "\\(?:[0-9]+\\|\\*\\)")
-		  (day "\\(?:[0-9]+\\|\\*\\)")
-		  (year "-?\\(?:[0-9]+\\|\\*\\)"))
-	      (mapconcat 'eval calendar-date-display-form ""))
-	    "\\)"))
-  "Regular expression matching a Todos date header.")
+(defun todos-check-format ()
+  "Signal an error if the current Todos file is ill-formatted.
+Otherwise return t.  The error message gives the line number
+where the invalid formatting was found."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      ;; Check for `todos-categories' sexp as the first line
+      (let ((cats (prin1-to-string todos-categories)))
+	(unless (looking-at (regexp-quote cats))
+	  (error "Invalid or missing todos-categories sexp")))
+      (forward-line)
+      (let ((legit (concat "\\(^" (regexp-quote todos-category-beg) "\\)"
+			   "\\|\\(" todos-date-string-start todos-date-pattern "\\)"
+			   "\\|\\(^[ \t]+[^ \t]*\\)"
+			   "\\|^$"
+			   "\\|\\(^" (regexp-quote todos-category-done) "\\)"
+			   "\\|\\(" todos-done-string-start "\\)")))
+	(while (not (eobp))
+	  (unless (looking-at legit)
+	    (error "Illegitimate Todos file format at line %d"
+		   (line-number-at-pos (point))))
+	  (forward-line)))))
+  ;; (message "This Todos file is well-formatted.")
+  t)
 
-(defvar todos-nondiary-start (nth 0 todos-nondiary-marker)
-  "String inserted before item date to block diary inclusion.")
+;; ---------------------------------------------------------------------------
+(defun todos-convert-legacy-date-time ()
+  "Return converted date-time string.
+Helper function for `todos-convert-legacy-files'."
+  (let* ((year (match-string 1))
+	 (month (match-string 2))
+	 (monthname (calendar-month-name (string-to-number month) t))
+	 (day (match-string 3))
+	 (time (match-string 4))
+	 dayname)
+    (replace-match "")
+    (insert (mapconcat 'eval calendar-date-display-form "")
+	    (when time (concat " " time)))))
 
-(defvar todos-nondiary-end (nth 1 todos-nondiary-marker)
-  "String inserted after item date matching `todos-nondiary-start'.")
-
-;; By itself this matches anything, because of the `?'; however, it's only
-;; used in the context of `todos-date-pattern' (but Emacs Lisp lacks
-;; lookahead).
-(defvar todos-date-string-start
-  (concat "^\\(" (regexp-quote todos-nondiary-start) "\\|"
-	  (regexp-quote diary-nonmarking-symbol) "\\)?")
-  "Regular expression matching part of item header before the date.")
-
-(defvar todos-done-string-start
-  (concat "^\\[" (regexp-quote todos-done-string))
-  "Regular expression matching start of done item.")
+;; ---------------------------------------------------------------------------
+;;; Global variables and helper functions for categories
 
 (defun todos-category-number (cat)
   "Return the number of category CAT in this Todos file.
@@ -1065,7 +1086,7 @@ done items are shown.  Its value is determined by user option
 `todos-done-separator-string'.")
 
 (defun todos-reset-done-separator (sep)
-  "Replace any existing overlays of separator string SEP."
+  "Replace existing overlays of done items separator string SEP."
   (save-excursion
     (save-restriction
       (widen)
@@ -1260,33 +1281,6 @@ the file."
 	  (forward-line)))))
   todos-categories)
 
-(defun todos-check-format ()
-  "Signal an error if the current Todos file is ill-formatted.
-Otherwise return t.  The error message gives the line number
-where the invalid formatting was found."
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (point-min))
-      ;; Check for `todos-categories' sexp as the first line
-      (let ((cats (prin1-to-string todos-categories)))
-	(unless (looking-at (regexp-quote cats))
-	  (error "Invalid or missing todos-categories sexp")))
-      (forward-line)
-      (let ((legit (concat "\\(^" (regexp-quote todos-category-beg) "\\)"
-			   "\\|\\(" todos-date-string-start todos-date-pattern "\\)"
-			   "\\|\\(^[ \t]+[^ \t]*\\)"
-			   "\\|^$"
-			   "\\|\\(^" (regexp-quote todos-category-done) "\\)"
-			   "\\|\\(" todos-done-string-start "\\)")))
-	(while (not (eobp))
-	  (unless (looking-at legit)
-	    (error "Illegitimate Todos file format at line %d"
-		   (line-number-at-pos (point))))
-	  (forward-line)))))
-  ;; (message "This Todos file is well-formatted.")
-  t)
-
 (defun todos-repair-categories-sexp ()
   "Repair corrupt Todos categories sexp.
 This should only be needed as a consequence of careless manual
@@ -1295,20 +1289,44 @@ editing or a bug in todos.el."
   (let ((todos-categories (todos-make-categories-list t)))
     (todos-update-categories-sexp)))
 
-(defun todos-convert-legacy-date-time ()
-  "Return converted date-time string.
-Helper function for `todos-convert-legacy-files'."
-  (let* ((year (match-string 1))
-	 (month (match-string 2))
-	 (monthname (calendar-month-name (string-to-number month) t))
-	 (day (match-string 3))
-	 (time (match-string 4))
-	 dayname)
-    (replace-match "")
-    (insert (mapconcat 'eval calendar-date-display-form "")
-	    (when time (concat " " time)))))
+;;; Global variables and helper functions for items
 
-(defvar todos-item-start (concat "\\(" todos-date-string-start "\\|"
+(defconst todos-date-pattern
+  (let ((dayname (diary-name-pattern calendar-day-name-array nil t)))
+    (concat "\\(?:" dayname "\\|"
+	    (let ((dayname)
+		  ;; FIXME: how to choose between abbreviated and unabbreviated
+		  ;; month name?
+		  (monthname (format "\\(?:%s\\|\\*\\)"
+				     (diary-name-pattern
+				      calendar-month-name-array
+				      calendar-month-abbrev-array t)))
+		  (month "\\(?:[0-9]+\\|\\*\\)")
+		  (day "\\(?:[0-9]+\\|\\*\\)")
+		  (year "-?\\(?:[0-9]+\\|\\*\\)"))
+	      (mapconcat 'eval calendar-date-display-form ""))
+	    "\\)"))
+  "Regular expression matching a Todos date header.")
+
+(defconst todos-nondiary-start (nth 0 todos-nondiary-marker)
+  "String inserted before item date to block diary inclusion.")
+
+(defconst todos-nondiary-end (nth 1 todos-nondiary-marker)
+  "String inserted after item date matching `todos-nondiary-start'.")
+
+;; By itself this matches anything, because of the `?'; however, it's only
+;; used in the context of `todos-date-pattern' (but Emacs Lisp lacks
+;; lookahead).
+(defconst todos-date-string-start
+  (concat "^\\(" (regexp-quote todos-nondiary-start) "\\|"
+	  (regexp-quote diary-nonmarking-symbol) "\\)?")
+  "Regular expression matching part of item header before the date.")
+
+(defconst todos-done-string-start
+  (concat "^\\[" (regexp-quote todos-done-string))
+  "Regular expression matching start of done item.")
+
+(defconst todos-item-start (concat "\\(" todos-date-string-start "\\|"
 				 todos-done-string-start "\\)"
 				 todos-date-pattern)
   "String identifying start of a Todos item.")
@@ -1459,7 +1477,7 @@ of each other."
 	  (forward-line))))))
 
 ;; ---------------------------------------------------------------------------
-;;; Functions for user input with prompting and completion
+;;; Helper functions for user input with prompting and completion
 
 (defun todos-read-file-name (prompt &optional archive mustmatch)
   "Choose and return the name of a Todos file, prompting with PROMPT.
@@ -1642,7 +1660,7 @@ the empty string (i.e., no time string)."
     answer))
 
 ;; ---------------------------------------------------------------------------
-;;; Item filtering
+;;; Item filtering infrastructure
 
 (defvar todos-multiple-filter-files nil
   "List of files selected from `todos-multiple-filter-files' widget.")
@@ -1884,14 +1902,11 @@ set the user customizable option `todos-priorities-rules'."
 			 "enter new number: "))
 	 (new "-1")
 	 nrule)
-    ;; FIXME: use read-number
-    (while (or (not (string-match "[0-9]+" new)) ; Don't accept "" or "bla".
-	       (< (string-to-number new) 0))
+    (while (< (string-to-number new) 0)
       (let ((cur0 cur))
-	(setq new (read-string (format prompt cur0) nil nil cur0)
+	(setq new (read-number (format prompt cur0) cur0)
 	      prompt "Enter a non-negative number: "
 	      cur0 nil)))
-    (setq new (string-to-number new))
     (setq nrule (if arg
 		    (append (nth 2 (delete crule frule)) (list (cons cat new)))
 		  (append (list file new) (list (nth 2 frule)))))
@@ -2333,7 +2348,6 @@ which is the value of the user option
   `(
     ;;               display
     ("Cd"	     . todos-display-categories) ;FIXME: Cs todos-show-categories?
-    ;(""	     . todos-display-categories-alphabetically)
     ("H"	     . todos-highlight-item)
     ("N"	     . todos-hide-show-item-numbering)
     ("D"	     . todos-hide-show-date-time)
@@ -3060,7 +3074,7 @@ saved (the latter as a Todos Archive file) with a new name in
 	      (delete-region (line-beginning-position) (line-end-position))
 	      (prin1 sexp (current-buffer)))
 	    (write-region (point-min) (point-max) file nil 'nomessage)))
-	  (todos-reevaluate-defcustoms)
+	  (todos-reevaluate-filelist-defcustoms)
 	(message "Format conversion done."))
     (error "No legacy Todo file exists")))
 
@@ -3556,7 +3570,7 @@ Noninteractively, return the name of the new file."
       (erase-buffer)
       (write-region (point-min) (point-max) file nil 'nomessage nil t)
       (kill-buffer file))
-    (todos-reevaluate-defcustoms)
+    (todos-reevaluate-filelist-defcustoms)
     (if (called-interactively-p)
 	(progn
 	  (set-window-buffer (selected-window)
@@ -3668,7 +3682,7 @@ i.e. including all existing todo and done items."
 	  (if (= (length todos-categories) 1)
 	      ;; If deleted category was the only one, delete the file.
 	      (progn
-		(todos-reevaluate-defcustoms)
+		(todos-reevaluate-filelist-defcustoms)
 		;; Skip confirming killing the archive buffer if it has been
 		;; modified and not saved.
 		(set-buffer-modified-p nil)
@@ -3780,7 +3794,7 @@ archive of the file moved to, creating it if it does not exist."
 		  (delete-file todos-current-todos-file)
 		  (kill-buffer)
 		  (when (member todos-current-todos-file todos-files)
-		    (todos-reevaluate-defcustoms)))
+		    (todos-reevaluate-filelist-defcustoms)))
 	      (setq todos-categories (delete (assoc cat todos-categories)
 						 todos-categories))
 	      (todos-update-categories-sexp)
@@ -4092,7 +4106,6 @@ the priority is not given by HERE but by prompting."
 	  (error "There is no active region"))))
     (let* ((buf (current-buffer))
 	   (new-item (if region
-			 ;; FIXME: or keep properties?
 			 (buffer-substring-no-properties
 			  (region-beginning) (region-end))
 		       (read-from-minibuffer "Todo item: ")))
@@ -4104,7 +4117,8 @@ the priority is not given by HERE but by prompting."
 			 ((eq date-type 'calendar)
 			  (setq todos-date-from-calendar t)
 			  (todos-set-date-from-calendar))
-			 ((string-match todos-date-pattern date-type)
+			 ((and (stringp date-type)
+			       (string-match todos-date-pattern date-type))
 			  (setq todos-date-from-calendar date-type)
 			  (todos-set-date-from-calendar))
 			 (t (calendar-date-string (calendar-current-date) t t))))
@@ -4112,12 +4126,12 @@ the priority is not given by HERE but by prompting."
 			    (and todos-always-add-time-string
 				 (substring (current-time-string) 11 16)))))
       (setq todos-date-from-calendar nil)
-      (cond ((equal arg '(16))		; FIXME: cf. set-mark-command
+      (cond ((equal arg '(16))
 	     (todos-jump-to-category nil t)
 	     (set-window-buffer
 	      (selected-window)
 	      (set-buffer (find-buffer-visiting todos-global-current-todos-file))))
-	    ((equal arg '(4))		; FIXME: just arg?
+	    ((equal arg '(4))
 	     (todos-jump-to-category)
 	     (set-window-buffer
 	      (selected-window)
@@ -4163,16 +4177,16 @@ the priority is not given by HERE but by prompting."
 
 (defun todos-set-date-from-calendar ()
   "Return string of date chosen from Calendar."
-  (cond ((string-match todos-date-pattern todos-date-from-calendar)
+  (cond ((and (stringp todos-date-from-calendar)
+	      (string-match todos-date-pattern todos-date-from-calendar))
 	 todos-date-from-calendar)
-	((todos-date-from-calendar t)
+	(todos-date-from-calendar
 	 (let (calendar-view-diary-initially-flag)
 	   (calendar))
 	 ;; *Calendar* is now current buffer.
 	 (local-set-key (kbd "RET") 'exit-recursive-edit)
 	 (message "Put cursor on a date and type <return> to set it.")
-	 ;; FIXME: is there a better way than recursive-edit?  Use unwind-protect?
-	 ;; Check recursive-depth?
+	 ;; FIXME: is there a better way than recursive-edit?
 	 (recursive-edit)
 	 (setq todos-date-from-calendar
 	       (calendar-date-string (calendar-cursor-to-date t) t t))
@@ -4299,7 +4313,8 @@ whether the file is still a valid Todos file and if so, also
 recalculate the Todos categories sexp, in case changes were made
 in the number or names of categories."
   (interactive)
-  ;; FIXME: should do only if file was actually changed -- but how to tell?
+  ;; FIXME: Should do todos-check-format only if file was actually changed --
+  ;; but how to tell?
   (when (eq (buffer-size) (- (point-max) (point-min)))
     (when (todos-check-format) (todos-repair-categories-sexp)))
   (kill-buffer)
@@ -4978,7 +4993,7 @@ this category does not exist in the archive, it is created."
 				   nil t)
 				  (match-beginning 0)
 				(point-max))
-			  all-done (buffer-substring beg end)
+			  all-done (buffer-substring-no-properties beg end)
 			  count (todos-get-count 'done))))
 	      (throw 'end nil))))
 	  (when (or marked all item)
@@ -5070,7 +5085,8 @@ archive, the archive file is deleted."
 			    ".todo") t))
 	     (marked (assoc cat todos-categories-with-marks))
 	     (item (concat (todos-item-string) "\n"))
-	     (all-items (when all (buffer-substring (point-min) (point-max))))
+	     (all-items (when all (buffer-substring-no-properties
+				   (point-min) (point-max))))
 	     (all-count (when all (todos-get-count 'done)))
 	     marked-items marked-count
 	     buffer-read-only)
