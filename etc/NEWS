@@ -478,6 +478,8 @@ table, but with a different prefix.
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
 
+** New function file-name-base.
+
 ** `automount-dir-prefix' is obsolete.
 ** `buffer-has-markers-at' is obsolete.
 
