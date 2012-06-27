@@ -1,5 +1,11 @@
 2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c (allocate_string): Omit intervals initialization.
+	* alloc.c (make_uninit_multibyte_string): Initialize intervals
+	as in make_pure_string and make_pure_c_string.
+
+2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* alloc.c (allocate_string):  Fix last change.
 
 2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>

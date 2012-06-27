@@ -1959,10 +1959,6 @@ allocate_string (void)
 
   MALLOC_UNBLOCK_INPUT;
 
-  /* SIZE and SIZE_BYTE fields will be initialized
-     by calling allocate_string_data.  */
-  s->intervals = NULL_INTERVAL;
-
   --total_free_strings;
   ++total_strings;
   ++strings_consed;
@@ -2529,6 +2525,7 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
     return empty_multibyte_string;
 
   s = allocate_string ();
+  s->intervals = NULL_INTERVAL;
   allocate_string_data (s, nchars, nbytes);
   XSETSTRING (string, s);
   string_chars_consed += nbytes;
