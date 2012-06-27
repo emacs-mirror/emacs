@@ -1,5 +1,8 @@
 2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help-mode.el (help-make-xrefs): Don't just withstand
+	cyclic-variable-indirection but any error in documentation-property.
+
 	* loadup.el (purify-flag): Pre-grow the hash-table to reduce the
 	memory use.
 	* bindings.el (bindings--define-key): New function.

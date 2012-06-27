@@ -519,7 +519,7 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 
 ;; Generalized variables are provided by gv.el, but some details are
 ;; not 100% compatible: not worth the trouble to add them to cl-lib.el, but we
-;; still to support old users of cl.el.
+;; still need to support old users of cl.el.
 
 ;; FIXME: `letf' is unsatisfactory because it does not really "restore" the
 ;; previous state.  If the getter/setter loses information, that info is
