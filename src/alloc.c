@@ -1991,9 +1991,9 @@ void
 allocate_string_data (struct Lisp_String *s,
 		      EMACS_INT nchars, EMACS_INT nbytes)
 {
-  struct sdata *data, *old_data;
+  struct sdata *data;
   struct sblock *b;
-  ptrdiff_t needed, old_nbytes;
+  ptrdiff_t needed;
 
   if (STRING_BYTES_MAX < nbytes)
     string_overflow ();
@@ -2001,8 +2001,6 @@ allocate_string_data (struct Lisp_String *s,
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */
   needed = SDATA_SIZE (nbytes);
-  old_data = s->data ? SDATA_OF_STRING (s) : NULL;
-  old_nbytes = GC_STRING_BYTES (s);
 
   MALLOC_BLOCK_INPUT;
 
@@ -2072,16 +2070,6 @@ allocate_string_data (struct Lisp_String *s,
   memcpy ((char *) data + needed, string_overrun_cookie,
 	  GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
-
-  /* If S had already data assigned, mark that as free by setting its
-     string back-pointer to null, and recording the size of the data
-     in it.  */
-  if (old_data)
-    {
-      SDATA_NBYTES (old_data) = old_nbytes;
-      old_data->string = NULL;
-    }
-
   consing_since_gc += needed;
 }
 

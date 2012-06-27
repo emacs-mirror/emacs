@@ -159,8 +159,9 @@ store_tool_bar_style_changed (const char *newstyle,
                                 XCAR (dpyinfo->name_list_element));
 }
 
-
+#ifdef HAVE_XFT
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
+#endif
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
 
 enum {
