@@ -1,3 +1,7 @@
+2012-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.py, emacs2.py, emacs3.py: Remove files, no longer used.
+
 2012-06-24  Lawrence Mitchell  <wence@gmx.li>
 
 	* NEWS: Move and improve the defun/defalias changes (bug#11686).
