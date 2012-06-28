@@ -1268,7 +1268,6 @@ $(BLD)/regex.$(O) : \
 	$(SRC)/category.h \
 	$(SRC)/regex.h \
 	$(SRC)/syntax.h \
-	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
