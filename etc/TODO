@@ -1211,6 +1211,8 @@ systems for HTML/XML files automatically."
    this.]
 
 ** Rewrite make-docfile to be clean and maintainable.
+   It might be better to replace it with Lisp, using the byte compiler.
+   http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00037.html
 
 ** Add an inferior-comint-minor-mode to capture the common set of operations
    offered by major modes that offer an associated inferior
@@ -1229,6 +1231,15 @@ systems for HTML/XML files automatically."
    Add a standard button-class named "link", and make all other link-like
    button classes inherit from it.  Set the default face of the "link" button
    class to the standard "link" face.
+
+* Wishlist items:
+
+** Maybe replace etags.c with a Lisp implementation.
+http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00354.html
+
+** Maybe replace lib-src/rcs2log with a Lisp implementation.
+It wouldn't have to be a complete replacement, just enough
+for vc-rcs-update-changelog.
 
 * Other known bugs:
 
