@@ -141,23 +141,9 @@ struct window
        each one can have its own value of point.  */
     Lisp_Object pointm;
 
-    /* Number of columns display within the window is scrolled to the left.  */
-    Lisp_Object hscroll;
-    /* Minimum hscroll for automatic hscrolling.  This is the value
-       the user has set, by set-window-hscroll for example.  */
-    Lisp_Object min_hscroll;
-
     /* No permanent meaning; used by save-window-excursion's
        bookkeeping.  */
     Lisp_Object temslot;
-
-    /* text.modified of displayed buffer as of last time display
-       completed.  */
-    Lisp_Object last_modified;
-    /* BUF_OVERLAY_MODIFIED of displayed buffer as of last complete update.  */
-    Lisp_Object last_overlay_modified;
-    /* Value of point at that time.  */
-    Lisp_Object last_point;
 
     /* This window's vertical scroll bar.  This field is only for use
        by the window-system-dependent code which implements the
@@ -253,6 +239,25 @@ struct window
 
     /* Unique number of window assigned when it was created.  */
     int sequence_number;
+
+    /* Number of columns display within the window is scrolled to the left.  */
+    ptrdiff_t hscroll;
+
+    /* Minimum hscroll for automatic hscrolling.  This is the value
+       the user has set, by set-window-hscroll for example.  */
+    ptrdiff_t min_hscroll;
+
+    /* Displayed buffer's text modification events counter as of last time
+       display completed.  */
+    EMACS_INT last_modified;
+
+    /* Displayed buffer's overlays modification events counter as of last
+       complete update.  */
+    EMACS_INT last_overlay_modified;
+
+    /* Value of point at that time.  Since this is a position in a buffer,
+       it should be positive. */
+    ptrdiff_t last_point;
 
     /* Scaling factor for the glyph_matrix size calculation in this window.
        Used if window contains many small images or uses proportional fonts,

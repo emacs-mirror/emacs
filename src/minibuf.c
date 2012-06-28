@@ -622,7 +622,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   /* Display this minibuffer in the proper window.  */
   Fset_window_buffer (minibuf_window, Fcurrent_buffer (), Qnil);
   Fselect_window (minibuf_window, Qnil);
-  XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
+  XWINDOW (minibuf_window)->hscroll = 0;
 
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
@@ -888,8 +888,8 @@ read_minibuf_unwind (Lisp_Object data)
 
   /* Make sure minibuffer window is erased, not ignored.  */
   windows_or_buffers_changed++;
-  XSETFASTINT (XWINDOW (window)->last_modified, 0);
-  XSETFASTINT (XWINDOW (window)->last_overlay_modified, 0);
+  XWINDOW (window)->last_modified = 0;
+  XWINDOW (window)->last_overlay_modified = 0;
 
   /* In case the previous minibuffer displayed in this miniwindow is
      dead, we may keep displaying this buffer (tho it's inactive), so reset it,

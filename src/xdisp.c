@@ -1562,8 +1562,8 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 
   current_header_line_height = current_mode_line_height = -1;
 
-  if (visible_p && XFASTINT (w->hscroll) > 0)
-    *x -= XFASTINT (w->hscroll) * WINDOW_FRAME_COLUMN_WIDTH (w);
+  if (visible_p && w->hscroll > 0)
+    *x -= w->hscroll * WINDOW_FRAME_COLUMN_WIDTH (w);
 
 #if 0
   /* Debugging code.  */
@@ -2697,7 +2697,7 @@ init_iterator (struct it *it, struct window *w,
 
   /* Are lines in the display truncated?  */
   if (base_face_id != DEFAULT_FACE_ID
-      || XINT (it->w->hscroll)
+      || it->w->hscroll
       || (! WINDOW_FULL_WIDTH_P (it->w)
 	  && ((!NILP (Vtruncate_partial_width_windows)
 	       && !INTEGERP (Vtruncate_partial_width_windows))
@@ -2760,7 +2760,7 @@ init_iterator (struct it *it, struct window *w,
   else
     {
       it->first_visible_x
-	= XFASTINT (it->w->hscroll) * FRAME_COLUMN_WIDTH (it->f);
+	= it->w->hscroll * FRAME_COLUMN_WIDTH (it->f);
       it->last_visible_x = (it->first_visible_x
 			    + window_box_width (w, TEXT_AREA));
 
@@ -12309,7 +12309,7 @@ hscroll_window_tree (Lisp_Object window)
 		 inside the left margin and the window is already
 		 hscrolled. */
 	      && ((!row_r2l_p
-		   && ((XFASTINT (w->hscroll)
+		   && ((w->hscroll
 			&& w->cursor.x <= h_margin)
 		       || (cursor_row->enabled_p
 			   && cursor_row->truncated_on_right_p
@@ -12327,7 +12327,7 @@ hscroll_window_tree (Lisp_Object window)
 			      are actually truncated on the left. */
 			   && cursor_row->truncated_on_right_p
 			   && w->cursor.x <= h_margin)
-			  || (XFASTINT (w->hscroll)
+			  || (w->hscroll
 			      && (w->cursor.x >= text_area_width - h_margin))))))
 	    {
 	      struct it it;
@@ -12388,15 +12388,15 @@ hscroll_window_tree (Lisp_Object window)
 		  hscroll
 		    = max (0, it.current_x - wanted_x) / FRAME_COLUMN_WIDTH (it.f);
 		}
-	      hscroll = max (hscroll, XFASTINT (w->min_hscroll));
+	      hscroll = max (hscroll, w->min_hscroll);
 
 	      /* Don't prevent redisplay optimizations if hscroll
 		 hasn't changed, as it will unnecessarily slow down
 		 redisplay.  */
-	      if (XFASTINT (w->hscroll) != hscroll)
+	      if (w->hscroll != hscroll)
 		{
 		  XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
-		  w->hscroll = make_number (hscroll);
+		  w->hscroll = hscroll;
 		  hscrolled_p = 1;
 		}
 	    }
@@ -12508,8 +12508,8 @@ text_outside_line_unchanged_p (struct window *w,
   int unchanged_p = 1;
 
   /* If text or overlays have changed, see where.  */
-  if (XFASTINT (w->last_modified) < MODIFF
-      || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF)
+  if (w->last_modified < MODIFF
+      || w->last_overlay_modified < OVERLAY_MODIFF)
     {
       /* Gap in the line?  */
       if (GPT < start || Z - GPT < end)
@@ -12788,9 +12788,9 @@ reconsider_clip_changes (struct window *w, struct buffer *b)
 	pt = marker_position (w->pointm);
 
       if ((w->current_matrix->buffer != XBUFFER (w->buffer)
-	   || pt != XINT (w->last_point))
+	   || pt != w->last_point)
 	  && check_point_in_composition (w->current_matrix->buffer,
-					 XINT (w->last_point),
+					 w->last_point,
 					 XBUFFER (w->buffer), pt))
 	b->clip_changed = 1;
     }
@@ -13012,9 +13012,9 @@ redisplay_internal (void)
   if (!NILP (w->column_number_displayed)
       /* This alternative quickly identifies a common case
 	 where no change is needed.  */
-      && !(PT == XFASTINT (w->last_point)
-	   && XFASTINT (w->last_modified) >= MODIFF
-	   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)
+      && !(PT == w->last_point
+	   && w->last_modified >= MODIFF
+	   && w->last_overlay_modified >= OVERLAY_MODIFF)
       && (XFASTINT (w->column_number_displayed) != current_column ()))
     w->update_mode_line = 1;
 
@@ -13077,8 +13077,8 @@ redisplay_internal (void)
     }
   else if (EQ (selected_window, minibuf_window)
 	   && (current_buffer->clip_changed
-	       || XFASTINT (w->last_modified) < MODIFF
-	       || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF)
+	       || w->last_modified < MODIFF
+	       || w->last_overlay_modified < OVERLAY_MODIFF)
 	   && resize_mini_window (w, 0))
     {
       /* Resized active mini-window to fit the size of what it is
@@ -13143,8 +13143,8 @@ redisplay_internal (void)
 	      || FETCH_BYTE (BYTEPOS (tlbufpos)) == '\n'))
 	/* Former continuation line has disappeared by becoming empty.  */
 	goto cancel;
-      else if (XFASTINT (w->last_modified) < MODIFF
-	       || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF
+      else if (w->last_modified < MODIFF
+	       || w->last_overlay_modified < OVERLAY_MODIFF
 	       || MINI_WINDOW_P (w))
 	{
 	  /* We have to handle the case of continuation around a
@@ -13248,7 +13248,7 @@ redisplay_internal (void)
 	    goto cancel;
 	}
       else if (/* Cursor position hasn't changed.  */
-	       PT == XFASTINT (w->last_point)
+	       PT == w->last_point
 	       /* Make sure the cursor was last displayed
 		  in this window.  Otherwise we have to reposition it.  */
 	       && 0 <= w->cursor.vpos
@@ -13664,10 +13664,8 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
     {
       struct buffer *b = XBUFFER (w->buffer);
 
-      w->last_modified
-	= make_number (accurate_p ? BUF_MODIFF (b) : 0);
-      w->last_overlay_modified
-	= make_number (accurate_p ? BUF_OVERLAY_MODIFF (b) : 0);
+      w->last_modified = accurate_p ? BUF_MODIFF(b) : 0;
+      w->last_overlay_modified = accurate_p ? BUF_OVERLAY_MODIFF(b) : 0;
       w->last_had_star
 	= BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
 
@@ -13689,9 +13687,9 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
 	  w->last_cursor_off_p = w->cursor_off_p;
 
 	  if (w == XWINDOW (selected_window))
-	    w->last_point = make_number (BUF_PT (b));
+	    w->last_point = BUF_PT (b);
 	  else
-	    w->last_point = make_number (XMARKER (w->pointm)->charpos);
+	    w->last_point = XMARKER (w->pointm)->charpos;
 	}
     }
 
@@ -14932,6 +14930,11 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
     return rc;
 #endif
 
+  /* Previously, there was a check for Lisp integer in the 
+     if-statement below. Now, this field is converted to
+     ptrdiff_t, thus zero means invalid position in a buffer.  */
+  eassert (w->last_point > 0);
+
   /* Handle case where text has not changed, only point, and it has
      not moved off the frame.  */
   if (/* Point may be in this window.  */
@@ -14952,8 +14955,6 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	   && !NILP (BVAR (current_buffer, mark_active)))
       && NILP (w->region_showing)
       && NILP (Vshow_trailing_whitespace)
-      /* Right after splitting windows, last_point may be nil.  */
-      && INTEGERP (w->last_point)
       /* This code is not used for mini-buffer for the sake of the case
 	 of redisplaying to replace an echo area message; since in
 	 that case the mini-buffer contents per se are usually
@@ -15011,7 +15012,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	  int scroll_p = 0, must_scroll = 0;
 	  int last_y = window_text_bottom_y (w) - this_scroll_margin;
 
-	  if (PT > XFASTINT (w->last_point))
+	  if (PT > w->last_point)
 	    {
 	      /* Point has moved forward.  */
 	      while (MATRIX_ROW_END_CHARPOS (row) < PT
@@ -15046,7 +15047,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		      && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
 		scroll_p = 1;
 	    }
-	  else if (PT < XFASTINT (w->last_point))
+	  else if (PT < w->last_point)
 	    {
 	      /* Cursor has to be moved backward.  Note that PT >=
 		 CHARPOS (startp) because of the outer if-statement.  */
@@ -15392,8 +15393,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
     = (!NILP (w->window_end_valid)
        && !current_buffer->clip_changed
        && !current_buffer->prevent_redisplay_optimizations_p
-       && XFASTINT (w->last_modified) >= MODIFF
-       && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF);
+       && w->last_modified >= MODIFF
+       && w->last_overlay_modified >= OVERLAY_MODIFF);
 
   /* Run the window-bottom-change-functions
      if it is possible that the text on the screen has changed
@@ -15415,8 +15416,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   buffer_unchanged_p
     = (!NILP (w->window_end_valid)
        && !current_buffer->clip_changed
-       && XFASTINT (w->last_modified) >= MODIFF
-       && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF);
+       && w->last_modified >= MODIFF
+       && w->last_overlay_modified >= OVERLAY_MODIFF);
 
   /* When windows_or_buffers_changed is non-zero, we can't rely on
      the window end being valid, so set it to nil there.  */
@@ -15441,9 +15442,9 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   if (!NILP (w->column_number_displayed)
       /* This alternative quickly identifies a common case
 	 where no change is needed.  */
-      && !(PT == XFASTINT (w->last_point)
-	   && XFASTINT (w->last_modified) >= MODIFF
-	   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)
+      && !(PT == w->last_point
+	   && w->last_modified >= MODIFF
+	   && w->last_overlay_modified >= OVERLAY_MODIFF)
       && (XFASTINT (w->column_number_displayed) != current_column ()))
     update_mode_line = 1;
 
@@ -15559,8 +15560,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  startp = run_window_scroll_functions (window, startp);
 	}
 
-      w->last_modified = make_number (0);
-      w->last_overlay_modified = make_number (0);
+      w->last_modified = 0;
+      w->last_overlay_modified = 0;
       if (CHARPOS (startp) < BEGV)
 	SET_TEXT_POS (startp, BEGV, BEGV_BYTE);
       else if (CHARPOS (startp) > ZV)
@@ -15685,8 +15686,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	   && (CHARPOS (startp) < ZV
 	       /* Avoid starting at end of buffer.  */
 	       || CHARPOS (startp) == BEGV
-	       || (XFASTINT (w->last_modified) >= MODIFF
-		   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)))
+	       || (w->last_modified >= MODIFF
+		   && w->last_overlay_modified >= OVERLAY_MODIFF)))
     {
       int d1, d2, d3, d4, d5, d6;
 
@@ -15773,8 +15774,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
  try_to_scroll:
 
-  w->last_modified = make_number (0);
-  w->last_overlay_modified = make_number (0);
+  w->last_modified = 0;
+  w->last_overlay_modified = 0;
 
   /* Redisplay the mode line.  Select the buffer properly for that.  */
   if (!update_mode_line)
@@ -17133,11 +17134,11 @@ try_window_id (struct window *w)
     GIVE_UP (5);
 
   /* Another way to prevent redisplay optimizations.  */
-  if (XFASTINT (w->last_modified) == 0)
+  if (w->last_modified == 0)
     GIVE_UP (6);
 
   /* Verify that window is not hscrolled.  */
-  if (XFASTINT (w->hscroll) != 0)
+  if (w->hscroll != 0)
     GIVE_UP (7);
 
   /* Verify that display wasn't paused.  */
@@ -27410,8 +27411,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
   b = XBUFFER (w->buffer);
   if (part == ON_TEXT
       && EQ (w->window_end_valid, w->buffer)
-      && XFASTINT (w->last_modified) == BUF_MODIFF (b)
-      && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
+      && w->last_modified == BUF_MODIFF (b)
+      && w->last_overlay_modified == BUF_OVERLAY_MODIFF (b))
     {
       int hpos, vpos, dx, dy, area = LAST_AREA;
       ptrdiff_t pos;
