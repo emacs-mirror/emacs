@@ -441,7 +441,7 @@ static Lisp_Object Vparam_value_alist;
 
 /* The total number of colors currently allocated.  */
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static int ncolors_allocated;
 static int npixmaps_allocated;
 static int ngcs;
@@ -1010,7 +1010,7 @@ load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr,
     }
   else
     {
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       ++npixmaps_allocated;
 #endif
       if (w_ptr)
@@ -1375,7 +1375,7 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
 	  abort ();
 	}
     }
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   else
     ++ncolors_allocated;
 #endif
@@ -1855,7 +1855,6 @@ the WIDTH times as wide as FACE on FRAME.  */)
 #define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
 #define LFACE_FONTSET(LFACE)	    AREF ((LFACE), LFACE_FONTSET_INDEX)
 
-#ifdef ENABLE_CHECKING
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
 
@@ -1863,10 +1862,9 @@ the WIDTH times as wide as FACE on FRAME.  */)
      (VECTORP (LFACE)					\
       && ASIZE (LFACE) == LFACE_VECTOR_SIZE		\
       && EQ (AREF (LFACE, 0), Qface))
-#endif
 
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Check consistency of Lisp face attribute vector ATTRS.  */
 
@@ -1953,12 +1951,12 @@ check_lface (Lisp_Object lface)
     }
 }
 
-#else /* GLYPH_DEBUG == 0 */
+#else /* not GLYPH_DEBUG */
 
 #define check_lface_attrs(attrs)	(void) 0
 #define check_lface(lface)		(void) 0
 
-#endif /* GLYPH_DEBUG == 0 */
+#endif /* GLYPH_DEBUG */
 
 
 
@@ -4461,7 +4459,7 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
       break;
   face->id = i;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   /* Check that FACE got a unique id.  */
   {
     int j, n;
@@ -4547,7 +4545,7 @@ lookup_face (struct frame *f, Lisp_Object *attr)
   if (face == NULL)
     face = realize_face (cache, attr, -1);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   eassert (face == FACE_FROM_ID (f, face->id));
 #endif /* GLYPH_DEBUG */
 
@@ -6450,7 +6448,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 				Tests
  ***********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Print the contents of the realized face FACE to stderr.  */
 
@@ -6525,7 +6523,7 @@ DEFUN ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
   return Qnil;
 }
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
 
@@ -6649,7 +6647,7 @@ syms_of_xfaces (void)
   defsubr (&Sinternal_set_alternative_font_family_alist);
   defsubr (&Sinternal_set_alternative_font_registry_alist);
   defsubr (&Sface_attributes_as_vector);
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   defsubr (&Sdump_face);
   defsubr (&Sshow_face_resources);
 #endif /* GLYPH_DEBUG */

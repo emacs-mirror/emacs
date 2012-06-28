@@ -264,7 +264,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
   for (k = 0; k < window_size; ++k)
     copy_from[k] = -1;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 # define CHECK_BOUNDS							\
   do									\
     {									\
@@ -322,7 +322,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 	  copy_from[i] = j;
 	  retained_p[j] = 1;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 	  CHECK_BOUNDS;
 #endif
 	}
@@ -374,7 +374,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
   mirrored_line_dance (current_matrix, unchanged_at_top, window_size,
 		       copy_from, retained_p);
 
-  /* Some sanity checks if GLYPH_DEBUG != 0.  */
+  /* Some sanity checks if GLYPH_DEBUG is defined.  */
   CHECK_MATRIX (current_matrix);
 
   if (terminal_window_p)

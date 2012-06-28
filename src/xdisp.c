@@ -627,10 +627,10 @@ int current_mode_line_height, current_header_line_height;
     CACHE = NULL;				\
   } while (0)
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Non-zero means print traces of redisplay if compiled with
-   GLYPH_DEBUG != 0.  */
+   GLYPH_DEBUG defined.  */
 
 int trace_redisplay_p;
 
@@ -2495,7 +2495,7 @@ check_it (struct it *it)
 #endif /* not 0 */
 
 
-#if GLYPH_DEBUG && defined ENABLE_CHECKING
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
 
 /* Check that the window end of window W is what we expect it
    to be---the last row in the current matrix displaying text.  */
@@ -2521,7 +2521,7 @@ check_window_end (struct window *w)
 
 #define CHECK_WINDOW_END(W)	(void) 0
 
-#endif
+#endif /* GLYPH_DEBUG and ENABLE_CHECKING */
 
 
 
@@ -12435,7 +12435,7 @@ hscroll_windows (Lisp_Object window)
    to a non-zero value.  This is sometimes handy to have in a debugger
    session.  */
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* First and last unchanged row for try_window_id.  */
 
@@ -13235,7 +13235,7 @@ redisplay_internal (void)
 	      /* Update hint: No need to try to scroll in update_window.  */
 	      w->desired_matrix->no_scrolling_p = 1;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 	      *w->desired_matrix->method = 0;
 	      debug_method_add (w, "optimization 1");
 #endif
@@ -13303,7 +13303,7 @@ redisplay_internal (void)
 	      eassert (this_line_vpos == it.vpos);
 	      eassert (this_line_y == it.current_y);
 	      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 	      *w->desired_matrix->method = 0;
 	      debug_method_add (w, "optimization 3");
 #endif
@@ -14575,7 +14575,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   /* We will never try scrolling more than this number of lines.  */
   int scroll_limit = SCROLL_LIMIT;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   debug_method_add (w, "try_scrolling");
 #endif
 
@@ -14927,7 +14927,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
   struct frame *f = XFRAME (w->frame);
   int rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   if (inhibit_try_cursor_movement)
     return rc;
 #endif
@@ -14974,7 +14974,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
       int this_scroll_margin, top_scroll_margin;
       struct glyph_row *row = NULL;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       debug_method_add (w, "cursor movement");
 #endif
 
@@ -15332,7 +15332,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
   /* W must be a leaf window here.  */
   eassert (!NILP (w->buffer));
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   *w->desired_matrix->method = 0;
 #endif
 
@@ -15624,7 +15624,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	    }
 	}
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       debug_method_add (w, "forced window start");
 #endif
       goto done;
@@ -15656,7 +15656,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	   && !(CHARPOS (startp) <= BEGV
 		|| FETCH_BYTE (BYTEPOS (startp) - 1) == '\n'))
     {
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       debug_method_add (w, "recenter 1");
 #endif
       goto recenter;
@@ -15667,7 +15667,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
      not work.  It is 0 if unsuccessful for some other reason.  */
   else if ((tem = try_window_id (w)) != 0)
     {
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       debug_method_add (w, "try_window_id %d", tem);
 #endif
 
@@ -15724,7 +15724,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  goto force_start;
       	}
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       debug_method_add (w, "same window start");
 #endif
 
@@ -15819,7 +15819,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
  recenter:
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   debug_method_add (w, "recenter");
 #endif
 
@@ -16307,7 +16307,7 @@ try_window_reusing_current_matrix (struct window *w)
   struct glyph_row *start_row;
   int start_vpos, min_y, max_y;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   if (inhibit_try_window_reusing)
     return 0;
 #endif
@@ -16529,7 +16529,7 @@ try_window_reusing_current_matrix (struct window *w)
       /* Update hint: don't try scrolling again in update_window.  */
       w->desired_matrix->no_scrolling_p = 1;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       debug_method_add (w, "try_window_reusing_current_matrix 1");
 #endif
       return 1;
@@ -16719,7 +16719,7 @@ try_window_reusing_current_matrix (struct window *w)
       w->window_end_valid = Qnil;
       w->desired_matrix->no_scrolling_p = 1;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       debug_method_add (w, "try_window_reusing_current_matrix 2");
 #endif
       return 1;
@@ -17087,7 +17087,7 @@ try_window_id (struct window *w)
   struct text_pos start;
   ptrdiff_t first_changed_charpos, last_changed_charpos;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   if (inhibit_try_window_id)
     return 0;
 #endif
@@ -17421,7 +17421,7 @@ try_window_id (struct window *w)
     GIVE_UP (19);
 
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
   /* Either there is no unchanged row at the end, or the one we have
      now displays text.  This is a necessary condition for the window
@@ -17435,7 +17435,7 @@ try_window_id (struct window *w)
        : -1);
   debug_first_unchanged_at_end_vpos = first_unchanged_at_end_vpos;
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
   /* Display new lines.  Set last_text_row to the last new line
@@ -17805,7 +17805,7 @@ try_window_id (struct window *w)
 			More debugging support
  ***********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 void dump_glyph_row (struct glyph_row *, int, int) EXTERNALLY_VISIBLE;
 void dump_glyph_matrix (struct glyph_matrix *, int) EXTERNALLY_VISIBLE;
@@ -22223,7 +22223,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 void
 dump_glyph_string (struct glyph_string *s)
@@ -28408,7 +28408,7 @@ syms_of_xdisp (void)
   message_dolog_marker3 = Fmake_marker ();
   staticpro (&message_dolog_marker3);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   defsubr (&Sdump_frame_glyph_matrix);
   defsubr (&Sdump_glyph_matrix);
   defsubr (&Sdump_glyph_row);
@@ -28620,7 +28620,7 @@ of the top or bottom of the window.  */);
 Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
   Vdisplay_pixels_per_inch = make_float (72.0);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   DEFVAR_INT ("debug-end-pos", debug_end_pos, doc: /* Don't ask.  */);
 #endif
 
@@ -28937,7 +28937,7 @@ To add a prefix to continuation lines, use `wrap-prefix'.  */);
     doc: /* Non-nil means don't free realized faces.  Internal use only.  */);
   inhibit_free_realized_faces = 0;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   DEFVAR_BOOL ("inhibit-try-window-id", inhibit_try_window_id,
 	       doc: /* Inhibit try_window_id display optimization.  */);
   inhibit_try_window_id = 0;

@@ -1,5 +1,10 @@
 2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* configure.in: Add glyphs category to --enable-checking option.
+	(GLYPH_DEBUG): Define if glyphs debugging is enabled.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* configure.in (ENABLE_CHECKING): Update comment.
 
 2012-06-28  Paul Eggert  <eggert@cs.ucla.edu>

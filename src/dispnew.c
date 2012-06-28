@@ -123,7 +123,7 @@ static void fill_up_glyph_row_area_with_spaces (struct glyph_row *, int);
 static int scrolling_window (struct window *, int);
 static int update_window_line (struct window *, int, int *);
 static void mirror_make_current (struct window *, int);
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static void check_matrix_pointers (struct glyph_matrix *,
                                    struct glyph_matrix *);
 #endif
@@ -211,7 +211,7 @@ int fonts_changed_p;
 /* Convert vpos and hpos from frame to window and vice versa.
    This may only be used for terminal frames.  */
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 static int window_to_frame_vpos (struct window *, int);
 static int window_to_frame_hpos (struct window *, int);
@@ -311,12 +311,12 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 }
 
 
-#else /* GLYPH_DEBUG == 0 */
+#else /* not GLYPH_DEBUG */
 
 #define WINDOW_TO_FRAME_VPOS(W, VPOS) ((VPOS) + WINDOW_TOP_EDGE_LINE (W))
 #define WINDOW_TO_FRAME_HPOS(W, HPOS) ((HPOS) + WINDOW_LEFT_EDGE_COL (W))
 
-#endif /* GLYPH_DEBUG == 0 */
+#endif /* GLYPH_DEBUG */
 
 
 #if (defined PROFILING \
@@ -419,14 +419,14 @@ margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin
   return n;
 }
 
-#ifdef ENABLE_CHECKING
-/* Return non-zero if ROW's hash value is correct, zero if not.  */
+/* Return non-zero if ROW's hash value is correct, zero if not.
+   Optimized away if ENABLE_CHECKING is not defined.  */
+
 static int
 verify_row_hash (struct glyph_row *row)
 {
   return row->hash == row_hash (row);
 }
-#endif
 
 /* Adjust glyph matrix MATRIX on window W or on a frame to changed
    window sizes.
@@ -1136,7 +1136,7 @@ assign_row (struct glyph_row *to, struct glyph_row *from)
    is non-zero if the glyph memory of WINDOW_ROW is part of the glyph
    memory of FRAME_ROW.  */
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 static int
 glyph_row_slice_p (struct glyph_row *window_row, struct glyph_row *frame_row)
@@ -1451,7 +1451,7 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 			      Debug Code
  ***********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 
 /* Flush standard output.  This is sometimes useful to call from the debugger.
@@ -1576,7 +1576,7 @@ check_matrix_invariants (struct window *w)
 
 #endif /* 0  */
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
 
@@ -2599,7 +2599,7 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 	      SET_CHAR_GLYPH_FROM_GLYPH (*border, right_border_glyph);
 	    }
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 	  /* Window row window_y must be a slice of frame row
 	     frame_y.  */
 	  eassert (glyph_row_slice_p (window_row, frame_row));
@@ -3026,7 +3026,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 }
 
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Check that window and frame matrices agree about their
    understanding where glyphs of the rows are to find.  For each
@@ -3082,7 +3082,7 @@ check_matrix_pointers (struct glyph_matrix *window_matrix,
     }
 }
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
 
@@ -3090,7 +3090,7 @@ check_matrix_pointers (struct glyph_matrix *window_matrix,
 		      VPOS and HPOS translations
  **********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Translate vertical position VPOS which is relative to window W to a
    vertical position relative to W's frame.  */
@@ -3302,7 +3302,7 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
         }
 
       /* Check window matrices for lost pointers.  */
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       check_window_matrix_pointers (root_window);
       add_frame_display_history (f, paused_p);
 #endif
@@ -3529,7 +3529,7 @@ update_window (struct window *w, int force_p)
   int preempt_count = baud_rate / 2400 + 1;
 #endif
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
   eassert (FRAME_WINDOW_P (XFRAME (WINDOW_FRAME (w))));
 #endif
@@ -3681,7 +3681,7 @@ update_window (struct window *w, int force_p)
 #endif
 	}
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       /* Remember the redisplay method used to display the matrix.  */
       strcpy (w->current_matrix->method, w->desired_matrix->method);
 #endif
@@ -3699,7 +3699,7 @@ update_window (struct window *w, int force_p)
   else
     paused_p = 1;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   /* check_current_matrix_flags (w); */
   add_window_display_history (w, w->current_matrix->method, paused_p);
 #endif
@@ -6476,7 +6476,7 @@ syms_of_display (void)
   defsubr (&Sinternal_show_cursor_p);
   defsubr (&Slast_nonminibuf_frame);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   defsubr (&Sdump_redisplay_history);
 #endif
 

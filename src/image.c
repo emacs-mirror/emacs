@@ -8686,7 +8686,7 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 				Tests
  ***********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
        doc: /* Value is non-nil if SPEC is a valid image specification.  */)
@@ -8708,7 +8708,7 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
   return make_number (id);
 }
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
 /***********************************************************************
@@ -8922,7 +8922,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Simage_mask_p);
   defsubr (&Simage_metadata);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   defsubr (&Simagep);
   defsubr (&Slookup_image);
 #endif

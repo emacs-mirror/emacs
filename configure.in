@@ -251,7 +251,7 @@ AC_ARG_ENABLE(checking,
 		 enable only specific categories of checks.
 		 Categories are: all,yes,no.
 		 Flags are: stringbytes, stringoverrun, stringfreelist,
-		 xmallocoverrun, conslist])],
+		 xmallocoverrun, conslist, glyphs])],
 [ac_checking_flags="${enableval}"],[])
 IFS="${IFS= 	}"; ac_save_IFS="$IFS"; IFS="$IFS,"
 for check in $ac_checking_flags
@@ -264,19 +264,22 @@ do
 	                ac_gc_check_string_overrun= ;
 	                ac_gc_check_string_free_list= ;
 	                ac_xmalloc_overrun= ;
-	                ac_gc_check_cons_list= ;;
+	                ac_gc_check_cons_list= ;
+			ac_check_glyphs= ;;
 	all)		ac_enable_checking=1 ;
 			ac_gc_check_stringbytes=1 ;
 	                ac_gc_check_string_overrun=1 ;
 	                ac_gc_check_string_free_list=1 ;
 	                ac_xmalloc_overrun=1 ;
-	                ac_gc_check_cons_list=1 ;;
+	                ac_gc_check_cons_list=1 ;
+			ac_check_glyphs=1 ;;
 	# these enable particular checks
 	stringbytes) 	ac_gc_check_stringbytes=1 ;;
 	stringoverrun) 	ac_gc_check_string_overrun=1 ;;
 	stringfreelist) ac_gc_check_string_free_list=1 ;;
 	xmallocoverrun)	ac_xmalloc_overrun=1 ;;
 	conslist)	ac_gc_check_cons_list=1 ;;
+	glyphs)		ac_check_glyphs=1 ;;
 	*)	AC_MSG_ERROR(unknown check category $check) ;;
 	esac
 done
@@ -307,6 +310,10 @@ fi
 if test x$ac_gc_check_cons_list != x ; then
   AC_DEFINE(GC_CHECK_CONS_LIST, 1,
 [Define this to check for errors in cons list.])
+fi
+if test x$ac_check_glyphs != x ; then
+  AC_DEFINE(GLYPH_DEBUG, 1,
+[Define this to enable glyphs debugging code.])
 fi
 
 AC_ARG_ENABLE(check-lisp-object-type,

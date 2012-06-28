@@ -197,17 +197,14 @@ static void accumulate_script_ranges (Lisp_Object, Lisp_Object,
                                       Lisp_Object);
 static void set_fontset_font (Lisp_Object, Lisp_Object);
 
-#ifdef ENABLE_CHECKING
-
-/* Return 1 if ID is a valid fontset id, else return 0.  */
+/* Return 1 if ID is a valid fontset id, else return 0.
+   Optimized away if ENABLE_CHECKING is not defined.  */
 
 static int
 fontset_id_valid_p (int id)
 {
   return (id >= 0 && id < ASIZE (Vfontset_table) - 1);
 }
-
-#endif
 
 
 

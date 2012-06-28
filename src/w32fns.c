@@ -183,7 +183,7 @@ unsigned int msh_mousewheel = 0;
 #define MENU_FREE_DELAY 1000
 static unsigned menu_free_timer = 0;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static int image_cache_refcount, dpyinfo_refcount;
 #endif
 
@@ -3996,14 +3996,14 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
       free_glyphs (f);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       eassert (dpyinfo->reference_count == dpyinfo_refcount);
       eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
@@ -4160,7 +4160,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -5237,7 +5237,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;

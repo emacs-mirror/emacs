@@ -231,7 +231,7 @@ static void my_set_focus (struct frame *, HWND);
 static void my_set_foreground_window (HWND);
 static void my_destroy_window (struct frame *, HWND);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
 #endif
 
@@ -6024,7 +6024,7 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 				Fonts
  ***********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Check that FONT is valid on frame F.  It is if it can be found in F's
    font table.  */
@@ -6037,7 +6037,7 @@ x_check_font (struct frame *f, struct font *font)
     eassert (font->driver->check (f, font) == 0);
 }
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
 
