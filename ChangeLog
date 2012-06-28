@@ -1,5 +1,9 @@
 2012-06-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* configure.in: Don't check for sys/select.h, sys/time.h, utime.h.
+	Emacs proper no longer uses these headers, and can rely on Gnulib
+	for these checks.
+
 	Merge from gnulib.
 	* m4/getopt.m4: Copy new version from gnulib, incorporating:
 	getopt-posix: No longer guarantee that option processing is resettable.
