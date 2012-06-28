@@ -1774,8 +1774,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	{
 	  int len;
 	  strout ("#<window ", -1, -1, printcharfun);
-	  len = sprintf (buf, "%"pI"d",
-			 XFASTINT (XWINDOW (obj)->sequence_number));
+	  len = sprintf (buf, "%d", XWINDOW (obj)->sequence_number);
 	  strout (buf, len, len, printcharfun);
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {

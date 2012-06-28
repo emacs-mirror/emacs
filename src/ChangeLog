@@ -1,5 +1,14 @@
 2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* window.h (struct window): Change type of 'use_time' and
+	'sequence_number' from Lisp_Object to int.
+	* frame.c (make_frame): Adjust users accordingly.
+	* print.c (print_object): Likewise.
+	* window.c (select_window, Fwindow_use_time, make_parent_window)
+	(make_window): Likewise.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* dispextern.h (GLYPH_DEBUG): Now defined in config.h if
 	enabled with --enable-checking=[all,glyphs] configure option.
 	Fix GLYPH_DEBUG usage assuming that it may be undefined,

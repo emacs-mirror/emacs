@@ -356,8 +356,7 @@ make_frame (int mini_p)
   f->selected_window = root_window;
   /* Make sure this window seems more recently used than
      a newly-created, never-selected window.  */
-  ++window_select_count;
-  XSETFASTINT (XWINDOW (f->selected_window)->use_time, window_select_count);
+  XWINDOW (f->selected_window)->use_time = ++window_select_count;
 
   return f;
 }

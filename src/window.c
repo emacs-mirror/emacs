@@ -331,8 +331,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 
   if (NILP (norecord))
     {
-      ++window_select_count;
-      XSETFASTINT (w->use_time, window_select_count);
+      w->use_time = ++window_select_count;
       record_buffer (w->buffer);
     }
 
@@ -499,7 +498,7 @@ one.  The window with the lowest use time is the least recently
 selected one.  */)
   (Lisp_Object window)
 {
-  return decode_window (window)->use_time;
+  return make_number (decode_window (window)->use_time);
 }
 
 DEFUN ("window-total-height", Fwindow_total_height, Swindow_total_height, 0, 1, 0,
@@ -3250,8 +3249,7 @@ make_parent_window (Lisp_Object window, int horflag)
 	  sizeof (Lisp_Object) * VECSIZE (struct window));
   XSETWINDOW (parent, p);
 
-  ++sequence_number;
-  XSETFASTINT (p->sequence_number, sequence_number);
+  p->sequence_number = ++sequence_number;
 
   replace_window (window, parent, 1);
 
@@ -3290,9 +3288,6 @@ make_window (void)
   w->pointm = Fmake_marker ();
   XSETFASTINT (w->hscroll, 0);
   XSETFASTINT (w->min_hscroll, 0);
-  XSETFASTINT (w->use_time, 0);
-  ++sequence_number;
-  XSETFASTINT (w->sequence_number, sequence_number);
   XSETFASTINT (w->last_point, 0);
   w->vertical_scroll_bar_type = Qt;
   XSETFASTINT (w->window_end_pos, 0);
@@ -3303,6 +3298,7 @@ make_window (void)
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
+  w->sequence_number = ++sequence_number;
 
   /* Reset window_list.  */
   Vwindow_list = Qnil;

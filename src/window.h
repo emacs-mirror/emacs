@@ -147,12 +147,6 @@ struct window
        the user has set, by set-window-hscroll for example.  */
     Lisp_Object min_hscroll;
 
-    /* Number saying how recently window was selected.  */
-    Lisp_Object use_time;
-
-    /* Unique number of window assigned when it was created.  */
-    Lisp_Object sequence_number;
-
     /* No permanent meaning; used by save-window-excursion's
        bookkeeping.  */
     Lisp_Object temslot;
@@ -253,6 +247,12 @@ struct window
     /* Glyph matrices.  */
     struct glyph_matrix *current_matrix;
     struct glyph_matrix *desired_matrix;
+
+    /* Number saying how recently window was selected.  */
+    int use_time;
+
+    /* Unique number of window assigned when it was created.  */
+    int sequence_number;
 
     /* Scaling factor for the glyph_matrix size calculation in this window.
        Used if window contains many small images or uses proportional fonts,
