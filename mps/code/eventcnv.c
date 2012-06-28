@@ -247,7 +247,7 @@ static void printAddr(EventProc proc, Addr addr)
     }
   } else
     printf(style != 'C' ?
-           " %0"PRIwLONGEST PRIXLONGEST :
+           " %0"PRIwWORD PRIXLONGEST :
            " %"PRIuLONGEST,
            (ulongest_t)addr);
 }
@@ -413,7 +413,7 @@ static void readLog(EventProc proc)
 
   while (TRUE) { /* loop for each event */
     char *eventFormat;
-    int argCount, i;
+    size_t argCount, i;
     Event event;
     EventCode code;
     Res res;

@@ -32,7 +32,6 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   DWORD newProtect;
   DWORD oldProtect;
 
-  AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base != 0);
 
@@ -42,7 +41,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   if((mode & AccessREAD) != 0)
     newProtect = PAGE_NOACCESS;
 
-  if(VirtualProtect((LPVOID)base, (DWORD)AddrOffset(base, limit),
+  if(VirtualProtect((LPVOID)base, (SIZE_T)AddrOffset(base, limit),
                     newProtect, &oldProtect) == 0)
     NOTREACHED;
 }
@@ -51,8 +50,8 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 {
   LPEXCEPTION_RECORD er;
-  DWORD iswrite;
-  DWORD address;
+  ULONG_PTR iswrite;
+  ULONG_PTR address;
   AccessSet mode;
   Addr base, limit;
   LONG action;

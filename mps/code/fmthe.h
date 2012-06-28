@@ -23,7 +23,7 @@ extern mps_res_t HeaderWeakFormatCheck(mps_addr_t addr);
 #define padTYPE  0xaa
 #define headerType(header) ((header) & (((mps_word_t)1 << headerTypeBits) - 1))
 #define headerPadSize(header) ((header) >> headerTypeBits)
-#define padHeader(size) (((mps_word_t)size << headerTypeBits) | padTYPE)
+#define padHeader(size) ((size << headerTypeBits) | padTYPE)
 
 #endif /* fmthe_h */
 

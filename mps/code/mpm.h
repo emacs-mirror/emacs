@@ -405,11 +405,14 @@ extern double TraceWorkFactor;
 
 #define TRACE_SCAN_BEGIN(ss) \
   BEGIN \
-    Shift SCANzoneShift = (ss)->zoneShift; \
-    ZoneSet SCANwhite = (ss)->white; \
-    RefSet SCANsummary = (ss)->unfixedSummary; \
-    Word SCANt; \
-    {
+    /* Check range on zoneShift before casting to Shift. */ \
+    AVER((ss)->zoneShift < MPS_WORD_WIDTH); \
+    { \
+      Shift SCANzoneShift = (Shift)(ss)->zoneShift; \
+      ZoneSet SCANwhite = (ss)->white; \
+      RefSet SCANsummary = (ss)->unfixedSummary; \
+      Word SCANt; \
+      {
 
 /* Equivalent to <code/mps.h> MPS_FIX1 */
 
@@ -431,8 +434,9 @@ extern double TraceWorkFactor;
 /* Equivalent to <code/mps.h> MPS_SCAN_END */
 
 #define TRACE_SCAN_END(ss) \
+      } \
+      (ss)->unfixedSummary = SCANsummary; \
     } \
-    (ss)->unfixedSummary = SCANsummary; \
   END
 
 extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);

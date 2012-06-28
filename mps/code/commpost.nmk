@@ -16,7 +16,7 @@
 
 all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     finalcv.exe finaltest.exe \
+     sacss.exe finalcv.exe finaltest.exe \
      arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe zcoll.exe zmess.exe \
@@ -33,7 +33,7 @@ swall: mmsw.lib replaysw.exe
 
 mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     finalcv.exe finaltest.exe \
+     sacss.exe finalcv.exe finaltest.exe \
      arenacv.exe bttest.exe teletest.exe \
      expt825.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
@@ -129,6 +129,10 @@ $(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\apss.exe: $(PFM)\$(VARIETY)\apss.obj \
+	$(PFM)\$(VARIETY)\poolmvff.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\sacss.exe: $(PFM)\$(VARIETY)\sacss.obj \
 	$(PFM)\$(VARIETY)\poolmvff.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
@@ -306,7 +310,7 @@ $(PFM)\$(VARIETY)\mpsplcb.lib: $(PFM)\$(VARIETY)\mpslibcb.obj
 	$(ECHO) $@
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-	ml /nologo /c /coff /Fo$@ $<
+	$(MASM) /nologo /c /Fo$@ $<
 
 # Coverage files
 #{$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
@@ -322,7 +326,7 @@ $(PFM)\$(VARIETY)\mpsplcb.lib: $(PFM)\$(VARIETY)\mpslibcb.obj
 
 {$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
 	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**)
+	$(LINKER) $(LINKFLAGS) /PDB:$*.pdb /OUT:$@ $(**)
 
 
 # C. COPYRIGHT AND LICENSE
