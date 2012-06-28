@@ -35,15 +35,14 @@ def mpsplatformcode() :
   # Uses the platform module which appears to be in Python 2.3, but not
   # documented until Python 2.4.  See
   # http://www.python.org/doc/2.4/lib/module-platform.html
-
-  os = '??' # operating system
+  osys = '??' # operating system
   try :
     # 2007-07-03 DRJ : Darwin is tested, the other I have guessed at
     # from the documentation for platform.system()
-    os = {'Darwin':'xc',
-          'Linux':'li',
-          'Windows':'w3',
-         }[platform.system()]
+    osys = {'Darwin':'xc',
+            'Linux':'li',
+            'Windows':'w3',
+           }[platform.system()]
   except :
     pass
 
@@ -54,13 +53,26 @@ def mpsplatformcode() :
     arch = {'Power Macintosh':'pp',
             'i386':'i3',
             'x86':'i3',
+            'AMD64':'i6',
            }[platform.machine()]
   except :
     # Windows specific hack.  On Python 2.4 and 2.5 platform.machine
     # returns ''.
-    if platform.machine() == '' and os == 'w3' :
+    if platform.machine() == '' and osys == 'w3' :
       arch = 'i3'
-
+  # x64 hack.  Use $TARGET_CPU to determine whether we want to
+  # run 32 or 64 bit.
+  # On windows TARGET_CPU is set by the SDK setenv command which
+  # determines the build environment.  This needs to be done before
+  # we run the tests. 
+  if arch == 'i6' and osys == 'w3':
+    try :
+      target_cpu = os.environ['TARGET_CPU']
+      arch = {'x86':'i3',
+              'x64':'i6',
+             }[target_cpu]
+    except :
+      pass
   compiler = '??' # C compiler tool chain
   # There's no automagic way to determine this, some OS/Arch
   # combinations support more than one C compiler.  Sometimes it really
@@ -69,11 +81,11 @@ def mpsplatformcode() :
   try :
     compiler = {'xc':'gc',
                 'w3':'mv',
-               }[os]
+               }[osys]
   except :
     pass
 
-  plat = os + arch + compiler
+  plat = osys + arch + compiler
   if re.search(r'\?', plat) :
     return None, plat
   return plat
