@@ -3854,7 +3854,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  EMACS_TIME duration;
 	  EMACS_GET_TIME (duration);
 	  if (EMACS_TIME_GE (duration, *end_time))
-	    return Qnil;	/* finished waiting */
+	    return Qnil;	/* Finished waiting.  */
 	  else
 	    {
 	      EMACS_SUB_TIME (duration, *end_time, duration);
@@ -7309,8 +7309,8 @@ handle_user_signal (int sig)
   for (p = user_signals; p; p = p->next)
     if (p->sig == sig)
       {
-        if (special_event_name &&
-            strcmp (special_event_name, p->name) == 0)
+        if (special_event_name
+	    && strcmp (special_event_name, p->name) == 0)
           {
             /* Enter the debugger in many ways.  */
             debug_on_next_call = 1;

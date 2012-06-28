@@ -1,3 +1,7 @@
+2012-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (region_limit): Clip to narrowing (bug#11770).
+
 2012-06-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid integer overflow on scroll-left and scroll-right.

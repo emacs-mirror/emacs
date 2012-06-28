@@ -2509,19 +2509,19 @@ post_character_message (HWND hwnd, UINT msg,
      woken up if blocked in sys_select, but we do NOT want to post
      the quit_char message itself (because it will usually be as if
      the user had typed quit_char twice).  Instead, we post a dummy
-     message that has no particular effect. */
+     message that has no particular effect.  */
   {
     int c = wParam;
     if (isalpha (c) && wmsg.dwModifiers == ctrl_modifier)
       c = make_ctrl_char (c) & 0377;
     if (c == quit_char
-	|| (wmsg.dwModifiers == 0 &&
-	    w32_quit_key && wParam == w32_quit_key))
+	|| (wmsg.dwModifiers == 0
+	    && w32_quit_key && wParam == w32_quit_key))
       {
 	Vquit_flag = Qt;
 
 	/* The choice of message is somewhat arbitrary, as long as
-	   the main thread handler just ignores it. */
+	   the main thread handler just ignores it.  */
 	msg = WM_NULL;
 
 	/* Interrupt any blocking system calls.  */
