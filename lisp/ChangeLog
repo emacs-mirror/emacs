@@ -1,3 +1,7 @@
+2012-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-lib.el (cl-pushnew): Don't capture X (bug#11811).
+
 2012-06-28  Julien Danjou  <julien@danjou.info>
 
 	* term.el (term-handle-colors-array): Use a set of new faces to

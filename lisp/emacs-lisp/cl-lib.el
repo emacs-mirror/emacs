@@ -151,15 +151,16 @@ an element already on the list.
                   [keywordp form])))
   (if (symbolp place)
       (if (null keys)
- 	  `(let ((x ,x))
-	     (if (memql x ,place)
-                 ;; This symbol may later on expand to actual code which then
-                 ;; trigger warnings like "value unused" since cl-pushnew's return
-                 ;; value is rarely used.  It should not matter that other
-                 ;; warnings may be silenced, since `place' is used earlier and
-                 ;; should have triggered them already.
-                 (with-no-warnings ,place)
-               (setq ,place (cons x ,place))))
+	  (let ((var (make-symbol "--cl-x--")))
+	    `(let ((,var ,x))
+	       (if (memql ,var ,place)
+		   ;; This symbol may later on expand to actual code which then
+		   ;; trigger warnings like "value unused" since cl-pushnew's return
+		   ;; value is rarely used.  It should not matter that other
+		   ;; warnings may be silenced, since `place' is used earlier and
+		   ;; should have triggered them already.
+		   (with-no-warnings ,place)
+		 (setq ,place (cons ,var ,place)))))
 	(list 'setq place (cl-list* 'cl-adjoin x place keys)))
     (cl-list* 'cl-callf2 'cl-adjoin x place keys)))
 
