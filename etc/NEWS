@@ -160,6 +160,15 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** Term changes
+
+The variables `term-default-fg-color' and `term-default-bg-color' are
+now deprecated in favor of the `term-face' face, that you can
+customize.  Also, it is now possible to cutomize how are displayed the
+ANSI terminal colors and styles by cutomizing the corresponding
+`term-color-<COLOR>', `term-color-underline' and `term-color-bold'
+faces.
+
 ** CL's main entry is now (require 'cl-lib).
 `cl-lib' is like the old `cl' except that it uses the namespace cleanly,
 i.e. all its definitions have the "cl-" prefix.

@@ -1,3 +1,14 @@
+2012-06-28  Julien Danjou  <julien@danjou.info>
+
+	* term.el (term-handle-colors-array): Use a set of new faces to
+	color the terminal.  Also uses :inverse-video property.
+	(term-default-fg-color): Set to nil by default, deprecate in favor
+	of `term-face'.
+	(term-default-bg-color): Set to nil by default, deprecate in favor
+	of `term-face'.
+	(term-current-face): Use `term-face' by default.
+	(term-bold-attribute): Variable deleted.
+
 2012-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (completion-list-mode-finish):

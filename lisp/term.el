@@ -108,11 +108,6 @@
 ;;
 ;;  Blink, is not supported.  Currently it's mapped as bold.
 ;;
-;; Important caveat:
-;; -----------------
-;;   if you want custom colors in term.el redefine term-default-fg-color
-;;  and term-default-bg-color BEFORE loading it.
-;;
 ;;             ----------------------------------------
 ;;
 ;;  If you'd like to check out my complete configuration, you can download
@@ -459,7 +454,7 @@ state 4: term-terminal-parameter contains pending output.")
   "A queue of strings whose echo we want suppressed.")
 (defvar term-terminal-parameter)
 (defvar term-terminal-previous-parameter)
-(defvar term-current-face 'default)
+(defvar term-current-face 'term-face)
 (defvar term-scroll-start 0 "Top-most line (inclusive) of scrolling region.")
 (defvar term-scroll-end) ; Number of line (zero-based) after scrolling region.
 (defvar term-pager-count nil
@@ -795,28 +790,87 @@ Buffer local variable.")
 (defvar term-terminal-previous-parameter-3 -1)
 (defvar term-terminal-previous-parameter-4 -1)
 
-;;; faces -mm
-
-(defcustom term-default-fg-color
-  ;; FIXME: This depends on the current frame, so depending on when
-  ;; it's loaded, the result may be different.
-  (face-foreground term-current-face)
-  "Default color for foreground in `term'."
-  :group 'term
-  :type 'string)
-
-(defcustom term-default-bg-color
-  ;; FIXME: This depends on the current frame, so depending on when
-  ;; it's loaded, the result may be different.
-  (face-background term-current-face)
-  "Default color for background in `term'."
-  :group 'term
-  :type 'string)
-
-;; Use the same colors that xterm uses, see `xterm-standard-colors'.
+;;; Faces
 (defvar ansi-term-color-vector
-  [unspecified "black" "red3" "green3" "yellow3" "blue2"
-   "magenta3" "cyan3" "white"])
+  [term-face
+   term-color-black
+   term-color-red
+   term-color-green
+   term-color-yellow
+   term-color-blue
+   term-color-magenta
+   term-color-cyan
+   term-color-white])
+
+(defcustom term-default-fg-color nil
+  "If non-nil, default color for foreground in Term mode.
+This is deprecated in favor of customizing the `term-face' face."
+  :group 'term
+  :type 'string)
+
+(defcustom term-default-bg-color nil
+  "If non-nil, default color for foreground in Term mode.
+This is deprecated in favor of customizing the `term-face' face."
+  :group 'term
+  :type 'string)
+
+(defface term-face
+  `((t
+     :foreground ,term-default-fg-color
+     :background ,term-default-bg-color
+     :inherit default))
+  "Default face to use in Term mode."
+  :group 'term)
+
+(defface term-bold
+  '((t :bold t))
+  "Default face to use for bold text."
+  :group 'term)
+
+(defface term-underline
+  '((t :underline t))
+  "Default face to use for underlined text."
+  :group 'term)
+
+(defface term-color-black
+  '((t :foreground "black" :background "black"))
+  "Face used to render black color code."
+  :group 'term)
+
+(defface term-color-red
+  '((t :foreground "red3" :background "red3"))
+  "Face used to render red color code."
+  :group 'term)
+
+(defface term-color-green
+  '((t :foreground "green3" :background "green3"))
+  "Face used to render green color code."
+  :group 'term)
+
+(defface term-color-yellow
+  '((t :foreground "yellow3" :background "yellow3"))
+  "Face used to render yellow color code."
+  :group 'term)
+
+(defface term-color-blue
+  '((t :foreground "blue2" :background "blue2"))
+  "Face used to render blue color code."
+  :group 'term)
+
+(defface term-color-magenta
+  '((t :foreground "magenta3" :background "magenta3"))
+  "Face used to render magenta color code."
+  :group 'term)
+
+(defface term-color-cyan
+  '((t :foreground "cyan3" :background "cyan3"))
+  "Face used to render cyan color code."
+  :group 'term)
+
+(defface term-color-white
+  '((t :foreground "white" :background "white"))
+  "Face used to render white color code."
+  :group 'term)
 
 ;; Inspiration came from comint.el -mm
 (defcustom term-buffer-maximum-size 2048
@@ -951,11 +1005,7 @@ is buffer-local."
     dt))
 
 (defun term-ansi-reset ()
-  (setq term-current-face (nconc
-                           (if term-default-bg-color
-                               (list :background term-default-bg-color))
-                           (if term-default-fg-color
-                               (list :foreground term-default-fg-color))))
+  (setq term-current-face 'term-face)
   (setq term-ansi-current-underline nil)
   (setq term-ansi-current-bold nil)
   (setq term-ansi-current-reverse nil)
@@ -3088,10 +3138,6 @@ See `term-prompt-regexp'."
 ;; New function to deal with ansi colorized output, as you can see you can
 ;; have any bold/underline/fg/bg/reverse combination. -mm
 
-(defvar term-bold-attribute '(:weight bold)
-  "Attribute to use for the bold terminal attribute.
-Set it to nil to disable bold.")
-
 (defun term-handle-colors-array (parameter)
   (cond
 
@@ -3153,46 +3199,32 @@ Set it to nil to disable bold.")
   ;;          term-ansi-current-color
   ;;          term-ansi-current-bg-color)
 
-
   (unless term-ansi-face-already-done
     (if term-ansi-current-invisible
         (let ((color
                (if term-ansi-current-reverse
-                   (if (= term-ansi-current-color 0)
-                       term-default-fg-color
-                     (elt ansi-term-color-vector term-ansi-current-color))
-                 (if (= term-ansi-current-bg-color 0)
-                     term-default-bg-color
-                   (elt ansi-term-color-vector term-ansi-current-bg-color)))))
+                   (face-foreground
+                    (elt ansi-term-color-vector term-ansi-current-color))
+                 (face-background
+                  (elt ansi-term-color-vector term-ansi-current-bg-color)))))
           (setq term-current-face
                 (list :background color
                       :foreground color))
           ) ;; No need to bother with anything else if it's invisible.
-
       (setq term-current-face
-            (if term-ansi-current-reverse
-                (if (= term-ansi-current-color 0)
-                    (list :background term-default-fg-color
-                          :foreground term-default-bg-color)
-                  (list :background
-                        (elt ansi-term-color-vector term-ansi-current-color)
-                        :foreground
-                        (elt ansi-term-color-vector term-ansi-current-bg-color)))
-
-              (if (= term-ansi-current-color 0)
-                  (list :foreground term-default-fg-color
-                        :background term-default-bg-color)
-                (list :foreground
-                      (elt ansi-term-color-vector term-ansi-current-color)
-                      :background
-                      (elt ansi-term-color-vector term-ansi-current-bg-color)))))
+            (list :foreground
+                  (face-foreground (elt ansi-term-color-vector term-ansi-current-color))
+                  :background
+                  (face-background (elt ansi-term-color-vector term-ansi-current-bg-color))
+                  :inverse-video term-ansi-current-reverse))
 
       (when term-ansi-current-bold
         (setq term-current-face
-              (append term-bold-attribute term-current-face)))
+              (list* term-current-face :inherit 'term-bold)))
+
       (when term-ansi-current-underline
         (setq term-current-face
-              (list* :underline t term-current-face)))))
+              (list* term-current-face :inherit 'term-underline)))))
 
   ;;	(message "Debug %S" term-current-face)
   ;; FIXME: shouldn't we set term-ansi-face-already-done to t here?  --Stef
