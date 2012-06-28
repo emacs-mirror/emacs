@@ -2019,7 +2019,7 @@ Optional Features:
                           enable expensive run-time checks. With LIST, enable
                           only specific categories of checks. Categories are:
                           all,yes,no. Flags are: stringbytes, stringoverrun,
-                          stringfreelist, xmallocoverrun, conslist
+                          stringfreelist, xmallocoverrun, conslist, glyphs
   --enable-check-lisp-object-type
                           enable compile time checks for the Lisp_Object data
                           type. This is useful for development for catching
@@ -4243,19 +4243,22 @@ do
 	                ac_gc_check_string_overrun= ;
 	                ac_gc_check_string_free_list= ;
 	                ac_xmalloc_overrun= ;
-	                ac_gc_check_cons_list= ;;
+	                ac_gc_check_cons_list= ;
+			ac_check_glyphs= ;;
 	all)		ac_enable_checking=1 ;
 			ac_gc_check_stringbytes=1 ;
 	                ac_gc_check_string_overrun=1 ;
 	                ac_gc_check_string_free_list=1 ;
 	                ac_xmalloc_overrun=1 ;
-	                ac_gc_check_cons_list=1 ;;
+	                ac_gc_check_cons_list=1 ;
+			ac_check_glyphs=1 ;;
 	# these enable particular checks
 	stringbytes) 	ac_gc_check_stringbytes=1 ;;
 	stringoverrun) 	ac_gc_check_string_overrun=1 ;;
 	stringfreelist) ac_gc_check_string_free_list=1 ;;
 	xmallocoverrun)	ac_xmalloc_overrun=1 ;;
 	conslist)	ac_gc_check_cons_list=1 ;;
+	glyphs)		ac_check_glyphs=1 ;;
 	*)	as_fn_error "unknown check category $check" "$LINENO" 5 ;;
 	esac
 done
@@ -4289,6 +4292,11 @@ fi
 if test x$ac_gc_check_cons_list != x ; then
 
 $as_echo "#define GC_CHECK_CONS_LIST 1" >>confdefs.h
+
+fi
+if test x$ac_check_glyphs != x ; then
+
+$as_echo "#define GLYPH_DEBUG 1" >>confdefs.h
 
 fi
 
@@ -7779,7 +7787,9 @@ $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "paxctl", so it can be a program name with args.
+
+if test $opsys = gnu-linux; then
+  # Extract the first word of "paxctl", so it can be a program name with args.
 set dummy paxctl; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -7819,7 +7829,7 @@ $as_echo "no" >&6; }
 fi
 
 
-
+fi
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
 # Extract the first word of "makeinfo", so it can be a program name with args.
@@ -9292,57 +9302,19 @@ done
 
   fi
 
-                    if test -z "$gl_replace_getopt"; then
+          if test -z "$gl_replace_getopt"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether getopt is POSIX compatible" >&5
 $as_echo_n "checking whether getopt is POSIX compatible... " >&6; }
 if test "${gl_cv_func_getopt_posix+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
-                                                                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <unistd.h>
-int
-main ()
-{
-int *p = &optreset; return optreset;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  gl_optind_min=1
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <getopt.h>
-int
-main ()
-{
-return !getopt_clip;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  gl_optind_min=1
-else
-  gl_optind_min=0
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-                gl_save_CPPFLAGS=$CPPFLAGS
-        CPPFLAGS="$CPPFLAGS -DOPTIND_MIN=$gl_optind_min"
-        if test "$cross_compiling" = yes; then :
-  case "$host_os" in
-             mingw*)         gl_cv_func_getopt_posix="guessing no";;
-             darwin* | aix*) gl_cv_func_getopt_posix="guessing no";;
-             *)              gl_cv_func_getopt_posix="guessing yes";;
-           esac
-
+                                                if test $cross_compiling = no; then
+                              if test "$cross_compiling" = yes; then :
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error "cannot run test program while cross compiling
+See \`config.log' for more details." "$LINENO" 5; }
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -9354,78 +9326,122 @@ else
 int
 main ()
 {
-  {
-    static char program[] = "program";
-    static char a[] = "-a";
-    static char foo[] = "foo";
-    static char bar[] = "bar";
-    char *argv[] = { program, a, foo, bar, NULL };
-    int c;
+  static char program[] = "program";
+  static char a[] = "-a";
+  static char foo[] = "foo";
+  static char bar[] = "bar";
+  char *argv[] = { program, a, foo, bar, NULL };
+  int c;
 
-    optind = OPTIND_MIN;
-    opterr = 0;
+  c = getopt (4, argv, "ab");
+  if (!(c == 'a'))
+    return 1;
+  c = getopt (4, argv, "ab");
+  if (!(c == -1))
+    return 2;
+  if (!(optind == 2))
+    return 3;
+  return 0;
+}
 
-    c = getopt (4, argv, "ab");
-    if (!(c == 'a'))
-      return 1;
-    c = getopt (4, argv, "ab");
-    if (!(c == -1))
-      return 2;
-    if (!(optind == 2))
-      return 3;
-  }
-  /* Some internal state exists at this point.  */
-  {
-    static char program[] = "program";
-    static char donald[] = "donald";
-    static char p[] = "-p";
-    static char billy[] = "billy";
-    static char duck[] = "duck";
-    static char a[] = "-a";
-    static char bar[] = "bar";
-    char *argv[] = { program, donald, p, billy, duck, a, bar, NULL };
-    int c;
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_getopt_posix=maybe
+else
+  gl_cv_func_getopt_posix=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
 
-    optind = OPTIND_MIN;
-    opterr = 0;
+          if test $gl_cv_func_getopt_posix = maybe; then
+                                    if test "$cross_compiling" = yes; then :
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error "cannot run test program while cross compiling
+See \`config.log' for more details." "$LINENO" 5; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-    c = getopt (7, argv, "+abp:q:");
-    if (!(c == -1))
-      return 4;
-    if (!(strcmp (argv[0], "program") == 0))
-      return 5;
-    if (!(strcmp (argv[1], "donald") == 0))
-      return 6;
-    if (!(strcmp (argv[2], "-p") == 0))
-      return 7;
-    if (!(strcmp (argv[3], "billy") == 0))
-      return 8;
-    if (!(strcmp (argv[4], "duck") == 0))
-      return 9;
-    if (!(strcmp (argv[5], "-a") == 0))
-      return 10;
-    if (!(strcmp (argv[6], "bar") == 0))
-      return 11;
-    if (!(optind == 1))
-      return 12;
-  }
-  /* Detect Mac OS X 10.5, AIX 7.1 bug.  */
-  {
-    static char program[] = "program";
-    static char ab[] = "-ab";
-    char *argv[3] = { program, ab, NULL };
-    optind = OPTIND_MIN;
-    opterr = 0;
-    if (getopt (2, argv, "ab:") != 'a')
-      return 13;
-    if (getopt (2, argv, "ab:") != '?')
-      return 14;
-    if (optopt != 'b')
-      return 15;
-    if (optind != 2)
-      return 16;
-  }
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
+int
+main ()
+{
+  static char program[] = "program";
+  static char donald[] = "donald";
+  static char p[] = "-p";
+  static char billy[] = "billy";
+  static char duck[] = "duck";
+  static char a[] = "-a";
+  static char bar[] = "bar";
+  char *argv[] = { program, donald, p, billy, duck, a, bar, NULL };
+  int c;
+
+  c = getopt (7, argv, "+abp:q:");
+  if (!(c == -1))
+    return 4;
+  if (!(strcmp (argv[0], "program") == 0))
+    return 5;
+  if (!(strcmp (argv[1], "donald") == 0))
+    return 6;
+  if (!(strcmp (argv[2], "-p") == 0))
+    return 7;
+  if (!(strcmp (argv[3], "billy") == 0))
+    return 8;
+  if (!(strcmp (argv[4], "duck") == 0))
+    return 9;
+  if (!(strcmp (argv[5], "-a") == 0))
+    return 10;
+  if (!(strcmp (argv[6], "bar") == 0))
+    return 11;
+  if (!(optind == 1))
+    return 12;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_getopt_posix=maybe
+else
+  gl_cv_func_getopt_posix=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+          fi
+          if test $gl_cv_func_getopt_posix = maybe; then
+                        if test "$cross_compiling" = yes; then :
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error "cannot run test program while cross compiling
+See \`config.log' for more details." "$LINENO" 5; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+int
+main ()
+{
+  static char program[] = "program";
+  static char ab[] = "-ab";
+  char *argv[3] = { program, ab, NULL };
+  if (getopt (2, argv, "ab:") != 'a')
+    return 13;
+  if (getopt (2, argv, "ab:") != '?')
+    return 14;
+  if (optopt != 'b')
+    return 15;
+  if (optind != 2)
+    return 16;
   return 0;
 }
 
@@ -9439,7 +9455,13 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext
 fi
 
-        CPPFLAGS=$gl_save_CPPFLAGS
+          fi
+        else
+          case "$host_os" in
+            darwin* | aix* | mingw*) gl_cv_func_getopt_posix="guessing no";;
+            *)                       gl_cv_func_getopt_posix="guessing yes";;
+          esac
+        fi
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_getopt_posix" >&5
@@ -9470,11 +9492,7 @@ else
        POSIXLY_CORRECT=1
        export POSIXLY_CORRECT
        if test "$cross_compiling" = yes; then :
-           case $host_os:$ac_cv_have_decl_optreset in
-           *-gnu*:* | mingw*:*) gl_cv_func_getopt_gnu=no;;
-           *:yes)               gl_cv_func_getopt_gnu=no;;
-           *)                   gl_cv_func_getopt_gnu=yes;;
-         esac
+           gl_cv_func_getopt_gnu="guessing no"
 
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9693,7 +9711,7 @@ fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_getopt_gnu" >&5
 $as_echo "$gl_cv_func_getopt_gnu" >&6; }
-    if test "$gl_cv_func_getopt_gnu" = "no"; then
+    if test "$gl_cv_func_getopt_gnu" != yes; then
       gl_replace_getopt=yes
     else
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working GNU getopt_long function" >&5
