@@ -30,7 +30,7 @@
 #define totalSizeMAX    800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-#define objNULL         ((mps_addr_t)0xDECEA5ED)
+#define objNULL         ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 #define testArenaSIZE   ((size_t)16<<20)
 #define initTestFREQ    3000
 #define splatTestFREQ   6000

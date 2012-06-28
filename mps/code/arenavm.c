@@ -482,10 +482,28 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   vmArena->vm = arenaVM;
   vmArena->spareSize = 0;
 
-  /* .blacklist: We blacklist the zones corresponding to small integers. */
-  vmArena->blacklist =
-    ZoneSetAdd(arena, ZoneSetAdd(arena, ZoneSetEMPTY, (Addr)1), (Addr)-1);
-
+  /* .blacklist: We blacklist the zones that could be referenced by small
+     integers misinterpreted as references.  This isn't a perfect simulation,
+     but it should catch the common cases. */
+  {
+    union {
+      mps_word_t word;
+      mps_addr_t addr;
+      int i;
+      long l;
+    } nono;
+    vmArena->blacklist = ZoneSetEMPTY;
+    nono.word = 0;
+    nono.i = 1;
+    vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
+    nono.i = -1;
+    vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
+    nono.l = 1;
+    vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
+    nono.l = -1;
+    vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
+  }
+  
   for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
     vmArena->genZoneSet[gen] = ZoneSetEMPTY;
   }

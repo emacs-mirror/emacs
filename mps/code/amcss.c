@@ -38,7 +38,7 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-#define objNULL           ((mps_addr_t)0xDECEA5ED)
+#define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 
 static mps_pool_t pool;
@@ -210,7 +210,7 @@ static void *test(void *arg, size_t s)
   ramping = 1;
   objs = 0;
   while (collections < collectionsCOUNT) {
-    unsigned long c;
+    mps_word_t c;
     size_t r;
 
     c = mps_collections(arena);
@@ -230,9 +230,13 @@ static void *test(void *arg, size_t s)
          */
         
         /* how many random addrs must we try, to hit the arena once? */
-        hitRatio = ((size_t)-1 / mps_arena_committed(arena));
+        hitRatio = (0xfffffffful / mps_arena_committed(arena));
         for (i = 0; i < hitsWanted * hitRatio ; i++) {
-          mps_addr_t p = rnd_addr();
+          /* An exact root maybe in the arena, so add a random 32-bit
+           * offset to it.  We may get no hits if it is objNULL.
+           */ 
+          mps_addr_t p = (char *)exactRoots[rnd() % exactRootsCOUNT]
+                         + rnd()-0x80000000ul;
           if (mps_arena_has_addr(arena, p)) {
             printf("%p is in the arena\n", p);
           }

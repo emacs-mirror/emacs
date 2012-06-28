@@ -63,7 +63,7 @@ static int test_number = 0;
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-#define objNULL           ((mps_addr_t)0xDECEA5ED)
+#define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 static mps_pool_t pool;
 static mps_ap_t ap;
@@ -83,7 +83,7 @@ double total_clock_time; /* Time spent reading the clock */
 long clock_reads;        /* Number of times clock is read */
 long steps;              /* # of mps_arena_step calls returning 1 */
 long no_steps;           /* # of mps_arena_step calls returning 0 */
-long alloc_bytes;        /* # of bytes allocated */
+size_t alloc_bytes;      /* # of bytes allocated */
 long commit_failures;    /* # of times mps_commit fails */
 
 
@@ -323,7 +323,7 @@ static void *test(void *arg, size_t s)
     for(i = 0; i < exactRootsCOUNT; ++i)
         exactRoots[i] = objNULL;
     for(i = 0; i < ambigRootsCOUNT; ++i)
-        ambigRoots[i] = (mps_addr_t)rnd();
+        ambigRoots[i] = rnd_addr();
 
     die(mps_root_create_table_masked(&exactRoot, arena,
                                      MPS_RANK_EXACT, (mps_rm_t)0,

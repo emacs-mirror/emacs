@@ -236,7 +236,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
 
     if (verbose) {
       if(i && i%4==0) putchar('\n');
-      printf("%"PRIwLONGEST PRIXLONGEST" %6"PRIXLONGEST" ",
+      printf("%"PRIwWORD PRIXLONGEST" %6"PRIXLONGEST" ",
              (ulongest_t)ps[i], (ulongest_t)ss[i]);
     }
   }
@@ -274,7 +274,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
      
       if (verbose) {
         if(i && i%4==0) putchar('\n');
-        printf("%"PRIwLONGEST PRIXLONGEST" %6"PRIXLONGEST" ",
+        printf("%"PRIwWORD PRIXLONGEST" %6"PRIXLONGEST" ",
                (ulongest_t)ps[i], (ulongest_t)ss[i]);
       }
     }
