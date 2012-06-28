@@ -1,3 +1,8 @@
+2012-06-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Revert last change.  Add QUIT
+	to make the loop interruptible.
+
 2012-06-26  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnutls.c (emacs_gnutls_handshake): Only retry if
