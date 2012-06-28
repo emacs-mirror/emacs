@@ -2451,7 +2451,26 @@ If QUOTED is non-nil, print with quoting; otherwise, print without quoting."
           (- (position-bytes (point)) (point-min) -1)
         (goto-char (point-max))))))
 
-
+(defun byte-compile--refiy-function (fun)
+  "Return an expression which will evaluate to a function value FUN.
+FUN should be either a `lambda' value or a `closure' value."
+  (pcase-let* (((or (and `(lambda ,args . ,body) (let env nil))
+                    `(closure ,env ,args . ,body)) fun)
+               (renv ()))
+    ;; Turn the function's closed vars (if any) into local let bindings.
+    (dolist (binding env)
+      (cond
+       ((consp binding)
+        ;; We check shadowing by the args, so that the `let' can be moved
+        ;; within the lambda, which can then be unfolded.  FIXME: Some of those
+        ;; bindings might be unused in `body'.
+        (unless (memq (car binding) args) ;Shadowed.
+          (push `(,(car binding) ',(cdr binding)) renv)))
+       ((eq binding t))
+       (t (push `(defvar ,binding) body))))
+    (if (null renv)
+        `(lambda ,args ,@body)
+      `(lambda ,args (let ,(nreverse renv) ,@body)))))
 
 ;;;###autoload
 (defun byte-compile (form)
@@ -2459,23 +2478,29 @@ If QUOTED is non-nil, print with quoting; otherwise, print without quoting."
 If FORM is a lambda or a macro, byte-compile it as a function."
   (displaying-byte-compile-warnings
    (byte-compile-close-variables
-    (let* ((fun (if (symbolp form)
+    (let* ((lexical-binding lexical-binding)
+           (fun (if (symbolp form)
 		    (and (fboundp form) (symbol-function form))
 		  form))
 	   (macro (eq (car-safe fun) 'macro)))
       (if macro
 	  (setq fun (cdr fun)))
-      (cond ((eq (car-safe fun) 'lambda)
+      (when (symbolp form)
+        (unless (memq (car-safe fun) '(closure lambda))
+          (error "Don't know how to compile %S" fun))
+        (setq fun (byte-compile--refiy-function fun))
+        (setq lexical-binding (eq (car fun) 'closure)))
+      (unless (eq (car-safe fun) 'lambda)
+        (error "Don't know how to compile %S" fun))
 	     ;; Expand macros.
              (setq fun (byte-compile-preprocess fun))
 	     ;; Get rid of the `function' quote added by the `lambda' macro.
 	     (if (eq (car-safe fun) 'function) (setq fun (cadr fun)))
-	     (setq fun (if macro
-			   (cons 'macro (byte-compile-lambda fun))
-			 (byte-compile-lambda fun)))
+      (setq fun (byte-compile-lambda fun))
+      (if macro (push 'macro fun))
 	     (if (symbolp form)
-		 (defalias form fun)
-	       fun)))))))
+          (fset form fun)
+        fun)))))
 
 (defun byte-compile-sexp (sexp)
   "Compile and return SEXP."

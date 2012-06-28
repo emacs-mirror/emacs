@@ -1,3 +1,11 @@
+2012-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make inlining of other-mode interpreted functions work (bug#11799).
+	* emacs-lisp/bytecomp.el (byte-compile--refiy-function): New fun.
+	(byte-compile): Use it to fix compilation of lexical-binding closures.
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Compile the
+	function, if needed.
+
 2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-mode.el (help-make-xrefs): Don't just withstand
