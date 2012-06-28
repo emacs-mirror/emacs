@@ -1,3 +1,9 @@
+2012-06-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* m4/getopt.m4: Copy new version from gnulib, incorporating:
+	getopt-posix: No longer guarantee that option processing is resettable.
+
 2012-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Only check for paxctl on gnu-linux.  (Bug#11398#26)

@@ -1,4 +1,4 @@
-# getopt.m4 serial 42
+# getopt.m4 serial 43
 dnl Copyright (C) 2002-2006, 2008-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -74,11 +74,6 @@ AC_DEFUN([gl_GETOPT_CHECK_HEADERS],
     AC_CHECK_FUNCS([getopt_long_only], [], [gl_replace_getopt=yes])
   fi
 
-  dnl mingw's getopt (in libmingwex.a) does weird things when the options
-  dnl strings starts with '+' and it's not the first call.  Some internal state
-  dnl is left over from earlier calls, and neither setting optind = 0 nor
-  dnl setting optreset = 1 get rid of this internal state.
-  dnl POSIX is silent on optind vs. optreset, so we allow either behavior.
   dnl POSIX 2008 does not specify leading '+' behavior, but see
   dnl http://austingroupbugs.net/view.php?id=191 for a recommendation on
   dnl the next version of POSIX.  For now, we only guarantee leading '+'
@@ -87,30 +82,16 @@ AC_DEFUN([gl_GETOPT_CHECK_HEADERS],
     AC_CACHE_CHECK([whether getopt is POSIX compatible],
       [gl_cv_func_getopt_posix],
       [
-        dnl BSD getopt_long uses an incompatible method to reset option
-        dnl processing.  Existence of the optreset variable, in and of
-        dnl itself, is not a reason to replace getopt, but knowledge
-        dnl of the variable is needed to determine how to reset and
-        dnl whether a reset reparses the environment.  Solaris
-        dnl supports neither optreset nor optind=0, but keeps no state
-        dnl that needs a reset beyond setting optind=1; detect Solaris
-        dnl by getopt_clip.
-        AC_LINK_IFELSE(
-          [AC_LANG_PROGRAM(
-             [[#include <unistd.h>]],
-             [[int *p = &optreset; return optreset;]])],
-          [gl_optind_min=1],
-          [AC_COMPILE_IFELSE(
-             [AC_LANG_PROGRAM(
-                [[#include <getopt.h>]],
-                [[return !getopt_clip;]])],
-             [gl_optind_min=1],
-             [gl_optind_min=0])])
-
-        dnl This test fails on mingw and succeeds on many other platforms.
-        gl_save_CPPFLAGS=$CPPFLAGS
-        CPPFLAGS="$CPPFLAGS -DOPTIND_MIN=$gl_optind_min"
-        AC_RUN_IFELSE([AC_LANG_SOURCE([[
+        dnl Merging these three different test programs into a single one
+        dnl would require a reset mechanism. On BSD systems, it can be done
+        dnl through 'optreset'; on some others (glibc), it can be done by
+        dnl setting 'optind' to 0; on others again (HP-UX, IRIX, OSF/1,
+        dnl Solaris 9, musl libc), there is no such mechanism.
+        if test $cross_compiling = no; then
+          dnl Sanity check. Succeeds everywhere (except on MSVC,
+          dnl which lacks <unistd.h> and getopt() entirely).
+          AC_RUN_IFELSE(
+            [AC_LANG_SOURCE([[
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,89 +99,107 @@ AC_DEFUN([gl_GETOPT_CHECK_HEADERS],
 int
 main ()
 {
-  {
-    static char program[] = "program";
-    static char a[] = "-a";
-    static char foo[] = "foo";
-    static char bar[] = "bar";
-    char *argv[] = { program, a, foo, bar, NULL };
-    int c;
+  static char program[] = "program";
+  static char a[] = "-a";
+  static char foo[] = "foo";
+  static char bar[] = "bar";
+  char *argv[] = { program, a, foo, bar, NULL };
+  int c;
 
-    optind = OPTIND_MIN;
-    opterr = 0;
-
-    c = getopt (4, argv, "ab");
-    if (!(c == 'a'))
-      return 1;
-    c = getopt (4, argv, "ab");
-    if (!(c == -1))
-      return 2;
-    if (!(optind == 2))
-      return 3;
-  }
-  /* Some internal state exists at this point.  */
-  {
-    static char program[] = "program";
-    static char donald[] = "donald";
-    static char p[] = "-p";
-    static char billy[] = "billy";
-    static char duck[] = "duck";
-    static char a[] = "-a";
-    static char bar[] = "bar";
-    char *argv[] = { program, donald, p, billy, duck, a, bar, NULL };
-    int c;
-
-    optind = OPTIND_MIN;
-    opterr = 0;
-
-    c = getopt (7, argv, "+abp:q:");
-    if (!(c == -1))
-      return 4;
-    if (!(strcmp (argv[0], "program") == 0))
-      return 5;
-    if (!(strcmp (argv[1], "donald") == 0))
-      return 6;
-    if (!(strcmp (argv[2], "-p") == 0))
-      return 7;
-    if (!(strcmp (argv[3], "billy") == 0))
-      return 8;
-    if (!(strcmp (argv[4], "duck") == 0))
-      return 9;
-    if (!(strcmp (argv[5], "-a") == 0))
-      return 10;
-    if (!(strcmp (argv[6], "bar") == 0))
-      return 11;
-    if (!(optind == 1))
-      return 12;
-  }
-  /* Detect Mac OS X 10.5, AIX 7.1 bug.  */
-  {
-    static char program[] = "program";
-    static char ab[] = "-ab";
-    char *argv[3] = { program, ab, NULL };
-    optind = OPTIND_MIN;
-    opterr = 0;
-    if (getopt (2, argv, "ab:") != 'a')
-      return 13;
-    if (getopt (2, argv, "ab:") != '?')
-      return 14;
-    if (optopt != 'b')
-      return 15;
-    if (optind != 2)
-      return 16;
-  }
-
+  c = getopt (4, argv, "ab");
+  if (!(c == 'a'))
+    return 1;
+  c = getopt (4, argv, "ab");
+  if (!(c == -1))
+    return 2;
+  if (!(optind == 2))
+    return 3;
   return 0;
 }
 ]])],
-          [gl_cv_func_getopt_posix=yes], [gl_cv_func_getopt_posix=no],
-          [case "$host_os" in
-             mingw*)         gl_cv_func_getopt_posix="guessing no";;
-             darwin* | aix*) gl_cv_func_getopt_posix="guessing no";;
-             *)              gl_cv_func_getopt_posix="guessing yes";;
-           esac
-          ])
-        CPPFLAGS=$gl_save_CPPFLAGS
+            [gl_cv_func_getopt_posix=maybe],
+            [gl_cv_func_getopt_posix=no])
+          if test $gl_cv_func_getopt_posix = maybe; then
+            dnl Sanity check with '+'. Succeeds everywhere (except on MSVC,
+            dnl which lacks <unistd.h> and getopt() entirely).
+            AC_RUN_IFELSE(
+              [AC_LANG_SOURCE([[
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+int
+main ()
+{
+  static char program[] = "program";
+  static char donald[] = "donald";
+  static char p[] = "-p";
+  static char billy[] = "billy";
+  static char duck[] = "duck";
+  static char a[] = "-a";
+  static char bar[] = "bar";
+  char *argv[] = { program, donald, p, billy, duck, a, bar, NULL };
+  int c;
+
+  c = getopt (7, argv, "+abp:q:");
+  if (!(c == -1))
+    return 4;
+  if (!(strcmp (argv[0], "program") == 0))
+    return 5;
+  if (!(strcmp (argv[1], "donald") == 0))
+    return 6;
+  if (!(strcmp (argv[2], "-p") == 0))
+    return 7;
+  if (!(strcmp (argv[3], "billy") == 0))
+    return 8;
+  if (!(strcmp (argv[4], "duck") == 0))
+    return 9;
+  if (!(strcmp (argv[5], "-a") == 0))
+    return 10;
+  if (!(strcmp (argv[6], "bar") == 0))
+    return 11;
+  if (!(optind == 1))
+    return 12;
+  return 0;
+}
+]])],
+              [gl_cv_func_getopt_posix=maybe],
+              [gl_cv_func_getopt_posix=no])
+          fi
+          if test $gl_cv_func_getopt_posix = maybe; then
+            dnl Detect Mac OS X 10.5, AIX 7.1, mingw bug.
+            AC_RUN_IFELSE(
+              [AC_LANG_SOURCE([[
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+int
+main ()
+{
+  static char program[] = "program";
+  static char ab[] = "-ab";
+  char *argv[3] = { program, ab, NULL };
+  if (getopt (2, argv, "ab:") != 'a')
+    return 13;
+  if (getopt (2, argv, "ab:") != '?')
+    return 14;
+  if (optopt != 'b')
+    return 15;
+  if (optind != 2)
+    return 16;
+  return 0;
+}
+]])],
+              [gl_cv_func_getopt_posix=yes],
+              [gl_cv_func_getopt_posix=no])
+          fi
+        else
+          case "$host_os" in
+            darwin* | aix* | mingw*) gl_cv_func_getopt_posix="guessing no";;
+            *)                       gl_cv_func_getopt_posix="guessing yes";;
+          esac
+        fi
       ])
     case "$gl_cv_func_getopt_posix" in
       *no) gl_replace_getopt=yes ;;
@@ -304,12 +303,8 @@ dnl is ambiguous with environment values that contain newlines.
            ]])],
         [gl_cv_func_getopt_gnu=yes],
         [gl_cv_func_getopt_gnu=no],
-        [dnl Cross compiling. Guess based on host and declarations.
-         case $host_os:$ac_cv_have_decl_optreset in
-           *-gnu*:* | mingw*:*) gl_cv_func_getopt_gnu=no;;
-           *:yes)               gl_cv_func_getopt_gnu=no;;
-           *)                   gl_cv_func_getopt_gnu=yes;;
-         esac
+        [dnl Cross compiling. Assume the worst, even on glibc platforms.
+         gl_cv_func_getopt_gnu="guessing no"
         ])
        case $gl_had_POSIXLY_CORRECT in
          exported) ;;
@@ -317,7 +312,7 @@ dnl is ambiguous with environment values that contain newlines.
          *) AS_UNSET([POSIXLY_CORRECT]) ;;
        esac
       ])
-    if test "$gl_cv_func_getopt_gnu" = "no"; then
+    if test "$gl_cv_func_getopt_gnu" != yes; then
       gl_replace_getopt=yes
     else
       AC_CACHE_CHECK([for working GNU getopt_long function],
