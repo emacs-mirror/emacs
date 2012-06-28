@@ -154,6 +154,33 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
 
+
+/* "Predefined Macros" from "Visual Studio 2010" on MSDN
+ * <http://msdn.microsoft.com/en-us/library/b0084kay(v=vs.100).aspx>.
+ * Note that Win32 includes 64-bit Windows!
+ * We use the same alignment as MS malloc: 16, which is used for XMM
+ * operations.
+ * See MSDN -> x64 Software Conventions -> Overview of x64 Calling Conventions
+ * <http://msdn.microsoft.com/en-us/library/ms235286> 
+ */
+
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I6MV)
+#error "specified CONFIG_PF_... inconsistent with detected w3i6mv"
+#endif
+#define MPS_PF_W3I6MV
+#define MPS_PF_STRING   "w3i6mv"
+#define MPS_OS_W3
+#define MPS_ARCH_I6
+#define MPS_BUILD_MV
+#define MPS_T_WORD      unsigned __int64
+#define MPS_T_LONGEST   __int64
+#define MPS_T_ULONGEST  unsigned __int64
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    16
+
+
 /* MW C/C++/ASM Lang Ref (CW9), pp. 184-186.  Metrowerks does not document
  * a way to determine the OS -- we assume MacOS 7.
  */

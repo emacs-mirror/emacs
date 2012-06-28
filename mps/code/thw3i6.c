@@ -32,10 +32,10 @@
  * but don't assume that the stack pointer is necessarily
  * word-aligned at the time of reading the context of another thread.
  *
- * .i3: assumes MPS_ARCH_I3
- * .i3.sp: The sp in the context is Esp
- * .i3.context: Esp is in control context so .context.sp holds
- * The root registers are Edi, Esi, Ebx, Edx, Ecx, Eax
+ * .i6: assumes MPS_ARCH_I6
+ * .i6.sp: The sp in the context is Rsp
+ * .i6.context: Rsp is in control context so .context.sp holds
+ * The root registers are Rdi, Rsi, Rbx, Rbp, Rdx, Rcx, Rax, R8 - R15
  * these are given by CONTEXT_INTEGER, so .context.regroots holds.
  *
  * .nt: uses Win32 specific stuff
@@ -56,15 +56,15 @@
 
 #include "mpm.h"
 
-#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I3) /* .i3 .nt */
-#error "Compiling thw3i3 when MPS_OS_W3 or MPS_ARCH_I3 not defined."
+#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I6) /* .i6 .nt */
+#error "Compiling thw3i6 when MPS_OS_W3 or MPS_ARCH_I6 not defined."
 #endif
 
 #include "thw3.h"
 
 #include "mpswin.h"
 
-SRCID(thw3i3, "$Id$");
+SRCID(thw3i6, "$Id$");
 
 
 Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
@@ -93,7 +93,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
       return ResOK;
     }
 
-    stackPtr  = (Addr)context.Esp;   /* .i3.sp */
+    stackPtr  = (Addr)context.Rsp;   /* .i6.sp */
     /* .stack.align */
     stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
     stackLimit = (Addr *)stackBot;

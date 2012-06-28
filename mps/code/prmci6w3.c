@@ -1,72 +1,87 @@
-/* dbgpool.h: POOL DEBUG MIXIN
- *
- * See <design/object-debug>.
+/* prmci6w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Portions copyright (C) 2002 Global Graphics Software.
- */
-
-#ifndef dbgpool_h
-#define dbgpool_h
-
-#include "splay.h"
-#include "mpmtypes.h"
-#include <stdarg.h>
-
-
-/* tag init methods: copying the user-supplied data into the tag */
-
-typedef void (*TagInitMethod)(void* tag, va_list args);
-
-
-/* PoolDebugOptions -- option structure for debug pool init
  *
- * This must be kept in sync with <code/mps.h#mps_pool_debug_option_s>.
+ * PURPOSE
+ *
+ * .purpose: This module implements the part of the protection module
+ * that decodes the MutatorFaultContext. 
+ *
+ * SOURCES
+ *
+ *
+ * ASSUMPTIONS
+ *
+ * .assume.regref: The resisters in the context can be modified by
+ * storing into an MRef pointer.
  */
 
-typedef struct PoolDebugOptionsStruct {
-  void* fenceTemplate;
-  Size  fenceSize;
-  void* freeTemplate;
-  Size  freeSize;
-  /* TagInitMethod tagInit; */
-  /* Size  tagSize; */
-} PoolDebugOptionsStruct;
+#include "prmcw3.h"
+#include "prmci6.h"
+#include "mpm.h"
 
-typedef PoolDebugOptionsStruct *PoolDebugOptions;
+SRCID(prmci6w3, "$Id$");
 
 
-/* PoolDebugMixinStruct -- internal structure for debug mixins */
+/* Prmci6AddressHoldingReg -- Return an address for a given machine register */
 
-#define PoolDebugMixinSig ((Sig)0x519B0DB9)  /* SIGnature POol DeBuG */
+MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
+{
+  PCONTEXT wincont;
 
-typedef struct PoolDebugMixinStruct {
-  Sig sig;
-  Addr fenceTemplate;
-  Size fenceSize;
-  Addr freeTemplate;
-  Size freeSize;
-  TagInitMethod tagInit;
-  Size tagSize;
-  Pool tagPool;
-  Count missingTags;
-  SplayTreeStruct index;
-} PoolDebugMixinStruct;
+  AVER(regnum <= 16);
+  AVER(regnum >= 0);
+
+  wincont = context->ep->ContextRecord;
+
+  switch (regnum) {
+  case  0: return (MRef)&wincont->Rax;
+  case  1: return (MRef)&wincont->Rcx;
+  case  2: return (MRef)&wincont->Rdx;
+  case  3: return (MRef)&wincont->Rbx;
+  case  4: return (MRef)&wincont->Rsp;
+  case  5: return (MRef)&wincont->Rbp;
+  case  6: return (MRef)&wincont->Rsi;
+  case  7: return (MRef)&wincont->Rdi;
+  case  8: return (MRef)&wincont->R8;
+  case  9: return (MRef)&wincont->R9;
+  case 10: return (MRef)&wincont->R10;
+  case 11: return (MRef)&wincont->R11;
+  case 12: return (MRef)&wincont->R12;
+  case 13: return (MRef)&wincont->R13;
+  case 14: return (MRef)&wincont->R14;
+  case 15: return (MRef)&wincont->R15;
+  }
+  NOTREACHED;
+  return NULL; /* suppress warning */
+}
 
 
-extern Bool PoolDebugMixinCheck(PoolDebugMixin dbg);
+/* Prmci6DecodeFaultContext -- decode fault context */
 
-extern void PoolClassMixInDebug(PoolClass class);
+void Prmci6DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
+                              MutatorFaultContext context)
+{
+  LPEXCEPTION_RECORD er;
 
-extern void DebugPoolCheckFences(Pool pool);
-extern void DebugPoolCheckFreeSpace(Pool pool);
+  er = context->ep->ExceptionRecord;
 
-extern void DebugPoolFreeSplat(Pool pool, Addr base, Addr limit);
-extern void DebugPoolFreeCheck(Pool pool, Addr base, Addr limit);
+  /* Assert that this is an access violation.  The computation of */
+  /* faultmem depends on this. */
+  AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
+
+  *faultmemReturn = (MRef)er->ExceptionInformation[1];
+  *insvecReturn = (Byte*)context->ep->ContextRecord->Rip;
+}
 
 
-#endif /* dbgpool_h */
+/* Prmci6StepOverIns -- skip an instruction by changing the context */
+
+void Prmci6StepOverIns(MutatorFaultContext context, Size inslen)
+{
+  context->ep->ContextRecord->Rip += (DWORD64)inslen;
+}
 
 
 /* C. COPYRIGHT AND LICENSE

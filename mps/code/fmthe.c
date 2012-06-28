@@ -125,7 +125,7 @@ static mps_addr_t dylan_header_isfwd(mps_addr_t object)
 
 static void dylan_header_pad(mps_addr_t addr, size_t fullSize)
 {
-  *(int*)addr = padHeader(fullSize);
+  *(int*)addr = (int)padHeader(fullSize);
 }
 
 

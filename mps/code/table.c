@@ -65,7 +65,7 @@ static size_t sizeFloorLog2(size_t size)
 static ulong TableHash(Word key)
 {
   /* Shift some randomness into the low bits. */
-  return (key >> 10) + key;
+  return (ulong)((key >> 10) + key);
 }
 
 

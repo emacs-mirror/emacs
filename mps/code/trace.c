@@ -1517,11 +1517,15 @@ static Res rootGrey(Root root, void *p)
 }
 
 
-static void TraceStartGenDesc_diag(GenDesc desc, int i)
+static void TraceStartGenDesc_diag(GenDesc desc, Bool top, Index i)
 {
   Ring n, nn;
+  
+#if !defined(DIAG_WITH_STREAM_AND_WRITEF)
+  UNUSED(i);
+#endif
 
-  if(i < 0) {
+  if(top) {
     DIAG_WRITEF(( DIAG_STREAM,
       "         GenDesc [top]",
       NULL ));
@@ -1538,7 +1542,8 @@ static void TraceStartGenDesc_diag(GenDesc desc, int i)
   RING_FOR(n, &desc->locusRing, nn) {
     DIAG_DECL( PoolGen gen = RING_ELT(PoolGen, genRing, n); )
     DIAG_WRITEF(( DIAG_STREAM,
-      "           PoolGen $U ($S)", (WriteFU)gen->nr, (WriteFS)gen->pool->class->name,
+      "           PoolGen $U ($S)", 
+      (WriteFU)gen->nr, (WriteFS)gen->pool->class->name,
       " totalSize $U", (WriteFU)gen->totalSize,
       " newSize $U\n", (WriteFU)gen->newSizeAtCreate,
       NULL ));
@@ -1631,7 +1636,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 
       for(i = 0; i < chain->genCount; ++i) {
         GenDesc desc = &chain->gens[i];
-        TraceStartGenDesc_diag(desc, i);
+        TraceStartGenDesc_diag(desc, FALSE, i);
       }
     }
 
@@ -1639,7 +1644,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     DIAG_WRITEF(( DIAG_STREAM,
       "       topGen\n",
       NULL ));
-    TraceStartGenDesc_diag(&arena->topGen, -1);
+    TraceStartGenDesc_diag(&arena->topGen, TRUE, 0);
   }
   
   DIAG_END( "TraceStart" );

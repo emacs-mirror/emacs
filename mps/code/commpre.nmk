@@ -160,7 +160,7 @@ CFTI = /DCONFIG_VAR_TI $(CRTFLAGSC)  $(CFLAGSCOOL) $(CFLAGSINTERNAL)
 # %%VARIETY: define a macro containing the flags for the new variety
 LINKER = link
 LINKFLAGSCOMMON = /nologo
-LINKFLAGSINTERNAL =
+LINKFLAGSINTERNAL = /DEBUG
 # ( Internal flags used to be set to /DEBUG:full )
 LINKFLAGSEXTERNAL = /RELEASE
 
@@ -179,6 +179,7 @@ LFTI = $(LINKFLAGSCOOL)   $(LINKFLAGSINTERNAL)
 # %%VARIETY: define a macro containing the flags for the new variety
 LIBMAN = lib                  # can't call this LIB - it screws the environment
 LIBFLAGSCOMMON = /nologo
+
 LIBFLAGSWE =
 LIBFLAGSWI =
 LIBFLAGSHE =

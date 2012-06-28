@@ -88,15 +88,17 @@
 #ifdef MPS_PF_W3I6MV
 #define PRIuLONGEST "llu"
 #define PRIXLONGEST "llX"
-#define PRIwLONGEST "16"
+#define PRIwWORD "16"
 typedef unsigned long long ulongest_t;
+#define MPS_WORD_CONST(n) (n##ull)
 #else
 #define PRIuLONGEST "lu"
 #define PRIXLONGEST "lX"
-#define PRIwLONGEST "8"
+#define PRIwWORD "8"
 typedef unsigned long ulongest_t;
+#define MPS_WORD_CONST(n) (n##ul)
 #endif
-#define PRIXPTR     "0"PRIwLONGEST PRIXLONGEST
+#define PRIXPTR     "0"PRIwWORD PRIXLONGEST
 
 
 /* testlib_unused -- declares that a variable is unused
@@ -157,7 +159,10 @@ extern void verror(const char *format, va_list args);
 #define Insist(cond) insist1(cond, #cond)
 
 #define insist1(cond, condstring) \
-  cdie(cond, condstring "\n" __FILE__ "\n" STR(__LINE__))
+  if(cond) \
+    NOOP; \
+  else \
+    cdie(cond, condstring "\n" __FILE__ "\n" STR(__LINE__))
 
 
 /* rnd -- random number generator

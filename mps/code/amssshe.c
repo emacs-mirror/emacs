@@ -28,7 +28,7 @@
 #define totalSizeMAX    800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
-#define objNULL         ((mps_addr_t)0xDECEA5ED)
+#define objNULL         ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 #define testArenaSIZE   ((size_t)16<<20)
 #define initTestFREQ    6000
 static mps_gen_param_s testChain[1] = { { 160, 0.90 } };
@@ -89,7 +89,7 @@ static void *test(void *arg, size_t s)
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
   for(i = 0; i < ambigRootsCOUNT; ++i)
-    ambigRoots[i] = (mps_addr_t)rnd();
+    ambigRoots[i] = rnd_addr();
 
   die(mps_root_create_table_masked(&exactRoot, arena,
                                    MPS_RANK_EXACT, (mps_rm_t)0,
