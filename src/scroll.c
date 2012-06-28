@@ -270,7 +270,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
     {									\
       int ck;								\
       for (ck = 0; ck < window_size; ++ck)				\
-	xassert (copy_from[ck] == -1					\
+	eassert (copy_from[ck] == -1					\
 		 || (copy_from[ck] >= 0 && copy_from[ck] < window_size)); \
     }									\
   while (0);
@@ -317,8 +317,8 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 	{
 	  /* Best thing done here is no insert or delete, i.e. a write.  */
 	  --i, --j;
-	  xassert (i >= 0 && i < window_size);
-	  xassert (j >= 0 && j < window_size);
+	  eassert (i >= 0 && i < window_size);
+	  eassert (j >= 0 && j < window_size);
 	  copy_from[i] = j;
 	  retained_p[j] = 1;
 
@@ -368,7 +368,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
     }
 
   for (k = 0; k < window_size; ++k)
-    xassert (copy_from[k] >= 0 && copy_from[k] < window_size);
+    eassert (copy_from[k] >= 0 && copy_from[k] < window_size);
 
   /* Perform the row swizzling.  */
   mirrored_line_dance (current_matrix, unchanged_at_top, window_size,
@@ -728,7 +728,7 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 	     place they belong.  */
 	  int n_to_write = p->writecount;
 	  write_follows_p = 1;
-	  xassert (n_to_write > 0);
+	  eassert (n_to_write > 0);
 
 	  if (i > j)
 	    {

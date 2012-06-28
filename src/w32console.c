@@ -616,7 +616,7 @@ w32_face_attributes (struct frame *f, int face_id)
   WORD char_attr;
   struct face *face = FACE_FROM_ID (f, face_id);
 
-  xassert (face != NULL);
+  eassert (face != NULL);
 
   char_attr = char_attr_normal;
 

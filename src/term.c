@@ -1459,7 +1459,7 @@ append_glyph (struct it *it)
   struct glyph *glyph, *end;
   int i;
 
-  xassert (it->glyph_row);
+  eassert (it->glyph_row);
   glyph = (it->glyph_row->glyphs[it->area]
 	   + it->glyph_row->used[it->area]);
   end = it->glyph_row->glyphs[1 + it->area];
@@ -1546,7 +1546,7 @@ produce_glyphs (struct it *it)
   /* If a hook is installed, let it do the work.  */
 
   /* Nothing but characters are supported on terminal frames.  */
-  xassert (it->what == IT_CHARACTER
+  eassert (it->what == IT_CHARACTER
 	   || it->what == IT_COMPOSITION
 	   || it->what == IT_STRETCH
 	   || it->what == IT_GLYPHLESS);
@@ -1633,7 +1633,7 @@ produce_glyphs (struct it *it)
 	{
 	  Lisp_Object acronym = lookup_glyphless_char_display (-1, it);
 
-	  xassert (it->what == IT_GLYPHLESS);
+	  eassert (it->what == IT_GLYPHLESS);
 	  produce_glyphless_glyph (it, 1, acronym);
 	}
     }
@@ -1657,7 +1657,7 @@ append_composite_glyph (struct it *it)
 {
   struct glyph *glyph;
 
-  xassert (it->glyph_row);
+  eassert (it->glyph_row);
   glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
   if (glyph < it->glyph_row->glyphs[1 + it->area])
     {
@@ -1749,7 +1749,7 @@ append_glyphless_glyph (struct it *it, int face_id, const char *str)
   struct glyph *glyph, *end;
   int i;
 
-  xassert (it->glyph_row);
+  eassert (it->glyph_row);
   glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
   end = it->glyph_row->glyphs[1 + it->area];
 
@@ -1871,7 +1871,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	}
       else
 	{
-	  xassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEX_CODE);
+	  eassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEX_CODE);
 	  len = (it->c < 0x10000 ? sprintf (buf, "\\u%04X", it->c)
 		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "\\U%06X", it->c)
 		 : sprintf (buf, "\\x%06X", it->c));
@@ -2067,7 +2067,7 @@ turn_off_face (struct frame *f, int face_id)
   struct face *face = FACE_FROM_ID (f, face_id);
   struct tty_display_info *tty = FRAME_TTY (f);
 
-  xassert (face != NULL);
+  eassert (face != NULL);
 
   if (tty->TS_exit_attribute_mode)
     {

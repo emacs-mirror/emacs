@@ -4555,7 +4555,7 @@ update_frame_tool_bar (FRAME_PTR f)
                        ? TOOL_BAR_IMAGE_DISABLED_SELECTED
                        : TOOL_BAR_IMAGE_DISABLED_DESELECTED);
 
-              xassert (ASIZE (image) >= idx);
+              eassert (ASIZE (image) >= idx);
               image = AREF (image, idx);
             }
           else

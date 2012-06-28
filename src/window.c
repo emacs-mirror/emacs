@@ -2035,7 +2035,7 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf
     candidate_p = 1;
   else if (NILP (all_frames))
     {
-      xassert (WINDOWP (owindow));
+      eassert (WINDOWP (owindow));
       candidate_p = EQ (w->frame, XWINDOW (owindow)->frame);
     }
   else if (EQ (all_frames, Qvisible))
@@ -4010,8 +4010,8 @@ grow_mini_window (struct window *w, int delta)
   struct window *r;
   Lisp_Object root, value;
 
-  xassert (MINI_WINDOW_P (w));
-  xassert (delta >= 0);
+  eassert (MINI_WINDOW_P (w));
+  eassert (delta >= 0);
 
   root = FRAME_ROOT_WINDOW (f);
   r = XWINDOW (root);
@@ -4043,7 +4043,7 @@ shrink_mini_window (struct window *w)
   Lisp_Object root, value;
   EMACS_INT size;
 
-  xassert (MINI_WINDOW_P (w));
+  eassert (MINI_WINDOW_P (w));
 
   size = XINT (w->total_lines);
   if (size > 1)
@@ -4721,7 +4721,7 @@ scroll_command (Lisp_Object n, int direction)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  xassert (eabs (direction) == 1);
+  eassert (eabs (direction) == 1);
 
   /* If selected window's buffer isn't current, make it current for
      the moment.  But don't screw up if window_scroll gets an error.  */
@@ -5686,7 +5686,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  if (NILP (leaf_windows[i]->buffer))
 	    {
 	      /* Assert it's not reused as a combination.  */
-	      xassert (NILP (leaf_windows[i]->hchild)
+	      eassert (NILP (leaf_windows[i]->hchild)
 		       && NILP (leaf_windows[i]->vchild));
 	      free_window_matrices (leaf_windows[i]);
 	    }

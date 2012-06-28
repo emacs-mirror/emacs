@@ -129,7 +129,7 @@ discard_menu_items (void)
       menu_items = Qnil;
       menu_items_allocated = 0;
     }
-  xassert (NILP (menu_items_inuse));
+  eassert (NILP (menu_items_inuse));
 }
 
 #ifdef HAVE_NS

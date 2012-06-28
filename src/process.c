@@ -353,7 +353,7 @@ static struct fd_callback_data
 void
 add_read_fd (int fd, fd_callback func, void *data)
 {
-  xassert (fd < MAXDESC);
+  eassert (fd < MAXDESC);
   add_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].func = func;
@@ -366,7 +366,7 @@ add_read_fd (int fd, fd_callback func, void *data)
 void
 delete_read_fd (int fd)
 {
-  xassert (fd < MAXDESC);
+  eassert (fd < MAXDESC);
   delete_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].condition &= ~FOR_READ;
@@ -383,7 +383,7 @@ delete_read_fd (int fd)
 void
 add_write_fd (int fd, fd_callback func, void *data)
 {
-  xassert (fd < MAXDESC);
+  eassert (fd < MAXDESC);
   FD_SET (fd, &write_mask);
   if (fd > max_input_desc)
     max_input_desc = fd;
@@ -400,7 +400,7 @@ delete_write_fd (int fd)
 {
   int lim = max_input_desc;
 
-  xassert (fd < MAXDESC);
+  eassert (fd < MAXDESC);
   FD_CLR (fd, &write_mask);
   fd_callback_info[fd].condition &= ~FOR_WRITE;
   if (fd_callback_info[fd].condition == 0)

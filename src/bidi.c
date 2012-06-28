@@ -149,7 +149,7 @@ bidi_get_type (int ch, bidi_dir_t override)
 static inline void
 bidi_check_type (bidi_type_t type)
 {
-  xassert (UNKNOWN_BT <= type && type <= NEUTRAL_ON);
+  eassert (UNKNOWN_BT <= type && type <= NEUTRAL_ON);
 }
 
 /* Given a bidi TYPE of a character, return its category.  */
@@ -263,7 +263,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override)
 {
   bidi_it->stack_idx++;
-  xassert (bidi_it->stack_idx < BIDI_MAXLEVEL);
+  eassert (bidi_it->stack_idx < BIDI_MAXLEVEL);
   bidi_it->level_stack[bidi_it->stack_idx].level = level;
   bidi_it->level_stack[bidi_it->stack_idx].override = override;
 }
@@ -458,7 +458,7 @@ bidi_cache_find_level_change (int level, int dir, int before)
       ptrdiff_t i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
       int incr = before ? 1 : 0;
 
-      xassert (!dir || bidi_cache_last_idx >= 0);
+      eassert (!dir || bidi_cache_last_idx >= 0);
 
       if (!dir)
 	dir = -1;
@@ -616,7 +616,7 @@ bidi_push_it (struct bidi_it *bidi_it)
   memcpy (&bidi_cache[bidi_cache_idx++], bidi_it, sizeof (struct bidi_it));
 
   /* Push the current cache start onto the stack.  */
-  xassert (bidi_cache_sp < IT_STACK_SIZE);
+  eassert (bidi_cache_sp < IT_STACK_SIZE);
   bidi_cache_start_stack[bidi_cache_sp++] = bidi_cache_start;
 
   /* Start a new level of cache, and make it empty.  */
@@ -1958,7 +1958,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	      case STRONG_AL:
 		/* Actually, STRONG_AL cannot happen here, because
 		   bidi_resolve_weak converts it to STRONG_R, per W3.  */
-		xassert (type != STRONG_AL);
+		eassert (type != STRONG_AL);
 		next_type = type;
 		break;
 	      case WEAK_EN:

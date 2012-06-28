@@ -733,7 +733,7 @@ vox_configure (struct sound_device *sd)
 {
   int val;
 
-  xassert (sd->fd >= 0);
+  eassert (sd->fd >= 0);
 
   /* On GNU/Linux, it seems that the device driver doesn't like to be
      interrupted by a signal.  Block the ones we know to cause
@@ -962,7 +962,7 @@ alsa_configure (struct sound_device *sd)
   struct alsa_params *p = (struct alsa_params *) sd->data;
   snd_pcm_uframes_t buffer_size;
 
-  xassert (p->handle != 0);
+  eassert (p->handle != 0);
 
   err = snd_pcm_hw_params_malloc (&p->hwparams);
   if (err < 0)

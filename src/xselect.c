@@ -1359,7 +1359,7 @@ x_get_window_property (Display *display, Window window, Atom property,
 	break;
 
       bytes_per_item = *actual_format_ret >> 3;
-      xassert (*actual_size_ret <= buffer_size / bytes_per_item);
+      eassert (*actual_size_ret <= buffer_size / bytes_per_item);
 
       /* The man page for XGetWindowProperty says:
          "If the returned format is 32, the returned data is represented

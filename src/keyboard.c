@@ -1752,7 +1752,7 @@ adjust_point_for_property (ptrdiff_t last_pt, int modified)
 	  && (beg < PT /* && end > PT   <- It's always the case.  */
 	      || (beg <= PT && STRINGP (val) && SCHARS (val) == 0)))
 	{
-	  xassert (end > PT);
+	  eassert (end > PT);
 	  SET_PT (PT < last_pt
 		  ? (STRINGP (val) && SCHARS (val) == 0
 		     ? max (beg - 1, BEGV)
@@ -1834,7 +1834,7 @@ adjust_point_for_property (ptrdiff_t last_pt, int modified)
 #if 0 /* This assertion isn't correct, because SET_PT may end up setting
 	 the point to something other than its argument, due to
 	 point-motion hooks, intangibility, etc.  */
-	  xassert (PT == beg || PT == end);
+	  eassert (PT == beg || PT == end);
 #endif
 
 	  /* Pretend the area doesn't exist if the buffer is not

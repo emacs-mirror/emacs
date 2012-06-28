@@ -419,9 +419,9 @@ margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin
   return n;
 }
 
-#if XASSERTS
+#ifdef ENABLE_CHECKING
 /* Return non-zero if ROW's hash value is correct, zero if not.  */
-int
+static int
 verify_row_hash (struct glyph_row *row)
 {
   return row->hash == row_hash (row);
@@ -480,7 +480,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
     {
       left = margin_glyphs_to_reserve (w, dim.width, w->left_margin_cols);
       right = margin_glyphs_to_reserve (w, dim.width, w->right_margin_cols);
-      xassert (left >= 0 && right >= 0);
+      eassert (left >= 0 && right >= 0);
       marginal_areas_changed_p = (left != matrix->left_margin_glyphs
 				  || right != matrix->right_margin_glyphs);
 
@@ -513,7 +513,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
      each row into the glyph pool.  */
   if (matrix->pool)
     {
-      xassert (matrix->pool->glyphs);
+      eassert (matrix->pool->glyphs);
 
       if (w)
 	{
@@ -602,14 +602,14 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	    }
 	}
 
-      xassert (left >= 0 && right >= 0);
+      eassert (left >= 0 && right >= 0);
       matrix->left_margin_glyphs = left;
       matrix->right_margin_glyphs = right;
     }
 
   /* Number of rows to be used by MATRIX.  */
   matrix->nrows = dim.height;
-  xassert (matrix->nrows >= 0);
+  eassert (matrix->nrows >= 0);
 
   if (w)
     {
@@ -751,9 +751,9 @@ increment_matrix_positions (struct glyph_matrix *matrix, int start, int end,
 			    ptrdiff_t delta, ptrdiff_t delta_bytes)
 {
   /* Check that START and END are reasonable values.  */
-  xassert (start >= 0 && start <= matrix->nrows);
-  xassert (end >= 0 && end <= matrix->nrows);
-  xassert (start <= end);
+  eassert (start >= 0 && start <= matrix->nrows);
+  eassert (end >= 0 && end <= matrix->nrows);
+  eassert (start <= end);
 
   for (; start < end; ++start)
     increment_row_positions (matrix->rows + start, delta, delta_bytes);
@@ -767,9 +767,9 @@ increment_matrix_positions (struct glyph_matrix *matrix, int start, int end,
 void
 enable_glyph_matrix_rows (struct glyph_matrix *matrix, int start, int end, int enabled_p)
 {
-  xassert (start <= end);
-  xassert (start >= 0 && start < matrix->nrows);
-  xassert (end >= 0 && end <= matrix->nrows);
+  eassert (start <= end);
+  eassert (start >= 0 && start < matrix->nrows);
+  eassert (end >= 0 && end <= matrix->nrows);
 
   for (; start < end; ++start)
     matrix->rows[start].enabled_p = enabled_p != 0;
@@ -806,9 +806,9 @@ shift_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int start, in
 {
   int min_y, max_y;
 
-  xassert (start <= end);
-  xassert (start >= 0 && start < matrix->nrows);
-  xassert (end >= 0 && end <= matrix->nrows);
+  eassert (start <= end);
+  eassert (start >= 0 && start < matrix->nrows);
+  eassert (end >= 0 && end <= matrix->nrows);
 
   min_y = WINDOW_HEADER_LINE_HEIGHT (w);
   max_y = WINDOW_BOX_HEIGHT_NO_MODE_LINE (w);
@@ -852,7 +852,7 @@ clear_current_matrices (register struct frame *f)
     clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
 
   /* Clear current window matrices.  */
-  xassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
+  eassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
   clear_window_matrices (XWINDOW (FRAME_ROOT_WINDOW (f)), 0);
 }
 
@@ -872,7 +872,7 @@ clear_desired_matrices (register struct frame *f)
     clear_glyph_matrix (XWINDOW (f->tool_bar_window)->desired_matrix);
 
   /* Do it for window matrices.  */
-  xassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
+  eassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
   clear_window_matrices (XWINDOW (FRAME_ROOT_WINDOW (f)), 1);
 }
 
@@ -887,12 +887,12 @@ clear_window_matrices (struct window *w, int desired_p)
     {
       if (!NILP (w->hchild))
 	{
-	  xassert (WINDOWP (w->hchild));
+	  eassert (WINDOWP (w->hchild));
 	  clear_window_matrices (XWINDOW (w->hchild), desired_p);
 	}
       else if (!NILP (w->vchild))
 	{
-	  xassert (WINDOWP (w->vchild));
+	  eassert (WINDOWP (w->vchild));
 	  clear_window_matrices (XWINDOW (w->vchild), desired_p);
 	}
       else
@@ -1163,7 +1163,7 @@ find_glyph_row_slice (struct glyph_matrix *window_matrix,
 {
   int i;
 
-  xassert (row >= 0 && row < frame_matrix->nrows);
+  eassert (row >= 0 && row < frame_matrix->nrows);
 
   for (i = 0; i < window_matrix->nrows; ++i)
     if (glyph_row_slice_p (window_matrix->rows + i,
@@ -1291,8 +1291,8 @@ line_draw_cost (struct glyph_matrix *matrix, int vpos)
 static inline int
 row_equal_p (struct glyph_row *a, struct glyph_row *b, int mouse_face_p)
 {
-  xassert (verify_row_hash (a));
-  xassert (verify_row_hash (b));
+  eassert (verify_row_hash (a));
+  eassert (verify_row_hash (b));
 
   if (a == b)
     return 1;
@@ -1394,7 +1394,7 @@ free_glyph_pool (struct glyph_pool *pool)
     {
       /* More freed than allocated?  */
       --glyph_pool_count;
-      xassert (glyph_pool_count >= 0);
+      eassert (glyph_pool_count >= 0);
 
       xfree (pool->glyphs);
       xfree (pool);
@@ -1480,7 +1480,7 @@ check_matrix_pointer_lossage (struct glyph_matrix *matrix)
 
   for (i = 0; i < matrix->nrows; ++i)
     for (j = 0; j < matrix->nrows; ++j)
-      xassert (i == j
+      eassert (i == j
 	       || (matrix->rows[i].glyphs[TEXT_AREA]
 		   != matrix->rows[j].glyphs[TEXT_AREA]));
 }
@@ -1491,8 +1491,8 @@ check_matrix_pointer_lossage (struct glyph_matrix *matrix)
 struct glyph_row *
 matrix_row (struct glyph_matrix *matrix, int row)
 {
-  xassert (matrix && matrix->rows);
-  xassert (row >= 0 && row < matrix->nrows);
+  eassert (matrix && matrix->rows);
+  eassert (row >= 0 && row < matrix->nrows);
 
   /* That's really too slow for normal testing because this function
      is called almost everywhere.  Although---it's still astonishingly
@@ -1539,9 +1539,9 @@ check_matrix_invariants (struct window *w)
 	last_text_row = row;
 
       /* Check that character and byte positions are in sync.  */
-      xassert (MATRIX_ROW_START_BYTEPOS (row)
+      eassert (MATRIX_ROW_START_BYTEPOS (row)
 	       == CHAR_TO_BYTE (MATRIX_ROW_START_CHARPOS (row)));
-      xassert (BYTEPOS (row->start.pos)
+      eassert (BYTEPOS (row->start.pos)
 	       == CHAR_TO_BYTE (CHARPOS (row->start.pos)));
 
       /* CHAR_TO_BYTE aborts when invoked for a position > Z.  We can
@@ -1549,9 +1549,9 @@ check_matrix_invariants (struct window *w)
 	 displaying something like `[Sole completion]' at its end.  */
       if (MATRIX_ROW_END_CHARPOS (row) < BUF_ZV (current_buffer))
 	{
-	  xassert (MATRIX_ROW_END_BYTEPOS (row)
+	  eassert (MATRIX_ROW_END_BYTEPOS (row)
 		   == CHAR_TO_BYTE (MATRIX_ROW_END_CHARPOS (row)));
-	  xassert (BYTEPOS (row->end.pos)
+	  eassert (BYTEPOS (row->end.pos)
 		   == CHAR_TO_BYTE (CHARPOS (row->end.pos)));
 	}
 
@@ -1559,18 +1559,18 @@ check_matrix_invariants (struct window *w)
 	 of next row.  */
       if (next->enabled_p && MATRIX_ROW_DISPLAYS_TEXT_P (next))
 	{
-	  xassert (MATRIX_ROW_END_CHARPOS (row)
+	  eassert (MATRIX_ROW_END_CHARPOS (row)
 		   == MATRIX_ROW_START_CHARPOS (next));
-	  xassert (MATRIX_ROW_END_BYTEPOS (row)
+	  eassert (MATRIX_ROW_END_BYTEPOS (row)
 		   == MATRIX_ROW_START_BYTEPOS (next));
-	  xassert (CHARPOS (row->end.pos) == CHARPOS (next->start.pos));
-	  xassert (BYTEPOS (row->end.pos) == BYTEPOS (next->start.pos));
+	  eassert (CHARPOS (row->end.pos) == CHARPOS (next->start.pos));
+	  eassert (BYTEPOS (row->end.pos) == BYTEPOS (next->start.pos));
 	}
       row = next;
     }
 
-  xassert (w->current_matrix->nrows == w->desired_matrix->nrows);
-  xassert (w->desired_matrix->rows != NULL);
+  eassert (w->current_matrix->nrows == w->desired_matrix->nrows);
+  eassert (w->desired_matrix->rows != NULL);
   set_buffer_temp (saved);
 }
 
@@ -1997,15 +1997,15 @@ fake_current_matrices (Lisp_Object window)
 	  struct glyph_matrix *m = w->current_matrix;
 	  struct glyph_matrix *fm = f->current_matrix;
 
-	  xassert (m->matrix_h == WINDOW_TOTAL_LINES (w));
-	  xassert (m->matrix_w == WINDOW_TOTAL_COLS (w));
+	  eassert (m->matrix_h == WINDOW_TOTAL_LINES (w));
+	  eassert (m->matrix_w == WINDOW_TOTAL_COLS (w));
 
 	  for (i = 0; i < m->matrix_h; ++i)
 	    {
 	      struct glyph_row *r = m->rows + i;
 	      struct glyph_row *fr = fm->rows + i + WINDOW_TOP_EDGE_LINE (w);
 
-	      xassert (r->glyphs[TEXT_AREA] >= fr->glyphs[TEXT_AREA]
+	      eassert (r->glyphs[TEXT_AREA] >= fr->glyphs[TEXT_AREA]
 		       && r->glyphs[LAST_AREA] <= fr->glyphs[LAST_AREA]);
 
 	      r->enabled_p = fr->enabled_p;
@@ -2140,7 +2140,7 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
       /* Size of frame matrices must equal size of frame.  Note
 	 that we are called for X frames with window widths NOT equal
 	 to the frame width (from CHANGE_FRAME_SIZE_1).  */
-      xassert (matrix_dim.width == FRAME_COLS (f)
+      eassert (matrix_dim.width == FRAME_COLS (f)
 	       && matrix_dim.height == FRAME_LINES (f));
 
       /* Pointers to glyph memory in glyph rows are exchanged during
@@ -2184,7 +2184,7 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
 static void
 adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 {
-  xassert (FRAME_WINDOW_P (f) && FRAME_LIVE_P (f));
+  eassert (FRAME_WINDOW_P (f) && FRAME_LIVE_P (f));
 
   /* Allocate/reallocate window matrices.  */
   allocate_matrices_for_window_redisplay (XWINDOW (FRAME_ROOT_WINDOW (f)));
@@ -2469,7 +2469,7 @@ build_frame_matrix (struct frame *f)
   int i;
 
   /* F must have a frame matrix when this function is called.  */
-  xassert (!FRAME_WINDOW_P (f));
+  eassert (!FRAME_WINDOW_P (f));
 
   /* Clear all rows in the frame matrix covered by window matrices.
      Menu bar lines are not covered by windows.  */
@@ -2585,7 +2585,7 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 	}
       else
 	{
-	  xassert (window_row->enabled_p);
+	  eassert (window_row->enabled_p);
 
 	  /* Only when a desired row has been displayed, we want
 	     the corresponding frame row to be updated.  */
@@ -2602,7 +2602,7 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 #if GLYPH_DEBUG
 	  /* Window row window_y must be a slice of frame row
 	     frame_y.  */
-	  xassert (glyph_row_slice_p (window_row, frame_row));
+	  eassert (glyph_row_slice_p (window_row, frame_row));
 
 	  /* If rows are in sync, we don't have to copy glyphs because
 	     frame and window share glyphs.  */
@@ -2829,8 +2829,8 @@ mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlin
     {
       int enabled_before_p = new_rows[i].enabled_p;
 
-      xassert (i + unchanged_at_top < matrix->nrows);
-      xassert (unchanged_at_top + copy_from[i] < matrix->nrows);
+      eassert (i + unchanged_at_top < matrix->nrows);
+      eassert (unchanged_at_top + copy_from[i] < matrix->nrows);
       new_rows[i] = old_rows[copy_from[i]];
       new_rows[i].enabled_p = enabled_before_p;
 
@@ -2857,8 +2857,8 @@ sync_window_with_frame_matrix_rows (struct window *w)
   int left, right, x, width;
 
   /* Preconditions: W must be a leaf window on a tty frame.  */
-  xassert (NILP (w->hchild) && NILP (w->vchild));
-  xassert (!FRAME_WINDOW_P (f));
+  eassert (NILP (w->hchild) && NILP (w->vchild));
+  eassert (!FRAME_WINDOW_P (f));
 
   left = margin_glyphs_to_reserve (w, 1, w->left_margin_cols);
   right = margin_glyphs_to_reserve (w, 1, w->right_margin_cols);
@@ -3098,10 +3098,10 @@ check_matrix_pointers (struct glyph_matrix *window_matrix,
 static int
 window_to_frame_vpos (struct window *w, int vpos)
 {
-  xassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
-  xassert (vpos >= 0 && vpos <= w->desired_matrix->nrows);
+  eassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
+  eassert (vpos >= 0 && vpos <= w->desired_matrix->nrows);
   vpos += WINDOW_TOP_EDGE_LINE (w);
-  xassert (vpos >= 0 && vpos <= FRAME_LINES (XFRAME (w->frame)));
+  eassert (vpos >= 0 && vpos <= FRAME_LINES (XFRAME (w->frame)));
   return vpos;
 }
 
@@ -3112,7 +3112,7 @@ window_to_frame_vpos (struct window *w, int vpos)
 static int
 window_to_frame_hpos (struct window *w, int hpos)
 {
-  xassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
+  eassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
   hpos += WINDOW_LEFT_EDGE_COL (w);
   return hpos;
 }
@@ -3531,7 +3531,7 @@ update_window (struct window *w, int force_p)
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #if GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
-  xassert (FRAME_WINDOW_P (XFRAME (WINDOW_FRAME (w))));
+  eassert (FRAME_WINDOW_P (XFRAME (WINDOW_FRAME (w))));
 #endif
 
   /* Check pending input the first time so that we can quickly return.  */
@@ -3930,7 +3930,7 @@ update_text_area (struct window *w, int vpos)
 	     has to be cleared, if and only if we did a write_glyphs
 	     above.  This is made sure by setting desired_stop_pos
 	     appropriately above.  */
-	  xassert (i < desired_row->used[TEXT_AREA]
+	  eassert (i < desired_row->used[TEXT_AREA]
 		   || ((desired_row->used[TEXT_AREA]
 			== current_row->used[TEXT_AREA])
 		       && MATRIX_ROW_EXTENDS_FACE_P (current_row)));
@@ -4000,7 +4000,7 @@ update_window_line (struct window *w, int vpos, int *mouse_face_overwritten_p)
   if (desired_row->mode_line_p
       || desired_row->visible_height > 0)
     {
-      xassert (desired_row->enabled_p);
+      eassert (desired_row->enabled_p);
 
       /* Update display of the left margin area, if there is one.  */
       if (!desired_row->full_width_p
@@ -4058,7 +4058,7 @@ set_window_cursor_after_update (struct window *w)
   int cx, cy, vpos, hpos;
 
   /* Not intended for frame matrix updates.  */
-  xassert (FRAME_WINDOW_P (f));
+  eassert (FRAME_WINDOW_P (f));
 
   if (cursor_in_echo_area
       && !NILP (echo_area_buffer[0])
@@ -4218,7 +4218,7 @@ add_row_entry (struct glyph_row *row)
   ptrdiff_t i = row->hash % row_table_size;
 
   entry = row_table[i];
-  xassert (entry || verify_row_hash (row));
+  eassert (entry || verify_row_hash (row));
   while (entry && !row_equal_p (entry->row, row, 1))
     entry = entry->next;
 
@@ -4432,7 +4432,7 @@ scrolling_window (struct window *w, int header_line_p)
 
   for (i = first_new; i < last_new; ++i)
     {
-      xassert (MATRIX_ROW_ENABLED_P (desired_matrix, i));
+      eassert (MATRIX_ROW_ENABLED_P (desired_matrix, i));
       entry = add_row_entry (MATRIX_ROW (desired_matrix, i));
       ++entry->new_uses;
       entry->new_line_number = i;
@@ -4612,7 +4612,7 @@ scrolling_window (struct window *w, int header_line_p)
 	       row.  But thanks to the truncation code in the
 	       preceding for-loop, we no longer have such an overlap,
 	       and thus the assigned row should always be enabled.  */
-	    xassert (to->enabled_p);
+	    eassert (to->enabled_p);
 	    from->enabled_p = 0;
 	    to->overlapped_p = to_overlapped_p;
 	  }
@@ -4650,7 +4650,7 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
   int pause_p;
   int preempt_count = baud_rate / 2400 + 1;
 
-  xassert (current_matrix && desired_matrix);
+  eassert (current_matrix && desired_matrix);
 
   if (baud_rate != FRAME_COST_BAUD_RATE (f))
     calculate_costs (f);

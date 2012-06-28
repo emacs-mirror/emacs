@@ -1,3 +1,7 @@
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in (ENABLE_CHECKING): Update comment.
+
 2012-06-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in: Don't check for sys/select.h, sys/time.h, utime.h.

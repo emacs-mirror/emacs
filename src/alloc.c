@@ -787,7 +787,7 @@ verify (INT_MAX <= PTRDIFF_MAX);
 void *
 xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  xassert (0 <= nitems && 0 < item_size);
+  eassert (0 <= nitems && 0 < item_size);
   if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
     memory_full (SIZE_MAX);
   return xmalloc (nitems * item_size);
@@ -800,7 +800,7 @@ xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 void *
 xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  xassert (0 <= nitems && 0 < item_size);
+  eassert (0 <= nitems && 0 < item_size);
   if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
     memory_full (SIZE_MAX);
   return xrealloc (pa, nitems * item_size);
@@ -850,7 +850,7 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
   ptrdiff_t nitems_incr_max = n_max - n;
   ptrdiff_t incr = max (nitems_incr_min, min (incr_estimate, nitems_incr_max));
 
-  xassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
+  eassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
   if (! pa)
     *nitems = 0;
   if (nitems_incr_max < incr)
@@ -2220,7 +2220,7 @@ compact_small_strings (void)
   for (b = oldest_sblock; b; b = b->next)
     {
       end = b->next_free;
-      xassert ((char *) end <= (char *) b + SBLOCK_SIZE);
+      eassert ((char *) end <= (char *) b + SBLOCK_SIZE);
 
       for (from = &b->first_data; from < end; from = from_end)
 	{
@@ -2271,7 +2271,7 @@ compact_small_strings (void)
 	      /* Copy, and update the string's `data' pointer.  */
 	      if (from != to)
 		{
-		  xassert (tb != b || to < from);
+		  eassert (tb != b || to < from);
 		  memmove (to, from, nbytes + GC_STRING_EXTRA);
 		  to->string->data = SDATA_DATA (to);
 		}

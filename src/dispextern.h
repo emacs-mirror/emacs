@@ -128,25 +128,12 @@ enum window_part
 #define GLYPH_DEBUG 0
 #endif
 
-/* If XASSERTS is non-zero, additional consistency checks are activated.
-   Turn it off by defining the macro XASSERTS to zero.  */
-
-#ifndef XASSERTS
-#define XASSERTS 0
-#endif
-
 /* Macros to include code only if GLYPH_DEBUG != 0.  */
 
 #if GLYPH_DEBUG
 #define IF_DEBUG(X)	X
 #else
 #define IF_DEBUG(X)	(void) 0
-#endif
-
-#if XASSERTS
-#define xassert(X)	do {if (!(X)) abort ();} while (0)
-#else
-#define xassert(X)	(void) 0
 #endif
 
 /* Macro for displaying traces of redisplay.  If Emacs was compiled

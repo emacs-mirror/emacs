@@ -24,8 +24,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* #define FONTSET_DEBUG */
-
 #include <config.h>
 #include <stdio.h>
 #include <setjmp.h>
@@ -54,13 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 
 #include "font.h"
-
-#undef xassert
-#ifdef FONTSET_DEBUG
-#define xassert(X)	do {if (!(X)) abort ();} while (0)
-#else   /* not FONTSET_DEBUG */
-#define xassert(X)	(void) 0
-#endif	/* not FONTSET_DEBUG */
 
 /* FONTSET
 
@@ -206,7 +197,7 @@ static void accumulate_script_ranges (Lisp_Object, Lisp_Object,
                                       Lisp_Object);
 static void set_fontset_font (Lisp_Object, Lisp_Object);
 
-#ifdef FONTSET_DEBUG
+#ifdef ENABLE_CHECKING
 
 /* Return 1 if ID is a valid fontset id, else return 0.  */
 
@@ -459,7 +450,7 @@ fontset_get_font_group (Lisp_Object fontset, int c)
   Lisp_Object base_fontset;
   int from = 0, to = MAX_CHAR, i;
 
-  xassert (! BASE_FONTSET_P (fontset));
+  eassert (! BASE_FONTSET_P (fontset));
   if (c >= 0)
     font_group = CHAR_TABLE_REF (fontset, c);
   else
@@ -848,7 +839,7 @@ free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
   if (0)
     for (tail = FONTSET_OBJLIST (fontset); CONSP (tail); tail = XCDR (tail))
       {
-	xassert (FONT_OBJECT_P (XCAR (tail)));
+	eassert (FONT_OBJECT_P (XCAR (tail)));
 	font_close_object (f, XCAR (tail));
       }
 #endif
@@ -865,8 +856,8 @@ free_face_fontset (FRAME_PTR f, struct face *face)
   fontset = FONTSET_FROM_ID (face->fontset);
   if (NILP (fontset))
     return;
-  xassert (! BASE_FONTSET_P (fontset));
-  xassert (f == XFRAME (FONTSET_FRAME (fontset)));
+  eassert (! BASE_FONTSET_P (fontset));
+  eassert (f == XFRAME (FONTSET_FRAME (fontset)));
   free_realized_fontset (f, fontset);
   ASET (Vfontset_table, face->fontset, Qnil);
   if (face->fontset < next_fontset_id)
@@ -876,8 +867,8 @@ free_face_fontset (FRAME_PTR f, struct face *face)
       int id = XINT (FONTSET_ID (FONTSET_DEFAULT (fontset)));
 
       fontset = AREF (Vfontset_table, id);
-      xassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
-      xassert (f == XFRAME (FONTSET_FRAME (fontset)));
+      eassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
+      eassert (f == XFRAME (FONTSET_FRAME (fontset)));
       free_realized_fontset (f, fontset);
       ASET (Vfontset_table, id, Qnil);
       if (id < next_fontset_id)
@@ -924,9 +915,9 @@ face_for_char (FRAME_PTR f, struct face *face, int c, int pos, Lisp_Object objec
   if (ASCII_CHAR_P (c) || face->fontset < 0)
     return face->ascii_face->id;
 
-  xassert (fontset_id_valid_p (face->fontset));
+  eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);
-  xassert (!BASE_FONTSET_P (fontset));
+  eassert (!BASE_FONTSET_P (fontset));
 
   if (pos < 0)
     {
@@ -973,7 +964,7 @@ face_for_char (FRAME_PTR f, struct face *face, int c, int pos, Lisp_Object objec
 	  FONTSET_NOFONT_FACE (fontset) = make_number (face_id);
 	}
     }
-  xassert (face_id >= 0);
+  eassert (face_id >= 0);
   return face_id;
 }
 
@@ -992,9 +983,9 @@ font_for_char (struct face *face, int c, int pos, Lisp_Object object)
       return font_object;
     }
 
-  xassert (fontset_id_valid_p (face->fontset));
+  eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);
-  xassert (!BASE_FONTSET_P (fontset));
+  eassert (!BASE_FONTSET_P (fontset));
   if (pos < 0)
     {
       id = -1;
@@ -2104,7 +2095,7 @@ DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
 }
 
 
-#ifdef FONTSET_DEBUG
+#ifdef ENABLE_CHECKING
 
 Lisp_Object dump_fontset (Lisp_Object) EXTERNALLY_VISIBLE;
 
@@ -2154,7 +2145,7 @@ DEFUN ("fontset-list-all", Ffontset_list_all, Sfontset_list_all, 0, 0, 0,
       val = Fcons (dump_fontset (AREF (Vfontset_table, i)), val);
   return (Fnreverse (val));
 }
-#endif	/* FONTSET_DEBUG */
+#endif	/* ENABLE_CHECKING */
 
 void
 syms_of_fontset (void)
@@ -2245,7 +2236,7 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_info);
   defsubr (&Sfontset_font);
   defsubr (&Sfontset_list);
-#ifdef FONTSET_DEBUG
+#ifdef ENABLE_CHECKING
   defsubr (&Sfontset_list_all);
 #endif
 }

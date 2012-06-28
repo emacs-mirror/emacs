@@ -1,3 +1,33 @@
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Generalize run-time debugging checks.
+	* dispextern.h (XASSERTS): Remove.
+	* fontset.c (xassert): Remove.
+	Convert from xassert to eassert.
+	* alloc.c: Convert from xassert to eassert.
+	* bidi.c: Likewise.
+	* dispnew.c: Likewise.
+	* fns.c: Likewise.
+	* fringe.c: Likewise.
+	* ftfont.c: Likewise.
+	* gtkutil.c: Likewise.
+	* image.c: Likewise.
+	* keyboard.c: Likewise.
+	* menu.c: Likewise.
+	* process.c: Likewise.
+	* scroll.c: Likewise.
+	* sound.c: Likewise.
+	* term.c: Likewise.
+	* w32console.c: Likewise.
+	* w32fns.c: Likewise.
+	* w32term.c: Likewise.
+	* window.c: Likewise.
+	* xdisp.c: Likewise.
+	* xfaces.c: Likewise.
+	* xfns.c: Likewise.
+	* xselect.c: Likewise.
+	* xterm.c: Likewise.
+
 2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (maybe_resize_hash_table): Output message when growing the

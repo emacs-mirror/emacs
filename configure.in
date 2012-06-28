@@ -284,7 +284,7 @@ IFS="$ac_save_IFS"
 
 if test x$ac_enable_checking != x ; then
   AC_DEFINE(ENABLE_CHECKING, 1,
-[Enable expensive run-time checking of data types?])
+[Define to 1 if expensive run-time data type and consistency checks are enabled.])
 fi
 if test x$ac_gc_check_stringbytes != x ; then
   AC_DEFINE(GC_CHECK_STRING_BYTES, 1,

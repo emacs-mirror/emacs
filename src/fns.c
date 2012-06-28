@@ -3434,8 +3434,8 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
   ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / sizeof *v->contents;
   ptrdiff_t n_max = (0 <= nitems_max && nitems_max < C_language_max
 		     ? nitems_max : C_language_max);
-  xassert (VECTORP (vec));
-  xassert (0 < incr_min && -1 <= nitems_max);
+  eassert (VECTORP (vec));
+  eassert (0 < incr_min && -1 <= nitems_max);
   old_size = ASIZE (vec);
   incr_max = n_max - old_size;
   incr = max (incr_min, min (old_size >> 1, incr_max));
@@ -3514,7 +3514,7 @@ static EMACS_UINT
 hashfn_eq (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
   EMACS_UINT hash = XUINT (key) ^ XTYPE (key);
-  xassert ((hash & ~INTMASK) == 0);
+  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3531,7 +3531,7 @@ hashfn_eql (struct Lisp_Hash_Table *h, Lisp_Object key)
     hash = sxhash (key, 0);
   else
     hash = XUINT (key) ^ XTYPE (key);
-  xassert ((hash & ~INTMASK) == 0);
+  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3544,7 +3544,7 @@ static EMACS_UINT
 hashfn_equal (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
   EMACS_UINT hash = sxhash (key, 0);
-  xassert ((hash & ~INTMASK) == 0);
+  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3605,11 +3605,11 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
   double index_float;
 
   /* Preconditions.  */
-  xassert (SYMBOLP (test));
-  xassert (INTEGERP (size) && XINT (size) >= 0);
-  xassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
+  eassert (SYMBOLP (test));
+  eassert (INTEGERP (size) && XINT (size) >= 0);
+  eassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
 	   || (FLOATP (rehash_size) && 1 < XFLOAT_DATA (rehash_size)));
-  xassert (FLOATP (rehash_threshold)
+  eassert (FLOATP (rehash_threshold)
 	   && 0 < XFLOAT_DATA (rehash_threshold)
 	   && XFLOAT_DATA (rehash_threshold) <= 1.0);
 
@@ -3667,8 +3667,8 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
   h->next_free = make_number (0);
 
   XSET_HASH_TABLE (table, h);
-  xassert (HASH_TABLE_P (table));
-  xassert (XHASH_TABLE (table) == h);
+  eassert (HASH_TABLE_P (table));
+  eassert (XHASH_TABLE (table) == h);
 
   /* Maybe add this hash table to the list of all weak hash tables.  */
   if (NILP (h->weak))
@@ -3843,7 +3843,7 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 {
   ptrdiff_t start_of_bucket, i;
 
-  xassert ((hash & ~INTMASK) == 0);
+  eassert ((hash & ~INTMASK) == 0);
 
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
@@ -3902,7 +3902,7 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 	  HASH_NEXT (h, i) = h->next_free;
 	  h->next_free = make_number (i);
 	  h->count--;
-	  xassert (h->count >= 0);
+	  eassert (h->count >= 0);
 	  break;
 	}
       else

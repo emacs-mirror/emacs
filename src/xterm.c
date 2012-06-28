@@ -715,7 +715,7 @@ x_after_update_window_line (struct glyph_row *desired_row)
   struct frame *f;
   int width, height;
 
-  xassert (w);
+  eassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     desired_row->redraw_fringe_bitmaps_p = 1;
@@ -1033,7 +1033,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
       s->gc = FRAME_X_DISPLAY_INFO (s->f)->scratch_cursor_gc;
 
     }
-  xassert (s->gc != 0);
+  eassert (s->gc != 0);
 }
 
 
@@ -1090,7 +1090,7 @@ x_set_glyph_string_gc (struct glyph_string *s)
     }
 
   /* GC must have been set.  */
-  xassert (s->gc != 0);
+  eassert (s->gc != 0);
 }
 
 
@@ -1691,8 +1691,8 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
       for (i = 0; i < ncolors; ++i)
 	{
 	  unsigned long pixel = colors[i].pixel;
-	  xassert (pixel < dpyinfo->ncolor_cells);
-	  xassert (dpyinfo->color_cells[pixel].pixel == pixel);
+	  eassert (pixel < dpyinfo->ncolor_cells);
+	  eassert (dpyinfo->color_cells[pixel].pixel == pixel);
 	  colors[i] = dpyinfo->color_cells[pixel];
 	}
     }
@@ -1850,7 +1850,7 @@ x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap, long un
   x_query_color (f, &color);
 
   /* Change RGB values by specified FACTOR.  Avoid overflow!  */
-  xassert (factor >= 0);
+  eassert (factor >= 0);
   new.red = min (0xffff, factor * color.red);
   new.green = min (0xffff, factor * color.green);
   new.blue = min (0xffff, factor * color.blue);
@@ -2562,7 +2562,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
 static void
 x_draw_stretch_glyph_string (struct glyph_string *s)
 {
-  xassert (s->first_glyph->type == STRETCH_GLYPH);
+  eassert (s->first_glyph->type == STRETCH_GLYPH);
 
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
@@ -3026,7 +3026,7 @@ x_delete_glyphs (struct frame *f, register int n)
 void
 x_clear_area (Display *dpy, Window window, int x, int y, int width, int height, int exposures)
 {
-  xassert (width > 0 && height > 0);
+  eassert (width > 0 && height > 0);
   XClearArea (dpy, window, x, y, width, height, exposures);
 }
 
@@ -9809,9 +9809,9 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 static void
 x_check_font (struct frame *f, struct font *font)
 {
-  xassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
+  eassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
   if (font->driver->check)
-    xassert (font->driver->check (f, font) == 0);
+    eassert (font->driver->check (f, font) == 0);
 }
 
 #endif /* GLYPH_DEBUG != 0 */

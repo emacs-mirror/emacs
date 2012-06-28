@@ -372,7 +372,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
     {
       entity = key;
       val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
-      xassert (CONSP (val));
+      eassert (CONSP (val));
       key = XCDR (val);
     }
   else
@@ -1325,7 +1325,7 @@ ftfont_close (FRAME_PTR f, struct font *font)
 
   val = Fcons (font->props[FONT_FILE_INDEX], make_number (ftfont_info->index));
   cache = ftfont_lookup_cache (val, FTFONT_CACHE_FOR_FACE);
-  xassert (CONSP (cache));
+  eassert (CONSP (cache));
   val = XCDR (cache);
   (XSAVE_VALUE (val)->integer)--;
   if (XSAVE_VALUE (val)->integer == 0)
