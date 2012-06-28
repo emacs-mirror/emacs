@@ -3244,7 +3244,7 @@ make_parent_window (Lisp_Object window, int horflag)
 
   o = XWINDOW (window);
   p = allocate_window ();
-  memcpy ((char *) p + sizeof (struct vectorlike_header), 
+  memcpy ((char *) p + sizeof (struct vectorlike_header),
 	  (char *) o + sizeof (struct vectorlike_header),
 	  sizeof (Lisp_Object) * VECSIZE (struct window));
   XSETWINDOW (parent, p);
@@ -4857,6 +4857,9 @@ specifies the window to scroll.  This takes precedence over
   return Qnil;
 }
 
+/* Scrolling amount must fit in both ptrdiff_t and Emacs fixnum.  */
+#define HSCROLL_MAX min (PTRDIFF_MAX, MOST_POSITIVE_FIXNUM)
+
 DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "^P\np",
        doc: /* Scroll selected window display ARG columns left.
 Default for ARG is window width minus 2.
@@ -4871,13 +4874,12 @@ by this function.  This happens in an interactive call.  */)
   Lisp_Object result;
   ptrdiff_t hscroll;
   struct window *w = XWINDOW (selected_window);
-
-  if (NILP (arg))
-    XSETFASTINT (arg, window_body_cols (w) - 2);
-  else
-    arg = Fprefix_numeric_value (arg);
-
-  hscroll = w->hscroll + XINT (arg);
+  EMACS_INT requested_arg = (NILP (arg)
+			     ? window_body_cols (w) - 2
+			     : XINT (Fprefix_numeric_value (arg)));
+  ptrdiff_t clipped_arg =
+    clip_to_bounds (- w->hscroll, requested_arg, HSCROLL_MAX - w->hscroll);
+  hscroll = w->hscroll + clipped_arg;
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
 
   if (!NILP (set_minimum))
@@ -4900,13 +4902,12 @@ by this function.  This happens in an interactive call.  */)
   Lisp_Object result;
   ptrdiff_t hscroll;
   struct window *w = XWINDOW (selected_window);
-
-  if (NILP (arg))
-    XSETFASTINT (arg, window_body_cols (w) - 2);
-  else
-    arg = Fprefix_numeric_value (arg);
-
-  hscroll = w->hscroll - XINT (arg);
+  EMACS_INT requested_arg = (NILP (arg)
+			     ? window_body_cols (w) - 2
+			     : XINT (Fprefix_numeric_value (arg)));
+  ptrdiff_t clipped_arg =
+    clip_to_bounds (w->hscroll - HSCROLL_MAX, requested_arg, w->hscroll);
+  hscroll = w->hscroll - clipped_arg;
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
 
   if (!NILP (set_minimum))
