@@ -1,5 +1,12 @@
 2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* configure.in: Fix previous change. Remove --enable-asserts.
+	(CPPFLAGS): Remove conditional -DXASSERTS=1.
+	Add --enable-link-time-optimization.
+	* INSTALL: Mention this.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* configure.in: Add glyphs category to --enable-checking option.
 	(GLYPH_DEBUG): Define if glyphs debugging is enabled.
 

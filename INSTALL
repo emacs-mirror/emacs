@@ -323,6 +323,13 @@ and is useful with GNU-compatible compilers.  On a recent GNU system
 there should be no warnings; on older and on non-GNU systems the
 generated warnings may still be useful.
 
+Use --enable-link-time-optimization to enable link-time optimizer, which
+is available in GNU compiler since version 4.5.0.  If your compiler is not
+GNU or older than version 4.5.0, this option does nothing.  If `configure'
+can determine number of online CPUS on your system, final link-time
+optimization and code generation is executed in parallel using one job
+per each available online CPU.
+
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
 - Emacs (and the other utilities users run) go in PREFIXDIR/bin
