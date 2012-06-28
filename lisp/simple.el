@@ -6347,7 +6347,7 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   "Finish setup of the completions buffer.
 Called from `temp-buffer-show-hook'."
   (when (eq major-mode 'completion-list-mode)
-    (toggle-read-only 1)))
+    (setq buffer-read-only t)))
 
 (add-hook 'temp-buffer-show-hook 'completion-list-mode-finish)
 

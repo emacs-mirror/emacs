@@ -1,3 +1,9 @@
+2012-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (completion-list-mode-finish):
+	Don't use toggle-read-only.  (Since completion-list-mode has
+	a special mode-class, it wasn't doing anything extra anyway.)
+
 2012-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make inlining of other-mode interpreted functions work (bug#11799).
