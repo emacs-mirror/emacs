@@ -255,6 +255,36 @@ result in an endless loop.
 If you need Emacs to be able to recover from closing displays, compile
 it with the Lucid toolkit instead of GTK.
 
+** Emacs crashes when you try to view a file with complex characters.
+For example, the etc/HELLO file (as shown by C-h h).
+The message "symbol lookup error: /usr/bin/emacs: undefined symbol: OTF_open"
+is shown in the terminal from which you launched Emacs.
+This problem only happens when you use a graphical display (ie not
+with -nw) and compiled Emacs with the "libotf" library for complex
+text handling.
+
+This problem occurs because unfortunately there are two libraries
+called "libotf".  One is the library for handling OpenType fonts,
+http://www.m17n.org/libotf/, which is the one that Emacs expects.
+The other is a library for Open Trace Format, and is used by some
+versions of the MPI message passing interface for parallel
+programming.
+
+For example, on RHEL6 GNU/Linux, the OpenMPI rpm provides a version
+of "libotf.so" in /usr/lib/openmpi/lib.  This directory is not
+normally in the ld search path, but if you want to use OpenMPI,
+you must issue the command "module load openmpi".  This adds
+/usr/lib/openmpi/lib to LD_LIBRARY_PATH.  If you then start Emacs from
+the same shell, you will encounter this crash.
+Ref: <URL:https://bugzilla.redhat.com/show_bug.cgi?id=806031>
+
+There is no good solution to this problem if you need to use both
+OpenMPI and Emacs with libotf support.  The best you can do is use a
+wrapper shell script (or function) "emacs" that removes the offending
+element from LD_LIBRARY_PATH before starting emacs proper.
+Or you could recompile Emacs with an -Wl,-rpath option that
+gives the location of the correct libotf.
+
 * General runtime problems
 
 ** Lisp problems

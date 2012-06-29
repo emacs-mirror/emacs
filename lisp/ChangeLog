@@ -1,3 +1,32 @@
+2012-06-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/cal-dst.el (calendar-current-time-zone):
+	Return calendar-current-time-zone-cache if non-nil.
+
+2012-06-29  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/which-func.el (which-func-format):
+	Add mouse-face.  (Bug#11698)
+
+2012-06-29  Leo Liu  <sdl.web@gmail.com>
+
+	* textmodes/enriched.el (enriched-next-annotation): Use eq (Bug#11528).
+
+2012-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-confirm-exit-commands):
+	Add completion-at-point (bug#11725).
+
+2012-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-font-lock-keywords-2):
+	Add some preprocessor elements.  (Bug#10499)
+
+2012-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-update-syntaxification):
+	Use syntax-propertize (bug#11739).
+
 2012-06-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/cl-lib.el (cl-pushnew): Don't capture X (bug#11811).

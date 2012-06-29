@@ -8950,14 +8950,15 @@ do extra unwind via `cperl-unwind-to-safe'."
       (setq cperl-syntax-done-to (min cperl-syntax-done-to beg))))
 
 (defun cperl-update-syntaxification (from to)
-  (if (and cperl-use-syntax-table-text-property
-	   cperl-syntaxify-by-font-lock
-	   (or (null cperl-syntax-done-to)
-	       (< cperl-syntax-done-to to)))
-      (progn
-	(save-excursion
-	  (goto-char from)
-	  (cperl-fontify-syntaxically to)))))
+  (cond
+   ((not cperl-use-syntax-table-text-property) nil)
+   ((fboundp 'syntax-propertize) (syntax-propertize to))
+   ((and cperl-syntaxify-by-font-lock
+         (or (null cperl-syntax-done-to)
+             (< cperl-syntax-done-to to)))
+    (save-excursion
+      (goto-char from)
+      (cperl-fontify-syntaxically to)))))
 
 (defvar cperl-version
   (let ((v  "Revision: 6.2"))
