@@ -287,7 +287,7 @@ region_limit (int beginningp)
   else
     { /* Clip to the current narrowing (bug#11770).  */
       ptrdiff_t mark = XFASTINT (m);
-      return make_number (mark < BEGV ? BEGV : mark > ZV ? ZV : m);
+      return make_number (mark < BEGV ? BEGV : mark > ZV ? ZV : mark);
     }
 }
 

@@ -1,5 +1,9 @@
 2012-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* editfns.c (region_limit): Fix type mismatch.
+
+2012-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* nsfns.m: Fix GLYPH_DEBUG usage assuming that it may be
 	undefined.  Convert from xassert to eassert.
 	* nsmenu.m: Convert from xassert to eassert.
