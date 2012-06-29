@@ -1,3 +1,7 @@
+2012-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fringe.el (fringe-mode): Doc fix.
+
 2012-06-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-get-passwd): Throw if `non-essential'

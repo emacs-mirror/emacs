@@ -5542,7 +5542,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->right_margin_cols = p->right_margin_cols;
 	  w->left_fringe_width = p->left_fringe_width;
 	  w->right_fringe_width = p->right_fringe_width;
-	  w->fringes_outside_margins = p->fringes_outside_margins;
+	  w->fringes_outside_margins = !NILP (p->fringes_outside_margins);
 	  w->scroll_bar_width = p->scroll_bar_width;
 	  w->vertical_scroll_bar_type = p->vertical_scroll_bar_type;
 	  w->dedicated = p->dedicated;
@@ -5858,7 +5858,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->right_margin_cols = w->right_margin_cols;
       p->left_fringe_width = w->left_fringe_width;
       p->right_fringe_width = w->right_fringe_width;
-      p->fringes_outside_margins = w->fringes_outside_margins;
+      p->fringes_outside_margins = w->fringes_outside_margins ? Qt : Qnil;
       p->scroll_bar_width = w->scroll_bar_width;
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
       p->dedicated = w->dedicated;
@@ -6095,6 +6095,7 @@ display marginal areas and the text area.  */)
   (Lisp_Object window, Lisp_Object left_width, Lisp_Object right_width, Lisp_Object outside_margins)
 {
   struct window *w = decode_window (window);
+  int outside = !NILP (outside_margins);
 
   if (!NILP (left_width))
     CHECK_NATNUM (left_width);
@@ -6105,11 +6106,11 @@ display marginal areas and the text area.  */)
   if (FRAME_WINDOW_P (WINDOW_XFRAME (w))
       && (!EQ (w->left_fringe_width, left_width)
 	  || !EQ (w->right_fringe_width, right_width)
-	  || !EQ (w->fringes_outside_margins, outside_margins)))
+	  || w->fringes_outside_margins != outside))
     {
       w->left_fringe_width = left_width;
       w->right_fringe_width = right_width;
-      w->fringes_outside_margins = outside_margins;
+      w->fringes_outside_margins = outside;
 
       adjust_window_margins (w);
 

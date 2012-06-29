@@ -159,9 +159,6 @@ struct window
     /* Width of left and right fringes.
        A value of nil or t means use frame values.  */
     Lisp_Object left_fringe_width, right_fringe_width;
-    /* Non-nil means fringes are drawn outside display margins;
-       othersize draw them between margin areas and text.  */
-    Lisp_Object fringes_outside_margins;
 
     /* Pixel width of scroll bars.
        A value of nil or t means use frame values.  */
@@ -330,13 +327,17 @@ struct window
        accept that.  */
     unsigned frozen_window_start_p : 1;
 
+    /* Non-zero means fringes are drawn outside display margins.
+       Otherwise draw them between margin areas and text.  */
+    unsigned fringes_outside_margins : 1;
+
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;
 
-    /* Z_BYTE - the buffer position of the last glyph in the current matrix
-       of W.  Only valid if WINDOW_END_VALID is not nil.  */
-    int window_end_bytepos;
+    /* Z_BYTE - the buffer position of the last glyph in the current matrix of W.
+       Should be nonnegative, and only valid if window_end_valid is not nil.  */
+    ptrdiff_t window_end_bytepos;
 };
 
 /* 1 if W is a minibuffer window.  */
@@ -612,7 +613,7 @@ struct window
 /* Are fringes outside display margins in window W.  */
 
 #define WINDOW_HAS_FRINGES_OUTSIDE_MARGINS(W)	\
-  (!NILP ((W)->fringes_outside_margins))
+  ((W)->fringes_outside_margins)
 
 /* Say whether scroll bars are currently enabled for window W,
    and which side they are on.  */

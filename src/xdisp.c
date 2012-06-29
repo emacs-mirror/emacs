@@ -17761,8 +17761,8 @@ try_window_id (struct window *w)
     {
       /* Displayed to end of window, but no line containing text was
 	 displayed.  Lines were deleted at the end of the window.  */
-      int first_vpos = WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
-      int vpos = XFASTINT (w->window_end_vpos);
+      ptrdiff_t first_vpos = WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
+      ptrdiff_t vpos = XFASTINT (w->window_end_vpos);
       struct glyph_row *current_row = current_matrix->rows + vpos;
       struct glyph_row *desired_row = desired_matrix->rows + vpos;
 
