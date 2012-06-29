@@ -2108,7 +2108,7 @@ ns_after_update_window_line (struct glyph_row *desired_row)
   NSTRACE (ns_after_update_window_line);
 
   /* begin copy from other terms */
-  xassert (w);
+  eassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     desired_row->redraw_fringe_bitmaps_p = 1;

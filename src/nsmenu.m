@@ -1057,7 +1057,7 @@ update_frame_tool_bar (FRAME_PTR f)
 	{
           /* NS toolbar auto-computes disabled and selected images */
           idx = TOOL_BAR_IMAGE_ENABLED_SELECTED;
-	  xassert (ASIZE (image) >= idx);
+	  eassert (ASIZE (image) >= idx);
 	  image = AREF (image, idx);
 	}
       else
