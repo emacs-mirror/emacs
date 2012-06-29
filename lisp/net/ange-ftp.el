@@ -1200,6 +1200,11 @@ only return the directory part of FILE."
 
 (defun ange-ftp-get-passwd (host user)
   "Return the password for specified HOST and USER, asking user if necessary."
+  ;; If `non-essential' is non-nil, don't ask for a password.  It will
+  ;; be catched in Tramp.
+  (when non-essential
+    (throw 'non-essential 'non-essential))
+
   (ange-ftp-parse-netrc)
 
   ;; look up password in the hash table first; user might have overridden the
@@ -3969,10 +3974,15 @@ E.g.,
 	   (string-match "\\`[a-zA-Z]:[/\\]\\'" dir))
       (string-equal "/" dir)))
 
+(defmacro ange-ftp-ignore-errors-if-non-essential (&rest body)
+  `(if non-essential
+       (ignore-errors ,@body)
+     (progn ,@body)))
+
 (defun ange-ftp-file-name-all-completions (file dir)
   (let ((ange-ftp-this-dir (expand-file-name dir)))
     (if (ange-ftp-ftp-name ange-ftp-this-dir)
-	(progn
+	(ange-ftp-ignore-errors-if-non-essential
 	  (ange-ftp-barf-if-not-directory ange-ftp-this-dir)
 	  (setq ange-ftp-this-dir
 		(ange-ftp-real-file-name-as-directory ange-ftp-this-dir))
