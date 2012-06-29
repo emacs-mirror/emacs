@@ -1365,7 +1365,6 @@ with_crt_dir
 with_gameuser
 with_gnustep_conf
 enable_ns_self_contained
-enable_asserts
 enable_locallisppath
 enable_checking
 enable_check_lisp_object_type
@@ -1374,6 +1373,7 @@ enable_autodepend
 enable_dependency_tracking
 enable_largefile
 enable_gcc_warnings
+enable_link_time_optimization
 with_x
 '
       ac_precious_vars='build_alias
@@ -2011,7 +2011,6 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-ns-self-contained
                           disable self contained build under NeXTstep
-  --enable-asserts        compile code with asserts enabled
   --enable-locallisppath=PATH
                           directories Emacs should search for lisp files
                           specific to this site
@@ -2033,6 +2032,9 @@ Optional Features:
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-largefile     omit support for large files
   --enable-gcc-warnings   turn on lots of GCC warnings (for developers)
+  --enable-link-time-optimization
+                          build emacs with link-time optimization. This is
+                          supported only for GCC since 4.5.0.
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -4209,14 +4211,6 @@ else
 fi
 
 
-# Check whether --enable-asserts was given.
-if test "${enable_asserts+set}" = set; then :
-  enableval=$enable_asserts; USE_XASSERTS=$enableval
-else
-  USE_XASSERTS=no
-fi
-
-
 # Check whether --enable-locallisppath was given.
 if test "${enable_locallisppath+set}" = set; then :
   enableval=$enable_locallisppath; if test "${enableval}" = "no"; then
@@ -4244,21 +4238,21 @@ do
 	                ac_gc_check_string_free_list= ;
 	                ac_xmalloc_overrun= ;
 	                ac_gc_check_cons_list= ;
-			ac_check_glyphs= ;;
+			ac_glyphs_debug= ;;
 	all)		ac_enable_checking=1 ;
 			ac_gc_check_stringbytes=1 ;
 	                ac_gc_check_string_overrun=1 ;
 	                ac_gc_check_string_free_list=1 ;
 	                ac_xmalloc_overrun=1 ;
 	                ac_gc_check_cons_list=1 ;
-			ac_check_glyphs=1 ;;
+			ac_glyphs_debug=1 ;;
 	# these enable particular checks
 	stringbytes) 	ac_gc_check_stringbytes=1 ;;
 	stringoverrun) 	ac_gc_check_string_overrun=1 ;;
 	stringfreelist) ac_gc_check_string_free_list=1 ;;
 	xmallocoverrun)	ac_xmalloc_overrun=1 ;;
 	conslist)	ac_gc_check_cons_list=1 ;;
-	glyphs)		ac_check_glyphs=1 ;;
+	glyphs)		ac_glyphs_debug=1 ;;
 	*)	as_fn_error "unknown check category $check" "$LINENO" 5 ;;
 	esac
 done
@@ -4294,7 +4288,7 @@ if test x$ac_gc_check_cons_list != x ; then
 $as_echo "#define GC_CHECK_CONS_LIST 1" >>confdefs.h
 
 fi
-if test x$ac_check_glyphs != x ; then
+if test x$ac_glyphs_debug != x ; then
 
 $as_echo "#define GLYPH_DEBUG 1" >>confdefs.h
 
@@ -7022,6 +7016,49 @@ if test "${enable_gcc_warnings+set}" = set; then :
 else
   gl_gcc_warnings=no
 
+fi
+
+
+# Check whether --enable-link-time-optimization was given.
+if test "${enable_link_time_optimization+set}" = set; then :
+  enableval=$enable_link_time_optimization; if test "${enableval}" != "no"; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether link-time optimization is supported" >&5
+$as_echo_n "checking whether link-time optimization is supported... " >&6; }
+   ac_lto_supported=no
+   if test x$GCC = xyes; then
+      CPUS=`getconf _NPROCESSORS_ONLN 2>/dev/null`
+      if test x$CPUS != x; then
+      	 LTO="-flto=$CPUS"
+      else
+	 LTO="-flto"
+      fi
+      old_CFLAGS=$CFLAGS
+      CFLAGS="$CFLAGS $LTO"
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_lto_supported=yes
+else
+  ac_lto_supported=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+      CFLAGS="$old_CFLAGS"
+   fi
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_lto_supported" >&5
+$as_echo "$ac_lto_supported" >&6; }
+   if test "$ac_lto_supported" = "yes"; then
+      CFLAGS="$CFLAGS $LTO"
+   fi
+fi
 fi
 
 
@@ -23022,11 +23059,6 @@ if test -n "${EMACSDATA}"; then
 fi
 if test -n "${EMACSDOC}"; then
    echo "  Environment variable EMACSDOC set to:                   $EMACSDOC"
-fi
-
-if test $USE_XASSERTS = yes; then
-   echo "  Compiling with asserts turned on."
-   CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
 fi
 
 echo
