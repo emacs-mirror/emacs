@@ -1,5 +1,7 @@
 2012-06-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (try_window_id): Undo last change.
+
 	* w32.c (getwd): Adjust commentary about startup_dir.
 	(init_environment): Always call sys_access, even in non-MSVC
 	builds.  Don't chdir to the directory of the Emacs executable.
