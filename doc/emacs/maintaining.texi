@@ -426,7 +426,7 @@ VC fileset is handled individually; for example, a commit generates
 one revision for each changed file.
 
 @table @kbd
-@itemx C-x v v
+@item C-x v v
 Perform the next appropriate version control operation on the current
 VC fileset.
 @end table
@@ -1326,7 +1326,7 @@ commit will be committed to that specific branch.
 @subsubsection Pulling Changes into a Branch
 
 @table @kbd
-@itemx C-x v +
+@item C-x v +
 On a decentralized version control system, update the current branch
 by ``pulling in'' changes from another location.
 
@@ -1366,7 +1366,7 @@ updates the current VC fileset from the repository.
 @cindex merging changes
 
 @table @kbd
-@itemx C-x v m
+@item C-x v m
 On a decentralized version control system, merge changes from another
 branch into the current one.
 

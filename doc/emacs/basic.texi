@@ -345,7 +345,7 @@ moves down into it.
 Delete the character before point, or the region if it is active
 (@code{delete-backward-char}).
 
-@itemx @key{Delete}
+@item @key{Delete}
 Delete the character after point, or the region if it is active
 (@code{delete-forward-char}).
 
@@ -403,7 +403,8 @@ commands.
 @item C-/
 Undo one entry of the undo records---usually, one command worth
 (@code{undo}).
-@itemx C-x u
+
+@item C-x u
 @itemx C-_
 The same.
 @end table

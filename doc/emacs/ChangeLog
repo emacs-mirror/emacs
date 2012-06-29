@@ -1,3 +1,8 @@
+2012-06-29  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Basic VC Editing, VC Pull, Merging):
+	* basic.texi (Erasing, Basic Undo): Fix markup.
+
 2012-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* fixit.texi (Undo): Grammar fixes.  (Bug#11779)
