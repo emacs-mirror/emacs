@@ -778,9 +778,8 @@ getwd (char *dir)
     return dir;
   return NULL;
 #else
-  /* Emacs doesn't actually change directory itself, and we want to
-     force our real wd to be where emacs.exe is to avoid unnecessary
-     conflicts when trying to rename or delete directories.  */
+  /* Emacs doesn't actually change directory itself, it stays in the
+     same directory where it was started.  */
   strcpy (dir, startup_dir);
   return dir;
 #endif
@@ -1536,12 +1535,7 @@ init_environment (char ** argv)
 	 read-only filesystem, like CD-ROM or a write-protected floppy.
 	 The only way to be really sure is to actually create a file and
 	 see if it succeeds.  But I think that's too much to ask.  */
-#ifdef _MSC_VER
-      /* MSVC's _access crashes with D_OK.  */
       if (tmp && sys_access (tmp, D_OK) == 0)
-#else
-      if (tmp && _access (tmp, D_OK) == 0)
-#endif
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
@@ -1781,27 +1775,15 @@ init_environment (char ** argv)
 	memcpy (*envp, "COMSPEC=", 8);
   }
 
-  /* Remember the initial working directory for getwd, then make the
-     real wd be the location of emacs.exe to avoid conflicts when
-     renaming or deleting directories.  (We also don't call chdir when
-     running subprocesses for the same reason.)  */
+  /* Remember the initial working directory for getwd.  */
   if (!GetCurrentDirectory (MAXPATHLEN, startup_dir))
     abort ();
 
   {
-    char *p;
     static char modname[MAX_PATH];
 
     if (!GetModuleFileName (NULL, modname, MAX_PATH))
       abort ();
-    if ((p = strrchr (modname, '\\')) == NULL)
-      abort ();
-    *p = 0;
-
-    SetCurrentDirectory (modname);
-
-    /* Ensure argv[0] has the full path to Emacs.  */
-    *p = '\\';
     argv[0] = modname;
   }
 
@@ -2667,7 +2649,8 @@ sys_access (const char * path, int mode)
 {
   DWORD attributes;
 
-  /* MSVC implementation doesn't recognize D_OK.  */
+  /* MSVCRT implementation of 'access' doesn't recognize D_OK, and its
+     newer versions blow up when passed D_OK.  */
   path = map_w32_filename (path, NULL);
   if (is_unc_volume (path))
     {
@@ -2679,9 +2662,17 @@ sys_access (const char * path, int mode)
     }
   else if ((attributes = GetFileAttributes (path)) == -1)
     {
-      /* Should try mapping GetLastError to errno; for now just indicate
-	 that path doesn't exist.  */
-      errno = EACCES;
+      DWORD w32err = GetLastError ();
+
+      switch (w32err)
+	{
+	case ERROR_FILE_NOT_FOUND:
+	  errno = ENOENT;
+	  break;
+	default:
+	  errno = EACCES;
+	  break;
+	}
       return -1;
     }
   if ((mode & X_OK) != 0 && !is_exec (path))

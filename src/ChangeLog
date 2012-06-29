@@ -1,3 +1,16 @@
+2012-06-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (getwd): Adjust commentary about startup_dir.
+	(init_environment): Always call sys_access, even in non-MSVC
+	builds.  Don't chdir to the directory of the Emacs executable.
+	This undoes code from 1997 which was justified by the need to
+	"avoid conflicts when removing and renaming directories".  But its
+	downside was that every relative file name was being interpreted
+	relative to the directory of the Emacs executable, which can never
+	be TRT.  In particular, it broke sys_access when called with
+	relative file names.
+	(sys_access): Map GetLastError to errno.
+
 2012-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Change type of 'fringes_outside_margins'
