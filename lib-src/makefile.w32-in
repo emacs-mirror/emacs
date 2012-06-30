@@ -106,7 +106,7 @@ ctags.c:	etags.c
 		- $(DEL) ctags.c
 		$(CP) etags.c ctags.c
 
-CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS) -DEMACS_NAME="\"GNU Emacs\""
+CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS)
 $(BLD)/ctags.$(O): ctags.c
 		$(CC) $(CFLAGS) $(CTAGS_CFLAGS) $(CC_OUT)$@ ctags.c
 
