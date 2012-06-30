@@ -1,3 +1,16 @@
+2012-06-30  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el: Implement XML parameter entities.
+	(xml-parameter-entity-alist): New variable.
+	(xml-parse-region, xml-parse-fragment): Preserve previous values
+	of xml-entity-alist and xml-parameter-entity-alist, so that
+	repeated calls on different documents do not change them.
+	(xml-parse-tag): Fix doctype regexp.
+	(xml--entity-replacement-text): New function.
+	(xml-parse-dtd): Use it.  Don't handle system entities; doing that
+	properly requires url retrieval which is unimplemented.
+	(xml-escape-string): Doc fix.
+
 2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-lib.el (cl-pushnew): Use macroexp-let2.
