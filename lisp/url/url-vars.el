@@ -212,6 +212,9 @@ Should be an assoc list of headers/contents.")
 (defvar url-mime-encoding-string nil
   "String to send in the Accept-encoding: field in HTTP requests.")
 
+(defvar mm-mime-mule-charset-alist)
+(declare-function mm-coding-system-p "mm-util" (cs))
+
 ;; Perhaps the first few should actually be given decreasing `q's and
 ;; the list should be trimmed significantly.
 ;; Fixme: do something sane if we don't have `sort-coding-systems'
