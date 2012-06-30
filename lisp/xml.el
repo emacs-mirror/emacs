@@ -722,9 +722,8 @@ This follows the rule [28] in the XML specifications."
   "Return the replacement text for the entity value STRING.
 The replacement text is obtained by replacing character
 references and parameter-entity references."
-  (let ((ref-re (eval-when-compile
-		  (concat "\\(?:&#\\([0-9]+\\)\\|&#x\\([0-9a-fA-F]+\\)\\|%\\("
-			  xml-name-re "\\)\\);")))
+  (let ((ref-re (concat "\\(?:&#\\([0-9]+\\)\\|&#x\\([0-9a-fA-F]+\\)\\|%\\("
+			xml-name-re "\\)\\);"))
 	children)
     (while (string-match ref-re string)
       (push (substring string 0 (match-beginning 0)) children)
