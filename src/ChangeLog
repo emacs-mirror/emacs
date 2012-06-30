@@ -5,11 +5,7 @@
 	* w32.c (emacs_gnutls_pull): Call select with one more argument.
 
 	* sysselect.h [DOS_NT]: Don't include sys/select.h.
-
-	* s/ms-w32.h (select, pselect): Don't define here, they are
-	defined in sysselect.h
-
-	* sysselect.h (pselect) [!HAVE_PSELECT]: Redirect to sys_select.
+	(pselect) [!MS_DOS]: Redirect to sys_select.
 
 	* sysdep.c: Don't include dos.h and dosfns.h.
 
