@@ -2093,7 +2093,7 @@ This function should be a pre-command hook."
 	       nil t))))))
 
 (defvar follow-mode)
-(declare-function follow-comint-scroll-to-bottom "follow" ())
+(declare-function follow-comint-scroll-to-bottom "follow" (&optional window))
 
 (defun comint-postoutput-scroll-to-bottom (_string)
   "Go to the end of buffer in some or all windows showing it.

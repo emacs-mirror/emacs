@@ -1,5 +1,7 @@
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
+	* comint.el (follow-comint-scroll-to-bottom): Fix declaration.
+
 	* net/secrets.el, net/tramp-gvfs.el, net/xesam.el, net/zeroconf.el:
 	Remove outdated and unnecessary dbus declarations.
 
