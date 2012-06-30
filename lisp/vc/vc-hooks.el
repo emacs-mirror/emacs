@@ -704,6 +704,8 @@ Before doing that, check if there are any old backups and get rid of them."
   (let ((file buffer-file-name)
         backend)
     (ignore-errors               ;Be careful not to prevent saving the file.
+      (unless (file-exists-p file)
+        (vc-file-clearprops file))
       (and (setq backend (vc-backend file))
            (vc-up-to-date-p file)
            (eq (vc-checkout-model backend (list file)) 'implicit)

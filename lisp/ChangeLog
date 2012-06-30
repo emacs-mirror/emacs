@@ -1,3 +1,8 @@
+2012-06-30  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-hooks.el (vc-before-save): Clear cache if file has been
+	removed (likely outside Emacs).
+
 2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-lib.el: Require macroexp for its macros.
