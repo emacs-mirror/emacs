@@ -91,11 +91,7 @@
 
 ;; D-Bus support in the Emacs core can be disabled with configuration
 ;; option "--without-dbus".  Declare used subroutines and variables.
-(declare-function dbus-call-method "dbusbind.c")
-(declare-function dbus-call-method-asynchronously "dbusbind.c")
 (declare-function dbus-get-unique-name "dbusbind.c")
-(declare-function dbus-register-method "dbusbind.c")
-(declare-function dbus-register-signal "dbusbind.c")
 
 ;; Pacify byte-compiler
 (eval-when-compile

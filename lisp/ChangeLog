@@ -1,3 +1,8 @@
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* net/secrets.el, net/tramp-gvfs.el, net/xesam.el, net/zeroconf.el:
+	Remove outdated and unnecessary dbus declarations.
+
 2012-06-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/timer.el (timer-until): Subtract results of

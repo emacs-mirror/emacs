@@ -145,8 +145,6 @@
 (eval-when-compile
   (require 'cl))
 
-(declare-function dbus-call-method "dbusbind.c")
-(declare-function dbus-register-signal "dbusbind.c")
 (defvar dbus-debug)
 
 (require 'dbus)
