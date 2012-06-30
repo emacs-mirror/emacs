@@ -1,5 +1,7 @@
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
+	* nsterm.m (ns_init_paths): Ignore site-lisp if --no-site-lisp.
+
 	* epaths.in (PATH_SITELOADSEARCH): New.
 	* lread.c (init_lread): Use PATH_SITELOADSEARCH.
 	This is rather than relying on --enable-locallisppath elements

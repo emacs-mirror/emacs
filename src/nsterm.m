@@ -320,6 +320,8 @@ ns_init_paths (void)
                                          @"site-lisp", @"lisp", @"leim", nil]];
       NSEnumerator *pathEnum = [paths objectEnumerator];
       resourcePaths = @"";
+      /* Hack to skip site-lisp.  */
+      if (no_site_lisp) resourcePath = [pathEnum nextObject];
       while (resourcePath = [pathEnum nextObject])
         {
           if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
