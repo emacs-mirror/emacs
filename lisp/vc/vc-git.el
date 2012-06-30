@@ -173,28 +173,31 @@ matching the resulting Git log output, and KEYWORDS is a list of
 
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
-  (let ((dir (vc-git-root file)))
-    (when dir
-      (with-temp-buffer
-	(let* (process-file-side-effects
-	       ;; Do not use the `file-name-directory' here: git-ls-files
-	       ;; sometimes fails to return the correct status for relative
-	       ;; path specs.
-	       ;; See also: http://marc.info/?l=git&m=125787684318129&w=2
-	       (name (file-relative-name file dir))
-	       (str (ignore-errors
-		     (cd dir)
-		     (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
-		     ;; If result is empty, use ls-tree to check for deleted
-                     ;; file.
-		     (when (eq (point-min) (point-max))
-		       (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
-                                       "--" name))
-		     (buffer-string))))
-	  (and str
-	       (> (length str) (length name))
-	       (string= (substring str 0 (1+ (length name)))
-			(concat name "\0"))))))))
+  (or (vc-file-getprop file 'git-registered)
+      (vc-file-setprop
+       file 'git-registered
+       (let ((dir (vc-git-root file)))
+	 (when dir
+	   (with-temp-buffer
+	     (let* (process-file-side-effects
+		    ;; Do not use the `file-name-directory' here: git-ls-files
+		    ;; sometimes fails to return the correct status for relative
+		    ;; path specs.
+		    ;; See also: http://marc.info/?l=git&m=125787684318129&w=2
+		    (name (file-relative-name file dir))
+		    (str (ignore-errors
+			   (cd dir)
+			   (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
+			   ;; If result is empty, use ls-tree to check for deleted
+			   ;; file.
+			   (when (eq (point-min) (point-max))
+			     (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
+					     "--" name))
+			   (buffer-string))))
+	       (and str
+		    (> (length str) (length name))
+		    (string= (substring str 0 (1+ (length name)))
+			     (concat name "\0"))))))))))
 
 (defun vc-git--state-code (code)
   "Convert from a string to a added/deleted/modified state."
@@ -248,7 +251,7 @@ matching the resulting Git log output, and KEYWORDS is a list of
 
 (defun vc-git-mode-line-string (file)
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
-  (let* ((branch (vc-git-working-revision file))
+  (let* ((branch (vc-working-revision file))
          (def-ml (vc-default-mode-line-string 'Git file))
          (help-echo (get-text-property 0 'help-echo def-ml)))
     (if (zerop (length branch))
@@ -959,7 +962,8 @@ or BRANCH^ (where \"^\" can be repeated)."
 (defun vc-git-extra-status-menu () vc-git-extra-menu-map)
 
 (defun vc-git-root (file)
-  (vc-find-root file ".git"))
+  (or (vc-file-getprop file 'git-root)
+      (vc-file-setprop file 'git-root (vc-find-root file ".git"))))
 
 ;; Derived from `lgrep'.
 (defun vc-git-grep (regexp &optional files dir)

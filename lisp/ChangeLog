@@ -1,3 +1,11 @@
+2012-06-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc/vc-git.el (vc-git-registered): Use cache property
+	`git-registered'.
+	(vc-git-mode-line-string): Call `vc-working-revision' instead of
+	`vc-git-working-revision' in order to benefit from the cache.
+	(vc-git-root): Use cache property `git-root'.
+
 2012-06-30  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-hooks.el (vc-before-save): Clear cache if file has been
