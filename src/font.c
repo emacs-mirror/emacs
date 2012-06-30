@@ -326,7 +326,10 @@ int
 font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror)
 {
   Lisp_Object table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
-  int len = ASIZE (table);
+  int len;
+
+  CHECK_VECTOR (table);
+  len = ASIZE (table);
 
   if (SYMBOLP (val))
     {
@@ -336,10 +339,16 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror
 
       /* At first try exact match.  */
       for (i = 0; i < len; i++)
-	for (j = 1; j < ASIZE (AREF (table, i)); j++)
-	  if (EQ (val, AREF (AREF (table, i), j)))
-	    return ((XINT (AREF (AREF (table, i), 0)) << 8)
-		    | (i << 4) | (j - 1));
+	{
+	  CHECK_VECTOR (AREF (table, i));
+	  for (j = 1; j < ASIZE (AREF (table, i)); j++)
+	    if (EQ (val, AREF (AREF (table, i), j)))
+	      {
+		CHECK_NUMBER (AREF (AREF (table, i), 0));
+		return ((XINT (AREF (AREF (table, i), 0)) << 8)
+			| (i << 4) | (j - 1));
+	      }
+	}
       /* Try also with case-folding match.  */
       s = SSDATA (SYMBOL_NAME (val));
       for (i = 0; i < len; i++)
@@ -347,8 +356,11 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror
 	  {
 	    elt = AREF (AREF (table, i), j);
 	    if (xstrcasecmp (s, SSDATA (SYMBOL_NAME (elt))) == 0)
-	      return ((XINT (AREF (AREF (table, i), 0)) << 8)
-		      | (i << 4) | (j - 1));
+	      {
+		CHECK_NUMBER (AREF (AREF (table, i), 0));
+		return ((XINT (AREF (AREF (table, i), 0)) << 8)
+			| (i << 4) | (j - 1));
+	      }
 	  }
       if (! noerror)
 	return -1;
@@ -368,8 +380,11 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror
 
       for (i = 0, last_n = -1; i < len; i++)
 	{
-	  int n = XINT (AREF (AREF (table, i), 0));
+	  int n;
 
+	  CHECK_VECTOR (AREF (table, i));
+	  CHECK_NUMBER (AREF (AREF (table, i), 0));
+	  n = XINT (AREF (AREF (table, i), 0));
 	  if (numeric == n)
 	    return (n << 8) | (i << 4);
 	  if (numeric < n)
@@ -397,11 +412,15 @@ font_style_symbolic (Lisp_Object font, enum font_property_index prop, int for_fa
   if (NILP (val))
     return Qnil;
   table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
+  CHECK_VECTOR (table);
   i = XINT (val) & 0xFF;
   font_assert (((i >> 4) & 0xF) < ASIZE (table));
   elt = AREF (table, ((i >> 4) & 0xF));
+  CHECK_VECTOR (elt);
   font_assert ((i & 0xF) + 1 < ASIZE (elt));
-  return (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));
+  elt = (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));
+  CHECK_SYMBOL (elt);
+  return elt;
 }
 
 /* Return ENCODING or a cons of ENCODING and REPERTORY of the font
@@ -519,6 +538,7 @@ font_prop_validate_style (Lisp_Object style, Lisp_Object val)
   if (INTEGERP (val))
     {
       EMACS_INT n = XINT (val);
+      CHECK_VECTOR (AREF (font_style_table, prop - FONT_WEIGHT_INDEX));
       if (((n >> 4) & 0xF)
 	  >= ASIZE (AREF (font_style_table, prop - FONT_WEIGHT_INDEX)))
 	val = Qerror;
@@ -526,10 +546,15 @@ font_prop_validate_style (Lisp_Object style, Lisp_Object val)
 	{
 	  Lisp_Object elt = AREF (AREF (font_style_table, prop - FONT_WEIGHT_INDEX), (n >> 4) & 0xF);
 
+	  CHECK_VECTOR (elt);
 	  if ((n & 0xF) + 1 >= ASIZE (elt))
 	    val = Qerror;
-	  else if (XINT (AREF (elt, 0)) != (n >> 8))
-	    val = Qerror;
+	  else
+	    {
+	      CHECK_NUMBER (AREF (elt, 0));
+	      if (XINT (AREF (elt, 0)) != (n >> 8))
+		val = Qerror;
+	    }
 	}
     }
   else if (SYMBOLP (val))

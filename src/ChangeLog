@@ -1,5 +1,9 @@
 2012-06-30  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* font.c (font_style_to_value, font_style_symbolic)
+	(font_prop_validate_style): Add type checks for values in
+	font_style_table.
+
 	* lisp.h (CHECK_RANGED_INTEGER): Make value to check the first
 	argument.
 	* character.c, charset.c, menu.c, process.c, window.c: Adjust all
