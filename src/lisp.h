@@ -1716,7 +1716,7 @@ typedef struct {
 #define CHECK_NATNUM(x) \
   CHECK_TYPE (NATNUMP (x), Qwholenump, x)
 
-#define CHECK_RANGED_INTEGER(lo, x, hi)					\
+#define CHECK_RANGED_INTEGER(x, lo, hi)					\
   do {									\
     CHECK_NUMBER (x);							\
     if (! ((lo) <= XINT (x) && XINT (x) <= (hi)))			\
@@ -1730,9 +1730,9 @@ typedef struct {
 #define CHECK_TYPE_RANGED_INTEGER(type, x) \
   do {									\
     if (TYPE_SIGNED (type))						\
-      CHECK_RANGED_INTEGER (TYPE_MINIMUM (type), x, TYPE_MAXIMUM (type)); \
+      CHECK_RANGED_INTEGER (x, TYPE_MINIMUM (type), TYPE_MAXIMUM (type)); \
     else								\
-      CHECK_RANGED_INTEGER (0, x, TYPE_MAXIMUM (type));			\
+      CHECK_RANGED_INTEGER (x, 0, TYPE_MAXIMUM (type));			\
   } while (0)
 
 #define CHECK_MARKER(x) \

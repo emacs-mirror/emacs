@@ -927,7 +927,7 @@ usage: (unibyte-string &rest BYTES)  */)
 
   for (i = 0; i < n; i++)
     {
-      CHECK_RANGED_INTEGER (0, args[i], 255);
+      CHECK_RANGED_INTEGER (args[i], 0, 255);
       *p++ = XINT (args[i]);
     }
 

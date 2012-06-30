@@ -6163,7 +6163,7 @@ Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
 
   if (!NILP (width))
     {
-      CHECK_RANGED_INTEGER (0, width, INT_MAX);
+      CHECK_RANGED_INTEGER (width, 0, INT_MAX);
 
       if (XINT (width) == 0)
 	vertical_type = Qnil;

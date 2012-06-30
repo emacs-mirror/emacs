@@ -1198,14 +1198,16 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	 but I don't want to make one now.  */
       CHECK_WINDOW (window);
 
-    CHECK_RANGED_INTEGER ((xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
+    CHECK_RANGED_INTEGER (x,
+			  (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
 			   ? (EMACS_INT) INT_MIN - xpos
 			   : MOST_NEGATIVE_FIXNUM),
-			  x, INT_MAX - xpos);
-    CHECK_RANGED_INTEGER ((ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
+			  INT_MAX - xpos);
+    CHECK_RANGED_INTEGER (y,
+			  (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
 			   ? (EMACS_INT) INT_MIN - ypos
 			   : MOST_NEGATIVE_FIXNUM),
-			  y, INT_MAX - ypos);
+			  INT_MAX - ypos);
     xpos += XINT (x);
     ypos += XINT (y);
 

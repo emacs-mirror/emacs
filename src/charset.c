@@ -878,9 +878,9 @@ usage: (define-charset-internal ...)  */)
 
       min_byte_obj = Faref (val, make_number (i * 2));
       max_byte_obj = Faref (val, make_number (i * 2 + 1));
-      CHECK_RANGED_INTEGER (0, min_byte_obj, 255);
+      CHECK_RANGED_INTEGER (min_byte_obj, 0, 255);
       min_byte = XINT (min_byte_obj);
-      CHECK_RANGED_INTEGER (min_byte, max_byte_obj, 255);
+      CHECK_RANGED_INTEGER (max_byte_obj, min_byte, 255);
       max_byte = XINT (max_byte_obj);
       charset.code_space[i * 4] = min_byte;
       charset.code_space[i * 4 + 1] = max_byte;
@@ -898,7 +898,7 @@ usage: (define-charset-internal ...)  */)
     charset.dimension = dimension;
   else
     {
-      CHECK_RANGED_INTEGER (1, val, 4);
+      CHECK_RANGED_INTEGER (val, 1, 4);
       charset.dimension = XINT (val);
     }
 
@@ -991,7 +991,7 @@ usage: (define-charset-internal ...)  */)
     charset.iso_revision = -1;
   else
     {
-      CHECK_RANGED_INTEGER (-1, val, 63);
+      CHECK_RANGED_INTEGER (val, -1, 63);
       charset.iso_revision = XINT (val);
     }
 
