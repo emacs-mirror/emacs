@@ -1,3 +1,10 @@
+2012-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/timer.el (timer-until): Subtract results of
+	float-time, instead of taking float-time of the result of
+	time-subtract, since float-time signals an error for negative time
+	arguments.
+
 2012-06-30  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el (xml-*-re): Convert defvars into defconsts, and

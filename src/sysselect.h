@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (DARWIN_OS)
 #undef init_process
 #endif
-#ifndef WINDOWSNT
+#ifndef DOS_NT
 #include <sys/select.h>
 #endif
 #if defined (DARWIN_OS)
@@ -51,4 +51,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if !defined (HAVE_SELECT)
 #define select sys_select
+#endif
+
+#ifdef MSDOS
+#define pselect sys_select
 #endif

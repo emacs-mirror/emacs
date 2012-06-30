@@ -234,7 +234,7 @@ struct sigaction {
 #define rename  sys_rename
 #define rmdir   sys_rmdir
 #define select  sys_select
-#define pselect  sys_select
+#define pselect sys_select
 #define sleep   sys_sleep
 #define strerror sys_strerror
 #undef unlink

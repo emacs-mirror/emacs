@@ -1,3 +1,28 @@
+2012-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sys_select): Accept and ignore one more argument.
+
+	* w32.c (emacs_gnutls_pull): Call select with one more argument.
+
+	* sysselect.h [DOS_NT]: Don't include sys/select.h.
+
+	* s/ms-w32.h (select, pselect): Don't define here, they are
+	defined in sysselect.h
+
+	* sysselect.h (pselect) [!HAVE_PSELECT]: Redirect to sys_select.
+
+	* sysdep.c: Don't include dos.h and dosfns.h.
+
+	* process.c (sys_select):
+	* msdos.c (sys_select): Accept one more argument and ignore it.
+
+	* msdos.c (event_timestamp, sys_select): Use gnulib's gettime;
+	adapt data types and code to that.
+
+	* dosfns.c:
+	* msdos.c (gettime, settime): Define away the prototypes in dos.h,
+	which clashes with the gnulib function of the same name.
+
 2012-06-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* font.c (font_style_to_value, font_style_symbolic)

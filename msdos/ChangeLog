@@ -1,3 +1,32 @@
+2012-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (bootstrap-clean): Do a maintainer-clean in lib, not
+	bootstrap-clean (which doesn't exist).
+
+	* inttypes.h (PRIuMAX) [__DJGPP__ < 2.04]: Define to "llu".
+
+	* sedleim.inp (MKDIR_P): Edit to DOS "md" command.
+
+	* sed1v2.inp: (LIB_CLOCK_GETTIME): Edit to empty.
+	Remove lines that invoke PAXCTL.
+	(clean): Fix recipe not to run Unixy shell commands.
+
+	* sed2v2.inp (GETTIMEOFDAY_TIMEZONE): Edit to 'struct timezone'.
+	(HAVE_STRNCASECMP): Edit to 1.
+
+	* sed3v2.inp (LIB_CLOCK_GETTIME): Edit to empty.
+	(C_SWITCH_SYSTEM): Add "-I../msdos".
+
+	* sedlibmk.inp (GNULIB_GETTIMEOFDAY, GNULIB_PSELECT)
+	(GNULIB_SELECT, HAVE_STRUCT_TIMEVAL, HAVE_SYS_SELECT_H)
+	(HAVE_SYS_TIME_H, NEXT_AS_FIRST_DIRECTIVE_SYS_SELECT_H)
+	(NEXT_AS_FIRST_DIRECTIVE_SYS_TIME_H, NEXT_SYS_SELECT_H)
+	(NEXT_SYS_TIME_H, REPLACE_GETTIMEOFDAY, REPLACE_PSELECT)
+	(REPLACE_STRUCT_TIMEVAL): Edit to appropriate values.
+	(BUILT_SOURCES): Edit out sys/select.h and sys/time.h.
+	(mostlyclean-local, distclean-generic): Fix recipe not to run
+	Unixy shell commands.
+
 2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean out last vestiges of the old HAVE_CONFIG_H stuff.

@@ -65,8 +65,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
-#include <dos.h>
-#include "dosfns.h"
 #include "msdos.h"
 #include <sys/param.h>
 #endif

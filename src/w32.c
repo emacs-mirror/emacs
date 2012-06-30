@@ -6312,7 +6312,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 
           /* Use select with the timeout to poll the selector.  */
           sc = select (fd + 1, &fdset, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-                       &timeout);
+                       &timeout, NULL);
 
           if (sc > 0)
             continue;  /* Try again.  */

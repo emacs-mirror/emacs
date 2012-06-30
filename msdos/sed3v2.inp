@@ -35,8 +35,9 @@ s/-DVERSION[^ ]* //
 /^LIBRESOLV *=/s/@[^@\n]*@//g
 /^LIBS_MAIL *=/s/@[^@\n]*@//g
 /^LIBS_SYSTEM *=/s/@[^@\n]*@//g
+/^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
 /^CFLAGS *=/s!=.*$!=-O2 -g!
-/^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
+/^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS -I../msdos!
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
