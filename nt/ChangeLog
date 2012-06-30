@@ -1,3 +1,7 @@
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* paths.h (PATH_SITELOADSEARCH): New.
+
 2012-06-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nmake.defs (CHECKING_CFLAGS):

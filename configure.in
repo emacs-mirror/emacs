@@ -38,9 +38,10 @@ dnl (autoconf) Installation Directory Variables
 dnl See also epaths.h below.
 lispdir='${datadir}/emacs/${version}/lisp'
 leimdir='${datadir}/emacs/${version}/leim'
+standardlisppath='${lispdir}:${leimdir}'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
-lisppath='${locallisppath}:${lispdir}:${datadir}/emacs/${version}/leim'
+lisppath='${locallisppath}:${standardlisppath}'
 etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
@@ -3161,6 +3162,7 @@ AC_SUBST(mandir)
 AC_SUBST(infodir)
 AC_SUBST(lispdir)
 AC_SUBST(leimdir)
+AC_SUBST(standardlisppath)
 AC_SUBST(locallisppath)
 AC_SUBST(lisppath)
 AC_SUBST(x_default_search_path)

@@ -20,9 +20,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* The default search path for Lisp function "load".
-   This sets load-path.  */
+   Together with PATH_SITELOADSEARCH, this sets load-path.  */
 /* #define PATH_LOADSEARCH "/usr/local/lib/emacs/lisp" */
 #define PATH_LOADSEARCH "C:/emacs/lisp"
+
+/* Like PATH_LOADSEARCH, but contains the non-standard pieces.  */
+#define PATH_SITELOADSEARCH "C:/emacs/site-lisp"
 
 /* Like PATH_LOADSEARCH, but used only when Emacs is dumping.  This
    path is usually identical to PATH_LOADSEARCH except that the entry

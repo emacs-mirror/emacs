@@ -1,3 +1,11 @@
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (standardlisppath): New output variable.
+	(lisppath): Use standardlisppath.
+	* Makefile.in (standardlisppath): New, set by configure.
+	(epaths-force): Use standardlisppath and locallisppath rather than
+	lisppath.
+
 2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.in: Fix previous change. Remove --enable-asserts.

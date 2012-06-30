@@ -44,6 +44,10 @@
 
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
+;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
+;; Note that we reset load-path below just before dumping,
+;; since lread.c:init_lread checks for changes to load-path
+;; in deciding whether to modify it.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
 	(equal (nth 3 command-line-args) "unidata-gen.el")

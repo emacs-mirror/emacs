@@ -4072,15 +4072,15 @@ init_lread (void)
   int turn_off_warning = 0;
 
   /* Compute the default Vload-path, with the following logic:
-     If CANNOT_DUMP just use PATH_LOADSEARCH.
+     If CANNOT_DUMP, just use PATH_LOADSEARCH, prepending PATH_SITELOADSEARCH
+     unless --no-site-lisp.
      Else if purify-flag (ie dumping) start from PATH_DUMPLOADSEARCH;
      otherwise start from PATH_LOADSEARCH.
      If !initialized, then just set both Vload_path and dump_path.
      If initialized, then if Vload_path != dump_path, do nothing.
-     (Presumably the load-path has already been changed by something.)
-     Also do nothing if Vinstallation_directory is nil.
-     Otherwise:
-       Remove site-lisp directories from the front of load-path.
+     (Presumably the load-path has already been changed by something.
+      This can only (?) be from a site-load file during dumping.)
+     If Vinstallation_directory is not nil (ie, running uninstalled):
        Add installation-dir/lisp (if exists and not already a member),
          at the front, and turn off warnings about missing directories
          (because we are presumably running uninstalled).
@@ -4094,8 +4094,7 @@ init_lread (void)
          install-dir/src/Makefile.in does NOT exist (this is a sanity
          check), then repeat the above steps for source-dir/lisp,
          leim and site-lisp.
-       Finally, add the previously removed site-lisp directories back
-       at the front (if !no_site_lisp).
+     Finally, add the site-lisp directories at the front (if !no_site_lisp).
 
      We then warn about any of the load-path elements that do not
      exist.  The only ones that might not exist are those from
@@ -4111,9 +4110,16 @@ init_lread (void)
      uninstalled, the eventual installation directories should not yet
      be included in load-path.
   */
+
 #ifdef CANNOT_DUMP
   normal = PATH_LOADSEARCH;
   Vload_path = decode_env_path (0, normal);
+  if (!no_site_lisp)
+    {
+      Lisp_Object sitelisp;
+      sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
+      if (! NILP (sitelisp)) Vload_path = nconc2 (sitelisp, Vload_path);
+    }
 #else
   if (NILP (Vpurify_flag))
     normal = PATH_LOADSEARCH;
@@ -4131,123 +4137,108 @@ init_lread (void)
       if (! NILP (Fequal (dump_path, Vload_path)))
 	{
 	  Vload_path = decode_env_path (0, normal);
-	  if (no_site_lisp || !NILP (Vinstallation_directory))
+	  if (!NILP (Vinstallation_directory))
 	    {
-	      Lisp_Object tem, tem1, sitelisp;
+	      Lisp_Object tem, tem1;
 
-	      /* Remove "site-lisp" dirs from front of path temporarily
-		 and store them in sitelisp, then conc them on at the
-		 end so they're always first in path.
-		 Note that this won't work if you used a
-		 --enable-locallisppath element that does not happen
-		 to contain "site-lisp" in its name.
-	      */
-	      sitelisp = Qnil;
-	      while (1)
-		{
-		  tem = Fcar (Vload_path);
-		  tem1 = Fstring_match (build_string ("site-lisp"),
-					tem, Qnil);
-		  if (!NILP (tem1))
-		    {
-		      Vload_path = Fcdr (Vload_path);
-		      sitelisp = Fcons (tem, sitelisp);
-		    }
-		  else
-		    break;
-		}
+              /* Add to the path the lisp subdir of the
+                 installation dir, if it exists.  */
+              tem = Fexpand_file_name (build_string ("lisp"),
+                                       Vinstallation_directory);
+              tem1 = Ffile_exists_p (tem);
+              if (!NILP (tem1))
+                {
+                  if (NILP (Fmember (tem, Vload_path)))
+                    {
+                      turn_off_warning = 1;
+                      Vload_path = Fcons (tem, Vload_path);
+                    }
+                }
+              else
+                /* That dir doesn't exist, so add the build-time
+                   Lisp dirs instead.  */
+                Vload_path = nconc2 (Vload_path, dump_path);
 
-	      if (!NILP (Vinstallation_directory))
-		{
-		  /* Add to the path the lisp subdir of the
-		     installation dir, if it exists.  */
-		  tem = Fexpand_file_name (build_string ("lisp"),
-					   Vinstallation_directory);
-		  tem1 = Ffile_exists_p (tem);
-		  if (!NILP (tem1))
-		    {
-		      if (NILP (Fmember (tem, Vload_path)))
-			{
-			  turn_off_warning = 1;
-			  Vload_path = Fcons (tem, Vload_path);
-			}
-		    }
-		  else
-		    /* That dir doesn't exist, so add the build-time
-		       Lisp dirs instead.  */
-		    Vload_path = nconc2 (Vload_path, dump_path);
+              /* Add leim under the installation dir, if it exists. */
+              tem = Fexpand_file_name (build_string ("leim"),
+                                       Vinstallation_directory);
+              tem1 = Ffile_exists_p (tem);
+              if (!NILP (tem1))
+                {
+                  if (NILP (Fmember (tem, Vload_path)))
+                    Vload_path = Fcons (tem, Vload_path);
+                }
 
-		  /* Add leim under the installation dir, if it exists.	 */
-		  tem = Fexpand_file_name (build_string ("leim"),
-					   Vinstallation_directory);
-		  tem1 = Ffile_exists_p (tem);
-		  if (!NILP (tem1))
-		    {
-		      if (NILP (Fmember (tem, Vload_path)))
-			Vload_path = Fcons (tem, Vload_path);
-		    }
+              /* Add site-lisp under the installation dir, if it exists.  */
+              if (!no_site_lisp)
+                {
+                  tem = Fexpand_file_name (build_string ("site-lisp"),
+                                           Vinstallation_directory);
+                  tem1 = Ffile_exists_p (tem);
+                  if (!NILP (tem1))
+                    {
+                      if (NILP (Fmember (tem, Vload_path)))
+                        Vload_path = Fcons (tem, Vload_path);
+                    }
+                }
 
-		  /* Add site-lisp under the installation dir, if it exists.  */
-		  if (!no_site_lisp)
-		    {
-		      tem = Fexpand_file_name (build_string ("site-lisp"),
-					       Vinstallation_directory);
-		      tem1 = Ffile_exists_p (tem);
-		      if (!NILP (tem1))
-			{
-			  if (NILP (Fmember (tem, Vload_path)))
-			    Vload_path = Fcons (tem, Vload_path);
-			}
-		    }
+              /* If Emacs was not built in the source directory,
+                 and it is run from where it was built, add to load-path
+                 the lisp, leim and site-lisp dirs under that directory.  */
 
-		  /* If Emacs was not built in the source directory,
-		     and it is run from where it was built, add to load-path
-		     the lisp, leim and site-lisp dirs under that directory.  */
+              if (NILP (Fequal (Vinstallation_directory, Vsource_directory)))
+                {
+                  Lisp_Object tem2;
 
-		  if (NILP (Fequal (Vinstallation_directory, Vsource_directory)))
-		    {
-		      Lisp_Object tem2;
+                  tem = Fexpand_file_name (build_string ("src/Makefile"),
+                                           Vinstallation_directory);
+                  tem1 = Ffile_exists_p (tem);
 
-		      tem = Fexpand_file_name (build_string ("src/Makefile"),
-					       Vinstallation_directory);
-		      tem1 = Ffile_exists_p (tem);
+                  /* Don't be fooled if they moved the entire source tree
+                     AFTER dumping Emacs.  If the build directory is indeed
+                     different from the source dir, src/Makefile.in and
+                     src/Makefile will not be found together.  */
+                  tem = Fexpand_file_name (build_string ("src/Makefile.in"),
+                                           Vinstallation_directory);
+                  tem2 = Ffile_exists_p (tem);
+                  if (!NILP (tem1) && NILP (tem2))
+                    {
+                      tem = Fexpand_file_name (build_string ("lisp"),
+                                               Vsource_directory);
 
-		      /* Don't be fooled if they moved the entire source tree
-			 AFTER dumping Emacs.  If the build directory is indeed
-			 different from the source dir, src/Makefile.in and
-			 src/Makefile will not be found together.  */
-		      tem = Fexpand_file_name (build_string ("src/Makefile.in"),
-					       Vinstallation_directory);
-		      tem2 = Ffile_exists_p (tem);
-		      if (!NILP (tem1) && NILP (tem2))
-			{
-			  tem = Fexpand_file_name (build_string ("lisp"),
-						   Vsource_directory);
+                      if (NILP (Fmember (tem, Vload_path)))
+                        Vload_path = Fcons (tem, Vload_path);
 
-			  if (NILP (Fmember (tem, Vload_path)))
-			    Vload_path = Fcons (tem, Vload_path);
+                      tem = Fexpand_file_name (build_string ("leim"),
+                                               Vsource_directory);
 
-			  tem = Fexpand_file_name (build_string ("leim"),
-						   Vsource_directory);
+                      if (NILP (Fmember (tem, Vload_path)))
+                        Vload_path = Fcons (tem, Vload_path);
 
-			  if (NILP (Fmember (tem, Vload_path)))
-			    Vload_path = Fcons (tem, Vload_path);
+                      if (!no_site_lisp)
+                        {
+                          tem = Fexpand_file_name (build_string ("site-lisp"),
+                                                   Vsource_directory);
 
-			  if (!no_site_lisp)
-			    {
-			      tem = Fexpand_file_name (build_string ("site-lisp"),
-						       Vsource_directory);
+                          if (NILP (Fmember (tem, Vload_path)))
+                            Vload_path = Fcons (tem, Vload_path);
+                        }
+                    }
+                } /* Vinstallation_directory != Vsource_directory */
 
-			      if (NILP (Fmember (tem, Vload_path)))
-				Vload_path = Fcons (tem, Vload_path);
-			    }
-			}
-		    } /* Vinstallation_directory != Vsource_directory */
-		}     /* if Vinstallation_directory */
-	      if (!NILP (sitelisp) && !no_site_lisp)
-		Vload_path = nconc2 (Fnreverse (sitelisp), Vload_path);
-	    } /* if Vinstallation_directory || no_site_lisp */
-	}     /* if dump_path == Vload_path */
+	    } /* if Vinstallation_directory */
+
+          /* Add the site-lisp directories at the front.  */
+          /* Note: If the site changed the load-path during dumping,
+           --no-site-lisp is ignored.  I don't know what to do about this.
+          */
+          if (!no_site_lisp)
+            {
+              Lisp_Object sitelisp;
+              sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
+              if (! NILP (sitelisp)) Vload_path = nconc2 (sitelisp, Vload_path);
+            }
+	} /* if dump_path == Vload_path */
     }
   else                          /* !initialized */
     {
