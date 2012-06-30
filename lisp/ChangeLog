@@ -1,3 +1,7 @@
+2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el (cl-pushnew): Use macroexp-let2.
+
 2012-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* fringe.el (fringe-mode): Doc fix.
