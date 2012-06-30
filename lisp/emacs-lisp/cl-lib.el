@@ -91,6 +91,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'macroexp))
+
 (defvar cl-optimize-speed 1)
 (defvar cl-optimize-safety 1)
 
