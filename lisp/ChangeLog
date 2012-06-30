@@ -1,3 +1,10 @@
+2012-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/timer.el (timer-until): Subtract results of
+	float-time, instead of taking float-time of the result of
+	time-subtract, since float-time signals an error for negative time
+	arguments.
+
 2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-lib.el (cl-pushnew): Use macroexp-let2.

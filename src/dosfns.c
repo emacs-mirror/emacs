@@ -23,7 +23,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The entire file is within this conditional */
 
 #include <stdio.h>
+/* gettine and settime in dos.h clash with their namesakes from
+   gnulib, so we move out of our way the prototypes in dos.h.  */
+#define gettime dos_h_gettime_
+#define settime dos_h_settime_
 #include <dos.h>
+#undef gettime
+#undef settime
 #include <setjmp.h>
 #include "lisp.h"
 #include "character.h"

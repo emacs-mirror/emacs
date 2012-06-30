@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /**
- **  To be run as an emacs process. Input string that starts with:
+ **  To be run as an emacs subprocess.  Input string that starts with:
  **    'z' -- resets the watch (to zero).
  **    'p' -- return time (on stdout) as string with format <sec>.<micro-sec>
  **    'q' -- exit.

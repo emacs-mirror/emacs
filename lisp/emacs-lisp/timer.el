@@ -268,7 +268,7 @@ how many will really happen."
   "Calculate number of seconds from when TIMER will run, until TIME.
 TIMER is a timer, and stands for the time when its next repeat is scheduled.
 TIME is a time-list."
-  (float-time (time-subtract time (timer--time timer))))
+  (- (float-time time) (float-time (timer--time timer))))
 
 (defun timer-event-handler (timer)
   "Call the handler for the timer TIMER.

@@ -269,7 +269,7 @@ extraclean:
 
 bootstrap-clean: FRC
 	cd lib
-	$(MAKE) $(MFLAGS) $@
+	-$(MAKE) $(MFLAGS) maintainer-clean
 	cd ..
 	cd src
 	$(MAKE) $(MFLAGS) $@

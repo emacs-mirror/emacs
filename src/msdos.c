@@ -31,7 +31,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
+/* gettine and settime in dos.h clash with their namesakes from
+   gnulib, so we move out of our way the prototypes in dos.h.  */
+#define gettime dos_h_gettime_
+#define settime dos_h_settime_
 #include <dos.h>
+#undef gettime
+#undef settime
 #include <errno.h>
 #include <sys/stat.h>    /* for _fixpath */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
@@ -103,18 +109,18 @@ int _crt0_startup_flags = (_CRT0_FLAG_UNIX_SBRK | _CRT0_FLAG_FILL_SBRK_MEMORY);
 
 #endif /* not SYSTEM_MALLOC */
 
+/* Return the current timestamp in milliseconds since midnight.  */
 static unsigned long
 event_timestamp (void)
 {
-  struct time t;
+  struct timespec t;
   unsigned long s;
 
   gettime (&t);
-  s = t.ti_min;
-  s *= 60;
-  s += t.ti_sec;
+  s = t.tv_sec;
+  s %= 86400;
   s *= 1000;
-  s += t.ti_hund * 10;
+  s += t.tv_nsec * 1000000;
 
   return s;
 }
@@ -4097,10 +4103,10 @@ dos_yield_time_slice (void)
    because wait_reading_process_output takes care of that.  */
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout)
+	    EMACS_TIME *timeout, void *ignored)
 {
   int check_input;
-  struct time t;
+  struct timespec t;
 
   check_input = 0;
   if (rfds)
@@ -4130,18 +4136,13 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       EMACS_TIME clnow, cllast, cldiff;
 
       gettime (&t);
-      EMACS_SET_SECS_USECS (cllast, t.ti_sec, t.ti_hund * 10000L);
+      EMACS_SET_SECS_NSECS (cllast, t.tv_sec, t.tv_nsec);
 
       while (!check_input || !detect_input_pending ())
 	{
 	  gettime (&t);
-	  EMACS_SET_SECS_USECS (clnow, t.ti_sec, t.ti_hund * 10000L);
+	  EMACS_SET_SECS_NSECS (clnow, t.tv_sec, t.tv_nsec);
 	  EMACS_SUB_TIME (cldiff, clnow, cllast);
-
-	  /* When seconds wrap around, we assume that no more than
-	     1 minute passed since last `gettime'.  */
-	  if (EMACS_TIME_SIGN (cldiff) < 0)
-	    EMACS_SET_SECS (cldiff, EMACS_SECS (cldiff) + 60);
 	  EMACS_SUB_TIME (*timeout, *timeout, cldiff);
 
 	  /* Stop when timeout value crosses zero.  */

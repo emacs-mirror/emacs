@@ -6808,7 +6808,7 @@ keyboard_bit_set (fd_set *mask)
 
 /* Defined on msdos.c.  */
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
-		       EMACS_TIME *);
+		       EMACS_TIME *, void *);
 
 /* Implementation of wait_reading_process_output, assuming that there
    are no subprocesses.  Used only by the MS-DOS build.
