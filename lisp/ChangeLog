@@ -1,3 +1,9 @@
+2012-06-30  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-*-re): Convert defvars into defconsts, and
+	eval-and-compile them so eval-and-compile works on derivatives.
+	(xml--entity-replacement-text): Use eval-and-comple.
+
 2012-06-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* vc/vc-git.el (vc-git-registered): Use cache property

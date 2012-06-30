@@ -183,79 +183,90 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 			(current-buffer)
 			parse-dtd parse-ns))))
 
-
-(defvar xml-name-re)
-(defvar xml-entity-value-re)
-(defvar xml-att-def-re)
+(eval-and-compile
 (let* ((start-chars (concat "[:alpha:]:_"))
        (name-chars  (concat "-[:digit:]." start-chars))
-       ;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+
+       ;;[3] S ::= (#x20 | #x9 | #xD | #xA)+
        (whitespace  "[ \t\n\r]"))
-  ;;[4] NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6]
-  ;;                      | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF]
-  ;;                      | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF]
-  ;;                      | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
-  (defvar xml-name-start-char-re (concat "[" start-chars "]"))
-  ;;[4a] NameChar	::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
-  (defvar xml-name-char-re       (concat "[" name-chars  "]"))
-  ;;[5] Name     ::= NameStartChar (NameChar)*
-  (defvar xml-name-re            (concat xml-name-start-char-re xml-name-char-re "*"))
-  ;;[6] Names    ::= Name (#x20 Name)*
-  (defvar xml-names-re           (concat xml-name-re "\\(?: " xml-name-re "\\)*"))
-  ;;[7] Nmtoken ::= (NameChar)+
-  (defvar xml-nmtoken-re         (concat xml-name-char-re "+"))
-  ;;[8] Nmtokens ::= Nmtoken (#x20 Nmtoken)*
-  (defvar xml-nmtokens-re        (concat xml-nmtoken-re "\\(?: " xml-name-re "\\)*"))
-  ;;[66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
-  (defvar xml-char-ref-re        "\\(?:&#[0-9]+;\\|&#x[0-9a-fA-F]+;\\)")
-  ;;[68] EntityRef   ::= '&' Name ';'
-  (defvar xml-entity-ref         (concat "&" xml-name-re ";"))
-  ;;[69] PEReference ::= '%' Name ';'
-  (defvar xml-pe-reference-re    (concat "%" xml-name-re ";"))
-  ;;[67] Reference   ::= EntityRef | CharRef
-  (defvar xml-reference-re       (concat "\\(?:" xml-entity-ref "\\|" xml-char-ref-re "\\)"))
-  ;;[10]   	AttValue	   ::=   	'"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
-  (defvar xml-att-value-re    (concat "\\(?:\"\\(?:[^&\"]\\|" xml-reference-re "\\)*\"\\|"
-				      "'\\(?:[^&']\\|" xml-reference-re "\\)*'\\)"))
-  ;;[56]   	TokenizedType	   ::=   	'ID'	   [VC: ID] [VC: One ID per Element Type] [VC: ID Attribute Default]
-  ;;                                            | 'IDREF'    [VC: IDREF]
-  ;;                             	              | 'IDREFS'   [VC: IDREF]
-  ;;                                            | 'ENTITY'   [VC: Entity Name]
-  ;;                                            | 'ENTITIES' [VC: Entity Name]
-  ;;                                            | 'NMTOKEN'  [VC: Name Token]
-  ;;                                            | 'NMTOKENS' [VC: Name Token]
-  (defvar xml-tokenized-type-re "\\(?:ID\\|IDREF\\|IDREFS\\|ENTITY\\|ENTITIES\\|NMTOKEN\\|NMTOKENS\\)")
-  ;;[58]   	NotationType	   ::=   	'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
-  (defvar xml-notation-type-re (concat "\\(?:NOTATION" whitespace "(" whitespace "*" xml-name-re
-				       "\\(?:" whitespace "*|" whitespace "*" xml-name-re "\\)*" whitespace "*)\\)"))
-  ;;[59]   	Enumeration	   ::=   	'(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'	[VC: Enumeration] [VC: No Duplicate Tokens]
-  (defvar xml-enumeration-re (concat "\\(?:(" whitespace "*" xml-nmtoken-re
-				     "\\(?:" whitespace "*|" whitespace "*" xml-nmtoken-re "\\)*"
+  ;; [4] NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6]
+  ;;                     | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF]
+  ;;                     | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF]
+  ;;                     | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD]
+  ;;                     | [#x10000-#xEFFFF]
+  (defconst xml-name-start-char-re (concat "[" start-chars "]"))
+  ;; [4a] NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7
+  ;;                 | [#x0300-#x036F] | [#x203F-#x2040]
+  (defconst xml-name-char-re (concat "[" name-chars  "]"))
+  ;; [5] Name     ::= NameStartChar (NameChar)*
+  (defconst xml-name-re      (concat xml-name-start-char-re xml-name-char-re "*"))
+  ;; [6] Names    ::= Name (#x20 Name)*
+  (defconst xml-names-re     (concat xml-name-re "\\(?: " xml-name-re "\\)*"))
+  ;; [7] Nmtoken  ::= (NameChar)+
+  (defconst xml-nmtoken-re   (concat xml-name-char-re "+"))
+  ;; [8] Nmtokens ::= Nmtoken (#x20 Nmtoken)*
+  (defconst xml-nmtokens-re  (concat xml-nmtoken-re "\\(?: " xml-name-re "\\)*"))
+  ;; [66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
+  (defconst xml-char-ref-re  "\\(?:&#[0-9]+;\\|&#x[0-9a-fA-F]+;\\)")
+  ;; [68] EntityRef   ::= '&' Name ';'
+  (defconst xml-entity-ref   (concat "&" xml-name-re ";"))
+  ;; [69] PEReference ::= '%' Name ';'
+  (defconst xml-pe-reference-re (concat "%" xml-name-re ";"))
+  ;; [67] Reference   ::= EntityRef | CharRef
+  (defconst xml-reference-re (concat "\\(?:" xml-entity-ref "\\|" xml-char-ref-re "\\)"))
+  ;; [10] AttValue    ::= '"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
+  (defconst xml-att-value-re (concat "\\(?:\"\\(?:[^&\"]\\|" xml-reference-re "\\)*\"\\|"
+				     "'\\(?:[^&']\\|" xml-reference-re "\\)*'\\)"))
+  ;; [56] TokenizedType ::= 'ID' [VC: ID] [VC: One ID / Element Type] [VC: ID Attribute Default]
+  ;;                      | 'IDREF'    [VC: IDREF]
+  ;;                      | 'IDREFS'   [VC: IDREF]
+  ;;                      | 'ENTITY'   [VC: Entity Name]
+  ;;                      | 'ENTITIES' [VC: Entity Name]
+  ;;                      | 'NMTOKEN'  [VC: Name Token]
+  ;;                      | 'NMTOKENS' [VC: Name Token]
+  (defconst xml-tokenized-type-re (concat "\\(?:ID\\|IDREF\\|IDREFS\\|ENTITY\\|"
+					  "ENTITIES\\|NMTOKEN\\|NMTOKENS\\)"))
+  ;; [58] NotationType ::= 'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
+  (defconst xml-notation-type-re
+    (concat "\\(?:NOTATION" whitespace "(" whitespace "*" xml-name-re
+	    "\\(?:" whitespace "*|" whitespace "*" xml-name-re "\\)*"
+	    whitespace "*)\\)"))
+  ;; [59] Enumeration ::= '(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'
+  ;;       [VC: Enumeration] [VC: No Duplicate Tokens]
+  (defconst xml-enumeration-re (concat "\\(?:(" whitespace "*" xml-nmtoken-re
+				     "\\(?:" whitespace "*|" whitespace "*"
+				     xml-nmtoken-re "\\)*"
 				     whitespace ")\\)"))
-  ;;[57]   	EnumeratedType	   ::=   	NotationType | Enumeration
-  (defvar xml-enumerated-type-re (concat "\\(?:" xml-notation-type-re "\\|" xml-enumeration-re "\\)"))
-  ;;[54]   	AttType	   ::=   	StringType | TokenizedType | EnumeratedType
-  ;;[55]   	StringType	   ::=   	'CDATA'
-  (defvar xml-att-type-re (concat "\\(?:CDATA\\|" xml-tokenized-type-re "\\|" xml-notation-type-re"\\|" xml-enumerated-type-re "\\)"))
-  ;;[60]   	DefaultDecl	   ::=   	'#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
-  (defvar xml-default-decl-re (concat "\\(?:#REQUIRED\\|#IMPLIED\\|\\(?:#FIXED" whitespace "\\)*" xml-att-value-re "\\)"))
-  ;;[53]   	AttDef	   ::=   	S Name S AttType S DefaultDecl
-  (defvar xml-att-def-re         (concat "\\(?:" whitespace "*" xml-name-re
-					 whitespace "*" xml-att-type-re
-					 whitespace "*" xml-default-decl-re "\\)"))
-  ;;[9] EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
-  ;;		   |  "'" ([^%&'] | PEReference | Reference)* "'"
-  (defvar xml-entity-value-re    (concat "\\(?:\"\\(?:[^%&\"]\\|" xml-pe-reference-re
-					 "\\|" xml-reference-re "\\)*\"\\|'\\(?:[^%&']\\|"
-					 xml-pe-reference-re "\\|" xml-reference-re "\\)*'\\)")))
-;;[75] ExternalID ::= 'SYSTEM' S SystemLiteral
-;;                 | 'PUBLIC' S PubidLiteral S SystemLiteral
-;;[76] NDataDecl ::=   	S 'NDATA' S
-;;[73] EntityDef  ::= EntityValue| (ExternalID NDataDecl?)
-;;[71] GEDecl     ::= '<!ENTITY' S Name S EntityDef S? '>'
-;;[74] PEDef      ::= EntityValue | ExternalID
-;;[72] PEDecl     ::= '<!ENTITY' S '%' S Name S PEDef S? '>'
-;;[70] EntityDecl ::= GEDecl | PEDecl
+  ;; [57] EnumeratedType ::= NotationType | Enumeration
+  (defconst xml-enumerated-type-re (concat "\\(?:" xml-notation-type-re
+					   "\\|" xml-enumeration-re "\\)"))
+  ;; [54] AttType    ::= StringType | TokenizedType | EnumeratedType
+  ;; [55] StringType ::= 'CDATA'
+  (defconst xml-att-type-re (concat "\\(?:CDATA\\|" xml-tokenized-type-re
+				    "\\|" xml-notation-type-re
+				    "\\|" xml-enumerated-type-re "\\)"))
+  ;; [60] DefaultDecl ::= '#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
+  (defconst xml-default-decl-re (concat "\\(?:#REQUIRED\\|#IMPLIED\\|\\(?:#FIXED"
+					whitespace "\\)*" xml-att-value-re "\\)"))
+  ;; [53] AttDef      ::= S Name S AttType S DefaultDecl
+  (defconst xml-att-def-re (concat "\\(?:" whitespace "*" xml-name-re
+				   whitespace "*" xml-att-type-re
+				   whitespace "*" xml-default-decl-re "\\)"))
+  ;; [9] EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
+  ;;                   | "'" ([^%&'] | PEReference | Reference)* "'"
+  (defconst xml-entity-value-re (concat "\\(?:\"\\(?:[^%&\"]\\|" xml-pe-reference-re
+					"\\|" xml-reference-re
+					"\\)*\"\\|'\\(?:[^%&']\\|"
+					xml-pe-reference-re "\\|"
+					xml-reference-re "\\)*'\\)"))))
+
+;; [75] ExternalID ::= 'SYSTEM' S SystemLiteral
+;;                   | 'PUBLIC' S PubidLiteral S SystemLiteral
+;; [76] NDataDecl ::=   	S 'NDATA' S
+;; [73] EntityDef  ::= EntityValue| (ExternalID NDataDecl?)
+;; [71] GEDecl     ::= '<!ENTITY' S Name S EntityDef S? '>'
+;; [74] PEDef      ::= EntityValue | ExternalID
+;; [72] PEDecl     ::= '<!ENTITY' S '%' S Name S PEDef S? '>'
+;; [70] EntityDecl ::= GEDecl | PEDecl
 
 ;; Note that this is setup so that we can do whitespace-skipping with
 ;; `(skip-syntax-forward " ")', inter alia.  Previously this was slow
@@ -722,8 +733,9 @@ This follows the rule [28] in the XML specifications."
   "Return the replacement text for the entity value STRING.
 The replacement text is obtained by replacing character
 references and parameter-entity references."
-  (let ((ref-re (concat "\\(?:&#\\([0-9]+\\)\\|&#x\\([0-9a-fA-F]+\\)\\|%\\("
-			xml-name-re "\\)\\);"))
+  (let ((ref-re (eval-when-compile
+		  (concat "\\(?:&#\\([0-9]+\\)\\|&#x\\([0-9a-fA-F]+\\)\\|%\\("
+			  xml-name-re "\\)\\);")))
 	children)
     (while (string-match ref-re string)
       (push (substring string 0 (match-beginning 0)) children)
