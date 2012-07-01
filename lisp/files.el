@@ -4310,7 +4310,9 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
 							default-directory))))
     (setq filename (expand-file-name filename))
     (let ((fremote (file-remote-p filename))
-          (dremote (file-remote-p directory)))
+	  (dremote (file-remote-p directory))
+	  (fold-case (or (memq system-type '(ms-dos cygwin windows-nt))
+			 read-file-name-completion-ignore-case)))
       (if ;; Conditions for separate trees
 	  (or
 	   ;; Test for different filesystems on DOS/Windows
@@ -4319,7 +4321,7 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
 	    (memq system-type '(ms-dos cygwin windows-nt))
 	    (or
 	     ;; Test for different drive letters
-	     (not (eq t (compare-strings filename 0 2 directory 0 2)))
+	     (not (eq t (compare-strings filename 0 2 directory 0 2 fold-case)))
 	     ;; Test for UNCs on different servers
 	     (not (eq t (compare-strings
 			 (progn
@@ -4344,16 +4346,16 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
           (while (not
 		  (or
 		   (eq t (compare-strings filename-dir nil (length directory)
-					  directory nil nil case-fold-search))
+					  directory nil nil fold-case))
 		   (eq t (compare-strings filename nil (length directory)
-					  directory nil nil case-fold-search))))
+					  directory nil nil fold-case))))
             (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
 			       ".."
 			     (concat "../" ancestor))))
           ;; Now ancestor is empty, or .., or ../.., etc.
           (if (eq t (compare-strings filename nil (length directory)
-				     directory nil nil case-fold-search))
+				     directory nil nil fold-case))
 	      ;; We matched within FILENAME's directory part.
 	      ;; Add the rest of FILENAME onto ANCESTOR.
 	      (let ((rest (substring filename (length directory))))
