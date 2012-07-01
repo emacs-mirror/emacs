@@ -641,6 +641,7 @@ etcdir
 x_default_search_path
 lisppath
 locallisppath
+standardlisppath
 leimdir
 lispdir
 srcdir
@@ -3791,9 +3792,10 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 lispdir='${datadir}/emacs/${version}/lisp'
 leimdir='${datadir}/emacs/${version}/leim'
+standardlisppath='${lispdir}:${leimdir}'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
-lisppath='${locallisppath}:${lispdir}:${datadir}/emacs/${version}/leim'
+lisppath='${locallisppath}:${standardlisppath}'
 etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
@@ -22636,6 +22638,7 @@ version=$PACKAGE_VERSION
 
 
 ## Unused?
+
 
 
 
