@@ -651,7 +651,9 @@ This follows the rule [28] in the XML specifications."
 	(skip-syntax-forward " ")
 	(cond
 	 ;; Element declaration [45]:
-	 ((and (looking-at "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
+	 ((and (looking-at (eval-when-compile
+			     (concat "<!ELEMENT\\s-+\\(" xml-name-re
+				     "\\)\\s-+\\([^>]+\\)>")))
 	       (or (null next-parameter-entity)
 		   (<= (match-end 0) next-parameter-entity)))
 	  (let ((element (match-string-no-properties 1))
@@ -659,13 +661,14 @@ This follows the rule [28] in the XML specifications."
 		(end-pos (match-end 0)))
 	    ;; Translation of rule [46] of XML specifications
 	    (cond
-	     ((string-match "^EMPTY[ \t\n\r]*$" type)       ; empty declaration
+	     ((string-match "\\`EMPTY\\s-*\\'" type)  ; empty declaration
 	      (setq type 'empty))
-	     ((string-match "^ANY[ \t\n\r]*$" type)         ; any type of contents
+	     ((string-match "\\`ANY\\s-*$" type)      ; any type of contents
 	      (setq type 'any))
-	     ((string-match "^(\\(.*\\))[ \t\n\r]*$" type)  ; children ([47])
-	      (setq type (xml-parse-elem-type (match-string-no-properties 1 type))))
-	     ((string-match "^%[^;]+;[ \t\n\r]*$" type)	  ; substitution
+	     ((string-match "\\`(\\(.*\\))\\s-*\\'" type) ; children ([47])
+	      (setq type (xml-parse-elem-type
+			  (match-string-no-properties 1 type))))
+	     ((string-match "^%[^;]+;[ \t\n\r]*\\'" type) ; substitution
 	      nil)
 	     (xml-validating-parser
 	      (error "XML: (Validity) Invalid element type in the DTD")))

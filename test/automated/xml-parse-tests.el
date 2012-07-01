@@ -38,7 +38,10 @@
      ((foo ((a . "b")) (bar nil "AbC;"))))
     ;; Tricky parameter entity substitution (like XML spec Appendix D)
     ("<?xml version='1.0'?><!DOCTYPE foo [ <!ENTITY % xx '&#37;zz;'><!ENTITY % zz '&#60;!ENTITY ent \"b\" >' > %xx; ]><foo>A&ent;C</foo>" .
-     ((foo nil "AbC"))))
+     ((foo nil "AbC")))
+    ;; Bug#7172
+    ("<?xml version=\"1.0\"?><!DOCTYPE foo [ <!ELEMENT EXAM_PLE EMPTY> ]><foo></foo>" .
+     ((foo nil))))
   "Alist of XML strings and their expected parse trees.")
 
 (ert-deftest xml-parse-tests ()

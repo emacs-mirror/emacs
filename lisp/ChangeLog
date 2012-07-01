@@ -7,6 +7,7 @@
 	Use xml--parse-buffer.
 	(xml-parse-file): Use xml--parse-buffer.
 	(xml-parse-dtd): Make parameter entity substitution work right.
+	Use proper regexps for ELEMENT declarations (Bug#7172).
 
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
