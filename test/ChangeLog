@@ -1,3 +1,7 @@
+2012-07-01  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el: New file.
+
 2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/ert-x-tests.el (ert-test-run-tests-interactively-2):

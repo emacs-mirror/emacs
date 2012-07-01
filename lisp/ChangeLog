@@ -1,3 +1,13 @@
+2012-07-01  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml--parse-buffer): New function.  Move most of
+	xml-parse-region here.
+	(xml-parse-region): Copy region into a temporary buffer, since
+	parameter entity substitution requires changing buffer contents.
+	Use xml--parse-buffer.
+	(xml-parse-file): Use xml--parse-buffer.
+	(xml-parse-dtd): Make parameter entity substitution work right.
+
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (follow-comint-scroll-to-bottom): Fix declaration.

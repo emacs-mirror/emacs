@@ -165,23 +165,12 @@ See also `xml-get-attribute-or-nil'."
 ;;;###autoload
 (defun xml-parse-file (file &optional parse-dtd parse-ns)
   "Parse the well-formed XML file FILE.
-If FILE is already visited, use its buffer and don't kill it.
-Returns the top node with all its children.
+Return the top node with all its children.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped.
 If PARSE-NS is non-nil, then QNAMES are expanded."
-  (if (get-file-buffer file)
-      (with-current-buffer (get-file-buffer file)
-	(save-excursion
-	  (xml-parse-region (point-min)
-			    (point-max)
-			    (current-buffer)
-			    parse-dtd parse-ns)))
-    (with-temp-buffer
-      (insert-file-contents file)
-      (xml-parse-region (point-min)
-			(point-max)
-			(current-buffer)
-			parse-dtd parse-ns))))
+  (with-temp-buffer
+    (insert-file-contents file)
+    (xml--parse-buffer parse-dtd parse-ns)))
 
 (eval-and-compile
 (let* ((start-chars (concat "[:alpha:]:_"))
@@ -320,42 +309,44 @@ and returned as the first element of the list.
 If PARSE-NS is non-nil, then QNAMES are expanded."
   ;; Use fixed syntax table to ensure regexp char classes and syntax
   ;; specs DTRT.
+  (unless buffer
+    (setq buffer (current-buffer)))
+  (with-temp-buffer
+    (insert-buffer-substring buffer beg end)
+    (xml--parse-buffer parse-dtd parse-ns)))
+
+(defun xml--parse-buffer (parse-dtd parse-ns)
   (with-syntax-table (standard-syntax-table)
     (let ((case-fold-search nil)	; XML is case-sensitive.
 	  ;; Prevent entity definitions from changing the defaults
 	  (xml-entity-alist xml-entity-alist)
 	  (xml-parameter-entity-alist xml-parameter-entity-alist)
  	  xml result dtd)
-      (save-excursion
- 	(if buffer
- 	    (set-buffer buffer))
- 	(save-restriction
- 	  (narrow-to-region beg end)
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (if (search-forward "<" nil t)
-		(progn
-		  (forward-char -1)
-		  (setq result (xml-parse-tag parse-dtd parse-ns))
-		  (cond
-		   ((null result)
-		    ;; Not looking at an xml start tag.
-		    (unless (eobp)
-		      (forward-char 1)))
-		   ((and xml (not xml-sub-parser))
-		    ;; Translation of rule [1] of XML specifications
-		    (error "XML: (Not Well-Formed) Only one root tag allowed"))
-		   ((and (listp (car result))
-			 parse-dtd)
-		    (setq dtd (car result))
-		    (if (cdr result)	; possible leading comment
-			(add-to-list 'xml (cdr result))))
-		   (t
-		    (add-to-list 'xml result))))
-	      (goto-char (point-max))))
-	  (if parse-dtd
-	      (cons dtd (nreverse xml))
-	    (nreverse xml)))))))
+      (goto-char (point-min))
+      (while (not (eobp))
+	(if (search-forward "<" nil t)
+	    (progn
+	      (forward-char -1)
+	      (setq result (xml-parse-tag parse-dtd parse-ns))
+	      (cond
+	       ((null result)
+		;; Not looking at an xml start tag.
+		(unless (eobp)
+		  (forward-char 1)))
+	       ((and xml (not xml-sub-parser))
+		;; Translation of rule [1] of XML specifications
+		(error "XML: (Not Well-Formed) Only one root tag allowed"))
+	       ((and (listp (car result))
+		     parse-dtd)
+		(setq dtd (car result))
+		(if (cdr result)	; possible leading comment
+		    (add-to-list 'xml (cdr result))))
+	       (t
+		(add-to-list 'xml result))))
+	  (goto-char (point-max))))
+      (if parse-dtd
+	  (cons dtd (nreverse xml))
+	(nreverse xml)))))
 
 (defun xml-maybe-do-ns (name default xml-ns)
   "Perform any namespace expansion.
@@ -600,7 +591,10 @@ This follows the rule [28] in the XML specifications."
   ;;  Get the name of the document
   (looking-at xml-name-regexp)
   (let ((dtd (list (match-string-no-properties 0) 'dtd))
-	(xml-parameter-entity-alist xml-parameter-entity-alist))
+	(xml-parameter-entity-alist xml-parameter-entity-alist)
+	(parameter-entity-re (eval-when-compile
+			       (concat "%\\(" xml-name-re "\\);")))
+	next-parameter-entity)
     (goto-char (match-end 0))
     (skip-syntax-forward " ")
 
@@ -638,13 +632,28 @@ This follows the rule [28] in the XML specifications."
 	(error "XML: Bad DTD"))
       (forward-char)
 
+      ;; [2.8]: "markup declarations may be made up in whole or in
+      ;; part of the replacement text of parameter entities."
+
+      ;; Since parameter entities are valid only within the DTD, we
+      ;; first search for the position of the next possible parameter
+      ;; entity.  Then, search for the next DTD element; if it ends
+      ;; before the next parameter entity, expand the parameter entity
+      ;; and try again.
+      (setq next-parameter-entity
+	    (save-excursion
+	      (if (re-search-forward parameter-entity-re nil t)
+		  (match-beginning 0))))
+
       ;; Parse the rest of the DTD
       ;; Fixme: Deal with NOTATION, PIs.
       (while (not (looking-at "\\s-*\\]"))
 	(skip-syntax-forward " ")
 	(cond
 	 ;; Element declaration [45]:
-	 ((looking-at "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
+	 ((and (looking-at "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
+	       (or (null next-parameter-entity)
+		   (<= (match-end 0) next-parameter-entity)))
 	  (let ((element (match-string-no-properties 1))
 		(type    (match-string-no-properties 2))
 		(end-pos (match-end 0)))
@@ -672,19 +681,31 @@ This follows the rule [28] in the XML specifications."
 	    (goto-char end-pos)))
 
 	 ;; Attribute-list declaration [52] (currently unsupported):
-	 ((looking-at (concat "<!ATTLIST[ \t\n\r]*\\(" xml-name-re
-			      "\\)[ \t\n\r]*\\(" xml-att-def-re
-			      "\\)*[ \t\n\r]*>"))
+	 ((and (looking-at (eval-when-compile
+			     (concat "<!ATTLIST[ \t\n\r]*\\(" xml-name-re
+				     "\\)[ \t\n\r]*\\(" xml-att-def-re
+				     "\\)*[ \t\n\r]*>")))
+	       (or (null next-parameter-entity)
+		   (<= (match-end 0) next-parameter-entity)))
 	  (goto-char (match-end 0)))
 
-	 ;; Comments (skip to end):
+	 ;; Comments (skip to end, ignoring parameter entity):
 	 ((looking-at "<!--")
-	  (search-forward "-->"))
+	  (search-forward "-->")
+	  (and next-parameter-entity
+	       (> (point) next-parameter-entity)
+	       (setq next-parameter-entity
+		     (save-excursion
+		       (if (re-search-forward parameter-entity-re nil t)
+			   (match-beginning 0))))))
 
 	 ;; Internal entity declarations:
-	 ((looking-at (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
-			      xml-name-re "\\)[ \t\n\r]*\\("
-			      xml-entity-value-re "\\)[ \t\n\r]*>"))
+	 ((and (looking-at (eval-when-compile
+			     (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
+				     xml-name-re "\\)[ \t\n\r]*\\("
+				     xml-entity-value-re "\\)[ \t\n\r]*>")))
+	       (or (null next-parameter-entity)
+		   (<= (match-end 0) next-parameter-entity)))
 	  (let* ((name (prog1 (match-string-no-properties 2)
 			 (goto-char (match-end 0))))
 		 (alist (if (match-string 1)
@@ -700,26 +721,39 @@ This follows the rule [28] in the XML specifications."
 	      (set alist (cons (cons name value) (symbol-value alist))))))
 
 	 ;; External entity declarations (currently unsupported):
-	 ((or (looking-at (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
-				  xml-name-re "\\)[ \t\n\r]+SYSTEM[ \t\n\r]+"
-				  "\\(\"[^\"]*\"\\|'[^']*'\\)[ \t\n\r]*>"))
-	      (looking-at (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
-				  xml-name-re "\\)[ \t\n\r]+PUBLIC[ \t\n\r]+"
-				  "\"[- \r\na-zA-Z0-9'()+,./:=?;!*#@$_%]*\""
-				  "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'"
-				  "[ \t\n\r]+\\(\"[^\"]*\"\\|'[^']*'\\)"
-				  "[ \t\n\r]*>")))
+	 ((and (or (looking-at (eval-when-compile
+				 (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
+					 xml-name-re "\\)[ \t\n\r]+SYSTEM[ \t\n\r]+"
+					 "\\(\"[^\"]*\"\\|'[^']*'\\)[ \t\n\r]*>")))
+		   (looking-at (eval-when-compile
+				 (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
+					 xml-name-re "\\)[ \t\n\r]+PUBLIC[ \t\n\r]+"
+					 "\"[- \r\na-zA-Z0-9'()+,./:=?;!*#@$_%]*\""
+					 "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'"
+					 "[ \t\n\r]+\\(\"[^\"]*\"\\|'[^']*'\\)"
+					 "[ \t\n\r]*>"))))
+	       (or (null next-parameter-entity)
+		   (<= (match-end 0) next-parameter-entity)))
 	  (goto-char (match-end 0)))
 
-	 ;; Parameter entity:
-	 ((looking-at (concat "%\\(" xml-name-re "\\);"))
-	  (goto-char (match-end 0))
-	  (let* ((entity (match-string 1))
-		 (end (point-marker))
-		 (elt (assoc entity xml-parameter-entity-alist)))
-	    (when elt
-	      (replace-match (cdr elt) t t)
-	      (goto-char end))))
+	 ;; If a parameter entity is in the way, expand it.
+	 (next-parameter-entity
+	  (save-excursion
+	    (goto-char next-parameter-entity)
+	    (unless (looking-at parameter-entity-re)
+	      (error "XML: Internal error"))
+	    (let* ((entity (match-string 1))
+		   (beg    (point-marker))
+		   (elt    (assoc entity xml-parameter-entity-alist)))
+	      (if elt
+		  (progn
+		    (replace-match (cdr elt) t t)
+		    ;; The replacement can itself be a parameter entity.
+		    (goto-char next-parameter-entity))
+		(goto-char (match-end 0))))
+	    (setq next-parameter-entity
+		  (if (re-search-forward parameter-entity-re nil t)
+		      (match-beginning 0)))))
 
 	 ;; Anything else:
 	 (xml-validating-parser
