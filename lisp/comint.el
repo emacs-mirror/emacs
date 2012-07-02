@@ -2006,6 +2006,20 @@ Make backspaces delete the previous character."
 	    (goto-char (process-mark process))
 	    (set-marker comint-last-output-start (point))
 
+            ;; Try to skip repeated prompts, which can occur as a result of
+            ;; commands sent without inserting them in the buffer.
+            (let ((bol (save-excursion (forward-line 0) (point)))) ;No fields.
+              (when (and (not (bolp))
+                         (looking-back comint-prompt-regexp bol))
+                (let* ((prompt (buffer-substring bol (point)))
+                       (prompt-re (concat "\\`" (regexp-quote prompt))))
+                  (while (string-match prompt-re string)
+                    (setq string (substring string (match-end 0)))))))
+            (while (string-match (concat "\\(^" comint-prompt-regexp
+                                         "\\)\\1+")
+                                 string)
+              (setq string (replace-match "\\1" nil nil string)))
+
 	    ;; insert-before-markers is a bad thing. XXX
 	    ;; Luckily we don't have to use it any more, we use
 	    ;; window-point-insertion-type instead.
@@ -2672,6 +2686,7 @@ prompts should stay at the beginning of a line.  If this is not
 the case, this command just calls `kill-region' with all
 read-only properties intact.  The read-only status of newlines is
 updated using `comint-update-fence', if necessary."
+  (declare (advertised-calling-convention (beg end) "23.3"))
   (interactive "r")
   (save-excursion
     (let* ((true-beg (min beg end))
@@ -2690,8 +2705,6 @@ updated using `comint-update-fence', if necessary."
 	(let ((inhibit-read-only t))
 	  (kill-region beg end yank-handler)
 	  (comint-update-fence))))))
-(set-advertised-calling-convention 'comint-kill-region '(beg end) "23.3")
-
 
 ;; Support for source-file processing commands.
 ;;============================================================================
