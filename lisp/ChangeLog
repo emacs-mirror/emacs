@@ -1,3 +1,21 @@
+2012-07-02  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el: Fix entity and character reference expansion, allowing
+	them to expand into markup as per XML spec.
+	(xml-default-ns): New variable.
+	(xml-entity-alist): Use XML spec definitions for lt and amp.
+	(xml-parse-region): Make first two arguments optional.  Discard
+	text properties.
+	(xml-parse-tag-1): New function, spun off from xml-parse-tag.  All
+	callers changed.
+	(xml-parse-tag): Call xml-parse-tag-1.  For backward
+	compatibility, this function should not modify buffer contents.
+	(xml-parse-tag-1): Fix opening-tag regexp.
+	(xml-parse-string): Rewrite, handling entity and character
+	references properly.
+	(xml--entity-replacement-text): Signal an error if a parameter
+	entity is undefined.
+
 2012-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* comint.el (comint-output-filter): Filter out repeated prompts.

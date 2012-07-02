@@ -33,15 +33,26 @@
   '(;; General entity substitution
     ("<?xml version=\"1.0\"?><!DOCTYPE foo SYSTEM \"bar.dtd\" [<!ENTITY ent \"AbC\">]><foo a=\"b\"><bar>&ent;;</bar></foo>" .
      ((foo ((a . "b")) (bar nil "AbC;"))))
+    ("<?xml version=\"1.0\"?><foo>&amp;amp;&#38;apos;&apos;&lt;&gt;&quot;</foo>" .
+     ((foo () "&amp;&apos;'<>\"")))
     ;; Parameter entity substitution
     ("<?xml version=\"1.0\"?><!DOCTYPE foo SYSTEM \"bar.dtd\" [<!ENTITY % pent \"AbC\"><!ENTITY ent \"%pent;\">]><foo a=\"b\"><bar>&ent;;</bar></foo>" .
      ((foo ((a . "b")) (bar nil "AbC;"))))
     ;; Tricky parameter entity substitution (like XML spec Appendix D)
     ("<?xml version='1.0'?><!DOCTYPE foo [ <!ENTITY % xx '&#37;zz;'><!ENTITY % zz '&#60;!ENTITY ent \"b\" >' > %xx; ]><foo>A&ent;C</foo>" .
-     ((foo nil "AbC")))
+     ((foo () "AbC")))
     ;; Bug#7172
     ("<?xml version=\"1.0\"?><!DOCTYPE foo [ <!ELEMENT EXAM_PLE EMPTY> ]><foo></foo>" .
-     ((foo nil))))
+     ((foo ())))
+    ;; Entities referencing entities, in character data
+    ("<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">]><foo>&abc;</foo>" .
+     ((foo () "aBc")))
+    ;; Entities referencing entities, in attribute values
+    ("<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">]><foo a=\"-&abc;-\">1</foo>" .
+     ((foo ((a . "-aBc-")) "1")))
+    ;; Character references must be treated as character data
+    ("<foo>AT&amp;T;</foo>" . ((foo () "AT&T;")))
+    ("<foo>&#38;amp;</foo>" . ((foo () "&amp;"))))
   "Alist of XML strings and their expected parse trees.")
 
 (ert-deftest xml-parse-tests ()

@@ -1,3 +1,8 @@
+2012-07-02  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--data): More
+	testcases.
+
 2012-07-01  Chong Yidong  <cyd@gnu.org>
 
 	* automated/xml-parse-tests.el: New file.
