@@ -1,3 +1,10 @@
+2012-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-expand-file-name): Use ange-ftp-ftp-name
+	and file-name-absolute-p.
+	(ange-ftp-file-exists-p): Use ange-ftp-file-exists-p for
+	internal calls.
+
 2012-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.
@@ -50,7 +57,7 @@
 
 2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/cl-lib.el: Require macroexp for its macros.
+	* emacs-lisp/cl-lib.el: Require macroexp.
 
 2012-06-30  Chong Yidong  <cyd@gnu.org>
 

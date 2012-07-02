@@ -3143,21 +3143,15 @@ logged in as user USER and cd'd to directory DIR."
   "Documented as `expand-file-name'."
   (save-match-data
     (setq default (or default default-directory))
-    (cond ((eq (string-to-char name) ?~)
-	   (ange-ftp-real-expand-file-name name))
-	  ((eq (string-to-char name) ?/)
-	   (ange-ftp-canonize-filename name))
-	  ((and (eq system-type 'windows-nt)
-		(eq (string-to-char name) ?\\))
-	   (ange-ftp-canonize-filename name))
-	  ((and (eq system-type 'windows-nt)
-		(or (string-match "\\`[a-zA-Z]:" name)
-		    (string-match "\\`[a-zA-Z]:" default)))
-	   (ange-ftp-real-expand-file-name name default))
-	  ((zerop (length name))
-	   (ange-ftp-canonize-filename default))
-	  ((ange-ftp-canonize-filename
-	    (concat (file-name-as-directory default) name))))))
+    (cond
+     ((ange-ftp-ftp-name name)
+      ;; `default' is irrelevant.
+      (ange-ftp-canonize-filename name))
+     ((file-name-absolute-p name)
+      ;; `name' is absolute but is not an ange-ftp name => not ange-ftp.
+      (ange-ftp-real-expand-file-name name "/"))
+     ((ange-ftp-canonize-filename
+       (concat (file-name-as-directory default) name))))))
 
 ;;; These are problems--they are currently not enabled.
 
@@ -3390,7 +3384,7 @@ system TYPE.")
       (if (ange-ftp-file-entry-p name)
 	  (let ((file-ent (ange-ftp-get-file-entry name)))
 	    (if (stringp file-ent)
-		(file-exists-p
+		(ange-ftp-file-exists-p
 		 (ange-ftp-expand-symlink file-ent
 					  (file-name-directory
 					   (directory-file-name name))))
