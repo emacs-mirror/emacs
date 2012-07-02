@@ -11671,7 +11671,7 @@
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
 	* org.el (org-src-fontify-natively): Set to nil by default.
-	Supply cutomize interface.
+	Supply customize interface.
 
 2010-11-11  Bastien Guerry  <bzg@gnu.org>
 

@@ -256,12 +256,12 @@
 (load "site-load" t)
 
 ;; ¡¡¡ Big Ugly Hack !!!
-;; src/boostrap-emacs is mostly used to compile .el files, so it needs
+;; src/bootstrap-emacs is mostly used to compile .el files, so it needs
 ;; macroexp, bytecomp, cconv, and byte-opt to be fast.  Generally this is done
 ;; by compiling those files first, but this only makes a difference if those
 ;; files are not preloaded.  As it so happens, macroexp.el tends to be
-;; accidentally preloaded in src/boostrap-emacs because cl.el and cl-macs.el
-;; require it.  So lets unload it here, if needed, to make sure the
+;; accidentally preloaded in src/bootstrap-emacs because cl.el and cl-macs.el
+;; require it.  So let's unload it here, if needed, to make sure the
 ;; byte-compiled version is used.
 (if (or (not (fboundp 'macroexpand-all))
         (byte-code-function-p (symbol-function 'macroexpand-all)))

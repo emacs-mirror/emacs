@@ -1,3 +1,9 @@
+2012-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* emacs-lisp/bytecomp.el (byte-compile--reify-function):
+	Rename from byte-compile--refiy-function.  All uses changed.
+
 2012-07-01  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el (xml--parse-buffer): New function.  Move most of

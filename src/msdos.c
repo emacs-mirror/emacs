@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
-/* gettine and settime in dos.h clash with their namesakes from
+/* gettime and settime in dos.h clash with their namesakes from
    gnulib, so we move out of our way the prototypes in dos.h.  */
 #define gettime dos_h_gettime_
 #define settime dos_h_settime_

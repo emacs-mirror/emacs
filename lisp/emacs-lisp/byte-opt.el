@@ -284,7 +284,7 @@
                           ;; been preprocessed!
                           `(function ,fn)
                         (byte-compile-preprocess
-                         (byte-compile--refiy-function fn)))))
+                         (byte-compile--reify-function fn)))))
            (if (eq (car-safe newfn) 'function)
                (byte-compile-unfold-lambda `(,(cadr newfn) ,@(cdr form)))
              (byte-compile-log-warning

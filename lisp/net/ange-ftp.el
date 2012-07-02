@@ -1201,7 +1201,7 @@ only return the directory part of FILE."
 (defun ange-ftp-get-passwd (host user)
   "Return the password for specified HOST and USER, asking user if necessary."
   ;; If `non-essential' is non-nil, don't ask for a password.  It will
-  ;; be catched in Tramp.
+  ;; be caught in Tramp.
   (when non-essential
     (throw 'non-essential 'non-essential))
 
@@ -1781,7 +1781,7 @@ good, skip, fatal, or unknown."
 (defun ange-ftp-gwp-start (host user name args)
   "Login to the gateway machine and fire up an FTP process."
   ;; If `non-essential' is non-nil, don't reopen a new connection.  It
-  ;; will be catched in Tramp.
+  ;; will be caught in Tramp.
   (when non-essential
     (throw 'non-essential 'non-essential))
   (let (;; It would be nice to make process-connection-type nil,
@@ -1916,7 +1916,7 @@ been queued with no result.  CONT will still be called, however."
 If HOST is only FTP-able through a gateway machine then spawn a shell
 on the gateway machine to do the FTP instead."
   ;; If `non-essential' is non-nil, don't reopen a new connection.  It
-  ;; will be catched in Tramp.
+  ;; will be caught in Tramp.
   (when non-essential
     (throw 'non-essential 'non-essential))
   (let* ((use-gateway (ange-ftp-use-gateway-p host))
@@ -2138,7 +2138,7 @@ Create a new process if needed."
     (if (and proc (memq (process-status proc) '(run open)))
 	proc
       ;; If `non-essential' is non-nil, don't reopen a new connection.  It
-      ;; will be catched in Tramp.
+      ;; will be caught in Tramp.
       (when non-essential
 	(throw 'non-essential 'non-essential))
 
