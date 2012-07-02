@@ -5924,10 +5924,8 @@ mark_object (Lisp_Object arg)
 	else
 	  pvectype = 0;
 
-#ifdef GC_CHECK_MARKED_OBJECTS
 	if (pvectype != PVEC_SUBR && pvectype != PVEC_BUFFER)
 	  CHECK_LIVE (live_vector_p);
-#endif /* GC_CHECK_MARKED_OBJECTS */
 
 	if (pvectype == PVEC_BUFFER)
 	  {

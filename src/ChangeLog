@@ -1,3 +1,10 @@
+2012-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (mark_object): Remove "#ifdef GC_CHECK_MARKED_OBJECTS"
+	wrapper that is not needed because the wrapped code is a no-op (zero
+	machine instructions) when GC_CHECK_MARKED_OBJECTS is not defined.
+	This avoids a -Wunused-macros diagnostic with GCC 4.7.1 x86-64.
+
 2012-07-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (mark_buffer): Simplify.  Remove prototype.
