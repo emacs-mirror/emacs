@@ -270,7 +270,6 @@ Lisp_Object Qchar_table_extra_slots;
 
 static Lisp_Object Qpost_gc_hook;
 
-static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
 static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
@@ -5787,6 +5786,48 @@ mark_char_table (struct Lisp_Vector *ptr)
     }
 }
 
+/* Mark the pointers in a buffer structure.  */
+
+static void
+mark_buffer (struct buffer *buffer)
+{
+  register Lisp_Object *ptr, tmp;
+
+  eassert (!VECTOR_MARKED_P (buffer));
+  VECTOR_MARK (buffer);
+
+  MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
+
+  /* For now, we just don't mark the undo_list.  It's done later in
+     a special way just before the sweep phase, and after stripping
+     some of its elements that are not needed any more.  */
+
+  if (buffer->overlays_before)
+    {
+      XSETMISC (tmp, buffer->overlays_before);
+      mark_object (tmp);
+    }
+  if (buffer->overlays_after)
+    {
+      XSETMISC (tmp, buffer->overlays_after);
+      mark_object (tmp);
+    }
+
+  /* buffer-local Lisp variables start at `undo_list',
+     tho only the ones from `name' on are GC'd normally.  */
+  for (ptr = &buffer->BUFFER_INTERNAL_FIELD (name);
+       ptr <= &PER_BUFFER_VALUE (buffer,
+				 PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER));
+       ptr++)
+    mark_object (*ptr);
+
+  /* If this is an indirect buffer, mark its base buffer.  */
+  if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
+    mark_buffer (buffer->base_buffer);
+}
+
+/* Determine type of generic Lisp_Object and mark it accordingly.  */
+
 void
 mark_object (Lisp_Object arg)
 {
@@ -5863,77 +5904,88 @@ mark_object (Lisp_Object arg)
       break;
 
     case Lisp_Vectorlike:
-      if (VECTOR_MARKED_P (XVECTOR (obj)))
-	break;
+      {
+	register struct Lisp_Vector *ptr = XVECTOR (obj);
+	register ptrdiff_t pvectype;
+
+	if (VECTOR_MARKED_P (ptr))
+	  break;
+
 #ifdef GC_CHECK_MARKED_OBJECTS
-      m = mem_find (po);
-      if (m == MEM_NIL && !SUBRP (obj)
-	  && po != &buffer_defaults
-	  && po != &buffer_local_symbols)
-	abort ();
+	m = mem_find (po);
+	if (m == MEM_NIL && !SUBRP (obj)
+	    && po != &buffer_defaults
+	    && po != &buffer_local_symbols)
+	  abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
-      if (BUFFERP (obj))
-	{
-#ifdef GC_CHECK_MARKED_OBJECTS
-	  if (po != &buffer_defaults && po != &buffer_local_symbols)
-	    {
-	      struct buffer *b;
-	      for (b = all_buffers; b && b != po; b = b->header.next.buffer)
-		;
-	      if (b == NULL)
-		abort ();
-	    }
-#endif /* GC_CHECK_MARKED_OBJECTS */
-	  mark_buffer (obj);
-	}
-      else if (SUBRP (obj))
-	break;
-      else if (COMPILEDP (obj))
-	/* We could treat this just like a vector, but it is better to
-	   save the COMPILED_CONSTANTS element for last and avoid
-	   recursion there.  */
-	{
-	  register struct Lisp_Vector *ptr = XVECTOR (obj);
-	  int size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
-	  int i;
+	if (ptr->header.size & PSEUDOVECTOR_FLAG)
+	  pvectype = ptr->header.size & PVEC_TYPE_MASK;
+	else
+	  pvectype = 0;
 
+#ifdef GC_CHECK_MARKED_OBJECTS
+	if (pvectype != PVEC_SUBR && pvectype != PVEC_BUFFER)
 	  CHECK_LIVE (live_vector_p);
-	  VECTOR_MARK (ptr);	/* Else mark it */
-	  for (i = 0; i < size; i++) /* and then mark its elements */
-	    {
+#endif /* GC_CHECK_MARKED_OBJECTS */
+
+	if (pvectype == PVEC_BUFFER)
+	  {
+#ifdef GC_CHECK_MARKED_OBJECTS
+	    if (po != &buffer_defaults && po != &buffer_local_symbols)
+	      {
+		struct buffer *b = all_buffers;
+		for (; b && b != po; b = b->header.next.buffer)
+		  ;
+		if (b == NULL)
+		  abort ();
+	      }
+#endif /* GC_CHECK_MARKED_OBJECTS */
+	    mark_buffer ((struct buffer *) ptr);
+	  }
+
+	else if (pvectype == PVEC_COMPILED)
+	  /* We could treat this just like a vector, but it is better
+	     to save the COMPILED_CONSTANTS element for last and avoid
+	     recursion there.  */
+	  {
+	    int size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
+	    int i;
+
+	    VECTOR_MARK (ptr);
+	    for (i = 0; i < size; i++)
 	      if (i != COMPILED_CONSTANTS)
 		mark_object (ptr->contents[i]);
-	    }
-	  obj = ptr->contents[COMPILED_CONSTANTS];
-	  goto loop;
-	}
-      else if (FRAMEP (obj))
+	    obj = ptr->contents[COMPILED_CONSTANTS];
+	    goto loop;
+	  }
+
+	else if (pvectype == PVEC_FRAME)
+	  {
+	    mark_vectorlike (ptr);
+	    mark_face_cache (((struct frame *) ptr)->face_cache);
+	  }
+
+	else if (pvectype == PVEC_WINDOW)
+	  {
+	    struct window *w = (struct window *) ptr;
+
+	    mark_vectorlike (ptr);
+	    /* Mark glyphs for leaf windows.  Marking window
+	       matrices is sufficient because frame matrices
+	       use the same glyph memory.  */
+	    if (NILP (w->hchild) && NILP (w->vchild) && w->current_matrix)
+	      {
+		mark_glyph_matrix (w->current_matrix);
+		mark_glyph_matrix (w->desired_matrix);
+	      }
+	  }
+
+	else if (pvectype == PVEC_HASH_TABLE)
 	{
-	  register struct frame *ptr = XFRAME (obj);
-	  mark_vectorlike (XVECTOR (obj));
-	  mark_face_cache (ptr->face_cache);
-	}
-      else if (WINDOWP (obj))
-	{
-	  register struct Lisp_Vector *ptr = XVECTOR (obj);
-	  struct window *w = XWINDOW (obj);
+	  struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *) ptr;
+
 	  mark_vectorlike (ptr);
-	  /* Mark glyphs for leaf windows.  Marking window matrices is
-	     sufficient because frame matrices use the same glyph
-	     memory.  */
-	  if (NILP (w->hchild)
-	      && NILP (w->vchild)
-	      && w->current_matrix)
-	    {
-	      mark_glyph_matrix (w->current_matrix);
-	      mark_glyph_matrix (w->desired_matrix);
-	    }
-	}
-      else if (HASH_TABLE_P (obj))
-	{
-	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
-	  mark_vectorlike ((struct Lisp_Vector *)h);
 	  /* If hash table is not weak, mark all keys and values.
 	     For weak tables, mark only the vector.  */
 	  if (NILP (h->weak))
@@ -5941,10 +5993,17 @@ mark_object (Lisp_Object arg)
 	  else
 	    VECTOR_MARK (XVECTOR (h->key_and_value));
 	}
-      else if (CHAR_TABLE_P (obj))
-	mark_char_table (XVECTOR (obj));
-      else
-	mark_vectorlike (XVECTOR (obj));
+
+	else if (pvectype == PVEC_CHAR_TABLE)
+	  mark_char_table (ptr);
+
+	else if (pvectype == PVEC_BOOL_VECTOR)
+	  /* No Lisp_Objects to mark in a bool vector.  */
+	  VECTOR_MARK (ptr);
+
+	else if (pvectype != PVEC_SUBR)
+	  mark_vectorlike (ptr);
+      }
       break;
 
     case Lisp_Symbol:
@@ -6091,52 +6150,6 @@ mark_object (Lisp_Object arg)
 #undef CHECK_ALLOCATED
 #undef CHECK_ALLOCATED_AND_LIVE
 }
-
-/* Mark the pointers in a buffer structure.  */
-
-static void
-mark_buffer (Lisp_Object buf)
-{
-  register struct buffer *buffer = XBUFFER (buf);
-  register Lisp_Object *ptr, tmp;
-  Lisp_Object base_buffer;
-
-  eassert (!VECTOR_MARKED_P (buffer));
-  VECTOR_MARK (buffer);
-
-  MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
-
-  /* For now, we just don't mark the undo_list.  It's done later in
-     a special way just before the sweep phase, and after stripping
-     some of its elements that are not needed any more.  */
-
-  if (buffer->overlays_before)
-    {
-      XSETMISC (tmp, buffer->overlays_before);
-      mark_object (tmp);
-    }
-  if (buffer->overlays_after)
-    {
-      XSETMISC (tmp, buffer->overlays_after);
-      mark_object (tmp);
-    }
-
-  /* buffer-local Lisp variables start at `undo_list',
-     tho only the ones from `name' on are GC'd normally.  */
-  for (ptr = &buffer->BUFFER_INTERNAL_FIELD (name);
-       ptr <= &PER_BUFFER_VALUE (buffer,
-				 PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER));
-       ptr++)
-    mark_object (*ptr);
-
-  /* If this is an indirect buffer, mark its base buffer.  */
-  if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
-    {
-      XSETBUFFER (base_buffer, buffer->base_buffer);
-      mark_buffer (base_buffer);
-    }
-}
-
 /* Mark the Lisp pointers in the terminal objects.
    Called by Fgarbage_collect.  */
 

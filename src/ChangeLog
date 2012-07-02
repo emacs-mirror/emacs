@@ -1,3 +1,11 @@
+2012-07-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (mark_buffer): Simplify.  Remove prototype.
+	(mark_object): Add comment.  Reorganize marking of vector-like
+	objects.  Use CHECK_LIVE for all vector-like ojects except buffers
+	and subroutines when GC_CHECK_MARKED_OBJECTS is defined.  Avoid
+	redundant calls to mark_vectorlike for bool vectors.
+
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* nsterm.m (ns_init_paths): Ignore site-lisp if --no-site-lisp.
@@ -58,7 +66,7 @@
 
 	* window.h (struct window): Change type of 'fringes_outside_margins'
 	to bitfield.  Fix comment.  Adjust users accordingly.
-	(struct window): Change type of 'window_end_bytepos' to	ptrdiff_t.
+	(struct window): Change type of 'window_end_bytepos' to ptrdiff_t.
 	Adjust comment.
 	* xdisp.c (try_window_id): Change type of 'first_vpos' and 'vpos'
 	to ptrdiff_t.
