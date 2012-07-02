@@ -1,3 +1,9 @@
+2012-07-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sync.el: Simply require json.
+
+	* registry.el: Simply require eieio and eieio-base.
+
 2012-06-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* tests/gnustest-nntp.el, tests/gnustest-registry.el, tests/: Remove.

@@ -79,20 +79,8 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-and-compile
-  (or (ignore-errors (progn
-                       (require 'eieio)
-                       (require 'eieio-base)))
-      ;; gnus-fallback-lib/ from gnus/lisp/gnus-fallback-lib
-      (ignore-errors
-        (let ((load-path (cons (expand-file-name
-                                "gnus-fallback-lib/eieio"
-                                (file-name-directory (locate-library "gnus")))
-                               load-path)))
-          (require 'eieio)
-          (require 'eieio-base)))
-      (error
-       "eieio not found in `load-path' or gnus-fallback-lib/ directory.")))
+(require 'eieio)
+(require 'eieio-base)
 
 (defclass registry-db (eieio-persistent)
   ((version :initarg :version
