@@ -9,7 +9,7 @@
 
 	* alloc.c (mark_buffer): Simplify.  Remove prototype.
 	(mark_object): Add comment.  Reorganize marking of vector-like
-	objects.  Use CHECK_LIVE for all vector-like ojects except buffers
+	objects.  Use CHECK_LIVE for all vector-like objects except buffers
 	and subroutines when GC_CHECK_MARKED_OBJECTS is defined.  Avoid
 	redundant calls to mark_vectorlike for bool vectors.
 
