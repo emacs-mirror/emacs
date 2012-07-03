@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1987, 1993-1995, 1997-2012
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1987, 1993-1995, 1997-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2835,6 +2835,7 @@ extern Lisp_Object Qfile_directory_p;
 extern Lisp_Object Qinsert_file_contents;
 extern Lisp_Object Qfile_name_history;
 extern Lisp_Object expand_and_dir_to_file (Lisp_Object, Lisp_Object);
+EXFUN (Fread_file_name, 6);     /* not a normal DEFUN */
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);

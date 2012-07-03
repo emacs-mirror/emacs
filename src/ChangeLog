@@ -1,3 +1,8 @@
+2012-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.h (Fread_file_name): Restore EXFUN (it's not a normal DEFUN
+	and did not make it into globals.h).
+
 2012-07-03  Tom Tromey  <tromey@redhat.com>
 
 	* window.c (Fset_window_margins, Fset_window_fringes)
