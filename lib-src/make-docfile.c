@@ -747,7 +747,7 @@ scan_c_file (char *filename, const char *mode)
       int defvarperbufferflag = 0;
       int defvarflag = 0;
       enum global_type type = INVALID;
-      char *name;
+      char *name IF_LINT (= 0);
 
       if (c != '\n' && c != '\r')
 	{

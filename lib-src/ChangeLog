@@ -1,3 +1,7 @@
+2012-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (scan_c_file): Suppress GCC warning.
+
 2012-06-29  Tom Tromey  <tromey@redhat.com>
 
 	* make-docfile.c (enum global_type) <FUNCTION>: New constant.
