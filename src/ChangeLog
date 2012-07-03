@@ -1,3 +1,10 @@
+2012-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c: Improve handling of file time marker.  (Bug#11852)
+	(special_mtime): New function.
+	(Finsert_file_contents, Fverify_visited_file_modtime):
+	Use it to set special mtime values consistently.
+
 2012-07-03  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* fileio.c (Finsert_file_contents): Properly handle st_mtime
