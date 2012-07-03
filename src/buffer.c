@@ -838,10 +838,14 @@ If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
 \(starting at 2) until an unused name is found, and then return that name.
 Optional second argument IGNORE specifies a name that is okay to use (if
-it is in the sequence to be tried) even if a buffer with that name exists.  */)
+it is in the sequence to be tried) even if a buffer with that name exists.
+
+If NAME begins with a space (i.e., a buffer that is not normally
+visible to users), then if buffer NAME already exists a random number
+is first appended to NAME, to speed up finding a non-existent buffer.  */)
   (register Lisp_Object name, Lisp_Object ignore)
 {
-  register Lisp_Object gentemp, tem;
+  register Lisp_Object gentemp, tem, tem2;
   ptrdiff_t count;
   char number[INT_BUFSIZE_BOUND (ptrdiff_t) + sizeof "<>"];
 
@@ -854,11 +858,23 @@ it is in the sequence to be tried) even if a buffer with that name exists.  */)
   if (NILP (tem))
     return name;
 
+  if (!strncmp (SSDATA (name), " ", 1)) /* see bug#1229 */
+    {
+      /* Note fileio.c:make_temp_name does random differently.  */
+      sprintf (number, "-%"pD"d", Frandom (make_number (999999)));
+      tem2 = concat2 (name, build_string (number));
+      tem = Fget_buffer (tem2);
+      if (NILP (tem))
+	return tem2;
+    }
+  else
+    tem2 = name;
+
   count = 1;
   while (1)
     {
       sprintf (number, "<%"pD"d>", ++count);
-      gentemp = concat2 (name, build_string (number));
+      gentemp = concat2 (tem2, build_string (number));
       tem = Fstring_equal (gentemp, ignore);
       if (!NILP (tem))
 	return gentemp;

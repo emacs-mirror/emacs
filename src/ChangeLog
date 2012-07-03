@@ -1,3 +1,9 @@
+2012-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.h (Frandom): Make it visible to C.
+	* buffer.c (Fgenerate_new_buffer_name): Speed up finding a new
+	buffer for invisible buffers.  (Bug#1229)
+
 2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix block vector allocation code to allow VECTOR_BLOCK_SIZE

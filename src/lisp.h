@@ -2473,6 +2473,7 @@ EXFUN (Fputhash, 3);
 EXFUN (Fremhash, 2);
 
 EXFUN (Fidentity, 1);
+EXFUN (Frandom, 1);
 EXFUN (Flength, 1);
 EXFUN (Fappend, MANY);
 EXFUN (Fconcat, MANY);
