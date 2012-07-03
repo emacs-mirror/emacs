@@ -1,5 +1,12 @@
 2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c (allocate_vector_block): Remove redundant
+	calls to mallopt if DOUG_LEA_MALLOC is defined.
+	(allocate_vectorlike): If DOUG_LEA_MALLOC is defined,
+	avoid calls to mallopt if zero_vector is returned.
+
+2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* alloc.c (check_string_bytes): If GC_CHECK_STRING_BYTES
 	is enabled, avoid dereferencing NULL current_sblock if
 	running undumped.

@@ -2958,17 +2958,7 @@ static struct Lisp_Vector *zero_vector;
 static struct vector_block *
 allocate_vector_block (void)
 {
-  struct vector_block *block;
-
-#ifdef DOUG_LEA_MALLOC
-  mallopt (M_MMAP_MAX, 0);
-#endif
-
-  block = xmalloc (sizeof (struct vector_block));
-
-#ifdef DOUG_LEA_MALLOC
-  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
-#endif
+  struct vector_block *block = xmalloc (sizeof (struct vector_block));
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   mem_insert (block->data, block->data + VECTOR_BLOCK_BYTES,
@@ -3166,44 +3156,42 @@ static struct Lisp_Vector *
 allocate_vectorlike (ptrdiff_t len)
 {
   struct Lisp_Vector *p;
-  size_t nbytes;
 
   MALLOC_BLOCK_INPUT;
-
-#ifdef DOUG_LEA_MALLOC
-  /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
-     because mapped region contents are not preserved in
-     a dumped Emacs.  */
-  mallopt (M_MMAP_MAX, 0);
-#endif
 
   /* This gets triggered by code which I haven't bothered to fix.  --Stef  */
   /* eassert (!handling_signal); */
 
   if (len == 0)
-    {
-      MALLOC_UNBLOCK_INPUT;
-      return zero_vector;
-    }
-
-  nbytes = header_size + len * word_size;
-
-  if (nbytes <= VBLOCK_BYTES_MAX)
-    p = allocate_vector_from_block (vroundup (nbytes));
+    p = zero_vector;
   else
     {
-      p = (struct Lisp_Vector *) lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
-      p->header.next.vector = large_vectors;
-      large_vectors = p;
-    }
+      size_t nbytes = header_size + len * word_size;
 
 #ifdef DOUG_LEA_MALLOC
-  /* Back to a reasonable maximum of mmap'ed areas.  */
-  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+      /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
+	 because mapped region contents are not preserved in
+	 a dumped Emacs.  */
+      mallopt (M_MMAP_MAX, 0);
 #endif
 
-  consing_since_gc += nbytes;
-  vector_cells_consed += len;
+      if (nbytes <= VBLOCK_BYTES_MAX)
+	p = allocate_vector_from_block (vroundup (nbytes));
+      else
+	{
+	  p = (struct Lisp_Vector *) lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
+	  p->header.next.vector = large_vectors;
+	  large_vectors = p;
+	}
+
+#ifdef DOUG_LEA_MALLOC
+      /* Back to a reasonable maximum of mmap'ed areas.  */
+      mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+#endif
+
+      consing_since_gc += nbytes;
+      vector_cells_consed += len;
+    }
 
   MALLOC_UNBLOCK_INPUT;
 
