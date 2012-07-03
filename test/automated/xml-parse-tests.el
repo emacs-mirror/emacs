@@ -55,14 +55,29 @@
     ("<foo>&#38;amp;</foo>" . ((foo () "&amp;"))))
   "Alist of XML strings and their expected parse trees.")
 
+(defvar xml-parse-tests--bad-data
+  '(;; XML bomb in content
+    "<!DOCTYPE foo [<!ENTITY lol \"lol\"><!ENTITY lol1 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\"><!ENTITY lol2 \"&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;\">]><foo>&lol2;</foo>"
+    ;; XML bomb in attribute value
+    "<!DOCTYPE foo [<!ENTITY lol \"lol\"><!ENTITY lol1 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\"><!ENTITY lol2 \"&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;\">]><foo a=\"&lol2;\">!</foo>"
+    ;; Non-terminating DTD
+    "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">"
+    "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">asdf"
+    "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">asdf&abc;")
+  "List of XML strings that should signal an error in the parser")
+
 (ert-deftest xml-parse-tests ()
   "Test XML parsing."
   (with-temp-buffer
     (dolist (test xml-parse-tests--data)
       (erase-buffer)
       (insert (car test))
-      (should (equal (cdr test)
-		     (xml-parse-region (point-min) (point-max)))))))
+      (should (equal (cdr test) (xml-parse-region))))
+    (let ((xml-entity-expansion-limit 50))
+      (dolist (test xml-parse-tests--bad-data)
+	(erase-buffer)
+	(insert test)
+	(should-error (xml-parse-region))))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

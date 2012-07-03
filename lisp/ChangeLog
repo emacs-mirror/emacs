@@ -1,3 +1,10 @@
+2012-07-03  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el: Protect parser against XML bombs.
+	(xml-entity-expansion-limit): New variable.
+	(xml-parse-string, xml-substitute-special): Use it.
+	(xml-parse-dtd): Avoid infloop if the DTD is not terminated.
+
 2012-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/bug-reference.el (bug-reference-bug-regexp):

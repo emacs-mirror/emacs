@@ -98,6 +98,13 @@
     ("amp"  . "&#38;"))
   "Alist mapping XML entities to their replacement text.")
 
+(defvar xml-entity-expansion-limit 20000
+  "The maximum size of entity reference expansions.
+If the size of the buffer increases by this many characters while
+expanding entity references in a segment of character data, the
+XML parser signals an error.  Setting this to nil removes the
+limit (making the parser vulnerable to XML bombs).")
+
 (defvar xml-parameter-entity-alist nil
   "Alist of defined XML parametric entities.")
 
@@ -471,7 +478,7 @@ Return one of:
 	    (while (not (looking-at end))
 	      (cond
 	       ((eobp)
-		(error "XML: (Not Well-Formed) End of buffer while reading element `%s'"
+		(error "XML: (Not Well-Formed) End of document while reading element `%s'"
 		       node-name))
 	       ((looking-at "</")
 		(forward-char 2)
@@ -517,6 +524,8 @@ Leave point at the start of the next thing to parse.  This
 function can modify the buffer by expanding entity and character
 references."
   (let ((start (point))
+	;; Keep track of the size of the rest of the buffer:
+	(old-remaining-size (- (buffer-size) (point)))
 	ref val)
     (while (and (not (eobp))
 		(not (looking-at "<")))
@@ -557,7 +566,13 @@ references."
 		    xml-validating-parser
 		    (error "XML: (Validity) Undefined entity `%s'" ref))
 	       (replace-match (cdr val) t t)
-	       (goto-char (match-beginning 0))))))
+	       (goto-char (match-beginning 0))))
+	;; Check for XML bombs.
+	(and xml-entity-expansion-limit
+	     (> (- (buffer-size) (point))
+		(+ old-remaining-size xml-entity-expansion-limit))
+	     (error "XML: Entity reference expansion \
+surpassed `xml-entity-expansion-limit'"))))
     ;; [2.11] Clean up line breaks.
     (let ((end-marker (point-marker)))
       (goto-char start)
@@ -689,6 +704,8 @@ This follows the rule [28] in the XML specifications."
       (while (not (looking-at "\\s-*\\]"))
 	(skip-syntax-forward " ")
 	(cond
+	 ((eobp)
+	  (error "XML: (Well-Formed) End of document while reading DTD"))
 	 ;; Element declaration [45]:
 	 ((and (looking-at (eval-when-compile
 			     (concat "<!ELEMENT\\s-+\\(" xml-name-re
@@ -797,9 +814,11 @@ This follows the rule [28] in the XML specifications."
 		  (if (re-search-forward parameter-entity-re nil t)
 		      (match-beginning 0)))))
 
-	 ;; Anything else:
+	 ;; Anything else is garbage (ignored if not validating).
 	 (xml-validating-parser
-	  (error "XML: (Validity) Invalid DTD item"))))
+	  (error "XML: (Validity) Invalid DTD item"))
+	 (t
+	  (skip-chars-forward "^]"))))
 
       (if (looking-at "\\s-*]>")
 	  (goto-char (match-end 0))))
@@ -876,6 +895,7 @@ STRING is assumed to occur in an XML attribute value."
   (let ((ref-re (eval-when-compile
 		  (concat "&\\(?:#\\(x\\)?\\([0-9]+\\)\\|\\("
 			  xml-name-re "\\)\\);")))
+	(strlen (length string))
 	children)
     (while (string-match ref-re string)
       (push (substring string 0 (match-beginning 0)) children)
@@ -891,7 +911,8 @@ STRING is assumed to occur in an XML attribute value."
 			   (error "XML: (Validity) Undefined character `x%s'" ref))
 			  (t xml-undefined-entity))
 		    children)
-	      (setq string remainder))
+	      (setq string remainder
+		    strlen (length string)))
 	  ;; [4.4.5] Entity references are "included in literal".
 	  ;; Note that we don't need do anything special to treat
 	  ;; quotes as normal data characters.
@@ -900,7 +921,11 @@ STRING is assumed to occur in an XML attribute value."
 			 (if xml-validating-parser
 			     (error "XML: (Validity) Undefined entity `%s'" ref)
 			   xml-undefined-entity))))
-	    (setq string (concat val remainder))))))
+	    (setq string (concat val remainder)))
+	  (and xml-entity-expansion-limit
+	       (> (length string) (+ strlen xml-entity-expansion-limit))
+	       (error "XML: Passed `xml-entity-expansion-limit' while expanding `&%s;'"
+		      ref)))))
     (mapconcat 'identity (nreverse (cons string children)) "")))
 
 (defun xml-substitute-numeric-entities (string)

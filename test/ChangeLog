@@ -1,3 +1,7 @@
+2012-07-03  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--bad-data): New.
+
 2012-07-02  Chong Yidong  <cyd@gnu.org>
 
 	* automated/xml-parse-tests.el (xml-parse-tests--data): More
