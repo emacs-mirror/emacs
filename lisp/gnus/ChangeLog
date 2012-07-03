@@ -1,3 +1,8 @@
+2012-07-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-view-part):
+	Toggle subparts of multipart/alternative part.
+
 2012-07-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sync.el: Simply require json.

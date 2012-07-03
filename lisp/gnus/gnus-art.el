@@ -5621,7 +5621,9 @@ all parts."
     (let ((handle (cdr (assq n gnus-article-mime-handle-alist))))
       (when (gnus-article-goto-part n)
 	(if (equal (car handle) "multipart/alternative")
-	    (gnus-article-press-button)
+	    (progn
+	      (beginning-of-line) ;; Make it toggle subparts
+	      (gnus-article-press-button))
 	  (when (eq (gnus-mm-display-part handle) 'internal)
 	    (gnus-set-window-start)))))))
 
