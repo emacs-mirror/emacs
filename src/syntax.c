@@ -143,7 +143,6 @@ static ptrdiff_t find_start_begv;
 static EMACS_INT find_start_modiff;
 
 
-static Lisp_Object Fsyntax_table_p (Lisp_Object);
 static Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
 static Lisp_Object skip_syntaxes (int, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, int);

@@ -88,7 +88,6 @@ static Lisp_Object Qfile_attributes;
 static Lisp_Object Qfile_attributes_lessp;
 
 static ptrdiff_t scmp (const char *, const char *, ptrdiff_t);
-static Lisp_Object Ffile_attributes (Lisp_Object, Lisp_Object);
 
 #ifdef WINDOWSNT
 Lisp_Object

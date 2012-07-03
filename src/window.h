@@ -815,14 +815,9 @@ extern Lisp_Object Vmouse_window;
 
 extern Lisp_Object Vmouse_event;
 
-EXFUN (Fnext_window, 3);
-EXFUN (Fselect_window, 2);
-EXFUN (Fset_window_buffer, 3);
-EXFUN (Fset_window_point, 2);
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, int);
-EXFUN (Fwindow_dedicated_p, 1);
 extern void resize_frame_windows (struct frame *, int, int);
 extern void delete_all_child_windows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
@@ -893,21 +888,10 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
-EXFUN (Fwindow_buffer, 1);
-EXFUN (Fget_buffer_window, 2);
-EXFUN (Fwindow_minibuffer_p, 1);
-EXFUN (Fselected_window, 0);
-EXFUN (Fframe_root_window, 1);
-EXFUN (Fframe_first_window, 1);
-EXFUN (Fset_frame_selected_window, 3);
-EXFUN (Fset_window_configuration, 1);
-EXFUN (Fcurrent_window_configuration, 1);
 extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);
-EXFUN (Fpos_visible_in_window_p, 3);
 extern void mark_window_cursors_off (struct window *);
 extern int window_internal_height (struct window *);
 extern int window_body_cols (struct window *w);
-EXFUN (Frecenter, 1);
 extern void temp_output_buffer_show (Lisp_Object);
 extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);

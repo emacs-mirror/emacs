@@ -2873,13 +2873,6 @@ adjust_window_margins (struct window *w)
   return 1;
 }
 
-static Lisp_Object Fset_window_margins (Lisp_Object, Lisp_Object, Lisp_Object);
-static Lisp_Object Fset_window_fringes (Lisp_Object, Lisp_Object, Lisp_Object,
-					Lisp_Object);
-static Lisp_Object Fset_window_scroll_bars (Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object);
-static Lisp_Object Fset_window_vscroll (Lisp_Object, Lisp_Object, Lisp_Object);
-
 /* The following three routines are needed for running a window's
    configuration change hook.  */
 static void

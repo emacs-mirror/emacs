@@ -459,8 +459,6 @@ static void interrupt_signal (int signalnum);
 #ifdef SIGIO
 static void input_available_signal (int signo);
 #endif
-static Lisp_Object (Fcommand_execute) (Lisp_Object, Lisp_Object, Lisp_Object,
-				       Lisp_Object);
 static void handle_interrupt (void);
 static _Noreturn void quit_throw_to_read_char (int);
 static void process_special_events (void);
@@ -1324,7 +1322,6 @@ cancel_hourglass_unwind (Lisp_Object arg)
 /* FIXME: This is wrong rather than test window-system, we should call
    a new set-selection, which will then dispatch to x-set-selection, or
    tty-set-selection, or w32-set-selection, ...  */
-EXFUN (Fwindow_system, 1);
 
 Lisp_Object
 command_loop_1 (void)

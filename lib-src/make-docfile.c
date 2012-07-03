@@ -564,6 +564,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 /* The types of globals.  */
 enum global_type
 {
+  FUNCTION,
   EMACS_INTEGER,
   BOOLEAN,
   LISP_OBJECT,
@@ -575,6 +576,7 @@ struct global
 {
   enum global_type type;
   char *name;
+  int value;
 };
 
 /* All the variable names we saw while scanning C sources in `-g'
@@ -584,7 +586,7 @@ int num_globals_allocated;
 struct global *globals;
 
 static void
-add_global (enum global_type type, char *name)
+add_global (enum global_type type, char *name, int value)
 {
   /* Ignore the one non-symbol that can occur.  */
   if (strcmp (name, "..."))
@@ -605,6 +607,7 @@ add_global (enum global_type type, char *name)
 
       globals[num_globals - 1].type = type;
       globals[num_globals - 1].name = name;
+      globals[num_globals - 1].value = value;
     }
 }
 
@@ -613,13 +616,29 @@ compare_globals (const void *a, const void *b)
 {
   const struct global *ga = a;
   const struct global *gb = b;
+
+  if (ga->type == FUNCTION)
+    {
+      if (gb->type != FUNCTION)
+	return 1;
+    }
+  else if (gb->type == FUNCTION)
+    return -1;
+
   return strcmp (ga->name, gb->name);
+}
+
+static void
+close_emacs_globals (void)
+{
+  fprintf (outfile, "};\n");
+  fprintf (outfile, "extern struct emacs_globals globals;\n");
 }
 
 static void
 write_globals (void)
 {
-  int i;
+  int i, seen_defun = 0;
   qsort (globals, num_globals, sizeof (struct global), compare_globals);
   for (i = 0; i < num_globals; ++i)
     {
@@ -636,20 +655,49 @@ write_globals (void)
 	case LISP_OBJECT:
 	  type = "Lisp_Object";
 	  break;
+	case FUNCTION:
+	  if (!seen_defun)
+	    {
+	      close_emacs_globals ();
+	      fprintf (outfile, "\n");
+	      seen_defun = 1;
+	    }
+	  break;
 	default:
 	  fatal ("not a recognized DEFVAR_", 0);
 	}
 
-      fprintf (outfile, "  %s f_%s;\n", type, globals[i].name);
-      fprintf (outfile, "#define %s globals.f_%s\n",
-	       globals[i].name, globals[i].name);
+      if (globals[i].type != FUNCTION)
+	{
+	  fprintf (outfile, "  %s f_%s;\n", type, globals[i].name);
+	  fprintf (outfile, "#define %s globals.f_%s\n",
+		   globals[i].name, globals[i].name);
+	}
+      else
+	{
+	  /* It would be nice to have a cleaner way to deal with these
+	     special hacks.  */
+	  if (strcmp (globals[i].name, "Fthrow") == 0
+	      || strcmp (globals[i].name, "Ftop_level") == 0
+	      || strcmp (globals[i].name, "Fkill_emacs") == 0)
+	    fprintf (outfile, "_Noreturn ");
+	  fprintf (outfile, "EXFUN (%s, ", globals[i].name);
+	  if (globals[i].value == -1)
+	    fprintf (outfile, "MANY");
+	  else if (globals[i].value == -2)
+	    fprintf (outfile, "UNEVALLED");
+	  else
+	    fprintf (outfile, "%d", globals[i].value);
+	  fprintf (outfile, ");\n");
+	}
+
       while (i + 1 < num_globals
 	     && !strcmp (globals[i].name, globals[i + 1].name))
 	++i;
     }
 
-  fprintf (outfile, "};\n");
-  fprintf (outfile, "extern struct emacs_globals globals;\n");
+  if (!seen_defun)
+    close_emacs_globals ();
 }
 
 
@@ -699,6 +747,7 @@ scan_c_file (char *filename, const char *mode)
       int defvarperbufferflag = 0;
       int defvarflag = 0;
       enum global_type type = INVALID;
+      char *name;
 
       if (c != '\n' && c != '\r')
 	{
@@ -764,8 +813,9 @@ scan_c_file (char *filename, const char *mode)
 	}
       else continue;
 
-      if (generate_globals && (!defvarflag || defvarperbufferflag
-			       || type == INVALID))
+      if (generate_globals
+	  && (!defvarflag || defvarperbufferflag || type == INVALID)
+	  && !defunflag)
 	continue;
 
       while (c != '(')
@@ -784,7 +834,6 @@ scan_c_file (char *filename, const char *mode)
       if (generate_globals)
 	{
 	  int i = 0;
-	  char *name;
 
 	  /* Skip "," and whitespace.  */
 	  do
@@ -805,8 +854,12 @@ scan_c_file (char *filename, const char *mode)
 
 	  name = xmalloc (i + 1);
 	  memcpy (name, input_buffer, i + 1);
-	  add_global (type, name);
-	  continue;
+
+	  if (!defunflag)
+	    {
+	      add_global (type, name, 0);
+	      continue;
+	    }
 	}
 
       /* DEFVAR_LISP ("name", addr, "doc")
@@ -814,7 +867,7 @@ scan_c_file (char *filename, const char *mode)
 	 DEFVAR_LISP ("name", addr, doc: /\* doc *\/)  */
 
       if (defunflag)
-	commas = 5;
+	commas = generate_globals ? 4 : 5;
       else if (defvarperbufferflag)
 	commas = 3;
       else if (defvarflag)
@@ -841,7 +894,12 @@ scan_c_file (char *filename, const char *mode)
 		    scanned = fscanf (infile, "%d", &minargs);
 		  else /* Pick up maxargs.  */
 		    if (c == 'M' || c == 'U') /* MANY || UNEVALLED */
-		      maxargs = -1;
+		      {
+			if (generate_globals)
+			  maxargs = (c == 'M') ? -1 : -2;
+			else
+			  maxargs = -1;
+		      }
 		    else
 		      scanned = fscanf (infile, "%d", &maxargs);
 		  if (scanned < 0)
@@ -852,6 +910,12 @@ scan_c_file (char *filename, const char *mode)
 	  if (c == EOF)
 	    goto eof;
 	  c = getc (infile);
+	}
+
+      if (generate_globals)
+	{
+	  add_global (FUNCTION, name, maxargs);
+	  continue;
 	}
 
       while (c == ' ' || c == '\n' || c == '\r' || c == '\t')

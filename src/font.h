@@ -734,13 +734,8 @@ struct font_data_list
   struct font_data_list *next;
 };
 
-EXFUN (Ffont_spec, MANY);
 extern Lisp_Object copy_font_spec (Lisp_Object);
 extern Lisp_Object merge_font_spec (Lisp_Object, Lisp_Object);
-EXFUN (Ffont_get, 2);
-EXFUN (Ffont_put, 3);
-EXFUN (Flist_fonts, 4);
-EXFUN (Ffont_xlfd_name, 2);
 
 extern Lisp_Object font_make_entity (void);
 extern Lisp_Object font_make_object (int, Lisp_Object, int);

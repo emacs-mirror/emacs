@@ -1,3 +1,13 @@
+2012-06-29  Tom Tromey  <tromey@redhat.com>
+
+	* make-docfile.c (enum global_type) <FUNCTION>: New constant.
+	(struct global) <value>: New field.
+	(add_global): Add 'value' argument.
+	(compare_globals): Sort functions at the end.
+	(close_emacs_globals): New function.
+	(write_globals): Handle functions.
+	(scan_c_file): Call add_global for DEFUN.
+
 2012-06-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (CTAGS_CFLAGS): Remove EMACS_NAME;

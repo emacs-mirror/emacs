@@ -707,8 +707,6 @@ extern void ns_term_shutdown (int sig);
 #define NS_DUMPGLYPH_MOUSEFACE          3
 
 
-EXFUN (Fx_display_grayscale_p, 1);
-EXFUN (Fx_display_planes, 1);
 
 /* In nsfont, called from fontset.c */
 extern void nsfont_make_fontset_for_font (Lisp_Object name,

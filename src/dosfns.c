@@ -546,7 +546,6 @@ system_process_attributes (Lisp_Object pid)
       int i;
       Lisp_Object cmd_str, decoded_cmd, tem;
       double pmem;
-      EXFUN (Fget_internal_run_time, 0);
 #ifndef SYSTEM_MALLOC
       extern unsigned long ret_lim_data ();
 #endif

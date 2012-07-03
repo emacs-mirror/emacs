@@ -79,7 +79,6 @@ static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
 
 static Lisp_Object Qbuffer_access_fontify_functions;
-static Lisp_Object Fuser_full_name (Lisp_Object);
 
 /* Symbol for the text property used to mark fields.  */
 

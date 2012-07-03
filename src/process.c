@@ -249,7 +249,6 @@ static int process_output_skip;
 #define process_output_delay_count 0
 #endif
 
-static Lisp_Object Fget_process (Lisp_Object);
 static void create_process (Lisp_Object, char **, Lisp_Object);
 #ifdef SIGIO
 static int keyboard_bit_set (SELECT_TYPE *);
@@ -1088,10 +1087,6 @@ DEFUN ("process-query-on-exit-flag",
   CHECK_PROCESS (process);
   return (XPROCESS (process)->kill_without_query ? Qnil : Qt);
 }
-
-#ifdef DATAGRAM_SOCKETS
-static Lisp_Object Fprocess_datagram_address (Lisp_Object);
-#endif
 
 DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,
        1, 2, 0,

@@ -148,7 +148,6 @@ Lisp_Object Qfile_name_history;
 
 static Lisp_Object Qcar_less_than_car;
 
-static Lisp_Object Fmake_symbolic_link (Lisp_Object, Lisp_Object, Lisp_Object);
 static int a_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
                     Lisp_Object *, struct coding_system *);
 static int e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,

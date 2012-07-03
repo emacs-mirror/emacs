@@ -1,3 +1,41 @@
+2012-07-03  Tom Tromey  <tromey@redhat.com>
+
+	* window.c (Fset_window_margins, Fset_window_fringes)
+	(Fset_window_scroll_bars, Fset_window_vscroll): No longer static.
+	* textprop.c (Fprevious_property_change): No longer static.
+	* syntax.c (Fsyntax_table_p): No longer static.
+	* process.c (Fget_process, Fprocess_datagram_address): No longer
+	static.
+	* keymap.c (Flookup_key, Fcopy_keymap): No longer static.
+	* keyboard.c (Fcommand_execute): No longer static.
+	Remove EXFUN.
+	* insdel.c (Fcombine_after_change_execute): No longer static.
+	* image.c (Finit_image_library): No longer static.
+	* fileio.c (Fmake_symbolic_link): No longer static.
+	* eval.c (Ffetch_bytecode): No longer static.
+	* editfns.c (Fuser_full_name): No longer static.
+	* doc.c: (Fdocumentation_property, Fsnarf_documentation): No
+	longer static.
+	* buffer.c (Fset_buffer_major_mode, Fdelete_overlay): No longer
+	static.
+	* dired.c (Ffile_attributes): No longer static.
+	* composite.c (Fcomposition_get_gstring): No longer static.
+	* callproc.c (Fgetenv_internal): No longer static.
+
+	* ccl.h: Remove EXFUNs.
+	* buffer.h: Remove EXFUNs.
+	* dispextern.h: Remove EXFUNs.
+	* intervals.h: Remove EXFUNs.
+	* fontset.h: Remove EXFUN.
+	* font.h: Remove EXFUNs.
+	* dosfns.c (system_process_attributes): Remove EXFUN.
+	* keymap.h: Remove EXFUNs.
+	* lisp.h: Remove EXFUNs.
+	* w32term.h: Remove EXFUNs.
+	* window.h: Remove EXFUNs.
+	* xsettings.h: Remove EXFUN.
+	* xterm.h: Remove EXFUN.
+
 2012-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* lisp.h (Frandom): Make it visible to C.

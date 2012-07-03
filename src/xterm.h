@@ -937,7 +937,6 @@ void x_handle_property_notify (XPropertyEvent *);
 /* From xfns.c.  */
 
 struct frame *check_x_frame (Lisp_Object);
-EXFUN (Fx_display_grayscale_p, 1);
 extern void x_free_gcs (struct frame *);
 
 /* From xrdb.c.  */

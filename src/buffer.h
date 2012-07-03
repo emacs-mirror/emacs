@@ -930,11 +930,6 @@ extern void mmap_set_vars (int);
       }									\
   } while (0)
 
-EXFUN (Fbuffer_live_p, 1);
-EXFUN (Fbuffer_name, 1);
-EXFUN (Fnext_overlay_change, 1);
-EXFUN (Fbuffer_local_value, 2);
-
 extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;

@@ -107,8 +107,6 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
-static Lisp_Object Fset_buffer_major_mode (Lisp_Object);
-static Lisp_Object Fdelete_overlay (Lisp_Object);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);

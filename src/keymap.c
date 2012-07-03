@@ -92,7 +92,6 @@ static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
 static Lisp_Object where_is_cache_keymaps;
 
-static Lisp_Object Flookup_key (Lisp_Object, Lisp_Object, Lisp_Object);
 static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static Lisp_Object define_as_prefix (Lisp_Object, Lisp_Object);
@@ -955,8 +954,6 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 
   return def;
 }
-
-static Lisp_Object Fcopy_keymap (Lisp_Object);
 
 static Lisp_Object
 copy_keymap_item (Lisp_Object elt)

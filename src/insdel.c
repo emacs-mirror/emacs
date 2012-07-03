@@ -41,8 +41,6 @@ static void insert_from_buffer_1 (struct buffer *buf,
 static void gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, int newgap);
 static void gap_right (ptrdiff_t charpos, ptrdiff_t bytepos);
 
-static Lisp_Object Fcombine_after_change_execute (void);
-
 /* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)
    describing changes which happened while combine_after_change_calls
    was nonzero.  We use this to decide how to call them

@@ -308,16 +308,6 @@ extern Lisp_Object Qinvisible, Qintangible;
 /* Sticky properties.  */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
-EXFUN (Fget_char_property, 3);
-EXFUN (Fget_text_property, 3);
-EXFUN (Ftext_properties_at, 2);
-EXFUN (Fnext_property_change, 3);
-EXFUN (Fadd_text_properties, 4);
-EXFUN (Fset_text_properties, 4);
-EXFUN (Fremove_text_properties, 4);
-EXFUN (Fremove_list_of_text_properties, 4);
-EXFUN (Ftext_property_any, 5);
-EXFUN (Fprevious_single_char_property_change, 4);
 extern Lisp_Object copy_text_properties (Lisp_Object, Lisp_Object,
                                          Lisp_Object, Lisp_Object,
                                          Lisp_Object, Lisp_Object);
