@@ -1,3 +1,11 @@
+2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix block vector allocation code to allow VECTOR_BLOCK_SIZE
+	values which aren't power of 2.
+	* alloc.c (VECTOR_FREE_LIST_SIZE_MASK): New macro.  Verify
+	it's value and the value of VECTOR_BLOCK_SIZE.  Adjust users
+	accordingly.
+
 2012-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (Lisp_Misc, Lisp_Fwd): Move around to group better.

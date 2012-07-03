@@ -2869,6 +2869,12 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 #define VECTOR_BLOCK_SIZE 4096
 
+/* This special value is used to calculate vector size when the vector is
+   on a free list.  It should be VECTOR_BLOCK_SIZE rounded up to nearest
+   power of two, minus one.  */
+
+#define VECTOR_FREE_LIST_SIZE_MASK 4095
+
 /* Handy constants for vectorlike objects.  */
 enum
   {
@@ -2880,6 +2886,11 @@ enum
 
 /* ROUNDUP_SIZE must be a power of 2.  */
 verify ((roundup_size & (roundup_size - 1)) == 0);
+
+/* Verify assumptions described above.  */
+verify ((VECTOR_BLOCK_SIZE % roundup_size) == 0);
+verify ((VECTOR_FREE_LIST_SIZE_MASK + 1) >= VECTOR_BLOCK_SIZE);
+verify ((VECTOR_FREE_LIST_SIZE_MASK & (VECTOR_FREE_LIST_SIZE_MASK + 1)) == 0);
 
 /* Round up X to nearest mult-of-ROUNDUP_SIZE.  */
 
@@ -2908,7 +2919,7 @@ verify ((roundup_size & (roundup_size - 1)) == 0);
    this special value ORed with vector's memory footprint size.  */
 
 #define VECTOR_FREE_LIST_FLAG (~(ARRAY_MARK_FLAG | PSEUDOVECTOR_FLAG	\
-				 | (VECTOR_BLOCK_SIZE - 1)))
+				 | VECTOR_FREE_LIST_SIZE_MASK))
 
 /* Common shortcut to advance vector pointer over a block data.  */
 
@@ -3087,7 +3098,7 @@ sweep_vectors (void)
 	      if ((vector->header.size & VECTOR_FREE_LIST_FLAG)
 		  == VECTOR_FREE_LIST_FLAG)
 		vector->header.next.nbytes =
-		  vector->header.size & (VECTOR_BLOCK_SIZE - 1);
+		  vector->header.size & VECTOR_FREE_LIST_SIZE_MASK;
 
 	      next = ADVANCE (vector, vector->header.next.nbytes);
 
@@ -3100,7 +3111,7 @@ sweep_vectors (void)
 		    break;
 		  if ((next->header.size & VECTOR_FREE_LIST_FLAG)
 		      == VECTOR_FREE_LIST_FLAG)
-		    nbytes = next->header.size & (VECTOR_BLOCK_SIZE - 1);
+		    nbytes = next->header.size & VECTOR_FREE_LIST_SIZE_MASK;
 		  else
 		    nbytes = next->header.next.nbytes;
 		  vector->header.next.nbytes += nbytes;
@@ -4334,7 +4345,7 @@ live_vector_p (struct mem_node *m, void *p)
 	  if ((vector->header.size & VECTOR_FREE_LIST_FLAG)
 	      == VECTOR_FREE_LIST_FLAG)
 	    vector = ADVANCE (vector, (vector->header.size
-				       & (VECTOR_BLOCK_SIZE - 1)));
+				       & VECTOR_FREE_LIST_SIZE_MASK));
 	  else if (vector == p)
 	    return 1;
 	  else
