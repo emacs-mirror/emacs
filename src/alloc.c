@@ -1872,7 +1872,7 @@ check_string_bytes (int all_p)
       for (b = oldest_sblock; b; b = b->next)
 	check_sblock (b);
     }
-  else
+  else if (current_sblock)
     check_sblock (current_sblock);
 }
 

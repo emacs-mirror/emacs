@@ -1,5 +1,11 @@
 2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c (check_string_bytes): If GC_CHECK_STRING_BYTES
+	is enabled, avoid dereferencing NULL current_sblock if
+	running undumped.
+
+2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Cleanup basic buffer management.
 	* buffer.h (struct buffer): Change layout to use generic vector
 	marking code.  Fix some comments.  Change type of 'clip_changed'
