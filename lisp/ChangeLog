@@ -1,3 +1,8 @@
+2012-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference-bug-regexp):
+	Allow linking to specific messages in debbugs reports (eg 123#5).
+
 2012-07-02  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el: Fix entity and character reference expansion, allowing
