@@ -1,3 +1,8 @@
+2012-07-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* help-fns.el (describe-function-1): Only call
+	help-fns--autoloaded-p when we have a file name.  (Bug#11848)
+
 2012-07-03  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el: Protect parser against XML bombs.
