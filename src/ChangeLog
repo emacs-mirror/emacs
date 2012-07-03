@@ -1,3 +1,8 @@
+2012-07-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c (Finsert_file_contents): Properly handle st_mtime
+	marker for non-existing file.  (Bug#11852)
+
 2012-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* lisp.h (Fread_file_name): Restore EXFUN (it's not a normal DEFUN

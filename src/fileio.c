@@ -4193,7 +4193,10 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (NILP (handler))
 	{
-	  current_buffer->modtime = get_stat_mtime (&st);
+	  if (st.st_mtime == -1)
+	    EMACS_SET_INVALID_TIME (current_buffer->modtime);
+	  else
+	    current_buffer->modtime = get_stat_mtime (&st);
 	  current_buffer->modtime_size = st.st_size;
 	  BVAR (current_buffer, filename) = orig_filename;
 	}
