@@ -1,3 +1,9 @@
+2012-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (Lisp_Misc, Lisp_Fwd): Move around to group better.
+
+	* alloc.c (mark_object): Revert part of last patch to use `switch'.
+
 2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (allocate_vector_block): Remove redundant

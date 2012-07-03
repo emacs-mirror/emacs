@@ -542,11 +542,11 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 /* The cast to struct vectorlike_header * avoids aliasing issues.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
-  XSETTYPED_PSEUDOVECTOR(a, b,       \
-			 (((struct vectorlike_header *)	\
-			   XUNTAG (a, Lisp_Vectorlike)) \
-			  ->size),			\
-			 code)
+  XSETTYPED_PSEUDOVECTOR (a, b,					\
+			  (((struct vectorlike_header *)	\
+			    XUNTAG (a, Lisp_Vectorlike))	\
+			   ->size),				\
+			  code)
 #define XSETTYPED_PSEUDOVECTOR(a, b, size, code)			\
   (XSETVECTOR (a, b),							\
    eassert ((size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))		\
@@ -1258,6 +1258,63 @@ struct Lisp_Marker
   ptrdiff_t bytepos;
 };
 
+/* START and END are markers in the overlay's buffer, and
+   PLIST is the overlay's property list.  */
+struct Lisp_Overlay
+/* An overlay's real data content is:
+   - plist
+   - buffer
+   - insertion type of both ends
+   - start & start_byte
+   - end & end_byte
+   - next (singly linked list of overlays).
+   - start_next and end_next (singly linked list of markers).
+   I.e. 9words plus 2 bits, 3words of which are for external linked lists.
+*/
+  {
+    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
+    struct Lisp_Overlay *next;
+    Lisp_Object start, end, plist;
+  };
+
+/* Hold a C pointer for later use.
+   This type of object is used in the arg to record_unwind_protect.  */
+struct Lisp_Save_Value
+  {
+    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
+    unsigned gcmarkbit : 1;
+    int spacer : 14;
+    /* If DOGC is set, POINTER is the address of a memory
+       area containing INTEGER potential Lisp_Objects.  */
+    unsigned int dogc : 1;
+    void *pointer;
+    ptrdiff_t integer;
+  };
+
+
+/* A miscellaneous object, when it's on the free list.  */
+struct Lisp_Free
+  {
+    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Free */
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
+    union Lisp_Misc *chain;
+  };
+
+/* To get the type field of a union Lisp_Misc, use XMISCTYPE.
+   It uses one of these struct subtypes to get the type field.  */
+
+union Lisp_Misc
+  {
+    struct Lisp_Misc_Any u_any;	   /* Supertype of all Misc types.  */
+    struct Lisp_Free u_free;
+    struct Lisp_Marker u_marker;
+    struct Lisp_Overlay u_overlay;
+    struct Lisp_Save_Value u_save_value;
+  };
+
 /* Forwarding pointer to an int variable.
    This is allowed only in the value cell of a symbol,
    and it means that the symbol's value really lives in the
@@ -1324,13 +1381,13 @@ struct Lisp_Buffer_Objfwd
 struct Lisp_Buffer_Local_Value
   {
     /* 1 means that merely setting the variable creates a local
-       binding for the current buffer */
+       binding for the current buffer.  */
     unsigned int local_if_set : 1;
     /* 1 means this variable can have frame-local bindings, otherwise, it is
        can have buffer-local bindings.  The two cannot be combined.  */
     unsigned int frame_local : 1;
     /* 1 means that the binding now loaded was found.
-       Presumably equivalent to (defcell!=valcell) */
+       Presumably equivalent to (defcell!=valcell).  */
     unsigned int found : 1;
     /* If non-NULL, a forwarding to the C var where it should also be set.  */
     union Lisp_Fwd *fwd;	/* Should never be (Buffer|Kboard)_Objfwd.  */
@@ -1355,69 +1412,12 @@ struct Lisp_Buffer_Local_Value
 #define BLV_VALUE(blv) (XCDR ((blv)->valcell))
 #define SET_BLV_VALUE(blv, v) (XSETCDR ((blv)->valcell, v))
 
-/* START and END are markers in the overlay's buffer, and
-   PLIST is the overlay's property list.  */
-struct Lisp_Overlay
-/* An overlay's real data content is:
-   - plist
-   - buffer
-   - insertion type of both ends
-   - start & start_byte
-   - end & end_byte
-   - next (singly linked list of overlays).
-   - start_next and end_next (singly linked list of markers).
-   I.e. 9words plus 2 bits, 3words of which are for external linked lists.
-*/
-  {
-    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
-    struct Lisp_Overlay *next;
-    Lisp_Object start, end, plist;
-  };
-
 /* Like Lisp_Objfwd except that value lives in a slot in the
    current kboard.  */
 struct Lisp_Kboard_Objfwd
   {
     enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Kboard_Obj */
     int offset;
-  };
-
-/* Hold a C pointer for later use.
-   This type of object is used in the arg to record_unwind_protect.  */
-struct Lisp_Save_Value
-  {
-    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
-    unsigned gcmarkbit : 1;
-    int spacer : 14;
-    /* If DOGC is set, POINTER is the address of a memory
-       area containing INTEGER potential Lisp_Objects.  */
-    unsigned int dogc : 1;
-    void *pointer;
-    ptrdiff_t integer;
-  };
-
-
-/* A miscellaneous object, when it's on the free list.  */
-struct Lisp_Free
-  {
-    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Free */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
-    union Lisp_Misc *chain;
-  };
-
-/* To get the type field of a union Lisp_Misc, use XMISCTYPE.
-   It uses one of these struct subtypes to get the type field.  */
-
-union Lisp_Misc
-  {
-    struct Lisp_Misc_Any u_any;	   /* Supertype of all Misc types.  */
-    struct Lisp_Free u_free;
-    struct Lisp_Marker u_marker;
-    struct Lisp_Overlay u_overlay;
-    struct Lisp_Save_Value u_save_value;
   };
 
 union Lisp_Fwd
@@ -1429,7 +1429,7 @@ union Lisp_Fwd
     struct Lisp_Kboard_Objfwd u_kboard_objfwd;
   };
 
-/* Lisp floating point type */
+/* Lisp floating point type.  */
 struct Lisp_Float
   {
     union

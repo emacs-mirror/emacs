@@ -5730,15 +5730,15 @@ mark_vectorlike (struct Lisp_Vector *ptr)
   ptrdiff_t i;
 
   eassert (!VECTOR_MARKED_P (ptr));
-  VECTOR_MARK (ptr);		/* Else mark it */
+  VECTOR_MARK (ptr);		/* Else mark it.  */
   if (size & PSEUDOVECTOR_FLAG)
     size &= PSEUDOVECTOR_SIZE_MASK;
 
   /* Note that this size is not the memory-footprint size, but only
      the number of Lisp_Object fields that we should trace.
      The distinction is used e.g. by Lisp_Process which places extra
-     non-Lisp_Object fields at the end of the structure.  */
-  for (i = 0; i < size; i++) /* and then mark its elements */
+     non-Lisp_Object fields at the end of the structure...  */
+  for (i = 0; i < size; i++) /* ...and then mark its elements.  */
     mark_object (ptr->contents[i]);
 }
 
@@ -5875,11 +5875,11 @@ mark_object (Lisp_Object arg)
 	if (STRING_MARKED_P (ptr))
 	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_string_p);
-	MARK_INTERVAL_TREE (ptr->intervals);
 	MARK_STRING (ptr);
+	MARK_INTERVAL_TREE (ptr->intervals);
 #ifdef GC_CHECK_STRING_BYTES
 	/* Check that the string size recorded in the string is the
-	   same as the one recorded in the sdata structure. */
+	   same as the one recorded in the sdata structure.  */
 	CHECK_STRING_BYTES (ptr);
 #endif /* GC_CHECK_STRING_BYTES */
       }
@@ -6034,7 +6034,7 @@ mark_object (Lisp_Object arg)
 	ptr = ptr->next;
 	if (ptr)
 	  {
-	    ptrx = ptr;		/* Use of ptrx avoids compiler bug on Sun */
+	    ptrx = ptr;		/* Use of ptrx avoids compiler bug on Sun.  */
 	    XSETSYMBOL (obj, ptrx);
 	    goto loop;
 	  }
@@ -6044,34 +6044,42 @@ mark_object (Lisp_Object arg)
     case Lisp_Misc:
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
 
-      if (XMISCTYPE (obj) == Lisp_Misc_Overlay)
-	mark_overlay (XOVERLAY (obj));
-      else
+      if (XMISCANY (obj)->gcmarkbit)
+	break;
+
+      switch (XMISCTYPE (obj))
 	{
-	  if (XMISCANY (obj)->gcmarkbit)
-	    break;
+	case Lisp_Misc_Marker:
+	  /* DO NOT mark thru the marker's chain.
+	     The buffer's markers chain does not preserve markers from gc;
+	     instead, markers are removed from the chain when freed by gc.  */
 	  XMISCANY (obj)->gcmarkbit = 1;
+	  break;
 
-	  /* Note that we don't mark thru the marker's
-	     chain.  The buffer's markers chain does not
-	     preserve markers from GC; instead, markers
-	     are removed from the chain when freed by GC.  */
-
+	case Lisp_Misc_Save_Value:
+	  XMISCANY (obj)->gcmarkbit = 1;
 #if GC_MARK_STACK
-	  if (XMISCTYPE (obj) == Lisp_Misc_Save_Value)
-	    {
-	      register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
-	      /* If DOGC is set, POINTER is the address of a memory
-		 area containing INTEGER potential Lisp_Objects.  */
-	      if (ptr->dogc)
-		{
-		  Lisp_Object *p = (Lisp_Object *) ptr->pointer;
-		  ptrdiff_t nelt;
-		  for (nelt = ptr->integer; nelt > 0; nelt--, p++)
-		    mark_maybe_object (*p);
-		}
-	    }
+	  {
+	    register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
+	    /* If DOGC is set, POINTER is the address of a memory
+	       area containing INTEGER potential Lisp_Objects.  */
+	    if (ptr->dogc)
+	      {
+		Lisp_Object *p = (Lisp_Object *) ptr->pointer;
+		ptrdiff_t nelt;
+		for (nelt = ptr->integer; nelt > 0; nelt--, p++)
+		  mark_maybe_object (*p);
+	      }
+	  }
 #endif
+	  break;
+
+	case Lisp_Misc_Overlay:
+	  mark_overlay (XOVERLAY (obj));
+	  break;
+
+	default:
+	  abort ();
 	}
       break;
 
