@@ -1,3 +1,23 @@
+2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup basic buffer management.
+	* buffer.h (struct buffer): Change layout to use generic vector
+	marking code.  Fix some comments.  Change type of 'clip_changed'
+	to bitfield.  Remove unused #ifndef old.
+	(FIRST_FIELD_PER_BUFFER, LAST_FIELD_PER_BUFFER): Remove.
+	(GET_OVERLAYS_AT): Fix indentation.
+	(for_each_per_buffer_object_at): New macro.
+	* buffer.c (clone_per_buffer_values, reset_buffer_local_variables)
+	(Fbuffer_local_variables): Use it.
+	(init_buffer_once, syms_of_buffer): Remove unused #ifndef old.
+	* alloc.c (allocate_buffer): Adjust to match new layout of
+	struct buffer.  Fix comment.
+	(mark_overlay): New function.
+	(mark_buffer): Use it.  Use mark_vectorlike to mark normal
+	Lisp area of struct buffer.
+	(mark_object): Use it.  Adjust marking of misc objects
+	and related comments.
+
 2012-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (mark_object): Remove "#ifdef GC_CHECK_MARKED_OBJECTS"

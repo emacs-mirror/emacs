@@ -482,142 +482,26 @@ struct buffer_text
 
 struct buffer
 {
-  /* Everything before the `name' slot must be of a non-Lisp_Object type,
-     and every slot after `name' must be a Lisp_Object.
-
-     Check out mark_buffer (alloc.c) to see why.  */
-
-  /* HEADER.NEXT is the next buffer, in chain of all buffers,
-     including killed buffers.
-     This chain is used only for garbage collection, in order to
-     collect killed buffers properly.
-     Note that vectors and most pseudovectors are all on one chain,
-     but buffers are on a separate chain of their own.  */
+  /* HEADER.NEXT is the next buffer, in chain of all buffers, including killed
+     buffers.  This chain, starting from all_buffers, is used only for garbage
+     collection, in order to collect killed buffers properly.  Note that large
+     vectors and large pseudo-vector objects are all on another chain starting
+     from large_vectors.  */
   struct vectorlike_header header;
-
-  /* This structure holds the coordinates of the buffer contents
-     in ordinary buffers.  In indirect buffers, this is not used.  */
-  struct buffer_text own_text;
-
-  /* This points to the `struct buffer_text' that used for this buffer.
-     In an ordinary buffer, this is the own_text field above.
-     In an indirect buffer, this is the own_text field of another buffer.  */
-  struct buffer_text *text;
-
-  /* Char position of point in buffer.  */
-  ptrdiff_t pt;
-  /* Byte position of point in buffer.  */
-  ptrdiff_t pt_byte;
-  /* Char position of beginning of accessible range.  */
-  ptrdiff_t begv;
-  /* Byte position of beginning of accessible range.  */
-  ptrdiff_t begv_byte;
-  /* Char position of end of accessible range.  */
-  ptrdiff_t zv;
-  /* Byte position of end of accessible range.  */
-  ptrdiff_t zv_byte;
-
-  /* In an indirect buffer, this points to the base buffer.
-     In an ordinary buffer, it is 0.  */
-  struct buffer *base_buffer;
-
-  /* A non-zero value in slot IDX means that per-buffer variable
-     with index IDX has a local value in this buffer.  The index IDX
-     for a buffer-local variable is stored in that variable's slot
-     in buffer_local_flags as a Lisp integer.  If the index is -1,
-     this means the variable is always local in all buffers.  */
-#define MAX_PER_BUFFER_VARS 50
-  char local_flags[MAX_PER_BUFFER_VARS];
-
-  /* Set to the modtime of the visited file when read or written.
-     EMACS_NSECS (modtime) == NONEXISTENT_MODTIME_NSECS means
-     visited file was nonexistent.  EMACS_NSECS (modtime) ==
-     UNKNOWN_MODTIME_NSECS means visited file modtime unknown;
-     in no case complain about any mismatch on next save attempt.  */
-#define NONEXISTENT_MODTIME_NSECS (-1)
-#define UNKNOWN_MODTIME_NSECS (-2)
-  EMACS_TIME modtime;
-  /* Size of the file when modtime was set.  This is used to detect the
-     case where the file grew while we were reading it, so the modtime
-     is still the same (since it's rounded up to seconds) but we're actually
-     not up-to-date.  -1 means the size is unknown.  Only meaningful if
-     modtime is actually set.  */
-  off_t modtime_size;
-  /* The value of text->modiff at the last auto-save.  */
-  EMACS_INT auto_save_modified;
-  /* The value of text->modiff at the last display error.
-     Redisplay of this buffer is inhibited until it changes again.  */
-  EMACS_INT display_error_modiff;
-  /* The time at which we detected a failure to auto-save,
-     Or 0 if we didn't have a failure.  */
-  time_t auto_save_failure_time;
-  /* Position in buffer at which display started
-     the last time this buffer was displayed.  */
-  ptrdiff_t last_window_start;
-
-  /* Set nonzero whenever the narrowing is changed in this buffer.  */
-  int clip_changed;
-
-  /* If the long line scan cache is enabled (i.e. the buffer-local
-     variable cache-long-line-scans is non-nil), newline_cache
-     points to the newline cache, and width_run_cache points to the
-     width run cache.
-
-     The newline cache records which stretches of the buffer are
-     known *not* to contain newlines, so that they can be skipped
-     quickly when we search for newlines.
-
-     The width run cache records which stretches of the buffer are
-     known to contain characters whose widths are all the same.  If
-     the width run cache maps a character to a value > 0, that value is
-     the character's width; if it maps a character to zero, we don't
-     know what its width is.  This allows compute_motion to process
-     such regions very quickly, using algebra instead of inspecting
-     each character.   See also width_table, below.  */
-  struct region_cache *newline_cache;
-  struct region_cache *width_run_cache;
-
-  /* Non-zero means don't use redisplay optimizations for
-     displaying this buffer.  */
-  unsigned prevent_redisplay_optimizations_p : 1;
-
-  /* List of overlays that end at or before the current center,
-     in order of end-position.  */
-  struct Lisp_Overlay *overlays_before;
-
-  /* List of overlays that end after  the current center,
-     in order of start-position.  */
-  struct Lisp_Overlay *overlays_after;
-
-  /* Position where the overlay lists are centered.  */
-  ptrdiff_t overlay_center;
-
-  /* Everything from here down must be a Lisp_Object.  */
-  /* buffer-local Lisp variables start at `undo_list',
-     tho only the ones from `name' on are GC'd normally.  */
-  #define FIRST_FIELD_PER_BUFFER undo_list
-
-  /* Changes in the buffer are recorded here for undo.
-     t means don't record anything.
-     This information belongs to the base buffer of an indirect buffer,
-     But we can't store it in the  struct buffer_text
-     because local variables have to be right in the  struct buffer.
-     So we copy it around in set_buffer_internal.
-     This comes before `name' because it is marked in a special way.  */
-  Lisp_Object BUFFER_INTERNAL_FIELD (undo_list);
 
   /* The name of this buffer.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (name);
 
   /* The name of the file visited in this buffer, or nil.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (filename);
-  /* Dir for expanding relative file names.  */
+
+  /* Directory for expanding relative file names.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (directory);
-  /* True if this buffer has been backed up (if you write to the
-     visited file and it hasn't been backed up, then a backup will
-     be made).  */
-  /* This isn't really used by the C code, so could be deleted.  */
+
+  /* True if this buffer has been backed up (if you write to the visited
+     file and it hasn't been backed up, then a backup will be made).  */
   Lisp_Object BUFFER_INTERNAL_FIELD (backed_up);
+
   /* Length of file when last read or saved.
      -1 means auto saving turned off because buffer shrank a lot.
      -2 means don't turn off auto saving if buffer shrinks.
@@ -625,6 +509,7 @@ struct buffer
      This is not in the  struct buffer_text
      because it's not used in indirect buffers at all.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (save_length);
+
   /* File name used for auto-saving this buffer.
      This is not in the  struct buffer_text
      because it's not used in indirect buffers at all.  */
@@ -632,6 +517,7 @@ struct buffer
 
   /* Non-nil if buffer read-only.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (read_only);
+
   /* "The mark".  This is a marker which may
      point into this buffer or may point nowhere.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (mark);
@@ -641,10 +527,12 @@ struct buffer
      symbols, just the symbol appears as the element.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (local_var_alist);
 
-  /* Symbol naming major mode (eg, lisp-mode).  */
+  /* Symbol naming major mode (e.g., lisp-mode).  */
   Lisp_Object BUFFER_INTERNAL_FIELD (major_mode);
-  /* Pretty name of major mode (eg, "Lisp"). */
+
+  /* Pretty name of major mode (e.g., "Lisp"). */
   Lisp_Object BUFFER_INTERNAL_FIELD (mode_name);
+
   /* Mode line element that controls format of mode line.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (mode_line_format);
 
@@ -654,10 +542,13 @@ struct buffer
 
   /* Keys that are bound local to this buffer.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (keymap);
+
   /* This buffer's local abbrev table.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (abbrev_table);
+
   /* This buffer's syntax table.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (syntax_table);
+
   /* This buffer's category table.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (category_table);
 
@@ -668,48 +559,61 @@ struct buffer
   Lisp_Object BUFFER_INTERNAL_FIELD (tab_width);
   Lisp_Object BUFFER_INTERNAL_FIELD (fill_column);
   Lisp_Object BUFFER_INTERNAL_FIELD (left_margin);
+
   /* Function to call when insert space past fill column.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (auto_fill_function);
 
   /* Case table for case-conversion in this buffer.
      This char-table maps each char into its lower-case version.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (downcase_table);
+
   /* Char-table mapping each char to its upper-case version.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (upcase_table);
+
   /* Char-table for conversion for case-folding search.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (case_canon_table);
+
   /* Char-table of equivalences for case-folding search.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (case_eqv_table);
 
   /* Non-nil means do not display continuation lines.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (truncate_lines);
+
   /* Non-nil means to use word wrapping when displaying continuation lines.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (word_wrap);
+
   /* Non-nil means display ctl chars with uparrow.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (ctl_arrow);
+
   /* Non-nil means reorder bidirectional text for display in the
      visual order.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (bidi_display_reordering);
+
   /* If non-nil, specifies which direction of text to force in all the
      paragraphs of the buffer.  Nil means determine paragraph
      direction dynamically for each paragraph.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (bidi_paragraph_direction);
+
   /* Non-nil means do selective display;
      see doc string in syms_of_buffer (buffer.c) for details.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (selective_display);
-#ifndef old
+
   /* Non-nil means show ... at end of line followed by invisible lines.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (selective_display_ellipses);
-#endif
+
   /* Alist of (FUNCTION . STRING) for each minor mode enabled in buffer.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (minor_modes);
+
   /* t if "self-insertion" should overwrite; `binary' if it should also
      overwrite newlines and tabs - for editing executables and the like.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (overwrite_mode);
-  /* non-nil means abbrev mode is on.  Expand abbrevs automatically.  */
+
+  /* Non-nil means abbrev mode is on.  Expand abbrevs automatically.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (abbrev_mode);
+
   /* Display table to use for text in this buffer.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (display_table);
+
   /* t means the mark and region are currently active.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (mark_active);
 
@@ -776,11 +680,13 @@ struct buffer
 
   /* Widths of left and right marginal areas for windows displaying
      this buffer.  */
-  Lisp_Object BUFFER_INTERNAL_FIELD (left_margin_cols), BUFFER_INTERNAL_FIELD (right_margin_cols);
+  Lisp_Object BUFFER_INTERNAL_FIELD (left_margin_cols);
+  Lisp_Object BUFFER_INTERNAL_FIELD (right_margin_cols);
 
   /* Widths of left and right fringe areas for windows displaying
      this buffer.  */
-  Lisp_Object BUFFER_INTERNAL_FIELD (left_fringe_width), BUFFER_INTERNAL_FIELD (right_fringe_width);
+  Lisp_Object BUFFER_INTERNAL_FIELD (left_fringe_width);
+  Lisp_Object BUFFER_INTERNAL_FIELD (right_fringe_width);
 
   /* Non-nil means fringes are drawn outside display margins;
      othersize draw them between margin areas and text.  */
@@ -788,7 +694,8 @@ struct buffer
 
   /* Width and type of scroll bar areas for windows displaying
      this buffer.  */
-  Lisp_Object BUFFER_INTERNAL_FIELD (scroll_bar_width), BUFFER_INTERNAL_FIELD (vertical_scroll_bar_type);
+  Lisp_Object BUFFER_INTERNAL_FIELD (scroll_bar_width);
+  Lisp_Object BUFFER_INTERNAL_FIELD (vertical_scroll_bar_type);
 
   /* Non-nil means indicate lines not displaying text (in a style
      like vi).  */
@@ -826,13 +733,127 @@ struct buffer
      in the display of this buffer.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (extra_line_spacing);
 
-  /* *Cursor type to display in non-selected windows.
+  /* Cursor type to display in non-selected windows.
      t means to use hollow box cursor.
      See `cursor-type' for other values.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (cursor_in_non_selected_windows);
 
-  /* This must be the last field in the above list.  */
-  #define LAST_FIELD_PER_BUFFER cursor_in_non_selected_windows
+  /* No more Lisp_Object beyond this point.  Except undo_list,
+     which is handled specially in Fgarbage_collect .  */
+
+  /* This structure holds the coordinates of the buffer contents
+     in ordinary buffers.  In indirect buffers, this is not used.  */
+  struct buffer_text own_text;
+
+  /* This points to the `struct buffer_text' that used for this buffer.
+     In an ordinary buffer, this is the own_text field above.
+     In an indirect buffer, this is the own_text field of another buffer.  */
+  struct buffer_text *text;
+
+  /* Char position of point in buffer.  */
+  ptrdiff_t pt;
+
+  /* Byte position of point in buffer.  */
+  ptrdiff_t pt_byte;
+
+  /* Char position of beginning of accessible range.  */
+  ptrdiff_t begv;
+
+  /* Byte position of beginning of accessible range.  */
+  ptrdiff_t begv_byte;
+
+  /* Char position of end of accessible range.  */
+  ptrdiff_t zv;
+
+  /* Byte position of end of accessible range.  */
+  ptrdiff_t zv_byte;
+
+  /* In an indirect buffer, this points to the base buffer.
+     In an ordinary buffer, it is 0.  */
+  struct buffer *base_buffer;
+
+  /* A non-zero value in slot IDX means that per-buffer variable
+     with index IDX has a local value in this buffer.  The index IDX
+     for a buffer-local variable is stored in that variable's slot
+     in buffer_local_flags as a Lisp integer.  If the index is -1,
+     this means the variable is always local in all buffers.  */
+#define MAX_PER_BUFFER_VARS 50
+  char local_flags[MAX_PER_BUFFER_VARS];
+
+  /* Set to the modtime of the visited file when read or written.
+     EMACS_NSECS (modtime) == NONEXISTENT_MODTIME_NSECS means
+     visited file was nonexistent.  EMACS_NSECS (modtime) ==
+     UNKNOWN_MODTIME_NSECS means visited file modtime unknown;
+     in no case complain about any mismatch on next save attempt.  */
+#define NONEXISTENT_MODTIME_NSECS (-1)
+#define UNKNOWN_MODTIME_NSECS (-2)
+  EMACS_TIME modtime;
+
+  /* Size of the file when modtime was set.  This is used to detect the
+     case where the file grew while we were reading it, so the modtime
+     is still the same (since it's rounded up to seconds) but we're actually
+     not up-to-date.  -1 means the size is unknown.  Only meaningful if
+     modtime is actually set.  */
+  off_t modtime_size;
+
+  /* The value of text->modiff at the last auto-save.  */
+  EMACS_INT auto_save_modified;
+
+  /* The value of text->modiff at the last display error.
+     Redisplay of this buffer is inhibited until it changes again.  */
+  EMACS_INT display_error_modiff;
+
+  /* The time at which we detected a failure to auto-save,
+     Or 0 if we didn't have a failure.  */
+  time_t auto_save_failure_time;
+
+  /* Position in buffer at which display started
+     the last time this buffer was displayed.  */
+  ptrdiff_t last_window_start;
+
+  /* If the long line scan cache is enabled (i.e. the buffer-local
+     variable cache-long-line-scans is non-nil), newline_cache
+     points to the newline cache, and width_run_cache points to the
+     width run cache.
+
+     The newline cache records which stretches of the buffer are
+     known *not* to contain newlines, so that they can be skipped
+     quickly when we search for newlines.
+
+     The width run cache records which stretches of the buffer are
+     known to contain characters whose widths are all the same.  If
+     the width run cache maps a character to a value > 0, that value is
+     the character's width; if it maps a character to zero, we don't
+     know what its width is.  This allows compute_motion to process
+     such regions very quickly, using algebra instead of inspecting
+     each character.   See also width_table, below.  */
+  struct region_cache *newline_cache;
+  struct region_cache *width_run_cache;
+
+  /* Non-zero means don't use redisplay optimizations for
+     displaying this buffer.  */
+  unsigned prevent_redisplay_optimizations_p : 1;
+
+  /* Non-zero whenever the narrowing is changed in this buffer.  */
+  unsigned clip_changed : 1;
+
+  /* List of overlays that end at or before the current center,
+     in order of end-position.  */
+  struct Lisp_Overlay *overlays_before;
+
+  /* List of overlays that end after  the current center,
+     in order of start-position.  */
+  struct Lisp_Overlay *overlays_after;
+
+  /* Position where the overlay lists are centered.  */
+  ptrdiff_t overlay_center;
+
+  /* Changes in the buffer are recorded here for undo, and t means
+     don't record anything.  This information belongs to the base
+     buffer of an indirect buffer.  But we can't store it in the
+     struct buffer_text because local variables have to be right in
+     the struct buffer. So we copy it around in set_buffer_internal.  */
+  Lisp_Object BUFFER_INTERNAL_FIELD (undo_list);
 };
 
 
@@ -896,10 +917,10 @@ extern void mmap_set_vars (int);
 
 #define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
   do {									\
-    ptrdiff_t maxlen = 40;							\
+    ptrdiff_t maxlen = 40;						\
     overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object));	\
     noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
-			     nextp, NULL, chrq);				\
+			     nextp, NULL, chrq);			\
     if (noverlays > maxlen)						\
       {									\
 	maxlen = noverlays;						\
@@ -991,6 +1012,15 @@ extern int last_per_buffer_idx;
 
 #define PER_BUFFER_VAR_OFFSET(VAR) \
   offsetof (struct buffer, BUFFER_INTERNAL_FIELD (VAR))
+
+/* Used to iterate over normal Lisp_Object fields of struct buffer (all
+   Lisp_Objects except undo_list).  If you add, remove, or reorder
+   Lisp_Objects in a struct buffer, make sure that this is still correct.  */
+
+#define for_each_per_buffer_object_at(offset)				 \
+  for (offset = PER_BUFFER_VAR_OFFSET (name);				 \
+       offset <= PER_BUFFER_VAR_OFFSET (cursor_in_non_selected_windows); \
+       offset += sizeof (Lisp_Object))
 
 /* Return the index of buffer-local variable VAR.  Each per-buffer
    variable has an index > 0 associated with it, except when it always

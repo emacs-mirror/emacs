@@ -465,11 +465,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 
   XSETBUFFER (to_buffer, to);
 
-  /* buffer-local Lisp variables start at `undo_list',
-     tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
-       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
-       offset += sizeof (Lisp_Object))
+  for_each_per_buffer_object_at (offset)
     {
       Lisp_Object obj;
 
@@ -820,14 +816,8 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
     if (permanent_too || buffer_permanent_local_flags[i] == 0)
       SET_PER_BUFFER_VALUE_P (b, i, 0);
 
-  /* For each slot that has a default value,
-     copy that into the slot.  */
-
-  /* buffer-local Lisp variables start at `undo_list',
-     tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
-       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
-       offset += sizeof (Lisp_Object))
+  /* For each slot that has a default value, copy that into the slot.  */
+  for_each_per_buffer_object_at (offset)
     {
       int idx = PER_BUFFER_IDX (offset);
       if ((idx > 0
@@ -1063,12 +1053,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   {
     int offset, idx;
 
-    /* buffer-local Lisp variables start at `undo_list',
-       tho only the ones from `name' on are GC'd normally.  */
-    for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
-	 offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
-	 /* sizeof EMACS_INT == sizeof Lisp_Object */
-	 offset += (sizeof (EMACS_INT)))
+    for_each_per_buffer_object_at (offset)
       {
 	idx = PER_BUFFER_IDX (offset);
 	if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
@@ -4903,9 +4888,7 @@ init_buffer_once (void)
   BVAR (&buffer_defaults, case_fold_search) = Qt;
   BVAR (&buffer_defaults, auto_fill_function) = Qnil;
   BVAR (&buffer_defaults, selective_display) = Qnil;
-#ifndef old
   BVAR (&buffer_defaults, selective_display_ellipses) = Qt;
-#endif
   BVAR (&buffer_defaults, abbrev_table) = Qnil;
   BVAR (&buffer_defaults, display_table) = Qnil;
   BVAR (&buffer_defaults, undo_list) = Qnil;
@@ -4984,9 +4967,7 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, case_fold_search), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, auto_fill_function), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, selective_display), idx); ++idx;
-#ifndef old
   XSETFASTINT (BVAR (&buffer_local_flags, selective_display_ellipses), idx); ++idx;
-#endif
   XSETFASTINT (BVAR (&buffer_local_flags, tab_width), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, truncate_lines), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, word_wrap), idx); ++idx;
@@ -5594,12 +5575,10 @@ A value of t means that the character ^M makes itself and
 all the rest of the line invisible; also, when saving the buffer
 in a file, save the ^M as a newline.  */);
 
-#ifndef old
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
 		     &BVAR (current_buffer, selective_display_ellipses),
 		     Qnil,
 		     doc: /* Non-nil means display ... on previous line when a line is invisible.  */);
-#endif
 
   DEFVAR_PER_BUFFER ("overwrite-mode", &BVAR (current_buffer, overwrite_mode), Qnil,
 		     doc: /* Non-nil if self-insertion should replace existing text.

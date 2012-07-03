@@ -1186,21 +1186,6 @@ lisp_align_free (void *block)
   MALLOC_UNBLOCK_INPUT;
 }
 
-/* Return a new buffer structure allocated from the heap with
-   a call to lisp_malloc.  */
-
-struct buffer *
-allocate_buffer (void)
-{
-  struct buffer *b
-    = (struct buffer *) lisp_malloc (sizeof (struct buffer),
-				     MEM_TYPE_BUFFER);
-  XSETPVECTYPESIZE (b, PVEC_BUFFER,
-		    ((sizeof (struct buffer) + sizeof (EMACS_INT) - 1)
-		     / sizeof (EMACS_INT)));
-  return b;
-}
-
 
 #ifndef SYSTEM_MALLOC
 
@@ -3256,6 +3241,17 @@ allocate_pseudovector (int memlen, int lisplen, int tag)
 
   XSETPVECTYPESIZE (v, tag, lisplen);
   return v;
+}
+
+struct buffer *
+allocate_buffer (void)
+{
+  struct buffer *b = lisp_malloc (sizeof (struct buffer), MEM_TYPE_BUFFER);
+
+  XSETPVECTYPESIZE (b, PVEC_BUFFER, (offsetof (struct buffer, own_text)
+				     - header_size) / word_size);
+  /* Note that the fields of B are not initialized.  */
+  return b;
 }
 
 struct Lisp_Hash_Table *
@@ -5786,15 +5782,29 @@ mark_char_table (struct Lisp_Vector *ptr)
     }
 }
 
-/* Mark the pointers in a buffer structure.  */
+/* Mark the chain of overlays starting at PTR.  */
+
+static void
+mark_overlay (struct Lisp_Overlay *ptr)
+{
+  for (; ptr && !ptr->gcmarkbit; ptr = ptr->next)
+    {
+      ptr->gcmarkbit = 1;
+      mark_object (ptr->start);
+      mark_object (ptr->end);
+      mark_object (ptr->plist);
+    }
+}
+
+/* Mark Lisp_Objects and special pointers in BUFFER.  */
 
 static void
 mark_buffer (struct buffer *buffer)
 {
-  register Lisp_Object *ptr, tmp;
+  /* This is handled much like other pseudovectors...  */
+  mark_vectorlike ((struct Lisp_Vector *) buffer);
 
-  eassert (!VECTOR_MARKED_P (buffer));
-  VECTOR_MARK (buffer);
+  /* ...but there are some buffer-specific things.  */
 
   MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
 
@@ -5802,24 +5812,8 @@ mark_buffer (struct buffer *buffer)
      a special way just before the sweep phase, and after stripping
      some of its elements that are not needed any more.  */
 
-  if (buffer->overlays_before)
-    {
-      XSETMISC (tmp, buffer->overlays_before);
-      mark_object (tmp);
-    }
-  if (buffer->overlays_after)
-    {
-      XSETMISC (tmp, buffer->overlays_after);
-      mark_object (tmp);
-    }
-
-  /* buffer-local Lisp variables start at `undo_list',
-     tho only the ones from `name' on are GC'd normally.  */
-  for (ptr = &buffer->BUFFER_INTERNAL_FIELD (name);
-       ptr <= &PER_BUFFER_VALUE (buffer,
-				 PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER));
-       ptr++)
-    mark_object (*ptr);
+  mark_overlay (buffer->overlays_before);
+  mark_overlay (buffer->overlays_after);
 
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
@@ -6061,52 +6055,35 @@ mark_object (Lisp_Object arg)
 
     case Lisp_Misc:
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
-      if (XMISCANY (obj)->gcmarkbit)
-	break;
-      XMISCANY (obj)->gcmarkbit = 1;
 
-      switch (XMISCTYPE (obj))
+      if (XMISCTYPE (obj) == Lisp_Misc_Overlay)
+	mark_overlay (XOVERLAY (obj));
+      else
 	{
+	  if (XMISCANY (obj)->gcmarkbit)
+	    break;
+	  XMISCANY (obj)->gcmarkbit = 1;
 
-	case Lisp_Misc_Marker:
-	  /* DO NOT mark thru the marker's chain.
-	     The buffer's markers chain does not preserve markers from gc;
-	     instead, markers are removed from the chain when freed by gc.  */
-	  break;
+	  /* Note that we don't mark thru the marker's
+	     chain.  The buffer's markers chain does not
+	     preserve markers from GC; instead, markers
+	     are removed from the chain when freed by GC.  */
 
-	case Lisp_Misc_Save_Value:
 #if GC_MARK_STACK
-	  {
-	    register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
-	    /* If DOGC is set, POINTER is the address of a memory
-	       area containing INTEGER potential Lisp_Objects.  */
-	    if (ptr->dogc)
-	      {
-		Lisp_Object *p = (Lisp_Object *) ptr->pointer;
-		ptrdiff_t nelt;
-		for (nelt = ptr->integer; nelt > 0; nelt--, p++)
-		  mark_maybe_object (*p);
-	      }
-	  }
+	  if (XMISCTYPE (obj) == Lisp_Misc_Save_Value)
+	    {
+	      register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
+	      /* If DOGC is set, POINTER is the address of a memory
+		 area containing INTEGER potential Lisp_Objects.  */
+	      if (ptr->dogc)
+		{
+		  Lisp_Object *p = (Lisp_Object *) ptr->pointer;
+		  ptrdiff_t nelt;
+		  for (nelt = ptr->integer; nelt > 0; nelt--, p++)
+		    mark_maybe_object (*p);
+		}
+	    }
 #endif
-	  break;
-
-	case Lisp_Misc_Overlay:
-	  {
-	    struct Lisp_Overlay *ptr = XOVERLAY (obj);
-	    mark_object (ptr->start);
-	    mark_object (ptr->end);
-	    mark_object (ptr->plist);
-	    if (ptr->next)
-	      {
-		XSETMISC (obj, ptr->next);
-		goto loop;
-	      }
-	  }
-	  break;
-
-	default:
-	  abort ();
 	}
       break;
 
