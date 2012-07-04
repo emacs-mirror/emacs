@@ -1,3 +1,9 @@
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* lib/alloca.in.h: New version from gnulib, incorporating:
+	2012-07-03 alloca: add support for HP NonStop TNS/E native
+
 2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.in: If --enable-gcc-warnings, disable
