@@ -1,5 +1,9 @@
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* regex.c: Suppress GCC warning on RHEL 6.  (Bug#11207)
+	Conditionalize the pragmas on GCC 4.5 or later, not GCC 4.3 or later,
+	since GCC 4.4.6 issues a bogus warning for them.
+
 	Fix bugs in file timestamp newness comparisons.
 	* fileio.c (Ffile_newer_than_file_p):
 	* lread.c (Fload): Use full timestamp resolution of files,
