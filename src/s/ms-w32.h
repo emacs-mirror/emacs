@@ -105,7 +105,6 @@ struct sigaction {
 #endif
 
 #define HAVE_SOUND  1
-#define LISP_FLOAT_TYPE 1
 
 #define HAVE_SYS_TIMEB_H 1
 #define HAVE_SYS_TIME_H 1
@@ -133,10 +132,6 @@ struct sigaction {
 #define HAVE_RANDOM 1
 #undef  HAVE_SYSINFO
 #undef  HAVE_LRAND48
-#define HAVE_MEMCMP 1
-#define HAVE_MEMCPY 1
-#define HAVE_MEMMOVE 1
-#define HAVE_MEMSET 1
 #define HAVE_LOGB 1
 #define HAVE_FREXP 1
 #define HAVE_FMOD 1

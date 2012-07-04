@@ -1,3 +1,10 @@
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (LISP_FLOAT_TYPE, HAVE_XFREE386, USE_TEXT_PROPERTIES)
+	(GSSAPI, HAVE_LIBINTL, HAVE_LIBGSSAPI_KRB5, HAVE_LIBGSSAPI)
+	(HAVE_GSSAPI_H, HAVE_LIBXBD, HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET)
+	(HAVE_MEMCMP): Remove, obsolete.
+
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* paths.h (PATH_SITELOADSEARCH): New.

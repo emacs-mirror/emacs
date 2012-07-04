@@ -27,10 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* These are all defined in the top-level Makefile by configure.
    They're here only for reference.  */
 
-/* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
-   numbers. */
-#undef LISP_FLOAT_TYPE
-
 /* Define GNU_MALLOC if you want to use the GNU memory allocator. */
 #define GNU_MALLOC
 
@@ -58,9 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if using an X toolkit.  */
 #undef USE_X_TOOLKIT
 
-/* Define this if you're using XFree386.  */
-#undef HAVE_XFREE386
-
 /* Define this if you have Motif 2.1 or newer.  */
 #undef HAVE_MOTIF_2_1
 
@@ -83,10 +76,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_WINDOW_SYSTEM
 #define HAVE_MOUSE
 #endif
-
-/* Define USE_TEXT_PROPERTIES to support visual and other properties
-   on text. */
-#define USE_TEXT_PROPERTIES
 
 /* Define USER_FULL_NAME to return a string
    that is the user's full name.
@@ -112,8 +101,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef KERBEROS
 /* Define to use Kerberos 5 instead of Kerberos 4 */
 #undef KERBEROS5
-/* Define to support GSS-API in addition to (or instead of) Kerberos */
-#undef GSSAPI
 
 /* Define to support using a Hesiod database to find the POP server.  */
 #undef HESIOD
@@ -138,7 +125,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_LIBPTHREADS
 #undef HAVE_LIBRESOLV
 #undef HAVE_LIBXMU
-#undef HAVE_LIBINTL
 
 /* movemail Kerberos support */
 /* libraries */
@@ -158,11 +144,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_KERBEROS_DES_H
 #undef HAVE_KERBEROS_KRB_H
 #undef HAVE_COM_ERR_H
-
-/* GSS-API libraries and headers */
-#undef HAVE_LIBGSSAPI_KRB5
-#undef HAVE_LIBGSSAPI
-#undef HAVE_GSSAPI_H
 
 /* Mail-file locking */
 #undef HAVE_LIBMAIL
@@ -200,7 +181,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef CRAY_STACKSEG_END
 
-#undef HAVE_LIBXBSD
 #undef HAVE_XRMSETDATABASE
 #undef HAVE_XSCREENRESOURCESTRING
 #undef HAVE_XSCREENNUMBEROFSCREEN
@@ -209,10 +189,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_RMDIR
 #undef HAVE_RANDOM
 #undef HAVE_LRAND48
-#undef HAVE_MEMCPY
-#undef HAVE_MEMMOVE
-#undef HAVE_MEMSET
-#undef HAVE_MEMCMP
 #undef HAVE_LOGB
 #undef HAVE_FREXP
 #undef HAVE_FMOD
