@@ -1,5 +1,8 @@
 2012-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile): Don't signal an error if the
+	function is already compiled.
+
 	* xml.el (xml-name-regexp): Remove, redundant.  Use xml-name-re.
 
 2012-07-03  Michael Albinus  <michael.albinus@gmx.de>
