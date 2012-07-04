@@ -1,5 +1,10 @@
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* window.c (set_window_hscroll): Revert the 100000 hscroll limit.
+	This should be fixed in a better way; see Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00088.html>.
+	(HSCROLL_MAX): Remove; this is now internal to set_window_hscroll.
+
 	* fileio.c (time_error_value): Rename from special_mtime.
 	The old name's problems were noted by Eli Zaretskii in
 	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00087.html>.

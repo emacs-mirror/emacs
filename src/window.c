@@ -51,11 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-/* Horizontal scrolling has problems with large scroll amounts.
-   It's too slow with long lines, and even with small lines the
-   display can be messed up.  Impose a reasonable maximum.  */
-enum { HSCROLL_MAX = 100000 };
-
 Lisp_Object Qwindowp, Qwindow_live_p;
 static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
 static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
@@ -680,7 +675,14 @@ WINDOW must be a live window and defaults to the selected one.  */)
 static Lisp_Object
 set_window_hscroll (struct window *w, EMACS_INT hscroll)
 {
-  int new_hscroll = clip_to_bounds (0, hscroll, HSCROLL_MAX);
+  /* Horizontal scrolling has problems with large scroll amounts.
+     It's too slow with long lines, and even with small lines the
+     display can be messed up.  For now, though, impose only the limits
+     required by the internal representation: horizontal scrolling must
+     fit in fixnum (since it's visible to Elisp) and into ptrdiff_t
+     (since it's stored in a ptrdiff_t).  */
+  ptrdiff_t hscroll_max = min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX);
+  ptrdiff_t new_hscroll = clip_to_bounds (0, hscroll, hscroll_max);
 
   /* Prevent redisplay shortcuts when changing the hscroll.  */
   if (w->hscroll != new_hscroll)
