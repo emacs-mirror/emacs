@@ -1772,7 +1772,7 @@
 	* calendar/icalendar.el
 	(icalendar-export-region): Export UID properly.
 
-2012-05-29 Leo <sdl.web@gmail.com>
+2012-05-29  Leo Liu  <sdl.web@gmail.com>
 	* calendar/icalendar.el (icalendar-import-format):
 	Add `icalendar-import-format-uid' (Bug#11525).
 	(icalendar-import-format-uid): New.
@@ -2106,7 +2106,7 @@
 	Simplify; Don't bother removing a ] just to add it back.
 	* textmodes/ispell.el (ispell-program-name): Use executable-find.
 
-2012-05-18  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+2012-05-18  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* calc/calc-lang.el (math-C-parse-bess, math-C-parse-fma):
 	New functions.
@@ -5270,7 +5270,7 @@
 	files from Git, SVN, Bazaar, and Mercurial.
 	(save-place-to-alist): Use it.
 
-2012-02-17  Lawrence Mitchell <wence@gmx.li>
+2012-02-17  Lawrence Mitchell  <wence@gmx.li>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* newcomment.el (uncomment-region-default): Don't leave extra space

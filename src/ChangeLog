@@ -1,6 +1,6 @@
 2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* buffer.c (init_buffer_once):  Fix initialization of
+	* buffer.c (init_buffer_once): Fix initialization of
 	headers for buffer_defaults and buffer_local_symbols.
 	Reported by Juanma Barranquero <lekktu@gmail.com>.
 
@@ -105,8 +105,8 @@
 	* fileio.c (Fmake_symbolic_link): No longer static.
 	* eval.c (Ffetch_bytecode): No longer static.
 	* editfns.c (Fuser_full_name): No longer static.
-	* doc.c: (Fdocumentation_property, Fsnarf_documentation): No
-	longer static.
+	* doc.c (Fdocumentation_property, Fsnarf_documentation):
+	No longer static.
 	* buffer.c (Fset_buffer_major_mode, Fdelete_overlay): No longer
 	static.
 	* dired.c (Ffile_attributes): No longer static.
@@ -381,11 +381,11 @@
 
 2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* alloc.c (allocate_string):  Fix last change.
+	* alloc.c (allocate_string): Fix last change.
 
 2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* alloc.c (allocate_string):  Remove two redundant calls
+	* alloc.c (allocate_string): Remove two redundant calls
 	to memset, add explicit initialization where appropriate.
 
 2012-06-27  Glenn Morris  <rgm@gnu.org>
