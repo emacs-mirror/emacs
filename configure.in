@@ -681,6 +681,12 @@ else
   nw="$nw -Wsuggest-attribute=const"
   nw="$nw -Wsuggest-attribute=pure"
 
+  # Some loops can't be optimized with -O1,
+  # so remove -Wunsafe-loop-optimizations.
+  if echo "$CFLAGS" | $EGREP 'O1' 1>/dev/null; then
+    nw="$nw -Wunsafe-loop-optimizations"
+  fi
+
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
   for w in $ws; do

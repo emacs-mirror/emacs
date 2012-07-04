@@ -1451,7 +1451,7 @@ simple_search (EMACS_INT n, unsigned char *pat,
   int forward = n > 0;
   /* Number of buffer bytes matched.  Note that this may be different
      from len_byte in a multibyte buffer.  */
-  ptrdiff_t match_byte;
+  ptrdiff_t match_byte = PTRDIFF_MIN;
 
   if (lim > pos && multibyte)
     while (n > 0)
@@ -1622,6 +1622,7 @@ simple_search (EMACS_INT n, unsigned char *pat,
  stop:
   if (n == 0)
     {
+      eassert (match_byte != PTRDIFF_MIN);
       if (forward)
 	set_search_regs ((multibyte ? pos_byte : pos) - match_byte, match_byte);
       else

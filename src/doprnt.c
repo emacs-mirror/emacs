@@ -150,7 +150,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   /* Buffer we have got with malloc.  */
   char *big_buffer = NULL;
 
-  register size_t tem;
+  register int tem = -1;
   char *string;
   char fixed_buffer[20];	/* Default buffer for small formatting. */
   char *fmtcpy;
@@ -368,6 +368,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
 	      /* Copy string into final output, truncating if no room.  */
 	    doit:
+	      eassert (tem != -1);
 	      /* Coming here means STRING contains ASCII only.  */
 	      if (STRING_BYTES_BOUND < tem)
 		error ("Format width or precision too large");

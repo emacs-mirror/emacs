@@ -1,3 +1,8 @@
+2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in: If --enable-gcc-warnings, disable
+	-Wunsafe-loop-optimizations for -O1 optimization level.
+
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (standardlisppath): New output variable.
