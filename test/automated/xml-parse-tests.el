@@ -30,10 +30,10 @@
 (require 'xml)
 
 (defvar xml-parse-tests--data
-  '(;; General entity substitution
+  `(;; General entity substitution
     ("<?xml version=\"1.0\"?><!DOCTYPE foo SYSTEM \"bar.dtd\" [<!ENTITY ent \"AbC\">]><foo a=\"b\"><bar>&ent;;</bar></foo>" .
      ((foo ((a . "b")) (bar nil "AbC;"))))
-    ("<?xml version=\"1.0\"?><foo>&amp;amp;&#38;apos;&apos;&lt;&gt;&quot;</foo>" .
+    ("<?xml version=\"1.0\"?><foo>&amp;amp;&#x26;apos;&apos;&lt;&gt;&quot;</foo>" .
      ((foo () "&amp;&apos;'<>\"")))
     ;; Parameter entity substitution
     ("<?xml version=\"1.0\"?><!DOCTYPE foo SYSTEM \"bar.dtd\" [<!ENTITY % pent \"AbC\"><!ENTITY ent \"%pent;\">]><foo a=\"b\"><bar>&ent;;</bar></foo>" .
@@ -52,7 +52,11 @@
      ((foo ((a . "-aBc-")) "1")))
     ;; Character references must be treated as character data
     ("<foo>AT&amp;T;</foo>" . ((foo () "AT&T;")))
-    ("<foo>&#38;amp;</foo>" . ((foo () "&amp;"))))
+    ("<foo>&#38;amp;</foo>" . ((foo () "&amp;")))
+    ("<foo>&#x26;amp;</foo>" . ((foo () "&amp;")))
+    ;; Unusual but valid XML names [5]
+    ("<ÀÖØö.3·-‿⁀󯿿>abc</ÀÖØö.3·-‿⁀󯿿>" . ((,(intern "ÀÖØö.3·-‿⁀󯿿") () "abc")))
+    ("<:>abc</:>" . ((,(intern ":") () "abc"))))
   "Alist of XML strings and their expected parse trees.")
 
 (defvar xml-parse-tests--bad-data
@@ -63,7 +67,11 @@
     ;; Non-terminating DTD
     "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">"
     "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">asdf"
-    "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">asdf&abc;")
+    "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">asdf&abc;"
+    ;; Invalid XML names
+    "<0foo>abc</0foo>"
+    "<‿foo>abc</‿foo>"
+    "<f¿>abc</f¿>")
   "List of XML strings that should signal an error in the parser")
 
 (ert-deftest xml-parse-tests ()

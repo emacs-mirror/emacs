@@ -1,3 +1,23 @@
+2012-07-04  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml--parse-buffer): Use xml-syntax-table.
+	(xml-parse-tag): Likewise, and avoid changing entity tables.
+	(xml-syntax-table): Define from scratch, making sure not to give
+	x2000 and other Unicode spaces whitespace syntax, since those are
+	not spaces in XML.
+	(xml-parse-fragment): Delete unused function.
+	(xml-name-start-char-re, xml-name-char-re, xml-name-re)
+	(xml-names-re, xml-nmtoken-re, xml-nmtokens-re, xml-char-ref-re)
+	(xml-entity-ref, xml-pe-reference-re)
+	(xml-reference-re,xml-att-value-re, xml-tokenized-type-re)
+	(xml-notation-type-re, xml-enumeration-re, xml-enumerated-type-re)
+	(xml-att-type-re, xml-default-decl-re, xml-att-def-re)
+	(xml-entity-value-re): Use syntax references in regexps where
+	possible; no need to define inside a let-binding.
+	(xml-parse-dtd): Use xml-pe-reference-re.
+	(xml-entity-or-char-ref-re): New defconst.
+	(xml-parse-string, xml-substitute-special): Use it.
+
 2012-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (locate-dominating-file): Allow `name' to be a predicate.
