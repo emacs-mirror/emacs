@@ -1,5 +1,12 @@
 2012-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (locate-dominating-file): Allow `name' to be a predicate.
+	(find-file--read-only): New function.
+	(find-file-read-only, find-file-read-only-other-window)
+	(find-file-read-only-other-frame): Use it.
+	(insert-file-contents-literally): Don't `fset'.
+	(get-free-disk-space): Use locate-dominating-file.
+
 	* emacs-lisp/bytecomp.el (byte-compile): Don't signal an error if the
 	function is already compiled.
 

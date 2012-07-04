@@ -876,12 +876,12 @@ or mount points potentially requiring authentication as a different user.")
 ;;       nil)))
 
 (defun locate-dominating-file (file name)
-  "Look up the directory hierarchy from FILE for a file named NAME.
+  "Look up the directory hierarchy from FILE for a directory containing NAME.
 Stop at the first parent directory containing a file NAME,
 and return the directory.  Return nil if not found.
-
-This function only tests if FILE exists.  If you care about whether
-it is readable, regular, etc., you should test the result."
+Instead of a string, NAME can also be a predicate taking one argument
+\(a directory) and returning a non-nil value if that directory is the one for
+which we're looking."
   ;; We used to use the above locate-dominating-files code, but the
   ;; directory-files call is very costly, so we're much better off doing
   ;; multiple calls using the code in here.
@@ -908,16 +908,14 @@ it is readable, regular, etc., you should test the result."
                     ;;   (setq user (nth 2 (file-attributes file)))
                     ;;   (and prev-user (not (equal user prev-user))))
                     (string-match locate-dominating-stop-dir-regexp file)))
-      ;; FIXME? maybe this function should (optionally?)
-      ;; use file-readable-p instead.  In many cases, an unreadable
-      ;; FILE is no better than a non-existent one.
-      ;; See eg dir-locals-find-file.
-      (setq try (file-exists-p (expand-file-name name file)))
+      (setq try (if (stringp name)
+                    (file-exists-p (expand-file-name name file))
+                  (funcall name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory
                                      (directory-file-name file))))
              (setq file nil))))
-    root))
+    (if root (file-name-as-directory root))))
 
 
 (defun executable-find (command)
@@ -1467,6 +1465,17 @@ file names with wildcards."
      (find-file filename)
      (current-buffer)))
 
+(defun find-file--read-only (fun filename wildcards)
+  (unless (or (and wildcards find-file-wildcards
+		   (not (string-match "\\`/:" filename))
+		   (string-match "[[*?]" filename))
+	      (file-exists-p filename))
+    (error "%s does not exist" filename))
+  (let ((value (funcall fun filename wildcards)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
+
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file], but marks buffer as read-only.
@@ -1474,15 +1483,7 @@ Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only: "
                         (confirm-nonexistent-file-or-buffer)))
-  (unless (or (and wildcards find-file-wildcards
-		   (not (string-match "\\`/:" filename))
-		   (string-match "[[*?]" filename))
-	      (file-exists-p filename))
-    (error "%s does not exist" filename))
-  (let ((value (find-file filename wildcards)))
-    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
-	  (if (listp value) value (list value)))
-    value))
+  (find-file--read-only #'find-file filename wildcards))
 
 (defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
@@ -1491,15 +1492,7 @@ Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other window: "
                         (confirm-nonexistent-file-or-buffer)))
-  (unless (or (and wildcards find-file-wildcards
-		   (not (string-match "\\`/:" filename))
-		   (string-match "[[*?]" filename))
-	      (file-exists-p filename))
-    (error "%s does not exist" filename))
-  (let ((value (find-file-other-window filename wildcards)))
-    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
-	  (if (listp value) value (list value)))
-    value))
+  (find-file--read-only #'find-file-other-window filename wildcards))
 
 (defun find-file-read-only-other-frame (filename &optional wildcards)
   "Edit file FILENAME in another frame but don't allow changes.
@@ -1508,15 +1501,7 @@ Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other frame: "
                         (confirm-nonexistent-file-or-buffer)))
-  (unless (or (and wildcards find-file-wildcards
-		   (not (string-match "\\`/:" filename))
-		   (string-match "[[*?]" filename))
-	      (file-exists-p filename))
-    (error "%s does not exist" filename))
-  (let ((value (find-file-other-frame filename wildcards)))
-    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
-	  (if (listp value) value (list value)))
-    value))
+  (find-file--read-only #'find-file-other-frame filename wildcards))
 
 (defun find-alternate-file-other-window (filename &optional wildcards)
   "Find file FILENAME as a replacement for the file in the next window.
@@ -2020,6 +2005,8 @@ Do you want to revisit the file normally now? ")
 	(after-find-file error (not nowarn)))
       (current-buffer))))
 
+(defvar file-name-buffer-file-type-alist) ;From dos-w32.el.
+
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
   "Like `insert-file-contents', but only reads in the file literally.
 A buffer may be modified in several ways after reading into the buffer,
@@ -2031,21 +2018,14 @@ This function ensures that none of these modifications will take place."
 	(after-insert-file-functions nil)
 	(coding-system-for-read 'no-conversion)
 	(coding-system-for-write 'no-conversion)
-	(find-buffer-file-type-function
-         (if (fboundp 'find-buffer-file-type)
-             (symbol-function 'find-buffer-file-type)
-           nil))
+	(file-name-buffer-file-type-alist '(("" . t)))
         (inhibit-file-name-handlers
+         ;; FIXME: Yuck!!  We should turn insert-file-contents-literally
+         ;; into a file operation instead!
          (append '(jka-compr-handler image-file-handler epa-file-handler)
                  inhibit-file-name-handlers))
         (inhibit-file-name-operation 'insert-file-contents))
-    (unwind-protect
-         (progn
-           (fset 'find-buffer-file-type (lambda (_filename) t))
-           (insert-file-contents filename visit beg end replace))
-      (if find-buffer-file-type-function
-	  (fset 'find-buffer-file-type find-buffer-file-type-function)
-	(fmakunbound 'find-buffer-file-type)))))
+    (insert-file-contents filename visit beg end replace)))
 
 (defun insert-file-1 (filename insert-func)
   (if (file-directory-p filename)
@@ -5958,11 +5938,12 @@ returns nil."
 	  (when (and directory-free-space-program
 		     ;; Avoid failure if the default directory does
 		     ;; not exist (Bug#2631, Bug#3911).
-		     (let ((default-directory "/"))
-		       (eq (call-process directory-free-space-program
+                     (let ((default-directory
+                             (locate-dominating-file dir 'file-directory-p)))
+                       (eq (process-file directory-free-space-program
 					 nil t nil
 					 directory-free-space-args
-					 dir)
+                                         (file-relative-name dir))
 			   0)))
 	    ;; Assume that the "available" column is before the
 	    ;; "capacity" column.  Find the "%" and scan backward.
