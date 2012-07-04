@@ -1,3 +1,8 @@
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doprnt.c (doprnt): Don't assume string length fits in 'int'.
+	Tighten new eassert a bit.
+
 2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix compilation with --enable-gcc-warnings and -O1
