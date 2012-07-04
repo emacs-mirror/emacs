@@ -1529,7 +1529,7 @@ make_interval (void)
 }
 
 
-/* Mark Lisp objects in interval I. */
+/* Mark Lisp objects in interval I.  */
 
 static void
 mark_interval (register INTERVAL i, Lisp_Object dummy)
@@ -1836,7 +1836,7 @@ check_sblock (struct sblock *b)
       ptrdiff_t nbytes;
 
       /* Check that the string size recorded in the string is the
-	 same as the one recorded in the sdata structure. */
+	 same as the one recorded in the sdata structure.  */
       if (from->string)
 	CHECK_STRING_BYTES (from->string);
 
@@ -2869,12 +2869,6 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 #define VECTOR_BLOCK_SIZE 4096
 
-/* This special value is used to calculate vector size when the vector is
-   on a free list.  It should be VECTOR_BLOCK_SIZE rounded up to nearest
-   power of two, minus one.  */
-
-#define VECTOR_FREE_LIST_SIZE_MASK 4095
-
 /* Handy constants for vectorlike objects.  */
 enum
   {
@@ -2889,8 +2883,7 @@ verify ((roundup_size & (roundup_size - 1)) == 0);
 
 /* Verify assumptions described above.  */
 verify ((VECTOR_BLOCK_SIZE % roundup_size) == 0);
-verify ((VECTOR_FREE_LIST_SIZE_MASK + 1) >= VECTOR_BLOCK_SIZE);
-verify ((VECTOR_FREE_LIST_SIZE_MASK & (VECTOR_FREE_LIST_SIZE_MASK + 1)) == 0);
+verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 /* Round up X to nearest mult-of-ROUNDUP_SIZE.  */
 
@@ -2915,12 +2908,6 @@ verify ((VECTOR_FREE_LIST_SIZE_MASK & (VECTOR_FREE_LIST_SIZE_MASK + 1)) == 0);
 #define VECTOR_MAX_FREE_LIST_INDEX				\
   ((VECTOR_BLOCK_BYTES - VBLOCK_BYTES_MIN) / roundup_size + 1)
 
-/* When the vector is on a free list, vectorlike_header.SIZE is set to
-   this special value ORed with vector's memory footprint size.  */
-
-#define VECTOR_FREE_LIST_FLAG (~(ARRAY_MARK_FLAG | PSEUDOVECTOR_FLAG	\
-				 | VECTOR_FREE_LIST_SIZE_MASK))
-
 /* Common shortcut to advance vector pointer over a block data.  */
 
 #define ADVANCE(v, nbytes) ((struct Lisp_Vector *) ((char *) (v) + (nbytes)))
@@ -2933,7 +2920,7 @@ verify ((VECTOR_FREE_LIST_SIZE_MASK & (VECTOR_FREE_LIST_SIZE_MASK + 1)) == 0);
 
 #define SETUP_ON_FREE_LIST(v, nbytes, index)			\
   do {								\
-    (v)->header.size = VECTOR_FREE_LIST_FLAG | (nbytes);	\
+    XSETPVECTYPESIZE (v, PVEC_FREE, nbytes);			\
     eassert ((nbytes) % roundup_size == 0);			\
     (index) = VINDEX (nbytes);					\
     eassert ((index) < VECTOR_MAX_FREE_LIST_INDEX);		\
@@ -3065,6 +3052,16 @@ allocate_vector_from_block (size_t nbytes)
   ((char *) (vector) <= (block)->data		\
    + VECTOR_BLOCK_BYTES - VBLOCK_BYTES_MIN)
 
+/* Number of bytes used by vector-block-allocated object.  This is the only
+   place where we actually use the `nbytes' field of the vector-header.
+   I.e. we could get rid of the `nbytes' field by computing it based on the
+   vector-type.  */
+
+#define PSEUDOVECTOR_NBYTES(vector) \
+  (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FREE)	\
+   ? vector->header.size & PSEUDOVECTOR_SIZE_MASK	\
+   : vector->header.next.nbytes);
+
 /* Reclaim space used by unmarked vectors.  */
 
 static void
@@ -3093,14 +3090,10 @@ sweep_vectors (void)
 	    }
 	  else
 	    {
-	      ptrdiff_t nbytes;
+	      ptrdiff_t nbytes = PSEUDOVECTOR_NBYTES (vector);
+	      ptrdiff_t total_bytes = nbytes;
 
-	      if ((vector->header.size & VECTOR_FREE_LIST_FLAG)
-		  == VECTOR_FREE_LIST_FLAG)
-		vector->header.next.nbytes =
-		  vector->header.size & VECTOR_FREE_LIST_SIZE_MASK;
-
-	      next = ADVANCE (vector, vector->header.next.nbytes);
+	      next = ADVANCE (vector, nbytes);
 
 	      /* While NEXT is not marked, try to coalesce with VECTOR,
 		 thus making VECTOR of the largest possible size.  */
@@ -3109,16 +3102,12 @@ sweep_vectors (void)
 		{
 		  if (VECTOR_MARKED_P (next))
 		    break;
-		  if ((next->header.size & VECTOR_FREE_LIST_FLAG)
-		      == VECTOR_FREE_LIST_FLAG)
-		    nbytes = next->header.size & VECTOR_FREE_LIST_SIZE_MASK;
-		  else
-		    nbytes = next->header.next.nbytes;
-		  vector->header.next.nbytes += nbytes;
+		  nbytes = PSEUDOVECTOR_NBYTES (next);
+		  total_bytes += nbytes;
 		  next = ADVANCE (next, nbytes);
 		}
 
-	      eassert (vector->header.next.nbytes % roundup_size == 0);
+	      eassert (total_bytes % roundup_size == 0);
 
 	      if (vector == (struct Lisp_Vector *) block->data
 		  && !VECTOR_IN_BLOCK (next, block))
@@ -3126,7 +3115,10 @@ sweep_vectors (void)
 		   space was coalesced into the only free vector.  */
 		free_this_block = 1;
 	      else
-		SETUP_ON_FREE_LIST (vector, vector->header.next.nbytes, nbytes);
+		{
+		  int tmp;
+		  SETUP_ON_FREE_LIST (vector, total_bytes, tmp);
+		}
 	    }
 	}
 
@@ -4342,10 +4334,9 @@ live_vector_p (struct mem_node *m, void *p)
       while (VECTOR_IN_BLOCK (vector, block)
 	     && vector <= (struct Lisp_Vector *) p)
 	{
-	  if ((vector->header.size & VECTOR_FREE_LIST_FLAG)
-	      == VECTOR_FREE_LIST_FLAG)
+	  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FREE))
 	    vector = ADVANCE (vector, (vector->header.size
-				       & VECTOR_FREE_LIST_SIZE_MASK));
+				       & PSEUDOVECTOR_SIZE_MASK));
 	  else if (vector == p)
 	    return 1;
 	  else
@@ -5913,15 +5904,17 @@ mark_object (Lisp_Object arg)
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
 	if (ptr->header.size & PSEUDOVECTOR_FLAG)
-	  pvectype = ptr->header.size & PVEC_TYPE_MASK;
+	  pvectype = ((ptr->header.size & PVEC_TYPE_MASK)
+		      >> PSEUDOVECTOR_SIZE_BITS);
 	else
 	  pvectype = 0;
 
 	if (pvectype != PVEC_SUBR && pvectype != PVEC_BUFFER)
 	  CHECK_LIVE (live_vector_p);
 
-	if (pvectype == PVEC_BUFFER)
+	switch (pvectype)
 	  {
+	  case PVEC_BUFFER:
 #ifdef GC_CHECK_MARKED_OBJECTS
 	    if (po != &buffer_defaults && po != &buffer_local_symbols)
 	      {
@@ -5933,67 +5926,82 @@ mark_object (Lisp_Object arg)
 	      }
 #endif /* GC_CHECK_MARKED_OBJECTS */
 	    mark_buffer ((struct buffer *) ptr);
-	  }
+	    break;
 
-	else if (pvectype == PVEC_COMPILED)
-	  /* We could treat this just like a vector, but it is better
-	     to save the COMPILED_CONSTANTS element for last and avoid
-	     recursion there.  */
-	  {
-	    int size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
-	    int i;
+	  case PVEC_COMPILED:
+	    { /* We could treat this just like a vector, but it is better
+		 to save the COMPILED_CONSTANTS element for last and avoid
+		 recursion there.  */
+	      int size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
+	      int i;
 
+	      VECTOR_MARK (ptr);
+	      for (i = 0; i < size; i++)
+		if (i != COMPILED_CONSTANTS)
+		  mark_object (ptr->contents[i]);
+	      if (size > COMPILED_CONSTANTS)
+		{
+		  obj = ptr->contents[COMPILED_CONSTANTS];
+		  goto loop;
+		}
+	    }
+	    break;
+
+	  case PVEC_FRAME:
+	    {
+	      mark_vectorlike (ptr);
+	      mark_face_cache (((struct frame *) ptr)->face_cache);
+	    }
+	    break;
+
+	  case PVEC_WINDOW:
+	    {
+	      struct window *w = (struct window *) ptr;
+
+	      mark_vectorlike (ptr);
+	      /* Mark glyphs for leaf windows.  Marking window
+		 matrices is sufficient because frame matrices
+		 use the same glyph memory.  */
+	      if (NILP (w->hchild) && NILP (w->vchild) && w->current_matrix)
+		{
+		  mark_glyph_matrix (w->current_matrix);
+		  mark_glyph_matrix (w->desired_matrix);
+		}
+	    }
+	    break;
+
+	  case PVEC_HASH_TABLE:
+	    {
+	      struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *) ptr;
+
+	      mark_vectorlike (ptr);
+	      /* If hash table is not weak, mark all keys and values.
+		 For weak tables, mark only the vector.  */
+	      if (NILP (h->weak))
+		mark_object (h->key_and_value);
+	      else
+		VECTOR_MARK (XVECTOR (h->key_and_value));
+	    }
+	    break;
+
+	  case PVEC_CHAR_TABLE:
+	    mark_char_table (ptr);
+	    break;
+
+	  case PVEC_BOOL_VECTOR:
+	    /* No Lisp_Objects to mark in a bool vector.  */
 	    VECTOR_MARK (ptr);
-	    for (i = 0; i < size; i++)
-	      if (i != COMPILED_CONSTANTS)
-		mark_object (ptr->contents[i]);
-	    obj = ptr->contents[COMPILED_CONSTANTS];
-	    goto loop;
-	  }
+	    break;
 
-	else if (pvectype == PVEC_FRAME)
-	  {
+	  case PVEC_SUBR:
+	    break;
+
+	  case PVEC_FREE:
+	    abort ();
+
+	  default:
 	    mark_vectorlike (ptr);
-	    mark_face_cache (((struct frame *) ptr)->face_cache);
 	  }
-
-	else if (pvectype == PVEC_WINDOW)
-	  {
-	    struct window *w = (struct window *) ptr;
-
-	    mark_vectorlike (ptr);
-	    /* Mark glyphs for leaf windows.  Marking window
-	       matrices is sufficient because frame matrices
-	       use the same glyph memory.  */
-	    if (NILP (w->hchild) && NILP (w->vchild) && w->current_matrix)
-	      {
-		mark_glyph_matrix (w->current_matrix);
-		mark_glyph_matrix (w->desired_matrix);
-	      }
-	  }
-
-	else if (pvectype == PVEC_HASH_TABLE)
-	{
-	  struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *) ptr;
-
-	  mark_vectorlike (ptr);
-	  /* If hash table is not weak, mark all keys and values.
-	     For weak tables, mark only the vector.  */
-	  if (NILP (h->weak))
-	    mark_object (h->key_and_value);
-	  else
-	    VECTOR_MARK (XVECTOR (h->key_and_value));
-	}
-
-	else if (pvectype == PVEC_CHAR_TABLE)
-	  mark_char_table (ptr);
-
-	else if (pvectype == PVEC_BOOL_VECTOR)
-	  /* No Lisp_Objects to mark in a bool vector.  */
-	  VECTOR_MARK (ptr);
-
-	else if (pvectype != PVEC_SUBR)
-	  mark_vectorlike (ptr);
       }
       break;
 

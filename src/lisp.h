@@ -341,28 +341,26 @@ typedef EMACS_INT Lisp_Object;
    It is not crucial, but there are plenty of bits here, so why not do it?  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR = 0,
-  PVEC_PROCESS = 0x200,
-  PVEC_FRAME = 0x400,
-  PVEC_COMPILED = 0x800,
-  PVEC_WINDOW = 0x1000,
-  PVEC_WINDOW_CONFIGURATION = 0x2000,
-  PVEC_SUBR = 0x4000,
-  PVEC_CHAR_TABLE = 0x8000,
-  PVEC_BOOL_VECTOR = 0x10000,
-  PVEC_BUFFER = 0x20000,
-  PVEC_HASH_TABLE = 0x40000,
-  PVEC_TERMINAL = 0x80000,
-  PVEC_SUB_CHAR_TABLE = 0x100000,
-  PVEC_FONT = 0x200000,
-  PVEC_OTHER = 0x400000,
-  PVEC_TYPE_MASK = 0x7ffe00
-
-#if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
-	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in
-	 emacs.c.  */
-  PVEC_FLAG = PSEUDOVECTOR_FLAG
-#endif
+  PVEC_NORMAL_VECTOR = 0,	/* Unused!  */
+  PVEC_FREE,
+  PVEC_PROCESS,
+  PVEC_FRAME,
+  PVEC_WINDOW,
+  PVEC_BOOL_VECTOR,
+  PVEC_BUFFER,
+  PVEC_HASH_TABLE,
+  PVEC_TERMINAL,
+  PVEC_WINDOW_CONFIGURATION,
+  PVEC_SUBR,
+  PVEC_OTHER,
+  /* These last 4 are special because we OR them in fns.c:internal_equal,
+     so they have to use a disjoint bit pattern:
+     if (!(size & (PVEC_COMPILED | PVEC_CHAR_TABLE
+                   | PVEC_SUB_CHAR_TABLE | PVEC_FONT))) */
+  PVEC_COMPILED			= 0x10,
+  PVEC_CHAR_TABLE		= 0x20,
+  PVEC_SUB_CHAR_TABLE		= 0x30,
+  PVEC_FONT			= 0x40
 };
 
 /* For convenience, we also store the number of elements in these bits.
@@ -370,7 +368,9 @@ enum pvec_type
    only the number of Lisp_Object fields (that need to be traced by the GC).
    The distinction is used e.g. by Lisp_Process which places extra
    non-Lisp_Object fields at the end of the structure.  */
-#define PSEUDOVECTOR_SIZE_MASK 0x1ff
+#define PSEUDOVECTOR_SIZE_BITS 16
+#define PSEUDOVECTOR_SIZE_MASK ((1 << PSEUDOVECTOR_SIZE_BITS) - 1)
+#define PVEC_TYPE_MASK (0x0fff << PSEUDOVECTOR_SIZE_BITS)
 
 /* Number of bits to put in each character in the internal representation
    of bool vectors.  This should not vary across implementations.  */
@@ -536,9 +536,11 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 #define XSETPVECTYPE(v, code) XSETTYPED_PVECTYPE (v, header.size, code)
 #define XSETTYPED_PVECTYPE(v, size_member, code) \
-  ((v)->size_member |= PSEUDOVECTOR_FLAG | (code))
+  ((v)->size_member |= PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_SIZE_BITS))
 #define XSETPVECTYPESIZE(v, code, sizeval) \
-  ((v)->header.size = PSEUDOVECTOR_FLAG | (code) | (sizeval))
+  ((v)->header.size = (PSEUDOVECTOR_FLAG			\
+		       | ((code) << PSEUDOVECTOR_SIZE_BITS)	\
+		       | (sizeval)))
 
 /* The cast to struct vectorlike_header * avoids aliasing issues.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
@@ -550,7 +552,7 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define XSETTYPED_PSEUDOVECTOR(a, b, size, code)			\
   (XSETVECTOR (a, b),							\
    eassert ((size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))		\
-	    == (PSEUDOVECTOR_FLAG | (code))))
+	    == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_SIZE_BITS))))
 
 #define XSETWINDOW_CONFIGURATION(a, b) \
   (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
@@ -730,13 +732,13 @@ extern ptrdiff_t string_bytes (struct Lisp_String *);
 /* Set text properties.  */
 #define STRING_SET_INTERVALS(STR, INT) (XSTRING (STR)->intervals = (INT))
 
-/* In a string or vector, the sign bit of the `size' is the gc mark bit */
+/* In a string or vector, the sign bit of the `size' is the gc mark bit.  */
 
 struct Lisp_String
   {
     ptrdiff_t size;
     ptrdiff_t size_byte;
-    INTERVAL intervals;		/* text properties in this string */
+    INTERVAL intervals;		/* Text properties in this string.  */
     unsigned char *data;
   };
 
@@ -749,6 +751,20 @@ struct Lisp_String
    <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8546>.  */
 struct vectorlike_header
   {
+    /* This field contains various pieces of information:
+       - The MSB (ARRAY_MARK_FLAG) holds the gcmarkbit.
+       - The next bit (PSEUDOVECTOR_FLAG) indicates whether this is a plain
+         vector (0) or a pseudovector (1).
+       - If PSEUDOVECTOR_FLAG is 0, the rest holds the size (number
+         of slots) of the vector.
+       - If PSEUDOVECTOR_FLAG is 1, the rest is subdivided into
+         a "pvec type" tag held in PVEC_TYPE_MASK and a size held in the lowest
+         PSEUDOVECTOR_SIZE_BITS.  That size normally indicates the number of
+         Lisp_Object slots at the beginning of the object that need to be
+         traced by the GC, tho some types use it slightly differently.
+       - E.g. if the pvec type is PVEC_FREE it means this is an unallocated
+         vector on a free-list and PSEUDOVECTOR_SIZE_BITS indicates its size
+         in bytes.  */
     ptrdiff_t size;
 
     /* When the vector is allocated from a vector block, NBYTES is used
@@ -759,8 +775,17 @@ struct vectorlike_header
        pointer: this way, one can write P->next.vector instead of ((struct
        Lisp_Vector *) P->next).  */
     union {
+      /* This is only needed for small vectors that are not free because the
+	 `size' field only gives us the number of Lisp_Object slots, whereas we
+	 need to know the total size, including non-Lisp_Object data.
+	 FIXME: figure out a way to store this info elsewhere so we can
+	 finally get rid of this extra word of overhead.  */
       ptrdiff_t nbytes;
       struct buffer *buffer;
+      /* FIXME: This can be removed: For large vectors, this field could be
+	 placed *before* the vector itself.  And for small vectors on a free
+	 list, this field could be stored in the vector's bytes, since the
+	 empty vector is handled specially anyway.  */
       struct Lisp_Vector *vector;
     } next;
   };
@@ -775,7 +800,7 @@ struct Lisp_Vector
    of the shortest vector that would hold that struct.  */
 #define VECSIZE(type) ((sizeof (type)					  \
 			- offsetof (struct Lisp_Vector, contents[0])      \
-                        + sizeof (Lisp_Object) - 1) /* round up */	  \
+                        + sizeof (Lisp_Object) - 1) /* Round up.  */	  \
 		       / sizeof (Lisp_Object))
 
 /* Like VECSIZE, but used when the pseudo-vector has non-Lisp_Object fields
@@ -1617,15 +1642,17 @@ typedef struct {
 /* True if object X is a pseudovector whose code is CODE.  The cast to struct
    vectorlike_header * avoids aliasing issues.  */
 #define PSEUDOVECTORP(x, code)					\
-  TYPED_PSEUDOVECTORP(x, vectorlike_header, code)
+  TYPED_PSEUDOVECTORP (x, vectorlike_header, code)
+
+#define PSEUDOVECTOR_TYPEP(v, code)					\
+  (((v)->size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))			\
+   == (PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_SIZE_BITS)))
 
 /* True if object X, with internal type struct T *, is a pseudovector whose
    code is CODE.  */
 #define TYPED_PSEUDOVECTORP(x, t, code)				\
   (VECTORLIKEP (x)						\
-   && (((((struct t *) XUNTAG (x, Lisp_Vectorlike))->size	\
-	 & (PSEUDOVECTOR_FLAG | (code))))			\
-       == (PSEUDOVECTOR_FLAG | (code))))
+   && PSEUDOVECTOR_TYPEP ((struct t *) XUNTAG (x, Lisp_Vectorlike), code))
 
 /* Test for specific pseudovector types.  */
 #define WINDOW_CONFIGURATIONP(x) PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
@@ -1818,7 +1845,8 @@ typedef struct {
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
    static DECL_ALIGN (struct Lisp_Subr, sname) =			\
-     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
+   { (PVEC_SUBR << PSEUDOVECTOR_SIZE_BITS)				\
+     | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),		\
       { (Lisp_Object (__cdecl *)(void))fnname },                        \
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
@@ -1826,7 +1854,7 @@ typedef struct {
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
    static DECL_ALIGN (struct Lisp_Subr, sname) =			\
-     { PVEC_SUBR,							\
+     { PVEC_SUBR << PSEUDOVECTOR_SIZE_BITS,				\
       { .a ## maxargs = fnname },					\
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname

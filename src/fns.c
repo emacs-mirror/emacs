@@ -2095,8 +2095,9 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	   are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & (PVEC_COMPILED
-			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE | PVEC_FONT)))
+	    if (!(size & ((PVEC_COMPILED | PVEC_CHAR_TABLE
+			   | PVEC_SUB_CHAR_TABLE | PVEC_FONT)
+			  << PSEUDOVECTOR_SIZE_BITS)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }

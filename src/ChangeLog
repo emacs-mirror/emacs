@@ -1,3 +1,24 @@
+2012-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Turn VECTOR_FREE_LIST_FLAG into PVEC_FREE.
+	* lisp.h (enum pvec_type): Use fewer bits.
+	(PSEUDOVECTOR_SIZE_BITS): New constant.
+	(PSEUDOVECTOR_SIZE_MASK, PVEC_TYPE_MASK): Use it.
+	(XSETPVECTYPESIZE, XSETTYPED_PSEUDOVECTOR, DEFUN): Adapt code to
+	change in pvec_type.
+	(PSEUDOVECTOR_TYPEP): New macro.
+	(TYPED_PSEUDOVECTORP): Use it.
+	* fns.c (internal_equal): Adapt code to extract pvectype.
+	* emacs.c (gdb_pvec_type): Update type.
+	* alloc.c (PSEUDOVECTOR_NBYTES): New macro.
+	(VECTOR_FREE_LIST_SIZE_MASK): Remove (=> PSEUDOVECTOR_SIZE_MASK).
+	(VECTOR_FREE_LIST_FLAG): Remove (=> PVEC_FREE).
+	(SETUP_ON_FREE_LIST): Use XSETPVECTYPESIZE.
+	(sweep_vectors): Use it.  Use local var `total_bytes' instead of
+	abusing vector->header.next.nbytes.
+	(live_vector_p): Use PVEC_TYPE.
+	(mark_object): Adapt code to extract pvectype.  Use switch.
+
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doprnt.c (doprnt): Don't assume string length fits in 'int'.
