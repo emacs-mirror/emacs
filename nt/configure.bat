@@ -145,7 +145,7 @@ echo.   --with-gcc              use GCC to compile Emacs
 echo.   --with-msvc             use MSVC to compile Emacs
 echo.   --no-debug              exclude debug info from executables
 echo.   --no-opt                disable optimization
-echo.   --enable-checking       enable checks and assertions
+echo.   --enable-checking       enable additional run-time checks
 echo.   --profile               enable profiling
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
@@ -769,7 +769,6 @@ if not "(%mf%)" == "()" >>config.settings echo MCPU_FLAG=%mf%
 if not "(%dbginfo%)" == "()" >>config.settings echo DEBUG_INFO=%dbginfo%
 if (%nodebug%) == (Y) >>config.settings echo NODEBUG=1
 if (%noopt%) == (Y) >>config.settings echo NOOPT=1
-if (%enablechecking%) == (Y) >>config.settings echo ENABLECHECKS=1
 if (%profile%) == (Y) >>config.settings echo PROFILE=1
 if (%nocygwin%) == (Y) >>config.settings echo NOCYGWIN=1
 if not "(%prefix%)" == "()" >>config.settings echo INSTALL_DIR=%prefix%
@@ -794,6 +793,7 @@ rem   processing of compiler options in w32.c:get_emacs_configuration_options
 if (%docflags%) == (Y) echo #define USER_CFLAGS " %escusercflags%" >>config.tmp
 if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %escuserldflags%" >>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
+if (%enablechecking%) == (Y) echo #define ENABLE_CHECKING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp
 if not "(%HAVE_LIBXML2%)" == "()" echo #define HAVE_LIBXML2 1 >>config.tmp

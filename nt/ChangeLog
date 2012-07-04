@@ -1,3 +1,16 @@
+2012-07-04  Juanma Barranquero	<lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (enablechecking): Enable checks through src/config.h,
+	not the compiler's command line.
+
+	* nmake.defs (CHECKING_CFLAGS): Remove.
+	(CFLAGS, ESC_CFLAGS): Do not include $(CHECKING_CFLAGS).
+
+	* gmake.defs (DEBUG_CFLAGS): Add -fno-crossjumping.
+	(CHECKING_CFLAGS): Remove.
+	(CFLAGS, ESC_CFLAGS): Do not include $(CHECKING_CFLAGS).
+
 2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt (LISP_FLOAT_TYPE, HAVE_XFREE386, USE_TEXT_PROPERTIES)
