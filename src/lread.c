@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <limits.h>	/* For CHAR_BIT.  */
 #include <setjmp.h>
+#include <stat-time.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "character.h"
@@ -1214,7 +1215,8 @@ Return t if the file exists and loads successfully.  */)
 	      SSET (efound, SBYTES (efound) - 1, 'c');
 	    }
 
-	  if (result == 0 && s1.st_mtime < s2.st_mtime)
+	  if (result == 0
+	      && EMACS_TIME_LT (get_stat_mtime (&s1), get_stat_mtime (&s2)))
 	    {
 	      /* Make the progress messages mention that source is newer.  */
 	      newer = 1;

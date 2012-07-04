@@ -3079,8 +3079,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   (Lisp_Object file1, Lisp_Object file2)
 {
   Lisp_Object absname1, absname2;
-  struct stat st;
-  int mtime1;
+  struct stat st1, st2;
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
 
@@ -3106,15 +3105,14 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   absname2 = ENCODE_FILE (absname2);
   UNGCPRO;
 
-  if (stat (SSDATA (absname1), &st) < 0)
+  if (stat (SSDATA (absname1), &st1) < 0)
     return Qnil;
 
-  mtime1 = st.st_mtime;
-
-  if (stat (SSDATA (absname2), &st) < 0)
+  if (stat (SSDATA (absname2), &st2) < 0)
     return Qt;
 
-  return (mtime1 > st.st_mtime) ? Qt : Qnil;
+  return (EMACS_TIME_GT (get_stat_mtime (&st1), get_stat_mtime (&st2))
+	  ? Qt : Qnil);
 }
 
 #ifndef READ_BUF_SIZE

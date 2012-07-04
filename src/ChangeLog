@@ -1,4 +1,15 @@
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bugs in file timestamp newness comparisons.
+	* fileio.c (Ffile_newer_than_file_p):
+	* lread.c (Fload): Use full timestamp resolution of files,
+	not just the 1-second resolution, so that files that are only
+	slightly newer still count as newer.
+	* fileio.c (Ffile_newer_than_file_p): Don't assume file
+	timestamps fit in 'int'; this fixes a Y2038 bug on most hosts.
+
 2012-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
 
 	* fileio.c: Improve handling of file time marker.  (Bug#11852)
 	(special_mtime): New function.
