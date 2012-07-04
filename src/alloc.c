@@ -3060,7 +3060,7 @@ allocate_vector_from_block (size_t nbytes)
 #define PSEUDOVECTOR_NBYTES(vector) \
   (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FREE)	\
    ? vector->header.size & PSEUDOVECTOR_SIZE_MASK	\
-   : vector->header.next.nbytes);
+   : vector->header.next.nbytes)
 
 /* Reclaim space used by unmarked vectors.  */
 

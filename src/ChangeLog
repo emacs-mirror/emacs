@@ -1,3 +1,8 @@
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (PSEUDOVECTOR_NBYTES): Remove stray ';'
+	that causes compilation to fail on pre-C99 compilers.
+
 2012-07-04  Juanma Barranquero	<lekktu@gmail.com>
 
 	* s/ms-w32.h (LISP_FLOAT_TYPE, HAVE_MEMCMP, HAVE_MEMCPY)
