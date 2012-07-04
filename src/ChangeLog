@@ -1,3 +1,7 @@
+2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (Fgenerate_new_buffer_name): Fix type mismatch.
+
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* regex.c: Suppress GCC warning on RHEL 6.  (Bug#11207)

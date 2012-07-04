@@ -859,7 +859,7 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
   if (!strncmp (SSDATA (name), " ", 1)) /* see bug#1229 */
     {
       /* Note fileio.c:make_temp_name does random differently.  */
-      sprintf (number, "-%"pD"d", Frandom (make_number (999999)));
+      sprintf (number, "-%"pD"d", XFASTINT (Frandom (make_number (999999))));
       tem2 = concat2 (name, build_string (number));
       tem = Fget_buffer (tem2);
       if (NILP (tem))
