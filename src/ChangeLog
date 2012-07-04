@@ -1,5 +1,10 @@
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c (gdb_pvec_type): Change it back to enum pvec_type.
+	This variable's comment says Emacs needs at least one GDB-visible
+	symbol of type enum pvec_type, to work around GDB problems.
+	The symbol's value doesn't matter.
+
 	* alloc.c (PSEUDOVECTOR_NBYTES): Remove stray ';'
 	that causes compilation to fail on pre-C99 compilers.
 
