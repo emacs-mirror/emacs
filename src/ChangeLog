@@ -1,5 +1,9 @@
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c (time_error_value): Rename from special_mtime.
+	The old name's problems were noted by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00087.html>.
+
 	* emacs.c (gdb_pvec_type): Change it back to enum pvec_type.
 	This variable's comment says Emacs needs at least one GDB-visible
 	symbol of type enum pvec_type, to work around GDB problems.

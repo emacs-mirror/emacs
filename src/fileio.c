@@ -3213,9 +3213,9 @@ emacs_lseek (int fd, EMACS_INT offset, int whence)
   return lseek (fd, offset, whence);
 }
 
-/* Return a special mtime value indicating the error number ERRNUM.  */
+/* Return a special time value indicating the error number ERRNUM.  */
 static EMACS_TIME
-special_mtime (int errnum)
+time_error_value (int errnum)
 {
   EMACS_TIME t;
   int ns = (errno == ENOENT || errno == EACCES || errno == ENOTDIR
@@ -3336,7 +3336,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       save_errno = errno;
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
-      mtime = special_mtime (save_errno);
+      mtime = time_error_value (save_errno);
       st.st_size = -1;
       how_much = 0;
       if (!NILP (Vcoding_system_for_read))
@@ -5106,7 +5106,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
 
   mtime = (stat (SSDATA (filename), &st) == 0
 	   ? get_stat_mtime (&st)
-	   : special_mtime (errno));
+	   : time_error_value (errno));
   if ((EMACS_TIME_EQ (mtime, b->modtime)
        /* If both exist, accept them if they are off by one second.  */
        || (EMACS_TIME_VALID_P (mtime) && EMACS_TIME_VALID_P (b->modtime)
