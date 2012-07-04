@@ -1,3 +1,9 @@
+2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (init_buffer_once):  Fix initialization of
+	headers for buffer_defaults and buffer_local_symbols.
+	Reported by Juanma Barranquero <lekktu@gmail.com>.
+
 2012-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Turn VECTOR_FREE_LIST_FLAG into PVEC_FREE.

@@ -4870,6 +4870,12 @@ void
 init_buffer_once (void)
 {
   int idx;
+  /* If you add, remove, or reorder Lisp_Objects in a struct buffer, make
+     sure that this is still correct.  Otherwise, mark_vectorlike may not
+     trace all Lisp_Objects in buffer_defaults and buffer_local_symbols.  */
+  const int pvecsize 
+    = (offsetof (struct buffer, own_text) - sizeof (struct vectorlike_header))
+    / sizeof (Lisp_Object);
 
   memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
@@ -4886,9 +4892,9 @@ init_buffer_once (void)
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
-  XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, 0);
+  XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
-  XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, 0);
+  XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);
   XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
