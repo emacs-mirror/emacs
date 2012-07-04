@@ -294,9 +294,6 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
   "Syntax table used by `xml-parse-region'.")
 
 ;; XML [5]
-;; Note that [:alpha:] matches all multibyte chars with word syntax.
-(eval-and-compile
-  (defconst xml-name-regexp "[[:alpha:]_:][[:alnum:]._:-]*"))
 
 ;; Fixme:  This needs re-writing to deal with the XML grammar properly, i.e.
 ;;   document    ::=    prolog element Misc*
@@ -588,7 +585,7 @@ Leave point at the first non-blank character after the tag."
 	end-pos name)
     (skip-syntax-forward " ")
     (while (looking-at (eval-when-compile
-			 (concat "\\(" xml-name-regexp "\\)\\s-*=\\s-*")))
+			 (concat "\\(" xml-name-re "\\)\\s-*=\\s-*")))
       (setq end-pos (match-end 0))
       (setq name (xml-maybe-do-ns (match-string-no-properties 1) nil xml-ns))
       (goto-char end-pos)
@@ -643,7 +640,7 @@ This follows the rule [28] in the XML specifications."
       (error "XML: (Validity) Invalid DTD (expecting name of the document)"))
 
   ;;  Get the name of the document
-  (looking-at xml-name-regexp)
+  (looking-at xml-name-re)
   (let ((dtd (list (match-string-no-properties 0) 'dtd))
 	(xml-parameter-entity-alist xml-parameter-entity-alist)
 	(parameter-entity-re (eval-when-compile

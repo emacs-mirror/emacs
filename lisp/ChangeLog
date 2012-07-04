@@ -1,3 +1,7 @@
+2012-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xml.el (xml-name-regexp): Remove, redundant.  Use xml-name-re.
+
 2012-07-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* vc/ediff-diff.el (ediff-same-file-contents): Fix it for remote
@@ -26,10 +30,10 @@
 	them to expand into markup as per XML spec.
 	(xml-default-ns): New variable.
 	(xml-entity-alist): Use XML spec definitions for lt and amp.
-	(xml-parse-region): Make first two arguments optional.  Discard
-	text properties.
-	(xml-parse-tag-1): New function, spun off from xml-parse-tag.  All
-	callers changed.
+	(xml-parse-region): Make first two arguments optional.
+	Discard text properties.
+	(xml-parse-tag-1): New function, spun off from xml-parse-tag.
+	All callers changed.
 	(xml-parse-tag): Call xml-parse-tag-1.  For backward
 	compatibility, this function should not modify buffer contents.
 	(xml-parse-tag-1): Fix opening-tag regexp.
