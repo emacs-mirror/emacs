@@ -1,5 +1,16 @@
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Avoid weird behavior with large horizontal scrolls.
+	Without this change, for example, large hscroll values would
+	mess up Emacs's display on Fedora 15 x86, presumably due to
+	overflows in int calculations in the display code.
+	Also, if buffers had long lines, Emacs would freeze.
+	* window.c (HSCROLL_MAX): Reduce to 100000, and make it visible to GDB.
+	(set_window_hscroll): New function, containing the old guts of
+	Fset_window_hscroll.  Return the clipped value.
+	(Fset_window_hscroll, Fscroll_left, Fscroll_right): Use it.
+	This avoids the need to check against PTRDIFF_MAX.
+
 	* buffer.c (Fgenerate_new_buffer_name): Fix sprintf format mismatch.
 
 2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
