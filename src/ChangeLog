@@ -1,3 +1,20 @@
+2012-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (gtk_scrollbar_new, gtk_box_new): Define when HAVE_GTK3 is
+	not defined (Bug#11768).
+	(xg_create_frame_widgets): Use gtk_plug_new_for_display (Bug#11768).
+	(xg_create_frame_widgets, create_dialog, xg_get_file_with_chooser)
+	(make_widget_for_menu_item, xg_make_tool_item): Use gtk_box_new
+	followed by gtk_box_set_homogeneous (Bug#11768).
+	(xg_update_menu_item): Use GTK_IS_BOX (Bug#11768).
+	(update_theme_scrollbar_width, xg_create_scroll_bar): Use
+	gtk_scrollbar_new (Bug#11768).
+	(xg_event_is_for_scrollbar): Use Gdk Device functions for HAVE_GTK3.
+	(is_box_type): New function (Bug#11768).
+	(xg_tool_item_stale_p): Call is_box_type.
+	(xg_initialize): Get settings by calling gtk_settings_get_for_screen
+	with default display (Bug#11768).
+
 2012-07-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (window_hscroll_limited): New function.
