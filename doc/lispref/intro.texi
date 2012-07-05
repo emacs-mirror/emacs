@@ -235,7 +235,7 @@ evaluation of the expanded form.
      @result{} c
 @end example
 
-  Sometimes to help describe one form we show another form that
+  Sometimes to help describe one form, we show another form that
 produces identical results.  The exact equivalence of two forms is
 indicated with @samp{@equiv{}}.
 
@@ -350,8 +350,8 @@ arguments default to @code{nil}).  Do not write @code{&optional} when
 you call the function.
 
   The keyword @code{&rest} (which must be followed by a single
-argument name) indicates that any number of arguments can follow.  The
-single argument name following @code{&rest} will receive, as its
+argument name) indicates that any number of arguments may follow.  The
+single argument name following @code{&rest} receives, as its
 value, a list of all the remaining arguments passed to the function.
 Do not write @code{&rest} when you call the function.
 
@@ -380,17 +380,18 @@ More generally,
 @end defun
 
   Any argument whose name contains the name of a type (e.g.,
-@var{integer}, @var{integer1} or @var{buffer}) is expected to be of that
-type.  A plural of a type (such as @var{buffers}) often means a list of
-objects of that type.  Arguments named @var{object} may be of any type.
-(@xref{Lisp Data Types}, for a list of Emacs object types.)  Arguments
-with other sorts of names (e.g., @var{new-file}) are discussed
+@var{integer}, @var{integer1} or @var{buffer}) is expected to be bound
+to an object of that type.  A plural of a type (such as @var{buffers})
+often means a list of objects of that type.  An argument named with the
+type @var{object} may be bound to an object of any type.
+(@xref{Lisp Data Types} for a list of Emacs object types.)  An argument
+with some other sort of name (e.g., @var{new-file}) is discussed
 specifically in the description of the function.  In some sections,
 features common to the arguments of several functions are described at
 the beginning.
 
-  @xref{Lambda Expressions}, for a more complete description of optional
-and rest arguments.
+  @xref{Lambda Expressions} for a more complete description of arguments
+modified by @code{&optional} and @code{&rest}.
 
   Command, macro, and special form descriptions have the same format,
 but the word `Function' is replaced by `Command', `Macro', or `Special
@@ -445,11 +446,14 @@ from @var{body}, which includes all remaining elements of the form.
 @cindex variable descriptions
 @cindex option descriptions
 
-  A @dfn{variable} is a name that can hold a value.  Although nearly
-all variables can be set by the user, certain variables exist
-specifically so that users can change them; these are called @dfn{user
-options}.  Ordinary variables and user options are described using a
-format like that for functions except that there are no arguments.
+  A @dfn{variable} is a name that can be bound to an object; binding
+is frequently referred to as `setting', and the object to which
+a variable is `set' is often called a `value' that the variable
+`holds'.  Although nearly all variables can be set by the user,
+certain variables exist specifically so that users can change them;
+these are called @dfn{user options}.  Ordinary variables and user
+options are described using a format like that for functions, except
+that there are no arguments.
 
   Here is a description of the imaginary @code{electric-future-map}
 variable.@refill
@@ -504,7 +508,7 @@ emacs-build-time
 The value of this variable is the version of Emacs being run.  It is a
 string such as @code{"23.1.1"}.  The last number in this string is not
 really part of the Emacs release version number; it is incremented
-each time you build Emacs in any given directory.  A value with four
+each time Emacs is built in any given directory.  A value with four
 numeric components, such as @code{"22.0.91.1"}, indicates an
 unreleased test version.
 @end defvar

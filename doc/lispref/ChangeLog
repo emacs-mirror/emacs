@@ -1,3 +1,8 @@
+2012-07-05  Michael Witten  <mfwitten@gmail.com>  (tiny change)
+
+	* intro.texi (Evaluation Notation, A Sample Function Description)
+	(A Sample Variable Description, Version Info): Copy edits (bug#11862).
+
 2012-06-27  Chong Yidong  <cyd@gnu.org>
 
 	* processes.texi (Asynchronous Processes, Input to Processes):
