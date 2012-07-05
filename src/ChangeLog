@@ -1,3 +1,10 @@
+2012-07-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Fix horizontal pixel coordinates when
+	hscroll is larger than the line width.  Fixes long and futile
+	looping inside extend_face_to_end_of_line (on a TTY) producing
+	glyphs that are not needed and thrown away.
+
 2012-07-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* marker.c (set_marker_restricted_both): Simplify by using

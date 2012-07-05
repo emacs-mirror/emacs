@@ -19177,9 +19177,22 @@ display_line (struct it *it)
      if the first glyph is partially visible or if we hit a line end.  */
   if (it->current_x < it->first_visible_x)
     {
+      enum move_it_result move_result;
+
       this_line_min_pos = row->start.pos;
-      move_it_in_display_line_to (it, ZV, it->first_visible_x,
-				  MOVE_TO_POS | MOVE_TO_X);
+      move_result = move_it_in_display_line_to (it, ZV, it->first_visible_x,
+						MOVE_TO_POS | MOVE_TO_X);
+      /* If we are under a large hscroll, move_it_in_display_line_to
+	 could hit the end of the line without reaching
+	 it->first_visible_x.  Pretend that we did reach it.  This is
+	 especially important on a TTY, where we will call
+	 extend_face_to_end_of_line, which needs to know how many
+	 blank glyphs to produce.  */
+      if (it->current_x < it->first_visible_x
+	  && (move_result == MOVE_NEWLINE_OR_CR
+	      || move_result == MOVE_POS_MATCH_OR_ZV))
+	it->current_x = it->first_visible_x;
+
       /* Record the smallest positions seen while we moved over
 	 display elements that are not visible.  This is needed by
 	 redisplay_internal for optimizing the case where the cursor
