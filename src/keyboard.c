@@ -884,8 +884,7 @@ static struct kboard_stack *kboard_stack;
 void
 push_kboard (struct kboard *k)
 {
-  struct kboard_stack *p
-    = (struct kboard_stack *) xmalloc (sizeof (struct kboard_stack));
+  struct kboard_stack *p = xmalloc (sizeof (struct kboard_stack));
 
   p->next = kboard_stack;
   p->kboard = current_kboard;
@@ -8323,7 +8322,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       const char *capt = STRINGP (tcapt) ? SSDATA (tcapt) : "";
       ptrdiff_t max_lbl =
 	2 * max (0, min (tool_bar_max_label_size, STRING_BYTES_BOUND / 2));
-      char *buf = (char *) xmalloc (max_lbl + 1);
+      char *buf = xmalloc (max_lbl + 1);
       Lisp_Object new_lbl;
       ptrdiff_t caption_len = strlen (capt);
 
@@ -12188,7 +12187,7 @@ variable are `sigusr1' and `sigusr2'.  */);
   Vdebug_on_event = intern_c_string ("sigusr2");
 
   /* Create the initial keyboard.  */
-  initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  initial_kboard = xmalloc (sizeof (KBOARD));
   init_kboard (initial_kboard);
   /* Vwindow_system is left at t for now.  */
   initial_kboard->next_kboard = all_kboards;

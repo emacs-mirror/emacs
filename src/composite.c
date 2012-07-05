@@ -326,7 +326,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     memory_full (SIZE_MAX);
 
   /* Register the composition in composition_table.  */
-  cmp = (struct composition *) xmalloc (sizeof (struct composition));
+  cmp = xmalloc (sizeof (struct composition));
 
   cmp->method = method;
   cmp->hash_index = hash_index;

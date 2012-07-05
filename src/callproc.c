@@ -1172,7 +1172,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     /* MSDOS must have all environment variables malloc'ed, because
        low-level libc functions that launch subsidiary processes rely
        on that.  */
-    pwd_var = (char *) xmalloc (i + 6);
+    pwd_var = xmalloc (i + 6);
 #else
     pwd_var = (char *) alloca (i + 6);
 #endif

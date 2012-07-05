@@ -157,7 +157,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
        else								\
 	 {								\
 	   int new_size = 1000;						\
-	   print_buffer = (char *) xmalloc (new_size);			\
+	   print_buffer = xmalloc (new_size);				\
 	   print_buffer_size = new_size;				\
 	   free_print_buffer = 1;					\
 	 }								\

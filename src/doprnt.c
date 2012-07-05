@@ -257,7 +257,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    {
 	      if (big_buffer)
 		xfree (big_buffer);
-	      big_buffer = (char *) xmalloc (size_bound);
+	      big_buffer = xmalloc (size_bound);
 	      sprintf_buffer = big_buffer;
 	      size_allocated = size_bound;
 	    }

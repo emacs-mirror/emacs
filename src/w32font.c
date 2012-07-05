@@ -529,9 +529,7 @@ w32font_text_extents (struct font *font, unsigned *code,
 	  if (!w32_font->cached_metrics[block])
 	    {
 	      w32_font->cached_metrics[block]
-		= xmalloc (CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
-	      memset (w32_font->cached_metrics[block], 0,
-		      CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
+		= xzalloc (CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
 	    }
 
 	  char_metric = w32_font->cached_metrics[block] + pos_in_block;

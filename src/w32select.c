@@ -216,7 +216,7 @@ convert_to_handle_as_coded (Lisp_Object coding_system)
 
   setup_windows_coding_system (coding_system, &coding);
   coding.dst_bytes = SBYTES (current_text) * 2;
-  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
+  coding.destination = xmalloc (coding.dst_bytes);
   encode_coding_object (&coding, current_text, 0, 0,
 			SCHARS (current_text), SBYTES (current_text), Qnil);
 

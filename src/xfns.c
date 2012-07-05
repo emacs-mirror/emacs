@@ -2368,7 +2368,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   {
     char *str = SSDATA (Vx_resource_name);
-    f->namebuf = (char *) xmalloc (strlen (str) + 1);
+    f->namebuf = xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
 
@@ -3129,8 +3129,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;
-  f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
-  memset (f->output_data.x, 0, sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof (struct x_output));
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
@@ -4615,8 +4614,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
   f->output_method = output_x_window;
-  f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
-  memset (f->output_data.x, 0, sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof (struct x_output));
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;

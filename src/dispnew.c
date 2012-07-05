@@ -344,11 +344,7 @@ __executable_start (void)
 static struct glyph_matrix *
 new_glyph_matrix (struct glyph_pool *pool)
 {
-  struct glyph_matrix *result;
-
-  /* Allocate and clear.  */
-  result = (struct glyph_matrix *) xmalloc (sizeof *result);
-  memset (result, 0, sizeof *result);
+  struct glyph_matrix *result = xzalloc (sizeof *result);
 
   /* Increment number of allocated matrices.  This count is used
      to detect memory leaks.  */
@@ -1367,11 +1363,7 @@ row_equal_p (struct glyph_row *a, struct glyph_row *b, int mouse_face_p)
 static struct glyph_pool *
 new_glyph_pool (void)
 {
-  struct glyph_pool *result;
-
-  /* Allocate a new glyph_pool and clear it.  */
-  result = (struct glyph_pool *) xmalloc (sizeof *result);
-  memset (result, 0, sizeof *result);
+  struct glyph_pool *result = xzalloc (sizeof *result);
 
   /* For memory leak and double deletion checking.  */
   ++glyph_pool_count;
@@ -2033,19 +2025,16 @@ save_current_matrix (struct frame *f)
   int i;
   struct glyph_matrix *saved;
 
-  saved = (struct glyph_matrix *) xmalloc (sizeof *saved);
-  memset (saved, 0, sizeof *saved);
+  saved = xzalloc (sizeof *saved);
   saved->nrows = f->current_matrix->nrows;
-  saved->rows = (struct glyph_row *) xmalloc (saved->nrows
-					      * sizeof *saved->rows);
-  memset (saved->rows, 0, saved->nrows * sizeof *saved->rows);
+  saved->rows = xzalloc (saved->nrows * sizeof *saved->rows);
 
   for (i = 0; i < saved->nrows; ++i)
     {
       struct glyph_row *from = f->current_matrix->rows + i;
       struct glyph_row *to = saved->rows + i;
       ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
-      to->glyphs[TEXT_AREA] = (struct glyph *) xmalloc (nbytes);
+      to->glyphs[TEXT_AREA] = xmalloc (nbytes);
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
     }
@@ -2263,7 +2252,7 @@ adjust_frame_message_buffer (struct frame *f)
       FRAME_MESSAGE_BUF (f) = new_buffer;
     }
   else
-    FRAME_MESSAGE_BUF (f) = (char *) xmalloc (size);
+    FRAME_MESSAGE_BUF (f) = xmalloc (size);
 }
 
 

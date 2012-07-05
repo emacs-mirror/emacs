@@ -1476,7 +1476,7 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
       lpvalue = NULL;
 
       if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
-	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
+	  && (lpvalue = xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
           RegCloseKey (hrootkey);
@@ -1493,7 +1493,7 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
       lpvalue = NULL;
 
       if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
-	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
+	  && (lpvalue = xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
           RegCloseKey (hrootkey);
@@ -2169,7 +2169,7 @@ GetCachedVolumeInformation (char * root_dir)
 	 entry if present.  */
       if (info == NULL)
 	{
-	  info = (volume_info_data *) xmalloc (sizeof (volume_info_data));
+	  info = xmalloc (sizeof (volume_info_data));
 	  add_volume_info (root_dir, info);
 	}
       else

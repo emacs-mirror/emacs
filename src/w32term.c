@@ -285,8 +285,7 @@ XChangeGC (void *ignore, XGCValues *gc, unsigned long mask,
 XGCValues *
 XCreateGC (void *ignore, Window window, unsigned long mask, XGCValues *xgcv)
 {
-  XGCValues *gc = (XGCValues *) xmalloc (sizeof (XGCValues));
-  memset (gc, 0, sizeof (XGCValues));
+  XGCValues *gc = xzalloc (sizeof (XGCValues));
 
   XChangeGC (ignore, gc, mask, xgcv);
 
@@ -6060,10 +6059,8 @@ w32_initialize_display_info (Lisp_Object display_name)
                                  w32_display_name_list);
   dpyinfo->name_list_element = XCAR (w32_display_name_list);
 
-  dpyinfo->w32_id_name
-    = (char *) xmalloc (SCHARS (Vinvocation_name)
-			+ SCHARS (Vsystem_name)
-			+ 2);
+  dpyinfo->w32_id_name = xmalloc (SCHARS (Vinvocation_name)
+				  + SCHARS (Vsystem_name) + 2);
   sprintf (dpyinfo->w32_id_name, "%s@%s",
 	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
 
@@ -6228,7 +6225,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   /* We don't yet support separate terminals on W32, so don't try to share
      keyboards between virtual terminals that are on the same physical
      terminal like X does.  */
-  terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  terminal->kboard = xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
   KVAR (terminal->kboard, Vwindow_system) = intern ("w32");
   terminal->kboard->next_kboard = all_kboards;
@@ -6280,7 +6277,7 @@ w32_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   terminal = w32_create_terminal (dpyinfo);
 
   /* Set the name of the terminal. */
-  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  terminal->name = xmalloc (SBYTES (display_name) + 1);
   strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 

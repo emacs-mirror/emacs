@@ -851,7 +851,7 @@ init_sys_modes (struct tty_display_info *tty_out)
     return;                     /* The tty is suspended. */
 
   if (! tty_out->old_tty)
-    tty_out->old_tty = (struct emacs_tty *) xmalloc (sizeof (struct emacs_tty));
+    tty_out->old_tty = xmalloc (sizeof (struct emacs_tty));
 
   emacs_get_tty (fileno (tty_out->input), tty_out->old_tty);
 

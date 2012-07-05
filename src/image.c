@@ -319,7 +319,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
-  dpyinfo->bitmaps[id - 1].file = (char *) xmalloc (SBYTES (file) + 1);
+  dpyinfo->bitmaps[id - 1].file = xmalloc (SBYTES (file) + 1);
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = ns_image_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = ns_image_height (bitmap);
@@ -365,7 +365,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
   dpyinfo->bitmaps[id - 1].have_mask = 0;
   dpyinfo->bitmaps[id - 1].refcount = 1;
-  dpyinfo->bitmaps[id - 1].file = (char *) xmalloc (SBYTES (file) + 1);
+  dpyinfo->bitmaps[id - 1].file = xmalloc (SBYTES (file) + 1);
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = height;
   dpyinfo->bitmaps[id - 1].width = width;
@@ -599,7 +599,7 @@ define_image_type (struct image_type *type, int loaded)
     {
       /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
          The initialized data segment is read-only.  */
-      struct image_type *p = (struct image_type *) xmalloc (sizeof *p);
+      struct image_type *p = xmalloc (sizeof *p);
       memcpy (p, type, sizeof *p);
       p->next = image_types;
       image_types = p;
@@ -982,11 +982,10 @@ static void free_image (struct frame *f, struct image *img);
 static struct image *
 make_image (Lisp_Object spec, EMACS_UINT hash)
 {
-  struct image *img = (struct image *) xmalloc (sizeof *img);
+  struct image *img = xzalloc (sizeof *img);
   Lisp_Object file = image_spec_value (spec, QCfile, NULL);
 
   eassert (valid_image_p (spec));
-  memset (img, 0, sizeof *img);
   img->dependencies = NILP (file) ? Qnil : list1 (file);
   img->type = lookup_image_type (image_spec_value (spec, QCtype, NULL));
   eassert (img->type != NULL);
@@ -1385,16 +1384,14 @@ static void postprocess_image (struct frame *, struct image *);
 struct image_cache *
 make_image_cache (void)
 {
-  struct image_cache *c = (struct image_cache *) xmalloc (sizeof *c);
+  struct image_cache *c = xzalloc (sizeof *c);
   int size;
 
-  memset (c, 0, sizeof *c);
   size = 50;
-  c->images = (struct image **) xmalloc (size * sizeof *c->images);
+  c->images = xmalloc (size * sizeof *c->images);
   c->size = size;
   size = IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
-  c->buckets = (struct image **) xmalloc (size);
-  memset (c->buckets, 0, size);
+  c->buckets = xzalloc (size);
   return c;
 }
 
@@ -1969,7 +1966,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
     }
 
   /* Allocate image raster.  */
-  (*ximg)->data = (char *) xmalloc ((*ximg)->bytes_per_line * height);
+  (*ximg)->data = xmalloc ((*ximg)->bytes_per_line * height);
 
   /* Allocate a pixmap of the same size.  */
   *pixmap = XCreatePixmap (display, window, width, height, depth);
@@ -2183,7 +2180,7 @@ slurp_file (char *file, ptrdiff_t *size)
   if (stat (file, &st) == 0
       && (fp = fopen (file, "rb")) != NULL
       && 0 <= st.st_size && st.st_size <= min (PTRDIFF_MAX, SIZE_MAX)
-      && (buf = (unsigned char *) xmalloc (st.st_size),
+      && (buf = xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
       *size = st.st_size;
@@ -2705,7 +2702,7 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
     }
   bytes_per_line = (*width + 7) / 8 + padding_p;
   nbytes = bytes_per_line * *height;
-  p = *data = (char *) xmalloc (nbytes);
+  p = *data = xmalloc (nbytes);
 
   if (v10)
     {
@@ -3118,8 +3115,7 @@ static void
 xpm_init_color_cache (struct frame *f, XpmAttributes *attrs)
 {
   size_t nbytes = XPM_COLOR_CACHE_BUCKETS * sizeof *xpm_color_cache;
-  xpm_color_cache = (struct xpm_cached_color **) xmalloc (nbytes);
-  memset (xpm_color_cache, 0, nbytes);
+  xpm_color_cache = xzalloc (nbytes);
   init_color_table ();
 
   if (attrs->valuemask & XpmColorSymbols)
@@ -3183,7 +3179,7 @@ xpm_cache_color (struct frame *f, char *color_name, XColor *color, int bucket)
     bucket = xpm_color_bucket (color_name);
 
   nbytes = offsetof (struct xpm_cached_color, name) + strlen (color_name) + 1;
-  p = (struct xpm_cached_color *) xmalloc (nbytes);
+  p = xmalloc (nbytes);
   strcpy (p->name, color_name);
   p->color = *color;
   p->next = xpm_color_cache[bucket];
@@ -4154,8 +4150,7 @@ static void
 init_color_table (void)
 {
   int size = CT_SIZE * sizeof (*ct_table);
-  ct_table = (struct ct_color **) xmalloc (size);
-  memset (ct_table, 0, size);
+  ct_table = xzalloc (size);
   ct_colors_allocated = 0;
 }
 
@@ -4250,7 +4245,7 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
       if (rc)
 	{
 	  ++ct_colors_allocated;
-	  p = (struct ct_color *) xmalloc (sizeof *p);
+	  p = xmalloc (sizeof *p);
 	  p->r = r;
 	  p->g = g;
 	  p->b = b;
@@ -4268,7 +4263,7 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
       color = RGB_TO_ULONG (r, g, b);
 #endif /* HAVE_NTGUI */
       ++ct_colors_allocated;
-      p = (struct ct_color *) xmalloc (sizeof *p);
+      p = xmalloc (sizeof *p);
       p->r = r;
       p->g = g;
       p->b = b;
@@ -4323,7 +4318,7 @@ lookup_pixel_color (struct frame *f, unsigned long pixel)
 	{
 	  ++ct_colors_allocated;
 
-	  p = (struct ct_color *) xmalloc (sizeof *p);
+	  p = xmalloc (sizeof *p);
 	  p->r = color.red;
 	  p->g = color.green;
 	  p->b = color.blue;
@@ -4355,8 +4350,7 @@ colors_in_color_table (int *n)
     }
   else
     {
-      colors = (unsigned long *) xmalloc (ct_colors_allocated
-					  * sizeof *colors);
+      colors = xmalloc (ct_colors_allocated * sizeof *colors);
       *n = ct_colors_allocated;
 
       for (i = j = 0; i < CT_SIZE; ++i)
@@ -4445,7 +4439,7 @@ x_to_xcolors (struct frame *f, struct image *img, int rgb_p)
 
   if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *colors / img->width < img->height)
     memory_full (SIZE_MAX);
-  colors = (XColor *) xmalloc (sizeof *colors * img->width * img->height);
+  colors = xmalloc (sizeof *colors * img->width * img->height);
 
 #ifndef HAVE_NTGUI
   /* Get the X image IMG->pixmap.  */
@@ -4599,7 +4593,7 @@ x_detect_edges (struct frame *f, struct image *img, int *matrix, int color_adjus
 
   if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *new / img->width < img->height)
     memory_full (SIZE_MAX);
-  new = (XColor *) xmalloc (sizeof *new * img->width * img->height);
+  new = xmalloc (sizeof *new * img->width * img->height);
 
   for (y = 0; y < img->height; ++y)
     {
@@ -4852,8 +4846,7 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
 #else
   /* Create the bit array serving as mask.  */
   row_width = (img->width + 7) / 8;
-  mask_img = xmalloc (row_width * img->height);
-  memset (mask_img, 0, row_width * img->height);
+  mask_img = xzalloc (row_width * img->height);
 
   /* Create a memory device context for IMG->pixmap.  */
   frame_dc = get_frame_dc (f);
@@ -5069,7 +5062,7 @@ pbm_read_file (Lisp_Object file, int *size)
   if (stat (SDATA (file), &st) == 0
       && (fp = fopen (SDATA (file), "rb")) != NULL
       && 0 <= st.st_size && st.st_size <= min (PTRDIFF_MAX, SIZE_MAX)
-      && (buf = (char *) xmalloc (st.st_size),
+      && (buf = xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
       *size = st.st_size;
@@ -5840,8 +5833,8 @@ png_load (struct frame *f, struct image *img)
   if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *rows < height
       || min (PTRDIFF_MAX, SIZE_MAX) / sizeof *pixels / height < row_bytes)
     memory_full (SIZE_MAX);
-  pixels = (png_byte *) xmalloc (sizeof *pixels * row_bytes * height);
-  rows = (png_byte **) xmalloc (height * sizeof *rows);
+  pixels = xmalloc (sizeof *pixels * row_bytes * height);
+  rows = xmalloc (height * sizeof *rows);
   for (i = 0; i < height; ++i)
     rows[i] = pixels + i * row_bytes;
 
@@ -6890,7 +6883,7 @@ tiff_load (struct frame *f, struct image *img)
       return 0;
     }
 
-  buf = (uint32 *) xmalloc (sizeof *buf * width * height);
+  buf = xmalloc (sizeof *buf * width * height);
 
   rc = fn_TIFFReadRGBAImage (tiff, width, height, buf, 0);
 

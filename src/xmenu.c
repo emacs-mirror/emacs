@@ -961,7 +961,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
   else if (!f->output_data.x->saved_menu_event && !deep_p)
     {
       deep_p = 1;
-      f->output_data.x->saved_menu_event = (XEvent*)xmalloc (sizeof (XEvent));
+      f->output_data.x->saved_menu_event = xmalloc (sizeof (XEvent));
       f->output_data.x->saved_menu_event->type = 0;
     }
 

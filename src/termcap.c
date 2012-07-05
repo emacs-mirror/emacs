@@ -153,7 +153,7 @@ tgetst1 (char *ptr, char **area)
       p = ptr;
       while ((c = *p++) && c != ':' && c != '\n')
 	;
-      ret = (char *) xmalloc (p - ptr + 1);
+      ret = xmalloc (p - ptr + 1);
     }
   else
     ret = *area;
@@ -377,7 +377,7 @@ tgetent (char *bp, const char *name)
       if (!bp)
 	{
 	  malloc_size = 1 + strlen (term);
-	  bp = (char *) xmalloc (malloc_size);
+	  bp = xmalloc (malloc_size);
 	}
       strcpy (bp, term);
       goto ret;
@@ -440,13 +440,13 @@ tgetent (char *bp, const char *name)
 
   buf.size = BUFSIZE;
   /* Add 1 to size to ensure room for terminating null.  */
-  buf.beg = (char *) xmalloc (buf.size + 1);
+  buf.beg = xmalloc (buf.size + 1);
   term = indirect ? indirect : (char *)name;
 
   if (!bp)
     {
       malloc_size = indirect ? strlen (tcenv) + 1 : buf.size;
-      bp = (char *) xmalloc (malloc_size);
+      bp = xmalloc (malloc_size);
     }
   tc_search_point = bp1 = bp;
 

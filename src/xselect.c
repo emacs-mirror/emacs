@@ -180,16 +180,11 @@ x_queue_event (struct input_event *event)
 	}
     }
 
-  queue_tmp
-    = (struct selection_event_queue *) xmalloc (sizeof (struct selection_event_queue));
-
-  if (queue_tmp != NULL)
-    {
-      TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
-      queue_tmp->event = *event;
-      queue_tmp->next = selection_queue;
-      selection_queue = queue_tmp;
-    }
+  queue_tmp = xmalloc (sizeof (struct selection_event_queue));
+  TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
+  queue_tmp->event = *event;
+  queue_tmp->next = selection_queue;
+  selection_queue = queue_tmp;
 }
 
 /* Start queuing SELECTION_REQUEST_EVENT events.  */
@@ -1085,7 +1080,7 @@ static struct prop_location *
 expect_property_change (Display *display, Window window,
                         Atom property, int state)
 {
-  struct prop_location *pl = (struct prop_location *) xmalloc (sizeof *pl);
+  struct prop_location *pl = xmalloc (sizeof *pl);
   pl->identifier = ++prop_location_identifier;
   pl->display = display;
   pl->window = window;
@@ -1446,7 +1441,7 @@ receive_incremental_selection (Display *display, Window window, Atom property,
   struct prop_location *wait_object;
   if (min (PTRDIFF_MAX, SIZE_MAX) < min_size_bytes)
     memory_full (SIZE_MAX);
-  *data_ret = (unsigned char *) xmalloc (min_size_bytes);
+  *data_ret = xmalloc (min_size_bytes);
   *size_bytes_ret = min_size_bytes;
 
   TRACE1 ("Read %u bytes incrementally", min_size_bytes);
@@ -1780,7 +1775,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
     }
   else if (SYMBOLP (obj))
     {
-      *data_ret = (unsigned char *) xmalloc (sizeof (Atom) + 1);
+      *data_ret = xmalloc (sizeof (Atom) + 1);
       *format_ret = 32;
       *size_ret = 1;
       (*data_ret) [sizeof (Atom)] = 0;
@@ -1789,7 +1784,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
     }
   else if (RANGED_INTEGERP (X_SHRT_MIN, obj, X_SHRT_MAX))
     {
-      *data_ret = (unsigned char *) xmalloc (sizeof (short) + 1);
+      *data_ret = xmalloc (sizeof (short) + 1);
       *format_ret = 16;
       *size_ret = 1;
       (*data_ret) [sizeof (short)] = 0;
@@ -1802,7 +1797,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 		   || (CONSP (XCDR (obj))
 		       && INTEGERP (XCAR (XCDR (obj)))))))
     {
-      *data_ret = (unsigned char *) xmalloc (sizeof (unsigned long) + 1);
+      *data_ret = xmalloc (sizeof (unsigned long) + 1);
       *format_ret = 32;
       *size_ret = 1;
       (*data_ret) [sizeof (unsigned long)] = 0;

@@ -138,7 +138,7 @@ void
 init_eval_once (void)
 {
   enum { size = 50 };
-  specpdl = (struct specbinding *) xmalloc (size * sizeof (struct specbinding));
+  specpdl = xmalloc (size * sizeof (struct specbinding));
   specpdl_size = size;
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */

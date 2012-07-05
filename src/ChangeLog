@@ -1,3 +1,59 @@
+2012-07-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup xmalloc.
+	* lisp.h (xzalloc): New prototype.  Omit needless casts.
+	* alloc.c (xzalloc): New function.  Omit needless casts.
+	* charset.c: Omit needless casts.  Convert all calls to
+	xmalloc with following memset to xzalloc.
+	* dispnew.c: Likewise.
+	* fringe.c: Likewise.
+	* image.c: Likewise.
+	* sound.c: Likewise.
+	* term.c: Likewise.
+	* w32fns.c: Likewise.
+	* w32font.c: Likewise.
+	* w32term.c: Likewise.
+	* xfaces.c: Likewise.
+	* xfns.c: Likewise.
+	* xterm.c: Likewise.
+	* atimer.c: Omit needless casts.
+	* buffer.c: Likewise.
+	* callproc.c: Likewise.
+	* ccl.c: Likewise.
+	* coding.c: Likewise.
+	* composite.c: Likewise.
+	* doc.c: Likewise.
+	* doprnt.c: Likewise.
+	* editfns.c: Likewise.
+	* emacs.c: Likewise.
+	* eval.c: Likewise.
+	* filelock.c: Likewise.
+	* fns.c: Likewise.
+	* gtkutil.c: Likewise.
+	* keyboard.c: Likewise.
+	* lisp.h: Likewise.
+	* lread.c: Likewise.
+	* minibuf.c: Likewise.
+	* msdos.c: Likewise.
+	* print.c: Likewise.
+	* process.c: Likewise.
+	* region-cache.c: Likewise.
+	* search.c: Likewise.
+	* sysdep.c: Likewise.
+	* termcap.c: Likewise.
+	* terminal.c: Likewise.
+	* tparam.c: Likewise.
+	* w16select.c: Likewise.
+	* w32.c: Likewise.
+	* w32reg.c: Likewise.
+	* w32select.c: Likewise.
+	* w32uniscribe.c: Likewise.
+	* widget.c: Likewise.
+	* xdisp.c: Likewise.
+	* xmenu.c: Likewise.
+	* xrdb.c: Likewise.
+	* xselect.c: Likewise.
+
 2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (time_error_value): Check the right error number.

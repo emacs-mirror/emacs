@@ -3893,7 +3893,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
   len = 10;
   /* We can't use alloca here because overlays_at can call xrealloc.  */
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3924,7 +3924,7 @@ end of the buffer.  */)
   CHECK_NUMBER_COERCE_MARKER (end);
 
   len = 10;
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3952,7 +3952,7 @@ the value is (point-max).  */)
   CHECK_NUMBER_COERCE_MARKER (pos);
 
   len = 10;
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
@@ -3996,7 +3996,7 @@ the value is (point-min).  */)
     return pos;
 
   len = 10;
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.

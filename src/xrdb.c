@@ -87,7 +87,7 @@ x_get_customization_string (XrmDatabase db, const char *name,
 
   if (result)
     {
-      char *copy = (char *) xmalloc (strlen (result) + 1);
+      char *copy = xmalloc (strlen (result) + 1);
       strcpy (copy, result);
       return copy;
     }
@@ -132,7 +132,7 @@ magic_file_p (const char *string, ptrdiff_t string_len, const char *class,
   char *lang = getenv ("LANG");
 
   ptrdiff_t path_size = 100;
-  char *path = (char *) xmalloc (path_size);
+  char *path = xmalloc (path_size);
   ptrdiff_t path_len = 0;
 
   const char *p = string;
@@ -258,7 +258,7 @@ gethomedir (void)
   if (ptr == NULL)
     return xstrdup ("/");
 
-  copy = (char *) xmalloc (strlen (ptr) + 2);
+  copy = xmalloc (strlen (ptr) + 2);
   strcpy (copy, ptr);
   strcat (copy, "/");
 
@@ -400,7 +400,7 @@ get_user_db (Display *display)
       char *xdefault;
 
       home = gethomedir ();
-      xdefault = (char *) xmalloc (strlen (home) + sizeof (".Xdefaults"));
+      xdefault = xmalloc (strlen (home) + sizeof (".Xdefaults"));
       strcpy (xdefault, home);
       strcat (xdefault, ".Xdefaults");
       db = XrmGetFileDatabase (xdefault);

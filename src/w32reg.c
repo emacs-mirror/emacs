@@ -110,7 +110,7 @@ w32_get_string_resource (char *name, char *class, DWORD dwexptype)
 	}
 
       ok = (keyname
-	    && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
+	    && (lpvalue = xmalloc (cbData)) != NULL
 	    && RegQueryValueEx (hrootkey, keyname, NULL, NULL, lpvalue, &cbData) == ERROR_SUCCESS);
 
       RegCloseKey (hrootkey);

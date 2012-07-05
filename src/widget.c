@@ -435,7 +435,7 @@ set_frame_size (EmacsFrame ew)
 		 flags & XNegative ? '-' : '+', x < 0 ? -x : x,
 		 flags & YNegative ? '-' : '+', y < 0 ? -y : y);
 	len = strlen (shell_position) + 1;
-	tem = (char *) xmalloc (len);
+	tem = xmalloc (len);
 	strncpy (tem, shell_position, len);
 	XtVaSetValues (wmshell, XtNgeometry, tem, NULL);
       }
@@ -445,7 +445,7 @@ set_frame_size (EmacsFrame ew)
 	char *tem;
 	sprintf (shell_position, "=%dx%d", pixel_width, pixel_height);
 	len = strlen (shell_position) + 1;
-	tem = (char *) xmalloc (len);
+	tem = xmalloc (len);
 	strncpy (tem, shell_position, len);
 	XtVaSetValues (wmshell, XtNgeometry, tem, NULL);
       }

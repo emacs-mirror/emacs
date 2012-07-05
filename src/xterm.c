@@ -5777,9 +5777,9 @@ static struct x_display_info *next_noop_dpyinfo;
      do									\
        {								\
 	 if (f->output_data.x->saved_menu_event == 0)			\
-           f->output_data.x->saved_menu_event				\
-	     = (XEvent *) xmalloc (sizeof (XEvent));			\
-         *f->output_data.x->saved_menu_event = event;                   \
+           f->output_data.x->saved_menu_event =				\
+	     xmalloc (sizeof (XEvent));					\
+         *f->output_data.x->saved_menu_event = event;			\
 	 inev.ie.kind = MENU_BAR_ACTIVATE_EVENT;			\
 	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
@@ -8190,11 +8190,11 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
       struct xim_inst_t *xim_inst;
       ptrdiff_t len;
 
-      xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
+      xim_inst = xmalloc (sizeof (struct xim_inst_t));
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       len = strlen (resource_name);
-      xim_inst->resource_name = (char *) xmalloc (len + 1);
+      xim_inst->resource_name = xmalloc (len + 1);
       memcpy (xim_inst->resource_name, resource_name, len + 1);
       XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				      resource_name, emacs_class,
@@ -10098,8 +10098,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   /* We have definitely succeeded.  Record the new connection.  */
 
-  dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
-  memset (dpyinfo, 0, sizeof *dpyinfo);
+  dpyinfo = xzalloc (sizeof (struct x_display_info));
   hlinfo = &dpyinfo->mouse_highlight;
 
   terminal = x_create_terminal (dpyinfo);
@@ -10117,7 +10116,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       terminal->kboard = share->terminal->kboard;
     else
       {
-	terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+	terminal->kboard = xmalloc (sizeof (KBOARD));
 	init_kboard (terminal->kboard);
 	KVAR (terminal->kboard, Vwindow_system) = Qx;
 
@@ -10171,7 +10170,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->display = dpy;
 
   /* Set the name of the terminal. */
-  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  terminal->name = xmalloc (SBYTES (display_name) + 1);
   memcpy (terminal->name, SSDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 
@@ -10182,10 +10181,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   lim = min (PTRDIFF_MAX, SIZE_MAX) - sizeof "@";
   if (lim - SBYTES (Vinvocation_name) < SBYTES (Vsystem_name))
     memory_full (SIZE_MAX);
-  dpyinfo->x_id_name
-    = (char *) xmalloc (SBYTES (Vinvocation_name)
-			+ SBYTES (Vsystem_name)
-			+ 2);
+  dpyinfo->x_id_name = xmalloc (SBYTES (Vinvocation_name)
+				+ SBYTES (Vsystem_name) + 2);
   strcat (strcat (strcpy (dpyinfo->x_id_name, SSDATA (Vinvocation_name)), "@"),
 	  SSDATA (Vsystem_name));
 

@@ -735,6 +735,22 @@ xmalloc (size_t size)
   return val;
 }
 
+/* Like the above, but zeroes out the memory just allocated.  */
+
+void *
+xzalloc (size_t size)
+{
+  void *val;
+
+  MALLOC_BLOCK_INPUT;
+  val = malloc (size);
+  MALLOC_UNBLOCK_INPUT;
+
+  if (!val && size)
+    memory_full (size);
+  memset (val, 0, size);
+  return val;
+}
 
 /* Like realloc but check for no memory and block interrupt input..  */
 
@@ -867,7 +883,7 @@ char *
 xstrdup (const char *s)
 {
   size_t len = strlen (s) + 1;
-  char *p = (char *) xmalloc (len);
+  char *p = xmalloc (len);
   memcpy (p, s, len);
   return p;
 }
@@ -3881,7 +3897,7 @@ mem_insert (void *start, void *end, enum mem_type type)
   if (x == NULL)
     abort ();
 #else
-  x = (struct mem_node *) xmalloc (sizeof *x);
+  x = xmalloc (sizeof *x);
 #endif
   x->start = start;
   x->end = end;
@@ -5047,7 +5063,7 @@ pure_alloc (size_t size, int type)
   /* Don't allocate a large amount here,
      because it might get mmap'd and then its address
      might not be usable.  */
-  purebeg = (char *) xmalloc (10000);
+  purebeg = xmalloc (10000);
   pure_size = 10000;
   pure_bytes_used_before_overflow += pure_bytes_used - size;
   pure_bytes_used = 0;

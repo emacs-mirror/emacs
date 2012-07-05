@@ -1820,7 +1820,7 @@ static const struct standard_args standard_args[] =
 static void
 sort_args (int argc, char **argv)
 {
-  char **new = (char **) xmalloc (sizeof (char *) * argc);
+  char **new = xmalloc (sizeof (char *) * argc);
   /* For each element of argv,
      the corresponding element of options is:
      0 for an option that takes no arguments,

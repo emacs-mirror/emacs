@@ -209,7 +209,7 @@ malloc_widget_value (void)
     }
   else
     {
-      wv = (widget_value *) xmalloc (sizeof (widget_value));
+      wv = xmalloc (sizeof (widget_value));
       malloc_cpt++;
     }
   memset (wv, 0, sizeof (widget_value));
@@ -2042,7 +2042,7 @@ make_cl_data (xg_menu_cb_data *cl_data, FRAME_PTR f, GCallback highlight_cb)
 {
   if (! cl_data)
     {
-      cl_data = (xg_menu_cb_data*) xmalloc (sizeof (*cl_data));
+      cl_data = xmalloc (sizeof (*cl_data));
       cl_data->f = f;
       cl_data->menu_bar_vector = f->menu_bar_vector;
       cl_data->menu_bar_items_used = f->menu_bar_items_used;

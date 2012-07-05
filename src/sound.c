@@ -1364,10 +1364,8 @@ Internal use only, use `play-sound' instead.  */)
 #ifndef WINDOWSNT
   file = Qnil;
   GCPRO2 (sound, file);
-  current_sound_device = (struct sound_device *) xmalloc (sizeof (struct sound_device));
-  memset (current_sound_device, 0, sizeof (struct sound_device));
-  current_sound = (struct sound *) xmalloc (sizeof (struct sound));
-  memset (current_sound, 0, sizeof (struct sound));
+  current_sound_device = xzalloc (sizeof (struct sound_device));
+  current_sound = xzalloc (sizeof (struct sound));
   record_unwind_protect (sound_cleanup, Qnil);
   current_sound->header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
 

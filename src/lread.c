@@ -2625,7 +2625,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	      if (saved_doc_string_size == 0)
 		{
-		  saved_doc_string = (char *) xmalloc (nskip + extra);
+		  saved_doc_string = xmalloc (nskip + extra);
 		  saved_doc_string_size = nskip + extra;
 		}
 	      if (nskip > saved_doc_string_size)
@@ -3966,7 +3966,7 @@ init_obarray (void)
 
   DEFSYM (Qvariable_documentation, "variable-documentation");
 
-  read_buffer = (char *) xmalloc (size);
+  read_buffer = xmalloc (size);
   read_buffer_size = size;
 }
 

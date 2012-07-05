@@ -2157,8 +2157,8 @@ set_time_zone_rule (const char *tzstring)
   for (from = environ; *from; from++)
     continue;
   envptrs = from - environ + 2;
-  newenv = to = (char **) xmalloc (envptrs * sizeof (char *)
-				   + (tzstring ? strlen (tzstring) + 4 : 0));
+  newenv = to = xmalloc (envptrs * sizeof (char *)
+			 + (tzstring ? strlen (tzstring) + 4 : 0));
 
   /* Add TZSTRING to the end of environ, as a value for TZ.  */
   if (tzstring)
@@ -3477,7 +3477,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       /* Copy the data so that it won't move when we GC.  */
       if (! message_text)
 	{
-	  message_text = (char *)xmalloc (80);
+	  message_text = xmalloc (80);
 	  message_length = 80;
 	}
       if (SBYTES (val) > message_length)

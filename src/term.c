@@ -2863,8 +2863,7 @@ create_tty_output (struct frame *f)
   if (! FRAME_TERMCAP_P (f))
     abort ();
 
-  t = xmalloc (sizeof (struct tty_output));
-  memset (t, 0, sizeof (struct tty_output));
+  t = xzalloc (sizeof (struct tty_output));
 
   t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
@@ -3065,9 +3064,8 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   been_here = 1;
   tty = &the_only_display_info;
 #else
-  tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
+  tty = xzalloc (sizeof (struct tty_display_info));
 #endif
-  memset (tty, 0, sizeof (struct tty_display_info));
   tty->next = tty_list;
   tty_list = tty;
 
@@ -3075,7 +3073,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   terminal->display_info.tty = tty;
   tty->terminal = terminal;
 
-  tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
+  tty->Wcm = xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
   encode_terminal_src_size = 0;
@@ -3136,7 +3134,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
 
   Wcm_clear (tty);
 
-  tty->termcap_term_buffer = (char *) xmalloc (buffer_size);
+  tty->termcap_term_buffer = xmalloc (buffer_size);
 
   /* On some systems, tgetent tries to access the controlling
      terminal. */
@@ -3177,7 +3175,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     abort ();
   buffer_size = strlen (tty->termcap_term_buffer);
 #endif
-  tty->termcap_strings_buffer = area = (char *) xmalloc (buffer_size);
+  tty->termcap_strings_buffer = area = xmalloc (buffer_size);
   tty->TS_ins_line = tgetstr ("al", address);
   tty->TS_ins_multi_lines = tgetstr ("AL", address);
   tty->TS_bell = tgetstr ("bl", address);
@@ -3345,7 +3343,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
 
-  terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  terminal->kboard = xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
   KVAR (terminal->kboard, Vwindow_system) = Qnil;
   terminal->kboard->next_kboard = all_kboards;

@@ -3316,7 +3316,7 @@ usage: (make-network-process &rest ARGS)  */)
 	{
 	  if (datagram_address[s].sa)
 	    abort ();
-	  datagram_address[s].sa = (struct sockaddr *) xmalloc (lres->ai_addrlen);
+	  datagram_address[s].sa = xmalloc (lres->ai_addrlen);
 	  datagram_address[s].len = lres->ai_addrlen;
 	  if (is_server)
 	    {
@@ -6286,7 +6286,7 @@ process has been transmitted to the serial port.  */)
 
       if (!proc_encode_coding_system[new_outfd])
 	proc_encode_coding_system[new_outfd]
-	  = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+	  = xmalloc (sizeof (struct coding_system));
       memcpy (proc_encode_coding_system[new_outfd],
 	      proc_encode_coding_system[old_outfd],
 	      sizeof (struct coding_system));
@@ -7084,7 +7084,7 @@ setup_process_coding_systems (Lisp_Object process)
 
   if (!proc_decode_coding_system[inch])
     proc_decode_coding_system[inch]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+      = xmalloc (sizeof (struct coding_system));
   coding_system = p->decode_coding_system;
   if (! NILP (p->filter))
     ;
@@ -7097,7 +7097,7 @@ setup_process_coding_systems (Lisp_Object process)
 
   if (!proc_encode_coding_system[outch])
     proc_encode_coding_system[outch]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+      = xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
 #endif

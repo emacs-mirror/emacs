@@ -29055,7 +29055,7 @@ init_xdisp (void)
     /* Allocate the buffer for frame titles.
        Also used for `format-mode-line'.  */
     int size = 100;
-    mode_line_noprop_buf = (char *) xmalloc (size);
+    mode_line_noprop_buf = xmalloc (size);
     mode_line_noprop_buf_end = mode_line_noprop_buf + size;
     mode_line_noprop_ptr = mode_line_noprop_buf;
     mode_line_target = MODE_LINE_DISPLAY;

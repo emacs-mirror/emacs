@@ -1006,8 +1006,7 @@ w32_map_color (FRAME_PTR f, COLORREF color)
     }
 
   /* not already mapped, so add to list and recreate Windows palette */
-  list = (struct w32_palette_entry *)
-    xmalloc (sizeof (struct w32_palette_entry));
+  list = xmalloc (sizeof (struct w32_palette_entry));
   SET_W32_COLOR (list->entry, color);
   list->refcount = 1;
   list->next = FRAME_W32_DISPLAY_INFO (f)->color_list;
@@ -1109,8 +1108,7 @@ w32_defined_color (FRAME_PTR f, char *color, XColor *color_def, int alloc)
 	  if (entry == NULL && alloc)
 	    {
 	      /* not already mapped, so add to list */
-	      entry = (struct w32_palette_entry *)
-		xmalloc (sizeof (struct w32_palette_entry));
+	      entry = xmalloc (sizeof (struct w32_palette_entry));
 	      SET_W32_COLOR (entry->entry, XUINT (tem));
 	      entry->next = NULL;
 	      *prev = entry;
@@ -3881,7 +3879,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   {
     char *str = SSDATA (Vx_resource_name);
-    f->namebuf = (char *) xmalloc (strlen (str) + 1);
+    f->namebuf = xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
 
@@ -4145,9 +4143,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_w32;
-  f->output_data.w32 =
-    (struct w32_output *) xmalloc (sizeof (struct w32_output));
-  memset (f->output_data.w32, 0, sizeof (struct w32_output));
+  f->output_data.w32 = xzalloc (sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
 
   f->icon_name
@@ -5230,9 +5226,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
      counts etc.  */
   f->terminal = dpyinfo->terminal;
   f->output_method = output_w32;
-  f->output_data.w32 =
-    (struct w32_output *) xmalloc (sizeof (struct w32_output));
-  memset (f->output_data.w32, 0, sizeof (struct w32_output));
+  f->output_data.w32 = xzalloc (sizeof (struct w32_output));
 
   FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
@@ -6687,7 +6681,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
       return Qnil;
     }
   /* Allocate memory for the PRINTER_INFO_2 struct */
-  ppi2 = (PRINTER_INFO_2 *) xmalloc (dwNeeded);
+  ppi2 = xmalloc (dwNeeded);
   if (!ppi2)
     {
       ClosePrinter (hPrn);

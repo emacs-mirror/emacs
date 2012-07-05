@@ -757,7 +757,7 @@ Otherwise, return a new string, without any text properties.  */)
     keymap = Voverriding_local_map;
 
   bsize = SBYTES (string);
-  bufp = buf = (char *) xmalloc (bsize);
+  bufp = buf = xmalloc (bsize);
 
   strp = SDATA (string);
   while (strp < SDATA (string) + SBYTES (string))

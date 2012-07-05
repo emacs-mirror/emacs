@@ -4148,8 +4148,7 @@ lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 static struct face *
 make_realized_face (Lisp_Object *attr)
 {
-  struct face *face = (struct face *) xmalloc (sizeof *face);
-  memset (face, 0, sizeof *face);
+  struct face *face = xzalloc (sizeof *face);
   face->ascii_face = face;
   memcpy (face->lface, attr, sizeof face->lface);
   return face;
@@ -4294,13 +4293,11 @@ make_face_cache (struct frame *f)
   struct face_cache *c;
   int size;
 
-  c = (struct face_cache *) xmalloc (sizeof *c);
-  memset (c, 0, sizeof *c);
+  c = xzalloc (sizeof *c);
   size = FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
-  c->buckets = (struct face **) xmalloc (size);
-  memset (c->buckets, 0, size);
+  c->buckets = xzalloc (size);
   c->size = 50;
-  c->faces_by_id = (struct face **) xmalloc (c->size * sizeof *c->faces_by_id);
+  c->faces_by_id = xmalloc (c->size * sizeof *c->faces_by_id);
   c->f = f;
   c->menu_face_changed_p = menu_face_changed_default;
   return c;
@@ -5582,7 +5579,7 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
   struct face_cache *cache = FRAME_FACE_CACHE (f);
   struct face *face;
 
-  face = (struct face *) xmalloc (sizeof *face);
+  face = xmalloc (sizeof *face);
   *face = *base_face;
   face->gc = 0;
   face->extra = NULL;

@@ -1639,8 +1639,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
 
   fb.dynamic = 1;
 
-  xfb = (struct fringe_bitmap *) xmalloc (sizeof fb
-					  + fb.height * BYTES_PER_BITMAP_ROW);
+  xfb = xmalloc (sizeof fb + fb.height * BYTES_PER_BITMAP_ROW);
   fb.bits = b = (unsigned short *) (xfb + 1);
   memset (b, 0, fb.height);
 
@@ -1805,15 +1804,11 @@ init_fringe (void)
   max_fringe_bitmaps = MAX_STANDARD_FRINGE_BITMAPS + 20;
 
   fringe_bitmaps
-    = (struct fringe_bitmap **) xmalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
-  fringe_faces
-    = (Lisp_Object *) xmalloc (max_fringe_bitmaps * sizeof (Lisp_Object));
+    = xzalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
+  fringe_faces = xmalloc (max_fringe_bitmaps * sizeof (Lisp_Object));
 
   for (i = 0; i < max_fringe_bitmaps; i++)
-    {
-      fringe_bitmaps[i] = NULL;
-      fringe_faces[i] = Qnil;
-    }
+    fringe_faces[i] = Qnil;
 }
 
 #ifdef HAVE_NTGUI

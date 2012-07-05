@@ -231,7 +231,7 @@ uniscribe_shape (Lisp_Object lgstring)
   /* First we need to break up the glyph string into runs of glyphs that
      can be treated together.  First try a single run.  */
   max_items = 2;
-  items = (SCRIPT_ITEM *) xmalloc (sizeof (SCRIPT_ITEM) * max_items + 1);
+  items = xmalloc (sizeof (SCRIPT_ITEM) * max_items + 1);
 
   while ((result = ScriptItemize (chars, nchars, max_items, NULL, NULL,
 				  items, &nitems)) == E_OUTOFMEMORY)

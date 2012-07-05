@@ -248,7 +248,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   val = Qnil;
   size = 100;
   len = 0;
-  line = (char *) xmalloc (size);
+  line = xmalloc (size);
 
   while ((c = getchar ()) != '\n')
     {

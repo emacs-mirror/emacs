@@ -422,7 +422,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
       return -1;
     }
   len = at - lfinfo;
-  owner->user = (char *) xmalloc (len + 1);
+  owner->user = xmalloc (len + 1);
   memcpy (owner->user, lfinfo, len);
   owner->user[len] = 0;
 
@@ -449,7 +449,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
 
   /* The host is everything in between.  */
   len = dot - at - 1;
-  owner->host = (char *) xmalloc (len + 1);
+  owner->host = xmalloc (len + 1);
   memcpy (owner->host, at + 1, len);
   owner->host[len] = 0;
 

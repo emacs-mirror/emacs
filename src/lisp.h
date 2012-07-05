@@ -3237,6 +3237,7 @@ extern int initialized;
 extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
 extern void *xmalloc (size_t);
+extern void *xzalloc (size_t);
 extern void *xrealloc (void *, size_t);
 extern void xfree (void *);
 extern void *xnmalloc (ptrdiff_t, ptrdiff_t);
@@ -3352,7 +3353,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
       buf = (type) alloca (size);			  \
     else						  \
       {							  \
-	buf = (type) xmalloc (size);			  \
+	buf = xmalloc (size);				  \
 	sa_must_free = 1;				  \
 	record_unwind_protect (safe_alloca_unwind,	  \
 			       make_save_value (buf, 0)); \
@@ -3396,7 +3397,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
     else if ((nelt) < min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)) \
       {							  \
 	Lisp_Object arg_;				  \
-	buf = (Lisp_Object *) xmalloc ((nelt) * sizeof (Lisp_Object));	\
+	buf = xmalloc ((nelt) * sizeof (Lisp_Object));	  \
 	arg_ = make_save_value (buf, nelt);		  \
 	XSAVE_VALUE (arg_)->dogc = 1;			  \
 	sa_must_free = 1;				  \

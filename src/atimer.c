@@ -107,7 +107,7 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
       free_atimers = t->next;
     }
   else
-    t = (struct atimer *) xmalloc (sizeof *t);
+    t = xmalloc (sizeof *t);
 
   /* Fill the atimer structure.  */
   memset (t, 0, sizeof *t);
