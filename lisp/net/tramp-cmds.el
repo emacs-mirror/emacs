@@ -295,8 +295,9 @@ buffer in your bug report.
   ;; Dump load-path shadows.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
-    (mapc (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
-	  (split-string (list-load-path-shadows t) "\n")))
+    (mapc
+     (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
+     (split-string (tramp-compat-funcall 'list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.
   (when (and

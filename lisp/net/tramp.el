@@ -1531,6 +1531,9 @@ letter into the file name.  This function removes it."
 
     'identity))
 
+(if (featurep 'xemacs)
+    (defalias 'tramp-drop-volume-letter 'identity))
+
 (defun tramp-cleanup (vec)
   "Cleanup connection VEC, but keep the debug buffer."
   (with-current-buffer (tramp-get-debug-buffer vec)

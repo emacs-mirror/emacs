@@ -1692,9 +1692,10 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
      ;; "-"; this would confuse xargs.  "ls -aQ" might be a solution,
      ;; but it does not work on all remote systems.  Therefore, we
      ;; quote the filenames via sed.
-     "cd %s; echo \"(\"; (%s -a | sed -e s/\\$/\\\"/g -e s/^/\\\"/g | xargs "
-     "%s -c '(\"%%n\" (\"%%N\") %%h %s %s %%Xe0 %%Ye0 %%Ze0 %%se0 \"%%A\" t %%ie0 -1)'); "
-     "echo \")\"")
+     "cd %s; echo \"(\"; (%s -a | sed -e s/\\$/\\\"/g -e s/^/\\\"/g | "
+     "xargs %s -c "
+     "'(\"%%n\" (\"%%N\") %%h %s %s %%Xe0 %%Ye0 %%Ze0 %%se0 \"%%A\" t %%ie0 -1)'"
+     " 2>/dev/null); echo \")\"")
     (tramp-shell-quote-argument localname)
     (tramp-get-ls-command vec)
     (tramp-get-remote-stat vec)
@@ -3284,14 +3285,14 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
       (let (last-coding-system-used (need-chown t))
 	;; Set file modification time.
 	(when (or (eq visit t) (stringp visit))
-          (let ((file-attr (file-attributes filename)))
+          (let ((file-attr (tramp-compat-file-attributes filename 'integer)))
             (set-visited-file-modtime
              ;; We must pass modtime explicitly, because filename can
              ;; be different from (buffer-file-name), f.e. if
              ;; `file-precious-flag' is set.
              (nth 5 file-attr))
-            (when (and (eq (nth 2 file-attr) uid)
-                       (eq (nth 3 file-attr) gid))
+            (when (and (= (nth 2 file-attr) uid)
+                       (= (nth 3 file-attr) gid))
               (setq need-chown nil))))
 
 	;; Set the ownership.
@@ -3332,7 +3333,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	       `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
 
 	  ;; Here we collect only file names, which need an operation.
-	  (tramp-run-real-handler 'vc-registered (list file))
+	  (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
 	  (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
 
 	  ;; Send just one command, in order to fill the cache.
@@ -3400,10 +3401,12 @@ Fall back to normal file name handler if no Tramp handler exists."
 	 ((and fn (memq operation '(file-exists-p file-readable-p)))
 	  (add-to-list 'tramp-vc-registered-file-names localname 'append)
 	  nil)
+	 ;; `process-file' and `start-file-process' shall be ignored.
+	 ((and fn (eq operation 'process-file) 0))
+	 ((and fn (eq operation 'start-file-process) nil))
 	 ;; Tramp file name handlers like `expand-file-name'.  They
 	 ;; must still work.
-	 (fn
-	  (save-match-data (apply (cdr fn) args)))
+	 (fn (save-match-data (apply (cdr fn) args)))
 	 ;; Default file name handlers, we don't care.
 	 (t (tramp-run-real-handler operation args)))))))
 
@@ -4294,7 +4297,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-get-buffer vec)
 
 	    ;; If `non-essential' is non-nil, don't reopen a new connection.
-	    (when non-essential
+	    (when (and (boundp 'non-essential) (symbol-value 'non-essential))
 	      (throw 'non-essential 'non-essential))
 
 	    (tramp-with-progress-reporter

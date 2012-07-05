@@ -1,3 +1,31 @@
+2012-07-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.6-pre.
+
+	* net/tramp.el (tramp-drop-volume-letter): Provide an XEmacs
+	compatible declaration.
+
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Protect
+	`list-load-path-shadows' call.
+
+	* net/tramp-compat.el (top): Require packages, which aren't
+	autoloaded anymore for XEmacs.  Protect call of
+	`tramp-file-name-handler' by `tramp-compat-funcall', pacifying the
+	compiler.  Do not require tramp-util.el and tramp-vc.el anymore,
+	it hurts at least for SXEmacs.
+	(tramp-compat-temporary-file-directory): In XEmacs, there is no
+	standard-value for `temporary-file-directory'.
+
+	* net/tramp-sh.el (tramp-do-directory-files-and-attributes-with-stat):
+	Redirect stderr to /dev/null.
+	(tramp-sh-handle-write-region): uid and gid can be floats.
+	Reported by Russell Sim <russell.sim@gmail.com>.
+	(tramp-sh-handle-vc-registered): Hide errors.
+	(tramp-vc-file-name-handler): Use dummy results for `process-file'
+	and `start-file-process'.
+	(tramp-maybe-open-connection): Check also whether `non-essential'
+	is bound.
+
 2012-07-04  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el (xml--parse-buffer): Use xml-syntax-table.
