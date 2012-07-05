@@ -1,3 +1,8 @@
+2012-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/dired.$(O), $(BLD)/fileio.$(O)): Fix typo.
+	($(BLD)/terminal.$(O), $(BLD)/syntax.$(O)): Update dependencies.
+
 2012-07-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup xmalloc.

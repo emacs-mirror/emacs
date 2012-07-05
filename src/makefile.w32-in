@@ -707,7 +707,7 @@ $(BLD)/dired.$(O) : \
 	$(FILEMODE_H) \
 	$(GRP_H) \
 	$(LISP_H) \
-	$(STAT-TIME_H) \
+	$(STAT_TIME_H) \
 	$(SYSTIME_H)
 
 $(BLD)/dispnew.$(O) : \
@@ -821,7 +821,7 @@ $(BLD)/fileio.$(O) : \
 	$(FRAME_H) \
 	$(INTERVALS_H) \
 	$(LISP_H) \
-	$(STAT-TIME_H) \
+	$(STAT_TIME_H) \
 	$(SYSTIME_H) \
 	$(WINDOW_H)
 
@@ -1083,6 +1083,7 @@ $(BLD)/lread.$(O) : \
 	$(INTERVALS_H) \
 	$(KEYBOARD_H) \
 	$(LISP_H) \
+	$(STAT_TIME_H) \
 	$(TERMHOOKS_H)
 
 $(BLD)/macros.$(O) : \
@@ -1268,6 +1269,7 @@ $(BLD)/regex.$(O) : \
 	$(SRC)/category.h \
 	$(SRC)/regex.h \
 	$(SRC)/syntax.h \
+	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
