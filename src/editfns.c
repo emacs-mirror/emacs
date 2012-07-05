@@ -281,13 +281,10 @@ region_limit (int beginningp)
   if (NILP (m))
     error ("The mark is not set now, so there is no region");
 
-  if ((PT < XFASTINT (m)) == (beginningp != 0))
-    return make_number (PT);
-  else
-    { /* Clip to the current narrowing (bug#11770).  */
-      ptrdiff_t mark = XFASTINT (m);
-      return make_number (mark < BEGV ? BEGV : mark > ZV ? ZV : mark);
-    }
+  /* Clip to the current narrowing (bug#11770).  */
+  return make_number ((PT < XFASTINT (m)) == (beginningp != 0)
+		      ? PT
+		      : clip_to_bounds (BEGV, XFASTINT (m), ZV));
 }
 
 DEFUN ("region-beginning", Fregion_beginning, Sregion_beginning, 0, 0, 0,

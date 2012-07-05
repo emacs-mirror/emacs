@@ -1,3 +1,7 @@
+2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (region_limit): Simplify by using clip_to_bounds.
+
 2012-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (gtk_scrollbar_new, gtk_box_new): Define when HAVE_GTK3 is
