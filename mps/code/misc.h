@@ -40,9 +40,9 @@ typedef const struct SrcIdStruct {
 } SrcIdStruct;
 
 #define SRCID(id, scmid) \
-  static SrcIdStruct FileSrcIdStruct = \
+  static SrcIdStruct id ## FileSrcIdStruct = \
   {__FILE__, (scmid), __DATE__, __TIME__}; \
-  SrcId id ## SrcId = &FileSrcIdStruct
+  SrcId id ## SrcId = &id ## FileSrcIdStruct
 
 
 /* BEGIN and END -- statement brackets
