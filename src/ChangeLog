@@ -1,3 +1,8 @@
+2012-07-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* marker.c (set_marker_restricted_both): Simplify by using
+	clip_to_bounds.
+
 2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (region_limit): Simplify by using clip_to_bounds.

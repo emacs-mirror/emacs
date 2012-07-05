@@ -667,14 +667,8 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, ptrdiff_t ch
 	}
     }
 
-  if (charpos < BUF_BEGV (b))
-    charpos = BUF_BEGV (b);
-  if (charpos > BUF_ZV (b))
-    charpos = BUF_ZV (b);
-  if (bytepos < BUF_BEGV_BYTE (b))
-    bytepos = BUF_BEGV_BYTE (b);
-  if (bytepos > BUF_ZV_BYTE (b))
-    bytepos = BUF_ZV_BYTE (b);
+  charpos = clip_to_bounds (BUF_BEGV (b), charpos, BUF_ZV (b));
+  bytepos = clip_to_bounds (BUF_BEGV_BYTE (b), bytepos, BUF_ZV_BYTE (b));
 
   /* In a single-byte buffer, the two positions must be equal.  */
   if (BUF_Z (b) == BUF_Z_BYTE (b)
