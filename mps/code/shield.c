@@ -113,7 +113,7 @@ static void protLower(Arena arena, Seg seg, AccessSet mode)
 }
 
 
-static void sync(Arena arena, Seg seg)
+static void shieldSync(Arena arena, Seg seg)
 {
   AVERT(Arena, arena);
   AVERT(Seg, seg);
@@ -142,7 +142,7 @@ static void flush(Arena arena, Size i)
   SegSetDepth(seg, SegDepth(seg) - 1);
 
   if (SegDepth(seg) == 0)
-    sync(arena, seg);
+    shieldSync(arena, seg);
 
   arena->shCache[i] = NULL;
 }
@@ -163,7 +163,7 @@ static void cache(Arena arena, Seg seg)
     return;
   }
   if (ShieldCacheSIZE == 0 || !arena->suspended)
-    sync(arena, seg);
+    shieldSync(arena, seg);
   else {
     SegSetDepth(seg, SegDepth(seg) + 1);
     ++arena->shDepth;

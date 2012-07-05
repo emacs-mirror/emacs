@@ -40,10 +40,6 @@ static RingStruct arenaRing;       /* <design/arena/#static.ring> */
 void arenaEnterLock(Arena, int);
 void arenaLeaveLock(Arena, int);
 
-/* ArenaControlPool -- get the control pool */
-
-#define ArenaControlPool(arena) MVPool(&(arena)->controlPoolStruct)
-
 
 /* arenaClaimRingLock, arenaReleaseRingLock -- lock/release the arena ring
  *
