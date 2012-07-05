@@ -1251,6 +1251,23 @@ string_from_display_spec (Lisp_Object spec)
   return spec;
 }
 
+
+/* Limit insanely large values of W->hscroll on frame F to the largest
+   value that will still prevent first_visible_x and last_visible_x of
+   'struct it' from overflowing an int.  */
+static inline int
+window_hscroll_limited (struct window *w, struct frame *f)
+{
+  int window_hscroll = w->hscroll;
+  int window_text_width = window_box_width (w, TEXT_AREA);
+  int colwidth = FRAME_COLUMN_WIDTH (f);
+
+  if (window_hscroll > (INT_MAX - window_text_width) / colwidth - 1)
+    window_hscroll = (INT_MAX - window_text_width) / colwidth - 1;
+
+  return window_hscroll;
+}
+
 /* Return 1 if position CHARPOS is visible in window W.
    CHARPOS < 0 means return info about WINDOW_END position.
    If visible, set *X and *Y to pixel coordinates of top left corner.
@@ -1563,7 +1580,9 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
   current_header_line_height = current_mode_line_height = -1;
 
   if (visible_p && w->hscroll > 0)
-    *x -= w->hscroll * WINDOW_FRAME_COLUMN_WIDTH (w);
+    *x -=
+      window_hscroll_limited (w, WINDOW_XFRAME (w))
+      * WINDOW_FRAME_COLUMN_WIDTH (w);
 
 #if 0
   /* Debugging code.  */
@@ -2759,8 +2778,8 @@ init_iterator (struct it *it, struct window *w,
     }
   else
     {
-      it->first_visible_x
-	= it->w->hscroll * FRAME_COLUMN_WIDTH (it->f);
+      it->first_visible_x =
+	window_hscroll_limited (it->w, it->f) * FRAME_COLUMN_WIDTH (it->f);
       it->last_visible_x = (it->first_visible_x
 			    + window_box_width (w, TEXT_AREA));
 

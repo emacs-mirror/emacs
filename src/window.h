@@ -238,11 +238,11 @@ struct window
     int sequence_number;
 
     /* Number of columns display within the window is scrolled to the left.  */
-    ptrdiff_t hscroll;
+    int hscroll;
 
     /* Minimum hscroll for automatic hscrolling.  This is the value
        the user has set, by set-window-hscroll for example.  */
-    ptrdiff_t min_hscroll;
+    int min_hscroll;
 
     /* Displayed buffer's text modification events counter as of last time
        display completed.  */
