@@ -190,12 +190,13 @@ static size_t randomSize(int i)
 #define TEST_SET_SIZE 1234
 #define TEST_LOOPS 27
 
+#define alignUp(w, a) (((w) + (a) - 1) & ~((size_t)(a) - 1))
+
 static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 {
   mps_res_t res;
 
-  /* --- align */
-  size = ((size+7)/8)*8;
+  size = alignUp(size, MPS_PF_ALIGN);
  
   do {
     MPS_RESERVE_BLOCK(res, *p, ap, size);
@@ -298,7 +299,7 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
   die(mps_arena_create(&arena, aclass, testArenaSIZE),
       "mps_arena_create");
 
-  min = 8;
+  min = MPS_PF_ALIGN;
   mean = 42;
   max = 8192;
  
@@ -307,7 +308,7 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
              mean,              /* median_size */
              max,               /* maximum_size */
              (mps_count_t)TEST_SET_SIZE/2, /* reserve_depth */
-             30                 /* fragmentation_limit */
+             (mps_count_t)30    /* fragmentation_limit */
              ),
       "stress MVT");
 
