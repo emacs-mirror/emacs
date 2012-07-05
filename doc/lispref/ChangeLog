@@ -1,3 +1,7 @@
+2012-07-05  Glenn Morris  <rgm@gnu.org>
+
+	* intro.texi (A Sample Function Description): Fix cross-refs.
+
 2012-07-05  Michael Witten  <mfwitten@gmail.com>  (tiny change)
 
 	* intro.texi (Evaluation Notation, A Sample Function Description)
