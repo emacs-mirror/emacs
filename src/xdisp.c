@@ -1258,7 +1258,7 @@ string_from_display_spec (Lisp_Object spec)
 static inline int
 window_hscroll_limited (struct window *w, struct frame *f)
 {
-  int window_hscroll = w->hscroll;
+  ptrdiff_t window_hscroll = w->hscroll;
   int window_text_width = window_box_width (w, TEXT_AREA);
   int colwidth = FRAME_COLUMN_WIDTH (f);
 

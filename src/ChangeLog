@@ -5,9 +5,6 @@
 	coordinates when window's hscroll is set to insanely large
 	values.  (Bug#11857)
 
-	* window.h (struct window) <hscroll, min_hscroll>: Change type to
-	'int'.
-
 2012-07-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/dired.$(O), $(BLD)/fileio.$(O)): Fix typo.
