@@ -1,3 +1,9 @@
+2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (time_error_value): Check the right error number.
+	Problem reported by Troels Nielsen in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00095.html>.
+
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* window.c (set_window_hscroll): Revert the 100000 hscroll limit.

@@ -3218,7 +3218,7 @@ static EMACS_TIME
 time_error_value (int errnum)
 {
   EMACS_TIME t;
-  int ns = (errno == ENOENT || errno == EACCES || errno == ENOTDIR
+  int ns = (errnum == ENOENT || errnum == EACCES || errnum == ENOTDIR
 	    ? NONEXISTENT_MODTIME_NSECS
 	    : UNKNOWN_MODTIME_NSECS);
   EMACS_SET_SECS_NSECS (t, 0, ns);
