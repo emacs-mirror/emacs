@@ -331,7 +331,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (char *) alloca (SBYTES (specs) + 1);
+      string = alloca (SBYTES (specs) + 1);
       memcpy (string, SSDATA (specs), SBYTES (specs) + 1);
     }
   else
@@ -469,9 +469,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
       < nargs)
     memory_full (SIZE_MAX);
 
-  args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
-  visargs = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
-  varies = (signed char *) alloca (nargs);
+  args = alloca (nargs * sizeof *args);
+  visargs = alloca (nargs * sizeof *visargs);
+  varies = alloca (nargs * sizeof *varies);
 
   for (i = 0; i < nargs; i++)
     {

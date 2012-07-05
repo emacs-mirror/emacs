@@ -615,7 +615,7 @@ overrun_check_malloc (size_t size)
   if (SIZE_MAX - overhead < size)
     abort ();
 
-  val = (unsigned char *) malloc (size + overhead);
+  val = malloc (size + overhead);
   if (val && check_depth == 1)
     {
       memcpy (val, xmalloc_overrun_check_header, XMALLOC_OVERRUN_CHECK_SIZE);
@@ -923,7 +923,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
   allocated_mem_type = type;
 #endif
 
-  val = (void *) malloc (nbytes);
+  val = malloc (nbytes);
 
 #if ! USE_LSB_TAG
   /* If the memory just allocated cannot be addressed thru a Lisp
@@ -1309,7 +1309,7 @@ emacs_blocked_malloc (size_t size, const void *ptr)
     __malloc_extra_blocks = malloc_hysteresis;
 #endif
 
-  value = (void *) malloc (size);
+  value = malloc (size);
 
 #ifdef GC_MALLOC_CHECK
   {
@@ -1371,7 +1371,7 @@ emacs_blocked_realloc (void *ptr, size_t size, const void *ptr2)
   dont_register_blocks = 1;
 #endif /* GC_MALLOC_CHECK */
 
-  value = (void *) realloc (ptr, size);
+  value = realloc (ptr, size);
 
 #ifdef GC_MALLOC_CHECK
   dont_register_blocks = 0;
@@ -1523,10 +1523,8 @@ make_interval (void)
     {
       if (interval_block_index == INTERVAL_BLOCK_SIZE)
 	{
-	  register struct interval_block *newi;
-
-	  newi = (struct interval_block *) lisp_malloc (sizeof *newi,
-							MEM_TYPE_NON_LISP);
+	  struct interval_block *newi
+	    = lisp_malloc (sizeof *newi, MEM_TYPE_NON_LISP);
 
 	  newi->next = interval_block;
 	  interval_block = newi;
@@ -1932,10 +1930,9 @@ allocate_string (void)
      add all the Lisp_Strings in it to the free-list.  */
   if (string_free_list == NULL)
     {
-      struct string_block *b;
+      struct string_block *b = lisp_malloc (sizeof *b, MEM_TYPE_STRING);
       int i;
 
-      b = (struct string_block *) lisp_malloc (sizeof *b, MEM_TYPE_STRING);
       b->next = string_blocks;
       string_blocks = b;
 
@@ -2021,7 +2018,7 @@ allocate_string_data (struct Lisp_String *s,
       mallopt (M_MMAP_MAX, 0);
 #endif
 
-      b = (struct sblock *) lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
+      b = lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
       /* Back to a reasonable maximum of mmap'ed areas. */
@@ -2039,7 +2036,7 @@ allocate_string_data (struct Lisp_String *s,
 	       < (needed + GC_STRING_EXTRA)))
     {
       /* Not enough room in the current sblock.  */
-      b = (struct sblock *) lisp_malloc (SBLOCK_SIZE, MEM_TYPE_NON_LISP);
+      b = lisp_malloc (SBLOCK_SIZE, MEM_TYPE_NON_LISP);
       b->next_free = &b->first_data;
       b->first_data.string = NULL;
       b->next = NULL;
@@ -2619,10 +2616,8 @@ make_float (double float_value)
     {
       if (float_block_index == FLOAT_BLOCK_SIZE)
 	{
-	  register struct float_block *new;
-
-	  new = (struct float_block *) lisp_align_malloc (sizeof *new,
-							  MEM_TYPE_FLOAT);
+	  struct float_block *new
+	    = lisp_align_malloc (sizeof *new, MEM_TYPE_FLOAT);
 	  new->next = float_block;
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
 	  float_block = new;
@@ -2738,9 +2733,8 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
     {
       if (cons_block_index == CONS_BLOCK_SIZE)
 	{
-	  register struct cons_block *new;
-	  new = (struct cons_block *) lisp_align_malloc (sizeof *new,
-							 MEM_TYPE_CONS);
+	  struct cons_block *new
+	    = lisp_align_malloc (sizeof *new, MEM_TYPE_CONS);
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
 	  new->next = cons_block;
 	  cons_block = new;
@@ -2972,7 +2966,7 @@ static struct Lisp_Vector *zero_vector;
 static struct vector_block *
 allocate_vector_block (void)
 {
-  struct vector_block *block = xmalloc (sizeof (struct vector_block));
+  struct vector_block *block = xmalloc (sizeof *block);
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   mem_insert (block->data, block->data + VECTOR_BLOCK_BYTES,
@@ -3198,7 +3192,7 @@ allocate_vectorlike (ptrdiff_t len)
 	p = allocate_vector_from_block (vroundup (nbytes));
       else
 	{
-	  p = (struct Lisp_Vector *) lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
+	  p = lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
 	  p->header.next.vector = large_vectors;
 	  large_vectors = p;
 	}
@@ -3253,7 +3247,7 @@ allocate_pseudovector (int memlen, int lisplen, int tag)
 struct buffer *
 allocate_buffer (void)
 {
-  struct buffer *b = lisp_malloc (sizeof (struct buffer), MEM_TYPE_BUFFER);
+  struct buffer *b = lisp_malloc (sizeof *b, MEM_TYPE_BUFFER);
 
   XSETPVECTYPESIZE (b, PVEC_BUFFER, (offsetof (struct buffer, own_text)
 				     - header_size) / word_size);
@@ -3487,9 +3481,8 @@ Its value and function definition are void, and its property list is nil.  */)
     {
       if (symbol_block_index == SYMBOL_BLOCK_SIZE)
 	{
-	  struct symbol_block *new;
-	  new = (struct symbol_block *) lisp_malloc (sizeof *new,
-						     MEM_TYPE_SYMBOL);
+	  struct symbol_block *new
+	    = lisp_malloc (sizeof *new, MEM_TYPE_SYMBOL);
 	  new->next = symbol_block;
 	  symbol_block = new;
 	  symbol_block_index = 0;
@@ -3580,9 +3573,7 @@ allocate_misc (void)
     {
       if (marker_block_index == MARKER_BLOCK_SIZE)
 	{
-	  struct marker_block *new;
-	  new = (struct marker_block *) lisp_malloc (sizeof *new,
-						     MEM_TYPE_MISC);
+	  struct marker_block *new = lisp_malloc (sizeof *new, MEM_TYPE_MISC);
 	  new->next = marker_block;
 	  marker_block = new;
 	  marker_block_index = 0;
@@ -3775,25 +3766,25 @@ refill_memory_reserve (void)
 {
 #ifndef SYSTEM_MALLOC
   if (spare_memory[0] == 0)
-    spare_memory[0] = (char *) malloc (SPARE_MEMORY);
+    spare_memory[0] = malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)
-    spare_memory[1] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+    spare_memory[1] = lisp_align_malloc (sizeof (struct cons_block),
 						  MEM_TYPE_CONS);
   if (spare_memory[2] == 0)
-    spare_memory[2] = (char *) lisp_align_malloc (sizeof (struct cons_block),
-						  MEM_TYPE_CONS);
+    spare_memory[2] = lisp_align_malloc (sizeof (struct cons_block),
+					 MEM_TYPE_CONS);
   if (spare_memory[3] == 0)
-    spare_memory[3] = (char *) lisp_align_malloc (sizeof (struct cons_block),
-						  MEM_TYPE_CONS);
+    spare_memory[3] = lisp_align_malloc (sizeof (struct cons_block),
+					 MEM_TYPE_CONS);
   if (spare_memory[4] == 0)
-    spare_memory[4] = (char *) lisp_align_malloc (sizeof (struct cons_block),
-						  MEM_TYPE_CONS);
+    spare_memory[4] = lisp_align_malloc (sizeof (struct cons_block),
+					 MEM_TYPE_CONS);
   if (spare_memory[5] == 0)
-    spare_memory[5] = (char *) lisp_malloc (sizeof (struct string_block),
-					    MEM_TYPE_STRING);
+    spare_memory[5] = lisp_malloc (sizeof (struct string_block),
+				   MEM_TYPE_STRING);
   if (spare_memory[6] == 0)
-    spare_memory[6] = (char *) lisp_malloc (sizeof (struct string_block),
-					    MEM_TYPE_STRING);
+    spare_memory[6] = lisp_malloc (sizeof (struct string_block),
+				   MEM_TYPE_STRING);
   if (spare_memory[0] && spare_memory[1] && spare_memory[5])
     Vmemory_full = Qnil;
 #endif
@@ -3893,7 +3884,7 @@ mem_insert (void *start, void *end, enum mem_type type)
 
   /* Create a new node.  */
 #ifdef GC_MALLOC_CHECK
-  x = (struct mem_node *) _malloc_internal (sizeof *x);
+  x = _malloc_internal (sizeof *x);
   if (x == NULL)
     abort ();
 #else
@@ -5441,7 +5432,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 	{
 	  if (stack_copy_size < stack_size)
 	    {
-	      stack_copy = (char *) xrealloc (stack_copy, stack_size);
+	      stack_copy = xrealloc (stack_copy, stack_size);
 	      stack_copy_size = stack_size;
 	    }
 	  memcpy (stack_copy, stack, stack_size);

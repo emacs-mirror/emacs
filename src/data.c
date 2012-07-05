@@ -1463,8 +1463,7 @@ union Lisp_Val_Fwd
 static struct Lisp_Buffer_Local_Value *
 make_blv (struct Lisp_Symbol *sym, int forwarded, union Lisp_Val_Fwd valcontents)
 {
-  struct Lisp_Buffer_Local_Value *blv
-    = xmalloc (sizeof (struct Lisp_Buffer_Local_Value));
+  struct Lisp_Buffer_Local_Value *blv = xmalloc (sizeof *blv);
   Lisp_Object symbol;
   Lisp_Object tem;
 

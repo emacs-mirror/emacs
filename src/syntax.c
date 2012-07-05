@@ -1581,7 +1581,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 	  fastmap[CHAR_LEADING_CODE (c)] = 1;
 	  range_start_byte = i;
 	  range_start_char = c;
-	  char_ranges = (int *) alloca (sizeof (int) * 128 * 2);
+	  char_ranges = alloca (sizeof *char_ranges * 128 * 2);
 	  for (i = 129; i < 0400; i++)
 	    {
 	      c = BYTE8_TO_CHAR (i);
@@ -1602,7 +1602,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
     }
   else				/* STRING is multibyte */
     {
-      char_ranges = (int *) alloca (sizeof (int) * SCHARS (string) * 2);
+      char_ranges = alloca (sizeof *char_ranges * SCHARS (string) * 2);
 
       while (i_byte < size_byte)
 	{

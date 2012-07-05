@@ -632,8 +632,7 @@ digest_single_submenu (int start, int end, int top_level_items)
   widget_value **submenu_stack;
   int panes_seen = 0;
 
-  submenu_stack
-    = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
+  submenu_stack = alloca (menu_items_used * sizeof *submenu_stack);
   wv = xmalloc_widget_value ();
   wv->name = "menu";
   wv->value = 0;
@@ -893,7 +892,7 @@ find_and_call_menu_selection (FRAME_PTR f, int menu_bar_items_used, Lisp_Object 
   int i;
 
   entry = Qnil;
-  subprefix_stack = (Lisp_Object *) alloca (menu_bar_items_used * sizeof (Lisp_Object));
+  subprefix_stack = alloca (menu_bar_items_used * sizeof *subprefix_stack);
   prefix = Qnil;
   i = 0;
 

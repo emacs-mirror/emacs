@@ -190,8 +190,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
-	= (Lisp_Object *) alloca (previous_menu_items_used
-				  * sizeof (Lisp_Object));
+	= alloca (previous_menu_items_used * sizeof *previous_items);
 
       /* lisp preliminaries */
       buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
@@ -231,11 +230,11 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
-      submenu_start = (int *) alloca (ASIZE (items) * sizeof (int *));
-      submenu_end = (int *) alloca (ASIZE (items) * sizeof (int *));
-      submenu_n_panes = (int *) alloca (ASIZE (items) * sizeof (int));
-      submenu_top_level_items
-	= (int *) alloca (ASIZE (items) * sizeof (int *));
+      submenu_start = alloca (ASIZE (items) * sizeof *submenu_start);
+      submenu_end = alloca (ASIZE (items) * sizeof *submenu_end);
+      submenu_n_panes = alloca (ASIZE (items) * sizeof *submenu_n_panes);
+      submenu_top_level_items = alloca (ASIZE (items)
+					* sizeof *submenu_top_level_items);
       init_menu_items ();
       for (i = 0; i < ASIZE (items); i += 4)
 	{
@@ -814,9 +813,9 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   {
   widget_value *save_wv = 0, *prev_wv = 0;
   widget_value **submenu_stack
-    = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
+    = alloca (menu_items_used * sizeof *submenu_stack);
 /*   Lisp_Object *subprefix_stack
-       = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object)); */
+       = alloca (menu_items_used * sizeof *subprefix_stack); */
   int submenu_depth = 0;
   int first_pane = 1;
   int i;

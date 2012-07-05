@@ -2023,9 +2023,7 @@ static struct glyph_matrix *
 save_current_matrix (struct frame *f)
 {
   int i;
-  struct glyph_matrix *saved;
-
-  saved = xzalloc (sizeof *saved);
+  struct glyph_matrix *saved = xzalloc (sizeof *saved);
   saved->nrows = f->current_matrix->nrows;
   saved->rows = xzalloc (saved->nrows * sizeof *saved->rows);
 
@@ -2243,16 +2241,8 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 static void
 adjust_frame_message_buffer (struct frame *f)
 {
-  ptrdiff_t size = FRAME_MESSAGE_BUF_SIZE (f) + 1;
-
-  if (FRAME_MESSAGE_BUF (f))
-    {
-      char *buffer = FRAME_MESSAGE_BUF (f);
-      char *new_buffer = (char *) xrealloc (buffer, size);
-      FRAME_MESSAGE_BUF (f) = new_buffer;
-    }
-  else
-    FRAME_MESSAGE_BUF (f) = xmalloc (size);
+  FRAME_MESSAGE_BUF (f) = xrealloc (FRAME_MESSAGE_BUF (f),
+				    FRAME_MESSAGE_BUF_SIZE (f) + 1);
 }
 
 
@@ -2261,9 +2251,8 @@ adjust_frame_message_buffer (struct frame *f)
 static void
 adjust_decode_mode_spec_buffer (struct frame *f)
 {
-  f->decode_mode_spec_buffer
-    = (char *) xrealloc (f->decode_mode_spec_buffer,
-			 FRAME_MESSAGE_BUF_SIZE (f) + 1);
+  f->decode_mode_spec_buffer = xrealloc (f->decode_mode_spec_buffer,
+					 FRAME_MESSAGE_BUF_SIZE (f) + 1);
 }
 
 
@@ -2810,7 +2799,7 @@ mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlin
   int i;
 
   /* Make a copy of the original rows.  */
-  old_rows = (struct glyph_row *) alloca (nlines * sizeof *old_rows);
+  old_rows = alloca (nlines * sizeof *old_rows);
   memcpy (old_rows, new_rows, nlines * sizeof *old_rows);
 
   /* Assign new rows, maybe clear lines.  */
@@ -2928,7 +2917,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 	  struct glyph_row *old_rows;
 
 	  /* Make a copy of the original rows of matrix m.  */
-	  old_rows = (struct glyph_row *) alloca (m->nrows * sizeof *old_rows);
+	  old_rows = alloca (m->nrows * sizeof *old_rows);
 	  memcpy (old_rows, m->rows, m->nrows * sizeof *old_rows);
 
 	  for (i = 0; i < nlines; ++i)
@@ -4845,10 +4834,10 @@ scrolling (struct frame *frame)
   int unchanged_at_top, unchanged_at_bottom;
   int window_size;
   int changed_lines;
-  int *old_hash = (int *) alloca (FRAME_LINES (frame) * sizeof (int));
-  int *new_hash = (int *) alloca (FRAME_LINES (frame) * sizeof (int));
-  int *draw_cost = (int *) alloca (FRAME_LINES (frame) * sizeof (int));
-  int *old_draw_cost = (int *) alloca (FRAME_LINES (frame) * sizeof (int));
+  int *old_hash = alloca (FRAME_LINES (frame) * sizeof (int));
+  int *new_hash = alloca (FRAME_LINES (frame) * sizeof (int));
+  int *draw_cost = alloca (FRAME_LINES (frame) * sizeof (int));
+  int *old_draw_cost = alloca (FRAME_LINES (frame) * sizeof (int));
   register int i;
   int free_at_end_vpos = FRAME_LINES (frame);
   struct glyph_matrix *current_matrix = frame->current_matrix;

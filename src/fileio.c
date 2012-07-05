@@ -336,7 +336,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
   filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
-  beg = (char *) alloca (SBYTES (filename) + 1);
+  beg = alloca (SBYTES (filename) + 1);
   memcpy (beg, SSDATA (filename), SBYTES (filename) + 1);
 #else
   beg = SSDATA (filename);
@@ -510,7 +510,7 @@ For a Unix-syntax file name, just appends a slash.  */)
       error ("Invalid handler in `file-name-handler-alist'");
     }
 
-  buf = (char *) alloca (SBYTES (file) + 10);
+  buf = alloca (SBYTES (file) + 10);
   file_name_as_directory (buf, SSDATA (file));
   return make_specified_string (buf, -1, strlen (buf),
 				STRING_MULTIBYTE (file));
@@ -575,7 +575,7 @@ In Unix-syntax, this function just removes the final slash.  */)
       error ("Invalid handler in `file-name-handler-alist'");
     }
 
-  buf = (char *) alloca (SBYTES (directory) + 20);
+  buf = alloca (SBYTES (directory) + 20);
   directory_file_name (SSDATA (directory), buf);
   return make_specified_string (buf, -1, strlen (buf),
 				STRING_MULTIBYTE (directory));
@@ -878,7 +878,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     }
 
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below.  */
-  nm = (char *) alloca (SBYTES (name) + 1);
+  nm = alloca (SBYTES (name) + 1);
   memcpy (nm, SSDATA (name), SBYTES (name) + 1);
 
 #ifdef DOS_NT
@@ -1186,7 +1186,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif
 	  )
 	{
-	  char *temp = (char *) alloca (length);
+	  char *temp = alloca (length);
 	  memcpy (temp, newdir, length - 1);
 	  temp[length - 1] = 0;
 	  newdir = temp;
@@ -1202,10 +1202,10 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   /* Reserve space for drive specifier and escape prefix, since either
      or both may need to be inserted.  (The Microsoft x86 compiler
      produces incorrect code if the following two lines are combined.)  */
-  target = (char *) alloca (tlen + 4);
+  target = alloca (tlen + 4);
   target += 4;
 #else  /* not DOS_NT */
-  target = (char *) alloca (tlen);
+  target = alloca (tlen);
 #endif /* not DOS_NT */
   *target = 0;
 
@@ -1415,7 +1415,7 @@ See also the function `substitute-in-file-name'.")
 	unsigned char *ptr = (unsigned char *) strchr (user, '/');
 	ptrdiff_t len = ptr ? ptr - user : strlen (user);
 	/* Copy the user name into temp storage.  */
-	o = (unsigned char *) alloca (len + 1);
+	o = alloca (len + 1);
 	memcpy (o, user, len);
 	o[len] = 0;
 
@@ -1443,7 +1443,7 @@ See also the function `substitute-in-file-name'.")
   /* Now concatenate the directory and name to new space in the stack frame.  */
 
   tlen = (newdir ? strlen (newdir) + 1 : 0) + strlen (nm) + 1;
-  target = (unsigned char *) alloca (tlen);
+  target = alloca (tlen);
   *target = 0;
 
   if (newdir)
@@ -1593,7 +1593,7 @@ those `/' is discarded.  */)
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
-  nm = (char *) alloca (SBYTES (filename) + 1);
+  nm = alloca (SBYTES (filename) + 1);
   memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
 
 #ifdef DOS_NT
@@ -1645,7 +1645,7 @@ those `/' is discarded.  */)
 	  }
 
 	/* Copy out the variable name.  */
-	target = (char *) alloca (s - o + 1);
+	target = alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
 #ifdef DOS_NT
@@ -1676,7 +1676,7 @@ those `/' is discarded.  */)
 
   /* If substitution required, recopy the string and do it.  */
   /* Make space in stack frame for the new copy.  */
-  xnm = (char *) alloca (SBYTES (filename) + total + 1);
+  xnm = alloca (SBYTES (filename) + total + 1);
   x = xnm;
 
   /* Copy the rest of the name through, replacing $ constructs with values.  */
@@ -1708,7 +1708,7 @@ those `/' is discarded.  */)
 	  }
 
 	/* Copy out the variable name.  */
-	target = (char *) alloca (s - o + 1);
+	target = alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
 #ifdef DOS_NT

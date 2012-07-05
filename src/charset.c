@@ -294,7 +294,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
       else
 	{
 	  if (! temp_charset_work)
-	    temp_charset_work = xmalloc (sizeof (*temp_charset_work));
+	    temp_charset_work = xmalloc (sizeof *temp_charset_work);
 	  if (control_flag == 1)
 	    {
 	      memset (temp_charset_work->table.decoder, -1,

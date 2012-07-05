@@ -5400,8 +5400,7 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
   ptrdiff_t size = 20;
   ptrdiff_t n = 0, i, j;
   int invis_p;
-  struct overlay_entry *entries
-    = (struct overlay_entry *) alloca (size * sizeof *entries);
+  struct overlay_entry *entries = alloca (size * sizeof *entries);
   USE_SAFE_ALLOCA;
 
   if (charpos <= 0)
@@ -14949,7 +14948,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
     return rc;
 #endif
 
-  /* Previously, there was a check for Lisp integer in the 
+  /* Previously, there was a check for Lisp integer in the
      if-statement below. Now, this field is converted to
      ptrdiff_t, thus zero means invalid position in a buffer.  */
   eassert (w->last_point > 0);
@@ -18012,7 +18011,7 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 
       for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	{
-	  char *s = (char *) alloca (row->used[area] + 1);
+	  char *s = alloca (row->used[area] + 1);
 	  int i;
 
 	  for (i = 0; i < row->used[area]; ++i)
@@ -21137,7 +21136,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 	}
       else if (CHARACTERP (eoltype))
 	{
-	  unsigned char *tmp = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
+	  unsigned char *tmp = alloca (MAX_MULTIBYTE_LENGTH);
 	  int c = XFASTINT (eoltype);
 	  eol_str_len = CHAR_STRING (c, tmp);
 	  eol_str = tmp;
@@ -23010,7 +23009,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 #define BUILD_STRETCH_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X)   \
      do									    \
        {								    \
-	 s = (struct glyph_string *) alloca (sizeof *s);		    \
+	 s = alloca (sizeof *s);					    \
 	 INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		    \
 	 START = fill_stretch_glyph_string (s, START, END);                 \
 	 append_glyph_string (&HEAD, &TAIL, s);				    \
@@ -23030,7 +23029,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 #define BUILD_IMAGE_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X) \
      do									\
        {								\
-	 s = (struct glyph_string *) alloca (sizeof *s);		\
+	 s = alloca (sizeof *s);					\
 	 INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		\
 	 fill_image_glyph_string (s);					\
 	 append_glyph_string (&HEAD, &TAIL, s);				\
@@ -23057,8 +23056,8 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 									   \
 	 face_id = (row)->glyphs[area][START].face_id;			   \
 									   \
-	 s = (struct glyph_string *) alloca (sizeof *s);		   \
-	 char2b = (XChar2b *) alloca ((END - START) * sizeof *char2b);	   \
+	 s = alloca (sizeof *s);					   \
+	 char2b = alloca ((END - START) * sizeof *char2b);		   \
 	 INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);	   \
 	 append_glyph_string (&HEAD, &TAIL, s);				   \
 	 s->x = (X);							   \
@@ -23086,13 +23085,13 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     struct glyph_string *first_s = NULL;				    \
     int n;								    \
     									    \
-    char2b = (XChar2b *) alloca ((sizeof *char2b) * cmp->glyph_len);	    \
+    char2b = alloca (cmp->glyph_len * sizeof *char2b);			    \
     									    \
     /* Make glyph_strings for each glyph sequence that is drawable by	    \
        the same face, and append them to HEAD/TAIL.  */			    \
     for (n = 0; n < cmp->glyph_len;)					    \
       {									    \
-	s = (struct glyph_string *) alloca (sizeof *s);			    \
+	s = alloca (sizeof *s);						    \
 	INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);		    \
 	append_glyph_string (&(HEAD), &(TAIL), s);			    \
 	s->cmp = cmp;							    \
@@ -23120,9 +23119,8 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     face_id = (row)->glyphs[area][START].face_id;			  \
     gstring = (composition_gstring_from_id				  \
 	       ((row)->glyphs[area][START].u.cmp.id));			  \
-    s = (struct glyph_string *) alloca (sizeof *s);			  \
-    char2b = (XChar2b *) alloca ((sizeof *char2b)			  \
-				 * LGSTRING_GLYPH_LEN (gstring));	  \
+    s = alloca (sizeof *s);						  \
+    char2b = alloca (LGSTRING_GLYPH_LEN (gstring) * sizeof *char2b);	  \
     INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);		  \
     append_glyph_string (&(HEAD), &(TAIL), s);				  \
     s->x = (X);								  \
@@ -23141,7 +23139,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 									    \
       face_id = (row)->glyphs[area][START].face_id;			    \
 									    \
-      s = (struct glyph_string *) alloca (sizeof *s);			    \
+      s = alloca (sizeof *s);						    \
       INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		    \
       append_glyph_string (&HEAD, &TAIL, s);				    \
       s->x = (X);							    \

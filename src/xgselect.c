@@ -153,6 +153,6 @@ xgselect_initialize (void)
 {
 #if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
   gfds_size = 128;
-  gfds = xmalloc (sizeof (*gfds)*gfds_size);
+  gfds = xmalloc (gfds_size * sizeof *gfds);
 #endif
 }

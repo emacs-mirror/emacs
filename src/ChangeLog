@@ -1,3 +1,28 @@
+2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More xmalloc and related cleanup.
+	* alloc.c, bidi.c, buffer.c, buffer.h, bytecode.c, callint.c:
+	* callproc.c, charset.c, coding.c, composite.c, data.c, dispnew.c:
+	* doc.c, editfns.c, emacs.c, eval.c, fileio.c, filelock.c, fns.c:
+	* font.c, fontset.c, frame.c, fringe.c, ftfont.c, ftxfont.c, gmalloc.c:
+	* gtkutil.c, image.c, keyboard.c, keymap.c, lread.c, macros.c, menu.c:
+	* nsfns.m, nsfont.m, nsmenu.m, nsterm.m, print.c, process.c, ralloc.c:
+	* regex.c, region-cache.c, scroll.c, search.c, sound.c, syntax.c:
+	* sysdep.c, term.c, termcap.c, unexmacosx.c, window.c, xdisp.c:
+	* xfaces.c, xfns.c, xftfont.c, xgselect.c, xmenu.c, xrdb.c, xselect.c:
+	* xterm.c:
+	Omit needless casts involving void * pointers and allocation.
+	Prefer "P = xmalloc (sizeof *P)" to "P = xmalloc (sizeof (TYPE_OF_P))",
+	as the former is more robust if P's type is changed.
+	Prefer xzalloc to xmalloc + memset 0.
+	Simplify malloc-or-realloc to realloc.
+	Don't worry about xmalloc returning a null pointer.
+	Prefer xstrdup to xmalloc + strcpy.
+	* editfns.c (Fmessage_box): Grow message_text by at least 80 when
+	growing it.
+	* keyboard.c (apply_modifiers_uncached): Prefer local array to
+	alloca of a constant.
+
 2012-07-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Fix horizontal pixel coordinates when

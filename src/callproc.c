@@ -1174,7 +1174,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
        on that.  */
     pwd_var = xmalloc (i + 6);
 #else
-    pwd_var = (char *) alloca (i + 6);
+    pwd_var = alloca (i + 6);
 #endif
     temp = pwd_var + 4;
     memcpy (pwd_var, "PWD=", 4);
@@ -1242,7 +1242,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
       }
 
     /* new_length + 2 to include PWD and terminating 0.  */
-    env = new_env = (char **) alloca ((new_length + 2) * sizeof (char *));
+    env = new_env = alloca ((new_length + 2) * sizeof *env);
     /* If we have a PWD envvar, pass one down,
        but with corrected value.  */
     if (egetenv ("PWD"))
@@ -1250,7 +1250,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
     if (STRINGP (display))
       {
-	char *vdata = (char *) alloca (sizeof "DISPLAY=" + SBYTES (display));
+	char *vdata = alloca (sizeof "DISPLAY=" + SBYTES (display));
 	strcpy (vdata, "DISPLAY=");
 	strcat (vdata, SSDATA (display));
 	new_env = add_env (env, new_env, vdata);

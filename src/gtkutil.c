@@ -215,7 +215,7 @@ malloc_widget_value (void)
     }
   else
     {
-      wv = xmalloc (sizeof (widget_value));
+      wv = xmalloc (sizeof *wv);
       malloc_cpt++;
     }
   memset (wv, 0, sizeof (widget_value));
@@ -2057,7 +2057,7 @@ make_cl_data (xg_menu_cb_data *cl_data, FRAME_PTR f, GCallback highlight_cb)
 {
   if (! cl_data)
     {
-      cl_data = xmalloc (sizeof (*cl_data));
+      cl_data = xmalloc (sizeof *cl_data);
       cl_data->f = f;
       cl_data->menu_bar_vector = f->menu_bar_vector;
       cl_data->menu_bar_items_used = f->menu_bar_items_used;
@@ -2357,7 +2357,7 @@ xg_create_one_menuitem (widget_value *item,
   if (utf8_label) g_free (utf8_label);
   if (utf8_key) g_free (utf8_key);
 
-  cb_data = xmalloc (sizeof (xg_menu_item_cb_data));
+  cb_data = xmalloc (sizeof *cb_data);
 
   xg_list_insert (&xg_menu_item_cb_list, &cb_data->ptrs);
 
@@ -4336,7 +4336,7 @@ is_box_type (GtkWidget *vb, int is_horizontal)
 {
 #ifdef HAVE_GTK3
   int ret = 0;
-  if (GTK_IS_BOX (vb)) 
+  if (GTK_IS_BOX (vb))
     {
       GtkOrientation ori = gtk_orientable_get_orientation (GTK_ORIENTABLE (vb));
       ret = (ori == GTK_ORIENTATION_HORIZONTAL && is_horizontal)

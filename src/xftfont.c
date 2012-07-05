@@ -527,7 +527,7 @@ xftfont_prepare_face (FRAME_PTR f, struct face *face)
     }
 #endif
 
-  xftface_info = malloc (sizeof (struct xftface_info));
+  xftface_info = malloc (sizeof *xftface_info);
   if (! xftface_info)
     return -1;
   xftfont_get_colors (f, face, face->gc, NULL,

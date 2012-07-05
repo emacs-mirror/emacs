@@ -253,11 +253,11 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
   /* A queue for line insertions to be done.  */
   struct queue { int count, pos; };
   struct queue *queue_start
-    = (struct queue *) alloca (current_matrix->nrows * sizeof (struct queue));
+    = alloca (current_matrix->nrows * sizeof *queue_start);
   struct queue *queue = queue_start;
 
-  char *retained_p = (char *) alloca (window_size * sizeof (char));
-  int *copy_from = (int *) alloca (window_size * sizeof (int));
+  char *retained_p = alloca (window_size * sizeof *retained_p);
+  int *copy_from = alloca (window_size * sizeof *copy_from);
 
   /* Zero means line is empty.  */
   memset (retained_p, 0, window_size * sizeof (char));
@@ -671,11 +671,11 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
   int write_follows_p = 1;
 
   /* For each row in the new matrix what row of the old matrix it is.  */
-  int *copy_from = (int *) alloca (window_size * sizeof (int));
+  int *copy_from = alloca (window_size * sizeof *copy_from);
 
   /* Non-zero for each row in the new matrix that is retained from the
      old matrix.  Lines not retained are empty.  */
-  char *retained_p = (char *) alloca (window_size * sizeof (char));
+  char *retained_p = alloca (window_size * sizeof *retained_p);
 
   memset (retained_p, 0, window_size * sizeof (char));
 

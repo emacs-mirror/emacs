@@ -396,7 +396,7 @@ get_bloc (SIZE size)
   register bloc_ptr new_bloc;
   register heap_ptr heap;
 
-  if (! (new_bloc = (bloc_ptr) malloc (BLOC_PTR_SIZE))
+  if (! (new_bloc = malloc (BLOC_PTR_SIZE))
       || ! (new_bloc->data = obtain (break_value, size)))
     {
       free (new_bloc);

@@ -152,7 +152,7 @@ ns_spec_to_descriptor (Lisp_Object font_spec)
 	[fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
 
     fdesc = [NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs];
-    if (family != nil) 
+    if (family != nil)
       {
 	fdesc = [fdesc fontDescriptorWithFamily: family];
       }
@@ -779,14 +779,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   if (!font)
     return Qnil; /* FIXME: other terms do, but return Qnil causes segfault */
 
-  font_info->glyphs = (unsigned short **)
-    xmalloc (0x100 * sizeof (unsigned short *));
-  font_info->metrics = (struct font_metrics **)
-    xmalloc (0x100 * sizeof (struct font_metrics *));
-  if (!font_info->glyphs || !font_info->metrics)
-    return Qnil;
-  memset (font_info->glyphs, 0, 0x100 * sizeof (unsigned short *));
-  memset (font_info->metrics, 0, 0x100 * sizeof (struct font_metrics *));
+  font_info->glyphs = xzalloc (0x100 * sizeof *font_info->glyphs);
+  font_info->metrics = xzalloc (0x100 * sizeof *font_info->metrics);
 
   BLOCK_INPUT;
 
@@ -831,8 +825,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     [font_info->nsfont retain];
 
     /* set up ns_font (defined in nsgui.h) */
-    font_info->name = (char *)xmalloc (strlen (fontName)+1);
-    strcpy (font_info->name, fontName);
+    font_info->name = xstrdup (fontName);
     font_info->bold = [fontMgr traitsOfFont: nsfont] & NSBoldFontMask;
     font_info->ital =
       synthItal || ([fontMgr traitsOfFont: nsfont] & NSItalicFontMask);
@@ -1371,8 +1364,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
  BLOCK_INPUT;
  sfont = [font_info->nsfont screenFont];
 
-  font_info->metrics[block] = xmalloc (0x100 * sizeof (struct font_metrics));
-  memset (font_info->metrics[block], 0, 0x100 * sizeof (struct font_metrics));
+  font_info->metrics[block] = xzalloc (0x100 * sizeof (struct font_metrics));
   if (!(font_info->metrics[block]))
     abort ();
 
@@ -1417,7 +1409,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
   maxChar = 0;
   maxGlyph = 0;
   dict = [NSMutableDictionary new];
-  cglyphs = (CGGlyph *)xmalloc (c * sizeof (CGGlyph));
+  cglyphs = xmalloc (c * sizeof (CGGlyph));
   return self;
 }
 

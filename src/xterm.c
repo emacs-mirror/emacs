@@ -6450,7 +6450,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
               if (status_return == XBufferOverflow)
                 {
                   copy_bufsiz = nbytes + 1;
-                  copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
+                  copy_bufptr = alloca (copy_bufsiz);
                   nbytes = XmbLookupString (FRAME_XIC (f),
                                             &event.xkey, (char *) copy_bufptr,
                                             copy_bufsiz, &keysym,
@@ -7670,7 +7670,7 @@ x_error_catcher (Display *display, XErrorEvent *event)
 void
 x_catch_errors (Display *dpy)
 {
-  struct x_error_message_stack *data = xmalloc (sizeof (*data));
+  struct x_error_message_stack *data = xmalloc (sizeof *data);
 
   /* Make sure any errors from previous requests have been dealt with.  */
   XSync (dpy, False);
@@ -7798,7 +7798,7 @@ x_connection_closed (Display *dpy, const char *error_message)
   Lisp_Object frame, tail;
   ptrdiff_t idx = SPECPDL_INDEX ();
 
-  error_msg = (char *) alloca (strlen (error_message) + 1);
+  error_msg = alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
   handling_signal = 0;
 
@@ -8187,10 +8187,9 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
   if (use_xim)
     {
 #ifdef HAVE_X11R6_XIM
-      struct xim_inst_t *xim_inst;
+      struct xim_inst_t *xim_inst = xmalloc (sizeof *xim_inst);
       ptrdiff_t len;
 
-      xim_inst = xmalloc (sizeof (struct xim_inst_t));
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       len = strlen (resource_name);
@@ -10098,7 +10097,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   /* We have definitely succeeded.  Record the new connection.  */
 
-  dpyinfo = xzalloc (sizeof (struct x_display_info));
+  dpyinfo = xzalloc (sizeof *dpyinfo);
   hlinfo = &dpyinfo->mouse_highlight;
 
   terminal = x_create_terminal (dpyinfo);
@@ -10116,7 +10115,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       terminal->kboard = share->terminal->kboard;
     else
       {
-	terminal->kboard = xmalloc (sizeof (KBOARD));
+	terminal->kboard = xmalloc (sizeof *terminal->kboard);
 	init_kboard (terminal->kboard);
 	KVAR (terminal->kboard, Vwindow_system) = Qx;
 
@@ -10370,8 +10369,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     const int atom_count = sizeof (atom_refs) / sizeof (atom_refs[0]);
     /* 1 for _XSETTINGS_SN  */
     const int total_atom_count = 1 + atom_count;
-    Atom *atoms_return = xmalloc (sizeof (Atom) * total_atom_count);
-    char **atom_names = xmalloc (sizeof (char *) * total_atom_count);
+    Atom *atoms_return = xmalloc (total_atom_count * sizeof *atoms_return);
+    char **atom_names = xmalloc (total_atom_count * sizeof *atom_names);
     static char const xsettings_fmt[] = "_XSETTINGS_S%d";
     char xsettings_atom_name[sizeof xsettings_fmt - 2
 			     + INT_STRLEN_BOUND (int)];
@@ -10399,7 +10398,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms_length = 0;
-  dpyinfo->x_dnd_atoms = xmalloc (sizeof (*dpyinfo->x_dnd_atoms)
+  dpyinfo->x_dnd_atoms = xmalloc (sizeof *dpyinfo->x_dnd_atoms
                                   * dpyinfo->x_dnd_atoms_size);
 
   dpyinfo->net_supported_atoms = NULL;

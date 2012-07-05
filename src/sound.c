@@ -594,7 +594,7 @@ wav_play (struct sound *s, struct sound_device *sd)
       ptrdiff_t blksize = sd->period_size ? sd->period_size (sd) : 2048;
       ptrdiff_t data_left = header->data_length;
 
-      buffer = (char *) alloca (blksize);
+      buffer = alloca (blksize);
       lseek (s->fd, sizeof *header, SEEK_SET);
       while (data_left > 0
              && (nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
@@ -688,7 +688,7 @@ au_play (struct sound *s, struct sound_device *sd)
       lseek (s->fd, header->data_offset, SEEK_SET);
 
       /* Copy sound data to the device.  */
-      buffer = (char *) alloca (blksize);
+      buffer = alloca (blksize);
       while ((nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
 	sd->write (sd, buffer, nbytes);
 
@@ -932,7 +932,7 @@ alsa_open (struct sound_device *sd)
   else
     file = DEFAULT_ALSA_SOUND_DEVICE;
 
-  p = xmalloc (sizeof (*p));
+  p = xmalloc (sizeof *p);
   p->handle = NULL;
   p->hwparams = NULL;
   p->swparams = NULL;
@@ -1364,10 +1364,10 @@ Internal use only, use `play-sound' instead.  */)
 #ifndef WINDOWSNT
   file = Qnil;
   GCPRO2 (sound, file);
-  current_sound_device = xzalloc (sizeof (struct sound_device));
-  current_sound = xzalloc (sizeof (struct sound));
+  current_sound_device = xzalloc (sizeof *current_sound_device);
+  current_sound = xzalloc (sizeof *current_sound);
   record_unwind_protect (sound_cleanup, Qnil);
-  current_sound->header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
+  current_sound->header = alloca (MAX_SOUND_HEADER_BYTES);
 
   if (STRINGP (attrs[SOUND_FILE]))
     {
@@ -1399,7 +1399,7 @@ Internal use only, use `play-sound' instead.  */)
   if (STRINGP (attrs[SOUND_DEVICE]))
     {
       int len = SCHARS (attrs[SOUND_DEVICE]);
-      current_sound_device->file = (char *) alloca (len + 1);
+      current_sound_device->file = alloca (len + 1);
       strcpy (current_sound_device->file, SSDATA (attrs[SOUND_DEVICE]));
     }
 
@@ -1431,7 +1431,7 @@ Internal use only, use `play-sound' instead.  */)
 
   lo_file = Fexpand_file_name (attrs[SOUND_FILE], Qnil);
   len = XSTRING (lo_file)->size;
-  psz_file = (char *) alloca (len + 1);
+  psz_file = alloca (len + 1);
   strcpy (psz_file, XSTRING (lo_file)->data);
   if (INTEGERP (attrs[SOUND_VOLUME]))
     {

@@ -361,8 +361,7 @@ bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
     {
-      bidi_cache
-	= (struct bidi_it *) xrealloc (bidi_cache, BIDI_CACHE_CHUNK * elsz);
+      bidi_cache = xrealloc (bidi_cache, BIDI_CACHE_CHUNK * elsz);
       bidi_cache_size = BIDI_CACHE_CHUNK;
     }
   bidi_cache_reset ();

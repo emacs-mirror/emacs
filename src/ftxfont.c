@@ -90,7 +90,7 @@ ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int ba
 	}
     }
 
-  new = malloc (sizeof (struct ftxfont_frame_data));
+  new = malloc (sizeof *new);
   if (! new)
     return NULL;
   new->next = this;

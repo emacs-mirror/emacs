@@ -392,7 +392,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
 	  args[1] = Qequal;
 	  ft_face_cache = Fmake_hash_table (2, args);
 	}
-      cache_data = xmalloc (sizeof (struct ftfont_cache_data));
+      cache_data = xmalloc (sizeof *cache_data);
       cache_data->ft_face = NULL;
       cache_data->fc_charset = NULL;
       val = make_save_value (NULL, 0);
@@ -657,7 +657,7 @@ struct OpenTypeSpec
 static struct OpenTypeSpec *
 ftfont_get_open_type_spec (Lisp_Object otf_spec)
 {
-  struct OpenTypeSpec *spec = malloc (sizeof (struct OpenTypeSpec));
+  struct OpenTypeSpec *spec = malloc (sizeof *spec);
   Lisp_Object val;
   int i, j, negative;
 
@@ -696,7 +696,7 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
       spec->features[i] =
 	(min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < XINT (len)
 	 ? 0
-	 : malloc (sizeof (int) * XINT (len)));
+	 : malloc (XINT (len) * sizeof *spec->features[i]));
       if (! spec->features[i])
 	{
 	  if (i > 0 && spec->features[0])
@@ -2460,15 +2460,16 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
   if (gstring.allocated == 0)
     {
       gstring.glyph_size = sizeof (MFLTGlyph);
-      gstring.glyphs = xnmalloc (len * 2, sizeof (MFLTGlyph));
+      gstring.glyphs = xnmalloc (len * 2, sizeof *gstring.glyphs);
       gstring.allocated = len * 2;
     }
   else if (gstring.allocated < len * 2)
     {
-      gstring.glyphs = xnrealloc (gstring.glyphs, len * 2, sizeof (MFLTGlyph));
+      gstring.glyphs = xnrealloc (gstring.glyphs, len * 2,
+				  sizeof *gstring.glyphs);
       gstring.allocated = len * 2;
     }
-  memset (gstring.glyphs, 0, sizeof (MFLTGlyph) * len);
+  memset (gstring.glyphs, 0, len * sizeof *gstring.glyphs);
   for (i = 0; i < len; i++)
     {
       Lisp_Object g = LGSTRING_GLYPH (lgstring, i);

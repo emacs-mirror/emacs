@@ -1323,8 +1323,7 @@ ns_index_color (NSColor *color, struct frame *f)
     {
       color_table->size = NS_COLOR_CAPACITY;
       color_table->avail = 1; /* skip idx=0 as marker */
-      color_table->colors
-	= (NSColor **)xmalloc (color_table->size * sizeof (NSColor *));
+      color_table->colors = xmalloc (color_table->size * sizeof (NSColor *));
       color_table->colors[0] = nil;
       color_table->empty_indices = [[NSMutableSet alloc] init];
     }
@@ -2245,17 +2244,9 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   /* grow bimgs if needed */
   if (nBimgs < max_used_fringe_bitmap)
     {
-      EmacsImage **newBimgs
-	= xmalloc (max_used_fringe_bitmap * sizeof (EmacsImage *));
-      memset (newBimgs, 0, max_used_fringe_bitmap * sizeof (EmacsImage *));
-
-      if (nBimgs)
-        {
-          memcpy (newBimgs, bimgs, nBimgs * sizeof (EmacsImage *));
-          xfree (bimgs);
-        }
-
-      bimgs = newBimgs;
+      bimgs = xrealloc (bimgs, max_used_fringe_bitmap * sizeof *bimgs);
+      memset (bimgs + nBimgs, 0,
+	      (max_used_fringe_bitmap - nBimgs) * sizeof *bimgs);
       nBimgs = max_used_fringe_bitmap;
     }
 
@@ -3889,8 +3880,7 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
                                                  NSColorSpaceFromDepth (depth)];
     dpyinfo->n_planes = NSBitsPerPixelFromDepth (depth);
     dpyinfo->image_cache = make_image_cache ();
-    dpyinfo->color_table
-      = (struct ns_color_table *)xmalloc (sizeof (struct ns_color_table));
+    dpyinfo->color_table = xmalloc (sizeof *dpyinfo->color_table);
     dpyinfo->color_table->colors = NULL;
     dpyinfo->root_window = 42; /* a placeholder.. */
 
@@ -4071,13 +4061,12 @@ ns_term_init (Lisp_Object display_name)
                                          selector: @selector (logNotification:)
                                              name: nil object: nil]; */
 
-  dpyinfo = (struct ns_display_info *)xmalloc (sizeof (struct ns_display_info));
-  memset (dpyinfo, 0, sizeof (struct ns_display_info));
+  dpyinfo = xzalloc (sizeof *dpyinfo);
 
   ns_initialize_display_info (dpyinfo);
   terminal = ns_create_terminal (dpyinfo);
 
-  terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
   KVAR (terminal->kboard, Vwindow_system) = Qns;
   terminal->kboard->next_kboard = all_kboards;
@@ -4098,7 +4087,7 @@ ns_term_init (Lisp_Object display_name)
   dpyinfo->name_list_element = XCAR (ns_display_name_list);
 
   /* Set the name of the terminal. */
-  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  terminal->name = xmalloc (SBYTES (display_name) + 1);
   strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 
@@ -5355,8 +5344,7 @@ ns_term_shutdown (int sig)
             char *pos = strstr (t, "  —  ");
             if (pos)
               *pos = '\0';
-            old_title = (char *) xmalloc (strlen (t) + 1);
-            strcpy (old_title, t);
+            old_title = xstrdup (t);
           }
         size_title = xmalloc (strlen (old_title) + 40);
 	esprintf (size_title, "%s  —  (%d x %d)", old_title, cols, rows);
@@ -6076,7 +6064,7 @@ ns_term_shutdown (int sig)
 
   if (nr_screens == 1)
     return [super constrainFrameRect:frameRect toScreen:screen];
-  
+
   if (f->output_data.ns->dont_constrain
       || ns_menu_bar_should_be_hidden ())
     return frameRect;

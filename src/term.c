@@ -2858,12 +2858,10 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 void
 create_tty_output (struct frame *f)
 {
-  struct tty_output *t;
+  struct tty_output *t = xzalloc (sizeof *t);
 
   if (! FRAME_TERMCAP_P (f))
     abort ();
-
-  t = xzalloc (sizeof (struct tty_output));
 
   t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
@@ -3064,7 +3062,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   been_here = 1;
   tty = &the_only_display_info;
 #else
-  tty = xzalloc (sizeof (struct tty_display_info));
+  tty = xzalloc (sizeof *tty);
 #endif
   tty->next = tty_list;
   tty_list = tty;
@@ -3073,7 +3071,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   terminal->display_info.tty = tty;
   tty->terminal = terminal;
 
-  tty->Wcm = xmalloc (sizeof (struct cm));
+  tty->Wcm = xmalloc (sizeof *tty->Wcm);
   Wcm_clear (tty);
 
   encode_terminal_src_size = 0;
@@ -3343,7 +3341,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
 
-  terminal->kboard = xmalloc (sizeof (KBOARD));
+  terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
   KVAR (terminal->kboard, Vwindow_system) = Qnil;
   terminal->kboard->next_kboard = all_kboards;

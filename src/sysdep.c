@@ -143,7 +143,7 @@ get_current_dir_name (void)
 #endif
       )
     {
-      buf = (char *) malloc (strlen (pwd) + 1);
+      buf = malloc (strlen (pwd) + 1);
       if (!buf)
         return NULL;
       strcpy (buf, pwd);
@@ -152,7 +152,7 @@ get_current_dir_name (void)
   else
     {
       size_t buf_size = 1024;
-      buf = (char *) malloc (buf_size);
+      buf = malloc (buf_size);
       if (!buf)
         return NULL;
       for (;;)
@@ -167,7 +167,7 @@ get_current_dir_name (void)
               return NULL;
             }
           buf_size *= 2;
-          buf = (char *) realloc (buf, buf_size);
+          buf = realloc (buf, buf_size);
           if (!buf)
             return NULL;
         }
@@ -176,7 +176,7 @@ get_current_dir_name (void)
   else
     {
       /* We need MAXPATHLEN here.  */
-      buf = (char *) malloc (MAXPATHLEN + 1);
+      buf = malloc (MAXPATHLEN + 1);
       if (!buf)
         return NULL;
       if (getwd (buf) == NULL)
@@ -516,7 +516,7 @@ sys_subshell (void)
     goto xyzzy;
 
   dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
-  str_volatile = str = (unsigned char *) alloca (SCHARS (dir) + 2);
+  str_volatile = str = alloca (SCHARS (dir) + 2);
   len = SCHARS (dir);
   memcpy (str, SDATA (dir), len);
   if (str[len - 1] != '/') str[len++] = '/';
@@ -851,7 +851,7 @@ init_sys_modes (struct tty_display_info *tty_out)
     return;                     /* The tty is suspended. */
 
   if (! tty_out->old_tty)
-    tty_out->old_tty = xmalloc (sizeof (struct emacs_tty));
+    tty_out->old_tty = xmalloc (sizeof *tty_out->old_tty);
 
   emacs_get_tty (fileno (tty_out->input), tty_out->old_tty);
 
@@ -1345,7 +1345,7 @@ init_system_name (void)
   Vsystem_name = build_string (uts.nodename);
 #else /* HAVE_GETHOSTNAME */
   unsigned int hostname_size = 256;
-  char *hostname = (char *) alloca (hostname_size);
+  char *hostname = alloca (hostname_size);
 
   /* Try to get the host name; if the buffer is too short, try
      again.  Apparently, the only indication gethostname gives of
@@ -1361,7 +1361,7 @@ init_system_name (void)
 	break;
 
       hostname_size <<= 1;
-      hostname = (char *) alloca (hostname_size);
+      hostname = alloca (hostname_size);
     }
 #ifdef HAVE_SOCKETS
   /* Turn the hostname into the official, fully-qualified hostname.

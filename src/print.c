@@ -173,8 +173,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
        if (print_buffer_pos != print_buffer_pos_byte			\
 	   && NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	 {								\
-	   unsigned char *temp						\
-	     = (unsigned char *) alloca (print_buffer_pos + 1);		\
+	   unsigned char *temp = alloca (print_buffer_pos + 1);		\
 	   copy_text ((unsigned char *) print_buffer, temp,		\
 		      print_buffer_pos_byte, 1, 0);			\
 	   insert_1_both ((char *) temp, print_buffer_pos,		\

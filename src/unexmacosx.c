@@ -394,7 +394,7 @@ build_region_list (void)
 	}
       else
 	{
-	  r = (struct region_t *) malloc (sizeof (struct region_t));
+	  r = malloc (sizeof *r);
 
 	  if (!r)
 	    unexec_error ("cannot allocate region structure");
@@ -669,7 +669,7 @@ read_load_commands (void)
 #endif
 
   nlc = mh.ncmds;
-  lca = (struct load_command **) malloc (nlc * sizeof (struct load_command *));
+  lca = malloc (nlc * sizeof *lca);
 
   for (i = 0; i < nlc; i++)
     {
@@ -678,7 +678,7 @@ read_load_commands (void)
 	 size first and then read the rest.  */
       if (!unexec_read (&lc, sizeof (struct load_command)))
         unexec_error ("cannot read load command");
-      lca[i] = (struct load_command *) malloc (lc.cmdsize);
+      lca[i] = malloc (lc.cmdsize);
       memcpy (lca[i], &lc, sizeof (struct load_command));
       if (!unexec_read (lca[i] + 1, lc.cmdsize - sizeof (struct load_command)))
         unexec_error ("cannot read content of load command");
@@ -1378,7 +1378,7 @@ unexec_realloc (void *old_ptr, size_t new_size)
 	  size_t old_size = ((unexec_malloc_header_t *) old_ptr)[-1].u.size;
 	  size_t size = new_size > old_size ? old_size : new_size;
 
-	  p = (size_t *) malloc (new_size);
+	  p = malloc (new_size);
 	  if (size)
 	    memcpy (p, old_ptr, size);
 	}

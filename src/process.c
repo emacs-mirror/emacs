@@ -1365,7 +1365,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     val = Vcoding_system_for_read;
     if (NILP (val))
       {
-	args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	args2 = alloca ((nargs + 1) * sizeof *args2);
 	args2[0] = Qstart_process;
 	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	GCPRO2 (proc, current_dir);
@@ -1384,7 +1384,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	    args2 = alloca ((nargs + 1) * sizeof *args2);
 	    args2[0] = Qstart_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    GCPRO2 (proc, current_dir);
@@ -1478,7 +1478,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
       /* Now that everything is encoded we can collect the strings into
 	 NEW_ARGV.  */
-      new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
+      new_argv = alloca ((nargs - 1) * sizeof *new_argv);
       new_argv[nargs - 2] = 0;
 
       for (i = nargs - 2; i-- != 0; )
@@ -5037,7 +5037,7 @@ read_process_output (Lisp_Object proc, register int channel)
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object odeactivate;
 
-  chars = (char *) alloca (carryover + readmax);
+  chars = alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
     memcpy (chars, SDATA (p->decoding_buf), carryover);
@@ -7083,8 +7083,7 @@ setup_process_coding_systems (Lisp_Object process)
     return;
 
   if (!proc_decode_coding_system[inch])
-    proc_decode_coding_system[inch]
-      = xmalloc (sizeof (struct coding_system));
+    proc_decode_coding_system[inch] = xmalloc (sizeof (struct coding_system));
   coding_system = p->decode_coding_system;
   if (! NILP (p->filter))
     ;
@@ -7096,8 +7095,7 @@ setup_process_coding_systems (Lisp_Object process)
   setup_coding_system (coding_system, proc_decode_coding_system[inch]);
 
   if (!proc_encode_coding_system[outch])
-    proc_encode_coding_system[outch]
-      = xmalloc (sizeof (struct coding_system));
+    proc_encode_coding_system[outch] = xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
 #endif

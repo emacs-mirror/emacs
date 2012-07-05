@@ -1616,12 +1616,10 @@ If BITMAP already exists, the existing definition is replaced.  */)
 		error ("No free fringe bitmap slots");
 
 	      i = max_fringe_bitmaps;
-	      fringe_bitmaps
-		= ((struct fringe_bitmap **)
-		   xrealloc (fringe_bitmaps, bitmaps * sizeof *fringe_bitmaps));
-	      fringe_faces
-		= (Lisp_Object *) xrealloc (fringe_faces,
-					    bitmaps * sizeof *fringe_faces);
+	      fringe_bitmaps = xrealloc (fringe_bitmaps,
+					 bitmaps * sizeof *fringe_bitmaps);
+	      fringe_faces = xrealloc (fringe_faces,
+				       bitmaps * sizeof *fringe_faces);
 
 	      for (i = max_fringe_bitmaps; i < bitmaps; i++)
 		{
@@ -1803,9 +1801,8 @@ init_fringe (void)
 
   max_fringe_bitmaps = MAX_STANDARD_FRINGE_BITMAPS + 20;
 
-  fringe_bitmaps
-    = xzalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
-  fringe_faces = xmalloc (max_fringe_bitmaps * sizeof (Lisp_Object));
+  fringe_bitmaps = xzalloc (max_fringe_bitmaps * sizeof *fringe_bitmaps);
+  fringe_faces = xmalloc (max_fringe_bitmaps * sizeof *fringe_faces);
 
   for (i = 0; i < max_fringe_bitmaps; i++)
     fringe_faces[i] = Qnil;

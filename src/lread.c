@@ -1479,7 +1479,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	 this path element/specified file name and any possible suffix.  */
       want_length = max_suffix_len + SBYTES (filename);
       if (fn_size <= want_length)
-	fn = (char *) alloca (fn_size = 100 + want_length);
+	fn = alloca (fn_size = 100 + want_length);
 
       /* Loop over suffixes.  */
       for (tail = NILP (suffixes) ? Fcons (empty_unibyte_string, Qnil) : suffixes;
@@ -2630,8 +2630,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		}
 	      if (nskip > saved_doc_string_size)
 		{
-		  saved_doc_string = (char *) xrealloc (saved_doc_string,
-							nskip + extra);
+		  saved_doc_string = xrealloc (saved_doc_string, nskip + extra);
 		  saved_doc_string_size = nskip + extra;
 		}
 
@@ -2894,8 +2893,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		ptrdiff_t offset = p - read_buffer;
 		if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		  memory_full (SIZE_MAX);
-		read_buffer = (char *) xrealloc (read_buffer,
-						 read_buffer_size * 2);
+		read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 		read_buffer_size *= 2;
 		p = read_buffer + offset;
 		end = read_buffer + read_buffer_size;
@@ -3029,8 +3027,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		  ptrdiff_t offset = p - read_buffer;
 		  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		    memory_full (SIZE_MAX);
-		  read_buffer = (char *) xrealloc (read_buffer,
-						   read_buffer_size * 2);
+		  read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 		  read_buffer_size *= 2;
 		  p = read_buffer + offset;
 		  end = read_buffer + read_buffer_size;
@@ -3060,8 +3057,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      ptrdiff_t offset = p - read_buffer;
 	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		memory_full (SIZE_MAX);
-	      read_buffer = (char *) xrealloc (read_buffer,
-					       read_buffer_size * 2);
+	      read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 	      read_buffer_size *= 2;
 	      p = read_buffer + offset;
 	      end = read_buffer + read_buffer_size;

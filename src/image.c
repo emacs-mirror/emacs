@@ -1356,9 +1356,7 @@ x_alloc_image_color (struct frame *f, struct image *img, Lisp_Object color_name,
       /* This isn't called frequently so we get away with simply
 	 reallocating the color vector to the needed size, here.  */
       ptrdiff_t ncolors = img->ncolors + 1;
-      img->colors =
-	(unsigned long *) xrealloc (img->colors,
-				    ncolors * sizeof *img->colors);
+      img->colors = xrealloc (img->colors, ncolors * sizeof *img->colors);
       img->colors[ncolors - 1] = color.pixel;
       img->ncolors = ncolors;
       result = color.pixel;
@@ -2500,7 +2498,7 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
 
   w1 = (width + 7) / 8;         /* nb of 8bits elt in X bitmap */
   w2 = ((width + 15) / 16) * 2; /* nb of 16bits elt in W32 bitmap */
-  bits = (unsigned char *) alloca (height * w2);
+  bits = alloca (height * w2);
   memset (bits, 0, height * w2);
   for (i = 0; i < height; i++)
     {
@@ -2927,7 +2925,7 @@ xbm_load (struct frame *f, struct image *img)
 	      char *p;
 	      int nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
-	      p = bits = (char *) alloca (nbytes * img->height);
+	      p = bits = alloca (nbytes * img->height);
 	      for (i = 0; i < img->height; ++i, p += nbytes)
 		{
 		  Lisp_Object line = AREF (data, i);
@@ -2950,7 +2948,7 @@ xbm_load (struct frame *f, struct image *img)
             invertedBits = bits;
             nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR
               * img->height;
-            bits = (char *) alloca (nbytes);
+            bits = alloca (nbytes);
             for (i = 0; i < nbytes; i++)
               bits[i] = XBM_BIT_SHUFFLE (invertedBits[i]);
           }
@@ -3422,7 +3420,7 @@ xpm_load (struct frame *f, struct image *img)
 
       /* Allocate an XpmColorSymbol array.  */
       size = attrs.numsymbols * sizeof *xpm_syms;
-      xpm_syms = (XpmColorSymbol *) alloca (size);
+      xpm_syms = alloca (size);
       memset (xpm_syms, 0, size);
       attrs.colorsymbols = xpm_syms;
 
@@ -3445,14 +3443,14 @@ xpm_load (struct frame *f, struct image *img)
 	  color = XCDR (XCAR (tail));
 	  if (STRINGP (name))
 	    {
-	      xpm_syms[i].name = (char *) alloca (SCHARS (name) + 1);
+	      xpm_syms[i].name = alloca (SCHARS (name) + 1);
 	      strcpy (xpm_syms[i].name, SSDATA (name));
 	    }
 	  else
 	    xpm_syms[i].name = empty_string;
 	  if (STRINGP (color))
 	    {
-	      xpm_syms[i].value = (char *) alloca (SCHARS (color) + 1);
+	      xpm_syms[i].value = alloca (SCHARS (color) + 1);
 	      strcpy (xpm_syms[i].value, SSDATA (color));
 	    }
 	  else
@@ -6449,8 +6447,7 @@ jpeg_load (struct frame *f, struct image *img)
        a default color, and we don't have to care about which colors
        can be freed safely, and which can't.  */
     init_color_table ();
-    colors = (unsigned long *) alloca (cinfo.actual_number_of_colors
-				       * sizeof *colors);
+    colors = alloca (cinfo.actual_number_of_colors * sizeof *colors);
 
     for (i = 0; i < cinfo.actual_number_of_colors; ++i)
       {

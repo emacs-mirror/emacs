@@ -488,8 +488,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   stack.constants = vector;
   if (MAX_ALLOCA / sizeof (Lisp_Object) <= XFASTINT (maxdepth))
     memory_full (SIZE_MAX);
-  top = (Lisp_Object *) alloca ((XFASTINT (maxdepth) + 1)
-                                         * sizeof (Lisp_Object));
+  top = alloca ((XFASTINT (maxdepth) + 1) * sizeof *top);
 #if BYTE_MAINTAIN_TOP
   stack.bottom = top + 1;
   stack.top = NULL;

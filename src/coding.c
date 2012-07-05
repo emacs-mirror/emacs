@@ -1145,8 +1145,8 @@ coding_alloc_by_realloc (struct coding_system *coding, ptrdiff_t bytes)
 {
   if (STRING_BYTES_BOUND - coding->dst_bytes < bytes)
     string_overflow ();
-  coding->destination = (unsigned char *) xrealloc (coding->destination,
-						    coding->dst_bytes + bytes);
+  coding->destination = xrealloc (coding->destination,
+				  coding->dst_bytes + bytes);
   coding->dst_bytes += bytes;
 }
 
@@ -7010,7 +7010,7 @@ produce_charset (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
     coding->charbuf = NULL;						\
     while (size > 1024)							\
       {									\
-	coding->charbuf = (int *) alloca (sizeof (int) * size);		\
+	coding->charbuf = alloca (sizeof (int) * size);			\
 	if (coding->charbuf)						\
 	  break;							\
 	size >>= 1;							\
@@ -9568,7 +9568,7 @@ make_subsidiaries (Lisp_Object base)
 {
   Lisp_Object subsidiaries;
   ptrdiff_t base_name_len = SBYTES (SYMBOL_NAME (base));
-  char *buf = (char *) alloca (base_name_len + 6);
+  char *buf = alloca (base_name_len + 6);
   int i;
 
   memcpy (buf, SDATA (SYMBOL_NAME (base)), base_name_len);

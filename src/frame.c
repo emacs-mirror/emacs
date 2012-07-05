@@ -647,7 +647,7 @@ affects all frames on the same terminal device.  */)
                        : NULL));
       if (!NILP (tty))
         {
-          name = (char *) alloca (SBYTES (tty) + 1);
+          name = alloca (SBYTES (tty) + 1);
           strncpy (name, SSDATA (tty), SBYTES (tty));
           name[SBYTES (tty)] = 0;
         }
@@ -658,7 +658,7 @@ affects all frames on the same terminal device.  */)
                             : NULL));
       if (!NILP (tty_type))
         {
-          type = (char *) alloca (SBYTES (tty_type) + 1);
+          type = alloca (SBYTES (tty_type) + 1);
           strncpy (type, SSDATA (tty_type), SBYTES (tty_type));
           type[SBYTES (tty_type)] = 0;
         }
@@ -2762,8 +2762,8 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
   for (tail = alist; CONSP (tail); tail = Fcdr (tail))
     i++;
 
-  parms = (Lisp_Object *) alloca (i * sizeof (Lisp_Object));
-  values = (Lisp_Object *) alloca (i * sizeof (Lisp_Object));
+  parms = alloca (i * sizeof *parms);
+  values = alloca (i * sizeof *values);
 
   /* Extract parm names and values into those vectors.  */
 
@@ -3624,17 +3624,17 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = (char *) alloca (SBYTES (Vx_resource_name)
-			      + (STRINGP (component)
-				 ? SBYTES (component) : 0)
-			      + SBYTES (attribute)
-			      + 3);
+  name_key = alloca (SBYTES (Vx_resource_name)
+		     + (STRINGP (component)
+			? SBYTES (component) : 0)
+		     + SBYTES (attribute)
+		     + 3);
 
-  class_key = (char *) alloca (SBYTES (Vx_resource_class)
-			       + SBYTES (class)
-			       + (STRINGP (subclass)
-				  ? SBYTES (subclass) : 0)
-			       + 3);
+  class_key = alloca (SBYTES (Vx_resource_class)
+		      + SBYTES (class)
+		      + (STRINGP (subclass)
+			 ? SBYTES (subclass) : 0)
+		      + 3);
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
@@ -3710,8 +3710,7 @@ x_get_resource_string (const char *attribute, const char *class)
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
   SAFE_ALLOCA (name_key, char *, invocation_namelen + strlen (attribute) + 2);
-  class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
-			       + strlen (class) + 2);
+  class_key = alloca ((sizeof (EMACS_CLASS) - 1) + strlen (class) + 2);
 
   esprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);

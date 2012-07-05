@@ -1082,9 +1082,9 @@ fontset_pattern_regexp (Lisp_Object pattern)
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
       if (ndashes < 14)
-	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 2 * nstars + 2 * nescs + 1);
+	p1 = regex = alloca (SBYTES (pattern) + 2 * nstars + 2 * nescs + 1);
       else
-	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 5 * nstars + 2 * nescs + 1);
+	p1 = regex = alloca (SBYTES (pattern) + 5 * nstars + 2 * nescs + 1);
 
       *p1++ = '^';
       for (p0 = SDATA (pattern); *p0; p0++)
@@ -1893,8 +1893,7 @@ format is the same as above.  */)
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET
      in the table `realized'.  */
-  realized[0] = (Lisp_Object *) alloca (sizeof (Lisp_Object)
-					* ASIZE (Vfontset_table));
+  realized[0] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
   for (i = j = 0; i < ASIZE (Vfontset_table); i++)
     {
       elt = FONTSET_FROM_ID (i);
@@ -1905,8 +1904,7 @@ format is the same as above.  */)
     }
   realized[0][j] = Qnil;
 
-  realized[1] = (Lisp_Object *) alloca (sizeof (Lisp_Object)
-					* ASIZE (Vfontset_table));
+  realized[1] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
   for (i = j = 0; ! NILP (realized[0][i]); i++)
     {
       elt = FONTSET_DEFAULT (realized[0][i]);

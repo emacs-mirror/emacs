@@ -4347,7 +4347,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* The vector `used' is used to keep track of arguments that
      have been consumed.  */
-  used = (char *) alloca (nargs * sizeof *used);
+  used = alloca (nargs * sizeof *used);
   memset (used, 0, nargs * sizeof *used);
 
   /* See if there's a `:test TEST' among the arguments.  */

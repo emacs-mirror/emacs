@@ -918,13 +918,13 @@ extern void mmap_set_vars (int);
 #define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
   do {									\
     ptrdiff_t maxlen = 40;						\
-    overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object));	\
+    overlays = alloca (maxlen * sizeof *overlays);			\
     noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
 			     nextp, NULL, chrq);			\
     if (noverlays > maxlen)						\
       {									\
 	maxlen = noverlays;						\
-	overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object)); \
+	overlays = alloca (maxlen * sizeof *overlays);			\
 	noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
 				 nextp, NULL, chrq);			\
       }									\

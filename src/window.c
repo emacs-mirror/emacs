@@ -5469,9 +5469,8 @@ the return value is nil.  Otherwise the value is t.  */)
 	 really like to do is to free only those matrices not reused
 	 below.  */
       root_window = XWINDOW (FRAME_ROOT_WINDOW (f));
-      leaf_windows
-	= (struct window **) alloca (count_windows (root_window)
-				     * sizeof (struct window *));
+      leaf_windows = alloca (count_windows (root_window)
+			     * sizeof *leaf_windows);
       n_leaf_windows = get_leaf_windows (root_window, leaf_windows, 0);
 
       /* Kludge Alert!

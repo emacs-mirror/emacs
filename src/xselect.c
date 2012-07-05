@@ -180,7 +180,7 @@ x_queue_event (struct input_event *event)
 	}
     }
 
-  queue_tmp = xmalloc (sizeof (struct selection_event_queue));
+  queue_tmp = xmalloc (sizeof *queue_tmp);
   TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
   queue_tmp->event = *event;
   queue_tmp->next = selection_queue;
@@ -907,7 +907,7 @@ x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
     {
       if (for_multiple)
 	{
-	  cs = xmalloc (sizeof (struct selection_data));
+	  cs = xmalloc (sizeof *cs);
 	  cs->data = (unsigned char *) &conversion_fail_tag;
 	  cs->size = 1;
 	  cs->format = 32;
@@ -924,7 +924,7 @@ x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
     }
 
   /* Otherwise, record the converted selection to binary.  */
-  cs = xmalloc (sizeof (struct selection_data));
+  cs = xmalloc (sizeof *cs);
   cs->data = NULL;
   cs->nofree = 1;
   cs->property = property;
@@ -1775,20 +1775,24 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
     }
   else if (SYMBOLP (obj))
     {
-      *data_ret = xmalloc (sizeof (Atom) + 1);
+      void *data = xmalloc (sizeof (Atom) + 1);
+      Atom *x_atom_ptr = data;
+      *data_ret = data;
       *format_ret = 32;
       *size_ret = 1;
       (*data_ret) [sizeof (Atom)] = 0;
-      (*(Atom **) data_ret) [0] = symbol_to_x_atom (dpyinfo, obj);
+      *x_atom_ptr = symbol_to_x_atom (dpyinfo, obj);
       if (NILP (type)) type = QATOM;
     }
   else if (RANGED_INTEGERP (X_SHRT_MIN, obj, X_SHRT_MAX))
     {
-      *data_ret = xmalloc (sizeof (short) + 1);
+      void *data = xmalloc (sizeof (short) + 1);
+      short *short_ptr = data;
+      *data_ret = data;
       *format_ret = 16;
       *size_ret = 1;
       (*data_ret) [sizeof (short)] = 0;
-      (*(short **) data_ret) [0] = XINT (obj);
+      *short_ptr = XINT (obj);
       if (NILP (type)) type = QINTEGER;
     }
   else if (INTEGERP (obj)
@@ -1797,11 +1801,13 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 		   || (CONSP (XCDR (obj))
 		       && INTEGERP (XCAR (XCDR (obj)))))))
     {
-      *data_ret = xmalloc (sizeof (unsigned long) + 1);
+      void *data = xmalloc (sizeof (unsigned long) + 1);
+      unsigned long *x_long_ptr = data;
+      *data_ret = data;
       *format_ret = 32;
       *size_ret = 1;
       (*data_ret) [sizeof (unsigned long)] = 0;
-      (*(unsigned long **) data_ret) [0] = cons_to_x_long (obj);
+      *x_long_ptr = cons_to_x_long (obj);
       if (NILP (type)) type = QINTEGER;
     }
   else if (VECTORP (obj))
@@ -1816,23 +1822,28 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
       if (SYMBOLP (AREF (obj, 0)))
 	/* This vector is an ATOM set */
 	{
+	  void *data;
+	  Atom *x_atoms;
 	  if (NILP (type)) type = QATOM;
 	  for (i = 0; i < size; i++)
 	    if (!SYMBOLP (AREF (obj, i)))
 	      signal_error ("All elements of selection vector must have same type", obj);
 
-	  *data_ret = xnmalloc (size, sizeof (Atom));
+	  *data_ret = data = xnmalloc (size, sizeof *x_atoms);
+	  x_atoms = data;
 	  *format_ret = 32;
 	  *size_ret = size;
 	  for (i = 0; i < size; i++)
-	    (*(Atom **) data_ret) [i]
-	      = symbol_to_x_atom (dpyinfo, AREF (obj, i));
+	    x_atoms[i] = symbol_to_x_atom (dpyinfo, AREF (obj, i));
 	}
       else
 	/* This vector is an INTEGER set, or something like it */
 	{
 	  int format = 16;
 	  int data_size = sizeof (short);
+	  void *data;
+	  unsigned long *x_atoms;
+	  short *shorts;
 	  if (NILP (type)) type = QINTEGER;
 	  for (i = 0; i < size; i++)
 	    {
@@ -1847,17 +1858,17 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 		  break;
 		}
 	    }
-	  *data_ret = xnmalloc (size, data_size);
+	  *data_ret = data = xnmalloc (size, data_size);
+	  x_atoms = data;
+	  shorts = data;
 	  *format_ret = format;
 	  *size_ret = size;
 	  for (i = 0; i < size; i++)
 	    {
 	      if (format == 32)
-		(*((unsigned long **) data_ret)) [i] =
-		  cons_to_x_long (AREF (obj, i));
+		x_atoms[i] = cons_to_x_long (AREF (obj, i));
 	      else
-		(*((short **) data_ret)) [i] =
-		  XINT (AREF (obj, i));
+		shorts[i] = XINT (AREF (obj, i));
 	    }
 	}
     }

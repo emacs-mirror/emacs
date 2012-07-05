@@ -703,9 +703,8 @@ x_create_gc (struct frame *f,
 	     unsigned long mask,
 	     XGCValues *xgcv)
 {
-  GC gc = xmalloc (sizeof (*gc));
-  if (gc)
-    memcpy (gc, xgcv, sizeof (XGCValues));
+  GC gc = xmalloc (sizeof *gc);
+  memcpy (gc, xgcv, sizeof (XGCValues));
   return gc;
 }
 
@@ -2951,7 +2950,7 @@ FRAME 0 means change the face on all frames, and change the default
   else if (EQ (attr, QCunderline))
     {
       int valid_p = 0;
-      
+
       if (UNSPECIFIEDP (value) || IGNORE_DEFFACE_P (value))
 	valid_p = 1;
       else if (NILP (value) || EQ (value, Qt))
@@ -2971,8 +2970,8 @@ FRAME 0 means change the face on all frames, and change the default
               list = CDR_SAFE (list);
               val = CAR_SAFE (list);
               list = CDR_SAFE (list);
-            
-              if(NILP (key) || NILP (val)) 
+
+              if (NILP (key) || NILP (val))
                 {
                   valid_p = 0;
                   break;
@@ -2985,8 +2984,8 @@ FRAME 0 means change the face on all frames, and change the default
                   valid_p = 0;
                   break;
                 }
-              
-              else if (EQ (key, QCstyle) 
+
+              else if (EQ (key, QCstyle)
                        && !(EQ (val, Qline) || EQ (val, Qwave)))
                 {
                   valid_p = 0;
@@ -2994,10 +2993,10 @@ FRAME 0 means change the face on all frames, and change the default
                 }
             }
         }
-      
+
       if (!valid_p)
         signal_error ("Invalid face underline", value);
-      
+
       old_value = LFACE_UNDERLINE (lface);
       LFACE_UNDERLINE (lface) = value;
     }
@@ -5774,7 +5773,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
     }
   else if (CONSP (underline))
     {
-      /* `(:color COLOR :style STYLE)'.  
+      /* `(:color COLOR :style STYLE)'.
          STYLE being one of `line' or `wave'. */
       face->underline_p = 1;
       face->underline_color = 0;
@@ -5816,7 +5815,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
             }
         }
     }
-  
+
   overline = attrs[LFACE_OVERLINE_INDEX];
   if (STRINGP (overline))
     {

@@ -138,7 +138,7 @@ void
 init_eval_once (void)
 {
   enum { size = 50 };
-  specpdl = xmalloc (size * sizeof (struct specbinding));
+  specpdl = xmalloc (size * sizeof *specpdl);
   specpdl_size = size;
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
@@ -2803,7 +2803,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	{
 	  if (XSUBR (fun)->max_args > numargs)
 	    {
-	      internal_args = (Lisp_Object *) alloca (XSUBR (fun)->max_args * sizeof (Lisp_Object));
+	      internal_args = alloca (XSUBR (fun)->max_args
+				      * sizeof *internal_args);
 	      memcpy (internal_args, args + 1, numargs * sizeof (Lisp_Object));
 	      for (i = numargs; i < XSUBR (fun)->max_args; i++)
 		internal_args[i] = Qnil;

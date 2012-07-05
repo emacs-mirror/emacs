@@ -1881,7 +1881,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
   /* Make a fontset name from the base font name.  */
   if (xic_default_fontset == base_fontname)
-    { 
+    {
       /* There is no base font name, use the default.  */
       fontsetname = xmalloc (strlen (base_fontname) + 2);
       strcpy (fontsetname, base_fontname);
@@ -1953,21 +1953,21 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
 	  /* Build the font spec that matches all charsets.  */
 	  len = p - base_fontname + strlen (allcs) + 1;
-	  font_allcs = (char *) alloca (len);
+	  font_allcs = alloca (len);
 	  memcpy (font_allcs, base_fontname, p - base_fontname);
 	  strcat (font_allcs, allcs);
 
 	  /* Build the font spec that matches all families and
 	     add-styles.  */
 	  len = p - p1 + strlen (allcs) + strlen (allfamilies) + 1;
-	  font_allfamilies = (char *) alloca (len);
+	  font_allfamilies = alloca (len);
 	  strcpy (font_allfamilies, allfamilies);
 	  memcpy (font_allfamilies + strlen (allfamilies), p1, p - p1);
 	  strcat (font_allfamilies, allcs);
 
 	  /* Build the font spec that matches all.  */
 	  len = p - p2 + strlen (allcs) + strlen (all) + strlen (allfamilies) + 1;
-	  font_all = (char *) alloca (len);
+	  font_all = alloca (len);
 	  strcpy (font_all, allfamilies);
 	  strcat (font_all, all);
 	  memcpy (font_all + strlen (all) + strlen (allfamilies), p2, p - p2);
@@ -3129,7 +3129,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;
-  f->output_data.x = xzalloc (sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof *f->output_data.x);
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
@@ -3957,7 +3957,7 @@ select_visual (struct x_display_info *dpyinfo)
       /* VALUE should be of the form CLASS-DEPTH, where CLASS is one
 	 of `PseudoColor', `TrueColor' etc. and DEPTH is the color
 	 depth, a decimal number.  NAME is compared with case ignored.  */
-      char *s = (char *) alloca (SBYTES (value) + 1);
+      char *s = alloca (SBYTES (value) + 1);
       char *dash;
       int i, class = -1;
       XVisualInfo vinfo;
@@ -4614,7 +4614,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
   f->output_method = output_x_window;
-  f->output_data.x = xzalloc (sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof *f->output_data.x);
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;

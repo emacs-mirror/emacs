@@ -478,7 +478,7 @@ tgetent (char *bp, const char *name)
 	{
 	  ptrdiff_t offset1 = bp1 - bp, offset2 = tc_search_point - bp;
 	  malloc_size = offset1 + buf.size;
-	  bp = termcap_name = (char *) xrealloc (bp, malloc_size);
+	  bp = termcap_name = xrealloc (bp, malloc_size);
 	  bp1 = termcap_name + offset1;
 	  tc_search_point = termcap_name + offset2;
 	}
@@ -504,7 +504,7 @@ tgetent (char *bp, const char *name)
   xfree (buf.beg);
 
   if (malloc_size)
-    bp = (char *) xrealloc (bp, bp1 - bp + 1);
+    bp = xrealloc (bp, bp1 - bp + 1);
 
  ret:
   term_entry = bp;

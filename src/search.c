@@ -175,8 +175,7 @@ shrink_regexp_cache (void)
   for (cp = searchbuf_head; cp != 0; cp = cp->next)
     {
       cp->buf.allocated = cp->buf.used;
-      cp->buf.buffer
-	= (unsigned char *) xrealloc (cp->buf.buffer, cp->buf.used);
+      cp->buf.buffer = xrealloc (cp->buf.buffer, cp->buf.used);
     }
 }
 
@@ -1274,7 +1273,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  raw_pattern_size_byte
 	    = count_size_as_multibyte (SDATA (string),
 				       raw_pattern_size);
-	  raw_pattern = (unsigned char *) alloca (raw_pattern_size_byte + 1);
+	  raw_pattern = alloca (raw_pattern_size_byte + 1);
 	  copy_text (SDATA (string), raw_pattern,
 		     SCHARS (string), 0, 1);
 	}
@@ -1288,7 +1287,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	     the chosen single-byte character set can possibly match.  */
 	  raw_pattern_size = SCHARS (string);
 	  raw_pattern_size_byte = SCHARS (string);
-	  raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
+	  raw_pattern = alloca (raw_pattern_size + 1);
 	  copy_text (SDATA (string), raw_pattern,
 		     SBYTES (string), 1, 0);
 	}
@@ -1296,7 +1295,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       /* Copy and optionally translate the pattern.  */
       len = raw_pattern_size;
       len_byte = raw_pattern_size_byte;
-      patbuf = (unsigned char *) alloca (len * MAX_MULTIBYTE_LENGTH);
+      patbuf = alloca (len * MAX_MULTIBYTE_LENGTH);
       pat = patbuf;
       base_pat = raw_pattern;
       if (multibyte)
@@ -2741,8 +2740,7 @@ Return value is undefined if the last search failed.  */)
 
   prev = Qnil;
 
-  data = (Lisp_Object *) alloca ((2 * search_regs.num_regs + 1)
-				 * sizeof (Lisp_Object));
+  data = alloca ((2 * search_regs.num_regs + 1) * sizeof *data);
 
   len = 0;
   for (i = 0; i < search_regs.num_regs; i++)
@@ -3008,7 +3006,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 
   CHECK_STRING (string);
 
-  temp = (char *) alloca (SBYTES (string) * 2);
+  temp = alloca (SBYTES (string) * 2);
 
   /* Now copy the data into the new string, inserting escapes. */
 

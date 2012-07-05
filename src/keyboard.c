@@ -480,7 +480,7 @@ echo_char (Lisp_Object c)
   if (current_kboard->immediate_echo)
     {
       int size = KEY_DESCRIPTION_SIZE + 100;
-      char *buffer = (char *) alloca (size);
+      char *buffer = alloca (size);
       char *ptr = buffer;
       Lisp_Object echo_string;
 
@@ -502,7 +502,7 @@ echo_char (Lisp_Object c)
 	    {
 	      int offset = ptr - buffer;
 	      size = max (2 * size, size + nbytes);
-	      buffer = (char *) alloca (size);
+	      buffer = alloca (size);
 	      ptr = buffer + offset;
 	    }
 
@@ -520,7 +520,7 @@ echo_char (Lisp_Object c)
 	    {
 	      int offset = ptr - buffer;
 	      size += len;
-	      buffer = (char *) alloca (size);
+	      buffer = alloca (size);
 	      ptr = buffer + offset;
 	    }
 
@@ -884,7 +884,7 @@ static struct kboard_stack *kboard_stack;
 void
 push_kboard (struct kboard *k)
 {
-  struct kboard_stack *p = xmalloc (sizeof (struct kboard_stack));
+  struct kboard_stack *p = xmalloc (sizeof *p);
 
   p->next = kboard_stack;
   p->kboard = current_kboard;
@@ -6196,8 +6196,7 @@ apply_modifiers_uncached (int modifiers, char *base, int base_len, int base_len_
   /* Since BASE could contain nulls, we can't use intern here; we have
      to use Fintern, which expects a genuine Lisp_String, and keeps a
      reference to it.  */
-  char *new_mods
-    = (char *) alloca (sizeof ("A-C-H-M-S-s-down-drag-double-triple-"));
+  char new_mods[sizeof "A-C-H-M-S-s-down-drag-double-triple-"];
   int mod_len;
 
   {
@@ -7280,7 +7279,7 @@ add_user_signal (int sig, const char *name)
       /* Already added.  */
       return;
 
-  p = xmalloc (sizeof (struct user_signal_info));
+  p = xmalloc (sizeof *p);
   p->sig = sig;
   p->name = xstrdup (name);
   p->npending = 0;
@@ -7506,7 +7505,7 @@ menu_bar_items (Lisp_Object old)
 	Lisp_Object tem;
 	ptrdiff_t nminor;
 	nminor = current_minor_maps (NULL, &tmaps);
-	maps = (Lisp_Object *) alloca ((nminor + 3) * sizeof (maps[0]));
+	maps = alloca ((nminor + 3) * sizeof *maps);
 	nmaps = 0;
 	if (tem = get_local_map (PT, current_buffer, Qkeymap), !NILP (tem))
 	  maps[nmaps++] = tem;
@@ -8033,7 +8032,7 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
   if (!NILP (Voverriding_local_map_menu_flag))
     {
       /* Yes, use them (if non-nil) as well as the global map.  */
-      maps = (Lisp_Object *) alloca (3 * sizeof (maps[0]));
+      maps = alloca (3 * sizeof *maps);
       nmaps = 0;
       if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
 	maps[nmaps++] = KVAR (current_kboard, Voverriding_terminal_local_map);
@@ -8050,7 +8049,7 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
       Lisp_Object tem;
       ptrdiff_t nminor;
       nminor = current_minor_maps (NULL, &tmaps);
-      maps = (Lisp_Object *) alloca ((nminor + 3) * sizeof (maps[0]));
+      maps = alloca ((nminor + 3) * sizeof *maps);
       nmaps = 0;
       if (tem = get_local_map (PT, current_buffer, Qkeymap), !NILP (tem))
 	maps[nmaps++] = tem;
@@ -8475,8 +8474,7 @@ read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
       && !EQ (XCAR (prev_event), Qtool_bar))
     {
       /* Display the menu and get the selection.  */
-      Lisp_Object *realmaps
-	= (Lisp_Object *) alloca (nmaps * sizeof (Lisp_Object));
+      Lisp_Object *realmaps = alloca (nmaps * sizeof *realmaps);
       Lisp_Object value;
       ptrdiff_t nmaps1 = 0;
 
@@ -8570,7 +8568,7 @@ read_char_minibuf_menu_prompt (int commandflag,
   if (width + 4 > read_char_minibuf_menu_width)
     {
       read_char_minibuf_menu_text
-	= (char *) xrealloc (read_char_minibuf_menu_text, width + 4);
+	= xrealloc (read_char_minibuf_menu_text, width + 4);
       read_char_minibuf_menu_width = width + 4;
     }
   menu = read_char_minibuf_menu_text;
@@ -9177,8 +9175,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
     {
       if (2 > nmaps_allocated)
 	{
-	  submaps = (Lisp_Object *) alloca (2 * sizeof (submaps[0]));
-	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
+	  submaps = alloca (2 * sizeof *submaps);
+	  defs    = alloca (2 * sizeof *defs);
 	  nmaps_allocated = 2;
 	}
       submaps[nmaps++] = KVAR (current_kboard, Voverriding_terminal_local_map);
@@ -9187,8 +9185,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
     {
       if (2 > nmaps_allocated)
 	{
-	  submaps = (Lisp_Object *) alloca (2 * sizeof (submaps[0]));
-	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
+	  submaps = alloca (2 * sizeof *submaps);
+	  defs    = alloca (2 * sizeof *defs);
 	  nmaps_allocated = 2;
 	}
       submaps[nmaps++] = Voverriding_local_map;
@@ -9204,8 +9202,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
       if (total > nmaps_allocated)
 	{
-	  submaps = (Lisp_Object *) alloca (total * sizeof (submaps[0]));
-	  defs    = (Lisp_Object *) alloca (total * sizeof (defs[0]));
+	  submaps = alloca (total * sizeof *submaps);
+	  defs    = alloca (total * sizeof *defs);
 	  nmaps_allocated = total;
 	}
 
@@ -12187,7 +12185,7 @@ variable are `sigusr1' and `sigusr2'.  */);
   Vdebug_on_event = intern_c_string ("sigusr2");
 
   /* Create the initial keyboard.  */
-  initial_kboard = xmalloc (sizeof (KBOARD));
+  initial_kboard = xmalloc (sizeof *initial_kboard);
   init_kboard (initial_kboard);
   /* Vwindow_system is left at t for now.  */
   initial_kboard->next_kboard = all_kboards;

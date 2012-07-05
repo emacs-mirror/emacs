@@ -1616,7 +1616,7 @@ memalign (size_t alignment, size_t size)
 	  break;
       if (l == NULL)
 	{
-	  l = malloc (sizeof (struct alignlist));
+	  l = malloc (sizeof *l);
 	  if (l != NULL)
 	    {
 	      l->next = _aligned_blocks;
@@ -1811,7 +1811,7 @@ mallochook (size_t size)
   struct hdr *hdr;
 
   __malloc_hook = old_malloc_hook;
-  hdr = malloc (sizeof (struct hdr) + size + 1);
+  hdr = malloc (sizeof *hdr + size + 1);
   __malloc_hook = mallochook;
   if (hdr == NULL)
     return NULL;
@@ -1842,7 +1842,7 @@ reallochook (void *ptr, size_t size)
   __free_hook = old_free_hook;
   __malloc_hook = old_malloc_hook;
   __realloc_hook = old_realloc_hook;
-  hdr = realloc (hdr, sizeof (struct hdr) + size + 1);
+  hdr = realloc (hdr, sizeof *hdr + size + 1);
   __free_hook = freehook;
   __malloc_hook = mallochook;
   __realloc_hook = reallochook;

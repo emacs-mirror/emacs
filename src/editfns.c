@@ -397,14 +397,14 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
 
       /* First try with room for 40 overlays.  */
       noverlays = 40;
-      overlay_vec = (Lisp_Object *) alloca (noverlays * sizeof (Lisp_Object));
+      overlay_vec = alloca (noverlays * sizeof *overlay_vec);
       noverlays = overlays_around (posn, overlay_vec, noverlays);
 
       /* If there are more than 40,
 	 make enough space for all, and try again.  */
       if (noverlays > 40)
 	{
-	  overlay_vec = (Lisp_Object *) alloca (noverlays * sizeof (Lisp_Object));
+	  overlay_vec = alloca (noverlays * sizeof *overlay_vec);
 	  noverlays = overlays_around (posn, overlay_vec, noverlays);
 	}
       noverlays = sort_overlays (overlay_vec, noverlays, NULL);
@@ -1330,7 +1330,7 @@ name, or nil if there is no such user.  */)
       Lisp_Object login;
 
       login = Fuser_login_name (make_number (pw->pw_uid));
-      r = (char *) alloca (strlen (p) + SCHARS (login) + 1);
+      r = alloca (strlen (p) + SCHARS (login) + 1);
       memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SSDATA (login));
@@ -2154,7 +2154,7 @@ set_time_zone_rule (const char *tzstring)
   for (from = environ; *from; from++)
     continue;
   envptrs = from - environ + 2;
-  newenv = to = xmalloc (envptrs * sizeof (char *)
+  newenv = to = xmalloc (envptrs * sizeof *newenv
 			 + (tzstring ? strlen (tzstring) + 4 : 0));
 
   /* Add TZSTRING to the end of environ, as a value for TZ.  */
@@ -3472,15 +3472,11 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       }
 #endif /* HAVE_MENUS */
       /* Copy the data so that it won't move when we GC.  */
-      if (! message_text)
-	{
-	  message_text = xmalloc (80);
-	  message_length = 80;
-	}
       if (SBYTES (val) > message_length)
 	{
-	  message_text = (char *) xrealloc (message_text, SBYTES (val));
-	  message_length = SBYTES (val);
+	  ptrdiff_t new_length = SBYTES (val) + 80;
+	  message_text = xrealloc (message_text, new_length);
+	  message_length = new_length;
 	}
       memcpy (message_text, SDATA (val), SBYTES (val));
       message2 (message_text, SBYTES (val),

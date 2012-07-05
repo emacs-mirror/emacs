@@ -2793,11 +2793,11 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
   Lisp_Object *v, tem;
 
   size = 10;
-  v = (Lisp_Object *) alloca (size * sizeof *v);
+  v = alloca (size * sizeof *v);
   n = overlays_in (start, end, 0, &v, &size, NULL, NULL);
   if (n > size)
     {
-      v = (Lisp_Object *) alloca (n * sizeof *v);
+      v = alloca (n * sizeof *v);
       overlays_in (start, end, 0, &v, &n, NULL, NULL);
     }
 
@@ -2885,8 +2885,7 @@ ptrdiff_t
 sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 {
   ptrdiff_t i, j;
-  struct sortvec *sortvec;
-  sortvec = (struct sortvec *) alloca (noverlays * sizeof (struct sortvec));
+  struct sortvec *sortvec = alloca (noverlays * sizeof *sortvec);
 
   /* Put the valid and relevant overlays into sortvec.  */
 
@@ -3893,7 +3892,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
   len = 10;
   /* We can't use alloca here because overlays_at can call xrealloc.  */
-  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3924,7 +3923,7 @@ end of the buffer.  */)
   CHECK_NUMBER_COERCE_MARKER (end);
 
   len = 10;
-  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3952,7 +3951,7 @@ the value is (point-max).  */)
   CHECK_NUMBER_COERCE_MARKER (pos);
 
   len = 10;
-  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
@@ -3996,7 +3995,7 @@ the value is (point-min).  */)
     return pos;
 
   len = 10;
-  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
@@ -4251,7 +4250,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
        First copy the vector contents, in case some of these hooks
        do subsequent modification of the buffer.  */
     ptrdiff_t size = last_overlay_modification_hooks_used;
-    Lisp_Object *copy = (Lisp_Object *) alloca (size * sizeof (Lisp_Object));
+    Lisp_Object *copy = alloca (size * sizeof *copy);
     ptrdiff_t i;
 
     memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
@@ -4873,7 +4872,7 @@ init_buffer_once (void)
   /* If you add, remove, or reorder Lisp_Objects in a struct buffer, make
      sure that this is still correct.  Otherwise, mark_vectorlike may not
      trace all Lisp_Objects in buffer_defaults and buffer_local_symbols.  */
-  const int pvecsize 
+  const int pvecsize
     = (offsetof (struct buffer, own_text) - sizeof (struct vectorlike_header))
     / sizeof (Lisp_Object);
 
@@ -5089,7 +5088,7 @@ init_buffer (void)
   if (!(IS_DIRECTORY_SEP (pwd[len - 1])))
     {
       /* Grow buffer to add directory separator and '\0'.  */
-      pwd = (char *) realloc (pwd, len + 2);
+      pwd = realloc (pwd, len + 2);
       if (!pwd)
 	fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
       pwd[len] = DIRECTORY_SEP;

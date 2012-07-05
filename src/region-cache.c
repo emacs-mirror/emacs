@@ -132,7 +132,7 @@ static void revalidate_region_cache (struct buffer *buf, struct region_cache *c)
 struct region_cache *
 new_region_cache (void)
 {
-  struct region_cache *c = xmalloc (sizeof (struct region_cache));
+  struct region_cache *c = xmalloc (sizeof *c);
 
   c->gap_start = 0;
   c->gap_len = NEW_CACHE_GAP;

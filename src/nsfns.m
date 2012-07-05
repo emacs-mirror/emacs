@@ -1203,8 +1203,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_ns;
-  f->output_data.ns = (struct ns_output *)xmalloc (sizeof *(f->output_data.ns));
-  memset (f->output_data.ns, 0, sizeof *(f->output_data.ns));
+  f->output_data.ns = xzalloc (sizeof *f->output_data.ns);
 
   FRAME_FONTSET (f) = -1;
 
