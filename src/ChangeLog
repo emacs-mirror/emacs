@@ -1,3 +1,9 @@
+2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32fns.c (Fx_window_property): Accept the same arguments as the
+	X Windows version.  Doc fix.
+	* xfns.c (Fx_window_property): Doc fix.  (Bug#11870)
+
 2012-07-06  Juanma Barranquero	<lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
