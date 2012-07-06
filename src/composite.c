@@ -951,11 +951,8 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t
 
       /* Save point as marker before calling out to lisp.  */
       if (NILP (string))
-	{
-	  Lisp_Object m = Fmake_marker ();
-	  set_marker_both (m, Qnil, pt, pt_byte);
-	  record_unwind_protect (restore_point_unwind, m);
-	}
+	record_unwind_protect (restore_point_unwind,
+			       build_marker (current_buffer, pt, pt_byte));
 
       args[0] = Vauto_composition_function;
       args[1] = AREF (rule, 2);

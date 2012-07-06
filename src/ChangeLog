@@ -1,5 +1,18 @@
 2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Introduce fast path for the widely used marker operation.
+	* alloc.c (build_marker): New function.
+	* lisp.h (build_marker): New prototype.
+	* buffer.c (clone_per_buffer_values, Fmake_indirect_buffer): Use it.
+	* composite.c (autocmp_chars): Likewise.
+	* editfns.c (buildmark): Remove.
+	(Fpoint_marker, Fpoint_min_marker, Fpoint_max_marker)
+	(save_restriction_save): Use build_marker.
+	* marker.c (buf_charpos_to_bytepos, buf_bytepos_to_charpos): Likewise.
+	* window.c (save_window_save): Likewise.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not use Fdelete_overlay in delete_all_overlays
 	to avoid redundant calls to unchain_overlay.
 	* buffer.c (drop_overlay): New function.

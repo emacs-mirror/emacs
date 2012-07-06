@@ -187,12 +187,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 	 cache the correspondence by creating a marker here.
 	 It will last until the next GC.  */
       if (record)
-	{
-	  Lisp_Object marker, buffer;
-	  marker = Fmake_marker ();
-	  XSETBUFFER (buffer, b);
-	  set_marker_both (marker, buffer, best_below, best_below_byte);
-	}
+	build_marker (b, best_below, best_below_byte);
 
       if (byte_debug_flag)
 	byte_char_debug_check (b, charpos, best_below_byte);
@@ -218,12 +213,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 	 cache the correspondence by creating a marker here.
 	 It will last until the next GC.  */
       if (record)
-	{
-	  Lisp_Object marker, buffer;
-	  marker = Fmake_marker ();
-	  XSETBUFFER (buffer, b);
-	  set_marker_both (marker, buffer, best_above, best_above_byte);
-	}
+	build_marker (b, best_above, best_above_byte);
 
       if (byte_debug_flag)
 	byte_char_debug_check (b, charpos, best_above_byte);
@@ -365,12 +355,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 	 But don't do it if BUF_MARKERS is nil;
 	 that is a signal from Fset_buffer_multibyte.  */
       if (record && BUF_MARKERS (b))
-	{
-	  Lisp_Object marker, buffer;
-	  marker = Fmake_marker ();
-	  XSETBUFFER (buffer, b);
-	  set_marker_both (marker, buffer, best_below, best_below_byte);
-	}
+	build_marker (b, best_below, best_below_byte);
 
       if (byte_debug_flag)
 	byte_char_debug_check (b, best_below, bytepos);
@@ -398,12 +383,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 	 But don't do it if BUF_MARKERS is nil;
 	 that is a signal from Fset_buffer_multibyte.  */
       if (record && BUF_MARKERS (b))
-	{
-	  Lisp_Object marker, buffer;
-	  marker = Fmake_marker ();
-	  XSETBUFFER (buffer, b);
-	  set_marker_both (marker, buffer, best_above, best_above_byte);
-	}
+	build_marker (b, best_above, best_above_byte);
 
       if (byte_debug_flag)
 	byte_char_debug_check (b, best_above, bytepos);

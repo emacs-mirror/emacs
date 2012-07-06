@@ -205,15 +205,6 @@ DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
     XSETFASTINT (val, 0);
   return val;
 }
-
-static Lisp_Object
-buildmark (ptrdiff_t charpos, ptrdiff_t bytepos)
-{
-  register Lisp_Object mark;
-  mark = Fmake_marker ();
-  set_marker_both (mark, Qnil, charpos, bytepos);
-  return mark;
-}
 
 DEFUN ("point", Fpoint, Spoint, 0, 0, 0,
        doc: /* Return value of point, as an integer.
@@ -229,7 +220,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
        doc: /* Return value of point, as a marker object.  */)
   (void)
 {
-  return buildmark (PT, PT_BYTE);
+  return build_marker (current_buffer, PT, PT_BYTE);
 }
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
@@ -1003,7 +994,7 @@ DEFUN ("point-min-marker", Fpoint_min_marker, Spoint_min_marker, 0, 0, 0,
 This is the beginning, unless narrowing (a buffer restriction) is in effect.  */)
   (void)
 {
-  return buildmark (BEGV, BEGV_BYTE);
+  return build_marker (current_buffer, BEGV, BEGV_BYTE);
 }
 
 DEFUN ("point-max", Fpoint_max, Spoint_max, 0, 0, 0,
@@ -1023,7 +1014,7 @@ This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
 is in effect, in which case it is less.  */)
   (void)
 {
-  return buildmark (ZV, ZV_BYTE);
+  return build_marker (current_buffer, ZV, ZV_BYTE);
 }
 
 DEFUN ("gap-position", Fgap_position, Sgap_position, 0, 0, 0,
@@ -3289,8 +3280,8 @@ save_restriction_save (void)
     {
       Lisp_Object beg, end;
 
-      beg = buildmark (BEGV, BEGV_BYTE);
-      end = buildmark (ZV, ZV_BYTE);
+      beg = build_marker (current_buffer, BEGV, BEGV_BYTE);
+      end = build_marker (current_buffer, ZV, ZV_BYTE);
 
       /* END must move forward if text is inserted at its exact location.  */
       XMARKER (end)->insertion_type = 1;

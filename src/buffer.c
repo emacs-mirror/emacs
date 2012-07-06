@@ -458,10 +458,7 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
 static void
 clone_per_buffer_values (struct buffer *from, struct buffer *to)
 {
-  Lisp_Object to_buffer;
   int offset;
-
-  XSETBUFFER (to_buffer, to);
 
   for_each_per_buffer_object_at (offset)
     {
@@ -475,9 +472,9 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
       if (MARKERP (obj) && XMARKER (obj)->buffer == from)
 	{
 	  struct Lisp_Marker *m = XMARKER (obj);
-	  obj = Fmake_marker ();
+
+	  obj = build_marker (to, m->charpos, m->bytepos);
 	  XMARKER (obj)->insertion_type = m->insertion_type;
-	  set_marker_both (obj, to_buffer, m->charpos, m->bytepos);
 	}
 
       PER_BUFFER_VALUE (to, offset) = obj;
@@ -615,32 +612,24 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       eassert (NILP (BVAR (b->base_buffer, begv_marker)));
       eassert (NILP (BVAR (b->base_buffer, zv_marker)));
 
-      BVAR (b->base_buffer, pt_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b->base_buffer, pt_marker), base_buffer,
-		       b->base_buffer->pt,
-		       b->base_buffer->pt_byte);
+      BVAR (b->base_buffer, pt_marker) 
+	= build_marker (b->base_buffer, b->base_buffer->pt, b->base_buffer->pt_byte);
 
-      BVAR (b->base_buffer, begv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b->base_buffer, begv_marker), base_buffer,
-		       b->base_buffer->begv,
-		       b->base_buffer->begv_byte);
+      BVAR (b->base_buffer, begv_marker)
+	= build_marker (b->base_buffer, b->base_buffer->begv, b->base_buffer->begv_byte);
 
-      BVAR (b->base_buffer, zv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b->base_buffer, zv_marker), base_buffer,
-		       b->base_buffer->zv,
-		       b->base_buffer->zv_byte);
+      BVAR (b->base_buffer, zv_marker)
+	= build_marker (b->base_buffer, b->base_buffer->zv, b->base_buffer->zv_byte);
+
       XMARKER (BVAR (b->base_buffer, zv_marker))->insertion_type = 1;
     }
 
   if (NILP (clone))
     {
       /* Give the indirect buffer markers for its narrowing.  */
-      BVAR (b, pt_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, pt_marker), buf, b->pt, b->pt_byte);
-      BVAR (b, begv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, begv_marker), buf, b->begv, b->begv_byte);
-      BVAR (b, zv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, zv_marker), buf, b->zv, b->zv_byte);
+      BVAR (b, pt_marker) = build_marker (b, b->pt, b->pt_byte);
+      BVAR (b, begv_marker) = build_marker (b, b->begv, b->begv_byte);
+      BVAR (b, zv_marker) = build_marker (b, b->zv, b->zv_byte);
       XMARKER (BVAR (b, zv_marker))->insertion_type = 1;
     }
   else

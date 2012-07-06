@@ -3641,6 +3641,33 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   return val;
 }
 
+/* Return a newly allocated marker which points into BUF
+   at character position CHARPOS and byte position BYTEPOS.  */
+
+Lisp_Object
+build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
+{
+  Lisp_Object obj;
+  struct Lisp_Marker *m;
+
+  /* No dead buffers here.  */
+  eassert (!NILP (BVAR (buf, name)));
+
+  /* Every character is at least one byte.  */
+  eassert (charpos <= bytepos);
+
+  obj = allocate_misc ();
+  XMISCTYPE (obj) = Lisp_Misc_Marker;
+  m = XMARKER (obj);
+  m->buffer = buf;
+  m->charpos = charpos;
+  m->bytepos = bytepos;
+  m->insertion_type = 0;
+  m->next = BUF_MARKERS (buf);
+  BUF_MARKERS (buf) = m;
+  return obj;
+}
+
 /* Put MARKER back on the free list after using it temporarily.  */
 
 void

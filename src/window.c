@@ -5911,12 +5911,9 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	     is the selected window, then get the value of point from
 	     the buffer; pointm is garbage in the selected window.  */
 	  if (EQ (window, selected_window))
-	    {
-	      p->pointm = Fmake_marker ();
-	      set_marker_both (p->pointm, w->buffer,
-			       BUF_PT (XBUFFER (w->buffer)),
-			       BUF_PT_BYTE (XBUFFER (w->buffer)));
-	    }
+	    p->pointm = build_marker (XBUFFER (w->buffer),
+				      BUF_PT (XBUFFER (w->buffer)),
+				      BUF_PT_BYTE (XBUFFER (w->buffer)));
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 	  XMARKER (p->pointm)->insertion_type
