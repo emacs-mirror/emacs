@@ -4340,7 +4340,8 @@ connection if a previous connection has died for some reason."
 		(set-process-sentinel p 'tramp-process-sentinel)
 		(tramp-compat-set-process-query-on-exit-flag p nil)
 		(setq tramp-current-connection
-		      (cons (butlast (append vec nil)) (current-time)))
+		      (cons (butlast (append vec nil)) (current-time))
+		      tramp-current-host (system-name))
 
 		(tramp-message
 		 vec 6 "%s" (mapconcat 'identity (process-command p) " "))
@@ -4387,7 +4388,7 @@ connection if a previous connection has died for some reason."
 			    (expand-file-name
 			     tramp-temp-name-prefix
 			     (tramp-compat-temporary-file-directory)))))
-			 spec)
+			 spec r-shell)
 
 		    ;; Add arguments for asynchronous processes.
 		    (when (and process-name async-args)
@@ -4402,6 +4403,11 @@ connection if a previous connection has died for some reason."
 		    (when (string-match tramp-host-with-port-regexp l-host)
 		      (setq l-port (match-string 2 l-host)
 			    l-host (match-string 1 l-host)))
+
+		    ;; Check, whether there is a restricted shell.
+		    (dolist (elt tramp-restricted-shell-hosts-alist)
+		      (when (string-match elt tramp-current-host)
+			(setq r-shell t)))
 
 		    ;; Set variables for computing the prompt for
 		    ;; reading password.  They can also be derived
@@ -4421,7 +4427,7 @@ connection if a previous connection has died for some reason."
 		     (concat
 		      ;; We do not want to see the trailing local
 		      ;; prompt in `start-file-process'.
-		      (unless (memq system-type '(windows-nt)) "exec ")
+		      (unless r-shell "exec ")
 		      command " "
 		      (mapconcat
 		       (lambda (x)
@@ -4430,9 +4436,10 @@ connection if a previous connection has died for some reason."
 		       login-args " ")
 		      ;; Local shell could be a Windows COMSPEC.  It
 		      ;; doesn't know the ";" syntax, but we must exit
-		      ;; always for `start-file-process'.  "exec" does
-		      ;; not work either.
-		      (if (memq system-type '(windows-nt)) " && exit || exit")))
+		      ;; always for `start-file-process'.  It could
+		      ;; also be a restricted shell, which does not
+		      ;; allow "exec".
+		      (when r-shell " && exit || exit")))
 
 		    ;; Send the command.
 		    (tramp-message vec 3 "Sending command `%s'" command)
