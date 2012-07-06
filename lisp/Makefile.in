@@ -326,7 +326,7 @@ compile-after-backup: backup-compiled-files compile-always
 # starting Emacs many times (it was 33% faster on a test with a
 # random 10% of the .el files needing recompilation).
 # Unlike compile, this is not parallelizable; so if you have more than
-# one core, compile will be (much) faster.
+# one core and use make -j#, compile will be (much) faster.
 # This rule also produces less accurate compilation warnings.
 # The environment of later files is affected by definitions in
 # earlier ones, so it does not produce some warnings that it should.
