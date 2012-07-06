@@ -1,5 +1,7 @@
 2012-07-06  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (compile-one-process): Rename from "recompile".
+
 	* Makefile.in (bzr-update): "compile" is the same as "recompile
 	autoloads", but parallelizable, so use that instead.
 
