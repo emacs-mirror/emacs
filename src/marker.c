@@ -432,7 +432,28 @@ Returns nil if MARKER points nowhere.  */)
 
   return Qnil;
 }
-
+
+/* Change M so it points to B at CHARPOS and BYTEPOS.  */
+
+static inline void
+attach_marker (struct Lisp_Marker *m, struct buffer *b,
+	       ptrdiff_t charpos, ptrdiff_t bytepos)
+{
+  /* Every character is at least one byte.  */
+  eassert (charpos <= bytepos);
+
+  m->charpos = charpos;
+  m->bytepos = bytepos;
+
+  if (m->buffer != b)
+    {
+      unchain_marker (m);
+      m->buffer = b;
+      m->next = BUF_MARKERS (b);
+      BUF_MARKERS (b) = m;
+    }
+}
+
 DEFUN ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
        doc: /* Position MARKER before character number POSITION in BUFFER.
 BUFFER defaults to the current buffer.
@@ -441,7 +462,7 @@ Then it no longer slows down editing in any buffer.
 Returns MARKER.  */)
   (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {
-  register ptrdiff_t charno;
+  register ptrdiff_t charpos;
   register ptrdiff_t bytepos;
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -483,24 +504,10 @@ Returns MARKER.  */)
     }
 
   CHECK_NUMBER_COERCE_MARKER (position);
-  charno = clip_to_bounds (BUF_BEG (b), XINT (position), BUF_Z (b));
-  bytepos = buf_charpos_to_bytepos (b, charno);
+  charpos = clip_to_bounds (BUF_BEG (b), XINT (position), BUF_Z (b));
+  bytepos = buf_charpos_to_bytepos (b, charpos);
 
-  /* Every character is at least one byte.  */
-  if (charno > bytepos)
-    abort ();
-
-  m->bytepos = bytepos;
-  m->charpos = charno;
-
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-
+  attach_marker (m, b, charpos, bytepos);
   return marker;
 }
 
@@ -510,7 +517,7 @@ Returns MARKER.  */)
 Lisp_Object
 set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
 {
-  register ptrdiff_t charno;
+  register ptrdiff_t charpos;
   register ptrdiff_t bytepos;
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -552,24 +559,10 @@ set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
     }
 
   CHECK_NUMBER_COERCE_MARKER (pos);
-  charno = clip_to_bounds (BUF_BEGV (b), XINT (pos), BUF_ZV (b));
-  bytepos = buf_charpos_to_bytepos (b, charno);
+  charpos = clip_to_bounds (BUF_BEGV (b), XINT (pos), BUF_ZV (b));
+  bytepos = buf_charpos_to_bytepos (b, charpos);
 
-  /* Every character is at least one byte.  */
-  if (charno > bytepos)
-    abort ();
-
-  m->bytepos = bytepos;
-  m->charpos = charno;
-
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-
+  attach_marker (m, b, charpos, bytepos);
   return marker;
 }
 
@@ -603,21 +596,8 @@ set_marker_both (Lisp_Object marker, Lisp_Object buffer, ptrdiff_t charpos, ptrd
   if (BUF_Z (b) == BUF_Z_BYTE (b)
       && charpos != bytepos)
     abort ();
-  /* Every character is at least one byte.  */
-  if (charpos > bytepos)
-    abort ();
 
-  m->bytepos = bytepos;
-  m->charpos = charpos;
-
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-
+  attach_marker (m, b, charpos, bytepos);
   return marker;
 }
 
@@ -654,21 +634,8 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, ptrdiff_t ch
   if (BUF_Z (b) == BUF_Z_BYTE (b)
       && charpos != bytepos)
     abort ();
-  /* Every character is at least one byte.  */
-  if (charpos > bytepos)
-    abort ();
 
-  m->bytepos = bytepos;
-  m->charpos = charpos;
-
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-
+  attach_marker (m, b, charpos, bytepos);
   return marker;
 }
 
@@ -726,6 +693,8 @@ marker_position (Lisp_Object marker)
   if (!buf)
     error ("Marker does not point anywhere");
 
+  eassert (BUF_BEG (buf) <= m->charpos && m->charpos <= BUF_Z (buf));
+
   return m->charpos;
 }
 
@@ -736,15 +705,13 @@ marker_byte_position (Lisp_Object marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
   register struct buffer *buf = m->buffer;
-  register ptrdiff_t i = m->bytepos;
 
   if (!buf)
     error ("Marker does not point anywhere");
 
-  if (i < BUF_BEG_BYTE (buf) || i > BUF_Z_BYTE (buf))
-    abort ();
+  eassert (BUF_BEG_BYTE (buf) <= m->bytepos && m->bytepos <= BUF_Z_BYTE (buf));
 
-  return i;
+  return m->bytepos;
 }
 
 DEFUN ("copy-marker", Fcopy_marker, Scopy_marker, 0, 2, 0,
@@ -797,12 +764,12 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
   (Lisp_Object position)
 {
   register struct Lisp_Marker *tail;
-  register ptrdiff_t charno;
+  register ptrdiff_t charpos;
 
-  charno = clip_to_bounds (BEG, XINT (position), Z);
+  charpos = clip_to_bounds (BEG, XINT (position), Z);
 
   for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
-    if (tail->charpos == charno)
+    if (tail->charpos == charpos)
       return Qt;
 
   return Qnil;

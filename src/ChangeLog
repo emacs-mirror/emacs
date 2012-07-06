@@ -1,7 +1,19 @@
 2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Avoid code repetition in marker-related functions.
+	* marker.c (attach_marker): New function.
+	(Fset_marker, set_marker_restricted, set_marker_both)
+	(set_marker_restricted_both): Use it.
+	(Fset_marker, set_marker_restricted, Fbuffer_has_markers_at):
+	Consistently rename charno to charpos.
+	(marker_position): Add eassert.
+	(marker_byte_position): Convert to eassert.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify list operations in unchain_overlay and unchain_marker.
 	* buffer.c (unchain_overlay): Simplify.  Add comment.
-	* marker.c (unchain_marker): Simplify. Fix comments.
+	* marker.c (unchain_marker): Simplify.  Fix comments.
 
 2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
