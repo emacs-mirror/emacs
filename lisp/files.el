@@ -4856,8 +4856,9 @@ properties or buffer state) and make changes, temporarily bind
 	(view-mode-enter))
        (t (setq buffer-read-only (not buffer-read-only))
 	  (force-mode-line-update))))
-    (message "Read-only %s for this buffer"
-	     (if buffer-read-only "enabled" "disabled"))))
+    (if (called-interactively-p 'interactive)
+	(message "Read-only %s for this buffer"
+		 (if buffer-read-only "enabled" "disabled")))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
