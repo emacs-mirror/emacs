@@ -667,27 +667,40 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   return buf;
 }
 
+/* Mark OV as no longer associated with B.  */
+
+static void
+drop_overlay (struct buffer *b, struct Lisp_Overlay *ov)
+{
+  eassert (b == XBUFFER (Fmarker_buffer (ov->start)));
+  modify_overlay (b, marker_position (ov->start), marker_position (ov->end));
+  Fset_marker (ov->start, Qnil, Qnil);
+  Fset_marker (ov->end, Qnil, Qnil);
+
+}
+
+/* Delete all overlays of B and reset it's overlay lists.  */
+
 void
 delete_all_overlays (struct buffer *b)
 {
-  Lisp_Object overlay;
+  struct Lisp_Overlay *ov, *next;
 
-  /* `reset_buffer' blindly sets the list of overlays to NULL, so we
-     have to empty the list, otherwise we end up with overlays that
-     think they belong to this buffer while the buffer doesn't know about
-     them any more.  */
-  while (b->overlays_before)
+  for (ov = b->overlays_before; ov; ov = next)
     {
-      XSETMISC (overlay, b->overlays_before);
-      Fdelete_overlay (overlay);
+      drop_overlay (b, ov);
+      next = ov->next;
+      ov->next = NULL;
     }
-  while (b->overlays_after)
+
+  for (ov = b->overlays_after; ov; ov = next)
     {
-      XSETMISC (overlay, b->overlays_after);
-      Fdelete_overlay (overlay);
+      drop_overlay (b, ov);
+      next = ov->next;
+      ov->next = NULL;
     }
-  eassert (b->overlays_before == NULL);
-  eassert (b->overlays_after == NULL);
+
+  b->overlays_before = b->overlays_after = NULL;
 }
 
 /* Reinitialize everything about a buffer except its name and contents
@@ -3820,11 +3833,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
     = unchain_overlay (b->overlays_after, XOVERLAY (overlay));
   eassert (XOVERLAY (overlay)->next == NULL);
 
-  modify_overlay (b,
-		  marker_position (OVERLAY_START (overlay)),
-		  marker_position (OVERLAY_END   (overlay)));
-  Fset_marker (OVERLAY_START (overlay), Qnil, Qnil);
-  Fset_marker (OVERLAY_END   (overlay), Qnil, Qnil);
+  drop_overlay (b, XOVERLAY (overlay));
 
   /* When deleting an overlay with before or after strings, turn off
      display optimizations for the affected buffer, on the basis that

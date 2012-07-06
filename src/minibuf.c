@@ -804,10 +804,9 @@ get_minibuffer (EMACS_INT depth)
   else
     {
       ptrdiff_t count = SPECPDL_INDEX ();
-      /* `reset_buffer' blindly sets the list of overlays to NULL, so we
-	 have to empty the list, otherwise we end up with overlays that
-	 think they belong to this buffer while the buffer doesn't know about
-	 them any more.  */
+      /* We have to empty both overlay lists.  Otherwise we end
+	 up with overlays that think they belong to this buffer
+	 while the buffer doesn't know about them any more.  */
       delete_all_overlays (XBUFFER (buf));
       reset_buffer (XBUFFER (buf));
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());

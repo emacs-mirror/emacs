@@ -1,3 +1,11 @@
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not use Fdelete_overlay in delete_all_overlays
+	to avoid redundant calls to unchain_overlay.
+	* buffer.c (drop_overlay): New function.
+	(delete_all_overlays, Fdelete_overlay): Use it.
+	* minibuf.c (get_minibuffer): Fix comment.
+
 2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to OpenBSD 5.1 amd64.
