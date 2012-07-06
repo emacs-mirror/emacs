@@ -3672,18 +3672,17 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
   ++BUF_OVERLAY_MODIFF (buf);
 }
 
-
+/* Remove OVERLAY from LIST.  */
+
 static struct Lisp_Overlay *
 unchain_overlay (struct Lisp_Overlay *list, struct Lisp_Overlay *overlay)
 {
-  struct Lisp_Overlay *tmp, *prev;
-  for (tmp = list, prev = NULL; tmp; prev = tmp, tmp = tmp->next)
-    if (tmp == overlay)
+  register struct Lisp_Overlay *tail, **prev = &list;
+
+  for (tail = list; tail; prev = &tail->next, tail = *prev)
+    if (tail == overlay)
       {
-	if (prev)
-	  prev->next = tmp->next;
-	else
-	  list = tmp->next;
+	*prev = overlay->next;
 	overlay->next = NULL;
 	break;
       }

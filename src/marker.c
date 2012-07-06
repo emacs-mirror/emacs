@@ -672,59 +672,47 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, ptrdiff_t ch
   return marker;
 }
 
-/* Remove MARKER from the chain of whatever buffer it is in.
-   Leave it "in no buffer".
-
-   This is called during garbage collection,
-   so we must be careful to ignore and preserve mark bits,
-   including those in chain fields of markers.  */
+/* Remove MARKER from the chain of whatever buffer it is in,
+   leaving it points to nowhere.  This is called during garbage
+   collection, so we must be careful to ignore and preserve
+   mark bits, including those in chain fields of markers.  */
 
 void
 unchain_marker (register struct Lisp_Marker *marker)
 {
-  register struct Lisp_Marker *tail, *prev, *next;
-  register struct buffer *b;
+  register struct buffer *b = marker->buffer;
 
-  b = marker->buffer;
-  if (b == 0)
-    return;
-
-  if (EQ (BVAR (b, name), Qnil))
-    abort ();
-
-  marker->buffer = 0;
-
-  tail = BUF_MARKERS (b);
-  prev = NULL;
-  while (tail)
+  if (b)
     {
-      next = tail->next;
+      register struct Lisp_Marker *tail, **prev;
 
-      if (marker == tail)
-	{
-	  if (!prev)
-	    {
-	      BUF_MARKERS (b) = next;
-	      /* Deleting first marker from the buffer's chain.  Crash
-		 if new first marker in chain does not say it belongs
-		 to the same buffer, or at least that they have the same
-		 base buffer.  */
-	      if (next && b->text != next->buffer->text)
-		abort ();
-	    }
-	  else
-	    prev->next = next;
-	  /* We have removed the marker from the chain;
-	     no need to scan the rest of the chain.  */
-	  return;
-	}
-      else
-	prev = tail;
-      tail = next;
+      /* No dead buffers here.  */
+      eassert (!NILP (BVAR (b, name)));
+
+      marker->buffer = NULL;
+      prev = &BUF_MARKERS (b);
+
+      for (tail = BUF_MARKERS (b); tail; prev = &tail->next, tail = *prev)
+	if (marker == tail)
+	  {
+	    if (*prev == BUF_MARKERS (b))
+	      {
+		/* Deleting first marker from the buffer's chain.  Crash 
+		   if new first marker in chain does not say it belongs
+		   to the same buffer, or at least that they have the same
+		   base buffer.  */
+		if (tail->next && b->text != tail->next->buffer->text)
+		  abort ();
+	      }
+	    *prev = tail->next;
+	    /* We have removed the marker from the chain;
+	       no need to scan the rest of the chain.  */
+	    break;
+	  }
+
+      /* Error if marker was not in it's chain.  */
+      eassert (tail != NULL);
     }
-
-  /* Marker was not in its chain.  */
-  abort ();
 }
 
 /* Return the char position of marker MARKER, as a C integer.  */

@@ -1,5 +1,10 @@
 2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* buffer.c (unchain_overlay): Simplify.  Add comment.
+	* marker.c (unchain_marker): Simplify. Fix comments.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Introduce fast path for the widely used marker operation.
 	* alloc.c (build_marker): New function.
 	* lisp.h (build_marker): New prototype.
