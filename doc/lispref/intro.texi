@@ -446,9 +446,9 @@ from @var{body}, which includes all remaining elements of the form.
 @cindex option descriptions
 
   A @dfn{variable} is a name that can be bound to an object; binding
-is frequently referred to as `setting', and the object to which
-a variable is `set' is often called a `value' that the variable
-`holds'.  Although nearly all variables can be set by the user,
+is frequently referred to as @dfn{setting}, and the object to which
+a variable is set is often called a @dfn{value} that the variable
+@dfn{holds}.  Although nearly all variables can be set by the user,
 certain variables exist specifically so that users can change them;
 these are called @dfn{user options}.  Ordinary variables and user
 options are described using a format like that for functions, except
