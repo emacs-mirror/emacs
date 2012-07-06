@@ -1,3 +1,10 @@
+2012-07-06  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Re-order top-level menu to correspond to logical
+	order, to avoid makeinfo warnings.
+
+	* ack.texi (Acknowledgments): Note new python.el.
+
 2012-06-29  Chong Yidong  <cyd@gnu.org>
 
 	* maintaining.texi (Basic VC Editing, VC Pull, Merging):

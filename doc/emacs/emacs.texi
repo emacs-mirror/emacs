@@ -131,17 +131,6 @@ Emacs Lisp Reference Manual}.
 @menu
 * Distrib::             How to get the latest Emacs distribution.
 * Intro::               An introduction to Emacs concepts.
-@c Note that in the printed manual, the glossary and indices come last.
-* Glossary::            Terms used in this manual.
-
-Indexes (each index contains a large menu)
-* Key Index::           An item for each standard Emacs key sequence.
-* Option Index::        An item for every command-line option.
-* Command Index::       An item for each command name.
-* Variable Index::      An item for each documented variable.
-* Concept Index::       An item for each concept.
-
-* Acknowledgments::     Major contributors to GNU Emacs.
 
 Important General Concepts
 * Screen::              How to interpret what you see on the screen.
@@ -223,6 +212,18 @@ Appendices
 * Mac OS / GNUstep::    Using Emacs under Mac OS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
+
+* Glossary::            Terms used in this manual.
+@ifnottex
+* Acknowledgments::     Major contributors to GNU Emacs.
+@end ifnottex
+
+Indexes (each index contains a large menu)
+* Key Index::           An item for each standard Emacs key sequence.
+* Option Index::        An item for every command-line option.
+* Command Index::       An item for each command name.
+* Variable Index::      An item for each documented variable.
+* Concept Index::       An item for each concept.
 
 @c Do NOT modify the following 3 lines!  They must have this form to
 @c be correctly identified by `texinfo-multiple-files-update'.  In
