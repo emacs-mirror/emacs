@@ -1,5 +1,7 @@
 2012-07-06  Glenn Morris  <rgm@gnu.org>
 
+	* kmacro.el (kmacro-call-macro): Restore repeat message.  (Bug#11817)
+
 	* files.el (toggle-read-only): Restrict message to interactive use.
 
 2012-07-06  Michael Albinus  <michael.albinus@gmx.de>
