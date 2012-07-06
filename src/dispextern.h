@@ -46,6 +46,13 @@ typedef struct {
 #include "msdos.h"
 #endif
 
+#include <c-strcase.h>
+static inline int
+xstrcasecmp (char const *a, char const *b)
+{
+  return c_strcasecmp (a, b);
+}
+
 #ifdef HAVE_X_WINDOWS
 typedef struct x_display_info Display_Info;
 typedef XImage * XImagePtr;
@@ -3198,11 +3205,6 @@ void unload_color (struct frame *, unsigned long);
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 void prepare_face_for_display (struct frame *, struct face *);
-#ifdef HAVE_STRCASECMP
-#define xstrcasecmp(x,y) strcasecmp ((x), (y))
-#else
-int xstrcasecmp (const char *, const char *);
-#endif
 int lookup_named_face (struct frame *, Lisp_Object, int);
 int lookup_basic_face (struct frame *, int);
 int smaller_face (struct frame *, int, int);

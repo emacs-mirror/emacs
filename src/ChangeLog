@@ -1,5 +1,12 @@
 2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* dispextern.h, nsfns.m, nsterm.m: Include <c-strcase.h>.
+	* dispextern.h (xstrcasecmp): Rewrite using c_strcasecmp.
+	* nsfns.m (x_get_string_resource): Use c_strncasecmp, not strncasecmp.
+	* nsterm.m (ns_default): Use c_strcasecmp, not strcasecmp.
+	* xfaces.c (xstrcasecmp) [!HAVE_STRCASECMP]: Remove.
+
 	* xfont.c (compare_font_names): Redo to omit the need for casts.
 
 2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>

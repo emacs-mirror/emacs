@@ -2707,7 +2707,6 @@ gai_strerror mkstemp getline getdelim fsync sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
-strcasecmp strncasecmp \
 cfmakeraw cfsetspeed copysign __executable_start)
 
 dnl Cannot use AC_CHECK_FUNCS

@@ -1,3 +1,8 @@
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* merge-gnulib (GNULIB_MODULES): Add c-strcase.
+
 2012-07-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* coccinelle/xzalloc.cocci: Semantic patch to convert

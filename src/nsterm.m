@@ -36,6 +36,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <signal.h>
 #include <unistd.h>
 #include <setjmp.h>
+#include <c-strcase.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -3848,9 +3849,9 @@ ns_default (const char *parameter, Lisp_Object *result,
     {
       double f;
       char *pos;
-      if (strcasecmp (value, "YES") == 0)
+      if (c_strcasecmp (value, "YES") == 0)
         *result = yesval;
-      else if (strcasecmp (value, "NO") == 0)
+      else if (c_strcasecmp (value, "NO") == 0)
         *result = noval;
       else if (is_float && (f = strtod (value, &pos), pos != value))
         *result = make_float (f);

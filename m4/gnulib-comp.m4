@@ -40,6 +40,8 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([gl_PROG_AR_RANLIB])
   # Code from module alloca-opt:
   # Code from module allocator:
+  # Code from module c-ctype:
+  # Code from module c-strcase:
   # Code from module careadlinkat:
   # Code from module clock-time:
   # Code from module crypto/md5:
@@ -518,6 +520,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/alloca.in.h
   lib/allocator.c
   lib/allocator.h
+  lib/c-ctype.c
+  lib/c-ctype.h
+  lib/c-strcase.h
+  lib/c-strcasecmp.c
+  lib/c-strncasecmp.c
   lib/careadlinkat.c
   lib/careadlinkat.h
   lib/dosname.h

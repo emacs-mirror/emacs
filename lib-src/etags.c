@@ -144,6 +144,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <c-strcase.h>
 
 #include <assert.h>
 #ifdef NDEBUG
@@ -174,9 +175,9 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #endif
 
 #define streq(s,t)	(assert ((s)!=NULL || (t)!=NULL), !strcmp (s, t))
-#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=NULL), !etags_strcasecmp (s, t))
+#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=NULL), !c_strcasecmp (s, t))
 #define strneq(s,t,n)	(assert ((s)!=NULL || (t)!=NULL), !strncmp (s, t, n))
-#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t)!=NULL), !etags_strncasecmp (s, t, n))
+#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t)!=NULL), !c_strncasecmp (s, t, n))
 
 #define CHARS 256		/* 2^sizeof(char) */
 #define CHAR(x)		((unsigned int)(x) & (CHARS - 1))
@@ -375,16 +376,6 @@ static char *savenstr (const char *, int);
 static char *savestr (const char *);
 static char *etags_strchr (const char *, int);
 static char *etags_strrchr (const char *, int);
-#ifdef HAVE_STRCASECMP
-#define etags_strcasecmp(x,y) strcasecmp ((x), (y))
-#else
-static int etags_strcasecmp (const char *, const char *);
-#endif
-#ifdef HAVE_STRNCASECMP
-#define etags_strncasecmp(x,y,z) strncasecmp ((x), (y), (z))
-#else
-static int etags_strncasecmp (const char *, const char *, int);
-#endif
 static char *etags_getcwd (void);
 static char *relative_filename (char *, char *);
 static char *absolute_filename (char *, char *);
@@ -6313,52 +6304,6 @@ etags_strchr (register const char *sp, register int c)
     } while (*sp++);
   return NULL;
 }
-
-#ifndef HAVE_STRCASECMP
-/*
- * Compare two strings, ignoring case for alphabetic characters.
- *
- * Same as BSD's strcasecmp, included for portability.
- */
-static int
-etags_strcasecmp (register const char *s1, register const char *s2)
-{
-  while (*s1 != '\0'
-	 && (ISALPHA (*s1) && ISALPHA (*s2)
-	     ? lowcase (*s1) == lowcase (*s2)
-	     : *s1 == *s2))
-    s1++, s2++;
-
-  return (ISALPHA (*s1) && ISALPHA (*s2)
-	  ? lowcase (*s1) - lowcase (*s2)
-	  : *s1 - *s2);
-}
-#endif /* HAVE_STRCASECMP */
-
-#ifndef HAVE_STRNCASECMP
-/*
- * Compare two strings, ignoring case for alphabetic characters.
- * Stop after a given number of characters
- *
- * Same as BSD's strncasecmp, included for portability.
- */
-static int
-etags_strncasecmp (register const char *s1, register const char *s2, register int n)
-{
-  while (*s1 != '\0' && n-- > 0
-	 && (ISALPHA (*s1) && ISALPHA (*s2)
-	     ? lowcase (*s1) == lowcase (*s2)
-	     : *s1 == *s2))
-    s1++, s2++;
-
-  if (n < 0)
-    return 0;
-  else
-    return (ISALPHA (*s1) && ISALPHA (*s2)
-	    ? lowcase (*s1) - lowcase (*s2)
-	    : *s1 - *s2);
-}
-#endif /* HAVE_STRCASECMP */
 
 /* Skip spaces (end of string is not space), return new pointer. */
 static char *

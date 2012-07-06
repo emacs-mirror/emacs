@@ -1,5 +1,14 @@
 2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	This is safer than strcasecmp, which has unspecified behavior
+	outside the POSIX locale and in practice sometimes does not work
+	in multibyte locales.  Similarly for c_strncasecmp and strncasecmp.
+	* configure.in (strcasecmp, strncasecmp): Remove checks.
+	* lib/c-ctype.c, lib/c-ctype.h, lib/c-strcase.h, lib/c-strcasecmp.c:
+	* lib/c-strncasecmp.c: New files, taken from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 	Merge from gnulib, incorporating:
 	2012-07-06 timespec-sub: avoid duplicate include
 	Reported by Juanma Barranquero.

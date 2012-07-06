@@ -24,6 +24,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <setjmp.h>
 #include <lisp.h>
+#include <c-strcase.h>
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -111,31 +112,6 @@ safe_strdup (const char *s)
   strcpy (result, s);
   return result;
 }
-
-#ifdef HAVE_STRCASECMP
-#define lwlib_strcasecmp(x,y) strcasecmp ((x), (y))
-#else
-
-/* Like strcmp but ignore differences in case.  */
-
-static int
-lwlib_strcasecmp (const char *s1, const char *s2)
-{
-  while (1)
-    {
-      int c1 = *s1++;
-      int c2 = *s2++;
-      if (isupper (c1))
-	c1 = tolower (c1);
-      if (isupper (c2))
-	c2 = tolower (c2);
-      if (c1 != c2)
-	return (c1 > c2 ? 1 : -1);
-      if (c1 == 0)
-	return 0;
-    }
-}
-#endif /* HAVE_STRCASECMP */
 
 static void
 safe_free_str (char *s)
@@ -733,7 +709,7 @@ find_in_table (const char *type, const widget_creation_entry *table)
 {
   const widget_creation_entry* cur;
   for (cur = table; cur->type; cur++)
-    if (!lwlib_strcasecmp (type, cur->type))
+    if (!c_strcasecmp (type, cur->type))
       return cur->function;
   return NULL;
 }
