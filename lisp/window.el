@@ -3069,9 +3069,8 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
 	   (buffer-live-p (car quad))
 	   (eq (nth 3 quit-restore) buffer))
       ;; Show another buffer stored in quit-restore parameter.
-      (setq resize (with-current-buffer buffer
-		     (and temp-buffer-resize-mode
-			  (/= (nth 3 quad) (window-total-size window)))))
+      (setq resize (and (integerp (nth 3 quad))
+                        (/= (nth 3 quad) (window-total-size window))))
       (set-window-dedicated-p window nil)
       (when resize
 	;; Try to resize WINDOW to its old height but don't signal an
