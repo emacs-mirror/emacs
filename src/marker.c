@@ -38,15 +38,17 @@ extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
 static void
 byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
 {
-  ptrdiff_t nchars = 0;
+  ptrdiff_t nchars;
+
+  if (NILP (BVAR (b, enable_multibyte_characters)))
+    return;
 
   if (bytepos > BUF_GPT_BYTE (b))
-    {
-      nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
-					BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b));
-      nchars += multibyte_chars_in_text (BUF_GAP_END_ADDR (b),
-					 bytepos - BUF_GPT_BYTE (b));
-    }
+    nchars
+      = multibyte_chars_in_text (BUF_BEG_ADDR (b),
+				 BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b))
+      + multibyte_chars_in_text (BUF_GAP_END_ADDR (b),
+				 bytepos - BUF_GPT_BYTE (b));
   else
     nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
 				      bytepos - BUF_BEG_BYTE (b));
@@ -197,7 +199,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
       if (record)
 	build_marker (b, best_below, best_below_byte);
 
-      byte_char_debug_check (b, charpos, best_below_byte);
+      byte_char_debug_check (b, best_below, best_below_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -222,7 +224,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
       if (record)
 	build_marker (b, best_above, best_above_byte);
 
-      byte_char_debug_check (b, charpos, best_above_byte);
+      byte_char_debug_check (b, best_above, best_above_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -363,7 +365,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       if (record && BUF_MARKERS (b))
 	build_marker (b, best_below, best_below_byte);
 
-      byte_char_debug_check (b, best_below, bytepos);
+      byte_char_debug_check (b, best_below, best_below_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -390,7 +392,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       if (record && BUF_MARKERS (b))
 	build_marker (b, best_above, best_above_byte);
 
-      byte_char_debug_check (b, best_above, bytepos);
+      byte_char_debug_check (b, best_above, best_above_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);

@@ -1,5 +1,13 @@
 2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Fix marker debugging code.
+	* marker.c (byte_char_debug_check): Do not perform the check
+	if buffer is not multibyte.
+	(buf_charpos_to_bytepos, buf_bytepos_to_charpos): Call
+	byte_char_debug_check with correct arguments.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Compile marker debugging code only if ENABLE_CHECKING is defined.
 	* marker.c (byte_char_debug_check, count_markers): Use
 	only if ENABLE_CHECKING is defined.
