@@ -27,6 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DOS_NT 	/* MSDOS or WINDOWSNT */
 #endif
 
+/* #undef const */
+
 /* If you are compiling with a non-C calling convention but need to
    declare vararg routines differently, put it here.  */
 #define _VARARGS_ __cdecl
@@ -35,8 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    function back (like a signal handler and signal, or main) its calling
    convention must be whatever standard the libraries expect.  */
 #define _CALLBACK_ __cdecl
-
-#define NO_MATHERR 1
 
 /* Letter to use in finding device name of first pty,
    if system supports pty's.  'a' means it is /dev/ptya0  */
@@ -57,14 +57,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for received packets, so datagrams are broken too.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
 
-#define MAIL_USE_POP 1
+/* MSVC ignores the "register" keyword, so test fails even though
+   setjmp does work.  */
+#define GC_SETJMP_WORKS 1
+
+/* Enable conservative stack marking for GC.  */
+#define GC_MARK_STACK 1
+
 #define MAIL_USE_SYSTEM_LOCK 1
 
 /* If the character used to separate elements of the executable path
    is not ':', #define this to be the appropriate character constant.  */
 #define SEPCHAR ';'
-
-#define ORDINARY_LINK 1
 
 /* ============================================================ */
 
@@ -81,6 +85,46 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
+#ifdef __GNUC__
+#ifndef __cplusplus
+#undef inline
+#endif
+#else  /* MSVC */
+#define inline __inline
+#endif
+
+#ifdef __GNUC__
+# define restrict __restrict__
+#else
+# define restrict
+#endif
+
+/* `mode_t' is not defined for MSVC. Define. */
+#ifdef _MSC_VER
+typedef unsigned short mode_t;
+#endif
+
+/* A va_copy replacement for MSVC.  */
+#ifdef _MSC_VER
+# ifdef _WIN64
+#  ifndef va_copy               /* Need to be checked (?) */
+#   define va_copy(d,s) ((d) = (s))
+#  endif
+# else	/* not _WIN64 */
+#  define va_copy(d,s) ((d) = (s))
+# endif	 /* not _WIN64 */
+#endif	 /* _MSC_VER */
+
+#ifndef WINDOWSNT
+/* Some of the files of Emacs which are intended for use with other
+   programs assume that if you have a config.h file, you must declare
+   the type of getenv.  */
+extern char *getenv ();
+#endif
+
+#ifdef HAVE_STRINGS_H
+#include "strings.h"
+#endif
 #include <sys/types.h>
 
 #ifdef _MSC_VER
@@ -104,79 +148,11 @@ struct sigaction {
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
-#define HAVE_SOUND  1
-
-#define HAVE_SYS_TIMEB_H 1
-#define HAVE_SYS_TIME_H 1
-#define HAVE_UNISTD_H 1
-#undef  HAVE_UTIME_H
-#undef  HAVE_LINUX_VERSION_H
-#undef  HAVE_SYS_SYSTEMINFO_H
-#define HAVE_PWD_H 1
-#define TIME_WITH_SYS_TIME 1
-
-#define HAVE_GETTIMEOFDAY 1
-#define HAVE_GETHOSTNAME 1
-#define HAVE_DUP2 1
-#define HAVE_RENAME 1
-#define HAVE_CLOSEDIR 1
-#define HAVE_FSYNC 1		/* fsync is called _commit in MSVC.  */
-
-#undef  TM_IN_SYS_TIME
-#undef  HAVE_TM_ZONE
-
-#define HAVE_LONG_FILE_NAMES 1
-
-#define HAVE_MKDIR 1
-#define HAVE_RMDIR 1
-#define HAVE_RANDOM 1
-#undef  HAVE_SYSINFO
-#undef  HAVE_LRAND48
-#define HAVE_LOGB 1
-#define HAVE_FREXP 1
-#define HAVE_FMOD 1
-#undef  HAVE_RINT
-#undef  HAVE_CBRT
-#undef  HAVE_RES_INIT /* For -lresolv on Suns.  */
-#undef  HAVE_SETSID
-#undef  HAVE_FPATHCONF
-#define HAVE_SELECT 1
-#undef  HAVE_EUIDACCESS
-#define HAVE_GETPAGESIZE 1
-#define HAVE_TZSET 1
-#define HAVE_SETLOCALE 1
-#undef  HAVE_UTIMES
-#undef  HAVE_SETRLIMIT
-#undef  HAVE_SETPGID
-/* If you think about defining HAVE_GETCWD, don't: the alternative
-   getwd is redefined on w32.c, and does not really return the current
-   directory, to get the desired results elsewhere in Emacs */
-#undef  HAVE_GETCWD
-#define HAVE_SHUTDOWN 1
-
-#define LOCALTIME_CACHE
-#define HAVE_INET_SOCKETS 1
-
-#undef  HAVE_AIX_SMT_EXP
-#define USE_TOOLKIT_SCROLL_BARS 1
-
 /* MinGW has these in its library; MSVC doesn't.  */
 #ifdef _MSC_VER
 #define strcasecmp(s1,s2)  _stricmp(s1,s2)
 #define strncasecmp(s1,s2) _strnicmp(s1,s2)
 #endif
-#define HAVE_STRCASECMP 1
-#define HAVE_STRNCASECMP 1
-
-/* Define if you have the ANSI `strerror' function.
-   Otherwise you must have the variable `char *sys_errlist[]'.  */
-#define HAVE_STRERROR 1
-
-/* Define if `struct utimbuf' is declared by <utime.h>.  */
-#undef  HAVE_STRUCT_UTIMBUF
-
-#define HAVE_MOUSE 1
-#define HAVE_H_ERRNO 1
 
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM 1
@@ -354,6 +330,13 @@ extern char *get_emacs_configuration_options (void);
 #define _WINSOCKAPI_    1
 #define _WINSOCK_H
 
+/* Prevent accidental use of features unavailable in
+   older Windows versions we still support.  */
+#define _WIN32_WINNT 0x0400
+
+/* Make a leaner executable.  */
+#define WIN32_LEAN_AND_MEAN 1
+
 /* Defines size_t and alloca ().  */
 #ifdef emacs
 #define malloc e_malloc
@@ -365,6 +348,16 @@ extern char *get_emacs_configuration_options (void);
 #define alloca _alloca
 #else
 #include <malloc.h>
+#endif
+
+/* stdlib.h must be included after redefining malloc & friends, but
+   before redefining abort.  Isn't library redefinition funny?  */
+#include <stdlib.h>
+
+/* Redefine abort.  */
+#ifdef HAVE_NTGUI
+#define abort	w32_abort
+extern _Noreturn void w32_abort (void);
 #endif
 
 #include <sys/stat.h>
@@ -379,13 +372,35 @@ extern char *get_emacs_configuration_options (void);
 #endif
 
 /* For proper declaration of environ.  */
-#include <stdlib.h>
 #ifndef sys_nerr
 #define sys_nerr _sys_nerr
 #endif
-#include <string.h>
 
 extern int getloadavg (double *, int);
+
+#if defined (__MINGW32__) || _MSC_VER >= 1400
+
+/* Define to 1 if the system has the type `long long int'. */
+# define HAVE_LONG_LONG_INT 1
+
+/* Define to 1 if the system has the type `unsigned long long int'. */
+# define HAVE_UNSIGNED_LONG_LONG_INT 1
+
+#elif _MSC_VER >= 1200
+
+/* Temporarily disable wider-than-pointer integers until they're tested more.
+   Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
+
+# ifdef WIDE_EMACS_INT
+
+/* Use pre-C99-style 64-bit integers.  */
+# define EMACS_INT __int64
+# define EMACS_INT_MAX _I64_MAX
+# define pI "I64"
+
+# endif
+
+#endif
 
 /* We need a little extra space, see ../../lisp/loadup.el.  */
 #define SYSTEM_PURESIZE_EXTRA 50000
@@ -423,6 +438,5 @@ extern void _DebPrint (const char *fmt, ...);
 #else
 #define DebPrint(stuff)
 #endif
-
 
 /* ============================================================ */

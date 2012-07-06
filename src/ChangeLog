@@ -1,3 +1,10 @@
+2012-07-06  Juanma Barranquero	<lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h: Settings not specific to Windows moved to nt/config.nt.
+	Windows-specific code from nt/config.nt moved here.
+	Obsolete settings removed.
+
 2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c: Avoid unnecessary calls to gettime.
