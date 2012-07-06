@@ -1,5 +1,21 @@
 2012-07-06  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (kill-whole-line): Doc tweak.
+
+2012-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-relative-name): Compare file names
+	case-insensitively if on MS-Windows or MS-DOS, or if
+	read-file-name-completion-ignore-case is non-nil.  Don't use
+	case-fold-search for this purpose.  (Bug#11827)
+
+2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/cal-dst.el (calendar-current-time-zone): Return
+	calendar-current-time-zone-cache if non-nil.
+
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
 	* Makefile.in (cvs-update): Remove old alias.
 
 2012-07-05  Michael Albinus  <michael.albinus@gmx.de>
