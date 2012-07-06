@@ -1,3 +1,9 @@
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist [update]: Let autoreconf figure out what needs updating.
+	Use `make info-real'.  leim/leim-list.el should always exist.
+	Check cd return value.
+
 2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.  This is for OpenBSD 5.1 amd64.
