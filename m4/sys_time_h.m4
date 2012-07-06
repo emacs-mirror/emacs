@@ -52,7 +52,9 @@ AC_DEFUN([gl_HEADER_SYS_TIME_H_BODY],
     dnl (in <sys/time.h> and <winsock2.h> for mingw64, in <winsock2.h> only
     dnl for MSVC) with a tv_sec field of type 'long' (32-bit!), which is
     dnl smaller than the 'time_t' type mandated by POSIX.
-    AC_CACHE_CHECK([for correct struct timeval.tv_sec member],
+    dnl On OpenBSD 5.1 amd64, tv_sec is 64 bits and time_t 32 bits, but
+    dnl that is good enough.
+    AC_CACHE_CHECK([for wide-enough struct timeval.tv_sec member],
       [gl_cv_sys_struct_timeval_tv_sec],
       [AC_COMPILE_IFELSE(
          [AC_LANG_PROGRAM(
@@ -65,7 +67,9 @@ AC_DEFUN([gl_HEADER_SYS_TIME_H_BODY],
               #endif
             ]],
             [[static struct timeval x;
-              typedef int verify_tv_sec_type[sizeof (x.tv_sec) == sizeof (time_t) ? 1 : -1];
+              typedef int verify_tv_sec_type[
+                sizeof (time_t) <= sizeof x.tv_sec ? 1 : -1
+              ];
             ]])],
          [gl_cv_sys_struct_timeval_tv_sec=yes],
          [gl_cv_sys_struct_timeval_tv_sec=no])

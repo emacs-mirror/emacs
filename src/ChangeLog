@@ -1,3 +1,13 @@
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OpenBSD 5.1 amd64.
+	* sysdep.c [BSD_SYSTEM]: Include <sys/param.h> before <sys/sysctl.h>.
+	This is needed for OpenBSD, and should be harmless on all BSD systems.
+	Also, include <sys/sysctl.h>, as it should be available on all
+	BSD_SYSTEM hosts given that we're already calling sysctl in that case.
+	(list_system_processes) [__OpenBSD__]: Use DARWIN_OS style mib, but
+	use p_pid member, not kp_proc.pid.
+
 2012-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (emacs$(EXEEXT)): Don't check for load-path shadows.

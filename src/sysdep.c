@@ -38,15 +38,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 #include "blockinput.h"
 
-#ifdef __FreeBSD__
+#ifdef BSD_SYSTEM
+#include <sys/param.h>
 #include <sys/sysctl.h>
+#endif
+
+#ifdef __FreeBSD__
 #include <sys/user.h>
 #include <sys/resource.h>
 #include <math.h>
-#endif
-
-#ifdef DARWIN_OS
-#include <sys/sysctl.h>
 #endif
 
 #ifdef WINDOWSNT
@@ -2520,7 +2520,7 @@ list_system_processes (void)
 Lisp_Object
 list_system_processes (void)
 {
-#ifdef DARWIN_OS
+#if defined DARWIN_OS || defined __OpenBSD__
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL};
 #else
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
@@ -2548,6 +2548,8 @@ list_system_processes (void)
     {
 #ifdef DARWIN_OS
       proclist = Fcons (make_fixnum_or_float (procs[i].kp_proc.p_pid), proclist);
+#elif defined __OpenBSD__
+      proclist = Fcons (make_fixnum_or_float (procs[i].p_pid), proclist);
 #else
       proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
 #endif

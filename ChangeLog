@@ -1,3 +1,9 @@
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.  This is for OpenBSD 5.1 amd64.
+	* m4/sys_time_h.m4: New version from gnulib, incorporating:
+	2012-07-05 sys_time: allow too-wide tv_sec
+
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.
