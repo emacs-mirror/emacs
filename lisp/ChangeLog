@@ -1,3 +1,8 @@
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bzr-update): "compile" is the same as "recompile
+	autoloads", but parallelizable, so use that instead.
+
 2012-07-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* window.el (quit-window): Always restore window height when
