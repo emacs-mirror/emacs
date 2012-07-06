@@ -186,13 +186,12 @@ update-subdirs: doit
 	   $(top_srcdir)/build-aux/update-subdirs $$file; \
 	done;
 
+# Some modes of make-dist use this.
 updates: update-subdirs autoloads finder-data custom-deps
 
-# This is useful after "bzr up".
+# This is useful after "bzr up"; but it doesn't do anything that a
+# plain "make" at top-level doesn't.
 bzr-update: recompile autoloads finder-data custom-deps
-
-# For backwards compatibility:
-cvs-update: bzr-update
 
 # Update the AUTHORS file.
 
