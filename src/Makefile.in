@@ -395,7 +395,6 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS=$(bootstrap_exe)
 
-## Does anyone ever pay attention to the load-path-shadows output here?
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
 ## Strictly speaking, emacs does not depend directly on all of $lisp,
@@ -404,13 +403,10 @@ $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  ln -f temacs$(EXEEXT) emacs$(EXEEXT); \
-	  EMACSLOADPATH=$(lispsource) ./emacs -batch \
-	    -f list-load-path-shadows || true; \
 	else \
 	  LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump || exit 1; \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
 	  ln -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
-	  ./emacs -batch -f list-load-path-shadows || true; \
 	fi
 
 ## We run make-docfile twice because the command line may get too long

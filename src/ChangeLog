@@ -1,3 +1,7 @@
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacs$(EXEEXT)): Don't check for load-path shadows.
+
 2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	More xmalloc and related cleanup.
