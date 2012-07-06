@@ -1,3 +1,8 @@
+2012-07-06  Richard Stallman  <rms@gnu.org>
+
+	* intro.texi (Evaluation Notation, A Sample Function Description):
+	Improve/undo previous changes.
+
 2012-07-05  Glenn Morris  <rgm@gnu.org>
 
 	* intro.texi (A Sample Function Description): Fix cross-refs.
