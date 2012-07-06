@@ -1,3 +1,8 @@
+2012-07-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_event_is_for_scrollbar): Assign gwin when HAVE_GTK3
+	is defined (Bug#11768).
+
 2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix marker debugging code.
@@ -122,7 +127,7 @@
 	(xg_event_is_for_scrollbar): Use Gdk Device functions for HAVE_GTK3.
 	(is_box_type): New function (Bug#11768).
 	(xg_tool_item_stale_p): Call is_box_type.
-	(xg_initialize): Get settings by calling gtk_settings_get_for_screen
+	(xg_initialize): Get settings by calli<g gtk_settings_get_for_screen
 	with default display (Bug#11768).
 
 2012-07-05  Eli Zaretskii  <eliz@gnu.org>

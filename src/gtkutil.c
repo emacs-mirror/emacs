@@ -3730,7 +3730,7 @@ xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event)
 #ifdef HAVE_GTK3
       GdkDevice *gdev = gdk_device_manager_get_client_pointer
         (gdk_display_get_device_manager (gdpy));
-      gdk_device_get_window_at_position (gdev, NULL, NULL);
+      gwin = gdk_device_get_window_at_position (gdev, NULL, NULL);
 #else
       gwin = gdk_display_get_window_at_pointer (gdpy, NULL, NULL);
 #endif
