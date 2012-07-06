@@ -1,3 +1,9 @@
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-07-06 timespec-sub: avoid duplicate include
+	Reported by Juanma Barranquero.
+
 2012-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist [update]: Let autoreconf figure out what needs updating.

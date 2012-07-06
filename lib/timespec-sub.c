@@ -22,7 +22,6 @@
    999999999.  */
 
 #include <config.h>
-#include <config.h>
 #include "timespec.h"
 
 #include "intprops.h"
