@@ -1327,19 +1327,21 @@ because @samp{/:} is the prefix for quoted file names.
 @cindex multi-hop
 @cindex proxy hosts
 
-Sometimes, the methods described before are not sufficient.  Sometimes,
-it is not possible to connect to a remote host using a simple command.
-For example, if you are in a secured network, you might have to log in
-to a `bastion host' first before you can connect to the outside world.
-Of course, the target host may also require a bastion host.
+Sometimes, the methods described before are not sufficient.
+Sometimes, it is not possible to connect to a remote host using a
+simple command.  For example, if you are in a secured network, you
+might have to log in to a bastion host first before you can connect to
+the outside world.  Of course, the target host may also require a
+bastion host.
 
 @vindex tramp-default-proxies-alist
-In order to specify such multiple hops, it is possible to define a proxy
+@defopt tramp-default-proxies-alist
+In order to specify multiple hops, it is possible to define a proxy
 host to pass through, via the variable
 @code{tramp-default-proxies-alist}.  This variable keeps a list of
 triples (@var{host} @var{user} @var{proxy}).
 
- The first matching item specifies the proxy host to be passed for a
+The first matching item specifies the proxy host to be passed for a
 file name located on a remote target matching @var{user}@@@var{host}.
 @var{host} and @var{user} are regular expressions or @code{nil}, which
 is interpreted as a regular expression which always matches.
@@ -1442,6 +1444,26 @@ following rule:
 Gateway methods can be declared as first hop only in a multiple hop
 chain.
 @end ifset
+@end defopt
+
+Hops to be passed tend to be restricted firewalls and alike.
+Sometimes they offer limited features only, like running @command{rbash}
+(restricted bash).  This must be told to @value{tramp}.
+
+@vindex tramp-restricted-shell-hosts-alist
+@defopt tramp-restricted-shell-hosts-alist
+This variable keeps a list of regular expressions, which denote hosts
+running a registered shell like "rbash".  Those hosts can be used as
+proxies only.
+
+If the bastion host from the example above runs a restricted shell,
+you shall apply
+
+@lisp
+(add-to-list 'tramp-restricted-shell-hosts-alist
+             "\\`bastion\\.your\\.domain\\'")
+@end lisp
+@end defopt
 
 
 @node Customizing Methods

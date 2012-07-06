@@ -1,3 +1,8 @@
+2012-07-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Multi-hops): Introduce
+	`tramp-restricted-shell-hosts-alist'.
+
 2012-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (POP before SMTP): POP-before-SMTP works with all sending
