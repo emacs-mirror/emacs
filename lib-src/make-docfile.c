@@ -693,7 +693,13 @@ write_globals (void)
 
       while (i + 1 < num_globals
 	     && !strcmp (globals[i].name, globals[i + 1].name))
-	++i;
+	{
+	  if (globals[i].type == FUNCTION
+	      && globals[i].value != globals[i + 1].value)
+	    error ("function '%s' defined twice with differing signatures",
+		   globals[i].name);
+	  ++i;
+	}
     }
 
   if (!seen_defun)

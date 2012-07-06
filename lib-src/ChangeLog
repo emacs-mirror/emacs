@@ -1,3 +1,8 @@
+2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (write_globals): Warn about duplicate function
+	definitions with differing signatures.
+
 2012-07-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-docfile.c (scan_c_file): Suppress GCC warning.
