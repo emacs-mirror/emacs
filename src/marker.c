@@ -31,8 +31,36 @@ static ptrdiff_t cached_bytepos;
 static struct buffer *cached_buffer;
 static int cached_modiff;
 
-static void byte_char_debug_check (struct buffer *, ptrdiff_t, ptrdiff_t);
+#ifdef ENABLE_CHECKING
 
+extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
+
+static void
+byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
+{
+  ptrdiff_t nchars = 0;
+
+  if (bytepos > BUF_GPT_BYTE (b))
+    {
+      nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
+					BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b));
+      nchars += multibyte_chars_in_text (BUF_GAP_END_ADDR (b),
+					 bytepos - BUF_GPT_BYTE (b));
+    }
+  else
+    nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
+				      bytepos - BUF_BEG_BYTE (b));
+
+  if (charpos - 1 != nchars)
+    abort ();
+}
+
+#else /* not ENABLE_CHECKING */
+
+#define byte_char_debug_check(b,charpos,bytepos) do { } while (0)
+
+#endif /* ENABLE_CHECKING */
+ 
 void
 clear_charpos_cache (struct buffer *b)
 {
@@ -61,8 +89,8 @@ clear_charpos_cache (struct buffer *b)
   if (this_charpos == charpos)						\
     {									\
       ptrdiff_t value = (BYTEPOS);				       	\
-      if (byte_debug_flag)						\
-	byte_char_debug_check (b, charpos, value);			\
+									\
+      byte_char_debug_check (b, charpos, value);			\
       return value;							\
     }									\
   else if (this_charpos > charpos)					\
@@ -86,31 +114,11 @@ clear_charpos_cache (struct buffer *b)
       if (best_above - best_below == best_above_byte - best_below_byte)	\
         {								\
 	  ptrdiff_t value = best_below_byte + (charpos - best_below);	\
-	  if (byte_debug_flag)						\
-	    byte_char_debug_check (b, charpos, value);			\
+									\
+	  byte_char_debug_check (b, charpos, value);			\
 	  return value;							\
 	}								\
     }									\
-}
-
-static void
-byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
-{
-  ptrdiff_t nchars = 0;
-
-  if (bytepos > BUF_GPT_BYTE (b))
-    {
-      nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
-					BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b));
-      nchars += multibyte_chars_in_text (BUF_GAP_END_ADDR (b),
-					 bytepos - BUF_GPT_BYTE (b));
-    }
-  else
-    nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
-				      bytepos - BUF_BEG_BYTE (b));
-
-  if (charpos - 1 != nchars)
-    abort ();
 }
 
 ptrdiff_t
@@ -189,8 +197,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
       if (record)
 	build_marker (b, best_below, best_below_byte);
 
-      if (byte_debug_flag)
-	byte_char_debug_check (b, charpos, best_below_byte);
+      byte_char_debug_check (b, charpos, best_below_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -215,8 +222,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
       if (record)
 	build_marker (b, best_above, best_above_byte);
 
-      if (byte_debug_flag)
-	byte_char_debug_check (b, charpos, best_above_byte);
+      byte_char_debug_check (b, charpos, best_above_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -262,8 +268,8 @@ verify_bytepos (ptrdiff_t charpos)
   if (this_bytepos == bytepos)						\
     {									\
       ptrdiff_t value = (CHARPOS);				       	\
-      if (byte_debug_flag)						\
-	byte_char_debug_check (b, value, bytepos);			\
+									\
+      byte_char_debug_check (b, value, bytepos);			\
       return value;							\
     }									\
   else if (this_bytepos > bytepos)					\
@@ -287,8 +293,8 @@ verify_bytepos (ptrdiff_t charpos)
       if (best_above - best_below == best_above_byte - best_below_byte)	\
 	{								\
 	  ptrdiff_t value = best_below + (bytepos - best_below_byte);	\
-	  if (byte_debug_flag)						\
-	    byte_char_debug_check (b, value, bytepos);			\
+									\
+	  byte_char_debug_check (b, value, bytepos);			\
 	  return value;							\
 	}								\
     }									\
@@ -357,8 +363,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       if (record && BUF_MARKERS (b))
 	build_marker (b, best_below, best_below_byte);
 
-      if (byte_debug_flag)
-	byte_char_debug_check (b, best_below, bytepos);
+      byte_char_debug_check (b, best_below, bytepos);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -385,8 +390,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       if (record && BUF_MARKERS (b))
 	build_marker (b, best_above, best_above_byte);
 
-      if (byte_debug_flag)
-	byte_char_debug_check (b, best_above, bytepos);
+      byte_char_debug_check (b, best_above, bytepos);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -775,9 +779,10 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
   return Qnil;
 }
 
+#ifdef ENABLE_CHECKING
+
 /* For debugging -- count the markers in buffer BUF.  */
 
-extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
 int
 count_markers (struct buffer *buf)
 {
@@ -789,6 +794,8 @@ count_markers (struct buffer *buf)
 
   return total;
 }
+
+#endif /* ENABLE_CHECKING */
 
 void
 syms_of_marker (void)
@@ -800,8 +807,4 @@ syms_of_marker (void)
   defsubr (&Smarker_insertion_type);
   defsubr (&Sset_marker_insertion_type);
   defsubr (&Sbuffer_has_markers_at);
-
-  DEFVAR_BOOL ("byte-debug-flag", byte_debug_flag,
-	       doc: /* Non-nil enables debugging checks in byte/char position conversions.  */);
-  byte_debug_flag = 0;
 }
