@@ -51,9 +51,9 @@ the character after point.
 * Case Changes::     Case conversion of parts of the buffer.
 * Text Properties::  Assigning Lisp property lists to text characters.
 * Substitution::     Replacing a given character wherever it appears.
-* Transposition::    Swapping two portions of a buffer.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
+* Transposition::    Swapping two portions of a buffer.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
 * Parsing HTML/XML:: Parsing HTML and XML.

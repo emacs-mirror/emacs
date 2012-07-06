@@ -1,3 +1,13 @@
+2012-07-06  Chong Yidong  <cyd@gnu.org>
+
+	* intro.texi (A Sample Function Description): Fix incorrect
+	markup, undoing previous change.
+	(A Sample Variable Description): Minor clarifications and markup
+	improvements.
+
+	* elisp.texi (Top):
+	* text.texi (Text): Fix menu order.
+
 2012-07-06  Richard Stallman  <rms@gnu.org>
 
 	* intro.texi (Evaluation Notation, A Sample Function Description):
