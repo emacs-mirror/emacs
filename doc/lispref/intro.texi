@@ -448,7 +448,7 @@ from @var{body}, which includes all remaining elements of the form.
 
   A @dfn{variable} is a name that can be @dfn{bound} (or @dfn{set}) to
 an object.  The object to which a variable is bound is called a
-@dfn{value}; we say also that variable @dfn{holds} that value.
+@dfn{value}; we say also that variable holds that value.
 Although nearly all variables can be set by the user, certain
 variables exist specifically so that users can change them; these are
 called @dfn{user options}.  Ordinary variables and user options are
