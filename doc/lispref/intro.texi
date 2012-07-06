@@ -235,7 +235,7 @@ evaluation of the expanded form.
      @result{} c
 @end example
 
-  Sometimes to help describe one form, we show another form that
+  To help describe one form, we sometimes show another form that
 produces identical results.  The exact equivalence of two forms is
 indicated with @samp{@equiv{}}.
 
@@ -350,7 +350,7 @@ arguments default to @code{nil}).  Do not write @code{&optional} when
 you call the function.
 
   The keyword @code{&rest} (which must be followed by a single
-argument name) indicates that any number of arguments may follow.  The
+argument name) indicates that any number of arguments can follow.  The
 single argument name following @code{&rest} receives, as its
 value, a list of all the remaining arguments passed to the function.
 Do not write @code{&rest} when you call the function.
@@ -380,10 +380,9 @@ More generally,
 @end defun
 
   Any argument whose name contains the name of a type (e.g.,
-@var{integer}, @var{integer1} or @var{buffer}) is expected to be bound
-to an object of that type.  A plural of a type (such as @var{buffers})
-often means a list of objects of that type.  An argument named with the
-type @var{object} may be bound to an object of any type.
+@var{integer}, @var{integer1} or @var{buffer}) is expected to be of that
+type.  A plural of a type (such as @var{buffers}) often means a list of
+objects of that type.  An argument named @var{object} may be of any type.
 (For a list of Emacs object types, @pxref{Lisp Data Types}.)  An argument
 with some other sort of name (e.g., @var{new-file}) is discussed
 specifically in the description of the function.  In some sections,
