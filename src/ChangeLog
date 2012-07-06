@@ -1,3 +1,10 @@
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c: Avoid unnecessary calls to gettime.
+	(wait_reading_process_output): Don't get the time of day
+	when gobbling data immediately and not waiting, as there's no need
+	for it in that case.  This removes a FIXME.
+
 2012-07-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_event_is_for_scrollbar): Assign gwin when HAVE_GTK3

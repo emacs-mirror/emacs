@@ -4307,7 +4307,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
   /* Since we may need to wait several times,
      compute the absolute time to return at.  */
-  if (time_limit || nsecs) /* FIXME neither should be negative, no? */
+  if (time_limit || 0 < nsecs)
     {
       EMACS_GET_TIME (end_time);
       EMACS_SET_SECS_NSECS (timeout, time_limit, nsecs);
@@ -4336,13 +4336,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       /* Exit if already run out */
       if (nsecs < 0)
 	{
-	  /* -1 specified for timeout means
+	  /* A negative timeout means
 	     gobble output available now
 	     but don't wait at all. */
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
 	}
-      else if (time_limit || nsecs)
+      else if (time_limit || 0 < nsecs)
 	{
 	  EMACS_GET_TIME (timeout);
 	  if (EMACS_TIME_LE (end_time, timeout))
@@ -4393,7 +4393,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      && requeued_events_pending_p ())
 	    break;
 
-	  /* If time_limit is negative, we are not going to wait at all.  */
+	  /* A negative timeout means do not wait at all.  */
 	  if (0 <= nsecs)
 	    {
 	      if (EMACS_TIME_VALID_P (timer_delay))
@@ -4661,7 +4661,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       do_pending_window_change (0);
 
       if ((time_limit || nsecs) && nfds == 0 && ! timeout_reduced_for_timers)
-	/* We wanted the full specified time, so return now.  */
+	/* We waited the full specified time, so return now.  */
 	break;
       if (nfds < 0)
 	{
@@ -6855,7 +6855,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
     time_limit = TYPE_MAXIMUM (time_t);
 
   /* What does time_limit really mean?  */
-  if (time_limit || nsecs) /* FIXME: what if negative? */
+  if (time_limit || 0 < nsecs)
     {
       EMACS_GET_TIME (end_time);
       EMACS_SET_SECS_NSECS (timeout, time_limit, nsecs);
@@ -6886,13 +6886,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       /* Exit if already run out */
       if (nsecs < 0)
 	{
-	  /* -1 specified for timeout means
+	  /* A negative timeout means
 	     gobble output available now
 	     but don't wait at all. */
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
 	}
-      else if (time_limit || nsecs)
+      else if (time_limit || 0 < nsecs)
 	{
 	  EMACS_GET_TIME (timeout);
 	  if (EMACS_TIME_LE (end_time, timeout))
