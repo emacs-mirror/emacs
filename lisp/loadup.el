@@ -108,6 +108,17 @@
 (load "button")
 (load "startup")
 
+;; We don't want to store loaddefs.el in the repository because it is
+;; a generated file; but it is required in order to compile the lisp files.
+;; When bootstrapping, we cannot generate loaddefs.el until an
+;; emacs binary has been built.  We therefore compromise and keep
+;; ldefs-boot.el in the repository.  This does not need to be updated
+;; as often as the real loaddefs.el would.  Bootstrap should always
+;; work with ldefs-boot.el.  Therefore, Whenever a new autoload cookie
+;; gets added that is necessary during bootstrapping, ldefs-boot.el
+;; should be updated by overwriting it with an up-to-date copy of
+;; loaddefs.el that is uncorrupted by local changes.
+;; autogen/update_autogen can be used to periodically update ldefs-boot.
 (condition-case nil
     ;; Don't get confused if someone compiled this by mistake.
     (load "loaddefs.el")
