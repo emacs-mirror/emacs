@@ -2,13 +2,13 @@
 
 	* config.nt (HAVE_STRCASECMP, HAVE_STRNCASECMP): Remove.
 
-2012-07-06  Juanma Barranquero	<lekktu@gmail.com>
+2012-07-06  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt: Complete rework to bring it in sync with autogen/config.in.
 	All Windows-specific code moved to src/s/ms-w32.h.
 
-2012-07-04  Juanma Barranquero	<lekktu@gmail.com>
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (enablechecking): Enable checks through src/config.h,

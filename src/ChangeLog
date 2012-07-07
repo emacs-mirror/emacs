@@ -136,14 +136,14 @@
 	Fix marker debugging code.
 	* marker.c (byte_char_debug_check): Do not perform the check
 	if buffer is not multibyte.
-	(buf_charpos_to_bytepos, buf_bytepos_to_charpos): Call
-	byte_char_debug_check with correct arguments.
+	(buf_charpos_to_bytepos, buf_bytepos_to_charpos):
+	Call byte_char_debug_check with correct arguments.
 
 2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Compile marker debugging code only if ENABLE_CHECKING is defined.
-	* marker.c (byte_char_debug_check, count_markers): Use
-	only if ENABLE_CHECKING is defined.
+	* marker.c (byte_char_debug_check, count_markers):
+	Use only if ENABLE_CHECKING is defined.
 	(byte_debug_flag): Remove.
 	(CONSIDER, buf_charpos_to_bytepos, buf_bytepos_to_charpos):
 	Always call byte_char_debug_check if ENABLE_CHECKING is defined.
@@ -250,8 +250,8 @@
 	(make_widget_for_menu_item, xg_make_tool_item): Use gtk_box_new
 	followed by gtk_box_set_homogeneous (Bug#11768).
 	(xg_update_menu_item): Use GTK_IS_BOX (Bug#11768).
-	(update_theme_scrollbar_width, xg_create_scroll_bar): Use
-	gtk_scrollbar_new (Bug#11768).
+	(update_theme_scrollbar_width, xg_create_scroll_bar):
+	Use gtk_scrollbar_new (Bug#11768).
 	(xg_event_is_for_scrollbar): Use Gdk Device functions for HAVE_GTK3.
 	(is_box_type): New function (Bug#11768).
 	(xg_tool_item_stale_p): Call is_box_type.
@@ -2790,7 +2790,7 @@
 	Fix compilation with -DGLYPH_DEBUG=1 on MS-Windows.
 
 	* w32term.c [GLYPH_DEBUG]: Add prototype for x_check_font.
-	(x_check_font) [GLYPH_DEBUG]: New function, copied from xterm.c
+	(x_check_font) [GLYPH_DEBUG]: New function, copied from xterm.c.
 
 	* w32fns.c (unwind_create_frame) [GLYPH_DEBUG]: Fix broken
 	reference to image_cache->refcount.
@@ -7722,7 +7722,7 @@
 	(EmacsToolbar): Implements NSToolbarDelegate on OSX >= 10.6.
 
 	* nsselect.m (ns_string_from_pasteboard): Don't use deprecated methods
-	cString and lossyCString on OSX >= 10.4
+	cString and lossyCString on OSX >= 10.4.
 
 	* nsmenu.m (fillWithWidgetValue): Don't use deprecated method
 	sizeToFit on OSX >= 10.2.

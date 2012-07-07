@@ -1544,7 +1544,7 @@
 	* vc/vc-rcs.el (vc-rcs-rcs2log-program): New.
 	(vc-rcs-update-changelog): Use it.
 
-	* emacs-lisp/authors.el (authors-fixed-entries): Remove vcdiff
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove vcdiff.
 
 	* vc/vc-sccs.el (vc-sccs-write-revision): New function.
 	(vc-sccs-workfile-unchanged-p): Use vc-sccs-write-revision.
@@ -1561,7 +1561,7 @@
 
 2012-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-list/cust-print.el: Move to obsolete.
+	* emacs-lisp/cust-print.el: Move to obsolete.
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Tolerate errors during
 	compiler-macro expansion.
@@ -2199,9 +2199,9 @@
 
 2012-05-18  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* flyspell.el (flyspell-check-pre-word-p, flyspell-check-word-p)
-	(flyspell-debug-signal-word-checked): Protect delay handling for
-	otherchars against empty otherchars.
+	* textmodes/flyspell.el (flyspell-check-pre-word-p)
+	(flyspell-check-word-p, flyspell-debug-signal-word-checked):
+	Protect delay handling for otherchars against empty otherchars.
 
 2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2253,9 +2253,9 @@
 
 2012-05-16  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* flyspell.el (flyspell-check-pre-word-p, flyspell-check-word-p)
-	(flyspell-debug-signal-word-checked): Delay for otherchars as for
-	normal word components.
+	* textmodes/flyspell.el (flyspell-check-pre-word-p)
+	(flyspell-check-word-p, flyspell-debug-signal-word-checked):
+	Delay for otherchars as for normal word components.
 
 2012-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2527,7 +2527,7 @@
 
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
-	* lisp/language/burmese.el, language/cham.el, language/czech.el:
+	* language/burmese.el, language/cham.el, language/czech.el:
 	* language/english.el, language/georgian.el, language/greek.el:
 	* language/japanese.el, language/khmer.el, language/korean.el:
 	* language/lao.el, language/misc-lang.el, language/romanian.el:
@@ -2959,7 +2959,7 @@
 	(verilog-pretty-expr): Don't line up assignment
 	operations to the test and increment in if and for loops
 	(verilog-extended-complete-re, verilog-complete-reg): Change so
-	that DPI inport functions don't look like fuction declarations
+	that DPI inport functions don't look like fuction declarations.
 
 2012-05-03  Kenichi Handa  <handa@m17n.org>
 
@@ -3292,17 +3292,17 @@
 
 	Sync with soap-client repository.  Support SOAP simpleType (Bug#10331).
 
-	* soap-client.el (soap-resolve-references-for-sequence-type)
+	* net/soap-client.el (soap-resolve-references-for-sequence-type)
 	(soap-resolve-references-for-array-type): Hack to prevent self
 	references, see Bug#9.
 	(soap-parse-envelope): Report the contents of the 'detail' node
 	when receiving a fault reply.
 	(soap-parse-envelope): Report the contents of the entire 'detail' node.
 
-	* soap-inspect.el (soap-sample-value-for-simple-type)
+	* net/soap-inspect.el (soap-sample-value-for-simple-type)
 	(soap-inspect-simple-type): New function.
 
-	* soap-client.el (soap-simple-type): New struct.
+	* net/soap-client.el (soap-simple-type): New struct.
 	(soap-default-xsd-types, soap-default-soapenc-types)
 	(soap-decode-basic-type, soap-encode-basic-type):
 	support unsignedInt and double basic types.
@@ -3310,7 +3310,7 @@
 	(soap-parse-simple-type, soap-encode-simple-type): New function.
 	(soap-parse-schema): Parse xsd:simpleType declarations.
 
-	* soap-client.el (soap-default-xsd-types)
+	* net/soap-client.el (soap-default-xsd-types)
 	(soap-default-soapenc-types): Add integer, byte and anyURI types.
 	(soap-parse-complex-type-complex-content): Use `soap-wk2l' to find
 	the local name of "soapenc:Array".
@@ -3419,21 +3419,21 @@
 	Preserve ispell session localwords when switching back to
 	original buffer.
 
-	* ispell.el (ispell-buffer-session-localwords): New buffer-local
-	variable to hold buffer session localwords.
+	* textmodes/ispell.el (ispell-buffer-session-localwords):
+	New buffer-local variable to hold buffer session localwords.
 	(ispell-kill-ispell): add option 'clear to delete session
 	localwords.
 	(ispell-command-loop, ispell-change-dictionary)
 	(ispell-buffer-local-words): Preserve session localwords when
 	needed.
 
-	* flyspell.el (flyspell-process-localwords, flyspell-do-correct):
-	Preserve session localwords when needed.
+	* textmodes/flyspell.el (flyspell-process-localwords)
+	(flyspell-do-correct): Preserve session localwords when needed.
 
 2012-04-23  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-insert-word) Remove unneeded function using
-	obsolete `translation-table-for-input'.
+	* textmodes/ispell.el (ispell-insert-word) Remove unneeded function
+	using obsolete `translation-table-for-input'.
 	(ispell-word, ispell-process-line, ispell-complete-word):
 	Use plain `insert' instead of removed `ispell-insert-word'.
 
@@ -3863,11 +3863,11 @@
 
 2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-set-spellchecker-params): Post-process
+	* textmodes/ispell.el (ispell-set-spellchecker-params): Post-process
 	`ispell-dictionary-alist' to use [:alpha:] and utf-8 if possible.
 	(ispell-dictionary-base-alist): Revert to original XEmacs
 	friendly version for default.  [:alpha:] will be added in
-	`ispell-set-spellchecker-params' if needed
+	`ispell-set-spellchecker-params' if needed.
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
@@ -4380,7 +4380,7 @@
 
 2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-get-extended-character-mode):
+	* textmodes/ispell.el (ispell-get-extended-character-mode):
 	Disable extended-char-mode for hunspell.  hunspell does not support it
 	and treats ~word as ordinary words in pipe mode.
 
@@ -15603,7 +15603,7 @@
 	* vc/log-view.el:
 	* vc/smerge-mode.el:
 	* textmodes/bibtex-style.el:
-	* textmodes/css.el:
+	* textmodes/css-mode.el:
 	* startup.el:
 	* uniquify.el:
 	* minibuffer.el:

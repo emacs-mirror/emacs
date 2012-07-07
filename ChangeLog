@@ -821,7 +821,7 @@
 2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port HAVE_PTHREAD configuration to MirBSD 10 (Bug#10201).
-	* configure.in (HAVE_PTHREAD): Check for pthread_atfork	if linking
+	* configure.in (HAVE_PTHREAD): Check for pthread_atfork if linking
 	to gmalloc.c.  This should prevent a MirBSD 10 build failure reported
 	by Nelson H. F. Beebe in
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00065.html>.
@@ -4901,7 +4901,7 @@
 
 2005-06-08  Steven Tamm  <steventamm@mac.com>
 
-	* configure.in: Support Darwin/MacOSX on Intel
+	* configure.in: Support Darwin/MacOSX on Intel.
 
 2005-06-06  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -5386,7 +5386,7 @@
 
 2003-01-19  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* configure.in: Add --with-gtk, --with-x-toolkit=gtk
+	* configure.in: Add --with-gtk, --with-x-toolkit=gtk.
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Add text about GTK.
 
@@ -5399,7 +5399,7 @@
 	* configure.in: New option, --enable-carbon-app, to specify
 	that the application should be installed
 	* Makefile.in (install-arch-dep): On Mac OS X, install the
-	Emacs.app application if carbon-app is enabled
+	Emacs.app application if carbon-app is enabled.
 
 2003-01-06  Dave Love  <fx@gnu.org>
 
@@ -8392,7 +8392,7 @@
 
 1994-09-21  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* configure.in (i[345]86-sequent-ptx*): Handle
+	* configure.in (i[345]86-sequent-ptx*): Handle.
 
 1994-09-20  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -8404,7 +8404,7 @@
 
 1994-09-18  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
-	* Makefile.in (install-arch-indep): Copy DOC-*, not DOC*
+	* Makefile.in (install-arch-indep): Copy DOC-*, not DOC*.
 
 	* configure.in: Add AC_AIX.
 	Add checks to set HAVE_STRUCT_UTIMBUF, HAVE_TIMEVAL, HAVE_SELECT.
