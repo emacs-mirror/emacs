@@ -1,5 +1,7 @@
 2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sysdep.c (list_system_processes): Port to NetBSD-current (Bug#11797).
+
 	Do not require float-time's arg to fit in time_t (Bug#11825).
 	This works better on hosts where time_t is unsigned, and where
 	float-time is applied to the (negative) difference between two times.
