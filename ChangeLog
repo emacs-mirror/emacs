@@ -1,3 +1,7 @@
+2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (WARN_CFLAGS): Add -Wno-deprecated-declarations.
+
 2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve static checking when configured --with-ns.
