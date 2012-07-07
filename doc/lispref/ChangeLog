@@ -1,3 +1,7 @@
+2012-07-07  Chong Yidong  <cyd@gnu.org>
+
+	* loading.texi (Library Search): Index site-lisp directories.
+
 2012-07-06  Chong Yidong  <cyd@gnu.org>
 
 	* intro.texi (A Sample Function Description): Fix incorrect

@@ -262,6 +262,7 @@ Here is how to set it from @code{csh}:
 setenv EMACSLOADPATH /home/foo/.emacs.d/lisp:/opt/emacs/lisp
 @end example
 
+@cindex site-lisp directories
   If @env{EMACSLOADPATH} is not set (which is usually the case), Emacs
 initializes @code{load-path} with the following two directories:
 

@@ -1,3 +1,7 @@
+2012-07-07  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Init File): Index site-lisp (Bug#11435).
+
 2012-07-06  Chong Yidong  <cyd@gnu.org>
 
 	* emacs.texi: Re-order top-level menu to correspond to logical
