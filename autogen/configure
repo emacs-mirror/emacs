@@ -2032,7 +2032,9 @@ Optional Features:
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-largefile     omit support for large files
-  --enable-gcc-warnings   turn on lots of GCC warnings (for developers)
+  --enable-gcc-warnings   turn on lots of GCC warnings. This is intended for
+                          developers, and may generate false alarms when used
+                          with older or non-GNU development tools.
   --enable-link-time-optimization
                           build emacs with link-time optimization. This is
                           supported only for GCC since 4.5.0.
@@ -6934,6 +6936,8 @@ esac
 
   # Code from module alloca-opt:
   # Code from module allocator:
+  # Code from module c-ctype:
+  # Code from module c-strcase:
   # Code from module careadlinkat:
   # Code from module clock-time:
   # Code from module crypto/md5:
@@ -21004,16 +21008,15 @@ esac
 
 for ac_func in gethostname \
 rename closedir mkdir rmdir getrusage get_current_dir_name \
-random lrand48 logb frexp fmod rint cbrt setsid \
+lrand48 logb frexp fmod cbrt setsid \
 strerror fpathconf select euidaccess getpagesize setlocale \
-utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
+utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
-strcasecmp strncasecmp \
 cfmakeraw cfsetspeed copysign __executable_start
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
@@ -21027,6 +21030,43 @@ _ACEOF
 fi
 done
 
+
+if test $opsys != unixware; then
+  for ac_func in getwd
+do :
+  ac_fn_c_check_func "$LINENO" "getwd" "ac_cv_func_getwd"
+if test "x$ac_cv_func_getwd" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETWD 1
+_ACEOF
+
+fi
+done
+
+fi
+
+## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
+## has a broken `rint' in some library versions including math library
+## version number A.09.05.
+## You can fix the math library by installing patch number PHSS_4630.
+## But we can fix it more reliably for Emacs by just not using rint.
+## We also skip HAVE_RANDOM - see comments in src/s/hpux10-20.h.
+case $opsys in
+   hpux*) : ;;
+   *) for ac_func in random rint
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+ ;;
+esac
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __builtin_unwind_init" >&5
 $as_echo_n "checking for __builtin_unwind_init... " >&6; }
@@ -21363,32 +21403,12 @@ fi
 
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
+# On Darwin, res_init appears not to be useful: see bug#562 and
+# http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html
 resolv=no
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <netinet/in.h>
-#include <arpa/nameser.h>
-#include <resolv.h>
-int
-main ()
-{
-return res_init();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  have_res_init=yes
-else
-  have_res_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-if test "$have_res_init" = no; then
-  OLIBS="$LIBS"
-  LIBS="$LIBS -lresolv"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_init with -lresolv" >&5
-$as_echo_n "checking for res_init with -lresolv... " >&6; }
+
+if test $opsys != darwin; then
+
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <netinet/in.h>
@@ -21409,20 +21429,45 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_res_init" >&5
-$as_echo "$have_res_init" >&6; }
-  if test "$have_res_init" = yes ; then
-    resolv=yes
-  fi
-  LIBS="$OLIBS"
+  if test "$have_res_init" = no; then
+    OLIBS="$LIBS"
+    LIBS="$LIBS -lresolv"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_init with -lresolv" >&5
+$as_echo_n "checking for res_init with -lresolv... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
+int
+main ()
+{
+return res_init();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  have_res_init=yes
+else
+  have_res_init=no
 fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_res_init" >&5
+$as_echo "$have_res_init" >&6; }
+    if test "$have_res_init" = yes ; then
+      resolv=yes
+    fi
+    LIBS="$OLIBS"
+  fi
 
-if test "$have_res_init" = yes; then
+  if test "$have_res_init" = yes; then
 
 $as_echo "#define HAVE_RES_INIT 1" >>confdefs.h
 
+  fi
 fi
-
 # Do we need the Hesiod library to provide the support routines?
 LIBHESIOD=
 if test "$with_hesiod" != no ; then
@@ -21584,7 +21629,7 @@ fi
 
 
 # Do we need libresolv (due to res_init or Hesiod)?
-if test "$resolv" = yes ; then
+if test "$resolv" = yes && test $opsys != darwin; then
 
 $as_echo "#define HAVE_LIBRESOLV 1" >>confdefs.h
 
