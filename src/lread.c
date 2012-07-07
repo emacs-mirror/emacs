@@ -4061,7 +4061,7 @@ defvar_kboard (struct Lisp_Kboard_Objfwd *ko_fwd,
 
 /* Check that the elements of Vload_path exist.  */
 
-void
+static void
 load_path_check (void)
 {
   Lisp_Object path_tail;

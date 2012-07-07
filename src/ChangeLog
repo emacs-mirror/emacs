@@ -1,5 +1,7 @@
 2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c (load_path_check): Now static.
+
 	Fix some minor --with-ns problems found by static checking.
 	* frame.c (Ftool_bar_pixel_width) [!FRAME_TOOLBAR_WIDTH]:
 	(x_set_font) [!HAVE_X_WINDOWS]:
