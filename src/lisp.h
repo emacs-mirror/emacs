@@ -2958,8 +2958,6 @@ extern int indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
 extern void syms_of_indent (void);
 
 /* Defined in frame.c */
-#ifdef HAVE_WINDOW_SYSTEM
-#endif /* HAVE_WINDOW_SYSTEM */
 extern Lisp_Object Qonly;
 extern Lisp_Object Qvisible;
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);

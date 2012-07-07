@@ -1,3 +1,7 @@
+2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h: Remove empty conditional.
+
 2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lread.c (load_path_check): Now static.
