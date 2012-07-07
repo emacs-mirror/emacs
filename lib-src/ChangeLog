@@ -1,3 +1,8 @@
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/ctags.$(O), $(BLD)/etags.$(O)):
+	Update dependencies.
+
 2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).

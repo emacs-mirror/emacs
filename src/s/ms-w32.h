@@ -148,12 +148,6 @@ struct sigaction {
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
-/* MinGW has these in its library; MSVC doesn't.  */
-#ifdef _MSC_VER
-#define strcasecmp(s1,s2)  _stricmp(s1,s2)
-#define strncasecmp(s1,s2) _strnicmp(s1,s2)
-#endif
-
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM 1
 #define HAVE_MENUS 1

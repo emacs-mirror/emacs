@@ -412,6 +412,7 @@ DIR_H          = $(NT_INC)/sys/dir.h \
 W32GUI_H       = $(SRC)/w32gui.h \
 		 $(SYSTIME_H)
 DISPEXTERN_H   = $(SRC)/dispextern.h \
+		 $(GNU_LIB)/c-strcase.h \
 		 $(SYSTIME_H) \
 		 $(W32GUI_H)
 FILEMODE_H     = $(GNU_LIB)/filemode.h \
@@ -1269,7 +1270,6 @@ $(BLD)/regex.$(O) : \
 	$(SRC)/category.h \
 	$(SRC)/regex.h \
 	$(SRC)/syntax.h \
-	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \

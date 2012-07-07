@@ -363,6 +363,7 @@ $(BLD)/ctags.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(SRC)/ntlib.h \
+	$(EMACS_ROOT)/lib/c-strcase.h \
 	$(EMACS_ROOT)/lib/getopt.h
 
 $(BLD)/ebrowse.$(O) : \
@@ -384,6 +385,7 @@ $(BLD)/etags.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(SRC)/ntlib.h \
+	$(EMACS_ROOT)/lib/c-strcase.h \
 	$(EMACS_ROOT)/lib/getopt.h
 
 $(BLD)/hexl.$(O) : \

@@ -23,7 +23,10 @@ ALL = gnulib
 LOCAL_FLAGS	= -I. -I../nt/inc -I../src
 LIBS 		=
 
-GNULIBOBJS = $(BLD)/dtoastr.$(O) \
+GNULIBOBJS = $(BLD)/c-ctype.$(O) \
+	     $(BLD)/c-strcasecmp.$(O) \
+	     $(BLD)/c-strncasecmp.$(O) \
+	     $(BLD)/dtoastr.$(O) \
 	     $(BLD)/dtotimespec.$(O)  \
 	     $(BLD)/getopt.$(O)  \
 	     $(BLD)/getopt1.$(O) \
@@ -63,6 +66,26 @@ TAGS: FRC
 
 EMACS_ROOT	= ..
 SRC		= .
+
+$(BLD)/c-ctype.$(O) : \
+	$(SRC)/c-ctype.c \
+	$(SRC)/c-ctype.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/config.h
+
+$(BLD)/c-strcasecmp.$(O) : \
+	$(SRC)/c-strcasecmp.c \
+	$(SRC)/c-strcase.h \
+	$(SRC)/c-ctype.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/config.h
+
+$(BLD)/c-strncasecmp.$(O) : \
+	$(SRC)/c-strncasecmp.c \
+	$(SRC)/c-strcase.h \
+	$(SRC)/c-ctype.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/dtoastr.$(O) : \
 	$(SRC)/dtoastr.c \
