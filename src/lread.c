@@ -4059,60 +4059,83 @@ defvar_kboard (struct Lisp_Kboard_Objfwd *ko_fwd,
   SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)ko_fwd);
 }
 
+/* Check that the elements of Vload_path exist.  */
+
+void
+load_path_check (void)
+{
+  Lisp_Object path_tail;
+
+  /* The only elements that might not exist are those from
+     PATH_LOADSEARCH, EMACSLOADPATH.  Anything else is only added if
+     it exists.  */
+  for (path_tail = Vload_path; !NILP (path_tail); path_tail = XCDR (path_tail))
+    {
+      Lisp_Object dirfile;
+      dirfile = Fcar (path_tail);
+      if (STRINGP (dirfile))
+        {
+          dirfile = Fdirectory_file_name (dirfile);
+          if (access (SSDATA (dirfile), 0) < 0)
+            dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
+                         XCAR (path_tail));
+        }
+    }
+}
+
 /* Record the value of load-path used at the start of dumping
    so we can see if the site changed it later during dumping.  */
 static Lisp_Object dump_path;
+
+/* Compute the default Vload_path, with the following logic:
+   If CANNOT_DUMP:
+   use EMACSLOADPATH env-var if set; otherwise use PATH_LOADSEARCH,
+   prepending PATH_SITELOADSEARCH unless --no-site-lisp.
+   The remainder is what happens when dumping works:
+   If purify-flag (ie dumping) just use PATH_DUMPLOADSEARCH.
+   Otherwise use EMACSLOADPATH if set, else PATH_LOADSEARCH.
+
+   If !initialized, then just set both Vload_path and dump_path.
+   If initialized, then if Vload_path != dump_path, do nothing.
+   (Presumably the load-path has already been changed by something.
+   This can only be from a site-load file during dumping,
+   or because EMACSLOADPATH is set.)
+   If Vinstallation_directory is not nil (ie, running uninstalled):
+   If installation-dir/lisp exists and not already a member,
+   we must be running uninstalled.  Reset the load-path
+   to just installation-dir/lisp.  (The default PATH_LOADSEARCH
+   refers to the eventual installation directories.  Since we
+   are not yet installed, we should not use them, even if they exist.)
+   If installation-dir/lisp does not exist, just add dump_path at the
+   end instead.
+   Add installation-dir/leim (if exists and not already a member) at the front.
+   Add installation-dir/site-lisp (if !no_site_lisp, and exists
+   and not already a member) at the front.
+   If installation-dir != source-dir (ie running an uninstalled,
+   out-of-tree build) AND install-dir/src/Makefile exists BUT
+   install-dir/src/Makefile.in does NOT exist (this is a sanity
+   check), then repeat the above steps for source-dir/lisp,
+   leim and site-lisp.
+   Finally, add the site-lisp directories at the front (if !no_site_lisp).
+*/
 
 void
 init_lread (void)
 {
   const char *normal;
-  int turn_off_warning = 0;
-
-  /* Compute the default Vload-path, with the following logic:
-     If CANNOT_DUMP, just use PATH_LOADSEARCH, prepending PATH_SITELOADSEARCH
-     unless --no-site-lisp.
-     Else if purify-flag (ie dumping) start from PATH_DUMPLOADSEARCH;
-     otherwise start from PATH_LOADSEARCH.
-     If !initialized, then just set both Vload_path and dump_path.
-     If initialized, then if Vload_path != dump_path, do nothing.
-     (Presumably the load-path has already been changed by something.
-      This can only (?) be from a site-load file during dumping.)
-     If Vinstallation_directory is not nil (ie, running uninstalled):
-       Add installation-dir/lisp (if exists and not already a member),
-         at the front, and turn off warnings about missing directories
-         (because we are presumably running uninstalled).
-         If it does not exist, add dump_path at the end instead.
-       Add installation-dir/leim (if exists and not already a member)
-         at the front.
-       Add installation-dir/site-lisp (if !no_site_lisp, and exists
-         and not already a member) at the front.
-       If installation-dir != source-dir (ie running an uninstalled,
-         out-of-tree build) AND install-dir/src/Makefile exists BUT
-         install-dir/src/Makefile.in does NOT exist (this is a sanity
-         check), then repeat the above steps for source-dir/lisp,
-         leim and site-lisp.
-     Finally, add the site-lisp directories at the front (if !no_site_lisp).
-
-     We then warn about any of the load-path elements that do not
-     exist.  The only ones that might not exist are those from
-     PATH_LOADSEARCH, and perhaps dump_path.
-
-     Having done all this, we then throw it all away if purify-flag is
-     nil (ie, not dumping) and EMACSLOADPATH is set, and just
-     unconditionally use the latter value instead.
-     So AFAICS the only net results of all the previous steps will be
-     possibly to issue some irrelevant warnings.
-
-     FIXME? There's a case for saying that if we are running
-     uninstalled, the eventual installation directories should not yet
-     be included in load-path.
-  */
 
 #ifdef CANNOT_DUMP
   normal = PATH_LOADSEARCH;
-  Vload_path = decode_env_path (0, normal);
-  if (!no_site_lisp)
+  Vload_path = decode_env_path ("EMACSLOADPATH", normal);
+
+  load_path_check ();
+
+  /* FIXME CANNOT_DUMP platforms should get source-dir/lisp etc added
+   to their load-path too, AFAICS.  I don't think we can tell the
+   difference between initialized and !initialized in this case,
+   so we'll have to do it unconditionally when Vinstallation_directory
+   is non-nil.  */
+  if (!no_site_lisp && !egetenv ("EMACSLOADPATH"))
     {
       Lisp_Object sitelisp;
       sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
@@ -4120,7 +4143,13 @@ init_lread (void)
     }
 #else
   if (NILP (Vpurify_flag))
-    normal = PATH_LOADSEARCH;
+    {
+      normal = PATH_LOADSEARCH;
+      /* If the EMACSLOADPATH environment variable is set, use its value.
+         This doesn't apply if we're dumping.  */
+      if (egetenv ("EMACSLOADPATH"))
+        Vload_path = decode_env_path ("EMACSLOADPATH", normal);
+    }
   else
     normal = PATH_DUMPLOADSEARCH;
 
@@ -4129,18 +4158,27 @@ init_lread (void)
      the source directory, instead of the path of the installed elisp
      libraries.  However, if it appears that Vload_path has already been
      changed from the default that was saved before dumping, don't
-     change it further.  */
+     change it further.  Changes can only be due to EMACSLOADPATH, or
+     site-lisp files that were processed during dumping.  */
   if (initialized)
     {
-      if (! NILP (Fequal (dump_path, Vload_path)))
+      if (NILP (Fequal (dump_path, Vload_path)))
+        {
+          /* Do not make any changes, just check the elements exist.  */
+          /* Note: --no-site-lisp is ignored.
+             I don't know what to do about this.  */
+          load_path_check ();
+        }
+      else
 	{
 	  Vload_path = decode_env_path (0, normal);
 	  if (!NILP (Vinstallation_directory))
 	    {
 	      Lisp_Object tem, tem1;
 
-              /* Add to the path the lisp subdir of the
-                 installation dir, if it exists.  */
+              /* Add to the path the lisp subdir of the installation
+                 dir, if it exists.  Note: in out-of-tree builds,
+                 this directory is empty save for Makefile.  */
               tem = Fexpand_file_name (build_string ("lisp"),
                                        Vinstallation_directory);
               tem1 = Ffile_exists_p (tem);
@@ -4148,8 +4186,11 @@ init_lread (void)
                 {
                   if (NILP (Fmember (tem, Vload_path)))
                     {
-                      turn_off_warning = 1;
-                      Vload_path = Fcons (tem, Vload_path);
+                      /* We are running uninstalled.  The default load-path
+                         points to the eventual installed lisp, leim
+                         directories.  We should not use those now, even
+                         if they exist, so start over from a clean slate.  */
+                      Vload_path = Fcons (tem, Qnil);
                     }
                 }
               else
@@ -4226,10 +4267,13 @@ init_lread (void)
 
 	    } /* if Vinstallation_directory */
 
+          /* Check before adding the site-lisp directories.
+             The install should have created them, but they are not
+             required, so no need to warn if they are absent.
+             Or we might be running before installation.  */
+          load_path_check ();
+
           /* Add the site-lisp directories at the front.  */
-          /* Note: If the site changed the load-path during dumping,
-           --no-site-lisp is ignored.  I don't know what to do about this.
-          */
           if (!no_site_lisp)
             {
               Lisp_Object sitelisp;
@@ -4240,57 +4284,21 @@ init_lread (void)
     }
   else                          /* !initialized */
     {
-      /* NORMAL refers to the lisp dir in the source directory.  */
-      /* We used to add ../lisp at the front here, but
-	 that caused trouble because it was copied from dump_path
-	 into Vload_path, above, when Vinstallation_directory was non-nil.
-	 It should be unnecessary.  */
+      /* NORMAL refers to PATH_DUMPLOADSEARCH, ie the lisp dir in the
+         source directory.  We used to add ../lisp (ie the lisp dir in
+         the build directory) at the front here, but that caused trouble
+	 because it was copied from dump_path into Vload_path, above,
+	 when Vinstallation_directory was non-nil.  It should not be
+         necessary, since in out of tree builds lisp/ is empty, save
+         for Makefile.  */
       Vload_path = decode_env_path (0, normal);
       dump_path = Vload_path;
+      /* No point calling load_path_check; load-path only contains essential
+         elements from the source directory at this point.  They cannot
+         be missing unless something went extremely (and improbably)
+         wrong, in which case the build will fail in obvious ways.  */
     }
 #endif  /* CANNOT_DUMP */
-
-#if (!(defined (WINDOWSNT) || (defined (HAVE_NS))))
-  /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
-     almost never correct, thereby causing a warning to be printed out that
-     confuses users.  Since PATH_LOADSEARCH is always overridden by the
-     EMACSLOADPATH environment variable below, disable the warning on NT.  */
-
-  /* HAVE_NS also uses EMACSLOADPATH.  */
-
-  /* Warn if dirs in the *standard* path don't exist.  */
-  if (!turn_off_warning)
-    {
-      Lisp_Object path_tail;
-
-      for (path_tail = Vload_path;
-	   !NILP (path_tail);
-	   path_tail = XCDR (path_tail))
-	{
-	  Lisp_Object dirfile;
-	  dirfile = Fcar (path_tail);
-	  if (STRINGP (dirfile))
-	    {
-	      dirfile = Fdirectory_file_name (dirfile);
-              /* Do we really need to warn about missing site-lisp dirs?
-                 It's true that the installation should have created
-                 them and added subdirs.el, but it's harmless if they
-                 are not there.  */
-	      if (access (SSDATA (dirfile), 0) < 0)
-		dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
-			     XCAR (path_tail));
-	    }
-	}
-    }
-#endif /* !(WINDOWSNT || HAVE_NS) */
-
-  /* If the EMACSLOADPATH environment variable is set, use its value.
-     This doesn't apply if we're dumping.  */
-#ifndef CANNOT_DUMP
-  if (NILP (Vpurify_flag)
-      && egetenv ("EMACSLOADPATH"))
-#endif
-    Vload_path = decode_env_path ("EMACSLOADPATH", normal);
 
   Vvalues = Qnil;
 

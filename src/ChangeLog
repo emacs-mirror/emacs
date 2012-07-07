@@ -1,3 +1,14 @@
+2012-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (load_path_check): New function, split from init_lread.
+	(init_lread): Reorganize.  Motivation:
+	If EMACSLOADPATH is set, check/warn about that rather than the
+	defaults, which we are not going to use.  Hence we can remove
+	the turn_off_warning and WINDOWSNT || HAVE_NS tests.
+	Don't warn if site-lisp directories are missing.
+	If not installed, start from a blank load-path, since
+	PATH_LOADSEARCH refers to the eventual installation directories.
+
 2012-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	Support truncation and continuation glyphs on GUI frames, when
