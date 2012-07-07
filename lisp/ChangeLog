@@ -1,8 +1,9 @@
-2012-07-07  Kevin Ryde <user42@zip.com.au>
+2012-07-07  Kevin Ryde  <user42@zip.com.au>
 
 	* woman.el (woman-strings): Fix double-quote handling (Bug#1151).
 	(woman-decode-region): Replace escaped-escapes without destroying
 	bold or underline (Bug#11552).
+	(woman2-process-escapes): Handle nofill regions (Bug#11591).
 
 2012-07-07  Chong Yidong  <cyd@gnu.org>
 

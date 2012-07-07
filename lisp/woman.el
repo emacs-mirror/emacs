@@ -3932,7 +3932,9 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
     (while (re-search-forward "\\\\[&|^]" to t)
       (woman-delete-match 0)
       ;; If on a line by itself, consume newline as well (Bug#3651).
-      (and (eq (char-before (match-beginning 0)) ?\n)
+      ;; But not in a .nf region, preserve all newlines in that case.
+      (and (not woman-nofill)
+	   (eq (char-before (match-beginning 0)) ?\n)
 	   (eq (char-after (match-beginning 0)) ?\n)
 	   (delete-char 1)))
 
