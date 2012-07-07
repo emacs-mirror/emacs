@@ -1,3 +1,7 @@
+2012-07-07  Michael Witten  <mfwitten@gmail.com>  (tiny change)
+
+	* tutorials/TUTORIAL: Copyedits (Bug#11689).
+
 2012-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.py, emacs2.py, emacs3.py: Remove files, no longer used.
