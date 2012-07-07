@@ -1484,9 +1484,10 @@ sys_signal (int signal_number, signal_handler_t action)
 #if defined (SA_RESTART)
   /* Emacs mostly works better with restartable system services. If this
      flag exists, we probably want to turn it on here.
-     However, on some systems this resets the timeout of `select'
-     which means that `select' never finishes if it keeps getting signals.
-     BROKEN_SA_RESTART is defined on those systems.  */
+     However, on some systems (only hpux11 at present) this resets the
+     timeout of `select' which means that `select' never finishes if
+     it keeps getting signals.
+     We define BROKEN_SA_RESTART on those systems.  */
   /* It's not clear why the comment above says "mostly works better".  --Stef
      When SYNC_INPUT is set, we don't want SA_RESTART because we need to poll
      for pending input so we need long-running syscalls to be interrupted

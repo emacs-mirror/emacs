@@ -80,7 +80,7 @@ char *_getpty();
 
 #define NARROWPROTO 1
 
-#undef SA_RESTART
+#undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
 
 #undef TIOCSIGSEND		/* defined in usg5-4-common.h */
 

@@ -1,5 +1,7 @@
 2012-07-07  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (BROKEN_SA_RESTART): Doc fix.
+
 	* configure.in: Rather than checking for things then undef'ing
 	them on some platforms, simply don't check for them.
 	(getwd): Don't check for it on unixware.
