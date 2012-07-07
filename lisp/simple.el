@@ -3044,41 +3044,43 @@ be copied into other buffers."
 
 (defvar interprogram-cut-function nil
   "Function to call to make a killed region available to other programs.
+Most window systems provide a facility for cutting and pasting
+text between different programs, such as the clipboard on X and
+MS-Windows, or the pasteboard on Nextstep/Mac OS.
 
-Most window systems provide some sort of facility for cutting and
-pasting text between the windows of different programs.
-This variable holds a function that Emacs calls whenever text
-is put in the kill ring, to make the new kill available to other
-programs.
-
-The function takes one argument, TEXT, which is a string containing
-the text which should be made available.")
+This variable holds a function that Emacs calls whenever text is
+put in the kill ring, to make the new kill available to other
+programs.  The function takes one argument, TEXT, which is a
+string containing the text which should be made available.")
 
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
+Most window systems provide a facility for cutting and pasting
+text between different programs, such as the clipboard on X and
+MS-Windows, or the pasteboard on Nextstep/Mac OS.
 
-Most window systems provide some sort of facility for cutting and
-pasting text between the windows of different programs.
-This variable holds a function that Emacs calls to obtain
-text that other programs have provided for pasting.
+This variable holds a function that Emacs calls to obtain text
+that other programs have provided for pasting.  The function is
+called with no arguments.  If no other program has provided text
+to paste, the function should return nil (in which case the
+caller, usually `current-kill', should use the top of the Emacs
+kill ring).  If another program has provided text to paste, the
+function should return that text as a string (in which case the
+caller should put this string in the kill ring as the latest
+kill).
 
-The function should be called with no arguments.  If the function
-returns nil, then no other program has provided such text, and the top
-of the Emacs kill ring should be used.  If the function returns a
-string, then the caller of the function \(usually `current-kill')
-should put this string in the kill ring as the latest kill.
-
-This function may also return a list of strings if the window
+The function may also return a list of strings if the window
 system supports multiple selections.  The first string will be
-used as the pasted text, but the other will be placed in the
-kill ring for easy access via `yank-pop'.
+used as the pasted text, but the other will be placed in the kill
+ring for easy access via `yank-pop'.
 
-Note that the function should return a string only if a program other
-than Emacs has provided a string for pasting; if Emacs provided the
-most recent string, the function should return nil.  If it is
-difficult to tell whether Emacs or some other program provided the
-current string, it is probably good enough to return nil if the string
-is equal (according to `string=') to the last text Emacs provided.")
+Note that the function should return a string only if a program
+other than Emacs has provided a string for pasting; if Emacs
+provided the most recent string, the function should return nil.
+If it is difficult to tell whether Emacs or some other program
+provided the current string, it is probably good enough to return
+nil if the string is equal (according to `string=') to the last
+text Emacs provided.")
 
 
 
@@ -3184,7 +3186,10 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 (set-advertised-calling-convention 'kill-append '(string before-p) "23.3")
 
 (defcustom yank-pop-change-selection nil
-  "If non-nil, rotating the kill ring changes the window system selection."
+  "Whether rotating the kill ring changes the window system selection.
+If non-nil, whenever the kill ring is rotated (usually via the
+`yank-pop' command), Emacs also calls `interprogram-cut-function'
+to copy the new kill to the window system selection."
   :type 'boolean
   :group 'killing
   :version "23.1")
