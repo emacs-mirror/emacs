@@ -18,10 +18,10 @@ tapez C-g. Dans ce didacticiel, les caractères ">>" en marge gauche
 indiquent les directions à suivre pour essayer une commande. Ainsi :
 <<Lignes blanches insérées après cette ligne par help-with-tutorial>>
 [Centre de page delibérément vide. Le texte continue ci-dessous.]
->>  Tapez C-v (Voir l'écran suivant) pour passer à l'écran suivant
-    (faites-le, pressez la touche CTRL tout en pressant la touche v).
-    À partir de maintenant, vous devrez le faire à chaque fois que
-    vous avez fini de lire l'écran.
+>> Tapez C-v (Voir l'écran suivant) pour passer à l'écran suivant
+     (faites-le, pressez la touche CTRL tout en pressant la touche v).
+     À partir de maintenant, vous devrez le faire à chaque fois que
+     vous avez fini de lire l'écran.
 
 Vous remarquerez qu'il y a un recouvrement de deux lignes lorsque l'on
 passe d'un écran à un autre : cela permet une certaine continuité dans
@@ -33,7 +33,7 @@ C-v. Pour revenir un écran en arrière, tapez M-v (pressez la touche
 META tout en appuyant sur v ou faites <ESC>v si vous n'avez pas de
 touche META, EDIT ou ALT).
 
->>  Faites M-v, puis C-v plusieurs fois.
+>> Faites M-v, puis C-v plusieurs fois.
 
 
 * RÉSUMÉ
@@ -228,13 +228,13 @@ d'un paramètre préfixe, quelle que soit sa valeur, force la commande à
 agir différemment.
 
 C-v et M-v constituent un autre type d'exception. Lorsqu'on leur donne
-un paramètre, elles font défiler l'écran vers le haut ou vers le bas
+un paramètre, elles font défiler le texte vers le haut ou vers le bas
 du nombre de lignes indiqué au lieu de passer d'un écran complet à
-l'autre. C-u 8 C-v, par exemple, fait défiler l'écran de 8 lignes.
+l'autre. C-u 8 C-v, par exemple, fait défiler le texte de 8 lignes.
 
 >> Faites C-u 8 C-v.
 
-Cela a dû déplacer l'écran de 8 lignes vers le haut. Si vous voulez
+Cela a dû déplacer le texte de 8 lignes vers le haut. Si vous voulez
 redescendre de 8 lignes, il suffit de passer ce nombre comme paramètre
 de M-v.
 
@@ -307,11 +307,10 @@ supprime toutes les autres fenêtres.
 
 >> Faites C-x 1 et la fenêtre de documentation disparaît.
 
-Cette commande est différente de celles que nous avons déjà vues car
-elle est formée de deux caractères. Elle commence par le caractère
-CONTROLE-x, comme le font de nombreuses commandes de manipulation de
-fenêtres, fichiers, tampons et autres entités associées. Ces commandes
-font deux, trois ou quatre caractères.
+Il y a toute une série de commandes qui commencent par CONTROL-x;
+nombre d'entre elles ont à voir avec la manipulation de fenêtres, 
+fichiers, tampons et autres entités associées. Ces commandes font 
+deux, trois ou quatre caractères de long.
 
 
 * INSERTION ET SUPPRESSION
@@ -370,7 +369,7 @@ Rappelez-vous que la plupart des commandes Emacs peuvent utiliser un
 nombre de répétitions ; les caractères de texte font de même. La
 répétition d'un caractère de texte l'insère plusieurs fois.
 
->>  Faites C-u 8 * pour insérer ********.
+>> Faites C-u 8 * pour insérer ********.
 
 Vous connaissez maintenant la méthode la plus simple pour taper du
 texte dans Emacs et pour corriger les erreurs. Vous pouvez également
@@ -572,11 +571,8 @@ deviennent permanentes, faites :
 Cette commande copie dans le fichier le texte qui est dans Emacs. La
 première fois, Emacs renomme le fichier original afin qu'il ne soit
 pas perdu. Le nom de cette sauvegarde est construit en ajoutant « ~ »
-à la fin du nom initial.
-
-Lorsque la sauvegarde est finie, Emacs affiche le nom du fichier
-écrit. Sauvegardez à intervalles réguliers afin de perdre le moins
-possible de travail au cas où votre système se planterait.
+à la fin du nom initial. Lorsque la sauvegarde est finie, Emacs
+affiche le nom du fichier écrit. 
 
 >> Faites C-x C-s pour sauvegarder votre copie du didacticiel.
    Cela devrait écrire "Wrote ...TUTORIAL.fr" en bas de l'écran.
@@ -694,7 +690,7 @@ commande spéciale pour vous déplacer d'Emacs à une autre application.
 Vous pouvez le faire à l'aide de la souris ou avec les commandes du
 gestionnaire de fenêtres.  Cependant, si vous utilisez un terminal
 texte ne pouvant afficher qu'une application à la fois, vous devez
-« suspendre » Emacs pour passer à n'importe quel autre programme.
+« suspendre » Emacs pour passer à n'importe quelle autre application.
 
 C-z est la commande permettant de quitter *temporairement* Emacs --
 afin de pouvoir revenir à la même session plus tard. Sur les systèmes
@@ -704,7 +700,8 @@ vous pouvez revenir à Emacs en faisant la commande 'fg' ou '%emacs'.
 
 Le moment idéal pour utiliser C-x C-c est lorsque l'on se
 déconnecte. C'est aussi la commande adaptée pour sortir d'un Emacs
-invoqué par un programme de courrier ou tout autre utilitaire.
+invoqué pour une modification rapide, par exemple par un programme de
+courrier ou tout autre utilitaire.
 
 Il existe de nombreuses commandes C-x. Voici une liste de celles que
 vous avez apprises :
@@ -719,7 +716,7 @@ vous avez apprises :
 Les eXtensions de commandes nommées sont des commandes utilisées
 encore moins souvent, ou des commandes qui ne servent que dans
 certains modes. Un exemple est la commande replace-string, qui
-remplace globalement une chaîne par une autre. Lorsque vous faites
+remplace une chaîne par une autre dans un tampon. Lorsque vous faites
 M-x, Emacs affiche M-x en bas de l'écran et vous demande de taper le
 nom de la commande, « replace-string » ici. Contentez-vous de faire
 «repl s<TAB> » et Emacs complétera le nom (<TAB> représente la touche
@@ -735,7 +732,7 @@ paramètre par <Entrée>.
    Puis, faites M-x repl s<Entrée>changée<Entrée>modifiée<Entrée>.
 
    Notez comment cette ligne a été changée : vous avez remplacé le mot
-   c-h-a-n-g-é-e par « modifiée » à chaque fois qu'il apparaissait après
+   « changée » par « modifiée » à chaque fois qu'il apparaissait après
    la position initiale du curseur.
 
 
@@ -949,7 +946,7 @@ manuel d'Emacs contient un Glossaire des termes d'Emacs.)
    fenêtres. Toutes les deux affichent ce didacticiel et le curseur
    reste dans celle du haut.
 
->> Faites C-M-v pour faire défiler la fenêtre du bas
+>> Faites C-M-v pour faire défiler le texte de la fenêtre du bas
    (Si vous n'avez pas de touche Meta, faites <ESC> C-v).
 
 >> Tapez C-x o (« o » pour « other ») afin de placer le curseur dans
@@ -1123,9 +1120,9 @@ Voici d'autres options utiles de C-h :
 >> Faites C-h a file<Entrée>.
 
 Cela affiche dans une autre fenêtre une liste de toutes les commandes
-M-x ayant « file » dans leurs noms. Vous verrez des commandes
-caractères, comme C-x C-f, apparaître à côté des noms de commandes qui
-leur correspondent, comme find-file.
+M-x ayant « file » dans leurs noms. Vous verrez listée des commandes
+caractères à côté des noms de commandes qui leur correspondent (comme 
+C-x C-f à côté de find-file).
 
 >> Faites C-M-v pour faire défiler la fenêtre d'aide. Faites-le
    plusieurs fois.
