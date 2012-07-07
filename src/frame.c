@@ -1932,6 +1932,7 @@ See `redirect-frame-focus'.  */)
 
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
+#ifdef HAVE_WINDOW_SYSTEM
 #if !HAVE_NS
 static
 #endif
@@ -1945,6 +1946,7 @@ get_frame_param (register struct frame *frame, Lisp_Object prop)
     return tem;
   return Fcdr (tem);
 }
+#endif
 
 /* Return the buffer-predicate of the selected frame.  */
 
