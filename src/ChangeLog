@@ -1,5 +1,8 @@
 2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* xdisp.c (display_line): Avoid warning about implicit declaration
+	of FRAME_FONT.
+
 	* frame.c (get_frame_param): Define only if HAVE_WINDOW_SYSTEM.
 
 	* lisp.h: Remove empty conditional.

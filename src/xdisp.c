@@ -19770,6 +19770,7 @@ display_line (struct it *it)
 		      produce_special_glyphs (it, IT_TRUNCATION);
 		    }
 		}
+#ifdef HAVE_WINDOW_SYSTEM
 	      else
 		{
 		  int stretch_width = it->last_visible_x - it->current_x;
@@ -19793,6 +19794,7 @@ display_line (struct it *it)
 		    }
 		  produce_special_glyphs (it, IT_TRUNCATION);
 		}
+#endif
 	    }
 	  else if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
