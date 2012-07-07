@@ -1940,7 +1940,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   temp_it.face_id = GLYPH_FACE (glyph);
   temp_it.len = CHAR_BYTES (temp_it.c);
 
-  produce_glyphs (&temp_it);
+  PRODUCE_GLYPHS (&temp_it);
   it->pixel_width = temp_it.pixel_width;
   it->nglyphs = temp_it.pixel_width;
 }

@@ -1,3 +1,25 @@
+2012-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Support truncation and continuation glyphs on GUI frames, when
+	fringes are disabled.  (Bug#11832)
+	* xdisp.c (init_iterator): Get dimensions of truncation and
+	continuation glyphs even if on GUI frames.  Adjust
+	it->last_visible_x on GUI frames when the left or right fringes,
+	or both, are absent.
+	(start_display, move_it_in_display_line_to): Handle the case of a
+	GUI frame without a fringe to display continuation or truncation
+	glyphs.
+	(insert_left_trunc_glyphs): Support GUI frames: make sure
+	truncation glyphs overwrite enough glyphs from the current line to
+	have sufficient space in pixels.
+	(display_line): Support truncation and continuation glyphs on GUI
+	frames.  If some spare pixels are left on the line after inserting
+	the truncation glyphs, fill that space with a stretch glyph of a
+	suitably computed width.
+
+	* term.c (produce_special_glyphs): Call PRODUCE_GLYPHS, not
+	produce_glyphs, to support GUI sessions.
+
 2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (ULLONG_MAX): Define if not already defined (Bug#11781).
