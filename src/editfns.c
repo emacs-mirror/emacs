@@ -1521,16 +1521,20 @@ disassemble_lisp_time (Lisp_Object specified_time, Lisp_Object *phigh,
 }
 
 /* From the time components HIGH, LOW, USEC and PSEC taken from a Lisp
-   list, generate the corresponding EMACS_TIME value *RESULT, and
-   if RESULT_PSEC is not null store into *RESULT_PSEC the
-   (nonnegative) difference in picoseconds between the input time and
-   the returned time.  Return nonzero if successful.  */
+   list, generate the corresponding time value.
+
+   If RESULT is not null, store into *RESULT the converted time;
+   this can fail if the converted time does not fit into EMACS_TIME.
+   If *DRESULT is not null, store into *DRESULT the number of
+   seconds since the start of the POSIX Epoch.
+
+   Return nonzero if successful.  */
 int
 decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
-			Lisp_Object psec, EMACS_TIME *result, int *result_psec)
+			Lisp_Object psec,
+			EMACS_TIME *result, double *dresult)
 {
   EMACS_INT hi, lo, us, ps;
-  time_t sec;
   if (! (INTEGERP (high) && INTEGERP (low)
 	 && INTEGERP (usec) && INTEGERP (psec)))
     return 0;
@@ -1548,27 +1552,38 @@ decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
   us = us % 1000000 + 1000000 * (us % 1000000 < 0);
   lo &= (1 << 16) - 1;
 
-  /* Check for overflow in the highest-order component.  */
-  if (! ((TYPE_SIGNED (time_t) ? TIME_T_MIN >> 16 <= hi : 0 <= hi)
-	 && hi <= TIME_T_MAX >> 16))
-    return 0;
+  if (result)
+    {
+      if ((TYPE_SIGNED (time_t) ? TIME_T_MIN >> 16 <= hi : 0 <= hi)
+	  && hi <= TIME_T_MAX >> 16)
+	{
+	  /* Return the greatest representable time that is not greater
+	     than the requested time.  */
+	  time_t sec = hi;
+	  EMACS_SET_SECS_NSECS (*result, (sec << 16) + lo,
+				us * 1000 + ps / 1000);
+	}
+      else
+	{
+	  /* Overflow in the highest-order component.  */
+	  return 0;
+	}
+    }
 
-  sec = hi;
-  EMACS_SET_SECS_NSECS (*result, (sec << 16) + lo, us * 1000 + ps / 1000);
-  if (result_psec)
-    *result_psec = ps % 1000;
+  if (dresult)
+    *dresult = (us * 1e6 + ps) / 1e12 + lo + hi * 65536.0;
+
   return 1;
 }
 
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.
    If SPECIFIED_TIME is nil, use the current time.
-   Round the time down to the nearest EMACS_TIME value, and
-   if PPSEC is not null store into *PPSEC the (nonnegative) difference in
-   picoseconds between the input time and the returned time.
+
+   Round the time down to the nearest EMACS_TIME value.
    Return seconds since the Epoch.
    Signal an error if unsuccessful.  */
 EMACS_TIME
-lisp_time_argument (Lisp_Object specified_time, int *ppsec)
+lisp_time_argument (Lisp_Object specified_time)
 {
   EMACS_TIME t;
   if (NILP (specified_time))
@@ -1577,14 +1592,15 @@ lisp_time_argument (Lisp_Object specified_time, int *ppsec)
     {
       Lisp_Object high, low, usec, psec;
       if (! (disassemble_lisp_time (specified_time, &high, &low, &usec, &psec)
-	     && decode_time_components (high, low, usec, psec, &t, ppsec)))
+	     && decode_time_components (high, low, usec, psec, &t, 0)))
 	error ("Invalid time specification");
     }
   return t;
 }
 
 /* Like lisp_time_argument, except decode only the seconds part,
-   and do not check the subseconds part, and always round down.  */
+   do not allow out-of-range time stamps, do not check the subseconds part,
+   and always round down.  */
 static time_t
 lisp_seconds_argument (Lisp_Object specified_time)
 {
@@ -1616,12 +1632,21 @@ If precise time stamps are required, use either `current-time',
 or (if you need time as a string) `format-time-string'.  */)
   (Lisp_Object specified_time)
 {
-  int psec;
-  EMACS_TIME t = lisp_time_argument (specified_time, &psec);
-  double ps = (1000 * 1000 * 1000 <= INTMAX_MAX / 1000
-	       ? EMACS_NSECS (t) * (intmax_t) 1000 + psec
-	       : EMACS_NSECS (t) * 1e3 + psec);
-  return make_float (EMACS_SECS (t) + ps / 1e12);
+  double t;
+  if (NILP (specified_time))
+    {
+      EMACS_TIME now;
+      EMACS_GET_TIME (now);
+      t = EMACS_SECS (now) + EMACS_NSECS (now) / 1e9;
+    }
+  else
+    {
+      Lisp_Object high, low, usec, psec;
+      if (! (disassemble_lisp_time (specified_time, &high, &low, &usec, &psec)
+	     && decode_time_components (high, low, usec, psec, 0, &t)))
+	error ("Invalid time specification");
+    }
+  return make_float (t);
 }
 
 /* Write information into buffer S of size MAXSIZE, according to the
@@ -1730,7 +1755,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".
 usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
-  EMACS_TIME t = lisp_time_argument (timeval, 0);
+  EMACS_TIME t = lisp_time_argument (timeval);
   struct tm tm;
 
   CHECK_STRING (format_string);

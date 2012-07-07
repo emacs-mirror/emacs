@@ -521,7 +521,7 @@ Return what remains of the list.  */)
 		      (mod_time, 0,
 		       XINT (XCAR (XCDR (XCDR (XCDR (cdr))))) / 1000);
 		  else
-		    mod_time = lisp_time_argument (cdr, 0);
+		    mod_time = lisp_time_argument (cdr);
 
 		  if (current_buffer->base_buffer)
 		    base_buffer = current_buffer->base_buffer;

@@ -112,8 +112,8 @@ extern void set_waiting_for_input (EMACS_TIME *);
 /* defined in editfns.c */
 extern Lisp_Object make_lisp_time (EMACS_TIME);
 extern int decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object, EMACS_TIME *, int *);
-extern EMACS_TIME lisp_time_argument (Lisp_Object, int *);
+				   Lisp_Object, EMACS_TIME *, double *);
+extern EMACS_TIME lisp_time_argument (Lisp_Object);
 #endif
 
 /* Compare times T1 and T2 for equality, inequality etc.  */

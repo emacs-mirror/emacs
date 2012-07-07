@@ -1,3 +1,17 @@
+2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not require float-time's arg to fit in time_t (Bug#11825).
+	This works better on hosts where time_t is unsigned, and where
+	float-time is applied to the (negative) difference between two times.
+	* editfns.c (decode_time_components): Last arg is now double *,
+	not int *, and means to store all the result as a double, without
+	worrying about whether the seconds part fits in time_t.
+	All callers changed.
+	(lisp_time_argument): Remove last int * arg, as it's no longer needed.
+	All callers changed.
+	(Ffloat_time): Do not fail merely because the specified time falls
+	outside of time_t range.
+
 2012-07-07  Glenn Morris  <rgm@gnu.org>
 
 	* s/darwin.h (HAVE_RES_INIT, HAVE_LIBRESOLV):

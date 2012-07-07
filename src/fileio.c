@@ -3031,7 +3031,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
-  EMACS_TIME t = lisp_time_argument (timestamp, 0);
+  EMACS_TIME t = lisp_time_argument (timestamp);
 
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 
@@ -5159,7 +5159,7 @@ An argument specifies the modification time value to use
 {
   if (!NILP (time_list))
     {
-      current_buffer->modtime = lisp_time_argument (time_list, 0);
+      current_buffer->modtime = lisp_time_argument (time_list);
       current_buffer->modtime_size = -1;
     }
   else
