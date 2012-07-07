@@ -1,4 +1,8 @@
-2012-07-04  Juanma Barranquero	<lekktu@gmail.com>
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (HAVE_STRCASECMP, HAVE_STRNCASECMP): Remove.
+
+2012-07-06  Juanma Barranquero	<lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt: Complete rework to bring it in sync with autogen/config.in.
