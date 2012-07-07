@@ -1,3 +1,11 @@
+2012-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Rather than checking for things then undef'ing
+	them on some platforms, simply don't check for them.
+	(getwd): Don't check for it on unixware.
+	(random, rint): Don't check for these on hpux.
+	(res_init, libresolv): Don't check for these on darwin.
+
 2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/c-ctype.$(O),

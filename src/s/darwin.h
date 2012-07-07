@@ -106,11 +106,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSTEM_PURESIZE_EXTRA 200000
 #endif
 
-/* On Darwin, res_init appears not to be useful: see bug#562 and
-   http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html  */
-#undef HAVE_RES_INIT
-#undef HAVE_LIBRESOLV
-
 #ifdef emacs
 #define malloc unexec_malloc
 #define realloc unexec_realloc

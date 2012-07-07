@@ -1,3 +1,9 @@
+2012-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* s/darwin.h (HAVE_RES_INIT, HAVE_LIBRESOLV):
+	* s/hpux10-20.h (HAVE_RINT, HAVE_RANDOM):
+	* s/unixware.h (HAVE_GETWD): Move undefs to configure (effectively).
+
 2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (DISPEXTERN_H, $(BLD)/regex.$(O)):

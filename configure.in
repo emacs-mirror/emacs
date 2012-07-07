@@ -2700,9 +2700,9 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 AC_CHECK_FUNCS(gethostname \
 rename closedir mkdir rmdir getrusage get_current_dir_name \
-random lrand48 logb frexp fmod rint cbrt setsid \
+lrand48 logb frexp fmod cbrt setsid \
 strerror fpathconf select euidaccess getpagesize setlocale \
-utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
+utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
@@ -2710,6 +2710,22 @@ difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start)
+
+dnl getwd appears to be buggy on SVR4.2, so we don't use it.
+if test $opsys != unixware; then
+  AC_CHECK_FUNCS(getwd)
+fi
+
+## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
+## has a broken `rint' in some library versions including math library
+## version number A.09.05.
+## You can fix the math library by installing patch number PHSS_4630.
+## But we can fix it more reliably for Emacs by just not using rint.
+## We also skip HAVE_RANDOM - see comments in src/s/hpux10-20.h.
+case $opsys in
+   hpux*) : ;;
+   *) AC_CHECK_FUNCS(random rint) ;;
+esac
 
 dnl Cannot use AC_CHECK_FUNCS
 AC_CACHE_CHECK([for __builtin_unwind_init],
@@ -2847,33 +2863,40 @@ AC_SUBST(TERMCAP_OBJ)
 
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
+# On Darwin, res_init appears not to be useful: see bug#562 and
+# http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html
 resolv=no
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netinet/in.h>
-#include <arpa/nameser.h>
-#include <resolv.h>]],
-    [[return res_init();]])],
-    have_res_init=yes, have_res_init=no)
-if test "$have_res_init" = no; then
-  OLIBS="$LIBS"
-  LIBS="$LIBS -lresolv"
-  AC_MSG_CHECKING(for res_init with -lresolv)
+
+if test $opsys != darwin; then
+
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>]],
     [[return res_init();]])],
     have_res_init=yes, have_res_init=no)
-  AC_MSG_RESULT($have_res_init)
-  if test "$have_res_init" = yes ; then
-    resolv=yes
+  if test "$have_res_init" = no; then
+    OLIBS="$LIBS"
+    LIBS="$LIBS -lresolv"
+    AC_MSG_CHECKING(for res_init with -lresolv)
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>]],
+      [[return res_init();]])],
+      have_res_init=yes, have_res_init=no)
+    AC_MSG_RESULT($have_res_init)
+    if test "$have_res_init" = yes ; then
+      resolv=yes
+    fi
+    LIBS="$OLIBS"
   fi
-  LIBS="$OLIBS"
-fi
 
-if test "$have_res_init" = yes; then
-  AC_DEFINE(HAVE_RES_INIT, 1, [Define to 1 if res_init is available.])
-fi
+  if test "$have_res_init" = yes; then
+    AC_DEFINE(HAVE_RES_INIT, 1, [Define to 1 if res_init is available.])
+  fi
+fi                              dnl !darwin
 
 # Do we need the Hesiod library to provide the support routines?
+dnl FIXME?  Should we be skipping this on Darwin too?
 LIBHESIOD=
 if test "$with_hesiod" != no ; then
   # Don't set $LIBS here -- see comments above.  FIXME which comments?
@@ -2897,7 +2920,7 @@ fi
 AC_SUBST(LIBHESIOD)
 
 # Do we need libresolv (due to res_init or Hesiod)?
-if test "$resolv" = yes ; then
+if test "$resolv" = yes && test $opsys != darwin; then
   AC_DEFINE(HAVE_LIBRESOLV, 1,
             [Define to 1 if you have the resolv library (-lresolv).])
   LIBRESOLV=-lresolv
