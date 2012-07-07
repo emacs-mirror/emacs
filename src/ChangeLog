@@ -1,3 +1,22 @@
+2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some minor --with-ns problems found by static checking.
+	* frame.c (Ftool_bar_pixel_width) [!FRAME_TOOLBAR_WIDTH]:
+	(x_set_font) [!HAVE_X_WINDOWS]:
+	* image.c (xpm_load_image) [HAVE_NS]:
+	(x_to_xcolors) [!HAVE_X_WINDOWS && !HAVE_NTGUI]:
+	(x_disable_image) [!HAVE_NS && !HAVE_NTGUI]:
+	Remove unused local.
+	(Fx_parse_geometry) [HAVE_NS]: Don't return garbage.
+	(xpm_load_image) [HAVE_NS && !HAVE_XPM]: Remove unused label.
+	* image.c (x_create_bitmap_from_file) [HAVE_NS]:
+	(xpm_load_image, xpm_load) [HAVE_NS && !HAVE_XPM]:
+	* nsselect.m (symbol_to_nsstring, ns_string_to_pasteboard_internal):
+	* xfaces.c (Fx_load_color_file) [!HAVE_X_WINDOWS]:
+	Fix pointer signedness problem.
+	* xfaces.c (FRAME_X_FONT_TABLE):
+	* xterm.h (FRAME_X_FONT_TABLE): Remove unused, incompatible macros.
+
 2012-07-07  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (load_path_check): New function, split from init_lread.

@@ -662,16 +662,19 @@ else
   nw="$nw -Wsign-conversion"        # Too many warnings for now
   nw="$nw -Woverlength-strings"     # Not a problem these days
   nw="$nw -Wtraditional-conversion" # Too many warnings for now
+  nw="$nw -Wunreachable-code"       # so buggy that it's now silently ignored
   nw="$nw -Wpadded"                 # Our structs are not padded
-  nw="$nw -Wredundant-decls"        # We regularly (re)declare getenv etc.
+  nw="$nw -Wredundant-decls"        # we regularly (re)declare functions
   nw="$nw -Wlogical-op"             # any use of fwrite provokes this
-  nw="$nw -Wformat-nonliteral"      # Emacs does this a lot
+  nw="$nw -Wformat-nonliteral"      # we do this a lot
   nw="$nw -Wvla"                    # warnings in gettext.h
   nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
   nw="$nw -Wswitch-enum"            # Too many warnings for now
   nw="$nw -Wswitch-default"         # Too many warnings for now
-  nw="$nw -Wfloat-equal"            # e.g., ftoastr.c
-  nw="$nw -Winline"                 # e.g., dispnew.c's inlining of row_equal_p
+  nw="$nw -Wfloat-equal"            # warns about high-quality code
+  nw="$nw -Winline"                 # OK to ignore 'inline'
+  nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
+  nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
   # Emacs doesn't care about shadowing; see
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
@@ -682,12 +685,6 @@ else
   nw="$nw -Wstrict-overflow"
   nw="$nw -Wsuggest-attribute=const"
   nw="$nw -Wsuggest-attribute=pure"
-
-  # Some loops can't be optimized with -O1,
-  # so remove -Wunsafe-loop-optimizations.
-  if echo "$CFLAGS" | $EGREP 'O1' 1>/dev/null; then
-    nw="$nw -Wunsafe-loop-optimizations"
-  fi
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])

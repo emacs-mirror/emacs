@@ -233,7 +233,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
-#define FRAME_X_FONT_TABLE FRAME_W32_FONT_TABLE
 #define check_x check_w32
 #define GCGraphicsExposures 0
 #endif /* WINDOWSNT */
@@ -243,7 +242,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define x_display_info ns_display_info
-#define FRAME_X_FONT_TABLE FRAME_NS_FONT_TABLE
 #define check_x check_ns
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
@@ -6381,7 +6379,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (SDATA (abspath), "rt");
+  fp = fopen (SSDATA (abspath), "rt");
   if (fp)
     {
       char buf[512];

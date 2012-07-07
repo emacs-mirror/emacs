@@ -2504,16 +2504,13 @@ or right side of FRAME.  If FRAME is omitted, the selected frame is
 used.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
-
   if (NILP (frame))
     frame = selected_frame;
   CHECK_FRAME (frame);
-  f = XFRAME (frame);
 
 #ifdef FRAME_TOOLBAR_WIDTH
-  if (FRAME_WINDOW_P (f))
-    return make_number (FRAME_TOOLBAR_WIDTH (f));
+  if (FRAME_WINDOW_P (XFRAME (frame)))
+    return make_number (FRAME_TOOLBAR_WIDTH (XFRAME (frame)));
 #endif
   return make_number (0);
 }
@@ -3158,8 +3155,11 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 void
 x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  Lisp_Object font_object, font_param = Qnil;
+  Lisp_Object font_object;
   int fontset = -1;
+#ifdef HAVE_X_WINDOWS
+  Lisp_Object font_param = arg;
+#endif
 
   /* Set the frame parameter back to the old value because we may
      fail to use ARG as the new parameter value.  */
@@ -3170,7 +3170,6 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
      never fail.  */
   if (STRINGP (arg))
     {
-      font_param = arg;
       fontset = fs_query_fontset (arg, 0);
       if (fontset < 0)
 	{
@@ -3201,12 +3200,16 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	error ("Unknown fontset: %s", SDATA (XCAR (arg)));
       font_object = XCDR (arg);
       arg = AREF (font_object, FONT_NAME_INDEX);
+#ifdef HAVE_X_WINDOWS
       font_param = Ffont_get (font_object, QCname);
+#endif
     }
   else if (FONT_OBJECT_P (arg))
     {
       font_object = arg;
+#ifdef HAVE_X_WINDOWS
       font_param = Ffont_get (font_object, QCname);
+#endif
       /* This is to store the XLFD font name in the frame parameter for
 	 backward compatibility.  We should store the font-object
 	 itself in the future.  */
@@ -3902,7 +3905,7 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
   (Lisp_Object string)
 {
 #ifdef HAVE_NS
-  call1 (Qns_parse_geometry, string);
+  return call1 (Qns_parse_geometry, string);
 #else
   int geometry, x, y;
   unsigned int width, height;

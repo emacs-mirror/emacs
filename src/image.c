@@ -323,7 +323,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = ns_image_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = ns_image_height (bitmap);
-  strcpy (dpyinfo->bitmaps[id - 1].file, SDATA (file));
+  strcpy (dpyinfo->bitmaps[id - 1].file, SSDATA (file));
   return id;
 #endif
 
@@ -3964,7 +3964,7 @@ xpm_load_image (struct frame *f,
 	    {
 	      if (xstrcasecmp (SSDATA (XCDR (specified_color)), "None") == 0)
 		color_val = Qt;
-	      else if (x_defined_color (f, SDATA (XCDR (specified_color)),
+	      else if (x_defined_color (f, SSDATA (XCDR (specified_color)),
 					&cdef, 0))
 		color_val = make_number (cdef.pixel);
 	    }
@@ -4039,7 +4039,6 @@ xpm_load_image (struct frame *f,
 
  failure:
   image_error ("Invalid XPM file (%s)", img->spec, Qnil);
- error:
   x_destroy_x_image (ximg);
   x_destroy_x_image (mask_img);
   x_clear_image (f, img);
@@ -4072,7 +4071,7 @@ xpm_load (struct frame *f,
 	  return 0;
 	}
 
-      contents = slurp_file (SDATA (file), &size);
+      contents = slurp_file (SSDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error loading XPM image `%s'", img->spec, Qnil);
@@ -4456,9 +4455,8 @@ x_to_xcolors (struct frame *f, struct image *img, int rgb_p)
   p = colors;
   for (y = 0; y < img->height; ++y)
     {
-      XColor *row = p;
-
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
+      XColor *row = p;
       for (x = 0; x < img->width; ++x, ++p)
 	p->pixel = GET_PIXEL (ximg, x, y);
       if (rgb_p)
@@ -4741,14 +4739,12 @@ x_disable_image (struct frame *f, struct image *img)
   if (n_planes < 2 || cross_disabled_images)
     {
 #ifndef HAVE_NTGUI
-      Display *dpy = FRAME_X_DISPLAY (f);
-      GC gc;
-
 #ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
 
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
 
-      gc = XCreateGC (dpy, img->pixmap, 0, NULL);
+      Display *dpy = FRAME_X_DISPLAY (f);
+      GC gc = XCreateGC (dpy, img->pixmap, 0, NULL);
       XSetForeground (dpy, gc, BLACK_PIX_DEFAULT (f));
       XDrawLine (dpy, img->pixmap, gc, 0, 0,
 		 img->width - 1, img->height - 1);

@@ -62,7 +62,7 @@ symbol_to_nsstring (Lisp_Object sym)
   if (EQ (sym, QPRIMARY))     return NXPrimaryPboard;
   if (EQ (sym, QSECONDARY))   return NXSecondaryPboard;
   if (EQ (sym, QTEXT))        return NSStringPboardType;
-  return [NSString stringWithUTF8String: SDATA (XSYMBOL (sym)->xname)];
+  return [NSString stringWithUTF8String: SSDATA (XSYMBOL (sym)->xname)];
 }
 
 static NSPasteboard *
@@ -157,7 +157,7 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
 
       CHECK_STRING (str);
 
-      utfStr = SDATA (str);
+      utfStr = SSDATA (str);
       nsStr = [[NSString alloc] initWithBytesNoCopy: utfStr
                                              length: SBYTES (str)
                                            encoding: NSUTF8StringEncoding
@@ -388,7 +388,7 @@ On Nextstep, FRAME is unused.  */)
       for (rest = Vns_sent_selection_hooks; CONSP (rest); rest = Fcdr (rest))
         call3 (Fcar (rest), selection, target_symbol, successful_p);
     }
-  
+
   return value;
 }
 
@@ -443,7 +443,7 @@ On Nextstep, TERMINAL is unused.  */)
   if (EQ (selection, Qt)) selection = QSECONDARY;
   pb = ns_symbol_to_pb (selection);
   if (pb == nil) return Qnil;
-  
+
   types = [pb types];
   return ([types count] == 0) ? Qnil : Qt;
 }

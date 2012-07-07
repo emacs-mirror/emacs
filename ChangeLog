@@ -1,3 +1,15 @@
+2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve static checking when configured --with-ns.
+	See Samuel Bronson's remarks in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00146.html>.
+	* configure.in (WARN_CFLAGS): Omit -Wunreachable-code, as it's
+	a no-op with recent GCC and harmful in earlier ones.
+	Omit -Wsync-nand, as it's irrelevant to Emacs and provokes a
+	warning when compiling with ObjC.  Always omit
+	-Wunsafe-loop-optimizations, as we don't mind when optimization is
+	being done correctly.
+
 2012-07-07  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (BROKEN_SA_RESTART): Doc fix.
