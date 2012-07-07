@@ -1,3 +1,9 @@
+2012-07-07  Kevin Ryde <user42@zip.com.au>
+
+	* woman.el (woman-strings): Fix double-quote handling (Bug#1151).
+	(woman-decode-region): Replace escaped-escapes without destroying
+	bold or underline (Bug#11552).
+
 2012-07-07  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (yank-pop-change-selection): Doc fix (Bug#11361).
