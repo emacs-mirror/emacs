@@ -7140,16 +7140,19 @@ fi
   nw="$nw -Wsign-conversion"        # Too many warnings for now
   nw="$nw -Woverlength-strings"     # Not a problem these days
   nw="$nw -Wtraditional-conversion" # Too many warnings for now
+  nw="$nw -Wunreachable-code"       # so buggy that it's now silently ignored
   nw="$nw -Wpadded"                 # Our structs are not padded
-  nw="$nw -Wredundant-decls"        # We regularly (re)declare getenv etc.
+  nw="$nw -Wredundant-decls"        # we regularly (re)declare functions
   nw="$nw -Wlogical-op"             # any use of fwrite provokes this
-  nw="$nw -Wformat-nonliteral"      # Emacs does this a lot
+  nw="$nw -Wformat-nonliteral"      # we do this a lot
   nw="$nw -Wvla"                    # warnings in gettext.h
   nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
   nw="$nw -Wswitch-enum"            # Too many warnings for now
   nw="$nw -Wswitch-default"         # Too many warnings for now
-  nw="$nw -Wfloat-equal"            # e.g., ftoastr.c
-  nw="$nw -Winline"                 # e.g., dispnew.c's inlining of row_equal_p
+  nw="$nw -Wfloat-equal"            # warns about high-quality code
+  nw="$nw -Winline"                 # OK to ignore 'inline'
+  nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
+  nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
   # Emacs doesn't care about shadowing; see
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
@@ -7160,12 +7163,6 @@ fi
   nw="$nw -Wstrict-overflow"
   nw="$nw -Wsuggest-attribute=const"
   nw="$nw -Wsuggest-attribute=pure"
-
-  # Some loops can't be optimized with -O1,
-  # so remove -Wunsafe-loop-optimizations.
-  if echo "$CFLAGS" | $EGREP 'O1' 1>/dev/null; then
-    nw="$nw -Wunsafe-loop-optimizations"
-  fi
 
 
 
@@ -7609,6 +7606,41 @@ if test "x$gl_cv_warn_c__Wno_format_nonliteral" = x""yes; then :
 fi
 
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-deprecated-declarations" >&5
+$as_echo_n "checking whether C compiler handles -Wno-deprecated-declarations... " >&6; }
+if test "${gl_cv_warn_c__Wno_deprecated_declarations+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " -Wno-deprecated-declarations"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_deprecated_declarations=yes
+else
+  gl_cv_warn_c__Wno_deprecated_declarations=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_deprecated_declarations" >&5
+$as_echo "$gl_cv_warn_c__Wno_deprecated_declarations" >&6; }
+if test "x$gl_cv_warn_c__Wno_deprecated_declarations" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-deprecated-declarations"
+fi
+
+ # triggered by libpng
 
   # In spite of excluding -Wlogical-op above, it is enabled, as of
   # gcc 4.5.0 20090517.
