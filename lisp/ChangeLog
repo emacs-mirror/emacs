@@ -1,5 +1,11 @@
 2012-07-08  Chong Yidong  <cyd@gnu.org>
 
+	* mouse.el (mouse-drag-line): Rewrite the track-mouse loop.
+	Implement the mouse-1-click-follows-link handling properly.
+
+	* info.el (Info-link-keymap): Use follow-link mechanism for
+	header-line links (Bug#374).
+
 	* simple.el (deactivate-mark): Do not set the primary selection
 	if another program has acquired it (Bug#11772).
 
