@@ -1,3 +1,8 @@
+2012-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* systime.h (EMACS_SUB_TIME): Clarify behavior with unsigned time_t.
+	See <http://bugs.gnu.org/11825#29>.
+
 2012-07-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (fill_glyphless_glyph_string): If the face of the glyph

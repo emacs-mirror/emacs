@@ -80,7 +80,8 @@ typedef unsigned long Time;
 #define EMACS_GET_TIME(time)		    gettime (&(time))
 
 /* Put into DEST the result of adding SRC1 to SRC2, or of subtracting
-   SRC2 from SRC1.  On overflow, store an extremal value.  */
+   SRC2 from SRC1.  On overflow, store an extremal value: ergo, if
+   time_t is unsigned, return 0 if the true answer would be negative.  */
 #define EMACS_ADD_TIME(dest, src1, src2) ((dest) = timespec_add (src1, src2))
 #define EMACS_SUB_TIME(dest, src1, src2) ((dest) = timespec_sub (src1, src2))
 
