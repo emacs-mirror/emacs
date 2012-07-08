@@ -51,7 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
-/* Define if SA_RESTART should not be used. */
+/* Define if SA_RESTART should only be used in batch mode. */
 #undef BROKEN_SA_RESTART
 
 /* Define if SIGIO should not be used. */
