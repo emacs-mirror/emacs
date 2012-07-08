@@ -1885,67 +1885,6 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
     append_glyphless_glyph (it, face_id, str);
 }
 
-
-/* Get information about special display element WHAT in an
-   environment described by IT.  WHAT is one of IT_TRUNCATION or
-   IT_CONTINUATION.  Maybe produce glyphs for WHAT if IT has a
-   non-null glyph_row member.  This function ensures that fields like
-   face_id, c, len of IT are left untouched.  */
-
-void
-produce_special_glyphs (struct it *it, enum display_element_type what)
-{
-  struct it temp_it;
-  Lisp_Object gc;
-  GLYPH glyph;
-
-  temp_it = *it;
-  temp_it.dp = NULL;
-  temp_it.what = IT_CHARACTER;
-  temp_it.len = 1;
-  temp_it.object = make_number (0);
-  memset (&temp_it.current, 0, sizeof temp_it.current);
-
-  if (what == IT_CONTINUATION)
-    {
-      /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
-      if (it->bidi_it.paragraph_dir == R2L)
-	SET_GLYPH_FROM_CHAR (glyph, '/');
-      else
-	SET_GLYPH_FROM_CHAR (glyph, '\\');
-      if (it->dp
-	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
-	{
-	  /* FIXME: Should we mirror GC for R2L lines?  */
-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
-	}
-    }
-  else if (what == IT_TRUNCATION)
-    {
-      /* Truncation glyph.  */
-      SET_GLYPH_FROM_CHAR (glyph, '$');
-      if (it->dp
-	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
-	{
-	  /* FIXME: Should we mirror GC for R2L lines?  */
-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
-	}
-    }
-  else
-    abort ();
-
-  temp_it.c = temp_it.char_to_display = GLYPH_CHAR (glyph);
-  temp_it.face_id = GLYPH_FACE (glyph);
-  temp_it.len = CHAR_BYTES (temp_it.c);
-
-  PRODUCE_GLYPHS (&temp_it);
-  it->pixel_width = temp_it.pixel_width;
-  it->nglyphs = temp_it.pixel_width;
-}
-
-
 
 /***********************************************************************
 				Faces

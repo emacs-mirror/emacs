@@ -2,6 +2,14 @@
 
 	* xdisp.c (fill_glyphless_glyph_string): If the face of the glyph
 	has no font, use the frame's font.  (Bug#11813)
+	(display_line): Add commentary about displaying truncation glyphs
+	on GUI frames.
+	(produce_special_glyphs): Move here from term.c.
+
+	* term.c (produce_special_glyphs): Move to xdisp.c.
+
+	* dispextern.h (produce_special_glyphs): Move prototype to xdisp.c
+	section.
 
 2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 

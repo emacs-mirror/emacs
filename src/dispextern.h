@@ -3065,7 +3065,7 @@ extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
-
+extern void produce_special_glyphs (struct it *, enum display_element_type);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -3353,7 +3353,6 @@ extern int string_cost (const char *);
 extern int per_line_cost (const char *);
 extern void calculate_costs (struct frame *);
 extern void produce_glyphs (struct it *);
-extern void produce_special_glyphs (struct it *, enum display_element_type);
 extern int tty_capable_p (struct tty_display_info *, unsigned, unsigned long, unsigned long);
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_named_tty (const char *);
