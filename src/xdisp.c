@@ -22736,7 +22736,7 @@ fill_glyphless_glyph_string (struct glyph_string *s, int face_id,
   last = s->row->glyphs[s->area] + end;
   voffset = glyph->voffset;
   s->face = FACE_FROM_ID (s->f, face_id);
-  s->font = s->face->font;
+  s->font = s->face->font ? s->face->font : FRAME_FONT (s->f);
   s->nchars = 1;
   s->width = glyph->pixel_width;
   glyph++;

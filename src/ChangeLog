@@ -1,3 +1,8 @@
+2012-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (fill_glyphless_glyph_string): If the face of the glyph
+	has no font, use the frame's font.  (Bug#11813)
+
 2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* xdisp.c (display_line): Avoid warning about implicit declaration
