@@ -222,13 +222,13 @@ bandera: la presencia de un argumento prefijo, sin tener en cuenta su
 valor, hace que el comando actúe de forma diferente.
 
 C-v y M-v son otro tipo de excepción.  Cuando se les da un argumento,
-desplazan la pantalla arriba o abajo esa cantidad de líneas, en vez de
+desplazan el texto arriba o abajo esa cantidad de líneas, en vez de
 una pantalla completa.  Por ejemplo, C-u 8 C-v desplaza la pantalla 8
 líneas.
 
 >> Pruebe tecleando C-u 8 C-v ahora.
 
-Esto debió haber desplazado la pantalla hacia arriba 8 líneas.  Si
+Esto debería haber desplazado el texto hacia arriba 8 líneas.  Si
 quisiera desplazarla hacia abajo de nuevo, puede dar un argumento a
 M-v.
 
@@ -299,9 +299,7 @@ demás ventanas.
 >> Escriba C-x 1 y vea que la ventana de listado de documentación
    desaparece.
 
-Este comando es diferente a los otros que ha aprendido en que éste
-consiste de dos caracteres.  Comienza con el carácter CONTROL-x.  Hay
-toda una serie de comandos que comienzan con CONTROL-x; muchos de
+Hay toda una serie de comandos que comienzan con CONTROL-x; muchos de
 ellos tienen que ver con ventanas, archivos, buffers y cosas
 relacionadas.  Estos comandos son de una longitud de dos, tres o
 cuatro caracteres.
@@ -554,12 +552,8 @@ comando
 Esto copia el texto dentro de Emacs al archivo.  La primera vez que
 haga esto, Emacs renombrará el archivo original con un nuevo nombre
 para que éste no se pierda.  El nuevo nombre se hace agregando "~" al
-final del nombre del archivo original.
-
-Cuando guardar haya terminado, Emacs mostrará el nombre del archivo
-escrito.  Deberá guardar frecuentemente, para que no pierda mucho
-trabajo si el sistema falla (vea la sección "AUTO GUARDADO", más
-adelante).
+final del nombre del archivo original. Cuando guardar haya terminado,
+Emacs mostrará el nombre del archivo escrito.
 
 >> Teclee C-x C-s TUTORIAL.es <Return>
    Esto guardará el tutorial en un archivo llamado TUTORIAL.es, y
@@ -567,10 +561,10 @@ adelante).
 
 Puede encontrar un archivo existente, para verlo o editarlo.  También
 puede hacerlo con un archivo que no exista.  Ésta es la forma de crear
-un archivo en Emacs: encuentre el archivo, que comenzará vacío, luego
-comience a insertar el texto para ese archivo.  Cuando invoque
+un archivo en Emacs: encuentre el archivo, que está inicialmente vacío,
+luego comience a insertar el texto para ese archivo.  Cuando invoque
 "guardar" el archivo, Emacs creará realmente el archivo con el texto
-que ha insertado.  De ahí en adelante, puede considerarse estar
+que ha insertado.  De ahí en adelante, puede considerar que está
 editando un archivo existente.
 
 
@@ -631,8 +625,8 @@ archivo, esto no guarda el primer archivo.  Sus cambios permanecerán
 dentro de Emacs en ese buffer del archivo.  La creación o edición del
 segundo buffer de archivo no afecta al primero.  Esto es muy útil,
 pero también significa que necesita una forma conveniente para guardar
-el archivo del primer buffer.  Sería una molestia tener que volver a
-éste con C-x C-f para guardarlo con C-x C-s.  Así tenemos
+el archivo del primer buffer.  Tener que volver a él para guardarlo
+con C-x C-s sería una molestia.  Por tanto, tenemos
 
 	C-x s 	Guardar algunos buffers
 
@@ -667,7 +661,7 @@ Si está utilizando una pantalla gráfica, no necesita ningún comando
 especial para cambiar de Emacs a otra aplicación.  Puede hacerlo con
 el ratón, o mediante el gestor de ventanas.  Sin embargo, si está
 usando una terminal que solo puede mostrar una aplicación a la vez,
-tendrá que "suspender" Emacs para poder acceder a otros programas.
+tendrá que "suspender" Emacs para poder acceder a otras aplicaciones.
 
 C-z es el comando para salir de Emacs *temporalmente*: para que pueda
 regresar a la misma sesión de Emacs después.  Cuando Emacs está
@@ -677,8 +671,9 @@ intérpretes de comandos más comunes, puede reanudar Emacs con el
 comando `fg' o con `%emacs'.
 
 El momento para usar C-x C-c es cuando está listo para salir del
-sistema.  Es además el paso correcto para salir de un Emacs llamado
-bajo programas de gestión de correo y otras utilidades diversas.
+sistema.  Es además el paso correcto para salir de un Emacs invocado
+para editar algo rápidamente, como por ejemplo desde un programa de
+gestión de correo.
 
 Existen muchos comandos C-x.  He aquí la lista de los que ya ha
 aprendido:
@@ -694,14 +689,14 @@ aprendido:
 
 Los comandos eXtendidos por nombre son comandos que se utilizan aún
 con menos frecuencia, o únicamente en ciertos modos.  Un ejemplo es el
-comando replace-string, el cual substituye globalmente una cadena de
-caracteres por otra.  Cuando teclea M-x, Emacs le pregunta al final de
-la pantalla con M-x y debe escribir el nombre del comando; en este
-caso "replace-string".  Solo teclee "repl s<TAB>" y Emacs completará
-el nombre.  (<TAB> es la tecla del tabulador, que habitualmenté está
-situada sobre la tecla de bloquear mayúsculas o la de shift, en el
-lado izquierdo del teclado.)  Para aceptar el comando y ejecutarlo,
-pulse <Return>.
+comando replace-string, el cual substituye una cadena de caracteres
+por otra en todo el buffer.  Cuando teclea M-x, Emacs le pregunta al
+final de la pantalla con M-x y debe escribir el nombre del comando; en
+este caso "replace-string".  Solo teclee "repl s<TAB>" y Emacs
+completará el nombre.  (<TAB> es la tecla del tabulador, que
+habitualmenté está situada sobre la tecla de bloquear mayúsculas o la
+de shift, en el lado izquierdo del teclado.)  Para aceptar el comando
+y ejecutarlo, pulse <Return>.
 
 El comando replace-string requiere dos argumentos: la cadena de
 caracteres a reemplazar, y la cadena de caracteres para reemplazarla.
@@ -711,8 +706,8 @@ Debe terminar cada argumento con <Return>.
    A continuación escriba
    M-x repl s<Return>cambiado<Return>alterado<Return>.
 
-   Note cómo esta línea ha cambiado: ha substituido la palabra
-   c-a-m-b-i-a-d-o por "alterado" en cada ocurrencia, después de la
+   Note cómo ha cambiado la línea: ha substituido la palabra
+   "cambiado" por "alterado" en cada ocurrencia, después de la
    posición inicial del cursor.
 
 
@@ -804,7 +799,9 @@ pero funcionan de forma un poco diferente.
 
 Para ver la documentación del modo mayor actual, teclee C-h m.
 
->> Use C-l C-l para traer esta línea en la parte superior de la
+>> Mueva el cursor a la línea siguiente a la actual.
+
+>> Use C-l C-l para traer esta línea a la parte superior de la
    pantalla.
 
 >> Teclee C-h m, para ver como el modo de Texto difiere del modo
@@ -1102,9 +1099,9 @@ pregunte por ella.
 >> Teclee C-h a file <Return>.
 
 Esto muestra en otra ventana una lista de todos los comandos M-x con
-la palabra "file" en sus nombres.  Verá comandos de caracteres como
-C-x C-f listados además de los nombres de los comandos
-correspondientes tales como find-file.
+la palabra "file" en sus nombres.  Verá los comandos de caracteres
+listados junto a los nombres de los comandos correspondientes (por
+ejemplo, C-x C-f junto a find-file).
 
 >> Teclee C-M-v para desplazar la ventana de ayuda.  Haga esto unas
    cuantas veces.
