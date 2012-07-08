@@ -697,7 +697,6 @@ else
   gl_WARN_ADD([-Wno-switch])           # Too many warnings for now
   gl_WARN_ADD([-Wno-unused-parameter]) # Too many warnings for now
   gl_WARN_ADD([-Wno-format-nonliteral])
-  gl_WARN_ADD([-Wno-deprecated-declarations]) # triggered by libpng
 
   # In spite of excluding -Wlogical-op above, it is enabled, as of
   # gcc 4.5.0 20090517.
@@ -2451,7 +2450,7 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_png}" != "no"; then
     # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
     # in /usr/include/libpng.
-    AC_CHECK_HEADERS(png.h libpng/png.h)
+    AC_CHECK_HEADERS(png.h libpng/png.h, break)
     if test "$ac_cv_header_png_h" = yes || test "$ac_cv_header_libpng_png_h" = yes ; then
       AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm)
     fi
@@ -2460,6 +2459,19 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${HAVE_PNG}" = "yes"; then
     AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library (-lpng).])
     LIBPNG="-lpng -lz -lm"
+
+    AC_CHECK_DECL(png_longjmp,
+      [],
+      [AC_DEFINE(PNG_DEPRECATED, [],
+	 [Define to empty to suppress deprecation warnings when building
+	  with --enable-gcc-warnings and with libpng versions before 1.5,
+	  which lack png_longjmp.])],
+      [[#ifdef HAVE_LIBPNG_PNG_H
+	# include <libpng/png.h>
+	#else
+	# include <png.h>
+	#endif
+      ]])
   fi
 fi
 AC_SUBST(LIBPNG)

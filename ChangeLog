@@ -1,3 +1,10 @@
+2012-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Restore deprecation warnings, except for older libpng.
+	* configure.in (WARN_CFLAGS): Remove -Wno-deprecated-declarations.
+	(HAVE_LIBPNG_PNG_H): Don't bother checking for this if we have png.h.
+	(PNG_DEPRECATED): Define when compiling with older PNG versions.
+
 2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in (WARN_CFLAGS): Add -Wno-deprecated-declarations.
