@@ -1,3 +1,8 @@
+2012-07-08  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (deactivate-mark): Do not set the primary selection
+	if another program has acquired it (Bug#11772).
+
 2012-07-07  Kevin Ryde  <user42@zip.com.au>
 
 	* woman.el (woman-strings): Fix double-quote handling (Bug#1151).

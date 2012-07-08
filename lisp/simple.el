@@ -3863,7 +3863,11 @@ run `deactivate-mark-hook'."
       (cond (saved-region-selection
 	     (x-set-selection 'PRIMARY saved-region-selection)
 	     (setq saved-region-selection nil))
-	    ((/= (region-beginning) (region-end))
+	    ;; If another program has acquired the selection, region
+	    ;; deactivation should not clobber it (Bug#11772).
+	    ((and (/= (region-beginning) (region-end))
+		  (or (x-selection-owner-p 'PRIMARY)
+		      (null (x-selection-exists-p 'PRIMARY))))
 	     (x-set-selection 'PRIMARY
 			      (buffer-substring-no-properties
 			       (region-beginning)
