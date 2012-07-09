@@ -3820,5 +3820,3 @@ fi
 ])
 
 AC_OUTPUT
-
-dnl configure.in ends here

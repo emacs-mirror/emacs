@@ -94,14 +94,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* ============================================================ */
 
 /* After adding support for a new system, modify the large case
-   statement in configure.in to recognize reasonable
+   statement in configure.ac to recognize reasonable
    configuration names, and add a description of the system to
    `etc/MACHINES'.
 
-   Check for any tests of $opsys in configure.in, and add an entry
+   Check for any tests of $opsys in configure.ac, and add an entry
    for the new system if needed.
 
    If you've just fixed a problem in an existing configuration file,
    you should also check `etc/MACHINES' to make sure its descriptions
    of known problems in that configuration should be updated.  */
-

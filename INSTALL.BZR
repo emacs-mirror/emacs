@@ -8,7 +8,7 @@ Building Emacs from Bazaar requires some tools that are not needed
 when building from a release.  You will need:
 
 autoconf  - at least the version specified near the start of
-  configure.in (in the AC_PREREQ command).
+  configure.ac (in the AC_PREREQ command).
 automake  - we recommend at least version 1.11.
 makeinfo  - not strictly necessary, but highly recommended, so that
   you can build the manuals.

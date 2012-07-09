@@ -642,7 +642,7 @@ MFILENAME is the makefile to generate."
 (defmethod ede-proj-setup-buildenvironment ((this ede-proj-project)
 					    &optional force)
   "Setup the build environment for project THIS.
-Handles the Makefile, or a Makefile.am configure.in combination.
+Handles the Makefile, or a Makefile.am configure.ac combination.
 Optional argument FORCE will force items to be regenerated."
   (if (not force)
       (ede-proj-makefile-create-maybe this (ede-proj-dist-makefile this))

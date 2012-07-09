@@ -1,3 +1,10 @@
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename configure.in to configure.ac (Bug#11603).
+	* emacs-lisp/authors.el (authors-canonical-file-name):
+	* progmodes/autoconf.el (autoconf-mode):
+	Prefer configure.ac to configure.in.
+
 2012-07-08  Chong Yidong  <cyd@gnu.org>
 
 	* mouse.el (mouse-drag-line): Rewrite the track-mouse loop.

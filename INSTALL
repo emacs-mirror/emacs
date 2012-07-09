@@ -683,9 +683,9 @@ changing the s/*.h and m/*.h files.
 corresponding `Makefile.in' files.  This isn't so hard, just a matter
 of editing in appropriate substitutions for the @...@ constructs.
 
-The `configure' script is built from `configure.in' by the `autoconf'
+The `configure' script is built from `configure.ac' by the `autoconf'
 program.  You need at least the version of autoconf specified in the
-AC_PREREQ(...) command to rebuild `configure' from `configure.in'.
+AC_PREREQ(...) command to rebuild `configure' from `configure.ac'.
 
 BUILDING GNU EMACS BY HAND
 

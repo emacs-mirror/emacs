@@ -34,7 +34,7 @@
 progs="autoconf automake"
 
 ## Minimum versions we need:
-autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.in`
+autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
 
 ## FIXME how to determine this from the sources?
 automake_min=1.11

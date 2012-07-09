@@ -1,3 +1,9 @@
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename configure.in to configure.ac (Bug#11603).
+	* ede.texi (Compiler and Linker objects, ede-proj-project)
+	(ede-step-project): Prefer the name configure.ac to configure.in.
+
 2012-07-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Multi-hops): Introduce
