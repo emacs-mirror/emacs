@@ -1105,12 +1105,12 @@ subshells can nest."
     (")" (0 (sh-font-lock-paren (match-beginning 0))))
     ;; Highlight (possibly nested) subshells inside "" quoted
     ;; regions correctly.
-    ("\"\\(?:\\(?:[^\\\"]\\|\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)"
+    ("\"\\(?:\\(?:[^\\\"]\\|\\\\.\\)*?\\)??\\(\\$(\\|`\\)"
      (1 (ignore
-         ;; Save excursion because we want to also apply other
-         ;; syntax-propertize rules within the affected region.
-         (if (nth 8 (syntax-ppss))
+         (if (nth 8 (save-excursion (syntax-ppss (match-beginning 0))))
              (goto-char (1+ (match-beginning 0)))
+           ;; Save excursion because we want to also apply other
+           ;; syntax-propertize rules within the affected region.
            (save-excursion
              (sh-font-lock-quoted-subshell end)))))))
    (point) end))

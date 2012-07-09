@@ -1,3 +1,8 @@
+2012-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-syntax-propertize-function): Fix last
+	change (bug#11826).
+
 2012-07-02  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (kill-whole-line): Doc tweak.
@@ -11,8 +16,8 @@
 
 2012-06-28  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* calendar/cal-dst.el (calendar-current-time-zone): Return
-	calendar-current-time-zone-cache if non-nil.
+	* calendar/cal-dst.el (calendar-current-time-zone):
+	Return calendar-current-time-zone-cache if non-nil.
 
 2012-06-25  Masatake YAMATO  <yamato@redhat.com>
 
