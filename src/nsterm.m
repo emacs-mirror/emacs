@@ -286,24 +286,24 @@ append2 (Lisp_Object list, Lisp_Object item)
 }
 
 
-char *
+const char *
 ns_etc_directory (void)
 {
 /* If running as a self-contained app bundle, return as a string the
    filename of the etc directory, if present; else nil.  */
 
-     NSBundle *bundle = [NSBundle mainBundle];
-     NSString *resourceDir = [bundle resourcePath];
-     NSString *resourcePath;
-     NSFileManager *fileManager = [NSFileManager defaultManager];
-     BOOL isDir;
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *resourceDir = [bundle resourcePath];
+  NSString *resourcePath;
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  BOOL isDir;
 
-     resourcePath = [resourceDir stringByAppendingPathComponent: @"etc"];
-     if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-     {
-          if (isDir) return [resourcePath UTF8String];
-     }
-     return nil;
+  resourcePath = [resourceDir stringByAppendingPathComponent: @"etc"];
+  if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
+    {
+      if (isDir) return [resourcePath UTF8String];
+    }
+  return NULL;
 }
 
 void
