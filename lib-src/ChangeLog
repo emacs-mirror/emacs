@@ -1,5 +1,9 @@
 2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacsclient.c (w32_execvp): Declare execvp to silence the compiler.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
 	* makefile.w32-in ($(BLD)/test-distrib.exe): Use LIB_SRC, not SRC.
 	(LIB_SRC, NT_INC, GNU_LIB, MS_W32_H, CONFIG_H, INTTYPES_H, NTLIB_H)
 	(SYSTIME_H): New macros.

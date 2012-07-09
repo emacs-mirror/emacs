@@ -463,6 +463,7 @@ int
 w32_execvp (const char *path, char **argv)
 {
   int i;
+  extern int execvp (const char*, char **);
 
   /* Required to allow a .BAT script as alternate editor.  */
   argv[0] = (char *) alternate_editor;
