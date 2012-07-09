@@ -1,3 +1,18 @@
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in: Rework dependencies.
+	(GNU_LIB, NT_INC, C_CTYPE_H, MS_W32_H, CONFIG_H, FILEMODE_H)
+	(FTOASTR_H, FTOASTR_C, GETOPT_INT_H, MD5_H, SHA1_H, SHA256_H)
+	(U64_H, SHA512_H): New macros.
+	(SRC): Redefine to point to src/, not current directory.
+	($(BLD)/c-ctype.$(O), $(BLD)/c-strcasecmp.$(O))
+	($(BLD)/c-strncasecmp.$(O), $(BLD)/dtoastr.$(O))
+	($(BLD)/dtotimespec.$(O), $(BLD)/getopt.$(O), $(BLD)/getopt1.$(O))
+	($(BLD)/gettime.$(O), $(BLD)/strftime.$(O), $(BLD)/time_r.$(O))
+	($(BLD)/timespec-add.$(O), $(BLD)/timespec-sub.$(O), $(BLD)/md5.$(O))
+	($(BLD)/sha1.$(O), $(BLD)/sha256.$(O), $(BLD)/sha512.$(O))
+	($(BLD)/filemode.$(O)): Update dependencies.
+
 2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
