@@ -896,7 +896,7 @@ files in the project."
     out))
 
 
-;;; Configure.am queries.
+;;; Configure.ac queries.
 ;;
 (defvar project-am-autoconf-file-options
   '("configure.ac" "configure.in")
