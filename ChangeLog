@@ -1,3 +1,15 @@
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename configure.in to configure.ac (Bug#11603).
+	The name 'configure.in' has been obsolescent for quite some time,
+	and the next release of Autoconf will generate warnings for it.
+	* configure.ac: Rename from configure.in.
+	* INSTALL, INSTALL.BZR, README, make-dist:
+	* Makefile.in (AUTOCONF_INPUTS):
+	* autogen.sh (autoconf_min):
+	* autogen/update_autogen (sources):
+	Adjust to reflect new name.
+
 2012-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Restore deprecation warnings, except for older libpng.

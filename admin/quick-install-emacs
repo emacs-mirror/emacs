@@ -171,9 +171,9 @@ test x"$prefix" = x && { prefix="`get_config_var prefix`" || exit 4 ; }
 test x"$ARCH" = x && { ARCH="`get_config_var host`" || exit 4 ; }
 
 VERSION=`
-  sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <$SRC/configure.in
+  sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <$SRC/configure.ac
 ` || exit 4
-test -n "$VERSION" || { echo >&2 "$me: no version in configure.in"; exit 4; }
+test -n "$VERSION" || { echo >&2 "$me: no version in configure.ac"; exit 4; }
 
 DST_SHARE="$prefix/share/emacs/$VERSION"
 DST_BIN="$prefix/bin"

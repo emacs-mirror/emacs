@@ -1,3 +1,10 @@
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename configure.in to configure.ac (Bug#11603).
+	* admin.el (set-version):
+	* quick-install-emacs (VERSION):
+	Get version number from configure.ac, not configure.in.
+
 2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).

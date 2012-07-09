@@ -79,7 +79,7 @@ lboot_flag=
 ## Parameters.
 ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
-sources="configure.in lib/Makefile.am"
+sources="configure.ac lib/Makefile.am"
 genfiles="
   configure aclocal.m4 src/config.in lib/Makefile.in
   build-aux/compile build-aux/config.guess build-aux/config.sub

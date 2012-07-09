@@ -74,13 +74,16 @@ DIR is the directory to search from."
   "Find the Emacs version for the Emacs src in DIR.
 Return a tuple of ( EMACSNAME . VERSION )."
   (let ((buff (get-buffer-create " *emacs-query*"))
+	(configure_ac "configure.ac")
 	(emacs "Emacs")
 	(ver ""))
     (with-current-buffer buff
       (erase-buffer)
       (setq default-directory (file-name-as-directory dir))
+      (or (file-exists-p configure_ac)
+	  (setq configure_ac "configure.in"))
       ;(call-process "egrep" nil buff nil "-n" "-e" "^version=" "Makefile")
-      (call-process "egrep" nil buff nil "-n" "-e" "AC_INIT" "configure.in")
+      (call-process "egrep" nil buff nil "-n" "-e" "AC_INIT" configure_ac)
       (goto-char (point-min))
       ;(re-search-forward "version=\\([0-9.]+\\)")
       (cond
@@ -100,7 +103,7 @@ emacs_beta_version=\\([0-9]+\\)")
 
        ;; Vaguely recent version of GNU Emacs?
        (t
-	(insert-file-contents "configure.in")
+	(insert-file-contents configure_ac)
 	(goto-char (point-min))
 	(re-search-forward "AC_INIT(emacs,\\s-*\\([0-9.]+\\)\\s-*)")
 	(setq ver (match-string 1))
