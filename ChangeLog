@@ -3,6 +3,8 @@
 	Rename configure.in to configure.ac (Bug#11603).
 	The name 'configure.in' has been obsolescent for quite some time,
 	and the next release of Autoconf will generate warnings for it.
+	See commit 'v2.69-4-g560f16b' of 2012-05-06, "general: deprecate
+	'configure.in' as autoconf input" in the Autoconf git repository.
 	* configure.ac: Rename from configure.in.
 	* INSTALL, INSTALL.BZR, README, make-dist:
 	* Makefile.in (AUTOCONF_INPUTS):
