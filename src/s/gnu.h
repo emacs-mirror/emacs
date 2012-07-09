@@ -21,8 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
-#define SIGNALS_VIA_CHARACTERS
-
 /* libc defines data_start.  */
 #define DATA_START ({ extern int data_start; (char *) &data_start; })
 

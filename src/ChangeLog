@@ -1,5 +1,8 @@
 2012-07-09  Glenn Morris  <rgm@gnu.org>
 
+	* s/gnu.h (SIGNALS_VIA_CHARACTERS): No need to define it here,
+	since the included bsd-common.h does so.
+
 	Stop ns builds setting the EMACSPATH environment variable.
 	* nsterm.m (ns_exec_path): New function, split from ns_init_paths.
 	(ns_init_paths): Do not set EMACSPATH.
