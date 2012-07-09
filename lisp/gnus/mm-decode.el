@@ -1772,7 +1772,8 @@ If RECURSIVE, search recursively."
 	 (insert (prog1
 		     (if (and charset
 			      (setq charset
-				    (mm-charset-to-coding-system charset))
+				    (mm-charset-to-coding-system charset
+								 nil t))
 			      (not (eq charset 'ascii)))
 			 (mm-decode-coding-string (buffer-string) charset)
 		       (mm-string-as-multibyte (buffer-string)))
