@@ -1,3 +1,11 @@
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (ALL): Add profile.exe.
+	(PROFILEOBJS): New macro.
+	($(BLD)/profile.exe): New target.
+	(install): Copy profile.exe.
+	($(BLD)/alloca.$(O), $(BLD)/tcp.$(O)): Remove, obsolete.
+
 2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/ctags.$(O), $(BLD)/etags.$(O)):

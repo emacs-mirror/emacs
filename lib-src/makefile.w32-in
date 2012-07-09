@@ -19,7 +19,7 @@
 
 ALL = $(BLD)/test-distrib.exe $(BLD)/make-docfile.exe $(BLD)/hexl.exe\
  $(BLD)/ctags.exe $(BLD)/etags.exe $(BLD)/movemail.exe $(BLD)/ebrowse.exe\
- $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
+ $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe $(BLD)/profile.exe
 
 .PHONY: make-docfile
 
@@ -109,6 +109,12 @@ ctags.c:	etags.c
 CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS)
 $(BLD)/ctags.$(O): ctags.c
 		$(CC) $(CFLAGS) $(CTAGS_CFLAGS) $(CC_OUT)$@ ctags.c
+
+PROFILEOBJS	= $(BLD)/profile.$(O) \
+		  ../lib/$(BLD)/libgnu.$(A) \
+		  $(BLD)/ntlib.$(O)
+$(BLD)/profile.exe:	$(PROFILEOBJS)
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(PROFILEOBJS) $(LIBS)
 
 #
 # From ..\src\Makefile.in
@@ -306,6 +312,7 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/emacsclient.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/emacsclientw.exe $(INSTALL_DIR)/bin
+		$(CP) $(BLD)/profile.exe $(INSTALL_DIR)/bin
 		- mkdir "$(INSTALL_DIR)/etc"
 		$(CP) $(DOC) $(INSTALL_DIR)/etc
 
@@ -349,12 +356,6 @@ TAGS: $(BLD)/etags.exe *.c *.h
 
 EMACS_ROOT	= ..
 SRC		= .
-
-$(BLD)/alloca.$(O) : \
-	$(SRC)/alloca.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(EMACS_ROOT)/src/blockinput.h
 
 $(BLD)/ctags.$(O) : \
 	$(SRC)/ctags.c \
@@ -423,9 +424,6 @@ $(BLD)/profile.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(EMACS_ROOT)/lib-src/../src/systime.h
-
-$(BLD)/tcp.$(O) : \
-	$(SRC)/tcp.c
 
 $(BLD)/test-distrib.$(O) : \
 	$(SRC)/test-distrib.c
