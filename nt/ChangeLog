@@ -1,3 +1,7 @@
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
 2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt (HAVE_STRCASECMP, HAVE_STRNCASECMP): Remove.
