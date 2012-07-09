@@ -38,7 +38,6 @@ AC_DEFUN([gl_FUNC_GETOPT_GNU],
   AC_REQUIRE([gl_FUNC_GETOPT_POSIX])
 ])
 
-# emacs' configure.in uses this.
 AC_DEFUN([gl_GETOPT_IFELSE],
 [
   AC_REQUIRE([gl_GETOPT_CHECK_HEADERS])
@@ -360,7 +359,6 @@ dnl is ambiguous with environment values that contain newlines.
   fi
 ])
 
-# emacs' configure.in uses this.
 AC_DEFUN([gl_GETOPT_SUBSTITUTE_HEADER],
 [
   GETOPT_H=getopt.h
@@ -371,7 +369,6 @@ AC_DEFUN([gl_GETOPT_SUBSTITUTE_HEADER],
 ])
 
 # Prerequisites of lib/getopt*.
-# emacs' configure.in uses this.
 AC_DEFUN([gl_PREREQ_GETOPT],
 [
   AC_CHECK_DECLS_ONCE([getenv])

@@ -1,5 +1,8 @@
 2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Merge from gnulib, incorporating:
+	2012-07-09 timespec: mark functions with const attributes
+
 	Rename configure.in to configure.ac (Bug#11603).
 	The name 'configure.in' has been obsolescent for quite some time,
 	and the next release of Autoconf will generate warnings for it.

@@ -28,7 +28,7 @@
                                 macro that comes with autoconf 2.13 or newer.
                                 If that isn't an option, then just put
                                 AC_CHECK_FUNCS(pstat_getdynamic) in your
-                                configure.in file.
+                                configure.ac file.
    HAVE_LIBPERFSTAT Define this if your system has the
                                 perfstat_cpu_total function in libperfstat (AIX).
    FIXUP_KERNEL_SYMBOL_ADDR()   Adjust address in returned struct nlist.
