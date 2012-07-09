@@ -487,7 +487,7 @@ extern int input_polling_used (void);
 extern void clear_input_pending (void);
 extern int requeued_events_pending_p (void);
 extern void bind_polling_period (int);
-extern int make_ctrl_char (int);
+extern int make_ctrl_char (int) ATTRIBUTE_CONST;
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
 extern void swallow_events (int);

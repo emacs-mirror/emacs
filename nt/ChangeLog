@@ -1,3 +1,7 @@
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (ATTRIBUTE_CONST): Add, to sync with configure.ac.
+
 2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

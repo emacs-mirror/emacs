@@ -1501,6 +1501,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
 
+#define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
+
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
 #undef noinline

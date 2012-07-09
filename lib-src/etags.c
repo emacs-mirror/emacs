@@ -2123,7 +2123,7 @@ invalidate_nodes (fdesc *badfdp, node **npp)
 
 
 static int total_size_of_entries (node *);
-static int number_len (long);
+static int number_len (long) ATTRIBUTE_CONST;
 
 /* Length of a non-negative number's decimal representation. */
 static int

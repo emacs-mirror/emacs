@@ -26,7 +26,7 @@ extern void x_set_menu_bar_lines (struct frame *f,
                                   Lisp_Object oldval);
 
 extern void init_menu_items (void);
-extern void finish_menu_items (void);
+extern void finish_menu_items (void) ATTRIBUTE_CONST;
 extern void discard_menu_items (void);
 extern void save_menu_items (void);
 extern int parse_single_submenu (Lisp_Object, Lisp_Object, Lisp_Object);

@@ -665,7 +665,7 @@ typedef enum {
   UNICODE_CATEGORY_Cn
 } unicode_category_t;
 
-extern EMACS_INT char_resolve_modifier_mask (EMACS_INT);
+extern EMACS_INT char_resolve_modifier_mask (EMACS_INT) ATTRIBUTE_CONST;
 extern int char_string (unsigned, unsigned char *);
 extern int string_char (const unsigned char *,
                         const unsigned char **, int *);

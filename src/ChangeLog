@@ -1,5 +1,19 @@
 2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Add GCC-style 'const' attribute to functions that can use it.
+	* character.h (char_resolve_modifier_mask):
+	* keyboard.h (make_ctrl_char):
+	* lisp.h (multibyte_char_to_unibyte, multibyte_char_to_unibyte_safe)
+	(init_character_once, next_almost_prime, init_fns, init_image)
+	(flush_pending_output, init_sound):
+	* mem-limits.h (start_of_data):
+	* menu.h (finish_menu_items):
+	Add ATTRIBUTE_CONST.
+	* emacs.c (DEFINE_DUMMY_FUNCTION):
+	Declare the dummy function with ATTRIBUTE_CONST.
+	* lisp.h (Fbyteorder, Fmax_char, Fidentity):
+	Add decls with ATTRIBUTE_CONST.
+
 	Minor improvements to make_formatted_string.
 	* alloc.c (make_formatted_string): Prefer int to ptrdiff_t
 	where int is good enough, as vsprintf returns an int.

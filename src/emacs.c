@@ -569,7 +569,7 @@ static char dump_tz[] = "UtC0";
 /* Define a dummy function F.  Declare F too, to pacify gcc
    -Wmissing-prototypes.  */
 #define DEFINE_DUMMY_FUNCTION(f) \
-  void f (void) EXTERNALLY_VISIBLE; void f (void) {}
+  void f (void) ATTRIBUTE_CONST EXTERNALLY_VISIBLE; void f (void) {}
 
 #ifndef GCC_CTORS_IN_LIBC
 DEFINE_DUMMY_FUNCTION (__do_global_ctors)

@@ -683,7 +683,6 @@ else
   # The following lines should be removable at some point.
   nw="$nw -Wstack-protector"
   nw="$nw -Wstrict-overflow"
-  nw="$nw -Wsuggest-attribute=const"
   nw="$nw -Wsuggest-attribute=pure"
 
   gl_MANYWARN_ALL_GCC([ws])
@@ -3635,6 +3634,8 @@ AH_BOTTOM([
 # define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
    ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
+
+#define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
 
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline

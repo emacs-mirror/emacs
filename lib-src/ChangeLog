@@ -1,3 +1,8 @@
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add GCC-style 'const' attribute to functions that can use it.
+	* etags.c (number_len): Add ATTRIBUTE_CONST.
+
 2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (w32_execvp): Declare execvp to silence the compiler.
