@@ -31,9 +31,14 @@ static ptrdiff_t cached_bytepos;
 static struct buffer *cached_buffer;
 static int cached_modiff;
 
-#ifdef ENABLE_CHECKING
+/* Juanma Barranquero <lekktu@gmail.com> reported ~3x increased
+   bootstrap time when byte_char_debug_check is enabled; so this
+   is never turned on by --enable-checking configure option.  */
+
+#ifdef MARKER_DEBUG
 
 extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
+extern ptrdiff_t verify_bytepos (ptrdiff_t charpos) EXTERNALLY_VISIBLE;
 
 static void
 byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
@@ -57,11 +62,11 @@ byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
     abort ();
 }
 
-#else /* not ENABLE_CHECKING */
+#else /* not MARKER_DEBUG */
 
 #define byte_char_debug_check(b,charpos,bytepos) do { } while (0)
 
-#endif /* ENABLE_CHECKING */
+#endif /* MARKER_DEBUG */
  
 void
 clear_charpos_cache (struct buffer *b)
@@ -237,25 +242,6 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 
 #undef CONSIDER
 
-/* Used for debugging: recompute the bytepos corresponding to CHARPOS
-   in the simplest, most reliable way.  */
-
-extern ptrdiff_t verify_bytepos (ptrdiff_t charpos) EXTERNALLY_VISIBLE;
-ptrdiff_t
-verify_bytepos (ptrdiff_t charpos)
-{
-  ptrdiff_t below = 1;
-  ptrdiff_t below_byte = 1;
-
-  while (below != charpos)
-    {
-      below++;
-      BUF_INC_POS (current_buffer, below_byte);
-    }
-
-  return below_byte;
-}
-
 /* buf_bytepos_to_charpos returns the char position corresponding to
    BYTEPOS.  */
 
@@ -781,7 +767,7 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
   return Qnil;
 }
 
-#ifdef ENABLE_CHECKING
+#ifdef MARKER_DEBUG
 
 /* For debugging -- count the markers in buffer BUF.  */
 
@@ -797,7 +783,25 @@ count_markers (struct buffer *buf)
   return total;
 }
 
-#endif /* ENABLE_CHECKING */
+/* For debugging -- recompute the bytepos corresponding
+   to CHARPOS in the simplest, most reliable way.  */
+
+ptrdiff_t
+verify_bytepos (ptrdiff_t charpos)
+{
+  ptrdiff_t below = 1;
+  ptrdiff_t below_byte = 1;
+
+  while (below != charpos)
+    {
+      below++;
+      BUF_INC_POS (current_buffer, below_byte);
+    }
+
+  return below_byte;
+}
+
+#endif /* MARKER_DEBUG */
 
 void
 syms_of_marker (void)

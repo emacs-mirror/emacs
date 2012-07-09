@@ -1,3 +1,12 @@
+2012-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Move marker debugging code under MARKER_DEBUG.
+	* marker.c (MARKER_DEBUG): Move marker debugging code under
+	#ifdef MARKER_DEBUG because byte_char_debug_check is too slow
+	for bootstrap with --enable-checking (~3x slowdown reported
+	by Juanma Barranquero <lekktu@gmail.com>).
+	(verify_bytepos): Move under #ifdef MARKER_DEBUG.
+
 2012-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* systime.h (EMACS_SUB_TIME): Clarify behavior with unsigned time_t.
