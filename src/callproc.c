@@ -1519,6 +1519,7 @@ init_callproc_1 (void)
   char *doc_dir = egetenv ("EMACSDOC");
 #ifdef HAVE_NS
   const char *etc_dir = ns_etc_directory ();
+  const char *path_exec = ns_exec_path ();
 #endif
 
   Vdata_directory
@@ -1540,8 +1541,13 @@ init_callproc_1 (void)
 
   /* Check the EMACSPATH environment variable, defaulting to the
      PATH_EXEC path from epaths.h.  */
-  Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC);
+  Vexec_path = decode_env_path ("EMACSPATH",
+#ifdef HAVE_NS
+                                path_exec ? path_exec :
+#endif
+                                PATH_EXEC);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
+  /* FIXME?  For ns, path_exec should go at the front?  */
   Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
 }
 
@@ -1576,7 +1582,14 @@ init_callproc (void)
 	  /* MSDOS uses wrapped binaries, so don't do this.  */
       if (NILP (Fmember (tem, Vexec_path)))
 	{
-	  Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC);
+#ifdef HAVE_NS
+	  const char *path_exec = ns_exec_path ();
+#endif
+	  Vexec_path = decode_env_path ("EMACSPATH",
+#ifdef HAVE_NS
+					path_exec ? path_exec :
+#endif
+					PATH_EXEC);
 	  Vexec_path = Fcons (tem, Vexec_path);
 	  Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
 	}

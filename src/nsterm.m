@@ -288,10 +288,9 @@ append2 (Lisp_Object list, Lisp_Object item)
 
 const char *
 ns_etc_directory (void)
-{
 /* If running as a self-contained app bundle, return as a string the
    filename of the etc directory, if present; else nil.  */
-
+{
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *resourceDir = [bundle resourcePath];
   NSString *resourcePath;
@@ -306,6 +305,66 @@ ns_etc_directory (void)
   return NULL;
 }
 
+
+const char *
+ns_exec_path (void)
+/* If running as a self-contained app bundle, return as a path string
+   the filenames of the libexec and bin directories, ie libexec:bin.
+   Otherwise, return nil.
+   Normally, Emacs does not add its own bin/ directory to the PATH.
+   However, a self-contained NS build has a different layout, with
+   bin/ and libexec/ subdirectories in the directory that contains
+   Emacs.app itself.
+   We put libexec first, because init_callproc_1 uses the first
+   element to initialize exec-directory.  An alternative would be
+   for init_callproc to check for invocation-directory/libexec.
+*/
+{
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *resourceDir = [bundle resourcePath];
+  NSString *binDir = [bundle bundlePath];
+  NSString *resourcePath, *resourcePaths;
+  NSRange range;
+  BOOL onWindows = NO;       /* FIXME determine this somehow  */
+  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  NSArray *paths;
+  NSEnumerator *pathEnum;
+  BOOL isDir;
+
+  range = [resourceDir rangeOfString: @"Contents"];
+  if (range.location != NSNotFound)
+    {
+#ifdef NS_IMPL_COCOA
+      binDir = [binDir stringByAppendingPathComponent: @"MacOS"];
+#else
+      binDir = [binDir stringByAppendingPathComponent: @"Contents"];
+#endif
+    }
+
+  paths = [binDir stringsByAppendingPaths:
+                [NSArray arrayWithObjects: @"libexec", @"bin", nil]];
+  pathEnum = [paths objectEnumerator];
+  resourcePaths = @"";
+
+  while (resourcePath = [pathEnum nextObject])
+    {
+      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
+        if (isDir)
+          {
+            if ([resourcePaths length] > 0)
+              resourcePaths
+                = [resourcePaths stringByAppendingString: pathSeparator];
+            resourcePaths
+              = [resourcePaths stringByAppendingString: resourcePath];
+          }
+    }
+  if ([resourcePaths length] > 0) return [resourcePaths UTF8String];
+
+  return NULL;
+}
+
+
 void
 ns_init_paths (void)
 /* --------------------------------------------------------------------------
@@ -314,24 +373,13 @@ ns_init_paths (void)
    -------------------------------------------------------------------------- */
 {
   NSBundle *bundle = [NSBundle mainBundle];
-  NSString *binDir = [bundle bundlePath], *resourceDir = [bundle resourcePath];
+  NSString *resourceDir = [bundle resourcePath];
   NSString *resourcePath, *resourcePaths;
-  NSRange range;
-  BOOL onWindows = NO; /* how do I determine this? */
+  BOOL onWindows = NO;          /* FIXME determine this somehow */
   NSString *pathSeparator = onWindows ? @";" : @":";
   NSFileManager *fileManager = [NSFileManager defaultManager];
   BOOL isDir;
 /*NSLog (@"ns_init_paths: '%@'\n%@\n", [[NSBundle mainBundle] bundlePath], [[NSBundle mainBundle] resourcePath]); */
-
-  /* get bindir from base */
-  range = [resourceDir rangeOfString: @"Contents"];
-  if (range.location != NSNotFound)
-    {
-      binDir = [binDir stringByAppendingPathComponent: @"Contents"];
-#ifdef NS_IMPL_COCOA
-      binDir = [binDir stringByAppendingPathComponent: @"MacOS"];
-#endif
-    }
 
   /* the following based on Andrew Choi's init_mac_osx_environment () */
   if (!getenv ("EMACSLOADPATH"))
@@ -358,36 +406,6 @@ ns_init_paths (void)
       if ([resourcePaths length] > 0)
         setenv ("EMACSLOADPATH", [resourcePaths UTF8String], 1);
 /*NSLog (@"loadPath: '%@'\n", resourcePaths); */
-    }
-
-  /* Normally, Emacs does not add its own bin/ directory to the PATH.
-     However, a self-contained NS build has a different layout, with
-     bin/ and libexec/ subdirectories in the directory that contains
-     Emacs.app itself.
-     We put libexec first, because init_callproc_1 uses the first
-     element to initialize exec-directory.  An alternative would be
-     for init_callproc to check for invocation-directory/libexec.  */
-  if (!getenv ("EMACSPATH"))
-    {
-      NSArray *paths = [binDir stringsByAppendingPaths:
-                                  [NSArray arrayWithObjects: @"libexec",
-                                                             @"bin", nil]];
-      NSEnumerator *pathEnum = [paths objectEnumerator];
-      resourcePaths = @"";
-      while (resourcePath = [pathEnum nextObject])
-        {
-          if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-            if (isDir)
-              {
-                if ([resourcePaths length] > 0)
-                  resourcePaths
-		    = [resourcePaths stringByAppendingString: pathSeparator];
-                resourcePaths
-		  = [resourcePaths stringByAppendingString: resourcePath];
-              }
-        }
-      if ([resourcePaths length] > 0)
-        setenv ("EMACSPATH", [resourcePaths UTF8String], 1);
     }
 }
 

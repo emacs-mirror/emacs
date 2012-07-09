@@ -1,5 +1,12 @@
 2012-07-09  Glenn Morris  <rgm@gnu.org>
 
+	Stop ns builds setting the EMACSPATH environment variable.
+	* nsterm.m (ns_exec_path): New function, split from ns_init_paths.
+	(ns_init_paths): Do not set EMACSPATH.
+	* nsterm.h (ns_exec_path): Add it.
+	* callproc.c (init_callproc_1, init_callproc) [HAVE_NS]:
+	Use ns_exec_path.
+
 	* nsterm.m, nsterm.h (ns_etc_directory): Fix type, empty return.
 
 2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>

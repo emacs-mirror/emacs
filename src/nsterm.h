@@ -799,6 +799,7 @@ extern void x_free_frame_resources (struct frame *);
 extern void ns_run_ascript (void);
 
 extern const char *ns_etc_directory (void);
+extern const char *ns_exec_path (void);
 extern void ns_init_paths (void);
 extern void syms_of_nsterm (void);
 extern void syms_of_nsfns (void);
