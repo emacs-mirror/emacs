@@ -1,3 +1,13 @@
+2012-07-09  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus-sum.el (gnus-summary-limit-to-author): Use default value instead
+	of initial input when reading the author to restrict the summary to.
+
+2012-07-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Don't assume that the group
+	buffer exists, which it doesn't if we haven't started Gnus.
+
 2012-07-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-shr):
