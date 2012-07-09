@@ -1,3 +1,8 @@
+2012-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.ac (PNG_DEPSTRUCT): Define this instead of
+	PNG_DEPRECATED.
+
 2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Add GCC-style 'const' attribute to functions that can use it.

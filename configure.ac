@@ -2461,7 +2461,7 @@ if test "${HAVE_X11}" = "yes"; then
 
     AC_CHECK_DECL(png_longjmp,
       [],
-      [AC_DEFINE(PNG_DEPRECATED, [],
+      [AC_DEFINE(PNG_DEPSTRUCT, [],
 	 [Define to empty to suppress deprecation warnings when building
 	  with --enable-gcc-warnings and with libpng versions before 1.5,
 	  which lack png_longjmp.])],
