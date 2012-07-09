@@ -8549,13 +8549,13 @@ gs_load (struct frame *f, struct image *img)
      don't either.  Let the Lisp loader use `unwind-protect' instead.  */
   printnum1 = FRAME_X_WINDOW (f);
   printnum2 = img->pixmap;
-  sprintf (buffer, "%"pMu" %"pMu, printnum1, printnum2);
-  window_and_pixmap_id = build_string (buffer);
+  window_and_pixmap_id 
+    = make_formatted_string (buffer, "%"pMu" %"pMu, printnum1, printnum2);
 
   printnum1 = FRAME_FOREGROUND_PIXEL (f);
   printnum2 = FRAME_BACKGROUND_PIXEL (f);
-  sprintf (buffer, "%"pMu" %"pMu, printnum1, printnum2);
-  pixel_colors = build_string (buffer);
+  pixel_colors
+    = make_formatted_string (buffer, "%"pMu" %"pMu, printnum1, printnum2);
 
   XSETFRAME (frame, f);
   loader = image_spec_value (img->spec, QCloader, NULL);

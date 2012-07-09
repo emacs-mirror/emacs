@@ -792,8 +792,8 @@ get_minibuffer (EMACS_INT depth)
   buf = Fcar (tail);
   if (NILP (buf) || NILP (BVAR (XBUFFER (buf), name)))
     {
-      sprintf (name, " *Minibuf-%"pI"d*", depth);
-      buf = Fget_buffer_create (build_string (name));
+      buf = Fget_buffer_create
+	(make_formatted_string (name, " *Minibuf-%"pI"d*", depth));
 
       /* Although the buffer's name starts with a space, undo should be
 	 enabled in it.  */

@@ -2082,8 +2082,9 @@ the data it can't find.  */)
 	  int m = offset / 60;
 	  int am = offset < 0 ? - m : m;
 	  char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
-	  sprintf (buf, "%c%02d%02d", (offset < 0 ? '-' : '+'), am/60, am%60);
-	  zone_name = build_string (buf);
+	  zone_name = make_formatted_string (buf, "%c%02d%02d", 
+					     (offset < 0 ? '-' : '+'),
+					     am / 60, am % 60);
 	}
     }
 

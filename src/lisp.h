@@ -2611,6 +2611,7 @@ extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 extern Lisp_Object allocate_misc (void);
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
+extern Lisp_Object make_formatted_string (char *, const char *, ...);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
 extern Lisp_Object make_multibyte_string (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_event_array (int, Lisp_Object *);

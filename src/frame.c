@@ -518,9 +518,7 @@ make_terminal_frame (struct terminal *terminal)
   XSETFRAME (frame, f);
   Vframe_list = Fcons (frame, Vframe_list);
 
-  tty_frame_count++;
-  sprintf (name, "F%"pMd, tty_frame_count);
-  f->name = build_string (name);
+  f->name = make_formatted_string (name, "F%"pMd, ++tty_frame_count);
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
@@ -2028,9 +2026,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
 			    SBYTES (f->name)))
 	return;
 
-      tty_frame_count++;
-      sprintf (namebuf, "F%"pMd, tty_frame_count);
-      name = build_string (namebuf);
+      name = make_formatted_string (namebuf, "F%"pMd, ++tty_frame_count);
     }
   else
     {
@@ -3049,20 +3045,16 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
      actually a pointer.  Explicit casting avoids compiler
      warnings.  */
   w = (unsigned long) FRAME_X_WINDOW (f);
-  sprintf (buf, "%lu", w);
   store_in_alist (alistptr, Qwindow_id,
-		  build_string (buf));
+		  make_formatted_string (buf, "%lu", w));
 #ifdef HAVE_X_WINDOWS
 #ifdef USE_X_TOOLKIT
   /* Tooltip frame may not have this widget.  */
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
-    {
-      w = (unsigned long) FRAME_OUTER_WINDOW (f);
-      sprintf (buf, "%lu", w);
-    }
+    w = (unsigned long) FRAME_OUTER_WINDOW (f);
   store_in_alist (alistptr, Qouter_window_id,
-		  build_string (buf));
+		  make_formatted_string (buf, "%lu", w));
 #endif
   store_in_alist (alistptr, Qicon_name, f->icon_name);
   FRAME_SAMPLE_VISIBILITY (f);

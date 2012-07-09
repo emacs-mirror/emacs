@@ -645,8 +645,7 @@ make_process (Lisp_Object name)
     {
       tem = Fget_process (name1);
       if (NILP (tem)) break;
-      sprintf (suffix, "<%"pMd">", i);
-      name1 = concat2 (name, build_string (suffix));
+      name1 = concat2 (name, make_formatted_string (suffix, "<%"pMd">", i));
     }
   name = name1;
   p->name = name;

@@ -2517,6 +2517,20 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
   return string;
 }
 
+/* Print arguments to BUF according to a FORMAT, then return
+   a Lisp_String initialized with the data from BUF.  */
+
+Lisp_Object
+make_formatted_string (char *buf, const char *format, ...)
+{
+  va_list ap;
+  ptrdiff_t length;
+
+  va_start (ap, format);
+  length = vsprintf (buf, format, ap);
+  va_end (ap);
+  return make_string (buf, length);
+}
 
 
 /***********************************************************************

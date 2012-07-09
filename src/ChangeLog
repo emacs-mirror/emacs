@@ -1,3 +1,21 @@
+2012-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use make_formatted_string to avoid double length calculation.
+	* lisp.h (make_formatted_string): New prototype.
+	* alloc.c (make_formatted_string): New function.
+	* buffer.c (Fgenerate_new_buffer_name): Use it.
+	* dbus.c (syms_of_dbusbind): Likewise.
+	* editfns.c (Fcurrent_time_zone): Likewise.
+	* filelock.c (get_boot_time): Likewise.
+	* frame.c (make_terminal_frame, set_term_frame_name)
+	(x_report_frame_params): Likewise.
+	* image.c (gs_load): Likewise.
+	* minibuf.c (get_minibuffer): Likewise.
+	* msdos.c (dos_set_window_size): Likewise.
+	* process.c (make_process): Likewise.
+	* xdisp.c (ensure_echo_area_buffers): Likewise.
+	* xsettings.c (apply_xft_settings): Likewise.
+
 2012-07-09  Glenn Morris  <rgm@gnu.org>
 
 	Stop ns builds polluting the environment with EMACSDATA, EMACSDOC.

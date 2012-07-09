@@ -9866,8 +9866,8 @@ ensure_echo_area_buffers (void)
 	int j;
 
 	old_buffer = echo_buffer[i];
-	sprintf (name, " *Echo Area %d*", i);
-	echo_buffer[i] = Fget_buffer_create (build_string (name));
+	echo_buffer[i] = Fget_buffer_create
+	  (make_formatted_string (name, " *Echo Area %d*", i));
 	BVAR (XBUFFER (echo_buffer[i]), truncate_lines) = Qnil;
 	/* to force word wrap in echo area -
 	   it was decided to postpone this*/

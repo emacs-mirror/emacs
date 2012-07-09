@@ -861,8 +861,9 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
   if (!strncmp (SSDATA (name), " ", 1)) /* see bug#1229 */
     {
       /* Note fileio.c:make_temp_name does random differently.  */
-      sprintf (number, "-%"pI"d", XFASTINT (Frandom (make_number (999999))));
-      tem2 = concat2 (name, build_string (number));
+      tem2 = concat2 (name, make_formatted_string
+		      (number, "-%"pI"d", 
+		       XFASTINT (Frandom (make_number (999999)))));
       tem = Fget_buffer (tem2);
       if (NILP (tem))
 	return tem2;
@@ -873,8 +874,8 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
   count = 1;
   while (1)
     {
-      sprintf (number, "<%"pD"d>", ++count);
-      gentemp = concat2 (tem2, build_string (number));
+      gentemp = concat2 (tem2, make_formatted_string
+			 (number, "<%"pD"d>", ++count));
       tem = Fstring_equal (gentemp, ignore);
       if (!NILP (tem))
 	return gentemp;

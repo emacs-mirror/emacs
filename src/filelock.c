@@ -174,14 +174,14 @@ get_boot_time (void)
 
       filename = Qnil;
 
-      sprintf (cmd_string, "%s.%d", WTMP_FILE, counter);
-      tempname = build_string (cmd_string);
+      tempname = make_formatted_string
+	(cmd_string, "%s.%d", WTMP_FILE, counter);
       if (! NILP (Ffile_exists_p (tempname)))
 	filename = tempname;
       else
 	{
-	  sprintf (cmd_string, "%s.%d.gz", WTMP_FILE, counter);
-	  tempname = build_string (cmd_string);
+	  tempname = make_formatted_string (cmd_string, "%s.%d.gz",
+					    WTMP_FILE, counter);
 	  if (! NILP (Ffile_exists_p (tempname)))
 	    {
 	      Lisp_Object args[6];

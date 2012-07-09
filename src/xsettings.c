@@ -711,10 +711,12 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       if (send_event_p)
         store_config_changed_event (Qfont_render,
                                     XCAR (dpyinfo->name_list_element));
-      sprintf (buf, format, oldsettings.aa, oldsettings.hinting,
-	       oldsettings.rgba, oldsettings.lcdfilter,
-	       oldsettings.hintstyle, oldsettings.dpi);
-      Vxft_settings = build_string (buf);
+      Vxft_settings 
+	= make_formatted_string (buf, format,
+				 oldsettings.aa, oldsettings.hinting,
+				 oldsettings.rgba, oldsettings.lcdfilter,
+				 oldsettings.hintstyle, oldsettings.dpi);
+      
     }
   else
     FcPatternDestroy (pat);
