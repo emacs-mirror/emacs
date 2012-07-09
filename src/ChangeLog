@@ -1,3 +1,10 @@
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor improvements to make_formatted_string.
+	* alloc.c (make_formatted_string): Prefer int to ptrdiff_t
+	where int is good enough, as vsprintf returns an int.
+	* lisp.h (make_formatted_string): Add ATTRIBUTE_FORMAT_PRINTF.
+
 2012-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use make_formatted_string to avoid double length calculation.

@@ -2524,7 +2524,7 @@ Lisp_Object
 make_formatted_string (char *buf, const char *format, ...)
 {
   va_list ap;
-  ptrdiff_t length;
+  int length;
 
   va_start (ap, format);
   length = vsprintf (buf, format, ap);
