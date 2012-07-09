@@ -1,3 +1,12 @@
+2012-07-09  Glenn Morris  <rgm@gnu.org>
+
+	Stop ns builds polluting the environment with EMACSDATA, EMACSDOC.
+	* nsterm.m (ns_etc_directory): New function, split from ns_init_paths.
+	(ns_init_paths): Do not set EMACSDATA, EMACSDOC.
+	* nsterm.h (ns_etc_directory): Add it.
+	* callproc.c [HAVE_NS]: Include nsterm.h.
+	(init_callproc_1, init_callproc) [HAVE_NS]: Use ns_etc_directory.
+
 2012-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Move marker debugging code under MARKER_DEBUG.

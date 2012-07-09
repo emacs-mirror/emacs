@@ -61,6 +61,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 #ifndef USE_CRT_DLL
 extern char **environ;
 #endif
@@ -1513,13 +1517,26 @@ init_callproc_1 (void)
 {
   char *data_dir = egetenv ("EMACSDATA");
   char *doc_dir = egetenv ("EMACSDOC");
+#ifdef HAVE_NS
+  const char *etc_dir = ns_etc_directory ();
+#endif
 
   Vdata_directory
     = Ffile_name_as_directory (build_string (data_dir ? data_dir
-					     : PATH_DATA));
+#ifdef HAVE_NS
+                                             : (etc_dir ? etc_dir : PATH_DATA)
+#else
+                                             : PATH_DATA
+#endif
+                                             ));
   Vdoc_directory
     = Ffile_name_as_directory (build_string (doc_dir ? doc_dir
-					     : PATH_DOC));
+#ifdef HAVE_NS
+                                             : (etc_dir ? etc_dir : PATH_DOC)
+#else
+                                             : PATH_DOC
+#endif
+                                             ));
 
   /* Check the EMACSPATH environment variable, defaulting to the
      PATH_EXEC path from epaths.h.  */
@@ -1537,6 +1554,17 @@ init_callproc (void)
 
   register char * sh;
   Lisp_Object tempdir;
+#ifdef HAVE_NS
+  if (data_dir == 0)
+    {
+      const char *etc_dir = ns_etc_directory ();
+      if (etc_dir)
+        {
+          data_dir = alloca (strlen (etc_dir) + 1);
+          strcpy (data_dir, etc_dir);
+        }
+    }
+#endif
 
   if (!NILP (Vinstallation_directory))
     {
