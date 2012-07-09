@@ -1,5 +1,8 @@
 2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (wait_reading_process_output): 'waitchannels' was unset
+	when read_kbd || !NILP (wait_for_cell); fix this.
+
 	Add GCC-style 'const' attribute to functions that can use it.
 	* character.h (char_resolve_modifier_mask):
 	* keyboard.h (make_ctrl_char):

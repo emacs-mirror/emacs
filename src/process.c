@@ -4239,7 +4239,7 @@ wait_reading_process_output_1 (void)
        If NSECS > 0, the timeout consists of NSECS only.
        If NSECS < 0, gobble data immediately, as if TIME_LIMIT were negative.
 
-   READ_KBD is a lisp value:
+   READ_KBD is:
      0 to ignore keyboard input, or
      1 to return when input is available, or
      -1 meaning caller will actually read the input, so don't throw to
@@ -6820,7 +6820,7 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
        If NSECS > 0, the timeout consists of NSECS only.
        If NSECS < 0, gobble data immediately, as if TIME_LIMIT were negative.
 
-   READ_KBD is a Lisp_Object:
+   READ_KBD is:
      0 to ignore keyboard input, or
      1 to return when input is available, or
      -1 means caller will actually read the input, so don't throw to
@@ -6842,8 +6842,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 {
   register int nfds;
   EMACS_TIME end_time, timeout;
-  SELECT_TYPE waitchannels;
-  int xerrno;
 
   if (time_limit < 0)
     {
@@ -6870,6 +6868,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   while (1)
     {
       int timeout_reduced_for_timers = 0;
+      SELECT_TYPE waitchannels;
+      int xerrno;
 
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
@@ -6944,13 +6944,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       if (read_kbd < 0)
 	set_waiting_for_input (&timeout);
 
-      /* Wait till there is something to do.  */
-
-      if (! read_kbd && NILP (wait_for_cell))
-	FD_ZERO (&waitchannels);
-      else
-	FD_SET (0, &waitchannels);
-
       /* If a frame has been newly mapped and needs updating,
 	 reprocess its display stuff.  */
       if (frame_garbaged && do_display)
@@ -6961,13 +6954,16 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    set_waiting_for_input (&timeout);
 	}
 
+      /* Wait till there is something to do.  */
+      FD_ZERO (&waitchannels);
       if (read_kbd && detect_input_pending ())
-	{
-	  nfds = 0;
-	  FD_ZERO (&waitchannels);
-	}
+	nfds = 0;
       else
-	nfds = pselect (1, &waitchannels, NULL, NULL, &timeout, NULL);
+	{
+	  if (read_kbd || !NILP (wait_for_cell))
+	    FD_SET (0, &waitchannels);
+	  nfds = pselect (1, &waitchannels, NULL, NULL, &timeout, NULL);
+	}
 
       xerrno = errno;
 
