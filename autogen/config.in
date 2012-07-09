@@ -1,4 +1,4 @@
-/* src/config.in.  Generated from configure.in by autoheader.  */
+/* src/config.in.  Generated from configure.ac by autoheader.  */
 
 /* GNU Emacs site configuration template file.
 
@@ -1088,6 +1088,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Define to empty to suppress deprecation warnings when building with
+   --enable-gcc-warnings and with libpng versions before 1.5, which lack
+   png_longjmp. */
+#undef PNG_DEPRECATED
 
 /* Define to 1 if pthread_sigmask(), when it fails, returns -1 and sets errno.
    */

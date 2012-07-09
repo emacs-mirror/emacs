@@ -7606,41 +7606,6 @@ if test "x$gl_cv_warn_c__Wno_format_nonliteral" = x""yes; then :
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-deprecated-declarations" >&5
-$as_echo_n "checking whether C compiler handles -Wno-deprecated-declarations... " >&6; }
-if test "${gl_cv_warn_c__Wno_deprecated_declarations+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-
-  gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-deprecated-declarations"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  gl_cv_warn_c__Wno_deprecated_declarations=yes
-else
-  gl_cv_warn_c__Wno_deprecated_declarations=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  CFLAGS="$gl_save_compiler_FLAGS"
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_deprecated_declarations" >&5
-$as_echo "$gl_cv_warn_c__Wno_deprecated_declarations" >&6; }
-if test "x$gl_cv_warn_c__Wno_deprecated_declarations" = x""yes; then :
-  as_fn_append WARN_CFLAGS " -Wno-deprecated-declarations"
-fi
-
- # triggered by libpng
 
   # In spite of excluding -Wlogical-op above, it is enabled, as of
   # gcc 4.5.0 20090517.
@@ -20235,7 +20200,7 @@ eval as_val=\$$as_ac_Header
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
-
+ break
 fi
 
 done
@@ -20289,6 +20254,22 @@ fi
 $as_echo "#define HAVE_PNG 1" >>confdefs.h
 
     LIBPNG="-lpng -lz -lm"
+
+    ac_fn_c_check_decl "$LINENO" "png_longjmp" "ac_cv_have_decl_png_longjmp" "#ifdef HAVE_LIBPNG_PNG_H
+	# include <libpng/png.h>
+	#else
+	# include <png.h>
+	#endif
+
+"
+if test "x$ac_cv_have_decl_png_longjmp" = x""yes; then :
+
+else
+
+$as_echo "#define PNG_DEPRECATED /**/" >>confdefs.h
+
+fi
+
   fi
 fi
 
@@ -24806,5 +24787,4 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
 
