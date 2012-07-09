@@ -1,5 +1,17 @@
 2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* makefile.w32-in ($(BLD)/test-distrib.exe): Use LIB_SRC, not SRC.
+	(LIB_SRC, NT_INC, GNU_LIB, MS_W32_H, CONFIG_H, INTTYPES_H, NTLIB_H)
+	(SYSTIME_H): New macros.
+	(SRC): Redefine to point to src/, not current directory.
+	($(BLD)/ctags.$(O), $(BLD)/ebrowse.$(O), $(BLD)/emacsclient.$(O))
+	($(BLD)/etags.$(O), $(BLD)/hexl.$(O), $(BLD)/make-docfile.$(O))
+	($(BLD)/movemail.$(O), $(BLD)/ntlib.$(O), $(BLD)/pop.$(O))
+	($(BLD)/profile.$(O), $(BLD)/test-distrib.$(O)): Update dependencies.
+	($(BLD)/regex.$(O)): New dependency.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
 	* makefile.w32-in (ALL): Add profile.exe.
 	(PROFILEOBJS): New macro.
 	($(BLD)/profile.exe): New target.
