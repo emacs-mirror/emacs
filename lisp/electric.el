@@ -38,8 +38,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;; This loop is the guts for non-standard modes which retain control
 ;; until some event occurs.  It is a `do-forever', the only way out is
 ;; to throw.  It assumes that you have set up the keymap, window, and
@@ -394,16 +392,16 @@ arguments that returns one of those symbols.")
                (not (nth 8 (save-excursion (syntax-ppss pos)))))
       (let ((end (copy-marker (point) t)))
         (goto-char pos)
-        (case (if (functionp rule) (funcall rule) rule)
+        (pcase (if (functionp rule) (funcall rule) rule)
           ;; FIXME: we used `newline' down here which called
           ;; self-insert-command and ran post-self-insert-hook recursively.
           ;; It happened to make electric-indent-mode work automatically with
           ;; electric-layout-mode (at the cost of re-indenting lines
           ;; multiple times), but I'm not sure it's what we want.
-          (before (goto-char (1- pos)) (skip-chars-backward " \t")
+          (`before (goto-char (1- pos)) (skip-chars-backward " \t")
                   (unless (bolp) (insert "\n")))
-          (after  (insert "\n"))       ; FIXME: check eolp before inserting \n?
-          (around (save-excursion
+          (`after  (insert "\n"))      ; FIXME: check eolp before inserting \n?
+          (`around (save-excursion
                     (goto-char (1- pos)) (skip-chars-backward " \t")
                     (unless (bolp) (insert "\n")))
                   (insert "\n")))      ; FIXME: check eolp before inserting \n?

@@ -109,7 +109,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'pcvs-util)
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-diff-internal "vc")

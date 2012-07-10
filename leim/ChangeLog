@@ -1,3 +1,9 @@
+2012-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/ipa.el: Use cl-lib.
+
+	* quail/hangul.el: Don't require CL.
+
 2012-06-12  Nguyen Thai Ngoc Duy  <pclouds@gmail.com>
 
 	* quail/vnvi.el: New file (Bug#4747).

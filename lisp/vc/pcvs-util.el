@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;;
 ;;;; list processing
@@ -63,7 +63,7 @@
 	(while (and l (> n 1))
 	  (setcdr nl (list (pop l)))
 	  (setq nl (cdr nl))
-	  (decf n))
+	  (cl-decf n))
 	ret))))
 
 (defun cvs-partition (p l)
@@ -130,10 +130,10 @@ If NOREUSE is non-nil, always return a new buffer."
            (if noreuse (generate-new-buffer name)
              (get-buffer-create name)))
       (unless noreuse
-	(dolist (buf (buffer-list))
+	(cl-dolist (buf (buffer-list))
 	  (with-current-buffer buf
 	    (when (equal name list-buffers-directory)
-	      (return buf)))))
+	      (cl-return buf)))))
       (with-current-buffer (create-file-buffer name)
 	(setq list-buffers-directory name)
 	(current-buffer))))
@@ -195,10 +195,10 @@ arguments.  If ARGS is not a list, no argument will be passed."
 ;;;; (interactive <foo>) support function
 ;;;;
 
-(defstruct (cvs-qtypedesc
-	    (:constructor nil) (:copier nil)
-	    (:constructor cvs-qtypedesc-create
-			  (str2obj obj2str &optional complete hist-sym require)))
+(cl-defstruct (cvs-qtypedesc
+               (:constructor nil) (:copier nil)
+               (:constructor cvs-qtypedesc-create
+                (str2obj obj2str &optional complete hist-sym require)))
   str2obj
   obj2str
   hist-sym
@@ -231,10 +231,10 @@ arguments.  If ARGS is not a list, no argument will be passed."
 ;;;; Flags handling
 ;;;;
 
-(defstruct (cvs-flags
-	    (:constructor nil)
-	    (:constructor -cvs-flags-make
-			  (desc defaults &optional qtypedesc hist-sym)))
+(cl-defstruct (cvs-flags
+               (:constructor nil)
+               (:constructor -cvs-flags-make
+                (desc defaults &optional qtypedesc hist-sym)))
   defaults persist desc qtypedesc hist-sym)
 
 (defmacro cvs-flags-define (sym defaults

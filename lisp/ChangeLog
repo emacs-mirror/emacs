@@ -1,5 +1,25 @@
 2012-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Reduce use of (require 'cl).
+	* vc/smerge-mode.el, vc/pcvs.el, vc/pcvs-util.el, vc/pcvs-info.el:
+	* vc/diff-mode.el, vc/cvs-status.el, uniquify.el, scroll-bar.el:
+	* register.el, progmodes/sh-script.el, net/gnutls.el, net/dbus.el:
+	* msb.el, mpc.el, minibuffer.el, international/ucs-normalize.el:
+	* international/quail.el, info-xref.el, imenu.el, image-mode.el:
+	* font-lock.el, filesets.el, edmacro.el, doc-view.el, bookmark.el:
+	* battery.el, avoid.el, abbrev.el: Use cl-lib.
+	* vc/pcvs-parse.el, vc/pcvs-defs.el, vc/log-view.el, vc/log-edit.el:
+	* vc/diff.el, simple.el, pcomplete.el, lpr.el, comint.el, loadhist.el:
+	* jit-lock.el, international/iso-ascii.el, info.el, frame.el, bs.el:
+	* emulation/crisp.el, electric.el, dired.el, cus-dep.el, composite.el:
+	* calculator.el, autorevert.el, apropos.el: Don't require CL.
+	* emacs-lisp/bytecomp.el (byte-recompile-directory, display-call-tree)
+	(byte-compile-unfold-bcf, byte-compile-check-variable):
+	* emacs-lisp/byte-opt.el (byte-compile-trueconstp)
+	(byte-compile-nilconstp):
+	* emacs-lisp/autoload.el (make-autoload): Use pcase.
+	* face-remap.el (text-scale-adjust): Simplify pcase patterns.
+
 	* emacs-lisp/gv.el (cond): Make it a valid place.
 	(if): Simplify slightly.
 

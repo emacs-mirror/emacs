@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defgroup info nil
   "Info subsystem."
   :group 'help

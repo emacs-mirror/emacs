@@ -45,8 +45,7 @@
 (defvar dbus-registered-objects-table)
 
 ;; Pacify byte compiler.
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'xml)
 
@@ -494,20 +493,20 @@ placed in the queue.
     (dolist (flag flags)
       (setq arg
 	    (+ arg
-	       (case flag
+	       (pcase flag
 		 (:allow-replacement 1)
 		 (:replace-existing 2)
 		 (:do-not-queue 4)
-		 (t (signal 'wrong-type-argument (list flag)))))))
+		 (_ (signal 'wrong-type-argument (list flag)))))))
     (setq reply (dbus-call-method
 		 bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
 		 "RequestName" service arg))
-    (case reply
+    (pcase reply
       (1 :primary-owner)
       (2 :in-queue)
       (3 :exists)
       (4 :already-owner)
-      (t (signal 'dbus-error (list "Could not register service" service))))))
+      (_ (signal 'dbus-error (list "Could not register service" service))))))
 
 (defun dbus-unregister-service (bus service)
   "Unregister all objects related to SERVICE from D-Bus BUS.
@@ -536,11 +535,11 @@ queue of this service."
   (let ((reply (dbus-call-method
 		bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
 		"ReleaseName" service)))
-    (case reply
+    (pcase reply
       (1 :released)
       (2 :non-existent)
       (3 :not-owner)
-      (t (signal 'dbus-error (list "Could not unregister service" service))))))
+      (_ (signal 'dbus-error (list "Could not unregister service" service))))))
 
 (defun dbus-register-signal
   (bus service path interface signal handler &rest args)
@@ -803,7 +802,7 @@ association to the service from D-Bus."
 				;; Service.
 				(string-equal service (cadr e))
 				;; Non-empty object path.
-				(caddr e)
+				(cl-caddr e)
 				(throw :found t)))))
 			 dbus-registered-objects-table)
 			nil))))
@@ -1383,7 +1382,7 @@ name of the property, and its value.  If there are no properties,
 		bus service path dbus-interface-properties
 		"GetAll" :timeout 500 interface)
 	       result)
-	(add-to-list 'result (cons (car dict) (caadr dict)) 'append)))))
+	(add-to-list 'result (cons (car dict) (cl-caadr dict)) 'append)))))
 
 (defun dbus-register-property
   (bus service path interface property access value
@@ -1581,7 +1580,7 @@ and \"org.freedesktop.DBus.Properties.GetAll\", which is slow."
 		(if (cadr entry2)
 		    ;; "sv".
 		    (dolist (entry3 (cadr entry2))
-		      (setcdr entry3 (caadr entry3)))
+		      (setcdr entry3 (cl-caadr entry3)))
 		  (setcdr entry2 nil)))))
 
 	;; Fallback: collect the information.  Slooow!

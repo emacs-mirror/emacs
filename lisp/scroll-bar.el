@@ -29,7 +29,7 @@
 ;;; Code:
 
 (require 'mouse)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 
 ;;;; Utilities.
@@ -112,8 +112,9 @@ Setting the variable with a customization buffer also takes effect."
 ;; If it is set again, that is for real.
 (setq scroll-bar-mode-explicit t)
 
-(defun get-scroll-bar-mode () scroll-bar-mode)
-(defsetf get-scroll-bar-mode set-scroll-bar-mode)
+(defun get-scroll-bar-mode ()
+  (declare (gv-setter set-scroll-bar-mode))
+  scroll-bar-mode)
 
 (define-minor-mode scroll-bar-mode
   "Toggle vertical scroll bars on all frames (Scroll Bar mode).

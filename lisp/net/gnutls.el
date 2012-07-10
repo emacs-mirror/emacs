@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
@@ -120,7 +120,7 @@ trust and key files, and priority string."
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
 (declare-function gnutls-errorp "gnutls.c" (error))
 
-(defun* gnutls-negotiate
+(cl-defun gnutls-negotiate
     (&rest spec
            &key process type hostname priority-string
            trustfiles crlfiles keylist min-prime-bits

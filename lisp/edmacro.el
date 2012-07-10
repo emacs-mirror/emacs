@@ -63,8 +63,7 @@
 
 ;;; Code:
 
-(eval-when-compile
- (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'kmacro)
 
@@ -319,17 +318,18 @@ or nil, use a compact 80-column format."
 			mac))))
 	    (if no-keys
 		(when cmd
-		  (loop for key in (where-is-internal cmd '(keymap)) do
-			(global-unset-key key)))
+		  (cl-loop for key in (where-is-internal cmd '(keymap)) do
+                           (global-unset-key key)))
 	      (when keys
 		(if (= (length mac) 0)
-		    (loop for key in keys do (global-unset-key key))
-		  (loop for key in keys do
-			(global-set-key key
-					(or cmd
-					    (if (and mac-counter mac-format)
-						(kmacro-lambda-form mac mac-counter mac-format)
-					      mac))))))))))
+		    (cl-loop for key in keys do (global-unset-key key))
+		  (cl-loop for key in keys do
+                           (global-set-key key
+                                           (or cmd
+                                               (if (and mac-counter mac-format)
+                                                   (kmacro-lambda-form
+                                                    mac mac-counter mac-format)
+                                                 mac))))))))))
       (kill-buffer buf)
       (when (buffer-name obuf)
 	(switch-to-buffer obuf))
@@ -437,9 +437,9 @@ doubt, use whitespace."
 	 (one-line (eq verbose 1)))
     (if one-line (setq verbose nil))
     (when (stringp macro)
-      (loop for i below (length macro) do
-	    (when (>= (aref rest-mac i) 128)
-	      (incf (aref rest-mac i) (- ?\M-\^@ 128)))))
+      (cl-loop for i below (length macro) do
+               (when (>= (aref rest-mac i) 128)
+                 (cl-incf (aref rest-mac i) (- ?\M-\^@ 128)))))
     (while (not (eq (aref rest-mac 0) 'end-macro))
       (let* ((prefix
 	      (or (and (integerp (aref rest-mac 0))
@@ -448,57 +448,58 @@ doubt, use whitespace."
 			     '(digit-argument negative-argument))
 		       (let ((i 1))
 			 (while (memq (aref rest-mac i) (cdr mdigs))
-			   (incf i))
+			   (cl-incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
 			      (prog1 (vconcat "M-" (edmacro-subseq rest-mac 0 i) " ")
-				(callf edmacro-subseq rest-mac i)))))
+				(cl-callf edmacro-subseq rest-mac i)))))
 		  (and (eq (aref rest-mac 0) ?\C-u)
 		       (eq (key-binding [?\C-u]) 'universal-argument)
 		       (let ((i 1))
 			 (while (eq (aref rest-mac i) ?\C-u)
-			   (incf i))
+			   (cl-incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
-			      (prog1 (loop repeat i concat "C-u ")
-				(callf edmacro-subseq rest-mac i)))))
+			      (prog1 (cl-loop repeat i concat "C-u ")
+				(cl-callf edmacro-subseq rest-mac i)))))
 		  (and (eq (aref rest-mac 0) ?\C-u)
 		       (eq (key-binding [?\C-u]) 'universal-argument)
 		       (let ((i 1))
 			 (when (eq (aref rest-mac i) ?-)
-			   (incf i))
+			   (cl-incf i))
 			 (while (memq (aref rest-mac i)
 				      '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
-			   (incf i))
+			   (cl-incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
 			      (prog1 (vconcat "C-u " (edmacro-subseq rest-mac 1 i) " ")
-				(callf edmacro-subseq rest-mac i)))))))
+				(cl-callf edmacro-subseq rest-mac i)))))))
 	     (bind-len (apply 'max 1
-			      (loop for map in maps
-				    for b = (lookup-key map rest-mac)
-				    when b collect b)))
+			      (cl-loop for map in maps
+                                       for b = (lookup-key map rest-mac)
+                                       when b collect b)))
 	     (key (edmacro-subseq rest-mac 0 bind-len))
 	     (fkey nil) tlen tkey
-	     (bind (or (loop for map in maps for b = (lookup-key map key)
-			     thereis (and (not (integerp b)) b))
+	     (bind (or (cl-loop for map in maps for b = (lookup-key map key)
+                                thereis (and (not (integerp b)) b))
 		       (and (setq fkey (lookup-key local-function-key-map rest-mac))
 			    (setq tlen fkey tkey (edmacro-subseq rest-mac 0 tlen)
 				  fkey (lookup-key local-function-key-map tkey))
-			    (loop for map in maps
-				  for b = (lookup-key map fkey)
-				  when (and (not (integerp b)) b)
-				  do (setq bind-len tlen key tkey)
-				  and return b
-				  finally do (setq fkey nil)))))
+			    (cl-loop for map in maps
+                                     for b = (lookup-key map fkey)
+                                     when (and (not (integerp b)) b)
+                                     do (setq bind-len tlen key tkey)
+                                     and return b
+                                     finally do (setq fkey nil)))))
 	     (first (aref key 0))
-	     (text (loop for i from bind-len below (length rest-mac)
-			 for ch = (aref rest-mac i)
-			 while (and (integerp ch)
-				    (> ch 32) (< ch maxkey) (/= ch 92)
-				    (eq (key-binding (char-to-string ch))
-					'self-insert-command)
-				    (or (> i (- (length rest-mac) 2))
-					(not (eq ch (aref rest-mac (+ i 1))))
-					(not (eq ch (aref rest-mac (+ i 2))))))
-			 finally return i))
+	     (text
+              (cl-loop for i from bind-len below (length rest-mac)
+                       for ch = (aref rest-mac i)
+                       while (and (integerp ch)
+                                  (> ch 32) (< ch maxkey) (/= ch 92)
+                                  (eq (key-binding (char-to-string ch))
+                                      'self-insert-command)
+                                  (or (> i (- (length rest-mac) 2))
+                                      (not (eq ch (aref rest-mac (+ i 1))))
+                                      (not (eq ch (aref rest-mac (+ i 2))))))
+                       finally return i))
 	     desc)
 	(if (stringp bind) (setq bind nil))
 	(cond ((and (eq bind 'self-insert-command) (not prefix)
@@ -509,7 +510,7 @@ doubt, use whitespace."
 		      (setq desc (concat (edmacro-subseq rest-mac 0 text)))
 		      (when (string-match "^[ACHMsS]-." desc)
 			(setq text 2)
-			(callf substring desc 0 2))
+			(cl-callf substring desc 0 2))
 		      (not (string-match
 			    "^;;\\|^<.*>$\\|^\\\\[0-9]+$\\|^[0-9]+\\*."
 			    desc))))
@@ -535,17 +536,17 @@ doubt, use whitespace."
 			      (cond
 			       ((integerp ch)
 				(concat
-				 (loop for pf across "ACHMsS"
-				       for bit in '(?\A-\^@ ?\C-\^@ ?\H-\^@
-						    ?\M-\^@ ?\s-\^@ ?\S-\^@)
-				       when (/= (logand ch bit) 0)
-				       concat (format "%c-" pf))
+				 (cl-loop for pf across "ACHMsS"
+                                          for bit in '(?\A-\^@ ?\C-\^@ ?\H-\^@
+                                                       ?\M-\^@ ?\s-\^@ ?\S-\^@)
+                                          when (/= (logand ch bit) 0)
+                                          concat (format "%c-" pf))
 				 (let ((ch2 (logand ch (1- (lsh 1 18)))))
 				   (cond ((<= ch2 32)
-					  (case ch2
+					  (pcase ch2
 					    (0 "NUL") (9 "TAB") (10 "LFD")
 					    (13 "RET") (27 "ESC") (32 "SPC")
-					    (t
+					    (_
 					     (format "C-%c"
 						     (+ (if (<= ch2 26) 96 64)
 							ch2)))))
@@ -563,30 +564,30 @@ doubt, use whitespace."
 	  (let ((times 1) (pos bind-len))
 	    (while (not (edmacro-mismatch rest-mac rest-mac
 					  0 bind-len pos (+ bind-len pos)))
-	      (incf times)
-	      (incf pos bind-len))
+	      (cl-incf times)
+	      (cl-incf pos bind-len))
 	    (when (> times 1)
 	      (setq desc (format "%d*%s" times desc))
 	      (setq bind-len (* bind-len times)))))
 	(setq rest-mac (edmacro-subseq rest-mac bind-len))
 	(if verbose
 	    (progn
-	      (unless (equal res "") (callf concat res "\n"))
-	      (callf concat res desc)
+	      (unless (equal res "") (cl-callf concat res "\n"))
+	      (cl-callf concat res desc)
 	      (when (and bind (or (stringp bind) (symbolp bind)))
-		(callf concat res
+		(cl-callf concat res
 		  (make-string (max (- 3 (/ (length desc) 8)) 1) 9)
 		  ";; " (if (stringp bind) bind (symbol-name bind))))
 	      (setq len 0))
 	  (if (and (> (+ len (length desc) 2) 72) (not one-line))
 	      (progn
-		(callf concat res "\n ")
+		(cl-callf concat res "\n ")
 		(setq len 1))
 	    (unless (equal res "")
-	      (callf concat res " ")
-	      (incf len)))
-	  (callf concat res desc)
-	  (incf len (length desc)))))
+	      (cl-callf concat res " ")
+	      (cl-incf len)))
+	  (cl-callf concat res desc)
+	  (cl-incf len (length desc)))))
     res))
 
 (defun edmacro-mismatch (cl-seq1 cl-seq2 cl-start1 cl-end1 cl-start2 cl-end2)
@@ -638,9 +639,9 @@ If START or END is negative, it counts from the end."
 The string represents the same events; Meta is indicated by bit 7.
 This function assumes that the events can be stored in a string."
   (setq seq (copy-sequence seq))
-  (loop for i below (length seq) do
-        (when (logand (aref seq i) 128)
-          (setf (aref seq i) (logand (aref seq i) 127))))
+  (cl-loop for i below (length seq) do
+           (when (logand (aref seq i) 128)
+             (setf (aref seq i) (logand (aref seq i) 127))))
   seq)
 
 (defun edmacro-fix-menu-commands (macro &optional noerror)
@@ -655,7 +656,7 @@ This function assumes that the events can be stored in a string."
 		((eq (car ev) 'switch-frame))
 		((equal ev '(menu-bar))
 		 (push 'menu-bar result))
-		((equal (cadadr ev) '(menu-bar))
+		((equal (cl-cadadr ev) '(menu-bar))
 		 (push (vector 'menu-bar (car ev)) result))
 		;; It would be nice to do pop-up menus, too, but not enough
 		;; info is recorded in macros to make this possible.
@@ -715,30 +716,31 @@ This function assumes that the events can be stored in a string."
 	      (t
 	       (let ((orig-word word) (prefix 0) (bits 0))
 		 (while (string-match "^[ACHMsS]-." word)
-		   (incf bits (cdr (assq (aref word 0)
+		   (cl-incf bits (cdr (assq (aref word 0)
 					 '((?A . ?\A-\^@) (?C . ?\C-\^@)
 					   (?H . ?\H-\^@) (?M . ?\M-\^@)
 					   (?s . ?\s-\^@) (?S . ?\S-\^@)))))
-		   (incf prefix 2)
-		   (callf substring word 2))
+		   (cl-incf prefix 2)
+		   (cl-callf substring word 2))
 		 (when (string-match "^\\^.$" word)
-		   (incf bits ?\C-\^@)
-		   (incf prefix)
-		   (callf substring word 1))
+		   (cl-incf bits ?\C-\^@)
+		   (cl-incf prefix)
+		   (cl-callf substring word 1))
 		 (let ((found (assoc word '(("NUL" . "\0") ("RET" . "\r")
 					    ("LFD" . "\n") ("TAB" . "\t")
 					    ("ESC" . "\e") ("SPC" . " ")
 					    ("DEL" . "\177")))))
 		   (when found (setq word (cdr found))))
 		 (when (string-match "^\\\\[0-7]+$" word)
-		   (loop for ch across word
-			 for n = 0 then (+ (* n 8) ch -48)
-			 finally do (setq word (vector n))))
+		   (cl-loop for ch across word
+                            for n = 0 then (+ (* n 8) ch -48)
+                            finally do (setq word (vector n))))
 		 (cond ((= bits 0)
 			(setq key word))
 		       ((and (= bits ?\M-\^@) (stringp word)
 			     (string-match "^-?[0-9]+$" word))
-			(setq key (loop for x across word collect (+ x bits))))
+			(setq key (cl-loop for x across word
+                                           collect (+ x bits))))
 		       ((/= (length word) 1)
 			(error "%s must prefix a single character, not %s"
 			       (substring orig-word 0 prefix) word))
@@ -752,7 +754,7 @@ This function assumes that the events can be stored in a string."
 		       (t
 			(setq key (list (+ bits (aref word 0)))))))))
 	(when key
-	  (loop repeat times do (callf vconcat res key)))))
+	  (cl-loop repeat times do (cl-callf vconcat res key)))))
     (when (and (>= (length res) 4)
 	       (eq (aref res 0) ?\C-x)
 	       (eq (aref res 1) ?\()
@@ -760,13 +762,13 @@ This function assumes that the events can be stored in a string."
 	       (eq (aref res (- (length res) 1)) ?\)))
       (setq res (edmacro-subseq res 2 -2)))
     (if (and (not need-vector)
-	     (loop for ch across res
-		   always (and (characterp ch)
-			       (let ((ch2 (logand ch (lognot ?\M-\^@))))
-				 (and (>= ch2 0) (<= ch2 127))))))
-	(concat (loop for ch across res
-		      collect (if (= (logand ch ?\M-\^@) 0)
-				  ch (+ ch 128))))
+	     (cl-loop for ch across res
+                      always (and (characterp ch)
+                                  (let ((ch2 (logand ch (lognot ?\M-\^@))))
+                                    (and (>= ch2 0) (<= ch2 127))))))
+	(concat (cl-loop for ch across res
+                         collect (if (= (logand ch ?\M-\^@) 0)
+                                     ch (+ ch 128))))
       res)))
 
 (provide 'edmacro)

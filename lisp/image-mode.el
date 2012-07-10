@@ -34,7 +34,7 @@
 ;;; Code:
 
 (require 'image)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;; Image mode window-info management.
 
@@ -70,11 +70,10 @@ A winprops object has the shape (WINDOW . ALIST)."
     winprops))
 
 (defun image-mode-window-get (prop &optional winprops)
+  (declare (gv-setter (lambda (val)
+                        `(image-mode-window-put ,prop ,val ,winprops))))
   (unless (consp winprops) (setq winprops (image-mode-winprops winprops)))
   (cdr (assq prop (cdr winprops))))
-
-(defsetf image-mode-window-get (prop &optional winprops) (val)
-  `(image-mode-window-put ,prop ,val ,winprops))
 
 (defun image-mode-window-put (prop val &optional winprops)
   (unless (consp winprops) (setq winprops (image-mode-winprops winprops)))
@@ -692,20 +691,20 @@ a slightly different angle.  Currently this is done for values
 close to a multiple of 90, see `image-transform-right-angle-fudge'."
   (cond ((< (abs (- (mod (+ image-transform-rotation 90) 180) 90))
 	    image-transform-right-angle-fudge)
-	 (assert (not (zerop width)) t)
+	 (cl-assert (not (zerop width)) t)
 	 (setq image-transform-rotation
 	       (float (round image-transform-rotation))
 	       image-transform-scale (/ (float length) width))
 	 (cons length nil))
 	((< (abs (- (mod (+ image-transform-rotation 45) 90) 45))
 	    image-transform-right-angle-fudge)
-	 (assert (not (zerop height)) t)
+	 (cl-assert (not (zerop height)) t)
 	 (setq image-transform-rotation
 	       (float (round image-transform-rotation))
 	       image-transform-scale (/ (float length) height))
 	 (cons nil length))
 	(t
-	 (assert (not (and (zerop width) (zerop height))) t)
+	 (cl-assert (not (and (zerop width) (zerop height))) t)
 	 (setq image-transform-scale
 	       (/ (float (1- length)) (image-transform-width width height)))
 	 ;; Assume we have a w x h image and an angle A, and let l =
@@ -743,12 +742,12 @@ close to a multiple of 90, see `image-transform-right-angle-fudge'."
   (unless (numberp image-transform-resize)
     (let ((size (image-display-size (image-get-display-property) t)))
       (cond ((eq image-transform-resize 'fit-width)
-	     (assert (= (car size)
+	     (cl-assert (= (car size)
 			(- (nth 2 (window-inside-pixel-edges))
 			   (nth 0 (window-inside-pixel-edges))))
 		     t))
 	    ((eq image-transform-resize 'fit-height)
-	     (assert (= (cdr size)
+	     (cl-assert (= (cdr size)
 			(- (nth 3 (window-inside-pixel-edges))
 			   (nth 1 (window-inside-pixel-edges))))
 		     t))))))

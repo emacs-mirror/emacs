@@ -43,7 +43,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'diff-mode)                    ;For diff-auto-refine-mode.
 (require 'newcomment)
 
@@ -716,7 +716,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
     (while (or (not (match-end i))
 	       (< (point) (match-beginning i))
 	       (>= (point) (match-end i)))
-      (decf i))
+      (cl-decf i))
     i))
 
 (defun smerge-keep-current ()
@@ -779,7 +779,7 @@ An error is raised if not inside a conflict."
 	       (filename (or (match-string 1) ""))
 
 	       (_ (re-search-forward smerge-end-re))
-	       (_ (assert (< orig-point (match-end 0))))
+	       (_ (cl-assert (< orig-point (match-end 0))))
 
 	       (other-end (match-beginning 0))
 	       (end (match-end 0))
@@ -1073,12 +1073,12 @@ used to replace chars to try and eliminate some spurious differences."
               (forward-line 1)                            ;Skip hunk header.
               (and (re-search-forward "^[0-9]" nil 'move) ;Skip hunk body.
                    (goto-char (match-beginning 0))))
-            ;; (assert (or (null last1) (< (overlay-start last1) end1)))
-            ;; (assert (or (null last2) (< (overlay-start last2) end2)))
+            ;; (cl-assert (or (null last1) (< (overlay-start last1) end1)))
+            ;; (cl-assert (or (null last2) (< (overlay-start last2) end2)))
             (if smerge-refine-weight-hack
                 (progn
-                  ;; (assert (or (null last1) (<= (overlay-end last1) end1)))
-                  ;; (assert (or (null last2) (<= (overlay-end last2) end2)))
+                  ;; (cl-assert (or (null last1) (<= (overlay-end last1) end1)))
+                  ;; (cl-assert (or (null last2) (<= (overlay-end last2) end2)))
                   )
               ;; smerge-refine-forward-function when calling in chopup may
               ;; have stopped because it bumped into EOB whereas in
@@ -1290,8 +1290,8 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
          (progn (pop-mark) (mark))
          (when current-prefix-arg (pop-mark) (mark))))
   ;; Start from the end so as to avoid problems with pos-changes.
-  (destructuring-bind (pt1 pt2 pt3 &optional pt4)
-      (sort (list* pt1 pt2 pt3 (if pt4 (list pt4))) '>=)
+  (pcase-let ((`(,pt1 ,pt2 ,pt3 ,pt4)
+               (sort `(,pt1 ,pt2 ,pt3 ,@(if pt4 (list pt4))) '>=)))
     (goto-char pt1) (beginning-of-line)
     (insert ">>>>>>> OTHER\n")
     (goto-char pt2) (beginning-of-line)

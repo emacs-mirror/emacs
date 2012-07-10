@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'pcvs-util)
 
 ;;;
@@ -165,7 +165,7 @@
 ;; Tagelt, tag element
 ;;
 
-(defstruct (cvs-tag
+(cl-defstruct (cvs-tag
 	    (:constructor nil)
 	    (:constructor cvs-tag-make
 			  (vlist &optional name type))
@@ -235,9 +235,9 @@ The tree will be printed no closer than column COLUMN."
 	      (save-excursion
 		(or (= (forward-line 1) 0) (insert "\n"))
 		(cvs-tree-print rest printer column))))
-	(assert (>= prefix column))
+	(cl-assert (>= prefix column))
 	(move-to-column prefix t)
-	(assert (eolp))
+	(cl-assert (eolp))
 	(insert (cvs-car name))
 	(dolist (br (cvs-cdr rev))
 	  (let* ((column (current-column))
@@ -258,7 +258,7 @@ The tree will be printed no closer than column COLUMN."
 (defun cvs-tree-merge (tree1 tree2)
   "Merge tags trees TREE1 and TREE2 into one.
 BEWARE:  because of stability issues, this is not a symmetric operation."
-  (assert (and (listp tree1) (listp tree2)))
+  (cl-assert (and (listp tree1) (listp tree2)))
   (cond
    ((null tree1) tree2)
    ((null tree2) tree1)
@@ -273,10 +273,10 @@ BEWARE:  because of stability issues, this is not a symmetric operation."
 	   (l2 (length vl2)))
     (cond
      ((= l1 l2)
-      (case (cvs-tag-compare tag1 tag2)
-	(more1 (list* rev2 (cvs-tree-merge tree1 (cdr tree2))))
-	(more2 (list* rev1 (cvs-tree-merge (cdr tree1) tree2)))
-	(equal
+      (pcase (cvs-tag-compare tag1 tag2)
+	(`more1 (cons rev2 (cvs-tree-merge tree1 (cdr tree2))))
+	(`more2 (cons rev1 (cvs-tree-merge (cdr tree1) tree2)))
+	(`equal
 	 (cons (cons (cvs-tag-merge tag1 tag2)
 		     (cvs-tree-merge (cvs-cdr rev1) (cvs-cdr rev2)))
 	       (cvs-tree-merge (cdr tree1) (cdr tree2))))))
@@ -399,35 +399,35 @@ the list is a three-string list TAG, KIND, REV."
 Otherwise, default to ASCII chars like +, - and |.")
 
 (defconst cvs-tree-char-space
-  (case cvs-tree-use-charset
-    (jisx0208 (make-char 'japanese-jisx0208 33 33))
-    (unicode " ")
-    (t "  ")))
+  (pcase cvs-tree-use-charset
+    (`jisx0208 (make-char 'japanese-jisx0208 33 33))
+    (`unicode " ")
+    (_ "  ")))
 (defconst cvs-tree-char-hbar
-  (case cvs-tree-use-charset
-    (jisx0208 (make-char 'japanese-jisx0208 40 44))
-    (unicode "━")
-    (t "--")))
+  (pcase cvs-tree-use-charset
+    (`jisx0208 (make-char 'japanese-jisx0208 40 44))
+    (`unicode "━")
+    (_ "--")))
 (defconst cvs-tree-char-vbar
-  (case cvs-tree-use-charset
-    (jisx0208 (make-char 'japanese-jisx0208 40 45))
-    (unicode "┃")
-    (t "| ")))
+  (pcase cvs-tree-use-charset
+    (`jisx0208 (make-char 'japanese-jisx0208 40 45))
+    (`unicode "┃")
+    (_ "| ")))
 (defconst cvs-tree-char-branch
-  (case cvs-tree-use-charset
-    (jisx0208 (make-char 'japanese-jisx0208 40 50))
-    (unicode "┣")
-    (t "+-")))
+  (pcase cvs-tree-use-charset
+    (`jisx0208 (make-char 'japanese-jisx0208 40 50))
+    (`unicode "┣")
+    (_ "+-")))
 (defconst cvs-tree-char-eob		;end of branch
-  (case cvs-tree-use-charset
-    (jisx0208 (make-char 'japanese-jisx0208 40 49))
-    (unicode "┗")
-    (t "`-")))
+  (pcase cvs-tree-use-charset
+    (`jisx0208 (make-char 'japanese-jisx0208 40 49))
+    (`unicode "┗")
+    (_ "`-")))
 (defconst cvs-tree-char-bob		;beginning of branch
-  (case cvs-tree-use-charset
-    (jisx0208 (make-char 'japanese-jisx0208 40 51))
-    (unicode "┳")
-    (t "+-")))
+  (pcase cvs-tree-use-charset
+    (`jisx0208 (make-char 'japanese-jisx0208 40 51))
+    (`unicode "┳")
+    (_ "+-")))
 
 (defun cvs-tag-lessp (tag1 tag2)
   (eq (cvs-tag-compare tag1 tag2) 'more2))
@@ -485,9 +485,9 @@ Optional prefix ARG chooses between two representations."
 	   (pe t)			;"prev equal"
 	   (nas nil))			;"next afters" to be returned
       (insert "   ")
-      (do* ((vs vlist (cdr vs))
-	    (ps prev (cdr ps))
-	    (as after (cdr as)))
+      (cl-do* ((vs vlist (cdr vs))
+               (ps prev (cdr ps))
+               (as after (cdr as)))
 	  ((and (null as) (null vs) (null ps))
 	   (let ((revname (cvs-status-vl-to-str vlist)))
 	     (if (cvs-every 'identity (cvs-map 'equal prev vlist))

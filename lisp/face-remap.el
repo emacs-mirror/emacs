@@ -315,9 +315,9 @@ a top-level keymap, `text-scale-increase' or
     (let* ((base (event-basic-type ev))
            (step
             (pcase base
-              ((or `?+ `?=) inc)
-              (`?- (- inc))
-              (`?0 0)
+              ((or ?+ ?=) inc)
+              (?- (- inc))
+              (?0 0)
               (t inc))))
       (text-scale-increase step)
       ;; FIXME: do it after every "iteration of the loop".

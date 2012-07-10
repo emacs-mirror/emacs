@@ -25,8 +25,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile (require 'cl))
-
 (defvar frame-creation-function-alist
   (list (cons nil
 	      (if (fboundp 'tty-create-frame-with-faces)

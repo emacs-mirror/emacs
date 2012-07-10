@@ -43,8 +43,6 @@
 ;;; History:
 ;; I hate history.
 
-(eval-when-compile (require 'cl))
-
 ;;;=====================================================================
 ;;; Customization:
 

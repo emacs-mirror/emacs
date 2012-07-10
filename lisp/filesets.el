@@ -88,9 +88,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
+(eval-when-compile (require 'cl-lib))
 
 ;;; Some variables
 
@@ -1286,11 +1284,11 @@ on-close-all ... Not used"
 	      (or entry
 		  (filesets-get-external-viewer filename)))))
     (filesets-alist-get def
-			(case event
-			  ((on-open-all)       ':ignore-on-open-all)
-			  ((on-grep)           ':ignore-on-read-text)
-			  ((on-cmd) nil)
-			  ((on-close-all) nil))
+			(pcase event
+			  (`on-open-all       ':ignore-on-open-all)
+			  (`on-grep           ':ignore-on-read-text)
+			  (`on-cmd nil)
+			  (`on-close-all nil))
 			nil t)))
 
 (defun filesets-filetype-get-prop (property filename &optional entry)
@@ -1559,11 +1557,9 @@ SAVE-FUNCTION takes no argument, but works on the current buffer."
 
 (defun filesets-get-fileset-from-name (name &optional mode)
   "Get fileset definition for NAME."
-  (case mode
-    ((:ingroup :tree)
-     name)
-    (t
-     (assoc name filesets-data))))
+  (pcase mode
+    ((or `:ingroup `:tree) name)
+    (_ (assoc name filesets-data))))
 
 
 ;;; commands
@@ -1720,22 +1716,22 @@ Replace <file-name> or <<file-name>> with filename."
 Assume MODE (see `filesets-entry-mode'), if provided."
   (let* ((mode (or mode
 		   (filesets-entry-mode entry)))
-	 (fl (case mode
-	       ((:files)
+	 (fl (pcase mode
+	       (:files
 		(filesets-entry-get-files entry))
-	       ((:file)
+	       (:file
 		(list (filesets-entry-get-file entry)))
-	       ((:ingroup)
+	       (:ingroup
 		(let ((entry (expand-file-name
 			      (if (stringp entry)
 				  entry
 				(filesets-entry-get-master entry)))))
 		  (cons entry (filesets-ingroup-cache-get entry))))
-	       ((:tree)
+	       (:tree
 		(let ((dir  (nth 0 entry))
 		      (patt (nth 1 entry)))
 		  (filesets-directory-files dir patt ':files t)))
-	       ((:pattern)
+	       (:pattern
 		(let ((dirpatt (filesets-entry-get-pattern entry)))
 		  (if dirpatt
 		      (let ((dir (filesets-entry-get-pattern--dir dirpatt))
@@ -1904,12 +1900,12 @@ User will be queried, if no fileset name is provided."
       (let* ((result  nil)
 	     (factor (ceiling (/ (float bl)
 				 filesets-max-submenu-length))))
-	(do ((data  submenu-body (cdr data))
-	     (n     1            (+ n 1))
-	     (count 0            (+ count factor)))
+	(cl-do ((data  submenu-body (cdr data))
+                (n     1            (+ n 1))
+                (count 0            (+ count factor)))
 	    ((or (> count bl)
 		 (null data)))
-;	  (let ((sl (subseq submenu-body count
+	  ;; (let ((sl (subseq submenu-body count
 	  (let ((sl (filesets-sublist submenu-body count
 				      (let ((x (+ count factor)))
 					(if (>= bl x)
@@ -1926,7 +1922,7 @@ User will be queried, if no fileset name is provided."
 		       `((,(concat
 			    (filesets-get-shortcut n)
 			    (let ((rv ""))
-			      (do ((x sl (cdr x)))
+			      (cl-do ((x sl (cdr x)))
 				  ((null x))
 				(let ((y (concat (elt (car x) 0)
 						 (if (null (cdr x))
@@ -1952,8 +1948,8 @@ User will be queried, if no fileset name is provided."
   "Get submenu epilog for SOMETHING (usually a fileset).
 If mode is :tree or :ingroup, SOMETHING is some weird construct and
 LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
-  (case mode
-    ((:tree)
+  (pcase mode
+    (:tree
      `("---"
        ["Close all files" (filesets-close ',mode ',something ',lookup-name)]
        ["Run Command"     (filesets-run-cmd nil ',something ',mode)]
@@ -1962,14 +1958,14 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
        ,@(when rebuild-flag
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
-    ((:ingroup)
+    (:ingroup
      `("---"
        ["Close all files" (filesets-close ',mode ',something ',lookup-name)]
        ["Run Command"     (filesets-run-cmd nil ',something ',mode)]
        ,@(when rebuild-flag
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
-    ((:pattern)
+    (:pattern
      `("---"
        ["Close all files" (filesets-close ',mode ',something)]
        ["Run Command"     (filesets-run-cmd nil ',something ',mode)]
@@ -1986,7 +1982,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
        ,@(when rebuild-flag
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
-    ((:files)
+    (:files
      `("---"
        [,(concat "Close all files") (filesets-close ',mode ',something)]
        ["Run Command"               (filesets-run-cmd nil ',something ',mode)]
@@ -1997,7 +1993,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
        ,@(when rebuild-flag
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
-    (t
+    (_
      (filesets-error 'error "Filesets: malformed definition of " something))))
 
 (defun filesets-ingroup-get-data (master pos &optional fun)
@@ -2249,15 +2245,15 @@ Construct a shortcut from COUNT."
 	  (filesets-verbosity (filesets-entry-get-verbosity entry))
 	  (this-lookup-name (concat (filesets-get-shortcut count)
 				    lookup-name)))
-      (case mode
-	((:file)
+      (pcase mode
+	(:file
 	 (let* ((file (filesets-entry-get-file entry)))
 	   `[,this-lookup-name
 	     (filesets-file-open nil ',file ',lookup-name)]))
-	(t
+	(_
 	 `(,this-lookup-name
-	   ,@(case mode
-	       ((:pattern)
+	   ,@(pcase mode
+	       (:pattern
 		(let* ((files    (filesets-get-filelist entry mode 'on-ls))
 		       (dirpatt  (filesets-entry-get-pattern entry))
 		       (pattname (apply 'concat (cons "Pattern: " dirpatt)))
@@ -2276,7 +2272,7 @@ Construct a shortcut from COUNT."
 			files))
 		    ,@(filesets-get-menu-epilog lookup-name mode
 						lookup-name t))))
-	       ((:ingroup)
+	       (:ingroup
 		(let* ((master (filesets-entry-get-master entry)))
 		  ;;(filesets-message 3 "Filesets: parsing %S" master)
 		  `([,(concat "Inclusion Group: "
@@ -2288,12 +2284,12 @@ Construct a shortcut from COUNT."
 		    ,@(filesets-wrap-submenu
 		       (filesets-build-ingroup-submenu lookup-name master))
 		    ,@(filesets-get-menu-epilog master mode lookup-name t))))
-	       ((:tree)
+	       (:tree
 		(let* ((dirpatt (filesets-entry-get-tree entry))
 		       (dir     (car dirpatt))
 		       (patt    (cadr dirpatt)))
 		  (filesets-build-dir-submenu entry lookup-name dir patt)))
-	       ((:files)
+	       (:files
 		(let ((files (filesets-get-filelist entry mode 'on-open-all))
 		      (count 0))
 		  `([,(concat "Files: " lookup-name)
@@ -2331,9 +2327,9 @@ bottom up, set `filesets-submenus' to nil, first.)"
     (setq filesets-has-changed-flag nil)
     (setq filesets-updated-buffers nil)
     (setq filesets-update-cache-file-flag t)
-    (do ((data  (filesets-conditional-sort filesets-data (function car))
-		(cdr data))
-	 (count 1 (+ count 1)))
+    (cl-do ((data  (filesets-conditional-sort filesets-data (function car))
+                   (cdr data))
+            (count 1 (+ count 1)))
 	((null data))
       (let* ((this    (car data))
 	     (name    (filesets-data-get-name this))

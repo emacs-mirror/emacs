@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defconst reference-point-alist
   '((tl . 0) (tc . 1) (tr . 2)
     (Bl . 3) (Bc . 4) (Br . 5)

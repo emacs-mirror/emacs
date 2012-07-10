@@ -207,7 +207,7 @@
 ;;; Code:
 
 (require 'syntax)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Define core `font-lock' group.
 (defgroup font-lock '((jit-lock custom-group))
@@ -614,9 +614,6 @@ Major/minor modes can set this variable if they know which option applies.")
 
 (eval-when-compile
   ;;
-  ;; We don't do this at the top-level as we only use non-autoloaded macros.
-  (require 'cl)
-  ;;
   ;; Borrowed from lazy-lock.el.
   ;; We use this to preserve or protect things when modifying text properties.
   (defmacro save-buffer-state (&rest body)
@@ -917,10 +914,10 @@ The value of this variable is used when Font Lock mode is turned on."
 (declare-function lazy-lock-mode "lazy-lock")
 
 (defun font-lock-turn-on-thing-lock ()
-  (case (font-lock-value-in-major-mode font-lock-support-mode)
-    (fast-lock-mode (fast-lock-mode t))
-    (lazy-lock-mode (lazy-lock-mode t))
-    (jit-lock-mode
+  (pcase (font-lock-value-in-major-mode font-lock-support-mode)
+    (`fast-lock-mode (fast-lock-mode t))
+    (`lazy-lock-mode (lazy-lock-mode t))
+    (`jit-lock-mode
      ;; Prepare for jit-lock
      (remove-hook 'after-change-functions
                   'font-lock-after-change-function t)
@@ -1654,7 +1651,7 @@ LOUDLY, if non-nil, allows progress-meter bar."
     ;; Fontify each item in `font-lock-keywords' from `start' to `end'.
     (while keywords
       (if loudly (message "Fontifying %s... (regexps..%s)" bufname
-			  (make-string (incf count) ?.)))
+			  (make-string (cl-incf count) ?.)))
       ;;
       ;; Find an occurrence of `matcher' from `start' to `end'.
       (setq keyword (car keywords) matcher (car keyword))

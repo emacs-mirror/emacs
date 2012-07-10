@@ -28,7 +28,7 @@
 ;; pieces of buffer state to named variables.  The entry points are
 ;; documented in the Emacs user's manual.
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (declare-function semantic-insert-foreign-tag "semantic/tag" (foreign-tag))
 (declare-function semantic-tag-buffer "semantic/tag" (tag))
@@ -52,7 +52,7 @@
 
 ;;; Code:
 
-(defstruct
+(cl-defstruct
   (registerv (:constructor nil)
 	     (:constructor registerv--make (&optional data print-func
 						      jump-func insert-func))
@@ -64,7 +64,7 @@
   (jump-func   nil :read-only t)
   (insert-func nil :read-only t))
 
-(defun* registerv-make (data &key print-func jump-func insert-func)
+(cl-defun registerv-make (data &key print-func jump-func insert-func)
   "Create a register value object.
 
 DATA can be any value.
@@ -150,7 +150,7 @@ delete any existing frames that the frame configuration doesn't mention.
   (let ((val (get-register register)))
     (cond
      ((registerv-p val)
-      (assert (registerv-jump-func val) nil
+      (cl-assert (registerv-jump-func val) nil
               "Don't know how to jump to register %s"
               (single-key-description register))
       (funcall (registerv-jump-func val) (registerv-data val)))
@@ -325,7 +325,7 @@ Interactively, second arg is non-nil if prefix arg is supplied."
   (let ((val (get-register register)))
     (cond
      ((registerv-p val)
-      (assert (registerv-insert-func val) nil
+      (cl-assert (registerv-insert-func val) nil
               "Don't know how to insert register %s"
               (single-key-description register))
       (funcall (registerv-insert-func val) (registerv-data val)))

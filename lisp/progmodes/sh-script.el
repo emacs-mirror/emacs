@@ -198,7 +198,7 @@
 
 (eval-when-compile
   (require 'skeleton)
-  (require 'cl)
+  (require 'cl-lib)
   (require 'comint))
 (require 'executable)
 
@@ -987,31 +987,31 @@ subshells can nest."
       (while (and state (progn (skip-chars-forward "^'\\\\\"`$()" limit)
                                (< (point) limit)))
         ;; unescape " inside a $( ... ) construct.
-        (case (char-after)
-          (?\' (case state
-                 (double-quote nil)
-                 (t (forward-char 1) (skip-chars-forward "^'" limit))))
+        (pcase (char-after)
+          (?\' (pcase state
+                 (`double-quote nil)
+                 (_ (forward-char 1) (skip-chars-forward "^'" limit))))
           (?\\ (forward-char 1))
-          (?\" (case state
-                 (double-quote (setq state (pop states)))
-                 (t (push state states) (setq state 'double-quote)))
+          (?\" (pcase state
+                 (`double-quote (setq state (pop states)))
+                 (_ (push state states) (setq state 'double-quote)))
                (if state (put-text-property (point) (1+ (point))
                                             'syntax-table '(1))))
-          (?\` (case state
-                 (backquote (setq state (pop states)))
-                 (t (push state states) (setq state 'backquote))))
+          (?\` (pcase state
+                 (`backquote (setq state (pop states)))
+                 (_ (push state states) (setq state 'backquote))))
           (?\$ (if (not (eq (char-after (1+ (point))) ?\())
                    nil
                  (forward-char 1)
-                 (case state
-                   (t (push state states) (setq state 'code)))))
-          (?\( (case state
-                 (double-quote nil)
-                 (t (push state states) (setq state 'code))))
-          (?\) (case state
-                 (double-quote nil)
-                 (t (setq state (pop states)))))
-          (t (error "Internal error in sh-font-lock-quoted-subshell")))
+                 (pcase state
+                   (_ (push state states) (setq state 'code)))))
+          (?\( (pcase state
+                 (`double-quote nil)
+                 (_ (push state states) (setq state 'code))))
+          (?\) (pcase state
+                 (`double-quote nil)
+                 (_ (setq state (pop states)))))
+          (_ (error "Internal error in sh-font-lock-quoted-subshell")))
         (forward-char 1)))))
 
 
@@ -1105,7 +1105,6 @@ subshells can nest."
            (save-excursion
              (sh-font-lock-quoted-subshell end)))))))
    (point) end))
-
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))
     (if q
@@ -1649,7 +1648,7 @@ Does not preserve point."
       (cond
        ((zerop (length prev))
         (if newline
-            (progn (assert words) (setq res 'word))
+            (progn (cl-assert words) (setq res 'word))
           (setq words t)
           (condition-case nil
               (forward-sexp -1)
@@ -1661,7 +1660,7 @@ Does not preserve point."
        ((assoc prev smie-grammar) (setq res 'word))
        (t
         (if newline
-            (progn (assert words) (setq res 'word))
+            (progn (cl-assert words) (setq res 'word))
           (setq words t)))))
     (eq res 'keyword)))
 

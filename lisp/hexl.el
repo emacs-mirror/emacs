@@ -41,7 +41,7 @@
 ;;; Code:
 
 (require 'eldoc)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl))       ;For letf (default-value 'major-mode).
 
 ;;
 ;; vars here

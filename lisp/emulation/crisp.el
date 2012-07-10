@@ -54,8 +54,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;; local variables
 
 (defgroup crisp nil
@@ -361,7 +359,7 @@ if ARG is omitted or nil."
   (when crisp-mode
     ;; Make menu entries show M-u or f14 in preference to C-x u.
     (put 'undo :advertised-binding
-         (list* [?\M-u] [f14] (get 'undo :advertised-binding)))
+         `([?\M-u] [f14] ,@(get 'undo :advertised-binding)))
     ;; Force transient-mark-mode, so that the marking routines work as
     ;; expected.  If the user turns off transient mark mode, most
     ;; things will still work fine except the crisp-(copy|kill)

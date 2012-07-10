@@ -34,8 +34,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;;; Customizable variables
 
 (defgroup dired nil

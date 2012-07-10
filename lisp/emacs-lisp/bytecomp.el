@@ -1591,10 +1591,11 @@ that already has a `.elc' file."
                         (not (auto-save-file-name-p source))
                         (not (string-equal dir-locals-file
                                            (file-name-nondirectory source))))
-                   (progn (cl-case (byte-recompile-file source force arg)
-                            (no-byte-compile (setq skip-count (1+ skip-count)))
-                            ((t) (setq file-count (1+ file-count)))
-                            ((nil) (setq fail-count (1+ fail-count))))
+                   (progn (incf
+                           (pcase (byte-recompile-file source force arg)
+                             (`no-byte-compile skip-count)
+                             (`t file-count)
+                             (_ fail-count)))
                           (or noninteractive
                               (message "Checking %s..." directory))
                           (if (not (eq last-dir directory))
@@ -2974,12 +2975,12 @@ That command is designed for interactive use only" fn))
       ;; Old-style byte-code.
       (cl-assert (listp fargs))
       (while fargs
-        (cl-case (car fargs)
-          (&optional (setq fargs (cdr fargs)))
-          (&rest (setq fmax2 (+ (* 2 (length dynbinds)) 1))
+        (pcase (car fargs)
+          (`&optional (setq fargs (cdr fargs)))
+          (`&rest (setq fmax2 (+ (* 2 (length dynbinds)) 1))
                  (push (cadr fargs) dynbinds)
                  (setq fargs nil))
-          (t (push (pop fargs) dynbinds))))
+          (_ (push (pop fargs) dynbinds))))
       (unless fmax2 (setq fmax2 (* 2 (length dynbinds)))))
     (cond
      ((<= (+ alen alen) fmax2)
@@ -3024,10 +3025,10 @@ That command is designed for interactive use only" fn))
            (and od
                 (not (memq var byte-compile-not-obsolete-vars))
                 (not (memq var byte-compile-global-not-obsolete-vars))
-                (or (cl-case (nth 1 od)
-                      (set (not (eq access-type 'reference)))
-                      (get (eq access-type 'reference))
-                      (t t)))))
+                (or (pcase (nth 1 od)
+                      (`set (not (eq access-type 'reference)))
+                      (`get (eq access-type 'reference))
+                      (_ t)))))
 	 (byte-compile-warn-obsolete var))))
 
 (defsubst byte-compile-dynamic-variable-op (base-op var)
@@ -4351,21 +4352,21 @@ invoked interactively."
     (if byte-compile-call-tree-sort
 	(setq byte-compile-call-tree
 	      (sort byte-compile-call-tree
-		    (cl-case byte-compile-call-tree-sort
-                      (callers
+		    (pcase byte-compile-call-tree-sort
+                      (`callers
                        (lambda (x y) (< (length (nth 1 x))
                                    (length (nth 1 y)))))
-                      (calls
+                      (`calls
                        (lambda (x y) (< (length (nth 2 x))
                                    (length (nth 2 y)))))
-                      (calls+callers
+                      (`calls+callers
                        (lambda (x y) (< (+ (length (nth 1 x))
                                       (length (nth 2 x)))
                                    (+ (length (nth 1 y))
                                       (length (nth 2 y))))))
-                      (name
+                      (`name
                        (lambda (x y) (string< (car x) (car y))))
-                      (t (error "`byte-compile-call-tree-sort': `%s' - unknown sort mode"
+                      (_ (error "`byte-compile-call-tree-sort': `%s' - unknown sort mode"
                                 byte-compile-call-tree-sort))))))
     (message "Generating call tree...")
     (let ((rest byte-compile-call-tree)

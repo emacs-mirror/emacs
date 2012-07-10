@@ -33,7 +33,7 @@
 ;;; Code:
 
 (require 'pp)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;; Misc comments:
 ;;
@@ -2015,11 +2015,11 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
         (tmp-list     ()))
     (while
         (let ((char (read-key (concat prompt bookmark-search-pattern))))
-          (case char
-            ((?\e ?\r) nil) ; RET or ESC break the search loop.
+          (pcase char
+            ((or ?\e ?\r) nil) ; RET or ESC break the search loop.
             (?\C-g (setq bookmark-quit-flag t) nil)
             (?\d (pop tmp-list) t) ; Delete last char of pattern with DEL
-            (t
+            (_
              (if (characterp char)
                  (push char tmp-list)
                (setq unread-command-events
@@ -2034,9 +2034,9 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-filter-alist-by-regexp (regexp)
   "Filter `bookmark-alist' with bookmarks matching REGEXP and rebuild list."
   (let ((bookmark-alist
-         (loop for i in bookmark-alist
-               when (string-match regexp (car i)) collect i into new
-               finally return new)))
+         (cl-loop for i in bookmark-alist
+                  when (string-match regexp (car i)) collect i into new
+                  finally return new)))
     (bookmark-bmenu-list)))
 
 

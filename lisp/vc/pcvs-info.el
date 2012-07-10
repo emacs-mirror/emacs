@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'pcvs-util)
 ;;(require 'pcvs-defs)
 
@@ -146,7 +146,7 @@ to confuse some users sometimes."
 
 ;; Constructor:
 
-(defstruct (cvs-fileinfo
+(cl-defstruct (cvs-fileinfo
 	    (:constructor nil)
 	    (:copier nil)
 	    (:constructor -cvs-create-fileinfo (type dir file full-log
@@ -274,10 +274,10 @@ to confuse some users sometimes."
 		  (string= file (file-name-nondirectory file)))
 	     (setq check 'type)		(symbolp type)
 	     (setq check 'consistency)
-	     (case type
-	       (DIRCHANGE (and (null subtype) (string= "." file)))
-	       ((NEED-UPDATE ADDED MISSING DEAD MODIFIED MESSAGE UP-TO-DATE
-			     REMOVED NEED-MERGE CONFLICT UNKNOWN MESSAGE)
+	     (pcase type
+	       (`DIRCHANGE (and (null subtype) (string= "." file)))
+	       ((or `NEED-UPDATE `ADDED `MISSING `DEAD `MODIFIED `MESSAGE
+                    `UP-TO-DATE `REMOVED `NEED-MERGE `CONFLICT `UNKNOWN)
 		t)))
 	fi
       (error "Invalid :%s in cvs-fileinfo %s" check fi))))
@@ -325,9 +325,9 @@ FI-OR-TYPE can either be a symbol (a fileinfo-type) or a fileinfo."
 (defun cvs-add-face (str face &optional keymap &rest props)
   (when keymap
     (when (keymapp keymap)
-      (setq props (list* 'keymap keymap props)))
-    (setq props (list* 'mouse-face 'highlight props)))
-  (add-text-properties 0 (length str) (list* 'font-lock-face face props) str)
+      (setq props `(keymap ,keymap ,@props)))
+    (setq props `(mouse-face highlight ,@props)))
+  (add-text-properties 0 (length str) `(font-lock-face ,face ,@props) str)
   str)
 
 (defun cvs-fileinfo-pp (fileinfo)
@@ -337,15 +337,15 @@ For use by the cookie package."
   (let ((type (cvs-fileinfo->type fileinfo))
 	(subtype (cvs-fileinfo->subtype fileinfo)))
     (insert
-     (case type
-       (DIRCHANGE (concat "In directory "
-			  (cvs-add-face (cvs-fileinfo->full-name fileinfo)
-					'cvs-header t 'cvs-goal-column t)
-			  ":"))
-       (MESSAGE
+     (pcase type
+       (`DIRCHANGE (concat "In directory "
+                           (cvs-add-face (cvs-fileinfo->full-name fileinfo)
+                                         'cvs-header t 'cvs-goal-column t)
+                           ":"))
+       (`MESSAGE
 	(cvs-add-face (format "Message: %s" (cvs-fileinfo->full-log fileinfo))
 		      'cvs-msg))
-       (t
+       (_
 	(let* ((status (if (cvs-fileinfo->marked fileinfo)
 			   (cvs-add-face "*" 'cvs-marked)
 			 " "))
@@ -354,10 +354,10 @@ For use by the cookie package."
 	       (base (or (cvs-fileinfo->base-rev fileinfo) ""))
 	       (head (cvs-fileinfo->head-rev fileinfo))
 	       (type
-		(let ((str (case type
+		(let ((str (pcase type
 			     ;;(MOD-CONFLICT "Not Removed")
-			     (DEAD	  "")
-			     (t (capitalize (symbol-name type)))))
+			     (`DEAD	  "")
+			     (_ (capitalize (symbol-name type)))))
 		      (face (let ((sym (intern
 					(concat "cvs-fi-"
 						(downcase (symbol-name type))

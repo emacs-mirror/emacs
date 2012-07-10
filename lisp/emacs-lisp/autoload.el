@@ -155,13 +155,14 @@ expression, in which case we want to handle forms differently."
                    define-overloadable-function))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
-	     (args (cl-case car
-                     ((defun defmacro defun* defmacro*
-                        define-overloadable-function) (nth 2 form))
-                     ((define-skeleton) '(&optional str arg))
-                     ((define-generic-mode define-derived-mode
-                        define-compilation-mode) nil)
-                     (t)))
+	     (args (pcase car
+                     ((or `defun `defmacro
+                          `defun* `defmacro* `cl-defun `cl-defmacro
+                          `define-overloadable-function) (nth 2 form))
+                     (`define-skeleton '(&optional str arg))
+                     ((or `define-generic-mode `define-derived-mode
+                          `define-compilation-mode) nil)
+                     (_ t)))
 	     (body (nthcdr (or (get car 'doc-string-elt) 3) form))
 	     (doc (if (stringp (car body)) (pop body))))
         ;; Add the usage form at the end where describe-function-1

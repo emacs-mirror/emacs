@@ -29,7 +29,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'add-log)			; for all the ChangeLog goodies
 (require 'pcvs-util)
 (require 'ring)

@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;;;###autoload
 (defvar lpr-windows-system
   (memq system-type '(ms-dos windows-nt))
@@ -281,10 +279,10 @@ for further customization of the printer command."
           (if (markerp end)
               (set-marker end nil))
           (message "Spooling%s...done%s%s" switch-string
-                   (case (count-lines (point-min) (point-max))
+                   (pcase (count-lines (point-min) (point-max))
                      (0 "")
                      (1 ": ")
-                     (t ":\n"))
+                     (_ ":\n"))
                    (buffer-string)))))))
 
 ;; This function copies the text between start and end

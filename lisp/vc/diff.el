@@ -32,8 +32,6 @@
 
 (declare-function diff-setup-whitespace "diff-mode" ())
 
-(eval-when-compile (require 'cl))
-
 (defgroup diff nil
   "Comparing files with `diff'."
   :group 'tools)

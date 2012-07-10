@@ -101,7 +101,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'ring)
 (require 'ansi-color)
 (require 'regexp-opt)                   ;For regexp-opt-charset.
