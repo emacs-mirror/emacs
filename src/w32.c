@@ -1969,7 +1969,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
      changed.  We could fix that by using GetSystemTime and
      GetTimeZoneInformation, but that doesn't seem necessary, since
      Emacs always calls gettimeofday with the 2nd argument NULL (see
-     EMACS_GET_TIME).  */
+     current_emacs_time).  */
   if (tz)
     {
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */

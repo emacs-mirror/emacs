@@ -2586,7 +2586,6 @@ time_from_jiffies (unsigned long long tval, long hz)
   unsigned long long s = tval / hz;
   unsigned long long frac = tval % hz;
   int ns;
-  EMACS_TIME t;
 
   if (TYPE_MAXIMUM (time_t) < s)
     time_overflow ();
@@ -2603,8 +2602,7 @@ time_from_jiffies (unsigned long long tval, long hz)
       ns = frac / hz_per_ns;
     }
 
-  EMACS_SET_SECS_NSECS (t, s, ns);
-  return t;
+  return make_emacs_time (s, ns);
 }
 
 static Lisp_Object
@@ -2618,9 +2616,7 @@ static EMACS_TIME
 get_up_time (void)
 {
   FILE *fup;
-  EMACS_TIME up;
-
-  EMACS_SET_SECS_NSECS (up, 0, 0);
+  EMACS_TIME up = make_emacs_time (0, 0);
 
   BLOCK_INPUT;
   fup = fopen ("/proc/uptime", "r");
@@ -2649,7 +2645,7 @@ get_up_time (void)
 		upfrac /= 10;
 	      upfrac = min (upfrac, EMACS_TIME_RESOLUTION - 1);
 	    }
-	  EMACS_SET_SECS_NSECS (up, upsec, upfrac);
+	  up = make_emacs_time (upsec, upfrac);
 	}
       fclose (fup);
     }
@@ -2874,15 +2870,15 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
-	  EMACS_GET_TIME (tnow);
+	  tnow = current_emacs_time ();
 	  telapsed = get_up_time ();
-	  EMACS_SUB_TIME (tboot, tnow, telapsed);
+	  tboot = sub_emacs_time (tnow, telapsed);
 	  tstart = time_from_jiffies (start, clocks_per_sec);
-	  EMACS_ADD_TIME (tstart, tboot, tstart);
+	  tstart = add_emacs_time (tboot, tstart);
 	  attrs = Fcons (Fcons (Qstart, make_lisp_time (tstart)), attrs);
 	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize/1024)), attrs);
 	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4*rss)), attrs);
-	  EMACS_SUB_TIME (telapsed, tnow, tstart);
+	  telapsed = sub_emacs_time (tnow, tstart);
 	  attrs = Fcons (Fcons (Qetime, make_lisp_time (telapsed)), attrs);
 	  us_time = time_from_jiffies (u_time + s_time, clocks_per_sec);
 	  pcpu = (EMACS_TIME_TO_DOUBLE (us_time)
@@ -3101,9 +3097,7 @@ system_process_attributes (Lisp_Object pid)
 static EMACS_TIME
 timeval_to_EMACS_TIME (struct timeval t)
 {
-  EMACS_TIME e;
-  EMACS_SET_SECS_NSECS (e, t.tv_sec, t.tv_usec * 1000);
-  return e;
+  return make_emacs_time (t.tv_sec, t.tv_usec * 1000);
 }
 
 static Lisp_Object
@@ -3211,9 +3205,8 @@ system_process_attributes (Lisp_Object pid)
 		 attrs);
   attrs = Fcons (Fcons (Qstime, make_lisp_timeval (proc.ki_rusage.ru_stime)),
 		 attrs);
-  EMACS_ADD_TIME (t,
-		  timeval_to_EMACS_TIME (proc.ki_rusage.ru_utime),
-		  timeval_to_EMACS_TIME (proc.ki_rusage.ru_stime));
+  t = add_emacs_time (timeval_to_EMACS_TIME (proc.ki_rusage.ru_utime),
+		      timeval_to_EMACS_TIME (proc.ki_rusage.ru_stime));
   attrs = Fcons (Fcons (Qtime, make_lisp_time (t)), attrs);
 
   attrs = Fcons (Fcons (Qcutime,
@@ -3222,9 +3215,8 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qcstime,
 			make_lisp_timeval (proc.ki_rusage_ch.ru_utime)),
 		 attrs);
-  EMACS_ADD_TIME (t,
-		  timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_utime),
-		  timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_stime));
+  t = add_emacs_time (timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_utime),
+		      timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_stime));
   attrs = Fcons (Fcons (Qctime, make_lisp_time (t)), attrs);
 
   attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (proc.ki_numthreads)),
@@ -3236,8 +3228,8 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qrss,   make_number (proc.ki_rssize * pagesize >> 10)),
 		 attrs);
 
-  EMACS_GET_TIME (now);
-  EMACS_SUB_TIME (t, now, timeval_to_EMACS_TIME (proc.ki_start));
+  now = current_emacs_time ();
+  t = sub_emacs_time (now, timeval_to_EMACS_TIME (proc.ki_start));
   attrs = Fcons (Fcons (Qetime, make_lisp_time (t)), attrs);
 
   len = sizeof fscale;

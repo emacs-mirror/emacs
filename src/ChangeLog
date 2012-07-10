@@ -1,5 +1,32 @@
 2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	EMACS_TIME simplification (Bug#11875).
+	This replaces macros (which typically do not work in GDB)
+	with functions, typedefs and enums, making the code easier to debug.
+	The functional style also makes code easier to read and maintain.
+	* systime.h: Include <sys/time.h> on all hosts, not just if
+	WINDOWSNT, since 'struct timeval' is needed in general.
+	(EMACS_TIME): Now a typedef, not a macro.
+	(EMACS_TIME_RESOLUTION, LOG10_EMACS_TIME_RESOLUTION): Now constants,
+	not macros.
+	(EMACS_SECS, EMACS_NSECS, EMACS_TIME_SIGN, EMACS_TIME_VALID_P)
+	(EMACS_TIME_FROM_DOUBLE, EMACS_TIME_TO_DOUBLE, EMACS_TIME_EQ)
+	(EMACS_TIME_NE, EMACS_TIME_GT, EMACS_TIME_GE, EMACS_TIME_LT)
+	(EMACS_TIME_LE): Now functions, not macros.
+	(EMACS_SET_SECS, EMACS_SET_NSECS, EMACS_SET_SECS_NSECS)
+	(EMACS_SET_USECS, EMACS_SET_SECS_USECS): Remove these macros,
+	which are not functions.  All uses rewritten to use:
+	(make_emacs_time): New function.
+	(EMACS_SECS_ADDR, EMACS_SET_INVALID_TIME, EMACS_GET_TIME)
+	(EMACS_ADD_TIME, EMACS_SUB_TIME): Remove these macros, which are
+	not functions.  All uses rewritten to use the following, respectively:
+	(emacs_secs_addr, invalid_emacs_time, get_emacs_time)
+	(add_emacs_time, sub_emacs_time): New functions.
+	* atimer.c: Don't include <sys/time.h>,	as "systime.h" does this.
+	* fileio.c (Fcopy_file):
+	* xterm.c (XTflash): Get the current time closer to when it's used.
+	* makefile.w32-in ($(BLD)/atimer.$(O)): Update dependencies.
+
 	* bytecode.c (targets): Suppress -Woverride-init warnings.
 
 	Simplify by avoiding confusing use of strncpy etc.

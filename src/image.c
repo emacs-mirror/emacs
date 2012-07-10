@@ -1061,7 +1061,7 @@ void
 prepare_image_for_display (struct frame *f, struct image *img)
 {
   /* We're about to display IMG, so set its timestamp to `now'.  */
-  EMACS_GET_TIME (img->timestamp);
+  img->timestamp = current_emacs_time ();
 
   /* If IMG doesn't have a pixmap yet, load it now, using the image
      type dependent loader function.  */
@@ -1520,8 +1520,8 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 	    delay = 1600 * delay / nimages / nimages;
 	  delay = max (delay, 1);
 
-	  EMACS_GET_TIME (t);
-	  EMACS_SUB_TIME (old, t, EMACS_TIME_FROM_DOUBLE (delay));
+	  t = current_emacs_time ();
+	  old = sub_emacs_time (t, EMACS_TIME_FROM_DOUBLE (delay));
 
 	  for (i = 0; i < c->used; ++i)
 	    {
@@ -1792,7 +1792,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
     }
 
   /* We're using IMG, so set its timestamp to `now'.  */
-  EMACS_GET_TIME (img->timestamp);
+  img->timestamp = current_emacs_time ();
 
   /* Value is the image id.  */
   return img->id;

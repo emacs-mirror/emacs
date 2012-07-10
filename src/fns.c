@@ -78,8 +78,7 @@ Other values of LIMIT are ignored.  */)
 
   if (EQ (limit, Qt))
     {
-      EMACS_TIME t;
-      EMACS_GET_TIME (t);
+      EMACS_TIME t = current_emacs_time ();
       seed_random (getpid () ^ EMACS_SECS (t) ^ EMACS_NSECS (t));
     }
 

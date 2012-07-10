@@ -39,65 +39,92 @@ typedef unsigned long Time;
 #endif
 #endif
 
-#ifdef WINDOWSNT
 #include <sys/time.h>	/* for 'struct timeval' */
-#endif
 
-/* The type to use to represent temporal intervals.  It can be passed
+/* The type to use to represent temporal intervals.  Its address can be passed
    as the timeout argument to the pselect system call.  */
-#define EMACS_TIME struct timespec
+typedef struct timespec EMACS_TIME;
 
 /* Resolution of EMACS_TIME time stamps (in units per second), and log
    base 10 of the resolution.  The log must be a positive integer.  */
-#define EMACS_TIME_RESOLUTION		1000000000
-#define LOG10_EMACS_TIME_RESOLUTION	9
+enum { EMACS_TIME_RESOLUTION = 1000000000 };
+enum { LOG10_EMACS_TIME_RESOLUTION = 9 };
 
-/* EMACS_SECS (TIME) is an rvalue for the seconds component of TIME.
-   EMACS_SECS_ADDR (time) is the address of the seconds component.
-   EMACS_SET_SECS (TIME, SECONDS) sets that to SECONDS.
+/* EMACS_SECS (TIME) is the seconds component of TIME.
+   EMACS_NSECS (TIME) is the nanoseconds component of TIME.
+   emacs_secs_addr (PTIME) is the address of *PTIME's seconds component.  */
+static inline time_t EMACS_SECS (EMACS_TIME t) { return t.tv_sec; }
+static inline int EMACS_NSECS (EMACS_TIME t) { return t.tv_nsec; }
+static inline time_t *emacs_secs_addr (EMACS_TIME *t) { return &t->tv_sec; }
 
-   EMACS_NSECS (TIME) is an rvalue for the nanoseconds component of TIME.
-   EMACS_SET_NSECS (TIME, NANOSECONDS) sets that to NANOSECONDS.
+/* Return an Emacs time with seconds S and nanoseconds NS.  */
+static inline EMACS_TIME
+make_emacs_time (time_t s, int ns)
+{
+  EMACS_TIME r = { s, ns };
+  return r;
+}
 
-   EMACS_SET_SECS_NSECS (TIME, SECS, NSECS) sets both components of TIME.  */
-#define EMACS_SECS(time)		    ((time).tv_sec  + 0)
-#define EMACS_NSECS(time)		    ((time).tv_nsec + 0)
-#define EMACS_SECS_ADDR(time)		    (&(time).tv_sec)
-#define EMACS_SET_SECS(time, seconds)	    ((time).tv_sec  = (seconds))
-#define EMACS_SET_NSECS(time, ns)	    ((time).tv_nsec = (ns))
-#define EMACS_SET_SECS_NSECS(time, s, ns)				\
-  ((void) (EMACS_SET_SECS (time, s), EMACS_SET_NSECS (time, ns)))
+/* Return an invalid Emacs time.  */
+static inline EMACS_TIME
+invalid_emacs_time (void)
+{
+  EMACS_TIME r = { 0, -1 };
+  return r;
+}
 
-/* Convenience macros for older code that counts microseconds.  */
-#define EMACS_SET_USECS(time, us)  ((void) EMACS_SET_NSECS (time, (us) * 1000))
-#define EMACS_SET_SECS_USECS(time, secs, usecs) 		\
-  (EMACS_SET_SECS (time, secs), EMACS_SET_USECS (time, usecs))
+/* Return current system time.  */
+static inline EMACS_TIME
+current_emacs_time (void)
+{
+  EMACS_TIME r;
+  gettime (&r);
+  return r;
+}
 
-/* Set TIME to an invalid time stamp.  */
-#define EMACS_SET_INVALID_TIME(time)	    EMACS_SET_SECS_NSECS(time, 0, -1)
-
-/* Set TIME to the current system time.  */
-#define EMACS_GET_TIME(time)		    gettime (&(time))
-
-/* Put into DEST the result of adding SRC1 to SRC2, or of subtracting
-   SRC2 from SRC1.  On overflow, store an extremal value: ergo, if
-   time_t is unsigned, return 0 if the true answer would be negative.  */
-#define EMACS_ADD_TIME(dest, src1, src2) ((dest) = timespec_add (src1, src2))
-#define EMACS_SUB_TIME(dest, src1, src2) ((dest) = timespec_sub (src1, src2))
+/* Return the result of adding A to B, or of subtracting B from A.
+   On overflow, store an extremal value: ergo, if time_t is unsigned,
+   return 0 if the true answer would be negative.  */
+static inline EMACS_TIME
+add_emacs_time (EMACS_TIME a, EMACS_TIME b)
+{
+  return timespec_add (a, b);
+}
+static inline EMACS_TIME
+sub_emacs_time (EMACS_TIME a, EMACS_TIME b)
+{
+  return timespec_sub (a, b);
+}
 
 /* Return the sign of the valid time stamp TIME, either -1, 0, or 1.  */
-#define EMACS_TIME_SIGN(time)		timespec_sign (time)
+static inline int
+EMACS_TIME_SIGN (EMACS_TIME t)
+{
+  return timespec_sign (t);
+}
 
 /* Return 1 if TIME is a valid time stamp.  */
-#define EMACS_TIME_VALID_P(time)	(0 <= (time).tv_nsec)
+static inline int
+EMACS_TIME_VALID_P (EMACS_TIME t)
+{
+  return 0 <= t.tv_nsec;
+}
 
 /* Convert the double D to the greatest EMACS_TIME not greater than D.
    On overflow, return an extremal value.  Return the minimum
    EMACS_TIME if D is not a number.  */
-#define EMACS_TIME_FROM_DOUBLE(d)	dtotimespec (d)
+static inline EMACS_TIME
+EMACS_TIME_FROM_DOUBLE (double d)
+{
+  return dtotimespec (d);
+}
 
 /* Convert the Emacs time T to an approximate double value D.  */
-#define EMACS_TIME_TO_DOUBLE(t)		timespectod (t)
+static inline double
+EMACS_TIME_TO_DOUBLE (EMACS_TIME t)
+{
+  return timespectod (t);
+}
 
 /* defined in sysdep.c */
 extern int set_file_times (int, const char *, EMACS_TIME, EMACS_TIME);
@@ -118,12 +145,35 @@ extern EMACS_TIME lisp_time_argument (Lisp_Object);
 #endif
 
 /* Compare times T1 and T2 for equality, inequality etc.  */
-
-#define EMACS_TIME_EQ(T1, T2) (timespec_cmp (T1, T2) == 0)
-#define EMACS_TIME_NE(T1, T2) (timespec_cmp (T1, T2) != 0)
-#define EMACS_TIME_GT(T1, T2) (timespec_cmp (T1, T2) > 0)
-#define EMACS_TIME_GE(T1, T2) (timespec_cmp (T1, T2) >= 0)
-#define EMACS_TIME_LT(T1, T2) (timespec_cmp (T1, T2) < 0)
-#define EMACS_TIME_LE(T1, T2) (timespec_cmp (T1, T2) <= 0)
+static inline int
+EMACS_TIME_EQ (EMACS_TIME t1, EMACS_TIME t2)
+{
+  return timespec_cmp (t1, t2) == 0;
+}
+static inline int
+EMACS_TIME_NE (EMACS_TIME t1, EMACS_TIME t2)
+{
+  return timespec_cmp (t1, t2) != 0;
+}
+static inline int
+EMACS_TIME_GT (EMACS_TIME t1, EMACS_TIME t2)
+{
+  return timespec_cmp (t1, t2) > 0;
+}
+static inline int
+EMACS_TIME_GE (EMACS_TIME t1, EMACS_TIME t2)
+{
+  return timespec_cmp (t1, t2) >= 0;
+}
+static inline int
+EMACS_TIME_LT (EMACS_TIME t1, EMACS_TIME t2)
+{
+  return timespec_cmp (t1, t2) < 0;
+}
+static inline int
+EMACS_TIME_LE (EMACS_TIME t1, EMACS_TIME t2)
+{
+  return timespec_cmp (t1, t2) <= 0;
+}
 
 #endif /* EMACS_SYSTIME_H */

@@ -3168,26 +3168,22 @@ XTflash (struct frame *f)
       x_flush (f);
 
       {
-	EMACS_TIME wakeup, delay;
-
-	EMACS_GET_TIME (wakeup);
-	EMACS_SET_SECS_NSECS (delay, 0, 150 * 1000 * 1000);
-	EMACS_ADD_TIME (wakeup, wakeup, delay);
+	EMACS_TIME delay = make_emacs_time (0, 150 * 1000 * 1000);
+	EMACS_TIME wakeup = add_emacs_time (current_emacs_time (), delay);
 
 	/* Keep waiting until past the time wakeup or any input gets
 	   available.  */
 	while (! detect_input_pending ())
 	  {
-	    EMACS_TIME current, timeout;
-
-	    EMACS_GET_TIME (current);
+	    EMACS_TIME current = current_emacs_time ();
+	    EMACS_TIME timeout;
 
 	    /* Break if result would not be positive.  */
 	    if (EMACS_TIME_LE (wakeup, current))
 	      break;
 
 	    /* How long `select' should wait.  */
-	    EMACS_SET_SECS_NSECS (timeout, 0, 10 * 1000 * 1000);
+	    timeout = make_emacs_time (0, 10 * 1000 * 1000);
 
 	    /* Try to wait that long--but we might wake up sooner.  */
 	    pselect (0, NULL, NULL, NULL, &timeout, NULL);
@@ -8810,9 +8806,8 @@ x_wait_for_event (struct frame *f, int eventtype)
 
   /* Set timeout to 0.1 second.  Hopefully not noticeable.
      Maybe it should be configurable.  */
-  EMACS_SET_SECS_USECS (tmo, 0, 100000);
-  EMACS_GET_TIME (tmo_at);
-  EMACS_ADD_TIME (tmo_at, tmo_at, tmo);
+  tmo = make_emacs_time (0, 100 * 1000 * 1000);
+  tmo_at = add_emacs_time (current_emacs_time (), tmo);
 
   while (pending_event_wait.eventtype)
     {
@@ -8825,11 +8820,11 @@ x_wait_for_event (struct frame *f, int eventtype)
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
 
-      EMACS_GET_TIME (time_now);
+      time_now = current_emacs_time ();
       if (EMACS_TIME_LT (tmo_at, time_now))
 	break;
 
-      EMACS_SUB_TIME (tmo, tmo_at, time_now);
+      tmo = sub_emacs_time (tmo_at, time_now);
       if (pselect (fd + 1, &fds, NULL, NULL, &tmo, NULL) == 0)
         break; /* Timeout */
     }
@@ -10602,9 +10597,7 @@ x_activate_timeout_atimer (void)
   BLOCK_INPUT;
   if (!x_timeout_atimer_activated_flag)
     {
-      EMACS_TIME interval;
-
-      EMACS_SET_SECS_USECS (interval, 0, 100000);
+      EMACS_TIME interval = make_emacs_time (0, 100 * 1000 * 1000);
       start_atimer (ATIMER_RELATIVE, interval, x_process_timeouts, 0);
       x_timeout_atimer_activated_flag = 1;
     }

@@ -1408,10 +1408,7 @@ least significant 16 bits.  USEC and PSEC are the microsecond and
 picosecond counts.  */)
   (void)
 {
-  EMACS_TIME t;
-
-  EMACS_GET_TIME (t);
-  return make_lisp_time (t);
+  return make_lisp_time (current_emacs_time ());
 }
 
 DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
@@ -1428,7 +1425,6 @@ does the same thing as `current-time'.  */)
   struct rusage usage;
   time_t secs;
   int usecs;
-  EMACS_TIME t;
 
   if (getrusage (RUSAGE_SELF, &usage) < 0)
     /* This shouldn't happen.  What action is appropriate?  */
@@ -1442,8 +1438,7 @@ does the same thing as `current-time'.  */)
       usecs -= 1000000;
       secs++;
     }
-  EMACS_SET_SECS_USECS (t, secs, usecs);
-  return make_lisp_time (t);
+  return make_lisp_time (make_emacs_time (secs, usecs * 1000));
 #else /* ! HAVE_GETRUSAGE  */
 #ifdef WINDOWSNT
   return w32_get_internal_run_time ();
@@ -1560,8 +1555,7 @@ decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
 	  /* Return the greatest representable time that is not greater
 	     than the requested time.  */
 	  time_t sec = hi;
-	  EMACS_SET_SECS_NSECS (*result, (sec << 16) + lo,
-				us * 1000 + ps / 1000);
+	  *result = make_emacs_time ((sec << 16) + lo, us * 1000 + ps / 1000);
 	}
       else
 	{
@@ -1587,7 +1581,7 @@ lisp_time_argument (Lisp_Object specified_time)
 {
   EMACS_TIME t;
   if (NILP (specified_time))
-    EMACS_GET_TIME (t);
+    t = current_emacs_time ();
   else
     {
       Lisp_Object high, low, usec, psec;
@@ -1635,8 +1629,7 @@ or (if you need time as a string) `format-time-string'.  */)
   double t;
   if (NILP (specified_time))
     {
-      EMACS_TIME now;
-      EMACS_GET_TIME (now);
+      EMACS_TIME now = current_emacs_time ();
       t = EMACS_SECS (now) + EMACS_NSECS (now) / 1e9;
     }
   else
@@ -1780,11 +1773,12 @@ format_time_string (char const *format, ptrdiff_t formatlen,
 
   while (1)
     {
+      time_t *taddr = emacs_secs_addr (&t);
       BLOCK_INPUT;
 
       synchronize_system_time_locale ();
 
-      tm = ut ? gmtime (EMACS_SECS_ADDR (t)) : localtime (EMACS_SECS_ADDR (t));
+      tm = ut ? gmtime (taddr) : localtime (taddr);
       if (! tm)
 	{
 	  UNBLOCK_INPUT;
@@ -2065,10 +2059,10 @@ the data it can't find.  */)
   Lisp_Object zone_offset, zone_name;
 
   zone_offset = Qnil;
-  EMACS_SET_SECS_NSECS (value, lisp_seconds_argument (specified_time), 0);
+  value = make_emacs_time (lisp_seconds_argument (specified_time), 0);
   zone_name = format_time_string ("%Z", sizeof "%Z" - 1, value, 0, &localtm);
   BLOCK_INPUT;
-  t = gmtime (EMACS_SECS_ADDR (value));
+  t = gmtime (emacs_secs_addr (&value));
   if (t)
     offset = tm_diff (&localtm, t);
   UNBLOCK_INPUT;

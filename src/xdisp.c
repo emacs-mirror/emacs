@@ -29308,14 +29308,14 @@ start_hourglass (void)
 
   if (INTEGERP (Vhourglass_delay)
       && XINT (Vhourglass_delay) > 0)
-    EMACS_SET_SECS_NSECS (delay,
-			  min (XINT (Vhourglass_delay), TYPE_MAXIMUM (time_t)),
-			  0);
+    delay = make_emacs_time (min (XINT (Vhourglass_delay),
+				  TYPE_MAXIMUM (time_t)),
+			     0);
   else if (FLOATP (Vhourglass_delay)
 	   && XFLOAT_DATA (Vhourglass_delay) > 0)
     delay = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (Vhourglass_delay));
   else
-    EMACS_SET_SECS_NSECS (delay, DEFAULT_HOURGLASS_DELAY, 0);
+    delay = make_emacs_time (DEFAULT_HOURGLASS_DELAY, 0);
 
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				   show_hourglass, NULL);

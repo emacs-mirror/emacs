@@ -36,7 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 #include <systime.h>
 
-static EMACS_TIME TV1, TV2;
+static EMACS_TIME TV1;
 static int watch_not_started = 1; /* flag */
 static char time_string[INT_STRLEN_BOUND (uintmax_t) + sizeof "."
 			+ LOG10_EMACS_TIME_RESOLUTION];
@@ -46,7 +46,7 @@ static char time_string[INT_STRLEN_BOUND (uintmax_t) + sizeof "."
 static void
 reset_watch (void)
 {
-  EMACS_GET_TIME (TV1);
+  TV1 = current_emacs_time ();
   watch_not_started = 0;
 }
 
@@ -57,14 +57,11 @@ reset_watch (void)
 static char *
 get_time (void)
 {
-  uintmax_t s;
-  int ns;
+  EMACS_TIME TV2 = sub_emacs_time (current_emacs_time (), TV1);
+  uintmax_t s = EMACS_SECS (TV2);
+  int ns = EMACS_NSECS (TV2);
   if (watch_not_started)
     exit (EXIT_FAILURE);  /* call reset_watch first ! */
-  EMACS_GET_TIME (TV2);
-  EMACS_SUB_TIME (TV2, TV2, TV1);
-  s = EMACS_SECS (TV2);
-  ns = EMACS_NSECS (TV2);
   sprintf (time_string, "%"PRIuMAX".%0*d", s, LOG10_EMACS_TIME_RESOLUTION, ns);
   return time_string;
 }

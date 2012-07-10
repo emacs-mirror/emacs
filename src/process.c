@@ -1851,10 +1851,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	 So have an interrupt jar it loose.  */
       {
 	struct atimer *timer;
-	EMACS_TIME offset;
+	EMACS_TIME offset = make_emacs_time (1, 0);
 
 	stop_polling ();
-	EMACS_SET_SECS_USECS (offset, 1, 0);
 	timer = start_atimer (ATIMER_RELATIVE, offset, create_process_1, 0);
 
 	if (forkin >= 0)
@@ -4311,9 +4310,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
      compute the absolute time to return at.  */
   if (time_limit || 0 < nsecs)
     {
-      EMACS_GET_TIME (end_time);
-      EMACS_SET_SECS_NSECS (timeout, time_limit, nsecs);
-      EMACS_ADD_TIME (end_time, end_time, timeout);
+      timeout = make_emacs_time (time_limit, nsecs);
+      end_time = add_emacs_time (current_emacs_time (), timeout);
     }
 
   while (1)
@@ -4342,18 +4340,18 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	     gobble output available now
 	     but don't wait at all. */
 
-	  EMACS_SET_SECS_USECS (timeout, 0, 0);
+	  timeout = make_emacs_time (0, 0);
 	}
       else if (time_limit || 0 < nsecs)
 	{
-	  EMACS_GET_TIME (timeout);
-	  if (EMACS_TIME_LE (end_time, timeout))
+	  EMACS_TIME now = current_emacs_time ();
+	  if (EMACS_TIME_LE (end_time, now))
 	    break;
-	  EMACS_SUB_TIME (timeout, end_time, timeout);
+	  timeout = sub_emacs_time (end_time, now);
 	}
       else
 	{
-	  EMACS_SET_SECS_USECS (timeout, 100000, 0);
+	  timeout = make_emacs_time (100000, 0);
 	}
 
       /* Normally we run timers here.
@@ -4438,7 +4436,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
             Atemp = input_wait_mask;
 	  Ctemp = write_mask;
 
-	  EMACS_SET_SECS_USECS (timeout, 0, 0);
+	  timeout = make_emacs_time (0, 0);
 	  if ((pselect (max (max_process_desc, max_input_desc) + 1,
 			&Atemp,
 #ifdef NON_BLOCKING_CONNECT
@@ -4590,7 +4588,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			nsecs = XPROCESS (proc)->read_output_delay;
 		    }
 		}
-	      EMACS_SET_SECS_NSECS (timeout, 0, nsecs);
+	      timeout = make_emacs_time (0, nsecs);
 	      process_output_skip = 0;
 	    }
 #endif
@@ -6426,7 +6424,7 @@ sigchld_handler (int signo)
 	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
 	  if (input_available_clear_time)
-	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+	    *input_available_clear_time = make_emacs_time (0, 0);
 	}
 
       /* There was no asynchronous process found for that pid: we have
@@ -6444,7 +6442,7 @@ sigchld_handler (int signo)
 	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
 	  if (input_available_clear_time)
-	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+	    *input_available_clear_time = make_emacs_time (0, 0);
 	}
 
     sigchld_end_of_loop:
@@ -6857,9 +6855,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   /* What does time_limit really mean?  */
   if (time_limit || 0 < nsecs)
     {
-      EMACS_GET_TIME (end_time);
-      EMACS_SET_SECS_NSECS (timeout, time_limit, nsecs);
-      EMACS_ADD_TIME (end_time, end_time, timeout);
+      timeout = make_emacs_time (time_limit, nsecs);
+      end_time = add_emacs_time (current_emacs_time (), timeout);
     }
 
   /* Turn off periodic alarms (in case they are in use)
@@ -6892,18 +6889,18 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	     gobble output available now
 	     but don't wait at all. */
 
-	  EMACS_SET_SECS_USECS (timeout, 0, 0);
+	  timeout = make_emacs_time (0, 0);
 	}
       else if (time_limit || 0 < nsecs)
 	{
-	  EMACS_GET_TIME (timeout);
-	  if (EMACS_TIME_LE (end_time, timeout))
+	  EMACS_TIME now = current_emacs_time ();
+	  if (EMACS_TIME_LE (end_time, now))
 	    break;
-	  EMACS_SUB_TIME (timeout, end_time, timeout);
+	  timeout = sub_emacs_time (end_time, now);
 	}
       else
 	{
-	  EMACS_SET_SECS_USECS (timeout, 100000, 0);
+	  timeout = make_emacs_time (100000, 0);
 	}
 
       /* If our caller will not immediately handle keyboard events,

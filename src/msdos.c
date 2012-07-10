@@ -4138,14 +4138,14 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       EMACS_TIME clnow, cllast, cldiff;
 
       gettime (&t);
-      EMACS_SET_SECS_NSECS (cllast, t.tv_sec, t.tv_nsec);
+      cllast = make_emacs_time (t.tv_sec, t.tv_nsec);
 
       while (!check_input || !detect_input_pending ())
 	{
 	  gettime (&t);
-	  EMACS_SET_SECS_NSECS (clnow, t.tv_sec, t.tv_nsec);
-	  EMACS_SUB_TIME (cldiff, clnow, cllast);
-	  EMACS_SUB_TIME (*timeout, *timeout, cldiff);
+	  clnow = make_emacs_time (t.tv_sec, t.tv_nsec);
+	  cldiff = sub_emacs_time (clnow, cllast);
+	  *timeout = sub_emacs_time (*timeout, cldiff);
 
 	  /* Stop when timeout value crosses zero.  */
 	  if (EMACS_TIME_SIGN (*timeout) <= 0)

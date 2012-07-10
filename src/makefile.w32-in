@@ -490,7 +490,6 @@ $(BLD)/alloc.$(O) : \
 $(BLD)/atimer.$(O) : \
 	$(SRC)/atimer.c \
 	$(SRC)/syssignal.h \
-	$(NT_INC)/sys/time.h \
 	$(NT_INC)/unistd.h \
 	$(ATIMER_H) \
 	$(BLOCKINPUT_H) \

@@ -1927,12 +1927,12 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
       DWORD attributes;
       char * filename;
 
-      EMACS_GET_TIME (now);
       filename = SDATA (encoded_newname);
 
       /* Ensure file is writable while its modified time is set.  */
       attributes = GetFileAttributes (filename);
       SetFileAttributes (filename, attributes & ~FILE_ATTRIBUTE_READONLY);
+      now = current_emacs_time ();
       if (set_file_times (-1, filename, now, now))
 	{
 	  /* Restore original attributes.  */
@@ -3219,12 +3219,10 @@ emacs_lseek (int fd, EMACS_INT offset, int whence)
 static EMACS_TIME
 time_error_value (int errnum)
 {
-  EMACS_TIME t;
   int ns = (errnum == ENOENT || errnum == EACCES || errnum == ENOTDIR
 	    ? NONEXISTENT_MODTIME_NSECS
 	    : UNKNOWN_MODTIME_NSECS);
-  EMACS_SET_SECS_NSECS (t, 0, ns);
-  return t;
+  return make_emacs_time (0, ns);
 }
 
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
@@ -5084,7 +5082,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   struct stat st;
   Lisp_Object handler;
   Lisp_Object filename;
-  EMACS_TIME mtime, diff, one_second;
+  EMACS_TIME mtime, diff;
 
   if (NILP (buf))
     b = current_buffer;
@@ -5112,11 +5110,10 @@ See Info node `(elisp)Modification Time' for more details.  */)
   if ((EMACS_TIME_EQ (mtime, b->modtime)
        /* If both exist, accept them if they are off by one second.  */
        || (EMACS_TIME_VALID_P (mtime) && EMACS_TIME_VALID_P (b->modtime)
-	   && ((EMACS_TIME_LT (mtime, b->modtime)
-		? EMACS_SUB_TIME (diff, b->modtime, mtime)
-		: EMACS_SUB_TIME (diff, mtime, b->modtime)),
-	       EMACS_SET_SECS_NSECS (one_second, 1, 0),
-	       EMACS_TIME_LE (diff, one_second))))
+	   && ((diff = (EMACS_TIME_LT (mtime, b->modtime)
+			? sub_emacs_time (b->modtime, mtime)
+			: sub_emacs_time (mtime, b->modtime))),
+	       EMACS_TIME_LE (diff, make_emacs_time (1, 0)))))
       && (st.st_size == b->modtime_size
           || b->modtime_size < 0))
     return Qt;
@@ -5129,7 +5126,7 @@ DEFUN ("clear-visited-file-modtime", Fclear_visited_file_modtime,
 Next attempt to save will certainly not complain of a discrepancy.  */)
   (void)
 {
-  EMACS_SET_SECS_NSECS (current_buffer->modtime, 0, UNKNOWN_MODTIME_NSECS);
+  current_buffer->modtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS);
   current_buffer->modtime_size = -1;
   return Qnil;
 }
@@ -5428,9 +5425,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		|| NILP (Ffind_file_name_handler (BVAR (b, auto_save_file_name),
 						  Qwrite_region))))
 	  {
-	    EMACS_TIME before_time, after_time;
-
-	    EMACS_GET_TIME (before_time);
+	    EMACS_TIME before_time = current_emacs_time ();
+	    EMACS_TIME after_time;
 
 	    /* If we had a failure, don't try again for 20 minutes.  */
 	    if (b->auto_save_failure_time > 0
@@ -5467,7 +5463,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
 	    set_buffer_internal (old);
 
-	    EMACS_GET_TIME (after_time);
+	    after_time = current_emacs_time ();
 
 	    /* If auto-save took more than 60 seconds,
 	       assume it was an NFS failure that got a timeout.  */

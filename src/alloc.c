@@ -5393,7 +5393,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   int message_p;
   Lisp_Object total[8];
   ptrdiff_t count = SPECPDL_INDEX ();
-  EMACS_TIME t1, t2, t3;
+  EMACS_TIME t1;
 
   if (abort_on_gc)
     abort ();
@@ -5442,7 +5442,7 @@ See Info node `(elisp)Garbage Collection'.  */)
       }
   }
 
-  EMACS_GET_TIME (t1);
+  t1 = current_emacs_time ();
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
@@ -5696,8 +5696,8 @@ See Info node `(elisp)Garbage Collection'.  */)
   /* Accumulate statistics.  */
   if (FLOATP (Vgc_elapsed))
     {
-      EMACS_GET_TIME (t2);
-      EMACS_SUB_TIME (t3, t2, t1);
+      EMACS_TIME t2 = current_emacs_time ();
+      EMACS_TIME t3 = sub_emacs_time (t2, t1);
       Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed)
 				+ EMACS_TIME_TO_DOUBLE (t3));
     }

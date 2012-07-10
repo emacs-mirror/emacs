@@ -410,21 +410,16 @@ ns_timeout (int usecs)
      Blocking timer utility used by ns_ring_bell
    -------------------------------------------------------------------------- */
 {
-  EMACS_TIME wakeup, delay;
-
-  EMACS_GET_TIME (wakeup);
-  EMACS_SET_SECS_USECS (delay, 0, usecs);
-  EMACS_ADD_TIME (wakeup, wakeup, delay);
+  EMACS_TIME wakeup = add_emacs_time (current_emacs_time (),
+				      make_emacs_time (0, usecs * 1000));
 
   /* Keep waiting until past the time wakeup.  */
   while (1)
     {
-      EMACS_TIME timeout;
-
-      EMACS_GET_TIME (timeout);
-      if (EMACS_TIME_LE (wakeup, timeout))
+      EMACS_TIME now = current_emacs_time ();
+      if (EMACS_TIME_LE (wakeup, now))
 	break;
-      EMACS_SUB_TIME (timeout, wakeup, timeout);
+      timeout = sub_emacs_time (wakeup, now);
 
       /* Try to wait that long--but we might wake up sooner.  */
       pselect (0, NULL, NULL, NULL, &timeout, NULL);

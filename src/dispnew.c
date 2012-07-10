@@ -3191,7 +3191,6 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
     force_p = 1;
   else if (!force_p && NUMBERP (Vredisplay_preemption_period))
     {
-      EMACS_TIME tm;
       double p = XFLOATINT (Vredisplay_preemption_period);
 
       if (detect_input_pending_ignore_squeezables ())
@@ -3200,9 +3199,9 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 	  goto do_pause;
 	}
 
-      EMACS_GET_TIME (tm);
       preemption_period = EMACS_TIME_FROM_DOUBLE (p);
-      EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
+      preemption_next_check = add_emacs_time (current_emacs_time (),
+					      preemption_period);
     }
 
   if (FRAME_WINDOW_P (f))
@@ -3344,12 +3343,10 @@ update_single_window (struct window *w, int force_p)
 	force_p = 1;
       else if (!force_p && NUMBERP (Vredisplay_preemption_period))
 	{
-	  EMACS_TIME tm;
 	  double p = XFLOATINT (Vredisplay_preemption_period);
-
-	  EMACS_GET_TIME (tm);
 	  preemption_period = EMACS_TIME_FROM_DOUBLE (p);
-	  EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
+	  preemption_next_check = add_emacs_time (current_emacs_time (),
+						  preemption_period);
 	}
 
       /* Update W.  */
@@ -3596,11 +3593,11 @@ update_window (struct window *w, int force_p)
 #if PERIODIC_PREEMPTION_CHECKING
 	    if (!force_p)
 	      {
-		EMACS_TIME tm;
-		EMACS_GET_TIME (tm);
+		EMACS_TIME tm = current_emacs_time ();
 		if (EMACS_TIME_LT (preemption_next_check, tm))
 		  {
-		    EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
+		    preemption_next_check = add_emacs_time (tm,
+							    preemption_period);
 		    if (detect_input_pending_ignore_squeezables ())
 		      break;
 		  }
@@ -4701,11 +4698,10 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 #if PERIODIC_PREEMPTION_CHECKING
 	  if (!force_p)
 	    {
-	      EMACS_TIME tm;
-	      EMACS_GET_TIME (tm);
+	      EMACS_TIME tm = current_emacs_time ();
 	      if (EMACS_TIME_LT (preemption_next_check, tm))
 		{
-		  EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
+		  preemption_next_check = add_emacs_time (tm, preemption_period);
 		  if (detect_input_pending_ignore_squeezables ())
 		    break;
 		}

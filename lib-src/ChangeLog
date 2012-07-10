@@ -1,5 +1,8 @@
 2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	EMACS_TIME simplification (Bug#11875).
+	* profile.c (TV2): Remove no-longer-needed static var.
+
 	Simplify by avoiding confusing use of strncpy etc.
 	* etags.c (write_classname, C_entries):
 	Use sprintf rather than strncpy or strncat.

@@ -517,9 +517,9 @@ Return what remains of the list.  */)
 		      && CONSP (XCDR (XCDR (XCDR (cdr))))
 		      && INTEGERP (XCAR (XCDR (XCDR (XCDR (cdr)))))
 		      && XINT (XCAR (XCDR (XCDR (XCDR (cdr))))) < 0)
-		    EMACS_SET_SECS_NSECS
-		      (mod_time, 0,
-		       XINT (XCAR (XCDR (XCDR (XCDR (cdr))))) / 1000);
+		    mod_time =
+		      (make_emacs_time
+		       (0, XINT (XCAR (XCDR (XCDR (XCDR (cdr))))) / 1000));
 		  else
 		    mod_time = lisp_time_argument (cdr);
 

@@ -2017,12 +2017,11 @@ start_polling (void)
 	  || EMACS_SECS (poll_timer->interval) != polling_period)
 	{
 	  time_t period = max (1, min (polling_period, TYPE_MAXIMUM (time_t)));
-	  EMACS_TIME interval;
+	  EMACS_TIME interval = make_emacs_time (period, 0);
 
 	  if (poll_timer)
 	    cancel_atimer (poll_timer);
 
-	  EMACS_SET_SECS_USECS (interval, period, 0);
 	  poll_timer = start_atimer (ATIMER_CONTINUOUS, interval,
 				     poll_for_input, NULL);
 	}
@@ -2786,13 +2785,8 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
     {
       KBOARD *kb IF_LINT (= NULL);
 
-      if (end_time)
-	{
-	  EMACS_TIME now;
-	  EMACS_GET_TIME (now);
-	  if (EMACS_TIME_GE (now, *end_time))
-	    goto exit;
-	}
+      if (end_time && EMACS_TIME_LE (*end_time, current_emacs_time ()))
+	goto exit;
 
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
@@ -3847,13 +3841,12 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
       if (end_time)
 	{
-	  EMACS_TIME duration;
-	  EMACS_GET_TIME (duration);
-	  if (EMACS_TIME_GE (duration, *end_time))
+	  EMACS_TIME now = current_emacs_time ();
+	  if (EMACS_TIME_LE (*end_time, now))
 	    return Qnil;	/* Finished waiting.  */
 	  else
 	    {
-	      EMACS_SUB_TIME (duration, *end_time, duration);
+	      EMACS_TIME duration = sub_emacs_time (*end_time, now);
 	      wait_reading_process_output (min (EMACS_SECS (duration),
 						WAIT_READING_MAX),
 					   EMACS_NSECS (duration),
@@ -4256,8 +4249,7 @@ timer_start_idle (void)
   if (EMACS_TIME_VALID_P (timer_idleness_start_time))
     return;
 
-  EMACS_GET_TIME (timer_idleness_start_time);
-
+  timer_idleness_start_time = current_emacs_time ();
   timer_last_idleness_start_time = timer_idleness_start_time;
 
   /* Mark all idle-time timers as once again candidates for running.  */
@@ -4278,7 +4270,7 @@ timer_start_idle (void)
 static void
 timer_stop_idle (void)
 {
-  EMACS_SET_INVALID_TIME (timer_idleness_start_time);
+  timer_idleness_start_time = invalid_emacs_time ();
 }
 
 /* Resume idle timer from last idle start time.  */
@@ -4339,7 +4331,7 @@ timer_check_2 (void)
   Lisp_Object timers, idle_timers, chosen_timer;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  EMACS_SET_INVALID_TIME (nexttime);
+  nexttime = invalid_emacs_time ();
 
   /* Always consider the ordinary timers.  */
   timers = Vtimer_list;
@@ -4361,11 +4353,10 @@ timer_check_2 (void)
 
   if (CONSP (timers) || CONSP (idle_timers))
     {
-      EMACS_GET_TIME (now);
-      if (EMACS_TIME_VALID_P (timer_idleness_start_time))
-	EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
-      else
-	EMACS_SET_SECS_NSECS (idleness_now, 0, 0);
+      now = current_emacs_time ();
+      idleness_now = (EMACS_TIME_VALID_P (timer_idleness_start_time)
+		      ? sub_emacs_time (now, timer_idleness_start_time)
+		      : make_emacs_time (0, 0));
     }
 
   while (CONSP (timers) || CONSP (idle_timers))
@@ -4374,11 +4365,9 @@ timer_check_2 (void)
       Lisp_Object timer = Qnil, idle_timer = Qnil;
       EMACS_TIME timer_time, idle_timer_time;
       EMACS_TIME difference;
-      EMACS_TIME timer_difference, idle_timer_difference;
+      EMACS_TIME timer_difference = invalid_emacs_time ();
+      EMACS_TIME idle_timer_difference = invalid_emacs_time ();
       int ripe, timer_ripe = 0, idle_timer_ripe = 0;
-
-      EMACS_SET_INVALID_TIME (timer_difference);
-      EMACS_SET_INVALID_TIME (idle_timer_difference);
 
       /* Set TIMER and TIMER_DIFFERENCE
 	 based on the next ordinary timer.
@@ -4395,10 +4384,9 @@ timer_check_2 (void)
 	    }
 
 	  timer_ripe = EMACS_TIME_LE (timer_time, now);
-	  if (timer_ripe)
-	    EMACS_SUB_TIME (timer_difference, now, timer_time);
-	  else
-	    EMACS_SUB_TIME (timer_difference, timer_time, now);
+	  timer_difference = (timer_ripe
+			      ? sub_emacs_time (now, timer_time)
+			      : sub_emacs_time (timer_time, now));
 	}
 
       /* Likewise for IDLE_TIMER and IDLE_TIMER_DIFFERENCE
@@ -4413,12 +4401,10 @@ timer_check_2 (void)
 	    }
 
 	  idle_timer_ripe = EMACS_TIME_LE (idle_timer_time, idleness_now);
-	  if (idle_timer_ripe)
-	    EMACS_SUB_TIME (idle_timer_difference,
-			    idleness_now, idle_timer_time);
-	  else
-	    EMACS_SUB_TIME (idle_timer_difference,
-			    idle_timer_time, idleness_now);
+	  idle_timer_difference =
+	    (idle_timer_ripe
+	     ? sub_emacs_time (idleness_now, idle_timer_time)
+	     : sub_emacs_time (idle_timer_time, idleness_now));
 	}
 
       /* Decide which timer is the next timer,
@@ -4474,8 +4460,7 @@ timer_check_2 (void)
                  return 0 to indicate that.  */
 	    }
 
-          EMACS_SET_SECS (nexttime, 0);
-          EMACS_SET_USECS (nexttime, 0);
+	  nexttime = make_emacs_time (0, 0);
 	}
       else
 	/* When we encounter a timer that is still waiting,
@@ -4527,14 +4512,8 @@ NSEC is a multiple of the system clock resolution.  */)
   (void)
 {
   if (EMACS_TIME_VALID_P (timer_idleness_start_time))
-    {
-      EMACS_TIME now, idleness_now;
-
-      EMACS_GET_TIME (now);
-      EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
-
-      return make_lisp_time (idleness_now);
-    }
+    return make_lisp_time (sub_emacs_time (current_emacs_time (),
+					   timer_idleness_start_time));
 
   return Qnil;
 }
@@ -7224,7 +7203,7 @@ input_available_signal (int signo)
 #endif
 
   if (input_available_clear_time)
-    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+    *input_available_clear_time = make_emacs_time (0, 0);
 
 #ifndef SYNC_INPUT
   handle_async_input ();
@@ -7327,7 +7306,7 @@ handle_user_signal (int sig)
 	    /* Tell wait_reading_process_output that it needs to wake
 	       up and look around.  */
 	    if (input_available_clear_time)
-	      EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+	      *input_available_clear_time = make_emacs_time (0, 0);
 	  }
 	break;
       }
@@ -11344,7 +11323,7 @@ init_keyboard (void)
   quit_char = Ctl ('g');
   Vunread_command_events = Qnil;
   unread_command_char = -1;
-  EMACS_SET_INVALID_TIME (timer_idleness_start_time);
+  timer_idleness_start_time = invalid_emacs_time ();
   total_keys = 0;
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;

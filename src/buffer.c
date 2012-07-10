@@ -705,7 +705,7 @@ reset_buffer (register struct buffer *b)
   BVAR (b, filename) = Qnil;
   BVAR (b, file_truename) = Qnil;
   BVAR (b, directory) = (current_buffer) ? BVAR (current_buffer, directory) : Qnil;
-  EMACS_SET_SECS_NSECS (b->modtime, 0, UNKNOWN_MODTIME_NSECS);
+  b->modtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS);
   b->modtime_size = -1;
   XSETFASTINT (BVAR (b, save_length), 0);
   b->last_window_start = 1;

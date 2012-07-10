@@ -604,8 +604,7 @@ read_filtered_event (int no_switch_frame, int ascii_required,
     {
       double duration = extract_float (seconds);
       EMACS_TIME wait_time = EMACS_TIME_FROM_DOUBLE (duration);
-      EMACS_GET_TIME (end_time);
-      EMACS_ADD_TIME (end_time, end_time, wait_time);
+      end_time = add_emacs_time (current_emacs_time (), wait_time);
     }
 
 /* Read until we get an acceptable event.  */
