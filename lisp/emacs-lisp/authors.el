@@ -427,7 +427,7 @@ Changes to files in this list are not listed.")
     ;; No longer distributed.
 ;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
     ;; ymakefile no longer distributed.
-    ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
+    ("Michael K. Johnson" :changed "configure.ac" "emacs.c" "intel386.h"
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
      "systty.h" "unexcoff.c" "linux.h")
     ;; No longer distributed.
@@ -580,6 +580,7 @@ in the repository.")
     ("s/windowsnt.h" . "s/ms-w32.h")
     ("winnt.el" . "w32-fns.el")
     ("config.emacs" . "configure")
+    ("configure.in" . "configure.ac")
     ("config.h.dist" . "config.in")
     ("config.h-dist" . "config.in")
     ("config.h.in" . "config.in")
