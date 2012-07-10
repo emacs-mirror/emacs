@@ -678,7 +678,7 @@ w32_color_map_lookup (char *colorname)
       elt = XCAR (tail);
       if (!CONSP (elt)) continue;
 
-      tem = Fcar (elt);
+      tem = XCAR (elt);
 
       if (lstrcmpi (SDATA (tem), colorname) == 0)
 	{

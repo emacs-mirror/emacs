@@ -205,7 +205,7 @@ fix_command (Lisp_Object input, Lisp_Object values)
 	      if (CONSP (elt))
 		{
 		  Lisp_Object presflag, carelt;
-		  carelt = Fcar (elt);
+		  carelt = XCAR (elt);
 		  /* If it is (if X Y), look at Y.  */
 		  if (EQ (carelt, Qif)
 		      && EQ (Fnthcdr (make_number (3), elt), Qnil))

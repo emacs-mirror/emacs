@@ -1668,7 +1668,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       Fset_char_table_range (fontset, Qt, Qnil);
     }
 
-  for (; ! NILP (fontlist); fontlist = Fcdr (fontlist))
+  for (; CONSP (fontlist); fontlist = XCDR (fontlist))
     {
       Lisp_Object elt, script;
 

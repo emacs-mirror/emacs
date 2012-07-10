@@ -258,8 +258,7 @@ for instance using the window manager, then this produces a quit and
     }
   else if (CONSP (position))
     {
-      Lisp_Object tem;
-      tem = Fcar (position);
+      Lisp_Object tem = XCAR (position);
       if (CONSP (tem))
 	window = Fcar (Fcdr (position));
       else

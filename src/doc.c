@@ -381,7 +381,7 @@ string is passed through `substitute-command-keys'.  */)
     }
   else if (CONSP (fun))
     {
-      funcar = Fcar (fun);
+      funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, fun);
       else if (EQ (funcar, Qkeymap))

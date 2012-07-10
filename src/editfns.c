@@ -1915,7 +1915,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   tm.tm_isdst = -1;
 
   if (CONSP (zone))
-    zone = Fcar (zone);
+    zone = XCAR (zone);
   if (NILP (zone))
     {
       BLOCK_INPUT;

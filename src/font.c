@@ -1827,7 +1827,7 @@ check_otf_features (Lisp_Object otf_features)
   CHECK_CONS (otf_features);
   CHECK_SYMBOL (XCAR (otf_features));
   otf_features = XCDR (otf_features);
-  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
+  for (val = Fcar (otf_features); CONSP (val); val = XCDR (val))
     {
       CHECK_SYMBOL (Fcar (val));
       if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
@@ -1835,7 +1835,7 @@ check_otf_features (Lisp_Object otf_features)
 	       SDATA (SYMBOL_NAME (XCAR (val))));
     }
   otf_features = XCDR (otf_features);
-  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
+  for (val = Fcar (otf_features); CONSP (val); val = XCDR (val))
     {
       CHECK_SYMBOL (Fcar (val));
       if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)

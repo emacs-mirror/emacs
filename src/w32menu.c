@@ -162,8 +162,7 @@ otherwise it is "Question". */)
     }
   else if (CONSP (position))
     {
-      Lisp_Object tem;
-      tem = Fcar (position);
+      Lisp_Object tem = XCAR (position);
       if (CONSP (tem))
 	window = Fcar (Fcdr (position));
       else

@@ -1,3 +1,9 @@
+2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/list_loop.cocci: Semantic patch to convert from Fcdr
+	to XCDR and consistently use CONSP in the list iteration loops.
+	* coccinelle/vector_contents.cocci: Fix indentation.
+
 2012-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bzrmerge.el: Use cl-lib.

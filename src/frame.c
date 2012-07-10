@@ -2754,7 +2754,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
   struct gcpro gcpro1, gcpro2;
 
   i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
     i++;
 
   parms = alloca (i * sizeof *parms);

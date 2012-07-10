@@ -9791,7 +9791,7 @@ usage: (define-coding-system-internal ...)  */)
 
       val = args[coding_arg_ccl_valids];
       valids = Fmake_string (make_number (256), make_number (0));
-      for (tail = val; !NILP (tail); tail = Fcdr (tail))
+      for (tail = val; CONSP (tail); tail = XCDR (tail))
 	{
 	  int from, to;
 
@@ -9892,7 +9892,7 @@ usage: (define-coding-system-internal ...)  */)
       CHECK_NUMBER_CDR (reg_usage);
 
       request = Fcopy_sequence (args[coding_arg_iso2022_request]);
-      for (tail = request; ! NILP (tail); tail = Fcdr (tail))
+      for (tail = request; CONSP (tail); tail = XCDR (tail))
 	{
 	  int id;
 	  Lisp_Object tmp1;

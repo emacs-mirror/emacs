@@ -11,6 +11,6 @@ expression E1, E2;
 - XVECTOR (I1)->contents[E1] = E2
 + ASET (I1, E1, E2)
 |
--XVECTOR (I1)->contents[E1]
-+AREF (I1, E1)
+- XVECTOR (I1)->contents[E1]
++ AREF (I1, E1)
 )

@@ -425,7 +425,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
       if (CONSP (initial))
 	{
 	  Lisp_Object backup_n = Fcdr (initial);
-	  initial = Fcar (initial);
+	  initial = XCAR (initial);
 	  CHECK_STRING (initial);
 	  if (!NILP (backup_n))
 	    {

@@ -4854,7 +4854,7 @@ specifies the window to scroll.  This takes precedence over
   else
     {
       if (CONSP (arg))
-	arg = Fcar (arg);
+	arg = XCAR (arg);
       CHECK_NUMBER (arg);
       window_scroll (window, XINT (arg), 0, 1);
     }

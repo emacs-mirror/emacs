@@ -1618,7 +1618,7 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
   /* Extract parm names and values into those vectors.  */
   i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt;
 

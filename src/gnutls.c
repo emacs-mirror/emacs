@@ -871,7 +871,7 @@ one trustfile (usually a CA bundle).  */)
       int file_format = GNUTLS_X509_FMT_PEM;
       Lisp_Object tail;
 
-      for (tail = trustfiles; !NILP (tail); tail = Fcdr (tail))
+      for (tail = trustfiles; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object trustfile = Fcar (tail);
 	  if (STRINGP (trustfile))
@@ -893,7 +893,7 @@ one trustfile (usually a CA bundle).  */)
 	    }
 	}
 
-      for (tail = crlfiles; !NILP (tail); tail = Fcdr (tail))
+      for (tail = crlfiles; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object crlfile = Fcar (tail);
 	  if (STRINGP (crlfile))
@@ -913,7 +913,7 @@ one trustfile (usually a CA bundle).  */)
 	    }
 	}
 
-      for (tail = keylist; !NILP (tail); tail = Fcdr (tail))
+      for (tail = keylist; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object keyfile = Fcar (Fcar (tail));
 	  Lisp_Object certfile = Fcar (Fcdr (tail));

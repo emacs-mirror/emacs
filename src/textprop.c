@@ -271,7 +271,7 @@ interval_has_some_properties_list (Lisp_Object list, INTERVAL i)
   /* Go through each element of LIST.  */
   for (tail1 = list; CONSP (tail1); tail1 = XCDR (tail1))
     {
-      sym = Fcar (tail1);
+      sym = XCAR (tail1);
 
       /* Go through i's plist, looking for tail1 */
       for (tail2 = i->plist; CONSP (tail2); tail2 = XCDR (XCDR (tail2)))
