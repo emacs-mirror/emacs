@@ -1426,13 +1426,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
-#ifdef HAVE_NS
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif
-    ns_init_paths ();
-#endif
-
   /* Initialize and GC-protect Vinitial_environment and
      Vprocess_environment before set_initial_environment fills them
      in.  */

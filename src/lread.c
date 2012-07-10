@@ -45,6 +45,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 #include <unistd.h>
 #include <math.h>
 
@@ -4125,8 +4129,16 @@ init_lread (void)
   const char *normal;
 
 #ifdef CANNOT_DUMP
+#ifdef HAVE_NS
+  const char *loadpath = ns_load_path ();
+#endif
+
   normal = PATH_LOADSEARCH;
+#ifdef HAVE_NS
+  Vload_path = decode_env_path ("EMACSLOADPATH", loadpath ? loadpath : normal);
+#else
   Vload_path = decode_env_path ("EMACSLOADPATH", normal);
+#endif
 
   load_path_check ();
 
@@ -4135,7 +4147,12 @@ init_lread (void)
    difference between initialized and !initialized in this case,
    so we'll have to do it unconditionally when Vinstallation_directory
    is non-nil.  */
+#ifdef HAVE_NS
+  /* loadpath already includes the app-bundle's site-lisp.  */
+  if (!no_site_lisp && !egetenv ("EMACSLOADPATH") && !loadpath)
+#else
   if (!no_site_lisp && !egetenv ("EMACSLOADPATH"))
+#endif
     {
       Lisp_Object sitelisp;
       sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
@@ -4171,7 +4188,12 @@ init_lread (void)
         }
       else
 	{
+#ifdef HAVE_NS
+	  const char *loadpath = ns_load_path ();
+	  Vload_path = decode_env_path (0, loadpath ? loadpath : normal);
+#else
 	  Vload_path = decode_env_path (0, normal);
+#endif
 	  if (!NILP (Vinstallation_directory))
 	    {
 	      Lisp_Object tem, tem1;
@@ -4274,7 +4296,12 @@ init_lread (void)
           load_path_check ();
 
           /* Add the site-lisp directories at the front.  */
+#ifdef HAVE_NS
+          /* loadpath already includes the app-bundle's site-lisp.  */
+          if (!no_site_lisp && !loadpath)
+#else
           if (!no_site_lisp)
+#endif
             {
               Lisp_Object sitelisp;
               sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);

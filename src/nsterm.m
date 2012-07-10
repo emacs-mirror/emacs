@@ -365,12 +365,11 @@ ns_exec_path (void)
 }
 
 
-void
-ns_init_paths (void)
-/* --------------------------------------------------------------------------
-   Used to allow emacs to find its resources under Emacs.app
-   Called from emacs.c at startup.
-   -------------------------------------------------------------------------- */
+const char *
+ns_load_path (void)
+/* If running as a self-contained app bundle, return as a path string
+   the filenames of the site-lisp, lisp and leim directories.
+   Ie, site-lisp:lisp:leim.  Otherwise, return nil.  */
 {
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *resourceDir = [bundle resourcePath];
@@ -379,34 +378,30 @@ ns_init_paths (void)
   NSString *pathSeparator = onWindows ? @";" : @":";
   NSFileManager *fileManager = [NSFileManager defaultManager];
   BOOL isDir;
-/*NSLog (@"ns_init_paths: '%@'\n%@\n", [[NSBundle mainBundle] bundlePath], [[NSBundle mainBundle] resourcePath]); */
-
-  /* the following based on Andrew Choi's init_mac_osx_environment () */
-  if (!getenv ("EMACSLOADPATH"))
-    {
-      NSArray *paths = [resourceDir stringsByAppendingPaths:
-                                  [NSArray arrayWithObjects:
+  NSArray *paths = [resourceDir stringsByAppendingPaths:
+                              [NSArray arrayWithObjects:
                                          @"site-lisp", @"lisp", @"leim", nil]];
-      NSEnumerator *pathEnum = [paths objectEnumerator];
-      resourcePaths = @"";
-      /* Hack to skip site-lisp.  */
-      if (no_site_lisp) resourcePath = [pathEnum nextObject];
-      while (resourcePath = [pathEnum nextObject])
-        {
-          if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-            if (isDir)
-              {
-                if ([resourcePaths length] > 0)
-                  resourcePaths
-		    = [resourcePaths stringByAppendingString: pathSeparator];
-                resourcePaths
-		  = [resourcePaths stringByAppendingString: resourcePath];
-              }
-        }
-      if ([resourcePaths length] > 0)
-        setenv ("EMACSLOADPATH", [resourcePaths UTF8String], 1);
-/*NSLog (@"loadPath: '%@'\n", resourcePaths); */
+  NSEnumerator *pathEnum = [paths objectEnumerator];
+  resourcePaths = @"";
+
+  /* Hack to skip site-lisp.  */
+  if (no_site_lisp) resourcePath = [pathEnum nextObject];
+
+  while (resourcePath = [pathEnum nextObject])
+    {
+      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
+        if (isDir)
+          {
+            if ([resourcePaths length] > 0)
+              resourcePaths
+                = [resourcePaths stringByAppendingString: pathSeparator];
+            resourcePaths
+              = [resourcePaths stringByAppendingString: resourcePath];
+          }
     }
+  if ([resourcePaths length] > 0) return [resourcePaths UTF8String];
+
+  return NULL;
 }
 
 static void

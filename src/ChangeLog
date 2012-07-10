@@ -1,3 +1,13 @@
+2012-07-10  Glenn Morris  <rgm@gnu.org>
+
+	Stop ns builds setting the EMACSLOADPATH environment variable.
+	* nsterm.m (ns_load_path): Rename from ns_init_paths.
+	Now it does not set EMACSLOADPATH, just returns the load-path string.
+	* nsterm.h: Update accordingly.
+	* lread.c [HAVE_NS]: Include nsterm.h.
+	(init_lread) [HAVE_NS]: Use ns_load_path.
+	* emacs.c (main) [HAVE_NS]: No longer call ns_init_paths.
+
 2012-07-09  Glenn Morris  <rgm@gnu.org>
 
 	* s/gnu.h (SIGNALS_VIA_CHARACTERS): No need to define it here,
