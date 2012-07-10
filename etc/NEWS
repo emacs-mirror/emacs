@@ -189,8 +189,9 @@ provide the old non-prefixed names.
 *** `desktop-path' no longer includes the "." directory.  Desktop
 files are now located in ~/.emacs.d by default.
 
-** A new mode for Python.
-This provides several new features, including:
+** Python mode
+
+A new version of python.el, which provides several new features, including:
 per-buffer shells, better indentation, Python 3 support, and improved
 shell-interaction compatible with iPython (and virtually any other
 text based shell).
@@ -243,11 +244,15 @@ python-send-string        | python-shell-send-string
 python-switch-to-python   | python-shell-switch-to-shell
 python-describe-symbol    | python-eldoc-at-point
 
-** VHDL-mode
-- Support for ghdl (free vhdl compiler).  Now default.
-- Add/update support for VHDL-AMS packages.
-- Update to VHDL'02 standard.
-- Accept \r and \f as whitespace.
+** VHDL mode
+
+*** The free software compiler GHDL is supported (and now the default).
+
+*** Support for the VHDL-AMS packages has been added/updated.
+
+*** Updated to the 2002 revision of the VHDL standard.
+
+*** Accepts \r and \f as whitespace.
 
 ** Diff mode
 
