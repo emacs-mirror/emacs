@@ -4218,7 +4218,7 @@ the consecutive wildcards are folded into one.  */)
   (Lisp_Object font, Lisp_Object fold_wildcards)
 {
   char name[256];
-  int pixel_size = 0;
+  int namelen, pixel_size = 0;
 
   CHECK_FONT (font);
 
@@ -4232,11 +4232,13 @@ the consecutive wildcards are folded into one.  */)
 	  if (NILP (fold_wildcards))
 	    return font_name;
 	  strcpy (name, SSDATA (font_name));
+	  namelen = SBYTES (font_name);
 	  goto done;
 	}
       pixel_size = XFONT_OBJECT (font)->pixel_size;
     }
-  if (font_unparse_xlfd (font, pixel_size, name, 256) < 0)
+  namelen = font_unparse_xlfd (font, pixel_size, name, 256);
+  if (namelen < 0)
     return Qnil;
  done:
   if (! NILP (fold_wildcards))
@@ -4246,11 +4248,12 @@ the consecutive wildcards are folded into one.  */)
       while ((p1 = strstr (p0, "-*-*")))
 	{
 	  strcpy (p1, p1 + 2);
+	  namelen -= 2;
 	  p0 = p1;
 	}
     }
 
-  return build_string (name);
+  return make_string (name, namelen);
 }
 
 DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,

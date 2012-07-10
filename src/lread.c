@@ -1489,7 +1489,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
       for (tail = NILP (suffixes) ? Fcons (empty_unibyte_string, Qnil) : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
-	  ptrdiff_t lsuffix = SBYTES (XCAR (tail));
+	  ptrdiff_t fnlen, lsuffix = SBYTES (XCAR (tail));
 	  Lisp_Object handler;
 	  int exists;
 
@@ -1499,20 +1499,22 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	      && SREF (filename, 0) == '/'
 	      && SREF (filename, 1) == ':')
 	    {
-	      strncpy (fn, SSDATA (filename) + 2,
-		       SBYTES (filename) - 2);
-	      fn[SBYTES (filename) - 2] = 0;
+	      fnlen = SBYTES (filename) - 2;
+	      strncpy (fn, SSDATA (filename) + 2, fnlen);
+	      fn[fnlen] = '\0';
 	    }
 	  else
 	    {
-	      strncpy (fn, SSDATA (filename),
-		       SBYTES (filename));
-	      fn[SBYTES (filename)] = 0;
+	      fnlen = SBYTES (filename);
+	      strncpy (fn, SSDATA (filename), fnlen);
+	      fn[fnlen] = '\0';
 	    }
 
 	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
-	    strncat (fn, SSDATA (XCAR (tail)), lsuffix);
-
+	    {
+	      strncat (fn, SSDATA (XCAR (tail)), lsuffix);
+	      fnlen += lsuffix;
+	    }
 	  /* Check that the file exists and is not a directory.  */
 	  /* We used to only check for handlers on non-absolute file names:
 	        if (absolute)
@@ -1521,7 +1523,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 		  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	     It's not clear why that was the case and it breaks things like
 	     (load "/bar.el") where the file is actually "/bar.el.gz".  */
-	  string = build_string (fn);
+	  string = make_string (fn, fnlen);
 	  handler = Ffind_file_name_handler (string, Qfile_exists_p);
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {

@@ -5091,9 +5091,10 @@ init_buffer (void)
 	fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
       pwd[len] = DIRECTORY_SEP;
       pwd[len + 1] = '\0';
+      len++;
     }
 
-  BVAR (current_buffer, directory) = make_unibyte_string (pwd, strlen (pwd));
+  BVAR (current_buffer, directory) = make_unibyte_string (pwd, len);
   if (! NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))
     /* At this moment, we still don't know how to decode the
        directory name.  So, we keep the bytes in multibyte form so
