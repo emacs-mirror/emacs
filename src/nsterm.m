@@ -335,10 +335,9 @@ ns_exec_path (void)
   range = [resourceDir rangeOfString: @"Contents"];
   if (range.location != NSNotFound)
     {
+      binDir = [binDir stringByAppendingPathComponent: @"Contents"];
 #ifdef NS_IMPL_COCOA
       binDir = [binDir stringByAppendingPathComponent: @"MacOS"];
-#else
-      binDir = [binDir stringByAppendingPathComponent: @"Contents"];
 #endif
     }
 
