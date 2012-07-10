@@ -1,5 +1,8 @@
 2012-07-10  Glenn Morris  <rgm@gnu.org>
 
+	* s/irix6-5.h (SETUP_SLAVE_PTY, PTY_NAME_SPRINTF): Drop ifdef guards.
+	We include usg5-4-common.h, which defines them both.
+
 	* s/gnu.h: Don't include fcntl.h (every file in Emacs that uses
 	O_RDONLY already includes it).
 
