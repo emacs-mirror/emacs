@@ -65,28 +65,29 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get number of chars of output now in the buffer of a stdio stream.
    This ought to be built in stdio, but it isn't.  Some s- files
    override this because their stdio internals differ.  */
-
 #ifdef __GNU_LIBRARY__
 
 /* The s- file might have overridden the definition with one that
    works for the system's C library.  But we are using the GNU C
    library, so this is the right definition for every system.  */
-
 #ifdef GNU_LIBRARY_PENDING_OUTPUT_COUNT
 #define PENDING_OUTPUT_COUNT GNU_LIBRARY_PENDING_OUTPUT_COUNT
 #else
 #undef	PENDING_OUTPUT_COUNT
 #define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
 #endif
-#else /* not __GNU_LIBRARY__ */
-#if !defined (PENDING_OUTPUT_COUNT) && HAVE_STDIO_EXT_H && HAVE___FPENDING
+
+/* not __GNU_LIBRARY__ and no PENDING_OUTPUT_COUNT defined  */
+#elif !defined (PENDING_OUTPUT_COUNT)
+
+#if HAVE_STDIO_EXT_H && HAVE___FPENDING
 #include <stdio_ext.h>
 #define PENDING_OUTPUT_COUNT(FILE) __fpending (FILE)
-#endif
-#ifndef PENDING_OUTPUT_COUNT
+#else
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
 #endif
-#endif /* not __GNU_LIBRARY__ */
+
+#endif /* not __GNU_LIBRARY__ and no PENDING_OUTPUT_COUNT defined */
 
 #if defined (HAVE_TERM_H) && defined (GNU_LINUX)
 #include <term.h>		/* for tgetent */

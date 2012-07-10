@@ -1,3 +1,8 @@
+2012-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* dispnew.c (PENDING_OUTPUT_COUNT) [!__GNU_LIBRARY__]:
+	Clarify fallback case.
+
 2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use XCAR and XCDR instead of Fcar and Fcdr where possible.
