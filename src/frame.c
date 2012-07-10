@@ -646,7 +646,7 @@ affects all frames on the same terminal device.  */)
       if (!NILP (tty))
         {
           name = alloca (SBYTES (tty) + 1);
-          strncpy (name, SSDATA (tty), SBYTES (tty));
+          memcpy (name, SSDATA (tty), SBYTES (tty));
           name[SBYTES (tty)] = 0;
         }
 
@@ -657,7 +657,7 @@ affects all frames on the same terminal device.  */)
       if (!NILP (tty_type))
         {
           type = alloca (SBYTES (tty_type) + 1);
-          strncpy (type, SSDATA (tty_type), SBYTES (tty_type));
+          memcpy (type, SSDATA (tty_type), SBYTES (tty_type));
           type[SBYTES (tty_type)] = 0;
         }
 

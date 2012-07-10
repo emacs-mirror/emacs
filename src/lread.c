@@ -1495,26 +1495,14 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 
 	  /* Concatenate path element/specified name with the suffix.
 	     If the directory starts with /:, remove that.  */
-	  if (SCHARS (filename) > 2
-	      && SREF (filename, 0) == '/'
-	      && SREF (filename, 1) == ':')
-	    {
-	      fnlen = SBYTES (filename) - 2;
-	      strncpy (fn, SSDATA (filename) + 2, fnlen);
-	      fn[fnlen] = '\0';
-	    }
-	  else
-	    {
-	      fnlen = SBYTES (filename);
-	      strncpy (fn, SSDATA (filename), fnlen);
-	      fn[fnlen] = '\0';
-	    }
-
-	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
-	    {
-	      strncat (fn, SSDATA (XCAR (tail)), lsuffix);
-	      fnlen += lsuffix;
-	    }
+	  int prefixlen = ((SCHARS (filename) > 2
+			    && SREF (filename, 0) == '/'
+			    && SREF (filename, 1) == ':')
+			   ? 2 : 0);
+	  fnlen = SBYTES (filename) - prefixlen;
+	  memcpy (fn, SDATA (filename) + prefixlen, fnlen);
+	  memcpy (fn + fnlen, SDATA (XCAR (tail)), lsuffix + 1);
+	  fnlen += lsuffix;
 	  /* Check that the file exists and is not a directory.  */
 	  /* We used to only check for handlers on non-absolute file names:
 	        if (absolute)

@@ -365,7 +365,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
       if (p == beg + 4 && IS_DIRECTORY_SEP (*beg) && beg[1] == ':')
 	{
-	  strncpy (res, beg, 2);
+	  memcpy (res, beg, 2);
 	  beg += 2;
 	  r += 2;
 	}
@@ -1648,7 +1648,7 @@ those `/' is discarded.  */)
 
 	/* Copy out the variable name.  */
 	target = alloca (s - o + 1);
-	strncpy (target, o, s - o);
+	memcpy (target, o, s - o);
 	target[s - o] = 0;
 #ifdef DOS_NT
 	strupr (target); /* $home == $HOME etc.  */
@@ -1711,7 +1711,7 @@ those `/' is discarded.  */)
 
 	/* Copy out the variable name.  */
 	target = alloca (s - o + 1);
-	strncpy (target, o, s - o);
+	memcpy (target, o, s - o);
 	target[s - o] = 0;
 #ifdef DOS_NT
 	strupr (target); /* $home == $HOME etc.  */
@@ -1732,13 +1732,13 @@ those `/' is discarded.  */)
 	    orig = make_unibyte_string (o, orig_length);
 	    decoded = DECODE_FILE (orig);
 	    decoded_length = SBYTES (decoded);
-	    strncpy (x, SSDATA (decoded), decoded_length);
+	    memcpy (x, SDATA (decoded), decoded_length);
 	    x += decoded_length;
 
 	    /* If environment variable needed decoding, return value
 	       needs to be multibyte.  */
 	    if (decoded_length != orig_length
-		|| strncmp (SSDATA (decoded), o, orig_length))
+		|| memcmp (SDATA (decoded), o, orig_length))
 	      multibyte = 1;
 	  }
       }

@@ -37,6 +37,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <unistd.h>
 #include <setjmp.h>
 #include <c-strcase.h>
+#include <ftoastr.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -1442,21 +1443,16 @@ ns_get_color (const char *name, NSColor **col)
       [scanner scanFloat: &b];
     }
   else if (!strncmp(name, "rgb:", 4))  /* A newer X11 format -- rgb:r/g/b */
-    {
-      strncpy (hex, name + 4, 19);
-      hex[19] = '\0';
-      scaling = (strlen(hex) - 2) / 3;
-    }
+    scaling = (snprintf (hex, sizeof hex, "%s", name + 4) - 2) / 3;
   else if (name[0] == '#')        /* An old X11 format; convert to newer */
     {
       int len = (strlen(name) - 1);
       int start = (len % 3 == 0) ? 1 : len / 4 + 1;
       int i;
       scaling = strlen(name+start) / 3;
-      for (i=0; i<3; i++) {
-        strncpy(hex + i * (scaling + 1), name + start + i * scaling, scaling);
-        hex[(i+1) * (scaling + 1) - 1] = '/';
-      }
+      for (i = 0; i < 3; i++)
+	snprintf (hex + i * (scaling + 1), "%.*s/", scaling,
+		  name + start + i * scaling);
       hex[3 * (scaling + 1) - 1] = '\0';
     }
 
@@ -4107,10 +4103,7 @@ ns_term_init (Lisp_Object display_name)
                                 ns_display_name_list);
   dpyinfo->name_list_element = XCAR (ns_display_name_list);
 
-  /* Set the name of the terminal. */
-  terminal->name = xmalloc (SBYTES (display_name) + 1);
-  strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
-  terminal->name[SBYTES (display_name)] = 0;
+  terminal->name = xstrdup (SSDATA (display_name));
 
   UNBLOCK_INPUT;
 
@@ -4167,14 +4160,14 @@ ns_term_init (Lisp_Object display_name)
   }
 
   {
-    char c[128];
 #ifdef NS_IMPL_GNUSTEP
-    strncpy (c, gnustep_base_version, sizeof (c));
+    Vwindow_system_version = build_string (gnustep_base_version);
 #else
     /*PSnextrelease (128, c); */
-    snprintf (c, sizeof (c), "%g", NSAppKitVersionNumber);
+    char c[DBL_BUFSIZE_BOUND];
+    int len = dtoastr (c, sizeof c, 0, 0, NSAppKitVersionNumber);
+    Vwindow_system_version = make_unibyte_string (c, len);
 #endif
-    Vwindow_system_version = build_string (c);
   }
 
   delete_keyboard_wait_descriptor (0);

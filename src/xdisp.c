@@ -12492,23 +12492,21 @@ static void debug_method_add (struct window *, char const *, ...)
 static void
 debug_method_add (struct window *w, char const *fmt, ...)
 {
-  char buffer[512];
   char *method = w->desired_matrix->method;
   int len = strlen (method);
   int size = sizeof w->desired_matrix->method;
   int remaining = size - len - 1;
   va_list ap;
 
-  va_start (ap, fmt);
-  vsprintf (buffer, fmt, ap);
-  va_end (ap);
   if (len && remaining)
     {
       method[len] = '|';
       --remaining, ++len;
     }
 
-  strncpy (method + len, buffer, remaining);
+  va_start (ap, fmt);
+  vsnprintf (method + len, remaining + 1, fmt, ap);
+  va_end (ap);
 
   if (trace_redisplay_p)
     fprintf (stderr, "%p (%s): %s\n",
@@ -12517,7 +12515,7 @@ debug_method_add (struct window *w, char const *fmt, ...)
 	       && STRINGP (BVAR (XBUFFER (w->buffer), name)))
 	      ? SSDATA (BVAR (XBUFFER (w->buffer), name))
 	      : "no buffer"),
-	     buffer);
+	     method + len);
 }
 
 #endif /* GLYPH_DEBUG */

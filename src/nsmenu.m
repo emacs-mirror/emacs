@@ -426,7 +426,8 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
                   break;
               else
                 continue;
-              if (strncmp (previous_strings[i], SDATA (string), 10))
+              if (memcmp (previous_strings[i], SDATA (string),
+			  min (10, SBYTES (string) + 1)))
                 break;
             }
 
@@ -447,7 +448,8 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 	    break;
 
           if (n < 100)
-            strncpy (previous_strings[i/4], SDATA (string), 10);
+	    memcpy (previous_strings[i/4], min (10, SBYTES (string) + 1),
+		    SDATA (string));
 
 	  wv = xmalloc_widget_value ();
 	  wv->name = SSDATA (string);

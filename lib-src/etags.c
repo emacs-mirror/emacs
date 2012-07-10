@@ -2642,17 +2642,11 @@ write_classname (linebuffer *cn, const char *qualifier)
     }
   for (i = 1; i < cstack.nl; i++)
     {
-      char *s;
-      int slen;
-
-      s = cstack.cname[i];
+      char *s = cstack.cname[i];
       if (s == NULL)
 	continue;
-      slen = strlen (s);
-      len += slen + qlen;
-      linebuffer_setlen (cn, len);
-      strncat (cn->buffer, qualifier, qlen);
-      strncat (cn->buffer, s, slen);
+      linebuffer_setlen (cn, len + qlen + strlen (s));
+      len += sprintf (cn->buffer + len, "%s%s", qualifier, s);
     }
 }
 
@@ -2867,7 +2861,7 @@ consider_token (register char *str, register int len, register int c, int *c_ext
 	   fvdef = fvnone;
 	   objdef = omethodtag;
 	   linebuffer_setlen (&token_name, len);
-	   strncpy (token_name.buffer, str, len);
+	   memcpy (token_name.buffer, str, len);
 	   token_name.buffer[len] = '\0';
 	   return TRUE;
 	 }
@@ -2879,10 +2873,11 @@ consider_token (register char *str, register int len, register int c, int *c_ext
      case omethodparm:
        if (parlev == 0)
 	 {
+	   int oldlen = token_name.len;
 	   fvdef = fvnone;
 	   objdef = omethodtag;
-	   linebuffer_setlen (&token_name, token_name.len + len);
-	   strncat (token_name.buffer, str, len);
+	   linebuffer_setlen (&token_name, oldlen + len);
+	   memcpy (token_name.buffer + oldlen, str, len);
 	   return TRUE;
 	 }
        return FALSE;
@@ -3311,12 +3306,12 @@ C_entries (int c_ext, FILE *inf)
 			      && nestlev > 0 && definedef == dnone)
 			    /* in struct body */
 			    {
+			      int len;
                               write_classname (&token_name, qualifier);
-			      linebuffer_setlen (&token_name,
-						 token_name.len+qlen+toklen);
-			      strcat (token_name.buffer, qualifier);
-			      strncat (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
+			      len = token_name.len;
+			      linebuffer_setlen (&token_name, len+qlen+toklen);
+			      sprintf (token_name.buffer + len, "%s%.*s",
+				       qualifier, toklen, newlb.buffer + tokoff);
 			      token.named = TRUE;
 			    }
 			  else if (objdef == ocatseen)
@@ -3324,11 +3319,8 @@ C_entries (int c_ext, FILE *inf)
 			    {
 			      int len = strlen (objtag) + 2 + toklen;
 			      linebuffer_setlen (&token_name, len);
-			      strcpy (token_name.buffer, objtag);
-			      strcat (token_name.buffer, "(");
-			      strncat (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
-			      strcat (token_name.buffer, ")");
+			      sprintf (token_name.buffer, "%s(%.*s)",
+				       objtag, toklen, newlb.buffer + tokoff);
 			      token.named = TRUE;
 			    }
 			  else if (objdef == omethodtag
@@ -3352,8 +3344,8 @@ C_entries (int c_ext, FILE *inf)
 				  len -= 1;
 				}
 			      linebuffer_setlen (&token_name, len);
-			      strncpy (token_name.buffer,
-				       newlb.buffer + off, len);
+			      memcpy (token_name.buffer,
+				      newlb.buffer + off, len);
 			      token_name.buffer[len] = '\0';
 			      if (defun)
 				while (--len >= 0)
@@ -3364,8 +3356,8 @@ C_entries (int c_ext, FILE *inf)
 			  else
 			    {
 			      linebuffer_setlen (&token_name, toklen);
-			      strncpy (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
+			      memcpy (token_name.buffer,
+				      newlb.buffer + tokoff, toklen);
 			      token_name.buffer[toklen] = '\0';
 			      /* Name macros and members. */
 			      token.named = (structdef == stagseen
@@ -5161,7 +5153,7 @@ HTML_labels (FILE *inf)
 		  for (end = dbp; *end != '\0' && intoken (*end); end++)
 		    continue;
 		linebuffer_setlen (&token_name, end - dbp);
-		strncpy (token_name.buffer, dbp, end - dbp);
+		memcpy (token_name.buffer, dbp, end - dbp);
 		token_name.buffer[end - dbp] = '\0';
 
 		dbp = end;
@@ -5261,7 +5253,7 @@ Prolog_functions (FILE *inf)
 	  else if (len + 1 > allocated)
 	    xrnew (last, len + 1, char);
 	  allocated = len + 1;
-	  strncpy (last, cp, len);
+	  memcpy (last, cp, len);
 	  last[len] = '\0';
 	}
     }
@@ -5434,7 +5426,7 @@ Erlang_functions (FILE *inf)
 	  else if (len + 1 > allocated)
 	    xrnew (last, len + 1, char);
 	  allocated = len + 1;
-	  strncpy (last, cp, len);
+	  memcpy (last, cp, len);
 	  last[len] = '\0';
 	}
     }
@@ -5817,7 +5809,7 @@ substitute (char *in, char *out, struct re_registers *regs)
       {
 	dig = *out - '0';
 	diglen = regs->end[dig] - regs->start[dig];
-	strncpy (t, in + regs->start[dig], diglen);
+	memcpy (t, in + regs->start[dig], diglen);
 	t += diglen;
       }
     else
@@ -6040,7 +6032,7 @@ readline_internal (linebuffer *lbp, register FILE *stream)
 	  filebuf.size *= 2;
 	  xrnew (filebuf.buffer, filebuf.size, char);
 	}
-      strncpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len);
+      memcpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len);
       filebuf.len += lbp->len;
       filebuf.buffer[filebuf.len++] = '\n';
       filebuf.buffer[filebuf.len] = '\0';
@@ -6263,7 +6255,7 @@ savenstr (const char *cp, int len)
   register char *dp;
 
   dp = xnew (len + 1, char);
-  strncpy (dp, cp, len);
+  memcpy (dp, cp, len);
   dp[len] = '\0';
   return dp;
 }

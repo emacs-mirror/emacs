@@ -141,8 +141,9 @@ static _Noreturn void fatal (const char *s1, const char *s2, const char *s3);
 static void error (const char *s1, const char *s2, const char *s3);
 static _Noreturn void pfatal_with_name (char *name);
 static _Noreturn void pfatal_and_delete (char *name);
-static char *concat (const char *s1, const char *s2, const char *s3);
-static long *xmalloc (unsigned int size);
+#ifdef MAIL_USE_MAILLOCK
+static void *xmalloc (size_t size);
+#endif
 #ifdef MAIL_USE_POP
 static int popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order);
 static int pop_retr (popserver server, int msgno, FILE *arg);
@@ -301,7 +302,7 @@ main (int argc, char **argv)
 	   inname_dirlen && !IS_DIRECTORY_SEP (inname[inname_dirlen - 1]);
 	   inname_dirlen--)
 	continue;
-      tempname = (char *) xmalloc (inname_dirlen + sizeof "EXXXXXX");
+      tempname = xmalloc (inname_dirlen + sizeof "EXXXXXX");
 
       while (1)
 	{
@@ -583,8 +584,8 @@ mail_spool_name (char *inname)
   if (stat (MAILDIR, &stat1) < 0)
     return NULL;
 
-  indir = (char *) xmalloc (fname - inname + 1);
-  strncpy (indir, inname, fname - inname);
+  indir = xmalloc (fname - inname + 1);
+  memcpy (indir, inname, fname - inname);
   indir[fname-inname] = '\0';
 
 
@@ -644,32 +645,18 @@ pfatal_and_delete (char *name)
   fatal ("%s for %s", s, name);
 }
 
-/* Return a newly-allocated string whose contents concatenate those of s1, s2, s3.  */
-
-static char *
-concat (const char *s1, const char *s2, const char *s3)
-{
-  size_t len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
-  char *result = (char *) xmalloc (len1 + len2 + len3 + 1);
-
-  strcpy (result, s1);
-  strcpy (result + len1, s2);
-  strcpy (result + len1 + len2, s3);
-  *(result + len1 + len2 + len3) = 0;
-
-  return result;
-}
-
+#ifdef MAIL_USE_MAILLOCK
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-static long *
-xmalloc (unsigned int size)
+static void *
+xmalloc (size_t size)
 {
-  long *result = (long *) malloc (size);
+  void *result = malloc (size);
   if (!result)
     fatal ("virtual memory exhausted", 0, 0);
   return result;
 }
+#endif
 
 /* This is the guts of the interface to the Post Office Protocol.  */
 
@@ -851,10 +838,7 @@ pop_retr (popserver server, int msgno, FILE *arg)
 
   if (pop_retrieve_first (server, msgno, &line))
     {
-      char *msg = concat ("Error from POP server: ", pop_error, "");
-      strncpy (Errmsg, msg, sizeof (Errmsg));
-      Errmsg[sizeof (Errmsg)-1] = '\0';
-      free (msg);
+      snprintf (Errmsg, sizeof Errmsg, "Error from POP server: %s", pop_error);
       return (NOTOK);
     }
 
@@ -873,10 +857,7 @@ pop_retr (popserver server, int msgno, FILE *arg)
 
   if (ret)
     {
-      char *msg = concat ("Error from POP server: ", pop_error, "");
-      strncpy (Errmsg, msg, sizeof (Errmsg));
-      Errmsg[sizeof (Errmsg)-1] = '\0';
-      free (msg);
+      snprintf (Errmsg, sizeof Errmsg, "Error from POP server: %s", pop_error);
       return (NOTOK);
     }
 

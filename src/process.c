@@ -3013,7 +3013,9 @@ usage: (make-network-process &rest ARGS)  */)
       CHECK_STRING (service);
       memset (&address_un, 0, sizeof address_un);
       address_un.sun_family = AF_LOCAL;
-      strncpy (address_un.sun_path, SSDATA (service), sizeof address_un.sun_path);
+      if (sizeof address_un.sun_path <= SBYTES (service))
+	error ("Service name too long");
+      strcpy (address_un.sun_path, SSDATA (service));
       ai.ai_addr = (struct sockaddr *) &address_un;
       ai.ai_addrlen = sizeof address_un;
       goto open_socket;
@@ -3717,8 +3719,9 @@ FLAGS is the current flags of the interface.  */)
 
   CHECK_STRING (ifname);
 
-  memset (rq.ifr_name, 0, sizeof rq.ifr_name);
-  strncpy (rq.ifr_name, SSDATA (ifname), sizeof (rq.ifr_name));
+  if (sizeof rq.ifr_name <= SBYTES (ifname))
+    error ("interface name too long");
+  strcpy (rq.ifr_name, SSDATA (ifname));
 
   s = socket (AF_INET, SOCK_STREAM, 0);
   if (s < 0)

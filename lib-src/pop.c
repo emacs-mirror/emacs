@@ -340,10 +340,7 @@ pop_stat (popserver server, int *count, int *size)
   if (strncmp (fromserver, "+OK ", 4))
     {
       if (0 == strncmp (fromserver, "-ERR", 4))
-	{
-	  strncpy (pop_error, fromserver, ERROR_MAX);
-	  pop_error[ERROR_MAX-1] = '\0';
-	}
+	snprintf (pop_error, ERROR_MAX, "%s", fromserver);
       else
 	{
 	  strcpy (pop_error,
@@ -444,10 +441,7 @@ pop_list (popserver server, int message, int **IDs, int **sizes)
       if (strncmp (fromserver, "+OK ", 4))
 	{
 	  if (! strncmp (fromserver, "-ERR", 4))
-	    {
-	      strncpy (pop_error, fromserver, ERROR_MAX);
-	      pop_error[ERROR_MAX-1] = '\0';
-	    }
+	    snprintf (pop_error, ERROR_MAX, "%s", fromserver);
 	  else
 	    {
 	      strcpy (pop_error,
@@ -686,8 +680,7 @@ pop_multi_first (popserver server, const char *command, char **response)
 
   if (0 == strncmp (*response, "-ERR", 4))
     {
-      strncpy (pop_error, *response, ERROR_MAX);
-      pop_error[ERROR_MAX-1] = '\0';
+      snprintf (pop_error, ERROR_MAX, "%s", *response);
       return (-1);
     }
   else if (0 == strncmp (*response, "+OK", 3))
@@ -860,8 +853,7 @@ pop_last (popserver server)
 
   if (! strncmp (fromserver, "-ERR", 4))
     {
-      strncpy (pop_error, fromserver, ERROR_MAX);
-      pop_error[ERROR_MAX-1] = '\0';
+      snprintf (pop_error, ERROR_MAX, "%s", fromserver);
       return (-1);
     }
   else if (strncmp (fromserver, "+OK ", 4))
@@ -1061,9 +1053,8 @@ socket_connection (char *host, int flags)
   sock = socket (PF_INET, SOCK_STREAM, 0);
   if (sock < 0)
     {
-      strcpy (pop_error, POP_SOCKET_ERROR);
-      strncat (pop_error, strerror (errno),
-	       ERROR_MAX - sizeof (POP_SOCKET_ERROR));
+      snprintf (pop_error, ERROR_MAX, "%s%s",
+		POP_SOCKET_ERROR, strerror (errno));
       return (-1);
 
     }
@@ -1139,9 +1130,7 @@ socket_connection (char *host, int flags)
   if (! connect_ok)
     {
       CLOSESOCKET (sock);
-      strcpy (pop_error, CONNECT_ERROR);
-      strncat (pop_error, strerror (errno),
-	       ERROR_MAX - sizeof (CONNECT_ERROR));
+      snprintf (pop_error, ERROR_MAX, "%s%s", CONNECT_ERROR, strerror (errno));
       return (-1);
 
     }
@@ -1159,9 +1148,8 @@ socket_connection (char *host, int flags)
 	    krb5_auth_con_free (kcontext, auth_context);
 	  if (kcontext)
 	    krb5_free_context (kcontext);
-	  strcpy (pop_error, KRB_ERROR);
-	  strncat (pop_error, error_message (rem),
-		   ERROR_MAX - sizeof (KRB_ERROR));
+	  snprintf (pop_error, ERROR_MAX, "%s%s",
+		    KRB_ERROR, error_message (rem));
 	  CLOSESOCKET (sock);
 	  return (-1);
 	}
@@ -1199,30 +1187,19 @@ socket_connection (char *host, int flags)
       krb5_free_principal (kcontext, server);
       if (rem)
 	{
-	  strcpy (pop_error, KRB_ERROR);
-	  strncat (pop_error, error_message (rem),
-		   ERROR_MAX - sizeof (KRB_ERROR));
+	  int pop_error_len = snprintf (pop_error, ERROR_MAX, "%s%s",
+					KRB_ERROR, error_message (rem));
 #if defined HAVE_KRB5_ERROR_TEXT
 	  if (err_ret && err_ret->text.length)
 	    {
-	      strncat (pop_error, " [server says '",
-		       ERROR_MAX - strlen (pop_error) - 1);
-	      strncat (pop_error, err_ret->text.data,
-		       min (ERROR_MAX - strlen (pop_error) - 1,
-			    err_ret->text.length));
-	      strncat (pop_error, "']",
-		       ERROR_MAX - strlen (pop_error) - 1);
+	      int errlen = err_ret->text.length;
+	      snprintf (pop_error + pop_error_len, ERROR_MAX - pop_error_len,
+			" [server says '.*%s']", errlen, err_ret->text.data);
 	    }
 #elif defined HAVE_KRB5_ERROR_E_TEXT
-	  if (err_ret && err_ret->e_text && strlen (*err_ret->e_text))
-	    {
-	      strncat (pop_error, " [server says '",
-		       ERROR_MAX - strlen (pop_error) - 1);
-	      strncat (pop_error, *err_ret->e_text,
-		       ERROR_MAX - strlen (pop_error) - 1);
-	      strncat (pop_error, "']",
-		       ERROR_MAX - strlen (pop_error) - 1);
-	    }
+	  if (err_ret && err_ret->e_text && **err_ret->e_text)
+	    snprintf (pop_error + pop_error_len, ERRMAX - pop_error_len,
+		      " [server says '%s']", *err_ret->e_text);
 #endif
 	  if (err_ret)
 	    krb5_free_error (kcontext, err_ret);
@@ -1243,9 +1220,7 @@ socket_connection (char *host, int flags)
       free ((char *) ticket);
       if (rem != KSUCCESS)
 	{
-	  strcpy (pop_error, KRB_ERROR);
-	  strncat (pop_error, krb_err_txt[rem],
-		   ERROR_MAX - sizeof (KRB_ERROR));
+	  snprintf (pop_error, ERROR_MAX, "%s%s", KRB_ERROR, krb_err_txt[rem]);
 	  CLOSESOCKET (sock);
 	  return (-1);
 	}
@@ -1350,9 +1325,8 @@ pop_getline (popserver server, char **line)
 		  server->buffer_size - server->data - 1, 0);
       if (ret < 0)
 	{
-	  strcpy (pop_error, GETLINE_ERROR);
-	  strncat (pop_error, strerror (errno),
-		   ERROR_MAX - sizeof (GETLINE_ERROR));
+	  snprintf (pop_error, ERROR_MAX, "%s%s",
+		    GETLINE_ERROR, strerror (errno));
 	  pop_trash (server);
 	  return (-1);
 	}
@@ -1436,9 +1410,7 @@ sendline (popserver server, const char *line)
   if (ret < 0)
     {
       pop_trash (server);
-      strcpy (pop_error, SENDLINE_ERROR);
-      strncat (pop_error, strerror (errno),
-	       ERROR_MAX - sizeof (SENDLINE_ERROR));
+      snprintf (pop_error, ERROR_MAX, "%s%s", SENDLINE_ERROR, strerror (errno));
       return (ret);
     }
 
@@ -1500,8 +1472,7 @@ getok (popserver server)
     return (0);
   else if (! strncmp (fromline, "-ERR", 4))
     {
-      strncpy (pop_error, fromline, ERROR_MAX);
-      pop_error[ERROR_MAX-1] = '\0';
+      snprintf (pop_error, ERROR_MAX, "%s", fromline);
       return (-1);
     }
   else

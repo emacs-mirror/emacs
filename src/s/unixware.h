@@ -40,8 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       fatal("could not unlock slave pty");	\
     if (!(ptyname = ptsname(fd)))		\
       fatal ("could not enable slave pty");	\
-    strncpy(pty_name, ptyname, sizeof(pty_name)); \
-    pty_name[sizeof(pty_name) - 1] = 0;		\
+    snprintf (pty_name, sizeof pty_name, "%s", ptyname); \
   }
 
 /* Conservative garbage collection has not been tested, so for now

@@ -6644,7 +6644,7 @@ regerror (int err_code, const regex_t *preg, char *errbuf, size_t errbuf_size)
     {
       if (msg_size > errbuf_size)
 	{
-	  strncpy (errbuf, msg, errbuf_size - 1);
+	  memcpy (errbuf, msg, errbuf_size - 1);
 	  errbuf[errbuf_size - 1] = 0;
 	}
       else

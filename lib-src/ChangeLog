@@ -1,3 +1,22 @@
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify by avoiding confusing use of strncpy etc.
+	* etags.c (write_classname, C_entries):
+	Use sprintf rather than strncpy or strncat.
+	* etags.c (consider_token, C_entries, HTML_labels, Prolog_functions)
+	(Erlang_functions, substitute, readline_internal, savenstr):
+	* movemail.c (mail_spool_name):
+	Use memcpy rather than strncpy or strncat when either will do.
+	* make-docfile.c (write_c_args):
+	Use memcmp rather than strncmp when either will do.
+	* movemail.c (pop_retr):
+	* pop.c (pop_stat, pop_list, pop_multi_first, pop_last)
+	(socket_connection, pop_getline, sendline, getok):
+	Use snprintf rather than strncpy or strncat.
+	* movemail.c (concat): Remove; no longer needed.
+	(xmalloc): Define only if needed, now that concat has gone away.
+	Return void *.  All uses changed.
+
 2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Add GCC-style 'const' attribute to functions that can use it.

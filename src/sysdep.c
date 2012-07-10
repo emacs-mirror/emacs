@@ -2744,9 +2744,11 @@ system_process_attributes (Lisp_Object pid)
   char procbuf[1025], *p, *q;
   int fd;
   ssize_t nread;
-  const char *cmd = NULL;
+  static char const default_cmd[] = "???";
+  const char *cmd = default_cmd;
+  int cmdsize = sizeof default_cmd - 1;
   char *cmdline = NULL;
-  ptrdiff_t cmdsize = 0, cmdline_size;
+  ptrdiff_t cmdline_size;
   unsigned char c;
   printmax_t proc_id;
   int ppid, pgrp, sess, tty, tpgid, thcount;
@@ -2808,11 +2810,6 @@ system_process_attributes (Lisp_Object pid)
 	}
       else
 	q = NULL;
-      if (cmd == NULL)
-	{
-	  cmd = "???";
-	  cmdsize = 3;
-	}
       /* Command name is encoded in locale-coding-system; decode it.  */
       cmd_str = make_unibyte_string (cmd, cmdsize);
       decoded_cmd = code_convert_string_norecord (cmd_str,
@@ -2950,14 +2947,9 @@ system_process_attributes (Lisp_Object pid)
 	}
       if (!cmdline_size)
 	{
-	  if (!cmd)
-	    cmd = "???";
-	  if (!cmdsize)
-	    cmdsize = strlen (cmd);
 	  cmdline_size = cmdsize + 2;
 	  cmdline = xmalloc (cmdline_size + 1);
-	  strcpy (cmdline, "[");
-	  strcat (strncat (cmdline, cmd, cmdsize), "]");
+	  sprintf (cmdline, "[%.*s]", cmdsize, cmd);
 	}
       emacs_close (fd);
       /* Command line is encoded in locale-coding-system; decode it.  */

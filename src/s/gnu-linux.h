@@ -63,8 +63,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	close (fd);					\
 	return -1;					\
       }							\
-    strncpy (pty_name, ptyname, sizeof (pty_name));	\
-    pty_name[sizeof (pty_name) - 1] = 0;		\
+    snprintf (pty_name, sizeof pty_name, "%s", ptyname); \
     sigunblock (sigmask (SIGCHLD));			\
   }
 

@@ -6134,7 +6134,7 @@ parse_modifiers_uncached (Lisp_Object symbol, ptrdiff_t *modifier_end)
 
 #define MULTI_LETTER_MOD(BIT, NAME, LEN)			\
 	  if (i + LEN + 1 <= SBYTES (name)			\
-	      && ! strncmp (SSDATA (name) + i, NAME, LEN))	\
+	      && ! memcmp (SDATA (name) + i, NAME, LEN))	\
 	    {							\
 	      this_mod_end = i + LEN;				\
 	      this_mod = BIT;					\
@@ -6172,13 +6172,13 @@ parse_modifiers_uncached (Lisp_Object symbol, ptrdiff_t *modifier_end)
   if (! (modifiers & (down_modifier | drag_modifier
 		      | double_modifier | triple_modifier))
       && i + 7 == SBYTES (name)
-      && strncmp (SSDATA (name) + i, "mouse-", 6) == 0
+      && memcmp (SDATA (name) + i, "mouse-", 6) == 0
       && ('0' <= SREF (name, i + 6) && SREF (name, i + 6) <= '9'))
     modifiers |= click_modifier;
 
   if (! (modifiers & (double_modifier | triple_modifier))
       && i + 6 < SBYTES (name)
-      && strncmp (SSDATA (name) + i, "wheel-", 6) == 0)
+      && memcmp (SDATA (name) + i, "wheel-", 6) == 0)
     modifiers |= click_modifier;
 
   if (modifier_end)
@@ -6630,7 +6630,7 @@ parse_solitary_modifier (Lisp_Object symbol)
 
 #define MULTI_LETTER_MOD(BIT, NAME, LEN)		\
       if (LEN == SBYTES (name)				\
-	  && ! strncmp (SSDATA (name), NAME, LEN))	\
+	  && ! memcmp (SDATA (name), NAME, LEN))	\
 	return BIT;
 
     case 'A':
@@ -7418,7 +7418,7 @@ menu_separator_name_p (const char *label)
   if (!label)
     return 0;
   else if (strlen (label) > 3
-	   && strncmp (label, "--", 2) == 0
+	   && memcmp (label, "--", 2) == 0
 	   && label[2] != '-')
     {
       int i;

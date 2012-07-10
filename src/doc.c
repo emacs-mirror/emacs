@@ -645,7 +645,7 @@ the same file name is found in the `doc-directory'.  */)
                 {
                   ptrdiff_t len = end - p - 2;
                   char *fromfile = alloca (len + 1);
-                  strncpy (fromfile, &p[2], len);
+                  memcpy (fromfile, &p[2], len);
                   fromfile[len] = 0;
                   if (fromfile[len-1] == 'c')
                     fromfile[len-1] = 'o';

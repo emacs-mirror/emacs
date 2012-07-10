@@ -1,3 +1,37 @@
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify by avoiding confusing use of strncpy etc.
+	* doc.c (Fsnarf_documentation):
+	* fileio.c (Ffile_name_directory, Fsubstitute_in_file_name):
+	* frame.c (Fmake_terminal_frame):
+	* gtkutil.c (get_utf8_string):
+	* lread.c (openp):
+	* nsmenu.m (ns_update_menubar):
+	* regex.c (regerror):
+	Prefer memcpy to strncpy and strncat when either will do.
+	* fileio.c (Fsubstitute_in_file_name):
+	* keyboard.c (MULTI_LETTER_MOD, parse_modifiers_uncached)
+	(menu_separator_name_p):
+	* nsmenu.m (ns_update_menubar):
+	Prefer memcmp to strncmp when either will do.
+	* nsterm.m: Include <ftoastr.h>.
+	(ns_get_color):
+	* s/gnu-linux.h, s/sol2-6.h, s/unixware.h (PTY_TTY_NAME_SPRINTF):
+	Prefer snprintf to strncpy.
+	* nsterm.m (ns_term_init):
+	* widget.c (set_frame_size) [0]: Prefer xstrdup to xmalloc + strncpy.
+	* nsterm.m (ns_term_init):
+	Avoid the need for strncpy, by using build_string or
+	make_unibyte_string directly.  Use dtoastr, not snprintf.
+	* process.c (Fmake_network_process): Diagnose service names that
+	are too long, rather than silently truncating them or creating
+	non-null-terminated names.
+	(Fnetwork_interface_info): Likewise, for interface names.
+	* sysdep.c (system_process_attributes) [GNU_LINUX]:
+	Prefer sprintf to strncat.
+	* xdisp.c (debug_method_add) [GLYPH_DEBUG]:
+	Prefer vsnprintf to vsprintf + strncpy.
+
 2012-07-10  Glenn Morris  <rgm@gnu.org>
 
 	* dispnew.c (PENDING_OUTPUT_COUNT) [!__GNU_LIBRARY__]:

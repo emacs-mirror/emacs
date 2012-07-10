@@ -529,7 +529,7 @@ get_utf8_string (const char *str)
                                        &bytes_written, &err))
              && err->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
-          strncpy (up, (char *)p, bytes_written);
+          memcpy (up, p, bytes_written);
           sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
           up += bytes_written+4;
           p += bytes_written+1;
