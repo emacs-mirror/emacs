@@ -3145,6 +3145,32 @@ case $opsys in
   ;;
 esac
 
+dnl Used in vm-limit.c
+AH_TEMPLATE(DATA_START, [Address of the start of the data segment.])
+dnl Used in lisp.h, emacs.c, mem-limits.h
+dnl NEWS.18 describes this as "a number which contains
+dnl the high bits to be inclusive or'ed with pointers that are unpacked."
+AH_TEMPLATE(DATA_SEG_BITS, [Extra bits to be or'd in with any pointers
+stored in a Lisp_Object.])
+dnl if Emacs uses fewer than 32 bits for the value field of a LISP_OBJECT.
+
+case $opsys in
+  gnu)
+    dnl libc defines data_start.
+    AC_DEFINE(DATA_START, [({ extern int data_start; (char *) &data_start; })])
+    ;;
+
+  hpux*)
+    dnl The data segment on this machine always starts at address 0x40000000.
+    AC_DEFINE(DATA_START, [0x40000000])
+    AC_DEFINE(DATA_SEG_BITS, [0x40000000])
+    ;;
+  irix6-5)
+    AC_DEFINE(DATA_START, [0x10000000])
+    AC_DEFINE(DATA_SEG_BITS, [0x10000000])
+    ;;
+esac
+
 case $opsys in
    gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 

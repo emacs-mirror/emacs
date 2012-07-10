@@ -21,9 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
-/* libc defines data_start.  */
-#define DATA_START ({ extern int data_start; (char *) &data_start; })
-
 /* It would be harmless to drop the ifdef emacs test.  */
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */

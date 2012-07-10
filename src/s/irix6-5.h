@@ -82,10 +82,3 @@ char *_getpty();
 
 /* Tested on Irix 6.5.  SCM worked on earlier versions.  */
 #define GC_SETJMP_WORKS 1
-
-
-/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers which
-   were stored in a Lisp_Object (as Emacs uses fewer than 32 bits for
-   the value field of a LISP_OBJECT).  */
-#define DATA_START 0x10000000
-#define DATA_SEG_BITS	0x10000000

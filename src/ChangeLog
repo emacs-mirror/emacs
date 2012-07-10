@@ -11,6 +11,10 @@
 
 2012-07-10  Glenn Morris  <rgm@gnu.org>
 
+	* s/irix6-5.h (DATA_START, DATA_SEG_BITS):
+	* s/hpux10-20.h (DATA_SEG_BITS, DATA_START):
+	* s/gnu.h (DATA_START): Move definitions to configure.
+
 	* s/irix6-5.h (SETUP_SLAVE_PTY, PTY_NAME_SPRINTF): Drop ifdef guards.
 	We include usg5-4-common.h, which defines them both.
 
