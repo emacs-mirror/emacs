@@ -660,6 +660,11 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	 the table clearer.  */
 #define LABEL(OP) [OP] = &&insn_ ## OP
 
+#if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Woverride-init"
+#endif
+
       /* This is the dispatch table for the threaded interpreter.  */
       static const void *const targets[256] =
 	{
@@ -670,6 +675,11 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  BYTE_CODES
 #undef DEFINE
 	};
+
+#if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic pop
+#endif
+
 #endif
 
 

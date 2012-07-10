@@ -1,5 +1,7 @@
 2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bytecode.c (targets): Suppress -Woverride-init warnings.
+
 	Simplify by avoiding confusing use of strncpy etc.
 	* doc.c (Fsnarf_documentation):
 	* fileio.c (Ffile_name_directory, Fsubstitute_in_file_name):
