@@ -94,6 +94,7 @@ CASES is a list of elements of the form (UPATTERN CODE...).
 
 UPatterns can take the following forms:
   _		matches anything.
+  SELFQUOTING	matches itself.  This includes keywords, numbers, and strings.
   SYMBOL	matches anything and binds it to SYMBOL.
   (or UPAT...)	matches if any of the patterns matches.
   (and UPAT...)	matches if all the patterns match.
@@ -509,6 +510,9 @@ MATCH is the pattern that needs to be matched, of the form:
     (and (memq sexp vars) (not (memq sexp res)) (push sexp res))
     res))
 
+(defun pcase--self-quoting-p (upat)
+  (or (keywordp upat) (numberp upat) (stringp upat)))
+
 ;; It's very tempting to use `pcase' below, tho obviously, it'd create
 ;; bootstrapping problems.
 (defun pcase--u1 (matches code vars rest)
@@ -605,6 +609,9 @@ Otherwise, it defers to REST which is a list of branches of the form
                            `(let* ,env ,call))))
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
+       ((pcase--self-quoting-p upat)
+        (put sym 'pcase-used t)
+        (pcase--q1 sym upat matches code vars rest))
        ((symbolp upat)
         (put sym 'pcase-used t)
         (if (not (assq upat vars))
@@ -636,14 +643,16 @@ Otherwise, it defers to REST which is a list of branches of the form
               (memq-fine t))
           (when all
             (dolist (alt (cdr upat))
-              (unless (and (eq (car-safe alt) '\`)
-                           (or (symbolp (cadr alt)) (integerp (cadr alt))
-                               (setq memq-fine nil)
-                               (stringp (cadr alt))))
+              (unless (or (pcase--self-quoting-p alt)
+                          (and (eq (car-safe alt) '\`)
+                               (or (symbolp (cadr alt)) (integerp (cadr alt))
+                                   (setq memq-fine nil)
+                                   (stringp (cadr alt)))))
                 (setq all nil))))
           (if all
               ;; Use memq for (or `a `b `c `d) rather than a big tree.
-              (let* ((elems (mapcar 'cadr (cdr upat)))
+              (let* ((elems (mapcar (lambda (x) (if (consp x) (cadr x) x))
+                                    (cdr upat)))
                      (splitrest
                       (pcase--split-rest
                        sym (lambda (pat) (pcase--split-member elems pat)) rest))
