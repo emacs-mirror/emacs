@@ -2626,7 +2626,15 @@ extern Lisp_Object make_string_from_bytes (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_specified_string (const char *,
 					  ptrdiff_t, ptrdiff_t, int);
 extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, int);
-extern Lisp_Object make_pure_c_string (const char *data);
+extern Lisp_Object make_pure_c_string (const char *, ptrdiff_t);
+
+/* Make a string allocated in pure space, use STR as string data.  */
+
+static inline Lisp_Object
+build_pure_c_string (const char *str)
+{
+  return make_pure_c_string (str, strlen (str));
+}
 
 /* Make a string from the data at STR, treating it as multibyte if the
    data warrants.  */

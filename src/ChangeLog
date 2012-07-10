@@ -1,5 +1,19 @@
 2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Optimize pure C strings initialization.
+	* lisp.h (make_pure_string): Fix prototype.
+	(build_pure_c_string): New function, defined as static inline.  This
+	provides a better opportunity to optimize away calls to strlen when
+	the function is called with compile-time constant argument.
+	* alloc.c (make_pure_c_string): Fix comment.  Change to add nchars
+	argument, adjust users accordingly.  Use build_pure_c_string where
+	appropriate.
+	* buffer.c, coding.c, data.c, dbusbind.c, fileio.c, fontset.c, frame.c,
+	* keyboard.c, keymap.c, lread.c, search.c, syntax.c, w32fns.c, xdisp.c,
+	* xfaces.c, xfns.c, xterm.c: Use build_pure_c_string where appropriate.
+
+2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Avoid calls to strlen in miscellaneous functions.
 	* buffer.c (init_buffer): Use precalculated len, adjust if needed.
 	* font.c (Ffont_xlfd_name): Likewise.  Change to call make_string.

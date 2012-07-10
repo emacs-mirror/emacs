@@ -3705,11 +3705,11 @@ syms_of_keymap (void)
   Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
   exclude_keys
-    = pure_cons (pure_cons (make_pure_c_string ("DEL"), make_pure_c_string ("\\d")),
-		 pure_cons (pure_cons (make_pure_c_string ("TAB"), make_pure_c_string ("\\t")),
-		    pure_cons (pure_cons (make_pure_c_string ("RET"), make_pure_c_string ("\\r")),
-			   pure_cons (pure_cons (make_pure_c_string ("ESC"), make_pure_c_string ("\\e")),
-				  pure_cons (pure_cons (make_pure_c_string ("SPC"), make_pure_c_string (" ")),
+    = pure_cons (pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
+		 pure_cons (pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
+		    pure_cons (pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
+			   pure_cons (pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
+				  pure_cons (pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")),
 					 Qnil)))));
   staticpro (&exclude_keys);
 

@@ -3700,7 +3700,7 @@ intern_c_string (const char *str)
        with the extra copy.  */
     abort ();
 
-  return Fintern (make_pure_c_string (str), obarray);
+  return Fintern (make_pure_c_string (str, len), obarray);
 }
 
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
@@ -3941,7 +3941,7 @@ init_obarray (void)
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
 
-  Qunbound = Fmake_symbol (make_pure_c_string ("unbound"));
+  Qunbound = Fmake_symbol (build_pure_c_string ("unbound"));
   /* Set temporary dummy values to Qnil and Vpurify_flag to satisfy the
      NILP (Vpurify_flag) check in intern_c_string.  */
   Qnil = make_number (-1); Vpurify_flag = make_number (1);
@@ -4441,8 +4441,8 @@ otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a Lisp suffix is allowed or required.  */);
-  Vload_suffixes = Fcons (make_pure_c_string (".elc"),
-			  Fcons (make_pure_c_string (".el"), Qnil));
+  Vload_suffixes = Fcons (build_pure_c_string (".elc"),
+			  Fcons (build_pure_c_string (".el"), Qnil));
   DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.
@@ -4575,7 +4575,7 @@ from the file, and matches them against this regular expression.
 When the regular expression matches, the file is considered to be safe
 to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
-    = make_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
+    = build_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
   Qlexical_binding = intern ("lexical-binding");
   staticpro (&Qlexical_binding);

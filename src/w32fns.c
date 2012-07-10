@@ -6798,7 +6798,7 @@ syms_of_w32fns (void)
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
-	make_pure_c_string ("Undefined color"));
+	build_pure_c_string ("Undefined color"));
 
   staticpro (&w32_grabbed_keys);
   w32_grabbed_keys = Qnil;

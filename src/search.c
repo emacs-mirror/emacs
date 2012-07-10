@@ -3056,12 +3056,12 @@ syms_of_search (void)
   Fput (Qsearch_failed, Qerror_conditions,
 	pure_cons (Qsearch_failed, pure_cons (Qerror, Qnil)));
   Fput (Qsearch_failed, Qerror_message,
-	make_pure_c_string ("Search failed"));
+	build_pure_c_string ("Search failed"));
 
   Fput (Qinvalid_regexp, Qerror_conditions,
 	pure_cons (Qinvalid_regexp, pure_cons (Qerror, Qnil)));
   Fput (Qinvalid_regexp, Qerror_message,
-	make_pure_c_string ("Invalid regexp"));
+	build_pure_c_string ("Invalid regexp"));
 
   last_thing_searched = Qnil;
   staticpro (&last_thing_searched);

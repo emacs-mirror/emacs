@@ -5212,15 +5212,14 @@ make_pure_string (const char *data,
   return string;
 }
 
-/* Return a string a string allocated in pure space.  Do not allocate
-   the string data, just point to DATA.  */
+/* Return a string allocated in pure space.  Do not
+   allocate the string data, just point to DATA.  */
 
 Lisp_Object
-make_pure_c_string (const char *data)
+make_pure_c_string (const char *data, ptrdiff_t nchars)
 {
   Lisp_Object string;
   struct Lisp_String *s;
-  ptrdiff_t nchars = strlen (data);
 
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
   s->size = nchars;
@@ -6842,7 +6841,7 @@ do hash-consing of the objects allocated to pure space.  */);
      not be able to allocate the memory to hold it.  */
   Vmemory_signal_data
     = pure_cons (Qerror,
-		 pure_cons (make_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"), Qnil));
+		 pure_cons (build_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"), Qnil));
 
   DEFVAR_LISP ("memory-full", Vmemory_full,
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);

@@ -3475,7 +3475,7 @@ syms_of_syntax (void)
   Fput (Qscan_error, Qerror_conditions,
 	pure_cons (Qscan_error, pure_cons (Qerror, Qnil)));
   Fput (Qscan_error, Qerror_message,
-	make_pure_c_string ("Scan error"));
+	build_pure_c_string ("Scan error"));
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);

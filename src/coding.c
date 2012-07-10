@@ -10350,7 +10350,7 @@ syms_of_coding (void)
   Vcode_conversion_reused_workbuf = Qnil;
 
   staticpro (&Vcode_conversion_workbuf_name);
-  Vcode_conversion_workbuf_name = make_pure_c_string (" *code-conversion-work*");
+  Vcode_conversion_workbuf_name = build_pure_c_string (" *code-conversion-work*");
 
   reused_workbuf_in_use = 0;
 
@@ -10413,7 +10413,7 @@ syms_of_coding (void)
   Fput (Qcoding_system_error, Qerror_conditions,
 	pure_cons (Qcoding_system_error, pure_cons (Qerror, Qnil)));
   Fput (Qcoding_system_error, Qerror_message,
-	make_pure_c_string ("Invalid coding system"));
+	build_pure_c_string ("Invalid coding system"));
 
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
@@ -10686,22 +10686,22 @@ Also used for decoding keyboard input on X Window system.  */);
   DEFVAR_LISP ("eol-mnemonic-unix", eol_mnemonic_unix,
 	       doc: /*
 *String displayed in mode line for UNIX-like (LF) end-of-line format.  */);
-  eol_mnemonic_unix = make_pure_c_string (":");
+  eol_mnemonic_unix = build_pure_c_string (":");
 
   DEFVAR_LISP ("eol-mnemonic-dos", eol_mnemonic_dos,
 	       doc: /*
 *String displayed in mode line for DOS-like (CRLF) end-of-line format.  */);
-  eol_mnemonic_dos = make_pure_c_string ("\\");
+  eol_mnemonic_dos = build_pure_c_string ("\\");
 
   DEFVAR_LISP ("eol-mnemonic-mac", eol_mnemonic_mac,
 	       doc: /*
 *String displayed in mode line for MAC-like (CR) end-of-line format.  */);
-  eol_mnemonic_mac = make_pure_c_string ("/");
+  eol_mnemonic_mac = build_pure_c_string ("/");
 
   DEFVAR_LISP ("eol-mnemonic-undecided", eol_mnemonic_undecided,
 	       doc: /*
 *String displayed in mode line when end-of-line format is not yet determined.  */);
-  eol_mnemonic_undecided = make_pure_c_string (":");
+  eol_mnemonic_undecided = build_pure_c_string (":");
 
   DEFVAR_LISP ("enable-character-translation", Venable_character_translation,
 	       doc: /*
@@ -10839,7 +10839,7 @@ internal character representation.  */);
     plist[10] = intern_c_string (":for-unibyte");
     plist[11] = args[coding_arg_for_unibyte] = Qt;
     plist[12] = intern_c_string (":docstring");
-    plist[13] = make_pure_c_string ("Do no conversion.\n\
+    plist[13] = build_pure_c_string ("Do no conversion.\n\
 \n\
 When you visit a file with this coding, the file is read into a\n\
 unibyte buffer as is, thus each byte of a file is treated as a\n\
@@ -10857,7 +10857,7 @@ character.");
     plist[8] = intern_c_string (":charset-list");
     plist[9] = args[coding_arg_charset_list] = Fcons (Qascii, Qnil);
     plist[11] = args[coding_arg_for_unibyte] = Qnil;
-    plist[13] = make_pure_c_string ("No conversion on encoding, automatic conversion on decoding.");
+    plist[13] = build_pure_c_string ("No conversion on encoding, automatic conversion on decoding.");
     plist[15] = args[coding_arg_eol_type] = Qnil;
     args[coding_arg_plist] = Flist (16, plist);
     Fdefine_coding_system_internal (coding_arg_max, args);

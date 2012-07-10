@@ -5828,7 +5828,7 @@ syms_of_xfns (void)
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
-	make_pure_c_string ("Undefined color"));
+	build_pure_c_string ("Undefined color"));
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* The shape of the pointer when over text.

@@ -11441,7 +11441,7 @@ syms_of_keyboard (void)
   pending_funcalls = Qnil;
   staticpro (&pending_funcalls);
 
-  Vlispy_mouse_stem = make_pure_c_string ("mouse");
+  Vlispy_mouse_stem = build_pure_c_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
 
   /* Tool-bars.  */

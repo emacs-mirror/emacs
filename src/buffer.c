@@ -4898,7 +4898,7 @@ init_buffer_once (void)
   /* Must do these before making the first buffer! */
 
   /* real setup is done in bindings.el */
-  BVAR (&buffer_defaults, mode_line_format) = make_pure_c_string ("%-");
+  BVAR (&buffer_defaults, mode_line_format) = build_pure_c_string ("%-");
   BVAR (&buffer_defaults, header_line_format) = Qnil;
   BVAR (&buffer_defaults, abbrev_mode) = Qnil;
   BVAR (&buffer_defaults, overwrite_mode) = Qnil;
@@ -5028,7 +5028,7 @@ init_buffer_once (void)
   current_buffer = 0;
   all_buffers = 0;
 
-  QSFundamental = make_pure_c_string ("Fundamental");
+  QSFundamental = build_pure_c_string ("Fundamental");
 
   Qfundamental_mode = intern_c_string ("fundamental-mode");
   BVAR (&buffer_defaults, major_mode) = Qfundamental_mode;
@@ -5043,10 +5043,10 @@ init_buffer_once (void)
   Fput (Qkill_buffer_hook, Qpermanent_local, Qt);
 
   /* super-magic invisible buffer */
-  Vprin1_to_string_buffer = Fget_buffer_create (make_pure_c_string (" prin1"));
+  Vprin1_to_string_buffer = Fget_buffer_create (build_pure_c_string (" prin1"));
   Vbuffer_alist = Qnil;
 
-  Fset_buffer (Fget_buffer_create (make_pure_c_string ("*scratch*")));
+  Fset_buffer (Fget_buffer_create (build_pure_c_string ("*scratch*")));
 
   inhibit_modification_hooks = 0;
 }
@@ -5201,7 +5201,7 @@ syms_of_buffer (void)
   Fput (Qprotected_field, Qerror_conditions,
 	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));
   Fput (Qprotected_field, Qerror_message,
-	make_pure_c_string ("Attempt to modify a protected field"));
+	build_pure_c_string ("Attempt to modify a protected field"));
 
   DEFVAR_BUFFER_DEFAULTS ("default-mode-line-format",
 			  mode_line_format,
