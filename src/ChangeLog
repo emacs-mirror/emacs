@@ -1,3 +1,11 @@
+2012-07-10  Tom Tromey  <tromey@redhat.com>
+
+	* bytecode.c (BYTE_CODE_THREADED): New macro.
+	(BYTE_CODES): New macro.  Replaces all old byte-code defines.
+	(enum byte_code_op): New type.
+	(CASE, NEXT, FIRST, CASE_DEFAULT, CASE_ABORT): New macros.
+	(exec_byte_code): Use them.  Use token threading when applicable.
+
 2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Optimize pure C strings initialization.
