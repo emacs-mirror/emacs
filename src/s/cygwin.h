@@ -74,8 +74,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Used in various places to enable cygwin-specific code changes.  */
 #define CYGWIN 1
 
-#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
-
 #define HAVE_SOCKETS
 
 /* Emacs supplies its own malloc, but glib (part of Gtk+) calls

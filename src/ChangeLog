@@ -11,6 +11,9 @@
 
 2012-07-10  Glenn Morris  <rgm@gnu.org>
 
+	* s/cygwin.h, s/darwin.h, s/freebsd.h, s/netbsd.h, s/unixware.h:
+	Move PENDING_OUTPUT_COUNT definition to configure.
+
 	* s/irix6-5.h (DATA_START, DATA_SEG_BITS):
 	* s/hpux10-20.h (DATA_SEG_BITS, DATA_START):
 	* s/gnu.h (DATA_START): Move definitions to configure.

@@ -3154,7 +3154,19 @@ AH_TEMPLATE(DATA_SEG_BITS, [Extra bits to be or'd in with any pointers
 stored in a Lisp_Object.])
 dnl if Emacs uses fewer than 32 bits for the value field of a LISP_OBJECT.
 
+dnl Used in dispnew.c
+AH_TEMPLATE(PENDING_OUTPUT_COUNT, [Number of chars of output in the
+buffer of a stdio stream.])
+
 case $opsys in
+  cygwin | darwin | freebsd | netbsd | openbsd )
+    AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->_p - (FILE)->_bf._base)])
+    ;;
+
+  unixware)
+    AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->__ptr - (FILE)->__base)])
+    ;;
+
   gnu)
     dnl libc defines data_start.
     AC_DEFINE(DATA_START, [({ extern int data_start; (char *) &data_start; })])

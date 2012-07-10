@@ -23,8 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
-#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
-
 /* This silences a few compilation warnings.  */
 #undef BSD_SYSTEM
 #if __FreeBSD__ == 1
