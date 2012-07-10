@@ -1,5 +1,8 @@
 2012-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/gv.el (cond): Make it a valid place.
+	(if): Simplify slightly.
+
 	* emacs-lisp/pcase.el (pcase): Accept self-quoting exps as "upatterns".
 	(pcase--self-quoting-p): New function.
 	(pcase--u1): Use it.

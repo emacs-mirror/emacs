@@ -361,22 +361,54 @@ The return value is the last VAL in the list.
 
 (put 'if 'gv-expander
      (lambda (do test then &rest else)
-       (let ((v (make-symbol "v")))
-         (if (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy)))
-             ;; This duplicates the `do' code, which is a problem if that
-             ;; code is large, but otherwise results in more efficient code.
-             `(if ,test ,(gv-get then do)
-                ,@(macroexp-unprogn (gv-get (macroexp-progn else) do)))
-           (macroexp-let2 nil b test
-             (macroexp-let2 nil
-                 gv `(if ,b ,(gv-letplace (getter setter) then
-                               `(cons (lambda () ,getter)
-                                      (lambda (,v) ,(funcall setter v))))
-                       ,(gv-letplace (getter setter) (macroexp-progn else)
-                          `(cons (lambda () ,getter)
-                                 (lambda (,v) ,(funcall setter v)))))
-               (funcall do `(funcall (car ,gv))
-                        (lambda (v) `(funcall (cdr ,gv) ,v)))))))))
+       (if (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy)))
+           ;; This duplicates the `do' code, which is a problem if that
+           ;; code is large, but otherwise results in more efficient code.
+           `(if ,test ,(gv-get then do)
+              ,@(macroexp-unprogn (gv-get (macroexp-progn else) do)))
+         (let ((v (make-symbol "v")))
+           (macroexp-let2 nil
+               gv `(if ,test ,(gv-letplace (getter setter) then
+                                `(cons (lambda () ,getter)
+                                       (lambda (,v) ,(funcall setter v))))
+                     ,(gv-letplace (getter setter) (macroexp-progn else)
+                        `(cons (lambda () ,getter)
+                               (lambda (,v) ,(funcall setter v)))))
+             (funcall do `(funcall (car ,gv))
+                      (lambda (v) `(funcall (cdr ,gv) ,v))))))))
+
+(put 'cond 'gv-expander
+     (lambda (do &rest branches)
+       (if (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy)))
+           ;; This duplicates the `do' code, which is a problem if that
+           ;; code is large, but otherwise results in more efficient code.
+           `(cond
+             ,@(mapcar (lambda (branch)
+                         (if (cdr branch)
+                             (cons (car branch)
+                                   (macroexp-unprogn
+                                    (gv-get (macroexp-progn (cdr branch)) do)))
+                           (gv-get (car branch) do)))
+                       branches))
+         (let ((v (make-symbol "v")))
+           (macroexp-let2 nil
+               gv `(cond
+                    ,@(mapcar
+                       (lambda (branch)
+                         (if (cdr branch)
+                             `(,(car branch)
+                               ,@(macroexp-unprogn
+                                  (gv-letplace (getter setter)
+                                      (macroexp-progn (cdr branch))
+                                    `(cons (lambda () ,getter)
+                                           (lambda (,v) ,(funcall setter v))))))
+                           (gv-letplace (getter setter)
+                               (car branch)
+                             `(cons (lambda () ,getter)
+                                    (lambda (,v) ,(funcall setter v))))))
+                       branches))
+             (funcall do `(funcall (car ,gv))
+                      (lambda (v) `(funcall (cdr ,gv) ,v))))))))
 
 ;;; Even more debatable extensions.
 
