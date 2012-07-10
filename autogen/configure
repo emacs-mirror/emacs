@@ -7161,7 +7161,6 @@ fi
   # The following lines should be removable at some point.
   nw="$nw -Wstack-protector"
   nw="$nw -Wstrict-overflow"
-  nw="$nw -Wsuggest-attribute=const"
   nw="$nw -Wsuggest-attribute=pure"
 
 
@@ -20266,7 +20265,7 @@ if test "x$ac_cv_have_decl_png_longjmp" = x""yes; then :
 
 else
 
-$as_echo "#define PNG_DEPRECATED /**/" >>confdefs.h
+$as_echo "#define PNG_DEPSTRUCT /**/" >>confdefs.h
 
 fi
 
@@ -22659,6 +22658,41 @@ case $opsys in
 $as_echo "#define HAVE_PROCFS 1" >>confdefs.h
 
   ;;
+esac
+
+
+
+
+
+
+case $opsys in
+  cygwin | darwin | freebsd | netbsd | openbsd )
+    $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)" >>confdefs.h
+
+    ;;
+
+  unixware)
+    $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)" >>confdefs.h
+
+    ;;
+
+  gnu)
+        $as_echo "#define DATA_START ({ extern int data_start; (char *) &data_start; })" >>confdefs.h
+
+    ;;
+
+  hpux*)
+        $as_echo "#define DATA_START 0x40000000" >>confdefs.h
+
+    $as_echo "#define DATA_SEG_BITS 0x40000000" >>confdefs.h
+
+    ;;
+  irix6-5)
+    $as_echo "#define DATA_START 0x10000000" >>confdefs.h
+
+    $as_echo "#define DATA_SEG_BITS 0x10000000" >>confdefs.h
+
+    ;;
 esac
 
 case $opsys in

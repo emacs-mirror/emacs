@@ -66,6 +66,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using 'alloca.c'. */
 #undef C_ALLOCA
 
+/* Extra bits to be or'd in with any pointers stored in a Lisp_Object. */
+#undef DATA_SEG_BITS
+
+/* Address of the start of the data segment. */
+#undef DATA_START
+
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
 
@@ -1089,10 +1095,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Number of chars of output in the buffer of a stdio stream. */
+#undef PENDING_OUTPUT_COUNT
+
 /* Define to empty to suppress deprecation warnings when building with
    --enable-gcc-warnings and with libpng versions before 1.5, which lack
    png_longjmp. */
-#undef PNG_DEPRECATED
+#undef PNG_DEPSTRUCT
 
 /* Define to 1 if pthread_sigmask(), when it fails, returns -1 and sets errno.
    */
@@ -1500,6 +1509,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
    ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
+
+#define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
 
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
