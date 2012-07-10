@@ -24,10 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* libc defines data_start.  */
 #define DATA_START ({ extern int data_start; (char *) &data_start; })
 
-/* Some losing code fails to include this and then assumes
-   that because it is braindead that O_RDONLY==0.  */
-#include <fcntl.h>
-
+/* It would be harmless to drop the ifdef emacs test.  */
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
 #if defined (_IO_STDIO_H) || defined (_STDIO_USES_IOSTREAM)

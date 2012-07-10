@@ -1,5 +1,8 @@
 2012-07-10  Glenn Morris  <rgm@gnu.org>
 
+	* s/gnu.h: Don't include fcntl.h (every file in Emacs that uses
+	O_RDONLY already includes it).
+
 	Stop ns builds setting the EMACSLOADPATH environment variable.
 	* nsterm.m (ns_load_path): Rename from ns_init_paths.
 	Now it does not set EMACSLOADPATH, just returns the load-path string.
