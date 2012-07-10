@@ -453,32 +453,33 @@ get a current directory to run processes in.  */)
   return Ffile_name_directory (filename);
 }
 
-
-static char *
-file_name_as_directory (char *out, const char *in)
-{
-  ptrdiff_t len = strlen (in);
+/* Convert from file name SRC of length SRCLEN to directory name
+   in DST.  On UNIX, just make sure there is a terminating /.
+   Return the length of DST.  */
 
-  if (len == 0)
+static ptrdiff_t
+file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen)
+{
+  if (srclen == 0)
     {
-      out[0] = '.';
-      out[1] = '/';
-      out[2] = 0;
-      return out;
+      dst[0] = '.';
+      dst[1] = '/';
+      dst[2] = '\0';
+      return 2;
     }
 
-  strcpy (out, in);
+  strcpy (dst, src);
 
-  /* For Unix syntax, Append a slash if necessary */
-  if (!IS_DIRECTORY_SEP (out[len - 1]))
+  if (!IS_DIRECTORY_SEP (dst[srclen - 1]))
     {
-      out[len] = DIRECTORY_SEP;
-      out[len + 1] = '\0';
+      dst[srclen] = DIRECTORY_SEP;
+      dst[srclen + 1] = '\0';
+      srclen++;
     }
 #ifdef DOS_NT
-  dostounix_filename (out);
+  dostounix_filename (dst);
 #endif
-  return out;
+  return srclen;
 }
 
 DEFUN ("file-name-as-directory", Ffile_name_as_directory,
@@ -492,6 +493,7 @@ For a Unix-syntax file name, just appends a slash.  */)
   (Lisp_Object file)
 {
   char *buf;
+  ptrdiff_t length;
   Lisp_Object handler;
 
   CHECK_STRING (file);
@@ -511,39 +513,34 @@ For a Unix-syntax file name, just appends a slash.  */)
     }
 
   buf = alloca (SBYTES (file) + 10);
-  file_name_as_directory (buf, SSDATA (file));
-  return make_specified_string (buf, -1, strlen (buf),
-				STRING_MULTIBYTE (file));
+  length = file_name_as_directory (buf, SSDATA (file), SBYTES (file));
+  return make_specified_string (buf, -1, length, STRING_MULTIBYTE (file));
 }
 
-/*
- * Convert from directory name to filename.
- * On UNIX, it's simple: just make sure there isn't a terminating /
+/* Convert from directory name SRC of length SRCLEN to
+   file name in DST.  On UNIX, just make sure there isn't
+   a terminating /.  Return the length of DST.  */
 
- * Value is nonzero if the string output is different from the input.
- */
-
-static int
-directory_file_name (char *src, char *dst)
+static ptrdiff_t
+directory_file_name (char *dst, char *src, ptrdiff_t srclen)
 {
-  ptrdiff_t slen;
-
-  slen = strlen (src);
-
   /* Process as Unix format: just remove any final slash.
      But leave "/" unchanged; do not change it to "".  */
   strcpy (dst, src);
-  if (slen > 1
-      && IS_DIRECTORY_SEP (dst[slen - 1])
+  if (srclen > 1
+      && IS_DIRECTORY_SEP (dst[srclen - 1])
 #ifdef DOS_NT
-      && !IS_ANY_SEP (dst[slen - 2])
+      && !IS_ANY_SEP (dst[srclen - 2])
 #endif
       )
-    dst[slen - 1] = 0;
+    {
+      dst[srclen - 1] = 0;
+      srclen--;
+    }
 #ifdef DOS_NT
   dostounix_filename (dst);
 #endif
-  return 1;
+  return srclen;
 }
 
 DEFUN ("directory-file-name", Fdirectory_file_name, Sdirectory_file_name,
@@ -556,6 +553,7 @@ In Unix-syntax, this function just removes the final slash.  */)
   (Lisp_Object directory)
 {
   char *buf;
+  ptrdiff_t length;
   Lisp_Object handler;
 
   CHECK_STRING (directory);
@@ -576,9 +574,8 @@ In Unix-syntax, this function just removes the final slash.  */)
     }
 
   buf = alloca (SBYTES (directory) + 20);
-  directory_file_name (SSDATA (directory), buf);
-  return make_specified_string (buf, -1, strlen (buf),
-				STRING_MULTIBYTE (directory));
+  length = directory_file_name (buf, SSDATA (directory), SBYTES (directory));
+  return make_specified_string (buf, -1, length, STRING_MULTIBYTE (directory));
 }
 
 static const char make_temp_name_tbl[64] =
@@ -1130,8 +1127,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    }
 	  if (!IS_DIRECTORY_SEP (nm[0]))
 	    {
-	      char * tmp = alloca (strlen (newdir) + strlen (nm) + 2);
-	      file_name_as_directory (tmp, newdir);
+	      ptrdiff_t newlen = strlen (newdir);
+	      char *tmp = alloca (newlen + strlen (nm) + 2);
+	      file_name_as_directory (tmp, newdir, newlen);
 	      strcat (tmp, nm);
 	      nm = tmp;
 	    }
@@ -1180,6 +1178,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       /* Get rid of any slash at the end of newdir, unless newdir is
 	 just / or // (an incomplete UNC name).  */
       length = strlen (newdir);
+      tlen = length + 1;
       if (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
 #ifdef WINDOWSNT
 	  && !(length == 2 && IS_DIRECTORY_SEP (newdir[0]))
@@ -1189,12 +1188,15 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  char *temp = alloca (length);
 	  memcpy (temp, newdir, length - 1);
 	  temp[length - 1] = 0;
+	  length--;
 	  newdir = temp;
 	}
-      tlen = length + 1;
     }
   else
-    tlen = 0;
+    {
+      length = 0;
+      tlen = 0;
+    }
 
   /* Now concatenate the directory and name to new space in the stack frame.  */
   tlen += strlen (nm) + 1;
@@ -1225,7 +1227,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    strcpy (target, newdir);
 	}
       else
-	file_name_as_directory (target, newdir);
+	file_name_as_directory (target, newdir, length);
     }
 
   strcat (target, nm);

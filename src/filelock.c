@@ -300,6 +300,7 @@ typedef struct
 static void
 fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
 {
+  ptrdiff_t length = SBYTES (fn);
   register char *p;
   struct stat st;
   int count = 0;
@@ -309,14 +310,14 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
   /* Shift the nondirectory part of the file name (including the null)
      right two characters.  Here is one of the places where we'd have to
      do something to support 14-character-max file names.  */
-  for (p = lockfile + strlen (lockfile); p != lockfile && *p != '/'; p--)
+  for (p = lockfile + length; p != lockfile && *p != '/'; p--)
     p[2] = *p;
 
   /* Insert the `.#'.  */
   p[1] = '.';
   p[2] = '#';
 
-  p = p + strlen (p);
+  p = p + length + 2;
 
   while (lstat (lockfile, &st) == 0 && !S_ISLNK (st.st_mode))
     {

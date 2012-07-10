@@ -1,3 +1,14 @@
+2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid calls to strlen in path processing functions.
+	* fileio.c (file_name_as_directory): Add comment.  Change to add
+	srclen argument and return the length of result.  Adjust users
+	accordingly.
+	(directory_file_name): Fix comment.  Change to add srclen argument,
+	swap 1nd and 2st arguments to obey the common convention.  Adjust
+	users accordingly.
+	* filelock.c (fill_in_lock_file_name): Avoid calls to strlen.
+
 2012-07-10  Glenn Morris  <rgm@gnu.org>
 
 	* s/irix6-5.h (SETUP_SLAVE_PTY, PTY_NAME_SPRINTF): Drop ifdef guards.
