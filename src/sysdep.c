@@ -2023,18 +2023,6 @@ rename (const char *from, const char *to)
 
 #endif
 
-
-#if defined (HPUX) && !defined (HAVE_PERROR)
-
-/* HPUX curses library references perror, but as far as we know
-   it won't be called.  Anyway this definition will do for now.  */
-
-void
-perror (void)
-{
-}
-#endif /* HPUX and not HAVE_PERROR */
-
 /*
  *	This function will go away as soon as all the stubs fixed. (fnf)
  */

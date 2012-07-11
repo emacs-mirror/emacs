@@ -1,5 +1,10 @@
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Assume perror.
+	* s/hpux10-20.h (HAVE_PERROR): Remove.
+	* sysdep.c (perror) [HPUX && !HAVE_PERROR]:
+	Remove dummy definition, as this problem was obsolete long ago.
+
 	Assume strerror.
 	* sysdep.c (strerror) [!HAVE_STRERROR && !WINDOWSNT]: Remove.
 

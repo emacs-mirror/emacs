@@ -1,7 +1,7 @@
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Assume strerror.
-	* CPP-DEFINES (HAVE_STRERROR, strerror): Remove.
+	Assume perror, strerror.
+	* CPP-DEFINES (HAVE_PERROR, HAVE_STRERROR, strerror): Remove.
 
 2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
