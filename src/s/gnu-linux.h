@@ -87,20 +87,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NARROWPROTO 1
 
-/* Tell that garbage collector that setjmp is known to save all
-   registers relevant for conservative garbage collection in the jmp_buf.  */
-/* Not all the architectures are tested, but there are Debian packages
-   for SCM and/or Guile on them, so the technique must work.  See also
-   comments in alloc.c concerning setjmp and gcc.  Fixme:  it's
-   probably safe to make this conditional just on GCC, except for ia64
-   register window-flushing.  */
-/* Don't use #cpu here since in newest development versions of GCC,
-   we must call cpp with -traditional, and that disables #cpu.  */
-#if defined __i386__ || defined __sparc__ || defined __mc68000__ \
-    || defined __alpha__ || defined __mips__ || defined __s390__ \
-    || defined __arm__ || defined __powerpc__ || defined __amd64__ \
-    || defined __ia64__ || defined __sh__
-#define GC_SETJMP_WORKS 1
 #ifdef __ia64__
 #define GC_MARK_SECONDARY_STACK()				\
   do {								\
@@ -110,6 +96,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 		 __builtin_ia64_bsp ());			\
   } while (0)
 #endif
+
+/* Tell that garbage collector that setjmp is known to save all
+   registers relevant for conservative garbage collection in the jmp_buf.
+   Not all the architectures are tested, but there are Debian packages
+   for SCM and/or Guile on them, so the technique must work.  See also
+   comments in alloc.c concerning setjmp and gcc.  Fixme:  it's
+   probably safe to just let the GCC conditional in AH_BOTTOM handle this.
+*/
+#if defined __i386__ || defined __sparc__ || defined __mc68000__ \
+    || defined __alpha__ || defined __mips__ || defined __s390__ \
+    || defined __arm__ || defined __powerpc__ || defined __amd64__ \
+    || defined __ia64__ || defined __sh__
+#define GC_SETJMP_WORKS 1
 #else
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
 #endif
