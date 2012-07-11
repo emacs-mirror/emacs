@@ -1,3 +1,10 @@
+2012-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(CLASH_DETECTION, DEFAULT_SOUND_DEVICE, DONT_REOPEN_PTY)
+	(GNU_LIBRARY_PENDING_OUTPUT_COUNT, SIGNALS_VIA_CHARACTERS): New macros.
+	(HAVE_MKDIR, HAVE_RENAME, HAVE_RMDIR, HAVE_STRERROR): Remove.
+
 2012-07-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
