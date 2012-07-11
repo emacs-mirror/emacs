@@ -4,7 +4,8 @@
 	* lisp.h (intern, intern_c_string): Redefine as static inline
 	wrappers for intern_1 and intern_c_string_1, respectively.
 	(intern_1, intern_c_string_1): Rename prototypes.
-	* lread.c (intern_1, intern_c_string_1): Simplify Vobarray checking.
+	* lread.c (intern_1, intern_c_string_1, oblookup): Simplify
+	Vobarray checking.
 	* font.c (font_intern_prop): Likewise.  Adjust comment.
 	* w32font.c (intern_font_name): Likewise.
 

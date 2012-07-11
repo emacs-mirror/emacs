@@ -3835,12 +3835,9 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   register Lisp_Object tail;
   Lisp_Object bucket, tem;
 
-  if (!VECTORP (obarray)
-      || (obsize = ASIZE (obarray)) == 0)
-    {
-      obarray = check_obarray (obarray);
-      obsize = ASIZE (obarray);
-    }
+  obarray = check_obarray (obarray);
+  obsize = ASIZE (obarray);
+
   /* This is sometimes needed in the middle of GC.  */
   obsize &= ~ARRAY_MARK_FLAG;
   hash = hash_string (ptr, size_byte) % obsize;
