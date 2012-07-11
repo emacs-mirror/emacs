@@ -1,3 +1,8 @@
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* s/gnu.h, s/gnu-linux.h:
+	Move GNU_LIBRARY_PENDING_OUTPUT_COUNT to configure.
+
 2012-07-11  John Wiegley  <johnw@newartisans.com>
 
 	* alloc.c (mark_memory): Guard the "no_address_safety_analysis"

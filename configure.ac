@@ -3163,18 +3163,13 @@ dnl Used in sound.c
 AC_DEFINE_UNQUOTED(DEFAULT_SOUND_DEVICE, "$sound_device",
   [Name of the default sound device.])
 
-dnl Used in vm-limit.c
-AH_TEMPLATE(DATA_START, [Address of the start of the data segment.])
-dnl Used in lisp.h, emacs.c, mem-limits.h
-dnl NEWS.18 describes this as "a number which contains
-dnl the high bits to be inclusive or'ed with pointers that are unpacked."
-AH_TEMPLATE(DATA_SEG_BITS, [Extra bits to be or'd in with any pointers
-stored in a Lisp_Object.])
-dnl if Emacs uses fewer than 32 bits for the value field of a LISP_OBJECT.
-
 dnl Used in dispnew.c
 AH_TEMPLATE(PENDING_OUTPUT_COUNT, [Number of chars of output in the
 buffer of a stdio stream.])
+
+dnl FIXME just PENDING_OUTPUT_COUNT should suffice.
+AH_TEMPLATE(GNU_LIBRARY_PENDING_OUTPUT_COUNT, [Value of
+PENDING_OUTPUT_COUNT if using the GNU C library.])
 
 case $opsys in
   cygwin | darwin | freebsd | netbsd | openbsd )
@@ -3185,6 +3180,63 @@ case $opsys in
     AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->__ptr - (FILE)->__base)])
     ;;
 
+  gnu | gnu-linux | gnu-kfreebsd )
+    AC_MSG_CHECKING([for style of pending output formalism])
+    dnl In autoconf 2.67 (?) and later, we could use a single test
+    dnl since the preprocessed output is accessible in "conftest.i".
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#include <stdio.h>
+#if !defined (_IO_STDIO_H) && !defined (_STDIO_USES_IOSTREAM)
+# error "stdio definitions not found"
+#endif
+      ]], [[]])], emacs_pending_output=new, emacs_pending_output=unknown)
+
+      if test $emacs_pending_output = unknown; then
+        case $opsys in
+          gnu-linux | gnu-kfreebsd)
+            AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#include <stdio.h>
+#ifndef __UCLIBC__
+# error "not using uclibc"
+#endif
+            ]], [[]])], emacs_pending_output=uclibc, emacs_pending_output=old)
+            ;;
+        esac
+      fi
+
+      AC_MSG_RESULT([$emacs_pending_output])
+
+      case $emacs_pending_output in
+        new)
+          dnl New C libio names.
+          AC_DEFINE(GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE),
+            [((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)])
+          ;;
+        uclibc)
+          dnl Using the uClibc library.
+          AC_DEFINE(GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE),
+            [((FILE)->__bufpos - (FILE)->__bufstart)])
+          ;;
+        old)
+          dnl Old C++ iostream names.
+          AC_DEFINE(GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE),
+            [((FILE)->_pptr - (FILE)->_pbase)])
+          ;;
+      esac
+    ;;
+esac
+
+
+dnl Used in vm-limit.c
+AH_TEMPLATE(DATA_START, [Address of the start of the data segment.])
+dnl Used in lisp.h, emacs.c, mem-limits.h
+dnl NEWS.18 describes this as "a number which contains
+dnl the high bits to be inclusive or'ed with pointers that are unpacked."
+AH_TEMPLATE(DATA_SEG_BITS, [Extra bits to be or'd in with any pointers
+stored in a Lisp_Object.])
+dnl if Emacs uses fewer than 32 bits for the value field of a LISP_OBJECT.
+
+case $opsys in
   gnu)
     dnl libc defines data_start.
     AC_DEFINE(DATA_START, [({ extern int data_start; (char *) &data_start; })])

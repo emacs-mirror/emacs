@@ -92,25 +92,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-/* This is needed for dispnew.c:update_frame.  */
 #ifdef emacs
-#include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
-#if defined (_IO_STDIO_H) || defined (_STDIO_USES_IOSTREAM)
-/* New C libio names.  */
-#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
-  ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
-#elif defined (__UCLIBC__)
-/* Using the uClibc library.  */
-#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
-  ((FILE)->__bufpos - (FILE)->__bufstart)
-#else /* !_IO_STDIO_H && ! __UCLIBC__ */
-/* Old C++ iostream names.  */
-#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
-  ((FILE)->_pptr - (FILE)->_pbase)
-#endif /* !_IO_STDIO_H && ! __UCLIBC__ */
-
 #define INTERRUPT_INPUT
-#endif /* emacs */
+#endif
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
 

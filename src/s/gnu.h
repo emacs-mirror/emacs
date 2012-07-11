@@ -20,13 +20,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
-
-/* It would be harmless to drop the ifdef emacs test.  */
-#ifdef emacs
-#include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
-#if defined (_IO_STDIO_H) || defined (_STDIO_USES_IOSTREAM)
-/* new C libio names */
-#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
-  ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
-#endif /* !_IO_STDIO_H */
-#endif /* emacs */
