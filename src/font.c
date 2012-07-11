@@ -1827,7 +1827,7 @@ check_otf_features (Lisp_Object otf_features)
   otf_features = XCDR (otf_features);
   for (val = Fcar (otf_features); CONSP (val); val = XCDR (val))
     {
-      CHECK_SYMBOL (Fcar (val));
+      CHECK_SYMBOL (XCAR (val));
       if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
 	error ("Invalid OTF GSUB feature: %s",
 	       SDATA (SYMBOL_NAME (XCAR (val))));
@@ -1835,7 +1835,7 @@ check_otf_features (Lisp_Object otf_features)
   otf_features = XCDR (otf_features);
   for (val = Fcar (otf_features); CONSP (val); val = XCDR (val))
     {
-      CHECK_SYMBOL (Fcar (val));
+      CHECK_SYMBOL (XCAR (val));
       if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
 	error ("Invalid OTF GPOS feature: %s",
 	       SDATA (SYMBOL_NAME (XCAR (val))));

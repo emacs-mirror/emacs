@@ -1,3 +1,15 @@
+2012-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* coding.c (Fdefine_coding_system_internal): Use XCAR/XCDR instead
+	of Fcar/Fcdr if possible.
+	* font.c (check_otf_features): Likewise.
+	* fontset.c (Fnew_fontset): Likewise.
+	* gnutls.c (Fgnutls_boot): Likewise.
+	* minibuf.c (read_minibuf): Likewise.
+	* msdos.c (IT_set_frame_parameters): Likewise.
+	* xmenu.c (Fx_popup_dialog): Likewise.
+	* w32menu.c (Fx_popup_dialog): Likewise.
+
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* s/aix4-2.h, s/bsd-common.h, s/cygwin.h, s/darwin.h:

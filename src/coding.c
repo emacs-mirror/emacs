@@ -9795,7 +9795,7 @@ usage: (define-coding-system-internal ...)  */)
 	{
 	  int from, to;
 
-	  val = Fcar (tail);
+	  val = XCAR (tail);
 	  if (INTEGERP (val))
 	    {
 	      if (! (0 <= XINT (val) && XINT (val) <= 255))
@@ -9897,7 +9897,7 @@ usage: (define-coding-system-internal ...)  */)
 	  int id;
 	  Lisp_Object tmp1;
 
-	  val = Fcar (tail);
+	  val = XCAR (tail);
 	  CHECK_CONS (val);
 	  tmp1 = XCAR (val);
 	  CHECK_CHARSET_GET_ID (tmp1, id);

@@ -260,10 +260,10 @@ for instance using the window manager, then this produces a quit and
     {
       Lisp_Object tem = XCAR (position);
       if (CONSP (tem))
-	window = Fcar (Fcdr (position));
+	window = Fcar (XCDR (position));
       else
 	{
-	  tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
+	  tem = Fcar (XCDR (position));  /* EVENT_START (position) */
 	  window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	}
     }

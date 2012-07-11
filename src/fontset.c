@@ -1672,7 +1672,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
     {
       Lisp_Object elt, script;
 
-      elt = Fcar (fontlist);
+      elt = XCAR (fontlist);
       script = Fcar (elt);
       elt = Fcdr (elt);
       if (CONSP (elt) && (NILP (XCDR (elt)) || CONSP (XCDR (elt))))

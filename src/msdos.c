@@ -1620,9 +1620,7 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
   i = 0;
   for (tail = alist; CONSP (tail); tail = XCDR (tail))
     {
-      Lisp_Object elt;
-
-      elt = Fcar (tail);
+      Lisp_Object elt = XCAR (tail);
       parms[i] = Fcar (elt);
       CHECK_SYMBOL (parms[i]);
       values[i] = Fcdr (elt);
