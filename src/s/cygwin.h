@@ -17,29 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Emacs can read input using SIGIO and buffering characters itself,
-   or using CBREAK mode and making C-g cause SIGINT.
-   The choice is controlled by the variable interrupt_input.
-
-   Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
-
-   Emacs uses the presence or absence of the SIGIO and BROKEN_SIGIO macros
-   to indicate whether or not signal-driven I/O is possible.  It uses
-   INTERRUPT_INPUT to decide whether to use it by default.
-
-   SIGIO can be used only on systems that implement it (4.2 and 4.3).
-   CBREAK mode has two disadvantages
-     1) At least in 4.2, it is impossible to handle the Meta key properly.
-        I hear that in system V this problem does not exist.
-     2) Control-G causes output to be discarded.
-        I do not know whether this can be fixed in system V.
-
-   Another method of doing input is planned but not implemented.
-   It would have Emacs fork off a separate process
-   to read the input and send it to the true Emacs process
-   through a pipe. */
-#undef INTERRUPT_INPUT
-
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 #define PTY_ITERATION		int i; for (i = 0; i < 1; i++) /* ick */

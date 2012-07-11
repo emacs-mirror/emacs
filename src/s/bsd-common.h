@@ -47,10 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for X functions taking float or double parameters.  */
 #define NARROWPROTO 1
 
-/* Do not use interrupt_input = 1 by default, because in 4.3
-   we can make noninterrupt input work properly.  */
-#undef INTERRUPT_INPUT
-
 /* First pty name is /dev/ptyp0.  */
 #define FIRST_PTY_LETTER 'p'
 

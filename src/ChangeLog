@@ -24,6 +24,9 @@
 
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* s/bsd-common.h, s/cygwin.h: No need to undefine INTERRUPT_INPUT,
+	since nothing has defined it on these platforms.
+
 	* s/aix4-2.h, s/bsd-common.h, s/cygwin.h, s/gnu-linux.h:
 	* s/irix6-5.h: Move SIGNALS_VIA_CHARACTERS to configure.
 
