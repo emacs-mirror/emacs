@@ -57,7 +57,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 
 (defgroup pascal nil
   "Major mode for editing Pascal source in Emacs."

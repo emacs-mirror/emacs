@@ -97,7 +97,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup tar nil
   "Simple editing of tar files."
@@ -168,7 +168,7 @@ This information is useful, but it takes screen space away from file names."
        ;; state correctly: the raw data is expected to be always larger than
        ;; the summary.
        (progn
-	 (assert (or (= (buffer-size tar-data-buffer) (buffer-size))
+	 (cl-assert (or (= (buffer-size tar-data-buffer) (buffer-size))
                      (eq tar-data-swapped
                          (> (buffer-size tar-data-buffer) (buffer-size)))))
 	 tar-data-swapped)))
@@ -186,7 +186,7 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
 
 ;;; down to business.
 
-(defstruct (tar-header
+(cl-defstruct (tar-header
             (:constructor nil)
             (:type vector)
             :named
@@ -226,8 +226,8 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
 This is a list of name, mode, uid, gid, size,
 write-date, checksum, link-type, and link-name."
   (if (> (+ pos 512) (point-max)) (error "Malformed Tar header"))
-  (assert (zerop (mod (- pos (point-min)) 512)))
-  (assert (not enable-multibyte-characters))
+  (cl-assert (zerop (mod (- pos (point-min)) 512)))
+  (cl-assert (not enable-multibyte-characters))
   (let ((string (buffer-substring pos (setq pos (+ pos 512)))))
     (when      ;(some 'plusp string)		 ; <-- oops, massive cycle hog!
         (or (not (= 0 (aref string 0))) ; This will do.
@@ -373,7 +373,7 @@ write-date, checksum, link-type, and link-name."
 
 (defun tar-header-block-checksum (string)
   "Compute and return a tar-acceptable checksum for this block."
-  (assert (not (multibyte-string-p string)))
+  (cl-assert (not (multibyte-string-p string)))
   (let* ((chk-field-start tar-chk-offset)
 	 (chk-field-end (+ chk-field-start 8))
 	 (sum 0)
@@ -486,7 +486,7 @@ MODE should be an integer which is a file mode value."
 
 (defun tar-summarize-buffer ()
   "Parse the contents of the tar file in the current buffer."
-  (assert (tar-data-swapped-p))
+  (cl-assert (tar-data-swapped-p))
   (let* ((modified (buffer-modified-p))
          (result '())
          (pos (point-min))
@@ -654,7 +654,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (widen)
   ;; Now move the Tar data into an auxiliary buffer, so we can use the main
   ;; buffer for the summary.
-  (assert (not (tar-data-swapped-p)))
+  (cl-assert (not (tar-data-swapped-p)))
   (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
   ;; We started using write-contents-functions, but this hook is not
   ;; used during auto-save, so we now use
@@ -1119,15 +1119,15 @@ for this to be permanent."
                      (insert (tar-header-block-summarize descriptor) "\n")))
     (forward-line -1) (move-to-column col))
 
-  (assert (tar-data-swapped-p))
+  (cl-assert (tar-data-swapped-p))
   (with-current-buffer tar-data-buffer
     (let* ((start (- (tar-header-data-start descriptor) 512)))
         ;;
         ;; delete the old field and insert a new one.
         (goto-char (+ start data-position))
         (delete-region (point) (+ (point) (length new-data-string))) ; <--
-        (assert (not (or enable-multibyte-characters
-                         (multibyte-string-p new-data-string))))
+        (cl-assert (not (or enable-multibyte-characters
+                            (multibyte-string-p new-data-string))))
         (insert new-data-string)
         ;;
         ;; compute a new checksum and insert it.

@@ -104,7 +104,7 @@
 ;; - find-file-hook ()                             NOT NEEDED
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'vc)
   (require 'vc-dir)
   (require 'grep))
@@ -201,7 +201,7 @@ matching the resulting Git log output, and KEYWORDS is a list of
 
 (defun vc-git--state-code (code)
   "Convert from a string to a added/deleted/modified state."
-  (case (string-to-char code)
+  (pcase (string-to-char code)
     (?M 'edited)
     (?A 'added)
     (?D 'removed)
@@ -261,7 +261,7 @@ matching the resulting Git log output, and KEYWORDS is a list of
       (propertize def-ml
                   'help-echo (concat help-echo "\nCurrent branch: " branch)))))
 
-(defstruct (vc-git-extra-fileinfo
+(cl-defstruct (vc-git-extra-fileinfo
             (:copier nil)
             (:constructor vc-git-create-extra-fileinfo
                           (old-perm new-perm &optional rename-state orig-name))
@@ -275,12 +275,12 @@ matching the resulting Git log output, and KEYWORDS is a list of
   (if (string-match "[\n\t\"\\]" name)
       (concat "\""
               (mapconcat (lambda (c)
-                   (case c
+                   (pcase c
                      (?\n "\\n")
                      (?\t "\\t")
                      (?\\ "\\\\")
                      (?\" "\\\"")
-                     (t (char-to-string c))))
+                     (_ (char-to-string c))))
                  name "")
               "\"")
     name))
@@ -289,28 +289,28 @@ matching the resulting Git log output, and KEYWORDS is a list of
   "Return a string describing the file type based on its permissions."
   (let* ((old-type (lsh (or old-perm 0) -9))
 	 (new-type (lsh (or new-perm 0) -9))
-	 (str (case new-type
+	 (str (pcase new-type
 		(?\100  ;; File.
-		 (case old-type
+		 (pcase old-type
 		   (?\100 nil)
 		   (?\120 "   (type change symlink -> file)")
 		   (?\160 "   (type change subproject -> file)")))
 		 (?\120  ;; Symlink.
-		  (case old-type
+		  (pcase old-type
 		    (?\100 "   (type change file -> symlink)")
 		    (?\160 "   (type change subproject -> symlink)")
 		    (t "   (symlink)")))
 		  (?\160  ;; Subproject.
-		   (case old-type
+		   (pcase old-type
 		     (?\100 "   (type change file -> subproject)")
 		     (?\120 "   (type change symlink -> subproject)")
 		     (t "   (subproject)")))
                   (?\110 nil)  ;; Directory (internal, not a real git state).
 		  (?\000  ;; Deleted or unknown.
-		   (case old-type
+		   (pcase old-type
 		     (?\120 "   (symlink)")
 		     (?\160 "   (subproject)")))
-		  (t (format "   (unknown type %o)" new-type)))))
+		  (_ (format "   (unknown type %o)" new-type)))))
     (cond (str (propertize str 'face 'font-lock-comment-face))
           ((eq new-type ?\110) "/")
           (t ""))))
@@ -378,18 +378,18 @@ or an empty string if none."
   "Process sentinel for the various dir-status stages."
   (let (next-stage result)
     (goto-char (point-min))
-    (case stage
-      (update-index
+    (pcase stage
+      (`update-index
        (setq next-stage (if (vc-git--empty-db-p) 'ls-files-added
                           (if files 'ls-files-up-to-date 'diff-index))))
-      (ls-files-added
+      (`ls-files-added
        (setq next-stage 'ls-files-unknown)
        (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
          (let ((new-perm (string-to-number (match-string 1) 8))
                (name (match-string 2)))
            (push (list name 'added (vc-git-create-extra-fileinfo 0 new-perm))
                  result))))
-      (ls-files-up-to-date
+      (`ls-files-up-to-date
        (setq next-stage 'diff-index)
        (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
          (let ((perm (string-to-number (match-string 1) 8))
@@ -397,18 +397,18 @@ or an empty string if none."
            (push (list name 'up-to-date
                        (vc-git-create-extra-fileinfo perm perm))
                  result))))
-      (ls-files-unknown
+      (`ls-files-unknown
        (when files (setq next-stage 'ls-files-ignored))
        (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
          (push (list (match-string 1) 'unregistered
                      (vc-git-create-extra-fileinfo 0 0))
                result)))
-      (ls-files-ignored
+      (`ls-files-ignored
        (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
          (push (list (match-string 1) 'ignored
                      (vc-git-create-extra-fileinfo 0 0))
                result)))
-      (diff-index
+      (`diff-index
        (setq next-stage 'ls-files-unknown)
        (while (re-search-forward
                ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
@@ -447,28 +447,28 @@ or an empty string if none."
 
 (defun vc-git-dir-status-goto-stage (stage files update-function)
   (erase-buffer)
-  (case stage
-    (update-index
+  (pcase stage
+    (`update-index
      (if files
          (vc-git-command (current-buffer) 'async files "add" "--refresh" "--")
        (vc-git-command (current-buffer) 'async nil
                        "update-index" "--refresh")))
-    (ls-files-added
+    (`ls-files-added
      (vc-git-command (current-buffer) 'async files
                      "ls-files" "-z" "-c" "-s" "--"))
-    (ls-files-up-to-date
+    (`ls-files-up-to-date
      (vc-git-command (current-buffer) 'async files
                      "ls-files" "-z" "-c" "-s" "--"))
-    (ls-files-unknown
+    (`ls-files-unknown
      (vc-git-command (current-buffer) 'async files
                      "ls-files" "-z" "-o" "--directory"
                      "--no-empty-directory" "--exclude-standard" "--"))
-    (ls-files-ignored
+    (`ls-files-ignored
      (vc-git-command (current-buffer) 'async files
                      "ls-files" "-z" "-o" "-i" "--directory"
                      "--no-empty-directory" "--exclude-standard" "--"))
     ;; --relative added in Git 1.5.5.
-    (diff-index
+    (`diff-index
      (vc-git-command (current-buffer) 'async files
                      "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
   (vc-exec-after

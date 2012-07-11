@@ -37,7 +37,6 @@
   "Cascading Style Sheets (CSS) editing mode."
   :group 'languages)
 
-(eval-when-compile (require 'cl))
 
 (defun css-extract-keyword-list (res)
   (with-temp-buffer

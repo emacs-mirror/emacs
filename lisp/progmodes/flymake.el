@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (if (featurep 'xemacs) (require 'overlay))
 
 (defvar flymake-is-running nil
@@ -684,7 +684,7 @@ It's flymake process filter."
 (defun flymake-er-get-line-err-info-list (err-info)
   (nth 1 err-info))
 
-(defstruct (flymake-ler
+(cl-defstruct (flymake-ler
             (:constructor nil)
             (:constructor flymake-ler-make-ler (file line type text &optional full-file)))
   file line type text full-file)

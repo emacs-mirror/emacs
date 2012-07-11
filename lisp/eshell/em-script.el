@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'eshell)
+(require 'esh-opt)
 
 ;;;###autoload
 (progn

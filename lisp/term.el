@@ -393,9 +393,7 @@
 ;; so it is important to increase it if there are protocol-relevant changes.
 (defconst term-protocol-version "0.96")
 
-(eval-when-compile
-  (require 'ange-ftp)
-  (require 'cl))
+(eval-when-compile (require 'ange-ftp))
 (require 'ring)
 (require 'ehelp)
 
@@ -3220,11 +3218,11 @@ See `term-prompt-regexp'."
 
       (when term-ansi-current-bold
         (setq term-current-face
-              (list* term-current-face :inherit 'term-bold)))
+              `(,term-current-face :inherit term-bold)))
 
       (when term-ansi-current-underline
         (setq term-current-face
-              (list* term-current-face :inherit 'term-underline)))))
+              `(,term-current-face :inherit term-underline)))))
 
   ;;	(message "Debug %S" term-current-face)
   ;; FIXME: shouldn't we set term-ansi-face-already-done to t here?  --Stef

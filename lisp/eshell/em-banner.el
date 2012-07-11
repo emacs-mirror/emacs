@@ -39,7 +39,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'esh-mode)
   (require 'eshell))
 
@@ -77,10 +77,10 @@ This can be any sexp, and should end with at least two newlines."
   ;; `insert', because `insert' doesn't know how to interact with the
   ;; I/O code used by Eshell
   (unless eshell-non-interactive-p
-    (assert eshell-mode)
-    (assert eshell-banner-message)
+    (cl-assert eshell-mode)
+    (cl-assert eshell-banner-message)
     (let ((msg (eval eshell-banner-message)))
-      (assert msg)
+      (cl-assert msg)
       (eshell-interactive-print msg))))
 
 (provide 'em-banner)

@@ -46,7 +46,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'vc)  ;; for vc-exec-after
   (require 'vc-dir))
 
@@ -102,9 +102,9 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
 `LC_MESSAGES=C' to the environment.  If BZR-COMMAND is \"status\",
 prepends `vc-bzr-status-switches' to ARGS."
   (let ((process-environment
-         (list* "BZR_PROGRESS_BAR=none" ; Suppress progress output (bzr >=0.9)
-                "LC_MESSAGES=C"         ; Force English output
-                process-environment)))
+         `("BZR_PROGRESS_BAR=none" ; Suppress progress output (bzr >=0.9)
+           "LC_MESSAGES=C"         ; Force English output
+           ,@process-environment)))
     (apply 'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
            file-or-list bzr-command
            (if (and (string-equal "status" bzr-command)
@@ -123,8 +123,8 @@ Use the current Bzr root directory as the ROOT argument to
 `vc-do-async-command', and specify an output buffer named
 \"*vc-bzr : ROOT*\".  Return this buffer."
   (let* ((process-environment
-	  (list* "BZR_PROGRESS_BAR=none" "LC_MESSAGES=C"
-		 process-environment))
+	  `("BZR_PROGRESS_BAR=none" "LC_MESSAGES=C"
+            ,@process-environment))
 	 (root (vc-bzr-root default-directory))
 	 (buffer (format "*vc-bzr : %s*" (expand-file-name root))))
     (apply 'vc-do-async-command buffer root
@@ -861,7 +861,7 @@ stream.  Standard error output is discarded."
      (apply #'process-file command nil (list (current-buffer) nil) nil args)
      (buffer-substring (point-min) (point-max)))))
 
-(defstruct (vc-bzr-extra-fileinfo
+(cl-defstruct (vc-bzr-extra-fileinfo
             (:copier nil)
             (:constructor vc-bzr-create-extra-fileinfo (extra-name))
             (:conc-name vc-bzr-extra-fileinfo->))

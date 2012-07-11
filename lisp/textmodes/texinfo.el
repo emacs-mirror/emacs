@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'tex-mode) (require 'cl))
+(eval-when-compile (require 'tex-mode))
 (defvar outline-heading-alist)
 
 (defgroup texinfo nil

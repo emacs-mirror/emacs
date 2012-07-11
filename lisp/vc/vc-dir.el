@@ -43,8 +43,7 @@
 (require 'ewoc)
 
 ;;; Code:
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defcustom vc-dir-mode-hook nil
   "Normal hook run by `vc-dir-mode'.
@@ -54,7 +53,7 @@ See `run-hooks'."
 
 ;; Used to store information for the files displayed in the directory buffer.
 ;; Each item displayed corresponds to one of these defstructs.
-(defstruct (vc-dir-fileinfo
+(cl-defstruct (vc-dir-fileinfo
             (:copier nil)
             (:type list)            ;So we can use `member' on lists of FIs.
             (:constructor
@@ -92,13 +91,13 @@ See `run-hooks'."
   (let* ;; Look for another buffer name BNAME visiting the same directory.
       ((buf (save-excursion
               (unless create-new
-                (dolist (buffer vc-dir-buffers)
+                (cl-dolist (buffer vc-dir-buffers)
                   (when (buffer-live-p buffer)
                     (set-buffer buffer)
                     (when (and (derived-mode-p 'vc-dir-mode)
                                (eq vc-dir-backend backend)
                                (string= default-directory dir))
-                      (return buffer))))))))
+                      (cl-return buffer))))))))
     (or buf
         ;; Create a new buffer named BNAME.
 	;; We pass a filename to create-file-buffer because it is what

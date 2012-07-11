@@ -56,7 +56,7 @@
 ;;; Code:
 
 (require 'unsafep)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 
 ;;----------------------------------------------------------------------------
@@ -1520,7 +1520,7 @@ if the range was altered."
 		 (funcall field (ses-sym-rowcol min))))
 	  ;; This range has changed size.
 	  (setq ses-relocate-return 'range))
-      `(ses-range ,min ,max ,@(cdddr range)))))
+      `(ses-range ,min ,max ,@(cl-cdddr range)))))
 
 (defun ses-relocate-all (minrow mincol rowincr colincr)
   "Alter all cell values, symbols, formulas, and reference-lists to relocate
@@ -3345,19 +3345,20 @@ Use `math-format-value' as a printer for Calc objects."
     (push result-row result)
     (while rest
       (let ((x (pop rest)))
-	(case x
-	  ((>v) (setq transpose nil reorient-x nil reorient-y nil))
-	  ((>^)(setq transpose nil reorient-x nil reorient-y t))
-	  ((<^)(setq transpose nil reorient-x t reorient-y t))
-	  ((<v)(setq transpose nil reorient-x t reorient-y nil))
-	  ((v>)(setq transpose t reorient-x nil reorient-y t))
-	  ((^>)(setq transpose t reorient-x nil reorient-y nil))
-	  ((^<)(setq transpose t reorient-x t reorient-y nil))
-	  ((v<)(setq transpose t reorient-x t reorient-y t))
-	  ((* *2 *1) (setq vectorize x))
-	  ((!) (setq clean 'ses--clean-!))
-	  ((_) (setq clean `(lambda (&rest x) (ses--clean-_  x ,(if rest (pop rest) 0)))))
-	  (t
+	(pcase x
+	  (`>v (setq transpose nil reorient-x nil reorient-y nil))
+	  (`>^ (setq transpose nil reorient-x nil reorient-y t))
+	  (`<^ (setq transpose nil reorient-x t reorient-y t))
+	  (`<v (setq transpose nil reorient-x t reorient-y nil))
+	  (`v> (setq transpose t reorient-x nil reorient-y t))
+	  (`^> (setq transpose t reorient-x nil reorient-y nil))
+	  (`^< (setq transpose t reorient-x t reorient-y nil))
+	  (`v< (setq transpose t reorient-x t reorient-y t))
+	  ((or `* `*2 `*1) (setq vectorize x))
+	  (`! (setq clean 'ses--clean-!))
+	  (`_ (setq clean `(lambda (&rest x)
+                             (ses--clean-_  x ,(if rest (pop rest) 0)))))
+	  (_
 	   (cond
 					; shorthands one row
 	    ((and (null (cddr result)) (memq x '(> <)))
@@ -3389,14 +3390,14 @@ Use `math-format-value' as a printer for Calc objects."
                                  (mapcar (lambda (x)
                                            (cons  clean (cons (quote 'vec) x)))
                                          result)))))
-      (case vectorize
-	((nil) (cons clean (apply 'append result)))
-	((*1) (vectorize-*1 clean result))
-	((*2) (vectorize-*2 clean result))
-	((*) (funcall (if (cdr result)
-                          #'vectorize-*2
-                        #'vectorize-*1)
-                      clean result))))))
+      (pcase vectorize
+	(`nil (cons clean (apply 'append result)))
+	(`*1 (vectorize-*1 clean result))
+	(`*2 (vectorize-*2 clean result))
+	(`* (funcall (if (cdr result)
+                         #'vectorize-*2
+                       #'vectorize-*1)
+                     clean result))))))
 
 (defun ses-delete-blanks (&rest args)
   "Return ARGS reversed, with the blank elements (nil and *skip*) removed."

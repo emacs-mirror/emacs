@@ -111,7 +111,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'vc)
   (require 'vc-dir))
 
@@ -485,7 +485,7 @@ REV is the revision to check out into WORKFILE."
 
 (defvar log-view-vc-backend)
 
-(defstruct (vc-hg-extra-fileinfo
+(cl-defstruct (vc-hg-extra-fileinfo
             (:copier nil)
             (:constructor vc-hg-create-extra-fileinfo (rename-state extra-name))
             (:conc-name vc-hg-extra-fileinfo->))
@@ -501,10 +501,10 @@ REV is the revision to check out into WORKFILE."
     (when extra
       (insert (propertize
                (format "   (%s %s)"
-                       (case (vc-hg-extra-fileinfo->rename-state extra)
-                         (copied "copied from")
-                         (renamed-from "renamed from")
-                         (renamed-to "renamed to"))
+                       (pcase (vc-hg-extra-fileinfo->rename-state extra)
+                         (`copied "copied from")
+                         (`renamed-from "renamed from")
+                         (`renamed-to "renamed to"))
                        (vc-hg-extra-fileinfo->extra-name extra))
                'face 'font-lock-comment-face)))))
 

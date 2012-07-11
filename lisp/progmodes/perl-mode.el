@@ -102,7 +102,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 
 (defvar font-lock-comment-face)
 (defvar font-lock-doc-face)

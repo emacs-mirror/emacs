@@ -435,7 +435,7 @@
 
 (eval-when-compile			; to avoid compiler warnings
   (require 'dired)
-  (require 'cl)
+  (require 'cl-lib)
   (require 'apropos))
 
 (defun woman-mapcan (fn x)
@@ -3924,7 +3924,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 (defun woman2-process-escapes (to &optional numeric)
   "Process remaining escape sequences up to marker TO, preserving point.
 Optional argument NUMERIC, if non-nil, means the argument is numeric."
-  (assert (and (markerp to) (marker-insertion-type to)))
+  (cl-assert (and (markerp to) (marker-insertion-type to)))
   ;; The first two cases below could be merged (maybe)!
   (let ((from (point)))
     ;; Discard zero width filler character used to hide leading dots

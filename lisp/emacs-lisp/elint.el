@@ -466,6 +466,9 @@ Return nil if there are no more forms, t otherwise."
 	(add-to-list 'elint-features name)
 	;; cl loads cl-macs in an opaque manner.
 	;; Since cl-macs requires cl, we can just process cl-macs.
+        ;; FIXME: AFAIK, `cl' now behaves properly and does not need any
+        ;; special treatment any more.  Can someone who understands this
+        ;; code confirm?  --Stef
 	(and (eq name 'cl) (not elint-doing-cl)
 	     ;; We need cl if elint-form is to be able to expand cl macros.
 	     (require 'cl)

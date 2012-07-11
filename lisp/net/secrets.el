@@ -142,8 +142,7 @@
 ;; Pacify byte-compiler.  D-Bus support in the Emacs core can be
 ;; disabled with configuration option "--without-dbus".  Declare used
 ;; subroutines and variables of `dbus' therefore.
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar dbus-debug)
 
@@ -648,7 +647,7 @@ If there is no such item, return nil."
   (let ((item-path (secrets-item-path collection item)))
     (unless (secrets-empty-path item-path)
       (dbus-byte-array-to-string
-       (caddr
+       (cl-caddr
 	(dbus-call-method
 	 :session secrets-service item-path secrets-interface-item
 	 "GetSecret" :object-path secrets-session-path))))))

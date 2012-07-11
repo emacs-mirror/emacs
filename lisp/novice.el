@@ -33,8 +33,6 @@
 ;; The command is found in this-command
 ;; and the keys are returned by (this-command-keys).
 
-(eval-when-compile (require 'cl))
-
 ;;;###autoload
 (define-obsolete-variable-alias 'disabled-command-hook
   'disabled-command-function "22.1")
@@ -101,7 +99,7 @@ SPC to try the command just this once, but leave it disabled.
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (setq char (downcase char))
-    (case char
+    (pcase char
      (?\C-g (setq quit-flag t))
      (?! (setq disabled-command-function nil))
      (?y

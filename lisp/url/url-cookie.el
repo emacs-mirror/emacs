@@ -27,7 +27,7 @@
 (require 'url-parse)
 (require 'url-domsuf)
 
-(eval-when-compile (require 'cl))	; defstruct
+(eval-when-compile (require 'cl-lib))
 
 (defgroup url-cookie nil
   "URL cookies."
@@ -38,7 +38,7 @@
 ;; A cookie is stored internally as a vector of 7 slots
 ;; [ url-cookie NAME VALUE EXPIRES LOCALPART DOMAIN SECURE ]
 
-(defstruct (url-cookie
+(cl-defstruct (url-cookie
             (:constructor url-cookie-create)
             (:copier nil)
             (:type vector)

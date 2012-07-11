@@ -64,7 +64,7 @@
 ;; (defconst pcase--memoize-1 (make-hash-table :test 'eq))
 ;; (defconst pcase--memoize-2 (make-hash-table :weakness 'key :test 'equal))
 
-(defconst pcase--dontcare-upats '(t _ dontcare))
+(defconst pcase--dontcare-upats '(t _ pcase--dontcare))
 
 (def-edebug-spec
   pcase-UPAT
@@ -154,11 +154,12 @@ like `(,a . ,(pred (< a))) or, with more checks:
       (pcase--expand
        (cadr binding)
        `((,(car binding) ,(pcase--let* bindings body))
-         ;; We can either signal an error here, or just use `dontcare' which
-         ;; generates more efficient code.  In practice, if we use `dontcare'
-         ;; we will still often get an error and the few cases where we don't
-         ;; do not matter that much, so it's a better choice.
-         (dontcare nil)))))))
+         ;; We can either signal an error here, or just use `pcase--dontcare'
+         ;; which generates more efficient code.  In practice, if we use
+         ;; `pcase--dontcare' we will still often get an error and the few
+         ;; cases where we don't do not matter that much, so
+         ;; it's a better choice.
+         (pcase--dontcare nil)))))))
 
 ;;;###autoload
 (defmacro pcase-let* (bindings &rest body)
@@ -275,7 +276,7 @@ of the form (UPAT EXP)."
                              vars))))
                      cases))))
       (dolist (case cases)
-        (unless (or (memq case used-cases) (eq (car case) 'dontcare))
+        (unless (or (memq case used-cases) (eq (car case) 'pcase--dontcare))
           (message "Redundant pcase pattern: %S" (car case))))
       (macroexp-let* defs main))))
 
@@ -575,7 +576,7 @@ Otherwise, it defers to REST which is a list of branches of the form
            (upat (cdr cdrpopmatches)))
       (cond
        ((memq upat '(t _)) (pcase--u1 matches code vars rest))
-       ((eq upat 'dontcare) :pcase--dontcare)
+       ((eq upat 'pcase--dontcare) :pcase--dontcare)
        ((memq (car-safe upat) '(guard pred))
         (if (eq (car upat) 'pred) (put sym 'pcase-used t))
         (let* ((splitrest

@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defvar tvi970-terminal-map
   (let ((map (make-sparse-keymap)))
 

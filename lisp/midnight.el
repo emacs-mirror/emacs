@@ -36,8 +36,7 @@
 
 ;;; Code:
 
-(eval-when-compile
- (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup midnight nil
   "Run something every day at midnight."
@@ -138,9 +137,9 @@ two lists will NOT be killed if it also matches anything in this list."
 
 (defun midnight-find (el ls test &optional key)
   "A stopgap solution to the absence of `find' in ELisp."
-  (dolist (rr ls)
+  (cl-dolist (rr ls)
     (when (funcall test (if key (funcall key rr) rr) el)
-      (return rr))))
+      (cl-return rr))))
 
 (defun clean-buffer-list-delay (name)
   "Return the delay, in seconds, before killing a buffer named NAME.
@@ -196,8 +195,7 @@ The default value is `clean-buffer-list'."
 
 (defun midnight-next ()
   "Return the number of seconds till the next midnight."
-  (multiple-value-bind (sec min hrs)
-      (values-list (decode-time))
+  (pcase-let ((`(,sec ,min ,hrs) (decode-time)))
     (- (* 24 60 60) (* 60 60 hrs) (* 60 min) sec)))
 
 ;;;###autoload
@@ -205,8 +203,8 @@ The default value is `clean-buffer-list'."
   "Modify `midnight-timer' according to `midnight-delay'.
 Sets the first argument SYMB (which must be symbol `midnight-delay')
 to its second argument TM."
-  (assert (eq symb 'midnight-delay) t
-          "Invalid argument to `midnight-delay-set': `%s'")
+  (cl-assert (eq symb 'midnight-delay) t
+             "Invalid argument to `midnight-delay-set': `%s'")
   (set symb tm)
   (when (timerp midnight-timer) (cancel-timer midnight-timer))
   (setq midnight-timer

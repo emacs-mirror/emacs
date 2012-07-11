@@ -30,8 +30,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Customization Variables (the rest is in vc.el)
 
@@ -311,7 +310,7 @@ non-nil if FILE exists and its contents were successfully inserted."
       (let ((filepos 0))
         (while
 	    (and (< 0 (cadr (insert-file-contents
-			     file nil filepos (incf filepos blocksize))))
+			     file nil filepos (cl-incf filepos blocksize))))
 		 (progn (beginning-of-line)
                         (let ((pos (re-search-forward limit nil 'move)))
                           (when pos (delete-region (match-beginning 0)
@@ -561,7 +560,7 @@ Return non-nil if FILE is unchanged."
             (if (or (not (eq (cadr err)
                              (indirect-function
                               (vc-find-backend-function backend 'diff))))
-                    (not (eq (caddr err) 4)))
+                    (not (eq (cl-caddr err) 4)))
                 (signal (car err) (cdr err))
               (vc-call-backend backend 'diff (list file)))))))
 

@@ -624,7 +624,7 @@ Key values are compared by `eql'.
 
 ;;;###autoload
 (defmacro cl-ecase (expr &rest clauses)
-  "Like `cl-case', but error if no cl-case fits.
+  "Like `cl-case', but error if no case fits.
 `otherwise'-clauses are not allowed.
 \n(fn EXPR (KEYLIST BODY...)...)"
   (declare (indent 1) (debug cl-case))
@@ -1482,7 +1482,8 @@ Then evaluate RESULT to get return value, default nil.
 An implicit nil block is established around the loop.
 
 \(fn (VAR LIST [RESULT]) BODY...)"
-  (declare (debug ((symbolp form &optional form) cl-declarations body)))
+  (declare (debug ((symbolp form &optional form) cl-declarations body))
+           (indent 1))
   `(cl-block nil
      (,(if (eq 'cl-dolist (symbol-function 'dolist)) 'cl--dolist 'dolist)
       ,spec ,@body)))
@@ -1495,7 +1496,7 @@ to COUNT, exclusive.  Then evaluate RESULT to get return value, default
 nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
-  (declare (debug cl-dolist))
+  (declare (debug cl-dolist) (indent 1))
   `(cl-block nil
      (,(if (eq 'cl-dotimes (symbol-function 'dotimes)) 'cl--dotimes 'dotimes)
       ,spec ,@body)))
@@ -1546,10 +1547,19 @@ second list (or made unbound if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time."
   (declare (indent 2) (debug (form form body)))
-  `(let ((cl--progv-save nil))
-     (unwind-protect
-         (progn (cl--progv-before ,symbols ,values) ,@body)
-       (cl--progv-after))))
+  (let ((bodyfun (make-symbol "body"))
+        (binds (make-symbol "binds"))
+        (syms (make-symbol "syms"))
+        (vals (make-symbol "vals")))
+    `(progn
+       (defvar ,bodyfun)
+       (let* ((,syms ,symbols)
+              (,vals ,values)
+              (,bodyfun (lambda () ,@body))
+              (,binds ()))
+         (while ,syms
+           (push (list (pop ,syms) (list 'quote (pop ,vals))) ,binds))
+         (eval (list 'let ,binds '(funcall ,bodyfun)))))))
 
 (defvar cl--labels-convert-cache nil)
 
@@ -1600,7 +1610,7 @@ Like `cl-labels' but the definitions are not recursive.
 Like `cl-flet' but the definitions can refer to previous ones.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
-  (declare (indent 1) (debug ((&rest (cl-defun)) cl-declarations body)))
+  (declare (indent 1) (debug cl-flet))
   (cond
    ((null bindings) (macroexp-progn body))
    ((null (cdr bindings)) `(cl-flet ,bindings ,@body))
@@ -1609,7 +1619,8 @@ Like `cl-flet' but the definitions can refer to previous ones.
 ;;;###autoload
 (defmacro cl-labels (bindings &rest body)
   "Make temporary function bindings.
-The bindings can be recursive.  Assumes the use of `lexical-binding'.
+The bindings can be recursive and the scoping is lexical, but capturing them
+in closures will only work if `lexical-binding' is in use.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
@@ -1910,6 +1921,86 @@ Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
       (gv-letplace (getter setter) (car places)
 	(macroexp-let* `((,temp ,getter))
                        `(progn ,(funcall setter form) nil))))))
+
+;; FIXME: `letf' is unsatisfactory because it does not really "restore" the
+;; previous state.  If the getter/setter loses information, that info is
+;; not recovered.
+
+(defun cl--letf (bindings simplebinds binds body)
+  ;; It's not quite clear what the semantics of cl-letf should be.
+  ;; E.g. in (cl-letf ((PLACE1 VAL1) (PLACE2 VAL2)) BODY), while it's clear
+  ;; that the actual assignments ("bindings") should only happen after
+  ;; evaluating VAL1 and VAL2, it's not clear when the sub-expressions of
+  ;; PLACE1 and PLACE2 should be evaluated.  Should we have
+  ;;    PLACE1; VAL1; PLACE2; VAL2; bind1; bind2
+  ;; or
+  ;;    VAL1; VAL2; PLACE1; PLACE2; bind1; bind2
+  ;; or
+  ;;    VAL1; VAL2; PLACE1; bind1; PLACE2; bind2
+  ;; Common-Lisp's `psetf' does the first, so we'll do the same.
+  (if (null bindings)
+      (if (and (null binds) (null simplebinds)) (macroexp-progn body)
+        `(let* (,@(mapcar (lambda (x)
+                            (pcase-let ((`(,vold ,getter ,_setter ,_vnew) x))
+                              (list vold getter)))
+                          binds)
+                ,@simplebinds)
+           (unwind-protect
+               ,(macroexp-progn
+                 (append
+                  (delq nil
+                        (mapcar (lambda (x)
+                                  (pcase x
+                                    ;; If there's no vnew, do nothing.
+                                    (`(,_vold ,_getter ,setter ,vnew)
+                                     (funcall setter vnew))))
+                                binds))
+                  body))
+             ,@(mapcar (lambda (x)
+                         (pcase-let ((`(,vold ,_getter ,setter ,_vnew) x))
+                           (funcall setter vold)))
+                       binds))))
+    (let ((binding (car bindings)))
+      (gv-letplace (getter setter) (car binding)
+        (macroexp-let2 nil vnew (cadr binding)
+          (if (symbolp (car binding))
+              ;; Special-case for simple variables.
+              (cl--letf (cdr bindings)
+                        (cons `(,getter ,(if (cdr binding) vnew getter))
+                              simplebinds)
+                        binds body)
+            (cl--letf (cdr bindings) simplebinds
+                      (cons `(,(make-symbol "old") ,getter ,setter
+                              ,@(if (cdr binding) (list vnew)))
+                            binds)
+                      body)))))))
+
+;;;###autoload
+(defmacro cl-letf (bindings &rest body)
+  "Temporarily bind to PLACEs.
+This is the analogue of `let', but with generalized variables (in the
+sense of `setf') for the PLACEs.  Each PLACE is set to the corresponding
+VALUE, then the BODY forms are executed.  On exit, either normally or
+because of a `throw' or error, the PLACEs are set back to their original
+values.  Note that this macro is *not* available in Common Lisp.
+As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
+the PLACE is not modified before executing BODY.
+
+\(fn ((PLACE VALUE) ...) BODY...)"
+  (declare (indent 1) (debug ((&rest (gate gv-place &optional form)) body)))
+  (if (and (not (cdr bindings)) (cdar bindings) (symbolp (caar bindings)))
+      `(let ,bindings ,@body)
+    (cl--letf bindings () () body)))
+
+;;;###autoload
+(defmacro cl-letf* (bindings &rest body)
+  "Temporarily bind to PLACEs.
+Like `cl-letf' but where the bindings are performed one at a time,
+rather than all at the end (i.e. like `let*' rather than like `let')."
+  (declare (indent 1) (debug cl-letf))
+  (dolist (binding (reverse bindings))
+    (setq body (list `(cl-letf (,binding) ,@body))))
+  (macroexp-progn body))
 
 ;;;###autoload
 (defmacro cl-callf (func place &rest args)

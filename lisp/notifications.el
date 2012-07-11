@@ -34,9 +34,6 @@
 ;; active D-Bus session bus.
 
 ;;; Code:
-(eval-when-compile
-  (require 'cl))
-
 (require 'dbus)
 
 (defconst notifications-specification-version "1.2"
@@ -226,10 +223,10 @@ of another `notifications-notify' call."
     (when urgency
       (add-to-list 'hints `(:dict-entry
                             "urgency"
-                            (:variant :byte ,(case urgency
-                                               (low 0)
-                                               (critical 2)
-                                               (t 1)))) t))
+                            (:variant :byte ,(pcase urgency
+                                               (`low 0)
+                                               (`critical 2)
+                                               (_ 1)))) t))
     (when category
       (add-to-list 'hints `(:dict-entry
                             "category"

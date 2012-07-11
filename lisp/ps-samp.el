@@ -251,8 +251,6 @@
 ;; * CUPS has enabled the option "Share published printers connected
 ;;   to this system" (see <http://localhost:631/admin>).
 
-(eval-when-compile
-  (require 'cl))
 
 (require 'printing)
 (require 'zeroconf)

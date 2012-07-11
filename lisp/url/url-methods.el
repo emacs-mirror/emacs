@@ -23,9 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
 ;; This loads up some of the small, silly URLs that I really don't
 ;; want to bother putting in their own separate files.
 (require 'url-parse)
@@ -134,17 +131,17 @@ it has not already been loaded."
 		  (let ((symbol (intern-soft (format "%s-%s" stub (car cell))))
 			(type (cdr cell)))
 		    (if symbol
-			(case type
-			  (function
+			(pcase type
+			  (`function
 			   ;; Store the symbol name of a function
 			   (if (fboundp symbol)
 			       (setq desc (plist-put desc (car cell) symbol))))
-			  (variable
+			  (`variable
 			   ;; Store the VALUE of a variable
 			   (if (boundp symbol)
 			       (setq desc (plist-put desc (car cell)
 						     (symbol-value symbol)))))
-			  (otherwise
+			  (_
 			   (error "Malformed url-scheme-methods entry: %S"
 				  cell))))))
 		(puthash scheme desc url-scheme-registry)))))

@@ -29,8 +29,7 @@
 (require 'vc)
 
 ;;; Code:
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defcustom vc-annotate-display-mode 'fullscale
   "Which mode to color the output of \\[vc-annotate] with by default."
@@ -195,7 +194,7 @@ The current time is used as the offset."
   (let ((bol (point))
         (date (vc-call-backend vc-annotate-backend 'annotate-time))
         (inhibit-read-only t))
-    (assert (>= (point) bol))
+    (cl-assert (>= (point) bol))
     (put-text-property bol (point) 'invisible 'vc-annotate-annotation)
     date))
 

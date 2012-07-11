@@ -180,7 +180,7 @@
 ;;; Requirements and provisions...
 
 (autoload 'mail-position-on-field "sendmail")
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;; Constants...
 
@@ -542,10 +542,10 @@ The return value is a list ((XMIN . YMIN) (XMAX . YMAX))."
 (defun strokes-eliminate-consecutive-redundancies (entries)
   "Return a list with no consecutive redundant entries."
   ;; defun a grande vitesse grace a Dave G.
-  (loop for element on entries
-        if (not (equal (car element) (cadr element)))
-        collect (car element)))
-;;  (loop for element on entries
+  (cl-loop for element on entries
+           if (not (equal (car element) (cadr element)))
+           collect (car element)))
+;;  (cl-loop for element on entries
 ;;        nconc (if (not (equal (car el) (cadr el)))
 ;;                  (list (car el)))))
 ;; yet another (orig) way of doing it...
@@ -584,68 +584,70 @@ NOTE: This is where the global variable `strokes-last-stroke' is set."
 	(if (and (strokes-click-p unfilled-stroke)
 		 (not force))
 	    unfilled-stroke
-	  (loop for grid-locs on unfilled-stroke
-		nconc (let* ((current (car grid-locs))
-			     (current-is-a-point-p (consp current))
-			     (next (cadr grid-locs))
-			     (next-is-a-point-p (consp next))
-			     (both-are-points-p (and current-is-a-point-p
-						     next-is-a-point-p))
-			     (x1 (and current-is-a-point-p
-				      (car current)))
-			     (y1 (and current-is-a-point-p
-				      (cdr current)))
-			     (x2 (and next-is-a-point-p
-				      (car next)))
-			     (y2 (and next-is-a-point-p
-				      (cdr next)))
-			     (delta-x (and both-are-points-p
-					   (- x2 x1)))
-			     (delta-y (and both-are-points-p
-					   (- y2 y1)))
-			     (slope (and both-are-points-p
-					 (if (zerop delta-x)
-					     nil ; undefined vertical slope
-					   (/ (float delta-y)
-					      delta-x)))))
-			(cond ((not both-are-points-p)
-			       (list current))
-			      ((null slope) ; undefined vertical slope
-			       (if (>= delta-y 0)
-				   (loop for y from y1 below y2
-					 collect (cons x1 y))
-				 (loop for y from y1 above y2
-				       collect (cons x1 y))))
-			      ((zerop slope) ; (= y1 y2)
-			       (if (>= delta-x 0)
-				   (loop for x from x1 below x2
-					 collect (cons x y1))
-				 (loop for x from x1 above x2
-				       collect (cons x y1))))
-			      ((>= (abs delta-x) (abs delta-y))
-			       (if (> delta-x 0)
-				   (loop for x from x1 below x2
-					 collect (cons x
-						       (+ y1
-							  (round (* slope
-								    (- x x1))))))
-				 (loop for x from x1 above x2
-				       collect (cons x
-						     (+ y1
-							(round (* slope
-								  (- x x1))))))))
-			      (t	; (< (abs delta-x) (abs delta-y))
-			       (if (> delta-y 0)
-				   (loop for y from y1 below y2
-					 collect (cons (+ x1
-							  (round (/ (- y y1)
-								    slope)))
-						       y))
-				 (loop for y from y1 above y2
-				       collect (cons (+ x1
-							(round (/ (- y y1)
-								  slope)))
-						     y))))))))))
+	  (cl-loop
+           for grid-locs on unfilled-stroke
+           nconc (let* ((current (car grid-locs))
+                        (current-is-a-point-p (consp current))
+                        (next (cadr grid-locs))
+                        (next-is-a-point-p (consp next))
+                        (both-are-points-p (and current-is-a-point-p
+                                                next-is-a-point-p))
+                        (x1 (and current-is-a-point-p
+                                 (car current)))
+                        (y1 (and current-is-a-point-p
+                                 (cdr current)))
+                        (x2 (and next-is-a-point-p
+                                 (car next)))
+                        (y2 (and next-is-a-point-p
+                                 (cdr next)))
+                        (delta-x (and both-are-points-p
+                                      (- x2 x1)))
+                        (delta-y (and both-are-points-p
+                                      (- y2 y1)))
+                        (slope (and both-are-points-p
+                                    (if (zerop delta-x)
+                                        nil ; undefined vertical slope
+                                      (/ (float delta-y)
+                                         delta-x)))))
+                   (cond ((not both-are-points-p)
+                          (list current))
+                         ((null slope)  ; undefined vertical slope
+                          (if (>= delta-y 0)
+                              (cl-loop for y from y1 below y2
+                                       collect (cons x1 y))
+                            (cl-loop for y from y1 above y2
+                                     collect (cons x1 y))))
+                         ((zerop slope) ; (= y1 y2)
+                          (if (>= delta-x 0)
+                              (cl-loop for x from x1 below x2
+                                       collect (cons x y1))
+                            (cl-loop for x from x1 above x2
+                                     collect (cons x y1))))
+                         ((>= (abs delta-x) (abs delta-y))
+                          (if (> delta-x 0)
+                              (cl-loop for x from x1 below x2
+                                       collect (cons x
+                                                     (+ y1
+                                                        (round (* slope
+                                                                  (- x x1))))))
+                            (cl-loop for x from x1 above x2
+                                     collect (cons x
+                                                   (+ y1
+                                                      (round (* slope
+                                                                (- x x1))))))))
+                         (t             ; (< (abs delta-x) (abs delta-y))
+                          (if (> delta-y 0)
+                              ;; FIXME: Reduce redundancy between branches.
+                              (cl-loop for y from y1 below y2
+                                       collect (cons (+ x1
+                                                        (round (/ (- y y1)
+                                                                  slope)))
+                                                     y))
+                            (cl-loop for y from y1 above y2
+                                     collect (cons (+ x1
+                                                      (round (/ (- y y1)
+                                                                slope)))
+                                                   y))))))))))
 
 (defun strokes-rate-stroke (stroke1 stroke2)
   "Rates STROKE1 with STROKE2 and return a score based on a distance metric.
@@ -723,9 +725,9 @@ Returns the corresponding match as (COMMAND . SCORE)."
 (defsubst strokes-fill-current-buffer-with-whitespace ()
   "Erase the contents of the current buffer and fill it with whitespace."
   (erase-buffer)
-  (loop repeat (frame-height) do
-	(insert-char ?\s (1- (frame-width)))
-	(newline))
+  (cl-loop repeat (frame-height) do
+           (insert-char ?\s (1- (frame-width)))
+           (newline))
   (goto-char (point-min)))
 
 ;;;###autoload
@@ -1173,40 +1175,40 @@ the stroke as a character in some language."
       (set-buffer buf)
       (erase-buffer)
       (insert strokes-xpm-header)
-      (loop repeat 33 do
-	    (insert ?\")
-	    (insert-char ?\s 33)
-	    (insert "\",")
-	    (newline)
-	    finally
-	    (forward-line -1)
-	    (end-of-line)
-	    (insert "}\n"))
-      (loop for point in stroke
-	    for x = (car-safe point)
-	    for y = (cdr-safe point) do
-	    (cond ((consp point)
-		   ;; draw a point, and possibly a starting-point
-		   (if (and lift-flag (not b/w-only))
-		       ;; mark starting point with the appropriate color
-		       (let ((char (or (car rainbow-chars) ?\.)))
-			 (loop for i from 0 to 2 do
-			       (loop for j from 0 to 2 do
-				     (goto-char (point-min))
-				     (forward-line (+ 15 i y))
-				     (forward-char (+ 1 j x))
-				     (delete-char 1)
-				     (insert char)))
-			 (setq rainbow-chars (cdr rainbow-chars)
-			       lift-flag nil))
-		     ;; Otherwise, just plot the point...
-		     (goto-char (point-min))
-		     (forward-line (+ 16 y))
-		     (forward-char (+ 2 x))
-		     (subst-char-in-region (point) (1+ (point)) ?\s ?\*)))
-		  ((strokes-lift-p point)
-		   ;; a lift--tell the loop to X out the next point...
-		   (setq lift-flag t))))
+      (cl-loop repeat 33 do
+               (insert ?\")
+               (insert-char ?\s 33)
+               (insert "\",")
+               (newline)
+               finally
+               (forward-line -1)
+               (end-of-line)
+               (insert "}\n"))
+      (cl-loop for point in stroke
+               for x = (car-safe point)
+               for y = (cdr-safe point) do
+               (cond ((consp point)
+                      ;; draw a point, and possibly a starting-point
+                      (if (and lift-flag (not b/w-only))
+                          ;; mark starting point with the appropriate color
+                          (let ((char (or (car rainbow-chars) ?\.)))
+                            (cl-loop for i from 0 to 2 do
+                                     (cl-loop for j from 0 to 2 do
+                                              (goto-char (point-min))
+                                              (forward-line (+ 15 i y))
+                                              (forward-char (+ 1 j x))
+                                              (delete-char 1)
+                                              (insert char)))
+                            (setq rainbow-chars (cdr rainbow-chars)
+                                  lift-flag nil))
+                        ;; Otherwise, just plot the point...
+                        (goto-char (point-min))
+                        (forward-line (+ 16 y))
+                        (forward-char (+ 2 x))
+                        (subst-char-in-region (point) (1+ (point)) ?\s ?\*)))
+                     ((strokes-lift-p point)
+                      ;; a lift--tell the loop to X out the next point...
+                      (setq lift-flag t))))
       (when (called-interactively-p 'interactive)
 	(pop-to-buffer " *strokes-xpm*")
 	;;	(xpm-mode 1)
@@ -1288,7 +1290,7 @@ the stroke as a character in some language."
 ;;  (insert
 ;;   "Command                                     Stroke\n"
 ;;   "-------                                     ------")
-;;  (loop for def in strokes-map
+;;  (cl-loop for def in strokes-map
 ;;	for i from 0 to (1- (length strokes-map)) do
 ;;	(let ((stroke (car def))
 ;;	      (command-name (symbol-name (cdr def))))
@@ -1343,27 +1345,28 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
     (insert
      "Command                                     Stroke\n"
      "-------                                     ------")
-    (loop for def in strokes-map do
-	  (let ((stroke (car def))
-		(command-name (if (symbolp (cdr def))
-				  (symbol-name (cdr def))
-				(prin1-to-string (cdr def)))))
-	    (strokes-xpm-for-stroke stroke " *strokes-xpm*")
-	    (newline 2)
-	    (insert-char ?\s 45)
-	    (beginning-of-line)
-	    (insert command-name)
-	    (beginning-of-line)
-	    (forward-char 45)
-	    (insert-image
-	     (create-image (with-current-buffer " *strokes-xpm*"
-			     (buffer-string))
-			   'xpm t
-			   :color-symbols
-			   `(("foreground"
-			      . ,(frame-parameter nil 'foreground-color))))))
-	  finally do (unless (eobp)
-		       (kill-region (1+ (point)) (point-max))))
+    (cl-loop
+     for def in strokes-map do
+     (let ((stroke (car def))
+           (command-name (if (symbolp (cdr def))
+                             (symbol-name (cdr def))
+                           (prin1-to-string (cdr def)))))
+       (strokes-xpm-for-stroke stroke " *strokes-xpm*")
+       (newline 2)
+       (insert-char ?\s 45)
+       (beginning-of-line)
+       (insert command-name)
+       (beginning-of-line)
+       (forward-char 45)
+       (insert-image
+        (create-image (with-current-buffer " *strokes-xpm*"
+                        (buffer-string))
+                      'xpm t
+                      :color-symbols
+                      `(("foreground"
+                         . ,(frame-parameter nil 'foreground-color))))))
+     finally do (unless (eobp)
+                  (kill-region (1+ (point)) (point-max))))
     (view-buffer "*Strokes List*" nil)
     (set (make-local-variable 'view-mode-map)
 	 (let ((map (copy-keymap view-mode-map)))
@@ -1588,7 +1591,7 @@ XPM-BUFFER defaults to ` *strokes-xpm*'."
 		   ;; yet another of the same bit-type, so we continue
 		   ;; counting...
 		   (progn
-		     (incf count)
+		     (cl-incf count)
 		     (forward-char 1))
 		 ;; otherwise, it's the opposite bit-type, so we do a
 		 ;; write and then restart count ### NOTE (for myself
@@ -1727,10 +1730,10 @@ Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
 	(delete-char 1)
 	(setq current-char-is-on-p (not current-char-is-on-p)))
       (goto-char (point-min))
-      (loop repeat 33 do
-	    (insert ?\")
-	    (forward-char 33)
-	    (insert "\",\n"))
+      (cl-loop repeat 33 do
+               (insert ?\")
+               (forward-char 33)
+               (insert "\",\n"))
       (goto-char (point-min))
       (insert strokes-xpm-header))))
 

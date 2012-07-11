@@ -38,7 +38,7 @@
 ;;;
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'vc))
 
 (defgroup vc-rcs nil
@@ -705,17 +705,17 @@ Optional arg REVISION is a revision to annotate from."
           (goto-char (point-min))
           (forward-line (1- (pop insn)))
           (setq p (point))
-          (case (pop insn)
-            (k (setq s (buffer-substring-no-properties
-                        p (progn (forward-line (car insn))
-                                 (point))))
-               (when prda
-                 (push `(,p . ,(propertize s :vc-rcs-r/d/a prda)) path))
-               (delete-region p (point)))
-            (i (setq s (car insn))
-               (when prda
-                 (push `(,p . ,(length s)) path))
-               (insert s)))))
+          (pcase (pop insn)
+            (`k (setq s (buffer-substring-no-properties
+                         p (progn (forward-line (car insn))
+                                  (point))))
+                (when prda
+                  (push `(,p . ,(propertize s :vc-rcs-r/d/a prda)) path))
+                (delete-region p (point)))
+            (`i (setq s (car insn))
+                (when prda
+                  (push `(,p . ,(length s)) path))
+                (insert s)))))
       ;; For the initial revision, setting `:vc-rcs-r/d/a' directly is
       ;; equivalent to pushing an insert instruction (of the entire buffer
       ;; contents) onto `path' then erasing the buffer, but less wasteful.
@@ -737,14 +737,14 @@ Optional arg REVISION is a revision to annotate from."
                  (dolist (insn (cdr (assq :insn meta)))
                    (goto-char (point-min))
                    (forward-line (1- (pop insn)))
-                   (case (pop insn)
-                     (k (delete-region
-                         (point) (progn (forward-line (car insn))
-                                        (point))))
-                     (i (insert (propertize
-                                 (car insn)
-                                 :vc-rcs-r/d/a
-                                 (or prda (setq prda (r/d/a))))))))
+                   (pcase (pop insn)
+                     (`k (delete-region
+                          (point) (progn (forward-line (car insn))
+                                         (point))))
+                     (`i (insert (propertize
+                                  (car insn)
+                                  :vc-rcs-r/d/a
+                                  (or prda (setq prda (r/d/a))))))))
                  (prog1 (not (string= (if nbls (caar nbls) revision) pre))
                    (setq pre (cdr (assq 'next meta)))))))))
   ;; Lastly, for each line, insert at bol nicely-formatted history info.
@@ -1461,7 +1461,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                         start (read (current-buffer))
                         act (read (current-buffer)))
                   (forward-char 1)
-                  (push (case cmd
+                  (push (pcase cmd
                           (?d
                            ;; `d' means "delete lines".
                            ;; For Emacs spirit, we use `k' for "kill".
@@ -1475,7 +1475,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                            `(,(1+ start) i
                              ,(funcall sub (point) (progn (forward-line act)
                                                           (point)))))
-                          (t (error "Bad command `%c' in `text' for rev `%s'"
+                          (_ (error "Bad command `%c' in `text' for rev `%s'"
                                     cmd context)))
                         acc))
                 (goto-char (1+ e))

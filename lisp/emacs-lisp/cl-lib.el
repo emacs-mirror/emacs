@@ -230,12 +230,13 @@ one value."
   "Apply FUNCTION to ARGUMENTS, taking multiple values into account.
 This implementation only handles the case where there is only one argument.")
 
-(defsubst cl-nth-value (n expression)
+(cl--defalias 'cl-nth-value #'nth
   "Evaluate EXPRESSION to get multiple values and return the Nth one.
 This handles multiple values in Common Lisp style, but it does not work
 right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
-one value."
-  (nth n expression))
+one value.
+
+\(fn N EXPRESSION)")
 
 ;;; Declarations.
 

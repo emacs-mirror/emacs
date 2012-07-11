@@ -1,3 +1,49 @@
+2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	More CL cleanups and reduction of use of cl.el.
+	* woman.el, winner.el, vc/vc-rcs.el, vc/vc-hooks.el, vc/vc-hg.el:
+	* vc/vc-git.el, vc/vc-dir.el, vc/vc-bzr.el, vc/vc-annotate.el:
+	* textmodes/tex-mode.el, textmodes/sgml-mode.el, tar-mode.el:
+	* strokes.el, ses.el, server.el, progmodes/js.el, progmodes/gdb-mi.el:
+	* progmodes/flymake.el, progmodes/ebrowse.el, progmodes/compile.el:
+	* play/tetris.el, play/snake.el, play/pong.el, play/landmark.el:
+	* play/hanoi.el, play/decipher.el, play/5x5.el, nxml/nxml-mode.el:
+	* net/secrets.el, net/quickurl.el, midnight.el, mail/footnote.el:
+	* image-dired.el, ibuffer.el, ibuf-macs.el, ibuf-ext.el, hexl.el:
+	* eshell/eshell.el, eshell/esh-io.el, eshell/esh-ext.el:
+	* eshell/esh-cmd.el, eshell/em-ls.el, eshell/em-hist.el:
+	* eshell/em-cmpl.el, eshell/em-banner.el:
+	* calendar/parse-time.el: Use cl-lib.
+	* wid-browse.el, wdired.el, vc/vc.el, vc/vc-mtn.el, vc/vc-cvs.el:
+	* vc/vc-arch.el, tree-widget.el, textmodes/texinfo.el:
+	* textmodes/refill.el, textmodes/css-mode.el, term/tvi970.el:
+	* term/ns-win.el, term.el, shell.el, ps-samp.el:
+	* progmodes/perl-mode.el, progmodes/pascal.el, progmodes/gud.el:
+	* progmodes/glasses.el, progmodes/etags.el, progmodes/cwarn.el:
+	* play/gamegrid.el, play/bubbles.el, novice.el, notifications.el:
+	* net/zeroconf.el, net/xesam.el, net/snmp-mode.el, net/mairix.el:
+	* net/ldap.el, net/eudc.el, net/browse-url.el, man.el:
+	* mail/mailheader.el, mail/feedmail.el: Don't use CL.
+	* ibuf-ext.el (ibuffer-mark-old-buffers): Use float-time.
+	* eshell/esh-opt.el (eshell-eval-using-options): Quote code with
+	`lambda' rather than with `quote'.
+	(eshell-do-opt): Adjust accordingly.
+	(eshell-process-option): Simplify.
+	* eshell/esh-var.el:
+	* eshell/em-script.el: Require `esh-opt' for eshell-eval-using-options.
+	* emacs-lisp/pcase.el (pcase--dontcare-upats, pcase--let*)
+	(pcase--expand, pcase--u1): Rename pcase's internal `dontcare' pattern
+	to `pcase--dontcare'.
+	* emacs-lisp/cl.el (labels): Mark obsolete.
+	(cl--letf, letf): Move to cl-lib.
+	(cl--letf*, letf*): Remove.
+	* emacs-lisp/cl-lib.el (cl-nth-value): Use defalias.
+	* emacs-lisp/cl-macs.el (cl-dolist, cl-dotimes): Add indent rule.
+	(cl-progv): Rewrite.
+	(cl--letf, cl-letf): Move from cl.el.
+	(cl-letf*): New macro.
+	* emacs-lisp/cl-extra.el (cl--progv-before, cl--progv-after): Remove.
+
 2012-07-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-cf1): Update the files cache.

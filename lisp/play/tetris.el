@@ -26,8 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gamegrid)
 
@@ -285,20 +284,20 @@ each one of its four blocks.")
 
 (defun tetris-display-options ()
   (let ((options (make-vector 256 nil)))
-    (loop for c from 0 to 255 do
+    (dotimes (c 256)
       (aset options c
 	    (cond ((= c tetris-blank)
-		    tetris-blank-options)
+                   tetris-blank-options)
                   ((and (>= c 0) (<= c 6))
 		   (append
 		    tetris-cell-options
 		    `((((glyph color-x) ,(aref tetris-x-colors c))
 		       (color-tty ,(aref tetris-tty-colors c))
 		       (t nil)))))
-		   ((= c tetris-border)
-		    tetris-border-options)
-		   ((= c tetris-space)
-		    tetris-space-options)
+                  ((= c tetris-border)
+                   tetris-border-options)
+                  ((= c tetris-space)
+                   tetris-space-options)
                   (t
                    '(nil nil nil)))))
     options))
@@ -325,13 +324,13 @@ each one of its four blocks.")
   (let ((strings (vector (format "Shapes: %05d" tetris-n-shapes)
 			 (format "Rows:   %05d" tetris-n-rows)
 			 (format "Score:  %05d" tetris-score))))
-    (loop for y from 0 to 2 do
-	  (let* ((string (aref strings y))
-		 (len (length string)))
-	    (loop for x from 0 to (1- len) do
-		  (gamegrid-set-cell (+ tetris-score-x x)
-				     (+ tetris-score-y y)
-				     (aref string x)))))))
+    (dotimes (y 3)
+      (let* ((string (aref strings y))
+             (len (length string)))
+        (dotimes (x len)
+          (gamegrid-set-cell (+ tetris-score-x x)
+                             (+ tetris-score-y y)
+                             (aref string x)))))))
 
 (defun tetris-update-score ()
   (tetris-draw-score)
@@ -351,88 +350,88 @@ each one of its four blocks.")
     (tetris-update-score)))
 
 (defun tetris-draw-next-shape ()
-  (loop for x from 0 to 3 do
-        (loop for y from 0 to 3 do
-              (gamegrid-set-cell (+ tetris-next-x x)
-                                 (+ tetris-next-y y)
-                                 tetris-blank)))
-  (loop for i from 0 to 3 do
-        (let ((tetris-shape tetris-next-shape)
-              (tetris-rot 0))
-          (gamegrid-set-cell (+ tetris-next-x
-                                (aref (tetris-get-shape-cell i) 0))
-                             (+ tetris-next-y
-                                (aref (tetris-get-shape-cell i) 1))
-                             tetris-shape))))
+  (dotimes (x 4)
+    (dotimes (y 4)
+      (gamegrid-set-cell (+ tetris-next-x x)
+                         (+ tetris-next-y y)
+                         tetris-blank)))
+  (dotimes (i 4)
+    (let ((tetris-shape tetris-next-shape)
+          (tetris-rot 0))
+      (gamegrid-set-cell (+ tetris-next-x
+                            (aref (tetris-get-shape-cell i) 0))
+                         (+ tetris-next-y
+                            (aref (tetris-get-shape-cell i) 1))
+                         tetris-shape))))
 
 (defun tetris-draw-shape ()
-  (loop for i from 0 to 3 do
-        (let ((c (tetris-get-shape-cell i)))
-          (gamegrid-set-cell (+ tetris-top-left-x
-                                tetris-pos-x
-                                (aref c 0))
-                             (+ tetris-top-left-y
-                                tetris-pos-y
-                                (aref c 1))
-                             tetris-shape))))
+  (dotimes (i 4)
+    (let ((c (tetris-get-shape-cell i)))
+      (gamegrid-set-cell (+ tetris-top-left-x
+                            tetris-pos-x
+                            (aref c 0))
+                         (+ tetris-top-left-y
+                            tetris-pos-y
+                            (aref c 1))
+                         tetris-shape))))
 
 (defun tetris-erase-shape ()
-  (loop for i from 0 to 3 do
-        (let ((c (tetris-get-shape-cell i)))
-          (gamegrid-set-cell (+ tetris-top-left-x
-                                tetris-pos-x
-                                (aref c 0))
-                             (+ tetris-top-left-y
-                                tetris-pos-y
-                                (aref c 1))
-                             tetris-blank))))
+  (dotimes (i 4)
+    (let ((c (tetris-get-shape-cell i)))
+      (gamegrid-set-cell (+ tetris-top-left-x
+                            tetris-pos-x
+                            (aref c 0))
+                         (+ tetris-top-left-y
+                            tetris-pos-y
+                            (aref c 1))
+                         tetris-blank))))
 
 (defun tetris-test-shape ()
   (let ((hit nil))
-    (loop for i from 0 to 3 do
-          (unless hit
-            (setq hit
-                  (let* ((c (tetris-get-shape-cell i))
-                         (xx (+ tetris-pos-x
-                                (aref c 0)))
-                         (yy (+ tetris-pos-y
-                                (aref c 1))))
-                    (or (>= xx tetris-width)
-                        (>= yy tetris-height)
-                        (/= (gamegrid-get-cell
-                             (+ xx tetris-top-left-x)
-                             (+ yy tetris-top-left-y))
-                            tetris-blank))))))
+    (dotimes (i 4)
+      (unless hit
+        (setq hit
+              (let* ((c (tetris-get-shape-cell i))
+                     (xx (+ tetris-pos-x
+                            (aref c 0)))
+                     (yy (+ tetris-pos-y
+                            (aref c 1))))
+                (or (>= xx tetris-width)
+                    (>= yy tetris-height)
+                    (/= (gamegrid-get-cell
+                         (+ xx tetris-top-left-x)
+                         (+ yy tetris-top-left-y))
+                        tetris-blank))))))
     hit))
 
 (defun tetris-full-row (y)
   (let ((full t))
-    (loop for x from 0 to (1- tetris-width) do
-	  (if (= (gamegrid-get-cell (+ tetris-top-left-x x)
-				    (+ tetris-top-left-y y))
-		 tetris-blank)
-	      (setq full nil)))
+    (dotimes (x tetris-width)
+      (if (= (gamegrid-get-cell (+ tetris-top-left-x x)
+                                (+ tetris-top-left-y y))
+             tetris-blank)
+          (setq full nil)))
     full))
 
 (defun tetris-shift-row (y)
   (if (= y 0)
-      (loop for x from 0 to (1- tetris-width) do
+      (dotimes (x tetris-width)
 	(gamegrid-set-cell (+ tetris-top-left-x x)
 			   (+ tetris-top-left-y y)
 			   tetris-blank))
-  (loop for x from 0 to (1- tetris-width) do
-	(let ((c (gamegrid-get-cell (+ tetris-top-left-x x)
-				    (+ tetris-top-left-y y -1))))
-	  (gamegrid-set-cell (+ tetris-top-left-x x)
-			     (+ tetris-top-left-y y)
+    (dotimes (x tetris-width)
+      (let ((c (gamegrid-get-cell (+ tetris-top-left-x x)
+                                  (+ tetris-top-left-y y -1))))
+        (gamegrid-set-cell (+ tetris-top-left-x x)
+                           (+ tetris-top-left-y y)
 			   c)))))
 
 (defun tetris-shift-down ()
-  (loop for y0 from 0 to (1- tetris-height) do
-	(if (tetris-full-row y0)
-	    (progn (setq tetris-n-rows (1+ tetris-n-rows))
-		   (loop for y from y0 downto 0 do
-			 (tetris-shift-row y))))))
+  (dotimes (y0 tetris-height)
+    (when (tetris-full-row y0)
+      (setq tetris-n-rows (1+ tetris-n-rows))
+      (cl-loop for y from y0 downto 0 do
+               (tetris-shift-row y)))))
 
 (defun tetris-draw-border-p ()
   (or (not (eq gamegrid-display-mode 'glyph))
@@ -444,22 +443,22 @@ each one of its four blocks.")
 			tetris-space)
   (let ((buffer-read-only nil))
     (if (tetris-draw-border-p)
-	(loop for y from -1 to tetris-height do
-	      (loop for x from -1 to tetris-width do
-		    (gamegrid-set-cell (+ tetris-top-left-x x)
-				       (+ tetris-top-left-y y)
-				       tetris-border))))
-    (loop for y from 0 to (1- tetris-height) do
-	  (loop for x from 0 to (1- tetris-width) do
-		(gamegrid-set-cell (+ tetris-top-left-x x)
-				   (+ tetris-top-left-y y)
-				   tetris-blank)))
+	(cl-loop for y from -1 to tetris-height do
+                 (cl-loop for x from -1 to tetris-width do
+                          (gamegrid-set-cell (+ tetris-top-left-x x)
+                                             (+ tetris-top-left-y y)
+                                             tetris-border))))
+    (dotimes (y tetris-height)
+      (dotimes (x tetris-width)
+        (gamegrid-set-cell (+ tetris-top-left-x x)
+                           (+ tetris-top-left-y y)
+                           tetris-blank)))
     (if (tetris-draw-border-p)
-	(loop for y from -1 to 4 do
-	      (loop for x from -1 to 4 do
-		    (gamegrid-set-cell (+ tetris-next-x x)
-				       (+ tetris-next-y y)
-				       tetris-border))))))
+	(cl-loop for y from -1 to 4 do
+                 (cl-loop for x from -1 to 4 do
+                          (gamegrid-set-cell (+ tetris-next-x x)
+                                             (+ tetris-next-y y)
+                                             tetris-border))))))
 
 (defun tetris-reset-game ()
   (gamegrid-kill-timer)

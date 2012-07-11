@@ -31,7 +31,7 @@
 ;; Pacify the byte-compiler
 (eval-when-compile
   (require 'compare-w)
-  (require 'cl)
+  (require 'cl-lib)
   (require 'skeleton))
 
 (defvar font-lock-comment-face)
@@ -1543,8 +1543,8 @@ Puts point on a blank line between them."
   (save-excursion
     (let ((pt (point)))
       (skip-chars-backward "^ {}\n\t\\\\")
-      (case (char-before)
-        ((nil ?\s ?\n ?\t ?\}) nil)
+      (pcase (char-before)
+        ((or `nil ?\s ?\n ?\t ?\}) nil)
         (?\\
          ;; TODO: Complete commands.
          nil)
@@ -1793,7 +1793,7 @@ Mark is left at original location."
 	(if (not (eq (char-syntax (preceding-char)) ?/))
 	    (progn
 	      ;; Don't count single-char words.
-	      (unless (looking-at ".\\>") (incf count))
+	      (unless (looking-at ".\\>") (cl-incf count))
 	      (forward-char 1))
 	  (let ((cmd
 		 (buffer-substring-no-properties
@@ -2861,10 +2861,10 @@ There might be text before point."
 	(cons (append (car font-lock-defaults) '(doctex-font-lock-keywords))
 	      (mapcar
 	       (lambda (x)
-		 (case (car-safe x)
-		   (font-lock-syntactic-face-function
+		 (pcase (car-safe x)
+		   (`font-lock-syntactic-face-function
 		    (cons (car x) 'doctex-font-lock-syntactic-face-function))
-		   (t x)))
+		   (_ x)))
 	       (cdr font-lock-defaults))))
   (set (make-local-variable 'syntax-propertize-function)
        (syntax-propertize-rules doctex-syntax-propertize-rules)))

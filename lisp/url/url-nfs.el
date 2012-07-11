@@ -23,7 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'url-parse)
 (require 'url-file)
 
@@ -49,7 +48,7 @@ Each can be used any number of times."
     (while (re-search-forward "%\\(.\\)" nil t)
        (let ((escape (aref (match-string 1) 0)))
 	 (replace-match "" t t)
-	 (case escape
+	 (pcase escape
 	   (?% (insert "%"))
 	   (?h (insert host))
 	   (?n (insert (or port "")))

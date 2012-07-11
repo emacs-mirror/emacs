@@ -85,7 +85,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
   (require 'imenu)   ; Need this stuff when compiling for imenu macros, etc.
   (require 'tempo))
 

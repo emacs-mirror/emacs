@@ -1,11 +1,15 @@
+2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell.el: Use cl-lib.
+
 2012-07-03  Chong Yidong  <cyd@gnu.org>
 
 	* automated/xml-parse-tests.el (xml-parse-tests--bad-data): New.
 
 2012-07-02  Chong Yidong  <cyd@gnu.org>
 
-	* automated/xml-parse-tests.el (xml-parse-tests--data): More
-	testcases.
+	* automated/xml-parse-tests.el (xml-parse-tests--data):
+	More testcases.
 
 2012-07-01  Chong Yidong  <cyd@gnu.org>
 

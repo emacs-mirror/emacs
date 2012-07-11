@@ -1,3 +1,10 @@
+2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.el, url-queue.el, url-parse.el, url-http.el, url-future.el:
+	* url-dav.el, url-cookie.el: Use cl-lib.
+	* url-util.el, url-privacy.el, url-nfs.el, url-misc.el, url-methods.el:
+	* url-gw.el, url-file.el, url-expand.el: Dont use CL.
+
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* url-vars.el (mm-mime-mule-charset-alist, mm-coding-system-p):

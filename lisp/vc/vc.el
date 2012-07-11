@@ -658,7 +658,6 @@
 (declare-function diff-setup-whitespace "diff-mode" ())
 
 (eval-when-compile
-  (require 'cl)
   (require 'dired))
 
 (unless (assoc 'vc-parent-buffer minor-mode-alist)

@@ -23,7 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'mailcap)
 (require 'url-vars)
 (require 'url-parse)
@@ -172,13 +171,13 @@ to them."
 				  filename))
     (setq content-type (mailcap-extension-to-mime
 			(url-file-extension uncompressed-filename))
-	  content-encoding (case (intern (url-file-extension filename))
-			     ((\.z \.gz) "gzip")
-			     (\.Z "compress")
-			     (\.uue "x-uuencoded")
-			     (\.hqx "x-hqx")
-			     (\.bz2 "x-bzip2")
-			     (otherwise nil)))
+	  content-encoding (pcase (url-file-extension filename)
+			     ((or ".z" ".gz") "gzip")
+			     (".Z" "compress")
+			     (".uue" "x-uuencoded")
+			     (".hqx" "x-hqx")
+			     (".bz2" "x-bzip2")
+			     (_ nil)))
 
     (if (file-directory-p filename)
 	;; A directory is done the same whether we are local or remote

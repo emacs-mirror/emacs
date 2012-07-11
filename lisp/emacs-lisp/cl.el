@@ -222,7 +222,7 @@
                callf2
                callf
                letf*
-               letf
+               ;; letf
                rotatef
                shiftf
                remf
@@ -449,16 +449,6 @@ Common Lisp.
       (setq body (list `(lexical-let (,(pop bindings)) ,@body))))
     (car body)))
 
-(defmacro cl--symbol-function (symbol)
-  "Like `symbol-function' but return `cl--unbound' if not bound."
-  ;; (declare (gv-setter (lambda (store)
-  ;;                       `(if (eq ,store 'cl--unbound)
-  ;;                            (fmakunbound ,symbol) (fset ,symbol ,store)))))
-  `(if (fboundp ,symbol) (symbol-function ,symbol) 'cl--unbound))
-(gv-define-setter cl--symbol-function (store symbol)
-  `(if (eq ,store 'cl--unbound) (fmakunbound ,symbol) (fset ,symbol ,store)))
-
-
 ;; This should really have some way to shadow 'byte-compile properties, etc.
 (defmacro flet (bindings &rest body)
   "Make temporary overriding function definitions.
@@ -470,38 +460,36 @@ then the definitions are undone (the FUNCs go back to their previous
 definitions, or lack thereof).
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
-  (declare (indent 1) (debug cl-flet))
-  `(letf* ,(mapcar
-            (lambda (x)
-              (if (or (and (fboundp (car x))
-                           (eq (car-safe (symbol-function (car x))) 'macro))
-                      (cdr (assq (car x) macroexpand-all-environment)))
-                  (error "Use `labels', not `flet', to rebind macro names"))
-              (let ((func `(cl-function
-                            (lambda ,(cadr x)
-                              (cl-block ,(car x) ,@(cddr x))))))
-                (when (cl--compiling-file)
-                  ;; Bug#411.  It would be nice to fix this.
-                  (and (get (car x) 'byte-compile)
-                       (error "Byte-compiling a redefinition of `%s' \
+  (declare (indent 1) (debug cl-flet)
+           (obsolete "Use either `cl-flet' or `cl-letf'."  "24.2"))
+  `(letf ,(mapcar
+           (lambda (x)
+             (if (or (and (fboundp (car x))
+                          (eq (car-safe (symbol-function (car x))) 'macro))
+                     (cdr (assq (car x) macroexpand-all-environment)))
+                 (error "Use `labels', not `flet', to rebind macro names"))
+             (let ((func `(cl-function
+                           (lambda ,(cadr x)
+                             (cl-block ,(car x) ,@(cddr x))))))
+               (when (cl--compiling-file)
+                 ;; Bug#411.  It would be nice to fix this.
+                 (and (get (car x) 'byte-compile)
+                      (error "Byte-compiling a redefinition of `%s' \
 will not work - use `labels' instead" (symbol-name (car x))))
-                  ;; FIXME This affects the rest of the file, when it
-                  ;; should be restricted to the flet body.
-                  (and (boundp 'byte-compile-function-environment)
-                       (push (cons (car x) (eval func))
-                             byte-compile-function-environment)))
-                (list `(symbol-function ',(car x)) func)))
-            bindings)
+                 ;; FIXME This affects the rest of the file, when it
+                 ;; should be restricted to the flet body.
+                 (and (boundp 'byte-compile-function-environment)
+                      (push (cons (car x) (eval func))
+                            byte-compile-function-environment)))
+               (list `(symbol-function ',(car x)) func)))
+           bindings)
      ,@body))
-(make-obsolete 'flet "Use either `cl-flet' or `letf'."  "24.2")
 
 (defmacro labels (bindings &rest body)
   "Make temporary function bindings.
-This is like `flet', except the bindings are lexical instead of dynamic.
-Unlike `flet', this macro is fully compliant with the Common Lisp standard.
-
-\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
-  (declare (indent 1) (debug cl-flet))
+Like `cl-labels' except that the lexical scoping is handled via `lexical-let'
+rather than relying on `lexical-binding'."
+  (declare (indent 1) (debug cl-flet) (obsolete 'cl-labels "24.2"))
   (let ((vars nil) (sets nil) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
       ;; It's important that (not (eq (symbol-name var1) (symbol-name var2)))
@@ -521,93 +509,24 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 ;; not 100% compatible: not worth the trouble to add them to cl-lib.el, but we
 ;; still need to support old users of cl.el.
 
-;; FIXME: `letf' is unsatisfactory because it does not really "restore" the
-;; previous state.  If the getter/setter loses information, that info is
-;; not recovered.
-
-(defun cl--letf (bindings simplebinds binds body)
-  ;; It's not quite clear what the semantics of let! should be.
-  ;; E.g. in (let! ((PLACE1 VAL1) (PLACE2 VAL2)) BODY), while it's clear
-  ;; that the actual assignments ("bindings") should only happen after
-  ;; evaluating VAL1 and VAL2, it's not clear when the sub-expressions of
-  ;; PLACE1 and PLACE2 should be evaluated.  Should we have
-  ;;    PLACE1; VAL1; PLACE2; VAL2; bind1; bind2
-  ;; or
-  ;;    VAL1; VAL2; PLACE1; PLACE2; bind1; bind2
-  ;; or
-  ;;    VAL1; VAL2; PLACE1; bind1; PLACE2; bind2
-  ;; Common-Lisp's `psetf' does the first, so we'll do the same.
-  (if (null bindings)
-      (if (and (null binds) (null simplebinds)) (macroexp-progn body)
-        `(let* (,@(mapcar (lambda (x)
-                            (pcase-let ((`(,vold ,getter ,_setter ,_vnew) x))
-                              (list vold getter)))
-                          binds)
-                ,@simplebinds)
-           (unwind-protect
-               ,(macroexp-progn (append
-                            (mapcar (lambda (x) (pcase x
-                                             (`(,_vold ,_getter ,setter ,vnew)
-                                              (funcall setter vnew))))
-                                    binds)
-                            body))
-             ,@(mapcar (lambda (x) (pcase-let ((`(,vold ,_getter ,setter ,_vnew) x))
-                                (funcall setter vold)))
-                       binds))))
-    (let ((binding (car bindings)))
-      (if (eq (car-safe (car binding)) 'symbol-function)
-          (setcar (car binding) 'cl--symbol-function))
-      (gv-letplace (getter setter) (car binding)
-        (macroexp-let2 nil vnew (cadr binding)
-          (if (symbolp (car binding))
-              ;; Special-case for simple variables.
-              (cl--letf (cdr bindings)
-                        (cons `(,getter ,(if (cdr binding) vnew getter))
-                              simplebinds)
-                        binds body)
-            (cl--letf (cdr bindings) simplebinds
-                      (cons `(,(make-symbol "old") ,getter ,setter
-                              ,@(if (cdr binding) (list vnew)))
-                            binds)
-                      body)))))))
+(defmacro cl--symbol-function (symbol)
+  "Like `symbol-function' but return `cl--unbound' if not bound."
+  ;; (declare (gv-setter (lambda (store)
+  ;;                       `(if (eq ,store 'cl--unbound)
+  ;;                            (fmakunbound ,symbol) (fset ,symbol ,store)))))
+  `(if (fboundp ,symbol) (symbol-function ,symbol) 'cl--unbound))
+(gv-define-setter cl--symbol-function (store symbol)
+  `(if (eq ,store 'cl--unbound) (fmakunbound ,symbol) (fset ,symbol ,store)))
 
 (defmacro letf (bindings &rest body)
-  "Temporarily bind to PLACEs.
-This is the analogue of `let', but with generalized variables (in the
-sense of `setf') for the PLACEs.  Each PLACE is set to the corresponding
-VALUE, then the BODY forms are executed.  On exit, either normally or
-because of a `throw' or error, the PLACEs are set back to their original
-values.  Note that this macro is *not* available in Common Lisp.
-As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
-the PLACE is not modified before executing BODY.
-
-\(fn ((PLACE VALUE) ...) BODY...)"
-  (declare (indent 1) (debug ((&rest (gate gv-place &optional form)) body)))
-  (cl--letf bindings () () body))
-
-(defun cl--letf* (bindings body)
-  (if (null bindings)
-      (macroexp-progn body)
-    (let ((binding (car bindings)))
-      (if (symbolp (car binding))
-          ;; Special-case for simple variables.
-          (macroexp-let* (list (if (cdr binding) binding
-                                (list (car binding) (car binding))))
-                         (cl--letf* (cdr bindings) body))
-        (if (eq (car-safe (car binding)) 'symbol-function)
-            (setcar (car binding) 'cl--symbol-function))
-        (gv-letplace (getter setter) (car binding)
-          (macroexp-let2 macroexp-copyable-p vnew (cadr binding)
-            (macroexp-let2 nil vold getter
-              `(unwind-protect
-                   (progn
-                     ,(if (cdr binding) (funcall setter vnew))
-                     ,(cl--letf* (cdr bindings) body))
-                 ,(funcall setter vold)))))))))
-
-(defmacro letf* (bindings &rest body)
-  (declare (indent 1) (debug letf))
-  (cl--letf* bindings body))
+  "Dynamically scoped let-style bindings for places.
+Like `cl-letf', but with some extra backward compatibility."
+  ;; Like cl-letf, but with special handling of symbol-function.
+  `(cl-letf ,(mapcar (lambda (x) (if (eq (car-safe (car x)) 'symbol-function)
+                                `((cl--symbol-function ,@(cdar x)) ,@(cdr x))
+                              x))
+                     bindings)
+            ,@body))
 
 (defun cl--gv-adapt (cl-gv do)
   ;; This function is used by all .elc files that use define-setf-expander and

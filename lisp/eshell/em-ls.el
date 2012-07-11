@@ -27,7 +27,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'eshell))
 (require 'esh-util)
 (require 'esh-opt)
@@ -463,7 +463,7 @@ name should be displayed as, etc.  Think of it as cooking a FILEINFO."
 	  (progn
 	    (setcdr fileinfo attr)
 	    (setcar fileinfo (eshell-ls-decorated-name fileinfo)))
-	(assert (eq listing-style 'long-listing))
+	(cl-assert (eq listing-style 'long-listing))
 	(setcar fileinfo
 		(concat (eshell-ls-decorated-name fileinfo) " -> "
 			(eshell-ls-decorated-name
@@ -698,7 +698,7 @@ Each member of FILES is either a string or a cons cell of the form
       (let* ((col-vals
 	      (if (eq listing-style 'by-columns)
 		  (eshell-ls-find-column-lengths display-files)
-		(assert (eq listing-style 'by-lines))
+		(cl-assert (eq listing-style 'by-lines))
 		(eshell-ls-find-column-widths display-files)))
 	     (col-widths (car col-vals))
 	     (display-files (cdr col-vals))

@@ -30,7 +30,6 @@
 (require 'easymenu)
 (require 'custom)
 (require 'wid-edit)
-(eval-when-compile (require 'cl))
 
 (defgroup widget-browse nil
   "Customization support for browsing widgets."

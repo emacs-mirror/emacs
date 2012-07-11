@@ -313,25 +313,6 @@ If so, return the true (non-nil) value returned by PREDICATE.
 	(t (make-frame-visible frame)))
   val)
 
-;;; Support for `cl-progv'.
-(defvar cl--progv-save)
-;;;###autoload
-(defun cl--progv-before (syms values)
-  (while syms
-    (push (if (boundp (car syms))
-		 (cons (car syms) (symbol-value (car syms)))
-	       (car syms)) cl--progv-save)
-    (if values
-	(set (pop syms) (pop values))
-      (makunbound (pop syms)))))
-
-(defun cl--progv-after ()
-  (while cl--progv-save
-    (if (consp (car cl--progv-save))
-	(set (car (car cl--progv-save)) (cdr (car cl--progv-save)))
-      (makunbound (car cl--progv-save)))
-    (pop cl--progv-save)))
-
 
 ;;; Numbers.
 
