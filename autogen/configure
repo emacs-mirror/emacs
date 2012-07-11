@@ -592,8 +592,8 @@ ac_includes_default="\
 #endif"
 
 ac_func_list=
-gl_getopt_required=POSIX
 ac_header_list=
+gl_getopt_required=POSIX
 gl_getopt_required=POSIX
 ac_subst_vars='gltests_LTLIBOBJS
 gltests_LIBOBJS
@@ -3169,6 +3169,7 @@ $as_echo "$as_me: creating cache $cache_file" >&6;}
 fi
 
 as_fn_append ac_func_list " readlinkat"
+as_fn_append ac_header_list " sys/param.h"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " gettimeofday"
@@ -3197,7 +3198,6 @@ as_fn_append ac_func_list " futimesat"
 as_fn_append ac_func_list " futimens"
 as_fn_append ac_func_list " utimensat"
 as_fn_append ac_func_list " lutimes"
-as_fn_append ac_header_list " sys/param.h"
 as_fn_append ac_header_list " linux/version.h"
 as_fn_append ac_header_list " sys/systeminfo.h"
 as_fn_append ac_header_list " stdio_ext.h"
@@ -9095,6 +9095,26 @@ _ACEOF
 
 
 
+
+  for ac_header in $ac_header_list
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default
+"
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+
+
+
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the preprocessor supports include_next" >&5
 $as_echo_n "checking whether the preprocessor supports include_next... " >&6; }
 if test "${gl_cv_have_include_next+set}" = set; then :
@@ -9206,24 +9226,6 @@ $as_echo "$gl_cv_pragma_columns" >&6; }
     PRAGMA_COLUMNS=
   fi
 
-
-
-
-
-  for ac_header in $ac_header_list
-do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default
-"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-
-done
 
 
 
@@ -9828,15 +9830,11 @@ $as_echo "$gl_cv_func_getopt_long_gnu" >&6; }
 
 
 
+
     REPLACE_GETOPT=0
-
-
-  if test -n "$gl_replace_getopt"; then :
-
+    if test -n "$gl_replace_getopt"; then
       REPLACE_GETOPT=1
-
-fi
-
+    fi
 
   if test $REPLACE_GETOPT = 1; then
 
@@ -12344,8 +12342,6 @@ $as_echo "#define HAVE_STRUCT_UTIMBUF 1" >>confdefs.h
 
 
 
-
-
    if false; then
   GL_COND_LIBTOOL_TRUE=
   GL_COND_LIBTOOL_FALSE='#'
@@ -13049,6 +13045,8 @@ if test $HAVE_GETLOADAVG = 0; then
 
 # Figure out what our getloadavg.c needs.
 
+
+
 # On HPUX9, an unprivileged user can get load averages this way.
 if test $gl_func_getloadavg_done = no; then
   for ac_func in pstat_getdynamic
@@ -13210,15 +13208,11 @@ fi
 
 
 
+
     REPLACE_GETOPT=0
-
-
-  if test -n "$gl_replace_getopt"; then :
-
+    if test -n "$gl_replace_getopt"; then
       REPLACE_GETOPT=1
-
-fi
-
+    fi
 
   if test $REPLACE_GETOPT = 1; then
 
@@ -21019,9 +21013,9 @@ esac
 
 
 for ac_func in gethostname \
-rename closedir mkdir rmdir getrusage get_current_dir_name \
+closedir getrusage get_current_dir_name \
 lrand48 logb frexp fmod cbrt setsid \
-strerror fpathconf select euidaccess getpagesize setlocale \
+fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
@@ -22187,16 +22181,6 @@ fi
 
 
 
-for ac_func in tzset
-do :
-  ac_fn_c_check_func "$LINENO" "tzset" "ac_cv_func_tzset"
-if test "x$ac_cv_func_tzset" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_TZSET 1
-_ACEOF
-
-fi
-done
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether localtime caches TZ" >&5
 $as_echo_n "checking whether localtime caches TZ... " >&6; }
@@ -22636,6 +22620,10 @@ $as_echo "#define __restrict_arr __restrict" >>confdefs.h
 fi
 
 
+
+$as_echo "#define CLASH_DETECTION 1" >>confdefs.h
+
+
 case $opsys in
   darwin | gnu | hpux* | *bsd )
 
@@ -22660,6 +22648,68 @@ $as_echo "#define HAVE_PROCFS 1" >>confdefs.h
   ;;
 esac
 
+case $opsys in
+  darwin | freebsd | netbsd | openbsd )
+
+$as_echo "#define DONT_REOPEN_PTY 1" >>confdefs.h
+
+  ;;
+esac
+
+case $opsys in
+  netbsd | openbsd) sound_device="/dev/audio" ;;
+  *) sound_device="/dev/dsp" ;;
+esac
+
+
+cat >>confdefs.h <<_ACEOF
+#define DEFAULT_SOUND_DEVICE "$sound_device"
+_ACEOF
+
+
+
+
+
+case $opsys in
+      aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd )
+    $as_echo "#define SIGNALS_VIA_CHARACTERS 1" >>confdefs.h
+
+    ;;
+
+      gnu-linux | gnu-kfreebsd )
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for signals via characters" >&5
+$as_echo_n "checking for signals via characters... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < 0x20400
+# error "Linux version too old"
+#endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  emacs_signals_via_chars=yes
+else
+  emacs_signals_via_chars=no
+fi
+rm -f conftest.err conftest.$ac_ext
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_signals_via_chars" >&5
+$as_echo "$emacs_signals_via_chars" >&6; }
+    test $emacs_signals_via_chars = yes && $as_echo "#define SIGNALS_VIA_CHARACTERS 1" >>confdefs.h
+
+    ;;
+esac
+
 
 
 
@@ -22676,6 +22726,86 @@ case $opsys in
 
     ;;
 
+  gnu | gnu-linux | gnu-kfreebsd )
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for style of pending output formalism" >&5
+$as_echo_n "checking for style of pending output formalism... " >&6; }
+            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#if !defined (_IO_STDIO_H) && !defined (_STDIO_USES_IOSTREAM)
+# error "stdio definitions not found"
+#endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  emacs_pending_output=new
+else
+  emacs_pending_output=unknown
+fi
+rm -f conftest.err conftest.$ac_ext
+
+      if test $emacs_pending_output = unknown; then
+        case $opsys in
+          gnu-linux | gnu-kfreebsd)
+            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#ifndef __UCLIBC__
+# error "not using uclibc"
+#endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  emacs_pending_output=uclibc
+else
+  emacs_pending_output=old
+fi
+rm -f conftest.err conftest.$ac_ext
+            ;;
+        esac
+      fi
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_pending_output" >&5
+$as_echo "$emacs_pending_output" >&6; }
+
+      case $emacs_pending_output in
+        new)
+                    $as_echo "#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)" >>confdefs.h
+
+          ;;
+        uclibc)
+                    $as_echo "#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufpos - (FILE)->__bufstart)" >>confdefs.h
+
+          ;;
+        old)
+                    $as_echo "#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) ((FILE)->_pptr - (FILE)->_pbase)" >>confdefs.h
+
+          ;;
+      esac
+    ;;
+esac
+
+
+
+
+
+case $opsys in
   gnu)
         $as_echo "#define DATA_START ({ extern int data_start; (char *) &data_start; })" >>confdefs.h
 
@@ -22696,6 +22826,8 @@ case $opsys in
 esac
 
 case $opsys in
+   gnu) opsysfile="s/bsd-common.h" ;;
+
    gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 
    hpux11)

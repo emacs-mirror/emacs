@@ -58,6 +58,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define this to enable compile time checks for the Lisp_Object data type. */
 #undef CHECK_LISP_OBJECT_TYPE
 
+/* Define if you want lock files to be written, so that Emacs can tell
+   instantly when you try to modify a file that someone else has modified in
+   his/her Emacs. */
+#undef CLASH_DETECTION
+
 /* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
    systems. This function is required for 'alloca.c' support on those systems.
    */
@@ -72,8 +77,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Address of the start of the data segment. */
 #undef DATA_START
 
+/* Name of the default sound device. */
+#undef DEFAULT_SOUND_DEVICE
+
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
+
+/* Define if process.c does not need to close a pty to make it a controlling
+   terminal (it is already a controlling terminal of the subprocess, because
+   we did ioctl TIOCSCTTY). */
+#undef DONT_REOPEN_PTY
 
 /* Define to 1 if you are using the GNU C Library. */
 #undef DOUG_LEA_MALLOC
@@ -128,6 +141,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module scanf shall be considered present. */
 #undef GNULIB_SCANF
+
+/* Value of PENDING_OUTPUT_COUNT if using the GNU C library. */
+#undef GNU_LIBRARY_PENDING_OUTPUT_COUNT
 
 /* Define to 1 if you want to use the GNU memory allocator. */
 #undef GNU_MALLOC
@@ -597,9 +613,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    systems that support xmenu.c. */
 #undef HAVE_MENUS
 
-/* Define to 1 if you have the `mkdir' function. */
-#undef HAVE_MKDIR
-
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
@@ -676,17 +689,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
 
-/* Define to 1 if you have the `rename' function. */
-#undef HAVE_RENAME
-
 /* Define to 1 if res_init is available. */
 #undef HAVE_RES_INIT
 
 /* Define to 1 if you have the `rint' function. */
 #undef HAVE_RINT
-
-/* Define to 1 if you have the `rmdir' function. */
-#undef HAVE_RMDIR
 
 /* Define to 1 if using librsvg. */
 #undef HAVE_RSVG
@@ -747,9 +754,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
-
-/* Define to 1 if you have the `strerror' function. */
-#undef HAVE_STRERROR
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
@@ -1131,6 +1135,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if stat needs help when passed a file name with a trailing
    slash */
 #undef REPLACE_FUNC_STAT_FILE
+
+/* Make process_send_signal work by "typing" a signal character on the pty. */
+#undef SIGNALS_VIA_CHARACTERS
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
