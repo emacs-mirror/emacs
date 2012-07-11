@@ -133,10 +133,6 @@ static char *mail_spool_name (char *);
 #endif
 #endif
 
-#ifndef HAVE_STRERROR
-char *strerror (int);
-#endif
-
 static _Noreturn void fatal (const char *s1, const char *s2, const char *s3);
 static void error (const char *s1, const char *s2, const char *s3);
 static _Noreturn void pfatal_with_name (char *name);
@@ -920,21 +916,3 @@ mbx_delimit_end (FILE *mbf)
 }
 
 #endif /* MAIL_USE_POP */
-
-#ifndef HAVE_STRERROR
-char *
-strerror (errnum)
-     int errnum;
-{
-  extern char *sys_errlist[];
-  extern int sys_nerr;
-
-  if (errnum >= 0 && errnum < sys_nerr)
-    return sys_errlist[errnum];
-  return (char *) "Unknown error";
-}
-
-#endif /* ! HAVE_STRERROR */
-
-
-/* movemail.c ends here */

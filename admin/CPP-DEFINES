@@ -151,7 +151,6 @@ HAVE_SHUTDOWN
 HAVE_SOCKETS
 HAVE_SOUND
 HAVE_STDLIB_H
-HAVE_STRERROR
 HAVE_STRFTIME
 HAVE_STRING_H
 HAVE_STRUCT_UTIMBUF
@@ -311,7 +310,6 @@ sleep
 spawnve
 srandom
 strdup
-strerror
 stricmp
 strnicmp
 strupr

@@ -1,3 +1,8 @@
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume strerror.
+	* configure.ac (strerror): Remove check.
+
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (DONT_REOPEN_PTY): Move here from src/s.

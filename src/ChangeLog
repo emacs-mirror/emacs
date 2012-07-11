@@ -1,3 +1,8 @@
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume strerror.
+	* sysdep.c (strerror) [!HAVE_STRERROR && !WINDOWSNT]: Remove.
+
 2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid calls to strlen in font processing functions.

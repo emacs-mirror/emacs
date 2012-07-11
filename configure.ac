@@ -2710,7 +2710,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 AC_CHECK_FUNCS(gethostname \
 rename closedir mkdir rmdir getrusage get_current_dir_name \
 lrand48 logb frexp fmod cbrt setsid \
-strerror fpathconf select euidaccess getpagesize setlocale \
+fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \

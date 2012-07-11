@@ -1,3 +1,9 @@
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume strerror.
+	* emacsclient.c, movemail.c, update-game-score.c (strerror)
+	[!HAVE_STRERROR]: Remove.
+
 2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	EMACS_TIME simplification (Bug#11875).

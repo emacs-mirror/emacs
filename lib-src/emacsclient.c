@@ -749,8 +749,6 @@ main (int argc, char **argv)
 #define AUTH_KEY_LENGTH      64
 #define SEND_BUFFER_SIZE   4096
 
-extern char *strerror (int);
-
 /* Buffer to accumulate data to send in TCP connections.  */
 char send_buffer[SEND_BUFFER_SIZE + 1];
 int sblen = 0;	/* Fill pointer for the send buffer.  */
@@ -1850,22 +1848,3 @@ main (int argc, char **argv)
 }
 
 #endif /* HAVE_SOCKETS && HAVE_INET_SOCKETS */
-
-
-#ifndef HAVE_STRERROR
-char *
-strerror (errnum)
-     int errnum;
-{
-  extern char *sys_errlist[];
-  extern int sys_nerr;
-
-  if (errnum >= 0 && errnum < sys_nerr)
-    return sys_errlist[errnum];
-  return (char *) "Unknown error";
-}
-
-#endif /* ! HAVE_STRERROR */
-
-
-/* emacsclient.c ends here */

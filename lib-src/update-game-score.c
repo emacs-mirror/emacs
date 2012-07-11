@@ -94,22 +94,6 @@ lose (const char *msg)
   exit (EXIT_FAILURE);
 }
 
-/* Taken from sysdep.c.  */
-#ifndef HAVE_STRERROR
-#ifndef WINDOWSNT
-char *
-strerror (int errnum)
-{
-  extern char *sys_errlist[];
-  extern int sys_nerr;
-
-  if (errnum >= 0 && errnum < sys_nerr)
-    return sys_errlist[errnum];
-  return (char *) "Unknown error";
-}
-#endif /* not WINDOWSNT */
-#endif /* ! HAVE_STRERROR */
-
 static _Noreturn void
 lose_syserr (const char *msg)
 {
