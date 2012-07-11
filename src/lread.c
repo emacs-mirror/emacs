@@ -906,7 +906,7 @@ safe_to_load_p (int fd)
 
       if (i >= nbytes
 	  || fast_c_string_match_ignore_case (Vbytecomp_version_regexp,
-					      buf + i) < 0)
+					      buf + i, nbytes - i) < 0)
 	safe_p = 0;
     }
   if (safe_p)

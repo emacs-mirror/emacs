@@ -1199,7 +1199,7 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
    length), and return the name length.  If FONT_SIZE_INDEX of FONT is
    0, use PIXEL_SIZE instead.  */
 
-int
+ptrdiff_t
 font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 {
   char *p;
@@ -2642,15 +2642,18 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
       if (! NILP (Vface_ignored_fonts))
 	{
 	  char name[256];
+	  ptrdiff_t namelen;
 	  Lisp_Object tail, regexp;
 
-	  if (font_unparse_xlfd (entity, 0, name, 256) >= 0)
+	  namelen = font_unparse_xlfd (entity, 0, name, 256);
+	  if (namelen >= 0)
 	    {
 	      for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
 		{
 		  regexp = XCAR (tail);
 		  if (STRINGP (regexp)
-		      && fast_c_string_match_ignore_case (regexp, name) >= 0)
+		      && fast_c_string_match_ignore_case (regexp, name,
+							  namelen) >= 0)
 		    break;
 		}
 	      if (CONSP (tail))

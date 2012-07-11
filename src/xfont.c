@@ -434,7 +434,8 @@ xfont_list_pattern (Display *display, const char *pattern,
 		{
 		  elt = XCAR (tail);
 		  if (STRINGP (elt)
-		      && fast_c_string_match_ignore_case (elt, indices[i]) >= 0)
+		      && fast_c_string_match_ignore_case (elt, indices[i],
+							  len) >= 0)
 		    break;
 		}
 	      if (! CONSP (tail))

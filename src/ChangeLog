@@ -1,3 +1,10 @@
+2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid call to strlen in fast_c_string_match_ignore_case.
+	* search.c (fast_c_string_match_ignore_case): Change to use
+	length argument.  Adjust users accordingly.
+	* lisp.h (fast_c_string_match_ignore_case): Adjust prototype.
+
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume rename.
@@ -15,10 +22,12 @@
 
 	Avoid calls to strlen in font processing functions.
 	* font.c (font_parse_name, font_parse_xlfd, font_parse_fcname)
-	(font_open_by_name): Changed to use length argument.  Adjust
+	(font_open_by_name): Change to use length argument.  Adjust
 	users accordingly.
-	* font.h (font_open_by_name, font_parse_xlfd): Adjust prototypes.
-	* xfont.c (xfont_decode_coding_xlfd): Changed to return ptrdiff_t.
+	* font.h (font_open_by_name, font_parse_xlfd, font_unparse_xlfd):
+	Adjust prototypes.
+	* xfont.c (xfont_decode_coding_xlfd, font_unparse_xlfd):
+	Change to return ptrdiff_t.
 	(xfont_list_pattern, xfont_match): Use length returned by
 	xfont_decode_coding_xlfd.
 	* xfns.c (x_default_font_parameter): Omit useless xstrdup.
@@ -107,7 +116,7 @@
 	Use XCAR and XCDR instead of Fcar and Fcdr where possible.
 	* callint.c, coding.c, doc.c, editfns.c, eval.c, font.c, fontset.c,
 	* frame.c, gnutls.c, minibuf.c, msdos.c, textprop.c, w32fns.c,
-	* w32menu.c, window.c, xmenu.c: Changed to use XCAR and XCDR
+	* w32menu.c, window.c, xmenu.c: Change to use XCAR and XCDR
 	where argument type is known to be a Lisp_Cons.
 
 2012-07-10  Tom Tromey  <tromey@redhat.com>

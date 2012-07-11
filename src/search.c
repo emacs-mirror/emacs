@@ -490,11 +490,11 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
    We assume that STRING contains single-byte characters.  */
 
 ptrdiff_t
-fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
+fast_c_string_match_ignore_case (Lisp_Object regexp,
+				 const char *string, ptrdiff_t len)
 {
   ptrdiff_t val;
   struct re_pattern_buffer *bufp;
-  size_t len = strlen (string);
 
   regexp = string_make_unibyte (regexp);
   re_match_object = Qt;

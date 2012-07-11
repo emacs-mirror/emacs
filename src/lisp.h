@@ -2896,7 +2896,8 @@ extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
 						  Lisp_Object, int, int);
 extern ptrdiff_t fast_string_match (Lisp_Object, Lisp_Object);
-extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *);
+extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *,
+						  ptrdiff_t);
 extern ptrdiff_t fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);

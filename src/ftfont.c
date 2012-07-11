@@ -598,7 +598,9 @@ ftfont_get_charset (Lisp_Object registry)
   re[j] = '\0';
   regexp = make_unibyte_string (re, j);
   for (i = 0; fc_charset_table[i].name; i++)
-    if (fast_c_string_match_ignore_case (regexp, fc_charset_table[i].name) >= 0)
+    if (fast_c_string_match_ignore_case
+	(regexp, fc_charset_table[i].name,
+	 strlen (fc_charset_table[i].name)) >= 0)
       break;
   if (! fc_charset_table[i].name)
     return -1;
