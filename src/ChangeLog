@@ -1,3 +1,9 @@
+2012-07-11  John Wiegley  <johnw@newartisans.com>
+
+	* alloc.c (mark_memory): Guard the "no_address_safety_analysis"
+	function attribute, so we only use it if it exists in the
+	compiler.
+
 2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid call to strlen in fast_c_string_match_ignore_case.
