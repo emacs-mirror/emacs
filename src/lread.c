@@ -3652,32 +3652,20 @@ check_obarray (Lisp_Object obarray)
    interned in the current obarray.  */
 
 Lisp_Object
-intern (const char *str)
+intern_1 (const char *str, ptrdiff_t len)
 {
-  Lisp_Object tem;
-  ptrdiff_t len = strlen (str);
-  Lisp_Object obarray;
+  Lisp_Object obarray = check_obarray (Vobarray);
+  Lisp_Object tem = oblookup (obarray, str, len, len);
 
-  obarray = Vobarray;
-  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
-    obarray = check_obarray (obarray);
-  tem = oblookup (obarray, str, len, len);
-  if (SYMBOLP (tem))
-    return tem;
-  return Fintern (make_string (str, len), obarray);
+  return SYMBOLP (tem) ? tem : Fintern (make_string (str, len), obarray);
 }
 
 Lisp_Object
-intern_c_string (const char *str)
+intern_c_string_1 (const char *str, ptrdiff_t len)
 {
-  Lisp_Object tem;
-  ptrdiff_t len = strlen (str);
-  Lisp_Object obarray;
+  Lisp_Object obarray = check_obarray (Vobarray);
+  Lisp_Object tem = oblookup (obarray, str, len, len);
 
-  obarray = Vobarray;
-  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
-    obarray = check_obarray (obarray);
-  tem = oblookup (obarray, str, len, len);
   if (SYMBOLP (tem))
     return tem;
 

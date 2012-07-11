@@ -264,18 +264,12 @@ font_intern_prop (const char *str, ptrdiff_t len, int force_symbol)
 	}
     }
 
-  /* The following code is copied from the function intern (in
-     lread.c), and modified to suit our purpose.  */
-  obarray = Vobarray;
-  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
-    obarray = check_obarray (obarray);
+  /* This code is similar to intern function from lread.c.  */
+  obarray = check_obarray (Vobarray);
   parse_str_as_multibyte ((unsigned char *) str, len, &nchars, &nbytes);
-  if (len == nchars || len != nbytes)
-    /* CONTENTS contains no multibyte sequences or contains an invalid
-       multibyte sequence.  We'll make a unibyte string.  */
-    tem = oblookup (obarray, str, len, len);
-  else
-    tem = oblookup (obarray, str, nchars, len);
+  tem = oblookup (obarray, str,
+		  (len == nchars || len != nbytes) ? len : nchars, len);
+
   if (SYMBOLP (tem))
     return tem;
   if (len == nchars || len != nbytes)

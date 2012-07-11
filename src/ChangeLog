@@ -1,3 +1,13 @@
+2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Minor adjustments to interning code.
+	* lisp.h (intern, intern_c_string): Redefine as static inline
+	wrappers for intern_1 and intern_c_string_1, respectively.
+	(intern_1, intern_c_string_1): Rename prototypes.
+	* lread.c (intern_1, intern_c_string_1): Simplify Vobarray checking.
+	* font.c (font_intern_prop): Likewise.  Adjust comment.
+	* w32font.c (intern_font_name): Likewise.
+
 2012-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnutls.c (Fgnutls_boot): Properly parse :keylist argument.
