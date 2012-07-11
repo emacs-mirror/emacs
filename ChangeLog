@@ -1,3 +1,7 @@
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (tzset): Remove check that's redundant with gnulib.
+
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (CLASH_DETECTION): Define unconditionally.
