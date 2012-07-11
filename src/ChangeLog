@@ -1,3 +1,8 @@
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* sound.c (DEFAULT_SOUND_DEVICE) [!WINDOWSNT]:
+	* s/netbsd.h (DEFAULT_SOUND_DEVICE): Let configure set it.
+
 2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove "#define unix" that is no longer needed (Bug#11905).

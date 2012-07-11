@@ -3145,6 +3145,16 @@ case $opsys in
   ;;
 esac
 
+dnl FIXME Surely we can test for this rather than hard-code it.
+case $opsys in
+  netbsd | openbsd) sound_device="/dev/audio" ;;
+  *) sound_device="/dev/dsp" ;;
+esac
+
+dnl Used in sound.c
+AC_DEFINE_UNQUOTED(DEFAULT_SOUND_DEVICE, "$sound_device",
+  [Name of the default sound device.])
+
 dnl Used in vm-limit.c
 AH_TEMPLATE(DATA_START, [Address of the start of the data segment.])
 dnl Used in lisp.h, emacs.c, mem-limits.h

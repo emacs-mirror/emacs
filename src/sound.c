@@ -1,5 +1,6 @@
 /* sound.c -- sound support.
-   Copyright (C) 1998-1999, 2001-2012 Free Software Foundation, Inc.
+
+Copyright (C) 1998-1999, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -113,11 +114,6 @@ enum sound_attr
 
 /* BEGIN: Non Windows Definitions */
 #ifndef WINDOWSNT
-
-#ifndef DEFAULT_SOUND_DEVICE
-#define DEFAULT_SOUND_DEVICE "/dev/dsp"
-#endif
-
 
 /* Structure forward declarations.  */
 
@@ -714,7 +710,7 @@ vox_open (struct sound_device *sd)
 {
   const char *file;
 
-  /* Open the sound device.  Default is /dev/dsp.  */
+  /* Open the sound device (eg /dev/dsp).  */
   if (sd->file)
     file = sd->file;
   else
@@ -860,7 +856,7 @@ vox_init (struct sound_device *sd)
   const char *file;
   int fd;
 
-  /* Open the sound device.  Default is /dev/dsp.  */
+  /* Open the sound device (eg /dev/dsp).  */
   if (sd->file)
     file = sd->file;
   else
