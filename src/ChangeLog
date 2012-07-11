@@ -1,5 +1,8 @@
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Assume rename.
+	* sysdep.c (rename) [!HAVE_RENAME]: Remove.
+
 	Assume perror.
 	* s/hpux10-20.h (HAVE_PERROR): Remove.
 	* sysdep.c (perror) [HPUX && !HAVE_PERROR]:

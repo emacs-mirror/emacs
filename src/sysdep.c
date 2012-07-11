@@ -2001,29 +2001,6 @@ getwd (char *pathname)
 #endif /* HAVE_GETWD */
 
 /*
- *	Emulate rename using unlink/link.  Note that this is
- *	only partially correct.  Also, doesn't enforce restriction
- *	that files be of same type (regular->regular, dir->dir, etc).
- */
-
-#ifndef HAVE_RENAME
-
-int
-rename (const char *from, const char *to)
-{
-  if (access (from, 0) == 0)
-    {
-      unlink (to);
-      if (link (from, to) == 0)
-	if (unlink (from) == 0)
-	  return (0);
-    }
-  return (-1);
-}
-
-#endif
-
-/*
  *	This function will go away as soon as all the stubs fixed. (fnf)
  */
 

@@ -1,7 +1,7 @@
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Assume strerror.
-	* configure.ac (strerror): Remove check.
+	Assume rename, strerror.
+	* configure.ac (rename, strerror): Remove check.
 
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
