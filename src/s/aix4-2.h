@@ -40,9 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Special items needed to make Emacs run on this system.  */
 
-/* AIX doesn't define this.  */
-#define unix 1
-
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #define SIGNALS_VIA_CHARACTERS
 #define CLASH_DETECTION

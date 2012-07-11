@@ -1,3 +1,10 @@
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove "#define unix" that is no longer needed (Bug#11905).
+	Merge from gnulib to make "#define unix" unnecessary, incorporating:
+	2012-07-10 getloadavg: clean out old Emacs and Autoconf cruft
+	2012-07-09 getopt: Simplify after Emacs changed.
+
 2012-07-10  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (DATA_START, DATA_SEG_BITS, PENDING_OUTPUT_COUNT):

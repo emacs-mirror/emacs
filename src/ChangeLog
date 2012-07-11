@@ -1,5 +1,8 @@
 2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove "#define unix" that is no longer needed (Bug#11905).
+	* s/aix4-2.h (unix): Remove; no longer needed.
+
 	EMACS_TIME simplification (Bug#11875).
 	This replaces macros (which typically do not work in GDB)
 	with functions, typedefs and enums, making the code easier to debug.
