@@ -4036,7 +4036,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
         {
-          font = font_open_by_name (f, names[i]);
+          font = font_open_by_name (f, names[i], strlen (names[i]));
           if (! NILP (font))
             break;
         }

@@ -1646,7 +1646,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       char xlfd[256];
       int len;
 
-      if (font_parse_xlfd (SSDATA (name), font_spec) < 0)
+      if (font_parse_xlfd (SSDATA (name), SBYTES (name), font_spec) < 0)
 	error ("Fontset name must be in XLFD format");
       short_name = AREF (font_spec, FONT_REGISTRY_INDEX);
       if (strncmp (SSDATA (SYMBOL_NAME (short_name)), "fontset-", 8)

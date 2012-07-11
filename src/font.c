@@ -739,7 +739,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 
 static int parse_matrix (const char *);
 static int font_expand_wildcards (Lisp_Object *, int);
-static int font_parse_name (char *, Lisp_Object);
+static int font_parse_name (char *, ptrdiff_t, Lisp_Object);
 
 /* An enumerator for each field of an XLFD font name.  */
 enum xlfd_field_index
@@ -1019,9 +1019,8 @@ font_expand_wildcards (Lisp_Object *field, int n)
    a fully specified XLFD.  */
 
 int
-font_parse_xlfd (char *name, Lisp_Object font)
+font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 {
-  ptrdiff_t len = strlen (name);
   int i, j, n;
   char *f[XLFD_LAST_INDEX + 1];
   Lisp_Object val;
@@ -1336,12 +1335,11 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
    This function tries to guess which format it is.  */
 
 static int
-font_parse_fcname (char *name, Lisp_Object font)
+font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 {
   char *p, *q;
   char *size_beg = NULL, *size_end = NULL;
   char *props_beg = NULL, *family_end = NULL;
-  ptrdiff_t len = strlen (name);
 
   if (len == 0)
     return -1;
@@ -1694,11 +1692,11 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
    0.  Otherwise return -1.  */
 
 static int
-font_parse_name (char *name, Lisp_Object font)
+font_parse_name (char *name, ptrdiff_t namelen, Lisp_Object font)
 {
   if (name[0] == '-' || strchr (name, '*') || strchr (name, '?'))
-    return font_parse_xlfd (name, font);
-  return font_parse_fcname (name, font);
+    return font_parse_xlfd (name, namelen, font);
+  return font_parse_fcname (name, namelen, font);
 }
 
 
@@ -2987,7 +2985,7 @@ font_spec_from_name (Lisp_Object font_name)
   Lisp_Object spec = Ffont_spec (0, NULL);
 
   CHECK_STRING (font_name);
-  if (font_parse_name (SSDATA (font_name), spec) == -1)
+  if (font_parse_name (SSDATA (font_name), SBYTES (font_name), spec) == -1)
     return Qnil;
   font_put_extra (spec, QCname, font_name);
   font_put_extra (spec, QCuser_spec, font_name);
@@ -3359,13 +3357,13 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
    found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (FRAME_PTR f, const char *name)
+font_open_by_name (FRAME_PTR f, const char *name, ptrdiff_t len)
 {
   Lisp_Object args[2];
   Lisp_Object spec, ret;
 
   args[0] = QCname;
-  args[1] = make_unibyte_string (name, strlen (name));
+  args[1] = make_unibyte_string (name, len);
   spec = Ffont_spec (2, args);
   ret = font_open_by_spec (f, spec);
   /* Do not lose name originally put in.  */
@@ -3872,7 +3870,7 @@ usage: (font-spec ARGS...)  */)
       if (EQ (key, QCname))
 	{
 	  CHECK_STRING (val);
-	  font_parse_name (SSDATA (val), spec);
+	  font_parse_name (SSDATA (val), SBYTES (val), spec);
 	  font_put_extra (spec, key, val);
 	}
       else
@@ -4887,7 +4885,7 @@ If the named font is not yet loaded, return nil.  */)
 
       if (fontset >= 0)
 	name = fontset_ascii (fontset);
-      font_object = font_open_by_name (f, SSDATA (name));
+      font_object = font_open_by_name (f, SSDATA (name), SBYTES (name));
     }
   else if (FONT_OBJECT_P (name))
     font_object = name;

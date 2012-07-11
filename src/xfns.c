@@ -2956,11 +2956,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
       if (system_font)
-        {
-          char *name = xstrdup (system_font);
-          font = font_open_by_name (f, name);
-          xfree (name);
-        }
+	font = font_open_by_name (f, system_font, strlen (system_font));
     }
 
   if (NILP (font))
@@ -2990,7 +2986,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
 	{
-	  font = font_open_by_name (f, names[i]);
+	  font = font_open_by_name (f, names[i], strlen (names[i]));
 	  if (! NILP (font))
 	    break;
 	}

@@ -771,7 +771,7 @@ extern void font_prepare_for_face (FRAME_PTR f, struct face *face);
 extern void font_done_for_face (FRAME_PTR f, struct face *face);
 
 extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
-extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name);
+extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name, ptrdiff_t len);
 
 extern Lisp_Object font_intern_prop (const char *str, ptrdiff_t len,
 				     int force_symbol);
@@ -781,7 +781,7 @@ extern void font_parse_family_registry (Lisp_Object family,
                                         Lisp_Object registry,
                                         Lisp_Object spec);
 
-extern int font_parse_xlfd (char *name, Lisp_Object font);
+extern int font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font);
 extern int font_unparse_xlfd (Lisp_Object font, int pixel_size,
                               char *name, int bytes);
 extern int font_unparse_fcname (Lisp_Object font, int pixel_size,

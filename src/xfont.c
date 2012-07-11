@@ -174,7 +174,7 @@ compare_font_names (const void *name1, const void *name2)
    XLFD is NULL terminated.  The caller must assure that OUTPUT is at
    least twice (plus 1) as large as XLFD.  */
 
-static int
+static ptrdiff_t
 xfont_decode_coding_xlfd (char *xlfd, int len, char *output)
 {
   char *p0 = xlfd, *p1 = output;
@@ -397,13 +397,14 @@ xfont_list_pattern (Display *display, const char *pattern,
 
       for (i = 0; i < num_fonts; i++)
 	{
+	  ptrdiff_t len;
 	  Lisp_Object entity;
 
 	  if (i > 0 && xstrcasecmp (indices[i - 1], indices[i]) == 0)
 	    continue;
 	  entity = font_make_entity ();
-	  xfont_decode_coding_xlfd (indices[i], -1, buf);
-	  if (font_parse_xlfd (buf, entity) < 0)
+	  len = xfont_decode_coding_xlfd (indices[i], -1, buf);
+	  if (font_parse_xlfd (buf, len, entity) < 0)
 	    continue;
 	  ASET (entity, FONT_TYPE_INDEX, Qx);
 	  /* Avoid auto-scaled fonts.  */
@@ -604,10 +605,11 @@ xfont_match (Lisp_Object frame, Lisp_Object spec)
 	     string.  We must avoid such a name.  */
 	  if (*s)
 	    {
+	      ptrdiff_t len;
 	      entity = font_make_entity ();
 	      ASET (entity, FONT_TYPE_INDEX, Qx);
-	      xfont_decode_coding_xlfd (s, -1, name);
-	      if (font_parse_xlfd (name, entity) < 0)
+	      len = xfont_decode_coding_xlfd (s, -1, name);
+	      if (font_parse_xlfd (name, len, entity) < 0)
 		entity = Qnil;
 	    }
 	  XFree (s);
@@ -796,7 +798,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   ASET (font_object, FONT_TYPE_INDEX, Qx);
   if (STRINGP (fullname))
     {
-      font_parse_xlfd (SSDATA (fullname), font_object);
+      font_parse_xlfd (SSDATA (fullname), SBYTES (fullname), font_object);
       ASET (font_object, FONT_NAME_INDEX, fullname);
     }
   else

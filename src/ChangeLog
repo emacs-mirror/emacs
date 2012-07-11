@@ -1,3 +1,15 @@
+2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid calls to strlen in font processing functions.
+	* font.c (font_parse_name, font_parse_xlfd, font_parse_fcname)
+	(font_open_by_name): Changed to use length argument.  Adjust
+	users accordingly.
+	* font.h (font_open_by_name, font_parse_xlfd): Adjust prototypes.
+	* xfont.c (xfont_decode_coding_xlfd): Changed to return ptrdiff_t.
+	(xfont_list_pattern, xfont_match): Use length returned by
+	xfont_decode_coding_xlfd.
+	* xfns.c (x_default_font_parameter): Omit useless xstrdup.
+
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* s/darwin.h, s/freebsd.h, s/netbsd.h:
