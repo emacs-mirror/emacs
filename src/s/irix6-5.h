@@ -28,10 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef SETUP_SLAVE_PTY
 
-/* thomas@mathematik.uni-bremen.de says this is needed.  */
-/* Make process_send_signal work by "typing" a signal character on the pty.  */
-#define SIGNALS_VIA_CHARACTERS
-
 /* Letter to use in finding device name of first pty,
    if system supports pty's.  'a' means it is /dev/ptya0  */
 #undef FIRST_PTY_LETTER

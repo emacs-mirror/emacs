@@ -59,6 +59,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
-
-/* Send signals to subprocesses by "typing" special chars at them.  */
-#define SIGNALS_VIA_CHARACTERS

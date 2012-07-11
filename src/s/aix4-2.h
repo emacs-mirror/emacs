@@ -41,9 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Special items needed to make Emacs run on this system.  */
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
-#define SIGNALS_VIA_CHARACTERS
-
-/* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #undef sigmask
 
 #ifndef HAVE_LIBXMU

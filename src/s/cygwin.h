@@ -76,6 +76,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    As malloc is not the Cygwin malloc, the Cygwin memalign always
    returns ENOSYS.  A workaround is to set G_SLICE=always-malloc. */
 #define G_SLICE_ALWAYS_MALLOC
-
-/* Send signals to subprocesses by "typing" special chars at them.  */
-#define SIGNALS_VIA_CHARACTERS

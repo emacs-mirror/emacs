@@ -3171,6 +3171,35 @@ dnl Used in sound.c
 AC_DEFINE_UNQUOTED(DEFAULT_SOUND_DEVICE, "$sound_device",
   [Name of the default sound device.])
 
+
+AH_TEMPLATE(SIGNALS_VIA_CHARACTERS, [Make process_send_signal work by
+"typing" a signal character on the pty.])
+
+case $opsys in
+  dnl Perry Smith <pedz@ddivt1.austin.ibm.com> says this is correct for AIX.
+  dnl thomas@mathematik.uni-bremen.de says this is needed for IRIX.
+  aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd )
+    AC_DEFINE(SIGNALS_VIA_CHARACTERS, 1)
+    ;;
+
+  dnl 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works. 
+  dnl FIXME Does gnu-kfreebsd have linux/version.h?  It seems unlikely...
+  gnu-linux | gnu-kfreebsd )
+
+    AC_MSG_CHECKING([for signals via characters])
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < 0x20400
+# error "Linux version too old"
+#endif
+      ]], [[]])], emacs_signals_via_chars=yes, emacs_signals_via_chars=no)
+
+    AC_MSG_RESULT([$emacs_signals_via_chars])
+    test $emacs_signals_via_chars = yes && AC_DEFINE(SIGNALS_VIA_CHARACTERS, 1)
+    ;;
+esac
+
+
 dnl Used in dispnew.c
 AH_TEMPLATE(PENDING_OUTPUT_COUNT, [Number of chars of output in the
 buffer of a stdio stream.])

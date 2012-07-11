@@ -25,17 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG
 #define GNU_LINUX
 
-#ifdef emacs
-#ifdef HAVE_LINUX_VERSION_H
-#include <linux/version.h>
-
-#if LINUX_VERSION_CODE >= 0x20400
-/* 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.  */
-#define SIGNALS_VIA_CHARACTERS
-#endif /* LINUX_VERSION_CODE >= 0x20400 */
-#endif /* HAVE_LINUX_VERSION_H */
-#endif /* emacs */
-
 #if defined HAVE_GRANTPT
 #define UNIX98_PTYS
 
