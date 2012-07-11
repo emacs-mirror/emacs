@@ -17,8 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Define HAVE_PTYS if the system supports pty devices.  */
-#define HAVE_PTYS
 #define PTY_ITERATION		int i; for (i = 0; i < 1; i++) /* ick */
 #define PTY_NAME_SPRINTF	/* none */
 #define PTY_TTY_NAME_SPRINTF	/* none */
@@ -45,8 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Used in various places to enable cygwin-specific code changes.  */
 #define CYGWIN 1
-
-#define HAVE_SOCKETS
 
 /* Emacs supplies its own malloc, but glib (part of Gtk+) calls
    memalign and on Cygwin, that becomes the Cygwin-supplied memalign.

@@ -49,9 +49,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* First pty name is /dev/ptyp0.  */
 #define FIRST_PTY_LETTER 'p'
-
-/* Define HAVE_PTYS if the system supports pty devices.  */
-#define HAVE_PTYS
-
-/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-#define HAVE_SOCKETS

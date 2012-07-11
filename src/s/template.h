@@ -33,9 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    if system supports pty's.  'a' means it is /dev/ptya0.  */
 #define FIRST_PTY_LETTER 'a'
 
-/* Define HAVE_PTYS if the system supports pty devices.  */
-#define HAVE_PTYS
-
 /* subprocesses should be undefined if you do NOT want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).

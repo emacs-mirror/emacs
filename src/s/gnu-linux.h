@@ -64,11 +64,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif  /* not HAVE_GRANTPT */
 
-/* Define HAVE_PTYS if the system supports pty devices.  */
-#define HAVE_PTYS
-
-#define HAVE_SOCKETS
-
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
    you might define certain system call names that don't

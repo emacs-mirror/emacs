@@ -34,9 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   if system supports pty's.  'a' means it is /dev/ptya0  */
 #define FIRST_PTY_LETTER 'p'
 
-/* Define HAVE_PTYS if the system supports pty devices.
-   Note: PTYs are broken on darwin <6.  Use at your own risk.  */
-#define HAVE_PTYS
 /* Run only once.  We need a `for'-loop because the code uses `continue'.  */
 #define PTY_ITERATION	int i; for (i = 0; i < 1; i++)
 #define PTY_NAME_SPRINTF	/* none */
@@ -65,9 +62,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* System uses OXTABS instead of the expected TAB3.  (Copied from bsd386.h.)  */
 #define TAB3 OXTABS
-
-/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-#define HAVE_SOCKETS
 
 /* Definitions for how to compile & link.  */
 #ifdef HAVE_NS

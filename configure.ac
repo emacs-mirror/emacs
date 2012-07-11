@@ -3132,6 +3132,18 @@ AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
   so that Emacs can tell instantly when you try to modify a file that
   someone else has modified in his/her Emacs.])
 
+dnl Everybody supports this, except MS.
+dnl Seems like the kind of thing we should be testing for, though.
+## Note: PTYs are broken on darwin <6.  Use at your own risk.
+AC_DEFINE(HAVE_PTYS, 1, [Define if the system supports pty devices.])
+
+dnl Everybody supports this, except MS-DOS.
+dnl Seems like the kind of thing we should be testing for, though.
+dnl Compare with HAVE_INET_SOCKETS (which is unused...) above.
+AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
+  4.2-compatible sockets.])
+
+
 case $opsys in
   darwin | gnu | hpux* | *bsd )
     AC_DEFINE(NO_TERMIO, 1, [Define if termio.h should not be included.])

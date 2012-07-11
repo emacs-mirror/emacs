@@ -32,11 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptc");
 #define PTY_TTY_NAME_SPRINTF strcpy (pty_name, ttyname (fd));
 
-/* Define HAVE_PTYS if the system supports pty devices.  */
-#define HAVE_PTYS
-
-/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-#define HAVE_SOCKETS
 
 /* Special items needed to make Emacs run on this system.  */
 

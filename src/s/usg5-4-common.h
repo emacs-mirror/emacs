@@ -51,9 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    constant to dimension an array.  So wire in the appropriate value here.  */
 #define NSIG_MINIMUM 32
 
-/* Define HAVE_PTYS if the system supports pty devices.  */
-#define HAVE_PTYS
-
 /* It is possible to receive SIGCHLD when there are no children
    waiting, because a previous waitsys(2) cleaned up the carcass of child
    without clearing the SIGCHLD pending info.  So, use a non-blocking
@@ -82,6 +79,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     fatal ("ioctl I_PUSH ldterm");	\
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
     fatal ("ioctl I_PUSH ttcompat");
-
-/* This definition was suggested for next release.  So give it a try.  */
-#define HAVE_SOCKETS

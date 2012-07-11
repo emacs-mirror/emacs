@@ -1,6 +1,7 @@
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (INTERRUPT_INPUT): Move here from src/s.
+	(HAVE_PTYS, HAVE_SOCKETS): Define unconditionally.
 
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
