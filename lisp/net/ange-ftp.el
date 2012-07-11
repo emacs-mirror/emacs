@@ -3793,7 +3793,8 @@ so return the size on the remote host exactly. See RFC 3659."
 		   (format "Copying %s to %s" f-abbr t-abbr)))
 	     (list 'ange-ftp-cf2
 		   newname t-host t-user binary temp1 temp2 cont)
-	     nowait))
+	     nowait)
+	    (ange-ftp-add-file-entry newname))
 
 	;; newname wasn't remote.
 	(ange-ftp-cf2 t nil newname t-host t-user binary temp1 temp2 cont))
