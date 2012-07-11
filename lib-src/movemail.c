@@ -137,15 +137,27 @@ static _Noreturn void fatal (const char *s1, const char *s2, const char *s3);
 static void error (const char *s1, const char *s2, const char *s3);
 static _Noreturn void pfatal_with_name (char *name);
 static _Noreturn void pfatal_and_delete (char *name);
-#ifdef MAIL_USE_MAILLOCK
-static void *xmalloc (size_t size);
-#endif
 #ifdef MAIL_USE_POP
 static int popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order);
 static int pop_retr (popserver server, int msgno, FILE *arg);
 static int mbx_write (char *line, int len, FILE *mbf);
 static int mbx_delimit_begin (FILE *mbf);
 static int mbx_delimit_end (FILE *mbf);
+#endif
+
+#if (MAIL_USE_MAILLOCK							\
+     || (!defined DISABLE_DIRECT_ACCESS && !defined MAIL_USE_MMDF	\
+	 && !defined MAIL_USE_SYSTEM_LOCK))
+/* Like malloc but get fatal error if memory is exhausted.  */
+
+static void *
+xmalloc (size_t size)
+{
+  void *result = malloc (size);
+  if (!result)
+    fatal ("virtual memory exhausted", 0, 0);
+  return result;
+}
 #endif
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
@@ -165,7 +177,7 @@ main (int argc, char **argv)
   int tem;
   char *lockname;
   char *tempname;
-  size_t inname_dirlen;
+  size_t inname_len, inname_dirlen;
   int desc;
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
@@ -293,8 +305,11 @@ main (int argc, char **argv)
 	 should define MAIL_USE_SYSTEM_LOCK but does not, send a bug report
 	 to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
 
-      lockname = concat (inname, ".lock", "");
-      for (inname_dirlen = strlen (inname);
+      inname_len = strlen (inname);
+      lockname = xmalloc (inname_len + sizeof ".lock");
+      strcpy (lockname, inname);
+      strcpy (lockname + inname_len, ".lock");
+      for (inname_dirlen = inname_len;
 	   inname_dirlen && !IS_DIRECTORY_SEP (inname[inname_dirlen - 1]);
 	   inname_dirlen--)
 	continue;
@@ -640,19 +655,6 @@ pfatal_and_delete (char *name)
   unlink (name);
   fatal ("%s for %s", s, name);
 }
-
-#ifdef MAIL_USE_MAILLOCK
-/* Like malloc but get fatal error if memory is exhausted.  */
-
-static void *
-xmalloc (size_t size)
-{
-  void *result = malloc (size);
-  if (!result)
-    fatal ("virtual memory exhausted", 0, 0);
-  return result;
-}
-#endif
 
 /* This is the guts of the interface to the Post Office Protocol.  */
 

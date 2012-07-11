@@ -1,5 +1,14 @@
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port 'movemail' again to Solaris and similar hosts.
+	See Susan Cragin's report in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00199.html>.
+	* movemail.c (xmalloc): Also define if !DISABLE_DIRECT_ACCESS &&
+	!MAIL_USE_MMDF && !MAIL_USE_SYSTEM_LOCK.  Move up, so it doesn't
+	need a forward declaration.
+	(main): Rewrite to avoid no-longer-present function 'concat', if
+	!DISABLE_DIRECT_ACCESS && !MAIL_USE_MMDF && !MAIL_USE_SYSTEM_LOCK.
+
 	Assume strerror.
 	* emacsclient.c, movemail.c, update-game-score.c (strerror)
 	[!HAVE_STRERROR]: Remove.
