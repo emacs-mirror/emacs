@@ -20,6 +20,10 @@
 
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Assume mkdir, rmdir.
+	* sysdep.c (mkdir) [!HAVE_MKDIR]: Remove.
+	* sysdep.c (rmdir) [!HAVE_RMDIR]: Remove.
+
 	Assume rename.
 	* sysdep.c (rename) [!HAVE_RENAME]: Remove.
 

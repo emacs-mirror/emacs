@@ -7,8 +7,8 @@
 
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Assume rename, strerror.
-	* configure.ac (rename, strerror): Remove check.
+	Assume mkdir, rename, rmdir, strerror.
+	* configure.ac (mkdir, rename, rmdir, strerror): Remove check.
 
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 

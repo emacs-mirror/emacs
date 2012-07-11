@@ -2708,7 +2708,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 
 AC_CHECK_FUNCS(gethostname \
-closedir mkdir rmdir getrusage get_current_dir_name \
+closedir getrusage get_current_dir_name \
 lrand48 logb frexp fmod cbrt setsid \
 fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
