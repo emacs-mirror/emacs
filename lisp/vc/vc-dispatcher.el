@@ -575,10 +575,10 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 
 ;; Set up key bindings for use while editing log messages
 
-(defun vc-log-edit (fileset mode)
+(defun vc-log-edit (fileset mode backend)
   "Set up `log-edit' for use on FILE."
   (setq default-directory
-	(with-current-buffer vc-parent-buffer default-directory))
+	(buffer-local-value 'default-directory vc-parent-buffer))
   (log-edit 'vc-finish-logentry
 	    nil
 	    `((log-edit-listfun . (lambda ()
@@ -586,14 +586,15 @@ NOT-URGENT means it is ok to continue if the user says not to save."
                                     ;; for directories.
                                     (mapcar 'file-relative-name
                                             ',fileset)))
-	      (log-edit-diff-function . (lambda () (vc-diff nil))))
+	      (log-edit-diff-function . vc-diff)
+	      (log-edit-vc-backend . ,backend)
+	      (vc-log-fileset . ,fileset))
 	    nil
 	    mode)
-  (set (make-local-variable 'vc-log-fileset) fileset)
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook)
+(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook backend)
   "Accept a comment for an operation on FILES.
 If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
@@ -604,7 +605,8 @@ entered COMMENT.  If COMMENT is t, also do action immediately with an
 empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  Puts the log-entry buffer in major-mode
 MODE, defaulting to `log-edit-mode' if MODE is nil.
-AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'."
+AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'.
+BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
   (let ((parent
          (if (vc-dispatcher-browsing)
              ;; If we are called from a directory browser, the parent buffer is
@@ -619,7 +621,7 @@ AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'."
     (set (make-local-variable 'vc-parent-buffer) parent)
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name vc-parent-buffer)))
-    (vc-log-edit files mode)
+    (vc-log-edit files mode backend)
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
       (setq vc-log-after-operation-hook after-hook))

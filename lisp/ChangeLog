@@ -1,3 +1,18 @@
+2012-07-11  Chong Yidong  <cyd@gnu.org>
+
+	* vc/log-edit.el (log-edit-vc-backend): New variable.
+	(log-edit): Doc fix.
+
+	* vc/vc-dispatcher.el (vc-log-edit): New args.  Use PARAMS
+	argument of log-edit to set up all local variables.
+	(vc-start-logentry): New optional arg specifying VC backend.
+
+	* vc/vc.el (vc-checkin): Use it.
+	(vc-deduce-fileset): Handle Log Edit buffers.
+	(vc-diff): Make first argument optional too.
+
+	* vc/log-view.el (log-view-vc-fileset, log-view-vc-backend): Doc fix.
+
 2012-07-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/esh-ext.el (eshell-remote-command): Remove remote part of
