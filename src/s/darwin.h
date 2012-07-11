@@ -126,8 +126,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    context as of Darwin 9/Mac OS X 10.5.  */
 #undef HAVE_WORKING_VFORK
 #define vfork fork
-
-/* Don't close pty in process.c to make it as controlling terminal.
-   It is already a controlling terminal of subprocess, because we did
-   ioctl TIOCSCTTY.  */
-#define DONT_REOPEN_PTY

@@ -26,11 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    that are handled with CPP __RENAME() macro in signal.h.  */
 #include <signal.h>
 
-/* Don't close pty in process.c to make it as controlling terminal.
-   It is already a controlling terminal of subprocess, because we did
-   ioctl TIOCSCTTY.  */
-#define DONT_REOPEN_PTY
-
 /* Tell that garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the jmp_buf.  */
 #define GC_SETJMP_WORKS 1

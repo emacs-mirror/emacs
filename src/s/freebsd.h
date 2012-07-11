@@ -33,11 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BSD_SYSTEM 199506
 #endif
 
-/* Don't close pty in process.c to make it as controlling terminal.
-   It is already a controlling terminal of subprocess, because we did
-   ioctl TIOCSCTTY.  */
-#define DONT_REOPEN_PTY
-
 /* Circumvent a bug in FreeBSD.  In the following sequence of
    writes/reads on a PTY, read(2) returns bogus data:
 

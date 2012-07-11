@@ -1,5 +1,8 @@
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* s/darwin.h, s/freebsd.h, s/netbsd.h:
+	Move DONT_REOPEN_PTY to configure.
+
 	* sound.c (DEFAULT_SOUND_DEVICE) [!WINDOWSNT]:
 	* s/netbsd.h (DEFAULT_SOUND_DEVICE): Let configure set it.
 

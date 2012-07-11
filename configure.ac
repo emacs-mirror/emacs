@@ -3145,6 +3145,14 @@ case $opsys in
   ;;
 esac
 
+case $opsys in
+  darwin | freebsd | netbsd | openbsd )
+    AC_DEFINE(DONT_REOPEN_PTY, 1, [Define if process.c does not need to
+      close a pty to make it a controlling terminal (it is already a
+      controlling terminal of the subprocess, because we did ioctl TIOCSCTTY).])
+  ;;
+esac
+
 dnl FIXME Surely we can test for this rather than hard-code it.
 case $opsys in
   netbsd | openbsd) sound_device="/dev/audio" ;;

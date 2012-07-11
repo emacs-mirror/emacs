@@ -1,5 +1,7 @@
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (DONT_REOPEN_PTY): Move here from src/s.
+
 	* configure.ac (DEFAULT_SOUND_DEVICE): New definition.
 
 2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
