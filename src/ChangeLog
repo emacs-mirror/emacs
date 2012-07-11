@@ -1,5 +1,9 @@
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* s/aix4-2.h, s/bsd-common.h, s/cygwin.h, s/darwin.h:
+	* s/gnu-linux.h, s/hpux10-20.h, s/template.h, s/usg5-4-common.h:
+	Move CLASH_DETECTION to configure.
+
 	* s/gnu.h: Remove file, which is now empty.
 
 	* s/gnu.h, s/gnu-linux.h:

@@ -1884,8 +1884,8 @@ Emacs uses symbolic links to implement file locks.  In a directory
 with +t bit, the directory owner becomes the owner of the symbolic
 link, so that it cannot be removed by anyone else.
 
-If you don't like those useless links, you can let Emacs not to using
-file lock by adding #undef CLASH_DETECTION to config.h.
+If you don't like those useless links, you can customize
+the option `create-lockfiles'.
 
 *** FreeBSD: Getting a Meta key on the console.
 

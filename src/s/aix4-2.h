@@ -42,7 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #define SIGNALS_VIA_CHARACTERS
-#define CLASH_DETECTION
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #undef sigmask

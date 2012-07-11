@@ -51,9 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    constant to dimension an array.  So wire in the appropriate value here.  */
 #define NSIG_MINIMUM 32
 
-/* We can support this.  */
-#define CLASH_DETECTION
-
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 

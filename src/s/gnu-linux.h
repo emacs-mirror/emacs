@@ -80,11 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-#define CLASH_DETECTION
-
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
    you might define certain system call names that don't

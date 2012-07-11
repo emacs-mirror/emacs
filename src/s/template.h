@@ -66,11 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* #undef subprocesses */
 
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-#define CLASH_DETECTION
-
 /* If the character used to separate elements of the executable path
    is not ':', #define this to be the appropriate character constant.  */
 /* #define SEPCHAR ':' */

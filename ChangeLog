@@ -1,5 +1,7 @@
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (CLASH_DETECTION): Define unconditionally.
+
 	* configure.ac (opsysfile): Use bsd-common on gnu systems.
 
 	* configure.ac (GNU_LIBRARY_PENDING_OUTPUT_COUNT):

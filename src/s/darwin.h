@@ -83,11 +83,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for process-connection-type dependent on the kernel version.  */
 #define MIN_PTY_KERNEL_VERSION '7'
 
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-#define CLASH_DETECTION
-
 /* Avoid the use of the name init_process (process.c) because it is
    also the name of a Mach system call.  */
 #define init_process emacs_init_process
