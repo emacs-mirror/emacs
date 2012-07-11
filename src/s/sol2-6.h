@@ -26,13 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define POSIX
 
-/* Prefer kstat over kvm in getloadavg.c, kstat doesn't require root.
-   ghazi@caip.rutgers.edu, 7/21/97.  Don't redefine if already defined
-   (e.g., by config.h). */
-#ifndef HAVE_LIBKSTAT
-#define HAVE_LIBKSTAT
-#endif
-
 /* This is the same definition as in usg5-4-common.h, but with sigblock/sigunblock
    rather than sighold/sigrelse, which appear to be BSD4.1 specific.
    It may also be appropriate for SVR4.x

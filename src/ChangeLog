@@ -1,3 +1,7 @@
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* s/sol2-6.h (HAVE_LIBKSTAT): Remove.  (Bug#11914)
+
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* s/darwin.h, s/gnu-linux.h, s/template.h:
