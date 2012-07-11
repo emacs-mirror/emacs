@@ -71,7 +71,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-#define POSIX                 /* affects getpagesize.h and systty.h */
 
 /* This is to work around mysterious gcc failures in some system versions.
    It is unlikely that Emacs changes will work around this problem;
