@@ -296,7 +296,9 @@
   (let* ((pkg-name (plist-get args :name))
          (git-config  (expand-file-name
                        (concat pkg-name "/.git/config")
-                       user-site-lisp-directory)))
+                       (if (boundp 'user-site-lisp-directory)
+                           user-site-lisp-directory
+                         user-emacs-directory))))
 
     (catch 'found
       ;; Look for a readable .git/config with at least one defined remote.
