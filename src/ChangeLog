@@ -1,5 +1,7 @@
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* s/gnu.h: Remove file, which is now empty.
+
 	* s/gnu.h, s/gnu-linux.h:
 	Move GNU_LIBRARY_PENDING_OUTPUT_COUNT to configure.
 

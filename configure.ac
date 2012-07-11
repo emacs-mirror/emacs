@@ -3254,6 +3254,8 @@ case $opsys in
 esac
 
 case $opsys in
+   gnu) opsysfile="s/bsd-common.h" ;;
+
    gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 
    hpux11)
