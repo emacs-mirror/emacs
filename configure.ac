@@ -3172,6 +3172,34 @@ AC_DEFINE_UNQUOTED(DEFAULT_SOUND_DEVICE, "$sound_device",
   [Name of the default sound device.])
 
 
+dnl Emacs can read input using SIGIO and buffering characters itself,
+dnl or using CBREAK mode and making C-g cause SIGINT.
+dnl The choice is controlled by the variable interrupt_input.
+dnl
+dnl Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
+dnl
+dnl Emacs uses the presence or absence of the SIGIO and BROKEN_SIGIO macros
+dnl to indicate whether or not signal-driven I/O is possible.  It uses
+dnl INTERRUPT_INPUT to decide whether to use it by default.
+dnl
+dnl SIGIO can be used only on systems that implement it (4.2 and 4.3).
+dnl CBREAK mode has two disadvantages
+dnl 1) At least in 4.2, it is impossible to handle the Meta key properly.
+dnl I hear that in system V this problem does not exist.
+dnl 2) Control-G causes output to be discarded.
+dnl I do not know whether this can be fixed in system V.
+dnl
+dnl Another method of doing input is planned but not implemented.
+dnl It would have Emacs fork off a separate process
+dnl to read the input and send it to the true Emacs process
+dnl through a pipe.
+case $opsys in
+  darwin | gnu-linux | gnu-kfreebsd )
+    AC_DEFINE(INTERRUPT_INPUT, 1, [Define to read input using SIGIO.])
+  ;;
+esac
+
+
 AH_TEMPLATE(SIGNALS_VIA_CHARACTERS, [Make process_send_signal work by
 "typing" a signal character on the pty.])
 

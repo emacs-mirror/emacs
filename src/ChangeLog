@@ -1,3 +1,8 @@
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* s/darwin.h, s/gnu-linux.h, s/template.h:
+	Move INTERRUPT_INPUT to configure.
+
 2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Minor adjustments to interning code.
