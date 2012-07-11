@@ -1,5 +1,7 @@
 2012-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* gnutls.c (Fgnutls_boot): Properly parse :keylist argument.
+
 	* coding.c (Fdefine_coding_system_internal): Use XCAR/XCDR instead
 	of Fcar/Fcdr if possible.
 	* font.c (check_otf_features): Likewise.
