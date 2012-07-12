@@ -1,3 +1,9 @@
+2012-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c: Add missing 'defined'.
+	Suggested by Sven Joachim in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00218.html>.
+
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port 'movemail' again to Solaris and similar hosts.

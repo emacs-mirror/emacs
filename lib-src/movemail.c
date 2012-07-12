@@ -145,7 +145,7 @@ static int mbx_delimit_begin (FILE *mbf);
 static int mbx_delimit_end (FILE *mbf);
 #endif
 
-#if (MAIL_USE_MAILLOCK							\
+#if (defined MAIL_USE_MAILLOCK						\
      || (!defined DISABLE_DIRECT_ACCESS && !defined MAIL_USE_MMDF	\
 	 && !defined MAIL_USE_SYSTEM_LOCK))
 /* Like malloc but get fatal error if memory is exhausted.  */
