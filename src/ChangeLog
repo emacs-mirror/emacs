@@ -1,3 +1,11 @@
+2012-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	Fix crash when creating indirect buffer (Bug#11917)
+	* buffer.c (buffer_lisp_local_variables): Add argument CLONE.
+	Don't handle unbound variables specially if non-zero.
+	(Fbuffer_local_variables): Pass zero.
+	(clone_per_buffer_values): Pass non-zero.
+
 2012-06-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnutls.c (emacs_gnutls_handshake): Revert last change.  Add QUIT
