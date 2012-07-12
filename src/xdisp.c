@@ -18257,13 +18257,12 @@ insert_left_trunc_glyphs (struct it *it)
 	  struct glyph *g = to;
 	  short used;
 
-	  while (g < toend && it->glyph_row->x + w < 0)
-	    {
-	      w += g->pixel_width;
-	      ++g;
-	    }
+	  /* The first glyph could be partially visible, in which case
+	     it->glyph_row->x will be negative.  But we want the left
+	     truncation glyphs to be aligned at the left margin of the
+	     window, so we override the x coordinate at which the row
+	     will begin.  */
 	  it->glyph_row->x = 0;
-	  w = 0;
 	  while (g < toend && w < it->truncation_pixel_width)
 	    {
 	      w += g->pixel_width;
@@ -18271,7 +18270,7 @@ insert_left_trunc_glyphs (struct it *it)
 	    }
 	  if (g - to - tused > 0)
 	    {
-	      memmove (to + tused, g, toend - g);
+	      memmove (to + tused, g, (toend - g) * sizeof(*g));
 	      it->glyph_row->used[TEXT_AREA] -= g - to - tused;
 	    }
 	  used = it->glyph_row->used[TEXT_AREA];
@@ -19616,6 +19615,8 @@ display_line (struct it *it)
 		      row->used[TEXT_AREA] = n_glyphs_before + i;
 
 		      /* Display continuation glyphs.  */
+		      it->current_x = x_before;
+		      it->continuation_lines_width += x;
 		      if (!FRAME_WINDOW_P (it->f)
 			  || (row->reversed_p
 			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
@@ -19623,8 +19624,6 @@ display_line (struct it *it)
 			produce_special_glyphs (it, IT_CONTINUATION);
 		      row->continued_p = 1;
 
-		      it->current_x = x_before;
-		      it->continuation_lines_width += x;
 		      extend_face_to_end_of_line (it);
 
 		      if (nglyphs > 1 && i > 0)
@@ -19768,38 +19767,11 @@ display_line (struct it *it)
 		      produce_special_glyphs (it, IT_TRUNCATION);
 		    }
 		}
-#ifdef HAVE_WINDOW_SYSTEM
 	      else
 		{
-		  /* On a GUI frame, when the right fringe (left
-		     fringe for R2L rows) is turned off, we produce
-		     truncation glyphs preceded by a stretch glyph
-		     whose width is computed such that the truncation
-		     glyphs are aligned at the window margin, even
-		     when very different fonts are used in different
-		     glyph rows.  */
-		  int stretch_width = it->last_visible_x - it->current_x;
-
 		  row->used[TEXT_AREA] = i;
-		  if (stretch_width > 0)
-		    {
-		      struct face *face = FACE_FROM_ID (it->f, it->face_id);
-		      struct font *font =
-			face->font ? face->font : FRAME_FONT (it->f);
-		      int stretch_ascent =
-			(((it->ascent + it->descent)
-			  * FONT_BASE (font)) / FONT_HEIGHT (font));
-		      struct text_pos saved_pos = it->position;
-
-		      memset (&it->position, 0, sizeof it->position);
-		      append_stretch_glyph (it, make_number (0), stretch_width,
-					    it->ascent + it->descent,
-					    stretch_ascent);
-		      it->position = saved_pos;
-		    }
 		  produce_special_glyphs (it, IT_TRUNCATION);
 		}
-#endif
 	    }
 	  else if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
@@ -24215,9 +24187,6 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   GLYPH glyph;
 
   temp_it = *it;
-  temp_it.dp = NULL;
-  temp_it.what = IT_CHARACTER;
-  temp_it.len = 1;
   temp_it.object = make_number (0);
   memset (&temp_it.current, 0, sizeof temp_it.current);
 
@@ -24251,6 +24220,46 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   else
     abort ();
 
+#ifdef HAVE_WINDOW_SYSTEM
+  /* On a GUI frame, when the right fringe (left fringe for R2L rows)
+     is turned off, we precede the truncation/continuation glyphs by a
+     stretch glyph whose width is computed such that these special
+     glyphs are aligned at the window margin, even when very different
+     fonts are used in different glyph rows.  */
+  if (FRAME_WINDOW_P (temp_it.f)
+      /* init_iterator calls this with it->glyph_row == NULL, and it
+	 wants only the pixel width of the truncation/continuation
+	 glyphs.  */
+      && temp_it.glyph_row
+      /* insert_left_trunc_glyphs calls us at the beginning of the
+	 row, and it has its own calculation of the stretch glyph
+	 width.  */
+      && temp_it.glyph_row->used[TEXT_AREA] > 0
+      && (temp_it.glyph_row->reversed_p
+	  ? WINDOW_LEFT_FRINGE_WIDTH (temp_it.w)
+	  : WINDOW_RIGHT_FRINGE_WIDTH (temp_it.w)) == 0)
+    {
+      int stretch_width = temp_it.last_visible_x - temp_it.current_x;
+
+      if (stretch_width > 0)
+	{
+	  struct face *face = FACE_FROM_ID (temp_it.f, temp_it.face_id);
+	  struct font *font =
+	    face->font ? face->font : FRAME_FONT (temp_it.f);
+	  int stretch_ascent =
+	    (((temp_it.ascent + temp_it.descent)
+	      * FONT_BASE (font)) / FONT_HEIGHT (font));
+
+	  append_stretch_glyph (&temp_it, make_number (0), stretch_width,
+				temp_it.ascent + temp_it.descent,
+				stretch_ascent);
+	}
+    }
+#endif
+
+  temp_it.dp = NULL;
+  temp_it.what = IT_CHARACTER;
+  temp_it.len = 1;
   temp_it.c = temp_it.char_to_display = GLYPH_CHAR (glyph);
   temp_it.face_id = GLYPH_FACE (glyph);
   temp_it.len = CHAR_BYTES (temp_it.c);

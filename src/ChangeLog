@@ -1,3 +1,17 @@
+2012-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (insert_left_trunc_glyphs): Fix incorrect size in
+	memmove call that removes glyphs covered by the left truncation
+	glyph.  Improve commentary.
+	(display_line): Fix display of continuation glyphs on GUI frames
+	when the right fringe is turned off and variable-size fonts are
+	used in the window.  Move the code that appends a stretch glyph to
+	produce_special_glyphs, so that it could be used for truncation
+	and continuation glyphs alike.
+	(produce_special_glyphs) [HAVE_WINDOW_SYSTEM]: Produce a stretch
+	glyph of a suitably computed width, to align the special glyphs at
+	the window margin.  Code moved from display_line.  (Bug#11832)
+
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
 	* s/gnu-linux.h (UNIX98_PTYS): Let configure set it.
