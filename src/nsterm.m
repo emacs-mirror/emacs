@@ -416,7 +416,7 @@ ns_timeout (int usecs)
   /* Keep waiting until past the time wakeup.  */
   while (1)
     {
-      EMACS_TIME now = current_emacs_time ();
+      EMACS_TIME timeout, now = current_emacs_time ();
       if (EMACS_TIME_LE (wakeup, now))
 	break;
       timeout = sub_emacs_time (wakeup, now);
@@ -1446,8 +1446,8 @@ ns_get_color (const char *name, NSColor **col)
       int i;
       scaling = strlen(name+start) / 3;
       for (i = 0; i < 3; i++)
-	snprintf (hex + i * (scaling + 1), "%.*s/", scaling,
-		  name + start + i * scaling);
+	sprintf (hex + i * (scaling + 1), "%.*s/", scaling,
+		 name + start + i * scaling);
       hex[3 * (scaling + 1) - 1] = '\0';
     }
 

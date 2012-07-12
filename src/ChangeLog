@@ -1,3 +1,11 @@
+2012-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix typos that broke OS X build.
+	Reported by Randal L. Schwartz in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00225.html>.
+	* nsterm.m (ns_timeout): Add missing local decl.
+	(ns_get_color): snprintf -> sprintf, to fix typo.
+
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
 	* src/s/aix4-2.h, src/s/cygwin.h, src/s/darwin.h:
