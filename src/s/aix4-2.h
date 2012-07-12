@@ -43,23 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NO_EDITRES
 #endif
 
-/* On AIX Emacs uses the gmalloc.c malloc implementation.  But given
-   the way this system works, libc functions that return malloced
-   memory use the libc malloc implementation. Calling xfree or
-   xrealloc on the results of such functions results in a crash.
-
-   One solution for this could be to define SYSTEM_MALLOC in configure,
-   but that does not currently work on this system.
-
-   It is possible to completely override the malloc implementation on
-   AIX, but that involves putting the malloc functions in a shared
-   library and setting the MALLOCTYPE environment variable to point to
-   that shared library.
-
-   Emacs currently calls xrealloc on the results of get_current_dir name,
-   to avoid a crash just use the Emacs implementation for that function.  */
-#define BROKEN_GET_CURRENT_DIR_NAME 1
-
 /* Conservative garbage collection has not been tested, so for now
    play it safe and stick with the old-fashioned way of marking.  */
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE

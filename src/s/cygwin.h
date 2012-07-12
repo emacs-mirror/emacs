@@ -36,9 +36,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Used in various places to enable cygwin-specific code changes.  */
 #define CYGWIN 1
-
-/* Emacs supplies its own malloc, but glib (part of Gtk+) calls
-   memalign and on Cygwin, that becomes the Cygwin-supplied memalign.
-   As malloc is not the Cygwin malloc, the Cygwin memalign always
-   returns ENOSYS.  A workaround is to set G_SLICE=always-malloc. */
-#define G_SLICE_ALWAYS_MALLOC

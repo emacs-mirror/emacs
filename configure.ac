@@ -2722,11 +2722,14 @@ getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start)
 
+dnl FIXME Fragile: something else may test for getwd as a dependency.
+dnl Change to defining BROKEN_xxx ?
 dnl getwd appears to be buggy on SVR4.2, so we don't use it.
 if test $opsys != unixware; then
   AC_CHECK_FUNCS(getwd)
 fi
 
+dnl FIXME Fragile: see above.
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
 ## version number A.09.05.
@@ -3171,6 +3174,47 @@ case $opsys in
     AC_DEFINE(BROKEN_SIGAIO, 1, [Define if SIGAIO should not be used.])
     AC_DEFINE(BROKEN_SIGPOLL,1, [Define if SIGPOLL should not be used.])
     AC_DEFINE(BROKEN_SIGPTY, 1, [Define if SIGPTY should not be used.])
+
+    dnl On AIX Emacs uses the gmalloc.c malloc implementation.  But given
+    dnl the way this system works, libc functions that return malloced
+    dnl memory use the libc malloc implementation. Calling xfree or
+    dnl xrealloc on the results of such functions results in a crash.
+    dnl
+    dnl One solution for this could be to define SYSTEM_MALLOC in configure,
+    dnl but that does not currently work on this system.
+    dnl
+    dnl It is possible to completely override the malloc implementation on
+    dnl AIX, but that involves putting the malloc functions in a shared
+    dnl library and setting the MALLOCTYPE environment variable to point to
+    dnl that shared library.
+    dnl
+    dnl Emacs currently calls xrealloc on the results of get_current_dir name,
+    dnl to avoid a crash just use the Emacs implementation for that function.
+    dnl
+    dnl FIXME We could change the AC_CHECK_FUNCS call near the start
+    dnl of this file, so that we do not check for get_current_dir_name
+    dnl on AIX.  But that might be fragile if something else ends
+    dnl up testing for get_current_dir_name as a dependency.
+    AC_DEFINE(BROKEN_GET_CURRENT_DIR_NAME, 1, [Define if
+      get_current_dir_name should not be used.])
+    ;;
+
+  freebsd)
+    dnl Circumvent a bug in FreeBSD.  In the following sequence of
+    dnl writes/reads on a PTY, read(2) returns bogus data:
+    dnl
+    dnl write(2)  1022 bytes
+    dnl write(2)   954 bytes, get EAGAIN
+    dnl read(2)   1024 bytes in process_read_output
+    dnl read(2)     11 bytes in process_read_output
+    dnl
+    dnl That is, read(2) returns more bytes than have ever been written
+    dnl successfully.  The 1033 bytes read are the 1022 bytes written
+    dnl successfully after processing (for example with CRs added if the
+    dnl terminal is set up that way which it is here).  The same bytes will
+    dnl be seen again in a later read(2), without the CRs.
+    AC_DEFINE(BROKEN_PTY_READ_AFTER_EAGAIN, 1, [Define on FreeBSD to
+      work around an issue when reading from a PTY.])
     ;;
 
   dnl Define the following so emacs symbols will not conflict with those
@@ -3393,6 +3437,16 @@ esac
 
 
 case $opsys in
+  dnl Emacs supplies its own malloc, but glib (part of Gtk+) calls
+  dnl memalign and on Cygwin, that becomes the Cygwin-supplied memalign.
+  dnl As malloc is not the Cygwin malloc, the Cygwin memalign always
+  dnl returns ENOSYS.  A workaround is to set G_SLICE=always-malloc. */
+  cygwin)
+    AC_DEFINE(G_SLICE_ALWAYS_MALLOC, 1, [Define to set the
+      G_SLICE environment variable to "always-malloc" at startup, if
+      using GTK.])
+    ;;
+
   gnu) opsysfile="s/bsd-common.h" ;;
 
   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
