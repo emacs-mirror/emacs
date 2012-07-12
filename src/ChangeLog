@@ -1,3 +1,7 @@
+2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* s/gnu-linux.h (UNIX98_PTYS): Let configure set it.
+
 2012-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix typos that broke OS X build.

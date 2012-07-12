@@ -25,10 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG
 #define GNU_LINUX
 
-#if defined HAVE_GRANTPT
-#define UNIX98_PTYS
-#endif  /* HAVE_GRANTPT */
-
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
    you might define certain system call names that don't

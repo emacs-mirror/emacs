@@ -3340,6 +3340,7 @@ case $opsys in
   gnu-linux | gnu-kfreebsd )
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
+      AC_DEFINE(UNIX98_PTYS, 1, [Define if the system has Unix98 PTYs.])
       AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
       dnl Note that grantpt and unlockpt may fork.  We must block SIGCHLD
       dnl to prevent sigchld_handler from intercepting the child's death.
