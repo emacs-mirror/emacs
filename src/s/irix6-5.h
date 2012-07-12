@@ -70,8 +70,6 @@ char *_getpty();
 /* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
 #define PREFER_VSUSP
 
-#define NARROWPROTO 1
-
 #undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
 
 #undef TIOCSIGSEND		/* defined in usg5-4-common.h */

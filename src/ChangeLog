@@ -1,3 +1,8 @@
+2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* s/bsd-common.h, s/cygwin.h, s/gnu-linux.h, s/irix6-5.h:
+	* s/template.h: Move NARROWPROTO to configure.
+
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* s/gnu-linux.h, s/sol2-6.h: No longer define POSIX,

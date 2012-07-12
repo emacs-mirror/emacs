@@ -79,8 +79,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_XRMSETDATABASE
 #endif
 
-#define NARROWPROTO 1
-
 #ifdef __ia64__
 #define GC_MARK_SECONDARY_STACK()				\
   do {								\
