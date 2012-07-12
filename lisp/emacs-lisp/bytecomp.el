@@ -1591,7 +1591,7 @@ that already has a `.elc' file."
                         (not (auto-save-file-name-p source))
                         (not (string-equal dir-locals-file
                                            (file-name-nondirectory source))))
-                   (progn (incf
+                   (progn (cl-incf
                            (pcase (byte-recompile-file source force arg)
                              (`no-byte-compile skip-count)
                              (`t file-count)

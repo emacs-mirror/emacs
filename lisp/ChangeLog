@@ -1,3 +1,8 @@
+2012-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory): Use cl-incf,
+	not incf.
+
 2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	More CL cleanups and reduction of use of cl.el.
