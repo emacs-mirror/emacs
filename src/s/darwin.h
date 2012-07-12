@@ -32,19 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PTY_NAME_SPRINTF	/* none */
 #define PTY_TTY_NAME_SPRINTF	/* none */
-/* Note that openpty may fork via grantpt on Mac OS X 10.4/Darwin 8.
-   But we don't have to block SIGCHLD because it is blocked in the
-   implementation of grantpt.  */
-#define PTY_OPEN						\
-  do								\
-    {								\
-      int slave;						\
-      if (openpty (&fd, &slave, pty_name, NULL, NULL) == -1)	\
-	fd = -1;						\
-      else							\
-	emacs_close (slave);					\
-    }								\
-  while (0)
 
 /* PTYs only work correctly on Darwin 7 or higher.  So make the default
    for process-connection-type dependent on the kernel version.  */

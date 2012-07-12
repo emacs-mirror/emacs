@@ -34,26 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef emacs
 char *_getpty();
 #endif
-/* Here is how to do it.  */
-#define PTY_OPEN					    \
-{							    \
-  struct sigaction ocstat, cstat;			    \
-  struct stat stb;					    \
-  char * name;						    \
-  sigemptyset(&cstat.sa_mask);				    \
-  cstat.sa_handler = SIG_DFL;				    \
-  cstat.sa_flags = 0;					    \
-  sigaction(SIGCLD, &cstat, &ocstat);			    \
-  name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0);	    \
-  sigaction(SIGCLD, &ocstat, (struct sigaction *)0);	    \
-  if (name == 0)					    \
-    return -1;						    \
-  if (fd < 0)						    \
-    return -1;						    \
-  if (fstat (fd, &stb) < 0)				    \
-    return -1;						    \
-  strcpy (pty_name, name);				    \
-}
 
 /* Ulimit(UL_GMEMLIM) is busted...  */
 #define ULIMIT_BREAK_VALUE 0x14000000

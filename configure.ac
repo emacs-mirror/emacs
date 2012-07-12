@@ -3298,6 +3298,7 @@ dnl Only used if !PTY_ITERATION.  Iterate from FIRST_PTY_LETTER to z,
 dnl trying suffixes 0-16.
 AH_TEMPLATE(FIRST_PTY_LETTER, [Letter to use in finding device name of
   first PTY, if PTYs are supported.])
+AH_TEMPLATE(PTY_OPEN, [How to open a PTY, if non-standard.])
 
 case $opsys in
   aix4-2 )
@@ -3306,12 +3307,18 @@ case $opsys in
 
   cygwin )
     AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+    dnl multi-line AC_DEFINEs are hard. :(
+    AC_DEFINE(PTY_OPEN, [ do { int dummy; SIGMASKTYPE mask; mask = sigblock (sigmask (SIGCHLD)); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; sigsetmask (mask); if (fd >= 0) emacs_close (dummy); } while (0)] )
     ;;
 
   darwin )
     AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
     dnl Not used, because PTY_ITERATION is defined.
     AC_DEFINE(FIRST_PTY_LETTER, ['p'])
+    dnl Note that openpty may fork via grantpt on Mac OS X 10.4/Darwin 8.
+    dnl But we don't have to block SIGCHLD because it is blocked in the
+    dnl implementation of grantpt.
+    AC_DEFINE(PTY_OPEN, [ do { int slave; if (openpty (&fd, &slave, pty_name, NULL, NULL) == -1) fd = -1; else emacs_close (slave); } while (0)] )
     ;;
 
   gnu | hpux* | freebsd | netbsd | openbsd )
@@ -3322,6 +3329,10 @@ case $opsys in
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
       AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+      dnl if HAVE_GETPT
+      if test "x$ac_cv_func_getpt" = xyes; then
+        AC_DEFINE(PTY_OPEN, [fd = getpt ()])
+      fi
     else
       AC_DEFINE(FIRST_PTY_LETTER, ['p'])
     fi
@@ -3341,6 +3352,7 @@ case $opsys in
     AC_DEFINE(PTY_ITERATION, [])
     dnl Not used, because PTY_ITERATION is defined.
     AC_DEFINE(FIRST_PTY_LETTER, ['q'])
+    AC_DEFINE(PTY_OPEN, [ { struct sigaction ocstat, cstat; struct stat stb; char * name; sigemptyset(&cstat.sa_mask); cstat.sa_handler = SIG_DFL; cstat.sa_flags = 0; sigaction(SIGCLD, &cstat, &ocstat); name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0); sigaction(SIGCLD, &ocstat, (struct sigaction *)0); if (name == 0) return -1; if (fd < 0) return -1; if (fstat (fd, &stb) < 0) return -1; strcpy (pty_name, name); }] )
     ;;
 
   sol2* | unixware )

@@ -1,5 +1,8 @@
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
+	* s/cygwin.h, s/darwin.h, s/gnu-linux.h, s/irix6-5.h:
+	Move PTY_OPEN to configure.
+
 	* s/aix4-2.h, s/bsd-common.h, s/cygwin.h, s/darwin.h:
 	* s/gnu-linux.h, s/hpux10-20.h, s/irix6-5.h, s/template.h:
 	* s/usg5-4-common.h: Move FIRST_PTY_LETTER, PTY_ITERATION to configure.
