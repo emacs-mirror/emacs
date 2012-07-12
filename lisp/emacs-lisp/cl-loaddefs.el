@@ -7,11 +7,11 @@
 ;;;;;;  cl-getf cl-get cl-tailp cl-list-length cl-nreconc cl-revappend
 ;;;;;;  cl-concatenate cl-subseq cl-float-limits cl-random-state-p
 ;;;;;;  cl-make-random-state cl-random cl-signum cl-rem cl-mod cl-round
-;;;;;;  cl-truncate cl-ceiling cl-floor cl-isqrt cl-lcm cl-gcd cl--progv-before
-;;;;;;  cl--set-frame-visible-p cl--map-overlays cl--map-intervals
-;;;;;;  cl--map-keymap-recursively cl-notevery cl-notany cl-every
-;;;;;;  cl-some cl-mapcon cl-mapcan cl-mapl cl-maplist cl-map cl--mapcar-many
-;;;;;;  cl-equalp cl-coerce) "cl-extra" "cl-extra.el" "3656b89f2196d70e50ba9d7bb9519416")
+;;;;;;  cl-truncate cl-ceiling cl-floor cl-isqrt cl-lcm cl-gcd cl--set-frame-visible-p
+;;;;;;  cl--map-overlays cl--map-intervals cl--map-keymap-recursively
+;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
+;;;;;;  cl-mapl cl-maplist cl-map cl--mapcar-many cl-equalp cl-coerce)
+;;;;;;  "cl-extra" "cl-extra.el" "535a24c1cff55a16e3d51219498a7858")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -101,11 +101,6 @@ Return true if PREDICATE is false of some element of SEQ or SEQs.
 
 
 \(fn FRAME VAL)" nil nil)
-
-(autoload 'cl--progv-before "cl-extra" "\
-
-
-\(fn SYMS VALUES)" nil nil)
 
 (autoload 'cl-gcd "cl-extra" "\
 Return the greatest common divisor of the arguments.
@@ -257,15 +252,15 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;### (autoloads (cl--compiler-macro-cXXr cl--compiler-macro-list*
 ;;;;;;  cl--compiler-macro-adjoin cl-defsubst cl-compiler-macroexpand
 ;;;;;;  cl-define-compiler-macro cl-assert cl-check-type cl-typep
-;;;;;;  cl-deftype cl-defstruct cl-callf2 cl-callf cl-rotatef cl-shiftf
-;;;;;;  cl-remf cl-psetf cl-declare cl-the cl-locally cl-multiple-value-setq
-;;;;;;  cl-multiple-value-bind cl-symbol-macrolet cl-macrolet cl-labels
-;;;;;;  cl-flet* cl-flet cl-progv cl-psetq cl-do-all-symbols cl-do-symbols
-;;;;;;  cl-dotimes cl-dolist cl-do* cl-do cl-loop cl-return-from
-;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
-;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
-;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "e7bb76130254614df1603a1c1e89cb49")
+;;;;;;  cl-deftype cl-defstruct cl-callf2 cl-callf cl-letf* cl-letf
+;;;;;;  cl-rotatef cl-shiftf cl-remf cl-psetf cl-declare cl-the cl-locally
+;;;;;;  cl-multiple-value-setq cl-multiple-value-bind cl-symbol-macrolet
+;;;;;;  cl-macrolet cl-labels cl-flet* cl-flet cl-progv cl-psetq
+;;;;;;  cl-do-all-symbols cl-do-symbols cl-dotimes cl-dolist cl-do*
+;;;;;;  cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
+;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
+;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
+;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "a175c7714223c21a617b0460e130f1d8")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\
@@ -346,7 +341,7 @@ Key values are compared by `eql'.
 (put 'cl-case 'lisp-indent-function '1)
 
 (autoload 'cl-ecase "cl-macs" "\
-Like `cl-case', but error if no cl-case fits.
+Like `cl-case', but error if no case fits.
 `otherwise'-clauses are not allowed.
 
 \(fn EXPR (KEYLIST BODY...)...)" nil t)
@@ -441,6 +436,8 @@ An implicit nil block is established around the loop.
 
 \(fn (VAR LIST [RESULT]) BODY...)" nil t)
 
+(put 'cl-dolist 'lisp-indent-function '1)
+
 (autoload 'cl-dotimes "cl-macs" "\
 Loop a certain number of times.
 Evaluate BODY with VAR bound to successive integers from 0, inclusive,
@@ -448,6 +445,8 @@ to COUNT, exclusive.  Then evaluate RESULT to get return value, default
 nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)" nil t)
+
+(put 'cl-dotimes 'lisp-indent-function '1)
 
 (autoload 'cl-do-symbols "cl-macs" "\
 Loop over all symbols.
@@ -502,7 +501,8 @@ Like `cl-flet' but the definitions can refer to previous ones.
 
 (autoload 'cl-labels "cl-macs" "\
 Make temporary function bindings.
-The bindings can be recursive.  Assumes the use of `lexical-binding'.
+The bindings can be recursive and the scoping is lexical, but capturing them
+in closures will only work if `lexical-binding' is in use.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
 
@@ -598,6 +598,29 @@ Example: (cl-rotatef A B C) sets A to B, B to C, and C to A.  It returns nil.
 Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 
 \(fn PLACE...)" nil t)
+
+(autoload 'cl-letf "cl-macs" "\
+Temporarily bind to PLACEs.
+This is the analogue of `let', but with generalized variables (in the
+sense of `setf') for the PLACEs.  Each PLACE is set to the corresponding
+VALUE, then the BODY forms are executed.  On exit, either normally or
+because of a `throw' or error, the PLACEs are set back to their original
+values.  Note that this macro is *not* available in Common Lisp.
+As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
+the PLACE is not modified before executing BODY.
+
+\(fn ((PLACE VALUE) ...) BODY...)" nil t)
+
+(put 'cl-letf 'lisp-indent-function '1)
+
+(autoload 'cl-letf* "cl-macs" "\
+Temporarily bind to PLACEs.
+Like `cl-letf' but where the bindings are performed one at a time,
+rather than all at the end (i.e. like `let*' rather than like `let').
+
+\(fn BINDINGS &rest BODY)" nil t)
+
+(put 'cl-letf* 'lisp-indent-function '1)
 
 (autoload 'cl-callf "cl-macs" "\
 Set PLACE to (FUNC PLACE ARGS...).
