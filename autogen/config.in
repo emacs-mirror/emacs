@@ -46,11 +46,29 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
+/* Define if FIONREAD should not be used. */
+#undef BROKEN_FIONREAD
+
+/* Define if get_current_dir_name should not be used. */
+#undef BROKEN_GET_CURRENT_DIR_NAME
+
+/* Define on FreeBSD to work around an issue when reading from a PTY. */
+#undef BROKEN_PTY_READ_AFTER_EAGAIN
+
 /* Define if SA_RESTART should only be used in batch mode. */
 #undef BROKEN_SA_RESTART
 
+/* Define if SIGAIO should not be used. */
+#undef BROKEN_SIGAIO
+
 /* Define if SIGIO should not be used. */
 #undef BROKEN_SIGIO
+
+/* Define if SIGPOLL should not be used. */
+#undef BROKEN_SIGPOLL
+
+/* Define if SIGPTY should not be used. */
+#undef BROKEN_SIGPTY
 
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
@@ -101,6 +119,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    enabled. */
 #undef ENABLE_CHECKING
 
+/* Letter to use in finding device name of first PTY, if PTYs are supported.
+   */
+#undef FIRST_PTY_LETTER
+
 /* Define to 1 if futimesat mishandles a NULL file name. */
 #undef FUTIMESAT_NULL_BUG
 
@@ -147,6 +169,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you want to use the GNU memory allocator. */
 #undef GNU_MALLOC
+
+/* Define to set the G_SLICE environment variable to "always-malloc" at
+   startup, if using GTK. */
+#undef G_SLICE_ALWAYS_MALLOC
 
 /* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
 #undef HAVE_AIX_SMT_EXP
@@ -671,6 +697,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the pthread_sigmask function can be used (despite bugs). */
 #undef HAVE_PTHREAD_SIGMASK
 
+/* Define if the system supports pty devices. */
+#undef HAVE_PTYS
+
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H
 
@@ -736,6 +765,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
+
+/* Define if the system supports 4.2-compatible sockets. */
+#undef HAVE_SOCKETS
 
 /* Define to 1 if you have sound support. */
 #undef HAVE_SOUND
@@ -1023,6 +1055,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to support using a Hesiod database to find the POP server. */
 #undef HESIOD
 
+/* Define to read input using SIGIO. */
+#undef INTERRUPT_INPUT
+
 /* Define to support Kerberos-authenticated POP mail retrieval. */
 #undef KERBEROS
 
@@ -1053,6 +1088,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to support POP mail retrieval. */
 #undef MAIL_USE_POP
+
+/* Define if system's imake configuration file defines `NeedWidePrototypes' as
+   `NO'. */
+#undef NARROWPROTO
+
+/* Do not define abort in emacs.c. */
+#undef NO_ABORT
 
 /* Define to 1 if you don't have struct exception in math.h. */
 #undef NO_MATHERR
@@ -1107,6 +1149,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    png_longjmp. */
 #undef PNG_DEPSTRUCT
 
+/* Define if process_send_signal should use VSUSP instead of VSWTCH. */
+#undef PREFER_VSUSP
+
 /* Define to 1 if pthread_sigmask(), when it fails, returns -1 and sets errno.
    */
 #undef PTHREAD_SIGMASK_FAILS_WITH_ERRNO
@@ -1120,6 +1165,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'ptrdiff_t'. */
 #undef PTRDIFF_T_SUFFIX
+
+/* How to iterate over PTYs. */
+#undef PTY_ITERATION
+
+/* How to get the device name of the control end of a PTY, if non-standard. */
+#undef PTY_NAME_SPRINTF
+
+/* How to open a PTY, if non-standard. */
+#undef PTY_OPEN
+
+/* How to get device name of the tty end of a PTY, if non-standard. */
+#undef PTY_TTY_NAME_SPRINTF
 
 /* Define to 1 if readlink fails to recognize a trailing slash. */
 #undef READLINK_TRAILING_SLASH_BUG
@@ -1135,6 +1192,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if stat needs help when passed a file name with a trailing
    slash */
 #undef REPLACE_FUNC_STAT_FILE
+
+/* Define if emacs.c needs to call run_time_remap; for HPUX. */
+#undef RUN_TIME_REMAP
+
+/* Define if process.c:child_setup should not call setpgrp. */
+#undef SETPGRP_RELEASES_CTTY
 
 /* Make process_send_signal work by "typing" a signal character on the pty. */
 #undef SIGNALS_VIA_CHARACTERS
@@ -1172,6 +1235,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* The type of system you are compiling for; sets `system-type'. */
 #undef SYSTEM_TYPE
+
+/* Undocumented. */
+#undef TAB3
+
+/* Undocumented. */
+#undef TABDLY
 
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
@@ -1246,6 +1315,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define this to check for malloc buffer overrun. */
 #undef XMALLOC_OVERRUN_CHECK
+
+/* Compensate for a bug in Xos.h on some systems, where it requires time.h. */
+#undef XOS_NEEDS_TIME_H
 
 /* Define to the type of the 6th arg of XRegisterIMInstantiateCallback, either
    XPointer or XPointer*. */

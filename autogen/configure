@@ -16786,7 +16786,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_struct_exception" >&5
 $as_echo "$emacs_cv_struct_exception" >&6; }
 HAVE_EXCEPTION=$emacs_cv_struct_exception
-if test $emacs_cv_struct_exception != yes; then
+if test $emacs_cv_struct_exception != yes || test $opsys = darwin; then
 
 $as_echo "#define NO_MATHERR 1" >>confdefs.h
 
@@ -22624,6 +22624,16 @@ fi
 $as_echo "#define CLASH_DETECTION 1" >>confdefs.h
 
 
+## Note: PTYs are broken on darwin <6.  Use at your own risk.
+
+$as_echo "#define HAVE_PTYS 1" >>confdefs.h
+
+
+
+$as_echo "#define HAVE_SOCKETS 1" >>confdefs.h
+
+
+
 case $opsys in
   darwin | gnu | hpux* | *bsd )
 
@@ -22632,12 +22642,44 @@ $as_echo "#define NO_TERMIO 1" >>confdefs.h
   ;;
 esac
 
+
 case $opsys in
-  hpux* | irix6-5 | openbsd | sol2* | unixware )
+      hpux* | irix6-5 | openbsd | sol2* | unixware )
 
 $as_echo "#define BROKEN_SIGIO 1" >>confdefs.h
 
-  ;;
+    ;;
+
+  aix4-2)
+
+$as_echo "#define BROKEN_FIONREAD 1" >>confdefs.h
+
+
+$as_echo "#define BROKEN_SIGAIO 1" >>confdefs.h
+
+
+$as_echo "#define BROKEN_SIGPOLL 1" >>confdefs.h
+
+
+$as_echo "#define BROKEN_SIGPTY 1" >>confdefs.h
+
+
+
+$as_echo "#define BROKEN_GET_CURRENT_DIR_NAME 1" >>confdefs.h
+
+    ;;
+
+  freebsd)
+
+$as_echo "#define BROKEN_PTY_READ_AFTER_EAGAIN 1" >>confdefs.h
+
+    ;;
+
+      darwin)
+
+$as_echo "#define NO_ABORT 1" >>confdefs.h
+
+    ;;
 esac
 
 case $opsys in
@@ -22666,6 +22708,132 @@ cat >>confdefs.h <<_ACEOF
 #define DEFAULT_SOUND_DEVICE "$sound_device"
 _ACEOF
 
+
+
+case $opsys in
+  darwin | gnu-linux | gnu-kfreebsd )
+
+$as_echo "#define INTERRUPT_INPUT 1" >>confdefs.h
+
+  ;;
+esac
+
+
+case $opsys in
+  cygwin|gnu|gnu-linux|gnu-kfreebsd|irix6-5|freebsd|netbsd|openbsd)
+
+$as_echo "#define NARROWPROTO 1" >>confdefs.h
+
+  ;;
+esac
+
+
+
+
+
+
+
+
+case $opsys in
+  aix4-2 )
+    $as_echo "#define PTY_ITERATION int c; for (c = 0; !c ; c++) " >>confdefs.h
+
+            $as_echo "#define PTY_NAME_SPRINTF strcpy (pty_name, \"/dev/ptc\"); " >>confdefs.h
+
+    $as_echo "#define PTY_TTY_NAME_SPRINTF strcpy (pty_name, ttyname (fd)); " >>confdefs.h
+
+    ;;
+
+  cygwin )
+    $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++) " >>confdefs.h
+
+        $as_echo "#define PTY_OPEN  do { int dummy; SIGMASKTYPE mask; mask = sigblock (sigmask (SIGCHLD)); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; sigsetmask (mask); if (fd >= 0) emacs_close (dummy); } while (0) " >>confdefs.h
+
+    $as_echo "#define PTY_NAME_SPRINTF  " >>confdefs.h
+
+    $as_echo "#define PTY_TTY_NAME_SPRINTF  " >>confdefs.h
+
+    ;;
+
+  darwin )
+    $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++) " >>confdefs.h
+
+        $as_echo "#define FIRST_PTY_LETTER 'p'" >>confdefs.h
+
+                $as_echo "#define PTY_OPEN  do { int slave; if (openpty (&fd, &slave, pty_name, NULL, NULL) == -1) fd = -1; else emacs_close (slave); } while (0) " >>confdefs.h
+
+    $as_echo "#define PTY_NAME_SPRINTF  " >>confdefs.h
+
+    $as_echo "#define PTY_TTY_NAME_SPRINTF  " >>confdefs.h
+
+    ;;
+
+  gnu | freebsd | netbsd | openbsd )
+    $as_echo "#define FIRST_PTY_LETTER 'p'" >>confdefs.h
+
+    ;;
+
+  gnu-linux | gnu-kfreebsd )
+        if test "x$ac_cv_func_grantpt" = xyes; then
+      $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++) " >>confdefs.h
+
+                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname; sigblock (sigmask (SIGCHLD)); if (grantpt (fd) == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname(fd))) { sigunblock (sigmask (SIGCHLD)); close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); sigunblock (sigmask (SIGCHLD)); } " >>confdefs.h
+
+            if test "x$ac_cv_func_getpt" = xyes; then
+        $as_echo "#define PTY_OPEN fd = getpt ()" >>confdefs.h
+
+        $as_echo "#define PTY_NAME_SPRINTF  " >>confdefs.h
+
+      else
+        $as_echo "#define PTY_NAME_SPRINTF strcpy (pty_name, \"/dev/ptmx\"); " >>confdefs.h
+
+      fi
+    else
+      $as_echo "#define FIRST_PTY_LETTER 'p'" >>confdefs.h
+
+    fi
+    ;;
+
+  hpux*)
+    $as_echo "#define FIRST_PTY_LETTER 'p'" >>confdefs.h
+
+    $as_echo "#define PTY_NAME_SPRINTF sprintf (pty_name, \"/dev/ptym/pty%c%x\", c, i); " >>confdefs.h
+
+    $as_echo "#define PTY_TTY_NAME_SPRINTF sprintf (pty_name, \"/dev/pty/tty%c%x\", c, i); " >>confdefs.h
+
+    ;;
+
+  irix6-5 )
+                                            $as_echo "#define PTY_ITERATION /**/" >>confdefs.h
+
+        $as_echo "#define FIRST_PTY_LETTER 'q'" >>confdefs.h
+
+    $as_echo "#define PTY_OPEN  { struct sigaction ocstat, cstat; struct stat stb; char * name; sigemptyset(&cstat.sa_mask); cstat.sa_handler = SIG_DFL; cstat.sa_flags = 0; sigaction(SIGCLD, &cstat, &ocstat); name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0); sigaction(SIGCLD, &ocstat, (struct sigaction *)0); if (name == 0) return -1; if (fd < 0) return -1; if (fstat (fd, &stb) < 0) return -1; strcpy (pty_name, name); } " >>confdefs.h
+
+        $as_echo "#define PTY_NAME_SPRINTF  " >>confdefs.h
+
+        $as_echo "#define PTY_TTY_NAME_SPRINTF  " >>confdefs.h
+
+    ;;
+
+  sol2* )
+            $as_echo "#define FIRST_PTY_LETTER 'z'" >>confdefs.h
+
+    $as_echo "#define PTY_NAME_SPRINTF strcpy (pty_name, \"/dev/ptmx\"); " >>confdefs.h
+
+                            $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; sigblock (sigmask (SIGCLD)); if (grantpt (fd) == -1) { emacs_close (fd); return -1; } sigunblock (sigmask (SIGCLD)); if (unlockpt (fd) == -1) { emacs_close (fd); return -1; } if (!(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); } " >>confdefs.h
+
+    ;;
+
+    unixware )
+    $as_echo "#define FIRST_PTY_LETTER 'z'" >>confdefs.h
+
+    $as_echo "#define PTY_NAME_SPRINTF strcpy (pty_name, \"/dev/ptmx\"); " >>confdefs.h
+
+    $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; sigblock(sigmask(SIGCLD)); if (grantpt(fd) == -1) fatal(\"could not grant slave pty\"); sigunblock(sigmask(SIGCLD)); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); } " >>confdefs.h
+
+    ;;
+esac
 
 
 
@@ -22825,12 +22993,50 @@ case $opsys in
     ;;
 esac
 
+
+
+
 case $opsys in
-   gnu) opsysfile="s/bsd-common.h" ;;
+  darwin) $as_echo "#define TAB3 OXTABS" >>confdefs.h
+ ;;
 
-   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
+  gnu | freebsd | netbsd | openbsd )
 
-   hpux11)
+$as_echo "#define TABDLY OXTABS" >>confdefs.h
+
+    $as_echo "#define TAB3 OXTABS" >>confdefs.h
+
+    ;;
+
+  hpux*)
+
+$as_echo "#define RUN_TIME_REMAP 1" >>confdefs.h
+
+    ;;
+esac
+
+
+case $opsys in
+  hpux* | sol2* )
+
+$as_echo "#define XOS_NEEDS_TIME_H 1" >>confdefs.h
+
+    ;;
+esac
+
+
+case $opsys in
+          cygwin)
+
+$as_echo "#define G_SLICE_ALWAYS_MALLOC 1" >>confdefs.h
+
+    ;;
+
+  gnu) opsysfile="s/bsd-common.h" ;;
+
+  gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
+
+  hpux11)
 
 $as_echo "#define BROKEN_SA_RESTART 1" >>confdefs.h
 
@@ -22838,17 +23044,26 @@ $as_echo "#define BROKEN_SA_RESTART 1" >>confdefs.h
 $as_echo "#define USG_SUBTTY_WORKS 1" >>confdefs.h
 
 
-     opsysfile="s/hpux10-20.h"
-   ;;
+    opsysfile="s/hpux10-20.h"
+    ;;
 
-   openbsd) opsysfile="s/netbsd.h" ;;
+  irix6-5)
 
-   sol2-10)
+$as_echo "#define PREFER_VSUSP 1" >>confdefs.h
+
+
+$as_echo "#define SETPGRP_RELEASES_CTTY 1" >>confdefs.h
+
+    ;;
+
+  openbsd) opsysfile="s/netbsd.h" ;;
+
+  sol2-10)
 
 $as_echo "#define _STRUCTURED_PROC 1" >>confdefs.h
 
-     opsysfile="s/sol2-6.h"
-   ;;
+    opsysfile="s/sol2-6.h"
+    ;;
 esac
 
 # Set up the CFLAGS for real compilation, so we can substitute it.
